@@ -357,6 +357,7 @@ INST_DYNAMIC_DEP =
 		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
 		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
 		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
+		my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 
 		###################################################
 		## Add extra make instructions that don't quite fit into the
@@ -432,7 +433,11 @@ INST_DYNAMIC_DEP =
 
 		# make the C Front End.
 		my $def2;
-		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(DESTDIR)\$(FRONTEND_DIR) ";
+		my $def1 = "OSNAME=\$(OSNAME) " .
+			   "PPATH=\$(INSTALLPRIVLIB)/VRML " .
+			   "DEFINE=\"$MYDEFINE\" ".
+			   "BINDIR=\$(DESTDIR)\$(FRONTEND_DIR) ";
+
 		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
 			print "COMPILING WITH BOUNDSCHECKING\n";
 			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";

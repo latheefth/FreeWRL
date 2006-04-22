@@ -263,6 +263,15 @@ void EventLoop() {
 		}
 	}
 
+	/* if we are not letting Motif handle things, check here for keys, etc */
+	#ifndef HAVE_MOTIF
+	while (XPending(Xdpy)) {
+		XNextEvent(Xdpy, &event);
+		handle_Xevents(event);
+	}
+
+	#endif
+
 	#ifdef PROFILEMARKER
 	glTranslatef(3,3,3); glTranslatef (-3,-3,-3);
 	#endif
@@ -1079,12 +1088,14 @@ void displayThread() {
 			/* FreeWRL SceneGraph */
 			EventLoop();
 
-			/* X11 Windowing calls */
 			#ifndef AQUA
+			#ifdef HAVE_MOTIF
+			/* X11 Windowing calls */
         		while (XtAppPending(freewrlXtAppContext)!= 0) {
                 		XtAppNextEvent(freewrlXtAppContext, &event);
                 		XtDispatchEvent (&event);
 			}
+			#endif
 			#endif
 		}
 	

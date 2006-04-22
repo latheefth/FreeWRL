@@ -143,7 +143,7 @@ int parseCommandLine (int argc, char **argv) {
 				setGeometry ("800x600");
 				break;
 			case 's': /* Alberto Dubuc - no status bar */
-				//JAS display_status = 0;
+				/* display_status = 0; */
 				break;
 
 				/* Shutter patches from Mufti @rus */

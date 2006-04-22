@@ -24,7 +24,7 @@ freewrl: fwopts fwWindow
 	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
 	$(LIBS) \
 	-L/usr/X11R6/lib \
-	-lXm -lGLw -lXt -lpthread -lFreeWRLFunc $(BC)\
+	-lGLw -lXt -lpthread -lFreeWRLFunc $(BC)\
 
 clean:
 	rm -f *o; rm -f perlxsi*; rm -f freewrl;

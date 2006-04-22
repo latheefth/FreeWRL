@@ -11,8 +11,6 @@
 /* get the definitions from the command line */
 #include "vrmlconf.h"
 
-#define HAVE_MOTIF
-
 /* vrmlconf.h should have the AQUA definition - so get the GL headers */
 #ifdef AQUA
 #include <gl.h>

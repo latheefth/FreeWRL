@@ -131,8 +131,10 @@ int main (int argc, char **argv) {
 static int CaughtSEGV = FALSE;
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */
 void catch_SIGQUIT() {
-	//ConsoleMessage ("FreeWRL got a sigquit signal");
-	// shut up any SIGSEGVs we might get now.
+	/*
+		ConsoleMessage ("FreeWRL got a sigquit signal");
+	 shut up any SIGSEGVs we might get now.
+	*/
 	CaughtSEGV = TRUE;
     	doQuit();
 }
@@ -150,7 +152,7 @@ void catch_SIGALRM(int sig)
     signal(SIGALRM, SIG_IGN);
 
     /* stuffs to do on alarm */
-    //fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n");
+    /* fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n"); */
     /* end of alarm actions */
 
     alarm(0);

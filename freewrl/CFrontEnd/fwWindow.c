@@ -26,6 +26,8 @@ Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
  #include <stdio.h>
  #include <unistd.h>
  #include <math.h>
+
+#ifdef HAVE_MOTIF
  #include <Xm/MainW.h>
  #include <Xm/RowColumn.h>
  #include <Xm/PushB.h>
@@ -39,12 +41,14 @@ Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
  #include <Xm/Text.h>
  #include <Xm/ScrolledW.h>
  #include <Xm/FileSB.h>
-
  #include <GL/GLwDrawA.h> 
+#endif
+
  #include <X11/keysym.h>
  #include <GL/gl.h>
  #include <GL/glu.h>
  #include <GL/glx.h>
+#include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 
 int xPos = 0; 
@@ -52,7 +56,21 @@ int yPos = 0;
 static int screen;
 static int quadbuff_stereo_mode;
 extern Cursor arrowc, sensorc;
+long    event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
+                                ButtonMotionMask | ButtonReleaseMask |
+                                ExposureMask | StructureNotifyMask |
+                                PointerMotionMask;
 
+
+#ifndef HAVE_MOTIF
+char    *wintitle =  "FreeWRL VRML/X3D Browser";
+XTextProperty windowName;
+Window Pwin;
+static Colormap Cmap;
+static XSetWindowAttributes Swa;
+#endif
+
+#ifdef HAVE_MOTIF
 void myXtManageChild (int c, Widget child) {
 	#ifdef XTDEBUG
 	printf ("at %d, managing %d\n",c, child);
@@ -60,6 +78,7 @@ void myXtManageChild (int c, Widget child) {
 
 	if (child != NULL) XtManageChild (child);
 }
+#endif
 
 
 /*
@@ -74,7 +93,7 @@ static int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
 
 static int  default_attributes0[] =
    {
-   GLX_DEPTH_SIZE,	 24,		// JAS
+   GLX_DEPTH_SIZE,	 24,
    GLX_RED_SIZE,	   8,
    GLX_DOUBLEBUFFER,       GL_TRUE,
 #ifdef GLX_STEREO
@@ -109,7 +128,10 @@ static int  default_attributes3[] =
 
 
 extern int	shutterGlasses; /* stereo shutter glasses */
+XtAppContext freewrlXtAppContext;
 
+
+#ifdef HAVE_MOTIF
 static String defaultResources[] = {
 	"*title: FreeWRL VRML X3D Browser ",
 	"*freewrlDrawArea*width: 600", "*freewrlDrawArea*height: 400", NULL
@@ -120,7 +142,6 @@ int MainWidgetRealized = FALSE;
 int msgWindowOnscreen = FALSE;
 int consWindowOnscreen = FALSE;
 
-XtAppContext freewrlXtAppContext;
 Widget freewrlTopWidget, mainw, menubar,menuworkwindow;
 Widget menumessagewindow = NULL; /* tested against NULL in code */
 Widget frame, freewrlDrawArea;
@@ -137,6 +158,8 @@ Widget newFileWidget;
 Arg args[10];
 Arg buttonArgs[10]; int buttonArgc = 0;
 Arg textArgs[10]; int textArgc = 0;
+#endif
+
 
 #define MAXSTAT 200
 float myFps = 0.0;
@@ -152,12 +175,17 @@ Set window variables from FreeWRL
 ************************************************************************/
 
 void setMenuButton_collision (int val) {
+	#ifdef HAVE_MOTIF
 	XmToggleButtonSetState (collisionButton,val,FALSE);
+	#endif
 }
 void setMenuButton_headlight (int val) {
+	#ifdef HAVE_MOTIF
 	XmToggleButtonSetState (headlightButton,val,FALSE);
+	#endif
 }
 void setMenuButton_navModes (int type) {
+	#ifdef HAVE_MOTIF
 	int fl, ex, wa;
 	fl = FALSE; ex = FALSE; wa = FALSE;
 	switch(type) {
@@ -170,9 +198,11 @@ void setMenuButton_navModes (int type) {
 	XmToggleButtonSetState (walkButton,wa,FALSE);
 	XmToggleButtonSetState (flyButton,fl,FALSE);
 	XmToggleButtonSetState (examineButton,ex,FALSE);
+	#endif
 }
 
 void setMessageBar() {
+	#ifdef HAVE_MOTIF
 	char fpsstr[MAXSTAT+20];
 	
 	if (menumessagewindow != NULL) {
@@ -189,6 +219,7 @@ void setMessageBar() {
 		}
 		XmTextSetString(menumessagewindow,fpsstr);
 	}
+	#endif
 
 }
 void setMenuStatus(char *stat) {
@@ -201,6 +232,7 @@ void setMenuFps (float fps) {
 }
 
 void setConsoleMessage (char *str) {
+	#ifdef HAVE_MOTIF
 
 	/* is the consoleTextWidget created yet?? */
 	if (!isDisplayInitialized()) {
@@ -216,8 +248,10 @@ void setConsoleMessage (char *str) {
 		/* put the text here */
 		XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),str);
 	}
+	#endif
 }
 
+#ifdef HAVE_MOTIF
 /************************************************************************
 
 Callbacks to handle button presses, etc.
@@ -481,9 +515,11 @@ void createNavigatePulldown() {
 	
 		/* Straighten */
 		myXtManageChild(18,XmCreateSeparator (menupane, "sep1", NULL, 0));
-		//btn = XmCreatePushButton (menupane, "Straighten", NULL, 0);
-		//XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointStraighten, NULL);
-		//myXtManageChild (19,btn);
+		/*
+		btn = XmCreatePushButton (menupane, "Straighten", NULL, 0);
+		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointStraighten, NULL);
+		myXtManageChild (19,btn);
+		*/
 		consolemessageButton = XtCreateManagedWidget("Console Display",
 			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback(consolemessageButton, XmNvalueChangedCallback, 
@@ -521,7 +557,9 @@ void createHelpPulldown() {
 		XmStringFree(diastring);
 		XtAddCallback(about_widget, XmNokCallback, unManageMe, NULL);
 		removeWidgetFromSelect (about_widget, XmDIALOG_CANCEL_BUTTON);
-		// causes segfault on Core3 removeWidgetFromSelect (about_widget, XmDIALOG_HELP_BUTTON);
+		/*
+		 causes segfault on Core3 removeWidgetFromSelect (about_widget, XmDIALOG_HELP_BUTTON);
+		*/
 
 
 		btn = XmCreatePushButton (menupane, "About FreeWRL...", NULL, 0);
@@ -602,7 +640,7 @@ void createDrawingFrame(void) {
 
 	myXtManageChild(27,freewrlDrawArea);
 }
-
+#endif
 
 
 void getVisual(void) {
@@ -626,31 +664,32 @@ void createGLContext(void) {
 	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_TRUE);
 	#endif
 
-	if (GLcx == NULL)
-	      XtAppError (freewrlXtAppContext, "could not create rendering context");
+	if (GLcx == NULL) {
+		#ifdef HAVE_MOTIF
+		XtAppError (freewrlXtAppContext, "could not create rendering context");
+		#else
+		printf ("FreeWRL - Could not create rendering context\n");
+		#endif
+	}
 
 	/* we have to wait until the main widget is realized to get the GLwin */
-	while (MainWidgetRealized == FALSE) {
+	while (isDisplayInitialized() == FALSE) {
 		printf ("MainWidgetRealized = FALSE, sleeping...\n");
 		sleep (1);
 	}
 
 	/* get window id for later calls - we use more window refs than widget refs */
+	#ifdef HAVE_MOTIF
 	GLwin = XtWindow(freewrlDrawArea);
+	#else
+	/* only 1 window; no borders, menus, etc. so both GLwin and Xwin are the same */
+	GLwin = Xwin;
+	#endif
 
 	/* tell the X window system that we desire the following
 	   attributes for this window */
 
-	XSelectInput (Xdpy, GLwin, 
-		ExposureMask | 
-		ButtonPressMask |
-		ButtonReleaseMask |
-		KeyPressMask |
-		KeyReleaseMask |
-		PointerMotionMask);
-
-
-	/* myXtManageChild(28,freewrlDrawArea); */
+	XSelectInput (Xdpy, GLwin, event_mask);
 
 	glXMakeCurrent (Xdpy, GLwin,  GLcx);
 
@@ -665,8 +704,10 @@ void createGLContext(void) {
 
 void openMainWindow (int argc, char **argv) {
 	int bestMode;
+	#ifdef HAVE_MOTIF
 	argc = 0;
 	String dummyargc[] = { " ", " "};
+	#endif
 
 	#ifdef DO_TWO_OPENGL_THREADS
 	XInitThreads();
@@ -676,15 +717,21 @@ void openMainWindow (int argc, char **argv) {
 	myMenuStatus[0] = '\0';
 
 
+	#ifdef HAVE_MOTIF
 	freewrlTopWidget = XtAppInitialize (&freewrlXtAppContext, "FreeWRL", NULL, 0, 
 		&argc, dummyargc, defaultResources, NULL, 0);
 
 	Xdpy = XtDisplay (freewrlTopWidget);
-
 	/* do not bother mapping this, if we are a plugin. */
 	if (RUNNINGASPLUGIN) {
 		XtSetMappedWhenManaged (freewrlTopWidget,False);
 	}
+	#else
+        /* get a connection */
+        Xdpy = XOpenDisplay(0);
+        if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
+	#endif
+
 
 	bestMode = -1;
 	screen = DefaultScreen(Xdpy);
@@ -713,9 +760,8 @@ void openMainWindow (int argc, char **argv) {
 	/* Find an OpenGL-capable RGB visual with depth buffer. */
 	getVisual();
 
+	#ifdef HAVE_MOTIF
 	mainw = XmCreateMainWindow (freewrlTopWidget, "mainw", NULL, 0);
-
-
 	myXtManageChild (29,mainw);
 
 	/* Create a menu bar. */
@@ -737,6 +783,37 @@ void openMainWindow (int argc, char **argv) {
 	MainWidgetRealized = TRUE;
 
 	Xwin = XtWindow (freewrlTopWidget);
+	#else
+	/* create a color map */
+	Cmap = XCreateColormap(Xdpy, RootWindow(Xdpy, Xvi->screen),Xvi->visual, AllocNone);
+        /* create a window */
+        Swa.colormap = Cmap;
+        Swa.border_pixel = 0;
+        Swa.event_mask = event_mask;
+
+
+	Pwin = RootWindow(Xdpy, Xvi->screen);
+	Xwin = XCreateWindow(Xdpy, Pwin,
+		xPos, yPos, screenWidth, screenHeight, 0, Xvi->depth, InputOutput,
+		Xvi->visual, CWBorderPixel | CWColormap | CWEventMask, &Swa);
+
+	/* create window and icon name */
+	if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
+		fprintf(stderr,
+			"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
+			wintitle);
+	}
+	XSetWMName(Xdpy, Xwin, &windowName);
+	XSetWMIconName(Xdpy, Xwin, &windowName);
+	
+	/* are we running without Motif, and as a plugin? */
+	if (!RUNNINGASPLUGIN) {
+                        /* just map us to the display */
+                        XMapWindow(Xdpy, Xwin);
+                        XSetInputFocus(Xdpy, Pwin, RevertToParent, CurrentTime);
+	}
+	#endif
+
 	if (RUNNINGASPLUGIN) {
 		sendXwinToPlugin(Xwin);
 	}
@@ -815,7 +892,11 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 }
 
 int isDisplayInitialized (void) {
+	#ifdef HAVE_MOTIF
 	return  (MainWidgetRealized);
+	#else
+	return TRUE;
+	#endif
 }
 
 
