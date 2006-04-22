@@ -401,7 +401,7 @@ extern struct sNaviInfo naviinfo;
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
-extern unsigned _fw_instance;
+extern uintptr_t _fw_instance;
 int checkIfX3DVRMLFile(char *fn);
 void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
