@@ -691,6 +691,8 @@ void createGLContext(void) {
 
 	XSelectInput (Xdpy, GLwin, event_mask);
 
+	/* lets make sure everything is sync'd up */
+	XFlush(Xdpy);
 	glXMakeCurrent (Xdpy, GLwin,  GLcx);
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
