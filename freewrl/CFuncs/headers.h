@@ -656,6 +656,8 @@ void EAI_replaceWorld(const char *inputstring);
 
 void render_hier(void *p, int rwhat);
 void handle_EAI(void);
+void handle_aqua(const int mev, const unsigned int button, const float x, const float y);
+
 
 extern int screenWidth, screenHeight;
 
