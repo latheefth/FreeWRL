@@ -531,7 +531,7 @@ void handle_Xevents(XEvent event) {
 			break;
 		case ButtonPress:
 		case ButtonRelease:
-			printf("got a button press or button release\n");
+			/* printf("got a button press or button release\n"); */
 			/*  if a button is pressed, we should not change state,*/
 			/*  so keep a record.*/
 			if (event.xbutton.button>=5) break;  /* bounds check*/
@@ -539,7 +539,7 @@ void handle_Xevents(XEvent event) {
 
 			/* if we are Not over a sensitive node, and we do NOT
 			   already have a button down from a sensitive node... */
-			printf("cursoroversensitive is %d\n", CursorOverSensitive);
+			/* printf("cursoroversensitive is %d\n", CursorOverSensitive); */
 			if ((CursorOverSensitive==0) &&
 					(lastPressedOver==0))  {
 				NavigationMode=ButDown[1] || ButDown[3];
@@ -549,7 +549,7 @@ void handle_Xevents(XEvent event) {
 			}
                                 break;
                         case MotionNotify:
-			printf("got a motion notify\n");
+			/* printf("got a motion notify\n"); */
 			/*  do we have more motion notify events queued?*/
 			if (XPending(Xdpy)) {
 				XPeekEvent(Xdpy,&nextevent);
@@ -560,7 +560,7 @@ void handle_Xevents(XEvent event) {
 			/*  save the current x and y positions for picking.*/
 			currentX = event.xbutton.x;
 			currentY = event.xbutton.y;
-			printf("navigationMode is %d\n", NavigationMode);
+			/* printf("navigationMode is %d\n", NavigationMode); */
 
 			if (NavigationMode) {
 				/*  find out what the first button down is*/

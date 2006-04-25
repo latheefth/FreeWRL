@@ -281,8 +281,9 @@ LIBRARY = $(OBJDIR)/js32.lib
 SHARED_LIBRARY = $(OBJDIR)/js32.dll
 PROGRAM = $(OBJDIR)/js.exe
 else
-LIBRARY = $(OBJDIR)/libjs.a
-SHARED_LIBRARY = $(OBJDIR)/libjs.$(SO_SUFFIX)
+# change libjs to libFreeWRLjs to avoid version problems. J. Stewart.
+LIBRARY = $(OBJDIR)/libFreeWRLjs.a
+SHARED_LIBRARY = $(OBJDIR)/libFreeWRLjs.$(SO_SUFFIX)
 PROGRAM = $(OBJDIR)/js
 ifdef JS_PERLCONNECT
 PROG_LIBS += $(PERLLDFLAGS)

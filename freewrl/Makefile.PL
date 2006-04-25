@@ -149,7 +149,7 @@ if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 
 push @inc, $VRML_CONFIG{FREEWRL_INC},
 	"-I../JS/$jsobjdir", "-IJS/$jsobjdir", "-IJS/$jsdir", "-I../JS/$jsdir -ICFuncs";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/", "-ljs";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/", "-lFreeWRLjs";
 push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/";
 
 # push build directory, for running standalone
@@ -248,7 +248,7 @@ close OUT;
 
 print STDERR "Checking for the Mozilla JavaScript Reference library and application.\n";
 
-if (-e "JS/$jsobjdir/libjs.a" && -e "JS/$jsobjdir/libjs.so" && -e "JS/$jsobjdir/js") {
+if (-e "JS/$jsobjdir/libFreeWRLjs.a" && -e "JS/$jsobjdir/libFreeWRLjs.so" && -e "JS/$jsobjdir/js") {
     print STDERR "The Javascript library and application were found.\n";
 } else {
     print STDERR "The Javascript library and application were not found - make them.\n";
@@ -404,9 +404,9 @@ INST_DYNAMIC_DEP =
 		# Copy fonts over, etc.
 		push(@postamble, join(
 				  "\n",
-				qq{\# copy fonts, libjs.so over\n},
+				qq{\# copy fonts, libFreeWRLjs.so over\n},
 				qq{\tcp -r fonts \$(DESTINSTALLPRIVLIB)/VRML\n},
-				qq{\tcp JS/$jsobjdir/libjs.so \$(DESTDIR)$LIB_DIR\n},
+				qq{\tcp JS/$jsobjdir/libFreeWRLjs.so \$(DESTDIR)$LIB_DIR/libFreeWRLjs.so\n},
 				qq{\# copy copy the initialization file over\n},
 				qq{\tcp CFrontEnd/fw2init.pl \$(DESTINSTALLPRIVLIB)/VRML\n},
 				));
@@ -614,7 +614,7 @@ INST_DYNAMIC_DEP =
 				qq{\techo \"%files\" >> $specfile},
 				qq{\techo \"%defattr(-,root,root)\" >> $specfile},
 				qq{\techo \"$lib_dir\/libFreeWRLFunc.so\" >> $specfile},
-				qq{\techo \"$lib_dir\/libjs.so\" >> $specfile},
+				qq{\techo \"$lib_dir\/libFreeWRLjs.so\" >> $specfile},
 				qq{\techo \"$bin_dir\/FreeWRL_Message\" >> $specfile},
 				qq{\techo \"$bin_dir\/freewrl\" >> $specfile},
 				qq{\techo -n \$(INSTALLSITEARCH) >> $specfile},
