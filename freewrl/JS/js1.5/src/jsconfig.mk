@@ -108,7 +108,7 @@ SHIP_DIST  = $(MOZ_DEPTH)/dist/$(OBJDIR)
 SHIP_DIR   = $(SHIP_DIST)/SHIP
 
 # change libjs to libFreeWRLjs - to make sure there are no version probs. J. Stewart
-SHIP_LIBS      = libjs.$(SO_SUFFIX) libFreeWRLjs.a
+SHIP_LIBS      = libFreeWRLjs.$(SO_SUFFIX) libFreeWRLjs.a
 ifdef JS_LIVECONNECT
   SHIP_LIBS   += libjsj.$(SO_SUFFIX) libjsj.a
 endif
