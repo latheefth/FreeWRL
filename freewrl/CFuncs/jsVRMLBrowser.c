@@ -429,12 +429,28 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 		if (JSVAL_IS_STRING(argv[count])) {
 			_str = JSVAL_TO_STRING(argv[count]);
 			_id_c = JS_GetStringBytes(_str);
-			printf ("%s", _id_c);
+			#ifdef AQUA
+			ConsoleMessage(_id_c);
+			#else
+				#ifdef HAVE_MOTIF 
+				ConsoleMessage(_id_c);
+				#else
+				printf ("%s", _id_c);
+				#endif
+			#endif
 		} else {
 	/*		printf ("unknown arg type %d\n",count); */
 		}
 	}
-	printf ("\n");
+	#ifdef AQUA
+	ConsoleMessage("\n");
+	#else
+		#ifdef HAVE_MOTIF 
+		/* ConsoleMessage("\n"); */
+		#else
+		printf ("\n");
+		#endif
+	#endif
 	*rval = _rval;
 	return JS_TRUE;
 }

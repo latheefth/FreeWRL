@@ -59,6 +59,7 @@ int ConsoleMessage(const char *fmt, ...) {
 	}
 	#endif
 
+	#ifndef HAVE_MOTIF
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
 
@@ -68,6 +69,7 @@ int ConsoleMessage(const char *fmt, ...) {
 		consMsgCount = MAXMESSAGES + 100; /* some number quite large */
 	} else {
 		consMsgCount++;
+	#endif
 	
 		va_start(ap, fmt);		 /* must be called before work	 */
 		while (*fmt) {
@@ -138,7 +140,9 @@ int ConsoleMessage(const char *fmt, ...) {
 		}
 	
 		va_end(ap);				/* clean up				 */
+#ifndef HAVE_MOTIF
 	}
+#endif
 
 #ifdef AQUA
 	sendCM(FWbuffer);

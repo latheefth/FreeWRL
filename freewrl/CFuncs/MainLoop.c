@@ -345,6 +345,8 @@ void EventLoop() {
 		render_hier(rootNode,VF_Sensitive);
 		CursorOverSensitive = rayHit();
 
+		/* printf ("last pressed over %d cos %d\n", lastPressedOver, CursorOverSensitive); */
+
 		/* did we have a click of button 1? */
 		if (ButDown[1] && (lastPressedOver==0)) {
 			/*  printf ("Not Navigation and 1 down\n");*/
@@ -882,7 +884,7 @@ void setSensitive(void *ptr,void *datanode,char *type) {
 	struct X3D_Box *p;
 	void (*myp)(unsigned *);
 
-	/* printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);*/
+	/* printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type); */
 
 	if (strncmp("TouchSensor",type,10) == 0) { myp =  (void *)do_TouchSensor;
 	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = (void *)do_GeoTouchSensor;
@@ -925,6 +927,7 @@ void setSensitive(void *ptr,void *datanode,char *type) {
 	SensorEvents[num_SensorEvents].datanode = datanode;
 	SensorEvents[num_SensorEvents].interpptr = (void *)myp;
 
+	/* printf ("saved it in num_SensorEvents %d\n",num_SensorEvents); */
 	num_SensorEvents++;
 }
 
@@ -938,7 +941,6 @@ void sendSensorEvents(unsigned char * COS,int ev, int status) {
 
 	for (count = 0; count < num_SensorEvents; count++) {
 		if (SensorEvents[count].fromnode == COS) {
-
 			/* should we set/use hypersensitive mode? */
 			if (ev==ButtonPress) {
 				hypersensitive = SensorEvents[count].fromnode;
@@ -952,7 +954,8 @@ void sendSensorEvents(unsigned char * COS,int ev, int status) {
 
 
 			SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,status);
-			return;
+			/* return; do not do this, incase more than 1 node uses this, eg,
+				an Anchor with a child of TouchSensor */
 		}
 	}
 }
