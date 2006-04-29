@@ -272,6 +272,8 @@ void reloadFile (Widget w, XtPointer data, XtPointer callData) {
 	/* Anchor - this is just a "replace world" call */
 	Anchor_ReplaceWorld (BrowserFullPath);
 }
+void ViewpointFirst (Widget w, XtPointer data, XtPointer callData) {First_ViewPoint();}
+void ViewpointLast (Widget w, XtPointer data, XtPointer callData) {Last_ViewPoint();}
 void ViewpointNext (Widget w, XtPointer data, XtPointer callData) {Next_ViewPoint();}
 void ViewpointPrev (Widget w, XtPointer data, XtPointer callData) {Prev_ViewPoint();}
 
@@ -475,12 +477,18 @@ void createNavigatePulldown() {
 	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
 	
 		/* Viewpoints */
+		btn = XmCreatePushButton (menupane, "First Viewpoint", NULL, 0);
+		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointFirst, NULL);
+		myXtManageChild (30,btn);
 		btn = XmCreatePushButton (menupane, "Next Viewpoint", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointNext, NULL);
 		myXtManageChild (9,btn);
 		btn = XmCreatePushButton (menupane, "Prev Viewpoint", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointPrev, NULL);
 		myXtManageChild (10,btn);
+		btn = XmCreatePushButton (menupane, "Last Viewpoint", NULL, 0);
+		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointLast, NULL);
+		myXtManageChild (31,btn);
 
 
 		/* Navigation Mode Selection */
