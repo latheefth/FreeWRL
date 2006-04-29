@@ -579,7 +579,7 @@ INST_DYNAMIC_DEP =
 			  qq{rpm::},
 				qq{\t# make the gzip file of the dist.},
 				qq{\ttar -cf $RPM_PREFIX/SOURCES/$sourcepackage ..\/$srcdir},
-				qq{\trm $RPM_PREFIX/SOURCES/$sourcepackage.gz},
+				qq{\trm -f $RPM_PREFIX/SOURCES/$sourcepackage.gz},
 				qq{\tgzip $RPM_PREFIX/SOURCES/$sourcepackage\n},
 				qq{\t#make the spec file.},
 				qq{\techo \"Summary: A vrml viewer\" > $specfile},
