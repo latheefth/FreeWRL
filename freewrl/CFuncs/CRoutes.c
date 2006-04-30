@@ -189,10 +189,14 @@ int num_ClockEvents = 0;
 */
 void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 	if (tptr != 0) {
-		/* printf ("can update this node %d %d\n",tn,tptr); */
+		#ifdef CRVERBOSE
+		printf ("markScriptResults: can update this node %d %d\n",tn,tptr); 
+		#endif
 		update_node(tn);
+	#ifdef CRVERBOSE
 	} else {
-		/*printf ("skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag); */
+		printf ("markScriptResults: skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag); 
+	#endif
 	}
 
 	mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
@@ -1166,7 +1170,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		return;
 	}
 	len = JSVAL_TO_INT(mainElement);
-	/* printf ("getmuiltie length of grv is %d old len is %d\n",len,tn->n);  */
+	printf ("getmuiltie length of grv is %d old len is %d\n",len,tn->n);
 
 	/* do we have to realloc memory? */
 	if (len != tn->n) {
@@ -1216,6 +1220,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			   return;
 			}
 		}
+printf ("getJSMultiNumType - got %f %f %f\n",(float *) tn->p,f2,f3);
 
 	}
 	tn->n = len;
@@ -2615,7 +2620,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				tptr = to_ptr->foffset;
 
 				#ifdef CRVERBOSE 
-					printf ("VALUE CHANGED! copy value and update %d\n",tn);
+					printf ("%s script %d VALUE CHANGED! copy value and update %d\n",JSparamnames[fptr].name,actualscript,tn);
 					printf (" -- string from javascript is %s\n",strp);
 				#endif
 				/* eventOuts go to VRML data structures */
@@ -2712,7 +2717,7 @@ tmp =
 		route++;
 	}
 	#ifdef CRVERBOSE 
-		printf ("finished  gatherScriptEventOuts loop\n");
+		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime);
 	#endif
 }
 
