@@ -607,7 +607,8 @@ void kill_rendering(void *thisnode) {
 				kill_rendering (thisNode->color);
 				kill_rendering (thisNode->coord);
 				kill_MFInt32 (&thisNode->vertexCount);
-				kill_FreeWRLPTR (thisNode->__points);
+				kill_FreeWRLPTR (thisNode->__vertArr);
+				kill_FreeWRLPTR (thisNode->__vertIndx);
 				break; }
 
 			case NODE_Normal: {

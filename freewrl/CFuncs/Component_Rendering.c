@@ -67,16 +67,16 @@ void render_TriangleSet (struct X3D_TriangleSet *node) {
 
 void render_LineSet (struct X3D_LineSet *node) {
 	int vtc;		/* which vertexCount[] we should be using for this line segment */
-	int ncoc;		/* which coord we are using for this vertex */
-	int punt;		/* how many vetex points are in this line segment */
 	int c;			/* temp variable */
-	/* int *p;*/
 	struct SFColor *coord=0; int ncoord;
 	struct SFColor *color=0; int ncolor=0;
 	int *vertexC; int nvertexc;
+	int totVertexRequired;
+
 	struct X3D_Coordinate *xc;
 	struct X3D_Color *cc;
-
+	GLuint *pt;
+	uintptr_t *vpt;
 
 	/* believe it or not - material emissiveColor can affect us... */
 	GLfloat defColor[] = {1.0, 1.0, 1.0};
@@ -96,123 +96,117 @@ void render_LineSet (struct X3D_LineSet *node) {
 
 	/* do we have to re-verify LineSet? */
 	if (node->_ichange != node->_change) {
-		/*  re-draw every time. node->_ichange = node->_change;*/
+		node->_ichange = node->_change;
+		node->__segCount = 0; /* assume this for now */
+
 
 		nvertexc = (node->vertexCount).n; vertexC = (node->vertexCount).p;
+		if (nvertexc==0) return;
+		totVertexRequired = 0;
+
+
+		/* sanity check vertex counts */
+		for  (c=0; c<nvertexc; c++) {
+			totVertexRequired += vertexC[c];
+			if (vertexC[c]<2) {
+				ConsoleMessage ("make_LineSet, we have a vertexCount of %d, must be >=2,",vertexC[c]);
+				return;
+			}
+		}
 
         	if(node->coord) {
                 	xc = (struct X3D_Coordinate *) node->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
-                	        freewrlDie ("LineSet, coord node expected");
+                	        ConsoleMessage ("make_LineSet, coord node expected but not found");
                 	} else {
                         	coord = xc->point.p;
                         	ncoord = xc->point.n;
                 	}
         	}
- 
 
+		/* check that we have enough vertexes */
+		if (totVertexRequired > ncoord) {
+			ConsoleMessage ("make_LineSet, not enough points for vertexCount (vertices:%d points:%d)",
+				totVertexRequired, ncoord);
+			return;
+		}
+ 
         	if (node->color) {
                 	cc = (struct X3D_Color *) node->color;
                 	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-                	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
+                	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
                 	} else {
                 	        ncolor = cc->color.n;
 				color = cc->color.p;
                 	}
+			/* check that we have enough verticies for the Colors */
+			if (totVertexRequired > ncolor) {
+				ConsoleMessage ("make_LineSet, not enough colors for vertexCount (vertices:%d colors:%d)",
+					totVertexRequired, ncolor);
+				return;
+			}
         	}
 
-
-
-		/* printf ("we have %d coords, %d colors\n",ncoord,ncolor);*/
-		ncoc = 0;
-
-		if ((nvertexc == 0) || (ncoord == 0)) {
-			printf ("LineSet, no vertexCounts or no coords\n");
-			node->_ichange = node->_change; /* make this error show only once */
-
+		/* create the index for the arrays. Really simple... */
+		if (node->__vertArr) free ((void *)node->__vertArr);
+		node->__vertArr = malloc (sizeof(GLuint)*(ncoord));
+		if (!node->__vertArr) {
+			printf ("can not malloc memory for LineSet vertArr\n");
 			return;
 		}
-
-
-		/* if we are re-genning; remalloc */
-		/* if (node->__points) free ((void *)node->__points);*/
-
-		/* if (!node->__points) node->__points = malloc (sizeof(unsigned int)*(nvertexc));*/
-		/* if (!node->__points) {*/
-		/* 	printf ("can not malloc memory for LineSet points\n");*/
-		/* 	node->_ichange = node->_change; make this error show only once */
-		/* 	return;*/
-		/* }*/
-		/* p = (int *)node->__points;*/
-
-
-		/* go through the vertex count array and verify that all is good. */
-		for (vtc = 0; vtc < nvertexc; vtc++) {
-			/* save the pointer to the vertex array for the GL call */
-			/* *p = vertexC;*/
-			/* p++;*/
-
-			punt = *vertexC;
-
-			/* there HAVE to be 2 or more vertexen in a segment */
-			if (punt < 2) {
-				printf ("LineSet, vertexCount[%d] has %d vertices...\n",vtc,punt);
-				node->_ichange = node->_change; /* make this error show only once */
-				/* free ((void *)node->__points);*/
-				return;
-			}
-
-			/* do we have enough Vertex Coords? */
-			if ((punt + ncoc) > ncoord) {
-				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
-				node->_ichange = node->_change; /* make this error show only once */
-				/* free ((void *)node->__points);*/
-				return;
-			}
-			if (ncolor != 0) {
-			if ((punt + ncoc) > ncolor) {
-				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
-				node->_ichange = node->_change; /* make this error show only once */
-				/* free ((void *)node->__points);*/
-				return;
-			}
-			}
-
-			/*  do this for glMultiDrawElements ncoc += punt;*/
-			glBegin(GL_LINE_STRIP);
-
-			/* draw the line */
-			if (ncolor!= 0) 
-				glColor3f( color[ncoc].c[0],color[ncoc].c[1],color[ncoc].c[2]);
-			else glColor3fv(thisColor);
-
-			glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
-			ncoc++;
-
-
-			for (c=1; c<punt; c++) {
-				if (ncolor!= 0) 
-					glColor3f( color[ncoc].c[0],color[ncoc].c[1],color[ncoc].c[2]);
-			
-				
-				glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
-				ncoc++;
-			}
-
-			/* now, lets go and get ready for the next vertexCount */
-			vertexC++;
-			glEnd();
-
-
+		pt = (GLint *)node->__vertArr;
+		for (vtc = 0; vtc < ncoord; vtc++) {
+			*pt=vtc; pt++;
 		}
+
+		/* create the index for each line segment */
+		if (node->__vertIndx) free ((void *)node->__vertIndx);
+		node->__vertIndx = malloc (sizeof(uintptr_t)*(nvertexc));
+		if (!node->__vertIndx) {
+			printf ("can not malloc memory for LineSet vertIndx\n");
+			return;
+		}
+		c = 0;
+		pt = (GLint *)node->__vertArr;
+		vpt = (uintptr_t *) node->__vertIndx;
+		for (vtc=0; vtc<nvertexc; vtc++) {
+			*vpt =  (uintptr_t) pt;
+			vpt++;
+			pt += vertexC[vtc];
+		}
+
+		/* if we made it this far, we are ok tell the rendering engine that we are ok */
+		node->__segCount = nvertexc;
 	}
 
 	/* now, actually draw array */
-	/* if (node->__points) {*/
-	/* 	printf ("calling glMultiDrawElements, promcount %d\n",(node->vertexCount).n);*/
-	/* 	glMultiDrawElements(GL_LINE_STRIP,(node->vertexCount).p,GL_FLOAT,*/
-	/* 			node->__points,(node->vertexCount).n);*/
-	/* }*/
+	if (node->__segCount > 0) {
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+
+		if (node->color) {
+                	cc = (struct X3D_Color *) node->color;
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer (3,GL_FLOAT,0,cc->color.p);
+		} else {
+			glColor3fv (thisColor);
+		}
+        	xc = (struct X3D_Coordinate *) node->coord;
+		glVertexPointer (3,GL_FLOAT,0,xc->point.p);
+
+		glMultiDrawElements (
+			GL_LINE_STRIP,
+			node->vertexCount.p,
+			GL_UNSIGNED_INT,
+			node->__vertIndx,
+			node->__segCount
+		);
+
+		glEnableClientState (GL_NORMAL_ARRAY);
+		if (node->color) {
+			glDisableClientState(GL_COLOR_ARRAY);
+		}
+	}
 }
 
 

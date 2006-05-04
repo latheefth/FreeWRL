@@ -918,7 +918,9 @@ my $protono;
 						color => [SFNode, NULL, exposedField],
 						coord => [SFNode, NULL, exposedField],
 						vertexCount => [MFInt32,[],exposedField],
-						__points  =>[FreeWRLPTR,0,field],
+						__vertArr  =>[FreeWRLPTR,0,field],
+						__vertIndx  =>[FreeWRLPTR,0,field],
+						__segCount =>[SFInt32,0,field],
 					   }),
 
 	Normal => new VRML::NodeType("Normal", { vector => [MFVec3f, [], exposedField] }),
