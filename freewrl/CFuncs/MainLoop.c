@@ -264,12 +264,13 @@ void EventLoop() {
 	}
 
 	/* if we are not letting Motif handle things, check here for keys, etc */
+	#ifndef AQUA
 	#ifndef HAVE_MOTIF
 	while (XPending(Xdpy)) {
 		XNextEvent(Xdpy, &event);
 		handle_Xevents(event);
 	}
-
+	#endif
 	#endif
 
 	#ifdef PROFILEMARKER
