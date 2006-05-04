@@ -145,7 +145,7 @@ int ConsoleMessage(const char *fmt, ...) {
 #endif
 
 #ifdef AQUA
-	sendCM(FWbuffer);
+	setConsoleMessage(FWbuffer);
 		printf (FWbuffer);
 		printf ("\n");
 #else
