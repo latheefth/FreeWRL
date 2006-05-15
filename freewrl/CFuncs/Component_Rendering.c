@@ -13,75 +13,294 @@
 
 #include "headers.h"
 
-
 extern GLfloat last_emission[];
 
 void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *node) {
-                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
-                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
-
+                COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *node) {
-                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
-                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
-
+                COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *node) {
-                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
-                        regen_polyrep(node, node->coord, node->color, node->normal, NULL);
-
+                COMPILE_POLY_IF_REQUIRED( node->coord, node->color, node->normal, NULL)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 void render_TriangleFanSet (struct X3D_TriangleFanSet *node) {
-                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
-                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
-
+                COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 void render_TriangleStripSet (struct X3D_TriangleStripSet *node) {
-                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
-                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
-
+                COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 void render_TriangleSet (struct X3D_TriangleSet *node) {
-                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
-                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
-
+                COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 
-void test_render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
+void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	int i;		/* temporary */
 	struct SFColor *points;
+	struct SFColor *newpoints;
+	struct SFColor *oldpoint;
+	struct SFColorRGBA *newcolors;
+	struct SFColorRGBA *oldcolor;
 	int npoints;
 	struct X3D_Coordinate *xc;
 	int maxCoordFound;		/* for bounds checking				*/
 	int maxColorFound;		/* for bounds checking				*/
 	struct X3D_Color *cc;
 	int nSegments;			/* how many individual lines in this shape 	*/
-	int thisSeg;			/* temporary					*/
-	int thisSegStart;		/* temporary					*/
+	int curSeg;			/* for colours, !cpv, this is the color index 	*/
+	int nVertices;			/* how many vertices in the streamed set	*/
+	int segLength;			/* temporary					*/
 	int *vertCountPtr;		/* temporary, for vertexCount filling		*/
 	uintptr_t *indxStartPtr;	/* temporary, for creating pointer to index arr */
 
+	GLint * pt;
+	int vtc;			/* temp counter - "vertex count"		*/
+	int curcolor;			/* temp for colorIndexing.			*/
+	int * colorInd;			/* used for streaming colors			*/
+
 	/* believe it or not - material emissiveColor can affect us... */
-	GLfloat defColor[] = {1.0, 1.0, 1.0};
+	GLfloat defcolorRGBA[] = {1.0, 1.0, 1.0,1.0};
+
+	MARK_NODE_COMPILED
+	nSegments = 0;
+	node->__segCount = 0;
+
+	/* ok, what we do is this. Although this is Indexed, colours and vertices can have
+	   different indexes; so we make them all the same. To do this, we create another
+	   index (really simple one - element x contains x...) that we send to the OpenGL
+	   calls. 
+
+	   So first, we find out the maximum coordinate requested in the IndexedLineSet,
+	   AND, we find out how many line segments there are.
+	*/
+
+	if (node->coord) {
+		xc = (struct X3D_Coordinate *) node->coord;
+		if (xc->_nodeType != NODE_Coordinate) {
+			ConsoleMessage ("IndexedLineSet - Coordinate node expected for coord field");
+			return;
+		} else {
+			npoints = xc->point.n;
+			points = xc->point.p;
+		}
+	} else {
+		return; /* no coordinates - nothing to do */
+	}
+
+	if (node->coordIndex.n == 0) return; /* no coord indexes - nothing to do */
+
+	/* sanity check that we have enough coordinates */
+	maxCoordFound = -1000;
+	nSegments = 1;
+	nVertices = 0;
+	for (i=0; i<node->coordIndex.n; i++) {
+		/* make sure that the coordIndex is greater than -1 */
+		if (node->coordIndex.p[i] < -1) {
+			ConsoleMessage ("IndexedLineSet - coordIndex less than 0 at %d\n",i);
+			return;
+		}
+
+		/* count segments; dont bother if the very last number is -1 */
+		if (node->coordIndex.p[i] == -1) {
+			if (i!=((node->coordIndex.n)-1)) nSegments++;
+		} else nVertices++;
+
+		/* try to find the highest coordinate index for bounds checking */
+		if (node->coordIndex.p[i] > maxCoordFound) maxCoordFound = node->coordIndex.p[i];
+	}
+	if (maxCoordFound > npoints) {
+		ConsoleMessage ("IndexedLineSet - not enough coordinates - coordindex contains higher index");
+		return;
+	}
+
+	/* so, at this step, we know how many line segments "nSegments" we require (starting at 0)
+	   and, what the maximum coordinate is. So, lets create the new index... 
+	   create the index for the arrays. Really simple... Used to index
+	   into the coords, so, eg, __vertArr is [0,1,2], which means use
+	   coordinates 0, 1, and 2 */
+	if (node->__vertArr) free ((void *)node->__vertArr);
+	node->__vertArr = malloc (sizeof(GLuint)*(nVertices+1));
+	if (!node->__vertArr) {
+		printf ("can not malloc memory for LineSet vertArr\n");
+		return;
+	}
+	pt = (GLint *)node->__vertArr;
+
+	for (vtc = 0; vtc < nVertices; vtc++) {
+		*pt=vtc; pt++; /* ie, index n contains the number n */
+	}
+
+	/* now, lets go through and; 1) copy old vertices into new vertex array; and 
+	   2) create an array of indexes into "__vertArr" for sending to the GL call */
+
+	if (node->__vertIndx) free ((void *)node->__vertIndx);
+	node->__vertIndx = malloc (sizeof(uintptr_t)*(nSegments));
+	if (!node->__vertIndx) {
+		printf ("can not malloc memory for LineSet vertIndx\n");
+		return;
+	}
+
+	if (node->__vertices) free ((void *)node->__vertices);
+	node->__vertices = malloc (sizeof(struct SFColor)*(nVertices+1));
+	if (!node->__vertices) {
+		printf ("can not malloc memory for LineSet vertices\n");
+		return;
+	}
+
+	if (node->__vertexCount) free ((void *)node->__vertexCount);
+	node->__vertexCount = malloc (sizeof(int)*(nSegments));
+	if (!node->__vertexCount) {
+		printf ("can not malloc memory for LineSet vertexCount\n");
+		return;
+	}
+
+	indxStartPtr = (uintptr_t *)node->__vertIndx;
+	newpoints = (struct SFColor *) node->__vertices;
+	vertCountPtr = (int *) node->__vertexCount;
+	pt = (GLint *)node->__vertArr;
+
+	vtc=0;
+	segLength=0;
+	*indxStartPtr =  (uintptr_t) pt; /* first segment starts off at index zero */
+	indxStartPtr++;
+
+	for (i=0; i<node->coordIndex.n; i++) {
+		/* count segments; dont bother if the very last number is -1 */
+		if (node->coordIndex.p[i] == -1) {
+			if (i!=((node->coordIndex.n)-1)) {
+				/* new segment */
+				*indxStartPtr =  (uintptr_t) pt;
+				indxStartPtr++;
+
+				/* record the old segment length */
+				*vertCountPtr = segLength;
+				segLength=0;
+				vertCountPtr ++;
+			}
+		} else {
+			/* new vertex */
+			oldpoint = &points[node->coordIndex.p[i]];
+			memcpy (newpoints, oldpoint,sizeof(struct SFColor));
+			newpoints ++; 
+			segLength ++;
+			pt ++;
+		}
+	}
+
+	/* do we have to worry about colours? */
+	/* sanity check the colors, if they exist */
+	if (node->color) {
+		/* we resort the color nodes so that we have an RGBA color node per vertex */
+		if (node->__colours) free ((void *)node->__colours);
+		node->__colours = malloc (sizeof(struct SFColorRGBA)*(nVertices+1));
+		if (!node->__colours) {
+			printf ("can not malloc memory for LineSet colIndx\n");
+			return;
+		}
+		newcolors = (struct SFColorRGBA *) node->__colours;
+               		cc = (struct X3D_Color *) node->color;
+               		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+               	        	ConsoleMessage ("make_IndexedLineSet, color node, expected %d got %d\n", NODE_Color, cc->_nodeType);
+			return;
+               		}
+
+		/* 4 choices here - we have colorPerVertex, and, possibly, a ColorIndex */
+
+		if (node->colorPerVertex) {
+			/* assume for now that we are using the coordIndex for colour selection */
+			colorInd = node->coordIndex.p; 
+			/* so, we have a color per line segment. Lets check this stuff... */
+			if ((node->colorIndex.n)>0) {
+				if ((node->colorIndex.n) < (node->coordIndex.n)) {
+					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords");
+					return;
+				}
+				colorInd = node->colorIndex.p; /*use ColorIndex */
+			}
+		} else {
+			/* assume for now that we are using the simple index for colour selection */
+			colorInd = node->__vertArr; 
+			/* so, we have a color per line segment. Lets check this stuff... */
+			if ((node->colorIndex.n)>0) {
+				if ((node->colorIndex.n) < (nSegments)) {
+					ConsoleMessage ("IndexedLineSet - expect more colorIndexes to match coords");
+					return;
+				}
+				colorInd = node->colorIndex.p; /* use ColorIndex */
+			}
+		}
+
+			
+		/* go and match colors with vertices */
+		curSeg = 0;
+		for (i=0; i<node->coordIndex.n; i++) {
+			if (node->coordIndex.p[i] != -1) {
+				/* have a vertex, match colour  */
+				if (node->colorPerVertex) {
+					curcolor = colorInd[i];
+				} else {
+					curcolor = colorInd[curSeg];
+				}
+
+				if ((curcolor < 0) || (curcolor > cc->color.n)) {
+					ConsoleMessage ("IndexedLineSet, colorIndex %d out of range (0..%d)",
+						curcolor, cc->color.n);
+					return;
+				}
+				
+
+				oldcolor = (struct SFColorRGBA *) &(cc->color.p[curcolor]);
+
+
+
+				/* copy the correct color over for this vertex */
+				if (cc->_nodeType == NODE_Color) {
+					memcpy (newcolors, defcolorRGBA, sizeof (defcolorRGBA));
+					memcpy (newcolors, oldcolor,sizeof(struct SFColor));
+				} else {
+					memcpy (newcolors, oldcolor,sizeof(struct SFColorRGBA));
+				}
+				newcolors ++; 
+			} else {
+				curSeg++;
+			}
+		}
+	}
+
+
+	/* finished worrying about colours */
+
+	/* finish this for loop off... */
+	*vertCountPtr = segLength;
+	node->__segCount = nSegments; /* we passed, so we can render */
+}
+
+void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	GLfloat *thisColor;
+	GLfloat defColor[] = {1.0, 1.0, 1.0};
+	#ifdef AQUA
+	GLvoid **indices;
+	GLsizei *count;
+	int i;
+	#endif
 
 	/* is there an emissiveColor here??? */
 	if (lightingOn) {
@@ -94,227 +313,29 @@ void test_render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
 	
+	COMPILE_IF_REQUIRED
 
 	/* do we have to re-verify IndexedLineSet? */
-	if (node->_ichange != node->_change) {
-		node->_ichange = node->_change;
-		nSegments = 0;
-		node->__segCount = 0;
-
-		if (node->coord) {
-			xc = (struct X3D_Coordinate *) node->coord;
-			if (xc->_nodeType != NODE_Coordinate) {
-				ConsoleMessage ("IndexedLineSet - Coordinate node expected for coord field");
-				return;
-			} else {
-				npoints = xc->point.n;
-				points = xc->point.p;
-			}
-		} else {
-			return; /* no coordinates - nothing to do */
-		}
-
-		if (node->coordIndex.n == 0) return; /* no coord indexes - nothing to do */
-
-		/* sanity check that we have enough coordinates */
-		maxCoordFound = -1000;
-		nSegments = 1;
-		for (i=0; i<node->coordIndex.n; i++) {
-			/* make sure that the coordIndex is greater than -1 */
-			if (node->coordIndex.p[i] < -1) {
-				ConsoleMessage ("IndexedLineSet - coordIndex less than 0 at %d\n",i);
-				return;
-			}
-
-			/* count segments; dont bother if the very last number is -1 */
-			if (node->coordIndex.p[i] == -1) 
-				if (i!=((node->coordIndex.n)-1)) nSegments++;
-
-			/* try to find the highest coordinate index for bounds checking */
-			if (node->coordIndex.p[i] > maxCoordFound) maxCoordFound = node->coordIndex.p[i];
-		}
-		if (maxCoordFound > npoints) {
-			ConsoleMessage ("IndexedLineSet - not enough coordinates - coordindex contains higher index");
-			return;
-		}
-
-		/* now, generate the array that points to the start of each line segment,
-		   and, the array of line segment lengths */
-		if (node->__vertIndx) free ((void *)node->__vertIndx);
-		node->__vertIndx = malloc (sizeof(uintptr_t)*(nSegments));
-		if (!node->__vertIndx) {
-			printf ("can not malloc memory for LineSet vertIndx\n");
-			return;
-		}
-		if (node->__vertexCount) free ((void *)node->__vertexCount);
-		node->__vertexCount = malloc (sizeof(int)*(nSegments));
-		if (!node->__vertexCount) {
-			printf ("can not malloc memory for LineSet vertexCount\n");
-			return;
-		}
-
-		/* ... we have the arrays... lets do the start */
-		thisSeg = 0;
-		thisSegStart = 0;
-		i = 0;
-		vertCountPtr = (int *) node->__vertexCount;
-		indxStartPtr = (uintptr_t *)node->__vertIndx;
-
-		/* record the start of the first segment - this one is easy! */
-		*indxStartPtr = ((uintptr_t) &(node->coordIndex.p[thisSegStart])); 
-		indxStartPtr++;
-
-		while (thisSeg < nSegments) {
-			/* did we find the end of a segment? */
-			/* printf ("looking at coord %d for index %d n is %d\n",node->coordIndex.p[i], i, node->coordIndex.n); */
-			if ((node->coordIndex.p[i] <0) || (i>=(node->coordIndex.n)-1)) {
-				/* record segment length (number of vertices) ... */
-				vertCountPtr[thisSeg] = i-thisSegStart;
-
-				/* but, if we are at the end, and the last number is NOT -1... */
-				if (node->coordIndex.p[i] != -1) { vertCountPtr[thisSeg]++;}
-
-				/* lines must have at least 2 vertices... */
-				if (vertCountPtr[thisSeg] < 2) {
-					ConsoleMessage ("IndexedLineSet, segment %d has less than 2 vertices",thisSeg);
-					return;
-				}
-
-				/* printf ("segment length %d\n",vertCountPtr[thisSeg]); */
-				thisSegStart = i+1; /* skip past the -1... */
-				
-				thisSeg++;
-				if (thisSeg < nSegments) {
-					/* record the start pointer for this segment */
-					*indxStartPtr = ((uintptr_t) &(node->coordIndex.p[thisSegStart])); 
-					indxStartPtr++;
-					/*printf ("new segment found at %d - segment %d \n",i,thisSeg);  */
-				}
-			}
-			
-			i++;
-		}
-
-
-		/* sanity check the colors, if they exist */
-		if (node->color) {
-			/* we resort the color nodes so that we have an RGBA color node per vertex */
-			if (node->__colours) free ((void *)node->__colours);
-			node->__colours = malloc (4 * sizeof(float)*(maxCoordFound+1));
-			if (!node->__colours) {
-				printf ("can not malloc memory for LineSet colIndx\n");
-				return;
-			}
-               		cc = (struct X3D_Color *) node->color;
-			/* do we have a colorIndex? if so, make sure it is big enough */
-			printf ("node colorindex count is %d\n",node->colorIndex.n);
-
-			/* we can have a colorPerVertex flag, and a colorIndex array... */
-			if (node->colorPerVertex) {
-				/* we expect a color for each vertex. Now, do we have a colorIndex, or
-				   do we use the coordIndex?? */
-
-				if ((node->colorIndex.n)>0) {
-					printf ("CPV FILL ME IN\n");
-				} else {
-					/* we should have the same, or more colors as required vertices */
-					printf ("checking we have enough colors... colorn %d maxvertexfound %d\n",
-						cc->color.n, maxCoordFound);
-					if ((cc->color.n) > maxCoordFound) {
-						ConsoleMessage ("IndexedLineSet, have %d colors, but %d vertex",
-							cc->color.n,maxCoordFound);
-						return; /* oh well... */
-					}
-
-					/* colorPerVertex, no colorIndex, so copy vertex index to color index */
-					/* memcpy (node->__colours, node-> */
-				}
-
-			} else {
-				/* so, we have a color per line segment. Lets check this stuff... */
-				if ((node->colorIndex.n)>0) {
-					printf ("NOT CPV FILL ME IN\n");
-				} else {
-					/* we should have the same, or more colors as required segments */
-					printf ("checking we have enough colors... colorn %d maxsegfound %d\n",
-						cc->color.n, nSegments);
-					if ((cc->color.n) > nSegments) {
-						ConsoleMessage ("IndexedLineSet, have %d colors, but %d segments",
-							cc->color.n,nSegments);
-						return; /* oh well... */
-					}
-				}
-			}
-		}
-
-		node->__segCount = nSegments; /* we passed, so we can render */
-	}
-
-	/* now, actually draw array */
 	if (node->__segCount > 0) {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_NORMAL_ARRAY);
+		glVertexPointer (3,GL_FLOAT,0,node->__vertices);
 
-		if (node->__colours) {
-			glEnableClientState(GL_COLOR_ARRAY);
-{
-GLfloat cols[] = {
-		1, 1, 1, 1,
-		1, 1, 1, 1,
-		1, 1, 1, 1,
-		1, 1, 1, 1,
+	if (node->__colours) {
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer (4,GL_FLOAT,0,node->__colours);
+	} else {
+		glColor3fv (thisColor);
+	}
 
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-
-		0, 1, 0, 1,
-		0, 1, 0, 1,
-		0, 1, 0, 1,
-		0, 1, 0, 1,
-		0, 1, 0, 1,
-		0, 1, 0, 1,
-		0, 1, 0, 1,
-
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1,
-		1, 0, 0, 1};
-		glColorPointer (4,GL_FLOAT,0,cols);
-}
-
-#ifdef hjy
-                	cc = (struct X3D_Color *) node->color;
-			/* is this a Color or ColorRGBA color node? */
-                	if (cc->_nodeType == NODE_Color) {
-				glColorPointer (3,GL_FLOAT,0,cc->color.p);
-			} else {
-				glColorPointer (4,GL_FLOAT,0,cc->color.p);
-			}
-#endif
-		} else {
-			glColor3fv (thisColor);
+	#ifdef AQUA
+		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
+		indices = node->__vertIndx;
+		count  = node->__vertexCount;
+		for (i=0; i<node->__segCount; i++) {
+			glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
 		}
-        	xc = (struct X3D_Coordinate *) node->coord;
-		glVertexPointer (3,GL_FLOAT,0,xc->point.p);
-
+	#else
 		glMultiDrawElements (
 			GL_LINE_STRIP,
 			node->__vertexCount,
@@ -322,6 +343,8 @@ GLfloat cols[] = {
 			node->__vertIndx,
 			node->__segCount
 		);
+	#endif
+
 
 		glEnableClientState (GL_NORMAL_ARRAY);
 		if (node->__colours) {
@@ -330,115 +353,6 @@ GLfloat cols[] = {
 	}
 }
 
-
-void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
-		int i;
-                int cin = (node->coordIndex.n);
-                int colin = (node->colorIndex.n);
-                int cpv = (node->colorPerVertex);
-
-		int plno = 0;
-		int ind;
-		int c;
-		struct SFColor *points=0; int npoints;
-		struct SFColor *colors=0; int ncolors=0;
-		struct X3D_Coordinate *xc;
-		struct X3D_Color *cc;
-
-		/* believe it or not - material emissiveColor can affect us... */
-		GLfloat defColor[] = {1.0, 1.0, 1.0};
-		GLfloat *thisColor;
-
-		#ifdef RENDERVERBOSE
-		printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
-		#endif
-
-		/* is there an emissiveColor here??? */
-		if (lightingOn) {
-			/* printf ("ILS - have lightingOn!\n"); */
-			thisColor = last_emission;
-		} else {
-			thisColor = defColor;
-		}
-
-
-        	if(node->coord) {
-                	xc = (struct X3D_Coordinate *) node->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                	        freewrlDie ("IndexedLineSet, coord node expected");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-        	if (node->color) {
-                	cc = (struct X3D_Color *) node->color;
-                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-                	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
-                	} else {
-                	        ncolors = cc->color.n;
-				colors = cc->color.p;
-                	}
-        	}
-
-		LIGHTING_OFF
-                DISABLE_CULL_FACE
-
-		glBegin(GL_LINE_STRIP);
-		for(i=0; i<cin; i++) {
-			ind = node->coordIndex.p[i];
-			#ifdef RENDERVERBOSE
-			printf("Line: %d %d\n",i,ind);
-			#endif
-
-			/* a new line strip? */
-			if(ind==-1) {
-				glEnd();
-				#ifdef RENDERVERBOSE
-				printf ("new strip\n");
-				#endif
-				glBegin(GL_LINE_STRIP);
-				plno++;
-			} else {
-				if(ncolors) {
-					if (cpv) c = i;
-					 else c = plno;
-					
-
-					if(colin) {
-					   if ((i>=colin) || (i<0)) {
-						c = 0;
-					   } else {
-					        c = node->colorIndex.p[i]; 
-					   }
-					}
-
-					#ifdef RENDERVERBOSE
-					printf ("using Color %d\n",c);
-					#endif
-					if (c<ncolors) {
-					      glColor3f(colors[c].c[0],
-					        colors[c].c[1],
-					   	colors[c].c[2]);
-					} else {
-					      glColor3f(colors[0].c[0],
-					        colors[0].c[1],
-					   	colors[0].c[2]);
-					}
-
-				} else {
-					glColor3fv(thisColor);
-				}
-				glVertex3f(
-					points[ind].c[0],
-					points[ind].c[1],
-					points[ind].c[2]
-				);
-			}
-		}
-		glEnd();
-}
 
 void render_PointSet (struct X3D_PointSet *node) {
 	int i;
@@ -525,21 +439,16 @@ void render_PointSet (struct X3D_PointSet *node) {
 }
 
 void render_LineSet (struct X3D_LineSet *node) {
-	int vtc;		/* which vertexCount[] we should be using for this line segment */
-	int c;			/* temp variable */
-	struct SFColor *coord=0; int ncoord;
-	struct SFColor *color=0; int ncolor=0;
-	int *vertexC; int nvertexc;
-	int totVertexRequired;
-
-	struct X3D_Coordinate *xc;
-	struct X3D_Color *cc;
-	GLuint *pt;
-	uintptr_t *vpt;
-
 	/* believe it or not - material emissiveColor can affect us... */
 	GLfloat defColor[] = {1.0, 1.0, 1.0};
 	GLfloat *thisColor;
+	struct X3D_Color *cc;
+	struct X3D_Coordinate *xc;
+	#ifdef AQUA
+	GLvoid **indices;
+	GLsizei *count;
+	int i;
+	#endif
 
 	/* is there an emissiveColor here??? */
 	if (lightingOn) {
@@ -551,99 +460,9 @@ void render_LineSet (struct X3D_LineSet *node) {
 
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
+
+	COMPILE_IF_REQUIRED
 	
-
-	/* do we have to re-verify LineSet? */
-	if (node->_ichange != node->_change) {
-		node->_ichange = node->_change;
-		node->__segCount = 0; /* assume this for now */
-
-
-		nvertexc = (node->vertexCount).n; vertexC = (node->vertexCount).p;
-		if (nvertexc==0) return;
-		totVertexRequired = 0;
-
-
-		/* sanity check vertex counts */
-		for  (c=0; c<nvertexc; c++) {
-			totVertexRequired += vertexC[c];
-			if (vertexC[c]<2) {
-				ConsoleMessage ("make_LineSet, we have a vertexCount of %d, must be >=2,",vertexC[c]);
-				return;
-			}
-		}
-
-        	if(node->coord) {
-                	xc = (struct X3D_Coordinate *) node->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                	        ConsoleMessage ("make_LineSet, coord node expected but not found");
-                	} else {
-                        	coord = xc->point.p;
-                        	ncoord = xc->point.n;
-                	}
-        	}
-
-		/* check that we have enough vertexes */
-		if (totVertexRequired > ncoord) {
-			ConsoleMessage ("make_LineSet, not enough points for vertexCount (vertices:%d points:%d)",
-				totVertexRequired, ncoord);
-			return;
-		}
- 
-        	if (node->color) {
-                	cc = (struct X3D_Color *) node->color;
-                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-                	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
-                	} else {
-                	        ncolor = cc->color.n;
-				color = cc->color.p;
-                	}
-			/* check that we have enough verticies for the Colors */
-			if (totVertexRequired > ncolor) {
-				ConsoleMessage ("make_LineSet, not enough colors for vertexCount (vertices:%d colors:%d)",
-					totVertexRequired, ncolor);
-				return;
-			}
-        	}
-
-		/* create the index for the arrays. Really simple... Used to index
-		   into the coords, so, eg, __vertArr is [0,1,2], which means use
-		   coordinates 0, 1, and 2 */
-		if (node->__vertArr) free ((void *)node->__vertArr);
-		node->__vertArr = malloc (sizeof(GLuint)*(ncoord));
-		if (!node->__vertArr) {
-			printf ("can not malloc memory for LineSet vertArr\n");
-			return;
-		}
-		pt = (GLint *)node->__vertArr;
-		for (vtc = 0; vtc < ncoord; vtc++) {
-			*pt=vtc; pt++; /* ie, index n contains the number n */
-		}
-
-		/* create the index for each line segment. What happens here is
-		   that we create an array of pointers; each pointer points into
-		   the __vertArr array - this gives a starting index for each line
-		   segment The LENGTH of each segment (good question) comes from the
-		   vertexCount parameter of the LineSet node */
-		if (node->__vertIndx) free ((void *)node->__vertIndx);
-		node->__vertIndx = malloc (sizeof(uintptr_t)*(nvertexc));
-		if (!node->__vertIndx) {
-			printf ("can not malloc memory for LineSet vertIndx\n");
-			return;
-		}
-		c = 0;
-		pt = (GLint *)node->__vertArr;
-		vpt = (uintptr_t *) node->__vertIndx;
-		for (vtc=0; vtc<nvertexc; vtc++) {
-			*vpt =  (uintptr_t) pt;
-			vpt++;
-			pt += vertexC[vtc];
-		}
-
-		/* if we made it this far, we are ok tell the rendering engine that we are ok */
-		node->__segCount = nvertexc;
-	}
-
 	/* now, actually draw array */
 	if (node->__segCount > 0) {
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -664,6 +483,14 @@ void render_LineSet (struct X3D_LineSet *node) {
         	xc = (struct X3D_Coordinate *) node->coord;
 		glVertexPointer (3,GL_FLOAT,0,xc->point.p);
 
+	#ifdef AQUA
+		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
+		indices = node->__vertIndx;
+		count  = node->vertexCount.p;
+		for (i=0; i<node->__segCount; i++) {
+			glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+		}
+	#else
 		glMultiDrawElements (
 			GL_LINE_STRIP,
 			node->vertexCount.p,
@@ -671,6 +498,7 @@ void render_LineSet (struct X3D_LineSet *node) {
 			node->__vertIndx,
 			node->__segCount
 		);
+	#endif
 
 		glEnableClientState (GL_NORMAL_ARRAY);
 		if (node->color) {
@@ -678,3 +506,107 @@ void render_LineSet (struct X3D_LineSet *node) {
 		}
 	}
 }
+
+
+void compile_LineSet (struct X3D_LineSet *node) {
+	int vtc;		/* which vertexCount[] we should be using for this line segment */
+	int c;			/* temp variable */
+	struct SFColor *coord=0; int ncoord;
+	struct SFColor *color=0; int ncolor=0;
+	int *vertexC; int nvertexc;
+	int totVertexRequired;
+
+	struct X3D_Coordinate *xc;
+	struct X3D_Color *cc;
+	GLuint *pt;
+	uintptr_t *vpt;
+
+	MARK_NODE_COMPILED
+	node->__segCount = 0; /* assume this for now */
+
+
+	nvertexc = (node->vertexCount).n; vertexC = (node->vertexCount).p;
+	if (nvertexc==0) return;
+	totVertexRequired = 0;
+
+
+	/* sanity check vertex counts */
+	for  (c=0; c<nvertexc; c++) {
+		totVertexRequired += vertexC[c];
+		if (vertexC[c]<2) {
+			ConsoleMessage ("make_LineSet, we have a vertexCount of %d, must be >=2,",vertexC[c]);
+			return;
+		}
+	}
+
+        	if(node->coord) {
+                	xc = (struct X3D_Coordinate *) node->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                	        ConsoleMessage ("make_LineSet, coord node expected but not found");
+                	} else {
+                        	coord = xc->point.p;
+                        	ncoord = xc->point.n;
+                	}
+        	}
+
+	/* check that we have enough vertexes */
+	if (totVertexRequired > ncoord) {
+		ConsoleMessage ("make_LineSet, not enough points for vertexCount (vertices:%d points:%d)",
+			totVertexRequired, ncoord);
+		return;
+	}
+ 
+        	if (node->color) {
+                	cc = (struct X3D_Color *) node->color;
+                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+                	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
+                	} else {
+                	        ncolor = cc->color.n;
+			color = cc->color.p;
+                	}
+		/* check that we have enough verticies for the Colors */
+		if (totVertexRequired > ncolor) {
+			ConsoleMessage ("make_LineSet, not enough colors for vertexCount (vertices:%d colors:%d)",
+				totVertexRequired, ncolor);
+			return;
+		}
+        	}
+
+	/* create the index for the arrays. Really simple... Used to index
+	   into the coords, so, eg, __vertArr is [0,1,2], which means use
+	   coordinates 0, 1, and 2 */
+	if (node->__vertArr) free ((void *)node->__vertArr);
+	node->__vertArr = malloc (sizeof(GLuint)*(ncoord));
+	if (!node->__vertArr) {
+		printf ("can not malloc memory for LineSet vertArr\n");
+		return;
+	}
+	pt = (GLint *)node->__vertArr;
+	for (vtc = 0; vtc < ncoord; vtc++) {
+		*pt=vtc; pt++; /* ie, index n contains the number n */
+	}
+
+	/* create the index for each line segment. What happens here is
+	   that we create an array of pointers; each pointer points into
+	   the __vertArr array - this gives a starting index for each line
+	   segment The LENGTH of each segment (good question) comes from the
+	   vertexCount parameter of the LineSet node */
+	if (node->__vertIndx) free ((void *)node->__vertIndx);
+	node->__vertIndx = malloc (sizeof(uintptr_t)*(nvertexc));
+	if (!node->__vertIndx) {
+		printf ("can not malloc memory for LineSet vertIndx\n");
+		return;
+	}
+	c = 0;
+	pt = (GLint *)node->__vertArr;
+	vpt = (uintptr_t *) node->__vertIndx;
+	for (vtc=0; vtc<nvertexc; vtc++) {
+		*vpt =  (uintptr_t) pt;
+		vpt++;
+		pt += vertexC[vtc];
+	}
+
+	/* if we made it this far, we are ok tell the rendering engine that we are ok */
+	node->__segCount = nvertexc;
+}
+

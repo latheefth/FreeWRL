@@ -33,7 +33,6 @@
         f == NODE_TriangleSet             ? "TriangleSet" : "unknown X3DComposedGeometry Node"))))))))
 
 
-extern void initialize_smooth_normals();
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
 extern int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS);
 extern void verify_global_IFS_Coords(int max);
@@ -672,6 +671,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 		}
 	}
 
+
 	/* just check this parameter here for correctness and, whether to generate other nodes. We
 	   will check it better in stream_polyrep. */
 	if (this_->texCoord) {
@@ -682,8 +682,6 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 		rep_->tcoordtype=0;
 	}
 
-	/* Once per freewrl Invocation, the smooth_normals flag is initialized */
-	initialize_smooth_normals();
 	if (!smooth_normals){
 		creaseAngle = 0.0;  /* trick following code into doing things quick */
 	}
@@ -953,7 +951,6 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	free (facenormals);
 	free (faceok);
 	free (pointfaces);
-
 }
 
 /***************************************************************
@@ -1300,7 +1297,6 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		/* { int i; for (i=0; i<tcindexsize; i++) { tcindex[i]=0; } }*/
 
 	/* Normal Generation Code */
-	initialize_smooth_normals();
 	HAVETOSMOOTH = smooth_normals && (fabs(creaseAngle)>0.0001);
 	for (tmp = 0; tmp < 3*rep_->ntri; tmp++) {
 		pointfaces[tmp*POINT_FACES]=0;

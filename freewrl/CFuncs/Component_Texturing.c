@@ -18,49 +18,45 @@
 /* verify the TextureCoordinateGenerator node - if the params are ok, then the internal
    __compiledmode is NOT zero. If there are problems, the __compiledmode IS zero */
 
-void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *this) {
+void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *node) {
 	STRLEN xx;
 	char *modeptr;
 
-	if (this->_ichange != this->_change) {
-		this->_ichange = this->_change;
+	if (node->_ichange != node->_change) {
+		MARK_NODE_COMPILED
 
-		modeptr = SvPV (this->mode,xx);
+		modeptr = SvPV (node->mode,xx);
 
 		/* make the __compiledmode reflect actual OpenGL parameters */
 		if(strncmp("SPHERE-REFLECT-LOCAL",modeptr,strlen("SPHERE-REFLECT-LOCAL"))==0) {
-			this->__compiledmode = GL_SPHERE_MAP;
+			node->__compiledmode = GL_SPHERE_MAP;
 		} else if(strncmp("SPHERE-REFLECT",modeptr,strlen("SPHERE-REFLECT"))==0) {
-			this->__compiledmode = GL_SPHERE_MAP;
+			node->__compiledmode = GL_SPHERE_MAP;
 		} else if(strncmp("SPHERE-LOCAL",modeptr,strlen("SPHERE-LOCAL"))==0) {
-			this->__compiledmode = GL_SPHERE_MAP;
+			node->__compiledmode = GL_SPHERE_MAP;
 		} else if(strncmp("SPHERE",modeptr,strlen("SPHERE"))==0) {
-			this->__compiledmode = GL_SPHERE_MAP;
+			node->__compiledmode = GL_SPHERE_MAP;
 		} else if(strncmp("CAMERASPACENORMAL",modeptr,strlen("CAMERASPACENORMAL"))==0) {
-			this->__compiledmode = GL_NORMAL_MAP;
+			node->__compiledmode = GL_NORMAL_MAP;
 		} else if(strncmp("CAMERASPACEPOSITION",modeptr,strlen("CAMERASPACEPOSITION"))==0) {
-			this->__compiledmode = GL_OBJECT_LINEAR;
+			node->__compiledmode = GL_OBJECT_LINEAR;
 		} else if(strncmp("CAMERASPACEREFLECTION",modeptr,strlen("CAMERASPACEREFLECTION"))==0) {
-			this->__compiledmode = GL_REFLECTION_MAP;
+			node->__compiledmode = GL_REFLECTION_MAP;
 		} else if(strncmp("COORD-EYE",modeptr,strlen("COORD-EYE"))==0) {
-			this->__compiledmode = GL_EYE_LINEAR;
+			node->__compiledmode = GL_EYE_LINEAR;
 		} else if(strncmp("COORD",modeptr,strlen("COORD"))==0) {
-			this->__compiledmode = GL_EYE_LINEAR;
+			node->__compiledmode = GL_EYE_LINEAR;
 		} else if(strncmp("NOISE-EYE",modeptr,strlen("NOISE-EYE"))==0) {
-			this->__compiledmode = GL_EYE_LINEAR;
+			node->__compiledmode = GL_EYE_LINEAR;
 		} else if(strncmp("NOISE",modeptr,strlen("NOISE"))==0) {
-			this->__compiledmode = GL_EYE_LINEAR;
+			node->__compiledmode = GL_EYE_LINEAR;
 		} else {
 			printf ("TextureCoordinateGenerator - error - %s invalid as a mode\n",modeptr);
 		}
 	}
-
-	
-
-
 }
 
-void render_TextureCoordinate(struct X3D_TextureCoordinate *this) {
+void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 	int i;
 	int op;
 	struct SFVec2f oFp;
@@ -72,22 +68,22 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *this) {
 	float *fptr;
 
 	#ifdef TEXVERBOSE
-	printf ("rendering TextureCoordinate node __compiledpoint %d\n",this->__compiledpoint);
-	printf ("tcin %d tcin_count %d oldpoint.n %d\n",global_tcin, global_tcin_count, this->point.n);
+	printf ("rendering TextureCoordinate node __compiledpoint %d\n",node->__compiledpoint);
+	printf ("tcin %d tcin_count %d oldpoint.n %d\n",global_tcin, global_tcin_count, node->point.n);
 	#endif
 
-	/* is this the statusbar? we should *always* have a global_tcin textureIndex */
+	/* is node the statusbar? we should *always* have a global_tcin textureIndex */
 	if (global_tcin == 0) return;
 
-	if (this->_ichange != this->_change) {
-		this->_ichange = this->_change;
+	if (node->_ichange != node->_change) {
+		MARK_NODE_COMPILED
 
-		if (this->__compiledpoint.n == 0) {
-			this->__compiledpoint.n = global_tcin_count;
-			this->__compiledpoint.p = (struct SFVec2f *) malloc (sizeof(float) *2 * global_tcin_count);
+		if (node->__compiledpoint.n == 0) {
+			node->__compiledpoint.n = global_tcin_count;
+			node->__compiledpoint.p = (struct SFVec2f *) malloc (sizeof(float) *2 * global_tcin_count);
 		} 
 	
-		fptr = (float *) this->__compiledpoint.p;
+		fptr = (float *) node->__compiledpoint.p;
 		
 		/* ok, we have a bunch of triangles, loop through and stream the texture coords
 		   into a format that matches 1 for 1, the coordinates */
@@ -96,15 +92,15 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *this) {
 			op = global_tcin[i];
 	
 			/* bounds check - is the tex coord greater than the number of points? 	*/
-			/* this should have been checked before hand...				*/
-			if (op >= this->point.n) {
+			/* node should have been checked before hand...				*/
+			if (op >= node->point.n) {
 				#ifdef TEXVERBOSE
-				printf ("renderTextureCoord - op %d npoints %d\n",op,this->point.n);
+				printf ("renderTextureCoord - op %d npoints %d\n",op,node->point.n);
 				#endif
 				*fptr = 0.0; fptr++; 
 				*fptr = 0.0; fptr++; 
 			} else {
-				oFp = this->point.p[op];
+				oFp = node->point.p[op];
 	
 				#ifdef TEXVERBOSE
 				printf ("TextureCoordinate copying %d to %d\n",op,i);	
@@ -118,14 +114,14 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *this) {
 			
 		#ifdef TEXVERBOSE
 		for (i=0; i<global_tcin_count; i++) {
-			nFp = this->__compiledpoint.p[i];
+			nFp = node->__compiledpoint.p[i];
 			printf ("checking... %d %f %f\n",i,nFp.c[0], nFp.c[1]);
 		}
 		#endif
 	}
 
-	if (this->__compiledpoint.n < global_tcin_count) {
-		printf ("TextureCoordinate - problem %d < %d\n",this->__compiledpoint.n,global_tcin_count);
+	if (node->__compiledpoint.n < global_tcin_count) {
+		printf ("TextureCoordinate - problem %d < %d\n",node->__compiledpoint.n,global_tcin_count);
 	}
 
 }

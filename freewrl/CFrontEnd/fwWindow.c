@@ -174,36 +174,83 @@ Set window variables from FreeWRL
 
 ************************************************************************/
 
+/* because of threading issues in Linux, if we can only use 1 thread, we
+   delay setting of info until this time. */
+int colbut; int colbutChanged = FALSE;
+int headbut; int headbutChanged = FALSE;
+int fl, ex, wa; int navbutChanged = FALSE;
+char fpsstr[MAXSTAT+20]; int msgChanged = FALSE;
+char *consMsg = NULL; int consmsgChanged = FALSE;
+
+void frontendUpdateButtons() {
+	if (colbutChanged) {
+		XmToggleButtonSetState (collisionButton,colbut,FALSE);
+		colbutChanged = FALSE;
+	}
+	if (headbutChanged) {
+		XmToggleButtonSetState (collisionButton,headbut,FALSE);
+		headbutChanged = FALSE;
+	}
+	if (navbutChanged) {
+			XmToggleButtonSetState (walkButton,wa,FALSE);
+			XmToggleButtonSetState (flyButton,fl,FALSE);
+			XmToggleButtonSetState (examineButton,ex,FALSE);
+			navbutChanged = FALSE;
+	}
+	if (msgChanged) {
+			XmTextSetString(menumessagewindow,fpsstr);
+			msgChanged = FALSE;
+	}
+	if (consmsgChanged) {
+			XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),consMsg);
+			consmsgChanged = FALSE;
+	}
+}
+
 void setMenuButton_collision (int val) {
 	#ifdef HAVE_MOTIF
-	XmToggleButtonSetState (collisionButton,val,FALSE);
+		#ifdef DO_MULTI_OPENGL_THREADS
+			XmToggleButtonSetState (collisionButton,val,FALSE);
+		#else
+			colbut = val;
+			colbutChanged = TRUE;
+		
+		#endif
 	#endif
 }
 void setMenuButton_headlight (int val) {
 	#ifdef HAVE_MOTIF
-	XmToggleButtonSetState (headlightButton,val,FALSE);
+		#ifdef DO_MULTI_OPENGL_THREADS
+			XmToggleButtonSetState (headlightButton,val,FALSE);
+		#else
+			headbut = val;
+			headbutChanged = TRUE;
+		
+		#endif
 	#endif
 }
 void setMenuButton_navModes (int type) {
 	#ifdef HAVE_MOTIF
-	int fl, ex, wa;
-	fl = FALSE; ex = FALSE; wa = FALSE;
-	switch(type) {
-	case NONE: break;
-	case EXAMINE: ex = TRUE; break;
-	case WALK: wa = TRUE; break;
-	case FLY: fl = TRUE; break;
-	default: break;
-	}
-	XmToggleButtonSetState (walkButton,wa,FALSE);
-	XmToggleButtonSetState (flyButton,fl,FALSE);
-	XmToggleButtonSetState (examineButton,ex,FALSE);
+		fl = FALSE; ex = FALSE; wa = FALSE;
+		switch(type) {
+			case NONE: break;
+			case EXAMINE: ex = TRUE; break;
+			case WALK: wa = TRUE; break;
+			case FLY: fl = TRUE; break;
+			default: break;
+		}
+		#ifdef DO_MULTI_OPENGL_THREADS
+			XmToggleButtonSetState (walkButton,wa,FALSE);
+			XmToggleButtonSetState (flyButton,fl,FALSE);
+			XmToggleButtonSetState (examineButton,ex,FALSE);
+		#else
+			navbutChanged = TRUE;
+		#endif
 	#endif
 }
 
 void setMessageBar() {
 	#ifdef HAVE_MOTIF
-	char fpsstr[MAXSTAT+20];
 	
 	if (menumessagewindow != NULL) {
 
@@ -212,12 +259,16 @@ void setMessageBar() {
 		if (strlen(myMenuStatus) == 0) {
 			strcat (myMenuStatus, "NONE");
 		}
-		if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
+		if (isShapeCompilerParsing() || isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
 			sprintf (fpsstr, "(Loading...)  speed: %4.1f", myFps);
 		} else {
 			sprintf (fpsstr,"fps: %4.1f Viewpoint: %s",myFps,myMenuStatus);
 		}
-		XmTextSetString(menumessagewindow,fpsstr);
+		#ifdef DO_MULTI_OPENGL_THREADS
+			XmTextSetString(menumessagewindow,fpsstr);
+		#else
+			msgChanged = TRUE;
+		#endif
 	}
 	#endif
 
@@ -246,7 +297,13 @@ void setConsoleMessage (char *str) {
 		}
 		
 		/* put the text here */
-		XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),str);
+		#ifdef DO_MULTI_OPENGL_THREADS
+			XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),str);
+		#else
+			if (consMsg != NULL) free (consMsg);
+			consMsg = strdup(str);
+			consmsgChanged = TRUE;
+		#endif
 	}
 	#endif
 }
@@ -666,7 +723,7 @@ void getVisual(void) {
 
 void createGLContext(void) {
 	/* create a GLX context */
-	#ifdef DO_TWO_OPENGL_THREADS
+	#ifdef DO_MULTI_OPENGL_THREADS
 	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_FALSE);
 	#else
 	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_TRUE);
@@ -719,7 +776,7 @@ void openMainWindow (int argc, char **argv) {
 	String dummyargc[] = { " ", " "};
 	#endif
 
-	#ifdef DO_TWO_OPENGL_THREADS
+	#ifdef DO_MULTI_OPENGL_THREADS
 	XInitThreads();
 	#endif
 

@@ -17,6 +17,10 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.197  2006/05/15 14:05:59  crc_canada
+# Various fixes; CVS was down for a week. Multithreading for shape compile
+# is the main one.
+#
 # Revision 1.196  2006/03/01 15:16:57  crc_canada
 # Changed include file methodology and some Frustum work.
 #
@@ -222,6 +226,28 @@
 %LightC = map {($_=>1)} qw/
 	PointLight
 	SpotLight
+/;
+
+
+#######################################################################
+#######################################################################
+#######################################################################
+#
+# Compile --
+#
+%CompileC = map {($_=>1)} qw/
+	IndexedLineSet
+	LineSet
+	Arc2D
+	ArcClose2D
+	Circle2D
+	Disk2D
+	TriangleSet2D
+	Rectangle2D
+	Box
+	Cone
+	Cylinder
+	Sphere
 /;
 
 

@@ -235,7 +235,7 @@ void EventLoop() {
 	}
 
 	/* should we do events, or maybe Perl is parsing? */
-	doEvents = (!isPerlParsing()) && (!isTextureParsing()) && isPerlinitialized();
+	doEvents = (!isPerlParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isPerlinitialized();
 
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {
@@ -413,6 +413,7 @@ void EventLoop() {
 
 		/* do we have to change cursor? */
 #ifndef AQUA
+
 		if (cursor != curcursor) {
 			curcursor = cursor;
 			XDefineCursor (Xdpy, GLwin, cursor);
@@ -1099,6 +1100,13 @@ void displayThread() {
 			#ifndef AQUA
 			#ifdef HAVE_MOTIF
 			/* X11 Windowing calls */
+
+			/* any updates to the menu buttons? Because of Linux threading
+			   issues, we try to make all updates come from 1 thread */
+			frontendUpdateButtons();
+
+			
+			/* do the Xt events here. */
         		while (XtAppPending(freewrlXtAppContext)!= 0) {
                 		XtAppNextEvent(freewrlXtAppContext, &event);
                 		XtDispatchEvent (&event);
@@ -1152,6 +1160,12 @@ void initFreewrl() {
 #ifndef AQUA
 		while (!isDisplayInitialized()) { usleep(50);}
 #endif
+
+
+		/* shape compiler thread - if we can do this */
+		#ifdef DO_MULTI_OPENGL_THREADS
+		initializeShapeCompileThread();
+		#endif
 
         	initializePerlThread(PERLPATH);
 

@@ -16,10 +16,47 @@
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
 
+/*  have to regen the shape*/
+void compile_Box (struct X3D_Box *node) {
+	float *pt;
+	float x = ((node->size).c[0])/2;
+	float y = ((node->size).c[1])/2;
+	float z = ((node->size).c[2])/2;
+
+	MARK_NODE_COMPILED
+
+	/*  malloc memory (if possible)*/
+	if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(24));
+	if (!node->__points) {
+		printf ("can not malloc memory for box points\n");
+		return;
+	}
+
+	/*  now, create points; 4 points per face.*/
+	pt = (float *) node->__points;
+	/*  front*/
+	*pt++ =  x; *pt++ =  y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
+	*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ =  z;
+	/*  back*/
+	*pt++ =  x; *pt++ = -y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
+	*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ = -z;
+	/*  top*/
+	*pt++ = -x; *pt++ =  y; *pt++ =  z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
+	*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ =  y; *pt++ = -z;
+	/*  down*/
+	*pt++ = -x; *pt++ = -y; *pt++ = -z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
+	*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ = -y; *pt++ =  z;
+	/*  right*/
+	*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
+	*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
+	/*  left*/
+	*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
+	*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
+}
+
 void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
-	float *pt;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 	float z = ((node->size).c[2])/2;
@@ -30,40 +67,7 @@ void render_Box (struct X3D_Box *node) {
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,z,-z,(struct X3D_Box *)node);
 
-
-	if (node->_ichange != node->_change) {
-		/*  have to regen the shape*/
-
-		node->_ichange = node->_change;
-
-		/*  malloc memory (if possible)*/
-		if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(24));
-		if (!node->__points) {
-			printf ("can not malloc memory for box points\n");
-			return;
-		}
-
-		/*  now, create points; 4 points per face.*/
-		pt = (float *) node->__points;
-		/*  front*/
-		*pt++ =  x; *pt++ =  y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
-		*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ =  z;
-		/*  back*/
-		*pt++ =  x; *pt++ = -y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
-		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ = -z;
-		/*  top*/
-		*pt++ = -x; *pt++ =  y; *pt++ =  z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
-		*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ =  y; *pt++ = -z;
-		/*  down*/
-		*pt++ = -x; *pt++ = -y; *pt++ = -z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
-		*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ = -y; *pt++ =  z;
-		/*  right*/
-		*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
-		*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
-		/*  left*/
-		*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
-		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
-	}
+	COMPILE_IF_REQUIRED
 
 	CULL_FACE(node->solid)
 
@@ -77,59 +81,63 @@ void render_Box (struct X3D_Box *node) {
 	textureDraw_end();
 }
 
-void render_Cylinder (struct X3D_Cylinder * node) {
+
+void compile_Cylinder (struct X3D_Cylinder * node) {
 	#define CYLDIV 20
 	float h = (node->height)/2;
 	float r = node->radius;
 	int i = 0;
 	struct SFColor *pt;
 	float a1, a2;
+
+	/*  have to regen the shape*/
+	MARK_NODE_COMPILED
+
+	/*  malloc memory (if possible)*/
+	if (!node->__points) node->__points = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
+	if (!node->__normals) node->__normals = malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
+	if ((!node->__normals) || (!node->__points)) {
+		printf ("error mallocing memory for Cylinder\n");
+		return;
+	}
+	/*  now, create the vertices; this is a quad, so each face = 4 points*/
+	pt = (struct SFColor *) node->__points;
+	for (i=0; i<CYLDIV; i++) {
+		a1 = PI*2*i/(float)CYLDIV;
+		a2 = PI*2*(i+1)/(float)CYLDIV;
+		pt[i*2+0].c[0] = r*sin(a1);
+		pt[i*2+0].c[1] = (float) h;
+		pt[i*2+0].c[2] = r*cos(a1);
+		pt[i*2+1].c[0] = r*sin(a1);
+		pt[i*2+1].c[1] = (float) -h;
+		pt[i*2+1].c[2] = r*cos(a1);
+	}
+
+	/*  wrap the points around*/
+	memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
+
+	/*  center points of top and bottom*/
+	pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
+	pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
+}
+
+void render_Cylinder (struct X3D_Cylinder * node) {
 	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
 	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
 	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
 	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
+	float h = (node->height)/2;
+	float r = node->radius;
 
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
 	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
 
-	if (node->_ichange != node->_change) {
-		/*  have to regen the shape*/
-
-		node->_ichange = node->_change;
-
-		/*  malloc memory (if possible)*/
-		if (!node->__points) node->__points = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
-		if (!node->__normals) node->__normals = malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
-		if ((!node->__normals) || (!node->__points)) {
-			printf ("error mallocing memory for Cylinder\n");
-			return;
-		}
-		/*  now, create the vertices; this is a quad, so each face = 4 points*/
-		pt = (struct SFColor *) node->__points;
-		for (i=0; i<CYLDIV; i++) {
-			a1 = PI*2*i/(float)CYLDIV;
-			a2 = PI*2*(i+1)/(float)CYLDIV;
-			pt[i*2+0].c[0] = r*sin(a1);
-			pt[i*2+0].c[1] = (float) h;
-			pt[i*2+0].c[2] = r*cos(a1);
-			pt[i*2+1].c[0] = r*sin(a1);
-			pt[i*2+1].c[1] = (float) -h;
-			pt[i*2+1].c[2] = r*cos(a1);
-		}
-
-		/*  wrap the points around*/
-		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
-
-		/*  center points of top and bottom*/
-		pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
-		pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
-	}
+	COMPILE_IF_REQUIRED
 
 	CULL_FACE(node->solid)
-
 
 	/*  Display the shape*/
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
@@ -159,7 +167,8 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	textureDraw_end();
 }
 
-void render_Cone (struct X3D_Cone *node) {
+
+void compile_Cone (struct X3D_Cone *node) {
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
 	#define  CONEDIV 20
 
@@ -170,74 +179,81 @@ void render_Cone (struct X3D_Cone *node) {
 	struct SFColor *pt;			/*  bottom points*/
 	struct SFColor *spt;			/*  side points*/
 	struct SFColor *norm;			/*  side normals*/
+
+	/*  have to regen the shape*/
+	MARK_NODE_COMPILED
+
+	/*  malloc memory (if possible)*/
+	if (!node->__botpoints) node->__botpoints = malloc (sizeof(struct SFColor)*(CONEDIV+3));
+	if (!node->__sidepoints) node->__sidepoints = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+	if (!node->__normals) node->__normals = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+	if ((!node->__normals) || (!node->__botpoints) || (!node->__sidepoints)) {
+		printf ("failure mallocing more memory for Cone rendering\n");
+		return;
+	}
+
+	/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
+	pt = (struct SFColor *)node->__botpoints;
+	pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
+	for (i=1; i<=CONEDIV; i++) {
+		pt[i].c[0] = r*sin(PI*2*i/(float)CONEDIV);
+		pt[i].c[1] = (float) -h;
+		pt[i].c[2] = r*cos(PI*2*i/(float)CONEDIV);
+	}
+	/*  and throw another point that is centre of bottom*/
+	pt[CONEDIV+1].c[0] = 0.0; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0;
+
+	/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
+	memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
+
+	/*  side triangles. Make 3 seperate points per triangle... makes glDrawArrays with normals*/
+	/*  easier to handle.*/
+	/*  rearrange bottom points into this array; top, bottom, left.*/
+	spt = (struct SFColor *)node->__sidepoints;
+	for (i=0; i<CONEDIV; i++) {
+		/*  top point*/
+		spt[i*3].c[0] = 0.0; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0;
+		/*  left point*/
+		memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
+		/* right point*/
+		memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
+	}
+
+	/*  wrap bottom point around once again... ie, final right point = initial left point*/
+	memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
+
+	/*  Side Normals - note, normals for faces doubled - see malloc above*/
+	/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
+	norm = (struct SFColor *)node->__normals;
+	for (i=0; i<=CONEDIV; i++) {
+		/*  top point*/
+		angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
+		norm[i*3+0].c[0] = sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = cos(angle);
+		/* left point*/
+		angle = PI * 2 * (i+0) / (float) (CONEDIV);
+		norm[i*3+1].c[0] = sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = cos(angle);
+		/*  right point*/
+		angle = PI * 2 * (i+1) / (float) (CONEDIV);
+		norm[i*3+2].c[0] = sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = cos(angle);
+	}
+}
+
+void render_Cone (struct X3D_Cone *node) {
 	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
 	extern float tribottex[];		/*  in CFuncs/statics.c*/
 	extern float trisidtex[];		/*  in CFuncs/statics.c*/
+	/*  DO NOT change this define, unless you want to recalculate statics below....*/
+	#define  CONEDIV 20
+
+	float h = (node->height)/2;
+	float r = node->bottomRadius;
 
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
 	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
 
-	if (node->_ichange != node->_change) {
-		/*  have to regen the shape*/
-		node->_ichange = node->_change;
-
-		/*  malloc memory (if possible)*/
-		if (!node->__botpoints) node->__botpoints = malloc (sizeof(struct SFColor)*(CONEDIV+3));
-		if (!node->__sidepoints) node->__sidepoints = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
-		if (!node->__normals) node->__normals = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
-		if ((!node->__normals) || (!node->__botpoints) || (!node->__sidepoints)) {
-			printf ("failure mallocing more memory for Cone rendering\n");
-			return;
-		}
-
-		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-		pt = (struct SFColor *)node->__botpoints;
-		pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
-		for (i=1; i<=CONEDIV; i++) {
-			pt[i].c[0] = r*sin(PI*2*i/(float)CONEDIV);
-			pt[i].c[1] = (float) -h;
-			pt[i].c[2] = r*cos(PI*2*i/(float)CONEDIV);
-		}
-		/*  and throw another point that is centre of bottom*/
-		pt[CONEDIV+1].c[0] = 0.0; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0;
-
-		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
-		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
-
-		/*  side triangles. Make 3 seperate points per triangle... makes glDrawArrays with normals*/
-		/*  easier to handle.*/
-		/*  rearrange bottom points into this array; top, bottom, left.*/
-		spt = (struct SFColor *)node->__sidepoints;
-		for (i=0; i<CONEDIV; i++) {
-			/*  top point*/
-			spt[i*3].c[0] = 0.0; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0;
-			/*  left point*/
-			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
-			/* right point*/
-			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
-		}
-
-		/*  wrap bottom point around once again... ie, final right point = initial left point*/
-		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
-
-		/*  Side Normals - note, normals for faces doubled - see malloc above*/
-		/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
-		norm = (struct SFColor *)node->__normals;
-		for (i=0; i<=CONEDIV; i++) {
-			/*  top point*/
-			angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
-			norm[i*3+0].c[0] = sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = cos(angle);
-			/* left point*/
-			angle = PI * 2 * (i+0) / (float) (CONEDIV);
-			norm[i*3+1].c[0] = sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = cos(angle);
-			/*  right point*/
-			angle = PI * 2 * (i+1) / (float) (CONEDIV);
-			norm[i*3+2].c[0] = sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = cos(angle);
-		}
-	}
-
+	COMPILE_IF_REQUIRED
 
 	CULL_FACE(node->solid)
 
@@ -264,7 +280,9 @@ void render_Cone (struct X3D_Cone *node) {
 	textureDraw_end();
 }
 
-void render_Sphere (struct X3D_Sphere *node) {
+
+
+void compile_Sphere (struct X3D_Sphere *node) {
 	#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
 	#define START_TRIG1 t_sa = 0; t_ca = -1;
 	#define UP_TRIG1 t_sa1 = t_sa; t_sa -= t_sa*t_aa - t_ca * t_ab; t_ca -= t_ca * t_aa + t_sa1 * t_ab;
@@ -280,66 +298,72 @@ void render_Sphere (struct X3D_Sphere *node) {
 	/*  will then need recaculating.*/
 	#define SPHDIV 20
 
-	extern GLfloat spherenorms[];		/*  side normals*/
-	extern float spheretex[];		/*  in CFuncs/statics.c*/
 	int count;
 	float rad = node->radius;
 
-	if (rad<=0.0) {
-		/* printf ("invalid sphere rad %f\n",rad);*/
-		return;}
+	int v; int h;
+	float t_aa, t_ab, t_sa, t_ca, t_sa1;
+	float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1;
+	struct SFColor *pts;
+
+	/*  have to regen the shape*/
+	MARK_NODE_COMPILED
+
+	/*  malloc memory (if possible)*/
+	/*  2 vertexes per points. (+1, to loop around and close structure)*/
+	if (!node->__points) node->__points =
+		malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
+	if (!node->__points) {
+		printf ("can not malloc memory in Sphere\n");
+		return;
+	}
+	pts = (struct SFColor *) node->__points;
+	count = 0;
+
+	INIT_TRIG1(SPHDIV)
+	INIT_TRIG2(SPHDIV)
+
+	START_TRIG1
+	for(v=0; v<SPHDIV; v++) {
+		float vsin1 = SIN1;
+		float vcos1 = COS1, vsin2,vcos2;
+		UP_TRIG1
+		vsin2 = SIN1;
+		vcos2 = COS1;
+		START_TRIG2
+		for(h=0; h<=SPHDIV; h++) {
+			float hsin1 = SIN2;
+			float hcos1 = COS2;
+			UP_TRIG2
+			pts[count].c[0] = rad * vsin2 * hcos1;
+			pts[count].c[1] = rad * vcos2;
+			pts[count].c[2] = rad * vsin2 * hsin1;
+			count++;
+			pts[count].c[0] = rad * vsin1 * hcos1;
+			pts[count].c[1] = rad * vcos1;
+			pts[count].c[2] = rad * vsin1 * hsin1;
+			count++;
+		}
+	}
+}
+
+
+void render_Sphere (struct X3D_Sphere *node) {
+	/*  make the divisions 20; dont change this, because statics.c values*/
+	/*  will then need recaculating.*/
+	#define SPHDIV 20
+	extern GLfloat spherenorms[];		/*  side normals*/
+	extern float spheretex[];		/*  in CFuncs/statics.c*/
+
+	float rad = node->radius;
+	int count;
+
+	if (rad<=0.0) { return;}
 
 	/* for BoundingBox calculations */
 	setExtent(rad,-rad,rad,-rad,rad,-rad,(struct X3D_Box *)node);
 
-	if (node->_ichange != node->_change) {
-		int v; int h;
-		float t_aa, t_ab, t_sa, t_ca, t_sa1;
-		float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1;
-		struct SFColor *pts;
-		int count;
-
-		/*  have to regen the shape*/
-
-		node->_ichange = node->_change;
-
-		/*  malloc memory (if possible)*/
-		/*  2 vertexes per points. (+1, to loop around and close structure)*/
-		if (!node->__points) node->__points =
-			malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
-		if (!node->__points) {
-			printf ("can not malloc memory in Sphere\n");
-			return;
-		}
-		pts = (struct SFColor *) node->__points;
-		count = 0;
-
-		INIT_TRIG1(SPHDIV)
-		INIT_TRIG2(SPHDIV)
-
-		START_TRIG1
-		for(v=0; v<SPHDIV; v++) {
-			float vsin1 = SIN1;
-			float vcos1 = COS1, vsin2,vcos2;
-			UP_TRIG1
-			vsin2 = SIN1;
-			vcos2 = COS1;
-			START_TRIG2
-			for(h=0; h<=SPHDIV; h++) {
-				float hsin1 = SIN2;
-				float hcos1 = COS2;
-				UP_TRIG2
-				pts[count].c[0] = rad * vsin2 * hcos1;
-				pts[count].c[1] = rad * vcos2;
-				pts[count].c[2] = rad * vsin2 * hsin1;
-				count++;
-				pts[count].c[0] = rad * vsin1 * hcos1;
-				pts[count].c[1] = rad * vcos1;
-				pts[count].c[2] = rad * vsin1 * hsin1;
-				count++;
-			}
-		}
-	}
+	COMPILE_IF_REQUIRED
 
 	CULL_FACE(node->solid)
 
@@ -353,29 +377,41 @@ void render_Sphere (struct X3D_Sphere *node) {
 	for (count = 0; count < SPHDIV/2; count ++) { 
 		glDrawArrays (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 	}
-
 	textureDraw_end();
 }
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
-		if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)  
-			regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
+/*
+#define MYCOMPILE_POLY_IF_REQUIRED if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) {  \
+	compileNode ((void *)compile_polyrep, node, node->coord, node->color, node->normal, node->texCoord);
+} 
+if (!node->_intern) return;
 
+if (node->_intern) {
+	printf ("have node_intern %d %d %d\n",node->_change, ((struct X3D_PolyRep *)node->_intern)->_change, node->_ichange);
+} else {
+	printf ("NO NODE INTERN\n");
+}
+
+if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) { 
+	compileNode ((void *)compile_polyrep, node, node->coord, node->color, node->normal, node->texCoord);
+} 
+if (!node->_intern) return;
+*/
+
+		COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 void render_ElevationGrid (struct X3D_ElevationGrid *node) {
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-                        regen_polyrep(node, NULL, node->color, node->normal, node->texCoord);
+		COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
 
 void render_Extrusion (struct X3D_Extrusion *node) {
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-                        regen_polyrep(node, NULL,NULL,NULL,NULL);
-
+		COMPILE_POLY_IF_REQUIRED (NULL,NULL,NULL,NULL)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
@@ -412,10 +448,7 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 
 	       /*save changed state.*/
 	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
-	       /* $mk_polyrep(); */
-		if(!node->_intern ||
-                        node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-                                regen_polyrep(node,NULL, NULL, NULL, NULL);
+		COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
 
 
 	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
@@ -879,11 +912,9 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 	       /*save changed state.*/
 	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-                        regen_polyrep(node, NULL, NULL, NULL, NULL);
-
+                COMPILE_POLY_IF_REQUIRED(NULL, NULL, NULL, NULL)
  	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
-	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
+	       /*restore changes state, invalidates compile_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
 	       if(!node->solid) {

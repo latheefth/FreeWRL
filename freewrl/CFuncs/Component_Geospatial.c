@@ -29,9 +29,7 @@ void make_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 }
 
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-			regen_polyrep(node, NULL, node->color, node->normal, node->texCoord);
-
+		COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }
@@ -342,12 +340,9 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 
 	       /*save changed state.*/
 	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-                        regen_polyrep(node, NULL, NULL, NULL, NULL);
-
-
+               COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
  	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
-	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
+	       /*restore changes state, invalidates compile_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
 	       if(!node->solid) {

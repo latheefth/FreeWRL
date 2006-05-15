@@ -83,7 +83,7 @@ int 	colorMaterialEnabled;	/* state of GL_COLOR_MATERIAL			*/
 int     shutterGlasses = 0; 	/* stereo shutter glasses */
 
 
-GLint smooth_normals = -1; /* -1 means, uninitialized */
+GLint smooth_normals = TRUE; /* do normal generation? */
 
 int cur_hits=0;
 
@@ -633,4 +633,110 @@ void setShutter (void) {
         shutterGlasses = 1;
 }
 
+/******************************************************************************
+ *
+ * shape compiler "thread"
+ *
+ ******************************************************************************/
+#ifdef DO_MULTI_OPENGL_THREADS
 
+/* threading variables for loading shapes in threads */
+static pthread_t shapeThread;
+static pthread_mutex_t shapeMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t shapeCond   = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t shapeGenMutex = PTHREAD_MUTEX_INITIALIZER;
+#define SLOCK           pthread_mutex_lock(&shapeMutex);
+#define SUNLOCK         pthread_mutex_unlock(&shapeMutex);
+#define S_LOCK_SIGNAL   pthread_cond_signal(&shapeCond);
+#define S_LOCK_WAIT     pthread_cond_wait(&shapeCond,&shapeMutex);
+/* lock the reallocs of data structures */
+#define REGENLOCK       pthread_mutex_lock(&shapeGenMutex);
+#define REGENUNLOCK     pthread_mutex_unlock(&shapeGenMutex);
+
+/* are we currently active? */
+int shapeCompiling = FALSE;
+
+int CompileThreadInitialized = FALSE;
+static void (*shapemethodptr)(void *, void *, void *, void *, void *); 	/* method used to compile this node 	*/
+static void *shapenodeptr;		/* node pointer of node data		*/
+static void *shapecoord;		/* Polrep shape coord node		*/
+static void *shapecolor;		/* Polyrep shape color node		*/
+static void *shapenormal;		/* Polyrep shape normal node		*/
+static void *shapetexCoord;		/* Polyrep shape tex coord node		*/
+
+void _shapeCompileThread () {
+	/* we wait forever for the data signal to be sent */
+	for (;;) {
+		SLOCK
+		CompileThreadInitialized = TRUE;
+		S_LOCK_WAIT
+		shapeCompiling = TRUE;
+
+		/* so, lets do the compile */
+		usleep(100000);
+		shapemethodptr(shapenodeptr, shapecoord, shapecolor, shapenormal, shapetexCoord);
+
+		shapeCompiling = FALSE;
+		SUNLOCK
+	}
+}
+
+
+void initializeShapeCompileThread() {
+	int iret;
+        iret = pthread_create(&shapeThread, NULL, (void *(*)(void *))&_shapeCompileThread, NULL);
+}
+
+#endif
+
+int isShapeCompilerParsing() {
+	#ifdef DO_MULTI_OPENGL_THREADS
+	return shapeCompiling;
+	#else
+	return FALSE;
+	#endif
+}
+
+void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *coord, void *color, void *normal, void *texCoord) {
+	/* check to see if textures are being parsed right now */
+
+	/* give textures priority over node compiling */
+	if (isTextureParsing()==TRUE) {
+		/* printf ("compileNode, textures parsing, returning\n"); */
+		return;
+	}
+
+	#ifdef DO_MULTI_OPENGL_THREADS
+	if (!shapeCompiling) {
+		if (!CompileThreadInitialized) return; /* still starting up */
+
+
+		/* lock for exclusive thread access */
+        	SLOCK
+
+		/* copy our params over */
+		shapemethodptr = nodefn;
+		shapenodeptr = node;
+		shapecoord = coord;
+		shapecolor = color;
+		shapenormal = normal;
+		shapetexCoord = texCoord;
+
+		/* signal to the shape compiler thread that there is data here */
+		S_LOCK_SIGNAL
+        	SUNLOCK
+		
+	}
+	sched_yield();
+
+	#else
+	/* ok, we cant do a shape compile thread, just do it */
+	nodefn(node, coord, color, normal, texCoord);
+	#endif
+}
+
+void setMenuButton_collision (int val) {}
+void setMenuButton_headlight (int val) {}
+void setMenuButton_navModes (int type) {}
+void setMenuStatus(char *stat) {}
+void setMenuFps (float fps) {}

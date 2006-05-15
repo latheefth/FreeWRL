@@ -20,20 +20,19 @@
 #define NONE 30
 
 void *createLines (float start, float end, float radius, int closed, int *size);
-void createDisk2D (struct X3D_Disk2D *node);
-void createTriangleSet2D (struct X3D_TriangleSet2D *node);
+
+void compile_Arc2D (struct X3D_Arc2D *node) {
+       /*  have to regen the shape*/
+	MARK_NODE_COMPILED
+	
+	FREE_IF_NZ (node->__points);
+	node->__numPoints = 0;
+	node->__points = createLines (node->startAngle,
+		node->endAngle, node->radius, NONE, &node->__numPoints);
+}
 
 void render_Arc2D (struct X3D_Arc2D *node) {
-        if (node->_ichange != node->_change) {
-                /*  have to regen the shape*/
-                node->_ichange = node->_change;
-		
-		FREE_IF_NZ (node->__points);
-		node->__numPoints = 0;
-		node->__points = createLines (node->startAngle,
-			node->endAngle, node->radius, NONE, &node->__numPoints);
-	}
-
+	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
@@ -46,31 +45,32 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 	}
 }
 
-void render_ArcClose2D (struct X3D_ArcClose2D *node) {
+void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 	STRLEN xx;
 	char *ct;
 
-        if (node->_ichange != node->_change) {
-                /*  have to regen the shape*/
-                node->_ichange = node->_change;
+        /*  have to regen the shape*/
+	MARK_NODE_COMPILED
 		
-		FREE_IF_NZ (node->__points);
-		node->__numPoints = 0;
+	FREE_IF_NZ (node->__points);
+	node->__numPoints = 0;
 
-		ct = SvPV(node->closureType,xx);
+	ct = SvPV(node->closureType,xx);
 
-		if (strncmp(ct,"PIE",xx) == 0) {
-			node->__points = createLines (node->startAngle,
-				node->endAngle, node->radius, PIE, &node->__numPoints);
-		} else if (strncmp(ct,"CHORD",xx) == 0) {
-			node->__points = createLines (node->startAngle,
-				node->endAngle, node->radius, CHORD, &node->__numPoints);
-		} else {
-			printf ("ArcClose2D, closureType %s invalid\n",node->closureType);
-		}
+	if (strncmp(ct,"PIE",xx) == 0) {
+		node->__points = createLines (node->startAngle,
+			node->endAngle, node->radius, PIE, &node->__numPoints);
+	} else if (strncmp(ct,"CHORD",xx) == 0) {
+		node->__points = createLines (node->startAngle,
+			node->endAngle, node->radius, CHORD, &node->__numPoints);
+	} else {
+		printf ("ArcClose2D, closureType %s invalid\n",node->closureType);
 	}
+}
 
 
+void render_ArcClose2D (struct X3D_ArcClose2D *node) {
+	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
         	LIGHTING_OFF
         	DISABLE_CULL_FACE
@@ -83,17 +83,18 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 	}
 }
 
-void render_Circle2D (struct X3D_Circle2D *node) {
-        if (node->_ichange != node->_change) {
-                /*  have to regen the shape*/
-                node->_ichange = node->_change;
+void compile_Circle2D (struct X3D_Circle2D *node) {
+       /*  have to regen the shape*/
+	MARK_NODE_COMPILED
 		
-		FREE_IF_NZ (node->__points);
-		node->__numPoints = 0;
-		node->__points = createLines (0.0, 0.0,
-			node->radius, NONE, &node->__numPoints);
-	}
+	FREE_IF_NZ (node->__points);
+	node->__numPoints = 0;
+	node->__points = createLines (0.0, 0.0,
+		node->radius, NONE, &node->__numPoints);
+}
 
+void render_Circle2D (struct X3D_Circle2D *node) {
+	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
 	        LIGHTING_OFF
 	        DISABLE_CULL_FACE
@@ -132,13 +133,73 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 	}
 }
 
-void render_Disk2D (struct X3D_Disk2D *node){
-        if (node->_ichange != node->_change) {
-                /*  have to regen the shape*/
-                node->_ichange = node->_change;
-		createDisk2D (node);
+void compile_Disk2D (struct X3D_Disk2D *node){
+        /*  have to regen the shape*/
+	float rad;
+	GLfloat *fp;
+	GLfloat *tp;
+	int i;
+	GLfloat id;
+	GLfloat od;
+
+	MARK_NODE_COMPILED
+
+	FREE_IF_NZ (node->__points);
+	FREE_IF_NZ (node->__texCoords);
+	node->__numPoints = 0;
+
+	/* bounds checking */
+	node-> __simpleDisk = FALSE;
+	if (node->innerRadius<0) return;
+	if (node->outerRadius<0) return;
+
+	/* is this a simple disc ? */
+	if ((APPROX (node->innerRadius, 0.0)) || (APPROX(node->innerRadius,node->outerRadius))) {
+		node->__simpleDisk = TRUE;
 	}
 
+	/* is this a simple disk, or one with an inner circle cut out? */
+	if (node->__simpleDisk) {
+		node->__numPoints = SEGMENTS_PER_CIRCLE+2;
+		fp = node->__points = malloc (sizeof(GLfloat) * 2 * (node->__numPoints));
+		tp = node->__texCoords = malloc (sizeof(GLfloat) * 2 * (node->__numPoints));
+
+		/* initial TriangleFan point */
+		*fp = 0.0; fp++; *fp = 0.0; fp++;
+		*tp = 0.5; tp++; *tp = 0.5; tp++;
+		id = 2.0;
+
+		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
+			*fp = node->outerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->outerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+		}
+	} else {
+		node->__numPoints = (SEGMENTS_PER_CIRCLE+1) * 2;
+		fp = node->__points = malloc (sizeof(GLfloat) * 2 * node->__numPoints);
+		tp = node->__texCoords = malloc (sizeof(GLfloat) * 2 * node->__numPoints);
+
+
+		/* texture scaling params */
+		od = 2.0;
+		id = node->outerRadius * 2.0 / node->innerRadius;
+
+		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
+			*fp = node->innerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->innerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->outerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*fp = node->outerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
+			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
+			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
+			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
+		}
+	}
+}
+
+void render_Disk2D (struct X3D_Disk2D *node){
+	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
 		CULL_FACE(node->solid)
 
@@ -156,13 +217,46 @@ void render_Disk2D (struct X3D_Disk2D *node){
 	}
 }
 
-void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
-        if (node->_ichange != node->_change) {
-                /*  have to regen the shape*/
-                node->_ichange = node->_change;
-		createTriangleSet2D (node);
-	}
+void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
+        /*  have to regen the shape*/
+	GLfloat maxX, minX;
+	GLfloat maxY, minY;
+	GLfloat Ssize, Tsize;
+	int i;
+	GLfloat *fp;
 
+	MARK_NODE_COMPILED
+
+	/* do we have vertex counts in sets of 3? */
+	if ((node->vertices.n %3) != 0) {
+		printf ("TriangleSet2D, have incorrect vertex count, %d\n",node->vertices.n);
+		node->vertices.n -= node->vertices.n % 3;
+	}
+	FREE_IF_NZ (node->__texCoords);
+	node->__texCoords = fp = malloc (sizeof (GLfloat) * node->vertices.n * 2);
+
+	/* find min/max values for X and Y axes */
+	minY = minX = 99999999.0;
+	maxY = maxX = -9999999.0;
+	for (i=0; i<node->vertices.n; i++) {
+		if (node->vertices.p[i].c[0] < minX) minX = node->vertices.p[i].c[0];
+		if (node->vertices.p[i].c[1] < minY) minY = node->vertices.p[i].c[1];
+		if (node->vertices.p[i].c[0] > maxX) maxX = node->vertices.p[i].c[0];
+		if (node->vertices.p[i].c[1] > maxY) maxY = node->vertices.p[i].c[1];
+	}
+	/* printf ("minX %f maxX %f minY %f maxY %f\n",minX, maxX, minY, maxY); */
+	Ssize = maxX - minX;
+	Tsize = maxY - minY;
+	/* printf ("ssize %f tsize %f\n",Ssize, Tsize); */
+
+	for (i=0; i<node->vertices.n; i++) {
+		*fp = (node->vertices.p[i].c[0] - minX) / Ssize; fp++;
+		*fp = (node->vertices.p[i].c[1] - minY) / Tsize; fp++;
+	}
+}
+
+void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
+	COMPILE_IF_REQUIRED
 	if (node->vertices.n>0) {	
 		CULL_FACE(node->solid)
 
@@ -179,10 +273,28 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 }
 
 /* this code is remarkably like Box, but with a zero z axis. */
+void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
+	float *pt;
+	float x = ((node->size).c[0])/2;
+	float y = ((node->size).c[1])/2;
+	MARK_NODE_COMPILED
+	/*  malloc memory (if possible)*/
+	if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(4));
+	if (!node->__points) {
+		printf ("can not malloc memory for Rectangle2D points\n");
+		return;
+	}
+
+	/*  now, create points; 4 points per face.*/
+	pt = (float *) node->__points;
+	/*  front*/
+	*pt++ =  x; *pt++ =  y; *pt++ =  0.0; *pt++ = -x; *pt++ =  y; *pt++ =  0.0;
+	*pt++ = -x; *pt++ = -y; *pt++ =  0.0; *pt++ =  x; *pt++ = -y; *pt++ =  0.0;
+}
+
 void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
-	float *pt;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 
@@ -192,27 +304,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,0.0,0.0,(struct X3D_Box *)node);
 
-
-	if (node->_ichange != node->_change) {
-		/*  have to regen the shape*/
-
-		node->_ichange = node->_change;
-
-		/*  malloc memory (if possible)*/
-		if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(4));
-		if (!node->__points) {
-			printf ("can not malloc memory for Rectangle2D points\n");
-			return;
-		}
-
-		/*  now, create points; 4 points per face.*/
-		pt = (float *) node->__points;
-		/*  front*/
-		*pt++ =  x; *pt++ =  y; *pt++ =  0.0; *pt++ = -x; *pt++ =  y; *pt++ =  0.0;
-		*pt++ = -x; *pt++ = -y; *pt++ =  0.0; *pt++ =  x; *pt++ = -y; *pt++ =  0.0;
-	}
-
-
+	COMPILE_IF_REQUIRED
 	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
@@ -303,103 +395,7 @@ void *createLines (float start, float end, float radius, int closed, int *size) 
 }
 
 
-void createDisk2D (struct X3D_Disk2D *node) {
-	float rad;
-	GLfloat *fp;
-	GLfloat *tp;
-	int i;
-	GLfloat id;
-	GLfloat od;
 
-	FREE_IF_NZ (node->__points);
-	FREE_IF_NZ (node->__texCoords);
-	node->__numPoints = 0;
-
-	/* bounds checking */
-	node-> __simpleDisk = FALSE;
-	if (node->innerRadius<0) return;
-	if (node->outerRadius<0) return;
-
-	/* is this a simple disc ? */
-	if ((APPROX (node->innerRadius, 0.0)) || (APPROX(node->innerRadius,node->outerRadius))) {
-		node->__simpleDisk = TRUE;
-	}
-
-	/* is this a simple disk, or one with an inner circle cut out? */
-	if (node->__simpleDisk) {
-		node->__numPoints = SEGMENTS_PER_CIRCLE+2;
-		fp = node->__points = malloc (sizeof(GLfloat) * 2 * (node->__numPoints));
-		tp = node->__texCoords = malloc (sizeof(GLfloat) * 2 * (node->__numPoints));
-
-		/* initial TriangleFan point */
-		*fp = 0.0; fp++; *fp = 0.0; fp++;
-		*tp = 0.5; tp++; *tp = 0.5; tp++;
-		id = 2.0;
-
-		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			*fp = node->outerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-		}
-	} else {
-		node->__numPoints = (SEGMENTS_PER_CIRCLE+1) * 2;
-		fp = node->__points = malloc (sizeof(GLfloat) * 2 * node->__numPoints);
-		tp = node->__texCoords = malloc (sizeof(GLfloat) * 2 * node->__numPoints);
-
-
-		/* texture scaling params */
-		od = 2.0;
-		id = node->outerRadius * 2.0 / node->innerRadius;
-
-		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
-			*fp = node->innerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->innerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*fp = node->outerRadius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	fp++;
-			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
-			*tp = 0.5 + (sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
-			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
-		}
-	}
-}
-
-void createTriangleSet2D (struct X3D_TriangleSet2D *node) {
-	GLfloat maxX, minX;
-	GLfloat maxY, minY;
-	GLfloat Ssize, Tsize;
-	int i;
-	GLfloat *fp;
-
-
-	/* do we have vertex counts in sets of 3? */
-	if ((node->vertices.n %3) != 0) {
-		printf ("TriangleSet2D, have incorrect vertex count, %d\n",node->vertices.n);
-		node->vertices.n -= node->vertices.n % 3;
-	}
-	FREE_IF_NZ (node->__texCoords);
-	node->__texCoords = fp = malloc (sizeof (GLfloat) * node->vertices.n * 2);
-
-	/* find min/max values for X and Y axes */
-	minY = minX = 99999999.0;
-	maxY = maxX = -9999999.0;
-	for (i=0; i<node->vertices.n; i++) {
-		if (node->vertices.p[i].c[0] < minX) minX = node->vertices.p[i].c[0];
-		if (node->vertices.p[i].c[1] < minY) minY = node->vertices.p[i].c[1];
-		if (node->vertices.p[i].c[0] > maxX) maxX = node->vertices.p[i].c[0];
-		if (node->vertices.p[i].c[1] > maxY) maxY = node->vertices.p[i].c[1];
-	}
-	/* printf ("minX %f maxX %f minY %f maxY %f\n",minX, maxX, minY, maxY); */
-	Ssize = maxX - minX;
-	Tsize = maxY - minY;
-	/* printf ("ssize %f tsize %f\n",Ssize, Tsize); */
-
-	for (i=0; i<node->vertices.n; i++) {
-		*fp = (node->vertices.p[i].c[0] - minX) / Ssize; fp++;
-		*fp = (node->vertices.p[i].c[1] - minY) / Tsize; fp++;
-	}
-}
 
 void collide_TriangleSet2D (struct X3D_TriangleSet2D *node) {
 	UNUSED (node);

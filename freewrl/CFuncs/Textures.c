@@ -890,7 +890,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	/* is this one an unsquished movie texture? */
 	if (texIsloaded[*texture_num] == UNSQUASHED) { return; }
 
-	#ifndef DO_TWO_OPENGL_THREADS
+	#ifndef DO_MULTI_OPENGL_THREADS
         /* is this one read in, but requiring final manipulation
          * by THIS thread? */
         if (texIsloaded[*texture_num] == NEEDSBINDING) {
@@ -1200,14 +1200,14 @@ void _textureThread(void) {
 	/* printf ("textureThread, have to try to remember to destroy this context\n"); */
 
 	#else
-		#ifdef DO_TWO_OPENGL_THREADS
+		#ifdef DO_MULTI_OPENGL_THREADS
 		textureContext = glXCreateContext(Xdpy, Xvi, GLcx, GL_FALSE);
 		glXMakeCurrent(Xdpy,Xwin,textureContext);
 		#endif
 	#endif
 
 	/* set up some common storage info */
-	#ifdef DO_TWO_OPENGL_THREADS
+	#ifdef DO_MULTI_OPENGL_THREADS
 		glEnable(GL_TEXTURE_2D);
 		glPixelStorei(GL_PACK_ALIGNMENT,1);
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
@@ -1250,7 +1250,7 @@ void _textureThread(void) {
 			/* check to see if there was an error. If no error, then bind that texture */
 			if (texIsloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID) {
 
-				# ifdef DO_TWO_OPENGL_THREADS
+				# ifdef DO_MULTI_OPENGL_THREADS
 				#ifdef TEXVERBOSE 
 				printf ("tex %d needs binding, name %s\n",*loadparams[currentlyWorkingOn].texture_num,
 					loadparams[*loadparams[currentlyWorkingOn].texture_num].filename);

@@ -78,13 +78,3 @@ void normalize_ifs_face (float *point_normal,
 
 	/* printf ("normalized vector is %f %f %f\n",point_normal[0], point_normal[1], point_normal[2]);*/
 }
-
-void initialize_smooth_normals() {
-
-	/* first complex face - are we running in fast or good mode... */
-	if (smooth_normals == -1) {
-		/* Needs to be initialized */
-		glGetIntegerv (GL_SHADE_MODEL, &smooth_normals);
-		smooth_normals = smooth_normals == GL_SMOOTH;
-	}
-}

@@ -1000,19 +1000,19 @@ void render_ray_polyrep(void *node) {
 }
 
 /* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
-void regen_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
+void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
 	struct X3D_Virt *v;
 	struct X3D_Box *p;
 	struct X3D_PolyRep *r;
 
 	v = *(struct X3D_Virt **)node;
 	p = (struct X3D_Box *)node;
-
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
+
 		p->_intern = malloc(sizeof(struct X3D_PolyRep));
 		if (!(p->_intern)) 
-			freewrlDie("Not enough memory to regen_polyrep... ;(");
+			freewrlDie("Not enough memory to compile_polyrep... ;(");
 
 		r = (struct X3D_PolyRep *)p->_intern;
 		r->ntri = -1;
@@ -1022,7 +1022,6 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 		r->tcoordtype = 0;
 	}
 	r = (struct X3D_PolyRep *)p->_intern;
-	r->_change = p->_change;
 
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);
@@ -1042,5 +1041,7 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	if (r->ntri != 0)
 		stream_polyrep(node, coord, color, normal, texCoord);
 
+	/* and, tell the rendering process that this shape is now compiled */
+	r->_change = p->_change;
 }
 

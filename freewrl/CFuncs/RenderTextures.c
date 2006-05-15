@@ -189,6 +189,10 @@ void textureDraw_end(void) {
 
 	        if (this_textureTransform) end_textureTransform(this_textureTransform,c);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                /*glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+                glTexGeni(GL_T, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);*/
+		glDisable(GL_TEXTURE_GEN_S);
+		glDisable (GL_TEXTURE_GEN_T);
 		glDisable(GL_TEXTURE_2D);
 	}
 	/* DISABLE_TEXTURES */

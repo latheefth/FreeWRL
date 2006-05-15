@@ -40,9 +40,7 @@
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
    not working that well... */
 #ifdef AQUA
-	#define DO_TWO_OPENGL_THREADS
-#else
-	#undef DO_TWO_OPENGL_THREADS
+	#define DO_MULTI_OPENGL_THREADS
 #endif
 
 /* if we want to see our opengl errors, define this and recompile everything. */
@@ -67,6 +65,33 @@
 #define VF_removeHasVisibleChildren		0xFEFF
 #define VF_hasGeometryChildren 			0x0200
 #define VF_hasBeenScannedForGeometryChildren	0x0400
+
+/* compile simple nodes (eg, Cone, LineSet) into an internal format. Check out
+   CompileC in VRMLRend.pm, and look for compile_* functions in code. General
+   meshes are rendered using the PolyRep scheme, which also compiles into OpenGL 
+   calls, using the PolyRep (and, stream_PolyRep) methodology */
+
+int isShapeCompilerParsing(void);
+void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
+#define COMPILE_POLY_IF_REQUIRED(a,b,c,d) \
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) { \
+                        compileNode ((void *)compile_polyrep, node, a,b,c,d); \
+		} \
+		if (!node->_intern) return;
+
+#define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
+	if (node->_ichange != node->_change) { \
+/* printf ("COMP %d %d\n",node->_ichange, node->_change);*/ \
+		v = *(struct X3D_Virt **)node; \
+		if (v->compile) { \
+			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
+		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
+		} \
+		if (node->_ichange == 0) return; \
+	}
+
+#define MARK_NODE_COMPILED node->_ichange = node->_change;
+/* end of compile simple nodes code */
 
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
@@ -537,6 +562,7 @@ extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 
 /* menubar stuff */
+void frontendUpdateButtons(void); /* used only if we are not able to multi-thread OpenGL */
 void setMenuButton_collision (int val) ;
 void setMenuButton_headlight (int val) ;
 void setMenuButton_navModes (int type) ;
@@ -831,10 +857,13 @@ void child_Appearance (struct X3D_Appearance *this_);
 
 /* Geometry3D nodes */
 void render_Box (struct X3D_Box *this);
+void compile_Box (struct X3D_Box *this);
 void collide_Box (struct X3D_Box *this);
 void render_Cone (struct X3D_Cone *this);
+void compile_Cone (struct X3D_Cone *this);
 void collide_Cone (struct X3D_Cone *this);
 void render_Cylinder (struct X3D_Cylinder *this);
+void compile_Cylinder (struct X3D_Cylinder *this);
 void collide_Cylinder (struct X3D_Cylinder *this);
 void render_ElevationGrid (struct X3D_ElevationGrid *this);
 #define rendray_ElevationGrid  render_ray_polyrep
@@ -846,8 +875,8 @@ void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
 void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
 #define rendray_IndexedFaceSet render_ray_polyrep 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
-
 void render_Sphere (struct X3D_Sphere *this);
+void compile_Sphere (struct X3D_Sphere *this);
 void collide_Sphere (struct X3D_Sphere *this);
 void make_Extrusion (struct X3D_Extrusion *this);
 #define make_IndexedFaceSet make_indexedfaceset
@@ -860,18 +889,24 @@ void rendray_Cone (struct X3D_Cone *this_);
 
 /* Geometry2D nodes */
 void render_Arc2D (struct X3D_Arc2D *this_);
+void compile_Arc2D (struct X3D_Arc2D *this_);
 void render_ArcClose2D (struct X3D_ArcClose2D *this_);
+void compile_ArcClose2D (struct X3D_ArcClose2D *this_);
 void render_Circle2D (struct X3D_Circle2D *this_);
+void compile_Circle2D (struct X3D_Circle2D *this_);
 void render_Disk2D (struct X3D_Disk2D *this_);
+void compile_Disk2D (struct X3D_Disk2D *this_);
 void render_Polyline2D (struct X3D_Polyline2D *this_);
 void render_Polypoint2D (struct X3D_Polypoint2D *this_);
 void render_Rectangle2D (struct X3D_Rectangle2D *this_);
+void compile_Rectangle2D (struct X3D_Rectangle2D *this_);
 void render_TriangleSet2D (struct X3D_TriangleSet2D *this_);
+void compile_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 void collide_Disk2D (struct X3D_Disk2D *this_);
 void collide_Rectangle2D (struct X3D_Rectangle2D *this_);
 void collide_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 
-/* Rendering nodes */
+/* Component Rendering nodes */
 #define rendray_IndexedTriangleSet render_ray_polyrep
 #define rendray_IndexedTriangleFanSet render_ray_polyrep
 #define rendray_IndexedTriangleStripSet render_ray_polyrep
@@ -899,6 +934,8 @@ void render_PointSet (struct X3D_PointSet *this_);
 #define make_TriangleFanSet  make_indexedfaceset
 #define make_TriangleSet  make_indexedfaceset
 #define make_TriangleStripSet  make_indexedfaceset
+void compile_LineSet (struct X3D_LineSet *this_); 
+void compile_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
 
 /* Component Lighting Nodes */
 void render_DirectionalLight (struct X3D_DirectionalLight *this_);
@@ -970,6 +1007,7 @@ int freewrlSystem (const char *string);
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,
                         int zeroBind);
+void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d);
 
 
 int ConsoleMessage(const char *fmt, ...);

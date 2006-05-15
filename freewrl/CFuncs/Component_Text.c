@@ -104,10 +104,7 @@ void FW_draw_character(FT_Glyph glyph);
 int open_font(void);
 
 void render_Text (struct X3D_Text * node) {
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-                        regen_polyrep(node, NULL, NULL, NULL, NULL);
-
-		/* always Text is visible from both sides */
+                COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
                 DISABLE_CULL_FACE
 		render_polyrep(node);
 }
@@ -803,11 +800,9 @@ void collide_Text (struct X3D_Text *node) {
 
 	       /*save changed state.*/
 	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
-                        regen_polyrep(node, NULL, NULL, NULL, NULL);
-
+               COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
  	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
-	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
+	       /*restore changes state, invalidates compile_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
 	       pr = *((struct X3D_PolyRep*)node->_intern);

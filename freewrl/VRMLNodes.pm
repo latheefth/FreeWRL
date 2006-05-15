@@ -816,10 +816,12 @@ my $protono;
 						colorIndex => [MFInt32, [], field],
 						colorPerVertex => [SFBool, 1, field],
 						coordIndex => [MFInt32, [], field],
+						__vertArr  =>[FreeWRLPTR,0,field],
 						__vertIndx  =>[FreeWRLPTR,0,field],
 						__colours  =>[FreeWRLPTR,0,field],
-						__segCount =>[SFInt32,0,field],
+						__vertices  =>[FreeWRLPTR,0,field],
 						__vertexCount =>[FreeWRLPTR,0,field],
+						__segCount =>[SFInt32,0,field],
 					   }),
 
 	IndexedTriangleFanSet => new VRML::NodeType("IndexedTriangleFanSet", {
