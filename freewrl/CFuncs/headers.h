@@ -569,6 +569,11 @@ void setMenuButton_navModes (int type) ;
 void setConsoleMessage(char *stat) ;
 void setMenuStatus(char *stat) ;
 void setMenuFps (float fps) ;
+void setMenuButton_texSize (int size);
+extern int textures_take_priority;
+void setTextures_take_priority (int x);
+extern int useShapeThreadIfPossible;
+void setUseShapeThreadIfPossible(int x);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
@@ -699,7 +704,7 @@ extern void aqDisplayThread();
 #endif
 extern void setSnapSeq();
 extern void setEAIport(int pnum);
-extern void setFast();
+extern void setTexSize(int num);
 extern void setKeyString(const char *str);
 extern void setNoCollision();
 extern void setSnapGif();

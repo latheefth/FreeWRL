@@ -1227,8 +1227,19 @@ void setLineWidth(float lwidth) {
         gl_linewidth = lwidth;
 }
 
-void setFast() {
-        global_texSize = 256;
+void setUseShapeThreadIfPossible(int x) {
+	useShapeThreadIfPossible = x;
+}
+
+void setTextures_take_priority (int x) {
+	textures_take_priority = x;
+}
+
+/* set the global_texSize. Expect a number that is 0 - use max, or negative. eg,
+   -512 hopefully sets to size 512x512; this will be bounds checked in the texture
+   thread */
+void setTexSize(int requestedsize) {
+        global_texSize = requestedsize;
 }
 
 

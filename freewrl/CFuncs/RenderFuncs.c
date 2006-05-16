@@ -51,6 +51,8 @@ int sound_from_audioclip = 0;
 /* and, we allow a maximum of so many pixels per texture */
 /* if this is zero, first time a texture call is made, this is set to the OpenGL implementations max */
 GLint global_texSize = 0;
+int textures_take_priority = TRUE;
+int useShapeThreadIfPossible = TRUE;
 
 /* for printing warnings about Sound node problems - only print once per invocation */
 int soundWarned = FALSE;
@@ -701,33 +703,41 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	/* check to see if textures are being parsed right now */
 
 	/* give textures priority over node compiling */
-	if (isTextureParsing()==TRUE) {
-		/* printf ("compileNode, textures parsing, returning\n"); */
-		return;
+	if (textures_take_priority) {
+		if (isTextureParsing()==TRUE) {
+			/* printf ("compileNode, textures parsing, returning\n"); */
+			return;
+		}
 	}
 
 	#ifdef DO_MULTI_OPENGL_THREADS
-	if (!shapeCompiling) {
-		if (!CompileThreadInitialized) return; /* still starting up */
 
-
-		/* lock for exclusive thread access */
-        	SLOCK
-
-		/* copy our params over */
-		shapemethodptr = nodefn;
-		shapenodeptr = node;
-		shapecoord = coord;
-		shapecolor = color;
-		shapenormal = normal;
-		shapetexCoord = texCoord;
-		/* printf ("sending shape in\n"); */
-		/* signal to the shape compiler thread that there is data here */
-		S_LOCK_SIGNAL
-        	SUNLOCK
-		
+	/* do we want to use a seperate thread for compiling shapes, or THIS thread? */
+	if (useShapeThreadIfPossible) {
+		if (!shapeCompiling) {
+			if (!CompileThreadInitialized) return; /* still starting up */
+	
+	
+			/* lock for exclusive thread access */
+	        	SLOCK
+	
+			/* copy our params over */
+			shapemethodptr = nodefn;
+			shapenodeptr = node;
+			shapecoord = coord;
+			shapecolor = color;
+			shapenormal = normal;
+			shapetexCoord = texCoord;
+			/* signal to the shape compiler thread that there is data here */
+			S_LOCK_SIGNAL
+	        	SUNLOCK
+			
+		}
+		sched_yield();
+	} else {
+		/* ok, we do not want to use the shape compile thread, just do it */
+		nodefn(node, coord, color, normal, texCoord);
 	}
-	sched_yield();
 
 	#else
 	/* ok, we cant do a shape compile thread, just do it */

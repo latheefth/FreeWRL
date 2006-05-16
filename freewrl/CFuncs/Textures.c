@@ -18,11 +18,14 @@
 #include "OpenGL_Utils.h"
 
 /* lets check the max texture size */
+static int checktexsize;
 #define CHECK_MAX_TEXTURE_SIZE \
-	if (global_texSize==0) { \ 
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &global_texSize); \
-		/* do we want to limit this? */  \
-		/* if (global_texSize > 1024) global_texSize = 1024; */ \
+	if (global_texSize<=0) { \ 
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); \
+		global_texSize = -global_texSize; \
+		if (global_texSize == 0) global_texSize = checktexsize; \
+		if (global_texSize > checktexsize) global_texSize = checktexsize; \
+		setMenuButton_texSize (global_texSize); \
 	} 
 
 

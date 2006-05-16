@@ -90,7 +90,8 @@ int parseCommandLine (int argc, char **argv) {
 				break;
 
 			case 'f':
-				global_texSize = 256;
+				/* set negative so that the texture thread will pick this up */
+				setTexSize(-256);
 				break;
 
 			case 'g':

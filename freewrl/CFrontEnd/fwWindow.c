@@ -154,6 +154,7 @@ Widget consoleTextArea;
 Widget consoleTextWidget;
 Widget about_widget;
 Widget newFileWidget;
+Widget tex128_button, tex256_button, texFull_button, texturesFirstButton, shapeThreadButton;
 
 Arg args[10];
 Arg buttonArgs[10]; int buttonArgc = 0;
@@ -181,6 +182,8 @@ int headbut; int headbutChanged = FALSE;
 int fl, ex, wa; int navbutChanged = FALSE;
 char fpsstr[MAXSTAT+20]; int msgChanged = FALSE;
 char *consMsg = NULL; int consmsgChanged = FALSE;
+int localtexpri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
+int localshapepri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
 
 void frontendUpdateButtons() {
 	if (colbutChanged) {
@@ -247,6 +250,20 @@ void setMenuButton_navModes (int type) {
 			navbutChanged = TRUE;
 		#endif
 	#endif
+}
+
+void setMenuButton_texSize (int size) {
+	int val;
+	/* this is called from the texture thread, so there is not a threading problem here */
+	val = FALSE;
+	/* set all thread buttons to FALSE */
+	XmToggleButtonSetState (tex128_button, val, FALSE);
+	XmToggleButtonSetState (tex256_button, val, FALSE);
+	XmToggleButtonSetState (texFull_button, val, FALSE);
+	val = TRUE;
+	if (size <= 128) {XmToggleButtonSetState (tex128_button, val, FALSE);
+	} else if (size <=256) {XmToggleButtonSetState (tex256_button, val, FALSE);
+	} else {XmToggleButtonSetState (texFull_button, val, FALSE); }
 }
 
 void setMessageBar() {
@@ -333,6 +350,21 @@ void ViewpointFirst (Widget w, XtPointer data, XtPointer callData) {First_ViewPo
 void ViewpointLast (Widget w, XtPointer data, XtPointer callData) {Last_ViewPoint();}
 void ViewpointNext (Widget w, XtPointer data, XtPointer callData) {Next_ViewPoint();}
 void ViewpointPrev (Widget w, XtPointer data, XtPointer callData) {Prev_ViewPoint();}
+
+void Tex128(Widget w, XtPointer data, XtPointer callData) {setTexSize(-128);};
+void Tex256(Widget w, XtPointer data, XtPointer callData) {setTexSize(-256);};
+void TexFull(Widget w, XtPointer data, XtPointer callData) {setTexSize(0);};
+void texturesFirst(Widget w, XtPointer data, XtPointer callData) {
+	/* default is set in CFuncs/RenderFuncs to be TRUE; we need to be in sync */
+	localtexpri = !localtexpri;
+	setTextures_take_priority (localtexpri);
+}
+void shapeMaker(Widget w, XtPointer data, XtPointer callData) {
+	/* default is set in CFuncs/RenderFuncs to be TRUE; we need to be in sync */
+	localshapepri = !localshapepri;
+	setUseShapeThreadIfPossible (localshapepri);
+}
+
 
 /* do we want a message window displaying fps, viewpoint, etc? */
 void toggleMessagebar (Widget w, XtPointer data, XtPointer callData) {
@@ -579,12 +611,13 @@ void createNavigatePulldown() {
 		myXtManageChild (17,collisionButton);
 	
 		/* Straighten */
+		/* BUTTON NOT WORKING - so make insensitive */
+		XtSetArg (buttonArgs[buttonArgc], XmNsensitive, FALSE); 
 		myXtManageChild(18,XmCreateSeparator (menupane, "sep1", NULL, 0));
-		/*
-		btn = XmCreatePushButton (menupane, "Straighten", NULL, 0);
+		btn = XmCreatePushButton (menupane, "Straighten", buttonArgs, buttonArgc+1); /* NOTE THE +1 here for sensitive */
 		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointStraighten, NULL);
 		myXtManageChild (19,btn);
-		*/
+
 		consolemessageButton = XtCreateManagedWidget("Console Display",
 			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback(consolemessageButton, XmNvalueChangedCallback, 
@@ -598,6 +631,60 @@ void createNavigatePulldown() {
 	
 	XtSetArg (args[0], XmNsubMenuId, menupane);
 	cascade = XmCreateCascadeButton (menubar, "Navigate", args, 1);
+	myXtManageChild (22,cascade);
+}
+
+/* Preferences pulldown menu */
+void createPreferencesPulldown() {
+	Widget cascade, btn, menupane;
+
+	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
+
+		/* texture size on loading */	
+		myXtManageChild(11,XmCreateSeparator (menupane, "sep1", NULL, 0));
+
+		tex128_button = XtCreateManagedWidget("128x128 Textures", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+		XtAddCallback (tex128_button, XmNvalueChangedCallback, (XtCallbackProc)Tex128, NULL);
+		myXtManageChild (12,tex128_button);
+
+		tex256_button = XtCreateManagedWidget("256x256 Textures", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+		XtAddCallback (tex256_button, XmNvalueChangedCallback, (XtCallbackProc)Tex256, NULL);
+		myXtManageChild (13,tex256_button);
+
+		texFull_button = XtCreateManagedWidget("Fullsize Textures", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+		XtAddCallback (texFull_button, XmNvalueChangedCallback, (XtCallbackProc)TexFull, NULL);
+		myXtManageChild (14,texFull_button);
+
+		/* texture, shape compiling  */
+		myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
+
+		texturesFirstButton = XtCreateManagedWidget("Textures take priority",
+			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+		XtAddCallback(texturesFirstButton, XmNvalueChangedCallback, 
+			  (XtCallbackProc)texturesFirst, NULL);
+		myXtManageChild (16,texturesFirstButton);
+	        XmToggleButtonSetState (texturesFirstButton, localtexpri, FALSE);
+
+
+		/* what things can we NOT do if we dont have threads? */
+		#ifndef DO_MULTI_OPENGL_THREADS
+		XtSetArg (buttonArgs[buttonArgc], XmNsensitive, FALSE);  buttonArgc++;
+		#endif
+		shapeThreadButton = XtCreateManagedWidget("Shape maker uses thread",
+			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+		XtAddCallback(shapeThreadButton, XmNvalueChangedCallback, 
+			  (XtCallbackProc)shapeMaker, NULL);
+		#ifndef DO_MULTI_OPENGL_THREADS
+		buttonArgc--;
+		#endif
+		myXtManageChild (17,shapeThreadButton);
+
+		#ifdef DO_MULTI_OPENGL_THREADS
+	        XmToggleButtonSetState (shapeThreadButton, localshapepri, FALSE);
+		#endif
+	
+	XtSetArg (args[0], XmNsubMenuId, menupane);
+	cascade = XmCreateCascadeButton (menubar, "Preferences", args, 1);
 	myXtManageChild (22,cascade);
 }
 
@@ -664,7 +751,9 @@ void createMenuBar(void) {
 
 	if (!RUNNINGASPLUGIN) createFilePulldown();
 	createNavigatePulldown();
+	createPreferencesPulldown();
 	createHelpPulldown();
+
 }
 
 /**********************************************************************************/
