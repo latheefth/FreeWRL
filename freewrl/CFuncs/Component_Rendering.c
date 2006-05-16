@@ -409,7 +409,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	printf("PointSet: %d %d\n", npoints, ncolors);
 	#endif
 
-	if (ncolors>=0) {
+	if (ncolors>0) {
 		glEnableClientState(GL_COLOR_ARRAY);
                 cc = (struct X3D_Color *) node->color;
 		/* is this a Color or ColorRGBA color node? */
@@ -431,7 +431,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 
 	/* put things back to normal */
 	glEnableClientState(GL_NORMAL_ARRAY);
-	if (ncolors>=0) {
+	if (ncolors>0) {
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
 

@@ -9,6 +9,7 @@
 #include "headers.h"
 #include "installdir.h"
 #include "PluginSocket.h"
+#include "Bindable.h"
 #include <pthread.h>
 
 #ifndef __jsUtils_h__
@@ -610,6 +611,12 @@ void EAI_killBindables (void) {
 
 	/* grab data */
 	UNLOCK;
+
+	/* and, reset our stack pointers */
+	background_tos = -1;
+	fog_tos = -1;
+	navi_tos = -1;
+	viewpoint_tos = -1;
 }
 
 /* interface for creating VRML for EAI */

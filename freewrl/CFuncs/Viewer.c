@@ -50,6 +50,8 @@ float getCurrentSpeed() {
 void viewer_default() {
 	Quaternion q_i;
 
+	fieldofview = 45.0;
+
 	VPvelocity.x = 0.0; VPvelocity.y = 0.0; VPvelocity.z = 0.0; 
 	(Viewer.Pos).x = 0;
 	(Viewer.Pos).y = 0;

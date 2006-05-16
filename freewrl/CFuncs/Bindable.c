@@ -232,7 +232,7 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 	struct X3D_Background *bgnode;
 	bgnode=(struct X3D_Background*) node;
 	/* lets see what kind of node this is... */
-	/* printf ("bind_node, we have %d \n",bgnode->_nodeType); */
+	/* printf ("bind_node, we have %d tos %d \n",bgnode->_nodeType,*tos);  */
 
 	
 	/* setup some variables. Use char * as a pointer as it is ok between 32

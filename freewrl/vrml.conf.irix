@@ -18,18 +18,6 @@
 BIN_DIR =>  "/usr/bin",
 LIB_DIR => "/usr/lib",
 
-#
-# WARNINGS => "high" or "medium" or "low" to turn on gcc compiler warnings
-#
-#   high: medium + -Wunreachable-code -Wshadow -Wcast-align
-#   medium: low + -W -Wpointer-arith -Wconversion -Wbad-function-cast
-#                 -Wcast-qual -Wfloat-equal
-#   low: -Wall -Wundef -Wsign-compare -Wmissing-prototypes -Wmissing-declarations
-#
-# WARNINGS => "off" to turn off user supplied gcc compiler warnings
-
-   WARNINGS => "off",
-
 # DEBUG => "on" to turn on debugging (currently only for JS engine)
 # DEBUG => "off" to turn off debugging
 

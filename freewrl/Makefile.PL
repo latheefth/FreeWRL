@@ -94,10 +94,6 @@ my $jsdir = "js1.5/src";
 my $jsobjdir;
 my $BUILD_OPT;
 
-my $warnings_high = qq{-Wunreachable-code -Wshadow -Wcast-align};
-my $warnings_medium = qq{-W -Wpointer-arith -Wconversion -Wbad-function-cast -Wcast-qual -Wfloat-equal};
-my $warnings_low = qq{-Wall -Wundef -Wsign-compare -Wmissing-prototypes -Wmissing-declarations};
-
 my @ccflags;
 my @inc;
 my @libs;
@@ -133,11 +129,6 @@ if (-e $oldfw2initpl) {
 	print "***************************************************************************\n";
 }
 
-
-if ($VRML_CONFIG{WARNINGS} eq "low") { push @ccflags, $warnings_low; }
-if ($VRML_CONFIG{WARNINGS} eq "medium") { push @ccflags, $warnings_low, $warnings_medium; }
-
-if ($VRML_CONFIG{WARNINGS} eq "high") { push @ccflags, $warnings_low, $warnings_medium, $warnings_high; }
 
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 	print "MAKING WITH BOUNDSCHECKING ENABLED\n";

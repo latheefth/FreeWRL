@@ -45,6 +45,10 @@ extern int totfognodes, totbacknodes, totnavnodes, totviewpointnodes;
 extern int currboundvpno;
 
 extern int viewpoint_tos;
+extern int background_tos;
+extern int fog_tos;
+extern int navi_tos;
+
 extern unsigned int viewpoint_stack[];
 extern unsigned int navi_stack[];
 
