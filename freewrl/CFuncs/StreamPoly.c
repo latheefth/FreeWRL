@@ -305,7 +305,8 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		if (newpoints[i].c[2] < p->EXTENT_MIN_Z) p->EXTENT_MIN_Z = newpoints[i].c[2];
 	}
 
-	/* free the old, and make the new current. */
+	/* free the old, and make the new current. Just in case threading on a multiprocessor
+	   machine comes walking through and expects to stream... */
 	FREE_IF_NZ(r->coord);
 	r->coord = (float *)newpoints;
 	FREE_IF_NZ(r->normal);
@@ -333,6 +334,9 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	#ifdef STREAM_POLY_VERBOSE
 		printf ("end stream_polyrep - ntri %d\n\n",r->ntri);
 	#endif
+
+	/* finished streaming, tell the rendering thread that we can now display this one */
+	r->streamed=TRUE;
 }
 
 

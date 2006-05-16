@@ -16,9 +16,12 @@
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
 
+/*******************************************************************************/
+
 /*  have to regen the shape*/
 void compile_Box (struct X3D_Box *node) {
 	float *pt;
+	void *ptr;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 	float z = ((node->size).c[2])/2;
@@ -26,14 +29,16 @@ void compile_Box (struct X3D_Box *node) {
 	MARK_NODE_COMPILED
 
 	/*  malloc memory (if possible)*/
-	if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(24));
-	if (!node->__points) {
+	if (!node->__points) ptr = malloc (sizeof(struct SFColor)*(24));
+	else ptr = node->__points;
+
+	if (!ptr) {
 		printf ("can not malloc memory for box points\n");
 		return;
 	}
 
 	/*  now, create points; 4 points per face.*/
-	pt = (float *) node->__points;
+	pt = (float *) ptr;
 	/*  front*/
 	*pt++ =  x; *pt++ =  y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
 	*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ =  z;
@@ -52,6 +57,9 @@ void compile_Box (struct X3D_Box *node) {
 	/*  left*/
 	*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
 	*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
+
+	/* finished, and have good data */
+	node->__points = ptr;
 }
 
 void render_Box (struct X3D_Box *node) {
@@ -64,10 +72,11 @@ void render_Box (struct X3D_Box *node) {
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
+	COMPILE_IF_REQUIRED
+	if (!node->__points) return; /* still compiling */
+
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,z,-z,(struct X3D_Box *)node);
-
-	COMPILE_IF_REQUIRED
 
 	CULL_FACE(node->solid)
 
@@ -82,6 +91,8 @@ void render_Box (struct X3D_Box *node) {
 }
 
 
+/*******************************************************************************/
+
 void compile_Cylinder (struct X3D_Cylinder * node) {
 	#define CYLDIV 20
 	float h = (node->height)/2;
@@ -89,19 +100,25 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	int i = 0;
 	struct SFColor *pt;
 	float a1, a2;
+	void *tmpptr;
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
+
+	/* use node->__points as compile completed flag for threading */
+
 	/*  malloc memory (if possible)*/
-	if (!node->__points) node->__points = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
+	if (!node->__points) tmpptr = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
+	else tmpptr = node->__points;
+
 	if (!node->__normals) node->__normals = malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
-	if ((!node->__normals) || (!node->__points)) {
+	if ((!node->__normals) || (!tmpptr)) {
 		printf ("error mallocing memory for Cylinder\n");
 		return;
 	}
 	/*  now, create the vertices; this is a quad, so each face = 4 points*/
-	pt = (struct SFColor *) node->__points;
+	pt = (struct SFColor *) tmpptr;
 	for (i=0; i<CYLDIV; i++) {
 		a1 = PI*2*i/(float)CYLDIV;
 		a2 = PI*2*(i+1)/(float)CYLDIV;
@@ -119,6 +136,7 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	/*  center points of top and bottom*/
 	pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
 	pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
+	node->__points = tmpptr;
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
@@ -136,6 +154,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
 
 	COMPILE_IF_REQUIRED
+	if (!node->__points) return;
 
 	CULL_FACE(node->solid)
 
@@ -168,6 +187,9 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 }
 
 
+
+/*******************************************************************************/
+
 void compile_Cone (struct X3D_Cone *node) {
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
 	#define  CONEDIV 20
@@ -179,6 +201,7 @@ void compile_Cone (struct X3D_Cone *node) {
 	struct SFColor *pt;			/*  bottom points*/
 	struct SFColor *spt;			/*  side points*/
 	struct SFColor *norm;			/*  side normals*/
+	void *ptr;
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
@@ -186,8 +209,13 @@ void compile_Cone (struct X3D_Cone *node) {
 	/*  malloc memory (if possible)*/
 	if (!node->__botpoints) node->__botpoints = malloc (sizeof(struct SFColor)*(CONEDIV+3));
 	if (!node->__sidepoints) node->__sidepoints = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
-	if (!node->__normals) node->__normals = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
-	if ((!node->__normals) || (!node->__botpoints) || (!node->__sidepoints)) {
+
+	/* use normals for compiled flag for threading */
+
+	if (!node->__normals) ptr = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+	else ptr = node->__normals;
+	
+	if ((!ptr) || (!node->__botpoints) || (!node->__sidepoints)) {
 		printf ("failure mallocing more memory for Cone rendering\n");
 		return;
 	}
@@ -224,7 +252,7 @@ void compile_Cone (struct X3D_Cone *node) {
 
 	/*  Side Normals - note, normals for faces doubled - see malloc above*/
 	/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
-	norm = (struct SFColor *)node->__normals;
+	norm = (struct SFColor *)ptr;
 	for (i=0; i<=CONEDIV; i++) {
 		/*  top point*/
 		angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
@@ -236,6 +264,9 @@ void compile_Cone (struct X3D_Cone *node) {
 		angle = PI * 2 * (i+1) / (float) (CONEDIV);
 		norm[i*3+2].c[0] = sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = cos(angle);
 	}
+
+	/* ok, finished compiling, finish */
+	node->__normals = ptr;
 }
 
 void render_Cone (struct X3D_Cone *node) {
@@ -249,11 +280,14 @@ void render_Cone (struct X3D_Cone *node) {
 	float r = node->bottomRadius;
 
 	if ((h < 0) || (r < 0)) {return;}
+	COMPILE_IF_REQUIRED
+
+	/* use normals for threaded compile completed flag */
+	if (!node->__normals) return;
 
 	/* for BoundingBox calculations */
 	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
 
-	COMPILE_IF_REQUIRED
 
 	CULL_FACE(node->solid)
 
@@ -282,6 +316,9 @@ void render_Cone (struct X3D_Cone *node) {
 
 
 
+/*******************************************************************************/
+
+
 void compile_Sphere (struct X3D_Sphere *node) {
 	#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
 	#define START_TRIG1 t_sa = 0; t_ca = -1;
@@ -300,6 +337,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	int count;
 	float rad = node->radius;
+	void *ptr;
 
 	int v; int h;
 	float t_aa, t_ab, t_sa, t_ca, t_sa1;
@@ -311,13 +349,14 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 	/*  malloc memory (if possible)*/
 	/*  2 vertexes per points. (+1, to loop around and close structure)*/
-	if (!node->__points) node->__points =
-		malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
-	if (!node->__points) {
+	if (!node->__points) ptr = malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
+	else ptr = node->__points;
+
+	if (!ptr) {
 		printf ("can not malloc memory in Sphere\n");
 		return;
 	}
-	pts = (struct SFColor *) node->__points;
+	pts = (struct SFColor *) ptr;
 	count = 0;
 
 	INIT_TRIG1(SPHDIV)
@@ -345,6 +384,9 @@ void compile_Sphere (struct X3D_Sphere *node) {
 			count++;
 		}
 	}
+
+	/* finished - for threading */
+	node->__points = ptr;
 }
 
 
@@ -381,24 +423,6 @@ void render_Sphere (struct X3D_Sphere *node) {
 }
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
-/*
-#define MYCOMPILE_POLY_IF_REQUIRED if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) {  \
-	compileNode ((void *)compile_polyrep, node, node->coord, node->color, node->normal, node->texCoord);
-} 
-if (!node->_intern) return;
-
-if (node->_intern) {
-	printf ("have node_intern %d %d %d\n",node->_change, ((struct X3D_PolyRep *)node->_intern)->_change, node->_ichange);
-} else {
-	printf ("NO NODE INTERN\n");
-}
-
-if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) { 
-	compileNode ((void *)compile_polyrep, node, node->coord, node->color, node->normal, node->texCoord);
-} 
-if (!node->_intern) return;
-*/
-
 		COMPILE_POLY_IF_REQUIRED (node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);

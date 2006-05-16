@@ -321,29 +321,29 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		glDisableClientState(GL_NORMAL_ARRAY);
 		glVertexPointer (3,GL_FLOAT,0,node->__vertices);
 
-	if (node->__colours) {
-		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer (4,GL_FLOAT,0,node->__colours);
-	} else {
-		glColor3fv (thisColor);
-	}
-
-	#ifdef AQUA
-		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
-		indices = node->__vertIndx;
-		count  = node->__vertexCount;
-		for (i=0; i<node->__segCount; i++) {
-			glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+		if (node->__colours) {
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer (4,GL_FLOAT,0,node->__colours);
+		} else {
+			glColor3fv (thisColor);
 		}
-	#else
-		glMultiDrawElements (
-			GL_LINE_STRIP,
-			node->__vertexCount,
-			GL_UNSIGNED_INT,
-			node->__vertIndx,
-			node->__segCount
-		);
-	#endif
+
+		#ifdef AQUA
+			/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
+			indices = node->__vertIndx;
+			count  = node->__vertexCount;
+			for (i=0; i<node->__segCount; i++) {
+				glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+			}
+		#else
+			glMultiDrawElements (
+				GL_LINE_STRIP,
+				node->__vertexCount,
+				GL_UNSIGNED_INT,
+				node->__vertIndx,
+				node->__segCount
+			);
+		#endif
 
 
 		glEnableClientState (GL_NORMAL_ARRAY);
@@ -539,15 +539,15 @@ void compile_LineSet (struct X3D_LineSet *node) {
 		}
 	}
 
-        	if(node->coord) {
-                	xc = (struct X3D_Coordinate *) node->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                	        ConsoleMessage ("make_LineSet, coord node expected but not found");
-                	} else {
-                        	coord = xc->point.p;
-                        	ncoord = xc->point.n;
-                	}
-        	}
+       	if(node->coord) {
+               	xc = (struct X3D_Coordinate *) node->coord;
+               	if (xc->_nodeType != NODE_Coordinate) {
+               	        ConsoleMessage ("make_LineSet, coord node expected but not found");
+               	} else {
+                       	coord = xc->point.p;
+                       	ncoord = xc->point.n;
+               	}
+       	}
 
 	/* check that we have enough vertexes */
 	if (totVertexRequired > ncoord) {
@@ -556,21 +556,21 @@ void compile_LineSet (struct X3D_LineSet *node) {
 		return;
 	}
  
-        	if (node->color) {
-                	cc = (struct X3D_Color *) node->color;
-                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-                	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
-                	} else {
-                	        ncolor = cc->color.n;
-			color = cc->color.p;
-                	}
+       	if (node->color) {
+               	cc = (struct X3D_Color *) node->color;
+               	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+               	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
+               	} else {
+               	        ncolor = cc->color.n;
+		color = cc->color.p;
+               	}
 		/* check that we have enough verticies for the Colors */
 		if (totVertexRequired > ncolor) {
 			ConsoleMessage ("make_LineSet, not enough colors for vertexCount (vertices:%d colors:%d)",
 				totVertexRequired, ncolor);
 			return;
 		}
-        	}
+       	}
 
 	/* create the index for the arrays. Really simple... Used to index
 	   into the coords, so, eg, __vertArr is [0,1,2], which means use

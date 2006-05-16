@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.212  2006/05/16 13:49:24  crc_canada
+# Threading of shape loading now works. No menu buttons for it yet, though.
+# It is a compile time option -DO_MULTI_OPENGL...
+#
 # Revision 1.211  2006/05/15 14:05:59  crc_canada
 # Various fixes; CVS was down for a week. Multithreading for shape compile
 # is the main one.
@@ -570,6 +574,7 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int _change;
 	int ccw;	/* ccw field for single faced structures */
 	int ntri; /* number of triangles */
+	int streamed;	/* is this done the streaming pass? */
 	int alloc_tri; /* number of allocated triangles */
 	int *cindex;   /* triples (per triangle) */
 	float *coord; /* triples (per point) */

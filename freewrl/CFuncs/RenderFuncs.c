@@ -671,9 +671,9 @@ void _shapeCompileThread () {
 		CompileThreadInitialized = TRUE;
 		S_LOCK_WAIT
 		shapeCompiling = TRUE;
+		/* printf ("shapethread compiling\n"); */
 
 		/* so, lets do the compile */
-		usleep(100000);
 		shapemethodptr(shapenodeptr, shapecoord, shapecolor, shapenormal, shapetexCoord);
 
 		shapeCompiling = FALSE;
@@ -721,7 +721,7 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 		shapecolor = color;
 		shapenormal = normal;
 		shapetexCoord = texCoord;
-
+		/* printf ("sending shape in\n"); */
 		/* signal to the shape compiler thread that there is data here */
 		S_LOCK_SIGNAL
         	SUNLOCK

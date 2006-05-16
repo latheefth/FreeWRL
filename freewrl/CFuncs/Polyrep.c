@@ -751,6 +751,11 @@ void render_polyrep(void *node) {
 		return;
 	}
 
+	if (!r->streamed) {
+		printf ("render_polyrep, not streamed, returning\n");
+		return;
+	}
+
 	/* save these values for streaming the texture coordinates later */
 	global_tcin = r->tcindex;
 	global_tcin_count = r->ntri*3;
@@ -1020,8 +1025,12 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		r->norindex = 0; r->normal = 0; r->GeneratedTexCoords = 0;
 		r->tcindex = 0; 
 		r->tcoordtype = 0;
+		r->streamed = FALSE;
 	}
 	r = (struct X3D_PolyRep *)p->_intern;
+	/* if multithreading, tell the rendering loop that we are regenning this one */
+	/* if singlethreading, this'll be set to TRUE before it is tested	     */
+	r->streamed = FALSE;
 
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);

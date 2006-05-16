@@ -21,14 +21,26 @@
 
 void *createLines (float start, float end, float radius, int closed, int *size);
 
+/***********************************************************************************/
+
 void compile_Arc2D (struct X3D_Arc2D *node) {
        /*  have to regen the shape*/
+	void *tmpptr_a, *tmpptr_b;
+	int tmpint;
+
 	MARK_NODE_COMPILED
 	
-	FREE_IF_NZ (node->__points);
-	node->__numPoints = 0;
-	node->__points = createLines (node->startAngle,
-		node->endAngle, node->radius, NONE, &node->__numPoints);
+	tmpint = 0;
+	tmpptr_a = createLines (node->startAngle, node->endAngle, node->radius, NONE, &tmpint);
+
+	/* perform the switch - worry about threading here without locking */
+	node->__numPoints = 0;		/* tell us that it has zero points */
+	tmpptr_b = node->__points;	/* old set of points, for freeing later */
+	node->__points = tmpptr_a;	/* new points */
+	node->__numPoints = tmpint;
+	FREE_IF_NZ (tmpptr_b);
+	/* switch completed */
+	
 }
 
 void render_Arc2D (struct X3D_Arc2D *node) {
@@ -45,27 +57,38 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 	}
 }
 
+/***********************************************************************************/
+
 void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 	STRLEN xx;
 	char *ct;
+	void *tmpptr_a, *tmpptr_b;
+	int tmpint;
 
         /*  have to regen the shape*/
 	MARK_NODE_COMPILED
 		
-	FREE_IF_NZ (node->__points);
-	node->__numPoints = 0;
-
 	ct = SvPV(node->closureType,xx);
+	tmpint = 0;
+	tmpptr_a = NULL;
 
 	if (strncmp(ct,"PIE",xx) == 0) {
-		node->__points = createLines (node->startAngle,
-			node->endAngle, node->radius, PIE, &node->__numPoints);
+		tmpptr_a = createLines (node->startAngle,
+			node->endAngle, node->radius, PIE, &tmpint);
 	} else if (strncmp(ct,"CHORD",xx) == 0) {
-		node->__points = createLines (node->startAngle,
-			node->endAngle, node->radius, CHORD, &node->__numPoints);
+		tmpptr_a = createLines (node->startAngle,
+			node->endAngle, node->radius, CHORD, &tmpint);
 	} else {
 		printf ("ArcClose2D, closureType %s invalid\n",node->closureType);
 	}
+
+	/* perform the switch - worry about threading here without locking */
+	node->__numPoints = 0;		/* tell us that it has zero points */
+	tmpptr_b = node->__points;	/* old set of points, for freeing later */
+	node->__points = tmpptr_a;	/* new points */
+	node->__numPoints = tmpint;
+	FREE_IF_NZ (tmpptr_b);
+	/* switch completed */
 }
 
 
@@ -83,14 +106,24 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 	}
 }
 
+/***********************************************************************************/
+
 void compile_Circle2D (struct X3D_Circle2D *node) {
+	void *tmpptr_a, *tmpptr_b;
+	int tmpint;
+
        /*  have to regen the shape*/
 	MARK_NODE_COMPILED
 		
-	FREE_IF_NZ (node->__points);
-	node->__numPoints = 0;
-	node->__points = createLines (0.0, 0.0,
-		node->radius, NONE, &node->__numPoints);
+	tmpptr_a = createLines (0.0, 0.0, node->radius, NONE, &tmpint);
+
+	/* perform the switch - worry about threading here without locking */
+	node->__numPoints = 0;		/* tell us that it has zero points */
+	tmpptr_b = node->__points;	/* old set of points, for freeing later */
+	node->__points = tmpptr_a;	/* new points */
+	node->__numPoints = tmpint;
+	FREE_IF_NZ (tmpptr_b);
+	/* switch completed */
 }
 
 void render_Circle2D (struct X3D_Circle2D *node) {
@@ -107,6 +140,9 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 	}
 }
 
+/***********************************************************************************/
+
+
 void render_Polyline2D (struct X3D_Polyline2D *node){
 	if (node->lineSegments.n>0) {
 	        LIGHTING_OFF
@@ -119,6 +155,9 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 		glEnableClientState (GL_NORMAL_ARRAY);
 	}
 }
+
+/***********************************************************************************/
+
 
 void render_Polypoint2D (struct X3D_Polypoint2D *node){
 	if (node->point.n>0) {
@@ -133,36 +172,40 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 	}
 }
 
+/***********************************************************************************/
+
 void compile_Disk2D (struct X3D_Disk2D *node){
         /*  have to regen the shape*/
 	float rad;
 	GLfloat *fp;
 	GLfloat *tp;
+	GLfloat *sfp;
+	GLfloat *stp;
+	GLfloat *ofp;
+	GLfloat *otp;
 	int i;
 	GLfloat id;
 	GLfloat od;
+	int tmpint;
+	int simpleDisc;
 
 	MARK_NODE_COMPILED
 
-	FREE_IF_NZ (node->__points);
-	FREE_IF_NZ (node->__texCoords);
-	node->__numPoints = 0;
 
 	/* bounds checking */
-	node-> __simpleDisk = FALSE;
-	if (node->innerRadius<0) return;
-	if (node->outerRadius<0) return;
+	if (node->innerRadius<0) {node->__numPoints = 0; return;}
+	if (node->outerRadius<0) {node->__numPoints = 0; return;}
 
 	/* is this a simple disc ? */
-	if ((APPROX (node->innerRadius, 0.0)) || (APPROX(node->innerRadius,node->outerRadius))) {
-		node->__simpleDisk = TRUE;
-	}
+	if ((APPROX (node->innerRadius, 0.0)) || 
+		(APPROX(node->innerRadius,node->outerRadius))) simpleDisc = TRUE;
+	else simpleDisc = FALSE;
 
 	/* is this a simple disk, or one with an inner circle cut out? */
-	if (node->__simpleDisk) {
-		node->__numPoints = SEGMENTS_PER_CIRCLE+2;
-		fp = node->__points = malloc (sizeof(GLfloat) * 2 * (node->__numPoints));
-		tp = node->__texCoords = malloc (sizeof(GLfloat) * 2 * (node->__numPoints));
+	if (simpleDisc) {
+		tmpint = SEGMENTS_PER_CIRCLE+2;
+		fp = sfp = malloc (sizeof(GLfloat) * 2 * (tmpint));
+		tp = stp = malloc (sizeof(GLfloat) * 2 * (tmpint));
 
 		/* initial TriangleFan point */
 		*fp = 0.0; fp++; *fp = 0.0; fp++;
@@ -176,9 +219,9 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	tp++;
 		}
 	} else {
-		node->__numPoints = (SEGMENTS_PER_CIRCLE+1) * 2;
-		fp = node->__points = malloc (sizeof(GLfloat) * 2 * node->__numPoints);
-		tp = node->__texCoords = malloc (sizeof(GLfloat) * 2 * node->__numPoints);
+		tmpint = (SEGMENTS_PER_CIRCLE+1) * 2;
+		fp = sfp = malloc (sizeof(GLfloat) * 2 * tmpint);
+		tp = stp = malloc (sizeof(GLfloat) * 2 * tmpint);
 
 
 		/* texture scaling params */
@@ -196,6 +239,18 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 			*tp = 0.5 + (cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);	tp++;
 		}
 	}
+
+
+	/* compiling done, set up for rendering. thread safe */
+	node->__numPoints = 0;
+	ofp = node->__points;
+	otp = node->__texCoords;
+	node->__points = sfp;
+	node->__texCoords = stp;
+	node->__simpleDisk = simpleDisc;
+	node->__numPoints = tmpint;
+	FREE_IF_NZ (ofp);
+	FREE_IF_NZ (otp);
 }
 
 void render_Disk2D (struct X3D_Disk2D *node){
@@ -217,6 +272,8 @@ void render_Disk2D (struct X3D_Disk2D *node){
 	}
 }
 
+/***********************************************************************************/
+
 void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
         /*  have to regen the shape*/
 	GLfloat maxX, minX;
@@ -224,6 +281,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	GLfloat Ssize, Tsize;
 	int i;
 	GLfloat *fp;
+	int tmpint;
 
 	MARK_NODE_COMPILED
 
@@ -232,13 +290,19 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		printf ("TriangleSet2D, have incorrect vertex count, %d\n",node->vertices.n);
 		node->vertices.n -= node->vertices.n % 3;
 	}
+
+	/* save this, and tell renderer that this has 0 vertices (threading stuff) */
+	tmpint = node->vertices.n;
+	node->vertices.n = 0;
+
+	/* ok, now if renderer renders (threading) it'll see zero, so we are safe */
 	FREE_IF_NZ (node->__texCoords);
-	node->__texCoords = fp = malloc (sizeof (GLfloat) * node->vertices.n * 2);
+	node->__texCoords = fp = malloc (sizeof (GLfloat) * tmpint * 2);
 
 	/* find min/max values for X and Y axes */
 	minY = minX = 99999999.0;
 	maxY = maxX = -9999999.0;
-	for (i=0; i<node->vertices.n; i++) {
+	for (i=0; i<tmpint; i++) {
 		if (node->vertices.p[i].c[0] < minX) minX = node->vertices.p[i].c[0];
 		if (node->vertices.p[i].c[1] < minY) minY = node->vertices.p[i].c[1];
 		if (node->vertices.p[i].c[0] > maxX) maxX = node->vertices.p[i].c[0];
@@ -249,10 +313,13 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	Tsize = maxY - minY;
 	/* printf ("ssize %f tsize %f\n",Ssize, Tsize); */
 
-	for (i=0; i<node->vertices.n; i++) {
+	for (i=0; i<tmpint; i++) {
 		*fp = (node->vertices.p[i].c[0] - minX) / Ssize; fp++;
 		*fp = (node->vertices.p[i].c[1] - minY) / Tsize; fp++;
 	}
+
+	/* restore, so we know how many tris there are */
+	node->vertices.n = tmpint;
 }
 
 void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
@@ -272,24 +339,31 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	}
 }
 
+
+/***********************************************************************************/
+
 /* this code is remarkably like Box, but with a zero z axis. */
 void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 	float *pt;
+	void *xx;
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 	MARK_NODE_COMPILED
+
+	/* once malloc'd, this never changes size, so is "threadsafe" */
 	/*  malloc memory (if possible)*/
-	if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(4));
-	if (!node->__points) {
+	if (!node->__points) xx = malloc (sizeof(struct SFColor)*(4));
+	if (!xx) {
 		printf ("can not malloc memory for Rectangle2D points\n");
 		return;
 	}
 
 	/*  now, create points; 4 points per face.*/
-	pt = (float *) node->__points;
+	pt = (float *) xx;
 	/*  front*/
 	*pt++ =  x; *pt++ =  y; *pt++ =  0.0; *pt++ = -x; *pt++ =  y; *pt++ =  0.0;
 	*pt++ = -x; *pt++ = -y; *pt++ =  0.0; *pt++ =  x; *pt++ = -y; *pt++ =  0.0;
+	if (!node->__points) node->__points =xx;
 }
 
 void render_Rectangle2D (struct X3D_Rectangle2D *node) {
@@ -300,11 +374,14 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0)) return;
+	COMPILE_IF_REQUIRED
+	
+	/* is it compiled yet? (threading) */
+	if (!node->__points) return;
 
 	/* for BoundingBox calculations */
 	setExtent(x,-x,y,-y,0.0,0.0,(struct X3D_Box *)node);
 
-	COMPILE_IF_REQUIRED
 	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
@@ -319,6 +396,9 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	glEnableClientState (GL_NORMAL_ARRAY);
 }
 
+
+
+/***********************************************************************************/
 
 void *createLines (float start, float end, float radius, int closed, int *size) {
 	int i;
