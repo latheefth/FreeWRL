@@ -147,7 +147,7 @@ int ConsoleMessage(const char *fmt, ...) {
 #ifdef AQUA
 		printf (FWbuffer);
 		printf ("\n");
-	sendCM(FWbuffer);
+	setConsoleMessage(FWbuffer);
 #else
 #ifdef HAVE_MOTIF
 	setConsoleMessage (FWbuffer);
