@@ -631,9 +631,9 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, in
 	WAIT_WHILE_PERL_BUSY;
 	if (strncmp(tp,"URL",2) ==  0) {
 			psp.type= FROMURL;
-	} else {
+	} else if (strncmp(tp,"String",5) == 0) {
 		psp.type = FROMSTRING;
-	}
+	} else psp.type = FROMCREATENODE;
 
 	complete = 0; /* make sure we wait for completion */
 	psp.comp = &complete;
@@ -842,6 +842,7 @@ void _perlThread(void *perlpath) {
 		switch (psp.type) {
 
 		case FROMSTRING:
+		case FROMCREATENODE:
 		case FROMURL:	{
 			/* is this a Create from URL or string, or a successful INLINE? */
 			__pt_doStringUrl();
@@ -1045,8 +1046,10 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *ret
 	PUTBACK;
 	if (strcmp(tp,"URL")==0)
 		count = call_pv("VRML::Browser::EAI_CreateVrmlFromURL", G_ARRAY);
-	else
+	else if (strcmp(tp,"String")==0)
 		count = call_pv("VRML::Browser::EAI_CreateVrmlFromString", G_ARRAY);
+	else
+		count = call_pv("VRML::Browser::EAI_CreateX3DNodeFromString", G_ARRAY);
 	SPAGAIN ;
 
 	/* Perl is returning a series of BN/node# pairs, reorder to node#/BN.*/
@@ -1230,11 +1233,13 @@ void __pt_doStringUrl () {
 	if (psp.type==FROMSTRING) {
        		retval = _pt_CreateVrml("String",psp.inp,myretarr);
 
-	} else {
+	} else if (psp.type==FROMURL) {
 		retval = _pt_CreateVrml("URL",psp.inp,myretarr);
-	}
+	} else if (psp.type=FROMCREATENODE) {
+		retval = _pt_CreateVrml("CREATENODE",psp.inp,myretarr);
+	} else retval = _pt_CreateVrml("CREATEPROTO",psp.inp,myretarr);
 
-	/* printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr); */
+	printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr); 
 
 
 	/* copy the returned nodes to the caller */

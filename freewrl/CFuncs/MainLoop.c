@@ -1067,6 +1067,7 @@ void setBrowserURL(const char* file) {
                 free (BrowserURL);
         }
         BrowserURL = strdup(file);
+printf ("MainLoop, setBrowserURL, %s\n",BrowserURL);
 }
 
 void setFullPath(const char* file) {

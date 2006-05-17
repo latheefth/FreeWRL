@@ -354,7 +354,6 @@ public class Browser implements BrowserInterface, IBrowser
          retval = getVRMLreply(queryno);
          queryno += 1;
        }
-	System.out.println ("Global Rendering Properties: " + retval);
 	return retval;
     }
 
@@ -400,8 +399,6 @@ public class Browser implements BrowserInterface, IBrowser
         synchronized (FreeWRLToken) {
           EAIoutSender.send ("" + queryno + "Q" + SysString);
           retval = getVRMLreply(queryno);
-
-System.out.println  ("Sarah: Browser:loadURL, retval " + retval);
           queryno += 1;
         }
     }
@@ -486,6 +483,31 @@ System.out.println  ("Sarah: Browser:loadURL, retval " + retval);
       }
       return x;
     }
+
+
+	// for SAI coding
+	public String createNode (String name) {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "a" + name + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
+
+	// for SAI coding
+	public String createProto (String name) {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "b" + name + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
 
 
 

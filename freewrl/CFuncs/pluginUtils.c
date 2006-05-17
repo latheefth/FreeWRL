@@ -329,6 +329,7 @@ int checkIfX3DVRMLFile(char *fn) {
 
 void Anchor_ReplaceWorld (char *filename) {
 	int tmp;
+	void *tt;
 
 	/* sanity check - are we actually going to do something with a name? */
 
@@ -341,6 +342,9 @@ void Anchor_ReplaceWorld (char *filename) {
 				rootNode, offsetof (struct X3D_Group, children),&tmp,
 				TRUE);
 			
+			tt = BrowserURL;
+			BrowserURL = strdup(filename);
+			FREE_IF_NZ(tt);
 			EAI_Anchor_Response (TRUE);
 			return;
 		} 

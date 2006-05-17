@@ -613,7 +613,8 @@ uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define EAIGETVALUE	10  /* get a value of a node */
 #define EAIGETTYPENAME	11  /* get the type name for a  node */
 #define EAIGETVIEWPOINT	12  /* get a Viewpoint BackEnd CNode */
-
+#define FROMCREATENODE	13  /* create a node by just giving its node type */
+#define FROMCREATEPROTO	14  /* create a node by just giving its node type */
 
 
 

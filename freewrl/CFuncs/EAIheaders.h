@@ -38,7 +38,8 @@ void EAI_RW(char *bufptr);
 #define UNREGLISTENER   'W'
 #define GETRENDPROP	'X'
 #define GETENCODING	'Y'
-
+#define CREATENODE	'a'
+#define CREATEPROTO	'b'
 
 /* Subtypes - types of data to get from EAI  - we don't use the ones defined in
    headers.h, because we want ASCII characters */

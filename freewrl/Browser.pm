@@ -716,9 +716,36 @@ sub EAI_GetType {
 	return ($scalaroutptr, $outoffset, $datalen, $retft, $type);
 }
 
+#EAI_CreateX3DNodeFromString - make a node of this type, and return the node pointers.
+sub EAI_CreateX3DNodeFromString {
+	my ($string) = @_;
+	my $rv;
+
+	#print "browser:EAI_CreateX3DNodeFromString - node type $string\n";
+
+	# format this, then just get EAI_CreateVrmlFromString to parse it
+	
+	# is this a defined node type?
+	my $no = $VRML::Nodes{$string};
+	if ($no ne "") {
+		#print "EAI_CV, have a valid node type\n";
+		return EAI_CreateVrmlFromString ($string . "{}");
+	}
+
+	# maybe it is a def name? 
+	my $no = VRML::Handles::return_def_name($string);
+	if ($no ne "") {
+		my $realele = VRML::Handles::return_EAI_name(VRML::Handles::get($no));
+		##print "EAI_CV, realele $realele type is ",$realele->{TypeName},"\n";	
+		return EAI_CreateVrmlFromString ($realele->{TypeName}."{}");
+	}
+}
+
 # EAI_CreateVrmlFromString - parse commands, and return a string of (node-number backnode) pairs.
 sub EAI_CreateVrmlFromString {
 	my ($string) = @_;
+
+	#print "browser:EAI_CreateVrmlFromString, string $string\n";
 
 	my $rv = createVrmlFromString ($globalBrowser,$string);
 
@@ -840,7 +867,7 @@ sub JSRoute {
 # For explanation, see the file ARCHITECTURE
 package VRML::Handles;
 
-my $handles_debug = 0;
+my $handles_debug = 1;
 
 {
 my %S = ();

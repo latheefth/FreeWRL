@@ -28,4 +28,6 @@ public interface IBrowser {
 	public void lastViewpoint();
 	public void nextViewpoint();
 	public void previousViewpoint();
+	public String createNode (String name);
+	public String createProto (String name);
 }

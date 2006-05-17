@@ -758,7 +758,6 @@ void EAI_parse_commands (char *bufptr) {
 				}
 			    }
 			  case VIEWPOINT: {
-#define EAIVERBOSE
 				#ifdef EAIVERBOSE 
 				printf ("Viewpoint :%s:\n",bufptr);
 				#endif
@@ -771,7 +770,6 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 			    }
-#undef EAIVERBOSE
 
 			case LOADURL: {
 				#ifdef EAIVERBOSE
@@ -791,6 +789,39 @@ void EAI_parse_commands (char *bufptr) {
 				/* now tell the EventLoop that BrowserAction is requested... */
 				AnchorsAnchor = &EAI_AnchorNode;
 				BrowserAction = TRUE;
+				break;
+				}
+
+			case CREATENODE: {
+					/* sanitize this string - remove leading and trailing garbage */
+					ra = 0; rb = 0;
+					while ((ra < strlen(bufptr)) &&
+							(bufptr[ra] <= ' '))
+						ra++;
+					while (bufptr[ra] > ' ') {
+						ctmp[rb] = bufptr[ra];
+						rb ++; ra++;
+					}
+
+					ctmp[rb] = 0;
+					#ifdef EAIVERBOSE 
+					printf ("CREATENODE %s\n",ctmp);
+					#endif
+					ra = EAI_CreateVrml("CREATENODE",ctmp,nodarr,200); 
+printf ("EAIC returns %d\n",ra);
+
+				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
+				for (rb = 0; rb < ra; rb++) {
+					sprintf (ctmp,"%d ", nodarr[rb]);
+					strcat (buf,ctmp);
+				}
+
+				bufptr[0] = 0;
+				break;
+				}
+
+			case CREATEPROTO: {
+printf ("CREATEPROTO: bufptr %s\n",bufptr);
 				break;
 				}
 
@@ -1156,8 +1187,8 @@ SV *EAI_newSVpv(char *str) {
 void EAI_Anchor_Response (int resp) {
 	char myline[1000];
 	if (waiting_for_anchor) {
-		if (resp) strcat (myline,"OK\nRE_EOT");
-		else strcat (myline,"FAIL\nRE_EOT");
+		if (resp) strcpy (myline,"OK\nRE_EOT");
+		else strcpy (myline,"FAIL\nRE_EOT");
 		EAI_send_string (myline,EAIlistenfd);
 	}
 	waiting_for_anchor = FALSE;
