@@ -11,6 +11,7 @@ float getWidth();
 float getHeight();
 void  setAquaCursor(int ctype);
 void setMenuButton_collision(int val);
+void setMenuButton_texSize(int size);
 void setMenuStatus(char* stat);
 void setMenuButton_headlight(int val);
 void setMenuFps(float fps);
