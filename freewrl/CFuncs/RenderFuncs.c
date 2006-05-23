@@ -20,8 +20,6 @@ RenderFuncs.c - do scenegraph rendering.
 #include "LinearAlgebra.h"
 
 
-struct X3D_Virt virt_Transform;
-
 /* Rearrange to take advantage of headlight when off */
 int curlight = 0;
 int nlightcodes = 7;
