@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.198  2006/05/23 16:15:10  crc_canada
+# remove print statements, add more defines for a VRML C parser.
+#
 # Revision 1.197  2006/05/15 14:05:59  crc_canada
 # Various fixes; CVS was down for a week. Multithreading for shape compile
 # is the main one.
@@ -451,4 +454,30 @@ $ExtraMem{HAnimHumanoid} = $ExtraMem{Group};
 	TriangleStripSet
 /;
 
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# Keywords
+# a listing of keywords for use in the C VRML parser.
+#
+# 
+
+%KeywordC = map {($_=>1)} qw/
+	DEF
+	EXTERNPROTO
+	FALSE
+	IS
+	NULL
+	PROTO
+	ROUTE
+	TO
+	TRUE
+	USE
+	EventIn
+	EventOut
+	ExposedField
+	Field
+/;
 1;

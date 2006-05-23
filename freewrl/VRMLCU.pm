@@ -26,7 +26,7 @@ sub initNodeMapping {
 
         my @unsortedfields = keys %VRML::Nodes;
         my @sf = sort(@unsortedfields);
-	my $nodeIntegerType = 1100; # keep equivalent to the equiv in VRMLC.pm
+	my $nodeIntegerType = 0; # keep equivalent to the equiv in VRMLC.pm
 	for (@sf) {
 		$NODEINTEGERMAPPING{$_} = $nodeIntegerType;
 		$nodeIntegerType ++;

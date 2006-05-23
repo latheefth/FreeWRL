@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.213  2006/05/23 16:15:10  crc_canada
+# remove print statements, add more defines for a VRML C parser.
+#
 # Revision 1.212  2006/05/16 13:49:24  crc_canada
 # Threading of shape loading now works. No menu buttons for it yet, though.
 # It is a compile time option -DO_MULTI_OPENGL...
@@ -432,28 +435,6 @@ sub get_rendfunc {
 	}
 	$v .= "};\n";
 
-	for(@f) {
-		my $c =${$_."C"}{$n};
-		next if !defined $c;
-		#print "rendfunc $_ (",length($c),") ";
-		# Rend func now in CFuncs directory and name changed from "xxx_Rend" to "render_xxx"
-		# Substitute field gets
-
-		# skip the ones that now have all C code in CFuncs.
-		if ($_ eq "Rend") {
-		} elsif ($_ eq "Prep") {
-		} elsif ($_ eq "Fin") {
-		} elsif ($_ eq "Child") {
-		} elsif ($_ eq "Changed") {
-		} elsif ($_ eq "Proximity") {
-		} elsif ($_ eq "Collision") {
-		} elsif ($_ eq "GenPolyRep") {
-		} elsif ($_ eq "Light") {
-		} elsif ($_ eq "RendRay") {
-		} else {
-print "VRMLC  - still have $_\n";
-		}
-	}
 	return ($f,$v);
 }
 
@@ -475,7 +456,9 @@ print "VRMLC  - still have $_\n";
 sub gen {
 	# make a table of nodetypes, so that at runtime we can determine what kind a
 	# node is - comes in useful at times.
-	my $nodeIntegerType = 1100;
+	my $nodeIntegerType = 0; # make sure this maps to the same numbers in VRMLCU.pm
+	my $fieldIntegerType = 0; 
+	my $keywordIntegerType = 0; 
 
 	# make a function to print node name from an integer type.
 	my $printNodeStr = "\n char *stringNodeType (int st) {\n".
@@ -486,7 +469,7 @@ sub gen {
         my @unsortedNodeList = keys %VRML::Nodes;
         my @sf = sort(@unsortedNodeList);
 	for (@sf) {
-		# print "node $_ is tagged as $nodeIntegerType\n";
+		#print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
 		my $defstr = "#define NODE_".$_."	$nodeIntegerType\n";
 		push @str, $defstr;
@@ -495,18 +478,44 @@ sub gen {
 		$printNodeStr = "       case NODE_".$_.": return (\"".$_."\"); \n";
                 push @prFunc, $printNodeStr;
 
-	}
+#JAS 
 
-	# for the Status bar - it currently renders just like a normal node
-	my $defstr = "#define NODE_Statusbar	$nodeIntegerType\n";
-	$nodeIntegerType++;
-	push @str, $defstr;
+#JAS 		foreach my $field (keys %{$VRML::Nodes{$_}}) {print "field1 $field ". $VRML::Nodes{$_}{Fields}."\n";}
+
+#JAS 		foreach my $field (keys %{$VRML::Nodes{$_}{EventIns}}) {print "field2 $field\n"};
+
+#JAS 		foreach my $field (keys %{$VRML::Nodes{$_}{EventOuts}}) {print "field3 $field\n"};
+
+	}
+	push @str, "\n";
 
 	# finish off the printing function
 	$printNodeStr = "default: return (\"OUT OF RANGE\"); }\n}\n";
 	push @prFunc, $printNodeStr;
 
+	# process keywords 
+        my @unsortedKeywordList = keys %KeywordC;
+        my @sf = sort(@unsortedKeywordList);
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		my $defstr = "#define KW_".$_."	$keywordIntegerType\n";
+		push @str, $defstr;
+		$keywordIntegerType ++;
 
+
+	}
+	push @str, "\n";
+
+	# give each field an identifier
+	for(@VRML::Fields) {
+		# print "node $_ is tagged as $fieldIntegerType\n";
+		# tag each node type with a integer key.
+		my $defstr = "#define FIELD_".$_."	$fieldIntegerType\n";
+		push @str, $defstr;
+		$fieldIntegerType ++;
+	}
+	push @str, "\n";
 
 	for(@VRML::Fields) {
 		push @str, ("VRML::Field::$_")->cstruct . "\n";

@@ -786,10 +786,7 @@ void render_polyrep(void *node) {
 			textureDraw_start(NULL,r->GeneratedTexCoords);
 	} else {
 		IFSNodePtr = (struct X3D_IndexedFaceSet *)node;
-		/* printf ("no textures - is this the status bar? %d\n",IFSNodePtr->_nodeType); */
-		if (IFSNodePtr->_nodeType != NODE_Statusbar) {
-			textureDraw_start(IFSNodePtr, NULL);
-		}
+		textureDraw_start(IFSNodePtr, NULL);
 	}
 
 	/*  colours?*/
@@ -838,10 +835,7 @@ printf ("\n\nrender_polyrep:\n");
 			textureDraw_end();
 	} else {
 		IFSNodePtr = (struct X3D_IndexedFaceSet *)node;
-		/* printf ("no textures - is this the status bar? %d\n",IFSNodePtr->_nodeType); */
-		if (IFSNodePtr->_nodeType != NODE_Statusbar) {
-			textureDraw_end();
-		}
+		textureDraw_end();
 	}
 
 	if (!r->ccw) glFrontFace(GL_CCW);

@@ -929,7 +929,7 @@ sub JSRoute {
 # For explanation, see the file ARCHITECTURE
 package VRML::Handles;
 
-my $handles_debug = 1;
+my $handles_debug = 0;
 
 {
 my %S = ();
