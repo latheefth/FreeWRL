@@ -99,7 +99,8 @@ void __pt_EAI_GetViewpoint (void);
 void __pt_EAI_GetType (void);
 void __pt_EAI_GetTypeName (void);
 void __pt_EAI_GetValue (void);
-void __pt_EAI_Route (void);
+void __pt_SAI_Command (void);
+void __pt_generalSAICommand (void);
 void EAI_readNewWorld(char *inputstring);
 
 /* Bindables */
@@ -555,15 +556,15 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 
 }
 
-/* interface for getting a node number via the EAI */
-void EAI_Route(char cmnd, const char *fn) {
+/* interface for sending/getting simple commands to the EAI/SAI. eg, updateNamedNode */
+int SAI_generalCommand (char cmnd, const char *fn) {
 	int complete;
 	int retval;
 
 	WAIT_WHILE_PERL_BUSY;
 	complete=0;
 	psp.comp = &complete;
-	psp.type = EAIROUTE;
+	psp.type = SAICOMMAND;
 	psp.retarr = NULL;
 	psp.ofs = (unsigned) cmnd;
 	psp.ptr = NULL;
@@ -583,6 +584,7 @@ void EAI_Route(char cmnd, const char *fn) {
 	/* grab data */
 	retval = psp.jparamcount;
 	UNLOCK;
+	return retval;
 }
 
 /* interface for telling the Perl side to forget about everything...  */
@@ -629,11 +631,15 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, in
 	currentFileVersion = 3;
 
 	WAIT_WHILE_PERL_BUSY;
+
 	if (strncmp(tp,"URL",2) ==  0) {
 			psp.type= FROMURL;
 	} else if (strncmp(tp,"String",5) == 0) {
 		psp.type = FROMSTRING;
-	} else psp.type = FROMCREATENODE;
+	} else if (strncmp(tp,"CREATEPROTO",10) == 0) {
+		psp.type = FROMCREATEPROTO;
+	} else
+		psp.type = FROMCREATENODE;
 
 	complete = 0; /* make sure we wait for completion */
 	psp.comp = &complete;
@@ -832,7 +838,8 @@ void _perlThread(void *perlpath) {
 			EAIGETTYPE	EAI getType
 			EAIGETVALUE	EAI getValue - in a string.
 			EAIROUTE	EAI add/delete route
-			ZEROBINDABLES	tell the front end to just forget about DEFS, etc */
+			ZEROBINDABLES	tell the front end to just forget about DEFS, etc 
+			SAICOMMAND	general command, with string param to perl returns an int */
 
 		if (psp.type == INLINE) {
 		/* is this a INLINE? If it is, try to load one of the URLs. */
@@ -843,6 +850,7 @@ void _perlThread(void *perlpath) {
 
 		case FROMSTRING:
 		case FROMCREATENODE:
+		case FROMCREATEPROTO:
 		case FROMURL:	{
 			/* is this a Create from URL or string, or a successful INLINE? */
 			__pt_doStringUrl();
@@ -888,9 +896,9 @@ void _perlThread(void *perlpath) {
 			__pt_EAI_GetTypeName();
 			break;
 			}
-		case EAIROUTE: {
+		case SAICOMMAND: {
 			/* EAI wants type for a node */
-			__pt_EAI_Route();
+			__pt_SAI_Command();
 			break;
 			}
 
@@ -1048,6 +1056,8 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *ret
 		count = call_pv("VRML::Browser::EAI_CreateVrmlFromURL", G_ARRAY);
 	else if (strcmp(tp,"String")==0)
 		count = call_pv("VRML::Browser::EAI_CreateVrmlFromString", G_ARRAY);
+	else if (strcmp(tp,"CREATEPROTO")==0)
+		count = call_pv("VRML::Browser::EAI_CreateX3DNodeFromPROTO", G_ARRAY);
 	else
 		count = call_pv("VRML::Browser::EAI_CreateX3DNodeFromString", G_ARRAY);
 	SPAGAIN ;
@@ -1235,11 +1245,11 @@ void __pt_doStringUrl () {
 
 	} else if (psp.type==FROMURL) {
 		retval = _pt_CreateVrml("URL",psp.inp,myretarr);
-	} else if (psp.type=FROMCREATENODE) {
+	} else if (psp.type==FROMCREATENODE) {
 		retval = _pt_CreateVrml("CREATENODE",psp.inp,myretarr);
 	} else retval = _pt_CreateVrml("CREATEPROTO",psp.inp,myretarr);
 
-	printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr); 
+	/* printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr);  */
 
 
 	/* copy the returned nodes to the caller */
@@ -1392,7 +1402,9 @@ void __pt_EAI_GetViewpoint () {
 
 
 /* set/delete route */
-void __pt_EAI_Route () {
+void __pt_SAI_Command () {
+	int count;
+
 	dSP;
 	ENTER;
 	SAVETMPS;
@@ -1400,8 +1412,16 @@ void __pt_EAI_Route () {
 	XPUSHs(sv_2mortal(newSViv(psp.ofs)));
 	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
 	PUTBACK;
-	call_pv("VRML::Browser::EAI_Route", G_SCALAR);
+	count = call_pv("VRML::Browser::EAI_Command", G_SCALAR);
 	SPAGAIN ;
+
+	if (count != 1) 
+		printf ("EAI_Command returns %d\n",count);
+
+	/* return value in psp.jparamcount */
+	psp.jparamcount = POPi;
+	printf ("and, the return value of EAI_Command is %d\n",psp.jparamcount);
+
 	PUTBACK;
 	FREETMPS;
 	LEAVE;

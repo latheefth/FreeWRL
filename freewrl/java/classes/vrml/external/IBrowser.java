@@ -30,4 +30,6 @@ public interface IBrowser {
 	public void previousViewpoint();
 	public String createNode (String name);
 	public String createProto (String name);
+	public String updateNamedNode (String name, Node node);
+	public String removeNamedNode (String name);
 }

@@ -40,6 +40,8 @@ void EAI_RW(char *bufptr);
 #define GETENCODING	'Y'
 #define CREATENODE	'a'
 #define CREATEPROTO	'b'
+#define UPDNAMEDNODE	'c'
+#define REMNAMEDNODE	'd'
 
 /* Subtypes - types of data to get from EAI  - we don't use the ones defined in
    headers.h, because we want ASCII characters */

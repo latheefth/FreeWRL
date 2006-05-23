@@ -340,7 +340,6 @@ void EventLoop() {
 	#endif
 
 	/* handle_mouse events if clicked on a sensitive node */
-	/* printf("NavigationMode is %d havesensitive is %d\n", NavigationMode, HaveSensitive); */
 	if (!NavigationMode && HaveSensitive) {
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint(FALSE);
@@ -1068,7 +1067,6 @@ void setBrowserURL(const char* file) {
                 free (BrowserURL);
         }
         BrowserURL = strdup(file);
-printf ("MainLoop, setBrowserURL, %s\n",BrowserURL);
 }
 
 void setFullPath(const char* file) {
@@ -1260,12 +1258,12 @@ void setKeyString(const char* kstring) {
 
 void setSeqFile(const char* file) {
         snapseqB = strndup(file, 500);
-        /* printf("snapseqB is %s\n", snapseqB); */
+        printf("snapseqB is %s\n", snapseqB);
 }
 
 void setSnapFile(const char* file) {
         snapsnapB = strndup(file, 500);
-        /* printf("snapsnapB is %s\n", snapsnapB); */
+        printf("snapsnapB is %s\n", snapsnapB);
 }
 
 void setMaxImages(int max) {
@@ -1275,7 +1273,7 @@ void setMaxImages(int max) {
 }
 void setSeqTemp(const char* file) {
         seqtmp = strndup(file, 500);
-        /* printf("seqtmp is %s\n", seqtmp); */
+        printf("seqtmp is %s\n", seqtmp);
 }
 
 /* if we had an exit(1) anywhere in this C code - it means
@@ -1310,8 +1308,8 @@ void freewrlDie (const char *format) {
 void handle_aqua(const int mev, const unsigned int button, const float x, const float y) {
         if ((mev == ButtonPress) || (mev == ButtonRelease))
         {
-                if ((CursorOverSensitive == 0) && (lastPressedOver ==0)) {
-			NavigationMode=ButDown[1] || ButDown[3];
+                if ((CursorOverSensitive ==0) && (lastPressedOver ==0)) {
+                        NavigationMode = button;
                         handle(mev, button, x, y);
                 }
                 } else if (mev == MotionNotify) {

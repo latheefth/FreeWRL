@@ -508,6 +508,28 @@ public class Browser implements BrowserInterface, IBrowser
 		return retval;
 	}
 
+	// for SAI coding
+	public String updateNamedNode (String name, Node node) {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "c" + name + " " + node + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
+	// for SAI coding
+	public String removeNamedNode (String name) {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "d" + name + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
 
 
 

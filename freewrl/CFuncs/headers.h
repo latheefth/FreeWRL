@@ -609,12 +609,12 @@ uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define EAIGETNODE      6   /* EAI getNode      	*/
 #define EAIGETTYPE	7   /* EAI getType	*/
 #define ZEROBINDABLES   8   /* get rid of Perl datastructures */
-#define EAIROUTE	9   /* EAI add/del route */
 #define EAIGETVALUE	10  /* get a value of a node */
 #define EAIGETTYPENAME	11  /* get the type name for a  node */
 #define EAIGETVIEWPOINT	12  /* get a Viewpoint BackEnd CNode */
 #define FROMCREATENODE	13  /* create a node by just giving its node type */
 #define FROMCREATEPROTO	14  /* create a node by just giving its node type */
+#define SAICOMMAND	15  /* general send in a string and get an int back */
 
 
 
@@ -761,6 +761,7 @@ extern void XEventStereo();
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
 int initJavaClass(int scriptno);
 
+int SAI_generalCommand (char cmnd, const char *fn);
 char *EAI_GetTypeName (unsigned int uretval);
 char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename);
 void setCLASStype (uintptr_t num);

@@ -341,24 +341,70 @@ sub createVrmlFromURL {
 	return $this->create_common($url,$wurl,$t);
 }
 
-sub EAI_Route {
+sub EAI_Command {
 	my ($dir, $str) = @_;
-	# print "EAI_Route in Browser,pm, dir $dir, str $str\n";
+	my $rv;
+	print "EAI_Command in Browser,pm, dir $dir, str $str\n";
 
-	my ($fn, $ff, $tn, $tf) = split (" ",$str);
-	my $ar = 0;
+	#commands handled: 
+	#	EAIheaders.h:#define    ADDROUTE        'H'
+	#	EAIheaders.h:#define    DELETEROUTE     'J'
+	#	EAIheaders.h:#define	UPDNAMEDNODE    'c'
+	#	EAIheaders.h:#define	REMNAMEDNODE    'd'
+	#
 
-	$fn = VRML::Handles::get($fn);
-	$tn = VRML::Handles::get($tn);
+	#ADDROUTE/ DELETEROUTE
+	if (($dir == 72) || ($dir == 74)) {
+		my ($fn, $ff, $tn, $tf) = split (" ",$str);
+		my $ar = 0;
 
-	$ff = VRML::Parser::parse_exposedField($ff, VRML::Handles::get($fn)->{Type});
-	$tf = VRML::Parser::parse_exposedField($tf, VRML::Handles::get($tn)->{Type});
+		$fn = VRML::Handles::get($fn);
+		$tn = VRML::Handles::get($tn);
 
-	# the direction is "72" for an add; it has no specific meaning.
-	if ($dir == 72) {$ar = 1;}
+		$ff = VRML::Parser::parse_exposedField($ff, VRML::Handles::get($fn)->{Type});
+		$tf = VRML::Parser::parse_exposedField($tf, VRML::Handles::get($tn)->{Type});
 
-	$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
-			$ar , $fn, $ff, $tn, $tf);
+		# the direction is "72" for an add; it has no specific meaning.
+		if ($dir == 72) {$ar = 1;}
+
+		$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
+				$ar , $fn, $ff, $tn, $tf);
+
+	#UPDNAMEDNODE REMNAMEDNODE
+	} elsif (($dir == 99) || ($dir == 100)) {
+		print "have NAMEDNODE code $dir\n";
+		if ($dir == 99) {
+			print "have UPDATENAMEDNODE\n";
+			my ($newname, $nodename) = split (" ",$str);
+			print "UPN, nwname $newname, nodename $nodename\n";
+			if (VRML::Handles::check($nodename) == 1) {
+				my $nn = VRML::Handles::get($nodename);
+				print "handle is $nn\n";
+				VRML::Handles::def_reserve($newname, $nodename);
+				
+			} else {
+				print "UPDATENAMEDNODE, can not tie $newname into $nodename\n";
+				$rv=1;
+			}
+		} else {
+			print "have removeN amedNode\n";
+			my ($nodename) = split (" ",$str);
+			print "UPN, nodename $nodename\n";
+			if (VRML::Handles::check($nodename) == 1) {
+				my $nn = VRML::Handles::get($nodename);
+				print "handle is $nn\n";
+				VRML::Handles::release($nodename);
+			} else {
+				print "DELETENAMEDNODE, node $nodename does not exist\n";
+				$rv = 1;
+			}
+		}
+
+	} else {
+		print "EAI_Command - invalid command $rv\n";
+		$rv = 1; 
+	}
+	return $rv
 }
 
 ################
@@ -716,6 +762,22 @@ sub EAI_GetType {
 	return ($scalaroutptr, $outoffset, $datalen, $retft, $type);
 }
 
+#EAI_CreateX3DNodeFromProto - make a node of this type, and return the node pointers.
+sub EAI_CreateX3DNodeFromPROTO {
+	my ($string) = @_;
+	my $rv;
+
+	# print "browser:EAI_CreateX3DNodeFromPROTO - node type $string\n";
+	$rv = VRML::Handles::return_EAI_name($string);
+	if ($rv eq "") {
+		print "EAI_CreateX3DNodeFromPROTO, proto $string not found\n";
+		return;
+	}
+
+	return EAI_CreateVrmlFromString ($string."{}");
+}
+
+
 #EAI_CreateX3DNodeFromString - make a node of this type, and return the node pointers.
 sub EAI_CreateX3DNodeFromString {
 	my ($string) = @_;
@@ -914,7 +976,6 @@ sub return_EAI_name {
 
 
 ## keep refs to DEFs instead??? vrml name kept in DEF instances...
-
 sub def_reserve {
 	my ($name, $realnode) = @_;
 	$DEFNAMES{$name} = $realnode;

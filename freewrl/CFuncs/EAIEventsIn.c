@@ -600,16 +600,10 @@ void EAI_parse_commands (char *bufptr) {
 
 					ra = EAI_CreateVrml("String",bufptr,nodarr,200);
 				} else {
-					/* sanitize this string - remove leading
-					 * and trailing garbage */
+					/* sanitize this string - remove leading and trailing garbage */
 					ra = 0; rb = 0;
-					while ((ra < strlen(bufptr)) &&
-							(bufptr[ra] <= ' '))
-						ra++;
-					while (bufptr[ra] > ' ') {
-						ctmp[rb] = bufptr[ra];
-						rb ++; ra++;
-					}
+					while ((ra < strlen(bufptr)) && (bufptr[ra] <= ' ')) ra++;
+					while (bufptr[ra] > ' ') { ctmp[rb] = bufptr[ra]; rb ++; ra++; }
 
 					/* ok, lets make a real name from this; maybe it is local to us? */
 					ctmp[rb] = 0;
@@ -738,13 +732,15 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
+			case UPDNAMEDNODE: 
+			case REMNAMEDNODE: 
 			case ADDROUTE:
 			case DELETEROUTE:  {
 				#ifdef EAIVERBOSE 
-				printf ("Add/Delete route %s\n",bufptr);
+				printf ("Add/Delete route, up,remNamedNode %s\n",bufptr);
 				#endif
-				EAI_Route ((char) command,bufptr);
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,
+					SAI_generalCommand ((char) command,bufptr));
 				break;
 				}
 
@@ -792,23 +788,21 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 				}
 
+			case CREATEPROTO: 
 			case CREATENODE: {
-					/* sanitize this string - remove leading and trailing garbage */
-					ra = 0; rb = 0;
-					while ((ra < strlen(bufptr)) &&
-							(bufptr[ra] <= ' '))
-						ra++;
-					while (bufptr[ra] > ' ') {
-						ctmp[rb] = bufptr[ra];
-						rb ++; ra++;
-					}
+				/* sanitize this string - remove leading and trailing garbage */
+				ra = 0; rb = 0;
+				while ((ra < strlen(bufptr)) && (bufptr[ra] <= ' ')) ra++;
+				while (bufptr[ra] > ' ') { ctmp[rb] = bufptr[ra]; rb ++; ra++; }
 
-					ctmp[rb] = 0;
-					#ifdef EAIVERBOSE 
-					printf ("CREATENODE %s\n",ctmp);
-					#endif
+				ctmp[rb] = 0;
+				#ifdef EAIVERBOSE 
+				printf ("CREATENODE/PROTO %s\n",ctmp);
+				#endif
+				if (command == CREATENODE) 
 					ra = EAI_CreateVrml("CREATENODE",ctmp,nodarr,200); 
-printf ("EAIC returns %d\n",ra);
+				else
+					ra = EAI_CreateVrml("CREATEPROTO",ctmp,nodarr,200); 
 
 				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
 				for (rb = 0; rb < ra; rb++) {
@@ -816,12 +810,6 @@ printf ("EAIC returns %d\n",ra);
 					strcat (buf,ctmp);
 				}
 
-				bufptr[0] = 0;
-				break;
-				}
-
-			case CREATEPROTO: {
-printf ("CREATEPROTO: bufptr %s\n",bufptr);
 				break;
 				}
 
