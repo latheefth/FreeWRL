@@ -265,9 +265,6 @@ extern struct pt hyper_r1,hyper_r2;
 #undef TRAT
 #define TRAT(a) ((a) > 0 && ((a) < hpdist || hpdist < 0))
 
-/* convert a nodeType to a string */
-char *stringNodeType (int type);
-
 /* POLYREP stuff */
 #define POINT_FACES	16 /* give me a point, and it is in up to xx faces */
 

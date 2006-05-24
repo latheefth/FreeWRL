@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.62  2006/05/24 16:27:15  crc_canada
+# more changes for VRML C parser.
+#
 # Revision 1.61  2006/03/13 15:08:24  crc_canada
 # Event Utilities should be complete.
 #
@@ -334,6 +337,11 @@ sub ctype {"float $_[1]"}
 sub clength {2} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cfunc {"$_[1] = SvNV($_[2]); /*aa*/\n"}
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return "$field = $val";
+}
+
 
 ###########################################################
 package VRML::Field::SFTime;
@@ -342,6 +350,11 @@ package VRML::Field::SFTime;
 sub as_string { return sprintf("%f", $_[1]); }
 sub ctype {"double $_[1]"}
 sub clength {3} #for C routes. Keep in sync with getClen in VRMLC.pm.
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return "$field = $val";
+}
 
 
 ###########################################################
@@ -365,6 +378,11 @@ sub ctype {return "void * $_[1]"}
 sub clength {8} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cfunc {return "$_[1] = (void *) SvIV($_[2]);/*bbZ*/\n"}
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return "$field = $val";
+}
+
 ###########################################################
 ###########################################################
 package VRML::Field::SFInt32;
@@ -386,6 +404,11 @@ sub as_string {$_[1]}
 sub ctype {return "int $_[1]"}
 sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cfunc {return "$_[1] = SvIV($_[2]);/*bb*/\n"}
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return "$field = $val";
+}
 
 
 ###########################################################
@@ -441,6 +464,12 @@ sub cfunc {
 	"
 }
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return 	"$field.c[0] = @{$val}[0];".
+		"$field.c[1] = @{$val}[1];".
+		"$field.c[2] = @{$val}[2];";
+}
 
 ###########################################################
 package VRML::Field::SFColorRGBA;
@@ -503,6 +532,11 @@ sub cfunc {
 	"
 }
 
+sub cInitialize {
+	print "SFCOLORRGBA INIT\n";
+	return 0;
+}
+
 ###########################################################
 package VRML::Field::SFVec3f;
 @ISA=VRML::Field::SFColor;
@@ -531,6 +565,13 @@ sub vec_cross {
 	"
 }
 
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return 	"$field.c[0] = @{$val}[0];".
+		"$field.c[1] = @{$val}[1];".
+		"$field.c[2] = @{$val}[2];";
+}
 
 ###########################################################
 package VRML::Field::SFVec2f;
@@ -578,6 +619,12 @@ sub cfunc {
 		}
 	} /*dd*/
 	"
+}
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return 	"$field.c[0] = @{$val}[0];".
+		"$field.c[1] = @{$val}[1];";
 }
 
 
@@ -672,6 +719,14 @@ sub cfunc {
 	"
 }
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return 	"$field.r[0] = @{$val}[0];".
+		"$field.r[1] = @{$val}[1];".
+		"$field.r[2] = @{$val}[2];".
+		"$field.r[3] = @{$val}[3];";
+}
+
 
 ###########################################################
 package VRML::Field::SFBool;
@@ -699,6 +754,11 @@ sub as_string {
 	} else {
 		return ($bool ? TRUE : FALSE);
 	}
+}
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return "$field = $val";
 }
 
 
@@ -737,10 +797,22 @@ sub as_string{"\"$_[1]\""}
 
 sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm.
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	print "SFSTRING INIT field $field val $val\n";
+	return "/* $field SFSTRING */";
+}
+
 ###########################################################
 package VRML::Field::MFString;
 @ISA=VRML::Field::Multi;
 
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	print "MFSTRING INIT field $field val $val\n";
+	return "/* $field MFSTRING */";
+}
 
 
 # XXX Should be optimized heavily! Other MFs are ok.
@@ -774,10 +846,35 @@ sub parse {
 	}
 }
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	my $retstr;
+	my $tmp;
+
+	#print "MFFLOAT field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
+		$retstr = $restsr . "$field.p = malloc (sizeof(float)*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			$retstr = $retstr .  "$field.p[1] = @{$val}[tmp];";
+		}
+		$retstr = $retstr . "$field.n=$count; /*CHECKTHIS*/";
+		
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+	return $retstr;
+}
+
 
 ###########################################################
 package VRML::Field::MFTime;
 @ISA=VRML::Field::MFFloat;
+
+sub cInitialize {
+	print "MFTIME INIT\n";
+}
 
 ###########################################################
 package VRML::Field::MFVec3f;
@@ -802,25 +899,80 @@ sub parse {
 	}
 }
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		print "MFVEC3F HAVE TO MALLOC HERE\n";
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+}
+
 
 ###########################################################
 package VRML::Field::MFNode;
 @ISA=VRML::Field::Multi;
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFNODE field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		print "MFNODE HAVE TO MALLOC HERE\n";
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+}
 
 
 ###########################################################
 package VRML::Field::MFColor;
 @ISA=VRML::Field::Multi;
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFCOLOR field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		print "MALLOC MFCOLOR field $field val @{$val} has $count INIT\n";
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+}
+
 ###########################################################
 package VRML::Field::MFColorRGBA;
 @ISA=VRML::Field::Multi;
 
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFCOLORRGBA field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		print "MALLOC MFCOLORRGBA field $field val @{$val} has $count INIT\n";
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+}
+
 ###########################################################
 package VRML::Field::MFVec2f;
 @ISA=VRML::Field::Multi;
 
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFVEC2F field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		print "MFVEC2F HAVE TO MALLOC HERE\n";
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+}
 
 ###########################################################
 package VRML::Field::MFInt32;
@@ -843,6 +995,17 @@ sub parse {
 		# Eat comma if it is there
 		$_[2] =~ /\G\s*,\s*/gsc;
 		return $res;
+	}
+}
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFINT32 field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		print "HAVE TO MALLOC HERE\n";
+	} else {
+		return "$field.n=0; $field.p=0";
 	}
 }
 
@@ -871,10 +1034,27 @@ sub parse {
 }
 
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	print "MFBOOL INIT field $field val $val\n";
+	return "/* MFBOOL $field */";
+}
+
 
 ###########################################################
 package VRML::Field::MFRotation;
 @ISA=VRML::Field::Multi;
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		print "MFVEC3F HAVE TO MALLOC HERE\n";
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+}
 
 
 ###########################################################
@@ -1421,6 +1601,11 @@ sub print {
 	print "}\n";
 }
 
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	return "$field = $val";
+}
+
 ###########################################################
 package VRML::Field::SFImage;
 @ISA=VRML::Field;
@@ -1480,6 +1665,11 @@ sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}
 
 sub clength {-12}; # signal that a -12 is a SFImage for CRoutes #for C routes. Keep in sync with getClen in VRMLC.pm.
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	print "SFNODE INIT field $field val $val\n";
+}
 
 
 

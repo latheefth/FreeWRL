@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.215  2006/05/24 16:27:15  crc_canada
+# more changes for VRML C parser.
+#
 # Revision 1.214  2006/05/23 23:46:49  crc_canada
 # More generated code for VRML C parser.
 #
@@ -398,8 +401,8 @@ sub get_rendfunc {
 	# XXX
 	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light Changed Proximity Collision Compile/;
 	my $comma = "";
-	my $f = "\nextern struct X3D_Virt virt_${n};\n";
-	my $v = "\nstruct X3D_Virt virt_${n} = { ";
+	my $f = "extern struct X3D_Virt virt_${n};\n";
+	my $v = "struct X3D_Virt virt_${n} = { ";
 
 	for (@f) {
 		# does this function exist?
@@ -456,9 +459,19 @@ sub get_rendfunc {
         # foreach my $key (keys (%{$VRML::Nodes})) {print "field $key\n";}
 }
 
+
+#############################################################################################
 sub gen {
 	# make a table of nodetypes, so that at runtime we can determine what kind a
 	# node is - comes in useful at times.
+	# also create tables, functions, to create/manipulate VRML/X3D at runtime.
+
+
+	# DESTINATIONS of arrays:
+	#	@genFuncs1,	CFuncs/GeneratedCode.c (printed first)
+	#	@genFuncs2,	CFuncs/GeneratedCode.c (printed second)
+	#	@str,		CFuncs/Structs.h
+
 	my $nodeIntegerType = 0; # make sure this maps to the same numbers in VRMLCU.pm
 	my $fieldTypeCount = 0; 
 	my $fieldNameCount = 0;
@@ -466,9 +479,9 @@ sub gen {
 	my %allFields = ();
 
 
-	# make a define for Dan Kraft's VRML C parser.
-	
-	my $printNodeStr = 
+	#####################
+	# for CFuncs/GeneratedCode.c - create a header.
+	push @genFuncs1,
 		"/******************************************************************* \n".
 		 "Copyright (C) 2006 Daniel Kraft, John Stewart (CRC Canada) \n".
 		 "DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED. \n".
@@ -481,33 +494,24 @@ sub gen {
 		"#include \"Polyrep.h\"\n".
 		"#include \"Bindable.h\"\n".
 		"\n#define ARR_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))\n\n";
-	push @genFuncs, $printNodeStr;
 
-	# make a function to print node name from an integer type.
-	$printNodeStr = "/* Return a pointer to a string representation of the node type */\n". 
-		"char *stringNodeType (int st) {\n".
-		"       switch (st) {\n";
-	push @genFuncs, $printNodeStr;
-
+	#####################
 	
-	my $defstr = "/* Data type for index into ID-table. */\n".
-			"typedef size_t indexT;\n\n";
-	push @str, $defstr;
+	push @str, "/* Data type for index into ID-table. */\ntypedef size_t indexT;\n\n";
 
-
+	# now, go through nodes, and do a few things:
+	#	- create a "#define NODE_Shape 300" line for CFuncs/Structs.h;
+	#	- create a "case NODE_Shape: printf ("Shape")" for CFuncs/GeneratedCode.c;
+	#	- create a definitive list of all fieldnames.
 
         my @unsortedNodeList = keys %VRML::Nodes;
-        my @sf = sort(@unsortedNodeList);
-	for (@sf) {
+        my @sortedNodeList = sort(@unsortedNodeList);
+	for (@sortedNodeList) {
 		#print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
-		my $defstr = "#define NODE_".$_."	$nodeIntegerType\n";
-		push @str, $defstr;
+
+		push @str, "#define NODE_".$_."	$nodeIntegerType\n";
 		$nodeIntegerType ++;
-
-		$printNodeStr = "       case NODE_".$_.": return (\"".$_."\"); \n";
-                push @genFuncs, $printNodeStr;
-
 
  		#foreach my $field (keys %{$VRML::Nodes{$_}}) {print "field1 $field ". $VRML::Nodes{$_}{Fields}."\n";}
  		foreach my $field (keys %{$VRML::Nodes{$_}{EventIns}}) {
@@ -522,60 +526,68 @@ sub gen {
 
 	}
 	push @str, "\n";
-	# finish off the printing function
-	$printNodeStr = "default: return (\"OUT OF RANGE\"); }\n}\n";
-	push @genFuncs, $printNodeStr;
 
 
+	#####################
 	# we have a list of fields from ALL nodes. print out the ones without the underscores at the beginning
-	my $printNodeStr = "\n/* Table of built-in fieldIds */\n".
-		"       const char *FIELDS[] = {\n";
-	push @genFuncs, $printNodeStr;
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELDNAMES[];\n";
+	push @str, "extern const indexT FIELDNAMES_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDNAMES[] = {\n";
 
 	foreach (keys %allFields) { 
 		#print "allFields $_\n";
 		if (index($_,"_") !=0) {
-			my $defstr = "#define FIELDNAME_".$_."	$fieldNameCount\n";
-			push @str, $defstr;
+			push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
 			$fieldNameCount ++;
-			$printNodeStr = "	\"$_\",\n";
-			push @genFuncs, $printNodeStr;
+			push @genFuncs1, "	\"$_\",\n";
 		}
 	}
 	push @str, "\n";
-	$printNodeStr = "};\nconst indexT FIELDS_COUNT = ARR_SIZE(FIELDS);\n\n";
-	push @genFuncs, $printNodeStr;
+	push @genFuncs1, "};\nconst indexT FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);\n\n";
 	
+	# make a function to print field name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the field type */\n". 
+		"const char *stringFieldType (int st) {\n".
+		"	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return \"FIELD OUT OF RANGE\"; \n".
+		"	return FIELDNAMES[st];\n}\n\n";
+	push @str, "const char *stringFieldType(int st);\n";
 
-
+	#####################
 	# process keywords 
-	$printNodeStr = "\n/* Table of keywords */\n".
-		"       const char *KEYWORDS[] = {\n";
-	push @genFuncs, $printNodeStr;
-        my @unsortedKeywordList = keys %KeywordC;
-        my @sf = sort(@unsortedKeywordList);
+	push @str, "\n/* Table of built-in keywords */\nextern const char *KEYWORDS[];\n";
+	push @str, "extern const indexT KEYWORDS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of keywords */\n       const char *KEYWORDS[] = {\n";
+
+        my @sf = keys %KeywordC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
-		my $defstr = "#define KW_".$_."	$keywordIntegerType\n";
-		push @str, $defstr;
+		push @str, "#define KW_".$_."	$keywordIntegerType\n";
 		$keywordIntegerType ++;
-		$printNodeStr = "	\"$_\",\n";
-		push @genFuncs, $printNodeStr;
-
-
+		push @genFuncs1, "	\"$_\",\n";
 	}
 	push @str, "\n";
-	$printNodeStr = "};\nconst indexT KEYWORDS_COUNT = ARR_SIZE(KEYWORDS);\n\n";
-	push @genFuncs, $printNodeStr;
+	push @genFuncs1, "};\nconst indexT KEYWORDS_COUNT = ARR_SIZE(KEYWORDS);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the keyword type */\n". 
+		"const char *stringKeywordType (int st) {\n".
+		"	if ((st < 0) || (st >= KEYWORDS_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	return KEYWORDS[st];\n}\n\n";
+	push @str, "const char *stringKeywordType(int st);\n";
 
 
 
 
+	#####################
 	# give each field an identifier
-	$printNodeStr = "\n/* Table of Field Types */\n".
-		"       const char *FIELDTYPES[] = {\n";
-	push @genFuncs, $printNodeStr;
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELDTYPES[];\n";
+	push @str, "extern const indexT FIELDTYPES_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of Field Types */\n       const char *FIELDTYPES[] = {\n";
+
 	for(@VRML::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
@@ -583,31 +595,50 @@ sub gen {
 		push @str, $defstr;
 		$fieldTypeCount ++;
 		$printNodeStr = "	\"$_\",\n";
-		push @genFuncs, $printNodeStr;
+		push @genFuncs1, $printNodeStr;
 	}
 	push @str, "\n";
-	$printNodeStr = "};\nconst indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);\n\n";
-	push @genFuncs, $printNodeStr;
+	push @genFuncs1, "};\nconst indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);\n\n";
 
 	for(@VRML::Fields) {
 		push @str, ("VRML::Field::$_")->cstruct . "\n";
 		push @xsfn, get_offsf($_);
 	}
+	# make a function to print fieldtype name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the fieldtype type */\n". 
+		"const char *stringFieldtypeType (int st) {\n".
+		"	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return \"FIELDTYPE OUT OF RANGE\"; \n".
+		"	return FIELDTYPES[st];\n}\n\n";
+	push @str, "const char *stringFieldtypeType(int st);\n";
 
+
+
+	#####################
 	# handle the nodes themselves
-	$printNodeStr = "\n/* Table of Field Types */\n".
-		"       const char *NODES[] = {\n";
-	push @genFuncs, $printNodeStr;
+	push @str, "\n/* Table of built-in nodeIds */\nextern const char *NODES[];\n";
+	push @str, "extern const indexT NODES_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of Node Types */\n       const char *NODES[] = {\n";
+
         push @str, "\n/* and now the structs for the nodetypes */ \n";
-	for(@NodeTypes) {
+	for(@sortedNodeList) {
 		$printNodeStr = "	\"$_\",\n";
-		push @genFuncs, $printNodeStr;
+		push @genFuncs1, $printNodeStr;
 	}
-	$printNodeStr = "};\nconst indexT NODES_COUNT = ARR_SIZE(NODES);\n\n";
-	push @genFuncs, $printNodeStr;
+	push @genFuncs1, "};\nconst indexT NODES_COUNT = ARR_SIZE(NODES);\n\n";
+
+	# make a function to print node name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the node type */\n". 
+		"const char *stringNodeType (int st) {\n".
+		"	if ((st < 0) || (st >= NODES_COUNT)) return \"NODE OUT OF RANGE\"; \n".
+		"	return NODES[st];\n}\n\n";
+	push @str, "const char *stringNodeType(int st);\n";
 
 
-	for(@NodeTypes) {
+	###################
+	# create the virtual tables for each node.
+	push @genFuncs1, "/* Virtual tables for each node */\n";
+	for(@sortedNodeList) {
 		# print "working on node $_\n";
 		my $no = $VRML::Nodes{$_};
 		my($strret, $offs, $perl) = gen_struct($_, $no);
@@ -616,12 +647,87 @@ sub gen {
 		push @poffsfn, $perl;
 		my($externdeclare, $vstru) = get_rendfunc($_);
 		push @str, $externdeclare;
-		push @genFuncs, $vstru;
+		push @genFuncs1, $vstru;
+	}
+	push @genFuncs1, "\n";
+
+
+	#####################
+	# create a routine to create a new node type
+
+	push @genFuncs2,
+	"/* create a new node of type. This can be generated by Perl code, much as the Structs.h is */\n".
+	"void *createNewX3DNode (int nt) {\n".
+	"	void * tmp;\n".
+	"	struct X3D_Box *node;\n".
+	"\n".
+	"	tmp = NULL;\n".
+	"\n".
+	"	switch (nt) {\n";
+
+	for (@sortedNodeList) {
+		push @genFuncs2,
+			"		case NODE_$_ : {tmp = malloc (sizeof (struct X3D_$_)); break;}\n";
+	}
+	push @genFuncs2, "		default: {printf (\"createNewX3DNode = unknown type %d, this will fail\\n\",nt); return NULL;}\n";
+	
+	push @genFuncs2,
+	"	}\n\n".
+	"	/* now, fill in the node to DEFAULT values This mimics \"alloc_struct\" in the Perl code. */\n".
+	"	/* the common stuff between all nodes. We'll use a X3D_Box struct, just because. It is used\n".
+	"	   in this way throughought the code */\n".
+	"	node = (struct X3D_Box *) tmp;\n".
+	"	node->_renderFlags = 0; /*sensitive, etc */\n".
+	"	node->_sens = FALSE; /*THIS is sensitive */\n".
+	"	node->_hit = 0;\n".
+	"	node->_change = 153; \n".
+	"	node->_dlchange = 0;\n".
+	"	node->_dlist = 0;\n".
+	"	node->_parents = 0;\n".
+	"	node->_nparents = 0;\n".
+	"	node->_nparalloc = 0;\n".
+	"	node->_ichange = 0;\n".
+	"	node->_dist = -10000.0; /*sorting for blending */\n".
+	"	INITIALIZE_EXTENT\n".
+	"	node->_intern = 0;\n".
+	"	node->_nodeType = nt; /* unique integer for each type */\n".
+	"	\n".
+	"	/* now, fill in the node specific stuff here. the defaults are in VRMLNodes.pm */\n".
+	"	switch (nt) {\n";
+
+	for my $node (@sortedNodeList) {
+		push @genFuncs2,
+			"\t\tcase NODE_$node : {\n\t\t\tstruct X3D_$node * tmp2;\n";
+		push @genFuncs2,
+			"\t\t\ttmp2 = (struct X3D_$node *) tmp;\n\t\t\ttmp2->v = &virt_$node;\n";
+
+
+		#print "\nnode $node:\n";
+ 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
+			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
+			my $def = $VRML::Nodes{$node}{Defaults}{$field};
+			#print "	fieldX $field \n";
+			#print "		fieldDefaults ". $VRML::Nodes{$node}{Defaults}{$field}."\n";
+			#print "		fieldKinds ". $VRML::Nodes{$node}{FieldKinds}{$field}."\n";
+			#print "		fieldTypes ". $VRML::Nodes{$node}{FieldTypes}{$field}."\n";
+			if ($fk ne "eventIn") {
+				#print "		do thisfield\n";
+				my $cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
+				push @genFuncs2, "\t\t\t$cf;\n";
+			}
+		}
+		
+		push @genFuncs2,"\t\tbreak;\n\t\t}\n";
 	}
 
+	push @genFuncs2, "\t};\n\treturn tmp;\n}\n";
+
+	#####################
 	# print out generated functions to a file
 	open GENFUNC, ">CFuncs/GeneratedCode.c";
-	print GENFUNC join '',@genFuncs;
+	print GENFUNC join '',@genFuncs1;
+	print GENFUNC join '',@genFuncs2;
 
 	# print out structures to a file
 	open STRUCTS, ">CFuncs/Structs.h";
