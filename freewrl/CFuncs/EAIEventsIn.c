@@ -25,7 +25,6 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 
 /* used for loadURL */
 struct X3D_Anchor EAI_AnchorNode;
-SV *EAI_newSVpv(char *str);
 int waiting_for_anchor = FALSE;
 
 /* used for reading in SVs */

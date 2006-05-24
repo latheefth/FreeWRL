@@ -1524,7 +1524,7 @@ my $protono;
 			set_fraction => [SFFloat, undef, eventIn],
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFVec2f, [], exposedField],
-			value_changed => [MFVec2f, [0,0], eventOut],
+			value_changed => [MFVec2f, [[0,0]], eventOut],
 		}),
 
 	PositionInterpolator2D => new VRML::NodeType("PositionInterpolator2D", {
@@ -1728,7 +1728,7 @@ my $protono;
 						groundAngle => [MFFloat, [], exposedField],
 						groundColor => [MFColor, [], exposedField],
 						skyAngle => [MFFloat, [], exposedField],
-						skyColor => [MFColor, [[0, 0, 0]], exposedField],
+						skyColor => [MFColor, [[0,0,0]], exposedField],
 						bindTime => [SFTime,0,eventOut],
 						isBound => [SFBool, 0, eventOut],
 						__parenturl =>[SFString,"",field],
@@ -2061,7 +2061,7 @@ my $protono;
 						keyValue => [MFVec3f,[],exposedField],
 						keyWeight => [MFFloat,[],exposedField],
 						knot => [MFFloat,[],exposedField],
-						order => [SFInt32,[],exposedField],
+						order => [SFInt32,0,exposedField],
 						value_changed => [SFVec3f,[0,0,0],eventOut],
 					}
 					),
@@ -2160,7 +2160,7 @@ my $protono;
 	IntegerTrigger => 
 	new VRML::NodeType("IntegerTrigger", {
 			set_triggerTime => [SFTime,undef ,eventIn],
-			integerKey => [SFInt32, [], exposedField],
+			integerKey => [SFInt32, 0, exposedField],
 			triggerValue => [SFInt32, 0, eventOut],
 	}),
 

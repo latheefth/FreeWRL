@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.63  2006/05/24 19:29:03  crc_canada
+# More VRML C Parser code
+#
 # Revision 1.62  2006/05/24 16:27:15  crc_canada
 # more changes for VRML C parser.
 #
@@ -799,8 +802,7 @@ sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm.
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	print "SFSTRING INIT field $field val $val\n";
-	return "/* $field SFSTRING */";
+	return "$field = EAI_newSVpv(\"$val\")";
 }
 
 ###########################################################
@@ -810,10 +812,24 @@ package VRML::Field::MFString;
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	print "MFSTRING INIT field $field val $val\n";
-	return "/* $field MFSTRING */";
-}
+	my $count = @{$val};
+	my $retstr;
+	my $tmp;
 
+	#print "MFSTRING field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		#print "MALLOC MFSTRING field $field val @{$val} has $count INIT\n";
+		$retstr = $restsr . "$field.p = malloc (sizeof(float)*$count);";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			$retstr = $retstr .  "$field.p[$tmp] = EAI_newSVpv(\"".@{$val}[$tmp]."\");";
+		}
+		$retstr = $retstr . "$field.n=$count; ";
+		
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+	return $retstr;
+}
 
 # XXX Should be optimized heavily! Other MFs are ok.
 
@@ -899,17 +915,33 @@ sub parse {
 	}
 }
 
+
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
+	my $retstr;
+	my $tmp;
+	my $whichVal;
+
 	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
-		print "MFVEC3F HAVE TO MALLOC HERE\n";
+		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
+
+		$retstr = $restsr . "$field.p = malloc (sizeof(float)*3*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			my $arline = @{$val}[$tmp];
+			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
+				$retstr = $retstr. "\n\t\t\t$field.p[$tmp*3+$whichVal] = ".@{$arline}[$whichVal]."; ";
+			}
+			$retstr = $retstr."$field.n=$count;";
+		}
+
+
+
 	} else {
 		return "$field.n=0; $field.p=0";
 	}
 }
-
 
 ###########################################################
 package VRML::Field::MFNode;
@@ -934,9 +966,25 @@ package VRML::Field::MFColor;
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
+	my $retstr;
+	my $tmp;
+	my $whichVal;
+
 	#print "MFCOLOR field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
-		print "MALLOC MFCOLOR field $field val @{$val} has $count INIT\n";
+		#print "MALLOC MFCOLOR field $field val @{$val} has $count INIT\n";
+
+		$retstr = $restsr . "$field.p = malloc (sizeof(float)*3*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			my $arline = @{$val}[$tmp];
+			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
+				$retstr = $retstr. "\n\t\t\t$field.p[$tmp*3+$whichVal] = ".@{$arline}[$whichVal]."; ";
+			}
+			$retstr = $retstr."$field.n=$count;";
+		}
+
+
+
 	} else {
 		return "$field.n=0; $field.p=0";
 	}
@@ -966,9 +1014,25 @@ package VRML::Field::MFVec2f;
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
-	#print "MFVEC2F field $field val @{$val} has $count INIT\n";
+	my $retstr;
+	my $tmp;
+	my $whichVal;
+
+	#print "MFVec2F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
-		print "MFVEC2F HAVE TO MALLOC HERE\n";
+		#print "MALLOC MFVec2F field $field val @{$val} has $count INIT\n";
+
+		$retstr = $restsr . "$field.p = malloc (sizeof(float)*2*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			my $arline = @{$val}[$tmp];
+			for ($whichVal = 0; $whichVal < 2; $whichVal++) {
+				$retstr = $retstr. "\n\t\t\t$field.p[$tmp*2+$whichVal] = ".@{$arline}[$whichVal]."; ";
+			}
+			$retstr = $retstr."$field.n=$count;";
+		}
+
+
+
 	} else {
 		return "$field.n=0; $field.p=0";
 	}
@@ -1034,28 +1098,62 @@ sub parse {
 }
 
 
-sub cInitialize {
-	my ($this,$field,$val) = @_;
-	print "MFBOOL INIT field $field val $val\n";
-	return "/* MFBOOL $field */";
-}
-
-
-###########################################################
-package VRML::Field::MFRotation;
-@ISA=VRML::Field::Multi;
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
-	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
+	my $retstr;
+	my $tmp;
+
+	#print "MFBOOL field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
-		print "MFVEC3F HAVE TO MALLOC HERE\n";
+		#print "MALLOC MFBOOL field $field val @{$val} has $count INIT\n";
+
+		$retstr = $restsr . "$field.p = malloc (sizeof(int)*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			my $arline = @{$val}[$tmp];
+			$retstr = $retstr. "\n\t\t\t$field.p[$tmp] = $arline; ";
+		}
+		$retstr = $retstr."$field.n=$count;";
+
+
+
 	} else {
 		return "$field.n=0; $field.p=0";
 	}
 }
 
+###########################################################
+package VRML::Field::MFRotation;
+@ISA=VRML::Field::Multi;
+
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	my $retstr;
+	my $tmp;
+	my $whichVal;
+
+	#print "MFROTATION field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
+
+		$retstr = $restsr . "$field.p = malloc (sizeof(float)*4*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			my $arline = @{$val}[$tmp];
+			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
+				$retstr = $retstr. "\n\t\t\t$field.p[$tmp*4+$whichVal] = ".@{$arline}[$whichVal]."; ";
+			}
+			$retstr = $retstr."$field.n=$count;";
+		}
+
+
+
+	} else {
+		return "$field.n=0; $field.p=0";
+	}
+}
 
 ###########################################################
 package VRML::Field::Multi;
@@ -1668,10 +1766,8 @@ sub clength {-12}; # signal that a -12 is a SFImage for CRoutes #for C routes. K
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	print "SFNODE INIT field $field val $val\n";
+	return "$field = EAI_newSVpv(\"$val\")";
 }
-
-
 
 1;
 

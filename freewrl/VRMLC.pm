@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.216  2006/05/24 19:29:03  crc_canada
+# More VRML C Parser code
+#
 # Revision 1.215  2006/05/24 16:27:15  crc_canada
 # more changes for VRML C parser.
 #
@@ -270,19 +273,7 @@ require 'VRMLRend.pm';
 #
 # gen_struct - Generate a node structure, adding fields for
 # internal use
-
-sub gen_struct {
-	my($name,$node) = @_;
-
-	my @unsortedfields = keys %{$node->{FieldTypes}};
-
-	# sort the field array, so that we can ensure the order of structure
-	# elements.
-
-	my @sf = sort(@unsortedfields);
-	my $nf = scalar @sf;
-	# /* Store actual point etc. later */
-       my $s = "/***********************/\nstruct X3D_$name {\n" .
+my $interalNodeCommonFields = 
                "       struct X3D_Virt *v;\n"         	.
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _sens; /*THIS is sensitive */ \n"                  	.
@@ -298,7 +289,20 @@ sub gen_struct {
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       void *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
-               " /*** node specific data: *****/\n";
+               " 	/*** node specific data: *****/\n";
+
+sub gen_struct {
+	my($name,$node) = @_;
+
+	my @unsortedfields = keys %{$node->{FieldTypes}};
+
+	# sort the field array, so that we can ensure the order of structure
+	# elements.
+
+	my @sf = sort(@unsortedfields);
+	my $nf = scalar @sf;
+	# /* Store actual point etc. later */
+       my $s = "/***********************/\nstruct X3D_$name {\n" . $interalNodeCommonFields;
 
 	my $o = "
 void *
@@ -637,6 +641,12 @@ sub gen {
 
 	###################
 	# create the virtual tables for each node.
+	push @str, "\n/* First, a generic struct, contains only the common elements */\n".
+	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
+	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
+	"\n/* now, generated structures for each VRML/X3D Node*/\n";
+
+
 	push @genFuncs1, "/* Virtual tables for each node */\n";
 	for(@sortedNodeList) {
 		# print "working on node $_\n";

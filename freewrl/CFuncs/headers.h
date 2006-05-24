@@ -425,6 +425,7 @@ extern uintptr_t _fw_instance;
 int checkIfX3DVRMLFile(char *fn);
 void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
+SV *EAI_newSVpv(char *str);
 
 /* Scripting Routing interfaces */
 
