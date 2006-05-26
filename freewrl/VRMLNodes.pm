@@ -323,7 +323,6 @@ my $protono;
 	PointLight
 	SpotLight
 	Script
-	TimeSensor
 	Collision
 	ProximitySensor
 	VisibilitySensor
