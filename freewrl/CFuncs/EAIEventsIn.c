@@ -58,6 +58,8 @@ int returnElementRowSize (int type) {
 			return 3;
 		case SFROTATION: 
 		case MFROTATION: 
+		case SFCOLORRGBA:
+		case MFCOLORRGBA:
 			return 4;
 	}
 	return 1;
@@ -81,6 +83,7 @@ uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 	switch (type) {
 		case MFVEC2F: 
 		case MFCOLOR: 
+		case MFCOLORRGBA: 
 		case MFVEC3F: 
 		case MFROTATION: 
 		case MFFLOAT:
@@ -205,6 +208,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    	break;
 	    }
 
+	    case SFCOLORRGBA:
 	    case SFROTATION: {
 		flmem = (float *)memptr;
 	    	retint=sscanf (buf,"%f %f %f %f",&flmem[0],&flmem[1],&flmem[2],&flmem[3]);
@@ -222,6 +226,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    case MFINT32:
 	    case MFTIME:
 	    case MFCOLOR:
+	    case MFCOLORRGBA:
 	    case MFVEC3F:
 	    case MFFLOAT:
 	    case MFROTATION:
@@ -933,6 +938,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 			case EAI_MFINT32: nodetype = EAI_SFINT32; break;
 			case EAI_MFTIME: nodetype = EAI_SFTIME; break;
 			case EAI_MFCOLOR: nodetype = EAI_SFCOLOR; break;
+			case EAI_MFCOLORRGBA: nodetype = EAI_SFCOLORRGBA; break;
 			case EAI_MFVEC3F: nodetype = EAI_SFVEC3F; break;
 			case EAI_MFFLOAT: nodetype = EAI_SFFLOAT; break;
 			case EAI_MFROTATION: nodetype = EAI_SFROTATION; break;
@@ -974,6 +980,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		case EAI_SFVEC2F:
 	  	case EAI_SFVEC3F:
 	  	case EAI_SFCOLOR:
+	  	case EAI_SFCOLORRGBA:
 		case EAI_SFROTATION: {
 			MultiElement=TRUE;
 			break;
@@ -985,6 +992,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 	        case EAI_MFVEC2F   :
 	        case EAI_MFVEC3F   :
 	        case EAI_MFCOLOR   :
+	        case EAI_MFCOLORRGBA   :
 	        case EAI_MFFLOAT   : {
 		    MultiElement=TRUE;
 		   break;
@@ -1011,7 +1019,9 @@ unsigned int EAI_SendEvent (char *ptr) {
 		switch (nodetype)
 		{
 		  case EAI_MFVEC3F:
+		  case EAI_MFROTATION:
 		  case EAI_MFCOLOR:
+		  case EAI_MFCOLORRGBA:
 		  case EAI_MFFLOAT: {
 		      #ifdef EAIVERBOSE
 			printf("EAI_SendEvent, elem %i, count %i, nodeptr %i, off %i, ptr \"%s\".\n",len, elemCount, (int)nodeptr,(int)offset,ptr);
@@ -1023,6 +1033,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		  case EAI_SFVEC2F   :
 		  case EAI_SFVEC3F   :
 		  case EAI_SFCOLOR   :
+		  case EAI_SFCOLORRGBA   :
 		  case EAI_SFROTATION: {
 		      Set_one_MultiElementtype ((int)nodeptr, (int)offset,
 						myBuffer,len);

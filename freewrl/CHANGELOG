@@ -3,6 +3,12 @@ For 1.17:
 
 	- shape compiler thread, if supported by OS.
 
+	- strncmp #ifdef deleted from code; made our function the default
+
+	- SAI code changes (modifies EAI and interfaces in Browser.pm)
+
+	- added EAI/SAI *ColorRGBA types
+
 For 1.16:
 	- VisibilitySensor
 

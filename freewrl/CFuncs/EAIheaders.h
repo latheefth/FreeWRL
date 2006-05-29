@@ -72,6 +72,8 @@ void EAI_RW(char *bufptr);
 #define	EAI_MFVEC2F		's'
 #define EAI_MFVEC3F		't'
 #define EAI_SFVEC3F		'u'
+#define EAI_MFCOLORRGBA		'v'
+#define EAI_SFCOLORRGBA		'w'
 
 
 /* Function Prototype for plugins, Java Class Invocation */

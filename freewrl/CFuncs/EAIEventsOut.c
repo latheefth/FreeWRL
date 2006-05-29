@@ -55,6 +55,7 @@ void handle_Listener () {
 	/* if this is a MF type, there most likely will be malloc'd memory to free... */
 	switch (tp) {
 		case EAI_MFCOLOR:
+		case EAI_MFCOLORRGBA:
 		case EAI_MFFLOAT:
 		case EAI_MFTIME:
 		case EAI_MFINT32:
@@ -171,6 +172,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
+		case EAI_SFCOLORRGBA:
 		case EAI_SFROTATION:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFROTATION\n");
@@ -270,11 +272,13 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case EAI_MFVEC2F:
 		case EAI_MFVEC3F:
 		case EAI_MFROTATION:
+		case EAI_MFCOLORRGBA:
 		case EAI_MFCOLOR: {
 			numPerRow=3;
 			if (type==EAI_MFFLOAT) {numPerRow=1;}
 			else if (type==EAI_MFVEC2F) {numPerRow=2;}
 			else if (type==EAI_MFROTATION) {numPerRow=4;}
+			else if (type==EAI_MFCOLORRGBA) {numPerRow=4;}
 
 			MCptr = (struct Multi_Color *) memptr;
 			#ifdef EAIVERBOSE 

@@ -451,11 +451,13 @@ SV *EAI_newSVpv(char *str);
 #define MFVEC2F	18
 #define MFVEC3F 19
 #define SFVEC3F 20
-
+#define MFCOLORRGBA 21
+#define SFCOLORRGBA 22
 
 #define FIELD_TYPE_STRING(f) ( \
 	f == SFBOOL ? "SFBool" : ( \
 	f == SFCOLOR ? "SFColor" : ( \
+	f == SFCOLORRGBA ? "SFColorRGBA" : ( \
 	f == SFVEC3F ? "SFVec3f" : ( \
 	f == SFFLOAT ? "SFFloat" : ( \
 	f == SFTIME ? "SFTime" : ( \
@@ -466,6 +468,7 @@ SV *EAI_newSVpv(char *str);
 	f == SFVEC2F ? "SFVec2f" : ( \
 	f == SFIMAGE ? "SFImage" : ( \
 	f == MFCOLOR ? "MFColor" : ( \
+	f == MFCOLORRGBA ? "MFColorRGBA" : ( \
 	f == MFVEC3F ? "MFVec3f" : ( \
 	f == MFFLOAT ? "MFFloat" : ( \
 	f == MFTIME ? "MFTime" : ( \
@@ -476,7 +479,7 @@ SV *EAI_newSVpv(char *str);
 	f == MFVEC2F ? "MFVec2f" : ( \
 	f == MFVEC3F ? "MFVec3f" : ( \
 	f == MFROTATION ? "MFRotation" : ( \
-	f == SFVEC2F ? "SFVec2f" : "unknown field type")))))))))))))))))))))))
+	f == SFVEC2F ? "SFVec2f" : "unknown field type")))))))))))))))))))))))))
 
 
 void CRoutes_js_new (uintptr_t num,int scriptType);
