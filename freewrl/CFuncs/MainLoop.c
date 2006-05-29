@@ -145,8 +145,7 @@ void sendSensorEvents(unsigned char *COS,int ev, int status);
 /******************************************************************************/
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not
    always exist... */
-#ifndef strndup
-char *strndup (const char *str, int len) {
+char *fw_strndup (const char *str, int len) {
 	char *retval;
 	int ml;
 	ml = strlen(str);
@@ -157,7 +156,6 @@ char *strndup (const char *str, int len) {
 	retval[ml] = '\0';
 	return retval;
 }
-#endif
 
 
 
@@ -1253,16 +1251,16 @@ void setNoCollision() {
 }
 
 void setKeyString(const char* kstring) {
-        keypress_string = strndup(kstring, 500);
+        keypress_string = fw_strndup(kstring, 500);
 }
 
 void setSeqFile(const char* file) {
-        snapseqB = strndup(file, 500);
+        snapseqB = fw_strndup(file, 500);
         printf("snapseqB is %s\n", snapseqB);
 }
 
 void setSnapFile(const char* file) {
-        snapsnapB = strndup(file, 500);
+        snapsnapB = fw_strndup(file, 500);
         printf("snapsnapB is %s\n", snapsnapB);
 }
 
@@ -1272,7 +1270,7 @@ void setMaxImages(int max) {
         maxSnapImages = max;
 }
 void setSeqTemp(const char* file) {
-        seqtmp = strndup(file, 500);
+        seqtmp = fw_strndup(file, 500);
         printf("seqtmp is %s\n", seqtmp);
 }
 

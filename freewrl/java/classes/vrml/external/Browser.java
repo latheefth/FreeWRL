@@ -531,6 +531,28 @@ public class Browser implements BrowserInterface, IBrowser
 	}
 
 
+	// for SAI coding
+	public String getProtoDeclaration (String name) {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "e" + name + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
+	// for SAI coding
+	public String updateProtoDeclaration (String name, String newProtoDecl) {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "f" + name + " " + newProtoDecl + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
 
 
     // Tells the browser to load a VRML scene from the passed URL or

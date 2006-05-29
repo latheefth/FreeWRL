@@ -344,7 +344,11 @@ sub createVrmlFromURL {
 sub EAI_Command {
 	my ($dir, $str) = @_;
 	my $rv;
-	print "EAI_Command in Browser,pm, dir $dir, str $str\n";
+	# print "EAI_Command in Browser,pm, dir $dir, str $str\n";
+
+	# strip whitespace off around $str
+        $str =~ s/^\s*//;
+        $str =~ s/\s*$//;
 
 	#commands handled: 
 	#	EAIheaders.h:#define    ADDROUTE        'H'
@@ -372,14 +376,14 @@ sub EAI_Command {
 
 	#UPDNAMEDNODE REMNAMEDNODE
 	} elsif (($dir == 99) || ($dir == 100)) {
-		print "have NAMEDNODE code $dir\n";
+		#print "have NAMEDNODE code $dir\n";
 		if ($dir == 99) {
-			print "have UPDATENAMEDNODE\n";
+			#print "have UPDATENAMEDNODE\n";
 			my ($newname, $nodename) = split (" ",$str);
-			print "UPN, nwname $newname, nodename $nodename\n";
+			#print "UPN, nwname $newname, nodename $nodename\n";
 			if (VRML::Handles::check($nodename) == 1) {
 				my $nn = VRML::Handles::get($nodename);
-				print "handle is $nn\n";
+				#print "handle is $nn\n";
 				VRML::Handles::def_reserve($newname, $nodename);
 				
 			} else {
@@ -387,12 +391,12 @@ sub EAI_Command {
 				$rv=1;
 			}
 		} else {
-			print "have removeN amedNode\n";
+			#print "have removeN amedNode\n";
 			my ($nodename) = split (" ",$str);
-			print "UPN, nodename $nodename\n";
+			#print "UPN, nodename $nodename\n";
 			if (VRML::Handles::check($nodename) == 1) {
 				my $nn = VRML::Handles::get($nodename);
-				print "handle is $nn\n";
+				#print "handle is $nn\n";
 				VRML::Handles::release($nodename);
 			} else {
 				print "DELETENAMEDNODE, node $nodename does not exist\n";
@@ -400,6 +404,49 @@ sub EAI_Command {
 			}
 		}
 
+	# 101 (ascii 'e') - getProtoDeclaration, 102 (ascii 'f') updateProtoDeclaration
+	} elsif (($dir == 101) || ($dir == 102)) {
+		my ($newname, $nodename) = split (" ",$str);
+		my $nn = VRML::Handles::return_EAI_name($newname);
+		if (ref $nn eq "VRML::Scene") {
+			my $field; 
+			my $fo;
+			my $ft;
+			my $fv;
+	
+			# getProtoDeclaration
+			if ($dir == 101) {
+				my $retstr = "$newname SFNode ";
+	
+				# count keys in hash. It's friday, I'm going home soon, so here is the code.
+				my $count = 0;
+				foreach $field (keys %{$nn->{Pars} }) { $count++; }
+				$retstr = $retstr . "$count";
+	
+				foreach $field (keys %{$nn->{Pars} }) {
+					$fo = $nn->{Pars}{$field}[0];
+					$ft = $nn->{Pars}{$field}[1];
+					$fv = $nn->{Pars}{$field}[2];
+	
+					my $asciival = "VRML::Field::$ft"->as_string($fv);
+					#print "asciival $asciival\n";
+					$retstr = $retstr . " $fo $ft $field $asciival";
+				}
+				#print "returnstring $retstr\n";
+				return $retstr;
+			} else {
+				my $prstr = substr ($str, length($newname)+1);
+				
+				my $npd = VRML::Parser::parse_interfacedecl ($nn,1,1,"[".$prstr."]");
+				$nn->{Pars} = $npd;
+				#print "new proto declaration for $newname, is $npd\n";
+			}
+			
+		} else {
+			print "getProtoDeclaration, $newname is not a proto\n";
+			$rv = 1;
+			return $rv;
+		}
 	} else {
 		print "EAI_Command - invalid command $rv\n";
 		$rv = 1; 

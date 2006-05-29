@@ -100,7 +100,6 @@ void __pt_EAI_GetType (void);
 void __pt_EAI_GetTypeName (void);
 void __pt_EAI_GetValue (void);
 void __pt_SAI_Command (void);
-void __pt_generalSAICommand (void);
 void EAI_readNewWorld(char *inputstring);
 
 /* Bindables */
@@ -557,7 +556,7 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 }
 
 /* interface for sending/getting simple commands to the EAI/SAI. eg, updateNamedNode */
-int SAI_generalCommand (char cmnd, const char *fn) {
+int SAI_IntRetCommand (char cmnd, const char *fn) {
 	int complete;
 	int retval;
 
@@ -567,7 +566,7 @@ int SAI_generalCommand (char cmnd, const char *fn) {
 	psp.type = SAICOMMAND;
 	psp.retarr = NULL;
 	psp.ofs = (unsigned) cmnd;
-	psp.ptr = NULL;
+	psp.ptr = NULL; /* null indicates that we want an integer returned here */
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
@@ -585,6 +584,38 @@ int SAI_generalCommand (char cmnd, const char *fn) {
 	retval = psp.jparamcount;
 	UNLOCK;
 	return retval;
+}
+
+/* interface for sending/getting simple commands to the EAI/SAI. eg, updateNamedNode */
+char *SAI_StrRetCommand (char cmnd, const char *fn) {
+	int complete;
+	char *retstr;
+
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
+	psp.comp = &complete;
+	psp.type = SAICOMMAND;
+	psp.retarr = NULL;
+	psp.ofs = (unsigned) cmnd;
+	psp.ptr = 1; 	/* 1 signifies that we want an SV returned here */
+	psp.path = NULL;
+	psp.zeroBind = FALSE;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	psp.fieldname = strdup(fn);
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+
+	/* grab data */
+	retstr = psp.retstr;
+	/* printf ("SAI_SVRetCommand, returning %s\n",retstr); */
+	UNLOCK;
+	return retstr;
 }
 
 /* interface for telling the Perl side to forget about everything...  */
@@ -638,9 +669,13 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, in
 		psp.type = FROMSTRING;
 	} else if (strncmp(tp,"CREATEPROTO",10) == 0) {
 		psp.type = FROMCREATEPROTO;
-	} else
+	} else if (strncmp(tp,"CREATENODE",10) == 0) {
 		psp.type = FROMCREATENODE;
-
+	} else {
+		printf ("EAI_CreateVrml - invalid input %s\n",tp);
+		return 0;
+	}
+	 
 	complete = 0; /* make sure we wait for completion */
 	psp.comp = &complete;
 	psp.ptr = (unsigned)NULL;
@@ -1404,6 +1439,9 @@ void __pt_EAI_GetViewpoint () {
 /* set/delete route */
 void __pt_SAI_Command () {
 	int count;
+	SV *svret;
+	char *ctmp;
+	STRLEN len;
 
 	dSP;
 	ENTER;
@@ -1419,8 +1457,23 @@ void __pt_SAI_Command () {
 		printf ("EAI_Command returns %d\n",count);
 
 	/* return value in psp.jparamcount */
-	psp.jparamcount = POPi;
-	printf ("and, the return value of EAI_Command is %d\n",psp.jparamcount);
+
+	/* did we want an integer, or an SV? */
+	if (psp.ptr != NULL) {
+		svret = POPs;
+		/* printf ("SAI_SCommand, svret %d, svType %d\n",svret, SvTYPE(svret)); */
+
+        	/* make a copy of the return string - caller has to free it after use */
+        	ctmp = SvPV(svret,len); /*  now, we have the length*/
+        	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
+        	strcpy (psp.retstr,ctmp);
+        	/* printf ("GetValue, retstr will be :%s:\n",psp.retstr); */
+
+		psp.sv = (SV *)svret;
+	} else {
+		psp.jparamcount = POPi;
+		/* printf ("and, the return value of EAI_Command is %d\n",psp.jparamcount); */
+	}
 
 	PUTBACK;
 	FREETMPS;

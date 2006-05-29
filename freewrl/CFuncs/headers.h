@@ -613,6 +613,8 @@ uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define FROMCREATENODE	13  /* create a node by just giving its node type */
 #define FROMCREATEPROTO	14  /* create a node by just giving its node type */
 #define SAICOMMAND	15  /* general send in a string and get an int back */
+#define UPDATEPROTOD	16  /* update a PROTO definition */
+#define GETPROTOD	17  /* update a PROTO definition */
 
 
 
@@ -759,7 +761,8 @@ extern void XEventStereo();
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
 int initJavaClass(int scriptno);
 
-int SAI_generalCommand (char cmnd, const char *fn);
+int SAI_IntRetCommand (char cmnd, const char *fn);
+char * SAI_StrRetCommand (char cmnd, const char *fn);
 char *EAI_GetTypeName (unsigned int uretval);
 char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename);
 void setCLASStype (uintptr_t num);

@@ -731,15 +731,24 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
+
+			case GETPROTODECL:  {
+				#ifdef EAIVERBOSE 
+				/* printf ("SAI SV ret command .%s\n",bufptr); */
+				#endif
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,bufptr));
+				break;
+				}
+			case UPDPROTODECL: 
 			case UPDNAMEDNODE: 
 			case REMNAMEDNODE: 
 			case ADDROUTE:
 			case DELETEROUTE:  {
 				#ifdef EAIVERBOSE 
-				printf ("Add/Delete route, up,remNamedNode %s\n",bufptr);
+				printf ("SV int ret command ..%s\n",bufptr);
 				#endif
 				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,
-					SAI_generalCommand ((char) command,bufptr));
+					SAI_IntRetCommand ((char) command,bufptr));
 				break;
 				}
 
@@ -800,15 +809,17 @@ void EAI_parse_commands (char *bufptr) {
 				#endif
 				if (command == CREATENODE) 
 					ra = EAI_CreateVrml("CREATENODE",ctmp,nodarr,200); 
-				else
+				else if (command == CREATEPROTO)
 					ra = EAI_CreateVrml("CREATEPROTO",ctmp,nodarr,200); 
+				else 
+					printf ("eai - huh????\n");
 
 				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
+
 				for (rb = 0; rb < ra; rb++) {
 					sprintf (ctmp,"%d ", nodarr[rb]);
 					strcat (buf,ctmp);
 				}
-
 				break;
 				}
 
