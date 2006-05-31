@@ -892,8 +892,10 @@ printf ("Unhandled PST, %s: value %s, ptr %d nst %d offset %d numelements %d\n",
 
 
 
+#ifndef AQUA
 void setMenuButton_collision (int val) {}
 void setMenuButton_headlight (int val) {}
 void setMenuButton_navModes (int type) {}
 void setMenuStatus(char *stat) {}
 void setMenuFps (float fps) {}
+#endif
