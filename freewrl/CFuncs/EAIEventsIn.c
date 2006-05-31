@@ -35,6 +35,7 @@ void createLoadURL(char *bufptr);
 /* get how many bytes in the type */
 int returnElementLength(int type) {
 	  switch (type) {
+		case SFTIME :
     		case MFTIME : return sizeof(double); break;
     		case SFNODE :
     		case MFNODE :
@@ -559,7 +560,12 @@ void EAI_parse_commands (char *bufptr) {
 				printf ("GETNODE %s\n",ctmp);
 				#endif
 
-				uretval = EAI_GetNode(ctmp);
+				/* is this the SAI asking for the root node? */
+				if (strncmp(ctmp,SYSTEMROOTNODE,strlen(SYSTEMROOTNODE))) {
+					uretval = EAI_GetNode(ctmp);
+				} else {
+					uretval = rootNode;
+				}
 
 				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,uretval);
 				break;
@@ -572,7 +578,26 @@ void EAI_parse_commands (char *bufptr) {
 				printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
 				#endif
 
-				EAI_GetType (uretval,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
+				/* special case for now - handle only rootNodes here */
+				if (uretval == rootNode) {
+
+					/* printf ("GETTYPE =  have root node to compare against\n"); */
+					ra = rootNode;
+					rb = 0;
+					if (strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) rb = offsetof (struct X3D_Group, children);
+					if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) rb = offsetof (struct X3D_Group, children);
+					if (strncmp (ctmp,"children",strlen("children")) == 0) rb = offsetof (struct X3D_Group, children);
+					if (strncmp (ctmp,"bboxSize",strlen("bboxSize")) == 0) rb = offsetof (struct X3D_Group, bboxSize);
+					if (strncmp (ctmp,"bboxCenter",strlen("bboxCenter")) == 0) rb = offsetof (struct X3D_Group, bboxCenter);
+
+					if (rb == 0) printf ("GETTYPE for rootNode = unknown field %s\n",ctmp);
+			
+					rc = 0;
+					rd = 113;
+					scripttype = 0;
+				} else {
+					EAI_GetType (uretval,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
+				}
 
 				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d",TickTime,count,ra,rb,rc,rd,scripttype);
 				break;
@@ -744,6 +769,7 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,bufptr));
 				break;
 				}
+			case REMPROTODECL: 
 			case UPDPROTODECL: 
 			case UPDNAMEDNODE: 
 			case REMNAMEDNODE: 

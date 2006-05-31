@@ -453,6 +453,7 @@ SV *EAI_newSVpv(char *str);
 #define SFVEC3F 20
 #define MFCOLORRGBA 21
 #define SFCOLORRGBA 22
+#define MFBOOL	    23
 
 #define FIELD_TYPE_STRING(f) ( \
 	f == SFBOOL ? "SFBool" : ( \
@@ -1036,5 +1037,8 @@ void kill_oldWorld(int a, int b, int c);
 
 extern int currentFileVersion;
 
+int findFieldInFIELDNAMES(char *field);
+void findFieldInOFFSETS(int *nodeOffsetPtr, int field, int *coffset, int *ctype, int *ckind);
+void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, int isChildren);
 
 #endif /* __HEADERS_H__ */

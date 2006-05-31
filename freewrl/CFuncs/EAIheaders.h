@@ -44,6 +44,11 @@ void EAI_RW(char *bufptr);
 #define REMNAMEDNODE	'd'
 #define GETPROTODECL 	'e'
 #define UPDPROTODECL	'f'
+#define REMPROTODECL	'g'
+
+
+/* command string to get the rootNode - this is a special match... */
+#define SYSTEMROOTNODE "_Sarah_this_is_the_FreeWRL_System_Root_Node"
 
 
 /* Subtypes - types of data to get from EAI  - we don't use the ones defined in
@@ -74,6 +79,7 @@ void EAI_RW(char *bufptr);
 #define EAI_SFVEC3F		'u'
 #define EAI_MFCOLORRGBA		'v'
 #define EAI_SFCOLORRGBA		'w'
+#define EAI_MFBOOL		'x'
 
 
 /* Function Prototype for plugins, Java Class Invocation */

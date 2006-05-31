@@ -88,11 +88,5 @@ sub set_fields {
     }
 }
 
-sub delete_node {
-	my($this,$node) = @_;
-
-	VRML::CU::free_struct_be($node->{CNode}, $node->{Type});
-}
-
 1;
 

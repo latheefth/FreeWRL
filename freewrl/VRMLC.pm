@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.218  2006/05/31 14:52:28  crc_canada
+# more changes to code for SAI.
+#
 # Revision 1.217  2006/05/29 17:54:12  crc_canada
 # SAI changes - almost complete
 #
@@ -734,6 +737,45 @@ sub gen {
 	push @genFuncs2, "\t};\n\treturn tmp;\n}\n";
 
 	#####################
+	# create an array for each node. The array contains the following:
+	# const int OFFSETS_Text[
+	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_exposedField,
+	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_exposedField,
+	# ....
+	# 	-1, -1, -1, -1];
+	# NOTES:
+	# 1) we skip any field starting with an "_" (underscore)
+	# 2) addChildren, removeChildren, map to children.
+	# 
+	for my $node (@sortedNodeList) {
+		#print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+
+		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
+
+ 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+			if (index($field,"_") !=0) {
+				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
+				$ft =~ tr/a-z/A-Z/; # convert to uppercase
+				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
+				push @genFuncs1, "	FIELDNAMES_$field, offsetof (struct X3D_$node, $field), ".
+					" $ft, KW_$fk,\n";
+			}
+		};
+		push @genFuncs1, "	-1, -1, -1, -1};\n";
+	}
+
+	#####################
+	# make an array that contains all of the OFFSETS created above.
+	push @str, "\nextern const int *NODE_OFFSETS[];\n";
+	push @genFuncs1, "\nconst int *NODE_OFFSETS[] = {\n";
+	for my $node (@sortedNodeList) {
+		push @genFuncs1, "	OFFSETS_$node,\n";
+	}
+	push @genFuncs1, "	};\n";
+
+
+	#####################
 	# print out generated functions to a file
 	open GENFUNC, ">CFuncs/GeneratedCode.c";
 	print GENFUNC join '',@genFuncs1;
@@ -829,6 +871,7 @@ struct sNaviInfo {
 #include "CFuncs/headers.h"
 #include "CFuncs/Component_Geospatial.h"
 #include "CFuncs/jsUtils.h"
+#include "CFuncs/Structs.h"
 #include "XSUB.h"
 
 #include <math.h>
@@ -868,40 +911,61 @@ PROTOTYPES: ENABLE
 
 
 void *
-alloc_struct(siz,virt, itype)
-	int siz
-	void *virt
+alloc_struct(itype)
 	int itype
 CODE:
-	void *ptr = malloc(siz);
+	void *ptr;
 	struct X3D_Box *node;
+
+	ptr = createNewX3DNode(itype);
 
 	node = (struct X3D_Box *) ptr;
 
-	/* printf("Alloc: %d %d -> %d\n", siz, virt, ptr);  */
-	*(struct X3D_Virt **)ptr = (struct X3D_Virt *)virt;
-	node->_renderFlags = 0;
-	node->_hit = 0;
-	node->_sens = FALSE;
-	node->_intern = 0;
-	node->_change = 153;
-	node->_dlchange = 0;
-	node->_dlist = 0;
-        node->_parents = 0;
-        node->_nparents = 0;
-        node->_nparalloc = 0;
-	node->_ichange = 0;
-	node->_dist = -10000.0; /* put unsorted nodes first in rendering */
-
-	/* Extents - set to values so that we are sure to find mins/maxs */
-	INITIALIZE_EXTENT
-
-	node->_nodeType = itype;
-
+	/* printf("new Alloc: type %d -> %d\n", itype, ptr);   */
 	RETVAL=ptr;
 OUTPUT:
 	RETVAL
 
+void
+set_field_be (ptr, field, value)
+	void *ptr
+	char *field
+	char *value
+CODE:
+	int foffset;
+	int coffset;
+	int ctype;
+	int ctmp;
+	int isChildren;
+
+	struct X3D_Box *node;
+	node = (struct X3D_Box *)ptr;
+
+	/* printf ("\nset_field_be, node %d field %s value %s\n", node, field, value);  */
+	
+	/* is this a child field? */
+	if (strncmp("children",field,strlen("children")) == 0) {
+		isChildren = TRUE;
+	} else {
+		isChildren = FALSE;
+	}
+
+	
+
+	/* is this a valid field? */
+	foffset = findFieldInFIELDNAMES(field);	
+	/* printf ("field offset is %d\n",foffset); */
+	if (foffset < 0) return;
+
+	/* get offsets for this field in this nodeType */
+	/* printf ("getting nodeOffsets for type %d\n",node->_nodeType); */
+	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
+
+	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
+
+	if (strlen(value)>0) 
+		Perl_scanStringValueToMem(ptr, coffset, ctype, value,isChildren);
+ 
 void
 release_struct(ptr)
 	void *ptr

@@ -46,42 +46,17 @@ sub alloc_struct_be {
 	my $nodeType = $NODEINTEGERMAPPING{$type};
 	#print "VRMLCU - nt $nodeType\n";
 
-	#print "VRMLCU ALLNod: '$type' $VRML::CNodes{$type}{Offs}{_end_} $VRML::CNodes{$type}{Virt}\n";
-	my $s = VRML::VRMLFunc::alloc_struct($VRML::CNodes{$type}{Offs}{_end_},
-		$VRML::CNodes{$type}{Virt},
-		$nodeType);
-	my($k,$o);
-	while(($k,$o) = each %{$VRML::CNodes{$type}{Offs}}) {
-		next if $k eq '_end_';
-		my $ft = $VRML::Nodes{$type}{FieldTypes}{$k};
-		#print "VRMLCU ALLS: $type $k $ft $o\n";
-		&{"VRML::VRMLFunc::alloc_offs_$ft"}(
-			$s, $o
-		);
-	}
-	#print "end of alloc_struct_be; returning $s\n";
-	return $s;
-}
+	my $s = VRML::VRMLFunc::alloc_struct($nodeType);
 
-sub free_struct_be {
-	my($node,$type) = @_;
-	if(!defined $VRML::CNodes{$type}) {
-		die("No CNode for $type in free_struct_be\n");
-	}
-	my($k,$o);
-	while(($k,$o) = each %{$VRML::CNodes{$type}{Offs}}) {
-		my $ft = $VRML::Nodes{$type}{FieldTypes}{$k};
-		&{"VRML::VRMLFunc::free_offs_$ft"}(
-			$node, $o
-		);
-	}
-	VRML::VRMLFunc::free_struct($node)
+	#print "VRMLCU: s is $s\n";
+	return $s;
 }
 
 sub set_field_be {
 	my($node, $type, $field, $value) = @_;
 	my $o;
-	#print "VRMLCU.pm:set_field_be, node $node, type $type, field $field, value $value\n";
+	#print "VRMLCU.pm:set_field_be, node $node, type $type, field $field, value $value ref ";
+	
 	#if ("ARRAY" eq ref $value) {
 	#	print "VRMLCU.pm:set_field_be, value of array is @{$value}\n";
 	#}
@@ -102,17 +77,58 @@ sub set_field_be {
 		$value = [map {$_->{CNode}} @{$value}];
 	}
 
+
 	my $ft = $VRML::Nodes{$type}{FieldTypes}{$field};
 	my $fk = $VRML::Nodes{$type}{FieldKinds}{$field};
+
 	# if($fk !~ /[fF]ield$/ and !defined $value) {return}
 	print "SETS: $node $type $field '$value' (",(
 		"ARRAY" eq ref $value ? join ',',@$value : $value ),") $ft $o\n"
 		if $VRML::verbose::be;
 
-	&{"VRML::VRMLFunc::set_offs_$ft"}(
-		$node, $o,
-		$value
-	);
+	my $nv;
+	$nv = $value;
+	if ("ARRAY" eq ref $value) {
+		$nv = "";
+
+		#print "we have an array here, go through each element\n";
+		my $elcount = $#$value;
+		#print "element count $elcount\n";
+		my $ec = 0;
+		while  ($ec <= $elcount) {
+			my $thisVal = @{$value}[$ec];
+			# print "thisval $thisVal\n";
+			if ("ARRAY" ne ref $thisVal) {
+				$nv = $nv.@{$value}[$ec].",";
+			} else {
+				#print "$thisVal is an array\n";
+#########
+				my $subelecount = $#$thisVal;
+				my $sec = 0;
+				while ($sec <= $subelecount) {
+					my $subval = @{$thisVal}[$sec];
+					$nv = $nv.$subval.",";
+					$sec++;
+				}
+
+#########
+			}
+			$ec ++;
+		}
+		
+		# remove that last comma...
+		$nv = substr ($nv,0,length($nv)-1);
+		#print "end of loop, nv $nv\n";
+	}
+
+	#print "VRMLCU, ft $ft, node $node, o $o, nv $nv\n";
+
+	VRML::VRMLFunc::set_field_be($node,$field,$nv);
+
+#	&{"VRML::VRMLFunc::set_offs_$ft"}(
+#		$node, $o,
+#		$value
+#	);
 }
 
 1;

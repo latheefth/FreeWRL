@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.199  2006/05/31 14:52:28  crc_canada
+# more changes to code for SAI.
+#
 # Revision 1.198  2006/05/23 16:15:10  crc_canada
 # remove print statements, add more defines for a VRML C parser.
 #
@@ -475,9 +478,9 @@ $ExtraMem{HAnimHumanoid} = $ExtraMem{Group};
 	TO
 	TRUE
 	USE
-	EventIn
-	EventOut
-	ExposedField
-	Field
+	eventIn
+	eventOut
+	exposedField
+	field
 /;
 1;

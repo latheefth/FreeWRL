@@ -33,5 +33,6 @@ public interface IBrowser {
 	public String updateNamedNode (String name, Node node);
 	public String removeNamedNode (String name);
 	public String getProtoDeclaration (String name);
+	public String removeProtoDeclaration (String name);
 	public String updateProtoDeclaration (String name, String npdecl);
 }

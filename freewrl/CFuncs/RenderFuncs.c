@@ -217,7 +217,7 @@ void update_node(void *ptr) {
 
 	p = (struct X3D_Box*) ptr;
 
-	/* printf ("update_node for %d %s\n",ptr, stringNodeType(p->_nodeType)); */
+	/* printf ("update_node for %d %s nparents %d\n",ptr, stringNodeType(p->_nodeType),p->_nparents); */
 
 	p->_change ++;
 	for (i = 0; i < p->_nparents; i++) {
@@ -742,6 +742,155 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	nodefn(node, coord, color, normal, texCoord);
 	#endif
 }
+
+/* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error */
+int findFieldInFIELDNAMES(char *field) {
+	int x;
+	int mystrlen;
+	
+	mystrlen = strlen(field);
+	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen); */
+	for (x=0; x<FIELDNAMES_COUNT; x++) {
+		if (strlen(FIELDNAMES[x]) == mystrlen) {
+			if (strcmp(field,FIELDNAMES[x])==0) return x;
+		} 
+	}
+	return -1;
+}
+
+/* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
+void findFieldInOFFSETS(int *nodeOffsetPtr, int field, int *coffset, int *ctype, int *ckind) {
+	int *x;
+
+	x = nodeOffsetPtr;
+	/* printf ("findFieldInOffsets, comparing %d to %d\n",*x, field); */
+	while ((*x != field) && (*x != -1)) {
+		x += 4;
+	}
+	if (*x == field) {
+		/* printf ("found field!\n"); */
+		x++; *coffset = *x; x++; *ctype = *x; x++; *ckind = *x; 
+		return;
+	}
+	if (*x == -1) {
+		printf ("did not find field %d in OFFSETS\n",field);
+		*coffset = -1; *ctype = -1, *ckind = -1;
+		return;
+	}
+}
+
+int countCommas (char *instr) {
+	int retval = 0;
+	while (*instr != '\0') {
+		if (*instr == ',') retval++;
+		instr++;
+	}
+	return retval;
+}
+
+/* called effectively by VRMLCU.pm */
+void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, int isChildren) {
+	int datasize;
+	int commaCount;
+
+	char *nst;                      /* used for pointer maths */
+	void *mdata;
+	int *iptr;
+	float *fptr;
+	int tmp;
+	
+
+	/* temporary for sscanfing */
+	float fl[4];
+	int in[4];
+	double dv;
+
+	/* printf ("PST, for %s we have %s strlen %d\n",FIELD_TYPE_STRING(ctype), value, strlen(value)); */
+	nst = (char *) ptr; /* should be 64 bit compatible */
+	nst += coffset;
+
+	datasize = returnElementLength(ctype);
+	commaCount = countCommas(value);
+	
+	switch (ctype) {
+		case SFFLOAT: {sscanf (value,"%f",fl); memcpy (nst,fl,datasize); break;} 
+
+		case SFBOOL:
+		case SFINT32:
+		case SFNODE:
+			{ sscanf (value,"%d",in); memcpy(nst,in,datasize); break;}
+		case SFVEC2F:
+			{sscanf (value,"%f,%f",&fl[0],&fl[1]); memcpy (nst,fl,datasize*2); break;}
+		case SFROTATION:
+		case SFCOLORRGBA:
+			{sscanf (value,"%f,%f,%f,%f",&fl[0],&fl[1],&fl[2],&fl[3]); memcpy (nst,fl,datasize*4); break;}
+		case SFVEC3F:
+		case SFCOLOR:
+			{ sscanf (value,"%f,%f,%f",&fl[0],&fl[1],&fl[2]); memcpy (nst,fl,datasize*3); break;}
+		case MFBOOL:
+		case MFINT32:
+		case MFNODE: {
+			mdata = malloc ((commaCount+1) * datasize);
+			iptr = (int *)mdata;
+			for (tmp = 0; tmp < (commaCount+1); tmp++) {
+				sscanf(value, "%d",iptr);
+				if (isChildren) {
+					/* printf ("MFNODE, have to add child %d to parent %d\n",*iptr,ptr); */
+					add_parent(*iptr, ptr);
+				}
+				iptr ++;
+				/* skip past the number and trailing comma, if there is one */
+				if (*value == '-') value++;
+				while (*value>='0') value++;
+				if ((*value == ' ') || (*value == ',')) value++;
+			}
+			((struct Multi_Node *)nst)->p=mdata;
+			((struct Multi_Node *)nst)->n = commaCount+1;
+			break;
+			}
+		case SFTIME: { sscanf (value, "%lf", &dv); 
+				/* printf ("SFtime, for value %s has %lf datasize %d\n",value,dv,datasize); */
+				memcpy (nst,&dv,datasize);
+			break; }
+		case SFSTRING: 
+		case SFIMAGE: {(struct SV*)nst = EAI_newSVpv(value); break; }
+
+		case MFROTATION:
+		case MFCOLOR:
+		case MFFLOAT:
+		case MFTIME:
+		case MFVEC2F:
+		case MFVEC3F:
+		case MFCOLORRGBA: {
+			/* printf ("data size is %d elerow %d commaCount %d\n",datasize, returnElementRowSize(ctype),commaCount+1); */
+			mdata = malloc ((commaCount+1) * datasize);
+			fptr = (float *)mdata;
+			for (tmp = 0; tmp < (commaCount+1); tmp++) {
+				sscanf(value, "%f",fptr);
+				fptr ++;
+				/* skip past the number; checking to see if it has a decimal point or not */
+				if (*value == '-') value++;
+				while (*value>='0') value++;
+				if (*value == '.') value++;
+				while (*value>='0') value++;
+				if ((*value == ' ') || (*value == ',')) value++;
+			}
+			((struct Multi_Node *)nst)->p=mdata;
+			((struct Multi_Node *)nst)->n = (commaCount+1)/returnElementRowSize(ctype);
+			break;
+			}
+
+			
+		case MFSTRING:
+		default: {
+printf ("Unhandled PST, %s: value %s, ptr %d nst %d offset %d numelements %d\n",
+	FIELD_TYPE_STRING(ctype),value,ptr,nst,coffset,commaCount+1);
+			};
+	}
+}
+
+
+
 
 void setMenuButton_collision (int val) {}
 void setMenuButton_headlight (int val) {}

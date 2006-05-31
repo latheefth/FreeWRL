@@ -344,7 +344,7 @@ sub createVrmlFromURL {
 sub EAI_Command {
 	my ($dir, $str) = @_;
 	my $rv;
-	# print "EAI_Command in Browser,pm, dir $dir, str $str\n";
+	#print "EAI_Command in Browser,pm, dir $dir, str $str\n";
 
 	# strip whitespace off around $str
         $str =~ s/^\s*//;
@@ -405,7 +405,8 @@ sub EAI_Command {
 		}
 
 	# 101 (ascii 'e') - getProtoDeclaration, 102 (ascii 'f') updateProtoDeclaration
-	} elsif (($dir == 101) || ($dir == 102)) {
+	# 103 (ascii 'g') - removeProtoDeclaration
+	} elsif (($dir == 101) || ($dir == 102) || ($dir == 103)) {
 		my ($newname, $nodename) = split (" ",$str);
 		my $nn = VRML::Handles::return_EAI_name($newname);
 		if (ref $nn eq "VRML::Scene") {
@@ -434,13 +435,19 @@ sub EAI_Command {
 				}
 				#print "returnstring $retstr\n";
 				return $retstr;
-			} else {
+
+			# updateProtoDeclaration
+			} elsif ($dir == 102) {
 				my $prstr = substr ($str, length($newname)+1);
 				
 				my $npd = VRML::Parser::parse_interfacedecl ($nn,1,1,"[".$prstr."]");
 				$nn->{Pars} = $npd;
 				#print "new proto declaration for $newname, is $npd\n";
+			#removeProtoDeclaration
+			} else {
+				VRML::Handles::delete_EAI_name($newname);
 			}
+				
 			
 		} else {
 			print "getProtoDeclaration, $newname is not a proto\n";
@@ -998,6 +1005,12 @@ sub deleteAllHandles {
 # us to be able to get to Nodes in one scene from another.
 
 ## specifics for EAI. We care about node pointers outside of scene methods.
+
+sub delete_EAI_name {
+	my ($name) = @_;
+	delete $EAINAMES{$name};
+}
+
 sub EAI_reserve {
 	my ($name, $realnode) = @_;
 	$EAINAMES{$name} = $realnode;
