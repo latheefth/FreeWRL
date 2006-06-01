@@ -361,7 +361,7 @@ there should be an entry for FreeWRL with Mime Type x-world/x-vrml.
 Project Managed by John Stewart and others.
 
 
-Please send bug reports to C<freewrl-04 --at--  rogers.com>
+Please send bug reports to C<freewrl-06 --at--  rogers.com>
 including the word "freewrl"
 on the subject line will make sure that I'll notice it. Also,
 see the FreeWRL home page at C<http://www.crc.ca/FreeWRL>.
