@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.219  2006/06/01 19:38:00  crc_canada
+# More C parsing work.
+#
 # Revision 1.218  2006/05/31 14:52:28  crc_canada
 # more changes to code for SAI.
 #
@@ -544,11 +547,11 @@ sub gen {
 
 	foreach (keys %allFields) { 
 		#print "allFields $_\n";
-		if (index($_,"_") !=0) {
+		#if (index($_,"_") !=0) {
 			push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
 			$fieldNameCount ++;
 			push @genFuncs1, "	\"$_\",\n";
-		}
+		#}
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst indexT FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);\n\n";
@@ -724,7 +727,7 @@ sub gen {
 			#print "		fieldDefaults ". $VRML::Nodes{$node}{Defaults}{$field}."\n";
 			#print "		fieldKinds ". $VRML::Nodes{$node}{FieldKinds}{$field}."\n";
 			#print "		fieldTypes ". $VRML::Nodes{$node}{FieldTypes}{$field}."\n";
-			if ($fk ne "eventIn") {
+			if (($fk ne "eventIn") && ($field ne "__parenturl")) {
 				#print "		do thisfield\n";
 				my $cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
 				push @genFuncs2, "\t\t\t$cf;\n";
@@ -754,13 +757,13 @@ sub gen {
 		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
 
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
-			if (index($field,"_") !=0) {
+			#if (index($field,"_") !=0) {
 				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
 				$ft =~ tr/a-z/A-Z/; # convert to uppercase
 				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
 				push @genFuncs1, "	FIELDNAMES_$field, offsetof (struct X3D_$node, $field), ".
 					" $ft, KW_$fk,\n";
-			}
+			#}
 		};
 		push @genFuncs1, "	-1, -1, -1, -1};\n";
 	}
@@ -926,6 +929,41 @@ CODE:
 OUTPUT:
 	RETVAL
 
+# return an offset, or -1 if field not found
+int
+get_field_offset (node, field)
+	char *node
+	char *field
+CODE:
+	int rv;
+	int myNode;
+	int myField;
+	int coffset;
+	int ctype;
+	int ctmp;
+
+	rv = -1;
+	
+	/* does node exist? */
+	myNode = findNodeInNODES(node);	
+	myField = findFieldInALLFIELDNAMES(field);
+	
+	/* ok so far... */
+	if ((myNode>=0) && (myField >=0)) {
+		/* printf ("finding %s in %s, field % %d\n",field, node, myField); */
+		findFieldInOFFSETS(NODE_OFFSETS[myNode], myField, &coffset, &ctype, &ctmp);
+
+		/* did we find this field in this node? */
+		if (coffset >=0) rv = coffset;
+	}
+
+
+	RETVAL = rv;
+OUTPUT:
+	RETVAL
+
+
+
 void
 set_field_be (ptr, field, value)
 	void *ptr
@@ -936,35 +974,24 @@ CODE:
 	int coffset;
 	int ctype;
 	int ctmp;
-	int isChildren;
 
 	struct X3D_Box *node;
 	node = (struct X3D_Box *)ptr;
 
-	/* printf ("\nset_field_be, node %d field %s value %s\n", node, field, value);  */
+	/* printf ("\nset_field_be, node %d field %s value %s\n", node, field, value); */
 	
-	/* is this a child field? */
-	if (strncmp("children",field,strlen("children")) == 0) {
-		isChildren = TRUE;
-	} else {
-		isChildren = FALSE;
-	}
-
-	
-
 	/* is this a valid field? */
-	foffset = findFieldInFIELDNAMES(field);	
-	/* printf ("field offset is %d\n",foffset); */
+	foffset = findFieldInALLFIELDNAMES(field);	
 	if (foffset < 0) return;
 
 	/* get offsets for this field in this nodeType */
-	/* printf ("getting nodeOffsets for type %d\n",node->_nodeType); */
+	/* printf ("getting nodeOffsets for type %d field %s value %s\n",node->_nodeType,field,value);  */
 	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
 
 	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
 
 	if (strlen(value)>0) 
-		Perl_scanStringValueToMem(ptr, coffset, ctype, value,isChildren);
+		Perl_scanStringValueToMem(ptr, coffset, ctype, value);
  
 void
 release_struct(ptr)

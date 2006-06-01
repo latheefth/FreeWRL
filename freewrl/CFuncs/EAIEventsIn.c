@@ -1114,9 +1114,7 @@ void EAI_RW(char *str) {
 	/* clean the slate! keep EAI running, though */
 	kill_oldWorld(FALSE,TRUE,TRUE);
 
-
 	tmp = (char *) rootNode;
-	tmp += offsetof (struct X3D_Group, children);
 
 	/* go through the string, and send the nodes into the rootnode */
 	/* first, remove the command, and get to the beginning of node */
@@ -1124,7 +1122,7 @@ void EAI_RW(char *str) {
 	while (isspace(*str)) str++;
 	while (strlen(str) > 0) {
 		i = sscanf (str, "%u",&newNode);
-		if (i>0) addToNode (tmp,newNode);
+		if (i>0) addToNode (tmp,offsetof (struct X3D_Group, children),newNode);
 
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;

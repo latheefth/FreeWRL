@@ -455,6 +455,7 @@ SV *EAI_newSVpv(char *str);
 #define SFCOLORRGBA 22
 #define MFBOOL	    23
 
+#define FREEWRLPTR	30 /* a pointer to a memory location */
 #define FIELD_TYPE_STRING(f) ( \
 	f == SFBOOL ? "SFBool" : ( \
 	f == SFCOLOR ? "SFColor" : ( \
@@ -480,7 +481,8 @@ SV *EAI_newSVpv(char *str);
 	f == MFVEC2F ? "MFVec2f" : ( \
 	f == MFVEC3F ? "MFVec3f" : ( \
 	f == MFROTATION ? "MFRotation" : ( \
-	f == SFVEC2F ? "SFVec2f" : "unknown field type")))))))))))))))))))))))))
+	f == FREEWRLPTR ? "FREEWRLPTR" : ( \
+	f == SFVEC2F ? "SFVec2f" : "unknown field type"))))))))))))))))))))))))))
 
 
 void CRoutes_js_new (uintptr_t num,int scriptType);
@@ -789,7 +791,7 @@ void doBrowserAction (void);
 void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
-void addToNode (void *rc,  void *newNode);
+void addToNode (void *rc,  int offs, void *newNode);
 void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
 
 void render_LoadSensor(struct X3D_LoadSensor *this);
@@ -1038,7 +1040,9 @@ void kill_oldWorld(int a, int b, int c);
 extern int currentFileVersion;
 
 int findFieldInFIELDNAMES(char *field);
+int findNodeInNODES(char *node);
+int findFieldInALLFIELDNAMES(char *field);
 void findFieldInOFFSETS(int *nodeOffsetPtr, int field, int *coffset, int *ctype, int *ckind);
-void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, int isChildren);
+void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 
 #endif /* __HEADERS_H__ */

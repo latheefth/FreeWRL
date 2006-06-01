@@ -489,6 +489,8 @@ return;
 void add_parent(void *node_, void *parent_) {
 	struct X3D_Box *node;
 	struct X3D_Box *parent;
+	int oldparcount;
+
 	if(!node_) return;
 
 	node = (struct X3D_Box *)node_;
@@ -501,8 +503,9 @@ void add_parent(void *node_, void *parent_) {
  
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
-	node->_nparents ++;
-	if(node->_nparents > node->_nparalloc) {
+	oldparcount = node->_nparents;
+	if((oldparcount+1) > node->_nparalloc) {
+		node->_nparents = 0; /* for possible threading issues */
 		node->_nparalloc += 10;
 		if (node->_parents == NULL)  {
 			node->_parents = (void **)malloc(sizeof(node->_parents[0])* node->_nparalloc) ;
@@ -512,7 +515,8 @@ void add_parent(void *node_, void *parent_) {
 							node->_nparalloc) ;
 		}
 	}
-	node->_parents[node->_nparents-1] = parent_;
+	node->_parents[oldparcount] = parent_;
+	node->_nparents = oldparcount+1;
 }
 
 
@@ -743,8 +747,42 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	#endif
 }
 
-/* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error */
+/* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error 
+	or if it is an "internal" field */
 int findFieldInFIELDNAMES(char *field) {
+	int x;
+	int mystrlen;
+	
+	if (field[0] == '_') {
+		printf ("findFieldInFIELDNAMES - internal field %s\n",field);
+	}
+
+	mystrlen = strlen(field);
+	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen); */
+	for (x=0; x<FIELDNAMES_COUNT; x++) {
+		if (strlen(FIELDNAMES[x]) == mystrlen) {
+			if (strcmp(field,FIELDNAMES[x])==0) return x;
+		} 
+	}
+	return -1;
+}
+
+/* go through the generated table NODENAMES, and find the int of this string, returning it, or -1 on error */
+int findNodeInNODES(char *node) {
+	int x;
+	int mystrlen;
+	
+	mystrlen = strlen(node);
+	/* printf ("findNodeInNODENAMES, string :%s: is %d long\n",node,mystrlen); */
+	for (x=0; x<NODES_COUNT; x++) {
+		if (strlen(NODES[x]) == mystrlen) {
+			if (strcmp(node,NODES[x])==0) return x;
+		} 
+	}
+	return -1;
+}
+/* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error */
+int findFieldInALLFIELDNAMES(char *field) {
 	int x;
 	int mystrlen;
 	
@@ -789,7 +827,7 @@ int countCommas (char *instr) {
 }
 
 /* called effectively by VRMLCU.pm */
-void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, int isChildren) {
+void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 	int datasize;
 	int commaCount;
 
@@ -797,13 +835,17 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, i
 	void *mdata;
 	int *iptr;
 	float *fptr;
+	SV **svptr;
+	SV *mysv;
 	int tmp;
+	int myStrLen;
 	
 
 	/* temporary for sscanfing */
 	float fl[4];
 	int in[4];
 	double dv;
+	char mytmpstr[20000];
 
 	/* printf ("PST, for %s we have %s strlen %d\n",FIELD_TYPE_STRING(ctype), value, strlen(value)); */
 	nst = (char *) ptr; /* should be 64 bit compatible */
@@ -817,8 +859,16 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, i
 
 		case SFBOOL:
 		case SFINT32:
+		case FREEWRLPTR:
 		case SFNODE:
-			{ sscanf (value,"%d",in); memcpy(nst,in,datasize); break;}
+			{ sscanf (value,"%d",in); 
+				memcpy(nst,in,datasize); 
+				/* SFNODES need to have the parent field linked in */
+				if (ctype == SFNODE) {
+					add_parent(in[0], ptr); 
+				}
+				
+			break;}
 		case SFVEC2F:
 			{sscanf (value,"%f,%f",&fl[0],&fl[1]); memcpy (nst,fl,datasize*2); break;}
 		case SFROTATION:
@@ -828,16 +878,11 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, i
 		case SFCOLOR:
 			{ sscanf (value,"%f,%f,%f",&fl[0],&fl[1],&fl[2]); memcpy (nst,fl,datasize*3); break;}
 		case MFBOOL:
-		case MFINT32:
-		case MFNODE: {
+		case MFINT32: {
 			mdata = malloc ((commaCount+1) * datasize);
 			iptr = (int *)mdata;
 			for (tmp = 0; tmp < (commaCount+1); tmp++) {
 				sscanf(value, "%d",iptr);
-				if (isChildren) {
-					/* printf ("MFNODE, have to add child %d to parent %d\n",*iptr,ptr); */
-					add_parent(*iptr, ptr);
-				}
 				iptr ++;
 				/* skip past the number and trailing comma, if there is one */
 				if (*value == '-') value++;
@@ -848,12 +893,24 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, i
 			((struct Multi_Node *)nst)->n = commaCount+1;
 			break;
 			}
+
+		case MFNODE: {
+			for (tmp = 0; tmp < (commaCount+1); tmp++) {
+				sscanf(value, "%d",in);
+				addToNode(ptr,coffset,in[0]); 
+				/* printf ("MFNODE, have to add child %d to parent %d\n",*iptr,ptr); */
+				add_parent(in[0], ptr); 
+				/* skip past the number and trailing comma, if there is one */
+				if (*value == '-') value++;
+				while (*value>='0') value++;
+				if ((*value == ' ') || (*value == ',')) value++;
+			}
+			break;
+			}
 		case SFTIME: { sscanf (value, "%lf", &dv); 
 				/* printf ("SFtime, for value %s has %lf datasize %d\n",value,dv,datasize); */
 				memcpy (nst,&dv,datasize);
 			break; }
-		case SFSTRING: 
-		case SFIMAGE: {(struct SV*)nst = EAI_newSVpv(value); break; }
 
 		case MFROTATION:
 		case MFCOLOR:
@@ -880,22 +937,52 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value, i
 			break;
 			}
 
+		case SFSTRING: 
+		case SFIMAGE: {
+			mysv  = EAI_newSVpv(value); 
+			memcpy (nst,&mysv,sizeof(SV *));
+			break; }
 			
-		case MFSTRING:
+		case MFSTRING: {
+			/* string comes in from VRMLCU.pm as:
+				1:8:MODULATE,3:ADD 
+			   where 1: is the last element (ie, 2 elements)
+				 8: is the length of the first string,
+				 3: is the length of the next string */
+
+			/* get a new count of elements */
+			sscanf (value,"%d",&commaCount);
+			while ((*value >=0) && (*value<='9')) value++;
+			if (*value == ':') value++;
+		
+			mdata = malloc ((commaCount+1) * datasize);
+			svptr = (SV **)mdata;
+
+			for (tmp = 0; tmp < (commaCount+1); tmp++) {
+				sscanf(value, "%d",&myStrLen);
+
+				if (myStrLen>20000) myStrLen = 19000;
+
+				while (*value<='9') value++;
+				if (*value == ':') value++;
+
+				strncpy (mytmpstr,value,myStrLen);
+				mytmpstr[myStrLen] = '\0';
+				value += myStrLen;
+				*svptr = EAI_newSVpv(mytmpstr);
+
+				svptr ++;
+				if (*value == ',') value++;
+			}
+			((struct Multi_Node *)nst)->p=mdata;
+			((struct Multi_Node *)nst)->n = commaCount+1;
+			break;
+			}
+
 		default: {
 printf ("Unhandled PST, %s: value %s, ptr %d nst %d offset %d numelements %d\n",
 	FIELD_TYPE_STRING(ctype),value,ptr,nst,coffset,commaCount+1);
+			break;
 			};
 	}
 }
-
-
-
-
-#ifndef AQUA
-void setMenuButton_collision (int val) {}
-void setMenuButton_headlight (int val) {}
-void setMenuButton_navModes (int type) {}
-void setMenuStatus(char *stat) {}
-void setMenuFps (float fps) {}
-#endif

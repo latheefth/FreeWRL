@@ -1694,6 +1694,7 @@ my $protono;
 						bindTime => [SFTime, -1, eventOut],
 						isBound => [SFBool, 0, eventOut],
 						centerOfRotation =>[SFVec3f, [0,0,0], exposedField],
+						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
 					   }),
 
 	NavigationInfo => new VRML::NodeType("NavigationInfo", {
@@ -1719,7 +1720,8 @@ my $protono;
 						color => [SFColor, [1, 1, 1], exposedField],
 						fogType => [SFString, "LINEAR", exposedField],
 						visibilityRange => [SFFloat, 0, exposedField],
-						isBound => [SFBool, 0, eventOut]
+						isBound => [SFBool, 0, eventOut],
+						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
 					   }),
 
 	TextureBackground => new VRML::NodeType("TextureBackground", {
@@ -1863,6 +1865,7 @@ my $protono;
 						speedFactor => [SFFloat,1.0,field],
 						bindTime => [SFTime, -1, eventOut],
 						isBound => [SFBool, 0, eventOut],
+						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
 
 						# "compiled" versions of strings above
 						__position => [SFVec3f,[0, 0, 100000], field],

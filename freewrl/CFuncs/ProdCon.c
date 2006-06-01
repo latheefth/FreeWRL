@@ -959,7 +959,7 @@ void _perlThread(void *perlpath) {
 /*  add a node to the root group. ASSUMES ROOT IS A GROUP NODE! (it should be)*/
 /*  this code is very similar to getMFNode in CFuncs/CRoutes.c, except that*/
 /*  we do not pass in a string of nodes to assign. (and, do not remove, etc)*/
-void addToNode (void *rc, void *newNode) {
+void addToNode (void *rc, int offs, void *newNode) {
 
 	int oldlen, newlen;
 	void **newmal;
@@ -967,11 +967,17 @@ void addToNode (void *rc, void *newNode) {
 	struct Multi_Node *par;
 	void **tmp;
 
-	par = (struct Multi_Node *) rc;
-	/* printf ("addToNode, adding %d to %d\n",newNode,rc); */
+	char *tmpptr;
+
+	tmpptr = (char *)rc;
+	tmpptr = tmpptr + offs;
+
+	par = (struct Multi_Node *) tmpptr;
+	/* printf ("addToNode, adding %d to %d offset %d\n",newNode,rc,offs);  */
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
+	/* printf ("addToNode, ptr %d offs %d type %s, oldlen %d\n",rc, offs, stringNodeType(((struct X3D_Box*)rc)->_nodeType),oldlen); */
 	par->n = 0; /* temporary, in case render thread goes here */
 
 	newlen=1;
@@ -994,9 +1000,20 @@ void addToNode (void *rc, void *newNode) {
 	tmp = par->p;
 	par->p = newmal;
 	par->n = oldlen+newlen;
-	free (tmp);
 
-	/*
+	/* XXXX MEMORY LEAK XXXX */
+	/* if tmp is freed, and if the caller to this is not the rendering thread,
+	   and the freed memory is used somewhere else, it is possible to have the 
+	   rendering thread use the values that the memory block is assigned - so
+	   for now, don't free it. We could keep a list for later garbage collection,
+	   but, generally, it is not too many bytes lost if we ignore it. 
+
+	   oh, and, if you don't believe the above comment; run tests/33.wrl with
+	   bounds checking, and see what happens with the free uncommented. */
+
+	/* FREE_IF_NZ(tmp); */
+
+	/*	
 	{ int i;
 		for (i=0; i<par->n; i++) {
 		printf ("addToNode, child %d is %d\n",i,par->p[i]);
@@ -1319,7 +1336,7 @@ void __pt_doStringUrl () {
 	       	for (count =1; count < retval; count+=2) {
 			/* printf ("__pt_doStringUrl, adding count %d %d\n", count,myretarr[count]); */
 			/* add this child to the node */
-       			addToNode(psp.ptr+psp.ofs, (void *)(myretarr[count]));
+       			addToNode(psp.ptr, psp.ofs, (void *)(myretarr[count]));
 
 			/* tell the child that it has a new parent! */
 			add_parent((void *)myretarr[count],psp.ptr);
@@ -1328,6 +1345,7 @@ void __pt_doStringUrl () {
 		/* tell the node that we have changed */
 		update_node(psp.ptr);
 	}
+	/* printf ("finished pt_do string url\n"); */
 }
 
 

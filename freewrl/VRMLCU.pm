@@ -93,16 +93,28 @@ sub set_field_be {
 
 		#print "we have an array here, go through each element\n";
 		my $elcount = $#$value;
+
+		# for MFStrings, prepend a total element count on front 
+		if ($ft eq "MFString") {
+			if ($elcount >= 0) {
+				$nv="$elcount:";
+			}
+		}
+
 		#print "element count $elcount\n";
 		my $ec = 0;
 		while  ($ec <= $elcount) {
 			my $thisVal = @{$value}[$ec];
-			# print "thisval $thisVal\n";
+
+			# if it is a string, put the string length on the front.
+			if ($ft eq "MFString") {
+				$thisVal = length($thisVal).":".$thisVal;
+			}
+
 			if ("ARRAY" ne ref $thisVal) {
-				$nv = $nv.@{$value}[$ec].",";
+				$nv = $nv."$thisVal,";
 			} else {
 				#print "$thisVal is an array\n";
-#########
 				my $subelecount = $#$thisVal;
 				my $sec = 0;
 				while ($sec <= $subelecount) {
@@ -110,8 +122,6 @@ sub set_field_be {
 					$nv = $nv.$subval.",";
 					$sec++;
 				}
-
-#########
 			}
 			$ec ++;
 		}
@@ -124,11 +134,6 @@ sub set_field_be {
 	#print "VRMLCU, ft $ft, node $node, o $o, nv $nv\n";
 
 	VRML::VRMLFunc::set_field_be($node,$field,$nv);
-
-#	&{"VRML::VRMLFunc::set_offs_$ft"}(
-#		$node, $o,
-#		$value
-#	);
 }
 
 1;
