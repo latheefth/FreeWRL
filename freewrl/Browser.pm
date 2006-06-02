@@ -673,6 +673,10 @@ sub EAI_LocateNode {
 
 	#print "BROWSER:EAI_LocateNode, now $realele\n";
 
+	#print "EAI_LocateNode fields of ".$realele->{TypeName}."are:\n";
+	#foreach (keys %{$realele->{Fields}}) { print "     fields $_\n"; }
+
+
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
 
@@ -696,15 +700,17 @@ sub EAI_LocateNode {
 	#print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
 
 	# try and see if this is a PROTO expansion.
-	my $testnode = $realele->{Fields}{children}[0];
-	if (ref $testnode eq "VRML::DEF") {$testnode = $testnode->node();}
+	if (exists $realele->{Fields}{children}) {
+		my $testnode = $realele->{Fields}{children}[0];
+		if (ref $testnode eq "VRML::DEF") {$testnode = $testnode->node();}
 
-	#print "my testnode is ",
-	#VRML::NodeIntern::dump_name($testnode),"\n";
+		#print "my testnode is ",
+		#VRML::NodeIntern::dump_name($testnode),"\n";
 
-	if (exists $testnode->{Fields}{$fieldname}) {
-		#print "field exists! making testnode realnode\n";
-		$realele = $testnode;
+		if (exists $testnode->{Fields}{$fieldname}) {
+			#print "field exists! making testnode realnode\n";
+			$realele = $testnode;
+		}
 	}
 
 	my $ms = $realele->{Scene};

@@ -138,7 +138,7 @@ sub resolve_node_cnode {
 
 	#print "\nVRML::EventMachine::resolve_node_cnode: ",
 	#	VRML::Debug::toString(\@_), "\n" ;
-
+ 
 	$tmp = VRML::Handles::get($node);
 	if (ref $tmp eq "VRML::NodeIntern") {
 		$node = $tmp;
@@ -178,8 +178,11 @@ sub resolve_node_cnode {
 					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
 						$proto_field = $1;
 					}
-					if (!defined ($outoffset =
-								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+
+					$outoffset = VRML::VRMLFunc::get_field_offset($proto_node->{TypeName},$proto_field);
+					#if (!defined ($outoffset =
+					#			  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+					if ($outoffset <= -1) {
 						print "No offset for $proto_field.\n";
 						$outptr = undef;
 					} else {
@@ -211,8 +214,12 @@ sub resolve_node_cnode {
 					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
 						$proto_field = $1;
 					}
-					if (!defined ($outoffset =
-								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+					$outoffset = VRML::VRMLFunc::get_field_offset($proto_node->{TypeName},$proto_field);
+					#if (!defined ($outoffset =
+					#			  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+					if ($outoffset <= -1) {
+					#if (!defined ($outoffset =
+					#			  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
 						print "No offset for $proto_field.\n";
 						$outptr = undef;
 					} else {
@@ -243,7 +250,7 @@ sub resolve_node_cnode {
 	if (($field eq "addChildren") || ($field eq "removeChildren")) {
 		$field = "children";
 	}
-
+ 
 	# ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
 	# eventIns (see VRML97 node reference)
 	# these things have set_xxx and xxx... if we have one of these...
@@ -330,7 +337,10 @@ sub resolve_node_cnode {
 		}
 
 		# are there offsets for these eventins and eventouts?
-		if (!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
+
+		#if (!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
+		$outoffset = VRML::VRMLFunc::get_field_offset($node->{TypeName},$field);
+		if ($outoffset <= 0) {
 
 			# this node is a proto interface node, but is not IS'd anywhere. Lets
 			# get the browser to give us some memory for it.
@@ -477,8 +487,11 @@ sub add_route {
 	# Use the Browser::EAI_LocateNode to get the "real", unPROTO'd
 	# nodes.
 
+
+
 	# get the FROM node/field
 	my $node;
+
 	$node = getSceneNode($scene,$fromNode);
 	($fromNode, $eventOut, $direction) =
 		VRML::Browser::EAI_LocateNode($node, $eventOut, "eventOut");

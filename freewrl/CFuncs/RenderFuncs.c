@@ -980,8 +980,8 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 			}
 
 		default: {
-printf ("Unhandled PST, %s: value %s, ptr %d nst %d offset %d numelements %d\n",
-	FIELD_TYPE_STRING(ctype),value,ptr,nst,coffset,commaCount+1);
+printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
+	FIELD_TYPE_STRING(ctype),value,stringNodeType(ptr),nst,coffset,commaCount+1);
 			break;
 			};
 	}

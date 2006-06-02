@@ -344,7 +344,7 @@ sub do_defaults {
 			if (!defined $this->{Type}{Defaults}{$_} and
 					 $this->{Type}{FieldKinds}{$_} =~ /out/i) {
 				$ftype = "VRML::Field::".$this->{Type}{FieldTypes}{$_};
-				$init = $ftype->init();
+				$init = $ftype->VRMLFieldInit();
 				if (ref $init eq "ARRAY") {
 					push @{$this->{Fields}{$_}}, @{$init};
 				} else {

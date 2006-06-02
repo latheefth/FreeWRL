@@ -8,8 +8,8 @@
 
 #
 # $Log$
-# Revision 1.219  2006/06/01 19:38:00  crc_canada
-# More C parsing work.
+# Revision 1.220  2006/06/02 17:19:14  crc_canada
+# more C code changes, reduces the amount of perl interface calls dramatically.
 #
 # Revision 1.218  2006/05/31 14:52:28  crc_canada
 # more changes to code for SAI.
@@ -313,99 +313,16 @@ sub gen_struct {
 	# /* Store actual point etc. later */
        my $s = "/***********************/\nstruct X3D_$name {\n" . $interalNodeCommonFields;
 
-	my $o = "
-void *
-get_${name}_offsets(p)
-	SV *p;
-CODE:
-	int *ptr_;
-	STRLEN xx;
-	SvGROW(p,($nf+1)*sizeof(int));
-	SvCUR_set(p,($nf+1)*sizeof(int));
-	ptr_ = (int *)SvPV(p,xx);
-";
-	my $p = " {
-		my \$s = '';
-		my \$v = get_${name}_offsets(\$s);
-		\@{\$n->{$name}{Offs}}{".(join ',',map {"\"$_\""} @sf,'_end_')."} =
-			unpack(\"i*\",\$s);
-		\$n->{$name}{Virt} = \$v;
- }
-	";
-
 	for(@sf) {
 		my $cty = "VRML::Field::$node->{FieldTypes}{$_}"->ctype($_);
 		$s .= "\t$cty;\n";
-		$o .= "\t*ptr_++ = offsetof(struct X3D_$name, $_);\n";
 	}
 
-
-
-	$o .= "\t*ptr_++ = sizeof(struct X3D_$name);\n";
-	$o .= "\tRETVAL=&(virt_${name});\n";
-	$o .= "\t /*printf(\"$name virtual: %d \\n \", RETVAL);  */
-OUTPUT:
-	RETVAL
-";
 	$s .= $ExtraMem{$name};
 	$s .= "};\n";
-	return ($s,$o,$p);
+	return ($s);
 }
 
-#########################################################
-sub get_offsf {
-	my($f) = @_;
-	my ($ctp) = ("VRML::Field::$_")->ctype("*");
-	my ($ct) = ("VRML::Field::$_")->ctype("*ptr_");
-	my ($c) = ("VRML::Field::$_")->cfunc("(*ptr_)", "sv_");
-	my ($ca) = ("VRML::Field::$_")->calloc("(*ptr_)");
-	my ($cf) = ("VRML::Field::$_")->cfree("(*ptr_)");
-
-
-	#print "get_offsf; for $f, have ca $ca and cf $cf\n";
-	#print "and ctp $ctp\n";
-	#print "and ct $ct\n";
-	#print "c $c\n\n";
-
-	# ifwe dont have to do anything, then we dont bother with the ctype field.
-	# this gets rid of some compiler warnings.
-
-	if ($ca) { #print "ca is something\n";
-	} else { $ca = "UNUSED(ptr_);"; }
-	if ($cf) { #print "cf is something\n";
-	} else { $cf = "UNUSED(ptr_);"; }
-
-	return "
-
-void
-set_offs_$f(ptr,offs,sv_)
-	void *ptr
-	int offs
-	SV *sv_
-CODE:
-	$ct = ($ctp)(((char *)ptr)+offs);
-	update_node(ptr);
-	$c
-
-
-void
-alloc_offs_$f(ptr,offs)
-	void *ptr
-	int offs
-CODE:
-	$ct = ($ctp)(((char *)ptr)+offs);
-	$ca
-
-void
-free_offs_$f(ptr,offs)
-	void *ptr
-	int offs
-CODE:
-	$ct = ($ctp)(((char *)ptr)+offs);
-	$cf
-
-"
-}
 #######################################################
 
 sub get_rendfunc {
@@ -612,7 +529,6 @@ sub gen {
 
 	for(@VRML::Fields) {
 		push @str, ("VRML::Field::$_")->cstruct . "\n";
-		push @xsfn, get_offsf($_);
 	}
 	# make a function to print fieldtype name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the fieldtype type */\n". 
@@ -657,10 +573,8 @@ sub gen {
 	for(@sortedNodeList) {
 		# print "working on node $_\n";
 		my $no = $VRML::Nodes{$_};
-		my($strret, $offs, $perl) = gen_struct($_, $no);
+		my($strret) = gen_struct($_, $no);
 		push @str, $strret;
-		push @xsfn, $offs;
-		push @poffsfn, $perl;
 		my($externdeclare, $vstru) = get_rendfunc($_);
 		push @str, $externdeclare;
 		push @genFuncs1, $vstru;
@@ -985,10 +899,14 @@ CODE:
 	if (foffset < 0) return;
 
 	/* get offsets for this field in this nodeType */
-	/* printf ("getting nodeOffsets for type %d field %s value %s\n",node->_nodeType,field,value);  */
+	/* printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value);  */
 	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
 
 	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
+
+	if (coffset <= 0) {
+		printf ("set_field_be, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
+	}
 
 	if (strlen(value)>0) 
 		Perl_scanStringValueToMem(ptr, coffset, ctype, value);
@@ -1407,15 +1325,7 @@ package VRML::VRMLFunc;
 require DynaLoader;
 require Exporter;
 \@ISA=qw(Exporter DynaLoader);
-";
-	print PM "
 bootstrap VRML::VRMLFunc;
-sub load_data {
-	my \$n = \\\%VRML::CNodes;
-";
-	print PM join '',@poffsfn;
-	print PM "
-}
 ";
 
 }

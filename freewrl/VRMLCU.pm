@@ -11,9 +11,7 @@ no strict "refs";
 
 package VRML::CU;
 
-use VRML::VRMLFunc;
-
-VRML::VRMLFunc::load_data(); # Fill hashes
+#JAS use VRML::VRMLFunc;
 
 my $nodeMappingInitialized = 0;
 my %NODEINTEGERMAPPING = ();
@@ -37,9 +35,6 @@ sub initNodeMapping {
 
 sub alloc_struct_be {
 	my($type) = @_;
-	if(!defined $VRML::CNodes{$type}) {
-		die("No CNode for $type in alloc_struct_be\n");
-	}
 
 	if ($nodeMappingInitialized == 0) {initNodeMapping();}
 
@@ -61,10 +56,10 @@ sub set_field_be {
 	#	print "VRMLCU.pm:set_field_be, value of array is @{$value}\n";
 	#}
 
-	if(!defined ($o=$VRML::CNodes{$type}{Offs}{$field})) {
-		print "Field $field undefined for $type in C\n" if $VRML::verbose::warn;
-		return;
-	}
+	#if(!defined ($o=$VRML::CNodes{$type}{Offs}{$field})) {
+	#	print "Field $field undefined for $type in C\n" if $VRML::verbose::warn;
+	#	return;
+	#}
 
 	if((ref $value) eq "HASH") {
 		if(!defined $value->{CNode}) {

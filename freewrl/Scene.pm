@@ -802,27 +802,14 @@ sub make_is {
 
 	my $ftype = "VRML::Field::"."$node->{Type}{FieldTypes}{$field}";
 
-################################################
-# original code - Jens Rieks submitted a modified version, but it fails on PROTOS (eg, tests/5.wrl)
         if ($node_ft =~ /[fF]ield$/ and $proto_ft =~ /[fF]ield$/) {
                 print "VRML::Scene::make_is: returning $this->{NodeParent}{Fields}{$is}\n"
                         if $VRML::verbose::scene;
-                $retval= $ftype->copy($this->{NodeParent}{Fields}{$is});
+                $retval= $ftype->VRMLFieldcopy($this->{NodeParent}{Fields}{$is});
         } else {
                 $retval = $node->{Type}{Defaults}{$is};
         }
 
-# Jens code.
-#        if ($node_ft =~ /field$/ and $proto_ft =~ /[fF]ield$/) {
-#                print "VRML::Scene::make_is: returning (raw) $this->{NodeParent}{Fields}{$is}\n"
-#;#JAS			if $VRML::verbose::scene;
-#		$retval= $ftype->copy($this->{NodeParent}{Fields}{$is});
-#	} else {
-#		print "VRML::Scene::make_is: returning (IS) $is ($node->{Type}{Defaults}{$is})\n"
-#;#JAS			if $VRML::verbose::scene;
-#		$retval = $node->{Type}{Defaults}{$is};
-#	}
-################################################
 	## add to event model
 	$this->{EventModel}->add_is($this->{NodeParent}, $is, $node, $field);
 

@@ -1707,6 +1707,7 @@ my $protono;
 						isBound => [SFBool, 0, eventOut],
 						transitionType => [MFString, [],exposedField],
 						bindTime => [SFTime, -1, eventOut],
+						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
 					   }),
 
 	###################################################################################
