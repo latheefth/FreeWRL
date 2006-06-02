@@ -9,6 +9,9 @@ For 1.17:
 
 	- added EAI/SAI *ColorRGBA types
 
+	- much work in making the Perl parser output use the SAI/EAI creation code;
+	  this allows for code reduction, and for verification of EAI/SAI process.
+
 For 1.16:
 	- VisibilitySensor
 
