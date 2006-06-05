@@ -1,3 +1,6 @@
+For 1.17.6;
+	- now scans scientific notation floats correctly.
+
 For 1.17:
 	- new menubar operation, can be compiled without it. 
 
