@@ -25,6 +25,9 @@
 /* now get all of our structures */
 #include "Structs.h"
 
+/* To allow BOOL for boolean values */
+#define BOOL	int
+
 /* initFreeWRL - some differences between the Unix and Aqua
    versions. These defines maybe can disappear? */
 #ifdef AQUA
