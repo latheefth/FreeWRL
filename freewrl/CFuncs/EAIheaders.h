@@ -45,6 +45,7 @@ void EAI_RW(char *bufptr);
 #define GETPROTODECL 	'e'
 #define UPDPROTODECL	'f'
 #define REMPROTODECL	'g'
+#define GETFIELDDEFS	'h'
 
 
 /* command string to get the rootNode - this is a special match... */
@@ -80,6 +81,38 @@ void EAI_RW(char *bufptr);
 #define EAI_MFCOLORRGBA		'v'
 #define EAI_SFCOLORRGBA		'w'
 #define EAI_MFBOOL		'x'
+#define EAI_FREEWRLPTR		'y'
+
+#define EAIFIELD_TYPE_STRING(f) ( \
+        f == SFBOOL ? EAI_SFBOOL : ( \
+        f == SFCOLOR ? EAI_SFCOLOR : ( \
+        f == SFCOLORRGBA ? EAI_SFCOLORRGBA : ( \
+        f == SFVEC3F ? EAI_SFVEC3F : ( \
+        f == SFFLOAT ? EAI_SFFLOAT : ( \
+        f == SFTIME ? EAI_SFTIME : ( \
+        f == SFINT32 ? EAI_SFINT32 : ( \
+        f == SFSTRING ? EAI_SFSTRING : ( \
+        f == SFNODE ? EAI_SFNODE : ( \
+        f == SFROTATION ? EAI_SFROTATION : ( \
+        f == SFVEC2F ? EAI_SFVEC2F : ( \
+        f == SFIMAGE ? EAI_SFIMAGE : ( \
+        f == MFCOLOR ? EAI_MFCOLOR : ( \
+        f == MFCOLORRGBA ? EAI_MFCOLORRGBA : ( \
+        f == MFVEC3F ? EAI_MFVEC3F : ( \
+        f == MFFLOAT ? EAI_MFFLOAT : ( \
+        f == MFTIME ? EAI_MFTIME : ( \
+        f == MFINT32 ? EAI_MFINT32 : ( \
+        f == MFSTRING ? EAI_MFSTRING : ( \
+        f == MFNODE ? EAI_MFNODE : ( \
+        f == MFROTATION ? EAI_MFROTATION : ( \
+        f == MFVEC2F ? EAI_MFVEC2F : ( \
+        f == MFVEC3F ? EAI_MFVEC3F : ( \
+        f == MFROTATION ? EAI_MFROTATION : ( \
+        f == FREEWRLPTR ? EAI_FREEWRLPTR : ( \
+        f == SFVEC2F ? EAI_SFVEC2F : '?'))))))))))))))))))))))))))
+
+
+
 
 
 /* Function Prototype for plugins, Java Class Invocation */

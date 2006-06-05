@@ -564,6 +564,29 @@ public class Browser implements BrowserInterface, IBrowser
 		return retval;
 	}
 
+	// for SAI coding
+	public String getNodeFieldDefs (Node myn) {
+		String retval;
+
+System.out.println ("getNodeFieldDefs, myn " + myn);
+System.out.println ("getNodeFieldDefs, NodeName " + myn.NodeName);
+System.out.println ("getNodeFieldDefs, EventType " + myn.EventType);
+System.out.println ("getNodeFieldDefs, inNode " + myn.inNode);
+System.out.println ("getNodeFieldDefs, command " + myn.command);
+System.out.println ("getNodeFieldDefs, RLreturn " + myn.RLreturn);
+System.out.println ("getNodeFieldDefs, nodeptr " + myn.nodeptr);
+System.out.println ("getNodeFieldDefs, offset " + myn.offset);
+System.out.println ("getNodeFieldDefs, datasize " + myn.datasize);
+System.out.println ("getNodeFieldDefs, datatype " + myn.datatype);
+
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "h" + myn.nodeptr + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
 
 
     // Tells the browser to load a VRML scene from the passed URL or

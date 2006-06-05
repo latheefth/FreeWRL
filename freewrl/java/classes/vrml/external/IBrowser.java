@@ -35,4 +35,5 @@ public interface IBrowser {
 	public String getProtoDeclaration (String name);
 	public String removeProtoDeclaration (String name);
 	public String updateProtoDeclaration (String name, String npdecl);
+	public String getNodeFieldDefs (Node myn);
 }

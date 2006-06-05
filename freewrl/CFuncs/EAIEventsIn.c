@@ -31,6 +31,7 @@ int waiting_for_anchor = FALSE;
 SV *sv_global_tmp;
 
 void createLoadURL(char *bufptr);
+void makeFIELDDEFret(uintptr_t,char *buf,int c);
 
 /* get how many bytes in the type */
 int returnElementLength(int type) {
@@ -449,6 +450,8 @@ void EAI_parse_commands (char *bufptr) {
 	int retint;		/* used for getting retval for sscanf */
 	int flag;
 
+
+
 	while (strlen(bufptr)> 0) {
 		#ifdef EAIVERBOSE
 		printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
@@ -854,6 +857,17 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 				}
 
+			case GETFIELDDEFS: {
+				/* get a list of fields of this node */
+				sscanf (bufptr,"%d",&ra);
+
+				makeFIELDDEFret(ra,buf,count);
+
+				
+
+				break;
+				}
+
 			default: {
 				printf ("unhandled command :%c: %d\n",command,command);
 				strcat (buf, "unknown_EAI_command");
@@ -876,6 +890,53 @@ void EAI_parse_commands (char *bufptr) {
 		/* skip any new lines that may be there */
 		while ((*bufptr == 10) || (*bufptr == 13)) bufptr++;
 	}
+}
+
+
+/* for a GetFieldTypes command for a node, we return a string giving the field types */
+
+void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
+	struct X3D_Box *boxptr;
+	int myc;
+	int a,b,c;
+	int *np;
+	char myline[200];
+
+	boxptr = (struct X3D_Box *) myptr;
+	printf ("GETFIELDDEFS, node %d\n",boxptr);
+	printf ("node type is %s\n",stringNodeType(boxptr->_nodeType));
+
+
+	/* how many fields in this node? */
+	np = NODE_OFFSETS[boxptr->_nodeType];
+	myc = 0;
+	while (*np != -1) {
+		/* is this a hidden field? */
+
+		if (strncmp (FIELDNAMES[*np],"_",1) != 0) {
+			myc ++; 
+		}
+
+		np +=4;
+
+	}
+
+	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
+
+	sprintf (myline, "%d ",myc);
+	strcat (buf, myline);
+
+	/* now go through and get the name, type, keyword */
+	np = NODE_OFFSETS[boxptr->_nodeType];
+	for (a = 0; a < myc; a++) {
+		if (strncmp (FIELDNAMES[*np],"_",1) != 0) {
+			sprintf (myline,"%s %c %s ",FIELDNAMES[np[0]], EAIFIELD_TYPE_STRING(np[2]), 
+				KEYWORDS[np[3]]);
+			strcat (buf, myline);
+		}
+		np += 4;
+	}
+	strcat (buf, myline);
 }
 
 /* an incoming EAI/CLASS event has come in, convert the ASCII characters
