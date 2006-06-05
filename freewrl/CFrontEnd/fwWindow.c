@@ -535,7 +535,10 @@ void createFilePulldown () {
 	ac = 0;
 	mask  = XmStringCreateLocalized("*.wrl");
 	XtSetArg(args[ac], XmNdirMask, mask); ac++;
-	newFileWidget = XmCreateFileSelectionDialog(menubar, "select", args, 1);        
+
+	/* newFileWidget = XmCreateFileSelectionDialog(menubar, "select", args, 1); */
+	newFileWidget = XmCreateFileSelectionDialog(mainw, "select", args, 1);        
+
 	XtAddCallback(newFileWidget, XmNokCallback, fileSelectPressed, NULL);
 	XtAddCallback(newFileWidget, XmNcancelCallback, unManageMe, NULL);
 	/* delete buttons not wanted */

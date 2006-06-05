@@ -926,10 +926,9 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 				sscanf(value, "%f",fptr);
 				fptr ++;
 				/* skip past the number; checking to see if it has a decimal point or not */
-				if (*value == '-') value++;
-				while (*value>='0') value++;
-				if (*value == '.') value++;
-				while (*value>='0') value++;
+				while ((*value != '\0') && (*value != ' ') && (*value != ',')) value++;
+
+				/* skip to the beginning of the next number */
 				if ((*value == ' ') || (*value == ',')) value++;
 			}
 			((struct Multi_Node *)nst)->p=mdata;

@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.221  2006/06/05 15:41:43  crc_canada
+# Files for 1.17.6; fix reading scientific notation floats
+#
 # Revision 1.220  2006/06/02 17:19:14  crc_canada
 # more C code changes, reduces the amount of perl interface calls dramatically.
 #
@@ -832,12 +835,7 @@ alloc_struct(itype)
 	int itype
 CODE:
 	void *ptr;
-	struct X3D_Box *node;
-
 	ptr = createNewX3DNode(itype);
-
-	node = (struct X3D_Box *) ptr;
-
 	/* printf("new Alloc: type %d -> %d\n", itype, ptr);   */
 	RETVAL=ptr;
 OUTPUT:
