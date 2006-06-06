@@ -454,6 +454,31 @@ sub EAI_Command {
 			$rv = 1;
 			return $rv;
 		}
+	} elsif ($dir == 105) {
+		# try and find a def node for this one 
+		$rv = "nodeNotFound";
+
+		#print "get defname for $str\n";
+		my $n = VRML::Handles::get ("CNODE$str");
+		#print "and n is $n  with a ref of ",ref $n,"\n";
+
+		if ("VRML::NodeIntern" ne ref $n) {
+			return $rv;
+		}
+
+		my $defname = VRML::Handles::findNodeDEFFromObject($n);
+		#print "defname is $defname\n";
+
+		if (substr($defname,0,3) ne "DEF") {
+			return $rv;
+		} 
+
+		my $nodeName = VRML::Handles::findNodeFromDEF ($defname);
+		#printf "real node name is $nodeName\n";
+		$rv = $nodeName;
+
+		
+
 	} else {
 		print "EAI_Command - invalid command $rv\n";
 		$rv = 1; 
@@ -489,15 +514,18 @@ sub EAI_GetNode {
 
 	if (!defined $node) {
 		warn("Node $nodetoget is not defined");
-		return 0;
+		return "0 0";
 	}
+	my $CNode = VRML::Handles::findCNodeFromObject($node);
+	#print "my CNode is $CNode\n";
+
 
 	my $id = VRML::Handles::reserve($node);
 
-	# print "handle is $id\n";
+	#print "handle is $id\n";
 	$id =~ s/^NODE//;
-	# print "node number is $id\n";
-	return $id;
+	#print "node number is $id\n";
+	return "$id $CNode";
 }
 
 sub EAI_GetViewpoint {
@@ -892,7 +920,7 @@ sub EAI_CreateVrmlFromString {
 
 			# reserve the CNODE as a node, because sometimes we do need to go
 			# from CNode to node.
-			VRML::Handles::CNodeLinkreserve("NODE$bn",$realele);
+			VRML::Handles::CNodeLinkreserve("CNODE$bn",$realele);
 		} else {
 			# print "warning, EAI_CreateVrmlFromString - no backnode found for $ele\n";
 		}
@@ -924,7 +952,7 @@ sub EAI_CreateVrmlFromURL {
 
 			# reserve the CNODE as a node, because sometimes we do need to go
 			# from CNode to node.
-			VRML::Handles::CNodeLinkreserve("NODE$bn",$realele);
+			VRML::Handles::CNodeLinkreserve("CNODE$bn",$realele);
 		} else {
 			# print "warning, EAI_CreateVrmlFromURL - no backnode found for $ele\n";
 		}
@@ -1017,6 +1045,18 @@ sub delete_EAI_name {
 	delete $EAINAMES{$name};
 }
 
+sub findNodeDEFFromObject {
+	my ($object) = @_;
+
+	foreach (keys %{%EAINAMES}) {
+		#print "findCNodeDEFFromObject, have ".$EAINAMES{$_}.", comparing to $object.. \n";
+		if ($EAINAMES{$_} eq $object) {
+			return $_;
+		}
+	}
+	return 0;
+}
+
 sub EAI_reserve {
 	my ($name, $realnode) = @_;
 	$EAINAMES{$name} = $realnode;
@@ -1050,6 +1090,18 @@ sub def_reserve {
 		ref ", ref $realnode,"\n"  if $handles_debug;
 
 }
+
+sub findNodeFromDEF {
+	my ($object) = @_;
+
+	foreach (keys %{%DEFNAMES}) {
+		#print "findCNodeDE have ".$EAINAMES{$_}.", comparing to $object.. \n";
+		if ($DEFNAMES{$_} eq $object) {
+			return $_;
+		}
+	}
+	return 0;
+}
 sub return_def_name {
 	my ($name) = @_;
 	if (!exists $DEFNAMES{$name}) {
@@ -1073,6 +1125,23 @@ sub def_check {
 
 ######
 
+sub findCNodeFromObject {
+	my ($object) = @_;
+	my $ci = "$object";
+
+	foreach (keys %{%S}) {
+		#print "findCNodeFromObject, have ".$S{$_}[0].", comparing to $object.. ";
+		if ($S{$_}[0] eq $ci) {
+			#print "checking... ". substr ($_,0,5)."\n";
+			if (substr($_,0,5) eq "CNODE") {
+				#print "FOUND IT! it is $_ returning ".  substr ($_,5)."\n";
+				return substr ($_,5);
+			}
+			
+		}
+	}
+	return 0;
+}
 sub CNodeLinkreserve {
 	my($str,$object) = @_;
 	print "Handle::CNodeLinkreserve, reserving $str for object $object type ", ref($object), "\n" if $handles_debug;

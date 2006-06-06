@@ -565,12 +565,12 @@ void EAI_parse_commands (char *bufptr) {
 
 				/* is this the SAI asking for the root node? */
 				if (strncmp(ctmp,SYSTEMROOTNODE,strlen(SYSTEMROOTNODE))) {
-					uretval = EAI_GetNode(ctmp);
+					sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
+						EAI_GetNode(ctmp));
 				} else {
-					uretval = rootNode;
+					sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,count,
+						rootNode);
 				}
-
-				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,uretval);
 				break;
 			}
 			case GETTYPE:  {
@@ -860,10 +860,14 @@ void EAI_parse_commands (char *bufptr) {
 			case GETFIELDDEFS: {
 				/* get a list of fields of this node */
 				sscanf (bufptr,"%d",&ra);
-
 				makeFIELDDEFret(ra,buf,count);
+				break;
+				}
 
-				
+			case GETNODEDEFNAME: {
+				/* return a def name for this node. */
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
+					SAI_StrRetCommand ((char) command,bufptr));
 
 				break;
 				}
@@ -892,7 +896,6 @@ void EAI_parse_commands (char *bufptr) {
 	}
 }
 
-
 /* for a GetFieldTypes command for a node, we return a string giving the field types */
 
 void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
@@ -903,8 +906,10 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	char myline[200];
 
 	boxptr = (struct X3D_Box *) myptr;
+	/*
 	printf ("GETFIELDDEFS, node %d\n",boxptr);
 	printf ("node type is %s\n",stringNodeType(boxptr->_nodeType));
+	*/
 
 
 	/* how many fields in this node? */

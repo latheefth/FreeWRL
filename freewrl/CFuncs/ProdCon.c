@@ -379,9 +379,10 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 }
 
 /* interface for getting a node number via the EAI */
-unsigned int EAI_GetNode(const char *nname) {
+char *EAI_GetNode(const char *nname) {
 	int complete;
-	int retval;
+	char *retval;
+	STRLEN len;
 
 	WAIT_WHILE_PERL_BUSY;
 	complete=0;
@@ -402,7 +403,9 @@ unsigned int EAI_GetNode(const char *nname) {
 	/* wait for data */
 	WAIT_WHILE_PERL_BUSY;
 	/* grab data */
-	retval = psp.jparamcount;
+	retval = psp.retstr;
+
+	/* printf ("getNode is returning %s\n",retval); */
 	UNLOCK;
 	return (retval);
 }
@@ -1394,6 +1397,9 @@ if (count > 1) {
 /* get node info, send in a character string, get a node reference number */
 void __pt_EAI_GetNode () {
 	int count;
+	SV * myret;
+	char *ctmp;
+	STRLEN len;
 
 	dSP;
 	ENTER;
@@ -1410,10 +1416,12 @@ void __pt_EAI_GetNode () {
 	if (count != 1)
 		printf ("EAI_getNode, node returns %d\n",count);
 
-	/* return value in psp.jparamcount */
-	psp.jparamcount = POPi;
+	/* return value in psp.retsv */
+	myret = POPs;
+       	ctmp = SvPV(myret,len); /*  now, we have the length*/
+       	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
+       	strcpy (psp.retstr,ctmp);
 
-	/* printf ("The node is %x\n", psp.jparamcount) ;*/
 	PUTBACK;
 	FREETMPS;
 	LEAVE;

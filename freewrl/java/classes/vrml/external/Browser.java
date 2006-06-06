@@ -567,9 +567,19 @@ public class Browser implements BrowserInterface, IBrowser
 	// for SAI coding
 	public String getNodeFieldDefs (Node myn) {
 		String retval;
-
 		synchronized (FreeWRLToken) {
 			EAIoutSender.send ("" + queryno + "h" + myn.nodeptr + "\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
+	// for SAI coding
+	public String getNodeDEFName (Node myn) {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "i" + myn.nodeptr + "\n");
 			retval = getVRMLreply(queryno);
 		}
 		return retval;
@@ -700,14 +710,22 @@ public class Browser implements BrowserInterface, IBrowser
     public Node getNode (String NodeName) throws InvalidNodeException
       {
       Node temp;
+      StringTokenizer tokens;
+      String retval;
 
       temp = new Node();
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "A " + NodeName + "\n");
-        temp.NodeName = getVRMLreply (queryno);
+          EAIoutSender.send ("" + queryno + "A " + NodeName + "\n");
+	  retval = getVRMLreply(queryno);
+	}
+
+        tokens = new StringTokenizer (retval);
+
+        temp.NodeName = tokens.nextToken();
+        temp.nodeptr = tokens.nextToken();
         queryno += 1;
-      }
+     
       if (temp.NodeName.equals("undefined"))
 	throw new InvalidNodeException(NodeName + "undefined");
 

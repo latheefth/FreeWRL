@@ -46,6 +46,7 @@ void EAI_RW(char *bufptr);
 #define UPDPROTODECL	'f'
 #define REMPROTODECL	'g'
 #define GETFIELDDEFS	'h'
+#define GETNODEDEFNAME	'i'
 
 
 /* command string to get the rootNode - this is a special match... */
