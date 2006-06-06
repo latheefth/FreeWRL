@@ -579,6 +579,8 @@ void setMenuFps (float fps) ;
 void setMenuButton_texSize (int size);
 extern int textures_take_priority;
 void setTextures_take_priority (int x);
+extern int useExperimentalParser;
+void setUseCParser (int x);
 extern int useShapeThreadIfPossible;
 void setUseShapeThreadIfPossible(int x);
 

@@ -155,6 +155,7 @@ Widget consoleTextWidget;
 Widget about_widget;
 Widget newFileWidget;
 Widget tex128_button, tex256_button, texFull_button, texturesFirstButton, shapeThreadButton;
+Widget cParserButton;
 
 Arg args[10];
 Arg buttonArgs[10]; int buttonArgc = 0;
@@ -184,6 +185,7 @@ char fpsstr[MAXSTAT+20]; int msgChanged = FALSE;
 char *consMsg = NULL; int consmsgChanged = FALSE;
 int localtexpri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
 int localshapepri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
+int cparser = FALSE; /* do not use Daniel Kraft's C parser unless clicked */
 
 void frontendUpdateButtons() {
 	if (colbutChanged) {
@@ -358,6 +360,11 @@ void texturesFirst(Widget w, XtPointer data, XtPointer callData) {
 	/* default is set in CFuncs/RenderFuncs to be TRUE; we need to be in sync */
 	localtexpri = !localtexpri;
 	setTextures_take_priority (localtexpri);
+}
+void cParserCallback(Widget w, XtPointer data, XtPointer callData) {
+	/* default is set in CFuncs/RenderFuncs to be TRUE; we need to be in sync */
+	cparser = !cparser;
+	setUseCParser (cparser);
 }
 void shapeMaker(Widget w, XtPointer data, XtPointer callData) {
 	/* default is set in CFuncs/RenderFuncs to be TRUE; we need to be in sync */
@@ -667,6 +674,16 @@ void createPreferencesPulldown() {
 			  (XtCallbackProc)texturesFirst, NULL);
 		myXtManageChild (16,texturesFirstButton);
 	        XmToggleButtonSetState (texturesFirstButton, localtexpri, FALSE);
+
+		/* texture, shape compiling  */
+		myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
+
+		cParserButton = XtCreateManagedWidget("Experimental Parser",
+			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+		XtAddCallback(cParserButton, XmNvalueChangedCallback, 
+			  (XtCallbackProc)cParserCallback, NULL);
+		myXtManageChild (16,cParserButton);
+	        XmToggleButtonSetState (cParserButton, cparser, FALSE);
 
 
 		/* what things can we NOT do if we dont have threads? */

@@ -1164,7 +1164,6 @@ void initFreewrl() {
 		#ifdef DO_MULTI_OPENGL_THREADS
 		initializeShapeCompileThread();
 		#endif
-
         	initializePerlThread(PERLPATH);
 
         	while (!isPerlinitialized()) {
@@ -1174,6 +1173,10 @@ void initFreewrl() {
         	while (!isTextureinitialized()) {
         	        usleep(50);
         	}
+
+                /* create the root node */
+                rootNode = createNewX3DNode (NODE_Group);
+
 	}
 
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
@@ -1231,6 +1234,10 @@ void setUseShapeThreadIfPossible(int x) {
 
 void setTextures_take_priority (int x) {
 	textures_take_priority = x;
+}
+
+void setUseCParser (int x) {
+	useExperimentalParser = x;
 }
 
 /* set the global_texSize. Expect a number that is 0 - use max, or negative. eg,

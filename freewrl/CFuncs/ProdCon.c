@@ -31,6 +31,9 @@ int _fw_browser_plugin = 0;
 int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
+/* do we use the experimental parser for our work? */
+int useExperimentalParser = FALSE;
+
 int _P_LOCK_VAR;
 
 /* thread synchronization issues */
@@ -80,7 +83,6 @@ struct PSStruct {
 
 
 void _perlThread (void *perlpath);
-void __pt_loadInitialGroup(void);
 void __pt_setPath(char *perlpath);
 void __pt_openBrowser(void);
 void __pt_zeroBindables(void);
@@ -846,8 +848,6 @@ void _perlThread(void *perlpath) {
 		/* printf ("opening browser\n"); */
 		__pt_openBrowser();
 
-		/* printf ("loading in initial Group{} \n"); */
-		__pt_loadInitialGroup();
 		browserRunning=TRUE;
 
 		/* Now, possibly this is the first VRML file to
@@ -1174,12 +1174,6 @@ void __pt_setPath(char *perlpath) {
 	call_pv("setINCPath", G_ARRAY);
 	FREETMPS;
 	LEAVE;
-}
-
-void __pt_loadInitialGroup() {
-	dSP;
-	PUSHMARK(SP);
-	call_pv("load_file_intro", G_ARRAY);
 }
 
 /* Shutter glasses, stereo mode configure  Mufti@rus*/

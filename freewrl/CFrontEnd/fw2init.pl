@@ -24,7 +24,7 @@ sub setINCPath {
 	push (@INC,$INCpath);
 	push (@INC,$inc2path);
 	#foreach (@INC) { print "incline $_\n";}
-	#print "setIncpath, $INCpath\n";
+	#print "fw2init.pl setIncpath, $INCpath\n";
 }
 
 
@@ -40,30 +40,9 @@ sub open_browser {
 	# By default creates front- and back-ends.
 	$be = $b->{BE};
 
-	# fonts
-	#Now done directly in CFuncs/Text.c my $testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/fonts";
-	#Now done directly in CFuncs/Text.c if (-e "$testpath/Baubodi.ttf") {
-	#Now done directly in CFuncs/Text.c 		VRML::VRMLFunc::save_font_path($testpath);
-	#Now done directly in CFuncs/Text.c } else {
-	#Now done directly in CFuncs/Text.c 	foreach (@INC) {
-	#Now done directly in CFuncs/Text.c 		$testpath =  "$_/VRML/fonts";
-	#Now done directly in CFuncs/Text.c 		if (-e "$testpath/Baubodi.ttf") {
-	#Now done directly in CFuncs/Text.c 			VRML::VRMLFunc::save_font_path($testpath);
-	#Now done directly in CFuncs/Text.c 			# print "found font path at $testpath\n";
-	#Now done directly in CFuncs/Text.c 			return;
-	#Now done directly in CFuncs/Text.c 		}
-	#Now done directly in CFuncs/Text.c 	}
-	#Now done directly in CFuncs/Text.c }
-}
-
-sub load_file_intro {
-	# root is always a Group node, DO NOT CHANGE THIS
-	my $string = "Group{}";
 	my $url = VRML::VRMLFunc::GetBrowserURL();
 
         delete $b->{Scene};
         $b->{Scene} = VRML::Scene->new(0, $url, $url);
         $b->{Scene}->set_browser();
-	VRML::Parser::parse($b->{Scene},$string);
-        VRML::Browser::prepare ($b);
 }
