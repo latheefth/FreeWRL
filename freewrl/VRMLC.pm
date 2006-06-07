@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.223  2006/06/07 19:27:05  crc_canada
+# semantic mistake corrected.
+#
 # Revision 1.222  2006/06/07 16:44:18  crc_canada
 # More generated tables for C parsing. (EVENT_OUT, EVENT_IN EXPOSED_FIELD, FIELD)
 #
@@ -472,27 +475,27 @@ sub gen {
 
 	#####################
 	# we have a list of fields from ALL nodes. 
-	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELDTYPES[];\n";
-	push @str, "extern const indexT FIELDTYPES_COUNT;\n";
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELDNAMES[];\n";
+	push @str, "extern const indexT FIELDNAMES_COUNT;\n";
 
-	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDTYPES[] = {\n";
+	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDNAMES[] = {\n";
 
 	foreach (keys %allFields) { 
 		#print "allFields $_\n";
 		#if (index($_,"_") !=0) {
-			push @str, "#define FIELDTYPES_".$_."	$fieldNameCount\n";
+			push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
 			$fieldNameCount ++;
 			push @genFuncs1, "	\"$_\",\n";
 		#}
 	}
 	push @str, "\n";
-	push @genFuncs1, "};\nconst indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);\n\n";
+	push @genFuncs1, "};\nconst indexT FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);\n\n";
 	
 	# make a function to print field name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the field type */\n". 
 		"const char *stringFieldType (int st) {\n".
-		"	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return \"FIELD OUT OF RANGE\"; \n".
-		"	return FIELDTYPES[st];\n}\n\n";
+		"	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return \"FIELD OUT OF RANGE\"; \n".
+		"	return FIELDNAMES[st];\n}\n\n";
 	push @str, "const char *stringFieldType(int st);\n";
 
 	#####################
