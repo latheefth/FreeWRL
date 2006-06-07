@@ -17,7 +17,6 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data)
  parser=newParser();
  parser_fromString(parser, data);
  assert(parser->lexer);
- assert(parser->lexer->input);
 
  if(!parser_node(parser, &node))
   fprintf(stderr, "Parser failed!\n");
