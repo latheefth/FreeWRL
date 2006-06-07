@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.222  2006/06/07 16:44:18  crc_canada
+# More generated tables for C parsing. (EVENT_OUT, EVENT_IN EXPOSED_FIELD, FIELD)
+#
 # Revision 1.221  2006/06/05 15:41:43  crc_canada
 # Files for 1.17.6; fix reading scientific notation floats
 #
@@ -447,41 +450,132 @@ sub gen {
 		$nodeIntegerType ++;
 
 
-		#{ use Devel::Peek 'Dump'; print "start of dump\n"; Dump $VRML::Nodes{$_}, 30; print "end of dump\n"; } 
+		#{ use Devel::Peek 'Dump'; print "start of dump\n"; Dump $VRML::Nodes{$_}{FieldKinds}, 30; print "end of dump\n"; } 
 
- 		#foreach my $field (keys %{$VRML::Nodes{$_}}) {print "field1 $field ". $VRML::Nodes{$_}{Fields}."\n";}
+ 		#foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {print "field1 $field ". $VRML::Nodes{$_}{FieldKinds}{$field}."\n";}
+ 		#foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {print "field2 $field ". $VRML::Nodes{$_}{Fields}."\n";}
+
+		# capture all fields.
  		foreach my $field (keys %{$VRML::Nodes{$_}{FieldTypes}}) {
-			$allFields{$field} = 1;
+			$allFields{$field} = "recorded";
 			#print "field2 $field\n"
+		};
+
+		# now, tell what kind of field it is. Hopefully, all fields will
+		# have  a valid fieldtype, if not, there is an error somewhere.
+ 		foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {
+			$allFields{$field} = $VRML::Nodes{$_}{FieldKinds}{$field};
 		};
 	}
 	push @str, "\n";
 
 
 	#####################
-	# we have a list of fields from ALL nodes. print out the ones without the underscores at the beginning
-	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELDNAMES[];\n";
-	push @str, "extern const indexT FIELDNAMES_COUNT;\n";
+	# we have a list of fields from ALL nodes. 
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELDTYPES[];\n";
+	push @str, "extern const indexT FIELDTYPES_COUNT;\n";
 
-	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDNAMES[] = {\n";
+	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDTYPES[] = {\n";
 
 	foreach (keys %allFields) { 
 		#print "allFields $_\n";
 		#if (index($_,"_") !=0) {
-			push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
+			push @str, "#define FIELDTYPES_".$_."	$fieldNameCount\n";
 			$fieldNameCount ++;
 			push @genFuncs1, "	\"$_\",\n";
 		#}
 	}
 	push @str, "\n";
-	push @genFuncs1, "};\nconst indexT FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);\n\n";
+	push @genFuncs1, "};\nconst indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);\n\n";
 	
 	# make a function to print field name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the field type */\n". 
 		"const char *stringFieldType (int st) {\n".
-		"	if ((st < 0) || (st >= FIELDNAMES_COUNT)) return \"FIELD OUT OF RANGE\"; \n".
-		"	return FIELDNAMES[st];\n}\n\n";
+		"	if ((st < 0) || (st >= FIELDTYPES_COUNT)) return \"FIELD OUT OF RANGE\"; \n".
+		"	return FIELDTYPES[st];\n}\n\n";
 	push @str, "const char *stringFieldType(int st);\n";
+
+	#####################
+	# we have a lists  of field types from ALL nodes. print out the ones without the underscores at the beginning
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *EVENT_OUT[];\n";
+	push @str, "extern const indexT EVENT_OUT_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of EVENT_OUTs */\n       const char *EVENT_OUT[] = {\n";
+
+	foreach (keys %allFields) { 
+		my $ft = $allFields{$_};
+		#print "field $_, ft $ft\n";
+
+		# error check for all loops here
+		if (($ft ne "eventOut") && 
+			($ft ne "eventIn") &&
+			($ft ne "exposedField") &&
+			($ft ne "field")) {
+				print "field error - have field $_ as $ft\n";
+		}
+
+		if (index($_,"_") !=0) {
+			# is this an EVENT_OUT?
+			if ($ft eq "eventOut") {
+				push @genFuncs1, "	\"$_\",\n";
+			}
+		}
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT EVENT_OUT_COUNT = ARR_SIZE(EVENT_OUT);\n\n";
+	
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *EVENT_IN[];\n";
+	push @str, "extern const indexT EVENT_IN_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of EVENT_INs */\n       const char *EVENT_IN[] = {\n";
+
+	foreach (keys %allFields) { 
+		my $ft = $allFields{$_};
+		if (index($_,"_") !=0) {
+			# is this an EVENT_IN?
+			if ($ft eq "eventIn") {
+				push @genFuncs1, "	\"$_\",\n";
+			}
+		}
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);\n\n";
+	
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *EXPOSED_FIELD[];\n";
+	push @str, "extern const indexT EXPOSED_FIELD_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of EXPOSED_FIELDs */\n       const char *EXPOSED_FIELD[] = {\n";
+
+	foreach (keys %allFields) { 
+		my $ft = $allFields{$_};
+		if (index($_,"_") !=0) {
+			# is this an EXPOSED_FIELD?
+			if ($ft eq "exposedField") {
+				push @genFuncs1, "	\"$_\",\n";
+			}
+		}
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);\n\n";
+	
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *FIELD[];\n";
+	push @str, "extern const indexT FIELD_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of FIELDs */\n       const char *FIELD[] = {\n";
+
+	foreach (keys %allFields) { 
+		my $ft = $allFields{$_};
+		if (index($_,"_") !=0) {
+			# is this an FIELD?
+			if ($ft eq "field") {
+				push @genFuncs1, "	\"$_\",\n";
+			}
+		}
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT FIELD_COUNT = ARR_SIZE(FIELD);\n\n";
+	
+
 
 	#####################
 	# process keywords 
