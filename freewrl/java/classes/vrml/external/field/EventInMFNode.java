@@ -11,7 +11,7 @@ public class EventInMFNode extends EventIn {
     int count;
 
     for (count = 0; count < node.length; count++) {
-	if (node[count].nodeptr == null) {
+	if (node[count].nodeptr == 0) {
 		throw new IllegalArgumentException();
 	}
       Browser.SendChildEvent (nodeptr,offset, command, node[count].nodeptr);
@@ -20,7 +20,7 @@ public class EventInMFNode extends EventIn {
   }
 
   public void          set1Value(int index, Node node) throws IllegalArgumentException {
-	if (node.nodeptr == null) {
+	if (node.nodeptr == 0) {
 		throw new IllegalArgumentException();
 	}
 

@@ -443,6 +443,8 @@ void EAI_parse_commands (char *bufptr) {
 	int count;
 	char command;
 	unsigned int uretval;		/* unsigned return value*/
+	int perlNode; uintptr_t cNode;
+	
 	uintptr_t ra,rb,rc,rd;	/* temps*/
 
 	unsigned int scripttype;
@@ -450,6 +452,11 @@ void EAI_parse_commands (char *bufptr) {
 	int retint;		/* used for getting retval for sscanf */
 	int flag;
 
+	struct X3D_Box *boxptr;
+        int myField;
+        int ctype;
+	int *myofs;
+	int xxx;
 
 
 	while (strlen(bufptr)> 0) {
@@ -568,6 +575,7 @@ void EAI_parse_commands (char *bufptr) {
 					sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
 						EAI_GetNode(ctmp));
 				} else {
+					/* yep */
 					sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,count,
 						rootNode);
 				}
@@ -575,31 +583,41 @@ void EAI_parse_commands (char *bufptr) {
 			}
 			case GETTYPE:  {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
-
-				retint=sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
+				retint=sscanf (bufptr,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
 				#ifdef EAIVERBOSE 
-				printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
+				printf ("GETTYPE NODE%d  cptr %d %s %s\n",perlNode, cNode, ctmp, dtmp);
 				#endif
 
-				/* special case for now - handle only rootNodes here */
-				if (uretval == rootNode) {
+				/* is this a valid C node? if so, lets just get the info... */
+				if (cNode != 0) {
+					boxptr = (struct X3D_Box *) cNode;
+					/* printf ("this is a valid C node %d (%x)\n",boxptr,boxptr);
+					printf ("	of type %d\n",boxptr->_nodeType);
+					printf ("	of string type %s\n",stringNodeType(boxptr->_nodeType)); */
 
-					/* printf ("GETTYPE =  have root node to compare against\n"); */
-					ra = rootNode;
-					rb = 0;
-					if (strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) rb = offsetof (struct X3D_Group, children);
-					if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) rb = offsetof (struct X3D_Group, children);
-					if (strncmp (ctmp,"children",strlen("children")) == 0) rb = offsetof (struct X3D_Group, children);
-					if (strncmp (ctmp,"bboxSize",strlen("bboxSize")) == 0) rb = offsetof (struct X3D_Group, bboxSize);
-					if (strncmp (ctmp,"bboxCenter",strlen("bboxCenter")) == 0) rb = offsetof (struct X3D_Group, bboxCenter);
+					if ((strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) || 
+					(strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0)) {
+						myField = findFieldInALLFIELDNAMES("children");
+					} else {
+        					myField = findFieldInALLFIELDNAMES(ctmp);
+					}
+					myofs = NODE_OFFSETS[boxptr->_nodeType];
 
-					if (rb == 0) printf ("GETTYPE for rootNode = unknown field %s\n",ctmp);
-			
-					rc = 0;
-					rd = 113;
-					scripttype = 0;
-				} else {
-					EAI_GetType (uretval,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
+					/* find offsets, etc */
+                			findFieldInOFFSETS(myofs, myField, &rb, &ctype, &xxx);
+
+					/* return values. */
+					ra = cNode; 	/* node pointer */
+					/* rb - assigned above - offset */
+					rc = 0;	/* data len */
+					rd = EAIFIELD_TYPE_STRING(ctype);	
+					scripttype =0;
+					
+					/* printf ("so we have coffset %d, ctype %c, ctmp %d\n",rb,rc, xxx); */
+
+
+				} else { 
+					EAI_GetType (perlNode,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
 				}
 
 				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d",TickTime,count,ra,rb,rc,rd,scripttype);

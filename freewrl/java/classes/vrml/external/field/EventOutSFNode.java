@@ -26,8 +26,8 @@ public class EventOutSFNode extends EventOut {
 
       retnode = new Node();
       rep = tokens.nextToken();
-      retnode.NodeName = new String(rep);
-      retnode.nodeptr = new String(rep);
+      retnode.perlNumber = Integer.parseInt(rep);
+      retnode.nodeptr = Integer.parseInt(rep);
     return retnode;
 
   }

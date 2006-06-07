@@ -9,11 +9,11 @@ public class EventOut {
  public String inNode;	// Node to send the command to... NULL if not
  public String RLreturn;
  public String command;	// the actual command...
- public String nodeptr; //pointer to start of FreeWRL structure in memory
- public String offset;  //offset of actual field in memory from base.
- public String datasize; // how long this data really is
+ public int  nodeptr =0; //pointer to start of FreeWRL structure in memory
+ public int offset = 0;  //offset of actual field in memory from base.
+ public int datasize = 0; // how long this data really is
  public String datatype;
- public String ScriptType; // non zero indicates sending to a javascript
+ public int ScriptType = 0; // non zero indicates sending to a javascript
 
 
   //Get the type of this EventOut (specified in FieldTypes.java)

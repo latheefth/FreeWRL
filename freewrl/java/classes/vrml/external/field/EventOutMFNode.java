@@ -34,8 +34,8 @@ public class EventOutMFNode extends EventOutMField {
 
       retnodes[mySize] = new Node();
       rep = tokens.nextToken();
-      retnodes[mySize].NodeName = new String(rep);
-      retnodes[mySize].nodeptr = new String(rep);
+      retnodes[mySize].perlNumber = Integer.parseInt(rep);
+      retnodes[mySize].nodeptr = Integer.parseInt(rep);
       mySize ++;
     }
 

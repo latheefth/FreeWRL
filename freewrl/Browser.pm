@@ -514,7 +514,7 @@ sub EAI_GetNode {
 
 	if (!defined $node) {
 		warn("Node $nodetoget is not defined");
-		return "0 0";
+		return "-1 0";
 	}
 	my $CNode = VRML::Handles::findCNodeFromObject($node);
 	#print "my CNode is $CNode\n";

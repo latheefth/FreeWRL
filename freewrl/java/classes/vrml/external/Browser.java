@@ -463,13 +463,13 @@ public class Browser implements BrowserInterface, IBrowser
 	// XXX - is there a better way? ie, using a vector?
         while (tokens.hasMoreTokens()) {
           x[count] = new Node();
-          x[count].NodeName = tokens.nextToken();
-          x[count].nodeptr = tokens.nextToken();
-          x[count].offset = "0";
-          x[count].datasize = "4";
+          x[count].perlNumber = Integer.parseInt(tokens.nextToken());
+          x[count].nodeptr = Integer.parseInt(tokens.nextToken());
+          x[count].offset = 0;
+          x[count].datasize = 4;
           x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
 
-	  //System.out.println ("CVS - for this one, we have NODE" + x[count].NodeName +
+	  //System.out.println ("CVS - for this one, we have NODE" + x[count].perlNumber +
 	//	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
 	//	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
 
@@ -612,12 +612,12 @@ public class Browser implements BrowserInterface, IBrowser
 
          while (tokens.hasMoreTokens()) {
            x[count] = new Node();
-           x[count].NodeName = tokens.nextToken();
-           x[count].nodeptr = tokens.nextToken();
-           x[count].offset = "0";
-           x[count].datasize = "4";
+           x[count].perlNumber = Integer.parseInt(tokens.nextToken());
+           x[count].nodeptr = Integer.parseInt(tokens.nextToken());
+           x[count].offset = 0;
+           x[count].datasize = 4;
            x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
-	   //System.out.println ("CVU - for this one, we have NODE" + x[count].NodeName +
+	   //System.out.println ("CVU - for this one, we have NODE" + x[count].perlNumber +
 		//	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
 		//	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
 
@@ -707,7 +707,7 @@ public class Browser implements BrowserInterface, IBrowser
     // or may not be made available to this method, depending on the
     // browser's implementation
 
-    public Node getNode (String NodeName) throws InvalidNodeException
+    public Node getNode (String getName) throws InvalidNodeException
       {
       Node temp;
       StringTokenizer tokens;
@@ -716,18 +716,18 @@ public class Browser implements BrowserInterface, IBrowser
       temp = new Node();
 
       synchronized (FreeWRLToken) {
-          EAIoutSender.send ("" + queryno + "A " + NodeName + "\n");
+          EAIoutSender.send ("" + queryno + "A " + getName + "\n");
 	  retval = getVRMLreply(queryno);
 	}
 
         tokens = new StringTokenizer (retval);
 
-        temp.NodeName = tokens.nextToken();
-        temp.nodeptr = tokens.nextToken();
+        temp.perlNumber = Integer.parseInt(tokens.nextToken());
+        temp.nodeptr = Integer.parseInt(tokens.nextToken());
         queryno += 1;
      
-      if (temp.NodeName.equals("undefined"))
-	throw new InvalidNodeException(NodeName + "undefined");
+      if (temp.perlNumber== -1)
+	throw new InvalidNodeException(getName + "undefined");
 
       return temp;
       }
@@ -739,7 +739,7 @@ public class Browser implements BrowserInterface, IBrowser
 	// Send Event to the VRML Browser. Note the different methods, depending
 	// on the parameters.
 	//
-	public static void SendChildEvent (String parent, String offset, String FieldName, String Child) {
+	public static void SendChildEvent (int parent, int offset, String FieldName, int Child) {
 		String retval;
 
 		// System.out.println ("SendChildEvent: sending to " + parent + " ofs:" +
@@ -765,14 +765,14 @@ public class Browser implements BrowserInterface, IBrowser
 	}
 
 
-  protected static String SendEventType (String NodeName, String FieldName, String direction) {
+  protected static String SendEventType (int perlNumber, int nodeptr, String FieldName, String direction) {
 
       // get a type from a particular node.
 
       String retval;
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "F " + NodeName + " " +
+        EAIoutSender.send ("" + queryno + "F " + perlNumber + " " + nodeptr + " " +
            FieldName + " " + direction + "\n");
         retval = getVRMLreply(queryno);
         queryno += 1;
@@ -780,7 +780,7 @@ public class Browser implements BrowserInterface, IBrowser
       return retval;
 }
 
-  public static String SendEventOut (String nodeptr, String offset, String datasize, String datatype,
+  public static String SendEventOut (int nodeptr, int offset, int datasize, String datatype,
 	String command) {
       // get a value from a particular node.
 
@@ -799,7 +799,7 @@ public class Browser implements BrowserInterface, IBrowser
 }
 
   public static void RegisterListener (EventOutObserver f, Object userData,
-			String nodeptr, String offset, String datatype,  String datasize, int EventType)
+			int nodeptr, int offset, String datatype, int datasize, int EventType)
     {
        synchronized (FreeWRLToken) {
          	//System.out.println ("Registering " + queryno + " node: " + nodeptr + " offset:"
@@ -822,7 +822,7 @@ public class Browser implements BrowserInterface, IBrowser
     }
 
   public static void unRegisterListener (EventOutObserver f,
-			String nodeptr, String offset, String datatype,  String datasize, int EventType)
+			int nodeptr, int offset, String datatype,  int datasize, int EventType)
     {
        synchronized (FreeWRLToken) {
          	//System.out.println ("Registering " + queryno + " node: " + nodeptr + " offset:"

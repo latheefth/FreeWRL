@@ -13,7 +13,7 @@ public class Node {
   // name of a PROTO, or the class name
 
 
-  public String NodeName  = "Not initiated yet";
+  public int perlNumber  = -1;
 
 // the following fields are for treating this node as an eventIn or eventOut.
  public int EventType = FieldTypes.UnknownType;
@@ -23,17 +23,17 @@ public class Node {
  public String inNode;
  public String command;	// the actual command...
  public String RLreturn;	// If this is a register listener response...
- public String nodeptr; //pointer to start of FreeWRL structure in memory
- public String offset;  //offset of actual field in memory from base.
- public String datasize; // how long this data really is
+ public int nodeptr = 0; //pointer to start of FreeWRL structure in memory
+ public int offset = 0;  //offset of actual field in memory from base.
+ public int datasize = 0; // how long this data really is
  public String datatype;
- public String ScriptType; // non zero indicates sending to a javascript
+ public int ScriptType = 0; // non zero indicates sending to a javascript
 
 
 
-  public String toString() {
-    return "NODE"+NodeName;
-  }
+//  public String toString() {
+ //   return "NODE"+perlNumber;
+  //}
 
   public String        getType() {
     // If we actually do this thingie, it means that we have not
@@ -54,7 +54,7 @@ public class Node {
   // Return the type that is asked for. To determine the
   // subclass, look at the string.
 
-    String st = Browser.SendEventType(NodeName, name, "eventIn");
+    String st = Browser.SendEventType(perlNumber, nodeptr, name, "eventIn");
 
     tokens = new StringTokenizer (st);
     String NNPR = tokens.nextToken();
@@ -93,8 +93,9 @@ public class Node {
 		+ " asked for " + st + " returning Class EventInMFnode");
     }
 
-    ret.command = name; ret.inNode = NNN; ret.datatype=NewDT; ret.nodeptr=NNPR; ret.offset=NOFF;
-    ret.datasize = NDS; ret.ScriptType = ScrT;
+    ret.command = name; ret.inNode = NNN; ret.datatype=NewDT; 
+    ret.nodeptr= Integer.parseInt(NNPR); ret.offset=Integer.parseInt(NOFF);
+    ret.datasize = Integer.parseInt(NDS); ret.ScriptType = Integer.parseInt(ScrT);
     return ret;
   }
 
@@ -106,7 +107,7 @@ public class Node {
       StringTokenizer tokens;
 	String NNN = "nodeFrom_getEventOut";
 
-    String st = Browser.SendEventType(NodeName, name, "eventOut");
+    String st = Browser.SendEventType(perlNumber, nodeptr, name, "eventOut");
 
     tokens = new StringTokenizer (st);
     String NNPR = tokens.nextToken();
@@ -166,8 +167,9 @@ public class Node {
 	throw new InvalidEventOutException();
     }
 
-    ret.command = name; ret.inNode = NNN; ret.datatype=NewDT; ret.nodeptr=NNPR; ret.offset=NOFF;
-    ret.datasize = NDS; ret.ScriptType = ScrT;
+    ret.command = name; ret.inNode = NNN; ret.datatype=NewDT; 
+	ret.nodeptr=Integer.parseInt(NNPR); ret.offset=Integer.parseInt(NOFF);
+    ret.datasize = Integer.parseInt(NDS); ret.ScriptType = Integer.parseInt(ScrT);
     return ret;
   }
 }

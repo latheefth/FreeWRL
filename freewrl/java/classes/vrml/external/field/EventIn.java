@@ -7,10 +7,10 @@ public class EventIn {
   int EventType = FieldTypes.UnknownType;
   public String command;
   public String inNode;
-  public String datasize;
-  public String nodeptr;
-  public String offset;
-  public String ScriptType;
+  public int datasize = 0;
+  public int nodeptr = 0;
+  public int offset = 0;
+  public int ScriptType = 0;
   public String datatype;
 
   // Get the type of this EventIn (specified in FieldTypes.java)
