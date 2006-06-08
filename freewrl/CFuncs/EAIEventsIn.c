@@ -859,14 +859,30 @@ void EAI_parse_commands (char *bufptr) {
 				#ifdef EAIVERBOSE 
 				printf ("CREATENODE/PROTO %s\n",ctmp);
 				#endif
-				if (command == CREATENODE) 
-					ra = EAI_CreateVrml("CREATENODE",ctmp,nodarr,200); 
-				else if (command == CREATEPROTO)
+
+				/* set up the beginnings of the return string... */
+				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
+
+				if (command == CREATENODE) {
+					#ifdef EAIVERBOSE
+					printf ("CREATENODE, %s is this a simple node? %d\n",ctmp,findNodeInNODES(ctmp));
+					#endif
+
+					ctype = findNodeInNODES(ctmp);
+					if (ctype > -1) {
+						/* yes, use C only to create this node */
+						sprintf (ctmp, "0 %d ",createNewX3DNode(ctype));
+						strcat (buf,ctmp);
+						/* set ra to 0 so that the sprintf below is not used */
+						ra = 0;
+					} else {
+						ra = EAI_CreateVrml("CREATENODE",ctmp,nodarr,200); 
+					}
+				} else if (command == CREATEPROTO)
 					ra = EAI_CreateVrml("CREATEPROTO",ctmp,nodarr,200); 
 				else 
 					printf ("eai - huh????\n");
 
-				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
 
 				for (rb = 0; rb < ra; rb++) {
 					sprintf (ctmp,"%d ", nodarr[rb]);
