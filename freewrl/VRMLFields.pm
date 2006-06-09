@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.65  2006/06/09 17:16:43  crc_canada
+# More SAI code changes.
+#
 # Revision 1.64  2006/06/02 17:19:15  crc_canada
 # more C code changes, reduces the amount of perl interface calls dramatically.
 #
@@ -1113,8 +1116,6 @@ use vars qw/$Word/;
 VRML::Error->import;
 
 
-my $LASTDEF = 1;
-
 sub parse {
 	my($type, $scene, $txt, $parentField) = @_;
 	$_[2] =~ /\G\s*/gsc;
@@ -1146,8 +1147,7 @@ sub parse {
 		# store this as a sequence number, because multiple DEFS of the same name
 		# must be unique. (see the spec)
 		$vrmlname = $1;
-		VRML::Handles::def_reserve($vrmlname, "DEF$LASTDEF");
-		$LASTDEF++;
+		VRML::Handles::def_reserve($vrmlname);
 		my $defname = VRML::Handles::return_def_name($vrmlname);
 		print "Parser.pm: DEF $vrmlname as $defname\n"
 			if $VRML::verbose::parse;

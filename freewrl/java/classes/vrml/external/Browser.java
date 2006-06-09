@@ -513,7 +513,7 @@ public class Browser implements BrowserInterface, IBrowser
 		String retval;
 
 		synchronized (FreeWRLToken) {
-			EAIoutSender.send ("" + queryno + "c" + name + " " + node + "\n");
+			EAIoutSender.send ("" + queryno + "c" + name + " " + node.nodeptr + "\n");
 			retval = getVRMLreply(queryno);
 		}
 		return retval;

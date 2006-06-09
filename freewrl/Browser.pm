@@ -379,28 +379,33 @@ sub EAI_Command {
 		#print "have NAMEDNODE code $dir\n";
 		if ($dir == 99) {
 			#print "have UPDATENAMEDNODE\n";
-			my ($newname, $nodename) = split (" ",$str);
-			#print "UPN, nwname $newname, nodename $nodename\n";
-			if (VRML::Handles::check($nodename) == 1) {
-				my $nn = VRML::Handles::get($nodename);
-				#print "handle is $nn\n";
-				VRML::Handles::def_reserve($newname, $nodename);
-				
+			my ($nodeName, $nodeCaddr) = split (" ",$str);
+			#print "UPN, nwname $nodeName, nodeCaddr $nodeCaddr\n";
+
+			my $node = VRML::Handles::def_check($nodeName);
+			if ($node eq "") {
+				#print "UPN, this is a new name\n";
+				my $newdef = VRML::Handles::def_reserve ($nodeName);
+				VRML::Handles::EAI_reserve("DEF$newdef", $nodeCaddr);
 			} else {
-				print "UPDATENAMEDNODE, can not tie $newname into $nodename\n";
-				$rv=1;
-			}
+				print "updateNamedNode, node $nodeName already exists\n";
+				$rv = 1;
+			}	
 		} else {
 			#print "have removeN amedNode\n";
 			my ($nodename) = split (" ",$str);
-			#print "UPN, nodename $nodename\n";
-			if (VRML::Handles::check($nodename) == 1) {
-				my $nn = VRML::Handles::get($nodename);
-				#print "handle is $nn\n";
-				VRML::Handles::release($nodename);
-			} else {
+			#print "UPN, nodename $nodename, $str\n";
+
+			# is this a node created by Perl, or by the EAI?
+
+			my $node = VRML::Handles::def_check($nodename);
+			#print "def_check returns $node\n";
+
+			if ($node eq "") {
 				print "DELETENAMEDNODE, node $nodename does not exist\n";
 				$rv = 1;
+			} else {
+				VRML::Handles::def_delete($nodename);
 			}
 		}
 
@@ -489,7 +494,7 @@ sub EAI_Command {
 ################
 # EAI Perl functions.
 
-# EAI_GetNode returns "UNDEFINED" for undefined node, or it returns the
+# EAI_GetNode returns "-1 0" for undefined node, or it returns the
 # number of the node so that when the node is manipulated, it can be
 # referenced as NODE42.
 #
@@ -500,31 +505,47 @@ my @EAIinfo;
 
 sub EAI_GetNode {
 	my ($nodetoget) = @_;
+	my $id;
+	my $CNode;
 
 	#print "\n\nEAI_GetNode, getting $nodetoget\n";
 	# now we change the node into a DEF name.
+
+	my $node = VRML::Handles::def_check($nodetoget);
+	if ($node eq "") {
+		#print "EAI_GetNode: Node $nodetoget is not defined\n";
+		return "-1 0";
+	}
+
 	my $node = VRML::Handles::return_def_name($nodetoget);
 
-	#print "step 1, node is $node, ref ",ref $node,"\n";
+
+	#print "step 1, node is $node\n";
 
 	# then change the DEF name into a VRML node pointer.
 	$node = VRML::Handles::return_EAI_name($node);
 
 	#print "step 2, node is $node, ref ",ref $node,"\n";
 
-	if (!defined $node) {
-		warn("Node $nodetoget is not defined");
-		return "-1 0";
+	# is this a node created by perl, or from EAI?
+	if ("VRML::NodeIntern" eq ref $node) {
+		$CNode = VRML::Handles::findCNodeFromObject($node);
+		#print "step 3, my CNode is $CNode\n";
+
+
+		$id = VRML::Handles::reserve($node);
+	
+		#print "step 4: handle is $id\n";
+		$id =~ s/^NODE//;
+		#print "step 5: node number is $id\n";
+
+	} else {
+		#print "this node is created by EAI\n";
+		$CNode = VRML::Handles::return_EAI_name($node);
+		#print "CNODE is $CNode\n";
+		$id = 0;
 	}
-	my $CNode = VRML::Handles::findCNodeFromObject($node);
-	#print "my CNode is $CNode\n";
-
-
-	my $id = VRML::Handles::reserve($node);
-
-	#print "handle is $id\n";
-	$id =~ s/^NODE//;
-	#print "node number is $id\n";
+	#print "returning $id $CNode\n";
 	return "$id $CNode";
 }
 
@@ -534,6 +555,11 @@ sub EAI_GetViewpoint {
 	#print "\n\nEAI_GetViewpoint, getting $nodetoget\n";
 	# now we change the node into a DEF name.
 	my $node = VRML::Handles::return_def_name($nodetoget);
+
+	if ($node eq $nodetoget) {
+		print "Viewpoint $nodetoget is not defined\n";
+		return 0;
+	}
 
 	#print "step 1, node is $node, ref ",ref $node,"\n";
 
@@ -1023,12 +1049,14 @@ my $handles_debug = 0;
 my %S = ();
 my %DEFNAMES = ();
 my %EAINAMES = ();
+my $LASTDEF  =1;
 
 # on a replaceWorld call...
 sub deleteAllHandles {
 	%S=();
 	%DEFNAMES = ();
 	%EAINAMES = ();
+	$LASTDEF  =1;
 }
 
 # keep a list of DEFined names and their real names around. Because
@@ -1083,11 +1111,10 @@ sub return_EAI_name {
 
 ## keep refs to DEFs instead??? vrml name kept in DEF instances...
 sub def_reserve {
-	my ($name, $realnode) = @_;
-	$DEFNAMES{$name} = $realnode;
-	print "reserving DEFNAME $name ",
-		ref $name, "is real $realnode,
-		ref ", ref $realnode,"\n"  if $handles_debug;
+	my ($name) = @_;
+	$DEFNAMES{$name} = "DEF$LASTDEF";
+	print "reserving DEFNAME $name  as DEF$LASTDEF\n"  if $handles_debug;
+	$LASTDEF ++;
 
 }
 
@@ -1123,6 +1150,12 @@ sub def_check {
 	return $DEFNAMES{$name};
 }
 
+sub def_delete {
+	my ($name) = @_;
+	delete $DEFNAMES{$name};
+
+}
+
 ######
 
 sub findCNodeFromObject {
@@ -1130,7 +1163,7 @@ sub findCNodeFromObject {
 	my $ci = "$object";
 
 	foreach (keys %{%S}) {
-		#print "findCNodeFromObject, have ".$S{$_}[0].", comparing to $object.. ";
+		#print "findCNodeFromObject, key $_ have ".$S{$_}[0].", comparing to $object.. \n";
 		if ($S{$_}[0] eq $ci) {
 			#print "checking... ". substr ($_,0,5)."\n";
 			if (substr($_,0,5) eq "CNODE") {
@@ -1185,10 +1218,13 @@ sub get {
 }
 sub check {
 	my($handle) = @_;
+print "check, might return nulll...\n";
 	return NULL if $handle eq "NULL";
 	if(!exists $S{$handle}) {
+print "check, returning 0\n";
 		return 0;
 	}
+print "check, handle $handle is ".$S{$handle}."\n";
 	return 1;
 }
 }

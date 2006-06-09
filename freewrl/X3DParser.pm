@@ -22,8 +22,6 @@ require 'VRML/VRMLFields.pm';
 my $X3DScene;
 my $eventMachine;
 
-my $LASTDEF = 1;
-
 # pass in a blank set of proto fields on global invocation
 my %noProtoFields = ();
 my $noProtoFieldsRef = \%noProtoFields;
@@ -567,8 +565,7 @@ sub parseX3DProtoInstance {
 			VRML::VRMLFunc::ConsoleMessage(
 				"WARNING: DEF name '$LocalDEF' has already been DEFined - we will use the current value");
 		} 
-                VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
-                $LASTDEF++;
+                VRML::Handles::def_reserve($LocalDEF);
                 my $defname = VRML::Handles::return_def_name($LocalDEF);
                 print "X3DParser.pm: DEF $LocalDEF as $defname\n"
                         if $X3D::verbose;
@@ -808,8 +805,7 @@ sub parseX3DScript {
 				"WARNING: DEF name '$LocalDEF' has already been DEFined - we will use the current value");
 		} 
 
-                VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
-                $LASTDEF++;
+                VRML::Handles::def_reserve($LocalDEF);
                 my $defname = VRML::Handles::return_def_name($LocalDEF);
                 print "X3DParser.pm: DEF $LocalDEF as $defname\n"
                         if $X3D::verbose;
@@ -1299,8 +1295,7 @@ sub parse_X3DStatement {
 		} 
 
 
-                VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
-                $LASTDEF++;
+                VRML::Handles::def_reserve($LocalDEF);
                 my $defname = VRML::Handles::return_def_name($LocalDEF);
                 print "X3DParser.pm: DEF $LocalDEF as $defname\n"
                         if $X3D::verbose;
