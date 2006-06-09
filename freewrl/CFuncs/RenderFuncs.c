@@ -844,6 +844,7 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 	/* temporary for sscanfing */
 	float fl[4];
 	int in[4];
+	uintptr_t inNode[4];
 	double dv;
 	char mytmpstr[20000];
 
@@ -859,13 +860,24 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 
 		case SFBOOL:
 		case SFINT32:
-		case FREEWRLPTR:
-		case SFNODE:
 			{ sscanf (value,"%d",in); 
 				memcpy(nst,in,datasize); 
 				/* SFNODES need to have the parent field linked in */
 				if (ctype == SFNODE) {
-					add_parent(in[0], ptr); 
+					add_parent((void *)in[0], ptr); 
+				}
+				
+			break;}
+		case FREEWRLPTR:
+		case SFNODE: { 
+				sscanf (value,"%d",inNode); 
+				/* if (inNode[0] != 0) {
+					printf (" andof type %s\n",stringNodeType(((struct X3D_Box *)inNode[0])->_nodeType));
+				} */
+				memcpy(nst,inNode,datasize); 
+				/* SFNODES need to have the parent field linked in */
+				if (ctype == SFNODE) {
+					add_parent((void *)inNode[0], ptr); 
 				}
 				
 			break;}
@@ -896,10 +908,10 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 
 		case MFNODE: {
 			for (tmp = 0; tmp < (commaCount+1); tmp++) {
-				sscanf(value, "%d",in);
-				addToNode(ptr,coffset,in[0]); 
-				/* printf ("MFNODE, have to add child %d to parent %d\n",*iptr,ptr); */
-				add_parent(in[0], ptr); 
+				sscanf(value, "%d",inNode);
+				addToNode(ptr,coffset,(void *)inNode[0]); 
+				/* printf ("MFNODE, have to add child %d to parent %d\n",inNode[0],ptr);  */
+				add_parent((void *)inNode[0], ptr); 
 				/* skip past the number and trailing comma, if there is one */
 				if (*value == '-') value++;
 				while (*value>='0') value++;
@@ -980,7 +992,7 @@ void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 
 		default: {
 printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
-	FIELD_TYPE_STRING(ctype),value,stringNodeType(ptr),nst,coffset,commaCount+1);
+	FIELD_TYPE_STRING(ctype),value,stringNodeType(((struct X3D_Box *)ptr)->_nodeType),nst,coffset,commaCount+1);
 			break;
 			};
 	}

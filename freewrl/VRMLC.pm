@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.224  2006/06/09 20:09:54  crc_canada
+# changes to help on 64 bit environments
+#
 # Revision 1.223  2006/06/07 19:27:05  crc_canada
 # semantic mistake corrected.
 #
@@ -933,7 +936,7 @@ alloc_struct(itype)
 CODE:
 	void *ptr;
 	ptr = createNewX3DNode(itype);
-	/* printf("new Alloc: type %d -> %d\n", itype, ptr);   */
+	/* printf("new Alloc: type %s -> %d\n", stringNodeType(itype), ptr);  */
 	RETVAL=ptr;
 OUTPUT:
 	RETVAL

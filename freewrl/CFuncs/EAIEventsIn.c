@@ -38,9 +38,10 @@ int returnElementLength(int type) {
 	  switch (type) {
 		case SFTIME :
     		case MFTIME : return sizeof(double); break;
-    		case SFNODE :
-    		case MFNODE :
     		case MFINT32: return sizeof(int)   ; break;
+		case FREEWRLPTR:
+    		case SFNODE :
+    		case MFNODE : return sizeof(void *); break;
 	  	default     : {}
 	}
 	return sizeof(float) ; /* turn into byte count */

@@ -76,7 +76,7 @@ void normalChildren(struct Multi_Node ch) {
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
 		if(p->_nodeType != NODE_DirectionalLight) {
-		/* printf ("normalchildren, child %d, piv %d\n",p,p->PIV); */
+		/*printf ("normalchildren, (%d of %d) child %d\n",i,ch.n,p);   */
 /*			if ((p->PIV) > 0) */
 				render_node(p);
 		}
