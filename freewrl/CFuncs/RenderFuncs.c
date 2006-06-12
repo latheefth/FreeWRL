@@ -758,13 +758,38 @@ int findFieldInFIELDNAMES(char *field) {
 	}
 
 	mystrlen = strlen(field);
-	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen); */
+	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
 	for (x=0; x<FIELDNAMES_COUNT; x++) {
 		if (strlen(FIELDNAMES[x]) == mystrlen) {
 			if (strcmp(field,FIELDNAMES[x])==0) return x;
 		} 
 	}
 	return -1;
+}
+
+/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
+int findRoutedFieldInFIELDNAMES (char *field, int fromTo) {
+	int retval;
+	char mychar[200];
+	int tmp;
+
+	retval = findFieldInFIELDNAMES(field);
+	if (retval == -1) {
+		/* try removing the "set_" or "_changed" */
+		strncpy (mychar, field, 100);
+		if (fromTo != 0) {
+			retval = findFieldInFIELDNAMES(&mychar[4]);
+		} else {
+			if (strlen(field) > strlen("_changed")) {
+				mychar[strlen(field) - strlen("_changed")] = '\0';
+				retval = findFieldInFIELDNAMES(mychar);
+			}
+		}
+
+
+	}
+
+	return retval;
 }
 
 /* go through the generated table NODENAMES, and find the int of this string, returning it, or -1 on error */

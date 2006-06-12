@@ -14,10 +14,6 @@ if ($OS eq "Darwin") {
 	print "This install is running on an Apple OS X computer\n";
 } elsif ($OS eq "Linux") {
 	print "This install is running on a Linux based computer\n";
-} elsif ($OS eq "IRIX64") {
-	print "This install is running on an Irix computer\n";
-} elsif ($OS eq "SunOS") {
-	print "This install is running on a Linux based computer\n";
 } else {
 	print "The uname command returned $OS - dont know what platform - assuming Linux\n";
 }
@@ -58,10 +54,6 @@ use Cwd qw(getcwd chdir);
 # get the VRML.conf file.
 if ($OS eq "Darwin") {
 	require './vrml.conf.aqua';
-} elsif ($OS eq "IRIX64") {
-	require './vrml.conf.irix';
-} elsif ($OS eq "SunOS") {
-	require './vrml.conf.sunGcc';
 } else {
 	# assume a Linux computer.
 	my $ARCH = `arch`;

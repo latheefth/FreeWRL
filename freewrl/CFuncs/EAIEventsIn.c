@@ -32,6 +32,7 @@ SV *sv_global_tmp;
 
 void createLoadURL(char *bufptr);
 void makeFIELDDEFret(uintptr_t,char *buf,int c);
+void handleRoute (char command, char *bufptr, char *buf, int repno);
 
 /* get how many bytes in the type */
 int returnElementLength(int type) {
@@ -794,14 +795,17 @@ void EAI_parse_commands (char *bufptr) {
 			case REMPROTODECL: 
 			case UPDPROTODECL: 
 			case UPDNAMEDNODE: 
-			case REMNAMEDNODE: 
-			case ADDROUTE:
-			case DELETEROUTE:  {
+			case REMNAMEDNODE:  {
 				#ifdef EAIVERBOSE 
 				printf ("SV int ret command ..%s\n",bufptr);
 				#endif
 				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,
 					SAI_IntRetCommand ((char) command,bufptr));
+				break;
+				}
+			case ADDROUTE:
+			case DELETEROUTE:  {
+				handleRoute (command, bufptr,buf,count);
 				break;
 				}
 
@@ -930,6 +934,143 @@ void EAI_parse_commands (char *bufptr) {
 		while ((*bufptr == 10) || (*bufptr == 13)) bufptr++;
 	}
 }
+
+
+
+
+/* add or delete a route */
+void handleRoute (char command, char *bufptr, char *buf, int repno) {
+	struct X3D_Box *fromNode;
+	struct X3D_Box *toNode;
+	uintptr_t tmp;
+	char fieldTemp[2000];
+	char *x;
+	int fromFieldInt, toFieldInt;
+	int *np;
+	int fromOffset, fromVRMLtype, toOffset, toVRMLtype;
+
+	int rv;
+
+	/* assume that all is ok right now */
+	rv = TRUE;
+
+	/* get ready for the reply */
+	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
+
+	printf ("handleRoute, string %s\n",bufptr);
+	while (*bufptr == ' ') bufptr++;
+
+	sscanf (bufptr, "%d", &tmp);
+	fromNode = (struct X3D_Box *)tmp;
+	/* printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType)); */
+
+	/* skip to the field */
+	while (*bufptr != ' ') bufptr++;
+	while (*bufptr == ' ') bufptr++;
+	x = fieldTemp;
+
+	/* copy the field over */
+	while (*bufptr > ' ') { *x = *bufptr; x++; bufptr++;}
+	*x = '\0';
+
+	/* printf ("and the field is :%s:\n",fieldTemp); */
+	fromFieldInt = findRoutedFieldInFIELDNAMES(fieldTemp,0);
+	if (fromFieldInt < 0) {
+		printf ("EAIEventsIn: trouble finding field %s of %s\n",
+				fieldTemp, stringNodeType(fromNode->_nodeType));
+		rv = FALSE;
+	}	
+
+
+	while (*bufptr == ' ') bufptr++;
+	sscanf (bufptr, "%d", &tmp);
+	toNode = (struct X3D_Box *)tmp;
+	/*printf ("toNode is of type %s\n",stringNodeType(toNode->_nodeType)); */
+
+	/* skip to the field */
+	while (*bufptr != ' ') bufptr++;
+	while (*bufptr == ' ') bufptr++;
+	x = fieldTemp;
+
+	/* copy the field over */
+	while (*bufptr > ' ') { *x = *bufptr; x++; bufptr++;}
+	*x = '\0';
+
+	/* printf ("and the field is :%s:\n",fieldTemp); */
+	toFieldInt = findRoutedFieldInFIELDNAMES(fieldTemp,1);
+	if (toFieldInt < 0) {
+		printf ("EAIEventsIn: trouble finding field %s of %s\n",
+				fieldTemp, stringNodeType(toNode->_nodeType));
+		rv = FALSE;
+	}	
+
+	/* are we ok so far? */
+	if (rv == TRUE) {
+		/* get the from field info */
+		np = NODE_OFFSETS[fromNode->_nodeType];
+
+		/* go through and find the entry for this field, looks like:
+		const int OFFSETS_TimeSensor[] = {
+        		FIELDNAMES_isActive, offsetof (struct X3D_TimeSensor, isActive),  SFBOOL, KW_eventOut,
+        		...
+			FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  SFTIME, KW_eventOut,
+        		FIELDNAMES___ctflag, offsetof (struct X3D_TimeSensor, __ctflag),  SFTIME, KW_exposedField,
+        		-1, -1, -1, -1};
+		*/
+		while ((*np != -1) && (*np != fromFieldInt)) np += 4;
+
+		np++;
+		fromOffset = *np; np++;
+		fromVRMLtype = *np; np++;
+
+		/* is this a valid type? */
+		if ((*np != KW_eventOut) && (*np != KW_exposedField)) {
+			printf ("expected an eventOut for field %s of %s\n",
+                                fieldTemp, stringNodeType(toNode->_nodeType));
+              	  	rv = FALSE;
+		}
+		/* get the to field info */
+		np = NODE_OFFSETS[toNode->_nodeType];
+
+		/* go through and find the entry for this field, looks like:
+		const int OFFSETS_TimeSensor[] = {
+        		FIELDNAMES_isActive, offsetof (struct X3D_TimeSensor, isActive),  SFBOOL, KW_eventOut,
+        		...
+			FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  SFTIME, KW_eventOut,
+        		FIELDNAMES___ctflag, offsetof (struct X3D_TimeSensor, __ctflag),  SFTIME, KW_exposedField,
+        		-1, -1, -1, -1};
+		*/
+		while ((*np != -1) && (*np != toFieldInt)) np += 4;
+		np++;
+		toOffset = *np; np++;
+		toVRMLtype = *np; np++;
+
+		/* is this a valid type? */
+		if ((*np != KW_eventIn) && (*np != KW_exposedField)) {
+			printf ("expected an eventIn for field %s of %s\n",
+                                fieldTemp, stringNodeType(toNode->_nodeType));
+              	  	rv = FALSE;
+		}
+
+		/* do the VRML types match? */
+		printf ("VRML types %d %d\n",fromVRMLtype, toVRMLtype);
+		if (fromVRMLtype != toVRMLtype) {
+			printf ("Routing type mismatch\n");
+			rv = FALSE;
+		}
+	}
+
+	/* still ok? */
+	if (rv = TRUE) {
+printf ("ok to add this route \n");
+
+
+		strcat (buf, "0");
+	} else {
+		strcat (buf, "0");
+	}
+}
+
 
 /* for a GetFieldTypes command for a node, we return a string giving the field types */
 

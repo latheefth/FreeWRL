@@ -1218,13 +1218,10 @@ sub get {
 }
 sub check {
 	my($handle) = @_;
-print "check, might return nulll...\n";
 	return NULL if $handle eq "NULL";
 	if(!exists $S{$handle}) {
-print "check, returning 0\n";
 		return 0;
 	}
-print "check, handle $handle is ".$S{$handle}."\n";
 	return 1;
 }
 }

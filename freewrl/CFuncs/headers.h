@@ -1045,6 +1045,7 @@ void kill_oldWorld(int a, int b, int c);
 extern int currentFileVersion;
 
 int findFieldInFIELDNAMES(char *field);
+int findRoutedFieldInFIELDNAMES (char *field, int fromTo);
 int findNodeInNODES(char *node);
 int findFieldInALLFIELDNAMES(char *field);
 void findFieldInOFFSETS(int *nodeOffsetPtr, int field, int *coffset, int *ctype, int *ckind);

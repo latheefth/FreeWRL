@@ -170,8 +170,13 @@ sub initSFNodeFields {
 
 		$fkind = $nt->{FieldKinds}{$_};
 		$type = $nt->{FieldTypes}{$_};
+
 		warn "no FieldTypes{$_}\n" unless defined $type and length $type != 0;
 		$ftype = "VRML::Field::$type";
+
+		# skip internal FreeWRLPTRs
+		next if "VRML::Field::FreeWRLPTR" eq $ftype;
+
 
 		if ($fkind eq "eventIn") { ## correct???
 			if ($type !~ /$ECMAScriptNative/) {
