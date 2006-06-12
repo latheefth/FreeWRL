@@ -36,8 +36,17 @@ $source
 
 CLASSES=\$(SOURCE:.java=.class)
 
+};
+	if ($VRML::Config::vrml_config{JAVA_CLASSPATH}) {
+	    $constants .= qq{
+JFLAGS=-classpath .:$VRML::Config::vrml_config{JAVA_CLASSPATH}
+};
+        } else {
+	    $constants .= qq{
 JFLAGS=-classpath .
 };
+        }
+
 	if ($VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
 	    $constants .= qq{
 NETSCAPE_CLASS_DIR=$VRML::Config::vrml_config{NETSCAPE_CLASSES}
