@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.225  2006/06/12 14:55:20  crc_canada
+# more #defines for C code parser
+#
 # Revision 1.224  2006/06/09 20:09:54  crc_canada
 # changes to help on 64 bit environments
 #
@@ -508,6 +511,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of EVENT_OUTs */\n       const char *EVENT_OUT[] = {\n";
 
+	$nodeIntegerType = 0;
 	foreach (keys %allFields) { 
 		my $ft = $allFields{$_};
 		#print "field $_, ft $ft\n";
@@ -524,6 +528,8 @@ sub gen {
 			# is this an EVENT_OUT?
 			if ($ft eq "eventOut") {
 				push @genFuncs1, "	\"$_\",\n";
+				push @str, "#define EVENT_OUT_$_	$nodeIntegerType\n";
+				$nodeIntegerType ++;
 			}
 		}
 	}
@@ -535,12 +541,15 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of EVENT_INs */\n       const char *EVENT_IN[] = {\n";
 
+	$nodeIntegerType = 0;
 	foreach (keys %allFields) { 
 		my $ft = $allFields{$_};
 		if (index($_,"_") !=0) {
 			# is this an EVENT_IN?
 			if ($ft eq "eventIn") {
 				push @genFuncs1, "	\"$_\",\n";
+				push @str, "#define EVENT_IN_$_	$nodeIntegerType\n";
+				$nodeIntegerType ++;
 			}
 		}
 	}
@@ -552,12 +561,15 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of EXPOSED_FIELDs */\n       const char *EXPOSED_FIELD[] = {\n";
 
+	$nodeIntegerType = 0;
 	foreach (keys %allFields) { 
 		my $ft = $allFields{$_};
 		if (index($_,"_") !=0) {
 			# is this an EXPOSED_FIELD?
 			if ($ft eq "exposedField") {
 				push @genFuncs1, "	\"$_\",\n";
+				push @str, "#define EXPOSED_FIELD_$_	$nodeIntegerType\n";
+				$nodeIntegerType ++;
 			}
 		}
 	}
@@ -569,12 +581,15 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of FIELDs */\n       const char *FIELD[] = {\n";
 
+	$nodeIntegerType = 0;
 	foreach (keys %allFields) { 
 		my $ft = $allFields{$_};
 		if (index($_,"_") !=0) {
 			# is this an FIELD?
 			if ($ft eq "field") {
 				push @genFuncs1, "	\"$_\",\n";
+				push @str, "#define FIELD_$_	$nodeIntegerType\n";
+				$nodeIntegerType ++;
 			}
 		}
 	}
