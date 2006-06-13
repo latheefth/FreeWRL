@@ -351,12 +351,31 @@ sub EAI_Command {
         $str =~ s/\s*$//;
 
 	#commands handled: 
+	#	EAIheaders.h:#define    ADDROUTE        'H'
+	#	EAIheaders.h:#define    DELETEROUTE     'J'
 	#	EAIheaders.h:#define	UPDNAMEDNODE    'c'
 	#	EAIheaders.h:#define	REMNAMEDNODE    'd'
 	#
 
+	#ADDROUTE/ DELETEROUTE
+	if (($dir == 72) || ($dir == 74)) {
+		my ($fn, $ff, $tn, $tf) = split (" ",$str);
+		my $ar = 0;
+
+		$fn = VRML::Handles::get($fn);
+		$tn = VRML::Handles::get($tn);
+
+		$ff = VRML::Parser::parse_exposedField($ff, VRML::Handles::get($fn)->{Type});
+		$tf = VRML::Parser::parse_exposedField($tf, VRML::Handles::get($tn)->{Type});
+
+		# the direction is "72" for an add; it has no specific meaning.
+		if ($dir == 72) {$ar = 1;}
+
+		$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
+				$ar , $fn, $ff, $tn, $tf);
+
 	#UPDNAMEDNODE REMNAMEDNODE
-	if (($dir == 99) || ($dir == 100)) {
+	} elsif (($dir == 99) || ($dir == 100)) {
 		#print "have NAMEDNODE code $dir\n";
 		if ($dir == 99) {
 			#print "have UPDATENAMEDNODE\n";
@@ -494,7 +513,7 @@ sub EAI_GetNode {
 
 	my $node = VRML::Handles::def_check($nodetoget);
 	if ($node eq "") {
-		#print "EAI_GetNode: Node $nodetoget is not defined\n";
+		print "EAI_GetNode: Node $nodetoget is not defined\n";
 		return "-1 0";
 	}
 
@@ -923,7 +942,7 @@ sub EAI_CreateVrmlFromString {
 			$bn = $realele->{BackNode}{CNode};
 			$ele =~ s/^NODE//;
 			$retval{$ele} = $bn;
-			#print "EAI, have ele $ele, bn $bn\n";
+			print "EAI, have ele $ele, bn $bn\n";
 
 			# reserve the CNODE as a node, because sometimes we do need to go
 			# from CNode to node.
@@ -1150,8 +1169,17 @@ sub findCNodeFromObject {
 			if (substr($_,0,5) eq "CNODE") {
 				#print "FOUND IT! it is $_ returning ".  substr ($_,5)."\n";
 				return substr ($_,5);
+			} elsif (substr($_,0,4) eq "NODE") {
+				#print "findCNodeFromObject - this is a possibility, lets see:\n";
+				my $rn = $S{$_}[0];
+				
+				# if it does exist, then add it to the list, and return it's CNODE.
+                		if (exists $rn->{BackNode}{CNode}) {
+                        		my $bn = $rn->{BackNode}{CNode};
+                        		VRML::Handles::CNodeLinkreserve("CNODE$bn",$rn);
+					return $bn;
+				}
 			}
-			
 		}
 	}
 	return 0;

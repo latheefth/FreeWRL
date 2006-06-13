@@ -1109,10 +1109,17 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	char myline[200];
 
 	boxptr = (struct X3D_Box *) myptr;
-	/*
-	printf ("GETFIELDDEFS, node %d\n",boxptr);
-	printf ("node type is %s\n",stringNodeType(boxptr->_nodeType));
-	*/
+	
+	/* printf ("GETFIELDDEFS, node %d\n",boxptr); */
+
+	if (boxptr == 0) {
+		printf ("makeFIELDDEFret have null node here \n");
+		sprintf (buf,"RE\n%f\n%d\n0",TickTime,repno);
+		return;
+	}
+
+	/* printf ("node type is %s\n",stringNodeType(boxptr->_nodeType)); */
+	
 
 
 	/* how many fields in this node? */
