@@ -4,6 +4,9 @@
 make distclean
 cp -f JS/js1.5/src/config/Darwin.mk.i386 JS/js1.5/src/config/Darwin.mk
 cp -f JS/js1.5/src/editline/Makefile.ref.i386 JS/js1.5/src/editline/Makefile.ref
+cp -f JS/js1.5/src/Makefile.ref.uni JS/js1.5/src/Makefile.ref
+cp -f JS/js1.5/src/Makefile.in.uni JS/js1.5/src/Makefile.in
+cp -f JS/js1.5/src/urles.mk.uni JS/js1.5/src/rules.mk
 cp -f vrml.conf.i386 vrml.conf.aqua
 cp JS/Makefile.i386 JS/Makefile
 perl Makefile.PL
