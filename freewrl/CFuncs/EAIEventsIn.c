@@ -1120,7 +1120,6 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	myc = 0;
 	while (*np != -1) {
 		/* is this a hidden field? */
-
 		if (strncmp (FIELDNAMES[*np],"_",1) != 0) {
 			myc ++; 
 		}
@@ -1136,7 +1135,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 
 	/* now go through and get the name, type, keyword */
 	np = NODE_OFFSETS[boxptr->_nodeType];
-	for (a = 0; a < myc; a++) {
+	while (*np != -1) {
 		if (strncmp (FIELDNAMES[*np],"_",1) != 0) {
 			sprintf (myline,"%s %c %s ",FIELDNAMES[np[0]], EAIFIELD_TYPE_STRING(np[2]), 
 				KEYWORDS[np[3]]);
@@ -1144,7 +1143,6 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 		}
 		np += 4;
 	}
-	strcat (buf, myline);
 }
 
 /* an incoming EAI/CLASS event has come in, convert the ASCII characters
