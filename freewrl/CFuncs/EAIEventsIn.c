@@ -48,6 +48,39 @@ int returnElementLength(int type) {
 	return sizeof(float) ; /* turn into byte count */
 }
 
+/* for passing into CRoutes/CRoutes_Register */
+/* the numbers match the "sub clength" in VRMLFields.pm, and the getClen in VRMLC.pm */
+int returnRoutingElementLength(int type) {
+	  switch (type) {
+		case SFTIME:	return sizeof(double); break;
+		case SFBOOL:
+		case SFSTRING:
+		case SFINT32:	return sizeof(int); break;
+		case SFFLOAT:	return sizeof (float); break;
+		case SFVEC2F:	return sizeof (struct SFVec2f); break;
+		case SFVEC3F:
+		case SFCOLOR: 	return sizeof (struct SFColor); break;
+		case SFCOLORRGBA:
+		case SFROTATION:return sizeof (struct SFRotation); break;
+		case SFNODE:	return sizeof (uintptr_t); break;
+		case MFNODE:	return -10; break;
+		case SFIMAGE:	return -12; break;
+		case MFSTRING: 	return -13; break;
+		case MFFLOAT:	return -14; break;
+		case MFCOLORRGBA:
+		case MFROTATION: return -15; break;
+		case MFBOOL:
+		case MFINT32:	return -16; break;
+		case MFCOLOR:	return -17; break;
+		case MFVEC2F:	return -18; break;
+		case MFVEC3F:	return -19; break;
+
+                default:       return type;
+	}
+} 
+
+
+
 /* how many numbers/etc in an array entry? eg, SFVec3f = 3 - 3 floats */
 /*		"" ""			eg, MFVec3f = 3 - 3 floats, too! */
 int returnElementRowSize (int type) {
@@ -935,19 +968,43 @@ void EAI_parse_commands (char *bufptr) {
 	}
 }
 
+/* read in a C pointer, and field offset, and make sense of it */
+int getEAINodeAndOffset (char *bufptr, uintptr_t *Node, int *FieldInt, int fromto) {
+	int rv;
+	char *x;
+	char fieldTemp[2000];
+	struct X3D_Box *sn;
 
+	rv = TRUE;
+	sscanf (bufptr, "%d", Node);
+	sn = *Node;
+
+	/* copy the from field */
+	x = fieldTemp;
+	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
+	while (*bufptr > ' ') { *x = *bufptr; x++; bufptr++;}
+	*x = '\0';
+
+	*FieldInt = findRoutedFieldInFIELDNAMES(fieldTemp,fromto);
+
+	if (*FieldInt < 0) {
+		printf ("EAIEventsIn: trouble finding field %s of %s\n",
+				fieldTemp, stringNodeType(sn->_nodeType));
+		rv = FALSE;
+	}	
+	return rv;
+}
 
 
 /* add or delete a route */
 void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	struct X3D_Box *fromNode;
 	struct X3D_Box *toNode;
-	uintptr_t tmp;
 	char fieldTemp[2000];
-	char *x;
 	int fromFieldInt, toFieldInt;
 	int *np;
 	int fromOffset, fromVRMLtype, toOffset, toVRMLtype;
+	int adrem;
 
 	int rv;
 
@@ -957,54 +1014,26 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	/* get ready for the reply */
 	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
 
-	printf ("handleRoute, string %s\n",bufptr);
+	/* printf ("handleRoute, string %s\n",bufptr); */
+	
+	/* ------- worry about the route from section -------- */
+
+	/* read in the fromNode pointer */
 	while (*bufptr == ' ') bufptr++;
+	if (!getEAINodeAndOffset (bufptr, &fromNode, &fromFieldInt,0)) rv = FALSE;
 
-	sscanf (bufptr, "%d", &tmp);
-	fromNode = (struct X3D_Box *)tmp;
-	/* printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType)); */
+	/* skip past the first node & field, to get ready for the next one */
+	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
+	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
 
-	/* skip to the field */
-	while (*bufptr != ' ') bufptr++;
-	while (*bufptr == ' ') bufptr++;
-	x = fieldTemp;
+	/*printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType));  */
 
-	/* copy the field over */
-	while (*bufptr > ' ') { *x = *bufptr; x++; bufptr++;}
-	*x = '\0';
+	/* ------- now, the route to section -------- */
 
-	/* printf ("and the field is :%s:\n",fieldTemp); */
-	fromFieldInt = findRoutedFieldInFIELDNAMES(fieldTemp,0);
-	if (fromFieldInt < 0) {
-		printf ("EAIEventsIn: trouble finding field %s of %s\n",
-				fieldTemp, stringNodeType(fromNode->_nodeType));
-		rv = FALSE;
-	}	
+	if (!getEAINodeAndOffset (bufptr, &toNode, &toFieldInt,1)) rv = FALSE;
+	/* printf ("toNode is of type %s\n",stringNodeType(toNode->_nodeType));  */
 
-
-	while (*bufptr == ' ') bufptr++;
-	sscanf (bufptr, "%d", &tmp);
-	toNode = (struct X3D_Box *)tmp;
-	/*printf ("toNode is of type %s\n",stringNodeType(toNode->_nodeType)); */
-
-	/* skip to the field */
-	while (*bufptr != ' ') bufptr++;
-	while (*bufptr == ' ') bufptr++;
-	x = fieldTemp;
-
-	/* copy the field over */
-	while (*bufptr > ' ') { *x = *bufptr; x++; bufptr++;}
-	*x = '\0';
-
-	/* printf ("and the field is :%s:\n",fieldTemp); */
-	toFieldInt = findRoutedFieldInFIELDNAMES(fieldTemp,1);
-	if (toFieldInt < 0) {
-		printf ("EAIEventsIn: trouble finding field %s of %s\n",
-				fieldTemp, stringNodeType(toNode->_nodeType));
-		rv = FALSE;
-	}	
-
-	/* are we ok so far? */
+	/* ------- can these routes work in these nodes?  -------- */
 	if (rv == TRUE) {
 		/* get the from field info */
 		np = NODE_OFFSETS[fromNode->_nodeType];
@@ -1017,11 +1046,10 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
         		FIELDNAMES___ctflag, offsetof (struct X3D_TimeSensor, __ctflag),  SFTIME, KW_exposedField,
         		-1, -1, -1, -1};
 		*/
-		while ((*np != -1) && (*np != fromFieldInt)) np += 4;
 
-		np++;
-		fromOffset = *np; np++;
-		fromVRMLtype = *np; np++;
+		/* go til we find the field, or a -1 */
+		while ((*np != -1) && (*np != fromFieldInt)) np += 4;
+		np++; fromOffset = *np; np++; fromVRMLtype = *np; np++;
 
 		/* is this a valid type? */
 		if ((*np != KW_eventOut) && (*np != KW_exposedField)) {
@@ -1029,21 +1057,12 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
                                 fieldTemp, stringNodeType(toNode->_nodeType));
               	  	rv = FALSE;
 		}
+
 		/* get the to field info */
 		np = NODE_OFFSETS[toNode->_nodeType];
 
-		/* go through and find the entry for this field, looks like:
-		const int OFFSETS_TimeSensor[] = {
-        		FIELDNAMES_isActive, offsetof (struct X3D_TimeSensor, isActive),  SFBOOL, KW_eventOut,
-        		...
-			FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  SFTIME, KW_eventOut,
-        		FIELDNAMES___ctflag, offsetof (struct X3D_TimeSensor, __ctflag),  SFTIME, KW_exposedField,
-        		-1, -1, -1, -1};
-		*/
 		while ((*np != -1) && (*np != toFieldInt)) np += 4;
-		np++;
-		toOffset = *np; np++;
-		toVRMLtype = *np; np++;
+		np++; toOffset = *np; np++; toVRMLtype = *np; np++;
 
 		/* is this a valid type? */
 		if ((*np != KW_eventIn) && (*np != KW_exposedField)) {
@@ -1060,14 +1079,22 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		}
 	}
 
+	/* ------- if we are ok, call the routing code  -------- */
 	/* still ok? */
 	if (rv = TRUE) {
-printf ("ok to add this route \n");
+		if (command == ADDROUTE) adrem = 1;
+		else adrem = 0;
+
+		sprintf (fieldTemp,"%d:%d",toNode,toOffset);
+		CRoutes_Register(adrem, (void *)fromNode, fromOffset, 1,
+			fieldTemp, returnRoutingElementLength(fromVRMLtype),
+			returnInterpolatorPointer (stringNodeType(toNode->_nodeType)),
+0,0);
 
 
 		strcat (buf, "0");
 	} else {
-		strcat (buf, "0");
+		strcat (buf, "1");
 	}
 }
 

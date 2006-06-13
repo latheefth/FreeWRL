@@ -351,31 +351,12 @@ sub EAI_Command {
         $str =~ s/\s*$//;
 
 	#commands handled: 
-	#	EAIheaders.h:#define    ADDROUTE        'H'
-	#	EAIheaders.h:#define    DELETEROUTE     'J'
 	#	EAIheaders.h:#define	UPDNAMEDNODE    'c'
 	#	EAIheaders.h:#define	REMNAMEDNODE    'd'
 	#
 
-	#ADDROUTE/ DELETEROUTE
-	if (($dir == 72) || ($dir == 74)) {
-		my ($fn, $ff, $tn, $tf) = split (" ",$str);
-		my $ar = 0;
-
-		$fn = VRML::Handles::get($fn);
-		$tn = VRML::Handles::get($tn);
-
-		$ff = VRML::Parser::parse_exposedField($ff, VRML::Handles::get($fn)->{Type});
-		$tf = VRML::Parser::parse_exposedField($tf, VRML::Handles::get($tn)->{Type});
-
-		# the direction is "72" for an add; it has no specific meaning.
-		if ($dir == 72) {$ar = 1;}
-
-		$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
-				$ar , $fn, $ff, $tn, $tf);
-
 	#UPDNAMEDNODE REMNAMEDNODE
-	} elsif (($dir == 99) || ($dir == 100)) {
+	if (($dir == 99) || ($dir == 100)) {
 		#print "have NAMEDNODE code $dir\n";
 		if ($dir == 99) {
 			#print "have UPDATENAMEDNODE\n";

@@ -430,6 +430,8 @@ void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
 SV *EAI_newSVpv(char *str);
 
+void *returnInterpolatorPointer (char *x);
+
 /* Scripting Routing interfaces */
 
 #define SFUNKNOWN 0

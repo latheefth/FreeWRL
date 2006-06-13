@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.226  2006/06/13 17:14:51  crc_canada
+# EAI routing in C.
+#
 # Revision 1.225  2006/06/12 14:55:20  crc_canada
 # more #defines for C code parser
 #
@@ -1053,60 +1056,7 @@ void *
 InterpPointer(x)
 	char *x
 CODE:
-	void *pt;
-	void do_Oint4(void *x);
-
-	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
-		pt = (void *)do_Oint4;
-		RETVAL = pt;
-	} else if (strncmp("CoordinateInterpolator2D",x,strlen("CoordinateInterpolator2D"))==0) {
-		pt = (void *)do_OintCoord2D;
-		RETVAL = pt;
-	} else if (strncmp("PositionInterpolator2D",x,strlen("PositionInterpolator2D"))==0) {
-		pt = (void *)do_OintPos2D;
-		RETVAL = pt;
-	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
-		pt = (void *)do_OintScalar;
-		RETVAL = pt;
-	} else if (strncmp("ColorInterpolator",x,strlen("ColorInterpolator"))==0) {
-		pt = (void *)do_Oint3;
-		RETVAL = pt;
-	} else if (strncmp("PositionInterpolator",x,strlen("PositionInterpolator"))==0) {
-		pt = (void *)do_Oint3;
-		RETVAL = pt;
-	} else if (strncmp("CoordinateInterpolator",x,strlen("CoordinateInterpolator"))==0) {
-		pt = (void *)do_OintCoord;
-		RETVAL = pt;
-	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
-		pt = (void *)do_OintCoord;
-		RETVAL = pt;
-	} else if (strncmp("GeoPositionInterpolator",x,strlen("GeoPositionInterpolator"))==0) {
-		pt = (void *)do_GeoOint;
-		RETVAL = pt;
-
-
-	} else if (strncmp("BooleanFilter",x,strlen("BooleanFilter"))==0) {
-		pt = (void *)do_BooleanFilter;
-		RETVAL = pt;
-	} else if (strncmp("BooleanSequencer",x,strlen("BooleanSequencer"))==0) {
-		pt = (void *)do_BooleanSequencer;
-		RETVAL = pt;
-	} else if (strncmp("BooleanToggle",x,strlen("BooleanToggle"))==0) {
-		pt = (void *)do_BooleanToggle;
-		RETVAL = pt;
-	} else if (strncmp("BooleanTrigger",x,strlen("BooleanTrigger"))==0) {
-		pt = (void *)do_BooleanTrigger;
-		RETVAL = pt;
-	} else if (strncmp("IntegerTrigger",x,strlen("IntegerTrigger"))==0) {
-		pt = (void *)do_IntegerTrigger;
-		RETVAL = pt;
-	} else if (strncmp("TimeTrigger",x,strlen("TimeTrigger"))==0) {
-		pt = (void *)do_TimeTrigger;
-		RETVAL = pt;
-
-	} else {
-		RETVAL = 0;
-	}
+	RETVAL = returnInterpolatorPointer (x);
 OUTPUT:
 	RETVAL
 

@@ -18,6 +18,7 @@ RenderFuncs.c - do scenegraph rendering.
 #include "Collision.h"
 #include "Viewer.h"
 #include "LinearAlgebra.h"
+#include "SensInterps.h"
 
 
 /* Rearrange to take advantage of headlight when off */
@@ -1020,5 +1021,44 @@ printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d
 	FIELD_TYPE_STRING(ctype),value,stringNodeType(((struct X3D_Box *)ptr)->_nodeType),nst,coffset,commaCount+1);
 			break;
 			};
+	}
+}
+
+
+/* for CRoutes, we need to have a function pointer to an interpolator to run, if we
+route TO an interpolator */
+void *returnInterpolatorPointer (char *x) {
+	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
+		return (void *)do_Oint4;
+	} else if (strncmp("CoordinateInterpolator2D",x,strlen("CoordinateInterpolator2D"))==0) {
+		return (void *)do_OintCoord2D;
+	} else if (strncmp("PositionInterpolator2D",x,strlen("PositionInterpolator2D"))==0) {
+		return (void *)do_OintPos2D;
+	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
+		return (void *)do_OintScalar;
+	} else if (strncmp("ColorInterpolator",x,strlen("ColorInterpolator"))==0) {
+		return (void *)do_Oint3;
+	} else if (strncmp("PositionInterpolator",x,strlen("PositionInterpolator"))==0) {
+		return (void *)do_Oint3;
+	} else if (strncmp("CoordinateInterpolator",x,strlen("CoordinateInterpolator"))==0) {
+		return (void *)do_OintCoord;
+	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
+		return (void *)do_OintCoord;
+	} else if (strncmp("GeoPositionInterpolator",x,strlen("GeoPositionInterpolator"))==0) {
+		return (void *)do_GeoOint;
+	} else if (strncmp("BooleanFilter",x,strlen("BooleanFilter"))==0) {
+		return (void *)do_BooleanFilter;
+	} else if (strncmp("BooleanSequencer",x,strlen("BooleanSequencer"))==0) {
+		return (void *)do_BooleanSequencer;
+	} else if (strncmp("BooleanToggle",x,strlen("BooleanToggle"))==0) {
+		return (void *)do_BooleanToggle;
+	} else if (strncmp("BooleanTrigger",x,strlen("BooleanTrigger"))==0) {
+		return (void *)do_BooleanTrigger;
+	} else if (strncmp("IntegerTrigger",x,strlen("IntegerTrigger"))==0) {
+		return (void *)do_IntegerTrigger;
+	} else if (strncmp("TimeTrigger",x,strlen("TimeTrigger"))==0) {
+		return (void *)do_TimeTrigger;
+	} else {
+		return 0;
 	}
 }
