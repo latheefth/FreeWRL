@@ -748,6 +748,31 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	#endif
 }
 
+/* find the ASCII string name of this field of this node */
+char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
+	struct X3D_Box *no;
+	int* np;
+	int nodeType;
+	char *ptr;
+
+	if (node == 0) return "unknown";
+
+	no = (struct X3D_Box *) node;
+	nodeType = no->_nodeType;
+
+	np = NODE_OFFSETS[nodeType];
+	np++;  /* go to the offset field */
+
+	while ((*np != -1) && (*np != offset)) np +=4;
+	
+	if (*np == -1) return "fieldNotFound";
+	
+	/* go back to the field name */
+	np --;
+	return FIELDNAMES[*np];
+}
+
+
 /* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
 int findFieldInFIELDNAMES(char *field) {

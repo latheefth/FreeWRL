@@ -557,6 +557,9 @@ void CRoutes_Register(int adrem,        void *from,
                                  int extra);
 void CRoutes_free(void);
 void propagate_events(void);
+int getRoutesCount(void);
+void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset, 
+                uintptr_t *toNode, int *toOffset);
 void sendScriptEventIn(uintptr_t num);
 void add_first(void * node);
 void do_first(void);
@@ -1051,6 +1054,7 @@ int findRoutedFieldInFIELDNAMES (char *field, int fromTo);
 int findNodeInNODES(char *node);
 int findFieldInALLFIELDNAMES(char *field);
 void findFieldInOFFSETS(int *nodeOffsetPtr, int field, int *coffset, int *ctype, int *ckind);
+char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset);
 void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 
 #endif /* __HEADERS_H__ */

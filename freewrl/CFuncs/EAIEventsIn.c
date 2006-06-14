@@ -30,9 +30,23 @@ int waiting_for_anchor = FALSE;
 /* used for reading in SVs */
 SV *sv_global_tmp;
 
+/* keep a table of nodename/pointer pairs */
+struct NodeTableStruct {
+	char *nodeName;
+	uintptr_t nodePtr;
+	int perlPtr;
+};
+
+struct NodeTableStruct *EAINodeTable = 0;
+int num_EAINodeTable = 0;
+
+
 void createLoadURL(char *bufptr);
 void makeFIELDDEFret(uintptr_t,char *buf,int c);
 void handleRoute (char command, char *bufptr, char *buf, int repno);
+void handleGETNODE (char *bufptr, char *buf, int repno);
+int findPerlNode(uintptr_t node);
+void handleGETROUTES (char *bufptr, char *buf, int repno);
 
 /* get how many bytes in the type */
 int returnElementLength(int type) {
@@ -598,22 +612,11 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 				}
 			case GETNODE:  {
-				/*format int seq# COMMAND    string nodename*/
-
-				retint=sscanf (bufptr," %s",ctmp);
-				#ifdef EAIVERBOSE 
-				printf ("GETNODE %s\n",ctmp);
-				#endif
-
-				/* is this the SAI asking for the root node? */
-				if (strncmp(ctmp,SYSTEMROOTNODE,strlen(SYSTEMROOTNODE))) {
-					sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
-						EAI_GetNode(ctmp));
-				} else {
-					/* yep */
-					sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,count,
-						rootNode);
-				}
+				handleGETNODE(bufptr,buf,count);
+				break;
+			}
+			case GETROUTES:  {
+				handleGETROUTES(bufptr,buf,count);
 				break;
 			}
 			case GETTYPE:  {
@@ -1004,6 +1007,121 @@ int getEAINodeAndOffset (char *bufptr, uintptr_t *Node, int *FieldInt, int fromt
 	return rv;
 }
 
+void handleGETROUTES (char *bufptr, char *buf, int repno) {
+	int numRoutes;
+	int count;
+	uintptr_t fromNode;
+	uintptr_t toNode;
+	int fromOffset;
+	int toOffset;
+	int perlFrom;
+	int perlTo;
+	int ctmp[200];
+	
+	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
+
+	numRoutes = getRoutesCount();
+
+	if (numRoutes < 2) {
+		strcat (buf,"0");
+		return;
+	}
+
+	/* tell how many routes there are */
+	sprintf (ctmp,"%d ",numRoutes-2);
+	strcat (buf,ctmp);
+
+	/* remember, in the routing table, the first and last entres are invalid, so skip them */
+	for (count = 1; count < (numRoutes-1); count++) {
+		perlFrom = 0; perlTo = 0;
+		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
+
+		perlFrom = findPerlNode(fromNode);
+		perlTo = findPerlNode(toNode);
+
+		sprintf (ctmp, "%d %d %s %d %d %s ",perlFrom,fromNode,
+			findFIELDNAMESfromNodeOffset(fromNode,fromOffset),
+			perlTo,toNode,
+			findFIELDNAMESfromNodeOffset(toNode,toOffset)
+			);
+		strcat (buf,ctmp);
+		/* printf ("route %d is:%s:\n",count,ctmp); */
+	}
+
+	printf ("getRoutes returns %s\n",buf);
+}
+
+/* GETNODE, perl to VRMLC mappings */
+int findPerlNode(uintptr_t node) {
+	int count;
+	for (count=0; count <num_EAINodeTable; count ++) {
+		if (node == EAINodeTable[count].nodePtr) 
+			return EAINodeTable[count].perlPtr;
+	}
+
+	return 0;
+}
+
+void handleGETNODE (char *bufptr, char *buf, int repno) {
+	int retint;
+	char ctmp[200];
+	int mystrlen;
+	char *rv;
+	int count;
+
+	/*format int seq# COMMAND    string nodename*/
+
+	retint=sscanf (bufptr," %s",ctmp);
+	mystrlen = strlen(ctmp);
+
+	/* printf ("GETNODE %s\n",ctmp); */
+
+	/* does this event exist? */
+	for (count=0; count <num_EAINodeTable; count ++) {
+		if (strlen(EAINodeTable[count].nodeName) == mystrlen) {
+			if (strncmp(EAINodeTable[count].nodeName, ctmp,mystrlen) == 0) {
+			sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
+				EAINodeTable[count].perlPtr,
+				EAINodeTable[count].nodePtr);
+			/* printf ("GETNODE fast returns %s\n",buf); */
+			return;
+			}
+		}	
+	}
+
+	/* is this the SAI asking for the root node? */
+	if (strncmp(ctmp,SYSTEMROOTNODE,strlen(SYSTEMROOTNODE))) {
+
+		/* nope, lets see if we have it, or if we need to ask Perl for it */
+		EAINodeTable = (struct NodeTableStruct *)realloc(EAINodeTable,sizeof (struct NodeTableStruct) * (num_EAINodeTable+1));
+		if (EAINodeTable == 0) {
+			printf ("can not allocate memory for getnode call\n");
+			num_EAINodeTable = 0;
+		}
+
+		rv = EAI_GetNode(ctmp);
+		
+
+		/* now, put the function pointer and data pointer into the structure entry */
+		EAINodeTable[num_EAINodeTable].nodeName = malloc (sizeof (char) * mystrlen+2);
+		memcpy (EAINodeTable[num_EAINodeTable].nodeName, ctmp, mystrlen+1);
+
+		sscanf (rv,"%d %d", &(EAINodeTable[num_EAINodeTable].perlPtr),
+				&(EAINodeTable[num_EAINodeTable].nodePtr));
+
+
+		sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
+			EAINodeTable[num_EAINodeTable].perlPtr,
+			EAINodeTable[num_EAINodeTable].nodePtr);
+
+		num_EAINodeTable++;
+	} else {
+		/* yep i this is a call for the rootNode */
+		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno,
+			rootNode);
+	}
+	/* printf ("GETNODE returns %s\n",buf); */
+}
 
 /* add or delete a route */
 void handleRoute (char command, char *bufptr, char *buf, int repno) {
@@ -1023,7 +1141,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	/* get ready for the reply */
 	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
 
-	/* printf ("handleRoute, string %s\n",bufptr); */
+	/* printf ("handleRoute, string %s\n",bufptr);  */
 	
 	/* ------- worry about the route from section -------- */
 
@@ -1035,12 +1153,12 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
 	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
 
-	/*printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType));  */
+	/* printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType)); */
 
 	/* ------- now, the route to section -------- */
 
 	if (!getEAINodeAndOffset (bufptr, &toNode, &toFieldInt,1)) rv = FALSE;
-	/* printf ("toNode is of type %s\n",stringNodeType(toNode->_nodeType));  */
+	/* printf ("toNode is of type %s\n",stringNodeType(toNode->_nodeType)); */
 
 	/* ------- can these routes work in these nodes?  -------- */
 	if (rv == TRUE) {
@@ -1081,7 +1199,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		}
 
 		/* do the VRML types match? */
-		printf ("VRML types %d %d\n",fromVRMLtype, toVRMLtype);
+		/* printf ("VRML types %d %d\n",fromVRMLtype, toVRMLtype); */
 		if (fromVRMLtype != toVRMLtype) {
 			printf ("Routing type mismatch\n");
 			rv = FALSE;
@@ -1098,7 +1216,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		CRoutes_Register(adrem, (void *)fromNode, fromOffset, 1,
 			fieldTemp, returnRoutingElementLength(fromVRMLtype),
 			returnInterpolatorPointer (stringNodeType(toNode->_nodeType)),
-0,0);
+			0,0);
 
 
 		strcat (buf, "0");

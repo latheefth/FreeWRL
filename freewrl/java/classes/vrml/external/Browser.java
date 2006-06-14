@@ -585,6 +585,17 @@ public class Browser implements BrowserInterface, IBrowser
 		return retval;
 	}
 
+	// for SAI coding
+	public String getRoutes () {
+		String retval;
+
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "j\n");
+			retval = getVRMLreply(queryno);
+		}
+		return retval;
+	}
+
 
 
     // Tells the browser to load a VRML scene from the passed URL or
@@ -640,8 +651,8 @@ public class Browser implements BrowserInterface, IBrowser
       String retval;
 
       synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "H " + fromNode + " " + fromEventOut +
-		" " + toNode + " " + toEventIn +"\n");
+         EAIoutSender.send ("" + queryno + "H " + fromNode.nodeptr + " " + fromEventOut +
+		" " + toNode.nodeptr + " " + toEventIn +"\n");
          retval = getVRMLreply(queryno);
          queryno += 1;
        }
@@ -655,8 +666,8 @@ public class Browser implements BrowserInterface, IBrowser
       String retval;
 
       synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "J " + fromNode + " " + fromEventOut +
-		" " + toNode + " " + toEventIn +"\n");
+         EAIoutSender.send ("" + queryno + "J " + fromNode.nodeptr + " " + fromEventOut +
+		" " + toNode.nodeptr + " " + toEventIn +"\n");
          retval = getVRMLreply(queryno);
          queryno += 1;
        }

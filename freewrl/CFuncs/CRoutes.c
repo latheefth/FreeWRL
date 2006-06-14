@@ -3213,6 +3213,56 @@ void do_first() {
 
 /*******************************************************************
 
+Interface to allow EAI/SAI to get routing information.
+
+********************************************************************/
+
+int getRoutesCount(void) {
+	return CRoutes_Count;
+}
+/*
+struct CRStruct {
+	void *	fromnode;
+	uintptr_t fnptr;
+	unsigned int tonode_count;
+	CRnodeStruct *tonodes;
+	int	act;
+	int	len;
+	void	(*interpptr)(void *); 
+	int	direction_flag;f
+*/
+void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset, 
+		uintptr_t *toNode, int *toOffset) {
+        CRnodeStruct *to_ptr = NULL;
+
+
+	if ((routeNo <1) || (routeNo >= CRoutes_Count)) {
+		*fromNode = 0; *fromOffset = 0; *toNode = 0; *toOffset = 0;
+	}
+/*
+	printf ("getSpecificRoute, fromNode %d fromPtr %d tonode_count %d\n",
+		CRoutes[routeNo].fromnode, CRoutes[routeNo].fnptr, CRoutes[routeNo].tonode_count);
+*/
+		*fromNode = CRoutes[routeNo].fromnode;
+		*fromOffset = CRoutes[routeNo].fnptr;
+	/* there is not a case where tonode_count != 1 for a valid route... */
+	if (CRoutes[routeNo].tonode_count != 1) {
+		printf ("huh? tonode count %d\n",CRoutes[routeNo].tonode_count);
+		*toNode = 0; *toOffset = 0;
+		return;
+	}
+
+	/* get the first toNode,toOffset */
+        to_ptr = &(CRoutes[routeNo].tonodes[0]);
+        *toNode = to_ptr->node;
+	*toOffset = to_ptr->foffset;
+
+
+	
+
+}
+/*******************************************************************
+
 kill_routing()
 
 Stop routing, remove structure. Used for ReplaceWorld style calls.

@@ -942,7 +942,7 @@ sub EAI_CreateVrmlFromString {
 			$bn = $realele->{BackNode}{CNode};
 			$ele =~ s/^NODE//;
 			$retval{$ele} = $bn;
-			print "EAI, have ele $ele, bn $bn\n";
+			#print "EAI, have ele $ele, bn $bn\n";
 
 			# reserve the CNODE as a node, because sometimes we do need to go
 			# from CNode to node.
