@@ -618,6 +618,9 @@ void EAI_parse_commands (char *bufptr) {
 			}
 			case GETTYPE:  {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
+
+				xxx = KW_exposedField; /* set this to something */
+
 				retint=sscanf (bufptr,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
 				#ifdef EAIVERBOSE 
 				printf ("GETTYPE NODE%d  cptr %d %s %s\n",perlNode, cNode, ctmp, dtmp);
@@ -628,7 +631,8 @@ void EAI_parse_commands (char *bufptr) {
 					boxptr = (struct X3D_Box *) cNode;
 					/* printf ("this is a valid C node %d (%x)\n",boxptr,boxptr);
 					printf ("	of type %d\n",boxptr->_nodeType);
-					printf ("	of string type %s\n",stringNodeType(boxptr->_nodeType)); */
+					printf ("	of string type %s\n",stringNodeType(boxptr->_nodeType)); 
+					*/
 
 					if ((strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) || 
 					(strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0)) {
@@ -647,15 +651,20 @@ void EAI_parse_commands (char *bufptr) {
 					rc = 0;	/* data len */
 					rd = EAIFIELD_TYPE_STRING(ctype);	
 					scripttype =0;
+
+					/* re-map the access type back for children fields */
+					if (strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) xxx = KW_eventIn; 
+					if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) xxx = KW_eventOut;
 					
-					/* printf ("so we have coffset %d, ctype %c, ctmp %d\n",rb,rc, xxx); */
+					/* printf ("so we have coffset %d, ctype %c, ctmp %s\n",rb,rc, KEYWORDS[xxx]);  */
 
 
 				} else { 
 					EAI_GetType (perlNode,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
 				}
 
-				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d",TickTime,count,ra,rb,rc,rd,scripttype);
+				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,ra,rb,rc,rd,
+						scripttype,KEYWORDS[xxx]);
 				break;
 				}
 			case SENDEVENT:   {
