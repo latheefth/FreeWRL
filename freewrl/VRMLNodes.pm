@@ -509,18 +509,6 @@ my $protono;
 	fromNode
 	/;
 
-# initevents are used in event propagation as the "First" events to run.
-# check out add_first subroutine, and event propagation to see what happens.
-
-%VRML::Nodes::initevents = map {($_,1)} qw/
- TimeSensor
- ProximitySensor
- Collision
- MovieTexture
- AudioClip
- VisibilitySensor
-/;
-
 # What are the transformation-hierarchy child nodes?
 %VRML::Nodes::Transchildren = qw(
  Transform	children

@@ -558,7 +558,7 @@ void CRoutes_Register(int adrem,        void *from,
 void CRoutes_free(void);
 void propagate_events(void);
 void sendScriptEventIn(uintptr_t num);
-void add_first(char *clocktype,void * node);
+void add_first(void * node);
 void do_first(void);
 void process_eventsProcessed(void);
 

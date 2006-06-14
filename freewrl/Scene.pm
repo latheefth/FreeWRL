@@ -1007,28 +1007,10 @@ sub setup_routing {
 		  if $VRML::verbose::scene;
 
 		 return unless "VRML::NodeIntern" eq ref $_[0];
-		 print "\t\tITNO: $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n"
-			 if $VRML::verbose::scene;
-		 if ($VRML::Nodes::initevents{$_[0]->{TypeName}}) {
-			 print "\tITNO:is member of initevents\n"
-				if $VRML::verbose::scene;
 
-
-			# is this a proto expansion SFNode field?
-			# if so, the backnode->{CNode} will need to be created
-			if (!defined $_[0]->{BackNode}) {
-				#print "backnode not defined\n";
-
-				$_[0]->{BackNode} =
-					VRML::NodeIntern::make_backend($_[0], $be);
-			}
-
-			VRML::VRMLFunc::add_first($_[0]->{TypeName}, $_[0]->{BackNode}->{CNode});
-		 } else {
-			 if ($_[0]->{ProtoExp}) {
-				 #print "VRML::Scene::setup_routing, this $this is a proto, calling protoexp setup_routing\n";
-				 $_[0]->{ProtoExp}->setup_routing($eventmodel, $be);
-			 }
+		 if ($_[0]->{ProtoExp}) {
+			 #print "VRML::Scene::setup_routing, this $this is a proto, calling protoexp setup_routing\n";
+			 $_[0]->{ProtoExp}->setup_routing($eventmodel, $be);
 		 }
 		 # Look at child nodes
 		 my $c;

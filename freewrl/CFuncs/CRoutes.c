@@ -8,6 +8,7 @@
 #include "headers.h"
 #include <math.h>
 
+
 #include "jsapi.h"
 #include "jsUtils.h"
 #include "jsNative.h"
@@ -187,9 +188,10 @@ int num_ClockEvents = 0;
    accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of
    the node types, eg, X3D_IndexedFaceSet  the first offset is for X3D_Virt :=)
 */
+
 void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 	if (tptr != 0) {
-		#ifdef CRVERBOSE
+		#ifdef XXXX
 		printf ("markScriptResults: can update this node %d %d\n",tn,tptr); 
 		#endif
 		update_node(tn);
@@ -1981,18 +1983,29 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */
 
-void add_first(char *clocktype,void * node) {
+void add_first(void * node) {
 	void (*myp)(void *);
+	struct X3D_Box * tmp;
+	int clocktype;
+	int count;
+	
+	if (node == 0) {
+		printf ("error in add_first; somehow the node datastructure is zero \n");
+		return;
+	}
 
-	if (strncmp("TimeSensor",clocktype,10) == 0) { myp =  do_TimeSensorTick;
-	} else if (strncmp("ProximitySensor",clocktype,10) == 0) { myp = do_ProximitySensorTick;
-	} else if (strncmp("Collision",clocktype,10) == 0) { myp = do_CollisionTick;
-	} else if (strncmp("MovieTexture",clocktype,10) == 0) { myp = do_MovieTextureTick;
-	} else if (strncmp("AudioClip",clocktype,10) == 0) { myp = do_AudioTick;
-	} else if (strncmp("VisibilitySensor",clocktype,10) == 0) { myp = do_VisibilitySensorTick;
+	tmp = (struct X3D_Box*) node;
+	clocktype = tmp->_nodeType;
+
+	if (NODE_TimeSensor == clocktype) { myp =  do_TimeSensorTick;
+	} else if (NODE_ProximitySensor == clocktype) { myp = do_ProximitySensorTick;
+	} else if (NODE_Collision == clocktype) { myp = do_CollisionTick;
+	} else if (NODE_MovieTexture == clocktype) { myp = do_MovieTextureTick;
+	} else if (NODE_AudioClip == clocktype) { myp = do_AudioTick;
+	} else if (NODE_VisibilitySensor == clocktype) { myp = do_VisibilitySensorTick;
 
 	} else {
-		printf ("VRML::VRMLFunc::add_first, unhandled type %s\n",clocktype);
+		/* printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype)); */
 		return;
 	}
 
@@ -2002,10 +2015,14 @@ void add_first(char *clocktype,void * node) {
 		num_ClockEvents = 0;
 	}
 
-	if (node == 0) {
-		printf ("error in add_first; somehow the node datastructure is zero for type %s\n",clocktype);
-		return;
+	/* does this event exist? */
+	for (count=0; count <num_ClockEvents; count ++) {
+		if (ClockEvents[count].tonode == node) {
+			/* printf ("add_first, already have %d\n",node); */
+			return;
+		}	
 	}
+
 
 	/* now, put the function pointer and data pointer into the structure entry */
 	ClockEvents[num_ClockEvents].interpptr = myp;
@@ -2190,6 +2207,11 @@ void CRoutes_Register(
 		CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
 		CRoutes_Register (adrem, chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
 		return;
+	}
+
+	/* is this from a clock type? -note, we expect a valid CNode here */
+	if (scrdir != FROM_SCRIPT) {
+		add_first (from);
 	}
 
 	/* first time through, create minimum and maximum for insertion sorts */
@@ -3016,9 +3038,9 @@ void propagate_events() {
 	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	#ifdef CRVERBOSE
+		#ifdef CRVERBOSE
 		printf ("\npropagate_events start\n");
-	#endif
+		#endif
 
 	do {
 		havinterp=FALSE; /* assume no interpolators triggered */
@@ -3031,6 +3053,7 @@ void propagate_events() {
 							to_counter);
 					continue;
 				}
+
 				#ifdef CRVERBOSE
 					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u dir %d\n",
 						   counter, to_counter, BOOL_STRING(CRoutes[counter].act),
@@ -3040,9 +3063,9 @@ void propagate_events() {
 				#endif
 
 				if (CRoutes[counter].act == TRUE) {
-					#ifdef CRVERBOSE
+						#ifdef CRVERBOSE
 						printf("event %u %u sent something\n", CRoutes[counter].fromnode, CRoutes[counter].fnptr);
-					#endif
+						#endif
 
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
@@ -3073,10 +3096,10 @@ void propagate_events() {
 						if (CRoutes[counter].interpptr != 0) {
 							/* this is an interpolator, call it */
 							havinterp = TRUE;
-							#ifdef CRVERBOSE
+								#ifdef CRVERBOSE
 								printf("propagate_events: index %d is an interpolator\n",
 									   counter);
-							#endif
+								#endif
 
 							/* copy over this "extra" data, EAI "advise" calls need this */
 							CRoutesExtra = CRoutes[counter].extra;
@@ -3132,9 +3155,9 @@ printf ("script type %d\n",ScriptControl[counter].thisScriptType);
 		scripts_active = FALSE;
 	} while (havinterp==TRUE);
 
-	#ifdef CRVERBOSE 
+		#ifdef CRVERBOSE
 		printf ("done propagate_events\n\n");
-	#endif
+		#endif
 }
 
 
