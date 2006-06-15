@@ -365,7 +365,7 @@ sub new_node {
 				$fields->{$_}[0], #eg, eventOut
 			];
 		}
-		my $type = VRML::NodeType->new($t, \%f);
+		my $type = VRML::NodeType->new($t, \%f,"X3D_Component_Scripting");
 		my $node = VRML::NodeIntern->new($this, $type, {}, $this->{EventModel});
 		VRML::Handles::reserve($node);
 		#print "handle is $node, ",VRML::NodeIntern::dump_name($node),"\n";
@@ -438,7 +438,7 @@ sub new_node {
 
 
 		# create new type for this script node.
-		my $type = VRML::NodeType->new($internalScriptName, \%f);
+		my $type = VRML::NodeType->new($internalScriptName, \%f,"X3D_Component_Scripting");
 		my $node = VRML::NodeIntern->new($this, $type, {}, $this->{EventModel});
 		VRML::Handles::reserve($node);
 		#print "handle is $node, ",VRML::NodeIntern::dump_name($node),"\n";
