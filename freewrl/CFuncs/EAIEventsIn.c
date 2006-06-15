@@ -619,14 +619,31 @@ void EAI_parse_commands (char *bufptr) {
 				handleGETROUTES(bufptr,buf,count);
 				break;
 			}
-			case GETTYPE:  {
+
+			case GETNODETYPE: {
+				#ifdef EAIVERBOSE 
+				printf ("GENODETYPE\n");
+				#endif
+				retint = sscanf(bufptr,"%d",&cNode);
+				if (cNode != 0) {
+					boxptr = (struct X3D_Box *) cNode;
+					sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
+						boxptr->_nodeType));
+				} else {
+					sprintf (buf,"RE\n%f\n%d\n-1",TickTime,count);
+				}
+				/* printf ("GETNODETYPE, for node %s, returns %s\n",bufptr,buf); */
+					
+				break;
+				}
+			case GETFIELDTYPE:  {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
 				xxx = KW_exposedField; /* set this to something */
 
 				retint=sscanf (bufptr,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
 				#ifdef EAIVERBOSE 
-				printf ("GETTYPE NODE%d  cptr %d %s %s\n",perlNode, cNode, ctmp, dtmp);
+				printf ("GETFIELDTYPE NODE%d  cptr %d %s %s\n",perlNode, cNode, ctmp, dtmp);
 				#endif
 
 				/* is this a valid C node? if so, lets just get the info... */
@@ -1048,7 +1065,7 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 		/* printf ("route %d is:%s:\n",count,ctmp); */
 	}
 
-	printf ("getRoutes returns %s\n",buf);
+	/* printf ("getRoutes returns %s\n",buf); */
 }
 
 /* GETNODE, perl to VRMLC mappings */

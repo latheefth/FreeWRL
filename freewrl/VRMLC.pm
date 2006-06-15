@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.231  2006/06/15 18:23:17  crc_canada
+# getNodeType for SAI
+#
 # Revision 1.230  2006/06/15 15:46:14  crc_canada
 # now, if a field has more than 1 type, depending on node (eg, field, exposedField)
 # it can be found in all relevant tables (EXPOSED_FIELD, FIELD, EVENT_IN, EVENT_OUT)
@@ -837,6 +840,20 @@ sub gen {
 		};
 		push @fieldNodes, "END_NODE($node)\n";
 	}
+
+
+
+	#####################
+	# create a function to return the X3D component for each node type
+	push @str, "\nint getSAI_X3DNodeType (int FreeWRLNodeType);\n";
+	push @genFuncs2, "\nint getSAI_X3DNodeType (int FreeWRLNodeType) {\n\tswitch (FreeWRLNodeType) {\n";
+	for my $node (@sortedNodeList) {
+		push @genFuncs2, "	case NODE_$node: return ".
+				$VRML::Nodes{$node}{X3DNodeType}."; break;\n";
+	}
+	push @genFuncs2,"\tdefaut:return -1;\n\t}\n}\n";
+
+
 	#####################
 	# print out generated functions to a file
 	open GENFUNC, ">CFuncs/GeneratedCode.c";

@@ -27,7 +27,7 @@ BEGIN {
 
 #JAS use Data::Dumper ;
 
-package VRML::NodeType;
+#JAS package VRML::NodeType;
 
 ########################################################################
 
@@ -37,7 +37,13 @@ my $protono;
     # XXX When this changes, change Scene.pm: VRML::Scene::newp too --
     # the members must correspond.
     sub new {
-		my($type, $name, $fields) = @_;
+		my($type, $name, $fields, $X3DNodeType) = @_;
+
+		if ($X3DNodeType eq "") {
+			print "NodeType, X3DNodeType blank for $name\n";
+			$X3DNodeType = "unknown";
+		}
+
 		my $this = bless {
 						  Name => $name,
 						  Defaults => {},
@@ -45,7 +51,8 @@ my $protono;
 						  EventIns => {},
 						  Fields => {},
 						  FieldKinds => {},
-						  FieldTypes => {}
+						  FieldTypes => {},
+						  X3DNodeType => $X3DNodeType
 						 },$type;
 
 		my $t;
@@ -679,7 +686,7 @@ my $protono;
 						 __inittime => [SFTime, 0, field],
 						# cycleTimer flag.
 						__ctflag =>[SFTime, 10, exposedField]
-					   }),
+					   },"X3D_Component_Time"),
 
 
 	###################################################################################
@@ -698,7 +705,7 @@ my $protono;
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
 						__parenturl =>[SFString,"",field],
-					   }),
+					   },"X3D_Component_Networking"),
 
 
 	Inline => new VRML::NodeType("Inline", {
@@ -709,7 +716,7 @@ my $protono;
                                                 __children => [MFNode, [], exposedField],
 						__loadstatus =>[SFInt32,0,field],
 						__parenturl =>[SFString,"",field],
-					   }),
+					   },"X3D_Component_Networking"),
 
 	LoadSensor => new VRML::NodeType("LoadSensor", {
 						enabled => [SFBool,1,exposedField],
@@ -722,7 +729,7 @@ my $protono;
 						__loading => [SFBool,0,field],		# current internal status
 						__finishedloading => [SFBool,0,field],	# current internal status
 						__StartLoadTime => [SFTime,0,eventOut], # time we started loading...
-					}),
+					},"X3D_Component_Networking"),
 
 	###################################################################################
 
@@ -737,7 +744,7 @@ my $protono;
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
 						 __isProto => [SFInt32, 0, field], # tell renderer that this is a proto...
-					   }),
+					   },"X3D_Component_Grouping"),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {
 						children => [MFNode, [], exposedField],
@@ -746,7 +753,7 @@ my $protono;
 						 __transparency => [SFInt32, -1, field], # display list for transparencies
 						 __solid => [SFInt32, -1, field],	 # display list for solid geoms.
 						 __OccludeNumber =>[SFInt32,-1,field], # for Occlusion tests.
-					   }),
+					   },"X3D_Component_Grouping"),
 
 	Switch => new VRML::NodeType("Switch", {
 					 	addChildren => [MFNode, undef, eventIn],
@@ -755,7 +762,7 @@ my $protono;
 						whichChoice => [SFInt32, -1, exposedField],
 						 bboxCenter => [SFVec3f, [0, 0, 0], field],
 						 bboxSize => [SFVec3f, [-1, -1, -1], field],
-					   }),
+					   },"X3D_Component_Grouping"),
 
 	Transform => new VRML::NodeType ("Transform", {
 						 addChildren => [MFNode, undef, eventIn],
@@ -776,12 +783,12 @@ my $protono;
 						 __do_rotation => [SFInt32, 0, field],
 						 __do_scaleO => [SFInt32, 0, field],
 						 __do_scale => [SFInt32, 0, field],
-						}),
+						},"X3D_Component_Grouping"),
 
 	WorldInfo => new VRML::NodeType("WorldInfo", {
 						info => [MFString, [], field],
 						title => [SFString, "", field]
-					   }),
+					   },"X3D_Component_Grouping"),
 
 	###################################################################################
 
@@ -789,11 +796,11 @@ my $protono;
 
 	###################################################################################
 
-	Color => new VRML::NodeType("Color", { color => [MFColor, [], exposedField], }),
+	Color => new VRML::NodeType("Color", { color => [MFColor, [], exposedField], },"X3D_Component_Rendering"),
 
-	ColorRGBA => new VRML::NodeType("ColorRGBA", { color => [MFColorRGBA, [], exposedField], }),
+	ColorRGBA => new VRML::NodeType("ColorRGBA", { color => [MFColorRGBA, [], exposedField], },"X3D_Component_Rendering"),
 
-	Coordinate => new VRML::NodeType("Coordinate", { point => [MFVec3f, [], exposedField] }),
+	Coordinate => new VRML::NodeType("Coordinate", { point => [MFVec3f, [], exposedField] },"X3D_Component_Rendering"),
 
 	IndexedLineSet => new VRML::NodeType("IndexedLineSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -809,7 +816,7 @@ my $protono;
 						__vertices  =>[FreeWRLPTR,0,field],
 						__vertexCount =>[FreeWRLPTR,0,field],
 						__segCount =>[SFInt32,0,field],
-					   }),
+					   },"X3D_Component_Rendering"),
 
 	IndexedTriangleFanSet => new VRML::NodeType("IndexedTriangleFanSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -841,7 +848,7 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-						}),
+						},"X3D_Component_Rendering"),
 
 	IndexedTriangleSet => new VRML::NodeType("IndexedTriangleSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -873,7 +880,7 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-						}),
+						},"X3D_Component_Rendering"),
 
 	IndexedTriangleStripSet => new VRML::NodeType("IndexedTriangleStripSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -905,7 +912,7 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-						}),
+						},"X3D_Component_Rendering"),
 
 	LineSet => new VRML::NodeType("LineSet", {
 						color => [SFNode, NULL, exposedField],
@@ -914,14 +921,14 @@ my $protono;
 						__vertArr  =>[FreeWRLPTR,0,field],
 						__vertIndx  =>[FreeWRLPTR,0,field],
 						__segCount =>[SFInt32,0,field],
-					   }),
+					   },"X3D_Component_Rendering"),
 
-	Normal => new VRML::NodeType("Normal", { vector => [MFVec3f, [], exposedField] }),
+	Normal => new VRML::NodeType("Normal", { vector => [MFVec3f, [], exposedField] },"X3D_Component_Rendering"),
 
 	PointSet => new VRML::NodeType("PointSet", {
 						color => [SFNode, NULL, exposedField],
 						coord => [SFNode, NULL, exposedField]
-					   }),
+					   },"X3D_Component_Rendering"),
 
 	TriangleFanSet => new VRML::NodeType("TriangleFanSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -953,7 +960,7 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-						}),
+						},"X3D_Component_Rendering"),
 
 	TriangleStripSet => new VRML::NodeType("TriangleStripSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -985,7 +992,7 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-						}),
+						},"X3D_Component_Rendering"),
 
 	TriangleSet => new VRML::NodeType("TriangleSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -1017,7 +1024,7 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-						}),
+						},"X3D_Component_Rendering"),
 
 
 	###################################################################################
@@ -1032,20 +1039,20 @@ my $protono;
 						 textureTransform => [SFNode, NULL, exposedField],
 						 lineProperties => [SFNode, NULL, exposedField],
 						 fillProperties => [SFNode, NULL, exposedField],
-						}),
+						},"X3D_Component_Shape"),
 
 	FillProperties => new VRML::NodeType ("FillProperties", {
 						filled => [SFBool, 1, exposedField],
 						hatchColor => [SFColor, [1,1,1], exposedField],
 						hatched => [SFBool, 1, exposedField],
 						hatchStyle => [SFInt32, 1, exposedField],
-						}),
+						},"X3D_Component_Shape"),
 
 	LineProperties => new VRML::NodeType ("LineProperties", {
 						applied => [SFBool, 1, exposedField],
 						linetype => [SFInt32, 1, exposedField],
 						linewidthScaleFactor => [SFFloat, 0, exposedField],
-						}),
+						},"X3D_Component_Shape"),
 
 	Material => new VRML::NodeType ("Material", {
 						 ambientIntensity => [SFFloat, 0.2, exposedField],
@@ -1054,7 +1061,7 @@ my $protono;
 						 shininess => [SFFloat, 0.2, exposedField],
 						 specularColor => [SFColor, [0, 0, 0], exposedField],
 						 transparency => [SFFloat, 0, exposedField]
-						}),
+						},"X3D_Component_Shape"),
 
 	Shape => new VRML::NodeType ("Shape", {
 						 appearance => [SFNode, NULL, exposedField],
@@ -1062,7 +1069,7 @@ my $protono;
 						 bboxCenter => [SFVec3f, [0, 0, 0], field],
 						 bboxSize => [SFVec3f, [-1, -1, -1], field],
 						 __OccludeNumber =>[SFInt32,-1,field], # for Occlusion tests.
-						}),
+						},"X3D_Component_Shape"),
 
 
 	###################################################################################
@@ -1074,7 +1081,7 @@ my $protono;
 	Box => new VRML::NodeType("Box", { 	size => [SFVec3f, [2, 2, 2], field],
 						solid => [SFBool, 1, field],
 						__points  =>[FreeWRLPTR,0,field],
-					   }),
+					   },"X3D_Component_Geometry3D"),
 
 	Cone => new VRML::NodeType ("Cone", {
 						 bottomRadius => [SFFloat, 1.0, field],
@@ -1085,7 +1092,7 @@ my $protono;
 						 __sidepoints =>[FreeWRLPTR,0,field],
 						 __botpoints =>[FreeWRLPTR,0,field],
 						 __normals =>[FreeWRLPTR,0,field],
-						}),
+						},"X3D_Component_Geometry3D"),
 
 	Cylinder => new VRML::NodeType ("Cylinder", {
 						 bottom => [SFBool, 1, field],
@@ -1096,7 +1103,7 @@ my $protono;
 						solid => [SFBool, 1, field],
 						 __points =>[FreeWRLPTR,0,field],
 						 __normals =>[FreeWRLPTR,0,field],
-						}),
+						},"X3D_Component_Geometry3D"),
 
 	ElevationGrid => new VRML::NodeType("ElevationGrid", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -1128,7 +1135,7 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-					   }),
+					   },"X3D_Component_Geometry3D"),
 
 	Extrusion => new VRML::NodeType("Extrusion", {
 						set_crossSection => [MFVec2f, undef, eventIn],
@@ -1147,7 +1154,7 @@ my $protono;
 						scale => [MFVec2f, [[1, 1]], field],
 						solid => [SFBool, 1, field],
 						spine => [MFVec3f, [[0, 0, 0],[0, 1, 0]], field]
-					   }),
+					   },"X3D_Component_Geometry3D"),
 
 	IndexedFaceSet => new VRML::NodeType("IndexedFaceSet", {
 						set_colorIndex => [MFInt32, undef, eventIn],
@@ -1179,13 +1186,13 @@ my $protono;
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFFloat, 1.0, field],
 						__PolyStreamed => [SFBool, 0, field],
-					   }),
+					   },"X3D_Component_Geometry3D"),
 
 	Sphere => new VRML::NodeType("Sphere",
 					   { 	radius => [SFFloat, 1.0, field],
 						solid => [SFBool, 1, field],
 						 __points =>[FreeWRLPTR,0,field],
- 					   }),
+ 					   },"X3D_Component_Geometry3D"),
 
 
 	###################################################################################
@@ -1200,7 +1207,7 @@ my $protono;
 					    	startAngle => [SFFloat, 0.0, field],
 						__points  =>[FreeWRLPTR,0,field],
 						__numPoints =>[SFInt32,0,field],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 	ArcClose2D => new VRML::NodeType("ArcClose2D", {
 						closureType => [SFString,"PIE",field],
@@ -1210,14 +1217,14 @@ my $protono;
 					    	startAngle => [SFFloat, 0.0, field],
 						__points  =>[FreeWRLPTR,0,field],
 						__numPoints =>[SFInt32,0,field],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 
 	Circle2D => new VRML::NodeType("Circle2D", {
 					    	radius => [SFFloat, 1.0, field],
 						__points  =>[FreeWRLPTR,0,field],
 						__numPoints =>[SFInt32,0,field],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 	Disk2D => new VRML::NodeType("Disk2D", {
 					    	innerRadius => [SFFloat, 0.0, field],
@@ -1227,29 +1234,29 @@ my $protono;
 						__texCoords  =>[FreeWRLPTR,0,field],
 						__numPoints =>[SFInt32,0,field],
 						__simpleDisk => [SFBool,0,field],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 	Polyline2D => new VRML::NodeType("Polyline2D", {
 					    	lineSegments => [MFVec2f, [], field],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 	Polypoint2D => new VRML::NodeType("Polypoint2D", {
 					    	point => [MFVec2f, [], exposedField],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 	Rectangle2D => new VRML::NodeType("Rectangle2D", {
 					    	size => [SFVec2f, [2.0, 2.0], field],
 						solid => [SFBool, 0, field],
 						__points  =>[FreeWRLPTR,0,field],
 						__numPoints =>[SFInt32,0,field],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 
 	TriangleSet2D => new VRML::NodeType("TriangleSet2D", {
 					    	vertices => [MFVec2f, [], exposedField],
 						solid => [SFBool, 0, field],
 						__texCoords  =>[FreeWRLPTR,0,field],
- 					   }),
+ 					   },"X3D_Component_Geometry2D"),
 
 	###################################################################################
 
@@ -1264,7 +1271,7 @@ my $protono;
 						solid => [SFBool, 1, field],
 						 maxExtent => [SFFloat, 0, exposedField],
 						 __rendersub => [SFInt32, 0, exposedField] # Function ptr hack
-						}),
+						},"X3D_Component_Text"),
 
 	FontStyle => new VRML::NodeType("FontStyle", {
 						family => [MFString, ["SERIF"], field],
@@ -1276,7 +1283,7 @@ my $protono;
 						spacing => [SFFloat, 1.0, field],
 						style => [SFString, "PLAIN", field],
 						topToBottom => [SFBool, 1, field]
-					   }), 
+					   },"X3D_Component_Text"), 
 
 	###################################################################################
 
@@ -1308,7 +1315,7 @@ my $protono;
 						__localFileName => [FreeWRLPTR, 0,field],
 						# time that we were initialized at
 						__inittime => [SFTime, 0, field],
-					   }),
+					   },"X3D_Component_Sound"),
 
 	Sound => new VRML::NodeType("Sound", {
 						direction => [SFVec3f, [0, 0, 1], exposedField],
@@ -1321,7 +1328,7 @@ my $protono;
 						priority => [SFFloat, 0, exposedField],
 						source => [SFNode, NULL, exposedField],
 						spatialize => [SFBool,1, field]
-					   }),
+					   },"X3D_Component_Sound"),
 
 	###################################################################################
 
@@ -1335,7 +1342,7 @@ my $protono;
 						direction => [SFVec3f, [0, 0, -1], exposedField],
 						intensity => [SFFloat, 1.0, exposedField],
 						on => [SFBool, 1, exposedField]
-					   }),
+					   },"X3D_Component_Lighting"),
 
 	PointLight => new VRML::NodeType("PointLight", {
 						ambientIntensity => [SFFloat, 0, exposedField],
@@ -1347,7 +1354,7 @@ my $protono;
 						radius => [SFFloat, 100.0, exposedField],
 						##not in the spec
 						direction => [SFVec3f, [0, 0, -1.0], exposedField]
-					   }),
+					   },"X3D_Component_Lighting"),
 
 	SpotLight => new VRML::NodeType("SpotLight", {
 						ambientIntensity => [SFFloat, 0, exposedField],
@@ -1360,7 +1367,7 @@ my $protono;
 						location => [SFVec3f, [0, 0, 0], exposedField],
 						on => [SFBool, 1, exposedField],
 						radius => [SFFloat, 100.0, exposedField]
-					   }),
+					   },"X3D_Component_Lighting"),
 
 	###################################################################################
 
@@ -1374,7 +1381,7 @@ my $protono;
 						repeatT => [SFBool, 1, field],
 						__texture => [SFInt32, 0, field],
 						__parenturl =>[SFString,"",field],
-					   }),
+					   },"X3D_Component_Texturing"),
 
 	MovieTexture => new VRML::NodeType ("MovieTexture", {
 						 loop => [SFBool, 0, exposedField],
@@ -1404,7 +1411,7 @@ my $protono;
 						 __sourceNumber => [SFInt32, -1, field],
 						# parent url, gets replaced at node build time
 						__parenturl =>[SFString,"",field],
-						}),
+						},"X3D_Component_Texturing"),
 
 
 	MultiTexture => new VRML::NodeType("MultiTexture", {
@@ -1415,15 +1422,15 @@ my $protono;
 						source =>[MFString,[],exposedField],
 						texture=>[MFNode,undef,exposedField],
 						__params => [FreeWRLPTR, 0, field],
-					   }),
+					   },"X3D_Component_Texturing"),
 
 	MultiTextureCoordinate => new VRML::NodeType("MultiTextureCoordinate", {
 						texCoord =>[MFNode,undef,exposedField],
-					   }),
+					   },"X3D_Component_Texturing"),
 
 	MultiTextureTransform => new VRML::NodeType("MultiTextureTransform", {
 						textureTransform=>[MFNode,undef,exposedField],
-					   }),
+					   },"X3D_Component_Texturing"),
 
 	PixelTexture => new VRML::NodeType("PixelTexture", {
 						image => [SFImage, "0, 0, 0", exposedField],
@@ -1431,25 +1438,25 @@ my $protono;
 						repeatT => [SFBool, 1, field],
 						__texture => [SFInt32, 0, field],
 						__parenturl =>[SFString,"",field],
-					   }),
+					   },"X3D_Component_Texturing"),
 
 	TextureCoordinate => new VRML::NodeType("TextureCoordinate", { 
 						point => [MFVec2f, [], exposedField],
 						__compiledpoint => [MFVec2f, [], field],
-					 }),
+					 },"X3D_Component_Texturing"),
 
 	TextureCoordinateGenerator => new VRML::NodeType("TextureCoordinateGenerator", { 
 						parameter => [MFFloat, [], exposedField],
 						mode => [SFString,"SPHERE",exposedField],
 						__compiledmode => [SFInt32,0,field],
-					 }),
+					 },"X3D_Component_Texturing"),
 
 	TextureTransform => new VRML::NodeType ("TextureTransform", {
 						 center => [SFVec2f, [0, 0], exposedField],
 						 rotation => [SFFloat, 0, exposedField],
 						 scale => [SFVec2f, [1, 1], exposedField],
 						 translation => [SFVec2f, [0, 0], exposedField]
-						}),
+						},"X3D_Component_Texturing"),
 
 
 	###################################################################################
@@ -1463,7 +1470,7 @@ my $protono;
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFColor, [], exposedField],
 			value_changed => [SFColor, [0, 0, 0], eventOut],
-		   }),
+		   },"X3D_Component_Interpolation"),
 
 	############################################################################33
 	# CoordinateInterpolators and NormalInterpolators use almost the same thing;
@@ -1475,7 +1482,7 @@ my $protono;
 			keyValue => [MFVec3f, [], exposedField],
 			value_changed => [MFVec3f, [], eventOut],
 			_type => [SFInt32, 0, exposedField], #1 means dont normalize
-		}),
+		},"X3D_Component_Interpolation"),
 
 	NormalInterpolator => new VRML::NodeType("NormalInterpolator", {
 			set_fraction => [SFFloat, undef, eventIn],
@@ -1483,21 +1490,21 @@ my $protono;
 			keyValue => [MFVec3f, [], exposedField],
 			value_changed => [MFVec3f, [], eventOut],
 			_type => [SFInt32, 1, exposedField], #1 means normalize
-		}),
+		},"X3D_Component_Interpolation"),
 
 	OrientationInterpolator => new VRML::NodeType("OrientationInterpolator", {
 			set_fraction => [SFFloat, undef, eventIn],
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFRotation, [], exposedField],
 			value_changed => [SFRotation, [0, 0, 1, 0], eventOut]
-		   }),
+		   },"X3D_Component_Interpolation"),
 
 	PositionInterpolator => new VRML::NodeType("PositionInterpolator", {
 			set_fraction => [SFFloat, undef, eventIn],
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFVec3f, [], exposedField],
 			value_changed => [SFVec3f, [0, 0, 0], eventOut],
-		   }),
+		   },"X3D_Component_Interpolation"),
 
 
 	ScalarInterpolator => new VRML::NodeType("ScalarInterpolator", {
@@ -1505,21 +1512,21 @@ my $protono;
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFFloat, [], exposedField],
 			value_changed => [SFFloat, 0.0, eventOut]
-		   }),
+		   },"X3D_Component_Interpolation"),
 
 	CoordinateInterpolator2D => new VRML::NodeType("CoordinateInterpolator2D", {
 			set_fraction => [SFFloat, undef, eventIn],
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFVec2f, [], exposedField],
 			value_changed => [MFVec2f, [[0,0]], eventOut],
-		}),
+		},"X3D_Component_Interpolation"),
 
 	PositionInterpolator2D => new VRML::NodeType("PositionInterpolator2D", {
 			set_fraction => [SFFloat, undef, eventIn],
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFVec2f, [], exposedField],
 			value_changed => [SFVec2f, [0, 0, 0], eventOut],
-		}),
+		},"X3D_Component_Interpolation"),
 
 
 	###################################################################################
@@ -1537,7 +1544,7 @@ my $protono;
 						isOver => [SFBool, 0, eventOut],
 						description => [SFString, "", field],
 						touchTime => [SFTime, -1, eventOut]
-					   }),
+					   },"X3D_Component_PointingDevice"),
 
 	PlaneSensor => new VRML::NodeType("PlaneSensor", {
 						autoOffset => [SFBool, 1, exposedField],
@@ -1552,7 +1559,7 @@ my $protono;
 						translation_changed => [SFVec3f, [0, 0, 0], eventOut],
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], field],
-					   }),
+					   },"X3D_Component_PointingDevice"),
 
 	SphereSensor => new VRML::NodeType("SphereSensor", {
 						autoOffset => [SFBool, 1, exposedField],
@@ -1566,7 +1573,7 @@ my $protono;
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], field],
 						_radius => [SFFloat, 0, field],
-					   }),
+					   },"X3D_Component_PointingDevice"),
 
 	CylinderSensor => new VRML::NodeType("CylinderSensor", {
 						autoOffset => [SFBool, 1, exposedField],
@@ -1583,7 +1590,7 @@ my $protono;
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], field],
 						_radius => [SFFloat, 0, field],
-					   }),
+					   },"X3D_Component_PointingDevice"),
 
 
 	###################################################################################
@@ -1617,7 +1624,7 @@ my $protono;
 						__hit => [SFInt32, 0, exposedField],
 						__t1 => [SFVec3f, [10000000, 0, 0], exposedField],
 						__t2 => [SFRotation, [0, 1, 0, 0], exposedField]
-					   }),
+					   },"X3D_Component_EnvironmentalSensor"),
 
 	VisibilitySensor => new VRML::NodeType("VisibilitySensor", {
 						center => [SFVec3f, [0, 0, 0], exposedField],
@@ -1629,7 +1636,7 @@ my $protono;
 						 __OccludeNumber =>[SFInt32,-1,field], 	# for Occlusion tests.
 						__points  =>[FreeWRLPTR,0,field],	# for Occlude Box.
 						__Samples =>[SFInt32,0,field],		# Occlude samples from last pass
-					   }),
+					   },"X3D_Component_EnvironmentalSensor"),
 
 
 
@@ -1646,7 +1653,7 @@ my $protono;
 						center => [SFVec3f, [0, 0, 0],  field],
 						range => [MFFloat, [], field],
 						_selected =>[SFInt32,0,field],
-					   }),
+					   },"X3D_Component_Navigation"),
 
 	Billboard => new VRML::NodeType("Billboard", {
 						addChildren => [MFNode, undef, eventIn],
@@ -1655,7 +1662,7 @@ my $protono;
 						children => [MFNode, [], exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field]
-					   }),
+					   },"X3D_Component_Navigation"),
 
 	Collision => new VRML::NodeType("Collision", {
 						addChildren => [MFNode, undef, eventIn],
@@ -1670,7 +1677,7 @@ my $protono;
 						# bit 0 : collision or not
 						# bit 1: changed from previous of not
 						__hit => [SFInt32, 0, exposedField]
-					   }),
+					   },"X3D_Component_Navigation"),
 
 	Viewpoint => new VRML::NodeType("Viewpoint", {
 						set_bind => [SFBool, undef, eventIn],
@@ -1683,7 +1690,7 @@ my $protono;
 						isBound => [SFBool, 0, eventOut],
 						centerOfRotation =>[SFVec3f, [0,0,0], exposedField],
 						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
-					   }),
+					   },"X3D_Component_Navigation"),
 
 	NavigationInfo => new VRML::NodeType("NavigationInfo", {
 						set_bind => [SFBool, undef, eventIn],
@@ -1696,7 +1703,7 @@ my $protono;
 						transitionType => [MFString, [],exposedField],
 						bindTime => [SFTime, -1, eventOut],
 						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
-					   }),
+					   },"X3D_Component_Navigation"),
 
 	###################################################################################
 
@@ -1711,7 +1718,7 @@ my $protono;
 						visibilityRange => [SFFloat, 0, exposedField],
 						isBound => [SFBool, 0, eventOut],
 						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
-					   }),
+					   },"X3D_Component_EnvironmentalEffects"),
 
 	TextureBackground => new VRML::NodeType("TextureBackground", {
 						set_bind => [SFBool, undef, eventIn],
@@ -1734,7 +1741,7 @@ my $protono;
 						leftTexture=>[SFNode,NULL,exposedField],
 						rightTexture=>[SFNode,NULL,exposedField],
 						transparency=> [MFFloat,[0],exposedField],
-					   }),
+					   },"X3D_Component_EnvironmentalEffects"),
 
 	Background => new VRML::NodeType("Background", {
 						set_bind => [SFBool, undef, eventIn],
@@ -1755,7 +1762,7 @@ my $protono;
 							   # OpenGL texture number
 							   __texture.$_ => [SFInt32, 0, exposedField],
 							  )} qw/back front top bottom left right/),
-					   }),
+					   },"X3D_Component_EnvironmentalEffects"),
 
 	###################################################################################
 
@@ -1768,7 +1775,7 @@ my $protono;
 						geoOrigin => [SFNode, NULL, field],
 						geoSystem => [MFString,["GD","WE"],field],
 						point => [MFString,[],field],
-					}),
+					},"X3D_Component_Geospatial"),
 
 	GeoElevationGrid => new VRML::NodeType("GeoElevationGrid", {
 						set_height => [MFFloat, undef, eventIn],
@@ -1790,7 +1797,7 @@ my $protono;
 						yScale => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
 						zSpacing => [SFString, "1.0", field]
-					}),
+					},"X3D_Component_Geospatial"),
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {
 						center => [SFString,"",field],
@@ -1804,14 +1811,14 @@ my $protono;
 						rootUrl => [MFString,[],field],
 						rootNode => [MFNode,[],field],
 						children => [MFNode,[],eventOut],
-					}),
+					},"X3D_Component_Geospatial"),
 
 
 	GeoMetadata=> new VRML::NodeType("GeoMetadata", {
 						data => [MFNode,[],exposedField],
 						summary => [MFString,[],exposedField],
 						url => [MFString,[],exposedField],
-					}),
+					},"X3D_Component_Geospatial"),
 
 	GeoPositionInterpolator=> new VRML::NodeType("GeoPositionInterpolator", {
 						set_fraction => [SFFloat,undef,eventIn],
@@ -1821,7 +1828,7 @@ my $protono;
 						keyValue => [MFString,[],field],
 						geovalue_changed => [SFString,"",eventOut],
 						value_changed => [SFVec3f,[0,0,0],eventOut],
-					}),
+					},"X3D_Component_Geospatial"),
 
 
 	GeoTouchSensor=> new VRML::NodeType("GeoTouchSensor", {
@@ -1836,7 +1843,7 @@ my $protono;
 						isOver => [SFBool, 0, eventOut],
 						description => [SFString, "", field],
 						touchTime => [SFTime, -1, eventOut]
-					}),
+					},"X3D_Component_Geospatial"),
 
 	GeoViewpoint => new VRML::NodeType("GeoViewpoint", {
 						set_bind => [SFBool, undef, eventIn],
@@ -1859,7 +1866,7 @@ my $protono;
 						# "compiled" versions of strings above
 						__position => [SFVec3f,[0, 0, 100000], field],
 						__geoSystem => [SFInt32,0,field],
-					   }),
+					   },"X3D_Component_Geospatial"),
 
 	GeoOrigin => new VRML::NodeType("GeoOrigin", {
 						geoSystem => [MFString,["GD","WE"],exposedField],
@@ -1870,7 +1877,7 @@ my $protono;
 						# "compiled" versions of strings above
 						#__geoCoords => [SFVec3f,[0, 0, 0], field],
 						#__geoSystem => [SFInt32,0,field],
-					}),
+					},"X3D_Component_Geospatial"),
 
 	GeoLocation => new VRML::NodeType("GeoLocation", {
 						geoCoords => [SFString,"",exposedField],
@@ -1884,7 +1891,7 @@ my $protono;
 						__geoCoords => [SFVec3f,[0, 0, 0], field],
 						__geoSystem => [SFInt32,0,field],
 
-					}),
+					},"X3D_Component_Geospatial"),
 
 
 	###################################################################################
@@ -1898,7 +1905,7 @@ my $protono;
 						displacements => [MFVec3f, [], exposedField],
 						name => [SFString, "", exposedField],
 						weight => [SFFloat, 0.0, exposedField],
-					}),
+					},"X3D_Component_HAnim"),
 
 	HAnimHumanoid => new VRML::NodeType("HAnimHumanoid", {
 						center => [SFVec3f, [0, 0, 0], exposedField],
@@ -1919,7 +1926,7 @@ my $protono;
 						viewpoints => [MFNode,[],exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
-					}),
+					},"X3D_Component_HAnim"),
 
 	HAnimJoint => new VRML::NodeType("HAnimJoint", {
 
@@ -1949,7 +1956,7 @@ my $protono;
 						 __do_rotation => [SFInt32, 0, field],
 						 __do_scaleO => [SFInt32, 0, field],
 						 __do_scale => [SFInt32, 0, field],
-					}),
+					},"X3D_Component_HAnim"),
 
 	HAnimSegment => new VRML::NodeType("HAnimSegment", {
 						addChildren => [MFNode, undef, eventIn],
@@ -1963,7 +1970,7 @@ my $protono;
 						displacers => [MFNode,[],exposedField],
 						mass => [SFFloat, 0, exposedField],
 						momentsOfInertia =>[MFFloat, [0, 0, 0, 0, 0, 0, 0, 0, 0],exposedField],
-					}),
+					},"X3D_Component_HAnim"),
 
 
 
@@ -1987,7 +1994,7 @@ my $protono;
 						 __do_rotation => [SFInt32, 0, field],
 						 __do_scaleO => [SFInt32, 0, field],
 						 __do_scale => [SFInt32, 0, field],
-					}),
+					},"X3D_Component_HAnim"),
 
 
 	###################################################################################
@@ -2000,13 +2007,13 @@ my $protono;
 						addChildren => [MFNode, undef, eventIn],
 						removeChildren => [MFNode, undef, eventIn],
 						children => [MFNode, [], exposedField],
-					}),
+					},"X3D_Component_Nurbs"),
 
 
 	ContourPolyLine2D =>
 	new VRML::NodeType("ContourPolyline2D",
 					{
-					}
+					},"X3D_Component_Nurbs"
 					),
 
 	NurbsCurve =>
@@ -2017,7 +2024,7 @@ my $protono;
 						tessellation => [SFInt32,0,exposedField],
 						knot => [MFFloat,[],field],
 						order => [SFInt32,3,field],
-					}
+					},"X3D_Component_Nurbs"
 					),
 
 	NurbsCurve2D =>
@@ -2028,7 +2035,7 @@ my $protono;
 						tessellation => [SFInt32,0,exposedField],
 						knot => [MFFloat,[],field],
 						order => [SFInt32,3,field],
-					}
+					},"X3D_Component_Nurbs"
 					),
 
 	NurbsGroup =>
@@ -2040,7 +2047,7 @@ my $protono;
 						tessellationScale => [SFFloat,1.0,exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
-					}
+					},"X3D_Component_Nurbs"
 					),
 
 	NurbsPositionInterpolator =>
@@ -2054,7 +2061,7 @@ my $protono;
 						knot => [MFFloat,[],exposedField],
 						order => [SFInt32,0,exposedField],
 						value_changed => [SFVec3f,[0,0,0],eventOut],
-					}
+					},"X3D_Component_Nurbs"
 					),
 
 	NurbsSurface =>
@@ -2069,18 +2076,18 @@ my $protono;
 
 						knot => [MFFloat,[],field],
 						order => [SFInt32,3,field],
-					}
+					},"X3D_Component_Nurbs"
 					),
 	NurbsTextureSurface =>
 	new VRML::NodeType("NurbsTextureSurface",
 					{
-					}
+					},"X3D_Component_Nurbs"
 					),
 
 	NurbsTrimmedSurface =>
 	new VRML::NodeType("NurbsTrimmedSurface",
 					{
-					}
+					},"X3D_Component_Nurbs"
 					),
 
 
@@ -2095,7 +2102,7 @@ my $protono;
 						url => [MFString, [], exposedField],
 						directOutput => [SFBool, 0, field],
 						mustEvaluate => [SFBool, 0, field],
-					   },
+					   },"X3D_Component_Scripting"
 					  ),
 
 	###################################################################################
@@ -2110,7 +2117,7 @@ my $protono;
 			inputFalse => [SFBool, 0, eventOut],
 			inputNegate => [SFBool, 0, eventOut],
 			inputTrue => [SFBool, 1, eventOut],
-	}),
+	},"X3D_Component_EventUtilities"),
 
 
 	BooleanSequencer => 
@@ -2121,21 +2128,21 @@ my $protono;
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFBool, [], exposedField],
 			value_changed => [SFBool, 0, eventOut],
-	}),
+	},"X3D_Component_EventUtilities"),
 
 
 	BooleanToggle => 
 	new VRML::NodeType("BooleanToggle", {
 			set_boolean =>[SFBool,undef,eventIn],
 			toggle => [SFBool, 0, eventOut],
-	}),
+	},"X3D_Component_EventUtilities"),
 
 
 	BooleanTrigger => 
 	new VRML::NodeType("BooleanTrigger", {
 			set_triggerTime => [SFTime,undef ,eventIn],
 			triggerTrue => [SFBool, 0, eventOut],
-	}),
+	},"X3D_Component_EventUtilities"),
 
 
 	IntegerSequencer => 
@@ -2146,20 +2153,20 @@ my $protono;
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFInt32, [], exposedField],
 			value_changed => [SFInt32, 0, eventOut],
-	}),
+	},"X3D_Component_EventUtilities"),
 
 	IntegerTrigger => 
 	new VRML::NodeType("IntegerTrigger", {
 			set_triggerTime => [SFTime,undef ,eventIn],
 			integerKey => [SFInt32, 0, exposedField],
 			triggerValue => [SFInt32, 0, eventOut],
-	}),
+	},"X3D_Component_EventUtilities"),
 
 	TimeTrigger => 
 	new VRML::NodeType("TimeTrigger", {
 			set_boolean =>[SFBool,undef,eventIn],
 			triggerTime => [SFTime, 0, eventOut],
-	}),
+	},"X3D_Component_EventUtilities"),
 
 
 
@@ -2180,7 +2187,7 @@ my $protono;
 						children => [MFNode, [], eventOut],
 						__loadstatus =>[SFInt32,0,field],
 						__parenturl =>[SFString,"",field],
-					}
+					} ,"X3D_Component_Grouping"
 					),
 
 

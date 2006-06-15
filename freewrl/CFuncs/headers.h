@@ -460,6 +460,8 @@ void *returnInterpolatorPointer (char *x);
 #define SFCOLORRGBA 22
 #define MFBOOL	    23
 
+
+
 #define FREEWRLPTR	30 /* a pointer to a memory location */
 #define FIELD_TYPE_STRING(f) ( \
 	f == SFBOOL ? "SFBool" : ( \
@@ -488,6 +490,31 @@ void *returnInterpolatorPointer (char *x);
 	f == MFROTATION ? "MFRotation" : ( \
 	f == FREEWRLPTR ? "FREEWRLPTR" : ( \
 	f == SFVEC2F ? "SFVec2f" : "unknown field type"))))))))))))))))))))))))))
+
+
+/* SAI code node interface return values  The meanings of
+   these numbers can be found in the SAI java code */
+#define X3D_Component_Networking		1
+#define X3D_Component_Shape			2
+#define X3D_Component_Geometry2D		3
+#define X3D_Component_Sound			4
+#define X3D_Component_EnvironmentalEffects	5
+#define X3D_Component_Navigation		6
+#define X3D_Component_EventUtilities		7
+#define X3D_Component_Geometry3D		8
+#define X3D_Component_Rendering			9
+#define X3D_Component_Interpolation		10
+#define X3D_Component_Nurbs			11
+#define X3D_Component_PointingDevice		12
+#define X3D_Component_Lighting			13
+#define X3D_Component_Text			14
+#define X3D_Component_Geospatial		15
+#define X3D_Component_Grouping			16
+#define X3D_Component_HAnim			17
+#define X3D_Component_Texturing			18
+#define X3D_Component_EnvironmentalSensor	19
+#define X3D_Component_Scripting			20
+#define X3D_Component_Time			21
 
 
 void CRoutes_js_new (uintptr_t num,int scriptType);

@@ -19,7 +19,7 @@ void EAI_RW(char *bufptr);
 #define SENDCHILD 	'C'
 #define SENDEVENT	'D'
 #define GETVALUE	'E'
-#define GETTYPE		'F'
+#define GETFIELDTYPE	'F'
 #define	REGLISTENER	'G'
 #define	ADDROUTE	'H'
 #define REREADWRL	'I'
@@ -48,6 +48,7 @@ void EAI_RW(char *bufptr);
 #define GETFIELDDEFS	'h'
 #define GETNODEDEFNAME	'i'
 #define GETROUTES	'j'
+#define GETNODETYPE	'k'
 
 
 /* command string to get the rootNode - this is a special match... */
