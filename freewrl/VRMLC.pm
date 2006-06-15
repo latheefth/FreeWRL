@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.230  2006/06/15 15:46:14  crc_canada
+# now, if a field has more than 1 type, depending on node (eg, field, exposedField)
+# it can be found in all relevant tables (EXPOSED_FIELD, FIELD, EVENT_IN, EVENT_OUT)
+#
 # Revision 1.229  2006/06/15 12:41:37  domob
 # Fixed wrong filename of FieldNodes.h to correct NodeFields.h
 #
@@ -435,7 +439,11 @@ sub gen {
 	my $fieldTypeCount = 0; 
 	my $fieldNameCount = 0;
 	my $keywordIntegerType = 0; 
-	my %allFields = ();
+	my %totalfields = ();
+	my %allfields = ();
+	my %allexposedFields = ();
+	my %alleventInFields = ();
+	my %alleventOutFields = ();
 
 
 	#####################
@@ -480,14 +488,21 @@ sub gen {
 
 		# capture all fields.
  		foreach my $field (keys %{$VRML::Nodes{$_}{FieldTypes}}) {
-			$allFields{$field} = "recorded";
+			$totalfields{$field} = "recorded";
 			#print "field2 $field\n"
 		};
 
 		# now, tell what kind of field it is. Hopefully, all fields will
 		# have  a valid fieldtype, if not, there is an error somewhere.
  		foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {
-			$allFields{$field} = $VRML::Nodes{$_}{FieldKinds}{$field};
+			my $fk = $VRML::Nodes{$_}{FieldKinds}{$field};
+			if ($fk eq "field") { $allfields{$field} = $fk;}
+			elsif ($fk eq "eventIn") { $alleventIns{$field} = $fk;}
+			elsif ($fk eq "eventOut") { $alleventOuts{$field} = $fk;}
+			elsif ($fk eq "exposedField") { $allexposedFields{$field} = $fk;}
+			else {
+				print "field $field fieldKind $fk is invalid\n";
+			}
 		};
 	}
 	push @str, "\n";
@@ -500,13 +515,11 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of built-in fieldIds */\n       const char *FIELDNAMES[] = {\n";
 
-	foreach (keys %allFields) { 
-		#print "allFields $_\n";
-		#if (index($_,"_") !=0) {
-			push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
-			$fieldNameCount ++;
-			push @genFuncs1, "	\"$_\",\n";
-		#}
+	foreach (keys %totalfields) { 
+		#print "totalfields $_\n";
+		push @str, "#define FIELDNAMES_".$_."	$fieldNameCount\n";
+		$fieldNameCount ++;
+		push @genFuncs1, "	\"$_\",\n";
 	}
 	push @str, "\n";
 	push @genFuncs1, "};\nconst indexT FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);\n\n";
@@ -526,25 +539,11 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EVENT_OUTs */\n       const char *EVENT_OUT[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allFields) { 
-		my $ft = $allFields{$_};
-		#print "field $_, ft $ft\n";
-
-		# error check for all loops here
-		if (($ft ne "eventOut") && 
-			($ft ne "eventIn") &&
-			($ft ne "exposedField") &&
-			($ft ne "field")) {
-				print "field error - have field $_ as $ft\n";
-		}
-
+	foreach (keys %alleventOuts) { 
 		if (index($_,"_") !=0) {
-			# is this an EVENT_OUT?
-			if ($ft eq "eventOut") {
-				push @genFuncs1, "	\"$_\",\n";
-				push @str, "#define EVENT_OUT_$_	$nodeIntegerType\n";
-				$nodeIntegerType ++;
-			}
+			push @genFuncs1, "	\"$_\",\n";
+			push @str, "#define EVENT_OUT_$_	$nodeIntegerType\n";
+			$nodeIntegerType ++;
 		}
 	}
 	push @str, "\n";
@@ -556,15 +555,11 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EVENT_INs */\n       const char *EVENT_IN[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allFields) { 
-		my $ft = $allFields{$_};
+	foreach (keys %alleventIns) { 
 		if (index($_,"_") !=0) {
-			# is this an EVENT_IN?
-			if ($ft eq "eventIn") {
-				push @genFuncs1, "	\"$_\",\n";
-				push @str, "#define EVENT_IN_$_	$nodeIntegerType\n";
-				$nodeIntegerType ++;
-			}
+			push @genFuncs1, "	\"$_\",\n";
+			push @str, "#define EVENT_IN_$_	$nodeIntegerType\n";
+			$nodeIntegerType ++;
 		}
 	}
 	push @str, "\n";
@@ -576,15 +571,11 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EXPOSED_FIELDs */\n       const char *EXPOSED_FIELD[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allFields) { 
-		my $ft = $allFields{$_};
+	foreach (keys %allexposedFields) { 
 		if (index($_,"_") !=0) {
-			# is this an EXPOSED_FIELD?
-			if ($ft eq "exposedField") {
-				push @genFuncs1, "	\"$_\",\n";
-				push @str, "#define EXPOSED_FIELD_$_	$nodeIntegerType\n";
-				$nodeIntegerType ++;
-			}
+			push @genFuncs1, "	\"$_\",\n";
+			push @str, "#define EXPOSED_FIELD_$_	$nodeIntegerType\n";
+			$nodeIntegerType ++;
 		}
 	}
 	push @str, "\n";
@@ -596,15 +587,11 @@ sub gen {
 	push @genFuncs1, "\n/* Table of FIELDs */\n       const char *FIELD[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allFields) { 
-		my $ft = $allFields{$_};
+	foreach (keys %allfields) { 
 		if (index($_,"_") !=0) {
-			# is this an FIELD?
-			if ($ft eq "field") {
-				push @genFuncs1, "	\"$_\",\n";
-				push @str, "#define FIELD_$_	$nodeIntegerType\n";
-				$nodeIntegerType ++;
-			}
+			push @genFuncs1, "	\"$_\",\n";
+			push @str, "#define FIELD_$_	$nodeIntegerType\n";
+			$nodeIntegerType ++;
 		}
 	}
 	push @str, "\n";
