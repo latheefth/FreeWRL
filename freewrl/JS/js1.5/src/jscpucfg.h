@@ -42,7 +42,7 @@
 
 #include "jsosdep.h"
 
-#ifdef XP_MAC
+#if defined(XP_MAC) || defined(AQUA)
 #undef  IS_LITTLE_ENDIAN
 #define IS_BIG_ENDIAN 1
 
