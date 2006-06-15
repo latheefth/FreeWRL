@@ -41,7 +41,7 @@
 
 CC = cc
 CCC = g++
-CFLAGS +=  -Wall -Wno-format -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk
+CFLAGS +=  -Wall -Wno-format -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DAQUA
 XLDFLAGS = -arch i386
 #XLDFLAGS = -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN
