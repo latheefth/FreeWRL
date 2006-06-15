@@ -1208,7 +1208,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 
 	/* ------- if we are ok, call the routing code  -------- */
 	/* still ok? */
-	if (rv = TRUE) {
+	if (rv == TRUE) {
 		if (command == ADDROUTE) adrem = 1;
 		else adrem = 0;
 
