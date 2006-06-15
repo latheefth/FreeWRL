@@ -1314,7 +1314,7 @@ void handle_aqua(const int mev, const unsigned int button, const float x, const 
         if ((mev == ButtonPress) || (mev == ButtonRelease))
         {
                 if ((CursorOverSensitive ==0) && (lastPressedOver ==0)) {
-                        NavigationMode = button;
+			NavigationMode=ButDown[1] || ButDown[3];
                         handle(mev, button, x, y);
                 }
                 } else if (mev == MotionNotify) {
