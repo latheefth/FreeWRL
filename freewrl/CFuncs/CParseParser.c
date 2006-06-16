@@ -513,7 +513,6 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
    vector_pushBack(vrml##type##T, vec, val); \
   } \
   \
-  assert(!ret->n && !ret->p); \
   ret->n=vector_size(vec); \
   ret->p=vector_releaseData(vrml##type##T, vec); \
   \
