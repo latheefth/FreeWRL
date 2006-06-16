@@ -491,7 +491,6 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
   /* Just a single value? */ \
   if(!lexer_openSquare(me->lexer)) \
   { \
-   assert(!ret->n && !ret->p); \
    ret->p=malloc(sizeof(vrml##type##T)); \
    if(!parser_sf##name##Value(me, (void*)ret->p)) \
     return FALSE; \
