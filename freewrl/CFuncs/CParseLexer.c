@@ -612,13 +612,6 @@ breakStringLoop:
  return TRUE;
 }
 
-/* FIXME: Image is not lexed at all!!! */
-BOOL lexer_image(struct VRMLLexer* me, vrmlImageT* ret)
-{
- *ret=EAI_newSVpv("0 0 0");
- return TRUE;
-}
-
 /* Operator check */
 /* ************** */
 

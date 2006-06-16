@@ -58,9 +58,6 @@ BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 #define lexer_nodeName(me, ret) \
  lexer_specialID(me, NULL, ret, NULL, 0, &userNodeNames)
 
-/* SFImage as string is also lexed */
-BOOL lexer_image(struct VRMLLexer*, vrmlImageT*);
-
 /* Input the basic literals */
 BOOL lexer_int32(struct VRMLLexer*, vrmlInt32T*);
 BOOL lexer_float(struct VRMLLexer*, vrmlFloatT*);

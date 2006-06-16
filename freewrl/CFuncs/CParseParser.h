@@ -50,8 +50,7 @@ BOOL parser_sfcolorValue(struct VRMLParser*, vrmlColorT*);
 BOOL parser_sfcolorrgbaValue(struct VRMLParser*, vrmlColorRGBAT*);
 #define parser_sffloatValue(me, ret) \
  lexer_float(me->lexer, ret)
-#define parser_sfimageValue(me, ret) \
- lexer_image(me->lexer, ret)
+BOOL parser_sfimageValue(struct VRMLParser*, vrmlImageT*);
 #define parser_sfint32Value(me, ret) \
  lexer_int32(me->lexer, ret)
 BOOL parser_sfnodeValue(struct VRMLParser*, vrmlNodeT*);

@@ -566,6 +566,37 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 PARSER_FIXED_VEC(color, Color, 3, c)
 PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
 
+BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
+{
+ vrmlInt32T width, height, depth;
+ vrmlInt32T* ptr;
+ 
+ if(!lexer_int32(me->lexer, &width))
+  return FALSE;
+ if(!lexer_int32(me->lexer, &height))
+  return FALSE;
+ if(!lexer_int32(me->lexer, &depth))
+  return FALSE;
+
+ ret->n=3+width*height;
+ ret->p=malloc(sizeof(*ret->p)*ret->n);
+ assert(ret->p);
+ ret->p[0]=width;
+ ret->p[1]=height;
+ ret->p[2]=depth;
+
+ for(ptr=ret->p+3; ptr!=ret->p+ret->n; ++ptr)
+  if(!lexer_int32(me->lexer, ptr))
+  {
+   free(ret->p);
+   ret->p=NULL;
+   ret->n=0;
+   return FALSE;
+  }
+
+ return TRUE;
+}
+
 BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
 {
  assert(me->lexer);
