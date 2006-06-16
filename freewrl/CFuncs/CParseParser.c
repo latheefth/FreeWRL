@@ -94,7 +94,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 
  /* Parse the elements. */
  #define ROUTE_PARSE_NODEFIELD(pre, eventType) \
-  if(!lexer_nodeName(me->lexer, &pre##NodeIndex, NULL)) \
+  if(!lexer_nodeName(me->lexer, &pre##NodeIndex)) \
    PARSE_ERROR("Expected node-name in ROUTE-statement!") \
   assert(DEFedNodes && pre##NodeIndex<vector_size(DEFedNodes)); \
   pre##Node=vector_get(struct X3D_Node*, DEFedNodes, pre##NodeIndex); \
@@ -294,7 +294,7 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
  {
   indexT ind;
 
-  if(!lexer_nodeName(me->lexer, NULL, &ind))
+  if(!lexer_nodeName(me->lexer, &ind))
    PARSE_ERROR("Expected nodeNameId after USE!\n")
   assert(ind!=ID_UNDEFINED);
 
@@ -370,6 +370,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
   mfnode_add_parent(&node2->var, X3D_NODE(node2));
  #define INIT_CODE_sfbool(var)
  #define INIT_CODE_sfcolor(var)
+ #define INIT_CODE_sfcolorrgba(var)
  #define INIT_CODE_sffloat(var)
  #define INIT_CODE_sfimage(var)
  #define INIT_CODE_sfint32(var)
@@ -382,7 +383,6 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define INIT_CODE_mfcolor(var)
  #define INIT_CODE_mfcolorrgba(var)
  #define INIT_CODE_mffloat(var)
- #define INIT_CODE_mfimage(var)
  #define INIT_CODE_mfint32(var)
  #define INIT_CODE_mfrotation(var)
  #define INIT_CODE_mfstring(var)

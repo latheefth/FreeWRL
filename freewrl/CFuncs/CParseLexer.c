@@ -154,9 +154,12 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  indexT i;
  BOOL found=FALSE;
 
+ if(!retB && !retU)
+  return FALSE;
+
  if(retB) *retB=ID_UNDEFINED;
  if(retU) *retU=ID_UNDEFINED;
- 
+
  /* Try as built-in */
  for(i=0; i!=builtInCount; ++i)
   if(!strcmp(str, builtIn[i]))
@@ -318,10 +321,22 @@ BOOL lexer_field(struct VRMLLexer* me,
 {
  BOOL found=FALSE;
 
- if(lexer_specialID(me, retBO, retUO, FIELD, FIELD_COUNT, NULL))
+ if(!lexer_setCurID(me))
+  return FALSE;
+ assert(me->curID);
+
+ if(lexer_specialID_string(me, retBO, retUO,
+  FIELD, FIELD_COUNT, NULL, me->curID))
   found=TRUE;
- if(lexer_specialID(me, retBE, retUE, EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL))
+ if(lexer_specialID_string(me, retBE, retUE,
+  EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, me->curID))
   found=TRUE;
+
+ if(found)
+ {
+  free(me->curID);
+  me->curID=NULL;
+ }
 
  return found;
 }
