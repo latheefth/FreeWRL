@@ -96,8 +96,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  #define ROUTE_PARSE_NODEFIELD(pre, eventType) \
   if(!lexer_nodeName(me->lexer, &pre##NodeIndex, NULL)) \
    PARSE_ERROR("Expected node-name in ROUTE-statement!") \
-  if(pre##NodeIndex>=vector_size(DEFedNodes)) \
-   PARSE_ERROR("Undefined node referenced in ROUTE-statement!") \
+  assert(DEFedNodes && pre##NodeIndex<vector_size(DEFedNodes)); \
   pre##Node=vector_get(struct X3D_Node*, DEFedNodes, pre##NodeIndex); \
   if(!lexer_point(me->lexer)) \
    PARSE_ERROR("Expected . after node-name!") \
@@ -266,15 +265,13 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
  assert(me->lexer);
 
  /* A DEF-statement? */
- /*
  if(lexer_keyword(me->lexer, KW_DEF))
  {
   indexT ind;
 
-  if(!lexer_nodeName(me->lexer, &ind))
+  if(!lexer_defineNodeName(me->lexer, &ind))
    PARSE_ERROR("Expected nodeNameId after DEF!\n")
-  assert(ind&USER_ID);
-  ind&=~USER_ID;
+  assert(ind!=ID_UNDEFINED);
 
   if(!DEFedNodes)
    DEFedNodes=newVector(struct X3D_Node*, DEFMEM_INIT_SIZE);
@@ -291,7 +288,6 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   *ret=vector_get(struct X3D_Node*, DEFedNodes, ind);
   return TRUE;
  }
- */
 
  /* A USE-statement? */
  if(lexer_keyword(me->lexer, KW_USE))
@@ -302,8 +298,7 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
    PARSE_ERROR("Expected nodeNameId after USE!\n")
   assert(ind!=ID_UNDEFINED);
 
-  if(!DEFedNodes || ind>=vector_size(DEFedNodes))
-   PARSE_ERROR("Undefined nodeNameId referenced!\n")
+  assert(DEFedNodes && ind<vector_size(DEFedNodes));
 
   *ret=vector_get(struct X3D_Node*, DEFedNodes, ind);
   return TRUE;

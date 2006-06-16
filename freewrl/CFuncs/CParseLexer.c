@@ -169,14 +169,9 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
    break;
   }
 
- /* Return if no user list is requested. */
- if(!user)
+ /* Return if no user list is requested or it is empty */
+ if(!user || !*user)
   return found;
- 
- /* Initialize user list, if it is not yet created. */
- if(!*user)
-  *user=newVector(char*, USER_IDS_INIT_SIZE);
- assert(*user);
 
  /* Already defined user id? */
  for(i=0; i!=vector_size(*user); ++i)
@@ -191,16 +186,26 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
   }
  
  return found;
+}
 
- /* No, just defined it. */
- /*{
-  char* stringCopy=malloc(sizeof(char)*(strlen(str)+1));
-  assert(stringCopy);
-  strcpy(stringCopy, str);
-  vector_pushBack(char*, *user, stringCopy);
- }
- *ret=(vector_size(*user)-1)|USER_ID;
- return TRUE;*/
+/* Lexes and defines an ID */
+BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector** vec)
+{
+ if(!lexer_setCurID(me))
+  return FALSE;
+ assert(me->curID);
+
+ /* Initialize user list, if it is not yet created. */
+ assert(vec);
+ if(!*vec)
+  *vec=newVector(char*, USER_IDS_INIT_SIZE);
+ assert(*vec);
+
+ /* Define the id */
+ *ret=vector_size(*vec);
+ vector_pushBack(char*, *vec, me->curID);
+ me->curID=NULL;
+ return TRUE;
 }
 
 /* A eventIn terminal symbol */

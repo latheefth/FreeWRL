@@ -47,6 +47,9 @@ BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
 BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
  const char**, const indexT, struct Vector**,
  const char*);
+BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector**);
+#define lexer_defineNodeName(me, ret) \
+ lexer_defineID(me, ret, &userNodeNames)
 BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
