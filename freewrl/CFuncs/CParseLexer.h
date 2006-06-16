@@ -11,14 +11,15 @@
 /* Tables of user-defined IDs */
 extern struct Vector* userNodeNames;
 
-/* Flag to define a given index is a user-id */
-#define USER_ID	0x10000000
+/* Undefined ID (for special "class", like builtIn and exposed) */
+#define ID_UNDEFINED	((indexT)-1)
 
 /* This is our lexer-object. */
 struct VRMLLexer
 {
  const char* nextIn;	/* Next input character. */
  char* curID;	/* Currently input but not lexed id. */
+ BOOL isEof;	/* Error because of EOF? */
 };
 
 /* Constructor and destructor */
@@ -27,7 +28,11 @@ void deleteLexer(struct VRMLLexer*);
 
 /* Set input */
 #define lexer_fromString(me, str) \
- (me->nextIn=str)
+ ((me)->isEof=FALSE, (me)->nextIn=str)
+
+/* Is EOF? */
+#define lexer_eof(me) \
+ ((me)->isEof && !(me)->curID)
 
 /* Skip whitespace and comments. */
 void lexer_skip(struct VRMLLexer*);
@@ -37,14 +42,21 @@ BOOL lexer_setCurID(struct VRMLLexer*);
 
 /* Some operations with IDs */
 BOOL lexer_keyword(struct VRMLLexer*, indexT);
-BOOL lexer_specialID(struct VRMLLexer*, indexT*,
+BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
  const char**, const indexT, struct Vector**);
-#define lexer_node(me, ret) \
- lexer_specialID(me, ret, NODES, NODES_COUNT, NULL)
-#define lexer_nodeName(me, ret) \
- lexer_specialID(me, ret, NULL, 0, &userNodeNames)
-#define lexer_fieldName(me, ret) \
- lexer_specialID(me, ret, FIELDNAMES, FIELDNAMES_COUNT, NULL)
+BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
+ const char**, const indexT, struct Vector**,
+ const char*);
+BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
+BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
+BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
+#define lexer_node(me, r1, r2) \
+ lexer_specialID(me, r1, r2, NODES, NODES_COUNT, NULL)
+#define lexer_nodeName(me, r1, r2) \
+ lexer_specialID(me, r1, r2, NULL, 0, &userNodeNames)
+
+/* SFImage as string is also lexed */
+BOOL lexer_image(struct VRMLLexer*, vrmlImageT*);
 
 /* Input the basic literals */
 BOOL lexer_int32(struct VRMLLexer*, vrmlInt32T*);

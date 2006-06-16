@@ -16,13 +16,16 @@
 /* The DEF/USE memory. */
 struct Vector* DEFedNodes=NULL;
 
+/* ************************************************************************** */
 /* Constructor and destructor */
 
-struct VRMLParser* newParser()
+struct VRMLParser* newParser(void* ptr, unsigned ofs)
 {
  struct VRMLParser* ret=malloc(sizeof(struct VRMLParser));
  ret->lexer=newLexer();
  assert(ret->lexer);
+ ret->ptr=ptr;
+ ret->ofs=ofs;
 
  return ret;
 }
@@ -35,8 +38,227 @@ void deleteParser(struct VRMLParser* me)
  free(me);
 }
 
+/* ************************************************************************** */
+/* The start symbol */
+
+BOOL parser_vrmlScene(struct VRMLParser* me)
+{
+ while(TRUE)
+ {
+  /* Try nodeStatement */
+  {
+   vrmlNodeT node;
+   if(parser_nodeStatement(me, &node))
+   {
+    addToNode(me->ptr, me->ofs, node);
+    continue;
+   }
+  }
+
+  /* Try routeStatement */
+  if(parser_routeStatement(me))
+   continue;
+
+  break;
+ }
+
+ return lexer_eof(me->lexer);
+}
+
+/* ************************************************************************** */
 /* Nodes and fields */
-/* **************** */
+
+/* Parses a routeStatement */
+BOOL parser_routeStatement(struct VRMLParser* me)
+{
+ indexT fromNodeIndex;
+ struct X3D_Node* fromNode;
+ indexT fromFieldO;
+ indexT fromFieldE;
+ int fromOfs;
+ int fromLen;
+
+ indexT toNodeIndex;
+ struct X3D_Node* toNode;
+ indexT toFieldO;
+ indexT toFieldE;
+ int toOfs;
+ int toLen;
+
+ assert(me->lexer);
+ lexer_skip(me->lexer);
+
+ /* Is this a routeStatement? */
+ if(!lexer_keyword(me->lexer, KW_ROUTE))
+  return FALSE;
+
+ /* Parse the elements. */
+ #define ROUTE_PARSE_NODEFIELD(pre, eventType) \
+  if(!lexer_nodeName(me->lexer, &pre##NodeIndex, NULL)) \
+   PARSE_ERROR("Expected node-name in ROUTE-statement!") \
+  if(pre##NodeIndex>=vector_size(DEFedNodes)) \
+   PARSE_ERROR("Undefined node referenced in ROUTE-statement!") \
+  pre##Node=vector_get(struct X3D_Node*, DEFedNodes, pre##NodeIndex); \
+  if(!lexer_point(me->lexer)) \
+   PARSE_ERROR("Expected . after node-name!") \
+  if(!lexer_event##eventType(me->lexer, \
+   &pre##FieldO, &pre##FieldE, NULL, NULL)) \
+   PARSE_ERROR("Expected event" #eventType " after .!")
+
+ ROUTE_PARSE_NODEFIELD(from, Out)
+ if(!lexer_keyword(me->lexer, KW_TO))
+  PARSE_ERROR("Expected TO in ROUTE-statement!")
+ ROUTE_PARSE_NODEFIELD(to, In)
+
+ /* Now, do the really hard macro work... */
+ /* ************************************* */
+
+ /* Redirect routing sizes for all the types. */
+ #define ROUTE_REAL_SIZE_sfbool	TRUE
+ #define ROUTE_REAL_SIZE_sfcolor	TRUE
+ #define ROUTE_REAL_SIZE_sffloat	TRUE
+ #define ROUTE_REAL_SIZE_sfimage	TRUE
+ #define ROUTE_REAL_SIZE_sfint32	TRUE
+ #define ROUTE_REAL_SIZE_sfnode	TRUE
+ #define ROUTE_REAL_SIZE_sfrotation	TRUE
+ #define ROUTE_REAL_SIZE_sfstring	TRUE
+ #define ROUTE_REAL_SIZE_sftime	TRUE
+ #define ROUTE_REAL_SIZE_sfvec2f	TRUE
+ #define ROUTE_REAL_SIZE_sfvec3f	TRUE
+ #define ROUTE_REAL_SIZE_mfbool	FALSE
+ #define ROUTE_REAL_SIZE_mfcolor	FALSE
+ #define ROUTE_REAL_SIZE_mfcolorrgba	FALSE
+ #define ROUTE_REAL_SIZE_mffloat	FALSE
+ #define ROUTE_REAL_SIZE_mfimage	FALSE
+ #define ROUTE_REAL_SIZE_mfint32	FALSE
+ #define ROUTE_REAL_SIZE_mfnode	FALSE
+ #define ROUTE_REAL_SIZE_mfrotation	FALSE
+ #define ROUTE_REAL_SIZE_mfstring	FALSE
+ #define ROUTE_REAL_SIZE_mftime	FALSE
+ #define ROUTE_REAL_SIZE_mfvec2f	FALSE
+ #define ROUTE_REAL_SIZE_mfvec3f	FALSE
+
+ /* Ignore the fields. */
+ #define FIELD(n, f, t, v)
+
+ /* General processing macros */
+ #define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
+  case constPre##_##field: \
+   destPre##Len=(ROUTE_REAL_SIZE_##type ? sizeof(node2->var) : -1); \
+   destPre##Ofs=offsetof(struct X3D_##node, var); \
+   break;
+ #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
+  case NODE_##node: \
+  { \
+   struct X3D_##node* node2=(struct X3D_##node*)ptr; \
+   switch(fieldInd) \
+   {
+ #define END_NODE(node) \
+   default: \
+    PARSE_ERROR("Unsupported event for node!") \
+   } \
+   break; \
+  }
+ #define EVENT_NODE_DEFAULT \
+  default: \
+   PARSE_ERROR("Unsupported node!")
+ 
+ /* Process from eventOut */
+ if(fromFieldE!=ID_UNDEFINED)
+  switch(fromNode->_nodeType)
+  {
+   #define EVENT_IN(n, f, t, v)
+   #define EVENT_OUT(n, f, t, v)
+   #define EXPOSED_FIELD(node, field, type, var) \
+    PROCESS_EVENT(EXPOSED_FIELD, from, node, field, type, var)
+   #define BEGIN_NODE(node) \
+    EVENT_BEGIN_NODE(fromFieldE, fromNode, node)
+   #include "NodeFields.h"
+   #undef EVENT_IN
+   #undef EVENT_OUT
+   #undef EXPOSED_FIELD
+   #undef BEGIN_NODE
+   EVENT_NODE_DEFAULT
+  }
+ else
+ {
+  assert(fromFieldO!=ID_UNDEFINED);
+  switch(fromNode->_nodeType)
+  {
+   #define EVENT_IN(n, f, t, v)
+   #define EXPOSED_FIELD(n, f, t, v)
+   #define EVENT_OUT(node, field, type, var) \
+    PROCESS_EVENT(EVENT_OUT, from, node, field, type, var)
+   #define BEGIN_NODE(node) \
+    EVENT_BEGIN_NODE(fromFieldO, fromNode, node)
+   #include "NodeFields.h"
+   #undef EVENT_IN
+   #undef EVENT_OUT
+   #undef EXPOSED_FIELD
+   #undef BEGIN_NODE
+   EVENT_NODE_DEFAULT
+  }
+ }
+
+ /* Process to eventIn */
+ if(toFieldE!=ID_UNDEFINED)
+  switch(toNode->_nodeType)
+  {
+   #define EVENT_IN(n, f, t, v)
+   #define EVENT_OUT(n, f, t, v)
+   #define EXPOSED_FIELD(node, field, type, var) \
+    PROCESS_EVENT(EXPOSED_FIELD, to, node, field, type, var)
+   #define BEGIN_NODE(node) \
+    EVENT_BEGIN_NODE(toFieldE, toNode, node)
+   #include "NodeFields.h"
+   #undef EVENT_IN
+   #undef EVENT_OUT
+   #undef EXPOSED_FIELD
+   #undef BEGIN_NODE
+   EVENT_NODE_DEFAULT
+  }
+ else
+ {
+  assert(toFieldO!=ID_UNDEFINED);
+  switch(toNode->_nodeType)
+  {
+   #define EVENT_OUT(n, f, t, v)
+   #define EXPOSED_FIELD(n, f, t, v)
+   #define EVENT_IN(node, field, type, var) \
+    PROCESS_EVENT(EVENT_IN, to, node, field, type, var)
+   #define BEGIN_NODE(node) \
+    EVENT_BEGIN_NODE(toFieldO, toNode, node)
+   #include "NodeFields.h"
+   #undef EVENT_IN
+   #undef EVENT_OUT
+   #undef EXPOSED_FIELD
+   #undef BEGIN_NODE
+   EVENT_NODE_DEFAULT
+  }
+ }
+
+ /* Clean up. */
+ #undef FIELD
+ #undef END_NODE
+ 
+ /* FIXME:  Not a really safe check for types in ROUTE! */
+ if(fromLen!=toLen)
+  PARSE_ERROR("Types mismatch in ROUTE!")
+
+ /* Finally, register the route. */
+ /* **************************** */
+
+ {
+  /* 10+1+3+1=15:  Number <5000000000, :, number < 999, \0 */
+  char tonode_str[15];
+  snprintf(tonode_str, 15, "%lu:%d", toNode, toOfs);
+
+  CRoutes_Register(1, fromNode, fromOfs, 1, tonode_str, toLen, 
+   returnInterpolatorPointer(stringNodeType(toNode->_nodeType)), 0, 0);
+ }
+ 
+ return TRUE;
+}
 
 /* Parses a nodeStatement */
 BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
@@ -44,6 +266,7 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
  assert(me->lexer);
 
  /* A DEF-statement? */
+ /*
  if(lexer_keyword(me->lexer, KW_DEF))
  {
   indexT ind;
@@ -68,16 +291,16 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   *ret=vector_get(struct X3D_Node*, DEFedNodes, ind);
   return TRUE;
  }
+ */
 
  /* A USE-statement? */
  if(lexer_keyword(me->lexer, KW_USE))
  {
   indexT ind;
 
-  if(!lexer_nodeName(me->lexer, &ind))
+  if(!lexer_nodeName(me->lexer, NULL, &ind))
    PARSE_ERROR("Expected nodeNameId after USE!\n")
-  assert(ind&USER_ID);
-  ind&=~USER_ID;
+  assert(ind!=ID_UNDEFINED);
 
   if(!DEFedNodes || ind>=vector_size(DEFedNodes))
    PARSE_ERROR("Undefined nodeNameId referenced!\n")
@@ -98,8 +321,9 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
  assert(me->lexer);
  
- if(!lexer_node(me->lexer, &nodeType))
+ if(!lexer_node(me->lexer, &nodeType, NULL))
   return FALSE;
+ assert(nodeType!=ID_UNDEFINED);
 
  if(!lexer_openCurly(me->lexer))
   PARSE_ERROR("Expected { after node-type id!")
@@ -107,7 +331,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  node=X3D_NODE(createNewX3DNode(nodeType));
 
  assert(node);
- while(parser_field(me, node));
+ while(parser_field(me, node) || parser_routeStatement(me));
 
  if(!lexer_closeCurly(me->lexer))
   parseError("Expected } after fields of node!");
@@ -127,120 +351,140 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 /* Parses a field and sets it in node */
 BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 {
- indexT field;
+ indexT fieldO;
+ indexT fieldE;
 
  assert(me->lexer);
- if(!lexer_fieldName(me->lexer, &field))
+ if(!lexer_field(me->lexer, &fieldO, &fieldE, NULL, NULL))
   return FALSE;
 
- switch(node->_nodeType)
- {
+ /* Ignore all events */
+ #define EVENT_IN(n, f, t, v)
+ #define EVENT_OUT(n, f, t, v)
 
-  /* Processes fields for one given node-type */
-  #define PROC_FIELDS_BEGIN(type) \
-   case NODE_##type: \
-   { \
-    struct X3D_##type* node2=(struct X3D_##type*)node; \
-    switch(field) \
-    {
-  #define PROC_FIELDS_END \
-     default: \
-      PARSE_ERROR("Unsupported field for node!") \
-    } \
+ /* End of node is the same for fields and exposedFields */
+ #define END_NODE(type) \
    } \
-   break;
+  } \
+  break;
 
-  /* Allow field field of type fieldType and store it to node2->var. */
-  #define PROC_FIELD(field, fieldType, var) \
-   case FIELDNAMES_##field: \
-    if(!parser_##fieldType##Value(me, (void*)&node2->var)) \
-     PARSE_ERROR("Expected " #fieldType "Value!") \
-    break;
-  #define PROC_SFNODE_FIELD(field, var) \
-   case FIELDNAMES_##field: \
-    if(!parser_sfnodeValue(me, (void*)&node2->var)) \
-     PARSE_ERROR("Expected sfnodeValue!") \
-    add_parent(node2->var, node2); \
-    break;
-  #define PROC_MFNODE_FIELD(field, var) \
-   case FIELDNAMES_##field: \
-    if(!parser_mfnodeValue(me, (void*)&node2->var)) \
-     PARSE_ERROR("Expected mfnodeValue!") \
-    mfnode_add_parent(&node2->var, X3D_NODE(node2)); \
-    break;
+ /* The init codes used. */
+ #define INIT_CODE_sfnode(var) \
+  add_parent(node2->var, node2);
+ #define INIT_CODE_mfnode(var) \
+  mfnode_add_parent(&node2->var, X3D_NODE(node2));
+ #define INIT_CODE_sfbool(var)
+ #define INIT_CODE_sfcolor(var)
+ #define INIT_CODE_sffloat(var)
+ #define INIT_CODE_sfimage(var)
+ #define INIT_CODE_sfint32(var)
+ #define INIT_CODE_sfrotation(var)
+ #define INIT_CODE_sfstring(var)
+ #define INIT_CODE_sftime(var)
+ #define INIT_CODE_sfvec2f(var)
+ #define INIT_CODE_sfvec3f(var)
+ #define INIT_CODE_mfbool(var)
+ #define INIT_CODE_mfcolor(var)
+ #define INIT_CODE_mfcolorrgba(var)
+ #define INIT_CODE_mffloat(var)
+ #define INIT_CODE_mfimage(var)
+ #define INIT_CODE_mfint32(var)
+ #define INIT_CODE_mfrotation(var)
+ #define INIT_CODE_mfstring(var)
+ #define INIT_CODE_mftime(var)
+ #define INIT_CODE_mfvec2f(var)
+ #define INIT_CODE_mfvec3f(var)
+ 
+ /* Process a field (either exposed or ordinary) generally */
+ #define PROCESS_FIELD(exposed, node, field, fieldType, var) \
+  case exposed##FIELD_##field: \
+   if(!parser_##fieldType##Value(me, (void*)&node2->var)) \
+    PARSE_ERROR("Expected " #fieldType "Value!") \
+   INIT_CODE_##fieldType(var) \
+   return TRUE;
+ 
+ /* Default action if node is not encountered in list of known nodes */
+ #define NODE_DEFAULT \
+  default: \
+   PARSE_ERROR("Unsupported node!")
 
-  /* Appearance node */
-  PROC_FIELDS_BEGIN(Appearance)
-   PROC_SFNODE_FIELD(material, material)
-  PROC_FIELDS_END
+ /* Try exposed field */
+ /* ***************** */
+ if(fieldE!=ID_UNDEFINED)
+  switch(node->_nodeType)
+  {
 
-  /* Coordinate node */
-  PROC_FIELDS_BEGIN(Coordinate)
-   PROC_FIELD(point, mfvec3f, point)
-  PROC_FIELDS_END
+   /* Processes exposed fields for node */
+   #define BEGIN_NODE(type) \
+    case NODE_##type: \
+    { \
+     struct X3D_##type* node2=(struct X3D_##type*)node; \
+     switch(fieldE) \
+     {
 
-  /* ElevationGrid node */
-  /*
-  PROC_FIELDS_BEGIN(ElevationGrid)
-   PROC_FIELD(xDimension, sfint32, xDimension)
-   PROC_FIELD(zDimension, sfint32, zDimension)
-   PROC_FIELD(height, mffloat, height)
-  PROC_FIELDS_END
-  */
+   /* Process exposed fields */
+   #define EXPOSED_FIELD(node, field, fieldType, var) \
+    PROCESS_FIELD(EXPOSED_, node, field, fieldType, var)
 
-  /* Group node */
-  PROC_FIELDS_BEGIN(Group)
-   PROC_MFNODE_FIELD(children, children)
-  PROC_FIELDS_END
+   /* Ignore just fields */
+   #define FIELD(n, f, t, v)
 
-  /* IndexedFaceSet node */
-  PROC_FIELDS_BEGIN(IndexedFaceSet)
-   PROC_SFNODE_FIELD(coord, coord)
-   PROC_FIELD(coordIndex, mfint32, coordIndex)
-   PROC_FIELD(solid, sfbool, solid)
-  PROC_FIELDS_END
+   /* Process it */
+   #include "NodeFields.h"
 
-  /* Material node */
-  PROC_FIELDS_BEGIN(Material)
-   PROC_FIELD(diffuseColor, sfcolor, diffuseColor)
-   PROC_FIELD(emissiveColor, sfcolor, emissiveColor)
-   PROC_FIELD(transparency, sffloat, transparency)
-  PROC_FIELDS_END
+   /* Undef the field-specific macros */
+   #undef BEGIN_NODE
+   #undef FIELD
+   #undef EXPOSED_FIELD
 
-  /* Shape node */
-  PROC_FIELDS_BEGIN(Shape)
-   PROC_SFNODE_FIELD(appearance, appearance)
-   PROC_SFNODE_FIELD(geometry, geometry)
-  PROC_FIELDS_END
+   NODE_DEFAULT
 
-  /* Sphere node */
-  PROC_FIELDS_BEGIN(Sphere)
-   PROC_FIELD(radius, sffloat, radius)
-  PROC_FIELDS_END
+  }
 
-  /* Text node */
-  PROC_FIELDS_BEGIN(Text)
-   PROC_FIELD(string, mfstring, string)
-  PROC_FIELDS_END
+ /* Ordnary field */
+ /* ************* */
+ if(fieldO!=ID_UNDEFINED)
+  switch(node->_nodeType)
+  {
 
-  /* Transform node */
-  PROC_FIELDS_BEGIN(Transform)
-   PROC_FIELD(translation, sfvec3f, translation)
-   PROC_MFNODE_FIELD(children, children)
-  PROC_FIELDS_END
+   /* Processes ordinary fields for node */
+   #define BEGIN_NODE(type) \
+    case NODE_##type: \
+    { \
+     struct X3D_##type* node2=(struct X3D_##type*)node; \
+     switch(fieldO) \
+     {
 
-  /* Unsupported node */
-  default:
-   parseError("Unsupported node!");
-   return FALSE;
+   /* Process fields */
+   #define FIELD(node, field, fieldType, var) \
+    PROCESS_FIELD(, node, field, fieldType, var)
 
- }
+   /* Ignore exposed fields */
+   #define EXPOSED_FIELD(n, f, t, v)
 
- return TRUE;
+   /* Process it */
+   #include "NodeFields.h"
+
+   /* Undef the field-specific macros */
+   #undef BEGIN_NODE
+   #undef FIELD
+   #undef EXPOSED_FIELD
+
+   NODE_DEFAULT
+      
+  }
+
+ /* Clean up */
+ #undef END_NODE
+ #undef EVENT_IN
+ #undef EVENT_OUT
+
+ /* If field was found, return TRUE; would have happened! */
+ PARSE_ERROR("Unsupported field for node!")
 }
 
+/* ************************************************************************** */
 /* MF* field values */
-/* **************** */
 
 /* Parse a MF* field */
 #define PARSER_MFFIELD(name, type) \
@@ -282,7 +526,9 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
   return TRUE; \
  } 
 
+PARSER_MFFIELD(bool, Bool)
 PARSER_MFFIELD(color, Color)
+PARSER_MFFIELD(colorrgba, ColorRGBA)
 PARSER_MFFIELD(float, Float)
 PARSER_MFFIELD(int32, Int32)
 PARSER_MFFIELD(node, Node)
@@ -292,8 +538,8 @@ PARSER_MFFIELD(time, Time)
 PARSER_MFFIELD(vec2f, Vec2f)
 PARSER_MFFIELD(vec3f, Vec3f)
 
+/* ************************************************************************** */
 /* SF* field values */
-/* **************** */
 
 /* Parses a fixed-size vector-field of floats (SFColor, SFRotation, SFVecXf) */
 #define PARSER_FIXED_VEC(name, type, cnt, dest) \
@@ -324,6 +570,7 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 }
 
 PARSER_FIXED_VEC(color, Color, 3, c)
+PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
 
 BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
 {

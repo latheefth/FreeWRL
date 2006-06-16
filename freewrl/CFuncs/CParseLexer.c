@@ -7,6 +7,10 @@
 
 #include "CParseLexer.h"
 
+/* Pre- and suffix for exposed events. */
+const char* EXPOSED_EVENT_IN_PRE="set_";
+const char* EXPOSED_EVENT_OUT_SUF="_changed";
+
 /* Tables of user-defined IDs */
 #define USER_IDS_INIT_SIZE	16
 struct Vector* userNodeNames=NULL;
@@ -25,7 +29,15 @@ struct Vector* userNodeNames=NULL;
 #define LEXER_UNGETINPUT(c) \
  if(c!=EOF) \
  { \
-  --me->nextIn; \
+  --(me->nextIn); \
+ }
+
+/* Check for eof */
+#define CHECK_EOF(var) \
+ if((var)==EOF) \
+ { \
+  me->isEof=TRUE; \
+  return FALSE; \
  }
 
 /* Constructor and destructor */
@@ -36,6 +48,7 @@ struct VRMLLexer* newLexer()
 
  ret->nextIn=NULL;
  ret->curID=NULL;
+ ret->isEof=TRUE;
 
  return ret;
 }
@@ -67,6 +80,7 @@ BOOL lexer_setCurID(struct VRMLLexer* me)
 
  /* Is it really an ID? */
  LEXER_GETINPUT(c)
+ CHECK_EOF(c)
  if(!IS_ID_FIRST(c))
  {
   LEXER_UNGETINPUT(c)
@@ -115,28 +129,49 @@ BOOL lexer_keyword(struct VRMLLexer* me, indexT kw)
 }
 
 /* Lexes an ID (node type, field name...) depending on args. */
-BOOL lexer_specialID(struct VRMLLexer* me, indexT* ret,
+BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount,
  struct Vector** user)
 {
- indexT i;
- 
- if(!lexer_setCurID(me)) return FALSE;
+ if(!lexer_setCurID(me))
+  return FALSE;
  assert(me->curID);
 
+ if(lexer_specialID_string(me, retB, retU, builtIn, builtInCount, user,
+  me->curID))
+ {
+  free(me->curID);
+  me->curID=NULL;
+  return TRUE;
+ }
+
+ return FALSE;
+}
+BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
+ const char** builtIn, const indexT builtInCount,
+ struct Vector** user, const char* str)
+{
+ indexT i;
+ BOOL found=FALSE;
+
+ if(retB) *retB=ID_UNDEFINED;
+ if(retU) *retU=ID_UNDEFINED;
+ 
  /* Try as built-in */
  for(i=0; i!=builtInCount; ++i)
-  if(!strcmp(me->curID, builtIn[i]))
+  if(!strcmp(str, builtIn[i]))
   {
-   *ret=i;
-   free(me->curID);
-   me->curID=NULL;
-   return TRUE;
+   if(retB)
+   {
+    *retB=i;
+    found=TRUE;
+   }
+   break;
   }
 
  /* Return if no user list is requested. */
  if(!user)
-  return FALSE;
+  return found;
  
  /* Initialize user list, if it is not yet created. */
  if(!*user)
@@ -145,19 +180,145 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* ret,
 
  /* Already defined user id? */
  for(i=0; i!=vector_size(*user); ++i)
-  if(!strcmp(me->curID, vector_get(char*, *user, i)))
+  if(!strcmp(str, vector_get(char*, *user, i)))
   {
-   *ret=i|USER_ID;
-   free(me->curID);
-   me->curID=NULL;
-   return TRUE;
+   if(retU)
+   {
+    *retU=i;
+    found=TRUE;
+   }
+   break;
   }
+ 
+ return found;
 
  /* No, just defined it. */
- vector_pushBack(char*, *user, me->curID);
- me->curID=NULL;
+ /*{
+  char* stringCopy=malloc(sizeof(char)*(strlen(str)+1));
+  assert(stringCopy);
+  strcpy(stringCopy, str);
+  vector_pushBack(char*, *user, stringCopy);
+ }
  *ret=(vector_size(*user)-1)|USER_ID;
- return TRUE;
+ return TRUE;*/
+}
+
+/* A eventIn terminal symbol */
+BOOL lexer_eventIn(struct VRMLLexer* me,
+ indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE)
+{
+ BOOL found=FALSE;
+
+ if(lexer_specialID(me, rBO, rUO, EVENT_IN, EVENT_IN_COUNT, NULL))
+  found=TRUE;
+ if(rBE) *rBE=ID_UNDEFINED;
+ if(rUE) *rUE=ID_UNDEFINED;
+ 
+ /* Exposed field with set_ prefix? */
+ if(!lexer_setCurID(me))
+  return FALSE;
+ assert(me->curID);
+ {
+  const char* id=me->curID;
+  const char* pre=EXPOSED_EVENT_IN_PRE;
+
+  while(*id && *pre)
+  {
+   /* If we encounter a mismatch, we don't have the prefix! */
+   if(*id!=*pre)
+    goto noExposedPre;
+   ++id;
+   ++pre;
+  }
+
+  /* If id and not prefix is at end, it can't have pre as prefix! */
+  if(*pre)
+  {
+   assert(!*id);
+   goto noExposedPre;
+  }
+
+  /* Now, pre is the string with prefix cut off. */
+  if(lexer_specialID_string(me, rBE, rUE,
+   EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, id))
+  {
+   free(me->curID);
+   me->curID=NULL;
+   found=TRUE;
+  }
+ }
+noExposedPre:
+ 
+ return found;
+}
+
+/* A eventOut terminal symbol */
+BOOL lexer_eventOut(struct VRMLLexer* me,
+ indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE)
+{
+ BOOL found=FALSE;
+
+ if(lexer_specialID(me, rBO, rUO, EVENT_OUT, EVENT_OUT_COUNT, NULL))
+  found=TRUE;
+ if(rBE) *rBE=ID_UNDEFINED;
+ if(rUE) *rUE=ID_UNDEFINED;
+
+ /* Exposed field with _changed suffix? */
+ if(!lexer_setCurID(me))
+  return found;
+ assert(me->curID);
+ {
+  char* begId=me->curID;
+  char* curId=begId+strlen(begId);
+  const char* begSuf=EXPOSED_EVENT_OUT_SUF;
+  const char* curSuf=begSuf+strlen(begSuf);
+
+  while(curId>=begId && curSuf>=begSuf)
+  {
+   /* Mismatch? */
+   if(*curId!=*curSuf)
+    goto noExposedSuf;
+   --curId;
+   --curSuf;
+  }
+  
+  /* If only id reached "end", it can't be suffixed by suf! */
+  if(curSuf>=begSuf)
+  {
+   assert(curId<begId);
+   goto noExposedSuf;
+  }
+
+  /* Otherwise, chop off the suffix!  At least temporarily... */
+  assert(curId[1]==*begSuf);
+  curId[1]=0;
+
+  if(lexer_specialID_string(me, rBE, rUE,
+   EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, begId))
+  {
+   free(me->curID);
+   me->curID=NULL;
+   found=TRUE;
+  } else /* Wrong, revert the chop-off */
+   curId[1]=*begSuf;
+ }
+noExposedSuf:
+
+ return found;
+}
+
+/* Lexes a fieldId terminal symbol */
+BOOL lexer_field(struct VRMLLexer* me,
+ indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE)
+{
+ BOOL found=FALSE;
+
+ if(lexer_specialID(me, retBO, retUO, FIELD, FIELD_COUNT, NULL))
+  found=TRUE;
+ if(lexer_specialID(me, retBE, retUE, EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL))
+  found=TRUE;
+
+ return found;
 }
 
 /* Skip whitespace and comments. */
@@ -238,6 +399,7 @@ BOOL lexer_int32(struct VRMLLexer* me, vrmlInt32T* ret)
 
  /* Check if it is really a number */
  LEXER_GETINPUT(c)
+ CHECK_EOF(c)
  if(c!='-' && c!='+' && !(c>='0' && c<='9'))
  {
   LEXER_UNGETINPUT(c)
@@ -305,6 +467,7 @@ BOOL lexer_float(struct VRMLLexer* me, vrmlFloatT* ret)
 
  /* Really a float? */
  LEXER_GETINPUT(c)
+ CHECK_EOF(c)
  if(c!='-' && c!='+' && c!='.' && !(c>='0' && c<='9'))
  {
   LEXER_UNGETINPUT(c)
@@ -384,6 +547,7 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
 
  /* Really a string? */
  LEXER_GETINPUT(c)
+ CHECK_EOF(c)
  if(c!='\"')
  {
   LEXER_UNGETINPUT(c)
@@ -428,6 +592,13 @@ breakStringLoop:
  return TRUE;
 }
 
+/* FIXME: Image is not lexed at all!!! */
+BOOL lexer_image(struct VRMLLexer* me, vrmlImageT* ret)
+{
+ *ret=EAI_newSVpv("0 0 0");
+ return TRUE;
+}
+
 /* Operator check */
 /* ************** */
 
@@ -439,6 +610,7 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
  lexer_skip(me);
 
  LEXER_GETINPUT(c)
+ CHECK_EOF(c)
  if(c!=op)
  {
   LEXER_UNGETINPUT(c)

@@ -32,7 +32,10 @@ void vector_ensureSpace_(size_t elSize, struct Vector* me)
  assert(me);
  if(me->n==me->allocn)
  {
-  me->allocn*=2;
+  if(me->allocn)
+   me->allocn*=2;
+  else
+   me->allocn=1;
   me->data=realloc(me->data, elSize*me->allocn);
   assert(me->data);
  }
@@ -48,7 +51,7 @@ void vector_shrink_(size_t elSize, struct Vector* me)
 
  me->allocn=me->n;
  me->data=realloc(me->data, elSize*me->allocn);
- assert(me->data);
+ assert(!me->allocn || me->data);
 }
 
 void* vector_releaseData_(size_t elSize, struct Vector* me)

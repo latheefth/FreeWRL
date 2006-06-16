@@ -10,8 +10,10 @@
 /* Typedefs for VRML-types. */
 typedef int	vrmlBoolT;
 typedef struct SFColor	vrmlColorT;
+typedef struct SFColorRGBA	vrmlColorRGBAT;
 typedef float	vrmlFloatT;
 typedef int32_t	vrmlInt32T;
+typedef SV*	vrmlImageT;
 typedef struct X3D_Node*	vrmlNodeT;
 typedef struct SFRotation	vrmlRotationT;
 typedef SV*	vrmlStringT;
