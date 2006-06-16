@@ -89,7 +89,7 @@ void __pt_zeroBindables(void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *retarr);
 unsigned int __pt_getBindables (char *tp, unsigned long int *retarr);
 void getAllBindables(void);
-int isPerlinitialized(void);
+int isInputThreadInitialized(void);
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			void *ptr, unsigned ofs, int *complete,
 			int zeroBind);
@@ -122,10 +122,10 @@ pthread_t PCthread;
 static int browserRunning=FALSE;
 
 /* is the inputParse thread created? */
-int PerlInitialized=FALSE;
+int inputParseInitialized=FALSE;
 
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
-int PerlParsing=FALSE;
+int inputThreadParsing=FALSE;
 
 /* Initial URL loaded yet? - Robert Sim */
 int URLLoaded=FALSE;
@@ -138,7 +138,7 @@ struct PSStruct psp;
 
 char *myPerlInstallDir;
 
-void initializePerlThread(const char *perlpath) {
+void initializeInputParseThread(const char *perlpath) {
 	int iret;
 
 	myPerlInstallDir = strdup(perlpath);
@@ -149,13 +149,13 @@ void initializePerlThread(const char *perlpath) {
 
 /* is Perl running? this is a function, because if we need to mutex lock, we
    can do all locking in this file */
-int isPerlinitialized() {return PerlInitialized;}
+int isInputThreadInitialized() {return inputParseInitialized;}
 
 /* statusbar uses this to tell user that we are still loading */
-int isPerlParsing() {return(PerlParsing);}
+int isinputThreadParsing() {return(inputThreadParsing);}
 
 /* is the initial URL loaded? Robert Sim */
-int isURLLoaded() {return(URLLoaded&&!PerlParsing);}
+int isURLLoaded() {return(URLLoaded&&!inputThreadParsing);}
 
 /*
  * Check to see if the file name is a local file, or a network file.
@@ -311,7 +311,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 /* Inlines... Multi_URLs, load only when available, etc, etc */
 void loadInline(struct X3D_Inline *node) {
 	/* first, are we busy? */
-	if (PerlParsing) return;
+	if (inputThreadParsing) return;
 
 	inputParse(INLINE,(char *)node, FALSE, FALSE,
 		(void *) node,
@@ -746,8 +746,8 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 	   we want to wait? */
 	/* printf ("start of PerlParse, thread %d\n",pthread_self()); */
 	if (returnifbusy) {
-		/* printf ("inputParse, returnifbusy, PerlParsing %d\n",PerlParsing);*/
-		if (PerlParsing) return (FALSE);
+		/* printf ("inputParse, returnifbusy, inputThreadParsing %d\n",inputThreadParsing);*/
+		if (inputThreadParsing) return (FALSE);
 	}
 
 	WAIT_WHILE_PERL_BUSY;
@@ -857,10 +857,10 @@ void _inputParseThread(void *perlpath) {
 			/* Now, possibly this is the first VRML file to
 			   add. Check to see if maybe we have a ptr of 0. */
 	
-			PerlInitialized=TRUE;  /* have to do this AFTER ensuring we are locked */
+			inputParseInitialized=TRUE;  /* have to do this AFTER ensuring we are locked */
 		}
 	} else {
-		PerlInitialized = TRUE;
+		inputParseInitialized = TRUE;
 	}
 
 	/* now, loop here forever, waiting for instructions and obeying them */
@@ -868,7 +868,7 @@ void _inputParseThread(void *perlpath) {
 		/* printf ("thread %d waiting for data\n",pthread_self()); */
 		WAIT_WHILE_NO_DATA;
 
-		PerlParsing=TRUE;
+		inputThreadParsing=TRUE;
 
 		/* have to handle these types of commands:
 			FROMSTRING 	create vrml from string
@@ -957,7 +957,7 @@ void _inputParseThread(void *perlpath) {
 
 		*psp.comp = 1;
 		URLLoaded=TRUE;
-		PerlParsing=FALSE;
+		inputThreadParsing=FALSE;
 		PERL_FINISHING;
 		UNLOCK;
 	}

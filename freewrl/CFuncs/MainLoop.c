@@ -233,7 +233,7 @@ void EventLoop() {
 	}
 
 	/* should we do events, or maybe Perl is parsing? */
-	doEvents = (!isPerlParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isPerlinitialized();
+	doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
 
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {
@@ -458,7 +458,7 @@ void EventLoop() {
 	 * but don't do this if perl is parsing, because script init might
 	 * reference VRML constructs NOT found yet */
 	if (myMaxScript != max_script_found) {
-		if (!isPerlParsing()) {
+		if (!isinputThreadParsing()) {
 		    for (counter = myMaxScript; counter <= max_script_found; counter++) {
 			initializeScript(counter, FALSE);
 		    }
@@ -779,7 +779,7 @@ void setup_viewpoint(int doBinding) {
 
 	render_flag = VF_Viewpoint;
 
-	if (doBinding & (!isPerlParsing())) {
+	if (doBinding & (!isinputThreadParsing())) {
 		/* top of mainloop, we can tell the renderer to sort children */
 		/* render_flag = VF_Viewpoint | VF_SortChildren;*/
 		render_flag = VF_Viewpoint;
@@ -1164,9 +1164,9 @@ void initFreewrl() {
 		#ifdef DO_MULTI_OPENGL_THREADS
 		initializeShapeCompileThread();
 		#endif
-        	initializePerlThread(PERLPATH);
+        	initializeInputParseThread(PERLPATH);
 
-        	while (!isPerlinitialized()) {
+        	while (!isInputThreadInitialized()) {
         	        usleep(50);
         	}
         	initializeTextureThread();

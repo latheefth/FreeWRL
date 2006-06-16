@@ -2575,7 +2575,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	if (!CRoutes_Initiated) return;
 
 	/* this script initialized yet? */
-	/* JAS - events are running already if (!isPerlParsing()) */
+	/* JAS - events are running already if (!isinputThreadParsing()) */
 	initializeScript(actualscript, FALSE);
 
 	/* routing table is ordered, so we can walk up to this script */

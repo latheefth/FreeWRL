@@ -804,7 +804,8 @@ int findRoutedFieldInFIELDNAMES (char *field, int fromTo) {
 		/* try removing the "set_" or "_changed" */
 		strncpy (mychar, field, 100);
 		if (fromTo != 0) {
-			retval = findFieldInFIELDNAMES(&mychar[4]);
+			if (strlen(field) > 4)
+				retval = findFieldInFIELDNAMES(&mychar[4]);
 		} else {
 			if (strlen(field) > strlen("_changed")) {
 				mychar[strlen(field) - strlen("_changed")] = '\0';

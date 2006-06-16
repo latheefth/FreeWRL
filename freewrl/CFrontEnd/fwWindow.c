@@ -278,7 +278,7 @@ void setMessageBar() {
 		if (strlen(myMenuStatus) == 0) {
 			strcat (myMenuStatus, "NONE");
 		}
-		if (isShapeCompilerParsing() || isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
+		if (isShapeCompilerParsing() || isinputThreadParsing() || isTextureParsing() || (!isInputThreadInitialized())) {
 			sprintf (fpsstr, "(Loading...)  speed: %4.1f", myFps);
 		} else {
 			sprintf (fpsstr,"fps: %4.1f Viewpoint: %s",myFps,myMenuStatus);
