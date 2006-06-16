@@ -338,7 +338,7 @@ void Anchor_ReplaceWorld (char *filename) {
 			/* kill off the old world, but keep EAI open, if it is... */
 			kill_oldWorld(FALSE,TRUE,TRUE);
 
-			perlParse(FROMURL, filename,TRUE,FALSE,
+			inputParse(FROMURL, filename,TRUE,FALSE,
 				rootNode, offsetof (struct X3D_Group, children),&tmp,
 				TRUE);
 			

@@ -82,7 +82,7 @@ struct PSStruct {
 
 
 
-void _perlThread (void *perlpath);
+void _inputParseThread (void *perlpath);
 void __pt_setPath(char *perlpath);
 void __pt_openBrowser(void);
 void __pt_zeroBindables(void);
@@ -90,7 +90,7 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *ret
 unsigned int __pt_getBindables (char *tp, unsigned long int *retarr);
 void getAllBindables(void);
 int isPerlinitialized(void);
-int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			void *ptr, unsigned ofs, int *complete,
 			int zeroBind);
 void __pt_doInline(void);
@@ -121,7 +121,7 @@ pthread_t PCthread;
 /* is the Browser initialized? */
 static int browserRunning=FALSE;
 
-/* is the perlParse thread created? */
+/* is the inputParse thread created? */
 int PerlInitialized=FALSE;
 
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
@@ -144,7 +144,7 @@ void initializePerlThread(const char *perlpath) {
 	myPerlInstallDir = strdup(perlpath);
 
 	/* create consumer thread and set the "read only" flag indicating this */
-	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_perlThread, (void *) perlpath);
+	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, (void *) perlpath);
 }
 
 /* is Perl running? this is a function, because if we need to mutex lock, we
@@ -313,7 +313,7 @@ void loadInline(struct X3D_Inline *node) {
 	/* first, are we busy? */
 	if (PerlParsing) return;
 
-	perlParse(INLINE,(char *)node, FALSE, FALSE,
+	inputParse(INLINE,(char *)node, FALSE, FALSE,
 		(void *) node,
 		offsetof (struct X3D_Inline, __children),
 		&node->__loadstatus,FALSE);
@@ -738,7 +738,7 @@ void EAI_readNewWorld(char *inputstring) {
 }
 
 /****************************************************************************/
-int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			void *ptr, unsigned ofs,int *complete,
 			int zeroBind) {
 
@@ -746,13 +746,13 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	   we want to wait? */
 	/* printf ("start of PerlParse, thread %d\n",pthread_self()); */
 	if (returnifbusy) {
-		/* printf ("perlParse, returnifbusy, PerlParsing %d\n",PerlParsing);*/
+		/* printf ("inputParse, returnifbusy, PerlParsing %d\n",PerlParsing);*/
 		if (PerlParsing) return (FALSE);
 	}
 
 	WAIT_WHILE_PERL_BUSY;
 
-	/* printf ("perlParse, past WAIT_WHILE_PERL_BUSY in %d\n",pthread_self()); */
+	/* printf ("inputParse, past WAIT_WHILE_PERL_BUSY in %d\n",pthread_self()); */
 
 	/* copy the data over; malloc and copy input string */
 	psp.comp = complete;
@@ -773,7 +773,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	SEND_TO_PERL;
 	UNLOCK;
 
-	/* printf ("perlParse, waiting for data \n"); */
+	/* printf ("inputParse, waiting for data \n"); */
 
 	/* wait for data */
 	WAIT_WHILE_PERL_BUSY;
@@ -785,7 +785,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 /***********************************************************************************/
 
-void _perlThread(void *perlpath) {
+void _inputParseThread(void *perlpath) {
         char *commandline[] = {"", NULL};
 	char *builddir;
 	char *installdir;
@@ -795,68 +795,72 @@ void _perlThread(void *perlpath) {
 
 	FILE *tempfp; /* for tring to locate the fw2init.pl file */
 
-	/* printf ("perlThread is %d\n",pthread_self()); */
+	/* printf ("inputParseThread is %d\n",pthread_self()); */
 	PERL_LOCKING_INIT;
 
-	/* is the browser started yet? */
-	if (!browserRunning) {
-		/* find out if this FreeWRL is installed yet */
-		xx = strlen(INSTALLDIR) + strlen (FW2A) + 10;
-		installdir = (char *)malloc (sizeof(char) * xx);
-		strcpy (installdir,INSTALLDIR);
-		strcat (installdir,FW2A);
-		commandline[1] = installdir;
-
-		/* find out where the fw2init.pl file is */
-		if ((tempfp = fopen(commandline[1],"r")) != NULL) {
-			/* printf ("opened %s %d\n",commandline[1],tempfp); */
-			fclose(tempfp);
-		} else {
-			/* printf ("error opening %s\n",commandline[1]); */
-			xx = strlen (BUILDDIR) + strlen (FW2B) + 10;
-			builddir = (char *)malloc (sizeof(char) * xx);
-			strcpy (builddir, BUILDDIR);
-			strcat (builddir, FW2B);
-			commandline[1] = builddir;
-
+	if (!useExperimentalParser) {
+		/* is the browser started yet? */
+		if (!browserRunning) {
+			/* find out if this FreeWRL is installed yet */
+			xx = strlen(INSTALLDIR) + strlen (FW2A) + 10;
+			installdir = (char *)malloc (sizeof(char) * xx);
+			strcpy (installdir,INSTALLDIR);
+			strcat (installdir,FW2A);
+			commandline[1] = installdir;
+	
+			/* find out where the fw2init.pl file is */
 			if ((tempfp = fopen(commandline[1],"r")) != NULL) {
-
-				printf ("FreeWRL not installed; opened %s\n",commandline[1]); 
+				/* printf ("opened %s %d\n",commandline[1],tempfp); */
 				fclose(tempfp);
 			} else {
-				ConsoleMessage ("can not locate the fw2init.pl file, tried: " \
-				"    %s\n    and\n    %s\nexiting...\n",
-				installdir,builddir);
+				/* printf ("error opening %s\n",commandline[1]); */
+				xx = strlen (BUILDDIR) + strlen (FW2B) + 10;
+				builddir = (char *)malloc (sizeof(char) * xx);
+				strcpy (builddir, BUILDDIR);
+				strcat (builddir, FW2B);
+				commandline[1] = builddir;
+	
+				if ((tempfp = fopen(commandline[1],"r")) != NULL) {
+	
+					printf ("FreeWRL not installed; opened %s\n",commandline[1]); 
+					fclose(tempfp);
+				} else {
+					ConsoleMessage ("can not locate the fw2init.pl file, tried: " \
+					"    %s\n    and\n    %s\nexiting...\n",
+					installdir,builddir);
+					exit(1);
+				}
+			}
+	
+			/* initialize stuff for prel interpreter */
+			my_perl = perl_alloc();
+			perl_construct (my_perl);
+			if (perl_parse(my_perl, (XSINIT_t)xs_init, 2, commandline, NULL)) {
+				ConsoleMessage("freewrl can not parse initialization script %s, exiting...\n",
+					commandline[1]);
 				exit(1);
 			}
+			/* pass in the compiled perl path */
+			/* printf ("sending in path %s\n",perlpath); */
+			__pt_setPath((char *)perlpath);
+	
+			/* pass in the source directory path in case make install not called */
+			/* printf ("sending in path %s\n",BUILDDIR); */
+			__pt_setPath(BUILDDIR);
+	
+	
+			/* printf ("opening browser\n"); */
+			__pt_openBrowser();
+	
+			browserRunning=TRUE;
+	
+			/* Now, possibly this is the first VRML file to
+			   add. Check to see if maybe we have a ptr of 0. */
+	
+			PerlInitialized=TRUE;  /* have to do this AFTER ensuring we are locked */
 		}
-
-		/* initialize stuff for prel interpreter */
-		my_perl = perl_alloc();
-		perl_construct (my_perl);
-		if (perl_parse(my_perl, (XSINIT_t)xs_init, 2, commandline, NULL)) {
-			ConsoleMessage("freewrl can not parse initialization script %s, exiting...\n",
-				commandline[1]);
-			exit(1);
-		}
-		/* pass in the compiled perl path */
-		/* printf ("sending in path %s\n",perlpath); */
-		__pt_setPath((char *)perlpath);
-
-		/* pass in the source directory path in case make install not called */
-		/* printf ("sending in path %s\n",BUILDDIR); */
-		__pt_setPath(BUILDDIR);
-
-
-		/* printf ("opening browser\n"); */
-		__pt_openBrowser();
-
-		browserRunning=TRUE;
-
-		/* Now, possibly this is the first VRML file to
-		   add. Check to see if maybe we have a ptr of 0. */
-
-		PerlInitialized=TRUE;  /* have to do this AFTER ensuring we are locked */
+	} else {
+		PerlInitialized = TRUE;
 	}
 
 	/* now, loop here forever, waiting for instructions and obeying them */
@@ -1283,66 +1287,107 @@ void __pt_doStringUrl () {
 	int retval;
 	unsigned long int myretarr[2000];
 
-	if (psp.zeroBind) {
-		/* printf ("doStringUrl, have to zero Bindables in Perl\n"); */
-		__pt_zeroBindables();
-		psp.zeroBind=FALSE;
-	}
-
-	if (psp.type==FROMSTRING) {
-       		retval = _pt_CreateVrml("String",psp.inp,myretarr);
-
-	} else if (psp.type==FROMURL) {
-		retval = _pt_CreateVrml("URL",psp.inp,myretarr);
-	} else if (psp.type==FROMCREATENODE) {
-		retval = _pt_CreateVrml("CREATENODE",psp.inp,myretarr);
-	} else retval = _pt_CreateVrml("CREATEPROTO",psp.inp,myretarr);
-
-	/* printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr);  */
+	/* for cParser */
+        char *buffer;
+	struct X3D_Group *nRn;
 
 
-	/* copy the returned nodes to the caller */
-	if (psp.retarr != NULL) {
-		/* printf ("returning to EAI caller, psp.retarr = %d, count %d\n", psp.retarr, retval); */
-		for (count = 0; count < retval; count ++) {
-			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
-			psp.retarr[count] = myretarr[count];
-		}
-		psp.retarrsize = retval;
-	}
+	printf ("start of __pt_doStringUrl\n");
+	if (useExperimentalParser) {
+		if (psp.zeroBind) ConsoleMessage ("cant zeroBind with cParser yet\n");
+		if (psp.bind) ConsoleMessage ("cant bind with cParser yet\n");
+		if (psp.type==FROMSTRING) {
+ConsoleMessage ("cant FROMSTRING with cParser yet\n");
+		} else if (psp.type==FROMURL) {
+printf ("url is %s\n",psp.inp);
+        	buffer = readInputString(psp.inp,"");
+printf ("buffer is %s\n",buffer);
+		nRn = createNewX3DNode(NODE_Group);
+		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
 
-	/* get the Bindables from this latest VRML/X3D file */
-	if (retval > 0) getAllBindables();
 
-	/* send a set_bind to any nodes that exist */
-	if (psp.bind) {
-		if (totfognodes != 0) send_bind_to (NODE_Fog,(void *)(fognodes[0]),1);
-		if (totbacknodes != 0) send_bind_to (NODE_Background,(void *)(backgroundnodes[0]),1);
-		if (totnavnodes != 0) send_bind_to (NODE_NavigationInfo,(void *)(navnodes[0]),1);
-		if (totviewpointnodes != 0) send_bind_to(NODE_Viewpoint,(void *)(viewpointnodes[0]),1);
-	}
 
-       	/* now that we have the VRML/X3D file, load it into the scene.
-       	   myretarr contains node number/memory location pairs; thus the count
-       	   by two. */
-	if (psp.ptr != NULL) {
-		/* if we have a valid node to load this into, do it */
-		/* note that EAI CreateVRML type commands will NOT give */
-		/* a valid node */
+		} else if (psp.type==FROMCREATENODE) {
+ConsoleMessage ("cant  iFROMCREATENODE with cParser yet\n");
+		} else 
+ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 
-	       	for (count =1; count < retval; count+=2) {
-			/* printf ("__pt_doStringUrl, adding count %d %d\n", count,myretarr[count]); */
+
+printf ("children count is %d\n",nRn->children.n);
+		for (count=0; count < nRn->children.n; count++) {
 			/* add this child to the node */
-       			addToNode(psp.ptr, psp.ofs, (void *)(myretarr[count]));
+			addToNode(psp.ptr,psp.ofs,nRn->children.p[count]);
 
 			/* tell the child that it has a new parent! */
-			add_parent((void *)myretarr[count],psp.ptr);
-       		}
+			add_parent(nRn->children.p[count],psp.ptr);
+		}
+
+
+		retval = 0;
+		count = 0;
+	} else {
+	
+		if (psp.zeroBind) {
+			/* printf ("doStringUrl, have to zero Bindables in Perl\n"); */
+			__pt_zeroBindables();
+			psp.zeroBind=FALSE;
+		}
+	
+		if (psp.type==FROMSTRING) {
+	       		retval = _pt_CreateVrml("String",psp.inp,myretarr);
+	
+		} else if (psp.type==FROMURL) {
+			retval = _pt_CreateVrml("URL",psp.inp,myretarr);
+		} else if (psp.type==FROMCREATENODE) {
+			retval = _pt_CreateVrml("CREATENODE",psp.inp,myretarr);
+		} else retval = _pt_CreateVrml("CREATEPROTO",psp.inp,myretarr);
+	
+		/* printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr);  */
+	
+	
+		/* copy the returned nodes to the caller */
+		if (psp.retarr != NULL) {
+			/* printf ("returning to EAI caller, psp.retarr = %d, count %d\n", psp.retarr, retval); */
+			for (count = 0; count < retval; count ++) {
+				/* printf ("	...saving %d in %d\n",myretarr[count],count); */
+				psp.retarr[count] = myretarr[count];
+			}
+			psp.retarrsize = retval;
+		}
+	
+		/* get the Bindables from this latest VRML/X3D file */
+		if (retval > 0) getAllBindables();
+	
+		/* send a set_bind to any nodes that exist */
+		if (psp.bind) {
+			if (totfognodes != 0) send_bind_to (NODE_Fog,(void *)(fognodes[0]),1);
+			if (totbacknodes != 0) send_bind_to (NODE_Background,(void *)(backgroundnodes[0]),1);
+			if (totnavnodes != 0) send_bind_to (NODE_NavigationInfo,(void *)(navnodes[0]),1);
+			if (totviewpointnodes != 0) send_bind_to(NODE_Viewpoint,(void *)(viewpointnodes[0]),1);
+		}
+	
+	       	/* now that we have the VRML/X3D file, load it into the scene.
+	       	   myretarr contains node number/memory location pairs; thus the count
+	       	   by two. */
+		if (psp.ptr != NULL) {
+			/* if we have a valid node to load this into, do it */
+			/* note that EAI CreateVRML type commands will NOT give */
+			/* a valid node */
+	
+		       	for (count =1; count < retval; count+=2) {
+				/* printf ("__pt_doStringUrl, adding count %d %d\n", count,myretarr[count]); */
+				/* add this child to the node */
+	       			addToNode(psp.ptr, psp.ofs, (void *)(myretarr[count]));
+	
+				/* tell the child that it has a new parent! */
+				add_parent((void *)myretarr[count],psp.ptr);
+	       		}
+		}
 
 		/* tell the node that we have changed */
 		update_node(psp.ptr);
 	}
-	/* printf ("finished pt_do string url\n"); */
+	printf ("finished pt_do string url\n");
 }
 
 

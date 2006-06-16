@@ -1055,7 +1055,7 @@ void Last_ViewPoint(void);
 
 int freewrlSystem (const char *string);
 
-int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,
                         int zeroBind);
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d);

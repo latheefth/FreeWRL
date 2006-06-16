@@ -1182,7 +1182,7 @@ void initFreewrl() {
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
 	if (MYINITURL != NULL) 
 		if (strlen(MYINITURL) > 1) 
-        		perlParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
+        		inputParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
 }
 
 
