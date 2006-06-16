@@ -577,19 +577,24 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
  if(!lexer_int32(me->lexer, &depth))
   return FALSE;
 
- ret->n=3+width*height;
- ret->p=malloc(sizeof(*ret->p)*ret->n);
- assert(ret->p);
- ret->p[0]=width;
- ret->p[1]=height;
- ret->p[2]=depth;
+ *ret=malloc(sizeof(struct Multi_Int32));
+ assert(*ret);
 
- for(ptr=ret->p+3; ptr!=ret->p+ret->n; ++ptr)
+ (*ret)->n=3+width*height;
+ (*ret)->p=malloc(sizeof(*(*ret)->p)*(*ret)->n);
+ assert((*ret)->p);
+ (*ret)->p[0]=width;
+ (*ret)->p[1]=height;
+ (*ret)->p[2]=depth;
+
+ for(ptr=(*ret)->p+3; ptr!=(*ret)->p+(*ret)->n; ++ptr)
   if(!lexer_int32(me->lexer, ptr))
   {
-   free(ret->p);
-   ret->p=NULL;
-   ret->n=0;
+   free((*ret)->p);
+   (*ret)->p=NULL;
+   (*ret)->n=0;
+   free(*ret);
+   *ret=NULL;
    return FALSE;
   }
 
