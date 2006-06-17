@@ -22,6 +22,6 @@ typedef struct SFVec2f	vrmlVec2fT;
 typedef struct SFColor	vrmlVec3fT;
 
 #define parseError(msg) \
- fputs("Parse error:  " msg "\n", stderr)
+ ConsoleMessage("Parse error:  " msg "\n"); \
 
 #endif /* Once-check */
