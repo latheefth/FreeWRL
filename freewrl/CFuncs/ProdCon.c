@@ -32,7 +32,7 @@ int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
 /* do we use the experimental parser for our work? */
-int useExperimentalParser = TRUE;
+int useExperimentalParser = FALSE;
 
 int _P_LOCK_VAR;
 
@@ -1038,8 +1038,9 @@ void addToNode (void *rc, int offs, void *newNode) {
 
 /* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
 void kill_DEFS (void) {
-	printf ("calling killDefs\n");
-	__pt_zeroBindables();
+	if (useExperimentalParser)
+		printf ("calling killDefs\n");
+	else __pt_zeroBindables();
 }
 
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
@@ -1145,7 +1146,6 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *ret
 
 /* zero the bindables in Browser. */
 void __pt_zeroBindables() {
-	printf ("calling zeroBindables\n");
 	dSP;
 	PUSHMARK(SP);
 	call_pv("VRML::Browser::zeroBindables", G_ARRAY);
