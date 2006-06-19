@@ -46,7 +46,6 @@ extern XtAppContext freewrlXtAppContext;
 extern pthread_t DispThrd;
 int wantEAI;		/* enable EAI? */
 extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
-extern char *initialFilename;	/* file to start FreeWRL with */
 extern void   XEventStereo(void);
 
 extern void openMainWindow (void);
@@ -66,6 +65,7 @@ int main (int argc, char **argv) {
 	int count;
 	int digit_optind = 0;
 	char *pwd;
+	char *initialFilename;	/* file to start FreeWRL with */
 
 	/* first, get the FreeWRL shared lib, and verify the version. */
 	if(strcmp(FWVER,getLibVersion())){

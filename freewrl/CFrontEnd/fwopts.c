@@ -4,22 +4,12 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
-#include <headers.h>
+#include "../CFuncs/headers.h"
 #include <unistd.h>
 #include <getopt.h>
 #include <Snapshot.h>
 
 extern int wantEAI;
-
-/* for plugin running - these are read from the command line */
-extern int _fw_pipe;
-extern int _fw_browser_plugin;
-extern uintptr_t _fw_instance;
-/* keypress sequence for startup - Robert Sim */
-extern char *keypress_string;
-
-extern int xPos;
-extern int yPos;
 
 int parseCommandLine (int argc, char **argv) {
 	int c;
@@ -179,10 +169,10 @@ int parseCommandLine (int argc, char **argv) {
 		}
 
 		/* save the url for later use, if required */
-		setBrowserURL (argv[optind]);
+		setFullPath(argv[optind]);
 	} else {
-		/* printf ("no options  - just make BrowserURL point to nothing\n"); */
-		setBrowserURL ("");
+		/* printf ("no options  - just make BrowserFullPath point to nothing\n"); */
+		setFullPath("");
 		return FALSE;
 	}
 	return TRUE;

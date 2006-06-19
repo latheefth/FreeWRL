@@ -194,7 +194,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
-	if (RUNNINGASPLUGIN && (strcmp(BrowserURL,fname)!=0)) {
+	if (RUNNINGASPLUGIN && (strcmp(BrowserFullPath,fname)!=0)) {
 		retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
 
 		/* check for timeout; if not found, return false */

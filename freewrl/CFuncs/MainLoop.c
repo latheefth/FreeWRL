@@ -46,7 +46,6 @@
 #include <pthread.h>
 pthread_t DispThrd = 0;
 char* threadmsg;
-char *initialFilename;
 
 /* linewidth for lines and points - passed in on command line */
 float gl_linewidth = 1.0;
@@ -1060,18 +1059,12 @@ void setScreenDim(int wi, int he) {
         else screenRatio =  screenWidth;
 }
 
-void setBrowserURL(const char* file) {
-        if (BrowserURL != NULL) {
-                free (BrowserURL);
-        }
-        BrowserURL = strdup(file);
-}
-
 void setFullPath(const char* file) {
 	if (BrowserFullPath != NULL) {
 		free (BrowserFullPath);
 	}
 	BrowserFullPath = strdup(file);
+	/* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath)); */
 }
 
 
@@ -1180,9 +1173,9 @@ void initFreewrl() {
 	}
 
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
-	if (MYINITURL != NULL) 
-		if (strlen(MYINITURL) > 1) 
-        		inputParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
+	if (BrowserFullPath != NULL) 
+		if (strlen(BrowserFullPath) > 1) 
+        		inputParse(FROMURL, BrowserFullPath, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
 }
 
 

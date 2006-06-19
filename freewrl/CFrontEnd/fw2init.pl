@@ -40,7 +40,7 @@ sub open_browser {
 	# By default creates front- and back-ends.
 	$be = $b->{BE};
 
-	my $url = VRML::VRMLFunc::GetBrowserURL();
+	my $url = VRML::VRMLFunc::GetBrowserFullPath();
 
         delete $b->{Scene};
         $b->{Scene} = VRML::Scene->new(0, $url, $url);

@@ -608,7 +608,7 @@ void EAI_parse_commands (char *bufptr) {
 				#ifdef EAIVERBOSE 
 				printf ("GETURL\n");
 				#endif
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserURL);
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserFullPath);
 				break;
 				}
 			case GETNODE:  {

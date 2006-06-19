@@ -342,8 +342,8 @@ void Anchor_ReplaceWorld (char *filename) {
 				rootNode, offsetof (struct X3D_Group, children),&tmp,
 				TRUE);
 			
-			tt = BrowserURL;
-			BrowserURL = strdup(filename);
+			tt = BrowserFullPath;
+			BrowserFullPath = strdup(filename);
 			FREE_IF_NZ(tt);
 			EAI_Anchor_Response (TRUE);
 			return;

@@ -123,7 +123,7 @@ VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj,
 	UNUSED(argc);
 	UNUSED(argv);
 
-	_str = JS_NewString(context,BrowserURL,strlen(BrowserURL)+1);
+	_str = JS_NewString(context,BrowserFullPath,strlen(BrowserFullPath)+1);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }

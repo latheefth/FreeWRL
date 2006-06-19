@@ -150,7 +150,6 @@ int SoundEngineStarted = FALSE;
 
 /* stored FreeWRL version, pointers to initialize data */
 char *BrowserVersion = NULL;
-char *BrowserURL = NULL; 
 char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 char *lastReadFile = NULL;

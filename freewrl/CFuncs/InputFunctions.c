@@ -34,7 +34,7 @@ char * readInputString(char *fn, char *parent) {
 
 	/* printf ("start of readInputString, \n\tfile: %s\n\tparent: %s\n",*/
 	/* 		fn,parent);*/
-	/* printf ("\tBrowserURL: %s\n\n",BrowserURL);*/
+	/* printf ("\tBrowserFullPath: %s\n\n",BrowserFullPath);*/
 
 	/* verify (possibly, once again) the file name. This
 	 * should have been done already, with the exception of

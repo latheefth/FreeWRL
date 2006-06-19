@@ -28,17 +28,6 @@
 /* To allow BOOL for boolean values */
 #define BOOL	int
 
-/* initFreeWRL - some differences between the Unix and Aqua
-   versions. These defines maybe can disappear? */
-#ifdef AQUA
-	#define MYINITURL BrowserURL
-#else
-	#define MYINITURL initialFilename
-	extern char *initialFilename;
-#endif
-
-
-
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
    not working that well... */
@@ -363,6 +352,7 @@ extern int isTextureLoaded(int texno);
 extern int displayDepth;
 
 extern int _fw_pipe, _fw_FD;
+extern int _fw_browser_plugin;
 #define RUNNINGASPLUGIN (_fw_pipe != 0)
 
 /* appearance does material depending on last texture depth */
@@ -515,47 +505,6 @@ void *returnInterpolatorPointer (char *x);
 #define X3D_Component_EnvironmentalSensor	19
 #define X3D_Component_Scripting			20
 #define X3D_Component_Time			21
-#define X3DBoundedObject			 1
-#define X3DBounded2DObject 		 	2
-#define X3DURLObject 			 	3
-#define X3DAppearanceNode 			10
-#define X3DAppearanceChildNode 			11
-#define X3DMaterialNode 			12
-#define X3DTextureNode 				13
-#define X3DTexture2DNode 			14
-#define X3DTexture3DNode 			15
-#define X3DTextureTransformNode  		16
-#define X3DTextureTransform2DNode 		17
-#define X3DGeometryNode 			18
-#define X3DTextNode 				19
-#define X3DParametricGeometryNode 		20
-#define X3DGeometricPropertyNode 		21
-#define X3DColorNode				22
-#define X3DCoordinateNode 			23
-#define X3DNormalNode 				24
-#define X3DTextureCoordinateNode 		25
-#define X3DFontStyleNode 			26
-#define X3DProtoInstance 			27
-#define X3DChildNode 				28
-#define X3DBindableNode 			29
-#define X3DBackgroundNode 			30
-#define X3DGroupingNode 			31
-#define X3DShapeNode 				32
-#define X3DInterpolatorNode 			33
-#define X3DLightNode 				34
-#define X3DScriptNode 				35
-#define X3DSensorNode 				36
-#define X3DEnvironmentalSensorNode 		37
-#define X3DKeyDeviceSensorNode 			38
-#define X3DNetworkSensorNode 			39
-#define X3DPointingDeviceSensorNode 		40
-#define X3DDragSensorNode 			41
-#define X3DTouchSensorNode 			42
-#define X3DSequencerNode  			43
-#define X3DTimeDependentNode 			44
-#define X3DSoundSourceNode 			45
-#define X3DTriggerNode 				46
-#define X3DInfoNode 				47
 
 
 void CRoutes_js_new (uintptr_t num,int scriptType);
@@ -736,7 +685,8 @@ extern void setEyeDist (const char *optArg);
 
 extern int isPerlinitialized(void);
 extern int isDisplayInitialized(void);
-extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; /* defined in VRMLC.pm */
+extern char *BrowserName, *BrowserVersion, *BrowserFullPath; /* defined in VRMLC.pm */
+extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
 extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */
 extern int  lightingOn;			/* state of GL_LIGHTING */
@@ -798,7 +748,7 @@ extern void closeFreewrl();
 extern void setSeqFile(const char* file);
 extern void setSnapFile(const char* file);
 extern void setMaxImages(int max);
-extern void setBrowserURL(const char *str);
+extern void setBrowserFullPath(const char *str);
 extern void setSeqTemp(const char* file);
 extern void setFullPath(const char *str);
 extern void setScreenDim(int w, int h);

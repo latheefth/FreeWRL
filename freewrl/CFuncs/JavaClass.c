@@ -98,12 +98,12 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 		strcpy (newURL,"file:");
 
 		/* now, is the world relative to cwd, or not? */
-		if (BrowserURL[0] == '/') {
-			strncat (&newURL[5],BrowserURL,MURLLEN-10);
+		if (BrowserFullPath[0] == '/') {
+			strncat (&newURL[5],BrowserFullPath,MURLLEN-10);
 		} else {
 			rv=getcwd (&newURL[5],MURLLEN-10);
 			strcat (newURL,"/");
-			strncat (newURL,BrowserURL,MURLLEN-100);
+			strncat (newURL,BrowserFullPath,MURLLEN-100);
 		}
 
 		/* now, strip off the wrl filename, and place our name here */
