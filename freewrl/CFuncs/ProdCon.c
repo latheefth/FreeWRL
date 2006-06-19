@@ -1333,7 +1333,7 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 	} else {
 	
 		if (psp.zeroBind) {
-			printf ("doStringUrl, have to zero Bindables in Perl\n");
+			/* printf ("doStringUrl, have to zero Bindables in Perl\n"); */
 			__pt_zeroBindables();
 			psp.zeroBind=FALSE;
 		}
