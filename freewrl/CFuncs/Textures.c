@@ -20,7 +20,7 @@
 /* lets check the max texture size */
 static int checktexsize;
 #define CHECK_MAX_TEXTURE_SIZE \
-	if (global_texSize<=0) { \ 
+	if (global_texSize<=0) { \
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); \
 		global_texSize = -global_texSize; \
 		if (global_texSize == 0) global_texSize = checktexsize; \
@@ -98,7 +98,8 @@ void store_tex_info(
 		GLint Tgl_rep_or_clamp,
 		GLint Image);
 
-void __reallyloadPixelTexture(void);
+void __reallyloadPixelTexAsSV(void);
+void __reallyloadPixelTexAsMFInt32(void);
 void __reallyloadImageTexture(void);
 void __reallyloadMovieTexture(void);
 void do_possible_textureSequence(int texno);
@@ -1004,7 +1005,7 @@ int findTextureFile (int cwo, int *istemp) {
 	*istemp=FALSE;	/* don't remove this file */
 
 	#ifdef TEXVERBOSE 
-	printf ("textureThread:start of findTextureFile for cwo %d \n",cwo);
+	printf ("textureThread:start of findTextureFile for cwo %d type %d \n",cwo,loadparams[cwo].type);
 	#endif
 	/* try to find this file. */
 
@@ -1066,25 +1067,45 @@ int findTextureFile (int cwo, int *istemp) {
 	if (loadparams[cwo].type ==PIXELTEXTURE) {
 		int a,b,c;
 		char *name;
+		struct Multi_Int32 *cTexture;
+		int *iptr;
 
 		#ifdef TEXVERBOSE 
 		printf ("textureThread, going to get name \n");
 		#endif
 
-		name = SvPV(loadparams[cwo].parenturl,xx);
 		filename = (char *)malloc(100);
 
-		#ifdef TEXVERBOSE
-		printf ("in find, name %s strlen %d\n",name,strlen(name));
-		#endif
+		if (useExperimentalParser) {
+			/* in this case, the pointer points to a struct Multi_Int32. */
+			cTexture = (struct Multi_Int32*) loadparams[cwo].parenturl;
+			c = cTexture->n;
+			/* printf ("pixeltex len %d\n",c); */
+			iptr = (int *)cTexture->p;
+			b = 0;
+			if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
+			for (a=0; a<c; a++) {
+				/* printf ("b is %x\n",b); printf ("*iptr is %x\n",*iptr); */
+				b =  b + *iptr; iptr++;
+			}
 
-		/* make up a checksum name that is unique for PixelTextures - for checking on duplicates */
-		b = 0;
-		c = strlen(name);
-		if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
-		for (a=0; a<c; a++) {
-			b =  b + (int) (name[a] & 0xff);
-		}
+
+		} else {
+
+			name = SvPV(loadparams[cwo].parenturl,xx);
+	
+			#ifdef TEXVERBOSE
+			printf ("in find, name %s strlen %d\n",name,strlen(name));
+			#endif
+	
+			/* make up a checksum name that is unique for PixelTextures - for checking on duplicates */
+			b = 0;
+			c = strlen(name);
+			if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
+			for (a=0; a<c; a++) {
+				b =  b + (int) (name[a] & 0xff);
+			}
+		}	
 
 		sprintf (filename,"PixelTexture_%d_%d",c,b);
 		#ifdef TEXVERBOSE 
@@ -1239,7 +1260,9 @@ void _textureThread(void) {
 
 			/* is this a pixeltexture? */
 			if (loadparams[currentlyWorkingOn].type==PIXELTEXTURE) {
-				__reallyloadPixelTexture();
+				if (useExperimentalParser) __reallyloadPixelTexAsMFInt32();
+				else __reallyloadPixelTexAsSV();
+				
 			} else if (loadparams[currentlyWorkingOn].type==MOVIETEXTURE) {
 				__reallyloadMovieTexture();
 			} else {
@@ -1295,7 +1318,90 @@ void _textureThread(void) {
 /********************************************************************************/
 /* load specific types of textures						*/
 /********************************************************************************/
-void __reallyloadPixelTexture() {
+
+/* load a PixelTexture that is stored as a MFInt32 */
+void __reallyloadPixelTexAsMFInt32() {
+	/* PixelTexture variables */
+	long hei,wid,depth;
+	long long inval;
+	unsigned char *texture;
+	int count;
+	int ok;
+	struct Multi_Int32 * myData;
+	int *iptr;
+	int tctr;
+
+	myData = (struct Multi_Int32 *) loadparams[currentlyWorkingOn].parenturl;
+	iptr = (int *) myData->p;
+
+	ok = TRUE;
+
+	/* are there enough numbers for the texture? */
+	if (myData->n < 3) {
+		printf ("PixelTexture, need at least 3 elements, have %d\n",myData->n);
+		ok = FALSE;
+	} else {
+		wid = *iptr; iptr++;
+		hei = *iptr; iptr++;
+		depth = *iptr; iptr++;
+
+		if ((depth < 1) || (depth >4)) {
+			printf ("PixelTexture, depth %d out of range, assuming 1\n",(int) depth);
+			depth = 1;
+		}
+	
+		if ((wid*hei-3) > myData->n) {
+			printf ("PixelTexture, not enough data for wid %d hei %d, have %d\n",
+					wid, hei, (wid*hei)-2);
+			ok = FALSE;
+		}
+	}
+		
+
+	if (ok) {
+		texture = (unsigned char *)malloc (wid*hei*4);
+		tctr = 0;
+		for (count = 0; count < (wid*hei); count++) {
+			switch (depth) {
+				case 1: {
+					   texture[tctr++] = *iptr & 0xff;
+					   break;
+				   }
+				case 2: {
+					   texture[tctr++] = *iptr & 0x00ff;
+					   texture[tctr++] = (*iptr>>8) & 0xff;
+					   break;
+				   }
+				case 3: {
+					   texture[tctr++] = (*iptr>>16) & 0xff; /*R*/
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 /*G*/
+					   texture[tctr++] = (*iptr>>0) & 0xff; /*B*/
+					   break;
+				   }
+				case 4: {
+					   texture[tctr++] = (*iptr>>24) & 0xff; /*R*/
+					   texture[tctr++] = (*iptr>>16) & 0xff; /*G*/
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 /*B*/
+					   texture[tctr++] = (*iptr>>0) & 0xff; /*A*/
+					   /* printf ("verify, %x %x %x %x\n",texture[tctr-4],texture[tctr-3],
+						texture[tctr-2],texture[tctr-1]); */
+					   break;
+				   }
+			}
+
+			iptr++;
+		}
+		store_tex_info(currentlyWorkingOn,
+			(int)depth,(int)wid,(int)hei,texture,
+			((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP,
+			((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
+			GL_NEAREST);
+	}
+
+}
+
+/* the perl Parser used to return PixelTextures as SV *s */
+void __reallyloadPixelTexAsSV() {
 	/* PixelTexture variables */
 	long hei,wid,depth;
 	long long inval;
@@ -1311,10 +1417,10 @@ void __reallyloadPixelTexture() {
 	/* check to see if there really is a PixelTexture there; if there is not,
 	   then mark texture INVALID and return. eg, PixelTexture {} will get
 	   caught here */
-
 	#ifdef TEXVERBOSE 
 	printf ("start of reallyLoadPixelTexture\n");
 	#endif
+
 
 	if ((SvFLAGS(loadparams[currentlyWorkingOn].parenturl) & SVf_POK) == 0) {
 		printf ("this one is going to fail\n");
@@ -1401,7 +1507,7 @@ void __reallyloadPixelTexture() {
 	}
 
 	#ifdef TEXVERBOSE 
-	printf ("end of reallyloadPixelTextures\n");
+	printf ("end of reallyloadPixelTexAsSVs\n");
 	#endif
 }
 

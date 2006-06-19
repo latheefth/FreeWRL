@@ -32,7 +32,7 @@ int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
 /* do we use the experimental parser for our work? */
-int useExperimentalParser = FALSE;
+int useExperimentalParser = TRUE;
 
 int _P_LOCK_VAR;
 
@@ -796,6 +796,7 @@ void _inputParseThread(void *perlpath) {
 	FILE *tempfp; /* for tring to locate the fw2init.pl file */
 
 	/* printf ("inputParseThread is %d\n",pthread_self()); */
+
 	PERL_LOCKING_INIT;
 
 	if (!useExperimentalParser) {
@@ -944,7 +945,13 @@ void _inputParseThread(void *perlpath) {
 			break;
 			}
 
-		case ZEROBINDABLES: __pt_zeroBindables(); break;
+		case ZEROBINDABLES: 
+			if (useExperimentalParser) {
+				ConsoleMessage ("can not zero bindables here");
+			} else {
+				__pt_zeroBindables(); 
+			}
+			break;
 
 		default: {
 			printf ("produceTask - invalid type!\n");
@@ -1031,6 +1038,7 @@ void addToNode (void *rc, int offs, void *newNode) {
 
 /* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
 void kill_DEFS (void) {
+	printf ("calling killDefs\n");
 	__pt_zeroBindables();
 }
 
@@ -1137,6 +1145,7 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *ret
 
 /* zero the bindables in Browser. */
 void __pt_zeroBindables() {
+	printf ("calling zeroBindables\n");
 	dSP;
 	PUSHMARK(SP);
 	call_pv("VRML::Browser::zeroBindables", G_ARRAY);
@@ -1291,19 +1300,16 @@ void __pt_doStringUrl () {
         char *buffer;
 	struct X3D_Group *nRn;
 
-
-	printf ("start of __pt_doStringUrl\n");
 	if (useExperimentalParser) {
 		if (psp.zeroBind) ConsoleMessage ("cant zeroBind with cParser yet\n");
 		if (psp.bind) ConsoleMessage ("cant bind with cParser yet\n");
 		if (psp.type==FROMSTRING) {
 ConsoleMessage ("cant FROMSTRING with cParser yet\n");
 		} else if (psp.type==FROMURL) {
-printf ("url is %s\n",psp.inp);
         	buffer = readInputString(psp.inp,"");
-printf ("buffer is %s\n",buffer);
 		nRn = createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
+/*		FREE_IF_NZ (buffer); */
 
 
 
@@ -1313,7 +1319,6 @@ ConsoleMessage ("cant  iFROMCREATENODE with cParser yet\n");
 ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 
 
-printf ("children count is %d\n",nRn->children.n);
 		for (count=0; count < nRn->children.n; count++) {
 			/* add this child to the node */
 			addToNode(psp.ptr,psp.ofs,nRn->children.p[count]);
@@ -1328,7 +1333,7 @@ printf ("children count is %d\n",nRn->children.n);
 	} else {
 	
 		if (psp.zeroBind) {
-			/* printf ("doStringUrl, have to zero Bindables in Perl\n"); */
+			printf ("doStringUrl, have to zero Bindables in Perl\n");
 			__pt_zeroBindables();
 			psp.zeroBind=FALSE;
 		}
@@ -1387,7 +1392,6 @@ printf ("children count is %d\n",nRn->children.n);
 		/* tell the node that we have changed */
 		update_node(psp.ptr);
 	}
-	printf ("finished pt_do string url\n");
 }
 
 

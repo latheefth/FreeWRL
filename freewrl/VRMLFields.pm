@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.66  2006/06/19 16:40:46  crc_canada
+# PixelTextures using new parser.
+#
 # Revision 1.65  2006/06/09 17:16:43  crc_canada
 # More SAI code changes.
 #
@@ -1505,8 +1508,17 @@ sub as_string{"\"$_[1]\""}
 sub clength {-12}; # signal that a -12 is a SFImage for CRoutes #for C routes. Keep in sync with getClen in VRMLC.pm.
 
 sub cInitialize {
-	my ($this,$field,$val) = @_;
-	return "$field = EAI_newSVpv(\"$val\")";
+        my ($this,$field,$val) = @_;
+        return "$field = EAI_newSVpv(\"$val\")";
+
+# SFImages should return a pointer to a Multi_Int32, not SV, if using Daniel Kraft's parser
+#return "if (useExperimentalParser) { \n" .
+#		"int initf[] = {0,0,0}; \n".
+#		"$field = malloc (sizeof (struct Multi_Int32*));\n" .
+#		"((struct Multi_Int32*)tmp2)->n = 3; \n".
+#		"((struct Multi_Int32*)tmp2)->p = malloc (sizeof(int) *3);\n".
+#		"memcpy(((struct Multi_Int32*)tmp2)->p,initf,sizeof(int)*3);\n".
+#	" } else $field = EAI_newSVpv(\"$val\")\n"; 
 }
 
 1;
