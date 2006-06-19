@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.232  2006/06/19 17:26:34  crc_canada
+# handles step1 of parenturls.
+#
 # Revision 1.231  2006/06/15 18:23:17  crc_canada
 # getNodeType for SAI
 #
@@ -763,7 +766,8 @@ sub gen {
 			#print "		fieldDefaults ". $VRML::Nodes{$node}{Defaults}{$field}."\n";
 			#print "		fieldKinds ". $VRML::Nodes{$node}{FieldKinds}{$field}."\n";
 			#print "		fieldTypes ". $VRML::Nodes{$node}{FieldTypes}{$field}."\n";
-			if (($fk ne "eventIn") && ($field ne "__parenturl")) {
+			#if (($fk ne "eventIn") && ($field ne "__parenturl")) {
+			if ($fk ne "eventIn") {
 				#print "		do thisfield\n";
 				my $cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
 				push @genFuncs2, "\t\t\t$cf;\n";
