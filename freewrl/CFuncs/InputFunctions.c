@@ -90,7 +90,7 @@ char * readInputString(char *fn, char *parent) {
 
 		if ((bufsize - bufcount) < READSIZE) {
 			/* printf ("HAVE TO REALLOC INPUT MEMORY\n");*/
-			bufsize *= 2;
+			bufsize = bufsize*bufsize;
 			buffer =(char *) realloc (buffer, (unsigned int) bufsize);
 		}
 	} while (justread>0);
