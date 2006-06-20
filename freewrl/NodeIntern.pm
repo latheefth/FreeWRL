@@ -328,8 +328,6 @@ sub new {
 
 
 # Fill in nonexisting field values by the default values.
-# if the field name is "__parenturl", then we supply the current url to it.
-# this helps the C threads find relative files, as loading can be intermixed.
 
 sub do_defaults {
 	my ($this,$scene) = @_;
@@ -353,11 +351,7 @@ sub do_defaults {
 			} elsif (ref $this->{Type}{Defaults}{$_} eq "ARRAY") {
 				push @{$this->{Fields}{$_}}, @{$this->{Type}{Defaults}{$_}};
 			} else {
-				if ($_ eq "__parenturl") {
-					$this->{Fields}{$_} = $scene->get_url();
-				} else {
-					$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
-				}
+				$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
 			}
 		}
 	}

@@ -686,6 +686,7 @@ extern void setEyeDist (const char *optArg);
 extern int isPerlinitialized(void);
 extern int isDisplayInitialized(void);
 extern char *BrowserName, *BrowserVersion, *BrowserFullPath; /* defined in VRMLC.pm */
+extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
 extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */

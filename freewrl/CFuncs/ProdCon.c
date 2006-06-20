@@ -34,6 +34,9 @@ uintptr_t _fw_instance = 0;
 /* do we use the experimental parser for our work? */
 int useExperimentalParser = FALSE;
 
+/* for keeping track of current url */
+char *currentWorkingUrl = NULL;
+
 int _P_LOCK_VAR;
 
 /* thread synchronization issues */
@@ -300,6 +303,25 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	/* and, return in the ptr filename, the filename created... */
 	 /* printf ("makeAbsoluteFileName, just made :%s:\n",filename); */
 }
+
+
+/************************************************************************/
+/*									*/
+/* keep track of the current url for parsing/textures			*/
+/*									*/
+/************************************************************************/
+
+void pushInputURL(char *url) {
+
+	FREE_IF_NZ(currentWorkingUrl);
+	currentWorkingUrl = strdup(url);
+	/* printf ("currenturl is %s\n",currentWorkingUrl); */
+}
+
+char *getInputURL() {
+	return currentWorkingUrl;
+}
+
 
 
 /************************************************************************/
@@ -1306,10 +1328,13 @@ void __pt_doStringUrl () {
 		if (psp.type==FROMSTRING) {
 ConsoleMessage ("cant FROMSTRING with cParser yet\n");
 		} else if (psp.type==FROMURL) {
+		pushInputURL (psp.inp);
         	buffer = readInputString(psp.inp,"");
 		nRn = createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
-/*		FREE_IF_NZ (buffer); */
+		FREE_IF_NZ (buffer); 
+		/* popInputURL(); */
+
 
 
 
@@ -1342,6 +1367,7 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 	       		retval = _pt_CreateVrml("String",psp.inp,myretarr);
 	
 		} else if (psp.type==FROMURL) {
+			pushInputURL (psp.inp);
 			retval = _pt_CreateVrml("URL",psp.inp,myretarr);
 		} else if (psp.type==FROMCREATENODE) {
 			retval = _pt_CreateVrml("CREATENODE",psp.inp,myretarr);

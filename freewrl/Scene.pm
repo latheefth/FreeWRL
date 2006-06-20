@@ -583,12 +583,12 @@ sub get_proto {
 	return undef;
 }
 
-sub get_url {
-	my ($this) = @_;
-	return $this->{URL} if (defined $this->{URL});
-	return $this->{Parent}->get_url() if ($this->{Parent});
-	die("Undefined URL tree");
-}
+#sub get_url {
+#	my ($this) = @_;
+#	return $this->{URL} if (defined $this->{URL});
+#	return $this->{Parent}->get_url() if ($this->{Parent});
+#	die("Undefined URL tree");
+#}
 
 sub set_world_url {
 	my ($this, $url) = @_;

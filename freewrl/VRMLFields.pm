@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.68  2006/06/20 18:48:54  crc_canada
+# keep track of current working url.
+#
 # Revision 1.67  2006/06/20 17:58:57  crc_canada
 # adds BrowserFullPath to __parenturl fields.
 #
@@ -651,7 +654,7 @@ sub cInitialize {
 	my ($this,$field,$val) = @_;
 
 	if ($field eq "tmp2->__parenturl") {
-		return "$field = EAI_newSVpv(BrowserFullPath)";
+		return "$field = EAI_newSVpv(getInputURL())";
 	} else {
 		return "$field = EAI_newSVpv(\"$val\")";
 	}
