@@ -5,6 +5,9 @@
 
 #include "CParseParser.h"
 
+// Define this so it can be included in NodeFields.h
+#define DO_PATH_WORK
+
 #define PARSE_ERROR(msg) \
  { \
   parseError(msg); \
