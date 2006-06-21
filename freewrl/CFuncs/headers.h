@@ -1070,6 +1070,8 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,
                         int zeroBind);
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d);
+void destroyCParserData();
+
 
 
 int ConsoleMessage(const char *fmt, ...);

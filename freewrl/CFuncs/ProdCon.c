@@ -969,7 +969,7 @@ void _inputParseThread(void *perlpath) {
 
 		case ZEROBINDABLES: 
 			if (useExperimentalParser) {
-				ConsoleMessage ("can not zero bindables here");
+				destroyCParserData();
 			} else {
 				__pt_zeroBindables(); 
 			}
@@ -1060,8 +1060,7 @@ void addToNode (void *rc, int offs, void *newNode) {
 
 /* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
 void kill_DEFS (void) {
-	if (useExperimentalParser)
-		printf ("calling killDefs\n");
+	if (useExperimentalParser) destroyCParserData();
 	else __pt_zeroBindables();
 }
 
@@ -1323,7 +1322,8 @@ void __pt_doStringUrl () {
 	struct X3D_Group *nRn;
 
 	if (useExperimentalParser) {
-		if (psp.zeroBind) ConsoleMessage ("cant zeroBind with cParser yet\n");
+		if (psp.zeroBind) destroyCParserData();
+
 		if (psp.bind) ConsoleMessage ("cant bind with cParser yet\n");
 		if (psp.type==FROMSTRING) {
 ConsoleMessage ("cant FROMSTRING with cParser yet\n");
