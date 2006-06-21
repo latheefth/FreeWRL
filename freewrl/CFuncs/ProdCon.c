@@ -10,6 +10,7 @@
 #include "installdir.h"
 #include "PluginSocket.h"
 #include "Bindable.h"
+#include "CParse.h"
 #include <pthread.h>
 
 #ifndef __jsUtils_h__

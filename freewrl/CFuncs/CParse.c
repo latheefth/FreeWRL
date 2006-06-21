@@ -25,8 +25,3 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data)
 
  return TRUE;
 }
-
-void destroyCParserData()
-{
- parser_destroyData();
-}

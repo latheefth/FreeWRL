@@ -8,6 +8,7 @@
 BOOL cParse(void*, unsigned, const char*);
 
 /* Destroy all data associated with the currently parsed world kept. */
-void destroyCParserData();
+#define destroyCParserData \
+ parser_destroyData
 
 #endif /* Once-check */

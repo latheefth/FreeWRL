@@ -71,6 +71,7 @@ void lexer_destroyData()
   deleteVector(char*, userNodeNames);
   userNodeNames=NULL;
  }
+ assert(!userNodeNames);
 }
 
 /* Sets curID of lexer */

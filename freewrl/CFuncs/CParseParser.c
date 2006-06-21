@@ -51,6 +51,7 @@ void parser_destroyData()
   deleteVector(struct X3D_Node*, DEFedNodes);
   DEFedNodes=NULL;
  }
+ assert(!DEFedNodes);
 }
 
 /* ************************************************************************** */
