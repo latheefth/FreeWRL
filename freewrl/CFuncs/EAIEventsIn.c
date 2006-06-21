@@ -658,7 +658,10 @@ void EAI_parse_commands (char *bufptr) {
 					(strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0)) {
 						myField = findFieldInALLFIELDNAMES("children");
 					} else {
-        					myField = findFieldInALLFIELDNAMES(ctmp);
+						/* try finding it, maybe with a "set_" or "changed" removed */
+						myField = findRoutedFieldInFIELDNAMES(ctmp,0);
+						if (myField == -1) 
+							myField = findRoutedFieldInFIELDNAMES(ctmp,1);
 					}
 					myofs = NODE_OFFSETS[boxptr->_nodeType];
 
