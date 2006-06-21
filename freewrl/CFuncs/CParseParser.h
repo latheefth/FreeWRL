@@ -27,6 +27,9 @@ struct VRMLParser
 struct VRMLParser* newParser(void*, unsigned);
 void deleteParser(struct VRMLParser*);
 
+/* Other clean up */
+void parser_destroyData();
+
 /* Sets parser's input */
 #define parser_fromString(me, str) \
  lexer_fromString(me->lexer, str)

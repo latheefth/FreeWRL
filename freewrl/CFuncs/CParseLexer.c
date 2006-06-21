@@ -60,6 +60,19 @@ void deleteLexer(struct VRMLLexer* me)
  free(me);
 }
 
+void lexer_destroyData()
+{
+ /* User node names */
+ if(userNodeNames)
+ {
+  indexT i;
+  for(i=0; i!=vector_size(userNodeNames); ++i)
+   free(vector_get(char*, userNodeNames, i));
+  deleteVector(char*, userNodeNames);
+  userNodeNames=NULL;
+ }
+}
+
 /* Sets curID of lexer */
 /* FIXME:  ID not as in VRML grammar! */
 #define IS_ID_FIRST(c) \

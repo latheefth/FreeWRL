@@ -26,6 +26,9 @@ struct VRMLLexer
 struct VRMLLexer* newLexer();
 void deleteLexer(struct VRMLLexer*);
 
+/* Other clean up. */
+void lexer_destroyData();
+
 /* Set input */
 #define lexer_fromString(me, str) \
  ((me)->isEof=FALSE, (me)->nextIn=str)

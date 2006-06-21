@@ -5,9 +5,6 @@
 
 #include "CParseParser.h"
 
-// Define this so it can be included in NodeFields.h
-#define DO_PATH_WORK
-
 #define PARSE_ERROR(msg) \
  { \
   parseError(msg); \
@@ -39,6 +36,21 @@ void deleteParser(struct VRMLParser* me)
  deleteLexer(me->lexer);
 
  free(me);
+}
+
+void parser_destroyData()
+{
+ lexer_destroyData();
+
+ /* DEFed Nodes. */
+ if(DEFedNodes)
+ {
+  indexT i;
+  for(i=0; i!=vector_size(DEFedNodes); ++i)
+   free(vector_get(struct X3D_Node*, DEFedNodes, i));
+  deleteVector(struct X3D_Node*, DEFedNodes);
+  DEFedNodes=NULL;
+ }
 }
 
 /* ************************************************************************** */
