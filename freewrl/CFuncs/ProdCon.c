@@ -1365,7 +1365,6 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 	
 		if (psp.type==FROMSTRING) {
 	       		retval = _pt_CreateVrml("String",psp.inp,myretarr);
-	
 		} else if (psp.type==FROMURL) {
 			pushInputURL (psp.inp);
 			retval = _pt_CreateVrml("URL",psp.inp,myretarr);
@@ -1413,10 +1412,9 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 				/* tell the child that it has a new parent! */
 				add_parent((void *)myretarr[count],psp.ptr);
 	       		}
+			/* tell the node that we have changed */
+			update_node(psp.ptr);
 		}
-
-		/* tell the node that we have changed */
-		update_node(psp.ptr);
 	}
 }
 

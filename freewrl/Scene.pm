@@ -124,7 +124,6 @@ sub new {
 	my $this = bless {
 					  EventModel => $eventmodel,
 					  URL => $url,
-					  WorldURL => $worldurl,
 					  SubScenes => undef,
 					  Bindable => undef,
 					  Bindables => undef,
@@ -148,7 +147,6 @@ sub set_url {
     my $ps = substr($parentURL,0,$ri);
 
     $this->{URL} = $url;
-    $this->{WorldURL} = $ps;
 }
 
 sub newp {
@@ -208,7 +206,6 @@ sub newextp {
     $this->{Name} = $name;
     $this->{Parent} = $parent;
     $this->{URL} = $url;
-    $this->{WorldURL} = $parentURL;
 
     #print "newextp, url ",@{$url},", parenturl $parentURL\n";
 
@@ -218,11 +215,6 @@ sub newextp {
     # we should go to the url for the parent EXTERNPROTO, rather than
     # the parent for the whole scene, but, this is not stored in Perl
     # anywhere.
-
-    if (!$parentURL) {
-	    $parentURL = VRML::VRMLFunc::GetBrowserFullPath();
-	    $this->{WorldURL} = $parentURL;
-	  }
 
 
     # Extract the field types
@@ -583,28 +575,6 @@ sub get_proto {
 	return undef;
 }
 
-#sub get_url {
-#	my ($this) = @_;
-#	return $this->{URL} if (defined $this->{URL});
-#	return $this->{Parent}->get_url() if ($this->{Parent});
-#	die("Undefined URL tree");
-#}
-
-sub set_world_url {
-	my ($this, $url) = @_;
-	print "VRML::Scene::set_world_url: ", VRML::Debug::toString(\@_), "\n"
-		if $VRML::verbose::scene;
-
-	$this->{WorldURL} = $url;
-}
-
-sub get_world_url {
-	my ($this) = @_;
-	return $this->{WorldURL} if (defined $this->{WorldURL});
-	return $this->{Parent}->get_world_url() if ($this->{Parent});
-	return undef;
-}
-
 sub get_scene {
 	my ($this) = @_;
 	return $this->{Parent}->get_scene() if ($this->{Parent});
@@ -747,10 +717,6 @@ sub get_copy {
 
 	if (defined $this->{URL}) {
 		$new->{URL} = $this->{URL};
-	}
-
-	if (defined $this->{WorldURL}) {
-		$new->{WorldURL} = $this->{WorldURL};
 	}
 
 	$new->{Name} = $this->{Name};

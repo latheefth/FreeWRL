@@ -319,8 +319,7 @@ sub create_common {
 sub createVrmlFromString {
 	my ($this, $string) = @_;
 
-	my $wurl = $this->{Scene}->get_world_url();
-
+	my $wurl = VRML::VRMLFunc::GetBrowserFullPath();
 	return $this->create_common (".",$wurl,$string);
 }
 
