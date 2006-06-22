@@ -992,6 +992,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
 	/* consoleMessage - ok, not exactly a kill, more of a reset */
 	consMsgCount = 0;
 
+	/* clock events - stop them from ticking */
+	kill_clockEvents();
+
 	/* kill DEFS, handles */
 	EAI_killBindables();
 

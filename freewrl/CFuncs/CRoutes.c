@@ -1983,6 +1983,11 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */
 
+void kill_clockEvents() { 
+	/* printf ("killing clckevents - was %d\n",num_ClockEvents); */
+	num_ClockEvents = 0;
+}
+
 void add_first(void * node) {
 	void (*myp)(void *);
 	struct X3D_Box * tmp;
