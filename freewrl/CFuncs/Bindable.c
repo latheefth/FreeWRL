@@ -115,7 +115,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	char * nameptr;
 	STRLEN len;
 
-	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value);  */
+	/* printf ("\nsend_bind_to, nodetype %s node %d value %d\n",stringNodeType(nodetype),node,value); */
 
 	if (nodetype == NODE_Background) {
 		bg = (struct X3D_Background *) node;

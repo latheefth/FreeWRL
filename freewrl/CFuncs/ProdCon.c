@@ -89,10 +89,8 @@ struct PSStruct {
 void _inputParseThread (void *perlpath);
 void __pt_setPath(char *perlpath);
 void __pt_openBrowser(void);
-void __pt_zeroBindables(void);
+void __pt_zeroDEFS(void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *retarr);
-unsigned int __pt_getBindables (char *tp, unsigned long int *retarr);
-void getAllBindables(void);
 int isInputThreadInitialized(void);
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			void *ptr, unsigned ofs, int *complete,
@@ -109,10 +107,10 @@ void __pt_SAI_Command (void);
 void EAI_readNewWorld(char *inputstring);
 
 /* Bindables */
-unsigned long int *fognodes = NULL;
-unsigned long int *backgroundnodes = NULL;
-unsigned long int *navnodes = NULL;
-unsigned long int *viewpointnodes = NULL;
+void* *fognodes = NULL;
+void* *backgroundnodes = NULL;
+void* *navnodes = NULL;
+void* *viewpointnodes = NULL;
 int totfognodes = 0;
 int totbacknodes = 0;
 int totnavnodes = 0;
@@ -972,7 +970,7 @@ void _inputParseThread(void *perlpath) {
 			if (useExperimentalParser) {
 				destroyCParserData();
 			} else {
-				__pt_zeroBindables(); 
+				__pt_zeroDEFS(); 
 			}
 			break;
 
@@ -1062,7 +1060,7 @@ void addToNode (void *rc, int offs, void *newNode) {
 /* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
 void kill_DEFS (void) {
 	if (useExperimentalParser) destroyCParserData();
-	else __pt_zeroBindables();
+	else __pt_zeroDEFS();
 }
 
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
@@ -1079,33 +1077,43 @@ void kill_bindables (void) {
 	FREE_IF_NZ(viewpointnodes);
 }
 
-/* get all of the bindables from the Perl side. */
-void getAllBindables() {
-	unsigned long int aretarr[1000];
-	unsigned long int bretarr[1000];
-	unsigned long int cretarr[1000];
-	unsigned long int dretarr[1000];
 
-	/* first, free any previous nodes */
-	kill_bindables();
+void registerBindable (void *ptr) {
+	struct X3D_Box *node;
 
-	/* now, get the values */
-	totviewpointnodes = __pt_getBindables("Viewpoint",aretarr);
-	totfognodes = __pt_getBindables("Fog",bretarr);
-	totnavnodes = __pt_getBindables("NavigationInfo",cretarr);
-	totbacknodes = __pt_getBindables("Background",dretarr);
+	node = (struct X3D_Box *)ptr;
+	printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType)); 
+	switch (node->_nodeType) {
+		case NODE_Viewpoint:
+		case NODE_GeoViewpoint:
+			viewpointnodes = realloc (viewpointnodes, (sizeof(void *)*(totviewpointnodes+1)));
+			viewpointnodes[totviewpointnodes] = ptr;
+			totviewpointnodes ++;
+			break;
+		case NODE_Background:
+		case NODE_TextureBackground:
+			backgroundnodes = realloc (backgroundnodes, (sizeof(void *)*(totbacknodes+1)));
+			backgroundnodes[totbacknodes] = ptr;
+			totbacknodes ++;
+			break;
+		case NODE_NavigationInfo:
+			navnodes = realloc (navnodes, (sizeof(void *)*(totnavnodes+1)));
+			navnodes[totnavnodes] = ptr;
+			totnavnodes ++;
+			break;
+		case NODE_Fog:
+			fognodes = realloc (fognodes, (sizeof(void *)*(totfognodes+1)));
+			fognodes[totfognodes] = ptr;
+			totfognodes ++;
+			break;
+		default: {
+			/* do nothing with this node */
+			printf ("got a registerBind on a node of type %s - huh?\n",
+					stringNodeType(node->_nodeType));
+			return;
+		}                                                
 
-	/* and, malloc the memory needed */
-	viewpointnodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totviewpointnodes);
-	navnodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totnavnodes);
-	backgroundnodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totbacknodes);
-	fognodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totfognodes);
-
-	/* and, copy the results over */
-	memcpy (fognodes,bretarr,(unsigned) totfognodes*sizeof(unsigned long int));
-	memcpy (backgroundnodes,dretarr,(unsigned) totbacknodes*sizeof(unsigned long int));
-	memcpy (navnodes,cretarr,(unsigned) totnavnodes*sizeof(unsigned long int));
-	memcpy (viewpointnodes,aretarr,(unsigned) totviewpointnodes*sizeof(unsigned long int));
+	}
 }
 
 /*****************************************************************************
@@ -1167,40 +1175,12 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *ret
 
 
 /* zero the bindables in Browser. */
-void __pt_zeroBindables() {
+void __pt_zeroDEFS() {
 	dSP;
 	PUSHMARK(SP);
-	call_pv("VRML::Browser::zeroBindables", G_ARRAY);
+	call_pv("VRML::Browser::zeroDEFS", G_ARRAY);
 }
 
-unsigned int __pt_getBindables (char *tp, unsigned long int *retarr) {
-	int count;
-	int tmp, addr, ind;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSVpv(tp, 0)));
-	PUTBACK;
-	count = call_pv("VRML::Browser::getBindables", G_ARRAY);
-	SPAGAIN ;
-
-	/* Perl is returning a series of Bindable node addresses */
-	/* first comes the address, then the index. They might be out of order */
-	count = count/2;
-	for (tmp = 0; tmp < count; tmp++) {
-		addr = POPi;
-		ind = POPi;
-		retarr[ind] = addr;
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	return (count);
-}
 /* pass in the compiled path to the perl interpreter */
 void __pt_setPath(char *perlpath) {
 	dSP;
@@ -1323,20 +1303,21 @@ void __pt_doStringUrl () {
 	struct X3D_Group *nRn;
 
 	if (useExperimentalParser) {
-		if (psp.zeroBind) destroyCParserData();
+		if (psp.zeroBind) {
+			destroyCParserData();
+			kill_bindables();
+			psp.zeroBind = FALSE;
+		}
 
-		if (psp.bind) ConsoleMessage ("cant bind with cParser yet\n");
 		if (psp.type==FROMSTRING) {
 ConsoleMessage ("cant FROMSTRING with cParser yet\n");
+
 		} else if (psp.type==FROMURL) {
-		pushInputURL (psp.inp);
-        	buffer = readInputString(psp.inp,"");
-		nRn = createNewX3DNode(NODE_Group);
-		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
-		FREE_IF_NZ (buffer); 
-		/* popInputURL(); */
-
-
+			pushInputURL (psp.inp);
+	        	buffer = readInputString(psp.inp,"");
+			nRn = createNewX3DNode(NODE_Group);
+			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
+			FREE_IF_NZ (buffer); 
 
 
 		} else if (psp.type==FROMCREATENODE) {
@@ -1345,12 +1326,34 @@ ConsoleMessage ("cant  iFROMCREATENODE with cParser yet\n");
 ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 
 
-		for (count=0; count < nRn->children.n; count++) {
-			/* add this child to the node */
-			addToNode(psp.ptr,psp.ofs,nRn->children.p[count]);
+		/* set bindables, if required */
+		if (psp.bind) {
+			if (totfognodes != 0) send_bind_to (NODE_Fog,(fognodes[0]),1);
+			if (totbacknodes != 0) send_bind_to (NODE_Background,(void *)(backgroundnodes[0]),1);
+			if (totnavnodes != 0) send_bind_to (NODE_NavigationInfo,(void *)(navnodes[0]),1);
+			if (totviewpointnodes != 0) send_bind_to(NODE_Viewpoint,(void *)(viewpointnodes[0]),1);
+		}
 
-			/* tell the child that it has a new parent! */
-			add_parent(nRn->children.p[count],psp.ptr);
+		/* did the caller want these values returned? */
+		if (psp.retarr != NULL) {
+			for (count=0; count < nRn->children.n; count++) {
+				psp.retarr[count*2] = 0; /* the "perl" node number */
+				psp.retarr[count*2+1] = nRn->children.p[count]; /* the Node Pointer */
+			}
+			psp.retarrsize = nRn->children.n * 2; /* remember, the old "perl node number" */
+		}
+
+	       	/* now that we have the VRML/X3D file, load it into the scene. */
+		if (psp.ptr != NULL) {
+			/* add the new nodes to wherever the caller wanted */
+			for (count=0; count < nRn->children.n; count++) {
+				/* add this child to the node */
+				addToNode(psp.ptr,psp.ofs,nRn->children.p[count]);
+
+				/* tell the child that it has a new parent! */
+				add_parent(nRn->children.p[count],psp.ptr);
+			}
+			update_node(psp.ptr);
 		}
 
 
@@ -1360,7 +1363,8 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 	
 		if (psp.zeroBind) {
 			/* printf ("doStringUrl, have to zero Bindables in Perl\n"); */
-			__pt_zeroBindables();
+			__pt_zeroDEFS();
+			kill_bindables();
 			psp.zeroBind=FALSE;
 		}
 	
@@ -1385,9 +1389,6 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 			}
 			psp.retarrsize = retval;
 		}
-	
-		/* get the Bindables from this latest VRML/X3D file */
-		if (retval > 0) getAllBindables();
 	
 		/* send a set_bind to any nodes that exist */
 		if (psp.bind) {

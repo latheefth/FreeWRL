@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.234  2006/06/22 14:05:44  crc_canada
+# Bindables now handled totally in C.
+#
 # Revision 1.233  2006/06/19 20:37:14  crc_canada
 # merge BrowserFullPath and BrowserURL
 #
@@ -749,7 +752,10 @@ sub gen {
 	"	INITIALIZE_EXTENT\n".
 	"	node->_intern = 0;\n".
 	"	node->_nodeType = nt; /* unique integer for each type */\n".
-	"	\n".
+	"	\n";
+
+
+	push @genFuncs2,
 	"	/* now, fill in the node specific stuff here. the defaults are in VRMLNodes.pm */\n".
 	"	switch (nt) {\n";
 
@@ -779,8 +785,22 @@ sub gen {
 		
 		push @genFuncs2,"\t\tbreak;\n\t\t}\n";
 	}
+	push @genFuncs2, "\t};\n";
+	push @genFuncs2,
+	"	\n".
+	"	/* is this a bindable node? */\n".
+	"	switch (nt) {\n";
+	for my $node (keys %{%VRML::Nodes::bindable}) {
+		push @genFuncs2,
+		"\t\tcase NODE_$node:\n";
+	}
+	push @genFuncs2,
+	"			registerBindable(tmp);\n".
+	"			break;\n".
+	"		default:{} /* do nothing */\n\t};\n\n"; 
 
-	push @genFuncs2, "\t};\n\treturn tmp;\n}\n";
+
+	push @genFuncs2, "\treturn tmp;\n}\n";
 
 	#####################
 	# create an array for each node. The array contains the following:

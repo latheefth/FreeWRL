@@ -680,10 +680,6 @@ sub set_backend_fields {
 			$this->{BackNode} = $ben;
 			$this->set_backend_fields();
 
-			# is this a bindable node?
-			if ($VRML::Nodes::bindable{$this->{TypeName}}) {
-				VRML::Browser::register_bind($this);
-			}
 		}
 		print "\tVRML::NodeIntern::make_backend finished ",
 			dump_name($this),

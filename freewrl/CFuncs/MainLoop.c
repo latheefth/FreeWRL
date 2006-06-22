@@ -233,6 +233,7 @@ void EventLoop() {
 
 	/* should we do events, or maybe Perl is parsing? */
 	doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
+/*printf ("doe %d at %f\n",doEvents,TickTime);*/
 
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {
@@ -1193,18 +1194,6 @@ void closeFreewrl() {
         tn =  &(rn->children);
         tn->n = 0;
         quitThread = 1;
-        if (fognodes) free (fognodes);
-        if (backgroundnodes) free (backgroundnodes);
-        if (navnodes) free (navnodes);
-        if (viewpointnodes) free (viewpointnodes);
-        fognodes = NULL;
-        backgroundnodes = NULL;
-        navnodes = NULL;
-        viewpointnodes = NULL;
-        totviewpointnodes = 0;
-        totfognodes = 0;
-        totnavnodes = 0;
-        totbacknodes = 0;
         viewer_initialized = FALSE;
         set_viewer_type (EXAMINE);
 }

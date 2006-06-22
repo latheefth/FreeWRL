@@ -148,18 +148,6 @@ sub shut {
 
 
 
-# Bindable return values.
-# Viewpoint (or GeoViewpoint)
-# Background (or TextureBackground)
-# NavigationInfo
-# Fog
-
-my %vpn = (); my $vpcount=0;
-my %bgd = (); my $bgcount=0;
-my %nav=(); my $navcount=0;
-my %fog=(); my $fogcount=0;
-
-
 # keep track of the number of Shape nodes seen so far. For
 # Occlusion culling and VisibilitySensors.
 my $occNodeCount = 0;
@@ -167,12 +155,8 @@ my $occNodeCount = 0;
 # zero out bindables; called from C when we have a replaceWorld
 # type of action - Anchor is one...
 
-sub zeroBindables {
-	%vpn=(); %bgd = (); %nav = (); %fog = ();
-	$vpcount=0; $bgcount=0; $navcount=0; $fogcount=0;
-	
+sub zeroDEFS {
 	VRML::Handles::deleteAllHandles();
-
 	$occNodeCount = 0;
 }
 
@@ -181,84 +165,6 @@ sub NewOccludeNode {
 	# print "NewOccludeNode, orig is ", $node->{Fields}{__OccludeNumber}, "\n";
 	$node->{Fields}{__OccludeNumber} = $occNodeCount;
 	$occNodeCount ++;
-}
-
-# call this to keep binding in order; CNodes can come in at any
-# point in time, this function just reserves the "order".
-# look at the "__BGNumber" parameter of the node.
-sub reserve_bind_space {
-	my ($node) = @_;
-
-	# print "reserve_bind_space, have a type of ". $node->{TypeName},"\n";
-
-	if ($node->{TypeName} eq "Viewpoint") {
-		if ($vpcount>900) {return;}
-		$node->{Fields}{__BGNumber} = $vpcount;
-		$vpcount++;
-
-	} elsif ($node->{TypeName} eq "Background") {
-		if ($bgcount>900) {return;}
-		$node->{Fields}{__BGNumber} = $bgcount;
-		$bgcount++;
-	} elsif ($node->{TypeName} eq "TextureBackground") {
-		if ($bgcount>900) {return;}
-		$bgcount++;
-		$node->{Fields}{__BGNumber} = $bgcount;
-
-	} elsif ($node->{TypeName} eq "NavigationInfo") {
-		if ($navcount>900) {return;}
-		$node->{Fields}{__BGNumber} = $navcount;
-		$navcount++;
-
-	} elsif ($node->{TypeName} eq "Fog") {
-		if ($fogcount>900) {return;}
-		$node->{Fields}{__BGNumber} = $fogcount;
-		$fogcount++;
-	} else {
-		print ("Browser:reserve_bind_space, unknown type ",$node->{TypeName});
-	}
-}
-
-	
-# Save this node pointer so that the C backend can get it.
-# save a maximum of 900; this is to avoid any stack overflow.
-sub register_bind {
-	my ($node) = @_;
-
-	# print "register_bind, have a ",$node->{TypeName}, " which is reserved as ", $node->{Fields}{__BGNumber},"\n";
-
-        if (!defined ($node->{BackNode}{CNode})) {
-                print "register_vp - no backend CNode node\n";
-                return;
-        }
-
-	if ($node->{TypeName} eq "Viewpoint") {
-		$vpn{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
-	} elsif ($node->{TypeName} eq "Background") {
-		$bgd{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
-	} elsif ($node->{TypeName} eq "TextureBackground") {
-		$bgd{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
-	} elsif ($node->{TypeName} eq "NavigationInfo") {
-		$nav{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
-	} elsif ($node->{TypeName} eq "Fog") {
-		$fog{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
-	} else {
-		print ("Browser:register_bind, unknown type ",$node->{TypeName});
-	}
-}
-
-# the C side wants a list of specific bindables.
-sub getBindables {
-	my ($ty) = @_;
-	# check to see what bindable we wish
-	if ($ty eq "Viewpoint") { return %vpn; }
-	elsif ($ty eq "Background") { return %bgd; } #Background or TextureBackground
-	elsif ($ty eq "NavigationInfo") { return %nav; }
-	elsif ($ty eq "Fog") { return %fog; }
-	else {
-		print ("Browser::getBindables, invalid request $ty\n");
-		return ();
-	}
 }
 
 #createVrml common stuff
