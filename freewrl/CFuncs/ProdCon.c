@@ -1082,7 +1082,7 @@ void registerBindable (void *ptr) {
 	struct X3D_Box *node;
 
 	node = (struct X3D_Box *)ptr;
-	printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType)); 
+	/* printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType));  */
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
 		case NODE_GeoViewpoint:

@@ -699,7 +699,7 @@ sub set_backend_fields {
                         # is this a bindable node?
                         if ($VRML::Nodes::bindable{$this->{TypeName}}) {
                                 #VRML::Browser::register_bind($this);
-				print "this is a bindable, ".$this->{TypeName}." cnode ".
+				#print "this is a bindable, ".$this->{TypeName}." cnode ".
 				$this->{BackNode}{CNode}."\n";
                         }
 
