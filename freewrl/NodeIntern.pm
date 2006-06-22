@@ -323,6 +323,22 @@ sub new {
 		($this->{IsProto} ? " PROTO" : " NOTPROTO "),
 			dump_name($this->{Type}), " $this->{TypeName} ", dump_name($this), "\n"
 		 		if $VRML::verbose::nodec;
+
+	# if this is a bindable node, lets make the backend here, and register it so
+	# that it is registered in order that the nodes are found in a file. If we do
+	# not do this here, then the order may be out of line if another node is routed to
+	if ($VRML::Nodes::bindable{$this->{TypeName}}) {
+		my $be = VRML::Browser::getBE();
+		my $ben = $be->new_CNode($this->{TypeName});
+
+		$this->{BackNode} = $ben;
+		$this->set_backend_fields();
+
+		# is this a bindable node?
+		#print "this is a bindable, ".$this->{TypeName}." cnode ".
+		#	$this->{BackNode}{CNode}."\n";
+	}
+
     return $this;
 }
 
@@ -679,6 +695,14 @@ sub set_backend_fields {
 
 			$this->{BackNode} = $ben;
 			$this->set_backend_fields();
+
+                        # is this a bindable node?
+                        if ($VRML::Nodes::bindable{$this->{TypeName}}) {
+                                #VRML::Browser::register_bind($this);
+				print "this is a bindable, ".$this->{TypeName}." cnode ".
+				$this->{BackNode}{CNode}."\n";
+                        }
+
 
 		}
 		print "\tVRML::NodeIntern::make_backend finished ",
