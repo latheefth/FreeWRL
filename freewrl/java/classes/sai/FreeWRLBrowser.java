@@ -61,7 +61,7 @@ public class FreeWRLBrowser implements ExternalBrowser, BrowserInterface
 	String description = "";
 
 	//Disposed flag
-	Boolean disposed = false;
+	boolean disposed = false;
 
 	// Interface methods.
 	public int get_Browser_EVtype (int event)
