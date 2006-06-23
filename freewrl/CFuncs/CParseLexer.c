@@ -75,11 +75,11 @@ void lexer_destroyData()
 }
 
 /* Sets curID of lexer */
-/* FIXME:  ID not as in VRML grammar! */
-#define IS_ID_FIRST(c) \
- (c=='_' || (c>='a' && c<='z') || (c>='A' && c<='Z'))
 #define IS_ID_REST(c) \
- (IS_ID_FIRST(c) || (c>='0' && c<='9'))
+ (c>0x20 && c!=0x22 && c!=0x23 && c!=0x27 && c!=0x2C && c!=0x2E && c!=0x5B && \
+  c!=0x5C && c!=0x5D && c!=0x7B && c!=0x7D && c!=0x7F)
+#define IS_ID_FIRST(c) \
+ (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D)
 BOOL lexer_setCurID(struct VRMLLexer* me)
 {
  int c;
