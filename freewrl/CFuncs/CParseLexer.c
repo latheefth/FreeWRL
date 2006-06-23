@@ -15,9 +15,10 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 #define USER_IDS_INIT_SIZE	16
 struct Vector* userNodeNames=NULL;
 
-/* Maximum string/id length (input buffer size) */
-#define MAX_STRINGLEN	1023
+/* Maximum id length (input buffer size) */
 #define MAX_IDLEN	127
+/* Start buffer length for strings */
+#define INITIAL_STRINGLEN	256
 
 /* Input data */
 #define LEXER_GETINPUT(c) \
@@ -573,8 +574,9 @@ BOOL lexer_float(struct VRMLLexer* me, vrmlFloatT* ret)
 BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
 {
  int c;
- char buf[MAX_STRINGLEN+1];
- char* cur=buf;
+ char* buf;
+ size_t bufLen=INITIAL_STRINGLEN;
+ size_t cur=0;
 
  if(me->curID) return FALSE;
  lexer_skip(me);
@@ -588,10 +590,21 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
   return FALSE;
  }
 
+ /* Set up buffer */
+ buf=malloc(sizeof(*buf)*bufLen);
+ assert(buf);
+
  /* Main processing loop */
- while(cur!=buf+MAX_STRINGLEN)
+ while(TRUE)
  {
-  assert(cur<buf+MAX_STRINGLEN);
+  /* Buffer resize needed?  Extra space for closing 0. */
+  if(cur+1==bufLen)
+  {
+   bufLen*=2;
+   buf=realloc(buf, sizeof(*buf)*bufLen);
+  }
+  assert(cur+1<bufLen);
+
   LEXER_GETINPUT(c)
   switch(c)
   {
@@ -611,18 +624,18 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
      goto breakStringLoop;
     }
    default:
-    *cur=(char)c;
+    buf[cur]=(char)c;
     ++cur;
 
   }
  }
- parseError("String buffer length hit!");
 breakStringLoop:
  /* No unget, because c is closing quote */
- assert(cur<=buf+MAX_STRINGLEN);
- *cur=0;
+ assert(cur<bufLen);
+ buf[cur]=0;
 
  *ret=EAI_newSVpv(buf);
+ free(buf);
  return TRUE;
 }
 
