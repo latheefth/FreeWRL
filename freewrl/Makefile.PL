@@ -612,8 +612,8 @@ INST_DYNAMIC_DEP =
 				qq{\techo "/auto/VRML" >> $specfile},
 				qq{\techo -n \$(INSTALLSITEMAN1DIR) >> $specfile},
 				qq{\techo -n \"/freewrl.\" >> $specfile},
-				qq{\techo \$(MAN1EXT) >> $specfile},
-				qq{\techo \"\" >> $specfile},
+				qq{\techo -n \$(MAN1EXT) >> $specfile},
+				qq{\techo \"*\" >> $specfile},
 			));
 			if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
 			print "RPM - have sound engine\n";
