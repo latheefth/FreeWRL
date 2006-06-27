@@ -11,8 +11,13 @@
 #include "CParseGeneral.h"
 #include "CParseLexer.h"
 
+struct ProtoDefinition;
+
 /* This is the DEF/USE memory. */
 extern struct Vector* DEFedNodes;
+
+/* This is for PROTOs */
+extern struct Vector* PROTOs;
 
 /* This is our parser-object. */
 struct VRMLParser
@@ -21,6 +26,8 @@ struct VRMLParser
  /* Where to put the parsed nodes? */
  void* ptr;
  unsigned ofs;
+ /* Currently parsing a PROTO? */
+ struct ProtoDefinition* curPROTO;
 };
 
 /* Constructor and destructor */
@@ -67,6 +74,7 @@ BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
 
 /* Parses nodes, fields and other statements. */
 BOOL parser_routeStatement(struct VRMLParser*);
+BOOL parser_protoStatement(struct VRMLParser*);
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);

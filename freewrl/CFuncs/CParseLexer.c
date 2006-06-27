@@ -14,6 +14,7 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 /* Tables of user-defined IDs */
 #define USER_IDS_INIT_SIZE	16
 struct Vector* userNodeNames=NULL;
+struct Vector* userNodeTypes=NULL;
 
 /* Maximum id length (input buffer size) */
 #define MAX_IDLEN	127
@@ -73,6 +74,17 @@ void lexer_destroyData()
   userNodeNames=NULL;
  }
  assert(!userNodeNames);
+
+ /* User node types */
+ if(userNodeTypes)
+ {
+  indexT i;
+  for(i=0; i!=vector_size(userNodeTypes); ++i)
+   free(vector_get(char*, userNodeTypes, i));
+  deleteVector(char*, userNodeTypes);
+  userNodeTypes=NULL;
+ }
+ assert(!userNodeTypes);
 }
 
 /* Sets curID of lexer */
@@ -146,7 +158,7 @@ BOOL lexer_keyword(struct VRMLLexer* me, indexT kw)
 /* Lexes an ID (node type, field name...) depending on args. */
 BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount,
- struct Vector** user)
+ struct Vector* user)
 {
  if(!lexer_setCurID(me))
   return FALSE;
@@ -164,7 +176,7 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
 }
 BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount,
- struct Vector** user, const char* str)
+ struct Vector* user, const char* str)
 {
  indexT i;
  BOOL found=FALSE;
@@ -188,12 +200,12 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
   }
 
  /* Return if no user list is requested or it is empty */
- if(!user || !*user)
+ if(!user)
   return found;
 
  /* Already defined user id? */
- for(i=0; i!=vector_size(*user); ++i)
-  if(!strcmp(str, vector_get(char*, *user, i)))
+ for(i=0; i!=vector_size(user); ++i)
+  if(!strcmp(str, vector_get(char*, user, i)))
   {
    if(retU)
    {

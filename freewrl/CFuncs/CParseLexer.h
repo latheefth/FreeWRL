@@ -10,6 +10,7 @@
 
 /* Tables of user-defined IDs */
 extern struct Vector* userNodeNames;
+extern struct Vector* userNodeTypes;
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #define ID_UNDEFINED	((indexT)-1)
@@ -46,20 +47,22 @@ BOOL lexer_setCurID(struct VRMLLexer*);
 /* Some operations with IDs */
 BOOL lexer_keyword(struct VRMLLexer*, indexT);
 BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, struct Vector**);
+ const char**, const indexT, struct Vector*);
 BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, struct Vector**,
+ const char**, const indexT, struct Vector*,
  const char*);
 BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector**);
 #define lexer_defineNodeName(me, ret) \
  lexer_defineID(me, ret, &userNodeNames)
+#define lexer_defineNodeType(me, ret) \
+ lexer_defineID(me, ret, &userNodeTypes)
 BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 #define lexer_node(me, r1, r2) \
- lexer_specialID(me, r1, r2, NODES, NODES_COUNT, NULL)
+ lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypes)
 #define lexer_nodeName(me, ret) \
- lexer_specialID(me, NULL, ret, NULL, 0, &userNodeNames)
+ lexer_specialID(me, NULL, ret, NULL, 0, userNodeNames)
 
 /* Input the basic literals */
 BOOL lexer_int32(struct VRMLLexer*, vrmlInt32T*);

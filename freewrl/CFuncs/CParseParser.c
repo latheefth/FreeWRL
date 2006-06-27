@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "CParseParser.h"
+#include "CProto.h"
 
 #define PARSE_ERROR(msg) \
  { \
@@ -16,6 +17,9 @@
 /* The DEF/USE memory. */
 struct Vector* DEFedNodes=NULL;
 
+/* Our PROTOs */
+struct Vector* PROTOs=NULL;
+
 /* ************************************************************************** */
 /* Constructor and destructor */
 
@@ -26,6 +30,7 @@ struct VRMLParser* newParser(void* ptr, unsigned ofs)
  assert(ret->lexer);
  ret->ptr=ptr;
  ret->ofs=ofs;
+ ret->curPROTO=NULL;
 
  return ret;
 }
@@ -52,6 +57,17 @@ void parser_destroyData()
   DEFedNodes=NULL;
  }
  assert(!DEFedNodes);
+
+ /* PROTOs */
+ if(PROTOs)
+ {
+  indexT i;
+  for(i=0; i!=vector_size(PROTOs); ++i)
+   deleteProtoDefinition(vector_get(struct ProtoDefinition*, PROTOs, i));
+  deleteVector(struct ProtoDefinition*, PROTOs);
+  PROTOs=NULL;
+ }
+ assert(!PROTOs);
 }
 
 /* ************************************************************************** */
@@ -74,6 +90,9 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
   /* Try routeStatement */
   if(parser_routeStatement(me))
    continue;
+  /* Try protoStatement */
+  if(parser_protoStatement(me))
+   continue;
 
   break;
  }
@@ -83,6 +102,69 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 
 /* ************************************************************************** */
 /* Nodes and fields */
+
+/* Parses a protoStatement */
+BOOL parser_protoStatement(struct VRMLParser* me)
+{
+ indexT name;
+ struct ProtoDefinition* obj;
+
+ /* Really a PROTO? */
+ if(!lexer_keyword(me->lexer, KW_PROTO))
+  return FALSE;
+
+ /* Our name */
+ if(!lexer_defineNodeType(me->lexer, &name))
+  PARSE_ERROR("Expected nodeTypeId after PROTO!\n")
+ assert(name!=ID_UNDEFINED);
+
+ /* Create the object */
+ obj=newProtoDefinition();
+ if(!PROTOs)
+  PROTOs=newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE);
+ assert(PROTOs);
+ assert(name==vector_size(PROTOs));
+ vector_pushBack(struct ProtoDefinition*, PROTOs, obj);
+
+ /* Interface declarations */
+ if(!lexer_openSquare(me->lexer))
+  PARSE_ERROR("Expected [ to start interface declaration!")
+ /* FIXME:  Currently only empty interfaces supported! */
+ if(!lexer_closeSquare(me->lexer))
+  PARSE_ERROR("Expected ] after interface declaration!")
+
+ /* PROTO body */
+ if(!lexer_openCurly(me->lexer))
+  PARSE_ERROR("Expected { to start PROTO body!")
+ /* Parse body */
+ {
+  struct ProtoDefinition* oldCurPROTO=me->curPROTO;
+  me->curPROTO=obj;
+  while(TRUE)
+  {
+   {
+    vrmlNodeT node;
+    if(parser_nodeStatement(me, &node))
+    {
+     protoDefinition_addNode(obj, node);
+     continue;
+    }
+   }
+
+   if(parser_routeStatement(me))
+    continue;
+   if(parser_protoStatement(me))
+    continue;
+
+   break;
+  }
+  me->curPROTO=oldCurPROTO;
+ }
+ if(!lexer_closeCurly(me->lexer))
+  PARSE_ERROR("Expected } after PROTO body!")
+
+ return TRUE;
+}
 
 /* Parses a routeStatement */
 BOOL parser_routeStatement(struct VRMLParser* me)
@@ -327,22 +409,33 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 /* Parses a node (node non-terminal) */
 BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 {
- indexT nodeType;
+ indexT nodeTypeB, nodeTypeU;
  struct X3D_Node* node=NULL;
 
  assert(me->lexer);
  
- if(!lexer_node(me->lexer, &nodeType, NULL))
+ if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU))
   return FALSE;
- assert(nodeType!=ID_UNDEFINED);
 
  if(!lexer_openCurly(me->lexer))
   PARSE_ERROR("Expected { after node-type id!")
 
- node=X3D_NODE(createNewX3DNode(nodeType));
+ /* Built-in node */
+ if(nodeTypeB!=ID_UNDEFINED)
+ {
+  node=X3D_NODE(createNewX3DNode(nodeTypeB));
 
- assert(node);
- while(parser_field(me, node) || parser_routeStatement(me));
+  assert(node);
+  while(parser_field(me, node) ||
+   parser_routeStatement(me) || parser_protoStatement(me));
+ } else
+ {
+  assert(nodeTypeU!=ID_UNDEFINED);
+  assert(PROTOs);
+  assert(nodeTypeU<vector_size(PROTOs));
+  node=protoDefinition_instantiate(vector_get(struct ProtoDefinition*, PROTOs,
+   nodeTypeU));
+ }
 
  if(!lexer_closeCurly(me->lexer))
   parseError("Expected } after fields of node!");
