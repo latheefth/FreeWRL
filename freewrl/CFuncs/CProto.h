@@ -23,4 +23,7 @@ void protoDefinition_addNode(struct ProtoDefinition*, struct X3D_Node*);
 /* Instantiates the PROTO */
 struct X3D_Group* protoDefinition_instantiate(struct ProtoDefinition*);
 
+/* Does a recursively deep copy of a node-tree */
+struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*);
+
 #endif /* Once-check */
