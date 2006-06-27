@@ -1,9 +1,3 @@
-December 2001.
-
-John Stewart.
-john.stewart@crc.ca
-
-
 EAI internals.
 
 FreeWRL has a server (VRMLServ.pm) that is started up on a
@@ -12,7 +6,21 @@ specified port, by the inclusion of a command-line argument.
 eg:
 
 
-freewrl -eai localhost:2000 root.wrl -best &
+freewrl --eai root.wrl &
+
+
+On OSX you may also specify the port number using the flag --eaiport
+
+eg:
+
+freewrl --eai --eaiport 2004 root.wrl &
+
+Note that in this case, you must specify the non-default port when accessing a browser using Browser.getBrowser()
+
+eg:
+
+Browser.getBrowser(this, 2004);
+for eai on port 2004 
 
 Conversely, the Client is started:
 
@@ -28,14 +36,13 @@ There are two types of EAI interaction:
    the client, without prompting.
 
 All command strings, data, etc, are string based. The communication
-happens through a port, defined on the command line on FreeWRL
-(or within a Java program with the java client classes). The
-convention used is localhost:2000 for the host:port.
+happens through port 2000, or through the port specified using the
+--eaiport option on OSX. 
 
 EAI commands can be observed by passing FreeWRL the eai
 option on the command line: eg:
 
-freewrl -eai localhost:2000 root.wrl -best eai &
+freewrl --eai root.wrl eai &
 
 The number of commands used is small; using the AddRemove
 test as an example, we have the following sequence. The
