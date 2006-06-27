@@ -42,7 +42,9 @@ void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
 /* Instantiates the PROTO */
 struct X3D_Group* protoDefinition_instantiate(struct ProtoDefinition* me)
 {
- return protoDefinition_deepCopy(me->tree);
+ struct X3D_Group* ret=protoDefinition_deepCopy(me->tree);
+ ret->__isProto=TRUE;
+ return ret;
 }
 
 /* Deep copying */
@@ -111,8 +113,6 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node)
 
  /* Create it */
  ret=createNewX3DNode(node->_nodeType);
-
- /* XXX:  What about things like __isProto? */
 
  /* Copy the fields using the NodeFields.h file */
  switch(node->_nodeType)
