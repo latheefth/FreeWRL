@@ -57,7 +57,7 @@ struct X3D_Group* protoDefinition_instantiate(struct ProtoDefinition* me)
 #define DEEPCOPY_sfint32(v) v
 #define DEEPCOPY_sfnode(v) protoDefinition_deepCopy(v)
 #define DEEPCOPY_sfrotation(v) v
-#define DEEPCOPY_sfstring(v) v
+#define DEEPCOPY_sfstring(v) deepcopy_sfstring(v)
 #define DEEPCOPY_sftime(v) v
 #define DEEPCOPY_sfvec2f(v) v
 #define DEEPCOPY_sfvec3f(v) v
@@ -67,6 +67,14 @@ static vrmlImageT deepcopy_sfimage(vrmlImageT img)
  vrmlImageT ret=malloc(sizeof(*img));
  *ret=DEEPCOPY_mfint32(*img);
  return ret;
+}
+static vrmlStringT deepcopy_sfstring(vrmlStringT str)
+{
+ char* cstr;
+ STRLEN len;
+
+ cstr=SvPV(str, len);
+ return EAI_newSVpv(cstr);
 }
 
 /* Deepcopies a mf* */
@@ -98,6 +106,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node)
 {
  struct X3D_Node* ret;
 
+ /* If we get nothing, what can we return? */
  if(!node) return NULL;
 
  /* Create it */
