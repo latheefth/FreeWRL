@@ -545,6 +545,10 @@ INST_DYNAMIC_DEP =
 			$osname =~s/\(.*//;
 			$osname =~s/ //g;
 
+			# do it again,because Suse 10.1 screws this up.
+			$osname =~s/\n.*//;
+			$osname =~s/\(.*//;
+
 
 			if ($osname eq "") {
 				print "blank name for OSNAME, check RPM_OSNAME_FILE in vrml.conf. \n";
