@@ -1015,6 +1015,8 @@ void openMainWindow (int argc, char **argv) {
 void setGeometry (const char *gstring) {
 	int c;
 	c = sscanf(gstring,"%dx%d+%d+%d",&screenWidth,&screenHeight,&xPos,&yPos);
+	/* tell OpenGL what the screen dims are */
+	setScreenDim (screenHeight,screenWidth);
 }
 
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
