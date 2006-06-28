@@ -136,6 +136,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  /* PROTO body */
  if(!lexer_openCurly(me->lexer))
   PARSE_ERROR("Expected { to start PROTO body!")
+ lexer_scopeIn();
  /* Parse body */
  {
   struct ProtoDefinition* oldCurPROTO=me->curPROTO;
@@ -160,6 +161,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
   }
   me->curPROTO=oldCurPROTO;
  }
+ lexer_scopeOut();
  if(!lexer_closeCurly(me->lexer))
   PARSE_ERROR("Expected } after PROTO body!")
 

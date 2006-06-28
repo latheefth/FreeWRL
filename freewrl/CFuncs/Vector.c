@@ -5,6 +5,10 @@
 
 #include "Vector.h"
 
+/* ************************************************************************** */
+/* ******************************** Vector ********************************** */
+/* ************************************************************************** */
+
 /* Constructor/destructor */
 
 struct Vector* newVector_(size_t elSize, size_t initSize)
@@ -63,4 +67,49 @@ void* vector_releaseData_(size_t elSize, struct Vector* me)
  me->data=NULL;
 
  return ret;
+}
+
+/* ************************************************************************** */
+/* *************************************** Stack **************************** */
+/* ************************************************************************** */
+
+/* Constructor and destructor */
+
+Stack* newStack()
+{
+ Stack* ret=malloc(sizeof(Stack));
+ assert(ret);
+
+ *ret=NULL;
+
+ return ret;
+}
+
+void deleteStack(Stack* me)
+{
+ while(!stack_empty(me))
+  stack_pop(me);
+ free(me);
+}
+
+/* Pop and push */
+
+void stack_push(Stack* me, void* el)
+{
+ struct StackFrame* newFrm;
+ assert(me);
+ newFrm=malloc(sizeof(struct StackFrame));
+ assert(newFrm);
+ newFrm->data=el;
+ newFrm->below=*me;
+ *me=newFrm;
+}
+
+void stack_pop(Stack* me)
+{
+ struct StackFrame* oldTop;
+ assert(!stack_empty(me));
+ oldTop=*me;
+ *me=oldTop->below;
+ free(oldTop);
 }

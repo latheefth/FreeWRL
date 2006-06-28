@@ -9,8 +9,8 @@
 #include "CParseGeneral.h"
 
 /* Tables of user-defined IDs */
-extern struct Vector* userNodeNames;
-extern struct Vector* userNodeTypes;
+extern Stack* userNodeNames;
+extern Stack* userNodeTypes;
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #define ID_UNDEFINED	((indexT)-1)
@@ -29,6 +29,7 @@ void deleteLexer(struct VRMLLexer*);
 
 /* Other clean up. */
 void lexer_destroyData();
+void lexer_destroyIdStack(Stack*);
 
 /* Set input */
 #define lexer_fromString(me, str) \
@@ -45,13 +46,15 @@ void lexer_skip(struct VRMLLexer*);
 BOOL lexer_setCurID(struct VRMLLexer*);
 
 /* Some operations with IDs */
+void lexer_scopeIn();
+void lexer_scopeOut();
 BOOL lexer_keyword(struct VRMLLexer*, indexT);
 BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, struct Vector*);
+ const char**, const indexT, Stack*);
 BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, struct Vector*,
+ const char**, const indexT, Stack*,
  const char*);
-BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector**);
+BOOL lexer_defineID(struct VRMLLexer*, indexT*, Stack**);
 #define lexer_defineNodeName(me, ret) \
  lexer_defineID(me, ret, &userNodeNames)
 #define lexer_defineNodeType(me, ret) \
