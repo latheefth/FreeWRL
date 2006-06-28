@@ -164,6 +164,12 @@ public class FreeWRLNode implements X3DNode {
 		} else if (NewDT.equals("f")) {
 			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
 			ret = new FWSFInt32(def, browser);
+		} else if (NewDT.equals("v")) {
+			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
+			ret = new FWMFColorRGBA(def, browser);
+		} else if (NewDT.equals("w")) {
+			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
+			ret = new FWSFColorRGBA(def, browser);
 		} else if (NewDT.equals("u")) {
 			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
 			System.out.println("got new event u");
