@@ -114,11 +114,11 @@ void render_Material (struct X3D_Material *node) {
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
 		amb = node->ambientIntensity;
-		for(i=0; i<3; i++) {
+/* 		for(i=0; i<3; i++) { */
                        /* to make this render like Xj3D, make ambient 0 with only headlight */
                         /* dcol[i] *= amb; */
-                        dcol[i] = 0.0;
-		}
+/*                         dcol[i] = 0.0; */
+/* 		} */
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
 		for (i=0; i<3;i++){ scol[i] = node->specularColor.c[i]; }
