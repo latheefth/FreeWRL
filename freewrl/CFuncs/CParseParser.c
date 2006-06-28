@@ -15,10 +15,10 @@
 #define DEFMEM_INIT_SIZE	16
 
 /* The DEF/USE memory. */
-struct Vector* DEFedNodes=NULL;
+Stack* DEFedNodes=NULL;
 
 /* Our PROTOs */
-struct Vector* PROTOs=NULL;
+Stack* PROTOs=NULL;
 
 /* ************************************************************************** */
 /* Constructor and destructor */
@@ -43,6 +43,8 @@ void deleteParser(struct VRMLParser* me)
  free(me);
 }
 
+static void parser_scopeOut_DEFUSE();
+static void parser_scopeOut_PROTO();
 void parser_destroyData()
 {
  lexer_destroyData();
@@ -50,10 +52,9 @@ void parser_destroyData()
  /* DEFed Nodes. */
  if(DEFedNodes)
  {
-  indexT i;
-  for(i=0; i!=vector_size(DEFedNodes); ++i)
-   free(vector_get(struct X3D_Node*, DEFedNodes, i));
-  deleteVector(struct X3D_Node*, DEFedNodes);
+  while(!stack_empty(DEFedNodes))
+   parser_scopeOut_DEFUSE();
+  deleteStack(DEFedNodes);
   DEFedNodes=NULL;
  }
  assert(!DEFedNodes);
@@ -61,13 +62,59 @@ void parser_destroyData()
  /* PROTOs */
  if(PROTOs)
  {
-  indexT i;
-  for(i=0; i!=vector_size(PROTOs); ++i)
-   deleteProtoDefinition(vector_get(struct ProtoDefinition*, PROTOs, i));
-  deleteVector(struct ProtoDefinition*, PROTOs);
+  while(!stack_empty(PROTOs))
+   parser_scopeOut_PROTO();
+  deleteStack(PROTOs);
   PROTOs=NULL;
  }
  assert(!PROTOs);
+}
+
+/* Scoping */
+
+static void parser_scopeIn_DEFUSE()
+{
+ if(!DEFedNodes)
+  DEFedNodes=newStack();
+ stack_push(DEFedNodes, newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+}
+static void parser_scopeIn_PROTO()
+{
+ if(!PROTOs)
+  PROTOs=newStack();
+ stack_push(PROTOs, newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE));
+}
+
+static void parser_scopeOut_DEFUSE()
+{
+ indexT i;
+ assert(!stack_empty(DEFedNodes));
+ /* FIXME:  Can't delete individual nodes, as they might be referenced! */
+ deleteVector(struct X3D_Node*, stack_top(DEFedNodes));
+ stack_pop(DEFedNodes);
+}
+
+static void parser_scopeOut_PROTO()
+{
+ indexT i;
+ for(i=0; i!=vector_size(stack_top(PROTOs)); ++i)
+  deleteProtoDefinition(vector_get(struct ProtoDefinition*,
+   stack_top(PROTOs), i));
+ deleteVector(struct ProtoDefinition*, stack_top(PROTOs));
+ stack_pop(PROTOs);
+}
+
+void parser_scopeIn()
+{
+ lexer_scopeIn();
+ parser_scopeIn_DEFUSE();
+ parser_scopeIn_PROTO();
+}
+void parser_scopeOut()
+{
+ parser_scopeOut_DEFUSE();
+ parser_scopeOut_PROTO();
+ lexer_scopeOut();
 }
 
 /* ************************************************************************** */
@@ -120,11 +167,12 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 
  /* Create the object */
  obj=newProtoDefinition();
- if(!PROTOs)
-  PROTOs=newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE);
+ if(!PROTOs || stack_empty(PROTOs))
+  parser_scopeIn_PROTO();
  assert(PROTOs);
- assert(name==vector_size(PROTOs));
- vector_pushBack(struct ProtoDefinition*, PROTOs, obj);
+ assert(!stack_empty(PROTOs));
+ assert(name==vector_size(stack_top(PROTOs)));
+ vector_pushBack(struct ProtoDefinition*, stack_top(PROTOs), obj);
 
  /* Interface declarations */
  if(!lexer_openSquare(me->lexer))
@@ -136,7 +184,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  /* PROTO body */
  if(!lexer_openCurly(me->lexer))
   PARSE_ERROR("Expected { to start PROTO body!")
- lexer_scopeIn();
+ parser_scopeIn();
  /* Parse body */
  {
   struct ProtoDefinition* oldCurPROTO=me->curPROTO;
@@ -161,7 +209,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
   }
   me->curPROTO=oldCurPROTO;
  }
- lexer_scopeOut();
+ parser_scopeOut();
  if(!lexer_closeCurly(me->lexer))
   PARSE_ERROR("Expected } after PROTO body!")
 
@@ -373,19 +421,21 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
    PARSE_ERROR("Expected nodeNameId after DEF!\n")
   assert(ind!=ID_UNDEFINED);
 
-  if(!DEFedNodes)
-   DEFedNodes=newVector(struct X3D_Node*, DEFMEM_INIT_SIZE);
+  if(!DEFedNodes || stack_empty(DEFedNodes))
+   parser_scopeIn_DEFUSE();
   assert(DEFedNodes);
+  assert(!stack_empty(DEFedNodes));
 
-  assert(ind<=vector_size(DEFedNodes));
-  if(ind==vector_size(DEFedNodes))
-   vector_pushBack(struct X3D_Node*, DEFedNodes, NULL);
-  assert(ind<vector_size(DEFedNodes));
+  assert(ind<=vector_size(stack_top(DEFedNodes)));
+  if(ind==vector_size(stack_top(DEFedNodes)))
+   vector_pushBack(struct X3D_Node*, stack_top(DEFedNodes), NULL);
+  assert(ind<vector_size(stack_top(DEFedNodes)));
 
-  if(!parser_node(me, &vector_get(struct X3D_Node*, DEFedNodes, ind)))
+  if(!parser_node(me, &vector_get(struct X3D_Node*,
+   stack_top(DEFedNodes), ind)))
    PARSE_ERROR("Expected node in DEF statement!\n")
 
-  *ret=vector_get(struct X3D_Node*, DEFedNodes, ind);
+  *ret=vector_get(struct X3D_Node*, stack_top(DEFedNodes), ind);
   return TRUE;
  }
 
@@ -398,9 +448,9 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
    PARSE_ERROR("Expected nodeNameId after USE!\n")
   assert(ind!=ID_UNDEFINED);
 
-  assert(DEFedNodes && ind<vector_size(DEFedNodes));
+  assert(DEFedNodes && ind<vector_size(stack_top(DEFedNodes)));
 
-  *ret=vector_get(struct X3D_Node*, DEFedNodes, ind);
+  *ret=vector_get(struct X3D_Node*, stack_top(DEFedNodes), ind);
   return TRUE;
  }
 
@@ -426,7 +476,6 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  if(nodeTypeB!=ID_UNDEFINED)
  {
   node=X3D_NODE(createNewX3DNode(nodeTypeB));
-
   assert(node);
   while(parser_field(me, node) ||
    parser_routeStatement(me) || parser_protoStatement(me));
@@ -434,10 +483,13 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  {
   assert(nodeTypeU!=ID_UNDEFINED);
   assert(PROTOs);
-  assert(nodeTypeU<vector_size(PROTOs));
-  node=protoDefinition_instantiate(vector_get(struct ProtoDefinition*, PROTOs,
-   nodeTypeU));
+  assert(!stack_empty(PROTOs));
+  assert(nodeTypeU<vector_size(stack_top(PROTOs)));
+  node=protoDefinition_instantiate(vector_get(struct ProtoDefinition*,
+   stack_top(PROTOs), nodeTypeU));
+  assert(node);
  }
+ assert(node);
 
  if(!lexer_closeCurly(me->lexer))
   parseError("Expected } after fields of node!");

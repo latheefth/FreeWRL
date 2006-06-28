@@ -14,10 +14,10 @@
 struct ProtoDefinition;
 
 /* This is the DEF/USE memory. */
-extern struct Vector* DEFedNodes;
+extern Stack* DEFedNodes;
 
 /* This is for PROTOs */
-extern struct Vector* PROTOs;
+extern Stack* PROTOs;
 
 /* This is our parser-object. */
 struct VRMLParser
@@ -36,6 +36,10 @@ void deleteParser(struct VRMLParser*);
 
 /* Other clean up */
 void parser_destroyData();
+
+/* Scoping */
+void parser_scopeIn();
+void parser_scopeOut();
 
 /* Sets parser's input */
 #define parser_fromString(me, str) \
