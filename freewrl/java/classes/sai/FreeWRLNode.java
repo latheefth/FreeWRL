@@ -172,8 +172,19 @@ public class FreeWRLNode implements X3DNode {
 			ret = new FWSFColorRGBA(def, browser);
 		} else if (NewDT.equals("u")) {
 			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
-			System.out.println("got new event u");
 			ret = new FWSFVec3f(def, browser);
+		} else if (NewDT.equals("z")) {
+			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
+			ret = new FWSFVec3d(def, browser);
+		} else if (NewDT.equals("A")) {
+			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
+			ret = new FWMFVec3d(def, browser);
+		} else if (NewDT.equals("B")) {
+			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
+			ret = new FWSFVec2d(def, browser);
+		} else if (NewDT.equals("C")) {
+			def = new FreeWRLFieldDefinition(fieldName, ia, FreeWRLFieldTypes.getIntType(NewDT));
+			ret = new FWMFVec2d(def, browser);
 		} else {
 			throw new InvalidFieldException("Field name " + fieldName + " is not a valid field for this node");
 		} 
