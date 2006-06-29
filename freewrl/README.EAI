@@ -30,7 +30,24 @@ appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" add
 And, under OSX: 
 
 EAI=/Library/Perl/5.8.6/darwin-thread-multi-2level/VRML
-appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" add-remove1.html
+appletviewer -J-classpath -J$EAI/vrml.jar -J-Djava.security.policy="$EAI/java.policy" add-remove1.html
+
+You can also avoid using the appletviewer alltogether by bootstrapping the applet yourself in main().  
+
+eg:
+
+public static void main(String[] args) {
+	EAIAddRemove ee = new EAIAddRemove();
+	ee.start();
+}
+
+If you bootstrap the applet in main, you can start the client by simply using:
+
+java EAIAddRemove
+
+In this case, you must set your CLASSPATH environment variable to include the vrml.jar path.  eg:
+
+setenv CLASSPATH "/Library/Perl/5.8.6/darwin-thread-multi-2level/VRML:$CLASSPATH"
 
 There are two types of EAI interaction:
 
