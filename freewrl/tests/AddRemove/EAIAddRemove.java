@@ -9,9 +9,9 @@ public class EAIAddRemove extends Applet
 	public static void main(String[] args)
 	{
 		EAIAddRemove ee = new EAIAddRemove();
-		ee.start_up();
+		ee.start();
 	}
-	public void start_up() {
+	public void start() {
   // Shape group hierarchy
   Node[] shape1, shape2, shape3, shape4, shape5, shape6;
   
