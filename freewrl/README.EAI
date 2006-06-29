@@ -22,12 +22,15 @@ eg:
 Browser.getBrowser(this, 2004);
 for eai on port 2004 
 
-Conversely, the Client is started:
-
+Conversely, the Client is started in linux:
 
 EAI=../../java/classes
 appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" add-remove1.html
 
+And, under OSX: 
+
+EAI=/Library/Perl/5.8.6/darwin-thread-multi-2level/VRML
+appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" add-remove1.html
 
 There are two types of EAI interaction:
 
