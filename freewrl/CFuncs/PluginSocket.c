@@ -145,6 +145,8 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 			return NULL;
 		}
 
+		ConsoleMessage ("failed to find URL %s\n",url);
+
 		return NULL;
 	}
 
