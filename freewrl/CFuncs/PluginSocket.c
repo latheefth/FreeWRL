@@ -53,13 +53,11 @@ int waitForData(int sock) {
 
 	retval = FALSE;
 	count = 0;
-	totalcount = 1000000;
+	totalcount = 5000;
 
 	do {
 		#ifdef PLUGINSOCKETVERBOSE
-		/*
-		pluginprint ("waitForData on socket %d, looping...\n",sock);
-		*/
+		pluginprint ("waitForData on socket looping...%d\n",count);
 		#endif
 
 		tv.tv_sec = 0;
@@ -138,7 +136,17 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 
 
 	/* wait around for a bit to see if this is going to pass or fail */
-	if (!waitForData(to_plugin)) return NULL;
+	if (!waitForData(to_plugin)) {
+		request.notifyCode = -99; /* destroy stream */
+		if (write(to_plugin, (urlRequest *) &request, bytes) < 0) {
+			#ifdef PLUGINSOCKETVERBOSE
+			pluginprint ("write failed in requestUrlfromPlugin","");
+			#endif
+			return NULL;
+		}
+
+		return NULL;
+	}
 
 	if (read(to_plugin, (char *) return_url, len) < 0) {
 		#ifdef PLUGINSOCKETVERBOSE

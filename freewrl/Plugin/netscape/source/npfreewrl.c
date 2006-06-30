@@ -41,7 +41,7 @@
 
 char *paramline[15]; /* parameter line */
 
-static int PluginVerbose = 1;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
+static int PluginVerbose = 0;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
 
 /*******************************************************************************
  * Instance state information about the plugin.
@@ -97,6 +97,7 @@ static FILE * tty = NULL;
 struct timeval mytime;
 struct timezone tz; /* unused see man gettimeofday */
 double TickTime;
+NPStream *currentStream = NULL;
 
 
 // Debugging routine
@@ -235,6 +236,18 @@ int freewrlReceive(int fileDescriptor) {
 			print_here(debs);
 			sprintf (debs, "step 2a, request.url %s\n",request.url);
 			print_here(debs);
+
+		} else if (request.notifyCode == -99) {
+			/* we have timed out. */
+			sprintf (debs,"notifyCode = -99, we have timed out for %s",request.url);
+			print_here(debs);
+			if (currentStream != NULL) {
+				NPN_DestroyStream(request.instance, currentStream, NPRES_USER_BREAK);
+				sprintf (debs, "FreeWRL can not find: %s\n",request.url);
+				NPN_Status (request.instance, debs);
+				currentStream = NULL;
+			}
+
 		} else {
 			/* request.notifyCode must be 1 */
 			sprintf (debs,"NPN_GetStream...\n");
@@ -714,6 +727,11 @@ NPP_NewStream(NPP instance,
 {
 	FW_PluginInstance* FW_Plugin;
 
+	if (currentStream == NULL) {
+		currentStream = stream;
+	} else {
+		print_here("NPP_NewStream, currentstream NOT NULL");
+	}
 
 	sprintf (debs,"NPP_NewStream, instance %d, type %d, stream %d, seekable %d stype %d",instance,
 			stream, seekable,*stype);
@@ -780,18 +798,20 @@ print_here("NPP_Write");
 NPError
 NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 {
-	FW_PluginInstance* FW_Plugin;
-
 	sprintf (debs,"NPP_DestroyStream, instance %d stream %d\n",instance,stream);
 	print_here(debs);
 	if (reason == NPRES_DONE) print_here("reason: NPRES_DONE\n");
 	if (reason == NPRES_USER_BREAK) print_here("reason: NPRES_USER_BREAK\n");
 	if (reason == NPRES_NETWORK_ERR) print_here("reason: NPRES_NETWORK_ERR\n");
 
+	if (stream == currentStream) {
+		currentStream = NULL;
+	} else {
+		print_here("NPP_DestroyStream, STREAMS DO NOT MATCH!\n");
+	}
+
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
-	FW_Plugin = (FW_PluginInstance*) instance->pdata;
-
 	return NPERR_NO_ERROR;
 }
 
