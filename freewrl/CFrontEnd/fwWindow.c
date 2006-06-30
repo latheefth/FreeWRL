@@ -132,10 +132,8 @@ XtAppContext freewrlXtAppContext;
 
 
 #ifdef HAVE_MOTIF
-static String defaultResources[] = {
-	"*title: FreeWRL VRML X3D Browser ",
-	"*freewrlDrawArea*width: 600", "*freewrlDrawArea*height: 400", NULL
-};
+static String defaultResources[200];
+
 
 
 int MainWidgetRealized = FALSE;
@@ -900,6 +898,7 @@ void openMainWindow (int argc, char **argv) {
 	#ifdef HAVE_MOTIF
 	argc = 0;
 	String dummyargc[] = { " ", " "};
+	Arg initArgs[10]; int initArgc = 0;
 	#endif
 
 	#ifdef DO_MULTI_OPENGL_THREADS
@@ -911,8 +910,12 @@ void openMainWindow (int argc, char **argv) {
 
 
 	#ifdef HAVE_MOTIF
+	
+	XtSetArg(initArgs[initArgc],XmNlabelString,XmStringCreate("FreeWRL VRML X3D Browser",XmSTRING_DEFAULT_CHARSET)); initArgc++;
+	XtSetArg(initArgs[initArgc],XmNheight, screenHeight); initArgc++;
+	XtSetArg(initArgs[initArgc],XmNwidth, screenWidth); initArgc++;
 	freewrlTopWidget = XtAppInitialize (&freewrlXtAppContext, "FreeWRL", NULL, 0, 
-		&argc, dummyargc, defaultResources, NULL, 0);
+		&argc, dummyargc, NULL, initArgs, initArgc);
 
 	Xdpy = XtDisplay (freewrlTopWidget);
 	/* do not bother mapping this, if we are a plugin. */
