@@ -41,7 +41,7 @@
 
 char *paramline[15]; /* parameter line */
 
-static int PluginVerbose = 0;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
+static int PluginVerbose = 1;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
 
 /*******************************************************************************
  * Instance state information about the plugin.
@@ -271,6 +271,7 @@ int freewrlReceive(int fileDescriptor) {
 	}
 
 	return(retval);
+	print_here("returning from freewrl_receive\n");
 }
 
 int init_socket(int fileDescriptor, Boolean nonblock) {
@@ -714,7 +715,8 @@ NPP_NewStream(NPP instance,
 	FW_PluginInstance* FW_Plugin;
 
 
-	sprintf (debs,"NPP_NewStream, instance %d",instance);
+	sprintf (debs,"NPP_NewStream, instance %d, type %d, stream %d, seekable %d stype %d",instance,
+			stream, seekable,*stype);
 	print_here(debs);
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
@@ -779,6 +781,12 @@ NPError
 NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 {
 	FW_PluginInstance* FW_Plugin;
+
+	sprintf (debs,"NPP_DestroyStream, instance %d stream %d\n",instance,stream);
+	print_here(debs);
+	if (reason == NPRES_DONE) print_here("reason: NPRES_DONE\n");
+	if (reason == NPRES_USER_BREAK) print_here("reason: NPRES_USER_BREAK\n");
+	if (reason == NPRES_NETWORK_ERR) print_here("reason: NPRES_NETWORK_ERR\n");
 
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
