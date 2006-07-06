@@ -11,7 +11,7 @@
 #endif
 
 /*  CHECK DIRECTORY IN PLUGINPRINT*/
-#undef PLUGINSOCKETVERBOSE
+#undef  PLUGINSOCKETVERBOSE
 
 fd_set rfds;
 struct timeval tv;
@@ -53,7 +53,7 @@ int waitForData(int sock) {
 
 	retval = FALSE;
 	count = 0;
-	totalcount = 5000;
+	totalcount = 20000;
 
 	do {
 		#ifdef PLUGINSOCKETVERBOSE
@@ -161,6 +161,11 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, returning %s\n",return_url);
 	#endif
+
+	/* is this a string from URLNotify? (see plugin code for this "special" string) */
+	#define returnErrorString "this file is not to be found on the internet"
+	if (strncmp(return_url,returnErrorString,strlen(returnErrorString)) == 0) return NULL;
+
 
 	/* now, did this request return a text file with a html page indicating 404- not found? */
 	infile = fopen (return_url,"r");

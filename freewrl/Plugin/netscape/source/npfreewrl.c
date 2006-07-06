@@ -226,19 +226,19 @@ int freewrlReceive(int fileDescriptor) {
 		/* is this a getUrl, or a "open new window for url" */
 		if (request.notifyCode == 0) {
 			/* get Url and return it to FreeWRL */
-			if ((rv = NPN_GetURL(request.instance, request.url, NULL))
+			if ((rv = NPN_GetURLNotify(request.instance, request.url, NULL,(void *)request.url))
 				!= NPERR_NO_ERROR) {
-				sprintf(debs, "Call to NPN_GetURL failed with error %d.\n", rv);
+				sprintf(debs, "Call to NPN_GetURLNotify failed with error %d.\n", rv);
 				print_here(debs);
 				retval = NPERR_GENERIC_ERROR;
 			}
-			sprintf(debs, "Call to NPN_GetURL returned %d.\n", rv);
+			sprintf(debs, "Call to NPN_GetURLNotify returned %d.\n", rv);
 			print_here(debs);
 			sprintf (debs, "step 2a, request.url %s\n",request.url);
 			print_here(debs);
 
 		} else if (request.notifyCode == -99) {
-			/* we have timed out. */
+			/* Firefox, etc took too long. we have timed out. */
 			sprintf (debs,"notifyCode = -99, we have timed out for %s",request.url);
 			print_here(debs);
 			if (currentStream != NULL) {
@@ -642,6 +642,39 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 	return NPERR_NO_ERROR;
 }
 
+void 
+NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData) {
+
+	#define returnBadURL "this file is not to be found on the internet"
+	FW_PluginInstance* FW_Plugin;
+
+	FW_Plugin = (FW_PluginInstance*) instance->pdata;
+
+	sprintf (debs,"NPP_URLNotify, url %s reason %d\n",url,reason);
+	print_here (debs);
+
+	if (reason == NPRES_DONE) {
+		print_here ("NPP_UrlNotify - NPRES_DONE");
+		return;
+	} else if (reason == NPRES_USER_BREAK) {
+		print_here ("NPP_UrlNotify - NPRES_USER_BREAK");
+	} else if (reason == NPRES_NETWORK_ERR) {
+		print_here ("NPP_UrlNotify - NPRES_NETWORK_ERR");
+	} else {
+		print_here ("NPP_UrlNotify - unknown");
+	}
+
+
+	sprintf (debs,"writing %s (%u bytes) to socket %d",
+		returnBadURL, strlen (returnBadURL) ,FW_Plugin->interfaceFile[SOCKET_1]);
+	print_here(debs);
+
+	if (write(FW_Plugin->interfaceFile[SOCKET_1], returnBadURL, strlen (returnBadURL)) < 0) {
+		print_here ("Call to write failed");
+	}
+}
+
+
 NPError
 NPP_SetWindow(NPP instance, NPWindow *browser_window)
 {
@@ -906,4 +939,5 @@ NPP_Print(NPP instance, NPPrint* printInfo)
 		}
 	}
 }
+
 

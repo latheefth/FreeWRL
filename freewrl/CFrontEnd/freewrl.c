@@ -98,25 +98,19 @@ int main (int argc, char **argv) {
 
 	        if (checkNetworkFile(argv[optind])) {
 			setFullPath(argv[optind]);
-	                strcpy (initialFilename,argv[optind]); 
-	                BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
-	                strcpy(BrowserFullPath,pwd); 
 	
 	        } else {
 	                makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
-	                BrowserFullPath = (char *)malloc ((strlen(initialFilename)+1) * sizeof(char));
-	                strcpy (BrowserFullPath,initialFilename);
+	                setFullPath(initialFilename);
 	        }
+		free (initialFilename);
 	} else {
 		BrowserFullPath = NULL;
-		initialFilename = NULL;
 	}
 
 
 	/* start threads, parse initial scene, etc */
 	initFreewrl();
-
-	/* free(initialFilename); free(pwd); */
 
 	/* do we require EAI? */
 	if (wantEAI) create_EAI();
