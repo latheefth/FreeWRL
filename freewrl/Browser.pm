@@ -148,23 +148,11 @@ sub shut {
 
 
 
-# keep track of the number of Shape nodes seen so far. For
-# Occlusion culling and VisibilitySensors.
-my $occNodeCount = 0;
-
 # zero out bindables; called from C when we have a replaceWorld
 # type of action - Anchor is one...
 
 sub zeroDEFS {
 	VRML::Handles::deleteAllHandles();
-	$occNodeCount = 0;
-}
-
-sub NewOccludeNode {
-	my ($node) = @_;
-	# print "NewOccludeNode, orig is ", $node->{Fields}{__OccludeNumber}, "\n";
-	$node->{Fields}{__OccludeNumber} = $occNodeCount;
-	$occNodeCount ++;
 }
 
 #createVrml common stuff

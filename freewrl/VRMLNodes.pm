@@ -85,15 +85,6 @@ my $protono;
 }
 
 
-# commented out - for using occlusion to do frustum culling.
-#	Shape
-#	StaticGroup
-#	Transform
-%VRML::Nodes::occludeEvents = map {($_,1)} qw/
-	VisibilitySensor
-/;
-
-
 %VRML::Nodes::bindable = map {($_,1)} qw/
  Viewpoint
  Background

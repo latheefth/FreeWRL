@@ -437,9 +437,6 @@ sub new_node {
 
 	my $node = VRML::NodeIntern->new($this, $type, $fields, $this->{EventModel});
 
-	# we keep track of nodes that can generate Occlusion queries.
-	if ($VRML::Nodes::occludeEvents{$type}) {VRML::Browser::NewOccludeNode($node);}
-
 	VRML::Handles::reserve($node);
 	return $node;
 }

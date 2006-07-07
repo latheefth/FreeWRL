@@ -114,7 +114,7 @@ extern GLuint *OccQueries;
 extern void * *OccNodes;
 extern int *OccActive;
 extern GLint *OccSamples;
-
+int newOcclude(void);
 extern int maxShapeFound;
 extern int OccQuerySize;
 
@@ -795,7 +795,7 @@ void propagateExtent (struct X3D_Box *this_);
 void BoundingBox(struct X3D_Box* node);
 #define BOUNDINGBOX BoundingBox ((struct X3D_Box *)node);
 #else
-#define BOUNDINGBOX
+#define BOUNDINGBOX printf ("nobb\n");
 #endif
 
 void freewrlDie (const char *format);

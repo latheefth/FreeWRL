@@ -18,7 +18,6 @@
 #include "headers.h"
 
 
-
 /* Occlusion VisibilitySensor code */
 #ifdef OCCLUSION
 GLuint *OccQueries = 0;
@@ -147,13 +146,22 @@ void BoundingBox(struct X3D_Box * me) {
 	/* show a bounding box around each grouping node */
 	DISABLE_CULL_FACE
 	LIGHTING_OFF
-
+/*
 	if (nt == NODE_Transform) 
 		glColor3f(1.0, 0.0, 0.0);
 	else if (nt == NODE_Group)
 		glColor3f(0.0, 1.0, 0.0);
 	else
 		glColor3f (0.0, 0.0, 1.0);
+*/
+
+	/* color if bounding box not set properly */
+
+	if (me->EXTENT_MAX_X <= -999.9) {
+		glColor3f (1.0, 1.0, 0.0);
+	} else {
+		glColor3f(1.0, 0.0, 0.0);
+	}
 	
 
 	/* top of box */
@@ -352,3 +360,9 @@ void OcclusionCulling ()  {
 	#endif
 }
 
+int newOcclude() {
+	int retval;
+	retval = maxShapeFound;
+	maxShapeFound ++;
+	return retval;
+}

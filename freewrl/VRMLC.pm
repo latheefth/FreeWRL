@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.235  2006/07/07 15:38:16  crc_canada
+# Updated package htmls, more work on Frustum culling.
+#
 # Revision 1.234  2006/06/22 14:05:44  crc_canada
 # Bindables now handled totally in C.
 #
@@ -778,7 +781,15 @@ sub gen {
 			#if (($fk ne "eventIn") && ($field ne "__parenturl")) {
 			if ($fk ne "eventIn") {
 				#print "		do thisfield\n";
-				my $cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
+
+				# do we need to initialize the occlusion number for fields?
+				my $cf;
+				if ($field eq "__OccludeNumber") {
+					$cf = "tmp2->__OccludeNumber = newOcclude();";
+				} else {
+					$cf = ("VRML::Field::$ft")->cInitialize("tmp2->".$field,$def);
+				}
+
 				push @genFuncs2, "\t\t\t$cf;\n";
 			}
 		}
