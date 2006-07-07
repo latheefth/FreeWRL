@@ -41,7 +41,10 @@ Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
  #include <Xm/Text.h>
  #include <Xm/ScrolledW.h>
  #include <Xm/FileSB.h>
- #include <GL/GLwDrawA.h> 
+ /* JAS - GLwDrawA is hard to find on some distros; change source to not require it.
+	#include <GL/GLwDrawA.h>  */
+extern WidgetClass glwDrawingAreaWidgetClass;
+#define GLwNvisualInfo          "visualInfo"
 #endif
 
  #include <X11/keysym.h>

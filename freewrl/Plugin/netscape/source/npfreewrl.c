@@ -35,7 +35,7 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V3.1 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#define PLUGIN_DESCRIPTION	"V4.0 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
 #define ERRORMSG "FILE DOES NOT EXIST"
 

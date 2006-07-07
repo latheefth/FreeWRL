@@ -1,3 +1,9 @@
+For 1.18.1:
+	- Linux browser plugin reverified; should now work quite well!
+
+	- command line invocation of http:// files restored. (was broken in 1.17).
+
+
 For 1.17.7:
 	- javascript problem creating some nodes that had FreeWRLPTR defined fields fixed.
 
