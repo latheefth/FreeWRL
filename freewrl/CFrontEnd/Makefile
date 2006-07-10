@@ -16,15 +16,18 @@ fwopts:
 fwWindow:
 	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwWindow.c
 
-freewrl: fwopts fwWindow
+GLwDrawA:
+	$(CC) $(INC) $(FWFLAGS) $(DEFINE) GLwDrawA.c
+
+freewrl: fwopts fwWindow GLwDrawA
 	$(CC) $(INC) $(FWFLAGS) $(DEFINE) freewrl.c
 
 	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
-	freewrl.o fwopts.o fwWindow.o \
+	freewrl.o fwopts.o fwWindow.o GLwDrawA.o \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
 	$(LIBS) \
 	-L/usr/X11R6/lib \
-	-lGLw -lXt -lpthread -lFreeWRLFunc $(BC)\
+	-lXt -lpthread -lFreeWRLFunc $(BC)\
 
 clean:
 	rm -f *o; rm -f perlxsi*; rm -f freewrl;

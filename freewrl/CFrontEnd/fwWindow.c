@@ -41,10 +41,7 @@ Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
  #include <Xm/Text.h>
  #include <Xm/ScrolledW.h>
  #include <Xm/FileSB.h>
- /* JAS - GLwDrawA is hard to find on some distros; change source to not require it.
-	#include <GL/GLwDrawA.h>  */
 extern WidgetClass glwDrawingAreaWidgetClass;
-#define GLwNvisualInfo          "visualInfo"
 #endif
 
  #include <X11/keysym.h>
@@ -189,6 +186,7 @@ int localshapepri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs
 int cparser = FALSE; /* do not use Daniel Kraft's C parser unless clicked */
 
 void frontendUpdateButtons() {
+#ifdef HAVE_MOTIF
 	if (colbutChanged) {
 		XmToggleButtonSetState (collisionButton,colbut,FALSE);
 		colbutChanged = FALSE;
@@ -211,6 +209,7 @@ void frontendUpdateButtons() {
 			XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),consMsg);
 			consmsgChanged = FALSE;
 	}
+#endif
 }
 
 void setMenuButton_collision (int val) {
@@ -256,6 +255,7 @@ void setMenuButton_navModes (int type) {
 }
 
 void setMenuButton_texSize (int size) {
+	#ifdef HAVE_MOTIF
 	int val;
 	/* this is called from the texture thread, so there is not a threading problem here */
 	val = FALSE;
@@ -267,6 +267,7 @@ void setMenuButton_texSize (int size) {
 	if (size <= 128) {XmToggleButtonSetState (tex128_button, val, FALSE);
 	} else if (size <=256) {XmToggleButtonSetState (tex256_button, val, FALSE);
 	} else {XmToggleButtonSetState (texFull_button, val, FALSE); }
+	#endif
 }
 
 void setMessageBar() {
@@ -803,7 +804,7 @@ void createDrawingFrame(void) {
 
 	/* create the FreeWRL OpenGL drawing area, and map it. */
 	freewrlDrawArea = XtVaCreateManagedWidget ("freewrlDrawArea", glwDrawingAreaWidgetClass,
-			frame, GLwNvisualInfo, Xvi, 
+			frame, "visualInfo", Xvi, 
 	XmNtopAttachment, XmATTACH_WIDGET,
 	XmNbottomAttachment, XmATTACH_FORM,
 	XmNleftAttachment, XmATTACH_FORM,
