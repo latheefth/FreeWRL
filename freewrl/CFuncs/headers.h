@@ -795,7 +795,7 @@ void propagateExtent (struct X3D_Box *this_);
 void BoundingBox(struct X3D_Box* node);
 #define BOUNDINGBOX BoundingBox ((struct X3D_Box *)node);
 #else
-#define BOUNDINGBOX printf ("nobb\n");
+#define BOUNDINGBOX
 #endif
 
 void freewrlDie (const char *format);
