@@ -6,6 +6,32 @@
 #include "CProto.h"
 #include "CParseGeneral.h"
 
+/* ************************************************************************** */
+/* ******************************* ProtoFieldDecl *************************** */
+/* ************************************************************************** */
+
+/* Constructor and destructor */
+/* ************************** */
+
+/* Without default value (event) */
+struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
+{
+ struct ProtoFieldDecl* ret=malloc(sizeof(struct ProtoFieldDecl));
+ ret->mode=mode;
+ ret->type=type;
+ ret->name=name;
+ return ret;
+}
+
+void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
+{
+ free(me);
+}
+
+/* ************************************************************************** */
+/* ******************************** ProtoDefinition ************************* */
+/* ************************************************************************** */
+
 /* Constructor and destructor */
 /* ************************** */
 
@@ -17,6 +43,9 @@ struct ProtoDefinition* newProtoDefinition()
  assert(ret->tree);
  ret->tree->__isProto=TRUE;
 
+ ret->iface=newVector(struct ProtoFieldDecl*, 4);
+ assert(ret->iface);
+
  return ret;
 }
 
@@ -24,6 +53,14 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
 {
  /* FIXME:  Not deep-destroying nodes!!! */
  free(me->tree);
+
+ {
+  size_t i;
+  for(i=0; i!=vector_size(me->iface); ++i)
+   deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
+  deleteVector(struct ProtoDefinition*, me->iface);
+ }
+ 
  free(me);
 }
 

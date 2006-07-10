@@ -15,6 +15,7 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 #define USER_IDS_INIT_SIZE	16
 Stack* userNodeNames=NULL;
 Stack* userNodeTypes=NULL;
+Stack* userFields=NULL;
 
 /* Maximum id length (input buffer size) */
 #define MAX_IDLEN	127
@@ -82,6 +83,11 @@ void lexer_destroyData()
  if(userNodeTypes)
   lexer_destroyIdStack(userNodeTypes);
  userNodeTypes=NULL;
+
+ /* User fields */
+ if(userFields)
+  lexer_destroyIdStack(userFields);
+ userFields=NULL;
 }
 
 /* Scope in and scope out for IDs */
@@ -108,11 +114,13 @@ void lexer_scopeIn()
 {
  lexer_scopeIn_(&userNodeNames);
  lexer_scopeIn_(&userNodeTypes);
+ lexer_scopeIn_(&userFields);
 }
 void lexer_scopeOut()
 {
  lexer_scopeOut_(userNodeNames);
  lexer_scopeOut_(userNodeTypes);
+ lexer_scopeOut_(userFields);
 }
 
 /* Sets curID of lexer */

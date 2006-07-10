@@ -20,6 +20,23 @@ Stack* DEFedNodes=NULL;
 /* Our PROTOs */
 Stack* PROTOs=NULL;
 
+/* Parsing a specific type */
+BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
+ &parser_sffloatValue_, &parser_mffloatValue,
+ &parser_sfrotationValue, &parser_mfrotationValue,
+ &parser_sfcolorValue, &parser_mfvec3fValue,
+ &parser_sfboolValue, &parser_mfboolValue,
+ &parser_sfint32Value_, &parser_mfint32Value,
+ &parser_sfnodeValue, &parser_mfnodeValue,
+ &parser_sfcolorValue, &parser_mfcolorValue,
+ &parser_sfcolorrgbaValue, &parser_mfcolorrgbaValue,
+ &parser_sftimeValue, &parser_mftimeValue,
+ &parser_sfstringValue_, &parser_mfstringValue,
+ &parser_sfvec2fValue, &parser_sfvec2fValue,
+ &parser_sfimageValue,
+ NULL
+};
+
 /* ************************************************************************** */
 /* Constructor and destructor */
 
@@ -150,6 +167,38 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 /* ************************************************************************** */
 /* Nodes and fields */
 
+/* Parses an interface declaration and adds it to the PROTO definition */
+BOOL parser_interfaceDeclaration(struct VRMLParser* me,
+ struct ProtoDefinition* proto)
+{
+ indexT mode;
+ indexT type;
+ indexT name;
+ struct ProtoFieldDecl* decl=NULL;
+
+ if(!lexer_protoFieldMode(me->lexer, &mode))
+  return FALSE;
+ if(!lexer_fieldType(me->lexer, &type))
+  PARSE_ERROR("Expected fieldType after proto-field keyword!")
+ if(!lexer_defineField(me->lexer, &name))
+  PARSE_ERROR("Expected field-name ID after field type!")
+
+ decl=newProtoFieldDecl(mode, type, name);
+ if(mode==PKW_field || mode==PKW_exposedField)
+ {
+  assert(PARSE_TYPE[type]);
+  if(!PARSE_TYPE[type](me, (void*)&decl->defaultVal))
+  {
+   parseError("Expected default value for field!");
+   deleteProtoFieldDecl(decl);
+   return FALSE;
+  }
+ }
+
+ protoDefinition_addIfaceField(proto, decl);
+ return TRUE;
+}
+
 /* Parses a protoStatement */
 BOOL parser_protoStatement(struct VRMLParser* me)
 {
@@ -177,7 +226,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  /* Interface declarations */
  if(!lexer_openSquare(me->lexer))
   PARSE_ERROR("Expected [ to start interface declaration!")
- /* FIXME:  Currently only empty interfaces supported! */
+ while(parser_interfaceDeclaration(me, obj));
  if(!lexer_closeSquare(me->lexer))
   PARSE_ERROR("Expected ] after interface declaration!")
 
@@ -708,6 +757,19 @@ PARSER_MFFIELD(vec3f, Vec3f)
     return FALSE; \
   return TRUE; \
  }
+
+BOOL parser_sffloatValue_(struct VRMLParser* me, vrmlFloatT* ret)
+{
+ return lexer_float(me->lexer, ret);
+}
+BOOL parser_sfint32Value_(struct VRMLParser* me, vrmlInt32T* ret)
+{
+ return lexer_int32(me->lexer, ret);
+}
+BOOL parser_sfstringValue_(struct VRMLParser* me, vrmlStringT* ret)
+{
+ return lexer_string(me->lexer, ret);
+}
 
 BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 {

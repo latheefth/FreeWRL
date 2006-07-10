@@ -30,6 +30,9 @@ struct VRMLParser
  struct ProtoDefinition* curPROTO;
 };
 
+/* Functions parsing a type by its index */
+extern BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*);
+
 /* Constructor and destructor */
 struct VRMLParser* newParser(void*, unsigned);
 void deleteParser(struct VRMLParser*);
@@ -62,13 +65,16 @@ BOOL parser_mfvec3fValue(struct VRMLParser*, struct Multi_Vec3f*);
 BOOL parser_sfboolValue(struct VRMLParser*, vrmlBoolT*);
 BOOL parser_sfcolorValue(struct VRMLParser*, vrmlColorT*);
 BOOL parser_sfcolorrgbaValue(struct VRMLParser*, vrmlColorRGBAT*);
+BOOL parser_sffloatValue_(struct VRMLParser*, vrmlFloatT*);
 #define parser_sffloatValue(me, ret) \
  lexer_float(me->lexer, ret)
 BOOL parser_sfimageValue(struct VRMLParser*, vrmlImageT*);
+BOOL parser_sfint32Value_(struct VRMLParser*, vrmlInt32T*);
 #define parser_sfint32Value(me, ret) \
  lexer_int32(me->lexer, ret)
 BOOL parser_sfnodeValue(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_sfrotationValue(struct VRMLParser*, vrmlRotationT*);
+BOOL parser_sfstringValue_(struct VRMLParser*, vrmlStringT*);
 #define parser_sfstringValue(me, ret) \
  lexer_string(me->lexer, ret)
 BOOL parser_sftimeValue(struct VRMLParser*, vrmlTimeT*);
@@ -79,6 +85,7 @@ BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
 /* Parses nodes, fields and other statements. */
 BOOL parser_routeStatement(struct VRMLParser*);
 BOOL parser_protoStatement(struct VRMLParser*);
+BOOL parser_interfaceDeclaration(struct VRMLParser*, struct ProtoDefinition*);
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);

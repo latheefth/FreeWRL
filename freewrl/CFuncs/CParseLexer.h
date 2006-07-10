@@ -11,6 +11,7 @@
 /* Tables of user-defined IDs */
 extern Stack* userNodeNames;
 extern Stack* userNodeTypes;
+extern Stack* userFields;
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #define ID_UNDEFINED	((indexT)-1)
@@ -59,6 +60,8 @@ BOOL lexer_defineID(struct VRMLLexer*, indexT*, Stack**);
  lexer_defineID(me, ret, &userNodeNames)
 #define lexer_defineNodeType(me, ret) \
  lexer_defineID(me, ret, &userNodeTypes)
+#define lexer_defineField(me, ret) \
+ lexer_defineID(me, ret, &userFields)
 BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
@@ -66,6 +69,10 @@ BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
  lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypes)
 #define lexer_nodeName(me, ret) \
  lexer_specialID(me, NULL, ret, NULL, 0, userNodeNames)
+#define lexer_protoFieldMode(me, r) \
+ lexer_specialID(me, r, NULL, PROTOKEYWORDS, PROTOKEYWORDS_COUNT, NULL)
+#define lexer_fieldType(me, r) \
+ lexer_specialID(me, r, NULL, FIELDTYPES, FIELDTYPES_COUNT, NULL)
 
 /* Input the basic literals */
 BOOL lexer_int32(struct VRMLLexer*, vrmlInt32T*);
