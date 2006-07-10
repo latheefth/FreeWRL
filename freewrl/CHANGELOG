@@ -1,7 +1,11 @@
 For 1.18.1:
+	- more PROTO work for experimental parser (Daniek Kraft)
+
 	- Linux browser plugin reverified; should now work quite well!
 
 	- command line invocation of http:// files restored. (was broken in 1.17).
+
+	- remove requirement for GLwDrawA.h.
 
 
 For 1.17.7:

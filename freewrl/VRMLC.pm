@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.236  2006/07/10 14:24:11  crc_canada
+# add keywords for PROTO interface fields.
+#
 # Revision 1.235  2006/07/07 15:38:16  crc_canada
 # Updated package htmls, more work on Frustum culling.
 #
@@ -638,6 +641,33 @@ sub gen {
 		"	if ((st < 0) || (st >= KEYWORDS_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
 		"	return KEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringKeywordType(int st);\n";
+
+
+	#####################
+	# process PROTO keywords 
+	push @str, "\n/* Table of built-in PROTO keywords */\nextern const char *KEYWORDS[];\n";
+	push @str, "extern const indexT PROTOKEYWORDS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of PROTO keywords */\n       const char *PROTOKEYWORDS[] = {\n";
+
+        my @sf = keys %PROTOKeywordC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define PKW_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT PROTOKEYWORDS_COUNT = ARR_SIZE(PROTOKEYWORDS);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the PROTO keyword type */\n". 
+		"const char *stringPROTOKeywordType (int st) {\n".
+		"	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	return PROTOKEYWORDS[st];\n}\n\n";
+	push @str, "const char *stringPROTOKeywordType(int st);\n";
 
 
 

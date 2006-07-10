@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.200  2006/07/10 14:24:11  crc_canada
+# add keywords for PROTO interface fields.
+#
 # Revision 1.199  2006/05/31 14:52:28  crc_canada
 # more changes to code for SAI.
 #
@@ -478,9 +481,26 @@ $ExtraMem{HAnimHumanoid} = $ExtraMem{Group};
 	TO
 	TRUE
 	USE
-	eventIn
-	eventOut
 	exposedField
 	field
+	eventIn
+	eventOut
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# PROTOKeywords
+# a listing of PROTO define keywords for use in the C VRML parser.
+#
+# 
+
+%PROTOKeywordC = map {($_=>1)} qw/
+	exposedField
+	field
+	eventIn
+	eventOut
 /;
 1;
