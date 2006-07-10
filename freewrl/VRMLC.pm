@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.237  2006/07/10 14:30:55  crc_canada
+# semantic error fixed in previous version.
+#
 # Revision 1.236  2006/07/10 14:24:11  crc_canada
 # add keywords for PROTO interface fields.
 #
@@ -645,7 +648,7 @@ sub gen {
 
 	#####################
 	# process PROTO keywords 
-	push @str, "\n/* Table of built-in PROTO keywords */\nextern const char *KEYWORDS[];\n";
+	push @str, "\n/* Table of built-in PROTO keywords */\nextern const char *PROTOKEYWORDS[];\n";
 	push @str, "extern const indexT PROTOKEYWORDS_COUNT;\n";
 
 	push @genFuncs1, "\n/* Table of PROTO keywords */\n       const char *PROTOKEYWORDS[] = {\n";
