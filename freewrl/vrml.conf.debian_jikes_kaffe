@@ -104,17 +104,4 @@ SOUNDCONV => "/usr/bin/sox",
 # if so, make this non-null.
 
         SOUND_ENGINE => 'yes',
-
-
-############################################################################
-# build a rpm file?
-
-	# where the RPMS and SRPMS and SOURCES and SPECS directories live:
-	# might be /usr/src/redhat, /usr/src/packages, or...?
-#	RPM_PREFIX => '/usr/src/redhat',
-
-	# what OS version is this built on? each Linux release has a different
-	# file name here - might be /etc/SuSE-release. Not required if RPM_PREFIX
-	# is commented out.
-#	RPM_OSNAME_FILE => '/etc/redhat-release',
 );
