@@ -62,14 +62,26 @@ if ($OS eq "Darwin") {
 	$ARCH =~ s/\s+$//;
 	$ARCH =~ s/^\s+//;
 
-	if ($ARCH eq "x86_64") {
-		# 64 bit architecture.
-		require './vrml.conf.x86_64';
+	# find out what the distribution is.
+	my ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile) = linux_system_info();
+
+	# is this an Ubuntu distro?? 
+	if (substr($osname,0,6) eq "ubuntu") {
+		require './vrml.conf.ubuntu';
+
+	# we can use the generic distros for the architecture.
 	} else {
-		# standard 32 bit architecture
-		require './vrml.conf';
+		if ($ARCH eq "x86_64") {
+			# 64 bit architecture.
+			require './vrml.conf.x86_64';
+		} else {
+			# standard 32 bit architecture
+			require './vrml.conf';
+		}
 	}
+
 }
+
 $VRML_CONFIG{VERSION} = $VERSION;
 
 # save this for JS/Makefile.PL
@@ -521,7 +533,7 @@ INST_DYNAMIC_DEP =
 
 		# OS X has its own build process, it does not use RPMS.
 		if ($OS ne "Darwin") {
-			my ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile) = rpm_system();
+			#print "when we need it, we have rpm_prefix of $rpm_prefix, sourcepackage $sourcepackage, rpmversion $rpmversion, osname $osname, OS $OS, specfile $specfile\n";
 	
 			my $lib_dir = $VRML::Config::vrml_config{LIB_DIR};
 			my $bin_dir = $VRML::Config::vrml_config{BIN_DIR};
@@ -610,13 +622,16 @@ INST_DYNAMIC_DEP =
 			return join("\n", @postamble);
 		}
 	}
+}
+
 
 	# determine on what system we are running, and if we can make a package for it for
 	# redistribution
-	sub rpm_system() {
+	sub linux_system_info() {
 	
 		my $rpm_prefix;
 		my $osname;
+		my $mightBeUbuntu = FALSE;
 	
 		# determine where the package should be built.
 		# is this a Red Hat, Fedora package?
@@ -635,25 +650,18 @@ INST_DYNAMIC_DEP =
 		
 	        # what OS version is this built on? each Linux release has a different
 	        # file name here - might be /etc/SuSE-release. 
-		$osname = "";
-	
-		if (-e '/etc/redhat-release') {
-			$osname = `cat /etc/redhat-release`;
-		} elsif (-e '/etc/SuSE-release') {
-			$osname = `cat /etc/SuSE-release`;
-		}
-	
-	
-	
-		# remove and brackets and anything following.
-		$osname =~s/\n.*//;
-		$osname =~s/\(.*//;
-		$osname =~s/ //g;
-	
-		# do it again,because Suse 10.1 screws this up.
-		$osname =~s/\n.*//;
-		$osname =~s/\(.*//;
-	
+
+		my $distrib = `lsb_release --id`;
+		# remove whitespace, and anything up to and including the tab character.
+		$distrib =~s/\n.*//;
+		my $distrib = substr($distrib, index ($distrib,"	")+1);
+
+		my $ver = `lsb_release --release`;
+		# remove whitespace, and anything up to and including the tab character.
+		$ver =~s/\n.*//;
+		my $ver = substr($ver, index ($ver,"	")+1);
+
+		$osname = $distrib.$ver;
 	
 		if ($osname eq "") {
 			print "could not determine how to make redistributable packages on this system \n";
@@ -678,4 +686,3 @@ INST_DYNAMIC_DEP =
 	
 		return ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile);
 	}
-}
