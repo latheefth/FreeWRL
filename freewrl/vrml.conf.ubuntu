@@ -1,0 +1,107 @@
+# Default VRML Configuration.
+# You will probably need to edit at least these variables
+# to inform the compiler where the libraries are on your system.
+#
+# Check generated file Config.pm for all build options after executing
+# 'perl Makefile.PL'.
+
+%VRML_CONFIG = (
+
+############################################################################
+# C compile options
+#
+#
+# Where to put the resulting FreeWRL binary, and where to copy shared libs to
+
+BIN_DIR =>  "/usr/bin",
+LIB_DIR => "/usr/lib",
+
+# tell FreeWRL which commands to invoke for Anchors, graphics conversions, etc.
+
+# Which browser to invoke for Anchors, etc:
+BROWSER => "/usr/bin/firefox",		
+
+# How to get http:// files when running standalone (ie, not as a plugin)
+WGET => "/usr/bin/wget",
+
+# conversion program - allows FreeWRL to handle many, many image types
+# without having to have the code itself.
+CONVERT => "/usr/bin/convert",
+
+# some wrl/x3d files are zipped; how do we unzip them?
+UNZIP => "/bin/gunzip",	
+
+# Java Runtime. Java, Jikes, etc is ok, so long as it is not ancient.
+#if you do not have Java, comment this and the JAVA_INST line below out.
+JAVA => "/usr/bin/java",
+
+# how to copy one file to another:
+COPIER => "/bin/cp",
+
+# allow freewrl to play many, many types of sound files; eg, AIFF, etc.
+SOUNDCONV => "/usr/bin/sox",
+
+# BOUNDS_CHECK => "on" to turn on bounds checking
+#  (requires gcc compiled with the bounds checking extension)
+# BOUNDS_CHECK => "off" to turn off bounds checking
+
+    BOUNDS_CHECK => "off",
+
+# location of the gcc bounds checking library libcheck.a
+
+    LIBCHECK_INST => '/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.2.2',
+
+############################################################################
+# Main defines for OpenGL, libjpeg, libpng, and freetype
+#
+# if you want different texture/material property, add
+#	-DX3DMATERIALPROPERTY
+# to the FREEWRL_INC line
+#
+# if you want to be able to root window on Xfree86 version 4 - add
+#	-DXF86V4
+# to the FREEWRL_INC line, and
+#	 -lXxf86vm
+# to the FREEWRL_LIBS line
+
+# Motif - if you DO NOT have Motif - remove the "-DHAVE_MOTIF" and the "-lXm" from below.
+#
+# Multi threads for OpenGL. If you want to try this, add "-DDO_MULTI_OPENGL_THREADS " to the FREEWRL_DEFINE
+# line, and cross fingers.
+
+    FREEWRL_LIBS => '-L/usr/lib -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lXm -lfreetype -lpng12 -lz -ljpeg',
+    #FREEWRL_DEFINE => '-ansi -DHAVE_MOTIF -DXP_UNIX -D_GNU_SOURCE -DDO_MULTI_OPENGL_THREADS ',
+    FREEWRL_DEFINE => '-ansi -DHAVE_MOTIF -DXP_UNIX -D_GNU_SOURCE ',
+    FREEWRL_INC => '-I/usr/X11R6/include/ -I/usr/include/freetype2 -I/usr/include/freetype2/freetype',
+
+
+############################################################################
+# Netscape/Mozilla,... installation
+
+    NETSCAPE_INST => '/usr/lib/firefox/plugins',
+    NETSCAPE_CLASSES => '/usr/lib/firefox/plugins',
+    NETSCAPE_PLUGINS => '/usr/lib/firefox/plugins',
+
+############################################################################
+# Java dest. if no Java, comment out the JAVA line above, and the JAVA_INST line below.
+    JAVA_INST => '/usr/java/j2sdk1.4.0',
+
+############################################################################
+# some Java compilers need a extra extension to the classpath
+#
+# for example the jikes Java compiler under debian Linux with the 
+# kaffe java virtual machine need
+#    JAVA_CLASSPATH => '/usr/share/kaffe/Klasses.jar',
+
+############################################################################
+# LDFLAGS.  Set linker flags here.
+
+    LDFLAGS => '-shared -L/usr/local/lib -lperl `perl -MExtUtils::Embed -e ldopts`',
+
+
+############################################################################
+# SoundEngine - do we want to build the sound engine?
+# if so, make this non-null.
+
+        SOUND_ENGINE => 'yes',
+);
