@@ -521,7 +521,7 @@ INST_DYNAMIC_DEP =
 
 		# OS X has its own build process, it does not use RPMS.
 		if ($OS ne "Darwin") {
-			my ($RPM_PREFIX,$sourcepackage, $rpmversion, $osname, $specfile) = rpm_system();
+			my ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile) = rpm_system();
 	
 			my $lib_dir = $VRML::Config::vrml_config{LIB_DIR};
 			my $bin_dir = $VRML::Config::vrml_config{BIN_DIR};
@@ -531,9 +531,9 @@ INST_DYNAMIC_DEP =
 				  "\n",
 				  qq{rpm::},
 					qq{\t# make the gzip file of the dist.},
-					qq{\ttar -cf $RPM_PREFIX/SOURCES/$sourcepackage ..\/$srcdir},
-					qq{\trm -f $RPM_PREFIX/SOURCES/$sourcepackage.gz},
-					qq{\tgzip $RPM_PREFIX/SOURCES/$sourcepackage\n},
+					qq{\ttar -cf $rpm_prefix/SOURCES/$sourcepackage ..\/$srcdir},
+					qq{\trm -f $rpm_prefix/SOURCES/$sourcepackage.gz},
+					qq{\tgzip $rpm_prefix/SOURCES/$sourcepackage\n},
 					qq{\t#make the spec file.},
 					qq{\techo \"Summary: A vrml viewer\" > $specfile},
 					qq{\techo \"Name: freewrl\" >> $specfile},
@@ -582,7 +582,7 @@ INST_DYNAMIC_DEP =
 					qq{\techo \"*\" >> $specfile},
 				));
 				if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
-				print "RPM - have sound engine\n";
+				#print "RPM - have sound engine\n";
 				push(@postamble, join(
 				  	"\n",
 					qq{\techo \"$bin_dir\/FreeWRL_SoundServer\" >> $specfile},
@@ -591,7 +591,7 @@ INST_DYNAMIC_DEP =
 	
 				if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
 				my $nsdir = $VRML::Config::vrml_config{NETSCAPE_INST};
-				print "RPM: have Netscape Install Directory.\n";
+				#print "RPM: have Netscape Install Directory.\n";
 				push(@postamble, join(
 				  	"\n",
 					qq{\techo \"$nsdir\/npfreewrl.so\" >> $specfile},
@@ -615,22 +615,22 @@ INST_DYNAMIC_DEP =
 	# redistribution
 	sub rpm_system() {
 	
-		my $RPM_PREFIX;
+		my $rpm_prefix;
 		my $osname;
 	
 		# determine where the package should be built.
 		# is this a Red Hat, Fedora package?
-		#RPM_PREFIX = "/tmp";
+		#rpm_prefix = "/tmp";
 		if (-e '/usr/src/redhat') {
-			$RPM_PREFIX = "/usr/src/redhat";
+			$rpm_prefix = "/usr/src/redhat";
 	
 		# is this SuSE/Novell linux??
 		} elsif (-e '/usr/src/packages') {
-			$RPM_PREFIX = "/usr/src/packages";
+			$rpm_prefix = "/usr/src/packages";
 	
 		# yikes - do not know...
 		} else {
-			$RPM_PREFIX = "/tmp";
+			$rpm_prefix = "/tmp";
 		}
 		
 	        # what OS version is this built on? each Linux release has a different
@@ -660,7 +660,7 @@ INST_DYNAMIC_DEP =
 			print "so the make rpm target will not work - oh well!\n";
 			$osname = "unknown";
 		}
-		print "osname is: $osname\n";
+		#print "osname is: $osname\n";
 	
 	
 		# sourcepackage is a file created by "packagemaker" - it contains the version, etc.
@@ -670,12 +670,12 @@ INST_DYNAMIC_DEP =
 		$sourcepackage =~ s/^\s+//;
 		my $srcdir = substr($sourcepackage, 0, rindex ($sourcepackage,".tar"));
 		my $rpmversion = substr ($srcdir,index($srcdir,"-")+1,100);
-		print "srcdir $srcdirrpmversion $rpmversion sourcepackage $sourcepackage\n";
+		#print "srcdir $srcdirrpmversion $rpmversion sourcepackage $sourcepackage\n";
 	
 		# make spec file name.
-		my $specfile = "$RPM_PREFIX/SPECS/".$srcdir.".".$osname.".spec";
-		 print "spec file is $specfile\n";
+		my $specfile = "$rpm_prefix/SPECS/".$srcdir.".".$osname.".spec";
+		#print "spec file is $specfile\n";
 	
-		return ($RPM_PREFIX,$sourcepackage, $rpmversion, $osname, $specfile);
+		return ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile);
 	}
 }
