@@ -66,7 +66,7 @@ if ($OS eq "Darwin") {
 	my ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile) = linux_system_info();
 
 	# is this an Ubuntu distro?? 
-	if (substr($osname,0,6) eq "ubuntu") {
+	if (substr($osname,0,6) eq "Ubuntu") {
 		require './vrml.conf.ubuntu';
 
 	# we can use the generic distros for the architecture.
@@ -79,6 +79,13 @@ if ($OS eq "Darwin") {
 			require './vrml.conf';
 		}
 	}
+
+	# add these keys for later use when making distribution (rpm) file
+	$VRML_CONFIG{RPMPREFIX} = $rpm_prefix;
+	$VRML_CONFIG{SOURCEPACKAGE} = $sourcepackage;
+	$VRML_CONFIG{RPMVERSION} = $rpmversion;
+	$VRML_CONFIG{OSNAME} = $osname;
+	$VRML_CONFIG{SPECFILE} = $specfile;
 
 }
 
@@ -169,6 +176,7 @@ print OUT "package VRML::Config;\n\n";
 print OUT "\%vrml_config = (\n";
 
 for (keys %VRML_CONFIG) {
+print "key $_\n";
 	print OUT "\t$_\t=>\t";
 	if(defined $VRML_CONFIG{$_}) {
                 print OUT '"',quotemeta($VRML_CONFIG{$_}),'"';
@@ -533,6 +541,14 @@ INST_DYNAMIC_DEP =
 
 		# OS X has its own build process, it does not use RPMS.
 		if ($OS ne "Darwin") {
+
+			# find out what the distribution is.
+			my $rpm_prefix = $VRML::Config::vrml_config{RPMPREFIX};
+			my $sourcepackage = $VRML::Config::vrml_config{SOURCEPACKAGE};
+			my $rpmversion = $VRML::Config::vrml_config{RPMVERSION};
+			my $osname = $VRML::Config::vrml_config{OSNAME};
+			my $specfile = $VRML::Config::vrml_config{SPECFILE};
+
 			#print "when we need it, we have rpm_prefix of $rpm_prefix, sourcepackage $sourcepackage, rpmversion $rpmversion, osname $osname, OS $OS, specfile $specfile\n";
 	
 			my $lib_dir = $VRML::Config::vrml_config{LIB_DIR};
@@ -651,15 +667,14 @@ INST_DYNAMIC_DEP =
 	        # what OS version is this built on? each Linux release has a different
 	        # file name here - might be /etc/SuSE-release. 
 
-		my $distrib = `lsb_release --id`;
-		# remove whitespace, and anything up to and including the tab character.
+		my $distrib = `lsb_release --id | cut -f2`;
+		$distrib =~ s/\b(\w)/\U$1/g;
+		# remove trailing cr
 		$distrib =~s/\n.*//;
-		my $distrib = substr($distrib, index ($distrib,"	")+1);
 
-		my $ver = `lsb_release --release`;
-		# remove whitespace, and anything up to and including the tab character.
+		my $ver = `lsb_release --release | cut -f2`;
+		# remove trailing cr
 		$ver =~s/\n.*//;
-		my $ver = substr($ver, index ($ver,"	")+1);
 
 		$osname = $distrib.$ver;
 	
@@ -668,7 +683,7 @@ INST_DYNAMIC_DEP =
 			print "so the make rpm target will not work - oh well!\n";
 			$osname = "unknown";
 		}
-		#print "osname is: $osname\n";
+		print "osname is: $osname\n";
 	
 	
 		# sourcepackage is a file created by "packagemaker" - it contains the version, etc.
