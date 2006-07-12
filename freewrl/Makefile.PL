@@ -133,7 +133,6 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 
 # is this an update of an older build? Some files have moved.
 my $oldfw2initpl = $VRML_CONFIG{BIN_DIR}."/fw2init.pl";
-print "checking for $oldfw2initpl\n";
 if (-e $oldfw2initpl) {
 	print "***************************************************************************\n";
 	print "There is an old file that should be removed by hand: $oldfw2initpl\n";
@@ -176,7 +175,6 @@ print OUT "package VRML::Config;\n\n";
 print OUT "\%vrml_config = (\n";
 
 for (keys %VRML_CONFIG) {
-print "key $_\n";
 	print OUT "\t$_\t=>\t";
 	if(defined $VRML_CONFIG{$_}) {
                 print OUT '"',quotemeta($VRML_CONFIG{$_}),'"';
@@ -434,7 +432,17 @@ INST_DYNAMIC_DEP =
 
 
 		# make the C Front End.
+		my $def;
 		my $def2;
+		my $frontEndDef;
+		my $def2fe;
+		my $MYFELIBS;
+
+		# are we compiling the front end with Motif?
+		if (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_MOTIF") > 0) {
+			 $MYFELIBS = $MYLIBS . " -lXm ";
+		}
+
 		my $def1 = "OSNAME=\$(OSNAME) " .
 			   "PPATH=\$(INSTALLPRIVLIB)/VRML " .
 			   "DEFINE=\"$MYDEFINE\" ".
@@ -443,12 +451,15 @@ INST_DYNAMIC_DEP =
 		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
 			print "COMPILING WITH BOUNDSCHECKING\n";
 			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
+			$def2fe = "INC=\"$MYINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
 			print "line is $def2\n";
 		} else {
 			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
+			$def2fe = "INC=\"$MYINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
 		}
 
-		my $def = $def1.$def2;
+		$def = $def1.$def2;
+		$frontEndDef = $def1.$def2fe;
 
 		# Darwin's front end is either a cocoa app or a carbon app; the front ends are made
 		# in a different file. So, in this make, don't make a front end!
@@ -462,7 +473,7 @@ INST_DYNAMIC_DEP =
 			  	  qq{\n\# --- FreeWRL Message Console:},
 			  	  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) install $def \n},
 				  qq{\n\# --- FreeWRL C Front End:},
-				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def\n},
+				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $frontEndDef \n},
 				 ));
 			}
 		}
@@ -479,7 +490,7 @@ INST_DYNAMIC_DEP =
 			push(@postamble, join(
 			  "\n",
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $frontEndDef \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			));
 		}
@@ -496,7 +507,7 @@ INST_DYNAMIC_DEP =
 			push(@postamble, join(
 			  "\n",
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $frontEndDef \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			));
 		}
@@ -530,7 +541,7 @@ INST_DYNAMIC_DEP =
 		push(@postamble, join(
 			  "\n",
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def \n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $frontEndDef  \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
 			 ));
 		}
@@ -683,7 +694,7 @@ INST_DYNAMIC_DEP =
 			print "so the make rpm target will not work - oh well!\n";
 			$osname = "unknown";
 		}
-		print "osname is: $osname\n";
+		#print "osname is: $osname\n";
 	
 	
 		# sourcepackage is a file created by "packagemaker" - it contains the version, etc.
