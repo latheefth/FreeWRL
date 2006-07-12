@@ -703,7 +703,24 @@ extern void setStereoParameter (const char *optArg);
 extern void setEyeDist (const char *optArg);
 
 extern int isPerlinitialized(void);
-extern int isDisplayInitialized(void);
+
+#ifdef HAVE_MOTIF
+	#define ISDISPLAYINITIALIZED isMotifDisplayInitialized()
+	#define GET_GLWIN getMotifWindowedGLwin (&GLwin);
+	#define OPEN_TOOLKIT_MAINWINDOW openMotifMainWindow (argc, argv);
+	#define CREATE_TOOLKIT_MAIN_WINDOW createMotifMainWindow();
+	int isMotifDisplayInitialized(void);
+	void getMotifWindowedGLwin (Window *);
+	void openMotifMainWindow (int argc, char ** argv);
+	void createMotifMainWindow(void);
+#else
+	#define HAVE_NOTOOLKIT
+	#define ISDISPLAYINITIALIZED TRUE
+	#define GET_GLWIN getBareWindowedGLwin (&GLwin);
+	#define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
+	#define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
+#endif
+
 extern char *BrowserName, *BrowserVersion, *BrowserFullPath; /* defined in VRMLC.pm */
 extern char *getInputURL(void);
 extern char *keypress_string;
