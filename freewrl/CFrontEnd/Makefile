@@ -19,14 +19,17 @@ fwWindow:
 fwMotifWindow:
 	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwMotifWindow.c
 
+fwBareWindow:
+	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwBareWindow.c
+
 GLwDrawA:
 	$(CC) $(INC) $(FWFLAGS) $(DEFINE) GLwDrawA.c
 
-freewrl: fwopts fwWindow fwMotifWindow GLwDrawA
+freewrl: fwopts fwWindow fwBareWindow fwMotifWindow GLwDrawA
 	$(CC) $(INC) $(FWFLAGS) $(DEFINE) freewrl.c
 
 	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
-	freewrl.o fwopts.o fwWindow.o fwMotifWindow.o GLwDrawA.o \
+	freewrl.o fwopts.o fwWindow.o fwBareWindow.o fwMotifWindow.o GLwDrawA.o \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
 	$(LIBS) \
 	-L/usr/X11R6/lib \
