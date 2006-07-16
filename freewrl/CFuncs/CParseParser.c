@@ -528,15 +528,26 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
   assert(node);
   while(parser_field(me, node) ||
    parser_routeStatement(me) || parser_protoStatement(me));
- } else
+ }
+ 
+ /* Proto */
+ else
  {
+  /* The copy of our ProtoDefinition; here are the fields filled in. */
+  struct ProtoDefinition* protoCopy;
+
   assert(nodeTypeU!=ID_UNDEFINED);
   assert(PROTOs);
   assert(!stack_empty(PROTOs));
   assert(nodeTypeU<vector_size(stack_top(PROTOs)));
-  node=protoDefinition_instantiate(vector_get(struct ProtoDefinition*,
+
+  protoCopy=protoDefinition_copy(vector_get(struct ProtoDefinition*,
    stack_top(PROTOs), nodeTypeU));
+  /* FIXME:  Parse the fields of our PROTO here! */
+  node=protoDefinition_extractScene(protoCopy);
   assert(node);
+
+  deleteProtoDefinition(protoCopy);
  }
  assert(node);
 
@@ -555,7 +566,44 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
   add_parent(node->p[i], parent);
 }
 
-/* Parses a field and sets it in node */
+/* Parses a field value (literally of IS) */
+BOOL parser_fieldValue(struct VRMLParser* me, void* ret, indexT type)
+{
+ /* If we are inside a PROTO, IS is possible */
+ if(me->curPROTO && lexer_keyword(me->lexer, KW_IS))
+ {
+  indexT fieldO, fieldE;
+  struct ProtoFieldDecl* pField=NULL;
+  
+  if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
+   PARSE_ERROR("Expected fieldId after IS!")
+
+  if(fieldO!=ID_UNDEFINED)
+  {
+   pField=protoDefinition_getField(me->curPROTO, fieldO);
+   if(!pField)
+    PARSE_ERROR("IS source is no field of current PROTO!")
+   assert(pField->mode==PKW_field);
+  } else
+  {
+   assert(fieldE!=ID_UNDEFINED);
+   pField=protoDefinition_getField(me->curPROTO, fieldE);
+   if(!pField)
+    PARSE_ERROR("IS source is no field of current PROTO!")
+   assert(pField->mode==PKW_exposedField);
+  }
+  assert(pField);
+
+  /* Don't set field for now but register us as users of this PROTO field */
+  protoFieldDecl_addDestination(pField, ret);
+
+  return TRUE;
+ }
+
+ return PARSE_TYPE[type](me, ret);
+}
+
+/* Parses a built-in field and sets it in node */
 BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 {
  indexT fieldO;
@@ -601,11 +649,36 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define INIT_CODE_mftime(var)
  #define INIT_CODE_mfvec2f(var)
  #define INIT_CODE_mfvec3f(var)
+
+ /* The field type indices */
+ #define FTIND_sfnode	FIELDTYPE_SFNode
+ #define FTIND_mfnode	FIELDTYPE_MFNode
+ #define FTIND_sfbool	FIELDTYPE_SFBool
+ #define FTIND_sfcolor	FIELDTYPE_SFColor
+ #define FTIND_sfcolorrgba	FIELDTYPE_SFColorRGBA
+ #define FTIND_sffloat	FIELDTYPE_SFFloat
+ #define FTIND_sfimage	FIELDTYPE_SFImage
+ #define FTIND_sfint32	FIELDTYPE_SFInt32
+ #define FTIND_sfrotation	FIELDTYPE_SFRotation
+ #define FTIND_sfstring	FIELDTYPE_SFString
+ #define FTIND_sftime	FIELDTYPE_SFTime
+ #define FTIND_sfvec2f	FIELDTYPE_SFVec2f
+ #define FTIND_sfvec3f	FIELDTYPE_SFVec3f
+ #define FTIND_mfbool	FIELDTYPE_MFBool
+ #define FTIND_mfcolor	FIELDTYPE_MFColor
+ #define FTIND_mfcolorrgba	FIELDTYPE_MFColorRGBA
+ #define FTIND_mffloat	FIELDTYPE_MFFloat
+ #define FTIND_mfint32	FIELDTYPE_MFInt32
+ #define FTIND_mfrotation	FIELDTYPE_MFRotation
+ #define FTIND_mfstring	FIELDTYPE_MFString
+ #define FTIND_mftime	FIELDTYPE_MFTime
+ #define FTIND_mfvec2f	FIELDTYPE_MFVec2f
+ #define FTIND_mfvec3f	FIELDTYPE_MFVec3f
  
  /* Process a field (either exposed or ordinary) generally */
  #define PROCESS_FIELD(exposed, node, field, fieldType, var) \
   case exposed##FIELD_##field: \
-   if(!parser_##fieldType##Value(me, (void*)&node2->var)) \
+   if(!parser_fieldValue(me, (void*)&node2->var, FTIND_##fieldType)) \
     PARSE_ERROR("Expected " #fieldType "Value!") \
    INIT_CODE_##fieldType(var) \
    return TRUE;

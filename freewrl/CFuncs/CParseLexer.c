@@ -114,13 +114,13 @@ void lexer_scopeIn()
 {
  lexer_scopeIn_(&userNodeNames);
  lexer_scopeIn_(&userNodeTypes);
- lexer_scopeIn_(&userFields);
+ /* Fields aren't scoped because they need to be accessible in two levels */
 }
 void lexer_scopeOut()
 {
  lexer_scopeOut_(userNodeNames);
  lexer_scopeOut_(userNodeTypes);
- lexer_scopeOut_(userFields);
+ /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
 /* Sets curID of lexer */

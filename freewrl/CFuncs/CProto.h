@@ -20,6 +20,8 @@ struct ProtoFieldDecl
  indexT mode; /* field, exposedField, eventIn, eventOut */
  indexT type; /* field type */
  indexT name; /* field "name" (its lexer-index) */
+ /* This is the list of desination pointers for this field */
+ struct Vector* dests;
  /* Default value, if exposedField or field */
  union
  {
@@ -30,6 +32,10 @@ struct ProtoFieldDecl
 /* Constructor and destructor */
 struct ProtoFieldDecl* newProtoFieldDecl(indexT, indexT, indexT);
 void deleteProtoFieldDecl(struct ProtoFieldDecl*);
+
+/* Add a destination this field's value must be assigned to */
+#define protoFieldDecl_addDestination(me, d) \
+ vector_pushBack(void*, me->dests, d)
 
 /* ************************************************************************** */
 /* ****************************** ProtoDefinition *************************** */
@@ -53,8 +59,15 @@ void protoDefinition_addNode(struct ProtoDefinition*, struct X3D_Node*);
 #define protoDefinition_addIfaceField(me, field) \
  vector_pushBack(struct ProtoFieldDecl*, (me)->iface, field)
 
-/* Instantiates the PROTO */
-struct X3D_Group* protoDefinition_instantiate(struct ProtoDefinition*);
+/* Retrieves a field declaration of this PROTO */
+struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*, 
+ indexT);
+
+/* Copies a ProtoDefinition, so that we can afterwards fill in field values */
+struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition*);
+
+/* Extracts the scene graph out of a ProtoDefinition */
+struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition*);
 
 /* Does a recursively deep copy of a node-tree */
 struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*);

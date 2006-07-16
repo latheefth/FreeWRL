@@ -90,6 +90,9 @@ BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
 
+/* Parses a field value of a certain type (literally or IS) */
+BOOL parser_fieldValue(struct VRMLParser*, void*, indexT);
+
 /* Main parsing routine, parses the start symbol (vrmlScene) */
 BOOL parser_vrmlScene(struct VRMLParser*);
 

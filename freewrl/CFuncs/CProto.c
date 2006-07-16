@@ -20,11 +20,14 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->mode=mode;
  ret->type=type;
  ret->name=name;
+ ret->dests=newVector(void*, 4);
+ assert(ret->dests);
  return ret;
 }
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 {
+ deleteVector(void*, me->dests);
  free(me);
 }
 
@@ -52,7 +55,9 @@ struct ProtoDefinition* newProtoDefinition()
 void deleteProtoDefinition(struct ProtoDefinition* me)
 {
  /* FIXME:  Not deep-destroying nodes!!! */
- free(me->tree);
+ /* If tree is NULL, it is already extracted! */
+ if(me->tree)
+  free(me->tree);
 
  {
   size_t i;
@@ -67,6 +72,19 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
 /* Other members */
 /* ************* */
 
+/* Retrieve a field by its "name" */
+struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
+ indexT ind)
+{
+ /* TODO:  O(log(n)) by sorting */
+ size_t i;
+ for(i=0; i!=vector_size(me->iface); ++i)
+  if(vector_get(struct ProtoFieldDecl*, me->iface, i)->name==ind)
+   return vector_get(struct ProtoFieldDecl*, me->iface, i);
+
+ return NULL;
+}
+
 /* Add a node */
 void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
 {
@@ -76,11 +94,29 @@ void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
  addToNode(me->tree, offsetof(struct X3D_Group, children), node);
 }
 
-/* Instantiates the PROTO */
-struct X3D_Group* protoDefinition_instantiate(struct ProtoDefinition* me)
+/* Copies the PROTO */
+struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
 {
- struct X3D_Group* ret=protoDefinition_deepCopy(me->tree);
- ret->__isProto=TRUE;
+ struct ProtoDefinition* ret=malloc(sizeof(struct ProtoDefinition));
+ assert(ret);
+
+ /* Copy the scene graph */
+ ret->tree=protoDefinition_deepCopy(me->tree);
+ ret->tree->__isProto=TRUE;
+
+ /* FIXME: Copy the fields with updated pointers! */
+ ret->iface=newVector(struct ProtoFieldDecl*, 0);
+ assert(ret->iface);
+
+ return ret;
+}
+
+/* Extracts the scene graph */
+struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
+{
+ struct X3D_Group* ret=me->tree;
+ assert(ret);
+ me->tree=NULL;
  return ret;
 }
 
