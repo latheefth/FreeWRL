@@ -87,6 +87,14 @@ if ($OS eq "Darwin") {
 	$VRML_CONFIG{OSNAME} = $osname;
 	$VRML_CONFIG{SPECFILE} = $specfile;
 
+	# Can we add FreeWRL to the desktop?
+	$VRML_CONFIG{DESKTOP} = "NO";	# default value.
+	if (-e "/usr/share/applications") {
+		if (-e "/usr/share/pixmaps") {
+			$VRML_CONFIG{DESKTOP} = "/usr/share";
+		}
+	}
+
 }
 
 $VRML_CONFIG{VERSION} = $VERSION;
@@ -417,6 +425,16 @@ INST_DYNAMIC_DEP =
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so \$(DESTDIR)$LIB_DIR/libFreeWRLFunc.so\n},
 				qq{\t/sbin/ldconfig\n}
 			));
+
+			# We have linux, can we copy over the desktop app?
+			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
+				push(@postamble, join(
+					"\n",
+					qq{# copy over the desktop app\n},
+					qq{\tcp Desktop/freewrl.desktop $VRML::Config::vrml_config{DESKTOP}/applications \n},
+					qq{\tcp Desktop/freewrl.png $VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
+				));
+			}
 		}
 		if ($OS eq "Darwin") {
 			push(@postamble, join(
@@ -510,6 +528,16 @@ INST_DYNAMIC_DEP =
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $frontEndDef \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			));
+
+			# We have linux, can we copy over the desktop app?
+			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
+				push(@postamble, join(
+					"\n",
+					qq{# remove the desktop app\n},
+					qq{\trm $VRML::Config::vrml_config{DESKTOP}/applications/freewrl.desktop \n},
+					qq{\trm $VRML::Config::vrml_config{DESKTOP}/pixmaps/freewrl.png \n},
+				));
+			}
 		}
 
 		###################################################

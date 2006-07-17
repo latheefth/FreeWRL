@@ -1,3 +1,8 @@
+For 1.18.2:
+	- Desktop integration on Linux platforms. (Sarah Dumoulin)
+
+	- more automated build in Makefile.PL (John Stewart)
+
 For 1.18.1:
 	- more PROTO work for experimental parser (Daniek Kraft)
 
