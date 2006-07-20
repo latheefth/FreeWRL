@@ -583,14 +583,14 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p)
 
  if(fieldO!=ID_UNDEFINED)
  {
-  field=protoDefinition_getField(p, fieldO);
+  field=protoDefinition_getField(p, fieldO, PKW_field);
   if(!field)
    PARSE_ERROR("Field is not part of PROTO's interface!")
   assert(field->mode==PKW_field);
  } else
  {
   assert(fieldE!=ID_UNDEFINED);
-  field=protoDefinition_getField(p, fieldE);
+  field=protoDefinition_getField(p, fieldE, PKW_exposedField);
   if(!field)
    PARSE_ERROR("Field is not part of PROTO's interface!")
   assert(field->mode==PKW_exposedField);
@@ -630,14 +630,14 @@ BOOL parser_fieldValue(struct VRMLParser* me, void* ret, indexT type)
 
   if(fieldO!=ID_UNDEFINED)
   {
-   pField=protoDefinition_getField(me->curPROTO, fieldO);
+   pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_field);
    if(!pField)
     PARSE_ERROR("IS source is no field of current PROTO!")
    assert(pField->mode==PKW_field);
   } else
   {
    assert(fieldE!=ID_UNDEFINED);
-   pField=protoDefinition_getField(me->curPROTO, fieldE);
+   pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_exposedField);
    if(!pField)
     PARSE_ERROR("IS source is no field of current PROTO!")
    assert(pField->mode==PKW_exposedField);

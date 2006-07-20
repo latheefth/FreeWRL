@@ -68,7 +68,7 @@ void protoDefinition_addNode(struct ProtoDefinition*, struct X3D_Node*);
 
 /* Retrieves a field declaration of this PROTO */
 struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*, 
- indexT);
+ indexT, indexT);
 
 /* Copies a ProtoDefinition, so that we can afterwards fill in field values */
 struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition*);

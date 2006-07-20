@@ -100,13 +100,16 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
 
 /* Retrieve a field by its "name" */
 struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
- indexT ind)
+ indexT ind, indexT mode)
 {
  /* TODO:  O(log(n)) by sorting */
  size_t i;
  for(i=0; i!=vector_size(me->iface); ++i)
-  if(vector_get(struct ProtoFieldDecl*, me->iface, i)->name==ind)
-   return vector_get(struct ProtoFieldDecl*, me->iface, i);
+ {
+  struct ProtoFieldDecl* f=vector_get(struct ProtoFieldDecl*, me->iface, i);
+  if(f->name==ind && f->mode==mode)
+   return f;
+ }
 
  return NULL;
 }
@@ -307,7 +310,18 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
    case FIELDTYPE_##fttype: \
     *vector_get(vrml##ttype##T*, me->dests, 0)=val->type; \
     break;
+  DO_FIELD_ASSIGN_FIRST(SFBool, sfbool, Bool)
+  DO_FIELD_ASSIGN_FIRST(SFColor, sfcolor, Color)
+  DO_FIELD_ASSIGN_FIRST(SFFloat, sffloat, Float)
+  DO_FIELD_ASSIGN_FIRST(SFImage, sfimage, Image)
+  DO_FIELD_ASSIGN_FIRST(SFInt32, sfint32, Int32)
+  DO_FIELD_ASSIGN_FIRST(SFNode, sfnode, Node)
+  DO_FIELD_ASSIGN_FIRST(SFRotation, sfrotation, Rotation)
+  DO_FIELD_ASSIGN_FIRST(SFString, sfstring, String)
+  DO_FIELD_ASSIGN_FIRST(SFTime, sftime, Time)
+  DO_FIELD_ASSIGN_FIRST(SFVec2f, sfvec2f, Vec2f)
   DO_FIELD_ASSIGN_FIRST(SFVec3f, sfvec3f, Vec3f)
+
   default:
    parseError("Error: Unsupported type for PROTO field!");
  }
@@ -322,6 +336,16 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
      *vector_get(vrml##ttype##T*, me->dests, i)= \
       DEEPCOPY_##type(val->type, NULL, NULL); \
      break;
+   DO_DEEPCOPY_FIELD_ASSIGN(SFBool, sfbool, Bool)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFColor, sfcolor, Color)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFFloat, sffloat, Float)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFImage, sfimage, Image)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFInt32, sfint32, Int32)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFNode, sfnode, Node)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFRotation, sfrotation, Rotation)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFString, sfstring, String)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFTime, sftime, Time)
+   DO_DEEPCOPY_FIELD_ASSIGN(SFVec2f, sfvec2f, Vec2f)
    DO_DEEPCOPY_FIELD_ASSIGN(SFVec3f, sfvec3f, Vec3f)
    default:
     parseError("Error: Unsupported type for PROTO field!!!");
