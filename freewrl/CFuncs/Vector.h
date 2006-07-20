@@ -39,6 +39,10 @@ void vector_ensureSpace_(size_t, struct Vector*);
 #define vector_size(me) \
  (((struct Vector*)me)->n)
 
+/* Is the vector empty? */
+#define vector_empty(me) \
+ (!vector_size(me))
+
 /* Shrink the vector to minimum required space. */
 void vector_shrink_(size_t, struct Vector*);
 #define vector_shrink(type, me) \

@@ -23,19 +23,26 @@ struct ProtoFieldDecl
  /* This is the list of desination pointers for this field */
  struct Vector* dests;
  /* Default value, if exposedField or field */
- union
- {
-  vrmlVec3fT sfVec3f;
- } defaultVal;
+ union anyVrml defaultVal;
 };
 
 /* Constructor and destructor */
 struct ProtoFieldDecl* newProtoFieldDecl(indexT, indexT, indexT);
 void deleteProtoFieldDecl(struct ProtoFieldDecl*);
 
+/* Copies */
+struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
+
 /* Add a destination this field's value must be assigned to */
 #define protoFieldDecl_addDestination(me, d) \
  vector_pushBack(void*, me->dests, d)
+
+/* Updates destination pointers */
+void protoFieldDecl_doDestinationUpdate(
+ struct ProtoFieldDecl*, struct ProtoFieldDecl*, uint8_t*, uint8_t*, uint8_t*);
+
+/* Sets this field's value (copy to destinations) */
+void protoFieldDecl_setValue(struct ProtoFieldDecl*, union anyVrml*);
 
 /* ************************************************************************** */
 /* ****************************** ProtoDefinition *************************** */
@@ -69,7 +76,12 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition*);
 /* Extracts the scene graph out of a ProtoDefinition */
 struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition*);
 
+/* Updates interface-pointers to a given memory block */
+void protoDefinition_doInterfaceUpdate(struct Vector*, struct Vector*,
+ uint8_t*, uint8_t*, uint8_t*);
+
 /* Does a recursively deep copy of a node-tree */
-struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*);
+struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*,
+ struct Vector*, struct Vector*);
 
 #endif /* Once-check */

@@ -520,6 +520,7 @@ void add_parent(void *node_, void *parent_) {
 }
 
 
+/* TODO:  Order of parents does not matter!  Swap and pop_back()? */
 void remove_parent(void *node_, void *parent_) {
 	struct X3D_Box *node;
 	struct X3D_Box *parent;

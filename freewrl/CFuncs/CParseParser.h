@@ -89,6 +89,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser*, struct ProtoDefinition*);
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
+BOOL parser_protoField(struct VRMLParser*, struct ProtoDefinition*);
 
 /* Parses a field value of a certain type (literally or IS) */
 BOOL parser_fieldValue(struct VRMLParser*, void*, indexT);

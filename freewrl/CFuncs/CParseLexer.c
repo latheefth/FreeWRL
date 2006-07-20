@@ -15,7 +15,10 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 #define USER_IDS_INIT_SIZE	16
 Stack* userNodeNames=NULL;
 Stack* userNodeTypes=NULL;
-Stack* userFields=NULL;
+Stack* user_field=NULL;
+Stack* user_exposedField=NULL;
+Stack* user_eventIn=NULL;
+Stack* user_eventOut=NULL;
 
 /* Maximum id length (input buffer size) */
 #define MAX_IDLEN	127
@@ -74,20 +77,20 @@ void lexer_destroyIdStack(Stack* s)
 
 void lexer_destroyData()
 {
- /* User node names */
- if(userNodeNames)
-  lexer_destroyIdStack(userNodeNames);
- userNodeNames=NULL;
-
- /* User node types */
- if(userNodeTypes)
-  lexer_destroyIdStack(userNodeTypes);
- userNodeTypes=NULL;
+ #define DESTROY_STACK(s) \
+  if(s) \
+   lexer_destroyIdStack(s); \
+  s=NULL;
+  
+ /* User node names and types */
+ DESTROY_STACK(userNodeNames)
+ DESTROY_STACK(userNodeTypes)
 
  /* User fields */
- if(userFields)
-  lexer_destroyIdStack(userFields);
- userFields=NULL;
+ DESTROY_STACK(user_field)
+ DESTROY_STACK(user_exposedField)
+ DESTROY_STACK(user_eventIn)
+ DESTROY_STACK(user_eventOut)
 }
 
 /* Scope in and scope out for IDs */
@@ -280,7 +283,7 @@ BOOL lexer_eventIn(struct VRMLLexer* me,
 {
  BOOL found=FALSE;
 
- if(lexer_specialID(me, rBO, rUO, EVENT_IN, EVENT_IN_COUNT, NULL))
+ if(lexer_specialID(me, rBO, rUO, EVENT_IN, EVENT_IN_COUNT, user_eventIn))
   found=TRUE;
  if(rBE) *rBE=ID_UNDEFINED;
  if(rUE) *rUE=ID_UNDEFINED;
@@ -329,7 +332,7 @@ BOOL lexer_eventOut(struct VRMLLexer* me,
 {
  BOOL found=FALSE;
 
- if(lexer_specialID(me, rBO, rUO, EVENT_OUT, EVENT_OUT_COUNT, NULL))
+ if(lexer_specialID(me, rBO, rUO, EVENT_OUT, EVENT_OUT_COUNT, user_eventOut))
   found=TRUE;
  if(rBE) *rBE=ID_UNDEFINED;
  if(rUE) *rUE=ID_UNDEFINED;
@@ -389,10 +392,10 @@ BOOL lexer_field(struct VRMLLexer* me,
  assert(me->curID);
 
  if(lexer_specialID_string(me, retBO, retUO,
-  FIELD, FIELD_COUNT, NULL, me->curID))
+  FIELD, FIELD_COUNT, user_field, me->curID))
   found=TRUE;
  if(lexer_specialID_string(me, retBE, retUE,
-  EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, me->curID))
+  EXPOSED_FIELD, EXPOSED_FIELD_COUNT, user_exposedField, me->curID))
   found=TRUE;
 
  if(found)

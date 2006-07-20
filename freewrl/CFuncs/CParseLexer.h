@@ -11,7 +11,10 @@
 /* Tables of user-defined IDs */
 extern Stack* userNodeNames;
 extern Stack* userNodeTypes;
-extern Stack* userFields;
+extern Stack* user_field;
+extern Stack* user_exposedField;
+extern Stack* user_eventIn;
+extern Stack* user_eventOut;
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #define ID_UNDEFINED	((indexT)-1)
@@ -60,8 +63,14 @@ BOOL lexer_defineID(struct VRMLLexer*, indexT*, Stack**);
  lexer_defineID(me, ret, &userNodeNames)
 #define lexer_defineNodeType(me, ret) \
  lexer_defineID(me, ret, &userNodeTypes)
-#define lexer_defineField(me, ret) \
- lexer_defineID(me, ret, &userFields)
+#define lexer_define_field(me, ret) \
+ lexer_defineID(me, ret, &user_field)
+#define lexer_define_exposedField(me, ret) \
+ lexer_defineID(me, ret, &user_exposedField)
+#define lexer_define_eventIn(me, ret) \
+ lexer_defineID(me, ret, &user_eventIn)
+#define lexer_define_eventOut(me, ret) \
+ lexer_defineID(me, ret, &user_eventOut)
 BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);

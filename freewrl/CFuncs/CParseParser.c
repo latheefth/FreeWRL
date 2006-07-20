@@ -180,8 +180,22 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
   return FALSE;
  if(!lexer_fieldType(me->lexer, &type))
   PARSE_ERROR("Expected fieldType after proto-field keyword!")
- if(!lexer_defineField(me->lexer, &name))
-  PARSE_ERROR("Expected field-name ID after field type!")
+ switch(mode)
+ {
+  #define LEX_DEFINE_FIELDID(suff) \
+   case PKW_##suff: \
+    if(!lexer_define_##suff(me->lexer, &name)) \
+     PARSE_ERROR("Expected fieldNameId after field type!") \
+    break;
+  LEX_DEFINE_FIELDID(field)
+  LEX_DEFINE_FIELDID(exposedField)
+  LEX_DEFINE_FIELDID(eventIn)
+  LEX_DEFINE_FIELDID(eventOut)
+#ifndef NDEBUG
+  default:
+   assert(FALSE);
+#endif
+ }
 
  decl=newProtoFieldDecl(mode, type, name);
  if(mode==PKW_field || mode==PKW_exposedField)
@@ -445,7 +459,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  /* **************************** */
 
  {
-  /* 10+1+3+1=15:  Number <5000000000, :, number < 999, \0 */
+  /* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
   char tonode_str[15];
   snprintf(tonode_str, 15, "%lu:%d", toNode, toOfs);
 
@@ -543,7 +557,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
   protoCopy=protoDefinition_copy(vector_get(struct ProtoDefinition*,
    stack_top(PROTOs), nodeTypeU));
-  /* FIXME:  Parse the fields of our PROTO here! */
+  while(parser_protoField(me, protoCopy));
   node=protoDefinition_extractScene(protoCopy);
   assert(node);
 
@@ -558,6 +572,42 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  return TRUE;
 }
 
+/* Parses a field assignment of a PROTOtyped node */
+BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p)
+{
+ indexT fieldO, fieldE;
+ struct ProtoFieldDecl* field=NULL;
+
+ if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
+  return FALSE;
+
+ if(fieldO!=ID_UNDEFINED)
+ {
+  field=protoDefinition_getField(p, fieldO);
+  if(!field)
+   PARSE_ERROR("Field is not part of PROTO's interface!")
+  assert(field->mode==PKW_field);
+ } else
+ {
+  assert(fieldE!=ID_UNDEFINED);
+  field=protoDefinition_getField(p, fieldE);
+  if(!field)
+   PARSE_ERROR("Field is not part of PROTO's interface!")
+  assert(field->mode==PKW_exposedField);
+ }
+ assert(field);
+
+ /* Parse the value */
+ {
+  union anyVrml val;
+  if(!parser_fieldValue(me, &val, field->type))
+   PARSE_ERROR("Expected value of field after fieldId!")
+  protoFieldDecl_setValue(field, &val);
+ }
+
+ return TRUE;
+}
+
 /* add_parent for Multi_Node */
 void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 {
@@ -566,7 +616,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
   add_parent(node->p[i], parent);
 }
 
-/* Parses a field value (literally of IS) */
+/* Parses a field value (literally or IS) */
 BOOL parser_fieldValue(struct VRMLParser* me, void* ret, indexT type)
 {
  /* If we are inside a PROTO, IS is possible */
@@ -574,7 +624,7 @@ BOOL parser_fieldValue(struct VRMLParser* me, void* ret, indexT type)
  {
   indexT fieldO, fieldE;
   struct ProtoFieldDecl* pField=NULL;
-  
+
   if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
    PARSE_ERROR("Expected fieldId after IS!")
 
@@ -593,6 +643,10 @@ BOOL parser_fieldValue(struct VRMLParser* me, void* ret, indexT type)
    assert(pField->mode==PKW_exposedField);
   }
   assert(pField);
+
+  /* Check type */
+  if(pField->type!=type)
+   PARSE_ERROR("Types mismatch for PROTO field!")
 
   /* Don't set field for now but register us as users of this PROTO field */
   protoFieldDecl_addDestination(pField, ret);
