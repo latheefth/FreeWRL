@@ -149,17 +149,17 @@ int ConsoleMessage(const char *fmt, ...) {
 		printf ("\n");
 	setConsoleMessage(FWbuffer);
 #else
-#ifdef HAVE_MOTIF
-	setConsoleMessage (FWbuffer);
-
-#else
-	if (RUNNINGASPLUGIN) {
-		freewrlSystem (FWbuffer);
-	} else {
-		printf (FWbuffer);
-		printf ("\n");
-	}
-#endif
+	/* are we running under Motif or Gtk? */
+	#ifndef HAVE_NOTOOLKIT
+		setConsoleMessage (FWbuffer);
+	#else
+		if (RUNNINGASPLUGIN) {
+			freewrlSystem (FWbuffer);
+		} else {
+			printf (FWbuffer);
+			printf ("\n");
+		}
+	#endif
 #endif
 	return count;
 }

@@ -63,6 +63,7 @@ SOUNDCONV => "/usr/bin/sox",
 # to the FREEWRL_LIBS line
 
 # Motif - if you DO NOT have Motif - remove the "-DHAVE_MOTIF" from below.
+# If you have GTK2, you can change the HAVE_MOTIF to HAVE_GTK2.
 
     FREEWRL_LIBS => '-L/usr/lib64 -L/usr/X11R6/lib64 -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg',
     FREEWRL_DEFINE => '-fPIC -ansi -DHAVE_MOTIF -DXP_UNIX -D_GNU_SOURCE ',

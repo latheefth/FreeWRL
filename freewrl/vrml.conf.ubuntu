@@ -65,6 +65,7 @@ SOUNDCONV => "/usr/bin/sox",
 # to the FREEWRL_LIBS line
 
 # Motif - if you DO NOT have Motif - remove the "-DHAVE_MOTIF" from below.
+# If you have GTK2, you can change the HAVE_MOTIF to HAVE_GTK2.
 #
 # Multi threads for OpenGL. If you want to try this, add "-DDO_MULTI_OPENGL_THREADS " to the FREEWRL_DEFINE
 # line, and cross fingers.

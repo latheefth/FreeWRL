@@ -268,6 +268,9 @@ void EventLoop() {
 		XNextEvent(Xdpy, &event);
 		handle_Xevents(event);
 	}
+	#ifdef HAVE_GTK2
+		printf ("GTK event loop should be here\n");
+	#endif
 	#endif
 	#endif
 
@@ -1090,20 +1093,32 @@ void displayThread() {
 			EventLoop();
 
 			#ifndef AQUA
-			#ifdef HAVE_MOTIF
-			/* X11 Windowing calls */
+				#ifdef HAVE_MOTIF
+				/* X11 Windowing calls */
 
-			/* any updates to the menu buttons? Because of Linux threading
-			   issues, we try to make all updates come from 1 thread */
-			frontendUpdateButtons();
+				/* any updates to the menu buttons? Because of Linux threading
+				   issues, we try to make all updates come from 1 thread */
+				frontendUpdateButtons();
 
 			
-			/* do the Xt events here. */
-        		while (XtAppPending(freewrlXtAppContext)!= 0) {
-                		XtAppNextEvent(freewrlXtAppContext, &event);
-                		XtDispatchEvent (&event);
-			}
-			#endif
+				/* do the Xt events here. */
+        			while (XtAppPending(freewrlXtAppContext)!= 0) {
+                			XtAppNextEvent(freewrlXtAppContext, &event);
+                			XtDispatchEvent (&event);
+				}
+				#endif
+
+				#ifdef HAVE_GTK2
+				/* X11 GTK windowing calls */
+				/* any updates to the menu buttons? Because of Linux threading
+				   issues, we try to make all updates come from 1 thread */
+				frontendUpdateButtons();
+
+				/* GTK events here */
+				printf ("look for GTK events here\n");
+				#endif
+
+			
 			#endif
 		}
 	

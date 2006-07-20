@@ -714,11 +714,24 @@ extern int isPerlinitialized(void);
 	void openMotifMainWindow (int argc, char ** argv);
 	void createMotifMainWindow(void);
 #else
-	#define HAVE_NOTOOLKIT
-	#define ISDISPLAYINITIALIZED TRUE
-	#define GET_GLWIN getBareWindowedGLwin (&GLwin);
-	#define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
-	#define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
+
+	#ifdef HAVE_GTK2
+		#define ISDISPLAYINITIALIZED isGtkDisplayInitialized()
+		#define GET_GLWIN getGtkWindowedGLwin (&GLwin);
+		#define OPEN_TOOLKIT_MAINWINDOW openGtkMainWindow (argc, argv);
+		#define CREATE_TOOLKIT_MAIN_WINDOW createGtkMainWindow();
+		int isGtkDisplayInitialized(void);
+		void getGtkWindowedGLwin (Window *);
+		void openGtkMainWindow (int argc, char ** argv);
+		void createGtkMainWindow(void);
+
+	#else
+		#define HAVE_NOTOOLKIT
+		#define ISDISPLAYINITIALIZED TRUE
+		#define GET_GLWIN getBareWindowedGLwin (&GLwin);
+		#define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
+		#define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
+	#endif
 #endif
 
 extern char *BrowserName, *BrowserVersion, *BrowserFullPath; /* defined in VRMLC.pm */

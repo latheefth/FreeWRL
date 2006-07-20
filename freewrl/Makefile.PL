@@ -455,10 +455,27 @@ INST_DYNAMIC_DEP =
 		my $frontEndDef;
 		my $def2fe;
 		my $MYFELIBS;
+		my $MYFEDEFS;
 
-		# are we compiling the front end with Motif?
+		# default values for FrontEnd targets.
+		$MYFELIBS =  $MYLIBS;
+		$MYFEINC =  $MYINC;
+
+		# are we compiling the front end with Motif or GTK2?
 		if (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_MOTIF") > 0) {
 			 $MYFELIBS = $MYLIBS . " -lXm ";
+		} elsif (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_GTK2") > 0) {
+			my $feinc = `pkg-config --cflags gtk+-2.0`;
+			my $fginc=  `pkg-config --cflags gtkgl-2.0`;
+			my $felib = `pkg-config --libs gtk+-2.0`;
+			my $fglib = `pkg-config --libs gtkgl-2.0`;
+			# remove whitespace at beginning and end.
+			$feinc =~ s/\s+$//; $feinc =~ s/^\s+//;
+			$fginc =~ s/\s+$//; $fginc =~ s/^\s+//;
+			$felib =~ s/\s+$//; $felib =~ s/^\s+//;
+			$fglib =~ s/\s+$//; $fglib =~ s/^\s+//;
+			$MYFELIBS = $MYLIBS." $felib $fglib ";
+			$MYFEINC = $MYINC." $feinc $fginc ";
 		}
 
 		my $def1 = "OSNAME=\$(OSNAME) " .
@@ -469,11 +486,11 @@ INST_DYNAMIC_DEP =
 		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
 			print "COMPILING WITH BOUNDSCHECKING\n";
 			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
-			$def2fe = "INC=\"$MYINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
+			$def2fe = "INC=\"$MYFEINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
 			print "line is $def2\n";
 		} else {
 			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
-			$def2fe = "INC=\"$MYINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
+			$def2fe = "INC=\"$MYFEINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
 		}
 
 		$def = $def1.$def2;
