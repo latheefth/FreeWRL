@@ -132,6 +132,12 @@ void createMotifMainWindow() {
 	XtRealizeWidget (freewrlTopWidget);
 	MainWidgetRealized = TRUE;
 
+	/* let the user ask for this one We do it here, again, because on Ubuntu,
+	 * this pops up on startup. Maybe because it has scrollbars, or other internal
+	 * widgets? */
+	XtUnmanageChild(consoleTextWidget);
+
+
 	Xwin = XtWindow (freewrlTopWidget);
 }
 
@@ -603,10 +609,6 @@ void createDrawingFrame(void) {
 	XmNeditMode, XmMULTI_LINE_EDIT,
 	NULL);
 
-	/* let the user ask for this one */
-	XtUnmanageChild(consoleTextWidget);
-
-
 	/* create the FreeWRL OpenGL drawing area, and map it. */
 	freewrlDrawArea = XtVaCreateManagedWidget ("freewrlDrawArea", glwDrawingAreaWidgetClass,
 			frame, "visualInfo", Xvi, 
@@ -620,6 +622,10 @@ void createDrawingFrame(void) {
 	XtAddCallback (freewrlDrawArea, XmNinputCallback, GLAreainput, NULL);
 
 	myXtManageChild(27,freewrlDrawArea);
+
+	/* let the user ask for this one */
+	XtUnmanageChild(consoleTextWidget);
+
 }
 
 void openMotifMainWindow (int argc, char **argv) {
