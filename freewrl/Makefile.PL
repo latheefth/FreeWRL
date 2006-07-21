@@ -68,15 +68,22 @@ if ($OS eq "Darwin") {
 	# is this an Ubuntu distro?? 
 	if (substr($osname,0,6) eq "Ubuntu") {
 		require './vrml.conf.ubuntu';
+		if ($ARCH eq "x86_64") {
+			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "-fPIC";
+		} else {
+			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "";
+		}
 
 	# we can use the generic distros for the architecture.
 	} else {
 		if ($ARCH eq "x86_64") {
 			# 64 bit architecture.
 			require './vrml.conf.x86_64';
+			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "-fPIC";
 		} else {
 			# standard 32 bit architecture
 			require './vrml.conf';
+			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "";
 		}
 	}
 
@@ -393,10 +400,15 @@ INST_DYNAMIC_DEP =
 			if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
 				my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
 				my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
+
+				# amd64 requires -fPIC added...
+				my $plugex = $VRML::Config::vrml_config{PLUGIN_EXTRA_DEFINES};
+print "PULTex is $plugex\n";
+
 				push(@postamble, join(
 					  "\n",
 					  qq{\# --- Mozilla/Netscape Plugin:\n},
-					  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"\$(DESTDIR)$x1\"\n}
+					  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"\$(DESTDIR)$x1\" PLUGEX=$plugex \n}
 				 ));
 			}
 		}

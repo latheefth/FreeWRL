@@ -104,7 +104,10 @@ void getVisual(void) {
 	int len=0;
 
 	Xvi = find_best_visual(shutterGlasses,attributes,len);
-	if(!Xvi) { fprintf(stderr, "No visual!\n");exit(-1);}
+	if(!Xvi) { 
+		printf ("FreeWRL can not find an appropriate visual from GLX\n");
+		exit(-1);
+	}
 
 	if ((shutterGlasses) && (quadbuff_stereo_mode==0)) {
 		fprintf(stderr, "Warning: No quadbuffer stereo visual found !");

@@ -48,10 +48,10 @@ $(SHAREDTARGET): $(OBJ)
 	$(CC) -shared -o $(SHAREDTARGET) $(OBJ) $(LDFLAGS)
 
 npfreewrl.o: netscape/source/npfreewrl.c
-	$(CC) -c $(CFLAGS) netscape/source/npfreewrl.c
+	$(CC) -c $(CFLAGS) $(PLUGEX) netscape/source/npfreewrl.c
 
 npunix.o: netscape/source/common/npunix.c
-	$(CC) -c $(CFLAGS) netscape/source/common/npunix.c
+	$(CC) -c $(CFLAGS) $(PLUGEX) netscape/source/common/npunix.c
 
 clean:
 	$(RM) $(OBJ) $(SHAREDTARGET)
