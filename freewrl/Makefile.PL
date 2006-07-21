@@ -5,6 +5,7 @@
 
 # what OS are we running under?
 my $OS = `uname`;
+my $HAVE_UBUNTU = "NO";
 
 # remove whitespace at beginning and end.
 $OS =~ s/\s+$//;
@@ -67,6 +68,7 @@ if ($OS eq "Darwin") {
 
 	# is this an Ubuntu distro?? 
 	if (substr($osname,0,6) eq "Ubuntu") {
+		$HAVE_UBUNTU = "YES";
 		require './vrml.conf.ubuntu';
 		if ($ARCH eq "x86_64") {
 			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "-fPIC";
@@ -435,8 +437,39 @@ print "PULTex is $plugex\n";
 				"\n",
 				qq{# make the libFreeWRLFunc shared library active\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so \$(DESTDIR)$LIB_DIR/libFreeWRLFunc.so\n},
-				qq{\t/sbin/ldconfig\n}
 			));
+
+
+			if ($HAVE_UBUNTU eq "NO") {
+				push (@postamble, join(
+					"\n",
+					qq{# We can run ldconfig here\n},
+					qq{\t/sbin/ldconfig\n}
+				));
+			}
+
+
+			# We have linux, can we copy over the desktop app?
+			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
+				if ($HAVE_UBUNTU eq "YES") {
+					$VRML_CONFIG{DESKTOP} = "usr/share"; #note - no leading slash
+					push(@postamble, join(
+						"\n",
+						qq{# copy over the desktop app\n},
+						qq{\techo $DESTDIR/$VRML::Config::vrml_config{DESKTOP}/applications \n},
+						qq{\tcp Desktop/freewrl.desktop \$(DESTDIR)$VRML::Config::vrml_config{DESKTOP}/applications \n},
+						qq{\tcp Desktop/freewrl.png \$(DESTDIR)$VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
+					));
+
+				} else {
+					push(@postamble, join(
+						"\n",
+						qq{# copy over the desktop app\n},
+						qq{\tcp Desktop/freewrl.desktop $VRML::Config::vrml_config{DESKTOP}/applications \n},
+						qq{\tcp Desktop/freewrl.png $VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
+					));
+				}
+			}
 
 			# We have linux, can we copy over the desktop app?
 			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
@@ -622,6 +655,12 @@ print "PULTex is $plugex\n";
 			my $lib_dir = $VRML::Config::vrml_config{LIB_DIR};
 			my $bin_dir = $VRML::Config::vrml_config{BIN_DIR};
 	
+			push(@postamble, join(
+				  "\n",
+				  qq{deb::},
+					qq{\tsudo debuild -S},
+					qq{\tsudo pbuilder build ../*.dsc},
+				));
 	
 			push(@postamble, join(
 				  "\n",
