@@ -26,8 +26,11 @@ union anyVrml
 {
  #define SF_TYPE(fttype, type, ttype) \
   vrml##ttype##T type;
+ #define MF_TYPE(fttype, type, ttype) \
+  struct Multi_##ttype type;
  #include "VrmlTypeList.h"
  #undef SF_TYPE
+ #undef MF_TYPE
 };
 
 #define parseError(msg) \

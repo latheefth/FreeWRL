@@ -311,8 +311,13 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
    case FIELDTYPE_##fttype: \
     *vector_get(vrml##ttype##T*, me->dests, 0)=val->type; \
     break;
+  #define MF_TYPE(fttype, type, ttype) \
+   case FIELDTYPE_##fttype: \
+    *vector_get(struct Multi_##ttype*, me->dests, 0)=val->type; \
+    break;
   #include "VrmlTypeList.h"
   #undef SF_TYPE
+  #undef MF_TYPE
 
   default:
    parseError("Error: Unsupported type for PROTO field!");
@@ -328,8 +333,14 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
      *vector_get(vrml##ttype##T*, me->dests, i)= \
       DEEPCOPY_##type(val->type, NULL, NULL); \
      break;
+   #define MF_TYPE(fttype, type, ttype) \
+    case FIELDTYPE_##fttype: \
+     *vector_get(struct Multi_##ttype*, me->dests, i)= \
+      DEEPCOPY_##type(val->type, NULL, NULL); \
+     break;
    #include "VrmlTypeList.h"
    #undef SF_TYPE
+   #undef MF_TYPE
 
    default:
     parseError("Error: Unsupported type for PROTO field!!!");
