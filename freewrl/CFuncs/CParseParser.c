@@ -307,8 +307,10 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  #define ROUTE_PARSE_NODEFIELD(pre, eventType) \
   if(!lexer_nodeName(me->lexer, &pre##NodeIndex)) \
    PARSE_ERROR("Expected node-name in ROUTE-statement!") \
-  assert(DEFedNodes && pre##NodeIndex<vector_size(DEFedNodes)); \
-  pre##Node=vector_get(struct X3D_Node*, DEFedNodes, pre##NodeIndex); \
+  assert(DEFedNodes && !stack_empty(DEFedNodes) && \
+   pre##NodeIndex<vector_size(stack_top(DEFedNodes))); \
+  pre##Node=vector_get(struct X3D_Node*, stack_top(DEFedNodes), \
+   pre##NodeIndex); \
   if(!lexer_point(me->lexer)) \
    PARSE_ERROR("Expected . after node-name!") \
   if(!lexer_event##eventType(me->lexer, \
@@ -511,7 +513,8 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
    PARSE_ERROR("Expected nodeNameId after USE!\n")
   assert(ind!=ID_UNDEFINED);
 
-  assert(DEFedNodes && ind<vector_size(stack_top(DEFedNodes)));
+  assert(DEFedNodes && !stack_empty(DEFedNodes) &&
+   ind<vector_size(stack_top(DEFedNodes)));
 
   *ret=vector_get(struct X3D_Node*, stack_top(DEFedNodes), ind);
   return TRUE;
