@@ -519,8 +519,6 @@ void add_parent(void *node_, void *parent_) {
 	node->_nparents = oldparcount+1;
 }
 
-
-/* TODO:  Order of parents does not matter!  Swap and pop_back()? */
 void remove_parent(void *node_, void *parent_) {
 	struct X3D_Box *node;
 	struct X3D_Box *parent;
@@ -534,8 +532,13 @@ void remove_parent(void *node_, void *parent_) {
 			break;
 		}
 	}
-	for(; i<node->_nparents; i++) {
-		node->_parents[i] = node->_parents[i+1];
+	/* The order of parents does not matter. Instead of moving the whole
+	 * block of data after the current position, we simply swap the one to
+	 * delete at the end and do a vector pop_back (decrease nparents, which
+	 * has already happened).
+	 */
+	if(i<node->_nparents) {
+		node->_parents[i]=node->_parents[node->_nparents];
 	}
 }
 
