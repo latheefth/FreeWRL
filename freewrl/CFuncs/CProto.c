@@ -21,6 +21,7 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->mode=mode;
  ret->type=type;
  ret->name=name;
+ ret->alreadySet=FALSE;
  ret->dests=newVector(void*, 4);
  assert(ret->dests);
  return ret;
@@ -45,17 +46,8 @@ void protoFieldDecl_doDestinationUpdate(struct ProtoFieldDecl* me,
  }
 }
 
-/* Copies a fieldDeclaration */
-struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
-{
- struct ProtoFieldDecl* ret=newProtoFieldDecl(me->mode, me->type, me->name);
- /* FIXME: Deepcopy here!!! */
- ret->defaultVal=me->defaultVal;
-
- return ret;
-}
-
 /* setValue is at the end, because we need deep-copying there */
+/* copy is at the end, too, because defaultVal needs to be deep-copied. */
 
 /* ************************************************************************** */
 /* ******************************** ProtoDefinition ************************* */
@@ -147,9 +139,15 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
 /* Extracts the scene graph */
 struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
 {
+ size_t i;
  struct X3D_Group* ret=me->tree;
  assert(ret);
  me->tree=NULL;
+
+ /* Finish all fields now */
+ for(i=0; i!=vector_size(me->iface); ++i)
+  protoFieldDecl_finish(vector_get(struct ProtoFieldDecl*, me->iface, i));
+ 
  return ret;
 }
 
@@ -296,6 +294,9 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
 {
  size_t i;
 
+ assert(!me->alreadySet);
+ me->alreadySet=TRUE;
+
  /* If there are no targets, destroy the value */
  if(vector_empty(me->dests))
  {
@@ -334,4 +335,30 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
     parseError("Error: Unsupported type for PROTO field!!!");
   }
  }
+}
+
+/* Copies a fieldDeclaration */
+struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
+{
+ struct ProtoFieldDecl* ret=newProtoFieldDecl(me->mode, me->type, me->name);
+ ret->alreadySet=FALSE;
+
+ /* Copy default value */
+ switch(me->type)
+ {
+  #define SF_TYPE(fttype, type, ttype) \
+   case FIELDTYPE_##fttype: \
+    ret->defaultVal.type=DEEPCOPY_##type(me->defaultVal.type, NULL, NULL); \
+    break;
+  #define MF_TYPE(fttype, type, ttype) \
+   SF_TYPE(fttype, type, ttype)
+  #include "VrmlTypeList.h"
+  #undef SF_TYPE
+  #undef MF_TYPE
+
+  default:
+   parseError("Unsupported type in defaultValue!");
+ }
+
+ return ret;
 }

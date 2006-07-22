@@ -20,6 +20,7 @@ struct ProtoFieldDecl
  indexT mode; /* field, exposedField, eventIn, eventOut */
  indexT type; /* field type */
  indexT name; /* field "name" (its lexer-index) */
+ BOOL alreadySet; /* Has the value already been set? */
  /* This is the list of desination pointers for this field */
  struct Vector* dests;
  /* Default value, if exposedField or field */
@@ -43,6 +44,11 @@ void protoFieldDecl_doDestinationUpdate(
 
 /* Sets this field's value (copy to destinations) */
 void protoFieldDecl_setValue(struct ProtoFieldDecl*, union anyVrml*);
+
+/* Finish this field - if value is not yet set, use default. */
+#define protoFieldDecl_finish(me) \
+ if(!me->alreadySet) \
+  protoFieldDecl_setValue(me, &me->defaultVal)
 
 /* ************************************************************************** */
 /* ****************************** ProtoDefinition *************************** */
