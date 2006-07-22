@@ -24,18 +24,10 @@ typedef struct SFColor	vrmlVec3fT;
 /* This is an union to hold every vrml-type */
 union anyVrml
 {
- vrmlBoolT sfbool;
- vrmlColorT sfcolor;
- vrmlColorRGBAT sfcolorRGBA;
- vrmlFloatT sffloat;
- vrmlInt32T sfint32;
- vrmlImageT sfimage;
- vrmlNodeT sfnode;
- vrmlRotationT sfrotation;
- vrmlStringT sfstring;
- vrmlTimeT sftime;
- vrmlVec2fT sfvec2f;
- vrmlVec3fT sfvec3f;
+ #define SF_TYPE(fttype, type, ttype) \
+  vrml##ttype##T type;
+ #include "VrmlTypeList.h"
+ #undef SF_TYPE
 };
 
 #define parseError(msg) \

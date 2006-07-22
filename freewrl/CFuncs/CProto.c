@@ -306,21 +306,12 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
  /* Otherwise, assign first target to val */
  switch(me->type)
  {
-  #define DO_FIELD_ASSIGN_FIRST(fttype, type, ttype) \
+  #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
     *vector_get(vrml##ttype##T*, me->dests, 0)=val->type; \
     break;
-  DO_FIELD_ASSIGN_FIRST(SFBool, sfbool, Bool)
-  DO_FIELD_ASSIGN_FIRST(SFColor, sfcolor, Color)
-  DO_FIELD_ASSIGN_FIRST(SFFloat, sffloat, Float)
-  DO_FIELD_ASSIGN_FIRST(SFImage, sfimage, Image)
-  DO_FIELD_ASSIGN_FIRST(SFInt32, sfint32, Int32)
-  DO_FIELD_ASSIGN_FIRST(SFNode, sfnode, Node)
-  DO_FIELD_ASSIGN_FIRST(SFRotation, sfrotation, Rotation)
-  DO_FIELD_ASSIGN_FIRST(SFString, sfstring, String)
-  DO_FIELD_ASSIGN_FIRST(SFTime, sftime, Time)
-  DO_FIELD_ASSIGN_FIRST(SFVec2f, sfvec2f, Vec2f)
-  DO_FIELD_ASSIGN_FIRST(SFVec3f, sfvec3f, Vec3f)
+  #include "VrmlTypeList.h"
+  #undef SF_TYPE
 
   default:
    parseError("Error: Unsupported type for PROTO field!");
@@ -331,22 +322,14 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
  {
   switch(me->type)
   {
-   #define DO_DEEPCOPY_FIELD_ASSIGN(fttype, type, ttype) \
+   #define SF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
      *vector_get(vrml##ttype##T*, me->dests, i)= \
       DEEPCOPY_##type(val->type, NULL, NULL); \
      break;
-   DO_DEEPCOPY_FIELD_ASSIGN(SFBool, sfbool, Bool)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFColor, sfcolor, Color)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFFloat, sffloat, Float)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFImage, sfimage, Image)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFInt32, sfint32, Int32)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFNode, sfnode, Node)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFRotation, sfrotation, Rotation)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFString, sfstring, String)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFTime, sftime, Time)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFVec2f, sfvec2f, Vec2f)
-   DO_DEEPCOPY_FIELD_ASSIGN(SFVec3f, sfvec3f, Vec3f)
+   #include "VrmlTypeList.h"
+   #undef SF_TYPE
+
    default:
     parseError("Error: Unsupported type for PROTO field!!!");
   }
