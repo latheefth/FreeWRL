@@ -354,6 +354,7 @@ extern int displayDepth;
 extern int _fw_pipe, _fw_FD;
 extern int _fw_browser_plugin;
 #define RUNNINGASPLUGIN (_fw_pipe != 0)
+#define RUNNINGONAMD64 (sizeof(void *) == 8)
 
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;

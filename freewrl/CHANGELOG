@@ -1,3 +1,6 @@
+For 1.18.3: Firefox plugin code -at least now it brings FreeWRL up. Have big problem
+	with reparenting FreeWRL window - fails at plugin XFlush call.
+
 For 1.18.2:
 	- Desktop integration on Linux platforms. (Sarah Dumoulin)
 

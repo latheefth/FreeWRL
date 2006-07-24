@@ -35,7 +35,9 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V4.0 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#define PLUGIN_DESCRIPTION	"V4.3 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+
+#define RUNNINGONAMD64 (sizeof(void *) == 8)
 
 #define ERRORMSG "FILE DOES NOT EXIST"
 
@@ -426,27 +428,29 @@ void Run (NPP instance) {
 
 
 	//reparent the window
-print_here ("going to XFlush");
+	if (!RUNNINGONAMD64) {
+		print_here ("going to XFlush");
 
-	XFlush(FW_Plugin->display);
-print_here ("going to XSync");
+		XFlush(FW_Plugin->display);
+		print_here ("going to XSync");
 
-	XSync (FW_Plugin->display, FALSE);
+		XSync (FW_Plugin->display, FALSE);
 
-print_here ("going to reparent");
-	XReparentWindow(FW_Plugin->display,
+		print_here ("going to reparent");
+		XReparentWindow(FW_Plugin->display,
 			FW_Plugin->fwwindow,
 			FW_Plugin->mozwindow,
 			0,0);
-	print_here ("after reparent/n");
+		print_here ("after reparent/n");
 
-	XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
-			FW_Plugin->width, FW_Plugin->height);
+		XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
+				FW_Plugin->width, FW_Plugin->height);
 
-	print_here ("after resize/n");
+		print_here ("after resize/n");
 
-	XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
-	print_here ("after mapwindow/n");
+		XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
+		print_here ("after mapwindow/n");
+	}
 
 	// get Browser information
 }
