@@ -53,12 +53,14 @@ int waitForData(int sock) {
 
 	retval = FALSE;
 	count = 0;
-	totalcount = 20000;
+	totalcount = 80000;
 
 	do {
+		/*
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("waitForData on socket looping...%d\n",count);
 		#endif
+		*/
 
 		tv.tv_sec = 0;
 		tv.tv_usec = 100;

@@ -1054,7 +1054,7 @@ int findTextureFile (int cwo, int *istemp) {
 			#endif
 		} else {
 			if (count > 0) {
-				printf ("Could not locate URL for texture %d (last choice was %s)\n",cwo,filename);
+				ConsoleMessage ("Could not locate URL for texture %d (last choice was %s)\n",cwo,filename);
 			}
 			/* So, we could not find the correct file. Make this into a blank PixelTexture, so that
 			   at least this looks ok on the screen */

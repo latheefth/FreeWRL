@@ -15,7 +15,7 @@
  *
  * The Plugin uses this window id to rehost the window.
  *
- * John Stewart, Alya Khan, Sarah Dumoulin - CRC Canada 2002.
+ * John Stewart, Alya Khan, Sarah Dumoulin - CRC Canada 2002 - 2006.
  *
  ******************************************************************************/
 #include <fcntl.h>
@@ -152,7 +152,8 @@ Sigfunc signal(int signo, Sigfunc func) {
 }
 
 void signalHandler(int signo) {
-	sprintf(debs, "ACTION on our port - Signal %d caught from signalHandler.\n", signo);
+	print_here("\n");
+	sprintf(debs, "ACTION on our port - Signal %d caught from signalHandler.", signo);
 	print_here(debs);
 
 	if (signo == SIGIO) {
@@ -174,7 +175,7 @@ int freewrlReceive(int fileDescriptor) {
 
 	retval = NPERR_NO_ERROR;
 
-	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.\n", fileDescriptor);
+	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.", fileDescriptor);
 	print_here (debs);
 
 	bzero(request.url, FILENAME_MAX);
@@ -220,9 +221,7 @@ int freewrlReceive(int fileDescriptor) {
 		print_here ("freewrlReceive, quick return; either this is us writing or freewrl croaked");
 		return(NPERR_GENERIC_ERROR);
 	} else {
-		sprintf (debs, "notifyCode = %d url = %s\n",
-				request.notifyCode,
-				request.url);
+		sprintf (debs, "notifyCode = %d url = %s", request.notifyCode, request.url);
 		print_here(debs);
 
 		/* is this a getUrl, or a "open new window for url" */
@@ -230,13 +229,11 @@ int freewrlReceive(int fileDescriptor) {
 			/* get Url and return it to FreeWRL */
 			if ((rv = NPN_GetURLNotify(request.instance, request.url, NULL,(void *)request.url))
 				!= NPERR_NO_ERROR) {
-				sprintf(debs, "Call to NPN_GetURLNotify failed with error %d.\n", rv);
+				sprintf(debs, "Call to NPN_GetURLNotify failed with error %d.", rv);
 				print_here(debs);
 				retval = NPERR_GENERIC_ERROR;
 			}
-			sprintf(debs, "Call to NPN_GetURLNotify returned %d.\n", rv);
-			print_here(debs);
-			sprintf (debs, "step 2a, request.url %s\n",request.url);
+			sprintf (debs, "step 2a, request.url %s",request.url);
 			print_here(debs);
 
 		} else if (request.notifyCode == -99) {
@@ -245,14 +242,14 @@ int freewrlReceive(int fileDescriptor) {
 			print_here(debs);
 			if (currentStream != NULL) {
 				NPN_DestroyStream(request.instance, currentStream, NPRES_USER_BREAK);
-				sprintf (debs, "FreeWRL can not find: %s\n",request.url);
+				sprintf (debs, "FreeWRL can not find: %s",request.url);
 				NPN_Status (request.instance, debs);
 				currentStream = NULL;
 			}
 
 		} else {
 			/* request.notifyCode must be 1 */
-			sprintf (debs,"NPN_GetStream...\n");
+			sprintf (debs,"NPN_GetStream...");
 			print_here(debs);
 
 			NPStream* stream;
@@ -265,13 +262,13 @@ int freewrlReceive(int fileDescriptor) {
 					"_AnchorFailsinFreeWRL",
 					//request.url,
 					&stream);
-			print_here ("NewStream made\n");
+			print_here ("NewStream made");
 
 			err = NPN_Write(request.instance,
 					stream,
 					myLength,
 					myData);
-			print_here ("NPN_Write made\n");
+			print_here ("NPN_Write made");
 		}
 
 		/* now, put a status line on bottom of browser */
@@ -414,45 +411,43 @@ void Run (NPP instance) {
 
 	print_here ("after FW_Plugin->freewrl_running call - waiting on pipe");
 
-	sprintf (debs,"size of upcoming read is %d bytes...\n",sizeof(Window));
-	print_here (debs);
-
 	read(FW_Plugin->interfacePipe[PIPE_PLUGINSIDE],&FW_Plugin->fwwindow,sizeof(Window));
 
+	/*
 	sprintf (debs,"After exec, and after read from pipe, FW window is %p\n",FW_Plugin->fwwindow);
 	print_here(debs);
 
 	sprintf (debs,"disp mozwindow height width %x %x %d %d\n",FW_Plugin->display,
 			FW_Plugin->mozwindow, FW_Plugin->width,FW_Plugin->height);
 	print_here (debs);
+	*/
 
 
 	//reparent the window
 	if (!RUNNINGONAMD64) {
-		print_here ("going to XFlush");
+		/* print_here ("going to XFlush"); */
 
 		XFlush(FW_Plugin->display);
-		print_here ("going to XSync");
+		
+		/* print_here ("going to XSync"); */
 
 		XSync (FW_Plugin->display, FALSE);
 
-		print_here ("going to reparent");
+		/* print_here ("going to reparent"); */
 		XReparentWindow(FW_Plugin->display,
 			FW_Plugin->fwwindow,
 			FW_Plugin->mozwindow,
 			0,0);
-		print_here ("after reparent/n");
 
 		XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
 				FW_Plugin->width, FW_Plugin->height);
 
-		print_here ("after resize/n");
 
 		XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
-		print_here ("after mapwindow/n");
+		print_here ("after mapwindow");
 	}
 
-	// get Browser information
+	print_here ("Run function finished\n");
 }
 
 
@@ -654,7 +649,7 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	sprintf (debs,"NPP_URLNotify, url %s reason %d\n",url,reason);
+	sprintf (debs,"NPP_URLNotify, url %s reason %d",url,reason);
 	print_here (debs);
 
 	if (reason == NPRES_DONE) {
@@ -669,7 +664,7 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 	}
 
 
-	sprintf (debs,"writing %s (%u bytes) to socket %d",
+	sprintf (debs,"NPP_UrlNotify - writing %s (%u bytes) to socket %d",
 		returnBadURL, strlen (returnBadURL) ,FW_Plugin->interfaceFile[SOCKET_1]);
 	print_here(debs);
 
@@ -717,8 +712,6 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 		}
 	}
 
-	print_here ("NPP_SetWindow, step 3");
-
 	sprintf (debs, "NPP_SetWindow, moz window is %x childPID is %d",browser_window->window,FW_Plugin->childPID);
 	print_here (debs);
 
@@ -750,7 +743,7 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 
 		XSync (FW_Plugin->display,FALSE);
 	}
-
+	print_here ("exiting NPP_SetWindow");
 	return result;
 }
 
@@ -835,11 +828,11 @@ print_here("NPP_Write");
 NPError
 NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 {
-	sprintf (debs,"NPP_DestroyStream, instance %d stream %d\n",instance,stream);
+	sprintf (debs,"NPP_DestroyStream, instance %d stream %d",instance,stream);
 	print_here(debs);
-	if (reason == NPRES_DONE) print_here("reason: NPRES_DONE\n");
-	if (reason == NPRES_USER_BREAK) print_here("reason: NPRES_USER_BREAK\n");
-	if (reason == NPRES_NETWORK_ERR) print_here("reason: NPRES_NETWORK_ERR\n");
+	if (reason == NPRES_DONE) print_here("reason: NPRES_DONE");
+	if (reason == NPRES_USER_BREAK) print_here("reason: NPRES_USER_BREAK");
+	if (reason == NPRES_NETWORK_ERR) print_here("reason: NPRES_NETWORK_ERR");
 
 	if (stream == currentStream) {
 		currentStream = NULL;
