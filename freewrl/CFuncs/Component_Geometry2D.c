@@ -54,6 +54,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
+		trisThisLoop += node->__numPoints;
 	}
 }
 
@@ -103,6 +104,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
+		trisThisLoop += node->__numPoints;
 	}
 }
 
@@ -137,6 +139,7 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
+		trisThisLoop += node->__numPoints;
 	}
 }
 
@@ -153,6 +156,7 @@ void render_Polyline2D (struct X3D_Polyline2D *node){
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
         	glDrawArrays (GL_LINE_STRIP, 0, node->lineSegments.n);
 		glEnableClientState (GL_NORMAL_ARRAY);
+		trisThisLoop += node->lineSegments.n;
 	}
 }
 
@@ -169,6 +173,7 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->point.p);
         	glDrawArrays (GL_POINTS, 0, node->point.n);
 		glEnableClientState (GL_NORMAL_ARRAY);
+		trisThisLoop += node->point.n;
 	}
 }
 
@@ -269,6 +274,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 
 		textureDraw_end();
 		glEnableClientState (GL_NORMAL_ARRAY);
+		trisThisLoop += node->__numPoints;
 	}
 }
 
@@ -336,6 +342,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 		textureDraw_end();
 		glEnableClientState (GL_NORMAL_ARRAY);
+		trisThisLoop += node->vertices.n;
 	}
 }
 
@@ -394,6 +401,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	glDrawArrays (GL_QUADS, 0, 4);
 	textureDraw_end();
 	glEnableClientState (GL_NORMAL_ARRAY);
+	trisThisLoop += 2;
 }
 
 

@@ -88,6 +88,7 @@ void render_Box (struct X3D_Box *node) {
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	glDrawArrays (GL_QUADS, 0, 24);
 	textureDraw_end();
+	trisThisLoop += 24;
 }
 
 
@@ -167,6 +168,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
+		trisThisLoop += (CYLDIV+1)*2*2; /* 2 triangles per quad strip */
 	}
 	if(node->bottom) {
 		textureDraw_start(NULL,cylendtex);
@@ -174,6 +176,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
+		trisThisLoop += CYLDIV+2;
 	}
 
 	if (node->top) {
@@ -182,8 +185,10 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		glNormal3f(0.0,1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
+		trisThisLoop += CYLDIV+2;
 	}
 	textureDraw_end();
+
 }
 
 
@@ -301,6 +306,7 @@ void render_Cone (struct X3D_Cone *node) {
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
+		trisThisLoop += CONEDIV+2;
 	}
 
 	if(node->side) {
@@ -310,6 +316,7 @@ void render_Cone (struct X3D_Cone *node) {
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_TRIANGLES, 0, 60);
+		trisThisLoop += 60;
 	}
 	textureDraw_end();
 }
@@ -418,6 +425,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	/* for (count = 0; count < SPHDIV; count ++) { */
 	for (count = 0; count < SPHDIV/2; count ++) { 
 		glDrawArrays (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
+		trisThisLoop += (SPHDIV+1) * 4;
 	}
 	textureDraw_end();
 }

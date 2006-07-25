@@ -387,6 +387,9 @@ extern int have_transparency;
 /* current time */
 extern double TickTime;
 
+/* number of triangles this rendering loop */
+extern int trisThisLoop;
+
 
 /* Transform node optimizations */
 int verify_rotate(GLfloat *params);

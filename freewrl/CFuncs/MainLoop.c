@@ -121,6 +121,7 @@ double BrowserFPS = 0.0;	/* calculated FPS		*/
 static double timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;
 #endif
 
+int trisThisLoop;
 
 /* used for initializing (sometimes!) javascript initialize() */
 int myMaxScript = -1;
@@ -213,7 +214,7 @@ void EventLoop() {
 
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-		/* printf ("fps %f\n",BrowserFPS); */
+		/* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
 
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
@@ -230,6 +231,8 @@ void EventLoop() {
 	} else {
 		loop_count++;
 	}
+
+	trisThisLoop = 0;
 
 	/* should we do events, or maybe Perl is parsing? */
 	doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
