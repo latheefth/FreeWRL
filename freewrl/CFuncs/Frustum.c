@@ -362,7 +362,11 @@ void OcclusionCulling ()  {
 
 int newOcclude() {
 	int retval;
-	retval = maxShapeFound;
-	maxShapeFound ++;
+	#ifdef OCCLUSION
+		retval = maxShapeFound;
+		maxShapeFound ++;
+	#else
+		retval = 0;
+	#endif	
 	return retval;
 }
