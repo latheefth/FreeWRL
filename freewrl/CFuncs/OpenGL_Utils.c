@@ -992,7 +992,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
 	consMsgCount = 0;
 
 	/* occlusion testing - zero total count, but keep malloc'd memory around */
+	#ifdef OCCLUSION
 	maxShapeFound = 0;
+	#endif
 
 	/* clock events - stop them from ticking */
 	kill_clockEvents();
