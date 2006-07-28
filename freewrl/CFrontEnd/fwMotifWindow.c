@@ -7,14 +7,14 @@
 
 #ifdef HAVE_MOTIF
 
-#define ABOUT_FREEWRL "FreeWRL Version %s\n\
-%s %s\n\n\
-FreeWRL is a VRML/X3D Browser for OS X and Unix\n\
-\nFreeWRL is maintained by:\nJohn A. Stewart and Sarah J. Dumoulin\n\
-\nContact: freewrl-06@rogers.com\n\
-Telephone: +1 613-998-2079\nhttp://www.crc.ca/FreeWRL\n\
-\nThanks to the Open Source community for all the help received.\n\
-Communications Research Centre\n\
+#define ABOUT_FREEWRL "FreeWRL Version %s\n \
+%s %s.\n \n \
+FreeWRL is a VRML/X3D Browser for OS X and Unix.\n \n \
+FreeWRL is maintained by:\nJohn A. Stewart and Sarah J. Dumoulin.\n \n \
+Contact: freewrl-06@rogers.com\n \
+Telephone: +1 613-998-2079\nhttp://www.crc.ca/FreeWRL\n\n \
+Thanks to the Open Source community for all the help received.\n \
+Communications Research Centre\n \
 Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
 
 
@@ -148,6 +148,43 @@ Callbacks to handle button presses, etc.
 
 ************************************************************************/
 
+/* Label strings are "broken" on some Motifs. See:
+ * http://www.faqs.org/faqs/motif-faq/part5/
+ */
+/* both of these fail on Ubuntu 6.06 */
+/* diastring = XmStringCreateLtoR(ns,XmFONTLIST_DEFAULT_TAG); */
+/*diastring = XmStringCreateLocalized(ns); */
+
+
+XmString xec_NewString(char *s)
+{
+	XmString xms1;
+	XmString xms2;
+	XmString line;
+	XmString separator;
+	char     *p;
+	char     *t = XtNewString(s);   /* Make a copy for strtok not to */
+	                            /* damage the original string    */
+
+	separator = XmStringSeparatorCreate();
+	p         = strtok(t,"\n");
+	xms1      = XmStringCreateLocalized(p);
+
+	while (p = strtok(NULL,"\n"))
+	{
+		line = XmStringCreateLocalized(p);
+		xms2 = XmStringConcat(xms1,separator);
+		XmStringFree(xms1);
+		xms1 = XmStringConcat(xms2,line);
+		XmStringFree(xms2);
+		XmStringFree(line);
+	}
+
+	XmStringFree(separator);
+	XtFree(t);
+	return xms1;
+}
+
 /* Callbacks */
 void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData) { 
 	int ac;
@@ -163,7 +200,9 @@ void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData) {
 
 	/* set the string here - OpenGL is now opened. */
 	sprintf (ns,ABOUT_FREEWRL,getLibVersion(),"Render: ",GL_REN);
-	diastring = XmStringCreateLocalized(ns);
+	diastring = xec_NewString(ns);
+
+	
 	XtSetArg(args[ac], XmNmessageString, diastring); ac++;
 	XtSetValues(about_widget,args,ac);
 	XmStringFree(diastring);
@@ -553,11 +592,12 @@ void createHelpPulldown() {
 
 		/* Helpity stuff */
 		ac = 0;
+		/*
 		sprintf (ns,ABOUT_FREEWRL,getLibVersion(),"","");
-		/*diastring = XmStringCreateLocalized(ns); */
-		diastring = XmStringCreateLtoR(ns,XmFONTLIST_DEFAULT_TAG);
+		diastring = xec_NewString(ns);
 
 		XtSetArg(args[ac], XmNmessageString, diastring); ac++;
+		*/
 		XtSetArg(args[ac], XmNmessageAlignment,XmALIGNMENT_CENTER); ac++;
 		about_widget = XmCreateInformationDialog(menubar, "about", args, ac);        
 		XmStringFree(diastring);
