@@ -8,6 +8,7 @@
 #ifdef HAVE_MOTIF
 
 #define ABOUT_FREEWRL "FreeWRL Version %s\n\
+%s %s\n\n\
 FreeWRL is a VRML/X3D Browser for OS X and Unix\n\
 \nFreeWRL is maintained by:\nJohn A. Stewart and Sarah J. Dumoulin\n\
 \nContact: freewrl-06@rogers.com\n\
@@ -149,8 +150,27 @@ Callbacks to handle button presses, etc.
 
 /* Callbacks */
 void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData) { 
+	int ac;
+	Arg args[10];
+	char ns[2000];
+	XmString diastring;
+	ac = 0;
+	/*
+	printf ("version is %s\n",GL_VER);
+	printf ("vendor is %s\n",GL_VEN);
+	printf ("renderer is %s\n",GL_REN);
+	*/
+
+	/* set the string here - OpenGL is now opened. */
+	sprintf (ns,ABOUT_FREEWRL,getLibVersion(),"Render: ",GL_REN);
+	diastring = XmStringCreateLocalized(ns);
+	XtSetArg(args[ac], XmNmessageString, diastring); ac++;
+	XtSetValues(about_widget,args,ac);
+	XmStringFree(diastring);
+
 	myXtManageChild(2,about_widget);
 }
+
 /* quit selected */
 void quitMenuBar (Widget w, XtPointer data, XtPointer callData) { 
 	doQuit();
@@ -533,9 +553,10 @@ void createHelpPulldown() {
 
 		/* Helpity stuff */
 		ac = 0;
+		sprintf (ns,ABOUT_FREEWRL,getLibVersion(),"","");
+		/*diastring = XmStringCreateLocalized(ns); */
+		diastring = XmStringCreateLtoR(ns,XmFONTLIST_DEFAULT_TAG);
 
-		sprintf (ns,ABOUT_FREEWRL,getLibVersion());
-		diastring = XmStringCreateLocalized(ns);
 		XtSetArg(args[ac], XmNmessageString, diastring); ac++;
 		XtSetArg(args[ac], XmNmessageAlignment,XmALIGNMENT_CENTER); ac++;
 		about_widget = XmCreateInformationDialog(menubar, "about", args, ac);        

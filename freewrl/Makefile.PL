@@ -405,8 +405,6 @@ INST_DYNAMIC_DEP =
 
 				# amd64 requires -fPIC added...
 				my $plugex = $VRML::Config::vrml_config{PLUGIN_EXTRA_DEFINES};
-print "PULTex is $plugex\n";
-
 				push(@postamble, join(
 					  "\n",
 					  qq{\# --- Mozilla/Netscape Plugin:\n},
@@ -742,8 +740,8 @@ print "PULTex is $plugex\n";
 					));
 	
 	
-			return join("\n", @postamble);
 		}
+		return join("\n", @postamble);
 	}
 }
 

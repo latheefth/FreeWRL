@@ -88,6 +88,9 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
 
+extern char *GL_VEN;
+extern char *GL_VER;
+extern char *GL_REN;
 
 #ifdef GL_VERSION_1_5
 #ifdef GL_ARB_occlusion_query
