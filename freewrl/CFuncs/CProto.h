@@ -1,5 +1,11 @@
 /* CProto.h - this is the object representing a PROTO definition and being
  * capable of instantiating it.
+ * 
+ * We keep a vector of pointers to all that pointers which point to "inner
+ * memory" and need therefore be updated when copying.  Such pointers include
+ * field-destinations and parts of ROUTEs.  Those pointers are then simply
+ * copied, their new positions put in the new vector, and afterwards are all
+ * pointers there updated.
  */
 
 #ifndef CPROTO_H
@@ -38,10 +44,6 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
 #define protoFieldDecl_addDestination(me, d) \
  vector_pushBack(void*, me->dests, d)
 
-/* Updates destination pointers */
-void protoFieldDecl_doDestinationUpdate(
- struct ProtoFieldDecl*, struct ProtoFieldDecl*, uint8_t*, uint8_t*, uint8_t*);
-
 /* Sets this field's value (copy to destinations) */
 void protoFieldDecl_setValue(struct ProtoFieldDecl*, union anyVrml*);
 
@@ -49,6 +51,10 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl*, union anyVrml*);
 #define protoFieldDecl_finish(me) \
  if(!me->alreadySet) \
   protoFieldDecl_setValue(me, &me->defaultVal)
+
+/* Add inner pointers' pointers to the vector */
+void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl*,
+ struct Vector*);
 
 /* ************************************************************************** */
 /* ****************************** ProtoDefinition *************************** */
@@ -59,6 +65,7 @@ struct ProtoDefinition
 {
  struct X3D_Group* tree; /* The scene graph of the PROTO definition */
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
+ struct Vector* innerPtrs; /* Pointers to pointers which need to be updated */
 };
 
 /* Constructor and destructor */
@@ -82,12 +89,15 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition*);
 /* Extracts the scene graph out of a ProtoDefinition */
 struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition*);
 
+/* Fills the innerPtrs field */
+void protoDefinition_fillInnerPtrs(struct ProtoDefinition*);
+
 /* Updates interface-pointers to a given memory block */
-void protoDefinition_doInterfaceUpdate(struct Vector*, struct Vector*,
+void protoDefinition_doPtrUpdate(struct ProtoDefinition*,
  uint8_t*, uint8_t*, uint8_t*);
 
 /* Does a recursively deep copy of a node-tree */
 struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*,
- struct Vector*, struct Vector*);
+ struct ProtoDefinition*);
 
 #endif /* Once-check */

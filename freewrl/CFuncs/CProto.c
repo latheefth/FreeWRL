@@ -33,17 +33,16 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
  free(me);
 }
 
-/* Update destination pointers; only some pointer-arithmetic here */
-void protoFieldDecl_doDestinationUpdate(struct ProtoFieldDecl* me,
- struct ProtoFieldDecl* target, uint8_t* beg, uint8_t* end, uint8_t* newPos)
+/* Other members */
+/* ************* */
+
+/* Add destinations to innerPtrs vector */
+void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl* me,
+ struct Vector* v)
 {
  size_t i;
  for(i=0; i!=vector_size(me->dests); ++i)
- {
-  uint8_t* curPtr=vector_get(uint8_t*, me->dests, i);
-  if(curPtr>=beg && curPtr<end)
-   protoFieldDecl_addDestination(target, newPos+(curPtr-beg));
- }
+  vector_pushBack(void**, v, &vector_get(void*, me->dests, i));
 }
 
 /* setValue is at the end, because we need deep-copying there */
@@ -58,6 +57,10 @@ void protoFieldDecl_doDestinationUpdate(struct ProtoFieldDecl* me,
 
 struct ProtoDefinition* newProtoDefinition()
 {
+ /* Attention!  protoDefinition_copy also sets up data from raw malloc!  Don't
+  * forget to mimic any changes to this method there, too!
+  */
+
  struct ProtoDefinition* ret=malloc(sizeof(struct ProtoDefinition));
  assert(ret);
  ret->tree=createNewX3DNode(NODE_Group);
@@ -66,6 +69,8 @@ struct ProtoDefinition* newProtoDefinition()
 
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
  assert(ret->iface);
+
+ ret->innerPtrs=NULL;
 
  return ret;
 }
@@ -83,6 +88,9 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
    deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
   deleteVector(struct ProtoDefinition*, me->iface);
  }
+
+ if(me->innerPtrs)
+  deleteVector(void**, me->innerPtrs);
  
  free(me);
 }
@@ -122,15 +130,19 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
  size_t i;
  assert(ret);
 
- /* Create vector for pointer-updated fields */
+ /* Copy interface */
  ret->iface=newVector(struct ProtoFieldDecl*, vector_size(me->iface));
  assert(ret->iface);
  for(i=0; i!=vector_size(me->iface); ++i)
   vector_pushBack(struct ProtoFieldDecl*, ret->iface,
    protoFieldDecl_copy(vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
+ /* Fill inner pointers */
+ ret->innerPtrs=NULL;
+ protoDefinition_fillInnerPtrs(ret);
+
  /* Copy the scene graph and fill the fields thereby */
- ret->tree=protoDefinition_deepCopy(me->tree, me->iface, ret->iface);
+ ret->tree=protoDefinition_deepCopy(me->tree, ret);
  ret->tree->__isProto=TRUE;
 
  return ret;
@@ -151,41 +163,56 @@ struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
  return ret;
 }
 
-/* Does interface pointer updating */
-void protoDefinition_doInterfaceUpdate(struct Vector* origIfc,
- struct Vector* newIfc, uint8_t* beg, uint8_t* end, uint8_t* newPos)
+/* Update pointers; only some pointer-arithmetic here */
+void protoDefinition_doPtrUpdate(struct ProtoDefinition* me,
+ uint8_t* beg, uint8_t* end, uint8_t* newPos)
 {
  size_t i;
- assert(vector_size(origIfc)==vector_size(newIfc));
- for(i=0; i!=vector_size(origIfc); ++i)
-  protoFieldDecl_doDestinationUpdate(
-   vector_get(struct ProtoFieldDecl*, origIfc, i),
-   vector_get(struct ProtoFieldDecl*, newIfc, i), beg, end, newPos);
+ assert(me->innerPtrs);
+ for(i=0; i!=vector_size(me->innerPtrs); ++i)
+ {
+  uint8_t** curPtr=vector_get(uint8_t**, me->innerPtrs, i);
+  if(*curPtr>=beg && *curPtr<end)
+   *curPtr=newPos+(*curPtr-beg);
+ }
+}
+
+/* Fills the innerPtrs field */
+void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
+{
+ size_t i;
+
+ assert(!me->innerPtrs);
+ me->innerPtrs=newVector(void**, 8);
+
+ for(i=0; i!=vector_size(me->iface); ++i)
+  protoFieldDecl_addInnerPointersPointers(
+   vector_get(struct ProtoFieldDecl*, me->iface, i), me->innerPtrs);
 }
 
 /* Deep copying */
 /* ************ */
 
 /* Deepcopies sf */
-#define DEEPCOPY_sfbool(v, i, j) v
-#define DEEPCOPY_sfcolor(v, i, j) v
-#define DEEPCOPY_sfcolorrgba(v, i, j) v
-#define DEEPCOPY_sffloat(v, i, j) v
-#define DEEPCOPY_sfimage(v, i, j) deepcopy_sfimage(v, i, j)
-#define DEEPCOPY_sfint32(v, i, j) v
-#define DEEPCOPY_sfnode(v, i, j) protoDefinition_deepCopy(v, i, j)
-#define DEEPCOPY_sfrotation(v, i, j) v
-#define DEEPCOPY_sfstring(v, i, j) deepcopy_sfstring(v)
-#define DEEPCOPY_sftime(v, i, j) v
-#define DEEPCOPY_sfvec2f(v, i, j) v
-#define DEEPCOPY_sfvec3f(v, i, j) v
+#define DEEPCOPY_sfbool(v, i) v
+#define DEEPCOPY_sfcolor(v, i) v
+#define DEEPCOPY_sfcolorrgba(v, i) v
+#define DEEPCOPY_sffloat(v, i) v
+#define DEEPCOPY_sfimage(v, i) deepcopy_sfimage(v, i)
+#define DEEPCOPY_sfint32(v, i) v
+#define DEEPCOPY_sfnode(v, i) protoDefinition_deepCopy(v, i)
+#define DEEPCOPY_sfrotation(v, i) v
+#define DEEPCOPY_sfstring(v, i) deepcopy_sfstring(v)
+#define DEEPCOPY_sftime(v, i) v
+#define DEEPCOPY_sfvec2f(v, i) v
+#define DEEPCOPY_sfvec3f(v, i) v
 static struct Multi_Int32 DEEPCOPY_mfint32(struct Multi_Int32,
- struct Vector*, struct Vector*);
+ struct ProtoDefinition*);
 static vrmlImageT deepcopy_sfimage(vrmlImageT img,
- struct Vector* origIfc, struct Vector* newIfc)
+ struct ProtoDefinition* new)
 {
  vrmlImageT ret=malloc(sizeof(*img));
- *ret=DEEPCOPY_mfint32(*img, origIfc, newIfc);
+ *ret=DEEPCOPY_mfint32(*img, new);
  return ret;
 }
 static vrmlStringT deepcopy_sfstring(vrmlStringT str)
@@ -200,16 +227,16 @@ static vrmlStringT deepcopy_sfstring(vrmlStringT str)
 /* Deepcopies a mf* */
 #define DEEPCOPY_MFVALUE(type, stype) \
  static struct Multi_##stype DEEPCOPY_mf##type(struct Multi_##stype src, \
-  struct Vector* origIfc, struct Vector* newIfc) \
+  struct ProtoDefinition* new) \
  { \
   int i; \
   struct Multi_##stype dest; \
   dest.n=src.n; \
   dest.p=malloc(sizeof(src.p[0])*src.n); \
   for(i=0; i!=src.n; ++i) \
-   dest.p[i]=DEEPCOPY_sf##type(src.p[i], origIfc, newIfc); \
-  if(origIfc) \
-   protoDefinition_doInterfaceUpdate(origIfc, newIfc, \
+   dest.p[i]=DEEPCOPY_sf##type(src.p[i], new); \
+  if(new) \
+   protoDefinition_doPtrUpdate(new, \
     (uint8_t*)src.p, (uint8_t*)(src.p+src.n), (uint8_t*)dest.p); \
   return dest; \
  }
@@ -229,7 +256,7 @@ DEEPCOPY_MFVALUE(vec3f, Vec3f)
 
 /* Nodes; may be used to update the interface-pointers, too. */
 struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
- struct Vector* origIfc, struct Vector* newIfc)
+ struct ProtoDefinition* new)
 {
  struct X3D_Node* ret;
 
@@ -248,12 +275,10 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
    { \
     struct X3D_##n* node2=(struct X3D_##n*)node; \
     struct X3D_##n* ret2=(struct X3D_##n*)ret; \
-    if(origIfc) \
-    { \
-     assert(newIfc); \
-     protoDefinition_doInterfaceUpdate(origIfc, newIfc, (uint8_t*)node2, \
-      ((uint8_t*)node2)+sizeof(struct X3D_##n), (uint8_t*)ret2); \
-    }
+    if(new) \
+     protoDefinition_doPtrUpdate(new, \
+      (uint8_t*)node2, ((uint8_t*)node2)+sizeof(struct X3D_##n), \
+      (uint8_t*)ret2);
   #define END_NODE(n) \
     break; \
    }
@@ -261,7 +286,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
   /* Copying of fields depending on type */
 
   #define FIELD(n, field, type, var) \
-   ret2->var=DEEPCOPY_##type(node2->var, origIfc, newIfc);
+   ret2->var=DEEPCOPY_##type(node2->var, new);
 
   #define EVENT_IN(n, f, t, v)
   #define EVENT_OUT(n, f, t, v)
@@ -331,12 +356,12 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
    #define SF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
      *vector_get(vrml##ttype##T*, me->dests, i)= \
-      DEEPCOPY_##type(val->type, NULL, NULL); \
+      DEEPCOPY_##type(val->type, NULL); \
      break;
    #define MF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
      *vector_get(struct Multi_##ttype*, me->dests, i)= \
-      DEEPCOPY_##type(val->type, NULL, NULL); \
+      DEEPCOPY_##type(val->type, NULL); \
      break;
    #include "VrmlTypeList.h"
    #undef SF_TYPE
@@ -352,14 +377,19 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
 struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
 {
  struct ProtoFieldDecl* ret=newProtoFieldDecl(me->mode, me->type, me->name);
+ size_t i;
  ret->alreadySet=FALSE;
+
+ /* Copy destination pointers */
+ for(i=0; i!=vector_size(me->dests); ++i)
+  vector_pushBack(void*, ret->dests, vector_get(void*, me->dests, i));
 
  /* Copy default value */
  switch(me->type)
  {
   #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
-    ret->defaultVal.type=DEEPCOPY_##type(me->defaultVal.type, NULL, NULL); \
+    ret->defaultVal.type=DEEPCOPY_##type(me->defaultVal.type, NULL); \
     break;
   #define MF_TYPE(fttype, type, ttype) \
    SF_TYPE(fttype, type, ttype)
