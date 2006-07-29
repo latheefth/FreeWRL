@@ -460,15 +460,13 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  /* Finally, register the route. */
  /* **************************** */
 
+ if(me->curPROTO)
  {
-  /* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
-  char tonode_str[15];
-  snprintf(tonode_str, 15, "%lu:%d", toNode, toOfs);
+  protoDefinition_addRoute(me->curPROTO,
+   newProtoRoute(fromNode, fromOfs, toNode, toOfs, toLen));
+ } else
+  CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, toLen);
 
-  CRoutes_Register(1, fromNode, fromOfs, 1, tonode_str, toLen, 
-   returnInterpolatorPointer(stringNodeType(toNode->_nodeType)), 0, 0);
- }
- 
  return TRUE;
 }
 

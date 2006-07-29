@@ -2155,6 +2155,27 @@ int JSparamIndex (char *name, char *type) {
 
 /********************************************************************
 
+Register a route, but with fewer and more expressive parameters than
+CRoutes_Register.  Currently a wrapper around that other function.
+
+********************************************************************/
+
+void CRoutes_RegisterSimple(
+	struct X3D_Node* from, int fromOfs,
+	struct X3D_Node* to, int toOfs,
+	int len)
+{
+ /* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
+ char tonode_str[15];
+ snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+
+ CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, 
+  returnInterpolatorPointer(stringNodeType(to->_nodeType)), 0, 0);
+}
+ 
+
+/********************************************************************
+
 CRoutes_Register.
 
 Register a route in the routing table.

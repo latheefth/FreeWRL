@@ -49,6 +49,28 @@ void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl* me,
 /* copy is at the end, too, because defaultVal needs to be deep-copied. */
 
 /* ************************************************************************** */
+/* ********************************** ProtoRoute **************************** */
+/* ************************************************************************** */
+
+/* Constructor and destructor */
+/* ************************** */
+
+struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
+ struct X3D_Node* to, int toOfs, int len)
+{
+ struct ProtoRoute* ret=malloc(sizeof(struct ProtoRoute));
+ assert(ret);
+
+ ret->from=from;
+ ret->to=to;
+ ret->fromOfs=fromOfs;
+ ret->toOfs=toOfs;
+ ret->len=len;
+
+ return ret;
+}
+
+/* ************************************************************************** */
 /* ******************************** ProtoDefinition ************************* */
 /* ************************************************************************** */
 
@@ -70,6 +92,9 @@ struct ProtoDefinition* newProtoDefinition()
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
  assert(ret->iface);
 
+ ret->routes=newVector(struct ProtoRoute*, 4);
+ assert(ret->routes);
+
  ret->innerPtrs=NULL;
 
  return ret;
@@ -87,6 +112,9 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
   for(i=0; i!=vector_size(me->iface); ++i)
    deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
   deleteVector(struct ProtoDefinition*, me->iface);
+  for(i=0; i!=vector_size(me->routes); ++i)
+   deleteProtoRoute(vector_get(struct ProtoRoute*, me->routes, i));
+  deleteVector(struct ProtoRoute*, me->routes);
  }
 
  if(me->innerPtrs)
@@ -137,6 +165,13 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
   vector_pushBack(struct ProtoFieldDecl*, ret->iface,
    protoFieldDecl_copy(vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
+ /* Copy routes */
+ ret->routes=newVector(struct ProtoRoute*, vector_size(me->routes));
+ assert(ret->routes);
+ for(i=0; i!=vector_size(me->routes); ++i)
+  vector_pushBack(struct ProtoRoute*, ret->routes,
+   protoRoute_copy(vector_get(struct ProtoRoute*, me->routes, i)));
+
  /* Fill inner pointers */
  ret->innerPtrs=NULL;
  protoDefinition_fillInnerPtrs(ret);
@@ -159,6 +194,10 @@ struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
  /* Finish all fields now */
  for(i=0; i!=vector_size(me->iface); ++i)
   protoFieldDecl_finish(vector_get(struct ProtoFieldDecl*, me->iface, i));
+
+ /* Register all routes */
+ for(i=0; i!=vector_size(me->routes); ++i)
+  protoRoute_register(vector_get(struct ProtoRoute*, me->routes, i));
  
  return ret;
 }
@@ -188,6 +227,10 @@ void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
  for(i=0; i!=vector_size(me->iface); ++i)
   protoFieldDecl_addInnerPointersPointers(
    vector_get(struct ProtoFieldDecl*, me->iface, i), me->innerPtrs);
+
+ for(i=0; i!=vector_size(me->routes); ++i)
+  protoRoute_addInnerPointersPointers(
+   vector_get(struct ProtoRoute*, me->routes, i), me->innerPtrs);
 }
 
 /* Deep copying */

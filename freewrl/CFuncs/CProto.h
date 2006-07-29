@@ -57,6 +57,40 @@ void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl*,
  struct Vector*);
 
 /* ************************************************************************** */
+/* ******************************* ProtoRoute ******************************* */
+/* ************************************************************************** */
+
+/* A ROUTE defined inside a PROTO block. */
+struct ProtoRoute
+{
+ struct X3D_Node* from;
+ struct X3D_Node* to;
+ int fromOfs;
+ int toOfs;
+ int len;
+};
+
+/* Constructor and destructor */
+struct ProtoRoute* newProtoRoute(struct X3D_Node*, int, struct X3D_Node*, int,
+ int);
+#define protoRoute_copy(me) \
+ newProtoRoute((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, (me)->len)
+#define deleteProtoRoute(me) \
+ free(me)
+
+/* Register this route */
+#define protoRoute_register(me) \
+ CRoutes_RegisterSimple((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, \
+ (me)->len)
+
+/* Add this one's inner pointers to the vector */
+#define protoRoute_addInnerPointersPointers(me, vec) \
+ { \
+  vector_pushBack(void**, vec, &(me)->from); \
+  vector_pushBack(void**, vec, &(me)->to); \
+ }
+
+/* ************************************************************************** */
 /* ****************************** ProtoDefinition *************************** */
 /* ************************************************************************** */
 
@@ -65,6 +99,7 @@ struct ProtoDefinition
 {
  struct X3D_Group* tree; /* The scene graph of the PROTO definition */
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
+ struct Vector* routes; /* Inner ROUTEs */
  struct Vector* innerPtrs; /* Pointers to pointers which need to be updated */
 };
 
@@ -99,5 +134,9 @@ void protoDefinition_doPtrUpdate(struct ProtoDefinition*,
 /* Does a recursively deep copy of a node-tree */
 struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*,
  struct ProtoDefinition*);
+
+/* Adds an inner route */
+#define protoDefinition_addRoute(me, r) \
+ vector_pushBack(struct ProtoRoute*, (me)->routes, r)
 
 #endif /* Once-check */
