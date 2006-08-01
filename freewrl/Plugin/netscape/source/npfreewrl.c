@@ -51,20 +51,15 @@ static int PluginVerbose = 0;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
 
 typedef struct _FW_PluginInstance
 {
-	uint16			fMode;
-
 	int			interfaceFile[2];
 	Display 		*display;
 	uint32 			x, y;
 	uint32 			width, height;
 	Window 			mozwindow;
 	Window 			fwwindow;
-	Widget			mozillaWidget;
-	int			embedded;
 	pid_t 			childPID;
 	char 			*fName;
 	int			freewrl_running;
-
 	int			interfacePipe[2];		/* pipe plugin FROM freewrl	*/
 } FW_PluginInstance;
 
@@ -484,17 +479,10 @@ NPP_GetValue(void *future, NPPVariable variable, void *value)
 ** NPP_Initialize is called when your DLL is being loaded to do any
 ** DLL-specific initialization.
 */
-NPError
-NPP_Initialize(void)
-{
+NPError NPP_Initialize(void) {
 	print_here ("NPP_Initialize");
-
-
-    return NPERR_NO_ERROR;
+    	return NPERR_NO_ERROR;
 }
-
-
-
 
 
 /*
@@ -503,9 +491,7 @@ NPP_Initialize(void)
 ** you're not using your java class any more. FW_Plugin allows java to unload
 ** it, freeing up memory.
 */
-void
-NPP_Shutdown(void)
-{
+void NPP_Shutdown(void) { 
 	print_here ("NPP_Shutdown");
 }
 
@@ -529,6 +515,8 @@ NPP_New(NPMIMEType pluginType,
 
 
 	//sprintf (debs,"NPP_New, argc %d argn %s  argv %s",argc,argn[0],argv[0]);
+
+	/* mode is NP_EMBED, NP_FULL, or NP_BACKGROUND (see npapi.h) */
 	sprintf (debs,"NPP_New, argc %d" ,argc);
 	if (mode == NP_EMBED) {
 		strcat (debs, "NP_EMBED");
@@ -549,8 +537,6 @@ NPP_New(NPMIMEType pluginType,
 	if (FW_Plugin == NULL)
 	    return NPERR_OUT_OF_MEMORY_ERROR;
 
-	/* mode is NP_EMBED, NP_FULL, or NP_BACKGROUND (see npapi.h) */
-	FW_Plugin->fMode = mode;
 	FW_Plugin->display = NULL;
 	FW_Plugin->x = 0;
 	FW_Plugin->y=0;
@@ -558,9 +544,7 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->height = 0;
 	FW_Plugin->mozwindow = 0;
 	FW_Plugin->fwwindow = 0;
-	FW_Plugin->embedded = 0;
 	FW_Plugin->childPID=0;
-	FW_Plugin->mozillaWidget = 0;
 	FW_Plugin->fName = NULL;
 	FW_Plugin->freewrl_running = 0;
 	pipe(FW_Plugin->interfacePipe);
@@ -802,25 +786,16 @@ int32 STREAMBUFSIZE = 0X0FFFFFFF; /* If we are reading from a file in NPAsFile
 int32
 NPP_WriteReady(NPP instance, NPStream *stream)
 {
-	FW_PluginInstance* FW_Plugin;
-	if (instance != NULL)
-		FW_Plugin = (FW_PluginInstance*) instance->pdata;
-print_here("NPP_WriteReady");
+	print_here("NPP_WriteReady");
 
 	/* Number of bytes ready to accept in NPP_Write() */
 	return STREAMBUFSIZE;
 }
 
 
-int32
-NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
-{
-	if (instance != NULL)
-	{
-		FW_PluginInstance* FW_Plugin = (FW_PluginInstance*) instance->pdata;
-	}
-print_here("NPP_Write");
-
+int32 NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer) {
+	print_here("NPP_Write");
+	return 0;
 	return len;		/* The number of bytes accepted */
 }
 

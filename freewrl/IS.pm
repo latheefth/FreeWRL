@@ -27,6 +27,7 @@ sub new {
 					 }, $type;
 
 	return $this;
+print "new IS, name $name this $this\n";
 }
 
 sub copy {
@@ -36,6 +37,7 @@ sub copy {
 	$new->{Name} = $this->{Name};
 	$new->{ISField} = $this->{ISField};
 	$new->{Ref} = $this->{Ref}; ## correct???
+print "IS copy, copying name ".$this->{Name}." old $this new $new\n";
 
 	return $new;
 }
@@ -57,13 +59,19 @@ sub name {
 sub set_ref {
 	my ($this, $ref) = @_;
 	$this->{Ref} = $ref;
+print "IS set ref for ".$this->{Name}."\n";
 }
 
 sub get_ref {
 	my ($this) = @_;
 
 	if (! defined $this->{Ref}) {
-		die("$this Ref has not been set");
+		# is this like "set_bind IS set_bind" ??
+                #my ($package, $filename, $line) = caller;
+                #print 
+                #        " IS get_ref from $package, $line\n";
+
+		#print "$this Ref has not been set for name ".$this->{Name}."\n";
 	}
 
 	return $this->{Ref};

@@ -49,13 +49,26 @@ sub FETCH {
 		$v = $v->node();
 		print "TIEH: MOVED TO REAL NODE: $v\n"
 			if $VRML::verbose::tief;
+
 	} elsif (ref $v eq "VRML::IS") {
-		$v = $v->get_ref();
+		my $ret = $v->get_ref();
+
+		#print "in FETCH, returned retalue is $ret ref ",ref $ret,"\n";
+
 		# really shouldn't happen...
-		if (ref $v eq "VRML::IS") {
-			die("IS statement $v->{Name} should have been dereferenced by now");
+		if (ref $ret eq "VRML::IS") {
+			die("IS statement $ret->{Name} should have been dereferenced by now");
 		}
-		return ${$v};
+
+		# what happens if we have something like "set_bind IS set_bind"
+		# and the define is not there? v is returned as a null value.
+		if (ref $ret eq "") {
+			#print "FETCH, just returning the node for $v\n";
+			#foreach my $key (keys (%{$node->{Fields}})) {print "field $key\n";}
+			
+			return $node->{Fields}{$v->{Name}};
+		}
+		return ${$ret};
 	}
 
 	return $v;
