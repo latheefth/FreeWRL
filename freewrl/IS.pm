@@ -27,7 +27,6 @@ sub new {
 					 }, $type;
 
 	return $this;
-print "new IS, name $name this $this\n";
 }
 
 sub copy {
@@ -37,7 +36,6 @@ sub copy {
 	$new->{Name} = $this->{Name};
 	$new->{ISField} = $this->{ISField};
 	$new->{Ref} = $this->{Ref}; ## correct???
-print "IS copy, copying name ".$this->{Name}." old $this new $new\n";
 
 	return $new;
 }
@@ -59,7 +57,6 @@ sub name {
 sub set_ref {
 	my ($this, $ref) = @_;
 	$this->{Ref} = $ref;
-print "IS set ref for ".$this->{Name}."\n";
 }
 
 sub get_ref {

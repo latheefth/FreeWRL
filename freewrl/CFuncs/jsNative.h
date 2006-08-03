@@ -62,13 +62,6 @@ typedef struct _SFColorNative {
 } SFColorNative;
 
 
-extern void
-doPerlCallMethod(SV *sv, const char *methodName);
-
-extern void
-doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...);
-
-
 /*
  * Adds additional (touchable) property to instance of a native
  * type.

@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.238  2006/08/03 15:32:51  crc_canada
+# Javascript SF/MFnode handling changes started - no longer uses Perl for this.
+#
 # Revision 1.237  2006/07/10 14:30:55  crc_canada
 # semantic error fixed in previous version.
 #
@@ -1142,33 +1145,9 @@ set_field_be (ptr, field, value)
 	char *field
 	char *value
 CODE:
-	int foffset;
-	int coffset;
-	int ctype;
-	int ctmp;
 
-	struct X3D_Box *node;
-	node = (struct X3D_Box *)ptr;
+	c_set_field_be(ptr,field,value);
 
-	/* printf ("\nset_field_be, node %d field %s value %s\n", node, field, value); */
-	
-	/* is this a valid field? */
-	foffset = findFieldInALLFIELDNAMES(field);	
-	if (foffset < 0) return;
-
-	/* get offsets for this field in this nodeType */
-	/* printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value);  */
-	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
-
-	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
-
-	if (coffset <= 0) {
-		printf ("set_field_be, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
-	}
-
-	if (strlen(value)>0) 
-		Perl_scanStringValueToMem(ptr, coffset, ctype, value);
- 
 void
 release_struct(ptr)
 	void *ptr

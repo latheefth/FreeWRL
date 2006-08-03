@@ -67,11 +67,7 @@ struct PSStruct {
 	char *path;		/* path of parent URL			*/
 	int *comp;		/* pointer to complete flag		*/
 
-	/* for javascript items, for Ayla's generic doPerlCallMethodVA call */
-	/* warning; some fields shared by EAI */
 	char *fieldname;	/* pointer to a static field name	*/
-	void *Jptr[10];		/* array of x pointers    		*/
-	char Jtype[10];		/* array of x pointer types (s or p)	*/
 	int jparamcount;	/* number of parameters for this one	*/
 	SV *sv;			/* the SV for javascript		*/
 
@@ -97,7 +93,6 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			int zeroBind);
 void __pt_doInline(void);
 void __pt_doStringUrl (void);
-void __pt_doPerlCallMethodVA(void);
 void __pt_EAI_GetNode (void);
 void __pt_EAI_GetViewpoint (void);
 void __pt_EAI_GetType (void);
@@ -338,65 +333,6 @@ void loadInline(struct X3D_Inline *node) {
 		(void *) node,
 		offsetof (struct X3D_Inline, __children),
 		&node->__loadstatus,FALSE);
-}
-
-/* Javascript interface to the perl interpreter thread */
-void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...) {
-	va_list ap; /* will point to each unnamed argument in turn */
-	char *c;
-	void *v;
-	size_t len = 0;
-	const char *p = format;
-	int complete;
-
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	/* copy the data over; malloc and copy input strings */
-	psp.sv = sv;
-	psp.comp = &complete;
-	psp.type = CALLMETHOD;
-	psp.retarr = NULL;
-	psp.ptr = (unsigned)NULL;
-	psp.ofs = (unsigned)NULL;
-	psp.zeroBind = FALSE;
-	psp.path = NULL;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-	psp.fieldname = strdup(methodname);
-
-	psp.jparamcount = 0;
-	va_start (ap,format);
-	while (*p) {
-		switch (*p++) {
-		case 's':
-			c = va_arg(ap, char *);
-			len = strlen(c);
-			c[len] = 0;
-			psp.Jptr[psp.jparamcount]=(void *)c;
-			psp.Jtype[psp.jparamcount]='s';
-			break;
-		case 'p':
-			v = va_arg(ap, void *);
-			psp.Jptr[psp.jparamcount]=(void *)v;
-			psp.Jtype[psp.jparamcount]='p';
-			break;
-		default:
-			fprintf(stderr, "doPerlCallMethodVA: argument type not supported!\n");
-			break;
-		}
-		psp.jparamcount ++;
-	}
-	va_end(ap);
-
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-	/* grab data */
-	UNLOCK;
-
 }
 
 /* interface for getting a node number via the EAI */
@@ -921,12 +857,6 @@ void _inputParseThread(void *perlpath) {
 			break;
 			}
 
-		case CALLMETHOD: {
-			/* Javascript command???? , do it */
-			__pt_doPerlCallMethodVA();
-			break;
-			}
-
 		case INLINE: {
 			/* this should be changed to a FROMURL before here  - check */
 			printf ("Inline unsuccessful\n");
@@ -1422,50 +1352,6 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 
 
 /************************END OF NORMAL ROUTINES*********************/
-
-/*************************JAVASCRIPT*********************************/
-void
-__pt_doPerlCallMethodVA() {
-	int count = 0;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(psp.sv);
-
-	for (count = 0; count < psp.jparamcount; count++) {
-        /* for javascript items, for Ayla's generic doPerlCallMethodVA call */
-		switch (psp.Jtype[count]) {
-		case 's':
-			XPUSHs(sv_2mortal(newSVpv((char *)psp.Jptr[count], strlen((char *)psp.Jptr[count]))));
-			break;
-		case 'p':
-			XPUSHs(sv_2mortal(newSViv((IV) (void *)psp.Jptr[count])));
-			break;
-		default:
-			break;
-		}
-	}
-
-	PUTBACK;
-	count = call_method(psp.fieldname, G_SCALAR);
-
-	SPAGAIN;
-
-
-if (count > 1) {
-	fprintf(stderr,
-		"__pt_doPerlCallMethodgVA: call_method returned in list context - shouldnt happen here!\n");
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-
-/*************************END OF JAVASCRIPT*********************************/
-
 
 /****************************** EAI ****************************************/
 

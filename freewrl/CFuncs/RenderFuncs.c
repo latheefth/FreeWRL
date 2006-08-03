@@ -1091,3 +1091,44 @@ void *returnInterpolatorPointer (char *x) {
 		return 0;
 	}
 }
+
+
+/* set a field; used in JavaScript, and in the Perl VRML parser */
+void c_set_field_be (void *ptr, char *field, char *value) {
+	int foffset;
+	int coffset;
+	int ctype;
+	int ctmp;
+
+	struct X3D_Box *node;
+	struct X3D_Group *group;
+
+	node = (struct X3D_Box *)ptr;
+
+	printf ("\nset_field_be, node %d field %s value %s\n", node, field, value);
+	
+	/* is this a valid field? */
+	foffset = findFieldInALLFIELDNAMES(field);	
+	if (foffset < 0) return;
+
+	/* get offsets for this field in this nodeType */
+	printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
+	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
+
+	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
+
+	if (coffset <= 0) {
+		printf ("set_field_be, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
+		printf ("is this maybe a PROTO?? if so, it will be a Group node with __isProto set to non0\n");
+		if (node->_nodeType == NODE_Group) {
+			group = (struct X3D_Group *)node;
+			printf ("it IS a group...\n");
+			if (group->__isProto != 0) {
+				printf ("and, this is a PROTO...have to go through PROTO defs to get to it\n");
+			}
+		}
+	}
+
+	if (strlen(value)>0) 
+		Perl_scanStringValueToMem(ptr, coffset, ctype, value);
+}

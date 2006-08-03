@@ -23,7 +23,7 @@
 /*							*/
 /********************************************************/
 
-static int JSVRMLClassesVerbose = 0;
+static int JSVRMLClassesVerbose = 1;
 void _get4f(double *ret, double *mat, int row);
 void _set4f(double len, double *mat, int row);
 
@@ -1451,7 +1451,8 @@ printf ("start of SFNodeAssign\n");
 			return JS_FALSE;
 		}
 
-		doPerlCallMethodVA(brow->sv_js, "getNodeCNode", "s", fptr->handle);
+		/* doPerlCallMethodVA(brow->sv_js, "getNodeCNode", "s", fptr->handle); */
+printf ("DPCVA, getnodecnode\n");
 	       if (!JS_GetProperty(cx, globalObj, "__ret",  &_rval)) {
         	        printf( "JS_GetProperty failed in VrmlBrowserGetVersion.\n");
         	        return JS_FALSE;
@@ -1568,7 +1569,8 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 			return JS_FALSE;
 		}
 
-		doPerlCallMethodVA(brow->sv_js, "jspSFNodeConstr", "s", _vrmlstr);
+		/* doPerlCallMethodVA(brow->sv_js, "jspSFNodeConstr", "s", _vrmlstr); */
+printf ("DPCVA, sfnodeconstr\n");
 
 		/* get the string and handle here */
 	       if (!JS_GetProperty(cx, globalObj, "__ret",  &_rval)) {
@@ -1712,7 +1714,8 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		}
 
 		if (JSVRMLClassesVerbose) printf ("SFNodeGetProperty, getting the property for %s\n",ptr->handle);
-		doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle);
+printf ("DPCVA getprop\n");
+		/* doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle); */
 
 		if (JSVRMLClassesVerbose) printf ("getting property for vuff %s\n",_buff);
 		if (!JS_GetProperty(cx, globalObj, _buff, &_rval)) {
@@ -1739,6 +1742,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			   VERBOSE_OBJ obj, _id_c, _val_c);
 	}
 
+
 	return JS_TRUE;
 }
 
@@ -1751,6 +1755,9 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	SFNodeNative *ptr;
 	char *_id_c, *_val_c, *_buff;
 	size_t id_len = 0, val_len = 0;
+
+	uintptr_t ra;
+	int retint;
 
 	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);
@@ -1805,26 +1812,11 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 
-		if ((_buff = (char *) malloc((id_len + STRING) * sizeof(char))) == NULL) {
-			printf( "malloc failed in SFNodeSetProperty.\n");
-			return JS_FALSE;
-		}
-		val_len = strlen(ptr->handle) + 1;
-		sprintf(_buff, "__node_%s", _id_c);
+		printf ("SFNodeSetProperty, setting node %s field %s to value %s\n", ptr->handle,_id_c,_val_c);
+		retint = sscanf (ptr->handle,"%d",&ra);
+		/* printf ("scanned in %d values, are %d\n",retint,ra); */
+		c_set_field_be ((void *)ra, _id_c, _val_c);
 
-		/*  save this property in Javascript, because, we'll be getting it*/
-		/*  via perl shortly.*/
-		if (!JS_SetProperty(cx, globalObj, _buff, vp)) {
-			printf(
-					"JS_SetProperty failed for \"%s\" in SFNodeSetProperty.\n",
-					_buff);
-			return JS_FALSE;
-		}
-
-		/*  call the perl method to manipulate this node - we must do this*/
-		/*  because we need the offsets that only perl (or, via a ROUTE) has.*/
-		doPerlCallMethodVA(brow->sv_js, "jspSFNodeSetProperty", "ss", _id_c, ptr->handle);
-		free(_buff);
 	}
 
 	return JS_TRUE;

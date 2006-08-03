@@ -895,39 +895,6 @@ sub save_EAI_info {
 }
 
 
-# Javascripting routing interface
-sub JSRoute {
-	my ($js, $dir, $route) = @_;
-
-	my ($fn, $ff, $tn, $tf) = split (" ",$route);
-
-	# print "JSRouting, from $fn, fromField $ff, to $tn, toField $tf\n";
-
-	# check to see if any of these are simply CNode pointers; if so,
-	# try to make them into a NODE(cnode), and re-do the checks
-	my $nfn = VRML::Handles::check($fn);
-	my $ntn = VRML::Handles::check($tn);
-	# print "jspBrowser - check for them is $nfn, $ntn\n";
-
-	if ($nfn == 0) {
-		# print "from node is not checked ok\n";
-		$fn = "NODE".$fn;
-		$nfn = VRML::Handles::check($fn);
-	}
-	if ($ntn == 0) {
-		# print "to node is not checked ok\n";
-		$tn = "NODE".$tn;
-		$ntn = VRML::Handles::check($tn);
-	}
-
-	if (($nfn==0) || ($ntn==0)) {
-		print "jspBrowserAddRoute, can not find either of $nfn, $ntn\n";
-		return;
-	}
-
-	$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
-				1,$fn,$ff,$tn,$tf);
-}
 #########################################################3
 #
 # Private stuff

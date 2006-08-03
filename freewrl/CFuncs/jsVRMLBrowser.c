@@ -171,10 +171,7 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 		_str = JS_ValueToString(context, _v);
 		_costr = JS_GetStringBytes(_str);
 
-		doPerlCallMethodVA(brow->sv_js,
-						   "jspBrowserReplaceWorld",
-						   "s",
-						   _costr);
+printf ("DPCVA replaceworld\n");/*		doPerlCallMethodVA(brow->sv_js, "jspBrowserReplaceWorld", "s", _costr);*/
 	} else {
 		fprintf(stderr,
 				"\nIncorrect argument format for replaceWorld(%s).\n",
@@ -237,9 +234,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 
 		_str[1] = JS_ValueToString(context, argv[1]);
 		_costr[1] = JS_GetStringBytes(_str[1]);
-		doPerlCallMethodVA(brow->sv_js,
-						   "jspBrowserLoadURL", "ss",
-						   _costr[0], _costr[1]);
+printf ("DPCVA loadurl\n");/*		doPerlCallMethodVA(brow->sv_js, "jspBrowserLoadURL", "ss", _costr[0], _costr[1]);*/
 	} else {
 		fprintf(stderr,
 				"\nIncorrect argument format for loadURL(%s).\n",
@@ -273,7 +268,7 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
-		doPerlCallMethodVA(brow->sv_js, "jspBrowserSetDescription", "s", _c);
+printf ("DPCVA setbrowserdesc\n");/*		doPerlCallMethodVA(brow->sv_js, "jspBrowserSetDescription", "s", _c);*/
 		*rval = _rval;
 	} else {
 		fprintf(stderr,
@@ -311,7 +306,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 				   obj, _c);
 		#endif
 
-		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromString", "s", _c);
+printf ("DPCVA cvs\n");/*		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromString", "s", _c);*/
 	} else {
 		fprintf(stderr,
 				"\nIncorrect argument format for createVrmlFromString(%s).\n",
@@ -387,9 +382,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 		}
 		_str[1] = JS_ValueToString(context, _v);
 		_costr[1] = JS_GetStringBytes(_str[1]);
-		doPerlCallMethodVA(brow->sv_js,
-						   "jspBrowserCreateVrmlFromURL", "sss",
-						   _costr[0], _costr[1], _c);
+printf ("DPCVA cvu\n");/*		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromURL", "sss", _costr[0], _costr[1], _c);*/
 	} else {
 		fprintf(stderr,
 				"\nIncorrect argument format for createVrmlFromURL(%s).\n",
@@ -534,7 +527,7 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 				_costr[0], _cstr[0],
 				_costr[1], _cstr[1]);
 
-		doPerlCallMethodVA(brow->sv_js, perlBrowserFunc, "s", _route);
+printf ("DPCVA route\n");/*		doPerlCallMethodVA(brow->sv_js, perlBrowserFunc, "s", _route);*/
 		JS_free(context, _route);
 	} else {
 		printf( "\nIncorrect argument format for %s(%s).\n",

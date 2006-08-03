@@ -87,6 +87,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
+void c_set_field_be (void *ptr, char *field, char *value);
 
 extern char *GL_VEN;
 extern char *GL_VER;
@@ -663,8 +664,6 @@ uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define FROMSTRING 	1
 #define	FROMURL		2
 #define INLINE		3
-#define CALLMETHOD	4   /* Javascript... 	*/
-#define CALLMETHODVA    5   /* Javascript... 	*/
 #define EAIGETNODE      6   /* EAI getNode      	*/
 #define EAIGETTYPE	7   /* EAI getType	*/
 #define ZEROBINDABLES   8   /* get rid of Perl datastructures */
