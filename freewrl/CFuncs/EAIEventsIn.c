@@ -487,7 +487,7 @@ void EAI_parse_commands (char *bufptr) {
 	char buf[EAIREADSIZE];	/* return value place*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
 	char dtmp[EAIREADSIZE];	/* temporary character buffer*/
-	unsigned int nodarr[200]; /* returning node/backnode combos from CreateVRML fns.*/
+	uintptr_t nodarr[200]; /* returning node/backnode combos from CreateVRML fns.*/
 
 	int count;
 	char command;

@@ -39,6 +39,7 @@
 
 static JSBool reportWarnings = JS_TRUE;
 
+int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
 int
 ActualrunScript(uintptr_t num,
 				char *script,

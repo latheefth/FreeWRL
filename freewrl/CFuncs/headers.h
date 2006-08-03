@@ -774,7 +774,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 
 
 void create_EAI(void);
-int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, int retarrsize);
+int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, int retarrsize);
 void EAI_Route(char cmnd, const char *tf);
 void EAI_replaceWorld(const char *inputstring);
 

@@ -23,7 +23,7 @@
 /*							*/
 /********************************************************/
 
-static int JSVRMLClassesVerbose = 1;
+static int JSVRMLClassesVerbose = 0;
 void _get4f(double *ret, double *mat, int row);
 void _set4f(double len, double *mat, int row);
 
@@ -115,6 +115,47 @@ static JSBool _simplecopyElements (JSContext *cx,
 		}
 	}
 	return JS_TRUE;
+}
+
+
+/* create a new SFNode from strings for the VRML code, and for the CNode */
+void newJS_SFNode(char *_vrmlstr,char *_handle, JSContext *cx, JSObject *obj) {
+	char *tmpptr, *xptr;
+	size_t vrmlstring_len = 0, handle_len = 0;
+	SFNodeNative *ptr;
+
+	vrmlstring_len = strlen(_vrmlstr) + 1;
+	handle_len = strlen(_handle) + 1;
+
+	if (JSVRMLClassesVerbose) printf ("newJS_SFNode, argc==2, vrmlstr = %s\n",_vrmlstr);
+	if ((ptr = (SFNodeNative *)SFNodeNativeNew(vrmlstring_len, handle_len)) == NULL) {
+		printf( "SFNodeNativeNew failed in newJS_SFNode.\n");
+	}
+	if (!JS_DefineProperties(cx, obj, SFNodeProperties)) {
+		printf( "JS_DefineProperties failed in newJS_SFNode.\n");
+	}
+	if (!JS_SetPrivate(cx, obj, ptr)) {
+		printf( "JS_SetPrivate failed in newJS_SFNode.\n");
+	}
+
+	/* copy this over, making sure we dont get hit by threading or
+	 * memory problems */
+	tmpptr = (char *)malloc ((vrmlstring_len+1)*sizeof(char));
+	memmove(tmpptr, _vrmlstr, vrmlstring_len);
+	xptr = ptr->vrmlstring;
+	ptr->vrmlstring = tmpptr;
+	free (xptr);
+
+	tmpptr = (char *)malloc ((handle_len+1)*sizeof(char));
+	memmove(tmpptr, _handle, handle_len);
+	xptr = ptr->handle;
+	ptr->handle = tmpptr;
+	free (xptr);
+
+        if (JSVRMLClassesVerbose) {
+                printf("newJS_SFNode: obj = %u, vrmlstring=\"%s\", handle=\"%s\"\n",
+                           VERBOSE_OBJ obj, ptr->vrmlstring, ptr->handle);
+        }
 }
 
 /* make a standard assignment for MF variables */
@@ -1524,8 +1565,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 	 * string be a constructor argument.
 	 */
 	if (JSVRMLClassesVerbose) printf ("start of SFNodeConstr, obj %d argc %d\n",obj,argc);
-	if (argc == 1 && JS_ConvertArguments(cx, argc, argv, "s",
-							&_vrmlstr)) {
+	if (argc == 1 && JS_ConvertArguments(cx, argc, argv, "s", &_vrmlstr)) {
 
 		vrmlstring_len = strlen(_vrmlstr) + 1;
 		if (JSVRMLClassesVerbose) printf ("SFNodeConstr, argc==1, vrmlstr = %s\n",_vrmlstr);
@@ -1591,53 +1631,17 @@ printf ("DPCVA, sfnodeconstr\n");
 		ptr->handle = tmpptr;
 		free (xptr);
 
-
-
-
-
 	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "s s",
 			   &_vrmlstr, &_handle)) {
-		vrmlstring_len = strlen(_vrmlstr) + 1;
-		handle_len = strlen(_handle) + 1;
 
-		if (JSVRMLClassesVerbose) printf ("SFNodeConstr, argc==2, vrmlstr = %s\n",_vrmlstr);
-		if ((ptr = (SFNodeNative *)SFNodeNativeNew(vrmlstring_len, handle_len)) == NULL) {
-			printf( "SFNodeNativeNew failed in SFNodeConstr.\n");
-			return JS_FALSE;
-		}
-		if (!JS_DefineProperties(cx, obj, SFNodeProperties)) {
-			printf( "JS_DefineProperties failed in SFNodeConstr.\n");
-			return JS_FALSE;
-		}
-		if (!JS_SetPrivate(cx, obj, ptr)) {
-			printf( "JS_SetPrivate failed in SFNodeConstr.\n");
-			return JS_FALSE;
-		}
-
-		/* copy this over, making sure we dont get hit by threading or
-		 * memory problems */
-		tmpptr = (char *)malloc ((vrmlstring_len+1)*sizeof(char));
-		memmove(tmpptr, _vrmlstr, vrmlstring_len);
-		xptr = ptr->vrmlstring;
-		ptr->vrmlstring = tmpptr;
-		free (xptr);
-
-		tmpptr = (char *)malloc ((handle_len+1)*sizeof(char));
-		memmove(tmpptr, _handle, handle_len);
-		xptr = ptr->handle;
-		ptr->handle = tmpptr;
-		free (xptr);
+		newJS_SFNode(_vrmlstr,_handle, cx, obj);
+ 
 	} else {
-		printf(
-				"SFNodeConstr requires at least 1 string arg.\n");
+		printf( "SFNodeConstr requires at least 1 string arg.\n");
 		return JS_FALSE;
 	}
 
 	*rval = OBJECT_TO_JSVAL(obj);
-	if (JSVRMLClassesVerbose) {
-		printf("SFNodeConstr: obj = %u, argc = %u, vrmlstring=\"%s\", handle=\"%s\"\n",
-			   VERBOSE_OBJ obj, argc, ptr->vrmlstring, ptr->handle);
-	}
 	return JS_TRUE;
 }
 
@@ -3514,17 +3518,14 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToNumber(cx, argv[i], &_d)) {
-			printf(
-					"JS_ValueToNumber failed in MFFloatConstr.\n");
+			printf( "JS_ValueToNumber failed in MFFloatConstr.\n");
 			return JS_FALSE;
 		}
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
 							  JS_PropertyStub, JS_PropertyStub,
 							  JSPROP_ENUMERATE)) {
-			printf(
-					"JS_DefineElement failed for arg %u in MFFloatConstr.\n",
-					i);
+			printf( "JS_DefineElement failed for arg %u in MFFloatConstr.\n", i);
 			return JS_FALSE;
 		}
 	}
@@ -3593,17 +3594,13 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToInt32(cx, argv[i], &_i)) {
-			printf(
-					"JS_ValueToBoolean failed in MFInt32Constr.\n");
+			printf( "JS_ValueToBoolean failed in MFInt32Constr.\n");
 			return JS_FALSE;
 		}
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
-							  JS_PropertyStub, JS_PropertyStub,
-							  JSPROP_ENUMERATE)) {
-			printf(
-					"JS_DefineElement failed for arg %u in MFInt32Constr.\n",
-					i);
+			  JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+			printf( "JS_DefineElement failed for arg %u in MFInt32Constr.\n", i);
 			return JS_FALSE;
 		}
 	}
@@ -3649,19 +3646,15 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	jsval v = INT_TO_JSVAL(argc);
 
 	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFNodeConstr.\n");
+		   JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"length\" in MFNodeConstr.\n");
 		return JS_FALSE;
 	}
 
 	v = INT_TO_JSVAL(0);
 	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFNodeConstr.\n");
+		   JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFNodeConstr.\n");
 		return JS_FALSE;
 	}
 	if (!argv) {
@@ -3669,13 +3662,12 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	}
 
 	if (JSVRMLClassesVerbose) {
-		printf("MFNodeConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("MFNodeConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	}
+
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
-			printf(
-					"JS_ValueToObject failed in MFNodeConstr.\n");
+			printf( "JS_ValueToObject failed in MFNodeConstr.\n");
 			return JS_FALSE;
 		}
 		if (!JS_InstanceOf(cx, _obj, &SFNodeClass, NULL)) {
@@ -3686,9 +3678,7 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
 							  JS_PropertyStub, JS_PropertyStub,
 							  JSPROP_ENUMERATE)) {
-			printf(
-					"JS_DefineElement failed for arg %d in MFNodeConstr.\n",
-					i);
+			printf( "JS_DefineElement failed for arg %d in MFNodeConstr.\n", i);
 			return JS_FALSE;
 		}
 	}

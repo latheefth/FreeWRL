@@ -72,7 +72,7 @@ struct PSStruct {
 	SV *sv;			/* the SV for javascript		*/
 
 	/* for EAI */
-	int *retarr;		/* the place to put nodes		*/
+	uintptr_t *retarr;		/* the place to put nodes		*/
 	int retarrsize;		/* size of array pointed to by retarr	*/
 	unsigned Etype[10];	/* EAI return values			*/
 
@@ -86,7 +86,7 @@ void _inputParseThread (void *perlpath);
 void __pt_setPath(char *perlpath);
 void __pt_openBrowser(void);
 void __pt_zeroDEFS(void);
-unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *retarr);
+unsigned int _pt_CreateVrml (char *tp, char *inputstring, uintptr_t *retarr);
 int isInputThreadInitialized(void);
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			void *ptr, unsigned ofs, int *complete,
@@ -559,7 +559,7 @@ char *SAI_StrRetCommand (char cmnd, const char *fn) {
 	psp.type = SAICOMMAND;
 	psp.retarr = NULL;
 	psp.ofs = (unsigned) cmnd;
-	psp.ptr = 1; 	/* 1 signifies that we want an SV returned here */
+	psp.ptr = (void *)1; 	/* 1 signifies that we want an SV returned here */
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
@@ -615,7 +615,7 @@ void EAI_killBindables (void) {
 }
 
 /* interface for creating VRML for EAI */
-int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, int retarrsize) {
+int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, int retarrsize) {
 	int complete;
 	int retval;
 	UNUSED(tp);
@@ -645,7 +645,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, in
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.retarr = (int *)retarr;
+	psp.retarr = retarr;
 	psp.retarrsize = retarrsize;
 	/* copy over the command */
 	psp.inp = (char *)malloc (strlen(inputstring)+2);
@@ -1068,7 +1068,7 @@ void registerBindable (void *ptr) {
 /*************************NORMAL ROUTINES***************************/
 
 /* Create VRML/X3D, returning an array of nodes */
-unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *retarr) {
+unsigned int _pt_CreateVrml (char *tp, char *inputstring, uintptr_t *retarr) {
 	int count;
 	int tmp;
 
@@ -1226,7 +1226,7 @@ void __pt_doInline() {
 void __pt_doStringUrl () {
 	int count;
 	int retval;
-	unsigned long int myretarr[2000];
+	uintptr_t myretarr[2000];
 
 	/* for cParser */
         char *buffer;
@@ -1245,7 +1245,7 @@ ConsoleMessage ("cant FROMSTRING with cParser yet\n");
 		} else if (psp.type==FROMURL) {
 			pushInputURL (psp.inp);
 	        	buffer = readInputString(psp.inp,"");
-			nRn = createNewX3DNode(NODE_Group);
+			nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
 			FREE_IF_NZ (buffer); 
 
@@ -1268,7 +1268,8 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 		if (psp.retarr != NULL) {
 			for (count=0; count < nRn->children.n; count++) {
 				psp.retarr[count*2] = 0; /* the "perl" node number */
-				psp.retarr[count*2+1] = nRn->children.p[count]; /* the Node Pointer */
+				psp.retarr[count*2+1] = ((uintptr_t *) 
+					nRn->children.p[count]); /* the Node Pointer */
 			}
 			psp.retarrsize = nRn->children.n * 2; /* remember, the old "perl node number" */
 		}

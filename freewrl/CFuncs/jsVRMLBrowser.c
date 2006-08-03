@@ -284,18 +284,29 @@ JSBool
 VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 								uintN argc, jsval *argv, jsval *rval)
 {
-	jsval _rval;
 	BrowserNative *brow;
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
+	JSString *_str;
+	jsval _rval = INT_TO_JSVAL(0);
+
+	/* for the return of the nodes */
+	uintptr_t nodarr[200];
+	char xstr[20000];
+	char tmpstr[200];
+	int ra;
+	int count;
+	
+
+	/* make this a default value */
+	*rval = INT_TO_JSVAL(0);
 
 	if ((brow = (BrowserNative *)JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr,
-				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromString.\n");
+		printf("JS_GetPrivate failed in VrmlBrowserCreateVrmlFromString.\n");
 		return JS_FALSE;
 	}
 
 	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr, "Wrong browser magic!\n");
+		printf("Wrong browser magic!\n");
 		return JS_FALSE;
 	}
 
@@ -306,29 +317,35 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 				   obj, _c);
 		#endif
 
-printf ("DPCVA cvs\n");/*		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromString", "s", _c);*/
-	} else {
-		fprintf(stderr,
-				"\nIncorrect argument format for createVrmlFromString(%s).\n",
-				_c_args);
-		return JS_FALSE;
-	}
+		/* do the call to make the VRML code */
+		ra = EAI_CreateVrml("String",_c,nodarr,200);
+		#ifdef JSVERBOSE
+		printf ("EAI_CreateVrml returns %d nodes\n",ra);
+		printf ("nodes %d %d\n",nodarr[0],nodarr[1]);
+		#endif
 
-	if (!JS_GetProperty(context, obj, BROWSER_RETVAL,  &_rval)) {
-		fprintf(stderr,
-				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromString.\n");
+		/* and, make a string that we can use to create the javascript object */
+		strcpy (xstr,"Browser.__ret=new MFNode(");
+		for (count=0; count<ra/2; count += 2) {
+			sprintf (tmpstr,"new SFNode('bubbadata','%d')",nodarr[count*2+1]);
+			strcat (xstr,tmpstr);
+		}
+		strcat (xstr,")");
+		
+		/* create this value */
+		jsrrunScript(context, obj, xstr, rval);
+
+	} else {
+		printf("\nIncorrect argument format for createVrmlFromString(%s).\n", _c_args);
 		return JS_FALSE;
 	}
-	*rval = _rval;
 
 	return JS_TRUE;
 }
 
 
 JSBool
-VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
-							 uintN argc, jsval *argv, jsval *rval)
-{
+VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	JSObject *_obj[2];
 	JSString *_str[2];
 	JSClass *_cls[2];

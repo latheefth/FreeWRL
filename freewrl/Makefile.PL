@@ -24,13 +24,7 @@ if ($OS eq "Darwin") {
 # create the VRMLFunc.pm module
 system "perl VRMLC.pm";
 
-my $VERSION = "V1.18.3";
-
-BEGIN {
- eval "use 5.004";
- warn "VRML::Browser requires Perl v5.0.4 or later -- go to http://www.perl.com"
-  if $@;
-}
+my $VERSION = "V1.18.4";
 
 use Cwd qw(getcwd chdir);
 

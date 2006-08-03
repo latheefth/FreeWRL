@@ -241,6 +241,32 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	return JS_TRUE;
 }
 
+
+
+/* run the script from within Javascript  */
+int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval) {
+
+	size_t len;
+
+	#ifdef JSVERBOSE
+		printf("jsrrunScript script %d cx %x \"%s\", \n",
+			   num, _context, script);
+	#endif
+
+	len = strlen(script);
+	if (!JS_EvaluateScript(_context, _globalObj, script, len,
+						   FNAME_STUB, LINENO_STUB, rval)) {
+		printf("JS_EvaluateScript failed for \"%s\".\n", script);
+		return JS_FALSE;
+	 }
+
+	#ifdef JSVERBOSE 
+	printf ("runscript passed\n");
+	#endif
+
+	return JS_TRUE;
+}
+
 /* perl wants us to run the script- do so, and return return values */
 int JSrunScript(uintptr_t num, char *script, SV *rstr, SV *rnum) {
 	JSString *strval;

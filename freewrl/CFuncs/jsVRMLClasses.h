@@ -84,6 +84,8 @@
 
 /* helper functions */
 
+void newJS_SFNode(char *_vrmlstr,char *_handle, JSContext *cx, JSObject *obj);
+
 static JSBool
 doMFToString(JSContext *cx,
 				JSObject *obj,
