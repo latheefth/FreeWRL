@@ -1105,14 +1105,18 @@ void c_set_field_be (void *ptr, char *field, char *value) {
 
 	node = (struct X3D_Box *)ptr;
 
+	#ifdef SETFIELDVERBOSE
 	printf ("\nset_field_be, node %d field %s value %s\n", node, field, value);
+	#endif
 	
 	/* is this a valid field? */
 	foffset = findFieldInALLFIELDNAMES(field);	
 	if (foffset < 0) return;
 
 	/* get offsets for this field in this nodeType */
+	#ifdef SETFIELDVERBOSE
 	printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
+	#endif
 	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
 
 	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
