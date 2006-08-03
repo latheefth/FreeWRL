@@ -1,3 +1,8 @@
+For 1.18.4:
+	- javascript code that calls perl being rewritten.
+
+	- bug in OpenGL window size fixed. (affected TouchSensors)
+
 For 1.18.3: Firefox plugin code -at least now it brings FreeWRL up. Have big problem
 	with reparenting FreeWRL window - fails at plugin XFlush call.
 

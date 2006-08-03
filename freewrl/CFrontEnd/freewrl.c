@@ -40,6 +40,8 @@
 #include <X11/Xaw/SmeLine.h>
 #include <X11/Xaw/Sme.h>
 
+/* screen height and width */
+int feHeight, feWidth;
 
 extern XtAppContext freewrlXtAppContext;
 
@@ -73,7 +75,7 @@ int main (int argc, char **argv) {
 	}
 
 	/* set the screen width and height before getting into arguments */
-	screenWidth = 600; screenHeight=400;
+	feWidth = 600; feHeight=400;
 	fullscreen = 0;
 	wantEAI = 0;
 

@@ -197,7 +197,7 @@ void openMainWindow (int argc, char **argv) {
 
 		bestMode = 0;
 		for (i=0; i < modeNum; i++) {
-			if ((modes[i]->hdisplay == screenWidth) && (modes[i]->vdisplay==screenHeight)) {
+			if ((modes[i]->hdisplay == feWidth) && (modes[i]->vdisplay==feHeight)) {
 				bestMode = i;
 				break;
 			}
@@ -205,7 +205,7 @@ void openMainWindow (int argc, char **argv) {
 		/* There is no mode equivalent to the geometry specified */
 		if (bestMode == -1) {
 			fullscreen = 0;
-			printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", screenWidth, screenHeight);
+			printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", feWidth, feHeight);
 		}
 		XF86VidModeGetViewPort(Xdpy, DefaultScreen(Xdpy), &oldx, &oldy);
 	#endif
@@ -222,9 +222,9 @@ void openMainWindow (int argc, char **argv) {
 
 void setGeometry (const char *gstring) {
 	int c;
-	c = sscanf(gstring,"%dx%d+%d+%d",&screenWidth,&screenHeight,&xPos,&yPos);
+	c = sscanf(gstring,"%dx%d+%d+%d",&feWidth,&feHeight,&xPos,&yPos);
 	/* tell OpenGL what the screen dims are */
-	setScreenDim (screenWidth,screenHeight);
+	setScreenDim (feWidth,feHeight);
 }
 
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len)

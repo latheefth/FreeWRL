@@ -112,6 +112,8 @@ void myXtManageChild (int c, Widget child) {
 }
 
 void createMotifMainWindow() {
+        Dimension width, height;
+
 	mainw = XmCreateMainWindow (freewrlTopWidget, "mainw", NULL, 0);
 	myXtManageChild (29,mainw);
 
@@ -140,6 +142,12 @@ void createMotifMainWindow() {
 
 
 	Xwin = XtWindow (freewrlTopWidget);
+
+	/* now, lets tell the OpenGL window what its dimensions are */
+
+        XtVaGetValues (freewrlDrawArea, XmNwidth, &width, XmNheight, &height, NULL);
+        setScreenDim (width,height);
+
 }
 
 /************************************************************************
@@ -698,8 +706,8 @@ void openMotifMainWindow (int argc, char **argv) {
 	#endif
 
 	XtSetArg(initArgs[initArgc],XmNlabelString,XmStringCreate("FreeWRL VRML X3D Browser",XmSTRING_DEFAULT_CHARSET)); initArgc++;
-	XtSetArg(initArgs[initArgc],XmNheight, screenHeight); initArgc++;
-	XtSetArg(initArgs[initArgc],XmNwidth, screenWidth); initArgc++;
+	XtSetArg(initArgs[initArgc],XmNheight, feHeight); initArgc++;
+	XtSetArg(initArgs[initArgc],XmNwidth, feWidth); initArgc++;
 	freewrlTopWidget = XtAppInitialize (&freewrlXtAppContext, "FreeWRL", NULL, 0, 
 		&argc, dummyargc, NULL, initArgs, initArgc);
 

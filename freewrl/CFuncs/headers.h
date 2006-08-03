@@ -785,6 +785,11 @@ void handle_aqua(const int mev, const unsigned int button, const float x, const 
 
 extern int screenWidth, screenHeight;
 
+/* Unix front end height/width */
+#ifndef AQUA
+extern int feWidth, feHeight;
+#endif
+
 /* SD AQUA FUNCTIONS */
 #ifdef AQUA
 extern int getOffset();
