@@ -734,7 +734,7 @@ my $protono;
 						children => [MFNode, [], exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
-						 __isProto => [SFInt32, 0, field], # tell renderer that this is a proto...
+						 __protoDef => [FreeWRLPTR, 0, field], # tell renderer that this is a proto...
 					   },"X3DGroupingNode"),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {

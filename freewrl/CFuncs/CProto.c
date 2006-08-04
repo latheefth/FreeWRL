@@ -87,7 +87,7 @@ struct ProtoDefinition* newProtoDefinition()
  assert(ret);
  ret->tree=createNewX3DNode(NODE_Group);
  assert(ret->tree);
- ret->tree->__isProto=TRUE;
+ ret->tree->__protoDef=ret;
 
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
  assert(ret->iface);
@@ -178,7 +178,7 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
 
  /* Copy the scene graph and fill the fields thereby */
  ret->tree=protoDefinition_deepCopy(me->tree, ret);
- ret->tree->__isProto=TRUE;
+ ret->tree->__protoDef=ret;
 
  return ret;
 }

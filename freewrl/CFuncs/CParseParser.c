@@ -114,9 +114,8 @@ static void parser_scopeOut_DEFUSE()
 static void parser_scopeOut_PROTO()
 {
  indexT i;
- for(i=0; i!=vector_size(stack_top(PROTOs)); ++i)
-  deleteProtoDefinition(vector_get(struct ProtoDefinition*,
-   stack_top(PROTOs), i));
+ /* Do not delete the ProtoDefinitions, as they are referenced in the scene
+  * graph!  TODO:  How to delte them properly? */
  deleteVector(struct ProtoDefinition*, stack_top(PROTOs));
  stack_pop(PROTOs);
 }
