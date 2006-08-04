@@ -1,5 +1,6 @@
 For 1.18.4:
 	- javascript code that calls perl being rewritten.
+		(tests/52 added - uses createVrmlFromURL)
 
 	- bug in OpenGL window size fixed. (affected TouchSensors)
 

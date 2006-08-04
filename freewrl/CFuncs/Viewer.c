@@ -43,8 +43,9 @@ void handle_tick_exfly(void);
 void handle_tick(void);
 
 /* used for EAI calls to get the current speed. Not used for general calcs */
-float getCurrentSpeed() {
-	return (BrowserFPS * (fabs(VPvelocity.x) + fabs(VPvelocity.y) + fabs(VPvelocity.z)));
+/* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
+void getCurrentSpeed() {
+	BrowserSpeed = BrowserFPS * (fabs(VPvelocity.x) + fabs(VPvelocity.y) + fabs(VPvelocity.z));
 }
 
 void viewer_default() {

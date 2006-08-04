@@ -594,7 +594,9 @@ void EAI_parse_commands (char *bufptr) {
 				#ifdef EAIVERBOSE 
 				printf ("GETCURRENTSPEED\n");
 				#endif
-				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,getCurrentSpeed());
+				/* get the BrowserSpeed variable updated */
+				getCurrentSpeed();
+				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserSpeed);
 				break;
 				}
 			case GETFRAMERATE: {

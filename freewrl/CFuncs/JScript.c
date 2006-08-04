@@ -249,8 +249,8 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 	size_t len;
 
 	#ifdef JSVERBOSE
-		printf("jsrrunScript script %d cx %x \"%s\", \n",
-			   num, _context, script);
+		printf("jsrrunScript script cx %x \"%s\", \n",
+			   _context, script);
 	#endif
 
 	len = strlen(script);

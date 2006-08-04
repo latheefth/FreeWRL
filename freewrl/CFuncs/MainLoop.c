@@ -116,6 +116,7 @@ double TickTime;
 double lastTime;
 double BrowserStartTime; 	/* start of calculating FPS 	*/
 double BrowserFPS = 0.0;	/* calculated FPS		*/
+double BrowserSpeed = 0.0;	/* calculated movement speed	*/
 
 #ifdef PROFILE
 static double timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;

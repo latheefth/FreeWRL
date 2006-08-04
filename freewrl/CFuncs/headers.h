@@ -638,6 +638,7 @@ void setUseShapeThreadIfPossible(int x);
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
 extern double BrowserFPS;
+extern double BrowserSpeed;
 void render_polyrep(void *node);
 
 extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
