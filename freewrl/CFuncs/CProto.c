@@ -177,7 +177,7 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
  protoDefinition_fillInnerPtrs(ret);
 
  /* Copy the scene graph and fill the fields thereby */
- ret->tree=protoDefinition_deepCopy(me->tree, ret);
+ ret->tree=protoDefinition_deepCopy(me->tree, ret, NULL);
  ret->tree->__protoDef=ret;
 
  return ret;
@@ -237,25 +237,25 @@ void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
 /* ************ */
 
 /* Deepcopies sf */
-#define DEEPCOPY_sfbool(v, i) v
-#define DEEPCOPY_sfcolor(v, i) v
-#define DEEPCOPY_sfcolorrgba(v, i) v
-#define DEEPCOPY_sffloat(v, i) v
-#define DEEPCOPY_sfimage(v, i) deepcopy_sfimage(v, i)
-#define DEEPCOPY_sfint32(v, i) v
-#define DEEPCOPY_sfnode(v, i) protoDefinition_deepCopy(v, i)
-#define DEEPCOPY_sfrotation(v, i) v
-#define DEEPCOPY_sfstring(v, i) deepcopy_sfstring(v)
-#define DEEPCOPY_sftime(v, i) v
-#define DEEPCOPY_sfvec2f(v, i) v
-#define DEEPCOPY_sfvec3f(v, i) v
+#define DEEPCOPY_sfbool(v, i, h) v
+#define DEEPCOPY_sfcolor(v, i, h) v
+#define DEEPCOPY_sfcolorrgba(v, i, h) v
+#define DEEPCOPY_sffloat(v, i, h) v
+#define DEEPCOPY_sfimage(v, i, h) deepcopy_sfimage(v, i, h)
+#define DEEPCOPY_sfint32(v, i, h) v
+#define DEEPCOPY_sfnode(v, i, h) protoDefinition_deepCopy(v, i, h)
+#define DEEPCOPY_sfrotation(v, i, h) v
+#define DEEPCOPY_sfstring(v, i, h) deepcopy_sfstring(v)
+#define DEEPCOPY_sftime(v, i, h) v
+#define DEEPCOPY_sfvec2f(v, i, h) v
+#define DEEPCOPY_sfvec3f(v, i, h) v
 static struct Multi_Int32 DEEPCOPY_mfint32(struct Multi_Int32,
- struct ProtoDefinition*);
+ struct ProtoDefinition*, struct PointerHash*);
 static vrmlImageT deepcopy_sfimage(vrmlImageT img,
- struct ProtoDefinition* new)
+ struct ProtoDefinition* new, struct PointerHash* hash)
 {
  vrmlImageT ret=malloc(sizeof(*img));
- *ret=DEEPCOPY_mfint32(*img, new);
+ *ret=DEEPCOPY_mfint32(*img, new, hash);
  return ret;
 }
 static vrmlStringT deepcopy_sfstring(vrmlStringT str)
@@ -270,14 +270,14 @@ static vrmlStringT deepcopy_sfstring(vrmlStringT str)
 /* Deepcopies a mf* */
 #define DEEPCOPY_MFVALUE(type, stype) \
  static struct Multi_##stype DEEPCOPY_mf##type(struct Multi_##stype src, \
-  struct ProtoDefinition* new) \
+  struct ProtoDefinition* new, struct PointerHash* hash) \
  { \
   int i; \
   struct Multi_##stype dest; \
   dest.n=src.n; \
   dest.p=malloc(sizeof(src.p[0])*src.n); \
   for(i=0; i!=src.n; ++i) \
-   dest.p[i]=DEEPCOPY_sf##type(src.p[i], new); \
+   dest.p[i]=DEEPCOPY_sf##type(src.p[i], new, hash); \
   if(new) \
    protoDefinition_doPtrUpdate(new, \
     (uint8_t*)src.p, (uint8_t*)(src.p+src.n), (uint8_t*)dest.p); \
@@ -299,12 +299,24 @@ DEEPCOPY_MFVALUE(vec3f, Vec3f)
 
 /* Nodes; may be used to update the interface-pointers, too. */
 struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
- struct ProtoDefinition* new)
+ struct ProtoDefinition* new, struct PointerHash* hash)
 {
  struct X3D_Node* ret;
+ BOOL myHash=(!hash);
 
  /* If we get nothing, what can we return? */
  if(!node) return NULL;
+
+ /* Check if we've already copied this node */
+ if(hash)
+ {
+  ret=pointerHash_get(hash, node);
+  if(ret)
+   return ret;
+ }
+
+ if(!hash)
+  hash=newPointerHash();
 
  /* Create it */
  ret=createNewX3DNode(node->_nodeType);
@@ -329,7 +341,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
   /* Copying of fields depending on type */
 
   #define FIELD(n, field, type, var) \
-   ret2->var=DEEPCOPY_##type(node2->var, new);
+   ret2->var=DEEPCOPY_##type(node2->var, new, hash);
 
   #define EVENT_IN(n, f, t, v)
   #define EVENT_OUT(n, f, t, v)
@@ -351,6 +363,13 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
    break;
 
  }
+
+ if(myHash)
+  deletePointerHash(hash);
+
+ /* Add pointer pair to hash */
+ if(!myHash)
+  pointerHash_add(hash, node, ret);
 
  return ret;
 }
@@ -399,12 +418,12 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
    #define SF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
      *vector_get(vrml##ttype##T*, me->dests, i)= \
-      DEEPCOPY_##type(val->type, NULL); \
+      DEEPCOPY_##type(val->type, NULL, NULL); \
      break;
    #define MF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
      *vector_get(struct Multi_##ttype*, me->dests, i)= \
-      DEEPCOPY_##type(val->type, NULL); \
+      DEEPCOPY_##type(val->type, NULL, NULL); \
      break;
    #include "VrmlTypeList.h"
    #undef SF_TYPE
@@ -432,7 +451,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
  {
   #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
-    ret->defaultVal.type=DEEPCOPY_##type(me->defaultVal.type, NULL); \
+    ret->defaultVal.type=DEEPCOPY_##type(me->defaultVal.type, NULL, NULL); \
     break;
   #define MF_TYPE(fttype, type, ttype) \
    SF_TYPE(fttype, type, ttype)
@@ -445,4 +464,70 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
  }
 
  return ret;
+}
+
+/* ************************************************************************** */
+/* ******************************* PointerHash ****************************** */
+/* ************************************************************************** */
+
+/* Constructor and destructor */
+/* ************************** */
+
+struct PointerHash* newPointerHash()
+{
+ struct PointerHash* ret=malloc(sizeof(struct PointerHash));
+ size_t i;
+ assert(ret);
+
+ for(i=0; i!=POINTER_HASH_SIZE; ++i)
+  ret->data[i]=NULL;
+
+ return ret;
+}
+
+void deletePointerHash(struct PointerHash* me)
+{
+ size_t i;
+ for(i=0; i!=POINTER_HASH_SIZE; ++i)
+  if(me->data[i])
+   deleteVector(struct PointerHashEntry, me->data[i]);
+ free(me);
+}
+
+/* Query the hash */
+struct X3D_Node* pointerHash_get(struct PointerHash* me, struct X3D_Node* o)
+{
+ size_t pos=((unsigned long)o)%POINTER_HASH_SIZE;
+ size_t i;
+
+ if(!me->data[pos])
+  return NULL;
+
+ for(i=0; i!=vector_size(me->data[pos]); ++i)
+ {
+  struct PointerHashEntry* entry=
+   &vector_get(struct PointerHashEntry, me->data[pos], i);
+  if(entry->original==o)
+   return entry->copy;
+ }
+
+ return NULL;
+}
+
+/* Add to the hash */
+void pointerHash_add(struct PointerHash* me,
+ struct X3D_Node* o, struct X3D_Node* c)
+{
+ size_t pos=((unsigned long)o)%POINTER_HASH_SIZE;
+ struct PointerHashEntry entry;
+
+ assert(!pointerHash_get(me, o));
+
+ if(!me->data[pos])
+  me->data[pos]=newVector(struct PointerHashEntry, 4);
+ 
+ entry.original=o;
+ entry.copy=c;
+
+ vector_pushBack(struct PointerHashEntry, me->data[pos], entry);
 }

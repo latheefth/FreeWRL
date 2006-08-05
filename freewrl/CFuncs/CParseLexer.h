@@ -43,6 +43,10 @@ void lexer_destroyIdStack(Stack*);
 #define lexer_eof(me) \
  ((me)->isEof && !(me)->curID)
 
+/* indexT -> char* conversion */
+#define lexer_stringUFieldName(index) \
+ vector_get(char*, stack_top(userFieldNames), index)
+
 /* Skip whitespace and comments. */
 void lexer_skip(struct VRMLLexer*);
 

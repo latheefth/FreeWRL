@@ -16,6 +16,8 @@
 #include "CParseGeneral.h"
 #include "Vector.h"
 
+struct PointerHash;
+
 /* ************************************************************************** */
 /* ********************************* ProtoFieldDecl ************************* */
 /* ************************************************************************** */
@@ -39,6 +41,20 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl*);
 
 /* Copies */
 struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
+
+/* Accessors */
+#define protoFieldDecl_getType(me) \
+ ((me)->type)
+#define protoFieldDecl_getAccessType(me) \
+ ((me)->mode)
+#define protoFieldDecl_getIndexName(me) \
+ ((me)->name)
+#define protoFieldDecl_getStringName(me) \
+ lexer_stringUFieldName(protoFieldDecl_getIndexName(me))
+#define protoFieldDecl_getDestinationCount(me) \
+ vector_size((me)->dests)
+#define protoFieldDecl_getDestination(me, i) \
+ vector_get(void*, (me)->dests, i)
 
 /* Add a destination this field's value must be assigned to */
 #define protoFieldDecl_addDestination(me, d) \
@@ -114,6 +130,12 @@ void protoDefinition_addNode(struct ProtoDefinition*, struct X3D_Node*);
 #define protoDefinition_addIfaceField(me, field) \
  vector_pushBack(struct ProtoFieldDecl*, (me)->iface, field)
 
+/* Get fields by indices */
+#define protoDefinition_getFieldCount(me) \
+ vector_size((me)->iface)
+#define protoDefinition_getFieldByNum(me, i) \
+ vector_get(struct ProtoFieldDecl*, (me)->iface, i)
+
 /* Retrieves a field declaration of this PROTO */
 struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*, 
  indexT, indexT);
@@ -133,10 +155,41 @@ void protoDefinition_doPtrUpdate(struct ProtoDefinition*,
 
 /* Does a recursively deep copy of a node-tree */
 struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*,
- struct ProtoDefinition*);
+ struct ProtoDefinition*, struct PointerHash*);
 
 /* Adds an inner route */
 #define protoDefinition_addRoute(me, r) \
  vector_pushBack(struct ProtoRoute*, (me)->routes, r)
+
+/* ************************************************************************** */
+/* ******************************* PointerHash ****************************** */
+/* ************************************************************************** */
+
+/* A hash table used to check whether a specific pointer has already been
+ * copied.  Otherwise we can't keep things like multiple references to the same
+ * node when copying. */
+
+/* An entry */
+struct PointerHashEntry
+{
+ struct X3D_Node* original;
+ struct X3D_Node* copy;
+};
+
+/* The object */
+struct PointerHash
+{
+ #define POINTER_HASH_SIZE	4321
+ struct Vector* data[POINTER_HASH_SIZE];
+};
+
+struct PointerHash* newPointerHash();
+void deletePointerHash(struct PointerHash*);
+
+/* Query the hash */
+struct X3D_Node* pointerHash_get(struct PointerHash*, struct X3D_Node*);
+
+/* Add to the hash */
+void pointerHash_add(struct PointerHash*, struct X3D_Node*, struct X3D_Node*);
 
 #endif /* Once-check */
