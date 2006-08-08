@@ -28,6 +28,10 @@ unsigned int fog_stack[MAX_STACK];
 unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
 
+/* Background - fog nodes do not affect the background node rendering. */
+int fog_enabled = FALSE;
+
+
 void saveBGVert (float *colptr, float *pt,
 		int *vertexno, float *col, double dist,
 		double x, double y, double z) ;
@@ -364,6 +368,9 @@ void render_Fog (struct X3D_Fog *node) {
 
 		/* if we do not have any more nodes on top of stack, disable fog */
 		glDisable (GL_FOG);
+		fog_enabled = FALSE;		
+
+
 	}
 
 	if(!node->isBound) return;
@@ -410,6 +417,7 @@ void render_Fog (struct X3D_Fog *node) {
 		glFogi(GL_FOG_MODE, GL_LINEAR);
 	}
 	glEnable (GL_FOG);
+	fog_enabled = TRUE;
 
 	glPopMatrix();
 }
@@ -692,6 +700,9 @@ void render_Background (struct X3D_Background *node) {
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
 
+	/* is fog enabled? if so, disable it right now */
+	if (fog_enabled ==TRUE) glDisable (GL_FOG);
+
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
 
@@ -731,6 +742,10 @@ void render_Background (struct X3D_Background *node) {
         	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 	}
 	glPopMatrix();
+
+	/* is fog enabled? if so, disable it right now */
+	if (fog_enabled ==TRUE) glEnable (GL_FOG);
+
 }
 
 
@@ -744,6 +759,9 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
+
+	/* is fog enabled? if so, disable it right now */
+	if (fog_enabled ==TRUE) glDisable (GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -778,4 +796,8 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* pushes are done in moveBackgroundCentre */
 	glPopMatrix();
+
+	/* is fog enabled? if so, disable it right now */
+	if (fog_enabled ==TRUE) glEnable (GL_FOG);
+
 }
