@@ -620,7 +620,7 @@ sub EAI_LocateNode {
 
 	#print "BROWSER:EAI_LocateNode, now $realele\n";
 
-	#print "EAI_LocateNode fields of ".$realele->{TypeName}."are:\n";
+	#print "EAI_LocateNode fields of ".$realele->{TypeName}." are:\n";
 	#foreach (keys %{$realele->{Fields}}) { print "     fields $_\n"; }
 
 
@@ -631,12 +631,26 @@ sub EAI_LocateNode {
 
 	#print "BROWSER::EAI_LocateNode fieldname $fieldname, evin: ",
 	#$realele->{Type}{EventIns}{$fieldname}," kinds ",
-		#$realele->{Type}{FieldKinds}{$fieldname},"\n";
+	#	$realele->{Type}{FieldKinds}{$fieldname},"\n";
 
 		#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
 	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
 	#print "\n\n\n";
 	#print "BROWSER::EAI_LocateNode now $fieldname\n";
+
+	# ok - is this an "addChildren", and does this node have a "children" field??
+	if ($fieldname eq "addChildren") {
+		if (exists $realele->{Fields}{addChildren}) {
+			$fieldname = "children";
+		}
+	}
+
+	# ok - is this an "removeChildren", and does this node have a "children" field??
+	if ($fieldname eq "removeChildren") {
+		if (exists $realele->{Fields}{removeChildren}) {
+			$fieldname = "children";
+		}
+	}
 
 	if ((exists $realele->{Fields}{$fieldname}) && ($realele->{Fields}{$fieldname} ne "")) {
 		#print "BROWSER:EAI - field $fieldname exists in node, it is ",

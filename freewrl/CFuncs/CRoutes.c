@@ -1029,8 +1029,6 @@ void AddRemoveChildren (
 	}
 }
 
-#undef CRVERBOSE
-
 /****************************************************************/
 /* a CLASS is returning a Multi-number type; copy this from 	*/
 /* the CLASS to the data structure within the freewrl C side	*/

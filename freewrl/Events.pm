@@ -488,6 +488,13 @@ sub add_route {
 	# nodes.
 
 
+	# a set_children is different than an addChildren or removeChildren, but they all operate on the children field...
+	if ($eventIn eq "addChildren") {
+		$extraparam = 1;
+	} elsif ($eventIn eq "removeChildren") {
+		 $extraparam = 2;
+	}
+
 
 	# get the FROM node/field
 	my $node;

@@ -13,8 +13,6 @@
 #include "headers.h"
 #include "jsVRMLBrowser.h"
 
-#define JSVERBOSE
-
 /* used in loadURL*/
 void conCat (char *out, char *in) {
 
@@ -41,10 +39,11 @@ void conCat (char *out, char *in) {
 
 
 
-void createLoadUrlString(char *out, char *url, char *param) {
+void createLoadUrlString(char *out, int outLen, char *url, char *param) {
 	int commacount1;
 	int commacount2;
 	char *tptr;
+	char *orig;
 
 	/* mimic the EAI loadURL, java code is:
         // send along sizes of the Strings
@@ -58,6 +57,9 @@ void createLoadUrlString(char *out, char *url, char *param) {
                 SysString = SysString + " :loadURLStringBreak:" + parameter[count];
         }
 	*/
+
+	/* keep an original copy of the pointer */
+	orig = out;
 	
 	/* find out how many elements there are */
 
@@ -66,6 +68,14 @@ void createLoadUrlString(char *out, char *url, char *param) {
 	tptr = param; while (*tptr != '\0') { if (*tptr == '"') commacount2 ++; tptr++; }
 	commacount1 = commacount1 / 2;
 	commacount2 = commacount2 / 2;
+
+	if ((	strlen(url) +
+		strlen(param) +
+		(commacount1 * strlen (" :loadURLStringBreak:")) +
+		(commacount2 * strlen (" :loadURLStringBreak:"))) > (outLen - 20)) {
+		printf ("createLoadUrlString, string too long\n");
+		return;
+	}
 
 	sprintf (out,"%d %d",commacount1,commacount2);
 	
@@ -158,7 +168,7 @@ JSBool
 VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	JSString *_str;
-	char FPSstring[10];
+	char FPSstring[1000];
 
 	UNUSED(obj);
 	UNUSED(argc);
@@ -248,7 +258,8 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 	char *_c_args = "MFString url, MFString parameter",
 		*_costr[2],
 		*_c_format = "o o";
-	char myBuf[2000];
+	#define myBufSize 2000
+	char myBuf[myBufSize];
 
 	FUNC_INIT
 
@@ -276,7 +287,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 		extern struct X3D_Anchor EAI_AnchorNode;
 
 		/* make up the URL from what we currently know */
-		createLoadUrlString(myBuf,_costr[0], _costr[1]);
+		createLoadUrlString(myBuf,myBufSize,_costr[0], _costr[1]);
 		createLoadURL(myBuf);
 
 		/* now tell the EventLoop that BrowserAction is requested... */
@@ -327,10 +338,12 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 
 	/* for the return of the nodes */
 	uintptr_t nodarr[200];
-	char xstr[20000];
-	char tmpstr[200];
+	char *xstr; 
+	char *tmpstr;
 	int ra;
 	int count;
+	int wantedsize;
+	int mallocdsize;
 	
 
 	/* make this a default value */
@@ -353,16 +366,27 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		#endif
 
 		/* and, make a string that we can use to create the javascript object */
-		strcpy (xstr,"Browser.__ret=new MFNode(");
+		mallocdsize = 200;
+		xstr = malloc (mallocdsize);
+		strcpy (xstr,"new MFNode(");
 		for (count=0; count<ra; count += 2) {
-			sprintf (tmpstr,"new SFNode('bubba','%d')",nodarr[count*2+1]);
+			tmpstr = malloc(strlen(_c) + 100);
+			sprintf (tmpstr,"new SFNode('%s','%d')",_c,nodarr[count*2+1]);
+			wantedsize = strlen(tmpstr) + strlen(xstr);
+			if (wantedsize > mallocdsize) {
+				mallocdsize = wantedsize +200;
+				xstr = realloc (xstr,mallocdsize);
+			}
+			
+			
 			strncat (xstr,tmpstr,strlen(tmpstr));
+			free (tmpstr);
 		}
 		strcat (xstr,")");
 		
-printf ("going to call jsrunScript with %s\n",xstr);
 		/* create this value NOTE: rval is set here. */
 		jsrrunScript(context, obj, xstr, rval);
+		free (xstr);
 
 	} else {
 		printf("\nIncorrect argument format for createVrmlFromString(%s).\n", _c_args);
@@ -388,8 +412,9 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	uintptr_t nodarr[200];
 	uintptr_t myptr;
 	int ra;
-	char filename[2000];
-	char tfilename [2000];
+	#define myFileSizeLimit 4000
+	char filename[myFileSizeLimit];
+	char tfilename [myFileSizeLimit];
 	char *tfptr; 
 	char *coptr;
 	char firstBytes[4];
@@ -429,6 +454,11 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		_str[1] = JS_ValueToString(context, _v);
 		_costr1 = JS_GetStringBytes(_str[1]);
 		ra = sscanf (_costr1,"%d",&myptr);
+
+		/* bounds checks */
+		if (sizeof (_costr) > (myFileSizeLimit-200)) {
+			printf ("VrmlBrowserCreateVrmlFromURL, url too long...\n"); return;
+		}
 
 		/* ok - here we have:
 			_costr0	: the url string array; eg: [ "vrml.wrl" ]
