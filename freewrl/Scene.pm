@@ -526,9 +526,9 @@ sub prototopnodes {
 	# encase the proto nodes in a Group
 	 my $ntn = ($this->new_node("Group",{children => $nodes}));
 
-	# tell the rendering engine that this is a PROTO - render only first child
-	$ntn->{Fields}{__isProto} = 1;
-	push (@{$this->{Nodes}}, $ntn);
+	#JAS # tell the rendering engine that this is a PROTO - render only first child
+	#JAS $ntn->{Fields}{__isProto} = 1;
+	#JAS push (@{$this->{Nodes}}, $ntn);
 }
 
 # topnodes for non-PROTO Scenes.

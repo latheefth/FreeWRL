@@ -1667,9 +1667,15 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	JSString *_str, *_idStr, *_valStr;
 	BrowserNative *brow;
 	SFNodeNative *ptr;
-	jsval _rval = 0;
-	char *_id_c, *_val_c, *_buff;
-	size_t id_len = 0, val_len = 0;
+	char *_id_c, *_val_c;
+	size_t val_len = 0;
+
+	struct X3D_Group *myNode;
+	int ra;
+	#define RETVALLEN 3000
+	char myRetVal[RETVALLEN];
+
+	*vp = INT_TO_JSVAL(0);
 
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFNodeGetProperty.\n");
@@ -1678,7 +1684,6 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);
-	id_len = strlen(_id_c) + 1;
 
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
@@ -1701,38 +1706,17 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			printf( "getBrowser failed in SFNodeSetProperty.\n");
 			return JS_FALSE;
 		}
+		if (JSVRMLClassesVerbose) printf ("SFNodeGetProperty, getting the property:%s: for %s\n",_id_c,ptr->handle);
 
-		if ((_buff = (char *) malloc((id_len + STRING) * sizeof(char))) == NULL) {
-			printf( "malloc failed in SFNodeSetProperty.\n");
-			return JS_FALSE;
-		}
-		val_len = strlen(ptr->handle) + 1;
-		sprintf(_buff, "NODE%.*s_%.*s", val_len, ptr->handle, id_len, _id_c);
 
-		if (JSVRMLClassesVerbose) printf ("\n\n getting property for buff %s\n\n",_buff);
-		if (!JS_SetProperty(cx, globalObj, _buff, vp)) {
-			printf(
-					"JS_SetProperty failed for \"%s\" in SFNodeGetProperty.\n",
-					_buff);
-			return JS_FALSE;
-		}
+		/* convert the handle into a memory node pointer */
+		ra = sscanf (ptr->handle,"%d",&myNode);
 
-		if (JSVRMLClassesVerbose) printf ("SFNodeGetProperty, getting the property for %s\n",ptr->handle);
-printf ("DPCVA getprop\n");
-		/* doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle); */
+		/* get the field value as a string, then run it to create the javascript object */
+		c_get_field_be(myNode,_id_c,myRetVal,RETVALLEN,SENDER_JAVASCRIPT);
 
-		if (JSVRMLClassesVerbose) printf ("getting property for vuff %s\n",_buff);
-		if (!JS_GetProperty(cx, globalObj, _buff, &_rval)) {
-			printf ("failed; try for prepending a NODE to the front\n");
-			printf(
-					"JS_GetProperty failed in SFNodeGetProperty.\n");
-			return JS_FALSE;
-		}
-		*vp = _rval;
-		if (JSVRMLClassesVerbose) printf ("jsp, returnval %d, storing in %d\n",_rval,vp);
-		if (JSVRMLClassesVerbose) printf ("jsp, is rv a string?\n");
-		/* if (JSVAL_IS_STRING(_rval)) printf ("yes!\n");*/
-		free(_buff);
+                /* create this value NOTE: rval is set here. */
+                jsrrunScript(cx, obj, myRetVal, vp);
 	}
 
 	if (JSVRMLClassesVerbose &&
@@ -1757,15 +1741,14 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	JSString *_idStr, *_valStr;
 	BrowserNative *brow;
 	SFNodeNative *ptr;
-	char *_id_c, *_val_c, *_buff;
-	size_t id_len = 0, val_len = 0;
+	char *_id_c, *_val_c;
+	size_t val_len = 0;
 
 	uintptr_t ra;
 	int retint;
 
 	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);
-	id_len = strlen(_id_c) + 1;
 
 	_valStr = JS_ValueToString(cx, *vp);
 	_val_c = JS_GetStringBytes(_valStr);
@@ -1816,10 +1799,10 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 
-		printf ("SFNodeSetProperty, setting node %s field %s to value %s\n", ptr->handle,_id_c,_val_c);
+		if (JSVRMLClassesVerbose)printf ("SFNodeSetProperty, setting node %s field %s to value %s\n", ptr->handle,_id_c,_val_c);
 		retint = sscanf (ptr->handle,"%d",&ra);
 		/* printf ("scanned in %d values, are %d\n",retint,ra); */
-		c_set_field_be ((void *)ra, _id_c, _val_c);
+		c_set_field_be ((void *)ra, _id_c, _val_c, SENDER_JAVASCRIPT);
 
 	}
 

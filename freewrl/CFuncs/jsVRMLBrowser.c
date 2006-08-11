@@ -13,6 +13,24 @@
 #include "headers.h"
 #include "jsVRMLBrowser.h"
 
+/* we add/remove routes with this call */
+void jsRegisterRoute(
+	struct X3D_Node* from, int fromOfs,
+	struct X3D_Node* to, int toOfs,
+	int len, const char *adrem) {
+ 	char tonode_str[15];
+ 	snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+	int ad;
+
+	if (strncmp("addRoute",adrem,strlen("addRoute")) == 0) 
+		ad = 1;
+	else ad = 0;
+
+ 	CRoutes_Register(ad, from, fromOfs, 1, tonode_str, len, 
+ 		 returnInterpolatorPointer(stringNodeType(to->_nodeType)), 0, 0);
+}
+ 
+
 /* used in loadURL*/
 void conCat (char *out, char *in) {
 
@@ -222,7 +240,7 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 			printf( "\nIncorrect argument in VrmlBrowserReplaceWorld.\n");
 			return JS_FALSE;
 		}
-		_str = JS_ValueToString(context, _obj);
+		_str = JS_ValueToString(context, argv[0]);
 		_costr = JS_GetStringBytes(_str);
 
 		/* sanitize string, for the EAI_RW call (see EAI_RW code) */
@@ -538,9 +556,9 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		/* remember the freewrl addChildren removeChildren stuff? */
 		if ((strncmp (_c,"addChildren",strlen("addChildren")) == 0) ||
 		(strncmp (_c,"removeChildren",strlen("removeChildren")) == 0)) {
-			c_set_field_be ((uintptr_t *)myptr, "children", filename);
+			c_set_field_be ((uintptr_t *)myptr, "children", filename,SENDER_JAVASCRIPT);
 		} else {
-			c_set_field_be ((uintptr_t *)myptr, _c, filename);
+			c_set_field_be ((uintptr_t *)myptr, _c, filename,SENDER_JAVASCRIPT);
 		}
 
 	} else {
@@ -555,8 +573,7 @@ JSBool
 VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	jsval _rval = INT_TO_JSVAL(0);
-	if (!doVRMLRoute(context, obj, argc, argv,
-					 "VrmlBrowserAddRoute", "jspBrowserAddRoute", "addRoute")) {
+	if (!doVRMLRoute(context, obj, argc, argv, "addRoute")) {
 		printf( "doVRMLRoute failed in VrmlBrowserAddRoute.\n");
 		return JS_FALSE;
 	}
@@ -584,6 +601,7 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 				#ifdef HAVE_NOTOOLKIT 
 					printf ("%s", _id_c);
 				#else
+					printf ("%s\n", _id_c);
 					ConsoleMessage(_id_c);
 				#endif
 			#endif
@@ -605,32 +623,40 @@ JSBool
 VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	jsval _rval = INT_TO_JSVAL(0);
-	if (!doVRMLRoute(context, obj, argc, argv,
-					 "VrmlBrowserDeleteRoute", "jspBrowserDeleteRoute", "deleteRoute")) {
+	if (!doVRMLRoute(context, obj, argc, argv, "deleteRoute")) {
 		printf( "doVRMLRoute failed in VrmlBrowserDeleteRoute.\n");
 		return JS_FALSE;
 	}
 	*rval = _rval;
 	return JS_TRUE;
+
+	printf ("VrmlBrowserDeleteRoute\n");
 }
 
 
 static JSBool
 doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
-			const char *callingFunc, const char *perlBrowserFunc, const char *browserFunc)
+			const char *callingFunc)
 {
 	jsval _v[2];
 	BrowserNative *brow;
 	JSObject *_obj[2];
 	JSClass *_cls[2];
 	JSString *_str[2];
-	char *_route,
+	char 
 		*_cstr[2],
 		*_costr[2],
 		*_c_args =
 		"SFNode fromNode, SFString fromEventOut, SFNode toNode, SFString toEventIn",
 		*_c_format = "o s o s";
-	size_t len;
+	struct X3D_Node *fromNode;
+	struct X3D_Node *toNode;
+	int fromOfs, toOfs, len;
+	int fromtype, totype;
+int ckind;
+int xxx;
+int ra;
+int myField;
 
 	FUNC_INIT
 
@@ -652,7 +678,7 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 		if (memcmp("SFNode", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
 			memcmp("SFNode", (_cls[1])->name, strlen((_cls[1])->name)) != 0) {
 			printf("\nArguments 0 and 2 must be SFNode in doVRMLRoute called from %s(%s): %s\n",
-					browserFunc, _c_args, callingFunc);
+					callingFunc, _c_args, callingFunc);
 			return JS_FALSE;
 		}
 
@@ -672,15 +698,60 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 		_str[1] = JS_ValueToString(context, _v[1]);
 		_costr[1] = JS_GetStringBytes(_str[1]);
 
-		len = strlen(_costr[0]) + strlen(_cstr[0]) +
-			strlen(_costr[1]) + strlen(_cstr[1]) + 7;
-		_route = (char *)JS_malloc(context, len * sizeof(char *));
-		sprintf(_route, "%s %s %s %s",
-				_costr[0], _cstr[0],
-				_costr[1], _cstr[1]);
+		/* printf ("routing from %s %s to %s %s\n", _costr[0], _cstr[0], _costr[1], _cstr[1]); */
 
-printf ("DPCVA route\n");/*		doPerlCallMethodVA(brow->sv_js, perlBrowserFunc, "s", _route);*/
-		JS_free(context, _route);
+		/* convert the "handles" into memory pointers */
+		if ((sscanf (_costr[0],"%d",&fromNode) == 0) ||
+			(sscanf (_costr[1],"%d",&toNode) == 0)) {
+			printf ("JS Routing, problem converting %s or %s to node pointer\n",_costr[0],_costr[1]);
+			return JS_FALSE;
+		}
+
+		/*
+		printf ("routing from a node of type %s to a node of type %s\n",
+			stringNodeType(fromNode->_nodeType), 
+			stringNodeType(toNode->_nodeType));
+		*/
+
+		/* From field */
+		if ((strncmp (_cstr[0],"addChildren",strlen("addChildren")) == 0) || 
+		(strncmp (_cstr[0],"removeChildren",strlen("removeChildren")) == 0)) {
+			myField = findFieldInALLFIELDNAMES("children");
+		} else {
+			/* try finding it, maybe with a "set_" or "changed" removed */
+			myField = findRoutedFieldInFIELDNAMES(_cstr[0],0);
+			if (myField == -1) 
+				myField = findRoutedFieldInFIELDNAMES(_cstr[0],1);
+		}
+
+		/* find offsets, etc */
+       		findFieldInOFFSETS(NODE_OFFSETS[fromNode->_nodeType], myField, &fromOfs, &fromtype, &xxx);
+
+		/* To field */
+		if ((strncmp (_cstr[1],"addChildren",strlen("addChildren")) == 0) || 
+		(strncmp (_cstr[1],"removeChildren",strlen("removeChildren")) == 0)) {
+			myField = findFieldInALLFIELDNAMES("children");
+		} else {
+			/* try finding it, maybe with a "set_" or "changed" removed */
+			myField = findRoutedFieldInFIELDNAMES(_cstr[1],0);
+			if (myField == -1) 
+				myField = findRoutedFieldInFIELDNAMES(_cstr[1],1);
+		}
+
+		/* find offsets, etc */
+       		findFieldInOFFSETS(NODE_OFFSETS[toNode->_nodeType], myField, &toOfs, &totype, &xxx);
+
+		/* do we have a mismatch here? */
+		if (fromtype != totype) {
+			printf ("Javascript routing problem - can not route from %s to %s\n",
+				stringNodeType(fromNode->_nodeType), 
+				stringNodeType(toNode->_nodeType));
+			return JS_FALSE;
+		}
+
+		len = returnRoutingElementLength(totype);
+
+		jsRegisterRoute(fromNode, fromOfs, toNode, toOfs, len,callingFunc);
 	} else {
 		printf( "\nIncorrect argument format for %s(%s).\n",
 				callingFunc, _c_args);

@@ -264,7 +264,6 @@ void render_node(void *node) {
 	    printf("=========================================NODE RENDERED===================================================\n");
 	printf ("node %d %d\n",p,v);
 	printf ("nodename %s\n",stringNodeType(p->_nodeType));
-return;
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
 		   stringNodeType(p->_nodeType),
 		   v->prep,
@@ -475,7 +474,6 @@ return;
 	    printf("==============\n");
 	  }
 	  #endif
-
 }
 
 /*
@@ -852,7 +850,7 @@ int findFieldInALLFIELDNAMES(char *field) {
 }
 
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
-void findFieldInOFFSETS(int *nodeOffsetPtr, int field, int *coffset, int *ctype, int *ckind) {
+void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind) {
 	int *x;
 
 	x = nodeOffsetPtr;
@@ -1056,7 +1054,7 @@ printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d
 
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
 route TO an interpolator */
-void *returnInterpolatorPointer (char *x) {
+void *returnInterpolatorPointer (const char *x) {
 	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
 		return (void *)do_Oint4;
 	} else if (strncmp("CoordinateInterpolator2D",x,strlen("CoordinateInterpolator2D"))==0) {
@@ -1092,15 +1090,19 @@ void *returnInterpolatorPointer (char *x) {
 	}
 }
 
+void c_get_field_be (void *ptr, char *field, char *retvalue, int valueLen, int sender) {
+	printf ("c_get_field_be not finished getting field %s of node %d\n",field,ptr);
+	strcpy (retvalue,"245");
+}
 
 /* set a field; used in JavaScript, and in the Perl VRML parser */
-void c_set_field_be (void *ptr, char *field, char *value) {
+void c_set_field_be (void *ptr, char *field, char *value, int sender) {
 	int foffset;
 	int coffset;
 	int ctype;
 	int ctmp;
 
-	struct X3D_Box *node;
+	struct X3D_Node *node;
 	struct X3D_Group *group;
 
 	node = (struct X3D_Box *)ptr;
@@ -1111,7 +1113,10 @@ void c_set_field_be (void *ptr, char *field, char *value) {
 	
 	/* is this a valid field? */
 	foffset = findFieldInALLFIELDNAMES(field);	
-	if (foffset < 0) return;
+	if (foffset < 0) {
+		printf ("set_field_be, field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
+		/* return; */
+	}
 
 	/* get offsets for this field in this nodeType */
 	#ifdef SETFIELDVERBOSE

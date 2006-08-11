@@ -68,7 +68,7 @@ int msgChanged = FALSE;
 char *consMsg = NULL; int consmsgChanged = FALSE;
 int localtexpri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
 int localshapepri = TRUE; /* mimics textures_take_priority in CFuncs/RenderFuncs.c */
-int cparser = FALSE; /* do not use Daniel Kraft's C parser unless clicked */
+int cparser = TRUE; /* do not use Daniel Kraft's C parser unless clicked */
 #define MAXSTAT 200
 char fpsstr[MAXSTAT+20];
 

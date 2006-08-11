@@ -40,8 +40,6 @@ doVRMLRoute(JSContext *context,
 			JSObject *obj,
 			uintN argc,
 			jsval *argv,
-			const char *callingFunc,
-			const char *perlBrowserFunc,
 			const char *browserFunc);
 
 JSBool

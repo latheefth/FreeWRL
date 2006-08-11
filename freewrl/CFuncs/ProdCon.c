@@ -33,7 +33,7 @@ int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
 /* do we use the experimental parser for our work? */
-int useExperimentalParser = FALSE;
+int useExperimentalParser = TRUE;
 
 /* for keeping track of current url */
 char *currentWorkingUrl = NULL;
@@ -93,12 +93,6 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			int zeroBind);
 void __pt_doInline(void);
 void __pt_doStringUrl (void);
-void __pt_EAI_GetNode (void);
-void __pt_EAI_GetViewpoint (void);
-void __pt_EAI_GetType (void);
-void __pt_EAI_GetTypeName (void);
-void __pt_EAI_GetValue (void);
-void __pt_SAI_Command (void);
 void EAI_readNewWorld(char *inputstring);
 
 /* Bindables */
@@ -335,250 +329,254 @@ void loadInline(struct X3D_Inline *node) {
 		&node->__loadstatus,FALSE);
 }
 
-/* interface for getting a node number via the EAI */
-char *EAI_GetNode(const char *nname) {
-	int complete;
-	char *retval;
-	STRLEN len;
-
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	psp.comp = &complete;
-	psp.type = EAIGETNODE;
-	psp.retarr = NULL;
-	psp.ptr = (unsigned)NULL;
-	psp.ofs = (unsigned)NULL;
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-	psp.fieldname = strdup(nname);
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-	/* grab data */
-	retval = psp.retstr;
-
-	/* printf ("getNode is returning %s\n",retval); */
-	UNLOCK;
-	return (retval);
-}
-
-/* interface for getting a Viewpoint CNode */
-unsigned int EAI_GetViewpoint(const char *nname) {
-	int complete;
-	int retval;
-
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	psp.comp = &complete;
-	psp.type = EAIGETVIEWPOINT;
-	psp.retarr = NULL;
-	psp.ptr = (unsigned)NULL;
-	psp.ofs = (unsigned)NULL;
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-	psp.fieldname = strdup(nname);
-
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-	/* grab data */
-	retval = psp.jparamcount;
-	UNLOCK;
-	return (retval);
-}
-
-/* interface for getting node type parameters from EAI */
-void EAI_GetType(unsigned int nodenum, const char *fieldname, const char *direction,
-	int *nodeptr,
-	int *dataoffset,
-	int *datalen,
-	int *nodetype,
-	int *scripttype) {
-	int complete;
-
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	psp.ptr = strdup(direction);
-	psp.jparamcount=nodenum;
-	psp.fieldname = strdup(fieldname);
-
-	psp.comp = &complete;
-	psp.type = EAIGETTYPE;
-	psp.retarr = NULL;
-	psp.ofs = (unsigned)NULL;
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-
-	/* grab data */
-	/* copy results out */
-	*nodeptr = psp.Etype[0];
-	*dataoffset = psp.Etype[1];
-	*datalen = psp.Etype[2];
-	*nodetype = psp.Etype[3];
-	*scripttype = psp.Etype[4];
-	/* printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype); */
-	UNLOCK;
-}
-
-/* interface for getting node type parameters from EAI - mftype is for MF nodes.*/
-char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename) {
-	int complete;
-	char *retstr;
-
-	/* printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname); */
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	psp.ptr = strdup(nodename);
-	psp.jparamcount=nodenum;
-	psp.fieldname = strdup(fieldname);
-
-	psp.comp = &complete;
-	psp.type = EAIGETVALUE;
-	psp.retarr = NULL;
-	psp.ofs = (unsigned)NULL;
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-
-
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-
-
-
-	/* grab data */
-	/* copy results out */
-	retstr = psp.retstr;
-	/* printf ("EAI_GetValue finishing, retval = %s\n",retstr); */
-	UNLOCK;
-	return retstr;
-
-}
-
-/* interface for getting node type parameters from EAI */
-char* EAI_GetTypeName(unsigned int nodenum) {
-	int complete;
-	char *retstr;
-
-	/* printf ("EAI_GetTypeName starting node %d \n",nodenum);*/
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	psp.ptr = (unsigned int)NULL;
-	psp.jparamcount=nodenum;
-	psp.fieldname = NULL;
-
-	psp.comp = &complete;
-	psp.type = EAIGETTYPENAME;
-	psp.retarr = NULL;
-	psp.ofs = (unsigned)NULL;
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-
-
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-
-	/* grab data */
-	/* copy results out */
-	retstr = psp.retstr;
-	/* printf ("EAI_GetTypeName finishing, retval = %s\n",retstr);*/
-	UNLOCK;
-	return retstr;
-
-}
-
-/* interface for sending/getting simple commands to the EAI/SAI. eg, updateNamedNode */
-int SAI_IntRetCommand (char cmnd, const char *fn) {
-	int complete;
-	int retval;
-
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	psp.comp = &complete;
-	psp.type = SAICOMMAND;
-	psp.retarr = NULL;
-	psp.ofs = (unsigned) cmnd;
-	psp.ptr = NULL; /* null indicates that we want an integer returned here */
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-	psp.fieldname = strdup(fn);
-
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-
-	/* grab data */
-	retval = psp.jparamcount;
-	UNLOCK;
-	return retval;
-}
-
-/* interface for sending/getting simple commands to the EAI/SAI. eg, updateNamedNode */
-char *SAI_StrRetCommand (char cmnd, const char *fn) {
-	int complete;
-	char *retstr;
-
-	WAIT_WHILE_PERL_BUSY;
-	complete=0;
-	psp.comp = &complete;
-	psp.type = SAICOMMAND;
-	psp.retarr = NULL;
-	psp.ofs = (unsigned) cmnd;
-	psp.ptr = (void *)1; 	/* 1 signifies that we want an SV returned here */
-	psp.path = NULL;
-	psp.zeroBind = FALSE;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.inp = NULL;
-	psp.fieldname = strdup(fn);
-
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
-	UNLOCK;
-
-	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
-
-	/* grab data */
-	retstr = psp.retstr;
-	/* printf ("SAI_SVRetCommand, returning %s\n",retstr); */
-	UNLOCK;
-	return retstr;
-}
+#ifdef USEEAIANDPERL
+*unused*	/* interface for getting a node number via the EAI */
+*unused*	char *EAI_GetNode(const char *nname) {
+*unused*		int complete;
+*unused*		char *retval;
+*unused*		STRLEN len;
+*unused*	
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		complete=0;
+*unused*		psp.comp = &complete;
+*unused*		psp.type = EAIGETNODE;
+*unused*		psp.retarr = NULL;
+*unused*		psp.ptr = (unsigned)NULL;
+*unused*		psp.ofs = (unsigned)NULL;
+*unused*		psp.path = NULL;
+*unused*		psp.zeroBind = FALSE;
+*unused*		psp.bind = FALSE; /* should we issue a set_bind? */
+*unused*		psp.inp = NULL;
+*unused*		psp.fieldname = strdup(nname);
+*unused*		/* send data to Perl Interpreter */
+*unused*		SEND_TO_PERL;
+*unused*		UNLOCK;
+*unused*	
+*unused*		/* wait for data */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		/* grab data */
+*unused*		retval = psp.retstr;
+*unused*	
+*unused*		/* printf ("getNode is returning %s\n",retval); */
+*unused*		UNLOCK;
+*unused*		return (retval);
+*unused*	}
+*unused*	
+*unused*	/* interface for getting a Viewpoint CNode */
+*unused*	unsigned int EAI_GetViewpoint(const char *nname) {
+*unused*		int complete;
+*unused*		int retval;
+*unused*	
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		complete=0;
+*unused*		psp.comp = &complete;
+*unused*		psp.type = EAIGETVIEWPOINT;
+*unused*		psp.retarr = NULL;
+*unused*		psp.ptr = (unsigned)NULL;
+*unused*		psp.ofs = (unsigned)NULL;
+*unused*		psp.path = NULL;
+*unused*		psp.zeroBind = FALSE;
+*unused*		psp.bind = FALSE; /* should we issue a set_bind? */
+*unused*		psp.inp = NULL;
+*unused*		psp.fieldname = strdup(nname);
+*unused*	
+*unused*		/* send data to Perl Interpreter */
+*unused*		SEND_TO_PERL;
+*unused*		UNLOCK;
+*unused*	
+*unused*		/* wait for data */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		/* grab data */
+*unused*		retval = psp.jparamcount;
+*unused*		UNLOCK;
+*unused*		return (retval);
+*unused*	}
+*unused*	
+*unused*	/* interface for getting node type parameters from EAI */
+*unused*	void EAI_GetType(unsigned int nodenum, const char *fieldname, const char *direction,
+*unused*		int *nodeptr,
+*unused*		int *dataoffset,
+*unused*		int *datalen,
+*unused*		int *nodetype,
+*unused*		int *scripttype) {
+*unused*		int complete;
+*unused*	
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		complete=0;
+*unused*		psp.ptr = strdup(direction);
+*unused*		psp.jparamcount=nodenum;
+*unused*		psp.fieldname = strdup(fieldname);
+*unused*	
+*unused*		psp.comp = &complete;
+*unused*		psp.type = EAIGETTYPE;
+*unused*		psp.retarr = NULL;
+*unused*		psp.ofs = (unsigned)NULL;
+*unused*		psp.path = NULL;
+*unused*		psp.zeroBind = FALSE;
+*unused*		psp.bind = FALSE; /* should we issue a set_bind? */
+*unused*		psp.inp = NULL;
+*unused*	
+*unused*		/* send data to Perl Interpreter */
+*unused*		SEND_TO_PERL;
+*unused*		UNLOCK;
+*unused*	
+*unused*		/* wait for data */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*	
+*unused*		/* grab data */
+*unused*		/* copy results out */
+*unused*		*nodeptr = psp.Etype[0];
+*unused*		*dataoffset = psp.Etype[1];
+*unused*		*datalen = psp.Etype[2];
+*unused*		*nodetype = psp.Etype[3];
+*unused*		*scripttype = psp.Etype[4];
+*unused*		/* printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype); */
+*unused*		UNLOCK;
+*unused*	}
+*unused*	
+*unused*	/* interface for getting node type parameters from EAI - mftype is for MF nodes.*/
+*unused*	char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename) {
+*unused*		int complete;
+*unused*		char *retstr;
+*unused*	
+*unused*		/* printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname); */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		complete=0;
+*unused*		psp.ptr = strdup(nodename);
+*unused*		psp.jparamcount=nodenum;
+*unused*		psp.fieldname = strdup(fieldname);
+*unused*	
+*unused*		psp.comp = &complete;
+*unused*		psp.type = EAIGETVALUE;
+*unused*		psp.retarr = NULL;
+*unused*		psp.ofs = (unsigned)NULL;
+*unused*		psp.path = NULL;
+*unused*		psp.zeroBind = FALSE;
+*unused*		psp.bind = FALSE; /* should we issue a set_bind? */
+*unused*		psp.inp = NULL;
+*unused*	
+*unused*	
+*unused*		/* send data to Perl Interpreter */
+*unused*		SEND_TO_PERL;
+*unused*		UNLOCK;
+*unused*	
+*unused*		/* wait for data */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*	
+*unused*	
+*unused*	
+*unused*		/* grab data */
+*unused*		/* copy results out */
+*unused*		retstr = psp.retstr;
+*unused*		/* printf ("EAI_GetValue finishing, retval = %s\n",retstr); */
+*unused*		UNLOCK;
+*unused*		return retstr;
+*unused*	
+*unused*	}
+*unused*	
+*unused*	/* interface for getting node type parameters from EAI */
+*unused*	char* EAI_GetTypeName(unsigned int nodenum) {
+*unused*		int complete;
+*unused*		char *retstr;
+*unused*	
+*unused*		/* printf ("EAI_GetTypeName starting node %d \n",nodenum);*/
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		complete=0;
+*unused*		psp.ptr = (unsigned int)NULL;
+*unused*		psp.jparamcount=nodenum;
+*unused*		psp.fieldname = NULL;
+*unused*	
+*unused*		psp.comp = &complete;
+*unused*		psp.type = EAIGETTYPENAME;
+*unused*		psp.retarr = NULL;
+*unused*		psp.ofs = (unsigned)NULL;
+*unused*		psp.path = NULL;
+*unused*		psp.zeroBind = FALSE;
+*unused*		psp.bind = FALSE; /* should we issue a set_bind? */
+*unused*		psp.inp = NULL;
+*unused*	
+*unused*	
+*unused*		/* send data to Perl Interpreter */
+*unused*		SEND_TO_PERL;
+*unused*		UNLOCK;
+*unused*	
+*unused*		/* wait for data */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*	
+*unused*		/* grab data */
+*unused*		/* copy results out */
+*unused*		retstr = psp.retstr;
+*unused*		/* printf ("EAI_GetTypeName finishing, retval = %s\n",retstr);*/
+*unused*		UNLOCK;
+*unused*		return retstr;
+*unused*	
+*unused*	}
+*unused*	
+*unused*	/* interface for sending/getting simple commands to the EAI/SAI. eg, updateNamedNode */
+*unused*	int SAI_IntRetCommand (char cmnd, const char *fn) {
+*unused*		int complete;
+*unused*		int retval;
+*unused*	
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		complete=0;
+*unused*		psp.comp = &complete;
+*unused*		psp.type = SAICOMMAND;
+*unused*		psp.retarr = NULL;
+*unused*		psp.ofs = (unsigned) cmnd;
+*unused*		psp.ptr = NULL; /* null indicates that we want an integer returned here */
+*unused*		psp.path = NULL;
+*unused*		psp.zeroBind = FALSE;
+*unused*		psp.bind = FALSE; /* should we issue a set_bind? */
+*unused*		psp.inp = NULL;
+*unused*		psp.fieldname = strdup(fn);
+*unused*	
+*unused*		/* send data to Perl Interpreter */
+*unused*		SEND_TO_PERL;
+*unused*		UNLOCK;
+*unused*	
+*unused*		/* wait for data */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*	
+*unused*		/* grab data */
+*unused*		retval = psp.jparamcount;
+*unused*		UNLOCK;
+*unused*		return retval;
+*unused*	}
+*unused*	
+*unused*	
+*unused*	/* interface for sending/getting simple commands to the EAI/SAI. eg, updateNamedNode */
+*unused*	char *SAI_StrRetCommand (char cmnd, const char *fn) {
+*unused*		int complete;
+*unused*		char *retstr;
+*unused*	
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*		complete=0;
+*unused*		psp.comp = &complete;
+*unused*		psp.type = SAICOMMAND;
+*unused*		psp.retarr = NULL;
+*unused*		psp.ofs = (unsigned) cmnd;
+*unused*		psp.ptr = (void *)1; 	/* 1 signifies that we want an SV returned here */
+*unused*		psp.path = NULL;
+*unused*		psp.zeroBind = FALSE;
+*unused*		psp.bind = FALSE; /* should we issue a set_bind? */
+*unused*		psp.inp = NULL;
+*unused*		psp.fieldname = strdup(fn);
+*unused*	
+*unused*		/* send data to Perl Interpreter */
+*unused*		SEND_TO_PERL;
+*unused*		UNLOCK;
+*unused*	
+*unused*		/* wait for data */
+*unused*		WAIT_WHILE_PERL_BUSY;
+*unused*	
+*unused*		/* grab data */
+*unused*		retstr = psp.retstr;
+*unused*		/* printf ("SAI_SVRetCommand, returning %s\n",retstr); */
+*unused*		UNLOCK;
+*unused*		return retstr;
+*unused*	}
+*unused*	
+#endif
 
 /* interface for telling the Perl side to forget about everything...  */
 void EAI_killBindables (void) {
@@ -818,8 +816,10 @@ void _inputParseThread(void *perlpath) {
 			inputParseInitialized=TRUE;  /* have to do this AFTER ensuring we are locked */
 		}
 	} else {
+
 		inputParseInitialized = TRUE;
 	}
+	viewer_default();
 
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
@@ -860,39 +860,6 @@ void _inputParseThread(void *perlpath) {
 		case INLINE: {
 			/* this should be changed to a FROMURL before here  - check */
 			printf ("Inline unsuccessful\n");
-			break;
-			}
-
-		case EAIGETNODE: {
-			/* EAI wants info from a node */
-			__pt_EAI_GetNode();
-			break;
-			}
-
-		case EAIGETVIEWPOINT: {
-			/* EAI wants info from a node */
-			__pt_EAI_GetViewpoint();
-			break;
-			}
-
-		case EAIGETTYPE: {
-			/* EAI wants type for a node */
-			__pt_EAI_GetType();
-			break;
-			}
-		case EAIGETVALUE: {
-			/* EAI wants type for a node */
-			__pt_EAI_GetValue();
-			break;
-			}
-		case EAIGETTYPENAME: {
-			/* EAI wants type for a node */
-			__pt_EAI_GetTypeName();
-			break;
-			}
-		case SAICOMMAND: {
-			/* EAI wants type for a node */
-			__pt_SAI_Command();
 			break;
 			}
 
@@ -938,11 +905,11 @@ void addToNode (void *rc, int offs, void *newNode) {
 	tmpptr = tmpptr + offs;
 
 	par = (struct Multi_Node *) tmpptr;
-	/* printf ("addToNode, adding %d to %d offset %d\n",newNode,rc,offs);  */
+	/* printf ("addToNode, adding %d to %d offset %d\n",newNode,rc,offs); */
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
-	/* printf ("addToNode, ptr %d offs %d type %s, oldlen %d\n",rc, offs, stringNodeType(((struct X3D_Box*)rc)->_nodeType),oldlen); */
+	/* printf ("addToNode, ptr %d offs %d type %s, oldlen %d\n",rc, offs, stringNodeType(((struct X3D_Box*)rc)->_nodeType),oldlen);  */
 	par->n = 0; /* temporary, in case render thread goes here */
 
 	newlen=1;
@@ -978,13 +945,13 @@ void addToNode (void *rc, int offs, void *newNode) {
 
 	/* FREE_IF_NZ(tmp); */
 
-	/*	
-	{ int i;
+	
+	/* { int i;
 		for (i=0; i<par->n; i++) {
 		printf ("addToNode, child %d is %d\n",i,par->p[i]);
 		}
-	}
-	*/
+	} */
+
 }
 
 /* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
@@ -1147,8 +1114,6 @@ void __pt_openBrowser() {
 	dSP;
 	ENTER;
 	SAVETMPS;
-
-	viewer_default();
 
 	PUSHMARK(SP);
 	XPUSHs(sv_2mortal(newSViv(1000))); /*  left in as an example*/
@@ -1354,231 +1319,234 @@ ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
 
 /************************END OF NORMAL ROUTINES*********************/
 
-/****************************** EAI ****************************************/
-
-/* get node info, send in a character string, get a node reference number */
-void __pt_EAI_GetNode () {
-	int count;
-	SV * myret;
-	char *ctmp;
-	STRLEN len;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	/* this is for integers XPUSHs(sv_2mortal(newSViv(nname)));*/
-	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-
-
-	PUTBACK;
-	count = call_pv("VRML::Browser::EAI_GetNode", G_SCALAR);
-	SPAGAIN ;
-
-	if (count != 1)
-		printf ("EAI_getNode, node returns %d\n",count);
-
-	/* return value in psp.retsv */
-	myret = POPs;
-       	ctmp = SvPV(myret,len); /*  now, we have the length*/
-       	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
-       	strcpy (psp.retstr,ctmp);
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-
-/* get Viewpoint CNode; send in a character string, get a memory ptr */
-void __pt_EAI_GetViewpoint () {
-	int count;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	/* this is for integers XPUSHs(sv_2mortal(newSViv(nname)));*/
-	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-
-
-	PUTBACK;
-	count = call_pv("VRML::Browser::EAI_GetViewpoint", G_SCALAR);
-	SPAGAIN ;
-
-	if (count != 1)
-		printf ("EAI_getViewpoint, node returns %d\n",count);
-
-	/* return value in psp.jparamcount */
-	psp.jparamcount = POPi;
-
-	/* printf ("The node is %x\n", psp.jparamcount) ;*/
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-
-
-/* set/delete route */
-void __pt_SAI_Command () {
-	int count;
-	SV *svret;
-	char *ctmp;
-	STRLEN len;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSViv(psp.ofs)));
-	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-	PUTBACK;
-	count = call_pv("VRML::Browser::EAI_Command", G_SCALAR);
-	SPAGAIN ;
-
-	if (count != 1) 
-		printf ("EAI_Command returns %d\n",count);
-
-	/* return value in psp.jparamcount */
-
-	/* did we want an integer, or an SV? */
-	if (psp.ptr != NULL) {
-		svret = POPs;
-		/* printf ("SAI_SCommand, svret %d, svType %d\n",svret, SvTYPE(svret)); */
-
-        	/* make a copy of the return string - caller has to free it after use */
-        	ctmp = SvPV(svret,len); /*  now, we have the length*/
-        	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
-        	strcpy (psp.retstr,ctmp);
-        	/* printf ("GetValue, retstr will be :%s:\n",psp.retstr); */
-
-		psp.sv = (SV *)svret;
-	} else {
-		psp.jparamcount = POPi;
-		/* printf ("and, the return value of EAI_Command is %d\n",psp.jparamcount); */
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-
-void __pt_EAI_GetType (){
-	unsigned int 	count;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-
-	/* push on the nodenum, fieldname and direction */
-	XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
-	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-	XPUSHs(sv_2mortal(newSVpv((const char *)psp.ptr, (STRLEN)0)));
-
-	PUTBACK;
-	count = call_pv("VRML::Browser::EAI_GetType",G_ARRAY);
-	SPAGAIN;
-
-	if (count != 5) {
-		/* invalid return values; make *nodeptr = 97, the rest 0 */
-		psp.Etype[0]=97;	/* SFUNKNOWN - check CFuncs/EAIServ.c */
-		psp.Etype[4] = 0;
-		psp.Etype[3] = 0;
-		psp.Etype[2] = 0;
-		psp.Etype[1] = 0;
-	} else {
-		/* pop values off stack in reverse of perl return order */
-		psp.Etype[4] = POPi; psp.Etype[3] = POPi; psp.Etype[2] = POPi;
-		psp.Etype[1] = POPi; psp.Etype[0] = POPi;
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-
-void __pt_EAI_GetValue (){
-	unsigned int 	count;
-	STRLEN len;
-	char *ctmp;
-
-	SV * retval;
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-
-	/* push on the nodenum, fieldname and direction */
-	XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
-	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-	/*  this was for pushing on an integer... XPUSHs(sv_2mortal(newSViv(psp.inp)));*/
-
-	PUTBACK;
-	count = call_pv("VRML::Browser::EAI_GetValue",G_EVAL|G_SCALAR);
-	SPAGAIN;
-
-	/* printf ("GetValue return; count %d\n",count);*/
-	if (count != 1) {
-		psp.sv=NULL;
-	} else {
-		/* pop values off stack in reverse of perl return order */
-		retval = POPs;
-	}
-
-	PUTBACK;
-	/* printf ("EAI_GetValue retval %d\n", retval) ;*/
-
-	/* if (SvOK(retval)) {printf ("retval is an SV\n"); }*/
-	/* else {printf ("retval is NOT an SV\n"); return;}*/
-	/* now, decode this SV */
-	/* printf ("SVtype is %x\n",SvTYPE(retval));*/
-	/* printf ("String is :%s: len %d \n",SvPV(retval,len),len);*/
-
-	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval,len); /*  now, we have the length*/
-	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
-	strcpy (psp.retstr,ctmp);
-	/* printf ("GetValue, retstr will be :%s:\n",psp.retstr);*/
-
-	FREETMPS;
-	LEAVE;
-}
-
-
-void __pt_EAI_GetTypeName (){
-	unsigned int 	count;
-	STRLEN len;
-
-	SV * retval;
-	char *ctmp;
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-
-	/* push on the nodenum */
-	XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
-
-	PUTBACK;
-	count = call_pv("VRML::Browser::EAI_GetTypeName",G_EVAL|G_SCALAR);
-	SPAGAIN;
-
-	/* printf ("GetTypeName return; count %d\n",count);*/
-	if (count != 1) {
-		psp.sv=NULL;
-	} else {
-		/* pop values off stack in reverse of perl return order */
-		retval = POPs;
-	}
-
-	PUTBACK;
-
-	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval, len); /*  now, we have the length*/
-	psp.retstr =(char *) malloc (sizeof (char) * (len+5));
-	strcpy (psp.retstr,ctmp);
-	/* printf ("GetTypeName, retstr will be :%s:\n",psp.retstr);*/
-
-	FREETMPS;
-	LEAVE;
-}
+#ifdef USEEAIANDPERL
+*unused*	/****************************** EAI ****************************************/
+*unused*	
+*unused*	/* get node info, send in a character string, get a node reference number */
+*unused*	void __pt_EAI_GetNode () {
+*unused*		int count;
+*unused*		SV * myret;
+*unused*		char *ctmp;
+*unused*		STRLEN len;
+*unused*	
+*unused*		dSP;
+*unused*		ENTER;
+*unused*		SAVETMPS;
+*unused*		PUSHMARK(SP);
+*unused*		/* this is for integers XPUSHs(sv_2mortal(newSViv(nname)));*/
+*unused*		XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+*unused*	
+*unused*	
+*unused*		PUTBACK;
+*unused*		count = call_pv("VRML::Browser::EAI_GetNode", G_SCALAR);
+*unused*		SPAGAIN ;
+*unused*	
+*unused*		if (count != 1)
+*unused*			printf ("EAI_getNode, node returns %d\n",count);
+*unused*	
+*unused*		/* return value in psp.retsv */
+*unused*		myret = POPs;
+*unused*	       	ctmp = SvPV(myret,len); /*  now, we have the length*/
+*unused*	       	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
+*unused*	       	strcpy (psp.retstr,ctmp);
+*unused*	
+*unused*		PUTBACK;
+*unused*		FREETMPS;
+*unused*		LEAVE;
+*unused*	}
+*unused*	
+*unused*	/* get Viewpoint CNode; send in a character string, get a memory ptr */
+*unused*	void __pt_EAI_GetViewpoint () {
+*unused*		int count;
+*unused*	
+*unused*		dSP;
+*unused*		ENTER;
+*unused*		SAVETMPS;
+*unused*		PUSHMARK(SP);
+*unused*		/* this is for integers XPUSHs(sv_2mortal(newSViv(nname)));*/
+*unused*		XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+*unused*	
+*unused*	
+*unused*		PUTBACK;
+*unused*		count = call_pv("VRML::Browser::EAI_GetViewpoint", G_SCALAR);
+*unused*		SPAGAIN ;
+*unused*	
+*unused*		if (count != 1)
+*unused*			printf ("EAI_getViewpoint, node returns %d\n",count);
+*unused*	
+*unused*		/* return value in psp.jparamcount */
+*unused*		psp.jparamcount = POPi;
+*unused*	
+*unused*		/* printf ("The node is %x\n", psp.jparamcount) ;*/
+*unused*		PUTBACK;
+*unused*		FREETMPS;
+*unused*		LEAVE;
+*unused*	}
+*unused*	
+*unused*	
+*unused*	/* set/delete route */
+*unused*	void __pt_SAI_Command () {
+*unused*		int count;
+*unused*		SV *svret;
+*unused*		char *ctmp;
+*unused*		STRLEN len;
+*unused*	
+*unused*		dSP;
+*unused*		ENTER;
+*unused*		SAVETMPS;
+*unused*		PUSHMARK(SP);
+*unused*		XPUSHs(sv_2mortal(newSViv(psp.ofs)));
+*unused*		XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+*unused*		PUTBACK;
+*unused*		count = call_pv("VRML::Browser::EAI_Command", G_SCALAR);
+*unused*		SPAGAIN ;
+*unused*	
+*unused*		if (count != 1) 
+*unused*			printf ("EAI_Command returns %d\n",count);
+*unused*	
+*unused*		/* return value in psp.jparamcount */
+*unused*	
+*unused*		/* did we want an integer, or an SV? */
+*unused*		if (psp.ptr != NULL) {
+*unused*			svret = POPs;
+*unused*			/* printf ("SAI_SCommand, svret %d, svType %d\n",svret, SvTYPE(svret)); */
+*unused*	
+*unused*	        	/* make a copy of the return string - caller has to free it after use */
+*unused*	        	ctmp = SvPV(svret,len); /*  now, we have the length*/
+*unused*	        	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
+*unused*	        	strcpy (psp.retstr,ctmp);
+*unused*	        	/* printf ("GetValue, retstr will be :%s:\n",psp.retstr); */
+*unused*	
+*unused*			psp.sv = (SV *)svret;
+*unused*		} else {
+*unused*			psp.jparamcount = POPi;
+*unused*			/* printf ("and, the return value of EAI_Command is %d\n",psp.jparamcount); */
+*unused*		}
+*unused*	
+*unused*		PUTBACK;
+*unused*		FREETMPS;
+*unused*		LEAVE;
+*unused*	}
+*unused*	
+*unused*	void __pt_EAI_GetType (){
+*unused*		unsigned int 	count;
+*unused*	
+*unused*		dSP;
+*unused*		ENTER;
+*unused*		SAVETMPS;
+*unused*		PUSHMARK(SP);
+*unused*	
+*unused*		/* push on the nodenum, fieldname and direction */
+*unused*		XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
+*unused*		XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+*unused*		XPUSHs(sv_2mortal(newSVpv((const char *)psp.ptr, (STRLEN)0)));
+*unused*	
+*unused*		PUTBACK;
+*unused*		count = call_pv("VRML::Browser::EAI_GetType",G_ARRAY);
+*unused*		SPAGAIN;
+*unused*	
+*unused*		if (count != 5) {
+*unused*			/* invalid return values; make *nodeptr = 97, the rest 0 */
+*unused*			psp.Etype[0]=97;	/* SFUNKNOWN - check CFuncs/EAIServ.c */
+*unused*			psp.Etype[4] = 0;
+*unused*			psp.Etype[3] = 0;
+*unused*			psp.Etype[2] = 0;
+*unused*			psp.Etype[1] = 0;
+*unused*		} else {
+*unused*			/* pop values off stack in reverse of perl return order */
+*unused*			psp.Etype[4] = POPi; psp.Etype[3] = POPi; psp.Etype[2] = POPi;
+*unused*			psp.Etype[1] = POPi; psp.Etype[0] = POPi;
+*unused*		}
+*unused*	
+*unused*		PUTBACK;
+*unused*		FREETMPS;
+*unused*		LEAVE;
+*unused*	}
+*unused*	
+*unused*	void __pt_EAI_GetValue (){
+*unused*		unsigned int 	count;
+*unused*		STRLEN len;
+*unused*		char *ctmp;
+*unused*	
+*unused*		SV * retval;
+*unused*		dSP;
+*unused*		ENTER;
+*unused*		SAVETMPS;
+*unused*		PUSHMARK(SP);
+*unused*	
+*unused*		/* push on the nodenum, fieldname and direction */
+*unused*		XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
+*unused*		XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+*unused*		/*  this was for pushing on an integer... XPUSHs(sv_2mortal(newSViv(psp.inp)));*/
+*unused*	
+*unused*		PUTBACK;
+*unused*		count = call_pv("VRML::Browser::EAI_GetValue",G_EVAL|G_SCALAR);
+*unused*		SPAGAIN;
+*unused*	
+*unused*		/* printf ("GetValue return; count %d\n",count);*/
+*unused*		if (count != 1) {
+*unused*			psp.sv=NULL;
+*unused*		} else {
+*unused*			/* pop values off stack in reverse of perl return order */
+*unused*			retval = POPs;
+*unused*		}
+*unused*	
+*unused*		PUTBACK;
+*unused*		/* printf ("EAI_GetValue retval %d\n", retval) ;*/
+*unused*	
+*unused*		/* if (SvOK(retval)) {printf ("retval is an SV\n"); }*/
+*unused*		/* else {printf ("retval is NOT an SV\n"); return;}*/
+*unused*		/* now, decode this SV */
+*unused*		/* printf ("SVtype is %x\n",SvTYPE(retval));*/
+*unused*		/* printf ("String is :%s: len %d \n",SvPV(retval,len),len);*/
+*unused*	
+*unused*		/* make a copy of the return string - caller has to free it after use */
+*unused*		ctmp = SvPV(retval,len); /*  now, we have the length*/
+*unused*		psp.retstr = (char *)malloc (sizeof (char) * (len+5));
+*unused*		strcpy (psp.retstr,ctmp);
+*unused*		/* printf ("GetValue, retstr will be :%s:\n",psp.retstr);*/
+*unused*	
+*unused*		FREETMPS;
+*unused*		LEAVE;
+*unused*	}
+*unused*	
+*unused*	
+*unused*	void __pt_EAI_GetTypeName (){
+*unused*		unsigned int 	count;
+*unused*		STRLEN len;
+*unused*	
+*unused*		SV * retval;
+*unused*		char *ctmp;
+*unused*		dSP;
+*unused*		ENTER;
+*unused*		SAVETMPS;
+*unused*		PUSHMARK(SP);
+*unused*	
+*unused*		/* push on the nodenum */
+*unused*		XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
+*unused*	
+*unused*		PUTBACK;
+*unused*		count = call_pv("VRML::Browser::EAI_GetTypeName",G_EVAL|G_SCALAR);
+*unused*		SPAGAIN;
+*unused*	
+*unused*		/* printf ("GetTypeName return; count %d\n",count);*/
+*unused*		if (count != 1) {
+*unused*			psp.sv=NULL;
+*unused*		} else {
+*unused*			/* pop values off stack in reverse of perl return order */
+*unused*			retval = POPs;
+*unused*		}
+*unused*	
+*unused*		PUTBACK;
+*unused*	
+*unused*		/* make a copy of the return string - caller has to free it after use */
+*unused*		ctmp = SvPV(retval, len); /*  now, we have the length*/
+*unused*		psp.retstr =(char *) malloc (sizeof (char) * (len+5));
+*unused*		strcpy (psp.retstr,ctmp);
+*unused*		/* printf ("GetTypeName, retstr will be :%s:\n",psp.retstr);*/
+*unused*	
+*unused*		FREETMPS;
+*unused*		LEAVE;
+*unused*	}
+*unused*	
+#endif

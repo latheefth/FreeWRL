@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.239  2006/08/11 19:48:55  crc_canada
+# Use Experimental Parser as default; more Javascript work.
+#
 # Revision 1.238  2006/08/03 15:32:51  crc_canada
 # Javascript SF/MFnode handling changes started - no longer uses Perl for this.
 #
@@ -1146,7 +1149,7 @@ set_field_be (ptr, field, value)
 	char *value
 CODE:
 
-	c_set_field_be(ptr,field,value);
+	c_set_field_be(ptr,field,value,SENDER_PARSER);
 
 void
 release_struct(ptr)

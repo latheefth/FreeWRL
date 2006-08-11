@@ -87,7 +87,11 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
-void c_set_field_be (void *ptr, char *field, char *value);
+#define SENDER_EAI 0
+#define SENDER_JAVASCRIPT 1
+#define SENDER_PARSER 2
+void c_set_field_be (void *ptr, char *field, char *value, int sender);
+void c_get_field_be (void *ptr, char *field, char *retvalue, int valueLen, int sender);
 
 extern char *GL_VEN;
 extern char *GL_VER;
@@ -428,7 +432,7 @@ void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
 SV *EAI_newSVpv(char *str);
 
-void *returnInterpolatorPointer (char *x);
+void *returnInterpolatorPointer (const char *x);
 
 /* Scripting Routing interfaces */
 
@@ -665,15 +669,9 @@ uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define FROMSTRING 	1
 #define	FROMURL		2
 #define INLINE		3
-#define EAIGETNODE      6   /* EAI getNode      	*/
-#define EAIGETTYPE	7   /* EAI getType	*/
 #define ZEROBINDABLES   8   /* get rid of Perl datastructures */
-#define EAIGETVALUE	10  /* get a value of a node */
-#define EAIGETTYPENAME	11  /* get the type name for a  node */
-#define EAIGETVIEWPOINT	12  /* get a Viewpoint BackEnd CNode */
 #define FROMCREATENODE	13  /* create a node by just giving its node type */
 #define FROMCREATEPROTO	14  /* create a node by just giving its node type */
-#define SAICOMMAND	15  /* general send in a string and get an int back */
 #define UPDATEPROTOD	16  /* update a PROTO definition */
 #define GETPROTOD	17  /* update a PROTO definition */
 
@@ -1137,7 +1135,7 @@ int findFieldInFIELDNAMES(char *field);
 int findRoutedFieldInFIELDNAMES (char *field, int fromTo);
 int findNodeInNODES(char *node);
 int findFieldInALLFIELDNAMES(char *field);
-void findFieldInOFFSETS(int *nodeOffsetPtr, int field, int *coffset, int *ctype, int *ckind);
+void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
 char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset);
 void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 
