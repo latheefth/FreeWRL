@@ -296,11 +296,9 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	GLfloat *thisColor;
 	GLfloat defColor[] = {1.0, 1.0, 1.0};
-	#ifdef AQUA
 	GLvoid **indices;
 	GLsizei *count;
 	int i;
-	#endif
 
 	/* is there an emissiveColor here??? */
 	if (lightingOn) {
@@ -328,23 +326,16 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			glColor3fv (thisColor);
 		}
 
-		#ifdef AQUA
-			/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
-			indices = node->__vertIndx;
-			count  = node->__vertexCount;
-			for (i=0; i<node->__segCount; i++) {
-				glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
-			}
-		#else
-			glMultiDrawElements (
-				GL_LINE_STRIP,
-				node->__vertexCount,
-				GL_UNSIGNED_INT,
-				node->__vertIndx,
-				node->__segCount
-			);
-		#endif
-
+		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
+		indices = node->__vertIndx;
+		count  = node->__vertexCount;
+		for (i=0; i<node->__segCount; i++) {
+			glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
+		}
+		/* otherwise we could use
+			glMultiDrawElements ( GL_LINE_STRIP, node->__vertexCount, GL_UNSIGNED_INT,
+				node->__vertIndx, node->__segCount); 
+		*/
 
 		glEnableClientState (GL_NORMAL_ARRAY);
 		if (node->__colours) {
@@ -444,11 +435,9 @@ void render_LineSet (struct X3D_LineSet *node) {
 	GLfloat *thisColor;
 	struct X3D_Color *cc;
 	struct X3D_Coordinate *xc;
-	#ifdef AQUA
 	GLvoid **indices;
 	GLsizei *count;
 	int i;
-	#endif
 
 	/* is there an emissiveColor here??? */
 	if (lightingOn) {
@@ -483,23 +472,17 @@ void render_LineSet (struct X3D_LineSet *node) {
         	xc = (struct X3D_Coordinate *) node->coord;
 		glVertexPointer (3,GL_FLOAT,0,xc->point.p);
 
-	#ifdef AQUA
 		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
 		indices = node->__vertIndx;
 		count  = node->vertexCount.p;
 		for (i=0; i<node->__segCount; i++) {
 			glDrawElements(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
 		}
-	#else
-		glMultiDrawElements (
-			GL_LINE_STRIP,
-			node->vertexCount.p,
-			GL_UNSIGNED_INT,
-			node->__vertIndx,
-			node->__segCount
-		);
-	#endif
 
+		/* otherwise we could use 
+		glMultiDrawElements ( GL_LINE_STRIP, node->vertexCount.p, GL_UNSIGNED_INT,
+			node->__vertIndx, node->__segCount);  */
+		
 		glEnableClientState (GL_NORMAL_ARRAY);
 		if (node->color) {
 			glDisableClientState(GL_COLOR_ARRAY);
