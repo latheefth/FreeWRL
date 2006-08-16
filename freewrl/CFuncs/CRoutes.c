@@ -26,9 +26,9 @@
 #endif
 
 void AddRemoveChildren (struct X3D_Box *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
+void setMFElementtype (uintptr_t num);
 /*
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
-void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void markScriptResults(void * tn, int tptr, int route, void *tonode);
 */
 
@@ -123,29 +123,6 @@ Different nodes produce eventins/eventouts...
 
 
 ******************************************/
-struct CRjsnameStruct {
-	int	type;
-	char	name[MAXJSVARIABLELENGTH];
-};
-
-typedef struct _CRnodeStruct {
-	void *node;
-	unsigned int foffset;
-} CRnodeStruct;
-
-struct CRStruct {
-	void *	fromnode;
-	uintptr_t fnptr;
-	unsigned int tonode_count;
-	CRnodeStruct *tonodes;
-	int	act;
-	int	len;
-	void	(*interpptr)(void *); /* pointer to an interpolator to run */
-	int	direction_flag;	/* if non-zero indicates script in/out,
-						   proto in/out */
-	int	extra;		/* used to pass a parameter (eg, 1 = addChildren..) */
-};
-
 /* Routing table */
 struct CRStruct *CRoutes;
 static int CRoutes_Initiated = FALSE;
@@ -578,83 +555,6 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	return FALSE; /*  should never get here */
 }
 
-void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
-
-	char scriptline[100];
-	jsval retval;
-	float fl;
-	double dl;
-	int il;
-	int intval = 0;
-
-	/* printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
-		tonode,toname,JSparamnames[toname].name,dataType,datalen); */
-
-	switch (dataType) {
-		case SFBOOL:	{	/* SFBool */
-			memcpy ((void *) &intval,Data, datalen);
-			if (intval == 1) sprintf (scriptline,"__tmp_arg_%s=true",JSparamnames[toname].name);
-			else sprintf (scriptline,"__tmp_arg_%s=false",JSparamnames[toname].name);
-			break;
-		}
-
-		case SFFLOAT:	{
-			memcpy ((void *) &fl, Data, datalen);
-			sprintf (scriptline,"__tmp_arg_%s=%f", JSparamnames[toname].name,fl);
-			break;
-		}
-		case SFTIME:	{
-			memcpy ((void *) &dl, Data, datalen);
-			sprintf (scriptline,"__tmp_arg_%s=%f", JSparamnames[toname].name,dl);
-			break;
-		}
-		case SFNODE:
-		case SFINT32:	{ /* SFInt32 */
-			memcpy ((void *) &il,Data, datalen);
-			sprintf (scriptline,"__tmp_arg_%s=%d", JSparamnames[toname].name,il);
-			break;
-		}
-		default: {	printf("WARNING: SHOULD NOT BE HERE! %d\n",JSparamnames[toname].type);
-		}
-	}
-
-	/* set property */
-	if (!ActualrunScript(tonode, scriptline ,&retval))
-		printf ("failed to set parameter, line %s\n",scriptline);
-
-	/* ECMAScriptNative SF nodes require a touched=0 */
-	sprintf (scriptline,"___tmp_arg_%s__touched=0", JSparamnames[toname].name);
-	if (!ActualrunScript(tonode, scriptline ,&retval))
-		printf ("failed to set parameter, line %s\n",scriptline);
-
-
-	/* and set the value */
-	sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
-			 JSparamnames[toname].name,JSparamnames[toname].name,
-			 TickTime);
-	if (!ActualrunScript(tonode, scriptline ,&retval)) {
-		printf ("failed to set parameter, line %s\n",scriptline);
-	}
-}
-
-/* sets a SFBool, SFFloat, SFTime, SFIint32, SFString in a script */
-void setECMAtype (uintptr_t num) {
-	uintptr_t fn, tn;
-	int tptr;
-	int len;
-	unsigned int to_counter;
-	CRnodeStruct *to_ptr = NULL;
-
-	fn = (uintptr_t)(CRoutes[num].fromnode) + (uintptr_t)(CRoutes[num].fnptr);
-	len = CRoutes[num].len;
-
-	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = (uintptr_t) to_ptr->node;
-		tptr = to_ptr->foffset;
-		set_one_ECMAtype (tn, tptr, JSparamnames[tptr].type, (void *)fn,len);
-	}
-}
 
 /* Verify that this structure points to a series of SvPVs not
  * SvPVMGs or anything like that If it does, convert it to a SvPV */
@@ -690,202 +590,6 @@ void verifySVtype(struct Multi_String *to) {
 	/* printf ("done verifySVtype\n"); */
 }
 
-/****************************************************************/
-/* a script is returning a MFString type; add this to the C	*/
-/* children field						*/
-/****************************************************************/
-void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
-	int oldlen, newlen;
-	jsval _v;
-	JSObject *obj;
-	int i;
-	char *valStr, *OldvalStr;
-	SV **svptr;
-	SV **newp, **oldp;
-	int myv;
-	int count;
-	struct xpv *mypv;
-
-	JSString *strval; /* strings */
-
-	/* oldlen = what was there in the first place */
-	verifySVtype(to);
-
-	oldlen = to->n;
-	svptr = to->p;
-	newlen=0;
-
-	if (!JS_ValueToObject(cx, (jsval) from, &obj))
-		printf ("JS_ValueToObject failed in getMFStringtype\n");
-
-	if (!JS_GetProperty(cx, obj, "length", &_v)) {
-		printf ("JS_GetProperty failed for \"length\" in getMFStringtype.\n");
-        }
-
-	newlen = JSVAL_TO_INT(_v);
-
-	/*  if we have to expand size of SV... */
-	if (newlen > oldlen) {
-		oldp = to->p; /* same as svptr, assigned above */
-		to->n = newlen;
-		to->p = (SV**)malloc(newlen * sizeof(to->p));
-		newp = to->p;
-
-		/* copy old values over */
-		for (count = 0; count <oldlen; count ++) {
-			/*printf ("copying over element %d\n",count); */
-			*newp = *oldp;
-			newp++;
-			oldp++;
-		}
-
-		/* zero new entries */
-		for (count = oldlen; count < newlen; count ++) {
-			/* make the new SV */
-			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
-			(*newp)->sv_flags = SVt_PV | SVf_POK;
-			(*newp)->sv_refcnt=1;
-			mypv = (struct xpv *)malloc(sizeof (struct xpv));
-			(*newp)->sv_any = mypv;
-
-			/* now, make it point to a blank string */
-			(*mypv).xpv_pv = (char *)malloc (2);
-			strcpy((*mypv).xpv_pv ,"");
-			(*mypv).xpv_cur = 0;
-			(*mypv).xpv_len = 1;
-			newp ++;
-		}
-		free (svptr);
-		svptr = to->p;
-	}
-	/* printf ("verifying structure here\n");
-	for (i=0; i<(to->n); i++) {
-		printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
-				(svptr[i])->sv_flags,
-				 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
-	}
-	printf ("done\n");
-	*/
-
-
-	for (i = 0; i < newlen; i++) {
-		/* get the old string pointer */
-		OldvalStr = SvPVX(svptr[i]);
-		/* printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr)); */
-
-		/* get the new string pointer */
-		if (!JS_GetElement(cx, obj, i, &_v)) {
-			fprintf(stderr,
-				"JS_GetElement failed for %d in getMFStringtype\n",i);
-			return;
-		}
-		strval = JS_ValueToString(cx, _v);
-		valStr = JS_GetStringBytes(strval);
-
-		/* printf ("new string %d is %s\n",i,valStr); */
-
-		/*  if the strings are different... */
-		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			/* now Perl core dumps since this is the wrong thread, so lets do this
-			 ourselves: sv_setpv(svptr[i],valStr); */
-
-			/* get a pointer to the xpv to modify */
-			mypv = (struct xpv *)SvANY(svptr[i]);
-
-			/* free the old string */
-			free (mypv->xpv_pv);
-
-			/* malloc a new string, of correct len for terminator */
-			mypv->xpv_pv =(char *) malloc (strlen(valStr)+2);
-
-			/* copy string over */
-			strcpy (mypv->xpv_pv, valStr);
-
-			/* and tell us that it is now longer */
-			mypv->xpv_len = strlen(valStr)+1;
-			mypv->xpv_cur = strlen(valStr)+0;
-		}
-	}
-	/* printf ("\n new structure: %d %d\n",svptr,newlen);
-	for (i=0; i<newlen; i++) {
-		printf ("indx %d string :%s: len1 %d len2 %d\n",i,
-				mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
-				 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
-	}
-	*/
-
-	/* JAS 
-	myv = INT_TO_JSVAL(1);
-	printf ("b setting touched_flag for %d %d\n",cx,obj);
-
-	if (!JS_SetProperty(cx, obj, "__touched_flag", (jsval *)&myv)) {
-		fprintf(stderr,
-			"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
-	}
-	*/
-}
-
-
-/************************************************************************/
-/* a script is returning a MFNode type; add or remove this to the C	*/
-/* children field							*/
-/* note params - tn is the address of the actual field, parent is parent*/
-/* structure								*/
-/************************************************************************/
-
-void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, int ar) {
-	uintptr_t newptr;
-	int newlen;
-	char *cptr;
-	void *newmal;
-	uintptr_t *tmpptr;
-
-	/* is this 64 bit compatible? - unsure right now. */
-	if (sizeof(void *) != sizeof (unsigned int))
-		printf ("getMFNodetype - unverified that this works on 64 bit machines\n");
-
-	#ifdef CRVERBOSE 
-		printf ("getMFNodetype, %s ar %d\n",strp,ar);
-		printf ("getMFNodetype, parent %d has %d nodes currently\n",tn,tn->n);
-	#endif
-
-	newlen=0;
-
-	/* this string will be in the form "[ CNode addr CNode addr....]" */
-	/* count the numbers to add  or remove */
-	if (*strp == '[') { strp++; }
-	while (*strp == ' ') strp++; /* skip spaces */
-	cptr = strp;
-
-	while (sscanf (cptr,"%d",&newptr) == 1) {
-		newlen++;
-		/* skip past this number */
-		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
-		while (*cptr == ' ') cptr++; /* skip spaces */
-	}
-	cptr = strp; /* reset this pointer to the first number */
-
-	/* create the list to send to the AddRemoveChildren function */
-	newmal = malloc (newlen*sizeof(void *));
-	tmpptr = (uintptr_t*)newmal;
-
-	if (newmal == 0) {
-		printf ("cant malloc memory for addChildren");
-		return;
-	}
-
-
-	/* scan through the string again, and get the node numbers. */
-	while (sscanf (cptr,"%d", (int *)tmpptr) == 1) {
-		/* skip past this number */
-		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
-		while (*cptr == ' ') cptr++; /* skip spaces */
-		tmpptr = (uintptr_t*) (tmpptr + sizeof (void *));
-	}
-
-	/* now, perform the add/remove */
-	AddRemoveChildren (parent, tn, newmal, newlen, ar);
-}
 
 /****************************************************************/
 /* Add or Remove a series of children				*/
@@ -1117,863 +821,6 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		/* this is a Node type, so we need to add/remove children */
 		AddRemoveChildren (parent, (struct Multi_Node*)tn, (uintptr_t*)buf, len, addChild);
 	}
-}
-
-/****************************************************************/
-/* a Jscript is returning a Multi-number type; copy this from 	*/
-/* the Jscript return string to the data structure within the	*/
-/* freewrl C side of things.					*/
-/*								*/
-/* note - this cheats in that the code assumes that it is 	*/
-/* a series of Multi_Vec3f's while in reality the structure	*/
-/* of the multi structures is the same - so we "fudge" things	*/
-/* to make this multi-purpose.					*/
-/* eletype switches depending on:				*/
-/* 	0: MFINT32						*/
-/* 	1: MFFLOAT						*/
-/* 	2: MFVEC2F						*/
-/* 	3: MFCOLOR						*/
-/* 	4: MFROTATION						*/
-/*	5: MFTIME						*/
-/****************************************************************/
-
-void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
-	float *fl;
-	int *il;
-	double *dl;
-
-	float f2, f3, f4;
-	jsval mainElement;
-	int len;
-	int i;
-	JSString *_tmpStr;
-	char *strp;
-	int elesize;
-	int rv; /* temp for sscanf return vals */
-
-
-	/* get size of each element, used for mallocing memory */
-	if (eletype == 0) elesize = sizeof (int);		/* integer */
-	else if (eletype == 5) elesize = sizeof (double);	/* doubles. */
-	else elesize = sizeof (float)*eletype;			/* 1, 2, 3 or 4 floats per element. */
-
-	/* rough check of return value */
-	if (!JSVAL_IS_OBJECT(global_return_val)) {
-		printf ("getJSMultiNumType - did not get an object\n");
-		return;
-	}
-
-	/* printf ("getmultielementtypestart, tn %d %#x dest has  %d size %d\n",tn,tn,eletype, elesize); */
-
-	if (!JS_GetProperty(cx, (JSObject *)global_return_val, "length", &mainElement)) {
-		printf ("JS_GetProperty failed for \"length\" in getJSMultiNumType\n");
-		return;
-	}
-	len = JSVAL_TO_INT(mainElement);
-	printf ("getmuiltie length of grv is %d old len is %d\n",len,tn->n);
-
-	/* do we have to realloc memory? */
-	if (len != tn->n) {
-		tn->n = 0;
-		/* yep... */
-			/* printf ("old pointer %d\n",tn->p); */
-		if (tn->p != NULL) free (tn->p);
-		#ifdef CRVERBOSE 
-		printf ("mallocing memory for elesize %d len %d\n",elesize,len);
-		#endif
-		tn->p = (struct SFColor *)malloc ((unsigned)(elesize*len));
-		if (tn->p == NULL) {
-			printf ("can not malloc memory in getJSMultiNumType\n");
-			return;
-		}
-	}
-
-	/* set these three up, but we only use one of them */
-	fl = (float *) tn->p;
-	il = (int *) tn->p;
-	dl = (double *) tn->p;
-
-	/* go through each element of the main array. */
-	for (i = 0; i < len; i++) {
-		if (!JS_GetElement(cx, (JSObject *)global_return_val, i, &mainElement)) {
-			printf ("JS_GetElement failed for %d in getJSMultiNumType\n",i);
-			return;
-		}
-
-                _tmpStr = JS_ValueToString(cx, mainElement);
-		strp = JS_GetStringBytes(_tmpStr);
-                /* printf ("sub element %d is %s as a string\n",i,strp);  */
-
-		switch (eletype) {
-		case 0: { rv=sscanf(strp,"%d",il); il++; break;}
-		case 1: { rv=sscanf(strp,"%f",fl); fl++; break;}
-		case 2: { rv=sscanf (strp,"%f %f",fl,&f2);
-			fl++; *fl=f2; fl++; break;}
-		case 3: { rv=sscanf (strp,"%f %f %f",fl,&f2,&f3);
-			fl++; *fl=f2; fl++; *fl=f3; fl++; break;}
-		case 4: { rv=sscanf (strp,"%f %f %f %f",fl,&f2,&f3,&f4);
-			fl++; *fl=f2; fl++; *fl=f3; fl++; *fl=f4; fl++; break;}
-		case 5: {rv=sscanf (strp,"%lf",dl); dl++; break;}
-
-		default : {printf ("getJSMultiNumType unhandled eletype: %d\n",
-				eletype);
-			   return;
-			}
-		}
-printf ("getJSMultiNumType - got %f %f %f\n",(float *) tn->p,f2,f3);
-
-	}
-	tn->n = len;
-}
-
-
-/****************************************************************/
-/* a EAI client is returning a MFString type; add this to the C	*/
-/* children field						*/
-/****************************************************************/
-void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
-	int oldlen, newlen;
-	jsval _v;
-	int i;
-	char *valStr, *OldvalStr;
-	SV **oldsvptr;
-	SV **newsvptr;
-	SV **newp, **oldp;
-	int myv;
-	int count;
-	struct xpv *mypv;
-
-	/* oldlen = what was there in the first place */
-	/*  should be ok verifySVtype(from); */
-	verifySVtype(to);
-
-	oldlen = to->n;
-	oldsvptr = to->p;
-	newlen= from->n;
-	newsvptr = from->p;
-
-	/* printf ("old len %d new len %d\n",oldlen, newlen); */
-
-	/* if we have to expand size of SV... */
-	if (newlen > oldlen) {
-
-		/* printf ("have to expand...\n"); */
-		oldp = to->p; /* same as oldsvptr, assigned above */
-		to->n = newlen;
-		to->p =(SV **) malloc(newlen * sizeof(to->p));
-		newp = to->p;
-		/* printf ("newp is %d, size %d\n",newp, newlen * sizeof(to->p)); */
-
-		/*  copy old values over */
-		for (count = 0; count <oldlen; count ++) {
-			*newp = *oldp;
-			newp++;
-			oldp++;
-		}
-
-		/*  zero new entries */
-		for (count = oldlen; count < newlen; count ++) {
-			/* printf ("zeroing %d\n",count); */
-			/* make the new SV */
-			*newp = (SV *)malloc (sizeof (struct STRUCT_SV));
-			(*newp)->sv_flags = SVt_PV | SVf_POK;
-			(*newp)->sv_refcnt=1;
-			mypv = (struct xpv *)malloc(sizeof (struct xpv));
-			(*newp)->sv_any = mypv;
-
-			/* now, make it point to a blank string */
-			(*mypv).xpv_pv =(char *) malloc (2);
-			strcpy((*mypv).xpv_pv ,"");
-			(*mypv).xpv_cur = 0;
-			(*mypv).xpv_len = 1;
-			newp++;
-		}
-		free (oldsvptr);
-		oldsvptr = to->p;
-	}
-	/*
-	printf ("verifying structure here\n");
-	for (i=0; i<(to->n); i++) {
-		printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
-				(oldsvptr[i])->sv_flags,
-				 SvPVX(oldsvptr[i]), SvCUR(oldsvptr[i]), SvLEN(oldsvptr[i]));
-	}
-	for (i=0; i<(from->n); i++) {
-		printf ("NEW indx %d flag %x string :%s: len1 %d len2 %d\n",i,
-				(newsvptr[i])->sv_flags,
-				 SvPVX(newsvptr[i]), SvCUR(newsvptr[i]), SvLEN(newsvptr[i]));
-	}
-	printf ("done\n");
-	*/
-
-
-	for (i = 0; i < newlen; i++) {
-		/*  get the old string pointer */
-		OldvalStr = SvPVX(oldsvptr[i]);
-		/* printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr)); */
-
-		valStr = SvPVX(newsvptr[i]);
-
-		/* printf ("new string %d is %s len %d\n",i,valStr,strlen(valStr)); */
-
-		/* if the strings are different... */
-		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			/* now Perl core dumps since this is the wrong thread, so lets do this
-			 ourselves: sv_setpv(oldsvptr[i],valStr); */
-
-			/* get a pointer to the xpv to modify */
-			mypv = (struct xpv *)SvANY(oldsvptr[i]);
-
-			/* free the old string */
-			free (mypv->xpv_pv);
-
-			/* malloc a new string, of correct len for terminator */
-			mypv->xpv_pv = (char *)malloc (strlen(valStr)+2);
-
-			/* copy string over */
-			strcpy (mypv->xpv_pv, valStr);
-
-			/* and tell us that it is now longer */
-			mypv->xpv_len = strlen(valStr)+1;
-			mypv->xpv_cur = strlen(valStr)+0;
-		}
-	}
-	/*
-	printf ("\n new structure: %d %d\n",oldsvptr,newlen);
-	for (i=0; i<newlen; i++) {
-		printf ("indx %d string :%s: len1 %d len2 %d\n",i,
-				mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
-				 SvPVX(oldsvptr[i]), SvCUR(oldsvptr[i]), SvLEN(oldsvptr[i]));
-	}
-	*/
-}
-/****************************************************************/
-/* sets a SFVec3f and SFColor in a script 			*/
-/* sets a SFRotation and SFVec2fin a script 			*/
-/*								*/
-/* all *Native types have the same structure of the struct -	*/
-/* we are just looking for the pointer, thus we can handle	*/
-/* multi types here 						*/
-/* sets a SFVec3f and SFColor in a script 			*/
-/****************************************************************/
-
-/* really do the individual set; used by script routing and EAI sending to a script */
-void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
-
-	char scriptline[100];
-	jsval retval;
-	SFVec3fNative *_privPtr;
-
-	JSContext *_context;
-	JSObject *_globalObj, *_sfvec3fObj;
-
-
-	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[tonode].cx;
-	_globalObj = (JSObject *)ScriptControl[tonode].glob;
-
-
-	/* make up the name */
-	sprintf (scriptline,"__tmp_arg_%s", JSparamnames[tnfield].name);
-
-	#ifdef CRVERBOSE 
-	printf ("script %d line %s\n",tonode, scriptline);
-	#endif
-
-	if (!JS_GetProperty(_context,_globalObj,scriptline,&retval))
-		printf ("JS_GetProperty failed in jsSFVec3fSet.\n");
-
-	if (!JSVAL_IS_OBJECT(retval))
-		printf ("jsSFVec3fSet - not an object\n");
-
-	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
-
-	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(_context, _sfvec3fObj)) == NULL)
-		printf("JS_GetPrivate failed in jsSFVec3fSet.\n");
-
-	/* copy over the data from the perl/C VRML side into the script. */
-	memcpy ((void *) &_privPtr->v,Data, dataLen);
-
-	_privPtr->touched = 0;
-
-	/* now, runscript to tell it that it has been touched */
-	sprintf (scriptline,"__tmp_arg_%s.__touched()", JSparamnames[tnfield].name);
-	if (!ActualrunScript(tonode, scriptline ,&retval))
-		printf ("failed to set parameter, line %s\n",scriptline);
-
-	/* and run the function */
-	sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
-			 JSparamnames[tnfield].name,JSparamnames[tnfield].name,
-			 TickTime);
-	if (!ActualrunScript(tonode, scriptline ,&retval)) {
-		printf ("failed to set parameter, line %s\n",scriptline);
-	}
-}
-
-
-void setMultiElementtype (uintptr_t num) {
-	void * fn;
-	void * tn;
-	uintptr_t tptr, fptr;
-	unsigned int len;
-	unsigned int to_counter;
-
-	uintptr_t indexPointer;
-
-	CRnodeStruct *to_ptr = NULL;
-
-	JSContext *_context;
-	JSObject *_globalObj;
-
-	fn = CRoutes[num].fromnode;
-	fptr = CRoutes[num].fnptr;
-	len = CRoutes[num].len;
-
-	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-
-		/* the to_node should be a script number; it will be a small integer */
-		tn = to_ptr->node;
-		indexPointer = (uintptr_t) tn;
-		tptr = to_ptr->foffset;
-
-		#ifdef CRVERBOSE 
-			printf ("got a script event! index %d type %d\n",
-					num, CRoutes[num].direction_flag);
-			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,indexPointer,tptr);
-			printf ("\tdata length %d\n",len);
-			printf ("setMultiElementtype here indexPointer %d tptr %d len %d\n",indexPointer, tptr,len);
-		#endif
-
-		/* get context and global object for this script */
-		_context = (JSContext *) ScriptControl[indexPointer].cx;
-		_globalObj = (JSObject *)ScriptControl[indexPointer].glob;
-		fn += fptr;
-		Set_one_MultiElementtype (indexPointer, tptr, fn, len);
-	}
-}
-
-
-void setMFElementtype (uintptr_t num) {
-	void * fn;
-	void * tn;
-	uintptr_t tptr, fptr;
-	int len;
-	unsigned int to_counter;
-	CRnodeStruct *to_ptr = NULL;
-	char scriptline[2000];
-	char sline[100];
-	jsval retval;
-	int x;
-	int elementlen;
-	char *pptr;
-	float *fp;
-	int *ip;
-	double *dp;
-	struct Multi_Node *mfp;
-
-	/* for MFStrings we have: */
-	char *chptr;
-	STRLEN xx;
-	SV **ptr;
-
-	int indexPointer;
-
-	JSContext *_context;
-	JSObject *_globalObj;
-
-	#ifdef CRVERBOSE 
-		printf("------------BEGIN setMFElementtype ---------------\n");
-	#endif
-
-	fn = CRoutes[num].fromnode;
-	fptr = CRoutes[num].fnptr;
-	
-	/* we can do arithmetic on character pointers; so we have to cast void *
-	   to char * here */
-	pptr = (char *)fn + fptr;
-
-	len = CRoutes[num].len;
-
-	/* is this from a MFElementType? */
-	if (len <= 0) {
-		#ifdef CRVERBOSE 
-		printf ("len of %d means that this is a MF type\n",len);
-		#endif
-		mfp = (struct Multi_Node *) pptr;
-
-		/* check Multimemcpy for C to C routing for this type */
-		/* get the number of elements */
-		len = mfp->n;  
-		pptr = (char *) mfp->p; /* pptr is a char * just for math stuff */
-		#ifdef CRVERBOSE 
-		printf ("setMFElementtype, len now %d, from %d\n",len,fn);
-		#endif
-	}
-
-		
-
-	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = to_ptr->node;
-		tptr = to_ptr->foffset;
-		indexPointer = (uintptr_t) tn; /* tn should be a small int here - it is script # */
-
-		#ifdef CRVERBOSE 
-			printf ("got a script event! index %d type %d\n",
-					num, CRoutes[num].direction_flag);
-			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,tptr);
-			printf ("\tfrom %d from ptr %d\n\tto %d toptr %d\n",fn,fptr,tn,tptr);
-			printf ("\tdata length %d\n",len);
-			printf ("and, sending it to %s as type %d\n",JSparamnames[tptr].name,
-					JSparamnames[tptr].type);
-		#endif
-
-		/* get context and global object for this script */
-		_context = (JSContext *) ScriptControl[indexPointer].cx;
-		_globalObj = (JSObject *)ScriptControl[indexPointer].glob;
-
-		/* make up the name */
-		switch (JSparamnames[tptr].type) {
-			case MFVEC3F: {
-				/*strcpy (scriptline,"xxy = new MFVec3f(new SFVec3f(1,2,3));printValue (xxy)");
-					break;*/
-				strcpy (scriptline, "xxy = new MFVec3f(");
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					fp = (float *)pptr;
-					sprintf (sline,"new SFVec3f (%f, ",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-
-					fp = (float *)pptr;
-					sprintf (sline,"%f, ",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-
-					fp = (float *)pptr;
-					sprintf (sline,"%f)",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-					if (x < (len-1)) 
-						strcat(scriptline,", ");
-				}
-				break;
-				}
-			case MFCOLOR: {
-				/*strcpy (scriptline,"xxy = new MFColor(new SFColor(1,2,3));printValue (xxy)");
-					break;*/
-				strcpy (scriptline, "xxy = new MFColor(");
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					fp = (float *)pptr;
-					sprintf (sline,"new SFColor (%f, ",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-
-					fp = (float *)pptr;
-					sprintf (sline,"%f, ",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-
-					fp = (float *)pptr;
-					sprintf (sline,"%f)",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-					if (x < (len-1)) 
-						strcat(scriptline,", ");
-				}
-				break;
-				}
-			case MFFLOAT: {
-				strcpy (scriptline, "xxy = new MFFloat(");
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-					fp = (float *)pptr;
-					sprintf (sline,"%f",*fp);
-					if (x < (len-1)) {
-						strcat(sline,",");
-					}
-					pptr += elementlen;
-					strcat (scriptline,sline);
-				}
-				break;
-				}
-			case MFTIME:  {
-				strcpy (scriptline, "xxy = new MFTime(");
-				elementlen = sizeof (double);
-				for (x=0; x<len; x++) {
-					dp = (double *)pptr;
-					sprintf (sline,"%lf",*dp);
-					if (x < (len-1)) {
-						strcat(sline,",");
-					}
-					pptr += elementlen;
-					strcat (scriptline,sline);
-				}
-				break;
-				}
-			case SFIMAGE:	/* JAS - SFIMAGES are SFStrings in Perl, but an MFInt in Java */
-			case MFINT32: {
-				strcpy (scriptline, "xxy = new MFInt32(");
-				elementlen = sizeof (int);
-				for (x=0; x<len; x++) {
-					ip = (int *)pptr;
-					sprintf (sline,"%d",*ip);
-					if (x < (len-1)) {
-						strcat(sline,",");
-					}
-					pptr += elementlen;
-						strcat (scriptline,sline);
-				}
-				break;
-				}
-			case MFSTRING:{
-				strcpy (scriptline, "xxy = new MFString(");
-				ptr = (SV **) pptr;
-				for (x=0; x<len; x++) {
-
-					chptr = (char *)SvPV(ptr[x],xx);
-					/* printf ("string might be length %d: %s\n",xx,chptr); */
-					strcat (scriptline,"new String('");
-					strcat (scriptline,chptr);
-					strcat (scriptline,"')");
-					if (x < (len-1)) {
-						strcat (scriptline,",");
-					}
-					
-				}
-				break;
-				}
-			case MFNODE:  {
-				strcpy (scriptline, "xxy = new MFNode(");
-				elementlen = sizeof (int);
-				for (x=0; x<len; x++) {
-					ip = (int *)pptr;
-					sprintf (sline,"%u",*ip);
-					if (x < (len-1)) {
-						strcat(sline,",");
-					}
-					pptr += elementlen;
-						strcat (scriptline,sline);
-				}
-				break;
-				}
-			case MFROTATION: {	
-				strcpy (scriptline, "xxy = new MFRotation(");
-
-				elementlen = sizeof (float);
-				for (x=0; x<len; x++) {
-
-
-					fp = (float *)pptr;
-					sprintf (sline,"new SFRotation (%f, ",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-
-					fp = (float *)pptr;
-					sprintf (sline,"%f, ",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-
-					fp = (float *)pptr;
-					sprintf (sline,"%f, ",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-
-					fp = (float *)pptr;
-					sprintf (sline,"%f)",*fp);
-					pptr += elementlen;
-					strcat (scriptline,sline);
-					if (x < (len-1)) 
-						strcat(scriptline,", ");
-				}
-				break;
-				}
-			default: {
-					printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
-					strcat (scriptline,"(");
-				}
-		}
-
-		/* convert these values to a jsval type */
-		strcat (scriptline,");");
-		strcat (scriptline,JSparamnames[tptr].name);
-		strcat (scriptline,"(xxy);");
-
-		#ifdef CRVERBOSE 
-			printf("ScriptLine: %s\n",scriptline);
-		#endif
-
-		if (!ActualrunScript(indexPointer,scriptline,&retval))
-			printf ("AR failed in setxx\n");
-
-
-	}
-	#ifdef CRVERBOSE 
-		printf("------------END setMFElementtype ---------------\n");
-	#endif
-}
-
-
-void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
-
-    int tn, tptr;
-    char scriptline[2000];
-    char sline[100];
-    jsval retval;
-    int x;
-    int elementlen;
-    float *fp;
-    int *ip;
-    double *dp;
-
-    JSContext *_context;
-    JSObject *_globalObj;
-
-    #ifdef CRVERBOSE 
-	printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
-    #endif
-
-    tn   = num;
-    tptr = offset;
-
-    #ifdef CRVERBOSE 
-	printf ("got a script event! index %d\n",num);
-	printf ("\tto %#x toptr %#x\n",tn,tptr);
-	printf ("\tdata length %d\n",len);
-	printf ("and, sending it to %s\n",JSparamnames[tptr].name);
-    #endif
-
-    /* get context and global object for this script */
-    _context = (JSContext *) ScriptControl[tn].cx;
-    _globalObj = (JSObject *)ScriptControl[tn].glob;
-
-    /* make up the name */
-    sprintf (scriptline,"%s(",JSparamnames[tptr].name);
-    switch (JSparamnames[tptr].type) {
-      case MFVEC3F: {
-	  strcat (scriptline, "new MFVec3f(");
-	  elementlen = sizeof (float) * 3;
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f %f %f",*fp,
-		       *(fp+elementlen),
-		       *(fp+(elementlen*2)));
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case MFCOLOR: {
-	  strcat (scriptline, "new MFColor(");
-	  elementlen = sizeof (float) * 3;
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f %f %f",*fp,
-		       *(fp+elementlen),
-		       *(fp+(elementlen*2)));
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case MFFLOAT: {
-	  strcat (scriptline, "new MFFloat(");
-	  elementlen = sizeof (float);
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f",*fp);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-
-	  break;
-      }
-      case MFTIME:  {
-	  strcat (scriptline, "new MFTime(");
-	  elementlen = sizeof (double);
-	  for (x=0; x<(len/elementlen); x++) {
-	      dp = (double *)pptr;
-	      sprintf (sline,"%lf",*dp);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case MFINT32: {
-	  strcat (scriptline, "new MFInt32(");
-	  elementlen = sizeof (int);
-	  for (x=0; x<(len/elementlen); x++) {
-	      ip = (int *)pptr;
-	      sprintf (sline,"%d",*ip);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case MFSTRING:{
-	  strcat (scriptline, "new MFString(");
-	  elementlen = sizeof (float);
-	  printf ("ScriptAssign, MFString probably broken\n");
-	  for (x=0; x<(len/elementlen); x++) {
-	      fp = (float *)pptr;
-	      sprintf (sline,"%f",*fp);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case MFNODE:  {
-	  strcat (scriptline, "new MFNode(");
-	  elementlen = sizeof (int);
-	  for (x=0; x<(len/elementlen); x++) {
-	      ip = (int *)pptr;
-	      sprintf (sline,"%u",*ip);
-	      if (x < ((len/elementlen)-1)) {
-		  strcat(sline,",");
-	      }
-	      pptr += elementlen;
-	      strcat (scriptline,sline);
-	  }
-	  break;
-      }
-      case MFROTATION: {	strcat (scriptline, "new MFRotation(");
-      elementlen = sizeof (float)*4;
-      for (x=0; x<(len/elementlen); x++) {
-	  fp = (float *)pptr;
-	  sprintf (sline,"%f %f %f %f",*fp,
-		   *(fp+elementlen),
-		   *(fp+(elementlen*2)),
-		   *(fp+(elementlen*3)));
-	  sprintf (sline,"%f",*fp);
-	  if (x < ((len/elementlen)-1)) {
-	      strcat(sline,",");
-	  }
-	  pptr += elementlen;
-	  strcat (scriptline,sline);
-      }
-      break;
-      }
-      default: {
-	  printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
-	  strcat (scriptline,"(");
-      }
-    }
-
-    /* convert these values to a jsval type */
-    strcat (scriptline,"))");
-
-    #ifdef CRVERBOSE 
-	printf("ScriptLine: %s\n",scriptline);
-    #endif
-
-
-    if (!ActualrunScript(tn,scriptline,&retval))
-      printf ("AR failed in setxx\n");
-
-    #ifdef CRVERBOSE 
-	printf("------------END set_EAI_MFElementtype ---------------\n");
-    #endif
-}
-
-
-/* internal variable to copy a C structure's Multi* field */
-void Multimemcpy (void *tn, void *fn, int multitype) {
-	unsigned int structlen;
-	unsigned int fromcount, tocount;
-	void *fromptr, *toptr;
-
-	struct Multi_Vec3f *mv3ffn, *mv3ftn;
-
-	#ifdef CRVERBOSE 
-		printf ("Multimemcpy, copying structures %d %d type %d\n",tn,fn,multitype); 
-	#endif
-
-	/* copy a complex (eg, a MF* node) node from one to the other
-	   the following types are currently found in VRMLNodes.pm -
-
-		 -1  is a Multi_Color 
-		 -10 is a Multi_Node
-		 -12 is a SFImage
-		 -13 is a Multi_String
-		 -14 is a Multi_Float
-		 -15 is a Multi_Rotation
-		 -16 is a Multi_Int32
-		 -18 is a Multi_Vec2f
-		 -19 is a Multi_Vec3f
-	*/
-
-	/* Multi_XXX nodes always consist of a count then a pointer - see
-	   Structs.h */
-
-	/* making the input pointers into a (any) structure helps deciphering params */
-	mv3ffn = (struct Multi_Vec3f *)fn;
-	mv3ftn = (struct Multi_Vec3f *)tn;
-
-	/* so, get the from memory pointer, and the to memory pointer from the structs */
-	fromptr = (void *)mv3ffn->p;
-
-	/* and the from and to sizes */
-	fromcount = mv3ffn->n;
-	tocount = mv3ftn->n;
-	#ifdef CRVERBOSE 
-		printf ("Multimemcpy, fromcount %d\n",fromcount);
-	#endif
-
-	/* get the structure length */
-	switch (multitype) {
-		case -1: {structlen = sizeof (struct SFColor); break; }
-		case -10: {structlen = sizeof (unsigned int); break; }
-		case -12: {structlen = sizeof (unsigned int); break; } 
-		case -13: {structlen = sizeof (unsigned int); break; }
-		case -14: {structlen = sizeof (float); break; }
-		case -15: {structlen = sizeof (struct SFRotation); break;}
-		case -16: {structlen = sizeof (int); break;}
-		case -18: {structlen = sizeof (struct SFVec2f); break;}
-		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
-		default: {
-			printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);
-			structlen=0;
-			return;
-		}
-	}
-
-
-	/* free the old data, if there is old data... */
-	if ((mv3ftn->p) != NULL) free (mv3ftn->p);
-
-	/* malloc the toptr */
-	mv3ftn->p = (struct SFColor *)malloc (structlen*fromcount);
-	toptr = (void *)mv3ftn->p;
-
-	/* tell the recipient how many elements are here */
-	mv3ftn->n = fromcount;
-
-	#ifdef CRVERBOSE 
-		printf ("Multimemcpy, fromcount %d tocount %d fromptr %d toptr %d\n",fromcount,tocount,fromptr,toptr); 
-	#endif
-
-	/* and do the copy of the data */
-	memcpy (toptr,fromptr,structlen * fromcount);
 }
 
 
@@ -2516,55 +1363,6 @@ void mark_script (uintptr_t num) {
 	scripts_active = TRUE;
 }
 
-/******************************************************************
-
-saveSFImage - a PixelTexture is being sent back from a script, save it!
-	It comes back as a string; have to put it in as a SV.
-
-*********************************************************************/
-void saveSFImage (struct X3D_PixelTexture *node, char *str) {
-	char *strptr;
-	STRLEN xx;
-	int thissize;
-	struct xpv *mypv;
-	SV *newSV;
-	SV *oldSV;
-
-	thissize = strlen(str);
-
-	/* make the new SV */
-	newSV = (SV*)malloc (sizeof (struct STRUCT_SV));
-	(newSV)->sv_flags = SVt_PV | SVf_POK;
-	(newSV)->sv_refcnt=1;
-	mypv = (struct xpv *)malloc(sizeof (struct xpv));
-	/* printf ("just mallocd for mypv, it is %d and size %d\n", mypv, sizeof (struct xpv)); */
-	(newSV)->sv_any = mypv;
-
-	/* fill in the SV values...copy the string over... */
-	(*mypv).xpv_pv = (char *)malloc (thissize+2);
-	strncpy((*mypv).xpv_pv ,str,thissize+1);
-	(*mypv).xpv_cur = thissize-1;    /* size without term */
-	(*mypv).xpv_len = thissize;      /* size with termination */
-
-	/* switcheroo, image now is this new SV */
-	oldSV = node->image;
-	node->image = newSV;
-
-	/* remove the old one... */
-	if ((SvFLAGS(oldSV) & SVf_POK) == 0) {
-		/*printf ("saveSFImage this one is going to fail\n"); */
-	} else {
-		/* printf ("saveSFImage passed test, lets decode it\n"); */
-		/* ok - we have a valid Perl pointer, go for it. */
-		strptr = (char *)SvPV(node->image,xx);
-		/* printf ("saveSFImage PixelTexture string was %s\n",strptr); */
-
-		/* free the old "parts" of this... */
-		/* have to REALLY look at this - might be a memory leak */
-		/*free( oldSV->sv_any); */
-		/*free (oldSV); */
-	}
-}
 
 /********************************************************************
 
@@ -2577,14 +1375,19 @@ FIXME XXXXX =  can we do this without the string conversions?
 
 void gatherScriptEventOuts(uintptr_t actualscript) {
 	int route;
-	unsigned int fptr, tptr;
-	void * fn;
- 	void * tn;
+	unsigned int fptr;
+	unsigned int tptr;
 	unsigned len;
-	float fl[4];	/* return float values */
+ 	void * tn;
+	void * fn;
+/*
+	float fl[4];
 	double tval;
 	int ival;
-	int rv; 		/* temp for sscanf retvals */
+	int rv; 	
+*/
+
+	/* temp for sscanf retvals */
 
         JSString *strval; /* strings */
         char *strp = 0;
@@ -2670,91 +1473,8 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 					printf (" -- string from javascript is %s\n",strp);
 				#endif
 				/* eventOuts go to VRML data structures */
-
-				switch (JSparamnames[fptr].type) {
-				case SFBOOL:	{	/* SFBool */
-					/* printf ("we have a boolean, copy value over string is %s\n",strp); */
-					if (strncmp(strp,"true",4)==0) {
-						ival = 1;
-					} else {
-						/* printf ("ASSUMED TO BE FALSE\n"); */
-						ival = 0;
-					}
-					memcpy ((void *)(tn+tptr), (void *)&ival,len);
-					break;
-				}
-
-				case SFTIME: {
-					if (!JS_ValueToNumber((JSContext *)ScriptControl[actualscript].cx,
-										  global_return_val,&tval)) tval=0.0;
-
-					/* printf ("SFTime conversion numbers %f from string %s\n",tval,strp); */
-					/* printf ("copying to %#x offset %#x len %d\n",tn, tptr,len); */
-					memcpy ((void *)(tn+tptr), (void *)&tval,len);
-					break;
-				}
-				case SFNODE:
-				case SFINT32: {
-					rv=sscanf (strp,"%d",&ival);
-					/* printf ("SFInt, SFNode conversion number %d\n",ival); */
-					memcpy ((void *)((tn+tptr)), (void *)&ival,len);
-					break;
-				}
-				case SFFLOAT: {
-					rv=sscanf (strp,"%f",&fl[0]);
-					memcpy ((void *)(tn+tptr), (void *)&fl,len);
-					break;
-				}
-
-				case SFVEC2F: {	/* SFVec2f */
-					rv=sscanf (strp,"%f %f",&fl[0],&fl[1]);
-					/* printf ("conversion numbers %f %f\n",fl[0],fl[1]); */
-					memcpy ((void *)(tn+tptr), (void *)fl,len);
-					break;
-				}
-				case SFVEC3F:
-				case SFCOLOR: {	/* SFColor */
-					rv=sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-					/* printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]); */
-					memcpy ((void *)(tn+tptr), (void *)fl,len);
-					break;
-				}
-
-				case SFROTATION: {
-int tmp;
-tmp =
-					rv=sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-					/* printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]); */
-					memcpy ((void *)(tn+tptr), (void *)fl,len);
-					break;
-				}
-				case SFIMAGE: {
-					saveSFImage ((struct X3D_PixelTexture*) tn, strp);
-					break;
-				}
-
-
-					/* a series of Floats... */
-				case MFVEC3F:
-				case MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),3); break;}
-				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),1); break;}
-				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),4); break;}
-				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),2); break;}
-				case MFNODE: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct X3D_Box *)tn,CRoutes[route].extra); break;}
-				case MFSTRING: {
-					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
-						 (jsval *)global_return_val,(struct Multi_String *)(tn+tptr));
-					break;
-				}
-
-				case MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),0); break;}
-				case MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),5); break;}
-
-				default: {	printf("WARNING: unhandled from type (%d) %s\n", 
-					JSparamnames[fptr].type,FIELD_TYPE_STRING(JSparamnames[fptr].type));
-				printf (" -- string from javascript is %s\n",strp);
-				}
-				}
+				setField_method3(tn,tptr,strp,JSparamnames[fptr].type, len, 
+					CRoutes[route].extra, ScriptControl[actualscript].cx);
 
 				/* tell this node now needs to redraw */
 				markScriptResults(tn, tptr, route, to_ptr->node);
@@ -2942,62 +1662,6 @@ void sendJClassEventIn(int num, int fromoffset) {
 	}
 }
 
-/********************************************************************
-
-sendScriptEventIn.
-
-this sends events to scripts that have eventIns defined.
-
-********************************************************************/
-void sendJScriptEventIn (int num, int fromoffset) {
-
-	#ifdef CRVERBOSE 
-		printf ("CRoutes, sending ScriptEventIn to from offset %d type %d\n",
-			fromoffset,JSparamnames[fromoffset].type);  
-	#endif
-
-	/* this script initialized yet? */
-	initializeScript(num, TRUE);
-
-	/* set the parameter */
-	/* see comments in gatherScriptEventOuts to see exact formats */
-
-	switch (JSparamnames[fromoffset].type) {
-	case SFBOOL:
-	case SFFLOAT:
-	case SFTIME:
-	case SFINT32:
-	case SFNODE:
-	case SFSTRING: {
-		setECMAtype(num);
-		break;
-		}
-	case SFCOLOR:
-	case SFVEC2F:
-	case SFVEC3F:
-	case SFROTATION: {
-		setMultiElementtype(num);
-		break;
-		}
-	case MFCOLOR:
-	case MFVEC3F:
-	case MFFLOAT:
-	case MFTIME:
-	case MFINT32:
-	case SFIMAGE:
-	case MFSTRING:
-	case MFNODE:
-	case MFROTATION: {
-		setMFElementtype(num);
-		break;
-		}
-	default : {
-		printf("WARNING: sendScriptEventIn type %s not handled yet\n",
-			FIELD_TYPE_STRING(JSparamnames[fromoffset].type));
-		}
-	}
-}
-
 void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
@@ -3028,7 +1692,7 @@ void sendScriptEventIn(uintptr_t num) {
 					break;
 				}
 				case JAVASCRIPT: {
-					sendJScriptEventIn(num,to_ptr->foffset);
+					getField_ToJavascript(num,to_ptr->foffset);
 					break;
 				  }
 				default: {
@@ -3300,5 +1964,86 @@ void kill_routing (void) {
                 free (CRoutes);
                 CRoutes_Initiated = FALSE;
         }
+}
+
+
+/* internal variable to copy a C structure's Multi* field */
+void Multimemcpy (void *tn, void *fn, int multitype) {
+	unsigned int structlen;
+	unsigned int fromcount, tocount;
+	void *fromptr, *toptr;
+
+	struct Multi_Vec3f *mv3ffn, *mv3ftn;
+
+	#ifdef CRVERBOSE 
+		printf ("Multimemcpy, copying structures %d %d type %d\n",tn,fn,multitype); 
+	#endif
+
+	/* copy a complex (eg, a MF* node) node from one to the other
+	   the following types are currently found in VRMLNodes.pm -
+
+		 -1  is a Multi_Color 
+		 -10 is a Multi_Node
+		 -12 is a SFImage
+		 -13 is a Multi_String
+		 -14 is a Multi_Float
+		 -15 is a Multi_Rotation
+		 -16 is a Multi_Int32
+		 -18 is a Multi_Vec2f
+		 -19 is a Multi_Vec3f
+	*/
+
+	/* Multi_XXX nodes always consist of a count then a pointer - see
+	   Structs.h */
+
+	/* making the input pointers into a (any) structure helps deciphering params */
+	mv3ffn = (struct Multi_Vec3f *)fn;
+	mv3ftn = (struct Multi_Vec3f *)tn;
+
+	/* so, get the from memory pointer, and the to memory pointer from the structs */
+	fromptr = (void *)mv3ffn->p;
+
+	/* and the from and to sizes */
+	fromcount = mv3ffn->n;
+	tocount = mv3ftn->n;
+	#ifdef CRVERBOSE 
+		printf ("Multimemcpy, fromcount %d\n",fromcount);
+	#endif
+
+	/* get the structure length */
+	switch (multitype) {
+		case -1: {structlen = sizeof (struct SFColor); break; }
+		case -10: {structlen = sizeof (unsigned int); break; }
+		case -12: {structlen = sizeof (unsigned int); break; } 
+		case -13: {structlen = sizeof (unsigned int); break; }
+		case -14: {structlen = sizeof (float); break; }
+		case -15: {structlen = sizeof (struct SFRotation); break;}
+		case -16: {structlen = sizeof (int); break;}
+		case -18: {structlen = sizeof (struct SFVec2f); break;}
+		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
+		default: {
+			printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);
+			structlen=0;
+			return;
+		}
+	}
+
+
+	/* free the old data, if there is old data... */
+	if ((mv3ftn->p) != NULL) free (mv3ftn->p);
+
+	/* malloc the toptr */
+	mv3ftn->p = (struct SFColor *)malloc (structlen*fromcount);
+	toptr = (void *)mv3ftn->p;
+
+	/* tell the recipient how many elements are here */
+	mv3ftn->n = fromcount;
+
+	#ifdef CRVERBOSE 
+		printf ("Multimemcpy, fromcount %d tocount %d fromptr %d toptr %d\n",fromcount,tocount,fromptr,toptr); 
+	#endif
+
+	/* and do the copy of the data */
+	memcpy (toptr,fromptr,structlen * fromcount);
 }
 

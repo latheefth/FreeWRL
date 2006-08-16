@@ -33,9 +33,7 @@
 #define FNAME_STUB "file"
 #define LINENO_STUB 0
 
-#define BROWSER_SFNODE "__node"
-#define BROWSER_RETVAL "__ret"
-
+extern jsval global_return_val;
 
 static JSBool reportWarnings = JS_TRUE;
 

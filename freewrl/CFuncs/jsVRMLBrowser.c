@@ -539,7 +539,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		/* call the parser */
 		ra = EAI_CreateVrml("URL",filename,nodarr,200);
 
-		/* now, we make up a string of nodes, pass it to c_set_field_be that
+		/* now, we make up a string of nodes, pass it to setField_method1 that
 		takes this string apart. oh well... */
 
 		filename[0] = '\0'; /* just reuse these variables */
@@ -556,9 +556,9 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		/* remember the freewrl addChildren removeChildren stuff? */
 		if ((strncmp (_c,"addChildren",strlen("addChildren")) == 0) ||
 		(strncmp (_c,"removeChildren",strlen("removeChildren")) == 0)) {
-			c_set_field_be ((uintptr_t *)myptr, "children", filename,SENDER_JAVASCRIPT);
+			setField_method1 ((uintptr_t *)myptr, "children", filename);
 		} else {
-			c_set_field_be ((uintptr_t *)myptr, _c, filename,SENDER_JAVASCRIPT);
+			setField_method1 ((uintptr_t *)myptr, _c, filename);
 		}
 
 	} else {

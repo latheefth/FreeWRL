@@ -25,6 +25,36 @@
 /* now get all of our structures */
 #include "Structs.h"
 
+typedef struct _CRnodeStruct {
+        void *node;
+        unsigned int foffset;
+} CRnodeStruct;
+
+/* C routes */
+#define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
+
+struct CRStruct {
+        void *  fromnode;
+        uintptr_t fnptr;
+        unsigned int tonode_count;
+        CRnodeStruct *tonodes;
+        int     act;
+        int     len;
+        void    (*interpptr)(void *); /* pointer to an interpolator to run */
+        int     direction_flag; /* if non-zero indicates script in/out,
+                                                   proto in/out */
+        int     extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
+};
+struct CRjsnameStruct {
+        int     type;
+        char    name[MAXJSVARIABLELENGTH];
+};
+
+
+extern struct CRjsnameStruct *JSparamnames;
+extern struct CRStruct *CRoutes;
+
+
 /* To allow BOOL for boolean values */
 #define BOOL	int
 
@@ -87,11 +117,10 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
-#define SENDER_EAI 0
-#define SENDER_JAVASCRIPT 1
-#define SENDER_PARSER 2
-void c_set_field_be (void *ptr, char *field, char *value, int sender);
-void c_get_field_be (void *ptr, char *field, char *retvalue, int valueLen, int sender);
+void setField_method1 (void *ptr, char *field, char *value);
+unsigned int setField_method2 (char *ptr);
+void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx);
+void getField_method1 (void *ptr, char *field, char *retvalue, int valueLen, int sender);
 
 extern char *GL_VEN;
 extern char *GL_VER;
@@ -404,9 +433,6 @@ int verify_rotate(GLfloat *params);
 int verify_translate(GLfloat *params);
 int verify_scale(GLfloat *params);
 
-/* C routes */
-#define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
-
 void mark_event (void *from, unsigned int fromoffset);
 
 /* saved rayhit and hyperhit */
@@ -567,9 +593,9 @@ struct CRscriptStruct {
 	int thisScriptType;
 
 	/* Javascript parameters */
-	unsigned long int	cx;	/* JSContext		*/
-	unsigned long int	glob;	/* JSGlobals		*/
-	unsigned long int	brow;	/* BrowserIntern	*/
+	uintptr_t	cx;	/* JSContext		*/
+	uintptr_t	glob;	/* JSGlobals		*/
+	uintptr_t	brow;	/* BrowserIntern	*/
 
 	/* Java .CLASS parameters */
 	unsigned int 	_initialized; 	/* has initialize been sent? */
@@ -590,10 +616,11 @@ void EAI_GetType(unsigned int nodenum, const char *fieldname, const char *direct
         int *nodetype,
         int *scripttype);
 
-void setECMAtype(uintptr_t);
+void setScriptECMAtype(uintptr_t);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
-void setMultiElementtype(uintptr_t);
+void setScriptMultiElementtype(uintptr_t);
+void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 void Multimemcpy(void *tn, void *fn, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len);
@@ -611,6 +638,7 @@ int getRoutesCount(void);
 void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset, 
                 uintptr_t *toNode, int *toOffset);
 void sendScriptEventIn(uintptr_t num);
+void getField_ToJavascript (int num, int fromoffset);
 void add_first(void * node);
 void do_first(void);
 void process_eventsProcessed(void);
@@ -1137,6 +1165,5 @@ int findNodeInNODES(char *node);
 int findFieldInALLFIELDNAMES(char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
 char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset);
-void Perl_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 
 #endif /* __HEADERS_H__ */

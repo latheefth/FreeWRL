@@ -1602,12 +1602,14 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 			return JS_FALSE;
 		}
 
+/* JAS 
 		if (!JS_SetProperty(cx, globalObj, BROWSER_SFNODE, &_obj_val)) {
 			printf(
 					"JS_SetProperty failed for \"%s\" in SFNodeConstr.\n",
 					BROWSER_SFNODE);
 			return JS_FALSE;
 		}
+*/
 
 		/* doPerlCallMethodVA(brow->sv_js, "jspSFNodeConstr", "s", _vrmlstr); */
 printf ("DPCVA, sfnodeconstr\n");
@@ -1713,7 +1715,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		ra = sscanf (ptr->handle,"%d",&myNode);
 
 		/* get the field value as a string, then run it to create the javascript object */
-		c_get_field_be(myNode,_id_c,myRetVal,RETVALLEN,SENDER_JAVASCRIPT);
+		getField_method1 (myNode,_id_c,myRetVal,RETVALLEN,0);
 
                 /* create this value NOTE: rval is set here. */
                 jsrrunScript(cx, obj, myRetVal, vp);
@@ -1802,7 +1804,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		if (JSVRMLClassesVerbose)printf ("SFNodeSetProperty, setting node %s field %s to value %s\n", ptr->handle,_id_c,_val_c);
 		retint = sscanf (ptr->handle,"%d",&ra);
 		/* printf ("scanned in %d values, are %d\n",retint,ra); */
-		c_set_field_be ((void *)ra, _id_c, _val_c, SENDER_JAVASCRIPT);
+		setField_method1 ((void *)ra, _id_c, _val_c);
 
 	}
 

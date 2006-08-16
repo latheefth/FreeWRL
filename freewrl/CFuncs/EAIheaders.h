@@ -85,7 +85,6 @@ void EAI_RW(char *bufptr);
 #define EAI_SFCOLORRGBA		'w'
 #define EAI_MFBOOL		'x'
 #define EAI_FREEWRLPTR		'y'
-#define EAI_SFVEC3D		'z'
 #define EAI_MFVEC3D		'A'
 #define EAI_SFVEC2D		'B'
 #define EAI_SFVEC3D		'C'
