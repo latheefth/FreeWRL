@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.241  2006/08/17 20:36:29  crc_canada
+# working on Javascript from C, not perl
+#
 # Revision 1.240  2006/08/16 19:27:29  crc_canada
 # rearrange files to logically put get and set of scenegraph functions together.
 #
@@ -1339,7 +1342,8 @@ jsinit(num, sv_js)
 	int num
 	SV *sv_js
 CODE:
-	JSInit(num,sv_js);
+	/* JAS JSInit(num,sv_js); */
+	JSInit(num);
 
 int
 jsrunScript(num, script, rstr, rnum)
@@ -1407,6 +1411,16 @@ CODE:
 OUTPUT:
 RETVAL
 
+void
+initScriptFields(num,kind,type,field,fieldValue)
+	int num
+	char *kind
+	char *type
+	char *field
+	char *fieldValue
+CODE:
+	InitScriptField(num,kind,type,field,fieldValue);
+OUTPUT:
 
 # allow Javascript to add/remove children when the parent is a USE - see JS/JS.pm.
 void

@@ -46,7 +46,7 @@ void setField_method1 (void *ptr, char *field, char *value) {
 	struct X3D_Node *node;
 	struct X3D_Group *group;
 
-	node = (struct X3D_Box *)ptr;
+	node = (struct X3D_Node *)ptr;
 
 	#ifdef SETFIELDVERBOSE
 	printf ("\nsetField_method1, node %d field %s value %s\n", node, field, value);
@@ -424,7 +424,8 @@ char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
 	no = (struct X3D_Box *) node;
 	nodeType = no->_nodeType;
 
-	np = NODE_OFFSETS[nodeType];
+	
+	np = (int *) NODE_OFFSETS[nodeType];  /* it is a const int* type */
 	np++;  /* go to the offset field */
 
 	while ((*np != -1) && (*np != offset)) np +=4;
@@ -433,7 +434,7 @@ char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
 	
 	/* go back to the field name */
 	np --;
-	return FIELDNAMES[*np];
+	return ((char *) FIELDNAMES[*np]);
 }
 
 
@@ -497,6 +498,21 @@ int findNodeInNODES(char *node) {
 	}
 	return -1;
 }
+/* go through the generated table KEYWORDS, and find the int of this string, returning it, or -1 on error */
+int findFieldInKEYWORDS(char *field) {
+	int x;
+	int mystrlen;
+	
+	mystrlen = strlen(field);
+	/* printf ("findFieldInKEYWORDS, string :%s: is %d long\n",field,mystrlen); */
+	for (x=0; x<KEYWORDS_COUNT; x++) {
+		if (strlen(KEYWORDS[x]) == mystrlen) {
+			if (strcmp(field,KEYWORDS[x])==0) return x;
+		} 
+	}
+	return -1;
+}
+
 /* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error */
 int findFieldInALLFIELDNAMES(char *field) {
 	int x;
@@ -516,7 +532,7 @@ int findFieldInALLFIELDNAMES(char *field) {
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind) {
 	int *x;
 
-	x = nodeOffsetPtr;
+	x = (int *) nodeOffsetPtr;
 	/* printf ("findFieldInOffsets, comparing %d to %d\n",*x, field); */
 	while ((*x != field) && (*x != -1)) {
 		x += 4;

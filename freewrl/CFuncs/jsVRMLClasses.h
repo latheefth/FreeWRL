@@ -149,63 +149,64 @@ setAssignProperty(JSContext *context,
 
 /* not implemented */
 JSBool
-SFColorGetHSV(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
+SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 /* not implemented */
 JSBool
-SFColorSetHSV(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
+SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
-SFColorToString(JSContext *cx,
-				JSObject *obj,
-				uintN argc,
-				jsval *argv,
-				jsval *rval);
+SFColorToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
-SFColorAssign(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
+SFColorAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
-SFColorTouched(JSContext *cx,
-			   JSObject *obj,
-			   uintN argc,
-			   jsval *argv,
-			   jsval *rval);
+SFColorTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
-SFColorConstr(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
+SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 void
-SFColorFinalize(JSContext *cx,
-				JSObject *obj);
+SFColorFinalize(JSContext *cx, JSObject *obj);
 
 JSBool
-SFColorGetProperty(JSContext *cx,
-				   JSObject *obj,
-				   jsval id,
-				   jsval *vp);
+SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
 
 JSBool
-SFColorSetProperty(JSContext *cx,
-				   JSObject *obj,
-				   jsval id,
-				   jsval *vp);
+SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+
+
+/* not implemented */
+JSBool
+SFColorRGBAGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+/* not implemented */
+JSBool
+SFColorRGBASetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+JSBool
+SFColorRGBAToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+JSBool
+SFColorRGBAAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+JSBool
+SFColorRGBATouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+JSBool
+SFColorRGBAConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+void
+SFColorRGBAFinalize(JSContext *cx, JSObject *obj);
+
+JSBool
+SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+
+JSBool
+SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
+
+
 
 
 
@@ -1053,6 +1054,39 @@ static JSFunctionSpec (SFColorFunctions)[] = {
 	{"toString", SFColorToString, 0},
 	{"assign", SFColorAssign, 0},
 	{"__touched", SFColorTouched, 0},
+	{0}
+};
+
+
+static JSObject *proto_SFColorRGBA;
+
+static JSClass SFColorRGBAClass = {
+	"SFColorRGBA",
+	JSCLASS_HAS_PRIVATE,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	SFColorRGBAGetProperty,
+	SFColorRGBASetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	SFColorRGBAFinalize
+};
+
+static JSPropertySpec (SFColorRGBAProperties)[] = {
+	{"r", 0, JSPROP_ENUMERATE},
+	{"g", 1, JSPROP_ENUMERATE},
+	{"b", 2, JSPROP_ENUMERATE},
+	{"a", 3, JSPROP_ENUMERATE},
+	{0}
+};
+
+static JSFunctionSpec (SFColorRGBAFunctions)[] = {
+	{"getHSV", SFColorRGBAGetHSV, 0},
+	{"setHSV", SFColorRGBASetHSV, 0},
+	{"toString", SFColorRGBAToString, 0},
+	{"assign", SFColorRGBAAssign, 0},
+	{"__touched", SFColorRGBATouched, 0},
 	{0}
 };
 

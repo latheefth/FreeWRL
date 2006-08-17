@@ -110,12 +110,12 @@ void JSMaxAlloc() {
 
 
 
-void JSInit(uintptr_t num, SV *script) {
+/* void JSInit(uintptr_t num, SV *script) { */
+void JSInit(uintptr_t num) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
-
 	#ifdef JSVERBOSE 
 	printf("init: script %d\n",num);
 	#endif
@@ -173,8 +173,6 @@ void JSInit(uintptr_t num, SV *script) {
 
 
 	br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
-	br->sv_js = newSVsv(script); /* new duplicate of sv_js */
-	br->magic = BROWMAGIC; /* needed ??? */
 
 	/* for this script, here are the necessary data areas */
 	ScriptControl[num].cx = (uintptr_t) _context;
@@ -221,12 +219,10 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-
 	#ifdef JSVERBOSE
 		printf("ActualrunScript script %d cx %x \"%s\", \n",
 			   num, _context, script);
 	#endif
-
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
@@ -280,7 +276,7 @@ int JSrunScript(uintptr_t num, char *script, SV *rstr, SV *rnum) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	/* printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj);*/
+	printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj);
 
 	if (!ActualrunScript(num,script,&rval))
 		return JS_FALSE;
@@ -345,6 +341,7 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
+#define JSVERBOSE
 
 
 	#ifdef JSVERBOSE 
@@ -367,7 +364,6 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	}
 	return JS_TRUE;
 }
-
 
 
 int JSaddSFNodeProperty(uintptr_t num, char *nodeName, char *name, char *str) {
@@ -445,6 +441,7 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	return JS_TRUE;
 }
 
+#undef JSVERBOSE
 
 
 /* FROM VRMLC.pm */
@@ -538,6 +535,37 @@ SFNodeNativeAssign(void *top, void *fromp)
 	return JS_TRUE;
 }
 
+
+void *
+SFColorRGBANativeNew()
+{
+	SFColorRGBANative *ptr;
+	ptr = (SFColorRGBANative *)malloc(sizeof(*ptr));
+	if (ptr == NULL) {
+		return NULL;
+	}
+	ptr->touched = 0;
+	return ptr;
+}
+
+void
+SFColorRGBANativeDelete(void *p)
+{
+	SFColorRGBANative *ptr;
+	if (p != NULL) {
+		ptr = (SFColorRGBANative *)p;
+		free(ptr);
+	}
+}
+
+void
+SFColorRGBANativeAssign(void *top, void *fromp)
+{
+	SFColorRGBANative *to = (SFColorRGBANative *)top;
+	SFColorRGBANative *from = (SFColorRGBANative *)fromp;
+	to->touched++;
+	(to->v) = (from->v);
+}
 
 void *
 SFColorNativeNew()
@@ -694,4 +722,134 @@ SFVec3fNativeAssign(void *top, void *fromp)
 	SFVec3fNative *from = (SFVec3fNative *)fromp;
 	to->touched++;
 	(to->v) = (from->v);
+}
+
+
+/*********************
+temporary for transitioning from perl to C
+
+	kind: "eventOut" "eventIn" "field"
+	type: "SFFloat" ,,, etc.
+
+----------------------------------------------
+ECMA fields:
+
+when kind != "field", value is ignored.
+expected value formats when kind == "field":
+
+	SFInt32:	"333"
+	SFFloat:	"3.14"
+	SFBool:		"true" or "false"
+	SFTime:		"50000.000"
+	SFString:	""note the quotes needed around the string ""
+
+----------------------------------------------
+NON ECMA fields:
+	when kind = "eventIn" value is expected to be ""
+	when kind = "eventOut" value is expected to be the default; eg "0,0,0" (see VRMLFields.pm:VRMLFieldInit)
+	when kind = "field", value is a string representation:
+
+	SFRotation:	
+	SFVec3f:	
+	SFColor:	
+	SFColorRGBA:	
+	SFVec2f:	a string like "1.0,0.0,2.0" - correct number of values and spaces
+
+	SFImage:	
+	MFFloat:	
+	MFRotation:	
+	MFVec3f:	
+	MFBool:	
+	MFInt32:	
+	SFNode:	
+	MFNode:	
+	MFColor:	
+	MFColorRGBA:	
+	MFTime:	
+	MFString:	
+	MFVec2f:	
+	FreeWRLPTR:	
+
+	
+
+
+*/
+
+void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
+	jsval rval;
+	int ikind, itype;
+	char smallfield[200];
+	char mynewname[200];
+	smallfield[0] = '\0';
+
+	itype = convert_typetoInt(type);
+	ikind = findFieldInKEYWORDS(kind);
+
+	printf ("InitScriptField, %d, kind %s (%d)type %s (%d) field %s value %s\n",
+			num,kind,ikind,type,itype,field,value);
+
+	/* input check */
+	if ((ikind != KW_eventIn) && (ikind != KW_eventOut) && (ikind != KW_field)) {
+		ConsoleMessage ("invalid kind for script field: %s\n",kind);
+		return;	
+	}
+
+	if (itype == SFUNKNOWN) {
+		ConsoleMessage ("invalid type for script field: %s\n",type);
+		return;	
+	}
+
+	/* ok, lets handle the types here */
+	switch (itype) {
+		/* ECMA types */
+		case SFBOOL:
+		case SFFLOAT:
+		case SFTIME:
+		case SFINT32:
+		case SFSTRING: {
+			/* do not care about eventIns */
+			if (ikind != KW_eventIn)  {
+				JSaddGlobalECMANativeProperty(num, field);
+
+				if (ikind == KW_field) {
+				switch (itype) {
+					/* ECMA types */
+					case SFINT32: 	
+					case SFBOOL:	
+					case SFFLOAT:	
+					case SFTIME:	
+					case SFSTRING:	sprintf (smallfield,"%s=%s\n",field,value); break;
+					break;
+				}
+				}
+			}
+			break;
+		}
+
+		case SFVEC2F:
+		case SFCOLOR:
+		case SFCOLORRGBA:
+		case SFROTATION:
+		case SFVEC3F: {
+			printf ("handling an %s\n",type);
+			/* first, do we need to make a new name up? */
+			if (ikind == KW_eventIn) {
+				sprintf (mynewname,"__tmp_arg_%s",field);
+			} else strcpy(mynewname,field);
+
+			sprintf (smallfield,"new %s(%s)",type,value);
+			JSaddGlobalAssignProperty (num,mynewname,smallfield);
+			break;
+		}
+		default: {
+			printf ("unhandled itype, in InitScriptField %s\n",type);
+			return;
+		}
+	}
+	if (strlen(smallfield) > 0) {
+		printf ("running script %s\n",smallfield);
+		if (!ActualrunScript(num,smallfield,&rval))
+			printf ("huh???\n");
+	}
+
 }

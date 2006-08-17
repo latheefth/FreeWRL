@@ -76,6 +76,6 @@ errorReporter(JSContext *cx,
 			  JSErrorReport *report);
 
 int JSGetProperty(uintptr_t num, char *script, SV *rstr);
-void JSInit(uintptr_t num, SV *script);
+void JSInit(uintptr_t num);
 
 #endif /* __jsUtils_h__ */

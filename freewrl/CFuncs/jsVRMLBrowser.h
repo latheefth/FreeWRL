@@ -30,10 +30,6 @@ extern double BrowserFPS;				/* defined in VRMLC.pm */
 		printf("JS_GetPrivate failed in JavaScript Browser FUNC_INIT.\n"); \
 		return JS_FALSE; \
 	} \
-	if (brow->magic != BROWMAGIC) { \
-		printf("Wrong browser magic!\n"); \
-		return JS_FALSE; \
-	}
 
 static JSBool
 doVRMLRoute(JSContext *context,

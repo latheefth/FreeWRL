@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.69  2006/08/17 20:36:30  crc_canada
+# working on Javascript from C, not perl
+#
 # Revision 1.68  2006/06/20 18:48:54  crc_canada
 # keep track of current working url.
 #
@@ -444,7 +447,7 @@ sub parse {
 }
 
 sub print {print join ' ',@{$_[1]}}
-sub as_string {join ' ',@{$_[1]}}
+sub as_string {join ', ',@{$_[1]}}
 
 sub cstruct {return "struct SFColor {
 	float c[3]; };"}
@@ -473,10 +476,9 @@ sub parse {
 }
 
 sub print {print join ' ',@{$_[1]}}
-sub as_string {join ' ',@{$_[1]}}
+sub as_string {join ',',@{$_[1]}}
 
-sub cstruct {return "struct SFColorRGBA {
- 	float r[4]; };"}
+sub cstruct {return "struct SFColorRGBA { float r[4]; };"}
 
 sub ctype {return "struct SFColorRGBA $_[1]"}
 sub clength {7} #for C routes. Keep in sync with getClen in VRMLC.pm.
@@ -538,7 +540,7 @@ sub parse {
 }
 
 sub print {print join ' ',@{$_[1]}}
-sub as_string {join ' ',@{$_[1]}}
+sub as_string {join ',',@{$_[1]}}
 
 sub cstruct {return "struct SFVec2f {
 	float c[2]; };"}
@@ -569,7 +571,7 @@ sub parse {
 }
 
 sub print {print join ' ',@{$_[1]}}
-sub as_string {join ' ',@{$_[1]}}
+sub as_string {join ',',@{$_[1]}}
 
 sub cstruct {return "struct SFRotation {
  	float r[4]; };"}
@@ -1096,7 +1098,7 @@ sub print {
 sub as_string {
 	my ($type, $value, $as_ecmascript) = @_;
 	$type =~ s/::MF/::SF/;
-
+print "VRMLFields, as_string called for generic field\n";
 	if (!$value) { return; }
 
 	if("ARRAY" eq ref $value) {

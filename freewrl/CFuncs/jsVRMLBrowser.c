@@ -222,13 +222,12 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 	JSString *_str;
 	JSClass *_cls;
 	jsval _v, _rval = INT_TO_JSVAL(0);
-	BrowserNative *brow;
 	char *_c_args = "MFNode nodes",
 		*_costr,
 		*_c_format = "o";
 	char *tptr;
 
-	FUNC_INIT
+	/*FUNC_INIT*/
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format, &_obj)) {
 		if ((_cls = JS_GetClass(_obj)) == NULL) {
@@ -270,14 +269,13 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 	JSObject *_obj[2];
 	JSString *_str[2];
 	JSClass *_cls[2];
-	BrowserNative *brow;
 	char *_c_args = "MFString url, MFString parameter",
 		*_costr[2],
 		*_c_format = "o o";
 	#define myBufSize 2000
 	char myBuf[myBufSize];
 
-	FUNC_INIT
+	/*FUNC_INIT*/
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format, &(_obj[0]), &(_obj[1]))) {
 		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
@@ -327,9 +325,8 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 {
 	jsval _rval = INT_TO_JSVAL(0);
 	char *_c, *_c_args = "SFString description", *_c_format = "s";
-	BrowserNative *brow;
 
-	FUNC_INIT
+	/*FUNC_INIT*/
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
@@ -347,7 +344,6 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 JSBool
 VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	BrowserNative *brow;
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
 	JSString *_str;
 	jsval _rval = INT_TO_JSVAL(0);
@@ -365,7 +361,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 	/* make this a default value */
 	*rval = INT_TO_JSVAL(0);
 
-	FUNC_INIT
+	/*FUNC_INIT*/
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
@@ -419,7 +415,6 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	JSString *_str[2];
 	JSClass *_cls[2];
 	jsval _v, _rval = INT_TO_JSVAL(0);
-	BrowserNative *brow;
 	char *_c,
 		*_c_args = "MFString url, SFNode node, SFString event",
 		*_costr0,
@@ -442,7 +437,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
 
-	FUNC_INIT
+	/*FUNC_INIT*/
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format,
 			&(_obj[0]), &(_obj[1]), &_c)) {
@@ -639,7 +634,6 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 			const char *callingFunc)
 {
 	jsval _v[2];
-	BrowserNative *brow;
 	JSObject *_obj[2];
 	JSClass *_cls[2];
 	JSString *_str[2];
@@ -658,7 +652,7 @@ int xxx;
 int ra;
 int myField;
 
-	FUNC_INIT
+	/*FUNC_INIT*/
 
 	if (JS_ConvertArguments(context,
 				argc,

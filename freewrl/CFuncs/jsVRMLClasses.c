@@ -74,6 +74,9 @@ printNodeType (JSContext *context, JSObject *myobj) {
 	else if (JS_InstanceOf(context, myobj, &MFNodeClass, NULL)) {
 	printf ("MFNodeClass\n");
 	}
+	else if (JS_InstanceOf(context, myobj, &SFColorRGBAClass, NULL)) {
+	printf ("SFColorRGBA\n");
+	}
 	else if (JS_InstanceOf(context, myobj, &MFStringClass, NULL)) {
 	printf ("MFStringClass\n");
 	}
@@ -91,7 +94,7 @@ printNodeType (JSContext *context, JSObject *myobj) {
 		printf ("is a primitive");
 	}
 */
-	else printf ("Unknown");
+	else printf ("javaclass type Unknown");
 	printf ("\n");
 }
 
@@ -541,7 +544,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 }
 
 
-static JSBool
+/* static JSBool
 getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow)
 {
 	jsval _b_val;
@@ -561,7 +564,7 @@ getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow)
 	}
 	return JS_TRUE;
 }
-
+*/
 
 static JSBool
 doMFStringUnquote(JSContext *cx, jsval *vp)
@@ -645,6 +648,19 @@ loadVrmlClasses(JSContext *context, JSObject *globalObj)
 	v = OBJECT_TO_JSVAL(proto_SFVec2f);
 	if (!JS_SetProperty(context, globalObj, "__SFVec2f_proto", &v)) {
 		printf("JS_SetProperty for SFVec2fClass failed in loadVrmlClasses.\n");
+		return JS_FALSE;
+	}
+	v = 0;
+
+	if ((proto_SFColorRGBA = JS_InitClass(context, globalObj, NULL, &SFColorRGBAClass,
+			  SFColorRGBAConstr, INIT_ARGC, NULL,
+			  SFColorRGBAFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for SFColorRGBAClass failed in loadVrmlClasses.\n");
+		return JS_FALSE;
+	}
+	v = OBJECT_TO_JSVAL(proto_SFColorRGBA);
+	if (!JS_SetProperty(context, globalObj, "__SFColorRGBA_proto", &v)) {
+		printf("JS_SetProperty for SFColorRGBAClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
@@ -1282,6 +1298,320 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	return JS_TRUE;
 }
 
+
+/* implement later */
+JSBool
+SFColorRGBAGetHSV(JSContext *cx, JSObject *obj,
+				uintN argc, jsval *argv, jsval *rval)
+{
+	JSObject *_arrayObj;
+/* 	SFColorRGBANative *ptr; */
+	jsdouble hue = 0, saturation = 0, value = 0;
+	jsval _v;
+
+	UNUSED(obj);
+	UNUSED(argc);
+	UNUSED(argv);
+	/* do conversion here!!! */
+
+	if ((_arrayObj = JS_NewArrayObject(cx, 0, NULL)) == NULL) {
+		printf( "JS_NewArrayObject failed in SFColorRGBAGetHSV.\n");
+		return JS_FALSE;
+	}
+	*rval = OBJECT_TO_JSVAL(_arrayObj);
+
+	/* construct new double before conversion? */
+	_v = DOUBLE_TO_JSVAL(&hue);
+	if (!JS_SetElement(cx, _arrayObj, 0, &_v)) {
+		printf( "JS_SetElement failed for hue in SFColorRGBAGetHSV.\n");
+		return JS_FALSE;
+	}
+	_v = DOUBLE_TO_JSVAL(&saturation);
+	if (!JS_SetElement(cx, _arrayObj, 1, &_v)) {
+		printf( "JS_SetElement failed for saturation in SFColorRGBAGetHSV.\n");
+		return JS_FALSE;
+	}
+
+	_v = DOUBLE_TO_JSVAL(&value);
+	if (!JS_SetElement(cx, _arrayObj, 2, &_v)) {
+		printf( "JS_SetElement failed for value in SFColorRGBAGetHSV.\n");
+		return JS_FALSE;
+	}
+
+    return JS_TRUE;
+}
+
+/* implement later */
+JSBool
+SFColorRGBASetHSV(JSContext *cx, JSObject *obj,
+				uintN argc, jsval *argv, jsval *rval)
+{
+    SFColorRGBANative *ptr;
+	jsdouble hue, saturation, value;
+
+	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFColorRGBAToString.\n");
+		return JS_FALSE;
+	}
+	if (!JS_ConvertArguments(cx, argc, argv, "d d d",
+							 &hue, &saturation, &value)) {
+		printf( "JS_ConvertArguments failed in SFColorRGBASetHSV.\n");
+		return JS_FALSE;
+	}
+
+	/* do conversion here!!! */
+
+	*rval = OBJECT_TO_JSVAL(obj);
+
+    return JS_TRUE;
+}
+
+JSBool
+SFColorRGBAToString(JSContext *cx, JSObject *obj,
+				uintN argc, jsval *argv, jsval *rval)
+{
+    SFColorRGBANative *ptr;
+    JSString *_str;
+	char _buff[STRING];
+
+	UNUSED(argc);
+	UNUSED(argv);
+	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFColorRGBAToString.\n");
+		return JS_FALSE;
+	}
+
+	memset(_buff, 0, STRING);
+	sprintf(_buff, "%.9g %.9g %.9g %.9g",
+			(ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2],(ptr->v).r[3]);
+	_str = JS_NewStringCopyZ(cx, _buff);
+    *rval = STRING_TO_JSVAL(_str);
+
+    return JS_TRUE;
+}
+
+JSBool
+SFColorRGBAAssign(JSContext *cx, JSObject *obj,
+			   uintN argc, jsval *argv, jsval *rval)
+{
+    JSObject *_from_obj;
+    SFColorRGBANative *ptr, *fptr;
+    char *_id_str;
+
+	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed for obj in SFColorRGBAAssign.\n");
+        return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, obj, &SFColorRGBAClass, argv)) {
+		printf( "JS_InstanceOf failed for obj in SFColorRGBAAssign.\n");
+        return JS_FALSE;
+	}
+	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+		printf( "JS_ConvertArguments failed in SFColorRGBAAssign.\n");
+		return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, _from_obj, &SFColorRGBAClass, argv)) {
+		printf( "JS_InstanceOf failed for _from_obj in SFColorRGBAAssign.\n");
+        return JS_FALSE;
+    }
+	if ((fptr = (SFColorRGBANative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
+		printf( "JS_GetPrivate failed for _from_obj in SFColorRGBAAssign.\n");
+        return JS_FALSE;
+	}
+	if (JSVRMLClassesVerbose) {
+		printf("SFColorRGBAAssign: obj = %u, id = \"%s\", from = %u\n",
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+	}
+
+    SFColorRGBANativeAssign(ptr, fptr);
+    *rval = OBJECT_TO_JSVAL(obj);
+
+    return JS_TRUE;
+}
+
+JSBool
+SFColorRGBATouched(JSContext *cx, JSObject *obj,
+			   uintN argc, jsval *argv, jsval *rval)
+{
+    SFColorRGBANative *ptr;
+    int t;
+
+	UNUSED(argc);
+	UNUSED(argv);
+	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFSFColorRGBATouched.\n");
+		return JS_FALSE;
+	}
+
+    t = ptr->touched;
+	ptr->touched = 0;
+    if (JSVRMLClassesVerbose) {
+		printf("SFColorRGBATouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
+	}
+    *rval = INT_TO_JSVAL(t);
+    return JS_TRUE;
+}
+
+JSBool
+SFColorRGBAConstr(JSContext *cx, JSObject *obj,
+			  uintN argc, jsval *argv, jsval *rval)
+{
+	SFColorRGBANative *ptr;
+	jsdouble pars[3];
+
+	if ((ptr = (SFColorRGBANative *) SFColorNativeNew()) == NULL) {
+		printf( "SFColorRGBANativeNew failed in SFColorConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (!JS_DefineProperties(cx, obj, SFColorRGBAProperties)) {
+		printf( "JS_DefineProperties failed in SFColorRGBAConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (!JS_SetPrivate(cx, obj, ptr)) {
+		printf( "JS_SetPrivate failed in SFColorRGBAConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (argc == 0) {
+		(ptr->v).r[0] = 0.0;
+		(ptr->v).r[1] = 0.0;
+		(ptr->v).r[2] = 0.0;
+		(ptr->v).r[3] = 0.0;
+	} else if (JS_ConvertArguments(cx, argc, argv, "d d d d",
+					&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
+		(ptr->v).r[0] = pars[0];
+		(ptr->v).r[1] = pars[1];
+		(ptr->v).r[2] = pars[2];
+		(ptr->v).r[3] = pars[3];
+	} else {
+		printf( "Invalid arguments for SFColorRGBAConstr.\n");
+		return JS_FALSE;
+	}
+	if (JSVRMLClassesVerbose) {
+		printf("SFColorRGBAConstr: obj = %u, %u args, %f %f %fi %f\n",
+			   VERBOSE_OBJ obj, argc,
+			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2],(ptr->v).r[3]);
+	}
+	*rval = OBJECT_TO_JSVAL(obj);
+
+	return JS_TRUE;
+}
+
+void
+SFColorRGBAFinalize(JSContext *cx, JSObject *obj)
+{
+	SFColorRGBANative *ptr;
+
+	if (JSVRMLClassesVerbose) {
+		printf("SFColorRGBAFinalize: obj = %u\n", VERBOSE_OBJ obj);
+	}
+	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFColorRGBAFinalize.\n");
+		return;
+	}
+	SFColorRGBANativeDelete(ptr);
+}
+
+JSBool
+SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFColorRGBANative *ptr;
+	jsdouble d, *dp;
+
+	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFColorRGBAGetProperty.\n");
+		return JS_FALSE;
+	}
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			d = (ptr->v).r[0];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 1:
+			d = (ptr->v).r[1];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 2:
+			d = (ptr->v).r[2];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 3:
+			d = (ptr->v).r[3];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFColorRGBAGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		}
+	}
+	return JS_TRUE;
+}
+
+JSBool
+SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFColorRGBANative *ptr;
+	jsval _val;
+
+	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFColorRGBASetProperty.\n");
+		return JS_FALSE;
+	}
+	ptr->touched++;
+	if (JSVRMLClassesVerbose) {
+		printf("SFColorRGBASetProperty: obj = %u, id = %d, touched = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
+	}
+
+	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &_val)) {
+		printf( "JS_ConvertValue failed in SFColorRGBASetProperty.\n");
+		return JS_FALSE;
+	}
+
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			(ptr->v).r[0] = *JSVAL_TO_DOUBLE(_val);
+			break;
+		case 1:
+			(ptr->v).r[1] = *JSVAL_TO_DOUBLE(_val);
+			break;
+		case 2:
+			(ptr->v).r[2] = *JSVAL_TO_DOUBLE(_val);
+			break;
+		case 3:
+			(ptr->v).r[3] = *JSVAL_TO_DOUBLE(_val);
+			break;
+
+		}
+	}
+	return JS_TRUE;
+}
+
 JSBool
 SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
@@ -1444,7 +1774,7 @@ SFNodeAssign(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval)
 {
 	JSObject *_from_obj, *globalObj;
-	BrowserNative *brow;
+	/*JAS BrowserNative *brow; */
 	SFNodeNative *fptr, *ptr;
 	char *_id_str;
 	jsval _rval;
@@ -1487,10 +1817,10 @@ printf ("start of SFNodeAssign\n");
 			printf( "JS_GetGlobalObject failed in SFNodeAssign.\n");
 			return JS_FALSE;
 		}
-		if (!getBrowser(cx, globalObj, &brow)) {
+		/*JAS if (!getBrowser(cx, globalObj, &brow)) {
 			printf( "getBrowser failed in SFNodeAssign.\n");
 			return JS_FALSE;
-		}
+		} */
 
 		/* doPerlCallMethodVA(brow->sv_js, "getNodeCNode", "s", fptr->handle); */
 printf ("DPCVA, getnodecnode\n");
@@ -1551,7 +1881,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval)
 {
 	JSObject *globalObj;
-	BrowserNative *brow;
+	/* BrowserNative *brow; */
     SFNodeNative *ptr;
 	char *_vrmlstr, *_handle;
 	char *tmpptr, *xptr;
@@ -1597,12 +1927,12 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 			return JS_FALSE;
 		}
 
+/* JAS 
 		if (!getBrowser(cx, globalObj, &brow)) {
 			printf( "getBrowser failed in SFNodeConstr.\n");
 			return JS_FALSE;
 		}
 
-/* JAS 
 		if (!JS_SetProperty(cx, globalObj, BROWSER_SFNODE, &_obj_val)) {
 			printf(
 					"JS_SetProperty failed for \"%s\" in SFNodeConstr.\n",
@@ -1667,7 +1997,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	JSObject *globalObj;
 	JSString *_str, *_idStr, *_valStr;
-	BrowserNative *brow;
+	/*JAS BrowserNative *brow; */
 	SFNodeNative *ptr;
 	char *_id_c, *_val_c;
 	size_t val_len = 0;
@@ -1703,11 +2033,12 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			printf( "JS_GetGlobalObject failed in SFNodeSetProperty.\n");
 			return JS_FALSE;
 		}
-
+/*JAS
 		if (!getBrowser(cx, globalObj, &brow)) {
 			printf( "getBrowser failed in SFNodeSetProperty.\n");
 			return JS_FALSE;
 		}
+*/
 		if (JSVRMLClassesVerbose) printf ("SFNodeGetProperty, getting the property:%s: for %s\n",_id_c,ptr->handle);
 
 
@@ -1741,7 +2072,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	JSObject *globalObj;
 	JSString *_idStr, *_valStr;
-	BrowserNative *brow;
+	/* JAS BrowserNative *brow; */
 	SFNodeNative *ptr;
 	char *_id_c, *_val_c;
 	size_t val_len = 0;
@@ -1796,10 +2127,12 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 
+/*
 		if (!getBrowser(cx, globalObj, &brow)) {
 			printf( "getBrowser failed in SFNodeSetProperty.\n");
 			return JS_FALSE;
 		}
+*/
 
 		if (JSVRMLClassesVerbose)printf ("SFNodeSetProperty, setting node %s field %s to value %s\n", ptr->handle,_id_c,_val_c);
 		retint = sscanf (ptr->handle,"%d",&ra);

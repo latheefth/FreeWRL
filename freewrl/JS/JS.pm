@@ -87,37 +87,51 @@ sub initScriptFields {
 	my $fkind = $nt->{FieldKinds}{$field};
 	my ($rstr, $v);
 
-	print "VRML::JS::initScriptFields: fkind $fkind, type $type, fiel $field\n"  if $VRML::verbose::js;
+	my $fieldstring;
+
+	print "VRML::JS::initScriptFields: fkind $fkind, type $type, field $field\n" if $VRML::verbose::js;
+
+	my $value = $node->{RFields}{$field};
+	my $asciival = $ftype->as_string($value, 1);
+
+VRML::VRMLFunc::initScriptFields($this->{ScriptNum},$fkind, $type, $field,$asciival);
+
 
 	if ($fkind eq "eventIn") {
-		if ($type !~ /$ECMAScriptNative/) {
-			$constr = $this->constrString($type, 0);
-			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
-								   "$eventInArg"."$field", $constr)) {
-				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
-			}
-		}
+#print "JS - handling eventIn\n";
+#		if ($type !~ /$ECMAScriptNative/) {
+#			$constr = $this->constrString($type, 0);
+#			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
+#								   "$eventInArg"."$field", $constr)) {
+#				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
+#			}
+#		}
 	} elsif ($fkind eq "eventOut") {
 		if ($type =~ /$ECMAScriptNative/) {
-			if (!VRML::VRMLFunc::addGlobalECMANativeProperty($this->{ScriptNum},
-											 $field)) {
-				$this->cleanupDie("VRML::VRMLFunc::addGlobalECMANativeProperty failed in initScriptFields");
-			}
+#			if (!VRML::VRMLFunc::addGlobalECMANativeProperty($this->{ScriptNum},
+#											 $field)) {
+#				$this->cleanupDie("VRML::VRMLFunc::addGlobalECMANativeProperty failed in initScriptFields");
+#			}
 		} else {
 			if ($type eq "SFNode") {
+				print "JS - handling eventOut SFNode\n";
 				$value = $node->{RFields}{$field};
 				print "\tJS field property $field, value ",
 					VRML::Debug::toString($value), "\n"
 							if $VRML::verbose::js;
 				$constr = $this->constrString($type, $value);
 				$this->initSFNodeFields($field, $value);
-			} else {
-				$constr = $this->constrString($type, 0);
-			}
-
-			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
+				if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
 								   $field, $constr)) {
-				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
+					$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
+				}
+#			} else {
+#				$constr = $this->constrString($type, 0);
+#
+#			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
+#								   $field, $constr)) {
+#				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
+#			}
 			}
 		}
 	} elsif ($fkind eq "field") {
@@ -128,27 +142,33 @@ sub initScriptFields {
 					if $VRML::verbose::js;
 
 		if ($type =~ /$ECMAScriptNative/) {
-			if (!VRML::VRMLFunc::addGlobalECMANativeProperty($this->{ScriptNum},
-											 $field)) {
-				$this->cleanupDie("VRML::VRMLFunc::addGlobalECMANativeProperty failed in initScriptFields");
-			}
-			if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
-						   "$field=".$ftype->as_string($value, 1), $rstr, $v)) {
-				$this->cleanupDie("VRML::VRMLFunc::jsrunScript failed in initScriptFields");
-			}
+#print "field, 1, now done entirely in C \n";
+#			if (!VRML::VRMLFunc::addGlobalECMANativeProperty($this->{ScriptNum},
+#											 $field)) {
+#				$this->cleanupDie("VRML::VRMLFunc::addGlobalECMANativeProperty failed in initScriptFields");
+#			}
+#			if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+#						   "$field=".$ftype->as_string($value, 1), $rstr, $v)) {
+#				$this->cleanupDie("VRML::VRMLFunc::jsrunScript failed in initScriptFields");
+#			}
+#			print "just ran script "."$field=".$ftype->as_string($value, 1)."\n";
 		} else {
-			$constr = $this->constrString($type, $value);
-			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
-								   $field, $constr)) {
-				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
-			}
 			if ($type eq "SFNode") {
+				print "field, 2\n";
+				$constr = $this->constrString($type, $value);
+				print "constr sring is $constr\n";
+				if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
+								   $field, $constr)) {
+					$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
+				}
 				$this->initSFNodeFields($field, $value);
 			}
 		}
 	} else {
 		warn("Invalid field $fkind $field for $node->{TypeName} in initScriptFields");
 	}
+
+print "\n\n";
 }
 
 sub initSFNodeFields {
