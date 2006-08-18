@@ -276,7 +276,7 @@ int JSrunScript(uintptr_t num, char *script, SV *rstr, SV *rnum) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj);
+	/* printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj); */
 
 	if (!ActualrunScript(num,script,&rval))
 		return JS_FALSE;
@@ -753,23 +753,26 @@ NON ECMA fields:
 	SFVec3f:	
 	SFColor:	
 	SFColorRGBA:	
-	SFVec2f:	a string like "1.0,0.0,2.0" - correct number of values and spaces
+	FreeWRLPTR:	
+	SFNode:	
+	SFVec2f:	a string like "1.0,0.0,2.0" - correct number of values, with 
+			commas between values. It can optionally have "[" and "]" at the beginning
+			and end of the string.
 
-	SFImage:	
 	MFFloat:	
 	MFRotation:	
 	MFVec3f:	
 	MFBool:	
 	MFInt32:	
-	SFNode:	
 	MFNode:	
 	MFColor:	
 	MFColorRGBA:	
 	MFTime:	
-	MFString:	
-	MFVec2f:	
-	FreeWRLPTR:	
+	MFVec2f		A string, like the SFColors above. The code will split it up into the correct
+			number of values; eg "[1,2,3,4,5,6]" will be 6 MFFloats, but 3 MFVec2Fs.	
 
+	SFImage:	
+	MFString:	
 	
 
 
@@ -778,15 +781,21 @@ NON ECMA fields:
 void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
 	jsval rval;
 	int ikind, itype;
-	char smallfield[200];
-	char mynewname[200];
-	smallfield[0] = '\0';
+	char *smallfield = NULL;
+	char mynewname[400];
+	char *cptr;
+	int rows, commas;
+	int elements;
+	int count;
+	char *sftype;
 
 	itype = convert_typetoInt(type);
 	ikind = findFieldInKEYWORDS(kind);
 
+	/*
 	printf ("InitScriptField, %d, kind %s (%d)type %s (%d) field %s value %s\n",
 			num,kind,ikind,type,itype,field,value);
+	*/
 
 	/* input check */
 	if ((ikind != KW_eventIn) && (ikind != KW_eventOut) && (ikind != KW_field)) {
@@ -806,50 +815,110 @@ void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
 		case SFFLOAT:
 		case SFTIME:
 		case SFINT32:
+		case SFIMAGE:
 		case SFSTRING: {
 			/* do not care about eventIns */
 			if (ikind != KW_eventIn)  {
 				JSaddGlobalECMANativeProperty(num, field);
 
 				if (ikind == KW_field) {
-				switch (itype) {
-					/* ECMA types */
-					case SFINT32: 	
-					case SFBOOL:	
-					case SFFLOAT:	
-					case SFTIME:	
-					case SFSTRING:	sprintf (smallfield,"%s=%s\n",field,value); break;
-					break;
-				}
+					smallfield = malloc (strlen(value) + strlen(field) + 10);
+					sprintf (smallfield,"%s=%s\n",field,value);
+					if (!ActualrunScript(num,smallfield,&rval))
+						printf ("huh???\n");
 				}
 			}
 			break;
 		}
-
-		case SFVEC2F:
-		case SFCOLOR:
-		case SFCOLORRGBA:
-		case SFROTATION:
-		case SFVEC3F: {
-			printf ("handling an %s\n",type);
+		/* non ECMA types */
+		default: {
 			/* first, do we need to make a new name up? */
 			if (ikind == KW_eventIn) {
 				sprintf (mynewname,"__tmp_arg_%s",field);
 			} else strcpy(mynewname,field);
 
-			sprintf (smallfield,"new %s(%s)",type,value);
-			JSaddGlobalAssignProperty (num,mynewname,smallfield);
-			break;
-		}
-		default: {
-			printf ("unhandled itype, in InitScriptField %s\n",type);
-			return;
+			/* SIMPLE MANIPULATION if the string comes in with "[" and/or "]", strip them off. */
+			if ((cptr = strchr(value, '[')) != NULL) *cptr = ' ';
+			if ((cptr = strchr(value, ']')) != NULL) *cptr = ' ';
+			commas = countCommas (value) + 1;
+			rows = returnElementRowSize (itype);
+			elements = commas/rows;
+			sftype = strdup(type);
+			if (sftype[0] = 'M') sftype[0] = 'S';
+			/* printf ("commas %d, rows %d, elements %d sftype %s\n",commas,rows,elements, sftype); */
+
+			switch (itype) {
+				case MFCOLOR:
+				case MFCOLORRGBA:
+				case MFVEC2F:
+				case MFVEC3F:
+				case MFROTATION: 
+				case FREEWRLPTR:
+				case SFNODE:
+				case SFVEC2F:
+				case SFCOLOR:
+				case SFCOLORRGBA:
+				case SFROTATION:
+				case MFNODE:
+				case MFTIME:
+				case MFINT32:
+				case MFFLOAT: 
+				case SFVEC3F: {
+					smallfield = malloc (strlen(type) + strlen(value) + 
+						(elements*15) + 100);
+
+					/* start the string */
+					smallfield[0] = '\0';
+					sprintf (smallfield,"new %s(",type);
+
+					/* is this an MF with SF types? */
+					if (rows>1) {
+						/* is there any value here, at all? */
+						if (elements > 0) {
+							for (count = 0; count < commas; count++) {
+								/* printf ("count %d mod %d\n",count, count % rows); */
+	
+								/* start of this element? */
+								if ((count%rows) == 0) {
+									strcat (smallfield,"new ");
+									strcat (smallfield, sftype);
+									strcat (smallfield, "(");
+								}
+
+								/* copy the value over */
+								cptr = strchr(value,',');
+								if (cptr != NULL) *cptr = '\0';
+								strcat (smallfield, value);
+								if (cptr != NULL) {
+									value = cptr;
+									value ++; 
+								}
+	
+								/* end of this element? */
+								if (((count+1)%rows) == 0) {
+									strcat (smallfield,")");
+									/* if we are not at the end, apply a comma */
+									if (count <(commas-1)) strcat (smallfield,",");
+								}
+								else strcat (smallfield,",");
+							}
+						}
+
+					} else strcat (smallfield, value);
+
+					strcat (smallfield,")");
+					JSaddGlobalAssignProperty (num,mynewname,smallfield);
+					break;
+				}
+	
+				default: {
+					printf ("unhandled itype, in InitScriptField %s\n",type);
+					return;
+				}
+			}
 		}
 	}
-	if (strlen(smallfield) > 0) {
-		printf ("running script %s\n",smallfield);
-		if (!ActualrunScript(num,smallfield,&rval))
-			printf ("huh???\n");
-	}
+
+	FREE_IF_NZ (smallfield);
 
 }

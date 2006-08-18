@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.70  2006/08/18 17:47:37  crc_canada
+# Javascript initialization
+#
 # Revision 1.69  2006/08/17 20:36:30  crc_canada
 # working on Javascript from C, not perl
 #
@@ -447,7 +450,7 @@ sub parse {
 }
 
 sub print {print join ' ',@{$_[1]}}
-sub as_string {join ', ',@{$_[1]}}
+sub as_string {join ',',@{$_[1]}}
 
 sub cstruct {return "struct SFColor {
 	float c[3]; };"}
@@ -1098,12 +1101,11 @@ sub print {
 sub as_string {
 	my ($type, $value, $as_ecmascript) = @_;
 	$type =~ s/::MF/::SF/;
-print "VRMLFields, as_string called for generic field\n";
 	if (!$value) { return; }
 
 	if("ARRAY" eq ref $value) {
 		return "[]" if (!@{$value});
-		return "[ ".(join ' ', map {$type->as_string($_)} @{$value})." ]";
+		return "[ ".(join ',', map {$type->as_string($_)} @{$value})." ]";
 	} else {
 		return $value->as_string();
 	}
@@ -1516,7 +1518,8 @@ sub parse {
 sub ctype {return "SV *$_[1]"}
 
 sub print {print "\"$_[1]\""}
-sub as_string{"\"$_[1]\""}
+#sub as_string{"\"$_[1]\""}
+sub as_string {"\"".join ' ',@{$_[1]}."\""}
 
 sub clength {-12}; # signal that a -12 is a SFImage for CRoutes #for C routes. Keep in sync with getClen in VRMLC.pm.
 

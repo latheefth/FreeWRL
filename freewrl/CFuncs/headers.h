@@ -1166,5 +1166,6 @@ int findFieldInALLFIELDNAMES(char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
 char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset);
 int findFieldInKEYWORDS(char *field);
+int countCommas (char *instr);
 
 #endif /* __HEADERS_H__ */

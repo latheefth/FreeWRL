@@ -723,6 +723,8 @@ void openMotifMainWindow (int argc, char **argv) {
 
 
 void setConsoleMessage (char *str) {
+	char *tptr;
+	int ol, nl;
 
 	/* is the consoleTextWidget created yet?? */
 	if (ISDISPLAYINITIALIZED != TRUE) {
@@ -739,8 +741,17 @@ void setConsoleMessage (char *str) {
 		#ifdef DO_MULTI_OPENGL_THREADS
 			XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),str);
 		#else
+			ol = 0;
+			if (consMsg != NULL) ol = strlen(consMsg);
+			nl = strlen(str);
+			tptr = malloc (ol+nl+10);
+			tptr[0] = '\0';
+			if (ol>0) strcat (tptr,consMsg);
+			strcat (tptr,str);
+			
+			/* copy old string, if it exists */
 			if (consMsg != NULL) free (consMsg);
-			consMsg = strdup(str);
+			consMsg = tptr;
 			consmsgChanged = TRUE;
 		#endif
 	}
@@ -768,6 +779,10 @@ void frontendUpdateButtons() {
 			msgChanged = FALSE;
 	}
 	if (consmsgChanged) {
+			/* printf ("frontendUpateButtons, consmggchanged, posn %d oldstr %s consmsg %s\n",
+				strlen(XmTextGetString(consoleTextArea)),
+				XmTextGetString(consoleTextArea),
+				consMsg);*/
 			XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),consMsg);
 			consmsgChanged = FALSE;
 	}
