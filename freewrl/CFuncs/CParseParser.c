@@ -32,7 +32,7 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sfcolorrgbaValue, &parser_mfcolorrgbaValue,
  &parser_sftimeValue, &parser_mftimeValue,
  &parser_sfstringValue_, &parser_mfstringValue,
- &parser_sfvec2fValue, &parser_sfvec2fValue,
+ &parser_sfvec2fValue, &parser_mfvec2fValue,
  &parser_sfimageValue,
  NULL
 };
@@ -557,7 +557,8 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
   protoCopy=protoDefinition_copy(vector_get(struct ProtoDefinition*,
    stack_top(PROTOs), nodeTypeU));
-  while(parser_protoField(me, protoCopy));
+  while(parser_protoField(me, protoCopy) ||
+   parser_routeStatement(me) || parser_protoStatement(me));
   node=protoDefinition_extractScene(protoCopy);
   assert(node);
 
