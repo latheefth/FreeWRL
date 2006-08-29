@@ -978,6 +978,7 @@ void kill_bindables (void) {
 void registerBindable (void *ptr) {
 	struct X3D_Box *node;
 
+
 	node = (struct X3D_Box *)ptr;
 	/* printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType));  */
 	switch (node->_nodeType) {
@@ -1005,8 +1006,9 @@ void registerBindable (void *ptr) {
 			break;
 		default: {
 			/* do nothing with this node */
-			printf ("got a registerBind on a node of type %s - huh?\n",
+			/* printf ("got a registerBind on a node of type %s - ignoring\n",
 					stringNodeType(node->_nodeType));
+			*/
 			return;
 		}                                                
 

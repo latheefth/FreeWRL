@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.242  2006/08/29 18:59:31  crc_canada
+# Sound nodes should be working again.
+#
 # Revision 1.241  2006/08/17 20:36:29  crc_canada
 # working on Javascript from C, not perl
 #
@@ -845,15 +848,9 @@ sub gen {
 	push @genFuncs2,
 	"	\n".
 	"	/* is this a bindable node? */\n".
-	"	switch (nt) {\n";
-	for my $node (keys %{%VRML::Nodes::bindable}) {
-		push @genFuncs2,
-		"\t\tcase NODE_$node:\n";
-	}
-	push @genFuncs2,
-	"			registerBindable(tmp);\n".
-	"			break;\n".
-	"		default:{} /* do nothing */\n\t};\n\n"; 
+	"	registerBindable(tmp);\n".
+	"	/* is this a time tick node? */\n".
+	"	add_first(tmp);\n";
 
 
 	push @genFuncs2, "\treturn tmp;\n}\n";

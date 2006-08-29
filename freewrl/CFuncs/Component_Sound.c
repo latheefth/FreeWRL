@@ -56,7 +56,7 @@ void render_Sound (struct X3D_Sound *node) {
 		render_node(acp);
 
 		/*  if the attached node is not active, just return*/
-		/* printf ("in Sound, checking AudioClip isactive %d\n", acp->isActive);*/
+		/* printf ("in Sound, checking AudioClip isactive %d\n", acp->isActive); */
 		if (acp->isActive == 0) return;
 
 		direction.x = node->direction.c[0];
@@ -107,6 +107,7 @@ void render_Sound (struct X3D_Sound *node) {
 		/* mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);*/
 
 		len = sqrt(VECSQ(vec));
+		/* printf ("len %f\n",len); */
 		/* printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,*/
 		/* 	-node->maxBack, node->maxFront,vec.x,vec.y,vec.z);*/
 
@@ -134,7 +135,7 @@ void render_Sound (struct X3D_Sound *node) {
 			/*  bounds check...*/
 			if (angle > 1.0) angle = 1.0;
 			if (angle < 0.0) angle = 0.0;
-			/* printf ("angle: %f\n",angle);*/
+			/* printf ("angle: %f\n",angle); */
 		}
 
 
@@ -184,7 +185,7 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 	/* printf ("_change %d _ichange %d\n",node->_change, node->_ichange);  */
 
 	if (!SoundEngineStarted) {
-		/* printf ("AudioClip: initializing SoundEngine\n"); */
+		printf ("AudioClip: initializing SoundEngine\n");
 		SoundEngineStarted = TRUE;
 		SoundEngineInit();
 	}
@@ -194,12 +195,9 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 
 	if (!SoundSourceRegistered(node->__sourceNumber)) {
 
-		 /* printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
+		/*  printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
 			node->__sourceNumber,  node->loop, node->pitch,node->startTime, node->stopTime,
-			filename);
-		*/
-
-
+			filename); */
 
 		pitch = node->pitch;
 		stime = node->startTime;
@@ -208,9 +206,9 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 
 		AC_LastDuration[node->__sourceNumber] =
 			SoundSourceInit (node->__sourceNumber, node->loop,
-			(float) pitch,(float) stime, (float) sttime, (char *)filename);
+			(double) pitch,(double) stime, (double) sttime, filename);
 		/* printf ("globalDuration source %d %f\n",
-				node->__sourceNumber,AC_LastDuration[node->__sourceNumber]); */
+				node->__sourceNumber,AC_LastDuration[node->__sourceNumber]);  */
 
 		if (filename) free (filename);
 	}

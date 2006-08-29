@@ -74,9 +74,9 @@ SoundSourceRegistered(int num);
 float
 SoundSourceInit(int num,
 				int loop,
-				float pitch,
-				float start_time,
-				float stop_time,
+				double pitch,
+				double start_time,
+				double stop_time,
 				char *url);
 
 void

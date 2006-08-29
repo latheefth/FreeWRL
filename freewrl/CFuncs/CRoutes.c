@@ -846,6 +846,7 @@ void add_first(void * node) {
 
 	tmp = (struct X3D_Box*) node;
 	clocktype = tmp->_nodeType;
+	/* printf ("add_first for %s\n",stringNodeType(clocktype)); */
 
 	if (NODE_TimeSensor == clocktype) { myp =  do_TimeSensorTick;
 	} else if (NODE_ProximitySensor == clocktype) { myp = do_ProximitySensorTick;
@@ -1078,11 +1079,6 @@ void CRoutes_Register(
 		CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
 		CRoutes_Register (adrem, chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
 		return;
-	}
-
-	/* is this from a clock type? -note, we expect a valid CNode here */
-	if (scrdir != FROM_SCRIPT) {
-		add_first (from);
 	}
 
 	/* first time through, create minimum and maximum for insertion sorts */

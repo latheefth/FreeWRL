@@ -24,7 +24,7 @@ FWSNDMSG msg;		/* message buffer */
 
 char sspath[] = SOUNDSERVERBINARY; /* compile line flag */
 
-int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
+static int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
 
 
 /* IPC stuff */
@@ -54,11 +54,12 @@ void Sound_toserver (char *message) {
 	if (xx > 0)
 		xx = 0;
 #endif
+	/* printf ("Client:Sent to server\n"); */
         if (xx) {   /* Send to server */
 		perror("server error");
                 printf ("SoundEngineServer - error sending ready msg\n");
 #ifndef __APPLE__
-                initialized = !SOUND_STARTED;
+                initialized = SOUND_FAILED;
 #endif
         }
 }
@@ -95,12 +96,12 @@ void SoundEngineInit () {
 	/* message queue for client/server comms */
 #ifndef __APPLE__
 	if ( (msq_toserver = msgget(my_ipc_key,IPC_CREAT|0666)) < 0 ) {
-		printf ("FreeWRL:SoundServer error creating toserver message queue\n");
+		ConsoleMessage ("FreeWRL:SoundServer error creating toserver message queue\n");
 		initialized = SOUND_FAILED;
 		return;
 	}
 	if ( (msq_fromserver = msgget(my_ipc_key+1,IPC_CREAT|0666)) < 0 ) {
-		printf ("FreeWRL:SoundServer error creating fromserver message queue\n");
+		ConsoleMessage ("FreeWRL:SoundServer error creating fromserver message queue\n");
 		initialized = SOUND_FAILED;
 		return;
 	}
@@ -108,12 +109,12 @@ void SoundEngineInit () {
 
 	if ((client_pipe_fd = open (clientpipe, O_RDONLY | O_NONBLOCK)) < 0) {
 		if ((mkfifo(clientpipe, S_IRUSR | S_IWUSR | S_IXUSR)) < 0) {
-			printf("FreeWRL:SoundServer error creating client pipe\n");
+			ConsoleMessage ("FreeWRL:SoundServer error creating client pipe\n");
 			initialized = SOUND_FAILED;
 			return;
 		}
 		if ((client_pipe_fd = open (clientpipe, O_RDONLY | O_NONBLOCK)) < 0) {
-			printf("FreeWRL:SoundServer error opening client pipe\n");
+			ConsoleMessage ("FreeWRL:SoundServer error opening client pipe\n");
 			initialized = SOUND_FAILED;
 			return;
 		}
@@ -141,7 +142,7 @@ void SoundEngineInit () {
 		return;
 
 	} else if ( S_Server_PID < 0 ) {
-		printf ("FreeWRL:SoundServer %s: error starting server process",
+		ConsoleMessage ("FreeWRL:SoundServer %s: error starting server process",
 			strerror);
 #ifndef __APPLE__
 		msgctl(msq_toserver,IPC_RMID,NULL);
@@ -200,11 +201,12 @@ void waitformessage () {
 				xx = 0;
 #endif
 			/* printf ("Client waiting... xx is %d\n",xx); */
+
 			usleep(1000);
 		} while (!xx);
 
-		/* printf ("message received was %s\n", msg.msg); */
-		if (xx) {
+		/* printf ("message received was %s\n", msg.msg);  */
+		if (xx>0) {
 			 /* We have a message from the server */
 			if ( msg.mtype == 1 ) {
 				initialized = SOUND_STARTED;
@@ -214,7 +216,7 @@ void waitformessage () {
 			while ((PID=waitpid(-1,&proc_status,WNOHANG)) == -1
 				&& errno==EINTR );
 			if ( PID > 0 ) {
-				printf("FreeWRL:SoundServer process ID %ld terminated: %d",
+				ConsoleMessage ("FreeWRL:SoundServer process ID %ld terminated: %d",
 					PID,proc_status);
 				initialized = SOUND_FAILED;
 				return;
@@ -245,7 +247,7 @@ void SoundEngineDestroy() {
 		printf ("SoundEngineDestroy, sound was started successfully\n");
 		kill(S_Server_PID,SIGTERM);
 	}
-	initialized = !SOUND_STARTED;
+	initialized = SOUND_NEEDS_STARTING;
 }
 
 int SoundSourceRegistered  (int num) {
@@ -256,7 +258,7 @@ int SoundSourceRegistered  (int num) {
 	return SReg[num];
 }
 
-float SoundSourceInit (int num, int loop, float pitch, float start_time, float stop_time,
+float SoundSourceInit (int num, int loop, double pitch, double start_time, double stop_time,
 		char *url) {
 
 	char mystring[512];
@@ -265,6 +267,14 @@ float SoundSourceInit (int num, int loop, float pitch, float start_time, float s
 
 
 	SReg[num] = TRUE;
+	/* printf ("start of SoundSourceInit)\n");
+		printf ("num %d\n",num);
+		printf ("loop %d\n",loop);
+		printf ("pitch %f\n",pitch);
+		printf ("start_time %f\n",start_time);
+		printf ("stop_time %f\n",stop_time);
+		printf ("SoundSourceInit - url is %s\n",url);
+	*/
 	if (url == NULL) {
 		printf ("SoundSourceInit - no file to source \n");
 		return 0.0;
