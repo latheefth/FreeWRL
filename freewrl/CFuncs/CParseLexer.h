@@ -86,6 +86,9 @@ BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
  lexer_specialID(me, r, NULL, PROTOKEYWORDS, PROTOKEYWORDS_COUNT, NULL)
 #define lexer_fieldType(me, r) \
  lexer_specialID(me, r, NULL, FIELDTYPES, FIELDTYPES_COUNT, NULL)
+indexT lexer_string2id(const char*, const Stack*);
+#define lexer_nodeName2id(str) \
+ lexer_string2id(str, userNodeNames)
 
 /* Input the basic literals */
 BOOL lexer_int32(struct VRMLLexer*, vrmlInt32T*);

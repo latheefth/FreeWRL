@@ -25,3 +25,18 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data)
 
  return TRUE;
 }
+
+/* ************************************************************************** */
+/* Accessor methods */
+
+/* Return DEFed node from its name */
+struct X3D_Node* parser_getNodeFromName(const char* name)
+{
+ indexT ind=lexer_nodeName2id(name);
+ if(ind==ID_UNDEFINED)
+  return NULL;
+  
+ assert(!stack_empty(DEFedNodes));
+ assert(ind<vector_size(stack_top(DEFedNodes)));
+ return vector_get(struct X3D_Node*, stack_top(DEFedNodes), ind);
+}

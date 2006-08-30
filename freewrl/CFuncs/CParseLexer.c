@@ -194,6 +194,16 @@ BOOL lexer_keyword(struct VRMLLexer* me, indexT kw)
  return FALSE;
 }
 
+/* Finds the index of a given string */
+indexT lexer_string2id(const char* str, const Stack* s)
+{
+ indexT i;
+ for(i=0; i!=vector_size(stack_top(s)); ++i)
+  if(!strcmp(str, vector_get(const char*, stack_top(s), i)))
+   return i;
+ return ID_UNDEFINED;
+}
+
 /* Lexes an ID (node type, field name...) depending on args. */
 BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount,
@@ -287,10 +297,16 @@ BOOL lexer_eventIn(struct VRMLLexer* me,
   found=TRUE;
  if(rBE) *rBE=ID_UNDEFINED;
  if(rUE) *rUE=ID_UNDEFINED;
+
+ /* XXX:  If not-exposed result was found, don't even try exposed...  Should be
+  * ok according to spec.  Otherwise problem with already freed curID, and
+  * parsing an 'absolutetly new' one! */
+ if(found)
+  return TRUE;
  
  /* Exposed field with set_ prefix? */
  if(!lexer_setCurID(me))
-  return FALSE;
+  return found;
  assert(me->curID);
  {
   const char* id=me->curID;
@@ -336,6 +352,10 @@ BOOL lexer_eventOut(struct VRMLLexer* me,
   found=TRUE;
  if(rBE) *rBE=ID_UNDEFINED;
  if(rUE) *rUE=ID_UNDEFINED;
+
+ /* XXX:  See lexer_eventIn */
+ if(found)
+  return TRUE;
 
  /* Exposed field with _changed suffix? */
  if(!lexer_setCurID(me))

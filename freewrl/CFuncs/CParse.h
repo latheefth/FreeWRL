@@ -11,4 +11,7 @@ BOOL cParse(void*, unsigned, const char*);
 #define destroyCParserData \
  parser_destroyData
 
+/* Some accessor-methods */
+struct X3D_Node* parser_getNodeFromName(const char*);
+
 #endif /* Once-check */
