@@ -1207,7 +1207,8 @@ void __pt_doStringUrl () {
 		}
 
 		if (psp.type==FROMSTRING) {
-ConsoleMessage ("cant FROMSTRING with cParser yet\n");
+			nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
 
 		} else if (psp.type==FROMURL) {
 			pushInputURL (psp.inp);

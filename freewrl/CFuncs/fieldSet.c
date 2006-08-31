@@ -1015,6 +1015,8 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 	}
 	cptr = strp; /* reset this pointer to the first number */
 
+	/* printf ("newlen HERE is %d\n",newlen); */
+
 	/* create the list to send to the AddRemoveChildren function */
 	newmal = malloc (newlen*sizeof(void *));
 	tmpptr = (uintptr_t*)newmal;
@@ -1026,7 +1028,10 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 
 
 	/* scan through the string again, and get the node numbers. */
-	while (sscanf (cptr,"%d", (int *)tmpptr) == 1) {
+	while (sscanf (cptr,"%d", (uintptr_t *)tmpptr) == 1) {
+		/* printf ("just scanned in %d, which is a %s\n",*tmpptr, 
+			stringNodeType(((struct X3D_Node*) (*tmpptr))->_nodeType)); */
+
 		/* skip past this number */
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 		while (*cptr == ' ') cptr++; /* skip spaces */

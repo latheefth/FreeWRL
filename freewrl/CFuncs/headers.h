@@ -606,15 +606,9 @@ struct CRscriptStruct {
 void JSMaxAlloc(void);
 void cleanupDie(uintptr_t num, const char *msg);
 void shutdown_EAI(void);
-char *EAI_GetNode(const char *str);
+uintptr_t EAI_GetNode(const char *str);
 unsigned int EAI_GetViewpoint(const char *str);
 void EAI_killBindables (void);
-void EAI_GetType(unsigned int nodenum, const char *fieldname, const char *direction,
-        int *nodeptr,
-        int *dataoffset,
-        int *datalen,
-        int *nodetype,
-        int *scripttype);
 
 void setScriptECMAtype(uintptr_t);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);

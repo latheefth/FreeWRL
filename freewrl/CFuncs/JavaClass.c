@@ -477,7 +477,7 @@ void receive_command(int scriptno) {
 			while (*ptr >' '){dtmp[tmp]=*ptr;tmp++;ptr++;}
 			dtmp[tmp] = '\0';
 
-			EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd,&scripttype);
+			/* EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd,&scripttype); */
 			/* printf ("GT returns %d %d %d %d\n",ra, rb,rc,rd);*/
 			/*  send the type offset, and length*/
 			send_type(rd,rb,rc,scriptno);

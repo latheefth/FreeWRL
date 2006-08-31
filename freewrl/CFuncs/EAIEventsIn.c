@@ -31,7 +31,6 @@ int waiting_for_anchor = FALSE;
 struct NodeTableStruct {
 	char *nodeName;
 	uintptr_t nodePtr;
-	int perlPtr;
 };
 
 struct NodeTableStruct *EAINodeTable = 0;
@@ -42,7 +41,6 @@ void createLoadURL(char *bufptr);
 void makeFIELDDEFret(uintptr_t,char *buf,int c);
 void handleRoute (char command, char *bufptr, char *buf, int repno);
 void handleGETNODE (char *bufptr, char *buf, int repno);
-int findPerlNode(uintptr_t node);
 void handleGETROUTES (char *bufptr, char *buf, int repno);
 
 /* get how many bytes in the type */
@@ -201,18 +199,18 @@ void EAI_parse_commands (char *bufptr) {
 			count = 0;
 		}
 		#ifdef EAIVERBOSE
-		printf ("EAI - seq number %d\n",count);
+		/* printf ("EAI - seq number %d\n",count); */
 		#endif
 
 		/* step 2, skip past the sequence number */
 		while (isdigit(*bufptr)) bufptr++;
 		#ifdef EAIVERBOSE
-		printf("past sequence number, string:%s\n",bufptr);
+		/*printf("past sequence number, string:%s\n",bufptr); */
 		#endif
 
 		while (*bufptr == ' ') bufptr++;
 		#ifdef EAIVERBOSE
-		printf ("past the space, string:%s\n",bufptr);
+		/* printf ("past the space, string:%s\n",bufptr); */
 		#endif
 
 		/* step 3, get the command */
@@ -327,16 +325,18 @@ void EAI_parse_commands (char *bufptr) {
 
 				retint=sscanf (bufptr,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
 				#ifdef EAIVERBOSE 
-				printf ("GETFIELDTYPE NODE%d  cptr %d %s %s\n",perlNode, cNode, ctmp, dtmp);
+				printf ("GETFIELDTYPE cptr %d %s %s\n",cNode, ctmp, dtmp);
 				#endif
 
 				/* is this a valid C node? if so, lets just get the info... */
 				if (cNode != 0) {
 					boxptr = (struct X3D_Box *) cNode;
-					/* printf ("this is a valid C node %d (%x)\n",boxptr,boxptr);
+					/*
+					printf ("this is a valid C node %d (%x)\n",boxptr,boxptr);
 					printf ("	of type %d\n",boxptr->_nodeType);
 					printf ("	of string type %s\n",stringNodeType(boxptr->_nodeType)); 
 					*/
+					
 
 					if ((strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) || 
 					(strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0)) {
@@ -367,7 +367,8 @@ void EAI_parse_commands (char *bufptr) {
 
 
 				} else { 
-					EAI_GetType (perlNode,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
+					printf ("THIS IS AN ERROR! CNode is zero!!!\n");
+					ra = 0; rb = 0; rc = 0; rd = 0; scripttype=0; xxx=KW_eventIn;
 				}
 
 				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,ra,rb,rc,rd,
@@ -441,8 +442,7 @@ void EAI_parse_commands (char *bufptr) {
 				   we only have addChildren or removeChildren, so flag can be 1 or 2 only */
 				if (strcmp(ctmp,"removeChildren")==0) { flag = 2;} else {flag = 1;}
 
-				getMFNodetype (dtmp,(struct Multi_Node *)rc,
-						(struct X3D_Box *)ra, flag);
+				getMFNodetype (dtmp,(struct Multi_Node *)rc, (struct X3D_Box *)ra, flag);
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
 				mark_event((void *)ra,rb);
@@ -718,8 +718,6 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	uintptr_t toNode;
 	int fromOffset;
 	int toOffset;
-	int perlFrom;
-	int perlTo;
 	int ctmp[200];
 	
 	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
@@ -737,15 +735,11 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 
 	/* remember, in the routing table, the first and last entres are invalid, so skip them */
 	for (count = 1; count < (numRoutes-1); count++) {
-		perlFrom = 0; perlTo = 0;
 		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
 
-		perlFrom = findPerlNode(fromNode);
-		perlTo = findPerlNode(toNode);
-
-		sprintf (ctmp, "%d %d %s %d %d %s ",perlFrom,fromNode,
+		sprintf (ctmp, "%d %d %s %d %d %s ",0,fromNode,
 			findFIELDNAMESfromNodeOffset(fromNode,fromOffset),
-			perlTo,toNode,
+			0,toNode,
 			findFIELDNAMESfromNodeOffset(toNode,toOffset)
 			);
 		strcat (buf,ctmp);
@@ -755,22 +749,11 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	/* printf ("getRoutes returns %s\n",buf); */
 }
 
-/* GETNODE, perl to VRMLC mappings */
-int findPerlNode(uintptr_t node) {
-	int count;
-	for (count=0; count <num_EAINodeTable; count ++) {
-		if (node == EAINodeTable[count].nodePtr) 
-			return EAINodeTable[count].perlPtr;
-	}
-
-	return 0;
-}
-
 void handleGETNODE (char *bufptr, char *buf, int repno) {
 	int retint;
 	char ctmp[200];
 	int mystrlen;
-	char *rv;
+	void *rv;
 	int count;
 
 	/*format int seq# COMMAND    string nodename*/
@@ -778,14 +761,14 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 	retint=sscanf (bufptr," %s",ctmp);
 	mystrlen = strlen(ctmp);
 
-	/* printf ("GETNODE %s\n",ctmp); */
+	/* printf ("GETNODE %s\n",ctmp);  */
 
 	/* does this event exist? */
 	for (count=0; count <num_EAINodeTable; count ++) {
 		if (strlen(EAINodeTable[count].nodeName) == mystrlen) {
 			if (strncmp(EAINodeTable[count].nodeName, ctmp,mystrlen) == 0) {
 			sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
-				EAINodeTable[count].perlPtr,
+				0,
 				EAINodeTable[count].nodePtr);
 			/* printf ("GETNODE fast returns %s\n",buf); */
 			return;
@@ -803,19 +786,19 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 			num_EAINodeTable = 0;
 		}
 
-		rv = EAI_GetNode(ctmp);
+		EAINodeTable[num_EAINodeTable].nodePtr = EAI_GetNode(ctmp);
 		
 
 		/* now, put the function pointer and data pointer into the structure entry */
 		EAINodeTable[num_EAINodeTable].nodeName = malloc (sizeof (char) * mystrlen+2);
 		memcpy (EAINodeTable[num_EAINodeTable].nodeName, ctmp, mystrlen+1);
 
-		sscanf (rv,"%d %d", &(EAINodeTable[num_EAINodeTable].perlPtr),
+		sscanf (rv,"%d %d", 0,
 				&(EAINodeTable[num_EAINodeTable].nodePtr));
 
 
 		sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
-			EAINodeTable[num_EAINodeTable].perlPtr,
+			0,
 			EAINodeTable[num_EAINodeTable].nodePtr);
 
 		num_EAINodeTable++;
