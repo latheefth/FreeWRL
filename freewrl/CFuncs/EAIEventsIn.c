@@ -330,42 +330,7 @@ void EAI_parse_commands (char *bufptr) {
 
 				/* is this a valid C node? if so, lets just get the info... */
 				if (cNode != 0) {
-					boxptr = (struct X3D_Box *) cNode;
-					/*
-					printf ("this is a valid C node %d (%x)\n",boxptr,boxptr);
-					printf ("	of type %d\n",boxptr->_nodeType);
-					printf ("	of string type %s\n",stringNodeType(boxptr->_nodeType)); 
-					*/
-					
-
-					if ((strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) || 
-					(strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0)) {
-						myField = findFieldInALLFIELDNAMES("children");
-					} else {
-						/* try finding it, maybe with a "set_" or "changed" removed */
-						myField = findRoutedFieldInFIELDNAMES(ctmp,0);
-						if (myField == -1) 
-							myField = findRoutedFieldInFIELDNAMES(ctmp,1);
-					}
-					myofs = NODE_OFFSETS[boxptr->_nodeType];
-
-					/* find offsets, etc */
-                			findFieldInOFFSETS(myofs, myField, &rb, &ctype, &xxx);
-
-					/* return values. */
-					ra = cNode; 	/* node pointer */
-					/* rb - assigned above - offset */
-					rc = 0;	/* data len */
-					rd = EAIFIELD_TYPE_STRING(ctype);	
-					scripttype =0;
-
-					/* re-map the access type back for children fields */
-					if (strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) xxx = KW_eventIn; 
-					if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) xxx = KW_eventOut;
-					
-					/* printf ("so we have coffset %d, ctype %c, ctmp %s\n",rb,rc, KEYWORDS[xxx]);  */
-
-
+					EAI_GetType (cNode, ctmp,dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 				} else { 
 					printf ("THIS IS AN ERROR! CNode is zero!!!\n");
 					ra = 0; rb = 0; rc = 0; rd = 0; scripttype=0; xxx=KW_eventIn;

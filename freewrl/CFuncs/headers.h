@@ -609,6 +609,9 @@ void shutdown_EAI(void);
 uintptr_t EAI_GetNode(const char *str);
 unsigned int EAI_GetViewpoint(const char *str);
 void EAI_killBindables (void);
+void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr, uintptr_t *fieldOffset,
+                        uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType);
+
 
 void setScriptECMAtype(uintptr_t);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
