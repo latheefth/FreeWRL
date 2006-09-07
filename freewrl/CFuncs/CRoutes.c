@@ -1015,6 +1015,8 @@ void CRoutes_RegisterSimple(
  char tonode_str[15];
  snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
 
+ printf("Routing %p:%d to %p:%d (%d bytes)...\n", from, fromOfs, to, toOfs, len);
+
  CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, 
   returnInterpolatorPointer(stringNodeType(to->_nodeType)), 0, 0);
 }
