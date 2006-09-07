@@ -30,6 +30,10 @@ typedef struct _CRnodeStruct {
         unsigned int foffset;
 } CRnodeStruct;
 
+/* Helper to get size of a struct's memer */
+#define sizeof_member(str, var) \
+ sizeof(((str*)NULL)->var)
+
 /* C routes */
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 

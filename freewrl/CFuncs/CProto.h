@@ -17,6 +17,27 @@
 #include "Vector.h"
 
 struct PointerHash;
+struct VRMLParser;
+
+/* ************************************************************************** */
+/* ******************************** OffsetPointer *************************** */
+/* ************************************************************************** */
+
+/* A pointer which is made up of the offset/node pair */
+struct OffsetPointer
+{
+ struct X3D_Node* node;
+ unsigned ofs;
+};
+
+/* Constructor/destructor */
+struct OffsetPointer* newOffsetPointer(struct X3D_Node*, unsigned);
+#define deleteOffsetPointer(me) \
+ free(me)
+
+/* Dereference to simple pointer */
+#define offsetPointer_deref(t, me) \
+ ((t)(((char*)((me)->node))+(me)->ofs))
 
 /* ************************************************************************** */
 /* ********************************* ProtoFieldDecl ************************* */
@@ -28,11 +49,11 @@ struct ProtoFieldDecl
  indexT mode; /* field, exposedField, eventIn, eventOut */
  indexT type; /* field type */
  indexT name; /* field "name" (its lexer-index) */
- BOOL alreadySet; /* Has the value already been set? */
  /* This is the list of desination pointers for this field */
  struct Vector* dests;
- /* Default value, if exposedField or field */
- union anyVrml defaultVal;
+ /* Only for exposedField or field */
+ BOOL alreadySet; /* Has the value already been set? */
+ union anyVrml defaultVal; /* Default value */
 };
 
 /* Constructor and destructor */
@@ -54,23 +75,35 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
 #define protoFieldDecl_getDestinationCount(me) \
  vector_size((me)->dests)
 #define protoFieldDecl_getDestination(me, i) \
- vector_get(void*, (me)->dests, i)
+ vector_get(struct OffsetPointer*, (me)->dests, i)
 
 /* Add a destination this field's value must be assigned to */
-#define protoFieldDecl_addDestination(me, d) \
- vector_pushBack(void*, me->dests, d)
+#define protoFieldDecl_addDestinationOptr(me, optr) \
+ vector_pushBack(struct OffsetPointer*, me->dests, optr)
+#define protoFieldDecl_addDestination(me, n, o) \
+ protoFieldDecl_addDestinationOptr(me, newOffsetPointer(n, o))
 
 /* Sets this field's value (copy to destinations) */
 void protoFieldDecl_setValue(struct ProtoFieldDecl*, union anyVrml*);
 
+/* Build a ROUTE from/to this field */
+void protoFieldDecl_routeTo(struct ProtoFieldDecl*,
+ struct X3D_Node*, unsigned, struct VRMLParser*);
+void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
+ struct X3D_Node*, unsigned, struct VRMLParser*);
+
 /* Finish this field - if value is not yet set, use default. */
 #define protoFieldDecl_finish(me) \
- if(!me->alreadySet) \
-  protoFieldDecl_setValue(me, &me->defaultVal)
+ if(((me)->mode==PKW_field || (me)->mode==PKW_exposedField) && \
+  !(me)->alreadySet) \
+  protoFieldDecl_setValue(me, &(me)->defaultVal)
 
 /* Add inner pointers' pointers to the vector */
 void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl*,
  struct Vector*);
+
+/* Return the length in bytes of this field's type */
+size_t protoFieldDecl_getLength(struct ProtoFieldDecl*);
 
 /* ************************************************************************** */
 /* ******************************* ProtoRoute ******************************* */

@@ -9,8 +9,10 @@
 #define PARSE_ERROR(msg) \
  { \
   parseError(msg); \
+  PARSER_FINALLY \
   return FALSE; \
  }
+#define PARSER_FINALLY
 
 #define DEFMEM_INIT_SIZE	16
 
@@ -36,6 +38,57 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sfimageValue,
  NULL
 };
+
+/* Macro definitions used more than once for event processing */
+/* ********************************************************** */
+
+/* Use real size for those types? */
+#define ROUTE_REAL_SIZE_sfbool	TRUE
+#define ROUTE_REAL_SIZE_sfcolor	TRUE
+#define ROUTE_REAL_SIZE_sffloat	TRUE
+#define ROUTE_REAL_SIZE_sfimage	TRUE
+#define ROUTE_REAL_SIZE_sfint32	TRUE
+#define ROUTE_REAL_SIZE_sfnode	TRUE
+#define ROUTE_REAL_SIZE_sfrotation	TRUE
+#define ROUTE_REAL_SIZE_sfstring	TRUE
+#define ROUTE_REAL_SIZE_sftime	TRUE
+#define ROUTE_REAL_SIZE_sfvec2f	TRUE
+#define ROUTE_REAL_SIZE_sfvec3f	TRUE
+#define ROUTE_REAL_SIZE_mfbool	FALSE
+#define ROUTE_REAL_SIZE_mfcolor	FALSE
+#define ROUTE_REAL_SIZE_mfcolorrgba	FALSE
+#define ROUTE_REAL_SIZE_mffloat	FALSE
+#define ROUTE_REAL_SIZE_mfimage	FALSE
+#define ROUTE_REAL_SIZE_mfint32	FALSE
+#define ROUTE_REAL_SIZE_mfnode	FALSE
+#define ROUTE_REAL_SIZE_mfrotation	FALSE
+#define ROUTE_REAL_SIZE_mfstring	FALSE
+#define ROUTE_REAL_SIZE_mftime	FALSE
+#define ROUTE_REAL_SIZE_mfvec2f	FALSE
+#define ROUTE_REAL_SIZE_mfvec3f	FALSE
+
+/* General processing macros */
+#define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
+ case constPre##_##field: \
+  destPre##Len= \
+   (ROUTE_REAL_SIZE_##type ? sizeof_member(struct X3D_##node, var) : -1); \
+  destPre##Ofs=offsetof(struct X3D_##node, var); \
+  break;
+#define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
+ case NODE_##node: \
+ { \
+  struct X3D_##node* node2=(struct X3D_##node*)ptr; \
+  switch(fieldInd) \
+  {
+#define EVENT_END_NODE(node) \
+  default: \
+   PARSE_ERROR("Unsupported event for node!") \
+  } \
+  break; \
+ }
+#define EVENT_NODE_DEFAULT \
+ default: \
+  PARSE_ERROR("Unsupported node!")
 
 /* ************************************************************************** */
 /* Constructor and destructor */
@@ -283,17 +336,25 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 {
  indexT fromNodeIndex;
  struct X3D_Node* fromNode;
+ struct ProtoDefinition* fromProto=NULL;
  indexT fromFieldO;
  indexT fromFieldE;
+ indexT fromUFieldO;
+ indexT fromUFieldE;
  int fromOfs;
  int fromLen;
+ struct ProtoFieldDecl* fromField=NULL;
 
  indexT toNodeIndex;
  struct X3D_Node* toNode;
+ struct ProtoDefinition* toProto=NULL;
  indexT toFieldO;
  indexT toFieldE;
+ indexT toUFieldO;
+ indexT toUFieldE;
  int toOfs;
  int toLen;
+ struct ProtoFieldDecl* toField=NULL;
 
  assert(me->lexer);
  lexer_skip(me->lexer);
@@ -304,17 +365,45 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 
  /* Parse the elements. */
  #define ROUTE_PARSE_NODEFIELD(pre, eventType) \
+  /* Target-node */ \
   if(!lexer_nodeName(me->lexer, &pre##NodeIndex)) \
    PARSE_ERROR("Expected node-name in ROUTE-statement!") \
   assert(DEFedNodes && !stack_empty(DEFedNodes) && \
    pre##NodeIndex<vector_size(stack_top(DEFedNodes))); \
   pre##Node=vector_get(struct X3D_Node*, stack_top(DEFedNodes), \
    pre##NodeIndex); \
+  if(pre##Node->_nodeType==NODE_Group) \
+   pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
+  else \
+   assert(!pre##Proto); \
+  /* Seperating '.' */ \
   if(!lexer_point(me->lexer)) \
    PARSE_ERROR("Expected . after node-name!") \
-  if(!lexer_event##eventType(me->lexer, \
-   &pre##FieldO, &pre##FieldE, NULL, NULL)) \
-   PARSE_ERROR("Expected event" #eventType " after .!")
+  /* Field, user/built-in depending on whether node is a PROTO instance */ \
+  if(!pre##Proto) \
+  { \
+   if(!lexer_event##eventType(me->lexer, \
+    &pre##FieldO, &pre##FieldE, NULL, NULL)) \
+    PARSE_ERROR("Expected built-in event" #eventType " after .!") \
+  } else \
+  { \
+   assert(pre##Proto); \
+   if(lexer_event##eventType(me->lexer, \
+    NULL, NULL, &pre##UFieldO, &pre##UFieldE)) \
+   { \
+    if(pre##UFieldO!=ID_UNDEFINED) \
+     pre##Field=protoDefinition_getField(pre##Proto, pre##UFieldO, \
+      PKW_event##eventType); \
+    else \
+    { \
+     assert(pre##UFieldE!=ID_UNDEFINED); \
+     pre##Field=protoDefinition_getField(pre##Proto, pre##UFieldE, \
+      PKW_exposedField); \
+    } \
+    if(!pre##Field) \
+     PARSE_ERROR("Event-field invalid for this PROTO!") \
+   } \
+  }
 
  ROUTE_PARSE_NODEFIELD(from, Out)
  if(!lexer_keyword(me->lexer, KW_TO))
@@ -324,134 +413,96 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  /* Now, do the really hard macro work... */
  /* ************************************* */
 
- /* Redirect routing sizes for all the types. */
- #define ROUTE_REAL_SIZE_sfbool	TRUE
- #define ROUTE_REAL_SIZE_sfcolor	TRUE
- #define ROUTE_REAL_SIZE_sffloat	TRUE
- #define ROUTE_REAL_SIZE_sfimage	TRUE
- #define ROUTE_REAL_SIZE_sfint32	TRUE
- #define ROUTE_REAL_SIZE_sfnode	TRUE
- #define ROUTE_REAL_SIZE_sfrotation	TRUE
- #define ROUTE_REAL_SIZE_sfstring	TRUE
- #define ROUTE_REAL_SIZE_sftime	TRUE
- #define ROUTE_REAL_SIZE_sfvec2f	TRUE
- #define ROUTE_REAL_SIZE_sfvec3f	TRUE
- #define ROUTE_REAL_SIZE_mfbool	FALSE
- #define ROUTE_REAL_SIZE_mfcolor	FALSE
- #define ROUTE_REAL_SIZE_mfcolorrgba	FALSE
- #define ROUTE_REAL_SIZE_mffloat	FALSE
- #define ROUTE_REAL_SIZE_mfimage	FALSE
- #define ROUTE_REAL_SIZE_mfint32	FALSE
- #define ROUTE_REAL_SIZE_mfnode	FALSE
- #define ROUTE_REAL_SIZE_mfrotation	FALSE
- #define ROUTE_REAL_SIZE_mfstring	FALSE
- #define ROUTE_REAL_SIZE_mftime	FALSE
- #define ROUTE_REAL_SIZE_mfvec2f	FALSE
- #define ROUTE_REAL_SIZE_mfvec3f	FALSE
-
  /* Ignore the fields. */
  #define FIELD(n, f, t, v)
 
- /* General processing macros */
- #define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
-  case constPre##_##field: \
-   destPre##Len=(ROUTE_REAL_SIZE_##type ? sizeof(node2->var) : -1); \
-   destPre##Ofs=offsetof(struct X3D_##node, var); \
-   break;
- #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
-  case NODE_##node: \
-  { \
-   struct X3D_##node* node2=(struct X3D_##node*)ptr; \
-   switch(fieldInd) \
-   {
- #define END_NODE(node) \
-   default: \
-    PARSE_ERROR("Unsupported event for node!") \
-   } \
-   break; \
-  }
- #define EVENT_NODE_DEFAULT \
-  default: \
-   PARSE_ERROR("Unsupported node!")
+ #define END_NODE(n) \
+  EVENT_END_NODE(n)
  
  /* Process from eventOut */
- if(fromFieldE!=ID_UNDEFINED)
-  switch(fromNode->_nodeType)
+ if(!fromField)
+  if(fromFieldE!=ID_UNDEFINED)
+   switch(fromNode->_nodeType)
+   {
+    #define EVENT_IN(n, f, t, v)
+    #define EVENT_OUT(n, f, t, v)
+    #define EXPOSED_FIELD(node, field, type, var) \
+     PROCESS_EVENT(EXPOSED_FIELD, from, node, field, type, var)
+    #define BEGIN_NODE(node) \
+     EVENT_BEGIN_NODE(fromFieldE, fromNode, node)
+    #include "NodeFields.h"
+    #undef EVENT_IN
+    #undef EVENT_OUT
+    #undef EXPOSED_FIELD
+    #undef BEGIN_NODE
+    EVENT_NODE_DEFAULT
+   }
+  else if(fromFieldO!=ID_UNDEFINED)
   {
-   #define EVENT_IN(n, f, t, v)
-   #define EVENT_OUT(n, f, t, v)
-   #define EXPOSED_FIELD(node, field, type, var) \
-    PROCESS_EVENT(EXPOSED_FIELD, from, node, field, type, var)
-   #define BEGIN_NODE(node) \
-    EVENT_BEGIN_NODE(fromFieldE, fromNode, node)
-   #include "NodeFields.h"
-   #undef EVENT_IN
-   #undef EVENT_OUT
-   #undef EXPOSED_FIELD
-   #undef BEGIN_NODE
-   EVENT_NODE_DEFAULT
+   switch(fromNode->_nodeType)
+   {
+    #define EVENT_IN(n, f, t, v)
+    #define EXPOSED_FIELD(n, f, t, v)
+    #define EVENT_OUT(node, field, type, var) \
+     PROCESS_EVENT(EVENT_OUT, from, node, field, type, var)
+    #define BEGIN_NODE(node) \
+     EVENT_BEGIN_NODE(fromFieldO, fromNode, node)
+    #include "NodeFields.h"
+    #undef EVENT_IN
+    #undef EVENT_OUT
+    #undef EXPOSED_FIELD
+    #undef BEGIN_NODE
+    EVENT_NODE_DEFAULT
+   }
   }
- else
- {
-  assert(fromFieldO!=ID_UNDEFINED);
-  switch(fromNode->_nodeType)
-  {
-   #define EVENT_IN(n, f, t, v)
-   #define EXPOSED_FIELD(n, f, t, v)
-   #define EVENT_OUT(node, field, type, var) \
-    PROCESS_EVENT(EVENT_OUT, from, node, field, type, var)
-   #define BEGIN_NODE(node) \
-    EVENT_BEGIN_NODE(fromFieldO, fromNode, node)
-   #include "NodeFields.h"
-   #undef EVENT_IN
-   #undef EVENT_OUT
-   #undef EXPOSED_FIELD
-   #undef BEGIN_NODE
-   EVENT_NODE_DEFAULT
-  }
- }
 
  /* Process to eventIn */
- if(toFieldE!=ID_UNDEFINED)
-  switch(toNode->_nodeType)
+ if(!toField)
+  if(toFieldE!=ID_UNDEFINED)
+   switch(toNode->_nodeType)
+   {
+    #define EVENT_IN(n, f, t, v)
+    #define EVENT_OUT(n, f, t, v)
+    #define EXPOSED_FIELD(node, field, type, var) \
+     PROCESS_EVENT(EXPOSED_FIELD, to, node, field, type, var)
+    #define BEGIN_NODE(node) \
+     EVENT_BEGIN_NODE(toFieldE, toNode, node)
+    #include "NodeFields.h"
+    #undef EVENT_IN
+    #undef EVENT_OUT
+    #undef EXPOSED_FIELD
+    #undef BEGIN_NODE
+    EVENT_NODE_DEFAULT
+   }
+  else if(toFieldO!=ID_UNDEFINED)
   {
-   #define EVENT_IN(n, f, t, v)
-   #define EVENT_OUT(n, f, t, v)
-   #define EXPOSED_FIELD(node, field, type, var) \
-    PROCESS_EVENT(EXPOSED_FIELD, to, node, field, type, var)
-   #define BEGIN_NODE(node) \
-    EVENT_BEGIN_NODE(toFieldE, toNode, node)
-   #include "NodeFields.h"
-   #undef EVENT_IN
-   #undef EVENT_OUT
-   #undef EXPOSED_FIELD
-   #undef BEGIN_NODE
-   EVENT_NODE_DEFAULT
+   switch(toNode->_nodeType)
+   {
+    #define EVENT_OUT(n, f, t, v)
+    #define EXPOSED_FIELD(n, f, t, v)
+    #define EVENT_IN(node, field, type, var) \
+     PROCESS_EVENT(EVENT_IN, to, node, field, type, var)
+    #define BEGIN_NODE(node) \
+     EVENT_BEGIN_NODE(toFieldO, toNode, node)
+    #include "NodeFields.h"
+    #undef EVENT_IN
+    #undef EVENT_OUT
+    #undef EXPOSED_FIELD
+    #undef BEGIN_NODE
+    EVENT_NODE_DEFAULT
+   }
   }
- else
- {
-  assert(toFieldO!=ID_UNDEFINED);
-  switch(toNode->_nodeType)
-  {
-   #define EVENT_OUT(n, f, t, v)
-   #define EXPOSED_FIELD(n, f, t, v)
-   #define EVENT_IN(node, field, type, var) \
-    PROCESS_EVENT(EVENT_IN, to, node, field, type, var)
-   #define BEGIN_NODE(node) \
-    EVENT_BEGIN_NODE(toFieldO, toNode, node)
-   #include "NodeFields.h"
-   #undef EVENT_IN
-   #undef EVENT_OUT
-   #undef EXPOSED_FIELD
-   #undef BEGIN_NODE
-   EVENT_NODE_DEFAULT
-  }
- }
 
  /* Clean up. */
  #undef FIELD
  #undef END_NODE
- 
+
+ /* Update length for fields */
+ if(fromField)
+  fromLen=protoFieldDecl_getLength(fromField);
+ if(toField)
+  toLen=protoFieldDecl_getLength(toField);
+
  /* FIXME:  Not a really safe check for types in ROUTE! */
  if(fromLen!=toLen)
   PARSE_ERROR("Types mismatch in ROUTE!")
@@ -459,14 +510,34 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  /* Finally, register the route. */
  /* **************************** */
 
+ /* Built-in to built-in */
+ if(!fromField && !toField)
+  parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen);
+ /* Built-in to user-def */
+ else if(!fromField && toField)
+  protoFieldDecl_routeTo(toField, fromNode, fromOfs, me);
+ /* user-def to built-in */
+ else if(fromField && !toField)
+  protoFieldDecl_routeFrom(fromField, toNode, toOfs, me);
+ /* user-def to user-def */
+ else
+  PARSE_ERROR("Routing from user-event to user-event is currently unsupported!")
+
+ return TRUE;
+}
+
+/* Register a ROUTE here */
+void parser_registerRoute(struct VRMLParser* me,
+ struct X3D_Node* fromNode, unsigned fromOfs,
+ struct X3D_Node* toNode, unsigned toOfs,
+ size_t len)
+{
  if(me->curPROTO)
  {
   protoDefinition_addRoute(me->curPROTO,
-   newProtoRoute(fromNode, fromOfs, toNode, toOfs, toLen));
+   newProtoRoute(fromNode, fromOfs, toNode, toOfs, len));
  } else
-  CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, toLen);
-
- return TRUE;
+  CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len);
 }
 
 /* Parses a nodeStatement */
@@ -562,7 +633,8 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
   node=protoDefinition_extractScene(protoCopy);
   assert(node);
 
-  deleteProtoDefinition(protoCopy);
+  /* Can't delete ProtoDefinition, it is referenced! */
+  /*deleteProtoDefinition(protoCopy);*/
  }
  assert(node);
 
@@ -601,7 +673,7 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p)
  /* Parse the value */
  {
   union anyVrml val;
-  if(!parser_fieldValue(me, &val, field->type))
+  if(!parser_fieldValue(me, newOffsetPointer(&val, 0), field->type))
    PARSE_ERROR("Expected value of field after fieldId!")
   protoFieldDecl_setValue(field, &val);
  }
@@ -618,8 +690,12 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 }
 
 /* Parses a field value (literally or IS) */
-BOOL parser_fieldValue(struct VRMLParser* me, void* ret, indexT type)
+BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
+ indexT type)
 {
+ #define PARSER_FINALLY \
+  deleteOffsetPointer(ret);
+
  /* If we are inside a PROTO, IS is possible */
  if(me->curPROTO && lexer_keyword(me->lexer, KW_IS))
  {
@@ -650,13 +726,24 @@ BOOL parser_fieldValue(struct VRMLParser* me, void* ret, indexT type)
    PARSE_ERROR("Types mismatch for PROTO field!")
 
   /* Don't set field for now but register us as users of this PROTO field */
-  protoFieldDecl_addDestination(pField, ret);
+  protoFieldDecl_addDestinationOptr(pField, ret);
 
   return TRUE;
  }
 
- return PARSE_TYPE[type](me, ret);
+ /* Otherwise */
+ {
+  void* directRet=offsetPointer_deref(void*, ret);
+  PARSER_FINALLY
+  return PARSE_TYPE[type](me, directRet);
+ }
+
+ #undef PARSER_FINALLY
+ #define PARSER_FINALLY
 }
+
+/* ************************************************************************** */
+/* Built-in fields */
 
 /* Parses a built-in field and sets it in node */
 BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
@@ -666,7 +753,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
  assert(me->lexer);
  if(!lexer_field(me->lexer, &fieldO, &fieldE, NULL, NULL))
-  return FALSE;
+  return parser_fieldEvent(me, node);
 
  /* Ignore all events */
  #define EVENT_IN(n, f, t, v)
@@ -733,7 +820,9 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  /* Process a field (either exposed or ordinary) generally */
  #define PROCESS_FIELD(exposed, node, field, fieldType, var) \
   case exposed##FIELD_##field: \
-   if(!parser_fieldValue(me, (void*)&node2->var, FTIND_##fieldType)) \
+   if(!parser_fieldValue(me, \
+    newOffsetPointer(node2, offsetof(struct X3D_##node, var)), \
+    FTIND_##fieldType)) \
     PARSE_ERROR("Expected " #fieldType "Value!") \
    INIT_CODE_##fieldType(var) \
    return TRUE;
@@ -816,6 +905,146 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
  /* If field was found, return TRUE; would have happened! */
  PARSE_ERROR("Unsupported field for node!")
+}
+
+/* Parses a built-in field with IS in PROTO */
+BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
+{
+ BOOL isIn;	/* EventIn?  Otherwise EventOut, of course */
+ indexT evO, evE;
+ indexT pevO, pevE;
+ struct ProtoFieldDecl* pfield=NULL;
+ unsigned myOfs;
+ size_t myLen;
+
+ /* Check and gain information */
+ /* ************************** */
+
+ /* We should be in a PROTO */
+ if(!me->curPROTO)
+  return FALSE;
+
+ /* There should be really either an eventIn or an eventOut... */
+ if(lexer_eventIn(me->lexer, &evO, &evE, NULL, NULL))
+  isIn=TRUE;
+ else if(lexer_eventOut(me->lexer, &evO, &evE, NULL, NULL))
+  isIn=FALSE;
+ else
+  return FALSE;
+ 
+ /* Then, there should be 'IS' */
+ if(!lexer_keyword(me->lexer, KW_IS))
+  PARSE_ERROR("Expected \'IS\' after event used in node\'s field-section!")
+
+ /* And finally the PROTO's event to be linked */
+ if(isIn)
+ {
+  if(!lexer_eventIn(me->lexer, NULL, NULL, &pevO, &pevE))
+   PARSE_ERROR("Need user-eventIn after IS!")
+ } else
+  if(!lexer_eventOut(me->lexer, NULL, NULL, &pevO, &pevE))
+   PARSE_ERROR("Need user-eventOut after IS!")
+
+ /* Now, retrieve the ProtoFieldDecl. */
+ if(pevE!=ID_UNDEFINED)
+ {
+  pfield=protoDefinition_getField(me->curPROTO, pevE, PKW_exposedField);
+  if(!pfield)
+   PARSE_ERROR("This exposedField is not member of current PROTO!")
+ } else if(pevO!=ID_UNDEFINED)
+ {
+  assert(!pfield);
+  pfield=protoDefinition_getField(me->curPROTO, pevO,
+   isIn ? PKW_eventIn : PKW_eventOut);
+  if(!pfield)
+   PARSE_ERROR("This event is not member of current PROTO!")
+ }
+ assert(pfield);
+
+ /* Register the link by some macros */
+ /* ******************************** */
+
+ /* Ignore fields */
+ #define FIELD(n, f, t, v)
+
+ /* Basics */
+ #define END_NODE(n) \
+  EVENT_END_NODE(n)
+
+ /* exposedField */
+ if(evE!=ID_UNDEFINED)
+ {
+  #define EVENT_IN(n, f, t, v)
+  #define EVENT_OUT(n, f, t, v)
+  #define EXPOSED_FIELD(n, f, t, v) \
+   PROCESS_EVENT(EXPOSED_FIELD, my, n, f, t, v)
+  #define BEGIN_NODE(n) \
+   EVENT_BEGIN_NODE(evE, ptr, n)
+
+  switch(ptr->_nodeType)
+  {
+   #include "NodeFields.h"
+   EVENT_NODE_DEFAULT
+  }
+
+  #undef EVENT_IN
+  #undef EVENT_OUT
+  #undef EXPOSED_FIELD
+  #undef BEGIN_NODE
+ } else
+ {
+  assert(evO!=ID_UNDEFINED);
+
+  #define BEGIN_NODE(n) \
+   EVENT_BEGIN_NODE(evO, ptr, n)
+  #define EXPOSED_FIELD(n, f, t, v)
+  
+  /* eventIn */
+  if(isIn)
+  {
+   #define EVENT_OUT(n, f, t, v)
+   #define EVENT_IN(n, f, t, v) \
+    PROCESS_EVENT(EVENT_IN, my, n, f, t, v)
+
+   switch(ptr->_nodeType)
+   {
+    #include "NodeFields.h"
+    EVENT_NODE_DEFAULT
+   }
+
+   #undef EVENT_IN
+   #undef EVENT_OUT
+  }
+
+  /* eventOut */
+  else
+  {
+   #define EVENT_IN(n, f, t, v)
+   #define EVENT_OUT(n, f, t, v) \
+    PROCESS_EVENT(EVENT_OUT, my, n, f, t, v)
+
+   switch(ptr->_nodeType)
+   {
+    #include "NodeFields.h"
+    EVENT_NODE_DEFAULT
+   }
+
+   #undef EVENT_IN
+   #undef EVENT_OUT
+  }
+
+  #undef BEGIN_NODE
+  #undef EXPOSED_FIELD
+ }
+ 
+ /* Clean up */
+ #undef FIELD
+ #undef END_NODE
+
+ /* Link it */
+ protoFieldDecl_addDestination(pfield, ptr, myOfs);
+
+ return TRUE;
 }
 
 /* ************************************************************************** */

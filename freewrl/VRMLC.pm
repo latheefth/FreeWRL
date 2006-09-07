@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.243  2006/09/07 19:30:37  domob
+# Routing of PROTO-events to built-in events.
+#
 # Revision 1.242  2006/08/29 18:59:31  crc_canada
 # Sound nodes should be working again.
 #
@@ -748,6 +751,7 @@ sub gen {
 	push @str, "\n/* First, a generic struct, contains only the common elements */\n".
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
+	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"\n/* now, generated structures for each VRML/X3D Node*/\n";
 
 

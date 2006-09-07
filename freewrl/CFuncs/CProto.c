@@ -8,6 +8,24 @@
 #include "CParseGeneral.h"
 
 /* ************************************************************************** */
+/* ******************************** OffsetPointer *************************** */
+/* ************************************************************************** */
+
+/* Constructor/destructor */
+/* ********************** */
+
+struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
+{
+ struct OffsetPointer* ret=malloc(sizeof(struct OffsetPointer));
+ assert(ret);
+
+ ret->node=node;
+ ret->ofs=ofs;
+
+ return ret;
+}
+
+/* ************************************************************************** */
 /* ******************************* ProtoFieldDecl *************************** */
 /* ************************************************************************** */
 
@@ -22,14 +40,17 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->type=type;
  ret->name=name;
  ret->alreadySet=FALSE;
- ret->dests=newVector(void*, 4);
+ ret->dests=newVector(struct OffsetPointer*, 4);
  assert(ret->dests);
  return ret;
 }
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 {
- deleteVector(void*, me->dests);
+ size_t i;
+ for(i=0; i!=vector_size(me->dests); ++i)
+  deleteOffsetPointer(vector_get(struct OffsetPointer*, me->dests, i));
+ deleteVector(struct OffsetPointer*, me->dests);
  free(me);
 }
 
@@ -42,7 +63,61 @@ void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl* me,
 {
  size_t i;
  for(i=0; i!=vector_size(me->dests); ++i)
-  vector_pushBack(void**, v, &vector_get(void*, me->dests, i));
+  vector_pushBack(void**, v,
+   &vector_get(struct OffsetPointer*, me->dests, i)->node);
+}
+
+size_t protoFieldDecl_getLength(struct ProtoFieldDecl* me)
+{
+ #define SF_TYPE(ttype, type, stype) \
+  case FIELDTYPE_##ttype: \
+   return sizeof(vrml##stype##T);
+ #define MF_TYPE(ttype, type, stype) \
+  case FIELDTYPE_##ttype: \
+   return 0;
+
+ switch(me->type)
+ {
+  #include "VrmlTypeList.h"
+#ifndef NDEBUG
+  default:
+   assert(FALSE);
+#endif
+ }
+
+ #undef SF_TYPE
+ #undef MF_TYPE
+
+ assert(FALSE);
+ return 0;
+}
+
+/* Routing to/from */
+
+void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
+ struct X3D_Node* node, unsigned ofs, struct VRMLParser* p)
+{
+ int i;
+ assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
+ size_t len=protoFieldDecl_getLength(me);
+ for(i=0; i!=vector_size(me->dests); ++i)
+ {
+  struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
+  parser_registerRoute(p, node, ofs, optr->node, optr->ofs, len);
+ }
+}
+
+void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
+ struct X3D_Node* node, unsigned ofs, struct VRMLParser* p)
+{
+ int i;
+ assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
+ size_t len=protoFieldDecl_getLength(me);
+ for(i=0; i!=vector_size(me->dests); ++i)
+ {
+  struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
+  parser_registerRoute(p, optr->node, optr->ofs, node, ofs, len);
+ }
 }
 
 /* setValue is at the end, because we need deep-copying there */
@@ -87,7 +162,6 @@ struct ProtoDefinition* newProtoDefinition()
  assert(ret);
  ret->tree=createNewX3DNode(NODE_Group);
  assert(ret->tree);
- ret->tree->__protoDef=ret;
 
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
  assert(ret->iface);
@@ -178,6 +252,8 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
 
  /* Copy the scene graph and fill the fields thereby */
  ret->tree=protoDefinition_deepCopy(me->tree, ret, NULL);
+ /* Set reference */
+ /* XXX:  Do we need the *original* reference? */
  ret->tree->__protoDef=ret;
 
  return ret;
@@ -198,7 +274,9 @@ struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
  /* Register all routes */
  for(i=0; i!=vector_size(me->routes); ++i)
   protoRoute_register(vector_get(struct ProtoRoute*, me->routes, i));
- 
+
+ assert(ret->__protoDef);
+
  return ret;
 }
 
@@ -396,11 +474,13 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
  {
   #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
-    *vector_get(vrml##ttype##T*, me->dests, 0)=val->type; \
+    *offsetPointer_deref(vrml##ttype##T*, \
+     vector_get(struct OffsetPointer*, me->dests, 0))=val->type; \
     break;
   #define MF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
-    *vector_get(struct Multi_##ttype*, me->dests, 0)=val->type; \
+    *offsetPointer_deref(struct Multi_##ttype*, \
+     vector_get(struct OffsetPointer*, me->dests, 0))=val->type; \
     break;
   #include "VrmlTypeList.h"
   #undef SF_TYPE
@@ -417,12 +497,14 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
   {
    #define SF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
-     *vector_get(vrml##ttype##T*, me->dests, i)= \
+     *offsetPointer_deref(vrml##ttype##T*, \
+      vector_get(struct OffsetPointer*, me->dests, i))= \
       DEEPCOPY_##type(val->type, NULL, NULL); \
      break;
    #define MF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
-     *vector_get(struct Multi_##ttype*, me->dests, i)= \
+     *offsetPointer_deref(struct Multi_##ttype*, \
+      vector_get(struct OffsetPointer*, me->dests, i))= \
       DEEPCOPY_##type(val->type, NULL, NULL); \
      break;
    #include "VrmlTypeList.h"
