@@ -76,6 +76,8 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
  vector_size((me)->dests)
 #define protoFieldDecl_getDestination(me, i) \
  vector_get(struct OffsetPointer*, (me)->dests, i)
+#define protoFieldDecl_getDefaultValue(me) \
+ ((me)->defaultVal)
 
 /* Add a destination this field's value must be assigned to */
 #define protoFieldDecl_addDestinationOptr(me, optr) \
