@@ -44,8 +44,16 @@ void lexer_destroyIdStack(Stack*);
  ((me)->isEof && !(me)->curID)
 
 /* indexT -> char* conversion */
-#define lexer_stringUFieldName(index) \
- vector_get(char*, stack_top(userFieldNames), index)
+#define lexer_stringUFieldName(index, type) \
+ vector_get(char*, stack_top(user_##type), index)
+#define lexer_stringUser_field(index) \
+ lexer_stringUFieldName(index, field)
+#define lexer_stringUser_exposedField(index) \
+ lexer_stringUFieldName(index, exposedField)
+#define lexer_stringUser_eventIn(index) \
+ lexer_stringUFieldName(index, eventIn)
+#define lexer_stringUser_eventOut(index) \
+ lexer_stringUFieldName(index, eventOut)
 
 /* Skip whitespace and comments. */
 void lexer_skip(struct VRMLLexer*);
