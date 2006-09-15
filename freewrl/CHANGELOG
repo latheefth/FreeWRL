@@ -2,6 +2,8 @@ For 1.18.5:
 	- Sound and AudioClip nodes should work again - problem with add_first and
 	  these nodes.
 
+	- EAI/SAI should be close to working.
+
 For 1.18.4:
 	- javascript code that calls perl being rewritten.
 		(tests/52 added - uses createVrmlFromURL)
