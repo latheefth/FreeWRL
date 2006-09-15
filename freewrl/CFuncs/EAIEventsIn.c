@@ -758,10 +758,6 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 		EAINodeTable[num_EAINodeTable].nodeName = malloc (sizeof (char) * mystrlen+2);
 		memcpy (EAINodeTable[num_EAINodeTable].nodeName, ctmp, mystrlen+1);
 
-		sscanf (rv,"%d %d", 0,
-				&(EAINodeTable[num_EAINodeTable].nodePtr));
-
-
 		sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
 			0,
 			EAINodeTable[num_EAINodeTable].nodePtr);
