@@ -762,6 +762,7 @@ void parser_specificInitNode(struct X3D_Node* n)
   /* Scripts get a script object associated to them */
   NODE_SPECIFIC_INIT(Script,
    node->__scriptObj=newScript();
+   script_initCodeFromMFUri(node->__scriptObj, &node->url);
    )
 
  }
