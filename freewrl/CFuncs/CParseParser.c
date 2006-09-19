@@ -5,6 +5,7 @@
 
 #include "CParseParser.h"
 #include "CProto.h"
+#include "CScripts.h"
 
 #define PARSE_ERROR(msg) \
  { \
@@ -613,6 +614,9 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
   assert(node);
   while(parser_field(me, node) ||
    parser_routeStatement(me) || parser_protoStatement(me));
+
+  /* Node specific initialization */
+  parser_specificInitNode(node);
  }
  
  /* Proto */
@@ -740,6 +744,27 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
 
  #undef PARSER_FINALLY
  #define PARSER_FINALLY
+}
+
+/* Specific initialization of node fields */
+void parser_specificInitNode(struct X3D_Node* n)
+{
+ switch(n->_nodeType)
+ {
+
+  #define NODE_SPECIFIC_INIT(type, code) \
+   case NODE_##type: \
+   { \
+    struct X3D_##type* node=(struct X3D_##type*)n; \
+    code \
+   }
+
+  /* Scripts get a script object associated to them */
+  NODE_SPECIFIC_INIT(Script,
+   node->__scriptObj=newScript();
+   )
+
+ }
 }
 
 /* ************************************************************************** */

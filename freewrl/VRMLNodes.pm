@@ -2093,6 +2093,7 @@ my $protono;
 						url => [MFString, [], exposedField],
 						directOutput => [SFBool, 0, field],
 						mustEvaluate => [SFBool, 0, field],
+						 __scriptObj => [FreeWRLPTR, 0, field],
 					   },"X3DScriptNode"
 					  ),
 

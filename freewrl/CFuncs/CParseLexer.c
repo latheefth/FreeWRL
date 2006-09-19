@@ -268,7 +268,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 }
 
 /* Lexes and defines an ID */
-BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, Stack** vec)
+BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, Stack** vec, BOOL multi)
 {
  if(!lexer_setCurID(me))
   return FALSE;
@@ -279,6 +279,20 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, Stack** vec)
   lexer_scopeIn_(vec);
  assert(*vec);
  assert(!stack_empty(*vec));
+
+ /* Look if the ID's already there */
+ if(multi)
+ {
+  size_t i;
+  for(i=0; i!=vector_size(stack_top(*vec)); ++i)
+   if(!strcmp(me->curID, vector_get(const char*, stack_top(*vec), i)))
+   {
+    free(me->curID);
+    me->curID=NULL;
+    *ret=i;
+    return TRUE;
+   }
+ }
 
  /* Define the id */
  *ret=vector_size(stack_top(*vec));

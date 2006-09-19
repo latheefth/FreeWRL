@@ -70,19 +70,19 @@ BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
 BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
  const char**, const indexT, Stack*,
  const char*);
-BOOL lexer_defineID(struct VRMLLexer*, indexT*, Stack**);
+BOOL lexer_defineID(struct VRMLLexer*, indexT*, Stack**, BOOL);
 #define lexer_defineNodeName(me, ret) \
- lexer_defineID(me, ret, &userNodeNames)
+ lexer_defineID(me, ret, &userNodeNames, FALSE)
 #define lexer_defineNodeType(me, ret) \
- lexer_defineID(me, ret, &userNodeTypes)
+ lexer_defineID(me, ret, &userNodeTypes, FALSE)
 #define lexer_define_field(me, ret) \
- lexer_defineID(me, ret, &user_field)
+ lexer_defineID(me, ret, &user_field, TRUE)
 #define lexer_define_exposedField(me, ret) \
- lexer_defineID(me, ret, &user_exposedField)
+ lexer_defineID(me, ret, &user_exposedField, TRUE)
 #define lexer_define_eventIn(me, ret) \
- lexer_defineID(me, ret, &user_eventIn)
+ lexer_defineID(me, ret, &user_eventIn, TRUE)
 #define lexer_define_eventOut(me, ret) \
- lexer_defineID(me, ret, &user_eventOut)
+ lexer_defineID(me, ret, &user_eventOut, TRUE)
 BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
