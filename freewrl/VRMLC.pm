@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.244  2006/09/19 17:06:10  domob
+# Moved ARR_SIZE from GeneratedCode.c to headers.h
+#
 # Revision 1.243  2006/09/07 19:30:37  domob
 # Routing of PROTO-events to built-in events.
 #
@@ -498,8 +501,7 @@ sub gen {
 		"#include \"headers.h\"\n".
 		"#include \"Component_Geospatial.h\"\n".
 		"#include \"Polyrep.h\"\n".
-		"#include \"Bindable.h\"\n".
-		"\n#define ARR_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))\n\n";
+		"#include \"Bindable.h\"\n\n";
 
 	#####################
 	

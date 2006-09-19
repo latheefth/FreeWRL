@@ -30,6 +30,9 @@ typedef struct _CRnodeStruct {
         unsigned int foffset;
 } CRnodeStruct;
 
+/* Size of static array */
+#define ARR_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+
 /* Helper to get size of a struct's memer */
 #define sizeof_member(str, var) \
  sizeof(((str*)NULL)->var)
