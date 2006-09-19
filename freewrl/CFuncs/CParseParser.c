@@ -338,24 +338,28 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT fromNodeIndex;
  struct X3D_Node* fromNode;
  struct ProtoDefinition* fromProto=NULL;
+ struct Script* fromScript=NULL;
  indexT fromFieldO;
  indexT fromFieldE;
  indexT fromUFieldO;
  indexT fromUFieldE;
  int fromOfs;
  int fromLen;
- struct ProtoFieldDecl* fromField=NULL;
+ struct ProtoFieldDecl* fromProtoField=NULL;
+ struct ScriptFieldDecl* fromScriptField=NULL;
 
  indexT toNodeIndex;
  struct X3D_Node* toNode;
  struct ProtoDefinition* toProto=NULL;
+ struct Script* toScript=NULL;
  indexT toFieldO;
  indexT toFieldE;
  indexT toUFieldO;
  indexT toUFieldE;
  int toOfs;
  int toLen;
- struct ProtoFieldDecl* toField=NULL;
+ struct ProtoFieldDecl* toProtoField=NULL;
+ struct ScriptFieldDecl* toScriptField=NULL;
 
  assert(me->lexer);
  lexer_skip(me->lexer);
@@ -373,36 +377,62 @@ BOOL parser_routeStatement(struct VRMLParser* me)
    pre##NodeIndex<vector_size(stack_top(DEFedNodes))); \
   pre##Node=vector_get(struct X3D_Node*, stack_top(DEFedNodes), \
    pre##NodeIndex); \
-  if(pre##Node->_nodeType==NODE_Group) \
-   pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
-  else \
-   assert(!pre##Proto); \
+  /* PROTO/Script? */ \
+  switch(pre##Node->_nodeType) \
+  { \
+   case NODE_Group: \
+    pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
+    break; \
+   case NODE_Script: \
+    pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
+    assert(pre##Script); \
+    break; \
+  } \
   /* Seperating '.' */ \
   if(!lexer_point(me->lexer)) \
    PARSE_ERROR("Expected . after node-name!") \
   /* Field, user/built-in depending on whether node is a PROTO instance */ \
-  if(!pre##Proto) \
+  if(!pre##Proto && !pre##Script) \
   { \
    if(!lexer_event##eventType(me->lexer, \
     &pre##FieldO, &pre##FieldE, NULL, NULL)) \
     PARSE_ERROR("Expected built-in event" #eventType " after .!") \
   } else \
   { \
-   assert(pre##Proto); \
+   assert(pre##Proto || pre##Script); \
    if(lexer_event##eventType(me->lexer, \
     NULL, NULL, &pre##UFieldO, &pre##UFieldE)) \
    { \
     if(pre##UFieldO!=ID_UNDEFINED) \
-     pre##Field=protoDefinition_getField(pre##Proto, pre##UFieldO, \
-      PKW_event##eventType); \
-    else \
     { \
-     assert(pre##UFieldE!=ID_UNDEFINED); \
-     pre##Field=protoDefinition_getField(pre##Proto, pre##UFieldE, \
-      PKW_exposedField); \
+     if(pre##Proto) \
+     { \
+      assert(!pre##Script); \
+      pre##ProtoField=protoDefinition_getField(pre##Proto, pre##UFieldO, \
+       PKW_event##eventType); \
+     } else \
+     { \
+      assert(pre##Script && !pre##Proto); \
+      pre##ScriptField=script_getField(pre##Script, pre##UFieldO, \
+       PKW_event##eventType); \
+     } \
+    } else \
+    { \
+     if(pre##Proto) \
+     { \
+      assert(!pre##Script); \
+      assert(pre##UFieldE!=ID_UNDEFINED); \
+      pre##ProtoField=protoDefinition_getField(pre##Proto, pre##UFieldE, \
+       PKW_exposedField); \
+     } else \
+     { \
+      assert(pre##Script && !pre##Proto); \
+      pre##ScriptField=script_getField(pre##Script, pre##UFieldE, \
+       PKW_exposedField); \
+     } \
     } \
-    if(!pre##Field) \
-     PARSE_ERROR("Event-field invalid for this PROTO!") \
+    if((pre##Proto && !pre##ProtoField) || (pre##Script && !pre##ScriptField)) \
+     PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
    } \
   }
 
@@ -421,7 +451,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
   EVENT_END_NODE(n)
  
  /* Process from eventOut */
- if(!fromField)
+ if(!fromProtoField && !fromScriptField)
   if(fromFieldE!=ID_UNDEFINED)
    switch(fromNode->_nodeType)
    {
@@ -458,7 +488,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
   }
 
  /* Process to eventIn */
- if(!toField)
+ if(!toProtoField && !toScriptField)
   if(toFieldE!=ID_UNDEFINED)
    switch(toNode->_nodeType)
    {
@@ -499,10 +529,10 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  #undef END_NODE
 
  /* Update length for fields */
- if(fromField)
-  fromLen=protoFieldDecl_getLength(fromField);
- if(toField)
-  toLen=protoFieldDecl_getLength(toField);
+ if(fromProtoField)
+  fromLen=protoFieldDecl_getLength(fromProtoField);
+ if(toProtoField)
+  toLen=protoFieldDecl_getLength(toProtoField);
 
  /* FIXME:  Not a really safe check for types in ROUTE! */
  if(fromLen!=toLen)
@@ -511,15 +541,18 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  /* Finally, register the route. */
  /* **************************** */
 
+ if(fromScriptField || toScriptField)
+  PARSE_ERROR("Script-routing not yet supported!");
+
  /* Built-in to built-in */
- if(!fromField && !toField)
+ if(!fromProtoField && !toProtoField)
   parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen);
  /* Built-in to user-def */
- else if(!fromField && toField)
-  protoFieldDecl_routeTo(toField, fromNode, fromOfs, me);
+ else if(!fromProtoField && toProtoField)
+  protoFieldDecl_routeTo(toProtoField, fromNode, fromOfs, me);
  /* user-def to built-in */
- else if(fromField && !toField)
-  protoFieldDecl_routeFrom(fromField, toNode, toOfs, me);
+ else if(fromProtoField && !toProtoField)
+  protoFieldDecl_routeFrom(fromProtoField, toNode, toOfs, me);
  /* user-def to user-def */
  else
   PARSE_ERROR("Routing from user-event to user-event is currently unsupported!")

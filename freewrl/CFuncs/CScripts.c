@@ -15,6 +15,44 @@ const char* JS_PROTOCOLS[]={
  "ecmascript",
  "vrmlscript"};
 
+/* ************************************************************************** */
+/* ****************************** ScriptFieldDecl *************************** */
+/* ************************************************************************** */
+
+/* Constructor and destructor */
+/* ************************** */
+
+struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
+{
+ struct ScriptFieldDecl* ret=malloc(sizeof(struct ScriptFieldDecl));
+ assert(ret);
+
+ ret->kind=PROTOKEYWORDS[mod];
+ ret->type=FIELDTYPES[type];
+ ret->name=name;
+
+ ret->value=NULL;
+
+ return ret;
+}
+
+void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
+{
+ if(me->value)
+  free(me->value);
+ free(me);
+}
+
+/* Other members */
+/* ************* */
+
+/* Get "offset" data for routing */
+int script_getRoutingOffset(struct ScriptFieldDecl*);
+
+/* ************************************************************************** */
+/* ********************************** Script ******************************** */
+/* ************************************************************************** */
+
 /* Constructor and destructor */
 /* ************************** */
 
@@ -40,6 +78,20 @@ void deleteScript(struct Script* me)
 
 /* Other members */
 /* ************* */
+
+struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
+{
+ size_t i;
+ for(i=0; i!=vector_size(me->fields); ++i)
+ {
+  struct ScriptFieldDecl* curField=
+   vector_get(struct ScriptFieldDecl*, me->fields, i);
+  if(curField->name==n && curField->kind==PROTOKEYWORDS[mod])
+   return curField;
+ }
+
+ return NULL;
+}
 
 BOOL script_initCode(struct Script* me, const char* code)
 {
