@@ -887,27 +887,28 @@ unsigned char* rayHit() {
 
 
 /* set a node to be sensitive, and record info for this node */
-void setSensitive(void *ptr,void *datanode,char *type) {
-	struct X3D_Box *p;
+void setSensitive(void *parentNode,void *datanode) {
+	struct X3D_Node *p;
+	struct X3D_Node *me;
 	void (*myp)(unsigned *);
 
-	/* printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type); */
+	me = (struct X3D_Node*)datanode;
 
-	if (strncmp("TouchSensor",type,10) == 0) { myp =  (void *)do_TouchSensor;
-	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = (void *)do_GeoTouchSensor;
-	} else if (strncmp("PlaneSensor",type,10) == 0) { myp = (void *)do_PlaneSensor;
-	} else if (strncmp("CylinderSensor",type,10) == 0) { myp = (void *)do_CylinderSensor;
-	} else if (strncmp("SphereSensor",type,10) == 0) { myp = (void *)do_SphereSensor;
-	} else if (strncmp("Anchor",type,10) == 0) { myp = (void *)do_Anchor;
-	} else if (strncmp("ProximitySensor",type,10) == 0) { return; /* its time sensive only */
+	/* printf ("set_sensitive ,parentNode %d data %d type %s\n",parentNode,datanode,stringNodeType (me->_nodeType)); */
 
-	} else {
-		printf ("set_sensitive, unhandled type %s\n",type);
-		return;
+	switch (me->_nodeType) {
+		case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
+		case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
+		case NODE_PlaneSensor: myp = (void *)do_PlaneSensor; break;
+		case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
+		case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
+		case NODE_ProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
+		case NODE_Anchor: myp = (void *)do_Anchor; break;
+		default: return;
 	}
 
 	/* mark THIS node as sensitive. */
-	p = ptr;
+	p = parentNode;
 	p->_sens = TRUE;
 
  	/* and tell the rendering pass that there is a sensitive node down*/
@@ -925,12 +926,12 @@ void setSensitive(void *ptr,void *datanode,char *type) {
 	}
 
 	if (datanode == 0) {
-		printf ("setSensitive: datastructure is zero for type %s\n",type);
+		printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(me->_nodeType));
 		return;
 	}
 
 	/* now, put the function pointer and data pointer into the structure entry */
-	SensorEvents[num_SensorEvents].fromnode = ptr;
+	SensorEvents[num_SensorEvents].fromnode = parentNode;
 	SensorEvents[num_SensorEvents].datanode = datanode;
 	SensorEvents[num_SensorEvents].interpptr = (void *)myp;
 

@@ -515,6 +515,9 @@ void add_parent(void *node_, void *parent_) {
 	}
 	node->_parents[oldparcount] = parent_;
 	node->_nparents = oldparcount+1;
+
+	/* tie in sensitive nodes */
+	setSensitive (parent_, node_);
 }
 
 void remove_parent(void *node_, void *parent_) {

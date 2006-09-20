@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.245  2006/09/20 20:31:34  crc_canada
+# screen sensitive nodes now work properly with Daniel Kraft's parser.
+#
 # Revision 1.244  2006/09/19 17:06:10  domob
 # Moved ARR_SIZE from GeneratedCode.c to headers.h
 #
@@ -1179,7 +1182,7 @@ set_sensitive(ptr,datanode,type)
 	void *datanode
 	char *type
 CODE:
-	setSensitive (ptr,datanode,type);
+	setSensitive (ptr,datanode);
 
 #*****************************************************************************
 # return a C pointer to a func for the interpolator functions. Used in CRoutes

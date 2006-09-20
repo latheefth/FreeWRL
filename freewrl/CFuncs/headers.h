@@ -446,7 +446,7 @@ void mark_event (void *from, unsigned int fromoffset);
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 
 /* set a node to be sensitive */
-void setSensitive(void *ptr,void *datanode,char *type);
+void setSensitive(void *parent,void *me);
 
 /* bindable nodes */
 extern GLint viewport[];

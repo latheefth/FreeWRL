@@ -352,7 +352,9 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	if (strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) *accessType = KW_eventIn; 
 	if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) *accessType = KW_eventOut;
 					
+	#ifdef EAIVERBOSE
 	printf ("EAI_GetType, so we have coffset %d, ctype %x, ctmp %s\n",*fieldOffset,ctype, KEYWORDS[*accessType]);
+	#endif
 }
 
 
