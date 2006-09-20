@@ -726,7 +726,9 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 	retint=sscanf (bufptr," %s",ctmp);
 	mystrlen = strlen(ctmp);
 
-	/* printf ("GETNODE %s\n",ctmp);  */
+	#ifdef EAIVERBOSE
+	printf ("GETNODE %s\n",ctmp); 
+	#endif
 
 	/* does this event exist? */
 	for (count=0; count <num_EAINodeTable; count ++) {
@@ -735,7 +737,9 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 			sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
 				0,
 				EAINodeTable[count].nodePtr);
-			/* printf ("GETNODE fast returns %s\n",buf); */
+			#ifdef EAIVERBOSE
+			printf ("GETNODE fast returns %s\n",buf);
+			#endif
 			return;
 			}
 		}	
@@ -768,7 +772,9 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno,
 			rootNode);
 	}
-	/* printf ("GETNODE returns %s\n",buf); */
+	#ifdef EAIVERBOSE
+	printf ("GETNODE returns %s\n",buf); 
+	#endif
 }
 
 /* add or delete a route */

@@ -533,13 +533,21 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 	int *x;
 
 	x = (int *) nodeOffsetPtr;
-	/* printf ("findFieldInOffsets, comparing %d to %d\n",*x, field); */
+
+	#ifdef EAIVERBOSE
+	printf ("findFieldInOffsets, comparing %d to %d\n",*x, field); 
+	#endif
+
 	while ((*x != field) && (*x != -1)) {
 		x += 4;
 	}
 	if (*x == field) {
-		/* printf ("found field!\n"); */
 		x++; *coffset = *x; x++; *ctype = *x; x++; *ckind = *x; 
+
+		#ifdef EAIVERBOSE
+		printf ("found field, coffset %d ctype %d ckind %d\n",*coffset, *ctype, *ckind); 
+		#endif
+
 		return;
 	}
 	if (*x == -1) {
