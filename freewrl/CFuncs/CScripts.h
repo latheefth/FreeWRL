@@ -18,6 +18,8 @@ struct ScriptFieldDecl
  const char* kind;
  const char* type;
  indexT name;
+ /* Stringified name */
+ const char* stringName;
  /* For fields */
  char* value;
 };
@@ -63,7 +65,7 @@ BOOL script_initCodeFromUri(struct Script*, const char*);
 BOOL script_initCodeFromMFUri(struct Script*, const struct Multi_String*);
 
 /* Add a new field */
-void scrip_addField(struct Script*, struct ScriptFieldDecl*);
+void script_addField(struct Script*, struct ScriptFieldDecl*);
 
 /* Get a field by name */
 struct ScriptFieldDecl* script_getField(struct Script*, indexT ind, indexT mod);

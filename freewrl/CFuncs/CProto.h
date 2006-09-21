@@ -70,7 +70,9 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
  ((me)->mode)
 #define protoFieldDecl_getIndexName(me) \
  ((me)->name)
-const char* protoFieldDecl_getStringName(struct ProtoFieldDecl*);
+#define protoFieldDecl_getStringName(me) \
+ lexer_stringUser_fieldName(protoFieldDecl_getIndexName(me), \
+  protoFieldDecl_getAccessType(me))
 #define protoFieldDecl_getDestinationCount(me) \
  vector_size((me)->dests)
 #define protoFieldDecl_getDestination(me, i) \

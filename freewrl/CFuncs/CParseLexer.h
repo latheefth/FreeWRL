@@ -54,6 +54,8 @@ void lexer_destroyIdStack(Stack*);
  lexer_stringUFieldName(index, eventIn)
 #define lexer_stringUser_eventOut(index) \
  lexer_stringUFieldName(index, eventOut)
+/* User field name -> char*, takes care of access mode */
+const char* lexer_stringUser_fieldName(indexT name, indexT mode);
 
 /* Skip whitespace and comments. */
 void lexer_skip(struct VRMLLexer*);

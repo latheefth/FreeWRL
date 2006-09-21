@@ -31,6 +31,9 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  ret->type=FIELDTYPES[type];
  ret->name=name;
 
+ /* Get string name */
+ ret->stringName=lexer_stringUser_fieldName(name, mod);
+
  ret->value=NULL;
 
  return ret;
@@ -40,6 +43,7 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 {
  if(me->value)
   free(me->value);
+ 
  free(me);
 }
 
@@ -91,6 +95,12 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
  }
 
  return NULL;
+}
+
+void script_addField(struct Script* me, struct ScriptFieldDecl* field)
+{
+ vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
+ InitScriptField(me->num, field->kind, field->type, field->stringName, "");
 }
 
 BOOL script_initCode(struct Script* me, const char* code)

@@ -55,25 +55,6 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
  free(me);
 }
 
-/* Accessors */
-/* ********* */
-
-const char* protoFieldDecl_getStringName(struct ProtoFieldDecl* me)
-{
- switch(me->mode)
- {
-  case PKW_field:
-   return lexer_stringUser_field(protoFieldDecl_getIndexName(me));
-  case PKW_exposedField:
-   return lexer_stringUser_exposedField(protoFieldDecl_getIndexName(me));
-  case PKW_eventIn:
-   return lexer_stringUser_eventIn(protoFieldDecl_getIndexName(me));
-  case PKW_eventOut:
-   return lexer_stringUser_eventOut(protoFieldDecl_getIndexName(me));
- }
- assert(FALSE);
-}
-
 /* Other members */
 /* ************* */
 

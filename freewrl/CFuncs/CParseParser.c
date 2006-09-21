@@ -222,15 +222,25 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 
 /* Parses an interface declaration and adds it to the PROTO definition */
 BOOL parser_interfaceDeclaration(struct VRMLParser* me,
- struct ProtoDefinition* proto)
+ struct ProtoDefinition* proto, struct Script* script)
 {
  indexT mode;
  indexT type;
  indexT name;
- struct ProtoFieldDecl* decl=NULL;
+ union anyVrml defaultVal;
+ struct ProtoFieldDecl* pdecl=NULL;
+ struct ScriptFieldDecl* sdecl=NULL;
+
+ /* Either PROTO or Script interface! */
+ assert((proto || script) && !(proto && script));
 
  if(!lexer_protoFieldMode(me->lexer, &mode))
   return FALSE;
+
+ /* Script may not take exposedFields */
+ if(script && mode==PKW_exposedField)
+  PARSE_ERROR("Scripts must not have exposedFields!")
+  
  if(!lexer_fieldType(me->lexer, &type))
   PARSE_ERROR("Expected fieldType after proto-field keyword!")
  switch(mode)
@@ -250,19 +260,36 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 #endif
  }
 
- decl=newProtoFieldDecl(mode, type, name);
+ if(proto)
+  pdecl=newProtoFieldDecl(mode, type, name);
+ else
+  sdecl=newScriptFieldDecl(mode, type, name);
+  
  if(mode==PKW_field || mode==PKW_exposedField)
  {
   assert(PARSE_TYPE[type]);
-  if(!PARSE_TYPE[type](me, (void*)&decl->defaultVal))
+  if(!PARSE_TYPE[type](me, (void*)&defaultVal))
   {
    parseError("Expected default value for field!");
-   deleteProtoFieldDecl(decl);
+   if(pdecl) deleteProtoFieldDecl(pdecl);
+   if(sdecl) deleteScriptFieldDecl(sdecl);
    return FALSE;
   }
+
+  if(proto)
+   pdecl->defaultVal=defaultVal;
+  /* FIXME: Script field default not supported yet! */
  }
 
- protoDefinition_addIfaceField(proto, decl);
+ if(proto)
+ {
+  protoDefinition_addIfaceField(proto, pdecl);
+ } else
+ {
+  assert(script);
+  script_addField(script, sdecl);
+ }
+
  return TRUE;
 }
 
@@ -293,7 +320,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  /* Interface declarations */
  if(!lexer_openSquare(me->lexer))
   PARSE_ERROR("Expected [ to start interface declaration!")
- while(parser_interfaceDeclaration(me, obj));
+ while(parser_interfaceDeclaration(me, obj, NULL));
  if(!lexer_closeSquare(me->lexer))
   PARSE_ERROR("Expected ] after interface declaration!")
 
@@ -643,13 +670,29 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  /* Built-in node */
  if(nodeTypeB!=ID_UNDEFINED)
  {
+  struct Script* script=NULL;
+ 
   node=X3D_NODE(createNewX3DNode(nodeTypeB));
   assert(node);
-  while(parser_field(me, node) ||
-   parser_routeStatement(me) || parser_protoStatement(me));
-
   /* Node specific initialization */
   parser_specificInitNode(node);
+
+  /* Set curScript for Script-nodes */
+  if(node->_nodeType==NODE_Script)
+   script=X3D_SCRIPT(node)->__scriptObj;
+
+  while(TRUE)
+  {
+   if(parser_field(me, node)) continue;
+   if(parser_routeStatement(me)) continue;
+   if(parser_protoStatement(me)) continue;
+   if(script && parser_interfaceDeclaration(me, NULL, script)) continue;
+   break;
+  }
+
+  /* Init code for Scripts */
+  if(script)
+   script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
  }
  
  /* Proto */
@@ -795,7 +838,6 @@ void parser_specificInitNode(struct X3D_Node* n)
   /* Scripts get a script object associated to them */
   NODE_SPECIFIC_INIT(Script,
    node->__scriptObj=newScript();
-   script_initCodeFromMFUri(node->__scriptObj, &node->url);
    )
 
  }

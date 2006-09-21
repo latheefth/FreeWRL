@@ -441,6 +441,23 @@ BOOL lexer_field(struct VRMLLexer* me,
  return found;
 }
 
+/* Conversion of user field name to char* */
+const char* lexer_stringUser_fieldName(indexT name, indexT mode)
+{
+ switch(mode)
+ {
+  case PKW_field:
+   return lexer_stringUser_field(name);
+  case PKW_exposedField:
+   return lexer_stringUser_exposedField(name);
+  case PKW_eventIn:
+   return lexer_stringUser_eventIn(name);
+  case PKW_eventOut:
+   return lexer_stringUser_eventOut(name);
+ }
+ assert(FALSE);
+}
+
 /* Skip whitespace and comments. */
 void lexer_skip(struct VRMLLexer* me)
 {

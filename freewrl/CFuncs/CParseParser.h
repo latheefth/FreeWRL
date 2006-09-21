@@ -12,6 +12,7 @@
 #include "CParseLexer.h"
 
 struct ProtoDefinition;
+struct Script;
 struct OffsetPointer;
 
 /* This is the DEF/USE memory. */
@@ -86,7 +87,8 @@ BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
 /* Parses nodes, fields and other statements. */
 BOOL parser_routeStatement(struct VRMLParser*);
 BOOL parser_protoStatement(struct VRMLParser*);
-BOOL parser_interfaceDeclaration(struct VRMLParser*, struct ProtoDefinition*);
+BOOL parser_interfaceDeclaration(struct VRMLParser*,
+ struct ProtoDefinition*, struct Script*);
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
