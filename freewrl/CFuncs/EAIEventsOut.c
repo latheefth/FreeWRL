@@ -80,6 +80,10 @@ void handle_Listener () {
 	/* append the EV_EOT marker to the end of the string */
 	strcat (buf,"\nEV_EOT");
 
+	#ifdef EAIVERBOSE
+	printf ("Handle Listener, returning %s\n",buf);
+	#endif
+
 	/* send the EV reply */
 	EAI_send_string(buf,EAIlistenfd);
 }

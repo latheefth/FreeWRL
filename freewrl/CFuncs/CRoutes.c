@@ -1105,12 +1105,14 @@ void CRoutes_Register(
 		/* and mark all scripts active to get the initialize() events */
 		scripts_active = TRUE;
 	}
+#define CRVERBOSE
 
 	#ifdef CRVERBOSE  
 		printf ("\n\nCRoutes_Register adrem %d from %u off %u to %u %s len %d intptr %u\n",
 				adrem, from, fromoffset, to_count, tonode_str, length, intptr);
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 	#endif
+#undef CRVERBOSE
 
 	insert_here = 1;
 
@@ -1770,6 +1772,7 @@ void propagate_events() {
 								   (unsigned)CRoutes[counter].len);
 						} else {
 							/* this is a Multi*node, do a specialized copy */
+printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
 
 							Multimemcpy ((void *)(to_ptr->node + to_ptr->foffset),
 								 (void *)(CRoutes[counter].fromnode + CRoutes[counter].fnptr),
@@ -2018,7 +2021,8 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 		case -18: {structlen = sizeof (struct SFVec2f); break;}
 		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
 		default: {
-			printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);
+			/* this is MOST LIKELY for an EAI handle_Listener call 
+			printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype); */
 			structlen=0;
 			return;
 		}
