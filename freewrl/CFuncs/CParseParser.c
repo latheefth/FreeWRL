@@ -558,8 +558,12 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  /* Update length for fields */
  if(fromProtoField)
   fromLen=protoFieldDecl_getLength(fromProtoField);
+ else if(fromScriptField)
+  fromLen=scriptFieldDecl_getLength(fromScriptField);
  if(toProtoField)
   toLen=protoFieldDecl_getLength(toProtoField);
+ else if(toScriptField)
+  toLen=scriptFieldDecl_getLength(toScriptField);
 
  /* FIXME:  Not a really safe check for types in ROUTE! */
  if(fromLen!=toLen)

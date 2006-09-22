@@ -27,12 +27,12 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  struct ScriptFieldDecl* ret=malloc(sizeof(struct ScriptFieldDecl));
  assert(ret);
 
+ ret->fieldDecl=newFieldDecl(mod, type, name);
+
+ /* Stringify */
  ret->kind=PROTOKEYWORDS[mod];
  ret->type=FIELDTYPES[type];
- ret->name=name;
-
- /* Get string name */
- ret->stringName=lexer_stringUser_fieldName(name, mod);
+ ret->stringName=fieldDecl_getStringName(ret->fieldDecl);
 
  ret->value=NULL;
 
@@ -44,6 +44,7 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
  if(me->value)
   free(me->value);
  
+ deleteFieldDecl(me->fieldDecl);
  free(me);
 }
 
@@ -51,7 +52,7 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* ************* */
 
 /* Get "offset" data for routing */
-int script_getRoutingOffset(struct ScriptFieldDecl*);
+int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl*);
 
 /* ************************************************************************** */
 /* ********************************** Script ******************************** */
@@ -71,11 +72,20 @@ struct Script* newScript()
  ret->num=(handleCnt++);
  ret->loaded=FALSE;
 
+ ret->fields=newVector(struct ScriptFieldDecl*, 4);
+
  JSInit(ret->num);
+
+ return ret;
 }
 
 void deleteScript(struct Script* me)
 {
+ size_t i;
+ for(i=0; i!=vector_size(me->fields); ++i)
+  deleteScriptFieldDecl(vector_get(struct ScriptFieldDecl*, me->fields, i));
+ deleteVector(struct ScriptFieldDecl*, me->fields);
+ 
  free(me);
  /* FIXME:  JS-handle is not freed! */
 }
@@ -90,7 +100,7 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
  {
   struct ScriptFieldDecl* curField=
    vector_get(struct ScriptFieldDecl*, me->fields, i);
-  if(curField->name==n && curField->kind==PROTOKEYWORDS[mod])
+  if(scriptFieldDecl_isField(curField, n, mod))
    return curField;
  }
 

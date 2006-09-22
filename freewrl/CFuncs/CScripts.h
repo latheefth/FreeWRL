@@ -6,6 +6,8 @@
 #include "headers.h"
 #include "Vector.h"
 
+#include "CFieldDecls.h"
+
 /* ************************************************************************** */
 /* ****************************** ScriptFieldDecl *************************** */
 /* ************************************************************************** */
@@ -15,11 +17,14 @@
 
 struct ScriptFieldDecl
 {
+ /* subclass of FieldDecl */
+ struct FieldDecl* fieldDecl;
+
+ /* Stringified */
  const char* kind;
  const char* type;
- indexT name;
- /* Stringified name */
  const char* stringName;
+
  /* For fields */
  char* value;
 };
@@ -34,7 +39,13 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl*);
 /* ************* */
 
 /* Get "offset" data for routing */
-int script_getRoutingOffset(struct ScriptFieldDecl*);
+int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl*);
+
+/* Forwards to inherited methods */
+#define scriptFieldDecl_getLength(me) \
+ fieldDecl_getLength((me)->fieldDecl)
+#define scriptFieldDecl_isField(me, nam, mod) \
+ fieldDecl_isField((me)->fieldDecl, nam, mod)
 
 /* ************************************************************************** */
 /* ********************************** Script ******************************** */
