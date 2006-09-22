@@ -23,7 +23,7 @@ struct ScriptFieldDecl
  /* Stringified */
  const char* kind;
  const char* type;
- const char* stringName;
+ const char* name;
 
  /* For fields */
  char* value;

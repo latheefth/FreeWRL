@@ -33,6 +33,11 @@ typedef struct _CRnodeStruct {
 /* Size of static array */
 #define ARR_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
+/* Some stuff for routing */
+#define FROM_SCRIPT 1
+#define TO_SCRIPT 2
+#define SCRIPT_TO_SCRIPT 3
+
 /* Helper to get size of a struct's memer */
 #define sizeof_member(str, var) \
  sizeof(((str*)NULL)->var)
@@ -627,7 +632,7 @@ void setScriptMultiElementtype(uintptr_t);
 void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 void Multimemcpy(void *tn, void *fn, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, int len);
+ struct X3D_Node* to, int toOfs, int len, int dir);
 void CRoutes_Register(int adrem,        void *from,
                                  int fromoffset,
                                  unsigned int to_count,

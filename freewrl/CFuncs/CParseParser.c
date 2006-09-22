@@ -388,6 +388,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  struct ProtoFieldDecl* toProtoField=NULL;
  struct ScriptFieldDecl* toScriptField=NULL;
 
+ int routingDir;
+
  assert(me->lexer);
  lexer_skip(me->lexer);
 
@@ -461,6 +463,12 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     if((pre##Proto && !pre##ProtoField) || (pre##Script && !pre##ScriptField)) \
      PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
    } \
+  } \
+  /* Process script routing */ \
+  if(pre##Script) \
+  { \
+   pre##Node=pre##Script->num; \
+   pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
   }
 
  ROUTE_PARSE_NODEFIELD(from, Out)
@@ -572,19 +580,33 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  /* Finally, register the route. */
  /* **************************** */
 
- if(fromScriptField || toScriptField)
-  PARSE_ERROR("Script-routing not yet supported!");
+ /* Calculate dir parameter */
+ if(fromScript && toScript)
+  routingDir=SCRIPT_TO_SCRIPT;
+ else if(fromScript)
+ {
+  assert(!toScript);
+  routingDir=FROM_SCRIPT;
+ } else if(toScript)
+ {
+  assert(!fromScript);
+  routingDir=TO_SCRIPT;
+ } else
+ {
+  assert(!fromScript && !toScript);
+  routingDir=0;
+ }
 
  /* Built-in to built-in */
  if(!fromProtoField && !toProtoField)
-  parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen);
+  parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen, routingDir);
  /* Built-in to user-def */
  else if(!fromProtoField && toProtoField)
-  protoFieldDecl_routeTo(toProtoField, fromNode, fromOfs, me);
- /* user-def to built-in */
+  protoFieldDecl_routeTo(toProtoField, fromNode, fromOfs, routingDir, me);
+ /* User-def to built-in */
  else if(fromProtoField && !toProtoField)
-  protoFieldDecl_routeFrom(fromProtoField, toNode, toOfs, me);
- /* user-def to user-def */
+  protoFieldDecl_routeFrom(fromProtoField, toNode, toOfs, routingDir, me);
+ /* User-def to user-def */
  else
   PARSE_ERROR("Routing from user-event to user-event is currently unsupported!")
 
@@ -595,14 +617,15 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 void parser_registerRoute(struct VRMLParser* me,
  struct X3D_Node* fromNode, unsigned fromOfs,
  struct X3D_Node* toNode, unsigned toOfs,
- size_t len)
+ size_t len, int dir)
 {
+ assert(me);
  if(me->curPROTO)
  {
   protoDefinition_addRoute(me->curPROTO,
-   newProtoRoute(fromNode, fromOfs, toNode, toOfs, len));
+   newProtoRoute(fromNode, fromOfs, toNode, toOfs, len, dir));
  } else
-  CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len);
+  CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len, dir);
 }
 
 /* Parses a nodeStatement */

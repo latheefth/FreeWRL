@@ -16,10 +16,6 @@
 
 #include "SensInterps.h"
 
-#define FROM_SCRIPT 1
-#define TO_SCRIPT 2
-#define SCRIPT_TO_SCRIPT 3
-
 /* old perl - eg, IRIX 6.5, perl 5.6.0 */
 #ifndef STRUCT_SV
 #define STRUCT_SV sv
@@ -1009,14 +1005,21 @@ CRoutes_Register.  Currently a wrapper around that other function.
 void CRoutes_RegisterSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
-	int len)
+	int len, int dir)
 {
  /* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  char tonode_str[15];
+ void* interpolatorPointer;
  snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
 
+ /* When routing to a script, to is not a node pointer! */
+ if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
+  interpolatorPointer=returnInterpolatorPointer(stringNodeType(to->_nodeType));
+ else
+  interpolatorPointer=NULL;
+
  CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, 
-  returnInterpolatorPointer(stringNodeType(to->_nodeType)), 0, 0);
+  interpolatorPointer, dir, 0);
 }
  
 

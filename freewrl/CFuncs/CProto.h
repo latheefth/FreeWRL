@@ -91,9 +91,9 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl*, union anyVrml*);
 
 /* Build a ROUTE from/to this field */
 void protoFieldDecl_routeTo(struct ProtoFieldDecl*,
- struct X3D_Node*, unsigned, struct VRMLParser*);
+ struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
 void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
- struct X3D_Node*, unsigned, struct VRMLParser*);
+ struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
 
 /* Finish this field - if value is not yet set, use default. */
 #define protoFieldDecl_finish(me) \
@@ -119,21 +119,23 @@ struct ProtoRoute
  struct X3D_Node* to;
  int fromOfs;
  int toOfs;
- int len;
+ size_t len;
+ int dir;
 };
 
 /* Constructor and destructor */
 struct ProtoRoute* newProtoRoute(struct X3D_Node*, int, struct X3D_Node*, int,
- int);
+ size_t, int);
 #define protoRoute_copy(me) \
- newProtoRoute((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, (me)->len)
+ newProtoRoute((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, \
+ (me)->len, (me)->dir)
 #define deleteProtoRoute(me) \
  free(me)
 
 /* Register this route */
 #define protoRoute_register(me) \
  CRoutes_RegisterSimple((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, \
- (me)->len)
+ (me)->len, (me)->dir)
 
 /* Add this one's inner pointers to the vector */
 #define protoRoute_addInnerPointersPointers(me, vec) \

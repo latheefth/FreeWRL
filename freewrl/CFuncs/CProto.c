@@ -96,28 +96,28 @@ size_t protoFieldDecl_getLength(struct ProtoFieldDecl* me)
 /* Routing to/from */
 
 void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
- struct X3D_Node* node, unsigned ofs, struct VRMLParser* p)
+ struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
  size_t len=protoFieldDecl_getLength(me);
+ assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
  for(i=0; i!=vector_size(me->dests); ++i)
  {
   struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
-  parser_registerRoute(p, node, ofs, optr->node, optr->ofs, len);
+  parser_registerRoute(p, node, ofs, optr->node, optr->ofs, len, dir);
  }
 }
 
 void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
- struct X3D_Node* node, unsigned ofs, struct VRMLParser* p)
+ struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
  size_t len=protoFieldDecl_getLength(me);
+ assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
  for(i=0; i!=vector_size(me->dests); ++i)
  {
   struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
-  parser_registerRoute(p, optr->node, optr->ofs, node, ofs, len);
+  parser_registerRoute(p, optr->node, optr->ofs, node, ofs, len, dir);
  }
 }
 
@@ -132,7 +132,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 /* ************************** */
 
 struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
- struct X3D_Node* to, int toOfs, int len)
+ struct X3D_Node* to, int toOfs, size_t len, int dir)
 {
  struct ProtoRoute* ret=malloc(sizeof(struct ProtoRoute));
  assert(ret);

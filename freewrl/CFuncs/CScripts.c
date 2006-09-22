@@ -32,7 +32,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  /* Stringify */
  ret->kind=PROTOKEYWORDS[mod];
  ret->type=FIELDTYPES[type];
- ret->stringName=fieldDecl_getStringName(ret->fieldDecl);
+ ret->name=fieldDecl_getStringName(ret->fieldDecl);
 
  ret->value=NULL;
 
@@ -52,7 +52,10 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* ************* */
 
 /* Get "offset" data for routing */
-int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl*);
+int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
+{
+ return JSparamIndex(me->name, me->type);
+}
 
 /* ************************************************************************** */
 /* ********************************** Script ******************************** */
@@ -110,7 +113,7 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
 void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 {
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
- InitScriptField(me->num, field->kind, field->type, field->stringName, "");
+ InitScriptField(me->num, field->kind, field->type, field->name, "");
 }
 
 BOOL script_initCode(struct Script* me, const char* code)
