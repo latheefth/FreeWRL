@@ -74,10 +74,10 @@ void playWavFragment() {
 
 		/*  lets try some scaling here.*/
 		/*  did we (or are we close to) running out of data?*/
-		if ((mydata <= 0x4ff) && (bytesPerCycle < BUFSIZE*16)) {
-			/* printf ("increasing bps\n");*/
+		/*if ((mydata <= 0x4ff) && (bytesPerCycle < BUFSIZE*16)) {
+			//printf ("increasing bps\n");
 			bytesPerCycle += 0x100;
-		}
+		}*/
 	}
 	/* printf ("md %d, bps %d rate %f bytes/sec\n",mydata, bytesPerCycle, fps*bytesPerCycle);*/
 
