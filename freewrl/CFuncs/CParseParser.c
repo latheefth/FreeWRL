@@ -278,7 +278,11 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 
   if(proto)
    pdecl->defaultVal=defaultVal;
-  /* FIXME: Script field default not supported yet! */
+  else
+  {
+   assert(script);
+   scriptFieldDecl_setFieldValue(sdecl, defaultVal);
+  }
  }
 
  if(proto)

@@ -27,6 +27,8 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  struct ScriptFieldDecl* ret=malloc(sizeof(struct ScriptFieldDecl));
  assert(ret);
 
+ assert(mod!=PKW_exposedField);
+
  ret->fieldDecl=newFieldDecl(mod, type, name);
 
  /* Stringify */
@@ -34,7 +36,39 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  ret->type=FIELDTYPES[type];
  ret->name=fieldDecl_getStringName(ret->fieldDecl);
 
- ret->value=NULL;
+ /* Value */
+ /* ***** */
+
+ /* Field's value not yet initialized! */
+ ret->valueSet=(mod!=PKW_field);
+
+ /* Set default value */
+ switch(mod)
+ {
+  
+  /* eventIn: "" */
+  case PKW_eventIn:
+   ret->value=malloc(sizeof(char));
+   *ret->value=0;
+   break;
+
+  /* eventOut: default value */
+  case PKW_eventOut:
+   /* TODO: Default field value for eventOut's */
+
+  /* field: NULL, set later */
+  case PKW_field:
+   ret->value=NULL;
+   break;
+
+  /* exposedField: Not allowed! */
+#ifndef NDEBUG
+  case PKW_exposedField:
+  default:
+   assert(FALSE);
+#endif
+
+ }
 
  return ret;
 }
@@ -51,10 +85,28 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Other members */
 /* ************* */
 
+/* Set field value */
+void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
+{
+ assert(me->fieldDecl->mode==PKW_field);
+ assert(!me->valueSet);
+ /* TODO:  Actually set field value here! */
+ me->value=malloc(sizeof(char));
+ *me->value=0;
+ me->valueSet=TRUE;
+}
+
 /* Get "offset" data for routing */
 int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 {
  return JSparamIndex(me->name, me->type);
+}
+
+/* Initialize JSField */
+void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num)
+{
+ assert(me->valueSet);
+ InitScriptField(num, me->kind, me->type, me->name, me->value);
 }
 
 /* ************************************************************************** */
@@ -113,7 +165,7 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
 void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 {
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
- InitScriptField(me->num, field->kind, field->type, field->name, "");
+ scriptFieldDecl_jsFieldInit(field, me->num);
 }
 
 BOOL script_initCode(struct Script* me, const char* code)

@@ -7,6 +7,7 @@
 #include "Vector.h"
 
 #include "CFieldDecls.h"
+#include "CParseGeneral.h"
 
 /* ************************************************************************** */
 /* ****************************** ScriptFieldDecl *************************** */
@@ -27,6 +28,7 @@ struct ScriptFieldDecl
 
  /* For fields */
  char* value;
+ BOOL valueSet;	/* Has the value been set? */
 };
 
 /* Constructor and destructor */
@@ -40,6 +42,12 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl*);
 
 /* Get "offset" data for routing */
 int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl*);
+
+/* Set field value */
+void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl*, union anyVrml);
+
+/* Do JS-init for given script handle */
+void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl*, uintptr_t);
 
 /* Forwards to inherited methods */
 #define scriptFieldDecl_getLength(me) \
