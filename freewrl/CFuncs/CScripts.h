@@ -22,12 +22,11 @@ struct ScriptFieldDecl
  struct FieldDecl* fieldDecl;
 
  /* Stringified */
- const char* kind;
- const char* type;
  const char* name;
+ const char* type;
 
  /* For fields */
- char* value;
+ union anyVrml value;
  BOOL valueSet;	/* Has the value been set? */
 };
 

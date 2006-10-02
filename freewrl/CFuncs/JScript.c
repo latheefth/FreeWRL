@@ -20,6 +20,8 @@ Javascript C language binding.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
+#include "CParseGeneral.h"
+
 /* #define MAX_RUNTIME_BYTES 0x100000L*/
 #define MAX_RUNTIME_BYTES 0x1000000L
 /* #define STACK_CHUNK_SIZE 0x2000L*/
@@ -921,4 +923,12 @@ void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
 
 	FREE_IF_NZ (smallfield);
 
+}
+
+/* A new version of InitScriptField which takes "nicer" arguments; currently a
+ * simple and restricted wrapper, but it could replace it soon? */
+void InitScriptFieldC(int num, indexT kind, indexT type,
+ char* field, union anyVrml value)
+{
+ InitScriptField(num, PROTOKEYWORDS[kind], FIELDTYPES[type], field, "");
 }

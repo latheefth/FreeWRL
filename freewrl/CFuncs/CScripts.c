@@ -30,54 +30,21 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  assert(mod!=PKW_exposedField);
 
  ret->fieldDecl=newFieldDecl(mod, type, name);
+ assert(ret->fieldDecl);
 
  /* Stringify */
- ret->kind=PROTOKEYWORDS[mod];
- ret->type=FIELDTYPES[type];
  ret->name=fieldDecl_getStringName(ret->fieldDecl);
-
- /* Value */
- /* ***** */
+ ret->type=FIELDTYPES[type];
 
  /* Field's value not yet initialized! */
  ret->valueSet=(mod!=PKW_field);
-
- /* Set default value */
- switch(mod)
- {
-  
-  /* eventIn: "" */
-  case PKW_eventIn:
-   ret->value=malloc(sizeof(char));
-   *ret->value=0;
-   break;
-
-  /* eventOut: default value */
-  case PKW_eventOut:
-   /* TODO: Default field value for eventOut's */
-
-  /* field: NULL, set later */
-  case PKW_field:
-   ret->value=NULL;
-   break;
-
-  /* exposedField: Not allowed! */
-#ifndef NDEBUG
-  case PKW_exposedField:
-  default:
-   assert(FALSE);
-#endif
-
- }
+ /* value is set later on */
 
  return ret;
 }
 
 void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 {
- if(me->value)
-  free(me->value);
- 
  deleteFieldDecl(me->fieldDecl);
  free(me);
 }
@@ -85,14 +52,14 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Other members */
 /* ************* */
 
-/* Set field value */
+/* Sets script field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
  assert(me->fieldDecl->mode==PKW_field);
  assert(!me->valueSet);
- /* TODO:  Actually set field value here! */
- me->value=malloc(sizeof(char));
- *me->value=0;
+
+ me->value=v;
+
  me->valueSet=TRUE;
 }
 
@@ -106,7 +73,8 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num)
 {
  assert(me->valueSet);
- InitScriptField(num, me->kind, me->type, me->name, me->value);
+ InitScriptFieldC(num, me->fieldDecl->mode, me->fieldDecl->type,
+  me->name, me->value);
 }
 
 /* ************************************************************************** */
