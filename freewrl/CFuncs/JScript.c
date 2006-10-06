@@ -343,8 +343,6 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
-#define JSVERBOSE
-
 
 	#ifdef JSVERBOSE 
 		printf("addGlobalAssignProperty: cx: %x obj %x name \"%s\", evaluate script \"%s\"\n",
@@ -727,59 +725,256 @@ SFVec3fNativeAssign(void *top, void *fromp)
 }
 
 
-/*********************
-temporary for transitioning from perl to C
-
-	kind: "eventOut" "eventIn" "field"
-	type: "SFFloat" ,,, etc.
-
-----------------------------------------------
-ECMA fields:
-
-when kind != "field", value is ignored.
-expected value formats when kind == "field":
-
-	SFInt32:	"333"
-	SFFloat:	"3.14"
-	SFBool:		"true" or "false"
-	SFTime:		"50000.000"
-	SFString:	""note the quotes needed around the string ""
-
-----------------------------------------------
-NON ECMA fields:
-	when kind = "eventIn" value is expected to be ""
-	when kind = "eventOut" value is expected to be the default; eg "0,0,0" (see VRMLFields.pm:VRMLFieldInit)
-	when kind = "field", value is a string representation:
-
-	SFRotation:	
-	SFVec3f:	
-	SFColor:	
-	SFColorRGBA:	
-	FreeWRLPTR:	
-	SFNode:	
-	SFVec2f:	a string like "1.0,0.0,2.0" - correct number of values, with 
-			commas between values. It can optionally have "[" and "]" at the beginning
-			and end of the string.
-
-	MFFloat:	
-	MFRotation:	
-	MFVec3f:	
-	MFBool:	
-	MFInt32:	
-	MFNode:	
-	MFColor:	
-	MFColorRGBA:	
-	MFTime:	
-	MFVec2f		A string, like the SFColors above. The code will split it up into the correct
-			number of values; eg "[1,2,3,4,5,6]" will be 6 MFFloats, but 3 MFVec2Fs.	
-
-	SFImage:	
-	MFString:	
-	
-
-
+/* A new version of InitScriptField which takes "nicer" arguments; currently a
+ * simple and restricted wrapper, but it could replace it soon? */
+/* Parameters:
+	num:		Script number. Starts at 0. 
+	kind:		One of PKW_eventIn, PKW_eventOut, PKW_field
+	type:		One of the FIELDTYPE_ defines, eg, FIELDTYPE_MFFloat
+	field:		the field name as found in the VRML/X3D file. eg "set_myField"
+		
 */
 
+void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyVrml value) {
+	jsval rval;
+	char *smallfield = NULL;
+	char mynewname[400];
+	char thisValue[100];
+	int rows, columns, elements;
+	int count;
+	char *sftype;
+
+	int haveMulti;
+	int MFhasECMAtype;
+	int rowCount, eleCount;
+
+	int tlen;
+	STRLEN xx;
+	struct Multi_Int32*     vrmlImagePtr;
+	struct Multi_Int32    Int32Ptr;
+	float *FloatPtr;
+	void  *VoidPtr;
+	int *IntPtr;
+	double *DoublePtr;
+	SV **SVPtr;
+	int *iptr; int SFImage_depth; int SFImage_wid; int SFImage_hei;
+
+
+
+	/* printf ("InitScriptFieldC, num %d, kind %d type %d field %s value %d\n",
+		num,kind,type,field,value);
+	*/
+
+        /* input check */
+        if ((kind != PKW_eventIn) && (kind != PKW_eventOut) && (kind != PKW_field)) {
+                ConsoleMessage ("InitScriptField: invalid kind for script: %d\n",kind);
+                return;
+        }
+
+        if (type >= FIELDTYPES_COUNT) {
+                ConsoleMessage ("InitScriptField: invalid type for script: %d\n",type);
+                return;
+        }
+
+
+	/* ok, lets handle the types here */
+	switch (type) {
+		/* ECMA types */
+		case FIELDTYPE_SFBool:
+		case FIELDTYPE_SFFloat:
+		case FIELDTYPE_SFTime:
+		case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFInt32:
+		case FIELDTYPE_SFString: {
+			/* do not care about eventIns */
+			if (kind != PKW_eventIn)  {
+				JSaddGlobalECMANativeProperty(num, field);
+
+				if (kind == PKW_field) {
+					if (type == FIELDTYPE_SFImage) {
+							vrmlImagePtr = value.sfimage;
+							tlen = (vrmlImagePtr->n) *10;
+printf ("image has %d elements\n",vrmlImagePtr->n);
+
+					} else if  (type == FIELDTYPE_SFString) {
+						tlen = strlen(SvPV(value.sfstring,xx)) + 20;
+					} else {
+						tlen = strlen(field) + 20;
+					}
+					smallfield = malloc (tlen);
+					smallfield[0] = '\0';
+
+					switch (type) {
+						case FIELDTYPE_SFFloat: sprintf (smallfield,"%s=%f\n",field,value.sffloat);break;
+						case FIELDTYPE_SFTime: sprintf (smallfield,"%s=%f\n",field,value.sftime);break;
+						case FIELDTYPE_SFInt32: sprintf (smallfield,"%s=%d\n",field,value.sfint32); break;
+						case FIELDTYPE_SFBool: 
+							if (value.sfbool == 1) sprintf (smallfield,"%s=true",field);
+							else sprintf (smallfield,"%s=false",field);
+							break;
+						case FIELDTYPE_SFImage: 
+							iptr = vrmlImagePtr->p;
+                					SFImage_wid = *iptr; iptr++;
+              						SFImage_hei = *iptr; iptr++;
+                					SFImage_depth = *iptr; iptr++;
+printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth);
+
+							break;
+						case FIELDTYPE_SFString:  
+							sprintf (smallfield,"%s=\"%s\"\n",field,SvPV(value.sfstring,xx)); break;
+					}
+					if (!ActualrunScript(num,smallfield,&rval))
+						printf ("huh??? Field initialization script failed %s\n",smallfield);
+				}
+			}
+			break;
+		}
+		/* non ECMA types */
+		default: {
+			/* first, do we need to make a new name up? */
+			if (kind == PKW_eventIn) {
+				sprintf (mynewname,"__tmp_arg_%s",field);
+			} else strcpy(mynewname,field);
+
+
+			/* get an appropriate pointer */
+			MFhasECMAtype = FALSE;
+			elements=0;
+			IntPtr = NULL;
+			FloatPtr = NULL;
+			DoublePtr = NULL;
+			SVPtr = NULL;
+			VoidPtr = NULL;
+			switch (type) {
+				case FIELDTYPE_SFNode:
+					VoidPtr = value.sfnode; elements = 1;
+					break;
+				case FIELDTYPE_MFColor:
+					FloatPtr = (float *) value.mfcolor.p; elements = value.mfcolor.n;
+					break;
+				case FIELDTYPE_MFColorRGBA:
+					FloatPtr = (float *) value.mfcolorrgba.p; elements = value.mfcolorrgba.n;
+					break;
+				case FIELDTYPE_MFVec2f:
+					FloatPtr = (float *) value.mfvec2f.p; elements = value.mfvec2f.n;
+					break;
+				case FIELDTYPE_MFVec3f:
+					FloatPtr = (float *) value.mfvec3f.p; elements = value.mfvec3f.n;
+					break;
+				case FIELDTYPE_MFRotation: 
+					FloatPtr = (float *) value.mfrotation.p; elements = value.mfrotation.n;
+					break;
+				case FIELDTYPE_SFVec2f:
+					FloatPtr = (float *) value.sfvec2f.c; elements = 1;
+					break;
+				case FIELDTYPE_SFColor:
+					FloatPtr = value.sfcolor.c; elements = 1;
+					break;
+				case FIELDTYPE_SFColorRGBA:
+					FloatPtr = value.sfcolorrgba.r; elements = 1;
+					break;
+				case FIELDTYPE_SFRotation:
+					FloatPtr = value.sfrotation.r; elements = 1;
+					break;
+				case FIELDTYPE_SFVec3f: 
+					FloatPtr = value.sfvec3f.c; elements =1;
+					break;
+				case FIELDTYPE_MFString:
+					SVPtr = value.mfstring.p; elements = value.mfstring.n;
+					MFhasECMAtype = TRUE;
+					break;
+				case FIELDTYPE_MFTime:
+					DoublePtr = value.mftime.p; elements = value.mftime.n;
+					MFhasECMAtype = TRUE;
+					
+					break;
+				case FIELDTYPE_MFBool:
+					IntPtr = value.mfbool.p; elements = value.mfbool.n;
+					MFhasECMAtype = TRUE;
+					break;
+				case FIELDTYPE_MFInt32:
+					IntPtr = value.mfint32.p; elements = value.mfint32.n;
+					MFhasECMAtype = TRUE;
+					break;
+				case FIELDTYPE_MFNode:
+					VoidPtr = value.mfnode.p; elements = value.mfnode.n;
+					MFhasECMAtype = TRUE;
+					break;
+				case FIELDTYPE_MFFloat: 
+					FloatPtr = value.mffloat.p; elements = value.mffloat.n;
+					MFhasECMAtype = TRUE;
+					break;
+				default: {
+					printf ("unhandled type, in InitScriptField %d\n",type);
+					return;
+				}
+			}
+
+			rows = returnElementRowSize (mapFieldTypeToInernaltype(type));
+
+			/* printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements); */
+
+			smallfield = malloc ( (elements*15) + 100);
+
+			/* what is the equivalent SF for this MF?? */
+			sftype = strdup (FIELDTYPES[type]);
+			if (sftype[0] == 'M') { sftype[0] = 'S'; haveMulti = TRUE;
+			} else { haveMulti = FALSE; }
+
+			/* start the string */
+			smallfield[0] = '\0';
+
+			/* is this an MF variable, with SFs in it? */
+			if (haveMulti) {
+				strcat (smallfield, "new ");
+				strcat (smallfield, FIELDTYPES[type]);
+				strcat (smallfield, "(");
+			}
+
+			/* loop through, and put values in */
+			for (eleCount=0; eleCount<elements; eleCount++) {
+				/* ECMA native types can just be passed in... */
+				if (!MFhasECMAtype) {
+					strcat (smallfield, "new ");
+					strcat (smallfield, sftype);
+					strcat (smallfield, "(");
+				}
+
+				/* go through the SF type; SFints will have 1; SFVec3f's will have 3, etc */
+				for (rowCount=0; rowCount<rows; rowCount++ ) {
+					if (IntPtr != NULL) {
+						sprintf (thisValue,"%d",*IntPtr); IntPtr++;
+					} else if (FloatPtr != NULL) {
+						sprintf (thisValue,"%f",*FloatPtr); FloatPtr++;
+					} else if (DoublePtr != NULL) {
+						sprintf (thisValue,"%f",*DoublePtr); DoublePtr++;
+					} else if (FloatPtr != NULL) {
+						sprintf (thisValue,"%d",*FloatPtr); FloatPtr++;
+					}
+					strcat (smallfield, thisValue);
+					if (rowCount < (rows-1)) strcat (smallfield,",");
+				}
+
+				if (!MFhasECMAtype) strcat (smallfield, ")");
+				if (eleCount < (elements-1)) strcat (smallfield,",");
+
+			}
+
+			if (haveMulti) {
+				strcat (smallfield,")");
+			}
+				
+			/* Warp factor 5, Dr Sulu... */
+			JSaddGlobalAssignProperty (num,mynewname,smallfield);
+		}
+	}
+
+	FREE_IF_NZ (smallfield);
+
+}
+
+
+/* this is for JS/JS.pm - scripts in X3D. Remove once perl is gone */
 void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
 	jsval rval;
 	int ikind, itype;
@@ -922,13 +1117,4 @@ void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
 	}
 
 	FREE_IF_NZ (smallfield);
-
-}
-
-/* A new version of InitScriptField which takes "nicer" arguments; currently a
- * simple and restricted wrapper, but it could replace it soon? */
-void InitScriptFieldC(int num, indexT kind, indexT type,
- char* field, union anyVrml value)
-{
- InitScriptField(num, PROTOKEYWORDS[kind], FIELDTYPES[type], field, "");
 }

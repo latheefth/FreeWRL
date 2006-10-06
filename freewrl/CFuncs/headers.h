@@ -1177,4 +1177,5 @@ char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset);
 int findFieldInKEYWORDS(char *field);
 int countCommas (char *instr);
 
+int mapFieldTypeToInernaltype (indexT kwIndex);
 #endif /* __HEADERS_H__ */

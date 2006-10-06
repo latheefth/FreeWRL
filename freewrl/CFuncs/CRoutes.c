@@ -1108,14 +1108,12 @@ void CRoutes_Register(
 		/* and mark all scripts active to get the initialize() events */
 		scripts_active = TRUE;
 	}
-#define CRVERBOSE
 
 	#ifdef CRVERBOSE  
 		printf ("\n\nCRoutes_Register adrem %d from %u off %u to %u %s len %d intptr %u\n",
 				adrem, from, fromoffset, to_count, tonode_str, length, intptr);
 		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 	#endif
-#undef CRVERBOSE
 
 	insert_here = 1;
 
