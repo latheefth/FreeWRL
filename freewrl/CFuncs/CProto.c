@@ -113,7 +113,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 {
  int i;
  size_t len=protoFieldDecl_getLength(me);
- assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
+ assert(me->mode==PKW_exposedField || me->mode==PKW_eventOut);
  for(i=0; i!=vector_size(me->dests); ++i)
  {
   struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
@@ -142,6 +142,7 @@ struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
  ret->fromOfs=fromOfs;
  ret->toOfs=toOfs;
  ret->len=len;
+ ret->dir=dir;
 
  return ret;
 }

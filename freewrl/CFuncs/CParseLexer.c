@@ -14,11 +14,12 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 /* Tables of user-defined IDs */
 #define USER_IDS_INIT_SIZE	16
 Stack* userNodeNames=NULL;
-Stack* userNodeTypes=NULL;
-Stack* user_field=NULL;
-Stack* user_exposedField=NULL;
-Stack* user_eventIn=NULL;
-Stack* user_eventOut=NULL;
+Stack* userNodeTypesStack=NULL;
+struct Vector* userNodeTypesVec=NULL;
+struct Vector* user_field=NULL;
+struct Vector* user_exposedField=NULL;
+struct Vector* user_eventIn=NULL;
+struct Vector* user_eventOut=NULL;
 
 /* Maximum id length (input buffer size) */
 #define MAX_IDLEN	127
@@ -55,6 +56,16 @@ struct VRMLLexer* newLexer()
  ret->nextIn=NULL;
  ret->curID=NULL;
  ret->isEof=TRUE;
+ 
+ /* Init id tables */
+ userNodeNames=newStack(struct Vector*);
+ userNodeTypesStack=newStack(struct Vector*);
+ userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
+ user_field=newVector(char*, USER_IDS_INIT_SIZE);
+ user_exposedField=newVector(char*, USER_IDS_INIT_SIZE);
+ user_eventIn=newVector(char*, USER_IDS_INIT_SIZE);
+ user_eventOut=newVector(char*, USER_IDS_INIT_SIZE);
+ lexer_scopeIn();
 
  return ret;
 }
@@ -72,25 +83,39 @@ void lexer_destroyIdStack(Stack* s)
  assert(s);
  while(!stack_empty(s))
   lexer_scopeOut_(s);
- deleteStack(s);
+ deleteStack(struct Vector*, s);
+}
+void lexer_destroyIdVector(struct Vector* v)
+{
+ size_t i;
+ assert(v);
+ for(i=0; i!=vector_size(v); ++i)
+  free(vector_get(char*, v, i));
+ deleteVector(char*, v);
 }
 
 void lexer_destroyData()
 {
- #define DESTROY_STACK(s) \
-  if(s) \
-   lexer_destroyIdStack(s); \
-  s=NULL;
+ #define DESTROY_IDVEC(v) \
+  if(v) \
+   lexer_destroyIdVector(v); \
+  v=NULL;
   
- /* User node names and types */
- DESTROY_STACK(userNodeNames)
- DESTROY_STACK(userNodeTypes)
+ /* User node names */
+ if(userNodeNames)
+  lexer_destroyIdStack(userNodeNames);
+ userNodeNames=NULL;
+
+ /* User node types */
+ DESTROY_IDVEC(userNodeTypesVec)
+ if(userNodeTypesStack)
+  deleteStack(struct Vector*, userNodeTypesStack);
 
  /* User fields */
- DESTROY_STACK(user_field)
- DESTROY_STACK(user_exposedField)
- DESTROY_STACK(user_eventIn)
- DESTROY_STACK(user_eventOut)
+ DESTROY_IDVEC(user_field)
+ DESTROY_IDVEC(user_exposedField)
+ DESTROY_IDVEC(user_eventIn)
+ DESTROY_IDVEC(user_eventOut)
 }
 
 /* Scope in and scope out for IDs */
@@ -98,8 +123,8 @@ void lexer_destroyData()
 static void lexer_scopeIn_(Stack** s)
 {
  if(!*s)
-  *s=newStack();
- stack_push(*s, newVector(char*, USER_IDS_INIT_SIZE));
+  *s=newStack(struct Vector*);
+ stack_push(struct Vector*, *s, newVector(char*, USER_IDS_INIT_SIZE));
 }
 
 static void lexer_scopeOut_(Stack* s)
@@ -107,22 +132,27 @@ static void lexer_scopeOut_(Stack* s)
  indexT i;
  assert(!stack_empty(s));
 
- for(i=0; i!=vector_size(stack_top(s)); ++i)
-  free(vector_get(char*, stack_top(s), i));
- deleteVector(char*, stack_top(s));
- stack_pop(s);
+ for(i=0; i!=vector_size(stack_top(struct Vector*, s)); ++i)
+  free(vector_get(char*, stack_top(struct Vector*, s), i));
+ deleteVector(char*, stack_top(struct Vector*, s));
+ stack_pop(struct Vector*, s);
 }
 
 void lexer_scopeIn()
 {
  lexer_scopeIn_(&userNodeNames);
- lexer_scopeIn_(&userNodeTypes);
+ stack_push(size_t, userNodeTypesStack, vector_size(userNodeTypesVec));
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 void lexer_scopeOut()
 {
  lexer_scopeOut_(userNodeNames);
- lexer_scopeOut_(userNodeTypes);
+ while(vector_size(userNodeTypesVec)>stack_top(size_t, userNodeTypesStack))
+ {
+  free(vector_back(char*, userNodeTypesVec));
+  vector_popBack(char*, userNodeTypesVec);
+ }
+ stack_pop(size_t, userNodeTypesStack);
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
@@ -195,19 +225,18 @@ BOOL lexer_keyword(struct VRMLLexer* me, indexT kw)
 }
 
 /* Finds the index of a given string */
-indexT lexer_string2id(const char* str, const Stack* s)
+indexT lexer_string2id(const char* str, const struct Vector* v)
 {
  indexT i;
- for(i=0; i!=vector_size(stack_top(s)); ++i)
-  if(!strcmp(str, vector_get(const char*, stack_top(s), i)))
+ for(i=0; i!=vector_size(v); ++i)
+  if(!strcmp(str, vector_get(const char*, v, i)))
    return i;
  return ID_UNDEFINED;
 }
 
 /* Lexes an ID (node type, field name...) depending on args. */
 BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
- const char** builtIn, const indexT builtInCount,
- Stack* user)
+ const char** builtIn, const indexT builtInCount, struct Vector* user)
 {
  if(!lexer_setCurID(me))
   return FALSE;
@@ -225,7 +254,7 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
 }
 BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount,
- Stack* user, const char* str)
+ struct Vector* user, const char* str)
 {
  indexT i;
  BOOL found=FALSE;
@@ -249,12 +278,12 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
   }
 
  /* Return if no user list is requested or it is empty */
- if(!user || stack_empty(user))
+ if(!user)
   return found;
 
  /* Already defined user id? */
- for(i=0; i!=vector_size(stack_top(user)); ++i)
-  if(!strcmp(str, vector_get(char*, stack_top(user), i)))
+ for(i=0; i!=vector_size(user); ++i)
+  if(!strcmp(str, vector_get(char*, user, i)))
   {
    if(retU)
    {
@@ -268,24 +297,22 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 }
 
 /* Lexes and defines an ID */
-BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, Stack** vec, BOOL multi)
+BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
+ BOOL multi)
 {
  if(!lexer_setCurID(me))
   return FALSE;
  assert(me->curID);
 
- /* Initialize user list, if it is not yet created. */
- if(!*vec || stack_empty(*vec))
-  lexer_scopeIn_(vec);
- assert(*vec);
- assert(!stack_empty(*vec));
+ /* User list should be created */
+ assert(vec);
 
  /* Look if the ID's already there */
  if(multi)
  {
   size_t i;
-  for(i=0; i!=vector_size(stack_top(*vec)); ++i)
-   if(!strcmp(me->curID, vector_get(const char*, stack_top(*vec), i)))
+  for(i=0; i!=vector_size(vec); ++i)
+   if(!strcmp(me->curID, vector_get(const char*, vec, i)))
    {
     free(me->curID);
     me->curID=NULL;
@@ -295,8 +322,8 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, Stack** vec, BOOL multi)
  }
 
  /* Define the id */
- *ret=vector_size(stack_top(*vec));
- vector_pushBack(char*, stack_top(*vec), me->curID);
+ *ret=vector_size(vec);
+ vector_pushBack(char*, vec, me->curID);
  me->curID=NULL;
  return TRUE;
 }
@@ -307,7 +334,8 @@ BOOL lexer_eventIn(struct VRMLLexer* me,
 {
  BOOL found=FALSE;
 
- if(lexer_specialID(me, rBO, rUO, EVENT_IN, EVENT_IN_COUNT, user_eventIn))
+ if(lexer_specialID(me, rBO, rUO, EVENT_IN, EVENT_IN_COUNT,
+  user_eventIn))
   found=TRUE;
  if(rBE) *rBE=ID_UNDEFINED;
  if(rUE) *rUE=ID_UNDEFINED;
@@ -362,7 +390,8 @@ BOOL lexer_eventOut(struct VRMLLexer* me,
 {
  BOOL found=FALSE;
 
- if(lexer_specialID(me, rBO, rUO, EVENT_OUT, EVENT_OUT_COUNT, user_eventOut))
+ if(lexer_specialID(me, rBO, rUO, EVENT_OUT, EVENT_OUT_COUNT,
+  user_eventOut))
   found=TRUE;
  if(rBE) *rBE=ID_UNDEFINED;
  if(rUE) *rUE=ID_UNDEFINED;

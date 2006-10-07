@@ -37,6 +37,7 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
   return NULL;
   
  assert(!stack_empty(DEFedNodes));
- assert(ind<vector_size(stack_top(DEFedNodes)));
- return vector_get(struct X3D_Node*, stack_top(DEFedNodes), ind);
+ assert(ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
+ return vector_get(struct X3D_Node*,
+  stack_top(struct Vector*, DEFedNodes), ind);
 }

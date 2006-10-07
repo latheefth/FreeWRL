@@ -18,8 +18,8 @@ struct OffsetPointer;
 /* This is the DEF/USE memory. */
 extern Stack* DEFedNodes;
 
-/* This is for PROTOs */
-extern Stack* PROTOs;
+/* This is for PROTOs -- not stacked, as explained in CParseLexer.h */
+extern struct Vector* PROTOs;
 
 /* This is our parser-object. */
 struct VRMLParser
@@ -93,6 +93,8 @@ BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
 BOOL parser_fieldEvent(struct VRMLParser*, struct X3D_Node*);
+BOOL parser_fieldEventAfterISPart(struct VRMLParser*, struct X3D_Node*,
+ BOOL isIn, BOOL isOut, indexT, indexT);
 BOOL parser_protoField(struct VRMLParser*, struct ProtoDefinition*);
 
 /* Initializes node-specific fields */
@@ -103,7 +105,8 @@ void parser_registerRoute(struct VRMLParser*,
  struct X3D_Node*, unsigned, struct X3D_Node*, unsigned, size_t, int);
 
 /* Parses a field value of a certain type (literally or IS) */
-BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT);
+BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT,
+ indexT fieldE);
 
 /* Main parsing routine, parses the start symbol (vrmlScene) */
 BOOL parser_vrmlScene(struct VRMLParser*);

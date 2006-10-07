@@ -8,13 +8,21 @@
 
 #include "CParseGeneral.h"
 
-/* Tables of user-defined IDs */
+/* Tables of user-defined IDs:
+ * userNodeNames (DEFs) is scoped with a simple stack, as every PROTO has its
+   scope completely *different* from the rest of the world.
+ * userNodeTypes (PROTO definitions) needs to be available up through the whole
+   stack, values are stored in a vector, and the indices where each stack level
+   ends are stored in a stack.
+ * fields are not scoped and therefore stored in a simple vector.
+ */
 extern Stack* userNodeNames;
-extern Stack* userNodeTypes;
-extern Stack* user_field;
-extern Stack* user_exposedField;
-extern Stack* user_eventIn;
-extern Stack* user_eventOut;
+extern struct Vector* userNodeTypesVec;
+extern Stack* userNodeTypesStack;
+extern struct Vector* user_field;
+extern struct Vector* user_exposedField;
+extern struct Vector* user_eventIn;
+extern struct Vector* user_eventOut;
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #define ID_UNDEFINED	((indexT)-1)
@@ -35,6 +43,10 @@ void deleteLexer(struct VRMLLexer*);
 void lexer_destroyData();
 void lexer_destroyIdStack(Stack*);
 
+/* Count of elements to pop off the PROTO vector for scope-out */
+#define lexer_getProtoPopCnt() \
+ (vector_size(userNodeTypesVec)-stack_top(size_t, userNodeTypesStack))
+
 /* Set input */
 #define lexer_fromString(me, str) \
  ((me)->isEof=FALSE, (me)->nextIn=str)
@@ -45,7 +57,7 @@ void lexer_destroyIdStack(Stack*);
 
 /* indexT -> char* conversion */
 #define lexer_stringUFieldName(index, type) \
- vector_get(char*, stack_top(user_##type), index)
+ vector_get(char*, user_##type, index)
 #define lexer_stringUser_field(index) \
  lexer_stringUFieldName(index, field)
 #define lexer_stringUser_exposedField(index) \
@@ -68,37 +80,37 @@ void lexer_scopeIn();
 void lexer_scopeOut();
 BOOL lexer_keyword(struct VRMLLexer*, indexT);
 BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, Stack*);
+ const char**, const indexT, struct Vector*);
 BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
- const char**, const indexT, Stack*,
- const char*);
-BOOL lexer_defineID(struct VRMLLexer*, indexT*, Stack**, BOOL);
+ const char**, const indexT, struct Vector*, const char*);
+BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector*, BOOL);
 #define lexer_defineNodeName(me, ret) \
- lexer_defineID(me, ret, &userNodeNames, FALSE)
+ lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), FALSE)
 #define lexer_defineNodeType(me, ret) \
- lexer_defineID(me, ret, &userNodeTypes, FALSE)
+ lexer_defineID(me, ret, userNodeTypesVec, FALSE)
 #define lexer_define_field(me, ret) \
- lexer_defineID(me, ret, &user_field, TRUE)
+ lexer_defineID(me, ret, user_field, TRUE)
 #define lexer_define_exposedField(me, ret) \
- lexer_defineID(me, ret, &user_exposedField, TRUE)
+ lexer_defineID(me, ret, user_exposedField, TRUE)
 #define lexer_define_eventIn(me, ret) \
- lexer_defineID(me, ret, &user_eventIn, TRUE)
+ lexer_defineID(me, ret, user_eventIn, TRUE)
 #define lexer_define_eventOut(me, ret) \
- lexer_defineID(me, ret, &user_eventOut, TRUE)
+ lexer_defineID(me, ret, user_eventOut, TRUE)
 BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 #define lexer_node(me, r1, r2) \
- lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypes)
+ lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec)
 #define lexer_nodeName(me, ret) \
- lexer_specialID(me, NULL, ret, NULL, 0, userNodeNames)
+ lexer_specialID(me, NULL, ret, NULL, 0, \
+  stack_top(struct Vector*, userNodeNames))
 #define lexer_protoFieldMode(me, r) \
  lexer_specialID(me, r, NULL, PROTOKEYWORDS, PROTOKEYWORDS_COUNT, NULL)
 #define lexer_fieldType(me, r) \
  lexer_specialID(me, r, NULL, FIELDTYPES, FIELDTYPES_COUNT, NULL)
-indexT lexer_string2id(const char*, const Stack*);
+indexT lexer_string2id(const char*, const struct Vector*);
 #define lexer_nodeName2id(str) \
- lexer_string2id(str, userNodeNames)
+ lexer_string2id(str, stack_top(struct Vector*, userNodeNames))
 
 /* Input the basic literals */
 BOOL lexer_int32(struct VRMLLexer*, vrmlInt32T*);

@@ -72,7 +72,7 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
 #define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
  case constPre##_##field: \
   destPre##Len= \
-   (ROUTE_REAL_SIZE_##type ? sizeof_member(struct X3D_##node, var) : -1); \
+   (ROUTE_REAL_SIZE_##type ? sizeof_member(struct X3D_##node, var) : 0); \
   destPre##Ofs=offsetof(struct X3D_##node, var); \
   break;
 #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
@@ -118,27 +118,28 @@ static void parser_scopeOut_DEFUSE();
 static void parser_scopeOut_PROTO();
 void parser_destroyData()
 {
- lexer_destroyData();
-
  /* DEFed Nodes. */
  if(DEFedNodes)
  {
   while(!stack_empty(DEFedNodes))
    parser_scopeOut_DEFUSE();
-  deleteStack(DEFedNodes);
+  deleteStack(struct Vector*, DEFedNodes);
   DEFedNodes=NULL;
  }
  assert(!DEFedNodes);
 
  /* PROTOs */
+ /* FIXME: PROTOs must not be stacked here!!! */
  if(PROTOs)
  {
   while(!stack_empty(PROTOs))
    parser_scopeOut_PROTO();
-  deleteStack(PROTOs);
+  deleteStack(struct Vector*, PROTOs);
   PROTOs=NULL;
  }
  assert(!PROTOs);
+
+ lexer_destroyData();
 }
 
 /* Scoping */
@@ -146,14 +147,16 @@ void parser_destroyData()
 static void parser_scopeIn_DEFUSE()
 {
  if(!DEFedNodes)
-  DEFedNodes=newStack();
- stack_push(DEFedNodes, newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+  DEFedNodes=newStack(struct Vector*);
+ assert(DEFedNodes);
+ stack_push(struct Vector*, DEFedNodes,
+  newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
+ assert(!stack_empty(DEFedNodes));
 }
 static void parser_scopeIn_PROTO()
 {
  if(!PROTOs)
-  PROTOs=newStack();
- stack_push(PROTOs, newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE));
+  PROTOs=newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE);
 }
 
 static void parser_scopeOut_DEFUSE()
@@ -161,17 +164,16 @@ static void parser_scopeOut_DEFUSE()
  indexT i;
  assert(!stack_empty(DEFedNodes));
  /* FIXME:  Can't delete individual nodes, as they might be referenced! */
- deleteVector(struct X3D_Node*, stack_top(DEFedNodes));
- stack_pop(DEFedNodes);
+ deleteVector(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes));
+ stack_pop(struct Vector*, DEFedNodes);
 }
 
 static void parser_scopeOut_PROTO()
 {
  indexT i;
  /* Do not delete the ProtoDefinitions, as they are referenced in the scene
-  * graph!  TODO:  How to delte them properly? */
- deleteVector(struct ProtoDefinition*, stack_top(PROTOs));
- stack_pop(PROTOs);
+  * graph!  TODO:  How to delete them properly? */
+ vector_popBackN(struct ProtoDefinition*, PROTOs, lexer_getProtoPopCnt());
 }
 
 void parser_scopeIn()
@@ -314,12 +316,12 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 
  /* Create the object */
  obj=newProtoDefinition();
- if(!PROTOs || stack_empty(PROTOs))
+ if(!PROTOs)
   parser_scopeIn_PROTO();
  assert(PROTOs);
- assert(!stack_empty(PROTOs));
- assert(name==vector_size(stack_top(PROTOs)));
- vector_pushBack(struct ProtoDefinition*, stack_top(PROTOs), obj);
+ assert(name==vector_size(PROTOs));
+ vector_pushBack(struct ProtoDefinition*, PROTOs,
+  obj);
 
  /* Interface declarations */
  if(!lexer_openSquare(me->lexer))
@@ -407,8 +409,9 @@ BOOL parser_routeStatement(struct VRMLParser* me)
   if(!lexer_nodeName(me->lexer, &pre##NodeIndex)) \
    PARSE_ERROR("Expected node-name in ROUTE-statement!") \
   assert(DEFedNodes && !stack_empty(DEFedNodes) && \
-   pre##NodeIndex<vector_size(stack_top(DEFedNodes))); \
-  pre##Node=vector_get(struct X3D_Node*, stack_top(DEFedNodes), \
+   pre##NodeIndex<vector_size(stack_top(struct Vector*, DEFedNodes))); \
+  pre##Node=vector_get(struct X3D_Node*, \
+   stack_top(struct Vector*, DEFedNodes), \
    pre##NodeIndex); \
   /* PROTO/Script? */ \
   switch(pre##Node->_nodeType) \
@@ -651,16 +654,17 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   assert(DEFedNodes);
   assert(!stack_empty(DEFedNodes));
 
-  assert(ind<=vector_size(stack_top(DEFedNodes)));
-  if(ind==vector_size(stack_top(DEFedNodes)))
-   vector_pushBack(struct X3D_Node*, stack_top(DEFedNodes), NULL);
-  assert(ind<vector_size(stack_top(DEFedNodes)));
+  assert(ind<=vector_size(stack_top(struct Vector*, DEFedNodes)));
+  if(ind==vector_size(stack_top(struct Vector*, DEFedNodes)))
+   vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes),
+    NULL);
+  assert(ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
 
   if(!parser_node(me, &vector_get(struct X3D_Node*,
-   stack_top(DEFedNodes), ind)))
+   stack_top(struct Vector*, DEFedNodes), ind)))
    PARSE_ERROR("Expected node in DEF statement!\n")
 
-  *ret=vector_get(struct X3D_Node*, stack_top(DEFedNodes), ind);
+  *ret=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), ind);
   return TRUE;
  }
 
@@ -674,9 +678,9 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   assert(ind!=ID_UNDEFINED);
 
   assert(DEFedNodes && !stack_empty(DEFedNodes) &&
-   ind<vector_size(stack_top(DEFedNodes)));
+   ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
 
-  *ret=vector_get(struct X3D_Node*, stack_top(DEFedNodes), ind);
+  *ret=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), ind);
   return TRUE;
  }
 
@@ -734,11 +738,10 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
   assert(nodeTypeU!=ID_UNDEFINED);
   assert(PROTOs);
-  assert(!stack_empty(PROTOs));
-  assert(nodeTypeU<vector_size(stack_top(PROTOs)));
+  assert(nodeTypeU<vector_size(PROTOs));
 
   protoCopy=protoDefinition_copy(vector_get(struct ProtoDefinition*,
-   stack_top(PROTOs), nodeTypeU));
+   PROTOs, nodeTypeU));
   while(parser_protoField(me, protoCopy) ||
    parser_routeStatement(me) || parser_protoStatement(me));
   node=protoDefinition_extractScene(protoCopy);
@@ -784,7 +787,8 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p)
  /* Parse the value */
  {
   union anyVrml val;
-  if(!parser_fieldValue(me, newOffsetPointer(&val, 0), field->type))
+  if(!parser_fieldValue(me, newOffsetPointer(&val, 0), field->type,
+   ID_UNDEFINED))
    PARSE_ERROR("Expected value of field after fieldId!")
   protoFieldDecl_setValue(field, &val);
  }
@@ -802,7 +806,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 
 /* Parses a field value (literally or IS) */
 BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
- indexT type)
+ indexT type, indexT origFieldE)
 {
  #define PARSER_FINALLY \
   deleteOffsetPointer(ret);
@@ -812,6 +816,12 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
  {
   indexT fieldO, fieldE;
   struct ProtoFieldDecl* pField=NULL;
+
+  /* Try event */
+  if(origFieldE!=ID_UNDEFINED &&
+   parser_fieldEventAfterISPart(me, ret->node, TRUE, TRUE, ID_UNDEFINED,
+    origFieldE))
+   return TRUE;
 
   if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
    PARSE_ERROR("Expected fieldId after IS!")
@@ -950,11 +960,11 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define FTIND_mfvec3f	FIELDTYPE_MFVec3f
  
  /* Process a field (either exposed or ordinary) generally */
- #define PROCESS_FIELD(exposed, node, field, fieldType, var) \
+ #define PROCESS_FIELD(exposed, node, field, fieldType, var, fe) \
   case exposed##FIELD_##field: \
    if(!parser_fieldValue(me, \
-    newOffsetPointer(node2, offsetof(struct X3D_##node, var)), \
-    FTIND_##fieldType)) \
+    newOffsetPointer(X3D_NODE(node2), offsetof(struct X3D_##node, var)), \
+    FTIND_##fieldType, fe)) \
     PARSE_ERROR("Expected " #fieldType "Value!") \
    INIT_CODE_##fieldType(var) \
    return TRUE;
@@ -980,7 +990,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
    /* Process exposed fields */
    #define EXPOSED_FIELD(node, field, fieldType, var) \
-    PROCESS_FIELD(EXPOSED_, node, field, fieldType, var)
+    PROCESS_FIELD(EXPOSED_, node, field, fieldType, var, fieldE)
 
    /* Ignore just fields */
    #define FIELD(n, f, t, v)
@@ -1013,7 +1023,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
    /* Process fields */
    #define FIELD(node, field, fieldType, var) \
-    PROCESS_FIELD(, node, field, fieldType, var)
+    PROCESS_FIELD(, node, field, fieldType, var, ID_UNDEFINED)
 
    /* Ignore exposed fields */
    #define EXPOSED_FIELD(n, f, t, v)
@@ -1042,12 +1052,48 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 /* Parses a built-in field with IS in PROTO */
 BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
 {
- BOOL isIn;	/* EventIn?  Otherwise EventOut, of course */
+ BOOL isIn=FALSE, isOut=FALSE;
  indexT evO, evE;
+
+ /* We should be in a PROTO */
+ if(!me->curPROTO)
+  return FALSE;
+
+ /* There should be really an eventIn or an eventOut...
+  * In case of exposedField, both is true, but evE should be the same (and is
+  * therefore not overridden). */
+ if(lexer_eventIn(me->lexer, &evO, &evE, NULL, NULL))
+ {
+  isIn=TRUE;
+  /* When exposedField, out is allowed, too */
+  isOut=(evE!=ID_UNDEFINED);
+ } else if(lexer_eventOut(me->lexer, &evO, &evE, NULL, NULL))
+  isOut=TRUE;
+
+ if(!isIn && !isOut)
+  return FALSE;
+
+#ifndef NDEBUG
+ if(isIn && isOut)
+  assert(evE!=ID_UNDEFINED);
+#endif
+
+ /* Then, there should be 'IS' */
+ if(!lexer_keyword(me->lexer, KW_IS))
+  return FALSE;
+  
+ return parser_fieldEventAfterISPart(me, ptr, isIn, isOut, evO, evE);
+}
+
+/* Parses only the after-IS-part of a PROTO event */
+BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
+ BOOL isIn, BOOL isOut, indexT evO, indexT evE)
+{
  indexT pevO, pevE;
  struct ProtoFieldDecl* pfield=NULL;
  unsigned myOfs;
  size_t myLen;
+ BOOL pevFound=FALSE;
 
  /* Check and gain information */
  /* ************************** */
@@ -1056,26 +1102,13 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
  if(!me->curPROTO)
   return FALSE;
 
- /* There should be really either an eventIn or an eventOut... */
- if(lexer_eventIn(me->lexer, &evO, &evE, NULL, NULL))
-  isIn=TRUE;
- else if(lexer_eventOut(me->lexer, &evO, &evE, NULL, NULL))
-  isIn=FALSE;
- else
-  return FALSE;
- 
- /* Then, there should be 'IS' */
- if(!lexer_keyword(me->lexer, KW_IS))
-  PARSE_ERROR("Expected \'IS\' after event used in node\'s field-section!")
-
  /* And finally the PROTO's event to be linked */
- if(isIn)
- {
-  if(!lexer_eventIn(me->lexer, NULL, NULL, &pevO, &pevE))
-   PARSE_ERROR("Need user-eventIn after IS!")
- } else
-  if(!lexer_eventOut(me->lexer, NULL, NULL, &pevO, &pevE))
-   PARSE_ERROR("Need user-eventOut after IS!")
+ if(isIn && lexer_eventIn(me->lexer, NULL, NULL, &pevO, &pevE))
+  pevFound=TRUE;
+ else if(isOut && lexer_eventOut(me->lexer, NULL, NULL, &pevO, &pevE))
+  pevFound=TRUE;
+ if(!pevFound)
+  return FALSE;
 
  /* Now, retrieve the ProtoFieldDecl. */
  if(pevE!=ID_UNDEFINED)
@@ -1126,6 +1159,7 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
  } else
  {
   assert(evO!=ID_UNDEFINED);
+  assert((isIn || isOut) && !(isIn && isOut));
 
   #define BEGIN_NODE(n) \
    EVENT_BEGIN_NODE(evO, ptr, n)
@@ -1149,7 +1183,7 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
   }
 
   /* eventOut */
-  else
+  else if(isOut)
   {
    #define EVENT_IN(n, f, t, v)
    #define EVENT_OUT(n, f, t, v) \

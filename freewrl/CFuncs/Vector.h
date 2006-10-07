@@ -1,6 +1,6 @@
 /* 
 Vector.h
-General purpose containers - vector and stack (implemented as linked list)
+General purpose containers - vector and stack (implemented on top of it)
 */
 
 #ifndef VECTOR_H
@@ -39,6 +39,10 @@ void vector_ensureSpace_(size_t, struct Vector*);
 #define vector_size(me) \
  (((struct Vector*)me)->n)
 
+/* Back of a vector */
+#define vector_back(type, me) \
+ vector_get(type, me, vector_size(me)-1)
+
 /* Is the vector empty? */
 #define vector_empty(me) \
  (!vector_size(me))
@@ -57,6 +61,18 @@ void vector_shrink_(size_t, struct Vector*);
   ++((struct Vector*)me)->n; \
  }
 
+/* Pop back operation */
+#define vector_popBack(type, me) \
+ { \
+  assert(!vector_empty(me)); \
+  --((struct Vector*)me)->n; \
+ }
+#define vector_popBackN(type, me, popn) \
+ { \
+  assert(popn<=vector_size(me)); \
+  ((struct Vector*)me)->n-=popn; \
+ }
+
 /* Release and get vector data. */
 void* vector_releaseData_(size_t, struct Vector*);
 #define vector_releaseData(type, me) \
@@ -66,30 +82,27 @@ void* vector_releaseData_(size_t, struct Vector*);
 /* ************************************ Stack ******************************* */
 /* ************************************************************************** */
 
-/* A stack frame */
-struct StackFrame
-{
- void* data;	/* This element */
- struct StackFrame* below;	/* The stack frame below us */
-};
-
-/* The stack itself */
-typedef struct StackFrame* Stack;
+/* A stack is essentially a vector */
+typedef struct Vector Stack;
 
 /* Constructor and destructor */
-Stack* newStack();
-void deleteStack(Stack*);
+#define newStack(type) \
+ newVector(sizeof(type), 4)
+#define deleteStack(type, me) \
+ deleteVector(sizeof(type), me)
 
 /* Push and pop */
-void stack_push(Stack*, void*);
-void stack_pop(Stack*);
+#define stack_push(type, me, el) \
+ vector_pushBack(type, me, el)
+#define stack_pop(type, me) \
+ vector_popBack(type, me)
 
 /* Top of stack */
-#define stack_top(me) \
- ((*(Stack*)me)->data)
+#define stack_top(type, me) \
+ vector_get(type, me, vector_size(me)-1)
 
 /* Is the stack empty? */
 #define stack_empty(me) \
- (!*(Stack*)me)
+ vector_empty(me)
 
 #endif /* Once-check */
