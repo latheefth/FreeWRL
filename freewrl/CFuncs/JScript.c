@@ -343,9 +343,8 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
-
 	#ifdef JSVERBOSE 
-		printf("addGlobalAssignProperty: cx: %x obj %x name \"%s\", evaluate script \"%s\"\n",
+		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",
 			   _context, _globalObj, name, str);
 	#endif
 
@@ -447,7 +446,7 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 /* FROM VRMLC.pm */
 
 void *
-SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len)
+SFNodeNativeNew()
 {
 	SFNodeNative *ptr;
 	ptr = (SFNodeNative *) malloc(sizeof(*ptr));
@@ -457,16 +456,7 @@ SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len)
 	if (ptr == NULL) {
 		return NULL;
 	}
-	ptr->vrmlstring = (char *) malloc(vrmlstring_len * sizeof(char));
-	if (ptr->vrmlstring == NULL) {
-		printf("malloc failed in SFNodeNativeNew.\n");
-		return NULL;
-	}
-	ptr->handle = (char *) malloc(handle_len * sizeof(char));
-	if (ptr->handle == NULL) {
-		printf("malloc failed in SFNodeNativeNew.\n");
-		return NULL;
-	}
+	ptr->handle = 0;
 	ptr->touched = 0;
 	return ptr;
 }
@@ -477,12 +467,6 @@ SFNodeNativeDelete(void *p)
 	SFNodeNative *ptr;
 	if (p != NULL) {
 		ptr = (SFNodeNative *)p;
-		if (ptr->vrmlstring != NULL) {
-			free(ptr->vrmlstring);
-		}
-		if (ptr->handle != NULL) {
-			free(ptr->handle);
-		}
 		free(ptr);
 	}
 }
@@ -496,42 +480,8 @@ SFNodeNativeAssign(void *top, void *fromp)
 	SFNodeNative *to = (SFNodeNative *)top;
 	SFNodeNative *from = (SFNodeNative *)fromp;
 
-	/* printf ("SFNodeNativeAssign, assigning from vrmlstring %s handle %s to vrmlstring %s handle %s\n",*/
-	/* 	from->vrmlstring,from->handle,to->vrmlstring,to->handle);*/
-
 	to->touched++;
-
-	to_vrmlstring_len = strlen(to->vrmlstring) + 1;
-	to_handle_len = strlen(to->handle) + 1;
-
-	from_vrmlstring_len = strlen(from->vrmlstring) + 1;
-	from_handle_len = strlen(from->handle) + 1;
-
-	/* printf ("lengths: %d %d, %d %d\n",from_handle_len,from_vrmlstring_len, to_handle_len,to_vrmlstring_len);*/
-
-
-	if (from_vrmlstring_len > to_vrmlstring_len) {
-		to->vrmlstring = (char *) realloc(to->vrmlstring,
-										  from_vrmlstring_len * sizeof(char));
-		if (to->vrmlstring == NULL) {
-			printf("realloc failed in SFNodeNativeAssign.\n");
-			return JS_FALSE;
-		}
-	}
-	memset(to->vrmlstring, 0, from_vrmlstring_len);
-	memmove(to->vrmlstring, from->vrmlstring, from_vrmlstring_len);
-
-	if (from_handle_len > to_handle_len) {
-		to->handle = (char *) realloc(to->handle,
-									  from_handle_len * sizeof(char));
-		if (to->handle == NULL) {
-			printf("realloc failed in SFNodeNativeAssign.\n");
-			return JS_FALSE;
-		}
-	}
-	memset(to->handle, 0, from_handle_len);
-	memmove(to->handle, from->handle, from_handle_len);
-
+	to->handle = from->handle;
 	return JS_TRUE;
 }
 
@@ -753,7 +703,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	struct Multi_Int32*     vrmlImagePtr;
 	struct Multi_Int32    Int32Ptr;
 	float *FloatPtr;
-	void  *VoidPtr;
+	uintptr_t  *VoidPtr;
 	int *IntPtr;
 	double *DoublePtr;
 	SV **SVPtr;
@@ -847,7 +797,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			VoidPtr = NULL;
 			switch (type) {
 				case FIELDTYPE_SFNode:
-					VoidPtr = value.sfnode; elements = 1;
+					VoidPtr = (uintptr_t *) (&(value.sfnode)); elements = 1;
 					break;
 				case FIELDTYPE_MFColor:
 					FloatPtr = (float *) value.mfcolor.p; elements = value.mfcolor.n;
@@ -897,7 +847,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 					MFhasECMAtype = TRUE;
 					break;
 				case FIELDTYPE_MFNode:
-					VoidPtr = value.mfnode.p; elements = value.mfnode.n;
+					VoidPtr = ((uintptr_t*)(value.mfnode.p)); elements = value.mfnode.n;
 					MFhasECMAtype = TRUE;
 					break;
 				case FIELDTYPE_MFFloat: 
@@ -950,6 +900,8 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 						sprintf (thisValue,"%f",*DoublePtr); DoublePtr++;
 					} else if (FloatPtr != NULL) {
 						sprintf (thisValue,"%d",*FloatPtr); FloatPtr++;
+					} else { /* must be a Void */
+						sprintf (thisValue,"%d",*VoidPtr); VoidPtr++;
 					}
 					strcat (smallfield, thisValue);
 					if (rowCount < (rows-1)) strcat (smallfield,",");
@@ -965,6 +917,10 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			}
 				
 			/* Warp factor 5, Dr Sulu... */
+			#ifdef JSVERBOSE
+			printf ("JScript, sending %s\n",smallfield); 
+			#endif
+
 			JSaddGlobalAssignProperty (num,mynewname,smallfield);
 		}
 	}

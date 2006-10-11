@@ -26,8 +26,8 @@ typedef struct _BrowserNative {
 
 typedef struct _SFNodeNative {
 	int touched;
-	char *vrmlstring;
-	char *handle;
+	uintptr_t *handle;
+	char *X3DString;
 } SFNodeNative;
 
 typedef struct _SFRotationNative {
@@ -86,7 +86,7 @@ addSFNodeProperty(void *cx,
 				  char *str);
 
 extern void *
-SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len);
+SFNodeNativeNew(void);
 
 extern void
 SFNodeNativeDelete(void *p);

@@ -1139,7 +1139,7 @@ static JSClass SFNodeClass = {
 
 static JSPropertySpec (SFNodeProperties)[] = {
 	{"__handle", 1, JSPROP_ENUMERATE},
-	{"__vrmlstring", 0, JSPROP_ENUMERATE},
+	{"__X3DString", 0, JSPROP_ENUMERATE},
 	{0}
 };
 

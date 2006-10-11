@@ -132,7 +132,6 @@ void OcclusionStartofEventLoop(void);
 void setField_method1 (void *ptr, char *field, char *value);
 unsigned int setField_method2 (char *ptr);
 void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx);
-void getField_method1 (void *ptr, char *field, char *retvalue, int valueLen, int sender);
 
 extern char *GL_VEN;
 extern char *GL_VER;

@@ -13,12 +13,6 @@
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 void setMFElementtype (uintptr_t num);
 
-void getField_method1 (void *ptr, char *field, char *retvalue, int valueLen, int sender) {
-	printf ("c_get_field_be not finished getting field %s of node %d\n",field,ptr);
-	strcpy (retvalue,"245");
-}
-
-
 /********************************************************************
 
 getField_ToJavascript.
