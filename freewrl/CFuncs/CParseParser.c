@@ -418,12 +418,14 @@ BOOL parser_routeStatement(struct VRMLParser* me)
   { \
    case NODE_Group: \
     pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
+    assert(pre##Proto); \
     break; \
    case NODE_Script: \
     pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
     assert(pre##Script); \
     break; \
   } \
+  assert(!(pre##Proto && pre##Script)); \
   /* Seperating '.' */ \
   if(!lexer_point(me->lexer)) \
    PARSE_ERROR("Expected . after node-name!") \
@@ -469,11 +471,13 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     } \
     if((pre##Proto && !pre##ProtoField) || (pre##Script && !pre##ScriptField)) \
      PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
-   } \
+   } else \
+    PARSE_ERROR("Expected event" #eventType "!") \
   } \
   /* Process script routing */ \
   if(pre##Script) \
   { \
+   assert(pre##ScriptField); \
    pre##Node=pre##Script->num; \
    pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
   }
