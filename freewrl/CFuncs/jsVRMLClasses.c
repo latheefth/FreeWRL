@@ -931,20 +931,15 @@ getAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	JSString *_idStr, *_vpStr;
 	char *_id_c, *_vp_c;
-printf ("start of getAssignProperty...\n");
 
-#ifdef OLDCODE
 	if (JSVRMLClassesVerbose) {
 		_idStr = JS_ValueToString(cx, id);
 		_id_c = JS_GetStringBytes(_idStr);
-printf ("idc is %s\n",_id_c);
 		_vpStr = JS_ValueToString(cx, *vp);
 		_vp_c = JS_GetStringBytes(_vpStr);
-printf ("vp_c is %s\n",_vp_c);
 		printf("getAssignProperty: obj = %u, id = \"%s\", vp = %s\n",
 			   VERBOSE_OBJ obj, _id_c, _vp_c);
 	}
-#endif
 	return JS_TRUE;
 }
 
@@ -976,13 +971,13 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		}
 		_o = JSVAL_TO_OBJECT(_initVal);
 
-printf ("in setAssignProperty, o is ");
-printNodeType(cx,_o);
+		if (JSVRMLClassesVerbose) {
+			printf ("in setAssignProperty, o is ");
+			printNodeType(cx,_o);
+		}
  
 		_argv[0] = _newVal;
 		_argv[1] = id;
-
-printf ("going to call ASSIGN, with %d arguments\n",_argc);
 
 		if (!JS_CallFunctionName(cx, _o, "assign", _argc, _argv, vp)) {
 			printf( "JS_CallFunctionName failed in setAssignProperty.\n");
@@ -1743,19 +1738,13 @@ SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 /**********************************************************************************/
 
-/* returns the handle - either "NODExx" or (hopefully) a string rep of the pointer to the node in memory */
+/* returns a string rep of the pointer to the node in memory */
 JSBool
-SFNodeToString(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
+SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-    JSString *_str;
-    SFNodeNative *ptr;
-	char *_buff;
-	size_t handle_len = 0;
+	JSString *_str;
+	SFNodeNative *ptr;
 
-
-printf ("oldcode in SFNodeToString\n");
-#ifdef OLDCODE
 	UNUSED(argc);
 	UNUSED(argv);
 	if (JSVRMLClassesVerbose) printf ("SFNODETOSTRING\n");
@@ -1764,38 +1753,26 @@ printf ("oldcode in SFNodeToString\n");
 		return JS_FALSE;
 	}
 
-	handle_len = strlen(ptr->handle) + 1;
-	if ((_buff = (char *)
-		 malloc(handle_len * sizeof(char))) == NULL) {
-		printf( "malloc failed in SFNodeToString.\n");
-		return JS_FALSE;
-	}
+	/* get the string from creation, and return it. */
+	_str = JS_NewStringCopyZ(cx, ptr->X3DString);
+	*rval = STRING_TO_JSVAL(_str);
 
-	memset(_buff, 0, handle_len);
-	sprintf(_buff, "%.*s", handle_len, ptr->handle);
-	_str = JS_NewStringCopyZ(cx, _buff);
-    *rval = STRING_TO_JSVAL(_str);
-
-	free(_buff);
-
-#endif
-
-    return JS_TRUE;
+	return JS_TRUE;
 }
 
 JSBool
 SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	JSObject *_from_obj, *globalObj;
-	/*JAS BrowserNative *brow; */
 	SFNodeNative *fptr, *ptr;
 	char *_id_str;
 	jsval _rval;
 	JSString *strval;
 	char *strtouched;
+
 	/* unsigned int toptr; */
-printf ("start of SFNodeAssign argc %d\n",argc);
-#ifdef OLDCODE
+	if (JSVRMLClassesVerbose) printf ("start of SFNodeAssign argc %d\n",argc);
+
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFNodeAssign.\n");
 	    return JS_FALSE;
@@ -1821,35 +1798,6 @@ printf ("start of SFNodeAssign argc %d\n",argc);
 			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
 	}
 
-	/* printf ("SFNodeAssign calling SFNodeNativeAssign\n"); */
-	if (strncmp("NODE",fptr->handle,4) == 0) {
-		/* printf ("SFNodeAssign, handle is a NODE\n"); */
-		/* try to get the node backend now */
-
-		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
-			printf( "JS_GetGlobalObject failed in SFNodeAssign.\n");
-			return JS_FALSE;
-		}
-		/*JAS if (!getBrowser(cx, globalObj, &brow)) {
-			printf( "getBrowser failed in SFNodeAssign.\n");
-			return JS_FALSE;
-		} */
-
-		/* doPerlCallMethodVA(brow->sv_js, "getNodeCNode", "s", fptr->handle); */
-printf ("DPCVA, getnodecnode\n");
-	       if (!JS_GetProperty(cx, globalObj, "__ret",  &_rval)) {
-        	        printf( "JS_GetProperty failed in VrmlBrowserGetVersion.\n");
-        	        return JS_FALSE;
-        	}
-
-		strval = JS_ValueToString(cx, _rval);
-		strtouched = JS_GetStringBytes(strval);
-
-		if (fptr->handle) free (fptr->handle);
-		fptr->handle =(char *) malloc (strlen(strtouched)+1);
-		strncpy (fptr->handle,strtouched,strlen(strtouched));
-	}
-
 	/* assign this internally */
 	if (!SFNodeNativeAssign(ptr, fptr)) {
 		printf( "SFNodeNativeAssign failed in SFNodeAssign.\n");
@@ -1858,8 +1806,7 @@ printf ("DPCVA, getnodecnode\n");
 
 	*rval = OBJECT_TO_JSVAL(obj);
 
-#endif
-	printf ("end of SFNodeAssign\n");
+	if (JSVRMLClassesVerbose) printf ("end of SFNodeAssign\n");
 	return JS_TRUE;
 }
 
@@ -1880,9 +1827,9 @@ SFNodeTouched(JSContext *cx, JSObject *obj,
 		return JS_FALSE;
 	}
 
-    t = ptr->touched;
+	t = ptr->touched;
 	ptr->touched = 0;
-    if (JSVRMLClassesVerbose) {
+	if (JSVRMLClassesVerbose) {
 		printf("SFNodeTouched: obj = %u, touched = %d\n",
 			   VERBOSE_OBJ obj, t);
 	}
@@ -1903,6 +1850,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	_i = 0;
 	cString = NULL;
 
+	if (JSVRMLClassesVerbose) printf ("Start of SFNodeConstr\n");
 
 	/* verify the argc */
 	if (argc == 0) {
@@ -1911,9 +1859,11 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 		/* is this a string, or a number indicating a node? */
 		myStr = JS_ValueToString(cx, argv[0]);
 		cString = JS_GetStringBytes(myStr);
+		if (JSVRMLClassesVerbose) printf ("SFNodeConstr, argc =1l string %s\n",cString);
 		
 		/* this is either a memory pointer, or it is actual X3D text, or it is junk */
 		if (JSVAL_IS_INT(argv[0])) {
+			if (JSVRMLClassesVerbose) printf ("SFNodeConstr, cstring was an integer\n");
 			sscanf(cString,"%d",&_i);
 			cString = "Constructed without X3D Text";
 		} else {
@@ -1922,7 +1872,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
                         inputParse(FROMSTRING, cString, FALSE, FALSE, myGroup, offsetof(struct X3D_Group, children), 
 				&tmp, FALSE);
 
-			if (JSVRMLClassesVerbose) printf ("we have created %d nodes\n",myGroup->children.n);
+			if (JSVRMLClassesVerbose) printf ("SFNodeConstr we have created %d nodes\n",myGroup->children.n);
 
 			/* we MUST create 1 node here; if not, there is an error */
 			if ((myGroup->children.n) != 1) {
@@ -1958,7 +1908,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	ptr->X3DString = (char *)strdup(cString);
 
 	if (JSVRMLClassesVerbose) {
-		printf("SFNodeConstr: created obj = %u, %u args, %d %s\n",
+		printf("SFNodeConstr: created obj = %u, argc: %u mem ptr: %d text string: %s\n",
 			   VERBOSE_OBJ obj, argc, _i,cString);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
@@ -1984,97 +1934,15 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 JSBool
 SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
-	JSObject *globalObj;
-	JSString *_str, *_idStr, *_valStr;
-	/*JAS BrowserNative *brow; */
-	SFNodeNative *ptr;
-	char *_id_c, *_val_c;
-	size_t val_len = 0;
 
-	struct X3D_Group *myNode;
-	int ra;
-	#define RETVALLEN 3000
-	char myRetVal[RETVALLEN];
+	/* We can't really get a property of a SFNode. There are no sub-indexes, etc...
+	   so we don't do anything. Check out SFVec3fGetProperty to see how it handles
+	   properties, should we need to have properties in the future. */
 
-	/* *vp = INT_TO_JSVAL(0); */
-
-printf ("start of SFNodeGetProperty\n");
-
-	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFNodeGetProperty.\n");
-		return JS_FALSE;
-	}
-
-
-    if (!JS_InstanceOf(cx, obj, &SFNodeClass, id)) {
-                printf( "JS_InstanceOf failed for obj in SFNodeGetProperty.\n");
-        return JS_FALSE;
-        }
-
-
-if (JSVRMLClassesVerbose) {
-
-	JSString *_idStr;
-	char *_id_c;
-
-	_idStr = JS_ValueToString(cx, id);
-	_id_c = JS_GetStringBytes(_idStr);
-printf ("start of SFNodeGetProperty... id is %s\n",_id_c);
-	_idStr = JS_ValueToString(cx, *vp);
-	_id_c = JS_GetStringBytes(_idStr);
-printf ("start of SFNodeGetProperty... vp is %s\n",_id_c);
-}
-
-#ifdef OLDCODE
-	if (JSVAL_IS_INT(id)) {
-		switch (JSVAL_TO_INT(id)) {
-		case 0:
-			_str = JS_NewStringCopyZ(cx, ptr->X3DString);
-			*vp = STRING_TO_JSVAL(_str);
-			break;
-		case 1:
-			_str = JS_NewStringCopyZ(cx, ptr->handle);
-			*vp = INT_TO_JSVAL(ptr->handle);
-			break;
-		}
-	} else if (JSVAL_IS_PRIMITIVE(*vp)) {
-		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
-			printf( "JS_GetGlobalObject failed in SFNodeSetProperty.\n");
-			return JS_FALSE;
-		}
-		if (JSVRMLClassesVerbose) printf ("SFNodeGetProperty, getting the property:%s: for %d\n",_id_c,ptr->handle);
-
-		if (strncmp("toString",_id_c, strlen("toString")) == 0) {
-printf ("going to get a jsval of %s\n",ptr->X3DString);
-			*vp = STRING_TO_JSVAL (ptr->X3DString);
-printf ("finished this... getting of string\n");
-		} else if (strncmp("assign",_id_c, strlen("assign")) == 0) {
-			printf ("SFNodeGetProperty; hopefully handling assign properly\n");
-			*vp = INT_TO_JSVAL (ptr->X3DString);
-		} else if (strncmp("__touched",_id_c, strlen("__touched")) == 0) {
-			*vp = INT_TO_JSVAL(ptr->touched);
-		}
-	printf ("iSFNodeGetProperty: this is a primitive...\n");
-	} else {
-	printf ("SFNodeGetProperty: NOT a primitive...\n");
-	}
-
-#endif
-printf ("down to here...\n");
-/*
-	if (JSVRMLClassesVerbose &&
-		strncmp(_id_c, "toString", 8) != 0 &&
-		strncmp(_id_c, "assign", 6) != 0 &&
-		strncmp(_id_c, "__touched", 9) != 0) {
-		_valStr = JS_ValueToString(cx, *vp);
-		_val_c = JS_GetStringBytes(_valStr);
-
-		printf("SFNodeGetProperty: obj = %u, id = %s, vp = %s\n",
-			   VERBOSE_OBJ obj, _id_c, _val_c);
-	}
-*/
-printf ("returning...\n");
-
+	UNUSED (cx);
+	UNUSED (obj);
+	UNUSED (id);
+	UNUSED (vp);
 	return JS_TRUE;
 }
 

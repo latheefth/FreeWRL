@@ -467,6 +467,7 @@ SFNodeNativeDelete(void *p)
 	SFNodeNative *ptr;
 	if (p != NULL) {
 		ptr = (SFNodeNative *)p;
+		FREE_IF_NZ (ptr->X3DString);
 		free(ptr);
 	}
 }
@@ -480,8 +481,15 @@ SFNodeNativeAssign(void *top, void *fromp)
 	SFNodeNative *to = (SFNodeNative *)top;
 	SFNodeNative *from = (SFNodeNative *)fromp;
 
+	/* indicate that this was touched; and copy contents over */
 	to->touched++;
 	to->handle = from->handle;
+	to->X3DString = strdup(from->X3DString);
+
+	#ifdef JSVERBOSE
+	printf ("SFNodeNativeAssign, copied %d to %d, handle %d, string %s\n", from, to, to->handle, to->X3DString);
+	#endif
+
 	return JS_TRUE;
 }
 

@@ -437,6 +437,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
 
+printf ("must fix Javascript VrmlBrowserCreateVrmlFromURL\n");
 	/*FUNC_INIT*/
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format,
@@ -626,6 +627,7 @@ VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 	return JS_TRUE;
 
 	printf ("VrmlBrowserDeleteRoute\n");
+printf ("must fix doVRMLRoute\n");
 }
 
 
@@ -653,6 +655,7 @@ int ra;
 int myField;
 
 	/*FUNC_INIT*/
+printf ("must fix doVRMLRoute\n");
 
 	if (JS_ConvertArguments(context,
 				argc,
