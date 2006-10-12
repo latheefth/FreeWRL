@@ -23,10 +23,6 @@
 
 void AddRemoveChildren (struct X3D_Box *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
 void setMFElementtype (uintptr_t num);
-/*
-void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
-void markScriptResults(void * tn, int tptr, int route, void *tonode);
-*/
 
 /*****************************************
 C Routing Methodology:
@@ -1379,6 +1375,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	unsigned len;
  	void * tn;
 	void * fn;
+        SFNodeNative *sfnode;
 /*
 	float fl[4];
 	double tval;
@@ -1451,12 +1448,34 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 					printf ("got TRUE touched_flag\n");
 				#endif
 				/* we did, so get the value */
-				strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
-			        strp = JS_GetStringBytes(strval);
+				/* if this is a SFNode, lets get the pointer to memory from the private area */
+#define CRVERBOSE
+				if (JSparamnames[fptr].type == SFNODE) {
+					#ifdef CRVERBOSE
+					printf ("HAVE SFNODE = get private data here for object %d\n",global_return_val);
+					#endif
+
+					if ((sfnode = (SFNodeNative *)JS_GetPrivate((JSContext *)ScriptControl[actualscript].cx, global_return_val)) == NULL) {
+						printf( "JS_GetPrivate failed for obj in SFRotationGetAxis.\n");
+						return JS_FALSE;
+					}
+
+					#ifdef CRVERBOSE
+					printf ("PAST SFNODE get private - data is %s\n",sfnode->X3DString);
+					printf ("and handle is %d\n",sfnode->handle);
+					#endif
+
+					strp = malloc (100);
+					sprintf (strp,"%d",sfnode->handle);
+				} else {
+					strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
+			        	strp = JS_GetStringBytes(strval);
+				}
 
 				#ifdef CRVERBOSE 
 					printf ("retval string is %s\n",strp);
 				#endif
+#undef CRVERBOSE
 			}
 		}
 

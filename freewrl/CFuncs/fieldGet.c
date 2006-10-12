@@ -81,8 +81,8 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	int il;
 	int intval = 0;
 
-	/* printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
-		tonode,toname,JSparamnames[toname].name,dataType,datalen); */
+	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
+		tonode,toname,JSparamnames[toname].name,dataType,datalen);
 
 	switch (dataType) {
 		case SFBOOL:	{	/* SFBool */
@@ -102,8 +102,8 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 			sprintf (scriptline,"__tmp_arg_%s=%f", JSparamnames[toname].name,dl);
 			break;
 		}
-		case SFNODE:
-		case SFINT32:	{ /* SFInt32 */
+		case SFNODE: 
+		case SFINT32: 	{ /* SFInt32 */
 			memcpy ((void *) &il,Data, datalen);
 			sprintf (scriptline,"__tmp_arg_%s=%d", JSparamnames[toname].name,il);
 			break;
@@ -113,11 +113,13 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	}
 
 	/* set property */
+printf ("set_one_ECMAtype - scripta %s\n",scriptline);
 	if (!ActualrunScript(tonode, scriptline ,&retval))
 		printf ("failed to set parameter, line %s\n",scriptline);
 
 	/* ECMAScriptNative SF nodes require a touched=0 */
 	sprintf (scriptline,"___tmp_arg_%s__touched=0", JSparamnames[toname].name);
+printf ("set_one_ECMAtype - scriptb %s\n",scriptline);
 	if (!ActualrunScript(tonode, scriptline ,&retval))
 		printf ("failed to set parameter, line %s\n",scriptline);
 
@@ -126,6 +128,7 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
 			 JSparamnames[toname].name,JSparamnames[toname].name,
 			 TickTime);
+printf ("set_one_ECMAtype - scriptc %s\n",scriptline);
 	if (!ActualrunScript(tonode, scriptline ,&retval)) {
 		printf ("failed to set parameter, line %s\n",scriptline);
 	}
