@@ -1449,7 +1449,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				#endif
 				/* we did, so get the value */
 				/* if this is a SFNode, lets get the pointer to memory from the private area */
-#define CRVERBOSE
 				if (JSparamnames[fptr].type == SFNODE) {
 					#ifdef CRVERBOSE
 					printf ("HAVE SFNODE = get private data here for object %d\n",global_return_val);
@@ -1475,7 +1474,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				#ifdef CRVERBOSE 
 					printf ("retval string is %s\n",strp);
 				#endif
-#undef CRVERBOSE
 			}
 		}
 
