@@ -1238,10 +1238,6 @@ void setTextures_take_priority (int x) {
 	textures_take_priority = x;
 }
 
-void setUseCParser (int x) {
-	useExperimentalParser = x;
-}
-
 /* set the global_texSize. Expect a number that is 0 - use max, or negative. eg,
    -512 hopefully sets to size 512x512; this will be bounds checked in the texture
    thread */

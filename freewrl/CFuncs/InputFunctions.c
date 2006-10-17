@@ -6,13 +6,6 @@
 
 #include "headers.h"
 #define READSIZE 2048
-#define VRML2HEADER "#VRML V2.0 utf8"
-#define X3DHEADER  "<\?xml version"
-#define VRMLFILE 1
-#define X3DFILE 2
-#define UNKNOWNFILE 0
-
-void VRMLPreParse(char *buffer);
 
 /* read a file, put it into memory. */
 char * readInputString(char *fn, char *parent) {
@@ -104,76 +97,3 @@ char * readInputString(char *fn, char *parent) {
 	return (buffer);
 }
 
-
-/* kind of make sure string is ok... */
-char *sanitizeInputString (char *buffer) {
-	int inputtype;
-
-
-	/* now, what kind of file is this? */
-	inputtype = UNKNOWNFILE;
-	if (strncmp (buffer,VRML2HEADER,sizeof(VRML2HEADER)-1) == 0) {
-		/* printf ("this is a VRML V2 file\n");*/
-		inputtype = VRMLFILE;
-	} else if (strncmp (buffer, X3DHEADER, sizeof(X3DHEADER)-1) == 0) {
-		/* printf ("this is an X3D file\n");*/
-		inputtype = X3DFILE;
-	}
-
-	/* hmmm - we could not tell by the header; lets see if we can find
-	 * anything else of interest */
-	if (inputtype == UNKNOWNFILE) {
-		if (strstr (buffer,"<Scene>") != NULL) {
-			/* printf ("Scene found, its x3d\n");*/
-			inputtype = X3DFILE;
-		} else if (strstr (buffer,"<X3D") != NULL) {
-			/* printf ("Scene found, its x3d\n");*/
-			inputtype = X3DFILE;
-		}
-
-		/* oh well, assume its a VRML file */
-		else {inputtype = VRMLFILE;}
-	}
-
-	/* pre-parse this; maybe remove comments, etc, etc */
-	if (inputtype == VRMLFILE) {
-		VRMLPreParse(buffer);
-	}
-
-	return (buffer);
-}
-
-
-void VRMLPreParse(char *buffer) {
-	int cptr;
-	int maxptr;
-	int inquotes;
-
-	/* cptr = strlen(VRML2HEADER); leave the header intact, for now */
-	cptr = 0;
-	inquotes = FALSE;
-	maxptr = strlen(buffer);
-
-
-	/* go through the memory */
-	while (cptr < maxptr) {
-		/* determine whether this is within quotes or not */
-		if (buffer[cptr] == '"') {
-			/* printf ("found a quote start at %d\n",cptr);*/
-			if (buffer[cptr-1] != '\\') {
-				inquotes = !inquotes;
-			}
-			/* printf ("so, inquotes = %d\n",inquotes);*/
-		}
-
-		if ((!inquotes) & (buffer[cptr]=='#')) {
-			/* printf ("comment starts at %d\n",cptr);*/
-			while (((buffer[cptr]&0xff) >= ' ') || (buffer[cptr] == '\t')) {
-				buffer[cptr] = ' ';
-				cptr ++;
-				/* printf ("char is %x\n",(buffer[cptr]&0xff));*/
-			}
-		}
-		cptr ++;
-	}
-}

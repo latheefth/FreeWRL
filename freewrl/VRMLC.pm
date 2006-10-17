@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.247  2006/10/17 18:51:52  crc_canada
+# Step 1 in getting rid of PERL parsing.
+#
 # Revision 1.246  2006/09/21 08:24:54  domob
 # Script fields *should* be parsed correctly now.
 #
@@ -1485,17 +1488,6 @@ ConsoleMessage (str)
 	CODE:
 	ConsoleMessage(str);
 
-
-# remove comments, etc, from a string.
-SV *
-sanitizeInput(string)
-	char *string
-CODE:
-	char *buffer;
-	buffer = sanitizeInputString(string);
-	RETVAL = newSVpv(buffer,strlen(buffer));
-	OUTPUT:
-RETVAL
 
 # read in a string from a file
 SV *

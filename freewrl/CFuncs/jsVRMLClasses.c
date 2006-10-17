@@ -119,48 +119,6 @@ static JSBool _simplecopyElements (JSContext *cx,
 }
 
 
-#ifdef OLDCODE
-/* create a new SFNode from strings for the VRML code, and for the CNode */
-void newJS_SFNode(char *_vrmlstr,char *_handle, JSContext *cx, JSObject *obj) {
-	char *tmpptr, *xptr;
-	size_t vrmlstring_len = 0, handle_len = 0;
-	SFNodeNative *ptr;
-
-	vrmlstring_len = strlen(_vrmlstr) + 1;
-	handle_len = strlen(_handle) + 1;
-
-	if (JSVRMLClassesVerbose) printf ("newJS_SFNode, argc==2, vrmlstr = %s\n",_vrmlstr);
-	if ((ptr = (SFNodeNative *)SFNodeNativeNew(vrmlstring_len, handle_len)) == NULL) {
-		printf( "SFNodeNativeNew failed in newJS_SFNode.\n");
-	}
-	if (!JS_DefineProperties(cx, obj, SFNodeProperties)) {
-		printf( "JS_DefineProperties failed in newJS_SFNode.\n");
-	}
-	if (!JS_SetPrivate(cx, obj, ptr)) {
-		printf( "JS_SetPrivate failed in newJS_SFNode.\n");
-	}
-
-	/* copy this over, making sure we dont get hit by threading or
-	 * memory problems */
-	tmpptr = (char *)malloc ((vrmlstring_len+1)*sizeof(char));
-	memmove(tmpptr, _vrmlstr, vrmlstring_len);
-	xptr = ptr->vrmlstring;
-	ptr->vrmlstring = tmpptr;
-	free (xptr);
-
-	tmpptr = (char *)malloc ((handle_len+1)*sizeof(char));
-	memmove(tmpptr, _handle, handle_len);
-	xptr = ptr->handle;
-	ptr->handle = tmpptr;
-	free (xptr);
-
-        if (JSVRMLClassesVerbose) {
-                printf("newJS_SFNode: obj = %u, vrmlstring=\"%s\", handle=\"%s\"\n",
-                           VERBOSE_OBJ obj, ptr->vrmlstring, ptr->handle);
-        }
-}
-#endif
-
 /* make a standard assignment for MF variables */
 JSBool _standardMFAssign(JSContext *cx,
 	JSObject *obj,

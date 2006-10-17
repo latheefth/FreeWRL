@@ -98,7 +98,6 @@ void store_tex_info(
 		GLint Tgl_rep_or_clamp,
 		GLint Image);
 
-void __reallyloadPixelTexAsSV(void);
 void __reallyloadPixelTexAsMFInt32(void);
 void __reallyloadImageTexture(void);
 void __reallyloadMovieTexture(void);
@@ -1076,36 +1075,17 @@ int findTextureFile (int cwo, int *istemp) {
 
 		filename = (char *)malloc(100);
 
-		if (useExperimentalParser) {
-			/* in this case, the pointer points to a struct Multi_Int32. */
-			cTexture = (struct Multi_Int32*) loadparams[cwo].parenturl;
-			c = cTexture->n;
-			/* printf ("pixeltex len %d\n",c); */
-			iptr = (int *)cTexture->p;
-			b = 0;
-			if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
-			for (a=0; a<c; a++) {
-				/* printf ("b is %x\n",b); printf ("*iptr is %x\n",*iptr); */
-				b =  b + *iptr; iptr++;
-			}
-
-
-		} else {
-
-			name = SvPV(loadparams[cwo].parenturl,xx);
-	
-			#ifdef TEXVERBOSE
-			printf ("in find, name %s strlen %d\n",name,strlen(name));
-			#endif
-	
-			/* make up a checksum name that is unique for PixelTextures - for checking on duplicates */
-			b = 0;
-			c = strlen(name);
-			if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
-			for (a=0; a<c; a++) {
-				b =  b + (int) (name[a] & 0xff);
-			}
-		}	
+		/* in this case, the pointer points to a struct Multi_Int32. */
+		cTexture = (struct Multi_Int32*) loadparams[cwo].parenturl;
+		c = cTexture->n;
+		/* printf ("pixeltex len %d\n",c); */
+		iptr = (int *)cTexture->p;
+		b = 0;
+		if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
+		for (a=0; a<c; a++) {
+			/* printf ("b is %x\n",b); printf ("*iptr is %x\n",*iptr); */
+			b =  b + *iptr; iptr++;
+		}
 
 		sprintf (filename,"PixelTexture_%d_%d",c,b);
 		#ifdef TEXVERBOSE 
@@ -1260,8 +1240,7 @@ void _textureThread(void) {
 
 			/* is this a pixeltexture? */
 			if (loadparams[currentlyWorkingOn].type==PIXELTEXTURE) {
-				if (useExperimentalParser) __reallyloadPixelTexAsMFInt32();
-				else __reallyloadPixelTexAsSV();
+				__reallyloadPixelTexAsMFInt32();
 				
 			} else if (loadparams[currentlyWorkingOn].type==MOVIETEXTURE) {
 				__reallyloadMovieTexture();
@@ -1400,116 +1379,6 @@ void __reallyloadPixelTexAsMFInt32() {
 
 }
 
-/* the perl Parser used to return PixelTextures as SV *s */
-void __reallyloadPixelTexAsSV() {
-	/* PixelTexture variables */
-	long hei,wid,depth;
-	long long inval;
-	unsigned char *texture;
-	char *tptr;
-	char *endptr;
-	int tctr;
-	STRLEN xx;
-	int count;
-	int ok;
-
-
-	/* check to see if there really is a PixelTexture there; if there is not,
-	   then mark texture INVALID and return. eg, PixelTexture {} will get
-	   caught here */
-	#ifdef TEXVERBOSE 
-	printf ("start of reallyLoadPixelTexture\n");
-	#endif
-
-
-	if ((SvFLAGS(loadparams[currentlyWorkingOn].parenturl) & SVf_POK) == 0) {
-		printf ("this one is going to fail\n");
-		freeTexture(loadparams[currentlyWorkingOn].texture_num);
-		/* texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
-		return;
-	}
-
-	/* ok - we have a valid Perl pointer, go for it. */
-	tptr = (char *)SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
-	/* printf ("PixelTextures, string now is %s\n",tptr);  */
-
-	while (isspace(*tptr))tptr++;
-	ok = TRUE;
-
-	/* scan in the width, height, and depth */
-	wid = strtol(tptr,&endptr,0);
-	if (tptr == endptr) { ok = FALSE; } else { tptr = endptr; }
-	hei = strtol(tptr,&endptr,0);
-	if (tptr == endptr) { ok = FALSE; } else { tptr = endptr; }
-	depth = strtol(tptr,&endptr,0);
-	if (tptr == endptr) { ok = FALSE; } else { tptr = endptr; }
-
-	if (ok) {
-		if ((depth < 1) || (depth >4)) {
-			printf ("PixelTexture, depth %d out of range, assuming 1\n",(int) depth);
-			depth = 1;
-		}
-		/* have header ok, now read in all values */
-		count = 0; tctr = 0;
-
-		texture = (unsigned char *)malloc (wid*hei*4);
-
-		while (count < (int)(wid*hei)) {
-			inval = strtoll(tptr,&endptr,0);
-			if (tptr == endptr) {
-				printf("PixelTexture: expected %d pixels, got %d\n",(int)(wid*hei),count);
-				freeTexture(loadparams[currentlyWorkingOn].texture_num);
-				/* texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
-				break;
-			} else { tptr = endptr; }
-
-			switch (depth) {
-				case 1: {
-					   texture[tctr++] = inval & 0xff;
-					   break;
-				   }
-				case 2: {
-					   texture[tctr++] = inval & 0x00ff;
-					   texture[tctr++] = (inval>>8) & 0xff;
-					   break;
-				   }
-				case 3: {
-					   texture[tctr++] = (inval>>16) & 0xff; /*R*/
-					   texture[tctr++] = (inval>>8) & 0xff;	 /*G*/
-					   texture[tctr++] = (inval>>0) & 0xff; /*B*/
-					   break;
-				   }
-				case 4: {
-					   texture[tctr++] = (inval>>24) & 0xff; /*R*/
-					   texture[tctr++] = (inval>>16) & 0xff; /*G*/
-					   texture[tctr++] = (inval>>8) & 0xff;	 /*B*/
-					   texture[tctr++] = (inval>>0) & 0xff; /*A*/
-					   /* printf ("verify, %x %x %x %x\n",texture[tctr-4],texture[tctr-3],
-						texture[tctr-2],texture[tctr-1]); */
-					   break;
-				   }
-			}
-
-			count ++;
-		}
-
-		if (count == (int)(wid*hei)) {
-			store_tex_info(currentlyWorkingOn,
-				(int)depth,(int)wid,(int)hei,texture,
-				((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP,
-				((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
-				GL_NEAREST);
-		}
-	} else {
-		printf ("PixelTexture, invalid height, width, or depth\n");
-		freeTexture(loadparams[currentlyWorkingOn].texture_num);
-		/*texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
-	}
-
-	#ifdef TEXVERBOSE 
-	printf ("end of reallyloadPixelTexAsSVs\n");
-	#endif
-}
 
 /*********************************************************************************************/
 
