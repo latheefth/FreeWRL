@@ -339,8 +339,6 @@ void DirectionalLight_Rend(void *nod_);
                             if (p->_nodeType == NODE_DirectionalLight) { \
                                 (node->has_light) ++; \
                             } \
-                        } else { \
-                                printf ("huh - child is null\n"); \
                         } \
                 } 
 
@@ -353,8 +351,6 @@ void DirectionalLight_Rend(void *nod_);
                             if (p->_nodeType == NODE_DirectionalLight) { \
                                 (node->has_light) ++; \
                             } \
-                        } else { \
-                                printf ("huh - child is null\n"); \
                         } \
                 }
 

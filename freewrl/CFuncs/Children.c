@@ -35,13 +35,16 @@ void sortChildren (struct Multi_Node ch) {
 			a = (struct X3D_Box *)ch.p[j-1];
 			b = (struct X3D_Box *)ch.p[j];
 
-			if (a->_dist > b->_dist) {
-				/* printf ("have to switch %d %d\n",i,j); */
-				c = a;
-				ch.p[j-1] = b;
-				ch.p[j] = c;
-				noswitch = FALSE;
-			}
+			/* check to see if a child is NULL - if so, skip it */
+			if ((a != NULL) && (b != NULL)) {
+				if (a->_dist > b->_dist) {
+					/* printf ("have to switch %d %d\n",i,j); */
+					c = a;
+					ch.p[j-1] = b;
+					ch.p[j] = c;
+					noswitch = FALSE;
+				}
+			}	
 		}
 		/* did we have a clean run? */
 		if (noswitch) {
@@ -64,8 +67,10 @@ void dirlightChildren(struct Multi_Node ch) {
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT); */
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
-		if (p->_nodeType == NODE_DirectionalLight)
-			render_node(p);
+		if (p != NULL) {
+			if (p->_nodeType == NODE_DirectionalLight)
+				render_node(p);
+		}
 	}
 }
 
@@ -75,10 +80,13 @@ void normalChildren(struct Multi_Node ch) {
 
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
-		if(p->_nodeType != NODE_DirectionalLight) {
-		/*printf ("normalchildren, (%d of %d) child %d\n",i,ch.n,p);   */
-/*			if ((p->PIV) > 0) */
+
+		if (p != NULL) {
+			if(p->_nodeType != NODE_DirectionalLight) {
+			/*printf ("normalchildren, (%d of %d) child %d\n",i,ch.n,p);   */
+			/*			if ((p->PIV) > 0) */
 				render_node(p);
+			}
 		}
 	}
 }
