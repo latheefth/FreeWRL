@@ -64,8 +64,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk -Wl -syslibroot /Developer/SDKs/MacOSX10.3.9.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
-		'-framework Cocoa '.
-		'-lAquaIntLib -lperl `perl -MExtUtils::Embed -e ldopts`',
+		'-framework Cocoa ',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
@@ -78,6 +77,5 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
-		'-lAquaIntLib '.
-		'-lperl `perl -MExtUtils::Embed -e ldopts`',
+		'-lAquaIntLib ',
 );

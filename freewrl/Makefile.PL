@@ -252,9 +252,6 @@ foreach (@dumpToVRMLCONF) {
 close OUT;
 
 
-# make the xs_init.c file and put it in the CFuncs directory.
-`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
-
 ## make the Javascript libraries if needed
 
 print STDERR "Checking for the Mozilla JavaScript Reference library and application.\n";

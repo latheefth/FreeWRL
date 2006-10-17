@@ -60,7 +60,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
-		'-lAquaIntLib -lperl `perl -MExtUtils::Embed -e ldopts`',
+		'-lAquaIntLib `',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
@@ -71,6 +71,5 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
-		'-lAquaIntLib '.
-		'-lperl `perl -MExtUtils::Embed -e ldopts`',
+		'-lAquaIntLib ',
 );
