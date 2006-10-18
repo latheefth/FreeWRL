@@ -8,8 +8,14 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
+#include <stdio.h>
+
 /* get the definitions from the command line */
 #include "vrmlconf.h"
+
+/* Perl was used for parsing. The runtime ideas work very well - so lets just try and keep
+them around */
+#include "mimicPerlSV.h"
 
 /* vrmlconf.h should have the AQUA definition - so get the GL headers */
 #ifdef AQUA
@@ -725,7 +731,6 @@ extern GLfloat Backtex[], Backnorms[];
 
 extern void new_tessellation(void);
 extern void initializePerlThread(const char *perlpath);
-extern PerlInterpreter *my_perl;
 extern void setGeometry (const char *optarg);
 extern void setWantEAI(int flag);
 extern void setPluginPipe(const char *optarg);

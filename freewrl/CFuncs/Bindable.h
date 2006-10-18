@@ -12,10 +12,6 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 ******************************************/
 
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include <math.h>
 
 #ifdef AQUA

@@ -985,8 +985,8 @@ void createLoadURL(char *bufptr) {
 	bufptr--;
 
 	/* malloc the sizes required */
-	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = malloc(EAI_AnchorNode.url.n * sizeof (struct sv));
-	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = malloc(EAI_AnchorNode.parameter.n * sizeof (struct sv));
+	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = malloc(EAI_AnchorNode.url.n * sizeof (SV));
+	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = malloc(EAI_AnchorNode.parameter.n * sizeof (SV));
 
 	for (count=0; count<EAI_AnchorNode.url.n; count++) {
 		bufptr += strlen(strbrk);
@@ -1028,7 +1028,7 @@ SV *EAI_newSVpv(char *str) {
 	#endif
 
 	/* the returning SV is here. Make blank struct */
-	retval = malloc (sizeof (struct sv));
+	retval = malloc (sizeof (SV));
 	newpv = malloc (sizeof (struct xpv));
 
 	retval->sv_any = newpv;

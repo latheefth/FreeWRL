@@ -867,7 +867,9 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	JSString *strval; /* strings */
 
 	/* oldlen = what was there in the first place */
+	#ifdef OLDCODE
 	verifySVtype(to);
+	#endif
 
 	oldlen = to->n;
 	svptr = to->p;
@@ -1163,7 +1165,9 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 
 	/* oldlen = what was there in the first place */
 	/*  should be ok verifySVtype(from); */
+	#ifdef OLDCODE
 	verifySVtype(to);
+	#endif
 
 	oldlen = to->n;
 	oldsvptr = to->p;

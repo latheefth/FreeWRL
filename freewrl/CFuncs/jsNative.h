@@ -14,9 +14,6 @@
 #ifndef __jsNative_h__
 #define __jsNative_h__
 
-#include <EXTERN.h>
-#include <perl.h>
-
 #include "Structs.h" /* FreeWRL C structs */
 
 typedef struct _BrowserNative {

@@ -259,474 +259,447 @@ if (-e "JS/$jsobjdir/libFreeWRLjs.a" && -e "JS/$jsobjdir/libFreeWRLjs.so" && -e 
 
 print "Done, now doing writeMakefile\n";
 
-use ExtUtils::MakeMaker;
+#use ExtUtils::MakeMaker;
 require './Config.pm';
 
-WriteMakefile(
-			  NAME => "VRML::VRMLFunc",
-			  DISTNAME => "FreeWRL",
-			  dist => {
-					   COMPRESS => 'gzip -9',
-					   SUFFIX => 'gz',
-					  },
-			  dynamic_lib => {
-							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
-							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
-							 },
-			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
-			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
-			  EXE_FILES => ['freewrl'],
-			  MAN1PODS => { freewrl => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
-			  PL_FILES => {'freewrl.PL' => 'freewrl'},
-			  PREREQ_PM => {
-							'File::Basename' =>  "0", # any version will do
-						   },
-			  LIBS => $VRML::Config::vrml_config{FREEWRL_LIBS},
-			  OBJECT => 'VRMLFunc.o',
-);
-
-{
-
-	package MY;
-
-	sub post_constants {
-		my $post_const = join(
-							  "\n",
-							  qq{\nvpath %.c .:./CFuncs},
-							  qq{vpath %.o .:./CFuncs\n},
-							  qq{CFUNCS_SRC:=\$(wildcard ./CFuncs/*.c)},
-							  qq{OBJECT+=\$(CFUNCS_SRC:%c=%o)}
-							 );
-
-		return $post_const;
-	}
-
-	sub const_loadlibs {
-		my $loadlibs = shift->SUPER::const_loadlibs(@_);
-		$loadlibs =~ s/(LD_RUN_PATH\s*=.*)$/$1:$VRML::Config::vrml_config{LIBJS_INST}/m;
-		# print "Makefile.PL - loadlibs $loadlibs\n";
-		return $loadlibs;
-	}
-
-	sub dynamic_lib {
-		if ($OS eq "Darwin") {
-			return "ARMAYBE = :
-OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS}
-INST_DYNAMIC_DEP =
-
-\$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
-	\$\(RM_F\) \$\@
-	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOADLIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
-	\$\(CHMOD\) \$\(PERM_RWX\) \$\@\n";
-		} else {
-			return shift->SUPER::dynamic_lib(@_);
-		}
-	}
-
-
-	sub post_initialize {
-		use Cwd;
-		my($ver, $nc);
-		my $dir = getcwd();
-		my $post_init = "";
-
-
-		$post_init = join(
-			  "\n",
-			  qq{\nFRONTEND=$dir/CFrontEnd},
-			  qq{\nSOUNDENGINE=$dir/SoundEngine},
-			  qq{\nCONSOLEMSG=$dir/FreeWRL_Message},
-			  qq{FRONTEND_DIR=$VRML::Config::vrml_config{BIN_DIR}},
-			  qq{LIB_DIR=$VRML::Config::vrml_config{LIB_DIR}},
-		 );
-
-		return($post_init);
-	}
-
-
-
-	sub postamble {
-		my @postamble;
-		my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
-		my $FRONTEND      = "\$(dir)/CFrontEnd";
-		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
-		my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
-		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
-		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
-		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
-		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
-		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
-		my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
-
-		###################################################
-		## Add extra make instructions that don't quite fit into the
-		## ExtUtils::MakeMaker framework.
-		###################################################
-
-		push(@postamble, join(
-				"\n",
-				qq{\techo "#define INSTALLDIR \\"\$(DESTINSTALLPRIVLIB)\\"" > CFuncs/installdir.h\n},
-				qq{\# --- VRML::VRMLFunc:\n},
-				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm},
-				qq{\t\$(PERL) VRMLC.pm\n},
-			 ));
-
-		###################################################
-		# lets do the install:: targets at this step.
-		###################################################
-		push(@postamble, join(
-			  "\n",
-			  qq{install ::},
-		));
-
-
-		if ($OS ne "Darwin") {
-			if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
-				my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
-				my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
-
-				# amd64 requires -fPIC added...
-				my $plugex = $VRML::Config::vrml_config{PLUGIN_EXTRA_DEFINES};
-				push(@postamble, join(
-					  "\n",
-					  qq{\# --- Mozilla/Netscape Plugin:\n},
-					  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"\$(DESTDIR)$x1\" PLUGEX=$plugex \n}
-				 ));
-			}
-		}
-
-		if ($VRML::Config::vrml_config{JAVA_INST}) {
-			push(@postamble, join(
-				  "\n",
-				  qq{\# --- Java Archive\n},
-				  qq{\t\@cd java && \$(MAKE) install\n}
-				 ));
-		}
-
-		# Copy fonts over, etc.
-		push(@postamble, join(
-				  "\n",
-				qq{\# copy fonts, libFreeWRLjs.so over\n},
-				qq{\tcp -r fonts \$(DESTINSTALLPRIVLIB)/VRML\n},
-				qq{\tcp JS/$jsobjdir/libFreeWRLjs.so \$(DESTDIR)$LIB_DIR/libFreeWRLjs.so\n},
-				qq{\# copy copy the initialization file over\n},
-				));
-		if ($OS eq "Linux") {
-			push(@postamble, join(
-				"\n",
-				qq{# make the libFreeWRLFunc shared library active\n},
-				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so \$(DESTDIR)$LIB_DIR/libFreeWRLFunc.so\n},
-			));
-
-
-			if ($HAVE_UBUNTU eq "NO") {
-				push (@postamble, join(
-					"\n",
-					qq{# We can run ldconfig here\n},
-					qq{\t/sbin/ldconfig\n}
-				));
-			}
-
-
-			# We have linux, can we copy over the desktop app?
-			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
-				if ($HAVE_UBUNTU eq "YES") {
-					$VRML_CONFIG{DESKTOP} = "usr/share"; #note - no leading slash
-					push(@postamble, join(
-						"\n",
-						qq{# copy over the desktop app\n},
-						qq{\techo $DESTDIR/$VRML::Config::vrml_config{DESKTOP}/applications \n},
-						qq{\tcp Desktop/freewrl.desktop \$(DESTDIR)$VRML::Config::vrml_config{DESKTOP}/applications \n},
-						qq{\tcp Desktop/freewrl.png \$(DESTDIR)$VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
-					));
-
-				} else {
-					push(@postamble, join(
-						"\n",
-						qq{# copy over the desktop app\n},
-						qq{\tcp Desktop/freewrl.desktop $VRML::Config::vrml_config{DESKTOP}/applications \n},
-						qq{\tcp Desktop/freewrl.png $VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
-					));
-				}
-			}
-
-			# We have linux, can we copy over the desktop app?
-			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
-				push(@postamble, join(
-					"\n",
-					qq{# copy over the desktop app\n},
-					qq{\tcp Desktop/freewrl.desktop $VRML::Config::vrml_config{DESKTOP}/applications \n},
-					qq{\tcp Desktop/freewrl.png $VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
-				));
-			}
-		}
-		if ($OS eq "Darwin") {
-			push(@postamble, join(
-				"\n",
-                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
-                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
-                                qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
-				qq{\tcp freewrl.aquascript /usr/bin/freewrl; chmod 755 /usr/bin/freewrl\n},
-			));
-		}
-		
-
-
-
-		# make the C Front End.
-		my $def;
-		my $def2;
-		my $frontEndDef;
-		my $def2fe;
-		my $MYFELIBS;
-		my $MYFEDEFS;
-
-		# default values for FrontEnd targets.
-		$MYFELIBS =  $MYLIBS;
-		$MYFEINC =  $MYINC;
-
-		# are we compiling the front end with Motif or GTK2?
-		if (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_MOTIF") > 0) {
-			 $MYFELIBS = $MYLIBS . " -lXm ";
-		} elsif (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_GTK2") > 0) {
-			my $feinc = `pkg-config --cflags gtk+-2.0`;
-			my $fginc=  `pkg-config --cflags gtkgl-2.0`;
-			my $felib = `pkg-config --libs gtk+-2.0`;
-			my $fglib = `pkg-config --libs gtkgl-2.0`;
-			# remove whitespace at beginning and end.
-			$feinc =~ s/\s+$//; $feinc =~ s/^\s+//;
-			$fginc =~ s/\s+$//; $fginc =~ s/^\s+//;
-			$felib =~ s/\s+$//; $felib =~ s/^\s+//;
-			$fglib =~ s/\s+$//; $fglib =~ s/^\s+//;
-			$MYFELIBS = $MYLIBS." $felib $fglib ";
-			$MYFEINC = $MYINC." $feinc $fginc ";
-		}
-
-		my $def1 = "OSNAME=\$(OSNAME) " .
-			   "PPATH=\$(INSTALLPRIVLIB)/VRML " .
-			   "DEFINE=\"$MYDEFINE\" ".
-			   "BINDIR=\$(DESTDIR)\$(FRONTEND_DIR) ";
-
-		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
-			print "COMPILING WITH BOUNDSCHECKING\n";
-			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
-			$def2fe = "INC=\"$MYFEINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
-			print "line is $def2\n";
-		} else {
-			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
-			$def2fe = "INC=\"$MYFEINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
-		}
-
-		$def = $def1.$def2;
-		$frontEndDef = $def1.$def2fe;
-
-		# Darwin's front end is either a cocoa app or a carbon app; the front ends are made
-		# in a different file. So, in this make, don't make a front end!
-
-		# make the sound engine, console message, and frontend if NOT OSX.
-		if ($OS ne "Darwin") {
-			if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
-			push (@postamble, join("\n",
-				  qq{\n\# --- Sound Engine:},
-				  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def \n},
-			  	  qq{\n\# --- FreeWRL Message Console:},
-			  	  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) install $def \n},
-				  qq{\n\# --- FreeWRL C Front End:},
-				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $frontEndDef \n},
-				 ));
-			}
-		}
-
-		###################################################
-		# lets do the clean:: targets at this step.
-		###################################################
-		push(@postamble, join(
-			  "\n",
-			  qq{clean ::},
-			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clean\n},
-			 ));
-		if ($OS ne "Darwin") {
-			push(@postamble, join(
-			  "\n",
-			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $frontEndDef \n},
-			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
-			));
-		}
-
-		###################################################
-		# lets do the distclean:: targets at this step.
-		###################################################
-		push(@postamble, join(
-			  "\n",
-			  qq{distclean :: realclean},
-			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clobber},
-			 ));
-		if ($OS ne "Darwin") {
-			push(@postamble, join(
-			  "\n",
-			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $frontEndDef \n},
-			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
-			));
-
-			# We have linux, can we copy over the desktop app?
-			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
-				push(@postamble, join(
-					"\n",
-					qq{# remove the desktop app\n},
-					qq{\trm $VRML::Config::vrml_config{DESKTOP}/applications/freewrl.desktop \n},
-					qq{\trm $VRML::Config::vrml_config{DESKTOP}/pixmaps/freewrl.png \n},
-				));
-			}
-		}
-
-		###################################################
-		# lets do the all:: targets at this step.
-		###################################################
-		push(@postamble, join(
-			  "\n",
-			  qq{all::},
-			));
-
-		if ($OS eq "Linux") {
-			push(@postamble, join(
-				"\n",
-				#qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
-				#qq{\t/sbin/ldconfig\n}
-				qq{\t\tcp -f blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
-			));
-		}
-		if ($OS eq "Darwin") {
-			push(@postamble, join(
-				"\n",
-                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
-                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
-                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
-			));
-		}
-
-		if ($OS ne "Darwin") {
-		push(@postamble, join(
-			  "\n",
-			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $frontEndDef  \n},
-			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
-			 ));
-		}
-
-		###################################################
-		# lets do the all:: targets at this step.
-		###################################################
-
-		# OS X has its own build process, it does not use RPMS.
-		if ($OS ne "Darwin") {
-
-			# find out what the distribution is.
-			my $rpm_prefix = $VRML::Config::vrml_config{RPMPREFIX};
-			my $sourcepackage = $VRML::Config::vrml_config{SOURCEPACKAGE};
-			my $rpmversion = $VRML::Config::vrml_config{RPMVERSION};
-			my $osname = $VRML::Config::vrml_config{OSNAME};
-			my $specfile = $VRML::Config::vrml_config{SPECFILE};
-
-			#print "when we need it, we have rpm_prefix of $rpm_prefix, sourcepackage $sourcepackage, rpmversion $rpmversion, osname $osname, OS $OS, specfile $specfile\n";
-	
-			my $lib_dir = $VRML::Config::vrml_config{LIB_DIR};
-			my $bin_dir = $VRML::Config::vrml_config{BIN_DIR};
-	
-			push(@postamble, join(
-				  "\n",
-				  qq{deb::},
-					qq{\tsudo debuild -S},
-					qq{\tsudo pbuilder build ../*.dsc},
-				));
-	
-			push(@postamble, join(
-				  "\n",
-				  qq{rpm::},
-					qq{\t# make the gzip file of the dist.},
-					qq{\ttar -cf $rpm_prefix/SOURCES/$sourcepackage ..\/$srcdir},
-					qq{\trm -f $rpm_prefix/SOURCES/$sourcepackage.gz},
-					qq{\tgzip $rpm_prefix/SOURCES/$sourcepackage\n},
-					qq{\t#make the spec file.},
-					qq{\techo \"Summary: A vrml viewer\" > $specfile},
-					qq{\techo \"Name: freewrl\" >> $specfile},
-					qq{\techo \"Version: $rpmversion\" >> $specfile},
-					qq{\techo \"Release: $osname\" >> $specfile},
-					#qq{\techo \"Copyright: GPL\" >> $specfile},
-					qq{\techo \"License: GPL\" >> $specfile},
-					qq{\techo \"Group: Applications\/Multimedia\" >> $specfile},
-					qq{\techo \"Source0: $sourcepackage.gz\" >> $specfile},
-					qq{\techo \"URL: http:\/\/www.crc.ca\/FreeWRL\" >> $specfile},
-					qq{\techo \"Distribution: Linux\" >> $specfile},
-					qq{\techo \"Vendor: CRC Canada\" >> $specfile},
-					qq{\techo \"Packager: Autogenerated, John Stewart, <freewrl-06@rogers.com>\" >> $specfile},
-					qq{\techo \"Provides: perl(VRML::Config), perl(VRMLFields), perl(VRMLNodes), perl(VRMLRend), perl(VRML::VRMLCU), perl(VRML::VRMLFields), perl(VRML::VRMLNodes),perl(VRML::Events), perl(VRML::X3DParser)\" >> $specfile},
-					qq{\techo \"%define __check_files %{nil} \" >> $specfile},
-					qq{\techo \"%description\" >> $specfile},
-					qq{\techo \"FreeWRL is an Open Source, cross platform VRML2/X3D compliant browser, with script and EAI support.\" >> $specfile},
-					qq{\techo \"The primary platform is Linux.\" >> $specfile},
-					qq{\techo \"%prep\" >> $specfile},
-					# split the zcat into 2 lines because we need the $RPM_SOURCE_DIR in the rpm spec file...
-					qq{\techo -n \"zcat \$\$\" >> $specfile},
-					qq{\techo \"RPM_SOURCE_DIR\/$sourcepackage.gz | tar -xvf -\" >> $specfile},
-					qq{\techo \"%setup -q\" >> $specfile},
-					qq{\techo \"%build\" >> $specfile},
-					qq{\techo \"perl Makefile.PL\" >> $specfile},
-					qq{\techo \"%install\" >> $specfile},
-					qq{\techo \"make install\" >> $specfile},
-					qq{\techo \"%post\" >> $specfile},
-					qq{\techo \"\/sbin\/ldconfig\" >> $specfile},
-					qq{\techo \"%clean\" >> $specfile},
-					qq{\techo \"%files\" >> $specfile},
-					qq{\techo \"%defattr(-,root,root)\" >> $specfile},
-					qq{\techo \"$lib_dir\/libFreeWRLFunc.so\" >> $specfile},
-					qq{\techo \"$lib_dir\/libFreeWRLjs.so\" >> $specfile},
-					qq{\techo \"$bin_dir\/FreeWRL_Message\" >> $specfile},
-					qq{\techo \"$bin_dir\/freewrl\" >> $specfile},
-					qq{\techo -n \$(INSTALLSITEARCH) >> $specfile},
-					qq{\techo "/VRML" >> $specfile},
-					qq{\techo -n \$(DESTINSTALLPRIVLIB) >> $specfile},
-					qq{\techo "/VRML" >> $specfile},
-					qq{\techo -n \$(INSTALLSITEARCH) >> $specfile},
-					qq{\techo "/auto/VRML" >> $specfile},
-					qq{\techo -n \$(INSTALLSITEMAN1DIR) >> $specfile},
-					qq{\techo -n \"/freewrl.\" >> $specfile},
-					qq{\techo -n \$(MAN1EXT) >> $specfile},
-					qq{\techo \"*\" >> $specfile},
-				));
-				if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
-				#print "RPM - have sound engine\n";
-				push(@postamble, join(
-				  	"\n",
-					qq{\techo \"$bin_dir\/FreeWRL_SoundServer\" >> $specfile},
-					));
-				}
-	
-				if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
-				my $nsdir = $VRML::Config::vrml_config{NETSCAPE_INST};
-				#print "RPM: have Netscape Install Directory.\n";
-				push(@postamble, join(
-				  	"\n",
-					qq{\techo \"$nsdir\/npfreewrl.so\" >> $specfile},
-					));
-				}
-	
-				# now that spec file is written, finish off rpm build commands.
-				push(@postamble, join(
-				  "\n",
-					qq{\t# make the gzip file of the dist.},
-					qq{\trpmbuild -ba $specfile},
-					qq{\t# move the rpm file to a platform-specific name.},
-					));
-	
-	
-		}
-		return join("\n", @postamble);
-	}
-}
-
-
+#	sub post_constants {
+#		my $post_const = join(
+#							  "\n",
+#							  qq{\nvpath %.c .:./CFuncs},
+#							  qq{vpath %.o .:./CFuncs\n},
+#							  qq{CFUNCS_SRC:=\$(wildcard ./CFuncs/*.c)},
+#							  qq{OBJECT+=\$(CFUNCS_SRC:%c=%o)}
+#							 );
+#
+#		return $post_const;
+#	}
+#
+#	sub const_loadlibs {
+#		my $loadlibs = shift->SUPER::const_loadlibs(@_);
+#		$loadlibs =~ s/(LD_RUN_PATH\s*=.*)$/$1:$VRML::Config::vrml_config{LIBJS_INST}/m;
+#		# print "Makefile.PL - loadlibs $loadlibs\n";
+#		return $loadlibs;
+#	}
+#
+#	sub dynamic_lib {
+#		if ($OS eq "Darwin") {
+#			return "ARMAYBE = :
+#OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS}
+#INST_DYNAMIC_DEP =
+#
+#\$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
+#	\$\(RM_F\) \$\@
+#	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOADLIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
+#	\$\(CHMOD\) \$\(PERM_RWX\) \$\@\n";
+#		} else {
+#			return shift->SUPER::dynamic_lib(@_);
+#		}
+#	}
+#
+#
+#	sub post_initialize {
+#		use Cwd;
+#		my($ver, $nc);
+#		my $dir = getcwd();
+#		my $post_init = "";
+#
+#
+#		$post_init = join(
+#			  "\n",
+#			  qq{\nFRONTEND=$dir/CFrontEnd},
+#			  qq{\nSOUNDENGINE=$dir/SoundEngine},
+#			  qq{\nCONSOLEMSG=$dir/FreeWRL_Message},
+#			  qq{FRONTEND_DIR=$VRML::Config::vrml_config{BIN_DIR}},
+#			  qq{LIB_DIR=$VRML::Config::vrml_config{LIB_DIR}},
+#		 );
+#
+#		return($post_init);
+#	}
+#
+#
+#
+#	sub postamble {
+#		my @postamble;
+#		my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
+#		my $FRONTEND      = "\$(dir)/CFrontEnd";
+#		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
+#		my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
+#		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
+#		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
+#		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
+#		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
+#		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
+#		my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
+#
+#		###################################################
+#		## Add extra make instructions that don't quite fit into the
+#		## ExtUtils::MakeMaker framework.
+#		###################################################
+#
+#		push(@postamble, join(
+#				"\n",
+#				qq{\techo "#define INSTALLDIR \\"\$(DESTINSTALLPRIVLIB)\\"" > CFuncs/installdir.h\n},
+#				qq{\# --- VRML::VRMLFunc:\n},
+#				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm},
+#				qq{\t\$(PERL) VRMLC.pm\n},
+#			 ));
+#
+#		###################################################
+#		# lets do the install:: targets at this step.
+#		###################################################
+#		push(@postamble, join(
+#			  "\n",
+#			  qq{install ::},
+#		));
+#
+#
+#		if ($OS ne "Darwin") {
+#			if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
+#				my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
+#				my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
+#
+#				# amd64 requires -fPIC added...
+#				my $plugex = $VRML::Config::vrml_config{PLUGIN_EXTRA_DEFINES};
+#				push(@postamble, join(
+#					  "\n",
+#					  qq{\# --- Mozilla/Netscape Plugin:\n},
+#					  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"\$(DESTDIR)$x1\" PLUGEX=$plugex \n}
+#				 ));
+#			}
+#		}
+#
+#		if ($VRML::Config::vrml_config{JAVA_INST}) {
+#			push(@postamble, join(
+#				  "\n",
+#				  qq{\# --- Java Archive\n},
+#				  qq{\t\@cd java && \$(MAKE) install\n}
+#				 ));
+#		}
+#
+#		# Copy fonts over, etc.
+#		push(@postamble, join(
+#				  "\n",
+#				qq{\# copy fonts, libFreeWRLjs.so over\n},
+#				qq{\tcp -r fonts \$(DESTINSTALLPRIVLIB)/VRML\n},
+#				qq{\tcp JS/$jsobjdir/libFreeWRLjs.so \$(DESTDIR)$LIB_DIR/libFreeWRLjs.so\n},
+#				qq{\# copy copy the initialization file over\n},
+#				));
+#		if ($OS eq "Linux") {
+#			push(@postamble, join(
+#				"\n",
+#				qq{# make the libFreeWRLFunc shared library active\n},
+#				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so \$(DESTDIR)$LIB_DIR/libFreeWRLFunc.so\n},
+#			));
+#
+#
+#			if ($HAVE_UBUNTU eq "NO") {
+#				push (@postamble, join(
+#					"\n",
+#					qq{# We can run ldconfig here\n},
+#					qq{\t/sbin/ldconfig\n}
+#				));
+#			}
+#
+#
+#			# We have linux, can we copy over the desktop app?
+#			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
+#				if ($HAVE_UBUNTU eq "YES") {
+#					$VRML_CONFIG{DESKTOP} = "usr/share"; #note - no leading slash
+#					push(@postamble, join(
+#						"\n",
+#						qq{# copy over the desktop app\n},
+#						qq{\techo $DESTDIR/$VRML::Config::vrml_config{DESKTOP}/applications \n},
+#						qq{\tcp Desktop/freewrl.desktop \$(DESTDIR)$VRML::Config::vrml_config{DESKTOP}/applications \n},
+#						qq{\tcp Desktop/freewrl.png \$(DESTDIR)$VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
+#					));
+#
+#				} else {
+#					push(@postamble, join(
+#						"\n",
+#						qq{# copy over the desktop app\n},
+#						qq{\tcp Desktop/freewrl.desktop $VRML::Config::vrml_config{DESKTOP}/applications \n},
+#						qq{\tcp Desktop/freewrl.png $VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
+#					));
+#				}
+#			}
+#
+#			# We have linux, can we copy over the desktop app?
+#			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
+#				push(@postamble, join(
+#					"\n",
+#					qq{# copy over the desktop app\n},
+#					qq{\tcp Desktop/freewrl.desktop $VRML::Config::vrml_config{DESKTOP}/applications \n},
+#					qq{\tcp Desktop/freewrl.png $VRML::Config::vrml_config{DESKTOP}/pixmaps \n},
+#				));
+#			}
+#		}
+#		if ($OS eq "Darwin") {
+#			push(@postamble, join(
+#				"\n",
+#                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
+#                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
+#                                qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
+#				qq{\tcp freewrl.aquascript /usr/bin/freewrl; chmod 755 /usr/bin/freewrl\n},
+#			));
+#		}
+#		
+#
+#
+#
+#		# make the C Front End.
+#		my $def;
+#		my $def2;
+#		my $frontEndDef;
+#		my $def2fe;
+#		my $MYFELIBS;
+#		my $MYFEDEFS;
+#
+#		# default values for FrontEnd targets.
+#		$MYFELIBS =  $MYLIBS;
+#		$MYFEINC =  $MYINC;
+#
+#		# are we compiling the front end with Motif or GTK2?
+#		if (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_MOTIF") > 0) {
+#			 $MYFELIBS = $MYLIBS . " -lXm ";
+#		} elsif (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_GTK2") > 0) {
+#			my $feinc = `pkg-config --cflags gtk+-2.0`;
+#			my $fginc=  `pkg-config --cflags gtkgl-2.0`;
+#			my $felib = `pkg-config --libs gtk+-2.0`;
+#			my $fglib = `pkg-config --libs gtkgl-2.0`;
+#			# remove whitespace at beginning and end.
+#			$feinc =~ s/\s+$//; $feinc =~ s/^\s+//;
+#			$fginc =~ s/\s+$//; $fginc =~ s/^\s+//;
+#			$felib =~ s/\s+$//; $felib =~ s/^\s+//;
+#			$fglib =~ s/\s+$//; $fglib =~ s/^\s+//;
+#			$MYFELIBS = $MYLIBS." $felib $fglib ";
+#			$MYFEINC = $MYINC." $feinc $fginc ";
+#		}
+#
+#		my $def1 = "OSNAME=\$(OSNAME) " .
+#			   "PPATH=\$(INSTALLPRIVLIB)/VRML " .
+#			   "DEFINE=\"$MYDEFINE\" ".
+#			   "BINDIR=\$(DESTDIR)\$(FRONTEND_DIR) ";
+#
+#		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
+#			print "COMPILING WITH BOUNDSCHECKING\n";
+#			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
+#			$def2fe = "INC=\"$MYFEINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
+#			print "line is $def2\n";
+#		} else {
+#			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
+#			$def2fe = "INC=\"$MYFEINC\" LIBS=\"$MYFELIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
+#		}
+#
+#		$def = $def1.$def2;
+#		$frontEndDef = $def1.$def2fe;
+#
+#		# Darwin's front end is either a cocoa app or a carbon app; the front ends are made
+#		# in a different file. So, in this make, don't make a front end!
+#
+#		# make the sound engine, console message, and frontend if NOT OSX.
+#		if ($OS ne "Darwin") {
+#			if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
+#			push (@postamble, join("\n",
+#				  qq{\n\# --- Sound Engine:},
+#				  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def \n},
+#			  	  qq{\n\# --- FreeWRL Message Console:},
+#			  	  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) install $def \n},
+#				  qq{\n\# --- FreeWRL C Front End:},
+#				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $frontEndDef \n},
+#				 ));
+#			}
+#		}
+#
+#		###################################################
+#		# lets do the clean:: targets at this step.
+#		###################################################
+#		push(@postamble, join(
+#			  "\n",
+#			  qq{clean ::},
+#			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clean\n},
+#			 ));
+#		if ($OS ne "Darwin") {
+#			push(@postamble, join(
+#			  "\n",
+#			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
+#			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $frontEndDef \n},
+#			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
+#			));
+#		}
+#
+#		###################################################
+#		# lets do the distclean:: targets at this step.
+#		###################################################
+#		push(@postamble, join(
+#			  "\n",
+#			  qq{distclean :: realclean},
+#			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clobber},
+#			 ));
+#		if ($OS ne "Darwin") {
+#			push(@postamble, join(
+#			  "\n",
+#			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
+#			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $frontEndDef \n},
+#			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
+#			));
+#
+#			# We have linux, can we copy over the desktop app?
+#			if ($VRML::Config::vrml_config{DESKTOP} ne "NO") {
+#				push(@postamble, join(
+#					"\n",
+#					qq{# remove the desktop app\n},
+#					qq{\trm $VRML::Config::vrml_config{DESKTOP}/applications/freewrl.desktop \n},
+#					qq{\trm $VRML::Config::vrml_config{DESKTOP}/pixmaps/freewrl.png \n},
+#				));
+#			}
+#		}
+#
+#		###################################################
+#		# lets do the all:: targets at this step.
+#		###################################################
+#		push(@postamble, join(
+#			  "\n",
+#			  qq{all::},
+#			));
+#
+#		if ($OS eq "Linux") {
+#			push(@postamble, join(
+#				"\n",
+#				#qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
+#				#qq{\t/sbin/ldconfig\n}
+#				qq{\t\tcp -f blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
+#			));
+#		}
+#		if ($OS eq "Darwin") {
+#			push(@postamble, join(
+#				"\n",
+#                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
+#                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
+#                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
+#			));
+#		}
+#
+#		if ($OS ne "Darwin") {
+#		push(@postamble, join(
+#			  "\n",
+#			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
+#			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $frontEndDef  \n},
+#			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
+#			 ));
+#		}
+#
+#		###################################################
+#		# lets do the all:: targets at this step.
+#		###################################################
+#
+#		# OS X has its own build process, it does not use RPMS.
+#		if ($OS ne "Darwin") {
+#
+#			# find out what the distribution is.
+#			my $rpm_prefix = $VRML::Config::vrml_config{RPMPREFIX};
+#			my $sourcepackage = $VRML::Config::vrml_config{SOURCEPACKAGE};
+#			my $rpmversion = $VRML::Config::vrml_config{RPMVERSION};
+#			my $osname = $VRML::Config::vrml_config{OSNAME};
+#			my $specfile = $VRML::Config::vrml_config{SPECFILE};
+#
+#			#print "when we need it, we have rpm_prefix of $rpm_prefix, sourcepackage $sourcepackage, rpmversion $rpmversion, osname $osname, OS $OS, specfile $specfile\n";
+#	
+#			my $lib_dir = $VRML::Config::vrml_config{LIB_DIR};
+#			my $bin_dir = $VRML::Config::vrml_config{BIN_DIR};
+#	
+#			push(@postamble, join(
+#				  "\n",
+#				  qq{deb::},
+#					qq{\tsudo debuild -S},
+#					qq{\tsudo pbuilder build ../*.dsc},
+#				));
+#	
+#			push(@postamble, join(
+#				  "\n",
+#				  qq{rpm::},
+#					qq{\t# make the gzip file of the dist.},
+#					qq{\ttar -cf $rpm_prefix/SOURCES/$sourcepackage ..\/$srcdir},
+#					qq{\trm -f $rpm_prefix/SOURCES/$sourcepackage.gz},
+#					qq{\tgzip $rpm_prefix/SOURCES/$sourcepackage\n},
+#					qq{\t#make the spec file.},
+#					qq{\techo \"Summary: A vrml viewer\" > $specfile},
+#					qq{\techo \"Name: freewrl\" >> $specfile},
+#					qq{\techo \"Version: $rpmversion\" >> $specfile},
+#					qq{\techo \"Release: $osname\" >> $specfile},
+#					#qq{\techo \"Copyright: GPL\" >> $specfile},
+#					qq{\techo \"License: GPL\" >> $specfile},
+#					qq{\techo \"Group: Applications\/Multimedia\" >> $specfile},
+#					qq{\techo \"Source0: $sourcepackage.gz\" >> $specfile},
+#					qq{\techo \"URL: http:\/\/www.crc.ca\/FreeWRL\" >> $specfile},
+#					qq{\techo \"Distribution: Linux\" >> $specfile},
+#					qq{\techo \"Vendor: CRC Canada\" >> $specfile},
+#					qq{\techo \"Packager: Autogenerated, John Stewart, <freewrl-06@rogers.com>\" >> $specfile},
+#					qq{\techo \"Provides: perl(VRML::Config), perl(VRMLFields), perl(VRMLNodes), perl(VRMLRend), perl(VRML::VRMLCU), perl(VRML::VRMLFields), perl(VRML::VRMLNodes),perl(VRML::Events), perl(VRML::X3DParser)\" >> $specfile},
+#					qq{\techo \"%define __check_files %{nil} \" >> $specfile},
+#					qq{\techo \"%description\" >> $specfile},
+#					qq{\techo \"FreeWRL is an Open Source, cross platform VRML2/X3D compliant browser, with script and EAI support.\" >> $specfile},
+#					qq{\techo \"The primary platform is Linux.\" >> $specfile},
+#					qq{\techo \"%prep\" >> $specfile},
+#					# split the zcat into 2 lines because we need the $RPM_SOURCE_DIR in the rpm spec file...
+#					qq{\techo -n \"zcat \$\$\" >> $specfile},
+#					qq{\techo \"RPM_SOURCE_DIR\/$sourcepackage.gz | tar -xvf -\" >> $specfile},
+#					qq{\techo \"%setup -q\" >> $specfile},
+#					qq{\techo \"%build\" >> $specfile},
+#					qq{\techo \"perl Makefile.PL\" >> $specfile},
+#					qq{\techo \"%install\" >> $specfile},
+#					qq{\techo \"make install\" >> $specfile},
+#					qq{\techo \"%post\" >> $specfile},
+#					qq{\techo \"\/sbin\/ldconfig\" >> $specfile},
+#					qq{\techo \"%clean\" >> $specfile},
+#					qq{\techo \"%files\" >> $specfile},
+#					qq{\techo \"%defattr(-,root,root)\" >> $specfile},
+#					qq{\techo \"$lib_dir\/libFreeWRLFunc.so\" >> $specfile},
+#					qq{\techo \"$lib_dir\/libFreeWRLjs.so\" >> $specfile},
+#					qq{\techo \"$bin_dir\/FreeWRL_Message\" >> $specfile},
+#					qq{\techo \"$bin_dir\/freewrl\" >> $specfile},
+#					qq{\techo -n \$(INSTALLSITEARCH) >> $specfile},
+#					qq{\techo "/VRML" >> $specfile},
+#					qq{\techo -n \$(DESTINSTALLPRIVLIB) >> $specfile},
+#					qq{\techo "/VRML" >> $specfile},
+#					qq{\techo -n \$(INSTALLSITEARCH) >> $specfile},
+#					qq{\techo "/auto/VRML" >> $specfile},
+#					qq{\techo -n \$(INSTALLSITEMAN1DIR) >> $specfile},
+#					qq{\techo -n \"/freewrl.\" >> $specfile},
+#					qq{\techo -n \$(MAN1EXT) >> $specfile},
+#					qq{\techo \"*\" >> $specfile},
+#				));
+#				if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
+#				#print "RPM - have sound engine\n";
+#				push(@postamble, join(
+#				  	"\n",
+#					qq{\techo \"$bin_dir\/FreeWRL_SoundServer\" >> $specfile},
+#					));
+#				}
+#	
+#				if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
+#				my $nsdir = $VRML::Config::vrml_config{NETSCAPE_INST};
+#				#print "RPM: have Netscape Install Directory.\n";
+#				push(@postamble, join(
+#				  	"\n",
+#					qq{\techo \"$nsdir\/npfreewrl.so\" >> $specfile},
+#					));
+#				}
+#	
+#				# now that spec file is written, finish off rpm build commands.
+#				push(@postamble, join(
+#				  "\n",
+#					qq{\t# make the gzip file of the dist.},
+#					qq{\trpmbuild -ba $specfile},
+#					qq{\t# move the rpm file to a platform-specific name.},
+#					));
+#	
+#	
+#		}
+#		return join("\n", @postamble);
+#	}
+#}
+#
+#
 	# determine on what system we are running, and if we can make a package for it for
 	# redistribution
 	sub linux_system_info() {
@@ -787,3 +760,103 @@ INST_DYNAMIC_DEP =
 	
 		return ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile);
 	}
+
+
+
+
+#######################################################################################
+# write the Makefile
+#######################################################################################
+
+my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
+my $FRONTEND      = "\$(dir)/CFrontEnd";
+my $SOUNDENGINE   = "\$(dir)/SoundEngine";
+my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
+my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
+my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
+my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
+my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
+my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
+my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
+
+print "mydefine $MYDEFINE\n";
+
+print "Finding all files to compile";
+open MK, ">Makefile" or die("Couldn't write the Makefile");
+
+my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
+
+# do the headers.
+print MK "#Make file for FreeWRL\n";
+print MK "CC = gcc\n";
+print MK "INC = $MYINC\n";
+print MK "DEFINE = $MYDEFINE\n";
+print MK "FWFLAGS = -c\n"; 
+print MK "\n";
+print MK "all: freewrl\n";
+print MK "install:	\n	libFreeWRL freewrl\n	strip freewrl\n	cp freewrl $(BINDIR)\n";
+
+#LIBFREEWRL
+foreach my $fullname (@CFuncsSourceFiles) {
+	# remove the CFuncs from the front, and the .c from the end.
+	my $nm = $fullname;
+	$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
+
+	print MK "$nm:\n	\$(CC) \$(INC) \$(FWFLAGS) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
+}
+
+print MK "libFreeWRL:\t";
+foreach my $fullname (@CFuncsSourceFiles) {
+	# remove the CFuncs from the front, and the .c from the end.
+	my $nm = $fullname;
+	$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
+
+	print MK "$nm ";
+}
+print MK "\n";
+
+
+## make file for FreeWRL front end.
+##
+#
+## for making the freewrl opts file
+#FWFLAGS = -c -I /usr/include/GL -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+#
+#all:	freewrl
+#
+#install:  freewrl
+#	strip freewrl
+#	cp freewrl $(BINDIR)
+#
+#fwopts:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
+#
+#fwWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwWindow.c
+#
+#fwMotifWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwMotifWindow.c
+#
+#fwGtkWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwGtkWindow.c
+#
+#fwBareWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwBareWindow.c
+#
+#GLwDrawA:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) GLwDrawA.c
+#
+#freewrl: fwopts fwWindow fwGtkWindow fwBareWindow fwMotifWindow GLwDrawA
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) freewrl.c
+#
+#	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
+#	freewrl.o fwopts.o fwWindow.o fwGtkWindow.o fwBareWindow.o fwMotifWindow.o GLwDrawA.o \
+#	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
+#	$(LIBS) \
+#	-L/usr/X11R6/lib \
+#	-lXt -lpthread -lFreeWRLFunc $(BC)\
+#
+#clean:
+#	rm -f *o; rm -f perlxsi*; rm -f freewrl;
+#
+#distclean: clean

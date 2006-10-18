@@ -547,7 +547,7 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	return FALSE; /*  should never get here */
 }
 
-
+#ifdef OLDCODE
 /* Verify that this structure points to a series of SvPVs not
  * SvPVMGs or anything like that If it does, convert it to a SvPV */
 
@@ -581,6 +581,7 @@ void verifySVtype(struct Multi_String *to) {
 	}
 	/* printf ("done verifySVtype\n"); */
 }
+#endif
 
 
 /****************************************************************/

@@ -12,7 +12,6 @@
 #define __SOUNDS_H__
 
 #include "headers.h"
-#include "XSUB.h"
 
 #include <math.h>
 
