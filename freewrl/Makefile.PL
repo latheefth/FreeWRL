@@ -142,15 +142,6 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$BUILD_OPT = 1;
 }
 
-# is this an update of an older build? Some files have moved.
-my $oldfw2initpl = $VRML_CONFIG{BIN_DIR}."/fw2init.pl";
-if (-e $oldfw2initpl) {
-	print "***************************************************************************\n";
-	print "There is an old file that should be removed by hand: $oldfw2initpl\n";
-	print "***************************************************************************\n";
-}
-
-
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 	print "MAKING WITH BOUNDSCHECKING ENABLED\n";
 	push @inc, "-fbounds-checking";
@@ -419,7 +410,6 @@ INST_DYNAMIC_DEP =
 				qq{\tcp -r fonts \$(DESTINSTALLPRIVLIB)/VRML\n},
 				qq{\tcp JS/$jsobjdir/libFreeWRLjs.so \$(DESTDIR)$LIB_DIR/libFreeWRLjs.so\n},
 				qq{\# copy copy the initialization file over\n},
-				qq{\tcp CFrontEnd/fw2init.pl \$(DESTINSTALLPRIVLIB)/VRML\n},
 				));
 		if ($OS eq "Linux") {
 			push(@postamble, join(
