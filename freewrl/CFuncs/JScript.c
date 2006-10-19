@@ -903,3 +903,69 @@ void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
 
 	FREE_IF_NZ (smallfield);
 }
+
+
+int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
+	JSContext *_context;
+	JSObject *_globalObj;
+
+	char buffer[STRING];
+	jsval _val, rval = INT_TO_JSVAL(0);
+
+	/* get context and global object for this script */
+	_context = (JSContext *) ScriptControl[num].cx;
+	_globalObj = (JSObject *)ScriptControl[num].glob;
+
+	#ifdef JSVERBOSE 
+		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
+	#endif
+	
+
+	if (!JS_DefineProperty(_context, _globalObj, name, rval,
+						   NULL, setECMANative,
+						   0 | JSPROP_PERMANENT)) {
+		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
+				name);
+		return JS_FALSE;
+	}
+
+	memset(buffer, 0, STRING);
+	sprintf(buffer, "_%s_touched", name);
+	_val = INT_TO_JSVAL(0);
+
+	if (!JS_SetProperty(_context, _globalObj, buffer, &_val)) {
+		printf("JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
+				buffer);
+		return JS_FALSE;
+	}
+	return JS_TRUE;
+}
+
+int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
+	jsval _rval = INT_TO_JSVAL(0);
+	JSContext *_context;
+	JSObject *_globalObj;
+
+	/* get context and global object for this script */
+	_context = (JSContext *) ScriptControl[num].cx;
+	_globalObj = (JSObject *)ScriptControl[num].glob;
+	#ifdef JSVERBOSE 
+		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",
+			   _context, _globalObj, name, str);
+	#endif
+
+	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
+						   FNAME_STUB, LINENO_STUB, &_rval)) {
+		printf("JS_EvaluateScript failed for \"%s\" in addGlobalAssignProperty.\n",
+				str);
+		return JS_FALSE;
+	}
+	if (!JS_DefineProperty(_context, _globalObj, name, _rval,
+						   getAssignProperty, setAssignProperty,
+						   0 | JSPROP_PERMANENT)) {
+		printf("JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n",
+				name);
+		return JS_FALSE;
+	}
+	return JS_TRUE;
+}

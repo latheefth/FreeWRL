@@ -764,83 +764,161 @@ require './Config.pm';
 
 
 
-#######################################################################################
-# write the Makefile
-#######################################################################################
+	#######################################################################################
+	# write the Makefile
+	#######################################################################################
+	
+	my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
+	my $FRONTEND      = "\$(dir)/CFrontEnd";
+	my $SOUNDENGINE   = "\$(dir)/SoundEngine";
+	my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
+	my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
+	my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
+	my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
+	my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
+	my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
+	my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 
-my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
-my $FRONTEND      = "\$(dir)/CFrontEnd";
-my $SOUNDENGINE   = "\$(dir)/SoundEngine";
-my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
-my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
-my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
-my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
-my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
-my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
-my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
+	my $MYFELIBS =  $MYLIBS . " -lFreeWRLFunc -lpthread";
+	my $MYFEINC =  $MYINC;
 
-open ID, ">CFuncs/installdir.h" or die ("Couldn't create installdir.h");
-print ID "#define INSTALLDIR \"\/tmp\"\n";
-close ID;
+	# are we compiling the front end with Motif or GTK2?
+	if (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_MOTIF") > 0) {
+		 $MYFELIBS = $MYFELIBS . " -lXm ";
+	}
 
+	# compiling with bounds checking??
+	if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
+		print "COMPILING WITH BOUNDSCHECKING\n";
+		 $MYFELIBS = $MYFELIBS . " -lboundscheck";
+	}
+	
+	
+	open ID, ">CFuncs/installdir.h" or die ("Couldn't create installdir.h");
+	print ID "#define INSTALLDIR \"\/tmp\"\n";
+	close ID;
+	
+	open MK, ">Makefile" or die("Couldn't write the Makefile");
+	
+	# do the headers.
+	print MK "#Make file for FreeWRL\n";
+	print MK "CC = gcc\n";
+	print MK "INC = $MYINC\n";
+	print MK "DEFINE = $MYDEFINE\n";
+	print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
+	print MK "MYLIBS = $MYLIBS\n";
+	print MK "MYFELIBS = $MYFELIBS\n";
+	
+	print MK "\n";
+	if ($OS ne "Darwin") {
+		print MK "all: libFreeWRL CFrontEnd SoundEngine\n";
+		print MK "install:	\n	libFreeWRL freewrl\n	strip freewrl\n	cp freewrl $(BINDIR)\n";
+	} else {
+		print MK "all: libFreeWRL \n";
+	}
+	
+	#############################################################################
+	#LIBFREEWRL
+	my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
+	foreach my $fullname (@CFuncsSourceFiles) {
+		# remove the CFuncs from the front, and the .c from the end.
+		my $nm = $fullname;
+		$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
+	
+		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) -ICFuncs \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
+	}
+	
+	print MK "libFreeWRL:\t";
+	foreach my $fullname (@CFuncsSourceFiles) {
+		# remove the CFuncs from the front, and the .c from the end.
+		my $nm = $fullname;
+		$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
+	
+		print MK "$nm ";
+	}
+	print MK "\n";
+	
+	print MK "# make the shared library\n";
+	print MK "	\$(CC) -shared ";
+	foreach my $fullname (@CFuncsSourceFiles) {
+		$fullname =~ s/.c$/.o/;
+		print MK "$fullname ";
+	}
+	print MK " -o libFreeWRLFunc.so \$(MYLIBS)\n";;
+	
+	#############################################################################
+	#CFRONTEND
+	if ($os ne "Darwin") {
+		my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
+		foreach my $fullname (@CFrontEndSourceFiles) {
+			# remove the CFrontEnd from the front, and the .c from the end.
+			my $nm = $fullname;
+			$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
+		
+			print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) -ICFrontEnd \$(DEFINE) $fullname -o CFrontEnd\/$nm.o\n";
+		}
+		
+		print MK "CFrontEnd:\t";
+		foreach my $fullname (@CFrontEndSourceFiles) {
+			# remove the CFrontEnd from the front, and the .c from the end.
+			my $nm = $fullname;
+			$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
+		
+			print MK "$nm ";
+		}
+		print MK "\n";
+		
+## for making the freewrl opts file
+#FWFLAGS = -c -I /usr/include/GL -I../CFuncs -D_REENTRANT 
+#
+#all:	freewrl
+#
+#install:  freewrl
+#	strip freewrl
+#	cp freewrl $(BINDIR)
+#
+#fwopts:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
+#
+#fwWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwWindow.c
+#
+#fwMotifWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwMotifWindow.c
+#
+#fwGtkWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwGtkWindow.c
+#
+#fwBareWindow:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwBareWindow.c
+#
+#GLwDrawA:
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) GLwDrawA.c
+#
+#freewrl: fwopts fwWindow fwGtkWindow fwBareWindow fwMotifWindow GLwDrawA
+#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) freewrl.c
+#
+#	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
+#	freewrl.o fwopts.o fwWindow.o fwGtkWindow.o fwBareWindow.o fwMotifWindow.o GLwDrawA.o \
+#	$(LIBS) \
+#	-L/usr/X11R6/lib \
+#	-lXt -lpthread -lFreeWRLFunc $(BC)\
+#
+#clean:
+#	rm -f *o; rm -f perlxsi*; rm -f freewrl;
+#
+#distclean: clean
 
-print "mydefine $MYDEFINE\n";
-print "myLIBS $MYLIBS\n";
-
-print "Finding all files to compile";
-open MK, ">Makefile" or die("Couldn't write the Makefile");
-
-my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
-
-
-#gcc -c  -fbounds-checking -I/usr/X11R6/include/ -I/usr/include/freetype2 -I/usr/include/freetype2/freetype -I../JS/js1.5/src/Linux_All_OPT.OBJ -IJS/js1.5/src/Linux_All_OPT.OBJ -IJS/js1.5/src -I../JS/js1.5/src -ICFuncs -D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -DDEBUGGING -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I/usr/include/gdbm -O2 -g -pipe -m32 -march=i386 -mtune=pentium4   -DVERSION=\"\" -DXS_VERSION=\"\" EAIServ.c -fPIC -I/usr/lib/perl5/5.8.5/i386-linux-thread-multi/CORE  -ansi -DHAVE_MOTIF -DXP_UNIX -D_GNU_SOURCE  -o EAIServ.o
-# do the headers.
-print MK "#Make file for FreeWRL\n";
-print MK "CC = gcc\n";
-print MK "INC = $MYINC\n";
-print MK "DEFINE = $MYDEFINE\n";
-print MK "FWFLAGS = -c -Wall\n"; 
-
-if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
-	print "COMPILING WITH BOUNDSCHECKING\n";
-	print MK "BC = -lboundscheck\n";
-}
-
-print MK "\n";
-print MK "freewrl:\n	cd CFrontEnd; make\n";
-print MK "SoundEngine:\n	cd SoundEngine; make\n";
-
-print MK "all: libFreeWRL freewrl SoundEngine\n";
-print MK "install:	\n	libFreeWRL freewrl\n	strip freewrl\n	cp freewrl $(BINDIR)\n";
-
-#LIBFREEWRL
-foreach my $fullname (@CFuncsSourceFiles) {
-	# remove the CFuncs from the front, and the .c from the end.
-	my $nm = $fullname;
-	$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
-
-	print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) -ICFuncs \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
-}
-
-print MK "libFreeWRL:\t";
-foreach my $fullname (@CFuncsSourceFiles) {
-	# remove the CFuncs from the front, and the .c from the end.
-	my $nm = $fullname;
-	$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
-
-	print MK "$nm ";
-}
-print MK "\n";
-
-print MK "# make the shared library\n";
-print MK "	\$(CC) -shared ";
-foreach my $fullname (@CFuncsSourceFiles) {
-	$fullname =~ s/.c$/.o/;
-	print MK "$fullname ";
-}
-print MK " -o libFreeWRLFunc.so $MYLIBS\n";;
-
-
+		print MK "# make the front end\n";
+		print MK "	\$(CC) ";
+		foreach my $fullname (@CFrontEndSourceFiles) {
+			$fullname =~ s/.c$/.o/;
+			print MK "$fullname ";
+		}
+		print MK " -o freewrl \$(BC) \$(MYFELIBS)\n";
+	}
+	
+#############################################################################
 ## make file for FreeWRL front end.
 ##
 #

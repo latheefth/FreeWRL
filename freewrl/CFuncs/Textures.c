@@ -1009,7 +1009,7 @@ int findTextureFile (int cwo, int *istemp) {
 
 	if (loadparams[cwo].type !=PIXELTEXTURE) {
 		/* lets make up the path and save it, and make it the global path */
-		count = loadparams[cwo].parenturl->strptr;
+		count = strlen(loadparams[cwo].parenturl->strptr);
 		mypath = (char *)malloc ((sizeof(char)* count)+1);
 		filename = (char *)malloc(1000);
 
@@ -1018,7 +1018,7 @@ int findTextureFile (int cwo, int *istemp) {
 		}
 
 		/* copy the parent path over */
-		strcpy (mypath,loadparams[cwo].parenturl->len);
+		strcpy (mypath,loadparams[cwo].parenturl->strptr);
 
 		/* and strip off the file name, leaving any path */
 		slashindex = (char *)rindex(mypath,'/');
@@ -1155,6 +1155,7 @@ int findTextureFile (int cwo, int *istemp) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: running convert on %s\n",sysline);
 			#endif
+				printf ("textureThread: running convert on %s\n",sysline);
 
 			if (freewrlSystem (sysline) != 0) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
