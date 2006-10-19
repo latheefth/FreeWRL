@@ -45,10 +45,9 @@ void reset_upvector() {
 
 /* called when binding NavigationInfo nodes */
 void set_naviinfo(struct X3D_NavigationInfo *node) {
-	SV **svptr;
+	struct Uni_String **svptr;
 	int i;
 	char *typeptr;
-	STRLEN xx;
 
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");
@@ -73,7 +72,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	/* now, find the ones that are ok */
 	for (i = 0; i < node->type.n; i++) {
 		/*  get the string pointer */
-		typeptr = SvPV(svptr[i],xx);
+		typeptr = svptr[i]->strptr;
 
 		if (strncmp(typeptr,"WALK",strlen("WALK")) == 0) {
 			Viewer.oktypes[WALK] = TRUE;
@@ -117,7 +116,6 @@ void send_bind_to(int nodetype, void *node, int value) {
 	struct X3D_Viewpoint *vp;
 	struct X3D_GeoViewpoint *gvp;
 	char * nameptr;
-	STRLEN len;
 
 	/* printf ("\nsend_bind_to, nodetype %s node %d value %d\n",stringNodeType(nodetype),node,value); */
 
@@ -143,7 +141,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 
 		if (vp->_nodeType == NODE_Viewpoint ) {
 			vp->set_bind = value;
-			nameptr = SvPV(vp->description,len);
+			nameptr = vp->description->strptr;
 			setMenuStatus (nameptr);
 
 			bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
@@ -158,7 +156,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 
 			gvp = (struct X3D_GeoViewpoint *) node;
 			gvp->set_bind = value;
-			nameptr = SvPV(gvp->description,len);
+			nameptr = gvp->description->strptr;
 			setMenuStatus (nameptr);
 
 			bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
@@ -352,10 +350,9 @@ void render_Fog (struct X3D_Fog *node) {
 	GLdouble x,y,z;
 	GLdouble x1,y1,z1;
 	GLdouble sx, sy, sz;
-	/* int frtlen; */
 	GLfloat fog_colour [4];
-	STRLEN foglen;
 	char *fogptr;
+	int foglen;
 
 
 	/* printf ("render_Fog, node %d isBound %d color %f %f %f set_bind %d\n",
@@ -381,7 +378,8 @@ void render_Fog (struct X3D_Fog *node) {
 	fog_colour[2] = node->color.c[2];
 	fog_colour[3] = 1.0;
 
-	fogptr = SvPV((node->fogType),foglen);
+	fogptr = node->fogType->strptr;
+	foglen = node->fogType->len;
 	glPushMatrix();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);

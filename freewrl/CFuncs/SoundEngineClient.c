@@ -14,7 +14,8 @@
 
 
 #include "sounds.h"
-
+#include <errno.h>
+#include <string.h>
 
 int SReg[MAXSOUNDS];
 

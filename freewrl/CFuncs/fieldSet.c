@@ -24,10 +24,6 @@ Different methods are used, depending on the format of the call.
 
 *********************************************************************/
 
-/* used for reading in SVs */
-SV *sv_global_tmp;
-
-
 /* set a field; used in JavaScript, and in the Parser VRML parser 
 
 	fields are:
@@ -575,8 +571,8 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	void *mdata;
 	int *iptr;
 	float *fptr;
-	SV **svptr;
-	SV *mysv;
+	struct Uni_String **svptr;
+	struct Uni_String *mysv;
 	int tmp;
 	int myStrLen;
 	
@@ -690,8 +686,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 
 		case SFSTRING: 
 		case SFIMAGE: {
-			mysv  = EAI_newSVpv(value); 
-			memcpy (nst,&mysv,sizeof(SV *));
+			mysv  = newASCIIString(value); 
 			break; }
 			
 		case MFSTRING: {
@@ -707,7 +702,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			if (*value == ':') value++;
 		
 			mdata = malloc ((commaCount+1) * datasize);
-			svptr = (SV **)mdata;
+			svptr = (struct Uni_String **)mdata;
 
 			for (tmp = 0; tmp < (commaCount+1); tmp++) {
 				sscanf(value, "%d",&myStrLen);
@@ -720,7 +715,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 				strncpy (mytmpstr,value,myStrLen);
 				mytmpstr[myStrLen] = '\0';
 				value += myStrLen;
-				*svptr = EAI_newSVpv(mytmpstr);
+				*svptr = newASCIIString(mytmpstr);
 
 				svptr ++;
 				if (*value == ',') value++;
@@ -858,18 +853,13 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	JSObject *obj;
 	int i;
 	char *valStr, *OldvalStr;
-	SV **svptr;
-	SV **newp, **oldp;
+	struct Uni_String **svptr;
+	struct Uni_String **newp, **oldp;
 	int myv;
 	int count;
 	struct xpv *mypv;
 
 	JSString *strval; /* strings */
-
-	/* oldlen = what was there in the first place */
-	#ifdef OLDCODE
-	verifySVtype(to);
-	#endif
 
 	oldlen = to->n;
 	svptr = to->p;
@@ -888,7 +878,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	if (newlen > oldlen) {
 		oldp = to->p; /* same as svptr, assigned above */
 		to->n = newlen;
-		to->p = (SV**)malloc(newlen * sizeof(to->p));
+		to->p = (struct Uni_String**)malloc(newlen * sizeof(to->p));
 		newp = to->p;
 
 		/* copy old values over */
@@ -902,17 +892,11 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		/* zero new entries */
 		for (count = oldlen; count < newlen; count ++) {
 			/* make the new SV */
-			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
-			(*newp)->sv_flags = SVt_PV | SVf_POK;
-			(*newp)->sv_refcnt=1;
-			mypv = (struct xpv *)malloc(sizeof (struct xpv));
-			(*newp)->sv_any = mypv;
+			*newp = (struct Uni_String *)malloc (sizeof (struct Uni_String));
+			
 
 			/* now, make it point to a blank string */
-			(*mypv).xpv_pv = (char *)malloc (2);
-			strcpy((*mypv).xpv_pv ,"");
-			(*mypv).xpv_cur = 0;
-			(*mypv).xpv_len = 1;
+			*newp = newASCIIString("");
 			newp ++;
 		}
 		free (svptr);
@@ -922,7 +906,6 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	for (i=0; i<(to->n); i++) {
 		printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
 				(svptr[i])->sv_flags,
-				 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
 	}
 	printf ("done\n");
 	*/
@@ -930,7 +913,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 	for (i = 0; i < newlen; i++) {
 		/* get the old string pointer */
-		OldvalStr = SvPVX(svptr[i]);
+		OldvalStr = svptr[i]->strptr;
 		/* printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr)); */
 
 		/* get the new string pointer */
@@ -946,31 +929,14 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 		/*  if the strings are different... */
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			/* now Perl core dumps since this is the wrong thread, so lets do this
-			 ourselves: sv_setpv(svptr[i],valStr); */
-
-			/* get a pointer to the xpv to modify */
-			mypv = (struct xpv *)SvANY(svptr[i]);
-
-			/* free the old string */
-			free (mypv->xpv_pv);
-
 			/* malloc a new string, of correct len for terminator */
-			mypv->xpv_pv =(char *) malloc (strlen(valStr)+2);
-
-			/* copy string over */
-			strcpy (mypv->xpv_pv, valStr);
-
-			/* and tell us that it is now longer */
-			mypv->xpv_len = strlen(valStr)+1;
-			mypv->xpv_cur = strlen(valStr)+0;
+			svptr[i] =  newASCIIString(valStr);
 		}
 	}
 	/* printf ("\n new structure: %d %d\n",svptr,newlen);
 	for (i=0; i<newlen; i++) {
 		printf ("indx %d string :%s: len1 %d len2 %d\n",i,
 				mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
-				 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
 	}
 	*/
 
@@ -1061,46 +1027,20 @@ saveSFImage - a PixelTexture is being sent back from a script, save it!
 *********************************************************************/
 void saveSFImage (struct X3D_PixelTexture *node, char *str) {
 	char *strptr;
-	STRLEN xx;
 	int thissize;
-	struct xpv *mypv;
-	SV *newSV;
-	SV *oldSV;
+	struct Uni_String *newSV;
+	struct Uni_String *oldSV;
 
 	thissize = strlen(str);
 
 	/* make the new SV */
-	newSV = (SV*)malloc (sizeof (struct STRUCT_SV));
-	(newSV)->sv_flags = SVt_PV | SVf_POK;
-	(newSV)->sv_refcnt=1;
-	mypv = (struct xpv *)malloc(sizeof (struct xpv));
-	/* printf ("just mallocd for mypv, it is %d and size %d\n", mypv, sizeof (struct xpv)); */
-	(newSV)->sv_any = mypv;
-
-	/* fill in the SV values...copy the string over... */
-	(*mypv).xpv_pv = (char *)malloc (thissize+2);
-	strncpy((*mypv).xpv_pv ,str,thissize+1);
-	(*mypv).xpv_cur = thissize-1;    /* size without term */
-	(*mypv).xpv_len = thissize;      /* size with termination */
+	newSV = newASCIIString(str);
 
 	/* switcheroo, image now is this new SV */
 	oldSV = node->image;
 	node->image = newSV;
 
-	/* remove the old one... */
-	if ((SvFLAGS(oldSV) & SVf_POK) == 0) {
-		/*printf ("saveSFImage this one is going to fail\n"); */
-	} else {
-		/* printf ("saveSFImage passed test, lets decode it\n"); */
-		/* ok - we have a valid Perl pointer, go for it. */
-		strptr = (char *)SvPV(node->image,xx);
-		/* printf ("saveSFImage PixelTexture string was %s\n",strptr); */
-
-		/* free the old "parts" of this... */
-		/* have to REALLY look at this - might be a memory leak */
-		/*free( oldSV->sv_any); */
-		/*free (oldSV); */
-	}
+	FREE_IF_NZ (oldSV->strptr);
 }
 
 
@@ -1110,7 +1050,7 @@ do we need to change a Structure type? */
 void SetMemory (int type, void *destptr, void *srcptr, int len) {
 	void *newptr;
 	struct Multi_Vec3f *mp;
-	SV *svptr;
+	struct Uni_String *svptr;
 
 
 	/* is this a structure? If Multi_Struct_memptr returns a different
@@ -1129,19 +1069,7 @@ void SetMemory (int type, void *destptr, void *srcptr, int len) {
 		mp->n = len /(returnElementLength(type)*returnElementRowSize(type));
 		/* printf (" is %d\n ",mp->n); */
 	} else {
-
-		/* is this a straight copy, or a setting of an SV * ? */
-		if ((type == SFSTRING)  || (type == SFIMAGE)) {
-			/* printf ("SetMemory - this is an SV *\n"); */
-                        svptr = (SV *)destptr;
-			/* printf ("dest was a SV of type %x at %x\n",SvTYPE((SV *)svptr->sv_any),svptr->sv_any); */
-			svptr->sv_any = sv_global_tmp;
-			/* printf ("dest now is a SV of type %xat %x\n",SvTYPE((SV *)svptr->sv_any),svptr->sv_any); */
-			
-		} else {
-			/* this is a straight copy */
-			memcpy (destptr, srcptr, len);
-		}
+		memcpy (destptr, srcptr, len);
 	}
 }
 
@@ -1156,9 +1084,9 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 	jsval _v;
 	int i;
 	char *valStr, *OldvalStr;
-	SV **oldsvptr;
-	SV **newsvptr;
-	SV **newp, **oldp;
+	struct Uni_String **oldsvptr;
+	struct Uni_String **newsvptr;
+	struct Uni_String **newp, **oldp;
 	int myv;
 	int count;
 	struct xpv *mypv;
@@ -1182,7 +1110,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 		/* printf ("have to expand...\n"); */
 		oldp = to->p; /* same as oldsvptr, assigned above */
 		to->n = newlen;
-		to->p =(SV **) malloc(newlen * sizeof(to->p));
+		to->p =(struct Uni_String **) malloc(newlen * sizeof(to->p));
 		newp = to->p;
 		/* printf ("newp is %d, size %d\n",newp, newlen * sizeof(to->p)); */
 
@@ -1197,17 +1125,10 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 		for (count = oldlen; count < newlen; count ++) {
 			/* printf ("zeroing %d\n",count); */
 			/* make the new SV */
-			*newp = (SV *)malloc (sizeof (struct STRUCT_SV));
-			(*newp)->sv_flags = SVt_PV | SVf_POK;
-			(*newp)->sv_refcnt=1;
-			mypv = (struct xpv *)malloc(sizeof (struct xpv));
-			(*newp)->sv_any = mypv;
+			*newp = (struct Uni_String *)malloc (sizeof (struct Uni_String));
 
 			/* now, make it point to a blank string */
-			(*mypv).xpv_pv =(char *) malloc (2);
-			strcpy((*mypv).xpv_pv ,"");
-			(*mypv).xpv_cur = 0;
-			(*mypv).xpv_len = 1;
+			*newp = newASCIIString("");
 			newp++;
 		}
 		free (oldsvptr);
@@ -1218,12 +1139,10 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 	for (i=0; i<(to->n); i++) {
 		printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
 				(oldsvptr[i])->sv_flags,
-				 SvPVX(oldsvptr[i]), SvCUR(oldsvptr[i]), SvLEN(oldsvptr[i]));
 	}
 	for (i=0; i<(from->n); i++) {
 		printf ("NEW indx %d flag %x string :%s: len1 %d len2 %d\n",i,
 				(newsvptr[i])->sv_flags,
-				 SvPVX(newsvptr[i]), SvCUR(newsvptr[i]), SvLEN(newsvptr[i]));
 	}
 	printf ("done\n");
 	*/
@@ -1231,41 +1150,22 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 
 	for (i = 0; i < newlen; i++) {
 		/*  get the old string pointer */
-		OldvalStr = SvPVX(oldsvptr[i]);
+		OldvalStr = oldsvptr[i]->strptr;
 		/* printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr)); */
 
-		valStr = SvPVX(newsvptr[i]);
+		valStr =newsvptr[i]->strptr;
 
 		/* printf ("new string %d is %s len %d\n",i,valStr,strlen(valStr)); */
 
 		/* if the strings are different... */
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			/* now Perl core dumps since this is the wrong thread, so lets do this
-			 ourselves: sv_setpv(oldsvptr[i],valStr); */
-
-			/* get a pointer to the xpv to modify */
-			mypv = (struct xpv *)SvANY(oldsvptr[i]);
-
-			/* free the old string */
-			free (mypv->xpv_pv);
-
-			/* malloc a new string, of correct len for terminator */
-			mypv->xpv_pv = (char *)malloc (strlen(valStr)+2);
-
-			/* copy string over */
-			strcpy (mypv->xpv_pv, valStr);
-
-			/* and tell us that it is now longer */
-			mypv->xpv_len = strlen(valStr)+1;
-			mypv->xpv_cur = strlen(valStr)+0;
+			FREE_IF_NZ (oldsvptr[i]->strptr);
+			oldsvptr[i] = newASCIIString(valStr);
 		}
 	}
 	/*
 	printf ("\n new structure: %d %d\n",oldsvptr,newlen);
 	for (i=0; i<newlen; i++) {
-		printf ("indx %d string :%s: len1 %d len2 %d\n",i,
-				mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
-				 SvPVX(oldsvptr[i]), SvCUR(oldsvptr[i]), SvLEN(oldsvptr[i]));
 	}
 	*/
 }
@@ -1416,7 +1316,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 	    case MFSTRING: {
 		int count;
-		SV ** newp;
+		struct Uni_String ** newp;
 		struct xpv *mypv;
 		struct Multi_String *strptr;
 		int thisele, thissize, maxele;	/* used for reading in MFStrings*/
@@ -1451,7 +1351,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 				/* replace the space at stringln with a 0 */
 				buf += thissize; *buf = 0; buf-=thissize;
-				strptr->p[thisele] = EAI_newSVpv(buf);
+				strptr->p[thisele] = newASCIIString(buf);
 
 				/* go to end of string */
 				buf += thissize+1;
@@ -1464,7 +1364,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			strptr->n = maxele;
 			FREE_IF_NZ (strptr->p);
 
-			strptr->p = (SV**)malloc (maxele * sizeof(strptr->p));
+			strptr->p = (struct Uni_String **)malloc (maxele * sizeof(strptr->p));
 			newp = strptr->p;
 	
 			/* scan through EAI string, extract strings, etc, etc.*/
@@ -1481,7 +1381,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	
 				/* replace the space at stringln with a 0 */
 				buf += thissize; *buf = 0; buf-=thissize;
-				strptr->p[thisele] = EAI_newSVpv(buf);
+				strptr->p[thisele] = newASCIIString(buf);
 
 				/* go to end of string */
 				buf += thissize+1;
@@ -1522,13 +1422,13 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		buf += thissize; 
 		*buf=0;
 		buf -= thissize;
-                sv_global_tmp = EAI_newSVpv(buf);
+                printf ("do not know where to save this: %s\n",buf); 
+		/* newASCIIString(buf); */
 
 		/* return char to a space */
 		buf += thissize;
 		*buf=' ';
 
-		/* printf ("ScanValtoBuffer, svptr is now of type %x\n",SvTYPE(sv_global_tmp)); */
 		/*len = maxele*sizeof(struct Multi_String);*/
 		len = sizeof (void *);
 		break;

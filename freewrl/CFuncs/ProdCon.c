@@ -66,7 +66,7 @@ struct PSStruct {
 
 	char *fieldname;	/* pointer to a static field name	*/
 	int jparamcount;	/* number of parameters for this one	*/
-	SV *sv;			/* the SV for javascript		*/
+	struct Uni_String *sv;			/* the SV for javascript		*/
 
 	/* for EAI */
 	uintptr_t *retarr;		/* the place to put nodes		*/
@@ -111,9 +111,6 @@ int inputThreadParsing=FALSE;
 
 /* Initial URL loaded yet? - Robert Sim */
 int URLLoaded=FALSE;
-
-/* the actual perl interpreter */
-PerlInterpreter *my_perl;
 
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
@@ -736,7 +733,6 @@ void __pt_doInline() {
 	char *filename;
 	struct Multi_String *inurl;
 	struct X3D_Inline *inl;
-	STRLEN xx;
 	char *thisurl;
 	char *slashindex;
 	char firstBytes[4];
@@ -745,7 +741,7 @@ void __pt_doInline() {
 	filename = (char *)malloc(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(inl->__parenturl,xx));
+	count = strlen(inl->__parenturl->strptr);
 	psp.path = (char *)malloc ((unsigned)(count+1));
 
 	if ((!filename) || (!psp.path)) {
@@ -753,7 +749,7 @@ void __pt_doInline() {
 	}
 
 	/* copy the parent path over */
-	strcpy (psp.path,SvPV(inl->__parenturl,xx));
+	strcpy (psp.path,inl->__parenturl->strptr);
 
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *) rindex(psp.path, ((int) '/'));
@@ -766,7 +762,7 @@ void __pt_doInline() {
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
 	while (count < inurl->n) {
-		thisurl = SvPV(inurl->p[count],xx);
+		thisurl = inurl->p[count]->strptr;
 
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(psp.path)) > 900) break;

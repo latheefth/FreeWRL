@@ -2,7 +2,7 @@
 #
 
 # for making the freewrl opts file
-FWFLAGS = -c -I /usr/include/GL -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+FWFLAGS = -c -I /usr/include/GL -I../CFuncs -D_REENTRANT 
 
 all:	freewrl
 
@@ -33,7 +33,6 @@ freewrl: fwopts fwWindow fwGtkWindow fwBareWindow fwMotifWindow GLwDrawA
 
 	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
 	freewrl.o fwopts.o fwWindow.o fwGtkWindow.o fwBareWindow.o fwMotifWindow.o GLwDrawA.o \
-	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
 	$(LIBS) \
 	-L/usr/X11R6/lib \
 	-lXt -lpthread -lFreeWRLFunc $(BC)\

@@ -61,7 +61,7 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 /***********************************************************************************/
 
 void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
-	STRLEN xx;
+	int xx;
 	char *ct;
 	void *tmpptr_a, *tmpptr_b;
 	int tmpint;
@@ -69,7 +69,8 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
         /*  have to regen the shape*/
 	MARK_NODE_COMPILED
 		
-	ct = SvPV(node->closureType,xx);
+	ct = node->closureType->strptr;
+	xx = node->closureType->len;
 	tmpint = 0;
 	tmpptr_a = NULL;
 

@@ -175,8 +175,7 @@ void setMFElementtype (uintptr_t num) {
 
 	/* for MFStrings we have: */
 	char *chptr;
-	STRLEN xx;
-	SV **ptr;
+	struct Uni_String  **ptr;
 
 	int indexPointer;
 
@@ -331,10 +330,10 @@ void setMFElementtype (uintptr_t num) {
 				}
 			case MFSTRING:{
 				strcpy (scriptline, "xxy = new MFString(");
-				ptr = (SV **) pptr;
+				ptr = (struct Uni_String **) pptr;
 				for (x=0; x<len; x++) {
 
-					chptr = (char *)SvPV(ptr[x],xx);
+					chptr = ptr[x]->strptr;
 					/* printf ("string might be length %d: %s\n",xx,chptr); */
 					strcat (scriptline,"new String('");
 					strcat (scriptline,chptr);
@@ -722,9 +721,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	struct Multi_Node *MNptr;	/* MFNode pointer */
 	struct Multi_Color *MCptr;	/* MFColor pointer */
 	char *ptr;			/* used for building up return string */
-	STRLEN xx;
-	SV *svptr;
-	struct xpv *this_xpv;
+	struct Uni_String *svptr;
 	unsigned char *retSFString;
 
 	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
@@ -809,18 +806,8 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			printf ("EAI_SFSTRING\n");
 			#endif
 
-			svptr = (SV *)memptr;
-
-			this_xpv = svptr->sv_any;
-
-
-			retSFString = (unsigned char *)SvPV(((SV *)this_xpv),xx); 
-			/*
-				printf ("EAI_SFSTRING, SvTYPE on %x: %d  %x: %d\n",svptr,this_xpv,SvTYPE(svptr), SvTYPE((SV *)this_xpv));
-				printf ("EAI_SFSTRING - ptr %x flags %x should be %x\n",svptr->sv_any, svptr->sv_flags, SVt_PV | SVf_POK);
-				printf ("EAI_SFSTRING, string len %d %d \n",this_xpv->xpv_cur, this_xpv->xpv_len); 
-			*/
-
+			svptr = (struct Uni_String *)memptr;
+			retSFString = (unsigned char *)svptr->strptr; 
 			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,retSFString);
 			break;
 		}
@@ -838,11 +825,11 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MSptr).n; row++) {
-        	        	/* printf ("String %d is %s\n",row,SvPV((*MSptr).p[row],xx));*/
-				if (strlen (SvPV((*MSptr).p[row],xx)) == 0) {
+        	        	/* printf ("String %d is %s\n",row,(*MSptr).p[row]->strptr);*/
+				if (strlen ((*MSptr).p[row]->strptr) == 0) {
 					sprintf (ptr, "\"XyZZtitndi\" "); /* encode junk for Java side.*/
 				} else {
-					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],xx));
+					sprintf (ptr, "\"%s\" ",(*MSptr).p[row]->strptr);
 				}
 				/* printf ("buf now is %s\n",buf);*/
 				ptr = buf + strlen (buf);

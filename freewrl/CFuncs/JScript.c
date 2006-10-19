@@ -112,7 +112,6 @@ void JSMaxAlloc() {
 
 
 
-/* void JSInit(uintptr_t num, SV *script) { */
 void JSInit(uintptr_t num) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
@@ -264,183 +263,6 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 
 	return JS_TRUE;
 }
-
-/* perl wants us to run the script- do so, and return return values */
-int JSrunScript(uintptr_t num, char *script, SV *rstr, SV *rnum) {
-	JSString *strval;
-	jsval rval;
-	jsdouble dval = -1.0;
-	char *strp;
-	JSContext *_context;
-	JSObject *_globalObj;
-
-	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[num].cx;
-	_globalObj = (JSObject *)ScriptControl[num].glob;
-
-	/* printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj); */
-
-	if (!ActualrunScript(num,script,&rval))
-		return JS_FALSE;
-
-	strval = JS_ValueToString(_context, rval);
-	strp = JS_GetStringBytes(strval);
-	sv_setpv(rstr, strp);
-	#ifdef JSVERBOSE 
-		printf("strp=\"%s\", ", strp);
-	#endif
-
-	if (!JS_ValueToNumber(_context, rval, &dval)) {
-		printf("JS_ValueToNumber failed.\n");
-		return JS_FALSE;
-	}
-	#ifdef JSVERBOSE 
-		printf("dval=%.4g\n", dval);
-	#endif
-
-	sv_setnv(rnum, dval);
-	return JS_TRUE;
-}
-
-
-/* perl wants a value returned. return return values */
- int JSGetProperty(uintptr_t num, char *script, SV *rstr) {
- 	JSString *strval;
- 	jsval rval;
- 	char *strp;
- 	JSContext *_context;
- 	JSObject *_globalObj;
-
- 	/* get context and global object for this script */
- 	_context = (JSContext *) ScriptControl[num].cx;
- 	_globalObj = (JSObject *)ScriptControl[num].glob;
-
-	#ifdef JSVERBOSE
- 		printf ("start of JSGetProperty, cx %d script %s\n",_context,script);
-	#endif
-
- 	if (!JS_GetProperty(_context, _globalObj, script, &rval)) {
- 		printf("JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
- 		return JS_FALSE;
- 	}
-
- 	strval = JS_ValueToString(_context, rval);
- 	strp = JS_GetStringBytes(strval);
- 	sv_setpv(rstr, strp);
- 	#ifdef JSVERBOSE 
- 		printf("JSGetProperty strp=:%s:\n", strp);
- 	#endif
-
- 	return JS_TRUE;
- }
-
-
-int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
-	jsval _rval = INT_TO_JSVAL(0);
-	JSContext *_context;
-	JSObject *_globalObj;
-
-	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[num].cx;
-	_globalObj = (JSObject *)ScriptControl[num].glob;
-	#ifdef JSVERBOSE 
-		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",
-			   _context, _globalObj, name, str);
-	#endif
-
-	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
-						   FNAME_STUB, LINENO_STUB, &_rval)) {
-		printf("JS_EvaluateScript failed for \"%s\" in addGlobalAssignProperty.\n",
-				str);
-		return JS_FALSE;
-	}
-	if (!JS_DefineProperty(_context, _globalObj, name, _rval,
-						   getAssignProperty, setAssignProperty,
-						   0 | JSPROP_PERMANENT)) {
-		printf("JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n",
-				name);
-		return JS_FALSE;
-	}
-	return JS_TRUE;
-}
-
-
-int JSaddSFNodeProperty(uintptr_t num, char *nodeName, char *name, char *str) {
-	JSContext *_context;
-	JSObject *_globalObj;
-	JSObject *_obj;
-	jsval _val, _rval = INT_TO_JSVAL(0);
-
-	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[num].cx;
-	_globalObj = (JSObject *)ScriptControl[num].glob;
-
-
-	#ifdef JSVERBOSE 
-		printf("addSFNodeProperty: name \"%s\", node name \"%s\", evaluate script \"%s\"\n",
-			   name, nodeName, str);
-	#endif
-
-	if (!JS_GetProperty(_context, _globalObj, nodeName, &_val)) {
-		printf("JS_GetProperty failed for \"%s\" in addSFNodeProperty.\n",
-				nodeName);
-		return JS_FALSE;
-	}
-	_obj = JSVAL_TO_OBJECT(_val);
-
-	if (!JS_EvaluateScript(_context, _obj, str, strlen(str),
-						   FNAME_STUB, LINENO_STUB, &_rval)) {
-		printf("JS_EvaluateScript failed for \"%s\" in addSFNodeProperty.\n",
-				str);
-		return JS_FALSE;
-	}
-	if (!JS_DefineProperty(_context, _obj, name, _rval,
-						   NULL, NULL,
-						   0 | JSPROP_PERMANENT)) {
-		printf("JS_DefineProperty failed for \"%s\" in addSFNodeProperty.\n",
-				name);
-		return JS_FALSE;
-	}
-	return JS_TRUE;
-}
-
-int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
-	JSContext *_context;
-	JSObject *_globalObj;
-
-	char buffer[STRING];
-	jsval _val, rval = INT_TO_JSVAL(0);
-
-	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[num].cx;
-	_globalObj = (JSObject *)ScriptControl[num].glob;
-
-	#ifdef JSVERBOSE 
-		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
-	#endif
-	
-
-	if (!JS_DefineProperty(_context, _globalObj, name, rval,
-						   NULL, setECMANative,
-						   0 | JSPROP_PERMANENT)) {
-		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
-				name);
-		return JS_FALSE;
-	}
-
-	memset(buffer, 0, STRING);
-	sprintf(buffer, "_%s_touched", name);
-	_val = INT_TO_JSVAL(0);
-
-	if (!JS_SetProperty(_context, _globalObj, buffer, &_val)) {
-		printf("JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
-				buffer);
-		return JS_FALSE;
-	}
-	return JS_TRUE;
-}
-
-#undef JSVERBOSE
 
 
 /* FROM VRMLC.pm */
@@ -707,14 +529,13 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	int rowCount, eleCount;
 
 	int tlen;
-	STRLEN xx;
 	struct Multi_Int32*     vrmlImagePtr;
 	struct Multi_Int32    Int32Ptr;
 	float *FloatPtr;
 	uintptr_t  *VoidPtr;
 	int *IntPtr;
 	double *DoublePtr;
-	SV **SVPtr;
+	struct Uni_String **SVPtr;
 	int *iptr; int SFImage_depth; int SFImage_wid; int SFImage_hei;
 
 
@@ -755,7 +576,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 printf ("image has %d elements\n",vrmlImagePtr->n);
 
 					} else if  (type == FIELDTYPE_SFString) {
-						tlen = strlen(SvPV(value.sfstring,xx)) + 20;
+						tlen = strlen(value.sfstring->strptr) + 20;
 					} else {
 						tlen = strlen(field) + 20;
 					}
@@ -779,7 +600,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 
 							break;
 						case FIELDTYPE_SFString:  
-							sprintf (smallfield,"%s=\"%s\"\n",field,SvPV(value.sfstring,xx)); break;
+							sprintf (smallfield,"%s=\"%s\"\n",field,value.sfstring->strptr); break;
 					}
 					if (!ActualrunScript(num,smallfield,&rval))
 						printf ("huh??? Field initialization script failed %s\n",smallfield);

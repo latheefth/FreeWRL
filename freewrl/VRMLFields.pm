@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.72  2006/10/19 18:28:46  crc_canada
+# More changes for removing Perl from the runtime
+#
 # Revision 1.71  2006/10/18 20:22:43  crc_canada
 # More removal of Perl code
 #
@@ -201,14 +204,14 @@ sub cInitialize {
 package VRML::Field::SFString;
 @ISA=VRML::Field;
 
-sub ctype {return "SV *$_[1]"}
+sub ctype {return "struct Uni_String *$_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 
 	if ($field eq "tmp2->__parenturl") {
-		return "$field = EAI_newSVpv(getInputURL())";
+		return "$field = newASCIIString(getInputURL())";
 	} else {
-		return "$field = EAI_newSVpv(\"$val\")";
+		return "$field = newASCIIString(\"$val\")";
 	}
 }
 
@@ -228,7 +231,7 @@ sub cInitialize {
 		#print "MALLOC MFSTRING field $field val @{$val} has $count INIT\n";
 		$retstr = $restsr . "$field.p = malloc (sizeof(float)*$count);";
 		for ($tmp=0; $tmp<$count; $tmp++) {
-			$retstr = $retstr .  "$field.p[$tmp] = EAI_newSVpv(\"".@{$val}[$tmp]."\");";
+			$retstr = $retstr .  "$field.p[$tmp] = newASCIIString(\"".@{$val}[$tmp]."\");";
 		}
 		$retstr = $retstr . "$field.n=$count; ";
 		
@@ -514,11 +517,11 @@ package VRML::Field::SFImage;
 VRML::Error->import;
 
 
-sub ctype {return "SV *$_[1]"}
+sub ctype {return "struct Uni_String *$_[1]"}
 
 sub cInitialize {
         my ($this,$field,$val) = @_;
-        return "$field = EAI_newSVpv(\"$val\")";
+        return "$field = newASCIIString(\"$val\")";
 
 }
 

@@ -157,7 +157,6 @@ int freewrlSystem (const char *sysline) {
 
 void doBrowserAction () {
 	int count;
-	STRLEN xx;
 
 	int localNode;
 	int tableIndex;
@@ -178,12 +177,12 @@ void doBrowserAction () {
 
 	if (!RUNNINGASPLUGIN)
 		printf ("FreeWRL::Anchor: going to \"%s\"\n",
-			SvPV(AnchorsAnchor->description,xx));
+			AnchorsAnchor->description->strptr);
 
 	filename = (char *)malloc(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(AnchorsAnchor->__parenturl,xx));
+	count = strlen(AnchorsAnchor->__parenturl->strptr);
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
 
 	if ((!filename) || (!mypath)) {
@@ -191,7 +190,7 @@ void doBrowserAction () {
 	}
 
 	/* copy the parent path over */
-	strcpy (mypath,SvPV(AnchorsAnchor->__parenturl,xx));
+	strcpy (mypath,AnchorsAnchor->__parenturl->strptr);
 
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *)rindex(mypath,'/');
@@ -205,7 +204,7 @@ void doBrowserAction () {
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < Anchor_url.n) {
-		thisurl = SvPV(Anchor_url.p[count],xx);
+		thisurl = Anchor_url.p[count]->strptr;
 
 		/*  is this a local Viewpoint?*/
 		if (thisurl[0] == '#') {

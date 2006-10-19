@@ -119,8 +119,6 @@ int main (int argc, char **argv) {
 
 	/* now wait around until something kills this thread. */
 	pthread_join(DispThrd, NULL);
-	perl_destruct(my_perl);
-	perl_free(my_perl);
 }
 
 

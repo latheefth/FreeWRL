@@ -101,7 +101,7 @@ extern void
 SFRotationNativeAssign(void *top, void *fromp);
 
 extern void
-SFRotationNativeSet(void *p, SV *sv);
+SFRotationNativeSet(void *p, struct Uni_String *sv);
 
 extern void *
 SFVec3fNativeNew(void);
@@ -113,7 +113,7 @@ extern void
 SFVec3fNativeAssign(void *top, void *fromp);
 
 extern void
-SFVec3fNativeSet(void *p, SV *sv);
+SFVec3fNativeSet(void *p, struct Uni_String *sv);
 
 extern void *
 SFVec2fNativeNew(void);
@@ -125,7 +125,7 @@ extern void
 SFVec2fNativeAssign(void *top, void *fromp);
 
 extern void
-SFVec2fNativeSet(void *p, SV *sv);
+SFVec2fNativeSet(void *p, struct Uni_String *sv);
 
 extern void *
 SFImageNativeNew(void);
@@ -137,7 +137,7 @@ extern void
 SFImageNativeAssign(void *top, void *fromp);
 
 extern void
-SFImageNativeSet(void *p, SV *sv);
+SFImageNativeSet(void *p, struct Uni_String *sv);
 
 extern void *
 SFColorNativeNew(void);
@@ -149,6 +149,6 @@ extern void
 SFColorNativeAssign(void *top, void *fromp);
 
 extern void
-SFColorNativeSet(void *p, SV *sv);
+SFColorNativeSet(void *p, struct Uni_String *sv);
 
 #endif /* __jsNative_h__ */

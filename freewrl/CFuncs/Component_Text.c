@@ -406,7 +406,7 @@ void FW_draw_character (FT_Glyph glyph) {
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
 
-void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length,
+void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstring, unsigned int nl, double *length,
 		double maxext, double spacing, double mysize, unsigned int fsparam,
 		struct X3D_PolyRep *rp) {
 	unsigned char *str; /* string pointer- initialization gets around compiler warning */
@@ -416,7 +416,6 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	int counter=0;
 	int char_count=0;
 	int est_tri=0;
-	STRLEN xx;
 	float angletan;
 
 
@@ -535,7 +534,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],xx);
+		if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
 
 		for(i=0; i<strlen((const char *)str); i++) {
 			FW_Load_Char(str[i]);
@@ -564,7 +563,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	   double l;
 	   int counter = 0;
 	   for(row = 0; row < numrows; row++) {
-		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],xx);
+		if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
 		l = FW_extent(counter,(int) strlen((const char *)str));
 		counter += strlen((const char *)str);
 		if(l > maxlen) {maxlen = l;}
@@ -591,7 +590,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	for(row = 0; row < numrows; row++) {
 	   	double rowlen;
 
-		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],xx);
+		if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
 		if (TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
 	        pen_x = 0.0;
@@ -879,13 +878,12 @@ void make_Text (struct X3D_Text *node) {
 		*/
 
 		struct X3D_FontStyle *fsp;
-		STRLEN xx;
 		unsigned char *lang;
 		unsigned char *style;
 		struct Multi_String family;
 		struct Multi_String justify;
 		int tmp; int tx;
-		SV **svptr;
+		struct Uni_String **svptr;
 		unsigned char *stmp;
 
 		/* step 0 - is the FontStyle a proto? */
@@ -893,8 +891,8 @@ void make_Text (struct X3D_Text *node) {
 
 		/* step 0.5 - now that we know FontStyle points ok, go for
 		 * the other pointers */
-		lang = (unsigned char *)SvPV((fsp->language),xx);
-		style = (unsigned char *)SvPV((fsp->style),xx);
+		lang = (unsigned char *)fsp->language->strptr;
+		style = (unsigned char *)fsp->style->strptr;
 
 		family = fsp->family;
 		justify = fsp->justify;
@@ -926,7 +924,7 @@ void make_Text (struct X3D_Text *node) {
 
 		svptr = family.p;
 		for (tmp = 0; tmp < family.n; tmp++) {
-			stmp = (unsigned char *)SvPV(svptr[tmp],xx);
+			stmp = (unsigned char *)svptr[tmp]->strptr;
 			if (strlen((const char *)stmp) == 0) {fsparams |=0x20; }
 			else if (!strcmp((const char *)stmp,"SERIF")) { fsparams |= 0x20;}
 			else if(!strcmp((const char *)stmp,"SANS")) { fsparams |= 0x40;}
@@ -945,7 +943,7 @@ void make_Text (struct X3D_Text *node) {
 		}
 
 		for (tmp = 0; tmp < tx; tmp++) {
-			stmp = (unsigned char *)SvPV(svptr[tmp],xx);
+			stmp = (unsigned char *)svptr[tmp]->strptr;
 			if (strlen((const char *)stmp) == 0) {
 				if (tmp == 0) {fsparams |= 0x400;
 				} else {fsparams |= 0x2000;

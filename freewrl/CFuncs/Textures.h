@@ -49,7 +49,7 @@ struct loadTexParams {
 	GLuint genned_texture;
 	unsigned repeatS;
 	unsigned repeatT;
-	SV *parenturl;
+	struct Uni_String *parenturl;
 	unsigned type;
 	struct Multi_String url;
 
@@ -86,7 +86,7 @@ struct multiTexParams {
 extern unsigned char  *texIsloaded;
 extern struct loadTexParams *loadparams;
 
-void bind_image(int type, SV *parenturl, struct Multi_String url,
+void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				GLuint *texture_num,
 				int repeatS,
 				int repeatT,

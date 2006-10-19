@@ -175,9 +175,8 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
 BOOL script_initCodeFromMFUri(struct Script* me, const struct Multi_String* s)
 {
  size_t i;
- int xx;
  for(i=0; i!=s->n; ++i)
-  if(script_initCodeFromUri(me, SvPV(s->p[i], xx)))
+  if(script_initCodeFromUri(me, s->p[i]->strptr))
    return TRUE;
 
  return FALSE;

@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "readpng.h"
 #include "OpenGL_Utils.h"
+#include <setjmp.h>
 
 /* lets check the max texture size */
 static int checktexsize;
@@ -102,7 +103,7 @@ void __reallyloadPixelTexAsMFInt32(void);
 void __reallyloadImageTexture(void);
 void __reallyloadMovieTexture(void);
 void do_possible_textureSequence(int texno);
-SV *EAI_newSVpv(char *str);
+struct Uni_String *newASCIIString(char *str);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
@@ -311,7 +312,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	struct multiTexParams *paramPtr;
 
 	char *param;
-	STRLEN xx;
 
 	struct X3D_ImageTexture *nt;
 
@@ -368,7 +368,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		/* go through the params, and change string name into a GLint */
 		paramPtr = (struct multiTexParams*) node->__params;
 		for (count = 0; count < max; count++) {
-			param = SvPV(node->mode.p[count],xx);
+			param = node->mode.p[count]->strptr;
 			/* printf ("param %d is %s len %d\n",count, param, xx); */
 
 		        if (strncmp("MODULATE2X",param,strlen("MODULATE2X"))==0) { 
@@ -811,7 +811,7 @@ void new_do_texture(int texno) {
 	param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
 ************************************************************************************/
 
-void bind_image(int itype, SV *parenturl, struct Multi_String url,
+void bind_image(int itype, struct Uni_String *parenturl, struct Multi_String url,
 		GLuint *texture_num, int repeatS, int repeatT, void *param) {
 
 	struct multiTexParams *paramPtr;
@@ -1000,7 +1000,6 @@ int findTextureFile (int cwo, int *istemp) {
 	char firstMPGb[] = {0x00, 0x00, 0x01, 0xb3};
 
 
-	STRLEN xx;
 	*istemp=FALSE;	/* don't remove this file */
 
 	#ifdef TEXVERBOSE 
@@ -1010,7 +1009,7 @@ int findTextureFile (int cwo, int *istemp) {
 
 	if (loadparams[cwo].type !=PIXELTEXTURE) {
 		/* lets make up the path and save it, and make it the global path */
-		count = strlen(SvPV(loadparams[cwo].parenturl,xx));
+		count = loadparams[cwo].parenturl->strptr;
 		mypath = (char *)malloc ((sizeof(char)* count)+1);
 		filename = (char *)malloc(1000);
 
@@ -1019,7 +1018,7 @@ int findTextureFile (int cwo, int *istemp) {
 		}
 
 		/* copy the parent path over */
-		strcpy (mypath,SvPV(loadparams[cwo].parenturl,xx));
+		strcpy (mypath,loadparams[cwo].parenturl->len);
 
 		/* and strip off the file name, leaving any path */
 		slashindex = (char *)rindex(mypath,'/');
@@ -1031,7 +1030,7 @@ int findTextureFile (int cwo, int *istemp) {
 		/* try the first url, up to the last */
 		count = 0;
 		while (count < loadparams[cwo].url.n) {
-			thisurl = SvPV(loadparams[cwo].url.p[count],xx);
+			thisurl = loadparams[cwo].url.p[count]->strptr;
 
 			/* check to make sure we don't overflow */
 			if ((strlen(thisurl)+strlen(mypath)) > 900) break;
@@ -1058,7 +1057,7 @@ int findTextureFile (int cwo, int *istemp) {
 			/* So, we could not find the correct file. Make this into a blank PixelTexture, so that
 			   at least this looks ok on the screen */
 			loadparams[cwo].type = PIXELTEXTURE;
-			loadparams[cwo].parenturl=EAI_newSVpv("1 1 3 0x707070");
+			loadparams[cwo].parenturl=newASCIIString("1 1 3 0x707070");
 		}
 	}
 

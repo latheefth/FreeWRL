@@ -779,21 +779,38 @@ my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
 my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
 my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 
+open ID, ">CFuncs/installdir.h" or die ("Couldn't create installdir.h");
+print ID "#define INSTALLDIR \"\/tmp\"\n";
+close ID;
+
+
 print "mydefine $MYDEFINE\n";
+print "myLIBS $MYLIBS\n";
 
 print "Finding all files to compile";
 open MK, ">Makefile" or die("Couldn't write the Makefile");
 
 my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
 
+
+#gcc -c  -fbounds-checking -I/usr/X11R6/include/ -I/usr/include/freetype2 -I/usr/include/freetype2/freetype -I../JS/js1.5/src/Linux_All_OPT.OBJ -IJS/js1.5/src/Linux_All_OPT.OBJ -IJS/js1.5/src -I../JS/js1.5/src -ICFuncs -D_REENTRANT -D_GNU_SOURCE -DTHREADS_HAVE_PIDS -DDEBUGGING -fno-strict-aliasing -pipe -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -I/usr/include/gdbm -O2 -g -pipe -m32 -march=i386 -mtune=pentium4   -DVERSION=\"\" -DXS_VERSION=\"\" EAIServ.c -fPIC -I/usr/lib/perl5/5.8.5/i386-linux-thread-multi/CORE  -ansi -DHAVE_MOTIF -DXP_UNIX -D_GNU_SOURCE  -o EAIServ.o
 # do the headers.
 print MK "#Make file for FreeWRL\n";
 print MK "CC = gcc\n";
 print MK "INC = $MYINC\n";
 print MK "DEFINE = $MYDEFINE\n";
-print MK "FWFLAGS = -c\n"; 
+print MK "FWFLAGS = -c -Wall\n"; 
+
+if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
+	print "COMPILING WITH BOUNDSCHECKING\n";
+	print MK "BC = -lboundscheck\n";
+}
+
 print MK "\n";
-print MK "all: freewrl\n";
+print MK "freewrl:\n	cd CFrontEnd; make\n";
+print MK "SoundEngine:\n	cd SoundEngine; make\n";
+
+print MK "all: libFreeWRL freewrl SoundEngine\n";
 print MK "install:	\n	libFreeWRL freewrl\n	strip freewrl\n	cp freewrl $(BINDIR)\n";
 
 #LIBFREEWRL
@@ -802,7 +819,7 @@ foreach my $fullname (@CFuncsSourceFiles) {
 	my $nm = $fullname;
 	$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
 
-	print MK "$nm:\n	\$(CC) \$(INC) \$(FWFLAGS) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
+	print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) -ICFuncs \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
 }
 
 print MK "libFreeWRL:\t";
@@ -814,6 +831,14 @@ foreach my $fullname (@CFuncsSourceFiles) {
 	print MK "$nm ";
 }
 print MK "\n";
+
+print MK "# make the shared library\n";
+print MK "	\$(CC) -shared ";
+foreach my $fullname (@CFuncsSourceFiles) {
+	$fullname =~ s/.c$/.o/;
+	print MK "$fullname ";
+}
+print MK " -o libFreeWRLFunc.so $MYLIBS\n";;
 
 
 ## make file for FreeWRL front end.

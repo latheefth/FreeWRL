@@ -765,7 +765,7 @@ breakStringLoop:
  assert(cur<bufLen);
  buf[cur]=0;
 
- *ret=EAI_newSVpv(buf);
+ *ret=newASCIIString(buf);
  free(buf);
  return TRUE;
 }

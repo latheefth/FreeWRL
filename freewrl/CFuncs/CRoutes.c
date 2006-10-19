@@ -547,41 +547,6 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	return FALSE; /*  should never get here */
 }
 
-#ifdef OLDCODE
-/* Verify that this structure points to a series of SvPVs not
- * SvPVMGs or anything like that If it does, convert it to a SvPV */
-
-void verifySVtype(struct Multi_String *to) {
-	int i;
-	SV **svptr;
-	struct STRUCT_SV *newSV;
-
-	svptr = to->p;
-	/* printf ("\n verifySVtype old structure: %d %d\n",svptr,to->n); */
-	for (i=0; i<(to->n); i++) {
-		/* printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
-				(svptr[i])->sv_flags,
-				 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
-		*/
-
-		if (SvFLAGS(svptr[i]) != (SVt_PV | SVf_POK)) {
-			/* printf ("comparing %x to %x\n",SvFLAGS(svptr[i]),(SVt_PV | SVf_POK));
-			printf ("have to convert element %d\n",i); */
-			newSV = ( struct STRUCT_SV *)malloc (sizeof (struct STRUCT_SV));
-			/* copy over old to new */
-			newSV->sv_flags = SVt_PV | SVf_POK;
-			newSV->sv_refcnt = 1;
-			newSV->sv_any = (svptr[i])->sv_any;
-			/* printf ("old ref count was %d\n",(svptr[i])->sv_refcnt); */
-			(svptr[i])->sv_refcnt --;
-
-			/* JAS free (svptr[i]); */
-			svptr[i] = newSV;
-		}
-	}
-	/* printf ("done verifySVtype\n"); */
-}
-#endif
 
 
 /****************************************************************/

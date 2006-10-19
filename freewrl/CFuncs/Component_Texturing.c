@@ -19,13 +19,12 @@
    __compiledmode is NOT zero. If there are problems, the __compiledmode IS zero */
 
 void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *node) {
-	STRLEN xx;
 	char *modeptr;
 
 	if (node->_ichange != node->_change) {
 		MARK_NODE_COMPILED
 
-		modeptr = SvPV (node->mode,xx);
+		modeptr = node->mode->strptr;
 
 		/* make the __compiledmode reflect actual OpenGL parameters */
 		if(strncmp("SPHERE-REFLECT-LOCAL",modeptr,strlen("SPHERE-REFLECT-LOCAL"))==0) {

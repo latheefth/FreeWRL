@@ -658,7 +658,7 @@ int getEAINodeAndOffset (char *bufptr, uintptr_t *Node, int *FieldInt, int fromt
 
 	rv = TRUE;
 	sscanf (bufptr, "%d", Node);
-	sn = *Node;
+	sn = (struct X3D_Box *) *Node;
 
 	/* copy the from field */
 	x = fieldTemp;
@@ -683,7 +683,7 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	uintptr_t toNode;
 	int fromOffset;
 	int toOffset;
-	int ctmp[200];
+	char  ctmp[200];
 	
 	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
 
@@ -970,7 +970,7 @@ void createLoadURL(char *bufptr) {
 
 
 	/* fill in Anchor parameters */
-	EAI_AnchorNode.description = EAI_newSVpv("From EAI");
+	EAI_AnchorNode.description = newASCIIString("From EAI");
 
 	/* fill in length fields from string */
 	while (*bufptr==' ') bufptr++;
@@ -985,8 +985,8 @@ void createLoadURL(char *bufptr) {
 	bufptr--;
 
 	/* malloc the sizes required */
-	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = malloc(EAI_AnchorNode.url.n * sizeof (SV));
-	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = malloc(EAI_AnchorNode.parameter.n * sizeof (SV));
+	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = malloc(EAI_AnchorNode.url.n * sizeof (struct Uni_String));
+	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = malloc(EAI_AnchorNode.parameter.n * sizeof (struct Uni_String));
 
 	for (count=0; count<EAI_AnchorNode.url.n; count++) {
 		bufptr += strlen(strbrk);
@@ -996,7 +996,7 @@ void createLoadURL(char *bufptr) {
 		spbrk = strstr(bufptr,strbrk);
 		if (spbrk!=NULL) *spbrk='\0';
 
-		EAI_AnchorNode.url.p[count] = EAI_newSVpv(bufptr);
+		EAI_AnchorNode.url.p[count] = newASCIIString(bufptr);
 
 		if (spbrk!=NULL) bufptr = spbrk;
 	}
@@ -1008,37 +1008,31 @@ void createLoadURL(char *bufptr) {
 		spbrk = strstr(bufptr,strbrk);
 		if (spbrk!=NULL) *spbrk='\0';
 
-		EAI_AnchorNode.parameter.p[count] = EAI_newSVpv(bufptr);
+		EAI_AnchorNode.parameter.p[count] = newASCIIString(bufptr);
 
 		if (spbrk!=NULL) bufptr = spbrk;
 	}
-	EAI_AnchorNode.__parenturl = EAI_newSVpv("./");
+	EAI_AnchorNode.__parenturl = newASCIIString("./");
 }
 
 
 
 /* mimic making newSVpv, but *not* using Perl, as this is a different thread */
 /* see Extending and Embedding Perl, Jenness, Cozens pg 75-77 */
-SV *EAI_newSVpv(char *str) {
-	SV *retval;
+struct Uni_String *newASCIIString(char *str) {
+	struct Uni_String *retval;
 	struct xpv *newpv;
 
 	#ifdef EAIVERBOSE
-	printf ("EAI_newSVpv for :%s:\n",str);
+	printf ("newASCIIString for :%s:\n",str);
 	#endif
 
-	/* the returning SV is here. Make blank struct */
-	retval = malloc (sizeof (SV));
-	newpv = malloc (sizeof (struct xpv));
+	/* the returning Uni_String is here. Make blank struct */
+	retval = malloc (sizeof (struct Uni_String));
 
-	retval->sv_any = newpv;
-	retval->sv_refcnt = 1;
-	retval->sv_flags = SVt_PV | SVf_POK;
-
-	newpv->xpv_pv = malloc (strlen (str)+1);
-	strncpy(newpv->xpv_pv,str,strlen(str)+1);
-	newpv->xpv_cur = strlen(str);
-	newpv->xpv_len = strlen(str)+1;
+	retval->strptr  = malloc (strlen (str)+1);
+	strncpy(retval->strptr,str,strlen(str)+1);
+	retval->len = strlen(str)+1;
 
 	return retval;
 }

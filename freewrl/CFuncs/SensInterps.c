@@ -1440,7 +1440,6 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 }
 
 void locateAudioSource (struct X3D_AudioClip *node) {
-	STRLEN xx;
 	int count;
 	char *filename;
 	char *mypath;
@@ -1454,7 +1453,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	filename = (char*)malloc(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(node->__parenturl,xx));
+	count = strlen(node->__parenturl->strptr);
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
 
 	if ((!filename) || (!mypath)) {
@@ -1462,7 +1461,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	}
 
 	/* copy the parent path over */
-	strcpy (mypath,SvPV(node->__parenturl,xx));
+	strcpy (mypath,node->__parenturl->strptr);
 
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *)rindex(mypath,'/');
@@ -1474,7 +1473,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < (node->url).n) {
-		thisurl = SvPV((node->url).p[count],xx);
+		thisurl = (node->url).p[count]->strptr;
 
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;

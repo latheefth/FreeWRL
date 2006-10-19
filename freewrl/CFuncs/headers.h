@@ -15,7 +15,6 @@
 
 /* Perl was used for parsing. The runtime ideas work very well - so lets just try and keep
 them around */
-#include "mimicPerlSV.h"
 
 /* vrmlconf.h should have the AQUA definition - so get the GL headers */
 #ifdef AQUA
@@ -370,7 +369,7 @@ void normalize_ifs_face (float *point_normal,
                         float creaseAngle);
 
 
-void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length,
+void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstring, unsigned int nl, double *length,
                 double maxext, double spacing, double mysize, unsigned int fsparam,
                 struct X3D_PolyRep *rp);
 
@@ -469,7 +468,7 @@ extern uintptr_t _fw_instance;
 int checkIfX3DVRMLFile(char *fn);
 void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
-SV *EAI_newSVpv(char *str);
+struct Uni_String *newASCIIString(char *str);
 
 void *returnInterpolatorPointer (const char *x);
 
@@ -684,8 +683,6 @@ extern double BrowserSpeed;
 void render_polyrep(void *node);
 
 extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
-
-uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type);
 
 /* types of scripts. */
 #define NOSCRIPT 	0

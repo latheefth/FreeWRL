@@ -340,11 +340,7 @@ static vrmlImageT deepcopy_sfimage(vrmlImageT img,
 }
 static vrmlStringT deepcopy_sfstring(vrmlStringT str)
 {
- char* cstr;
- STRLEN len;
-
- cstr=SvPV(str, len);
- return EAI_newSVpv(cstr);
+ return newASCIIString (str->strptr);
 }
 
 /* Deepcopies a mf* */

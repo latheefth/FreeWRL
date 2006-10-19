@@ -132,7 +132,7 @@ struct currayhit  rh,rph,rhhyper;
 /* used to test new hits */
 
 /* this is used to return the duration of an audioclip to the perl
-side of things. SvPV et al. works, but need to figure out all
+side of things. works, but need to figure out all
 references, etc. to bypass this fudge JAS */
 float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 				-1.0,-1.0,-1.0,-1.0,-1.0,

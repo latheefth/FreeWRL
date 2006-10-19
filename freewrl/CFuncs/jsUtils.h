@@ -46,8 +46,8 @@ ActualrunScript(uintptr_t num,
 int
 JSrunScript(uintptr_t num,
 			char *script,
-			SV *rstr,
-			SV *rnum);
+			struct Uni_String *rstr,
+			struct Uni_String *rnum);
 
 int
 JSaddGlobalAssignProperty(uintptr_t num,
@@ -75,7 +75,7 @@ errorReporter(JSContext *cx,
 			  const char *message,
 			  JSErrorReport *report);
 
-int JSGetProperty(uintptr_t num, char *script, SV *rstr);
+int JSGetProperty(uintptr_t num, char *script, struct Uni_String *rstr);
 void JSInit(uintptr_t num);
 
 #endif /* __jsUtils_h__ */

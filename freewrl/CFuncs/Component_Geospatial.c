@@ -73,9 +73,8 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 	int numStrings;
 	char *cptr;
 	int tmp, tz;
-	STRLEN sl;
-	STRLEN xx;
 	int rv;
+	int sl;
 
 	*__geoSystem = GEO_GD + GEO_WE;
 
@@ -84,7 +83,8 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 
 	/* Spacial Reference Frame */
 	if (numStrings >=1) {
-		cptr = SvPV(geoSystem->p[0],xx);
+		cptr = geoSystem->p[0]->strptr;
+		sl = geoSystem->p[0]->len;
 		if (strncmp("GD",cptr,2) == 0) *__geoSystem = GEO_GD;
 		else if (strncmp("GC",cptr,2) == 0) *__geoSystem = GEO_GC;
 		else if (strncmp("UTM",cptr,3) == 0) *__geoSystem = GEO_UTM;
@@ -98,13 +98,13 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 	if (*__geoSystem == GEO_GD) {
 		/* GEO_GD geoids or ellipsoid */
 		if (numStrings >= 2) {
-			parse_ellipsoid (__geoSystem, SvPV(geoSystem->p[1],xx), description);
+			parse_ellipsoid (__geoSystem, geoSystem->p[1]->strptr, description);
 		} else {
 			*__geoSystem += GEO_WE;
 		}
 	} else if (*__geoSystem == GEO_UTM) {
 		for (tmp = 1; tmp < numStrings; tmp++) {
-			cptr = SvPV(geoSystem->p[tmp],sl);
+			cptr = geoSystem->p[tmp]->strptr;
 			if (cptr[0] == 'Z') {
 				rv=sscanf (cptr,"Z%d",&tz);
 				if ((tz>60) || (tz<1)) {
@@ -121,13 +121,12 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 
 
 void prep_GeoOrigin (struct X3D_GeoOrigin *node) {
-	STRLEN xx;
         /* is the position "compiled" yet? */
         if (node->_change != node->_dlchange) {
-                if (sscanf (SvPV(node->geoCoords,xx),"%lf %lf %lf",&GeoOrig[0],
+                if (sscanf (node->geoCoords->strptr,"%lf %lf %lf",&GeoOrig[0],
                         &GeoOrig[1], &GeoOrig[2]) != 3) {
                         printf ("GeoOrigin: invalid geoCoords string: :%s:\n",
-                                        SvPV(node->geoCoords,xx));
+                                        node->geoCoords->strptr);
                 }
 
                 geoSystemCompile (&node->geoSystem, &GeoSys,"GeoOrigin");
@@ -140,7 +139,6 @@ void prep_GeoOrigin (struct X3D_GeoOrigin *node) {
 }
 
 void prep_GeoLocation (struct X3D_GeoLocation *node) {
-	STRLEN xx;
 	/* GLdouble modelMatrix[16]; */
 	
 	if (!render_vp) {
@@ -148,10 +146,10 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 
         	/* is the position "compiled" yet? */
         	if (node->_change != node->_dlchange) {
-        	        if (sscanf (SvPV(node->geoCoords,xx),"%f %f %f",&node->__geoCoords.c[0],
+        	        if (sscanf (node->geoCoords->strptr,"%f %f %f",&node->__geoCoords.c[0],
                 	        &node->__geoCoords.c[1], &node->__geoCoords.c[2]) != 3) {
                         	printf ("GeoLocation: invalid geoCoords string: :%s:\n",
-                       	                 SvPV(node->geoCoords,xx));
+                       	                 node->geoCoords->strptr);
                 	}
 
                 	geoSystemCompile (&node->geoSystem, &node->__geoSystem,"GeoLocation");
@@ -184,7 +182,6 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 	char *posnstring;
-	STRLEN xx, yy;
 
 	if (!render_vp) return;
 
@@ -208,16 +205,16 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	/* is the position "compiled" yet? */
 	if (node->_change != node->_dlchange) {
 		/* printf ("have to recompile position...\n"); */
-		posnstring = SvPV(node->position,xx);
-		if (sscanf (SvPV(node->position,xx),"%f %f %f",&node->__position.c[0],
+		posnstring = node->position->strptr;
+		if (sscanf (node->position->strptr,"%f %f %f",&node->__position.c[0],
 			&node->__position.c[1], &node->__position.c[2]) != 3) {
 			printf ("GeoViewpoint - vp:%s: invalid position string: :%s:\n",
-					SvPV(node->description,xx),
-					SvPV(node->position,yy));
+					node->description->strptr,
+					node->position->strptr);
 		}
 
 		geoSystemCompile (&node->geoSystem, &node->__geoSystem,
-			SvPV(node->description,xx));
+			node->description->strptr);
 
 		node->_dlchange = node->_change;
 	}
@@ -324,12 +321,11 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
-		STRLEN xx;
 
 		float xSpacing = 0.0;	/* GeoElevationGrid uses strings here */
 		float zSpacing = 0.0;	/* GeoElevationGrid uses strings here */
-		rv=sscanf (SvPV (node->xSpacing,xx),"%f",&xSpacing);
-		rv=sscanf (SvPV(node->zSpacing,xx),"%f",&zSpacing);
+		rv=sscanf (node->xSpacing->strptr,"%f",&xSpacing);
+		rv=sscanf (node->zSpacing->strptr,"%f",&zSpacing);
 
 		/* JAS - first pass, intern is probably zero */
 		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
