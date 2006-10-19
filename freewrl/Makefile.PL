@@ -24,7 +24,7 @@ if ($OS eq "Darwin") {
 # create the VRMLFunc.pm module
 system "perl VRMLC.pm";
 
-my $VERSION = "V1.18.6";
+my $VERSION = "V1.18.7";
 
 use Cwd qw(getcwd chdir);
 
