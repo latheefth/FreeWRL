@@ -296,61 +296,6 @@ require './Config.pm';
 #	}
 #
 #
-#	sub post_initialize {
-#		use Cwd;
-#		my($ver, $nc);
-#		my $dir = getcwd();
-#		my $post_init = "";
-#
-#
-#		$post_init = join(
-#			  "\n",
-#			  qq{\nFRONTEND=$dir/CFrontEnd},
-#			  qq{\nSOUNDENGINE=$dir/SoundEngine},
-#			  qq{\nCONSOLEMSG=$dir/FreeWRL_Message},
-#			  qq{FRONTEND_DIR=$VRML::Config::vrml_config{BIN_DIR}},
-#			  qq{LIB_DIR=$VRML::Config::vrml_config{LIB_DIR}},
-#		 );
-#
-#		return($post_init);
-#	}
-#
-#
-#
-#	sub postamble {
-#		my @postamble;
-#		my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
-#		my $FRONTEND      = "\$(dir)/CFrontEnd";
-#		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
-#		my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
-#		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
-#		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
-#		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
-#		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
-#		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
-#		my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
-#
-#		###################################################
-#		## Add extra make instructions that don't quite fit into the
-#		## ExtUtils::MakeMaker framework.
-#		###################################################
-#
-#		push(@postamble, join(
-#				"\n",
-#				qq{\techo "#define INSTALLDIR \\"\$(DESTINSTALLPRIVLIB)\\"" > CFuncs/installdir.h\n},
-#				qq{\# --- VRML::VRMLFunc:\n},
-#				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm},
-#				qq{\t\$(PERL) VRMLC.pm\n},
-#			 ));
-#
-#		###################################################
-#		# lets do the install:: targets at this step.
-#		###################################################
-#		push(@postamble, join(
-#			  "\n",
-#			  qq{install ::},
-#		));
-#
 #
 #		if ($OS ne "Darwin") {
 #			if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
@@ -754,10 +699,6 @@ require './Config.pm';
 	# write the Makefile
 	#######################################################################################
 	
-	my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
-	my $FRONTEND      = "\$(dir)/CFrontEnd";
-	my $SOUNDENGINE   = "\$(dir)/SoundEngine";
-	my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
 	my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
 	my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
 	my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
@@ -766,7 +707,8 @@ require './Config.pm';
 	my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 
 	my $MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
-	my $SELIBS = "-lm ";
+	my $MYSELIBS = "-lm ";
+	my $MYMESLIBS = "-lXaw ";
 
 	# are we compiling the front end with Motif or GTK2?
 	if (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_MOTIF") > 0) {
@@ -778,6 +720,7 @@ require './Config.pm';
 		print "COMPILING WITH BOUNDSCHECKING\n";
 		 $MYFELIBS = $MYFELIBS . " -lboundscheck";
 		 $MYSELIBS = $MYSELIBS . " -lboundscheck";
+		 $MYMESLIBS = $MYMESLIBS . " -lboundscheck";
 	}
 	
 	
@@ -796,17 +739,20 @@ require './Config.pm';
 	print MK "MYLIBS = $MYLIBS\n";
 	print MK "MYFELIBS = $MYFELIBS\n";
 	print MK "MYSELIBS = $MYSELIBS\n";
+	print MK "MYMESLIBS = $MYMESLIBS\n";
 	print MK "FRONTEND_DIR = $FRONTEND_DIR\n";
 	print MK "LIB_DIR = $LIB_DIR\n";
 	print MK "BC = $BC\n";
 	
 	print MK "\n";
 	if ($OS ne "Darwin") {
-		print MK "all: libFreeWRL CFrontEnd";
+		print MK "all: libFreeWRL FreeWRL_Message CFrontEnd";
 		if ($VRML::Config::vrml_config{SOUND_ENGINE}) { print MK " SoundEngine"; }
 		print MK "\n";
 
 		print MK "install:\tall	\n	strip freewrl\n	cp freewrl \$(FRONTEND_DIR)\n";
+		print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
+		print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
 		if ($OS eq "Linux") {
 				print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
 				print MK "\t/sbin/ldconfig\n";
@@ -911,8 +857,21 @@ require './Config.pm';
 			$fullname =~ s/.c$/.o/;
 			print MK "$fullname ";
 		}
-		print MK " -o SoundEngine/FreeWRL_SoundServer \$(MYSELIBS)\n";
+		print MK " -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
 		}
+	}
+
+
+
+	#############################################################################
+	# FreeWRL_Message 
+	# make a program that displays a message if NOT OSX and if we are not using Motif.
+
+	if ($OS ne "Darwin") {
+		print MK "freewm:\n";
+		print MK "\t\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) FreeWRL_Message/FreeWRL_Message.c -o FreeWRL_Message/FreeWRL_Message.o\n";
+		print MK "FreeWRL_Message: freewm\n";
+		print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n";
 	}
 
 	#############################################################################
@@ -920,6 +879,8 @@ require './Config.pm';
 	print MK "\nclean:\n";
 	print MK "	rm -f CFuncs/*o\n";
 	print MK "	rm -f libFreeWRLFunc.so\n";
+	print MK "	rm -f FreeWRL_Message/*o\n";
+	print MK "	rm -f FreeWRL_Message/FreeWRL_Message\n";
 	if ($os ne "Darwin") {
 		print MK "	rm -f CFrontEnd/*o\n";
 		print MK "	rm -f freewrl\n";

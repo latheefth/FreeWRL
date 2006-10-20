@@ -72,14 +72,11 @@ int main(int argc, char **argv) {
 		mainBox,
 		XtNheight, 100,
 		XtNwidth, 400,
-		//XtNtype, XawAsciiFile,
 		XtNtype, XawAsciiString,
 		XtNscrollVertical, XawtextScrollAlways,
 		XtNscrollHorizontal, XawtextScrollWhenNeeded,
 		XtNstring, inLine,
 		XtNlength, strlen(inLine),
-		//XtNstring, argv[1],
-		//XtNlength, strlen(argv[1]),
 		NULL);
 
 
@@ -87,13 +84,6 @@ int main(int argc, char **argv) {
 	dismissButton = XtVaCreateManagedWidget("dismiss_button", commandWidgetClass,
 	       mainBox, XtNlabel, "Dismiss", NULL);
 
-
-	/* create window and icon name */
-	//if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
-	//	printf(
-	//	"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
-	//	wintitle);
-	//}
 
 	/* Tie in the callbacks */
 	XtAddCallback(dismissButton,XtNcallback, dismiss_proc, NULL);
