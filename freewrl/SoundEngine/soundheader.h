@@ -57,30 +57,29 @@ typedef struct {
 typedef struct {
 	char	chunkID[4];
 	long           chunkSize;
-//JAS	unsigned char  waveformData[];
 } datChnk;
 
 
 typedef struct {
-	        long    mtype;  // message type
-	        char    msg[256]; // message data
+	        long    mtype;  /* message type */
+	        char    msg[256]; /* message data */
 } FWSNDMSG;
 
 typedef struct {
-	int	type;		// 1 = wav, etc, etc
-	FILE	*fd;		// file descriptor of sound file
-	char	data[MAXBUFSIZE];	// data read in from file
-	int	dataptr;	// where in the data field we are
-	int	wavdataoffset;	// this is the offset from start of file to wave data
-	float	pitch;		// pitch multiplier
-	long int bytes_remaining;	// how many bytes until EOF is reached - used in
-					// playing the file
-					//
-	int ampl;               // Gain of this sound
-	int balance;		// L-R pairing.
+	int	type;		/* // 1 = wav, etc, etc */
+	FILE	*fd;		/* // file descriptor of sound file */
+	char	data[MAXBUFSIZE];	/* // data read in from file */
+	int	dataptr;	/* // where in the data field we are */
+	int	wavdataoffset;	/* // this is the offset from start of file to wave data */
+	float	pitch;		/* // pitch multiplier */
+	long int bytes_remaining;	/* // how many bytes until EOF is reached - used in */
+					/* // playing the file */
+					/* // */
+	int ampl;               /* // Gain of this sound */
+	int balance;		/* // L-R pairing. */
 
-	fmtChnk	FormatChunk;	// the "fmt " chunk is copied here
-	datChnk DataChunk;	// the one and only one "data" chunk is copied here
+	fmtChnk	FormatChunk;	/* // the "fmt " chunk is copied here */
+	datChnk DataChunk;	/* // the one and only one "data" chunk is copied here */
 
 } SNDFILE;
 
@@ -105,12 +104,12 @@ void recordMaxWavParams(SNDFILE *me);
 void streamMoreData(int size);
 void adjustAmplitude(int source, int readSize);
 
-// bits per sample:
+/* // bits per sample: */
 #define	EIGHT 		8
 #define SIXTEEN		16
 #define	THIRTYTWO	32
 
 #define UNINITWAV	-20000
 
-// defines from the build environment
+/* // defines from the build environment */
 #include "../CFuncs/vrmlconf.h"

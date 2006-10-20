@@ -149,10 +149,9 @@ if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}";
 }
 
-push @inc, $VRML_CONFIG{FREEWRL_INC},
-	"-I../JS/$jsobjdir", "-IJS/$jsobjdir", "-IJS/$jsdir", "-I../JS/$jsdir -ICFuncs";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/", "-lFreeWRLjs";
-push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/";
+push @inc, $VRML_CONFIG{FREEWRL_INC}, "-IJS/$jsobjdir", "-IJS/$jsdir", "-ICFuncs -ICFrontEnd ";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-lFreeWRLjs";
+push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
 
 # push build directory, for running standalone
 
@@ -496,19 +495,6 @@ require './Config.pm';
 #		# Darwin's front end is either a cocoa app or a carbon app; the front ends are made
 #		# in a different file. So, in this make, don't make a front end!
 #
-#		# make the sound engine, console message, and frontend if NOT OSX.
-#		if ($OS ne "Darwin") {
-#			if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
-#			push (@postamble, join("\n",
-#				  qq{\n\# --- Sound Engine:},
-#				  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def \n},
-#			  	  qq{\n\# --- FreeWRL Message Console:},
-#			  	  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) install $def \n},
-#				  qq{\n\# --- FreeWRL C Front End:},
-#				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $frontEndDef \n},
-#				 ));
-#			}
-#		}
 #
 #		###################################################
 #		# lets do the clean:: targets at this step.
@@ -779,8 +765,8 @@ require './Config.pm';
 	my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
 	my $MYDEFINE      = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 
-	my $MYFELIBS =  $MYLIBS . " -lFreeWRLFunc -lpthread";
-	my $MYFEINC =  $MYINC;
+	my $MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
+	my $SELIBS = "-lm ";
 
 	# are we compiling the front end with Motif or GTK2?
 	if (index ($VRML::Config::vrml_config{FREEWRL_DEFINE},"HAVE_MOTIF") > 0) {
@@ -791,6 +777,7 @@ require './Config.pm';
 	if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
 		print "COMPILING WITH BOUNDSCHECKING\n";
 		 $MYFELIBS = $MYFELIBS . " -lboundscheck";
+		 $MYSELIBS = $MYSELIBS . " -lboundscheck";
 	}
 	
 	
@@ -808,11 +795,26 @@ require './Config.pm';
 	print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
 	print MK "MYLIBS = $MYLIBS\n";
 	print MK "MYFELIBS = $MYFELIBS\n";
+	print MK "MYSELIBS = $MYSELIBS\n";
+	print MK "FRONTEND_DIR = $FRONTEND_DIR\n";
+	print MK "LIB_DIR = $LIB_DIR\n";
+	print MK "BC = $BC\n";
 	
 	print MK "\n";
 	if ($OS ne "Darwin") {
-		print MK "all: libFreeWRL CFrontEnd SoundEngine\n";
-		print MK "install:	\n	libFreeWRL freewrl\n	strip freewrl\n	cp freewrl $(BINDIR)\n";
+		print MK "all: libFreeWRL CFrontEnd";
+		if ($VRML::Config::vrml_config{SOUND_ENGINE}) { print MK " SoundEngine"; }
+		print MK "\n";
+
+		print MK "install:\tall	\n	strip freewrl\n	cp freewrl \$(FRONTEND_DIR)\n";
+		if ($OS eq "Linux") {
+				print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
+				print MK "\t/sbin/ldconfig\n";
+		}
+		if ($VRML::Config::vrml_config{SOUND_ENGINE}) { 
+			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
+			print MK "\tcp SoundEngine/FreeWRL_SoundServer \$(FRONTEND_DIR)\n";
+		}
 	} else {
 		print MK "all: libFreeWRL \n";
 	}
@@ -825,20 +827,21 @@ require './Config.pm';
 		my $nm = $fullname;
 		$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
 	
-		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) -ICFuncs \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
+		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
 	}
-	
+	print MK "\n# make the shared library\n";
 	print MK "libFreeWRL:\t";
-	foreach my $fullname (@CFuncsSourceFiles) {
-		# remove the CFuncs from the front, and the .c from the end.
-		my $nm = $fullname;
-		$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
 	
-		print MK "$nm ";
-	}
-	print MK "\n";
+        foreach my $fullname (@CFuncsSourceFiles) {
+                # remove the CFuncs from the front, and the .c from the end.
+                my $nm = $fullname;
+                $nm =~ s/.c$//; $nm =~ s/CFuncs.//;
+
+                print MK "$nm ";
+        }
+        print MK "\n\n";
+
 	
-	print MK "# make the shared library\n";
 	print MK "	\$(CC) -shared ";
 	foreach my $fullname (@CFuncsSourceFiles) {
 		$fullname =~ s/.c$/.o/;
@@ -849,13 +852,14 @@ require './Config.pm';
 	#############################################################################
 	#CFRONTEND
 	if ($os ne "Darwin") {
+		print MK "\n# make the Unix front end\n";
 		my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
 		foreach my $fullname (@CFrontEndSourceFiles) {
 			# remove the CFrontEnd from the front, and the .c from the end.
 			my $nm = $fullname;
 			$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
 		
-			print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) -ICFrontEnd \$(DEFINE) $fullname -o CFrontEnd\/$nm.o\n";
+			print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFrontEnd\/$nm.o\n";
 		}
 		
 		print MK "CFrontEnd:\t";
@@ -868,48 +872,6 @@ require './Config.pm';
 		}
 		print MK "\n";
 		
-## for making the freewrl opts file
-#FWFLAGS = -c -I /usr/include/GL -I../CFuncs -D_REENTRANT 
-#
-#all:	freewrl
-#
-#install:  freewrl
-#	strip freewrl
-#	cp freewrl $(BINDIR)
-#
-#fwopts:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
-#
-#fwWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwWindow.c
-#
-#fwMotifWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwMotifWindow.c
-#
-#fwGtkWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwGtkWindow.c
-#
-#fwBareWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwBareWindow.c
-#
-#GLwDrawA:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) GLwDrawA.c
-#
-#freewrl: fwopts fwWindow fwGtkWindow fwBareWindow fwMotifWindow GLwDrawA
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) freewrl.c
-#
-#	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
-#	freewrl.o fwopts.o fwWindow.o fwGtkWindow.o fwBareWindow.o fwMotifWindow.o GLwDrawA.o \
-#	$(LIBS) \
-#	-L/usr/X11R6/lib \
-#	-lXt -lpthread -lFreeWRLFunc $(BC)\
-#
-#clean:
-#	rm -f *o; rm -f perlxsi*; rm -f freewrl;
-#
-#distclean: clean
-
-		print MK "# make the front end\n";
 		print MK "	\$(CC) ";
 		foreach my $fullname (@CFrontEndSourceFiles) {
 			$fullname =~ s/.c$/.o/;
@@ -917,49 +879,54 @@ require './Config.pm';
 		}
 		print MK " -o freewrl \$(BC) \$(MYFELIBS)\n";
 	}
-	
-#############################################################################
-## make file for FreeWRL front end.
-##
-#
-## for making the freewrl opts file
-#FWFLAGS = -c -I /usr/include/GL -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
-#
-#all:	freewrl
-#
-#install:  freewrl
-#	strip freewrl
-#	cp freewrl $(BINDIR)
-#
-#fwopts:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
-#
-#fwWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwWindow.c
-#
-#fwMotifWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwMotifWindow.c
-#
-#fwGtkWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwGtkWindow.c
-#
-#fwBareWindow:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwBareWindow.c
-#
-#GLwDrawA:
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) GLwDrawA.c
-#
-#freewrl: fwopts fwWindow fwGtkWindow fwBareWindow fwMotifWindow GLwDrawA
-#	$(CC) $(INC) $(FWFLAGS) $(DEFINE) freewrl.c
-#
-#	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
-#	freewrl.o fwopts.o fwWindow.o fwGtkWindow.o fwBareWindow.o fwMotifWindow.o GLwDrawA.o \
-#	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
-#	$(LIBS) \
-#	-L/usr/X11R6/lib \
-#	-lXt -lpthread -lFreeWRLFunc $(BC)\
-#
-#clean:
-#	rm -f *o; rm -f perlxsi*; rm -f freewrl;
-#
-#distclean: clean
+
+	#############################################################################
+	# SoundEngine
+	# make the sound engine, console message, and frontend if NOT OSX.
+
+	if ($OS ne "Darwin") {
+		if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
+		print MK "\n# make the Unix sound engine \n";
+		my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*c`);
+		foreach my $fullname (@SoundEngineSourceFiles) {
+			# remove the SoundEngine from the front, and the .c from the end.
+			my $nm = $fullname;
+			$nm =~ s/.c$//; $nm =~ s/SoundEngine.//;
+		
+			print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o SoundEngine\/$nm.o\n";
+		}
+		
+		print MK "SoundEngine:\t";
+		foreach my $fullname (@SoundEngineSourceFiles) {
+			# remove the SoundEngine from the front, and the .c from the end.
+			my $nm = $fullname;
+			$nm =~ s/.c$//; $nm =~ s/SoundEngine.//;
+		
+			print MK "$nm ";
+		}
+		print MK "\n";
+		
+		print MK "	\$(CC) ";
+		foreach my $fullname (@SoundEngineSourceFiles) {
+			$fullname =~ s/.c$/.o/;
+			print MK "$fullname ";
+		}
+		print MK " -o SoundEngine/FreeWRL_SoundServer \$(MYSELIBS)\n";
+		}
+	}
+
+	#############################################################################
+	# Misc targets
+	print MK "\nclean:\n";
+	print MK "	rm -f CFuncs/*o\n";
+	print MK "	rm -f libFreeWRLFunc.so\n";
+	if ($os ne "Darwin") {
+		print MK "	rm -f CFrontEnd/*o\n";
+		print MK "	rm -f freewrl\n";
+		if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
+			print MK "	rm -f SoundEngine/*o\n";
+			print MK "	rm -f SoundEngine/FreeWRL_SoundServer\n";
+		}
+	}
+
+	print MK "distclean:	clean\n";
