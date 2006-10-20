@@ -1178,7 +1178,7 @@ void initFreewrl() {
 		#ifdef DO_MULTI_OPENGL_THREADS
 		initializeShapeCompileThread();
 		#endif
-        	initializeInputParseThread(PERLPATH);
+        	initializeInputParseThread();
 
         	while (!isInputThreadInitialized()) {
         	        usleep(50);

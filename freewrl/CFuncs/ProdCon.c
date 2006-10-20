@@ -79,7 +79,7 @@ struct PSStruct {
 
 
 
-void _inputParseThread (void *perlpath);
+void _inputParseThread (void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, uintptr_t *retarr);
 int isInputThreadInitialized(void);
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
@@ -115,15 +115,11 @@ int URLLoaded=FALSE;
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
 
-char *myPerlInstallDir;
-
-void initializeInputParseThread(const char *perlpath) {
+void initializeInputParseThread(void) {
 	int iret;
 
-	myPerlInstallDir = strdup(perlpath);
-
 	/* create consumer thread and set the "read only" flag indicating this */
-	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, (void *) perlpath);
+	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
 }
 
 /* is Perl running? this is a function, because if we need to mutex lock, we
@@ -482,7 +478,7 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 /***********************************************************************************/
 
-void _inputParseThread(void *perlpath) {
+void _inputParseThread(void) {
         char *commandline[] = {"", NULL};
 	char *builddir;
 	char *installdir;

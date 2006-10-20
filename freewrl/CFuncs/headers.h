@@ -687,8 +687,6 @@ extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data.
 /* types of scripts. */
 #define NOSCRIPT 	0
 #define JAVASCRIPT	1
-#define	CLASSSCRIPT	2
-#define	PERLSCRIPT	3
 #define SHADERSCRIPT	4
 
 /* printf is defined by perl; causes segfault in threaded freewrl */
@@ -727,7 +725,7 @@ extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
 extern GLfloat Backtex[], Backnorms[];
 
 extern void new_tessellation(void);
-extern void initializePerlThread(const char *perlpath);
+extern void initializePerlThread(void);
 extern void setGeometry (const char *optarg);
 extern void setWantEAI(int flag);
 extern void setPluginPipe(const char *optarg);

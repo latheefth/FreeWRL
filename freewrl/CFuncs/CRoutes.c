@@ -201,10 +201,13 @@ void initializeScript(uintptr_t num,int evIn) {
 		/* printf ("initializeScript, tn %d\n",tn); */
 
 		if (!(ScriptControl[tn]._initialized)) {
+#ifdef OLDCODE
 			switch (ScriptControl[tn].thisScriptType) {
 				case JAVASCRIPT: {
+#endif
 			 		ActualrunScript(tn, "initialize()" ,&retval);
 					ScriptControl[tn]._initialized=TRUE;
+#ifdef OLDCODE
 					break;
 				}
 				case CLASSSCRIPT: {
@@ -220,6 +223,7 @@ void initializeScript(uintptr_t num,int evIn) {
 						ScriptControl[tn].thisScriptType);
 				 }
 			}
+#endif
 		}
 	    }
 	} else {
@@ -228,6 +232,7 @@ void initializeScript(uintptr_t num,int evIn) {
 
 		/* this script initialized yet? */
 		if (!(ScriptControl[num]._initialized)) {
+#ifdef OLDCODE
 			switch (ScriptControl[num].thisScriptType) {
 				case JAVASCRIPT: {
 			 		ActualrunScript(num, "initialize()" ,&retval);
@@ -235,6 +240,7 @@ void initializeScript(uintptr_t num,int evIn) {
 					break;
 				}
 				case CLASSSCRIPT: {
+#endif
 					/* printf ("have to initialize this CLASS script!\n"); */
 					/* this is done later, so that we don't have thread
 					conflicts, because perl calls this, and the javaclass
@@ -247,6 +253,7 @@ void initializeScript(uintptr_t num,int evIn) {
 						ScriptControl[num].thisScriptType);
 				 }
 			}
+#endif
 		}
 	}
 }
@@ -1469,6 +1476,8 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	#endif
 }
 
+
+#ifdef OLDCODE
 /* start getting events from a Class script. IF the script is not
  * initialized, do it. This will happen once only */
 
@@ -1494,6 +1503,7 @@ void gatherClassEventOuts (uintptr_t script) {
 
 	/* now, process received commands... */
 	processClassEvents(script,startEntry,endEntry);
+
 }
 
 
@@ -1611,7 +1621,6 @@ char *processThisClassEvent (void *fn,
 }
 
 
-
 /* sets a CLASS variable - routing into the .class file */
 void sendJClassEventIn(int num, int fromoffset) {
 	uintptr_t fn, tn;
@@ -1643,6 +1652,7 @@ void sendJClassEventIn(int num, int fromoffset) {
 
 	}
 }
+#endif
 
 void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
@@ -1667,6 +1677,7 @@ void sendScriptEventIn(uintptr_t num) {
 			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 			mark_script((uintptr_t) to_ptr->node);
 
+			#ifdef OLDCODE
 			switch (ScriptControl[(uintptr_t)to_ptr->node].thisScriptType) {
 				case CLASSSCRIPT: {
 					/* sendJClassEventIn(to_ptr->node, to_ptr->foffset); */
@@ -1674,7 +1685,10 @@ void sendScriptEventIn(uintptr_t num) {
 					break;
 				}
 				case JAVASCRIPT: {
+			#endif
 					getField_ToJavascript(num,to_ptr->foffset);
+
+			#ifdef OLDCODE
 					break;
 				  }
 				default: {
@@ -1682,6 +1696,7 @@ void sendScriptEventIn(uintptr_t num) {
 						ScriptControl[(uintptr_t)to_ptr->node].thisScriptType);
 				 }
 			}
+			#endif
 		}
 	} else {
 		#ifdef CRVERBOSE 
@@ -1805,9 +1820,13 @@ printf ("msf %d c %d\n",max_script_found, counter);
 printf ("script type %d\n",ScriptControl[counter].thisScriptType);
 */
 
+#ifdef OLDCODE
 				switch (ScriptControl[counter].thisScriptType) {
 					case JAVASCRIPT: {
+#endif
 						gatherScriptEventOuts (counter);
+
+#ifdef OLDCODE
 						break;
 					}
 					case CLASSSCRIPT: {
@@ -1819,6 +1838,7 @@ printf ("script type %d\n",ScriptControl[counter].thisScriptType);
 							ScriptControl[counter].thisScriptType);
 					 }
 				}
+#endif
 			}
 		}
 
@@ -1846,13 +1866,17 @@ void process_eventsProcessed() {
 	jsval retval;
 
 	for (counter = 0; counter <= max_script_found; counter++) {
+#ifdef OLDCODE
 	    if (ScriptControl[counter].thisScriptType == JAVASCRIPT) {
+#endif
       		if (!ActualrunScript(counter, "eventsProcessed()" ,&retval))
                 	printf ("failed to run eventsProcessed for script %d\n",counter);
+#ifdef OLDCODE
 	    } else {
 		    /* printf ("process_eventsProcessed; script %d is a CLASSSCRIPT\n",
 				    ScriptControl[counter].thisScriptType); */
 	    }
+#endif
 
 	}
 }
