@@ -6,6 +6,7 @@
 # what OS are we running under?
 my $OS = `uname`;
 my $HAVE_UBUNTU = "NO";
+chomp ($pwd = getcwd());
 
 # remove whitespace at beginning and end.
 $OS =~ s/\s+$//;
