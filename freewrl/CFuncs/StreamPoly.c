@@ -63,7 +63,6 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	struct SFColor *points=0; int npoints;
 	struct SFColor *colors=0; int ncolors=0;
 	struct SFColor *normals=0; int nnormals=0;
-	struct SFVec2f *texcoords=0; int ntexcoords=0;
 	int isRGBA = FALSE;
 
 	struct X3D_Coordinate *xc;

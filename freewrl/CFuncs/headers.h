@@ -1171,6 +1171,9 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset);
 int findFieldInKEYWORDS(char *field);
 int countCommas (char *instr);
+void sortChildren (struct Multi_Node ch);
+void dirlightChildren(struct Multi_Node ch);
+void normalChildren(struct Multi_Node ch);
 
 int mapFieldTypeToInernaltype (indexT kwIndex);
 #endif /* __HEADERS_H__ */

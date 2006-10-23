@@ -736,7 +736,6 @@ void render_polyrep(void *node) {
 	struct X3D_Box *genericNodePtr;
 	struct X3D_IndexedFaceSet *IFSNodePtr;
 	struct X3D_PolyRep *r;
-	struct SFVec2f *tc;
 
 	v = *(struct X3D_Virt **)node;
 	genericNodePtr = (struct X3D_Box *)node;
@@ -877,7 +876,6 @@ void render_ray_polyrep(void *node) {
 	float tmp1,tmp2;
 	float v1len, v2len, v3len;
 	float v12pt;
-	struct SFColor *points;
 
 	/* is this structure still loading? */
 	if (!node) return;

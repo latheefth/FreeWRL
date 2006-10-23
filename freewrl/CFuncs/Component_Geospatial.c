@@ -16,6 +16,7 @@
 #include "Bindable.h"
 #include "Collision.h"
 #include "Component_Geospatial.h"
+#include "OpenGL_Utils.h"
 
 int GeoVerbose = 0;
 
@@ -77,6 +78,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 	int sl;
 
 	*__geoSystem = GEO_GD + GEO_WE;
+	sl = 0;
 
 	/* how many text strings in geoSystem field? */
 	numStrings = geoSystem->n;
@@ -296,8 +298,6 @@ void changed_GeoLocation ( struct X3D_GeoLocation *node) {
                 int i;
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
-                struct X3D_Virt *v;
-		
 		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT
         }
@@ -313,7 +313,6 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 		int rv; /* temp for sscanf retvals */
 
 	       struct pt t_orig = {0,0,0};
-	       static int refnum = 0;
 
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};

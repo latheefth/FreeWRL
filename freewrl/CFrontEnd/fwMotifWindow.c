@@ -309,9 +309,6 @@ void GLArearesize (Widget w, XtPointer data, XtPointer callData) {
 /* Mouse, keyboard input when focus is in OpenGL window. */
 void GLAreainput (Widget w, XtPointer data, XtPointer callData) {
 	XmDrawingAreaCallbackStruct *cd = (XmDrawingAreaCallbackStruct *) callData;
-	char buf[1];
-	KeySym keysym;
-	int rc;
 
 	#ifdef XTDEBUG
 	printEvent(*(cd->event));
@@ -519,7 +516,7 @@ void createNavigatePulldown() {
 
 /* Preferences pulldown menu */
 void createPreferencesPulldown() {
-	Widget cascade, btn, menupane;
+	Widget cascade, menupane;
 
 	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
 
@@ -575,10 +572,8 @@ void createPreferencesPulldown() {
 
 void createHelpPulldown() {
 	Widget btn, menupane, cascade;
-	XmString diastring;
 	int ac;
 	Arg args[10];
-	char ns[2000];
 
 
 	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
@@ -615,9 +610,6 @@ void createHelpPulldown() {
 /**********************************/
 void createMenuBar(void) {
 	Arg menuArgs[10]; int menuArgc = 0;
-	Widget cascade, btn, menupane, navModeWidget;
-	Widget walkButton, flyButton, examineButton;
-
 
 	/* create the menu bar */
 	menuArgc = 0;

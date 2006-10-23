@@ -185,7 +185,6 @@ _standardMFGetProperty(JSContext *cx,
 		char *makeNewElement,
 		char *name) {
 
-	JSObject *_obj;
 	int32 _length, _index;
 	jsval _length_val;
 
@@ -396,10 +395,10 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 
 static JSBool
 doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
-	JSString *str, *sstr;
+	JSString *str;
 	jsval v;
 	jsval myv;
-	char *p, *pp;
+	char *p;
 	size_t p_len = 0;
 	int len = 0, ind = JSVAL_TO_INT(id);
 
@@ -1721,12 +1720,9 @@ SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 JSBool
 SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	JSObject *_from_obj, *globalObj;
+	JSObject *_from_obj;
 	SFNodeNative *fptr, *ptr;
 	char *_id_str;
-	jsval _rval;
-	JSString *strval;
-	char *strtouched;
 
 	/* unsigned int toptr; */
 	if (JSVRMLClassesVerbose) printf ("start of SFNodeAssign argc %d\n",argc);
@@ -1907,15 +1903,9 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 JSBool
 SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
-	JSObject *globalObj;
 	JSString *_idStr, *_valStr;
 	/* JAS BrowserNative *brow; */
-	SFNodeNative *ptr;
 	char *_id_c, *_val_c;
-	size_t val_len = 0;
-
-	uintptr_t ra;
-	int retint;
 
 	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);

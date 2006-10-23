@@ -16,7 +16,6 @@ int parseCommandLine (int argc, char **argv) {
 	int tmp;
 
 	while (1) {
-		int this_option_optind = optind ? optind : 1;
 		int option_index = 0;
 		static struct option long_options[] = {
 			{"eai", 0, 0, 'e'},

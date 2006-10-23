@@ -814,7 +814,6 @@ void new_do_texture(int texno) {
 void bind_image(int itype, struct Uni_String *parenturl, struct Multi_String url,
 		GLuint *texture_num, int repeatS, int repeatT, void *param) {
 
-	struct multiTexParams *paramPtr;
 
 	#ifdef TEXVERBOSE 
 	printf ("bind_image, textureInProcess %d texture_num %d\n",textureInProcess,*texture_num);
@@ -989,7 +988,7 @@ int findTextureFile (int cwo, int *istemp) {
 	char *mypath;
 	char *thisurl;
 	char *slashindex;
-	int count,flen;
+	int count;
 	char firstBytes[4];
 	char *sysline;
 
@@ -1064,7 +1063,6 @@ int findTextureFile (int cwo, int *istemp) {
 	/* pixelTextures - lets just make a specific string for this one */
 	if (loadparams[cwo].type ==PIXELTEXTURE) {
 		int a,b,c;
-		char *name;
 		struct Multi_Int32 *cTexture;
 		int *iptr;
 
@@ -1302,7 +1300,6 @@ void _textureThread(void) {
 void __reallyloadPixelTexAsMFInt32() {
 	/* PixelTexture variables */
 	long hei,wid,depth;
-	long long inval;
 	unsigned char *texture;
 	int count;
 	int ok;

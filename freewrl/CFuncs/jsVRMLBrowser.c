@@ -221,7 +221,7 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 	JSObject *_obj;
 	JSString *_str;
 	JSClass *_cls;
-	jsval _v, _rval = INT_TO_JSVAL(0);
+	jsval _rval = INT_TO_JSVAL(0);
 	char *_c_args = "MFNode nodes",
 		*_costr,
 		*_c_format = "o";
@@ -323,7 +323,6 @@ JSBool
 VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 						  uintN argc, jsval *argv, jsval *rval)
 {
-	jsval _rval = INT_TO_JSVAL(0);
 	char *_c, *_c_args = "SFString description", *_c_format = "s";
 
 	/*FUNC_INIT*/
@@ -345,8 +344,6 @@ JSBool
 VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
-	JSString *_str;
-	jsval _rval = INT_TO_JSVAL(0);
 
 	/* for the return of the nodes */
 	uintptr_t nodarr[200];
@@ -414,7 +411,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	JSObject *_obj[2];
 	JSString *_str[2];
 	JSClass *_cls[2];
-	jsval _v, _rval = INT_TO_JSVAL(0);
+	jsval _v;
 	char *_c,
 		*_c_args = "MFString url, SFNode node, SFString event",
 		*_costr0,
@@ -649,10 +646,8 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 	struct X3D_Node *toNode;
 	int fromOfs, toOfs, len;
 	int fromtype, totype;
-int ckind;
-int xxx;
-int ra;
-int myField;
+	int xxx;
+	int myField;
 
 	/*FUNC_INIT*/
 printf ("must fix doVRMLRoute\n");

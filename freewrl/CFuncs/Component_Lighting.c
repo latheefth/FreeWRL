@@ -14,6 +14,7 @@
 #include <math.h>
 #include "headers.h"
 #include "installdir.h"
+#include "OpenGL_Utils.h"
 
 
 void render_DirectionalLight (struct X3D_DirectionalLight *node) {

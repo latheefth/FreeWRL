@@ -844,7 +844,6 @@ void setup_projection(int pick, int x, int y) {
 
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
-	char comline[100];
 	if (type == KeyPress) {
 		switch (kp) {
 			case 'e': { set_viewer_type (EXAMINE); break; }
@@ -1207,7 +1206,6 @@ void setSnapSeq() {
 void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
-        int i;
         /* kill any remaining children */
         /* printf ("doQuit - calling exit(0)\n"); */
         rn = (struct X3D_Group*) rootNode;

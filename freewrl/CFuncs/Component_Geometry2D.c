@@ -81,7 +81,7 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 		tmpptr_a = createLines (node->startAngle,
 			node->endAngle, node->radius, CHORD, &tmpint);
 	} else {
-		printf ("ArcClose2D, closureType %s invalid\n",node->closureType);
+		printf ("ArcClose2D, closureType %s invalid\n",node->closureType->strptr);
 	}
 
 	/* perform the switch - worry about threading here without locking */
@@ -182,7 +182,6 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 
 void compile_Disk2D (struct X3D_Disk2D *node){
         /*  have to regen the shape*/
-	float rad;
 	GLfloat *fp;
 	GLfloat *tp;
 	GLfloat *sfp;
@@ -358,6 +357,8 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 	float y = ((node->size).c[1])/2;
 	MARK_NODE_COMPILED
 
+	xx = NULL;
+
 	/* once malloc'd, this never changes size, so is "threadsafe" */
 	/*  malloc memory (if possible)*/
 	if (!node->__points) xx = malloc (sizeof(struct SFColor)*(4));
@@ -376,7 +377,6 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
-	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 

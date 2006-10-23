@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.73  2006/10/23 18:28:11  crc_canada
+# More changes and code cleanups.
+#
 # Revision 1.72  2006/10/19 18:28:46  crc_canada
 # More changes for removing Perl from the runtime
 #
@@ -258,7 +261,7 @@ sub cInitialize {
 		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
 		$retstr = $restsr . "$field.p = malloc (sizeof(float)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
-			$retstr = $retstr .  "$field.p[1] = @{$val}[tmp];";
+			$retstr = $retstr .  "$field.p[$tmp] = @{$val}[tmp];";
 		}
 		$retstr = $retstr . "$field.n=$count; /*CHECKTHIS*/";
 		

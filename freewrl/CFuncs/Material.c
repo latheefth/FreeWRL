@@ -41,7 +41,7 @@ void do_shininess (float shininess) {
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	GLfloat *myfloats;
-	int i,diff;
+	int i;
 
 	for (i=0; i<4; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {

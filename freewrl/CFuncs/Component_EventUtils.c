@@ -14,6 +14,7 @@
 #include <math.h>
 #include "headers.h"
 #include "installdir.h"
+#include "SensInterps.h"
 
 /******************************************************************************/
 /* see the spec for a description. fields inputTrue and inputFalse are set in
@@ -107,7 +108,7 @@ void do_BooleanTrigger (void *node){
 	if (!node) return;
 	px = (struct X3D_BooleanTrigger *) node;
 
-	px->triggerTrue == TRUE; /* spec says that this is ALWAYS true */
+	px->triggerTrue = TRUE; /* spec says that this is ALWAYS true */
 	mark_event (node, offsetof (struct X3D_BooleanTrigger, triggerTrue));
 }
 

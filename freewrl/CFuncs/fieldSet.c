@@ -413,7 +413,6 @@ char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
 	struct X3D_Box *no;
 	int* np;
 	int nodeType;
-	char *ptr;
 
 	if (node == 0) return "unknown";
 
@@ -458,7 +457,6 @@ int findFieldInFIELDNAMES(char *field) {
 int findRoutedFieldInFIELDNAMES (char *field, int fromTo) {
 	int retval;
 	char mychar[200];
-	int tmp;
 
 	retval = findFieldInFIELDNAMES(field);
 	if (retval == -1) {
@@ -855,9 +853,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	char *valStr, *OldvalStr;
 	struct Uni_String **svptr;
 	struct Uni_String **newp, **oldp;
-	int myv;
 	int count;
-	struct xpv *mypv;
 
 	JSString *strval; /* strings */
 
@@ -1026,7 +1022,6 @@ saveSFImage - a PixelTexture is being sent back from a script, save it!
 
 *********************************************************************/
 void saveSFImage (struct X3D_PixelTexture *node, char *str) {
-	char *strptr;
 	int thissize;
 	struct Uni_String *newSV;
 	struct Uni_String *oldSV;
@@ -1050,7 +1045,6 @@ do we need to change a Structure type? */
 void SetMemory (int type, void *destptr, void *srcptr, int len) {
 	void *newptr;
 	struct Multi_Vec3f *mp;
-	struct Uni_String *svptr;
 
 
 	/* is this a structure? If Multi_Struct_memptr returns a different
@@ -1081,15 +1075,12 @@ void SetMemory (int type, void *destptr, void *srcptr, int len) {
 /****************************************************************/
 void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 	int oldlen, newlen;
-	jsval _v;
 	int i;
 	char *valStr, *OldvalStr;
 	struct Uni_String **oldsvptr;
 	struct Uni_String **newsvptr;
 	struct Uni_String **newp, **oldp;
-	int myv;
 	int count;
-	struct xpv *mypv;
 
 	/* oldlen = what was there in the first place */
 	/*  should be ok verifySVtype(from); */
@@ -1315,9 +1306,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    }
 
 	    case MFSTRING: {
-		int count;
 		struct Uni_String ** newp;
-		struct xpv *mypv;
 		struct Multi_String *strptr;
 		int thisele, thissize, maxele;	/* used for reading in MFStrings*/
 

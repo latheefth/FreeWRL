@@ -110,12 +110,9 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 	float *newpoints;
 	float newPoint[3];
 	int nquads = ntri/2;
-	int quadind;
 	int *cindexptr;
 
 	float *tcoord;
-	int ntexcoords=0;
-	struct SFVec2f *texcoords;
 	
 	/* check validity of input fields */
 	if(nh != nx * nz) {

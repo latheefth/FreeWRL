@@ -14,15 +14,18 @@
 #include <math.h>
 #include "headers.h"
 #include "installdir.h"
+#include "OpenGL_Utils.h"
 
 /* last HAnimHumanoid skinCoord and skinNormals */
 void *HANimSkinCoord = 0;
 void *HAnimSkinNormal = 0;
 
 void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
+/*
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
 	int	recalculate_dist;
+*/
 return;
 #ifdef HANIMHANIM
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
@@ -105,9 +108,11 @@ return;
 
 void prep_HAnimSite (struct X3D_HAnimSite *node) {
 
+	/*
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
 	int	recalculate_dist;
+	*/
 return;
 #ifdef HANIMHANIM
 
@@ -290,7 +295,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 
 void child_HAnimJoint(struct X3D_HAnimJoint *node) {
-	int nc = ((node->children).n);
+	/* int nc = ((node->children).n); */
 return;
 #ifdef HANIMHANIM
 	/* any children at all? */
@@ -326,7 +331,7 @@ return;
 }
 
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
-	int nc = ((node->children).n);
+	/* int nc = ((node->children).n); */
 return;
 #ifdef HANIMHANIM
 	/* any children at all? */
@@ -363,7 +368,7 @@ return;
 
 
 void child_HAnimSite(struct X3D_HAnimSite *node) {
-	int nc = ((node->children).n);
+	/* int nc = ((node->children).n); */
 	DIRECTIONAL_LIGHT_SAVE
 return;
 #ifdef HANIMHANIM
@@ -458,7 +463,6 @@ void changed_HAnimSite (struct X3D_HAnimSite *node) {
                int i;
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
-                struct X3D_Virt *v;
 
 		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT

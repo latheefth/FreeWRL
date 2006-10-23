@@ -99,9 +99,6 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	char buf[2004];
 	char encodedUrl[2000];
 
-	char *retname; 	/* for getting browser name */
-
-
         URLencod(encodedUrl,url,2000);
 
 	#ifdef PLUGINSOCKETVERBOSE
@@ -209,10 +206,6 @@ void requestNewWindowfromPlugin(int sockDesc,
 {
 	size_t len = 0, ulen = 0, bytes = 0;
 	urlRequest request;
-	FILE  *infile;
-	int linecount;
-	int linelen;
-	char buf[2004];
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestNewWindow fromPlugin, getting %s\n",url);

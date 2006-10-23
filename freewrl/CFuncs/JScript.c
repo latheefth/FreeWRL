@@ -298,8 +298,6 @@ SFNodeNativeDelete(void *p)
 int
 SFNodeNativeAssign(void *top, void *fromp)
 {
-	size_t to_vrmlstring_len = 0, to_handle_len = 0,
-		from_vrmlstring_len = 0, from_handle_len = 0;
 	SFNodeNative *to = (SFNodeNative *)top;
 	SFNodeNative *from = (SFNodeNative *)fromp;
 
@@ -520,8 +518,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	char *smallfield = NULL;
 	char mynewname[400];
 	char thisValue[100];
-	int rows, columns, elements;
-	int count;
+	int rows, elements;
 	char *sftype;
 
 	int haveMulti;
@@ -530,7 +527,6 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 
 	int tlen;
 	struct Multi_Int32*     vrmlImagePtr;
-	struct Multi_Int32    Int32Ptr;
 	float *FloatPtr;
 	uintptr_t  *VoidPtr;
 	int *IntPtr;

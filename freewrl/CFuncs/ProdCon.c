@@ -479,13 +479,6 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 /***********************************************************************************/
 
 void _inputParseThread(void) {
-        char *commandline[] = {"", NULL};
-	char *builddir;
-	char *installdir;
-	int xx;
-
-	FILE *tempfp; /* for tring to locate the fw2init.pl file */
-
 	/* printf ("inputParseThread is %d\n",pthread_self()); */
 
 	PERL_LOCKING_INIT;
@@ -789,7 +782,6 @@ void __pt_doInline() {
 void __pt_doStringUrl () {
 	int count;
 	int retval;
-	uintptr_t myretarr[2000];
 
 	/* for cParser */
         char *buffer;

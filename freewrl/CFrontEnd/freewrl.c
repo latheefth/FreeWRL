@@ -63,9 +63,6 @@ void initFreewrl(void);
 extern int parseCommandLine(int, char **);
 
 int main (int argc, char **argv) {
-	int retval;
-	int count;
-	int digit_optind = 0;
 	char *pwd;
 	char *initialFilename;	/* file to start FreeWRL with */
 

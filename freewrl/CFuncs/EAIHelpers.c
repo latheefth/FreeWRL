@@ -331,9 +331,6 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	
 */
 
-	uintptr_t *newp;
-	int newofs;
-	int newtype;
 	int myProtoIndex;
 	char myCharBuffer[300];
 	int myFieldOffs;

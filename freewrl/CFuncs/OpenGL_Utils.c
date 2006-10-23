@@ -443,7 +443,6 @@ void kill_MFVec3f (struct Multi_Vec3f *par) {
 }
 
 void kill_FreeWRLPTR (void * par) {
-	void *rv;
 	if (par==0) return;
 
 	#ifdef KILLVERBOSE

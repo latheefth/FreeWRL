@@ -374,7 +374,6 @@ void do_OintCoord2D(void *node) {
 	int thisone, prevone;	/* which keyValues we are interpolating between */
 	int tmp;
 	float interval;		/* where we are between 2 values */
-	struct pt normalval;	/* different structures for normalization calls */
 	int kpkv; /* keys per key value */
 	int indx;
 	int myKey;

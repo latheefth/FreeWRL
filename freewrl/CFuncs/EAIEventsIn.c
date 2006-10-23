@@ -171,7 +171,6 @@ void EAI_parse_commands (char *bufptr) {
 
 	int count;
 	char command;
-	unsigned int uretval;		/* unsigned return value*/
 	int perlNode; uintptr_t cNode;
 	
 	uintptr_t ra,rb,rc,rd;	/* temps*/
@@ -182,9 +181,7 @@ void EAI_parse_commands (char *bufptr) {
 	int flag;
 
 	struct X3D_Box *boxptr;
-        int myField;
         int ctype;
-	int *myofs;
 	int xxx;
 
 
@@ -718,7 +715,6 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 	int retint;
 	char ctmp[200];
 	int mystrlen;
-	void *rv;
 	int count;
 
 	/*format int seq# COMMAND    string nodename*/
@@ -885,7 +881,6 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	struct X3D_Box *boxptr;
 	int myc;
-	int a,b,c;
 	int *np;
 	char myline[200];
 
@@ -963,8 +958,6 @@ void EAI_RW(char *str) {
 void createLoadURL(char *bufptr) {
 	#define strbrk " :loadURLStringBreak:"
 	int count;
-	char newstring[2000];
-	int np;
 	char *spbrk;
 	int retint;		/* used to get retval from sscanf */
 
@@ -1021,7 +1014,6 @@ void createLoadURL(char *bufptr) {
 /* see Extending and Embedding Perl, Jenness, Cozens pg 75-77 */
 struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
-	struct xpv *newpv;
 
 	#ifdef EAIVERBOSE
 	printf ("newASCIIString for :%s:\n",str);

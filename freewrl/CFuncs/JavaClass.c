@@ -10,7 +10,7 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
-
+#ifdef OLDCODE
 /* Open and communicate with a java .class file. We use as much EAI code
 as we can.
 */
@@ -598,3 +598,4 @@ void receive_command(int scriptno) {
 	}
 }
 
+#endif

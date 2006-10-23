@@ -136,11 +136,7 @@ int setActiveTexture (int c) {
 }
 
 void textureDraw_start(struct X3D_IndexedFaceSet *texC, GLfloat *genTex) {
-	int c;
-	struct SFNode *mySFnode;
 	struct X3D_TextureCoordinate *myTCnode;
-	struct X3D_MultiTextureCoordinate *myMTCnode;
-	struct Multi_Vec2f *myPoints;
 
 	#ifdef TEXVERBOSE
 	printf ("textureDraw_start, texture_count %d texture[0] %d\n",texture_count,bound_textures[0]);

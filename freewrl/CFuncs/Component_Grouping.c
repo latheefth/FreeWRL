@@ -14,6 +14,7 @@
 #include <math.h>
 #include "headers.h"
 #include "installdir.h"
+#include "OpenGL_Utils.h"
 
 #ifdef CHILDVERBOSE
 static int VerboseIndent = 0;
@@ -391,25 +392,6 @@ void child_Transform (struct X3D_Transform *node) {
 	int nc = (node->children).n;
 	DIRECTIONAL_LIGHT_SAVE
 
-	/* Fast collision with BoundingBox during render_collision phase */
-	GLdouble awidth = naviinfo.width; /*avatar width*/
-	GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-
-	GLdouble modelMatrix[16];
-	GLdouble upvecmat[16]; 
-	struct pt iv = {0,0,0};
-	struct pt jv = {0,0,0};
-	struct pt kv = {0,0,0};
-	struct pt ov = {0,0,0};
-
-	struct pt t_orig = {0,0,0};
-	GLdouble scale; /* FIXME: wont work for non-uniform scales. */
-
-	struct pt delta;
-	struct pt tupv = {0,1,0};
-
-
 	/* any children at all? */
 	if (nc==0) return;
 
@@ -545,7 +527,6 @@ void changed_StaticGroup (struct X3D_StaticGroup *node) {
                 int i;
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
-                struct X3D_Virt *v;
 
 		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
@@ -555,7 +536,6 @@ void changed_Transform (struct X3D_Transform *node) {
                 int i;
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
-                struct X3D_Virt *v;
 
 		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
@@ -567,7 +547,6 @@ void changed_Group (struct X3D_Group *node) {
                 int i;
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
-                struct X3D_Virt *v;
 
 		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND

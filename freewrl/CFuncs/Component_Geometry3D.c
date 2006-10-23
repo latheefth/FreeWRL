@@ -456,11 +456,9 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
-	       struct SFColor *points=0; int npoints;
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
-	       static int refnum = 0;
 
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
@@ -926,7 +924,6 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
-	       static int refnum = 0;
 
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};

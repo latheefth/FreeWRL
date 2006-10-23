@@ -147,11 +147,7 @@ void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
 
 
 void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
-
-		int trans;
-		int should_rend;
 		GLdouble modelMatrix[16];
-		int count;
 
 		if (!node) return;
 		if (!node->enabled) return;
@@ -197,7 +193,6 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	float cx = node->center.c[0];
 	float cy = node->center.c[1];
 	float cz = node->center.c[2];
-	float dcol[4];
 
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0) || (z < 0)) return;

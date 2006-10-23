@@ -235,12 +235,13 @@ void initializeScript(uintptr_t num,int evIn) {
 #ifdef OLDCODE
 			switch (ScriptControl[num].thisScriptType) {
 				case JAVASCRIPT: {
+#endif
 			 		ActualrunScript(num, "initialize()" ,&retval);
 					ScriptControl[num]._initialized=TRUE;
+#ifdef OLDCODE
 					break;
 				}
 				case CLASSSCRIPT: {
-#endif
 					/* printf ("have to initialize this CLASS script!\n"); */
 					/* this is done later, so that we don't have thread
 					conflicts, because perl calls this, and the javaclass

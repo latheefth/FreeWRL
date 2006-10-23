@@ -1,4 +1,4 @@
-# Copyright (C) 1998 Tuomas J. Lukka 1999, 2005, John Stewart CRC Canada.
+# Copyright (C) 1998 Tuomas J. Lukka 1999, 2005, 2006 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
@@ -185,7 +185,7 @@ if (-e "JS/$jsobjdir/libFreeWRLjs.a" && -e "JS/$jsobjdir/libFreeWRLjs.so" && -e 
     print STDERR "The Javascript library and application were not found - make them.\n";
 
     chdir("JS/$jsdir");
-    system("make -f Makefile.ref BUILD_OPT=$BUILD_OPT");
+    system("make -f Makefile.ref BUILD_OPT=1");
     chdir($pwd);
 }
 
@@ -254,16 +254,31 @@ sub linux_system_info() {
 
 
 
-	#######################################################################################
-	# write the Makefile
-	#######################################################################################
-	
+#######################################################################################
+# write the Makefile
+#######################################################################################
+
+open MK, ">Makefile" or die("Couldn't write the Makefile");
+
+if ($OS ne "Darwin") {
+	write_linux_makefile_initialize();
+	write_linux_makefile_libfreewrl();
+	write_linux_makefile_cfrontend();
+	write_linux_makefile_soundengine();
+	write_linux_makefile_freewrlmessage();
+	write_linux_makefile_clean_distclean();
+} else {
+	print "OS X Makefile code not complete yet\n";
+}
+
+
+
+
+sub write_linux_makefile_initialize() {	
 	my $FRONTEND_DIR  = $VRML_CONFIG{BIN_DIR};
 	my $LIB_DIR       = $VRML_CONFIG{LIB_DIR};
 	my $MYINC         = $VRML_CONFIG{FREEWRL_INC};
 	my $MYLIBS 	= $VRML_CONFIG{FREEWRL_LIBS};
-print "mylibs - a $MYLIBS\n".$VRML_CONFIG{FREEWRL_LIBS}."\n";
-
 
 	my $MYLDFLAGS     = $VRML_CONFIG{LDFLAGS};
 	my $MYDEFINE      = $VRML_CONFIG{FREEWRL_DEFINE};
@@ -290,8 +305,6 @@ print "mylibs - a $MYLIBS\n".$VRML_CONFIG{FREEWRL_LIBS}."\n";
 	print ID "#define INSTALLDIR \"\/tmp\"\n";
 	close ID;
 	
-	open MK, ">Makefile" or die("Couldn't write the Makefile");
-	
 	# do the headers.
 	print MK "#Make file for FreeWRL\n";
 	print MK "CC = gcc\n";
@@ -306,26 +319,25 @@ print "mylibs - a $MYLIBS\n".$VRML_CONFIG{FREEWRL_LIBS}."\n";
 	print MK "LIB_DIR = $LIB_DIR\n";
 	
 	print MK "\n";
-	if ($OS ne "Darwin") {
-		print MK "all: libFreeWRL FreeWRL_Message CFrontEnd";
-		if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
-		print MK "\n";
+	print MK "all: libFreeWRL FreeWRL_Message CFrontEnd";
+	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
+	print MK "\n";
 
-		print MK "install:\tall	\n	strip freewrl\n	cp freewrl \$(FRONTEND_DIR)\n";
-		print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
-		print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
-		if ($OS eq "Linux") {
-				print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
-				print MK "\t/sbin/ldconfig\n";
-		}
-		if ($VRML_CONFIG{SOUND_ENGINE}) { 
-			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
-			print MK "\tcp SoundEngine/FreeWRL_SoundServer \$(FRONTEND_DIR)\n";
-		}
-	} else {
-		print MK "all: libFreeWRL \n";
+	print MK "install:\tall	\n	strip freewrl\n	cp freewrl \$(FRONTEND_DIR)\n";
+	print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
+	print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
+	if ($OS eq "Linux") {
+			print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
+			print MK "\t/sbin/ldconfig\n";
+	}
+	if ($VRML_CONFIG{SOUND_ENGINE}) { 
+		print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
+		print MK "\tcp SoundEngine/FreeWRL_SoundServer \$(FRONTEND_DIR)\n";
 	}
 	
+}
+
+sub write_linux_makefile_libfreewrl() {
 	#############################################################################
 	#LIBFREEWRL
 	my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
@@ -355,44 +367,45 @@ print "mylibs - a $MYLIBS\n".$VRML_CONFIG{FREEWRL_LIBS}."\n";
 		print MK "$fullname ";
 	}
 	print MK " -o libFreeWRLFunc.so \$(MYLIBS)\n";;
+}
 	
+sub write_linux_makefile_cfrontend() {
 	#############################################################################
 	#CFRONTEND
-	if ($os ne "Darwin") {
-		print MK "\n# make the Unix front end\n";
-		my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
-		foreach my $fullname (@CFrontEndSourceFiles) {
-			# remove the CFrontEnd from the front, and the .c from the end.
-			my $nm = $fullname;
-			$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
-		
-			print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFrontEnd\/$nm.o\n";
-		}
-		
-		print MK "CFrontEnd:\t";
-		foreach my $fullname (@CFrontEndSourceFiles) {
-			# remove the CFrontEnd from the front, and the .c from the end.
-			my $nm = $fullname;
-			$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
-		
-			print MK "$nm ";
-		}
-		print MK "\n";
-		
-		print MK "	\$(CC) ";
-		foreach my $fullname (@CFrontEndSourceFiles) {
-			$fullname =~ s/.c$/.o/;
-			print MK "$fullname ";
-		}
-		print MK " -o freewrl \$(MYFELIBS)\n";
+	print MK "\n# make the Unix front end\n";
+	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
+	foreach my $fullname (@CFrontEndSourceFiles) {
+		# remove the CFrontEnd from the front, and the .c from the end.
+		my $nm = $fullname;
+		$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
+	
+		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFrontEnd\/$nm.o\n";
 	}
+		
+	print MK "CFrontEnd:\t";
+	foreach my $fullname (@CFrontEndSourceFiles) {
+		# remove the CFrontEnd from the front, and the .c from the end.
+		my $nm = $fullname;
+		$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
+		
+		print MK "$nm ";
+	}
+	print MK "\n";
+		
+	print MK "	\$(CC) ";
+	foreach my $fullname (@CFrontEndSourceFiles) {
+		$fullname =~ s/.c$/.o/;
+		print MK "$fullname ";
+	}
+	print MK " -o freewrl \$(MYFELIBS)\n";
+}
 
+sub write_linux_makefile_soundengine() {
 	#############################################################################
 	# SoundEngine
 	# make the sound engine, console message, and frontend if NOT OSX.
 
-	if ($OS ne "Darwin") {
-		if ($VRML_CONFIG{SOUND_ENGINE}) {
+	if ($VRML_CONFIG{SOUND_ENGINE}) {
 		print MK "\n# make the Unix sound engine \n";
 		my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*c`);
 		foreach my $fullname (@SoundEngineSourceFiles) {
@@ -419,22 +432,22 @@ print "mylibs - a $MYLIBS\n".$VRML_CONFIG{FREEWRL_LIBS}."\n";
 			print MK "$fullname ";
 		}
 		print MK " -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
-		}
 	}
+}
 
 
-
+sub write_linux_makefile_freewrlmessage() {
 	#############################################################################
 	# FreeWRL_Message 
 	# make a program that displays a message if NOT OSX and if we are not using Motif.
 
-	if ($OS ne "Darwin") {
-		print MK "freewm:\n";
-		print MK "\t\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) FreeWRL_Message/FreeWRL_Message.c -o FreeWRL_Message/FreeWRL_Message.o\n";
-		print MK "FreeWRL_Message: freewm\n";
-		print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n";
-	}
+	print MK "freewm:\n";
+	print MK "\t\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) FreeWRL_Message/FreeWRL_Message.c -o FreeWRL_Message/FreeWRL_Message.o\n";
+	print MK "FreeWRL_Message: freewm\n";
+	print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n";
+}
 
+sub write_linux_makefile_clean_distclean() {
 	#############################################################################
 	# Misc targets
 	print MK "\nclean:\n";
@@ -442,13 +455,12 @@ print "mylibs - a $MYLIBS\n".$VRML_CONFIG{FREEWRL_LIBS}."\n";
 	print MK "	rm -f libFreeWRLFunc.so\n";
 	print MK "	rm -f FreeWRL_Message/*o\n";
 	print MK "	rm -f FreeWRL_Message/FreeWRL_Message\n";
-	if ($os ne "Darwin") {
-		print MK "	rm -f CFrontEnd/*o\n";
-		print MK "	rm -f freewrl\n";
-		if ($VRML_CONFIG{SOUND_ENGINE}) {
-			print MK "	rm -f SoundEngine/*o\n";
-			print MK "	rm -f SoundEngine/FreeWRL_SoundServer\n";
-		}
+	print MK "	rm -f CFrontEnd/*o\n";
+	print MK "	rm -f freewrl\n";
+	if ($VRML_CONFIG{SOUND_ENGINE}) {
+		print MK "	rm -f SoundEngine/*o\n";
+		print MK "	rm -f SoundEngine/FreeWRL_SoundServer\n";
 	}
 
 	print MK "distclean:	clean\n";
+}
