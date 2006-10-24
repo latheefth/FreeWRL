@@ -243,7 +243,7 @@ sub write_linux_makefile_initialize() {
 	print MK "LIB_DIR = $LIB_DIR\n";
 	
 	print MK "\n";
-	print MK "all: libFreeWRL FreeWRL_Message CFrontEnd Javascript freewm JavaClasses";
+	print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd freewm JavaClasses";
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";
 
@@ -385,7 +385,7 @@ sub write_linux_makefile_javaClasses() {
 	foreach my $fullname (@JavaSourceFiles) {
 		# remove the Java from the front, and the .c from the end.
 		my $nm = $fullname;
-		$nm =~ s/^\.\///;
+		$nm =~ s/^\.\///; $nm =~ s/.java$//;
 	
 		print MK "$nm:\n	\$(JAVAC) -classpath java/classes $fullname\n";
 	}
@@ -394,18 +394,19 @@ sub write_linux_makefile_javaClasses() {
 	foreach my $fullname (@JavaSourceFiles) {
 		# remove the Java from the front, and the .c from the end.
 		my $nm = $fullname;
-		#$nm =~ s/.c$//; $nm =~ s/Java.//;
+		$nm =~ s/^\.\///; $nm =~ s/.java$//;
 	
 		print MK "$nm ";
 	}
 	print MK "\n";
 		
-	print MK "	\$(CC) ";
-	foreach my $fullname (@JavaSourceFiles) {
-		$fullname =~ s/.c$/.o/;
-		print MK "$fullname ";
-	}
-	print MK " -o Java/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
+	# make the jar file here
+	#print MK "	\$(CC) ";
+		#foreach my $fullname (@JavaSourceFiles) {
+			#$fullname =~ s/.java$/.class/;
+		#print MK "$fullname ";
+	#}
+	#print MK " -o Java/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
 }
 
 
@@ -426,6 +427,18 @@ sub write_linux_makefile_clean_distclean() {
 		print MK "	rm -f SoundEngine/*o\n";
 		print MK "	rm -f SoundEngine/FreeWRL_SoundServer\n";
 	}
+	print MK "	rm -f java/classes/vrml/external/field/*class\n";
+	print MK "	rm -f java/classes/vrml/field/*class\n";
+	print MK "	rm -f java/classes/vrml/external/node/*class\n";
+	print MK "	rm -f java/classes/vrml/external/FreeWRLEAI/*class\n";
+	print MK "	rm -f java/classes/vrml/external/*class\n";
+	print MK "	rm -f java/classes/vrml/external/exception/*class\n";
+	print MK "	rm -f java/classes/vrml/node/*class\n";
+	print MK "	rm -f java/classes/vrml/*class\n";
+	print MK "	rm -f java/classes/vrml/*class\n";
+	print MK "	rm -f java/classes/sai/*class\n";
+	print MK "	rm -f java/classes/sai/eai/*class\n";
+	print MK "	rm -f java/classes/org/web3d/x3d/sai/*class\n";
 
 	print MK "distclean:	clean\n";
 }
