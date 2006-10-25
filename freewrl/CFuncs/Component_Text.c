@@ -734,7 +734,7 @@ open_font() {
 		return FALSE;
 	}
 	strcpy(sys_fp,INSTALLDIR);
-	strcat(sys_fp,"/VRML/fonts/Vera.ttf");
+	strcat(sys_fp,"/freewrl/fonts/Vera.ttf");
 	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
 	tmpfile = fopen(sys_fp,"r");
 	if (!tmpfile) {
@@ -753,7 +753,7 @@ open_font() {
 
 	} else {
 		strcpy(sys_fp,INSTALLDIR);
-		strcat (sys_fp,"/VRML/fonts");
+		strcat (sys_fp,"/freewrl/fonts");
 	}
 	
 	/* lets initialize some things */

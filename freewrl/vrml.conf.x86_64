@@ -74,8 +74,6 @@ SOUNDCONV => "/usr/bin/sox",
 # Netscape/Mozilla,... installation
 
 #    NETSCAPE_INST => '/usr/lib/mozilla/plugins',
-#    NETSCAPE_CLASSES => '/usr/lib/mozilla/plugins',
-#    NETSCAPE_PLUGINS => '/usr/lib/mozilla/plugins',
 
 ############################################################################
 

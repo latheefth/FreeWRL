@@ -8,6 +8,14 @@ my $OS = `uname`;
 my $HAVE_UBUNTU = "NO";
 chomp ($pwd = getcwd());
 
+# What compilers do we have?
+my $JAVAC = `which javac`;
+my $JAR = `which jar`;
+if (($JAVAC eq "") || ($JAR eq "")) { 
+	print "can not find a java compiler and archiver  - skipping java class making\n";
+	$JAVAC = "";
+}
+
 # remove whitespace at beginning and end.
 $OS =~ s/\s+$//;
 $OS =~ s/^\s+//;
@@ -81,13 +89,17 @@ if ($OS eq "Darwin") {
 
 $VRML_CONFIG{VERSION} = $VERSION;
 
+# where are we installing fonts, etc?
+if ("" eq $VRML_CONFIG{INSTALL_DIR}) {
+	print "do not have an INSTALL_DIR defined, assuming /usr/share\n";
+	$VRML_CONFIG{INSTALL_DIR} = "/usr/share";
+}
+
 # save this for JS/Makefile.PL
 $VRML_CONFIG{PLATFORM} = $OS;
 
 ## Handle platform-specific compile options for the Javascript engine
 ## and others specific to FreeWRL.
-
-my $sitearchjsdir = "\$(INSTALLPRIVLIB)/auto/VRML/JS";
 
 my $jsdir = "js1.5/src";
 my $jsobjdir;
@@ -129,7 +141,6 @@ $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 $VRML_CONFIG{LDFLAGS} = join(' ', @ldflags);
-$VRML_CONFIG{LIBJS_INST} = $sitearchjsdir;
 
 if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
 {
@@ -225,7 +236,7 @@ sub write_linux_makefile_initialize() {
 	
 	
 	open ID, ">CFuncs/installdir.h" or die ("Couldn't create installdir.h");
-	print ID "#define INSTALLDIR \"\/tmp\"\n";
+	print ID "#define INSTALLDIR \"$VRML_CONFIG{INSTALL_DIR}\"\n";
 	close ID;
 	
 	# do the headers.
@@ -241,9 +252,13 @@ sub write_linux_makefile_initialize() {
 	print MK "MYMESLIBS = $MYMESLIBS\n";
 	print MK "FRONTEND_DIR = $FRONTEND_DIR\n";
 	print MK "LIB_DIR = $LIB_DIR\n";
+	print MK "JAVAC = $JAVAC\n";
+	print MK "JAR = $JAR\n";
+	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
 	
 	print MK "\n";
-	print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd freewm JavaClasses";
+	print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd freewm ";
+	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";
 
@@ -251,14 +266,27 @@ sub write_linux_makefile_initialize() {
 	print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
 	print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
 	if ($OS eq "Linux") {
-			print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
+		print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
+		if ($HAVE_UBUNTU eq "NO") {
 			print MK "\t/sbin/ldconfig\n";
+		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
 		print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
 		print MK "\tcp SoundEngine/FreeWRL_SoundServer \$(FRONTEND_DIR)\n";
 	}
-	
+
+	if (($JAVAC ne "") || ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
+		print MK "\tcp java/classes/vrml.jar $VRML_CONFIG{NETSCAPE_INST}\n";
+		print MK "\tcp Plugin/npfreewrl.so $VRML_CONFIG{NETSCAPE_INST}\n";
+	}
+	print MK "\tcp Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps\n";
+	print MK "\tcp Desktop/freewrl.desktop \$(INSTALL_DIR)\/applications\n";
+	print MK "\t#make the freewrl install dir if required\n";
+	#print MK "\tif [ -e /usr/share/freewrl ]; then echo "INSTALL_DIR exists"; else mkdir /usr/share/freewrl; fi\n";
+	print MK "\tif [ -e \$(INSTALL_DIR)/freewrl ]; then echo \"INSTALL_DIR exists\"; else mkdir \$(INSTALL_DIR)/freewrl; fi\n";
+	print MK "\tcp -r fonts \$(INSTALL_DIR)/freewrl\n";
+
 }
 
 sub write_linux_makefile_libfreewrl() {
@@ -381,36 +409,48 @@ sub write_linux_makefile_javascript() {
 
 
 sub write_linux_makefile_javaClasses() {
-	my @JavaSourceFiles = split (' ',`find . -name "*java" | grep "java\/classes"`);
-	foreach my $fullname (@JavaSourceFiles) {
-		# remove the Java from the front, and the .c from the end.
-		my $nm = $fullname;
-		$nm =~ s/^\.\///; $nm =~ s/.java$//;
+	if ($JAVAC ne "" ) {
+		my @JavaSourceFiles = split (' ',`find . -name "*java" | grep "java\/classes"`);
+		foreach my $fullname (@JavaSourceFiles) {
+			# remove the Java from the front, and the .c from the end.
+			my $nm = $fullname;
+			$nm =~ s/^\.\///; $nm =~ s/.java$//;
 	
-		print MK "$nm:\n	\$(JAVAC) -classpath java/classes $fullname\n";
-	}
+			print MK "$nm:\n	\$(JAVAC) -classpath java/classes $fullname\n";
+		}
 		
-	print MK "JavaClasses:\t";
-	foreach my $fullname (@JavaSourceFiles) {
-		# remove the Java from the front, and the .c from the end.
-		my $nm = $fullname;
-		$nm =~ s/^\.\///; $nm =~ s/.java$//;
+		print MK "JavaClasses:\t";
+		foreach my $fullname (@JavaSourceFiles) {
+			# remove the Java from the front, and the .c from the end.
+			my $nm = $fullname;
+			$nm =~ s/^\.\///; $nm =~ s/.java$//;
 	
-		print MK "$nm ";
+			print MK "$nm ";
+		}
+		print MK "\n";
+	
+		# make the jar file here
+		print MK "	\$(JAR) -cf java/classes/vrml.jar $@ `find java/classes/vrml -name *.class`\n";
+		#print MK "	\$(CC) ";
+			#foreach my $fullname (@JavaSourceFiles) {
+				#$fullname =~ s/.java$/.class/;
+			#print MK "$fullname ";
+		#}
+		#print MK " -o Java/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
 	}
-	print MK "\n";
-		
-	# make the jar file here
-	#print MK "	\$(CC) ";
-		#foreach my $fullname (@JavaSourceFiles) {
-			#$fullname =~ s/.java$/.class/;
-		#print MK "$fullname ";
-	#}
-	#print MK " -o Java/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
 }
 
 
 sub write_linux_makefile_makeBrowserPlugin() {
+	if ($VRML_CONFIG{NETSCAPE_INST}) {
+		print MK "\n#Plugin\nnpfreewrl:\n";
+		print MK "	\$(CC) -c -g -DXP_UNIX -IPlugin/netscape/include -ICFuncs -I/usr/include -o Plugin/npfreewrl.o Plugin/netscape/source/npfreewrl.c\n";
+		print MK "npunix:\n";
+		print MK "	\$(CC) -c -g -DXP_UNIX -IPlugin/netscape/include -ICFuncs -I/usr/include -o Plugin/npunix.o Plugin/netscape/source/common/npunix.c\n";
+		print MK "Plugin: npfreewrl npunix\n";
+		print MK "	\$(CC) -shared -o Plugin/npfreewrl.so Plugin/npfreewrl.o Plugin/npunix.o\n";
+
+	}
 }
 
 sub write_linux_makefile_clean_distclean() {
@@ -439,6 +479,7 @@ sub write_linux_makefile_clean_distclean() {
 	print MK "	rm -f java/classes/sai/*class\n";
 	print MK "	rm -f java/classes/sai/eai/*class\n";
 	print MK "	rm -f java/classes/org/web3d/x3d/sai/*class\n";
+	print MK "	rm -f java/classes/vrml.jar\n";
 
 	print MK "distclean:	clean\n";
 }
