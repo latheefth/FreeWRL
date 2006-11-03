@@ -28,7 +28,7 @@ if ($OS eq "Darwin") { print "This install is running on an Apple OS X computer\
 # create the generated code/header files.
 system "perl VRMLC.pm";
 
-my $VERSION = "V1.18.7";
+my $VERSION = "V1.18.8";
 
 use Cwd qw(getcwd chdir);
 
@@ -187,24 +187,24 @@ close OUT;
 
 open MK, ">Makefile" or die("Couldn't write the Makefile");
 
-if ($OS ne "Darwin") {
-	write_linux_makefile_initialize();
-	write_linux_makefile_libfreewrl();
-	write_linux_makefile_cfrontend();
-	write_linux_makefile_soundengine();
-	write_linux_makefile_freewrlmessage();
-	write_linux_makefile_javascript();
-	write_linux_makefile_javaClasses();
-	write_linux_makefile_makeBrowserPlugin();
-	write_linux_makefile_clean_distclean();
-} else {
-	print "OS X Makefile code not complete yet\n";
-}
+writeMakefileInitialize();
+writeVariables();
 
 
-print "Now, the Makefile is complete. Type \"make\" and\/or \"make install\" to build (and install)\n\n";
+writeMakefileLibFreeWRL();
+writeMakefileCfrontend();
 
-sub write_linux_makefile_initialize() {	
+write_linux_makefile_soundengine();
+write_linux_makefile_freewrlmessage();
+write_linux_makefile_javascript();
+write_linux_makefile_javaClasses();
+write_linux_makefile_makeBrowserPlugin();
+write_linux_makefile_clean_distclean();
+writeMakefileFinalTargets();
+
+print "The Makefile has been generated. Type \"make\" and\/or \"make install\" to build (and install)\n\n";
+
+sub writeMakefileInitialize() {	
 	my $FRONTEND_DIR  = $VRML_CONFIG{BIN_DIR};
 	my $LIB_DIR       = $VRML_CONFIG{LIB_DIR};
 	my $MYINC         = $VRML_CONFIG{FREEWRL_INC};
@@ -258,7 +258,11 @@ sub write_linux_makefile_initialize() {
 	print MK "JAVAC = $JAVAC\n";
 	print MK "JAR = $JAR\n";
 	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
+
+	print MK "CFLAGS = \$(FWFLAGS) \$(INC) \$(DEFINE)\n";
+}
 	
+sub writeMakefileFinalTargets() {
 	print MK "\n";
 	print MK "all: Javascript FreeWRL_Message CFrontEnd freewm libFreeWRL";
 	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
@@ -289,70 +293,63 @@ sub write_linux_makefile_initialize() {
 	#print MK "\tif [ -e /usr/share/freewrl ]; then echo "INSTALL_DIR exists"; else mkdir /usr/share/freewrl; fi\n";
 	print MK "\tif [ -e \$(INSTALL_DIR)/freewrl ]; then echo \"INSTALL_DIR exists\"; else mkdir \$(INSTALL_DIR)/freewrl; fi\n";
 	print MK "\tcp -r fonts \$(INSTALL_DIR)/freewrl\n";
-
 }
 
-sub write_linux_makefile_libfreewrl() {
-	#############################################################################
-	#LIBFREEWRL
+sub writeVariables () {	
 	my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
+	print MK "\n#CFuncs Make\n";
+	print MK "LIBFWSRCS=";
 	foreach my $fullname (@CFuncsSourceFiles) {
-		# remove the CFuncs from the front, and the .c from the end.
-		my $nm = $fullname;
-		$nm =~ s/.c$//; $nm =~ s/CFuncs.//;
-	
-		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
+		print MK "$fullname ";
 	}
-	print MK "\n# make the shared library\n";
-	print MK "libFreeWRL:\t";
-	
-        foreach my $fullname (@CFuncsSourceFiles) {
-                # remove the CFuncs from the front, and the .c from the end.
-                my $nm = $fullname;
-                $nm =~ s/.c$//; $nm =~ s/CFuncs.//;
+	print MK "\n";
 
-                print MK "$nm ";
-        }
-        print MK "\n\n";
-
-	
-	print MK "	\$(CC) -shared ";
+	print MK "LIBFWOBJS=";
 	foreach my $fullname (@CFuncsSourceFiles) {
 		$fullname =~ s/.c$/.o/;
 		print MK "$fullname ";
 	}
-	print MK " -o libFreeWRLFunc.so \$(MYLIBS)\n";;
+
+	print MK "\n\n";
+	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
+	print MK "\n#CFrontEnd Make\n";
+	print MK "FESRCS=";
+	foreach my $fullname (@CFrontEndSourceFiles) {
+		print MK "$fullname ";
+	}
+	print MK "\n";
+
+	print MK "FEOBJS=";
+	foreach my $fullname (@CFrontEndSourceFiles) {
+		$fullname =~ s/.c$/.o/;
+		print MK "$fullname ";
+	}
+	print MK "\n\n";
 }
-	
-sub write_linux_makefile_cfrontend() {
+
+
+sub writeMakefileLibFreeWRL() {
+	#############################################################################
+	#LIBFREEWRL
+	print MK "\$(LIBFWSRCS):\n";
+	print MK "\t\$(CC) -c \$*.c\n\n";
+	print MK "depend: \$(LIBFWSRCS)\n";
+	print MK "\t\$(DEPEND) \$(LIBFWSRCS)\n\n";
+	print MK "libFreeWRL:      \$(LIBFWOBJS)\n";
+	print MK "\t\$(CC) -shared \$(MYFELIBS) -o libFreeWRLFunc.so  \$(MYLIBS)\n\n";
+}
+
+
+sub writeMakefileCfrontend() {
 	#############################################################################
 	#CFRONTEND
 	print MK "\n# make the Unix front end\n";
-	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
-	foreach my $fullname (@CFrontEndSourceFiles) {
-		# remove the CFrontEnd from the front, and the .c from the end.
-		my $nm = $fullname;
-		$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
-	
-		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFrontEnd\/$nm.o\n";
-	}
-		
-	print MK "CFrontEnd:\t";
-	foreach my $fullname (@CFrontEndSourceFiles) {
-		# remove the CFrontEnd from the front, and the .c from the end.
-		my $nm = $fullname;
-		$nm =~ s/.c$//; $nm =~ s/CFrontEnd.//;
-		
-		print MK "$nm ";
-	}
-	print MK "\n";
-		
-	print MK "	\$(CC) ";
-	foreach my $fullname (@CFrontEndSourceFiles) {
-		$fullname =~ s/.c$/.o/;
-		print MK "$fullname ";
-	}
-	print MK " -o freewrl \$(MYFELIBS)\n";
+	print MK "\$(FESRCS):\n";
+	print MK "\t\$(CC) -c \$*.c\n\n";
+	print MK "depend: \$(FESRCS)\n";
+	print MK "\t\$(DEPEND) \$(FESRCS)\n\n";
+	print MK "CFrontEnd:      \$(FEOBJS)\n";
+	print MK "\t\$(CC) \$(MYFELIBS) -o CFrontEnd/freewrl  \$(FEOBJS)\n\n";
 }
 
 sub write_linux_makefile_soundengine() {
