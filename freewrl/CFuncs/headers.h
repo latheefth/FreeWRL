@@ -10,6 +10,9 @@
 
 #include <stdio.h>
 
+#include <stdint.h>
+#include <math.h>
+
 /* get the definitions from the command line */
 #include "vrmlconf.h"
 

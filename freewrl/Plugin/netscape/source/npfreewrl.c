@@ -43,7 +43,7 @@
 
 char *paramline[15]; /* parameter line */
 
-static int PluginVerbose = 0;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
+static int PluginVerbose = 0;  /* CHECK LOG FILE PATH BEFORE SETTING THIS TO 1 */
 
 /*******************************************************************************
  * Instance state information about the plugin.
@@ -71,7 +71,7 @@ typedef void (* Sigfunc) (int);
 
 static int np_fileDescriptor;
 
-// Socket file descriptors
+/* Socket file descriptors */
 #define SOCKET_2 0
 #define SOCKET_1   1
 
@@ -97,7 +97,7 @@ double TickTime;
 NPStream *currentStream = NULL;
 
 
-// Debugging routine
+/* Debugging routine */
 static void print_here (char * xx) {
 	if (!PluginVerbose) return;
 
@@ -116,7 +116,7 @@ static void print_here (char * xx) {
 	fprintf(tty, "plug-in: %s\n", xx);
 	fflush(tty);
 
-	//printf ("plugin: %s\n",xx);
+	/* printf ("plugin: %s\n",xx); */
 }
 
 
@@ -251,11 +251,9 @@ int freewrlReceive(int fileDescriptor) {
     			NPError err = NPERR_NO_ERROR;
 			char* myData = "<HTML><B>This is a message from my plug-in!</b></html>";
 			int32 myLength = strlen(myData) + 1;
-			//err = NPN_NewStream(request.instance, "text/html", "_blank", &stream);
 			err = NPN_NewStream(request.instance,
 					"text/html",
 					"_AnchorFailsinFreeWRL",
-					//request.url,
 					&stream);
 			print_here ("NewStream made");
 
@@ -311,7 +309,7 @@ int init_socket(int fileDescriptor, Boolean nonblock) {
 	return(NPERR_NO_ERROR);
 }
 
-// actually run FreeWRL and swallow it, if enough information has been found
+/* actually run FreeWRL and swallow it, if enough information has been found */
 void Run (NPP instance) {
 
 	FW_PluginInstance* FW_Plugin;
@@ -323,7 +321,7 @@ void Run (NPP instance) {
 	print_here ("start of Run");
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	// Return if we do not have all of the required parameters.
+	/* Return if we do not have all of the required parameters. */
 	if (FW_Plugin->mozwindow == 0) return;
 
 	if (FW_Plugin->fName == NULL) return;
@@ -336,7 +334,7 @@ void Run (NPP instance) {
 	print_here (debs);
 
 
-	// start FreeWRL, if it is not running already.
+	/* start FreeWRL, if it is not running already. */
 	if (!FW_Plugin->freewrl_running) {
 		FW_Plugin->freewrl_running = 1;
 		sprintf (debs,"STARTING testrun program, disp and win %x %x\n",FW_Plugin->display, FW_Plugin->mozwindow);
@@ -353,23 +351,23 @@ void Run (NPP instance) {
 				sprintf (debs,"\tFreeWRL child group set failed");
 				print_here (debs);
 			} else {
-				// Nice FreeWRL to a lower priority
+				/* Nice FreeWRL to a lower priority */
 				paramline[0] = "nice";
 				paramline[1] = "freewrl";
 
-				// We have the file name, so include it
+				/* We have the file name, so include it */
 				paramline[2] = FW_Plugin->fName;
 
-				// Pass in the pipe number so FreeWRL can return the
-				// window id
+				/* Pass in the pipe number so FreeWRL can return the
+				window id */
 				paramline[3] = "--plugin";
 				paramline[4] = pipetome;
 
-				// EAI connection
+				/* EAI connection */
 				paramline [5] = "--eai";
 
-				// File descriptor and instance  - allows FreeWRL to
-				// request files from browser's cache
+				/* File descriptor and instance  - allows FreeWRL to
+				 request files from browser's cache */
 
 				paramline[6] = "--fd";
 				paramline[7] = childFd;
@@ -379,13 +377,13 @@ void Run (NPP instance) {
 				paramline[10] = NULL;
 
 
-				// create pipe string
+				/* create pipe string */
 			    	sprintf(pipetome,"pipe:%d",FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE]);
 
-				// child file descriptor - to send requests back here
+				/* child file descriptor - to send requests back here */
 				sprintf (childFd, "%d", FW_Plugin->interfaceFile[SOCKET_2]);
 
-				// Instance, so that FreeWRL knows its us...
+				/* Instance, so that FreeWRL knows its us... */
 				sprintf (instanceStr, "%u",(uintptr_t) instance);
 
 				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s",
@@ -400,7 +398,7 @@ void Run (NPP instance) {
 			print_here("\tFreeWRL Plugin: Couldn\'t run FreeWRL.\n");
 
 		} else {
-		    	// return error
+		    	/* return error */
 		}
 	}
 
@@ -418,7 +416,7 @@ void Run (NPP instance) {
 	*/
 
 
-	//reparent the window
+	/*reparent the window */
 	if (!RUNNINGONAMD64) {
 		/* print_here ("going to XFlush"); */
 
@@ -453,7 +451,6 @@ NPP_GetMIMEDescription(void)
 {
 	print_here ("NPP_GetMIMEDescription");
         return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser;model/x3d+vrml:x3dv:FreeWRL VRML Browser;model/x3d+xml:x3d:FreeWRL X3D Browser;model/x3d+vrml:x3dv:FreeWRL X3D Browser;model/x3d+binary:x3db:FreeWRL X3D Browser");
-        //return("x-world/x-vrml:wrl:FreeWRL VRML Browser");
 }
 
 NPError
@@ -514,7 +511,7 @@ NPP_New(NPMIMEType pluginType,
 	unsigned int err;
 
 
-	//sprintf (debs,"NPP_New, argc %d argn %s  argv %s",argc,argn[0],argv[0]);
+	/* sprintf (debs,"NPP_New, argc %d argn %s  argv %s",argc,argn[0],argv[0]); */
 
 	/* mode is NP_EMBED, NP_FULL, or NP_BACKGROUND (see npapi.h) */
 	sprintf (debs,"NPP_New, argc %d" ,argc);
@@ -555,8 +552,9 @@ NPP_New(NPMIMEType pluginType,
 	print_here (debs);
 
 
-	// Assume plugin and FreeWRL child process run on the same machine,
-	// then we can use UDP and have incredibly close to 100.00% reliability
+	/* Assume plugin and FreeWRL child process run on the same machine, 
+	 then we can use UDP and have incredibly close to 100.00% reliability */
+	
 	if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, FW_Plugin->interfaceFile) < 0) {
 		print_here ("Call to socketpair failed");
 		return (NPERR_GENERIC_ERROR);
@@ -572,7 +570,7 @@ NPP_New(NPMIMEType pluginType,
 	if (signal(SIGIO, signalHandler) == SIG_ERR) return (NPERR_GENERIC_ERROR);
 	if (signal(SIGBUS, signalHandler) == SIG_ERR) return (NPERR_GENERIC_ERROR);
 
-	// prepare communication sockets
+	/* prepare communication sockets */
 	if ((err=init_socket(FW_Plugin->interfaceFile[SOCKET_2], FALSE))!=NPERR_NO_ERROR) return (err);
 	if ((err=init_socket(FW_Plugin->interfaceFile[SOCKET_1], TRUE))!=NPERR_NO_ERROR) return (err);
 	sprintf (debs, "NPP_New returning %d",err); 
@@ -611,8 +609,8 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 
 			sprintf (debs,"killing command kill %d",FW_Plugin->childPID);
 			print_here(debs);
-			//kill(FW_Plugin->childPID, SIGQUIT);
-			// really kill this - sometimes the SIGQUIT would just hang around
+			/* kill(FW_Plugin->childPID, SIGQUIT);
+			// really kill this - sometimes the SIGQUIT would just hang around */
 			kill(FW_Plugin->childPID, SIGKILL);
 			waitpid(FW_Plugin->childPID, &status, 0);
 		}
@@ -707,20 +705,19 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 	if (FW_Plugin->mozwindow != (Window) browser_window->window) {
 		FW_Plugin->mozwindow = (Window) browser_window->window;
 
-		// run FreeWRL, if it is not already running. It might not be...
+		/* run FreeWRL, if it is not already running. It might not be... */
 		if (!FW_Plugin->freewrl_running) {
 			print_here ("NPP_SetWindow, running FreeWRL here!");
 				Run(instance);
 		}
 	}
 
-	// Handle the FreeWRL window
+	/* Handle the FreeWRL window */
 	if (FW_Plugin->fwwindow) {
 		sprintf (debs,"xresize x %d y %d  wid %d hei %d",
 			FW_Plugin->x, FW_Plugin->y,
 			FW_Plugin->width, FW_Plugin->height);
 		print_here (debs);
-		// lets unmap before resizing
 
 		XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
 			FW_Plugin->width, FW_Plugin->height);
@@ -830,21 +827,21 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 	if (instance != NULL) {
 		FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-		// Get the base file name for FreeWRL to run
+		/* Get the base file name for FreeWRL to run */
 		FW_Plugin->fName = (char *) NPN_MemAlloc((strlen(fname) +1) *sizeof(char *));
 		strcpy(FW_Plugin->fName,fname);
 		sprintf (debs,"NPP_StreamAsFile, name is %s",FW_Plugin->fName);
 		print_here(debs);
 
 		if (!FW_Plugin->freewrl_running) {
-			// if we are not running yet, see if we have enough to start.
+			/* if we are not running yet, see if we have enough to start. */
 			Run (instance);
 
 		} else {
 			if (fname == NULL) {
 				print_here ("NPP_StreamAsFile has a NULL file");
 
-				// Try sending an empty string
+				/* Try sending an empty string */
 				if (write(FW_Plugin->interfaceFile[SOCKET_1], "", 1) < 0) {
 					print_here ("Call to write failed");
 				}

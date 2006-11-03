@@ -51,22 +51,18 @@ if ($OS eq "Darwin") {
 	if (substr($osname,0,6) eq "Ubuntu") {
 		$HAVE_UBUNTU = "YES";
 		require './vrml.conf.ubuntu';
-		if ($ARCH eq "x86_64") {
-			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "-fPIC";
-		} else {
-			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "";
-		}
+		print "using \"vrml.conf.ubuntu\" for config variables\n";
 
 	# we can use the generic distros for the architecture.
 	} else {
 		if ($ARCH eq "x86_64") {
 			# 64 bit architecture.
 			require './vrml.conf.x86_64';
-			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "-fPIC";
+			printf "using \"vrml.conf.x86_64\" for config variables\n";
 		} else {
 			# standard 32 bit architecture
 			require './vrml.conf';
-			$VRML_CONFIG{PLUGIN_EXTRA_DEFINES}= "";
+			printf "using \"vrml.conf\" for config variables\n";
 		}
 	}
 
@@ -245,7 +241,14 @@ sub write_linux_makefile_initialize() {
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
 	print MK "DEFINE = $MYDEFINE\n";
-	print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
+	#print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
+
+	# different compiler flags for different architectures
+	if ($ARCH eq "x86_64") {
+		print MK "FWFLAGS = -c -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
+	} else {
+		print MK "FWFLAGS = -c -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
+	}
 	print MK "MYLIBS = $MYLIBS\n";
 	print MK "MYFELIBS = $MYFELIBS\n";
 	print MK "MYSELIBS = $MYSELIBS\n";
@@ -257,7 +260,7 @@ sub write_linux_makefile_initialize() {
 	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
 	
 	print MK "\n";
-	print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd freewm ";
+	print MK "all: Javascript FreeWRL_Message CFrontEnd freewm libFreeWRL";
 	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";
@@ -443,10 +446,12 @@ sub write_linux_makefile_javaClasses() {
 
 sub write_linux_makefile_makeBrowserPlugin() {
 	if ($VRML_CONFIG{NETSCAPE_INST}) {
+		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
+
 		print MK "\n#Plugin\nnpfreewrl:\n";
-		print MK "	\$(CC) -c -g -DXP_UNIX -IPlugin/netscape/include -ICFuncs -I/usr/include -o Plugin/npfreewrl.o Plugin/netscape/source/npfreewrl.c\n";
+		print MK "	\$(CC)  \$(FWFLAGS) \$(INC) \$(DEFINE) -IPlugin/netscape/include -o Plugin/npfreewrl.o Plugin/netscape/source/npfreewrl.c\n";
 		print MK "npunix:\n";
-		print MK "	\$(CC) -c -g -DXP_UNIX -IPlugin/netscape/include -ICFuncs -I/usr/include -o Plugin/npunix.o Plugin/netscape/source/common/npunix.c\n";
+		print MK "	\$(CC)  \$(FWFLAGS) \$(INC) \$(DEFINE) -IPlugin/netscape/include -o Plugin/npunix.o Plugin/netscape/source/common/npunix.c\n";
 		print MK "Plugin: npfreewrl npunix\n";
 		print MK "	\$(CC) -shared -o Plugin/npfreewrl.so Plugin/npfreewrl.o Plugin/npunix.o\n";
 
