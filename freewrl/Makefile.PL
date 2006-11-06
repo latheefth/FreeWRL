@@ -189,7 +189,7 @@ open MK, ">Makefile" or die("Couldn't write the Makefile");
 
 writeMakefileInitialize();
 writeVariables();
-
+writeAllTarget();
 
 writeMakefileLibFreeWRL();
 writeMakefileCfrontend();
@@ -203,6 +203,14 @@ write_linux_makefile_clean_distclean();
 writeMakefileFinalTargets();
 
 print "The Makefile has been generated. Type \"make\" and\/or \"make install\" to build (and install)\n\n";
+
+sub writeAllTarget () {
+	# should edit this line to suit build
+	print MK "all: Javascript FreeWRL_Message CFrontEnd freewm libFreeWRL";
+	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
+	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
+	print MK "\n";
+}
 
 sub writeMakefileInitialize() {	
 	my $FRONTEND_DIR  = $VRML_CONFIG{BIN_DIR};
@@ -263,10 +271,6 @@ sub writeMakefileInitialize() {
 }
 	
 sub writeMakefileFinalTargets() {
-	print MK "\n";
-	print MK "all: Javascript FreeWRL_Message CFrontEnd freewm libFreeWRL";
-	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
-	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";
 
 	print MK "install:\tall	\n	strip freewrl\n	cp freewrl \$(FRONTEND_DIR)\n";
@@ -333,8 +337,8 @@ sub writeMakefileLibFreeWRL() {
 	#LIBFREEWRL
 	print MK "\$(LIBFWSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	print MK "depend: \$(LIBFWSRCS)\n";
-	print MK "\t\$(DEPEND) \$(LIBFWSRCS)\n\n";
+	#print MK "depend: \$(LIBFWSRCS)\n";
+	#print MK "\t\$(DEPEND) \$(LIBFWSRCS)\n\n";
 	print MK "libFreeWRL:      \$(LIBFWOBJS)\n";
 	print MK "\t\$(CC) -shared \$(MYFELIBS) -o libFreeWRLFunc.so  \$(MYLIBS)\n\n";
 }
@@ -346,8 +350,8 @@ sub writeMakefileCfrontend() {
 	print MK "\n# make the Unix front end\n";
 	print MK "\$(FESRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	print MK "depend: \$(FESRCS)\n";
-	print MK "\t\$(DEPEND) \$(FESRCS)\n\n";
+	#print MK "depend: \$(FESRCS)\n";
+	#print MK "\t\$(DEPEND) \$(FESRCS)\n\n";
 	print MK "CFrontEnd:      \$(FEOBJS)\n";
 	print MK "\t\$(CC) \$(MYFELIBS) -o CFrontEnd/freewrl  \$(FEOBJS)\n\n";
 }
@@ -408,6 +412,7 @@ sub write_linux_makefile_javascript() {
 }
 
 
+
 sub write_linux_makefile_javaClasses() {
 	if ($JAVAC ne "" ) {
 		my @JavaSourceFiles = split (' ',`find . -name "*java" | grep "java\/classes"`);
@@ -439,11 +444,9 @@ sub write_linux_makefile_javaClasses() {
 		#print MK " -o Java/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
 	}
 }
-
-
 sub write_linux_makefile_makeBrowserPlugin() {
 	if ($VRML_CONFIG{NETSCAPE_INST}) {
-		print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
+		#print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
 
 		print MK "\n#Plugin\nnpfreewrl:\n";
 		print MK "	\$(CC)  \$(FWFLAGS) \$(INC) \$(DEFINE) -IPlugin/netscape/include -o Plugin/npfreewrl.o Plugin/netscape/source/npfreewrl.c\n";
