@@ -405,6 +405,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 	return JS_TRUE;
 }
 
+#define JSVERBOSE
 
 JSBool
 VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
@@ -455,6 +456,7 @@ printf ("must fix Javascript VrmlBrowserCreateVrmlFromURL\n");
 
 		_str[0] = JS_ValueToString(context, argv[0]);
 		_costr0 = JS_GetStringBytes(_str[0]);
+printf ("costr0 %s\n",_costr0);
 
 		if (!JS_GetProperty(context, _obj[1], "__handle", &_v)) {
 			printf("JS_GetProperty failed for \"__handle\" in VrmlBrowserCreateVrmlFromURL.\n");
@@ -462,7 +464,11 @@ printf ("must fix Javascript VrmlBrowserCreateVrmlFromURL\n");
 		}
 		_str[1] = JS_ValueToString(context, _v);
 		_costr1 = JS_GetStringBytes(_str[1]);
+printf ("costr1 %d from %d\n",_costr1,_v);
 		ra = sscanf (_costr1,"%d",&myptr);
+printf ("scanf returns %d\n",ra);
+printf ("myptr %d\n",myptr);
+
 
 		/* bounds checks */
 		if (sizeof (_costr0) > (myFileSizeLimit-200)) {
@@ -546,6 +552,13 @@ printf ("must fix Javascript VrmlBrowserCreateVrmlFromURL\n");
 		printf ("node string is %s\n",filename);
 		#endif
 
+{
+struct X3D_Node *myNode;
+
+myNode = (struct X3D_Node* )myptr;
+
+printf ("myptr points to a %s\n",stringNodeType(myNode->_nodeType));
+}
 		/* remember the freewrl addChildren removeChildren stuff? */
 		if ((strncmp (_c,"addChildren",strlen("addChildren")) == 0) ||
 		(strncmp (_c,"removeChildren",strlen("removeChildren")) == 0)) {
@@ -560,6 +573,7 @@ printf ("must fix Javascript VrmlBrowserCreateVrmlFromURL\n");
 	}
 	return JS_TRUE;
 }
+#undef JSVERBOSE
 
 
 JSBool

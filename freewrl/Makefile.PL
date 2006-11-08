@@ -160,23 +160,9 @@ print OUT "#define FWVER \"",$VERSION,"\"\n";
 print OUT "#define XMESSAGE \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_Message\"\n";
 print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
 
-# lets just dump out some standard defines, from the vrml.conf file.
-my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA");
+findAndPrintUtilities();
 
-foreach (@dumpToVRMLCONF) {
-	if (defined $VRML_CONFIG{$_}) {
-		if (!(-e $VRML_CONFIG{$_})) {
-			print "WARNING: Check your specific vrml.conf file; can not find system executable ".
-				$VRML_CONFIG{$_}." for identifier $_\n";
-		}
-		print OUT "#define\t$_\t\t";
-                print OUT '"',$VRML_CONFIG{$_},'"';
- 	} else {
-		print OUT "#define\t$_\t\t";
-		print OUT '"',"$_"."ISNOTDEFINED",'"';
- 	}
- 	print OUT "\n";
-}
+
 close OUT;
 
 
@@ -194,11 +180,11 @@ writeAllTarget();
 writeMakefileLibFreeWRL();
 writeMakefileCfrontend();
 
-write_linux_makefile_soundengine();
-write_linux_makefile_freewrlmessage();
+writeMakefileSoundEngine();
+writeMakefileFreeWRLMessage();
 write_linux_makefile_javascript();
 write_linux_makefile_javaClasses();
-write_linux_makefile_makeBrowserPlugin();
+writeMakefileBrowserPlugin();
 write_linux_makefile_clean_distclean();
 writeMakefileFinalTargets();
 
@@ -267,13 +253,13 @@ sub writeMakefileInitialize() {
 	print MK "JAR = $JAR\n";
 	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
 
-	print MK "CFLAGS = \$(FWFLAGS) \$(INC) \$(DEFINE)\n";
+	print MK "CFLAGS = \$(FWFLAGS) \$(INC) -IPlugin/netscape/include \$(DEFINE)\n";
 }
 	
 sub writeMakefileFinalTargets() {
 	print MK "\n";
 
-	print MK "install:\tall	\n	strip freewrl\n	cp freewrl \$(FRONTEND_DIR)\n";
+	print MK "install:\tall	\n	strip CFrontEnd/freewrl\n	cp CFrontEnd/freewrl \$(FRONTEND_DIR)\n";
 	print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
 	print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
 	if ($OS eq "Linux") {
@@ -303,32 +289,40 @@ sub writeVariables () {
 	my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
 	print MK "\n#CFuncs Make\n";
 	print MK "LIBFWSRCS=";
-	foreach my $fullname (@CFuncsSourceFiles) {
-		print MK "$fullname ";
-	}
+	foreach my $fullname (@CFuncsSourceFiles) { print MK "$fullname "; }
 	print MK "\n";
-
 	print MK "LIBFWOBJS=";
-	foreach my $fullname (@CFuncsSourceFiles) {
-		$fullname =~ s/.c$/.o/;
-		print MK "$fullname ";
-	}
-
+	foreach my $fullname (@CFuncsSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
+
 	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
 	print MK "\n#CFrontEnd Make\n";
 	print MK "FESRCS=";
-	foreach my $fullname (@CFrontEndSourceFiles) {
-		print MK "$fullname ";
-	}
+	foreach my $fullname (@CFrontEndSourceFiles) { print MK "$fullname "; }
 	print MK "\n";
-
 	print MK "FEOBJS=";
-	foreach my $fullname (@CFrontEndSourceFiles) {
-		$fullname =~ s/.c$/.o/;
-		print MK "$fullname ";
-	}
+	foreach my $fullname (@CFrontEndSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
+
+	my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*c`);
+	print MK "\n#SoundEngine Make\n";
+	print MK "SESRCS=";
+	foreach my $fullname (@SoundEngineSourceFiles) { print MK "$fullname "; }
+	print MK "\n";
+	print MK "SEOBJS=";
+	foreach my $fullname (@SoundEngineSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
+	print MK "\n\n";
+
+	print MK "\n#Console Message Files\n";
+	print MK "FWMSRCS=FreeWRL_Message/FreeWRL_Message.c\n";
+	print MK "FWMOBJS=FreeWRL_Message/FreeWRL_Message.o\n";
+	print MK "\n\n";
+	
+	print MK "\n#Plugin Files\n";
+	print MK "PLSRCS=Plugin/netscape/source/npfreewrl.c Plugin/netscape/source/common/npunix.c\n";
+	print MK "PLOBJS=Plugin/netscape/source/npfreewrl.o Plugin/netscape/source/common/npunix.o\n";
+	print MK "\n\n";
+	
 }
 
 
@@ -340,7 +334,7 @@ sub writeMakefileLibFreeWRL() {
 	#print MK "depend: \$(LIBFWSRCS)\n";
 	#print MK "\t\$(DEPEND) \$(LIBFWSRCS)\n\n";
 	print MK "libFreeWRL:      \$(LIBFWOBJS)\n";
-	print MK "\t\$(CC) -shared \$(MYFELIBS) -o libFreeWRLFunc.so  \$(MYLIBS)\n\n";
+	print MK "\t\$(CC) -shared \$(MYFELIBS) -o libFreeWRLFunc.so  \$(MYLIBS) \$(LIBFWOBJS)\n\n";
 }
 
 
@@ -356,51 +350,31 @@ sub writeMakefileCfrontend() {
 	print MK "\t\$(CC) \$(MYFELIBS) -o CFrontEnd/freewrl  \$(FEOBJS)\n\n";
 }
 
-sub write_linux_makefile_soundengine() {
+sub writeMakefileSoundEngine() {
 	#############################################################################
 	# SoundEngine
 	# make the sound engine, console message, and frontend if NOT OSX.
 
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
 		print MK "\n# make the Unix sound engine \n";
-		my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*c`);
-		foreach my $fullname (@SoundEngineSourceFiles) {
-			# remove the SoundEngine from the front, and the .c from the end.
-			my $nm = $fullname;
-			$nm =~ s/.c$//; $nm =~ s/SoundEngine.//;
-		
-			print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o SoundEngine\/$nm.o\n";
-		}
-		
-		print MK "SoundEngine:\t";
-		foreach my $fullname (@SoundEngineSourceFiles) {
-			# remove the SoundEngine from the front, and the .c from the end.
-			my $nm = $fullname;
-			$nm =~ s/.c$//; $nm =~ s/SoundEngine.//;
-		
-			print MK "$nm ";
-		}
-		print MK "\n";
-		
-		print MK "	\$(CC) ";
-		foreach my $fullname (@SoundEngineSourceFiles) {
-			$fullname =~ s/.c$/.o/;
-			print MK "$fullname ";
-		}
-		print MK " -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
+		print MK "\$(SESRCS):\n";
+		print MK "\t\$(CC) -c \$*.c\n\n";
+		print MK "SoundEngine:      \$(SEOBJS)\n";
+		print MK "\t\$(CC)  -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS) \$(SEOBJS)\n\n";
 	}
 }
 
 
-sub write_linux_makefile_freewrlmessage() {
+sub writeMakefileFreeWRLMessage() {
 	#############################################################################
 	# FreeWRL_Message 
 	# make a program that displays a message if NOT OSX and if we are not using Motif.
 
-	print MK "freewm:\n";
-	print MK "\t\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) FreeWRL_Message/FreeWRL_Message.c -o FreeWRL_Message/FreeWRL_Message.o\n";
-	print MK "FreeWRL_Message: freewm\n";
-	print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n";
+	print MK "\n# make the Unix Console Message \n";
+	print MK "\$(FWMSRCS):\n";
+	print MK "\t\$(CC) -c \$*.c\n\n";
+	print MK "freewm:      \$(FWMOBJS)\n";
+	print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n\n";
 }
 
 sub write_linux_makefile_javascript() {
@@ -419,7 +393,7 @@ sub write_linux_makefile_javaClasses() {
 		foreach my $fullname (@JavaSourceFiles) {
 			# remove the Java from the front, and the .c from the end.
 			my $nm = $fullname;
-			$nm =~ s/^\.\///; $nm =~ s/.java$//;
+			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
 	
 			print MK "$nm:\n	\$(JAVAC) -classpath java/classes $fullname\n";
 		}
@@ -428,7 +402,7 @@ sub write_linux_makefile_javaClasses() {
 		foreach my $fullname (@JavaSourceFiles) {
 			# remove the Java from the front, and the .c from the end.
 			my $nm = $fullname;
-			$nm =~ s/^\.\///; $nm =~ s/.java$//;
+			$nm =~ s/^\.\///; $nm =~ s/.java$/.class/;
 	
 			print MK "$nm ";
 		}
@@ -444,17 +418,13 @@ sub write_linux_makefile_javaClasses() {
 		#print MK " -o Java/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
 	}
 }
-sub write_linux_makefile_makeBrowserPlugin() {
+sub writeMakefileBrowserPlugin() {
 	if ($VRML_CONFIG{NETSCAPE_INST}) {
-		#print MK "$nm:\n	\$(CC) \$(FWFLAGS) \$(INC) \$(DEFINE) $fullname -o CFuncs\/$nm.o\n";
-
-		print MK "\n#Plugin\nnpfreewrl:\n";
-		print MK "	\$(CC)  \$(FWFLAGS) \$(INC) \$(DEFINE) -IPlugin/netscape/include -o Plugin/npfreewrl.o Plugin/netscape/source/npfreewrl.c\n";
-		print MK "npunix:\n";
-		print MK "	\$(CC)  \$(FWFLAGS) \$(INC) \$(DEFINE) -IPlugin/netscape/include -o Plugin/npunix.o Plugin/netscape/source/common/npunix.c\n";
-		print MK "Plugin: npfreewrl npunix\n";
-		print MK "	\$(CC) -shared -o Plugin/npfreewrl.so Plugin/npfreewrl.o Plugin/npunix.o\n";
-
+		print MK "\n# make the Unix front end\n";
+		print MK "\$(PLSRCS):\n";
+		print MK "\t\$(CC) -c \$*.c\n\n";
+		print MK "Plugin:      \$(PLOBJS)\n";
+		print MK "\t\$(CC)  -shared -o Plugin/npfreewrl.so \$(PLOBJS)\n\n";
 	}
 }
 
@@ -551,3 +521,60 @@ sub linux_system_info() {
 	return ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile);
 }
 
+sub findAndPrintUtilities() {
+	# lets just dump out some standard defines, from the vrml.conf file.
+	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA");
+
+	my $val;
+
+	foreach (@dumpToVRMLCONF) {
+
+		if (defined $VRML_CONFIG{$_}) {
+			if (!(-e $VRML_CONFIG{$_})) {
+				print "WARNING: Check your specific vrml.conf file; can not find system executable ".
+					$VRML_CONFIG{$_}." for identifier $_\n";
+			}
+			$val = $VRML_CONFIG{$_};
+ 		} else {
+			# lets see if we can find it....
+			$val = tryToFind($_);
+	 	}
+		print OUT "#define\t$_\t\t\"$val\"\n";
+	}
+}
+
+sub tryToFind() {
+	my ($tofind) = @_;
+	my $val = "ISNOTDEFINED";
+	my $try = "";
+	
+	if ("BROWSER" eq $tofind) {
+		# more than 1 possibility - remove whitespace after each try
+		$try = `which firefox`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+		if ("" eq $try) { $try = `which safari`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
+		if ("" eq $try) { $try = `which opera`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
+		if ("" eq $try) { $try = `which mozilla`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
+		if ("" eq $try) { $try = `which netscape`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
+	} elsif ("SOUNDCONV" eq $tofind) {
+		$try = `which sox`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+	} elsif ("UNZIP" eq $tofind) {
+		$try = `which gunzip`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+	} elsif ("WGET" eq $tofind) {
+		# more than 1 possibility - remove whitespace after each try
+		$try = `which wget`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+		if ("" eq $try) {$try = `which curl`; $try =~ s/^\s+//; $try =~ s/\s+$//;}
+	} elsif ("CONVERT" eq $tofind) {
+		$try = `which convert`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+	} elsif ("COPIER" eq $tofind) {
+		$try = `which cp`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+	} elsif ("JAVA" eq $tofind) {
+		$try = `which java`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+	}
+
+	if ("" ne $try) {
+		$val = $try; # found it, hopefully
+	}
+
+	print "\tNot defined - trying to find $tofind"; print ": returning: $val\n";		
+	return $val;
+}
