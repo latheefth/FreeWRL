@@ -39,7 +39,9 @@
 	Cursor curcursor;
 	XEvent event;
 	extern void createGLContext();
+	#ifdef HAVE_MOTIF
 	extern XtAppContext freewrlXtAppContext;
+	#endif
 	void handle_Xevents(XEvent event);
 #endif
 

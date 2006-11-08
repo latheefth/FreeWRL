@@ -185,14 +185,14 @@ writeMakefileFreeWRLMessage();
 write_linux_makefile_javascript();
 write_linux_makefile_javaClasses();
 writeMakefileBrowserPlugin();
-write_linux_makefile_clean_distclean();
+writeMakefileDistclean();
 writeMakefileFinalTargets();
 
 print "The Makefile has been generated. Type \"make\" and\/or \"make install\" to build (and install)\n\n";
 
 sub writeAllTarget () {
 	# should edit this line to suit build
-	print MK "all: Javascript FreeWRL_Message CFrontEnd freewm libFreeWRL";
+	print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd";
 	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";
@@ -373,7 +373,7 @@ sub writeMakefileFreeWRLMessage() {
 	print MK "\n# make the Unix Console Message \n";
 	print MK "\$(FWMSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	print MK "freewm:      \$(FWMOBJS)\n";
+	print MK "FreeWRL_Message:      \$(FWMOBJS)\n";
 	print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n\n";
 }
 
@@ -428,7 +428,7 @@ sub writeMakefileBrowserPlugin() {
 	}
 }
 
-sub write_linux_makefile_clean_distclean() {
+sub writeMakefileDistclean() {
 	#############################################################################
 	# Misc targets
 	print MK "\nclean:\n";
@@ -455,8 +455,39 @@ sub write_linux_makefile_clean_distclean() {
 	print MK "	rm -f java/classes/sai/eai/*class\n";
 	print MK "	rm -f java/classes/org/web3d/x3d/sai/*class\n";
 	print MK "	rm -f java/classes/vrml.jar\n";
+	print MK "	rm -rf JS/$jsobjdir\n";
 
+	# remove other JS directories
+	$jsobjdir =~s/src/src\/editline/;
+	print MK "	rm -rf JS/$jsobjdir\n";
+	$jsobjdir =~ s/editline/fdlibm/;
+	print MK "	rm -rf JS/$jsobjdir\n";
+
+	print MK "\n#remove installed images\n";
 	print MK "distclean:	clean\n";
+	print MK "\trm -f \$(FRONTEND_DIR)/freewrl\n";
+	print MK "\trm -f \$(FRONTEND_DIR)/FreeWRL_Message\n";
+	
+	if ($OS eq "Linux") {
+		print MK "\trm -f \$(LIB_DIR)/libFreeWRLFunc.so\n";
+		if ($HAVE_UBUNTU eq "NO") {
+			print MK "\t/sbin/ldconfig\n";
+		}
+	}
+	if ($VRML_CONFIG{SOUND_ENGINE}) { 
+		print MK "\trm -f \$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
+	}
+
+	if (($JAVAC ne "") || ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
+		print MK "\trm -f $VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
+		print MK "\trm -f $VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+		print MK "\trm -f Plugin/npfreewrl.so\n";
+		print MK "\trm -f Plugin/netscape/source/npfreewrl.o\n";
+		print MK "\trm -f Plugin/netscape/source/common/npunix.o\n";
+	}
+	print MK "\trm -f \$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
+	print MK "\trm -f \$(INSTALL_DIR)\/applications/freewrl.desktop\n";
+	print MK "\trm -rf \$(INSTALL_DIR)/freewrl/fonts\n";
 }
 
 

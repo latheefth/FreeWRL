@@ -19,27 +19,27 @@ LIB_DIR => "/usr/lib",
 # tell FreeWRL which commands to invoke for Anchors, graphics conversions, etc.
 
 # Which browser to invoke for Anchors, etc:
-BROWSER => "/usr/bin/firefox",		
+# find at build time: BROWSER => "/usr/bin/firefox",		
 
 # How to get http:// files when running standalone (ie, not as a plugin)
-WGET => "/usr/bin/wget",
+# find at build time: WGET => "/usr/bin/wget",
 
 # conversion program - allows FreeWRL to handle many, many image types
 # without having to have the code itself.
-CONVERT => "/usr/bin/convert",
+# find at build time: CONVERT => "/usr/bin/convert",
 
 # some wrl/x3d files are zipped; how do we unzip them?
-UNZIP => "/bin/gunzip",	
+# find at build time: UNZIP => "/bin/gunzip",	
 
 # Java Runtime. Java, Jikes, etc is ok, so long as it is not ancient.
 #if you do not have Java, comment this and the JAVA_INST line below out.
-JAVA => "/usr/bin/java",
+# find at build time: JAVA => "/usr/bin/java",
 
 # how to copy one file to another:
-COPIER => "/bin/cp",
+# find at build time: COPIER => "/bin/cp",
 
 # allow freewrl to play many, many types of sound files; eg, AIFF, etc.
-SOUNDCONV => "/usr/bin/sox",
+# find at build time: SOUNDCONV => "/usr/bin/sox",
 
 # BOUNDS_CHECK => "on" to turn on bounds checking
 #  (requires gcc compiled with the bounds checking extension)
@@ -65,7 +65,6 @@ SOUNDCONV => "/usr/bin/sox",
 # to the FREEWRL_LIBS line
 
 # Motif - if you DO NOT have Motif - remove the "-DHAVE_MOTIF" from below.
-# If you have GTK2, you can change the HAVE_MOTIF to HAVE_GTK2.
 #
 # Multi threads for OpenGL. If you want to try this, add "-DDO_MULTI_OPENGL_THREADS " to the FREEWRL_DEFINE
 # line, and cross fingers.
