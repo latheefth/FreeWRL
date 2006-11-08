@@ -494,11 +494,12 @@ void handle_Xevents(XEvent event) {
 
 	lastMouseEvent=event.type;
 	switch(event.type) {
-		/*
+		#ifdef HAVE_NOTOOLKIT
+		/* Motif, etc, usually handles this. */
 		case ConfigureNotify:
 			setScreenDim (event.xconfigure.width,event.xconfigure.height);
 			break;
-		*/
+		#endif
 		case KeyPress:
 		case KeyRelease:
 			XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
