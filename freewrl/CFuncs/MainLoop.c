@@ -160,8 +160,6 @@ char *fw_strndup (const char *str, int len) {
 	return retval;
 }
 
-
-
 /* a simple routine to allow the front end to get our version */
 char *getLibVersion() {
 	return (FWVER);
@@ -191,6 +189,9 @@ void EventLoop() {
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+
+	/* has the default background changed? */
+	if (cc_changed) doglClearColor();
 
 	OcclusionStartofEventLoop();
 

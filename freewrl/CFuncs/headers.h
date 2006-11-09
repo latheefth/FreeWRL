@@ -1178,5 +1178,12 @@ void sortChildren (struct Multi_Node ch);
 void dirlightChildren(struct Multi_Node ch);
 void normalChildren(struct Multi_Node ch);
 
+/* background colour */
+void setglClearColor (float *val); 
+void doglClearColor(void);
+extern int cc_changed;
+
+
+
 int mapFieldTypeToInernaltype (indexT kwIndex);
 #endif /* __HEADERS_H__ */

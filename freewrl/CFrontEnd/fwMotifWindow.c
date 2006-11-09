@@ -53,11 +53,26 @@ extern WidgetClass glwDrawingAreaWidgetClass;
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 
+void setDefaultBackground(int colour);
+
 /************************************************************************
 
 Set window variables from FreeWRL 
 
 ************************************************************************/
+
+
+/* background colours - must be sequential range */
+#define colourBlack 	0
+#define colourRed	1
+#define colourGreen	2
+#define colourBlue	3
+#define colourMagenta	4
+#define colourYellow	5
+#define colourCyan	6
+#define colourGrey	7
+#define colourOrange	8
+#define colourWhite	9
 
 /* because of threading issues in Linux, if we can only use 1 thread, we
    delay setting of info until this time. */
@@ -89,6 +104,21 @@ Widget consoleTextWidget;
 Widget about_widget;
 Widget newFileWidget;
 Widget tex128_button, tex256_button, texFull_button, texturesFirstButton, shapeThreadButton;
+
+/* colour selection for default background */
+Widget backgroundColourSelector[colourWhite+1];
+String BackString[] = {"Black Background", "Red Background", "Green Background", "Blue Background", "Magenta Background", "Yellow Background", "Cyan Background", "Grey Background", "Orange Background", "White Background"};
+float backgroundColours[] = {
+		0.0, 0.0, 0.0, 		/* black */
+		0.8, 0.0, 0.0, 		/* red */
+		0.0, 0.8, 0.0,		/* green */
+		0.0, 0.0, 0.8,		/* blue */
+		0.8, 0.0, 0.8,		/* magenta */
+		0.8, 0.8, 0.0,		/* yellow */		
+		0.0, 0.8, 0.8,		/* cyan */
+		0.8, 0.8, 0.8,		/* grey */
+		1.0, 0.6, 0.0,		/* orange */
+		1.0, 1.0, 1.0};		/* white */
 
 Arg args[10];
 Arg buttonArgs[10]; int buttonArgc = 0;
@@ -230,6 +260,10 @@ void ViewpointFirst (Widget w, XtPointer data, XtPointer callData) {First_ViewPo
 void ViewpointLast (Widget w, XtPointer data, XtPointer callData) {Last_ViewPoint();}
 void ViewpointNext (Widget w, XtPointer data, XtPointer callData) {Next_ViewPoint();}
 void ViewpointPrev (Widget w, XtPointer data, XtPointer callData) {Prev_ViewPoint();}
+
+/* selecting default background colours */
+
+void BackColour(Widget w, XtPointer data, XtPointer callData) {setDefaultBackground(data);};
 
 void Tex128(Widget w, XtPointer data, XtPointer callData) {setTexSize(-128);};
 void Tex256(Widget w, XtPointer data, XtPointer callData) {setTexSize(-256);};
@@ -517,6 +551,7 @@ void createNavigatePulldown() {
 /* Preferences pulldown menu */
 void createPreferencesPulldown() {
 	Widget cascade, menupane;
+	int count;
 
 	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
 
@@ -534,6 +569,17 @@ void createPreferencesPulldown() {
 		texFull_button = XtCreateManagedWidget("Fullsize Textures", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback (texFull_button, XmNvalueChangedCallback, (XtCallbackProc)TexFull, NULL);
 		myXtManageChild (14,texFull_button);
+
+		/* default Background colour */	
+		myXtManageChild(11,XmCreateSeparator (menupane, "sep1", NULL, 0));
+
+		for (count = colourBlack; count <= colourWhite; count++ ){
+			backgroundColourSelector[count] = 
+				XtCreateManagedWidget(BackString[count], xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+			XtAddCallback (backgroundColourSelector[count], XmNvalueChangedCallback, (XtCallbackProc)BackColour, count);
+			myXtManageChild (40,backgroundColourSelector[count]);
+		}
+		XmToggleButtonSetState (backgroundColourSelector[colourBlack], TRUE, FALSE);
 
 		/* texture, shape compiling  */
 		myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
@@ -843,5 +889,20 @@ void  getMotifWindowedGLwin(Window *win) {
 int isMotifDisplayInitialized (void) {
         return  (MainWidgetRealized);
 }               
-  
+
+void setDefaultBackground(int colour) {
+	int count;
+
+
+	if ((colour<colourBlack) || (colour > colourWhite)) return; /* an error... */
+
+	for (count = colourBlack; count <= colourWhite; count++) {
+		XmToggleButtonSetState (backgroundColourSelector[count], FALSE, FALSE);
+	}
+	XmToggleButtonSetState (backgroundColourSelector[colour], TRUE, FALSE);
+	setglClearColor (&(backgroundColours[colour*3]));
+
+ }
+ 
 #endif
+

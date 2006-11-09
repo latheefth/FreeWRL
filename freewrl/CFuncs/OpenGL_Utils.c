@@ -35,11 +35,26 @@ static int lights[8];
 int displayDepth = 24;
 
 
+float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
+int cc_changed = FALSE;
 
 /******************************************************************/
 /* textureTransforms of all kinds */
 
+/* change the clear colour, selected from the GUI, but do the command in the
+   OpenGL thread */
 
+void setglClearColor (float *val) {
+	cc_red = *val; val++;
+	cc_green = *val; val++;
+	cc_blue = *val;
+	cc_changed = TRUE;
+}        
+
+void doglClearColor() {
+	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
+	cc_changed = FALSE;
+}
 
 
 /* did we have a TextureTransform in the Appearance node? */
@@ -114,7 +129,6 @@ void glpOpenGLInitialize() {
         float s[] = { 1.0, 1.0, 1.0, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
 
-	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f;
         #ifdef AQUA
 	/* aqglobalContext is found at the initGL routine in MainLoop.c. Here
 	   we make it the current Context. */
@@ -130,7 +144,7 @@ void glpOpenGLInitialize() {
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
-	glClearColor((float)red, (float)green, (float)blue, (float)alpha);
+	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
 	glShadeModel(GL_SMOOTH);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
