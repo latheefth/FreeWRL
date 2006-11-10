@@ -28,7 +28,7 @@ if ($OS eq "Darwin") { print "This install is running on an Apple OS X computer\
 # create the generated code/header files.
 system "perl VRMLC.pm";
 
-my $VERSION = "V1.18.8";
+my $VERSION = "V1.18.9";
 
 use Cwd qw(getcwd chdir);
 
