@@ -38,7 +38,6 @@ rm -r JS/js1.5/Linux_All_DBG.OBJ
 rm -r Plugin/mozilla
 rm -r nodes/
 rm -r speed/
-rm -r x3d/
 rm -r talk/
 rm -r seqs/
 rm -r avt/

@@ -5,7 +5,42 @@
  */
 
 #include "headers.h"
+#include "installdir.h"
 #define READSIZE 2048
+
+
+/* find a FreeWRL system file. If FreeWRL is installed, return that path, if not, return the local 
+   build path, if not, return NULL */
+char *findPathToFreeWRLFile(char *lfn) {
+	FILE *tmpfile;
+	char sys_fp[200];
+
+	if ((strlen(INSTALLDIR) > (fp_name_len-50)) ||
+		(strlen(BUILDDIR) > (fp_name_len-50))) {
+		printf ("Internal problem; fp_name_len is not long enough\n");
+		return NULL;
+	}
+	strcpy(sys_fp,INSTALLDIR);
+	strcat(sys_fp,lfn);
+	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
+	tmpfile = fopen(sys_fp,"r");
+	if (!tmpfile) {
+		/* printf ("FreeWRL not installed; trying build dir copy\n"); */
+		strcpy(sys_fp,BUILDDIR);
+		strcat(sys_fp,lfn);
+		/* printf ("checking to see if directory %s exists\n",sys_fp); */
+		tmpfile = fopen(sys_fp,"r");
+		if (!tmpfile) {
+			/* printf ("NO SYSTEM FONTS FOUND\n"); */
+			return NULL;
+		} else {
+			return (BUILDDIR);
+		}
+
+	}
+	return (INSTALLDIR);
+}
+
 
 /* read a file, put it into memory. */
 char * readInputString(char *fn, char *parent) {

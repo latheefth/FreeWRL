@@ -716,6 +716,7 @@ open_font() {
 	int len;
 	int err;
 	FILE *tmpfile;
+	char *flloc;
 
 	if (TextVerbose)
 		printf ("open_font called\n");
@@ -729,32 +730,17 @@ open_font() {
 	FW_outline_interface.delta = 0;
 
 	/* where are the fonts stored? */
-	if (strlen(INSTALLDIR) > (fp_name_len-30)) {
-		printf ("Internal problem; fp_name_len is not long enough\n");
+	flloc = findPathToFreeWRLFile("/fonts/Vera.ttf");
+
+	if (flloc == NULL) {
+		ConsoleMessage ("Problem - can not find font files!\n");
 		return FALSE;
 	}
-	strcpy(sys_fp,INSTALLDIR);
-	strcat(sys_fp,"/freewrl/fonts/Vera.ttf");
-	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
-	tmpfile = fopen(sys_fp,"r");
-	if (!tmpfile) {
-		/* printf ("FreeWRL fonts not installed; trying build dir copy\n"); */
-		strcpy(sys_fp,BUILDDIR);
-		strcat(sys_fp,"/fonts/Vera.ttf");
-		/* printf ("checking to see if directory %s exists\n",sys_fp); */
-		tmpfile = fopen(sys_fp,"r");
-		if (!tmpfile) {
-			/* printf ("NO SYSTEM FONTS FOUND\n"); */
-			return FALSE;
-		} else {
-			strcpy(sys_fp,BUILDDIR);
-			strcat (sys_fp,"/fonts");
-		}
 
-	} else {
-		strcpy(sys_fp,INSTALLDIR);
-		strcat (sys_fp,"/freewrl/fonts");
-	}
+
+	/* we know where the fonts are now, save this path */
+	strcpy(sys_fp,flloc);
+	strcat (sys_fp,"/fonts");
 	
 	/* lets initialize some things */
 	for (len = 0; len < num_fonts; len++) {

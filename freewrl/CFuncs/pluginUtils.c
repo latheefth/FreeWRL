@@ -120,7 +120,7 @@ int freewrlSystem (const char *sysline) {
 			int Xrv;
 
 			/* child process */
-			/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid()); */
+			/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid());  */
 		 	Xrv = execl((const char *)paramline[0],
 				(const char *)paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
@@ -139,14 +139,18 @@ int freewrlSystem (const char *sysline) {
 			/* do we have to wait around? */
 			if (!waitForChild) {
 				/* printf ("freewrlSystem - do not have to wait around\n"); */
-				return 0;
+				return TRUE;
 			}
 			waitpid (childProcess[lastchildProcess],&pidStatus,0);
-			/* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
-			 		pidStatus); */
+			 /* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
+			 		pidStatus);  */
+
+			/* printf ("freewrlSystem: WIFEXITED is %d\n",WIFEXITED(pidStatus)); */
+
+			/* if (WIFEXITED(pidStatus) == TRUE) printf ("returned ok\n"); else printf ("problem with return\n"); */
 			}
 		}
-		return pidStatus;
+		return (WIFEXITED(pidStatus) == TRUE);
 	} else {
 		printf ("System call failed :%s:\n",sysline);
 	}

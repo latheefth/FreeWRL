@@ -659,7 +659,13 @@ void createMenuBar(void) {
 
 	/* create the menu bar */
 	menuArgc = 0;
+	
+	/* the following XtSetArg is not required; it only "pretties" up the display
+	   in some circumstances. It came out in Motif 2.0, and is not always found */
+	#ifdef XmNscrolledWindowChildType
 	XtSetArg(menuArgs[menuArgc], XmNscrolledWindowChildType, XmMENU_BAR); menuArgc++;
+	#endif
+
 	menubar = XmCreateMenuBar (mainw, "menubar", menuArgs, menuArgc);
 	myXtManageChild (26,menubar);
 

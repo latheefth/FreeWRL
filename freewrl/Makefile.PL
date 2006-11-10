@@ -226,7 +226,7 @@ sub writeMakefileInitialize() {
 	
 	
 	open ID, ">CFuncs/installdir.h" or die ("Couldn't create installdir.h");
-	print ID "#define INSTALLDIR \"$VRML_CONFIG{INSTALL_DIR}\"\n";
+	print ID "#define INSTALLDIR \"$VRML_CONFIG{INSTALL_DIR}/freewrl\"\n";
 	close ID;
 	
 	# do the headers.
@@ -283,6 +283,7 @@ sub writeMakefileFinalTargets() {
 	#print MK "\tif [ -e /usr/share/freewrl ]; then echo "INSTALL_DIR exists"; else mkdir /usr/share/freewrl; fi\n";
 	print MK "\tif [ -e \$(INSTALL_DIR)/freewrl ]; then echo \"INSTALL_DIR exists\"; else mkdir \$(INSTALL_DIR)/freewrl; fi\n";
 	print MK "\tcp -r fonts \$(INSTALL_DIR)/freewrl\n";
+	print MK "\tcp -r x3d \$(INSTALL_DIR)/freewrl\n";
 }
 
 sub writeVariables () {	
@@ -488,6 +489,7 @@ sub writeMakefileDistclean() {
 	print MK "\trm -f \$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
 	print MK "\trm -f \$(INSTALL_DIR)\/applications/freewrl.desktop\n";
 	print MK "\trm -rf \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\trm -rf \$(INSTALL_DIR)/freewrl/x3d\n";
 }
 
 
@@ -554,7 +556,7 @@ sub linux_system_info() {
 
 sub findAndPrintUtilities() {
 	# lets just dump out some standard defines, from the vrml.conf file.
-	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA");
+	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA", "XSLTPROC");
 
 	my $val;
 
@@ -600,6 +602,8 @@ sub tryToFind() {
 		$try = `which cp`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	} elsif ("JAVA" eq $tofind) {
 		$try = `which java`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+	} elsif ("XSLTPROC" eq $tofind) {
+		$try = `which xsltproc`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	}
 
 	if ("" ne $try) {

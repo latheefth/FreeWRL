@@ -285,7 +285,7 @@ void process_command () {
 
 		/*  start SOX conversion...*/
 		cp[0]='\0';
-		strcpy(cp,"/usr/bin/sox");
+		strcpy(cp,SOUNDCONV);
 		strcat(cp," ");
 		b = strlen(cp);
 		cp2len=0; /*  keep the original file name around for a bit.*/

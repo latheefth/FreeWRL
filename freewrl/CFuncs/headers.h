@@ -1183,7 +1183,7 @@ void setglClearColor (float *val);
 void doglClearColor(void);
 extern int cc_changed;
 
-
+char *findPathToFreeWRLFile(char *lfn);
 
 int mapFieldTypeToInernaltype (indexT kwIndex);
 #endif /* __HEADERS_H__ */

@@ -1153,9 +1153,8 @@ int findTextureFile (int cwo, int *istemp) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: running convert on %s\n",sysline);
 			#endif
-				printf ("textureThread: running convert on %s\n",sysline);
 
-			if (freewrlSystem (sysline) != 0) {
+			if (freewrlSystem (sysline) != TRUE) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			} else {
 				sprintf (filename,"/tmp/freewrl%d.png",getpid());
