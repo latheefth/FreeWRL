@@ -786,6 +786,8 @@ void *returnInterpolatorPointer (const char *x) {
 		return (void *)do_IntegerTrigger;
 	} else if (strncmp("TimeTrigger",x,strlen("TimeTrigger"))==0) {
 		return (void *)do_TimeTrigger;
+	} else if (strncmp("ReWireMidiControl",x,strlen("ReWireMidiControl"))==0) {
+		return (void *)do_ReWireMidiControl;
 	} else {
 		return 0;
 	}
