@@ -93,6 +93,7 @@ char myMenuStatus[MAXSTAT];
 
 void handle_Xevents(XEvent event);
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
+static int catch_XLIB (Display *disp, XErrorEvent *err);
 
 void setMenuStatus(char *stat) {
 	strncpy (myMenuStatus, stat, MAXSTAT);
@@ -180,6 +181,13 @@ void openMainWindow (int argc, char **argv) {
 	#ifdef DO_MULTI_OPENGL_THREADS
 	XInitThreads();
 	#endif
+
+
+	/* start up a XLib error handler to catch issues with FreeWRL. There
+	   should not be any issues, but, if there are, we'll most likely just
+	   throw our hands up, and continue */
+	XSetErrorHandler(catch_XLIB);
+
 
 	/* zero status stuff */
 	myMenuStatus[0] = '\0';
@@ -316,4 +324,13 @@ void resetGeometry() {
 	}
 
 #endif
+}
+
+static int catch_XLIB (Display *disp, XErrorEvent *err) {
+	int x;
+	
+	printf ("FreeWRL caught an XLib error on Display:%s We are just going to ignore error:%d request:%d and continue on\n",
+		XDisplayName(NULL), err->error_code, err->request_code);
+	return 0;
+
 }

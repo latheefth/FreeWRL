@@ -12,6 +12,7 @@ RenderFuncs.c - do scenegraph rendering.
 ******************************************/
 
 #include <math.h>
+#include <pthread.h>
 
 #include "headers.h"
 #include "Polyrep.h"

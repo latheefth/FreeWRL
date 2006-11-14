@@ -1,3 +1,14 @@
+For 1.18.9:
+	- no perl parser at all.
+
+	- perl runtime code removed.
+
+	- XLib error handler.
+
+	- New Makefile.PL and new build process.
+
+
+
 For 1.18.5:
 	- Sound and AudioClip nodes should work again - problem with add_first and
 	  these nodes.
