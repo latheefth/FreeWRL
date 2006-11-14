@@ -15,6 +15,25 @@
 #include "headers.h"
 #include "installdir.h"
 
+void make_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
+	printf ("make ReWire\n");
+}
+void prep_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
+	printf ("prep ReWire\n");
+}
+void fin_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
+	printf ("fin ReWire\n");
+}
+void changed_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
+	printf ("changed ReWire\n");
+}
+void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
+	printf ("render ReWire\n");
+}
+
+
+
+
 void render_LoadSensor (struct X3D_LoadSensor *node) {
 	int total;
 	int count;

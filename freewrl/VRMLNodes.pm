@@ -2182,7 +2182,28 @@ my $protono;
 					} ,"X3DChildNode"
 					),
 
+	###################################################################################
 
+	# testing...
+
+	###################################################################################
+
+	ReWireMidiControl =>
+	new VRML::NodeType("ReWireMidiControl",
+					{
+						bus => [SFInt32,-1,exposedField],
+						deviceName => [SFString,"",exposedField],
+						channel => [SFString,"",exposedField],
+						minVal => [SFInt32, 0, field],
+						maxVal => [SFInt32, 0, field],
+						intValue => [SFInt32, 0, exposedField],
+						floatValue => [SFFloat, 0, exposedField],
+						highResolution => [SFBool, TRUE, exposedField],
+						controllerType => [SFString, "", exposedField],
+						intControllerType => [SFInt32,0, exposedField],
+						devicePresent => [SFBool, FALSE, exposedField],
+					}, "X3DNetworkSensorNode"
+					),
 ); 
 
 
