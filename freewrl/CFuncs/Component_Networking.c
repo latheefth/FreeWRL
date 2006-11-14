@@ -30,8 +30,44 @@ void changed_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	printf ("render ReWire\n");
 }
+void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
+	printf ("compile ReWire\n");
+}
 
+void do_ReWireMidiControl (void *this) {
+	struct X3D_ReWireMidiControl* node;
 
+	node = (struct X3D_ReWireMidiControl*) this;
+
+	printf ("do ReWireMidiControl for node %s\n",stringNodeType(node->_nodeType));
+	if (NODE_ReWireMidiControl == node->_nodeType) {
+
+		/* do we need to "compile" this node? */
+		COMPILE_IF_REQUIRED
+
+printf ("ReWire change %d %d ",
+		node->_ichange, node->_change);
+
+printf ("enc %d _oldInt %d _oldFloat %f ",node->_encodedName, node->_oldintValue,node->_oldfloatValue);
+/* printf ("lengths %d %d %d\n", node->channel->len, node->controllerType->len, node->deviceName->len); */
+printf ("bus %d channel :%s: controllerType :%s: device :%s: ",
+		node->bus,
+		node->channel->strptr,
+		node->controllerType->strptr, 
+		node->deviceName->strptr);
+printf (" devp %d fv %f iv %d hr %d ct %d intVal %d max %d min %d\n",
+		node->devicePresent,
+		node->floatValue,
+		node->intValue,
+		node->highResolution,
+		node->intControllerType,
+		node->intValue,
+		node->maxVal,
+		node->minVal);
+		
+		MARK_NODE_COMPILED 
+	}	
+}
 
 
 void render_LoadSensor (struct X3D_LoadSensor *node) {

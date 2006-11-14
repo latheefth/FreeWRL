@@ -2194,10 +2194,20 @@ my $protono;
 						bus => [SFInt32,-1,exposedField],
 						deviceName => [SFString,"",exposedField],
 						channel => [SFString,"",exposedField],
+
+						# encoded bus,device,channel
+						_encodedName => [SFInt32,0,field],
+
+
+
 						minVal => [SFInt32, 0, field],
 						maxVal => [SFInt32, 0, field],
+
+						_oldintValue => [SFInt32, 0, field],
+						_oldfloatValue => [SFFloat, 0, field],
 						intValue => [SFInt32, 0, exposedField],
 						floatValue => [SFFloat, 0, exposedField],
+
 						highResolution => [SFBool, TRUE, exposedField],
 						controllerType => [SFString, "", exposedField],
 						intControllerType => [SFInt32,0, exposedField],

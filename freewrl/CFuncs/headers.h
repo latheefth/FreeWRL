@@ -1101,10 +1101,12 @@ void changed_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_Anchor (struct X3D_Anchor *this_);
 
 void make_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
+void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
 void prep_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
 void fin_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
 void changed_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
 void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
+void do_ReWireMidiControl (void *node);
 
 /* Event Utilities Component */
 void do_BooleanFilter (void *node);

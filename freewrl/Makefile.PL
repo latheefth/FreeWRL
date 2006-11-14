@@ -129,14 +129,12 @@ if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 
 push @inc, $VRML_CONFIG{FREEWRL_INC}, "-IJS/$jsobjdir", "-IJS/$jsdir", "-ICFuncs -ICFrontEnd ";
 push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-lFreeWRLjs";
-push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
 
 # push build directory, for running standalone
 
 $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
-$VRML_CONFIG{LDFLAGS} = join(' ', @ldflags);
 
 if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
 {
@@ -204,7 +202,6 @@ sub writeMakefileInitialize() {
 	my $MYINC         = $VRML_CONFIG{FREEWRL_INC};
 	my $MYLIBS 	= $VRML_CONFIG{FREEWRL_LIBS};
 
-	my $MYLDFLAGS     = $VRML_CONFIG{LDFLAGS};
 	my $MYDEFINE      = $VRML_CONFIG{FREEWRL_DEFINE};
 
 	my $MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
@@ -259,8 +256,15 @@ sub writeMakefileInitialize() {
 sub writeMakefileFinalTargets() {
 	print MK "\n";
 
-	print MK "install:\tall	\n	strip CFrontEnd/freewrl\n	cp CFrontEnd/freewrl \$(FRONTEND_DIR)\n";
-	print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
+	print MK "install:\tall	\n";
+	if ($VRML_CONFIG{BOUNDS_CHECK} eq "off") {
+		print MK "\tstrip CFrontEnd/freewrl\n";
+		print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
+		if ($VRML_CONFIG{SOUND_ENGINE}) { 
+			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
+		}
+	}
+	print MK "\tcp CFrontEnd/freewrl \$(FRONTEND_DIR)\n";
 	print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
 	if ($OS eq "Linux") {
 		print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
@@ -269,7 +273,6 @@ sub writeMakefileFinalTargets() {
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
-		print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
 		print MK "\tcp SoundEngine/FreeWRL_SoundServer \$(FRONTEND_DIR)\n";
 	}
 
@@ -361,7 +364,7 @@ sub writeMakefileSoundEngine() {
 		print MK "\$(SESRCS):\n";
 		print MK "\t\$(CC) -c \$*.c\n\n";
 		print MK "SoundEngine:      \$(SEOBJS)\n";
-		print MK "\t\$(CC)  -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS) \$(SEOBJS)\n\n";
+		print MK "\t\$(CC)  -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(SEOBJS) \$(MYSELIBS)\n\n";
 	}
 }
 
@@ -411,12 +414,6 @@ sub write_linux_makefile_javaClasses() {
 	
 		# make the jar file here
 		print MK "	\$(JAR) -cf java/classes/vrml.jar $@ `find java/classes/vrml -name *.class`\n";
-		#print MK "	\$(CC) ";
-			#foreach my $fullname (@JavaSourceFiles) {
-				#$fullname =~ s/.java$/.class/;
-			#print MK "$fullname ";
-		#}
-		#print MK " -o Java/FreeWRL_SoundServer \$(MYLIBS) \$(MYSELIBS)\n";
 	}
 }
 sub writeMakefileBrowserPlugin() {

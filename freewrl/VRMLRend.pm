@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.201  2006/11/14 20:16:39  crc_canada
+# ReWire work.
+#
 # Revision 1.200  2006/07/10 14:24:11  crc_canada
 # add keywords for PROTO interface fields.
 #
@@ -257,6 +260,7 @@
 	Cone
 	Cylinder
 	Sphere
+	ReWireMidiControl
 /;
 
 
