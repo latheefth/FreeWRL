@@ -2191,27 +2191,31 @@ my $protono;
 	ReWireMidiControl =>
 	new VRML::NodeType("ReWireMidiControl",
 					{
-						bus => [SFInt32,-1,exposedField],
-						deviceName => [SFString,"",exposedField],
-						channel => [SFString,"",exposedField],
+						bus => [SFInt32,-1,exposedField],		# bus 5, or -1 for "search any bus"
+						deviceName => [SFString,"",exposedField],	# "Subtractor 1"
+						channel => [SFString,"",exposedField],		# "Osc1 Wave"
 
 						# encoded bus,device,channel
-						_encodedName => [SFInt32,0,field],
+						_encodedName => [SFInt32,0,field],		# internal for efficiency
 
 
 
-						minVal => [SFInt32, 0, field],
-						maxVal => [SFInt32, 0, field],
+						deviceMinVal => [SFInt32, 0, field],		# what the device sets
+						deviceMaxVal => [SFInt32, 0, field],		# what the device sets
 
-						_oldintValue => [SFInt32, 0, field],
-						_oldfloatValue => [SFFloat, 0, field],
-						intValue => [SFInt32, 0, exposedField],
-						floatValue => [SFFloat, 0, exposedField],
+						minVal => [SFInt32, 0, exposedField],		# used to scale floats, and 
+						maxVal => [SFInt32, 0, exposedField],		# bounds check ints. The resulting
+												# value will be <= maxVal <= deviceMaxVal
+												# and >=minVal >= deviceMinVal
 
-						highResolution => [SFBool, TRUE, exposedField],
-						controllerType => [SFString, "", exposedField],
-						intControllerType => [SFInt32,0, exposedField],
-						devicePresent => [SFBool, FALSE, exposedField],
+						intValue => [SFInt32, 0, exposedField],		# integer value for i/o
+						floatValue => [SFFloat, 0, exposedField],	# float value for i/o
+						useIntValue => [SFBool, TRUE, exposedField],	# which value to use for input
+
+						highResolution => [SFBool, TRUE, exposedField],	# high resolution controller
+						controllerType => [SFString, "", exposedField],	# "Continuous" "Step" "Bipolar" "Unknown"
+						intControllerType => [SFInt32,0, exposedField], # use ReWire definitions
+						devicePresent => [SFBool, FALSE, exposedField],	# TRUE when ReWire is working
 					}, "X3DNetworkSensorNode"
 					),
 ); 

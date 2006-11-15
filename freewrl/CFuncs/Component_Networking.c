@@ -30,42 +30,138 @@ void changed_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	printf ("render ReWire\n");
 }
-void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
-	printf ("compile ReWire\n");
+
+/* add up the characters in a string; return lowest 12 bits of the count */
+unsigned int returnSumofString(struct Uni_String *str) {
+	unsigned int sum;
+	int count;
+	int start;
+	int end;
+
+	sum = 0;
+	if (str->len == 0) return sum;
+
+	/* find the start and end - remove whitespace */
+	start=0;
+	while ((start < (str->len)) && ((str->strptr[start]) <= ' ')) start++;
+	end = str->len-1;
+	while ((end >= 0) && ((str->strptr[end]) <= ' ')) end--;
+
+	/* printf ("returnSumofString start %d end %d len %d\n",start,end,str->len); */
+	for (count = start; count <= end; count++) {
+		sum += str->strptr[count];
+	}
+
+	sum &= 0x3ff;
+	/* printf ("returning %x\n",sum); */
+	return sum;
 }
+
+
+void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
+	unsigned int newEncodedName;
+	
+	newEncodedName = 0;
+	if (node->bus < 0) 
+		newEncodedName |= 0x0ff;
+	else
+		newEncodedName |= (node->bus & 0xff);
+
+	/* shuffle bits about to make up a (hopefully unique) name */
+	newEncodedName |= (returnSumofString(node->channel)  << 8);
+	newEncodedName |= (returnSumofString(node->deviceName)  << 20);
+
+	/* EncodedName - bits are as follows */
+	/*
+	printf ("compile ReWire\n");
+	printf ("old encodedName %x newEncodedName %x\n",node->_encodedName, newEncodedName);
+	*/
+	if ((unsigned int) node->_encodedName != newEncodedName) {
+		printf ("Name Changed!!\n");
+		(unsigned int) node->_encodedName = newEncodedName;
+	}
+
+	printf ("worry about max/min values\n");
+
+	MARK_NODE_COMPILED 
+
+}
+
+#ifdef rtwtwetrw
+        int _encodedName;
+        int bus;
+        struct Uni_String *channel;
+        struct Uni_String *controllerType;
+        int deviceMaxVal;
+        int deviceMinVal;
+        struct Uni_String *deviceName;
+        int devicePresent;
+        float floatValue;
+        int floor;
+        int highResolution;
+        int intControllerType;
+        int intValue;
+        int maxVal;
+        int minVal;
+        int useIntValue;
+#endif
 
 void do_ReWireMidiControl (void *this) {
 	struct X3D_ReWireMidiControl* node;
+	int mySendValue;
+	int possibleValueSpread;
+	int minV, maxV;
+	float fV;
 
 	node = (struct X3D_ReWireMidiControl*) this;
 
-	printf ("do ReWireMidiControl for node %s\n",stringNodeType(node->_nodeType));
+	/* printf ("do ReWireMidiControl for node %s\n",stringNodeType(node->_nodeType)); */
 	if (NODE_ReWireMidiControl == node->_nodeType) {
 
 		/* do we need to "compile" this node? */
 		COMPILE_IF_REQUIRED
 
-printf ("ReWire change %d %d ",
-		node->_ichange, node->_change);
+		/* printf ("ReWire change %d %d ", node->_ichange, node->_change); 
 
-printf ("enc %d _oldInt %d _oldFloat %f ",node->_encodedName, node->_oldintValue,node->_oldfloatValue);
-/* printf ("lengths %d %d %d\n", node->channel->len, node->controllerType->len, node->deviceName->len); */
-printf ("bus %d channel :%s: controllerType :%s: device :%s: ",
-		node->bus,
-		node->channel->strptr,
-		node->controllerType->strptr, 
-		node->deviceName->strptr);
-printf (" devp %d fv %f iv %d hr %d ct %d intVal %d max %d min %d\n",
-		node->devicePresent,
-		node->floatValue,
-		node->intValue,
-		node->highResolution,
-		node->intControllerType,
-		node->intValue,
-		node->maxVal,
-		node->minVal);
+		printf ("bus %d channel :%s: controllerType :%s: device :%s: ",
+			node->bus, node->channel->strptr, node->controllerType->strptr, node->deviceName->strptr);
+		printf (" devp %d fv %f iv %d hr %d ct %d intVal %d max %d min %d\n",
+			node->devicePresent, node->floatValue, node->intValue, node->highResolution,
+			node->intControllerType, node->intValue, node->maxVal, node->minVal);
+		*/
+
+		/* find the min and max values; see what we want, and see what the device
+		   can handle */
+		minV = 0;  maxV = 100000;
+		if (minV < node->deviceMinVal) minV = node->deviceMinVal;
+		if (minV < node->minVal) minV = node->minVal;
+		if (maxV > node->deviceMaxVal) maxV = node->deviceMaxVal;
+		if (maxV > node->maxVal) maxV = node->maxVal;
 		
-		MARK_NODE_COMPILED 
+		possibleValueSpread = maxV-minV +1;
+		if (node->useIntValue) {
+			mySendValue = node->intValue;
+
+			fV = 0.0; /* fixme */
+			fV = node->intValue * possibleValueSpread + minV;
+			
+		} else {
+			/* convert the float to an int value */
+			fV = node->floatValue * possibleValueSpread + minV;
+			mySendValue =  (int) fV;
+		}
+
+		/* bounds check this sucker */
+
+		/* calculate the floatValue from the intValue */
+printf ("fv %f minv %d, ps %d\n",fV, minV, possibleValueSpread);
+
+		node->floatValue =  ((float) fV-minV)/((float)possibleValueSpread);
+
+		printf ("sending %d %f ",mySendValue, node->floatValue);
+		printf ("mins %d %d maxs %d %d ",node->deviceMinVal, node->minVal, node->deviceMaxVal, node->maxVal);
+		printf ("float %f node->floatVal\n",node->floatValue);
+		node->intValue = mySendValue;
 	}	
 }
 
