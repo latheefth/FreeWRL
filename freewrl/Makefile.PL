@@ -135,6 +135,7 @@ push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-lFreeWRLjs";
 $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
+print "right here, freewrl_libs ".$VRML_CONFIG{FREEWRL_LIBS}."\n";
 
 if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
 {
@@ -204,7 +205,7 @@ sub writeMakefileInitialize() {
 
 	my $MYDEFINE      = $VRML_CONFIG{FREEWRL_DEFINE};
 
-	my $MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
+	my $MYFELIBS =  "-L. -lFreeWRLFunc -lpthread ";
 	my $MYSELIBS = "-lm ";
 	my $MYMESLIBS = "-lXaw ";
 
@@ -220,6 +221,11 @@ sub writeMakefileInitialize() {
 		 $MYSELIBS = $MYSELIBS . " -lboundscheck";
 		 $MYMESLIBS = $MYMESLIBS . " -lboundscheck";
 	}
+
+	# add on the shared libs, etc. to MYFELIBS for making the freewrl executable.
+	# NOTE: order of linking is important; the javascript library should be near
+	# the end.
+	my $MYFELIBS =  $MYFELIBS." ".$MYLIBS;
 	
 	
 	open ID, ">CFuncs/installdir.h" or die ("Couldn't create installdir.h");
@@ -335,23 +341,20 @@ sub writeMakefileLibFreeWRL() {
 	#LIBFREEWRL
 	print MK "\$(LIBFWSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	#print MK "depend: \$(LIBFWSRCS)\n";
-	#print MK "\t\$(DEPEND) \$(LIBFWSRCS)\n\n";
 	print MK "libFreeWRL:      \$(LIBFWOBJS)\n";
-	print MK "\t\$(CC) -shared \$(MYFELIBS) -o libFreeWRLFunc.so  \$(MYLIBS) \$(LIBFWOBJS)\n\n";
+	print MK "\t\$(CC) -shared -o libFreeWRLFunc.so \$(LIBFWOBJS)\n\n";
 }
 
 
 sub writeMakefileCfrontend() {
 	#############################################################################
 	#CFRONTEND
+
 	print MK "\n# make the Unix front end\n";
 	print MK "\$(FESRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	#print MK "depend: \$(FESRCS)\n";
-	#print MK "\t\$(DEPEND) \$(FESRCS)\n\n";
 	print MK "CFrontEnd:      \$(FEOBJS)\n";
-	print MK "\t\$(CC) \$(MYFELIBS) -o CFrontEnd/freewrl  \$(FEOBJS)\n\n";
+	print MK "\t\$(CC) \$(FEOBJS) \$(MYFELIBS) -o CFrontEnd/freewrl\n\n";
 }
 
 sub writeMakefileSoundEngine() {
@@ -435,6 +438,7 @@ sub writeMakefileDistclean() {
 	print MK "	rm -f FreeWRL_Message/*o\n";
 	print MK "	rm -f FreeWRL_Message/FreeWRL_Message\n";
 	print MK "	rm -f CFrontEnd/*o\n";
+	print MK "	rm -f CFrontEnd/freewrl\n";
 	print MK "	rm -f freewrl\n";
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
 		print MK "	rm -f SoundEngine/*o\n";
