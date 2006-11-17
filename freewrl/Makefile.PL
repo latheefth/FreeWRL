@@ -129,6 +129,9 @@ if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 
 push @inc, $VRML_CONFIG{FREEWRL_INC}, "-IJS/$jsobjdir", "-IJS/$jsdir", "-ICFuncs -ICFrontEnd ";
 push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-lFreeWRLjs";
+if ($OS eq "Darwin") {
+push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
+}
 
 # push build directory, for running standalone
 
@@ -203,9 +206,16 @@ sub writeMakefileInitialize() {
 	my $MYINC         = $VRML_CONFIG{FREEWRL_INC};
 	my $MYLIBS 	= $VRML_CONFIG{FREEWRL_LIBS};
 
+        my $MYLDFLAGS     = $VRML_CONFIG{LDFLAGS};
+
 	my $MYDEFINE      = $VRML_CONFIG{FREEWRL_DEFINE};
 
-	my $MYFELIBS =  "-L. -lFreeWRLFunc -lpthread ";
+	if ($OS ne "Darwin") {
+		my $MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
+	} else {
+		my $MYFELIBS =  "-L. -lFreeWRLFunc -lpthread ";
+	}
+
 	my $MYSELIBS = "-lm ";
 	my $MYMESLIBS = "-lXaw ";
 
@@ -257,12 +267,17 @@ sub writeMakefileInitialize() {
 	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
 
 	print MK "CFLAGS = \$(FWFLAGS) \$(INC) -IPlugin/netscape/include \$(DEFINE)\n";
+
+	if ($OS eq "Darwin") {
+		print MK "MYLDFLAGS = $MYLDFLAGS\n";
+	}
 }
 	
 sub writeMakefileFinalTargets() {
 	print MK "\n";
 
 	print MK "install:\tall	\n";
+	if ($OS ne "Darwin") {
 	if ($VRML_CONFIG{BOUNDS_CHECK} eq "off") {
 		print MK "\tstrip CFrontEnd/freewrl\n";
 		print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
@@ -272,6 +287,7 @@ sub writeMakefileFinalTargets() {
 	}
 	print MK "\tcp CFrontEnd/freewrl \$(FRONTEND_DIR)\n";
 	print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
+	}
 	if ($OS eq "Linux") {
 		print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
 		if ($HAVE_UBUNTU eq "NO") {
@@ -283,8 +299,10 @@ sub writeMakefileFinalTargets() {
 	}
 
 	if (($JAVAC ne "") || ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
-		print MK "\tcp java/classes/vrml.jar $VRML_CONFIG{NETSCAPE_INST}\n";
-		print MK "\tcp Plugin/npfreewrl.so $VRML_CONFIG{NETSCAPE_INST}\n";
+		if ($OS ne "Darwin") {
+			print MK "\tcp java/classes/vrml.jar $VRML_CONFIG{NETSCAPE_INST}\n";
+			print MK "\tcp Plugin/npfreewrl.so $VRML_CONFIG{NETSCAPE_INST}\n";
+		}
 	}
 	print MK "\tcp Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps\n";
 	print MK "\tcp Desktop/freewrl.desktop \$(INSTALL_DIR)\/applications\n";
@@ -304,7 +322,8 @@ sub writeVariables () {
 	print MK "LIBFWOBJS=";
 	foreach my $fullname (@CFuncsSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
-
+	
+	if ($OS ne "Darwin") {
 	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
 	print MK "\n#CFrontEnd Make\n";
 	print MK "FESRCS=";
@@ -313,6 +332,7 @@ sub writeVariables () {
 	print MK "FEOBJS=";
 	foreach my $fullname (@CFrontEndSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
+	}
 
 	my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*c`);
 	print MK "\n#SoundEngine Make\n";
@@ -323,15 +343,19 @@ sub writeVariables () {
 	foreach my $fullname (@SoundEngineSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
 
+	if ($OS ne  "Darwin") {
 	print MK "\n#Console Message Files\n";
 	print MK "FWMSRCS=FreeWRL_Message/FreeWRL_Message.c\n";
 	print MK "FWMOBJS=FreeWRL_Message/FreeWRL_Message.o\n";
 	print MK "\n\n";
+	}
 	
+	if ($OS ne "Darwin") {
 	print MK "\n#Plugin Files\n";
 	print MK "PLSRCS=Plugin/netscape/source/npfreewrl.c Plugin/netscape/source/common/npunix.c\n";
 	print MK "PLOBJS=Plugin/netscape/source/npfreewrl.o Plugin/netscape/source/common/npunix.o\n";
 	print MK "\n\n";
+	}
 	
 }
 
@@ -342,19 +366,24 @@ sub writeMakefileLibFreeWRL() {
 	print MK "\$(LIBFWSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
 	print MK "libFreeWRL:      \$(LIBFWOBJS)\n";
+	if ($OS eq "Darwin") { 
+	print MK "\t\$(CC) -dynamiclib \$(MYFELIBS) \$(MYLDFLAGS) -o libFreeWRLFunc.dylib  \$(MYLIBS) \$(LIBFWOBJS)\n\n";
+	} else {
 	print MK "\t\$(CC) -shared -o libFreeWRLFunc.so \$(LIBFWOBJS)\n\n";
+	}
 }
 
 
 sub writeMakefileCfrontend() {
 	#############################################################################
 	#CFRONTEND
-
+	if ($OS ne "Darwin") {
 	print MK "\n# make the Unix front end\n";
 	print MK "\$(FESRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
 	print MK "CFrontEnd:      \$(FEOBJS)\n";
 	print MK "\t\$(CC) \$(FEOBJS) \$(MYFELIBS) -o CFrontEnd/freewrl\n\n";
+	}
 }
 
 sub writeMakefileSoundEngine() {
@@ -377,11 +406,14 @@ sub writeMakefileFreeWRLMessage() {
 	# FreeWRL_Message 
 	# make a program that displays a message if NOT OSX and if we are not using Motif.
 
+
+	if ($OS ne "Darwin") { 
 	print MK "\n# make the Unix Console Message \n";
 	print MK "\$(FWMSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
 	print MK "FreeWRL_Message:      \$(FWMOBJS)\n";
 	print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n\n";
+	}
 }
 
 sub write_linux_makefile_javascript() {
@@ -420,12 +452,14 @@ sub write_linux_makefile_javaClasses() {
 	}
 }
 sub writeMakefileBrowserPlugin() {
+	if ($OS ne "Darwin") {
 	if ($VRML_CONFIG{NETSCAPE_INST}) {
 		print MK "\n# make the Unix front end\n";
 		print MK "\$(PLSRCS):\n";
 		print MK "\t\$(CC) -c \$*.c\n\n";
 		print MK "Plugin:      \$(PLOBJS)\n";
 		print MK "\t\$(CC)  -shared -o Plugin/npfreewrl.so \$(PLOBJS)\n\n";
+	}
 	}
 }
 
@@ -459,6 +493,11 @@ sub writeMakefileDistclean() {
 	print MK "	rm -f java/classes/vrml.jar\n";
 	print MK "	rm -rf JS/$jsobjdir\n";
 
+	if ($OS eq "Darwin") {
+		print MK "	rm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
+		print MK "	rm -f /usr/local/lib/libFreeWRLjs.dylib\n";
+	}
+
 	# remove other JS directories
 	$jsobjdir =~s/src/src\/editline/;
 	print MK "	rm -rf JS/$jsobjdir\n";
@@ -481,14 +520,18 @@ sub writeMakefileDistclean() {
 	}
 
 	if (($JAVAC ne "") || ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
+	if ($OS ne "Darwin") {
 		print MK "\trm -f $VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
 		print MK "\trm -f $VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
 		print MK "\trm -f Plugin/npfreewrl.so\n";
 		print MK "\trm -f Plugin/netscape/source/npfreewrl.o\n";
 		print MK "\trm -f Plugin/netscape/source/common/npunix.o\n";
 	}
-	print MK "\trm -f \$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
-	print MK "\trm -f \$(INSTALL_DIR)\/applications/freewrl.desktop\n";
+	}
+	if ($OS ne "Darwin") {
+		print MK "\trm -f \$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
+		print MK "\trm -f \$(INSTALL_DIR)\/applications/freewrl.desktop\n";
+	}
 	print MK "\trm -rf \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\trm -rf \$(INSTALL_DIR)/freewrl/x3d\n";
 }
