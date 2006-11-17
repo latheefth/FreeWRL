@@ -57,7 +57,8 @@ int currentFileVersion = 0;
 
 #ifdef AQUA
 	#include <OpenGL.h>
-	CGLContextObj aqglobalContext;
+        CGLContextObj myglobalContext;
+        AGLContext aqglobalContext;
 	#define KeyPress        2
 	#define KeyRelease      3
 	#define ButtonPress     4
@@ -71,6 +72,8 @@ int currentFileVersion = 0;
 #endif
 
 int quitThread = 0;
+GLboolean cErr;
+static GDHandle gGDevice;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 per loop */
 extern int viewer_initialized;
@@ -95,6 +98,7 @@ GLint viewPort2[10];
 /* screen width and height. */
 int screenWidth=1;
 int screenHeight=1;
+int cp = 0;
 double nearPlane=0.1;
 double farPlane=21000.0;
 double screenRatio=1.5;
@@ -144,6 +148,10 @@ void EventLoop(void);
 unsigned char*  rayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(unsigned char *COS,int ev, int status);
+Boolean firstTime;
+Boolean pluginRunning;
+Boolean inLoop;
+Boolean isMacPlugin;
 
 /******************************************************************************/
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not
@@ -180,6 +188,12 @@ void EventLoop() {
 
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
+        if (isMacPlugin) {
+                cErr = aglSetCurrentContext(aqglobalContext);
+                if (cErr == GL_FALSE) {
+                        printf("set current context error!");
+                }
+        }
 
 	/* printf ("start of MainLoop\n");*/
 	#ifdef PROFILEMARKER
@@ -727,8 +741,13 @@ void render() {
 #ifndef AQUA
 	glXSwapBuffers(Xdpy,GLwin);
 #else
-	CGLError err = CGLFlushDrawable(aqglobalContext);
-	updateContext();
+        if (isMacPlugin) {
+                aglSetCurrentContext(aqglobalContext);
+                aglSwapBuffers(aqglobalContext);
+        } else {
+                CGLError err = CGLFlushDrawable(myglobalContext);
+                updateContext();
+        }
 #endif
 
 	#ifdef PROFILEMARKER
@@ -826,8 +845,14 @@ void setup_viewpoint(int doBinding) {
 
 
 void setup_projection(int pick, int x, int y) {
+        if (isMacPlugin) {
+                aglSetCurrentContext(aqglobalContext);
+        } else {
+                CGLSetCurrentContext(myglobalContext);
+        }
+
 	fwMatrixMode(GL_PROJECTION);
-	glViewport(0,0,screenWidth,screenHeight);
+	glViewport(0,cp,screenWidth,screenHeight);
 	fwLoadIdentity();
 	if(pick) {
 		/* picking for mouse events */
@@ -1090,13 +1115,27 @@ void displayThread() {
 		openMainWindow();
         	createGLContext();
 	#endif
-
-	glpOpenGLInitialize();
-	new_tessellation();
+        if (isMacPlugin) {
+                aglSetCurrentContext(aqglobalContext);
+        } else {
+                glpOpenGLInitialize();
+                new_tessellation();
+        }
 
 	while (1) {
+                if (pluginRunning) {
+                        aglSetCurrentContext(aqglobalContext);
+                }
+		firstTime = TRUE;
 		/* loop and loop, and loop... */
 		while (!quitThread) {
+                        inLoop = TRUE;
+                        if (isMacPlugin && firstTime) {
+                                glpOpenGLInitialize();
+                                new_tessellation();
+                                set_viewer_type(EXAMINE);
+                                firstTime = FALSE;
+                        }
 			/* FreeWRL SceneGraph */
 			EventLoop();
 
@@ -1128,6 +1167,7 @@ void displayThread() {
 
 			
 			#endif
+			inLoop = FALSE;
 		}
 	
 		#ifndef AQUA
@@ -1138,7 +1178,13 @@ void displayThread() {
 
 #ifdef AQUA
 void initGL() {
-        aqglobalContext = CGLGetCurrentContext();
+        if (isMacPlugin) {
+                //aqglobalContext = aglGetCurrentContext();
+                pluginRunning = TRUE;
+                aglSetCurrentContext(aqglobalContext);
+        } else {
+                myglobalContext = CGLGetCurrentContext();
+        }
 }
 
 int getOffset() {
@@ -1169,6 +1215,10 @@ void initFreewrl() {
 	setbuf(stderr,0);
         threadmsg = "event loop";
 	quitThread = 0;
+
+        if (pluginRunning) {
+                aglSetCurrentContext(aqglobalContext);
+        }
 
 	if (DispThrd <= 0) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
@@ -1210,6 +1260,8 @@ void setSnapSeq() {
 void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
+	int i;
+	pluginRunning = FALSE;
         /* kill any remaining children */
         /* printf ("doQuit - calling exit(0)\n"); */
         rn = (struct X3D_Group*) rootNode;
@@ -1217,7 +1269,13 @@ void closeFreewrl() {
         tn->n = 0;
         quitThread = 1;
         viewer_initialized = FALSE;
-        set_viewer_type (EXAMINE);
+        if (!isMacPlugin) {
+                set_viewer_type (EXAMINE);
+        }
+        glFlush();
+        glFinish();
+        screenWidth = screenHeight = 1;
+        cp = 0;
 }
 
 void setEAIport(int pnum) {
@@ -1322,4 +1380,149 @@ void handle_aqua(const int mev, const unsigned int button, const float x, const 
                                 handle(mev, button, x, y);
                 }
         }
+}
+void setIsPlugin() {
+        isMacPlugin = TRUE;
+        //setUseCParser (0);
+        setUseShapeThreadIfPossible(0);
+}
+void createContext(CGrafPtr grafPtr) {
+AGLPixelFormat  fmt;
+GLboolean      mkc, ok;
+const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_NONE};
+AGLDrawable             aglWin;
+
+        //debug_print("In create draw context!");
+
+        if (aqglobalContext)
+        {
+                aglUpdateContext(aqglobalContext);
+                return;
+        }
+
+        gGDevice = GetMainDevice();
+        fmt = aglChoosePixelFormat(&gGDevice, 1, attribWindow);
+
+        if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR))
+        {
+                //debug_print("aglChoosePixelFormat failed!\n");
+        }
+
+        aqglobalContext = aglCreateContext(fmt, nil);
+        if ((aqglobalContext == nil) || (aglGetError() != AGL_NO_ERROR))
+        {
+                //debug_print("aglCreateContext failed!\n");
+        }
+
+        aglWin = (AGLDrawable)grafPtr;
+        ok = aglSetDrawable(aqglobalContext, aglWin);
+
+        if ((!ok) || (aglGetError() != AGL_NO_ERROR))
+        {
+                if (aglGetError() == AGL_BAD_ALLOC)
+                {
+                        //debug_print("Not enough VRAM to initialize the draw context.\n");
+                }
+                else
+                {
+                        //debug_print("OGL_InitDrawContext: aglSetDrawable failed!\n");
+                }
+        }
+
+
+        mkc = aglSetCurrentContext(aqglobalContext);
+        if ((mkc == NULL) || (aglGetError() != AGL_NO_ERROR))
+        {
+                //debug_print("aglSetCurrentContext failed!\n");
+        }
+
+        aglDestroyPixelFormat(fmt);
+
+        //sprintf(debs, "Created context: %p", aqglobalContext);
+        //debug_print(debs);
+
+        pluginRunning = TRUE;
+
+}
+void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
+GLint           bufferRect[4];
+Rect            r;
+int                     x,y;
+int                     clipHeight;
+int                     windowHeight;
+
+
+        //sprintf(debs, "int set clip got npx %d npy %d ct %d cb %d cr %d cl %d width %d height %d\n", npx, npy, ct, cb, cr, cl, width, height);
+        //debug_print(debs);
+        if (aqglobalContext == nil)
+                return;
+
+        if (!pluginRunning)
+                return;
+
+        cErr = aglSetCurrentContext(aqglobalContext);
+        if (cErr == GL_FALSE) {
+                //debug_print("set current context error!");
+        }
+        //glFlush();
+        //glFinish();
+
+        x = npx;
+
+        //debug_print("get window bounds");
+        GetWindowBounds(fwWindow, kWindowContentRgn, &r);               // get size of actual Mac window
+
+        windowHeight = r.bottom - r.top;
+
+        cp = cb - npy;
+        y = windowHeight - npy - cp;
+
+        clipHeight = cb - ct;
+
+        bufferRect[0] = x;
+        bufferRect[1] = y;
+        bufferRect[2] = cr - x;
+        bufferRect[3] = clipHeight;
+
+        //debug_print("calling agl buffer rect ... ");
+        aglSetInteger (aqglobalContext, AGL_BUFFER_RECT, bufferRect);
+
+        aglEnable (aqglobalContext, AGL_BUFFER_RECT);
+        cp = y - npy;
+        cp += cb - height;
+
+        cp -= (r.bottom - cb);
+        cp += r.top;
+
+        setScreenDim(width, height);
+        //sprintf(debs, "leaving set clip - set cp to %d\n", cp);
+        //debug_print(debs);
+}
+void disposeContext() {
+        //debug_print("called dispose context");
+        //sprintf(debs, "context is currently %p\n", aqglobalContext);
+        //debug_print(debs);
+        quitThread = 1;
+        while (inLoop) {
+                //debug_print("waiting for end of loop");
+                usleep(10);
+        }
+        closeFreewrl();
+        cErr = aglSetCurrentContext(nil);
+        if (cErr == GL_FALSE) {
+                //debug_print("set current context error!");
+        }
+        cErr = aglSetDrawable(aqglobalContext, nil);
+        if (cErr == GL_FALSE) {
+                //debug_print("set current context error!");
+        }
+        cErr = aglDestroyContext(aqglobalContext);
+        if (cErr == GL_FALSE) {
+                //debug_print("set current context error!");
+        }
+        aqglobalContext = nil;
+}
+
+void sendPluginFD(int fd) {
+        _fw_browser_plugin = fd;
 }
