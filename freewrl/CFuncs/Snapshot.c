@@ -18,7 +18,7 @@
 #ifndef __APPLE__
 #include <dirent.h>
 #else
-#include "/usr/include/dirent.h"
+#include <dirent.h>
 #endif
 
 /* snapshot stuff */
