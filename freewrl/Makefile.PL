@@ -304,6 +304,8 @@ sub writeMakefileFinalTargets() {
 		if ($OS ne "Darwin") {
 			print MK "\tcp java/classes/vrml.jar $VRML_CONFIG{NETSCAPE_INST}\n";
 			print MK "\tcp Plugin/npfreewrl.so $VRML_CONFIG{NETSCAPE_INST}\n";
+		} else {
+			print MK "\tcp java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
 		}
 	}
 	print MK "\tcp Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps\n";
