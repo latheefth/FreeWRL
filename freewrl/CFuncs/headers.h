@@ -1199,9 +1199,13 @@ extern int cc_changed;
 char *findPathToFreeWRLFile(char *lfn);
 
 int mapFieldTypeToInernaltype (indexT kwIndex);
+
+#ifdef AQUA
 void disposeContext();
 void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
 void createContext(CGrafPtr grafPtr);
 void setIsPlugin();
 void sendPluginFD(int fd);
+#endif
+
 #endif /* __HEADERS_H__ */

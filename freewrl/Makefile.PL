@@ -201,6 +201,8 @@ sub writeAllTarget () {
 }
 
 sub writeMakefileInitialize() {	
+	my $FELIBS = "";
+
 	my $FRONTEND_DIR  = $VRML_CONFIG{BIN_DIR};
 	my $LIB_DIR       = $VRML_CONFIG{LIB_DIR};
 	my $MYINC         = $VRML_CONFIG{FREEWRL_INC};
@@ -211,9 +213,9 @@ sub writeMakefileInitialize() {
 	my $MYDEFINE      = $VRML_CONFIG{FREEWRL_DEFINE};
 
 	if ($OS ne "Darwin") {
-		my $MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
+		$MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
 	} else {
-		my $MYFELIBS =  "-L. -lFreeWRLFunc -lpthread ";
+		$MYFELIBS =  "-L. -lFreeWRLFunc -lpthread ";
 	}
 
 	my $MYSELIBS = "-lm ";

@@ -6,6 +6,8 @@ For 1.18.9:
 	- XLib error handler.
 
 	- New Makefile.PL and new build process.
+		- build revamp in progress - 1.18.9 has better linking on linux as
+		  compared to 1.18.8 and earlier.
 
 
 

@@ -892,6 +892,8 @@ void bind_image(int itype, struct Uni_String *parenturl, struct Multi_String url
 
 	/* is this one an unsquished movie texture? */
 	if (texIsloaded[*texture_num] == UNSQUASHED) { return; }
+
+	#ifdef AQUA
         if (isMacPlugin) {
         if (texIsloaded[*texture_num] == NEEDSBINDING) {
                 #ifdef TEXVERBOSE
@@ -906,6 +908,7 @@ void bind_image(int itype, struct Uni_String *parenturl, struct Multi_String url
                 return;
         }
         }
+	#endif
 
 	#ifndef DO_MULTI_OPENGL_THREADS
         /* is this one read in, but requiring final manipulation

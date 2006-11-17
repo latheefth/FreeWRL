@@ -69,11 +69,11 @@ int currentFileVersion = 0;
 	#define ACURSE 0
 	int ccurse = ACURSE;
 	int ocurse = ACURSE;
+	GLboolean cErr;
+	static GDHandle gGDevice;
 #endif
 
 int quitThread = 0;
-GLboolean cErr;
-static GDHandle gGDevice;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 per loop */
 extern int viewer_initialized;
@@ -188,12 +188,15 @@ void EventLoop() {
 
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
+
+	#ifdef AQUA
         if (isMacPlugin) {
                 cErr = aglSetCurrentContext(aqglobalContext);
                 if (cErr == GL_FALSE) {
                         printf("set current context error!");
                 }
         }
+	#endif
 
 	/* printf ("start of MainLoop\n");*/
 	#ifdef PROFILEMARKER
@@ -845,11 +848,13 @@ void setup_viewpoint(int doBinding) {
 
 
 void setup_projection(int pick, int x, int y) {
+	#ifdef AQUA
         if (isMacPlugin) {
                 aglSetCurrentContext(aqglobalContext);
         } else {
                 CGLSetCurrentContext(myglobalContext);
         }
+	#endif
 
 	fwMatrixMode(GL_PROJECTION);
 	glViewport(0,cp,screenWidth,screenHeight);
@@ -1110,25 +1115,33 @@ void displayThread() {
 	/* printf ("displayThread, I am %d \n",pthread_self());  */
 
         /* Create an OpenGL rendering context. */
-	#ifndef AQUA
+
+	#ifdef AQUA
+        	if (isMacPlugin) {
+                	aglSetCurrentContext(aqglobalContext);
+        	} else {
+                	glpOpenGLInitialize();
+                	new_tessellation();
+        	}
+	#else
 		/* make the window, get the OpenGL context */
 		openMainWindow();
         	createGLContext();
-	#endif
-        if (isMacPlugin) {
-                aglSetCurrentContext(aqglobalContext);
-        } else {
                 glpOpenGLInitialize();
                 new_tessellation();
-        }
+	#endif
 
 	while (1) {
+		#ifdef AQUA
                 if (pluginRunning) {
                         aglSetCurrentContext(aqglobalContext);
                 }
 		firstTime = TRUE;
+		#endif
+
 		/* loop and loop, and loop... */
 		while (!quitThread) {
+			#ifdef AQUA
                         inLoop = TRUE;
                         if (isMacPlugin && firstTime) {
                                 glpOpenGLInitialize();
@@ -1136,6 +1149,8 @@ void displayThread() {
                                 set_viewer_type(EXAMINE);
                                 firstTime = FALSE;
                         }
+			#endif
+
 			/* FreeWRL SceneGraph */
 			EventLoop();
 
@@ -1166,8 +1181,9 @@ void displayThread() {
 				#endif
 
 			
-			#endif
+			#else 
 			inLoop = FALSE;
+			#endif
 		}
 	
 		#ifndef AQUA
@@ -1216,9 +1232,11 @@ void initFreewrl() {
         threadmsg = "event loop";
 	quitThread = 0;
 
+	#ifdef AQUA
         if (pluginRunning) {
                 aglSetCurrentContext(aqglobalContext);
         }
+	#endif
 
 	if (DispThrd <= 0) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
@@ -1261,7 +1279,9 @@ void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
 	int i;
+	#ifdef AQUA
 	pluginRunning = FALSE;
+	#endif
         /* kill any remaining children */
         /* printf ("doQuit - calling exit(0)\n"); */
         rn = (struct X3D_Group*) rootNode;
@@ -1269,9 +1289,14 @@ void closeFreewrl() {
         tn->n = 0;
         quitThread = 1;
         viewer_initialized = FALSE;
+
+	#ifdef AQUA
         if (!isMacPlugin) {
                 set_viewer_type (EXAMINE);
         }
+	#else
+                set_viewer_type (EXAMINE);
+	#endif
         glFlush();
         glFinish();
         screenWidth = screenHeight = 1;
@@ -1368,6 +1393,7 @@ void freewrlDie (const char *format) {
 	doQuit();
 }
 
+#ifdef AQUA
 void handle_aqua(const int mev, const unsigned int button, const float x, const float y) {
         if ((mev == ButtonPress) || (mev == ButtonRelease))
         {
@@ -1526,3 +1552,4 @@ void disposeContext() {
 void sendPluginFD(int fd) {
         _fw_browser_plugin = fd;
 }
+#endif
