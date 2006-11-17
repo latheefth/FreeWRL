@@ -20,7 +20,8 @@ JAVA => "/usr/bin/java",
 COPIER => "/bin/cp",                    # copy one file to another
 SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 FREEWRL_CCFLAGS => '-arch '.
-		   'i386 ',
+		   'i386 '.
+		   '-fno-common ',
 
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
@@ -36,7 +37,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lGL -lGLU '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
 
-    FREEWRL_DEFINE => '-D_REENTRANT -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk `perl -MExtUtils::Embed -e ccopts`',
+    FREEWRL_DEFINE => '-D_REENTRANT -fno-common -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
@@ -46,6 +47,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
+		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include '.
 		' ',
 
 ############################################################################
@@ -57,21 +59,19 @@ FREEWRL_CCFLAGS => '-arch '.
 # LD flags
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
-		'-dynamiclib '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '. 
 		'-arch i386 '.
 		'-isysroot /Developer/SDKs/MacOSX10.4u.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
-		'-framework Cocoa ',
+		'-framework Cocoa '.
+		'-lAquaIntLib ',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
 		'-bundle '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '.
 		'-framework OpenGL '.
 		'-framework GLUT '.

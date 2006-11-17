@@ -36,7 +36,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lGL -lGLU '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
 
-    FREEWRL_DEFINE => '-D_REENTRANT -arch ppc `perl -MExtUtils::Embed -e ccopts`',
+    FREEWRL_DEFINE => '-D_REENTRANT -arch ppc -fno-common',
 
     FREEWRL_INC => '-I/FreeWRL/jpeg-6b '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
@@ -44,6 +44,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
+		'-I/Developer/SDKs/MacOSX10.3.9.sdk/usr/X11R6/include/freetype2 '.
 		'-I/Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/FlatCarbon -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3 -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++ -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++/ppc-darwin -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include '.
 		' ',
 
@@ -56,21 +57,19 @@ FREEWRL_CCFLAGS => '-arch '.
 # LD flags
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
-		'-dynamiclib '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '. 
 		'-arch ppc '.
-		'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk -Wl -syslibroot /Developer/SDKs/MacOSX10.3.9.sdk '.
+		#'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk -Wl -syslibroot /Developer/SDKs/MacOSX10.3.9.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
-		'-framework Cocoa ',
+		'-framework Cocoa '.
+		'-lAquaIntLib ',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
 		'-bundle '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '.
 		'-arch ppc '.
 		'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk '.
