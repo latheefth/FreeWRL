@@ -16,9 +16,13 @@
 #include <unistd.h>
 #include <dlfcn.h>
 
+#ifndef AQUA
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
+#else
+#include <OpenGL.h>
+#endif
 
 #ifdef LINUX
 #include <GL/glext.h>

@@ -17,9 +17,13 @@
  #include <math.h>
 
  #include <X11/keysym.h>
+#ifndef AQUA
  #include <GL/gl.h>
  #include <GL/glu.h>
  #include <GL/glx.h>
+#else
+#include <OpenGL.h>
+#endif
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 
@@ -42,7 +46,7 @@ void setMenuButton_navModes (int type) {}
 void setMenuButton_texSize (int size) {}
 void setMessageBar() {}
 
-
+#ifndef AQUA
 void getBareWindowedGLwin (Window *win) {
 		GLwin = Xwin;
 }
@@ -86,4 +90,5 @@ void createBareMainWindow () {
 		}
 	}
 }
+#endif
 #endif

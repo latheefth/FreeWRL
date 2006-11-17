@@ -19,6 +19,7 @@
  #include <math.h>
 
  #include <X11/keysym.h>
+#ifndef AQUA
  #include <GL/gl.h>
  #include <GL/glu.h>
  #include <GL/glx.h>
@@ -334,3 +335,4 @@ static int catch_XLIB (Display *disp, XErrorEvent *err) {
 	return 0;
 
 }
+#endif
