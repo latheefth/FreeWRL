@@ -72,7 +72,8 @@ int	global_tcin_count;
 /* for AQUA OS X sharing of OpenGL Contexts */
 #ifdef AQUA
 #include "CGDirectDisplay.h"
-extern CGLContextObj aqglobalContext;
+extern CGLContextObj myglobalContext;
+extern Boolean isMacPlugin;
 CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
                                       kCGLPFAFullScreen,
                                       kCGLPFADoubleBuffer,
@@ -891,6 +892,20 @@ void bind_image(int itype, struct Uni_String *parenturl, struct Multi_String url
 
 	/* is this one an unsquished movie texture? */
 	if (texIsloaded[*texture_num] == UNSQUASHED) { return; }
+        if (isMacPlugin) {
+        if (texIsloaded[*texture_num] == NEEDSBINDING) {
+                #ifdef TEXVERBOSE
+                        printf ("tex %d needs binding, name %s\n",*texture_num,
+                                loadparams[*texture_num].filename);
+                #endif
+                do_possible_textureSequence(*texture_num);
+
+                #ifdef TEXVERBOSE
+                printf ("tex %d now loaded\n",*texture_num);
+                #endif
+                return;
+        }
+        }
 
 	#ifndef DO_MULTI_OPENGL_THREADS
         /* is this one read in, but requiring final manipulation
@@ -1187,18 +1202,20 @@ void _textureThread(void) {
 	#ifdef AQUA
 	/* To get this thread to be able to manipulate textures, first, get the 
 	   Display attributes */
+	if (!isMacPlugin) {
 	CGDirectDisplayID display = CGMainDisplayID ();
 	attribs[1] = CGDisplayIDToOpenGLDisplayMask (display);
 
 	/* now, for this thread, create and join OpenGL Contexts */
 	CGLChoosePixelFormat (attribs, &pixelFormat, &numPixelFormats);
-	CGLCreateContext(pixelFormat, aqglobalContext, &aqtextureContext);
+	CGLCreateContext(pixelFormat, myglobalContext, &aqtextureContext);
 
 	/* set the context for this thread so that we can share textures with
-	   the main context (aqglobalContext) */
+	   the main context (myglobalContext) */
 
 	CGLSetCurrentContext(aqtextureContext);
 	/* printf ("textureThread, have to try to remember to destroy this context\n"); */
+	}
 
 	#else
 		#ifdef DO_MULTI_OPENGL_THREADS
@@ -1209,9 +1226,11 @@ void _textureThread(void) {
 
 	/* set up some common storage info */
 	#ifdef DO_MULTI_OPENGL_THREADS
+		if (!isMacPlugin) {
 		glEnable(GL_TEXTURE_2D);
 		glPixelStorei(GL_PACK_ALIGNMENT,1);
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+		}
 	#endif
 
 	/* we wait forever for the data signal to be sent */
@@ -1253,6 +1272,7 @@ void _textureThread(void) {
 			if (texIsloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID) {
 
 				# ifdef DO_MULTI_OPENGL_THREADS
+				if (!isMacPlugin) {
 				#ifdef TEXVERBOSE 
 				printf ("tex %d needs binding, name %s\n",*loadparams[currentlyWorkingOn].texture_num,
 					loadparams[*loadparams[currentlyWorkingOn].texture_num].filename);
@@ -1263,6 +1283,9 @@ void _textureThread(void) {
 				#ifdef TEXVERBOSE 
 				printf ("tex %d now loaded\n",*loadparams[currentlyWorkingOn].texture_num);
 				#endif
+				} else {
+                                        texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
+                                }
 			
 				#else
 				/* we can not do this in 2 threads, let the main OpenGL thread do this */

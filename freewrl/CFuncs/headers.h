@@ -12,6 +12,9 @@
 
 #include <stdint.h>
 #include <math.h>
+#include <stddef.h>
+#include <pthread.h>
+#include <fcntl.h>
 
 /* get the definitions from the command line */
 #include "vrmlconf.h"
@@ -246,8 +249,10 @@ extern int OccQuerySize;
 #else
 #include <glu.h>
 #include <CGLTypes.h>
+#include <AGL/AGL.h>
 #include "aquaInt.h"
-extern CGLContextObj aqglobalContext;
+extern CGLContextObj myglobalContext;
+extern AGLContext aqglobalContext;
 #endif
 
 /* number of tesselated coordinates allowed */
@@ -1194,4 +1199,9 @@ extern int cc_changed;
 char *findPathToFreeWRLFile(char *lfn);
 
 int mapFieldTypeToInernaltype (indexT kwIndex);
+void disposeContext();
+void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
+void createContext(CGrafPtr grafPtr);
+void setIsPlugin();
+void sendPluginFD(int fd);
 #endif /* __HEADERS_H__ */
