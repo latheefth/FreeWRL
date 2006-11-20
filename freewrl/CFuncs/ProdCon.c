@@ -885,10 +885,27 @@ void __pt_doStringUrl () {
 
 
 	} else if (psp.type==FROMCREATENODE) {
-ConsoleMessage ("cant  iFROMCREATENODE with cParser yet\n");
-	} else 
-ConsoleMessage ("cant FROMWHATEVER with cParser yet\n");
+		/* this will be a proto expansion, because otherwise the EAI code
+		   would have gotten this before here */
+		/* lets try this - same as FROMSTRING above... */
+		printf ("warning - EAI call CREATENODE - possibly faulty? \n");
+		psp.inp = possiblyConvertXMLtoClassic(psp.inp);
 
+		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+
+	
+	} else {
+		/* this will be a proto expansion, because otherwise the EAI code
+		   would have gotten this before here */
+		/* lets try this - same as FROMSTRING above... */
+		printf ("warning - EAI call CREATEPROTO - possibly faulty? \n");
+		psp.inp = possiblyConvertXMLtoClassic(psp.inp);
+
+		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+	}
+	
 
 	/* set bindables, if required */
 	if (psp.bind) {

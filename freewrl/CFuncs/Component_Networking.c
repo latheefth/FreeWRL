@@ -112,6 +112,7 @@ void do_ReWireMidiControl (void *this) {
 	int possibleValueSpread;
 	int minV, maxV;
 	float fV;
+	int sendEvent;
 
 	node = (struct X3D_ReWireMidiControl*) this;
 
@@ -151,17 +152,30 @@ void do_ReWireMidiControl (void *this) {
 			mySendValue =  (int) fV;
 		}
 
-		/* bounds check this sucker */
-
-		/* calculate the floatValue from the intValue */
-printf ("fv %f minv %d, ps %d\n",fV, minV, possibleValueSpread);
-
-		node->floatValue =  ((float) fV-minV)/((float)possibleValueSpread);
-
-		printf ("sending %d %f ",mySendValue, node->floatValue);
-		printf ("mins %d %d maxs %d %d ",node->deviceMinVal, node->minVal, node->deviceMaxVal, node->maxVal);
-		printf ("float %f node->floatVal\n",node->floatValue);
+		/* record our current value - may or may not actually send this */
 		node->intValue = mySendValue;
+
+		/* should we send this event? */
+		sendEvent = FALSE;
+		if (node->continuousEvents) {
+			if (node->intValue != node->_oldintValue) {
+				sendEvent = True;
+				node->_oldintValue = node->intValue;
+			}
+		} else sendEvent = TRUE;
+
+		if (sendEvent) {
+			printf ("intValue changed - now is %d\n",node->intValue);
+		
+			/* calculate the floatValue from the intValue */
+			printf ("fv %f minv %d, ps %d\n",fV, minV, possibleValueSpread);
+
+			node->floatValue =  ((float) fV-minV)/((float)possibleValueSpread);
+
+			printf ("sending %d %f ",mySendValue, node->floatValue);
+			printf ("mins %d %d maxs %d %d ",node->deviceMinVal, node->minVal, node->deviceMaxVal, node->maxVal);
+			printf ("float %f node->floatVal\n",node->floatValue);
+		}
 	}	
 }
 
