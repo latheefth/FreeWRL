@@ -1371,6 +1371,7 @@ my $protono;
 						repeatS => [SFBool, 1, field],
 						repeatT => [SFBool, 1, field],
 						__texture => [SFInt32, 0, field],
+						__textureTableIndex => [SFInt32, 0, field],
 						__parenturl =>[SFString,"",field],
 					   },"X3DTextureNode"),
 
@@ -1388,6 +1389,7 @@ my $protono;
 						pauseTime => [SFTime,0,exposedField],
 						elapsedTime => [SFTime,0,eventOut],
 						isPaused => [SFTime,0,eventOut],
+						__textureTableIndex => [SFInt32, 0, field],
 						 # has the URL changed???
 						 __oldurl => [MFString, [""], field],
 						 # initial texture number
@@ -1429,6 +1431,7 @@ my $protono;
 						repeatT => [SFBool, 1, field],
 						__texture => [SFInt32, 0, field],
 						__parenturl =>[SFString,"",field],
+						__textureTableIndex => [SFInt32, 0, field],
 					   },"X3DTextureNode"),
 
 	TextureCoordinate => new VRML::NodeType("TextureCoordinate", { 

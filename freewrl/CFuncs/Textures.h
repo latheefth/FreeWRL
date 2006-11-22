@@ -24,24 +24,29 @@
 #include "jpeglib.h"
 
 
+#define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
+                                if (thisTextureType==NODE_ImageTexture){ \
+                                it = (struct X3D_ImageTexture*) node; \
+                                thisTexture = it->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_PixelTexture){ \
+                                pt = (struct X3D_PixelTexture*) node; \
+                                thisTexture = pt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_MovieTexture){ \
+                                mt = (struct X3D_MovieTexture*) node; \
+                                thisTexture = mt->__textureTableIndex; \
+                        } else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
+
 /* for texIsloaded structure */
 #define NOTLOADED       0
 #define LOADING         1
 #define NEEDSBINDING	2
 #define LOADED          3
-#define INVALID         4
-#define UNSQUASHED      5
+#define UNSQUASHED      4
 
-/* supported image types */
-#define IMAGETEXTURE    0
-#define PIXELTEXTURE    1
-#define MOVIETEXTURE    2
+
+/* older stuff - check if needed */
 
 /* bind_texture stores the param table pointer for the texture here */
-extern void *texParams[];
-
-void new_do_texture(int texno);
-void checkAndAllocTexMemTables(GLuint *texture_num, int increment);
 
 struct loadTexParams {
 	/* data sent in to texture parsing thread */

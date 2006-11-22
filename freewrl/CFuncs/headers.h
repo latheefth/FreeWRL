@@ -396,6 +396,7 @@ extern int global_IFS_Coord_count;
 
 /* texture stuff - see code. Need array because of MultiTextures */
 extern GLuint bound_textures[MAX_MULTITEXTURE];
+extern int bound_texture_depths[MAX_MULTITEXTURE];
 extern GLint maxTexelUnits;
 extern int texture_count; 
 extern int     *global_tcin;
@@ -657,6 +658,8 @@ void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset,
 void sendScriptEventIn(uintptr_t num);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(void * node);
+void registerTexture(void * node);
+void releaseTexture(int index);
 void do_first(void);
 void process_eventsProcessed(void);
 

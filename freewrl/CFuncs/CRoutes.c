@@ -820,6 +820,7 @@ void add_first(void * node) {
 	} else if (NODE_MovieTexture == clocktype) { myp = do_MovieTextureTick;
 	} else if (NODE_AudioClip == clocktype) { myp = do_AudioTick;
 	} else if (NODE_VisibilitySensor == clocktype) { myp = do_VisibilitySensorTick;
+	} else if (NODE_MovieTexture == clocktype) { myp = do_MovieTextureTick;
 
 	} else {
 		/* printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype)); */

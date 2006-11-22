@@ -78,7 +78,7 @@ int setActiveTexture (int c) {
                    through a RGB texture?? */
                 /* only do for the first texture if MultiTexturing */
                 if (c == 0) {
-                        if (loadparams[bound_textures[c]].depth == 3) {
+                        if (bound_texture_depths[c] == 3) {
                                 /* printf ("setting color to 1 for tex %d\n",node->__texture); */
                                 glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
                                 /* glColor3d (1.0, 1.0, 1.0);    */
@@ -208,7 +208,7 @@ void passedInGenTex(GLfloat *genTex) {
 
 	for (c=0; c<texture_count; c++) {
 		/* are we ok with this texture yet? */
-		if (texIsloaded[bound_textures[c]] == LOADED) {
+		if (bound_textures[c]!=0) {
 			if (setActiveTexture(c)) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);

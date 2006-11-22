@@ -71,6 +71,7 @@ int found_vp; /*true when viewpoint found*/
 
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint bound_textures[MAX_MULTITEXTURE];
+int bound_texture_depths[MAX_MULTITEXTURE];
 int texture_count;
 
 int	have_transparency;	/* did this Shape have transparent material? */
