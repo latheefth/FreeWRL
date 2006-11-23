@@ -659,7 +659,6 @@ void sendScriptEventIn(uintptr_t num);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(void * node);
 void registerTexture(void * node);
-void releaseTexture(int index);
 void do_first(void);
 void process_eventsProcessed(void);
 
@@ -726,8 +725,7 @@ extern int isPerlParsing(void);
 extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
 extern int isTextureParsing(void);
 extern void loadInline(struct X3D_Inline *node);
-extern void loadImageTexture(struct X3D_ImageTexture *node,  void *param);
-extern void loadPixelTexture(struct X3D_PixelTexture *node,  void *param);
+extern void loadTextureNode(struct X3D_Node *node,  void *param);
 extern void loadMovieTexture(struct X3D_MovieTexture *node,  void *param);
 extern void loadMultiTexture(struct X3D_MultiTexture *node);
 extern void loadBackgroundTextures (struct X3D_Background *node);

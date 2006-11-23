@@ -31,17 +31,14 @@ static int checktexsize;
 
 
 /* we keep track of which textures have been loaded, and which have not */
-static int max_texture = 0;
-static int next_texture  = 1;
 struct loadTexParams *loadparams;
-unsigned char  *texIsloaded;
 extern void *texParams[];
 
 /* newer Texture handling procedures */
 /* each texture has this kind of structure */
 struct textureTableIndexStruct {
 	struct	X3D_Node*	scenegraphNode;
-	/* int			nodeType; */
+	int			nodeType;
 	int 	status;
 	int	depth;
 	GLuint	*OpenGLTexture;
@@ -55,6 +52,7 @@ struct textureTableIndexStruct {
         int x;
         int y;
         unsigned char *texdata;
+	struct Multi_Int32 *pixelData;
         GLint Src;
         GLint Trc;
         GLint Image;
@@ -74,7 +72,8 @@ struct textureTableIndexStruct *getTableIndex(int i);
 void new_do_texture(struct textureTableIndexStruct* me);
 struct textureTableIndexStruct* loadThisTexture;
 
-
+static struct Multi_Int32 invalidFilePixelDataNode;
+static int	invalidFilePixelData[] = {1,1,3,0x707070};
 
 /* threading variables for loading textures in threads */
 static pthread_t loadThread;
@@ -138,7 +137,7 @@ void store_tex_info(
 		unsigned char *ptr,
 		GLint Image);
 
-void __reallyloadPixelTexAsMFInt32(void);
+void __reallyloadPixelTexure(void);
 void __reallyloadImageTexture(void);
 void __reallyloadMovieTexture(void);
 void do_possible_textureSequence(struct textureTableIndexStruct*);
@@ -162,19 +161,22 @@ int isTextureinitialized() {
 
 /* is this texture loaded? used in LoadSensor */
 int isTextureLoaded(int texno) {
+	struct textureTableIndexStruct *ti;
 	/* no, have not even started looking at this */
 
 	if (texno == 0) return FALSE;
-	return (texIsloaded[texno]==LOADED);
+
+	ti = getTableIndex(texno);
+
+	return (ti->status==LOADED);
 }
 
 /* statusbar uses this to tell user that we are still loading */
 int isTextureParsing() {
 	/* return currentlyWorkingOn>=0; */
 	#ifdef TEXVERBOSE 
-	printf ("call to isTextureParsing, returning %d\n",textureInProcess > 0);
+	printf ("call to isTextureParsing %d, returning %d\n",textureInProcess,textureInProcess > 0);
 	#endif
-
 	return textureInProcess >0;
 }
 
@@ -214,9 +216,39 @@ void init_multitexture_handling() {
 }
 
 /* this node has changed - if there was a texture, destroy it */
-void releaseTexture(int index) {
-printf ("have to release texture %d\n",index);
+void releaseTexture(struct X3D_Node *node) {
+	int tableIndex;
+	struct textureTableIndexStruct *ti;
+
+		if (node->_nodeType == NODE_ImageTexture) {
+			tableIndex  = ((struct X3D_ImageTexture *)node)->__textureTableIndex;
+		} else if (node->_nodeType == NODE_PixelTexture) {
+			tableIndex  = ((struct X3D_PixelTexture *)node)->__textureTableIndex;
+		} else if (node->_nodeType == NODE_MovieTexture) {
+			tableIndex  = ((struct X3D_MovieTexture *)node)->__textureTableIndex;
+		} else return;
+
+	ti = getTableIndex(tableIndex);
+	if (ti->OpenGLTexture != NULL) {
+		glDeleteTextures(ti->frames, ti->OpenGLTexture);
+		FREE_IF_NZ(ti->OpenGLTexture);
+	}
+
 }
+
+/* copy the pixel raw pointer over- we need to store this here, as it is
+   possible (if an external texture is invalid) that an ImageTexture or
+   MovieTexture can "change" into a small PixelTexture indicating an error.
+   This saves having missing geometry in the scene. */
+void copyPixelTextureEntry (struct X3D_PixelTexture *me) {
+	struct textureTableIndexStruct *myEntry;
+
+	printf ("copying pixelTexture entry\n");
+
+	myEntry = getTableIndex(me->__textureTableIndex);
+	myEntry->pixelData =  (struct Multi_Int32*) me->image;
+}
+
 
 /* find ourselves - given an index, return the struct */
 struct textureTableIndexStruct *getTableIndex(int indx) {
@@ -225,7 +257,7 @@ struct textureTableIndexStruct *getTableIndex(int indx) {
 	int whichEntry;
 	struct textureTableStruct * currentBlock;
 
-	whichBlock = indx & 0xffe0;
+	whichBlock = (indx & 0xffe0) >> 5;
 	whichEntry = indx & 0x1f;
 	#ifdef TEXVERBOSE
 	printf ("locating table entry %d\n",indx);
@@ -237,7 +269,7 @@ struct textureTableIndexStruct *getTableIndex(int indx) {
 
 	#ifdef TEXVERBOSE
 	printf ("getTableIndex, going to return %d\n", &(currentBlock->entry[whichEntry]));
-printf ("textureTableIndexStruct, sgn0 is %d, sgn1 is %d\n",currentBlock->entry[0].scenegraphNode,
+	printf ("textureTableIndexStruct, sgn0 is %d, sgn1 is %d\n",currentBlock->entry[0].scenegraphNode,
                         currentBlock->entry[1].scenegraphNode);
 	#endif
 
@@ -254,7 +286,7 @@ void registerTexture(void *tmp) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 
-	struct textureTableStruct * *listRunner;
+	struct textureTableStruct * listRunner;
 	struct textureTableStruct * newStruct;
 	struct textureTableStruct * currentBlock;
 	int count;
@@ -268,7 +300,6 @@ void registerTexture(void *tmp) {
 		(it->_nodeType == NODE_MovieTexture)) {
 
 		if ((nextFreeTexture & 0x1f) == 0) {
-			printf ("have to expand the textureTable - size is %d\n",sizeof (struct textureTableStruct));
 			newStruct = (struct textureTableStruct*) malloc (sizeof (struct textureTableStruct));
 			
 			/* zero out the fields in this new block */
@@ -280,19 +311,23 @@ void registerTexture(void *tmp) {
 				newStruct->entry[count].depth = 0;
 				newStruct->entry[count].scenegraphNode = NULL;
 				newStruct->entry[count].filename = NULL;
+				newStruct->entry[count].nodeType = 0;
 			}
 			
 			newStruct->next = NULL;
 			
 			/* link this one in */
-			listRunner = &textureTable;
-			while (*listRunner != NULL) listRunner = (*listRunner)->next;
-			*listRunner = newStruct;
-			
+			listRunner = textureTable;
+			if (listRunner == NULL) textureTable = newStruct;
+			else {
+				while (listRunner->next != NULL) 
+					listRunner = listRunner->next;
+				listRunner->next = newStruct;
+			}
 		}
 
 		/* record the info for this texture. */
-		whichBlock = nextFreeTexture & 0xffe0;
+		whichBlock = (nextFreeTexture & 0xffe0) >> 5;
 		whichEntry = nextFreeTexture & 0x1f;
 
 		currentBlock = textureTable;
@@ -309,6 +344,7 @@ void registerTexture(void *tmp) {
 			mt->__textureTableIndex = nextFreeTexture;
 		}
 
+		currentBlock->entry[whichEntry].nodeType = it->_nodeType;
 		/* set the scenegraphNode here */
 		currentBlock->entry[whichEntry].scenegraphNode = (struct X3D_Node*) tmp;
 		#ifdef TEXVERBOSE
@@ -362,6 +398,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	struct Multi_String thisurl;
 	int count;
 
+#ifdef OLDCODE
 	glEnable(GL_TEXTURE_2D);
 
 	for (count=0; count<6; count++) {
@@ -382,7 +419,8 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			/* if we do not have an image for this Background face yet, dont draw
 			 * the quads */
 
-			if (texIsloaded[*thistex] == LOADED) {
+
+			if ([*thistex] == LOADED) {
 				glBindTexture(GL_TEXTURE_2D,*thistex);
 				glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 				glDrawArrays (GL_QUADS, count*4,4);
@@ -390,6 +428,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 		};
 	}
 	glDisable(GL_TEXTURE_2D);
+#endif
 }
 
 
@@ -435,8 +474,9 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	}
 }
 
+
 /* load in a texture, if possible */
-void loadImageTexture (struct X3D_ImageTexture *node, void *param) {
+void loadTextureNode (struct X3D_Node *node, void *param) {
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
@@ -447,21 +487,18 @@ void loadImageTexture (struct X3D_ImageTexture *node, void *param) {
 
 		/* this will cause bind_image to create a new "slot" for this texture */
 		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
-		releaseTexture(node->__textureTableIndex); 
+		releaseTexture(node); 
+
+		/* if this is a PixelTexture, copy the pixelImage parameter into
+		   the table structure. (textureTableIndexStruct). This is because,
+		   if we have an ImageTexture that is bad, we change *that* into a 
+		   PixelTexture; so we need to have the pixeltexture raw data in
+		   the textureTableIndexStruct entry */
+		if (node->_nodeType == NODE_PixelTexture) 
+			copyPixelTextureEntry((struct X3D_PixelTexture*)node);
 	}
 
 	new_bind_image ((struct X3D_Node*)node, param);
-
-#ifdef OLDCODE
-	bind_image(NODE_ImageTexture, node->__parenturl,
-		node->url,
-		(GLuint*)&node->__texture,node->repeatS,node->repeatT,param);
-
-        /* bound_textures[texture_count] = node->__texture; */
-        bound_textures[texture_count] = loadparams[node->__texture].genned_texture;
-	/* printf ("making bound_textures %d be %d\n",texture_count,loadparams[node->__texture].genned_texture); */
-#endif
-
 }
 
 void loadMultiTexture (struct X3D_MultiTexture *node) {
@@ -656,18 +693,13 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		nt = node->texture.p[count];
 
 		switch (nt->_nodeType) {
+			case NODE_PixelTexture:
 			case NODE_ImageTexture : 
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-				loadImageTexture ((struct X3D_ImageTexture*) nt,
-					(void *)paramPtr);
+				loadTextureNode ((struct X3D_Node*) nt, (void *)paramPtr);
 				break;
 			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
-				break;
-			case NODE_PixelTexture:
-				/* printf ("MultiTexture %d is a PixelTexture\n",count); */
-				loadPixelTexture ((struct X3D_PixelTexture*) nt,
-					(void *)paramPtr);
 				break;
 			case NODE_MovieTexture:
 				/* printf ("MultiTexture %d is a MovieTexture\n"); */
@@ -694,28 +726,8 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 
 /* load in a texture, if possible */
-void loadPixelTexture (struct X3D_PixelTexture *node, void *param) {
-	struct Multi_String mynull;
-
-	if (node->_ichange != node->_change) {
-		/* force a node reload - make it a new texture. Don't change
-		 the parameters for the original number, because if this
-		 texture is shared, then ALL references will change! so,
-		 we just accept that the current texture parameters have to
-		 be left behind. */
-		node->_ichange = node->_change;
-		/* this will cause bind_image to create a new "slot" for this texture */
-		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
-		freeTexture((GLuint*) &(node->__texture)); 
-	}
-
-	bind_image(NODE_PixelTexture, node->image,
-		mynull,
-		(GLuint*)&node->__texture,node->repeatS,node->repeatT, param);
-}
-
-/* load in a texture, if possible */
 void loadMovieTexture (struct X3D_MovieTexture *node, void *param) {
+#ifdef OLDCODE
 	int firsttex;
 
 	/* possible bug? If two nodes use the same MovieTexture URL, and,
@@ -773,6 +785,7 @@ void loadMovieTexture (struct X3D_MovieTexture *node, void *param) {
 		/* make an event for the inittime */
 		node->__inittime = TickTime;
 	}
+#endif
 }
 
 
@@ -816,13 +829,6 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			/* ok, a series of textures - eg, an mpeg file - needs unsquishing */
 			texnums = (GLuint*)malloc (sizeof(GLuint) * framecount);
 			glGenTextures(framecount,texnums);
-printf ("for texnot %d just gened %d textures, starting at %d ending at %d\n",texno,framecount,texnums[0],texnums[framecount-1]);
-	
-			/* Irix returns "wierd" numbers; this appears to work
-			   across all platforms */
-			for (c=0; c<framecount; c++) {
-				texnums[c] = c+next_texture;
-			}
 	
 			/* this is the size of each image frame */
 			imageDatasize = sizeof (GLbyte) * loadparams[texno].x *
@@ -894,13 +900,13 @@ void new_do_texture(struct textureTableIndexStruct* me) {
 		if (me->frames != 1) printf ("glGen - warning, frames ne 1\n");
 
 		/* get the repeatS and repeatT info from the scenegraph node */
-		it = (struct X3D_ImageTexture *) me->scenegraphNode;
-		if (it->_nodeType == NODE_ImageTexture) {
+		if (me->nodeType == NODE_ImageTexture) {
+			it = (struct X3D_ImageTexture *) me->scenegraphNode;
 			Src = it->repeatS; Trc = it->repeatT;
-		} else if (it->_nodeType == NODE_PixelTexture) {
+		} else if (me->nodeType == NODE_PixelTexture) {
 			pt = (struct X3D_PixelTexture *) me->scenegraphNode;
 			Src = pt->repeatS; Trc = pt->repeatT;
-		} else if (it->_nodeType == NODE_MovieTexture) {
+		} else if (me->nodeType == NODE_MovieTexture) {
 			mt = (struct X3D_MovieTexture *) me->scenegraphNode;
 			Src = mt->repeatS; Trc = mt->repeatT;
 		}
@@ -1014,7 +1020,7 @@ char *texst (int num) {
 
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
-				if (thisTextureType==NODE_ImageTexture){ \
+			if (thisTextureType==NODE_ImageTexture){ \
 				it = (struct X3D_ImageTexture*) node; \
 				thisTexture = it->__textureTableIndex; \
 			} else if (thisTextureType==NODE_PixelTexture){ \
@@ -1039,6 +1045,42 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	bound_textures[texture_count] = 0;
 	bound_texture_depths[texture_count] = 0;
 
+	/* what is the status of this texture? */
+	myTableIndex = getTableIndex(thisTexture);
+
+	#ifdef TEXVERBOSE
+	printf ("myTableIndex %d\n",myTableIndex);
+	printf ("	scenegraphNode %d\n",myTableIndex->scenegraphNode);
+	printf ("	status %d\n",myTableIndex->status);
+	printf ("	status %d\n",myTableIndex->status);
+	printf ("	frames %d\n",myTableIndex->frames);
+	printf ("	OpenGLTexture %d\n",myTableIndex->OpenGLTexture);
+
+	printf ("texture status %s\n",texst(myTableIndex->status));
+	#endif
+
+
+	/* have we already processed this one before? */
+	if (myTableIndex->status == LOADED) {
+		#ifdef TEXVERBOSE 
+		printf ("now binding to pre-bound mti%d tex%d\n",myTableIndex,myTableIndex->OpenGLTexture[0]);
+		#endif
+		/* set the texture depth - required for Material diffuseColor selection */
+		last_texture_depth = myTableIndex->depth;
+
+		bound_textures[texture_count] = myTableIndex->OpenGLTexture[0];
+		bound_texture_depths[texture_count] = myTableIndex->depth;
+
+		/* save the texture params for when we go through the MultiTexture stack. Non
+		   MultiTextures should have this texture_count as 0 */
+		 
+		texParams[texture_count] = param; 
+
+		textureInProcess = -1; /* we have finished the whole process */
+		return;
+	} 
+
+
 	if (textureInProcess > 0) {
 		sched_yield();
 		/* we are already working on a texture. Is it THIS one? */
@@ -1058,40 +1100,6 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	/* signal that his is the one we want to work on */
 	textureInProcess = thisTexture;
 
-	/* what is the status of this texture? */
-	myTableIndex = getTableIndex(thisTexture);
-
-	#ifdef TEXVERBOSE
-	printf ("myTableIndex %d\n",myTableIndex);
-	printf ("	scenegraphNode %d\n",myTableIndex->scenegraphNode);
-	printf ("	status %d\n",myTableIndex->status);
-	printf ("	status %d\n",myTableIndex->status);
-	printf ("	frames %d\n",myTableIndex->frames);
-	printf ("	OpenGLTexture %d\n",myTableIndex->OpenGLTexture);
-
-	printf ("texture status %s\n",texst(myTableIndex->status));
-	#endif
-
-
-	/* set the texture depth - required for Material diffuseColor selection */
-	last_texture_depth = myTableIndex->depth;
-
-	/* have we already processed this one before? */
-	if (myTableIndex->status == LOADED) {
-		#ifdef TEXVERBOSE 
-		printf ("now binding to pre-bound \n");
-		#endif
-		bound_textures[texture_count] = myTableIndex->OpenGLTexture[0];
-		bound_texture_depths[texture_count] = myTableIndex->depth;
-
-		/* save the texture params for when we go through the MultiTexture stack. Non
-		   MultiTextures should have this texture_count as 0 */
-		 
-		texParams[texture_count] = param; 
-
-		textureInProcess = -1; /* we have finished the whole process */
-		return;
-	} 
 
 	/* is this one an unsquished movie texture? */
 	if (myTableIndex->status == UNSQUASHED) { return; }
@@ -1200,14 +1208,14 @@ int findTextureFile (int cwo, int *istemp) {
 	*istemp=FALSE;	/* don't remove this file */
 
 	#ifdef TEXVERBOSE 
-	printf ("textureThread:start of findTextureFile for cwo %d type %d \n",cwo,loadThisTexture->scenegraphNode->_nodeType);
+	printf ("textureThread:start of findTextureFile for cwo %d type %d \n",cwo,loadThisTexture->nodeType);
 	#endif
 	/* try to find this file. */
 
-	if (loadThisTexture->scenegraphNode->_nodeType !=NODE_PixelTexture) {
+	if (loadThisTexture->nodeType !=NODE_PixelTexture) {
 		/* lets make up the path and save it, and make it the global path */
 
-		if (loadThisTexture->scenegraphNode->_nodeType == NODE_ImageTexture) {
+		if (loadThisTexture->nodeType == NODE_ImageTexture) {
 			thisParent = ((struct X3D_ImageTexture *)loadThisTexture->scenegraphNode)->__parenturl;
 			thisUrl = ((struct X3D_ImageTexture *)loadThisTexture->scenegraphNode)->url;
 		} else {
@@ -1261,42 +1269,20 @@ int findTextureFile (int cwo, int *istemp) {
 			}
 			/* So, we could not find the correct file. Make this into a blank PixelTexture, so that
 			   at least this looks ok on the screen */
-			loadparams[cwo].type = NODE_PixelTexture;
-			loadparams[cwo].parenturl=newASCIIString("1 1 3 0x707070");
+			loadThisTexture->nodeType = NODE_PixelTexture;
+			invalidFilePixelDataNode.n = 4;
+			invalidFilePixelDataNode.p = invalidFilePixelData;
+			loadThisTexture->pixelData = &invalidFilePixelDataNode;
 		}
 	}
 
 	/* pixelTextures - lets just make a specific string for this one */
-	if (loadThisTexture->scenegraphNode->_nodeType == NODE_PixelTexture) {
-		int a,b,c;
-		struct Multi_Int32 *cTexture;
-		int *iptr;
-
-		#ifdef TEXVERBOSE 
-		printf ("textureThread, going to get name \n");
-		#endif
-
+	if (loadThisTexture->nodeType == NODE_PixelTexture) {
 		filename = (char *)malloc(100);
-
-		/* in this case, the pointer points to a struct Multi_Int32. */
-		cTexture = (struct Multi_Int32*) loadparams[cwo].parenturl;
-		c = cTexture->n;
-		/* printf ("pixeltex len %d\n",c); */
-		iptr = (int *)cTexture->p;
-		b = 0;
-		if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
-		for (a=0; a<c; a++) {
-			/* printf ("b is %x\n",b); printf ("*iptr is %x\n",*iptr); */
-			b =  b + *iptr; iptr++;
-		}
-
-		sprintf (filename,"PixelTexture_%d_%d",c,b);
-		#ifdef TEXVERBOSE 
-		printf ("textureThread, temp name is %s\n",filename);
-		#endif
+		sprintf (filename,"PixelTexture_%d",loadThisTexture);
 	}
 
-	if (loadThisTexture->scenegraphNode->_nodeType == NODE_ImageTexture) {
+	if (loadThisTexture->nodeType == NODE_ImageTexture) {
 		/* is this a texture type that is *not* handled internally? */
 		if ((strncmp(firstBytes,firstPNG,4) != 0) &&
 		    (strncmp(firstBytes,firstJPG,4) != 0) &&
@@ -1385,7 +1371,7 @@ void _textureThread(void) {
 		#ifdef TEXVERBOSE
 	printf ("textureThread - working on %d ",currentlyWorkingOn);
 	printf ("which is node %d, nodeType %d status %s, opengltex %d, and frames %d\n",
-	loadThisTexture->scenegraphNode, loadThisTexture->scenegraphNode->_nodeType, texst(loadThisTexture->status), loadThisTexture->OpenGLTexture, loadThisTexture->frames);
+	loadThisTexture->scenegraphNode, loadThisTexture->nodeType, texst(loadThisTexture->status), loadThisTexture->OpenGLTexture, loadThisTexture->frames);
 		#endif
 
 		loadThisTexture->status = LOADING;
@@ -1404,13 +1390,12 @@ void _textureThread(void) {
 
 
 			/* is this a pixeltexture? */
-			if (loadThisTexture->scenegraphNode->_nodeType==NODE_PixelTexture) {
-				__reallyloadPixelTexAsMFInt32();
-				
-			} else if (loadThisTexture->scenegraphNode->_nodeType==NODE_MovieTexture) {
+			if (loadThisTexture->nodeType==NODE_ImageTexture) {
+				__reallyloadImageTexture();
+			} else if (loadThisTexture->nodeType==NODE_MovieTexture) {
 				__reallyloadMovieTexture();
 			} else {
-				__reallyloadImageTexture();
+				__reallyloadPixelTexure();
 			}
 
 			#ifdef TEXVERBOSE
@@ -1463,7 +1448,7 @@ void _textureThread(void) {
 /********************************************************************************/
 
 /* load a PixelTexture that is stored as a MFInt32 */
-void __reallyloadPixelTexAsMFInt32() {
+void __reallyloadPixelTexure() {
 	/* PixelTexture variables */
 	long hei,wid,depth;
 	unsigned char *texture;
@@ -1473,7 +1458,7 @@ void __reallyloadPixelTexAsMFInt32() {
 	int *iptr;
 	int tctr;
 
-	myData = (struct Multi_Int32 *) loadparams[currentlyWorkingOn].parenturl;
+	myData = loadThisTexture->pixelData;
 	iptr = (int *) myData->p;
 
 	ok = TRUE;
@@ -1533,9 +1518,7 @@ void __reallyloadPixelTexAsMFInt32() {
 
 			iptr++;
 		}
-		store_tex_info(loadThisTexture,
-			(int)depth,(int)wid,(int)hei,texture,
-			GL_NEAREST);
+		store_tex_info(loadThisTexture, (int)depth,(int)wid,(int)hei,texture, GL_NEAREST);
 	}
 
 }

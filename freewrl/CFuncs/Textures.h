@@ -88,8 +88,6 @@ struct multiTexParams {
 
 
 /* we keep track of which textures have been loaded, and which have not */
-extern unsigned char  *texIsloaded;
-extern struct loadTexParams *loadparams;
 
 void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				GLuint *texture_num,

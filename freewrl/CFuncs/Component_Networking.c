@@ -60,7 +60,7 @@ unsigned int returnSumofString(struct Uni_String *str) {
 
 void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	unsigned int newEncodedName;
-	
+#ifdef DOREWIRE	
 	newEncodedName = 0;
 	if (node->bus < 0) 
 		newEncodedName |= 0x0ff;
@@ -84,29 +84,11 @@ void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	printf ("worry about max/min values\n");
 
 	MARK_NODE_COMPILED 
-
+#endif
 }
 
-#ifdef rtwtwetrw
-        int _encodedName;
-        int bus;
-        struct Uni_String *channel;
-        struct Uni_String *controllerType;
-        int deviceMaxVal;
-        int deviceMinVal;
-        struct Uni_String *deviceName;
-        int devicePresent;
-        float floatValue;
-        int floor;
-        int highResolution;
-        int intControllerType;
-        int intValue;
-        int maxVal;
-        int minVal;
-        int useIntValue;
-#endif
-
 void do_ReWireMidiControl (void *this) {
+#ifdef DOREWIRE
 	struct X3D_ReWireMidiControl* node;
 	int mySendValue;
 	int possibleValueSpread;
@@ -177,6 +159,7 @@ void do_ReWireMidiControl (void *this) {
 			printf ("float %f node->floatVal\n",node->floatValue);
 		}
 	}	
+#endif
 }
 
 
@@ -227,10 +210,10 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 		case NODE_ImageTexture:
 			/* printf ("opengl tex is %d\n",tnode->__texture); */
 			/* is this texture thought of yet? */
-			if (tnode->__texture > 0) {
-				nowLoading++;
+			nowLoading++;
+			if (isTextureLoaded(tnode->__textureTableIndex)) {
 				/* is it finished loading? */
-				if (isTextureLoaded(tnode->__texture)) nowFinished ++;
+				nowFinished ++;
 			}
 				
 			break;

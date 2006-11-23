@@ -127,12 +127,12 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 
 
 void render_PixelTexture (struct X3D_PixelTexture *node) {
-	loadPixelTexture(node,NULL);
+	loadTextureNode((struct X3D_Node*)node,NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
-	loadImageTexture(node,NULL);
+	loadTextureNode((struct X3D_Node*)node,NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }
 

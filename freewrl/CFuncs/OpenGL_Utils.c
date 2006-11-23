@@ -485,10 +485,6 @@ void kill_FreeWRLPTR (void * par) {
 */
 }
 
-void kill_texture (int *tn, int cnt) {
-	glDeleteTextures (cnt, (GLuint *)tn);
-}
-
 /* go through the nodes from the root, and remove all malloc'd memory */
 
 void kill_rendering(void *thisnode) {
@@ -790,7 +786,6 @@ void kill_rendering(void *thisnode) {
 				thisNode = (struct X3D_ImageTexture *) thisnode;
 				kill_MFString (&thisNode->url);
 				kill_SFString (thisNode->__parenturl);
-				kill_texture (&thisNode->__texture,1);
 				break; }
 
 			case NODE_MovieTexture: {
@@ -798,8 +793,6 @@ void kill_rendering(void *thisnode) {
 				thisNode = (struct X3D_MovieTexture *) thisnode;
 				kill_MFString (&thisNode->url);
 				kill_SFString (thisNode->__parenturl);
-				kill_texture (&thisNode->__texture0_,thisNode->__texture1_ -
-								thisNode->__texture0_);
 				kill_MFString (&thisNode->__oldurl);
 				break; }
 
@@ -830,7 +823,6 @@ void kill_rendering(void *thisnode) {
 				thisNode = (struct X3D_PixelTexture *) thisnode;
 				kill_SFString (thisNode->image);
 				kill_SFString (thisNode->__parenturl);
-				kill_texture (&thisNode->__texture,1);
 				break; }
 
 			case NODE_TextureCoordinate: {
@@ -963,12 +955,6 @@ void kill_rendering(void *thisnode) {
 				kill_SFString(thisNode->__parenturl);
 				kill_FreeWRLPTR(thisNode->__points);
 				kill_FreeWRLPTR(thisNode->__colours);
-				kill_texture (&thisNode->__texturefront,1);
-				kill_texture (&thisNode->__textureback,1);
-				kill_texture (&thisNode->__texturetop,1);
-				kill_texture (&thisNode->__texturebottom,1);
-				kill_texture (&thisNode->__textureleft,1);
-				kill_texture (&thisNode->__textureright,1);
 				kill_MFString(&thisNode->frontUrl);
 				kill_MFString(&thisNode->backUrl);
 				kill_MFString(&thisNode->topUrl);

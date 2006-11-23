@@ -232,7 +232,7 @@ void haveTexCoord(struct X3D_IndexedFaceSet *texC, struct X3D_TextureCoordinate 
 	for (c=0; c<texture_count; c++) {
 		render_node (texC->texCoord);
 		/* are we ok with this texture yet? */
-		if (texIsloaded[bound_textures[c]] == LOADED) {
+		if (bound_textures[c] !=0) {
 			if (setActiveTexture(c)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
@@ -268,7 +268,7 @@ void haveMultiTexCoord(struct X3D_IndexedFaceSet *texC) {
 			    (myTCnode->_nodeType == NODE_TextureCoordinateGenerator)) {
 				render_node (myTCnode);
 				/* are we ok with this texture yet? */
-				if (texIsloaded[bound_textures[c]] == LOADED) {
+				if (bound_textures[c] != 0) {
 					if (setActiveTexture(c)) {
         					if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 						glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
@@ -287,7 +287,7 @@ void haveMultiTexCoord(struct X3D_IndexedFaceSet *texC) {
 		#endif
 		}
 		/* are we ok with this texture yet? */
-		if (texIsloaded[bound_textures[c]] == LOADED) {
+		if (bound_textures[c] != 0) {
 			if (setActiveTexture(c)) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 
@@ -315,7 +315,7 @@ void haveTexCoordGenerator (struct X3D_IndexedFaceSet *texC, struct X3D_TextureC
 	for (c=0; c<texture_count; c++) {
 		render_node (texC->texCoord);
 		/* are we ok with this texture yet? */
-		if (texIsloaded[bound_textures[c]] == LOADED) {
+		if (bound_textures[c] != 0) {
 			if (setActiveTexture(c)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);

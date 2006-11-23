@@ -1,3 +1,9 @@
+For 1.18.10:
+	- Textures had a threading issue - registration code rewritten.
+
+	- MovieTexture did not work with the new parser; fixed.
+
+
 For 1.18.9:
 	- no perl parser at all.
 

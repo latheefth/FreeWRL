@@ -85,7 +85,7 @@ BOOL lexer_specialID_string(struct VRMLLexer*, indexT* retB, indexT* retU,
  const char**, const indexT, struct Vector*, const char*);
 BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector*, BOOL);
 #define lexer_defineNodeName(me, ret) \
- lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), FALSE)
+ lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE)
 #define lexer_defineNodeType(me, ret) \
  lexer_defineID(me, ret, userNodeTypesVec, FALSE)
 #define lexer_define_field(me, ret) \
