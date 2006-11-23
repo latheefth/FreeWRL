@@ -261,6 +261,7 @@ void kill_openGLTextures() {
 	/* now, delete the tables themselves */
 	listRunner = textureTable;
 	textureTable = NULL;
+	nextFreeTexture = 0;
 	while (listRunner != NULL) {
 		tmp = listRunner;
 		listRunner = listRunner->next;
