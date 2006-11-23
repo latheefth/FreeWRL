@@ -236,6 +236,40 @@ void releaseTexture(struct X3D_Node *node) {
 
 }
 
+/* called on "kill oldworld" */
+void kill_openGLTextures() {
+	int count;
+	struct textureTableStruct * listRunner;
+	struct textureTableStruct * tmp;
+
+	/* remove the OpenGL textures */
+	listRunner = textureTable;
+
+	while (listRunner != NULL) {
+		/* zero out the fields in this new block */
+		for (count = 0; count < 32; count ++) {
+			if  (listRunner->entry[count].OpenGLTexture != NULL) {
+				listRunner->entry[count].OpenGLTexture = NULL;
+				listRunner->entry[count].frames = 0;
+				glDeleteTextures(listRunner->entry[count].frames, listRunner->entry[count].OpenGLTexture);
+				free (listRunner->entry[count].OpenGLTexture);
+			}
+		}
+		listRunner = listRunner->next;
+	}
+
+	/* now, delete the tables themselves */
+	listRunner = textureTable;
+	textureTable = NULL;
+	while (listRunner != NULL) {
+		tmp = listRunner;
+		listRunner = listRunner->next;
+		free(tmp);
+	}
+
+	
+}
+
 /* copy the pixel raw pointer over- we need to store this here, as it is
    possible (if an external texture is invalid) that an ImageTexture or
    MovieTexture can "change" into a small PixelTexture indicating an error.

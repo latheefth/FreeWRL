@@ -1018,6 +1018,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
 
 
 	/* free textures */
+	kill_openGLTextures();
 	
 	/* free scripts */
 	kill_javascript();
