@@ -18,6 +18,10 @@
 #include "OpenGL_Utils.h"
 #include <setjmp.h>
 
+        #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == NEEDSBINDING) { \
+                do_possible_textureSequence(myTableIndex); \
+                return;	\
+		}
 /* lets check the max texture size */
 static int checktexsize;
 #define CHECK_MAX_TEXTURE_SIZE \
@@ -108,11 +112,17 @@ GLint maxTexelUnits = -1;
 int	*global_tcin;
 int	global_tcin_count;
 
+/* this is set by OSX, or to FALSE if on Linux. */
+#ifdef AQUA
+extern Boolean isMacPlugin;
+#else
+extern int isMacPlugin;
+#endif
+
 /* for AQUA OS X sharing of OpenGL Contexts */
 #ifdef AQUA
 #include "CGDirectDisplay.h"
 extern CGLContextObj myglobalContext;
-extern Boolean isMacPlugin;
 CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
                                       kCGLPFAFullScreen,
                                       kCGLPFADoubleBuffer,
@@ -1139,37 +1149,17 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	/* is this one an unsquished movie texture? */
 	if (myTableIndex->status == UNSQUASHED) { return; }
 
+
 	#ifdef AQUA
         if (isMacPlugin) {
-        if (texIsloaded[*texture_num] == NEEDSBINDING) {
-                #ifdef TEXVERBOSE
-                        printf ("tex %d needs binding, name %s\n",*texture_num,
-                                loadparams[*texture_num].filename);
-                #endif
-                do_possible_textureSequence(*texture_num);
-
-                #ifdef TEXVERBOSE
-                printf ("tex %d now loaded\n",*texture_num);
-                #endif
-                return;
-        }
+		DO_POSSIBLE_TEXTURE_SEQUENCE
         }
 	#endif
 
 	#ifndef DO_MULTI_OPENGL_THREADS
         /* is this one read in, but requiring final manipulation
          * by THIS thread? */
-        if (myTableIndex->status == NEEDSBINDING) {
-                #ifdef TEXVERBOSE
-			printf ("tex needs binding\n");
-		#endif
-                do_possible_textureSequence(myTableIndex);
-                
-		#ifdef TEXVERBOSE
-		printf ("tex now loaded\n");
-		#endif
-                return;
-        }
+		DO_POSSIBLE_TEXTURE_SEQUENCE
 	#endif
 
 	/* are we loading this one? */
@@ -1366,18 +1356,18 @@ void _textureThread(void) {
 	/* To get this thread to be able to manipulate textures, first, get the 
 	   Display attributes */
 	if (!isMacPlugin) {
-	CGDirectDisplayID display = CGMainDisplayID ();
-	attribs[1] = CGDisplayIDToOpenGLDisplayMask (display);
+		CGDirectDisplayID display = CGMainDisplayID ();
+		attribs[1] = CGDisplayIDToOpenGLDisplayMask (display);
 
-	/* now, for this thread, create and join OpenGL Contexts */
-	CGLChoosePixelFormat (attribs, &pixelFormat, &numPixelFormats);
-	CGLCreateContext(pixelFormat, myglobalContext, &aqtextureContext);
+		/* now, for this thread, create and join OpenGL Contexts */
+		CGLChoosePixelFormat (attribs, &pixelFormat, &numPixelFormats);
+		CGLCreateContext(pixelFormat, myglobalContext, &aqtextureContext);
 
-	/* set the context for this thread so that we can share textures with
-	   the main context (myglobalContext) */
+		/* set the context for this thread so that we can share textures with
+		   the main context (myglobalContext) */
 
-	CGLSetCurrentContext(aqtextureContext);
-	/* printf ("textureThread, have to try to remember to destroy this context\n"); */
+		CGLSetCurrentContext(aqtextureContext);
+		/* printf ("textureThread, have to try to remember to destroy this context\n"); */
 	}
 
 	#else
@@ -1390,9 +1380,9 @@ void _textureThread(void) {
 	/* set up some common storage info */
 	#ifdef DO_MULTI_OPENGL_THREADS
 		if (!isMacPlugin) {
-		glEnable(GL_TEXTURE_2D);
-		glPixelStorei(GL_PACK_ALIGNMENT,1);
-		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+			glEnable(GL_TEXTURE_2D);
+			glPixelStorei(GL_PACK_ALIGNMENT,1);
+			glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 		}
 	#endif
 
@@ -1445,11 +1435,12 @@ void _textureThread(void) {
 				#endif
 
 				do_possible_textureSequence(loadThisTexture);
+
 				#ifdef TEXVERBOSE 
 				printf ("tex %d now loaded\n",*loadparams[currentlyWorkingOn].texture_num);
 				#endif
 				} else {
-                                        texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
+					loadThisTexture->status = NEEDSBINDING;
                                 }
 			
 				#else
