@@ -176,7 +176,7 @@ int querySoundType(SNDFILE *me) {
 
 	// copy over format header information
 	memcpy (&me->FormatChunk, &me->data[me->dataptr], sizeof (fmtChnk));
-#ifdef __APPLE__
+#ifdef AQUAPPC
  	reversit((char*)&(me->FormatChunk.wChannels), 2);	
 	reversit((char*)&(me->FormatChunk.wFormatTag), 2);
 	reversit((char*)&(me->FormatChunk.dwSamplesPerSec), 4);
@@ -358,7 +358,7 @@ void process_command () {
 			loop[a] = b;           // is this sound looped? (boolean)
 			sndfile[a]->pitch = x;          // pitch of 1 = standard playback
 			ampl[a] = 0.0;         // Gain of this sound
-			names[a] = malloc(strlen(cp)+2);
+			names[a] = (char*) malloc(strlen(cp)+2);
 			for (c=0; c<=strlen(cp); c++) {
 				names[a][c] = cp[c];
 			}
