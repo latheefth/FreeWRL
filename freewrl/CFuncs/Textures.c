@@ -35,7 +35,6 @@ static int checktexsize;
 
 
 /* we keep track of which textures have been loaded, and which have not */
-struct loadTexParams *loadparams;
 extern void *texParams[];
 
 /* newer Texture handling procedures */
@@ -740,16 +739,12 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		switch (nt->_nodeType) {
 			case NODE_PixelTexture:
 			case NODE_ImageTexture : 
+			case NODE_MovieTexture:
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
 				loadTextureNode ((struct X3D_Node*) nt, (void *)paramPtr);
 				break;
 			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
-				break;
-			case NODE_MovieTexture:
-				/* printf ("MultiTexture %d is a MovieTexture\n"); */
-				loadMovieTexture ((struct X3D_MovieTexture*) nt,
-					(void *)paramPtr);
 				break;
 			default:
 				printf ("MultiTexture - unknown sub texture type %d\n",
@@ -772,6 +767,8 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 /* load in a texture, if possible */
 void loadMovieTexture (struct X3D_MovieTexture *node, void *param) {
+
+
 #ifdef OLDCODE
 	int firsttex;
 
@@ -1740,4 +1737,33 @@ void __reallyloadImageTexture() {
 
 
 void __reallyloadMovieTexture () {
+
+        int x,y,depth,frameCount;
+        void *ptr;
+        int firstTex;
+
+        /*firstTex = *loadparams[currentlyWorkingOn].texture_num; */
+        ptr=NULL;
+
+        /* now, generate a new first texture */
+
+printf ("going to call mpg_main\n");
+        mpg_main(loadThisTexture->filename,
+                &x,&y,&depth,&frameCount,&ptr);
+
+printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
+        /* store the "generic" data */
+/*void __reallyloadMovieTexture () {
+        store_tex_info(currentlyWorkingOn,
+                (int)depth,(int)x,(int)y,(unsigned char *)ptr,
+                ((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP,
+                ((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
+                GL_NEAREST);
+*/
+
+        /* now, for the mpeg specific data */
+/*
+        loadparams[currentlyWorkingOn].frames = frameCount;
+*/
+
 }
