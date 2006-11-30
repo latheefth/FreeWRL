@@ -62,6 +62,7 @@ extern void resetGeometry(void);
 /* function prototypes */
 void catch_SIGQUIT();
 void catch_SIGSEGV();
+void catch_SIGHUP();
 void catch_SIGALRM(int);
 void initFreewrl(void);
 extern int parseCommandLine(int, char **);
@@ -82,8 +83,10 @@ int main (int argc, char **argv) {
 
 	/* install the signal handler for SIGQUIT */
 	signal (SIGQUIT, (void(*)(int))catch_SIGQUIT);
+	signal (SIGTERM, (void(*)(int))catch_SIGQUIT);
 	signal (SIGSEGV,(void(*)(int))catch_SIGSEGV);
 	signal (SIGALRM,(void(*)(int))catch_SIGALRM);
+	signal (SIGHUP, (void(*)(int))catch_SIGHUP);
 
 	/* parse command line arguments */
 	/* JAS - for last parameter of long_options entries, choose
@@ -126,13 +129,18 @@ int main (int argc, char **argv) {
 static int CaughtSEGV = FALSE;
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */
 void catch_SIGQUIT() {
-	/*
-		ConsoleMessage ("FreeWRL got a sigquit signal");
+		/* ConsoleMessage ("FreeWRL got a sigquit signal"); */
+/*
 	 shut up any SIGSEGVs we might get now.
 	*/
 	CaughtSEGV = TRUE;
     	doQuit();
 }
+void catch_SIGHUP() {
+		/* ConsoleMessage ("FreeWRL got a SIGHUP signal - reloading"); */
+		Anchor_ReplaceWorld (BrowserFullPath);
+}
+
 
 void catch_SIGSEGV() {
 	if (!CaughtSEGV) {

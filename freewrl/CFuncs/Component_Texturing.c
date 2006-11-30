@@ -147,7 +147,7 @@ void render_MovieTexture (struct X3D_MovieTexture *node) {
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
-	loadMovieTexture(node,NULL);
+	loadTextureNode((struct X3D_Node*)node,NULL);
 	bound_textures[texture_count] = node->__ctex;
 	/* not multitexture, should have saved to bound_textures[0] */
 	
