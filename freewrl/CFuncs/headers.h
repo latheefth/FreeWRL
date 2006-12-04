@@ -1163,7 +1163,7 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d);
 void destroyCParserData();
 
-
+void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 
 int ConsoleMessage(const char *fmt, ...);
 extern int consMsgCount;

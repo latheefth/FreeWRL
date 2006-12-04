@@ -939,8 +939,7 @@ void do_MovieTextureTick( void *ptr) {
 	}
 
 	oldstatus = node->isActive;
-	highest = node->__texture1_;
-	lowest = node->__texture0_;
+	getMovieTextureOpenGLFrames(&highest,&lowest,node->__textureTableIndex);
 	duration = (highest - lowest)/30.0;
 	speed = node->speed;
 
@@ -966,7 +965,6 @@ void do_MovieTextureTick( void *ptr) {
 		}
 		/* calculate what fraction we should be */
  		myTime = (TickTime - node->startTime) * speed/duration;
-
 		tmpTrunc = (int) myTime;
 		frac = myTime - (float)tmpTrunc;
 
@@ -977,6 +975,7 @@ void do_MovieTextureTick( void *ptr) {
 		} else if (APPROX(speed, 0)) {
 			frac = 0;
 		}
+
 
 		/* frac will tell us what texture frame we should apply... */
 		/* code changed by Alberto Dubuc to compile on Solaris 8 */
@@ -994,7 +993,6 @@ void do_MovieTextureTick( void *ptr) {
 		/* if (node->__ctex != frac) */
 		if (! APPROX(node->__ctex, frac)) {
 			node->__ctex = (int)frac;
-
 			/* force a change to re-render this node */
 			update_node(node);
 		}

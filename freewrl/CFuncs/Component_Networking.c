@@ -78,7 +78,7 @@ void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	*/
 	if ((unsigned int) node->_encodedName != newEncodedName) {
 		printf ("Name Changed!!\n");
-		(unsigned int) node->_encodedName = newEncodedName;
+		node->_encodedName = (unsigned int) newEncodedName;
 	}
 
 	printf ("worry about max/min values\n");

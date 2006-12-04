@@ -3,6 +3,7 @@ For 1.18.10:
 
 	- MovieTexture did not work with the new parser; fixed.
 
+	- Makefile.PL - javascript library not copied over - fixed.
 
 For 1.18.9:
 	- no perl parser at all.

@@ -37,11 +37,11 @@
                         } else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
 
 /* for texIsloaded structure */
-#define NOTLOADED       0
-#define LOADING         1
-#define NEEDSBINDING	2
-#define LOADED          3
-#define UNSQUASHED      4
+#define TEX_NOTLOADED       0
+#define TEX_LOADING         1
+#define TEX_NEEDSBINDING	2
+#define TEX_LOADED          3
+#define TEX_UNSQUASHED      4
 
 
 /* older stuff - check if needed */

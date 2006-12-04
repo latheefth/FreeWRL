@@ -118,7 +118,13 @@ if ($OS eq  "IRIX64") {
 	$jsobjdir = "$jsdir/Linux_All";
 }
 
+#location of the spidermonkey js engine.
 $jsobjdir .= "_OPT.OBJ";
+my $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
+
+#print "the javascript engine should be located at: $libFreeWRLjspath\n";
+
+
 
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 	print "MAKING WITH BOUNDSCHECKING ENABLED\n";
@@ -138,7 +144,6 @@ push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
 $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
-print "right here, freewrl_libs ".$VRML_CONFIG{FREEWRL_LIBS}."\n";
 
 if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
 {
@@ -292,6 +297,7 @@ sub writeMakefileFinalTargets() {
 	}
 	if ($OS eq "Linux") {
 		print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
+		print MK "\tcp $libFreeWRLjspath \$(LIB_DIR)\n";
 		if ($HAVE_UBUNTU eq "NO") {
 			print MK "\t/sbin/ldconfig\n";
 		}
@@ -311,7 +317,6 @@ sub writeMakefileFinalTargets() {
 	print MK "\tcp Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps\n";
 	print MK "\tcp Desktop/freewrl.desktop \$(INSTALL_DIR)\/applications\n";
 	print MK "\t#make the freewrl install dir if required\n";
-	#print MK "\tif [ -e /usr/share/freewrl ]; then echo "INSTALL_DIR exists"; else mkdir /usr/share/freewrl; fi\n";
 	print MK "\tif [ -e \$(INSTALL_DIR)/freewrl ]; then echo \"INSTALL_DIR exists\"; else mkdir \$(INSTALL_DIR)/freewrl; fi\n";
 	print MK "\tcp -r fonts \$(INSTALL_DIR)/freewrl\n";
 	print MK "\tcp -r x3d \$(INSTALL_DIR)/freewrl\n";
@@ -656,8 +661,9 @@ sub tryToFind() {
 
 	if ("" ne $try) {
 		$val = $try; # found it, hopefully
+	} else {
+		print "\tWARNING: can not find  $tofind in the conf file, or on the system"; print ": returning: $val\n";		
 	}
 
-	print "\tNot defined - trying to find $tofind"; print ": returning: $val\n";		
 	return $val;
 }
