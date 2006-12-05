@@ -1528,8 +1528,7 @@ void __reallyloadImageTexture() {
 			printf ("FreeWRL Image problem - could not read %s\n", filename);
 			jpeg_destroy_compress((j_compress_ptr)&cinfo);
 			fclose (infile);
-			freeTexture(&texture_num);
-			/* texIsloaded[texture_num] = INVALID; */
+			releaseTexture(loadThisTexture);
 			return;
 		}
 
@@ -1572,8 +1571,7 @@ void __reallyloadImageTexture() {
 
 		if (jpeg_finish_decompress(&cinfo) != TRUE) {
 			printf("warning: jpeg_finish_decompress error\n");
-			/* texIsloaded[texture_num] = INVALID; */
-			freeTexture(&texture_num);
+			releaseTexture(loadThisTexture);
 		}
 		jpeg_destroy_decompress(&cinfo);
 		free(row);
@@ -1584,8 +1582,7 @@ void __reallyloadImageTexture() {
 			GL_LINEAR);
 	} else {
 		if (rc != 0) {
-		freeTexture(&texture_num);
-		/* texIsloaded[texture_num] = INVALID; */
+		releaseTexture(loadThisTexture);
 		switch (rc) {
 			case 1:
 				printf("[%s] is not a PNG file: incorrect signature\n", filename);
