@@ -23,20 +23,20 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
-		'-L/FreeWRL/jpeg-6b '.
+		'-L/Users/daniel/FreeWRL/jpeg-6b '.
 		'-ljpeg '.
 		'-lpng '.
 		'-lz '.
 		'-lSystem '.
 		'-lfreetype '.
 		'-lGL -lGLU '.
-		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
+		' -F/System/Library/Frameworks -framework OpenGL -framework AGL -framework GLUT -framework Cocoa',
 
     FREEWRL_DEFINE => '-D_REENTRANT `perl -MExtUtils::Embed -e ccopts`',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
-		'-I/FreeWRL/jpeg-6b '.
+		'-I/Users/daniel/FreeWRL/jpeg-6b '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
@@ -59,8 +59,9 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-F/System/Library/Frameworks '. 
 		'-framework OpenGL '.
 		'-framework GLUT '.
+		'-framework AGL '.
 		'-framework Cocoa '.
-		'-lAquaIntLib `',
+		'-lAquaIntLib ',
 
 	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
@@ -70,6 +71,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-F/System/Library/Frameworks '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
+		'-framework AGL '.
 		'-framework Cocoa '.
 		'-lAquaIntLib ',
 );
