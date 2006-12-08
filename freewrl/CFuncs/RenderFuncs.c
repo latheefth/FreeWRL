@@ -12,7 +12,6 @@ RenderFuncs.c - do scenegraph rendering.
 ******************************************/
 
 #include <math.h>
-#include <stddef.h>
 #include <pthread.h>
 
 #include "headers.h"
@@ -152,7 +151,6 @@ float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 int SoundEngineStarted = FALSE;
 
 /* stored FreeWRL version, pointers to initialize data */
-char *BrowserVersion = NULL;
 char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 char *lastReadFile = NULL;

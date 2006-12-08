@@ -292,34 +292,34 @@ sub writeMakefileFinalTargets() {
 			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
 		}
 	}
-	print MK "\tcp CFrontEnd/freewrl \$(FRONTEND_DIR)\n";
-	print MK "\tcp FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)\n";
+	print MK "\tinstall -D CFrontEnd/freewrl \$(FRONTEND_DIR)/freewrl\n";
+	print MK "\tinstall -D FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)FreeWRL_Message\n";
 	}
 	if ($OS eq "Linux") {
-		print MK "\tcp libFreeWRLFunc.so \$(LIB_DIR)\n";
-		print MK "\tcp $libFreeWRLjspath \$(LIB_DIR)\n";
+		print MK "\tinstall -D libFreeWRLFunc.so \$(LIB_DIR)/libFreeWRLFunc.so\n";
+		print MK "\tinstall -D $libFreeWRLjspath \$(LIB_DIR)/libFreeWRLjs.so\n";
 		if ($HAVE_UBUNTU eq "NO") {
 			print MK "\t/sbin/ldconfig\n";
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
-		print MK "\tcp SoundEngine/FreeWRL_SoundServer \$(FRONTEND_DIR)\n";
+		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
 
 	if (($JAVAC ne "") || ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
 		if ($OS ne "Darwin") {
-			print MK "\tcp java/classes/vrml.jar $VRML_CONFIG{NETSCAPE_INST}\n";
-			print MK "\tcp Plugin/npfreewrl.so $VRML_CONFIG{NETSCAPE_INST}\n";
+			print MK "\tinstall -D java/classes/vrml.jar $VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
+			print MK "\tinstall -D Plugin/npfreewrl.so $VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
 		} else {
-			print MK "\tcp java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
+			print MK "\tinstall -D java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
 		}
 	}
-	print MK "\tcp Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps\n";
-	print MK "\tcp Desktop/freewrl.desktop \$(INSTALL_DIR)\/applications\n";
-	print MK "\t#make the freewrl install dir if required\n";
-	print MK "\tif [ -e \$(INSTALL_DIR)/freewrl ]; then echo \"INSTALL_DIR exists\"; else mkdir \$(INSTALL_DIR)/freewrl; fi\n";
-	print MK "\tcp -r fonts \$(INSTALL_DIR)/freewrl\n";
-	print MK "\tcp -r x3d \$(INSTALL_DIR)/freewrl\n";
+	print MK "\tinstall -D Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
+	print MK "\tinstall -D Desktop/freewrl.desktop \$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
+	print MK "\tinstall -d fonts \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall -D fonts/* \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall -d  x3d \$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\tinstall -D  x3d/* \$(INSTALL_DIR)/freewrl/x3d\n";
 }
 
 sub writeVariables () {	

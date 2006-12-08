@@ -782,7 +782,7 @@ extern int isPerlinitialized(void);
 	#endif
 #endif
 
-extern char *BrowserName, *BrowserVersion, *BrowserFullPath; /* defined in VRMLC.pm */
+extern char *BrowserName, *BrowserFullPath; /* defined in VRMLC.pm */
 extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */

@@ -329,7 +329,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 			if (retval <= 0) {
 				#ifdef EAIVERBOSE
-					printf ("read_EAI_socket, client is gone! errno %d\n",errno);
+					printf ("read_EAI_socket, client is gone!\n");
 				#endif
 
 				/*perror("READ_EAISOCKET");*/

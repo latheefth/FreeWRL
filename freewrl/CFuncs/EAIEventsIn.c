@@ -257,7 +257,7 @@ void EAI_parse_commands (char *bufptr) {
 				#ifdef EAIVERBOSE 
 				printf ("GETVERSION\n");
 				#endif
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserVersion);
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,FWVER);
 				break;
 				}
 			case GETENCODING: {

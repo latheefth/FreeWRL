@@ -20,7 +20,7 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
-extern char *BrowserName, *BrowserVersion; /* defined in VRMLC.pm */
+extern char *BrowserName; /* defined in VRMLC.pm */
 extern double BrowserFPS;				/* defined in VRMLC.pm */
 
 #define BROWMAGIC 12345
