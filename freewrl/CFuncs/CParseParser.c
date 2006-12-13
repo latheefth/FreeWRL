@@ -173,7 +173,9 @@ static void parser_scopeOut_PROTO()
  indexT i;
  /* Do not delete the ProtoDefinitions, as they are referenced in the scene
   * graph!  TODO:  How to delete them properly? */
+ printf("%d %d %d\n", vector_size(PROTOs), lexer_getProtoPopCnt(), vector_size(userNodeTypesVec));
  vector_popBackN(struct ProtoDefinition*, PROTOs, lexer_getProtoPopCnt());
+ lexer_scopeOut_PROTO();
 }
 
 void parser_scopeIn()

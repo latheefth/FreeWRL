@@ -59,7 +59,8 @@ struct VRMLLexer* newLexer()
  
  /* Init id tables */
  userNodeNames=newStack(struct Vector*);
- userNodeTypesStack=newStack(struct Vector*);
+ userNodeTypesStack=newStack(size_t);
+ stack_push(size_t, userNodeTypesStack, 0);
  userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
  user_field=newVector(char*, USER_IDS_INIT_SIZE);
  user_exposedField=newVector(char*, USER_IDS_INIT_SIZE);
@@ -109,7 +110,7 @@ void lexer_destroyData()
  /* User node types */
  DESTROY_IDVEC(userNodeTypesVec)
  if(userNodeTypesStack)
-  deleteStack(struct Vector*, userNodeTypesStack);
+  deleteStack(size_t, userNodeTypesStack);
 
  /* User fields */
  DESTROY_IDVEC(user_field)
@@ -147,13 +148,18 @@ void lexer_scopeIn()
 void lexer_scopeOut()
 {
  lexer_scopeOut_(userNodeNames);
+ /* PROTO out-scoping is done by parser */
+ /*lexer_scopeOut_PROTO();*/
+ /* Fields aren't scoped because they need to be accessible in two levels */
+}
+void lexer_scopeOut_PROTO()
+{
  while(vector_size(userNodeTypesVec)>stack_top(size_t, userNodeTypesStack))
  {
   free(vector_back(char*, userNodeTypesVec));
   vector_popBack(char*, userNodeTypesVec);
  }
  stack_pop(size_t, userNodeTypesStack);
- /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
 /* Sets curID of lexer */
@@ -380,6 +386,14 @@ BOOL lexer_eventIn(struct VRMLLexer* me,
   }
  }
 noExposedPre:
+
+ /* Try without prefix if not found */
+ if(!found)
+ {
+  if(lexer_specialID(me, rBE, rUE, EXPOSED_FIELD, EXPOSED_FIELD_COUNT,
+   user_exposedField))
+   found=TRUE;
+ }
  
  return found;
 }
@@ -440,6 +454,14 @@ BOOL lexer_eventOut(struct VRMLLexer* me,
    curId[1]=*begSuf;
  }
 noExposedSuf:
+
+ /* Try without suffix if not found */
+ if(!found)
+ {
+  if(lexer_specialID(me, rBE, rUE, EXPOSED_FIELD, EXPOSED_FIELD_COUNT,
+   user_exposedField))
+   found=TRUE;
+ }
 
  return found;
 }

@@ -78,6 +78,7 @@ BOOL lexer_setCurID(struct VRMLLexer*);
 /* Some operations with IDs */
 void lexer_scopeIn();
 void lexer_scopeOut();
+void lexer_scopeOut_PROTO();
 BOOL lexer_keyword(struct VRMLLexer*, indexT);
 BOOL lexer_specialID(struct VRMLLexer*, indexT* retB, indexT* retU,
  const char**, const indexT, struct Vector*);

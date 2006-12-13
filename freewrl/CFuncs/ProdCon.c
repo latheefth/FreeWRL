@@ -601,7 +601,9 @@ void _inputParseThread(void) {
 			}
 
 		case ZEROBINDABLES: 
+			printf("Before destroyCParserData\n");
 			destroyCParserData();
+			printf("After destroyCParserData\n");
 			break;
 
 		default: {
