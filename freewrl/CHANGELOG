@@ -1,4 +1,7 @@
 For 1.18.10:
+	- X3dToVrml97.xslt changed - it was adding EXTERNPROTOS for 
+	  nodes supported in FreeWRL.
+
 	- Textures had a threading issue - registration code rewritten.
 
 	- MovieTexture did not work with the new parser; fixed.

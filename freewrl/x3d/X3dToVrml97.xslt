@@ -152,275 +152,275 @@ Thanks to Andrew Grieve of Okino for CAD debugging and the disableIndent paramet
     <!-- Insert BooleanFilter external prototype declaration if not otherwise provided -->
     <xsl:if test="(//BooleanFilter or //ProtoInstance[@name='BooleanFilter']) and not(//ExternProtoDeclare[@name='BooleanFilter']) and not(//ProtoDeclare[@name='BooleanFilter'])">
 <![CDATA[
-EXTERNPROTO BooleanFilter [
-  # [appinfo] Selectively pass only true or false events.
-  eventIn  SFBool set_boolean # [appinfo] set_boolean is the input value to be filtered.
-  eventOut SFBool inputTrue   # [appinfo] inputTrue only passes a true value, when set_boolean input is true.
-  eventOut SFBool inputFalse  # [appinfo] inputFalse only passes a false value, when set_boolean is false.
-  eventOut SFBool inputNegate # [appinfo] inputNegate provides opposite value by negating set_boolean input.
-][
-      "EventUtilityPrototypes.wrl#BooleanFilter"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanFilter"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanFilter"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanFilter"
-      "EventUtilityPrototypes.x3d#BooleanFilter"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanFilter"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanFilter"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanFilter"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c:\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#BooleanFilter"
- ]
+#JAS EXTERNPROTO BooleanFilter [
+#JAS   # [appinfo] Selectively pass only true or false events.
+#JAS   eventIn  SFBool set_boolean # [appinfo] set_boolean is the input value to be filtered.
+#JAS   eventOut SFBool inputTrue   # [appinfo] inputTrue only passes a true value, when set_boolean input is true.
+#JAS   eventOut SFBool inputFalse  # [appinfo] inputFalse only passes a false value, when set_boolean is false.
+#JAS   eventOut SFBool inputNegate # [appinfo] inputNegate provides opposite value by negating set_boolean input.
+#JAS ][
+#JAS       "EventUtilityPrototypes.wrl#BooleanFilter"
+#JAS       "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanFilter"
+#JAS     "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanFilter"
+#JAS "http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanFilter"
+#JAS       "EventUtilityPrototypes.x3d#BooleanFilter"
+#JAS       "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanFilter"
+#JAS     "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanFilter"
+#JAS "http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanFilter"
+#JAS # CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS #"file:///c:\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#BooleanFilter"
+#JAS  ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert BooleanToggle external prototype declaration if not otherwise provided -->
     <xsl:if test="(//BooleanToggle or //ProtoInstance[@name='BooleanToggle']) and not(//ExternProtoDeclare[@name='BooleanToggle']) and not(//ProtoDeclare[@name='BooleanToggle'])">
 <![CDATA[
-EXTERNPROTO BooleanToggle [
-  # [appinfo] Negate or reset prior boolean state, output result.
-  eventIn  SFBool set_boolean    # [appinfo] If set_boolean input is true, toggle state.
-  eventIn  SFBool set_toggle
-  field    SFBool toggle         # [appinfo] Persistent state value that gets toggled or reset.
-  eventOut SFBool toggle_changed
-][
-      "EventUtilityPrototypes.wrl#BooleanToggle"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanToggle"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanToggle"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanToggle"
-      "EventUtilityPrototypes.x3d#BooleanToggle"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanToggle"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanToggle"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanToggle"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#BooleanToggle"
- ]
+#JASEXTERNPROTO BooleanToggle [
+#JAS  # [appinfo] Negate or reset prior boolean state, output result.
+#JAS  eventIn  SFBool set_boolean    # [appinfo] If set_boolean input is true, toggle state.
+#JAS  eventIn  SFBool set_toggle
+#JAS  field    SFBool toggle         # [appinfo] Persistent state value that gets toggled or reset.
+#JAS  eventOut SFBool toggle_changed
+#JAS][
+#JAS      "EventUtilityPrototypes.wrl#BooleanToggle"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanToggle"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanToggle"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanToggle"
+#JAS      "EventUtilityPrototypes.x3d#BooleanToggle"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanToggle"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanToggle"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanToggle"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#BooleanToggle"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert BooleanTrigger external prototype declaration if not otherwise provided -->
     <xsl:if test="(//BooleanTrigger or //ProtoInstance[@name='BooleanTrigger']) and not(//ExternProtoDeclare[@name='BooleanTrigger']) and not(//ProtoDeclare[@name='BooleanTrigger'])">
 <![CDATA[
-EXTERNPROTO BooleanTrigger [
-  # [appinfo] Convert time events to boolean true events.
-  eventIn  SFTime set_triggerTime # [appinfo] set_triggerTime provides input time event, typical event sent is TouchSensor touchTime.
-  eventOut SFBool triggerTrue     # [appinfo] triggerTrue outputs a true value whenever a triggerTime event is received.
-][
-      "EventUtilityPrototypes.wrl#BooleanTrigger"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanTrigger"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanTrigger"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanTrigger"
-      "EventUtilityPrototypes.x3d#BooleanTrigger"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanTrigger"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanTrigger"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanTrigger"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#BooleanTrigger"
- ]
+#JASEXTERNPROTO BooleanTrigger [
+#JAS  # [appinfo] Convert time events to boolean true events.
+#JAS  eventIn  SFTime set_triggerTime # [appinfo] set_triggerTime provides input time event, typical event sent is TouchSensor touchTime.
+#JAS  eventOut SFBool triggerTrue     # [appinfo] triggerTrue outputs a true value whenever a triggerTime event is received.
+#JAS][
+#JAS      "EventUtilityPrototypes.wrl#BooleanTrigger"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanTrigger"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanTrigger"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#BooleanTrigger"
+#JAS      "EventUtilityPrototypes.x3d#BooleanTrigger"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanTrigger"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanTrigger"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#BooleanTrigger"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#BooleanTrigger"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert IntegerTrigger external prototype declaration if not otherwise provided -->
     <xsl:if test="(//IntegerTrigger or //ProtoInstance[@name='IntegerTrigger']) and not(//ExternProtoDeclare[@name='IntegerTrigger']) and not(//ProtoDeclare[@name='IntegerTrigger'])">
 <![CDATA[
-EXTERNPROTO IntegerTrigger [
-  # [appinfo] Convert boolean true or time input events to integer value (suitable for Switch node).
-  eventIn      SFBool	set_boolean    	# [appinfo] If set_boolean input is true, trigger output of integer value.
-  eventIn      SFInt32	set_integerKey	# [appinfo] Resets value used for output when triggered later.
-  exposedField SFInt32	integerKey    	# [appinfo] integerKey is value for output when triggered.
-  eventOut     SFInt32	integerKey_changed # [appinfo] Reports change in integerKey value.
-  eventOut     SFInt32	triggerValue 	# [appinfo] triggerValue provides integer event output matching integerKey when true set_boolean received.
-][
-      "EventUtilityPrototypes.wrl#IntegerTrigger"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#IntegerTrigger"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#IntegerTrigger"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#IntegerTrigger"
-      "EventUtilityPrototypes.x3d#IntegerTrigger"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#IntegerTrigger"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#IntegerTrigger"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#IntegerTrigger"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#IntegerTrigger"
- ]
+#JASEXTERNPROTO IntegerTrigger [
+#JAS  # [appinfo] Convert boolean true or time input events to integer value (suitable for Switch node).
+#JAS  eventIn      SFBool	set_boolean    	# [appinfo] If set_boolean input is true, trigger output of integer value.
+#JAS  eventIn      SFInt32	set_integerKey	# [appinfo] Resets value used for output when triggered later.
+#JAS  exposedField SFInt32	integerKey    	# [appinfo] integerKey is value for output when triggered.
+#JAS  eventOut     SFInt32	integerKey_changed # [appinfo] Reports change in integerKey value.
+#JAS  eventOut     SFInt32	triggerValue 	# [appinfo] triggerValue provides integer event output matching integerKey when true set_boolean received.
+#JAS][
+#JAS      "EventUtilityPrototypes.wrl#IntegerTrigger"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#IntegerTrigger"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#IntegerTrigger"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#IntegerTrigger"
+#JAS      "EventUtilityPrototypes.x3d#IntegerTrigger"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#IntegerTrigger"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#IntegerTrigger"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#IntegerTrigger"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#IntegerTrigger"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert TimeTrigger external prototype declaration if not otherwise provided -->
     <xsl:if test="(//TimeTrigger or //ProtoInstance[@name='TimeTrigger']) and not(//ExternProtoDeclare[@name='TimeTrigger']) and not(//ProtoDeclare[@name='TimeTrigger'])">
 <![CDATA[
-EXTERNPROTO TimeTrigger [
-  # [appinfo] Convert boolean true events to time events.
-  eventIn      SFBool	set_boolean    # [appinfo] If set_boolean input is true, trigger output time value.
-  eventOut     SFTime	triggerTime    # [appinfo] triggerTime is output time event, sent when set_boolean input is true.
-][
-      "EventUtilityPrototypes.wrl#TimeTrigger"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#TimeTrigger"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#TimeTrigger"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#TimeTrigger"
-      "EventUtilityPrototypes.x3d#TimeTrigger"
-      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#TimeTrigger"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#TimeTrigger"
-"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#TimeTrigger"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#TimeTrigger"
- ]
+#JASEXTERNPROTO TimeTrigger [
+#JAS  # [appinfo] Convert boolean true events to time events.
+#JAS  eventIn      SFBool	set_boolean    # [appinfo] If set_boolean input is true, trigger output time value.
+#JAS  eventOut     SFTime	triggerTime    # [appinfo] triggerTime is output time event, sent when set_boolean input is true.
+#JAS][
+#JAS      "EventUtilityPrototypes.wrl#TimeTrigger"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#TimeTrigger"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#TimeTrigger"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.wrl#TimeTrigger"
+#JAS      "EventUtilityPrototypes.x3d#TimeTrigger"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#TimeTrigger"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#TimeTrigger"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/EventUtilityPrototypes.x3d#TimeTrigger"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\EventUtilityPrototypes.wrl#TimeTrigger"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert BooleanSequencer external prototype declaration if not otherwise provided -->
     <xsl:if test="(//BooleanSequencer or //ProtoInstance[@name='BooleanSequencer']) and not(//ExternProtoDeclare[@name='BooleanSequencer']) and not(//ProtoDeclare[@name='BooleanSequencer'])">
 <![CDATA[
-EXTERNPROTO BooleanSequencer [
-  # Regular interpolator-style input
-  eventIn      SFFloat	set_fraction	# [appinfo] typically range [0..1]
-  eventIn      MFFloat	set_key
-  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
-  eventOut     MFFloat	key_changed
-  eventIn      SFString	set_keyValue
-  exposedField SFString	keyValue	# [appinfo] Array of Boolean values (implemented as SFString).  Must have the same number of keys as keyValues.
-  eventOut     SFString	keyValue_changed
-  # Regular interpolator-style output
-  eventOut     SFBool	value_changed
-  # Utility methods
-  eventIn      SFBool	previous
-  eventIn      SFBool	next
-][
-      "BooleanSequencerPrototype.wrl#BooleanSequencer"
-      "/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.wrl#BooleanSequencer"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.wrl#BooleanSequencer"
-"http://www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.wrl#BooleanSequencer"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/BooleanSequencerPrototype.wrl#BooleanSequencer"
-      "BooleanSequencerPrototype.x3d#BooleanSequencer"
-      "/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.x3d#BooleanSequencer"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.x3d#BooleanSequencer"
-"http://www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.x3d#BooleanSequencer"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/BooleanSequencerPrototype.x3d#BooleanSequencer"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\BooleanSequencerPrototype.wrl#BooleanSequencer"
- ]
+#JASEXTERNPROTO BooleanSequencer [
+#JAS  # Regular interpolator-style input
+#JAS  eventIn      SFFloat	set_fraction	# [appinfo] typically range [0..1]
+#JAS  eventIn      MFFloat	set_key
+#JAS  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
+#JAS  eventOut     MFFloat	key_changed
+#JAS  eventIn      SFString	set_keyValue
+#JAS  exposedField SFString	keyValue	# [appinfo] Array of Boolean values (implemented as SFString).  Must have the same number of keys as keyValues.
+#JAS  eventOut     SFString	keyValue_changed
+#JAS  # Regular interpolator-style output
+#JAS  eventOut     SFBool	value_changed
+#JAS  # Utility methods
+#JAS  eventIn      SFBool	previous
+#JAS  eventIn      SFBool	next
+#JAS][
+#JAS      "BooleanSequencerPrototype.wrl#BooleanSequencer"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.wrl#BooleanSequencer"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.wrl#BooleanSequencer"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.wrl#BooleanSequencer"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/BooleanSequencerPrototype.wrl#BooleanSequencer"
+#JAS      "BooleanSequencerPrototype.x3d#BooleanSequencer"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.x3d#BooleanSequencer"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.x3d#BooleanSequencer"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/BooleanSequencerPrototype.x3d#BooleanSequencer"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/BooleanSequencerPrototype.x3d#BooleanSequencer"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\BooleanSequencerPrototype.wrl#BooleanSequencer"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert CoordinateInterpolator2D external prototype declaration if not otherwise provided -->
     <xsl:if test="(//CoordinateInterpolator2D or //ProtoInstance[@name='CoordinateInterpolator2D']) and not(//ExternProtoDeclare[@name='CoordinateInterpolator2D']) and not(//ProtoDeclare[@name='CoordinateInterpolator2D'])">
 <![CDATA[
-### Remove this EXTERNPROTO declaration for use with Pivoron browser.  Works with CosmoPlayer and Cortona browsers.
-EXTERNPROTO CoordinateInterpolator2D [
-  eventIn  SFFloat set_fraction
-  eventIn      MFFloat	set_key
-  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
-  eventOut     MFFloat	key_changed
-  eventIn      MFVec2f	set_keyValue
-  exposedField MFVec2f	keyValue	# [appinfo] Array of integer values.  Must have the same number of keys as keyValues.
-  eventOut     MFVec2f	keyValue_changed
-  # Regular interpolator-style output
-  eventOut     MFVec2f value_changed
-][
-      "CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
-      "/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
-"http://www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
-      "CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
-      "/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
-"http://www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
- ]
+#JAS### Remove this EXTERNPROTO declaration for use with Pivoron browser.  Works with CosmoPlayer and Cortona browsers.
+#JASEXTERNPROTO CoordinateInterpolator2D [
+#JAS  eventIn  SFFloat set_fraction
+#JAS  eventIn      MFFloat	set_key
+#JAS  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
+#JAS  eventOut     MFFloat	key_changed
+#JAS  eventIn      MFVec2f	set_keyValue
+#JAS  exposedField MFVec2f	keyValue	# [appinfo] Array of integer values.  Must have the same number of keys as keyValues.
+#JAS  eventOut     MFVec2f	keyValue_changed
+#JAS  # Regular interpolator-style output
+#JAS  eventOut     MFVec2f value_changed
+#JAS][
+#JAS      "CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
+#JAS      "CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/CoordinateInterpolator2dPrototype.x3d#CoordinateInterpolator2D"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\CoordinateInterpolator2dPrototype.wrl#CoordinateInterpolator2D"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert LoadSensor external prototype declaration if not otherwise provided -->
     <xsl:if test="(//LoadSensor or //ProtoInstance[@name='LoadSensor']) and not(//ExternProtoDeclare[@name='LoadSensor']) and not(//ProtoDeclare[@name='LoadSensor'])">
 <![CDATA[
-EXTERNPROTO LoadSensor [
-  # [appinfo] LoadSensor monitors the progress and success of downloading URL elements over a network. Only nodes that contain a valid URL field (i.e., descendants of X3DUrlObject), may be specified as watchList children. Multiple nodes may be watched with a single LoadSensor.
-  # documentation: http://www.web3d.org/specifications/ISO-IEC-19775/Part01/components/networking.html#LoadSensor exposedField SFBool enabled # [appinfo] Enables/disables the sensor node.
-  exposedField SFTime timeOut # [appinfo] Maximum time for which the LoadSensor will monitor loading, starting from when the sensor becomes active. timeOut=0 ordinarily indicates an indefinite time out period; i.e., the LoadSensor will wait until loading has completed either with success or failure timeOut=0 causes immediate loading for this implementation.
-  field MFNode watchList # [appinfo] Zero or more nodes with url fields to monitor.
-  eventIn MFNode set_watchList # [appinfo] Change watchList MFNode array.
-  eventOut SFBool isActive # [appinfo] isActive=true when loading begins, isActive=false when loading ends.
-  eventOut SFBool isLoaded # [appinfo] isLoaded=true when loading succeeds, isLoaded=false when loading fails or timeOut reached.
-  eventOut SFTime loadTime # [appinfo] loadTime event is generated when loading has successfully completed.
-  eventOut SFFloat progress # [appinfo] progress [0..1] indicates fraction of loading complete.
-  field SFNode metadata # [appinfo] associated Metadata node.
-][
-  "LoadSensorPrototype.wrl#LoadSensor"
-  "/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.wrl#LoadSensor"
-  "c:/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.wrl#LoadSensor"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.wrl#LoadSensor"
-  "LoadSensorPrototype.x3d#LoadSensor"
-  "/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.x3d#LoadSensor"
-  "c:/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.x3d#LoadSensor"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.x3d#LoadSensor"
-]
+#JASEXTERNPROTO LoadSensor [
+#JAS  # [appinfo] LoadSensor monitors the progress and success of downloading URL elements over a network. Only nodes that contain a valid URL field (i.e., descendants of X3DUrlObject), may be specified as watchList children. Multiple nodes may be watched with a single LoadSensor.
+#JAS  # documentation: http://www.web3d.org/specifications/ISO-IEC-19775/Part01/components/networking.html#LoadSensor exposedField SFBool enabled # [appinfo] Enables/disables the sensor node.
+#JAS  exposedField SFTime timeOut # [appinfo] Maximum time for which the LoadSensor will monitor loading, starting from when the sensor becomes active. timeOut=0 ordinarily indicates an indefinite time out period; i.e., the LoadSensor will wait until loading has completed either with success or failure timeOut=0 causes immediate loading for this implementation.
+#JAS  field MFNode watchList # [appinfo] Zero or more nodes with url fields to monitor.
+#JAS  eventIn MFNode set_watchList # [appinfo] Change watchList MFNode array.
+#JAS  eventOut SFBool isActive # [appinfo] isActive=true when loading begins, isActive=false when loading ends.
+#JAS  eventOut SFBool isLoaded # [appinfo] isLoaded=true when loading succeeds, isLoaded=false when loading fails or timeOut reached.
+#JAS  eventOut SFTime loadTime # [appinfo] loadTime event is generated when loading has successfully completed.
+#JAS  eventOut SFFloat progress # [appinfo] progress [0..1] indicates fraction of loading complete.
+#JAS  field SFNode metadata # [appinfo] associated Metadata node.
+#JAS][
+#JAS  "LoadSensorPrototype.wrl#LoadSensor"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.wrl#LoadSensor"
+#JAS  "c:/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.wrl#LoadSensor"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.wrl#LoadSensor"
+#JAS  "LoadSensorPrototype.x3d#LoadSensor"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.x3d#LoadSensor"
+#JAS  "c:/www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.x3d#LoadSensor"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/LoadSensorPrototype.x3d#LoadSensor"
+#JAS]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert IntegerSequencer external prototype declaration if not otherwise provided -->
     <xsl:if test="(//IntegerSequencer or //ProtoInstance[@name='IntegerSequencer']) and not(//ExternProtoDeclare[@name='IntegerSequencer']) and not(//ProtoDeclare[@name='IntegerSequencer'])">
 <![CDATA[
-EXTERNPROTO IntegerSequencer [
-  # Regular interpolator-style input
-  eventIn      SFFloat	set_fraction	# [appinfo] typically range [0..1]
-  eventIn      MFFloat	set_key
-  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
-  eventOut     MFFloat	key_changed
-  ### When Script node supports exposedField, then it would be better to change keyValue to exposedField.
-  eventIn      MFInt32	set_keyValue
-  field        MFInt32	keyValue	# [appinfo] Array of integer values.  Must have the same number of keys as keyValues.
-  eventOut     MFInt32	keyValue_changed
-  # Regular interpolator-style output
-  eventOut     SFInt32	value_changed
-  # Utility methods
-  eventIn      SFBool	previous
-  eventIn      SFBool	next
-][
-      "IntegerSequencerPrototype.wrl#IntegerSequencer"
-      "/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.wrl#IntegerSequencer"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.wrl#IntegerSequencer"
-"http://www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.wrl#IntegerSequencer"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/IntegerSequencerPrototype.wrl#IntegerSequencer"
-      "IntegerSequencerPrototype.x3d#IntegerSequencer"
-      "/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.x3d#IntegerSequencer"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.x3d#IntegerSequencer"
-"http://www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.x3d#IntegerSequencer"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/IntegerSequencerPrototype.x3d#IntegerSequencer"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\IntegerSequencerPrototype.wrl#IntegerSequencer"
- ]
+#JASEXTERNPROTO IntegerSequencer [
+#JAS  # Regular interpolator-style input
+#JAS  eventIn      SFFloat	set_fraction	# [appinfo] typically range [0..1]
+#JAS  eventIn      MFFloat	set_key
+#JAS  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
+#JAS  eventOut     MFFloat	key_changed
+#JAS  ### When Script node supports exposedField, then it would be better to change keyValue to exposedField.
+#JAS  eventIn      MFInt32	set_keyValue
+#JAS  field        MFInt32	keyValue	# [appinfo] Array of integer values.  Must have the same number of keys as keyValues.
+#JAS  eventOut     MFInt32	keyValue_changed
+#JAS  # Regular interpolator-style output
+#JAS  eventOut     SFInt32	value_changed
+#JAS  # Utility methods
+#JAS  eventIn      SFBool	previous
+#JAS  eventIn      SFBool	next
+#JAS][
+#JAS      "IntegerSequencerPrototype.wrl#IntegerSequencer"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.wrl#IntegerSequencer"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.wrl#IntegerSequencer"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.wrl#IntegerSequencer"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/IntegerSequencerPrototype.wrl#IntegerSequencer"
+#JAS      "IntegerSequencerPrototype.x3d#IntegerSequencer"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.x3d#IntegerSequencer"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.x3d#IntegerSequencer"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/IntegerSequencerPrototype.x3d#IntegerSequencer"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/IntegerSequencerPrototype.x3d#IntegerSequencer"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\IntegerSequencerPrototype.wrl#IntegerSequencer"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
     <!-- Insert PositionInterpolator2D external prototype declaration if not otherwise provided -->
     <xsl:if test="(//PositionInterpolator2D or //ProtoInstance[@name='PositionInterpolator2D']) and not(//ExternProtoDeclare[@name='PositionInterpolator2D']) and not(//ProtoDeclare[@name='PositionInterpolator2D'])">
 <![CDATA[
-### Remove this EXTERNPROTO for use with Pivoron browser.  Works with CosmoPlayer browser and Cortona browser (which also has implemented natively as Position2Interpolator).
-EXTERNPROTO PositionInterpolator2D [
-  eventIn      SFFloat set_fraction
-  eventIn      MFFloat	set_key
-  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
-  eventOut     MFFloat	key_changed
-  eventIn      MFVec2f	set_keyValue
-  exposedField MFVec2f	keyValue	# [appinfo] Array of integer values.  Must have the same number of keys as keyValues.
-  eventOut     MFVec2f	keyValue_changed
-  # Regular interpolator-style output
-  eventOut     SFVec2f value_changed
-][
-      "PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
-      "/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
-    "c;/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
-"http://www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
-      "PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
-      "/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
-    "c:/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
-"http://www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
-"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
-# CosmoPlayer/Netscape 4.8 url bug workaround:
-#"file:///c|\www.web3d.org\x3d\content\examples\development\PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
- ]
+#JAS### Remove this EXTERNPROTO for use with Pivoron browser.  Works with CosmoPlayer browser and Cortona browser (which also has implemented natively as Position2Interpolator).
+#JASEXTERNPROTO PositionInterpolator2D [
+#JAS  eventIn      SFFloat set_fraction
+#JAS  eventIn      MFFloat	set_key
+#JAS  exposedField MFFloat	key		# [appinfo] Array sequentially increasing, typically [0..1].  Must have the same number of keys as keyValues.
+#JAS  eventOut     MFFloat	key_changed
+#JAS  eventIn      MFVec2f	set_keyValue
+#JAS  exposedField MFVec2f	keyValue	# [appinfo] Array of integer values.  Must have the same number of keys as keyValues.
+#JAS  eventOut     MFVec2f	keyValue_changed
+#JAS  # Regular interpolator-style output
+#JAS  eventOut     SFVec2f value_changed
+#JAS][
+#JAS      "PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
+#JAS    "c;/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
+#JAS      "PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
+#JAS      "/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
+#JAS    "c:/www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
+#JAS"http://www.web3d.org/x3d/content/examples/Basic/development/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
+#JAS"http://web.nps.navy.mil/~brutzman/Savage/Tools/Animation/PositionInterpolator2dPrototype.x3d#PositionInterpolator2D"
+#JAS# CosmoPlayer/Netscape 4.8 url bug workaround:
+#JAS#"file:///c|\www.web3d.org\x3d\content\examples\development\PositionInterpolator2dPrototype.wrl#PositionInterpolator2D"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
@@ -428,107 +428,107 @@ EXTERNPROTO PositionInterpolator2D [
     <!-- Insert MetadataDouble external prototype declaration if not otherwise provided -->
     <xsl:if test="(//MetadataDouble or //ProtoInstance[@name='MetadataDouble']) and not(//ExternProtoDeclare[@name='MetadataDouble']) and not(//ProtoDeclare[@name='MetadataDouble'])">
 <![CDATA[
-EXTERNPROTO MetadataDouble [
-  # [appinfo] MetadataDouble contains a set of double-precision floating-point numbers in the value field.
-  exposedField SFString name
-  exposedField MFFloat value
-  exposedField SFString reference
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "MetadataPrototypes.wrl#MetadataDouble"
-  "../development/MetadataPrototypes.wrl#MetadataDouble"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataDouble"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataDouble"
-  "MetadataPrototypes.x3d#MetadataDouble"
-  "../development/MetadataPrototypes.x3d#MetadataDouble"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataDouble"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataDouble"
- ]
+#JASEXTERNPROTO MetadataDouble [
+#JAS  # [appinfo] MetadataDouble contains a set of double-precision floating-point numbers in the value field.
+#JAS  exposedField SFString name
+#JAS  exposedField MFFloat value
+#JAS  exposedField SFString reference
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "MetadataPrototypes.wrl#MetadataDouble"
+#JAS  "../development/MetadataPrototypes.wrl#MetadataDouble"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataDouble"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataDouble"
+#JAS  "MetadataPrototypes.x3d#MetadataDouble"
+#JAS  "../development/MetadataPrototypes.x3d#MetadataDouble"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataDouble"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataDouble"
+#JAS ]
 ]]>
   </xsl:if>
   <!-- Insert MetadataFloat external prototype declaration if not otherwise provided -->
   <xsl:if test="(//MetadataFloat or //ProtoInstance[@name='MetadataFloat']) and not(//ExternProtoDeclare[@name='MetadataFloat']) and not(//ProtoDeclare[@name='MetadataFloat'])">
 <![CDATA[
-EXTERNPROTO MetadataFloat [
-  # [appinfo] MetadataFloat contains a set of floating-point numbers in the value field.
-  exposedField SFString name
-  exposedField MFFloat value
-  exposedField SFString reference
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "MetadataPrototypes.wrl#MetadataFloat"
-  "../development/MetadataPrototypes.wrl#MetadataFloat"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataFloat"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataFloat"
-  "MetadataPrototypes.x3d#MetadataFloat"
-  "../development/MetadataPrototypes.x3d#MetadataFloat"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataFloat"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataFloat"
- ]
+#JASEXTERNPROTO MetadataFloat [
+#JAS  # [appinfo] MetadataFloat contains a set of floating-point numbers in the value field.
+#JAS  exposedField SFString name
+#JAS  exposedField MFFloat value
+#JAS  exposedField SFString reference
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "MetadataPrototypes.wrl#MetadataFloat"
+#JAS  "../development/MetadataPrototypes.wrl#MetadataFloat"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataFloat"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataFloat"
+#JAS  "MetadataPrototypes.x3d#MetadataFloat"
+#JAS  "../development/MetadataPrototypes.x3d#MetadataFloat"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataFloat"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataFloat"
+#JAS ]
 ]]>
     </xsl:if>
     <!-- Insert MetadataInteger external prototype declaration if not otherwise provided -->
     <xsl:if test="(//MetadataInteger or //ProtoInstance[@name='MetadataInteger']) and not(//ExternProtoDeclare[@name='MetadataInteger']) and not(//ProtoDeclare[@name='MetadataInteger'])">
 <![CDATA[
-EXTERNPROTO MetadataInteger [
-  # [appinfo] MetadataInteger contains a set of 32-bit integer numbers in the value field.
-  exposedField SFString name
-  field MFInt32 value
-  eventIn MFInt32 set_value
-  exposedField SFString reference
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "MetadataPrototypes.wrl#MetadataInteger"
-  "../development/MetadataPrototypes.wrl#MetadataInteger"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataInteger"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataInteger"
-  "MetadataPrototypes.x3d#MetadataInteger"
-  "../development/MetadataPrototypes.x3d#MetadataInteger"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataInteger"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataInteger"
- ]
+#JASEXTERNPROTO MetadataInteger [
+#JAS  # [appinfo] MetadataInteger contains a set of 32-bit integer numbers in the value field.
+#JAS  exposedField SFString name
+#JAS  field MFInt32 value
+#JAS  eventIn MFInt32 set_value
+#JAS  exposedField SFString reference
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "MetadataPrototypes.wrl#MetadataInteger"
+#JAS  "../development/MetadataPrototypes.wrl#MetadataInteger"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataInteger"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataInteger"
+#JAS  "MetadataPrototypes.x3d#MetadataInteger"
+#JAS  "../development/MetadataPrototypes.x3d#MetadataInteger"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataInteger"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataInteger"
+#JAS ]
 ]]>
     </xsl:if>
     <!-- Insert MetadataSet external prototype declaration if not otherwise provided -->
     <xsl:if test="(//MetadataSet or //ProtoInstance[@name='MetadataSet']) and not(//ExternProtoDeclare[@name='MetadataSet']) and not(//ProtoDeclare[@name='MetadataSet'])">
 <![CDATA[
-EXTERNPROTO MetadataSet [
-  # [appinfo] MetadataSet contains a set of nodes in the value field.
-  exposedField SFString name
-  exposedField MFNode value
-  exposedField SFString reference
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "MetadataPrototypes.wrl#MetadataSet"
-  "..s/development/MetadataPrototypes.wrl#MetadataSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataSet"
-  "MetadataPrototypes.x3d#MetadataSet"
-  "..s/development/MetadataPrototypes.x3d#MetadataSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataSet"
- ]
+#JASEXTERNPROTO MetadataSet [
+#JAS  # [appinfo] MetadataSet contains a set of nodes in the value field.
+#JAS  exposedField SFString name
+#JAS  exposedField MFNode value
+#JAS  exposedField SFString reference
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "MetadataPrototypes.wrl#MetadataSet"
+#JAS  "..s/development/MetadataPrototypes.wrl#MetadataSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataSet"
+#JAS  "MetadataPrototypes.x3d#MetadataSet"
+#JAS  "..s/development/MetadataPrototypes.x3d#MetadataSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataSet"
+#JAS ]
 ]]>
     </xsl:if>
     <!-- Insert MetadataString external prototype declaration if not otherwise provided -->
     <xsl:if test="(//MetadataString or //ProtoInstance[@name='MetadataString']) and not(//ExternProtoDeclare[@name='MetadataString']) and not(//ProtoDeclare[@name='MetadataString'])">
 <![CDATA[
-EXTERNPROTO MetadataString [
-  # [appinfo] MetadataString contains a set of strings in the value field.
-  exposedField SFString name
-  exposedField MFString value
-  exposedField SFString reference
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "MetadataPrototypes.wrl#MetadataString"
-  "../development/MetadataPrototypes.wrl#MetadataString"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataString"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataString"
-  "MetadataPrototypes.x3d#MetadataString"
-  "../development/MetadataPrototypes.x3d#MetadataString"
-  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataString"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataString"
- ]
+#JASEXTERNPROTO MetadataString [
+#JAS  # [appinfo] MetadataString contains a set of strings in the value field.
+#JAS  exposedField SFString name
+#JAS  exposedField MFString value
+#JAS  exposedField SFString reference
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "MetadataPrototypes.wrl#MetadataString"
+#JAS  "../development/MetadataPrototypes.wrl#MetadataString"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataString"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.wrl#MetadataString"
+#JAS  "MetadataPrototypes.x3d#MetadataString"
+#JAS  "../development/MetadataPrototypes.x3d#MetadataString"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataString"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/MetadataPrototypes.x3d#MetadataString"
+#JAS ]
 ]]>
     </xsl:if>
     <!--========================================-->
@@ -932,14 +932,14 @@ EXTERNPROTO XvlShell [
          these can be superceded by a browser, if desired. -->
     <xsl:if test="(//HAnimDisplacer or //ProtoInstance[@name='HAnimDisplacer']) and not(//ExternProtoDeclare[@name='HAnimDisplacer']) and not(//ProtoDeclare[@name='HAnimDisplacer'])">
 <![CDATA[
-PROTO HAnimDisplacer [
-    exposedField SFString name           ""
-    exposedField MFInt32  coordIndex     [ ]
-    exposedField MFVec3f  displacements  [ ]
-]
-{
-  WorldInfo { info "null body node" }
-}
+#JASPROTO HAnimDisplacer [
+#JAS    exposedField SFString name           ""
+#JAS    exposedField MFInt32  coordIndex     [ ]
+#JAS    exposedField MFVec3f  displacements  [ ]
+#JAS]
+#JAS{
+#JAS  WorldInfo { info "null body node" }
+#JAS}
 ]]>
     </xsl:if>
     <xsl:if test="(//HAnimHumanoid or //ProtoInstance[@name='HAnimHumanoid']) and not(//ExternProtoDeclare[@name='HAnimHumanoid']) and not(//ProtoDeclare[@name='HAnimHumanoid'])">
@@ -1003,141 +1003,141 @@ PROTO HAnimHumanoid [
         <xsl:text># PROTO version taken from http://www.h-anim.org/Models/H-Anim2001/boxman/boxman.wrl&#10;</xsl:text>
         <xsl:text># EXTERNPROTO version will also be available at http://h-anim.org/Nodes &#10;</xsl:text>
 <![CDATA[
-PROTO HAnimHumanoid [
-   exposedField    SFString   name                  ""
-   exposedField    SFString   version               "2.0"
-   exposedField    SFString   humanoidVersion       ""
-   exposedField    MFString   info                  [ ]
-   exposedField    SFVec3f    translation           0 0 0
-   exposedField    SFRotation rotation              0 0 1 0
-   exposedField    SFVec3f    scale                 1 1 1
-   exposedField    SFRotation scaleOrientation      0 0 1 0
-   exposedField    SFVec3f    center                0 0 0
-   field           SFVec3f    bboxCenter            0 0 0
-   field           SFVec3f    bboxSize              -1 -1 -1
-   exposedField    MFNode     skeleton              [ ]
-   exposedField    MFNode     skin                  [ ]
-   exposedField    MFNode     joints                [ ]
-   exposedField    MFNode     segments              [ ]
-   exposedField    MFNode     sites                 [ ]
-   exposedField    MFNode     viewpoints            [ ]
-   exposedField    SFNode     skinCoord             NULL
-   exposedField    SFNode     skinNormal            NULL
-]
-{
-   Transform {
-      translation      IS translation
-      rotation         IS rotation
-      scale            IS scale
-      scaleOrientation IS scaleOrientation
-      center           IS center
-      bboxCenter       IS bboxCenter
-      bboxSize         IS bboxSize
-      children [
-         Group {
-            children IS skeleton
-         }
-         Group {
-            children IS skin
-         }
-         Group {
-            children IS viewpoints
-         }
-      ]
-   }
-}
+#JASPROTO HAnimHumanoid [
+#JAS   exposedField    SFString   name                  ""
+#JAS   exposedField    SFString   version               "2.0"
+#JAS   exposedField    SFString   humanoidVersion       ""
+#JAS   exposedField    MFString   info                  [ ]
+#JAS   exposedField    SFVec3f    translation           0 0 0
+#JAS   exposedField    SFRotation rotation              0 0 1 0
+#JAS   exposedField    SFVec3f    scale                 1 1 1
+#JAS   exposedField    SFRotation scaleOrientation      0 0 1 0
+#JAS   exposedField    SFVec3f    center                0 0 0
+#JAS   field           SFVec3f    bboxCenter            0 0 0
+#JAS   field           SFVec3f    bboxSize              -1 -1 -1
+#JAS   exposedField    MFNode     skeleton              [ ]
+#JAS   exposedField    MFNode     skin                  [ ]
+#JAS   exposedField    MFNode     joints                [ ]
+#JAS   exposedField    MFNode     segments              [ ]
+#JAS   exposedField    MFNode     sites                 [ ]
+#JAS   exposedField    MFNode     viewpoints            [ ]
+#JAS   exposedField    SFNode     skinCoord             NULL
+#JAS   exposedField    SFNode     skinNormal            NULL
+#JAS]
+#JAS{
+#JAS   Transform {
+#JAS      translation      IS translation
+#JAS      rotation         IS rotation
+#JAS      scale            IS scale
+#JAS      scaleOrientation IS scaleOrientation
+#JAS      center           IS center
+#JAS      bboxCenter       IS bboxCenter
+#JAS      bboxSize         IS bboxSize
+#JAS      children [
+#JAS         Group {
+#JAS            children IS skeleton
+#JAS         }
+#JAS         Group {
+#JAS            children IS skin
+#JAS         }
+#JAS         Group {
+#JAS            children IS viewpoints
+#JAS         }
+#JAS      ]
+#JAS   }
+#JAS}
 ]]>
     </xsl:if>
     <xsl:if test="(//HAnimJoint or //ProtoInstance[@name='HAnimJoint']) and not(//ExternProtoDeclare[@name='HAnimJoint']) and not(//ProtoDeclare[@name='HAnimJoint'])">
 <![CDATA[
-PROTO HAnimJoint [
-   exposedField     SFString     name                ""
-   exposedField     MFFloat      ulimit              [ ]
-   exposedField     MFFloat      llimit              [ ]
-   exposedField     SFRotation   limitOrientation    0 0 1 0
-   exposedField     MFInt32      skinCoordIndex      [ ]
-   exposedField     MFFloat      skinCoordWeight     [ ]
-   exposedField     MFFloat      stiffness           [ 0 0 0 ]
-   exposedField     SFVec3f      translation         0 0 0
-   exposedField     SFRotation   rotation            0 0 1 0
-   exposedField     SFVec3f      scale               1 1 1
-   exposedField     SFRotation   scaleOrientation    0 0 1 0
-   exposedField     SFVec3f      center              0 0 0
-   field            SFVec3f      bboxCenter          0 0 0
-   field            SFVec3f      bboxSize            -1 -1 -1
-   exposedField     MFNode       children            [ ]
-   eventIn          MFNode       addChildren
-   eventIn          MFNode       removeChildren
-]
-{
-	Transform {
-		translation      IS translation
-		rotation         IS rotation
-		scale            IS scale
-		scaleOrientation IS scaleOrientation
-		center           IS center
-		bboxCenter       IS bboxCenter
-		bboxSize         IS bboxSize
-		children         IS children
-		addChildren      IS addChildren
-		removeChildren   IS removeChildren
-   }
-}
+#JASPROTO HAnimJoint [
+#JAS   exposedField     SFString     name                ""
+#JAS   exposedField     MFFloat      ulimit              [ ]
+#JAS   exposedField     MFFloat      llimit              [ ]
+#JAS   exposedField     SFRotation   limitOrientation    0 0 1 0
+#JAS   exposedField     MFInt32      skinCoordIndex      [ ]
+#JAS   exposedField     MFFloat      skinCoordWeight     [ ]
+#JAS   exposedField     MFFloat      stiffness           [ 0 0 0 ]
+#JAS   exposedField     SFVec3f      translation         0 0 0
+#JAS   exposedField     SFRotation   rotation            0 0 1 0
+#JAS   exposedField     SFVec3f      scale               1 1 1
+#JAS   exposedField     SFRotation   scaleOrientation    0 0 1 0
+#JAS   exposedField     SFVec3f      center              0 0 0
+#JAS   field            SFVec3f      bboxCenter          0 0 0
+#JAS   field            SFVec3f      bboxSize            -1 -1 -1
+#JAS   exposedField     MFNode       children            [ ]
+#JAS   eventIn          MFNode       addChildren
+#JAS   eventIn          MFNode       removeChildren
+#JAS]
+#JAS{
+#JAS	Transform {
+#JAS		translation      IS translation
+#JAS		rotation         IS rotation
+#JAS		scale            IS scale
+#JAS		scaleOrientation IS scaleOrientation
+#JAS		center           IS center
+#JAS		bboxCenter       IS bboxCenter
+#JAS		bboxSize         IS bboxSize
+#JAS		children         IS children
+#JAS		addChildren      IS addChildren
+#JAS		removeChildren   IS removeChildren
+#JAS   }
+#JAS}
 ]]>
     </xsl:if>
     <xsl:if test="(//HAnimSegment or //ProtoInstance[@name='HAnimSegment']) and not(//ExternProtoDeclare[@name='HAnimSegment']) and not(//ProtoDeclare[@name='HAnimSegment'])">
 <![CDATA[
-PROTO HAnimSegment [
-   exposedField   SFString name             ""
-   exposedField   SFFloat  mass             0
-   exposedField   SFVec3f  centerOfMass     0 0 0
-   exposedField   MFFloat  momentsOfInertia [ 0 0 0 0 0 0 0 0 0 ]
-   field          SFVec3f  bboxCenter       0 0 0
-   field          SFVec3f  bboxSize         -1 -1 -1
-   exposedField   MFNode   children         [ ]
-   eventIn        MFNode   addChildren
-   eventIn        MFNode   removeChildren
-   exposedField   SFNode   coord            NULL
-   exposedField   MFNode   displacers       [ ]
-]
-{
-	Group {
-		bboxCenter     IS bboxCenter
-		bboxSize       IS bboxSize
-		children       IS children
-		addChildren    IS addChildren
-		removeChildren IS removeChildren
-	}
-}
+#JASPROTO HAnimSegment [
+#JAS   exposedField   SFString name             ""
+#JAS   exposedField   SFFloat  mass             0
+#JAS   exposedField   SFVec3f  centerOfMass     0 0 0
+#JAS   exposedField   MFFloat  momentsOfInertia [ 0 0 0 0 0 0 0 0 0 ]
+#JAS   field          SFVec3f  bboxCenter       0 0 0
+#JAS   field          SFVec3f  bboxSize         -1 -1 -1
+#JAS   exposedField   MFNode   children         [ ]
+#JAS   eventIn        MFNode   addChildren
+#JAS   eventIn        MFNode   removeChildren
+#JAS   exposedField   SFNode   coord            NULL
+#JAS   exposedField   MFNode   displacers       [ ]
+#JAS]
+#JAS{
+#JAS	Group {
+#JAS		bboxCenter     IS bboxCenter
+#JAS		bboxSize       IS bboxSize
+#JAS		children       IS children
+#JAS		addChildren    IS addChildren
+#JAS		removeChildren IS removeChildren
+#JAS	}
+#JAS}
 ]]>
     </xsl:if>
     <xsl:if test="(//HAnimSite or //ProtoInstance[@name='HAnimSite']) and not(//ExternProtoDeclare[@name='HAnimSite']) and not(//ProtoDeclare[@name='HAnimSite'])">
 <![CDATA[
-PROTO HAnimSite [
-	exposedField SFString name ""
-	exposedField SFVec3f translation 0 0 0
-	exposedField SFRotation rotation 0 0 1 0
-	exposedField SFVec3f scale 1 1 1
-	exposedField SFRotation scaleOrientation 0 0 1 0
-	exposedField SFVec3f center 0 0 0
-	field        SFVec3f bboxCenter 0 0 0
-	field        SFVec3f bboxSize   -1 -1 -1
-	exposedField MFNode children []
-	eventIn MFNode addChildren
-	eventIn MFNode removeChildren
-]
-{
-	Transform {
-		children IS children
-		addChildren IS addChildren
-		removeChildren IS removeChildren
-		center IS center
-		rotation IS rotation
-		scale IS scale
-		scaleOrientation IS scaleOrientation
-		translation IS translation
-	}
-}
+#JASPROTO HAnimSite [
+#JAS	exposedField SFString name ""
+#JAS	exposedField SFVec3f translation 0 0 0
+#JAS	exposedField SFRotation rotation 0 0 1 0
+#JAS	exposedField SFVec3f scale 1 1 1
+#JAS	exposedField SFRotation scaleOrientation 0 0 1 0
+#JAS	exposedField SFVec3f center 0 0 0
+#JAS	field        SFVec3f bboxCenter 0 0 0
+#JAS	field        SFVec3f bboxSize   -1 -1 -1
+#JAS	exposedField MFNode children []
+#JAS	eventIn MFNode addChildren
+#JAS	eventIn MFNode removeChildren
+#JAS]
+#JAS{
+#JAS	Transform {
+#JAS		children IS children
+#JAS		addChildren IS addChildren
+#JAS		removeChildren IS removeChildren
+#JAS		center IS center
+#JAS		rotation IS rotation
+#JAS		scale IS scale
+#JAS		scaleOrientation IS scaleOrientation
+#JAS		translation IS translation
+#JAS	}
+#JAS}
 ]]>
     </xsl:if>
 <!--
@@ -1236,182 +1236,182 @@ PROTO HAnimSite [
     <!-- Insert Rendering Component EXTERNPROTO declarations, if not otherwise provided -->
     <xsl:if test="//ColorRGBA and not(//ExternProtoDeclare[@name='ColorRGBA']) and not(//ProtoDeclare[@name='ColorRGBA'])">
 <![CDATA[
-EXTERNPROTO ColorRGBA [
-  # [appinfo] ColorRGBA defines a set of RGBA colors.
-  exposedField MFRotation color # [appinfo] locally override MFColorRGBA type (which is not supported in VRML 97) in order to downgrade to Color RGB
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#ColorRGBA"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#ColorRGBA"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#ColorRGBA"
-  "RenderingComponentPrototypes.x3d#ColorRGBA"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#ColorRGBA"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#ColorRGBA"
-]
+#JASEXTERNPROTO ColorRGBA [
+#JAS  # [appinfo] ColorRGBA defines a set of RGBA colors.
+#JAS  exposedField MFRotation color # [appinfo] locally override MFColorRGBA type (which is not supported in VRML 97) in order to downgrade to Color RGB
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#ColorRGBA"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#ColorRGBA"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#ColorRGBA"
+#JAS  "RenderingComponentPrototypes.x3d#ColorRGBA"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#ColorRGBA"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#ColorRGBA"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//IndexedTriangleFanSet and not(//ExternProtoDeclare[@name='IndexedTriangleFanSet']) and not(//ProtoDeclare[@name='IndexedTriangleFanSet'])">
 <![CDATA[
-EXTERNPROTO IndexedTriangleFanSet [
-  # [appinfo] IndexedTriangleFanSet represents a 3D shape composed of triangles that form a fan shape around the first vertex declared in each fan.
-  field SFBool ccw
-  field SFBool colorPerVertex
-  field SFBool normalPerVertex
-  field SFBool solid
-  field MFInt32 index
-  eventIn MFInt32 set_index
-  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
-  exposedField SFNode coord # [appinfo] Coordinate node only
-  exposedField SFNode normal # [appinfo] Normal node only
-  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#IndexedTriangleFanSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleFanSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleFanSet"
-  "RenderingComponentPrototypes.x3d#IndexedTriangleFanSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleFanSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleFanSet"
-]
+#JASEXTERNPROTO IndexedTriangleFanSet [
+#JAS  # [appinfo] IndexedTriangleFanSet represents a 3D shape composed of triangles that form a fan shape around the first vertex declared in each fan.
+#JAS  field SFBool ccw
+#JAS  field SFBool colorPerVertex
+#JAS  field SFBool normalPerVertex
+#JAS  field SFBool solid
+#JAS  field MFInt32 index
+#JAS  eventIn MFInt32 set_index
+#JAS  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
+#JAS  exposedField SFNode coord # [appinfo] Coordinate node only
+#JAS  exposedField SFNode normal # [appinfo] Normal node only
+#JAS  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#IndexedTriangleFanSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleFanSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleFanSet"
+#JAS  "RenderingComponentPrototypes.x3d#IndexedTriangleFanSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleFanSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleFanSet"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//IndexedTriangleSet and not(//ExternProtoDeclare[@name='IndexedTriangleSet']) and not(//ProtoDeclare[@name='IndexedTriangleSet'])">
 <![CDATA[
-EXTERNPROTO IndexedTriangleSet [
-  # [appinfo] IndexedTriangleSet represents a 3D shape composed of a collection of individual triangles.
-  field SFBool ccw
-  field SFBool colorPerVertex
-  field SFBool normalPerVertex
-  field SFBool solid
-  field MFInt32 index
-  eventIn MFInt32 set_index
-  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
-  exposedField SFNode coord # [appinfo] Coordinate node only
-  exposedField SFNode normal # [appinfo] Normal node only
-  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#IndexedTriangleSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleSet"
-  "RenderingComponentPrototypes.x3d#IndexedTriangleSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleSet"
-]
+#JASEXTERNPROTO IndexedTriangleSet [
+#JAS  # [appinfo] IndexedTriangleSet represents a 3D shape composed of a collection of individual triangles.
+#JAS  field SFBool ccw
+#JAS  field SFBool colorPerVertex
+#JAS  field SFBool normalPerVertex
+#JAS  field SFBool solid
+#JAS  field MFInt32 index
+#JAS  eventIn MFInt32 set_index
+#JAS  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
+#JAS  exposedField SFNode coord # [appinfo] Coordinate node only
+#JAS  exposedField SFNode normal # [appinfo] Normal node only
+#JAS  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#IndexedTriangleSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleSet"
+#JAS  "RenderingComponentPrototypes.x3d#IndexedTriangleSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleSet"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//IndexedTriangleStripSet and not(//ExternProtoDeclare[@name='IndexedTriangleStripSet']) and not(//ProtoDeclare[@name='IndexedTriangleStripSet'])">
 <![CDATA[
-EXTERNPROTO IndexedTriangleStripSet [
-  # [appinfo] IndexedTriangleStripSet represents a 3D shape composed of strips of triangles.
-  field SFBool ccw
-  field SFBool colorPerVertex
-  field SFBool normalPerVertex
-  field SFBool solid
-  field MFInt32 index
-  eventIn MFInt32 set_index
-  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
-  exposedField SFNode coord # [appinfo] Coordinate node only
-  exposedField SFNode normal # [appinfo] Normal node only
-  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#IndexedTriangleStripSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleStripSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleStripSet"
-  "RenderingComponentPrototypes.x3d#IndexedTriangleStripSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleStripSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleStripSet"
-]
+#JASEXTERNPROTO IndexedTriangleStripSet [
+#JAS  # [appinfo] IndexedTriangleStripSet represents a 3D shape composed of strips of triangles.
+#JAS  field SFBool ccw
+#JAS  field SFBool colorPerVertex
+#JAS  field SFBool normalPerVertex
+#JAS  field SFBool solid
+#JAS  field MFInt32 index
+#JAS  eventIn MFInt32 set_index
+#JAS  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
+#JAS  exposedField SFNode coord # [appinfo] Coordinate node only
+#JAS  exposedField SFNode normal # [appinfo] Normal node only
+#JAS  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#IndexedTriangleStripSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleStripSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#IndexedTriangleStripSet"
+#JAS  "RenderingComponentPrototypes.x3d#IndexedTriangleStripSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleStripSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#IndexedTriangleStripSet"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//LineSet and not(//ExternProtoDeclare[@name='LineSet']) and not(//ProtoDeclare[@name='LineSet'])">
 <![CDATA[
-EXTERNPROTO LineSet [
-  # [appinfo] LineSet represents a 3D geometry formed by constructing polylines from 3D vertices.
-  exposedField MFInt32 vertexCount
-  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
-  exposedField SFNode coord # [appinfo] Coordinate node only
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#LineSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#LineSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#LineSet"
-  "RenderingComponentPrototypes.x3d#LineSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#LineSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#LineSet"
-]
+#JASEXTERNPROTO LineSet [
+#JAS  # [appinfo] LineSet represents a 3D geometry formed by constructing polylines from 3D vertices.
+#JAS  exposedField MFInt32 vertexCount
+#JAS  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
+#JAS  exposedField SFNode coord # [appinfo] Coordinate node only
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#LineSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#LineSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#LineSet"
+#JAS  "RenderingComponentPrototypes.x3d#LineSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#LineSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#LineSet"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//TriangleFanSet and not(//ExternProtoDeclare[@name='TriangleFanSet']) and not(//ProtoDeclare[@name='TriangleFanSet'])">
 <![CDATA[
-EXTERNPROTO TriangleFanSet [
-  # [appinfo] TriangleFanSet represents a 3D shape composed of triangles that form a fan shape around the first vertex declared in each fan.
-  exposedField MFInt32 fanCount
-  field SFBool ccw
-  field SFBool colorPerVertex
-  field SFBool normalPerVertex
-  field SFBool solid
-  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
-  exposedField SFNode coord # [appinfo] Coordinate node only
-  exposedField SFNode normal # [appinfo] Normal node only
-  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#TriangleFanSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleFanSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleFanSet"
-  "RenderingComponentPrototypes.x3d#TriangleFanSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleFanSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleFanSet"
-]
+#JASEXTERNPROTO TriangleFanSet [
+#JAS  # [appinfo] TriangleFanSet represents a 3D shape composed of triangles that form a fan shape around the first vertex declared in each fan.
+#JAS  exposedField MFInt32 fanCount
+#JAS  field SFBool ccw
+#JAS  field SFBool colorPerVertex
+#JAS  field SFBool normalPerVertex
+#JAS  field SFBool solid
+#JAS  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
+#JAS  exposedField SFNode coord # [appinfo] Coordinate node only
+#JAS  exposedField SFNode normal # [appinfo] Normal node only
+#JAS  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#TriangleFanSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleFanSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleFanSet"
+#JAS  "RenderingComponentPrototypes.x3d#TriangleFanSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleFanSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleFanSet"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//TriangleSet and not(//ExternProtoDeclare[@name='TriangleSet']) and not(//ProtoDeclare[@name='TriangleSet'])">
 <![CDATA[
-EXTERNPROTO TriangleSet [
-  # [appinfo] TriangleSet represents a 3D shape that represents a collection of individual triangles.
-  field SFBool ccw
-  field SFBool colorPerVertex
-  field SFBool normalPerVertex
-  field SFBool solid
-  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
-  exposedField SFNode coord # [appinfo] Coordinate node only
-  exposedField SFNode normal # [appinfo] Normal node only
-  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#TriangleSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleSet"
-  "RenderingComponentPrototypes.x3d#TriangleSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleSet"
-]
+#JASEXTERNPROTO TriangleSet [
+#JAS  # [appinfo] TriangleSet represents a 3D shape that represents a collection of individual triangles.
+#JAS  field SFBool ccw
+#JAS  field SFBool colorPerVertex
+#JAS  field SFBool normalPerVertex
+#JAS  field SFBool solid
+#JAS  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
+#JAS  exposedField SFNode coord # [appinfo] Coordinate node only
+#JAS  exposedField SFNode normal # [appinfo] Normal node only
+#JAS  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#TriangleSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleSet"
+#JAS  "RenderingComponentPrototypes.x3d#TriangleSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleSet"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//TriangleStripSet and not(//ExternProtoDeclare[@name='TriangleStripSet']) and not(//ProtoDeclare[@name='TriangleStripSet'])">
 <![CDATA[
-EXTERNPROTO TriangleStripSet [
-  # [appinfo] TriangleStripSet represents a 3D shape composed of strips of triangles.
-  exposedField MFInt32 stripCount
-  field SFBool ccw
-  field SFBool colorPerVertex
-  field SFBool normalPerVertex
-  field SFBool solid
-  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
-  exposedField SFNode coord # [appinfo] Coordinate node only
-  exposedField SFNode normal # [appinfo] Normal node only
-  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "RenderingComponentPrototypes.wrl#TriangleStripSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleStripSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleStripSet"
-  "RenderingComponentPrototypes.x3d#TriangleStripSet"
-  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleStripSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleStripSet"
-]
+#JASEXTERNPROTO TriangleStripSet [
+#JAS  # [appinfo] TriangleStripSet represents a 3D shape composed of strips of triangles.
+#JAS  exposedField MFInt32 stripCount
+#JAS  field SFBool ccw
+#JAS  field SFBool colorPerVertex
+#JAS  field SFBool normalPerVertex
+#JAS  field SFBool solid
+#JAS  exposedField SFNode color # [appinfo] Color, ColorRGBA node only
+#JAS  exposedField SFNode coord # [appinfo] Coordinate node only
+#JAS  exposedField SFNode normal # [appinfo] Normal node only
+#JAS  exposedField SFNode texCoord # [appinfo] TextureCoordinate node only
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "RenderingComponentPrototypes.wrl#TriangleStripSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleStripSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.wrl#TriangleStripSet"
+#JAS  "RenderingComponentPrototypes.x3d#TriangleStripSet"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleStripSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/RenderingComponentPrototypes.x3d#TriangleStripSet"
+#JAS]
 ]]>
     </xsl:if>
     <!-- ================================================================================================= -->
@@ -1419,134 +1419,134 @@ EXTERNPROTO TriangleStripSet [
     <!-- Insert Geometry2D Component EXTERNPROTO declarations, if not otherwise provided -->
     <xsl:if test="//Arc2D and not(//ExternProtoDeclare[@name='Arc2D']) and not(//ProtoDeclare[@name='Arc2D'])">
 <![CDATA[
-EXTERNPROTO Arc2D [
-  field SFFloat startAngle
-  field SFFloat endAngle
-  field SFFloat radius
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#Arc2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Arc2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Arc2D"
-  "Geometry2dComponentPrototypes.x3d#Arc2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Arc2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Arc2D"
-]
+#JASEXTERNPROTO Arc2D [
+#JAS  field SFFloat startAngle
+#JAS  field SFFloat endAngle
+#JAS  field SFFloat radius
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#Arc2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Arc2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Arc2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#Arc2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Arc2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Arc2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//ArcClose2D and not(//ExternProtoDeclare[@name='ArcClose2D']) and not(//ProtoDeclare[@name='ArcClose2D'])">
 <![CDATA[
-EXTERNPROTO ArcClose2D [
-  field SFFloat startAngle
-  field SFFloat endAngle
-  field SFFloat radius
-  field SFString closureType
-  field SFBool solid
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#ArcClose2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#ArcClose2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#ArcClose2D"
-  "Geometry2dComponentPrototypes.x3d#ArcClose2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#ArcClose2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#ArcClose2D"
-]
+#JASEXTERNPROTO ArcClose2D [
+#JAS  field SFFloat startAngle
+#JAS  field SFFloat endAngle
+#JAS  field SFFloat radius
+#JAS  field SFString closureType
+#JAS  field SFBool solid
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#ArcClose2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#ArcClose2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#ArcClose2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#ArcClose2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#ArcClose2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#ArcClose2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//Circle2D and not(//ExternProtoDeclare[@name='Circle2D']) and not(//ProtoDeclare[@name='Circle2D'])">
 <![CDATA[
-EXTERNPROTO Circle2D [
-  field SFFloat radius
-  field SFBool solid
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#Circle2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Circle2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Circle2D"
-  "Geometry2dComponentPrototypes.x3d#Circle2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Circle2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Circle2D"
-]
+#JASEXTERNPROTO Circle2D [
+#JAS  field SFFloat radius
+#JAS  field SFBool solid
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#Circle2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Circle2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Circle2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#Circle2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Circle2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Circle2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//Disk2D and not(//ExternProtoDeclare[@name='Disk2D']) and not(//ProtoDeclare[@name='Disk2D'])">
 <![CDATA[
-EXTERNPROTO Disk2D [
-  field SFFloat innerRadius
-  field SFFloat outerRadius
-  field SFBool solid
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#Disk2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Disk2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Disk2D"
-  "Geometry2dComponentPrototypes.x3d#Disk2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Disk2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Disk2D"
-]
+#JASEXTERNPROTO Disk2D [
+#JAS  field SFFloat innerRadius
+#JAS  field SFFloat outerRadius
+#JAS  field SFBool solid
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#Disk2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Disk2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Disk2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#Disk2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Disk2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Disk2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//Polyline2D and not(//ExternProtoDeclare[@name='Polyline2D']) and not(//ProtoDeclare[@name='Polyline2D'])">
 <![CDATA[
-EXTERNPROTO Polyline2D [
-  field MFVec2f lineSegments
-  field SFBool solid
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#Polyline2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polyline2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polyline2D"
-  "Geometry2dComponentPrototypes.x3d#Polyline2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polyline2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polyline2D"
-]
+#JASEXTERNPROTO Polyline2D [
+#JAS  field MFVec2f lineSegments
+#JAS  field SFBool solid
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#Polyline2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polyline2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polyline2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#Polyline2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polyline2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polyline2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//Polypoint2D and not(//ExternProtoDeclare[@name='Polypoint2D']) and not(//ProtoDeclare[@name='Polypoint2D'])">
 <![CDATA[
-EXTERNPROTO Polypoint2D [
-  field MFVec2f points
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#Polypoint2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polypoint2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polypoint2D"
-  "Geometry2dComponentPrototypes.x3d#Polypoint2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polypoint2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polypoint2D"
-]
+#JASEXTERNPROTO Polypoint2D [
+#JAS  field MFVec2f points
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#Polypoint2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polypoint2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Polypoint2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#Polypoint2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polypoint2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Polypoint2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//Rectangle2D and not(//ExternProtoDeclare[@name='Rectangle2D']) and not(//ProtoDeclare[@name='Rectangle2D'])">
 <![CDATA[
-EXTERNPROTO Rectangle2D [
-  field SFVec2f size
-  field SFBool solid
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#Rectangle2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Rectangle2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Rectangle2D"
-  "Geometry2dComponentPrototypes.x3d#Rectangle2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Rectangle2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Rectangle2D"
-]
+#JASEXTERNPROTO Rectangle2D [
+#JAS  field SFVec2f size
+#JAS  field SFBool solid
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#Rectangle2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Rectangle2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#Rectangle2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#Rectangle2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Rectangle2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#Rectangle2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//TriangleSet2D and not(//ExternProtoDeclare[@name='TriangleSet2D']) and not(//ProtoDeclare[@name='TriangleSet2D'])">
 <![CDATA[
-EXTERNPROTO TriangleSet2D [
-  field MFVec2f vertices
-  field SFBool solid
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "Geometry2dComponentPrototypes.wrl#TriangleSet2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#TriangleSet2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#TriangleSet2D"
-  "Geometry2dComponentPrototypes.x3d#TriangleSet2D"
-  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#TriangleSet2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#TriangleSet2D"
-]
+#JASEXTERNPROTO TriangleSet2D [
+#JAS  field MFVec2f vertices
+#JAS  field SFBool solid
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "Geometry2dComponentPrototypes.wrl#TriangleSet2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#TriangleSet2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.wrl#TriangleSet2D"
+#JAS  "Geometry2dComponentPrototypes.x3d#TriangleSet2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#TriangleSet2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/development/Geometry2dComponentPrototypes.x3d#TriangleSet2D"
+#JAS]
 ]]>
     </xsl:if>
     <!-- ================================================================================================= -->
@@ -1554,400 +1554,400 @@ EXTERNPROTO TriangleSet2D [
     <!-- Insert NURBS EXTERNPROTO declarations, if not otherwise provided -->
     <xsl:if test="//Contour2D and not(//ExternProtoDeclare[@name='Contour2D']) and not(//ProtoDeclare[@name='Contour2D'])">
 <![CDATA[
-EXTERNPROTO Contour2D [
-  # [appinfo] Contour2D node groups a set of curve segments (either NurbsCurve2D or ContourPolyline2D nodes) to a composite contour, in consecutive order according to the topology of the contour. The children shall form a closed loop with the first point of the first child repeated as the last point of the last child and the last point of a segment repeated as the first point of the consecutive one.
-  # documentation: http://www.web3d.org/technicalinfo/specifications/ISO_IEC_19775/Part01/components/nurbs.html#Contour2D
-  eventIn MFNode addChildren # [appinfo] [NurbsCurve|ContourPolyline2D]
-  eventIn MFNode removeChildren # [appinfo] [NurbsCurve|ContourPolyline2D]
-  field MFNode children # [appinfo] [NurbsCurve|ContourPolyline2D], default []
-  eventIn MFNode set_children
-  eventOut MFNode children_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#Contour2D"
-  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#Contour2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#Contour2D"
-  "NurbsPrototypes.x3d#Contour2D"
-  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#Contour2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#Contour2D"
-]
+#JASEXTERNPROTO Contour2D [
+#JAS  # [appinfo] Contour2D node groups a set of curve segments (either NurbsCurve2D or ContourPolyline2D nodes) to a composite contour, in consecutive order according to the topology of the contour. The children shall form a closed loop with the first point of the first child repeated as the last point of the last child and the last point of a segment repeated as the first point of the consecutive one.
+#JAS  # documentation: http://www.web3d.org/technicalinfo/specifications/ISO_IEC_19775/Part01/components/nurbs.html#Contour2D
+#JAS  eventIn MFNode addChildren # [appinfo] [NurbsCurve|ContourPolyline2D]
+#JAS  eventIn MFNode removeChildren # [appinfo] [NurbsCurve|ContourPolyline2D]
+#JAS  field MFNode children # [appinfo] [NurbsCurve|ContourPolyline2D], default []
+#JAS  eventIn MFNode set_children
+#JAS  eventOut MFNode children_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#Contour2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#Contour2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#Contour2D"
+#JAS  "NurbsPrototypes.x3d#Contour2D"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#Contour2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#Contour2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//ContourPolyline2D and not(//ExternProtoDeclare[@name='ContourPolyline2D']) and not(//ProtoDeclare[@name='ContourPolyline2D'])">
 <![CDATA[
-EXTERNPROTO ContourPolyline2D [
-  field MFVec2f point # [appinfo] range (-∞,∞), default []
-  eventIn MFVec2f set_point
-  eventOut MFVec2f point_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#ContourPolyline2D"
-  "../../NurbsPrototypes.wrl#ContourPolyline2D"
-  "../../../NurbsPrototypes.wrl#ContourPolyline2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#ContourPolyline2D"
-  "NurbsPrototypes.x3d#ContourPolyline2D"
-  "../../NurbsPrototypes.x3d#ContourPolyline2D"
-  "../../../NurbsPrototypes.x3d#ContourPolyline2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#ContourPolyline2D"
-]
+#JASEXTERNPROTO ContourPolyline2D [
+#JAS  field MFVec2f point # [appinfo] range (-∞,∞), default []
+#JAS  eventIn MFVec2f set_point
+#JAS  eventOut MFVec2f point_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#ContourPolyline2D"
+#JAS  "../../NurbsPrototypes.wrl#ContourPolyline2D"
+#JAS  "../../../NurbsPrototypes.wrl#ContourPolyline2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#ContourPolyline2D"
+#JAS  "NurbsPrototypes.x3d#ContourPolyline2D"
+#JAS  "../../NurbsPrototypes.x3d#ContourPolyline2D"
+#JAS  "../../../NurbsPrototypes.x3d#ContourPolyline2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#ContourPolyline2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//CoordinateDouble and not(//ExternProtoDeclare[@name='CoordinateDouble']) and not(//ProtoDeclare[@name='CoordinateDouble'])">
 <![CDATA[
-EXTERNPROTO CoordinateDouble [
-  field MFVec3f point # [appinfo] range (-∞,∞), default []
-  # Substitute MFVec3f for MFVec3d to provide VRML 97 support
-  eventIn MFVec3f set_point
-  eventOut MFVec3f point_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#CoordinateDouble"
-  "../NURBS/NurbsPrototypes.wrl#CoordinateDouble"
-  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#CoordinateDouble"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#CoordinateDouble"
-  "NurbsPrototypes.x3d#CoordinateDouble"
-  "../NURBS/NurbsPrototypes.x3d#CoordinateDouble"
-  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#CoordinateDouble"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#CoordinateDouble"
-]
+#JASEXTERNPROTO CoordinateDouble [
+#JAS  field MFVec3f point # [appinfo] range (-∞,∞), default []
+#JAS  # Substitute MFVec3f for MFVec3d to provide VRML 97 support
+#JAS  eventIn MFVec3f set_point
+#JAS  eventOut MFVec3f point_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#CoordinateDouble"
+#JAS  "../NURBS/NurbsPrototypes.wrl#CoordinateDouble"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#CoordinateDouble"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#CoordinateDouble"
+#JAS  "NurbsPrototypes.x3d#CoordinateDouble"
+#JAS  "../NURBS/NurbsPrototypes.x3d#CoordinateDouble"
+#JAS  "/www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#CoordinateDouble"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#CoordinateDouble"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsCurve and not(//ExternProtoDeclare[@name='NurbsCurve']) and not(//ProtoDeclare[@name='NurbsCurve'])">
 <![CDATA[
-EXTERNPROTO NurbsCurve [
-  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
-  field SFInt32 tessellation # [appinfo] range (-∞,∞), default 0
-  field MFFloat weight # [appinfo] range (0,∞), default []
-  field SFBool closed # [appinfo] default FALSE
-  field MFFloat knot # [appinfo] range (-∞,∞), default []
-  field SFInt32 order # [appinfo] range [2,∞), default 3
-  eventIn SFNode set_controlPoint
-  eventOut SFNode controlPoint_changed
-  eventIn SFInt32 set_tessellation
-  eventOut SFInt32 tessellation_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsCurve"
-  "../../NurbsPrototypes.wrl#NurbsCurve"
-  "../../../NurbsPrototypes.wrl#NurbsCurve"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsCurve"
-  "NurbsPrototypes.x3d#NurbsCurve"
-  "../../NurbsPrototypes.x3d#NurbsCurve"
-  "../../../NurbsPrototypes.x3d#NurbsCurve"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsCurve"
-]
+#JASEXTERNPROTO NurbsCurve [
+#JAS  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
+#JAS  field SFInt32 tessellation # [appinfo] range (-∞,∞), default 0
+#JAS  field MFFloat weight # [appinfo] range (0,∞), default []
+#JAS  field SFBool closed # [appinfo] default FALSE
+#JAS  field MFFloat knot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 order # [appinfo] range [2,∞), default 3
+#JAS  eventIn SFNode set_controlPoint
+#JAS  eventOut SFNode controlPoint_changed
+#JAS  eventIn SFInt32 set_tessellation
+#JAS  eventOut SFInt32 tessellation_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsCurve"
+#JAS  "../../NurbsPrototypes.wrl#NurbsCurve"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsCurve"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsCurve"
+#JAS  "NurbsPrototypes.x3d#NurbsCurve"
+#JAS  "../../NurbsPrototypes.x3d#NurbsCurve"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsCurve"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsCurve"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsCurve2D and not(//ExternProtoDeclare[@name='NurbsCurve2D']) and not(//ProtoDeclare[@name='NurbsCurve2D'])">
 <![CDATA[
-EXTERNPROTO NurbsCurve2D [
-  field MFVec2f controlPoint # [appinfo] range (-∞,∞), default []
-  # Substitute MFVec2f for MFVec2d to provide VRML 97 support
-  field SFInt32 tessellation # [appinfo] range (-∞,∞), default 0
-  field MFFloat weight # [appinfo] range (0,∞), default []
-  field MFFloat knot # [appinfo] range (-∞,∞), default []
-  field SFInt32 order # [appinfo] range [2,∞), default 3
-  field SFBool closed # [appinfo] default FALSE
-  eventIn MFVec2f set_controlPoint
-  eventOut MFVec2f controlPoint_changed
-  eventIn SFInt32 set_tessellation
-  eventOut SFInt32 tessellation_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsCurve2D"
-  "../../NurbsPrototypes.wrl#NurbsCurve2D"
-  "../../../NurbsPrototypes.wrl#NurbsCurve2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsCurve2D"
-  "NurbsPrototypes.x3d#NurbsCurve2D"
-  "../../NurbsPrototypes.x3d#NurbsCurve2D"
-  "../../../NurbsPrototypes.x3d#NurbsCurve2D"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsCurve2D"
-]
+#JASEXTERNPROTO NurbsCurve2D [
+#JAS  field MFVec2f controlPoint # [appinfo] range (-∞,∞), default []
+#JAS  # Substitute MFVec2f for MFVec2d to provide VRML 97 support
+#JAS  field SFInt32 tessellation # [appinfo] range (-∞,∞), default 0
+#JAS  field MFFloat weight # [appinfo] range (0,∞), default []
+#JAS  field MFFloat knot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 order # [appinfo] range [2,∞), default 3
+#JAS  field SFBool closed # [appinfo] default FALSE
+#JAS  eventIn MFVec2f set_controlPoint
+#JAS  eventOut MFVec2f controlPoint_changed
+#JAS  eventIn SFInt32 set_tessellation
+#JAS  eventOut SFInt32 tessellation_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsCurve2D"
+#JAS  "../../NurbsPrototypes.wrl#NurbsCurve2D"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsCurve2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsCurve2D"
+#JAS  "NurbsPrototypes.x3d#NurbsCurve2D"
+#JAS  "../../NurbsPrototypes.x3d#NurbsCurve2D"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsCurve2D"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsCurve2D"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsOrientationInterpolator and not(//ExternProtoDeclare[@name='NurbsOrientationInterpolator']) and not(//ProtoDeclare[@name='NurbsOrientationInterpolator'])">
 <![CDATA[
-EXTERNPROTO NurbsOrientationInterpolator [
-  eventIn SFFloat set_fraction # [appinfo] range (-∞,∞)
-  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
-  # Coordinate or CoordinateDouble can be used here. Ensure inclusion of containerField="coord" attribute.
-  field MFFloat knot # [appinfo] range (-∞,∞), default []
-  field SFInt32 order # [appinfo] range (2,∞), default 3
-  field MFFloat weight # [appinfo] range (-∞,∞), default []
-  eventOut SFRotation value_changed
-  eventIn SFNode set_controlPoint
-  eventOut SFNode controlPoint_changed
-  eventIn MFFloat set_knot
-  eventOut MFFloat knot_changed
-  eventIn SFInt32 set_order
-  eventOut SFInt32 order_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsOrientationInterpolator"
-  "../../NurbsPrototypes.wrl#NurbsOrientationInterpolator"
-  "../../../NurbsPrototypes.wrl#NurbsOrientationInterpolator"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsOrientationInterpolator"
-  "NurbsPrototypes.x3d#NurbsOrientationInterpolator"
-  "../../NurbsPrototypes.x3d#NurbsOrientationInterpolator"
-  "../../../NurbsPrototypes.x3d#NurbsOrientationInterpolator"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsOrientationInterpolator"
-]
+#JASEXTERNPROTO NurbsOrientationInterpolator [
+#JAS  eventIn SFFloat set_fraction # [appinfo] range (-∞,∞)
+#JAS  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
+#JAS  # Coordinate or CoordinateDouble can be used here. Ensure inclusion of containerField="coord" attribute.
+#JAS  field MFFloat knot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 order # [appinfo] range (2,∞), default 3
+#JAS  field MFFloat weight # [appinfo] range (-∞,∞), default []
+#JAS  eventOut SFRotation value_changed
+#JAS  eventIn SFNode set_controlPoint
+#JAS  eventOut SFNode controlPoint_changed
+#JAS  eventIn MFFloat set_knot
+#JAS  eventOut MFFloat knot_changed
+#JAS  eventIn SFInt32 set_order
+#JAS  eventOut SFInt32 order_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsOrientationInterpolator"
+#JAS  "../../NurbsPrototypes.wrl#NurbsOrientationInterpolator"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsOrientationInterpolator"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsOrientationInterpolator"
+#JAS  "NurbsPrototypes.x3d#NurbsOrientationInterpolator"
+#JAS  "../../NurbsPrototypes.x3d#NurbsOrientationInterpolator"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsOrientationInterpolator"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsOrientationInterpolator"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsPatchSurface and not(//ExternProtoDeclare[@name='NurbsPatchSurface']) and not(//ProtoDeclare[@name='NurbsPatchSurface'])">
 <![CDATA[
-EXTERNPROTO NurbsPatchSurface [
-  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
-  field SFNode texCoord # [appinfo] [X3DTextureCoordinateNode|NurbsTextureCoordinate], default []
-  field SFInt32 uTessellation # [appinfo] range (-∞,∞), default 0
-  field SFInt32 vTessellation # [appinfo] range (-∞,∞), default 0
-  field MFFloat weight # [appinfo] range (0,∞), default []
-  field SFBool solid # [appinfo] default TRUE
-  field SFBool uClosed # [appinfo] default FALSE
-  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
-  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
-  field SFBool vClosed # [appinfo] default FALSE
-  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
-  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
-  eventIn SFNode set_controlPoint
-  eventOut SFNode controlPoint_changed
-  eventIn SFNode set_texCoord
-  eventOut SFNode texCoord_changed
-  eventIn SFInt32 set_uTessellation
-  eventOut SFInt32 uTessellation_changed
-  eventIn SFInt32 set_vTessellation
-  eventOut SFInt32 vTessellation_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsPatchSurface"
-  "../../NurbsPrototypes.wrl#NurbsPatchSurface"
-  "../../../NurbsPrototypes.wrl#NurbsPatchSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsPatchSurface"
-  "NurbsPrototypes.x3d#NurbsPatchSurface"
-  "../../NurbsPrototypes.x3d#NurbsPatchSurface"
-  "../../../NurbsPrototypes.x3d#NurbsPatchSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsPatchSurface"
-]
+#JASEXTERNPROTO NurbsPatchSurface [
+#JAS  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
+#JAS  field SFNode texCoord # [appinfo] [X3DTextureCoordinateNode|NurbsTextureCoordinate], default []
+#JAS  field SFInt32 uTessellation # [appinfo] range (-∞,∞), default 0
+#JAS  field SFInt32 vTessellation # [appinfo] range (-∞,∞), default 0
+#JAS  field MFFloat weight # [appinfo] range (0,∞), default []
+#JAS  field SFBool solid # [appinfo] default TRUE
+#JAS  field SFBool uClosed # [appinfo] default FALSE
+#JAS  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
+#JAS  field SFBool vClosed # [appinfo] default FALSE
+#JAS  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
+#JAS  eventIn SFNode set_controlPoint
+#JAS  eventOut SFNode controlPoint_changed
+#JAS  eventIn SFNode set_texCoord
+#JAS  eventOut SFNode texCoord_changed
+#JAS  eventIn SFInt32 set_uTessellation
+#JAS  eventOut SFInt32 uTessellation_changed
+#JAS  eventIn SFInt32 set_vTessellation
+#JAS  eventOut SFInt32 vTessellation_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsPatchSurface"
+#JAS  "../../NurbsPrototypes.wrl#NurbsPatchSurface"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsPatchSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsPatchSurface"
+#JAS  "NurbsPrototypes.x3d#NurbsPatchSurface"
+#JAS  "../../NurbsPrototypes.x3d#NurbsPatchSurface"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsPatchSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsPatchSurface"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsPositionInterpolator and not(//ExternProtoDeclare[@name='NurbsPositionInterpolator']) and not(//ProtoDeclare[@name='NurbsPositionInterpolator'])">
 <![CDATA[
-EXTERNPROTO NurbsPositionInterpolator [
-  eventIn SFFloat set_fraction # [appinfo] range (-∞,∞)
-  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
-  # Coordinate or CoordinateDouble can be used here. Ensure inclusion of containerField="coord" attribute.
-  field MFFloat knot # [appinfo] range (-∞,∞), default []
-  field SFInt32 order # [appinfo] range (2,∞), default 3
-  field MFFloat weight # [appinfo] range (-∞,∞), default []
-  eventOut SFVec3f value_changed
-  eventIn SFNode set_controlPoint
-  eventOut SFNode controlPoint_changed
-  eventIn MFFloat set_knot
-  eventOut MFFloat knot_changed
-  eventIn SFInt32 set_order
-  eventOut SFInt32 order_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsPositionInterpolator"
-  "../../NurbsPrototypes.wrl#NurbsPositionInterpolator"
-  "../../../NurbsPrototypes.wrl#NurbsPositionInterpolator"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsPositionInterpolator"
-  "NurbsPrototypes.x3d#NurbsPositionInterpolator"
-  "../../NurbsPrototypes.x3d#NurbsPositionInterpolator"
-  "../../../NurbsPrototypes.x3d#NurbsPositionInterpolator"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsPositionInterpolator"
-]
+#JASEXTERNPROTO NurbsPositionInterpolator [
+#JAS  eventIn SFFloat set_fraction # [appinfo] range (-∞,∞)
+#JAS  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
+#JAS  # Coordinate or CoordinateDouble can be used here. Ensure inclusion of containerField="coord" attribute.
+#JAS  field MFFloat knot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 order # [appinfo] range (2,∞), default 3
+#JAS  field MFFloat weight # [appinfo] range (-∞,∞), default []
+#JAS  eventOut SFVec3f value_changed
+#JAS  eventIn SFNode set_controlPoint
+#JAS  eventOut SFNode controlPoint_changed
+#JAS  eventIn MFFloat set_knot
+#JAS  eventOut MFFloat knot_changed
+#JAS  eventIn SFInt32 set_order
+#JAS  eventOut SFInt32 order_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsPositionInterpolator"
+#JAS  "../../NurbsPrototypes.wrl#NurbsPositionInterpolator"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsPositionInterpolator"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsPositionInterpolator"
+#JAS  "NurbsPrototypes.x3d#NurbsPositionInterpolator"
+#JAS  "../../NurbsPrototypes.x3d#NurbsPositionInterpolator"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsPositionInterpolator"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsPositionInterpolator"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsSet and not(//ExternProtoDeclare[@name='NurbsSet']) and not(//ProtoDeclare[@name='NurbsSet'])">
 <![CDATA[
-EXTERNPROTO NurbsSet [
-  eventIn MFNode addGeometry # [appinfo] [NurbsPatchSurface]
-  eventIn MFNode removeGeometry # [appinfo] [NurbsPatchSurface]
-  field MFNode geometry # [appinfo] [NurbsPatchSurface], default []
-  field SFFloat tessellationScale # [appinfo] range (0,∞), default 1.0
-  field SFVec3f bboxCenter # [appinfo] range (-∞,∞), default [0 0 0]
-  field SFVec3f bboxSize # [appinfo] range [0,∞); [-1 -1 -1], default [-1 -1 -1]
-  eventIn MFNode set_geometry
-  eventOut MFNode geometry_changed
-  eventIn SFFloat set_tessellationScale
-  eventOut SFFloat tessellationScale_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsSet"
-  "../../NurbsPrototypes.wrl#NurbsSet"
-  "../../../NurbsPrototypes.wrl#NurbsSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSet"
-  "NurbsPrototypes.x3d#NurbsSet"
-  "../../NurbsPrototypes.x3d#NurbsSet"
-  "../../../NurbsPrototypes.x3d#NurbsSet"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSet"
-]
+#JASEXTERNPROTO NurbsSet [
+#JAS  eventIn MFNode addGeometry # [appinfo] [NurbsPatchSurface]
+#JAS  eventIn MFNode removeGeometry # [appinfo] [NurbsPatchSurface]
+#JAS  field MFNode geometry # [appinfo] [NurbsPatchSurface], default []
+#JAS  field SFFloat tessellationScale # [appinfo] range (0,∞), default 1.0
+#JAS  field SFVec3f bboxCenter # [appinfo] range (-∞,∞), default [0 0 0]
+#JAS  field SFVec3f bboxSize # [appinfo] range [0,∞); [-1 -1 -1], default [-1 -1 -1]
+#JAS  eventIn MFNode set_geometry
+#JAS  eventOut MFNode geometry_changed
+#JAS  eventIn SFFloat set_tessellationScale
+#JAS  eventOut SFFloat tessellationScale_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsSet"
+#JAS  "../../NurbsPrototypes.wrl#NurbsSet"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSet"
+#JAS  "NurbsPrototypes.x3d#NurbsSet"
+#JAS  "../../NurbsPrototypes.x3d#NurbsSet"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsSet"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSet"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsSurfaceInterpolator and not(//ExternProtoDeclare[@name='NurbsSurfaceInterpolator']) and not(//ProtoDeclare[@name='NurbsSurfaceInterpolator'])">
 <![CDATA[
-EXTERNPROTO NurbsSurfaceInterpolator [
-  eventIn SFVec2f set_fraction # [appinfo] range (-∞,∞)
-  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
-  field MFFloat weight # [appinfo] range (-∞,∞), default []
-  eventOut SFVec3f position_changed
-  eventOut SFVec3f normal_changed
-  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
-  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
-  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
-  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
-  eventIn SFNode set_controlPoint
-  eventOut SFNode controlPoint_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
-  "../../NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
-  "../../../NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
-  "NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
-  "../../NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
-  "../../../NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
-]
+#JASEXTERNPROTO NurbsSurfaceInterpolator [
+#JAS  eventIn SFVec2f set_fraction # [appinfo] range (-∞,∞)
+#JAS  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
+#JAS  field MFFloat weight # [appinfo] range (-∞,∞), default []
+#JAS  eventOut SFVec3f position_changed
+#JAS  eventOut SFVec3f normal_changed
+#JAS  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
+#JAS  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
+#JAS  eventIn SFNode set_controlPoint
+#JAS  eventOut SFNode controlPoint_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
+#JAS  "../../NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSurfaceInterpolator"
+#JAS  "NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
+#JAS  "../../NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSurfaceInterpolator"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsSweptSurface and not(//ExternProtoDeclare[@name='NurbsSweptSurface']) and not(//ProtoDeclare[@name='NurbsSweptSurface'])">
 <![CDATA[
-EXTERNPROTO NurbsSweptSurface [
-  field SFNode crossSectionCurve # [appinfo] [X3DNurbsControlCurveNode], default []
-  field SFNode trajectoryCurve # [appinfo] [NurbsCurve], default []
-  field SFBool ccw # [appinfo] default TRUE
-  field SFBool solid # [appinfo] default TRUE
-  eventIn SFNode set_crossSectionCurve
-  eventOut SFNode crossSectionCurve_changed
-  eventIn SFNode set_trajectoryCurve
-  eventOut SFNode trajectoryCurve_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsSweptSurface"
-  "../../NurbsPrototypes.wrl#NurbsSweptSurface"
-  "../../../NurbsPrototypes.wrl#NurbsSweptSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSweptSurface"
-  "NurbsPrototypes.x3d#NurbsSweptSurface"
-  "../../NurbsPrototypes.x3d#NurbsSweptSurface"
-  "../../../NurbsPrototypes.x3d#NurbsSweptSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSweptSurface"
-]
+#JASEXTERNPROTO NurbsSweptSurface [
+#JAS  field SFNode crossSectionCurve # [appinfo] [X3DNurbsControlCurveNode], default []
+#JAS  field SFNode trajectoryCurve # [appinfo] [NurbsCurve], default []
+#JAS  field SFBool ccw # [appinfo] default TRUE
+#JAS  field SFBool solid # [appinfo] default TRUE
+#JAS  eventIn SFNode set_crossSectionCurve
+#JAS  eventOut SFNode crossSectionCurve_changed
+#JAS  eventIn SFNode set_trajectoryCurve
+#JAS  eventOut SFNode trajectoryCurve_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsSweptSurface"
+#JAS  "../../NurbsPrototypes.wrl#NurbsSweptSurface"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsSweptSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSweptSurface"
+#JAS  "NurbsPrototypes.x3d#NurbsSweptSurface"
+#JAS  "../../NurbsPrototypes.x3d#NurbsSweptSurface"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsSweptSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSweptSurface"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsSwungSurface and not(//ExternProtoDeclare[@name='NurbsSwungSurface']) and not(//ProtoDeclare[@name='NurbsSwungSurface'])">
 <![CDATA[
-EXTERNPROTO NurbsSwungSurface [
-  field SFNode profileCurve # [appinfo] [X3DNurbsControlCurveNode], default []
-  field SFNode trajectoryCurve # [appinfo] [X3DNurbsControlCurveNode], default []
-  field SFBool ccw # [appinfo] default TRUE
-  field SFBool solid # [appinfo] default TRUE
-  eventIn SFNode set_profileCurve
-  eventOut SFNode profileCurve_changed
-  eventIn SFNode set_trajectoryCurve
-  eventOut SFNode trajectoryCurve_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsSwungSurface"
-  "../../NurbsPrototypes.wrl#NurbsSwungSurface"
-  "../../../NurbsPrototypes.wrl#NurbsSwungSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSwungSurface"
-  "NurbsPrototypes.x3d#NurbsSwungSurface"
-  "../../NurbsPrototypes.x3d#NurbsSwungSurface"
-  "../../../NurbsPrototypes.x3d#NurbsSwungSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSwungSurface"
-]
+#JASEXTERNPROTO NurbsSwungSurface [
+#JAS  field SFNode profileCurve # [appinfo] [X3DNurbsControlCurveNode], default []
+#JAS  field SFNode trajectoryCurve # [appinfo] [X3DNurbsControlCurveNode], default []
+#JAS  field SFBool ccw # [appinfo] default TRUE
+#JAS  field SFBool solid # [appinfo] default TRUE
+#JAS  eventIn SFNode set_profileCurve
+#JAS  eventOut SFNode profileCurve_changed
+#JAS  eventIn SFNode set_trajectoryCurve
+#JAS  eventOut SFNode trajectoryCurve_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsSwungSurface"
+#JAS  "../../NurbsPrototypes.wrl#NurbsSwungSurface"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsSwungSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsSwungSurface"
+#JAS  "NurbsPrototypes.x3d#NurbsSwungSurface"
+#JAS  "../../NurbsPrototypes.x3d#NurbsSwungSurface"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsSwungSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsSwungSurface"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsTextureCoordinate and not(//ExternProtoDeclare[@name='NurbsTextureCoordinate']) and not(//ProtoDeclare[@name='NurbsTextureCoordinate'])">
 <![CDATA[
-EXTERNPROTO NurbsTextureCoordinate [
-  field MFVec2f controlPoint # [appinfo] range (-∞,∞), default []
-  field MFFloat weight # [appinfo] range (0,∞), default []
-  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
-  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
-  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
-  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
-  eventIn MFVec2f set_controlPoint
-  eventOut MFVec2f controlPoint_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsTextureCoordinate"
-  "../../NurbsPrototypes.wrl#NurbsTextureCoordinate"
-  "../../../NurbsPrototypes.wrl#NurbsTextureCoordinate"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsTextureCoordinate"
-  "NurbsPrototypes.x3d#NurbsTextureCoordinate"
-  "../../NurbsPrototypes.x3d#NurbsTextureSurface"
-  "../../../NurbsPrototypes.x3d#NurbsTextureCoordinate"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsTextureCoordinate"
-]
+#JASEXTERNPROTO NurbsTextureCoordinate [
+#JAS  field MFVec2f controlPoint # [appinfo] range (-∞,∞), default []
+#JAS  field MFFloat weight # [appinfo] range (0,∞), default []
+#JAS  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
+#JAS  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
+#JAS  eventIn MFVec2f set_controlPoint
+#JAS  eventOut MFVec2f controlPoint_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsTextureCoordinate"
+#JAS  "../../NurbsPrototypes.wrl#NurbsTextureCoordinate"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsTextureCoordinate"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsTextureCoordinate"
+#JAS  "NurbsPrototypes.x3d#NurbsTextureCoordinate"
+#JAS  "../../NurbsPrototypes.x3d#NurbsTextureSurface"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsTextureCoordinate"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsTextureCoordinate"
+#JAS]
 ]]>
     </xsl:if>
     <xsl:if test="//NurbsTrimmedSurface and not(//ExternProtoDeclare[@name='NurbsTrimmedSurface']) and not(//ProtoDeclare[@name='NurbsTrimmedSurface'])">
 <![CDATA[
-EXTERNPROTO NurbsTrimmedSurface [
-  # No attributes, node-type children and events only.
-  eventIn MFNode addTrimmingContour # [appinfo] [Contour2D]
-  eventIn MFNode removeTrimmingContour # [appinfo] [Contour2D]
-  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
-  field SFNode texCoord # [appinfo] [X3DTextureCoordinateNode|NurbsTextureCoordinate], default []
-  field MFNode trimmingContour # [appinfo] [Contour2D], default []
-  field SFInt32 uTessellation # [appinfo] range (-∞,∞), default 0
-  field SFInt32 vTessellation # [appinfo] range (-∞,∞), default 0
-  field MFFloat weight # [appinfo] range (0,∞), default []
-  field SFBool solid # [appinfo] default TRUE
-  field SFBool uClosed # [appinfo] default FALSE
-  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
-  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
-  field SFBool vClosed # [appinfo] default FALSE
-  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
-  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
-  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
-  eventIn SFNode set_controlPoint
-  eventOut SFNode controlPoint_changed
-  eventIn SFNode set_texCoord
-  eventOut SFNode texCoord_changed
-  eventIn MFNode set_trimmingContour
-  eventOut MFNode trimmingContour_changed
-  eventIn SFInt32 set_uTessellation
-  eventOut SFInt32 uTessellation_changed
-  eventIn SFInt32 set_vTessellation
-  eventOut SFInt32 vTessellation_changed
-  eventIn MFFloat set_weight
-  eventOut MFFloat weight_changed
-  exposedField SFNode metadata # [appinfo] Metadata node only
-][
-  "NurbsPrototypes.wrl#NurbsTrimmedSurface"
-  "../../NurbsPrototypes.wrl#NurbsTrimmedSurface"
-  "../../../NurbsPrototypes.wrl#NurbsTrimmedSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsTrimmedSurface"
-  "NurbsPrototypes.x3d#NurbsTrimmedSurface"
-  "../../NurbsPrototypes.x3d#NurbsTrimmedSurface"
-  "../../../NurbsPrototypes.x3d#NurbsTrimmedSurface"
-  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsTrimmedSurface"
-]
+#JASEXTERNPROTO NurbsTrimmedSurface [
+#JAS  # No attributes, node-type children and events only.
+#JAS  eventIn MFNode addTrimmingContour # [appinfo] [Contour2D]
+#JAS  eventIn MFNode removeTrimmingContour # [appinfo] [Contour2D]
+#JAS  field SFNode controlPoint # [appinfo] [X3DCoordinateNode], default []
+#JAS  field SFNode texCoord # [appinfo] [X3DTextureCoordinateNode|NurbsTextureCoordinate], default []
+#JAS  field MFNode trimmingContour # [appinfo] [Contour2D], default []
+#JAS  field SFInt32 uTessellation # [appinfo] range (-∞,∞), default 0
+#JAS  field SFInt32 vTessellation # [appinfo] range (-∞,∞), default 0
+#JAS  field MFFloat weight # [appinfo] range (0,∞), default []
+#JAS  field SFBool solid # [appinfo] default TRUE
+#JAS  field SFBool uClosed # [appinfo] default FALSE
+#JAS  field SFInt32 uDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat uKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 uOrder # [appinfo] range [2,∞), default 3
+#JAS  field SFBool vClosed # [appinfo] default FALSE
+#JAS  field SFInt32 vDimension # [appinfo] range [0,∞), default 0
+#JAS  field MFFloat vKnot # [appinfo] range (-∞,∞), default []
+#JAS  field SFInt32 vOrder # [appinfo] range [2,∞), default 3
+#JAS  eventIn SFNode set_controlPoint
+#JAS  eventOut SFNode controlPoint_changed
+#JAS  eventIn SFNode set_texCoord
+#JAS  eventOut SFNode texCoord_changed
+#JAS  eventIn MFNode set_trimmingContour
+#JAS  eventOut MFNode trimmingContour_changed
+#JAS  eventIn SFInt32 set_uTessellation
+#JAS  eventOut SFInt32 uTessellation_changed
+#JAS  eventIn SFInt32 set_vTessellation
+#JAS  eventOut SFInt32 vTessellation_changed
+#JAS  eventIn MFFloat set_weight
+#JAS  eventOut MFFloat weight_changed
+#JAS  exposedField SFNode metadata # [appinfo] Metadata node only
+#JAS][
+#JAS  "NurbsPrototypes.wrl#NurbsTrimmedSurface"
+#JAS  "../../NurbsPrototypes.wrl#NurbsTrimmedSurface"
+#JAS  "../../../NurbsPrototypes.wrl#NurbsTrimmedSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.wrl#NurbsTrimmedSurface"
+#JAS  "NurbsPrototypes.x3d#NurbsTrimmedSurface"
+#JAS  "../../NurbsPrototypes.x3d#NurbsTrimmedSurface"
+#JAS  "../../../NurbsPrototypes.x3d#NurbsTrimmedSurface"
+#JAS  "http://www.web3d.org/x3d/content/examples/Basic/NURBS/NurbsPrototypes.x3d#NurbsTrimmedSurface"
+#JAS]
 ]]>
     </xsl:if>
     <!-- ================================================================================================= -->
