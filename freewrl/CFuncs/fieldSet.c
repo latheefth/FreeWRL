@@ -107,6 +107,7 @@ unsigned int setField_method2 (char *ptr) {
 		friggin do it! ;-) */
 
 	/* node type */
+	while (*ptr==' ')ptr++;
 	nodetype = *ptr; ptr++;
 
 	/* blank space */
