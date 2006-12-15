@@ -220,7 +220,7 @@ sub writeMakefileInitialize() {
 	if ($OS ne "Darwin") {
 		$MYFELIBS =  "-L. ". $MYLIBS . " -lFreeWRLFunc -lpthread";
 	} else {
-		$MYFELIBS =  "-L. -lFreeWRLFunc -lpthread ";
+		$MYFELIBS =  "-L. -lpthread ";
 	}
 
 	my $MYSELIBS = "-lm ";
@@ -294,6 +294,7 @@ sub writeMakefileFinalTargets() {
 	}
 	print MK "\tinstall -D CFrontEnd/freewrl \$(FRONTEND_DIR)/freewrl\n";
 	print MK "\tinstall -D FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)FreeWRL_Message\n";
+
 	}
 	if ($OS eq "Linux") {
 		print MK "\tinstall -D libFreeWRLFunc.so \$(LIB_DIR)/libFreeWRLFunc.so\n";
@@ -311,15 +312,26 @@ sub writeMakefileFinalTargets() {
 			print MK "\tinstall -D java/classes/vrml.jar $VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
 			print MK "\tinstall -D Plugin/npfreewrl.so $VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
 		} else {
-			print MK "\tinstall -D java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
+			print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
+			print MK "\tinstall java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
 		}
 	}
+	if ($OS ne "Darwin") {
 	print MK "\tinstall -D Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
 	print MK "\tinstall -D Desktop/freewrl.desktop \$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
-	print MK "\tinstall -d fonts \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall -D fonts \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall -D fonts/* \$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall -d  x3d \$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\tinstall -D  x3d \$(INSTALL_DIR)/freewrl/x3d\n";
 	print MK "\tinstall -D  x3d/* \$(INSTALL_DIR)/freewrl/x3d\n";
+	} else {
+	print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall fonts/*.ttf \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall fonts/*.TXT \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall fonts/*.conf \$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall -d  \$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\tinstall  x3d/*.dtd \$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\tinstall  x3d/*.xslt \$(INSTALL_DIR)/freewrl/x3d\n";
+	}
 }
 
 sub writeVariables () {	
