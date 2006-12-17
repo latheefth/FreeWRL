@@ -517,6 +517,28 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 		gndAngCt = tbnode->groundAngle.n;
 	}
 
+	/* do we have NO background triangles? (ie, maybe all textures??) */
+	if ((skyColCt == 0) & (gndColCt == 0)) {
+        	if (node->_nodeType == NODE_Background) {
+                	node->_ichange = node->_change;
+                	/* do we have an old background to destroy? */
+                	if (node->__points != 0) free ((void *)node->__points);
+                	if (node->__colours != 0) free ((void *)node->__colours);
+                	node->__points = NULL;
+                	node->__colours = NULL;
+                	node->__quadcount = 0;
+        	} else {
+                	tbnode->_ichange = tbnode->_change;
+                	/* do we have an old background to destroy? */
+                	if (tbnode->__points != 0) free ((void *)tbnode->__points);
+                	if (tbnode->__colours != 0) free ((void *)tbnode->__colours);
+                	tbnode->__points = NULL;
+                	tbnode->__colours = NULL;
+                	tbnode->__quadcount = 0;
+        	}
+		return;
+	}
+
 
 	/* calculate how many quads are required */
 	estq=0; actq=0;

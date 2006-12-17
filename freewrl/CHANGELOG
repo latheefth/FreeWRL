@@ -1,4 +1,6 @@
 For 1.18.10:
+	- fixed problem in *Background nodes when sky and ground entries were empty
+
 	- X3dToVrml97.xslt changed - it was adding EXTERNPROTOS for 
 	  nodes supported in FreeWRL.
 

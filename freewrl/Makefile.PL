@@ -319,9 +319,10 @@ sub writeMakefileFinalTargets() {
 	if ($OS ne "Darwin") {
 	print MK "\tinstall -D Desktop/freewrl.png \$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
 	print MK "\tinstall -D Desktop/freewrl.desktop \$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
-	print MK "\tinstall -D fonts \$(INSTALL_DIR)/freewrl/fonts\n";
+	# we need the 2 installs for the following; the first makes the directory, the second fills it.
+	print MK "\tinstall -d fonts \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall -D fonts/* \$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall -D  x3d \$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\tinstall -d  x3d \$(INSTALL_DIR)/freewrl/x3d\n";
 	print MK "\tinstall -D  x3d/* \$(INSTALL_DIR)/freewrl/x3d\n";
 	} else {
 	print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
