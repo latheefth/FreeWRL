@@ -20,13 +20,14 @@
 
 /* Occlusion VisibilitySensor code */
 #ifdef OCCLUSION
-GLuint *OccQueries = 0;
-void* *OccNodes = 0;
-int *OccActive = 0;
-GLint *OccSamples = 0;
+GLuint *OccQueries = NULL;
+void* *OccNodes = NULL;
+int *OccActive = NULL;
+GLint *OccSamples = NULL;
 
-int maxShapeFound = 0;
+int maxOccludersFound = 0;
 int OccQuerySize=0;
+int QueryCount = 0;
 GLint queryCounterBits;
 int OccInitialized = FALSE;
 static int OccFailed = FALSE;
@@ -238,9 +239,12 @@ void OcclusionStartofEventLoop() {
 	if (OccInitialized == FALSE) {
         	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS));  */
         	if (strstr((const char *)glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
-        	        /* printf ("have OcclusionQuery\n");  */
+        	        /* printf ("have OcclusionQuery\n"); */
 
-			OccQuerySize = 100;
+
+			/* we make the OccQuerySize larger than the maximum number of occluders,
+			   so we don't have to realloc too much */
+			OccQuerySize = maxOccludersFound + 1000;
 			OccQueries = malloc (sizeof(int) * OccQuerySize);
 			OccNodes = malloc (sizeof (void *) * OccQuerySize);
 			OccActive = malloc (sizeof (int) * OccQuerySize);
@@ -251,6 +255,7 @@ void OcclusionStartofEventLoop() {
 				OccNodes[i] = 0;
 				OccSamples[i]=0;
 			}
+			QueryCount = maxOccludersFound; /* for queries - we can do this number */
 
         	} else {
 			/* we dont seem to have this extension here at runtime! */
@@ -264,27 +269,33 @@ void OcclusionStartofEventLoop() {
 	if (!OccInitialized) return;
 
 	/* did we find more shapes than before? */
-        if (maxShapeFound > OccQuerySize) {
+        if (maxOccludersFound > OccQuerySize) {
                 /* printf ("have to regen queries\n"); */
-		glDeleteQueries (OccQuerySize, OccQueries);
-		OccQuerySize = maxShapeFound + 100;
-		OccQueries = realloc (OccQueries,sizeof (int) * maxShapeFound);
-		OccNodes = realloc (OccNodes,sizeof (void *) * maxShapeFound);
-		OccActive = realloc (OccActive,sizeof (int) * maxShapeFound);
-		OccSamples = realloc (OccSamples,sizeof (int) * maxShapeFound);
+		QueryCount = 0;
+
+		/* possibly previous had zero occluders, lets just not bother deleting for zero */
+		if (OccQuerySize > 0) {
+			glDeleteQueries (OccQuerySize, OccQueries);
+			glFlush();
+		}
+
+		OccQuerySize = maxOccludersFound + 1000;
+		OccQueries = realloc (OccQueries,sizeof (int) * OccQuerySize);
+		OccNodes = realloc (OccNodes,sizeof (void *) * OccQuerySize);
+		OccActive = realloc (OccActive,sizeof (int) * OccQuerySize);
+		OccSamples = realloc (OccSamples,sizeof (int) * OccQuerySize);
                 glGenQueries(OccQuerySize,OccQueries);
 		for (i=0; i<OccQuerySize; i++) {
 			OccNodes[i] = 0;
 			OccSamples[i]=0;
 		}
+		QueryCount = maxOccludersFound; /* for queries - we can do this number */
 
        }
-        maxShapeFound = -1;
 
         /* glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &queryCounterBits);
         printf ("queryCounterBits %d\n",queryCounterBits); */
         #endif
-
 }
 
 
@@ -293,51 +304,48 @@ void OcclusionCulling ()  {
 
 	#ifdef OCCLUSION
 	int i;
+	int maxcount;
 	struct X3D_Shape *xx;
 	
 	/* did we have some problem with Occlusion ? */
 	if (OccFailed) return;
 
-	if (maxShapeFound >= 0) {
+	for (i=0; i<=QueryCount; i++) {
+	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &OccSamples[i]);
+		if (OccNodes[i] != 0) {
+			xx = (struct X3D_Shape *) OccNodes[i];
 
-		/* lets look at "producers" - Shapes, and VisibilitySensors first */
-		for (i=0; i<=maxShapeFound; i++) {
-		        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &OccSamples[i]);
-			if (OccNodes[i] != 0) {
-				xx = (struct X3D_Shape *) OccNodes[i];
+			/* if this is a VisibilitySensor, record the samples */
+			if (xx->_nodeType == NODE_VisibilitySensor) {
+				/* printf ("vis found\n"); */
+				((struct X3D_VisibilitySensor *)xx)->__Samples =  OccSamples[i]; 
+			}
 
-				/* if this is a VisibilitySensor, record the samples */
-				if (xx->_nodeType == NODE_VisibilitySensor) {
-					/* printf ("vis found\n"); */
-					((struct X3D_VisibilitySensor *)xx)->__Samples =  OccSamples[i]; 
+
+			/* is this is Shape? */
+			else if (xx->_nodeType == NODE_Shape) {
+	        		printf ("Occ %d fragments %d active %d ",i,OccSamples[i],OccActive[i]);
+				printf (" nodeType %s",stringNodeType(xx->_nodeType));
+				xx = (struct X3D_Shape *) xx->geometry;
+				if (xx != 0) {
+					printf (" (%s)",stringNodeType(xx->_nodeType));
 				}
-	
-	
-				/* is this is Shape? */
-				else if (xx->_nodeType == NODE_Shape) {
-		        		printf ("Occ %d fragments %d active %d ",i,OccSamples[i],OccActive[i]);
-					printf (" nodeType %s",stringNodeType(xx->_nodeType));
-					xx = (struct X3D_Shape *) xx->geometry;
-					if (xx != 0) {
-						printf (" (%s)",stringNodeType(xx->_nodeType));
-					}
-					printf ("\n");
-	
-					if (OccSamples[i] > 0) {
-						update_renderFlag (xx,VF_hasVisibleChildren  |
-								VF_hasGeometryChildren  |
-								VF_hasBeenScannedForGeometryChildren);
-					} else {
-						update_renderFlag (xx,
-								VF_hasGeometryChildren |
-								VF_hasBeenScannedForGeometryChildren);
-					}
-								
+				printf ("\n");
+
+				if (OccSamples[i] > 0) {
+					update_renderFlag (xx,VF_hasVisibleChildren  |
+							VF_hasGeometryChildren  |
+							VF_hasBeenScannedForGeometryChildren);
+				} else {
+					update_renderFlag (xx,
+							VF_hasGeometryChildren |
+							VF_hasBeenScannedForGeometryChildren);
 				}
+							
 			}
 		}
 	
-		for (i=0; i<=maxShapeFound; i++) {
+		for (i=0; i<=QueryCount; i++) {
 			if (OccNodes[i] != 0) {
 				xx = (struct X3D_Shape *) OccNodes[i];
 		
@@ -363,10 +371,24 @@ void OcclusionCulling ()  {
 int newOcclude() {
 	int retval;
 	#ifdef OCCLUSION
-		retval = maxShapeFound;
-		maxShapeFound ++;
+		retval = maxOccludersFound;
+		maxOccludersFound ++;
 	#else
 		retval = 0;
 	#endif	
 	return retval;
+}
+
+/* shut down the occlusion stuff */
+void zeroOcclusion(void) {
+	QueryCount = 0;
+	glDeleteQueries (OccQuerySize, OccQueries);
+	glFlush();
+	
+	OccQuerySize=0;
+	maxOccludersFound = 0;
+	FREE_IF_NZ(OccQueries);
+	FREE_IF_NZ(OccNodes);
+	FREE_IF_NZ(OccActive);
+	FREE_IF_NZ(OccSamples);
 }

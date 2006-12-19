@@ -1001,7 +1001,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
 
 	/* occlusion testing - zero total count, but keep malloc'd memory around */
 	#ifdef OCCLUSION
-	maxShapeFound = 0;
+	zeroOcclusion();
 	#endif
 
 	/* clock events - stop them from ticking */

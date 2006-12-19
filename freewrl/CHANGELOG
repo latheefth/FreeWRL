@@ -1,4 +1,10 @@
 For 1.18.10:
+	- memory corruption in "default MF*" values fixed in createNewX3DNode.
+
+	- memory leak in OcclusionQueries fixed.
+
+	- some parser problems fixed. (some more identified)
+
 	- fixed problem in *Background nodes when sky and ground entries were empty
 
 	- X3dToVrml97.xslt changed - it was adding EXTERNPROTOS for 

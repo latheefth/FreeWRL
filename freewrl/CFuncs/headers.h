@@ -174,15 +174,14 @@ extern void * *OccNodes;
 extern int *OccActive;
 extern GLint *OccSamples;
 int newOcclude(void);
-extern int maxShapeFound;
-extern int OccQuerySize;
+void zeroOcclusion(void);
+extern int QueryCount;
 
 #define BEGINOCCLUSIONQUERY \
 				if (render_geom) { \
                                 /* printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType( \
                                                 ((struct X3D_Box*) node->geometry)->_nodeType)); */ \
-                                if (node->__OccludeNumber > maxShapeFound) maxShapeFound = node->__OccludeNumber; \
-                                if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < OccQuerySize)) { \
+                                if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
 					OccActive[node->__OccludeNumber] = TRUE; \
 					if (OccNodes[node->__OccludeNumber] == 0) { \
 						OccNodes[node->__OccludeNumber] = node; \
@@ -192,7 +191,7 @@ extern int OccQuerySize;
                                 } }
 #define ENDOCCLUSIONQUERY \
 			if (render_geom) { \
-                        if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < OccQuerySize)) { \
+                        if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
 				/* printf ("ending query for %d (%s)\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); */ \
                                 glEndQuery(GL_SAMPLES_PASSED);   \
                         } }
