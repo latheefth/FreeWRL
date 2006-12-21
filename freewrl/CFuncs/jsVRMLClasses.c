@@ -1904,8 +1904,12 @@ JSBool
 SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	JSString *_idStr, *_valStr;
-	/* JAS BrowserNative *brow; */
 	char *_id_c, *_val_c;
+	SFNodeNative *ptr;
+	int val_len;
+	int retint;
+	uintptr_t ra;
+
 
 	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);
@@ -1918,8 +1922,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			   VERBOSE_OBJ obj, _id_c, _val_c);
 	}
 
-printf ("old code called for SFNodeSetProperty\n");
-#ifdef OLDCODE
+
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFNodeSetProperty.\n");
 		return JS_FALSE;
@@ -1930,15 +1933,14 @@ printf ("old code called for SFNodeSetProperty\n");
 		val_len = strlen(_val_c) + 1;
 
 		if (JSVRMLClassesVerbose) printf ("switching on %d\n",JSVAL_TO_INT(id));
-
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
-			if ((strlen(ptr->vrmlstring) + 1) > val_len) {
-				ptr->vrmlstring =
-					(char *) realloc(ptr->vrmlstring, val_len * sizeof(char));
+			if ((strlen(ptr->X3DString) + 1) > val_len) {
+				ptr->X3DString =
+					(char *) realloc(ptr->X3DString, val_len * sizeof(char));
 			}
-			memset(ptr->vrmlstring, 0, val_len);
-			memmove(ptr->vrmlstring, _val_c, val_len);
+			memset(ptr->X3DString, 0, val_len);
+			memmove(ptr->X3DString, _val_c, val_len);
 			break;
 		case 1:
 			if ((strlen(ptr->handle) + 1) > val_len) {
@@ -1949,27 +1951,33 @@ printf ("old code called for SFNodeSetProperty\n");
 			memmove(ptr->handle, _val_c, val_len);
 			break;
 		}
+
 	} else {
 		if (JSVRMLClassesVerbose) printf ("JS_IS_INT false\n");
+/*
 		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
 			printf( "JS_GetGlobalObject failed in SFNodeSetProperty.\n");
 			return JS_FALSE;
 		}
 
-/*
 		if (!getBrowser(cx, globalObj, &brow)) {
 			printf( "getBrowser failed in SFNodeSetProperty.\n");
 			return JS_FALSE;
 		}
 */
 
-		if (JSVRMLClassesVerbose)printf ("SFNodeSetProperty, setting node %s field %s to value %s\n", ptr->handle,_id_c,_val_c);
+		if (JSVRMLClassesVerbose)printf ("SFNodeSetProperty, setting node %d field %s to value %s\n", ptr->handle,_id_c,_val_c);
+		printf ("SFNodeSetProperty, setting node %d field %s to value %s\n", ptr->handle,_id_c,_val_c);
+		{
+struct X3D_Node* ptx;
+ptx = (struct X3D_Node*) ptr->handle;
+printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
+}
 		retint = sscanf (ptr->handle,"%d",&ra);
 		/* printf ("scanned in %d values, are %d\n",retint,ra); */
 		setField_method1 ((void *)ra, _id_c, _val_c);
 
 	}
-#endif
 
 	return JS_TRUE;
 }

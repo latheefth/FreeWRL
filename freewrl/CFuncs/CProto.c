@@ -258,6 +258,11 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
  /* XXX:  Do we need the *original* reference? */
  ret->tree->__protoDef=ret;
 
+ /* JAS - call a function to ensure that the parents are filled in properly -
+    sometimes the reverse links are required, especially when propagating sensitive info 
+    back up the tree */
+ checkParentLink(ret->tree,NULL);
+
  return ret;
 }
 
