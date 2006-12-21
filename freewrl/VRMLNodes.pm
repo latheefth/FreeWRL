@@ -8,30 +8,7 @@
 
 package VRML::NodeType;
 
-#########################################################
-# The routines below implement the browser object interface.
-
-
-# The following VRML:: variables are used
-BEGIN {
-								# Script output file name (set with -psout)
-  $VRML::script_out_file = "" unless
-	defined $VRML::script_out_file ;
-  $VRML::script_out_open = 0;	# True if output file is open
-								# True if script output file is
-								# currently selected
-  $VRML::script_out_selected = 0 ;
-  $VRML::LAST_HANDLE = 0 ;		# Filehandle in use before script call
-}
-
-
-#JAS use Data::Dumper ;
-
-#JAS package VRML::NodeType;
-
 ########################################################################
-
-my $protono;
 
 {
     # XXX When this changes, change Scene.pm: VRML::Scene::newp too --
@@ -84,574 +61,574 @@ my $protono;
     }
 }
 
-
-%VRML::Nodes::bindable = map {($_,1)} qw/
- Viewpoint
- Background
- TextureBackground
- NavigationInfo
- Fog
- GeoViewpoint
-/;
-
-
-
-%VRML::Nodes::X3DUrlObject = map {($_=>1)} qw/
-	ImageTexture
-	MovieTexture
-	Inline
-	Script
-	AudioClip
-	/;
-
-%VRML::Nodes::X3DFaceGeometry = map {($_=>1)} qw/
-	ElevationGrid
-	IndexedFaceSet
-	IndexedTriangleFanSet
-	IndexedTriangleSet
-	IndexedTriangleStripSet
-	TriangleFanSet
-	TriangleStripSet
-	TriangleSet
-	/;
-
-%VRML::Nodes::X3DCG_IndexedTriangleStripSet = map {($_=>1)} qw/
-	color
-	coord
-	creaseAngle
-	metadata
-	normal
-	ccw
-	normalPerVertex
-	solid
-	index
-	/;
-%VRML::Nodes::X3DCG_IndexedTriangleSet = map {($_=>1)} qw/
-	color
-	coord
-	metadata
-	normal
-	texCoord
-	ccw
-	colorPerVertex
-	normalPerVertex
-	solid
-	index
-	/;
-
-%VRML::Nodes::X3DCG_IndexedTriangleFanSet = map {($_=>1)} qw/
-	color
-	coord
-	metadata
-	normal
-	texCoord
-	ccw
-	colorPerVertex
-	normalPerVertex
-	solid
-	index
-	/;
-
-%VRML::Nodes::X3DCG_TriangleFanSet = map {($_=>1)} qw/
-	color
-	coord
-	metadata
-	normal
-	texCoord
-	ccw
-	colorPerVertex
-	normalPerVertex
-	solid
-	fanCount
-	/;
-
-%VRML::Nodes::X3DCG_TriangleSet = map {($_=>1)} qw/
-	color
-	coord
-	metadata
-	normal
-	texCoord
-	ccw
-	colorPerVertex
-	normalPerVertex
-	solid
-	/;
-
-%VRML::Nodes::X3DCG_TriangleStripSet = map {($_=>1)} qw/
-	color
-	coord
-	metadata
-	normal
-	stripCount
-	texCoord
-	ccw
-	colorPerVertex
-	normalPerVertex
-	solid
-	/;
-
-
-%VRML::Nodes::X3DCG_ElevationGrid = map {($_=>1)} qw/
-	set_height
-	color
-	normal
-	texCoord
-	height
-	ccw
-	colorPerVertex
-	creaseAngle
-	normalPerVertex
-	solid
-	xDimension
-	xSpacing
-	zDimension
-	zSpacing
-	/;
-
-%VRML::Nodes::X3DCG_IndexedFaceSet = map {($_=>1)} qw/
-	color
-	coord
-	creaseAngle
-	metadata
-	normal
-	texCoord
-	ccw
-	colorIndex
-	colorPerVertex
-	convex
-	coordIndex
-	normalIndex
-	normalPerVertex
-	solid
-	texCoordIndex
-	/;
-
-
-%VRML::Nodes::visible = map {($_=>1)} qw/
-	Box
-	Cone
-	Sphere
-	IndexedFaceSet
-	ElevationGrid
-	GeoElevationGrid
-	Extrusion
-	IndexedLineSet
-	Background
-	TextureBackground
-	PointLight
-	Fog
-	DirectionalLight
-	SpotLight
-        /;
-
-# nodes that are valid geometry fields.
-%VRML::Nodes::geometry = map {($_=>1)} qw/
-	Arc2D
-	ArcClose2D
-	Circle2D
-	Disk2D
-	Polyline2D
-	Polypoint2D
-	Rectangle2D
-	TriangleSet2D
-	Box
-	Cone
-	Sphere
-	Cylinder
-	IndexedFaceSet
-	ElevationGrid
-	GeoElevationGrid
-	Extrusion
-	IndexedLineSet
-	LineSet
-	PointSet
-	Text
-	IndexedTriangleFanSet
-	IndexedTriangleSet
-	IndexedTriangleStripSet
-	TriangleFanSet
-	TriangleSet
-	TriangleStripSet
-        /;
-
-# nodes that are valid at the top; not all nodes
-# can reside at the top of the scenegraph.
-# see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-X3DAbstractSpecification/
-%VRML::Nodes::topNodes = map {($_=>1)} qw/
-	Fog
-	GeoViewpoint
-	NavigationInfo
-	Viewpoint
-	Background
-	TextureBackground
-	Inline
-	StaticGroup
-	Shape
-	Anchor
-	Billboard
-	Collision
-	EspduTransform
-	GeoLocation
-	GeoLOD
-	Group
-	HAnimJoint
-	HAnimSegment
-	HAnimSite
-	LOD
-	Switch
-	Transform
-	NurbsSet
-	NurbsOrientationInterpolator
-	NurbsPositionInterpolator
-	NurbsSurfaceInterpolator
-	HAnimHumanoid
-	ReceiverPdu
-	SignalPdu
-	TransmitterPdu
-	ColorInterpolator
-	CoordinateInterpolator
-	CoordinateInterpolator2D
-	GeoPositionInterpolator
-	NormalInterpolator
-	OrientationInterpolator
-	PositionInterpolator
-	PositionInterpolator2D
-	ScalarInterpolator
-	DirectionalLight
-	PointLight
-	SpotLight
-	Script
-	Collision
-	ProximitySensor
-	VisibilitySensor
-	KeySensor
-	StringSensor
-	LoadSensor
-	CylinderSensor
-	PlaneSensor
-	SphereSensor
-	GeoTouchSensor
-	TouchSensor
-	Sound
-	TimeSensor
-	AudioClip
-	MovieTexture
-	BooleanSequencer
-	IntegerSequencer
-	BooleanTrigger
-	IntegerTrigger
-	TimeTrigger
-	BooleanFilter
-	BooleanToggle
-	GeoMetadata
-	WorldInfo
-	PROFILE
-	COMPONENT
-	META
-        /;
-
-# nodes that are valid children fields. Check out the X3DChildNode
-# section of:
-#ISO-IEC-19775-IS-X3DAbstractSpecification/Part01/concepts.html#f-Objecthierarchy
-%VRML::Nodes::children = map {($_=>1)} qw/
-	Fog
-	GeoViewpoint
-	NavigationInfo
-	Viewpoint
-	Background
-	TextureBackground
-	Inline
-	StaticGroup
-	Shape
-	Anchor
-	Billboard
-	Collision
-	EspduTransform
-	GeoLocation
-	GeoLOD
-	Group
-	HAnimJoint
-	HAnimSegment
-	HAnimSite
-	LOD
-	Switch
-	Transform
-	NurbsSet
-	NurbsOrientationInterpolator
-	NurbsPositionInterpolator
-	NurbsSurfaceInterpolator
-	HanimHumanoid
-	ReceiverPdu
-	SignalPdu
-	TransmitterPdu
-	ColorInterpolator
-	CoordinateInterpolator
-	CoordinateInterpolator2D
-	GeoPositionInterpolator
-	NormalInterpolator
-	OrientationInterpolator
-	PositionInterpolator
-	PositionInterpolator2D
-	ScalarInterpolator
-	DirectionalLight
-	PointLight
-	SpotLight
-	Script
-	TimeSensor
-	Collision
-	ProximitySensor
-	VisibilitySensor
-	KeySensor
-	StringSensor
-	LoadSensor
-	CylinderSensor
-	PlaneSensor
-	SphereSensor
-	GeoTouchSensor
-	TouchSensor
-	Sound
-	TimeSensor
-	BooleanSequencer
-	IntegerSequencer
-	BooleanTrigger
-	IntegerTrigger
-	TimeTrigger
-	BooleanFilter
-	BooleanToggle
-	GeoMetadata
-	WorldInfo
-        /;
-
-#nodes that are valid appearance fields.
-%VRML::Nodes::appearance = map {($_=>1)} qw/
-	Appearance
-        /;
-
-#nodes that are valid normal fields.
-%VRML::Nodes::normal = map {($_=>1)} qw/
-	Normal	
-        /;
-
-#nodes that are valid material fields.
-%VRML::Nodes::fontStyle = map {($_=>1)} qw/
-	FontStyle
-        /;
-
-#nodes that are valid material fields.
-%VRML::Nodes::material = map {($_=>1)} qw/
-	Material
-        /;
-
-#nodes that are valid X3DColorNode color fields.
-%VRML::Nodes::color = map {($_=>1)} qw/
-	Color
-	ColorRGBA
-        /;
-
-#nodes that are valid textureTransform fields.
-%VRML::Nodes::textureTransform = map {($_=>1)} qw/
-	TextureTransform
-        /;
-
-# nodes that are valid texture fields.
-%VRML::Nodes::texture = map {($_=>1)} qw/
-	ImageTexture
-	PixelTexture
-	MovieTexture
-	MultiTexture
-        /;
-
-# nodes that are valid coord fields.
-%VRML::Nodes::coord = map {($_=>1)} qw/
-	Coordinate
-	/;
-
-# nodes that are valid texcoord fields.
-%VRML::Nodes::texCoord = map {($_=>1)} qw/
-	TextureCoordinate
-	MultiTextureCoordinate
-	TextureCoordinateGenerator
-	/;
-
-# nodes that are valid fillProperties fields.
-%VRML::Nodes::fillProperties = map {($_=>1)} qw/
-	FillProperties
-	/;
-
-# nodes that are valid lineProperties fields.
-%VRML::Nodes::lineProperties = map {($_=>1)} qw/
-	LineProperties
-	/;
-
-# nodes that are valid sound source fields.
-%VRML::Nodes::source = map {($_=>1)} qw/
-	AudioClip
-	/;
-
-# nodes that are just ignored for now.
-%VRML::Nodes::skipthese = map {($_=>1)} qw/
-	X3D
-	Metadata
-	MetadataDouble
-	MetadataInteger
-	MetadataString
-	MetadataFloat
-	MetadataSet
-	/;
-
-# fields of ROUTE statements in X3D:
-%VRML::Nodes::routefields = map{($_=>1)} qw/
-	toField
-	toNode
-	fromField
-	fromNode
-	/;
-
-# What are the transformation-hierarchy child nodes?
-%VRML::Nodes::Transchildren = qw(
- Transform	children
- Group		children
- StaticGroup	children
- Billboard	children
- Anchor		children
- Collision	children
- GeoLocation	children
- InlineLoadControl children
-
-);
-
-%VRML::Nodes::siblingsensitive = map {($_, 1)} qw/
- TouchSensor
- GeoTouchSensor
- PlaneSensor
- CylinderSensor
- SphereSensor
-/;
-
-%VRML::Nodes::sensitive = map {($_, 1)} qw/
- ProximitySensor
- Anchor
-/;
-
-
-# used for the X3D Parser only. Return type of node.
-%X3D::X3DNodes::defaultContainerType = (
-	Arc2D			=>geometry,
-	ArcClose2D		=>geometry,
-	Circle2D		=>geometry,
-	Disk2D			=>geometry,
-	Polyline2D		=>geometry,
-	Polypoint2D		=>geometry,
-	Rectangle2D		=>geometry,
-	TriangleSet2D		=>geometry,
-	
-	Anchor 			=>children,
-	Appearance 		=>appearance,
-	AudioClip 		=>source,
-	Background 		=>children,
-	Billboard 		=>children,
-	Box 			=>geometry,
-	Collision 		=>children,
-	Color 			=>color,
-	ColorInterpolator 	=>children,
-	ColorRGBA 		=>color,
-	Cone 			=>geometry,
-	Contour2D 		=>geometry,
-	Coordinate 		=>coord,
-	CoordinateDeformer 	=>children,
-	CoordinateInterpolator 	=>children,
-	CoordinateInterpolator2D 	=>children,
-	Cylinder 		=>geometry,
-	CylinderSensor 		=>children,
-	DirectionalLight 	=>children,
-	ElevationGrid 		=>geometry,
-	Extrusion 		=>geometry,
-	FillProperties		=>fillProperties,
-	Fog 			=>children,
-	FontStyle 		=>fontStyle,
-	GeoCoordinate 		=>children,
-	GeoElevationGrid 	=>geometry,
-	GeoLocation 		=>children,
-	GeoLOD 			=>children,
-	GeoMetadata		=>children,
-	GeoOrigin 		=>children,
-	GeoPositionInterpolator	=>children,
-	GeoTouchSensor		=>children,
-	GeoViewpoint 		=>children,
-	Group 			=>children,
-	HAnimDisplacer		=>children,
-	HAnimHumanoid		=>children,
-	HAnimJoint		=>joints,
-	HAnimSegment		=>segments,
-	HAnimSite		=>sites,
-	ImageTexture 		=>texture,
-	IndexedFaceSet 		=>geometry,
-	IndexedLineSet 		=>geometry,
-	IndexedTriangleFanSet 	=>geometry,
-	IndexedTriangleSet 	=>geometry,
-	IndexedTriangleStripSet	=>geometry,
-	Inline 			=>children,
-	InlineLoadControl 	=>children,
-	LineSet 		=>geometry,
-	LineProperties		=>lineProperties,
-	LoadSensor		=>children,
-	LOD 			=>children,
-	Material 		=>material,
-	MultiTexture		=>texture,
-	MultiTextureCoordinate  =>texCoord,
-	MultiTextureTransform	=>textureTransform,
-	MovieTexture 		=>texture,
-	NavigationInfo 		=>children,
-	Normal 			=>normal,
-	NormalInterpolator 	=>children,
-	NurbsCurve2D 		=>geometry,
-	NurbsCurve 		=>geometry,
-	NurbsGroup 		=>children,
-	NurbsPositionInterpolator=>children,
-	NurbsSurface 		=>children,
-	NurbsTextureSurface 	=>children,
-	OrientationInterpolator	=>children,
-	PixelTexture 		=>texture,
-	PlaneSensor 		=>children,
-	PointLight 		=>children,
-	PointSet 		=>geometry,
-	PositionInterpolator 	=>children,
-	PositionInterpolator2D 	=>children,
-	ProximitySensor 	=>children,
-	ScalarInterpolator 	=>children,
-	Scene 			=>children,
-	Script 			=>children,
-	Shape 			=>children,
-	Sound 			=>children,
-	Sphere 			=>geometry,
-	SphereSensor 		=>children,
-	SpotLight 		=>children,
-	StaticGroup		=>children,
-	Switch 			=>children,
-	Text 			=>geometry,
-	TextureBackground 	=>children,
-	TextureCoordinate 	=>texCoord,
-	TextureCoordinateGenerator  =>texCoord,
-	TextureTransform 	=>textureTransform,
-	TimeSensor 		=>children,
-	TouchSensor 		=>children,
-	Transform 		=>children,
-	TriangleFanSet 		=>geometry,
-	TriangleSet 		=>geometry,
-	TriangleStripSet 	=>geometry,
-	TrimmedSurface 		=>children,
-	Viewpoint 		=>children,
-	VisibilitySensor 	=>children,
-	WorldInfo 		=>children,
-
-	BooleanFilter		=>children,
-	BooleanSequencer	=>children,
-	BooleanToggle		=>children,
-	BooleanTrigger		=>children,
-	IntegerSequencer	=>children,
-	IntegerTrigger		=>children,
-	TimeTrigger		=>children,
-);
+#JAS
+#JAS%VRML::Nodes::bindable = map {($_,1)} qw/
+#JAS Viewpoint
+#JAS Background
+#JAS TextureBackground
+#JAS NavigationInfo
+#JAS Fog
+#JAS GeoViewpoint
+#JAS/;
+#JAS
+#JAS
+#JAS
+#JAS%VRML::Nodes::X3DUrlObject = map {($_=>1)} qw/
+#JAS	ImageTexture
+#JAS	MovieTexture
+#JAS	Inline
+#JAS	Script
+#JAS	AudioClip
+#JAS	/;
+#JAS
+#JAS%VRML::Nodes::X3DFaceGeometry = map {($_=>1)} qw/
+#JAS	ElevationGrid
+#JAS	IndexedFaceSet
+#JAS	IndexedTriangleFanSet
+#JAS	IndexedTriangleSet
+#JAS	IndexedTriangleStripSet
+#JAS	TriangleFanSet
+#JAS	TriangleStripSet
+#JAS	TriangleSet
+#JAS	/;
+#JAS
+#JAS%VRML::Nodes::X3DCG_IndexedTriangleStripSet = map {($_=>1)} qw/
+#JAS	color
+#JAS	coord
+#JAS	creaseAngle
+#JAS	metadata
+#JAS	normal
+#JAS	ccw
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	index
+#JAS	/;
+#JAS%VRML::Nodes::X3DCG_IndexedTriangleSet = map {($_=>1)} qw/
+#JAS	color
+#JAS	coord
+#JAS	metadata
+#JAS	normal
+#JAS	texCoord
+#JAS	ccw
+#JAS	colorPerVertex
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	index
+#JAS	/;
+#JAS
+#JAS%VRML::Nodes::X3DCG_IndexedTriangleFanSet = map {($_=>1)} qw/
+#JAS	color
+#JAS	coord
+#JAS	metadata
+#JAS	normal
+#JAS	texCoord
+#JAS	ccw
+#JAS	colorPerVertex
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	index
+#JAS	/;
+#JAS
+#JAS%VRML::Nodes::X3DCG_TriangleFanSet = map {($_=>1)} qw/
+#JAS	color
+#JAS	coord
+#JAS	metadata
+#JAS	normal
+#JAS	texCoord
+#JAS	ccw
+#JAS	colorPerVertex
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	fanCount
+#JAS	/;
+#JAS
+#JAS%VRML::Nodes::X3DCG_TriangleSet = map {($_=>1)} qw/
+#JAS	color
+#JAS	coord
+#JAS	metadata
+#JAS	normal
+#JAS	texCoord
+#JAS	ccw
+#JAS	colorPerVertex
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	/;
+#JAS
+#JAS%VRML::Nodes::X3DCG_TriangleStripSet = map {($_=>1)} qw/
+#JAS	color
+#JAS	coord
+#JAS	metadata
+#JAS	normal
+#JAS	stripCount
+#JAS	texCoord
+#JAS	ccw
+#JAS	colorPerVertex
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	/;
+#JAS
+#JAS
+#JAS%VRML::Nodes::X3DCG_ElevationGrid = map {($_=>1)} qw/
+#JAS	set_height
+#JAS	color
+#JAS	normal
+#JAS	texCoord
+#JAS	height
+#JAS	ccw
+#JAS	colorPerVertex
+#JAS	creaseAngle
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	xDimension
+#JAS	xSpacing
+#JAS	zDimension
+#JAS	zSpacing
+#JAS	/;
+#JAS
+#JAS%VRML::Nodes::X3DCG_IndexedFaceSet = map {($_=>1)} qw/
+#JAS	color
+#JAS	coord
+#JAS	creaseAngle
+#JAS	metadata
+#JAS	normal
+#JAS	texCoord
+#JAS	ccw
+#JAS	colorIndex
+#JAS	colorPerVertex
+#JAS	convex
+#JAS	coordIndex
+#JAS	normalIndex
+#JAS	normalPerVertex
+#JAS	solid
+#JAS	texCoordIndex
+#JAS	/;
+#JAS
+#JAS
+#JAS%VRML::Nodes::visible = map {($_=>1)} qw/
+#JAS	Box
+#JAS	Cone
+#JAS	Sphere
+#JAS	IndexedFaceSet
+#JAS	ElevationGrid
+#JAS	GeoElevationGrid
+#JAS	Extrusion
+#JAS	IndexedLineSet
+#JAS	Background
+#JAS	TextureBackground
+#JAS	PointLight
+#JAS	Fog
+#JAS	DirectionalLight
+#JAS	SpotLight
+#JAS        /;
+#JAS
+#JAS# nodes that are valid geometry fields.
+#JAS%VRML::Nodes::geometry = map {($_=>1)} qw/
+#JAS	Arc2D
+#JAS	ArcClose2D
+#JAS	Circle2D
+#JAS	Disk2D
+#JAS	Polyline2D
+#JAS	Polypoint2D
+#JAS	Rectangle2D
+#JAS	TriangleSet2D
+#JAS	Box
+#JAS	Cone
+#JAS	Sphere
+#JAS	Cylinder
+#JAS	IndexedFaceSet
+#JAS	ElevationGrid
+#JAS	GeoElevationGrid
+#JAS	Extrusion
+#JAS	IndexedLineSet
+#JAS	LineSet
+#JAS	PointSet
+#JAS	Text
+#JAS	IndexedTriangleFanSet
+#JAS	IndexedTriangleSet
+#JAS	IndexedTriangleStripSet
+#JAS	TriangleFanSet
+#JAS	TriangleSet
+#JAS	TriangleStripSet
+#JAS        /;
+#JAS
+#JAS# nodes that are valid at the top; not all nodes
+#JAS# can reside at the top of the scenegraph.
+#JAS# see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-X3DAbstractSpecification/
+#JAS%VRML::Nodes::topNodes = map {($_=>1)} qw/
+#JAS	Fog
+#JAS	GeoViewpoint
+#JAS	NavigationInfo
+#JAS	Viewpoint
+#JAS	Background
+#JAS	TextureBackground
+#JAS	Inline
+#JAS	StaticGroup
+#JAS	Shape
+#JAS	Anchor
+#JAS	Billboard
+#JAS	Collision
+#JAS	EspduTransform
+#JAS	GeoLocation
+#JAS	GeoLOD
+#JAS	Group
+#JAS	HAnimJoint
+#JAS	HAnimSegment
+#JAS	HAnimSite
+#JAS	LOD
+#JAS	Switch
+#JAS	Transform
+#JAS	NurbsSet
+#JAS	NurbsOrientationInterpolator
+#JAS	NurbsPositionInterpolator
+#JAS	NurbsSurfaceInterpolator
+#JAS	HAnimHumanoid
+#JAS	ReceiverPdu
+#JAS	SignalPdu
+#JAS	TransmitterPdu
+#JAS	ColorInterpolator
+#JAS	CoordinateInterpolator
+#JAS	CoordinateInterpolator2D
+#JAS	GeoPositionInterpolator
+#JAS	NormalInterpolator
+#JAS	OrientationInterpolator
+#JAS	PositionInterpolator
+#JAS	PositionInterpolator2D
+#JAS	ScalarInterpolator
+#JAS	DirectionalLight
+#JAS	PointLight
+#JAS	SpotLight
+#JAS	Script
+#JAS	Collision
+#JAS	ProximitySensor
+#JAS	VisibilitySensor
+#JAS	KeySensor
+#JAS	StringSensor
+#JAS	LoadSensor
+#JAS	CylinderSensor
+#JAS	PlaneSensor
+#JAS	SphereSensor
+#JAS	GeoTouchSensor
+#JAS	TouchSensor
+#JAS	Sound
+#JAS	TimeSensor
+#JAS	AudioClip
+#JAS	MovieTexture
+#JAS	BooleanSequencer
+#JAS	IntegerSequencer
+#JAS	BooleanTrigger
+#JAS	IntegerTrigger
+#JAS	TimeTrigger
+#JAS	BooleanFilter
+#JAS	BooleanToggle
+#JAS	GeoMetadata
+#JAS	WorldInfo
+#JAS	PROFILE
+#JAS	COMPONENT
+#JAS	META
+#JAS        /;
+#JAS
+#JAS# nodes that are valid children fields. Check out the X3DChildNode
+#JAS# section of:
+#JAS#ISO-IEC-19775-IS-X3DAbstractSpecification/Part01/concepts.html#f-Objecthierarchy
+#JAS%VRML::Nodes::children = map {($_=>1)} qw/
+#JAS	Fog
+#JAS	GeoViewpoint
+#JAS	NavigationInfo
+#JAS	Viewpoint
+#JAS	Background
+#JAS	TextureBackground
+#JAS	Inline
+#JAS	StaticGroup
+#JAS	Shape
+#JAS	Anchor
+#JAS	Billboard
+#JAS	Collision
+#JAS	EspduTransform
+#JAS	GeoLocation
+#JAS	GeoLOD
+#JAS	Group
+#JAS	HAnimJoint
+#JAS	HAnimSegment
+#JAS	HAnimSite
+#JAS	LOD
+#JAS	Switch
+#JAS	Transform
+#JAS	NurbsSet
+#JAS	NurbsOrientationInterpolator
+#JAS	NurbsPositionInterpolator
+#JAS	NurbsSurfaceInterpolator
+#JAS	HanimHumanoid
+#JAS	ReceiverPdu
+#JAS	SignalPdu
+#JAS	TransmitterPdu
+#JAS	ColorInterpolator
+#JAS	CoordinateInterpolator
+#JAS	CoordinateInterpolator2D
+#JAS	GeoPositionInterpolator
+#JAS	NormalInterpolator
+#JAS	OrientationInterpolator
+#JAS	PositionInterpolator
+#JAS	PositionInterpolator2D
+#JAS	ScalarInterpolator
+#JAS	DirectionalLight
+#JAS	PointLight
+#JAS	SpotLight
+#JAS	Script
+#JAS	TimeSensor
+#JAS	Collision
+#JAS	ProximitySensor
+#JAS	VisibilitySensor
+#JAS	KeySensor
+#JAS	StringSensor
+#JAS	LoadSensor
+#JAS	CylinderSensor
+#JAS	PlaneSensor
+#JAS	SphereSensor
+#JAS	GeoTouchSensor
+#JAS	TouchSensor
+#JAS	Sound
+#JAS	TimeSensor
+#JAS	BooleanSequencer
+#JAS	IntegerSequencer
+#JAS	BooleanTrigger
+#JAS	IntegerTrigger
+#JAS	TimeTrigger
+#JAS	BooleanFilter
+#JAS	BooleanToggle
+#JAS	GeoMetadata
+#JAS	WorldInfo
+#JAS        /;
+#JAS
+#JAS#nodes that are valid appearance fields.
+#JAS%VRML::Nodes::appearance = map {($_=>1)} qw/
+#JAS	Appearance
+#JAS        /;
+#JAS
+#JAS#nodes that are valid normal fields.
+#JAS%VRML::Nodes::normal = map {($_=>1)} qw/
+#JAS	Normal	
+#JAS        /;
+#JAS
+#JAS#nodes that are valid material fields.
+#JAS%VRML::Nodes::fontStyle = map {($_=>1)} qw/
+#JAS	FontStyle
+#JAS        /;
+#JAS
+#JAS#nodes that are valid material fields.
+#JAS%VRML::Nodes::material = map {($_=>1)} qw/
+#JAS	Material
+#JAS        /;
+#JAS
+#JAS#nodes that are valid X3DColorNode color fields.
+#JAS%VRML::Nodes::color = map {($_=>1)} qw/
+#JAS	Color
+#JAS	ColorRGBA
+#JAS        /;
+#JAS
+#JAS#nodes that are valid textureTransform fields.
+#JAS%VRML::Nodes::textureTransform = map {($_=>1)} qw/
+#JAS	TextureTransform
+#JAS        /;
+#JAS
+#JAS# nodes that are valid texture fields.
+#JAS%VRML::Nodes::texture = map {($_=>1)} qw/
+#JAS	ImageTexture
+#JAS	PixelTexture
+#JAS	MovieTexture
+#JAS	MultiTexture
+#JAS        /;
+#JAS
+#JAS# nodes that are valid coord fields.
+#JAS%VRML::Nodes::coord = map {($_=>1)} qw/
+#JAS	Coordinate
+#JAS	/;
+#JAS
+#JAS# nodes that are valid texcoord fields.
+#JAS%VRML::Nodes::texCoord = map {($_=>1)} qw/
+#JAS	TextureCoordinate
+#JAS	MultiTextureCoordinate
+#JAS	TextureCoordinateGenerator
+#JAS	/;
+#JAS
+#JAS# nodes that are valid fillProperties fields.
+#JAS%VRML::Nodes::fillProperties = map {($_=>1)} qw/
+#JAS	FillProperties
+#JAS	/;
+#JAS
+#JAS# nodes that are valid lineProperties fields.
+#JAS%VRML::Nodes::lineProperties = map {($_=>1)} qw/
+#JAS	LineProperties
+#JAS	/;
+#JAS
+#JAS# nodes that are valid sound source fields.
+#JAS%VRML::Nodes::source = map {($_=>1)} qw/
+#JAS	AudioClip
+#JAS	/;
+#JAS
+#JAS# nodes that are just ignored for now.
+#JAS%VRML::Nodes::skipthese = map {($_=>1)} qw/
+#JAS	X3D
+#JAS	Metadata
+#JAS	MetadataDouble
+#JAS	MetadataInteger
+#JAS	MetadataString
+#JAS	MetadataFloat
+#JAS	MetadataSet
+#JAS	/;
+#JAS
+#JAS# fields of ROUTE statements in X3D:
+#JAS%VRML::Nodes::routefields = map{($_=>1)} qw/
+#JAS	toField
+#JAS	toNode
+#JAS	fromField
+#JAS	fromNode
+#JAS	/;
+#JAS
+#JAS# What are the transformation-hierarchy child nodes?
+#JAS%VRML::Nodes::Transchildren = qw(
+#JAS Transform	children
+#JAS Group		children
+#JAS StaticGroup	children
+#JAS Billboard	children
+#JAS Anchor		children
+#JAS Collision	children
+#JAS GeoLocation	children
+#JAS InlineLoadControl children
+#JAS
+#JAS);
+#JAS
+#JAS%VRML::Nodes::siblingsensitive = map {($_, 1)} qw/
+#JAS TouchSensor
+#JAS GeoTouchSensor
+#JAS PlaneSensor
+#JAS CylinderSensor
+#JAS SphereSensor
+#JAS/;
+#JAS
+#JAS%VRML::Nodes::sensitive = map {($_, 1)} qw/
+#JAS ProximitySensor
+#JAS Anchor
+#JAS/;
+#JAS
+#JAS
+#JAS# used for the X3D Parser only. Return type of node.
+#JAS%X3D::X3DNodes::defaultContainerType = (
+#JAS	Arc2D			=>geometry,
+#JAS	ArcClose2D		=>geometry,
+#JAS	Circle2D		=>geometry,
+#JAS	Disk2D			=>geometry,
+#JAS	Polyline2D		=>geometry,
+#JAS	Polypoint2D		=>geometry,
+#JAS	Rectangle2D		=>geometry,
+#JAS	TriangleSet2D		=>geometry,
+#JAS	
+#JAS	Anchor 			=>children,
+#JAS	Appearance 		=>appearance,
+#JAS	AudioClip 		=>source,
+#JAS	Background 		=>children,
+#JAS	Billboard 		=>children,
+#JAS	Box 			=>geometry,
+#JAS	Collision 		=>children,
+#JAS	Color 			=>color,
+#JAS	ColorInterpolator 	=>children,
+#JAS	ColorRGBA 		=>color,
+#JAS	Cone 			=>geometry,
+#JAS	Contour2D 		=>geometry,
+#JAS	Coordinate 		=>coord,
+#JAS	CoordinateDeformer 	=>children,
+#JAS	CoordinateInterpolator 	=>children,
+#JAS	CoordinateInterpolator2D 	=>children,
+#JAS	Cylinder 		=>geometry,
+#JAS	CylinderSensor 		=>children,
+#JAS	DirectionalLight 	=>children,
+#JAS	ElevationGrid 		=>geometry,
+#JAS	Extrusion 		=>geometry,
+#JAS	FillProperties		=>fillProperties,
+#JAS	Fog 			=>children,
+#JAS	FontStyle 		=>fontStyle,
+#JAS	GeoCoordinate 		=>children,
+#JAS	GeoElevationGrid 	=>geometry,
+#JAS	GeoLocation 		=>children,
+#JAS	GeoLOD 			=>children,
+#JAS	GeoMetadata		=>children,
+#JAS	GeoOrigin 		=>children,
+#JAS	GeoPositionInterpolator	=>children,
+#JAS	GeoTouchSensor		=>children,
+#JAS	GeoViewpoint 		=>children,
+#JAS	Group 			=>children,
+#JAS	HAnimDisplacer		=>children,
+#JAS	HAnimHumanoid		=>children,
+#JAS	HAnimJoint		=>joints,
+#JAS	HAnimSegment		=>segments,
+#JAS	HAnimSite		=>sites,
+#JAS	ImageTexture 		=>texture,
+#JAS	IndexedFaceSet 		=>geometry,
+#JAS	IndexedLineSet 		=>geometry,
+#JAS	IndexedTriangleFanSet 	=>geometry,
+#JAS	IndexedTriangleSet 	=>geometry,
+#JAS	IndexedTriangleStripSet	=>geometry,
+#JAS	Inline 			=>children,
+#JAS	InlineLoadControl 	=>children,
+#JAS	LineSet 		=>geometry,
+#JAS	LineProperties		=>lineProperties,
+#JAS	LoadSensor		=>children,
+#JAS	LOD 			=>children,
+#JAS	Material 		=>material,
+#JAS	MultiTexture		=>texture,
+#JAS	MultiTextureCoordinate  =>texCoord,
+#JAS	MultiTextureTransform	=>textureTransform,
+#JAS	MovieTexture 		=>texture,
+#JAS	NavigationInfo 		=>children,
+#JAS	Normal 			=>normal,
+#JAS	NormalInterpolator 	=>children,
+#JAS	NurbsCurve2D 		=>geometry,
+#JAS	NurbsCurve 		=>geometry,
+#JAS	NurbsGroup 		=>children,
+#JAS	NurbsPositionInterpolator=>children,
+#JAS	NurbsSurface 		=>children,
+#JAS	NurbsTextureSurface 	=>children,
+#JAS	OrientationInterpolator	=>children,
+#JAS	PixelTexture 		=>texture,
+#JAS	PlaneSensor 		=>children,
+#JAS	PointLight 		=>children,
+#JAS	PointSet 		=>geometry,
+#JAS	PositionInterpolator 	=>children,
+#JAS	PositionInterpolator2D 	=>children,
+#JAS	ProximitySensor 	=>children,
+#JAS	ScalarInterpolator 	=>children,
+#JAS	Scene 			=>children,
+#JAS	Script 			=>children,
+#JAS	Shape 			=>children,
+#JAS	Sound 			=>children,
+#JAS	Sphere 			=>geometry,
+#JAS	SphereSensor 		=>children,
+#JAS	SpotLight 		=>children,
+#JAS	StaticGroup		=>children,
+#JAS	Switch 			=>children,
+#JAS	Text 			=>geometry,
+#JAS	TextureBackground 	=>children,
+#JAS	TextureCoordinate 	=>texCoord,
+#JAS	TextureCoordinateGenerator  =>texCoord,
+#JAS	TextureTransform 	=>textureTransform,
+#JAS	TimeSensor 		=>children,
+#JAS	TouchSensor 		=>children,
+#JAS	Transform 		=>children,
+#JAS	TriangleFanSet 		=>geometry,
+#JAS	TriangleSet 		=>geometry,
+#JAS	TriangleStripSet 	=>geometry,
+#JAS	TrimmedSurface 		=>children,
+#JAS	Viewpoint 		=>children,
+#JAS	VisibilitySensor 	=>children,
+#JAS	WorldInfo 		=>children,
+#JAS
+#JAS	BooleanFilter		=>children,
+#JAS	BooleanSequencer	=>children,
+#JAS	BooleanToggle		=>children,
+#JAS	BooleanTrigger		=>children,
+#JAS	IntegerSequencer	=>children,
+#JAS	IntegerTrigger		=>children,
+#JAS	TimeTrigger		=>children,
+#JAS);
 
 %VRML::Nodes = (
 	###################################################################################

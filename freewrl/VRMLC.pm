@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.251  2006/12/21 20:51:51  crc_canada
+# PROTO code added to make backlinks (parents).
+#
 # Revision 1.250  2006/11/22 21:50:56  crc_canada
 # Modified Texture registration
 #
@@ -142,13 +145,6 @@ sub get_rendfunc {
 # gen - the main function. this contains much verbatim code
 #
 #
-
-
-{
-        @NodeTypes = keys %VRML::Nodes;
-        # foreach my $key (keys (%{$VRML::Nodes})) {print "field $key\n";}
-}
-
 
 #############################################################################################
 sub gen {
@@ -625,8 +621,33 @@ sub gen {
 		push @genFuncs2, "	case NODE_$node: return ".
 				$VRML::Nodes{$node}{X3DNodeType}."; break;\n";
 	}
-	push @genFuncs2,"\tdefaut:return -1;\n\t}\n}\n";
+	push @genFuncs2,"\tdefault:return -1;\n\t}\n}\n";
 
+
+	#####################
+	# create a function that goes through the nodes, and updates the
+	# parent fields, used for PROTO expansions.
+print "checking for children...\n";
+push @genFuncs2, "static int level=0;\n";
+	push @str, "\nvoid checkParentLink (struct X3D_Node * node,struct X3D_Node *parent);\n";
+	push @genFuncs2, "\nvoid checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {\n".
+			"\tint i; int n; void * *p;\n".
+			#"printf (\"%d checkParentLink for node %d type %s\\n\",level,node,stringNodeType(node->_nodeType));\n\n".
+			"\tif (parent != NULL) add_parent(node, parent);\n\n".
+			"\tswitch (node->_nodeType) {\n";
+	for my $node (@sortedNodeList) {
+		if (exists $VRML::Nodes{$node}{Defaults}{children}) {
+			push @genFuncs2, "\tcase NODE_$node:\n".
+			"\t\tn = ((struct X3D_$node *) node)->children.n; \n".
+			"\t\tp = ((struct X3D_$node *) node)->children.p; break;\n";
+			#print "node $node has chldren\n";
+		}
+	}
+	push @genFuncs2,"\tdefault:return;\n\t}\n";
+
+	push @genFuncs2,"\tlevel++;\n\tfor (i=0; i<n; i++) { \n".
+		#"\t\tprintf (\"checking child %d of %d of %d\\n\",i,n,node);\n".
+		"\t\t checkParentLink(p[i],node);\n\t}\n\tlevel--;\n}\n";
 
 	#####################
 	# print out generated functions to a file

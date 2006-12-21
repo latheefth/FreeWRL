@@ -8,12 +8,6 @@
 #include "CParseGeneral.h"
 #include "CParseLexer.h"
 
-
-/* John Stewart's data structures to keep track of parents */
-int currentLevel = 0;
-struct X3D_Node* parentHolder[256];
-
-
 /* ************************************************************************** */
 /* ******************************** OffsetPointer *************************** */
 /* ************************************************************************** */
@@ -169,8 +163,6 @@ struct ProtoDefinition* newProtoDefinition()
  struct ProtoDefinition* ret=malloc(sizeof(struct ProtoDefinition));
  assert(ret);
  ret->tree=createNewX3DNode(NODE_Group);
-printf ("created new node at ProtoDefinition, step x, node %d\n",ret->tree);
-
  assert(ret->tree);
 
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
@@ -261,9 +253,6 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
  protoDefinition_fillInnerPtrs(ret);
 
  /* Copy the scene graph and fill the fields thereby */
- parentHolder[0] = me->tree;	/* JAS */
- currentLevel = 0; 			/* JAS - should be, but set to zero to make sure */
-
  ret->tree=protoDefinition_deepCopy(me->tree, ret, NULL);
  /* Set reference */
  /* XXX:  Do we need the *original* reference? */
@@ -385,32 +374,21 @@ DEEPCOPY_MFVALUE(vec3f, Vec3f)
 /* ************************************************************************** */
 
 /* Nodes; may be used to update the interface-pointers, too. */
-
-
 struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
  struct ProtoDefinition* new, struct PointerHash* hash)
 {
  struct X3D_Node* ret;
  BOOL myHash=(!hash);
 
- /* JAS - keep track of this nodes parent */
- currentLevel++;
- parentHolder[currentLevel] = node;
-
  /* If we get nothing, what can we return? */
- if(!node) {
-	currentLevel--;
-	return NULL;
-}
+ if(!node) return NULL;
 
  /* Check if we've already copied this node */
  if(hash)
  {
   ret=pointerHash_get(hash, node);
-  if(ret) {	
-	currentLevel--;
-   	return ret;
-	}
+  if(ret)
+   return ret;
  }
 
  if(!hash)
@@ -418,12 +396,6 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
 
  /* Create it */
  ret=createNewX3DNode(node->_nodeType);
-
- /* JAS - add in the link to the parent. XX WHY WOULD THE PARENT BE NULL IN tests/8.wrl? */
- if (parentHolder[currentLevel-1]!=NULL)  add_parent((void *)ret, (void *)parentHolder[currentLevel-1]);
-
- /* JAS - copy the sensitive flag */
- ret->_sens = node->_sens;
 
  /* Copy the fields using the NodeFields.h file */
  switch(node->_nodeType)
@@ -467,15 +439,14 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
    break;
 
  }
- 
+
  if(myHash)
   deletePointerHash(hash);
 
  /* Add pointer pair to hash */
  if(!myHash)
   pointerHash_add(hash, node, ret);
-  
- currentLevel--;
+
  return ret;
 }
 
