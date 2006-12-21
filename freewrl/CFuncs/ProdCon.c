@@ -115,6 +115,9 @@ int URLLoaded=FALSE;
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
 
+static int haveParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
+				   as destroyCParserData can segfault otherwise */
+
 void initializeInputParseThread(void) {
 	int iret;
 
@@ -601,7 +604,10 @@ void _inputParseThread(void) {
 			}
 
 		case ZEROBINDABLES: 
-			destroyCParserData();
+			if (haveParsed) {
+				destroyCParserData();
+				haveParsed = FALSE;
+			}
 			break;
 
 		default: {
@@ -685,11 +691,6 @@ void addToNode (void *rc, int offs, void *newNode) {
 		}
 	} */
 
-}
-
-/* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
-void kill_DEFS (void) {
-	destroyCParserData();
 }
 
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
@@ -860,8 +861,10 @@ void __pt_doStringUrl () {
 
 	
 	if (psp.zeroBind) {
-		destroyCParserData();
-		kill_bindables();
+		if (haveParsed) {
+			destroyCParserData();
+			kill_bindables();
+		}
 		psp.zeroBind = FALSE;
 	}
 
@@ -871,6 +874,7 @@ void __pt_doStringUrl () {
 
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+		haveParsed = TRUE;
 
 	} else if (psp.type==FROMURL) {
 		pushInputURL (psp.inp);
@@ -881,6 +885,7 @@ void __pt_doStringUrl () {
 
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
+		haveParsed = TRUE;
 		FREE_IF_NZ (buffer); 
 
 
@@ -893,6 +898,7 @@ void __pt_doStringUrl () {
 
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+		haveParsed = TRUE;
 
 	
 	} else {
@@ -904,6 +910,7 @@ void __pt_doStringUrl () {
 
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+		haveParsed = TRUE;
 	}
 	
 

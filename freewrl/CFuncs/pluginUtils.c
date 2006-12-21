@@ -57,6 +57,8 @@ int freewrlSystem (const char *sysline) {
 		childProcessListInit = TRUE;
 	}
 	
+	/* initialize the paramline... */
+	for (count=0; count<MAXEXECPARAMS; count++) paramline[count]=NULL;
 		
 	waitForChild = TRUE;
 	haveXmessage = !strncmp(sysline,XMESSAGE,strlen(XMESSAGE));
