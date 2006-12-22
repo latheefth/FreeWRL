@@ -33,7 +33,7 @@ Different methods are used, depending on the format of the call.
 
 This is used mainly in parsing */
 
-void setField_method1 (void *ptr, char *field, char *value) {
+void setField_fromJavascript (uintptr_t *ptr, char *field, char *value) {
 	int foffset;
 	int coffset;
 	int ctype;
@@ -45,13 +45,13 @@ void setField_method1 (void *ptr, char *field, char *value) {
 	node = (struct X3D_Node *)ptr;
 
 	#ifdef SETFIELDVERBOSE
-	printf ("\nsetField_method1, node %d field %s value %s\n", node, field, value);
+	printf ("\nsetField_fromJavascript, node %d field %s value %s\n", node, field, value);
 	#endif
 	
 	/* is this a valid field? */
 	foffset = findFieldInALLFIELDNAMES(field);	
 	if (foffset < 0) {
-		printf ("setField_method1, field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
+		printf ("setField_fromJavascript, field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
 		/* return; */
 	}
 
@@ -64,7 +64,7 @@ void setField_method1 (void *ptr, char *field, char *value) {
 	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
 
 	if (coffset <= 0) {
-		printf ("setField_method1, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
+		printf ("setField_fromJavascript, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
 		printf ("is this maybe a PROTO?? if so, it will be a Group node with __protoDef set to the pointer\n");
 		if (node->_nodeType == NODE_Group) {
 			group = (struct X3D_Group *)node;
@@ -564,6 +564,7 @@ int countCommas (char *instr) {
 /* called effectively by VRMLCU.pm */
 void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 	int datasize;
+	int rowsize;
 	int commaCount;
 
 	char *nst;                      /* used for pointer maths */
@@ -666,20 +667,27 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 		case MFVEC2F:
 		case MFVEC3F:
 		case MFCOLORRGBA: {
+			/* skip past any brackets, etc, that might come via Javascript.
+			   see tests/8.wrl for one of these */
+			while ((*value == ' ') || (*value == '[')) value ++;
+
+			rowsize = returnElementRowSize(ctype);
+
 			/* printf ("data size is %d elerow %d commaCount %d\n",datasize, returnElementRowSize(ctype),commaCount+1); */
-			mdata = malloc ((commaCount+1) * datasize);
+			mdata = malloc ((commaCount+1) * datasize * rowsize);
 			fptr = (float *)mdata;
-			for (tmp = 0; tmp < (commaCount+1); tmp++) {
+			for (tmp = 0; tmp < ((commaCount+1)*rowsize); tmp++) {
+				/* go to the number */
+				while (*value <= ' ') value++;
+
 				sscanf(value, "%f",fptr);
 				fptr ++;
-				/* skip past the number; checking to see if it has a decimal point or not */
-				while ((*value != '\0') && (*value != ' ') && (*value != ',')) value++;
 
 				/* skip to the beginning of the next number */
-				if ((*value == ' ') || (*value == ',')) value++;
+				while (*value > ' ') value++;
 			}
 			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = (commaCount+1)/returnElementRowSize(ctype);
+			((struct Multi_Node *)nst)->n = (commaCount+1)/rowsize;
 			break;
 			}
 

@@ -140,7 +140,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
-void setField_method1 (void *ptr, char *field, char *value);
+void setField_fromJavascript (uintptr_t *ptr, char *field, char *value);
 unsigned int setField_method2 (char *ptr);
 void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 

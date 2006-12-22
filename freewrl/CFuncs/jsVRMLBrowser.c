@@ -538,7 +538,7 @@ printf ("myptr %d\n",myptr);
 		/* call the parser */
 		ra = EAI_CreateVrml("URL",filename,nodarr,200);
 
-		/* now, we make up a string of nodes, pass it to setField_method1 that
+		/* now, we make up a string of nodes, pass it to setField_fromJavascript that
 		takes this string apart. oh well... */
 
 		filename[0] = '\0'; /* just reuse these variables */
@@ -562,9 +562,9 @@ printf ("myptr points to a %s\n",stringNodeType(myNode->_nodeType));
 		/* remember the freewrl addChildren removeChildren stuff? */
 		if ((strncmp (_c,"addChildren",strlen("addChildren")) == 0) ||
 		(strncmp (_c,"removeChildren",strlen("removeChildren")) == 0)) {
-			setField_method1 ((uintptr_t *)myptr, "children", filename);
+			setField_fromJavascript ((uintptr_t *)myptr, "children", filename);
 		} else {
-			setField_method1 ((uintptr_t *)myptr, _c, filename);
+			setField_fromJavascript ((uintptr_t *)myptr, _c, filename);
 		}
 
 	} else {

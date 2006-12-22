@@ -1954,29 +1954,14 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	} else {
 		if (JSVRMLClassesVerbose) printf ("JS_IS_INT false\n");
-/*
-		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
-			printf( "JS_GetGlobalObject failed in SFNodeSetProperty.\n");
-			return JS_FALSE;
-		}
-
-		if (!getBrowser(cx, globalObj, &brow)) {
-			printf( "getBrowser failed in SFNodeSetProperty.\n");
-			return JS_FALSE;
-		}
-*/
 
 		if (JSVRMLClassesVerbose)printf ("SFNodeSetProperty, setting node %d field %s to value %s\n", ptr->handle,_id_c,_val_c);
-		printf ("SFNodeSetProperty, setting node %d field %s to value %s\n", ptr->handle,_id_c,_val_c);
-		{
-struct X3D_Node* ptx;
-ptx = (struct X3D_Node*) ptr->handle;
-printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
-}
-		retint = sscanf (ptr->handle,"%d",&ra);
-		/* printf ("scanned in %d values, are %d\n",retint,ra); */
-		setField_method1 ((void *)ra, _id_c, _val_c);
-
+		if (JSVRMLClassesVerbose){
+			struct X3D_Node* ptx;
+			ptx = (struct X3D_Node*) ptr->handle;
+			printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
+		}
+		setField_fromJavascript ((void *)ptr->handle, _id_c, _val_c);
 	}
 
 	return JS_TRUE;
