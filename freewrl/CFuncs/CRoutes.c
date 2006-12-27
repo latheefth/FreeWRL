@@ -124,7 +124,6 @@ int CRoutes_MAX;
 /* Structure table */
 struct CRscriptStruct *ScriptControl = 0; 	/* global objects and contexts for each script */
 uintptr_t *scr_act = 0;			/* this script has been sent an eventIn */
-int scripts_active;		/* a script has been sent an eventIn */
 int max_script_found = -1;	/* the maximum script number found */
 
 /* Script name/type table */
@@ -1075,9 +1074,6 @@ void CRoutes_Register(
 		CRoutes[1].interpptr = 0;
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
-
-		/* and mark all scripts active to get the initialize() events */
-		scripts_active = TRUE;
 	}
 
 	#ifdef CRVERBOSE  
@@ -1330,7 +1326,6 @@ void mark_script (uintptr_t num) {
 		printf ("mark_script - script %d has been invoked\n",num);
 	#endif
 	scr_act[num]= TRUE;
-	scripts_active = TRUE;
 }
 
 
@@ -1477,7 +1472,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime);
 	#endif
 }
-
 
 #ifdef OLDCODE
 /* start getting events from a Class script. IF the script is not
@@ -1761,7 +1755,7 @@ void propagate_events() {
 					if (CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */
 						sendScriptEventIn(counter);
-						if (scripts_active) havinterp = TRUE;
+						havinterp = TRUE;
 					} else {
 
 						/* copy the value over */
@@ -1815,37 +1809,16 @@ printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
 		}
 
 		/* run gatherScriptEventOuts for each active script */
-		if (scripts_active) {
-			for (counter =0; counter <= max_script_found; counter++) {
+		for (counter =0; counter <= max_script_found; counter++) {
 /*
 printf ("msf %d c %d\n",max_script_found, counter);
 printf ("script type %d\n",ScriptControl[counter].thisScriptType);
 */
 
-#ifdef OLDCODE
-				switch (ScriptControl[counter].thisScriptType) {
-					case JAVASCRIPT: {
-#endif
-						gatherScriptEventOuts (counter);
+			gatherScriptEventOuts (counter);
 
-#ifdef OLDCODE
-						break;
-					}
-					case CLASSSCRIPT: {
-						gatherClassEventOuts(counter);
-						break;
-					  }
-					default: {
-					printf ("do not handle eventouts for script type %d\n",
-							ScriptControl[counter].thisScriptType);
-					 }
-				}
-#endif
-			}
 		}
 
-		/* set all script flags to false - no triggers */
-		scripts_active = FALSE;
 	} while (havinterp==TRUE);
 
 		#ifdef CRVERBOSE
