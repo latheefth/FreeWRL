@@ -82,9 +82,9 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	int il;
 	int intval = 0;
 
-	/*printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
-		tonode,toname,JSparamnames[toname].name,dataType,datalen);
-	*/
+	/* printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
+		tonode,toname,JSparamnames[toname].name,dataType,datalen); */
+	
 
 	switch (dataType) {
 		case SFBOOL:	{	/* SFBool */
@@ -107,6 +107,13 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 		case SFINT32: 	{ 
 			memcpy ((void *) &il,Data, datalen);
 			sprintf (scriptline,"__tmp_arg_%s=%d", JSparamnames[toname].name,il);
+			break;
+		}
+
+		case SFSTRING: {
+			struct Uni_String *ms;
+			memcpy((void *) &ms,Data, datalen);
+			sprintf (scriptline,"__tmp_arg_%s='%s'",JSparamnames[toname].name,ms->strptr);
 			break;
 		}
 		default: {	printf("WARNING: SHOULD NOT BE HERE! %d\n",JSparamnames[toname].type);

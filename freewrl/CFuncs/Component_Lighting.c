@@ -54,12 +54,11 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 
 
 void light_PointLight (struct X3D_PointLight *node) {
-
-                if(((node->on))) {
+                if(node->on) {
                         int light = nextlight();
                         if(light >= 0) {
                                 float vec[4];
-                                glEnable(light);
+				lightState(light-GL_LIGHT0,TRUE);
                                 vec[0] = ((node->direction).c[0]);
                                 vec[1] = ((node->direction).c[1]);
                                 vec[2] = ((node->direction).c[2]);

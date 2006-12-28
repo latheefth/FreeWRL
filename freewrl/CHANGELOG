@@ -1,4 +1,6 @@
 For 1.18.10:
+	- PointLight status now same as other lights - uses lightState.
+
 	- memory corruption in "default MF*" values fixed in createNewX3DNode.
 
 	- memory leak in OcclusionQueries fixed.

@@ -386,6 +386,23 @@ tmp =
 			break;
 		}
 
+		case SFSTRING: {
+			struct Uni_String *ms;
+			uintptr_t *newptr;
+
+			/* copy the string over, delete the old one, if need be */
+			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
+				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
+			newptr = (uintptr_t *)(tn+tptr);
+			ms = (struct Uni_String*) *newptr;
+			ms->len = 0;
+			FREE_IF_NZ (ms->strptr);
+			ms->strptr = malloc (strlen(strp)+1);
+			memcpy (ms->strptr,strp,strlen(strp)+1);
+			ms->len = strlen(strp)+1;
+			break;
+		}
+
 
 			/* a series of Floats... */
 		case MFVEC3F:

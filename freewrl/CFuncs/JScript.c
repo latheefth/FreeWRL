@@ -536,9 +536,9 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 
 
 
-	/* printf ("InitScriptFieldC, num %d, kind %d type %d field %s value %d\n",
+	 printf ("InitScriptFieldC, num %d, kind %d type %d field %s value %d\n",
 		num,kind,type,field,value);
-	*/
+	
 
         /* input check */
         if ((kind != PKW_eventIn) && (kind != PKW_eventOut) && (kind != PKW_field)) {
@@ -612,82 +612,88 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			} else strcpy(mynewname,field);
 
 
-			/* get an appropriate pointer */
-			MFhasECMAtype = FALSE;
-			elements=0;
-			IntPtr = NULL;
-			FloatPtr = NULL;
-			DoublePtr = NULL;
-			SVPtr = NULL;
-			VoidPtr = NULL;
-			switch (type) {
-				case FIELDTYPE_SFNode:
-					VoidPtr = (uintptr_t *) (&(value.sfnode)); elements = 1;
-					break;
-				case FIELDTYPE_MFColor:
-					FloatPtr = (float *) value.mfcolor.p; elements = value.mfcolor.n;
-					break;
-				case FIELDTYPE_MFColorRGBA:
-					FloatPtr = (float *) value.mfcolorrgba.p; elements = value.mfcolorrgba.n;
-					break;
-				case FIELDTYPE_MFVec2f:
-					FloatPtr = (float *) value.mfvec2f.p; elements = value.mfvec2f.n;
-					break;
-				case FIELDTYPE_MFVec3f:
-					FloatPtr = (float *) value.mfvec3f.p; elements = value.mfvec3f.n;
-					break;
-				case FIELDTYPE_MFRotation: 
-					FloatPtr = (float *) value.mfrotation.p; elements = value.mfrotation.n;
-					break;
-				case FIELDTYPE_SFVec2f:
-					FloatPtr = (float *) value.sfvec2f.c; elements = 1;
-					break;
-				case FIELDTYPE_SFColor:
-					FloatPtr = value.sfcolor.c; elements = 1;
-					break;
-				case FIELDTYPE_SFColorRGBA:
-					FloatPtr = value.sfcolorrgba.r; elements = 1;
-					break;
-				case FIELDTYPE_SFRotation:
-					FloatPtr = value.sfrotation.r; elements = 1;
-					break;
-				case FIELDTYPE_SFVec3f: 
-					FloatPtr = value.sfvec3f.c; elements =1;
-					break;
-				case FIELDTYPE_MFString:
-					SVPtr = value.mfstring.p; elements = value.mfstring.n;
-					MFhasECMAtype = TRUE;
-					break;
-				case FIELDTYPE_MFTime:
-					DoublePtr = value.mftime.p; elements = value.mftime.n;
-					MFhasECMAtype = TRUE;
-					
-					break;
-				case FIELDTYPE_MFBool:
-					IntPtr = value.mfbool.p; elements = value.mfbool.n;
-					MFhasECMAtype = TRUE;
-					break;
-				case FIELDTYPE_MFInt32:
-					IntPtr = value.mfint32.p; elements = value.mfint32.n;
-					MFhasECMAtype = TRUE;
-					break;
-				case FIELDTYPE_MFNode:
-					VoidPtr = ((uintptr_t*)(value.mfnode.p)); elements = value.mfnode.n;
-					MFhasECMAtype = TRUE;
-					break;
-				case FIELDTYPE_MFFloat: 
-					FloatPtr = value.mffloat.p; elements = value.mffloat.n;
-					MFhasECMAtype = TRUE;
-					break;
-				default: {
-					printf ("unhandled type, in InitScriptField %d\n",type);
-					return;
+			if (kind == PKW_field) {
+				/* get an appropriate pointer */
+				MFhasECMAtype = FALSE;
+				elements=0;
+				IntPtr = NULL;
+				FloatPtr = NULL;
+				DoublePtr = NULL;
+				SVPtr = NULL;
+				VoidPtr = NULL;
+				switch (type) {
+					case FIELDTYPE_SFNode:
+						VoidPtr = (uintptr_t *) (&(value.sfnode)); elements = 1;
+						break;
+					case FIELDTYPE_MFColor:
+						FloatPtr = (float *) value.mfcolor.p; elements = value.mfcolor.n;
+						break;
+					case FIELDTYPE_MFColorRGBA:
+						FloatPtr = (float *) value.mfcolorrgba.p; elements = value.mfcolorrgba.n;
+						break;
+					case FIELDTYPE_MFVec2f:
+						FloatPtr = (float *) value.mfvec2f.p; elements = value.mfvec2f.n;
+						break;
+					case FIELDTYPE_MFVec3f:
+						FloatPtr = (float *) value.mfvec3f.p; elements = value.mfvec3f.n;
+						break;
+					case FIELDTYPE_MFRotation: 
+						FloatPtr = (float *) value.mfrotation.p; elements = value.mfrotation.n;
+						break;
+					case FIELDTYPE_SFVec2f:
+						FloatPtr = (float *) value.sfvec2f.c; elements = 1;
+						break;
+					case FIELDTYPE_SFColor:
+						FloatPtr = value.sfcolor.c; elements = 1;
+						break;
+					case FIELDTYPE_SFColorRGBA:
+						FloatPtr = value.sfcolorrgba.r; elements = 1;
+						break;
+					case FIELDTYPE_SFRotation:
+						FloatPtr = value.sfrotation.r; elements = 1;
+						break;
+					case FIELDTYPE_SFVec3f: 
+						FloatPtr = value.sfvec3f.c; elements =1;
+						break;
+					case FIELDTYPE_MFString:
+	printf ("FIELDTYPE_MFString...\n");
+						SVPtr = value.mfstring.p; elements = value.mfstring.n;
+						MFhasECMAtype = TRUE;
+						break;
+					case FIELDTYPE_MFTime:
+						DoublePtr = value.mftime.p; elements = value.mftime.n;
+						MFhasECMAtype = TRUE;
+						
+						break;
+					case FIELDTYPE_MFBool:
+						IntPtr = value.mfbool.p; elements = value.mfbool.n;
+						MFhasECMAtype = TRUE;
+						break;
+					case FIELDTYPE_MFInt32:
+						IntPtr = value.mfint32.p; elements = value.mfint32.n;
+						MFhasECMAtype = TRUE;
+						break;
+					case FIELDTYPE_MFNode:
+						VoidPtr = ((uintptr_t*)(value.mfnode.p)); elements = value.mfnode.n;
+						MFhasECMAtype = TRUE;
+						break;
+					case FIELDTYPE_MFFloat: 
+						FloatPtr = value.mffloat.p; elements = value.mffloat.n;
+						MFhasECMAtype = TRUE;
+						break;
+					default: {
+						printf ("unhandled type, in InitScriptField %d\n",type);
+						return;
+					}
 				}
+			} else {
+				/* this is an eventOut or eventIn - make "blank" */
+				elements = 0;
 			}
 
 			rows = returnElementRowSize (mapFieldTypeToInernaltype(type));
 
-			/* printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements); */
+			printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements);
 
 			smallfield = malloc ( (elements*15) + 100);
 
@@ -707,6 +713,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			}
 
 			/* loop through, and put values in */
+printf ("going to go through new one \n");
 			for (eleCount=0; eleCount<elements; eleCount++) {
 				/* ECMA native types can just be passed in... */
 				if (!MFhasECMAtype) {
@@ -753,153 +760,6 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 	FREE_IF_NZ (smallfield);
 
 }
-
-
-/* this is for JS/JS.pm - scripts in X3D. Remove once perl is gone */
-void InitScriptField(int num,char *kind,char *type,char *field,char *value) {
-	jsval rval;
-	int ikind, itype;
-	char *smallfield = NULL;
-	char mynewname[400];
-	char *cptr;
-	int rows, commas;
-	int elements;
-	int count;
-	char *sftype;
-
-	itype = convert_typetoInt(type);
-	ikind = findFieldInKEYWORDS(kind);
-
-	/*
-	printf ("InitScriptField, %d, kind %s (%d)type %s (%d) field %s value %s\n",
-			num,kind,ikind,type,itype,field,value);
-	*/
-
-	/* input check */
-	if ((ikind != KW_eventIn) && (ikind != KW_eventOut) && (ikind != KW_field)) {
-		ConsoleMessage ("invalid kind for script field: %s\n",kind);
-		return;	
-	}
-
-	if (itype == SFUNKNOWN) {
-		ConsoleMessage ("invalid type for script field: %s\n",type);
-		return;	
-	}
-
-	/* ok, lets handle the types here */
-	switch (itype) {
-		/* ECMA types */
-		case SFBOOL:
-		case SFFLOAT:
-		case SFTIME:
-		case SFINT32:
-		case SFIMAGE:
-		case SFSTRING: {
-			/* do not care about eventIns */
-			if (ikind != KW_eventIn)  {
-				JSaddGlobalECMANativeProperty(num, field);
-
-				if (ikind == KW_field) {
-					smallfield = malloc (strlen(value) + strlen(field) + 10);
-					sprintf (smallfield,"%s=%s\n",field,value);
-					if (!ActualrunScript(num,smallfield,&rval))
-						printf ("huh???\n");
-				}
-			}
-			break;
-		}
-		/* non ECMA types */
-		default: {
-			/* first, do we need to make a new name up? */
-			if (ikind == KW_eventIn) {
-				sprintf (mynewname,"__tmp_arg_%s",field);
-			} else strcpy(mynewname,field);
-
-			/* SIMPLE MANIPULATION if the string comes in with "[" and/or "]", strip them off. */
-			if ((cptr = strchr(value, '[')) != NULL) *cptr = ' ';
-			if ((cptr = strchr(value, ']')) != NULL) *cptr = ' ';
-			commas = countCommas (value) + 1;
-			rows = returnElementRowSize (itype);
-			elements = commas/rows;
-			sftype = strdup(type);
-			if (sftype[0] = 'M') sftype[0] = 'S';
-			/* printf ("commas %d, rows %d, elements %d sftype %s\n",commas,rows,elements, sftype); */
-
-			switch (itype) {
-				case MFCOLOR:
-				case MFCOLORRGBA:
-				case MFVEC2F:
-				case MFVEC3F:
-				case MFROTATION: 
-				case FREEWRLPTR:
-				case SFNODE:
-				case SFVEC2F:
-				case SFCOLOR:
-				case SFCOLORRGBA:
-				case SFROTATION:
-				case MFNODE:
-				case MFTIME:
-				case MFINT32:
-				case MFFLOAT: 
-				case SFVEC3F: {
-					smallfield = malloc (strlen(type) + strlen(value) + 
-						(elements*15) + 100);
-
-					/* start the string */
-					smallfield[0] = '\0';
-					sprintf (smallfield,"new %s(",type);
-
-					/* is this an MF with SF types? */
-					if (rows>1) {
-						/* is there any value here, at all? */
-						if (elements > 0) {
-							for (count = 0; count < commas; count++) {
-								/* printf ("count %d mod %d\n",count, count % rows); */
-	
-								/* start of this element? */
-								if ((count%rows) == 0) {
-									strcat (smallfield,"new ");
-									strcat (smallfield, sftype);
-									strcat (smallfield, "(");
-								}
-
-								/* copy the value over */
-								cptr = strchr(value,',');
-								if (cptr != NULL) *cptr = '\0';
-								strcat (smallfield, value);
-								if (cptr != NULL) {
-									value = cptr;
-									value ++; 
-								}
-	
-								/* end of this element? */
-								if (((count+1)%rows) == 0) {
-									strcat (smallfield,")");
-									/* if we are not at the end, apply a comma */
-									if (count <(commas-1)) strcat (smallfield,",");
-								}
-								else strcat (smallfield,",");
-							}
-						}
-
-					} else strcat (smallfield, value);
-
-					strcat (smallfield,")");
-					JSaddGlobalAssignProperty (num,mynewname,smallfield);
-					break;
-				}
-	
-				default: {
-					printf ("unhandled itype, in InitScriptField %s\n",type);
-					return;
-				}
-			}
-		}
-	}
-
-	FREE_IF_NZ (smallfield);
-}
-
 
 int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	JSContext *_context;
