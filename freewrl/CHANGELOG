@@ -1,4 +1,7 @@
 For 1.18.10:
+	- ambientIntensity - Shape material now uses the ambientIntensity value,
+	  and lights set ambientIntensity as per their node values, now.
+
 	- PointLight status now same as other lights - uses lightState.
 
 	- memory corruption in "default MF*" values fixed in createNewX3DNode.

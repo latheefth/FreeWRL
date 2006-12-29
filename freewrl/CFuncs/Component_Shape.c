@@ -113,21 +113,14 @@ void render_Material (struct X3D_Material *node) {
 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
+		/* do the ambientIntensity; this will allow lights with ambientIntensity to
+		   illuminate it as per the spec. Note that lights have the ambientIntensity
+		   set to 0.0 by default; this should make ambientIntensity lighting be zero
+		   via OpenGL lighting equations. */
 		amb = node->ambientIntensity;
-
-		/* diffuseColor - Aubrey Jaffer submitted a patch that helps
-		   in his test worlds. It makes conformance checking fail;
-		   I think that what is required is that the distance from
-		   lights needs to be calculated. 
-
-		   The complex lighting equation (not the simplistic description
-		   located around the Material section of the spec) should
-		   be referenced. Sigh. JohnS */
-		#ifndef AUBREY
  		for(i=0; i<3; i++) { 
-                         dcol[i] = 0.0;
+                         dcol[i] = amb;
  		} 
-		#endif
 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
