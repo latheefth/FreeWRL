@@ -119,7 +119,7 @@ void render_Material (struct X3D_Material *node) {
 		   via OpenGL lighting equations. */
 		amb = node->ambientIntensity;
  		for(i=0; i<3; i++) { 
-                         dcol[i] = amb;
+                         dcol[i] *= amb;
  		} 
 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
