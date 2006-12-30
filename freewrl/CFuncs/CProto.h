@@ -32,6 +32,8 @@ struct OffsetPointer
 
 /* Constructor/destructor */
 struct OffsetPointer* newOffsetPointer(struct X3D_Node*, unsigned);
+#define offsetPointer_copy(me) \
+ newOffsetPointer((me)->node, (me)->ofs)
 #define deleteOffsetPointer(me) \
  free(me)
 

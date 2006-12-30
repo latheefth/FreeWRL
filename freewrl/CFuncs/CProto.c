@@ -529,7 +529,8 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
 
  /* Copy destination pointers */
  for(i=0; i!=vector_size(me->dests); ++i)
-  vector_pushBack(void*, ret->dests, vector_get(void*, me->dests, i));
+  vector_pushBack(struct OffsetPointer*, ret->dests,
+   offsetPointer_copy(vector_get(struct OffsetPointer*, me->dests, i)));
 
  /* Copy default value */
  switch(me->type)
