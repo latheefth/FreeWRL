@@ -117,7 +117,7 @@ void JSInit(uintptr_t num) {
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("init: script %d\n",num);
 	#endif
 
@@ -130,7 +130,7 @@ void JSInit(uintptr_t num) {
 	runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
 	if (!runtime) freewrlDie("JS_NewRuntime failed");
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tJS runtime created,\n");
 	#endif
 
@@ -138,7 +138,7 @@ void JSInit(uintptr_t num) {
 	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
 	if (!_context) freewrlDie("JS_NewContext failed");
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tJS context created,\n");
 	#endif
 
@@ -146,7 +146,7 @@ void JSInit(uintptr_t num) {
 	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
 	if (!_globalObj) freewrlDie("JS_NewObject failed");
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tJS global object created,\n");
 	#endif
 
@@ -155,20 +155,20 @@ void JSInit(uintptr_t num) {
 	if (!JS_InitStandardClasses(_context, _globalObj))
 		freewrlDie("JS_InitStandardClasses failed");
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tJS standard classes initialized,\n");
 	#endif
 
 
 
-	/* #ifdef JSVERBOSE {*/
+	/* #ifdef FIELDSETVERBOSE {*/
 	/* 	reportWarningsOn();*/
 	/* } else {*/
 	/* 	reportWarningsOff();*/
 	/* }*/
 
 	JS_SetErrorReporter(_context, errorReporter);
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tJS errror reporter set,\n");
 	#endif
 
@@ -184,7 +184,7 @@ void JSInit(uintptr_t num) {
 	if (!loadVrmlClasses(_context, _globalObj))
 		freewrlDie("loadVrmlClasses failed");
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tVRML classes loaded,\n");
 	#endif
 
@@ -193,7 +193,7 @@ void JSInit(uintptr_t num) {
 	if (!VrmlBrowserInit(_context, _globalObj, br))
 		freewrlDie("VrmlBrowserInit failed");
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tVRML Browser interface loaded,\n");
 	#endif
 
@@ -205,7 +205,7 @@ void JSInit(uintptr_t num) {
 	/* send this data over to the routing table functions. */
 	CRoutes_js_new (num, JAVASCRIPT);
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf("\tVRML browser initialized\n");
 	#endif
 }
@@ -220,7 +220,7 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	#ifdef JSVERBOSE
+	#ifdef FIELDSETVERBOSE
 		printf("ActualrunScript script %d cx %x \"%s\", \n",
 			   num, _context, script);
 	#endif
@@ -231,7 +231,7 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 		return JS_FALSE;
 	 }
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf ("runscript passed\n");
 	#endif
 
@@ -245,7 +245,7 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 
 	size_t len;
 
-	#ifdef JSVERBOSE
+	#ifdef FIELDSETVERBOSE
 		printf("jsrrunScript script cx %x \"%s\", \n",
 			   _context, script);
 	#endif
@@ -257,7 +257,7 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 		return JS_FALSE;
 	 }
 
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 	printf ("runscript passed\n");
 	#endif
 
@@ -306,7 +306,7 @@ SFNodeNativeAssign(void *top, void *fromp)
 	to->handle = from->handle;
 	to->X3DString = strdup(from->X3DString);
 
-	#ifdef JSVERBOSE
+	#ifdef FIELDSETVERBOSE
 	printf ("SFNodeNativeAssign, copied %d to %d, handle %d, string %s\n", from, to, to->handle, to->X3DString);
 	#endif
 
@@ -535,9 +535,15 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	int *iptr; int SFImage_depth; int SFImage_wid; int SFImage_hei;
 
 
+	uintptr_t defaultVoid[] = {0,0};
+	float defaultFloat[] = {0.0,0.0,0.0,0.0};
+	int defaultInt[] = {0,0,0,0};
+	double defaultDouble[] = {0.0, 0.0};
+	struct Uni_String *sptr[1];
 
-	 printf ("InitScriptFieldC, num %d, kind %d type %d field %s value %d\n",
-		num,kind,type,field,value);
+	 #ifdef SETFIELDVERBOSE
+	printf ("\nInitScriptFieldC, num %d, kind %d type %d field %s value %d\n", num,kind,type,field,value);
+	#endif
 	
 
         /* input check */
@@ -568,8 +574,6 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 				if (kind == PKW_field) {
 					if (type == FIELDTYPE_SFImage) {
 							vrmlImagePtr = value.sfimage;
-							tlen = (vrmlImagePtr->n) *10;
-printf ("image has %d elements\n",vrmlImagePtr->n);
 
 					} else if  (type == FIELDTYPE_SFString) {
 						tlen = strlen(value.sfstring->strptr) + 20;
@@ -612,15 +616,16 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			} else strcpy(mynewname,field);
 
 
+			/* get an appropriate pointer - we either point to the initialization value
+			   in the script header, or we point to some data here that are default values */
+			MFhasECMAtype = FALSE;
+			elements=0;
+			IntPtr = NULL;
+			FloatPtr = NULL;
+			DoublePtr = NULL;
+			SVPtr = NULL;
+			VoidPtr = NULL;
 			if (kind == PKW_field) {
-				/* get an appropriate pointer */
-				MFhasECMAtype = FALSE;
-				elements=0;
-				IntPtr = NULL;
-				FloatPtr = NULL;
-				DoublePtr = NULL;
-				SVPtr = NULL;
-				VoidPtr = NULL;
 				switch (type) {
 					case FIELDTYPE_SFNode:
 						VoidPtr = (uintptr_t *) (&(value.sfnode)); elements = 1;
@@ -656,7 +661,6 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 						FloatPtr = value.sfvec3f.c; elements =1;
 						break;
 					case FIELDTYPE_MFString:
-	printf ("FIELDTYPE_MFString...\n");
 						SVPtr = value.mfstring.p; elements = value.mfstring.n;
 						MFhasECMAtype = TRUE;
 						break;
@@ -686,14 +690,66 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 						return;
 					}
 				}
+
 			} else {
-				/* this is an eventOut or eventIn - make "blank" */
-				elements = 0;
+
+
+				/* make up a default pointer */
+				elements = 1;
+				switch (type) {
+					/* Void types */
+					case FIELDTYPE_SFNode:
+					case FIELDTYPE_MFNode:
+						VoidPtr = defaultVoid; 
+						break;
+
+					/* Float types */
+					case FIELDTYPE_MFColor:
+					case FIELDTYPE_MFColorRGBA:
+					case FIELDTYPE_MFVec2f:
+					case FIELDTYPE_MFVec3f:
+					case FIELDTYPE_MFRotation: 
+					case FIELDTYPE_SFVec2f:
+					case FIELDTYPE_SFColor:
+					case FIELDTYPE_SFColorRGBA:
+					case FIELDTYPE_SFRotation:
+					case FIELDTYPE_SFVec3f: 
+					case FIELDTYPE_MFFloat: 
+						FloatPtr = defaultFloat;
+						break;
+
+					/* Int types */
+					case FIELDTYPE_MFBool:
+					case FIELDTYPE_MFInt32:
+						IntPtr = defaultInt;
+						break;
+
+					/* String types */
+					case FIELDTYPE_SFString:
+					case FIELDTYPE_MFString:
+						sptr[0] = newASCIIString("");
+						SVPtr = sptr;
+						break;
+
+					/* Double types */
+					case FIELDTYPE_MFTime:
+					case FIELDTYPE_SFTime:
+						DoublePtr = defaultDouble;
+						break;
+						
+					default: {
+						printf ("unhandled type, in InitScriptField %d\n",type);
+						return;
+					}
+				}
+
 			}
 
 			rows = returnElementRowSize (mapFieldTypeToInernaltype(type));
 
+			#ifdef FIELDSETVERBOSE
 			printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements);
+			#endif
 
 			smallfield = malloc ( (elements*15) + 100);
 
@@ -701,6 +757,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			sftype = strdup (FIELDTYPES[type]);
 			if (sftype[0] == 'M') { sftype[0] = 'S'; haveMulti = TRUE;
 			} else { haveMulti = FALSE; }
+			if (strncmp(sftype,"SFString",8)==0) strcpy (sftype,"String");
 
 			/* start the string */
 			smallfield[0] = '\0';
@@ -713,7 +770,6 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			}
 
 			/* loop through, and put values in */
-printf ("going to go through new one \n");
 			for (eleCount=0; eleCount<elements; eleCount++) {
 				/* ECMA native types can just be passed in... */
 				if (!MFhasECMAtype) {
@@ -732,6 +788,9 @@ printf ("going to go through new one \n");
 						sprintf (thisValue,"%f",*DoublePtr); DoublePtr++;
 					} else if (FloatPtr != NULL) {
 						sprintf (thisValue,"%d",*FloatPtr); FloatPtr++;
+					} else if (SVPtr != NULL) {
+						sptr[0] = *SVPtr; SVPtr++;
+						sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
 					} else { /* must be a Void */
 						sprintf (thisValue,"%d",*VoidPtr); VoidPtr++;
 					}
@@ -749,8 +808,8 @@ printf ("going to go through new one \n");
 			}
 				
 			/* Warp factor 5, Dr Sulu... */
-			#ifdef JSVERBOSE
-			printf ("JScript, sending %s\n",smallfield); 
+			#ifdef FIELDSETVERBOSE 
+			printf ("JScript, for newname %s, sending %s\n",mynewname,smallfield); 
 			#endif
 
 			JSaddGlobalAssignProperty (num,mynewname,smallfield);
@@ -772,7 +831,7 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	#ifdef JSVERBOSE 
+	#ifdef  FIELDSETVERBOSE
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
 	#endif
 	
@@ -805,7 +864,7 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
-	#ifdef JSVERBOSE 
+	#ifdef FIELDSETVERBOSE 
 		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",
 			   _context, _globalObj, name, str);
 	#endif

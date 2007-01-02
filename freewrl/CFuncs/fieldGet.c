@@ -10,7 +10,6 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
-
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 void setMFElementtype (uintptr_t num);
 
@@ -636,7 +635,7 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	sprintf (scriptline,"__tmp_arg_%s", JSparamnames[tnfield].name);
 
 	#ifdef SETFIELDVERBOSE 
-	printf ("script %d line %s\n",tonode, scriptline);
+	printf ("Set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
 	#endif
 
 	if (!JS_GetProperty(_context,_globalObj,scriptline,&retval))
