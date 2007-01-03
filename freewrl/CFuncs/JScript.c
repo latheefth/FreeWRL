@@ -117,7 +117,7 @@ void JSInit(uintptr_t num) {
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("init: script %d\n",num);
 	#endif
 
@@ -130,7 +130,7 @@ void JSInit(uintptr_t num) {
 	runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
 	if (!runtime) freewrlDie("JS_NewRuntime failed");
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS runtime created,\n");
 	#endif
 
@@ -138,7 +138,7 @@ void JSInit(uintptr_t num) {
 	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
 	if (!_context) freewrlDie("JS_NewContext failed");
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS context created,\n");
 	#endif
 
@@ -146,7 +146,7 @@ void JSInit(uintptr_t num) {
 	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
 	if (!_globalObj) freewrlDie("JS_NewObject failed");
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS global object created,\n");
 	#endif
 
@@ -155,20 +155,20 @@ void JSInit(uintptr_t num) {
 	if (!JS_InitStandardClasses(_context, _globalObj))
 		freewrlDie("JS_InitStandardClasses failed");
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS standard classes initialized,\n");
 	#endif
 
 
 
-	/* #ifdef FIELDSETVERBOSE {*/
+	/* #ifdef JAVASCRIPTVERBOSE {*/
 	/* 	reportWarningsOn();*/
 	/* } else {*/
 	/* 	reportWarningsOff();*/
 	/* }*/
 
 	JS_SetErrorReporter(_context, errorReporter);
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tJS errror reporter set,\n");
 	#endif
 
@@ -184,7 +184,7 @@ void JSInit(uintptr_t num) {
 	if (!loadVrmlClasses(_context, _globalObj))
 		freewrlDie("loadVrmlClasses failed");
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tVRML classes loaded,\n");
 	#endif
 
@@ -193,7 +193,7 @@ void JSInit(uintptr_t num) {
 	if (!VrmlBrowserInit(_context, _globalObj, br))
 		freewrlDie("VrmlBrowserInit failed");
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tVRML Browser interface loaded,\n");
 	#endif
 
@@ -205,7 +205,7 @@ void JSInit(uintptr_t num) {
 	/* send this data over to the routing table functions. */
 	CRoutes_js_new (num, JAVASCRIPT);
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf("\tVRML browser initialized\n");
 	#endif
 }
@@ -220,7 +220,7 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	#ifdef FIELDSETVERBOSE
+	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script %d cx %x \"%s\", \n",
 			   num, _context, script);
 	#endif
@@ -231,7 +231,7 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 		return JS_FALSE;
 	 }
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf ("runscript passed\n");
 	#endif
 
@@ -245,7 +245,7 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 
 	size_t len;
 
-	#ifdef FIELDSETVERBOSE
+	#ifdef JAVASCRIPTVERBOSE
 		printf("jsrrunScript script cx %x \"%s\", \n",
 			   _context, script);
 	#endif
@@ -257,7 +257,7 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 		return JS_FALSE;
 	 }
 
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 	printf ("runscript passed\n");
 	#endif
 
@@ -280,6 +280,7 @@ SFNodeNativeNew()
 	}
 	ptr->handle = 0;
 	ptr->touched = 0;
+	ptr->X3DString = NULL;
 	return ptr;
 }
 
@@ -306,7 +307,7 @@ SFNodeNativeAssign(void *top, void *fromp)
 	to->handle = from->handle;
 	to->X3DString = strdup(from->X3DString);
 
-	#ifdef FIELDSETVERBOSE
+	#ifdef JAVASCRIPTVERBOSE
 	printf ("SFNodeNativeAssign, copied %d to %d, handle %d, string %s\n", from, to, to->handle, to->X3DString);
 	#endif
 
@@ -747,7 +748,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 
 			rows = returnElementRowSize (mapFieldTypeToInernaltype(type));
 
-			#ifdef FIELDSETVERBOSE
+			#ifdef JAVASCRIPTVERBOSE
 			printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements);
 			#endif
 
@@ -808,7 +809,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			}
 				
 			/* Warp factor 5, Dr Sulu... */
-			#ifdef FIELDSETVERBOSE 
+			#ifdef JAVASCRIPTVERBOSE 
 			printf ("JScript, for newname %s, sending %s\n",mynewname,smallfield); 
 			#endif
 
@@ -831,7 +832,7 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	#ifdef  FIELDSETVERBOSE
+	#ifdef  JAVASCRIPTVERBOSE
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
 	#endif
 	
@@ -864,7 +865,7 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
-	#ifdef FIELDSETVERBOSE 
+	#ifdef JAVASCRIPTVERBOSE 
 		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",
 			   _context, _globalObj, name, str);
 	#endif
