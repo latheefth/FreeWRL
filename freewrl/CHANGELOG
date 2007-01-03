@@ -1,4 +1,7 @@
 For 1.18.10:
+	- reviewing Javascript interfacing. Most SF* nodes should now pass
+	  correctly.
+
 	- ambientIntensity - Shape material now uses the ambientIntensity value,
 	  and lights set ambientIntensity as per their node values, now.
 
@@ -8,7 +11,7 @@ For 1.18.10:
 
 	- memory leak in OcclusionQueries fixed.
 
-	- some parser problems fixed. (some more identified)
+	- some minor parser problems fixed. (some more identified)
 
 	- fixed problem in *Background nodes when sky and ground entries were empty
 
