@@ -546,7 +546,7 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 
 	x = (int *) nodeOffsetPtr;
 
-	#ifdef EAIVERBOSE
+	#ifdef SETFIELDVERBOSE
 	printf ("findFieldInOffsets, comparing %d to %d\n",*x, field); 
 	#endif
 
@@ -556,7 +556,7 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 	if (*x == field) {
 		x++; *coffset = *x; x++; *ctype = *x; x++; *ckind = *x; 
 
-		#ifdef EAIVERBOSE
+		#ifdef SETFIELDVERBOSE
 		printf ("found field, coffset %d ctype %d ckind %d\n",*coffset, *ctype, *ckind); 
 		#endif
 
@@ -810,7 +810,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		return;
 	}
 	len = JSVAL_TO_INT(mainElement);
+	#ifdef SETFIELDVERBOSE
 	printf ("getmuiltie length of grv is %d old len is %d\n",len,tn->n);
+	#endif
 
 	/* do we have to realloc memory? */
 	if (len != tn->n) {
@@ -818,7 +820,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		/* yep... */
 			/* printf ("old pointer %d\n",tn->p); */
 		if (tn->p != NULL) free (tn->p);
-		#ifdef CRVERBOSE 
+		#ifdef SETFIELDVERBOSE 
 		printf ("mallocing memory for elesize %d len %d\n",elesize,len);
 		#endif
 		tn->p = (struct SFColor *)malloc ((unsigned)(elesize*len));
@@ -860,7 +862,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			   return;
 			}
 		}
-printf ("getJSMultiNumType - got %f %f %f\n",(float *) tn->p,f2,f3);
+		#ifdef SETFIELDVERBOSE
+		printf ("getJSMultiNumType - got %f %f %f\n",(float *) tn->p,f2,f3);
+		#endif
 
 	}
 	tn->n = len;
@@ -992,7 +996,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 	if (sizeof(void *) != sizeof (unsigned int))
 		printf ("getMFNodetype - unverified that this works on 64 bit machines\n");
 
-	#ifdef CRVERBOSE 
+	#ifdef SETFIELDVERBOSE 
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
 		printf ("getMFNodetype, parent %d has %d nodes currently\n",tn,tn->n);
 	#endif
@@ -1209,7 +1213,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
 
-	#ifdef EAIVERBOSE
+	#ifdef SETFIELDVERBOSE
 	printf("ScanValtoBuffer - buffer %s\n",buf);
 	#endif
 
@@ -1295,7 +1299,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		/* how long is each element in bytes of this type? */
 		len = *quant * returnElementLength(type);
 
-		  #ifdef EAIVERBOSE
+		  #ifdef SETFIELDVERBOSE
 			printf ("bufsz is %d, len = %d quant = %d str: %s\n",bufsz, len, *quant,buf);
 		  #endif
 		  if (len > bufsz) {
@@ -1420,7 +1424,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		int thissize;
 
 		/* save this stuff to a global SV, rather than worrying about memory pointers */
-		#ifdef EAIVERBOSE
+		#ifdef SETFIELDVERBOSE
 		printf ("ScanValtoBuffer: SFSTRING, string is %s, ptr %x %d\n",buf,memptr,memptr);
 		#endif
 
