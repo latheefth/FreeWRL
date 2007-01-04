@@ -619,7 +619,22 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 
 			/* get an appropriate pointer - we either point to the initialization value
 			   in the script header, or we point to some data here that are default values */
-			MFhasECMAtype = FALSE;
+			
+			/* does this MF type have an ECMA type as a single element? */
+			switch (type) {
+				case FIELDTYPE_MFString:
+				case FIELDTYPE_MFTime:
+				case FIELDTYPE_MFBool:
+				case FIELDTYPE_MFInt32:
+				case FIELDTYPE_MFNode:
+				case FIELDTYPE_MFFloat: 
+					MFhasECMAtype = TRUE;
+					break;
+				default: {
+					MFhasECMAtype = FALSE;
+				}
+			}
+
 			elements=0;
 			IntPtr = NULL;
 			FloatPtr = NULL;
@@ -663,28 +678,21 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 						break;
 					case FIELDTYPE_MFString:
 						SVPtr = value.mfstring.p; elements = value.mfstring.n;
-						MFhasECMAtype = TRUE;
 						break;
 					case FIELDTYPE_MFTime:
 						DoublePtr = value.mftime.p; elements = value.mftime.n;
-						MFhasECMAtype = TRUE;
-						
 						break;
 					case FIELDTYPE_MFBool:
 						IntPtr = value.mfbool.p; elements = value.mfbool.n;
-						MFhasECMAtype = TRUE;
 						break;
 					case FIELDTYPE_MFInt32:
 						IntPtr = value.mfint32.p; elements = value.mfint32.n;
-						MFhasECMAtype = TRUE;
 						break;
 					case FIELDTYPE_MFNode:
 						VoidPtr = ((uintptr_t*)(value.mfnode.p)); elements = value.mfnode.n;
-						MFhasECMAtype = TRUE;
 						break;
 					case FIELDTYPE_MFFloat: 
 						FloatPtr = value.mffloat.p; elements = value.mffloat.n;
-						MFhasECMAtype = TRUE;
 						break;
 					default: {
 						printf ("unhandled type, in InitScriptField %d\n",type);
