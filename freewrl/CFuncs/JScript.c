@@ -161,11 +161,9 @@ void JSInit(uintptr_t num) {
 
 
 
-	/* #ifdef JAVASCRIPTVERBOSE {*/
-	/* 	reportWarningsOn();*/
-	/* } else {*/
-	/* 	reportWarningsOff();*/
-	/* }*/
+	#ifdef JAVASCRIPTVERBOSE 
+	 	reportWarningsOn();
+	#endif
 
 	JS_SetErrorReporter(_context, errorReporter);
 	#ifdef JAVASCRIPTVERBOSE 

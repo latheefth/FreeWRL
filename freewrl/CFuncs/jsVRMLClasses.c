@@ -984,68 +984,141 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 /*							*/
 /********************************************************/
 
-
-/* implement later */
-JSBool
-SFColorGetHSV(JSContext *cx, JSObject *obj,
-				uintN argc, jsval *argv, jsval *rval)
-{
-	JSObject *_arrayObj;
-/* 	SFColorNative *ptr; */
-	jsdouble hue = 0, saturation = 0, value = 0;
-	jsval _v;
-
-	UNUSED(obj);
-	UNUSED(argc);
-	UNUSED(argv);
-	/* do conversion here!!! */
-
-	if ((_arrayObj = JS_NewArrayObject(cx, 0, NULL)) == NULL) {
-		printf( "JS_NewArrayObject failed in SFColorGetHSV.\n");
-		return JS_FALSE;
-	}
-	*rval = OBJECT_TO_JSVAL(_arrayObj);
-
-	/* construct new double before conversion? */
-	_v = DOUBLE_TO_JSVAL(&hue);
-	if (!JS_SetElement(cx, _arrayObj, 0, &_v)) {
-		printf( "JS_SetElement failed for hue in SFColorGetHSV.\n");
-		return JS_FALSE;
-	}
-	_v = DOUBLE_TO_JSVAL(&saturation);
-	if (!JS_SetElement(cx, _arrayObj, 1, &_v)) {
-		printf( "JS_SetElement failed for saturation in SFColorGetHSV.\n");
-		return JS_FALSE;
-	}
-
-	_v = DOUBLE_TO_JSVAL(&value);
-	if (!JS_SetElement(cx, _arrayObj, 2, &_v)) {
-		printf( "JS_SetElement failed for value in SFColorGetHSV.\n");
-		return JS_FALSE;
-	}
-
-    return JS_TRUE;
+/* from http://www.cs.rit.edu/~ncs/color/t_convert.html */
+double MIN(double a, double b, double c) {
+	double min;
+	if((a<b)&&(a<c))min=a; else if((b<a)&&(b<c))min=b; else min=c; return min;
 }
 
-/* implement later */
-JSBool
-SFColorSetHSV(JSContext *cx, JSObject *obj,
-				uintN argc, jsval *argv, jsval *rval)
+double MAX(double a, double b, double c) {
+	double max;
+	if((a>b)&&(a>c))max=a; else if((b>a)&&(b>c))max=b; else max=c; return max;
+}
+
+void convertRGBtoHSV(double r, double g, double b, double *h, double *s, double *v) {
+	double min, max, delta;
+
+	min = MIN( r, g, b );
+	max = MAX( r, g, b );
+	*v = max;				/* v */
+	delta = max - min;
+	if( max != 0 )
+		*s = delta / max;		/* s */
+	else {
+		/* r = g = b = 0 */		/* s = 0, v is undefined */
+		*s = 0;
+		*h = -1;
+		return;
+	}
+	if( r == max )
+		*h = ( g - b ) / delta;		/* between yellow & magenta */
+	else if( g == max )
+		*h = 2 + ( b - r ) / delta;	/* between cyan & yellow */
+	else
+		*h = 4 + ( r - g ) / delta;	/* between magenta & cyan */
+	*h *= 60;				/* degrees */
+	if( *h < 0 )
+		*h += 360;
+}
+void convertHSVtoRGB( double h, double s, double v ,double *r, double *g, double *b)
 {
+	int i;
+	double f, p, q, t;
+	if( s == 0 ) {
+		/* achromatic (grey) */
+		*r = *g = *b = v;
+		return;
+	}
+	h /= 60;			/* sector 0 to 5 */
+	i = floor( h );
+	f = h - i;			/* factorial part of h */
+	p = v * ( 1 - s );
+	q = v * ( 1 - s * f );
+	t = v * ( 1 - s * ( 1 - f ) );
+	switch( i ) {
+		case 0: *r = v; *g = t; *b = p; break;
+		case 1: *r = q; *g = v; *b = p; break;
+		case 2: *r = p; *g = v; *b = t; break;
+		case 3: *r = p; *g = q; *b = v; break;
+		case 4: *r = t; *g = p; *b = v; break;
+		default: *r = v; *g = p; *b = q; break;
+	}
+}
+
+JSBool
+SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	JSObject *result;
+	jsdouble *dp;
+	double xp[3];
+	jsval _h; jsval _s; jsval _v;
+	SFColorNative *ptr;
+	int i;
+
+	UNUSED(argv);
+	if (argc != 0) {
+		printf ("SFColorGetHSV; arguments found but not expected\n");
+		return JS_FALSE;
+	}
+	
+	/* get the RGB values */
+        if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
+                printf( "JS_GetPrivate failed in SFColorToString.\n");
+                return JS_FALSE;
+        }
+
+	/* convert rgb to hsv */
+	convertRGBtoHSV((ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2],&xp[0],&xp[1],&xp[2]);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+        printf("hsv code, orig rgb is %.9g %.9g %.9g\n", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
+	printf ("hsv conversion is %lf %lf %lf\n",xp[0],xp[1],xp[2]);
+	#endif
+
+	result = JS_NewArrayObject(cx, 3, NULL); 
+        JS_AddRoot(cx, &result); 
+        for(i=0; i<3; i++) { 
+		if ((dp = JS_NewDouble(cx, xp[i])) == NULL) {
+			printf( "JS_NewDouble failed for %f in SFColorGetHSV.\n", xp[i]);
+			return JS_FALSE;
+		}
+		_v = DOUBLE_TO_JSVAL(dp);
+        	JS_SetElement(cx, result, (jsint)i, &_v); 
+        } 
+
+        JS_RemoveRoot(cx, &result); 
+        *rval = OBJECT_TO_JSVAL(result); 
+	return JS_TRUE;
+}
+
+JSBool
+SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
     SFColorNative *ptr;
-	jsdouble hue, saturation, value;
+	double hue, saturation, value;
+	double red,green,blue;
 
 	if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFColorToString.\n");
 		return JS_FALSE;
 	}
-	if (!JS_ConvertArguments(cx, argc, argv, "d d d",
-							 &hue, &saturation, &value)) {
+	if (!JS_ConvertArguments(cx, argc, argv, "d d d", &hue, &saturation, &value)) {
 		printf( "JS_ConvertArguments failed in SFColorSetHSV.\n");
 		return JS_FALSE;
 	}
 
 	/* do conversion here!!! */
+	#ifdef JSCLASSESVERBOSE
+        printf("hsv code, orig rgb is %.9g %.9g %.9g\n", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
+	printf ("SFColorSetHSV, have %lf %lf %lf\n",hue,saturation,value);
+	#endif
+
+	convertHSVtoRGB(hue,saturation,value, &red, &green, &blue);
+	ptr->v.c[0] = red;
+	ptr->v.c[1] = green;
+	ptr->v.c[2] = blue;
+	#ifdef JSCLASSESVERBOSE
+        printf("hsv code, now rgb is %.9g %.9g %.9g\n", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
+	#endif
 
 	*rval = OBJECT_TO_JSVAL(obj);
 
@@ -1165,8 +1238,7 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[0] = 0.0;
 		(ptr->v).c[1] = 0.0;
 		(ptr->v).c[2] = 0.0;
-	} else if (JS_ConvertArguments(cx, argc, argv, "d d d",
-									&(pars[0]), &(pars[1]), &(pars[2]))) {
+	} else if (JS_ConvertArguments(cx, argc, argv, "d d d", &(pars[0]), &(pars[1]), &(pars[2]))) {
 		(ptr->v).c[0] = pars[0];
 		(ptr->v).c[1] = pars[1];
 		(ptr->v).c[2] = pars[2];
@@ -1284,14 +1356,12 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	return JS_TRUE;
 }
 
-
-/* implement later */
+/* copy code from SFColorGetHSV if the spec ever decides to implement this. */
 JSBool
 SFColorRGBAGetHSV(JSContext *cx, JSObject *obj,
 				uintN argc, jsval *argv, jsval *rval)
 {
 	JSObject *_arrayObj;
-/* 	SFColorRGBANative *ptr; */
 	jsdouble hue = 0, saturation = 0, value = 0;
 	jsval _v;
 
@@ -1327,7 +1397,7 @@ SFColorRGBAGetHSV(JSContext *cx, JSObject *obj,
     return JS_TRUE;
 }
 
-/* implement later */
+/* implement later?? Copy most of code from SFColorSetHSV if we require this */
 JSBool
 SFColorRGBASetHSV(JSContext *cx, JSObject *obj,
 				uintN argc, jsval *argv, jsval *rval)
