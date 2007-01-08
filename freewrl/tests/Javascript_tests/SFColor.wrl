@@ -53,6 +53,18 @@ Transform { translation -2.5 2.5 0 children [
 	}
 	]
 }
+
+# a box that gets set via HSV. 
+# its value tracks the "red_only" box, that is diagonally located on the screen
+Transform { translation -2.5 -2.5 0 children [
+		Transform { children Shape {
+			appearance Appearance {
+				material DEF HSV Material { }
+			} geometry Box {size 1 1 1 }
+		}
+	}
+	]
+}
 # Animation clock
 	DEF Clock TimeSensor {
 		cycleInterval 4.0
@@ -77,13 +89,18 @@ DEF SCRIPT Script {
 	eventOut SFColor green_only
 	eventOut SFColor blue_only
 	eventOut SFColor inverse
+	eventOut SFColor hsv
 
+	field SFColor c1 0 0 0
 url "vrmlscript: 
 function set_color ( frac, tm ) {
 	red_only = new SFColor(frac[0],0.0,0.0);
 	green_only = new SFColor(0.0,frac[1],0.0);
 	blue_only = new SFColor(0.0,0.0,frac[2]);
 	inverse = new SFColor(1.0-frac[0], 1.0-frac[1], 1.0-frac[2]);
+
+        var c = new Array(3); c = red_only.getHSV();
+        hsv.setHSV (c[0],c[1],c[2]);
 }
 
 "}
@@ -96,4 +113,5 @@ ROUTE SCRIPT.red_only TO RED.set_diffuseColor
 ROUTE SCRIPT.green_only TO GREEN.set_diffuseColor
 ROUTE SCRIPT.blue_only TO BLUE.set_diffuseColor
 ROUTE SCRIPT.inverse TO INVERSE.set_diffuseColor
+ROUTE SCRIPT.hsv TO HSV.set_diffuseColor
 

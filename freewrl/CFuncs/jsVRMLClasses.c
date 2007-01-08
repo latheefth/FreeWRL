@@ -1116,6 +1116,7 @@ SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	ptr->v.c[0] = red;
 	ptr->v.c[1] = green;
 	ptr->v.c[2] = blue;
+	ptr->touched++;
 	#ifdef JSCLASSESVERBOSE
         printf("hsv code, now rgb is %.9g %.9g %.9g\n", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
@@ -2546,12 +2547,15 @@ JSBool
 SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	SFVec3fNative *_vec;
+	SFVec3fNative *_vec2;
 	SFRotationNative *ptr;
 	JSObject *_ob1, *_ob2;
 	jsdouble pars[4];
+	jsdouble doub;
 	float v1len, v2len;
 	double v12dp;
 	struct pt v1, v2;
+	int v3fv3f;
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of SFRotationConstr\n");
@@ -2571,71 +2575,73 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 
 	if (argc == 0) {
-		(ptr->v).r[0] = 0.0;
-		(ptr->v).r[1] = 0.0;
-		(ptr->v).r[2] = 1.0;
-		(ptr->v).r[3] = 0.0;
-	/* test "o d" first, otherwise "var d=1;new SFRotation(vect, d)" won't work */
-	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "o d",
-					&_ob1, &(pars[0]))) {
-		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
-			printf(
-					"JS_InstanceOf failed for arg format \"o d\" in SFRotationConstr.\n");
-			return JS_FALSE;
+		(ptr->v).r[0] = 0.0; (ptr->v).r[1] = 0.0; (ptr->v).r[2] = 1.0; (ptr->v).r[3] = 0.0;
+
+	} else if (argc == 2) {
+		/* two possibilities - SFVec3f/numeric, or SFVec3f/SFVec3f */
+		if (JSVAL_IS_OBJECT(argv[0])) {
+			_ob1 = argv[0];
+
+			printf ("argv 0 is an object\n");
+			if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
+				printf( "JS_InstanceOf failed for 2 arg format in SFRotationConstr.\n");
+				return JS_FALSE;
+			}
+			if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _ob1)) == NULL) {
+				printf( "JS_GetPrivate failed for arg format \"o d\" in SFRotationConstr.\n");
+				return JS_FALSE;
+			}
 		}
-		if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _ob1)) == NULL) {
-			printf(
-					"JS_GetPrivate failed for arg format \"o d\" in SFRotationConstr.\n");
-			return JS_FALSE;
-		}
-		(ptr->v).r[0] = _vec->v.c[0];
-		(ptr->v).r[1] = _vec->v.c[1];
-		(ptr->v).r[2] = _vec->v.c[2];
-		(ptr->v).r[3] = pars[0];
-	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "o o",
-												&_ob1, &_ob2)) {
-		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
-			printf(
-					"JS_InstanceOf failed for _ob1 in SFRotationConstr.\n");
-			return JS_FALSE;
+		if (JSVAL_IS_OBJECT(argv[1])) {
+			printf ("argv 1 is an object\n");
+			_ob2 = argv[1];
+
+			v3fv3f = TRUE;
+			if (!JS_InstanceOf(cx, _ob2, &SFVec3fClass, argv)) {
+				printf( "JS_InstanceOf failed for 2 arg (vec3f/vec3f) format in SFRotationConstr.\n");
+				return JS_FALSE;
+			}
+			if ((_vec2 = (SFVec3fNative *)JS_GetPrivate(cx, _ob2)) == NULL) {
+				printf( "JS_GetPrivate failed for _ob1 in SFRotationConstr.\n");
+				return JS_FALSE;
+			}
+		} else {
+			v3fv3f = FALSE;
+			if (!JSVAL_IS_NUMBER(argv[1])) {
+				printf ("SFRotationConstr param error - number expected\n");
+				return JS_FALSE;
+			}
+			if (!JS_ValueToNumber(cx, argv[1], &doub)) {
+				printf("JS_ValueToNumber failed in SFRotationConstr.\n");
+				return JS_FALSE;
+			}
 		}
 
-		if (!JS_InstanceOf(cx, _ob2, &SFVec3fClass, argv)) {
-			printf(
-					"JS_InstanceOf failed for _ob2 in SFRotationConstr.\n");
-			return JS_FALSE;
-		}
-		if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _ob1)) == NULL) {
-			printf(
-					"JS_GetPrivate failed for _ob1 in SFRotationConstr.\n");
-			return JS_FALSE;
-		}
-		v1.x = _vec->v.c[0];
-		v1.y = _vec->v.c[1];
-		v1.z = _vec->v.c[2];
-		_vec = 0;
 
-		if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _ob2)) == NULL) {
-			printf(
-					"JS_GetPrivate failed for _ob2 in SFRotationConstr.\n");
-			return JS_FALSE;
+		if (!v3fv3f) {
+			(ptr->v).r[0] = _vec->v.c[0];
+			(ptr->v).r[1] = _vec->v.c[1];
+			(ptr->v).r[2] = _vec->v.c[2];
+			(ptr->v).r[3] = doub;
+		} else {
+			v1.x = _vec->v.c[0];
+			v1.y = _vec->v.c[1];
+			v1.z = _vec->v.c[2];
+			v2.x = _vec2->v.c[0];
+			v2.y = _vec2->v.c[1];
+			v2.z = _vec2->v.c[2];
+	
+			v1len = veclength(v1);
+			v2len = veclength(v2);
+			v12dp = vecdot(&v1, &v2);
+			(ptr->v).r[0] = v1.y * v2.z - v2.y * v1.z;
+			(ptr->v).r[1] = v1.z * v2.x - v2.z * v1.x;
+			(ptr->v).r[2] = v1.x * v2.y - v2.x * v1.y;
+			v12dp /= v1len * v2len;
+			(ptr->v).r[3] = atan2(sqrt(1 - v12dp * v12dp), v12dp);
 		}
-		v2.x = _vec->v.c[0];
-		v2.y = _vec->v.c[1];
-		v2.z = _vec->v.c[2];
-		_vec = 0;
-
-		v1len = veclength(v1);
-		v2len = veclength(v2);
-		v12dp = vecdot(&v1, &v2);
-		(ptr->v).r[0] = v1.y * v2.z - v2.y * v1.z;
-		(ptr->v).r[1] = v1.z * v2.x - v2.z * v1.x;
-		(ptr->v).r[2] = v1.x * v2.y - v2.x * v1.y;
-		v12dp /= v1len * v2len;
-		(ptr->v).r[3] = atan2(sqrt(1 - v12dp * v12dp), v12dp);
 	} else if (argc == 4 && JS_ConvertArguments(cx, argc, argv, "d d d d",
-												&(pars[0]), &(pars[1]),
-												&(pars[2]), &(pars[3]))) {
+			&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
 		(ptr->v).r[0] = pars[0];
 		(ptr->v).r[1] = pars[1];
 		(ptr->v).r[2] = pars[2];
