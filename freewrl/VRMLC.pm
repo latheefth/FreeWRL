@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.252  2007/01/09 22:58:39  crc_canada
+# containerField created.
+#
 # Revision 1.251  2006/12/21 20:51:51  crc_canada
 # PROTO code added to make backlinks (parents).
 #
@@ -37,7 +40,6 @@
 
 require 'VRMLFields.pm';
 require 'VRMLNodes.pm';
-require 'VRMLRend.pm';
 
 #######################################################################
 #######################################################################
@@ -61,6 +63,7 @@ my $interalNodeCommonFields =
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       void *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
+	       "       int _defaultContainer; /* holds the container */\n".
                " 	/*** node specific data: *****/\n";
 
 sub gen_struct {
@@ -529,6 +532,14 @@ sub gen {
 				push @genFuncs2, "\t\t\t$cf;\n";
 			}
 		}
+
+	# rig in the default container for X3D parsing.
+	if (exists $VRML::defaultContainerType{$node}) {
+		#print "node $node, defaultContainer is " . $VRML::defaultContainerType{$node}."\n";
+		push @genFuncs2, "\t\t\ttmp2->_defaultContainer = FIELDNAMES_".$VRML::defaultContainerType{$node}.";\n";
+	} else {
+		print "defaultContainerType for $node missing\n";
+	}
 		
 		push @genFuncs2,"\t\tbreak;\n\t\t}\n";
 	}
@@ -627,8 +638,7 @@ sub gen {
 	#####################
 	# create a function that goes through the nodes, and updates the
 	# parent fields, used for PROTO expansions.
-print "checking for children...\n";
-push @genFuncs2, "static int level=0;\n";
+	push @genFuncs2, "static int level=0;\n";
 	push @str, "\nvoid checkParentLink (struct X3D_Node * node,struct X3D_Node *parent);\n";
 	push @genFuncs2, "\nvoid checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {\n".
 			"\tint i; int n; void * *p;\n".
