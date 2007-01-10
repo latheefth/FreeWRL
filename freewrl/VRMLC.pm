@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.253  2007/01/10 15:20:09  crc_canada
+# reducing more perl code.
+#
 # Revision 1.252  2007/01/09 22:58:39  crc_canada
 # containerField created.
 #
@@ -84,7 +87,7 @@ sub gen_struct {
 		$s .= "\t$cty;\n";
 	}
 
-	$s .= $ExtraMem{$name};
+	$s .= $VRML::ExtraMem{$name};
 	$s .= "};\n";
 	return ($s);
 }
@@ -332,7 +335,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of keywords */\n       const char *KEYWORDS[] = {\n";
 
-        my @sf = keys %KeywordC;
+        my @sf = keys %VRML::KeywordC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -358,7 +361,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of PROTO keywords */\n       const char *PROTOKEYWORDS[] = {\n";
 
-        my @sf = keys %PROTOKeywordC;
+        my @sf = keys %VRML::PROTOKeywordC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
