@@ -380,6 +380,7 @@ int newOcclude() {
 }
 
 /* shut down the occlusion stuff */
+#ifdef OCCLUSION
 void zeroOcclusion(void) {
 	QueryCount = 0;
 	glDeleteQueries (OccQuerySize, OccQueries);
@@ -392,3 +393,4 @@ void zeroOcclusion(void) {
 	FREE_IF_NZ(OccActive);
 	FREE_IF_NZ(OccSamples);
 }
+#endif
