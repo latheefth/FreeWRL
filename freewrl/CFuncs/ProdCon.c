@@ -305,6 +305,14 @@ char *getInputURL() {
 /*									*/
 /************************************************************************/
 
+/* do we have an X3D header here? */
+int ifIsX3D(char *buffer) {
+	char *rv;
+
+	rv = strstr(buffer,"<?xml version");
+	return rv != NULL;
+}
+
 char *possiblyConvertXMLtoClassic(char *buf) {
 #define VRML2HEADER "#VRML V2.0 utf8"
 #define X3DHEADER  "<\?xml version"
@@ -880,11 +888,26 @@ void __pt_doStringUrl () {
 		pushInputURL (psp.inp);
 	       	buffer = readInputString(psp.inp,"");
 
+#ifdef TRYX3D
+		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+		if (ifIsX3D(buffer)) {
+			initializeX3DParser ();
+			if (X3DParse (nRn, buffer)) {
+				printf ("Parse Successful\n");
+			} else {
+				printf ("Parse Unsuccessful\n");
+			}
+		} else {
+			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
+		}
+#else
+
 		/* check and convert to VRML... */
 		buffer = possiblyConvertXMLtoClassic(buffer);
 
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
+#endif
 		haveParsed = TRUE;
 		FREE_IF_NZ (buffer); 
 

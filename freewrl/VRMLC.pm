@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.254  2007/01/11 21:07:46  crc_canada
+# X3D Parser work.
+#
 # Revision 1.253  2007/01/10 15:20:09  crc_canada
 # reducing more perl code.
 #
@@ -43,6 +46,7 @@
 
 require 'VRMLFields.pm';
 require 'VRMLNodes.pm';
+require 'VRMLRend.pm';
 
 #######################################################################
 #######################################################################
@@ -87,7 +91,7 @@ sub gen_struct {
 		$s .= "\t$cty;\n";
 	}
 
-	$s .= $VRML::ExtraMem{$name};
+	$s .= $ExtraMem{$name};
 	$s .= "};\n";
 	return ($s);
 }
@@ -335,7 +339,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of keywords */\n       const char *KEYWORDS[] = {\n";
 
-        my @sf = keys %VRML::KeywordC;
+        my @sf = keys %KeywordC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -361,7 +365,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of PROTO keywords */\n       const char *PROTOKEYWORDS[] = {\n";
 
-        my @sf = keys %VRML::PROTOKeywordC;
+        my @sf = keys %PROTOKeywordC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -537,9 +541,9 @@ sub gen {
 		}
 
 	# rig in the default container for X3D parsing.
-	if (exists $VRML::defaultContainerType{$node}) {
-		#print "node $node, defaultContainer is " . $VRML::defaultContainerType{$node}."\n";
-		push @genFuncs2, "\t\t\ttmp2->_defaultContainer = FIELDNAMES_".$VRML::defaultContainerType{$node}.";\n";
+	if (exists $defaultContainerType{$node}) {
+		#print "node $node, defaultContainer is " . $defaultContainerType{$node}."\n";
+		push @genFuncs2, "\t\t\ttmp2->_defaultContainer = FIELDNAMES_".$defaultContainerType{$node}.";\n";
 	} else {
 		print "defaultContainerType for $node missing\n";
 	}

@@ -1209,4 +1209,9 @@ void setIsPlugin();
 void sendPluginFD(int fd);
 #endif
 
+/* X3D C parser */
+int initializeX3DParser (void);
+void shutdownX3DParser (void);
+int X3DParse (struct X3D_Group *parent, char *inputstring);
+
 #endif /* __HEADERS_H__ */

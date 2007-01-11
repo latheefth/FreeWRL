@@ -10,6 +10,15 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
+/* definitions to help scanning values in from a string */
+#define SCANTONUMBER(value) while ((*value==' ') || (*value==',')) value++;
+#define SCANTOSTRING(value) while (*value==' ') value++;
+#define SCANPASTFLOATNUMBER(value) while (isdigit(*value) \
+		|| (*value == '.') || \
+		(*value == 'E') || (*value == 'e') || (*value == '-')) value++;
+#define SCANPASTINTNUMBER(value) while (isdigit(*value) || \
+		(*value == 'x') || (*value == 'X') || (*value == '-')) value++;
+
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
 void saveSFImage (struct X3D_PixelTexture *node, char *str);
@@ -569,20 +578,85 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 	}
 }
 
-int countCommas (char *instr) {
-	int retval = 0;
+int countFloatElements (char *instr) {
+	int count = 0;
+	SCANTONUMBER(instr);
 	while (*instr != '\0') {
-		if (*instr == ',') retval++;
-		instr++;
+		SCANPASTFLOATNUMBER(instr);
+		SCANTONUMBER(instr);
+		count ++;
+		/* printf ("string now is :%s:, count %d\n",instr,count); */
 	}
-	return retval;
+	return count;
+}
+	
+int countIntElements (char *instr) {
+	int count = 0;
+	SCANTONUMBER(instr);
+	while (*instr != '\0') {
+		SCANPASTINTNUMBER(instr);
+		SCANTONUMBER(instr);
+		count ++;
+		/* printf ("string now is :%s:, count %d\n",instr,count); */
+	}
+	return count;
+}
+
+int countStringElements (char *instr) {
+	int count = 0;
+	char *ptr;
+
+	char startsWithQuote;
+	SCANTOSTRING(instr);
+
+	/* is this a complex string like: "images/256x256.jpg" or just MODULATE4X. */
+	/* if it is just a word, return that we have 1 string */
+	if ((*instr == '"') || (*instr == '\'')) startsWithQuote = *instr;
+	else return 1;
+
+	count = 0;
+	ptr = instr;
+	while (ptr != NULL) { ptr++; ptr = strchr(ptr,startsWithQuote); count++; }
+	return count /2;
+}
+
+int countBoolElements (char *instr) {
+printf ("CAN NOT COUNT BOOL ELEMENTS YET\n");
+printf ("string %s\n",instr);
+}
+	
+
+int countElements (int ctype, char *instr) {
+	int elementCount;
+	
+	switch (ctype) {
+		case SFVEC2F:	elementCount = 2; break;
+		case SFROTATION:
+		case SFCOLORRGBA: elementCount = 4; break;
+		case SFVEC3F:
+		case SFCOLOR: elementCount = 3; break;
+		case MFROTATION:
+		case MFCOLOR:
+		case MFFLOAT:
+		case MFTIME:
+		case MFVEC2F:
+		case MFVEC3F:
+		case MFCOLORRGBA: 
+		case MFNODE: elementCount = countFloatElements(instr); break;
+		case MFBOOL: elementCount = countBoolElements(instr); break;
+		case MFSTRING: elementCount = countStringElements(instr); break;
+		case MFINT32: elementCount = countIntElements(instr); break;
+		default: elementCount = 1;
+	}
+	
+	return elementCount;
 }
 
 /* called effectively by VRMLCU.pm */
 void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
 	int datasize;
 	int rowsize;
-	int commaCount;
+	int elementCount;
 
 	char *nst;                      /* used for pointer maths */
 	void *mdata;
@@ -592,6 +666,8 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	struct Uni_String *mysv;
 	int tmp;
 	int myStrLen;
+	char *Cptr;
+	char startsWithQuote;
 	
 
 	/* temporary for sscanfing */
@@ -606,12 +682,17 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	nst += coffset;
 
 	datasize = returnElementLength(ctype);
-	commaCount = countCommas(value);
-	
-	switch (ctype) {
-		case SFFLOAT: {sscanf (value,"%f",fl); memcpy (nst,fl,datasize); break;} 
+	elementCount = countElements(ctype,value);
 
-		case SFBOOL:
+	switch (ctype) {
+
+		case SFBOOL: {
+				if (strstr(value,"true") != NULL) *in = TRUE;
+				else if (strstr (value,"TRUE") != NULL) *in = TRUE;
+				else *in = FALSE;
+				memcpy(nst,in,datasize); 
+				break;
+			}
 		case SFINT32:
 			{ sscanf (value,"%d",in); 
 				memcpy(nst,in,datasize); 
@@ -634,19 +715,25 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 				}
 				
 			break;}
+
+		
+		case SFFLOAT:
 		case SFVEC2F:
-			{sscanf (value,"%f,%f",&fl[0],&fl[1]); memcpy (nst,fl,datasize*2); break;}
 		case SFROTATION:
 		case SFCOLORRGBA:
-			{sscanf (value,"%f,%f,%f,%f",&fl[0],&fl[1],&fl[2],&fl[3]); memcpy (nst,fl,datasize*4); break;}
 		case SFVEC3F:
-		case SFCOLOR:
-			{ sscanf (value,"%f,%f,%f",&fl[0],&fl[1],&fl[2]); memcpy (nst,fl,datasize*3); break;}
+		case SFCOLOR: {
+			for (tmp = 0; tmp < elementCount; tmp++) {
+				SCANTONUMBER(value);
+				sscanf (value, "%f",&fl[tmp]);
+				SCANPASTFLOATNUMBER(value);
+			}
+			memcpy (nst,fl,datasize*elementCount); break;}
 		case MFBOOL:
 		case MFINT32: {
-			mdata = malloc ((commaCount+1) * datasize);
+			mdata = malloc (elementCount * datasize);
 			iptr = (int *)mdata;
-			for (tmp = 0; tmp < (commaCount+1); tmp++) {
+			for (tmp = 0; tmp < elementCount; tmp++) {
 				sscanf(value, "%d",iptr);
 				iptr ++;
 				/* skip past the number and trailing comma, if there is one */
@@ -655,12 +742,12 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 				if ((*value == ' ') || (*value == ',')) value++;
 			}
 			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = commaCount+1;
+			((struct Multi_Node *)nst)->n = elementCount;
 			break;
 			}
 
 		case MFNODE: {
-			for (tmp = 0; tmp < (commaCount+1); tmp++) {
+			for (tmp = 0; tmp < elementCount; tmp++) {
 				sscanf(value, "%d",inNode);
 				addToNode(ptr,coffset,(void *)inNode[0]); 
 				/* printf ("MFNODE, have to add child %d to parent %d\n",inNode[0],ptr);  */
@@ -688,23 +775,20 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			   see tests/8.wrl for one of these */
 			while ((*value == ' ') || (*value == '[')) value ++;
 
+			/* get the row size */
 			rowsize = returnElementRowSize(ctype);
 
-			/* printf ("data size is %d elerow %d commaCount %d\n",datasize, returnElementRowSize(ctype),commaCount+1); */
-			mdata = malloc ((commaCount+1) * datasize * rowsize);
+			/* printf ("data size is %d elerow %d elementCount %d\n",datasize, returnElementRowSize(ctype),elementCount); */
+			mdata = malloc (elementCount * datasize);
 			fptr = (float *)mdata;
-			for (tmp = 0; tmp < ((commaCount+1)*rowsize); tmp++) {
-				/* go to the number */
-				while (*value <= ' ') value++;
-
+			for (tmp = 0; tmp < elementCount; tmp++) {
+				SCANTONUMBER(value);
 				sscanf(value, "%f",fptr);
 				fptr ++;
-
-				/* skip to the beginning of the next number */
-				while (*value > ' ') value++;
+				SCANPASTFLOATNUMBER(value);
 			}
 			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = (commaCount+1)/rowsize;
+			((struct Multi_Node *)nst)->n = elementCount/rowsize;
 			break;
 			}
 
@@ -714,44 +798,39 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			break; }
 			
 		case MFSTRING: {
-			/* string comes in from VRMLCU.pm as:
-				1:8:MODULATE,3:ADD 
-			   where 1: is the last element (ie, 2 elements)
-				 8: is the length of the first string,
-				 3: is the length of the next string */
-
-			/* get a new count of elements */
-			sscanf (value,"%d",&commaCount);
-			while ((*value >=0) && (*value<='9')) value++;
-			if (*value == ':') value++;
-		
-			mdata = malloc ((commaCount+1) * datasize);
+			mdata = malloc (elementCount * datasize);
 			svptr = (struct Uni_String **)mdata;
 
-			for (tmp = 0; tmp < (commaCount+1); tmp++) {
-				sscanf(value, "%d",&myStrLen);
+			SCANTOSTRING(value);
+			if ((*value == '"') || (*value == '\'')) startsWithQuote = *value;
+			else startsWithQuote = '\0';
 
-				if (myStrLen>20000) myStrLen = 19000;
+			for (tmp = 0; tmp < elementCount; tmp++) {
+				if (startsWithQuote != '\0') value++;
+				Cptr = strchr (value,startsWithQuote);
+				*Cptr = '\0';
 
-				while (*value<='9') value++;
-				if (*value == ':') value++;
-
-				strncpy (mytmpstr,value,myStrLen);
-				mytmpstr[myStrLen] = '\0';
-				value += myStrLen;
-				*svptr = newASCIIString(mytmpstr);
-
+				/* scan in the new ascii string */
+				/* printf ("MFSTRING, sitting at string :%s: for %d of %d\n",value,tmp,elementCount); */
+				*svptr = newASCIIString(value);
 				svptr ++;
-				if (*value == ',') value++;
+
+				/* replace that character, and continue on */
+				*Cptr = startsWithQuote;
+				value = Cptr;
+				if (startsWithQuote != '\0') value++;
+				SCANTOSTRING(value);
+				/* printf ("MFSTRING string now is :%s:\n",value); */
+				
 			}
 			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = commaCount+1;
+			((struct Multi_Node *)nst)->n = elementCount;
 			break;
 			}
 
 		default: {
 printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
-	FIELD_TYPE_STRING(ctype),value,stringNodeType(((struct X3D_Box *)ptr)->_nodeType),nst,coffset,commaCount+1);
+	FIELD_TYPE_STRING(ctype),value,stringNodeType(((struct X3D_Box *)ptr)->_nodeType),nst,coffset,elementCount+1);
 			break;
 			};
 	}
