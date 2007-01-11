@@ -150,8 +150,8 @@ extern char *GL_REN;
 
 #ifdef GL_VERSION_1_5
 #ifdef GL_ARB_occlusion_query
-#define OCCLUSION
-#define VISIBILITYOCCLUSION
+#undef OCCLUSION
+#undef VISIBILITYOCCLUSION
 #undef TRANSFORMOCCLUSION
 #undef SHAPEOCCLUSION
 #undef STATICGROUPOCCLUSION
@@ -1200,6 +1200,9 @@ extern int cc_changed;
 char *findPathToFreeWRLFile(char *lfn);
 
 int mapFieldTypeToInernaltype (indexT kwIndex);
+void finishEventLoop();
+void resetEventLoop();
+Boolean notFinished();
 
 #ifdef AQUA
 void disposeContext();
