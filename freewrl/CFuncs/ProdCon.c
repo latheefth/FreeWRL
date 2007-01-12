@@ -878,24 +878,39 @@ void __pt_doStringUrl () {
 
 	if (psp.type==FROMSTRING) {
 		/* check and convert to VRML... */
-		psp.inp = possiblyConvertXMLtoClassic(psp.inp);
-
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+
+#define TRYX3D
+#ifdef TRYX3D
+		if (ifIsX3D(psp.inp)) {
+			initializeX3DParser ();
+			if (!X3DParse (nRn, psp.inp)) {
+				ConsoleMessage ("Parse Unsuccessful");
+
+			}
+		} else {
+			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+		}
+#else
+
+		/* check and convert to VRML... */
+		buffer = possiblyConvertXMLtoClassic(psp.inp);
 		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+#endif
 		haveParsed = TRUE;
 
 	} else if (psp.type==FROMURL) {
 		pushInputURL (psp.inp);
 	       	buffer = readInputString(psp.inp,"");
-
-#ifdef TRYX3D
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+
+#define TRYX3D
+#ifdef TRYX3D
 		if (ifIsX3D(buffer)) {
 			initializeX3DParser ();
-			if (X3DParse (nRn, buffer)) {
-				printf ("Parse Successful\n");
-			} else {
-				printf ("Parse Unsuccessful\n");
+			if (!X3DParse (nRn, buffer)) {
+				ConsoleMessage ("Parse Unsuccessful");
+
 			}
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
@@ -904,8 +919,6 @@ void __pt_doStringUrl () {
 
 		/* check and convert to VRML... */
 		buffer = possiblyConvertXMLtoClassic(buffer);
-
-		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
 #endif
 		haveParsed = TRUE;

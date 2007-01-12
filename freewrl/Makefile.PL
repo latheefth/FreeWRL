@@ -287,13 +287,13 @@ sub writeMakefileFinalTargets() {
 	if ($OS ne "Darwin") {
 	if ($VRML_CONFIG{BOUNDS_CHECK} eq "off") {
 		print MK "\tstrip CFrontEnd/freewrl\n";
-		print MK "\tstrip FreeWRL_Message/FreeWRL_Message\n";
+		print MK "\tstrip FreeWRL_Msg/FreeWRL_Message\n";
 		if ($VRML_CONFIG{SOUND_ENGINE}) { 
 			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
 		}
 	}
 	print MK "\tinstall -D CFrontEnd/freewrl \$(FRONTEND_DIR)/freewrl\n";
-	print MK "\tinstall -D FreeWRL_Message/FreeWRL_Message \$(FRONTEND_DIR)FreeWRL_Message\n";
+	print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(FRONTEND_DIR)/FreeWRL_Message\n";
 
 	}
 	if ($OS eq "Linux") {
@@ -367,8 +367,8 @@ sub writeVariables () {
 
 	if ($OS ne  "Darwin") {
 	print MK "\n#Console Message Files\n";
-	print MK "FWMSRCS=FreeWRL_Message/FreeWRL_Message.c\n";
-	print MK "FWMOBJS=FreeWRL_Message/FreeWRL_Message.o\n";
+	print MK "FWMSRCS=FreeWRL_Msg/FreeWRL_Message.c\n";
+	print MK "FWMOBJS=FreeWRL_Msg/FreeWRL_Message.o\n";
 	print MK "\n\n";
 	}
 	
@@ -434,7 +434,7 @@ sub writeMakefileFreeWRLMessage() {
 	print MK "\$(FWMSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
 	print MK "FreeWRL_Message:      \$(FWMOBJS)\n";
-	print MK "\t\$(CC) FreeWRL_Message/FreeWRL_Message.o  -o FreeWRL_Message/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n\n";
+	print MK "\t\$(CC) FreeWRL_Msg/FreeWRL_Message.o  -o FreeWRL_Msg/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n\n";
 	}
 }
 
@@ -491,8 +491,8 @@ sub writeMakefileDistclean() {
 	print MK "\nclean:\n";
 	print MK "	rm -f CFuncs/*o\n";
 	print MK "	rm -f libFreeWRLFunc.so\n";
-	print MK "	rm -f FreeWRL_Message/*o\n";
-	print MK "	rm -f FreeWRL_Message/FreeWRL_Message\n";
+	print MK "	rm -f FreeWRL_Msg/*o\n";
+	print MK "	rm -f FreeWRL_Msg/FreeWRL_Message\n";
 	print MK "	rm -f CFrontEnd/*o\n";
 	print MK "	rm -f CFrontEnd/freewrl\n";
 	print MK "	rm -f freewrl\n";

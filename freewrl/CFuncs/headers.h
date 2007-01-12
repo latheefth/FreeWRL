@@ -1202,9 +1202,9 @@ char *findPathToFreeWRLFile(char *lfn);
 int mapFieldTypeToInernaltype (indexT kwIndex);
 void finishEventLoop();
 void resetEventLoop();
-Boolean notFinished();
 
 #ifdef AQUA
+Boolean notFinished();
 void disposeContext();
 void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
 void createContext(CGrafPtr grafPtr);

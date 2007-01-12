@@ -85,6 +85,101 @@ struct X3D_Node *DEFNameIndex (char *name, struct X3D_Node* node) {
 	return node;
 }
 
+/* parse a ROUTE statement. Should be like:
+	<ROUTE fromField="fraction_changed"  fromNode="TIME0" toField="set_fraction" toNode="COL_INTERP"/>
+*/
+
+static void parseX3DRoutes (char **atts) {
+	struct X3D_Node *fromNode = NULL;
+	struct X3D_Node *toNode = NULL;	
+	int fromOffset = -1;
+	int toOffset = -1;
+	int i;
+	int error = FALSE;
+
+	int fromType;
+	int toType;
+	int ctmp;
+	int fieldInt;
+
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("\nstart ofrouting\n");	
+	#endif
+
+	/* 2 passes - first, find the nodes */
+	for (i = 0; atts[i]; i += 2) {
+		#ifdef X3DPARSERVERBOSE
+		printf("ROUTING pass 1 field:%s=%s\n", atts[i], atts[i + 1]);
+		#endif
+
+		if (strncmp("fromNode",atts[i],8) == 0) {
+			fromNode = DEFNameIndex (atts[i+1], NULL);
+			if (fromNode == NULL) {
+				ConsoleMessage ("ROUTE statement, fromNode (%s) does not exist",atts[i+1]);
+				error = TRUE;
+			}
+		} else if (strncmp("toNode",atts[i],6) == 0) {
+			toNode = DEFNameIndex (atts[i+1],NULL);
+			if (toNode == NULL) {
+				ConsoleMessage ("ROUTE statement, toNode (%s) does not exist",atts[i+1]);
+				error = TRUE;
+			}
+		} else if ((strncmp("fromField",atts[i],9)!=0) &&
+				(strncmp("toField",atts[i],7) !=0)) {
+			ConsoleMessage ("Field in ROUTE statement not understood: %s\n",atts[i]);
+			error = TRUE;
+		}
+	}
+	#ifdef X3DPARSERVERBOSE
+	printf ("end of pass1, fromNode %d, toNode %d\n",fromNode,toNode);
+	#endif
+	
+	/* second pass - get the fields of the nodes */
+	if (!error) {
+		for (i = 0; atts[i]; i += 2) {
+			if (strncmp("fromField",atts[i],9)==0) {
+				/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
+				fieldInt = findRoutedFieldInFIELDNAMES (atts[i+1], 0);
+				if (fieldInt >=0) findFieldInOFFSETS(NODE_OFFSETS[fromNode->_nodeType], 
+						fieldInt, &fromOffset, &fromType, &ctmp);
+				if (fromOffset <=0) {
+					ConsoleMessage ("field %s not found in node type %s\n",
+						atts[i+1],stringNodeType(fromNode->_nodeType));
+					error = TRUE;
+				}
+			} else if (strncmp("toField",atts[i],7) ==0) {
+				fieldInt = findRoutedFieldInFIELDNAMES (atts[i+1], 1);
+				if (fieldInt > 0) findFieldInOFFSETS(NODE_OFFSETS[toNode->_nodeType], 
+						fieldInt, &toOffset, &toType, &ctmp);
+				if (toOffset <=0) {
+					ConsoleMessage ("field %s not found in node type %s\n",
+						atts[i+1],stringNodeType(toNode->_nodeType));
+					error = TRUE;
+				}
+			}
+		}
+	}
+
+	/* are the types the same? */
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("routing from a %s to a %s %d %d\n",FIELD_TYPE_STRING(fromType), FIELD_TYPE_STRING(toType),fromType,toType);
+	#endif
+
+	if (!error) {
+		if (fromType != toType) {
+			ConsoleMessage ("Routing type mismatch %s != %s",stringFieldtypeType(fromType), stringFieldtypeType(toType));
+			error = TRUE;
+		}
+	}
+
+
+	/* can we register the route? */
+	if (!error) {
+		CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType),0);
+	}
+}
 
 static int canWeIgnoreThisNode(char *name) {
 
@@ -165,6 +260,8 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 				setField_fromJavascript (thisNode, atts[i],atts[i+1]);
 			}
 		}
+	} else if (strncmp(name,"ROUTE",5) == 0) {
+		parseX3DRoutes(atts);
 	} else {
 		ConsoleMessage ("X3D Parser, node type %s not supported by FreeWRL",name);
 		return;
@@ -242,11 +339,6 @@ static void XMLCALL endElement(void *unused, const char *name) {
                 1, 1);
 
 	}
-
-
-
-
-
 }
 
 int initializeX3DParser () {
