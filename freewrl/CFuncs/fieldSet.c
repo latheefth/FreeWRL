@@ -12,7 +12,7 @@
 
 /* definitions to help scanning values in from a string */
 #define SCANTONUMBER(value) while ((*value==' ') || (*value==',')) value++;
-#define SCANTOSTRING(value) while (*value==' ') value++;
+#define SCANTOSTRING(value) while ((*value==' ') || (*value==',')) value++;
 #define SCANPASTFLOATNUMBER(value) while (isdigit(*value) \
 		|| (*value == '.') || \
 		(*value == 'E') || (*value == 'e') || (*value == '-')) value++;
@@ -798,6 +798,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			break; }
 			
 		case MFSTRING: {
+			/* printf ("start of MFSTRING :%s:\n",value); */
 			mdata = malloc (elementCount * datasize);
 			svptr = (struct Uni_String **)mdata;
 
