@@ -734,12 +734,10 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			mdata = malloc (elementCount * datasize);
 			iptr = (int *)mdata;
 			for (tmp = 0; tmp < elementCount; tmp++) {
+				SCANTONUMBER(value);
 				sscanf(value, "%d",iptr);
 				iptr ++;
-				/* skip past the number and trailing comma, if there is one */
-				if (*value == '-') value++;
-				while (*value>='0') value++;
-				if ((*value == ' ') || (*value == ',')) value++;
+				SCANPASTINTNUMBER(value);
 			}
 			((struct Multi_Node *)nst)->p=mdata;
 			((struct Multi_Node *)nst)->n = elementCount;

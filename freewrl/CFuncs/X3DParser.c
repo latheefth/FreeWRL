@@ -7,7 +7,6 @@
 */
 #include "expat.h"
 
-
 /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
 #ifdef XML_LARGE_SIZE
 #if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
@@ -49,11 +48,8 @@ struct X3D_Node *DEFNameIndex (char *name, struct X3D_Node* node) {
 	int ctr;
 	struct Uni_String *tmp;
 
-	/*
-	printf ("start of DEFNameIndex, name %s, type %s\n",name,type);
-	printf ("start of DEFNameIndex, lengths name %d, type %d\n",
-			strlen(name),strlen(type)); 
-	*/
+	
+	/* printf ("start of DEFNameIndex, name %s, type %s\n",name,stringNodeType(node->_nodeType)); */
 
 
 	len = strlen(name) + 1; /* length includes null termination, in newASCIIString() */
@@ -184,6 +180,7 @@ static void parseX3DRoutes (char **atts) {
 static int canWeIgnoreThisNode(char *name) {
 
 	if (strncmp ("Header",name,7) == 0) {return TRUE;}
+	if (strncmp ("Metadata",name,8) == 0) {return TRUE;}
 	if (strncmp ("Scene",name,5) == 0) {return TRUE;}
 	if (strncmp ("meta",name,4) == 0) {return TRUE;}
 	if (strncmp ("head",name,4) == 0) {return TRUE;}
@@ -228,7 +225,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 
 				fromDEFtable = DEFNameIndex (atts[i+1],thisNode);
 				if (fromDEFtable != thisNode) {
-					ConsoleMessage ("Warning - duplicate DEF name: \'%s\'",name);
+					ConsoleMessage ("Warning - duplicate DEF name: \'%s\'",atts[i+1]);
 				}
 
 			} else if (strncmp ("USE",atts[i],3) == 0) {

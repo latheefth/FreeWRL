@@ -1,4 +1,12 @@
 For 1.18.11:
+	- OSX Build work.
+
+	- New X3D Parser - does not yet handle:
+		Scripts
+		PROTOS
+		EXTERNPROTOS
+		PixelTextures.
+
 	- SFColorSetHSV and SFColorGetHSV
 
 For 1.18.10:
