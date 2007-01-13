@@ -13,7 +13,7 @@ typedef struct SFColor	vrmlColorT;
 typedef struct SFColorRGBA	vrmlColorRGBAT;
 typedef float	vrmlFloatT;
 typedef int32_t	vrmlInt32T;
-typedef struct Multi_Int32*	vrmlImageT;
+typedef struct Multi_Int32	vrmlImageT;
 typedef struct X3D_Node*	vrmlNodeT;
 typedef struct SFRotation	vrmlRotationT;
 typedef struct Uni_String*	vrmlStringT;

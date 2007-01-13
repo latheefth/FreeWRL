@@ -326,7 +326,6 @@ void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
 #define DEEPCOPY_sfcolor(v, i, h) v
 #define DEEPCOPY_sfcolorrgba(v, i, h) v
 #define DEEPCOPY_sffloat(v, i, h) v
-#define DEEPCOPY_sfimage(v, i, h) deepcopy_sfimage(v, i, h)
 #define DEEPCOPY_sfint32(v, i, h) v
 #define DEEPCOPY_sfnode(v, i, h) protoDefinition_deepCopy(v, i, h)
 #define DEEPCOPY_sfrotation(v, i, h) v
@@ -334,6 +333,11 @@ void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
 #define DEEPCOPY_sftime(v, i, h) v
 #define DEEPCOPY_sfvec2f(v, i, h) v
 #define DEEPCOPY_sfvec3f(v, i, h) v
+
+#ifdef OLDCODE
+/* JAS sfimages have changed structure types */
+#define DEEPCOPY_sfimage(v, i, h) deepcopy_sfimage(v, i, h)
+
 static struct Multi_Int32 DEEPCOPY_mfint32(struct Multi_Int32,
  struct ProtoDefinition*, struct PointerHash*);
 static vrmlImageT deepcopy_sfimage(vrmlImageT img,
@@ -343,6 +347,11 @@ static vrmlImageT deepcopy_sfimage(vrmlImageT img,
  *ret=DEEPCOPY_mfint32(*img, new, hash);
  return ret;
 }
+#else
+
+#define DEEPCOPY_sfimage(v, i, h) v
+
+#endif
 static vrmlStringT deepcopy_sfstring(vrmlStringT str)
 {
  return newASCIIString (str->strptr);

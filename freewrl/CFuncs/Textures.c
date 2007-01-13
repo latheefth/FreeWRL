@@ -290,13 +290,15 @@ void kill_openGLTextures() {
    This saves having missing geometry in the scene. */
 void copyPixelTextureEntry (struct X3D_PixelTexture *me) {
 	struct textureTableIndexStruct *myEntry;
+	struct Multi_Int32* ptr;
 
 	#ifdef TEXVERBOSE
 	printf ("copying pixelTexture entry calling getTableIndex\n");
 	#endif
 
+	ptr = &(me->image);
 	myEntry = getTableIndex(me->__textureTableIndex);
-	myEntry->pixelData =  (struct Multi_Int32*) me->image;
+	myEntry->pixelData =  ptr;
 }
 
 

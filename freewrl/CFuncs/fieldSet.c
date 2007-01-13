@@ -16,8 +16,12 @@
 #define SCANPASTFLOATNUMBER(value) while (isdigit(*value) \
 		|| (*value == '.') || \
 		(*value == 'E') || (*value == 'e') || (*value == '-')) value++;
-#define SCANPASTINTNUMBER(value) while (isdigit(*value) || \
-		(*value == 'x') || (*value == 'X') || (*value == '-')) value++;
+#define SCANPASTINTNUMBER(value) if (isdigit(*value) || (*value == '-')) value++; \
+		while (isdigit(*value) || \
+		(*value == 'x') || (*value == 'X') ||\
+		((*value >='a') && (*value <='f')) || \
+		((*value >='A') && (*value <='F')) || \
+		(*value == '-')) value++;
 
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
@@ -597,7 +601,7 @@ int countIntElements (char *instr) {
 		SCANPASTINTNUMBER(instr);
 		SCANTONUMBER(instr);
 		count ++;
-		/* printf ("string now is :%s:, count %d\n",instr,count); */
+		/* printf ("countIntElements:string now is :%s:, count %d\n",instr,count); */
 	}
 	return count;
 }
@@ -645,6 +649,7 @@ int countElements (int ctype, char *instr) {
 		case MFNODE: elementCount = countFloatElements(instr); break;
 		case MFBOOL: elementCount = countBoolElements(instr); break;
 		case MFSTRING: elementCount = countStringElements(instr); break;
+		case SFIMAGE:
 		case MFINT32: elementCount = countIntElements(instr); break;
 		default: elementCount = 1;
 	}
@@ -683,7 +688,6 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 
 	datasize = returnElementLength(ctype);
 	elementCount = countElements(ctype,value);
-
 	switch (ctype) {
 
 		case SFBOOL: {
@@ -730,17 +734,19 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			}
 			memcpy (nst,fl,datasize*elementCount); break;}
 		case MFBOOL:
+		case SFIMAGE: 
 		case MFINT32: {
 			mdata = malloc (elementCount * datasize);
 			iptr = (int *)mdata;
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				SCANTONUMBER(value);
-				sscanf(value, "%d",iptr);
+				/* is this a HEX number? the %i should handle it */
+				sscanf(value, "%i",iptr);
 				iptr ++;
 				SCANPASTINTNUMBER(value);
 			}
-			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = elementCount;
+			((struct Multi_Int32 *)nst)->p=mdata;
+			((struct Multi_Int32 *)nst)->n = elementCount;
 			break;
 			}
 
@@ -791,7 +797,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			}
 
 		case SFSTRING: 
-		case SFIMAGE: {
+			{
 			mysv  = newASCIIString(value); 
 			break; }
 			

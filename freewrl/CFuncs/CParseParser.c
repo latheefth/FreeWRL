@@ -1319,6 +1319,8 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 PARSER_FIXED_VEC(color, Color, 3, c)
 PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
 
+#ifdef OLDCODE
+/* JAS this returns a pointer to a Multi_Int32 */
 BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
 {
  vrmlInt32T width, height, depth;
@@ -1354,6 +1356,42 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
 
  return TRUE;
 }
+#else
+/* JAS this code assumes that the ret points to a SFInt_32 type, and just
+fills in the values. */
+ 
+BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
+{
+ vrmlInt32T width, height, depth;
+ vrmlInt32T* ptr;
+ 
+ if(!lexer_int32(me->lexer, &width))
+  return FALSE;
+ if(!lexer_int32(me->lexer, &height))
+  return FALSE;
+ if(!lexer_int32(me->lexer, &depth))
+  return FALSE;
+
+
+ ret->n=3+width*height;
+ ret->p=malloc(sizeof(int) * ret->n);
+ ret->p[0]=width;
+ ret->p[1]=height;
+ ret->p[2]=depth;
+
+ for(ptr=ret->p+3; ptr!=ret->p+ret->n; ++ptr)
+  if(!lexer_int32(me->lexer, ptr))
+  {
+   free(ret->p);
+   ret->p=NULL;
+   ret->n=0;
+   return FALSE;
+  }
+
+ return TRUE;
+}
+
+#endif
 
 BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
 {

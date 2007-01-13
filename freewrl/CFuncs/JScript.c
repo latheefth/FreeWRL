@@ -572,7 +572,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 
 				if (kind == PKW_field) {
 					if (type == FIELDTYPE_SFImage) {
-							vrmlImagePtr = value.sfimage;
+							vrmlImagePtr = &(value.sfimage);
 
 					} else if  (type == FIELDTYPE_SFString) {
 						tlen = strlen(value.sfstring->strptr) + 20;
