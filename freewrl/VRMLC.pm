@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.255  2007/01/13 18:17:10  crc_canada
+# Makes ordering of fields in Uni_String same as other Multi_ fields
+#
 # Revision 1.254  2007/01/11 21:07:46  crc_canada
 # X3D Parser work.
 #
@@ -740,8 +743,8 @@ struct X3D_Virt {
 
 /* a string is stored as a pointer, and a length of that mallocd pointer */
 struct Uni_String {
-	char * strptr;
 	int len;
+	char * strptr;
 };
 
 /* Internal representation of IndexedFaceSet, Text, Extrusion & ElevationGrid:
