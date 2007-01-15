@@ -50,7 +50,7 @@
 #define MAXSOUNDS 50
 
 typedef struct {
-	long	mtype;	/* message type */
+	int	mtype;	/* message type */
 	char	msg[SNDMAXMSGSIZE]; /* message data */
 } FWSNDMSG;
 

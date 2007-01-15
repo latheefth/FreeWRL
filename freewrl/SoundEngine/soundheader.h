@@ -42,11 +42,11 @@
 
 typedef struct {
 	char           chunkID[4];
-	long           chunkSize;
+	int            chunkSize;
 	short          wFormatTag;
 	unsigned short wChannels;
-	unsigned long  dwSamplesPerSec;
-	unsigned long  dwAvgBytesPerSec;
+	unsigned int  dwSamplesPerSec;
+	unsigned int  dwAvgBytesPerSec;
 	unsigned short wBlockAlign;
 	unsigned short wBitsPerSample;
 } fmtChnk;
@@ -56,12 +56,12 @@ typedef struct {
 
 typedef struct {
 	char	chunkID[4];
-	long           chunkSize;
+	int32_t chunkSize;
 } datChnk;
 
 
 typedef struct {
-	        long    mtype;  /* message type */
+	        int     mtype;  /* message type */
 	        char    msg[256]; /* message data */
 } FWSNDMSG;
 
@@ -72,7 +72,7 @@ typedef struct {
 	int	dataptr;	/* // where in the data field we are */
 	int	wavdataoffset;	/* // this is the offset from start of file to wave data */
 	float	pitch;		/* // pitch multiplier */
-	long int bytes_remaining;	/* // how many bytes until EOF is reached - used in */
+	int bytes_remaining;	/* // how many bytes until EOF is reached - used in */
 					/* // playing the file */
 					/* // */
 	int ampl;               /* // Gain of this sound */
