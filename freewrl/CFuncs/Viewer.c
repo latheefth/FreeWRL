@@ -512,6 +512,7 @@ handle_tick_exfly()
 
 		/* allow the user to continue in default Viewer mode */
 		viewer_type = EXAMINE;
+		setMenuButton_navModes(viewer_type);
 		return;
 	}
 	rv = fread(string, sizeof(char), IN_FILE_BYTES, exfly_in_file);
