@@ -194,6 +194,7 @@ void glpOpenGLInitialize() {
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,As);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 

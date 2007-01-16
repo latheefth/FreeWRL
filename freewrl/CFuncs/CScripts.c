@@ -87,12 +87,14 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num)
 /* Next handle to be assinged */
 static uintptr_t handleCnt=0;
 
+uintptr_t nextScriptHandle (void) {uintptr_t retval; retval = handleCnt; handleCnt++; return retval;}
+
 struct Script* newScript()
 {
  struct Script* ret=malloc(sizeof(struct Script));
  assert(ret);
 
- ret->num=(handleCnt++);
+ ret->num=nextScriptHandle();
  ret->loaded=FALSE;
 
  ret->fields=newVector(struct ScriptFieldDecl*, 4);

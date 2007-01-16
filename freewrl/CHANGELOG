@@ -1,3 +1,8 @@
+For 1.18.12:
+	- soundengine work for 64 bit compiles.
+
+	- change GL_LIGHT_MODEL_AMBIENT to 0,0,0,1 - removes default "scene" ambient lighting.
+
 For 1.18.11:
 	- OSX Build work.
 
