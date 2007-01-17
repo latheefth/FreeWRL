@@ -464,7 +464,49 @@ char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
 }
 
 
-/* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error 
+
+
+/* go through the generated table X3DACCESSORS, and find the int of this string, returning it, or -1 on error 
+	or if it is an "internal" field */
+int findFieldInX3DACCESSORS(char *field) {
+	int x;
+	int mystrlen;
+	
+	if (field[0] == '_') {
+		printf ("findFieldInX3DACCESSORS - internal field %s\n",field);
+	}
+
+	mystrlen = strlen(field);
+	/* printf ("findFieldInX3DACCESSORS, string :%s: is %d long\n",field,mystrlen);  */
+	for (x=0; x<X3DACCESSORS_COUNT; x++) {
+		if (strlen(X3DACCESSORS[x]) == mystrlen) {
+			if (strcmp(field,X3DACCESSORS[x])==0) return x;
+		} 
+	}
+	return -1;
+}
+
+/* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
+	or if it is an "internal" field */
+int findFieldInFIELDTYPES(char *field) {
+	int x;
+	int mystrlen;
+	
+	if (field[0] == '_') {
+		printf ("findFieldInFIELDTYPES - internal field %s\n",field);
+	}
+
+	mystrlen = strlen(field);
+	/* printf ("findFieldInFIELDTYPES, string :%s: is %d long\n",field,mystrlen);  */
+	for (x=0; x<FIELDTYPES_COUNT; x++) {
+		if (strlen(FIELDTYPES[x]) == mystrlen) {
+			if (strcmp(field,FIELDTYPES[x])==0) return x;
+		} 
+	}
+	return -1;
+}
+
+/* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
 int findFieldInFIELDNAMES(char *field) {
 	int x;

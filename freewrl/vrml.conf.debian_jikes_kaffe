@@ -69,7 +69,7 @@ SOUNDCONV => "/usr/bin/sox",
 # Multi threads for OpenGL. If you want to try this, add "-DDO_MULTI_OPENGL_THREADS " to the FREEWRL_DEFINE
 # line, and cross fingers.
 
-    FREEWRL_LIBS => '-L/usr/lib -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg',
+    FREEWRL_LIBS => '-L/usr/lib -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg -lexpat',
     FREEWRL_DEFINE => '-ansi -DHAVE_MOTIF -DXP_UNIX -D_GNU_SOURCE ',
     FREEWRL_INC => '-I/usr/X11R6/include/ -I/usr/include/freetype2 -I/usr/include/freetype2/freetype',
 

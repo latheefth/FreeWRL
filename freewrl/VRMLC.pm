@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.256  2007/01/17 21:29:28  crc_canada
+# more X3D XML parsing work.
+#
 # Revision 1.255  2007/01/13 18:17:10  crc_canada
 # Makes ordering of fields in Uni_String same as other Multi_ fields
 #
@@ -389,6 +392,27 @@ sub gen {
 
 
 
+	#####################
+	# give each field an identifier
+	push @str, "\n/* Table of built-in fieldIds */\nextern const char *X3DACCESSORS[];\n";
+	push @str, "extern const indexT X3DACCESSORS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of Field Types */\n       const char *X3DACCESSORS[] = {\n";
+
+	$fieldTypeCount = 0;
+	for(keys %X3Daccessors) {
+		 print "node $_ is tagged as $fieldTypeCount\n";
+		# tag each node type with a integer key.
+		my $defstr = "#define X3DACCESSOR_".$_."	$fieldTypeCount\n";
+		push @str, $defstr;
+		$fieldTypeCount ++;
+		$printNodeStr = "	\"$_\",\n";
+		push @genFuncs1, $printNodeStr;
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT X3DACCESSORS_COUNT = ARR_SIZE(X3DACCESSORS);\n\n";
+
+
 
 	#####################
 	# give each field an identifier
@@ -397,6 +421,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of Field Types */\n       const char *FIELDTYPES[] = {\n";
 
+	$fieldTypeCount = 0;
 	for(@VRML::Fields) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.

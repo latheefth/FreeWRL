@@ -1181,6 +1181,8 @@ void kill_openGLTextures(void);
 extern int currentFileVersion;
 
 int findFieldInFIELDNAMES(char *field);
+int findFieldInFIELDTYPES(char *field);
+int findFieldInX3DACCESSORS(char *field);
 int findRoutedFieldInFIELDNAMES (char *field, int fromTo);
 int findNodeInNODES(char *node);
 int findFieldInALLFIELDNAMES(char *field);

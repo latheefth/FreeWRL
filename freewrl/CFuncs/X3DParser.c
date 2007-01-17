@@ -34,13 +34,6 @@ static int parserMode = PARSING_NODES;
 
 
 /* DEF/USE table  for X3D parser */
-/* Script name/type table */
-/*struct Uni_String {
-        char * strptr;
-        int len;
-};
-*/
-
 struct DEFnameStruct {
         struct X3D_Node *node;
         struct Uni_String *name;
@@ -91,7 +84,42 @@ struct X3D_Node *DEFNameIndex (char *name, struct X3D_Node* node) {
 	return node;
 }
 
+static void registerX3DScriptField(int myScriptNumber,int type,int kind,char *name) {
+	printf ("registerX3DScriptField, script %d, type %d kind %d, name %s\n",
+			myScriptNumber,type,kind,name);
 
+}
+
+
+static int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type) {
+	printf ("getting %s from script %d\n",fieldName,scriptno);
+	
+	*offs = -1; *type = 0;
+	return TRUE;
+}
+
+static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *name, int dir) {
+	int error = FALSE;
+	int fieldInt;
+	int ctmp;
+	
+ 
+	if (node->_nodeType == NODE_Script) {
+		error = getFieldFromScript (name,0,offs,type);
+	} else {
+
+		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
+		fieldInt = findRoutedFieldInFIELDNAMES (name, dir);
+		if (fieldInt >=0) findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], 
+				fieldInt, offs, type, &ctmp);
+	}
+	if (*offs <0) {
+		ConsoleMessage ("ROUTE: line %d Field %s not found in node type %s",LINE,
+			name,stringNodeType(node->_nodeType));
+		error = TRUE;
+	}
+	return error;
+}
 
 /* parse a ROUTE statement. Should be like:
 	<ROUTE fromField="fraction_changed"  fromNode="TIME0" toField="set_fraction" toNode="COL_INTERP"/>
@@ -107,8 +135,8 @@ static void parseX3DRoutes (char **atts) {
 
 	int fromType;
 	int toType;
-	int ctmp;
-	int fieldInt;
+
+	int scriptDiri = 0;
 
 
 	#ifdef X3DPARSERVERBOSE
@@ -139,55 +167,54 @@ static void parseX3DRoutes (char **atts) {
 			error = TRUE;
 		}
 	}
+
+	/* get out of here if an error is found */
+	if (error) return;
+
+#define X3DPARSERVERBOSE
 	#ifdef X3DPARSERVERBOSE
 	printf ("end of pass1, fromNode %d, toNode %d\n",fromNode,toNode);
+	printf ("routing from a %s to a %s\n",stringNodeType(fromNode->_nodeType),
+			stringNodeType(toNode->_nodeType));
 	#endif
+
+	/* get the direction correct */
+	if (fromNode->_nodeType == NODE_Script) scriptDiri += FROM_SCRIPT;
+	if (toNode->_nodeType == NODE_Script) scriptDiri += TO_SCRIPT;
 	
 	/* second pass - get the fields of the nodes */
-	if (!error) {
-		for (i = 0; atts[i]; i += 2) {
-			if (strncmp("fromField",atts[i],9)==0) {
-				/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
-				fieldInt = findRoutedFieldInFIELDNAMES (atts[i+1], 0);
-				if (fieldInt >=0) findFieldInOFFSETS(NODE_OFFSETS[fromNode->_nodeType], 
-						fieldInt, &fromOffset, &fromType, &ctmp);
-				if (fromOffset <=0) {
-					ConsoleMessage ("ROUTE: line %d fromField %s not found in node type %s",LINE,
-						atts[i+1],stringNodeType(fromNode->_nodeType));
-					error = TRUE;
-				}
-			} else if (strncmp("toField",atts[i],7) ==0) {
-				fieldInt = findRoutedFieldInFIELDNAMES (atts[i+1], 1);
-				if (fieldInt > 0) findFieldInOFFSETS(NODE_OFFSETS[toNode->_nodeType], 
-						fieldInt, &toOffset, &toType, &ctmp);
-				if (toOffset <=0) {
-					ConsoleMessage ("ROUTE: line %d toField  %s not found in node type %s", LINE,
-						atts[i+1],stringNodeType(toNode->_nodeType));
-					error = TRUE;
-				}
-			}
+	for (i = 0; atts[i]; i += 2) {
+		if (strncmp("fromField",atts[i],9)==0) {
+			error = getRouteField(fromNode, &fromOffset, &fromType, atts[i+1],0);
+		} else if (strncmp("toField",atts[i],7) ==0) {
+			error = getRouteField(toNode, &toOffset, &toType, atts[i+1],1);
 		}
-	}
+	}	
+
+	/* get out of here if an error is found */
+	if (error) return;
 
 	/* are the types the same? */
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("routing from a %s to a %s %d %d\n",FIELD_TYPE_STRING(fromType), FIELD_TYPE_STRING(toType),fromType,toType);
+	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
 
-	if (!error) {
-		if (fromType != toType) {
-			ConsoleMessage ("Routing type mismatch line %d %s != %s",LINE,stringFieldtypeType(fromType), stringFieldtypeType(toType));
-			error = TRUE;
-		}
+	if (fromType != toType) {
+		ConsoleMessage ("Routing type mismatch line %d %s != %s",LINE,stringFieldtypeType(fromType), stringFieldtypeType(toType));
+		error = TRUE;
 	}
+
+	/* get out of here if an error is found */
+	if (error) return;
 
 
 	/* can we register the route? */
-	if (!error) {
-		CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType),0);
-	}
+	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType),scriptDiri);
 }
+
+#undef X3DPARSERVERBOSE
 
 static int canWeIgnoreThisNode(char *name) {
 
@@ -226,9 +253,7 @@ void parseNormalX3D(char *name, char** atts) {
 			parserMode = PARSING_SCRIPT;
 
 			((struct X3D_Script *)thisNode)->__scriptObj = nextScriptHandle();
-printf ("calling JSInit\n");
 			JSInit(((struct X3D_Script *)thisNode)->__scriptObj);
-printf ("called JSInit\n");
 		}
 
 		/* go through the fields, and link them in. SFNode and MFNodes will be handled 
@@ -298,7 +323,13 @@ printf ("called JSInit\n");
 static void parseScriptField(char *name, char **atts) {
 	int i;
 	uintptr_t myScriptNumber;
-
+	char myparams[3][255];
+	int strl;
+	int which;
+	indexT kind;
+	indexT type;
+	int myFieldNumber;
+	
 	/* check sanity for top of stack This should be a Script node */
 	if (parentStack[parentIndex-1]->_nodeType != NODE_Script) {
 		ConsoleMessage ("X3DParser, line %d, expected the parent to be a Script node",LINE);
@@ -307,20 +338,49 @@ static void parseScriptField(char *name, char **atts) {
 	
 	myScriptNumber = ((struct X3D_Script *)parentStack[parentIndex-1])->__scriptObj;
 
-	printf ("parsing script level %d name %s \n",parentIndex,name);
+	/* set up defaults for field parsing */
+	for (i=0;i<3;i++) myparams[i][0] = '\0';
+	
+
+	/* copy the fields over */
 	for (i = 0; atts[i]; i += 2) {
-		printf("	field:%s=%s\n", atts[i], atts[i + 1]);
-		if (strncmp(atts[i],"name",4) == 0) {
-			printf ("have name\n");
-		} else if (strncmp(atts[i],"accessType",10) == 0) {
-			printf ("have access type\n");
-		} else if (strncmp(atts[i],"type",4) == 0) {
-			printf ("have type\n");
+		if (strncmp(atts[i],"name",4) == 0) { which = 0;	
+		} else if (strncmp(atts[i],"accessType",10) == 0) { which = 1;
+		} else if (strncmp(atts[i],"type",4) == 0) { which = 2;
 		} else {
 			ConsoleMessage ("X3D Script parsing line %d- unknown field type %s",LINE,atts[i]);
 			return;
 		}
+			if (myparams[which][0] != '\0') {
+				ConsoleMessage ("X3DScriptParsing line %d, field %s already has name - is %s",
+					LINE,myparams[which],atts[i+1]);
+			}
+		strl = strlen(atts[i+1]); if (strl>250) strl=250;
+		strncpy(myparams[which],atts[i+1],strl);
+		myparams[which][strl]='\0';
 	}
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("myparams:\n	%s\n	%s\n	%s\n",myparams[0],myparams[1],myparams[2]);
+	#endif
+
+	/* register this field type */
+	type = findFieldInFIELDTYPES(myparams[2]);
+	kind = findFieldInX3DACCESSORS(myparams[1]);
+	if (kind = X3DACCESSOR_inputOnly) kind = PKW_eventIn;
+	else if (kind = X3DACCESSOR_outputOnly) kind = PKW_eventOut;
+	else {
+		ConsoleMessage ("Script, accessor inputOutput may have problems\n");
+		kind = PKW_eventIn;
+	}
+
+	/* register this field with the Javascript Field Indexer */
+	myFieldNumber = JSparamIndex(myparams[0],myparams[2]);
+
+	registerX3DScriptField(myScriptNumber,type,kind,myparams[0]);
+
+	/* and initialize it */
+	InitScriptFieldC (myScriptNumber,type,kind,myparams[0],NULL);
 }
 
 
@@ -451,7 +511,10 @@ static void XMLCALL endElement(void *unused, const char *name) {
 
 	/* is this the end of a Script? */
 	if (strncmp(name,"Script",6) == 0) {
+		#ifdef X3DPARSERVERBOSE
 		printf ("got END of script - script should be registered\n");
+		#endif
+
 		parserMode = PARSING_NODES;
 	}
 
@@ -546,3 +609,4 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 	}
 	return TRUE;
 }
+
