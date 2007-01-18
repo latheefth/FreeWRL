@@ -1,3 +1,16 @@
+/*******************************************************************
+ Copyright (C) 2006 John Stewart, CRC Canada
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
+
+/*
+ * $Id$
+ *
+ */
+
+
 #include "jsapi.h"
 #include "jsUtils.h"
 #include "headers.h"
@@ -40,10 +53,47 @@ struct DEFnameStruct {
 };
 
 
-
 struct DEFnameStruct *DEFnames = 0;
 int DEFtableSize = -1;
 int MAXDEFNames = 0;
+
+/* Script table - script parameter names, values, etc. */
+struct ScriptFieldStruct {
+	int scriptNumber;
+	struct Uni_String *fieldName;
+	int type;
+	int kind;
+	int offs;
+};
+
+struct ScriptFieldStruct *ScriptFieldNames = 0;
+int ScriptFieldTableSize = -1;
+int MAXScriptFieldParams = 0;
+
+/* record each field of each script - the type, kind, name, and associated script */
+static void registerX3DScriptField(int myScriptNumber,int type,int kind, int myFieldOffs, char *name) {
+	ScriptFieldTableSize ++;
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("registering script field %s script %d index %d\n",name,myScriptNumber,ScriptFieldTableSize);
+	printf ("	type %d kind %d fieldOffs %d\n",type,kind,myFieldOffs);
+	#endif
+
+
+	/* ok, we got a name and a type */
+	if (ScriptFieldTableSize >= MAXScriptFieldParams) {
+		/* oooh! not enough room at the table */
+		MAXScriptFieldParams += 100; /* arbitrary number */
+		ScriptFieldNames = (struct ScriptFieldStruct*)realloc (ScriptFieldNames, sizeof(*ScriptFieldNames) * MAXScriptFieldParams);
+	}
+
+	ScriptFieldNames[ScriptFieldTableSize].scriptNumber = myScriptNumber;
+	ScriptFieldNames[ScriptFieldTableSize].fieldName = newASCIIString(name);
+	ScriptFieldNames[ScriptFieldTableSize].type = type;
+	ScriptFieldNames[ScriptFieldTableSize].kind = kind;
+	ScriptFieldNames[ScriptFieldTableSize].offs = myFieldOffs;
+}
+
 
 
 struct X3D_Node *DEFNameIndex (char *name, struct X3D_Node* node) {
@@ -84,28 +134,46 @@ struct X3D_Node *DEFNameIndex (char *name, struct X3D_Node* node) {
 	return node;
 }
 
-static void registerX3DScriptField(int myScriptNumber,int type,int kind,char *name) {
-	printf ("registerX3DScriptField, script %d, type %d kind %d, name %s\n",
-			myScriptNumber,type,kind,name);
-
-}
-
-
+/* look through the script fields for this field, and return the values. */
 static int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type) {
-	printf ("getting %s from script %d\n",fieldName,scriptno);
+	int ctr;
+	struct Uni_String *tmp;
+	int len;
+
+	len = strlen(fieldName) +1; /* len in Uni_String has the '\0' on it */
 	
+        for (ctr=0; ctr<=ScriptFieldTableSize; ctr++) {
+		if (scriptno == ScriptFieldNames[ctr].scriptNumber) {
+                	tmp = ScriptFieldNames[ctr].fieldName;
+                	if ((tmp->len == len) &&
+                	        (strncmp(fieldName,tmp->strptr,len)==0)) {
+				*offs = ScriptFieldNames[ctr].offs;
+				*type = ScriptFieldNames[ctr].type;
+				#ifdef X3DPARSERVERBOSE
+				printf ("getFieldFromScript - returning offset %d type %d (kind %d)\n",*offs,*type,
+					ScriptFieldNames[ctr].kind);
+				#endif
+                	        return TRUE;
+			}
+                }
+        }
+        
+	
+	/* did not find it */
 	*offs = -1; *type = 0;
-	return TRUE;
+	return FALSE;
 }
 
 static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *name, int dir) {
 	int error = FALSE;
 	int fieldInt;
 	int ctmp;
+	struct X3D_Script * sc;
 	
  
 	if (node->_nodeType == NODE_Script) {
-		error = getFieldFromScript (name,0,offs,type);
+		sc = (struct X3D_Script *) node;
+		error = getFieldFromScript (name,sc->__scriptObj,offs,type);
 	} else {
 
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
@@ -171,10 +239,9 @@ static void parseX3DRoutes (char **atts) {
 	/* get out of here if an error is found */
 	if (error) return;
 
-#define X3DPARSERVERBOSE
 	#ifdef X3DPARSERVERBOSE
 	printf ("end of pass1, fromNode %d, toNode %d\n",fromNode,toNode);
-	printf ("routing from a %s to a %s\n",stringNodeType(fromNode->_nodeType),
+	printf ("looking for a route from a %s to a %s\n",stringNodeType(fromNode->_nodeType),
 			stringNodeType(toNode->_nodeType));
 	#endif
 
@@ -194,13 +261,17 @@ static void parseX3DRoutes (char **atts) {
 	/* get out of here if an error is found */
 	if (error) return;
 
-	/* are the types the same? */
+
+	/* is there a script here? if so, now change the script NODE pointer to a Script index */
+	if (fromNode->_nodeType == NODE_Script) fromNode = ((struct X3D_Node*) ((struct X3D_Script*)fromNode)->__scriptObj);
+	if (toNode->_nodeType == NODE_Script) toNode = ((struct X3D_Node*) ((struct X3D_Script*)toNode)->__scriptObj);
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("routing from a %s to a %s %d %d\n",FIELD_TYPE_STRING(fromType), FIELD_TYPE_STRING(toType),fromType,toType);
+	printf ("now routing from a %s to a %s %d %d\n",FIELD_TYPE_STRING(fromType), FIELD_TYPE_STRING(toType),fromType,toType);
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
 
+	/* are the types the same? */
 	if (fromType != toType) {
 		ConsoleMessage ("Routing type mismatch line %d %s != %s",LINE,stringFieldtypeType(fromType), stringFieldtypeType(toType));
 		error = TRUE;
@@ -214,7 +285,6 @@ static void parseX3DRoutes (char **atts) {
 	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType),scriptDiri);
 }
 
-#undef X3DPARSERVERBOSE
 
 static int canWeIgnoreThisNode(char *name) {
 
@@ -365,19 +435,13 @@ static void parseScriptField(char *name, char **atts) {
 	#endif
 
 	/* register this field type */
-	type = findFieldInFIELDTYPES(myparams[2]);
+	type = convert_typetoInt(myparams[2]);
 	kind = findFieldInX3DACCESSORS(myparams[1]);
-	if (kind = X3DACCESSOR_inputOnly) kind = PKW_eventIn;
-	else if (kind = X3DACCESSOR_outputOnly) kind = PKW_eventOut;
-	else {
-		ConsoleMessage ("Script, accessor inputOutput may have problems\n");
-		kind = PKW_eventIn;
-	}
 
 	/* register this field with the Javascript Field Indexer */
 	myFieldNumber = JSparamIndex(myparams[0],myparams[2]);
 
-	registerX3DScriptField(myScriptNumber,type,kind,myparams[0]);
+	registerX3DScriptField(myScriptNumber,type,kind,myFieldNumber,myparams[0]);
 
 	/* and initialize it */
 	InitScriptFieldC (myScriptNumber,type,kind,myparams[0],NULL);

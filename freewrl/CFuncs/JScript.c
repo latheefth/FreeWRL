@@ -546,6 +546,10 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	
 
         /* input check */
+	if (kind == X3DACCESSOR_inputOnly) kind = PKW_eventIn;
+	else if (kind == X3DACCESSOR_outputOnly) kind = PKW_eventOut;
+	else if (kind == X3DACCESSOR_inputOutput) kind = PKW_field;
+
         if ((kind != PKW_eventIn) && (kind != PKW_eventOut) && (kind != PKW_field)) {
                 ConsoleMessage ("InitScriptField: invalid kind for script: %d\n",kind);
                 return;

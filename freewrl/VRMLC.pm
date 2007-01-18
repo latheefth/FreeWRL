@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.257  2007/01/18 18:06:34  crc_canada
+# X3D Parser should parse Scripts now.
+#
 # Revision 1.256  2007/01/17 21:29:28  crc_canada
 # more X3D XML parsing work.
 #
@@ -399,9 +402,9 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of Field Types */\n       const char *X3DACCESSORS[] = {\n";
 
-	$fieldTypeCount = 0;
+	$fieldTypeCount = 7000;
 	for(keys %X3Daccessors) {
-		 print "node $_ is tagged as $fieldTypeCount\n";
+		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.
 		my $defstr = "#define X3DACCESSOR_".$_."	$fieldTypeCount\n";
 		push @str, $defstr;
