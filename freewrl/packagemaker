@@ -32,6 +32,7 @@ rm Quaternion.pm
 rm VRMLServ.pm
 rm lastcvscheckin
 rm -r OpenGL/
+rm -r x3d/
 rm -r FreeWRL_Message/
 rm -r Text/
 rm -r JS/js

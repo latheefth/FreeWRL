@@ -313,70 +313,6 @@ int ifIsX3D(char *buffer) {
 	return rv != NULL;
 }
 
-char *possiblyConvertXMLtoClassic(char *buf) {
-#define VRML2HEADER "#VRML V2.0 utf8"
-#define X3DHEADER  "<\?xml version"
-#define XSLTFILE "/x3d/X3dToVrml97.xslt"
-	char *tn1;
-	char *tn2;
-	FILE *fl;
-	size_t wrc;
-	char sysline[1000]; 	/* temporary for conversion of XML */
-	char *xsltpath;
-	int rt;
-	char *mybuf;
-
-	/* printf ("possiblyConvertXMLtoClassic, strlen %d\n",strlen(buf)); */
-
-	if (strlen(buf) > 10) {
-		if (strncmp(buf,VRML2HEADER,strlen(VRML2HEADER))==0) {
-			/* printf ("this is a VRML 2.0 file\n"); */
-		} else if (strncmp(buf,X3DHEADER,strlen(X3DHEADER))==0) {
-			/* printf ("this is an XML encoded file - lets change this...\n"); */
-
-			/* run xsltproc, if we can */
-			if (strncmp(XSLTPROC,"ISNOTDEFINED",strlen("ISNOTDEFINED")) == 0) {
-				ConsoleMessage ("Can not read XML, as xsltproc was not found on build\n");
-				return buf;
-			}	
-
-			/* make up temporary files for conversion */
-			tn1 = tmpnam(NULL);
-			tn2 = tmpnam(NULL);
-			/* printf ("tempory name is %s, output %s\n",tn1,tn2); */
-
-			/* save the input text for conversion */
-			fl = fopen(tn1,"w");
-			if (fwrite(buf, 1, strlen(buf), fl) <= 0) {
-				ConsoleMessage ("WRITE ERROR in converting XML to Classic... %s can not be opened\n",tn1);
-				unlink (tn1); unlink (tn2);
-				return buf;
-			}
-			fclose(fl);
-
-			/* where is the XSLTFILE stored? */
-			xsltpath = findPathToFreeWRLFile(XSLTFILE);
-
-			/* make up the system line, and run it */
-                        sprintf(sysline,"%s -o %s %s%s  %s", XSLTPROC, tn2, xsltpath, XSLTFILE, tn1);
-                        if (freewrlSystem(sysline) != TRUE) {
-                                ConsoleMessage ("Freewrl: error running convert line %s\n",sysline);
-				ConsoleMessage ("error message on XML conversion sent to stdout\n");
-				return (buf);
-                        } else {
-				/* printf ("xml conversion worked, lets read in the file.\n"); */
-				mybuf = readInputString (tn2,"");
-				FREE_IF_NZ(buf);
-				buf = mybuf;
-                        } 
-			unlink (tn1); unlink (tn2);
-			
-		} else {
-			printf ("do not know what the file is... assuming VRML 2.0\n");
-		}
-	} 
-	return buf;
-}
 
 /************************************************************************/
 /*									*/
@@ -395,8 +331,6 @@ void loadInline(struct X3D_Inline *node) {
 		&node->__loadstatus,FALSE);
 }
 
-#ifdef USEEAIANDPERL
-#endif
 
 /* interface for telling the Perl side to forget about everything...  */
 void EAI_killBindables (void) {
@@ -880,8 +814,7 @@ void __pt_doStringUrl () {
 		/* check and convert to VRML... */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 
-#define TRYX3D
-#ifdef TRYX3D
+		/* look to see if this is X3D */
 		if (ifIsX3D(psp.inp)) {
 			initializeX3DParser ();
 			if (!X3DParse (nRn, psp.inp)) {
@@ -891,12 +824,6 @@ void __pt_doStringUrl () {
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
 		}
-#else
-
-		/* check and convert to VRML... */
-		buffer = possiblyConvertXMLtoClassic(psp.inp);
-		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
-#endif
 		haveParsed = TRUE;
 
 	} else if (psp.type==FROMURL) {
@@ -904,8 +831,6 @@ void __pt_doStringUrl () {
 	       	buffer = readInputString(psp.inp,"");
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 
-#define TRYX3D
-#ifdef TRYX3D
 		if (ifIsX3D(buffer)) {
 			initializeX3DParser ();
 			if (!X3DParse (nRn, buffer)) {
@@ -915,38 +840,39 @@ void __pt_doStringUrl () {
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
 		}
-#else
-
-		/* check and convert to VRML... */
-		buffer = possiblyConvertXMLtoClassic(buffer);
-		cParse (nRn,offsetof (struct X3D_Group, children), buffer);
-#endif
 		haveParsed = TRUE;
 		FREE_IF_NZ (buffer); 
 
 
 	} else if (psp.type==FROMCREATENODE) {
-		/* this will be a proto expansion, because otherwise the EAI code
-		   would have gotten this before here */
-		/* lets try this - same as FROMSTRING above... */
-		printf ("warning - EAI call CREATENODE - possibly faulty? \n");
-		psp.inp = possiblyConvertXMLtoClassic(psp.inp);
+		/* look to see if this is X3D */
+		if (ifIsX3D(psp.inp)) {
+			initializeX3DParser ();
+			if (!X3DParse (nRn, psp.inp)) {
+				ConsoleMessage ("Parse Unsuccessful");
 
-		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			}
+		} else {
+			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+		}
 		haveParsed = TRUE;
-
 	
 	} else {
 		/* this will be a proto expansion, because otherwise the EAI code
 		   would have gotten this before here */
 		/* lets try this - same as FROMSTRING above... */
-		printf ("warning - EAI call CREATEPROTO - possibly faulty? \n");
-		psp.inp = possiblyConvertXMLtoClassic(psp.inp);
+		/* look to see if this is X3D */
+		if (ifIsX3D(psp.inp)) {
+			initializeX3DParser ();
+			if (!X3DParse (nRn, psp.inp)) {
+				ConsoleMessage ("Parse Unsuccessful");
 
-		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-		cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			}
+		} else {
+			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+		}
 		haveParsed = TRUE;
+	
 	}
 	
 
