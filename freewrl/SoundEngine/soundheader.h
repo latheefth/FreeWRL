@@ -61,7 +61,7 @@ typedef struct {
 
 
 typedef struct {
-	        int     mtype;  /* message type */
+	        long     mtype;  /* message type */
 	        char    msg[256]; /* message data */
 } FWSNDMSG;
 
