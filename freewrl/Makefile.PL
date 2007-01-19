@@ -292,38 +292,38 @@ sub writeMakefileFinalTargets() {
 			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
 		}
 	}
-	print MK "\tinstall -D CFrontEnd/freewrl \$(DESTDIR)/\$(FRONTEND_DIR)/freewrl\n";
-	print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)/\$(FRONTEND_DIR)/FreeWRL_Message\n";
+	print MK "\tinstall -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
+	print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
 
 	}
 	if ($OS eq "Linux") {
-		print MK "\tinstall -D libFreeWRLFunc.so \$(DESTDIR)/\$(LIB_DIR)/libFreeWRLFunc.so\n";
-		print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)/\$(LIB_DIR)/libFreeWRLjs.so\n";
+		print MK "\tinstall -D libFreeWRLFunc.so \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
+		print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 		if ($HAVE_UBUNTU eq "NO") {
 			print MK "\t/sbin/ldconfig\n";
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
-		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)/\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
+		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
 
 	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
 		if ($OS ne "Darwin") {
-			print MK "\tinstall -D java/classes/vrml.jar \$(DESTDIR)/$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
-			print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)/$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+			print MK "\tinstall -D java/classes/vrml.jar \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
+			print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
 		} else {
 			print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
 			print MK "\tinstall java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
 		}
 	}
 	if ($OS ne "Darwin") {
-	print MK "\tinstall -D Desktop/freewrl.png \$(DESTDIR)/\$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
-	print MK "\tinstall -D Desktop/freewrl.desktop \$(DESTDIR)/\$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
+	print MK "\tinstall -D Desktop/freewrl.png \$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
+	print MK "\tinstall -D Desktop/freewrl.desktop \$(DESTDIR)\$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
 	# we need the 2 installs for the following; the first makes the directory, the second fills it.
-	print MK "\tinstall -d fonts \$(DESTDIR)/\$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall -D fonts/* \$(DESTDIR)/\$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall -d  x3d \$(DESTDIR)/\$(INSTALL_DIR)/freewrl/x3d\n";
-	print MK "\tinstall -D  x3d/* \$(DESTDIR)/\$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\tinstall -d fonts \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall -D fonts/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\tinstall -d  x3d \$(DESTDIR)\$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\tinstall -D  x3d/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/x3d\n";
 	} else {
 	print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall fonts/*.ttf \$(INSTALL_DIR)/freewrl/fonts\n";
@@ -528,34 +528,35 @@ sub writeMakefileDistclean() {
 
 	print MK "\n#remove installed images\n";
 	print MK "distclean:	clean\n";
-	print MK "\trm -f \$(FRONTEND_DIR)/freewrl\n";
-	print MK "\trm -f \$(FRONTEND_DIR)/FreeWRL_Message\n";
+	print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
+	print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
 	
 	if ($OS eq "Linux") {
-		print MK "\trm -f \$(LIB_DIR)/libFreeWRLFunc.so\n";
+		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
+		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 		if ($HAVE_UBUNTU eq "NO") {
 			print MK "\t/sbin/ldconfig\n";
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
-		print MK "\trm -f \$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
+		print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
 
-	if (($JAVAC ne "") || ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
+	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
 	if ($OS ne "Darwin") {
-		print MK "\trm -f $VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
-		print MK "\trm -f $VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+		print MK "\trm -f \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
+		print MK "\trm -f \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
 		print MK "\trm -f Plugin/npfreewrl.so\n";
 		print MK "\trm -f Plugin/netscape/source/npfreewrl.o\n";
 		print MK "\trm -f Plugin/netscape/source/common/npunix.o\n";
 	}
 	}
 	if ($OS ne "Darwin") {
-		print MK "\trm -f \$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
-		print MK "\trm -f \$(INSTALL_DIR)\/applications/freewrl.desktop\n";
+		print MK "\trm -f \$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
+		print MK "\trm -f \$(DESTDIR)\$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
 	}
-	print MK "\trm -rf \$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\trm -rf \$(INSTALL_DIR)/freewrl/x3d\n";
+	print MK "\trm -rf \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
+	print MK "\trm -rf \$(DESTDIR)\$(INSTALL_DIR)/freewrl/x3d\n";
 }
 
 
