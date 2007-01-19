@@ -97,7 +97,8 @@ void setField_fromJavascript (uintptr_t *ptr, char *field, char *value) {
  * to an internal representation, and act upon it */
 
 unsigned int setField_method2 (char *ptr) {
-	unsigned char nodetype;
+	unsigned char nt;
+	int nodetype;
 	uintptr_t nodeptr;
 	uintptr_t offset;
 	unsigned int scripttype;
@@ -121,7 +122,8 @@ unsigned int setField_method2 (char *ptr) {
 
 	/* node type */
 	while (*ptr==' ')ptr++;
-	nodetype = *ptr; ptr++;
+	nt = *ptr; ptr++;
+	nodetype = convertEAItoFieldType(nt);
 
 	/* blank space */
 	ptr++;
@@ -135,7 +137,7 @@ unsigned int setField_method2 (char *ptr) {
 	while ((*ptr) > ' ') ptr++;	/* script type */
 
 	#ifdef SETFIELDVERBOSE
-		 printf ("EAI_SendEvent, type %c, nodeptr %x offset %x script type %d \n",
+		 printf ("EAI_SendEvent, type %d, nodeptr %x offset %x script type %d \n",
 				 nodetype,nodeptr,offset, scripttype);
 	#endif
 
@@ -173,26 +175,13 @@ unsigned int setField_method2 (char *ptr) {
 
 
 		/* if this is a struct Multi* node type, move the actual memory pointer to the data */
-		memptr = Multi_Struct_memptr(nodetype-EAI_SFUNKNOWN, (void *) memptr);
+		memptr = Multi_Struct_memptr(nodetype, (void *) memptr);
 
 		/* and index into that array; we have the index, and sizes to worry about 	*/
-		memptr += valIndex * returnElementLength(nodetype-EAI_SFUNKNOWN) *  returnElementRowSize(nodetype-EAI_SFUNKNOWN);
+		memptr += valIndex * returnElementLength(nodetype) *  returnElementRowSize(nodetype);
 
 		/* and change the nodetype to reflect this change */
-		switch (nodetype) {
-			case EAI_MFNODE: nodetype = EAI_SFNODE; break;
-			case EAI_MFINT32: nodetype = EAI_SFINT32; break;
-			case EAI_MFTIME: nodetype = EAI_SFTIME; break;
-			case EAI_MFCOLOR: nodetype = EAI_SFCOLOR; break;
-			case EAI_MFCOLORRGBA: nodetype = EAI_SFCOLORRGBA; break;
-			case EAI_MFVEC3F: nodetype = EAI_SFVEC3F; break;
-			case EAI_MFFLOAT: nodetype = EAI_SFFLOAT; break;
-			case EAI_MFROTATION: nodetype = EAI_SFROTATION; break;
-			case EAI_MFVEC2F: nodetype = EAI_SFVEC2F; break;
-			default: {printf ("EAI input, ONEVAL set but type unknown %d\n",nodetype);
-				  return FALSE;
-				}
-		}
+		nodetype = convertToSFType(nodetype);
 	}
 
 	/* This switch statement is almost identical to the one in the Javascript
@@ -202,7 +191,7 @@ unsigned int setField_method2 (char *ptr) {
 
 	/* convert the ascii string into an internal representation */
 	/* this will return '0' on failure */
-	len = ScanValtoBuffer(&elemCount, nodetype - EAI_SFUNKNOWN, ptr , myBuffer, sizeof(myBuffer));
+	len = ScanValtoBuffer(&elemCount, nodetype, ptr , myBuffer, sizeof(myBuffer));
 
 
 	/* an error in ascii to memory conversion happened */
@@ -214,43 +203,41 @@ unsigned int setField_method2 (char *ptr) {
 
 	MultiElement=FALSE;
 	switch (nodetype) {
-		case EAI_SFBOOL:
-		case EAI_SFTIME:
-		case EAI_SFNODE:
-		case EAI_SFINT32:
-		case EAI_SFFLOAT: {
+		case FIELDTYPE_SFBool:
+		case FIELDTYPE_SFTime:
+		case FIELDTYPE_SFNode:
+		case FIELDTYPE_SFInt32:
+		case FIELDTYPE_SFFloat:
 			  MultiElement = FALSE;  /*Redundant, I hope the compiler will optimize */
 			  break;
-		} /* these are all ok, just continue on */
 
-		case EAI_SFVEC2F:
-	  	case EAI_SFVEC3F:
-	  	case EAI_SFCOLOR:
-	  	case EAI_SFCOLORRGBA:
-		case EAI_SFROTATION: {
+		case FIELDTYPE_SFVec2f:
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor:
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_SFRotation:
 			MultiElement=TRUE;
 			break;
-		}
-	        case EAI_MFROTATION:
-	        case EAI_MFTIME    :
-	        case EAI_MFINT32   :
-	        case EAI_MFNODE    :
-	        case EAI_MFVEC2F   :
-	        case EAI_MFVEC3F   :
-	        case EAI_MFCOLOR   :
-	        case EAI_MFCOLORRGBA   :
-	        case EAI_MFFLOAT   : {
+	        case FIELDTYPE_MFRotation:
+	        case FIELDTYPE_MFTime    :
+	        case FIELDTYPE_MFInt32   :
+	        case FIELDTYPE_MFNode    :
+	        case FIELDTYPE_MFVec2f   :
+	        case FIELDTYPE_MFVec3f   :
+	        case FIELDTYPE_MFColor   :
+	        case FIELDTYPE_MFColorRGBA   :
+	        case FIELDTYPE_MFFloat   : {
 		    MultiElement=TRUE;
 		   break;
 		}
-		case EAI_MFSTRING: {
+		case FIELDTYPE_MFString: {
 			/* myBuffer will have a full SV structure now, and len will*/
 			/* be -1.*/
 			break;
 		}
 		
-		case EAI_SFIMAGE:
-		case EAI_SFSTRING: {
+		case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFString: {
 			break;
 		}
 		default: {
@@ -264,11 +251,11 @@ unsigned int setField_method2 (char *ptr) {
 	    if (MultiElement) {
 		switch (nodetype)
 		{
-		  case EAI_MFVEC3F:
-		  case EAI_MFROTATION:
-		  case EAI_MFCOLOR:
-		  case EAI_MFCOLORRGBA:
-		  case EAI_MFFLOAT: {
+		  case FIELDTYPE_MFVec3f:
+		  case FIELDTYPE_MFRotation:
+		  case FIELDTYPE_MFColor:
+		  case FIELDTYPE_MFColorRGBA:
+		  case FIELDTYPE_MFFloat: {
 		      #ifdef SETFIELDVERBOSE
 			printf("EAI_SendEvent, elem %i, count %i, nodeptr %i, off %i, ptr \"%s\".\n",len, elemCount, (int)nodeptr,(int)offset,ptr);
 			#endif
@@ -276,11 +263,11 @@ unsigned int setField_method2 (char *ptr) {
 		      set_EAI_MFElementtype ((int)nodeptr, (int)offset, (unsigned char *)myBuffer, len);
 		      break;
 		  }
-		  case EAI_SFVEC2F   :
-		  case EAI_SFVEC3F   :
-		  case EAI_SFCOLOR   :
-		  case EAI_SFCOLORRGBA   :
-		  case EAI_SFROTATION: {
+		  case FIELDTYPE_SFVec2f   :
+		  case FIELDTYPE_SFVec3f   :
+		  case FIELDTYPE_SFColor   :
+		  case FIELDTYPE_SFColorRGBA   :
+		  case FIELDTYPE_SFRotation: {
 		      Set_one_MultiElementtype ((int)nodeptr, (int)offset,
 						myBuffer,len);
 		      break;
@@ -288,7 +275,7 @@ unsigned int setField_method2 (char *ptr) {
 		}
 	    }else {
 		set_one_ECMAtype((int)nodeptr,(int)offset,
-				 nodetype-EAI_SFUNKNOWN, myBuffer,len);
+				 nodetype, myBuffer,len);
 	    }
 	    mark_script((int)nodeptr);
 	} else {
@@ -296,7 +283,7 @@ unsigned int setField_method2 (char *ptr) {
 		/* if we have a positive len, then, do a straight copy */
 
 		if (len > 0) {
-			SetMemory(nodetype-EAI_SFUNKNOWN,(void *)memptr,(void *)myBuffer,len);
+			SetMemory(nodetype,(void *)memptr,(void *)myBuffer,len);
 		} else {
 			/* if len < 0, it is "wierd". See ScanValtoBuffer
 			 * for accurate return values. */
@@ -339,7 +326,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 	scriptContext = (JSContext *) mycx;
 
 	switch (fieldType) {
-		case SFBOOL:	{	/* SFBool */
+		case FIELDTYPE_SFBool:	{	/* SFBool */
 			/* printf ("we have a boolean, copy value over string is %s\n",strp); */
 			if (strncmp(strp,"true",4)==0) {
 				ival = 1;
@@ -351,7 +338,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			break;
 		}
 
-		case SFTIME: {
+		case FIELDTYPE_SFTime: {
 			if (!JS_ValueToNumber(scriptContext, global_return_val,&tval)) tval=0.0;
 
 			/* printf ("SFTime conversion numbers %f from string %s\n",tval,strp); */
@@ -359,34 +346,34 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			memcpy ((void *)(tn+tptr), (void *)&tval,len);
 			break;
 		}
-		case SFNODE:
-		case SFINT32: {
+		case FIELDTYPE_SFNode:
+		case FIELDTYPE_SFInt32: {
 			rv=sscanf (strp,"%d",&ival);
 			/* printf ("SFInt, SFNode conversion number %d\n",ival); */
 			memcpy ((void *)((tn+tptr)), (void *)&ival,len);
 			break;
 		}
-		case SFFLOAT: {
+		case FIELDTYPE_SFFloat: {
 			rv=sscanf (strp,"%f",&fl[0]);
 			memcpy ((void *)(tn+tptr), (void *)&fl,len);
 			break;
 		}
 
-		case SFVEC2F: {	/* SFVec2f */
+		case FIELDTYPE_SFVec2f: {	/* SFVec2f */
 			rv=sscanf (strp,"%f %f",&fl[0],&fl[1]);
 			/* printf ("conversion numbers %f %f\n",fl[0],fl[1]); */
 			memcpy ((void *)(tn+tptr), (void *)fl,len);
 			break;
 		}
-		case SFVEC3F:
-		case SFCOLOR: {	/* SFColor */
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor: {	/* SFColor */
 			rv=sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
 			/* printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]); */
 			memcpy ((void *)(tn+tptr), (void *)fl,len);
 			break;
 		}
 
-		case SFROTATION: {
+		case FIELDTYPE_SFRotation: {
 int tmp;
 tmp =
 			rv=sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
@@ -394,12 +381,12 @@ tmp =
 			memcpy ((void *)(tn+tptr), (void *)fl,len);
 			break;
 		}
-		case SFIMAGE: {
+		case FIELDTYPE_SFImage: {
 			saveSFImage ((struct X3D_PixelTexture*) tn, strp);
 			break;
 		}
 
-		case SFSTRING: {
+		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 			uintptr_t *newptr;
 
@@ -418,22 +405,21 @@ tmp =
 
 
 			/* a series of Floats... */
-		case MFVEC3F:
-		case MFCOLOR: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),3); break;}
-		case MFFLOAT: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),1); break;}
-		case MFROTATION: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),4); break;}
-		case MFVEC2F: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),2); break;}
-		case MFNODE: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct X3D_Box *)tn,extraData); break;}
-		case MFSTRING: {
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFColor: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),3); break;}
+		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),1); break;}
+		case FIELDTYPE_MFRotation: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),4); break;}
+		case FIELDTYPE_MFVec2f: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),2); break;}
+		case FIELDTYPE_MFNode: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct X3D_Box *)tn,extraData); break;}
+		case FIELDTYPE_MFString: {
 			getMFStringtype (scriptContext, (jsval *)global_return_val,(struct Multi_String *)(tn+tptr));
 			break;
 		}
 
-		case MFINT32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),0); break;}
-		case MFTIME: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),5); break;}
+		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),0); break;}
+		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),5); break;}
 
-		default: {	printf("WARNING: unhandled from type %s\n", 
-			FIELD_TYPE_STRING(fieldType));
+		default: {	printf("WARNING: unhandled from type %s\n", FIELDTYPES[fieldType]);
 		printf (" -- string from javascript is %s\n",strp);
 		}
 	}
@@ -676,23 +662,23 @@ int countElements (int ctype, char *instr) {
 	int elementCount;
 	
 	switch (ctype) {
-		case SFVEC2F:	elementCount = 2; break;
-		case SFROTATION:
-		case SFCOLORRGBA: elementCount = 4; break;
-		case SFVEC3F:
-		case SFCOLOR: elementCount = 3; break;
-		case MFROTATION:
-		case MFCOLOR:
-		case MFFLOAT:
-		case MFTIME:
-		case MFVEC2F:
-		case MFVEC3F:
-		case MFCOLORRGBA: 
-		case MFNODE: elementCount = countFloatElements(instr); break;
-		case MFBOOL: elementCount = countBoolElements(instr); break;
-		case MFSTRING: elementCount = countStringElements(instr); break;
-		case SFIMAGE:
-		case MFINT32: elementCount = countIntElements(instr); break;
+		case FIELDTYPE_SFVec2f:	elementCount = 2; break;
+		case FIELDTYPE_SFRotation:
+		case FIELDTYPE_SFColorRGBA: elementCount = 4; break;
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor: elementCount = 3; break;
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_MFColor:
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFVec2f:
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFColorRGBA: 
+		case FIELDTYPE_MFNode: elementCount = countFloatElements(instr); break;
+		case FIELDTYPE_MFBool: elementCount = countBoolElements(instr); break;
+		case FIELDTYPE_MFString: elementCount = countStringElements(instr); break;
+		case FIELDTYPE_SFImage:
+		case FIELDTYPE_MFInt32: elementCount = countIntElements(instr); break;
 		default: elementCount = 1;
 	}
 	
@@ -724,7 +710,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	double dv;
 	char mytmpstr[20000];
 
-	/* printf ("PST, for %s we have %s strlen %d\n",FIELD_TYPE_STRING(ctype), value, strlen(value)); */
+	/* printf ("PST, for %s we have %s strlen %d\n",FIELDTYPES[ctype], value, strlen(value)); */
 	nst = (char *) ptr; /* should be 64 bit compatible */
 	nst += coffset;
 
@@ -732,52 +718,52 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	elementCount = countElements(ctype,value);
 	switch (ctype) {
 
-		case SFBOOL: {
+		case FIELDTYPE_SFBool: {
 				if (strstr(value,"true") != NULL) *in = TRUE;
 				else if (strstr (value,"TRUE") != NULL) *in = TRUE;
 				else *in = FALSE;
 				memcpy(nst,in,datasize); 
 				break;
 			}
-		case SFINT32:
+		case FIELDTYPE_SFInt32:
 			{ sscanf (value,"%d",in); 
 				memcpy(nst,in,datasize); 
-				/* SFNODES need to have the parent field linked in */
-				if (ctype == SFNODE) {
+				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
+				if (ctype == FIELDTYPE_SFNode) {
 					add_parent((void *)in[0], ptr); 
 				}
 				
 			break;}
-		case FREEWRLPTR:
-		case SFNODE: { 
+		case FIELDTYPE_FreeWRLPTR:
+		case FIELDTYPE_SFNode: { 
 				sscanf (value,"%d",inNode); 
 				/* if (inNode[0] != 0) {
 					printf (" andof type %s\n",stringNodeType(((struct X3D_Box *)inNode[0])->_nodeType));
 				} */
 				memcpy(nst,inNode,datasize); 
-				/* SFNODES need to have the parent field linked in */
-				if (ctype == SFNODE) {
+				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
+				if (ctype == FIELDTYPE_SFNode) {
 					add_parent((void *)inNode[0], ptr); 
 				}
 				
 			break;}
 
 		
-		case SFFLOAT:
-		case SFVEC2F:
-		case SFROTATION:
-		case SFCOLORRGBA:
-		case SFVEC3F:
-		case SFCOLOR: {
+		case FIELDTYPE_SFFloat:
+		case FIELDTYPE_SFVec2f:
+		case FIELDTYPE_SFRotation:
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor: {
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				SCANTONUMBER(value);
 				sscanf (value, "%f",&fl[tmp]);
 				SCANPASTFLOATNUMBER(value);
 			}
 			memcpy (nst,fl,datasize*elementCount); break;}
-		case MFBOOL:
-		case SFIMAGE: 
-		case MFINT32: {
+		case FIELDTYPE_MFBool:
+		case FIELDTYPE_SFImage: 
+		case FIELDTYPE_MFInt32: {
 			mdata = malloc (elementCount * datasize);
 			iptr = (int *)mdata;
 			for (tmp = 0; tmp < elementCount; tmp++) {
@@ -792,7 +778,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			break;
 			}
 
-		case MFNODE: {
+		case FIELDTYPE_MFNode: {
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				sscanf(value, "%d",inNode);
 				addToNode(ptr,coffset,(void *)inNode[0]); 
@@ -805,18 +791,18 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			}
 			break;
 			}
-		case SFTIME: { sscanf (value, "%lf", &dv); 
+		case FIELDTYPE_SFTime: { sscanf (value, "%lf", &dv); 
 				/* printf ("SFtime, for value %s has %lf datasize %d\n",value,dv,datasize); */
 				memcpy (nst,&dv,datasize);
 			break; }
 
-		case MFROTATION:
-		case MFCOLOR:
-		case MFFLOAT:
-		case MFTIME:
-		case MFVEC2F:
-		case MFVEC3F:
-		case MFCOLORRGBA: {
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_MFColor:
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFVec2f:
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFColorRGBA: {
 			/* skip past any brackets, etc, that might come via Javascript.
 			   see tests/8.wrl for one of these */
 			while ((*value == ' ') || (*value == '[')) value ++;
@@ -838,13 +824,13 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			break;
 			}
 
-		case SFSTRING: 
+		case FIELDTYPE_SFString: 
 			{
 			mysv  = newASCIIString(value); 
 			break; }
 			
-		case MFSTRING: {
-			/* printf ("start of MFSTRING :%s:\n",value); */
+		case FIELDTYPE_MFString: {
+			/* printf ("start of FIELDTYPE_MFString :%s:\n",value); */
 			mdata = malloc (elementCount * datasize);
 			svptr = (struct Uni_String **)mdata;
 
@@ -877,7 +863,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 
 		default: {
 printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
-	FIELD_TYPE_STRING(ctype),value,stringNodeType(((struct X3D_Box *)ptr)->_nodeType),nst,coffset,elementCount+1);
+	FIELDTYPES[ctype],value,stringNodeType(((struct X3D_Box *)ptr)->_nodeType),nst,coffset,elementCount+1);
 			break;
 			};
 	}
@@ -895,12 +881,12 @@ printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d
 /* of the multi structures is the same - so we "fudge" things	*/
 /* to make this multi-purpose.					*/
 /* eletype switches depending on:				*/
-/* 	0: MFINT32						*/
-/* 	1: MFFLOAT						*/
-/* 	2: MFVEC2F						*/
-/* 	3: MFCOLOR						*/
-/* 	4: MFROTATION						*/
-/*	5: MFTIME						*/
+/* 	0: FIELDTYPE_MFInt32						*/
+/* 	1: FIELDTYPE_MFFloat						*/
+/* 	2: FIELDTYPE_MFVec2f						*/
+/* 	3: FIELDTYPE_MFColor						*/
+/* 	4: FIELDTYPE_MFRotation						*/
+/*	5: FIELDTYPE_MFTime						*/
 /****************************************************************/
 
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
@@ -1349,7 +1335,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	}
 
 	switch (type) {
-	    case SFBOOL:	{	/* SFBool */
+	    case FIELDTYPE_SFBool:	{	/* SFBool */
 	    	if (strncasecmp(buf,"true",4)==0) {
 		    *(int *)memptr = 1;
 	    	} else {
@@ -1359,56 +1345,56 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    	break;
 	    }
 
-	    case SFNODE:
-	    case SFINT32: {
+	    case FIELDTYPE_SFNode:
+	    case FIELDTYPE_SFInt32: {
 	    	retint=sscanf (buf,"%d",(int *)memptr);
 		len = sizeof (int);
 	    	break;
 	    }
-	    case SFFLOAT: {
+	    case FIELDTYPE_SFFloat: {
 	    	retint=sscanf (buf,"%f",(float *)memptr);
 		len = sizeof (float);
 	    	break;
 	    }
 
-	    case SFVEC2F: {	/* SFVec2f */
+	    case FIELDTYPE_SFVec2f: {	/* SFVec2f */
 		flmem = (float *)memptr;
 	    	retint=sscanf (buf,"%f %f",&flmem[0], &flmem[1]);
 		len = sizeof(float) * 2;
 	    	break;
 	    }
 
-	    case SFVEC3F:
-	    case SFCOLOR: {	/* SFColor */
+	    case FIELDTYPE_SFVec3f:
+	    case FIELDTYPE_SFColor: {	/* SFColor */
 		flmem = (float *)memptr;
 	    	retint=sscanf (buf,"%f %f %f",&flmem[0],&flmem[1],&flmem[2]);
 		len = sizeof(float) * 3;
 	    	break;
 	    }
 
-	    case SFCOLORRGBA:
-	    case SFROTATION: {
+	    case FIELDTYPE_SFColorRGBA:
+	    case FIELDTYPE_SFRotation: {
 		flmem = (float *)memptr;
 	    	retint=sscanf (buf,"%f %f %f %f",&flmem[0],&flmem[1],&flmem[2],&flmem[3]);
 		len = sizeof(float) * 4;
 	    	break;
 	    }
 
-	    case SFTIME: {
+	    case FIELDTYPE_SFTime: {
 		retint=sscanf (buf, "%lf", (double *)memptr);
 		len = sizeof(double);
 		break;
 	    }
 
-	    case MFNODE:
-	    case MFINT32:
-	    case MFTIME:
-	    case MFCOLOR:
-	    case MFCOLORRGBA:
-	    case MFVEC3F:
-	    case MFFLOAT:
-	    case MFROTATION:
-	    case MFVEC2F: {
+	    case FIELDTYPE_MFNode:
+	    case FIELDTYPE_MFInt32:
+	    case FIELDTYPE_MFTime:
+	    case FIELDTYPE_MFColor:
+	    case FIELDTYPE_MFColorRGBA:
+	    case FIELDTYPE_MFVec3f:
+	    case FIELDTYPE_MFFloat:
+	    case FIELDTYPE_MFRotation:
+	    case FIELDTYPE_MFVec2f: {
 		/* first number is the "number of numbers". */
 
 		/* scan to start of element count, and read it in.*/
@@ -1441,7 +1427,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			while (*buf<=' ') buf++;
 
 			/* scan in number */
-			if ((type==MFINT32) || (type==MFNODE)) {
+			if ((type==FIELDTYPE_MFInt32) || (type==FIELDTYPE_MFNode)) {
 				retint=sscanf (buf,"%d",ip);
 			} else { 
 				retint=sscanf (buf,"%f",fp);
@@ -1461,7 +1447,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		  break;
 	    }
 
-	    case MFSTRING: {
+	    case FIELDTYPE_MFString: {
 		struct Uni_String ** newp;
 		struct Multi_String *strptr;
 		int thisele, thissize, maxele;	/* used for reading in MFStrings*/
@@ -1545,13 +1531,13 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		break;
 	   }
 
-	case SFIMAGE:
-	case SFSTRING: {
+	case FIELDTYPE_SFImage:
+	case FIELDTYPE_SFString: {
 		int thissize;
 
 		/* save this stuff to a global SV, rather than worrying about memory pointers */
 		#ifdef SETFIELDVERBOSE
-		printf ("ScanValtoBuffer: SFSTRING, string is %s, ptr %x %d\n",buf,memptr,memptr);
+		printf ("ScanValtoBuffer: FIELDTYPE_SFString, string is %s, ptr %x %d\n",buf,memptr,memptr);
 		#endif
 
 		/* strings in the format "25:2 2 1 0xff 0x80 0x80 0xff" where 25 is the length */
@@ -1580,7 +1566,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	}
 		
 	  default: {
-		printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
+		printf("WARNING: unhandled CLASS from type %s\n", FIELDTYPES[type]);
 		printf ("complain to the FreeWRL team.\n");
 		printf ("(string is :%s:)\n",buf);
 		return (0);

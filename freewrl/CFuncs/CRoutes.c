@@ -351,33 +351,44 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 
 	/* Multi types */
 	switch (JSparamnames[fptr].type) {
-	case SFIMAGE:
-	case MFFLOAT: case MFTIME: case MFINT32: case MFSTRING: {
+	case FIELDTYPE_SFImage:
+	case FIELDTYPE_MFFloat:
+	case FIELDTYPE_MFTime:
+	case FIELDTYPE_MFInt32:
+	case FIELDTYPE_MFString:
 		strcpy (tmethod,"__touched_flag");
 		complex_name = TRUE;
 		break;
-		}
-	case MFCOLOR: case MFROTATION: case MFNODE: case MFVEC2F: case MFVEC3F: {
+
+	case FIELDTYPE_MFColor:
+	case FIELDTYPE_MFRotation:
+	case FIELDTYPE_MFNode:
+	case FIELDTYPE_MFVec2f:
+	case FIELDTYPE_MFVec3f:
 		strcpy (tmethod,"__touched_flag");
 		touched_Multi = TRUE;
 		complex_name = TRUE;
 		break;
-		}
 
 	/* ECMAScriptNative types */
-	case SFBOOL: case SFFLOAT: case SFTIME: case SFINT32: case SFSTRING: {
+	case FIELDTYPE_SFBool:
+	case FIELDTYPE_SFFloat:
+	case FIELDTYPE_SFTime:
+	case FIELDTYPE_SFInt32:
+	case FIELDTYPE_SFString:
 		if (complex_name) strcpy (tmethod,"_touched");
 		else sprintf (tmethod, "_%s_touched",fullname);
 		break;
-		}
 
-	case SFCOLOR: case SFVEC3F:
-	case SFNODE: case SFROTATION: case SFVEC2F: {
+	case FIELDTYPE_SFColor:
+	case FIELDTYPE_SFVec3f:	
+	case FIELDTYPE_SFNode:
+	case FIELDTYPE_SFRotation:
+	case FIELDTYPE_SFVec2f:
 		if (complex_name) strcpy (tmethod,"__touched()");
 		else sprintf (tmethod, "%s.__touched()",fullname);
 		touched_function = TRUE;
 		break;
-		}
 	default: {
 		printf ("WARNING, this type (%d) not handled yet\n",
 			JSparamnames[fptr].type);
@@ -488,24 +499,23 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 				printf ("first element %d is %d\n",count,vp); 
  				#endif
 				switch (JSparamnames[fptr].type) {
-				  case MFVEC3F:
-				  case MFCOLOR: {
+				  case FIELDTYPE_MFVec3f:
+				case FIELDTYPE_MFColor:
 					if (!(SFColorTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFColor/MFVec3f\n");
 
 				     	break;
-					}
-				  case MFROTATION: {
+				  case FIELDTYPE_MFRotation: {
 					if (!(SFRotationTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFRotation\n");
 				     	break;
 					}
-				  case MFNODE: {
+				  case FIELDTYPE_MFNode: {
 					if (!(SFNodeTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFNode\n");
 				     	break;
 					}
-				  case MFVEC2F: {
+				  case FIELDTYPE_MFVec2f: {
 					if (!(SFVec2fTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFVec2f\n");
 				     	break;
@@ -733,7 +743,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	switch (eletype) {
 	  case -13: elesize = sizeof (char); break;	/* string   */
 	  case -14:
-	  case MFFLOAT:
+	  case FIELDTYPE_MFFloat:
 	    elesize = sizeof (float); break;	        /* Float    */
 	  case -15: elesize = sizeof(float)*4; break;	/* Rotation */
 	  case -16: elesize = sizeof(int); break;	/* Integer  */
@@ -880,34 +890,6 @@ void CRoutes_js_new (uintptr_t num, int scriptType) {
 
 }
 
-int convert_typetoInt (const char *type) {
-	/* first, convert the type to an integer value */
-	if (strncmp("SFBool",type,7) == 0) return SFBOOL;
-	else if (strncmp ("SFColor",type,7) == 0) return SFCOLOR;
-	else if (strncmp ("SFVec3f",type,7) == 0) return SFVEC3F; 
-	else if (strncmp ("SFFloat",type,7) == 0) return SFFLOAT;
-	else if (strncmp ("SFTime",type,6) == 0) return SFTIME;
-	else if (strncmp ("SFInt32",type,6) == 0) return SFINT32;
-	else if (strncmp ("SFString",type,6) == 0) return SFSTRING;
-	else if (strncmp ("SFImage",type,6) == 0) return SFIMAGE;
-	else if (strncmp ("SFNode",type,6) == 0) return SFNODE;
-	else if (strncmp ("SFVec2f",type,6) == 0) return SFVEC2F;
-	else if (strncmp ("SFRotation",type,6) == 0) return SFROTATION;
-	else if (strncmp ("MFColor",type,7) == 0) return MFCOLOR;
-	else if (strncmp ("MFVec3f",type,7) == 0) return MFVEC3F; 
-	else if (strncmp ("MFFloat",type,7) == 0) return MFFLOAT;
-	else if (strncmp ("MFTime",type,6) == 0) return MFTIME;
-	else if (strncmp ("MFInt32",type,6) == 0) return MFINT32;
-	else if (strncmp ("MFString",type,6) == 0) return MFSTRING;
-	else if (strncmp ("MFNode",type,6) == 0) return MFNODE;
-	else if (strncmp ("MFVec2f",type,6) == 0) return MFVEC2F;
-	else if (strncmp ("MFRotation",type,6) == 0) return MFROTATION;
-
-	else {
-		printf("WARNING: JSparamIndex, cant match type %s\n",type);
-		return SFUNKNOWN;
-	}
-}
 
 /********************************************************************
 
@@ -929,7 +911,7 @@ int JSparamIndex (char *name, char *type) {
 	*/
 
 
-	ty = convert_typetoInt(type);
+	ty = findFieldInFIELDTYPES(type);
 
 	/* printf ("JSParamIndex, type %d, %s\n",ty,type);  */
 	len = strlen(name);
@@ -1419,7 +1401,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				#endif
 				/* we did, so get the value */
 				/* if this is a SFNode, lets get the pointer to memory from the private area */
-				if (JSparamnames[fptr].type == SFNODE) {
+				if (JSparamnames[fptr].type == FIELDTYPE_SFNode) {
 					#ifdef CRVERBOSE
 					printf ("HAVE SFNODE = get private data here for object %d\n",global_return_val);
 					#endif

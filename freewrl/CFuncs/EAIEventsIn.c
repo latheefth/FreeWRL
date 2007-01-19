@@ -46,12 +46,12 @@ void handleGETROUTES (char *bufptr, char *buf, int repno);
 /* get how many bytes in the type */
 int returnElementLength(int type) {
 	  switch (type) {
-		case SFTIME :
-    		case MFTIME : return sizeof(double); break;
-    		case MFINT32: return sizeof(int)   ; break;
-		case FREEWRLPTR:
-    		case SFNODE :
-    		case MFNODE : return sizeof(void *); break;
+		case FIELDTYPE_SFTime :
+    		case FIELDTYPE_MFTime : return sizeof(double); break;
+    		case FIELDTYPE_MFInt32: return sizeof(int)   ; break;
+		case FIELDTYPE_FreeWRLPTR:
+    		case FIELDTYPE_SFNode :
+    		case FIELDTYPE_MFNode : return sizeof(void *); break;
 	  	default     : {}
 	}
 	return sizeof(float) ; /* turn into byte count */
@@ -61,28 +61,28 @@ int returnElementLength(int type) {
 /* the numbers match the "sub clength" in VRMLFields.pm, and the getClen in VRMLC.pm */
 int returnRoutingElementLength(int type) {
 	  switch (type) {
-		case SFTIME:	return sizeof(double); break;
-		case SFBOOL:
-		case SFSTRING:
-		case SFINT32:	return sizeof(int); break;
-		case SFFLOAT:	return sizeof (float); break;
-		case SFVEC2F:	return sizeof (struct SFVec2f); break;
-		case SFVEC3F:
-		case SFCOLOR: 	return sizeof (struct SFColor); break;
-		case SFCOLORRGBA:
-		case SFROTATION:return sizeof (struct SFRotation); break;
-		case SFNODE:	return sizeof (uintptr_t); break;
-		case MFNODE:	return -10; break;
-		case SFIMAGE:	return -12; break;
-		case MFSTRING: 	return -13; break;
-		case MFFLOAT:	return -14; break;
-		case MFCOLORRGBA:
-		case MFROTATION: return -15; break;
-		case MFBOOL:
-		case MFINT32:	return -16; break;
-		case MFCOLOR:	return -17; break;
-		case MFVEC2F:	return -18; break;
-		case MFVEC3F:	return -19; break;
+		case FIELDTYPE_SFTime:	return sizeof(double); break;
+		case FIELDTYPE_SFBool:
+		case FIELDTYPE_SFString:
+		case FIELDTYPE_SFInt32:	return sizeof(int); break;
+		case FIELDTYPE_SFFloat:	return sizeof (float); break;
+		case FIELDTYPE_SFVec2f:	return sizeof (struct SFVec2f); break;
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor: 	return sizeof (struct SFColor); break;
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_SFRotation:return sizeof (struct SFRotation); break;
+		case FIELDTYPE_SFNode:	return sizeof (uintptr_t); break;
+		case FIELDTYPE_MFNode:	return -10; break;
+		case FIELDTYPE_SFImage:	return -12; break;
+		case FIELDTYPE_MFString: 	return -13; break;
+		case FIELDTYPE_MFFloat:	return -14; break;
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFRotation: return -15; break;
+		case FIELDTYPE_MFBool:
+		case FIELDTYPE_MFInt32:	return -16; break;
+		case FIELDTYPE_MFColor:	return -17; break;
+		case FIELDTYPE_MFVec2f:	return -18; break;
+		case FIELDTYPE_MFVec3f:	return -19; break;
 
                 default:       return type;
 	}
@@ -94,18 +94,18 @@ int returnRoutingElementLength(int type) {
 /*		"" ""			eg, MFVec3f = 3 - 3 floats, too! */
 int returnElementRowSize (int type) {
 	switch (type) {
-		case SFVEC2F: 
-		case MFVEC2F: 
+		case FIELDTYPE_SFVec2f:
+		case FIELDTYPE_MFVec2f:
 			return 2;
-		case SFCOLOR: 
-		case MFCOLOR: 
-		case SFVEC3F: 
-		case MFVEC3F: 
+		case FIELDTYPE_SFColor:
+		case FIELDTYPE_MFColor:
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_MFVec3f:
 			return 3;
-		case SFROTATION: 
-		case MFROTATION: 
-		case SFCOLORRGBA:
-		case MFCOLORRGBA:
+		case FIELDTYPE_SFRotation:
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_MFColorRGBA:
 			return 4;
 	}
 	return 1;
@@ -127,13 +127,13 @@ uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 	retval = (uintptr_t) memptr;
 
 	switch (type) {
-		case MFVEC2F: 
-		case MFCOLOR: 
-		case MFCOLORRGBA: 
-		case MFVEC3F: 
-		case MFROTATION: 
-		case MFFLOAT:
-		case MFINT32:
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFColor:
+		case FIELDTYPE_MFVec2f:
 			mp = (struct Multi_Vec3f*) memptr;
 			retval = (uintptr_t) (mp->p);
 

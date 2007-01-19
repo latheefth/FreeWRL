@@ -54,16 +54,16 @@ void handle_Listener () {
 
 	/* if this is a MF type, there most likely will be malloc'd memory to free... */
 	switch (tp) {
-		case EAI_MFCOLOR:
-		case EAI_MFCOLORRGBA:
-		case EAI_MFFLOAT:
-		case EAI_MFTIME:
-		case EAI_MFINT32:
-		case EAI_MFSTRING:
-		case EAI_MFNODE:
-		case EAI_MFROTATION:
-		case EAI_MFVEC2F:
-		case EAI_MFVEC3F: {
+		case FIELDTYPE_MFColor:
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_MFString:
+		case FIELDTYPE_MFNode:
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_MFVec2f:
+		case FIELDTYPE_MFVec3f: {
 			mfptr = (struct Multi_Node *) EAIListenerData;
 			if (((*mfptr).p) != NULL) free ((*mfptr).p);
 		}

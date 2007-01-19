@@ -756,7 +756,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 
 			}
 
-			rows = returnElementRowSize (mapFieldTypeToInernaltype(type));
+			rows = returnElementRowSize (type);
 
 			#ifdef JAVASCRIPTVERBOSE
 			printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements);

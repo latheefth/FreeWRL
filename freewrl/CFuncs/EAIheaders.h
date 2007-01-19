@@ -58,67 +58,33 @@ void EAI_RW(char *bufptr);
 /* Subtypes - types of data to get from EAI  - we don't use the ones defined in
    headers.h, because we want ASCII characters */
 
-/* KEEP THESE IN STEP WITH THE EQUIVS IN headers.h */
-
-#define	EAI_SFUNKNOWN		'a'
-#define	EAI_SFBOOL		'b'
-#define	EAI_SFCOLOR		'c'
-#define	EAI_SFFLOAT		'd'
-#define	EAI_SFTIME		'e'
-#define	EAI_SFINT32		'f'
-#define	EAI_SFSTRING		'g'
-#define	EAI_SFNODE		'h'
-#define	EAI_SFROTATION		'i'
-#define	EAI_SFVEC2F		'j'
-#define	EAI_SFIMAGE		'k'
-#define	EAI_MFCOLOR		'l'
-#define	EAI_MFFLOAT		'm'
-#define	EAI_MFTIME		'n'
-#define	EAI_MFINT32		'o'
-#define	EAI_MFSTRING		'p'
-#define	EAI_MFNODE		'q'
-#define	EAI_MFROTATION		'r'
-#define	EAI_MFVEC2F		's'
-#define EAI_MFVEC3F		't'
-#define EAI_SFVEC3F		'u'
-#define EAI_MFCOLORRGBA		'v'
-#define EAI_SFCOLORRGBA		'w'
-#define EAI_MFBOOL		'x'
-#define EAI_FREEWRLPTR		'y'
-#define EAI_MFVEC3D		'A'
-#define EAI_SFVEC2D		'B'
-#define EAI_SFVEC3D		'C'
-
-#define EAIFIELD_TYPE_STRING(f) ( \
-        f == SFBOOL ? EAI_SFBOOL : ( \
-        f == SFCOLOR ? EAI_SFCOLOR : ( \
-        f == SFCOLORRGBA ? EAI_SFCOLORRGBA : ( \
-        f == SFVEC3F ? EAI_SFVEC3F : ( \
-        f == SFFLOAT ? EAI_SFFLOAT : ( \
-        f == SFTIME ? EAI_SFTIME : ( \
-        f == SFINT32 ? EAI_SFINT32 : ( \
-        f == SFSTRING ? EAI_SFSTRING : ( \
-        f == SFNODE ? EAI_SFNODE : ( \
-        f == SFROTATION ? EAI_SFROTATION : ( \
-        f == SFVEC2F ? EAI_SFVEC2F : ( \
-        f == SFIMAGE ? EAI_SFIMAGE : ( \
-        f == MFCOLOR ? EAI_MFCOLOR : ( \
-        f == MFCOLORRGBA ? EAI_MFCOLORRGBA : ( \
-        f == MFVEC3F ? EAI_MFVEC3F : ( \
-        f == MFFLOAT ? EAI_MFFLOAT : ( \
-        f == MFTIME ? EAI_MFTIME : ( \
-        f == MFINT32 ? EAI_MFINT32 : ( \
-        f == MFSTRING ? EAI_MFSTRING : ( \
-        f == MFNODE ? EAI_MFNODE : ( \
-        f == MFROTATION ? EAI_MFROTATION : ( \
-        f == MFVEC2F ? EAI_MFVEC2F : ( \
-        f == MFVEC3F ? EAI_MFVEC3F : ( \
-        f == MFROTATION ? EAI_MFROTATION : ( \
-        f == FREEWRLPTR ? EAI_FREEWRLPTR : ( \
-        f == SFVEC2F ? EAI_SFVEC2F : '?'))))))))))))))))))))))))))
-
-
-
+#define	EAI_SFBool		'b'
+#define	EAI_SFColor		'c'
+#define	EAI_SFFloat		'd'
+#define	EAI_SFTime		'e'
+#define	EAI_SFInt32		'f'
+#define	EAI_SFString		'g'
+#define	EAI_SFNode		'h'
+#define	EAI_SFRotation		'i'
+#define	EAI_SFVec2f		'j'
+#define	EAI_SFImage		'k'
+#define	EAI_MFColor		'l'
+#define	EAI_MFFloat		'm'
+#define	EAI_MFTime		'n'
+#define	EAI_MFInt32		'o'
+#define	EAI_MFString		'p'
+#define	EAI_MFNode		'q'
+#define	EAI_MFRotation		'r'
+#define	EAI_MFVec2f		's'
+#define EAI_MFVec3f		't'
+#define EAI_SFVec3f		'u'
+#define EAI_MFColorRGBA		'v'
+#define EAI_SFColorRGBA		'w'
+#define EAI_MFBool		'x'
+#define EAI_FreeWRLPTR		'y'
+#define EAI_MFVec3D		'A'
+#define EAI_SFVec2D		'B'
+#define EAI_SFVec3D		'C'
 
 
 /* Function Prototype for plugins, Java Class Invocation */

@@ -34,37 +34,34 @@ void getField_ToJavascript (int num, int fromoffset) {
 	/* see comments in gatherScriptEventOuts to see exact formats */
 
 	switch (JSparamnames[fromoffset].type) {
-	case SFBOOL:
-	case SFFLOAT:
-	case SFTIME:
-	case SFINT32:
-	case SFSTRING: {
+	case FIELDTYPE_SFBool:
+	case FIELDTYPE_SFFloat:
+	case FIELDTYPE_SFTime:
+	case FIELDTYPE_SFInt32:
+	case FIELDTYPE_SFString:
 		setScriptECMAtype(num);
 		break;
-		}
-	case SFCOLOR:
-	case SFNODE: /* yes, we'll stick SFNODE in here with the rest of the non-ECMA SF gang */
-	case SFVEC2F:
-	case SFVEC3F:
-	case SFROTATION: {
+	case FIELDTYPE_SFColor:
+	case FIELDTYPE_SFNode:
+	case FIELDTYPE_SFVec2f:
+	case FIELDTYPE_SFVec3f:
+	case FIELDTYPE_SFRotation:
 		setScriptMultiElementtype(num);
 		break;
-		}
-	case MFCOLOR:
-	case MFVEC3F:
-	case MFFLOAT:
-	case MFTIME:
-	case MFINT32:
-	case SFIMAGE:
-	case MFSTRING:
-	case MFNODE:
-	case MFROTATION: {
+	case FIELDTYPE_MFColor:
+	case FIELDTYPE_MFVec3f:
+	case FIELDTYPE_MFFloat:
+	case FIELDTYPE_MFTime:
+	case FIELDTYPE_MFInt32:
+	case FIELDTYPE_SFImage:
+	case FIELDTYPE_MFString:
+	case FIELDTYPE_MFNode:
+	case FIELDTYPE_MFRotation:
 		setMFElementtype(num);
 		break;
-		}
 	default : {
 		printf("WARNING: sendScriptEventIn type %s not handled yet\n",
-			FIELD_TYPE_STRING(JSparamnames[fromoffset].type));
+			FIELDTYPES[JSparamnames[fromoffset].type]);
 		}
 	}
 }
@@ -86,30 +83,30 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	
 
 	switch (dataType) {
-		case SFBOOL:	{	/* SFBool */
+		case FIELDTYPE_SFBool:	{	/* SFBool */
 			memcpy ((void *) &intval,Data, datalen);
 			if (intval == 1) sprintf (scriptline,"__tmp_arg_%s=true",JSparamnames[toname].name);
 			else sprintf (scriptline,"__tmp_arg_%s=false",JSparamnames[toname].name);
 			break;
 		}
 
-		case SFFLOAT:	{
+		case FIELDTYPE_SFFloat:	{
 			memcpy ((void *) &fl, Data, datalen);
 			sprintf (scriptline,"__tmp_arg_%s=%f", JSparamnames[toname].name,fl);
 			break;
 		}
-		case SFTIME:	{
+		case FIELDTYPE_SFTime:	{
 			memcpy ((void *) &dl, Data, datalen);
 			sprintf (scriptline,"__tmp_arg_%s=%f", JSparamnames[toname].name,dl);
 			break;
 		}
-		case SFINT32: 	{ 
+		case FIELDTYPE_SFInt32: 	{ 
 			memcpy ((void *) &il,Data, datalen);
 			sprintf (scriptline,"__tmp_arg_%s=%d", JSparamnames[toname].name,il);
 			break;
 		}
 
-		case SFSTRING: {
+		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 			memcpy((void *) &ms,Data, datalen);
 			sprintf (scriptline,"__tmp_arg_%s='%s'",JSparamnames[toname].name,ms->strptr);
@@ -241,7 +238,7 @@ void setMFElementtype (uintptr_t num) {
 
 		/* make up the name */
 		switch (JSparamnames[tptr].type) {
-			case MFVEC3F: {
+			case FIELDTYPE_MFVec3f: {
 				/*strcpy (scriptline,"xxy = new MFVec3f(new SFVec3f(1,2,3));printValue (xxy)");
 					break;*/
 				strcpy (scriptline, "xxy = new MFVec3f(");
@@ -266,7 +263,7 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case MFCOLOR: {
+			case FIELDTYPE_MFColor: {
 				/*strcpy (scriptline,"xxy = new MFColor(new SFColor(1,2,3));printValue (xxy)");
 					break;*/
 				strcpy (scriptline, "xxy = new MFColor(");
@@ -291,7 +288,7 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case MFFLOAT: {
+			case FIELDTYPE_MFFloat: {
 				strcpy (scriptline, "xxy = new MFFloat(");
 				elementlen = sizeof (float);
 				for (x=0; x<len; x++) {
@@ -305,7 +302,7 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case MFTIME:  {
+			case FIELDTYPE_MFTime:  {
 				strcpy (scriptline, "xxy = new MFTime(");
 				elementlen = sizeof (double);
 				for (x=0; x<len; x++) {
@@ -319,8 +316,8 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case SFIMAGE:	/* JAS - SFIMAGES are SFStrings in Perl, but an MFInt in Java */
-			case MFINT32: {
+			case FIELDTYPE_SFImage:	/* JAS - SFIMAGES are SFStrings in Perl, but an MFInt in Java */
+			case FIELDTYPE_MFInt32: {
 				strcpy (scriptline, "xxy = new MFInt32(");
 				elementlen = sizeof (int);
 				for (x=0; x<len; x++) {
@@ -334,7 +331,7 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case MFSTRING:{
+			case FIELDTYPE_MFString:{
 				strcpy (scriptline, "xxy = new MFString(");
 				ptr = (struct Uni_String **) pptr;
 				for (x=0; x<len; x++) {
@@ -351,7 +348,7 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case MFNODE:  {
+			case FIELDTYPE_MFNode:  {
 				strcpy (scriptline, "xxy = new MFNode(");
 				elementlen = sizeof (int);
 				for (x=0; x<len; x++) {
@@ -365,7 +362,7 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case MFROTATION: {	
+			case FIELDTYPE_MFRotation: {	
 				strcpy (scriptline, "xxy = new MFRotation(");
 
 				elementlen = sizeof (float);
@@ -458,7 +455,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     /* make up the name */
     sprintf (scriptline,"%s(",JSparamnames[tptr].name);
     switch (JSparamnames[tptr].type) {
-      case MFVEC3F: {
+      case FIELDTYPE_MFVec3f: {
 	  strcat (scriptline, "new MFVec3f(");
 	  elementlen = sizeof (float) * 3;
 	  for (x=0; x<(len/elementlen); x++) {
@@ -474,7 +471,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFCOLOR: {
+      case FIELDTYPE_MFColor: {
 	  strcat (scriptline, "new MFColor(");
 	  elementlen = sizeof (float) * 3;
 	  for (x=0; x<(len/elementlen); x++) {
@@ -490,7 +487,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFFLOAT: {
+      case FIELDTYPE_MFFloat: {
 	  strcat (scriptline, "new MFFloat(");
 	  elementlen = sizeof (float);
 	  for (x=0; x<(len/elementlen); x++) {
@@ -505,7 +502,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 
 	  break;
       }
-      case MFTIME:  {
+      case FIELDTYPE_MFTime:  {
 	  strcat (scriptline, "new MFTime(");
 	  elementlen = sizeof (double);
 	  for (x=0; x<(len/elementlen); x++) {
@@ -519,7 +516,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFINT32: {
+      case FIELDTYPE_MFInt32: {
 	  strcat (scriptline, "new MFInt32(");
 	  elementlen = sizeof (int);
 	  for (x=0; x<(len/elementlen); x++) {
@@ -533,7 +530,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFSTRING:{
+      case FIELDTYPE_MFString:{
 	  strcat (scriptline, "new MFString(");
 	  elementlen = sizeof (float);
 	  printf ("ScriptAssign, MFString probably broken\n");
@@ -548,7 +545,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFNODE:  {
+      case FIELDTYPE_MFNode:  {
 	  strcat (scriptline, "new MFNode(");
 	  elementlen = sizeof (int);
 	  for (x=0; x<(len/elementlen); x++) {
@@ -562,7 +559,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFROTATION: {	strcat (scriptline, "new MFRotation(");
+      case FIELDTYPE_MFRotation: {	strcat (scriptline, "new MFRotation(");
       elementlen = sizeof (float)*4;
       for (x=0; x<(len/elementlen); x++) {
 	  fp = (float *)pptr;
@@ -738,7 +735,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	intptr = (int *) memptr;
 
 	switch (type) {
-		case EAI_SFBOOL: 	{
+		case FIELDTYPE_SFBool: 	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFBOOL\n");
 			#endif
@@ -748,7 +745,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_SFTIME:	{
+		case FIELDTYPE_SFTime:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFTIME\n");
 			#endif
@@ -757,7 +754,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_SFINT32:	{
+		case FIELDTYPE_SFInt32:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFINT32 or EAI_SFNODE\n");
 			#endif
@@ -766,7 +763,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_SFFLOAT:	{
+		case FIELDTYPE_SFFloat:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFFLOAT\n");
 			#endif
@@ -776,8 +773,8 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_SFVEC3F:
-		case EAI_SFCOLOR:	{
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
 			#endif
@@ -786,7 +783,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_SFVEC2F:	{
+		case FIELDTYPE_SFVec2f:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFVEC2F\n");
 			#endif
@@ -795,8 +792,8 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_SFCOLORRGBA:
-		case EAI_SFROTATION:	{
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_SFRotation:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFROTATION\n");
 			#endif
@@ -806,8 +803,8 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_SFIMAGE:
-		case EAI_SFSTRING:	{
+		case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFString:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFSTRING\n");
 			#endif
@@ -818,7 +815,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_MFSTRING:	{
+		case FIELDTYPE_MFString:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_MFSTRING\n");
 			#endif
@@ -844,7 +841,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_MFNODE: 	{
+		case FIELDTYPE_MFNode: 	{
 			MNptr = (struct Multi_Node *) memptr;
 
 			#ifdef EAIVERBOSE 
@@ -861,7 +858,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_MFINT32: {
+		case FIELDTYPE_MFInt32: {
 			MCptr = (struct Multi_Color *) memptr;
 			#ifdef EAIVERBOSE 
 				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
@@ -881,17 +878,17 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
-		case EAI_MFFLOAT:
-		case EAI_MFVEC2F:
-		case EAI_MFVEC3F:
-		case EAI_MFROTATION:
-		case EAI_MFCOLORRGBA:
-		case EAI_MFCOLOR: {
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFVec2f:
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFRotation:
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFColor: {
 			numPerRow=3;
-			if (type==EAI_MFFLOAT) {numPerRow=1;}
-			else if (type==EAI_MFVEC2F) {numPerRow=2;}
-			else if (type==EAI_MFROTATION) {numPerRow=4;}
-			else if (type==EAI_MFCOLORRGBA) {numPerRow=4;}
+			if (type==FIELDTYPE_MFFloat) {numPerRow=1;}
+			else if (type==FIELDTYPE_MFVec2f) {numPerRow=2;}
+			else if (type==FIELDTYPE_MFRotation) {numPerRow=4;}
+			else if (type==FIELDTYPE_MFColorRGBA) {numPerRow=4;}
 
 			MCptr = (struct Multi_Color *) memptr;
 			#ifdef EAIVERBOSE 

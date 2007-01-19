@@ -267,7 +267,7 @@ static void parseX3DRoutes (char **atts) {
 	if (toNode->_nodeType == NODE_Script) toNode = ((struct X3D_Node*) ((struct X3D_Script*)toNode)->__scriptObj);
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("now routing from a %s to a %s %d %d\n",FIELD_TYPE_STRING(fromType), FIELD_TYPE_STRING(toType),fromType,toType);
+	printf ("now routing from a %s to a %s %d %d\n",FIELDTYPES[fromType], FIELDTYPES[toType],fromType,toType);
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
 
@@ -436,7 +436,7 @@ static void parseScriptField(char *name, char **atts) {
 	myFieldNumber = JSparamIndex(myparams[0],myparams[2]);
 
 	registerX3DScriptField(myScriptNumber,
-		convert_typetoInt(myparams[2]),
+		findFieldInFIELDTYPES(myparams[2]),
 		findFieldInX3DACCESSORS(myparams[1]),
 		myFieldNumber,myparams[0]);
 
@@ -617,7 +617,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 #endif
 	}
 
-	if ((ctype != MFNODE) && (ctype != SFNODE)) {
+	if ((ctype != FIELDTYPE_MFNode) && (ctype != FIELDTYPE_SFNode)) {
 		ConsoleMessage ("X3DParser, line %d trouble linking to field %s, node type %s (this nodeType %s)", LINE,
 			stringFieldType(parentStack[parentIndex]->_defaultContainer),
 			stringNodeType(parentStack[parentIndex-1]->_nodeType),
@@ -625,7 +625,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 		return;
 	}
 	memptr = (char *)parentStack[parentIndex-1] + coffset;
-	if (ctype == SFNODE) {
+	if (ctype == FIELDTYPE_SFNode) {
 		/* copy over a single memory pointer */
 		destnode = (uintptr_t *) memptr;
 		*destnode = parentStack[parentIndex];
