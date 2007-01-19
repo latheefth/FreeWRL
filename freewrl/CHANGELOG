@@ -1,4 +1,6 @@
 For 1.18.12:
+	- Makefile.PL - DESTDIR in install tags for Gentoo build. (Hanno Bock)
+
 	- soundengine work for 64 bit compiles. (Charles Horn)
 
 	- change GL_LIGHT_MODEL_AMBIENT to 0,0,0,1 - removes default "scene" ambient lighting.

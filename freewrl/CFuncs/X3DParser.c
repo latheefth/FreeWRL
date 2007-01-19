@@ -396,8 +396,6 @@ static void parseScriptField(char *name, char **atts) {
 	char myparams[3][255];
 	int strl;
 	int which;
-	indexT kind;
-	indexT type;
 	int myFieldNumber;
 	
 	/* check sanity for top of stack This should be a Script node */
@@ -434,17 +432,18 @@ static void parseScriptField(char *name, char **atts) {
 	printf ("myparams:\n	%s\n	%s\n	%s\n",myparams[0],myparams[1],myparams[2]);
 	#endif
 
-	/* register this field type */
-	type = convert_typetoInt(myparams[2]);
-	kind = findFieldInX3DACCESSORS(myparams[1]);
-
 	/* register this field with the Javascript Field Indexer */
 	myFieldNumber = JSparamIndex(myparams[0],myparams[2]);
 
-	registerX3DScriptField(myScriptNumber,type,kind,myFieldNumber,myparams[0]);
+	registerX3DScriptField(myScriptNumber,
+		convert_typetoInt(myparams[2]),
+		findFieldInX3DACCESSORS(myparams[1]),
+		myFieldNumber,myparams[0]);
 
 	/* and initialize it */
-	InitScriptFieldC (myScriptNumber,type,kind,myparams[0],NULL);
+	InitScriptFieldC (myScriptNumber,
+		findFieldInX3DACCESSORS(myparams[1]),
+		findFieldInFIELDTYPES(myparams[2]),myparams[0],NULL);
 }
 
 
