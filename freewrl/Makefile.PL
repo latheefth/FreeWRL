@@ -322,16 +322,11 @@ sub writeMakefileFinalTargets() {
 	# we need the 2 installs for the following; the first makes the directory, the second fills it.
 	print MK "\tinstall -d fonts \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall -D fonts/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall -d  x3d \$(DESTDIR)\$(INSTALL_DIR)/freewrl/x3d\n";
-	print MK "\tinstall -D  x3d/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/x3d\n";
 	} else {
 	print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall fonts/*.ttf \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall fonts/*.TXT \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall fonts/*.conf \$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall -d  \$(INSTALL_DIR)/freewrl/x3d\n";
-	print MK "\tinstall  x3d/*.dtd \$(INSTALL_DIR)/freewrl/x3d\n";
-	print MK "\tinstall  x3d/*.xslt \$(INSTALL_DIR)/freewrl/x3d\n";
 	}
 }
 
@@ -623,7 +618,7 @@ sub linux_system_info() {
 
 sub findAndPrintUtilities() {
 	# lets just dump out some standard defines, from the vrml.conf file.
-	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA", "XSLTPROC");
+	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA");
 
 	my $val;
 
@@ -669,8 +664,6 @@ sub tryToFind() {
 		$try = `which cp`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	} elsif ("JAVA" eq $tofind) {
 		$try = `which java`; $try =~ s/^\s+//; $try =~ s/\s+$//;
-	} elsif ("XSLTPROC" eq $tofind) {
-		$try = `which xsltproc`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	}
 
 	if ("" ne $try) {
