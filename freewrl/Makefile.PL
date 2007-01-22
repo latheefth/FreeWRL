@@ -199,7 +199,11 @@ print "The Makefile has been generated. Type \"make\" and\/or \"make install\" t
 
 sub writeAllTarget () {
 	# should edit this line to suit build
-	print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd";
+	if ($OS eq "Darwin") {
+		print MK "all: Javascript libFreeWRL CFrontEnd";
+	} else {
+		print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd";
+	}
 	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
 	print MK "\n";

@@ -33,11 +33,12 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lpng12 '.
 		'-lz '.
 		'-lSystem '.
+		'-lexpat '.
 		'-lfreetype '.
 		'-lGL -lGLU '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
 
-    FREEWRL_DEFINE => '-D_REENTRANT -fno-common -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
+    FREEWRL_DEFINE => '-D_REENTRANT -DAQUA -fno-common -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
@@ -47,6 +48,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
+		'-I/usr/local/include '.
 		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include '.
 		' ',
 
