@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.259  2007/01/22 18:44:51  crc_canada
+# EAI conversion from "Ascii" type to internal FIELDTYPE happens as close to the
+# EAI interface as possible.
+#
 # Revision 1.258  2007/01/19 21:58:55  crc_canada
 # Initial for 1.18.13 - changing internal types to simplify the numbers of changes.
 #
@@ -435,6 +439,8 @@ sub gen {
 	push @genFuncs2, 	"	return -1;;\n}\n}\n";
 	push @str, "int mapFieldTypeToEAItype (int st);\n";
 
+
+	####################
 	push @genFuncs2, "/* convert an EAI type to an internal type */\n". 
 		"int mapEAItypeToFieldType (int st) {\n".
 		"	switch (st) { \n";
@@ -447,6 +453,23 @@ sub gen {
 	}
 	push @genFuncs2, 	"	return -1;;\n}\n}\n";
 	push @str, "int mapFieldTypeToEAItype (int st);\n";
+
+	####################
+	push @genFuncs2, "/* convert an MF type to an SF type */\n". 
+		"int convertToSFType (int st) {\n".
+		"	switch (st) { \n";
+
+
+	for(@VRML::Fields) {
+		# print "node $_ is tagged as $fieldTypeCount\n";
+		# tag each node type with a integer key.
+		my $sftype = $_;
+		$sftype =~ s/MF/SF/;
+
+		push @genFuncs2,  "\t\tcase FIELDTYPE_$_:	return FIELDTYPE_$sftype;\n";
+	}
+	push @genFuncs2, 	"	return -1;;\n}\n}\n";
+	push @str, "int convertToSFType (int st);\n";
 
 
 

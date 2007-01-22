@@ -1748,8 +1748,11 @@ void propagate_events() {
 								   (void *)(CRoutes[counter].fromnode + CRoutes[counter].fnptr),
 								   (unsigned)CRoutes[counter].len);
 						} else {
-							/* this is a Multi*node, do a specialized copy */
-printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
+							/* this is a Multi*node, do a specialized copy. eg, Tiny3D EAI test will
+							   trigger this */
+							#ifdef CRVERBOSE
+							printf ("in croutes, mmc len is %d\n",CRoutes[counter].len);
+							#endif
 
 							Multimemcpy ((void *)(to_ptr->node + to_ptr->foffset),
 								 (void *)(CRoutes[counter].fromnode + CRoutes[counter].fnptr),

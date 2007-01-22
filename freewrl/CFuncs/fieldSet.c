@@ -123,7 +123,7 @@ unsigned int setField_method2 (char *ptr) {
 	/* node type */
 	while (*ptr==' ')ptr++;
 	nt = *ptr; ptr++;
-	nodetype = convertEAItoFieldType(nt);
+	nodetype = mapEAItypeToFieldType(nt);
 
 	/* blank space */
 	ptr++;

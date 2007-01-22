@@ -256,7 +256,7 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	cNodePtr = C node pointer;
 	fieldOffset = offset;
 	dataLen = data len;
-	typeString = EAIFIELD_TYPE_STRING (ctype);
+	typeString = mapFieldTypeToEAItype (ctype);
 	scripttype = 0 - meaning, not to/from a javascript. (see CRoutes.c for more info)
 	
 */
@@ -298,7 +298,7 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 			myCharBuffer);
 	} else {
 		*cNodePtr = cNode; 	/* node pointer */
-		ctype = mapInternalToEAItype(ctype); /* change to EAI type */
+		ctype = mapFieldTypeToEAItype(ctype); /* change to EAI type */
 	}
 
 	/* return values. */

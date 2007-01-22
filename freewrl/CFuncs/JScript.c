@@ -518,7 +518,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	char mynewname[400];
 	char thisValue[100];
 	int rows, elements;
-	char *sftype;
+	char *sftype = NULL;
 
 	int haveMulti;
 	int MFhasECMAtype;
@@ -765,9 +765,13 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			smallfield = malloc ( (elements*15) + 100);
 
 			/* what is the equivalent SF for this MF?? */
-			sftype = strdup (FIELDTYPES[type]);
-			if (sftype[0] == 'M') { sftype[0] = 'S'; haveMulti = TRUE;
-			} else { haveMulti = FALSE; }
+			if (type != convertToSFType(type)) haveMulti = TRUE;
+			 else haveMulti = FALSE;
+			
+			/* the sftype is the SF form of either the MF or SF */
+			sftype = strdup(FIELDTYPES[convertToSFType(type)]);
+
+			/* SFStrings are Strings */
 			if (strncmp(sftype,"SFString",8)==0) strcpy (sftype,"String");
 
 			/* start the string */
@@ -828,6 +832,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 	}
 
 	FREE_IF_NZ (smallfield);
+	FREE_IF_NZ (sftype);
 
 }
 

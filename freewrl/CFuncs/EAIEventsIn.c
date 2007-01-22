@@ -433,8 +433,8 @@ void EAI_parse_commands (char *bufptr) {
 				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
 				ctmp[1]=0;
 
-				/*printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",*/
-				/*		ra, rb,rc,ctmp);*/
+				printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
+						ra, rb,rc,ctmp);
 
 
 				/* put the address of the listener area in a string format for registering
@@ -442,7 +442,8 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
 
 				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (1,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
+				CRoutes_Register  (1,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) 
+					&handle_Listener, 0, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -483,7 +484,7 @@ void EAI_parse_commands (char *bufptr) {
 				retint=sscanf (bufptr, "%d %d %c %d", &ra,&rb,ctmp,&rc);
 
 				ra = ra + rb;   /* get absolute pointer offset*/
-				EAI_Convert_mem_to_ASCII (count,"RE",(int)ctmp[0],(char *)ra, buf);
+				EAI_Convert_mem_to_ASCII (count,"RE",mapEAItypeToFieldType(ctmp[0]),(char *)ra, buf);
 				break;
 				}
 			case REPLACEWORLD:  {
@@ -920,7 +921,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	np = NODE_OFFSETS[boxptr->_nodeType];
 	while (*np != -1) {
 		if (strncmp (FIELDNAMES[*np],"_",1) != 0) {
-			sprintf (myline,"%s %c %s ",FIELDNAMES[np[0]], EAIFIELD_TYPE_STRING(np[2]), 
+			sprintf (myline,"%s %c %s ",FIELDNAMES[np[0]], (char) mapFieldTypeToEAItype(np[2]), 
 				KEYWORDS[np[3]]);
 			strcat (buf, myline);
 		}
