@@ -546,10 +546,14 @@ void _inputParseThread(void) {
 			}
 
 		case ZEROBINDABLES: 
+			/* for the VRML parser */
 			if (haveParsed) {
 				destroyCParserData();
 				haveParsed = FALSE;
 			}
+
+			/* for the X3D Parser */
+			kill_X3DDefs();
 			break;
 
 		default: {
