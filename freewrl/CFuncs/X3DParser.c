@@ -315,6 +315,8 @@ void parseNormalX3D(char *name, char** atts) {
 	if (myNodeType != -1) {
 		thisNode = createNewX3DNode(myNodeType);
 		parentStack[parentIndex] = thisNode; 
+		add_parent((void *)thisNode, parentStack[parentIndex-1]);
+
 
 		if (thisNode->_nodeType == NODE_Script) {
 			#ifdef X3DPARSERVERBOSE
