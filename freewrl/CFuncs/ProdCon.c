@@ -172,12 +172,18 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
-	if (RUNNINGASPLUGIN && (strcmp(BrowserFullPath,fname)!=0)) {
-		retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
 
-		/* check for timeout; if not found, return false */
-		if (!retName) return (FALSE);
-		strcpy (fname,retName);
+system ("pwd");
+
+	if (RUNNINGASPLUGIN && (strcmp(BrowserFullPath,fname)!=0)) {
+		/* are we running locally? If so, just get the file here */
+		if (checkNetworkFile(fname)) {
+			retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
+
+			/* check for timeout; if not found, return false */
+			if (!retName) return (FALSE);
+			strcpy (fname,retName);
+		}
 	}
 
 	/* if not, do we need to invoke lwp to get the file, or
