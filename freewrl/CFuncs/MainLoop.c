@@ -1529,6 +1529,7 @@ void disposeContext() {
                 //debug_print("waiting for end of loop");
                 usleep(10);
         }
+	kill_X3DDefs();
         closeFreewrl();
         cErr = aglSetCurrentContext(nil);
         if (cErr == GL_FALSE) {
