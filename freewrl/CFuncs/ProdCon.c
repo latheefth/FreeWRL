@@ -28,6 +28,10 @@
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
+extern int isMacPlugin;
+char* PluginPath = "/private/tmp";
+int PluginLength = 12;
+
 int _fw_browser_plugin = 0;
 int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
@@ -173,11 +177,10 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
 
-system ("pwd");
 
-	if (RUNNINGASPLUGIN && (strcmp(BrowserFullPath,fname)!=0)) {
+	if ((RUNNINGASPLUGIN || isMacPlugin) && (strcmp(BrowserFullPath,fname)!=0) && (strncmp(PluginPath,fname,PluginLength)!=0)) {
 		/* are we running locally? If so, just get the file here */
-		if (checkNetworkFile(fname)) {
+		if (checkNetworkFile(fname) || isMacPlugin) {
 			retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
 
 			/* check for timeout; if not found, return false */
@@ -238,7 +241,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
 
 	/* if we are running under a browser, let it handle things */
-	if (RUNNINGASPLUGIN) {
+	if (RUNNINGASPLUGIN || isMacPlugin) {
 		strcpy (filename, thisurl);
 		return;
 	}

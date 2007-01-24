@@ -15,6 +15,7 @@
 
 fd_set rfds;
 struct timeval tv;
+extern int isMacPlugin;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
@@ -99,7 +100,9 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	char buf[2004];
 	char encodedUrl[2000];
 
+	if (!isMacPlugin) {
         URLencod(encodedUrl,url,2000);
+	}
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, getting %s\n",url);
