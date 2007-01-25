@@ -11,7 +11,7 @@
 #endif
 
 /*  CHECK DIRECTORY IN PLUGINPRINT*/
-#undef  PLUGINSOCKETVERBOSE
+#undef PLUGINSOCKETVERBOSE
 
 fd_set rfds;
 struct timeval tv;
@@ -116,8 +116,14 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	memset(request.url, 0, len);
 	memset(return_url, 0, len);
 
-	ulen = strlen(encodedUrl) + 1;
-	memmove(request.url, encodedUrl, ulen);
+	if (isMacPlugin) {
+		ulen = strlen(url) + 1;
+		memmove(request.url, url, ulen);
+	} else {
+		ulen = strlen(encodedUrl) + 1;
+		memmove(request.url, encodedUrl, ulen);
+
+	}
 	bytes = sizeof(urlRequest);
 
 	#ifdef PLUGINSOCKETVERBOSE
