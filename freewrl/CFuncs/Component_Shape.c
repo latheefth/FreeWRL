@@ -111,6 +111,7 @@ void render_Material (struct X3D_Material *node) {
 
 		dcol[3] = trans;
 
+		/* the diffuseColor might change, depending on the texture depth - that we do not have yet */
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
 		/* do the ambientIntensity; this will allow lights with ambientIntensity to

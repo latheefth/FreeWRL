@@ -18,6 +18,7 @@
 #include "OpenGL_Utils.h"
 #include <setjmp.h>
 
+
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
                 return;	\
@@ -958,6 +959,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct textureTableIndexStruct *myTableIndex;
+	float dcol[] = {0.8, 0.8, 0.8, 1.0};
 
 	GET_THIS_TEXTURE
 
@@ -991,6 +993,13 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 		#endif
 		/* set the texture depth - required for Material diffuseColor selection */
 		last_texture_depth = myTableIndex->depth;
+
+		/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
+		   ignored. We do this here, because when we do the Material node, we do not know what the
+		   texture depth is (if there is any texture, even) */
+		if (last_texture_depth >=3) {
+			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
+		}
 
 		if (myTableIndex->nodeType != NODE_MovieTexture) {
 			bound_textures[texture_count] = myTableIndex->OpenGLTexture[0];

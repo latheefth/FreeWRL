@@ -1,3 +1,9 @@
+For 1.18.13:
+	- browser plugin code manipulation - improve loading of secondary files on local
+	  (non-networked) machines.
+
+	- texture, if 3 or 4 channels, ignores the diffuseColor (X3D Spec 17.2.2.3)
+
 For 1.18.12:
 	- Makefile.PL - DESTDIR in install tags for Gentoo build. (Hanno Bock)
 
