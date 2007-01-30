@@ -818,10 +818,10 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 
 		/* go through and find the entry for this field, looks like:
 		const int OFFSETS_TimeSensor[] = {
-        		FIELDNAMES_isActive, offsetof (struct X3D_TimeSensor, isActive),  SFBOOL, KW_eventOut,
+        		FIELDNAMES_isActive, offsetof (struct X3D_TimeSensor, isActive),  FIELDTYPE_SFBool, KW_eventOut,
         		...
-			FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  SFTIME, KW_eventOut,
-        		FIELDNAMES___ctflag, offsetof (struct X3D_TimeSensor, __ctflag),  SFTIME, KW_exposedField,
+			FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  FIELDTYPE_SFTime, KW_eventOut,
+        		FIELDNAMES___ctflag, offsetof (struct X3D_TimeSensor, __ctflag),  FIELDTYPE_SFTime, KW_exposedField,
         		-1, -1, -1, -1};
 		*/
 

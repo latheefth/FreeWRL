@@ -480,66 +480,6 @@ struct Uni_String *newASCIIString(char *str);
 
 void *returnInterpolatorPointer (const char *x);
 
-/* Scripting Routing interfaces */
-
-#define SFUNKNOWN 0
-#define SFBOOL 	1
-#define SFCOLOR 2
-#define SFFLOAT 3
-#define SFTIME 	4
-#define SFINT32 5
-#define SFSTRING 6
-#define SFNODE	7
-#define SFROTATION 8
-#define SFVEC2F	9
-#define SFIMAGE	10
-
-#define MFCOLOR 11
-#define MFFLOAT 12
-#define MFTIME 	13
-#define MFINT32 14
-#define MFSTRING 15
-#define MFNODE	16
-#define MFROTATION 17
-#define MFVEC2F	18
-#define MFVEC3F 19
-#define SFVEC3F 20
-#define MFCOLORRGBA 21
-#define SFCOLORRGBA 22
-#define MFBOOL	    23
-
-
-
-#define FREEWRLPTR	30 /* a pointer to a memory location */
-#define FIELD_TYPE_STRING(f) ( \
-	f == SFBOOL ? "SFBool" : ( \
-	f == SFCOLOR ? "SFColor" : ( \
-	f == SFCOLORRGBA ? "SFColorRGBA" : ( \
-	f == SFVEC3F ? "SFVec3f" : ( \
-	f == SFFLOAT ? "SFFloat" : ( \
-	f == SFTIME ? "SFTime" : ( \
-	f == SFINT32 ? "SFInt32" : ( \
-	f == SFSTRING ? "SFString" : ( \
-	f == SFNODE ? "SFNode" : ( \
-	f == SFROTATION ? "SFRotation" : ( \
-	f == SFVEC2F ? "SFVec2f" : ( \
-	f == SFIMAGE ? "SFImage" : ( \
-	f == MFCOLOR ? "MFColor" : ( \
-	f == MFCOLORRGBA ? "MFColorRGBA" : ( \
-	f == MFVEC3F ? "MFVec3f" : ( \
-	f == MFFLOAT ? "MFFloat" : ( \
-	f == MFTIME ? "MFTime" : ( \
-	f == MFINT32 ? "MFInt32" : ( \
-	f == MFSTRING ? "MFString" : ( \
-	f == MFNODE ? "MFNode" : ( \
-	f == MFROTATION ? "MFRotation" : ( \
-	f == MFVEC2F ? "MFVec2f" : ( \
-	f == MFVEC3F ? "MFVec3f" : ( \
-	f == MFROTATION ? "MFRotation" : ( \
-	f == FREEWRLPTR ? "FREEWRLPTR" : ( \
-	f == SFVEC2F ? "SFVec2f" : "unknown field type"))))))))))))))))))))))))))
-
-
 /* SAI code node interface return values  The meanings of
    these numbers can be found in the SAI java code */
 #define X3DBoundedObject			1
@@ -1194,6 +1134,7 @@ int countCommas (char *instr);
 void sortChildren (struct Multi_Node ch);
 void dirlightChildren(struct Multi_Node ch);
 void normalChildren(struct Multi_Node ch);
+void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent);
 
 /* background colour */
 void setglClearColor (float *val); 

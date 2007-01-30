@@ -748,11 +748,6 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	  case -15: elesize = sizeof(float)*4; break;	/* Rotation */
 	  case -16: elesize = sizeof(int); break;	/* Integer  */
 
-	  /*
-	  case SFVEC3F:
-	  case SFCOLOR:
-	 
-	  */
 	  case -1:
 	  case -17:
 	  case -19:

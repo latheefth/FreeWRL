@@ -793,3 +793,69 @@ void *returnInterpolatorPointer (const char *x) {
 	}
 }
 
+
+
+
+static int level = 0;
+void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
+        int i; int n; void * *p;
+
+	int *offsetptr;
+	char *memptr;
+	struct Multi_Node *mfn;
+	uintptr_t *voidptr;
+
+	/* printf ("%d checkParentLink for node %d type %s\n",level,node,stringNodeType(node->_nodeType)); */
+ 
+        if (node == NULL) return;
+        if (parent != NULL) add_parent(node, parent);
+
+	if ((node->_nodeType<0) || (node->_nodeType>NODES_COUNT)) {
+		ConsoleMessage ("checkParentLink - %d not a valid nodeType",node->_nodeType);
+		return;
+	}
+
+	/* find all the fields of this node */
+	offsetptr = NODE_OFFSETS[node->_nodeType];
+
+	/* FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_field, */
+	while (*offsetptr > 0) {
+
+		/*  print field names
+		printf ("	field %s",FIELDNAMES[offsetptr[0]]); 
+		printf ("	offset %d",offsetptr[1]);
+		printf ("	type %s",FIELDTYPES[offsetptr[2]]);
+		printf ("	kind %s\n",KEYWORDS[offsetptr[3]]);
+		*/
+
+
+		/* worry about SFNodes and MFNodes */
+		if ((offsetptr[2] == FIELDTYPE_SFNode) || (offsetptr[2] == FIELDTYPE_MFNode)) {
+			if ((offsetptr[3] == KW_field) || (offsetptr[3] == KW_exposedField)) {
+
+				/* create a pointer to the actual field */
+				memptr = (char *) node;
+				memptr += offsetptr[1];
+
+				if (offsetptr[2] == FIELDTYPE_SFNode) {
+					/* get the field as a POINTER VALUE, not just a pointer... */
+					voidptr = memptr;
+					voidptr = *voidptr;
+
+					/* is there a node here? */
+					if (voidptr != NULL) {
+						checkParentLink((struct X3D_Node *)voidptr,node);
+					}
+				} else {
+					mfn = (struct Multi_Node*) memptr;
+					/* printf ("MFNode has %d children\n",mfn->n); */
+					for (n=0; n<mfn->n; n++) {
+				                checkParentLink(mfn->p[n],node);
+					}
+				}
+			}
+
+		}
+		offsetptr+=4;
+	}
+}

@@ -304,7 +304,7 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	/* return values. */
 	/* fieldOffset - assigned above - offset */
 	*fieldOffset = (uintptr_t) myFieldOffs;
-	*dataLen = 0;	/* data len */
+	*dataLen = returnRoutingElementLength();	/* data len */
 	*typeString = (uintptr_t) ctype;	
 	*scripttype =0;
 
