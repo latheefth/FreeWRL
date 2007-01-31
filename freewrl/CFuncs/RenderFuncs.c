@@ -796,7 +796,6 @@ void *returnInterpolatorPointer (const char *x) {
 
 
 
-static int level = 0;
 void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
         int i; int n; void * *p;
 
@@ -805,7 +804,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	struct Multi_Node *mfn;
 	uintptr_t *voidptr;
 
-	/* printf ("%d checkParentLink for node %d type %s\n",level,node,stringNodeType(node->_nodeType)); */
+	/* printf ("checkParentLink for node %d type %s\n",node,stringNodeType(node->_nodeType)); */
  
         if (node == NULL) return;
         if (parent != NULL) add_parent(node, parent);
@@ -819,7 +818,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	offsetptr = NODE_OFFSETS[node->_nodeType];
 
 	/* FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_field, */
-	while (*offsetptr > 0) {
+	while (*offsetptr >= 0) {
 
 		/*  print field names
 		printf ("	field %s",FIELDNAMES[offsetptr[0]]); 

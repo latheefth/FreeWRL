@@ -130,6 +130,8 @@ unsigned int setField_method2 (char *ptr) {
 
 	/* nodeptr, offset */
 	retint=sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
+	if (retint != 3) ConsoleMessage ("setField_method2: error reading 3 numbers from the string :%s:\n",ptr);
+
 	while ((*ptr) > ' ') ptr++; 	/* node ptr */
 	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
 	while ((*ptr) > ' ') ptr++;	/* node offset */
@@ -163,6 +165,7 @@ unsigned int setField_method2 (char *ptr) {
 		/* find out which element the user wants to set - that should be the next number */
 		while (*ptr==' ')ptr++;
 		retint=sscanf (ptr,"%d",&valIndex);
+		if (retint != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",ptr);
 		while (*ptr>' ')ptr++; /* past the number */
 		while (*ptr==' ')ptr++;
 
@@ -349,18 +352,21 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 		case FIELDTYPE_SFNode:
 		case FIELDTYPE_SFInt32: {
 			rv=sscanf (strp,"%d",&ival);
+			if (rv != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",strp);
 			/* printf ("SFInt, SFNode conversion number %d\n",ival); */
 			memcpy ((void *)((tn+tptr)), (void *)&ival,len);
 			break;
 		}
 		case FIELDTYPE_SFFloat: {
 			rv=sscanf (strp,"%f",&fl[0]);
+			if (rv != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",strp);
 			memcpy ((void *)(tn+tptr), (void *)&fl,len);
 			break;
 		}
 
 		case FIELDTYPE_SFVec2f: {	/* SFVec2f */
 			rv=sscanf (strp,"%f %f",&fl[0],&fl[1]);
+			if (rv != 2) ConsoleMessage ("setField_method2: error reading 2 numbers from the string :%s:\n",strp);
 			/* printf ("conversion numbers %f %f\n",fl[0],fl[1]); */
 			memcpy ((void *)(tn+tptr), (void *)fl,len);
 			break;
@@ -368,15 +374,15 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor: {	/* SFColor */
 			rv=sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
+			if (rv != 3) ConsoleMessage ("setField_method3: error reading 3 numbers from the string :%s:\n",strp);
 			/* printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]); */
 			memcpy ((void *)(tn+tptr), (void *)fl,len);
 			break;
 		}
 
 		case FIELDTYPE_SFRotation: {
-int tmp;
-tmp =
 			rv=sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
+			if (rv != 4) ConsoleMessage ("setField_method3: error reading 3 numbers from the string :%s:\n",strp);
 			/* printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]); */
 			memcpy ((void *)(tn+tptr), (void *)fl,len);
 			break;
@@ -608,6 +614,7 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 		*coffset = -1; *ctype = -1, *ckind = -1;
 		return;
 	}
+
 }
 
 int countFloatElements (char *instr) {
@@ -1326,7 +1333,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
 
 	#ifdef SETFIELDVERBOSE
-	printf("ScanValtoBuffer - buffer %s\n",buf);
+	printf("ScanValtoBuffer - memptr %d, buffer %s\n",memptr, buf);
 	#endif
 
 	if (bufsz < 10) {
@@ -1348,11 +1355,13 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    case FIELDTYPE_SFNode:
 	    case FIELDTYPE_SFInt32: {
 	    	retint=sscanf (buf,"%d",(int *)memptr);
+		if (retint != 1) ConsoleMessage ("ScanValtoBuffer: can not read 1 floats from :%s:",buf);
 		len = sizeof (int);
 	    	break;
 	    }
 	    case FIELDTYPE_SFFloat: {
 	    	retint=sscanf (buf,"%f",(float *)memptr);
+		if (retint != 1) ConsoleMessage ("ScanValtoBuffer: can not read 1 floats from :%s:",buf);
 		len = sizeof (float);
 	    	break;
 	    }
@@ -1360,6 +1369,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    case FIELDTYPE_SFVec2f: {	/* SFVec2f */
 		flmem = (float *)memptr;
 	    	retint=sscanf (buf,"%f %f",&flmem[0], &flmem[1]);
+		if (retint != 2) ConsoleMessage ("ScanValtoBuffer: can not read 2 floats from :%s:",buf);
 		len = sizeof(float) * 2;
 	    	break;
 	    }
@@ -1369,6 +1379,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		flmem = (float *)memptr;
 	    	retint=sscanf (buf,"%f %f %f",&flmem[0],&flmem[1],&flmem[2]);
 		len = sizeof(float) * 3;
+		if (retint != 3) ConsoleMessage ("ScanValtoBuffer: can not read 3 floats from :%s:",buf);
 	    	break;
 	    }
 
@@ -1376,12 +1387,14 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    case FIELDTYPE_SFRotation: {
 		flmem = (float *)memptr;
 	    	retint=sscanf (buf,"%f %f %f %f",&flmem[0],&flmem[1],&flmem[2],&flmem[3]);
+		if (retint != 4) ConsoleMessage ("ScanValtoBuffer: can not read 4 floats from :%s:",buf);
 		len = sizeof(float) * 4;
 	    	break;
 	    }
 
 	    case FIELDTYPE_SFTime: {
 		retint=sscanf (buf, "%lf", (double *)memptr);
+		if (retint != 1) ConsoleMessage ("ScanValtoBuffer: can not read 1 floats from :%s:",buf);
 		len = sizeof(double);
 		break;
 	    }
@@ -1400,6 +1413,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		/* scan to start of element count, and read it in.*/
 		while (*buf==' ') buf++; 
 		retint=sscanf (buf,"%d",quant); while (*buf>' ') buf++;
+		if (retint != 1) ConsoleMessage ("ScanValtoBuffer: can not read 1 ints from :%s:",buf);
 
 		/* how many elements per row of this type? */
 		*quant = *quant * returnElementRowSize(type);
@@ -1432,6 +1446,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			} else { 
 				retint=sscanf (buf,"%f",fp);
 			}
+			if (retint != 1) ConsoleMessage ("ScanValtoBuffer: can not read 1 number from :%s:",buf);
 
 			/* go to next number */
 			while (*buf >' ') buf++;
@@ -1467,6 +1482,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		/* scan to start of element count, and read it in.*/
 		while (*buf==' ') buf++;
 		retint=sscanf (buf,"%d",&maxele);
+		if (retint != 1) ConsoleMessage ("ScanValtoBuffer: can not read 1 number from :%s:",buf);
 		while (*buf!=' ') buf++;
 
 		/* is this a set1Value, or a setValue */
@@ -1474,6 +1490,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			/* is the range ok? for set1Value, we only replace, do not expand. */
 			while (*buf==' ') buf++;
 			retint=sscanf (buf,"%d;%d",&thisele,&thissize);
+			if (retint != 2) ConsoleMessage ("ScanValtoBuffer: can not read 2 number from :%s:",buf);
 			/* printf ("this element %d has len %d MFStr size %d \n",thisele,thissize, strptr->n); */
 
 			if (maxele < strptr->n) {
@@ -1505,6 +1522,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	
 				while (*buf==' ') buf++;
 				retint=sscanf (buf,"%d;%d",&thisele,&thissize);
+				if (retint != 2) ConsoleMessage ("ScanValtoBuffer: can not read 2 number from :%s:",buf);
 				/*printf ("this element %d has size %d\n",thisele,thissize);*/
 	
 				/* scan to start of string*/
@@ -1544,6 +1562,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		while (*buf == ' ') buf++;
 
 		retint=sscanf (buf,"%d",&thissize);
+		if (retint != 1) ConsoleMessage ("ScanValtoBuffer: can not read 1 number from :%s:",buf);
 		/* printf ("this SFStr size %d \n",thissize);  */
 
 		/* scan to start of string*/
