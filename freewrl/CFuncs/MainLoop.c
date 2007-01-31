@@ -894,6 +894,7 @@ void do_keyPress(const char kp, int type) {
 			case 'c': {be_collision = !be_collision; 
 					setMenuButton_collision(be_collision); break; }
 			case 'v': {Next_ViewPoint(); break;}
+			case 'b': {Prev_ViewPoint(); break;}
 			case 's': {setSnapshot(); break;}
 			default: {handle_key(kp);}
 
@@ -1404,9 +1405,29 @@ void handle_aqua(const int mev, const unsigned int button, const float x, const 
         }
 }
 void setIsPlugin() {
+	FILE* tmpfile;
+	char tmppath[512];
         isMacPlugin = TRUE;
-        //setUseCParser (0);
         setUseShapeThreadIfPossible(0);
+		
+	// Save local working directory
+	/*
+	system("pwd > /tmp/freewrl_filename");
+	tmpfile = fopen("/tmp/freewrl_filename", "r");
+	
+	if (tmpfile) {
+		fgets(tmppath, 512, tmpfile);
+	}
+	BrowserFullPath = strdup(tmppath);	
+	fclose(tmpfile);
+	//system("rm /tmp/freewrl_filename");	
+	tmpfile = fopen("/tmp/after", "w");
+	if (tmpfile) {
+		fprintf(tmpfile, "%s\n", BrowserFullPath);
+	}
+	fclose(tmpfile);
+	*/
+	
 }
 void createContext(CGrafPtr grafPtr) {
 AGLPixelFormat  fmt;
