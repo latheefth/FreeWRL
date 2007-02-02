@@ -22,6 +22,11 @@
 */
 #include "expat.h"
 
+/* If XMLCALL isn't defined, use empty one */
+#ifndef XMLCALL
+ #define XMLCALL
+#endif /* XMLCALL */
+
 /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
 #ifdef XML_LARGE_SIZE
 #if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
