@@ -1,6 +1,8 @@
 For 1.18.14:
 	- fixed material transparency in VRML Proto expansions
 
+	- added initial ReWire (EAI in C) support.
+
 For 1.18.13:
 	- browser plugin code manipulation - improve loading of secondary files on local
 	  (non-networked) machines.

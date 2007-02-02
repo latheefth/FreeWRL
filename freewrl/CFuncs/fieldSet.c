@@ -519,26 +519,36 @@ int findFieldInFIELDNAMES(char *field) {
 }
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
-int findRoutedFieldInFIELDNAMES (char *field, int fromTo) {
+/* returns the FIELDNAMES index. */
+int findRoutedFieldInFIELDNAMES (struct X3D_Node * node, char *field, int fromTo) {
 	int retval;
 	char mychar[200];
+	int a,b,c;
 
+#define FIELDCHECK(fld) \
+	if (retval >=0) { \
+		findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], retval,&a,&b,&c); \
+		/* did this return any of the ints as != -1? */ \
+		/* printf ("     findRoutedField for field %s, nodetype %s is %d\n",fld,stringNodeType(node->_nodeType),a); */ \
+		if (a != -1) return retval;  /* found it! */ \
+	} 
+
+	/* step 1. try the field as is. */
 	retval = findFieldInFIELDNAMES(field);
-	if (retval == -1) {
-		/* try removing the "set_" or "_changed" */
-		strncpy (mychar, field, 100);
-		if (fromTo != 0) {
-			if (strlen(field) > 4)
-				retval = findFieldInFIELDNAMES(&mychar[4]);
-		} else {
-			if (strlen(field) > strlen("_changed")) {
-				mychar[strlen(field) - strlen("_changed")] = '\0';
-				retval = findFieldInFIELDNAMES(mychar);
-			}
+	FIELDCHECK (field)
+
+	/* try removing the "set_" or "_changed" */
+	strncpy (mychar, field, 100);
+	if (fromTo != 0) {
+		if (strlen(field) > 4)
+			retval = findFieldInFIELDNAMES(&mychar[4]);
+	} else {
+		if (strlen(field) > strlen("_changed")) {
+			mychar[strlen(field) - strlen("_changed")] = '\0';
+			retval = findFieldInFIELDNAMES(mychar);
 		}
-
-
 	}
+	FIELDCHECK (mychar)
 
 	return retval;
 }
@@ -610,7 +620,10 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 		return;
 	}
 	if (*x == -1) {
+		#ifdef  SETFIELDVERBOSE
 		printf ("did not find field %d in OFFSETS\n",field);
+		#endif
+
 		*coffset = -1; *ctype = -1, *ckind = -1;
 		return;
 	}

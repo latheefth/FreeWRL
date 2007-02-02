@@ -280,9 +280,9 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 		myField = findFieldInALLFIELDNAMES("children");
 	} else {
 		/* try finding it, maybe with a "set_" or "changed" removed */
-		myField = findRoutedFieldInFIELDNAMES(ctmp,0);
+		myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,0);
 		if (myField == -1) 
-			myField = findRoutedFieldInFIELDNAMES(ctmp,1);
+			myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,1);
 	}
 	myofs = NODE_OFFSETS[nodePtr->_nodeType];
 

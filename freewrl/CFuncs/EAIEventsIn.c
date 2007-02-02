@@ -652,7 +652,7 @@ int getEAINodeAndOffset (char *bufptr, uintptr_t *Node, int *FieldInt, int fromt
 	int rv;
 	char *x;
 	char fieldTemp[2000];
-	struct X3D_Box *sn;
+	struct X3D_Node *sn;
 
 	rv = TRUE;
 	sscanf (bufptr, "%d", Node);
@@ -664,7 +664,7 @@ int getEAINodeAndOffset (char *bufptr, uintptr_t *Node, int *FieldInt, int fromt
 	while (*bufptr > ' ') { *x = *bufptr; x++; bufptr++;}
 	*x = '\0';
 
-	*FieldInt = findRoutedFieldInFIELDNAMES(fieldTemp,fromto);
+	*FieldInt = findRoutedFieldInFIELDNAMES(sn,fieldTemp,fromto);
 
 	if (*FieldInt < 0) {
 		printf ("EAIEventsIn: trouble finding field %s of %s\n",

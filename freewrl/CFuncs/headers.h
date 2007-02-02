@@ -1124,7 +1124,7 @@ extern int currentFileVersion;
 int findFieldInFIELDNAMES(char *field);
 int findFieldInFIELDTYPES(char *field);
 int findFieldInX3DACCESSORS(char *field);
-int findRoutedFieldInFIELDNAMES (char *field, int fromTo);
+int findRoutedFieldInFIELDNAMES (struct X3D_Node *node, char *field, int fromTo);
 int findNodeInNODES(char *node);
 int findFieldInALLFIELDNAMES(char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);

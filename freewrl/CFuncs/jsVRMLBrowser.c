@@ -725,9 +725,9 @@ printf ("must fix doVRMLRoute\n");
 			myField = findFieldInALLFIELDNAMES("children");
 		} else {
 			/* try finding it, maybe with a "set_" or "changed" removed */
-			myField = findRoutedFieldInFIELDNAMES(_cstr[0],0);
+			myField = findRoutedFieldInFIELDNAMES(fromNode,_cstr[0],0);
 			if (myField == -1) 
-				myField = findRoutedFieldInFIELDNAMES(_cstr[0],1);
+				myField = findRoutedFieldInFIELDNAMES(fromNode,_cstr[0],1);
 		}
 
 		/* find offsets, etc */
@@ -739,9 +739,9 @@ printf ("must fix doVRMLRoute\n");
 			myField = findFieldInALLFIELDNAMES("children");
 		} else {
 			/* try finding it, maybe with a "set_" or "changed" removed */
-			myField = findRoutedFieldInFIELDNAMES(_cstr[1],0);
+			myField = findRoutedFieldInFIELDNAMES(toNode,_cstr[1],0);
 			if (myField == -1) 
-				myField = findRoutedFieldInFIELDNAMES(_cstr[1],1);
+				myField = findRoutedFieldInFIELDNAMES(toNode,_cstr[1],1);
 		}
 
 		/* find offsets, etc */
