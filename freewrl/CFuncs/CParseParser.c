@@ -173,7 +173,7 @@ static void parser_scopeOut_PROTO()
  indexT i;
  /* Do not delete the ProtoDefinitions, as they are referenced in the scene
   * graph!  TODO:  How to delete them properly? */
- printf("%d %d %d\n", vector_size(PROTOs), lexer_getProtoPopCnt(), vector_size(userNodeTypesVec));
+
  vector_popBackN(struct ProtoDefinition*, PROTOs, lexer_getProtoPopCnt());
  lexer_scopeOut_PROTO();
 }
@@ -666,9 +666,16 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
     NULL);
   assert(ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
 
+  vrmlNodeT node;
+  if(!parser_node(me, &node))
+   PARSE_ERROR("Expected node in DEF statement!\n")
+  vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), ind)=node;
+
+  /*
   if(!parser_node(me, &vector_get(struct X3D_Node*,
    stack_top(struct Vector*, DEFedNodes), ind)))
    PARSE_ERROR("Expected node in DEF statement!\n")
+  */
 
   *ret=vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), ind);
   return TRUE;
