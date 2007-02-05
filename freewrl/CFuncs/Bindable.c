@@ -661,7 +661,8 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 			for(v=0; v<gndColCt-1; v++) {
 				c1 = &gndCol[v];
 				c2 = &gndCol[v+1];
-				va2 = PI - gndAng[v];
+				if (v>=gndAngCt) va2 = PI; /* bounds check */
+				else va2 = PI - gndAng[v];
 
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
