@@ -91,6 +91,26 @@ int waitForData(int sock) {
 	} while (!retval);
 }
 
+void  requestPluginPrint(int to_plugin, const char *msg) {
+        size_t len = 0, ulen = 0, bytes = 0;
+	urlRequest request;
+
+        request.notifyCode = 2; /* ask for print service */
+
+        len = FILENAME_MAX * sizeof(char);
+        memset(request.url, 0, len);
+
+        if (isMacPlugin) {
+                ulen = strlen(msg) + 1;
+                memmove(request.url, msg, ulen);
+        }
+
+        bytes = sizeof(urlRequest);
+
+        if (write(to_plugin, (urlRequest *) &request, bytes) < 0) {
+        }
+}
+
 char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char *url) { 
 	size_t len = 0, ulen = 0, bytes = 0;
 	urlRequest request;
