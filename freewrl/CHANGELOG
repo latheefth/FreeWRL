@@ -1,7 +1,18 @@
 For 1.18.14:
+	- reading large files - malloc now bufsize<<=1 to make reading linear, not quadratic.
+	  (Charles Horn, Daniel Kraft)
+
+	- VRML parser malloc bug for storing values in Vectors fixed.
+	  (Daniel Kraft)
+
 	- fixed material transparency in VRML Proto expansions
+	  (John Stewart)
 
 	- added initial ReWire (EAI in C) support.
+	  (John Stewart)
+
+	- OS X UI issues 
+	  (Sarah Dumoulin)
 
 For 1.18.13:
 	- browser plugin code manipulation - improve loading of secondary files on local
