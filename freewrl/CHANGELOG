@@ -1,4 +1,8 @@
 For 1.18.14:
+	- X3DParser - SFStrings were not being copied correctly.
+
+	- Textures - if <=256x256, GL_LINEAR, else GL_NEAREST
+
 	- Background - fixed bug where groundColors > #groundAngles - make last angle PI.
 	  (John Stewart)
 

@@ -59,7 +59,6 @@ struct textureTableIndexStruct {
 	struct Multi_Int32 *pixelData;
         GLint Src;
         GLint Trc;
-        GLint Image;
 };
 
 /* each block of allocated code contains this... */
@@ -143,8 +142,7 @@ void store_tex_info(
 		int depth,
 		int x,
 		int y,
-		unsigned char *ptr,
-		GLint Image);
+		unsigned char *ptr);
 
 void __reallyloadPixelTexure(void);
 void __reallyloadImageTexture(void);
@@ -766,15 +764,13 @@ void store_tex_info(
 		int depth,
 		int x,
 		int y,
-		unsigned char *ptr,
-		GLint Image) {
+		unsigned char *ptr) {
 
 		me->frames=1;
 		me->depth=depth;
 		me->x = x;
 		me->y = y;
 		me->texdata = ptr;
-		me->Image = Image;
 }
 
 /* do we do 1 texture, or is this a series of textures, requiring final binding
@@ -841,15 +837,21 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		/* save this to determine whether we need to do material node
 		  within appearance or not */
 		
-		/* Image should be GL_LINEAR for pictures, GL_NEAREST for pixelTs */
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, me->Image);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, me->Image);
-	
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, me->Src);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, me->Trc);
 		depth = me->depth;
 		x = me->x;
 		y = me->y;
+
+		/* Image should be GL_LINEAR for pictures, GL_NEAREST for pixelTs */
+		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
+		if ((x<=256) || (y<=256)) {
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		} else {
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
 	
 		switch (depth) {
 			case 1: iformat = GL_LUMINANCE;
@@ -1431,7 +1433,7 @@ void __reallyloadPixelTexure() {
 
 			iptr++;
 		}
-		store_tex_info(loadThisTexture, (int)depth,(int)wid,(int)hei,texture, GL_NEAREST);
+		store_tex_info(loadThisTexture, (int)depth,(int)wid,(int)hei,texture);
 	}
 
 }
@@ -1589,8 +1591,7 @@ void __reallyloadImageTexture() {
 
 		store_tex_info(loadThisTexture,
 			cinfo.output_components, (int)cinfo.output_width,
-			(int)cinfo.output_height,image_data,
-			GL_LINEAR);
+			(int)cinfo.output_height,image_data);
 	} else {
 		if (rc != 0) {
 		releaseTexture(loadThisTexture);
@@ -1614,8 +1615,7 @@ void __reallyloadImageTexture() {
 
 			store_tex_info (loadThisTexture, image_channels,
 				(int)image_width, (int)image_height,
-				image_data,
-				GL_LINEAR);
+				image_data);
 		}
 		readpng_cleanup (FALSE);
 	}
@@ -1637,7 +1637,7 @@ void __reallyloadMovieTexture () {
 	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
 	#endif
 
-	store_tex_info (loadThisTexture, depth, x, y, ptr, GL_LINEAR);
+	store_tex_info (loadThisTexture, depth, x, y, ptr);
 
 	/* and, manually put the frameCount in. */
 	loadThisTexture->frames = frameCount;

@@ -846,7 +846,14 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 
 		case FIELDTYPE_SFString: 
 			{
+			/* first, can we destroy the old value?? */
+			memcpy (&mysv,nst,datasize);
+			mysv->len=0;
+			FREE_IF_NZ(mysv->strptr);
+
+			/* create new value, and copy its pointer over. */
 			mysv  = newASCIIString(value); 
+			memcpy (nst, &mysv, datasize);
 			break; }
 			
 		case FIELDTYPE_MFString: {
