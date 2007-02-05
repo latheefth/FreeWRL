@@ -190,7 +190,6 @@ void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
 	}
 
 	switch (dest->datatype) {
-		case X3D_SFUNKNOWN:
 		case X3D_SFBOOL:
 		case X3D_SFFLOAT:
 		case X3D_SFTIME:

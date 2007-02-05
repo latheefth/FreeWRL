@@ -17,6 +17,37 @@ double mytime;
 
 char readbuffer[2048];
 
+/* handle a callback - this should get a line like:
+ EV
+1170697988.125835
+31
+0.877656
+EV_EOT
+*/
+
+static void handle_callback (char *line) {
+	double evTime;
+	int evIndex;
+
+	if (strstr(line,"EV_EOT") == NULL) {
+		printf ("handle_callback - no eot in string %s\n",line);
+	} else {
+		/* skip past the "EV" and get to the event time */
+		while ((!isdigit(*line)) && (*line != '\0')) line++; 
+		sscanf (line, "%lf",&evTime);
+
+		/* get the event number */
+		while (!iscntrl(*line)) line++; while (iscntrl(*line)) line++;
+		sscanf (line,"%d",&evIndex);
+
+		/* get to the data */
+		while (!iscntrl(*line)) line++; while (iscntrl(*line)) line++;
+
+		#ifdef VERBOSE
+		printf ("event time %lf index %d data :%s:\n",evTime, evIndex, line);
+		#endif
+	}
+}
 
 /* count the number of numbers on a line - useful for MFNode return value mallocs */
 int _X3D_countWords(char *ptr) {
@@ -59,6 +90,8 @@ void freewrlReadThread(void)  {
 			/* if this is normal data - signal that it is received */
 			if (strncmp ("RE",readbuffer,2) == 0) {
 				receivedData = TRUE;
+			} else if (strncmp ("EV",readbuffer,2) == 0) {
+				handle_callback(readbuffer);
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
 				exit(0);
 			} else {
@@ -244,7 +277,8 @@ char * _RegisterListener (X3D_EventOut *node, int adin) {
 	char myBuffer[2048];	
 	
 
-printf ("in RegisterListener, we have queryno %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
+printf ("in RegisterListener, we have query %d advise index %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
+		_X3D_queryno,
                 adin, node->nodeptr, node->offset, node->datatype, node->datasize, node->field);
 
 /*

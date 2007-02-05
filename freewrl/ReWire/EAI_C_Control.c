@@ -23,7 +23,7 @@ void X3D_initialize(char *hostname) {
 	bcopy((char *)server->h_addr, 
 		 (char *)&serv_addr.sin_addr.s_addr,
 		 server->h_length);
-	serv_addr.sin_port = htons(X3DBASESOCKET);
+	serv_addr.sin_port = htons(EAIBASESOCKET);
 	if (connect(_X3D_FreeWRL_FD,&serv_addr,sizeof(serv_addr)) < 0) 
 		X3D_error("ERROR connecting");
 

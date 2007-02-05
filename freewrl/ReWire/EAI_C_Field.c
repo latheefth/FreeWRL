@@ -3,7 +3,6 @@
 
 char *fieldTypeName (char field) {
 	switch (field) {
-		case X3D_SFUNKNOWN: return "INTERNAL ERROR";
 		case X3D_SFBOOL: return "SFBool";
 		case X3D_SFCOLOR: return "SFColor";
 		case X3D_SFFLOAT: return "SFFloat";
