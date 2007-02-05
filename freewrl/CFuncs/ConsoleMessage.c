@@ -23,6 +23,7 @@ for loosing the reference. Also, most if it is found in
 **********************************************/
 
 #include "headers.h"
+#include "PluginSocket.h"
 #include <stdarg.h>
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
@@ -30,7 +31,9 @@ for loosing the reference. Also, most if it is found in
 
 static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
+extern int _fw_browser_plugin;
 
+extern int isMacPlugin;
 
 int ConsoleMessage(const char *fmt, ...) {
 	va_list ap;
@@ -147,7 +150,11 @@ int ConsoleMessage(const char *fmt, ...) {
 #ifdef AQUA
 		printf (FWbuffer);
 		printf ("\n");
-	setConsoleMessage(FWbuffer);
+	if (!isMacPlugin) {
+		setConsoleMessage(FWbuffer);
+	} else {
+		requestPluginPrint(_fw_browser_plugin, FWbuffer);
+	}
 #else
 	/* are we running under Motif or Gtk? */
 	#ifndef HAVE_NOTOOLKIT
