@@ -43,74 +43,6 @@ void handleRoute (char command, char *bufptr, char *buf, int repno);
 void handleGETNODE (char *bufptr, char *buf, int repno);
 void handleGETROUTES (char *bufptr, char *buf, int repno);
 
-/* get how many bytes in the type */
-int returnElementLength(int type) {
-	  switch (type) {
-		case FIELDTYPE_SFTime :
-    		case FIELDTYPE_MFTime : return sizeof(double); break;
-    		case FIELDTYPE_MFInt32: return sizeof(int)   ; break;
-		case FIELDTYPE_FreeWRLPTR:
-    		case FIELDTYPE_SFNode :
-    		case FIELDTYPE_MFNode : return sizeof(void *); break;
-	  	default     : {}
-	}
-	return sizeof(float) ; /* turn into byte count */
-}
-
-/* for passing into CRoutes/CRoutes_Register */
-/* the numbers match the "sub clength" in VRMLFields.pm, and the getClen in VRMLC.pm */
-int returnRoutingElementLength(int type) {
-	  switch (type) {
-		case FIELDTYPE_SFTime:	return sizeof(double); break;
-		case FIELDTYPE_SFBool:
-		case FIELDTYPE_SFString:
-		case FIELDTYPE_SFInt32:	return sizeof(int); break;
-		case FIELDTYPE_SFFloat:	return sizeof (float); break;
-		case FIELDTYPE_SFVec2f:	return sizeof (struct SFVec2f); break;
-		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_SFColor: 	return sizeof (struct SFColor); break;
-		case FIELDTYPE_SFColorRGBA:
-		case FIELDTYPE_SFRotation:return sizeof (struct SFRotation); break;
-		case FIELDTYPE_SFNode:	return sizeof (uintptr_t); break;
-		case FIELDTYPE_MFNode:	return -10; break;
-		case FIELDTYPE_SFImage:	return -12; break;
-		case FIELDTYPE_MFString: 	return -13; break;
-		case FIELDTYPE_MFFloat:	return -14; break;
-		case FIELDTYPE_MFColorRGBA:
-		case FIELDTYPE_MFRotation: return -15; break;
-		case FIELDTYPE_MFBool:
-		case FIELDTYPE_MFInt32:	return -16; break;
-		case FIELDTYPE_MFColor:	return -17; break;
-		case FIELDTYPE_MFVec2f:	return -18; break;
-		case FIELDTYPE_MFVec3f:	return -19; break;
-
-                default:       return type;
-	}
-} 
-
-
-
-/* how many numbers/etc in an array entry? eg, SFVec3f = 3 - 3 floats */
-/*		"" ""			eg, MFVec3f = 3 - 3 floats, too! */
-int returnElementRowSize (int type) {
-	switch (type) {
-		case FIELDTYPE_SFVec2f:
-		case FIELDTYPE_MFVec2f:
-			return 2;
-		case FIELDTYPE_SFColor:
-		case FIELDTYPE_MFColor:
-		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_MFVec3f:
-			return 3;
-		case FIELDTYPE_SFRotation:
-		case FIELDTYPE_MFRotation:
-		case FIELDTYPE_SFColorRGBA:
-		case FIELDTYPE_MFColorRGBA:
-			return 4;
-	}
-	return 1;
-
-}
 
 /* copy new scanned in data over to the memory area in the scene graph. */
 
@@ -1010,25 +942,6 @@ void createLoadURL(char *bufptr) {
 }
 
 
-
-/* mimic making newSVpv, but *not* using Perl, as this is a different thread */
-/* see Extending and Embedding Perl, Jenness, Cozens pg 75-77 */
-struct Uni_String *newASCIIString(char *str) {
-	struct Uni_String *retval;
-
-	#ifdef EAIVERBOSE
-	printf ("newASCIIString for :%s:\n",str);
-	#endif
-
-	/* the returning Uni_String is here. Make blank struct */
-	retval = malloc (sizeof (struct Uni_String));
-
-	retval->strptr  = malloc (strlen (str)+1);
-	strncpy(retval->strptr,str,strlen(str)+1);
-	retval->len = strlen(str)+1;
-
-	return retval;
-}
 
 /* if we have a LOADURL command (loadURL in java-speak) we call Anchor code to do this.
    here we tell the EAI code of the success/fail of an anchor call, IF the EAI is 

@@ -25,30 +25,6 @@ char readbuffer[2048];
 EV_EOT
 */
 
-static void handle_callback (char *line) {
-	double evTime;
-	int evIndex;
-
-	if (strstr(line,"EV_EOT") == NULL) {
-		printf ("handle_callback - no eot in string %s\n",line);
-	} else {
-		/* skip past the "EV" and get to the event time */
-		while ((!isdigit(*line)) && (*line != '\0')) line++; 
-		sscanf (line, "%lf",&evTime);
-
-		/* get the event number */
-		while (!iscntrl(*line)) line++; while (iscntrl(*line)) line++;
-		sscanf (line,"%d",&evIndex);
-
-		/* get to the data */
-		while (!iscntrl(*line)) line++; while (iscntrl(*line)) line++;
-
-		#ifdef VERBOSE
-		printf ("event time %lf index %d data :%s:\n",evTime, evIndex, line);
-		#endif
-	}
-}
-
 /* count the number of numbers on a line - useful for MFNode return value mallocs */
 int _X3D_countWords(char *ptr) {
 	int ct;
@@ -91,7 +67,7 @@ void freewrlReadThread(void)  {
 			if (strncmp ("RE",readbuffer,2) == 0) {
 				receivedData = TRUE;
 			} else if (strncmp ("EV",readbuffer,2) == 0) {
-				handle_callback(readbuffer);
+				_handleFreeWRLcallback(readbuffer);
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
 				exit(0);
 			} else {
@@ -277,9 +253,11 @@ char * _RegisterListener (X3D_EventOut *node, int adin) {
 	char myBuffer[2048];	
 	
 
-printf ("in RegisterListener, we have query %d advise index %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
+	#ifdef VERBOSE
+	printf ("in RegisterListener, we have query %d advise index %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
 		_X3D_queryno,
                 adin, node->nodeptr, node->offset, node->datatype, node->datasize, node->field);
+	#endif
 
 /*
  EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
@@ -290,7 +268,7 @@ printf ("in RegisterListener, we have query %d advise index %d nodeptr %d offset
 		REGLISTENER, 
 		node->nodeptr,
 		node->offset,
-		node->datatype,
+		mapFieldTypeToEAItype(node->datatype),
 		node->datasize);
 
 	myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),TRUE);

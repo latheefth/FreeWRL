@@ -10,34 +10,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define X3D_SFBOOL 	EAI_SFBool
-#define X3D_SFCOLOR  	EAI_SFColor
-#define X3D_SFFLOAT 	EAI_SFFloat
-#define X3D_SFTIME 	EAI_SFTime
-#define X3D_SFINT32 	EAI_SFInt32
-#define X3D_SFSTRING 	EAI_SFString
-#define X3D_SFNODE 	EAI_SFNode
-#define X3D_SFROTATION 	EAI_SFRotation
-#define X3D_SFVEC2F 	EAI_SFVec2f
-#define X3D_SFIMAGE 	EAI_SFImage
-#define X3D_MFCOLOR 	EAI_MFColor
-#define X3D_MFFLOAT 	EAI_MFFloat
-#define X3D_MFTIME 	EAI_MFTime
-#define X3D_MFINT32 	EAI_MFInt32
-#define X3D_MFSTRING 	EAI_MFString
-#define X3D_MFNODE 	EAI_MFNode
-#define X3D_MFROTATION 	EAI_MFRotation
-#define X3D_MFVEC2F 	EAI_MFVec2f
-#define X3D_MFVEC3F 	EAI_MFVec3f
-#define X3D_SFVEC3F 	EAI_SFVec3f
-#define X3D_MFCOLORRGBA 	EAI_MFColorRGBA
-#define X3D_SFCOLORRGBA 	EAI_SFColorRGBA
-#define X3D_MFBOOL 	EAI_MFBool
-#define X3D_FREEWRLPTR 	EAI_FreeWRLPTR
-#define X3D_MFVEC3D 	EAI_MFVec3D
-#define X3D_SFVEC2D 	EAI_SFVec2D
-#define X3D_SFVEC3D 	EAI_SFVec3D
-
 typedef struct { int type; int value; } _intX3D_SFBool;
 typedef struct { int type; float value; } _intX3D_SFFloat;
 typedef struct { int type; float value; } _intX3D_SFTime;
@@ -191,6 +163,7 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2);
 char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype);
 char *_X3D_makeShortCommand (char command);
 void _X3D_sendEvent (char command, char *string);
+void _handleFreeWRLcallback(char *command);
 
 void X3D_error(char *msg);
 char *fieldTypeName(char type);

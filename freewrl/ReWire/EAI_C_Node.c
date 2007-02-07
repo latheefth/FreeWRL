@@ -2,9 +2,6 @@
 
 #include "Eai_C.h"
 
-/* advise listing */
-int AdviseIndex = 0;
-
 /* get a node pointer */
 X3D_Node *X3D_getNode (char *name) {
 	char *ptr;
@@ -13,7 +10,7 @@ X3D_Node *X3D_getNode (char *name) {
 	X3D_Node *retval;
 
 	retval = malloc (sizeof(X3D_Node));
-	retval->type = X3D_SFNODE;
+	retval->type = FIELDTYPE_SFNode;
 	retval->X3D_SFNode.SFNodeType = '\0';
 
 	retval->X3D_SFNode.adr = 0;
@@ -58,12 +55,12 @@ X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
 	retval->field = NULL;
 	retval->scripttype = 0;
 
-	if((node->type != X3D_SFNODE) && (node->type != X3D_MFNODE)) {
-		printf ("X3D_getEvent, expected a node, got a %s\n",fieldTypeName(node->type));
+	if((node->type != FIELDTYPE_SFNode) && (node->type != FIELDTYPE_MFNode)) {
+		printf ("X3D_getEvent, expected a node, got a %s\n",FIELDTYPES[node->type]);
 		exit (1);
 	}
 
-	if (node->type == X3D_SFNODE) {
+	if (node->type == FIELDTYPE_SFNode) {
 		adr = node->X3D_SFNode.adr;
 	} else {
 		if (node->X3D_MFNode.n != 1) {
@@ -90,7 +87,6 @@ X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
 	printf ("getEvent: ptr is %s\n",ptr);
 	*/
 
-	printf ("getEvent: ptr is %s\n",ptr);
 	/* eg: ptr is 161412616 116 0 q 0 eventIn */
 	if (sscanf(ptr,"%d %d %d", &origPtr, &offset, &nds) != 3) {
 		printf ("error in getEventIn\n");
@@ -117,7 +113,7 @@ X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
 	SKIP_CONTROLCHARS	/* should now be at start of the type */
 
 
-	retval->datatype = *ptr;
+	retval->datatype = mapEAItypeToFieldType(*ptr);
 	SKIP_IF_GT_SPACE
 	SKIP_CONTROLCHARS
 
@@ -185,43 +181,19 @@ void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
 	if (dest->datatype != node->type) {
 		printf ("X3D_setValue mismatch: event type %s, value type %s\n", 
 				//stringFieldType(dest->datatype), stringFieldType(node->type));
-				fieldTypeName(dest->datatype), fieldTypeName(node->type));
+				FIELDTYPES[dest->datatype], FIELDTYPES[node->type]);
 		return;
 	}
 
 	switch (dest->datatype) {
-		case X3D_SFBOOL:
-		case X3D_SFFLOAT:
-		case X3D_SFTIME:
-		case X3D_SFINT32:
-		case X3D_SFSTRING:
-		case X3D_SFNODE:
-		case X3D_SFROTATION:
-		case X3D_SFVEC2F:
-		case X3D_SFIMAGE:
-		case X3D_MFCOLOR:
-		case X3D_MFFLOAT:
-		case X3D_MFTIME:
-		case X3D_MFINT32:
-		case X3D_MFSTRING:
-		case X3D_MFROTATION:
-		case X3D_MFVEC2F:
-		case X3D_MFVEC3F:
-		case X3D_MFCOLORRGBA:
-		case X3D_SFCOLORRGBA:
-		case X3D_MFBOOL:
-		case X3D_FREEWRLPTR:
-		case X3D_MFVEC3D:
-		case X3D_SFVEC2D:
-		case X3D_SFVEC3D:
 		default:
-		printf ("XXX - setValue, not implemented yet for type '%s'\n",fieldTypeName(dest->datatype));
+		printf ("XXX - setValue, not implemented yet for type '%s'\n",FIELDTYPES[dest->datatype]);
 		return;
 
-		case X3D_SFVEC3F:
-		case X3D_SFCOLOR:
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor:
 			sprintf (myline, "%c %d %d %d %f %f %f\n",
-				dest->datatype,
+				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFVec3f.c[0],
 				node->X3D_SFVec3f.c[1],
@@ -230,7 +202,7 @@ void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
 		break;
 
 			
-		case X3D_MFNODE:
+		case FIELDTYPE_MFNode:
 			#ifdef VERBOSE
 			printf ("sending in %d nodes\n",node->X3D_MFNode.n);
 			#endif
@@ -328,7 +300,7 @@ X3D_Node *X3D_createVrmlFromString(char *str) {
 	uintptr_t *mytmp;
 	
         retval = malloc (sizeof(X3D_Node));
-	retval->type = X3D_MFNODE;
+	retval->type = FIELDTYPE_MFNode;
 	retval->X3D_MFNode.n = 0;
 
 	#ifdef VERBOSE
@@ -376,22 +348,3 @@ X3D_Node *X3D_createVrmlFromString(char *str) {
 	return retval;	
 }
 
-
-int X3DAdvise (X3D_EventOut *node, void *fn) {
-
-	/* Browser.RegisterListener (f, userData, nodeptr,offset,datatype , datasize, EventType); */
-
-	/* save the data, and the node, so that if this listener is called, we can call
-		the function and pass it the correct X3D_Node */
-
-printf ("in X3DAdvise, we have queryno %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
-		AdviseIndex, node->nodeptr, node->offset, node->datatype, node->datasize, node->field);
-
-	_RegisterListener (node,AdviseIndex);
-	AdviseIndex++;
- 
-/*
- EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
-                " " + datasize + "\n"); 
-*/
-}
