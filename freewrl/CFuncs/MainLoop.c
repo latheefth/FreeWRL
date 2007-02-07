@@ -49,6 +49,7 @@
 pthread_t DispThrd = 0;
 char* threadmsg;
 
+
 /* linewidth for lines and points - passed in on command line */
 float gl_linewidth = 1.0;
 
@@ -886,6 +887,7 @@ void do_keyPress(const char kp, int type) {
 			case 'f': { set_viewer_type (EXFLY); break; }
 			case 'h': { toggle_headlight(); break;}
 			case '/': { print_viewer(); break; }
+			case '.': { display_status = !display_status; break; }
 			case 'q': { if (!RUNNINGASPLUGIN) {
 					  doQuit();
 				    }
@@ -1280,6 +1282,10 @@ void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
 	int i;
+
+	if (isMacPlugin) {
+		clear_status();
+	}
 	#ifdef AQUA
 	pluginRunning = FALSE;
 	#endif
@@ -1293,7 +1299,7 @@ void closeFreewrl() {
 
         if (!isMacPlugin) {
                 set_viewer_type (EXAMINE);
-        }
+	}
         glFlush();
         glFinish();
         screenWidth = screenHeight = 1;
@@ -1407,6 +1413,7 @@ void handle_aqua(const int mev, const unsigned int button, const float x, const 
 void setIsPlugin() {
 	FILE* tmpfile;
 	char tmppath[512];
+
         isMacPlugin = TRUE;
         setUseShapeThreadIfPossible(0);
 		

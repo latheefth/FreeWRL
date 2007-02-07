@@ -151,8 +151,10 @@ int ConsoleMessage(const char *fmt, ...) {
 		printf (FWbuffer);
 		printf ("\n");
 	if (!isMacPlugin) {
-		setConsoleMessage(FWbuffer);
+		update_status("ERROR: Check console log");
+		aquaSetConsoleMessage(FWbuffer);
 	} else {
+		update_status(FWbuffer);
 		requestPluginPrint(_fw_browser_plugin, FWbuffer);
 	}
 #else

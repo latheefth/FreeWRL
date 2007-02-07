@@ -407,6 +407,7 @@ extern void * this_textureTransform;  /* do we have some kind of textureTransfor
 
 extern int isTextureLoaded(int texno);
 extern int displayDepth;
+extern int display_status;
 
 extern int _fw_pipe, _fw_FD;
 extern int _fw_browser_plugin;
@@ -608,6 +609,10 @@ extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */
 extern uintptr_t *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
+
+void render_status(void);
+void update_status(char* msg);
+void clear_status();
 
 /* menubar stuff */
 void frontendUpdateButtons(void); /* used only if we are not able to multi-thread OpenGL */

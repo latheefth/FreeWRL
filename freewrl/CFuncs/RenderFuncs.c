@@ -66,6 +66,7 @@ int render_proximity;
 int render_collision;
 
 int be_collision = 0;	/* do collision detection? */
+int display_status = 1;
 
 int found_vp; /*true when viewpoint found*/
 
@@ -584,6 +585,14 @@ render_hier(void *p, int rwhat)
 		/* we have no geometry yet, sleep for a tiny bit */
 		usleep(1000);
 		return;
+	}
+
+	if (render_geom) {
+		if (display_status) {
+			//usleep(50000);
+			printf("about to call render status\n");
+			render_status();
+		}
 	}
 
 	#ifdef RENDERVERBOSE

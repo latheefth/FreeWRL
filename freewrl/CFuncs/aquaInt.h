@@ -15,6 +15,6 @@ void setMenuButton_texSize(int size);
 void setMenuStatus(char* stat);
 void setMenuButton_headlight(int val);
 void setMenuFps(float fps);
-void setConsoleMessage(char* str);
+int aquaSetConsoleMessage(char* str);
 void setMenuButton_navModes(int type);
 void createAutoReleasePool();
