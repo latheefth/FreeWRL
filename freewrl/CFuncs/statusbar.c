@@ -21,14 +21,16 @@ void statusbar_position (void);
 
 int new_status = TRUE; 		/*  do we need to re-calculate status bar*/
 GLuint status_dlist = 0;	/*  status bar display list*/
-int MAX_STATUS_LENGTH = 256;
-char status_msg[256];
+int MAX_STATUS_LENGTH = 2000;
+char status_msg[2000];
 GLdouble initial_angle = 0.0;	/*  initial rotation after vp bind*/
 int get_angle = TRUE;		/*  record the initial angle*/
 
 /* trigger a update */
 void update_status(char* msg) {
 	strncpy(status_msg, msg, MAX_STATUS_LENGTH);
+	//sprintf(status_msg, "%s", msg);
+	//printf("msg is now %s\n", status_msg);
 	new_status = TRUE;
 }
 
@@ -93,9 +95,6 @@ void render_status () {
 	holder._nparents=0;		/*  stops boundingbox calcs from propagating*/
 	holder._nodeType=NODE_Group;/*  ensure that textureGeneration not done in render_polyrep */
 
-
-	printf("FW_rendertext with message: %s\n", status_msg);
-	//usleep(50000);
 	FW_rendertext (1,		/*  lines*/
 		NULL,			/*  Perl SV pointer*/
 		status_msg,	 	/*  text to display*/
@@ -106,7 +105,6 @@ void render_status () {
 		0.1,			/*  size*/
 		0x8827,			/*  Font, etc*/
 		&rep_);			/*  pointer to polyrep structure*/
-
 
 	/* now that we have the text, go somewhere and render it */
 	glTranslated (0.0, -1.0, -3.0);
@@ -133,5 +131,4 @@ void statusbar_position () {
 	glMatrixMode(GL_PROJECTION_MATRIX);
 	glLoadIdentity();
 	return;
-
 }
