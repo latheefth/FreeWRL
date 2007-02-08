@@ -1,4 +1,6 @@
 For 1.18.14:
+	- setting SFNodes from Javascript fixed. (was setting node to NULL)
+
 	- X3DParser - SFStrings were not being copied correctly.
 
 	- Textures - if <=256x256, GL_LINEAR, else GL_NEAREST

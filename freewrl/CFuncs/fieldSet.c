@@ -44,13 +44,12 @@ void setField_fromJavascript (uintptr_t *ptr, char *field, char *value) {
 	struct X3D_Group *group;
 
 	node = (struct X3D_Node *)ptr;
-
 	#ifdef SETFIELDVERBOSE
 	printf ("\nsetField_fromJavascript, node %d field %s value %s\n", node, field, value);
 	#endif
 	
 	/* is this a valid field? */
-	foffset = findFieldInALLFIELDNAMES(field);	
+	foffset = findRoutedFieldInFIELDNAMES(node,field,1);	
 	if (foffset < 0) {
 		printf ("setField_fromJavascript, field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
 		/* return; */

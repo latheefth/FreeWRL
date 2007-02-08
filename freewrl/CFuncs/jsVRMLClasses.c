@@ -1946,9 +1946,9 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			printf ("SFNodeConstr, cstring was NOT an object\n");
 			#endif
 
-			/* is this just an integer, eg, "0" - happens on initialization for NULL SFNodes */
+			/* is this just an integer, eg, "0" - happens on initialization for SFNodes */
 			if (JSVAL_IS_INT(argv[0])) {
-				newHandle = 0;
+				sscanf (cString,"%ld",&newHandle);
 				/* cString = strdup("empty node created in SFNodeConstr"); */
 			} else {
 
@@ -2002,9 +2002,6 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	*rval = OBJECT_TO_JSVAL(obj);
 
 	return JS_TRUE;
-
-#undef JSVRMLCLASSESVERBOSE
-
 }
 
 void
@@ -2109,7 +2106,6 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	return JS_TRUE;
 }
-
 
 /********************************************************************/
 
