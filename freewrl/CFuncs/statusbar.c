@@ -7,128 +7,47 @@
 #include <math.h>
 
 #include "headers.h"
-#include "quaternion.h"
 #include "Viewer.h"
 
-#ifdef AQUA
-#define HELPER "command-?"
-#else
-#define HELPER "?"
-#endif
+#define MYSTUFF "DEF SARAHDUMOULINJOHNSTEWARTSENSOR ProximitySensor { size 1000 1000 1000 } DEF SARAHDUMOULINJOHNSTEWARTHUD Transform { translation 0 0 10 children [ Collision { collide FALSE children [ Transform { translation 0 -0.1 -.2 children [ Shape { geometry Text { fontStyle   FontStyle { justify   \"MIDDLE\" size 0.02 } } } ] } ] } ] } ROUTE SARAHDUMOULINJOHNSTEWARTSENSOR.orientation_changed TO SARAHDUMOULINJOHNSTEWARTHUD.set_rotation ROUTE SARAHDUMOULINJOHNSTEWARTSENSOR.position_changed TO SARAHDUMOULINJOHNSTEWARTHUD.set_translation"
+int initialized = FALSE;
+uintptr_t retarr[10];
+int retsz;
+int tmp;
 
-
-void statusbar_position (void);
-
-int new_status = TRUE; 		/*  do we need to re-calculate status bar*/
-GLuint status_dlist = 0;	/*  status bar display list*/
-int MAX_STATUS_LENGTH = 2000;
-char status_msg[2000];
-GLdouble initial_angle = 0.0;	/*  initial rotation after vp bind*/
-int get_angle = TRUE;		/*  record the initial angle*/
-
+struct X3D_Text *holder = NULL;
+struct X3D_Text *lastTextNode = NULL;
+struct Uni_String *myline;
 /* trigger a update */
+
 void update_status(char* msg) {
-	strncpy(status_msg, msg, MAX_STATUS_LENGTH);
-	//sprintf(status_msg, "%s", msg);
-	//printf("msg is now %s\n", status_msg);
-	new_status = TRUE;
+	printf("create statusbar if required... msg is now %s\n", msg); 
 }
 
 void clear_status() {
-	bzero(status_msg, MAX_STATUS_LENGTH);
+	printf ("destroy statusbar node\n");
 }
 
-void render_status () {
-	struct X3D_PolyRep rep_;
-	struct X3D_IndexedFaceSet holder;
 
-	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
-	glShadeModel(GL_SMOOTH);
-	glPushMatrix();
+/* render the status bar. If it is required... */ 
+void render_status() {
+	if (!initialized) {
+		inputParse(FROMSTRING, MYSTUFF, FALSE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, FALSE);
+		initialized = TRUE;
 
-	/* perform translation and rotation for text posn */
-	statusbar_position ();
+		/* record the last Text node created, because it is ours! This is easier than
+		going through the nodes field by field in the VRML'd string */
+		holder = lastTextNode; 
 
-	/* lets do this with a display list for now. */
-	/* now, is this the same background as before??? */
-	if (status_dlist) {
-		if (!new_status) {
-			glCallList(status_dlist);
-			glPopMatrix();
-			glPopAttrib();
-			return;
-		} else {
-			glDeleteLists(status_dlist,1);
-		}
+
+		/* mimic sending in a new string into update_status */
+		holder->string.p = malloc (sizeof (struct Uni_String));
+
+		holder->string.p[0] = newASCIIString ("this is my trial status");
+		holder->string.n = 1;
+		myline = holder->string.p[0];
+	
 	}
-	status_dlist = glGenLists(1);
-	glNewList(status_dlist,GL_COMPILE_AND_EXECUTE);
-
-
-	/* we are here; compile and display a new background! */
-	//new_status = FALSE;
-
-	glDisable (GL_LIGHTING);
-	lightState(0,TRUE);
-        glColor3d(1.0,1.0,1.0);
-	glScalef(0.5,1.0, 1.0);
-
-
-	rep_.ntri = 0;
-        rep_.ccw = 0;        /* ccw field for single faced structures */
-        rep_.alloc_tri = 0; /* number of allocated triangles */
-        rep_.cindex = 0;   /* triples (per triangle) */
-        rep_.colindex = 0;   /* triples (per triangle) */
-        rep_.norindex = 0;
-        rep_.tcindex = 0; /* triples or null */
-
-	rep_.cindex = 0;
-	rep_.coord = 0;
-	rep_.colindex = 0;
-	rep_.color = 0;
-	rep_.norindex = 0;
-	rep_.normal = 0;
-	rep_.tcindex = 0;
-	rep_.GeneratedTexCoords = 0;
-
-	holder._intern = &rep_;
-	holder._nparents=0;		/*  stops boundingbox calcs from propagating*/
-	holder._nodeType=NODE_Group;/*  ensure that textureGeneration not done in render_polyrep */
-
-	FW_rendertext (1,		/*  lines*/
-		NULL,			/*  Perl SV pointer*/
-		status_msg,	 	/*  text to display*/
-		0,			/*  number of length lines*/
-		0,			/*  pointer to length lines*/
-		0.0,			/*  max extent*/
-		1.0,			/*  spacing*/
-		0.1,			/*  size*/
-		0x8827,			/*  Font, etc*/
-		&rep_);			/*  pointer to polyrep structure*/
-
-	/* now that we have the text, go somewhere and render it */
-	glTranslated (0.0, -1.0, -3.0);
+printf ("status bar says %s\n",myline->strptr);
+}
  
-	render_polyrep(&holder);
-
-	/* free the malloc'd memory; the string is now in a display list */
-        FREE_IF_NZ(rep_.cindex);
-        FREE_IF_NZ(rep_.coord);
-        FREE_IF_NZ(rep_.GeneratedTexCoords);
-        FREE_IF_NZ(rep_.colindex);
-        FREE_IF_NZ(rep_.color);
-        FREE_IF_NZ(rep_.norindex);
-        FREE_IF_NZ(rep_.normal);
-        FREE_IF_NZ(rep_.tcindex);
-
-	glEndList();
-	glPopMatrix();
-	glPopAttrib();
-}
-
-
-void statusbar_position () {
-	glMatrixMode(GL_PROJECTION_MATRIX);
-	glLoadIdentity();
-	return;
-}

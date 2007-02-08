@@ -729,8 +729,6 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
  *
  ********************************************************************/
 
-
-
 void render_polyrep(void *node) {
 	struct X3D_Virt *v;
 	struct X3D_Box *genericNodePtr;
@@ -797,7 +795,8 @@ void render_polyrep(void *node) {
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->coord);
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
-	trisThisLoop += r->ntri*3;
+
+	trisThisLoop += r->ntri;
 
 /*
 	{

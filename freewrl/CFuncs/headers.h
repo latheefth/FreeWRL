@@ -299,6 +299,8 @@ extern int soundWarned;
 extern int cur_hits;
 extern struct pt hyper_r1,hyper_r2;
 
+extern struct X3D_Text *lastTextNode;
+
 /* defines for raycasting: */
 #define XEQ (APPROX(t_r1.x,t_r2.x))
 #define YEQ (APPROX(t_r1.y,t_r2.y))

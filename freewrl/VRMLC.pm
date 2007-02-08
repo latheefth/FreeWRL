@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.262  2007/02/08 21:49:37  crc_canada
+# added Statusbar for OS X safari
+#
 # Revision 1.261  2007/02/07 16:03:44  crc_canada
 # ReWire work
 #
@@ -686,6 +689,8 @@ sub gen {
 	push @genFuncs2, "\t};\n";
 	push @genFuncs2,
 	"	\n".
+	"	/* is this possibly the text node for the statusbar?? */ \n".
+	"	if (nt == NODE_Text) lastTextNode = (struct X3D_Text *) tmp; \n".
 	"	/* is this a texture holding node? */\n".
 	"	registerTexture(tmp);\n".
 	"	/* is this a bindable node? */\n".
