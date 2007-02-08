@@ -1,0 +1,202 @@
+Initial notes on the EAI C version.
+
+
+Compiling with a program (main.c):
+
+gcc -g -Wall -o main -DREWIRE\
+	-I/usr/local/src/freewrl/freewrl-1.18.14/ReWire \
+	-I/usr/local/src/freewrl/freewrl-1.18.14/CFuncs \
+	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Control.c \
+	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Field.c \
+	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Internals.c  \
+	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Node.c  \
+	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Advise.c  \
+	/usr/local/src/freewrl/freewrl-1.18.14/CFuncs/EAI_C_CommonFunctions.c \
+	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/GeneratedCode.c  \
+	main.c -lpthreado
+
+Running the program:
+
+freewrl --eai stuff/1.wrl &
+sleep 2
+./main
+
+where 1.wrl is:
+
+
+#VRML V2.0 utf8
+DEF ROOT Transform { }
+
+and main.c is:
+
+
+/*
+*/
+        
+#include <stdio.h>
+#include "Eai_C.h"
+
+#define SPHERE 		"Sphere"
+#define	BOX		"Box"
+#define	CYLINDER	"Cylinder"
+#define CONE		"Cone"
+#define RED		"0.8 0.2 0.2"
+#define GREEN		"0.2 0.8 0.2"
+#define BLUE		"0.2 0.2 0.8"
+
+X3D_Node *myRoot;
+X3D_Node *shape1;
+X3D_Node *shape2;
+X3D_Node *shape3;
+X3D_Node *shape4;
+X3D_Node *shape5;
+X3D_Node *shape6;
+
+X3D_Node *trans1;
+
+X3D_Node *X3DClock;
+X3D_Node *X3DColumnpath;
+
+X3D_EventIn *addChildren;
+X3D_EventIn *removeChildren;
+
+X3D_EventIn *set_translation;
+
+X3D_EventOut *X3DClock_frac_changed;
+X3D_EventIn *X3Dcolumn_set_frac;
+X3D_EventOut *X3Dcolumn_frac_changed;
+X3D_EventIn *myRoot_set_rot;
+
+void myListener (X3D_Node *listenedTo) {
+	printf ("LISTENER CALLED!\n");
+}
+
+/* simple function to make shapes up */
+X3D_Node *makeSimpleShape (char * shape, char *colour, char *posn) {
+	char myline[2000];
+
+	sprintf (myline, "Transform{translation %s children Shape{" \
+                         "  appearance Appearance {" \
+                         "    material Material {" \
+                         "      diffuseColor %s" \
+                         "    }" \
+                         "  }" \
+                         "  geometry %s {}" \
+                         "}}",posn,colour,shape);
+
+	return X3D_createVrmlFromString(myline);
+}
+
+int main () {
+
+	X3D_initialize ("");
+
+/*
+	printf ("currentSpeed %f\n",X3D_getCurrentSpeed());
+	printf ("currentFrameRate %f\n",X3D_getCurrentFrameRate());
+	printf ("getDescription %s\n",X3D_getDescription());
+	X3D_setDescription("this is the new description");
+	printf ("getDescription %s\n",X3D_getDescription());
+	printf ("currentFrameRate %f\n",X3D_getCurrentFrameRate());
+	printf ("getVersion :%s\n",X3D_getVersion());
+	printf ("getWorldURL :%s\n",X3D_getWorldURL());
+	printf ("getName :%s\n",X3D_getName());
+
+
+	printf ("\nnow starting the AddRemove test\n");
+*/
+
+	myRoot = X3D_getNode ("ROOT");
+	printf ("got root\n");
+
+
+	addChildren = X3D_getEventIn(myRoot,"addChildren");
+	printf ("got addChildren\n");
+	removeChildren = X3D_getEventIn(myRoot,"removeChildren");
+	printf ("got removeChildren\n");
+	set_translation = X3D_getEventIn(myRoot,"translation");
+
+
+	/* Instantiate a lovely blue ball */
+	shape1 = makeSimpleShape(SPHERE, BLUE, "-2.3 2.1 0");
+
+	/* Instantiate a lovely red ball */
+	shape2 = makeSimpleShape(SPHERE, RED, "0 2.1 0");
+
+	/* Instantiate a lovely green ball */
+	shape3 = makeSimpleShape(SPHERE, GREEN, "2.3 2.1 0");
+
+	/* Instantiate a lovely blue box */
+	shape4 = makeSimpleShape(BOX, BLUE, "-2.3 -2.1 0");
+
+	/* Instantiate a lovely blue cone */
+	shape5 = makeSimpleShape(CONE, BLUE, "0 -2.1 0");
+
+	/* Instantiate a lovely blue Cylinder */
+	shape6 = makeSimpleShape(CYLINDER, BLUE, "2.3 -2.1 0");
+
+	X3D_setValue(addChildren,shape1);
+	X3D_setValue(addChildren,shape2);
+	X3D_setValue(addChildren,shape3);
+	X3D_setValue(addChildren,shape4);
+	X3D_setValue(addChildren,shape5);
+	X3D_setValue(addChildren,shape6);
+	printf ("going to do the remove shape1\n");
+	sleep (2);
+        X3D_setValue(removeChildren,shape1);
+
+	printf ("going to do the remove shape3\n");
+        X3D_setValue(removeChildren,shape3);
+	sleep (2);
+
+	printf ("going to do the remove shape5\n");
+        X3D_setValue(removeChildren,shape5);
+	sleep (2);
+
+	printf ("going to add shape 1 back in again\n");
+        X3D_setValue(addChildren,shape1);
+
+	sleep (2);
+	printf ("making up new SFV3c3f\n");
+	trans1 = X3D_newSFVec3f(1.0, 0.0, 0.0);
+
+	sleep (1);
+	printf ("setting translation\n");
+	X3D_setValue(set_translation,trans1);
+	sleep (1);
+	printf ("setting a negative translation\n");
+	trans1->X3D_SFVec3f.c[2] = -5;
+	X3D_setValue(set_translation,trans1);
+
+sleep (4);
+
+	printf ("adding X3DClock and interpolator \n");
+
+	X3DClock = X3D_createVrmlFromString("TimeSensor{cycleInterval 4.0 loop TRUE}");
+
+	X3DColumnpath = X3D_createVrmlFromString("OrientationInterpolator {key [ 0.0 0.5 1.0 ] keyValue " \
+				"[0 0 1 0, 0 0 1 3.14, 0 0 1 6.28]}");
+
+	X3D_setValue(addChildren,X3DClock);
+	X3D_setValue(addChildren,X3DColumnpath);
+
+	X3Dcolumn_set_frac = X3D_getEventIn(X3DColumnpath,"set_fraction");
+	myRoot_set_rot = X3D_getEventIn(myRoot, "set_rotation");
+
+	X3DClock_frac_changed = X3D_getEventOut(X3DClock,"fraction_changed");
+	X3Dcolumn_frac_changed = X3D_getEventOut(X3DColumnpath,"value_changed");
+	
+	/* Lets throw this one - catch the output of the Clock and print it */
+	X3DAdvise (X3DClock_frac_changed, myListener);
+
+	X3D_addRoute (X3DClock_frac_changed, X3Dcolumn_set_frac);
+	X3D_addRoute (X3Dcolumn_frac_changed, myRoot_set_rot);
+	
+	sleep(10);
+	printf ("deleting route\n");
+	X3D_deleteRoute(X3Dcolumn_frac_changed, myRoot_set_rot);
+
+	printf ("going to sleep for 5 seconds, then stop\n");
+	sleep(5);
+	X3D_shutdown ();
+}
