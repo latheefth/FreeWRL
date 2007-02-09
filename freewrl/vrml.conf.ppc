@@ -37,7 +37,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lGL -lGLU '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
 
-    FREEWRL_DEFINE => '-DAQUA -D_REENTRANT -arch ppc -fno-common',
+    FREEWRL_DEFINE => '-DAQUA -DARCH_PPC -D_REENTRANT -arch ppc -fno-common',
 
     FREEWRL_INC => '-I/FreeWRL/jpeg-6b '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
