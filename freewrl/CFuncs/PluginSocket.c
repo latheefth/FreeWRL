@@ -151,6 +151,11 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	pluginprint ("sending url request to socket %d\n",to_plugin);
 	#endif
 
+	#ifdef ARCH_PPC
+	ConsoleMessage("Textures not working on PPC");
+	return NULL;
+	#endif 
+
 	if (write(to_plugin, (urlRequest *) &request, bytes) < 0) {
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("write failed in requestUrlfromPlugin","");
@@ -219,6 +224,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 		linelen = fread (buf,1,2000,infile);
 	}
 	fclose (infile);
+
 
 
 	/* we must be returning something here */
