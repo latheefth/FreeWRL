@@ -52,12 +52,12 @@ void statusbar_init() {
         ra = EAI_CreateVrml("String",PROX,nodarr,200);
 	if (ra != 2) { printf ("render_init, expected 2 here\n"); return; }
 	proxNode = nodarr[1];
-	printf ("prox node is %d\n",proxNode);
+	/* printf ("prox node is %d\n",proxNode); */
 
         ra = EAI_CreateVrml("String",TEXT,nodarr,200);
 	if (ra != 2) { printf ("render_init, expected 2 here\n"); return; }
 	transNode = nodarr[1];
-	printf ("trans %d\n",transNode);
+	/* printf ("trans %d\n",transNode); */
 }
 
 void render_init() {

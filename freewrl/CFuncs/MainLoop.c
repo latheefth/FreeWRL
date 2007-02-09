@@ -619,7 +619,7 @@ void render_pre() {
 	when in stereo mode. */
 	fwLoadIdentity();
 
-	//printf("calling get headlight in render_pre\n");
+	/*printf("calling get headlight in render_pre\n"); */
 	if (get_headlight()) lightState(0,TRUE);
 
 
