@@ -619,6 +619,7 @@ void render_pre() {
 	when in stereo mode. */
 	fwLoadIdentity();
 
+	//printf("calling get headlight in render_pre\n");
 	if (get_headlight()) lightState(0,TRUE);
 
 
@@ -1137,7 +1138,8 @@ void displayThread() {
 	while (1) {
 		#ifdef AQUA
                 if (pluginRunning) {
-                        aglSetCurrentContext(aqglobalContext);
+			//printf("current context is %p\n", aqglobalContext);
+                        //aglSetCurrentContext(aqglobalContext);
                 }
 		firstTime = TRUE;
 		#endif
@@ -1265,7 +1267,18 @@ void initFreewrl() {
                 /* create the root node */
                 rootNode = createNewX3DNode (NODE_Group);
 
+		/* create the statusbar nodes */
+		#ifndef AQUA
+		statusbar_init();
+		#endif
 	}
+
+	#ifdef AQUA 
+	if (pluginRunning) {
+		statusbar_init();
+	}
+	#endif
+	
 
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
 	if (BrowserFullPath != NULL) 
@@ -1283,10 +1296,10 @@ void closeFreewrl() {
         struct X3D_Group* rn;
 	int i;
 
+	#ifdef AQUA
 	if (isMacPlugin) {
 		clear_status();
 	}
-	#ifdef AQUA
 	pluginRunning = FALSE;
 	#endif
         /* kill any remaining children */
@@ -1439,7 +1452,7 @@ void setIsPlugin() {
 void createContext(CGrafPtr grafPtr) {
 AGLPixelFormat  fmt;
 GLboolean      mkc, ok;
-const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_NONE};
+const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_DEPTH_SIZE, 24, AGL_STENCIL_SIZE, 8, AGL_NONE};
 AGLDrawable             aglWin;
 
         //debug_print("In create draw context!");

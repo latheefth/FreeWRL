@@ -66,7 +66,7 @@ int ConsoleMessage(const char *fmt, ...) {
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
 
-	if (consMsgCount > MAXMESSAGES) {
+	if (!isMacPlugin && consMsgCount > MAXMESSAGES) {
 		if (consMsgCount > (MAXMESSAGES+5)) return;
 		strcpy (FWbuffer,"Too many FreeWRL messages - stopping ConsoleMessage");
 		consMsgCount = MAXMESSAGES + 100; /* some number quite large */

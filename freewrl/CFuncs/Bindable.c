@@ -56,11 +56,8 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
         	naviinfo.height = node->avatarSize.p[1];
         	naviinfo.step = node->avatarSize.p[2];
 	}
-        Viewer.headlight = node->headlight;
         Viewer.speed = (double) node->speed;
 
-	/* tell the menu buttons of the state of this headlight */
-	setMenuButton_headlight(node->headlight);
 
 	/* keep track of valid Navigation types. */
 	svptr = node->type.p;
@@ -102,6 +99,9 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			if (i==0) set_viewer_type (WALK); /*  just choose one */
 		}
 	}
+        Viewer.headlight = node->headlight;
+	/* tell the menu buttons of the state of this headlight */
+	setMenuButton_headlight(node->headlight);
 }
 
 

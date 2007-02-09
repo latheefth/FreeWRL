@@ -9,45 +9,98 @@
 #include "headers.h"
 #include "Viewer.h"
 
-#define MYSTUFF "DEF SARAHDUMOULINJOHNSTEWARTSENSOR ProximitySensor { size 1000 1000 1000 } DEF SARAHDUMOULINJOHNSTEWARTHUD Transform { translation 0 0 10 children [ Collision { collide FALSE children [ Transform { translation 0 -0.1 -.2 children [ Shape { geometry Text { fontStyle   FontStyle { justify   \"MIDDLE\" size 0.02 } } } ] } ] } ] } ROUTE SARAHDUMOULINJOHNSTEWARTSENSOR.orientation_changed TO SARAHDUMOULINJOHNSTEWARTHUD.set_rotation ROUTE SARAHDUMOULINJOHNSTEWARTSENSOR.position_changed TO SARAHDUMOULINJOHNSTEWARTHUD.set_translation"
-int initialized = FALSE;
-uintptr_t retarr[10];
-int retsz;
-int tmp;
+#define PROX "ProximitySensor { size 1000 1000 1000 }"
+#define TEXT "Transform { translation 0 0 10 children [ Collision { collide FALSE children [ Transform { scale 0.6 1 1 translation 0 -0.1 -.2 children [ Shape { geometry Text { fontStyle   FontStyle { justify   \"MIDDLE\" size 0.02 } } } ] } ] } ] }"
 
-struct X3D_Text *holder = NULL;
+static int sb_initialized = FALSE;
+
+static struct X3D_Text *holder = NULL;
 struct X3D_Text *lastTextNode = NULL;
-struct Uni_String *myline;
+static struct Uni_String *myline;
+void render_init(void);
+static uintptr_t proxNode = NULL;
+static uintptr_t transNode = NULL;
 /* trigger a update */
 
 void update_status(char* msg) {
-	printf("create statusbar if required... msg is now %s\n", msg); 
+	if (!sb_initialized) {
+		render_init();
+	}
+	sprintf(myline->strptr, "%s", msg);
+	myline->len = strlen(msg)+1; /* length of message, plus the null terminator */
+	printf("myline-> strptr is %s, len is %d\n", myline->strptr, myline->len);
+	update_node((void*) holder);
 }
 
 void clear_status() {
+	if (!sb_initialized) return;
+
+	sb_initialized = FALSE;
+
+	myline->len = 0;
 	printf ("destroy statusbar node\n");
 }
 
 
 /* render the status bar. If it is required... */ 
-void render_status() {
-	if (!initialized) {
-		inputParse(FROMSTRING, MYSTUFF, FALSE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, FALSE);
-		initialized = TRUE;
+void statusbar_init() {
+	int tmp;
+	uintptr_t nodarr[200];
+	int ra;
 
-		/* record the last Text node created, because it is ours! This is easier than
-		going through the nodes field by field in the VRML'd string */
-		holder = lastTextNode; 
+              
+        ra = EAI_CreateVrml("String",PROX,nodarr,200);
+	if (ra != 2) { printf ("render_init, expected 2 here\n"); return; }
+	proxNode = nodarr[1];
+	printf ("prox node is %d\n",proxNode);
 
+        ra = EAI_CreateVrml("String",TEXT,nodarr,200);
+	if (ra != 2) { printf ("render_init, expected 2 here\n"); return; }
+	transNode = nodarr[1];
+	printf ("trans %d\n",transNode);
+}
 
-		/* mimic sending in a new string into update_status */
-		holder->string.p = malloc (sizeof (struct Uni_String));
-
-		holder->string.p[0] = newASCIIString ("this is my trial status");
-		holder->string.n = 1;
-		myline = holder->string.p[0];
-	
+void render_init() {
+	/* statusbar_init had to have been called... */
+	if ((proxNode==NULL) || (transNode == NULL)) {
+		printf ("hey, render_init for statusbar doomed to fail\n");
+		return;
 	}
-printf ("status bar says %s\n",myline->strptr);
+
+	/* record the last Text node created, because it is ours! This is easier than
+	going through the nodes field by field in the VRML'd string */
+	holder = lastTextNode; 
+
+
+	/* create a 1 UniString entry to the MFString */
+	if ((holder->string.p = malloc(sizeof (struct Uni_String))) == 0) {
+		printf("Unable to malloc memory for status message\n");
+	}
+	holder->string.p[0] = newASCIIString("");	/* first string is blank */
+	holder->string.n = 1; 				/* we have 1 string in this X3D_Text node */
+	myline=(struct Uni_String *)holder->string.p[0];
+
+	/* create an "easy" handle for this string;
+	myline = (struct Uni_String *) holder->string.p[0];
+
+	/* NOW - make the Uni_String large... in the first Unistring, make the string 2000 bytes long */
+	if ((myline->strptr  = malloc(2000)) == 0) {
+		printf("Unable to malloc memory for status message\n");
+	}
+
+	/* set the Uni_String to zero length */
+	myline->len = 0;
+
+	addToNode (rootNode,offsetof (struct X3D_Group, children), (void *)proxNode);
+	addToNode (rootNode,offsetof (struct X3D_Group, children), (void *)transNode);
+	add_parent((void *)proxNode, rootNode);
+	add_parent((void *)transNode, rootNode);
+	
+	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 
+		(void *)transNode, offsetof (struct X3D_Transform, rotation), sizeof (struct SFRotation), 0);
+	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, position_changed), 
+		(void *)transNode, offsetof (struct X3D_Transform, translation), sizeof (struct SFColor), 0);
+	
+	sb_initialized = TRUE;
 }
  

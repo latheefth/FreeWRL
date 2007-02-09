@@ -587,14 +587,6 @@ render_hier(void *p, int rwhat)
 		return;
 	}
 
-	if (render_geom) {
-		if (display_status) {
-			//usleep(50000);
-			printf("about to call render status\n");
-			render_status();
-		}
-	}
-
 	#ifdef RENDERVERBOSE
   		printf("Render_hier node=%d what=%d\n", p, rwhat);
 	#endif
