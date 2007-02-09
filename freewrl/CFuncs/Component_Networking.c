@@ -13,7 +13,12 @@
 
 #include <math.h>
 #include "headers.h"
+#include "EAIheaders.h"
 #include "installdir.h"
+
+/* keep track of the Midi nodes. */
+static uintptr_t *MidiNodes = NULL;
+static int num_MidiNodes = 0;
 
 void make_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	printf ("make ReWire\n");
@@ -30,6 +35,47 @@ void changed_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	printf ("render ReWire\n");
 }
+
+void registerReWireNode(void *node) {
+	struct X3D_Box * tmp;
+	int count;
+	uintptr_t *myptr;
+	
+	if (node == 0) {
+		printf ("error in registerReWireNode; somehow the node datastructure is zero \n");
+		return;
+	}
+
+	tmp = (struct X3D_Box*) node;
+
+	if (tmp->_nodeType != NODE_ReWireMidiControl) return;
+
+	MidiNodes = (uintptr_t *) realloc(MidiNodes,sizeof (uintptr_t *) * (num_MidiNodes+1));
+
+	if (MidiNodes == 0) {
+		printf ("can not allocate memory in registerReWireNode\n");
+		num_MidiNodes = 0;
+	}
+	myptr = MidiNodes;
+
+	/* does this event exist? */
+	for (count=0; count <num_MidiNodes; count ++) {
+		if (*myptr == (uintptr_t) node) {
+			printf ("registerReWireNode, already have %d\n",node); 
+			return;
+		}	
+		myptr++;
+	}
+
+
+	/* now, put the function pointer and data pointer into the structure entry */
+	*myptr = (uintptr_t) node;
+
+	num_MidiNodes++;
+}
+
+
+
 
 /* add up the characters in a string; return lowest 12 bits of the count */
 unsigned int returnSumofString(struct Uni_String *str) {
@@ -57,10 +103,23 @@ unsigned int returnSumofString(struct Uni_String *str) {
 	return sum;
 }
 
+void sendCompiledNodeToReWire(struct X3D_ReWireMidiControl *node) {
+	#define MAXOUTLINE 3000
+	char outline[MAXOUTLINE];
+	printf ("sendCompiledNodeToReWire %d\n",node);
+
+	sprintf (outline,"RWNODE\n%d %d %d %d %d %d %d %f %d %d %d %s\nRW_EOT",
+		node,node->_encodedName, node->deviceMinVal, node->deviceMaxVal,
+		node->minVal, node->maxVal,node->intValue, node->floatValue, node->useIntValue,
+		node->continuousEvents, node->highResolution,node->controllerType->strptr);
+
+	printf (outline); printf ("\n");
+	EAI_send_string(outline,EAIlistenfd);
+}
 
 void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	unsigned int newEncodedName;
-#ifdef DOREWIRE	
+
 	newEncodedName = 0;
 	if (node->bus < 0) 
 		newEncodedName |= 0x0ff;
@@ -72,10 +131,11 @@ void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	newEncodedName |= (returnSumofString(node->deviceName)  << 20);
 
 	/* EncodedName - bits are as follows */
-	/*
+	
+	
 	printf ("compile ReWire\n");
 	printf ("old encodedName %x newEncodedName %x\n",node->_encodedName, newEncodedName);
-	*/
+
 	if ((unsigned int) node->_encodedName != newEncodedName) {
 		printf ("Name Changed!!\n");
 		node->_encodedName = (unsigned int) newEncodedName;
@@ -83,12 +143,12 @@ void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 
 	printf ("worry about max/min values\n");
 
+	sendCompiledNodeToReWire(node);
+
 	MARK_NODE_COMPILED 
-#endif
 }
 
 void do_ReWireMidiControl (void *this) {
-#ifdef DOREWIRE
 	struct X3D_ReWireMidiControl* node;
 	int mySendValue;
 	int possibleValueSpread;
@@ -141,25 +201,27 @@ void do_ReWireMidiControl (void *this) {
 		sendEvent = FALSE;
 		if (node->continuousEvents) {
 			if (node->intValue != node->_oldintValue) {
-				sendEvent = True;
+				sendEvent = TRUE;
 				node->_oldintValue = node->intValue;
 			}
 		} else sendEvent = TRUE;
 
 		if (sendEvent) {
-			printf ("intValue changed - now is %d\n",node->intValue);
+			/*printf ("intValue changed - now is %d\n",node->intValue); */
 		
 			/* calculate the floatValue from the intValue */
-			printf ("fv %f minv %d, ps %d\n",fV, minV, possibleValueSpread);
+			/*printf ("fv %f minv %d, ps %d\n",fV, minV, possibleValueSpread); */
 
 			node->floatValue =  ((float) fV-minV)/((float)possibleValueSpread);
 
+			/*
 			printf ("sending %d %f ",mySendValue, node->floatValue);
 			printf ("mins %d %d maxs %d %d ",node->deviceMinVal, node->minVal, node->deviceMaxVal, node->maxVal);
 			printf ("float %f node->floatVal\n",node->floatValue);
+			*/
+			update_node (node);
 		}
 	}	
-#endif
 }
 
 

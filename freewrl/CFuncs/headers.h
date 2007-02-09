@@ -601,6 +601,7 @@ void sendScriptEventIn(uintptr_t num);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(void * node);
 void registerTexture(void * node);
+void registerReWireNode(void *node);
 void do_first(void);
 void process_eventsProcessed(void);
 
@@ -612,7 +613,7 @@ extern uintptr_t *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 
-void render_status(void);
+void statusbar_init(void);
 void update_status(char* msg);
 void clear_status();
 

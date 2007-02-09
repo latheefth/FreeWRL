@@ -170,3 +170,4 @@ char *fieldTypeName(char type);
 
 char * _RegisterListener (X3D_EventOut *node, int adin);
 int X3DAdvise (X3D_EventOut *node, void *fn);
+void _handleReWireCallback(char *buf);

@@ -68,6 +68,8 @@ void freewrlReadThread(void)  {
 				receivedData = TRUE;
 			} else if (strncmp ("EV",readbuffer,2) == 0) {
 				_handleFreeWRLcallback(readbuffer);
+			} else if (strncmp ("RW",readbuffer,2) == 0) {
+				_handleReWireCallback(readbuffer);
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
 				exit(0);
 			} else {
