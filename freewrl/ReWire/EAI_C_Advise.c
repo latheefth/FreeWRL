@@ -21,8 +21,8 @@ int X3DAdvise (X3D_EventOut *node, void *fn) {
 	/* save the data, and the node, so that if this listener is called, we can call
 		the function and pass it the correct X3D_Node */
 
-printf ("in X3DAdvise, we have queryno %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
-		AdviseIndex, node->nodeptr, node->offset, node->datatype, node->datasize, node->field);
+	/*printf ("in X3DAdvise, we have queryno %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
+		AdviseIndex, node->nodeptr, node->offset, node->datatype, node->datasize, node->field); */
 
 /*
  EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
@@ -51,6 +51,8 @@ printf ("in X3DAdvise, we have queryno %d nodeptr %d offset %d datatype %d datas
 
 	/* and, tell FreeWRL about this one */
 	_RegisterListener (node,AdviseIndex);
+	
+	return TRUE;
 }
 
 

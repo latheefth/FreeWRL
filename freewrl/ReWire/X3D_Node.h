@@ -9,6 +9,7 @@
 #include <strings.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 typedef struct { int type; int value; } _intX3D_SFBool;
 typedef struct { int type; float value; } _intX3D_SFFloat;
@@ -84,7 +85,7 @@ typedef union _X3D_Node {
 struct _intX3D_EventIn {
 	uintptr_t	nodeptr;
 	int 		offset;
-	char		datatype;
+	int		datatype;
 	int 		datasize;
 	int		scripttype;
 	char 		*field;
@@ -171,3 +172,6 @@ char *fieldTypeName(char type);
 char * _RegisterListener (X3D_EventOut *node, int adin);
 int X3DAdvise (X3D_EventOut *node, void *fn);
 void _handleReWireCallback(char *buf);
+void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
+char mapFieldTypeToEAItype (int st);
+int mapEAItypeToFieldType (char st);

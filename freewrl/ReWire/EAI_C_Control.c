@@ -4,7 +4,7 @@ pthread_t readThread;
 int readThreadInitialized = FALSE;
 
 void X3D_initialize(char *hostname) {
-	struct sockaddr_in serv_addr;
+	struct sockaddr_in serv_addr; 
 	struct hostent *server;
 	int iret1;
 
@@ -24,7 +24,7 @@ void X3D_initialize(char *hostname) {
 		 (char *)&serv_addr.sin_addr.s_addr,
 		 server->h_length);
 	serv_addr.sin_port = htons(EAIBASESOCKET);
-	if (connect(_X3D_FreeWRL_FD,&serv_addr,sizeof(serv_addr)) < 0) 
+	if (connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 		X3D_error("ERROR connecting");
 
 	/* start up read thread */

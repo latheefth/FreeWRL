@@ -177,7 +177,7 @@ void _X3D_sendEvent (char command, char *string) {
 	char myBuffer[2048];
         char *myptr;
 
-        if (strlen(string) >= 2048) {printf ("string too long...%s\n",string); return string;}
+        if (strlen(string) >= 2048) {printf ("string too long...%s\n",string); return;}
 
         sprintf (myBuffer, "%d %c %s\n",_X3D_queryno,command,string);
         myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),command!=SENDEVENT);
@@ -265,7 +265,7 @@ char * _RegisterListener (X3D_EventOut *node, int adin) {
  EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
                 " " + datasize + "\n");
 */
-	sprintf (myBuffer, "%u %c %d %d %c %d\n",
+	sprintf (myBuffer, "%u %c %ld %d %c %d\n",
 		_X3D_queryno, 
 		REGLISTENER, 
 		node->nodeptr,

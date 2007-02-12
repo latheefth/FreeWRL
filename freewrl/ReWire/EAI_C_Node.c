@@ -5,7 +5,7 @@
 /* get a node pointer */
 X3D_Node *X3D_getNode (char *name) {
 	char *ptr;
-	uintptr_t *adr;
+	uintptr_t adr;
 	int oldPerl;
 	X3D_Node *retval;
 
@@ -18,7 +18,7 @@ X3D_Node *X3D_getNode (char *name) {
 	/* get the node address. ignore the old perl pointer, save the address. */
 	ptr = _X3D_make1StringCommand(GETNODE,name);
 	
-	if (sscanf (ptr,"%d %u",&oldPerl, &adr) != 2) {
+	if (sscanf (ptr,"%d %lu",&oldPerl, &adr) != 2) {
 		printf ("error getting %s\n",name);
 	} else {
 		#ifdef VERBOSE
@@ -26,12 +26,12 @@ X3D_Node *X3D_getNode (char *name) {
 		printf ("oldPerl %d adr %p\n",oldPerl, adr);
 		#endif
 
-		if (adr == NULL) {
+		if (adr == 0) {
 			printf ("node %s does not exist\n",name);
 		}
 
 		
-		retval->X3D_SFNode.adr = adr;
+		retval->X3D_SFNode.adr = (uintptr_t *)adr;
 	}
 	REMOVE_EOT
 	return retval;
@@ -44,7 +44,6 @@ X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
 	uintptr_t origPtr;
 	int offset;
 	int nds;
-	char mytype;
 	X3D_EventIn *retval;
 	uintptr_t *adr;
 
@@ -67,9 +66,9 @@ X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
 			printf ("warning - will only get event for first node = have %d nodes\n",node->X3D_MFNode.n);
 		}
 		/* get the pointer to the memory for stored SFNode addresses... */
-		adr = node->X3D_MFNode.p;
+		adr = ((uintptr_t *)node->X3D_MFNode.p);
 		/* get the first entry in this list */
-		adr = *adr;
+		adr = (uintptr_t *) *adr;
 	}
 
 	/* printf ("getting eventin for address %d, field %s\n",adr, name); */
@@ -88,13 +87,13 @@ X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
 	*/
 
 	/* eg: ptr is 161412616 116 0 q 0 eventIn */
-	if (sscanf(ptr,"%d %d %d", &origPtr, &offset, &nds) != 3) {
+	if (sscanf(ptr,"%ld %d %d", &origPtr, &offset, &nds) != 3) {
 		printf ("error in getEventIn\n");
 		return retval;
 	}
 
 	/* do the pointers match? they should.. */
-	if (origPtr !=  adr) {
+	if (origPtr !=  (uintptr_t )adr) {
 		printf ("error in getEventIn, origptr and node ptr do not match\n");
 	}
 
@@ -160,14 +159,14 @@ X3D_EventOut *X3D_getEventOut(X3D_Node *node, char *name) {
 void X3D_addRoute (X3D_EventOut *from, X3D_EventIn *to) {
 	char myline[200];
 	char *ptr;
-	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
+	sprintf (myline,"%ld %s %ld %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(ADDROUTE,myline);
 }
 
 void X3D_deleteRoute (X3D_EventOut *from, X3D_EventIn *to) {
 	char myline[200];
 	char *ptr;
-	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
+	sprintf (myline,"%ld %s %ld %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(DELETEROUTE,myline);
 }
 
@@ -181,7 +180,7 @@ void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
 	if (dest->datatype != node->type) {
 		printf ("X3D_setValue mismatch: event type %s, value type %s\n", 
 				//stringFieldType(dest->datatype), stringFieldType(node->type));
-				FIELDTYPES[dest->datatype], FIELDTYPES[node->type]);
+				FIELDTYPES[(int)dest->datatype], FIELDTYPES[node->type]);
 		return;
 	}
 
@@ -192,7 +191,7 @@ void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
 
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor:
-			sprintf (myline, "%c %d %d %d %f %f %f\n",
+			sprintf (myline, "%c %ld %d %d %f %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFVec3f.c[0],
@@ -207,11 +206,11 @@ void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
 			printf ("sending in %d nodes\n",node->X3D_MFNode.n);
 			#endif
 
-			ptr = node->X3D_MFNode.p;
+			ptr = ((uintptr_t *)node->X3D_MFNode.p);
 			for (count = 0; count < node->X3D_MFNode.n; count ++) {
 				/* printf ("adding in ptr %d, adr %d\n",*ptr,*ptr); */
 
-				sprintf (myline,"%d %d %s %d\n",
+				sprintf (myline,"%ld %d %s %ld\n",
 					dest->nodeptr,
 					dest->offset,
 					dest->field,
@@ -316,7 +315,7 @@ X3D_Node *X3D_createVrmlFromString(char *str) {
 	/* now, how many numbers did it return? ignore the (obsolete) perl pointers */
 	retvals = _X3D_countWords(ptr);
 	retval->X3D_MFNode.p = malloc (retvals * sizeof (uintptr_t*));
-	mytmp = retval->X3D_MFNode.p; /* for putting values in */
+	mytmp = ((uintptr_t *)retval->X3D_MFNode.p); /* for putting values in */
 	retval->X3D_MFNode.n = retvals/2;
 
 	for (count = 0; count < (retvals/2); count++) {
@@ -330,7 +329,7 @@ X3D_Node *X3D_createVrmlFromString(char *str) {
 		SKIP_CONTROLCHARS
 
 		/* read in the memory pointer */
-		sscanf (ptr,"%u",mytmp);
+		sscanf (ptr,"%lu",mytmp); /* changed for 1.18.15 JAS */
 		mytmp++;
 
 		/* skip past this number now */

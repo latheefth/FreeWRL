@@ -83,19 +83,19 @@ X3D_Node *X3D_newSFInt32 (int a) {
 	return retval;
 }
 
-X3D_Node *X3D_newSFString(){}
-X3D_Node *X3D_newSFNode(){}
-X3D_Node *X3D_newSFImage(){}
-X3D_Node *X3D_newMFColor(){}
-X3D_Node *X3D_newMFFloat(){}
-X3D_Node *X3D_newMFTime(){}
-X3D_Node *X3D_newMFInt32(){}
-X3D_Node *X3D_newMFString(){}
-X3D_Node *X3D_newMFNode(){}
-X3D_Node *X3D_newMFRotation(){}
-X3D_Node *X3D_newMFVec2f(){}
-X3D_Node *X3D_newMFVec3f(){}
-X3D_Node *X3D_newMFColorRGBA(){}
-X3D_Node *X3D_newMFBool(){}
-X3D_Node *X3D_newMFVec3d(){}
-X3D_Node *X3D_newMFVec2d(){}
+X3D_Node *X3D_newSFString(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newSFNode(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newSFImage(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFColor(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFFloat(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFTime(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFInt32(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFString(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFNode(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFRotation(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFVec2f(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFVec3f(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFColorRGBA(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFBool(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFVec3d(){printf ("New node not implemented yet for this type\n");return NULL;}
+X3D_Node *X3D_newMFVec2d(){printf ("New node not implemented yet for this type\n");return NULL;}

@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.264  2007/02/12 15:18:16  crc_canada
+# ReWire work.
+#
 # Revision 1.263  2007/02/09 20:43:51  crc_canada
 # More ReWire work.
 #
@@ -466,7 +469,7 @@ sub gen {
 
 	# Convert TO/FROM EAI to Internal field types. (EAI types are ascii).
 		my $st = "/* convert an internal type to EAI type */\n". 
-		"int mapFieldTypeToEAItype (int st) {\n".
+		"char mapFieldTypeToEAItype (int st) {\n".
 		"	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 
@@ -477,14 +480,14 @@ sub gen {
 		my $st = "\t\tcase FIELDTYPE_".$_.":	return EAI_$_;\n";
 		push @genFuncs2, $st; push @EAICommon, $st;
 	}
-	my $st = "	return -1;;\n}\n}\n";
+	my $st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 	push @str, "int mapFieldTypeToEAItype (int st);\n";
 
 
 	####################
 	my $st = "/* convert an EAI type to an internal type */\n". 
-		"int mapEAItypeToFieldType (int st) {\n".
+		"int mapEAItypeToFieldType (char st) {\n".
 		"	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 
@@ -495,7 +498,7 @@ sub gen {
 		my $st = "\t\tcase EAI_".$_.":	return FIELDTYPE_$_;\n";
 		push @genFuncs2, $st; push @EAICommon, $st;
 	}
-	my $st = "	return -1;;\n}\n}\n";
+	my $st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
 	push @genFuncs2, $st; push @EAICommon, $st;
 	push @str, "int mapFieldTypeToEAItype (int st);\n";
 

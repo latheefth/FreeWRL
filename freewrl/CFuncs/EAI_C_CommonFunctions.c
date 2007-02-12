@@ -152,6 +152,7 @@ int countStringElements (char *instr) {
 int countBoolElements (char *instr) {
 printf ("CAN NOT COUNT BOOL ELEMENTS YET\n");
 printf ("string %s\n",instr);
+return 0;
 }
 	
 
@@ -195,7 +196,6 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	struct Uni_String **svptr;
 	struct Uni_String *mysv;
 	int tmp;
-	int myStrLen;
 	char *Cptr;
 	char startsWithQuote;
 	
@@ -205,7 +205,6 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	int in[4];
 	uintptr_t inNode[4];
 	double dv;
-	char mytmpstr[20000];
 
 	/* printf ("PST, for %s we have %s strlen %d\n",FIELDTYPES[ctype], value, strlen(value)); */
 	nst = (char *) ptr; /* should be 64 bit compatible */
@@ -233,8 +232,10 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			break;}
 		case FIELDTYPE_FreeWRLPTR:
 		case FIELDTYPE_SFNode: { 
-				sscanf (value,"%d",inNode); 
-				/* if (inNode[0] != 0) {
+				/* JAS - changed %d to %ld for 1.18.15 */
+				sscanf (value,"%ld",inNode); 
+				/*
+				if (inNode[0] != 0) {
 					printf (" andof type %s\n",stringNodeType(((struct X3D_Box *)inNode[0])->_nodeType));
 				} */
 				memcpy(nst,inNode,datasize); 
@@ -277,7 +278,8 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 
 		case FIELDTYPE_MFNode: {
 			for (tmp = 0; tmp < elementCount; tmp++) {
-				sscanf(value, "%d",inNode);
+				/* JAS changed %d to %ld for 1.18.15 */
+				sscanf(value, "%ld",inNode);
 				addToNode(ptr,coffset,(void *)inNode[0]); 
 				/* printf ("MFNODE, have to add child %d to parent %d\n",inNode[0],ptr);  */
 				add_parent((void *)inNode[0], ptr); 
