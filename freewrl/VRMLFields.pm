@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.75  2007/02/13 22:45:24  crc_canada
+# PixelTexture default image should now be ok
+#
 # Revision 1.74  2006/12/19 19:05:01  crc_canada
 # Memory leaks and corruptions being worked on.
 #
@@ -529,12 +532,13 @@ package VRML::Field::SFImage;
 VRML::Error->import;
 
 
-sub ctype {return "struct Uni_String *$_[1]"}
+sub ctype {return "struct Multi_Int32 $_[1]"}
 
 sub cInitialize {
-        my ($this,$field,$val) = @_;
-        return "$field = newASCIIString(\"$val\")";
-
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	#SFImage defaults to 0,0,0\n";
+	return "$field.n=3; $field.p=malloc (sizeof(int)*3); $field.p[0] = 0; $field.p[1] = 0; $field.p[2] = 0;";
 }
 
 1;

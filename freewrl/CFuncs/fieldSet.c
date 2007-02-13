@@ -13,7 +13,6 @@
 
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
-void saveSFImage (struct X3D_PixelTexture *node, char *str);
 void SetMemory (int type, void *destptr, void *srcptr, int len);
 
 /*******************************************************************
@@ -375,7 +374,8 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			break;
 		}
 		case FIELDTYPE_SFImage: {
-			saveSFImage ((struct X3D_PixelTexture*) tn, strp);
+			/* the string should be saved as an SFImage */
+			Parser_scanStringValueToMem(tn, tptr, FIELDTYPE_SFImage, strp);
 			break;
 		}
 
@@ -902,30 +902,6 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 
 	/* now, perform the add/remove */
 	AddRemoveChildren (parent, tn, newmal, newlen, ar);
-}
-
-
-/******************************************************************
-
-saveSFImage - a PixelTexture is being sent back from a script, save it!
-	It comes back as a string; have to put it in as a SV.
-
-*********************************************************************/
-void saveSFImage (struct X3D_PixelTexture *node, char *str) {
-	int thissize;
-	struct Uni_String *newSV;
-	struct Uni_String *oldSV;
-
-	thissize = strlen(str);
-
-	/* make the new SV */
-	newSV = newASCIIString(str);
-
-	/* switcheroo, image now is this new SV */
-	oldSV = node->image;
-	node->image = newSV;
-
-	FREE_IF_NZ (oldSV->strptr);
 }
 
 

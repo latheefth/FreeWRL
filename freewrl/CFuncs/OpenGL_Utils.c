@@ -822,7 +822,6 @@ void kill_rendering(void *thisnode) {
 			case NODE_PixelTexture: {
 				struct X3D_PixelTexture *thisNode;
 				thisNode = (struct X3D_PixelTexture *) thisnode;
-				kill_SFString (thisNode->image);
 				kill_SFString (thisNode->__parenturl);
 				break; }
 

@@ -3,6 +3,9 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
+# Version of FreeWRL
+my $VERSION = "V1.18.15";
+
 # what OS are we running under?
 my $OS = `uname`;
 my $HAVE_UBUNTU = "NO";
@@ -28,7 +31,6 @@ if ($OS eq "Darwin") { print "This install is running on an Apple OS X computer\
 # create the generated code/header files.
 system "perl VRMLC.pm";
 
-my $VERSION = "V1.18.14";
 
 use Cwd qw(getcwd chdir);
 

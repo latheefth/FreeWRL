@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.265  2007/02/13 22:45:24  crc_canada
+# PixelTexture default image should now be ok
+#
 # Revision 1.264  2007/02/12 15:18:16  crc_canada
 # ReWire work.
 #
@@ -482,7 +485,7 @@ sub gen {
 	}
 	my $st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
 	push @genFuncs2, $st; push @EAICommon, $st;
-	push @str, "int mapFieldTypeToEAItype (int st);\n";
+	push @str, "char mapFieldTypeToEAItype (int st);\n";
 
 
 	####################
@@ -500,7 +503,7 @@ sub gen {
 	}
 	my $st = "\t\tdefault: return -1;\n\t}\n\treturn -1;\n}\n";
 	push @genFuncs2, $st; push @EAICommon, $st;
-	push @str, "int mapFieldTypeToEAItype (int st);\n";
+	push @str, "int mapEAItypeToFieldType (char st);\n";
 
 	####################
 	push @genFuncs2, "/* convert an MF type to an SF type */\n". 

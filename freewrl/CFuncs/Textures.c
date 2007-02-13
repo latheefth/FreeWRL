@@ -1389,7 +1389,7 @@ void __reallyloadPixelTexure() {
 		hei = *iptr; iptr++;
 		depth = *iptr; iptr++;
 
-		if ((depth < 1) || (depth >4)) {
+		if ((depth < 0) || (depth >4)) {
 			printf ("PixelTexture, depth %d out of range, assuming 1\n",(int) depth);
 			depth = 1;
 		}
