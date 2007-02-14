@@ -1,4 +1,6 @@
 For 1.18.15:
+	- working on Lights.
+
 	  PixelTexture nodes - default image caused a segfault
 For 1.18.14:
 	- setting SFNodes from Javascript fixed. (was setting node to NULL)

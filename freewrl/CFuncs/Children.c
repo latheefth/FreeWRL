@@ -68,7 +68,7 @@ void dirlightChildren(struct Multi_Node ch) {
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
 		if (p != NULL) {
-			if (p->_nodeType == NODE_DirectionalLight)
+			if ((p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_SpotLight))
 				render_node(p);
 		}
 	}

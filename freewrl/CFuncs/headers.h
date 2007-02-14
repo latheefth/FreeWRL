@@ -350,7 +350,7 @@ void DirectionalLight_Rend(void *nod_);
                 for(i=0; i<nc; i++) { \
                         p = (struct X3D_Box *)((node->children).p[i]); \
                         if (p!=NULL) { \
-                            if (p->_nodeType == NODE_DirectionalLight) { \
+                            if ((p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_SpotLight)) { \
                                 (node->has_light) ++; \
                             } \
                         } \
@@ -362,7 +362,7 @@ void DirectionalLight_Rend(void *nod_);
                 for(i=0; i<nc; i++) { \
                         p = (struct X3D_Box *)((node->__children).p[i]); \
                         if (p!=NULL) { \
-                            if (p->_nodeType == NODE_DirectionalLight) { \
+                            if ((p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_SpotLight)) { \
                                 (node->has_light) ++; \
                             } \
                         } \
