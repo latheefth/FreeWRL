@@ -1274,9 +1274,7 @@ void initFreewrl() {
 	}
 
 	#ifdef AQUA 
-	if (pluginRunning) {
-		statusbar_init();
-	}
+	statusbar_init();
 	#endif
 	
 
@@ -1297,22 +1295,31 @@ void closeFreewrl() {
 	int i;
 
 	#ifdef AQUA
-	if (isMacPlugin) {
-		clear_status();
-	}
+	printf("got to close freewrl, clearing status ... \n");
+	clear_status();
 	pluginRunning = FALSE;
+	kill_clockEvents();
+	EAI_killBindables();
+	kill_routing();
+	kill_rendering(rootNode);
+	kill_openGLTextures();
+	kill_javascript();
+
 	#endif
         /* kill any remaining children */
         /* printf ("doQuit - calling exit(0)\n"); */
+	/*
         rn = (struct X3D_Group*) rootNode;
         tn =  &(rn->children);
         tn->n = 0;
+	*/
         quitThread = 1;
         viewer_initialized = FALSE;
 
         if (!isMacPlugin) {
                 set_viewer_type (EXAMINE);
 	}
+	printf("glFlush / Finish\n");
         glFlush();
         glFinish();
         screenWidth = screenHeight = 1;
