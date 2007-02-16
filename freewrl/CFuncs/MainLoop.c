@@ -1106,6 +1106,10 @@ void setScreenDim(int wi, int he) {
 }
 
 void setFullPath(const char* file) {
+	if (!be_collision) {
+		char ks = 'c';
+		do_keyPress(ks, KeyPress);
+	}
 	if (BrowserFullPath != NULL) {
 		free (BrowserFullPath);
 	}
@@ -1295,7 +1299,6 @@ void closeFreewrl() {
 	int i;
 
 	#ifdef AQUA
-	printf("got to close freewrl, clearing status ... \n");
 	clear_status();
 	pluginRunning = FALSE;
 	kill_clockEvents();
@@ -1319,7 +1322,6 @@ void closeFreewrl() {
         if (!isMacPlugin) {
                 set_viewer_type (EXAMINE);
 	}
-	printf("glFlush / Finish\n");
         glFlush();
         glFinish();
         screenWidth = screenHeight = 1;
