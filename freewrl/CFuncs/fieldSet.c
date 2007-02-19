@@ -447,6 +447,7 @@ char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
 
 /* go through the generated table X3DACCESSORS, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
+/* XXX:  Do we really need the strlen-call to go next to strcmp?! */
 int findFieldInX3DACCESSORS(char *field) {
 	int x;
 	int mystrlen;
@@ -487,7 +488,8 @@ int findFieldInFIELDTYPES(char *field) {
 
 /* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
-int findFieldInFIELDNAMES(char *field) {
+int findFieldInARR(char* field, const char** arr, size_t cnt)
+{
 	int x;
 	int mystrlen;
 	
@@ -497,17 +499,27 @@ int findFieldInFIELDNAMES(char *field) {
 
 	mystrlen = strlen(field);
 	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
-	for (x=0; x<FIELDNAMES_COUNT; x++) {
-		if (strlen(FIELDNAMES[x]) == mystrlen) {
-			if (strcmp(field,FIELDNAMES[x])==0) return x;
+	for (x=0; x!=cnt; ++x) {
+		if (strlen(arr[x]) == mystrlen) {
+			if (strcmp(field, arr[x])==0) return x;
 		} 
 	}
 	return -1;
+
 }
+#define DEF_FINDFIELD(arr) \
+ int findFieldIn##arr(char* field) \
+ { \
+  return findFieldInARR(field, arr, arr##_COUNT); \
+ }
+DEF_FINDFIELD(FIELDNAMES)
+DEF_FINDFIELD(FIELD)
+DEF_FINDFIELD(EXPOSED_FIELD)
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */
-int findRoutedFieldInFIELDNAMES (struct X3D_Node * node, char *field, int fromTo) {
+int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
+ const char** arr, size_t cnt) {
 	int retval;
 	char mychar[200];
 	int a,b,c;
@@ -521,24 +533,34 @@ int findRoutedFieldInFIELDNAMES (struct X3D_Node * node, char *field, int fromTo
 	} 
 
 	/* step 1. try the field as is. */
-	retval = findFieldInFIELDNAMES(field);
+	retval = findFieldInARR(field, arr, cnt);
 	FIELDCHECK (field)
 
 	/* try removing the "set_" or "_changed" */
+	/* XXX: Not checking if substring is really "set_" or "_changed"! */
 	strncpy (mychar, field, 100);
 	if (fromTo != 0) {
 		if (strlen(field) > 4)
-			retval = findFieldInFIELDNAMES(&mychar[4]);
+			retval = findFieldInARR(mychar+4, arr, cnt);
 	} else {
 		if (strlen(field) > strlen("_changed")) {
 			mychar[strlen(field) - strlen("_changed")] = '\0';
-			retval = findFieldInFIELDNAMES(mychar);
+			retval = findFieldInARR(mychar, arr, cnt);
 		}
 	}
 	FIELDCHECK (mychar)
 
 	return retval;
 }
+#define DEF_FINDROUTEDFIELD(arr) \
+ int findRoutedFieldIn##arr(struct X3D_Node* node, char* field, int fromTo) \
+ { \
+  return findRoutedFieldInARR(node, field, fromTo, arr, arr##_COUNT); \
+ }
+DEF_FINDROUTEDFIELD(FIELDNAMES)
+DEF_FINDROUTEDFIELD(EXPOSED_FIELD)
+DEF_FINDROUTEDFIELD(EVENT_IN)
+DEF_FINDROUTEDFIELD(EVENT_OUT)
 
 /* go through the generated table NODENAMES, and find the int of this string, returning it, or -1 on error */
 int findNodeInNODES(char *node) {

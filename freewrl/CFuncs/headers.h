@@ -1130,9 +1130,14 @@ void kill_X3DDefs(void);
 extern int currentFileVersion;
 
 int findFieldInFIELDNAMES(char *field);
+int findFieldInFIELD(char* field);
 int findFieldInFIELDTYPES(char *field);
 int findFieldInX3DACCESSORS(char *field);
+int findFieldInEXPOSED_FIELD(char* field);
 int findRoutedFieldInFIELDNAMES (struct X3D_Node *node, char *field, int fromTo);
+int findRoutedFieldInEXPOSED_FIELD(struct X3D_Node*, char*, int);
+int findRoutedFieldInEVENT_IN(struct X3D_Node*, char*, int);
+int findRoutedFieldInEVENT_OUT(struct X3D_Node*, char*, int);
 int findNodeInNODES(char *node);
 int findFieldInALLFIELDNAMES(char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
