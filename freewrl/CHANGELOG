@@ -1,5 +1,9 @@
 For 1.18.15:
-	- working on Lights.
+	- working on spot and directional Lights.
+
+	- headlight moved to 100 behind current camera postion, makes for smoother
+	  shading of triangles whose vertexen are at corners (or out of view) of current
+	  view frustum
 
 	  PixelTexture nodes - default image caused a segfault
 For 1.18.14:

@@ -131,7 +131,10 @@ void lightState(GLint light, int status) {
 
 void glpOpenGLInitialize() {
 	int i;
-        float pos[] = { 0.0, 0.0, 0.0, 1.0 };
+        /* JAS float pos[] = { 0.0, 0.0, 0.0, 1.0 }; */
+	/* put the headlight far behind us, so that lighting on close
+	   surfaces (eg, just above the surface of a box) is evenly lit */
+        float pos[] = { 0.0, 0.0, 100.0, 1.0 };
         float s[] = { 1.0, 1.0, 1.0, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
 
@@ -160,6 +163,9 @@ void glpOpenGLInitialize() {
 	glEnable(GL_DEPTH_TEST);
 	glLineWidth(gl_linewidth);
 	glPointSize (gl_linewidth);
+
+glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
+glEnable (GL_RESCALE_NORMAL);
 
 	/*
      * JAS - ALPHA testing for textures - right now we just use 0/1 alpha
