@@ -98,7 +98,7 @@ unsigned int returnSumofString(struct Uni_String *str) {
 		sum += str->strptr[count];
 	}
 
-	sum &= 0x3ff;
+	sum &= 0xffff;
 	/* printf ("returning %x\n",sum); */
 	return sum;
 }
