@@ -1600,7 +1600,6 @@ package VRML::NodeType;
 	ReWireMidiControl =>
 	new VRML::NodeType("ReWireMidiControl",
 					{
-						bus => [SFInt32,-1,exposedField],		# bus 5, or -1 for "search any bus"
 						deviceName => [SFString,"",exposedField],	# "Subtractor 1"
 						channel => [SFString,"",exposedField],		# "Osc1 Wave"
 

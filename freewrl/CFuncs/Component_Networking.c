@@ -120,15 +120,9 @@ void sendCompiledNodeToReWire(struct X3D_ReWireMidiControl *node) {
 void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	unsigned int newEncodedName;
 
-	newEncodedName = 0;
-	if (node->bus < 0) 
-		newEncodedName |= 0x0ff;
-	else
-		newEncodedName |= (node->bus & 0xff);
-
 	/* shuffle bits about to make up a (hopefully unique) name */
-	newEncodedName |= (returnSumofString(node->channel)  << 8);
-	newEncodedName |= (returnSumofString(node->deviceName)  << 20);
+	newEncodedName = returnSumofString(node->channel);
+	newEncodedName |= (returnSumofString(node->deviceName)  << 16);
 
 	/* EncodedName - bits are as follows */
 	
