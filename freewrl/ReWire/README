@@ -4,31 +4,30 @@ Initial notes on the EAI C version.
 Compiling with a program (main.c):
 
 gcc -g -Wall -o main -DREWIRE\
-	-I/usr/local/src/freewrl/freewrl-1.18.14/ReWire \
-	-I/usr/local/src/freewrl/freewrl-1.18.14/CFuncs \
-	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Control.c \
-	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Field.c \
-	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Internals.c  \
-	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Node.c  \
-	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/EAI_C_Advise.c  \
-	/usr/local/src/freewrl/freewrl-1.18.14/CFuncs/EAI_C_CommonFunctions.c \
-	/usr/local/src/freewrl/freewrl-1.18.14/ReWire/GeneratedCode.c  \
-	main.c -lpthreado
+	-I/usr/local/src/freewrl/freewrl-1.18.15/ReWire \
+	-I/usr/local/src/freewrl/freewrl-1.18.15/CFuncs \
+	/usr/local/src/freewrl/freewrl-1.18.15/ReWire/EAI_C_Control.c \
+	/usr/local/src/freewrl/freewrl-1.18.15/ReWire/EAI_C_Field.c \
+	/usr/local/src/freewrl/freewrl-1.18.15/ReWire/EAI_C_Internals.c  \
+	/usr/local/src/freewrl/freewrl-1.18.15/ReWire/EAI_C_Node.c  \
+	/usr/local/src/freewrl/freewrl-1.18.15/ReWire/EAI_C_Advise.c  \
+	/usr/local/src/freewrl/freewrl-1.18.15/CFuncs/EAI_C_CommonFunctions.c \
+	/usr/local/src/freewrl/freewrl-1.18.15/ReWire/EAI_C_ReWire.c \
+	/usr/local/src/freewrl/freewrl-1.18.15/ReWire/GeneratedCode.c  \
+	main.c -lpthread
 
 Running the program:
 
-freewrl --eai stuff/1.wrl &
+freewrl --eai 1.wrl &
 sleep 2
 ./main
 
 where 1.wrl is:
 
-
 #VRML V2.0 utf8
 DEF ROOT Transform { }
 
 and main.c is:
-
 
 /*
 */
@@ -56,6 +55,8 @@ X3D_Node *trans1;
 
 X3D_Node *X3DClock;
 X3D_Node *X3DColumnpath;
+X3D_Node *reWire1;
+X3D_EventIn *reWire1_setFloat;
 
 X3D_EventIn *addChildren;
 X3D_EventIn *removeChildren;
@@ -67,8 +68,9 @@ X3D_EventIn *X3Dcolumn_set_frac;
 X3D_EventOut *X3Dcolumn_frac_changed;
 X3D_EventIn *myRoot_set_rot;
 
-void myListener (X3D_Node *listenedTo) {
-	printf ("LISTENER CALLED!\n");
+void myListener (void *mydata) {
+	float *fl = (float *) mydata;
+	printf ("LISTENER CALLED %f\n",*fl);
 }
 
 /* simple function to make shapes up */
@@ -76,7 +78,7 @@ X3D_Node *makeSimpleShape (char * shape, char *colour, char *posn) {
 	char myline[2000];
 
 	sprintf (myline, "Transform{translation %s children Shape{" \
-                         "  appearance Appearance {" \
+                         "  appearance Appearance { \n" \
                          "    material Material {" \
                          "      diffuseColor %s" \
                          "    }" \
@@ -109,9 +111,9 @@ int main () {
 	myRoot = X3D_getNode ("ROOT");
 	printf ("got root\n");
 
-
 	addChildren = X3D_getEventIn(myRoot,"addChildren");
 	printf ("got addChildren\n");
+
 	removeChildren = X3D_getEventIn(myRoot,"removeChildren");
 	printf ("got removeChildren\n");
 	set_translation = X3D_getEventIn(myRoot,"translation");
@@ -173,11 +175,25 @@ sleep (4);
 	printf ("adding X3DClock and interpolator \n");
 
 	X3DClock = X3D_createVrmlFromString("TimeSensor{cycleInterval 4.0 loop TRUE}");
+	reWire1 = X3D_createVrmlFromString("ReWireMidiControl { " \
+        			" deviceName \"Keyboard 2\" " \
+        			" channel \"KeyPress\" " \
+        			" controllerType \"Step\" " \
+        			" useIntValue FALSE " \
+        			" minVal 28 " \
+        			" maxVal 31 }");
+
 
 	X3DColumnpath = X3D_createVrmlFromString("OrientationInterpolator {key [ 0.0 0.5 1.0 ] keyValue " \
 				"[0 0 1 0, 0 0 1 3.14, 0 0 1 6.28]}");
 
 	X3D_setValue(addChildren,X3DClock);
+	X3D_setValue(addChildren,reWire1);
+	X3DClock_frac_changed = X3D_getEventOut(X3DClock,"fraction_changed");
+	reWire1_setFloat = X3D_getEventIn(reWire1,"set_floatValue");
+	X3D_addRoute (X3DClock_frac_changed, reWire1_setFloat);
+
+
 	X3D_setValue(addChildren,X3DColumnpath);
 
 	X3Dcolumn_set_frac = X3D_getEventIn(X3DColumnpath,"set_fraction");
@@ -187,10 +203,10 @@ sleep (4);
 	X3Dcolumn_frac_changed = X3D_getEventOut(X3DColumnpath,"value_changed");
 	
 	/* Lets throw this one - catch the output of the Clock and print it */
-	X3DAdvise (X3DClock_frac_changed, myListener);
-
 	X3D_addRoute (X3DClock_frac_changed, X3Dcolumn_set_frac);
 	X3D_addRoute (X3Dcolumn_frac_changed, myRoot_set_rot);
+	X3DAdvise (X3DClock_frac_changed, myListener);
+
 	
 	sleep(10);
 	printf ("deleting route\n");
