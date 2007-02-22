@@ -16,6 +16,8 @@ void X3D_error(char *msg) {
 double mytime;
 
 char readbuffer[2048];
+char *sendBuffer = NULL;
+int sendBufferSize = 0;
 
 /* handle a callback - this should get a line like:
  EV
@@ -24,6 +26,16 @@ char readbuffer[2048];
 0.877656
 EV_EOT
 */
+
+/* make a buffer large enough to hold our data */
+void verifySendBufferSize (int len) {
+	if (len < (sendBufferSize-50)) return;
+	
+	/* make it large enough to contain string, plus some more, as we usually throw some stuff on the beginning. */
+	while (len>(sendBufferSize-200)) sendBufferSize+=1024;
+printf ("sendBufferSize now is %d\n",sendBufferSize);
+	sendBuffer = realloc(sendBuffer,sendBufferSize);
+}
 
 /* count the number of numbers on a line - useful for MFNode return value mallocs */
 int _X3D_countWords(char *ptr) {
@@ -174,21 +186,18 @@ RE_EOT
 
 
 void _X3D_sendEvent (char command, char *string) {
-	char myBuffer[2048];
         char *myptr;
-
-        if (strlen(string) >= 2048) {printf ("string too long...%s\n",string); return;}
-
-        sprintf (myBuffer, "%d %c %s\n",_X3D_queryno,command,string);
-        myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),command!=SENDEVENT);
+	verifySendBufferSize (strlen(string));
+        sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,string);
+        myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
 }
 
 char *_X3D_makeShortCommand (char command) {
 	char *myptr;
-	char myBuffer[2048];	
 
-	sprintf (myBuffer, "%d %c\n",_X3D_queryno,command);
-	myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),command!=SENDEVENT);
+	verifySendBufferSize (100);
+	sprintf (sendBuffer, "%d %c\n",_X3D_queryno,command);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
 	#ifdef VERBOSE
 	printf ("makeShortCommand, buffer now %s\n",myptr);
 	#endif
@@ -197,10 +206,10 @@ char *_X3D_makeShortCommand (char command) {
 
 char *_X3D_make1VoidCommand (char command, uintptr_t *adr) {
 	char *myptr;
-	char myBuffer[2048];	
 
-	sprintf (myBuffer, "%d %c %p\n",_X3D_queryno,command,adr);
-	myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),command!=SENDEVENT);
+	verifySendBufferSize (100);
+	sprintf (sendBuffer, "%d %c %p\n",_X3D_queryno,command,adr);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
 	#ifdef VERBOSE
 	printf ("make1VoidCommand, buffer now %s\n",myptr);
 	#endif
@@ -209,12 +218,10 @@ char *_X3D_make1VoidCommand (char command, uintptr_t *adr) {
 
 char *_X3D_make1StringCommand (char command, char *name) {
 	char *myptr;
-	char myBuffer[2048];	
 	
-	if (strlen(name) >= 2048) {printf ("string too long...%s\n",name); return name;}
-
-	sprintf (myBuffer, "%d %c %s\n",_X3D_queryno,command,name);
-	myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),command!=SENDEVENT);
+	verifySendBufferSize (strlen(name));
+	sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,name);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
 	#ifdef VERBOSE
 	printf ("make1StringCommand, buffer now %s\n",myptr);
 	#endif
@@ -223,12 +230,11 @@ char *_X3D_make1StringCommand (char command, char *name) {
 
 char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 	char *myptr;
-	char myBuffer[2048];
+	char sendBuffer[2048];
 	
-	if ((strlen(str1) + strlen(str2)) >= 2048) {printf ("string too long...%s\n",str1); return str1;}
-
-	sprintf (myBuffer, "%d %c %s%s\n",_X3D_queryno,command,str1,str2);
-	myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),command!=SENDEVENT);
+	verifySendBufferSize ( strlen(str1) + strlen(str2));
+	sprintf (sendBuffer, "%d %c %s%s\n",_X3D_queryno,command,str1,str2);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
 
 	#ifdef VERBOSE
 	printf ("make2StringCommand, buffer now %s\n",myptr);
@@ -239,11 +245,11 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 
 char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype) {
 	char *myptr;
-	char myBuffer[2048];	
 
-	sprintf (myBuffer, "%u %c 0 %d %s %s\n",_X3D_queryno, GETFIELDTYPE, (unsigned int) adr, name, evtype);
+	verifySendBufferSize (100);
+	sprintf (sendBuffer, "%u %c 0 %d %s %s\n",_X3D_queryno, GETFIELDTYPE, (unsigned int) adr, name, evtype);
 
-	myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),TRUE);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),TRUE);
 	#ifdef VERBOSE
 	printf ("_X3D_Browser_SendEventType, buffer now %s\n",myptr);
 	#endif
@@ -252,9 +258,9 @@ char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype) {
 
 char * _RegisterListener (X3D_EventOut *node, int adin) {
 	char *myptr;
-	char myBuffer[2048];	
 	
 
+	verifySendBufferSize (100);
 	#ifdef VERBOSE
 	printf ("in RegisterListener, we have query %d advise index %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
 		_X3D_queryno,
@@ -265,7 +271,7 @@ char * _RegisterListener (X3D_EventOut *node, int adin) {
  EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
                 " " + datasize + "\n");
 */
-	sprintf (myBuffer, "%u %c %ld %d %c %d\n",
+	sprintf (sendBuffer, "%u %c %ld %d %c %d\n",
 		_X3D_queryno, 
 		REGLISTENER, 
 		node->nodeptr,
@@ -273,7 +279,7 @@ char * _RegisterListener (X3D_EventOut *node, int adin) {
 		mapFieldTypeToEAItype(node->datatype),
 		node->datasize);
 
-	myptr = sendToFreeWRL(myBuffer, strlen(myBuffer),TRUE);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),TRUE);
 	printf ("_X3D_Browser_SendEventType, buffer now %s\n",myptr);
 	#ifdef VERBOSE
 	printf ("_X3D_Browser_SendEventType, buffer now %s\n",myptr);

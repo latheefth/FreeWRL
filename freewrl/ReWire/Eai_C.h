@@ -72,6 +72,7 @@ struct Multi_Vec2f { int n; struct SFVec2f  *p; };
 struct Uni_String {
         int len;
         char * strptr;
+	int touched;
 };
 
 
