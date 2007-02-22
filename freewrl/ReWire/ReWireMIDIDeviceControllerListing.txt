@@ -1,0 +1,1579 @@
+current MIDI bus config example message. ReWire will send the
+device/controller info to us. Below is an example of what is sent to
+FreeWRL for the ReWireMIDI nodes use.
+
+
+format:
+	2 types of lines first is for devices found in Reason:
+		- device entry (0 to max found),
+		- device name, ASCII string in double quotes,
+		- midi bus (0-254)
+		- midi device on bus (0-15)
+
+	and, for controllers for each type:
+		- a TAB character;
+		- controller number (0-128)
+		- controller name, ASCII string in double quotes,
+		- controller min value;
+		- controller max value;
+		- controller type:
+			Continuous:1
+			Bipolar:2
+			Step:3
+			Unused:4
+			Unknown:999
+
+eg:
+
+0: "Hardware Interface 1" bus 5 device 0 
+1: "Melody Automation" bus 5 device 1 
+	1 "Mod Wheel" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Oscillator B Decay" 1 127 0
+	12 "Oscillator B Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	21 "Oscillator B Octave" 3 8 0
+	22 "Oscillator B Semi" 3 12 0
+	23 "Oscillator B Cent" 2 127 0
+	25 "Modulator A On/Off" 3 1 0
+	26 "Modulator A Rate" 1 127 0
+	27 "Modulator A To Pitch" 2 127 0
+	28 "Modulator A Curve" 1 127 0
+	29 "Modulator A One Shot" 3 1 0
+	30 "Modulator A Target" 3 2 0
+	31 "Modulator A To Index" 2 127 0
+	33 "Mod Wheel To Filter" 2 127 0
+	34 "Mod Wheel To Index" 2 127 0
+	35 "Mod Wheel To Modulator" 2 127 0
+	36 "Mod Wheel Target" 3 2 0
+	37 "Mod Wheel To Shift" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Modulator A To Shift" 2 127 0
+	41 "Oscillator B On/Off" 3 1 0
+	42 "Oscillator B Index" 3 127 0
+	43 "Oscillator B Motion" 2 127 0
+	44 "Oscillator B Shift" 2 127 0
+	46 "Velocity To Filter Env" 2 127 0
+	47 "Velocity Target" 3 2 0
+	48 "Velocity To Attack" 2 127 0
+	49 "Velocity To Level B" 2 127 0
+	50 "Velocity To Level A" 2 127 0
+	51 "Velocity To Shift" 2 127 0
+	52 "Velocity To Modulator" 2 127 0
+	53 "Oscillator B Gain" 1 127 0
+	54 "Filter A On/Off" 3 1 0
+	55 "Filter A Mode" 3 4 0
+	56 "Shaper On/Off" 3 1 0
+	57 "Shaper Mode" 3 4 0
+	58 "Shaper Amount" 1 127 0
+	59 "Route Oscillator B To Filter B" 3 1 0
+	60 "Route Oscillator A To Filter B" 3 1 0
+	61 "Route Oscillator A To Shaper" 3 1 0
+	62 "Route Filter B To Shaper" 3 1 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Legato On/Off" 3 1 0
+	69 "Modulator A Sync" 3 1 0
+	70 "Modulator B Sync" 3 1 0
+	71 "Filter B Resonance" 1 127 0
+	72 "Oscillator B Release" 1 127 0
+	73 "Oscillator B Attack" 1 127 0
+	74 "Filter B Freq" 1 127 0
+	75 "Filter B On/Off" 3 1 0
+	76 "Filter B Mode" 3 4 0
+	77 "Filter B Kbd Track" 3 1 0
+	78 "Filter A Resonance" 1 127 0
+	79 "Filter A Freq" 1 127 0
+	80 "Filter A Env" 3 1 0
+	81 "Filter A Kbd Track" 3 1 0
+	82 "Filter B Env" 3 1 0
+	86 "Oscillator A Shift" 2 127 0
+	87 "Oscillator A Attack" 1 127 0
+	88 "Oscillator A Decay" 1 127 0
+	89 "Oscillator A Sustain" 1 127 0
+	90 "Oscillator A Release" 1 127 0
+	91 "Oscillator A Gain" 1 127 0
+	92 "Oscillator A Motion" 2 127 0
+	93 "Oscillator A Index" 3 127 0
+	95 "Oscillator A On/Off" 3 1 0
+	102 "Oscillator A Octave" 3 8 0
+	103 "Oscillator A Semi" 3 12 0
+	104 "Oscillator A Cent" 2 127 0
+	105 "Spread Amount" 1 127 0
+	110 "Modulator B Rate" 1 127 0
+	111 "Modulator B To Level" 2 127 0
+	112 "Modulator B To Filter" 2 127 0
+	113 "Modulator B To Modulator A" 2 127 0
+	114 "Modulator B On/Off" 3 1 0
+	115 "Modulator B Curve" 3 31 0
+	116 "Modulator B One Shot" 3 1 0
+	117 "Modulator B Target" 3 2 0
+	118 "Modulator B To Motion" 2 127 0
+2: "Mixer 1" bus 5 device 2 
+	7 "Master Level" 1 127 0
+	8 "Channel 1 Level" 1 127 0
+	9 "Channel 2 Level" 1 127 0
+	10 "Channel 3 Level" 1 127 0
+	12 "Channel 4 Level" 1 127 0
+	13 "Channel 5 Level" 1 127 0
+	14 "Channel 6 Level" 1 127 0
+	15 "Channel 7 Level" 1 127 0
+	16 "Channel 8 Level" 1 127 0
+	17 "Channel 9 Level" 1 127 0
+	18 "Channel 10 Level" 1 127 0
+	19 "Channel 11 Level" 1 127 0
+	20 "Channel 12 Level" 1 127 0
+	21 "Channel 13 Level" 1 127 0
+	22 "Channel 14 Level" 1 127 0
+	23 "Channel 1 Pan" 2 127 0
+	24 "Channel 2 Pan" 2 127 0
+	25 "Channel 3 Pan" 2 127 0
+	26 "Channel 4 Pan" 2 127 0
+	27 "Channel 5 Pan" 2 127 0
+	28 "Channel 6 Pan" 2 127 0
+	29 "Channel 7 Pan" 2 127 0
+	30 "Channel 8 Pan" 2 127 0
+	31 "Channel 9 Pan" 2 127 0
+	33 "Channel 10 Pan" 2 127 0
+	34 "Channel 11 Pan" 2 127 0
+	35 "Channel 12 Pan" 2 127 0
+	36 "Channel 13 Pan" 2 127 0
+	37 "Channel 14 Pan" 2 127 0
+	39 "Channel 1 Aux 1 Send" 1 127 0
+	40 "Channel 2 Aux 1 Send" 1 127 0
+	41 "Channel 3 Aux 1 Send" 1 127 0
+	42 "Channel 4 Aux 1 Send" 1 127 0
+	43 "Channel 5 Aux 1 Send" 1 127 0
+	44 "Channel 6 Aux 1 Send" 1 127 0
+	45 "Channel 7 Aux 1 Send" 1 127 0
+	46 "Channel 8 Aux 1 Send" 1 127 0
+	47 "Channel 9 Aux 1 Send" 1 127 0
+	48 "Channel 10 Aux 1 Send" 1 127 0
+	49 "Channel 11 Aux 1 Send" 1 127 0
+	50 "Channel 12 Aux 1 Send" 1 127 0
+	51 "Channel 13 Aux 1 Send" 1 127 0
+	52 "Channel 14 Aux 1 Send" 1 127 0
+	53 "Channel 1 Aux 2 Send" 1 127 0
+	54 "Channel 2 Aux 2 Send" 1 127 0
+	55 "Channel 3 Aux 2 Send" 1 127 0
+	56 "Channel 4 Aux 2 Send" 1 127 0
+	57 "Channel 5 Aux 2 Send" 1 127 0
+	58 "Channel 6 Aux 2 Send" 1 127 0
+	59 "Channel 7 Aux 2 Send" 1 127 0
+	60 "Channel 8 Aux 2 Send" 1 127 0
+	61 "Channel 9 Aux 2 Send" 1 127 0
+	62 "Channel 10 Aux 2 Send" 1 127 0
+	63 "Channel 11 Aux 2 Send" 1 127 0
+	65 "Channel 12 Aux 2 Send" 1 127 0
+	66 "Channel 13 Aux 2 Send" 1 127 0
+	67 "Channel 14 Aux 2 Send" 1 127 0
+	68 "Channel 1 Bass Amount" 2 127 0
+	69 "Channel 2 Bass Amount" 2 127 0
+	70 "Channel 3 Bass Amount" 2 127 0
+	71 "Channel 4 Bass Amount" 2 127 0
+	72 "Channel 5 Bass Amount" 2 127 0
+	73 "Channel 6 Bass Amount" 2 127 0
+	74 "Channel 7 Bass Amount" 2 127 0
+	75 "Channel 8 Bass Amount" 2 127 0
+	76 "Channel 9 Bass Amount" 2 127 0
+	77 "Channel 10 Bass Amount" 2 127 0
+	78 "Channel 11 Bass Amount" 2 127 0
+	79 "Channel 12 Bass Amount" 2 127 0
+	80 "Channel 13 Bass Amount" 2 127 0
+	81 "Channel 14 Bass Amount" 2 127 0
+	82 "Channel 1 Treble Amount" 2 127 0
+	83 "Channel 2 Treble Amount" 2 127 0
+	84 "Channel 3 Treble Amount" 2 127 0
+	85 "Channel 4 Treble Amount" 2 127 0
+	86 "Channel 5 Treble Amount" 2 127 0
+	87 "Channel 6 Treble Amount" 2 127 0
+	88 "Channel 7 Treble Amount" 2 127 0
+	89 "Channel 8 Treble Amount" 2 127 0
+	90 "Channel 9 Treble Amount" 2 127 0
+	91 "Channel 10 Treble Amount" 2 127 0
+	92 "Channel 11 Treble Amount" 2 127 0
+	93 "Channel 12 Treble Amount" 2 127 0
+	94 "Channel 13 Treble Amount" 2 127 0
+	95 "Channel 14 Treble Amount" 2 127 0
+	102 "Channel 1 Aux 3 Send" 1 127 0
+	103 "Channel 2 Aux 3 Send" 1 127 0
+	104 "Channel 3 Aux 3 Send" 1 127 0
+	105 "Channel 4 Aux 3 Send" 1 127 0
+	106 "Channel 5 Aux 3 Send" 1 127 0
+	107 "Channel 6 Aux 3 Send" 1 127 0
+	108 "Channel 7 Aux 3 Send" 1 127 0
+	109 "Channel 8 Aux 3 Send" 1 127 0
+	110 "Channel 9 Aux 3 Send" 1 127 0
+	111 "Channel 10 Aux 3 Send" 1 127 0
+	112 "Channel 11 Aux 3 Send" 1 127 0
+	113 "Channel 12 Aux 3 Send" 1 127 0
+	114 "Channel 13 Aux 3 Send" 1 127 0
+	115 "Channel 14 Aux 3 Send" 1 127 0
+	116 "Aux 1 Return Level" 1 127 0
+	117 "Aux 2 Return Level" 1 127 0
+	118 "Aux 3 Return Level" 1 127 0
+	119 "Aux 4 Return Level" 1 127 0
+3: "BASs" bus 5 device 3 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Amp Env Decay" 1 127 0
+	11 "Expression" 1 127 0
+	12 "Amp Env Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	20 "Osc1 Wave" 3 31 0
+	21 "Osc1 Octave" 3 9 0
+	22 "Osc1 Semitone" 3 12 0
+	23 "Osc1 Fine Tune" 2 127 0
+	25 "Osc1 Kbd Track" 3 1 0
+	26 "LFO1 Rate" 1 127 0
+	27 "LFO1 Amount" 1 127 0
+	28 "LFO1 Wave" 3 5 0
+	29 "LFO1 Dest" 3 5 0
+	30 "LFO Sync Enable" 3 1 0
+	33 "Filter Freq Mod Wheel Amount" 2 127 0
+	34 "Filter Res Mod Wheel Amount" 2 127 0
+	35 "LFO1 Mod Wheel Amount" 2 127 0
+	36 "FM Mod Wheel Amount" 2 127 0
+	37 "Phase Diff Mod Wheel Amount" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Filter Freq Ext Mod" 2 127 0
+	41 "LFO1 Ext Mod" 2 127 0
+	42 "Amp Ext Mod" 2 127 0
+	43 "Ext Mod Select" 3 2 0
+	44 "FM Ext Mod" 2 127 0
+	45 "Amp Vel Amount" 2 127 0
+	46 "Filter Env Vel Amount" 2 127 0
+	47 "Filter Decay Vel Amount" 2 127 0
+	48 "Amp Attack Vel Amount" 2 127 0
+	49 "FM Vel Amount" 2 127 0
+	50 "Mod Env Vel Amount" 2 127 0
+	51 "Phase Vel Amount" 2 127 0
+	52 "Filter2 Freq Vel Amount" 2 127 0
+	53 "Mix Vel Amount" 2 127 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Key Mode" 1 127 0
+	71 "Filter Res" 1 127 0
+	72 "Amp Env Release" 1 127 0
+	73 "Amp Env Attack" 1 127 0
+	74 "Filter Freq" 1 127 0
+	75 "Filter2 On/Off" 3 1 0
+	76 "Filter Type" 3 4 0
+	77 "Filter Kbd Track" 1 127 0
+	78 "Filter2 Res" 1 127 0
+	79 "Filter2 Freq" 1 127 0
+	80 "Filter Link Freq On/Off" 3 1 0
+	81 "Noise On/Off" 3 1 0
+	82 "Noise Level" 1 127 0
+	83 "Noise Decay" 1 127 0
+	84 "Noise Color" 1 127 0
+	85 "Mod Env Gain" 1 127 0
+	86 "Mod Env Invert" 3 1 0
+	87 "Mod Env Attack" 1 127 0
+	88 "Mod Env Decay" 1 127 0
+	89 "Mod Env Sustain" 1 127 0
+	90 "Mod Env Release" 1 127 0
+	91 "Mod Env Dest" 3 5 0
+	92 "Osc1 Phase Mode" 3 2 0
+	93 "Osc1 Phase Diff" 1 127 0
+	94 "Osc2 On/Off" 3 1 0
+	95 "Osc2 Wave" 3 31 0
+	102 "Osc2 Octave" 3 9 0
+	103 "Osc2 Semitone" 3 12 0
+	104 "Osc2 Fine Tune" 2 127 0
+	105 "Osc2 Phase Mode" 3 2 0
+	106 "Osc2 Phase Diff" 1 127 0
+	107 "Osc Mix" 1 127 0
+	108 "FM Amount" 1 127 0
+	109 "Ring Mod" 3 1 0
+	110 "LFO2 Rate" 1 127 0
+	111 "LFO2 Amount" 1 127 0
+	112 "LFO2 Delay" 1 127 0
+	113 "LFO2 Dest" 3 3 0
+	114 "LFO2 Kbd Track" 1 127 0
+	115 "Osc2 Kbd Track" 3 1 0
+4: "RV7000 1" bus 5 device 4 
+	9 "Enabled" 3 2 0
+	12 "Hi EQ" 2 127 0
+	13 "HF Damp" 1 127 0
+	14 "Decay" 1 127 0
+	15 "Dry/Wet" 1 127 0
+	16 "Small Size" 1 127 0
+	17 "Small Mod Rate" 1 127 0
+	18 "Small Room Shape" 3 3 0
+	19 "Small LF Damp" 1 127 0
+	20 "Small Wall Irreg" 1 127 0
+	21 "Small Predelay" 1 127 0
+	22 "Small Mod Amount" 1 127 0
+	23 "Room Size" 1 127 0
+	24 "Room Diffusion" 1 127 0
+	25 "Room Room Shape" 3 3 0
+	26 "Room ER->Late Delay" 1 127 0
+	27 "Room ER Level" 1 127 0
+	28 "Room Predelay" 1 127 0
+	29 "Room Mod Amount" 1 127 0
+	30 "Hall Size" 1 127 0
+	31 "Hall Diffusion" 1 127 0
+	33 "Hall Room Shape" 3 3 0
+	34 "Hall ER->Late Delay" 1 127 0
+	35 "Hall ER Level" 1 127 0
+	36 "Hall Predelay" 1 127 0
+	37 "Hall Mod Amount" 1 127 0
+	39 "Arena Size" 1 127 0
+	40 "Arena Diffusion" 1 127 0
+	42 "Arena Mono Level" 1 127 0
+	45 "Arena Stereo Level" 1 127 0
+	47 "Plate LF Damp" 1 127 0
+	48 "Plate Predelay" 1 127 0
+	49 "Spring Length" 1 127 0
+	50 "Spring Diffusion" 1 127 0
+	51 "Spring Disp Freq" 1 127 0
+	52 "Spring LF Damp" 1 127 0
+	53 "Spring Stereo On/Off" 3 1 0
+	54 "Spring Predelay" 1 127 0
+	55 "Spring Disp Amount" 1 127 0
+	57 "Echo Tempo Sync" 3 1 0
+	59 "Echo Time (steps)" 1 127 0
+	60 "Echo Diffusion" 1 127 0
+	61 "Echo LF Damp" 1 127 0
+	62 "Echo Spread" 1 127 0
+	63 "Echo Predelay" 1 127 0
+	65 "Multitap Tempo Sync" 3 1 0
+	67 "Multitap Repeat Time (steps)" 1 127 0
+	68 "Multitap Diffusion" 1 127 0
+	69 "Multitap LF Damp" 1 127 0
+	71 "Multitap Tap 1 Delay (steps)" 1 127 0
+	73 "Multitap Tap 2 Delay (steps)" 1 127 0
+	75 "Multitap Tap 3 Delay (steps)" 1 127 0
+	77 "Multitap Tap 4 Delay (steps)" 1 127 0
+	78 "Multitap Tap 1 Level" 1 127 0
+	79 "Multitap Tap 2 Level" 1 127 0
+	80 "Multitap Tap 3 Level" 1 127 0
+	81 "Multitap Tap 4 Level" 1 127 0
+	82 "Multitap Tap 1 Pan" 2 127 0
+	83 "Multitap Tap 2 Pan" 2 127 0
+	84 "Multitap Tap 3 Pan" 2 127 0
+	85 "Multitap Tap 4 Pan" 2 127 0
+	86 "Reverse Tempo Sync" 3 1 0
+	88 "Reverse Length (steps)" 1 127 0
+	89 "Reverse Dry/Wet" 1 127 0
+	90 "Reverse Density" 1 127 0
+	91 "Algorithm" 3 8 0
+	94 "Gate On/Off" 3 1 0
+	95 "EQ On/Off" 3 1 0
+	102 "Gate Threshold" 1 127 0
+	103 "Gate Decay Modulation" 1 127 0
+	104 "Gate Trig Source" 3 1 0
+	105 "Gate High Pass" 1 127 0
+	106 "Gate Attack" 1 127 0
+	107 "Gate Hold" 1 127 0
+	108 "Gate Release" 1 127 0
+	109 "EQ Low Gain" 2 127 0
+	110 "EQ Low Freq" 1 127 0
+	111 "EQ Param Gain" 2 127 0
+	112 "EQ Param Freq" 1 127 0
+	113 "EQ Param Q" 1 127 0
+5: "Bass-Matrix" bus 5 device 5 
+	3 "Pattern Select" 3 31 0
+	92 "Pattern Enable" 3 1 0
+6: "CCRMA E Piano" bus 5 device 6 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Amp Env Decay" 1 127 0
+	11 "Expression" 1 127 0
+	12 "Amp Env Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	20 "Osc1 Wave" 3 31 0
+	21 "Osc1 Octave" 3 9 0
+	22 "Osc1 Semitone" 3 12 0
+	23 "Osc1 Fine Tune" 2 127 0
+	25 "Osc1 Kbd Track" 3 1 0
+	26 "LFO1 Rate" 1 127 0
+	27 "LFO1 Amount" 1 127 0
+	28 "LFO1 Wave" 3 5 0
+	29 "LFO1 Dest" 3 5 0
+	30 "LFO Sync Enable" 3 1 0
+	33 "Filter Freq Mod Wheel Amount" 2 127 0
+	34 "Filter Res Mod Wheel Amount" 2 127 0
+	35 "LFO1 Mod Wheel Amount" 2 127 0
+	36 "FM Mod Wheel Amount" 2 127 0
+	37 "Phase Diff Mod Wheel Amount" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Filter Freq Ext Mod" 2 127 0
+	41 "LFO1 Ext Mod" 2 127 0
+	42 "Amp Ext Mod" 2 127 0
+	43 "Ext Mod Select" 3 2 0
+	44 "FM Ext Mod" 2 127 0
+	45 "Amp Vel Amount" 2 127 0
+	46 "Filter Env Vel Amount" 2 127 0
+	47 "Filter Decay Vel Amount" 2 127 0
+	48 "Amp Attack Vel Amount" 2 127 0
+	49 "FM Vel Amount" 2 127 0
+	50 "Mod Env Vel Amount" 2 127 0
+	51 "Phase Vel Amount" 2 127 0
+	52 "Filter2 Freq Vel Amount" 2 127 0
+	53 "Mix Vel Amount" 2 127 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Key Mode" 1 127 0
+	71 "Filter Res" 1 127 0
+	72 "Amp Env Release" 1 127 0
+	73 "Amp Env Attack" 1 127 0
+	74 "Filter Freq" 1 127 0
+	75 "Filter2 On/Off" 3 1 0
+	76 "Filter Type" 3 4 0
+	77 "Filter Kbd Track" 1 127 0
+	78 "Filter2 Res" 1 127 0
+	79 "Filter2 Freq" 1 127 0
+	80 "Filter Link Freq On/Off" 3 1 0
+	81 "Noise On/Off" 3 1 0
+	82 "Noise Level" 1 127 0
+	83 "Noise Decay" 1 127 0
+	84 "Noise Color" 1 127 0
+	85 "Mod Env Gain" 1 127 0
+	86 "Mod Env Invert" 3 1 0
+	87 "Mod Env Attack" 1 127 0
+	88 "Mod Env Decay" 1 127 0
+	89 "Mod Env Sustain" 1 127 0
+	90 "Mod Env Release" 1 127 0
+	91 "Mod Env Dest" 3 5 0
+	92 "Osc1 Phase Mode" 3 2 0
+	93 "Osc1 Phase Diff" 1 127 0
+	94 "Osc2 On/Off" 3 1 0
+	95 "Osc2 Wave" 3 31 0
+	102 "Osc2 Octave" 3 9 0
+	103 "Osc2 Semitone" 3 12 0
+	104 "Osc2 Fine Tune" 2 127 0
+	105 "Osc2 Phase Mode" 3 2 0
+	106 "Osc2 Phase Diff" 1 127 0
+	107 "Osc Mix" 1 127 0
+	108 "FM Amount" 1 127 0
+	109 "Ring Mod" 3 1 0
+	110 "LFO2 Rate" 1 127 0
+	111 "LFO2 Amount" 1 127 0
+	112 "LFO2 Delay" 1 127 0
+	113 "LFO2 Dest" 3 3 0
+	114 "LFO2 Kbd Track" 1 127 0
+	115 "Osc2 Kbd Track" 3 1 0
+7: "HipHop Lead" bus 5 device 7 
+	9 "Enabled" 3 2 0
+	10 "Pan" 2 127 0
+	12 "DelayTime (steps)" 3 15 0
+	13 "Feedback" 1 127 0
+	14 "Dry/Wet Balance" 1 127 0
+	15 "Unit" 3 1 0
+	16 "Step Length" 3 1 0
+8: "Hiphop Lead" bus 5 device 8 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Amp Env Decay" 1 127 0
+	11 "Expression" 1 127 0
+	12 "Amp Env Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	20 "Osc1 Wave" 3 31 0
+	21 "Osc1 Octave" 3 9 0
+	22 "Osc1 Semitone" 3 12 0
+	23 "Osc1 Fine Tune" 2 127 0
+	25 "Osc1 Kbd Track" 3 1 0
+	26 "LFO1 Rate" 1 127 0
+	27 "LFO1 Amount" 1 127 0
+	28 "LFO1 Wave" 3 5 0
+	29 "LFO1 Dest" 3 5 0
+	30 "LFO Sync Enable" 3 1 0
+	33 "Filter Freq Mod Wheel Amount" 2 127 0
+	34 "Filter Res Mod Wheel Amount" 2 127 0
+	35 "LFO1 Mod Wheel Amount" 2 127 0
+	36 "FM Mod Wheel Amount" 2 127 0
+	37 "Phase Diff Mod Wheel Amount" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Filter Freq Ext Mod" 2 127 0
+	41 "LFO1 Ext Mod" 2 127 0
+	42 "Amp Ext Mod" 2 127 0
+	43 "Ext Mod Select" 3 2 0
+	44 "FM Ext Mod" 2 127 0
+	45 "Amp Vel Amount" 2 127 0
+	46 "Filter Env Vel Amount" 2 127 0
+	47 "Filter Decay Vel Amount" 2 127 0
+	48 "Amp Attack Vel Amount" 2 127 0
+	49 "FM Vel Amount" 2 127 0
+	50 "Mod Env Vel Amount" 2 127 0
+	51 "Phase Vel Amount" 2 127 0
+	52 "Filter2 Freq Vel Amount" 2 127 0
+	53 "Mix Vel Amount" 2 127 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Key Mode" 1 127 0
+	71 "Filter Res" 1 127 0
+	72 "Amp Env Release" 1 127 0
+	73 "Amp Env Attack" 1 127 0
+	74 "Filter Freq" 1 127 0
+	75 "Filter2 On/Off" 3 1 0
+	76 "Filter Type" 3 4 0
+	77 "Filter Kbd Track" 1 127 0
+	78 "Filter2 Res" 1 127 0
+	79 "Filter2 Freq" 1 127 0
+	80 "Filter Link Freq On/Off" 3 1 0
+	81 "Noise On/Off" 3 1 0
+	82 "Noise Level" 1 127 0
+	83 "Noise Decay" 1 127 0
+	84 "Noise Color" 1 127 0
+	85 "Mod Env Gain" 1 127 0
+	86 "Mod Env Invert" 3 1 0
+	87 "Mod Env Attack" 1 127 0
+	88 "Mod Env Decay" 1 127 0
+	89 "Mod Env Sustain" 1 127 0
+	90 "Mod Env Release" 1 127 0
+	91 "Mod Env Dest" 3 5 0
+	92 "Osc1 Phase Mode" 3 2 0
+	93 "Osc1 Phase Diff" 1 127 0
+	94 "Osc2 On/Off" 3 1 0
+	95 "Osc2 Wave" 3 31 0
+	102 "Osc2 Octave" 3 9 0
+	103 "Osc2 Semitone" 3 12 0
+	104 "Osc2 Fine Tune" 2 127 0
+	105 "Osc2 Phase Mode" 3 2 0
+	106 "Osc2 Phase Diff" 1 127 0
+	107 "Osc Mix" 1 127 0
+	108 "FM Amount" 1 127 0
+	109 "Ring Mod" 3 1 0
+	110 "LFO2 Rate" 1 127 0
+	111 "LFO2 Amount" 1 127 0
+	112 "LFO2 Delay" 1 127 0
+	113 "LFO2 Dest" 3 3 0
+	114 "LFO2 Kbd Track" 1 127 0
+	115 "Osc2 Kbd Track" 3 1 0
+9: "MTX Melody" bus 5 device 9 
+	3 "Pattern Select" 3 31 0
+	92 "Pattern Enable" 3 1 0
+10: "Log Jam" bus 5 device 10 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	9 "Enabled" 3 2 0
+	11 "Expression" 1 127 0
+	64 "Sustain Pedal" 1 127 0
+	71 "Rotary 1" 1 127 0
+	72 "Rotary 2" 1 127 0
+	73 "Rotary 3" 1 127 0
+	74 "Rotary 4" 1 127 0
+	75 "Button 1" 3 1 0
+	76 "Button 2" 3 1 0
+	77 "Button 3" 3 1 0
+	78 "Button 4" 3 1 0
+11: "ReDrum" bus 5 device 11 
+	3 "Selected Pattern" 3 31 0
+	5 "Flam Amount" 1 127 0
+	7 "Master Level" 1 127 0
+	8 "Drum 1 Level" 1 127 0
+	9 "Drum 2 Level" 1 127 0
+	10 "Drum 3 Level" 1 127 0
+	12 "Drum 4 Level" 1 127 0
+	13 "Drum 5 Level" 1 127 0
+	14 "Drum 6 Level" 1 127 0
+	15 "Drum 7 Level" 1 127 0
+	16 "Drum 8 Level" 1 127 0
+	17 "Drum 9 Level" 1 127 0
+	18 "Drum 10 Level" 1 127 0
+	19 "Drum 1 Pan" 2 127 0
+	20 "Drum 2 Pan" 2 127 0
+	21 "Drum 3 Pan" 2 127 0
+	22 "Drum 4 Pan" 2 127 0
+	23 "Drum 5 Pan" 2 127 0
+	24 "Drum 6 Pan" 2 127 0
+	25 "Drum 7 Pan" 2 127 0
+	26 "Drum 8 Pan" 2 127 0
+	27 "Drum 9 Pan" 2 127 0
+	28 "Drum 10 Pan" 2 127 0
+	29 "Drum 1 Send 1 Amount" 1 127 0
+	30 "Drum 2 Send 1 Amount" 1 127 0
+	31 "Drum 3 Send 1 Amount" 1 127 0
+	33 "Drum 4 Send 1 Amount" 1 127 0
+	34 "Drum 5 Send 1 Amount" 1 127 0
+	35 "Drum 6 Send 1 Amount" 1 127 0
+	36 "Drum 7 Send 1 Amount" 1 127 0
+	37 "Drum 8 Send 1 Amount" 1 127 0
+	39 "Drum 9 Send 1 Amount" 1 127 0
+	40 "Drum 10 Send 1 Amount" 1 127 0
+	41 "Drum 1 Send 2 Amount" 1 127 0
+	42 "Drum 2 Send 2 Amount" 1 127 0
+	43 "Drum 3 Send 2 Amount" 1 127 0
+	44 "Drum 4 Send 2 Amount" 1 127 0
+	45 "Drum 5 Send 2 Amount" 1 127 0
+	46 "Drum 6 Send 2 Amount" 1 127 0
+	47 "Drum 7 Send 2 Amount" 1 127 0
+	48 "Drum 8 Send 2 Amount" 1 127 0
+	49 "Drum 9 Send 2 Amount" 1 127 0
+	50 "Drum 10 Send 2 Amount" 1 127 0
+	51 "Drum 1 Pitch" 2 127 0
+	52 "Drum 2 Pitch" 2 127 0
+	53 "Drum 3 Pitch" 2 127 0
+	54 "Drum 4 Pitch" 2 127 0
+	55 "Drum 5 Pitch" 2 127 0
+	56 "Drum 6 Pitch" 2 127 0
+	57 "Drum 7 Pitch" 2 127 0
+	58 "Drum 8 Pitch" 2 127 0
+	59 "Drum 9 Pitch" 2 127 0
+	60 "Drum 10 Pitch" 2 127 0
+	61 "Drum 1 Tone" 2 127 0
+	62 "Drum 2 Tone" 2 127 0
+	63 "Drum 10 Tone" 2 127 0
+	65 "Drum 6 Pitch Bend Amount" 2 127 0
+	66 "Drum 7 Pitch Bend Amount" 2 127 0
+	67 "Drum 1 Vel to Level" 2 127 0
+	68 "Drum 2 Vel to Level" 2 127 0
+	69 "Drum 3 Vel to Level" 2 127 0
+	70 "Drum 4 Vel to Level" 2 127 0
+	71 "Drum 5 Vel to Level" 2 127 0
+	72 "Drum 6 Vel to Level" 2 127 0
+	73 "Drum 7 Vel to Level" 2 127 0
+	74 "Drum 8 Vel to Level" 2 127 0
+	75 "Drum 9 Vel to Level" 2 127 0
+	76 "Drum 10 Vel to Level" 2 127 0
+	77 "Drum 1 Length" 1 127 0
+	78 "Drum 2 Length" 1 127 0
+	79 "Drum 3 Length" 1 127 0
+	80 "Drum 4 Length" 1 127 0
+	81 "Drum 5 Length" 1 127 0
+	82 "Drum 6 Length" 1 127 0
+	83 "Drum 7 Length" 1 127 0
+	84 "Drum 8 Length" 1 127 0
+	85 "Drum 9 Length" 1 127 0
+	86 "Drum 10 Length" 1 127 0
+	87 "Drum 3 Sample Start" 1 127 0
+	88 "Drum 4 Sample Start" 1 127 0
+	89 "Drum 5 Sample Start" 1 127 0
+	90 "Drum 8 Sample Start" 1 127 0
+	91 "Drum 9 Sample Start" 1 127 0
+	92 "Pattern Enable" 3 1 0
+	94 "Drum 6 Vel to Pitch Bend" 2 127 0
+	95 "Drum 7 Vel to Pitch Bend" 2 127 0
+	102 "Drum 6 Pitch Bend Rate" 1 127 0
+	103 "Drum 7 Pitch Bend Rate" 1 127 0
+	104 "Drum 1 Vel to Tone" 2 127 0
+	105 "Drum 2 Vel to Tone" 2 127 0
+	106 "Drum 10 Vel to Tone" 2 127 0
+	107 "Drum 3 Vel to Sample Start" 2 127 0
+	108 "Drum 4 Vel to Sample Start" 2 127 0
+	109 "Drum 5 Vel to Sample Start" 2 127 0
+	110 "Drum 8 Vel to Sample Start" 2 127 0
+	111 "Drum 9 Vel to Sample Start" 2 127 0
+12: "DELAY" bus 5 device 12 
+	9 "Enabled" 3 2 0
+	10 "Pan" 2 127 0
+	12 "DelayTime (steps)" 3 15 0
+	13 "Feedback" 1 127 0
+	14 "Dry/Wet Balance" 1 127 0
+	15 "Unit" 3 1 0
+	16 "Step Length" 3 1 0
+13: "Line Mixer 1" bus 5 device 13 
+	7 "Master Level" 1 127 0
+	8 "Channel 1 Level" 1 127 0
+	9 "Channel 2 Level" 1 127 0
+	10 "Channel 3 Level" 1 127 0
+	12 "Channel 4 Level" 1 127 0
+	13 "Channel 5 Level" 1 127 0
+	14 "Channel 6 Level" 1 127 0
+	23 "Channel 1 Pan" 2 127 0
+	24 "Channel 2 Pan" 2 127 0
+	25 "Channel 3 Pan" 2 127 0
+	26 "Channel 4 Pan" 2 127 0
+	27 "Channel 5 Pan" 2 127 0
+	28 "Channel 6 Pan" 2 127 0
+	39 "Channel 1 Aux Send" 1 127 0
+	40 "Channel 2 Aux Send" 1 127 0
+	41 "Channel 3 Aux Send" 1 127 0
+	42 "Channel 4 Aux Send" 1 127 0
+	43 "Channel 5 Aux Send" 1 127 0
+	44 "Channel 6 Aux Send" 1 127 0
+	116 "Aux Return Level" 1 127 0
+14: "So Nice" bus 5 device 14 
+	7 "Master Level" 1 127 0
+	8 "Channel 1 Level" 1 127 0
+	9 "Channel 2 Level" 1 127 0
+	10 "Channel 3 Level" 1 127 0
+	12 "Channel 4 Level" 1 127 0
+	13 "Channel 5 Level" 1 127 0
+	14 "Channel 6 Level" 1 127 0
+	15 "Channel 7 Level" 1 127 0
+	16 "Channel 8 Level" 1 127 0
+	17 "Channel 9 Level" 1 127 0
+	18 "Channel 10 Level" 1 127 0
+	19 "Channel 11 Level" 1 127 0
+	20 "Channel 12 Level" 1 127 0
+	21 "Channel 13 Level" 1 127 0
+	22 "Channel 14 Level" 1 127 0
+	23 "Channel 1 Pan" 2 127 0
+	24 "Channel 2 Pan" 2 127 0
+	25 "Channel 3 Pan" 2 127 0
+	26 "Channel 4 Pan" 2 127 0
+	27 "Channel 5 Pan" 2 127 0
+	28 "Channel 6 Pan" 2 127 0
+	29 "Channel 7 Pan" 2 127 0
+	30 "Channel 8 Pan" 2 127 0
+	31 "Channel 9 Pan" 2 127 0
+	33 "Channel 10 Pan" 2 127 0
+	34 "Channel 11 Pan" 2 127 0
+	35 "Channel 12 Pan" 2 127 0
+	36 "Channel 13 Pan" 2 127 0
+	37 "Channel 14 Pan" 2 127 0
+	39 "Channel 1 Aux 1 Send" 1 127 0
+	40 "Channel 2 Aux 1 Send" 1 127 0
+	41 "Channel 3 Aux 1 Send" 1 127 0
+	42 "Channel 4 Aux 1 Send" 1 127 0
+	43 "Channel 5 Aux 1 Send" 1 127 0
+	44 "Channel 6 Aux 1 Send" 1 127 0
+	45 "Channel 7 Aux 1 Send" 1 127 0
+	46 "Channel 8 Aux 1 Send" 1 127 0
+	47 "Channel 9 Aux 1 Send" 1 127 0
+	48 "Channel 10 Aux 1 Send" 1 127 0
+	49 "Channel 11 Aux 1 Send" 1 127 0
+	50 "Channel 12 Aux 1 Send" 1 127 0
+	51 "Channel 13 Aux 1 Send" 1 127 0
+	52 "Channel 14 Aux 1 Send" 1 127 0
+	53 "Channel 1 Aux 2 Send" 1 127 0
+	54 "Channel 2 Aux 2 Send" 1 127 0
+	55 "Channel 3 Aux 2 Send" 1 127 0
+	56 "Channel 4 Aux 2 Send" 1 127 0
+	57 "Channel 5 Aux 2 Send" 1 127 0
+	58 "Channel 6 Aux 2 Send" 1 127 0
+	59 "Channel 7 Aux 2 Send" 1 127 0
+	60 "Channel 8 Aux 2 Send" 1 127 0
+	61 "Channel 9 Aux 2 Send" 1 127 0
+	62 "Channel 10 Aux 2 Send" 1 127 0
+	63 "Channel 11 Aux 2 Send" 1 127 0
+	65 "Channel 12 Aux 2 Send" 1 127 0
+	66 "Channel 13 Aux 2 Send" 1 127 0
+	67 "Channel 14 Aux 2 Send" 1 127 0
+	68 "Channel 1 Bass Amount" 2 127 0
+	69 "Channel 2 Bass Amount" 2 127 0
+	70 "Channel 3 Bass Amount" 2 127 0
+	71 "Channel 4 Bass Amount" 2 127 0
+	72 "Channel 5 Bass Amount" 2 127 0
+	73 "Channel 6 Bass Amount" 2 127 0
+	74 "Channel 7 Bass Amount" 2 127 0
+	75 "Channel 8 Bass Amount" 2 127 0
+	76 "Channel 9 Bass Amount" 2 127 0
+	77 "Channel 10 Bass Amount" 2 127 0
+	78 "Channel 11 Bass Amount" 2 127 0
+	79 "Channel 12 Bass Amount" 2 127 0
+	80 "Channel 13 Bass Amount" 2 127 0
+	81 "Channel 14 Bass Amount" 2 127 0
+	82 "Channel 1 Treble Amount" 2 127 0
+	83 "Channel 2 Treble Amount" 2 127 0
+	84 "Channel 3 Treble Amount" 2 127 0
+	85 "Channel 4 Treble Amount" 2 127 0
+	86 "Channel 5 Treble Amount" 2 127 0
+	87 "Channel 6 Treble Amount" 2 127 0
+	88 "Channel 7 Treble Amount" 2 127 0
+	89 "Channel 8 Treble Amount" 2 127 0
+	90 "Channel 9 Treble Amount" 2 127 0
+	91 "Channel 10 Treble Amount" 2 127 0
+	92 "Channel 11 Treble Amount" 2 127 0
+	93 "Channel 12 Treble Amount" 2 127 0
+	94 "Channel 13 Treble Amount" 2 127 0
+	95 "Channel 14 Treble Amount" 2 127 0
+	102 "Channel 1 Aux 3 Send" 1 127 0
+	103 "Channel 2 Aux 3 Send" 1 127 0
+	104 "Channel 3 Aux 3 Send" 1 127 0
+	105 "Channel 4 Aux 3 Send" 1 127 0
+	106 "Channel 5 Aux 3 Send" 1 127 0
+	107 "Channel 6 Aux 3 Send" 1 127 0
+	108 "Channel 7 Aux 3 Send" 1 127 0
+	109 "Channel 8 Aux 3 Send" 1 127 0
+	110 "Channel 9 Aux 3 Send" 1 127 0
+	111 "Channel 10 Aux 3 Send" 1 127 0
+	112 "Channel 11 Aux 3 Send" 1 127 0
+	113 "Channel 12 Aux 3 Send" 1 127 0
+	114 "Channel 13 Aux 3 Send" 1 127 0
+	115 "Channel 14 Aux 3 Send" 1 127 0
+	116 "Aux 1 Return Level" 1 127 0
+	117 "Aux 2 Return Level" 1 127 0
+	118 "Aux 3 Return Level" 1 127 0
+	119 "Aux 4 Return Level" 1 127 0
+15: "Scream 1" bus 5 device 15 
+	7 "Master Level" 1 127 0
+	9 "Enabled" 3 2 0
+	12 "Damage Type" 3 9 0
+	13 "Damage Control" 1 127 0
+	14 "Parameter 1" 1 127 0
+	15 "Parameter 2" 1 127 0
+	16 "Damage On/Off" 3 1 0
+	17 "Cut On/Off" 3 1 0
+	18 "Cut Lo" 2 127 0
+	19 "Cut Mid" 2 127 0
+	20 "Cut Hi" 2 127 0
+	70 "Body On/Off" 3 1 0
+	71 "Body Resonance" 1 127 0
+	74 "Body Scale" 1 127 0
+	78 "Body Auto" 1 127 0
+	79 "Body Type" 3 4 0
+16: "After 6" bus 6 device 0 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	9 "Enabled" 3 2 0
+	11 "Expression" 1 127 0
+	64 "Sustain Pedal" 1 127 0
+	71 "Rotary 1" 1 127 0
+	72 "Rotary 2" 1 127 0
+	73 "Rotary 3" 1 127 0
+	74 "Rotary 4" 1 127 0
+	75 "Button 1" 3 1 0
+	76 "Button 2" 3 1 0
+	77 "Button 3" 3 1 0
+	78 "Button 4" 3 1 0
+17: "Cave" bus 6 device 1 
+	3 "Algorithm" 3 9 0
+	9 "Enabled" 3 2 0
+	12 "Size" 2 127 0
+	13 "Damping" 1 127 0
+	14 "Decay" 2 127 0
+	15 "Dry/Wet" 1 127 0
+18: "Rich Boyee" bus 6 device 2 
+	9 "Enabled" 3 2 0
+	12 "Delay" 1 127 0
+	13 "Feedback" 2 127 0
+	14 "Rate" 1 127 0
+	15 "Modulation Amount" 1 127 0
+	30 "LFO Sync Enable" 3 1 0
+19: "Left Repeats" bus 6 device 3 
+	9 "Enabled" 3 2 0
+	10 "Pan" 2 127 0
+	12 "DelayTime (steps)" 3 15 0
+	13 "Feedback" 1 127 0
+	14 "Dry/Wet Balance" 1 127 0
+	15 "Unit" 3 1 0
+	16 "Step Length" 3 1 0
+20: "Right Repeats" bus 6 device 4 
+	9 "Enabled" 3 2 0
+	10 "Pan" 2 127 0
+	12 "DelayTime (steps)" 3 15 0
+	13 "Feedback" 1 127 0
+	14 "Dry/Wet Balance" 1 127 0
+	15 "Unit" 3 1 0
+	16 "Step Length" 3 1 0
+21: "cHilLoUtpUt" bus 6 device 5 
+	1 "Mod Wheel" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Oscillator B Decay" 1 127 0
+	12 "Oscillator B Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	21 "Oscillator B Octave" 3 8 0
+	22 "Oscillator B Semi" 3 12 0
+	23 "Oscillator B Cent" 2 127 0
+	25 "Modulator A On/Off" 3 1 0
+	26 "Modulator A Rate" 1 127 0
+	27 "Modulator A To Pitch" 2 127 0
+	28 "Modulator A Curve" 1 127 0
+	29 "Modulator A One Shot" 3 1 0
+	30 "Modulator A Target" 3 2 0
+	31 "Modulator A To Index" 2 127 0
+	33 "Mod Wheel To Filter" 2 127 0
+	34 "Mod Wheel To Index" 2 127 0
+	35 "Mod Wheel To Modulator" 2 127 0
+	36 "Mod Wheel Target" 3 2 0
+	37 "Mod Wheel To Shift" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Modulator A To Shift" 2 127 0
+	41 "Oscillator B On/Off" 3 1 0
+	42 "Oscillator B Index" 3 127 0
+	43 "Oscillator B Motion" 2 127 0
+	44 "Oscillator B Shift" 2 127 0
+	46 "Velocity To Filter Env" 2 127 0
+	47 "Velocity Target" 3 2 0
+	48 "Velocity To Attack" 2 127 0
+	49 "Velocity To Level B" 2 127 0
+	50 "Velocity To Level A" 2 127 0
+	51 "Velocity To Shift" 2 127 0
+	52 "Velocity To Modulator" 2 127 0
+	53 "Oscillator B Gain" 1 127 0
+	54 "Filter A On/Off" 3 1 0
+	55 "Filter A Mode" 3 4 0
+	56 "Shaper On/Off" 3 1 0
+	57 "Shaper Mode" 3 4 0
+	58 "Shaper Amount" 1 127 0
+	59 "Route Oscillator B To Filter B" 3 1 0
+	60 "Route Oscillator A To Filter B" 3 1 0
+	61 "Route Oscillator A To Shaper" 3 1 0
+	62 "Route Filter B To Shaper" 3 1 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Legato On/Off" 3 1 0
+	69 "Modulator A Sync" 3 1 0
+	70 "Modulator B Sync" 3 1 0
+	71 "Filter B Resonance" 1 127 0
+	72 "Oscillator B Release" 1 127 0
+	73 "Oscillator B Attack" 1 127 0
+	74 "Filter B Freq" 1 127 0
+	75 "Filter B On/Off" 3 1 0
+	76 "Filter B Mode" 3 4 0
+	77 "Filter B Kbd Track" 3 1 0
+	78 "Filter A Resonance" 1 127 0
+	79 "Filter A Freq" 1 127 0
+	80 "Filter A Env" 3 1 0
+	81 "Filter A Kbd Track" 3 1 0
+	82 "Filter B Env" 3 1 0
+	86 "Oscillator A Shift" 2 127 0
+	87 "Oscillator A Attack" 1 127 0
+	88 "Oscillator A Decay" 1 127 0
+	89 "Oscillator A Sustain" 1 127 0
+	90 "Oscillator A Release" 1 127 0
+	91 "Oscillator A Gain" 1 127 0
+	92 "Oscillator A Motion" 2 127 0
+	93 "Oscillator A Index" 3 127 0
+	95 "Oscillator A On/Off" 3 1 0
+	102 "Oscillator A Octave" 3 8 0
+	103 "Oscillator A Semi" 3 12 0
+	104 "Oscillator A Cent" 2 127 0
+	105 "Spread Amount" 1 127 0
+	110 "Modulator B Rate" 1 127 0
+	111 "Modulator B To Level" 2 127 0
+	112 "Modulator B To Filter" 2 127 0
+	113 "Modulator B To Modulator A" 2 127 0
+	114 "Modulator B On/Off" 3 1 0
+	115 "Modulator B Curve" 3 31 0
+	116 "Modulator B One Shot" 3 1 0
+	117 "Modulator B Target" 3 2 0
+	118 "Modulator B To Motion" 2 127 0
+22: "Bouncie" bus 6 device 6 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Amp Env Decay" 1 127 0
+	11 "Expression" 1 127 0
+	12 "Amp Env Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	20 "Osc1 Wave" 3 31 0
+	21 "Osc1 Octave" 3 9 0
+	22 "Osc1 Semitone" 3 12 0
+	23 "Osc1 Fine Tune" 2 127 0
+	25 "Osc1 Kbd Track" 3 1 0
+	26 "LFO1 Rate" 1 127 0
+	27 "LFO1 Amount" 1 127 0
+	28 "LFO1 Wave" 3 5 0
+	29 "LFO1 Dest" 3 5 0
+	30 "LFO Sync Enable" 3 1 0
+	33 "Filter Freq Mod Wheel Amount" 2 127 0
+	34 "Filter Res Mod Wheel Amount" 2 127 0
+	35 "LFO1 Mod Wheel Amount" 2 127 0
+	36 "FM Mod Wheel Amount" 2 127 0
+	37 "Phase Diff Mod Wheel Amount" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Filter Freq Ext Mod" 2 127 0
+	41 "LFO1 Ext Mod" 2 127 0
+	42 "Amp Ext Mod" 2 127 0
+	43 "Ext Mod Select" 3 2 0
+	44 "FM Ext Mod" 2 127 0
+	45 "Amp Vel Amount" 2 127 0
+	46 "Filter Env Vel Amount" 2 127 0
+	47 "Filter Decay Vel Amount" 2 127 0
+	48 "Amp Attack Vel Amount" 2 127 0
+	49 "FM Vel Amount" 2 127 0
+	50 "Mod Env Vel Amount" 2 127 0
+	51 "Phase Vel Amount" 2 127 0
+	52 "Filter2 Freq Vel Amount" 2 127 0
+	53 "Mix Vel Amount" 2 127 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Key Mode" 1 127 0
+	71 "Filter Res" 1 127 0
+	72 "Amp Env Release" 1 127 0
+	73 "Amp Env Attack" 1 127 0
+	74 "Filter Freq" 1 127 0
+	75 "Filter2 On/Off" 3 1 0
+	76 "Filter Type" 3 4 0
+	77 "Filter Kbd Track" 1 127 0
+	78 "Filter2 Res" 1 127 0
+	79 "Filter2 Freq" 1 127 0
+	80 "Filter Link Freq On/Off" 3 1 0
+	81 "Noise On/Off" 3 1 0
+	82 "Noise Level" 1 127 0
+	83 "Noise Decay" 1 127 0
+	84 "Noise Color" 1 127 0
+	85 "Mod Env Gain" 1 127 0
+	86 "Mod Env Invert" 3 1 0
+	87 "Mod Env Attack" 1 127 0
+	88 "Mod Env Decay" 1 127 0
+	89 "Mod Env Sustain" 1 127 0
+	90 "Mod Env Release" 1 127 0
+	91 "Mod Env Dest" 3 5 0
+	92 "Osc1 Phase Mode" 3 2 0
+	93 "Osc1 Phase Diff" 1 127 0
+	94 "Osc2 On/Off" 3 1 0
+	95 "Osc2 Wave" 3 31 0
+	102 "Osc2 Octave" 3 9 0
+	103 "Osc2 Semitone" 3 12 0
+	104 "Osc2 Fine Tune" 2 127 0
+	105 "Osc2 Phase Mode" 3 2 0
+	106 "Osc2 Phase Diff" 1 127 0
+	107 "Osc Mix" 1 127 0
+	108 "FM Amount" 1 127 0
+	109 "Ring Mod" 3 1 0
+	110 "LFO2 Rate" 1 127 0
+	111 "LFO2 Amount" 1 127 0
+	112 "LFO2 Delay" 1 127 0
+	113 "LFO2 Dest" 3 3 0
+	114 "LFO2 Kbd Track" 1 127 0
+	115 "Osc2 Kbd Track" 3 1 0
+23: "Line Mixer 2" bus 6 device 7 
+	7 "Master Level" 1 127 0
+	8 "Channel 1 Level" 1 127 0
+	9 "Channel 2 Level" 1 127 0
+	10 "Channel 3 Level" 1 127 0
+	12 "Channel 4 Level" 1 127 0
+	13 "Channel 5 Level" 1 127 0
+	14 "Channel 6 Level" 1 127 0
+	23 "Channel 1 Pan" 2 127 0
+	24 "Channel 2 Pan" 2 127 0
+	25 "Channel 3 Pan" 2 127 0
+	26 "Channel 4 Pan" 2 127 0
+	27 "Channel 5 Pan" 2 127 0
+	28 "Channel 6 Pan" 2 127 0
+	39 "Channel 1 Aux Send" 1 127 0
+	40 "Channel 2 Aux Send" 1 127 0
+	41 "Channel 3 Aux Send" 1 127 0
+	42 "Channel 4 Aux Send" 1 127 0
+	43 "Channel 5 Aux Send" 1 127 0
+	44 "Channel 6 Aux Send" 1 127 0
+	116 "Aux Return Level" 1 127 0
+24: "Bass Automation" bus 6 device 8 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	9 "Enabled" 3 2 0
+	11 "Expression" 1 127 0
+	64 "Sustain Pedal" 1 127 0
+	71 "Rotary 1" 1 127 0
+	72 "Rotary 2" 1 127 0
+	73 "Rotary 3" 1 127 0
+	74 "Rotary 4" 1 127 0
+	75 "Button 1" 3 1 0
+	76 "Button 2" 3 1 0
+	77 "Button 3" 3 1 0
+	78 "Button 4" 3 1 0
+25: "Dreams" bus 6 device 9 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	9 "Enabled" 3 2 0
+	11 "Expression" 1 127 0
+	64 "Sustain Pedal" 1 127 0
+	71 "Rotary 1" 1 127 0
+	72 "Rotary 2" 1 127 0
+	73 "Rotary 3" 1 127 0
+	74 "Rotary 4" 1 127 0
+	75 "Button 1" 3 1 0
+	76 "Button 2" 3 1 0
+	77 "Button 3" 3 1 0
+	78 "Button 4" 3 1 0
+26: "Unison 1" bus 6 device 10 
+	9 "Enabled" 3 2 0
+	12 "Detune" 1 127 0
+	13 "Voice Count" 3 2 0
+	14 "Dry/Wet" 1 127 0
+27: "SubTractor 1" bus 6 device 11 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Amp Env Decay" 1 127 0
+	11 "Expression" 1 127 0
+	12 "Amp Env Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	20 "Osc1 Wave" 3 31 0
+	21 "Osc1 Octave" 3 9 0
+	22 "Osc1 Semitone" 3 12 0
+	23 "Osc1 Fine Tune" 2 127 0
+	25 "Osc1 Kbd Track" 3 1 0
+	26 "LFO1 Rate" 1 127 0
+	27 "LFO1 Amount" 1 127 0
+	28 "LFO1 Wave" 3 5 0
+	29 "LFO1 Dest" 3 5 0
+	30 "LFO Sync Enable" 3 1 0
+	33 "Filter Freq Mod Wheel Amount" 2 127 0
+	34 "Filter Res Mod Wheel Amount" 2 127 0
+	35 "LFO1 Mod Wheel Amount" 2 127 0
+	36 "FM Mod Wheel Amount" 2 127 0
+	37 "Phase Diff Mod Wheel Amount" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Filter Freq Ext Mod" 2 127 0
+	41 "LFO1 Ext Mod" 2 127 0
+	42 "Amp Ext Mod" 2 127 0
+	43 "Ext Mod Select" 3 2 0
+	44 "FM Ext Mod" 2 127 0
+	45 "Amp Vel Amount" 2 127 0
+	46 "Filter Env Vel Amount" 2 127 0
+	47 "Filter Decay Vel Amount" 2 127 0
+	48 "Amp Attack Vel Amount" 2 127 0
+	49 "FM Vel Amount" 2 127 0
+	50 "Mod Env Vel Amount" 2 127 0
+	51 "Phase Vel Amount" 2 127 0
+	52 "Filter2 Freq Vel Amount" 2 127 0
+	53 "Mix Vel Amount" 2 127 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Key Mode" 1 127 0
+	71 "Filter Res" 1 127 0
+	72 "Amp Env Release" 1 127 0
+	73 "Amp Env Attack" 1 127 0
+	74 "Filter Freq" 1 127 0
+	75 "Filter2 On/Off" 3 1 0
+	76 "Filter Type" 3 4 0
+	77 "Filter Kbd Track" 1 127 0
+	78 "Filter2 Res" 1 127 0
+	79 "Filter2 Freq" 1 127 0
+	80 "Filter Link Freq On/Off" 3 1 0
+	81 "Noise On/Off" 3 1 0
+	82 "Noise Level" 1 127 0
+	83 "Noise Decay" 1 127 0
+	84 "Noise Color" 1 127 0
+	85 "Mod Env Gain" 1 127 0
+	86 "Mod Env Invert" 3 1 0
+	87 "Mod Env Attack" 1 127 0
+	88 "Mod Env Decay" 1 127 0
+	89 "Mod Env Sustain" 1 127 0
+	90 "Mod Env Release" 1 127 0
+	91 "Mod Env Dest" 3 5 0
+	92 "Osc1 Phase Mode" 3 2 0
+	93 "Osc1 Phase Diff" 1 127 0
+	94 "Osc2 On/Off" 3 1 0
+	95 "Osc2 Wave" 3 31 0
+	102 "Osc2 Octave" 3 9 0
+	103 "Osc2 Semitone" 3 12 0
+	104 "Osc2 Fine Tune" 2 127 0
+	105 "Osc2 Phase Mode" 3 2 0
+	106 "Osc2 Phase Diff" 1 127 0
+	107 "Osc Mix" 1 127 0
+	108 "FM Amount" 1 127 0
+	109 "Ring Mod" 3 1 0
+	110 "LFO2 Rate" 1 127 0
+	111 "LFO2 Amount" 1 127 0
+	112 "LFO2 Delay" 1 127 0
+	113 "LFO2 Dest" 3 3 0
+	114 "LFO2 Kbd Track" 1 127 0
+	115 "Osc2 Kbd Track" 3 1 0
+28: "IDM Drums Automation" bus 7 device 2 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	9 "Enabled" 3 2 0
+	11 "Expression" 1 127 0
+	64 "Sustain Pedal" 1 127 0
+	71 "Rotary 1" 1 127 0
+	72 "Rotary 2" 1 127 0
+	73 "Rotary 3" 1 127 0
+	74 "Rotary 4" 1 127 0
+	75 "Button 1" 3 1 0
+	76 "Button 2" 3 1 0
+	77 "Button 3" 3 1 0
+	78 "Button 4" 3 1 0
+29: "M Comp" bus 7 device 3 
+	7 "Output Gain" 1 127 0
+	8 "Sidechain Solo" 3 1 0
+	9 "Enabled" 3 2 0
+	12 "Threshold" 1 127 0
+	13 "Attack" 1 127 0
+	14 "Release" 1 127 0
+	15 "Adapt" 3 1 0
+	16 "Ratio" 1 127 0
+	17 "Soft Knee" 3 1 0
+	19 "Input Gain" 1 127 0
+30: "Vocoder" bus 7 device 4 
+	9 "Enabled" 3 2 0
+	10 "Shift" 2 127 0
+	12 "Band Count" 3 4 0
+	13 "Vocoder/Equalizer" 3 1 0
+	14 "Dry/Wet" 1 127 0
+	15 "Band Level 1" 1 127 0
+	16 "Band Level 2" 1 127 0
+	17 "Band Level 3" 1 127 0
+	18 "Band Level 4" 1 127 0
+	19 "Band Level 5" 1 127 0
+	20 "Band Level 6" 1 127 0
+	21 "Band Level 7" 1 127 0
+	22 "Band Level 8" 1 127 0
+	23 "Band Level 9" 1 127 0
+	24 "Band Level 10" 1 127 0
+	25 "Band Level 11" 1 127 0
+	26 "Band Level 12" 1 127 0
+	27 "Band Level 13" 1 127 0
+	28 "Band Level 14" 1 127 0
+	29 "Band Level 15" 1 127 0
+	30 "Band Level 16" 1 127 0
+	64 "Hold" 3 1 0
+	72 "Decay" 1 127 0
+	73 "Attack" 1 127 0
+	74 "HF Emphasis" 1 127 0
+	102 "Band Level 17" 1 127 0
+	103 "Band Level 18" 1 127 0
+	104 "Band Level 19" 1 127 0
+	105 "Band Level 20" 1 127 0
+	106 "Band Level 21" 1 127 0
+	107 "Band Level 22" 1 127 0
+	108 "Band Level 23" 1 127 0
+	109 "Band Level 24" 1 127 0
+	110 "Band Level 25" 1 127 0
+	111 "Band Level 26" 1 127 0
+	112 "Band Level 27" 1 127 0
+	113 "Band Level 28" 1 127 0
+	114 "Band Level 29" 1 127 0
+	115 "Band Level 30" 1 127 0
+	116 "Band Level 31" 1 127 0
+	117 "Band Level 32" 1 127 0
+31: "Line Mixer" bus 7 device 5 
+	7 "Master Level" 1 127 0
+	8 "Channel 1 Level" 1 127 0
+	9 "Channel 2 Level" 1 127 0
+	10 "Channel 3 Level" 1 127 0
+	12 "Channel 4 Level" 1 127 0
+	13 "Channel 5 Level" 1 127 0
+	14 "Channel 6 Level" 1 127 0
+	23 "Channel 1 Pan" 2 127 0
+	24 "Channel 2 Pan" 2 127 0
+	25 "Channel 3 Pan" 2 127 0
+	26 "Channel 4 Pan" 2 127 0
+	27 "Channel 5 Pan" 2 127 0
+	28 "Channel 6 Pan" 2 127 0
+	39 "Channel 1 Aux Send" 1 127 0
+	40 "Channel 2 Aux Send" 1 127 0
+	41 "Channel 3 Aux Send" 1 127 0
+	42 "Channel 4 Aux Send" 1 127 0
+	43 "Channel 5 Aux Send" 1 127 0
+	44 "Channel 6 Aux Send" 1 127 0
+	116 "Aux Return Level" 1 127 0
+32: "Scream" bus 7 device 6 
+	7 "Master Level" 1 127 0
+	9 "Enabled" 3 2 0
+	12 "Damage Type" 3 9 0
+	13 "Damage Control" 1 127 0
+	14 "Parameter 1" 1 127 0
+	15 "Parameter 2" 1 127 0
+	16 "Damage On/Off" 3 1 0
+	17 "Cut On/Off" 3 1 0
+	18 "Cut Lo" 2 127 0
+	19 "Cut Mid" 2 127 0
+	20 "Cut Hi" 2 127 0
+	70 "Body On/Off" 3 1 0
+	71 "Body Resonance" 1 127 0
+	74 "Body Scale" 1 127 0
+	78 "Body Auto" 1 127 0
+	79 "Body Type" 3 4 0
+33: "Redrum Split" bus 7 device 8 
+34: "Delay " bus 7 device 9 
+	9 "Enabled" 3 2 0
+	10 "Pan" 2 127 0
+	12 "DelayTime (steps)" 3 15 0
+	13 "Feedback" 1 127 0
+	14 "Dry/Wet Balance" 1 127 0
+	15 "Unit" 3 1 0
+	16 "Step Length" 3 1 0
+35: "IDM1" bus 7 device 10 
+	3 "Selected Pattern" 3 31 0
+	5 "Flam Amount" 1 127 0
+	7 "Master Level" 1 127 0
+	8 "Drum 1 Level" 1 127 0
+	9 "Drum 2 Level" 1 127 0
+	10 "Drum 3 Level" 1 127 0
+	12 "Drum 4 Level" 1 127 0
+	13 "Drum 5 Level" 1 127 0
+	14 "Drum 6 Level" 1 127 0
+	15 "Drum 7 Level" 1 127 0
+	16 "Drum 8 Level" 1 127 0
+	17 "Drum 9 Level" 1 127 0
+	18 "Drum 10 Level" 1 127 0
+	19 "Drum 1 Pan" 2 127 0
+	20 "Drum 2 Pan" 2 127 0
+	21 "Drum 3 Pan" 2 127 0
+	22 "Drum 4 Pan" 2 127 0
+	23 "Drum 5 Pan" 2 127 0
+	24 "Drum 6 Pan" 2 127 0
+	25 "Drum 7 Pan" 2 127 0
+	26 "Drum 8 Pan" 2 127 0
+	27 "Drum 9 Pan" 2 127 0
+	28 "Drum 10 Pan" 2 127 0
+	29 "Drum 1 Send 1 Amount" 1 127 0
+	30 "Drum 2 Send 1 Amount" 1 127 0
+	31 "Drum 3 Send 1 Amount" 1 127 0
+	33 "Drum 4 Send 1 Amount" 1 127 0
+	34 "Drum 5 Send 1 Amount" 1 127 0
+	35 "Drum 6 Send 1 Amount" 1 127 0
+	36 "Drum 7 Send 1 Amount" 1 127 0
+	37 "Drum 8 Send 1 Amount" 1 127 0
+	39 "Drum 9 Send 1 Amount" 1 127 0
+	40 "Drum 10 Send 1 Amount" 1 127 0
+	41 "Drum 1 Send 2 Amount" 1 127 0
+	42 "Drum 2 Send 2 Amount" 1 127 0
+	43 "Drum 3 Send 2 Amount" 1 127 0
+	44 "Drum 4 Send 2 Amount" 1 127 0
+	45 "Drum 5 Send 2 Amount" 1 127 0
+	46 "Drum 6 Send 2 Amount" 1 127 0
+	47 "Drum 7 Send 2 Amount" 1 127 0
+	48 "Drum 8 Send 2 Amount" 1 127 0
+	49 "Drum 9 Send 2 Amount" 1 127 0
+	50 "Drum 10 Send 2 Amount" 1 127 0
+	51 "Drum 1 Pitch" 2 127 0
+	52 "Drum 2 Pitch" 2 127 0
+	53 "Drum 3 Pitch" 2 127 0
+	54 "Drum 4 Pitch" 2 127 0
+	55 "Drum 5 Pitch" 2 127 0
+	56 "Drum 6 Pitch" 2 127 0
+	57 "Drum 7 Pitch" 2 127 0
+	58 "Drum 8 Pitch" 2 127 0
+	59 "Drum 9 Pitch" 2 127 0
+	60 "Drum 10 Pitch" 2 127 0
+	61 "Drum 1 Tone" 2 127 0
+	62 "Drum 2 Tone" 2 127 0
+	63 "Drum 10 Tone" 2 127 0
+	65 "Drum 6 Pitch Bend Amount" 2 127 0
+	66 "Drum 7 Pitch Bend Amount" 2 127 0
+	67 "Drum 1 Vel to Level" 2 127 0
+	68 "Drum 2 Vel to Level" 2 127 0
+	69 "Drum 3 Vel to Level" 2 127 0
+	70 "Drum 4 Vel to Level" 2 127 0
+	71 "Drum 5 Vel to Level" 2 127 0
+	72 "Drum 6 Vel to Level" 2 127 0
+	73 "Drum 7 Vel to Level" 2 127 0
+	74 "Drum 8 Vel to Level" 2 127 0
+	75 "Drum 9 Vel to Level" 2 127 0
+	76 "Drum 10 Vel to Level" 2 127 0
+	77 "Drum 1 Length" 1 127 0
+	78 "Drum 2 Length" 1 127 0
+	79 "Drum 3 Length" 1 127 0
+	80 "Drum 4 Length" 1 127 0
+	81 "Drum 5 Length" 1 127 0
+	82 "Drum 6 Length" 1 127 0
+	83 "Drum 7 Length" 1 127 0
+	84 "Drum 8 Length" 1 127 0
+	85 "Drum 9 Length" 1 127 0
+	86 "Drum 10 Length" 1 127 0
+	87 "Drum 3 Sample Start" 1 127 0
+	88 "Drum 4 Sample Start" 1 127 0
+	89 "Drum 5 Sample Start" 1 127 0
+	90 "Drum 8 Sample Start" 1 127 0
+	91 "Drum 9 Sample Start" 1 127 0
+	92 "Pattern Enable" 3 1 0
+	94 "Drum 6 Vel to Pitch Bend" 2 127 0
+	95 "Drum 7 Vel to Pitch Bend" 2 127 0
+	102 "Drum 6 Pitch Bend Rate" 1 127 0
+	103 "Drum 7 Pitch Bend Rate" 1 127 0
+	104 "Drum 1 Vel to Tone" 2 127 0
+	105 "Drum 2 Vel to Tone" 2 127 0
+	106 "Drum 10 Vel to Tone" 2 127 0
+	107 "Drum 3 Vel to Sample Start" 2 127 0
+	108 "Drum 4 Vel to Sample Start" 2 127 0
+	109 "Drum 5 Vel to Sample Start" 2 127 0
+	110 "Drum 8 Vel to Sample Start" 2 127 0
+	111 "Drum 9 Vel to Sample Start" 2 127 0
+36: "CV Patch" bus 7 device 11 
+37: "Delay 1" bus 7 device 12 
+	9 "Enabled" 3 2 0
+	10 "Pan" 2 127 0
+	12 "DelayTime (steps)" 3 15 0
+	13 "Feedback" 1 127 0
+	14 "Dry/Wet Balance" 1 127 0
+	15 "Unit" 3 1 0
+	16 "Step Length" 3 1 0
+38: "Malstrom 1" bus 7 device 13 
+	1 "Mod Wheel" 1 127 0
+	5 "Portamento" 1 127 0
+	7 "Master Level" 1 127 0
+	9 "Oscillator B Decay" 1 127 0
+	12 "Oscillator B Sustain" 1 127 0
+	14 "Filter Env Attack" 1 127 0
+	15 "Filter Env Decay" 1 127 0
+	16 "Filter Env Sustain" 1 127 0
+	17 "Filter Env Release" 1 127 0
+	18 "Filter Env Amount" 1 127 0
+	19 "Filter Env Invert" 3 1 0
+	21 "Oscillator B Octave" 3 8 0
+	22 "Oscillator B Semi" 3 12 0
+	23 "Oscillator B Cent" 2 127 0
+	25 "Modulator A On/Off" 3 1 0
+	26 "Modulator A Rate" 1 127 0
+	27 "Modulator A To Pitch" 2 127 0
+	28 "Modulator A Curve" 1 127 0
+	29 "Modulator A One Shot" 3 1 0
+	30 "Modulator A Target" 3 2 0
+	31 "Modulator A To Index" 2 127 0
+	33 "Mod Wheel To Filter" 2 127 0
+	34 "Mod Wheel To Index" 2 127 0
+	35 "Mod Wheel To Modulator" 2 127 0
+	36 "Mod Wheel Target" 3 2 0
+	37 "Mod Wheel To Shift" 2 127 0
+	39 "Pitch Bend Range" 1 127 0
+	40 "Modulator A To Shift" 2 127 0
+	41 "Oscillator B On/Off" 3 1 0
+	42 "Oscillator B Index" 3 127 0
+	43 "Oscillator B Motion" 2 127 0
+	44 "Oscillator B Shift" 2 127 0
+	46 "Velocity To Filter Env" 2 127 0
+	47 "Velocity Target" 3 2 0
+	48 "Velocity To Attack" 2 127 0
+	49 "Velocity To Level B" 2 127 0
+	50 "Velocity To Level A" 2 127 0
+	51 "Velocity To Shift" 2 127 0
+	52 "Velocity To Modulator" 2 127 0
+	53 "Oscillator B Gain" 1 127 0
+	54 "Filter A On/Off" 3 1 0
+	55 "Filter A Mode" 3 4 0
+	56 "Shaper On/Off" 3 1 0
+	57 "Shaper Mode" 3 4 0
+	58 "Shaper Amount" 1 127 0
+	59 "Route Oscillator B To Filter B" 3 1 0
+	60 "Route Oscillator A To Filter B" 3 1 0
+	61 "Route Oscillator A To Shaper" 3 1 0
+	62 "Route Filter B To Shaper" 3 1 0
+	64 "Sustain Pedal" 1 127 0
+	68 "Legato On/Off" 3 1 0
+	69 "Modulator A Sync" 3 1 0
+	70 "Modulator B Sync" 3 1 0
+	71 "Filter B Resonance" 1 127 0
+	72 "Oscillator B Release" 1 127 0
+	73 "Oscillator B Attack" 1 127 0
+	74 "Filter B Freq" 1 127 0
+	75 "Filter B On/Off" 3 1 0
+	76 "Filter B Mode" 3 4 0
+	77 "Filter B Kbd Track" 3 1 0
+	78 "Filter A Resonance" 1 127 0
+	79 "Filter A Freq" 1 127 0
+	80 "Filter A Env" 3 1 0
+	81 "Filter A Kbd Track" 3 1 0
+	82 "Filter B Env" 3 1 0
+	86 "Oscillator A Shift" 2 127 0
+	87 "Oscillator A Attack" 1 127 0
+	88 "Oscillator A Decay" 1 127 0
+	89 "Oscillator A Sustain" 1 127 0
+	90 "Oscillator A Release" 1 127 0
+	91 "Oscillator A Gain" 1 127 0
+	92 "Oscillator A Motion" 2 127 0
+	93 "Oscillator A Index" 3 127 0
+	95 "Oscillator A On/Off" 3 1 0
+	102 "Oscillator A Octave" 3 8 0
+	103 "Oscillator A Semi" 3 12 0
+	104 "Oscillator A Cent" 2 127 0
+	105 "Spread Amount" 1 127 0
+	110 "Modulator B Rate" 1 127 0
+	111 "Modulator B To Level" 2 127 0
+	112 "Modulator B To Filter" 2 127 0
+	113 "Modulator B To Modulator A" 2 127 0
+	114 "Modulator B On/Off" 3 1 0
+	115 "Modulator B Curve" 3 31 0
+	116 "Modulator B One Shot" 3 1 0
+	117 "Modulator B Target" 3 2 0
+	118 "Modulator B To Motion" 2 127 0
+39: "Compressor 1" bus 7 device 14 
+	9 "Enabled" 3 2 0
+	12 "Threshold" 1 127 0
+	13 "Attack" 1 127 0
+	14 "Release" 1 127 0
+	16 "Ratio" 1 127 0
+40: "Matrix 1" bus 7 device 15 
+	3 "Pattern Select" 3 31 0
+	92 "Pattern Enable" 3 1 0
+41: "Spider CV 1" bus 8 device 0 
+42: "MClass Mastering Suite Combi" bus 8 device 1 
+	1 "Mod Wheel" 1 127 0
+	2 "Breath Control" 1 127 0
+	9 "Enabled" 3 2 0
+	11 "Expression" 1 127 0
+	64 "Sustain Pedal" 1 127 0
+	71 "Rotary 1" 1 127 0
+	72 "Rotary 2" 1 127 0
+	73 "Rotary 3" 1 127 0
+	74 "Rotary 4" 1 127 0
+	75 "Button 1" 3 1 0
+	76 "Button 2" 3 1 0
+	77 "Button 3" 3 1 0
+	78 "Button 4" 3 1 0
+43: "M EQ 1" bus 8 device 2 
+	9 "Enabled" 3 2 0
+	12 "Parametric 1 Gain" 1 127 0
+	13 "Parametric 2 Gain" 1 127 0
+	14 "Low Shelf Gain" 1 127 0
+	15 "Hi Shelf Gain" 1 127 0
+	16 "Low Cut Enable" 1 127 0
+	17 "Low Shelf Enable" 3 1 0
+	18 "Parametric 1 Enable" 3 1 0
+	19 "Parametric 2 Enable" 3 1 0
+	20 "Hi Shelf Enable" 3 1 0
+	71 "Parametric 1 Q" 1 127 0
+	78 "Parametric 2 Q" 1 127 0
+	80 "Low Shelf Q" 1 127 0
+	82 "Hi Shelf Q" 1 127 0
+44: "M Stereo Imager 1" bus 8 device 3 
+	8 "Solo Mode" 3 2 0
+	9 "Enabled" 3 2 0
+	12 "Low Width" 1 127 0
+	13 "High Width" 1 127 0
+	74 "X-Over Frequency" 1 127 0
+45: "M Comp 1" bus 8 device 4 
+	7 "Output Gain" 1 127 0
+	8 "Sidechain Solo" 3 1 0
+	9 "Enabled" 3 2 0
+	12 "Threshold" 1 127 0
+	13 "Attack" 1 127 0
+	14 "Release" 1 127 0
+	15 "Adapt" 3 1 0
+	16 "Ratio" 1 127 0
+	17 "Soft Knee" 3 1 0
+	19 "Input Gain" 1 127 0
+46: "M Maximizer 1" bus 8 device 5 
+	7 "Output Gain" 1 127 0
+	9 "Enabled" 3 2 0
+	12 "Soft Clip Amount" 1 127 0
+	13 "Attack Speed" 3 2 0
+	14 "Release Speed" 3 2 0
+	15 "Look Ahead Enable" 3 1 0
+	16 "Limiter Enable" 3 1 0
+	17 "Soft Clip Enable" 3 1 0
+	18 "Output Level Meter Mode" 3 1 0
+	19 "Input Gain" 1 127 0
+47: "Scream 2" bus 8 device 6 
+	7 "Master Level" 1 127 0
+	9 "Enabled" 3 2 0
+	12 "Damage Type" 3 9 0
+	13 "Damage Control" 1 127 0
+	14 "Parameter 1" 1 127 0
+	15 "Parameter 2" 1 127 0
+	16 "Damage On/Off" 3 1 0
+	17 "Cut On/Off" 3 1 0
+	18 "Cut Lo" 2 127 0
+	19 "Cut Mid" 2 127 0
+	20 "Cut Hi" 2 127 0
+	70 "Body On/Off" 3 1 0
+	71 "Body Resonance" 1 127 0
+	74 "Body Scale" 1 127 0
+	78 "Body Auto" 1 127 0
+	79 "Body Type" 3 4 0
