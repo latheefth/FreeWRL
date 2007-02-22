@@ -7,10 +7,20 @@ void X3D_initialize(char *hostname) {
 	struct sockaddr_in serv_addr; 
 	struct hostent *server;
 	int iret1;
+	int loopCount;
+	int constat;
 
-	_X3D_FreeWRL_FD = socket(AF_INET, SOCK_STREAM, 0);
-	if (_X3D_FreeWRL_FD < 0) X3D_error("ERROR opening socket");
+	loopCount = 0;
+	while ((_X3D_FreeWRL_FD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		usleep (100000);
+		loopCount ++;
+		if (loopCount >= 10000) {
+			X3D_error("ERROR opening socket");
+			return;
+		}
+	}
 
+	printf ("socket %d\n",_X3D_FreeWRL_FD);
 	if (strlen(hostname) == 0) hostname = "localhost";
 
 	server = gethostbyname(hostname);
@@ -24,8 +34,16 @@ void X3D_initialize(char *hostname) {
 		 (char *)&serv_addr.sin_addr.s_addr,
 		 server->h_length);
 	serv_addr.sin_port = htons(EAIBASESOCKET);
-	if (connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-		X3D_error("ERROR connecting");
+
+	loopCount = 0;
+	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {
+		usleep (100000);
+		loopCount ++;
+		if (loopCount >= 10000) {
+			X3D_error("ERROR connecting to socket - FreeWRL not there?");
+			return;
+		}
+	}
 
 	/* start up read thread */
 	iret1 = pthread_create( &readThread, NULL, freewrlReadThread, NULL);
