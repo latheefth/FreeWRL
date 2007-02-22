@@ -277,6 +277,25 @@ void EAI_parse_commands (char *bufptr) {
 				setField_method2 (bufptr);
 				break;
 				}
+			case REWIREMIDIINFO: {
+					#ifdef EAIVERBOSE 
+					printf ("REWIREMIDIINFO %s\n",bufptr);
+					#endif
+
+					EOT = strstr(EAIbuffer,"\nEOT\n");
+					/* if we do not have a string yet, we have to do this...*/
+					while (EOT == NULL) {
+						EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
+						EOT = strstr(EAIbuffer,"\nEOT\n");
+					}
+
+					*EOT = 0; /* take off the EOT marker*/
+					ReWireRegisterMIDI(bufptr);
+
+				/* finish this for now*/
+				bufptr[0] = 0;
+				break;
+				}
 			case CREATEVU:
 			case CREATEVS: {
 				/*format int seq# COMMAND vrml text     string EOT*/
@@ -566,7 +585,8 @@ void EAI_parse_commands (char *bufptr) {
 
 		/* send the response - events don't send a reply */
 		/* and, Anchors send a different reply (loadURLS) */
-		if (command != SENDEVENT) {
+		if ((command != SENDEVENT)  &&
+		    (command != REWIREMIDIINFO)) {
 			if (command != LOADURL) strcat (buf,"\nRE_EOT");
 			EAI_send_string (buf,EAIlistenfd);
 		}

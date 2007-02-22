@@ -356,7 +356,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 			(*bfct) += retval;
 
 			if (((*bfsz) - (*bfct)) < 128) {
-				printf ("HAVE TO REALLOC INPUT MEMORY\n");
+				/* printf ("HAVE TO REALLOC INPUT MEMORY\n"); */
 				(*bfsz) += EAIREADSIZE;
 				bf = (char *)realloc (bf, (unsigned int) (*bfsz));
 			}

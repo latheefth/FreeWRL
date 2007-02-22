@@ -21,6 +21,7 @@ for conditions of use and redistribution.
 /* see Extending and Embedding Perl, Jenness, Cozens pg 75-77 */
 struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
+	int len;
 
 	#ifdef EAIVERBOSE
 	printf ("newASCIIString for :%s:\n",str);
@@ -28,13 +29,42 @@ struct Uni_String *newASCIIString(char *str) {
 
 	/* the returning Uni_String is here. Make blank struct */
 	retval = malloc (sizeof (struct Uni_String));
+	len = strlen(str);
 
-	retval->strptr  = malloc (strlen (str)+1);
-	strncpy(retval->strptr,str,strlen(str)+1);
-	retval->len = strlen(str)+1;
+	retval->strptr  = malloc (sizeof(char) * len+1);
+	strncpy(retval->strptr,str,len+1);
+	retval->len = len+1;
+	retval->touched = 1; /* make it 1, to signal that this is a NEW string. */
 
 	return retval;
 }
+
+/* do these strings differ?? If so, copy the new string over the old, and 
+touch the touched flag */
+void verify_Uni_String(struct  Uni_String *unis, char *str) {
+	char *ns;
+	char *os;
+	int len;
+
+	/* bounds checking */
+	if (unis == NULL) {
+		ConsoleMessage ("Warning, verify_Uni_String, comparing to NULL Uni_String, %s\n",str);
+		return;
+	}
+
+	/* are they different? */
+	if (strcmp(str,unis->strptr)!= 0) {
+		os = unis->strptr;
+		len = strlen(str);
+		ns = malloc (len+1);
+		strncpy(ns,str,len+1);
+		unis->strptr = ns;
+		FREE_IF_NZ (os);
+		unis->touched++;
+	}
+}
+		
+
 
 
 /* get how many bytes in the type */

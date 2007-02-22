@@ -388,11 +388,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
 			newptr = (uintptr_t *)(tn+tptr);
 			ms = (struct Uni_String*) *newptr;
-			ms->len = 0;
-			FREE_IF_NZ (ms->strptr);
-			ms->strptr = malloc (strlen(strp)+1);
-			memcpy (ms->strptr,strp,strlen(strp)+1);
-			ms->len = strlen(strp)+1;
+			verify_Uni_String (ms,strp);
 			break;
 		}
 
@@ -1028,19 +1024,8 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 
 
 	for (i = 0; i < newlen; i++) {
-		/*  get the old string pointer */
-		OldvalStr = oldsvptr[i]->strptr;
-		/* printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr)); */
-
-		valStr =newsvptr[i]->strptr;
-
-		/* printf ("new string %d is %s len %d\n",i,valStr,strlen(valStr)); */
-
-		/* if the strings are different... */
-		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			FREE_IF_NZ (oldsvptr[i]->strptr);
-			oldsvptr[i] = newASCIIString(valStr);
-		}
+		/* did the string change ?? */
+		verify_Uni_String(oldsvptr[i],newsvptr[i]->strptr);
 	}
 	/*
 	printf ("\n new structure: %d %d\n",oldsvptr,newlen);
@@ -1203,7 +1188,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 	    case FIELDTYPE_MFString: {
 		struct Uni_String ** newp;
-		struct Multi_String *strptr;
+		struct Multi_String *MFStringptr;
 		int thisele, thissize, maxele;	/* used for reading in MFStrings*/
 
 
@@ -1216,7 +1201,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		/* 	  -1 2:10:xxxxxxxxx						*/
 		/* 	  where the 2 is the index.					*/
 
-		strptr = (struct Multi_String *)memptr;
+		MFStringptr = (struct Multi_String *)memptr;
 
 		/* scan to start of element count, and read it in.*/
 		while (*buf==' ') buf++;
@@ -1230,29 +1215,29 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			while (*buf==' ') buf++;
 			retint=sscanf (buf,"%d;%d",&thisele,&thissize);
 			if (retint != 2) ConsoleMessage ("ScanValtoBuffer: can not read 2 number from :%s:",buf);
-			/* printf ("this element %d has len %d MFStr size %d \n",thisele,thissize, strptr->n); */
+			/* printf ("this element %d has len %d MFStr size %d \n",thisele,thissize, MFStringptr->n); */
 
-			if (maxele < strptr->n) {
+			if (maxele < MFStringptr->n) {
 				/* scan to start of string*/
 				while (*buf!=':') buf++; buf++;
 
 				/* replace the space at stringln with a 0 */
 				buf += thissize; *buf = 0; buf-=thissize;
-				strptr->p[thisele] = newASCIIString(buf);
+				MFStringptr->p[thisele] = newASCIIString(buf);
 
 				/* go to end of string */
 				buf += thissize+1;
 			} else {
 				printf ("EAI - warning, MFString set1Value, set %d out of range for array (0-%d)\n",
-					maxele,strptr->n);
+					maxele,MFStringptr->n);
 			}
 		} else {	
 			/* make (and initialize) this MFString internal representation.*/
-			strptr->n = maxele;
-			FREE_IF_NZ (strptr->p);
+			MFStringptr->n = maxele;
+			FREE_IF_NZ (MFStringptr->p);
 
-			strptr->p = (struct Uni_String **)malloc (maxele * sizeof(strptr->p));
-			newp = strptr->p;
+			MFStringptr->p = (struct Uni_String **)malloc (maxele * sizeof(MFStringptr->p));
+			newp = MFStringptr->p;
 	
 			/* scan through EAI string, extract strings, etc, etc.*/
 			do {
@@ -1269,7 +1254,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	
 				/* replace the space at stringln with a 0 */
 				buf += thissize; *buf = 0; buf-=thissize;
-				strptr->p[thisele] = newASCIIString(buf);
+				MFStringptr->p[thisele] = newASCIIString(buf);
 
 				/* go to end of string */
 				buf += thissize+1;

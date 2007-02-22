@@ -241,7 +241,7 @@ extern int QueryCount;
 #undef COLLISIONVERBOSE
 
 /* External Authoring Interface */
-#undef EAIVERBOSE
+#undef  EAIVERBOSE
 
 #ifndef AQUA
 #include <GL/glu.h>
@@ -480,6 +480,7 @@ int checkIfX3DVRMLFile(char *fn);
 void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
 struct Uni_String *newASCIIString(char *str);
+void verify_Uni_String(struct  Uni_String *unis, char *str);
 
 void *returnInterpolatorPointer (const char *x);
 
@@ -1060,6 +1061,7 @@ void fin_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
 void changed_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
 void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
 void do_ReWireMidiControl (void *node);
+void ReWireRegisterMIDI(char *str);
 
 /* Event Utilities Component */
 void do_BooleanFilter (void *node);

@@ -9,7 +9,7 @@ void EAI_RW(char *bufptr);
 
 
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */
-#define EAIREADSIZE	2048		/* maximum we are allowed to read in from socket */
+#define EAIREADSIZE	4096		/* maximum we are allowed to read in from socket */
 #define EAIBASESOCKET   9877		/* socket number to start at */
 
 
@@ -49,6 +49,7 @@ void EAI_RW(char *bufptr);
 #define GETNODEDEFNAME	'i'
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
+#define REWIREMIDIINFO  'l'
 
 
 /* command string to get the rootNode - this is a special match... */
@@ -102,3 +103,8 @@ extern int EAIbufcount;
 extern char EAIListenerData[EAIREADSIZE];
 extern char EAIListenerArea[40];
 
+#define MIDI_CONTROLLER_STEP	3
+#define MIDI_CONTROLLER_CONTINUOUS 1
+#define MIDI_CONTROLLER_BIPOLAR 2
+#define MIDI_CONTROLLER_UNUSED 4
+#define MIDI_CONTROLLER_UNKNOWN 999

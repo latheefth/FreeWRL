@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.266  2007/02/22 13:41:09  crc_canada
+# more ReWire work
+#
 # Revision 1.265  2007/02/13 22:45:24  crc_canada
 # PixelTexture default image should now be ok
 #
@@ -888,6 +891,7 @@ struct X3D_Virt {
 struct Uni_String {
 	int len;
 	char * strptr;
+	int touched;
 };
 
 /* Internal representation of IndexedFaceSet, Text, Extrusion & ElevationGrid:

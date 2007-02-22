@@ -1604,9 +1604,9 @@ package VRML::NodeType;
 						channel => [SFString,"",exposedField],		# "Osc1 Wave"
 
 						# encoded bus,device,channel
-						_encodedName => [SFInt32,0,field],		# internal for efficiency
-
-
+						_bus => [SFInt32,0,field],		# internal for efficiency
+						_channel => [SFInt32,0,field],		# internal for efficiency
+						_controller => [SFInt32,0,field],		# internal for efficiency
 
 						deviceMinVal => [SFInt32, 0, field],		# what the device sets
 						deviceMaxVal => [SFInt32, 0, field],		# what the device sets

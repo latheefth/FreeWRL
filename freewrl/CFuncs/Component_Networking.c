@@ -1,15 +1,15 @@
 /*******************************************************************
- Copyright (C) 2005, 2006 John Stewart, Ayla Khan, Sarah Dumoulin, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
+  Copyright (C) 2005, 2006 John Stewart, Ayla Khan, Sarah Dumoulin, CRC Canada.
+  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+  See the GNU Library General Public License (file COPYING in the distribution)
+  for conditions of use and redistribution.
+ *********************************************************************/
 
 /*******************************************************************
 
-	X3D Networking Component
+  X3D Networking Component
 
-*********************************************************************/
+ *********************************************************************/
 
 #include <math.h>
 #include "headers.h"
@@ -19,6 +19,32 @@
 /* keep track of the Midi nodes. */
 static uintptr_t *MidiNodes = NULL;
 static int num_MidiNodes = 0;
+
+/* ReWireName table */
+struct ReWireNamenameStruct {
+        char *name;
+};
+
+struct ReWireNamenameStruct *ReWireNamenames = 0;
+int ReWireNametableSize = -1;
+int MAXReWireNameNames = 0;
+
+/* ReWire device/controller  table */
+struct ReWireDeviceStruct {
+	int encodedDeviceName;		/* index into ReWireNamenames */
+	int bus;			/* which MIDI bus this is */
+	int channel;			/* which MIDI channel on this bus it is */
+	int encodedControllerName;	/* index into ReWireNamenames */
+	int controller;			/* controller number */
+	int cmin;			/* minimum value for this controller */
+	int cmax;			/* maximum value for this controller */
+	int ctype;			/* controller type */
+};
+
+struct ReWireDeviceStruct *ReWireDevices = 0;
+int ReWireDevicetableSize = -1;
+int MAXReWireDevices = 0;
+
 
 void make_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	printf ("make ReWire\n");
@@ -36,11 +62,63 @@ void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
 	printf ("render ReWire\n");
 }
 
+/* return parameters associated with this name. returns TRUE if this device has been added by
+the ReWire system */
+
+int ReWireDeviceIndex (int dev, int cont, int *bus, int *channel, 
+	int *controller, int *cmin, int *cmax, int *ctype, int add) {
+	int ctr;
+	char *tmp;
+	
+	/* is this a duplicate name and type? types have to be same,
+	   name lengths have to be the same, and the strings have to be the same.
+	*/
+	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+		if ((dev==ReWireDevices[ctr].encodedDeviceName) &&
+			(cont == ReWireDevices[ctr].encodedControllerName)) {
+			printf ("ReWireDeviceIndex, FOUND IT at %d\n",ctr);
+			*bus = ReWireDevices[ctr].bus;
+			*channel = ReWireDevices[ctr].channel;
+			*controller = ReWireDevices[ctr].controller;
+			*cmin = ReWireDevices[ctr].cmin;
+			*cmax = ReWireDevices[ctr].cmax;
+			*ctype = ReWireDevices[ctr].ctype;
+			return TRUE; /* name found */
+		}
+	}
+
+	/* nope, not duplicate */
+	if (add) {
+		ReWireDevicetableSize ++;
+	
+		/* ok, we got a name and a type */
+		if (ReWireDevicetableSize >= MAXReWireDevices) {
+			/* oooh! not enough room at the table */
+			MAXReWireDevices += 1024; /* arbitrary number */
+			ReWireDevices = (struct ReWireDevicenameStruct*)realloc (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
+		}
+	
+		ReWireDevices[ReWireDevicetableSize].bus = *bus;
+		ReWireDevices[ReWireDevicetableSize].channel = *channel;
+		ReWireDevices[ReWireDevicetableSize].controller = *controller;
+		ReWireDevices[ReWireDevicetableSize].cmin = *cmin; 
+		ReWireDevices[ReWireDevicetableSize].cmax = *cmax;
+		ReWireDevices[ReWireDevicetableSize].ctype = *ctype;
+		ReWireDevices[ReWireDevicetableSize].encodedDeviceName = dev;
+		ReWireDevices[ReWireDevicetableSize].encodedControllerName = dev;
+		printf ("ReWireDeviceIndex, new entry at %d\n",ReWireDevicetableSize);
+		return TRUE; /* name not found, but, requested */
+	} else {
+		printf ("ReWireDeviceIndex: name not added, name not found\n");
+		return FALSE; /* name not added, name not found */ 
+	}
+}
+
 void registerReWireNode(void *node) {
 	struct X3D_Box * tmp;
 	int count;
 	uintptr_t *myptr;
-	
+
 	if (node == 0) {
 		printf ("error in registerReWireNode; somehow the node datastructure is zero \n");
 		return;
@@ -74,73 +152,243 @@ void registerReWireNode(void *node) {
 	num_MidiNodes++;
 }
 
+/* "forget" the ReWireNames. Keep the table around, though, as the entries will simply be used again. */
+void kill_ReWireNameTable(void) {
+	ReWireNametableSize = -1;
+	ReWireDevicetableSize = -1;
+}
 
-
-
-/* add up the characters in a string; return lowest 12 bits of the count */
-unsigned int returnSumofString(struct Uni_String *str) {
-	unsigned int sum;
-	int count;
-	int start;
-	int end;
-
-	sum = 0;
-	if (str->len == 0) return sum;
-
-	/* find the start and end - remove whitespace */
-	start=0;
-	while ((start < (str->len)) && ((str->strptr[start]) <= ' ')) start++;
-	end = str->len-1;
-	while ((end >= 0) && ((str->strptr[end]) <= ' ')) end--;
-
-	/* printf ("returnSumofString start %d end %d len %d\n",start,end,str->len); */
-	for (count = start; count <= end; count++) {
-		sum += str->strptr[count];
+/* return a node assoicated with this name. If the name exists, return the previous node. If not, return
+the new node */
+int ReWireNameIndex (char *name) {
+	int ctr;
+	char *tmp;
+	
+	/* printf ("ReWireNameIndex, looking for %s\n",name); */
+	/* is this a duplicate name and type? types have to be same,
+	   name lengths have to be the same, and the strings have to be the same.
+	*/
+	for (ctr=0; ctr<=ReWireNametableSize; ctr++) {
+		/* printf ("ReWireNameIndex, comparing %s to %s\n",name,ReWireNamenames[ctr].name); */
+		if (strcmp(name,ReWireNamenames[ctr].name)==0) {
+			/* printf ("ReWireNameIndex, FOUND IT at %d\n",ctr); */
+			return ctr;
+		}
 	}
 
-	sum &= 0xffff;
-	/* printf ("returning %x\n",sum); */
-	return sum;
+	/* nope, not duplicate */
+
+	ReWireNametableSize ++;
+
+	/* ok, we got a name and a type */
+	if (ReWireNametableSize >= MAXReWireNameNames) {
+		/* oooh! not enough room at the table */
+		MAXReWireNameNames += 1024; /* arbitrary number */
+		ReWireNamenames = (struct ReWireNamenameStruct*)realloc (ReWireNamenames, sizeof(*ReWireNamenames) * MAXReWireNameNames);
+	}
+
+	ReWireNamenames[ReWireNametableSize].name = strdup(name);
+	/* printf ("ReWireNameIndex, new entry at %d\n",ReWireNametableSize); */
+	return ReWireNametableSize;
 }
 
 void sendCompiledNodeToReWire(struct X3D_ReWireMidiControl *node) {
-	#define MAXOUTLINE 3000
+#define MAXOUTLINE 3000
 	char outline[MAXOUTLINE];
 	printf ("sendCompiledNodeToReWire %d\n",node);
 
-	sprintf (outline,"RWNODE\n%d %d %d %d %d %d %d %f %d %d %d %s\nRW_EOT",
-		node,node->_encodedName, node->deviceMinVal, node->deviceMaxVal,
-		node->minVal, node->maxVal,node->intValue, node->floatValue, node->useIntValue,
-		node->continuousEvents, node->highResolution,node->controllerType->strptr);
+	sprintf (outline,"RWNODE\n%d %d %d %d %d %d %d %d %f %d %d %d %s\nRW_EOT",
+			node,node->_bus, node->_channel, node->deviceMinVal, node->deviceMaxVal,
+			node->minVal, node->maxVal,node->intValue, node->floatValue, node->useIntValue,
+			node->continuousEvents, node->highResolution,node->controllerType->strptr);
 
 	printf (outline); printf ("\n");
 	EAI_send_string(outline,EAIlistenfd);
 }
 
 void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node) {
-	unsigned int newEncodedName;
+	/* get the name/device pairing */
+	int tmp_bus;
+	int tmp_channel;
+	int tmp_controller;
+	int tmpdeviceMinVal;
+	int tmpdeviceMaxVal;
+	int tmpintControllerType;
+	int devicePresent;
 
-	/* shuffle bits about to make up a (hopefully unique) name */
-	newEncodedName = returnSumofString(node->channel);
-	newEncodedName |= (returnSumofString(node->deviceName)  << 16);
+/*
+                                                highResolution => [SFBool, TRUE, exposedField], # high resolution controller
+*/
 
-	/* EncodedName - bits are as follows */
-	
-	
-	printf ("compile ReWire\n");
-	printf ("old encodedName %x newEncodedName %x\n",node->_encodedName, newEncodedName);
+	devicePresent = ReWireDeviceIndex (
+				ReWireNameIndex(node->deviceName->strptr),
+				ReWireNameIndex(node->channel->strptr),
+				&(tmp_bus),
+				&(tmp_channel),
+				&(tmp_controller),
+				&(tmpdeviceMinVal),
+				&(tmpdeviceMaxVal),
+				&(tmpintControllerType), FALSE);
 
-	if ((unsigned int) node->_encodedName != newEncodedName) {
-		printf ("Name Changed!!\n");
-		node->_encodedName = (unsigned int) newEncodedName;
+	if (devicePresent != node->devicePresent) {
+		printf ("devicePresent changed\n");
+		node->devicePresent = devicePresent;
+		mark_event (node, offsetof(struct X3D_ReWireMidiControl, devicePresent));
+	}
+	if (node->deviceName->touched!= 0) {
+		printf ("device changed\n");
+		node->deviceName->touched= 0;
+		mark_event (node, offsetof(struct X3D_ReWireMidiControl, deviceName));
+	}
+	if (node->channel->touched != 0) {
+		printf ("channel changed\n");
+		node->channel->touched = 0;  
+		mark_event (node, offsetof(struct X3D_ReWireMidiControl, channel));
 	}
 
-	printf ("worry about max/min values\n");
 
-	sendCompiledNodeToReWire(node);
+	if (devicePresent) {
+		if (tmp_bus != node->_bus) {
+			printf ("INTERNAL: bus changed from %d to %d\n",node->_bus, tmp_bus);
+			node->_bus = tmp_bus;
+		}
+		if (tmp_channel != node->_channel) {
+			printf ("INTERNAL: channel changed from %d to %d\n",node->_channel, tmp_channel);
+			node->_channel = tmp_channel;
+		}
+		if (tmp_controller != node->_controller) {
+			printf ("INTERNAL: controller changed from %d to %d\n",node->_channel, tmp_channel);
+			node->_controller = tmp_controller;
+		}
+		if (tmpdeviceMinVal != node->deviceMinVal) {
+			printf ("deviceMinVal changed from %d to %d\n",node->deviceMinVal, tmpdeviceMinVal);
+			node->deviceMinVal = tmpdeviceMinVal;
+			mark_event (node, offsetof(struct X3D_ReWireMidiControl, deviceMinVal));
+		}
+		if (tmpdeviceMaxVal != node->deviceMaxVal) {
+			printf ("deviceMaxVal changed from %d to %d\n",node->deviceMaxVal, tmpdeviceMaxVal);
+			node->deviceMaxVal = tmpdeviceMaxVal;
+			mark_event (node, offsetof(struct X3D_ReWireMidiControl, deviceMaxVal));
+		}
+		if (tmpintControllerType != node->intControllerType) {
+			printf ("intControllerType  changed from %d to %d\n",node->intControllerType, tmpintControllerType);
+			node->intControllerType = tmpintControllerType;
+			mark_event (node, offsetof(struct X3D_ReWireMidiControl, controllerType));
+			switch (node->intControllerType) {
+				case MIDI_CONTROLLER_CONTINUOUS:
+					node->continuousEvents = TRUE;
+					verify_Uni_String(node->controllerType,"Continuous");
+					break;
+				case MIDI_CONTROLLER_STEP:
+					node->continuousEvents = FALSE;
+					verify_Uni_String(node->controllerType,"Step");
+					break;
+				case MIDI_CONTROLLER_BIPOLAR:
+					node->continuousEvents = FALSE;
+					verify_Uni_String(node->controllerType,"BiPolar");
+					break;
+				case MIDI_CONTROLLER_UNKNOWN:
+					node->continuousEvents = FALSE;
+					verify_Uni_String(node->controllerType,"Unknown");
+					break;
+			}
+		}
+	} else {
+		printf ("compile_ReWireMidiControl - device not present yet\n");
+	}
+printf ("\n");
+
+	/*sendCompiledNodeToReWire(node); */
 
 	MARK_NODE_COMPILED 
 }
+
+void ReWireRegisterMIDI (char *str) {
+	char *pt;
+	int curBus;
+	int curDevice;
+	int curChannel;
+	int curMin;
+	int curMax;
+	int curType;
+	int curController;
+
+	char *EOT;
+
+	int encodedDeviceName;
+	int encodedControllerName;
+
+
+
+	/*
+	   "Hardware Interface 1" 5 0 
+	   "Melody Automation" 5 1 
+	   1 "Mod Wheel" 1 127 0
+	   5 "Portamento" 1 127 0
+	   7 "Master Level" 1 127 0
+	   9 "Oscillator B Decay" 1 127 0
+	   12 "Oscillator B Sustain" 1 127 0
+	   14 "Filter Env Attack" 1 127 0
+	   15 "Filter Env Decay" 1 127 0
+	   16 "Filter Env Sustain" 1 127 0
+	   17 "Filter Env Release" 1 127 0
+	   18 "Filter Env Amount" 1 127 0
+	   19 "Filter Env Invert" 3 1 0
+	   21 "Oscillator B Octave" 3 8 0
+	   79 "Body Type" 3 4 0
+	 */	
+
+	while (*str != '\0') {
+		while (*str == '\n') str++;
+		/* is this a new device? */
+		if (*str == '"') {
+			str++;
+			EOT = strchr (str,'"');
+			if (EOT != NULL) *EOT = '\0'; else {
+				printf ("ReWireRegisterMidi, expected string here: %s\n",str);
+			}
+			/* printf ("device name is :%s:\n",str); */
+			encodedDeviceName = ReWireNameIndex(str);
+			str = EOT+1;
+			sscanf (str, "%d %d",&curBus, &curChannel);
+
+
+		} else if (*str == '\t') {
+			str++;
+			sscanf (str, "%d", &curController);
+			EOT = strchr (str,'"');
+			if (EOT != NULL) str = EOT+1; else {
+				printf ("ReWireRegisterMidi, expected string here: %s\n",str);
+			}
+			EOT = strchr (str,'"');
+			if (EOT != NULL) *EOT = '\0'; else {
+				printf ("ReWireRegisterMidi, expected string here: %s\n",str);
+			}
+			encodedControllerName = ReWireNameIndex(str);
+			str = EOT+1;
+			sscanf (str, "%d %d %d",&curMin, &curMax, &curType);
+			/* printf ("dev (%d %d)  %d %d chan %d %d %d %d\n",encodedDeviceName, encodedControllerName, curBus, curChannel,
+				curController, curMin, curMax, curType);
+			*/
+
+			/* register the info for this controller */
+			if (!ReWireDeviceIndex(encodedDeviceName, encodedControllerName, &curBus, 
+				&curChannel, &curController, &curMin, &curMax, &curType,TRUE)) {
+				printf ("ReWireRegisterMIDI, did not expect duplicate device for %s %s\n",
+					ReWireNamenames[encodedDeviceName].name, ReWireNamenames[encodedControllerName].name); }
+
+		} else {
+			printf ("ReWireRegisterMidi - garbage at:%s\n",str);
+		}
+		
+		/* skip to the end of the line */
+		while (*str >= ' ') str++;
+		while (*str == '\n') str++;
+
+	}
+}
+
+
 
 void do_ReWireMidiControl (void *this) {
 	struct X3D_ReWireMidiControl* node;
@@ -207,6 +455,8 @@ void do_ReWireMidiControl (void *this) {
 			/*printf ("fv %f minv %d, ps %d\n",fV, minV, possibleValueSpread); */
 
 			node->floatValue =  ((float) fV-minV)/((float)possibleValueSpread);
+			mark_event (node, offsetof(struct X3D_ReWireMidiControl, floatValue));
+			mark_event (node, offsetof(struct X3D_ReWireMidiControl, intValue));
 
 			/*
 			printf ("sending %d %f ",mySendValue, node->floatValue);
