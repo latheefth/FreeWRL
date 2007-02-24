@@ -37,30 +37,30 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 
 /* look for an ellipsoid in the GeoSystem field */
 void parse_ellipsoid(int *dest, char *str, char *description) {
-	if (strncmp("AA",str,2) == 0) *dest +=  GEO_AA;
-	else if (strncmp("AM",str,2) == 0) *dest +=  GEO_AM;
-	else if (strncmp("AN",str,2) == 0) *dest +=  GEO_AN;
-	else if (strncmp("BN",str,2) == 0) *dest +=  GEO_BN;
-	else if (strncmp("BR",str,2) == 0) *dest +=  GEO_BR;
-	else if (strncmp("CC",str,2) == 0) *dest +=  GEO_CC;
-	else if (strncmp("CD",str,2) == 0) *dest +=  GEO_CD;
-	else if (strncmp("EA",str,2) == 0) *dest +=  GEO_EA;
-	else if (strncmp("EB",str,2) == 0) *dest +=  GEO_EB;
-	else if (strncmp("EC",str,2) == 0) *dest +=  GEO_EC;
-	else if (strncmp("ED",str,2) == 0) *dest +=  GEO_ED;
-	else if (strncmp("EE",str,2) == 0) *dest +=  GEO_EE;
-	else if (strncmp("EF",str,2) == 0) *dest +=  GEO_EF;
-	else if (strncmp("FA",str,2) == 0) *dest +=  GEO_FA;
-	else if (strncmp("HE",str,2) == 0) *dest +=  GEO_HE;
-	else if (strncmp("HO",str,2) == 0) *dest +=  GEO_HO;
-	else if (strncmp("ID",str,2) == 0) *dest +=  GEO_ID;
-	else if (strncmp("IN",str,2) == 0) *dest +=  GEO_IN;
-	else if (strncmp("KA",str,2) == 0) *dest +=  GEO_KA;
-	else if (strncmp("RF",str,2) == 0) *dest +=  GEO_RF;
-	else if (strncmp("SA",str,2) == 0) *dest +=  GEO_SA;
-	else if (strncmp("WD",str,2) == 0) *dest +=  GEO_WD;
-	else if (strncmp("WE",str,2) == 0) *dest +=  GEO_WE;
-	else if (strncmp("WGS84",str,5) == 0) *dest +=  GEO_WGS84;
+	if (strcmp("AA",str) == 0) *dest +=  GEO_AA;
+	else if (strcmp("AM",str) == 0) *dest +=  GEO_AM;
+	else if (strcmp("AN",str) == 0) *dest +=  GEO_AN;
+	else if (strcmp("BN",str) == 0) *dest +=  GEO_BN;
+	else if (strcmp("BR",str) == 0) *dest +=  GEO_BR;
+	else if (strcmp("CC",str) == 0) *dest +=  GEO_CC;
+	else if (strcmp("CD",str) == 0) *dest +=  GEO_CD;
+	else if (strcmp("EA",str) == 0) *dest +=  GEO_EA;
+	else if (strcmp("EB",str) == 0) *dest +=  GEO_EB;
+	else if (strcmp("EC",str) == 0) *dest +=  GEO_EC;
+	else if (strcmp("ED",str) == 0) *dest +=  GEO_ED;
+	else if (strcmp("EE",str) == 0) *dest +=  GEO_EE;
+	else if (strcmp("EF",str) == 0) *dest +=  GEO_EF;
+	else if (strcmp("FA",str) == 0) *dest +=  GEO_FA;
+	else if (strcmp("HE",str) == 0) *dest +=  GEO_HE;
+	else if (strcmp("HO",str) == 0) *dest +=  GEO_HO;
+	else if (strcmp("ID",str) == 0) *dest +=  GEO_ID;
+	else if (strcmp("IN",str) == 0) *dest +=  GEO_IN;
+	else if (strcmp("KA",str) == 0) *dest +=  GEO_KA;
+	else if (strcmp("RF",str) == 0) *dest +=  GEO_RF;
+	else if (strcmp("SA",str) == 0) *dest +=  GEO_SA;
+	else if (strcmp("WD",str) == 0) *dest +=  GEO_WD;
+	else if (strcmp("WE",str) == 0) *dest +=  GEO_WE;
+	else if (strcmp("WGS84",str,5) == 0) *dest +=  GEO_WGS84;
 	else {
 		printf ("Unknown ellipsoid :%s: found in:%s\n",
 			str,description);
@@ -87,11 +87,11 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 	if (numStrings >=1) {
 		cptr = geoSystem->p[0]->strptr;
 		sl = geoSystem->p[0]->len;
-		if (strncmp("GD",cptr,2) == 0) *__geoSystem = GEO_GD;
-		else if (strncmp("GC",cptr,2) == 0) *__geoSystem = GEO_GC;
-		else if (strncmp("UTM",cptr,3) == 0) *__geoSystem = GEO_UTM;
-		else if (strncmp("GDC",cptr,3) == 0) *__geoSystem = GEO_GD;
-		else if (strncmp("GCC",cptr,3) == 0) *__geoSystem = GEO_GC;
+		if (strcmp("GD",cptr) == 0) *__geoSystem = GEO_GD;
+		else if (strcmp("GC",cptr) == 0) *__geoSystem = GEO_GC;
+		else if (strcmp("UTM",cptr) == 0) *__geoSystem = GEO_UTM;
+		else if (strcmp("GDC",cptr) == 0) *__geoSystem = GEO_GD;
+		else if (strcmp("GCC",cptr) == 0) *__geoSystem = GEO_GC;
 		else printf ("Unknown Spatial Ref Frame :%s: found in :%s\n",
 				cptr,description);
 	}

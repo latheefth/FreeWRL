@@ -486,10 +486,10 @@ void EAI_parse_commands (char *bufptr) {
 				printf ("Viewpoint :%s:\n",bufptr);
 				#endif
 				/* do the viewpoints. Note the spaces in the strings */
-				if (!strncmp(bufptr, " NEXT", strlen (" NEXT"))) Next_ViewPoint();
-				if (!strncmp(bufptr, " FIRST", strlen (" FIRST"))) First_ViewPoint();
-				if (!strncmp(bufptr, " LAST", strlen (" LAST"))) Last_ViewPoint();
-				if (!strncmp(bufptr, " PREV", strlen (" PREV"))) Prev_ViewPoint();
+				if (!strcmp(bufptr, " NEXT")) Next_ViewPoint();
+				if (!strcmp(bufptr, " FIRST")) First_ViewPoint();
+				if (!strcmp(bufptr, " LAST")) Last_ViewPoint();
+				if (!strcmp(bufptr, " PREV")) Prev_ViewPoint();
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -681,8 +681,7 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 
 	/* does this event exist? */
 	for (count=0; count <num_EAINodeTable; count ++) {
-		if (strlen(EAINodeTable[count].nodeName) == mystrlen) {
-			if (strncmp(EAINodeTable[count].nodeName, ctmp,mystrlen) == 0) {
+		if (strcmp(EAINodeTable[count].nodeName, ctmp) == 0) {
 			sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
 				0,
 				EAINodeTable[count].nodePtr);
@@ -690,12 +689,11 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 			printf ("GETNODE fast returns %s\n",buf);
 			#endif
 			return;
-			}
 		}	
 	}
 
 	/* is this the SAI asking for the root node? */
-	if (strncmp(ctmp,SYSTEMROOTNODE,strlen(SYSTEMROOTNODE))) {
+	if (strcmp(ctmp,SYSTEMROOTNODE)) {
 
 		/* nope, lets see if we have it, or if we need to ask Perl for it */
 		EAINodeTable = (struct NodeTableStruct *)realloc(EAINodeTable,sizeof (struct NodeTableStruct) * (num_EAINodeTable+1));
@@ -856,7 +854,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	myc = 0;
 	while (*np != -1) {
 		/* is this a hidden field? */
-		if (strncmp (FIELDNAMES[*np],"_",1) != 0) {
+		if (strcmp (FIELDNAMES[*np],"_") != 0) {
 			myc ++; 
 		}
 
@@ -872,7 +870,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	/* now go through and get the name, type, keyword */
 	np = NODE_OFFSETS[boxptr->_nodeType];
 	while (*np != -1) {
-		if (strncmp (FIELDNAMES[*np],"_",1) != 0) {
+		if (strcmp (FIELDNAMES[*np],"_") != 0) {
 			sprintf (myline,"%s %c %s ",FIELDNAMES[np[0]], (char) mapFieldTypeToEAItype(np[2]), 
 				KEYWORDS[np[3]]);
 			strcat (buf, myline);

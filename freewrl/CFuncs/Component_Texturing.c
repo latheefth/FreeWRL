@@ -27,27 +27,27 @@ void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *no
 		modeptr = node->mode->strptr;
 
 		/* make the __compiledmode reflect actual OpenGL parameters */
-		if(strncmp("SPHERE-REFLECT-LOCAL",modeptr,strlen("SPHERE-REFLECT-LOCAL"))==0) {
+		if(strcmp("SPHERE-REFLECT-LOCAL",modeptr)==0) {
 			node->__compiledmode = GL_SPHERE_MAP;
-		} else if(strncmp("SPHERE-REFLECT",modeptr,strlen("SPHERE-REFLECT"))==0) {
+		} else if(strcmp("SPHERE-REFLECT",modeptr)==0) {
 			node->__compiledmode = GL_SPHERE_MAP;
-		} else if(strncmp("SPHERE-LOCAL",modeptr,strlen("SPHERE-LOCAL"))==0) {
+		} else if(strcmp("SPHERE-LOCAL",modeptr)==0) {
 			node->__compiledmode = GL_SPHERE_MAP;
-		} else if(strncmp("SPHERE",modeptr,strlen("SPHERE"))==0) {
+		} else if(strcmp("SPHERE",modeptr)==0) {
 			node->__compiledmode = GL_SPHERE_MAP;
-		} else if(strncmp("CAMERASPACENORMAL",modeptr,strlen("CAMERASPACENORMAL"))==0) {
+		} else if(strcmp("CAMERASPACENORMAL",modeptr)==0) {
 			node->__compiledmode = GL_NORMAL_MAP;
-		} else if(strncmp("CAMERASPACEPOSITION",modeptr,strlen("CAMERASPACEPOSITION"))==0) {
+		} else if(strcmp("CAMERASPACEPOSITION",modeptr)==0) {
 			node->__compiledmode = GL_OBJECT_LINEAR;
-		} else if(strncmp("CAMERASPACEREFLECTION",modeptr,strlen("CAMERASPACEREFLECTION"))==0) {
+		} else if(strcmp("CAMERASPACEREFLECTION",modeptr)==0) {
 			node->__compiledmode = GL_REFLECTION_MAP;
-		} else if(strncmp("COORD-EYE",modeptr,strlen("COORD-EYE"))==0) {
+		} else if(strcmp("COORD-EYE",modeptr)==0) {
 			node->__compiledmode = GL_EYE_LINEAR;
-		} else if(strncmp("COORD",modeptr,strlen("COORD"))==0) {
+		} else if(strcmp("COORD",modeptr)==0) {
 			node->__compiledmode = GL_EYE_LINEAR;
-		} else if(strncmp("NOISE-EYE",modeptr,strlen("NOISE-EYE"))==0) {
+		} else if(strcmp("NOISE-EYE",modeptr)==0) {
 			node->__compiledmode = GL_EYE_LINEAR;
-		} else if(strncmp("NOISE",modeptr,strlen("NOISE"))==0) {
+		} else if(strcmp("NOISE",modeptr)==0) {
 			node->__compiledmode = GL_EYE_LINEAR;
 		} else {
 			printf ("TextureCoordinateGenerator - error - %s invalid as a mode\n",modeptr);

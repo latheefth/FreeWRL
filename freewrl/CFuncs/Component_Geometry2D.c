@@ -74,10 +74,10 @@ void compile_ArcClose2D (struct X3D_ArcClose2D *node) {
 	tmpint = 0;
 	tmpptr_a = NULL;
 
-	if (strncmp(ct,"PIE",xx) == 0) {
+	if (strcmp(ct,"PIE") == 0) {
 		tmpptr_a = createLines (node->startAngle,
 			node->endAngle, node->radius, PIE, &tmpint);
-	} else if (strncmp(ct,"CHORD",xx) == 0) {
+	} else if (strcmp(ct,"CHORD") == 0) {
 		tmpptr_a = createLines (node->startAngle,
 			node->endAngle, node->radius, CHORD, &tmpint);
 	} else {

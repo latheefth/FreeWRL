@@ -71,27 +71,27 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 		/*  get the string pointer */
 		typeptr = svptr[i]->strptr;
 
-		if (strncmp(typeptr,"WALK",strlen("WALK")) == 0) {
+		if (strcmp(typeptr,"WALK") == 0) {
 			Viewer.oktypes[WALK] = TRUE;
 			if (i==0) set_viewer_type(WALK);
 		}
-		if (strncmp(typeptr,"FLY",strlen("FLY")) == 0) {
+		if (strcmp(typeptr,"FLY") == 0) {
 			Viewer.oktypes[FLY] = TRUE;
 			if (i==0) set_viewer_type(FLY);
 		}
-		if (strncmp(typeptr,"EXAMINE",strlen("EXAMINE")) == 0) {
+		if (strcmp(typeptr,"EXAMINE") == 0) {
 			Viewer.oktypes[EXAMINE] = TRUE;
 			if (i==0) set_viewer_type(EXAMINE);
 		}
-		if (strncmp(typeptr,"NONE",strlen("NONE")) == 0) {
+		if (strcmp(typeptr,"NONE") == 0) {
 			Viewer.oktypes[NONE] = TRUE;
 			if (i==0) set_viewer_type(NONE);
 		}
-		if (strncmp(typeptr,"EXFLY",strlen("EXFLY")) == 0) {
+		if (strcmp(typeptr,"EXFLY") == 0) {
 			Viewer.oktypes[EXFLY] = TRUE;
 			if (i==0) set_viewer_type(EXFLY);
 		}
-		if (strncmp(typeptr,"ANY",strlen("ANY")) == 0) {
+		if (strcmp(typeptr,"ANY") == 0) {
 			Viewer.oktypes[EXAMINE] = TRUE;
 			Viewer.oktypes[WALK] = TRUE;
 			Viewer.oktypes[EXFLY] = TRUE;
@@ -403,7 +403,7 @@ void render_Fog (struct X3D_Fog *node) {
 	glFogfv(GL_FOG_COLOR,fog_colour);
 
 	/* make the fog look like the examples in the VRML Source Book */
-	if (strncmp("LINEAR",fogptr,(unsigned) foglen)) {
+	if (strcmp("LINEAR",fogptr)) {
 		/* Exponential */
 		glFogf(GL_FOG_DENSITY, (float) (4.0)/ (node->visibilityRange));
 		glFogf(GL_FOG_END, (float) (node->visibilityRange));
