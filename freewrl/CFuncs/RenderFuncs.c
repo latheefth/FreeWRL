@@ -757,37 +757,37 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
 route TO an interpolator */
 void *returnInterpolatorPointer (const char *x) {
-	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
+	if (strcmp("OrientationInterpolator",x))==0) {
 		return (void *)do_Oint4;
-	} else if (strncmp("CoordinateInterpolator2D",x,strlen("CoordinateInterpolator2D"))==0) {
+	} else if (strcmp("CoordinateInterpolator2D",x))==0) {
 		return (void *)do_OintCoord2D;
-	} else if (strncmp("PositionInterpolator2D",x,strlen("PositionInterpolator2D"))==0) {
+	} else if (strcmp("PositionInterpolator2D",x))==0) {
 		return (void *)do_OintPos2D;
-	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
+	} else if (strcmp("ScalarInterpolator",x))==0) {
 		return (void *)do_OintScalar;
-	} else if (strncmp("ColorInterpolator",x,strlen("ColorInterpolator"))==0) {
+	} else if (strcmp("ColorInterpolator",x))==0) {
 		return (void *)do_Oint3;
-	} else if (strncmp("PositionInterpolator",x,strlen("PositionInterpolator"))==0) {
+	} else if (strcmp("PositionInterpolator",x))==0) {
 		return (void *)do_Oint3;
-	} else if (strncmp("CoordinateInterpolator",x,strlen("CoordinateInterpolator"))==0) {
+	} else if (strcmp("CoordinateInterpolator",x))==0) {
 		return (void *)do_OintCoord;
-	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
+	} else if (strcmp("NormalInterpolator",x))==0) {
 		return (void *)do_OintCoord;
-	} else if (strncmp("GeoPositionInterpolator",x,strlen("GeoPositionInterpolator"))==0) {
+	} else if (strcmp("GeoPositionInterpolator",x))==0) {
 		return (void *)do_GeoOint;
-	} else if (strncmp("BooleanFilter",x,strlen("BooleanFilter"))==0) {
+	} else if (strcmp("BooleanFilter",x))==0) {
 		return (void *)do_BooleanFilter;
-	} else if (strncmp("BooleanSequencer",x,strlen("BooleanSequencer"))==0) {
+	} else if (strcmp("BooleanSequencer",x))==0) {
 		return (void *)do_BooleanSequencer;
-	} else if (strncmp("BooleanToggle",x,strlen("BooleanToggle"))==0) {
+	} else if (strcmp("BooleanToggle",x))==0) {
 		return (void *)do_BooleanToggle;
-	} else if (strncmp("BooleanTrigger",x,strlen("BooleanTrigger"))==0) {
+	} else if (strcmp("BooleanTrigger",x))==0) {
 		return (void *)do_BooleanTrigger;
-	} else if (strncmp("IntegerTrigger",x,strlen("IntegerTrigger"))==0) {
+	} else if (strcmp("IntegerTrigger",x))==0) {
 		return (void *)do_IntegerTrigger;
-	} else if (strncmp("TimeTrigger",x,strlen("TimeTrigger"))==0) {
+	} else if (strcmp("TimeTrigger",x))==0) {
 		return (void *)do_TimeTrigger;
-	} else if (strncmp("ReWireMidiControl",x,strlen("ReWireMidiControl"))==0) {
+	} else if (strcmp("ReWireMidiControl",x))==0) {
 		return (void *)do_ReWireMidiControl;
 	} else {
 		return 0;

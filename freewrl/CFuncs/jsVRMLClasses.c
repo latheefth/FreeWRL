@@ -300,10 +300,10 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	}
 
 	className_len = strlen(className);
-	if (!strncmp(className, "MFString", className_len)) {
+	if (!strcmp(className, "MFString")) {
 		isString = JS_TRUE;
 	}
-	if (!strncmp(className, "SFImage", className_len)) {
+	if (!strcmp(className, "SFImage")) {
 		isImage = JS_TRUE;
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("doMFToString - doing an image\n");
@@ -433,19 +433,19 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	p = JS_GetStringBytes(str);
 
 	p_len = strlen(p);
-	if (!strncmp(p, "length", p_len) ||
-		!strncmp(p, "toString", p_len) ||
-		!strncmp(p, "__touched_flag", p_len) ||
-		!strncmp(p, "setTransform", p_len) ||
-		!strncmp(p, "assign", p_len) ||
-		!strncmp(p, "inverse", p_len) ||
-		!strncmp(p, "transpose", p_len) ||
-		!strncmp(p, "multLeft", p_len) ||
-		!strncmp(p, "multRight", p_len) ||
-		!strncmp(p, "multVecMatrix", p_len) ||
-		!strncmp(p, "multMatrixVec", p_len) ||
-		!strncmp(p, "constructor", p_len) ||
-		!strncmp(p, "getTransform", p_len)) {
+	if (!strcmp(p, "length") ||
+		!strcmp(p, "toString") ||
+		!strcmp(p, "__touched_flag") ||
+		!strcmp(p, "setTransform") ||
+		!strcmp(p, "assign") ||
+		!strcmp(p, "inverse") ||
+		!strcmp(p, "transpose") ||
+		!strcmp(p, "multLeft") ||
+		!strcmp(p, "multRight") ||
+		!strcmp(p, "multVecMatrix") ||
+		!strcmp(p, "multMatrixVec") ||
+		!strcmp(p, "constructor") ||
+		!strcmp(p, "getTransform")) {
 		#ifdef JSVRMLCLASSESVERBOSE
 			printf("property \"%s\" is one of the standard properties. Do nothing.\n", p);
 		#endif

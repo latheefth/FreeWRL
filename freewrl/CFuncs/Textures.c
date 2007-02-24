@@ -604,16 +604,16 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			param = node->mode.p[count]->strptr;
 			/* printf ("param %d is %s len %d\n",count, param, xx); */
 
-		        if (strncmp("MODULATE2X",param,strlen("MODULATE2X"))==0) { 
+		        if (strcmp("MODULATE2X",param)==0) { 
 				paramPtr->texture_env_mode  = GL_COMBINE; 
                                 paramPtr->rgb_scale = 2;
                                 paramPtr->alpha_scale = 2; } 
 
-		        else if (strncmp("MODULATE4X",param,strlen("MODULATE4X"))==0) {
+		        else if (strcmp("MODULATE4X",param)==0) {
 				paramPtr->texture_env_mode  = GL_COMBINE; 
                                 paramPtr->rgb_scale = 4;
                                 paramPtr->alpha_scale = 4; } 
-		        else if (strncmp("ADDSMOOTH",param,strlen("ADDSMOOTH"))==0) {  
+		        else if (strcmp("ADDSMOOTH",param)==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_ADD;}
 /* 
@@ -627,58 +627,58 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 #define GL_ONE_MINUS_DST_ALPHA            0x0305
 
 */
-		        else if (strncmp("BLENDDIFFUSEALPHA",param,strlen("BLENDDIFFUSEALPHA"))==0) {  
+		        else if (strcmp("BLENDDIFFUSEALPHA",param)==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strncmp("BLENDCURRENTALPHA",param,strlen("BLENDCURRENTALPHA"))==0) {  
+		        else if (strcmp("BLENDCURRENTALPHA",param)==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strncmp("MODULATEALPHA_ADDCOLOR",param,strlen("MODULATEALPHA_ADDCOLOR"))==0) { 
+		        else if (strcmp("MODULATEALPHA_ADDCOLOR",param)==0) { 
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strncmp("MODULATEINVALPHA_ADDCOLOR",param,strlen("MODULATEINVALPHA_ADDCOLOR"))==0) { 
+		        else if (strcmp("MODULATEINVALPHA_ADDCOLOR",param)==0) { 
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strncmp("MODULATEINVCOLOR_ADDALPHA",param,strlen("MODULATEINVCOLOR_ADDALPHA"))==0) { 
+		        else if (strcmp("MODULATEINVCOLOR_ADDALPHA",param)==0) { 
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
-		        else if (strncmp("SELECTARG1",param,strlen("SELECTARG1"))==0) {  
+		        else if (strcmp("SELECTARG1",param)==0) {  
 				paramPtr->texture_env_mode = GL_REPLACE;
 				paramPtr->combine_rgb = GL_TEXTURE0;}
-		        else if (strncmp("SELECTARG2",param,strlen("SELECTARG2"))==0) {  
+		        else if (strcmp("SELECTARG2",param)==0) {  
 				paramPtr->texture_env_mode = GL_REPLACE;
 				paramPtr->combine_rgb = GL_TEXTURE1;}
-		        else if (strncmp("DOTPRODUCT3",param,strlen("DOTPRODUCT3"))==0) {  
+		        else if (strcmp("DOTPRODUCT3",param)==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_DOT3_RGB;}
 /* */
-		        else if (strncmp("MODULATE",param,strlen("MODULATE"))==0) {
+		        else if (strcmp("MODULATE",param)==0) {
 				/* defaults */}
 
-		        else if (strncmp("REPLACE",param,strlen("REPLACE"))==0) {
+		        else if (strcmp("REPLACE",param)==0) {
 				paramPtr->texture_env_mode = GL_REPLACE;}
 
-		        else if (strncmp("SUBTRACT",param,strlen("SUBTRACT"))==0) {
+		        else if (strcmp("SUBTRACT",param)==0) {
 				paramPtr->texture_env_mode = GL_COMBINE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
 
-		        else if (strncmp("ADDSIGNED2X",param,strlen("ADDSIGNED2X"))==0) {
+		        else if (strcmp("ADDSIGNED2X",param)==0) {
 				paramPtr->rgb_scale = 2;
 				paramPtr->alpha_scale = 2;
 				paramPtr->texture_env_mode = GL_COMBINE; 
 				paramPtr->combine_rgb = GL_ADD_SIGNED;}
 
-		        else if (strncmp("ADDSIGNED",param,strlen("ADDSIGNED"))==0) {
+		        else if (strcmp("ADDSIGNED",param)==0) {
 				paramPtr->texture_env_mode = GL_COMBINE; 
 				paramPtr->combine_rgb = GL_ADD_SIGNED;}
 
 
-		        else if (strncmp("ADD",param,strlen("ADD"))==0) {
+		        else if (strcmp("ADD",param)==0) {
 					paramPtr->texture_env_mode = GL_COMBINE;
 					paramPtr->combine_rgb = GL_ADD; }
 
 
-		        else if (strncmp("OFF",param,strlen("OFF"))==0) { 
+		        else if (strcmp("OFF",param)==0) { 
 					paramPtr->texture_env_mode = 0; } 
 
 

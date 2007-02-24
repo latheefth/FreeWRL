@@ -122,8 +122,7 @@ struct X3D_Node *DEFNameIndex (char *name, struct X3D_Node* node) {
 	*/
 	for (ctr=0; ctr<=DEFtableSize; ctr++) {
 		tmp = DEFnames[ctr].name;
-		if ((tmp->len == len) &&
-			(strncmp(name,tmp->strptr,len)==0)) {
+		if (strcmp(name,tmp->strptr)==0) {
 			return DEFnames[ctr].node;
 		}
 	}
@@ -155,8 +154,7 @@ static int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *ty
         for (ctr=0; ctr<=ScriptFieldTableSize; ctr++) {
 		if (scriptno == ScriptFieldNames[ctr].scriptNumber) {
                 	tmp = ScriptFieldNames[ctr].fieldName;
-                	if ((tmp->len == len) &&
-                	        (strncmp(fieldName,tmp->strptr,len)==0)) {
+                	if (strcmp(fieldName,tmp->strptr)==0)) {
 				*offs = ScriptFieldNames[ctr].offs;
 				*type = ScriptFieldNames[ctr].type;
 				#ifdef X3DPARSERVERBOSE
@@ -227,20 +225,20 @@ static void parseX3DRoutes (char **atts) {
 		printf("ROUTING pass 1 field:%s=%s\n", atts[i], atts[i + 1]);
 		#endif
 
-		if (strncmp("fromNode",atts[i],8) == 0) {
+		if (strcmp("fromNode",atts[i]) == 0) {
 			fromNode = DEFNameIndex (atts[i+1], NULL);
 			if (fromNode == NULL) {
 				ConsoleMessage ("ROUTE statement, line %d fromNode (%s) does not exist",LINE,atts[i+1]);
 				error = TRUE;
 			}
-		} else if (strncmp("toNode",atts[i],6) == 0) {
+		} else if (strcmp("toNode",atts[i]) == 0) {
 			toNode = DEFNameIndex (atts[i+1],NULL);
 			if (toNode == NULL) {
 				ConsoleMessage ("ROUTE statement, line %d toNode (%s) does not exist",LINE,atts[i+1]);
 				error = TRUE;
 			}
-		} else if ((strncmp("fromField",atts[i],9)!=0) &&
-				(strncmp("toField",atts[i],7) !=0)) {
+		} else if ((strcmp("fromField",atts[i])!=0) &&
+				(strcmp("toField",atts[i]) !=0)) {
 			ConsoleMessage ("Field in line %d ROUTE statement not understood: %s",LINE,atts[i]);
 			error = TRUE;
 		}
@@ -261,9 +259,9 @@ static void parseX3DRoutes (char **atts) {
 	
 	/* second pass - get the fields of the nodes */
 	for (i = 0; atts[i]; i += 2) {
-		if (strncmp("fromField",atts[i],9)==0) {
+		if (strcmp("fromField",atts[i])==0) {
 			error = getRouteField(fromNode, &fromOffset, &fromType, atts[i+1],0);
-		} else if (strncmp("toField",atts[i],7) ==0) {
+		} else if (strcmp("toField",atts[i]) ==0) {
 			error = getRouteField(toNode, &toOffset, &toType, atts[i+1],1);
 		}
 	}	
@@ -298,12 +296,12 @@ static void parseX3DRoutes (char **atts) {
 
 static int canWeIgnoreThisNode(char *name) {
 
-	if (strncmp ("Header",name,7) == 0) {return TRUE;}
-	if (strncmp ("Metadata",name,8) == 0) {return TRUE;}
-	if (strncmp ("Scene",name,5) == 0) {return TRUE;}
-	if (strncmp ("meta",name,4) == 0) {return TRUE;}
-	if (strncmp ("head",name,4) == 0) {return TRUE;}
-	if (strncmp ("X3D",name,3) == 0) {return TRUE;}
+	if (strcmp ("Header",name) == 0) {return TRUE;}
+	if (strcmp ("Metadata",name) == 0) {return TRUE;}
+	if (strcmp ("Scene",name) == 0) {return TRUE;}
+	if (strcmp ("meta",name) == 0) {return TRUE;}
+	if (strcmp ("head",name) == 0) {return TRUE;}
+	if (strcmp ("X3D",name) == 0) {return TRUE;}
 return FALSE;
 }
 
@@ -349,7 +347,7 @@ void parseNormalX3D(char *name, char** atts) {
 			#endif
 
 
-			if (strncmp ("DEF",atts[i],3) == 0) {
+			if (strcmp ("DEF",atts[i]) == 0) {
 				#ifdef X3DPARSERVERBOSE
 				printf ("this is a DEF, name %s\n",atts[i+1]);
 				#endif
@@ -359,7 +357,7 @@ void parseNormalX3D(char *name, char** atts) {
 					ConsoleMessage ("Warning - line %d duplicate DEF name: \'%s\'",LINE,atts[i+1]);
 				}
 
-			} else if (strncmp ("USE",atts[i],3) == 0) {
+			} else if (strcmp ("USE",atts[i]) == 0) {
 				#ifdef X3DPARSERVERBOSE
 				printf ("this is a USE, name %s\n",atts[i+1]);
 				#endif
@@ -388,7 +386,7 @@ void parseNormalX3D(char *name, char** atts) {
 				setField_fromJavascript (thisNode, atts[i],atts[i+1]);
 			}
 		}
-	} else if (strncmp(name,"ROUTE",5) == 0) {
+	} else if (strcmp(name,"ROUTE") == 0) {
 		parseX3DRoutes(atts);
 	} else {
 		ConsoleMessage ("X3D Parser, line %d node type %s not supported by FreeWRL",LINE,name);
@@ -424,9 +422,9 @@ static void parseScriptField(char *name, char **atts) {
 
 	/* copy the fields over */
 	for (i = 0; atts[i]; i += 2) {
-		if (strncmp(atts[i],"name",4) == 0) { which = 0;	
-		} else if (strncmp(atts[i],"accessType",10) == 0) { which = 1;
-		} else if (strncmp(atts[i],"type",4) == 0) { which = 2;
+		if (strcmp(atts[i],"name") == 0) { which = 0;	
+		} else if (strcmp(atts[i],"accessType") == 0) { which = 1;
+		} else if (strcmp(atts[i],"type") == 0) { which = 2;
 		} else {
 			ConsoleMessage ("X3D Script parsing line %d- unknown field type %s",LINE,atts[i]);
 			return;
@@ -568,7 +566,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	if (canWeIgnoreThisNode(name)) return;
 	
 	/* is this a Script? */
-	if (strncmp (name,"field",5) == 0) {
+	if (strcmp (name,"field") == 0) {
 		if (parserMode != PARSING_SCRIPT) {
 			ConsoleMessage ("X3DParser: line %d Got a <field> but not parsing Scripts",LINE);
 			printf ("Got a <fieldt> but not parsing Scripts\n");
@@ -579,13 +577,13 @@ static void XMLCALL endElement(void *unused, const char *name) {
 
 	/* sanity check here */
 	if (parserMode == PARSING_SCRIPT) {
-		if (strncmp (name,"Script",6) != 0) 
+		if (strcmp (name,"Script") != 0) 
 		ConsoleMessage ("X3DParser line %d endElement, name %s, still PARSING_SCRIPTS",LINE,name);
 	} 
 
 
 	/* is this the end of a Script? */
-	if (strncmp(name,"Script",6) == 0) {
+	if (strcmp(name,"Script") == 0) {
 		#ifdef X3DPARSERVERBOSE
 		printf ("got END of script - script should be registered\n");
 		#endif

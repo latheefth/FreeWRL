@@ -22,7 +22,7 @@ void jsRegisterRoute(
  	snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
 	int ad;
 
-	if (strncmp("addRoute",adrem,strlen("addRoute")) == 0) 
+	if (strcmp("addRoute",adrem) == 0) 
 		ad = 1;
 	else ad = 0;
 
@@ -560,8 +560,8 @@ myNode = (struct X3D_Node* )myptr;
 printf ("myptr points to a %s\n",stringNodeType(myNode->_nodeType));
 }
 		/* remember the freewrl addChildren removeChildren stuff? */
-		if ((strncmp (_c,"addChildren",strlen("addChildren")) == 0) ||
-		(strncmp (_c,"removeChildren",strlen("removeChildren")) == 0)) {
+		if ((strcmp (_c,"addChildren") == 0) ||
+		(strcmp (_c,"removeChildren") == 0)) {
 			setField_fromJavascript ((uintptr_t *)myptr, "children", filename);
 		} else {
 			setField_fromJavascript ((uintptr_t *)myptr, _c, filename);
@@ -720,8 +720,8 @@ printf ("must fix doVRMLRoute\n");
 		*/
 
 		/* From field */
-		if ((strncmp (_cstr[0],"addChildren",strlen("addChildren")) == 0) || 
-		(strncmp (_cstr[0],"removeChildren",strlen("removeChildren")) == 0)) {
+		if ((strcmp (_cstr[0],"addChildren") == 0) || 
+		(strcmp (_cstr[0],"removeChildren") == 0)) {
 			myField = findFieldInALLFIELDNAMES("children");
 		} else {
 			/* try finding it, maybe with a "set_" or "changed" removed */
@@ -734,8 +734,8 @@ printf ("must fix doVRMLRoute\n");
        		findFieldInOFFSETS(NODE_OFFSETS[fromNode->_nodeType], myField, &fromOfs, &fromtype, &xxx);
 
 		/* To field */
-		if ((strncmp (_cstr[1],"addChildren",strlen("addChildren")) == 0) || 
-		(strncmp (_cstr[1],"removeChildren",strlen("removeChildren")) == 0)) {
+		if ((strcmp (_cstr[1],"addChildren") == 0) || 
+		(strcmp (_cstr[1],"removeChildren") == 0)) {
 			myField = findFieldInALLFIELDNAMES("children");
 		} else {
 			/* try finding it, maybe with a "set_" or "changed" removed */

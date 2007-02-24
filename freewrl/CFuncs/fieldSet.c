@@ -145,7 +145,7 @@ unsigned int setField_method2 (char *ptr) {
 
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
 	/* check out the java external/field/MF*java files for the string "ONEVAL "		*/
-	if (strncmp("ONEVAL ",ptr,7) == 0) {
+	if (strcmp("ONEVAL ",ptr) == 0) {
 		ptr += 7;
 
 		/* find out which element the user wants to set - that should be the next number */
@@ -317,7 +317,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 	switch (fieldType) {
 		case FIELDTYPE_SFBool:	{	/* SFBool */
 			/* printf ("we have a boolean, copy value over string is %s\n",strp); */
-			if (strncmp(strp,"true",4)==0) {
+			if (strcmp(strp,"true")==0) {
 				ival = 1;
 			} else {
 				/* printf ("ASSUMED TO BE FALSE\n"); */
@@ -832,7 +832,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		/* printf ("new string %d is %s\n",i,valStr); */
 
 		/*  if the strings are different... */
-		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
+		if (strcmp(valStr,OldvalStr) != 0) {
 			/* malloc a new string, of correct len for terminator */
 			svptr[i] =  newASCIIString(valStr);
 		}
