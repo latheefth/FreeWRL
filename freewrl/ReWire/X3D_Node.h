@@ -175,3 +175,4 @@ void _handleReWireCallback(char *buf);
 void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);
+void sendMIDITableToFreeWRL(char *buf);

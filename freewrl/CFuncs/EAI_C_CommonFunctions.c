@@ -48,7 +48,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 
 	/* bounds checking */
 	if (unis == NULL) {
-		ConsoleMessage ("Warning, verify_Uni_String, comparing to NULL Uni_String, %s\n",str);
+		printf ("Warning, verify_Uni_String, comparing to NULL Uni_String, %s\n",str);
 		return;
 	}
 

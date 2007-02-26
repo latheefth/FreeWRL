@@ -278,22 +278,27 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 				}
 			case REWIREMIDIINFO: {
-					#ifdef EAIVERBOSE 
-					printf ("REWIREMIDIINFO %s\n",bufptr);
-					#endif
+				#ifdef EAIVERBOSE 
+				printf ("REWIREMIDIINFO %s\n",bufptr);
+				#endif
 
+				printf ("REWIREMIDIINFO bufptr :%s:\n",bufptr);
+				printf ("REWIREMIDIINFO EAIbuffer :%s:\n",EAIbuffer);
+				EOT = strstr(EAIbuffer,"\nEOT\n");
+printf ("REWIREMIDIINGO, so, EOT is %d\n",EOT);
+				/* if we do not have a string yet, we have to do this...*/
+				while (EOT == NULL) {
+printf ("REWIREMIDIINFO, EOT is %d, waiting for more info\n",EOT);
+					EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
 					EOT = strstr(EAIbuffer,"\nEOT\n");
-					/* if we do not have a string yet, we have to do this...*/
-					while (EOT == NULL) {
-						EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
-						EOT = strstr(EAIbuffer,"\nEOT\n");
-					}
+				}
 
-					*EOT = 0; /* take off the EOT marker*/
-					ReWireRegisterMIDI(bufptr);
+				*EOT = 0; /* take off the EOT marker*/
+				ReWireRegisterMIDI(bufptr);
 
 				/* finish this for now*/
-				bufptr[0] = 0;
+				bufptr = EOT+3;
+printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 				break;
 				}
 			case CREATEVU:
@@ -585,8 +590,7 @@ void EAI_parse_commands (char *bufptr) {
 
 		/* send the response - events don't send a reply */
 		/* and, Anchors send a different reply (loadURLS) */
-		if ((command != SENDEVENT)  &&
-		    (command != REWIREMIDIINFO)) {
+		if (command != SENDEVENT) {
 			if (command != LOADURL) strcat (buf,"\nRE_EOT");
 			EAI_send_string (buf,EAIlistenfd);
 		}

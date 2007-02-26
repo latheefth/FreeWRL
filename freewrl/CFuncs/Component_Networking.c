@@ -338,16 +338,19 @@ void ReWireRegisterMIDI (char *str) {
 	   79 "Body Type" 3 4 0
 	 */	
 
+printf ("at start, str :%s:\n",str);
+
 	while (*str != '\0') {
 		while (*str == '\n') str++;
 		/* is this a new device? */
+printf ("at is a new device..., str :%s:\n",str);
 		if (*str == '"') {
 			str++;
 			EOT = strchr (str,'"');
 			if (EOT != NULL) *EOT = '\0'; else {
 				printf ("ReWireRegisterMidi, expected string here: %s\n",str);
 			}
-			/* printf ("device name is :%s:\n",str); */
+			printf ("device name is :%s:\n",str);
 			encodedDeviceName = ReWireNameIndex(str);
 			str = EOT+1;
 			sscanf (str, "%d %d",&curBus, &curChannel);
@@ -367,9 +370,9 @@ void ReWireRegisterMIDI (char *str) {
 			encodedControllerName = ReWireNameIndex(str);
 			str = EOT+1;
 			sscanf (str, "%d %d %d",&curMin, &curMax, &curType);
-			/* printf ("dev (%d %d)  %d %d chan %d %d %d %d\n",encodedDeviceName, encodedControllerName, curBus, curChannel,
+			printf ("dev (%d %d)  %d %d chan %d %d %d %d\n",encodedDeviceName, encodedControllerName, curBus, curChannel,
 				curController, curMin, curMax, curType);
-			*/
+		
 
 			/* register the info for this controller */
 			if (!ReWireDeviceIndex(encodedDeviceName, encodedControllerName, &curBus, 
@@ -378,12 +381,13 @@ void ReWireRegisterMIDI (char *str) {
 					ReWireNamenames[encodedDeviceName].name, ReWireNamenames[encodedControllerName].name); }
 
 		} else {
-			printf ("ReWireRegisterMidi - garbage at:%s\n",str);
+			printf ("ReWireRegisterMidi - garbage (%c)  at:%s\n",*str,str);
 		}
 		
 		/* skip to the end of the line */
 		while (*str >= ' ') str++;
 		while (*str == '\n') str++;
+printf ("end of loop, string :%s:\n",str);
 
 	}
 }
