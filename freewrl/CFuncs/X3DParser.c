@@ -154,7 +154,7 @@ static int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *ty
         for (ctr=0; ctr<=ScriptFieldTableSize; ctr++) {
 		if (scriptno == ScriptFieldNames[ctr].scriptNumber) {
                 	tmp = ScriptFieldNames[ctr].fieldName;
-                	if (strcmp(fieldName,tmp->strptr)==0)) {
+                	if (strcmp(fieldName,tmp->strptr)==0) {
 				*offs = ScriptFieldNames[ctr].offs;
 				*type = ScriptFieldNames[ctr].type;
 				#ifdef X3DPARSERVERBOSE

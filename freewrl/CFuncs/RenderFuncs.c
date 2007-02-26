@@ -757,37 +757,37 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 /* for CRoutes, we need to have a function pointer to an interpolator to run, if we
 route TO an interpolator */
 void *returnInterpolatorPointer (const char *x) {
-	if (strcmp("OrientationInterpolator",x))==0) {
+	if (strcmp("OrientationInterpolator",x)==0) {
 		return (void *)do_Oint4;
-	} else if (strcmp("CoordinateInterpolator2D",x))==0) {
+	} else if (strcmp("CoordinateInterpolator2D",x)==0) {
 		return (void *)do_OintCoord2D;
-	} else if (strcmp("PositionInterpolator2D",x))==0) {
+	} else if (strcmp("PositionInterpolator2D",x)==0) {
 		return (void *)do_OintPos2D;
-	} else if (strcmp("ScalarInterpolator",x))==0) {
+	} else if (strcmp("ScalarInterpolator",x)==0) {
 		return (void *)do_OintScalar;
-	} else if (strcmp("ColorInterpolator",x))==0) {
+	} else if (strcmp("ColorInterpolator",x)==0) {
 		return (void *)do_Oint3;
-	} else if (strcmp("PositionInterpolator",x))==0) {
+	} else if (strcmp("PositionInterpolator",x)==0) {
 		return (void *)do_Oint3;
-	} else if (strcmp("CoordinateInterpolator",x))==0) {
+	} else if (strcmp("CoordinateInterpolator",x)==0) {
 		return (void *)do_OintCoord;
-	} else if (strcmp("NormalInterpolator",x))==0) {
+	} else if (strcmp("NormalInterpolator",x)==0) {
 		return (void *)do_OintCoord;
-	} else if (strcmp("GeoPositionInterpolator",x))==0) {
+	} else if (strcmp("GeoPositionInterpolator",x)==0) {
 		return (void *)do_GeoOint;
-	} else if (strcmp("BooleanFilter",x))==0) {
+	} else if (strcmp("BooleanFilter",x)==0) {
 		return (void *)do_BooleanFilter;
-	} else if (strcmp("BooleanSequencer",x))==0) {
+	} else if (strcmp("BooleanSequencer",x)==0) {
 		return (void *)do_BooleanSequencer;
-	} else if (strcmp("BooleanToggle",x))==0) {
+	} else if (strcmp("BooleanToggle",x)==0) {
 		return (void *)do_BooleanToggle;
-	} else if (strcmp("BooleanTrigger",x))==0) {
+	} else if (strcmp("BooleanTrigger",x)==0) {
 		return (void *)do_BooleanTrigger;
-	} else if (strcmp("IntegerTrigger",x))==0) {
+	} else if (strcmp("IntegerTrigger",x)==0) {
 		return (void *)do_IntegerTrigger;
-	} else if (strcmp("TimeTrigger",x))==0) {
+	} else if (strcmp("TimeTrigger",x)==0) {
 		return (void *)do_TimeTrigger;
-	} else if (strcmp("ReWireMidiControl",x))==0) {
+	} else if (strcmp("ReWireMidiControl",x)==0) {
 		return (void *)do_ReWireMidiControl;
 	} else {
 		return 0;

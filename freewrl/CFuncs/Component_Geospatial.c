@@ -60,7 +60,7 @@ void parse_ellipsoid(int *dest, char *str, char *description) {
 	else if (strcmp("SA",str) == 0) *dest +=  GEO_SA;
 	else if (strcmp("WD",str) == 0) *dest +=  GEO_WD;
 	else if (strcmp("WE",str) == 0) *dest +=  GEO_WE;
-	else if (strcmp("WGS84",str,5) == 0) *dest +=  GEO_WGS84;
+	else if (strcmp("WGS84",str) == 0) *dest +=  GEO_WGS84;
 	else {
 		printf ("Unknown ellipsoid :%s: found in:%s\n",
 			str,description);
