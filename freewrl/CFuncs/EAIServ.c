@@ -263,7 +263,7 @@ void handle_EAI () {
 
 	/* any command read in? */
 	if (EAIbufcount > 1)
-		EAI_parse_commands (EAIbuffer);
+		EAI_parse_commands ();
 }
 
 

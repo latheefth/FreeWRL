@@ -49,7 +49,7 @@ void EAI_RW(char *bufptr);
 #define GETNODEDEFNAME	'i'
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
-#define REWIREMIDIINFO  'l'
+#define MIDIINFO  	'l'
 
 
 /* command string to get the rootNode - this is a special match... */

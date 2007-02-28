@@ -95,7 +95,7 @@ uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 *
 *********************************************************************************/
 
-void EAI_parse_commands (char *bufptr) {
+void EAI_parse_commands () {
 	char buf[EAIREADSIZE];	/* return value place*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
 	char dtmp[EAIREADSIZE];	/* temporary character buffer*/
@@ -104,6 +104,7 @@ void EAI_parse_commands (char *bufptr) {
 	int count;
 	char command;
 	int perlNode; uintptr_t cNode;
+	int bufPtr = 0;		/* where we are in the EAI input buffer */
 	
 	uintptr_t ra,rb,rc,rd;	/* temps*/
 
@@ -117,14 +118,14 @@ void EAI_parse_commands (char *bufptr) {
 	int xxx;
 
 
-	while (strlen(bufptr)> 0) {
+	while (EAIbuffer[bufPtr]> 0) {
 		#ifdef EAIVERBOSE
-		printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
+		printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen((&EAIbuffer[bufPtr])),(&EAIbuffer[bufPtr]));
 		#endif
 
 		/* step 1, get the command sequence number */
-		if (sscanf (bufptr,"%d",&count) != 1) {
-			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
+		if (sscanf ((&EAIbuffer[bufPtr]),"%d",&count) != 1) {
+			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",(&EAIbuffer[bufPtr]));
 			count = 0;
 		}
 		#ifdef EAIVERBOSE
@@ -132,23 +133,23 @@ void EAI_parse_commands (char *bufptr) {
 		#endif
 
 		/* step 2, skip past the sequence number */
-		while (isdigit(*bufptr)) bufptr++;
+		while (isdigit(EAIbuffer[bufPtr])) bufPtr++;
 		#ifdef EAIVERBOSE
-		/*printf("past sequence number, string:%s\n",bufptr); */
+		/*printf("past sequence number, string:%s\n",(&EAIbuffer[bufPtr])); */
 		#endif
 
-		while (*bufptr == ' ') bufptr++;
+		while (EAIbuffer[bufPtr] == ' ') bufPtr++;
 		#ifdef EAIVERBOSE
-		/* printf ("past the space, string:%s\n",bufptr); */
+		/* printf ("past the space, string:%s\n",(&EAIbuffer[bufPtr])); */
 		#endif
 
 		/* step 3, get the command */
 
-		command = *bufptr;
+		command = EAIbuffer[bufPtr];
 		#ifdef EAIVERBOSE
 		printf ("command %c\n",command);
 		#endif
-		bufptr++;
+		bufPtr++;
 
 		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
 
@@ -223,11 +224,11 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 				}
 			case GETNODE:  {
-				handleGETNODE(bufptr,buf,count);
+				handleGETNODE(&EAIbuffer[bufPtr],buf,count);
 				break;
 			}
 			case GETROUTES:  {
-				handleGETROUTES(bufptr,buf,count);
+				handleGETROUTES(&EAIbuffer[bufPtr],buf,count);
 				break;
 			}
 
@@ -235,7 +236,7 @@ void EAI_parse_commands (char *bufptr) {
 				#ifdef EAIVERBOSE 
 				printf ("GENODETYPE\n");
 				#endif
-				retint = sscanf(bufptr,"%d",&cNode);
+				retint = sscanf(&EAIbuffer[bufPtr],"%d",&cNode);
 				if (cNode != 0) {
 					boxptr = (struct X3D_Box *) cNode;
 					sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
@@ -243,7 +244,7 @@ void EAI_parse_commands (char *bufptr) {
 				} else {
 					sprintf (buf,"RE\n%f\n%d\n-1",TickTime,count);
 				}
-				/* printf ("GETNODETYPE, for node %s, returns %s\n",bufptr,buf); */
+				/* printf ("GETNODETYPE, for node %s, returns %s\n",(&EAIbuffer[bufPtr]),buf); */
 					
 				break;
 				}
@@ -252,7 +253,7 @@ void EAI_parse_commands (char *bufptr) {
 
 				xxx = KW_exposedField; /* set this to something */
 
-				retint=sscanf (bufptr,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
+				retint=sscanf (&EAIbuffer[bufPtr],"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
 				#ifdef EAIVERBOSE 
 				printf ("GETFIELDTYPE cptr %d %s %s\n",cNode, ctmp, dtmp);
 				#endif
@@ -272,33 +273,29 @@ void EAI_parse_commands (char *bufptr) {
 			case SENDEVENT:   {
 				/*format int seq# COMMAND NODETYPE pointer offset data*/
 				#ifdef EAIVERBOSE 
-				printf ("SENDEVENT %s\n",bufptr);
+				printf ("SENDEVENT %s\n",&EAIbuffer[bufPtr]);
 				#endif
-				setField_method2 (bufptr);
+				setField_method2 (&EAIbuffer[bufPtr]);
 				break;
 				}
-			case REWIREMIDIINFO: {
+			case MIDIINFO: {
 				#ifdef EAIVERBOSE 
-				printf ("REWIREMIDIINFO %s\n",bufptr);
+				printf ("MIDIINFO %s\n",&EAIbuffer[bufPtr]);
 				#endif
 
-				printf ("REWIREMIDIINFO bufptr :%s:\n",bufptr);
-				printf ("REWIREMIDIINFO EAIbuffer :%s:\n",EAIbuffer);
-				EOT = strstr(EAIbuffer,"\nEOT\n");
-printf ("REWIREMIDIINGO, so, EOT is %d\n",EOT);
+				EOT = strstr(&EAIbuffer[bufPtr],"\nEOT\n");
 				/* if we do not have a string yet, we have to do this...*/
 				while (EOT == NULL) {
-printf ("REWIREMIDIINFO, EOT is %d, waiting for more info\n",EOT);
 					EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
-					EOT = strstr(EAIbuffer,"\nEOT\n");
+					EOT = strstr(&EAIbuffer[bufPtr],"\nEOT\n");
 				}
 
 				*EOT = 0; /* take off the EOT marker*/
-				ReWireRegisterMIDI(bufptr);
+				ReWireRegisterMIDI(&EAIbuffer[bufPtr]);
 
-				/* finish this for now*/
-				bufptr = EOT+3;
-printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
+				/* finish this for now - note the pointer math. */
+				bufPtr = EOT+3-EAIbuffer;
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case CREATEVU:
@@ -306,24 +303,26 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 				/*format int seq# COMMAND vrml text     string EOT*/
 				if (command == CREATEVS) {
 					#ifdef EAIVERBOSE 
-					printf ("CREATEVS %s\n",bufptr);
+					printf ("CREATEVS %s\n",&EAIbuffer[bufPtr]);
 					#endif
 
-					EOT = strstr(EAIbuffer,"\nEOT\n");
+					EOT = strstr(&EAIbuffer[bufPtr],"\nEOT\n");
 					/* if we do not have a string yet, we have to do this...*/
 					while (EOT == NULL) {
 						EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
-						EOT = strstr(EAIbuffer,"\nEOT\n");
+						EOT = strstr(&EAIbuffer[bufPtr],"\nEOT\n");
 					}
 
 					*EOT = 0; /* take off the EOT marker*/
 
-					ra = EAI_CreateVrml("String",bufptr,nodarr,200);
+					ra = EAI_CreateVrml("String",(&EAIbuffer[bufPtr]),nodarr,200);
+					/* finish this, note the pointer maths */
+					bufPtr = EOT+3-EAIbuffer;
 				} else {
 					/* sanitize this string - remove leading and trailing garbage */
-					ra = 0; rb = 0;
-					while ((ra < strlen(bufptr)) && (bufptr[ra] <= ' ')) ra++;
-					while (bufptr[ra] > ' ') { ctmp[rb] = bufptr[ra]; rb ++; ra++; }
+					rb = 0;
+					while ((EAIbuffer[bufPtr]!=0) && (EAIbuffer[bufPtr] <= ' ')) bufPtr++;
+					while (EAIbuffer[bufPtr] > ' ') { ctmp[rb] = EAIbuffer[bufPtr]; rb ++; bufPtr++; }
 
 					/* ok, lets make a real name from this; maybe it is local to us? */
 					ctmp[rb] = 0;
@@ -342,14 +341,12 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 					strcat (buf,ctmp);
 				}
 
-				/* finish this for now*/
-				bufptr[0] = 0;
 				break;
 				}
 			case SENDCHILD :  {
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				retint=sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
+				retint=sscanf (&EAIbuffer[bufPtr],"%d %d %s %s",&ra,&rb,ctmp,dtmp);
 				rc = ra+rb; /* final pointer- should point to a Multi_Node*/
 
 				#ifdef EAIVERBOSE 
@@ -371,7 +368,7 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 			case UPDATEROUTING :  {
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				retint=sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
+				retint=sscanf (&EAIbuffer[bufPtr],"%d %d %s %d",&ra,&rb,ctmp,&rc);
 				#ifdef EAIVERBOSE 
 				printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
 				#endif
@@ -381,11 +378,11 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 				}
 			case REGLISTENER: {
 				#ifdef EAIVERBOSE 
-				printf ("REGISTERLISTENER %s \n",bufptr);
+				printf ("REGISTERLISTENER %s \n",&EAIbuffer[bufPtr]);
 				#endif
 
 				/*143024848 88 8 e 6*/
-				retint=sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
+				retint=sscanf (&EAIbuffer[bufPtr],"%d %d %c %d",&ra,&rb,ctmp,&rc);
 				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
 				ctmp[1]=0;
 
@@ -407,11 +404,11 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 
 			case UNREGLISTENER: {
 				#ifdef EAIVERBOSE 
-				printf ("UNREGISTERLISTENER %s \n",bufptr);
+				printf ("UNREGISTERLISTENER %s \n",&EAIbuffer[bufPtr]);
 				#endif
 
 				/*143024848 88 8 e 6*/
-				retint=sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
+				retint=sscanf (&EAIbuffer[bufPtr],"%d %d %c %d",&ra,&rb,ctmp,&rc);
 				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
 				ctmp[1]=0;
 
@@ -432,12 +429,12 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 
 			case GETVALUE: {
 				#ifdef EAIVERBOSE 
-				printf ("GETVALUE %s \n",bufptr);
+				printf ("GETVALUE %s \n",&EAIbuffer[bufPtr]);
 				#endif
 
 
 				/* format: ptr, offset, type, length (bytes)*/
-				retint=sscanf (bufptr, "%d %d %c %d", &ra,&rb,ctmp,&rc);
+				retint=sscanf (&EAIbuffer[bufPtr], "%d %d %c %d", &ra,&rb,ctmp,&rc);
 
 				ra = ra + rb;   /* get absolute pointer offset*/
 				EAI_Convert_mem_to_ASCII (count,"RE",mapEAItypeToFieldType(ctmp[0]),(char *)ra, buf);
@@ -445,19 +442,19 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 				}
 			case REPLACEWORLD:  {
 				#ifdef EAIVERBOSE 
-				printf ("REPLACEWORLD %s \n",bufptr);
+				printf ("REPLACEWORLD %s \n",&EAIbuffer[bufPtr]);
 				#endif
 
-				EAI_RW(bufptr);
+				EAI_RW(&EAIbuffer[bufPtr]);
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
 			case GETPROTODECL:  {
 				#ifdef EAIVERBOSE 
-				/* printf ("SAI SV ret command .%s\n",bufptr); */
+				/* printf ("SAI SV ret command .%s\n",&EAIbuffer[bufPtr]); */
 				#endif
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,bufptr));
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,&EAIbuffer[bufPtr]));
 				break;
 				}
 			case REMPROTODECL: 
@@ -465,15 +462,15 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 			case UPDNAMEDNODE: 
 			case REMNAMEDNODE:  {
 				#ifdef EAIVERBOSE 
-				printf ("SV int ret command ..%s\n",bufptr);
+				printf ("SV int ret command ..%s\n",&EAIbuffer[bufPtr]);
 				#endif
 				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,
-					SAI_IntRetCommand ((char) command,bufptr));
+					SAI_IntRetCommand ((char) command,&EAIbuffer[bufPtr]));
 				break;
 				}
 			case ADDROUTE:
 			case DELETEROUTE:  {
-				handleRoute (command, bufptr,buf,count);
+				handleRoute (command, &EAIbuffer[bufPtr],buf,count);
 				break;
 				}
 
@@ -488,13 +485,13 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 			    }
 			  case VIEWPOINT: {
 				#ifdef EAIVERBOSE 
-				printf ("Viewpoint :%s:\n",bufptr);
+				printf ("Viewpoint :%s:\n",&EAIbuffer[bufPtr]);
 				#endif
 				/* do the viewpoints. Note the spaces in the strings */
-				if (!strcmp(bufptr, " NEXT")) Next_ViewPoint();
-				if (!strcmp(bufptr, " FIRST")) First_ViewPoint();
-				if (!strcmp(bufptr, " LAST")) Last_ViewPoint();
-				if (!strcmp(bufptr, " PREV")) Prev_ViewPoint();
+				if (!strcmp(&EAIbuffer[bufPtr], " NEXT")) Next_ViewPoint();
+				if (!strcmp(&EAIbuffer[bufPtr], " FIRST")) First_ViewPoint();
+				if (!strcmp(&EAIbuffer[bufPtr], " LAST")) Last_ViewPoint();
+				if (!strcmp(&EAIbuffer[bufPtr], " PREV")) Prev_ViewPoint();
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -502,14 +499,14 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 
 			case LOADURL: {
 				#ifdef EAIVERBOSE
-				printf ("loadURL %s\n",bufptr);
+				printf ("loadURL %s\n",&EAIbuffer[bufPtr]);
 				#endif
 
 				/* signal that we want to send the Anchor pass/fail to the EAI code */
 				waiting_for_anchor = TRUE;
 
 				/* make up the URL from what we currently know */
-				createLoadURL(bufptr);
+				createLoadURL(&EAIbuffer[bufPtr]);
 
 
 				/* prep the reply... */
@@ -524,9 +521,9 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 			case CREATEPROTO: 
 			case CREATENODE: {
 				/* sanitize this string - remove leading and trailing garbage */
-				ra = 0; rb = 0;
-				while ((ra < strlen(bufptr)) && (bufptr[ra] <= ' ')) ra++;
-				while (bufptr[ra] > ' ') { ctmp[rb] = bufptr[ra]; rb ++; ra++; }
+				rb = 0;
+				while ((EAIbuffer[bufPtr]!=0) && (EAIbuffer[bufPtr] <= ' ')) bufPtr++;
+				while (EAIbuffer[bufPtr] > ' ') { ctmp[rb] = EAIbuffer[bufPtr]; rb ++; bufPtr++; }
 
 				ctmp[rb] = 0;
 				#ifdef EAIVERBOSE 
@@ -566,7 +563,7 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 
 			case GETFIELDDEFS: {
 				/* get a list of fields of this node */
-				sscanf (bufptr,"%d",&ra);
+				sscanf (&EAIbuffer[bufPtr],"%d",&ra);
 				makeFIELDDEFret(ra,buf,count);
 				break;
 				}
@@ -574,7 +571,7 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 			case GETNODEDEFNAME: {
 				/* return a def name for this node. */
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,
-					SAI_StrRetCommand ((char) command,bufptr));
+					SAI_StrRetCommand ((char) command,&EAIbuffer[bufPtr]));
 
 				break;
 				}
@@ -596,10 +593,10 @@ printf ("ReWireRegisterMIDI complete, bufptr now %s\n",bufptr);
 		}
 
 		/* skip to the next command */
-		while (*bufptr >= ' ') bufptr++;
+		while (EAIbuffer[bufPtr] >= ' ') bufPtr++;
 
 		/* skip any new lines that may be there */
-		while ((*bufptr == 10) || (*bufptr == 13)) bufptr++;
+		while ((EAIbuffer[bufPtr] == 10) || (EAIbuffer[bufPtr] == 13)) bufPtr++;
 	}
 }
 

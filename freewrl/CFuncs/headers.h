@@ -602,7 +602,7 @@ void sendScriptEventIn(uintptr_t num);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(void * node);
 void registerTexture(void * node);
-void registerReWireNode(void *node);
+void registerMIDINode(void *node);
 void do_first(void);
 void process_eventsProcessed(void);
 
@@ -1054,14 +1054,14 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_Anchor (struct X3D_Anchor *this_);
 
-void make_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
-void compile_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
-void prep_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
-void fin_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
-void changed_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
-void render_ReWireMidiControl (struct X3D_ReWireMidiControl *node);
-void do_ReWireMidiControl (void *node);
-void ReWireRegisterMIDI(char *str);
+void make_MidiControl (struct X3D_MidiControl *node);
+void compile_MidiControl (struct X3D_MidiControl *node);
+void prep_MidiControl (struct X3D_MidiControl *node);
+void fin_MidiControl (struct X3D_MidiControl *node);
+void changed_MidiControl (struct X3D_MidiControl *node);
+void render_MidiControl (struct X3D_MidiControl *node);
+void do_MidiControl (void *node);
+void MIDIRegisterMIDI(char *str);
 
 /* Event Utilities Component */
 void do_BooleanFilter (void *node);

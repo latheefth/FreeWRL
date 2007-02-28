@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.206  2007/02/28 20:34:50  crc_canada
+# More MIDI work - channelPresent works!
+#
 # Revision 1.205  2007/01/17 21:29:28  crc_canada
 # more X3D XML parsing work.
 #
@@ -90,7 +93,7 @@
 %defaultContainerType = (
 	ContourPolyLine2D 	=>geometry,
 	NurbsTrimmedSurface	=>geometry,
-	ReWireMidiControl	=>children,
+	MidiControl		=>children,
 
 
 	Arc2D			=>geometry,
@@ -315,6 +318,7 @@
 	Transform
 	Billboard
 	Group
+	MidiControl
 /;
 
 #######################################################################
@@ -398,7 +402,6 @@
 	Cone
 	Cylinder
 	Sphere
-	ReWireMidiControl
 /;
 
 
