@@ -1,5 +1,6 @@
 #include "Eai_C.h"
 
+#define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDIEVIN))
 int _X3D_FreeWRL_FD;
 int _X3D_queryno = 1;
 
@@ -33,7 +34,6 @@ void verifySendBufferSize (int len) {
 	
 	/* make it large enough to contain string, plus some more, as we usually throw some stuff on the beginning. */
 	while (len>(sendBufferSize-200)) sendBufferSize+=1024;
-printf ("sendBufferSize now is %d\n",sendBufferSize);
 	sendBuffer = realloc(sendBuffer,sendBufferSize);
 }
 
@@ -189,7 +189,7 @@ void _X3D_sendEvent (char command, char *string) {
         char *myptr;
 	verifySendBufferSize (strlen(string));
         sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,string);
-        myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
+        myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
 }
 
 char *_X3D_makeShortCommand (char command) {
@@ -197,7 +197,7 @@ char *_X3D_makeShortCommand (char command) {
 
 	verifySendBufferSize (100);
 	sprintf (sendBuffer, "%d %c\n",_X3D_queryno,command);
-	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
 	#ifdef VERBOSE
 	printf ("makeShortCommand, buffer now %s\n",myptr);
 	#endif
@@ -209,7 +209,7 @@ char *_X3D_make1VoidCommand (char command, uintptr_t *adr) {
 
 	verifySendBufferSize (100);
 	sprintf (sendBuffer, "%d %c %p\n",_X3D_queryno,command,adr);
-	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
 	#ifdef VERBOSE
 	printf ("make1VoidCommand, buffer now %s\n",myptr);
 	#endif
@@ -221,7 +221,7 @@ char *_X3D_make1StringCommand (char command, char *name) {
 	
 	verifySendBufferSize (strlen(name));
 	sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,name);
-	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
 	#ifdef VERBOSE
 	printf ("make1StringCommand, buffer now %s\n",myptr);
 	#endif
@@ -234,7 +234,7 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 	
 	verifySendBufferSize ( strlen(str1) + strlen(str2));
 	sprintf (sendBuffer, "%d %c %s%s\n",_X3D_queryno,command,str1,str2);
-	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),command!=SENDEVENT);
+	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
 
 	#ifdef VERBOSE
 	printf ("make2StringCommand, buffer now %s\n",myptr);

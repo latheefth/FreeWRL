@@ -1615,7 +1615,7 @@ package VRML::NodeType;
 						deviceMaxVal => [SFInt32, 0, field],		# what the device sets
 
 						minVal => [SFInt32, 0, exposedField],		# used to scale floats, and 
-						maxVal => [SFInt32, 0, exposedField],		# bounds check ints. The resulting
+						maxVal => [SFInt32, 10000, exposedField],		# bounds check ints. The resulting
 												# value will be <= maxVal <= deviceMaxVal
 												# and >=minVal >= deviceMinVal
 

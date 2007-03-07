@@ -176,3 +176,5 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);
 void sendMIDITableToFreeWRL(char *buf);
+void sendMIDIEventToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value);
+

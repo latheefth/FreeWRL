@@ -1054,12 +1054,7 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_Anchor (struct X3D_Anchor *this_);
 
-void make_MidiControl (struct X3D_MidiControl *node);
-void compile_MidiControl (struct X3D_MidiControl *node);
 void prep_MidiControl (struct X3D_MidiControl *node);
-void fin_MidiControl (struct X3D_MidiControl *node);
-void changed_MidiControl (struct X3D_MidiControl *node);
-void render_MidiControl (struct X3D_MidiControl *node);
 void do_MidiControl (void *node);
 void MIDIRegisterMIDI(char *str);
 
@@ -1161,6 +1156,10 @@ char *findPathToFreeWRLFile(char *lfn);
 int mapFieldTypeToInernaltype (indexT kwIndex);
 void finishEventLoop();
 void resetEventLoop();
+
+/* MIDI stuff... */
+void ReWireRegisterMIDI (char *str);
+void ReWireMIDIEvent(char *str);
 
 #ifdef AQUA
 Boolean notFinished();

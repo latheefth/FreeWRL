@@ -31,6 +31,7 @@ int MAXReWireNameNames = 0;
 
 /* ReWire device/controller  table */
 struct ReWireDeviceStruct {
+	struct X3D_MidiControl* node;	/* pointer to the node that controls this */
 	int encodedDeviceName;		/* index into ReWireNamenames */
 	int bus;			/* which MIDI bus this is */
 	int channel;			/* which MIDI channel on this bus it is */
@@ -46,26 +47,83 @@ int ReWireDevicetableSize = -1;
 int MAXReWireDevices = 0;
 
 
-void make_MidiControl (struct X3D_MidiControl *node) {
-	printf ("make ReWire\n");
+
+/************ START OF MIDI NODE **************************/
+
+
+/* go through the node, and create a new int value, and a new float value, from an int value */
+void determineMIDIValFromFloat (struct X3D_MidiControl *node, int *value, float *fV) {
+	int minV, maxV, possibleValueSpread;
+	float tv;
+
+	/* find the int value range possible */
+	minV = 0;  maxV = 100000;
+	if (minV < node->deviceMinVal) minV = node->deviceMinVal;
+	if (minV < node->minVal) minV = node->minVal;
+	if (maxV > node->deviceMaxVal) maxV = node->deviceMaxVal;
+	if (maxV > node->maxVal) maxV = node->maxVal;
+	possibleValueSpread = maxV-minV +1;
+
+	/* bounds check the float value */
+	if (*fV<0.0) *fV=0.0;
+	if (*fV>1.0) *fV=1.0;
+	tv = *fV * possibleValueSpread + minV;
+	*value = (int) tv;
+
+	#ifdef MIDIVERBOSE
+	printf ("determinefromfloat, minV %d maxV %d, val %d fv %f tv %f\n",minV, maxV,*value, *fV,tv);
+	#endif
+
 }
-void fin_MidiControl (struct X3D_MidiControl *node) {
-	printf ("fin ReWire\n");
+
+/* go through the node, and create a new int value, and a new float value, from an int value */
+void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *fV) {
+	int minV, maxV, possibleValueSpread;
+
+	minV = 0;  maxV = 100000;
+	if (minV < node->deviceMinVal) minV = node->deviceMinVal;
+	if (minV < node->minVal) minV = node->minVal;
+	if (maxV > node->deviceMaxVal) maxV = node->deviceMaxVal;
+	if (maxV > node->maxVal) maxV = node->maxVal;
+		
+	possibleValueSpread = maxV-minV +1;
+	if (*value < minV) *value = minV;
+	if (*value > maxV) *value = maxV;
+	if (possibleValueSpread != 0) {
+		*fV = ((float) *value + minV) / (possibleValueSpread);
+	} else { 
+		*fV = 0.0;
+	}
+	#ifdef MIDIVERBOSE
+	printf ("determine, minV %d maxV %d, val %d fv %f\n",minV, maxV,*value, *fV);
+	#endif
+	
 }
-void changed_MidiControl (struct X3D_MidiControl *node) {
-	printf ("changed ReWire\n");
+
+
+/* send this node out to the ReWire network */
+sendNodeToReWire(struct X3D_MidiControl *node) {
+	int buf[200];
+
+	if (node->controllerPresent) {
+		sprintf (buf,"RW %d %d %d %d\n",node->_bus, node->_channel, node->_controller, node->intValue);
+		EAI_send_string(buf,EAIlistenfd);
+	}
+	
 }
-void render_MidiControl (struct X3D_MidiControl *node) {
-	printf ("render ReWire\n");
-}
+
+
 
 /* return parameters associated with this name. returns TRUE if this device has been added by
 the ReWire system */
 
-int ReWireDeviceIndex (int dev, int cont, int *bus, int *channel, 
-	int *controller, int *cmin, int *cmax, int *ctype, int add) {
+int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *channel, 
+	int *controller, int *cmin, int *cmax, int *ctype) {
 	int ctr;
 	char *tmp;
+	int dev = node->_deviceNameIndex;
+	int cont = node->_channelIndex;
+
 	
 	/* is this a duplicate name and type? types have to be same,
 	   name lengths have to be the same, and the strings have to be the same.
@@ -87,39 +145,72 @@ int ReWireDeviceIndex (int dev, int cont, int *bus, int *channel,
 			*cmin = ReWireDevices[ctr].cmin;
 			*cmax = ReWireDevices[ctr].cmax;
 			*ctype = ReWireDevices[ctr].ctype;
+
+			/* is this the first time this node is associated with this entry? */
+			if (ReWireDevices[ctr].node == NULL) {
+				ReWireDevices[ctr].node = node;
+				#ifdef MIDIVERBOSE
+				printf ("ReWireDeviceIndex, tying node %d to index %d\n",node,ctr);
+				#endif
+			}
 			return TRUE; /* name found */
 		}
 	}
 
 	/* nope, not duplicate */
-	if (add) {
-		ReWireDevicetableSize ++;
-	
-		/* ok, we got a name and a type */
-		if (ReWireDevicetableSize >= MAXReWireDevices) {
-			/* oooh! not enough room at the table */
-			MAXReWireDevices += 1024; /* arbitrary number */
-			ReWireDevices = (struct ReWireDevicenameStruct*)realloc (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
-		}
-	
-		ReWireDevices[ReWireDevicetableSize].bus = *bus;
-		ReWireDevices[ReWireDevicetableSize].channel = *channel;
-		ReWireDevices[ReWireDevicetableSize].controller = *controller;
-		ReWireDevices[ReWireDevicetableSize].cmin = *cmin; 
-		ReWireDevices[ReWireDevicetableSize].cmax = *cmax;
-		ReWireDevices[ReWireDevicetableSize].ctype = *ctype;
-		ReWireDevices[ReWireDevicetableSize].encodedDeviceName = dev;
-		ReWireDevices[ReWireDevicetableSize].encodedControllerName = cont;
-		#ifdef MIDIVERBOSE
-			printf ("ReWireDeviceIndex, new entry at %d\n",ReWireDevicetableSize);
-		#endif
-		return TRUE; /* name not found, but, requested */
-	} else {
-		#ifdef MIDIVERVOSE
-		printf ("ReWireDeviceIndex: name not added, name not found\n");
-		#endif
-	}
+	#ifdef MIDIVERVOSE
+	printf ("ReWireDeviceIndex: name not added, name not found\n");
+	#endif
 	return FALSE; /* name not added, name not found */ 
+}
+
+/* returns TRUE if register goes ok, FALSE if already registered */
+int ReWireDeviceRegister (int dev, int cont, int *bus, int *channel, 
+	int *controller, int *cmin, int *cmax, int *ctype) {
+	int ctr;
+	char *tmp;
+	
+	/* is this a duplicate name and type? types have to be same,
+	   name lengths have to be the same, and the strings have to be the same.
+	*/
+	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+		#ifdef VERBOSE
+			printf ("comparing %d %d to %d %d\n",dev,ReWireDevices[ctr].encodedDeviceName,
+			cont, ReWireDevices[ctr].encodedControllerName); 
+		#endif
+
+		if ((dev==ReWireDevices[ctr].encodedDeviceName) &&
+			(cont == ReWireDevices[ctr].encodedControllerName)) {
+			#ifdef MIDIVERBOSE
+				printf ("ReWireDeviceRegister, FOUND IT at %d\n",ctr);
+			#endif
+			return FALSE; /* name found */
+		}
+	}
+
+	/* nope, not duplicate */
+	ReWireDevicetableSize ++;
+	
+	/* ok, we got a name and a type */
+	if (ReWireDevicetableSize >= MAXReWireDevices) {
+		/* oooh! not enough room at the table */
+		MAXReWireDevices += 1024; /* arbitrary number */
+		ReWireDevices = (struct ReWireDevicenameStruct*)realloc (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
+	}
+	
+	ReWireDevices[ReWireDevicetableSize].bus = *bus;
+	ReWireDevices[ReWireDevicetableSize].channel = *channel;
+	ReWireDevices[ReWireDevicetableSize].controller = *controller;
+	ReWireDevices[ReWireDevicetableSize].cmin = *cmin; 
+	ReWireDevices[ReWireDevicetableSize].cmax = *cmax;
+	ReWireDevices[ReWireDevicetableSize].ctype = *ctype;
+	ReWireDevices[ReWireDevicetableSize].encodedDeviceName = dev;
+	ReWireDevices[ReWireDevicetableSize].encodedControllerName = cont;
+	ReWireDevices[ReWireDevicetableSize].node = NULL;
+	#ifdef MIDIVERBOSE
+		printf ("ReWireDeviceRegister, new entry at %d\n",ReWireDevicetableSize);
+	#endif
+	return TRUE; /* name not found, but, requested */
 }
 
 void registerReWireNode(void *node) {
@@ -249,15 +340,13 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 	}
 
 
-	controllerPresent = ReWireDeviceIndex (
-				node->_deviceNameIndex,
-				node->_channelIndex,
+	controllerPresent = ReWireDeviceIndex (node,
 				&(tmp_bus),
 				&(tmp_channel),
 				&(tmp_controller),
 				&(tmpdeviceMinVal),
 				&(tmpdeviceMaxVal),
-				&(tmpintControllerType), FALSE);
+				&(tmpintControllerType));
 
 	#ifdef MIDIVERBOSE
 		printf ("compile_midiControl, for %d %d controllerPresent %d, node->controllerPresent %d\n",
@@ -267,17 +356,23 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 	#endif
 
 	if (controllerPresent != node->controllerPresent) {
+		#ifdef MIDIVERBOSE
 		printf ("controllerPresent changed\n");
+		#endif
 		node->controllerPresent = controllerPresent;
 		mark_event (node, offsetof(struct X3D_MidiControl, controllerPresent));
 	}
 	if (node->deviceName->touched!= 0) {
+		#ifdef MIDIVERBOSE
 		printf ("device changed\n");
+		#endif
 		node->deviceName->touched= 0;
 		mark_event (node, offsetof(struct X3D_MidiControl, deviceName));
 	}
 	if (node->channel->touched != 0) {
+		#ifdef MIDIVERBOSE
 		printf ("channel changed\n");
+		#endif
 		node->channel->touched = 0;  
 		mark_event (node, offsetof(struct X3D_MidiControl, channel));
 	}
@@ -375,7 +470,6 @@ void ReWireRegisterMIDI (char *str) {
 	   79 "Body Type" 3 4 0
 	 */	
 
-printf ("at start, str :%s:\n",str);
 	/* set the device tables to the starting value. */
 	ReWireDevicetableSize = -1;
 
@@ -422,10 +516,13 @@ printf ("at start, str :%s:\n",str);
 		
 
 			/* register the info for this controller */
-			if (!ReWireDeviceIndex(encodedDeviceName, encodedControllerName, &curBus, 
-				&curChannel, &curController, &curMin, &curMax, &curType,TRUE)) {
-				printf ("ReWireRegisterMIDI, did not expect duplicate device for %s %s\n",
-					ReWireNamenames[encodedDeviceName].name, ReWireNamenames[encodedControllerName].name); }
+			if (!ReWireDeviceRegister(encodedDeviceName, encodedControllerName, &curBus, 
+				&curChannel, &curController, &curMin, &curMax, &curType)) {
+				#ifdef MIDIVERBOSE
+				printf ("ReWireRegisterMIDI, duplicate device for %s %s\n",
+					ReWireNamenames[encodedDeviceName].name, ReWireNamenames[encodedControllerName].name); 
+				#endif
+			}
 
 		} else {
 			if (*str != ' ') printf ("ReWireRegisterMidi - garbage (%c)  at:%s\n",*str,str);
@@ -441,81 +538,112 @@ printf ("at start, str :%s:\n",str);
 
 void do_MidiControl (void *this) {
 	struct X3D_MidiControl* node;
-	int mySendValue;
-	int possibleValueSpread;
-	int minV, maxV;
+	int value;
 	float fV;
 	int sendEvent;
 
 	node = (struct X3D_MidiControl*) this;
 
+	#ifdef MIDIVERBOSE
 	printf ("do MidiControl for node %s\n",stringNodeType(node->_nodeType));
+	#endif
 	if (NODE_MidiControl == node->_nodeType) {
-
-		/* do we need to "compile" this node? */
-		COMPILE_IF_REQUIRED
-
-		/* printf ("ReWire change %d %d ", node->_ichange, node->_change); 
+		#ifdef MIDIVERBOSE
+		printf ("ReWire change %d %d ", node->_ichange, node->_change); 
 
 		printf ("bus %d channel :%s: controllerType :%s: device :%s: ",
-			node->bus, node->channel->strptr, node->controllerType->strptr, node->deviceName->strptr);
+			node->_bus, node->channel->strptr, node->controllerType->strptr, node->deviceName->strptr);
 		printf (" devp %d fv %f iv %d hr %d ct %d intVal %d max %d min %d\n",
 			node->controllerPresent, node->floatValue, node->intValue, node->highResolution,
 			node->intControllerType, node->intValue, node->maxVal, node->minVal);
-		*/
+		#endif
 
-		/* find the min and max values; see what we want, and see what the device
-		   can handle */
-		minV = 0;  maxV = 100000;
-		if (minV < node->deviceMinVal) minV = node->deviceMinVal;
-		if (minV < node->minVal) minV = node->minVal;
-		if (maxV > node->deviceMaxVal) maxV = node->deviceMaxVal;
-		if (maxV > node->maxVal) maxV = node->maxVal;
-		
-		possibleValueSpread = maxV-minV +1;
+		value = node->intValue;
+		fV = node->floatValue;
 		if (node->useIntValue) {
-			mySendValue = node->intValue;
-
-			fV = 0.0; /* fixme */
-			fV = node->intValue * possibleValueSpread + minV;
-			
+			determineMIDIValFromInt (node, &value, &fV);
 		} else {
-			/* convert the float to an int value */
-			fV = node->floatValue * possibleValueSpread + minV;
-			mySendValue =  (int) fV;
+			determineMIDIValFromFloat (node, &value, &fV); 
 		}
 
-		/* record our current value - may or may not actually send this */
-		node->intValue = mySendValue;
-
 		/* should we send this event? */
-		sendEvent = FALSE;
-		if (node->continuousEvents) {
-			if (node->intValue != node->_oldintValue) {
-				sendEvent = TRUE;
-				node->_oldintValue = node->intValue;
-			}
-		} else sendEvent = TRUE;
-
+		sendEvent = node->continuousEvents;
+		if (value != node->_oldintValue) sendEvent = TRUE;
+					
 		if (sendEvent) {
-			/*printf ("intValue changed - now is %d\n",node->intValue); */
-		
-			/* calculate the floatValue from the intValue */
-			/*printf ("fv %f minv %d, ps %d\n",fV, minV, possibleValueSpread); */
+			node->intValue = value;
+			node->_oldintValue = value;
+			node->floatValue = fV;
+			mark_event(node,offsetof(struct X3D_MidiControl, intValue));
+			mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
+			sendNodeToReWire(node);
+			update_node (node);
 
-			node->floatValue =  ((float) fV-minV)/((float)possibleValueSpread);
-			mark_event (node, offsetof(struct X3D_MidiControl, floatValue));
-			mark_event (node, offsetof(struct X3D_MidiControl, intValue));
-
-			/*
-			printf ("sending %d %f ",mySendValue, node->floatValue);
+			#ifdef MIDIVERBOSE
+			printf ("intValue changed - now is %d\n",node->intValue); 
+			printf ("sending %d %f ",value, node->floatValue);
 			printf ("mins %d %d maxs %d %d ",node->deviceMinVal, node->minVal, node->deviceMaxVal, node->maxVal);
 			printf ("float %f node->floatVal\n",node->floatValue);
-			*/
-			update_node (node);
+			#endif
 		}
 	}	
 }
+
+
+/* a MIDI event is coming in from the EAI port! */
+ReWireMIDIEvent (char *line) {
+	long int timeDiff;
+	int bus, channel, controller, value;
+	int rv;
+	int ctr;
+	struct X3D_MidiControl *node;
+	float fV;
+	int sendEvent;
+
+	if ((rv=sscanf (line, "%ld %d %d %d %d",&timeDiff, &bus, &channel, &controller, &value)) != 5) {
+		printf ("Error (%d)on reading MIDIEVIN, line %s\n",rv,line);
+		return;
+	}
+
+
+	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+		if ((bus==ReWireDevices[ctr].bus) &&
+			(channel == ReWireDevices[ctr].channel) &&
+			(controller == ReWireDevices[ctr].controller)) {
+			#ifdef MIDIVERBOSE
+				printf ("ReWireDeviceIndex, FOUND IT at %d\n",ctr);
+			#endif
+
+			if (ReWireDevices[ctr].node == NULL) {
+				printf ("ReWireMidiEvent, node for %d is still NULL\n",ctr);
+			} else {
+				node = ReWireDevices[ctr].node;
+				#ifdef MIDIVERBOSE
+				printf ("routing to device %s, channel %s ",node->deviceName->strptr, node->channel->strptr);
+				printf (" nameIndex %d channelIndex %d deviceMinVal %d deviceMaxVal %d minVal %d maxVal%d\n",
+					node->_deviceNameIndex, node->_channelIndex, node->deviceMinVal,
+					node->deviceMaxVal, node->minVal, node->maxVal);
+				#endif
+
+				determineMIDIValFromInt (node, &value, &fV); 
+				sendEvent = node->continuousEvents;
+				if (value != node->_oldintValue) sendEvent = TRUE;
+					
+				if (sendEvent) {
+					node->intValue = value;
+					node->_oldintValue = value;
+					node->floatValue = fV;
+					mark_event(node,offsetof(struct X3D_MidiControl, intValue));
+					mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
+				}
+
+			}
+		}
+	}
+}
+
+
+/************ END OF MIDI NODE **************************/
 
 
 void render_LoadSensor (struct X3D_LoadSensor *node) {
@@ -743,4 +871,3 @@ void changed_Anchor (struct X3D_Anchor *node) {
 		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
 }
-

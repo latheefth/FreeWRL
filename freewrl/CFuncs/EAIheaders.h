@@ -50,6 +50,7 @@ void EAI_RW(char *bufptr);
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
 #define MIDIINFO  	'l'
+#define MIDIEVIN  	'm'
 
 
 /* command string to get the rootNode - this is a special match... */
