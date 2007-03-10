@@ -27,7 +27,7 @@ for loosing the reference. Also, most if it is found in
 #include <stdarg.h>
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
-#define MAXMESSAGES 5
+#define MAXMESSAGES 5000
 
 static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
@@ -66,12 +66,14 @@ int ConsoleMessage(const char *fmt, ...) {
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
 
+#ifndef AQUA
 	if (!isMacPlugin && consMsgCount > MAXMESSAGES) {
 		if (consMsgCount > (MAXMESSAGES+5)) return;
 		strcpy (FWbuffer,"Too many FreeWRL messages - stopping ConsoleMessage");
 		consMsgCount = MAXMESSAGES + 100; /* some number quite large */
 	} else {
 		consMsgCount++;
+#endif
 	#endif
 	
 		va_start(ap, fmt);		 /* must be called before work	 */
@@ -143,16 +145,20 @@ int ConsoleMessage(const char *fmt, ...) {
 		}
 	
 		va_end(ap);				/* clean up				 */
+#ifndef AQUA
 #ifndef HAVE_MOTIF
 	}
+#endif
 #endif
 
 #ifdef AQUA
 		printf (FWbuffer);
 		printf ("\n");
 	if (!isMacPlugin) {
+		if (strcmp(FWbuffer, "\n")) {
 		update_status("ERROR: Check console log");
 		aquaSetConsoleMessage(FWbuffer);
+		}
 	} else {
 		update_status(FWbuffer);
 		requestPluginPrint(_fw_browser_plugin, FWbuffer);
