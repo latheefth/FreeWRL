@@ -106,7 +106,8 @@ sendNodeToReWire(struct X3D_MidiControl *node) {
 	int buf[200];
 
 	if (node->controllerPresent) {
-		sprintf (buf,"RW %d %d %d %d\n",node->_bus, node->_channel, node->_controller, node->intValue);
+		sprintf (buf,"RW %d %d %d %d %d\n",node->_bus, node->_channel, node->_controller, 
+				node->intControllerType, node->intValue);
 		EAI_send_string(buf,EAIlistenfd);
 	}
 	
