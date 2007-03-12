@@ -70,9 +70,10 @@ typedef union _X3D_Node {
 
 } X3D_Node;
 
-
+#ifndef TRUE
 #define TRUE 1==1
 #define FALSE 1!=1
+#endif
 
 #define REMOVE_EOT {char *lp; lp=strstr(ptr,"RE_EOT"); if (lp!=NULL) {lp--; *lp='\0';}};
 #define SKIP_IF_GT_SPACE        while (*ptr > ' ') ptr++;
@@ -176,5 +177,5 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);
 void sendMIDITableToFreeWRL(char *buf);
-void sendMIDIEventToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value);
+void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value);
 

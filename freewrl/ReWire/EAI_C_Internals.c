@@ -1,6 +1,6 @@
 #include "Eai_C.h"
 
-#define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDIEVIN))
+#define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))
 int _X3D_FreeWRL_FD;
 int _X3D_queryno = 1;
 

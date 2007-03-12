@@ -1056,6 +1056,8 @@ void changed_Anchor (struct X3D_Anchor *this_);
 
 void prep_MidiControl (struct X3D_MidiControl *node);
 void do_MidiControl (void *node);
+void prep_MidiKey (struct X3D_MidiKey *node);
+void do_MidiKey (void *node);
 void MIDIRegisterMIDI(char *str);
 
 /* Event Utilities Component */
@@ -1159,7 +1161,7 @@ void resetEventLoop();
 
 /* MIDI stuff... */
 void ReWireRegisterMIDI (char *str);
-void ReWireMIDIEvent(char *str);
+void ReWireMIDIControl(char *str);
 
 #ifdef AQUA
 Boolean notFinished();

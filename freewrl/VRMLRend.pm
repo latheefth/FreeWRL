@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.207  2007/03/12 20:54:00  crc_canada
+# MidiKey started.
+#
 # Revision 1.206  2007/02/28 20:34:50  crc_canada
 # More MIDI work - channelPresent works!
 #
@@ -94,6 +97,7 @@
 	ContourPolyLine2D 	=>geometry,
 	NurbsTrimmedSurface	=>geometry,
 	MidiControl		=>children,
+	MidiKey			=>children,
 
 
 	Arc2D			=>geometry,
@@ -319,6 +323,7 @@
 	Billboard
 	Group
 	MidiControl
+	MidiKey
 /;
 
 #######################################################################

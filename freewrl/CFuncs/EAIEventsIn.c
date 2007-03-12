@@ -300,12 +300,12 @@ void EAI_parse_commands () {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
-			case MIDIEVIN: {
+			case MIDICONTROL: {
 				#ifdef EAIVERBOSE
-				printf ("MIDIEVIN, %s\n",&EAI_BUFFER_CUR);
+				printf ("MIDICONTROL, %s\n",&EAI_BUFFER_CUR);
 				#endif
-				/* sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count, ReWireMIDIEvent(&EAI_BUFFER_CUR)); */
-				ReWireMIDIEvent(&EAI_BUFFER_CUR);
+				/* sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
+				ReWireMIDIControl(&EAI_BUFFER_CUR);
 				break;
 				}
 			case CREATEVU:
@@ -597,7 +597,7 @@ void EAI_parse_commands () {
 
 		/* send the response - events don't send a reply */
 		/* and, Anchors send a different reply (loadURLS) */
-		if ((command != SENDEVENT) && (command != MIDIEVIN)) {
+		if ((command != SENDEVENT) && (command != MIDICONTROL)) {
 			if (command != LOADURL) strcat (buf,"\nRE_EOT");
 			EAI_send_string (buf,EAIlistenfd);
 		}

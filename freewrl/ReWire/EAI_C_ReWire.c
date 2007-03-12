@@ -20,10 +20,10 @@ void sendMIDITableToFreeWRL(char *buf) {
         ptr = _X3D_make1StringCommand(MIDIINFO,buf);
 }
 
-void sendMIDIEventToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value) {
+void sendMIDIControlToFreeWRL(long relativeSamplePos, int bus, int channel, int controller, int value) {
 	char *ptr;
 	char line[200];
 	sprintf (line, "%ld %d %d %d %d",relativeSamplePos, bus, channel, controller, value);
-	ptr = _X3D_make1StringCommand(MIDIEVIN,line);
+	ptr = _X3D_make1StringCommand(MIDICONTROL,line);
 }
 
