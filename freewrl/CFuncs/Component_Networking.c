@@ -107,7 +107,7 @@ sendNodeToReWire(struct X3D_MidiControl *node) {
 
 	if (node->controllerPresent) {
 		sprintf (buf,"RW %d %d %d %d %d\n",node->_bus, node->_channel, node->_controller, 
-				node->intControllerType, node->intValue);
+				node->_intControllerType, node->intValue);
 		EAI_send_string(buf,EAIlistenfd);
 	}
 	
@@ -297,10 +297,10 @@ void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 	char outline[MAXOUTLINE];
 	printf ("sendCompiledNodeToReWire %d\n",node);
 
-	sprintf (outline,"RWNODE\n%d %d %d %d %d %d %d %d %f %d %d %d %s\nRW_EOT",
+	sprintf (outline,"RWNODE\n%d %d %d %d %d %d %d %d %f %d %d %s\nRW_EOT",
 			node,node->_bus, node->_channel, node->deviceMinVal, node->deviceMaxVal,
 			node->minVal, node->maxVal,node->intValue, node->floatValue, node->useIntValue,
-			node->continuousEvents, node->highResolution,node->controllerType->strptr);
+			node->highResolution,node->controllerType->strptr);
 
 	printf (outline); printf ("\n");
 	EAI_send_string(outline,EAIlistenfd);
@@ -316,6 +316,12 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 	int tmpintControllerType;
 	int controllerPresent;
 	int first_Time;
+
+	/* is EAI turned on? */
+	if (!EAIwanted) {
+		printf ("prep_MidiControl - turning EAI on\n");
+		EAIwanted = TRUE;
+	}
 
 	/* is there anything to do? */
 /*
@@ -377,6 +383,21 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 		node->channel->touched = 0;  
 		mark_event (node, offsetof(struct X3D_MidiControl, channel));
 	}
+	if (node->controllerType->touched != 0) {
+		#ifdef MIDIVERBOSE
+		printf ("controllerType changed\n");
+		#endif
+		node->controllerType->touched = 0;  
+		if (strcmp(node->controllerType->strptr,"Fader") == 0) {
+			node->_intControllerType = MIDI_CONTROLLER_FADER;
+		} else if (strcmp(node->controllerType->strptr,"KeyPress") == 0) {
+			node->_intControllerType = MIDI_CONTROLLER_KEYPRESS;
+		} else {
+			ConsoleMessage ("MidiControl - unknown controllerType :%s:\n",node->controllerType->strptr);
+		}
+
+		mark_event (node, offsetof(struct X3D_MidiControl, controllerType));
+	}
 
 
 	if (controllerPresent) {
@@ -412,29 +433,26 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 			node->deviceMaxVal = tmpdeviceMaxVal;
 			mark_event (node, offsetof(struct X3D_MidiControl, deviceMaxVal));
 		}
-		if (tmpintControllerType != node->intControllerType) {
+		if (tmpintControllerType != node->_intControllerType) {
 			#ifdef MIDIVERBOSE
-			printf ("intControllerType  changed from %d to %d\n",node->intControllerType, tmpintControllerType);
+			printf ("intControllerType  changed from %d to %d\n",node->_intControllerType, tmpintControllerType);
 			#endif
-			node->intControllerType = tmpintControllerType;
+
+			node->_intControllerType = tmpintControllerType;
 			mark_event (node, offsetof(struct X3D_MidiControl, controllerType));
-			switch (node->intControllerType) {
-				case MIDI_CONTROLLER_CONTINUOUS:
-					node->continuousEvents = TRUE;
-					verify_Uni_String(node->controllerType,"Continuous");
+			switch (node->_intControllerType) {
+				case MIDI_CONTROLLER_FADER:
+					verify_Uni_String(node->controllerType,"Fader");
 					break;
-				case MIDI_CONTROLLER_STEP:
-					node->continuousEvents = FALSE;
-					verify_Uni_String(node->controllerType,"Step");
-					break;
-				case MIDI_CONTROLLER_BIPOLAR:
-					node->continuousEvents = FALSE;
-					verify_Uni_String(node->controllerType,"BiPolar");
+				case MIDI_CONTROLLER_KEYPRESS:
+					verify_Uni_String(node->controllerType,"KeyPress");
 					break;
 				case MIDI_CONTROLLER_UNKNOWN:
-					node->continuousEvents = FALSE;
 					verify_Uni_String(node->controllerType,"Unknown");
 					break;
+				default:
+					ConsoleMessage ("Unknown Controller Type for MIDI node, have %d\n",
+						node->_intControllerType);
 			}
 		}
 	} else {
@@ -520,14 +538,13 @@ void ReWireRegisterMIDI (char *str) {
 			#endif
 			encodedControllerName = ReWireNameIndex(str);
 			str = EOT+1;
-			sscanf (str, "%d %d %d",&curMin, &curMax, &curType);
+			sscanf (str, "%d %d %d",&curType, &curMax, &curMin);
 
 			#ifdef MIDIVERBOSE
-			printf ("dev (%d %d)  %d %d chan %d %d %d %d\n",encodedDeviceName, encodedControllerName, curBus, curChannel,
+			printf ("dev (%d %d)  %d %d controller %d curMin %d curMax %d curType %d\n",encodedDeviceName, encodedControllerName, curBus, curChannel,
 				curController, curMin, curMax, curType);
 			#endif
 		
-
 			/* register the info for this controller */
 			if (!ReWireDeviceRegister(encodedDeviceName, encodedControllerName, &curBus, 
 				&curChannel, &curController, &curMin, &curMax, &curType)) {
@@ -555,6 +572,12 @@ void do_MidiControl (void *this) {
 	float fV;
 	int sendEvent;
 
+	/* is EAI turned on? */
+	if (!EAIwanted) {
+		printf ("do_MidiControl - turning EAI on\n");
+		EAIwanted = TRUE;
+	}
+
 	node = (struct X3D_MidiControl*) this;
 
 	#ifdef MIDIVERBOSE
@@ -580,7 +603,7 @@ void do_MidiControl (void *this) {
 		}
 
 		/* should we send this event? */
-		sendEvent = node->continuousEvents;
+		sendEvent = FALSE;
 		if (value != node->_oldintValue) sendEvent = TRUE;
 					
 		if (sendEvent) {
@@ -639,7 +662,7 @@ void ReWireMIDIControl (char *line) {
 				#endif
 
 				determineMIDIValFromInt (node, &value, &fV); 
-				sendEvent = node->continuousEvents;
+				sendEvent = FALSE;
 				if (value != node->_oldintValue) sendEvent = TRUE;
 					
 				if (sendEvent) {
@@ -659,40 +682,6 @@ void ReWireMIDIControl (char *line) {
 
 
 /************ END OF MIDI CONTROL **************************/
-/************ START OF MIDI KEY **************************/
-void prep_MidiKey (struct X3D_MidiKey *node) {
-	/* first time through, the _ichange will be 0. Lets ensure that we start events properly. */
-	if (node->_ichange == 0) {
-		printf ("Midi Node being initialized\n");
-		node->devicePresent = 999; /* force event for correct controllerPresent */
-	}
-
-	/*sendCompiledNodeToReWire(node); */
-
-	MARK_NODE_COMPILED 
-}
-
-void do_MidiKey (void *this) {
-	struct X3D_MidiKey* node;
-	int value;
-	float fV;
-	int sendEvent;
-
-	node = (struct X3D_MidiKey*) this;
-#define MIDIVERBOSE
-
-	#ifdef MIDIVERBOSE
-	printf ("do MidiKey for node %s\n",stringNodeType(node->_nodeType));
-	#endif
-	if (NODE_MidiKey == node->_nodeType) {
-		#ifdef MIDIVERBOSE
-		printf ("ReWire Key change %d %d ", node->_ichange, node->_change); 
-		#endif
-	}
-}
-
-/************ END OF MIDI KEY **************************/
-
 
 void render_LoadSensor (struct X3D_LoadSensor *node) {
 	int total;
