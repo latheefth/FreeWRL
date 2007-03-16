@@ -331,6 +331,7 @@ sub writeMakefileFinalTargets() {
 	print MK "\tinstall -d fonts \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall -D fonts/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
 	} else {
+	print MK "\tcp -f freewrl.aquascript /usr/bin/freewrl\n";
 	print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall fonts/*.ttf \$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\tinstall fonts/*.TXT \$(INSTALL_DIR)/freewrl/fonts\n";
