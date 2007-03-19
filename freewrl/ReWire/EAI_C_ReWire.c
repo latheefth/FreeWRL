@@ -1,13 +1,13 @@
 #include "Eai_C.h"
 void _handleReWireCallback (char *buf) {
-	int bus, controller, channel, controlType, value;
+	int bus, channel, controllerOrVelocity, controlType, value;
 	
 	if ((*buf) == 'R') buf++; if ((*buf)='W') buf++;
-	if (sscanf(buf, "%d %d %d %d %d",&bus,&channel, &controller, &controlType, &value) != 5) {
+	if (sscanf(buf, "%d %d %d %d %d",&bus,&channel, &controllerOrVelocity, &controlType, &value) != 5) {
 		printf ("handleReWireCallback - failed in sscanf\n");
 	} else {
 		#ifdef REWIRE
-		sendMIDIToReason (bus,channel,controller,controlType,value);
+		sendMIDIToReason (bus,channel,controllerOrVelocity,controlType,value);
 		#else
 		printf ("handleReWireCallback - data not sent anywhere\n");
 		#endif

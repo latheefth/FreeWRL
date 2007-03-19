@@ -1614,8 +1614,10 @@ package VRML::NodeType;
 						deviceMinVal => [SFInt32, 0, field],		# what the device sets
 						deviceMaxVal => [SFInt32, 0, field],		# what the device sets
 
-						velocity => [SFInt32, 100, exposedField],	# velocity field for keyPress
+						velocity => [SFInt32, 100, exposedField],	# velocity field for buttonPress
 												# controller types.
+						_vel => [SFInt32, 100, field],			# internal copy of velocity
+						_sentVel => [SFInt32, 100, field],		# send this velocity - if <0, noteOff
 
 						minVal => [SFInt32, 0, exposedField],		# used to scale floats, and 
 						maxVal => [SFInt32, 10000, exposedField],	# bounds check ints. The resulting
@@ -1628,11 +1630,18 @@ package VRML::NodeType;
 						useIntValue => [SFBool, TRUE, exposedField],	# which value to use for input
 
 						highResolution => [SFBool, TRUE, exposedField],	# high resolution controller
-						controllerType => [SFString, "Fader", exposedField],	# "Fader" "KeyPress"
+						controllerType => [SFString, "Slider", exposedField],	# "Slider" "ButtonPress"
 						_intControllerType => [SFInt32,999, field], 	# use ReWire definitions
 						controllerPresent => [SFBool, FALSE, exposedField],	# TRUE when ReWire is working
 
-						keyPressed => [SFBool,FALSE,exposedField],	# is the key pressed when in "KeyPress" mode?"
+						buttonPress => [SFBool,FALSE,exposedField],	# is the key pressed when in "ButtonPress" mode?"
+						autoButtonPress => [SFBool,TRUE,exposedField],# send a NoteOn when the int/float 
+												# value changes. if False, send only
+												# when buttonPressed happens.
+						pressLength => [SFFloat, 0.05, exposedField],	# time before noteOff in AutoButtonPress mode.
+						pressTime => [SFTime, 0, exposedField],		# when the press went in
+
+
 					}, "X3DNetworkSensorNode"
 					),
 ); 
