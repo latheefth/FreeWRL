@@ -1396,19 +1396,25 @@ void outOfMemory(const char *msg) {
 static int mcheckinit = FALSE;
 #define MAXMALLOCSTOKEEP 1000
 static void* mcheck[MAXMALLOCSTOKEEP];
+static char* mplace[MAXMALLOCSTOKEEP];
+static int mlineno[MAXMALLOCSTOKEEP];
 static int mcount;
 
 void freewrlFree(int line, char *file, void *a) {
 	printf ("%d xfree at %s:%d\n",a,file,line);
 	mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++;
 	if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %d\n",a);
-	else printf ("found %d in mcheck table\n");
-	mcheck[mcount] = NULL;
+	else {
+		printf ("found %d in mcheck table\n");
+		mcheck[mcount] = NULL;
+		mlineno[mcount] = 0;
+		if (mplace[mcount]!=NULL) free(mplace[mcount]);
+	}
 	free(a);
 }
 void scanMallocTableOnQuit() {
 	for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
-		if (mcheck[mcount]!=NULL) printf ("unfreed memory at %d\n",mcheck[mcount]);
+		if (mcheck[mcount]!=NULL) printf ("unfreed memory created at %s:%d \n",mplace[mcount],mlineno[mcount]);
 	}
 }
 #endif
@@ -1422,6 +1428,8 @@ void *freewrlMalloc(int line, char *file, size_t sz) {
 	if (!mcheckinit) {
 		for (mcount=0; mcount < MAXMALLOCSTOKEEP; mcount++) {
 			mcheck[mcount] = NULL;
+			mplace[mcount] = NULL;
+			mlineno[mcount] = 0;
 		}
 		mcheckinit = TRUE;
 	}
@@ -1437,7 +1445,11 @@ void *freewrlMalloc(int line, char *file, size_t sz) {
 		printf ("%d malloc %d at %s:%d\n",rv,sz,file,line);
 		mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=NULL)) mcount++;
 		if (mcheck[mcount]!=NULL) printf ("freewrlMalloc - out of malloc check store\n");
-		mcheck[mcount] = rv;
+		else {
+			mcheck[mcount] = rv;
+			mlineno[mcount] = line;
+			mplace[mcount] = strdup(file);
+		}
 	#endif
 	return rv;
 }
