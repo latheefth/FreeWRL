@@ -77,8 +77,8 @@ int FW_RIA_indx;			/* index into FW_RIA			     */
 struct X3D_PolyRep *FW_rep_;	/* this is the internal rep of the polyrep	     */
 int FW_pointctr;		/* how many points used so far? maps into rep-_coord */
 int indx_count;			/* maps intp FW_rep_->cindex			     */
-int coordmaxsize;		/* maximum coords before needing to realloc	     */
-int cindexmaxsize;		/* maximum cindexes before needing to realloc        */
+int coordmaxsize;		/* maximum coords before needing to REALLOC	     */
+int cindexmaxsize;		/* maximum cindexes before needing to REALLOC        */
 
 
 /* Outline callbacks and global vars */
@@ -143,11 +143,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 
 	if (FW_pointctr >= coordmaxsize) {
 		coordmaxsize+=800;
-		FW_rep_->coord = (float *)realloc(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
-
-		if (!(FW_rep_->coord)) {
-			outOfMemory ("realloc failed - out of memory \n");
-		}
+		FW_rep_->coord = (float *)REALLOC(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
 	}
 
   }
@@ -550,13 +546,8 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 	est_tri = char_count*TESS_MAX_COORDS;
 	coordmaxsize=est_tri;
 	cindexmaxsize=est_tri;
-	FW_rep_->cindex=(int*)malloc(sizeof(*(FW_rep_->cindex))*est_tri);
-	FW_rep_->coord = (float*)malloc(sizeof(*(FW_rep_->coord))*est_tri*3);
-	if (!(FW_rep_->coord && FW_rep_->cindex)) {
-		outOfMemory ("can not malloc memory for text triangles\n");
-	}
-
-
+	FW_rep_->cindex=(int*)MALLOC(sizeof(*(FW_rep_->cindex))*est_tri);
+	FW_rep_->coord = (float*)MALLOC(sizeof(*(FW_rep_->coord))*est_tri*3);
 
 	if(maxext > 0) {
 	   double maxlen = 0;
@@ -654,10 +645,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 
 			if (indx_count > (cindexmaxsize-400)) {
 				cindexmaxsize +=TESS_MAX_COORDS;
-				FW_rep_->cindex=(int *)realloc(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
-				if (!(FW_rep_->cindex)) {
-					outOfMemory("out of memory at realloc for cindex\n");
-				}
+				FW_rep_->cindex=(int *)REALLOC(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
 			}
 		}
 		counter += strlen((const char *)str);
@@ -672,15 +660,15 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 
 
 
-	/* if indx count is zero, DO NOT get rid of mallocd memory - creates a bug as pointers cant be null */
+	/* if indx count is zero, DO NOT get rid of MALLOCd memory - creates a bug as pointers cant be null */
 	if (indx_count !=0) {
-		/* realloc bug in linux - this causes the pointers to be eventually lost... */
-		/* realloc (FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*indx_count); */
-		/* realloc (FW_rep_->coord,sizeof(*(FW_rep_->coord))*FW_pointctr*3); */
+		/* REALLOC bug in linux - this causes the pointers to be eventually lost... */
+		/* REALLOC (FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*indx_count); */
+		/* REALLOC (FW_rep_->coord,sizeof(*(FW_rep_->coord))*FW_pointctr*3); */
 	}
 
 	/* now, generate normals */
-	FW_rep_->normal = (float *)malloc(sizeof(*(FW_rep_->normal))*indx_count*3);
+	FW_rep_->normal = (float *)MALLOC(sizeof(*(FW_rep_->normal))*indx_count*3);
 	for (i = 0; i<(unsigned int)indx_count; i++) {
 		FW_rep_->normal[i*3+0] = 0.0;
 		FW_rep_->normal[i*3+1] = 0.0;
@@ -690,18 +678,13 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 
 	/* do we have texture mapping to do? */
 	if (HAVETODOTEXTURES) {
-		FW_rep_->GeneratedTexCoords = (float *)malloc(sizeof(*(FW_rep_->GeneratedTexCoords))*(FW_pointctr+1)*3);
-		if (!(FW_rep_->GeneratedTexCoords)) {
-			printf ("can not malloc memory for text textures\n");
-		} else {
-			/* an attempt to try to make this look like the NIST example */
-			/* I can't find a standard as to how to map textures to text JAS */
-			for (i=0; i<(unsigned int)FW_pointctr; i++) {
-				FW_rep_->GeneratedTexCoords[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
-				FW_rep_->GeneratedTexCoords[i*3+1] = 0.0;
-				FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
-			}
-
+		FW_rep_->GeneratedTexCoords = (float *)MALLOC(sizeof(*(FW_rep_->GeneratedTexCoords))*(FW_pointctr+1)*3);
+		/* an attempt to try to make this look like the NIST example */
+		/* I can't find a standard as to how to map textures to text JAS */
+		for (i=0; i<(unsigned int)FW_pointctr; i++) {
+			FW_rep_->GeneratedTexCoords[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
+			FW_rep_->GeneratedTexCoords[i*3+1] = 0.0;
+			FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
 		}
 
 	}

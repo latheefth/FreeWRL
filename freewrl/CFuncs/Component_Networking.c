@@ -209,7 +209,7 @@ int ReWireDeviceRegister (int dev, int cont, int *bus, int *channel,
 	if (ReWireDevicetableSize >= MAXReWireDevices) {
 		/* oooh! not enough room at the table */
 		MAXReWireDevices += 1024; /* arbitrary number */
-		ReWireDevices = (struct ReWireDevicenameStruct*)realloc (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
+		ReWireDevices = (struct ReWireDevicenameStruct*)REALLOC (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
 	}
 	
 	ReWireDevices[ReWireDevicetableSize].bus = *bus;
@@ -241,12 +241,7 @@ void registerReWireNode(void *node) {
 
 	if (tmp->_nodeType != NODE_MidiControl) return;
 
-	MidiNodes = (uintptr_t *) realloc(MidiNodes,sizeof (uintptr_t *) * (num_MidiNodes+1));
-
-	if (MidiNodes == 0) {
-		printf ("can not allocate memory in registerReWireNode\n");
-		num_MidiNodes = 0;
-	}
+	MidiNodes = (uintptr_t *) REALLOC (MidiNodes,sizeof (uintptr_t *) * (num_MidiNodes+1));
 	myptr = MidiNodes;
 
 	/* does this event exist? */
@@ -297,7 +292,7 @@ int ReWireNameIndex (char *name) {
 	if (ReWireNametableSize >= MAXReWireNameNames) {
 		/* oooh! not enough room at the table */
 		MAXReWireNameNames += 1024; /* arbitrary number */
-		ReWireNamenames = (struct ReWireNamenameStruct*)realloc (ReWireNamenames, sizeof(*ReWireNamenames) * MAXReWireNameNames);
+		ReWireNamenames = (struct ReWireNamenameStruct*)REALLOC (ReWireNamenames, sizeof(*ReWireNamenames) * MAXReWireNameNames);
 	}
 
 	ReWireNamenames[ReWireNametableSize].name = strdup(name);

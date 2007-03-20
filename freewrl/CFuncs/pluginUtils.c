@@ -185,15 +185,11 @@ void doBrowserAction () {
 		printf ("FreeWRL::Anchor: going to \"%s\"\n",
 			AnchorsAnchor->description->strptr);
 
-	filename = (char *)malloc(1000);
+	filename = (char *)MALLOC(1000);
 
 	/* lets make up the path and save it, and make it the global path */
 	count = strlen(AnchorsAnchor->__parenturl->strptr);
-	mypath = (char *)malloc ((sizeof(char)* count)+1);
-
-	if ((!filename) || (!mypath)) {
-		outOfMemory("Anchor can not malloc for filename\n");
-	}
+	mypath = (char *)MALLOC ((sizeof(char)* count)+1);
 
 	/* copy the parent path over */
 	strcpy (mypath,AnchorsAnchor->__parenturl->strptr);
@@ -236,7 +232,7 @@ void doBrowserAction () {
 			}
 
 			/*  lets get outa here - jobs done.*/
-			free (filename);
+			FREE_IF_NZ (filename);
 			return;
 		}
 
@@ -261,7 +257,7 @@ void doBrowserAction () {
 		if (count > 0) {
 			printf ("Could not locate url (last choice was %s)\n",filename);
 		}
-		free (filename);
+		FREE_IF_NZ (filename);
 
 		/* if EAI was waiting for a loadURL, tell it it failed */
 		EAI_Anchor_Response (FALSE);
@@ -297,7 +293,7 @@ void doBrowserAction () {
 			freewrlSystem (sysline);
 		/* }*/
 	}
-	free (filename);
+	FREE_IF_NZ (filename);
 }
 
 

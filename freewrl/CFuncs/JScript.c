@@ -91,17 +91,12 @@ void cleanupDie(uintptr_t num, const char *msg) {
 }
 
 void JSMaxAlloc() {
-	/* perform some reallocs on JavaScript database stuff for interfacing */
+	/* perform some REALLOCs on JavaScript database stuff for interfacing */
 	uintptr_t count;
 
 	JSMaxScript += 10;
-	ScriptControl = (struct CRscriptStruct*)realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
-	scr_act = (uintptr_t *)realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
-
-	if ((ScriptControl == NULL) || (scr_act == 0)) {
-		printf ("Can not allocate memory for more script indexes\n");
-		exit(1);
-	}
+	ScriptControl = (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
+	scr_act = (uintptr_t *)REALLOC (scr_act, sizeof (*scr_act) * JSMaxScript);
 
 	/* mark these scripts inactive */
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
@@ -269,7 +264,7 @@ void *
 SFNodeNativeNew()
 {
 	SFNodeNative *ptr;
-	ptr = (SFNodeNative *) malloc(sizeof(*ptr));
+	ptr = (SFNodeNative *) MALLOC(sizeof(*ptr));
 
 	/* printf ("SFNodeNativeNew; string len %d handle_len %d\n",vrmlstring_len,handle_len);*/
 
@@ -289,7 +284,7 @@ SFNodeNativeDelete(void *p)
 	if (p != NULL) {
 		ptr = (SFNodeNative *)p;
 		FREE_IF_NZ (ptr->X3DString);
-		free(ptr);
+		FREE_IF_NZ (ptr);
 	}
 }
 
@@ -317,7 +312,7 @@ void *
 SFColorRGBANativeNew()
 {
 	SFColorRGBANative *ptr;
-	ptr = (SFColorRGBANative *)malloc(sizeof(*ptr));
+	ptr = (SFColorRGBANative *)MALLOC(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -331,7 +326,7 @@ SFColorRGBANativeDelete(void *p)
 	SFColorRGBANative *ptr;
 	if (p != NULL) {
 		ptr = (SFColorRGBANative *)p;
-		free(ptr);
+		FREE_IF_NZ (ptr);
 	}
 }
 
@@ -348,7 +343,7 @@ void *
 SFColorNativeNew()
 {
 	SFColorNative *ptr;
-	ptr = (SFColorNative *)malloc(sizeof(*ptr));
+	ptr = (SFColorNative *)MALLOC(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -362,7 +357,7 @@ SFColorNativeDelete(void *p)
 	SFColorNative *ptr;
 	if (p != NULL) {
 		ptr = (SFColorNative *)p;
-		free(ptr);
+		FREE_IF_NZ (ptr);
 	}
 }
 
@@ -379,7 +374,7 @@ void *
 SFImageNativeNew()
 {
 	SFImageNative *ptr;
-	ptr =(SFImageNative *) malloc(sizeof(*ptr));
+	ptr =(SFImageNative *) MALLOC(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -393,7 +388,7 @@ SFImageNativeDelete(void *p)
 	SFImageNative *ptr;
 	if (p != NULL) {
 		ptr = (SFImageNative *)p;
-		free(ptr);
+		FREE_IF_NZ (ptr);
 	}
 }
 
@@ -412,7 +407,7 @@ void *
 SFRotationNativeNew()
 {
 	SFRotationNative *ptr;
-	ptr = (SFRotationNative *)malloc(sizeof(*ptr));
+	ptr = (SFRotationNative *)MALLOC(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -426,7 +421,7 @@ SFRotationNativeDelete(void *p)
 	SFRotationNative *ptr;
 	if (p != NULL) {
 		ptr = (SFRotationNative *)p;
-		free(ptr);
+		FREE_IF_NZ (ptr);
 	}
 }
 
@@ -443,7 +438,7 @@ void *
 SFVec2fNativeNew()
 {
 	SFVec2fNative *ptr;
-	ptr = (SFVec2fNative *)malloc(sizeof(*ptr));
+	ptr = (SFVec2fNative *)MALLOC(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -457,7 +452,7 @@ SFVec2fNativeDelete(void *p)
 	SFVec2fNative *ptr;
 	if (p != NULL) {
 		ptr = (SFVec2fNative *)p;
-		free(ptr);
+		FREE_IF_NZ (ptr);
 	}
 }
 
@@ -474,7 +469,7 @@ void *
 SFVec3fNativeNew()
 {
 	SFVec3fNative *ptr;
-	ptr = (SFVec3fNative *)malloc(sizeof(*ptr));
+	ptr = (SFVec3fNative *)MALLOC(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -488,7 +483,7 @@ SFVec3fNativeDelete(void *p)
 	SFVec3fNative *ptr;
 	if (p != NULL) {
 		ptr = (SFVec3fNative *)p;
-		free(ptr);
+		FREE_IF_NZ (ptr);
 	}
 }
 
@@ -583,7 +578,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 					} else {
 						tlen = strlen(field) + 20;
 					}
-					smallfield = malloc (tlen);
+					smallfield = MALLOC (tlen);
 					smallfield[0] = '\0';
 
 					switch (type) {
@@ -762,7 +757,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements);
 			#endif
 
-			smallfield = malloc ( (elements*15) + 100);
+			smallfield = MALLOC ( (elements*15) + 100);
 
 			/* what is the equivalent SF for this MF?? */
 			if (type != convertToSFType(type)) haveMulti = TRUE;

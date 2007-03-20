@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.77  2007/03/20 20:36:10  crc_canada
+# MALLOC/REALLOC macros to check mallocs for errors.
+#
 # Revision 1.76  2007/02/27 13:32:15  crc_canada
 # initialize eventIn fields to a zero value.
 #
@@ -252,7 +255,7 @@ sub cInitialize {
 	#print "MFSTRING field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFSTRING field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = malloc (sizeof(struct Uni_String)*$count);";
+		$retstr = $restsr . "$field.p = MALLOC (sizeof(struct Uni_String)*$count);";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			$retstr = $retstr .  "$field.p[$tmp] = newASCIIString(\"".@{$val}[$tmp]."\");";
 		}
@@ -280,7 +283,7 @@ sub cInitialize {
 	#print "MFFLOAT field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
-		$retstr = $restsr . "$field.p = malloc (sizeof(float)*$count);\n";
+		$retstr = $restsr . "$field.p = MALLOC (sizeof(float)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
 		}
@@ -318,7 +321,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = malloc (sizeof(struct SFColor)*$count);\n";
+		$retstr = "$field.p = MALLOC (sizeof(struct SFColor)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
@@ -365,7 +368,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFCOLOR field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = malloc (sizeof(struct SFColor)*$count);\n";
+		$retstr = "$field.p = MALLOC (sizeof(struct SFColor)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
@@ -394,7 +397,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = malloc (sizeof(struct SFColorRGBA)*$count);\n";
+		$retstr = "$field.p = MALLOC (sizeof(struct SFColorRGBA)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
@@ -425,7 +428,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFVec2F field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = malloc (sizeof(struct SFVec2f)*$count);";
+		$retstr = "$field.p = MALLOC (sizeof(struct SFVec2f)*$count);";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 2; $whichVal++) {
@@ -471,7 +474,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFBOOL field $field val @{$val} has $count INIT\n";
 
-		$retstr = $restsr . "$field.p = malloc (sizeof(int)*$count);\n";
+		$retstr = $restsr . "$field.p = MALLOC (sizeof(int)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			$retstr = $retstr. "\n\t\t\t$field.p[$tmp] = $arline; ";
@@ -502,7 +505,7 @@ sub cInitialize {
 	if ($count > 0) {
 		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
 
-		$retstr = "$field.p = malloc (sizeof(struct SFRotation)*$count);\n";
+		$retstr = "$field.p = MALLOC (sizeof(struct SFRotation)*$count);\n";
 		for ($tmp=0; $tmp<$count; $tmp++) {
 			my $arline = @{$val}[$tmp];
 			for ($whichVal = 0; $whichVal < 4; $whichVal++) {
@@ -562,7 +565,7 @@ sub cInitialize {
 	if (!defined $val) {print "undefined in SFImage\n"} # eventIns, set it to any value
 	my $count = @{$val};
 	#SFImage defaults to 0,0,0\n";
-	return "$field.n=3; $field.p=malloc (sizeof(int)*3); $field.p[0] = 0; $field.p[1] = 0; $field.p[2] = 0;";
+	return "$field.n=3; $field.p=MALLOC (sizeof(int)*3); $field.p[0] = 0; $field.p[1] = 0; $field.p[2] = 0;";
 }
 
 1;

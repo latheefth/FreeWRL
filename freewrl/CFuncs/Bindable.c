@@ -522,18 +522,14 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
         	if (node->_nodeType == NODE_Background) {
                 	node->_ichange = node->_change;
                 	/* do we have an old background to destroy? */
-                	if (node->__points != 0) free ((void *)node->__points);
-                	if (node->__colours != 0) free ((void *)node->__colours);
-                	node->__points = NULL;
-                	node->__colours = NULL;
+                	FREE_IF_NZ ((void *)node->__points);
+                	FREE_IF_NZ ((void *)node->__colours);
                 	node->__quadcount = 0;
         	} else {
                 	tbnode->_ichange = tbnode->_change;
                 	/* do we have an old background to destroy? */
-                	if (tbnode->__points != 0) free ((void *)tbnode->__points);
-                	if (tbnode->__colours != 0) free ((void *)tbnode->__colours);
-                	tbnode->__points = NULL;
-                	tbnode->__colours = NULL;
+                	FREE_IF_NZ ((void *)tbnode->__points);
+                	FREE_IF_NZ ((void *)tbnode->__colours);
                 	tbnode->__quadcount = 0;
         	}
 		return;
@@ -559,12 +555,9 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	if(gndColCt == 1) estq += 40;
 	else if (gndColCt>0) estq += (gndColCt-1) * 20;
 
-	/* now, malloc space for new arrays  - 3 points per vertex, 4 per quad. */
-	newPoints = malloc (sizeof (GLfloat) * estq * 3 * 4);
-	newColors = malloc (sizeof (GLfloat) * estq * 3 * 4);
-	if ((newPoints == 0) || (newColors == 0)) {
-		outOfMemory("malloc failure in background\n");
-	}
+	/* now, MALLOC space for new arrays  - 3 points per vertex, 4 per quad. */
+	newPoints = MALLOC (sizeof (GLfloat) * estq * 3 * 4);
+	newColors = MALLOC (sizeof (GLfloat) * estq * 3 * 4);
 
 	if(skyColCt == 1) {
 		c1 = &skyCol[0];
@@ -694,8 +687,8 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	if (node->_nodeType == NODE_Background) {
 		node->_ichange = node->_change;
 		/* do we have an old background to destroy? */
-		if (node->__points != 0) free ((void *)node->__points);
-		if (node->__colours != 0) free ((void *)node->__colours);
+		FREE_IF_NZ ((void *)node->__points);
+		FREE_IF_NZ ((void *)node->__colours);
 		node->__points = newPoints;
 		node->__colours = newColors;
 		node->__quadcount = actq;
@@ -703,8 +696,8 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	} else {
 		tbnode->_ichange = tbnode->_change;
 		/* do we have an old background to destroy? */
-		if (tbnode->__points != 0) free ((void *)tbnode->__points);
-		if (tbnode->__colours != 0) free ((void *)tbnode->__colours);
+		FREE_IF_NZ ((void *)tbnode->__points);
+		FREE_IF_NZ ((void *)tbnode->__colours);
 		tbnode->__points = newPoints;
 		tbnode->__colours = newColors;
 		tbnode->__quadcount = actq;

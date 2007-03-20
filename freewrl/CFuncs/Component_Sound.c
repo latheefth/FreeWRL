@@ -210,6 +210,6 @@ void render_AudioClip (struct X3D_AudioClip *node) {
 		/* printf ("globalDuration source %d %f\n",
 				node->__sourceNumber,AC_LastDuration[node->__sourceNumber]);  */
 
-		if (filename) free (filename);
+		FREE_IF_NZ (filename);
 	}
 }

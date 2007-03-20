@@ -245,13 +245,13 @@ void do_OintCoord(void *node) {
 			kpkv,sizeof (struct SFColor) * kpkv);
 		#endif
 		if (px->value_changed.n != 0) {
-			free (px->value_changed.p);
+			FREE_IF_NZ (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p =(struct SFColor*) malloc (sizeof (struct SFColor) * kpkv);
+		px->value_changed.p =(struct SFColor*) MALLOC (sizeof (struct SFColor) * kpkv);
 	}
 
-	/* shortcut valchanged; have to put it here because might be remalloc'd */
+	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
 	valchanged = px->value_changed.p;
 
 
@@ -400,13 +400,13 @@ void do_OintCoord2D(void *node) {
 			kpkv,sizeof (struct SFVec2f) * kpkv);
 		#endif
 		if (px->value_changed.n != 0) {
-			free (px->value_changed.p);
+			FREE_IF_NZ (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p =(struct SFVec2f*) malloc (sizeof (struct SFVec2f) * kpkv);
+		px->value_changed.p =(struct SFVec2f*) MALLOC (sizeof (struct SFVec2f) * kpkv);
 	}
 
-	/* shortcut valchanged; have to put it here because might be remalloc'd */
+	/* shortcut valchanged; have to put it here because might be reMALLOC'd */
 	valchanged = px->value_changed.p;
 
 
@@ -1447,15 +1447,11 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	node->__sourceNumber = SoundSourceNumber;
 	SoundSourceNumber++;
 
-	filename = (char*)malloc(1000);
+	filename = (char*)MALLOC(1000);
 
 	/* lets make up the path and save it, and make it the global path */
 	count = strlen(node->__parenturl->strptr);
-	mypath = (char *)malloc ((sizeof(char)* count)+1);
-
-	if ((!filename) || (!mypath)) {
-		outOfMemory ("locateAudioSource:can not malloc for filename\n");
-	}
+	mypath = (char *)MALLOC ((sizeof(char)* count)+1);
 
 	/* copy the parent path over */
 	strcpy (mypath,node->__parenturl->strptr);
@@ -1484,12 +1480,12 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	if (count == (node->url).n) {
 		/* well, no file found */
 		printf ("Audio: could not find audio file\n");
-		free (filename);
+		FREE_IF_NZ (filename);
 		node->__sourceNumber = BADAUDIOSOURCE;
 	} else {
 		/* save local file in the structure, so that it can
 		   be initialized later */
 		node->__localFileName = (void *) filename;
 	}
-	free (mypath);
+	FREE_IF_NZ (mypath);
 }

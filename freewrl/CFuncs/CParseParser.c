@@ -96,7 +96,7 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
 
 struct VRMLParser* newParser(void* ptr, unsigned ofs)
 {
- struct VRMLParser* ret=malloc(sizeof(struct VRMLParser));
+ struct VRMLParser* ret=MALLOC(sizeof(struct VRMLParser));
  ret->lexer=newLexer();
  assert(ret->lexer);
  ret->ptr=ptr;
@@ -111,7 +111,7 @@ void deleteParser(struct VRMLParser* me)
  assert(me->lexer);
  deleteLexer(me->lexer);
 
- free(me);
+ FREE_IF_NZ (me);
 }
 
 static void parser_scopeOut_DEFUSE();
@@ -1239,7 +1239,7 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
   /* Just a single value? */ \
   if(!lexer_openSquare(me->lexer)) \
   { \
-   ret->p=malloc(sizeof(vrml##type##T)); \
+   ret->p=MALLOC(sizeof(vrml##type##T)); \
    if(!parser_sf##name##Value(me, (void*)ret->p)) \
     return FALSE; \
    ret->n=1; \
@@ -1340,11 +1340,11 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
  if(!lexer_int32(me->lexer, &depth))
   return FALSE;
 
- *ret=malloc(sizeof(struct Multi_Int32));
+ *ret=MALLOC(sizeof(struct Multi_Int32));
  assert(*ret);
 
  (*ret)->n=3+width*height;
- (*ret)->p=malloc(sizeof(*(*ret)->p)*(*ret)->n);
+ (*ret)->p=MALLOC(sizeof(*(*ret)->p)*(*ret)->n);
  assert((*ret)->p);
  (*ret)->p[0]=width;
  (*ret)->p[1]=height;
@@ -1353,11 +1353,9 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
  for(ptr=(*ret)->p+3; ptr!=(*ret)->p+(*ret)->n; ++ptr)
   if(!lexer_int32(me->lexer, ptr))
   {
-   free((*ret)->p);
-   (*ret)->p=NULL;
+   FREE_IF_NZ((*ret)->p);
    (*ret)->n=0;
-   free(*ret);
-   *ret=NULL;
+   FREE_IF_NZ(*ret);
    return FALSE;
   }
 
@@ -1381,7 +1379,7 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
 
 
  ret->n=3+width*height;
- ret->p=malloc(sizeof(int) * ret->n);
+ ret->p=MALLOC(sizeof(int) * ret->n);
  ret->p[0]=width;
  ret->p[1]=height;
  ret->p[2]=depth;
@@ -1389,8 +1387,7 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
  for(ptr=ret->p+3; ptr!=ret->p+ret->n; ++ptr)
   if(!lexer_int32(me->lexer, ptr))
   {
-   free(ret->p);
-   ret->p=NULL;
+   FREE_IF_NZ(ret->p);
    ret->n=0;
    return FALSE;
   }

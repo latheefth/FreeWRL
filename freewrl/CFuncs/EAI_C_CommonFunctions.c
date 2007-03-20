@@ -28,10 +28,10 @@ struct Uni_String *newASCIIString(char *str) {
 	#endif
 
 	/* the returning Uni_String is here. Make blank struct */
-	retval = malloc (sizeof (struct Uni_String));
+	retval = MALLOC (sizeof (struct Uni_String));
 	len = strlen(str);
 
-	retval->strptr  = malloc (sizeof(char) * len+1);
+	retval->strptr  = MALLOC (sizeof(char) * len+1);
 	strncpy(retval->strptr,str,len+1);
 	retval->len = len+1;
 	retval->touched = 1; /* make it 1, to signal that this is a NEW string. */
@@ -56,7 +56,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	if (strcmp(str,unis->strptr)!= 0) {
 		os = unis->strptr;
 		len = strlen(str);
-		ns = malloc (len+1);
+		ns = MALLOC (len+1);
 		strncpy(ns,str,len+1);
 		unis->strptr = ns;
 		FREE_IF_NZ (os);
@@ -292,7 +292,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 		case FIELDTYPE_MFBool:
 		case FIELDTYPE_SFImage: 
 		case FIELDTYPE_MFInt32: {
-			mdata = malloc (elementCount * datasize);
+			mdata = MALLOC (elementCount * datasize);
 			iptr = (int *)mdata;
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				SCANTONUMBER(value);
@@ -340,7 +340,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			rowsize = returnElementRowSize(ctype);
 
 			/* printf ("data size is %d elerow %d elementCount %d\n",datasize, returnElementRowSize(ctype),elementCount); */
-			mdata = malloc (elementCount * datasize);
+			mdata = MALLOC (elementCount * datasize);
 			fptr = (float *)mdata;
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				SCANTONUMBER(value);
@@ -367,7 +367,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			
 		case FIELDTYPE_MFString: {
 			/* printf ("start of FIELDTYPE_MFString :%s:\n",value); */
-			mdata = malloc (elementCount * datasize);
+			mdata = MALLOC (elementCount * datasize);
 			svptr = (struct Uni_String **)mdata;
 
 			SCANTOSTRING(value);

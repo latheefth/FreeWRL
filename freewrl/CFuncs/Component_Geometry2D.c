@@ -209,8 +209,8 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 	/* is this a simple disk, or one with an inner circle cut out? */
 	if (simpleDisc) {
 		tmpint = SEGMENTS_PER_CIRCLE+2;
-		fp = sfp = malloc (sizeof(GLfloat) * 2 * (tmpint));
-		tp = stp = malloc (sizeof(GLfloat) * 2 * (tmpint));
+		fp = sfp = MALLOC (sizeof(GLfloat) * 2 * (tmpint));
+		tp = stp = MALLOC (sizeof(GLfloat) * 2 * (tmpint));
 
 		/* initial TriangleFan point */
 		*fp = 0.0; fp++; *fp = 0.0; fp++;
@@ -225,8 +225,8 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 		}
 	} else {
 		tmpint = (SEGMENTS_PER_CIRCLE+1) * 2;
-		fp = sfp = malloc (sizeof(GLfloat) * 2 * tmpint);
-		tp = stp = malloc (sizeof(GLfloat) * 2 * tmpint);
+		fp = sfp = MALLOC (sizeof(GLfloat) * 2 * tmpint);
+		tp = stp = MALLOC (sizeof(GLfloat) * 2 * tmpint);
 
 
 		/* texture scaling params */
@@ -303,7 +303,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 	/* ok, now if renderer renders (threading) it'll see zero, so we are safe */
 	FREE_IF_NZ (node->__texCoords);
-	node->__texCoords = fp = malloc (sizeof (GLfloat) * tmpint * 2);
+	node->__texCoords = fp = MALLOC (sizeof (GLfloat) * tmpint * 2);
 
 	/* find min/max values for X and Y axes */
 	minY = minX = 99999999.0;
@@ -359,11 +359,11 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 	xx = NULL;
 
-	/* once malloc'd, this never changes size, so is "threadsafe" */
-	/*  malloc memory (if possible)*/
-	if (!node->__points) xx = malloc (sizeof(struct SFColor)*(4));
+	/* once MALLOC'd, this never changes size, so is "threadsafe" */
+	/*  MALLOC memory (if possible)*/
+	if (!node->__points) xx = MALLOC (sizeof(struct SFColor)*(4));
 	if (!xx) {
-		printf ("can not malloc memory for Rectangle2D points\n");
+		printf ("can not MALLOC memory for Rectangle2D points\n");
 		return;
 	}
 
@@ -452,7 +452,7 @@ void *createLines (float start, float end, float radius, int closed, int *size) 
 	if (closed == CHORD) numPoints++;
 	if (closed == PIE) numPoints+=2;
 
-	points = malloc (sizeof(float)*numPoints*2);
+	points = MALLOC (sizeof(float)*numPoints*2);
 	fp = points;
 
 	for (i=0; i<arcpoints; i++) {

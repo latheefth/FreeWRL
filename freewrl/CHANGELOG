@@ -1,4 +1,8 @@
 For 1.19.2:
+	- -DDEBUG_MALLOC for finding malloc problems;
+	
+	- MALLOC, REALLOC, automatically check malloc return values; exit if NULL found with file/line number.
+
 	- chcon command added to Makefile.PL
 
 	- #include <stdlib> added to headers.h - for AMD64 compiles.

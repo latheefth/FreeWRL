@@ -95,8 +95,8 @@ int main (int argc, char **argv) {
         	/* create the initial scene, from the file passed in
         	  and place it as a child of the rootNode. */
 
-        	initialFilename = (char *)malloc(1000 * sizeof (char));
-        	pwd = (char *)malloc(1000 * sizeof (char));
+        	initialFilename = (char *)MALLOC(1000 * sizeof (char));
+        	pwd = (char *)MALLOC(1000 * sizeof (char));
         	getcwd(pwd,1000);
         	/* if this is a network file, leave the name as is. If it is
         	   a local file, prepend the path to it */
@@ -109,7 +109,7 @@ int main (int argc, char **argv) {
 	                makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
 	                setFullPath(initialFilename);
 	        }
-		free (initialFilename);
+		FREE_IF_NZ (initialFilename);
 	} else {
 		BrowserFullPath = NULL;
 	}

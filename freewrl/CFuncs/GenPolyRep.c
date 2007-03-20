@@ -136,23 +136,23 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 		FREE_IF_NZ(rep->GeneratedTexCoords);
 
 		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
-		tcoord = rep->GeneratedTexCoords = (float *)malloc (sizeof (float) * nquads * 12); 
-		if (!tcoord) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
+		tcoord = rep->GeneratedTexCoords = (float *)MALLOC (sizeof (float) * nquads * 12); 
+		if (!tcoord) {printf ("out of memory in MALLOC in ElevationGrid\n"); return FALSE;}
 
 		rep->tcindex=0; /* we will generate our own mapping */
 	}
 
 	/* make up points array */
 	/* a point is a vertex and consists of 3 floats (x,y,z) */
-	newpoints = (float *)malloc (sizeof (float) * nz * nx * 3);
-	if (!newpoints) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
+	newpoints = (float *)MALLOC (sizeof (float) * nz * nx * 3);
+	if (!newpoints) {printf ("out of memory in MALLOC in ElevationGrid\n"); return FALSE;}
 	 
 	FREE_IF_NZ(rep->coord);
 	rep->coord = (float *)newpoints;
 
 	/* make up coord index */
 	if (this_->coordIndex.n > 0) FREE_IF_NZ(this_->coordIndex.p);
-	this_->coordIndex.p = malloc (sizeof(int) * nquads * 5);
+	this_->coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
 	cindexptr = this_->coordIndex.p;
 
 	this_->coordIndex.n = nquads * 5;
@@ -275,7 +275,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 				break;
 			}
 
-			newIndex = malloc (sizeof(int) * IndexSize);
+			newIndex = MALLOC (sizeof(int) * IndexSize);
 			/* now calculate the indexes */
 
 			xx=0;
@@ -311,7 +311,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; } */
 
 			/* now, make the new index active */
-			/* free (this_->coordIndex.p); should free if malloc'd already */
+			/* FREE_IF_NZ (this_->coordIndex.p); should free if MALLOC'd already */
 			this_->coordIndex.p = newIndex;
 			this_->coordIndex.n = IndexSize;
                 	break;
@@ -324,7 +324,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 				break;
 			}
 
-			newIndex = malloc (sizeof(int) * IndexSize);
+			newIndex = MALLOC (sizeof(int) * IndexSize);
 
 			/* now calculate the indexes */
 			xx=0;
@@ -370,7 +370,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; }  */
 
 			/* now, make the new index active */
-			/* free (this_->coordIndex.p); should free if malloc'd already */
+			/* FREE_IF_NZ (this_->coordIndex.p); should free if MALLOC'd already */
 			this_->coordIndex.p = newIndex;
 			this_->coordIndex.n = IndexSize;
                 	break;
@@ -381,7 +381,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 				break;
 			}
 
-			newIndex = malloc (sizeof(int) * IndexSize);
+			newIndex = MALLOC (sizeof(int) * IndexSize);
 			zz = 0; yy=0;
 			/* printf ("index: "); */
 			for (xx = 0; xx < this_->index.n; xx++) {
@@ -400,7 +400,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			}
 
 			/* now, make the new index active */
-			/* free (this_->coordIndex.p); should free if malloc'd already */
+			/* FREE_IF_NZ (this_->coordIndex.p); should free if MALLOC'd already */
 			this_->coordIndex.p = newIndex;
 			this_->coordIndex.n = IndexSize;
                 	break;
@@ -428,7 +428,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			/* calculate index size; every "face" ends in -1 */
 			IndexSize = (npoints * 4) / 3;
 			/* printf ("IndexSize is %d\n",IndexSize); */
-			this_->coordIndex.p = malloc (sizeof(int) * IndexSize);
+			this_->coordIndex.p = MALLOC (sizeof(int) * IndexSize);
 			this_->coordIndex.n = IndexSize;
 
 			IndexSize = 0; /* for assigning the indexes */
@@ -461,7 +461,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			}
 
 			/* printf ("IndexSize is %d\n",IndexSize); */
-			this_->coordIndex.p = malloc (sizeof(int) * IndexSize);
+			this_->coordIndex.p = MALLOC (sizeof(int) * IndexSize);
 			this_->coordIndex.n = IndexSize;
 			IndexSize = 0; /* for assigning the indexes */
 			
@@ -509,7 +509,7 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 			}
 
 			/* printf ("IndexSize is %d\n",IndexSize); */
-			this_->coordIndex.p = malloc (sizeof(int) * IndexSize);
+			this_->coordIndex.p = MALLOC (sizeof(int) * IndexSize);
 			this_->coordIndex.n = IndexSize;
 			IndexSize = 0; /* for assigning the indexes */
 
@@ -698,9 +698,9 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 		return;
 	}
 
-	facenormals = (struct pt*)malloc(sizeof(*facenormals)*faces);
-	faceok = (int*)malloc(sizeof(int)*faces);
-	pointfaces = (int*)malloc(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
+	facenormals = (struct pt*)MALLOC(sizeof(*facenormals)*faces);
+	faceok = (int*)MALLOC(sizeof(int)*faces);
+	pointfaces = (int*)MALLOC(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
 
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	if(!(faceok && pointfaces && facenormals )) {
@@ -734,19 +734,19 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	/* fudge factor - leave space for 1 more triangle just in case we have errors on input */
 	ntri++;
 
-	cindex = rep_->cindex = (int*)malloc(sizeof(*(rep_->cindex))*3*(ntri));
-	colindex = rep_->colindex = (int*)malloc(sizeof(*(rep_->colindex))*3*(ntri));
-	norindex = rep_->norindex = (int*)malloc(sizeof(*(rep_->norindex))*3*ntri);
+	cindex = rep_->cindex = (int*)MALLOC(sizeof(*(rep_->cindex))*3*(ntri));
+	colindex = rep_->colindex = (int*)MALLOC(sizeof(*(rep_->colindex))*3*(ntri));
+	norindex = rep_->norindex = (int*)MALLOC(sizeof(*(rep_->norindex))*3*ntri);
 
 	/* if we calculate normals, we use a normal per point, NOT per triangle */
 	if (!nnormals) {  		/* 3 vertexes per triangle, and 3 points per tri */
-		rep_->normal = (float*)malloc(sizeof(*(rep_->normal))*3*3*ntri);
+		rep_->normal = (float*)MALLOC(sizeof(*(rep_->normal))*3*3*ntri);
 	} else { 			/* dont do much, but get past check below */
-		rep_->normal = (float*)malloc(1);
+		rep_->normal = (float*)MALLOC(1);
 	}
 
 
-	tcindex = rep_->tcindex = (int*)malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+	tcindex = rep_->tcindex = (int*)MALLOC(sizeof(*(rep_->tcindex))*3*(ntri));
 
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	if(!(cindex && colindex && norindex && tcindex && rep_->normal )) {
@@ -756,7 +756,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 
 	/* Concave faces - use the OpenGL Triangulator to give us the triangles */
-	tess_vs=(int*)malloc(sizeof(*(tess_vs))*(ntri)*3);
+	tess_vs=(int*)MALLOC(sizeof(*(tess_vs))*(ntri)*3);
 
 	this_coord = 0;
 	this_normal = 0;
@@ -944,10 +944,10 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	/* we have an accurate triangle count now... */
 	rep_->ntri = vert_ind/3;
 
-	free (tess_vs);
-	free (facenormals);
-	free (faceok);
-	free (pointfaces);
+	FREE_IF_NZ (tess_vs);
+	FREE_IF_NZ (facenormals);
+	FREE_IF_NZ (faceok);
+	FREE_IF_NZ (pointfaces);
 }
 
 /***************************************************************
@@ -967,9 +967,9 @@ void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_,
 	/* printf ("stream_extrusion_texture_coords, have %d triangles \n",rep_->ntri); */
 
 	/* 2 floats per vertex, each triangle has 3 vertexes... */
-	rep_->GeneratedTexCoords = (float*)malloc (sizeof(float) * 2 * 3 * rep_->ntri);
+	rep_->GeneratedTexCoords = (float*)MALLOC (sizeof(float) * 2 * 3 * rep_->ntri);
 	if (!rep_->GeneratedTexCoords) {
-		printf ("Streaming Extrusion - malloc problem\n");
+		printf ("Streaming Extrusion - MALLOC problem\n");
 	}
 
 	nc = rep_->GeneratedTexCoords;
@@ -1110,8 +1110,8 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		int tmp1, temp_indx;
 		int increment, currentlocn;
 
-		crossSection     = (struct SFVec2f*)malloc(sizeof(crossSection)*nsec*2);
-		if (!(crossSection)) freewrlDie ("can not malloc memory for Extrusion crossSection");
+		crossSection     = (struct SFVec2f*)MALLOC(sizeof(crossSection)*nsec*2);
+		if (!(crossSection)) freewrlDie ("can not MALLOC memory for Extrusion crossSection");
 
 
 		currentlocn = 0;
@@ -1238,26 +1238,26 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 					the whole Extrusion Shape.		*/
 
 	/* get some memory							*/
-	cindex  = rep_->cindex   = (int *)malloc(sizeof(*(rep_->cindex))*3*(rep_->ntri));
-	coord   = rep_->coord    = (float *)malloc(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
-	normal  = rep_->normal   = (float *)malloc(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
-	norindex= rep_->norindex = (int *)malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri));
+	cindex  = rep_->cindex   = (int *)MALLOC(sizeof(*(rep_->cindex))*3*(rep_->ntri));
+	coord   = rep_->coord    = (float *)MALLOC(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
+	normal  = rep_->normal   = (float *)MALLOC(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
+	norindex= rep_->norindex = (int *)MALLOC(sizeof(*(rep_->norindex))*3*(rep_->ntri));
 
 	/* face normals - one face per quad (ie, 2 triangles) 			*/
 	/* have to make sure that if nctri is odd, that we increment by one	*/
 
 
-	facenormals = (struct pt *)malloc(sizeof(*facenormals)*(rep_->ntri+1)/2);
+	facenormals = (struct pt *)MALLOC(sizeof(*facenormals)*(rep_->ntri+1)/2);
 
 	/* for each triangle vertex, tell me which face(s) it is in		*/
-	pointfaces = (int *)malloc(sizeof(*pointfaces)*POINT_FACES*3*rep_->ntri);
+	pointfaces = (int *)MALLOC(sizeof(*pointfaces)*POINT_FACES*3*rep_->ntri);
 
 	/* for each triangle, it has a defaultface...				*/
-	defaultface = (int *)malloc(sizeof(*defaultface)*rep_->ntri);
+	defaultface = (int *)MALLOC(sizeof(*defaultface)*rep_->ntri);
 
 
 	/*memory for the SCPs. Only needed in this function. Freed later	*/
-	SCP     = (struct SCP *)malloc(sizeof(struct SCP)*nspi);
+	SCP     = (struct SCP *)MALLOC(sizeof(struct SCP)*nspi);
 
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	  if(!(pointfaces && defaultface && facenormals && cindex && coord && normal && norindex && SCP )) {
@@ -1274,17 +1274,17 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		FREE_IF_NZ (rep_->GeneratedTexCoords);
 		FREE_IF_NZ (rep_->tcindex);
 
-		tcoord = (float *)malloc(sizeof(*(rep_->GeneratedTexCoords))*tcoordsize);
+		tcoord = (float *)MALLOC(sizeof(*(rep_->GeneratedTexCoords))*tcoordsize);
 
 		tcindexsize = rep_->ntri*3;
 		if (Extru_Verbose)
 			printf ("tcindexsize %d\n",tcindexsize);
 
-		tcindex = (int *)malloc(sizeof(*(rep_->tcindex))*tcindexsize);
+		tcindex = (int *)MALLOC(sizeof(*(rep_->tcindex))*tcindexsize);
 
 		/* keep around cross section info for tex coord mapping */
-		beginVals = (float *)malloc(sizeof(float) * 2 * (nsec+1)*100);
-		endVals = (float *)malloc(sizeof(float) * 2 * (nsec+1)*100);
+		beginVals = (float *)MALLOC(sizeof(float) * 2 * (nsec+1)*100);
+		endVals = (float *)MALLOC(sizeof(float) * 2 * (nsec+1)*100);
 
 		if (!(tcoord && tcindex && beginVals && endVals))
 			freewrlDie ("Not enough memory Extrusion Tcoords");
@@ -1683,7 +1683,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 
 	/* freeing SCP coordinates. not needed anymore.				*/
-	if(SCP) free(SCP);
+	FREE_IF_NZ (SCP);
 
 	/************************************************************************
 	 * setting the values of *cindex to the right coords
@@ -1939,7 +1939,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		GLdouble tess_v[3];
 		int endpoint;
 
-		tess_vs=(int *)malloc(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
+		tess_vs=(int *)MALLOC(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
 		if (!(tess_vs)) freewrlDie ("Extrusion - no memory for tesselated end caps");
 
 		/* if not tubular, we need one more triangle */
@@ -2005,8 +2005,8 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			this_face++;
 		}
 
-		/* get rid of mallocd memory  for tess */
-		free (tess_vs);
+		/* get rid of MALLOCd memory  for tess */
+		FREE_IF_NZ (tess_vs);
 
 	    } /* elseif */
 	} /* end of block */
@@ -2044,21 +2044,21 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	if (Extru_Verbose) printf ("done, lets free\n");
 
 	/* we no longer need to keep normal-generating memory around */
-	free (defaultface);
-	free (pointfaces);
-	free (facenormals);
-	free (crossSection);
+	FREE_IF_NZ (defaultface);
+	FREE_IF_NZ (pointfaces);
+	FREE_IF_NZ (facenormals);
+	FREE_IF_NZ (crossSection);
 
-	free (beginVals);
-	free (endVals);
+	FREE_IF_NZ (beginVals);
+	FREE_IF_NZ (endVals);
 
 
 	/* stream the texture coords so that they are linear as tcindex is not used in stream_polyrep */
 	stream_extrusion_texture_coords (rep_, tcoord, tcindex);
 
 	/* now that the tex coords are streamed, remove the temoporary arrays */
-	free (tcoord);
-	free (tcindex);
+	FREE_IF_NZ (tcoord);
+	FREE_IF_NZ (tcindex);
 
 
 	if(Extru_Verbose)

@@ -245,10 +245,10 @@ void OcclusionStartofEventLoop() {
 			/* we make the OccQuerySize larger than the maximum number of occluders,
 			   so we don't have to realloc too much */
 			OccQuerySize = maxOccludersFound + 1000;
-			OccQueries = malloc (sizeof(int) * OccQuerySize);
-			OccNodes = malloc (sizeof (void *) * OccQuerySize);
-			OccActive = malloc (sizeof (int) * OccQuerySize);
-			OccSamples = malloc (sizeof (int) * OccQuerySize);
+			OccQueries = MALLOC (sizeof(int) * OccQuerySize);
+			OccNodes = MALLOC (sizeof (void *) * OccQuerySize);
+			OccActive = MALLOC (sizeof (int) * OccQuerySize);
+			OccSamples = MALLOC (sizeof (int) * OccQuerySize);
                 	glGenQueries(OccQuerySize,OccQueries);
 			OccInitialized = TRUE;
 			for (i=0; i<OccQuerySize; i++) {
@@ -280,10 +280,10 @@ void OcclusionStartofEventLoop() {
 		}
 
 		OccQuerySize = maxOccludersFound + 1000;
-		OccQueries = realloc (OccQueries,sizeof (int) * OccQuerySize);
-		OccNodes = realloc (OccNodes,sizeof (void *) * OccQuerySize);
-		OccActive = realloc (OccActive,sizeof (int) * OccQuerySize);
-		OccSamples = realloc (OccSamples,sizeof (int) * OccQuerySize);
+		OccQueries = REALLOC (OccQueries,sizeof (int) * OccQuerySize);
+		OccNodes = REALLOC (OccNodes,sizeof (void *) * OccQuerySize);
+		OccActive = REALLOC (OccActive,sizeof (int) * OccQuerySize);
+		OccSamples = REALLOC (OccSamples,sizeof (int) * OccQuerySize);
                 glGenQueries(OccQuerySize,OccQueries);
 		for (i=0; i<OccQuerySize; i++) {
 			OccNodes[i] = 0;

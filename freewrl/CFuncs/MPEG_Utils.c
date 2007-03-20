@@ -42,8 +42,8 @@
 
 /* ones in headers.h, but we dont include this here */
 #include "vrmlconf.h"
-int ConsoleMessage(char *fmt, ...);
-void outOfMemory(char *message);
+#include "headers.h"
+
 
 
 
@@ -1054,33 +1054,23 @@ InitColorDither(int thirty2)
     int CR, CB, i;
 
     if (L_tab==NULL)
-       L_tab = (int *)malloc(256*sizeof(int));
+       L_tab = (int *)MALLOC(256*sizeof(int));
     if (Cr_r_tab==NULL)
-       Cr_r_tab = (int *)malloc(256*sizeof(int));
+       Cr_r_tab = (int *)MALLOC(256*sizeof(int));
     if (Cr_g_tab==NULL)
-       Cr_g_tab = (int *)malloc(256*sizeof(int));
+       Cr_g_tab = (int *)MALLOC(256*sizeof(int));
     if (Cb_g_tab==NULL)
-       Cb_g_tab = (int *)malloc(256*sizeof(int));
+       Cb_g_tab = (int *)MALLOC(256*sizeof(int));
     if (Cb_b_tab==NULL)
-       Cb_b_tab = (int *)malloc(256*sizeof(int));
+       Cb_b_tab = (int *)MALLOC(256*sizeof(int));
 
     if (r_2_pix_alloc==NULL)
-       r_2_pix_alloc = (long *)malloc(768*sizeof(long));
+       r_2_pix_alloc = (long *)MALLOC(768*sizeof(long));
     if (g_2_pix_alloc==NULL)
-       g_2_pix_alloc = (long *)malloc(768*sizeof(long));
+       g_2_pix_alloc = (long *)MALLOC(768*sizeof(long));
     if (b_2_pix_alloc==NULL)
-       b_2_pix_alloc = (long *)malloc(768*sizeof(long));
+       b_2_pix_alloc = (long *)MALLOC(768*sizeof(long));
 
-    if (L_tab == NULL ||
-	Cr_r_tab == NULL ||
-	Cr_g_tab == NULL ||
-	Cb_g_tab == NULL ||
-	Cb_b_tab == NULL ||
-	r_2_pix_alloc == NULL ||
-	g_2_pix_alloc == NULL ||
-	b_2_pix_alloc == NULL) {
-      outOfMemory("Could not get enough memory in InitColorDither\n");
-    }
 
     for (i=0; i<256; i++) {
       L_tab[i] = i;
@@ -1289,7 +1279,7 @@ ExecuteTexture(
 	*ySize = vid_stream->v_size;
 
   	blockSize = sizeof(GLubyte) * 3 * vid_stream->v_size * vid_stream->h_size;
-        dataPointer = (char *)realloc(dataPointer,blockSize * (*frameCount));
+        dataPointer = (char *)REALLOC(dataPointer,blockSize * (*frameCount));
 	tmpptr = dataPointer + (blockSize * ((*frameCount)-1));
 
         memcpy (tmpptr, Image, blockSize);
@@ -1460,7 +1450,7 @@ char *get_ext_data (
 
   /* Allocate ext data buffer. */
 
-  dataPtr = (char *) malloc(size);
+  dataPtr = (char *) MALLOC(size);
 
   /* Initialize marker to keep place in ext data buffer. */
 
@@ -1482,13 +1472,13 @@ char *get_ext_data (
 
     if (marker == size) {
       size += EXT_BUF_SIZE;
-      dataPtr = (char *) realloc(dataPtr, size);
+      dataPtr = (char *) REALLOC(dataPtr, size);
     }
   }
 
   /* Realloc data buffer to free any extra space. */
 
-  dataPtr = (char *) realloc(dataPtr, marker);
+  dataPtr = (char *) REALLOC(dataPtr, marker);
 
   /* Return pointer to ext data buffer. */
   return dataPtr;
@@ -1662,7 +1652,7 @@ mpeg_VidStream *vid_stream)
   /* Initialize size of extra bit info buffer and allocate. */
 
   size = EXT_BUF_SIZE;
-  dataPtr = (char *) malloc(size);
+  dataPtr = (char *) MALLOC(size);
 
   /* Reset marker to hold place in buffer. */
 
@@ -1680,11 +1670,11 @@ mpeg_VidStream *vid_stream)
     dataPtr[marker] = (char) data;
     marker++;
 
-    /* If buffer is full, reallocate. */
+    /* If buffer is full, REALLOCate. */
 
     if (marker == size) {
       size += EXT_BUF_SIZE;
-      dataPtr = (char *) realloc(dataPtr, size);
+      dataPtr = (char *) REALLOC(dataPtr, size);
     }
 
     /* Get next flag bit. */
@@ -1692,7 +1682,7 @@ mpeg_VidStream *vid_stream)
   }
 
   /* Reallocate buffer to free extra space. */
-  dataPtr = (char *) realloc(dataPtr, marker);
+  dataPtr = (char *) REALLOC(dataPtr, marker);
 
   /* Return pointer to extra bit info buffer. */
   return dataPtr;
@@ -2327,7 +2317,7 @@ mpg_NewVidStream(
 
   /* Allocate memory for new structure. */
 
-  newstream = (mpeg_VidStream *) malloc(sizeof(mpeg_VidStream));
+  newstream = (mpeg_VidStream *) MALLOC(sizeof(mpeg_VidStream));
 
   /* Initialize pointers to extension and user data. */
 
@@ -2366,7 +2356,7 @@ mpg_NewVidStream(
   /* Create buffer. */
 
 
-  newstream->buf_start = (unsigned int *) malloc(buffer_len * 4);
+  newstream->buf_start = (unsigned int *) MALLOC(buffer_len * 4);
 
   /*
    * Set max_buf_length to one less than actual length to deal with messy
@@ -2415,31 +2405,31 @@ Destroympeg_VidStream(
   int i;
 
   if (astream->ext_data != NULL)
-    free(astream->ext_data);
+    FREE_IF_NZ (astream->ext_data);
 
   if (astream->user_data != NULL)
-    free(astream->user_data);
+    FREE_IF_NZ (astream->user_data);
 
   if (astream->group.ext_data != NULL)
-    free(astream->group.ext_data);
+    FREE_IF_NZ (astream->group.ext_data);
 
   if (astream->group.user_data != NULL)
-    free(astream->group.user_data);
+    FREE_IF_NZ (astream->group.user_data);
 
   if (astream->picture.extra_info != NULL)
-    free(astream->picture.extra_info);
+    FREE_IF_NZ (astream->picture.extra_info);
 
   if (astream->picture.ext_data != NULL)
-    free(astream->picture.ext_data);
+    FREE_IF_NZ (astream->picture.ext_data);
 
   if (astream->picture.user_data != NULL)
-    free(astream->picture.user_data);
+    FREE_IF_NZ (astream->picture.user_data);
 
   if (astream->slice.extra_info != NULL)
-    free(astream->slice.extra_info);
+    FREE_IF_NZ (astream->slice.extra_info);
 
   if (astream->buf_start != NULL)
-    free(astream->buf_start);
+    FREE_IF_NZ (astream->buf_start);
 
   for (i = 0; i < RING_BUF_SIZE; i++) {
     if (astream->ring[i] != NULL) {
@@ -2448,7 +2438,7 @@ Destroympeg_VidStream(
     }
   }
 
-  free((char *) astream);
+  FREE_IF_NZ ((char *) astream);
 
 }
 
@@ -2482,7 +2472,7 @@ NewPictImage( mpeg_VidStream *vid_stream )
 
   /* Allocate memory space for new structure. */
 
-  newimage = (PictImage *) malloc(sizeof(PictImage));
+  newimage = (PictImage *) MALLOC(sizeof(PictImage));
 
 
   /* Allocate memory for image spaces. */
@@ -2495,12 +2485,12 @@ NewPictImage( mpeg_VidStream *vid_stream )
     if(temp_sz == 3) temp_sz = 4;
     factor = 1;
 
-    newimage->display = (unsigned char *) malloc(width * height * temp_sz *
+    newimage->display = (unsigned char *) MALLOC(width * height * temp_sz *
                                                             factor * factor);
     }
-  newimage->luminance = (unsigned char *) malloc(width * height);
-  newimage->Cr = (unsigned char *) malloc(width * height / 4);
-  newimage->Cb = (unsigned char *) malloc(width * height / 4);
+  newimage->luminance = (unsigned char *) MALLOC(width * height);
+  newimage->Cr = (unsigned char *) MALLOC(width * height / 4);
+  newimage->Cb = (unsigned char *) MALLOC(width * height / 4);
 
   /* Reset locked flag. */
 
@@ -2533,18 +2523,18 @@ DestroyPictImage(
   PictImage *apictimage)
 {
   if (apictimage->luminance != NULL) {
-    free(apictimage->luminance);
+    FREE_IF_NZ (apictimage->luminance);
   }
   if (apictimage->Cr != NULL) {
-    free(apictimage->Cr);
+    FREE_IF_NZ (apictimage->Cr);
   }
   if (apictimage->Cb != NULL) {
-    free(apictimage->Cb);
+    FREE_IF_NZ (apictimage->Cb);
   }
   if (apictimage->display != NULL) {
-    free(apictimage->display);
+    FREE_IF_NZ (apictimage->display);
   }
-  free(apictimage);
+  FREE_IF_NZ (apictimage);
 }
 
 
@@ -2884,7 +2874,7 @@ ParseSeqHead(
   if (next_bits(32, EXT_START_CODE, vid_stream)) {
     flush_bits32;
     if (vid_stream->ext_data != NULL) {
-      free(vid_stream->ext_data);
+      FREE_IF_NZ (vid_stream->ext_data);
       vid_stream->ext_data = NULL;
     }
     vid_stream->ext_data = get_ext_data(vid_stream);
@@ -2894,7 +2884,7 @@ ParseSeqHead(
   if (next_bits(32, USER_START_CODE, vid_stream)) {
     flush_bits32;
     if (vid_stream->user_data != NULL) {
-      free(vid_stream->user_data);
+      FREE_IF_NZ (vid_stream->user_data);
       vid_stream->user_data = NULL;
     }
     vid_stream->user_data = get_ext_data(vid_stream);
@@ -2989,7 +2979,7 @@ ParseGOP(
   if (next_bits(32, EXT_START_CODE, vid_stream)) {
     flush_bits32;
     if (vid_stream->group.ext_data != NULL) {
-      free(vid_stream->group.ext_data);
+      FREE_IF_NZ (vid_stream->group.ext_data);
       vid_stream->group.ext_data = NULL;
     }
     vid_stream->group.ext_data = get_ext_data(vid_stream);
@@ -2999,7 +2989,7 @@ ParseGOP(
   if (next_bits(32, USER_START_CODE,vid_stream)) {
     flush_bits32;
     if (vid_stream->group.user_data != NULL) {
-      free(vid_stream->group.user_data);
+      FREE_IF_NZ (vid_stream->group.user_data);
       vid_stream->group.user_data = NULL;
     }
     vid_stream->group.user_data = get_ext_data(vid_stream);
@@ -3103,7 +3093,7 @@ ParsePicture(
   /* Get extra bit picture info. */
 
   if (vid_stream->picture.extra_info != NULL) {
-    free(vid_stream->picture.extra_info);
+    FREE_IF_NZ (vid_stream->picture.extra_info);
     vid_stream->picture.extra_info = NULL;
   }
   vid_stream->picture.extra_info = get_extra_bit_info(vid_stream);
@@ -3117,7 +3107,7 @@ ParsePicture(
     flush_bits32;
 
     if (vid_stream->picture.ext_data != NULL) {
-      free(vid_stream->picture.ext_data);
+      FREE_IF_NZ (vid_stream->picture.ext_data);
       vid_stream->picture.ext_data = NULL;
     }
     vid_stream->picture.ext_data = get_ext_data(vid_stream);
@@ -3128,7 +3118,7 @@ ParsePicture(
     flush_bits32;
 
     if (vid_stream->picture.user_data != NULL) {
-      free(vid_stream->picture.user_data);
+      FREE_IF_NZ (vid_stream->picture.user_data);
       vid_stream->picture.user_data = NULL;
     }
     vid_stream->picture.user_data = get_ext_data(vid_stream);
@@ -3199,7 +3189,7 @@ ParseSlice(
   /* Parse off extra bit slice info. */
 
   if (vid_stream->slice.extra_info != NULL) {
-    free(vid_stream->slice.extra_info);
+    FREE_IF_NZ (vid_stream->slice.extra_info);
     vid_stream->slice.extra_info = NULL;
   }
   vid_stream->slice.extra_info = get_extra_bit_info(vid_stream);
@@ -7092,7 +7082,7 @@ int ReadSystemHeader(
     vid_stream->EOF_flag = 1;
     return 1;
   }
-  inputBuffer = (unsigned char *) malloc((unsigned int) headerSize+1);
+  inputBuffer = (unsigned char *) MALLOC((unsigned int) headerSize+1);
   if (inputBuffer == NULL) {
     return 1;
   }
@@ -7146,7 +7136,7 @@ int ReadSystemHeader(
     pos += 3;
   }
   if (inputBuffer != NULL)
-    free(inputBuffer);
+    FREE_IF_NZ (inputBuffer);
   return 0;
 }
 
@@ -7285,12 +7275,12 @@ int ReadPacket(
 	   */
       unsigned int *old = *bs_ptr;
       *max_length = *length_ptr + packetLength/2;
-      *bs_ptr=(unsigned int *)malloc(*max_length*4);
+      *bs_ptr=(unsigned int *)MALLOC(*max_length*4);
       if (*bs_ptr == NULL) {
         return 1;
       }
       memcpy((unsigned char *)*bs_ptr, *buf_ptr, (unsigned int) *length_ptr*4);
-      free(old);
+      FREE_IF_NZ (old);
       *buf_ptr = *bs_ptr;
     } else {
       memcpy((unsigned char *)*bs_ptr, *buf_ptr, (unsigned int) *length_ptr*4);
@@ -7485,22 +7475,22 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
          }
        }
   if (L_tab!=NULL)
-       free((int *)L_tab);
+       FREE_IF_NZ ((int *)L_tab);
     if (Cr_r_tab!=NULL)
-       free ((int *)Cr_r_tab);
+       FREE_IF_NZ ((int *)Cr_r_tab);
     if (Cr_g_tab!=NULL)
-       free ((int *)Cr_g_tab);
+       FREE_IF_NZ ((int *)Cr_g_tab);
     if (Cb_g_tab!=NULL)
-       free ((int *)Cb_g_tab);
+       FREE_IF_NZ ((int *)Cb_g_tab);
     if (Cb_b_tab!=NULL)
-       free ((int *)Cb_b_tab);
+       FREE_IF_NZ ((int *)Cb_b_tab);
 
     if (r_2_pix_alloc!=NULL)
-       free ((long *) r_2_pix_alloc);
+       FREE_IF_NZ ((long *) r_2_pix_alloc);
     if (g_2_pix_alloc!=NULL)
-       free ((long *) g_2_pix_alloc);
+       FREE_IF_NZ ((long *) g_2_pix_alloc);
     if (b_2_pix_alloc!=NULL)
-       free ((long *) b_2_pix_alloc);
+       FREE_IF_NZ ((long *) b_2_pix_alloc);
 
     /* zero these in case we have another mpg file to do */
     L_tab = NULL; Cr_r_tab = NULL; Cr_g_tab = NULL; Cb_g_tab = NULL;Cb_b_tab = NULL;

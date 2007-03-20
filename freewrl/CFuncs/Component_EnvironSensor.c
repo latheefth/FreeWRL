@@ -206,10 +206,10 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 		node->_ichange = node->_change;
 
-		/*  malloc memory (if possible)*/
-		if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(24));
+		/*  MALLOC memory (if possible)*/
+		if (!node->__points) node->__points = MALLOC (sizeof(struct SFColor)*(24));
 		if (!node->__points) {
-			printf ("can not malloc memory for box points\n");
+			printf ("can not MALLOC memory for box points\n");
 			return;
 		}
 

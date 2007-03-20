@@ -89,7 +89,7 @@ static void registerX3DScriptField(int myScriptNumber,int type,int kind, int myF
 	if (ScriptFieldTableSize >= MAXScriptFieldParams) {
 		/* oooh! not enough room at the table */
 		MAXScriptFieldParams += 100; /* arbitrary number */
-		ScriptFieldNames = (struct ScriptFieldStruct*)realloc (ScriptFieldNames, sizeof(*ScriptFieldNames) * MAXScriptFieldParams);
+		ScriptFieldNames = (struct ScriptFieldStruct*)REALLOC (ScriptFieldNames, sizeof(*ScriptFieldNames) * MAXScriptFieldParams);
 	}
 
 	ScriptFieldNames[ScriptFieldTableSize].scriptNumber = myScriptNumber;
@@ -135,7 +135,7 @@ struct X3D_Node *DEFNameIndex (char *name, struct X3D_Node* node) {
 	if (DEFtableSize >= MAXDEFNames) {
 		/* oooh! not enough room at the table */
 		MAXDEFNames += 100; /* arbitrary number */
-		DEFnames = (struct DEFnameStruct*)realloc (DEFnames, sizeof(*DEFnames) * MAXDEFNames);
+		DEFnames = (struct DEFnameStruct*)REALLOC (DEFnames, sizeof(*DEFnames) * MAXDEFNames);
 	}
 
 	DEFnames[DEFtableSize].name = newASCIIString(name);
@@ -519,10 +519,10 @@ static void XMLCALL handleCDATA (void *userData, const char *string, int len) {
 			firstTime = (scriptTextMallocSize == 0);
 			scriptTextMallocSize +=4096;
 			if (firstTime) {
-				scriptText = malloc (scriptTextMallocSize);
+				scriptText = MALLOC (scriptTextMallocSize);
 				scriptText[0] = '\0';
 			} else {
-				scriptText = realloc (scriptText,scriptTextMallocSize);
+				scriptText = REALLOC (scriptText,scriptTextMallocSize);
 			}
 		}
 		memcpy (mydata, string,len);

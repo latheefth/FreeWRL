@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "headers.h"
 
 #ifndef UNUSED
 #define UNUSED(v) ((void) v)
@@ -172,14 +173,13 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
     *pRowbytes = rowbytes = png_get_rowbytes(png_ptr, info_ptr);
     *pChannels = (int)png_get_channels(png_ptr, info_ptr);
 
-    if ((image_data = (uch *)malloc(rowbytes*height)) == NULL) {
+    if ((image_data = (uch *)MALLOC(rowbytes*height)) == NULL) {
         png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
         return NULL;
     }
-    if ((row_pointers = (png_bytepp)malloc(height*sizeof(png_bytep))) == NULL) {
+    if ((row_pointers = (png_bytepp)MALLOC(height*sizeof(png_bytep))) == NULL) {
         png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-        free(image_data);
-        image_data = NULL;
+        FREE_IF_NZ(image_data);
         return NULL;
     }
 
@@ -202,7 +202,7 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
     /* and we're done!  (png_read_end() can be omitted if no processing of
      * post-IDAT text/time/etc. is desired) */
 
-    free(row_pointers);
+    FREE_IF_NZ(row_pointers);
     row_pointers = NULL;
 
     return image_data;
@@ -212,8 +212,7 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
 void readpng_cleanup(int free_image_data)
 {
     if (free_image_data && image_data) {
-        free(image_data);
-        image_data = NULL;
+        FREE_IF_NZ(image_data);
     }
 
     if (png_ptr && info_ptr) {

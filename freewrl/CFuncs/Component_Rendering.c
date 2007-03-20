@@ -136,10 +136,10 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	   create the index for the arrays. Really simple... Used to index
 	   into the coords, so, eg, __vertArr is [0,1,2], which means use
 	   coordinates 0, 1, and 2 */
-	if (node->__vertArr) free ((void *)node->__vertArr);
-	node->__vertArr = malloc (sizeof(GLuint)*(nVertices+1));
+	FREE_IF_NZ ((void *)node->__vertArr);
+	node->__vertArr = MALLOC (sizeof(GLuint)*(nVertices+1));
 	if (!node->__vertArr) {
-		printf ("can not malloc memory for LineSet vertArr\n");
+		printf ("can not MALLOC memory for LineSet vertArr\n");
 		return;
 	}
 	pt = (GLint *)node->__vertArr;
@@ -151,24 +151,24 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* now, lets go through and; 1) copy old vertices into new vertex array; and 
 	   2) create an array of indexes into "__vertArr" for sending to the GL call */
 
-	if (node->__vertIndx) free ((void *)node->__vertIndx);
-	node->__vertIndx = malloc (sizeof(uintptr_t)*(nSegments));
+	FREE_IF_NZ ((void *)node->__vertIndx);
+	node->__vertIndx = MALLOC (sizeof(uintptr_t)*(nSegments));
 	if (!node->__vertIndx) {
-		printf ("can not malloc memory for LineSet vertIndx\n");
+		printf ("can not MALLOC memory for LineSet vertIndx\n");
 		return;
 	}
 
-	if (node->__vertices) free ((void *)node->__vertices);
-	node->__vertices = malloc (sizeof(struct SFColor)*(nVertices+1));
+	FREE_IF_NZ ((void *)node->__vertices);
+	node->__vertices = MALLOC (sizeof(struct SFColor)*(nVertices+1));
 	if (!node->__vertices) {
-		printf ("can not malloc memory for LineSet vertices\n");
+		printf ("can not MALLOC memory for LineSet vertices\n");
 		return;
 	}
 
-	if (node->__vertexCount) free ((void *)node->__vertexCount);
-	node->__vertexCount = malloc (sizeof(int)*(nSegments));
+	FREE_IF_NZ ((void *)node->__vertexCount);
+	node->__vertexCount = MALLOC (sizeof(int)*(nSegments));
 	if (!node->__vertexCount) {
-		printf ("can not malloc memory for LineSet vertexCount\n");
+		printf ("can not MALLOC memory for LineSet vertexCount\n");
 		return;
 	}
 
@@ -209,10 +209,10 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* sanity check the colors, if they exist */
 	if (node->color) {
 		/* we resort the color nodes so that we have an RGBA color node per vertex */
-		if (node->__colours) free ((void *)node->__colours);
-		node->__colours = malloc (sizeof(struct SFColorRGBA)*(nVertices+1));
+		FREE_IF_NZ ((void *)node->__colours);
+		node->__colours = MALLOC (sizeof(struct SFColorRGBA)*(nVertices+1));
 		if (!node->__colours) {
-			printf ("can not malloc memory for LineSet colIndx\n");
+			printf ("can not MALLOC memory for LineSet colIndx\n");
 			return;
 		}
 		newcolors = (struct SFColorRGBA *) node->__colours;
@@ -558,10 +558,10 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	/* create the index for the arrays. Really simple... Used to index
 	   into the coords, so, eg, __vertArr is [0,1,2], which means use
 	   coordinates 0, 1, and 2 */
-	if (node->__vertArr) free ((void *)node->__vertArr);
-	node->__vertArr = malloc (sizeof(GLuint)*(ncoord));
+	FREE_IF_NZ ((void *)node->__vertArr);
+	node->__vertArr = MALLOC (sizeof(GLuint)*(ncoord));
 	if (!node->__vertArr) {
-		printf ("can not malloc memory for LineSet vertArr\n");
+		printf ("can not MALLOC memory for LineSet vertArr\n");
 		return;
 	}
 	pt = (GLint *)node->__vertArr;
@@ -574,10 +574,10 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   the __vertArr array - this gives a starting index for each line
 	   segment The LENGTH of each segment (good question) comes from the
 	   vertexCount parameter of the LineSet node */
-	if (node->__vertIndx) free ((void *)node->__vertIndx);
-	node->__vertIndx = malloc (sizeof(uintptr_t)*(nvertexc));
+	FREE_IF_NZ ((void *)node->__vertIndx);
+	node->__vertIndx = MALLOC (sizeof(uintptr_t)*(nvertexc));
 	if (!node->__vertIndx) {
-		printf ("can not malloc memory for LineSet vertIndx\n");
+		printf ("can not MALLOC memory for LineSet vertIndx\n");
 		return;
 	}
 	c = 0;

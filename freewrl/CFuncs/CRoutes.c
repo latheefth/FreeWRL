@@ -151,7 +151,7 @@ int num_ClockEvents = 0;
 
 /* a Script (JavaScript or CLASS) has given us an event, tell the system of this */
 /* tell this node now needs to redraw  - but only if it is not a script to
-   script route - see CRoutes_Register here, and check for the malloc in that code.
+   script route - see CRoutes_Register here, and check for the MALLOC in that code.
    You should see that the offset is zero, while in real nodes, the offset of user
    accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of
    the node types, eg, X3D_IndexedFaceSet  the first offset is for X3D_Virt :=)
@@ -619,23 +619,18 @@ void AddRemoveChildren (
 	}
 
 	if (ar == 1) {
-		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
+		/* addChildren - now we know how many SFNodes are in this MFNode, lets MALLOC and add */
 
 		/* first, set children to 0, in case render thread comes through here */
 		tn->n = 0;
 
-		newmal = malloc ((oldlen+len)*sizeof(void *));
-
-		if (newmal == 0) {
-			printf ("cant malloc memory for addChildren");
-			return;
-		}
+		newmal = MALLOC ((oldlen+len)*sizeof(void *));
 
 		/* copy the old stuff over */
 		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 
 		/* set up the C structures for this new MFNode addition */
-		free (tn->p);
+		FREE_IF_NZ (tn->p);
 		/* JAS tn->p = &newmal; */
 		tn->p = newmal;
 
@@ -677,14 +672,10 @@ void AddRemoveChildren (
 		/* printf ("end of finding, num_removed is %d\n",num_removed);  */
 
 		if (num_removed > 0) {
-			/* printf ("mallocing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
-			newmal = malloc ((oldlen-num_removed)*sizeof(void *));
+			/* printf ("MALLOCing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
+			newmal = MALLOC ((oldlen-num_removed)*sizeof(void *));
 			tmpptr = newmal;
 			remptr = (uintptr_t*) tn->p;
-			if (newmal == 0) {
-				printf ("cant malloc memory for removeChildren");
-				return;
-			}
 
 			/* go through and copy over anything that is not zero */
 			for (counter = 0; counter < tn->n; counter ++) {
@@ -701,7 +692,7 @@ void AddRemoveChildren (
 
 			/* now, do the move of data */
 			tn->n = 0;
-			free (tn->p);
+			FREE_IF_NZ (tn->p);
 			tn->p = newmal;
 			tn->n = oldlen - num_removed;
 		}
@@ -739,7 +730,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 
 
 
-	/* get size of each element, used for mallocing memory */
+	/* get size of each element, used for MALLOCing memory */
 	switch (eletype) {
 	  case -13: elesize = sizeof (char); break;	/* string   */
 	  case -14:
@@ -769,17 +760,13 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	 * this is a Node type. (eg, add/remove child) */
 
 	if (eletype != -10) {
-		/* do we have to realloc memory? */
+		/* do we have to REALLOC memory? */
 		if (len != tn->n) {
 			/* yep... */
 		        /* printf ("old pointer %d\n",tn->p); */
 			tn->n = 0;	/* gets around possible mem problem */
-			if (tn->p != NULL) free (tn->p);
-			tn->p =(struct SFColor *)malloc ((unsigned)(elesize*len));
-			if (tn->p == NULL) {
-				printf ("can not malloc memory in getMultNumType\n");
-				return;
-			}
+			FREE_IF_NZ (tn->p);
+			tn->p =(struct SFColor *)MALLOC ((unsigned)(elesize*len));
 		}
 
 		/* copy memory over */
@@ -831,7 +818,7 @@ void add_first(void * node) {
 		return;
 	}
 
-	ClockEvents = (struct FirstStruct *)realloc(ClockEvents,sizeof (struct FirstStruct) * (num_ClockEvents+1));
+	ClockEvents = (struct FirstStruct *)REALLOC(ClockEvents,sizeof (struct FirstStruct) * (num_ClockEvents+1));
 	if (ClockEvents == 0) {
 		printf ("can not allocate memory for add_first call\n");
 		num_ClockEvents = 0;
@@ -931,7 +918,7 @@ int JSparamIndex (char *name, char *type) {
 	if (jsnameindex >= MAXJSparamNames) {
 		/* oooh! not enough room at the table */
 		MAXJSparamNames += 100; /* arbitrary number */
-		JSparamnames = (struct CRjsnameStruct*)realloc (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
+		JSparamnames = (struct CRjsnameStruct*)REALLOC (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
 	}
 
 	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
@@ -1009,8 +996,8 @@ void CRoutes_Register(
 		if (length <= 0) {
 			/* this is of an unknown length - most likely a MF* field */
 
-			/* So, this is a Multi_Node, malloc it... */
-			chptr = malloc (sizeof(struct Multi_Node));
+			/* So, this is a Multi_Node, MALLOC it... */
+			chptr = MALLOC (sizeof(struct Multi_Node));
 			Mchptr = (struct Multi_Node *)chptr; 
 
 			#ifdef CRVERBOSE 
@@ -1019,11 +1006,11 @@ void CRoutes_Register(
 			#endif
 
 			Mchptr->n = 0; /* make it 0 nodes long */
-			Mchptr->p = 0; /* it has no memory mallocd here */
+			Mchptr->p = 0; /* it has no memory MALLOCd here */
 			
 		} else {
 			/* this is just a block of memory, eg, it will hold an "SFInt32" */
-			chptr = malloc (sizeof (char) * length);
+			chptr = MALLOC (sizeof (char) * length);
 		}
 		sprintf (buf,"%d:0",chptr);
 		CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
@@ -1035,7 +1022,7 @@ void CRoutes_Register(
 	if (!CRoutes_Initiated) {
 		/* allocate the CRoutes structure */
 		CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
-		CRoutes = (struct CRStruct *)malloc (sizeof (*CRoutes) * CRoutes_MAX);
+		CRoutes = (struct CRStruct *)MALLOC (sizeof (*CRoutes) * CRoutes_MAX);
 
 		CRoutes[0].fromnode = 0;
 		CRoutes[0].fnptr = 0;
@@ -1211,7 +1198,7 @@ void CRoutes_Register(
 	if (CRoutes_Count >= (CRoutes_MAX-2)) {
 		/* printf("WARNING: expanding routing table\n"); */
 		CRoutes_MAX += 50; /* arbitrary expansion number */
-		CRoutes =(struct CRStruct *) realloc (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
+		CRoutes =(struct CRStruct *) REALLOC (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 	}
 
 	CRoutes_Count ++;
@@ -1228,17 +1215,6 @@ void CRoutes_Register(
 			printf ("\n");
 		}
 	#endif
-}
-
-void
-CRoutes_free()
-{
-	int i;
-	for (i = 0; i < CRoutes_Count; i++) {
-		if (CRoutes[i].tonodes != NULL) {
-			free(CRoutes[i].tonodes);
-		}
-	}
 }
 
 /********************************************************************
@@ -1411,7 +1387,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 					printf ("and handle is %d\n",sfnode->handle);
 					#endif
 
-					strp = malloc (100);
+					strp = MALLOC (100);
 					sprintf (strp,"%d",sfnode->handle);
 				} else {
 					strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
@@ -1923,7 +1899,7 @@ void kill_routing (void) {
         if (CRoutes_Initiated) {
                 CRoutes_Count = 0;
                 CRoutes_MAX = 0;
-                free (CRoutes);
+                FREE_IF_NZ (CRoutes);
                 CRoutes_Initiated = FALSE;
         }
 }
@@ -1993,10 +1969,10 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 
 	/* free the old data, if there is old data... */
-	if ((mv3ftn->p) != NULL) free (mv3ftn->p);
+	FREE_IF_NZ (mv3ftn->p);
 
-	/* malloc the toptr */
-	mv3ftn->p = (struct SFColor *)malloc (structlen*fromcount);
+	/* MALLOC the toptr */
+	mv3ftn->p = (struct SFColor *)MALLOC (structlen*fromcount);
 	toptr = (void *)mv3ftn->p;
 
 	/* tell the recipient how many elements are here */

@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
-
+#include "headers.h"
 #include "Vector.h"
 
 /* ************************************************************************** */
@@ -13,11 +13,11 @@
 
 struct Vector* newVector_(size_t elSize, size_t initSize)
 {
- struct Vector* ret=malloc(sizeof(struct Vector));
+ struct Vector* ret=MALLOC(sizeof(struct Vector));
  assert(ret);
  ret->n=0;
  ret->allocn=initSize;
- ret->data=malloc(elSize*ret->allocn);
+ ret->data=MALLOC(elSize*ret->allocn);
  assert(ret->data);
  return ret;
 }
@@ -26,8 +26,8 @@ void deleteVector_(size_t elSize, struct Vector* me)
 {
  assert(me);
  if(me->data)
-  free(me->data);
- free(me);
+  FREE_IF_NZ(me->data);
+ FREE_IF_NZ(me);
 }
 
 /* Ensures there's at least one space free. */
@@ -40,7 +40,7 @@ void vector_ensureSpace_(size_t elSize, struct Vector* me)
    me->allocn*=2;
   else
    me->allocn=1;
-  me->data=realloc(me->data, elSize*me->allocn);
+  me->data=REALLOC(me->data, elSize*me->allocn);
   assert(me->data);
  }
  assert(me->n<me->allocn);
@@ -54,7 +54,7 @@ void vector_shrink_(size_t elSize, struct Vector* me)
  if(me->n==me->allocn) return;
 
  me->allocn=me->n;
- me->data=realloc(me->data, elSize*me->allocn);
+ me->data=REALLOC(me->data, elSize*me->allocn);
  assert(!me->allocn || me->data);
 }
 

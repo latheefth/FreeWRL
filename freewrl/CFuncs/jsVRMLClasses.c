@@ -312,8 +312,8 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 
 	buff_size = LARGESTRING;
 	if ((_buff = (char *)
-		 malloc(buff_size * sizeof(char))) == NULL) {
-			printf( "malloc failed in doMFToString for %s.\n",
+		 MALLOC(buff_size * sizeof(char))) == NULL) {
+			printf( "MALLOC failed in doMFToString for %s.\n",
 					className);
 			return JS_FALSE;
 	}
@@ -360,9 +360,9 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 		}
 
 		if ((_tmp_buff = (char *)
-			 malloc((tmp_buff_len + 1) * sizeof(char))) == NULL) {
+			 MALLOC((tmp_buff_len + 1) * sizeof(char))) == NULL) {
 			printf(
-					"malloc failed for %d in doMFToString for %s.\n",
+					"MALLOC failed for %d in doMFToString for %s.\n",
 					i, className);
 			return JS_FALSE;
 		}
@@ -395,7 +395,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 			}
 		}
 
-		free(_tmp_buff);
+		FREE_IF_NZ (_tmp_buff);
     }
 
 	/* PixelTextures are stored in Javascript as MFInt32s but in FreeWRL/Perl as an ascii string.
@@ -411,7 +411,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	_str = JS_NewStringCopyZ(cx, _buff);
 	*rval = STRING_TO_JSVAL(_str);
 
-	free(_buff);
+	FREE_IF_NZ (_buff);
     return JS_TRUE;
 }
 
@@ -563,8 +563,8 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 
 	if (memchr(_buff, '"', _buff_len) != NULL) {
 		if ((_tmp_vpStr = (char *)
-			 malloc(_buff_len * sizeof(char))) == NULL) {
-			printf( "malloc failed in doMFStringUnquote.\n");
+			 MALLOC(_buff_len * sizeof(char))) == NULL) {
+			printf( "MALLOC failed in doMFStringUnquote.\n");
 			return JS_FALSE;
 		}
 
@@ -583,7 +583,7 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 		_vpStr = JS_NewStringCopyZ(cx, _tmp_vpStr);
 		*vp = STRING_TO_JSVAL(_vpStr);
 
-		free(_tmp_vpStr);
+		FREE_IF_NZ (_tmp_vpStr);
 	}
 
 	return JS_TRUE;
@@ -852,8 +852,8 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 
 
 		/* len + 3 for '\0' and "..." */
-		if ((_new_vp_c = (char *) malloc((len + 3) * sizeof(char))) == NULL) {
-			printf( "malloc failed in setECMANative.\n");
+		if ((_new_vp_c = (char *) MALLOC((len + 3) * sizeof(char))) == NULL) {
+			printf( "MALLOC failed in setECMANative.\n");
 			return JS_FALSE;
 		}
 		/* JAS - do NOT prepend/append double quotes to this string*/
@@ -871,7 +871,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
 				   VERBOSE_OBJ obj, _id_c, _new_vp_c);
 		#endif
-		free(_new_vp_c);
+		FREE_IF_NZ (_new_vp_c);
 	} else {
 		#ifdef JSVRMLCLASSESVERBOSE
 			_vpStr = JS_ValueToString(context, *vp);
@@ -887,8 +887,8 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 	} else {
 		len = STRING;
 	}
-	if ((_buff = (char *) malloc(len * sizeof(char))) == NULL) {
-		printf( "malloc failed in setECMANative.\n");
+	if ((_buff = (char *) MALLOC(len * sizeof(char))) == NULL) {
+		printf( "MALLOC failed in setECMANative.\n");
 		return JS_FALSE;
 	}
 	memset(_buff, 0, len);
@@ -899,7 +899,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 				"JS_SetProperty failed in setECMANative.\n");
 		ret = JS_FALSE;
 	}
-	free(_buff);
+	FREE_IF_NZ (_buff);
 
 	return ret;
 }
@@ -2074,7 +2074,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		case 0:
 			if ((strlen(ptr->X3DString) + 1) > val_len) {
 				ptr->X3DString =
-					(char *) realloc(ptr->X3DString, val_len * sizeof(char));
+					(char *) REALLOC (ptr->X3DString, val_len * sizeof(char));
 			}
 			memset(ptr->X3DString, 0, val_len);
 			memmove(ptr->X3DString, _val_c, val_len);
@@ -2082,7 +2082,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		case 1:
 			if ((strlen(ptr->handle) + 1) > val_len) {
 				ptr->handle =
-					(char *) realloc(ptr->handle, val_len * sizeof(char));
+					(char *) REALLOC (ptr->handle, val_len * sizeof(char));
 			}
 			memset(ptr->handle, 0, val_len);
 			memmove(ptr->handle, _val_c, val_len);

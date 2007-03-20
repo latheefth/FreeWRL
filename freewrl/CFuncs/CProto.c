@@ -17,7 +17,7 @@
 
 struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
 {
- struct OffsetPointer* ret=malloc(sizeof(struct OffsetPointer));
+ struct OffsetPointer* ret=MALLOC(sizeof(struct OffsetPointer));
  assert(ret);
 
  ret->node=node;
@@ -36,7 +36,7 @@ struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
 /* Without default value (event) */
 struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
 {
- struct ProtoFieldDecl* ret=malloc(sizeof(struct ProtoFieldDecl));
+ struct ProtoFieldDecl* ret=MALLOC(sizeof(struct ProtoFieldDecl));
  ret->mode=mode;
  ret->type=type;
  ret->name=name;
@@ -52,7 +52,7 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
  for(i=0; i!=vector_size(me->dests); ++i)
   deleteOffsetPointer(vector_get(struct OffsetPointer*, me->dests, i));
  deleteVector(struct OffsetPointer*, me->dests);
- free(me);
+ FREE_IF_NZ(me);
 }
 
 /* Other members */
@@ -134,7 +134,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, size_t len, int dir)
 {
- struct ProtoRoute* ret=malloc(sizeof(struct ProtoRoute));
+ struct ProtoRoute* ret=MALLOC(sizeof(struct ProtoRoute));
  assert(ret);
 
  ret->from=from;
@@ -156,11 +156,11 @@ struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
 
 struct ProtoDefinition* newProtoDefinition()
 {
- /* Attention!  protoDefinition_copy also sets up data from raw malloc!  Don't
+ /* Attention!  protoDefinition_copy also sets up data from raw MALLOC!  Don't
   * forget to mimic any changes to this method there, too!
   */
 
- struct ProtoDefinition* ret=malloc(sizeof(struct ProtoDefinition));
+ struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
  assert(ret);
  ret->tree=createNewX3DNode(NODE_Group);
  assert(ret->tree);
@@ -180,8 +180,7 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
 {
  /* FIXME:  Not deep-destroying nodes!!! */
  /* If tree is NULL, it is already extracted! */
- if(me->tree)
-  free(me->tree);
+  FREE_IF_NZ (me->tree);
 
  {
   size_t i;
@@ -196,7 +195,7 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
  if(me->innerPtrs)
   deleteVector(void**, me->innerPtrs);
  
- free(me);
+ FREE_IF_NZ (me);
 }
 
 /* Other members */
@@ -230,7 +229,7 @@ void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
 /* Copies the PROTO */
 struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
 {
- struct ProtoDefinition* ret=malloc(sizeof(struct ProtoDefinition));
+ struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
  size_t i;
  assert(ret);
 
@@ -343,7 +342,7 @@ static struct Multi_Int32 DEEPCOPY_mfint32(struct Multi_Int32,
 static vrmlImageT deepcopy_sfimage(vrmlImageT img,
  struct ProtoDefinition* new, struct PointerHash* hash)
 {
- vrmlImageT ret=malloc(sizeof(*img));
+ vrmlImageT ret=MALLOC(sizeof(*img));
  *ret=DEEPCOPY_mfint32(*img, new, hash);
  return ret;
 }
@@ -365,7 +364,7 @@ static vrmlStringT deepcopy_sfstring(vrmlStringT str)
   int i; \
   struct Multi_##stype dest; \
   dest.n=src.n; \
-  dest.p=malloc(sizeof(src.p[0])*src.n); \
+  dest.p=MALLOC(sizeof(src.p[0])*src.n); \
   for(i=0; i!=src.n; ++i) \
    dest.p[i]=DEEPCOPY_sf##type(src.p[i], new, hash); \
   if(new) \
@@ -570,7 +569,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
 
 struct PointerHash* newPointerHash()
 {
- struct PointerHash* ret=malloc(sizeof(struct PointerHash));
+ struct PointerHash* ret=MALLOC(sizeof(struct PointerHash));
  size_t i;
  assert(ret);
 
@@ -586,7 +585,7 @@ void deletePointerHash(struct PointerHash* me)
  for(i=0; i!=POINTER_HASH_SIZE; ++i)
   if(me->data[i])
    deleteVector(struct PointerHashEntry, me->data[i]);
- free(me);
+ FREE_IF_NZ (me);
 }
 
 /* Query the hash */

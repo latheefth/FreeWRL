@@ -52,7 +52,7 @@ void handle_Listener () {
 	/* convert the data to string form, for sending to the EAI java client */
 	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
 
-	/* if this is a MF type, there most likely will be malloc'd memory to free... */
+	/* if this is a MF type, there most likely will be MALLOC'd memory to free... */
 	switch (tp) {
 		case FIELDTYPE_MFColor:
 		case FIELDTYPE_MFColorRGBA:
@@ -65,7 +65,7 @@ void handle_Listener () {
 		case FIELDTYPE_MFVec2f:
 		case FIELDTYPE_MFVec3f: {
 			mfptr = (struct Multi_Node *) EAIListenerData;
-			if (((*mfptr).p) != NULL) free ((*mfptr).p);
+			FREE_IF_NZ ((*mfptr).p);
 		}
 		default: {}
 	}

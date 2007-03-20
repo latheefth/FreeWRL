@@ -282,7 +282,7 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
 	} else if (!(node->load) && ((node->__loadstatus) != 0)) {
 		printf ("InlineLoadControl, removing children\n");
 		node->children.n = 0;
-		free (node->children.p);
+		FREE_IF_NZ (node->children.p);
 		node->__loadstatus = 0;
 	}
 

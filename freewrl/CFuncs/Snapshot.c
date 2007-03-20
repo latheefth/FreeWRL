@@ -131,9 +131,9 @@ void Snapshot () {
 	/* are we sequencing, or just single snapping? */
 	if (!snapsequence) doSnapshot=FALSE;  	/* reset snapshot key */
 
-	/* malloc 3 bytes per pixel */
-	buffer = malloc (3*screenWidth*screenHeight*sizeof(char));
-	if (!buffer) {printf ("malloc error in snapshot, exiting \n"); exit(1); }
+	/* MALLOC 3 bytes per pixel */
+	buffer = MALLOC (3*screenWidth*screenHeight*sizeof(char));
+	if (!buffer) {printf ("MALLOC error in snapshot, exiting \n"); exit(1); }
 
 	/* grab the data */
 	glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
@@ -143,7 +143,7 @@ void Snapshot () {
 	/* save this snapshot */
 	snapRawCount ++;
 	if (snapRawCount > maxSnapImages) {
-		free (buffer);
+		FREE_IF_NZ (buffer);
 		return;
 	}
 
@@ -152,20 +152,20 @@ void Snapshot () {
 	tmpfile = fopen(thisRawFile,"w");
 	if (tmpfile == NULL) {
 		printf ("can not open temp file (%s) for writing\n",thisRawFile);
-		free (buffer);
+		FREE_IF_NZ (buffer);
 		return;
 	}
 
 	if (fwrite(buffer, 1, screenHeight*screenWidth*3, tmpfile) <= 0) {
 		printf ("error writing snapshot to %s, aborting snapshot\n",thisRawFile);
-		free (buffer);
+		FREE_IF_NZ (buffer);
 		return;
 	}
 	fclose (tmpfile);
 
 	/* convert -size 450x300 -depth 8 -flip /tmp/snappedfile.rgb out.png works. */
 
-	free (buffer);
+	FREE_IF_NZ (buffer);
 
 	/* now, if we are doing only 1, convert the raw into the good.... */
 	if (!snapsequence) {

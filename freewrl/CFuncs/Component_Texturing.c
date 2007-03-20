@@ -79,7 +79,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 
 		if (node->__compiledpoint.n == 0) {
 			node->__compiledpoint.n = global_tcin_count;
-			node->__compiledpoint.p = (struct SFVec2f *) malloc (sizeof(float) *2 * global_tcin_count);
+			node->__compiledpoint.p = (struct SFVec2f *) MALLOC (sizeof(float) *2 * global_tcin_count);
 		} 
 	
 		fptr = (float *) node->__compiledpoint.p;

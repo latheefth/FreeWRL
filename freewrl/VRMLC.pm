@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.268  2007/03/20 20:36:10  crc_canada
+# MALLOC/REALLOC macros to check mallocs for errors.
+#
 # Revision 1.267  2007/02/27 13:32:14  crc_canada
 # initialize eventIn fields to a zero value.
 #
@@ -629,7 +632,7 @@ sub gen {
 
 	for (@sortedNodeList) {
 		push @genFuncs2,
-			"		case NODE_$_ : {tmp = malloc (sizeof (struct X3D_$_)); break;}\n";
+			"		case NODE_$_ : {tmp = MALLOC (sizeof (struct X3D_$_)); break;}\n";
 	}
 	push @genFuncs2, "		default: {printf (\"createNewX3DNode = unknown type %d, this will fail\\n\",nt); return NULL;}\n";
 	

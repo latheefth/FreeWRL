@@ -14,7 +14,7 @@
 
 struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name)
 {
- struct FieldDecl* ret=malloc(sizeof(struct FieldDecl));
+ struct FieldDecl* ret=MALLOC(sizeof(struct FieldDecl));
  ret->mode=mode;
  ret->type=type;
  ret->name=name;

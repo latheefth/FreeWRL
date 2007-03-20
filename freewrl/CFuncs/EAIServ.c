@@ -179,9 +179,9 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		/* allocate memory for input buffer */
 		EAIbufcount = 0;
 		EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
-		EAIbuffer = (char *)malloc(EAIbufsize * sizeof (char));
+		EAIbuffer = (char *)MALLOC(EAIbufsize * sizeof (char));
 		if (EAIbuffer == 0) {
-			printf ("can not malloc memory for input buffer in create_EAI\n");
+			printf ("can not MALLOC memory for input buffer in create_EAI\n");
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
@@ -294,7 +294,7 @@ void EAI_send_string(char *str, int lfd){
 	pointer to max size,
 	pointer to socket to listen to
 
- 	return the char pointer - it may have been realloc'd */
+ 	return the char pointer - it may have been REALLOC'd */
 
 
 char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
@@ -358,7 +358,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 			if (((*bfsz) - (*bfct)) < 128) {
 				/* printf ("HAVE TO REALLOC INPUT MEMORY\n"); */
 				(*bfsz) += EAIREADSIZE;
-				bf = (char *)realloc (bf, (unsigned int) (*bfsz));
+				bf = (char *)REALLOC (bf, (unsigned int) (*bfsz));
 			}
 		}
 	} while (retval);

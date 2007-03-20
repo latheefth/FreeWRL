@@ -352,7 +352,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 	int ra;
 	int count;
 	int wantedsize;
-	int mallocdsize;
+	int MallocdSize;
 	
 
 	/* make this a default value */
@@ -375,27 +375,27 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		#endif
 
 		/* and, make a string that we can use to create the javascript object */
-		mallocdsize = 200;
-		xstr = malloc (mallocdsize);
+		MallocdSize = 200;
+		xstr = MALLOC (MallocdSize);
 		strcpy (xstr,"new MFNode(");
 		for (count=0; count<ra; count += 2) {
-			tmpstr = malloc(strlen(_c) + 100);
+			tmpstr = MALLOC(strlen(_c) + 100);
 			sprintf (tmpstr,"new SFNode('%s','%d')",_c,nodarr[count*2+1]);
 			wantedsize = strlen(tmpstr) + strlen(xstr);
-			if (wantedsize > mallocdsize) {
-				mallocdsize = wantedsize +200;
-				xstr = realloc (xstr,mallocdsize);
+			if (wantedsize > MallocdSize) {
+				MallocdSize = wantedsize +200;
+				xstr = REALLOC (xstr,MallocdSize);
 			}
 			
 			
 			strncat (xstr,tmpstr,strlen(tmpstr));
-			free (tmpstr);
+			FREE_IF_NZ (tmpstr);
 		}
 		strcat (xstr,")");
 		
 		/* create this value NOTE: rval is set here. */
 		jsrrunScript(context, obj, xstr, rval);
-		free (xstr);
+		FREE_IF_NZ (xstr);
 
 	} else {
 		printf("\nIncorrect argument format for createVrmlFromString(%s).\n", _c_args);

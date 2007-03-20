@@ -338,7 +338,7 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
     int i;
 
     if(!stepping) {
-	ppoly = (struct pt*) malloc(sizeof(struct pt) * num);
+	ppoly = (struct pt*) MALLOC(sizeof(struct pt) * num);
 
 	/*sqush poly on cylinder cap plane.*/
 	for(i= 0; i < num; i++) {
@@ -400,7 +400,7 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	}
     }
 
-    if(!stepping) free(ppoly);
+    if(!stepping) FREE_IF_NZ (ppoly);
 
     return clippedpolynum;
 }
@@ -428,7 +428,7 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
 #endif
 
     /*allocate data */
-    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num*5 + 4));
+    clippedpoly = (struct pt*) MALLOC(sizeof(struct pt) * (num*5 + 4));
 
     /*if normal not specified, calculate it */
     /* if(n.x == 0 && n.y == 0 && n.z == 0) */
@@ -529,7 +529,7 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
 	result = zero;
 
     /*free alloc'd data */
-    free(clippedpoly);
+    FREE_IF_NZ (clippedpoly);
 
     return result;
 }
@@ -569,7 +569,7 @@ struct pt get_poly_step_disp(double y1, double y2, double r, struct pt* p, int n
 
 
     /*allocate data */
-    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num*3+4));
+    clippedpoly = (struct pt*) MALLOC(sizeof(struct pt) * (num*3+4));
 
     clippedpolynum = helper_poly_clip_cap(clippedpoly, clippedpolynum, p, num, r, n, y1, 1 /*stepping true*/ );
 
@@ -586,7 +586,7 @@ struct pt get_poly_step_disp(double y1, double y2, double r, struct pt* p, int n
     }
 
     /*free alloc'd data */
-    free(clippedpoly);
+    FREE_IF_NZ (clippedpoly);
 
     /*diplace only if displacement completely clears polygon*/
     if(dmax > y2)
@@ -631,7 +631,7 @@ struct pt get_poly_normal_disp_with_sphere(double r, struct pt* p, int num, stru
     get_poly_mindisp = 1E90;
 
     /*allocate data */
-    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num + 1));
+    clippedpoly = (struct pt*) MALLOC(sizeof(struct pt) * (num + 1));
 
     /*if normal not specified, calculate it */
     /* if(n.x == 0 && n.y == 0 && n.z == 0) */
@@ -683,7 +683,7 @@ struct pt get_poly_normal_disp_with_sphere(double r, struct pt* p, int num, stru
 	result = zero;
 
     /*free alloc'd data */
-    free(clippedpoly);
+    FREE_IF_NZ (clippedpoly);
 
     return result;
 }
@@ -706,7 +706,7 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
 	return zero;
 #endif
     /*allocate data */
-    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num + 1));
+    clippedpoly = (struct pt*) MALLOC(sizeof(struct pt) * (num + 1));
 
     /*if normal not specified, calculate it */
     /* if(n.x == 0 && n.y == 0 && n.z == 0) */
@@ -759,7 +759,7 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
 	result = zero;
 
     /*free alloc'd data */
-    free(clippedpoly);
+    FREE_IF_NZ (clippedpoly);
 
     return result;
 }
@@ -930,7 +930,7 @@ struct pt get_line_step_disp(double y1, double y2, double r, struct pt p1, struc
 	return zero;
 
     /*allocate data */
-    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (10));
+    clippedpoly = (struct pt*) MALLOC(sizeof(struct pt) * (10));
 
     clippedpolynum = helper_line_clip_cap(clippedpoly, clippedpolynum, p1, p2, r, n, y1,1 );
 
@@ -947,7 +947,7 @@ struct pt get_line_step_disp(double y1, double y2, double r, struct pt p1, struc
     }
 
     /*free alloc'd data */
-    free(clippedpoly);
+    FREE_IF_NZ (clippedpoly);
 
     /*diplace only if displacement completely clears line*/
     if(dmax > y2)
@@ -1421,8 +1421,8 @@ struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_
     }
 
     /*transform all points to viewer space */
-    /*  orig - JAS newc = (float*)malloc((pr.ntri)*9*sizeof(float));*/
-    newc = (float*)malloc(maxc*9*sizeof(float));
+    /*  orig - JAS newc = (float*)MALLOC((pr.ntri)*9*sizeof(float));*/
+    newc = (float*)MALLOC(maxc*9*sizeof(float));
     for(i = 0; i < pr.ntri*3; i++) {
 	transformf(&newc[pr.cindex[i]*3],&pr.coord[pr.cindex[i]*3],mat);
    }
@@ -1430,15 +1430,15 @@ struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_
     pr.coord = newc; /*remember, coords are only replaced in our local copy of PolyRep */
 
     /*pre-calculate face normals */
-    normals = (struct pt*)malloc((pr.ntri)*sizeof(struct pt));
+    normals = (struct pt*)MALLOC((pr.ntri)*sizeof(struct pt));
     for(i = 0; i < pr.ntri; i++) {
 	polynormalf(&normals[i],&pr.coord[pr.cindex[i*3]*3],&pr.coord[pr.cindex[i*3+1]*3],&pr.coord[pr.cindex[i*3+2]*3]);
     }
     res = polyrep_disp_rec(y1,y2,ystep,r,&pr,normals,res,flags);
 
     /*free! */
-    free(normals);
-    free(newc);
+    FREE_IF_NZ (normals);
+    FREE_IF_NZ (newc);
     pr.coord = 0;
 
     return res;
@@ -1519,7 +1519,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, stru
     }
 
     /*transform all points to viewer space */
-    newc = (float*)malloc(maxc*9*sizeof(float));
+    newc = (float*)MALLOC(maxc*9*sizeof(float));
 
     for(i = 0; i < pr.ntri*3; i++) {
 	transformf(&newc[pr.cindex[i]*3],&pr.coord[pr.cindex[i]*3],mat);
@@ -1536,7 +1536,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, stru
 
 
     /*free! */
-    free(newc);
+    FREE_IF_NZ (newc);
 
     return res;
 
@@ -1588,7 +1588,7 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
     if(!pr.cindex || !pr.coord)
 	printf("ZERO PTR! WE ARE DOOMED!\n");
 
-    newc = (float*)malloc(xdim*zdim*3*sizeof(float)); /* big chunk will be uninitialized.*/
+    newc = (float*)MALLOC(xdim*zdim*3*sizeof(float)); /* big chunk will be uninitialized.*/
     /*  transform points that will be used.*/
     for(z = z1; z <= z2; z++)
 	for(x = x1; x <= x2; x++) {
@@ -1661,7 +1661,7 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
 
 	}
 
-    free(newc);
+    FREE_IF_NZ (newc);
 
     /*check wether we should frontface, or backface.
      */

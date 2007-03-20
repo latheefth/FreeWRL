@@ -24,7 +24,7 @@ const char* JS_PROTOCOLS[]={
 
 struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
 {
- struct ScriptFieldDecl* ret=malloc(sizeof(struct ScriptFieldDecl));
+ struct ScriptFieldDecl* ret=MALLOC(sizeof(struct ScriptFieldDecl));
  assert(ret);
 
  assert(mod!=PKW_exposedField);
@@ -46,7 +46,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
 void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 {
  deleteFieldDecl(me->fieldDecl);
- free(me);
+ FREE_IF_NZ (me);
 }
 
 /* Other members */
@@ -91,7 +91,7 @@ uintptr_t nextScriptHandle (void) {uintptr_t retval; retval = handleCnt; handleC
 
 struct Script* newScript()
 {
- struct Script* ret=malloc(sizeof(struct Script));
+ struct Script* ret=MALLOC(sizeof(struct Script));
  assert(ret);
 
  ret->num=nextScriptHandle();
@@ -111,7 +111,7 @@ void deleteScript(struct Script* me)
   deleteScriptFieldDecl(vector_get(struct ScriptFieldDecl*, me->fields, i));
  deleteVector(struct ScriptFieldDecl*, me->fields);
  
- free(me);
+ FREE_IF_NZ (me);
  /* FIXME:  JS-handle is not freed! */
 }
 

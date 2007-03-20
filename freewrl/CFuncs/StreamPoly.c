@@ -144,27 +144,27 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	if MUST_GENERATE_TEXTURES {
 		#ifdef STREAM_POLY_VERBOSE
-		printf ("mustGenerateTextures, mallocing newtc\n");
+		printf ("mustGenerateTextures, MALLOCing newtc\n");
 		#endif
 
-		newtc = (float *) malloc (sizeof (float)*2*r->ntri*3);
+		newtc = (float *) MALLOC (sizeof (float)*2*r->ntri*3);
 	} else {
-		newtc = 0;  	/*  unless we have to use it; look for malloc below*/
+		newtc = 0;  	/*  unless we have to use it; look for MALLOC below*/
 	}
 
 	newcolors=0;	/*  only if we have colours*/
 
-	/* malloc required memory */
-	newcindex = (int*)malloc (sizeof (int)*r->ntri*3);
+	/* MALLOC required memory */
+	newcindex = (int*)MALLOC (sizeof (int)*r->ntri*3);
 	if (!newcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
-	newtcindex = (int*)malloc (sizeof (int)*r->ntri*3);
+	newtcindex = (int*)MALLOC (sizeof (int)*r->ntri*3);
 	if (!newtcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
-	newpoints = (struct SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
+	newpoints = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
 	if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
 	if ((nnormals) || (r->normal)) {
-		newnorms = (struct SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
+		newnorms = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
 		if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 	} else newnorms = 0;
 
@@ -172,7 +172,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	/* if we have colours, make up a new structure for them to stream to, and also
 	   copy pointers to ensure that we index through colorRGBAs properly. */
 	if (hasc) {
-		newcolors = (struct SFColorRGBA*)malloc (sizeof (struct SFColorRGBA)*r->ntri*3);
+		newcolors = (struct SFColorRGBA*)MALLOC (sizeof (struct SFColorRGBA)*r->ntri*3);
 		oldColorsRGBA = (struct SFColorRGBA*) colors;
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}

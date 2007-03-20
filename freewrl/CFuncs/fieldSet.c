@@ -670,7 +670,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	int rv; /* temp for sscanf return vals */
 
 
-	/* get size of each element, used for mallocing memory */
+	/* get size of each element, used for MALLOCing memory */
 	if (eletype == 0) elesize = sizeof (int);		/* integer */
 	else if (eletype == 5) elesize = sizeof (double);	/* doubles. */
 	else elesize = sizeof (float)*eletype;			/* 1, 2, 3 or 4 floats per element. */
@@ -697,13 +697,13 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		tn->n = 0;
 		/* yep... */
 			/* printf ("old pointer %d\n",tn->p); */
-		if (tn->p != NULL) free (tn->p);
+		FREE_IF_NZ (tn->p);
 		#ifdef SETFIELDVERBOSE 
-		printf ("mallocing memory for elesize %d len %d\n",elesize,len);
+		printf ("MALLOCing memory for elesize %d len %d\n",elesize,len);
 		#endif
-		tn->p = (struct SFColor *)malloc ((unsigned)(elesize*len));
+		tn->p = (struct SFColor *)MALLOC ((unsigned)(elesize*len));
 		if (tn->p == NULL) {
-			printf ("can not malloc memory in getJSMultiNumType\n");
+			printf ("can not MALLOC memory in getJSMultiNumType\n");
 			return;
 		}
 	}
@@ -782,7 +782,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	if (newlen > oldlen) {
 		oldp = to->p; /* same as svptr, assigned above */
 		to->n = newlen;
-		to->p = (struct Uni_String**)malloc(newlen * sizeof(to->p));
+		to->p = (struct Uni_String**)MALLOC(newlen * sizeof(to->p));
 		newp = to->p;
 
 		/* copy old values over */
@@ -796,14 +796,14 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		/* zero new entries */
 		for (count = oldlen; count < newlen; count ++) {
 			/* make the new SV */
-			*newp = (struct Uni_String *)malloc (sizeof (struct Uni_String));
+			*newp = (struct Uni_String *)MALLOC (sizeof (struct Uni_String));
 			
 
 			/* now, make it point to a blank string */
 			*newp = newASCIIString("");
 			newp ++;
 		}
-		free (svptr);
+		FREE_IF_NZ (svptr);
 		svptr = to->p;
 	}
 	/* printf ("verifying structure here\n");
@@ -833,7 +833,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 		/*  if the strings are different... */
 		if (strcmp(valStr,OldvalStr) != 0) {
-			/* malloc a new string, of correct len for terminator */
+			/* MALLOC a new string, of correct len for terminator */
 			svptr[i] =  newASCIIString(valStr);
 		}
 	}
@@ -898,11 +898,11 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 	/* printf ("newlen HERE is %d\n",newlen); */
 
 	/* create the list to send to the AddRemoveChildren function */
-	newmal = malloc (newlen*sizeof(void *));
+	newmal = MALLOC (newlen*sizeof(void *));
 	tmpptr = (uintptr_t*)newmal;
 
 	if (newmal == 0) {
-		printf ("cant malloc memory for addChildren");
+		printf ("cant MALLOC memory for addChildren");
 		return;
 	}
 
@@ -942,7 +942,7 @@ void SetMemory (int type, void *destptr, void *srcptr, int len) {
 		/* printf ("SetMemory was %d ",mp->n); */
 		mp->n=0;
 		FREE_IF_NZ(mp->p);
-		mp->p = malloc(len);
+		mp->p = MALLOC(len);
 		memcpy (mp->p,srcptr,len);
 		mp->n = len /(returnElementLength(type)*returnElementRowSize(type));
 		/* printf (" is %d\n ",mp->n); */
@@ -985,7 +985,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 		/* printf ("have to expand...\n"); */
 		oldp = to->p; /* same as oldsvptr, assigned above */
 		to->n = newlen;
-		to->p =(struct Uni_String **) malloc(newlen * sizeof(to->p));
+		to->p =(struct Uni_String **) MALLOC(newlen * sizeof(to->p));
 		newp = to->p;
 		/* printf ("newp is %d, size %d\n",newp, newlen * sizeof(to->p)); */
 
@@ -1000,13 +1000,13 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 		for (count = oldlen; count < newlen; count ++) {
 			/* printf ("zeroing %d\n",count); */
 			/* make the new SV */
-			*newp = (struct Uni_String *)malloc (sizeof (struct Uni_String));
+			*newp = (struct Uni_String *)MALLOC (sizeof (struct Uni_String));
 
 			/* now, make it point to a blank string */
 			*newp = newASCIIString("");
 			newp++;
 		}
-		free (oldsvptr);
+		FREE_IF_NZ (oldsvptr);
 		oldsvptr = to->p;
 	}
 	/*
@@ -1157,7 +1157,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			  len = bufsz;
 		  }
 
-		tmpbuf = (float *) malloc (len);
+		tmpbuf = (float *) MALLOC (len);
 		fp = (float *) tmpbuf;
 		ip = (int *) tmpbuf;
 		for (count = 0; count < *quant; count++) {
@@ -1181,8 +1181,8 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		  if(NULL != tmpbuf) memcpy (memptr,tmpbuf,len);
 		  else perror("ScanValtoBuffer: tmpbuf NULL!");
 
-		  /* free the memory malloc'd in Alberto's code */
-		  free (tmpbuf);
+		  /* free the memory MALLOC'd in Alberto's code */
+		  FREE_IF_NZ (tmpbuf);
 		  break;
 	    }
 
@@ -1236,7 +1236,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			MFStringptr->n = maxele;
 			FREE_IF_NZ (MFStringptr->p);
 
-			MFStringptr->p = (struct Uni_String **)malloc (maxele * sizeof(MFStringptr->p));
+			MFStringptr->p = (struct Uni_String **)MALLOC (maxele * sizeof(MFStringptr->p));
 			newp = MFStringptr->p;
 	
 			/* scan through EAI string, extract strings, etc, etc.*/

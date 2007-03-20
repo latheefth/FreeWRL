@@ -707,17 +707,12 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 	if (strcmp(ctmp,SYSTEMROOTNODE)) {
 
 		/* nope, lets see if we have it, or if we need to ask Perl for it */
-		EAINodeTable = (struct NodeTableStruct *)realloc(EAINodeTable,sizeof (struct NodeTableStruct) * (num_EAINodeTable+1));
-		if (EAINodeTable == 0) {
-			printf ("can not allocate memory for getnode call\n");
-			num_EAINodeTable = 0;
-		}
-
+		EAINodeTable = (struct NodeTableStruct *)REALLOC(EAINodeTable,sizeof (struct NodeTableStruct) * (num_EAINodeTable+1));
 		EAINodeTable[num_EAINodeTable].nodePtr = EAI_GetNode(ctmp);
 		
 
 		/* now, put the function pointer and data pointer into the structure entry */
-		EAINodeTable[num_EAINodeTable].nodeName = malloc (sizeof (char) * mystrlen+2);
+		EAINodeTable[num_EAINodeTable].nodeName = MALLOC (sizeof (char) * mystrlen+2);
 		memcpy (EAINodeTable[num_EAINodeTable].nodeName, ctmp, mystrlen+1);
 
 		sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
@@ -939,9 +934,9 @@ void createLoadURL(char *bufptr) {
 	/* now, we should be at the strings. */
 	bufptr--;
 
-	/* malloc the sizes required */
-	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = malloc(EAI_AnchorNode.url.n * sizeof (struct Uni_String));
-	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = malloc(EAI_AnchorNode.parameter.n * sizeof (struct Uni_String));
+	/* MALLOC the sizes required */
+	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = MALLOC(EAI_AnchorNode.url.n * sizeof (struct Uni_String));
+	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = MALLOC(EAI_AnchorNode.parameter.n * sizeof (struct Uni_String));
 
 	for (count=0; count<EAI_AnchorNode.url.n; count++) {
 		bufptr += strlen(strbrk);

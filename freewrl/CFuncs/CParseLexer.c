@@ -51,7 +51,7 @@ struct Vector* user_eventOut=NULL;
 
 struct VRMLLexer* newLexer()
 {
- struct VRMLLexer* ret=malloc(sizeof(struct VRMLLexer));
+ struct VRMLLexer* ret=MALLOC(sizeof(struct VRMLLexer));
 
  ret->nextIn=NULL;
  ret->curID=NULL;
@@ -73,9 +73,8 @@ struct VRMLLexer* newLexer()
 
 void deleteLexer(struct VRMLLexer* me)
 {
- if(me->curID)
-  free(me->curID);
- free(me);
+ FREE_IF_NZ (me->curID);
+ FREE_IF_NZ (me);
 }
 
 static void lexer_scopeOut_(Stack*);
@@ -91,7 +90,7 @@ void lexer_destroyIdVector(struct Vector* v)
  size_t i;
  assert(v);
  for(i=0; i!=vector_size(v); ++i)
-  free(vector_get(char*, v, i));
+  FREE_IF_NZ (vector_get(char*, v, i));
  deleteVector(char*, v);
 }
 
@@ -134,7 +133,7 @@ static void lexer_scopeOut_(Stack* s)
  assert(!stack_empty(s));
 
  for(i=0; i!=vector_size(stack_top(struct Vector*, s)); ++i)
-  free(vector_get(char*, stack_top(struct Vector*, s), i));
+  FREE_IF_NZ (vector_get(char*, stack_top(struct Vector*, s), i));
  deleteVector(char*, stack_top(struct Vector*, s));
  stack_pop(struct Vector*, s);
 }
@@ -156,7 +155,7 @@ void lexer_scopeOut_PROTO()
 {
  while(vector_size(userNodeTypesVec)>stack_top(size_t, userNodeTypesStack))
  {
-  free(vector_back(char*, userNodeTypesVec));
+  FREE_IF_NZ (vector_back(char*, userNodeTypesVec));
   vector_popBack(char*, userNodeTypesVec);
  }
  stack_pop(size_t, userNodeTypesStack);
@@ -208,7 +207,7 @@ breakIdLoop:
 
  assert(strlen(buf)==(cur-buf));
  assert(!me->curID);
- me->curID=malloc(sizeof(char)*(cur-buf+1));
+ me->curID=MALLOC(sizeof(char)*(cur-buf+1));
 
  strcpy(me->curID, buf);
  return TRUE;
@@ -222,8 +221,7 @@ BOOL lexer_keyword(struct VRMLLexer* me, indexT kw)
 
  if(!strcmp(me->curID, KEYWORDS[kw]))
  {
-  free(me->curID);
-  me->curID=NULL;
+  FREE_IF_NZ (me->curID);
   return TRUE;
  }
 
@@ -251,8 +249,7 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
  if(lexer_specialID_string(me, retB, retU, builtIn, builtInCount, user,
   me->curID))
  {
-  free(me->curID);
-  me->curID=NULL;
+  FREE_IF_NZ (me->curID);
   return TRUE;
  }
 
@@ -320,8 +317,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
   for(i=0; i!=vector_size(vec); ++i)
    if(!strcmp(me->curID, vector_get(const char*, vec, i)))
    {
-    free(me->curID);
-    me->curID=NULL;
+    FREE_IF_NZ (me->curID);
     *ret=i;
     return TRUE;
    }
@@ -380,8 +376,7 @@ BOOL lexer_eventIn(struct VRMLLexer* me,
   if(lexer_specialID_string(me, rBE, rUE,
    EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, id))
   {
-   free(me->curID);
-   me->curID=NULL;
+   FREE_IF_NZ (me->curID);
    found=TRUE;
   }
  }
@@ -447,8 +442,7 @@ BOOL lexer_eventOut(struct VRMLLexer* me,
   if(lexer_specialID_string(me, rBE, rUE,
    EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, begId))
   {
-   free(me->curID);
-   me->curID=NULL;
+   FREE_IF_NZ (me->curID);
    found=TRUE;
   } else /* Wrong, revert the chop-off */
    curId[1]=*begSuf;
@@ -485,8 +479,7 @@ BOOL lexer_field(struct VRMLLexer* me,
 
  if(found)
  {
-  free(me->curID);
-  me->curID=NULL;
+  FREE_IF_NZ (me->curID);
  }
 
  return found;
@@ -744,7 +737,7 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
  }
 
  /* Set up buffer */
- buf=malloc(sizeof(*buf)*bufLen);
+ buf=MALLOC(sizeof(*buf)*bufLen);
  assert(buf);
 
  /* Main processing loop */
@@ -754,7 +747,7 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
   if(cur+1==bufLen)
   {
    bufLen*=2;
-   buf=realloc(buf, sizeof(*buf)*bufLen);
+   buf=REALLOC(buf, sizeof(*buf)*bufLen);
   }
   assert(cur+1<bufLen);
 
@@ -788,7 +781,7 @@ breakStringLoop:
  buf[cur]=0;
 
  *ret=newASCIIString(buf);
- free(buf);
+ FREE_IF_NZ (buf);
  return TRUE;
 }
 

@@ -28,8 +28,6 @@ int fullscreen = 0;
 #endif
 
 
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
-
 /* lights status. Light 0 is the headlight */
 static int lights[8];
 
@@ -483,16 +481,16 @@ void kill_FreeWRLPTR (void * par) {
 	/* cant do this because we might be DEF/USEd 
 	FREE_IF_NZ(par);
 	*/
-/* cant even do this - just ignore for now, because reallocing to zero
+/* cant even do this - just ignore for now, because REALLOCing to zero
    twice fails... 
-	rv=realloc (par,1); 
+	rv=REALLOC (par,1); 
 	#ifdef KILLVERBOSE
-	printf ("\treallocd to zero size\n");
+	printf ("\tREALLOCd to zero size\n");
 	#endif
 */
 }
 
-/* go through the nodes from the root, and remove all malloc'd memory */
+/* go through the nodes from the root, and remove all MALLOC'd memory */
 
 void kill_rendering(void *thisnode) {
 	struct X3D_Group *rn;
@@ -1005,7 +1003,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
 	/* consoleMessage - ok, not exactly a kill, more of a reset */
 	consMsgCount = 0;
 
-	/* occlusion testing - zero total count, but keep malloc'd memory around */
+	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
 	#ifdef OCCLUSION
 	zeroOcclusion();
 	#endif

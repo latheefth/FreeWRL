@@ -19,6 +19,21 @@
 /* get the definitions from the command line */
 #include "vrmlconf.h"
 
+void *freewrlMalloc(int line, char *file, size_t sz);
+void *freewrlRealloc (int line, char *file, void *ptr, size_t size);
+#define MALLOC(sz) FWMALLOC (__LINE__,__FILE__,sz)
+#define FWMALLOC(l,f,sz) freewrlMalloc(l,f,sz)
+#define REALLOC(a,b) freewrlRealloc(__LINE__,__FILE__,a,b)
+#ifdef DEBUG_MALLOC
+	/* free a malloc'd pointer */
+	void freewrlFree(int line, char *file, void *a);
+	#define FREE_IF_NZ(a) if(a) {freewrlFree(__LINE__,__FILE__,a); a = 0;}
+
+#else 
+	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
+#endif
+
+
 /* Perl was used for parsing. The runtime ideas work very well - so lets just try and keep
 them around */
 
@@ -93,9 +108,6 @@ extern struct CRStruct *CRoutes;
 
 /* display the BoundingBoxen */
 #undef DISPLAYBOUNDINGBOX
-
-/* free a malloc'd pointer */
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
 /* rendering constants used in SceneGraph, etc. */
 #define VF_Viewpoint 	0x0001
@@ -757,7 +769,7 @@ extern int checkNetworkFile(char *fn);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
-void mpg_main(const char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
+void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 
 

@@ -508,10 +508,9 @@ void add_parent(void *node_, void *parent_) {
 		node->_nparents = 0; /* for possible threading issues */
 		node->_nparalloc += 10;
 		if (node->_parents == NULL)  {
-			node->_parents = (void **)malloc(sizeof(node->_parents[0])* node->_nparalloc) ;
+			node->_parents = (void **)MALLOC(sizeof(node->_parents[0])* node->_nparalloc) ;
 		} else {
-		node->_parents =
-			(void **)realloc(node->_parents, sizeof(node->_parents[0])*
+		node->_parents = (void **)REALLOC(node->_parents, sizeof(node->_parents[0])*
 							node->_nparalloc) ;
 		}
 	}

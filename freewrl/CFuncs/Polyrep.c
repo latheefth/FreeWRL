@@ -1007,7 +1007,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
 
-		p->_intern = malloc(sizeof(struct X3D_PolyRep));
+		p->_intern = MALLOC(sizeof(struct X3D_PolyRep));
 		if (!(p->_intern)) 
 			freewrlDie("Not enough memory to compile_polyrep... ;(");
 

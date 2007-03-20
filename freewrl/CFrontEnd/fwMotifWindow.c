@@ -773,13 +773,13 @@ void setConsoleMessage (char *str) {
 			ol = 0;
 			if (consMsg != NULL) ol = strlen(consMsg);
 			nl = strlen(str);
-			tptr = malloc (ol+nl+10);
+			tptr = MALLOC (ol+nl+10);
 			tptr[0] = '\0';
 			if (ol>0) strcat (tptr,consMsg);
 			strcat (tptr,str);
 			
 			/* copy old string, if it exists */
-			if (consMsg != NULL) free (consMsg);
+			FREE_IF_NZ (consMsg);
 			consMsg = tptr;
 			consmsgChanged = TRUE;
 		#endif

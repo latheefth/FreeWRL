@@ -28,12 +28,12 @@ void compile_Box (struct X3D_Box *node) {
 
 	MARK_NODE_COMPILED
 
-	/*  malloc memory (if possible)*/
-	if (!node->__points) ptr = malloc (sizeof(struct SFColor)*(24));
+	/*  MALLOC memory (if possible)*/
+	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor)*(24));
 	else ptr = node->__points;
 
 	if (!ptr) {
-		printf ("can not malloc memory for box points\n");
+		printf ("can not MALLOC memory for box points\n");
 		return;
 	}
 
@@ -109,13 +109,13 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 	/* use node->__points as compile completed flag for threading */
 
-	/*  malloc memory (if possible)*/
-	if (!node->__points) tmpptr = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
+	/*  MALLOC memory (if possible)*/
+	if (!node->__points) tmpptr = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+4));
 	else tmpptr = node->__points;
 
-	if (!node->__normals) node->__normals = malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
+	if (!node->__normals) node->__normals = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+1));
 	if ((!node->__normals) || (!tmpptr)) {
-		printf ("error mallocing memory for Cylinder\n");
+		printf ("error MALLOCing memory for Cylinder\n");
 		return;
 	}
 	/*  now, create the vertices; this is a quad, so each face = 4 points*/
@@ -211,17 +211,17 @@ void compile_Cone (struct X3D_Cone *node) {
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
-	/*  malloc memory (if possible)*/
-	if (!node->__botpoints) node->__botpoints = malloc (sizeof(struct SFColor)*(CONEDIV+3));
-	if (!node->__sidepoints) node->__sidepoints = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+	/*  MALLOC memory (if possible)*/
+	if (!node->__botpoints) node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
+	if (!node->__sidepoints) node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
 
 	/* use normals for compiled flag for threading */
 
-	if (!node->__normals) ptr = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+	if (!node->__normals) ptr = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
 	else ptr = node->__normals;
 	
 	if ((!ptr) || (!node->__botpoints) || (!node->__sidepoints)) {
-		printf ("failure mallocing more memory for Cone rendering\n");
+		printf ("failure MALLOCing more memory for Cone rendering\n");
 		return;
 	}
 
@@ -255,7 +255,7 @@ void compile_Cone (struct X3D_Cone *node) {
 	/*  wrap bottom point around once again... ie, final right point = initial left point*/
 	memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
 
-	/*  Side Normals - note, normals for faces doubled - see malloc above*/
+	/*  Side Normals - note, normals for faces doubled - see MALLOC above*/
 	/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
 	norm = (struct SFColor *)ptr;
 	for (i=0; i<=CONEDIV; i++) {
@@ -354,13 +354,13 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
 
-	/*  malloc memory (if possible)*/
+	/*  MALLOC memory (if possible)*/
 	/*  2 vertexes per points. (+1, to loop around and close structure)*/
-	if (!node->__points) ptr = malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
+	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
 	else ptr = node->__points;
 
 	if (!ptr) {
-		printf ("can not malloc memory in Sphere\n");
+		printf ("can not MALLOC memory in Sphere\n");
 		return;
 	}
 	pts = (struct SFColor *) ptr;

@@ -243,7 +243,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    int startattrib=0;
    int *attrib_mem;
 
-   attrib_mem=(int *)malloc(len*sizeof(int)+sizeof(default_attributes0));
+   attrib_mem=(int *)MALLOC (len*sizeof(int)+sizeof(default_attributes0));
 
 
    quadbuff_stereo_mode=0;
@@ -293,13 +293,13 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 	    /* save the display depth for snapshots, etc */
 	    displayDepth = legal_depth_list[idepth];
 
-	    free(attrib_mem);
+	    FREE_IF_NZ (attrib_mem);
 	    return vi;
 	    }
 	 }
       }
    }
-   free(attrib_mem);
+   FREE_IF_NZ(attrib_mem);
    return(NULL);
 }
 

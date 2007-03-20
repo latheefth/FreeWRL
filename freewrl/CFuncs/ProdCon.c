@@ -235,7 +235,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 }
 
 
-/* filename is malloc'd, combine pspath and thisurl to make an
+/* filename is MALLOC'd, combine pspath and thisurl to make an
    absolute file name */
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
@@ -409,8 +409,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, i
 	psp.retarr = retarr;
 	psp.retarrsize = retarrsize;
 	/* copy over the command */
-	psp.inp = (char *)malloc (strlen(inputstring)+2);
-	if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n");}
+	psp.inp = (char *)MALLOC (strlen(inputstring)+2);
 	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
 
 	/* send data to Perl Interpreter */
@@ -441,8 +440,7 @@ void EAI_readNewWorld(char *inputstring) {
     psp.zeroBind = FALSE;
     psp.bind = TRUE; /* should we issue a set_bind? */
     /* copy over the command */
-    psp.inp  = (char *)malloc (strlen(inputstring)+2);
-    if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n"); }
+    psp.inp  = (char *)MALLOC (strlen(inputstring)+2);
     memcpy (psp.inp,inputstring,strlen(inputstring)+1);
 
 	/* send data to Perl Interpreter */
@@ -472,7 +470,7 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 	/* printf ("inputParse, past WAIT_WHILE_PERL_BUSY in %d\n",pthread_self()); */
 
-	/* copy the data over; malloc and copy input string */
+	/* copy the data over; MALLOC and copy input string */
 	psp.comp = complete;
 	psp.type = type;
 	psp.retarr = NULL;
@@ -482,9 +480,7 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 	psp.bind = bind; /* should we issue a set_bind? */
 	psp.zeroBind = zeroBind; /* should we zero bindables? */
 
-	psp.inp = (char *)malloc (strlen(inp)+2);
-
-	if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n");}
+	psp.inp = (char *)MALLOC (strlen(inp)+2);
 	memcpy (psp.inp,inp,strlen(inp)+1);
 
 	/* send data to Perl Interpreter */
@@ -571,8 +567,8 @@ void _inputParseThread(void) {
 		}
 
 		/* finished this loop, free data */
-		if (psp.inp) free (psp.inp);
-		if (psp.path) free (psp.path);
+		FREE_IF_NZ (psp.inp);
+		FREE_IF_NZ (psp.path);
 
 		*psp.comp = 1;
 		URLLoaded=TRUE;
@@ -607,11 +603,7 @@ void addToNode (void *rc, int offs, void *newNode) {
 	par->n = 0; /* temporary, in case render thread goes here */
 
 	newlen=1;
-	newmal = (void **)malloc ((oldlen+newlen)*sizeof(void **));
-	if (newmal == 0) {
-		printf ("cant malloc memory for addChildren");
-		return;
-	}
+	newmal = (void **)MALLOC ((oldlen+newlen)*sizeof(void **));
 
 	/* copy the old stuff over */
 	if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(void **));
@@ -672,23 +664,23 @@ void registerBindable (void *ptr) {
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
 		case NODE_GeoViewpoint:
-			viewpointnodes = realloc (viewpointnodes, (sizeof(void *)*(totviewpointnodes+1)));
+			viewpointnodes = REALLOC (viewpointnodes, (sizeof(void *)*(totviewpointnodes+1)));
 			viewpointnodes[totviewpointnodes] = ptr;
 			totviewpointnodes ++;
 			break;
 		case NODE_Background:
 		case NODE_TextureBackground:
-			backgroundnodes = realloc (backgroundnodes, (sizeof(void *)*(totbacknodes+1)));
+			backgroundnodes = REALLOC (backgroundnodes, (sizeof(void *)*(totbacknodes+1)));
 			backgroundnodes[totbacknodes] = ptr;
 			totbacknodes ++;
 			break;
 		case NODE_NavigationInfo:
-			navnodes = realloc (navnodes, (sizeof(void *)*(totnavnodes+1)));
+			navnodes = REALLOC (navnodes, (sizeof(void *)*(totnavnodes+1)));
 			navnodes[totnavnodes] = ptr;
 			totnavnodes ++;
 			break;
 		case NODE_Fog:
-			fognodes = realloc (fognodes, (sizeof(void *)*(totfognodes+1)));
+			fognodes = REALLOC (fognodes, (sizeof(void *)*(totfognodes+1)));
 			fognodes[totfognodes] = ptr;
 			totfognodes ++;
 			break;
@@ -754,15 +746,11 @@ void __pt_doInline() {
 	char firstBytes[4];
 	inl = (struct X3D_Inline *)psp.ptr;
 	inurl = &(inl->url);
-	filename = (char *)malloc(1000);
+	filename = (char *)MALLOC(1000);
 
 	/* lets make up the path and save it, and make it the global path */
 	count = strlen(inl->__parenturl->strptr);
-	psp.path = (char *)malloc ((unsigned)(count+1));
-
-	if ((!filename) || (!psp.path)) {
-		outOfMemory ("perl thread can not malloc for filename\n");
-	}
+	psp.path = (char *)MALLOC ((unsigned)(count+1));
 
 	/* copy the parent path over */
 	strcpy (psp.path,inl->__parenturl->strptr);

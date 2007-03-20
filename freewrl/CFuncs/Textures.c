@@ -264,7 +264,7 @@ void kill_openGLTextures() {
 				listRunner->entry[count].OpenGLTexture = NULL;
 				listRunner->entry[count].frames = 0;
 				glDeleteTextures(listRunner->entry[count].frames, listRunner->entry[count].OpenGLTexture);
-				free (listRunner->entry[count].OpenGLTexture);
+				FREE_IF_NZ (listRunner->entry[count].OpenGLTexture);
 			}
 		}
 		listRunner = listRunner->next;
@@ -277,7 +277,7 @@ void kill_openGLTextures() {
 	while (listRunner != NULL) {
 		tmp = listRunner;
 		listRunner = listRunner->next;
-		free(tmp);
+		FREE_IF_NZ (tmp);
 	}
 
 	
@@ -351,7 +351,7 @@ void registerTexture(void *tmp) {
 		(it->_nodeType == NODE_MovieTexture)) {
 
 		if ((nextFreeTexture & 0x1f) == 0) {
-			newStruct = (struct textureTableStruct*) malloc (sizeof (struct textureTableStruct));
+			newStruct = (struct textureTableStruct*) MALLOC (sizeof (struct textureTableStruct));
 			
 			/* zero out the fields in this new block */
 			for (count = 0; count < 32; count ++) {
@@ -567,8 +567,8 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 		/* alloc fields, if required - only do this once, even if node changes */
 		if (node->__params == 0) {
-			/* printf ("loadMulti, mallocing for params\n"); */
-			node->__params = malloc (sizeof (struct multiTexParams) * maxTexelUnits);
+			/* printf ("loadMulti, MALLOCing for params\n"); */
+			node->__params = MALLOC (sizeof (struct multiTexParams) * maxTexelUnits);
 			paramPtr = (struct multiTexParams*) node->__params;
 
 			/* set defaults for these fields */
@@ -805,7 +805,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == NULL) {
-		me->OpenGLTexture = malloc (sizeof (GLuint) * me->frames);
+		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames);
 		glGenTextures(me->frames, me->OpenGLTexture);
 
 		#ifdef TEXVERBOSE
@@ -883,7 +883,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 				if (ry > global_texSize) ry = global_texSize;
 	
 				/* We have to scale */
-				dest = (unsigned char *)malloc((unsigned) (depth) * rx * ry);
+				dest = (unsigned char *)MALLOC((unsigned) (depth) * rx * ry);
 				gluScaleImage(format,
 				     x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry,
 				     GL_UNSIGNED_BYTE, dest);
@@ -892,7 +892,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format,
 				     GL_UNSIGNED_BYTE, dest);
-			if((mytexdata) != dest) free(dest);
+			if((mytexdata) != dest) FREE_IF_NZ(dest);
 	
 		}
 
@@ -900,7 +900,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		mytexdata += x*y*depth;
 	}
 
-	free (me->texdata);
+	FREE_IF_NZ (me->texdata);
 
 	/* ensure this data is written to the driver for the rendering context */
 	glFlush();
@@ -1137,12 +1137,8 @@ int findTextureFile (int cwo, int *istemp) {
 			thisUrl = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->url;
 		}
 		count = strlen(thisParent->strptr);
-		mypath = (char *)malloc ((sizeof(char)* count)+1);
-		filename = (char *)malloc(1000);
-
-		if ((!filename) || (!mypath)) {
-			outOfMemory ("texture thread can not malloc for filename\n");
-		}
+		mypath = (char *)MALLOC ((sizeof(char)* count)+1);
+		filename = (char *)MALLOC(1000);
 
 		/* copy the parent path over */
 		strcpy (mypath,thisParent->strptr);
@@ -1194,7 +1190,7 @@ int findTextureFile (int cwo, int *istemp) {
 
 	/* pixelTextures - lets just make a specific string for this one */
 	if (loadThisTexture->nodeType == NODE_PixelTexture) {
-		filename = (char *)malloc(100);
+		filename = (char *)MALLOC(100);
 		sprintf (filename,"PixelTexture_%d",loadThisTexture);
 	}
 
@@ -1204,8 +1200,8 @@ int findTextureFile (int cwo, int *istemp) {
 		    (strncmp(firstBytes,firstJPG,4) != 0) &&
 		    (strncmp(firstBytes,firstMPGa,4) != 0) &&
 		    (strncmp(firstBytes,firstMPGb,4) != 0)) {
-			sysline = (char *)malloc(sizeof(char)*(strlen(filename)+100));
-			if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
+			sysline = (char *)MALLOC(sizeof(char)*(strlen(filename)+100));
+			if (!sysline) {printf ("MALLOC failure in convert, exiting\n"); exit(1);}
 			sprintf(sysline,"%s %s /tmp/freewrl%d.png",
 					CONVERT,filename,getpid());
 			#ifdef TEXVERBOSE 
@@ -1218,7 +1214,7 @@ int findTextureFile (int cwo, int *istemp) {
 				sprintf (filename,"/tmp/freewrl%d.png",getpid());
 				*istemp=TRUE;
 			}
-			free (sysline);
+			FREE_IF_NZ (sysline);
 		}
 	}
 
@@ -1229,7 +1225,7 @@ int findTextureFile (int cwo, int *istemp) {
 
 	FREE_IF_NZ(loadThisTexture->filename);
 	loadThisTexture->filename = strdup(filename);
-	free (filename);
+	FREE_IF_NZ (filename);
 	return TRUE;
 }
 
@@ -1403,7 +1399,7 @@ void __reallyloadPixelTexure() {
 		
 
 	if (ok) {
-		texture = (unsigned char *)malloc (wid*hei*4);
+		texture = (unsigned char *)MALLOC (wid*hei*4);
 		tctr = 0;
 		for (count = 0; count < (wid*hei); count++) {
 			switch (depth) {
@@ -1563,9 +1559,9 @@ void __reallyloadImageTexture() {
 
 
 
-		row = (JSAMPLE*)malloc(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
+		row = (JSAMPLE*)MALLOC(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
 		rowptr[0] = row;
-		image_data = (unsigned char *)malloc(cinfo.output_width * sizeof (JSAMPLE) * cinfo.output_height * cinfo.output_components);
+		image_data = (unsigned char *)MALLOC(cinfo.output_width * sizeof (JSAMPLE) * cinfo.output_height * cinfo.output_components);
 		/* Process data */
 		for (rowcount = 0; rowcount < cinfo.output_height; rowcount++) {
 			nrows = jpeg_read_scanlines(&cinfo, rowptr, 1);
@@ -1589,7 +1585,7 @@ void __reallyloadImageTexture() {
 			releaseTexture(loadThisTexture);
 		}
 		jpeg_destroy_decompress(&cinfo);
-		free(row);
+		FREE_IF_NZ(row);
 
 		store_tex_info(loadThisTexture,
 			cinfo.output_components, (int)cinfo.output_width,

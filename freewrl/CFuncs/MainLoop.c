@@ -162,7 +162,7 @@ char *fw_strndup (const char *str, int len) {
 	int ml;
 	ml = strlen(str);
 	if (ml > len) ml = len;
-	retval = (char *) malloc (sizeof (char) * (ml+1));
+	retval = (char *) MALLOC (sizeof (char) * (ml+1));
 	strncpy (retval,str,ml);
 	/* ensure termination */
 	retval[ml] = '\0';
@@ -956,11 +956,7 @@ void setSensitive(void *parentNode,void *datanode) {
 	HaveSensitive = TRUE;
 
 	/* record this sensor event for clicking purposes */
-	SensorEvents = realloc(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
-	if (SensorEvents == 0) {
-		printf ("setSensitive: can not allocate memory\n");
-		num_SensorEvents = 0;
-	}
+	SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
 
 	if (datanode == 0) {
 		printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(me->_nodeType));
@@ -1110,9 +1106,7 @@ void setFullPath(const char* file) {
 		char ks = 'c';
 		do_keyPress(ks, KeyPress);
 	}
-	if (BrowserFullPath != NULL) {
-		free (BrowserFullPath);
-	}
+	FREE_IF_NZ (BrowserFullPath);
 	BrowserFullPath = strdup(file);
 	/* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath)); */
 }
@@ -1398,6 +1392,75 @@ void outOfMemory(const char *msg) {
 	exit(1);
 }
 
+#ifdef DEBUG_MALLOC
+static int mcheckinit = FALSE;
+#define MAXMALLOCSTOKEEP 1000
+static void* mcheck[MAXMALLOCSTOKEEP];
+static int mcount;
+
+void freewrlFree(int line, char *file, void *a) {
+	printf ("%d xfree at %s:%d\n",a,file,line);
+	mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++;
+	if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %d\n",a);
+	else printf ("found %d in mcheck table\n");
+	mcheck[mcount] = NULL;
+	free(a);
+}
+void scanMallocTableOnQuit() {
+	for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
+		if (mcheck[mcount]!=NULL) printf ("unfreed memory at %d\n",mcheck[mcount]);
+	}
+}
+#endif
+
+/* check all mallocs */
+void *freewrlMalloc(int line, char *file, size_t sz) {
+	void *rv;
+	char myline[400];
+
+	#ifdef DEBUG_MALLOC
+	if (!mcheckinit) {
+		for (mcount=0; mcount < MAXMALLOCSTOKEEP; mcount++) {
+			mcheck[mcount] = NULL;
+		}
+		mcheckinit = TRUE;
+	}
+	#endif
+
+
+	rv = malloc(sz);
+	if (rv==NULL) {
+		sprintf (myline, "MALLOC PROBLEM - out of memory at %s:%d for %d",file,line,sz);
+		outOfMemory (myline);
+	}
+	#ifdef DEBUG_MALLOC
+		printf ("%d malloc %d at %s:%d\n",rv,sz,file,line);
+		mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=NULL)) mcount++;
+		if (mcheck[mcount]!=NULL) printf ("freewrlMalloc - out of malloc check store\n");
+		mcheck[mcount] = rv;
+	#endif
+	return rv;
+}
+
+void *freewrlRealloc (int line, char *file, void *ptr, size_t size) {
+	void *rv;
+	char myline[400];
+	#ifdef DEBUG_MALLOC
+		printf ("%d xfree (from realloc) at %s:%d\n",ptr,file,line);
+	#endif
+	rv = realloc (ptr,size);
+	if (rv==NULL) {
+		sprintf (myline, "REALLOC PROBLEM - out of memory at %s:%d for %d",file,line,size);
+		outOfMemory (myline);
+	}
+
+	#ifdef DEBUG_MALLOC
+		printf ("%d malloc (from realloc) %d at %s:%d\n",rv,size,file,line);
+	#endif
+	return rv;
+}
+
+
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
 	kill_oldWorld(TRUE,TRUE,TRUE);
@@ -1409,6 +1472,12 @@ void doQuit(void) {
 
 	/* kill any remaining children */
 	killErrantChildren();
+
+	#ifdef DEBUG_MALLOC
+	void scanMallocTableOnQuit(void);
+	scanMallocTableOnQuit();
+	#endif
+
 
 	exit(0);
 }
