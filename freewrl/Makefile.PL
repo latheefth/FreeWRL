@@ -4,7 +4,7 @@
 # for conditions of use and redistribution.
 
 # Version of FreeWRL
-my $VERSION = "V1.19.1";
+my $VERSION = "V1.19.2";
 
 # what OS are we running under?
 my $OS = `uname`;
@@ -18,6 +18,14 @@ if (($JAVAC eq "") || ($JAR eq "")) {
 	print "can not find a java compiler and archiver  - skipping java class making\n";
 	$JAVAC = "";
 }
+
+# some versions of Linux require the command 
+#chcon -t texrel_shlib_t /usr/lib/libFreeWRL*so to be run.
+
+my $CHCON = `which chcon`;
+if ($CHCON eq "") {print "chcon command not on system; will NOT run it on install.\n";}
+if ($CHCON ne "") {print "chcon command found, will run it on install.\n";}
+$CHCON =~ s/\s+$//;
 
 # remove whitespace at beginning and end.
 $OS =~ s/\s+$//;
@@ -307,6 +315,11 @@ sub writeMakefileFinalTargets() {
 	if ($OS eq "Linux") {
 		print MK "\tinstall -D libFreeWRLFunc.so \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
 		print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
+
+		if ($CHCON ne "") {
+			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
+			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
+		}
 		if ($HAVE_UBUNTU eq "NO") {
 			print MK "\t/sbin/ldconfig\n";
 		}
@@ -315,10 +328,14 @@ sub writeMakefileFinalTargets() {
 		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
 
+	
 	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
 		if ($OS ne "Darwin") {
 			print MK "\tinstall -D java/classes/vrml.jar \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
 			print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+			if ($CHCON ne "") {
+				print MK "\t-$CHCON -t texrel_shlib_t \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+			}
 		} else {
 			print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
 			print MK "\tinstall java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";

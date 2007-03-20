@@ -1,3 +1,8 @@
+For 1.19.2:
+	- chcon command added to Makefile.PL
+
+	- #include <stdlib> added to headers.h - for AMD64 compiles.
+
 For 1.18.15:
 	- working on spot and directional Lights.
 
