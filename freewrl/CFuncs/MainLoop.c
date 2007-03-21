@@ -1454,7 +1454,7 @@ void *freewrlMalloc(int line, char *file, size_t sz) {
 		outOfMemory (myline);
 	}
 	#ifdef DEBUG_MALLOC
-		printf ("%d malloc %d at %s:%d\n",rv,sz,file,line);
+		/* printf ("%d malloc %d at %s:%d\n",rv,sz,file,line); */
 		RESERVETABLE(rv,file,line)
 	#endif
 	return rv;
@@ -1464,7 +1464,7 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size) {
 	void *rv;
 	char myline[400];
 	#ifdef DEBUG_MALLOC
-		printf ("%d xfree (from realloc) at %s:%d\n",ptr,file,line);
+		/* printf ("%d xfree (from realloc) at %s:%d\n",ptr,file,line); */
 	#endif
 	rv = realloc (ptr,size);
 	if (rv==NULL) {
@@ -1473,7 +1473,7 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size) {
 	}
 
 	#ifdef DEBUG_MALLOC
-		printf ("%d malloc (from realloc) %d at %s:%d\n",rv,size,file,line);
+		/* printf ("%d malloc (from realloc) %d at %s:%d\n",rv,size,file,line); */
 		FREETABLE(ptr)
 		RESERVETABLE(rv,file,line)
 
