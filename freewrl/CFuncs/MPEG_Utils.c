@@ -2438,7 +2438,7 @@ Destroympeg_VidStream(
     }
   }
 
-  FREE_IF_NZ ((char *) astream);
+  FREE_IF_NZ (astream);
 
 }
 
@@ -7475,22 +7475,22 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
          }
        }
   if (L_tab!=NULL)
-       FREE_IF_NZ ((int *)L_tab);
+       FREE_IF_NZ (L_tab);
     if (Cr_r_tab!=NULL)
-       FREE_IF_NZ ((int *)Cr_r_tab);
+       FREE_IF_NZ (Cr_r_tab);
     if (Cr_g_tab!=NULL)
-       FREE_IF_NZ ((int *)Cr_g_tab);
+       FREE_IF_NZ (Cr_g_tab);
     if (Cb_g_tab!=NULL)
-       FREE_IF_NZ ((int *)Cb_g_tab);
+       FREE_IF_NZ (Cb_g_tab);
     if (Cb_b_tab!=NULL)
-       FREE_IF_NZ ((int *)Cb_b_tab);
+       FREE_IF_NZ (Cb_b_tab);
 
     if (r_2_pix_alloc!=NULL)
-       FREE_IF_NZ ((long *) r_2_pix_alloc);
+       FREE_IF_NZ (r_2_pix_alloc);
     if (g_2_pix_alloc!=NULL)
-       FREE_IF_NZ ((long *) g_2_pix_alloc);
+       FREE_IF_NZ (g_2_pix_alloc);
     if (b_2_pix_alloc!=NULL)
-       FREE_IF_NZ ((long *) b_2_pix_alloc);
+       FREE_IF_NZ (b_2_pix_alloc);
 
     /* zero these in case we have another mpg file to do */
     L_tab = NULL; Cr_r_tab = NULL; Cr_g_tab = NULL; Cb_g_tab = NULL;Cb_b_tab = NULL;

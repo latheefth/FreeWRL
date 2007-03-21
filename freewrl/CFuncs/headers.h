@@ -1173,6 +1173,10 @@ void resetEventLoop();
 void ReWireRegisterMIDI (char *str);
 void ReWireMIDIControl(char *str);
 
+/* free memory */
+void registerX3DNode(void * node);
+void doNotRegisterThisNodeForDestroy(void * nodePtr);
+
 #ifdef AQUA
 Boolean notFinished();
 void disposeContext();

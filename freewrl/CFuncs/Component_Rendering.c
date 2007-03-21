@@ -136,7 +136,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	   create the index for the arrays. Really simple... Used to index
 	   into the coords, so, eg, __vertArr is [0,1,2], which means use
 	   coordinates 0, 1, and 2 */
-	FREE_IF_NZ ((void *)node->__vertArr);
+	FREE_IF_NZ (node->__vertArr);
 	node->__vertArr = MALLOC (sizeof(GLuint)*(nVertices+1));
 	pt = (GLint *)node->__vertArr;
 
@@ -147,13 +147,13 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* now, lets go through and; 1) copy old vertices into new vertex array; and 
 	   2) create an array of indexes into "__vertArr" for sending to the GL call */
 
-	FREE_IF_NZ ((void *)node->__vertIndx);
+	FREE_IF_NZ (node->__vertIndx);
 	node->__vertIndx = MALLOC (sizeof(uintptr_t)*(nSegments));
 
-	FREE_IF_NZ ((void *)node->__vertices);
+	FREE_IF_NZ (node->__vertices);
 	node->__vertices = MALLOC (sizeof(struct SFColor)*(nVertices+1));
 
-	FREE_IF_NZ ((void *)node->__vertexCount);
+	FREE_IF_NZ (node->__vertexCount);
 	node->__vertexCount = MALLOC (sizeof(int)*(nSegments));
 
 	indxStartPtr = (uintptr_t *)node->__vertIndx;
@@ -193,7 +193,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* sanity check the colors, if they exist */
 	if (node->color) {
 		/* we resort the color nodes so that we have an RGBA color node per vertex */
-		FREE_IF_NZ ((void *)node->__colours);
+		FREE_IF_NZ (node->__colours);
 		node->__colours = MALLOC (sizeof(struct SFColorRGBA)*(nVertices+1));
 		newcolors = (struct SFColorRGBA *) node->__colours;
                		cc = (struct X3D_Color *) node->color;
@@ -538,7 +538,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	/* create the index for the arrays. Really simple... Used to index
 	   into the coords, so, eg, __vertArr is [0,1,2], which means use
 	   coordinates 0, 1, and 2 */
-	FREE_IF_NZ ((void *)node->__vertArr);
+	FREE_IF_NZ (node->__vertArr);
 	node->__vertArr = MALLOC (sizeof(GLuint)*(ncoord));
 	pt = (GLint *)node->__vertArr;
 	for (vtc = 0; vtc < ncoord; vtc++) {
@@ -550,7 +550,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   the __vertArr array - this gives a starting index for each line
 	   segment The LENGTH of each segment (good question) comes from the
 	   vertexCount parameter of the LineSet node */
-	FREE_IF_NZ ((void *)node->__vertIndx);
+	FREE_IF_NZ (node->__vertIndx);
 	node->__vertIndx = MALLOC (sizeof(uintptr_t)*(nvertexc));
 	c = 0;
 	pt = (GLint *)node->__vertArr;

@@ -1265,6 +1265,9 @@ void initFreewrl() {
                 /* create the root node */
                 rootNode = createNewX3DNode (NODE_Group);
 
+		/*remove this node from the deleting list*/
+                doNotRegisterThisNodeForDestroy(rootNode);
+
 		/* create the statusbar nodes */
 		#ifndef AQUA
 		statusbar_init();

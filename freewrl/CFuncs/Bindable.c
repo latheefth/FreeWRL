@@ -522,14 +522,14 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
         	if (node->_nodeType == NODE_Background) {
                 	node->_ichange = node->_change;
                 	/* do we have an old background to destroy? */
-                	FREE_IF_NZ ((void *)node->__points);
-                	FREE_IF_NZ ((void *)node->__colours);
+                	FREE_IF_NZ (node->__points);
+                	FREE_IF_NZ (node->__colours);
                 	node->__quadcount = 0;
         	} else {
                 	tbnode->_ichange = tbnode->_change;
                 	/* do we have an old background to destroy? */
-                	FREE_IF_NZ ((void *)tbnode->__points);
-                	FREE_IF_NZ ((void *)tbnode->__colours);
+                	FREE_IF_NZ (tbnode->__points);
+                	FREE_IF_NZ (tbnode->__colours);
                 	tbnode->__quadcount = 0;
         	}
 		return;
@@ -687,8 +687,8 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	if (node->_nodeType == NODE_Background) {
 		node->_ichange = node->_change;
 		/* do we have an old background to destroy? */
-		FREE_IF_NZ ((void *)node->__points);
-		FREE_IF_NZ ((void *)node->__colours);
+		FREE_IF_NZ (node->__points);
+		FREE_IF_NZ (node->__colours);
 		node->__points = newPoints;
 		node->__colours = newColors;
 		node->__quadcount = actq;
@@ -696,8 +696,8 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	} else {
 		tbnode->_ichange = tbnode->_change;
 		/* do we have an old background to destroy? */
-		FREE_IF_NZ ((void *)tbnode->__points);
-		FREE_IF_NZ ((void *)tbnode->__colours);
+		FREE_IF_NZ (tbnode->__points);
+		FREE_IF_NZ (tbnode->__colours);
 		tbnode->__points = newPoints;
 		tbnode->__colours = newColors;
 		tbnode->__quadcount = actq;

@@ -1,5 +1,6 @@
 /*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka 2003 John Stewart, Ayla Khan CRC Canada
+ Copyright (C) 1998 Tuomas J. Lukka 2003 John Stewart, Ayla Khan CRC Canada,
+ 2007 Daniel Tremblay
  Portions Copyright (C) 1998 John Breen
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  See the GNU Library General Public License (file COPYING in the distribution)
@@ -27,6 +28,15 @@ XVisualInfo *Xvi;
 int fullscreen = 0;
 #endif
 
+/* Node Tracking */
+void kill_X3DNodes(void);
+void createdMemoryTable();
+void increaseMemoryTable();
+uintptr_t * memoryTable = NULL;
+int nodeNumber = 0;
+int tableIndexSize = 0;
+int nextEntry = 0;
+int i=0;
 
 /* lights status. Light 0 is the headlight */
 static int lights[8];
@@ -353,6 +363,7 @@ void fwXformPop(struct X3D_Transform *me) {
 void kill_rendering (void *thisnode);
 
 void kill_MFNode (struct Multi_Node *par) {
+return;
 	int childCount;
 	int i;
 
@@ -381,6 +392,7 @@ void kill_SFString (struct Uni_String *str) {
 }
 
 void kill_MFString (struct Multi_String *par) {
+return;
 	int i;
 	if (par->n==0) return;
 
@@ -395,6 +407,7 @@ void kill_MFString (struct Multi_String *par) {
 }
 
 void kill_MFFloat (struct Multi_Float *par) {
+return;
 	if (par->n==0) return;
 	par->n=0;
 
@@ -406,6 +419,7 @@ void kill_MFFloat (struct Multi_Float *par) {
 }
 
 void kill_MFRotation (struct Multi_Rotation *par) {
+return;
 	if (par->n==0) return;
 
 	#ifdef KILLVERBOSE
@@ -417,6 +431,7 @@ void kill_MFRotation (struct Multi_Rotation *par) {
 }
 
 void kill_MFVec2f (struct Multi_Vec2f *par) {
+return;
 	if (par->n==0) return;
 
 	#ifdef KILLVERBOSE
@@ -428,6 +443,7 @@ void kill_MFVec2f (struct Multi_Vec2f *par) {
 }
 
 void kill_MFInt32 (struct Multi_Int32 *par) {
+return;
 	if (par->n==0) return;
 
 	#ifdef KILLVERBOSE
@@ -439,6 +455,7 @@ void kill_MFInt32 (struct Multi_Int32 *par) {
 }
 
 void kill_MFColorRGBA (struct Multi_ColorRGBA *par) {
+return;
 	if (par->n==0) return;
 
 	#ifdef KILLVERBOSE
@@ -450,6 +467,7 @@ void kill_MFColorRGBA (struct Multi_ColorRGBA *par) {
 }
 
 void kill_MFColor (struct Multi_Color *par) {
+return;
 	if (par->n==0) return;
 
 	#ifdef KILLVERBOSE
@@ -461,6 +479,7 @@ void kill_MFColor (struct Multi_Color *par) {
 }
 
 void kill_MFVec3f (struct Multi_Vec3f *par) {
+return;
 	if (par->n==0) return;
 
 	#ifdef KILLVERBOSE
@@ -1032,8 +1051,10 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
         	shutdown_EAI();
 	}
 
-	/* free java Class invocation */
+	/* free memory */
+	kill_X3DNodes();
 
+	/* free java Class invocation */
 
 	#ifndef AQUA
         sprintf (mystring, "QUIT");
@@ -1044,5 +1065,173 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
         /* tell statusbar that we have none */
         viewer_default();
         setMenuStatus("NONE");
+}
+
+
+void registerX3DNode(void * tmp){	
+	/*printf("nextEntry=%d	",nextEntry);
+	printf("tableIndexSize=%d \n",tableIndexSize);*/	
+	if (tableIndexSize <= 0){
+		createdMemoryTable();		
+	}
+	if (nextEntry >= tableIndexSize){
+		increaseMemoryTable();
+	}	
+	memoryTable[nextEntry]=tmp;
+	nextEntry+=1;
+}
+
+void doNotRegisterThisNodeForDestroy(void * nodePtr){
+	if(nodePtr==memoryTable[nextEntry-1]){
+		nextEntry-=1;
+	}
+}
+
+void createdMemoryTable(){
+	/*printf("creating memory table \n");*/
+	tableIndexSize=200;
+	memoryTable = MALLOC(tableIndexSize * sizeof(uintptr_t));
+}
+
+void increaseMemoryTable(){
+	printf("increasing memory table\n");
+	tableIndexSize*=2;
+	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(memoryTable) );
+	/*printf("increasing memory table=%d\n",sizeof(memoryTable));*/
+}
+
+void kill_X3DNodes(void){
+	int * fieldOffsetsPtr;
+	char * fieldPtr;
+	struct X3D_Node* structptr;
+/*debug variable*/
+	float * m;
+	int d;
+	for (i=0; i<=nextEntry; i++){		
+		structptr = (struct X3D_Node*)memoryTable[i];		
+		/*printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType));
+		printf("\nNode pointer	= %d\n",structptr);*/
+		fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];				
+		while (*fieldOffsetsPtr != -1) {
+				/*printf("type	= %d\n",*(fieldOffsetsPtr+2));*/
+			/*if (*(fieldOffsetsPtr+2)==19){
+				printf("switch	= %d\n",*(fieldOffsetsPtr+2));
+			}*/
+
+			switch(*(fieldOffsetsPtr+2)){
+				case 1:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Rotation* MRotation;
+					MRotation=(struct Multi_Rotation *)fieldPtr;
+					MRotation->n=0;
+					FREE_IF_NZ(MRotation->p);
+					break;
+				case 3:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Float* MFloat;
+					MFloat=(struct Multi_Float *)fieldPtr;
+					MFloat->n=0;
+					FREE_IF_NZ(MFloat->p);
+					break;
+				case 5:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Vec3f* MVec3f;
+					MVec3f=(struct Multi_Vec3f *)fieldPtr;
+					MVec3f->n=0;
+					FREE_IF_NZ(MVec3f->p);
+					break;
+				case 7:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Bool* Mbool;
+					Mbool=(struct Multi_Bool *)fieldPtr;
+					Mbool->n=0;
+					FREE_IF_NZ(Mbool->p);
+					break;
+				case 9:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Int32* MInt32;
+					MInt32=(struct Multi_Int32 *)fieldPtr;
+					MInt32->n=0;
+					FREE_IF_NZ(MInt32->p);
+					break;
+				/*case 11:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Node* MNode;
+					MNode=(struct Multi_Node *)fieldPtr;
+					MNode->n=0;
+					FREE_IF_NZ(MNode->p);
+					break;*/
+				case 13:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Color* MColor;
+					MColor=(struct Multi_Color *)fieldPtr;
+					MColor->n=0;
+					FREE_IF_NZ(MColor->p);
+					break;
+				case 15:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_ColorRGBA* MColorRGBA;
+					MColorRGBA=(struct Multi_ColorRGBA *)fieldPtr;
+					MColorRGBA->n=0;
+					FREE_IF_NZ(MColorRGBA->p);
+					break;
+				case 17:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Time* MTime;
+					MTime=(struct Multi_Time *)fieldPtr;
+					MTime->n=0;
+					FREE_IF_NZ(MTime->p);
+					break;
+				case 19:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_String* MString;
+					struct Uni_String* dan;
+					MString=(struct Multi_String *)fieldPtr;
+					/*printf("avant		n	= %d\n",MString->n);
+					printf("avant		p	= %d\n",MString->p);*/
+					dan=(struct Uni_String *)MString->p;
+					if (MString->n!=0){
+					/*printf("if (MString->n!=0)\n");*/
+						/*for (i=0; i<=0; i++) {*/
+							/*printf("for loop\n");
+							kill_SFString(MString->p[i]);*/
+						/*}*/
+					}
+					MString->n=0;
+					/*printf("apres		n	= %d\n",MString->n);
+					printf("apres		p	= %d\n",MString->p);*/
+					break;
+/*
+	for (i=0; i<par->n; i++) {
+		kill_SFString(par->p[i]);
+	}
+	par->n=0;
+
+
+struct Multi_String { int n; struct Uni_String * *p; };
+
+struct Uni_String {
+	int len;
+	char * strptr;
+	int touched;
+};*/
+				case 21:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Vec2f* MVec2f;
+					MVec2f=(struct Multi_Vec2f *)fieldPtr;
+					MVec2f->n=0;
+					FREE_IF_NZ(MVec2f->p);
+					break;
+				default:;
+			}
+			fieldOffsetsPtr+=4;	
+		}
+		FREE_IF_NZ(memoryTable[i]);
+		memoryTable[i]=NULL;
+	}
+	FREE_IF_NZ(memoryTable);
+	memoryTable=NULL;
+	tableIndexSize=0;
+	nextEntry=0;
 }
 
