@@ -32,11 +32,6 @@ void compile_Box (struct X3D_Box *node) {
 	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor)*(24));
 	else ptr = node->__points;
 
-	if (!ptr) {
-		printf ("can not MALLOC memory for box points\n");
-		return;
-	}
-
 	/*  now, create points; 4 points per face.*/
 	pt = (float *) ptr;
 	/*  front*/
@@ -114,10 +109,7 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	else tmpptr = node->__points;
 
 	if (!node->__normals) node->__normals = MALLOC(sizeof(struct SFColor)*2*(CYLDIV+1));
-	if ((!node->__normals) || (!tmpptr)) {
-		printf ("error MALLOCing memory for Cylinder\n");
-		return;
-	}
+
 	/*  now, create the vertices; this is a quad, so each face = 4 points*/
 	pt = (struct SFColor *) tmpptr;
 	for (i=0; i<CYLDIV; i++) {
@@ -220,11 +212,6 @@ void compile_Cone (struct X3D_Cone *node) {
 	if (!node->__normals) ptr = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
 	else ptr = node->__normals;
 	
-	if ((!ptr) || (!node->__botpoints) || (!node->__sidepoints)) {
-		printf ("failure MALLOCing more memory for Cone rendering\n");
-		return;
-	}
-
 	/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
 	pt = (struct SFColor *)node->__botpoints;
 	pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
@@ -359,10 +346,6 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	if (!node->__points) ptr = MALLOC (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
 	else ptr = node->__points;
 
-	if (!ptr) {
-		printf ("can not MALLOC memory in Sphere\n");
-		return;
-	}
 	pts = (struct SFColor *) ptr;
 	count = 0;
 

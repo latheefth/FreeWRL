@@ -156,16 +156,12 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	/* MALLOC required memory */
 	newcindex = (int*)MALLOC (sizeof (int)*r->ntri*3);
-	if (!newcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 	newtcindex = (int*)MALLOC (sizeof (int)*r->ntri*3);
-	if (!newtcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
 	newpoints = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
-	if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
 	if ((nnormals) || (r->normal)) {
 		newnorms = (struct SFColor*)MALLOC (sizeof (struct SFColor)*r->ntri*3);
-		if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 	} else newnorms = 0;
 
 
@@ -174,7 +170,6 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	if (hasc) {
 		newcolors = (struct SFColorRGBA*)MALLOC (sizeof (struct SFColorRGBA)*r->ntri*3);
 		oldColorsRGBA = (struct SFColorRGBA*) colors;
-		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 
 

@@ -73,9 +73,7 @@ void render_init() {
 
 
 	/* create a 1 UniString entry to the MFString */
-	if ((holder->string.p = MALLOC(sizeof (struct Uni_String))) == 0) {
-		printf("Unable to MALLOC memory for status message\n");
-	}
+	holder->string.p = MALLOC(sizeof (struct Uni_String));
 	holder->string.p[0] = newASCIIString("");	/* first string is blank */
 	holder->string.n = 1; 				/* we have 1 string in this X3D_Text node */
 	myline=(struct Uni_String *)holder->string.p[0];
@@ -84,9 +82,7 @@ void render_init() {
 	myline = (struct Uni_String *) holder->string.p[0];
 
 	/* NOW - make the Uni_String large... in the first Unistring, make the string 2000 bytes long */
-	if ((myline->strptr  = MALLOC(2000)) == 0) {
-		printf("Unable to MALLOC memory for status message\n");
-	}
+	myline->strptr  = MALLOC(2000);
 
 	/* set the Uni_String to zero length */
 	myline->len = 0;

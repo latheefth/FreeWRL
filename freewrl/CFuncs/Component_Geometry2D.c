@@ -362,10 +362,6 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 	/* once MALLOC'd, this never changes size, so is "threadsafe" */
 	/*  MALLOC memory (if possible)*/
 	if (!node->__points) xx = MALLOC (sizeof(struct SFColor)*(4));
-	if (!xx) {
-		printf ("can not MALLOC memory for Rectangle2D points\n");
-		return;
-	}
 
 	/*  now, create points; 4 points per face.*/
 	pt = (float *) xx;

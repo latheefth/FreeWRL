@@ -311,12 +311,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	}
 
 	buff_size = LARGESTRING;
-	if ((_buff = (char *)
-		 MALLOC(buff_size * sizeof(char))) == NULL) {
-			printf( "MALLOC failed in doMFToString for %s.\n",
-					className);
-			return JS_FALSE;
-	}
+	_buff = (char *) MALLOC(buff_size * sizeof(char));
 	memset(_buff, 0, buff_size);
 
     for (i = 0; i < len; i++) {
@@ -359,13 +354,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 			break;
 		}
 
-		if ((_tmp_buff = (char *)
-			 MALLOC((tmp_buff_len + 1) * sizeof(char))) == NULL) {
-			printf(
-					"MALLOC failed for %d in doMFToString for %s.\n",
-					i, className);
-			return JS_FALSE;
-		}
+		_tmp_buff = (char *) MALLOC((tmp_buff_len + 1) * sizeof(char));
 		memset(_tmp_buff, 0, tmp_buff_len + 1);
 		memmove(_tmp_buff, _buff, tmp_buff_len);
 		memset(_buff, 0, buff_size);
@@ -562,11 +551,7 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 	#endif
 
 	if (memchr(_buff, '"', _buff_len) != NULL) {
-		if ((_tmp_vpStr = (char *)
-			 MALLOC(_buff_len * sizeof(char))) == NULL) {
-			printf( "MALLOC failed in doMFStringUnquote.\n");
-			return JS_FALSE;
-		}
+		_tmp_vpStr = (char *) MALLOC(_buff_len * sizeof(char));
 
 		memset(_tmp_vpStr, 0, _buff_len);
 
@@ -852,10 +837,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 
 
 		/* len + 3 for '\0' and "..." */
-		if ((_new_vp_c = (char *) MALLOC((len + 3) * sizeof(char))) == NULL) {
-			printf( "MALLOC failed in setECMANative.\n");
-			return JS_FALSE;
-		}
+		_new_vp_c = (char *) MALLOC((len + 3) * sizeof(char));
 		/* JAS - do NOT prepend/append double quotes to this string*/
 		/* JAS - only for the null terminator*/
 		/* JAS len += 3;*/
@@ -887,10 +869,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 	} else {
 		len = STRING;
 	}
-	if ((_buff = (char *) MALLOC(len * sizeof(char))) == NULL) {
-		printf( "MALLOC failed in setECMANative.\n");
-		return JS_FALSE;
-	}
+	_buff = (char *) MALLOC(len * sizeof(char));
 	memset(_buff, 0, len);
 	sprintf(_buff, "_%.*s_touched", len, _id_c);
 	v = INT_TO_JSVAL(1);

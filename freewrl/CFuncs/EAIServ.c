@@ -180,12 +180,6 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		EAIbufcount = 0;
 		EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
 		EAIbuffer = (char *)MALLOC(EAIbufsize * sizeof (char));
-		if (EAIbuffer == 0) {
-			printf ("can not MALLOC memory for input buffer in create_EAI\n");
-			loopFlags &= ~NO_EAI_CLASS;
-			return FALSE;
-		}
-
 
 		/* zero out the EAIListenerData here, and after every use */
 		bzero(&EAIListenerData, sizeof(EAIListenerData));

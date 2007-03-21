@@ -690,13 +690,15 @@ struct pt get_poly_normal_disp_with_sphere(double r, struct pt* p, int num, stru
 
 /*feed a poly, and radius of a sphere, it returns the minimum displacement and
   the direction  that is needed for them not to intersect any more.*/
+static struct pt* clippedpoly = NULL;
+static int clippedpolySize = 0;
+
 struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct pt n) {
     int i;
     /* double polydisp; */
     struct pt result;
 
     double get_poly_mindisp;
-    struct pt* clippedpoly;
     int clippedpolynum = 0;
 
     get_poly_mindisp = 1E90;
@@ -706,7 +708,10 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
 	return zero;
 #endif
     /*allocate data */
-    clippedpoly = (struct pt*) MALLOC(sizeof(struct pt) * (num + 1));
+    if ((num+1)>clippedpolySize) {
+    	clippedpoly = (struct pt*) REALLOC(clippedpoly,sizeof(struct pt) * (num + 1));
+	clippedpolySize = num+1;
+    }
 
     /*if normal not specified, calculate it */
     /* if(n.x == 0 && n.y == 0 && n.z == 0) */
@@ -757,10 +762,6 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
     }
     else
 	result = zero;
-
-    /*free alloc'd data */
-    FREE_IF_NZ (clippedpoly);
-
     return result;
 }
 

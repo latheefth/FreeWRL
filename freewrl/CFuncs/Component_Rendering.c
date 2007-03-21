@@ -138,10 +138,6 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	   coordinates 0, 1, and 2 */
 	FREE_IF_NZ ((void *)node->__vertArr);
 	node->__vertArr = MALLOC (sizeof(GLuint)*(nVertices+1));
-	if (!node->__vertArr) {
-		printf ("can not MALLOC memory for LineSet vertArr\n");
-		return;
-	}
 	pt = (GLint *)node->__vertArr;
 
 	for (vtc = 0; vtc < nVertices; vtc++) {
@@ -153,24 +149,12 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 
 	FREE_IF_NZ ((void *)node->__vertIndx);
 	node->__vertIndx = MALLOC (sizeof(uintptr_t)*(nSegments));
-	if (!node->__vertIndx) {
-		printf ("can not MALLOC memory for LineSet vertIndx\n");
-		return;
-	}
 
 	FREE_IF_NZ ((void *)node->__vertices);
 	node->__vertices = MALLOC (sizeof(struct SFColor)*(nVertices+1));
-	if (!node->__vertices) {
-		printf ("can not MALLOC memory for LineSet vertices\n");
-		return;
-	}
 
 	FREE_IF_NZ ((void *)node->__vertexCount);
 	node->__vertexCount = MALLOC (sizeof(int)*(nSegments));
-	if (!node->__vertexCount) {
-		printf ("can not MALLOC memory for LineSet vertexCount\n");
-		return;
-	}
 
 	indxStartPtr = (uintptr_t *)node->__vertIndx;
 	newpoints = (struct SFColor *) node->__vertices;
@@ -211,10 +195,6 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		/* we resort the color nodes so that we have an RGBA color node per vertex */
 		FREE_IF_NZ ((void *)node->__colours);
 		node->__colours = MALLOC (sizeof(struct SFColorRGBA)*(nVertices+1));
-		if (!node->__colours) {
-			printf ("can not MALLOC memory for LineSet colIndx\n");
-			return;
-		}
 		newcolors = (struct SFColorRGBA *) node->__colours;
                		cc = (struct X3D_Color *) node->color;
                		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
@@ -560,10 +540,6 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   coordinates 0, 1, and 2 */
 	FREE_IF_NZ ((void *)node->__vertArr);
 	node->__vertArr = MALLOC (sizeof(GLuint)*(ncoord));
-	if (!node->__vertArr) {
-		printf ("can not MALLOC memory for LineSet vertArr\n");
-		return;
-	}
 	pt = (GLint *)node->__vertArr;
 	for (vtc = 0; vtc < ncoord; vtc++) {
 		*pt=vtc; pt++; /* ie, index n contains the number n */
@@ -576,10 +552,6 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   vertexCount parameter of the LineSet node */
 	FREE_IF_NZ ((void *)node->__vertIndx);
 	node->__vertIndx = MALLOC (sizeof(uintptr_t)*(nvertexc));
-	if (!node->__vertIndx) {
-		printf ("can not MALLOC memory for LineSet vertIndx\n");
-		return;
-	}
 	c = 0;
 	pt = (GLint *)node->__vertArr;
 	vpt = (uintptr_t *) node->__vertIndx;

@@ -1008,8 +1008,6 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 	if(!p->_intern) {
 
 		p->_intern = MALLOC(sizeof(struct X3D_PolyRep));
-		if (!(p->_intern)) 
-			freewrlDie("Not enough memory to compile_polyrep... ;(");
 
 		r = (struct X3D_PolyRep *)p->_intern;
 		r->ntri = -1;

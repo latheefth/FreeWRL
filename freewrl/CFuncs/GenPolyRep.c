@@ -137,7 +137,6 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 
 		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
 		tcoord = rep->GeneratedTexCoords = (float *)MALLOC (sizeof (float) * nquads * 12); 
-		if (!tcoord) {printf ("out of memory in MALLOC in ElevationGrid\n"); return FALSE;}
 
 		rep->tcindex=0; /* we will generate our own mapping */
 	}
@@ -145,7 +144,6 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 	/* make up points array */
 	/* a point is a vertex and consists of 3 floats (x,y,z) */
 	newpoints = (float *)MALLOC (sizeof (float) * nz * nx * 3);
-	if (!newpoints) {printf ("out of memory in MALLOC in ElevationGrid\n"); return FALSE;}
 	 
 	FREE_IF_NZ(rep->coord);
 	rep->coord = (float *)newpoints;
@@ -702,11 +700,6 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	faceok = (int*)MALLOC(sizeof(int)*faces);
 	pointfaces = (int*)MALLOC(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
 
-	/* in C always check if you got the mem you wanted...  >;->		*/
-	if(!(faceok && pointfaces && facenormals )) {
-		freewrlDie("Not enough memory for IndexedFaceSet internals... ;(");
-	}
-
 	/* generate the face-normals table, so for each face, we know the normal
 	   and for each point, we know the faces that it is in */
 	if (!IFS_face_normals (facenormals,faceok,pointfaces,faces,npoints,cin,points,this_,ccw)) {
@@ -747,13 +740,6 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 
 	tcindex = rep_->tcindex = (int*)MALLOC(sizeof(*(rep_->tcindex))*3*(ntri));
-
-	/* in C always check if you got the mem you wanted...  >;->		*/
-	if(!(cindex && colindex && norindex && tcindex && rep_->normal )) {
-		freewrlDie("Not enough memory for IndexFaceSet node triangles... ;(");
-	}
-
-
 
 	/* Concave faces - use the OpenGL Triangulator to give us the triangles */
 	tess_vs=(int*)MALLOC(sizeof(*(tess_vs))*(ntri)*3);
@@ -968,9 +954,6 @@ void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_,
 
 	/* 2 floats per vertex, each triangle has 3 vertexes... */
 	rep_->GeneratedTexCoords = (float*)MALLOC (sizeof(float) * 2 * 3 * rep_->ntri);
-	if (!rep_->GeneratedTexCoords) {
-		printf ("Streaming Extrusion - MALLOC problem\n");
-	}
 
 	nc = rep_->GeneratedTexCoords;
 
@@ -1111,7 +1094,6 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		int increment, currentlocn;
 
 		crossSection     = (struct SFVec2f*)MALLOC(sizeof(crossSection)*nsec*2);
-		if (!(crossSection)) freewrlDie ("can not MALLOC memory for Extrusion crossSection");
 
 
 		currentlocn = 0;
@@ -1259,11 +1241,6 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	/*memory for the SCPs. Only needed in this function. Freed later	*/
 	SCP     = (struct SCP *)MALLOC(sizeof(struct SCP)*nspi);
 
-	/* in C always check if you got the mem you wanted...  >;->		*/
-	  if(!(pointfaces && defaultface && facenormals && cindex && coord && normal && norindex && SCP )) {
-		freewrlDie("Not enough memory for Extrusion node triangles... ;(");
-	}
-
 		/* so, we now have to worry about textures. */
 		/* XXX note - this over-estimates; realloc to be exact */
 
@@ -1285,9 +1262,6 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		/* keep around cross section info for tex coord mapping */
 		beginVals = (float *)MALLOC(sizeof(float) * 2 * (nsec+1)*100);
 		endVals = (float *)MALLOC(sizeof(float) * 2 * (nsec+1)*100);
-
-		if (!(tcoord && tcindex && beginVals && endVals))
-			freewrlDie ("Not enough memory Extrusion Tcoords");
 
 		memset((void *)tcindex,0,tcindexsize*sizeof(*(rep_->tcindex)));
 		/* printf ("zeroing tcindex\n");*/
@@ -1940,7 +1914,6 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		int endpoint;
 
 		tess_vs=(int *)MALLOC(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
-		if (!(tess_vs)) freewrlDie ("Extrusion - no memory for tesselated end caps");
 
 		/* if not tubular, we need one more triangle */
 		if (tubular) endpoint = nsec-1-ncolinear_at_end;

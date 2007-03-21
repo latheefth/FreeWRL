@@ -268,9 +268,6 @@ SFNodeNativeNew()
 
 	/* printf ("SFNodeNativeNew; string len %d handle_len %d\n",vrmlstring_len,handle_len);*/
 
-	if (ptr == NULL) {
-		return NULL;
-	}
 	ptr->handle = 0;
 	ptr->touched = 0;
 	ptr->X3DString = NULL;
@@ -313,9 +310,6 @@ SFColorRGBANativeNew()
 {
 	SFColorRGBANative *ptr;
 	ptr = (SFColorRGBANative *)MALLOC(sizeof(*ptr));
-	if (ptr == NULL) {
-		return NULL;
-	}
 	ptr->touched = 0;
 	return ptr;
 }
@@ -344,9 +338,6 @@ SFColorNativeNew()
 {
 	SFColorNative *ptr;
 	ptr = (SFColorNative *)MALLOC(sizeof(*ptr));
-	if (ptr == NULL) {
-		return NULL;
-	}
 	ptr->touched = 0;
 	return ptr;
 }
@@ -375,9 +366,6 @@ SFImageNativeNew()
 {
 	SFImageNative *ptr;
 	ptr =(SFImageNative *) MALLOC(sizeof(*ptr));
-	if (ptr == NULL) {
-		return NULL;
-	}
 	ptr->touched = 0;
 	return ptr;
 }
@@ -408,9 +396,6 @@ SFRotationNativeNew()
 {
 	SFRotationNative *ptr;
 	ptr = (SFRotationNative *)MALLOC(sizeof(*ptr));
-	if (ptr == NULL) {
-		return NULL;
-	}
 	ptr->touched = 0;
 	return ptr;
 }
@@ -439,9 +424,6 @@ SFVec2fNativeNew()
 {
 	SFVec2fNative *ptr;
 	ptr = (SFVec2fNative *)MALLOC(sizeof(*ptr));
-	if (ptr == NULL) {
-		return NULL;
-	}
 	ptr->touched = 0;
 	return ptr;
 }
@@ -470,9 +452,6 @@ SFVec3fNativeNew()
 {
 	SFVec3fNative *ptr;
 	ptr = (SFVec3fNative *)MALLOC(sizeof(*ptr));
-	if (ptr == NULL) {
-		return NULL;
-	}
 	ptr->touched = 0;
 	return ptr;
 }

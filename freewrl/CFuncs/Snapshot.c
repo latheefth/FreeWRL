@@ -133,7 +133,6 @@ void Snapshot () {
 
 	/* MALLOC 3 bytes per pixel */
 	buffer = MALLOC (3*screenWidth*screenHeight*sizeof(char));
-	if (!buffer) {printf ("MALLOC error in snapshot, exiting \n"); exit(1); }
 
 	/* grab the data */
 	glPixelStorei (GL_UNPACK_ALIGNMENT, 1);

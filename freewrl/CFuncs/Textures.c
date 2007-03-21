@@ -1201,7 +1201,6 @@ int findTextureFile (int cwo, int *istemp) {
 		    (strncmp(firstBytes,firstMPGa,4) != 0) &&
 		    (strncmp(firstBytes,firstMPGb,4) != 0)) {
 			sysline = (char *)MALLOC(sizeof(char)*(strlen(filename)+100));
-			if (!sysline) {printf ("MALLOC failure in convert, exiting\n"); exit(1);}
 			sprintf(sysline,"%s %s /tmp/freewrl%d.png",
 					CONVERT,filename,getpid());
 			#ifdef TEXVERBOSE 

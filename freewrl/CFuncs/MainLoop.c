@@ -1388,13 +1388,29 @@ void setSeqTemp(const char* file) {
    console. */
 void outOfMemory(const char *msg) {
 	ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
-			"and is exiting.\n -- %s--",msg);
+			"and is exiting.\nPlease email this file to freewrl-06@rogers.com\n -- %s--",msg);
 	exit(1);
 }
 
 #ifdef DEBUG_MALLOC
-static int mcheckinit = FALSE;
+#define FREETABLE(a) mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
+		if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %d\n",a); \
+		else { \
+			/* printf ("found %d in mcheck table\n"); */ \
+			mcheck[mcount] = NULL; \
+			mlineno[mcount] = 0; \
+			if (mplace[mcount]!=NULL) free(mplace[mcount]); \
+		} 
+
+#define RESERVETABLE(a,file,line) mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=NULL)) mcount++; \
+		if (mcheck[mcount]!=NULL) printf ("freewrlMalloc - out of malloc check store\n");\
+		else {\
+			mcheck[mcount] = a;\
+			mlineno[mcount] = line;\
+			mplace[mcount] = strdup(file);\
+		}
 #define MAXMALLOCSTOKEEP 1000
+static int mcheckinit = FALSE;
 static void* mcheck[MAXMALLOCSTOKEEP];
 static char* mplace[MAXMALLOCSTOKEEP];
 static int mlineno[MAXMALLOCSTOKEEP];
@@ -1402,14 +1418,7 @@ static int mcount;
 
 void freewrlFree(int line, char *file, void *a) {
 	printf ("%d xfree at %s:%d\n",a,file,line);
-	mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++;
-	if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %d\n",a);
-	else {
-		printf ("found %d in mcheck table\n");
-		mcheck[mcount] = NULL;
-		mlineno[mcount] = 0;
-		if (mplace[mcount]!=NULL) free(mplace[mcount]);
-	}
+	FREETABLE(a)
 	free(a);
 }
 void scanMallocTableOnQuit() {
@@ -1443,13 +1452,7 @@ void *freewrlMalloc(int line, char *file, size_t sz) {
 	}
 	#ifdef DEBUG_MALLOC
 		printf ("%d malloc %d at %s:%d\n",rv,sz,file,line);
-		mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=NULL)) mcount++;
-		if (mcheck[mcount]!=NULL) printf ("freewrlMalloc - out of malloc check store\n");
-		else {
-			mcheck[mcount] = rv;
-			mlineno[mcount] = line;
-			mplace[mcount] = strdup(file);
-		}
+		RESERVETABLE(rv,file,line)
 	#endif
 	return rv;
 }
@@ -1468,6 +1471,9 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size) {
 
 	#ifdef DEBUG_MALLOC
 		printf ("%d malloc (from realloc) %d at %s:%d\n",rv,size,file,line);
+		FREETABLE(ptr)
+		RESERVETABLE(rv,file,line)
+
 	#endif
 	return rv;
 }

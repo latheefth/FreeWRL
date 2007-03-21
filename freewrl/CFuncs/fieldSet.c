@@ -702,10 +702,6 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		printf ("MALLOCing memory for elesize %d len %d\n",elesize,len);
 		#endif
 		tn->p = (struct SFColor *)MALLOC ((unsigned)(elesize*len));
-		if (tn->p == NULL) {
-			printf ("can not MALLOC memory in getJSMultiNumType\n");
-			return;
-		}
 	}
 
 	/* set these three up, but we only use one of them */
@@ -900,12 +896,6 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 	/* create the list to send to the AddRemoveChildren function */
 	newmal = MALLOC (newlen*sizeof(void *));
 	tmpptr = (uintptr_t*)newmal;
-
-	if (newmal == 0) {
-		printf ("cant MALLOC memory for addChildren");
-		return;
-	}
-
 
 	/* scan through the string again, and get the node numbers. */
 	while (sscanf (cptr,"%d", (uintptr_t *)tmpptr) == 1) {
