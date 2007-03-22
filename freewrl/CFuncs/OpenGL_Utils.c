@@ -28,6 +28,8 @@ XVisualInfo *Xvi;
 int fullscreen = 0;
 #endif
 
+void kill_rendering(void);
+
 /* Node Tracking */
 void kill_X3DNodes(void);
 void createdMemoryTable();
@@ -345,6 +347,9 @@ void fwXformPop(struct X3D_Transform *me) {
 	glPopMatrix(); 
 	MODmatOk = FALSE;
 }
+
+/* for Sarah's front end - should be removed sometime... */
+void kill_rendering() {kill_X3DNodes();}
 
 
 /* if we have a ReplaceWorld style command, we have to remove the old world. */
