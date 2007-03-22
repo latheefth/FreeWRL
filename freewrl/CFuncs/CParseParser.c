@@ -395,6 +395,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  int toLen;
  struct ProtoFieldDecl* toProtoField=NULL;
  struct ScriptFieldDecl* toScriptField=NULL;
+int temp, tempFE, tempFO, tempTE, tempTO;
 
  int routingDir;
 
@@ -497,12 +498,86 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 
  #define END_NODE(n) \
   EVENT_END_NODE(n)
+
+ /* potentially rename the Event_From and Event_To */
+
+ /* REASON: we had a problem with (eg) set_scale in tests/27.wrl. 
+    set_scale is a valid field for an Extrusion, so, it was "found". Unfortunately,
+    set_scale should be changed to "scale" for an event into a Transform...
+
+    The following code attempts to do this transformation. John Stewart - March 22 2007 */
+
+  /* BTW - Daniel, YES this is SLOW!! It does a lot of string comparisons. But, it does
+    seem to work, and it is only SLOW during ROUTE parsing, which (hopefully) there are not
+    thousands of. Code efficiency changes more than welcome, from anyone. ;-) */
+
+  tempFE=-1; tempFO=-1; tempTE=-1; tempTO=-1;
+ if(!fromProtoField && !fromScriptField) {
+	/* fromFieldE = Daniel's code thinks this is from an exposedField */
+	/* fromFieldO = Daniel's code thinks this is from an eventOut */
+
+	/* first, convert this to a FIELDNAME table index. */
+  	if(fromFieldE!=ID_UNDEFINED) {
+		/* printf ("step1a, node type %s fromFieldE %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldE,EXPOSED_FIELD[fromFieldE]); */
+		tempFE = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],0);
+		if (tempFE != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempFE]);
+	}
+	if (fromFieldO != ID_UNDEFINED) {
+		/* printf ("step2a, node type %s fromFieldO %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldO,EVENT_OUT[fromFieldO]); */
+		tempFO = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],0);
+		if (tempFO != ID_UNDEFINED) {
+			 tempFO = findFieldInEVENT_OUT(FIELDNAMES[tempFO]);
+		}  
+		if (tempFO == ID_UNDEFINED) {
+			/* hmmm - maybe this is NOW just an exposedField? */
+			temp = findRoutedFieldInFIELDNAMES(toNode,EVENT_OUT[toFieldO],0);
+			if (temp != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[temp]);
+		}
+	}
+ }
+ if(!toProtoField && !toScriptField) {
+	/* toFieldE = Daniel's code thinks this is from an exposedField */
+	/* toFieldO = Daniel's code thinks this is from an eventIn */
+
+  	if(toFieldE!=ID_UNDEFINED) {
+		/* printf ("step3a, node type %s toFieldE %d %s\n",stringNodeType(toNode->_nodeType),toFieldE,EXPOSED_FIELD[toFieldE]); */
+		tempTE = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
+		if (tempTE != ID_UNDEFINED) tempTE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempTE]);
+
+	}
+  	if(toFieldO!=ID_UNDEFINED) {
+		/* printf ("step4a, node type %s toFieldO %d %s\n",stringNodeType(toNode->_nodeType),toFieldO,EVENT_IN[toFieldO]); */
+		tempTO = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
+		if (tempTO != ID_UNDEFINED) {
+			tempTO = findFieldInEVENT_IN(FIELDNAMES[tempTO]);
+		}  
+		if (tempTO == ID_UNDEFINED) {
+			/* hmmm - maybe this is NOW just an exposedField? */
+			temp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
+			if (temp != ID_UNDEFINED) tempTE = findFieldInEXPOSED_FIELD(FIELDNAMES[temp]);
+		}
+	}
+}
+/*
+printf ("so, before routing we have: ");
+if (tempFE != ID_UNDEFINED) {printf ("from EXPOSED_FIELD %s ",EXPOSED_FIELD[tempFE]);}
+if (tempFO != ID_UNDEFINED) {printf ("from EVENT_OUT %s ",EVENT_OUT[tempFO]);}
+if (tempTE != ID_UNDEFINED) {printf ("to EXPOSED_FIELD %s ",EXPOSED_FIELD[tempTE]);}
+if (tempTO != ID_UNDEFINED) {printf ("to EVENT_IN %s ",EVENT_IN[tempTO]);}
+printf ("\n\n");
+*/
+
+  /* so, lets try and assign what we think we have now... */
+  fromFieldE = tempFE;
+  fromFieldO = tempFO;
+  toFieldE = tempTE;
+  toFieldO = tempTO;
+
  
  /* Process from eventOut */
  if(!fromProtoField && !fromScriptField)
-  if(fromFieldE!=ID_UNDEFINED)
-   switch(fromNode->_nodeType)
-   {
+  if(fromFieldE!=ID_UNDEFINED) {
+   switch(fromNode->_nodeType) {
     #define EVENT_IN(n, f, t, v)
     #define EVENT_OUT(n, f, t, v)
     #define EXPOSED_FIELD(node, field, type, var) \
@@ -516,10 +591,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     #undef BEGIN_NODE
     EVENT_NODE_DEFAULT
    }
-  else if(fromFieldO!=ID_UNDEFINED)
-  {
-   switch(fromNode->_nodeType)
-   {
+  } else if(fromFieldO!=ID_UNDEFINED) {
+   switch(fromNode->_nodeType) {
     #define EVENT_IN(n, f, t, v)
     #define EXPOSED_FIELD(n, f, t, v)
     #define EVENT_OUT(node, field, type, var) \
@@ -537,9 +610,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
 
  /* Process to eventIn */
  if(!toProtoField && !toScriptField)
-  if(toFieldE!=ID_UNDEFINED)
-   switch(toNode->_nodeType)
-   {
+  if(toFieldE!=ID_UNDEFINED) {
+   switch(toNode->_nodeType) {
     #define EVENT_IN(n, f, t, v)
     #define EVENT_OUT(n, f, t, v)
     #define EXPOSED_FIELD(node, field, type, var) \
@@ -553,10 +625,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
     #undef BEGIN_NODE
     EVENT_NODE_DEFAULT
    }
-  else if(toFieldO!=ID_UNDEFINED)
-  {
-   switch(toNode->_nodeType)
-   {
+  } else if(toFieldO!=ID_UNDEFINED) {
+   switch(toNode->_nodeType) {
     #define EVENT_OUT(n, f, t, v)
     #define EXPOSED_FIELD(n, f, t, v)
     #define EVENT_IN(node, field, type, var) \

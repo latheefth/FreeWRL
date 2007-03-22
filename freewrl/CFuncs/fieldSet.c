@@ -511,6 +511,8 @@ int findFieldInARR(char* field, const char** arr, size_t cnt)
 DEF_FINDFIELD(FIELDNAMES)
 DEF_FINDFIELD(FIELD)
 DEF_FINDFIELD(EXPOSED_FIELD)
+DEF_FINDFIELD(EVENT_IN)
+DEF_FINDFIELD(EVENT_OUT)
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */
