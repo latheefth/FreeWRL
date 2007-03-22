@@ -396,6 +396,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  struct ProtoFieldDecl* toProtoField=NULL;
  struct ScriptFieldDecl* toScriptField=NULL;
 int temp, tempFE, tempFO, tempTE, tempTO;
+char outline[200];
 
  int routingDir;
 
@@ -486,8 +487,19 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   }
 
  ROUTE_PARSE_NODEFIELD(from, Out)
- if(!lexer_keyword(me->lexer, KW_TO))
-  PARSE_ERROR("Expected TO in ROUTE-statement!")
+ if(!lexer_keyword(me->lexer, KW_TO)) {
+	/* try to make a better error message. */
+	strcpy (outline,"PARSE ERROR:Expected TO in ROUTE: ");
+	if (fromNode != NULL) { strcat (outline, " from :"); strcat (outline, stringNodeType(fromNode->_nodeType)); strcat (outline, " "); }
+	if (fromFieldE != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EXPOSED_FIELD[fromFieldE]); strcat (outline, " "); }
+	if (fromFieldO != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EVENT_OUT[fromFieldO]); strcat (outline, " "); }
+
+        /* PARSE_ERROR("Expected TO in ROUTE-statement!") */
+  	ConsoleMessage(outline); 
+	fprintf (stderr,"%s\n",outline);
+  	PARSER_FINALLY 
+  	return FALSE; 
+ }
  ROUTE_PARSE_NODEFIELD(to, In)
 
  /* Now, do the really hard macro work... */
@@ -511,7 +523,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
     seem to work, and it is only SLOW during ROUTE parsing, which (hopefully) there are not
     thousands of. Code efficiency changes more than welcome, from anyone. ;-) */
 
-  tempFE=-1; tempFO=-1; tempTE=-1; tempTO=-1;
+ tempFE=ID_UNDEFINED; tempFO=ID_UNDEFINED; tempTE=ID_UNDEFINED; tempTO=ID_UNDEFINED;
  if(!fromProtoField && !fromScriptField) {
 	/* fromFieldE = Daniel's code thinks this is from an exposedField */
 	/* fromFieldO = Daniel's code thinks this is from an eventOut */
@@ -657,8 +669,24 @@ printf ("\n\n");
   toLen=scriptFieldDecl_getLength(toScriptField);
 
  /* FIXME:  Not a really safe check for types in ROUTE! */
- if(fromLen!=toLen)
-  PARSE_ERROR("Types mismatch in ROUTE!")
+ /* JAS - made message better. Should compare types, not lengths. */
+ if(fromLen!=toLen) {
+	/* try to make a better error message. */
+	strcpy (outline,"PARSE ERROR:Types mismatch in ROUTE: ");
+	if (fromNode != NULL) { strcat (outline, " from:"); strcat (outline, stringNodeType(fromNode->_nodeType)); strcat (outline, " "); }
+	if (fromFieldE != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EXPOSED_FIELD[fromFieldE]); strcat (outline, " "); }
+	if (fromFieldO != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EVENT_OUT[fromFieldO]); strcat (outline, " "); }
+
+	if (toNode != NULL) { strcat (outline, " to:"); strcat (outline, stringNodeType(toNode->_nodeType)); strcat (outline, " "); }
+	if (toFieldE != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EXPOSED_FIELD[toFieldE]); strcat (outline, " "); }
+	if (toFieldO != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EVENT_IN[toFieldO]); strcat (outline, " "); }
+
+  	/* PARSE_ERROR(outline) */
+  	ConsoleMessage(outline); 
+	fprintf (stderr,"%s\n",outline);
+  	PARSER_FINALLY 
+  	return FALSE; 
+  }
 
  /* Finally, register the route. */
  /* **************************** */
