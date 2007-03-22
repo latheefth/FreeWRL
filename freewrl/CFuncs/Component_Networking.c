@@ -653,9 +653,22 @@ void do_MidiControl (void *this) {
 					}
 				}
 			} else {
-				/* send event if buttonPress happened */
-				sendEvent = node->buttonPress;
-				if (sendEvent) printf ("do_Midi, sending because of buttonPress have to worry about up/down and velocity in this case %d\n",value);
+				/* send event if buttonPress changes state */
+				if (node->_butPr != node->buttonPress) {
+					sendEvent = TRUE;
+					if (node->buttonPress) {
+						printf ("have ButtonPress at %lf\n",TickTime);
+						node->_sentVel = node->_vel;   /* this is a Note On */
+						node->pressTime = TickTime;	   /* time button pressed */
+					} else {
+						printf ("have ButtonRelease at %lf\n",TickTime);
+						node->_sentVel = -1;		/* this is a Note Off */
+						node->pressTime = (double)0.0;
+					}
+
+					/* now, reset the toggle... */
+					node->_butPr = node->buttonPress;
+				}
 			}
 		}
 					

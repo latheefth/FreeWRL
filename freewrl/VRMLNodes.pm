@@ -1635,6 +1635,8 @@ package VRML::NodeType;
 						controllerPresent => [SFBool, FALSE, exposedField],	# TRUE when ReWire is working
 
 						buttonPress => [SFBool,FALSE,exposedField],	# is the key pressed when in "ButtonPress" mode?"
+						_butPr => [SFBool,FALSE,exposedField],		# used to determine toggle state for buttonPress
+
 						autoButtonPress => [SFBool,TRUE,exposedField],# send a NoteOn when the int/float 
 												# value changes. if False, send only
 												# when buttonPressed happens.
