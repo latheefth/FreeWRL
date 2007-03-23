@@ -1392,6 +1392,7 @@ void setSeqTemp(const char* file) {
 void outOfMemory(const char *msg) {
 	ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
 			"and is exiting.\nPlease email this file to freewrl-06@rogers.com\n -- %s--",msg);
+	sleep(10);
 	exit(1);
 }
 
@@ -1469,8 +1470,10 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size) {
 	#endif
 	rv = realloc (ptr,size);
 	if (rv==NULL) {
-		sprintf (myline, "REALLOC PROBLEM - out of memory at %s:%d size %d",file,line,size);
-		outOfMemory (myline);
+		if (size != 0) {
+			sprintf (myline, "REALLOC PROBLEM - out of memory at %s:%d size %d",file,line,size);
+			outOfMemory (myline);
+		}
 	}
 
 	#ifdef DEBUG_MALLOC

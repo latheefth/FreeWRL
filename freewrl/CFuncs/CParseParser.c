@@ -40,6 +40,9 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  NULL
 };
 
+/* for error messages */
+char outline[2000];
+
 /* Macro definitions used more than once for event processing */
 /* ********************************************************** */
 
@@ -396,7 +399,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  struct ProtoFieldDecl* toProtoField=NULL;
  struct ScriptFieldDecl* toScriptField=NULL;
 int temp, tempFE, tempFO, tempTE, tempTO;
-char outline[200];
 
  int routingDir;
 
@@ -410,35 +412,70 @@ char outline[200];
  /* Parse the elements. */
  #define ROUTE_PARSE_NODEFIELD(pre, eventType) \
   /* Target-node */ \
-  if(!lexer_nodeName(me->lexer, &pre##NodeIndex)) \
-   PARSE_ERROR("Expected node-name in ROUTE-statement!") \
+\
+  if(!lexer_nodeName(me->lexer, &pre##NodeIndex)) { \
+	strcpy (outline,"ERROR:ROUTE: Expected a valid DEF name; found \""); \
+	if (me->lexer->curID != NULL) strcat (outline, me->lexer->curID); else strcat (outline, "(EOF)"); \
+	strcat (outline,"\" "); \
+  	ConsoleMessage(outline);  \
+	fprintf (stderr,"%s\n",outline); \
+  	PARSER_FINALLY  \
+  	return FALSE; \
+  } \
   assert(DEFedNodes && !stack_empty(DEFedNodes) && \
    pre##NodeIndex<vector_size(stack_top(struct Vector*, DEFedNodes))); \
   pre##Node=vector_get(struct X3D_Node*, \
    stack_top(struct Vector*, DEFedNodes), \
    pre##NodeIndex); \
+  if (pre##Node == NULL) { \
+	/* we had a bracket underflow, from what I can see. JAS */ \
+	strcpy (outline,"ERROR:ROUTE: no DEF name found - check scoping and \"}\"s"); \
+  	ConsoleMessage(outline);  \
+	fprintf (stderr,"%s\n",outline); \
+  	PARSER_FINALLY  \
+  	return FALSE; \
+ } else { \
   /* PROTO/Script? */ \
-  switch(pre##Node->_nodeType) \
-  { \
-   case NODE_Group: \
-    pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
-    assert(pre##Proto); \
-    break; \
-   case NODE_Script: \
-    pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
-    assert(pre##Script); \
-    break; \
+  	switch(pre##Node->_nodeType) \
+  	{ \
+  	 case NODE_Group: \
+  	  pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
+  	  assert(pre##Proto); \
+  	  break; \
+  	 case NODE_Script: \
+  	  pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
+  	  assert(pre##Script); \
+  	  break; \
+  	} \
   } \
   assert(!(pre##Proto && pre##Script)); \
   /* Seperating '.' */ \
-  if(!lexer_point(me->lexer)) \
-   PARSE_ERROR("Expected . after node-name!") \
+  if(!lexer_point(me->lexer)) {\
+   	/* PARSE_ERROR("Expected . after node-name!")*/ \
+	/* try to make a better error message. */ \
+	strcpy (outline,"ERROR:ROUTE: Expected \".\" after the NODE name, found \""); \
+	if (me->lexer->curID != NULL) strcat (outline, me->lexer->curID); else strcat (outline, "(EOF)"); \
+	strcat (outline,"\" "); \
+  	ConsoleMessage(outline);  \
+	fprintf (stderr,"%s\n",outline); \
+  	PARSER_FINALLY  \
+  	return FALSE;  \
+  } \
   /* Field, user/built-in depending on whether node is a PROTO instance */ \
   if(!pre##Proto && !pre##Script) \
   { \
    if(!lexer_event##eventType(me->lexer, \
-    &pre##FieldO, &pre##FieldE, NULL, NULL)) \
-    PARSE_ERROR("Expected built-in event" #eventType " after .!") \
+    &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
+        /*PARSE_ERROR("Expected built-in event" #eventType " after .!") */ \
+	/* try to make a better error message. */ \
+	strcpy (outline,"ERROR:ROUTE: Expected event" #eventType " field after \".\" found \""); \
+	if (me->lexer->curID != NULL) strcat (outline, me->lexer->curID); else strcat (outline, "(EOF)"); \
+	strcat (outline,"\" "); \
+  	ConsoleMessage(outline);  \
+	fprintf (stderr,"%s\n",outline); \
+  	PARSER_FINALLY  \
+  	return FALSE;  \
+    } \
   } else \
   { \
    assert(pre##Proto || pre##Script); \
@@ -484,13 +521,15 @@ char outline[200];
    assert(pre##ScriptField); \
    pre##Node=pre##Script->num; \
    pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
-  }
+  } 
 
  ROUTE_PARSE_NODEFIELD(from, Out)
  if(!lexer_keyword(me->lexer, KW_TO)) {
 	/* try to make a better error message. */
-	strcpy (outline,"PARSE ERROR:Expected TO in ROUTE: ");
-	if (fromNode != NULL) { strcat (outline, " from :"); strcat (outline, stringNodeType(fromNode->_nodeType)); strcat (outline, " "); }
+	strcpy (outline,"ERROR:ROUTE: Expected \"TO\" found \"");
+	if (me->lexer->curID != NULL) strcat (outline, me->lexer->curID); else strcat (outline, "(EOF)");
+	strcat (outline,"\" ");
+	if (fromNode != NULL) { strcat (outline, " from type:"); strcat (outline, stringNodeType(fromNode->_nodeType)); strcat (outline, " "); }
 	if (fromFieldE != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EXPOSED_FIELD[fromFieldE]); strcat (outline, " "); }
 	if (fromFieldO != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EVENT_OUT[fromFieldO]); strcat (outline, " "); }
 
@@ -672,12 +711,12 @@ printf ("\n\n");
  /* JAS - made message better. Should compare types, not lengths. */
  if(fromLen!=toLen) {
 	/* try to make a better error message. */
-	strcpy (outline,"PARSE ERROR:Types mismatch in ROUTE: ");
-	if (fromNode != NULL) { strcat (outline, " from:"); strcat (outline, stringNodeType(fromNode->_nodeType)); strcat (outline, " "); }
+	strcpy (outline,"ERROR:Types mismatch in ROUTE: ");
+	if (fromNode != NULL) { strcat (outline, " from type:"); strcat (outline, stringNodeType(fromNode->_nodeType)); strcat (outline, " "); }
 	if (fromFieldE != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EXPOSED_FIELD[fromFieldE]); strcat (outline, " "); }
 	if (fromFieldO != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EVENT_OUT[fromFieldO]); strcat (outline, " "); }
 
-	if (toNode != NULL) { strcat (outline, " to:"); strcat (outline, stringNodeType(toNode->_nodeType)); strcat (outline, " "); }
+	if (toNode != NULL) { strcat (outline, " to type:"); strcat (outline, stringNodeType(toNode->_nodeType)); strcat (outline, " "); }
 	if (toFieldE != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EXPOSED_FIELD[toFieldE]); strcat (outline, " "); }
 	if (toFieldO != ID_UNDEFINED) { strcat (outline, ":"); strcat (outline, EVENT_IN[toFieldO]); strcat (outline, " "); }
 
@@ -765,8 +804,17 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   assert(ind<vector_size(stack_top(struct Vector*, DEFedNodes)));
 
   vrmlNodeT node;
-  if(!parser_node(me, &node))
-   PARSE_ERROR("Expected node in DEF statement!\n")
+  if(!parser_node(me, &node)) {
+   	/* PARSE_ERROR("Expected node in DEF statement!\n") */
+	/* try to make a better error message. */
+	strcpy (outline,"ERROR:Expected an X3D node in a DEF statement, got \"");
+	if (me->lexer->curID != NULL) strcat (outline, me->lexer->curID); else strcat (outline, "(EOF)");
+	strcat (outline,"\" ");
+  	ConsoleMessage(outline); 
+	fprintf (stderr,"%s\n",outline);
+  	PARSER_FINALLY 
+  	return FALSE; 
+}
   vector_get(struct X3D_Node*, stack_top(struct Vector*, DEFedNodes), ind)=node;
 
   /*
@@ -784,8 +832,9 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
  {
   indexT ind;
 
-  if(!lexer_nodeName(me->lexer, &ind))
+  if(!lexer_nodeName(me->lexer, &ind)) {
    PARSE_ERROR("Expected nodeNameId after USE!\n")
+	}
   assert(ind!=ID_UNDEFINED);
 
   assert(DEFedNodes && !stack_empty(DEFedNodes) &&
@@ -863,8 +912,17 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  }
  assert(node);
 
- if(!lexer_closeCurly(me->lexer))
-  parseError("Expected } after fields of node!");
+ if(!lexer_closeCurly(me->lexer)) {
+  	/* parseError("Expected } after fields of node!"); */
+	/* try to make a better error message. */
+	strcpy (outline,"ERROR: Expected \"}\" after fields of a node; found \"");
+	if (me->lexer->curID != NULL) strcat (outline, me->lexer->curID); else strcat (outline, "(EOF)");
+	strcat (outline,"\" ");
+  	ConsoleMessage(outline); 
+	fprintf (stderr,"%s\n",outline);
+  	PARSER_FINALLY 
+  	return FALSE; 
+ }
 
  *ret=node;
  return TRUE;
@@ -1352,7 +1410,12 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
    \
    if(!parser_sf##name##Value(me, &val)) \
    { \
-    parseError("Expected ] before end of MF-Value!"); \
+        /* parseError("Expected ] before end of MF-Value!"); */ \
+	strcpy (outline,"ERROR:Expected \"]\" before end of MF-Value, found \""); \
+	if (me->lexer->curID != NULL) strcat (outline, me->lexer->curID); else strcat (outline, "(EOF)"); \
+	strcat (outline,"\" "); \
+  	ConsoleMessage(outline); \
+	fprintf (stderr,"%s\n",outline);\
     break; \
    } \
    vector_pushBack(vrml##type##T, vec, val); \
