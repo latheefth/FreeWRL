@@ -7,6 +7,18 @@ For 1.19.2:
 
 	- #include <stdlib> added to headers.h - for AMD64 compiles.
 
+	- code to purge malloc'd memory (in scenegraph)  on reload added to FreeWRL.
+
+	- bug in VRML parser fixed - routing to "set_scale" in nodes without a "set_scale" eventIn now working.
+	  (and, other nodes with a similar pattern, where a "set_X" or "X_changed" field exists in some other
+	  node, but not the current node, is fixed)
+
+	- Spotlight, PointLight handling problem - was not being ignored by "normalChildren()". 
+
+	- Collision code changed to NOT malloc/free for each node; now a pool of memory is mallocd that
+	  is used for all collision code. Helps speed collision detection calculations, especially on
+	  nodes with a large dataset, that caused mutex locking and virtual memory slowdowns.
+
 For 1.18.15:
 	- working on spot and directional Lights.
 
