@@ -286,7 +286,12 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	if ((nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->children);
+	if(node->has_light) {
+		#ifdef CHILDVERBOSE
+		printf ("node %d has_light, doing dirlightChildren\n",node);
+		#endif
+		dirlightChildren(node->children);
+	}
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -358,7 +363,12 @@ void child_Group (struct X3D_Group *node) {
 	if ((!node->__protoDef) && (nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->children);
+	if(node->has_light) {
+		#ifdef CHILDVERBOSE
+		printf ("node %d has_light, doing dirlightChildren\n",node);
+		#endif
+		dirlightChildren(node->children);
+	}
 
 	/* now, just render the non-directionalLight children */
 	if (node->__protoDef && render_geom) {
@@ -476,14 +486,27 @@ void child_Transform (struct X3D_Transform *node) {
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->children);
+	if(node->has_light) {
+		#ifdef CHILDVERBOSE
+		printf ("node %d has_light, doing dirlightChildren\n",node);
+		#endif
+		dirlightChildren(node->children);
+	}
 
 	/* now, just render the non-directionalLight children */
 
 	/* printf ("Transform %d, flags %d, render_sensitive %d\n",
 			node,node->_renderFlags,render_sensitive); */
 
+	#ifdef CHILDVERBOSE
+		printf ("transform - doing normalChildren\n");
+	#endif
+
 	normalChildren(node->children);
+
+	#ifdef CHILDVERBOSE
+		printf ("transform - done normalChildren\n");
+	#endif
 #ifdef XXBOUNDINGBOX
 	}
 #endif

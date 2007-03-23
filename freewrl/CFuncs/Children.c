@@ -82,7 +82,9 @@ void normalChildren(struct Multi_Node ch) {
 		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
 
 		if (p != NULL) {
-			if(p->_nodeType != NODE_DirectionalLight) {
+			if ((p->_nodeType != NODE_DirectionalLight) &&
+			     (p->_nodeType != NODE_PointLight) &&
+			     (p->_nodeType != NODE_SpotLight)) {
 			/*printf ("normalchildren, (%d of %d) child %d\n",i,ch.n,p);   */
 			/*			if ((p->PIV) > 0) */
 				render_node(p);
