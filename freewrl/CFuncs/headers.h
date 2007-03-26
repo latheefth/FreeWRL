@@ -1186,6 +1186,7 @@ void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int c
 void createContext(CGrafPtr grafPtr);
 void setIsPlugin();
 void sendPluginFD(int fd);
+void aquaPrintVersion();
 #endif
 
 /* X3D C parser */

@@ -1693,4 +1693,8 @@ void disposeContext() {
 void sendPluginFD(int fd) {
         _fw_browser_plugin = fd;
 }
+void aquaPrintVersion() {
+	printf ("FreeWRL version: %s\n",FWVER); 
+	exit(0);
+}
 #endif
