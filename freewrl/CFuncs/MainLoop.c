@@ -1397,8 +1397,8 @@ void outOfMemory(const char *msg) {
 }
 
 #ifdef DEBUG_MALLOC
-#define FREETABLE(a) mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
-		if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %d\n",a); \
+#define FREETABLE(a,file,line) mcount=0; while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
+		if (mcheck[mcount]!=a) printf ("freewrlFree - did not find %x at %s:%d\n",a,file,line); \
 		else { \
 			/* printf ("found %d in mcheck table\n"); */ \
 			mcheck[mcount] = NULL; \
@@ -1414,7 +1414,7 @@ void outOfMemory(const char *msg) {
 			mlineno[mcount] = line;\
 			mplace[mcount] = strdup(file);\
 		}
-#define MAXMALLOCSTOKEEP 1000
+#define MAXMALLOCSTOKEEP 10000
 static int mcheckinit = FALSE;
 static void* mcheck[MAXMALLOCSTOKEEP];
 static char* mplace[MAXMALLOCSTOKEEP];
@@ -1423,7 +1423,7 @@ static int mcount;
 
 void freewrlFree(int line, char *file, void *a) {
 	/* printf ("%x xfree at %s:%d\n",a,file,line); */
-	FREETABLE(a)
+	FREETABLE(a,file,line)
 	free(a);
 }
 void scanMallocTableOnQuit() {
@@ -1478,7 +1478,7 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size) {
 
 	#ifdef DEBUG_MALLOC
 		/* printf ("%x malloc (from realloc) %d at %s:%d\n",rv,size,file,line); */
-		FREETABLE(ptr)
+		FREETABLE(ptr,file,line)
 		RESERVETABLE(rv,file,line)
 
 	#endif

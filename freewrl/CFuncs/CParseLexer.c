@@ -84,6 +84,7 @@ void lexer_destroyIdStack(Stack* s)
  while(!stack_empty(s))
   lexer_scopeOut_(s);
  deleteStack(struct Vector*, s);
+ s = NULL; /* JAS */
 }
 void lexer_destroyIdVector(struct Vector* v)
 {
@@ -108,8 +109,10 @@ void lexer_destroyData()
 
  /* User node types */
  DESTROY_IDVEC(userNodeTypesVec)
- if(userNodeTypesStack)
-  deleteStack(size_t, userNodeTypesStack);
+ if(userNodeTypesStack) {
+  	deleteStack(size_t, userNodeTypesStack);
+	userNodeTypesStack = NULL; /* JAS */
+ }
 
  /* User fields */
  DESTROY_IDVEC(user_field)

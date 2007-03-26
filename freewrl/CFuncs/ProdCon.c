@@ -28,6 +28,8 @@
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
+#define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"
+
 extern int isMacPlugin;
 char* PluginPath = "/private/tmp";
 int PluginLength = 12;
@@ -309,8 +311,7 @@ char *getInputURL() {
 
 /************************************************************************/
 /*									*/
-/* Convert XML to Classic encoding. Remove when native XML parsing is	*/
-/* restored. Thanks to Don Brutzman and the NPS for this xslt file	*/
+/* check the first few lines to see if this is an XMLified file		*/
 /*									*/
 /************************************************************************/
 
@@ -319,6 +320,21 @@ int ifIsX3D(char *buffer) {
 	char *rv;
 
 	rv = strstr(buffer,"<?xml version");
+	return rv != NULL;
+}
+
+
+/************************************************************************/
+/*									*/
+/* is this a VRML 1.0 file? GEANT4, for instance, can produce these	*/
+/*									*/
+/************************************************************************/
+
+/* do we have an X3D header here? */
+int ifIsVRML1(char *buffer) {
+	char *rv;
+
+	rv = strstr(buffer,"#VRML V1.0 asc");
 	return rv != NULL;
 }
 
@@ -822,6 +838,8 @@ void __pt_doStringUrl () {
 				ConsoleMessage ("Parse Unsuccessful");
 
 			}
+		} else if (ifIsVRML1(psp.inp)) {
+			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
 		}
@@ -838,6 +856,8 @@ void __pt_doStringUrl () {
 				ConsoleMessage ("Parse Unsuccessful");
 
 			}
+		} else if (ifIsVRML1(buffer)) {
+			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
 		}
@@ -853,6 +873,8 @@ void __pt_doStringUrl () {
 				ConsoleMessage ("Parse Unsuccessful");
 
 			}
+		} else if (ifIsVRML1(psp.inp)) {
+			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
 		}
@@ -869,6 +891,8 @@ void __pt_doStringUrl () {
 				ConsoleMessage ("Parse Unsuccessful");
 
 			}
+		} else if (ifIsVRML1(psp.inp)) {
+			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
 		}

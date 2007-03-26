@@ -143,6 +143,9 @@ void parser_destroyData()
  assert(!PROTOs);
 
  lexer_destroyData();
+
+  /* zero script count */
+  zeroScriptHandles ();	
 }
 
 /* Scoping */

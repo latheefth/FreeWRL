@@ -89,6 +89,9 @@ static uintptr_t handleCnt=0;
 
 uintptr_t nextScriptHandle (void) {uintptr_t retval; retval = handleCnt; handleCnt++; return retval;}
 
+/* on a reload, zero script counts */
+void zeroScriptHandles (void) {handleCnt = 0;}
+
 struct Script* newScript()
 {
  struct Script* ret=MALLOC(sizeof(struct Script));

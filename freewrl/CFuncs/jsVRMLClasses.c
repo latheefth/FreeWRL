@@ -415,11 +415,15 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	int len = 0, ind = JSVAL_TO_INT(id);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("\tdoMFAddProperty:%s ",name);
+		printf("\tdoMFAddProperty:%s id %d ",name,id);
 	#endif
 
 	str = JS_ValueToString(cx, id);
 	p = JS_GetStringBytes(str);
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("\tid string  %s ",p);
+	#endif
+
 
 	p_len = strlen(p);
 	if (!strcmp(p, "length") ||
@@ -473,7 +477,6 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	}
 	return JS_TRUE;
 }
-
 
 static JSBool
 doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
@@ -682,6 +685,19 @@ loadVrmlClasses(JSContext *context, JSObject *globalObj)
 		return JS_FALSE;
 	}
 	v = 0;
+
+/*
+printf ("before jsinitclass for moffloat, cx %d gobj %d MFFloatClass %d MFFloatConstr %d MFFloatFunctions %d\n",
+context,globalObj,&MFFloatClass,MFFloatConstr,MFFloatFunctions);
+printf ("lets try this... %s\n",MFFloatClass);
+printf ("and, %s %s\n",MFFloatFunctions[0], MFFloatFunctions[3]);
+static JSFunctionSpec (MFFloatFunctions)[] = {
+        {"toString", MFFloatToString, 0},
+        {"assign", MFFloatAssign, 0},
+        {0}
+};
+*/
+
 
 	if ((proto_MFFloat = JS_InitClass(context, globalObj, NULL, &MFFloatClass,
 			  MFFloatConstr, INIT_ARGC, NULL,
@@ -2474,22 +2490,30 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		printf( "JS_ConvertArguments failed in SFRotationAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFRotationClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFRotationAssign.\n");
-        return JS_FALSE;
-    }
-	if ((fptr = (SFRotationNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
-		printf( "JS_GetPrivate failed for _from_obj in SFRotationAssign.\n");
-        return JS_FALSE;
-	}
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
-	#endif
 
-    SFRotationNativeAssign(ptr, fptr);
-    *rval = OBJECT_TO_JSVAL(obj);
-    return JS_TRUE;
+	/* is this an assignment of NULL? */
+	if (_from_obj == NULL) {
+		printf ("we have an assignment to null in SFRotationAssign\n");
+		*rval = NULL;
+	} else {
+
+	    if (!JS_InstanceOf(cx, _from_obj, &SFRotationClass, argv)) {
+			printf( "JS_InstanceOf failed for _from_obj in SFRotationAssign.\n");
+	        return JS_FALSE;
+	    }
+		if ((fptr = (SFRotationNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
+			printf( "JS_GetPrivate failed for _from_obj in SFRotationAssign.\n");
+        	return JS_FALSE;
+		}
+		#ifdef JSVRMLCLASSESVERBOSE
+			printf("SFRotationAssign: obj = %u, id = \"%s\", from = %u\n",
+				   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+		#endif
+
+	    SFRotationNativeAssign(ptr, fptr);
+		*rval = OBJECT_TO_JSVAL(obj);
+	}
+	return JS_TRUE;
 }
 
 JSBool
@@ -2556,8 +2580,6 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		/* two possibilities - SFVec3f/numeric, or SFVec3f/SFVec3f */
 		if (JSVAL_IS_OBJECT(argv[0])) {
 			_ob1 = argv[0];
-
-			printf ("argv 0 is an object\n");
 			if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
 				printf( "JS_InstanceOf failed for 2 arg format in SFRotationConstr.\n");
 				return JS_FALSE;
@@ -2568,7 +2590,6 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			}
 		}
 		if (JSVAL_IS_OBJECT(argv[1])) {
-			printf ("argv 1 is an object\n");
 			_ob2 = argv[1];
 
 			v3fv3f = TRUE;
@@ -3621,6 +3642,7 @@ SFVec3fFinalize(JSContext *cx, JSObject *obj)
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFVec3fFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	#endif
+
 	if ((ptr = (SFVec3fNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec3fFinalize.\n");
 		return;

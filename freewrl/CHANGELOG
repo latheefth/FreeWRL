@@ -1,4 +1,9 @@
 For 1.19.2:
+	- prints error message when user attempts to parse VRML version 1 files.
+
+	- various VRML parser error messages changed to help point users to correct
+	  area of input file (ongoing work)
+
 	- -DDEBUG_MALLOC for finding malloc problems;
 	
 	- MALLOC, REALLOC, automatically check malloc return values; exit if NULL found with file/line number.

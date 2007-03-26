@@ -22,11 +22,11 @@ Javascript C language binding.
 
 #include "CParseGeneral.h"
 
-/* #define MAX_RUNTIME_BYTES 0x100000L*/
-#define MAX_RUNTIME_BYTES 0x1000000L
+/* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
+#define MAX_RUNTIME_BYTES 0x100000L
+/*   #define MAX_RUNTIME_BYTES 0x1000000L */
 /* #define STACK_CHUNK_SIZE 0x2000L*/
 #define STACK_CHUNK_SIZE 0x20000L
-
 
 /*
  * Global JS variables (from Brendan Eichs short embedding tutorial):
@@ -61,7 +61,7 @@ Javascript C language binding.
  *
  */
 
-static JSRuntime *runtime;
+static JSRuntime *runtime = NULL;
 static JSClass globalClass = {
 	"global",
 	0,
@@ -82,6 +82,12 @@ char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; 
 
 /* housekeeping routines */
 void kill_javascript(void) {
+printf ("calling kill_javascript()\n");
+return;
+	JS_DestroyRuntime(runtime);
+	runtime = NULL;
+	JSMaxScript = 0;
+	FREE_IF_NZ (ScriptControl)
 }
 
 
@@ -122,12 +128,15 @@ void JSInit(uintptr_t num) {
 	}
 
 
-	runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
-	if (!runtime) freewrlDie("JS_NewRuntime failed");
+	/* is this the first time through? */
+	if (runtime == NULL) {
+		runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
+		if (!runtime) freewrlDie("JS_NewRuntime failed");
 
-	#ifdef JAVASCRIPTVERBOSE 
-	printf("\tJS runtime created,\n");
-	#endif
+		#ifdef JAVASCRIPTVERBOSE 
+		printf("\tJS runtime created,\n");
+		#endif
+	}
 
 
 	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
@@ -514,7 +523,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	double defaultDouble[] = {0.0, 0.0};
 	struct Uni_String *sptr[1];
 
-	 #ifdef SETFIELDVERBOSE
+	 #ifdef JAVASCRIPTVERBOSE
 	printf ("\nInitScriptFieldC, num %d, kind %d type %d field %s value %d\n", num,kind,type,field,value);
 	#endif
 	

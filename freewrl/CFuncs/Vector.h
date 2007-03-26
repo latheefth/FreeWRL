@@ -24,9 +24,14 @@ struct Vector
 struct Vector* newVector_(size_t elSize, size_t initSize);
 #define newVector(type, initSize) \
  newVector_(sizeof(type), initSize)
-void deleteVector_(size_t elSize, struct Vector*);
-#define deleteVector(type, me) \
- deleteVector_(sizeof(type), me)
+
+#ifdef DEBUG_MALLOC
+	void deleteVector_(char *file, int line, size_t elSize, struct Vector*);
+	#define deleteVector(type, me) deleteVector_(__FILE__,__LINE__,sizeof(type), me)
+#else
+	void deleteVector_(size_t elSize, struct Vector*);
+	#define deleteVector(type, me) deleteVector_(sizeof(type), me)
+#endif
 
 /* Ensures there's at least one space free. */
 void vector_ensureSpace_(size_t, struct Vector*);

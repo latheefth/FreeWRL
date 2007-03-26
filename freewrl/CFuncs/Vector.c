@@ -11,60 +11,69 @@
 
 /* Constructor/destructor */
 
-struct Vector* newVector_(size_t elSize, size_t initSize)
-{
- struct Vector* ret=MALLOC(sizeof(struct Vector));
- assert(ret);
- ret->n=0;
- ret->allocn=initSize;
- ret->data=MALLOC(elSize*ret->allocn);
- assert(ret->data);
- return ret;
+struct Vector* newVector_(size_t elSize, size_t initSize) {
+ 	struct Vector* ret=MALLOC(sizeof(struct Vector));
+ 	assert(ret);
+ 	ret->n=0;
+ 	ret->allocn=initSize;
+ 	ret->data=MALLOC(elSize*ret->allocn);
+ 	assert(ret->data);
+	#ifdef DEBUG_MALLOC
+		printf ("vector, new  %x, data %x, size %d\n",ret, ret->data, initSize);
+	#endif
+	
+	return ret;
 }
 
-void deleteVector_(size_t elSize, struct Vector* me)
-{
- assert(me);
- if(me->data)
-  FREE_IF_NZ(me->data);
- FREE_IF_NZ(me);
+#ifdef DEBUG_MALLOC
+void deleteVector_(char *file, int line, size_t elSize, struct Vector* me) {
+#else
+void deleteVector_(size_t elSize, struct Vector* me) {
+#endif
+	assert(me);
+	#ifdef DEBUG_MALLOC
+		printf ("vector, deleting me %x data %x at %s:%d\n",me,me->data,file,line);
+	#endif
+	if(me->data) FREE_IF_NZ(me->data);
+	FREE_IF_NZ(me);
 }
 
 /* Ensures there's at least one space free. */
-void vector_ensureSpace_(size_t elSize, struct Vector* me)
-{
- assert(me);
- if(me->n==me->allocn)
- {
-  if(me->allocn)
-   me->allocn*=2;
-  else
-   me->allocn=1;
-  me->data=REALLOC(me->data, elSize*me->allocn);
-  assert(me->data);
- }
- assert(me->n<me->allocn);
+void vector_ensureSpace_(size_t elSize, struct Vector* me) {
+	assert(me);
+	if(me->n==me->allocn) {
+		if(me->allocn) me->allocn*=2;
+		else me->allocn=1;
+
+		me->data=REALLOC(me->data, elSize*me->allocn);
+		#ifdef DEBUG_MALLOC
+			printf ("vector, ensureSpace, me %x, data %x\n",me, me->data);
+		#endif
+		assert(me->data);
+	}
+	assert(me->n<me->allocn);
 }
 
 /* Shrinks the vector to allocn==n. */
-void vector_shrink_(size_t elSize, struct Vector* me)
-{
- assert(me);
- assert(me->allocn>=me->n);
- if(me->n==me->allocn) return;
+void vector_shrink_(size_t elSize, struct Vector* me) {
+	assert(me);
+	assert(me->allocn>=me->n);
+	if(me->n==me->allocn) return;
 
- me->allocn=me->n;
- me->data=REALLOC(me->data, elSize*me->allocn);
- assert(!me->allocn || me->data);
+	me->allocn=me->n;
+	me->data=REALLOC(me->data, elSize*me->allocn);
+	assert(!me->allocn || me->data);
 }
 
-void* vector_releaseData_(size_t elSize, struct Vector* me)
-{
- void* ret;
+void* vector_releaseData_(size_t elSize, struct Vector* me) {
+	void* ret;
 
- vector_shrink_(elSize, me);
- ret=me->data;
- me->data=NULL;
+	vector_shrink_(elSize, me);
+	ret=me->data;
+	#ifdef DEBUG_MALLOC
+		printf ("vector, me %x data %x\n",me, me->data);
+	#endif
+	me->data=NULL;
 
- return ret;
+	return ret;
 }
