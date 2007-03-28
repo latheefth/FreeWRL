@@ -525,6 +525,10 @@ void ReWireRegisterMIDI (char *str) {
 	/* set the device tables to the starting value. */
 	ReWireDevicetableSize = -1;
 
+	#ifdef MIDIVERBOSE
+	printf ("ReWireRegisterMIDI - have string :%s:\n",str);
+	#endif
+
 	while (*str != '\0') {
 		while (*str == '\n') str++;
 		/* is this a new device? */
@@ -691,7 +695,6 @@ void do_MidiControl (void *this) {
 	}	
 }
 
-
 /* a MIDI event is coming in from the EAI port! */
 void ReWireMIDIControl (char *line) {
 	long int timeDiff;
@@ -707,8 +710,20 @@ void ReWireMIDIControl (char *line) {
 		return;
 	}
 
+	#ifdef MIDIVERBOSE
+		printf ("ReWireMIDIControl - input timedif %ld bus %d channel %d controller %d value %d\n",
+					timeDiff, bus, channel, controller, value);
+	#endif
+
 
 	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+		#ifdef MIDIVERBOSE
+			printf ("	ind %d comparing bus %d:%d channel %d:%d and  controller %d:%d\n", 
+				ctr, bus, ReWireDevices[ctr].bus,
+				channel, ReWireDevices[ctr].channel,
+				controller, ReWireDevices[ctr].controller);
+		#endif
+
 		if ((bus==ReWireDevices[ctr].bus) &&
 			(channel == ReWireDevices[ctr].channel) &&
 			(controller == ReWireDevices[ctr].controller)) {
@@ -717,7 +732,7 @@ void ReWireMIDIControl (char *line) {
 			#endif
 
 			if (ReWireDevices[ctr].node == NULL) {
-				/* printf ("ReWireMidiEvent, node for %d is still NULL\n",ctr); */
+				printf ("ReWireMidiEvent, node for %d is still NULL\n",ctr);
 			} else {
 				node = ReWireDevices[ctr].node;
 				#ifdef MIDIVERBOSE

@@ -1,5 +1,8 @@
 
 #include "Eai_C.h"
+#include <stdio.h>
+#include <sys/errno.h>
+
 pthread_t readThread;
 int readThreadInitialized = FALSE;
 
@@ -12,6 +15,7 @@ void X3D_initialize(char *hostname) {
 
 	loopCount = 0;
 	while ((_X3D_FreeWRL_FD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		printf ("socket %d waiting...\n",_X3D_FreeWRL_FD);
 		usleep (100000);
 		loopCount ++;
 		if (loopCount >= 10000) {
@@ -21,6 +25,8 @@ void X3D_initialize(char *hostname) {
 	}
 
 	printf ("socket %d\n",_X3D_FreeWRL_FD);
+	usleep (10000);	/* let remote end settle down to this interruption */
+
 	if (strlen(hostname) == 0) hostname = "localhost";
 
 	server = gethostbyname(hostname);
@@ -36,7 +42,9 @@ void X3D_initialize(char *hostname) {
 	serv_addr.sin_port = htons(EAIBASESOCKET);
 
 	loopCount = 0;
+printf ("connecting to socket\n");
 	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {
+printf ("connection failed; errno %d\n",errno);
 		usleep (100000);
 		loopCount ++;
 		if (loopCount >= 10000) {
@@ -45,6 +53,7 @@ void X3D_initialize(char *hostname) {
 		}
 	}
 
+printf ("now starting freewrlreadthread\n");
 	/* start up read thread */
 	iret1 = pthread_create( &readThread, NULL, freewrlReadThread, NULL);
 }

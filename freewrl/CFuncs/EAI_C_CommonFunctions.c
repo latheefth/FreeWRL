@@ -11,6 +11,7 @@ for conditions of use and redistribution.
 	#include "Eai_C.h"
 	#define add_parent(a,b)
 	#define addToNode(a,b,c)
+	#define MALLOC(a) malloc(a)
 #else
 	#include "headers.h"
 
