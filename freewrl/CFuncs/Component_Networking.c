@@ -667,11 +667,15 @@ void do_MidiControl (void *this) {
 				if (node->_butPr != node->buttonPress) {
 					sendEvent = TRUE;
 					if (node->buttonPress) {
+						#ifdef MIDIVERBOSE
 						printf ("have ButtonPress at %lf\n",TickTime);
+						#endif
 						node->_sentVel = node->_vel;   /* this is a Note On */
 						node->pressTime = TickTime;	   /* time button pressed */
 					} else {
+						#ifdef MIDIVERBOSE
 						printf ("have ButtonRelease at %lf\n",TickTime);
+						#endif
 						node->_sentVel = -1;		/* this is a Note Off */
 						node->pressTime = (double)0.0;
 					}
