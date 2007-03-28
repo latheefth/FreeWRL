@@ -7,7 +7,7 @@ for conditions of use and redistribution.
 
 /* Common functions between the FreeWRL code and the ReWire C code */
 
-#ifdef REWIRE
+#ifdef MIDI 
 	#include "Eai_C.h"
 	#define add_parent(a,b)
 	#define addToNode(a,b,c)
@@ -399,7 +399,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			}
 
 		default: {
-			#ifdef REWIRE
+			#ifdef MIDI
 			printf ("unhandled PST type, check code in EAI_C_CommonFunctions\n");
 			#else
 			printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
