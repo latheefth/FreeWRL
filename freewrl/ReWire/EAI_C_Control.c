@@ -24,7 +24,7 @@ void X3D_initialize(char *hostname) {
 		}
 	}
 
-	printf ("socket %d\n",_X3D_FreeWRL_FD);
+	/* printf ("socket %d\n",_X3D_FreeWRL_FD); */
 	usleep (10000);	/* let remote end settle down to this interruption */
 
 	if (strlen(hostname) == 0) hostname = "localhost";
@@ -42,9 +42,7 @@ void X3D_initialize(char *hostname) {
 	serv_addr.sin_port = htons(EAIBASESOCKET);
 
 	loopCount = 0;
-printf ("connecting to socket\n");
 	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {
-printf ("connection failed; errno %d\n",errno);
 		usleep (100000);
 		loopCount ++;
 		if (loopCount >= 10000) {
@@ -53,7 +51,6 @@ printf ("connection failed; errno %d\n",errno);
 		}
 	}
 
-printf ("now starting freewrlreadthread\n");
 	/* start up read thread */
 	iret1 = pthread_create( &readThread, NULL, freewrlReadThread, NULL);
 }

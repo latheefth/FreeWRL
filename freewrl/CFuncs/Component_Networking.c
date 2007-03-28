@@ -339,17 +339,23 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 
 	/* first time through, the _ichange will be 0. Lets ensure that we start events properly. */
 	if (node->_ichange == 0) {
+		#ifdef MIDIVERBOSE
 		printf ("Midi Node being initialized\n");
+		#endif
 		node->controllerPresent = 999; /* force event for correct controllerPresent */
 	}
 
 	if (node->deviceName->touched > 0) {
+		#ifdef MIDIVERBOSE
 		printf ("NODE DEVICE NAME CHANGED\n");
+		#endif
 		node->_deviceNameIndex = ReWireNameIndex(node->deviceName->strptr);
 		node->deviceName->touched = 0;
 	}
 	if (node->channel->touched > 0) {
+		#ifdef MIDIVERBOSE
 		printf ("NODE CHANNEL CHANGED\n");
+		#endif
 		node->_channelIndex = ReWireNameIndex(node->channel->strptr);
 		node->channel->touched = 0;
 	}
