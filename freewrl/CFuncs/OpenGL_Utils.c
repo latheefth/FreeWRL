@@ -428,134 +428,107 @@ void doNotRegisterThisNodeForDestroy(void * nodePtr){
 }
 
 void createdMemoryTable(){
-	/*printf("creating memory table \n");*/
 	tableIndexSize=200;
 	memoryTable = MALLOC(tableIndexSize * sizeof(uintptr_t));
 }
 
 void increaseMemoryTable(){
-	printf("increasing memory table\n");
 	tableIndexSize*=2;
 	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(memoryTable) );
 	/*printf("increasing memory table=%d\n",sizeof(memoryTable));*/
 }
 
 void kill_X3DNodes(void){
+	int i=0;
+	int j=0;
 	uintptr_t *fieldOffsetsPtr;
 	char * fieldPtr;
 	struct X3D_Node* structptr;
-/*debug variable*/
-	float * m;
-	int d;
 	for (i=0; i<nextEntry; i++){		
 		structptr = (struct X3D_Node*)memoryTable[i];		
-		/* printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);
-		 printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType)); */
+		/*printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);*/
+		/* printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType)); */
 		fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];				
 		while (*fieldOffsetsPtr != -1) {
-				/*printf("type	= %d\n",*(fieldOffsetsPtr+2));*/
-			/*if (*(fieldOffsetsPtr+2)==19){
-				printf("switch	= %d\n",*(fieldOffsetsPtr+2));
-			}*/
-
 			switch(*(fieldOffsetsPtr+2)){
-				case 1:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Rotation* MRotation;
-					MRotation=(struct Multi_Rotation *)fieldPtr;
-					MRotation->n=0;
-					FREE_IF_NZ(MRotation->p);
-					break;
-				case 3:
+				case FIELDTYPE_MFFloat:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Float* MFloat;
 					MFloat=(struct Multi_Float *)fieldPtr;
 					MFloat->n=0;
 					FREE_IF_NZ(MFloat->p);
 					break;
-				case 5:
+				case FIELDTYPE_MFRotation:
+					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+					struct Multi_Rotation* MRotation;
+					MRotation=(struct Multi_Rotation *)fieldPtr;
+					MRotation->n=0;
+					FREE_IF_NZ(MRotation->p);
+					break;
+				case FIELDTYPE_MFVec3f:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Vec3f* MVec3f;
 					MVec3f=(struct Multi_Vec3f *)fieldPtr;
 					MVec3f->n=0;
 					FREE_IF_NZ(MVec3f->p);
 					break;
-				case 7:
+				case FIELDTYPE_MFBool:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Bool* Mbool;
 					Mbool=(struct Multi_Bool *)fieldPtr;
 					Mbool->n=0;
 					FREE_IF_NZ(Mbool->p);
 					break;
-				case 9:
+				case FIELDTYPE_MFInt32:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Int32* MInt32;
 					MInt32=(struct Multi_Int32 *)fieldPtr;
 					MInt32->n=0;
 					FREE_IF_NZ(MInt32->p);
 					break;
-				/*case 11:
+				case FIELDTYPE_MFNode:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Node* MNode;
 					MNode=(struct Multi_Node *)fieldPtr;
 					MNode->n=0;
 					FREE_IF_NZ(MNode->p);
-					break;*/
-				case 13:
+					break;
+				case FIELDTYPE_MFColor:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Color* MColor;
 					MColor=(struct Multi_Color *)fieldPtr;
 					MColor->n=0;
 					FREE_IF_NZ(MColor->p);
 					break;
-				case 15:
+				case FIELDTYPE_MFColorRGBA:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_ColorRGBA* MColorRGBA;
 					MColorRGBA=(struct Multi_ColorRGBA *)fieldPtr;
 					MColorRGBA->n=0;
 					FREE_IF_NZ(MColorRGBA->p);
 					break;
-				case 17:
+				case FIELDTYPE_MFTime:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Time* MTime;
 					MTime=(struct Multi_Time *)fieldPtr;
 					MTime->n=0;
 					FREE_IF_NZ(MTime->p);
 					break;
-				case 19:
+				case FIELDTYPE_MFString: 
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_String* MString;
-					struct Uni_String* dan;
 					MString=(struct Multi_String *)fieldPtr;
-					/*printf("avant		n	= %d\n",MString->n);
-					printf("avant		p	= %d\n",MString->p);*/
-					dan=(struct Uni_String *)MString->p;
-					if (MString->n!=0){
-					/*printf("if (MString->n!=0)\n");*/
-						/*for (i=0; i<=0; i++) {*/
-							/*printf("for loop\n");
-							kill_SFString(MString->p[i]);*/
-						/*}*/
+					struct Uni_String* ustr;
+					for (j=0; j<MString->n; j++) {
+						ustr=MString->p[j];
+						ustr->len=0;
+						ustr->touched=0;
+						FREE_IF_NZ(ustr->strptr);
 					}
 					MString->n=0;
-					/*printf("apres		n	= %d\n",MString->n);
-					printf("apres		p	= %d\n",MString->p);*/
+					FREE_IF_NZ(MString->p);
 					break;
-/*
-	for (i=0; i<par->n; i++) {
-		kill_SFString(par->p[i]);
-	}
-	par->n=0;
-
-
-struct Multi_String { int n; struct Uni_String * *p; };
-
-struct Uni_String {
-	int len;
-	char * strptr;
-	int touched;
-};*/
-				case 21:
+				case FIELDTYPE_MFVec2f:
 					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 					struct Multi_Vec2f* MVec2f;
 					MVec2f=(struct Multi_Vec2f *)fieldPtr;
@@ -574,4 +547,5 @@ struct Uni_String {
 	tableIndexSize=0;
 	nextEntry=0;
 }
+
 
