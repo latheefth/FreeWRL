@@ -6,8 +6,8 @@ void _handleReWireCallback (char *buf) {
 	if (sscanf(buf, "%d %d %d %d %d",&bus,&channel, &controllerOrVelocity, &controlType, &value) != 5) {
 		printf ("handleReWireCallback - failed in sscanf\n");
 	} else {
-		#ifdef REWIRE
-		sendMIDIToReason (bus,channel,controllerOrVelocity,controlType,value);
+		#ifdef MIDI
+		sendMIDI (bus,channel,controllerOrVelocity,controlType,value);
 		#else
 		printf ("handleReWireCallback - data not sent anywhere\n");
 		#endif

@@ -104,21 +104,39 @@ void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *f
 sendNodeToReWire(struct X3D_MidiControl *node) {
 	int buf[200];
 
+	#ifdef MIDIVERBOSE
+	if (node->controllerPresent) {
+		printf ("sendNodeToReWire - controller present\n");
+	} else {
+		printf ("sendNodeToReWire - controller NOT present\n");
+	}
+	#endif
+
+
 	if (node->controllerPresent) {
 		if (node->_intControllerType == MIDI_CONTROLLER_FADER) {
 			sprintf (buf,"RW %d %d %d %d %d\n",
 				node->_bus, node->_channel, node->_controller, 
 				node->_intControllerType, node->intValue);
+				#ifdef MIDIVERBOSE
+				printf ("sendNodeToReWire,  fader: bus: %d channel: %d controller: %d type: %d value: %d\n",
+                                node->_bus, node->_channel, node->_controller,
+                                node->_intControllerType, node->intValue);
+				#endif
 		} else {
 			sprintf (buf,"RW %d %d %d %d %d\n",
 				node->_bus, node->_channel, node->_sentVel,
 				node->_intControllerType, node->intValue);
+				#ifdef MIDIVERBOSE
+				printf ("sendNodeToReWire,  buttonPress: bus: %d channel: %d vel: %d conttype: %d val: %d\n",
+				node->_bus, node->_channel, node->_sentVel,
+				node->_intControllerType, node->intValue);
+				#endif
 		}
-		EAI_send_string(buf,EAIlistenfd);
-	}
-	
-}
 
+		EAI_send_string(buf,EAIlistenfd);
+	}	
+}
 
 
 /* return parameters associated with this name. returns TRUE if this device has been added by
@@ -314,6 +332,18 @@ void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 	EAI_send_string(outline,EAIlistenfd);
 }
 
+/* make sure the EAI port is turned on... */
+int requestToStartEAIdone = FALSE;
+static void midiStartEAI() {
+	if (!requestToStartEAIdone) {
+		printf ("MidiControl - turning EAI on\n");
+		create_EAI();
+		if (system ("/usr/bin/freewrlRewireServer &")==127)
+			ConsoleMessage ("could not start /usr/bin/freewrlReWireServer");
+	}
+	requestToStartEAIdone = TRUE;
+}
+
 void prep_MidiControl (struct X3D_MidiControl *node) {
 	/* get the name/device pairing */
 	int tmp_bus;
@@ -325,11 +355,6 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 	int controllerPresent;
 	int first_Time;
 
-	/* is EAI turned on? */
-	if (!EAIwanted) {
-		printf ("prep_MidiControl - turning EAI on\n");
-		EAIwanted = TRUE;
-	}
 
 	/* is there anything to do? */
 /*
@@ -342,6 +367,7 @@ void prep_MidiControl (struct X3D_MidiControl *node) {
 		#ifdef MIDIVERBOSE
 		printf ("Midi Node being initialized\n");
 		#endif
+		midiStartEAI();
 		node->controllerPresent = 999; /* force event for correct controllerPresent */
 	}
 
@@ -552,6 +578,17 @@ void ReWireRegisterMIDI (char *str) {
 			str = EOT+1;
 			sscanf (str, "%d %d",&curBus, &curChannel);
 
+			/* make an entry for devices that have NO controllers, maybe only buttonPresses */
+			encodedControllerName = ReWireNameIndex("use_for_buttonPresses");
+			curController = -1; curMin = 0; curMax = 127; curType = MIDI_CONTROLLER_KEYPRESS;
+
+			if (!ReWireDeviceRegister(encodedDeviceName, encodedControllerName, &curBus, 
+				&curChannel, &curController, &curMin, &curMax, &curType)) {
+				#ifdef MIDIVERBOSE
+				printf ("ReWireRegisterMIDI, duplicate device for %s %s\n",
+					ReWireNamenames[encodedDeviceName].name, ReWireNamenames[encodedControllerName].name); 
+				#endif
+			}
 
 		} else if (*str == '\t') {
 			str++;
@@ -596,18 +633,11 @@ void ReWireRegisterMIDI (char *str) {
 }
 
 
-
 void do_MidiControl (void *this) {
 	struct X3D_MidiControl* node;
 	int value;
 	float fV;
 	int sendEvent;
-
-	/* is EAI turned on? */
-	if (!EAIwanted) {
-		printf ("do_MidiControl - turning EAI on\n");
-		EAIwanted = TRUE;
-	}
 
 	node = (struct X3D_MidiControl*) this;
 
@@ -666,6 +696,7 @@ void do_MidiControl (void *this) {
 				/* send event if buttonPress changes state */
 				if (node->_butPr != node->buttonPress) {
 					sendEvent = TRUE;
+					value = node->intValue;
 					if (node->buttonPress) {
 						#ifdef MIDIVERBOSE
 						printf ("have ButtonPress at %lf\n",TickTime);
@@ -692,15 +723,16 @@ void do_MidiControl (void *this) {
 			node->floatValue = fV;
 			mark_event(node,offsetof(struct X3D_MidiControl, intValue));
 			mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
-			sendNodeToReWire(node);
-			update_node (node);
 
 			#ifdef MIDIVERBOSE
-			printf ("intValue changed - now is %d\n",node->intValue); 
+			printf ("intValue changed - now is %d sentvel %d\n",node->intValue, node->_sentVel); 
 			printf ("sending %d %f ",value, node->floatValue);
 			printf ("mins %d %d maxs %d %d ",node->deviceMinVal, node->minVal, node->deviceMaxVal, node->maxVal);
 			printf ("float %f node->floatVal\n",node->floatValue);
 			#endif
+
+			sendNodeToReWire(node);
+			update_node (node);
 		}
 	}	
 }
@@ -714,61 +746,162 @@ void ReWireMIDIControl (char *line) {
 	struct X3D_MidiControl *node;
 	float fV;
 	int sendEvent;
+	int noteOn;
+
+	sendEvent = FALSE;
+	value = 0;
 
 	if ((rv=sscanf (line, "%ld %d %d %d %d",&timeDiff, &bus, &channel, &controller, &value)) != 5) {
 		printf ("Error (%d)on reading MIDICONTROL, line %s\n",rv,line);
 		return;
 	}
 
-	#ifdef MIDIVERBOSE
-		printf ("ReWireMIDIControl - input timedif %ld bus %d channel %d controller %d value %d\n",
-					timeDiff, bus, channel, controller, value);
-	#endif
-
-
-	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+	/* we only look for Controller, Note On and Note Off */
+	if ( ((channel & 0xF0) != 0x80)  &&
+		((channel & 0xF0) != 0x90)  &&
+		((channel & 0xF0) != 0xb0)) {
 		#ifdef MIDIVERBOSE
-			printf ("	ind %d comparing bus %d:%d channel %d:%d and  controller %d:%d\n", 
-				ctr, bus, ReWireDevices[ctr].bus,
-				channel, ReWireDevices[ctr].channel,
-				controller, ReWireDevices[ctr].controller);
+			printf ("ReWireMidiControl, got %x, unsupported. Dropping it\n",channel);
 		#endif
+		return;
+	}
 
-		if ((bus==ReWireDevices[ctr].bus) &&
-			(channel == ReWireDevices[ctr].channel) &&
-			(controller == ReWireDevices[ctr].controller)) {
+	/* is this a Slider/Fader? */
+	if ((channel & 0xF0) == 0xb0) {
+		/* get channel number */
+		channel = channel & 0x0f;
+	
+		#ifdef MIDIVERBOSE
+			printf ("ReWireMIDIControl - input timedif %ld bus %d channel %d controller %d value %d\n",
+						timeDiff, bus, channel, controller, value);
+		#endif
+	
+	
+		for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
 			#ifdef MIDIVERBOSE
-				printf ("ReWireMidiControl, FOUND IT at %d\n",ctr);
+				printf ("	ind %d comparing bus %d:%d channel %d:%d and  controller %d:%d\n", 
+					ctr, bus, ReWireDevices[ctr].bus,
+					channel, ReWireDevices[ctr].channel,
+					controller, ReWireDevices[ctr].controller);
+			#endif
+	
+			if ((bus==ReWireDevices[ctr].bus) &&
+				(channel == ReWireDevices[ctr].channel) &&
+				(controller == ReWireDevices[ctr].controller)) {
+				#ifdef MIDIVERBOSE
+					printf ("ReWireMidiControl, FOUND IT at %d\n",ctr);
+				#endif
+	
+				if (ReWireDevices[ctr].node == NULL) {
+					/* printf ("ReWireMidiEvent, node for %d is still NULL\n",ctr); */
+				} else {
+					node = ReWireDevices[ctr].node;
+					#ifdef MIDIVERBOSE
+					printf ("routing to device %s, channel %s ",node->deviceName->strptr, node->channel->strptr);
+					printf (" nameIndex %d channelIndex %d deviceMinVal %d deviceMaxVal %d minVal %d maxVal%d\n",
+						node->_deviceNameIndex, node->_channelIndex, node->deviceMinVal,
+						node->deviceMaxVal, node->minVal, node->maxVal);
+					#endif
+	
+					determineMIDIValFromInt (node, &value, &fV); 
+					if (value != node->_oldintValue) sendEvent = TRUE;
+						
+	
+				}
+			}
+		}
+	} else {
+		/* this is a Note on/Note off */
+		noteOn = ((channel & 0xF0) == 0x90);
+ 
+		/* get channel number */
+		channel = channel & 0x0f;
+
+		#ifdef MIDIVERBOSE
+		if (noteOn) printf ("ReWireMidiControl, have a note ON  channel %d, velocity %d\n",channel,value);
+		else printf ("ReWireMidiControl, have a note OFF channel %d, velocity %d\n",channel,value);
+		#endif
+		for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
+			#ifdef MIDIVERBOSE
+				printf ("	ind %d comparing bus %d:%d channel %d:%d with ecdn %d, eccn %d, cont %d cmin %d cmax %d ctype %d\n", 
+					ctr, bus, ReWireDevices[ctr].bus,
+					channel, ReWireDevices[ctr].channel,
+				        ReWireDevices[ctr].encodedDeviceName,          /* index into ReWireNamenames */
+				        ReWireDevices[ctr].encodedControllerName,      /* index into ReWireNamenames */
+				        ReWireDevices[ctr].controller,                 /* controller number */
+				        ReWireDevices[ctr].cmin,                       /* minimum value for this controller */
+				        ReWireDevices[ctr].cmax,                       /* maximum value for this controller */
+				        ReWireDevices[ctr].ctype                      /* controller type TYPE OF FADER control - not used currently */
+				);
 			#endif
 
-			if (ReWireDevices[ctr].node == NULL) {
-				printf ("ReWireMidiEvent, node for %d is still NULL\n",ctr);
-			} else {
-				node = ReWireDevices[ctr].node;
+			/* look for the entry- we have a device with a controller of -1 for the main "device" 
+			   so that we don't send events to the same node many times */
+
+			if ((bus==ReWireDevices[ctr].bus) &&
+				(channel == ReWireDevices[ctr].channel) &&
+				(ReWireDevices[ctr].controller == -1)) {
 				#ifdef MIDIVERBOSE
-				printf ("routing to device %s, channel %s ",node->deviceName->strptr, node->channel->strptr);
-				printf (" nameIndex %d channelIndex %d deviceMinVal %d deviceMaxVal %d minVal %d maxVal%d\n",
-					node->_deviceNameIndex, node->_channelIndex, node->deviceMinVal,
-					node->deviceMaxVal, node->minVal, node->maxVal);
+					printf ("ReWireMidiControl, FOUND IT at %d\n",ctr);
 				#endif
+	
+				if (ReWireDevices[ctr].node == NULL) {
+					/* printf ("ReWireMidiEvent, node for %d is still NULL\n",ctr); */
+				} else {
+					node = ReWireDevices[ctr].node;
 
-				determineMIDIValFromInt (node, &value, &fV); 
-				sendEvent = FALSE;
-				if (value != node->_oldintValue) sendEvent = TRUE;
+					/* ok, the last 2 bytes of this event, for faders are "controller value" but
+					   for notes they are "note velocity". This is confusing... */
+
+					/* should we send this event? */
+					/* send event if buttonPress changes state */
+					if (noteOn != node->buttonPress) {
+						sendEvent = TRUE;
+						if (noteOn) {
+							#ifdef MIDIVERBOSE
+							printf ("have ButtonPress at %lf\n",TickTime);
+							#endif
+							node->pressTime = TickTime;	   /* time button pressed */
+							node->velocity = value;
+						} else {
+							#ifdef MIDIVERBOSE
+							printf ("have ButtonRelease at %lf\n",TickTime);
+							#endif
+							node->pressTime = (double)0.0;
+							/* DO NOT set velocity here - it will be 0 ALWAYS */
+						}
+						value = controller; /* second byte; see comment above */
+
+						/* now, reset the toggle... */
+						node->buttonPress = noteOn;
+						node->_butPr = node->buttonPress;
+	
+						determineMIDIValFromInt (node, &value, &fV); 
 					
-				if (sendEvent) {
-					node->intValue = value;
-					node->_oldintValue = value;
-					node->floatValue = fV;
-					mark_event(node,offsetof(struct X3D_MidiControl, intValue));
-					mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
+					}
 				}
-
 			}
 		}
 	}
-}
 
+	/* do we send an event into the FreeWRL machine? */
+	if (sendEvent) {
+		node->intValue = value;
+		node->_oldintValue = value;
+		node->floatValue = fV;
+		mark_event(node,offsetof(struct X3D_MidiControl, intValue));
+		mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
+		mark_event(node,offsetof(struct X3D_MidiControl, buttonPress));
+		mark_event(node,offsetof(struct X3D_MidiControl, velocity));
+
+		#ifdef MIDIVERBOSE
+		printf ("intValue changed - now is %d sentvel %d\n",node->intValue, node->_sentVel); 
+		printf ("sending %d %f ",value, node->floatValue);
+		printf ("mins %d %d maxs %d %d ",node->deviceMinVal, node->minVal, node->deviceMaxVal, node->maxVal);
+		printf ("float %f node->floatVal\n",node->floatValue);
+		#endif
+	}
+}
 
 
 
