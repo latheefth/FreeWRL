@@ -407,48 +407,57 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
         setMenuStatus("NONE");
 }
 
-
+/*keep track of node created*/
 void registerX3DNode(void * tmp){	
 	/*printf("nextEntry=%d	",nextEntry);
-	printf("tableIndexSize=%d \n",tableIndexSize);*/	
+	printf("tableIndexSize=%d \n",tableIndexSize);*/
+	/*is table exist*/	
 	if (tableIndexSize <= 0){
 		createdMemoryTable();		
 	}
+	/*is table to small*/
 	if (nextEntry >= tableIndexSize){
 		increaseMemoryTable();
-	}	
+	}
+	/*adding node in table*/	
 	memoryTable[nextEntry]=tmp;
 	nextEntry+=1;
 }
 
+/*We don't register the first node created for reload reason*/
 void doNotRegisterThisNodeForDestroy(void * nodePtr){
 	if(nodePtr==memoryTable[nextEntry-1]){
 		nextEntry-=1;
 	}
 }
 
+/*creating node table*/
 void createdMemoryTable(){
 	tableIndexSize=200;
 	memoryTable = MALLOC(tableIndexSize * sizeof(uintptr_t));
 }
 
+/*making table bigger*/
 void increaseMemoryTable(){
 	tableIndexSize*=2;
 	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(memoryTable) );
 	/*printf("increasing memory table=%d\n",sizeof(memoryTable));*/
 }
 
+/*delete node created*/
 void kill_X3DNodes(void){
 	int i=0;
 	int j=0;
 	uintptr_t *fieldOffsetsPtr;
 	char * fieldPtr;
 	struct X3D_Node* structptr;
+	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
 		structptr = (struct X3D_Node*)memoryTable[i];		
 		/*printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);*/
 		/* printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType)); */
-		fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];				
+		fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];
+		/*go thru all field*/				
 		while (*fieldOffsetsPtr != -1) {
 			switch(*(fieldOffsetsPtr+2)){
 				case FIELDTYPE_MFFloat:
