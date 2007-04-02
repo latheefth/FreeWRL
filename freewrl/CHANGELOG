@@ -1,4 +1,7 @@
 For 1.19.2:
+
+	- let scripts start with whitespace before the "vrmlscript".
+
 	- prints error message when user attempts to parse VRML version 1 files.
 
 	- various VRML parser error messages changed to help point users to correct

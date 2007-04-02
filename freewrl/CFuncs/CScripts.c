@@ -157,6 +157,9 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
 {
  size_t i;
  
+ /* strip off whitespace at the beginning JAS */
+ while ((*uri<= ' ') && (*uri>0)) uri++;
+
  /* Try javascript protocol */
  for(i=0; i!=ARR_SIZE(JS_PROTOCOLS); ++i)
  {
