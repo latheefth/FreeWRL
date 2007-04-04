@@ -15,6 +15,7 @@
 
 BIN_DIR =>  "/usr/bin",
 LIB_DIR => "/usr/lib64",
+NETSCAPE_INST => '/usr/lib/mozilla/plugins',	# plugin stuff. If not wanted, COMMENT OUT
 
 # tell FreeWRL which commands to invoke for Anchors, graphics conversions, etc.
 
