@@ -82,7 +82,7 @@ char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; 
 
 /* housekeeping routines */
 void kill_javascript(void) {
-printf ("calling kill_javascript()\n");
+/*printf ("calling kill_javascript()\n");*/
 return;
 	JS_DestroyRuntime(runtime);
 	runtime = NULL;
