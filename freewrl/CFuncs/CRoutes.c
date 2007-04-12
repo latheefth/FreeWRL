@@ -159,7 +159,7 @@ int num_ClockEvents = 0;
 
 void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 	if (tptr != 0) {
-		#ifdef XXXX
+		#ifdef CRVERBOSE
 		printf ("markScriptResults: can update this node %d %d\n",tn,tptr); 
 		#endif
 		update_node(tn);
@@ -181,6 +181,7 @@ void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 		CRoutes[route].interpptr(tonode);
 	}
 }
+
 
 /* call initialize on this script. called for script eventins and eventouts */
 void initializeScript(uintptr_t num,int evIn) {
@@ -1327,7 +1328,11 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
 
-	/* printf ("routing table looking, looking at %x and %x\n",(uintptr_t)(CRoutes[route].fromnode), actualscript); */
+
+	#ifdef CRVERBOSE
+	printf ("routing table looking, looking at %x and %x\n",(uintptr_t)(CRoutes[route].fromnode), actualscript); 
+	#endif
+
 	while ((uintptr_t)(CRoutes[route].fromnode) < actualscript) route++;
 	while ((uintptr_t)(CRoutes[route].fromnode) == actualscript) {
 		/* is this the same from node/field as before? */
@@ -1412,7 +1417,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 					printf (" -- string from javascript is %s\n",strp);
 				#endif
 				/* eventOuts go to VRML data structures */
-				setField_method3(tn,tptr,strp,JSparamnames[fptr].type, len, 
+				setField_method3((struct X3D_Node *)tn,tptr,strp,JSparamnames[fptr].type, len, 
 					CRoutes[route].extra, ScriptControl[actualscript].cx);
 
 				/* tell this node now needs to redraw */
@@ -1421,10 +1426,12 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 		}
 		route++;
 	}
+
 	#ifdef CRVERBOSE 
 		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime);
 	#endif
 }
+
 
 #ifdef OLDCODE
 /* start getting events from a Class script. IF the script is not

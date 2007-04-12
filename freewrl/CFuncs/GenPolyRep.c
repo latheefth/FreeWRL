@@ -84,11 +84,16 @@ int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 int checkX3DIndexedFaceSetFields (struct X3D_IndexedFaceSet *this_) {
 	/* does this have any coordinates? */
 	if (this_->coord == 0) {
-		printf ("checkX3DIFS - have an IFS with no coords...\n");
+		#ifdef VERBOSE
+		printf ("checkX3DIFS - have an IFS (%d) with no coords...\n",this_);
+		#endif
 		return FALSE;
 	}
 	if (this_->coordIndex.n == 0) {
-		printf ("checkX3DIFS - have an IFS with no coordIndex\n");
+		#ifdef VERBOSE
+		printf ("checkX3DIFS - have an IFS (%d) with no coordIndex, pointer is %d offset is %d\n",this_,
+			this_->coordIndex.p,offsetof (struct X3D_IndexedFaceSet, coordIndex));
+		#endif
 		return FALSE;
 	}
 	return TRUE;
@@ -586,6 +591,10 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	struct X3D_Normal *nc;
 	struct X3D_TextureCoordinate *tc;
 
+	#ifdef VERBOSE
+	printf ("start of make_indexedfaceset for node %d\n",this_);
+	#endif
+
 	if (this_->_nodeType == NODE_IndexedFaceSet) {
 		if (!checkX3DIndexedFaceSetFields(this_)) {
 	        	rep_->ntri = 0;
@@ -617,14 +626,18 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	norin = ((this_->normalIndex).n);
 	creaseAngle = (this_->creaseAngle);
 	ccw = ((this_->ccw));
-	/* printf ("NOW, the IFS has a cin of %d ca %f\n",cin,creaseAngle); */
+	#ifdef VERBOSE
+	printf ("NOW, the IFS has a cin of %d ca %f\n",cin,creaseAngle);
+	#endif
 
 	/* record ccw flag */
 	rep_->ccw = ccw;
 
 	/* check to see if there are params to make at least one triangle */
 	if (cin<2) {
-		/* printf ("Null IFS found, returing ntri0\n");*/
+		#ifdef VERBOSE
+		printf ("Null IFS found, returing ntri0\n");
+		#endif
 	        rep_->ntri = 0;
 	        return;
 	}
@@ -683,7 +696,9 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	/* count the faces in this polyrep and allocate memory. */
 	faces = count_IFS_faces (cin,this_);
-	/* printf ("faces %d, cin %d npoints %d\n",faces,cin,npoints); */
+	#ifdef VERBOSE
+	printf ("faces %d, cin %d npoints %d\n",faces,cin,npoints);
+	#endif
 
 	if (faces == 0) {
 		rep_->ntri = 0;
@@ -719,7 +734,9 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	if(nvert>2) {ntri += nvert-2;}
 
 
-	/* printf ("vert %d ntri %d\n",nvert,ntri); */
+	#ifdef VERBOSE
+	printf ("vert %d ntri %d\n",nvert,ntri);
+	#endif
 
 	/* Tesselation MAY use more triangles; lets estimate how many more */
 	if(!(this_->convex)) { ntri =ntri*2; }
@@ -757,7 +774,9 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 		relative_coord = 0;
 
 		if (!faceok[this_face]) {
-			/* printf ("in generate of faces, face %d is invalid, skipping...\n",this_face);*/
+			#ifdef VERBOSE
+			printf ("in generate of faces, face %d is invalid, skipping...\n",this_face);
+			#endif
 
 			/* skip past the seperator, except if we are t the end */
 
@@ -768,9 +787,10 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 			if ((this_coord < (cin-1)) && (((this_->coordIndex).p[this_coord]) == -1)) this_coord++;
 		} else {
 
-
-			/* printf ("working on face %d coord %d total coords %d coordIndex %d\n",*/
-			/* 	this_face,this_coord,cin,((this_->coordIndex).p[ this_coord]));*/
+			#ifdef VERBOSE
+			printf ("working on face %d coord %d total coords %d coordIndex %d\n",
+				this_face,this_coord,cin,((this_->coordIndex).p[ this_coord]));
+			#endif
 
 			/* create the global_IFS_coords array, at least this time 	*/
 			/*								*/
@@ -929,6 +949,9 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	/* we have an accurate triangle count now... */
 	rep_->ntri = vert_ind/3;
+	#ifdef VERBOSE
+	printf ("make_indededfaceset, end, ntri %d\n",rep_->ntri);
+	#endif
 
 	FREE_IF_NZ (tess_vs);
 	FREE_IF_NZ (facenormals);

@@ -219,7 +219,7 @@ void update_node(void *ptr) {
 
 	p = (struct X3D_Box*) ptr;
 
-	/* printf ("update_node for %d %s nparents %d\n",ptr, stringNodeType(p->_nodeType),p->_nparents); */
+	/* printf ("update_node for %d %s nparents %d\n",ptr, stringNodeType(p->_nodeType),p->_nparents);  */
 
 	p->_change ++;
 	for (i = 0; i < p->_nparents; i++) {
@@ -490,6 +490,7 @@ void add_parent(void *node_, void *parent_) {
 	struct X3D_Box *node;
 	struct X3D_Box *parent;
 	int oldparcount;
+	int count;
 
 	if(!node_) return;
 
@@ -497,9 +498,19 @@ void add_parent(void *node_, void *parent_) {
 	parent = (struct X3D_Box *)parent_;
 
 	#ifdef CHILDVERBOSE
-	printf ("adding node %d (%s) to parent %d (%s)\n",node, stringNodeType(node->_nodeType), 
+	printf ("add_parent; adding node %d (%s) to parent %d (%s)\n",node, stringNodeType(node->_nodeType), 
 			parent, stringNodeType(parent->_nodeType));
 	#endif
+
+	/* does this already exist? */
+	for (count=0; count<node->_nparents; count++) {
+		if (node->_parents[count] == parent_) {
+			#ifdef CHILDVERBOSE
+			printf ("add_parent; parent already exists in this node\n");
+			#endif
+			return;
+		}
+	}
  
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 

@@ -138,7 +138,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 #define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
 	if (node->_ichange != node->_change) { \
-/* printf ("COMP %d %d\n",node->_ichange, node->_change);*/ \
+	/* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
 		v = *(struct X3D_Virt **)node; \
 		if (v->compile) { \
 			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
@@ -154,7 +154,7 @@ void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
 void setField_fromJavascript (uintptr_t *ptr, char *field, char *value);
 unsigned int setField_method2 (char *ptr);
-void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx);
+void setField_method3(struct X3D_Node  *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
 extern char *GL_VEN;
 extern char *GL_VER;

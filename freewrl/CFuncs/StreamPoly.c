@@ -365,8 +365,10 @@ void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, str
 					minVals[j] = points[r->cindex[0]].c[j];
 					maxVals[j] = points[r->cindex[0]].c[j];
 				} else {
-					minVals[j] = r->coord[3*r->cindex[0]+j];
-					maxVals[j] = r->coord[3*r->cindex[0]+j];
+					if (r->coord!=NULL) {
+						minVals[j] = r->coord[3*r->cindex[0]+j];
+						maxVals[j] = r->coord[3*r->cindex[0]+j];
+					}
 				}
 			}
 

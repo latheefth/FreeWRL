@@ -298,18 +298,23 @@ unsigned int setField_method2 (char *ptr) {
 	return TRUE;
 }
 
-void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx) {
+void setField_method3(struct X3D_Node *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx) {
         int ival;
         double tval;
         float fl[4];
         int rv;
 	JSContext *scriptContext;
+	char *memptr;
 
-/*
-        int route;
-        unsigned int fptr;
-        void * fn;
-*/
+	/* set up a pointer to where to put this stuff */
+	memptr = (char *)tn;
+	memptr += tptr;
+
+
+	#ifdef SETFIELDVERBOSE
+	printf ("start of setField_method3, to %d:%d = %d, fieldtype %d, string %s\n",tn, tptr, memptr, fieldType, strp);
+	#endif
+
 
 	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
 	scriptContext = (JSContext *) mycx;
@@ -323,7 +328,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 				/* printf ("ASSUMED TO BE FALSE\n"); */
 				ival = 0;
 			}
-			memcpy ((void *)(tn+tptr), (void *)&ival,len);
+			memcpy ((void *)memptr, (void *)&ival,len);
 			break;
 		}
 
@@ -332,7 +337,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 
 			/* printf ("SFTime conversion numbers %f from string %s\n",tval,strp); */
 			/* printf ("copying to %#x offset %#x len %d\n",tn, tptr,len); */
-			memcpy ((void *)(tn+tptr), (void *)&tval,len);
+			memcpy ((void *)memptr, (void *)&tval,len);
 			break;
 		}
 		case FIELDTYPE_SFNode:
@@ -340,13 +345,13 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			rv=sscanf (strp,"%d",&ival);
 			if (rv != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",strp);
 			/* printf ("SFInt, SFNode conversion number %d\n",ival); */
-			memcpy ((void *)((tn+tptr)), (void *)&ival,len);
+			memcpy ((void *)memptr, (void *)&ival,len);
 			break;
 		}
 		case FIELDTYPE_SFFloat: {
 			rv=sscanf (strp,"%f",&fl[0]);
 			if (rv != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",strp);
-			memcpy ((void *)(tn+tptr), (void *)&fl,len);
+			memcpy ((void *)memptr, (void *)&fl,len);
 			break;
 		}
 
@@ -354,7 +359,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			rv=sscanf (strp,"%f %f",&fl[0],&fl[1]);
 			if (rv != 2) ConsoleMessage ("setField_method2: error reading 2 numbers from the string :%s:\n",strp);
 			/* printf ("conversion numbers %f %f\n",fl[0],fl[1]); */
-			memcpy ((void *)(tn+tptr), (void *)fl,len);
+			memcpy ((void *)memptr, (void *)fl,len);
 			break;
 		}
 		case FIELDTYPE_SFVec3f:
@@ -362,7 +367,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			rv=sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
 			if (rv != 3) ConsoleMessage ("setField_method3: error reading 3 numbers from the string :%s:\n",strp);
 			/* printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]); */
-			memcpy ((void *)(tn+tptr), (void *)fl,len);
+			memcpy ((void *)memptr, (void *)fl,len);
 			break;
 		}
 
@@ -370,7 +375,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			rv=sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
 			if (rv != 4) ConsoleMessage ("setField_method3: error reading 3 numbers from the string :%s:\n",strp);
 			/* printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]); */
-			memcpy ((void *)(tn+tptr), (void *)fl,len);
+			memcpy ((void *)memptr, (void *)fl,len);
 			break;
 		}
 		case FIELDTYPE_SFImage: {
@@ -386,7 +391,7 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 			/* copy the string over, delete the old one, if need be */
 			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
 				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
-			newptr = (uintptr_t *)(tn+tptr);
+			newptr = (uintptr_t *)memptr;
 			ms = (struct Uni_String*) *newptr;
 			verify_Uni_String (ms,strp);
 			break;
@@ -395,23 +400,33 @@ void setField_method3(void *tn,unsigned int tptr, char *strp, int fieldType, uns
 
 			/* a series of Floats... */
 		case FIELDTYPE_MFVec3f:
-		case FIELDTYPE_MFColor: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),3); break;}
-		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),1); break;}
-		case FIELDTYPE_MFRotation: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),4); break;}
-		case FIELDTYPE_MFVec2f: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),2); break;}
-		case FIELDTYPE_MFNode: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct X3D_Box *)tn,extraData); break;}
+		case FIELDTYPE_MFColor: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,3); break;}
+		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,1); break;}
+		case FIELDTYPE_MFRotation: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,4); break;}
+		case FIELDTYPE_MFVec2f: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,2); break;}
+		case FIELDTYPE_MFNode: {getMFNodetype (strp,(struct Multi_Node *)memptr,(struct X3D_Box *)tn,extraData); break;}
 		case FIELDTYPE_MFString: {
-			getMFStringtype (scriptContext, (jsval *)global_return_val,(struct Multi_String *)(tn+tptr));
+			getMFStringtype (scriptContext, (jsval *)global_return_val,(struct Multi_String *)memptr);
 			break;
 		}
 
-		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),0); break;}
-		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)(tn+tptr),5); break;}
+		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,0); break;}
+		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,5); break;}
 
 		default: {	printf("WARNING: unhandled from type %s\n", FIELDTYPES[fieldType]);
 		printf (" -- string from javascript is %s\n",strp);
 		}
 	}
+
+	#ifdef SETFIELDVERBOSE
+	if (fieldType == FIELDTYPE_MFInt32) {
+		printf ("setField_method3, checking the pointers...\n");
+		printf ("node type is %s\n",stringNodeType(((struct X3D_Node *)tn)->_nodeType));
+		
+	
+	}
+	
+	#endif
 }
 
 /* find the ASCII string name of this field of this node */
@@ -521,6 +536,8 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 	int retval;
 	char mychar[200];
 	int a,b,c;
+	
+	retval = -1;
 
 #define FIELDCHECK(fld) \
 	if (retval >=0) { \
@@ -529,10 +546,6 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 		/* printf ("     findRoutedField for field %s, nodetype %s is %d\n",fld,stringNodeType(node->_nodeType),a); */ \
 		if (a != -1) return retval;  /* found it! */ \
 	} 
-
-	/* step 1. try the field as is. */
-	retval = findFieldInARR(field, arr, cnt);
-	FIELDCHECK (field)
 
 	/* try removing the "set_" or "_changed" */
 	/* XXX: Not checking if substring is really "set_" or "_changed"! */
@@ -547,6 +560,10 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 		}
 	}
 	FIELDCHECK (mychar)
+
+	/* step 2. try the field as is. */
+	retval = findFieldInARR(field, arr, cnt);
+	FIELDCHECK (field)
 
 	return retval;
 }
@@ -683,7 +700,10 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		return;
 	}
 
-	/* printf ("getmultielementtypestart, tn %d %#x dest has  %d size %d\n",tn,tn,eletype, elesize); */
+	#ifdef SETFIELDVERBOSE
+	printf ("getmultielementtypestart, tn %d dest has  %d size %d\n",tn,eletype, elesize); 
+	#endif
+
 
 	if (!JS_GetProperty(cx, (JSObject *)global_return_val, "length", &mainElement)) {
 		printf ("JS_GetProperty failed for \"length\" in getJSMultiNumType\n");
@@ -700,10 +720,10 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		/* yep... */
 			/* printf ("old pointer %d\n",tn->p); */
 		FREE_IF_NZ (tn->p);
-		#ifdef SETFIELDVERBOSE 
-		printf ("MALLOCing memory for elesize %d len %d\n",elesize,len);
-		#endif
 		tn->p = (struct SFColor *)MALLOC ((unsigned)(elesize*len));
+		#ifdef SETFIELDVERBOSE 
+		printf ("MALLOCing memory for elesize %d len %d new pointer now is %d\n",elesize,len,tn->p);
+		#endif
 	}
 
 	/* set these three up, but we only use one of them */
@@ -720,7 +740,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
                 _tmpStr = JS_ValueToString(cx, mainElement);
 		strp = JS_GetStringBytes(_tmpStr);
-                /* printf ("sub element %d is %s as a string\n",i,strp);  */
+		#ifdef SETFIELDVERBOSE
+                printf ("sub element %d is \"%s\" \n",i,strp);  
+		#endif
 
 		switch (eletype) {
 		case 0: { rv=sscanf(strp,"%d",il); il++; break;}
@@ -738,11 +760,12 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			   return;
 			}
 		}
-		#ifdef SETFIELDVERBOSE
-		printf ("getJSMultiNumType - got %f %f %f\n",(float *) tn->p,f2,f3);
-		#endif
 
 	}
+	#ifdef SETFIELDVERBOSE
+	printf ("getJSMultiNumType, setting old length %d to length %d\n",tn->n, len);
+	#endif
+
 	tn->n = len;
 }
 
