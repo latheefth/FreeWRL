@@ -467,7 +467,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   /* Field, user/built-in depending on whether node is a PROTO instance */ \
   if(!pre##Proto && !pre##Script) \
   { \
-   if(!lexer_event##eventType(me->lexer, \
+   if(!lexer_event##eventType(me->lexer, pre##Node, \
     &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
         /*PARSE_ERROR("Expected built-in event" #eventType " after .!") */ \
 	/* try to make a better error message. */ \
@@ -482,7 +482,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   } else \
   { \
    assert(pre##Proto || pre##Script); \
-   if(lexer_event##eventType(me->lexer, \
+   if(lexer_event##eventType(me->lexer, pre##Node, \
     NULL, NULL, &pre##UFieldO, &pre##UFieldE)) \
    { \
     if(pre##UFieldO!=ID_UNDEFINED) \
@@ -1234,12 +1234,12 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
  /* There should be really an eventIn or an eventOut...
   * In case of exposedField, both is true, but evE should be the same (and is
   * therefore not overridden). */
- if(lexer_eventIn(me->lexer, &evO, &evE, NULL, NULL))
+ if(lexer_eventIn(me->lexer, ptr, &evO, &evE, NULL, NULL))
  {
   isIn=TRUE;
   /* When exposedField, out is allowed, too */
   isOut=(evE!=ID_UNDEFINED);
- } else if(lexer_eventOut(me->lexer, &evO, &evE, NULL, NULL))
+ } else if(lexer_eventOut(me->lexer, ptr, &evO, &evE, NULL, NULL))
   isOut=TRUE;
 
  if(!isIn && !isOut)
@@ -1275,9 +1275,9 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
   return FALSE;
 
  /* And finally the PROTO's event to be linked */
- if(isIn && lexer_eventIn(me->lexer, NULL, NULL, &pevO, &pevE))
+ if(isIn && lexer_eventIn(me->lexer, ptr, NULL, NULL, &pevO, &pevE))
   pevFound=TRUE;
- else if(isOut && lexer_eventOut(me->lexer, NULL, NULL, &pevO, &pevE))
+ else if(isOut && lexer_eventOut(me->lexer, ptr, NULL, NULL, &pevO, &pevE))
   pevFound=TRUE;
  if(!pevFound)
   return FALSE;

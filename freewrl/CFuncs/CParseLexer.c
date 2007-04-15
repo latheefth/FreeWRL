@@ -333,132 +333,44 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
  return TRUE;
 }
 
-/* A eventIn terminal symbol */
-BOOL lexer_eventIn(struct VRMLLexer* me,
- indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE)
+/* A eventIn/eventOut terminal symbol */
+BOOL lexer_event(struct VRMLLexer* me,
+ struct X3D_Node* routedNode,
+ indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE,
+ const char** arr, size_t arrCnt, int routedToFrom)
 {
  BOOL found=FALSE;
 
- if(lexer_specialID(me, rBO, rUO, EVENT_IN, EVENT_IN_COUNT,
-  user_eventIn))
-  found=TRUE;
- if(rBE) *rBE=ID_UNDEFINED;
- if(rUE) *rUE=ID_UNDEFINED;
-
- /* XXX:  If not-exposed result was found, don't even try exposed...  Should be
-  * ok according to spec.  Otherwise problem with already freed curID, and
-  * parsing an 'absolutetly new' one! */
- if(found)
-  return TRUE;
- 
- /* Exposed field with set_ prefix? */
  if(!lexer_setCurID(me))
-  return found;
+  return FALSE;
  assert(me->curID);
- {
-  const char* id=me->curID;
-  const char* pre=EXPOSED_EVENT_IN_PRE;
 
-  while(*id && *pre)
-  {
-   /* If we encounter a mismatch, we don't have the prefix! */
-   if(*id!=*pre)
-    goto noExposedPre;
-   ++id;
-   ++pre;
-  }
+ const char** userArr=&vector_get(const char*, user_eventIn, 0);
+ size_t userCnt=vector_size(user_eventIn);
 
-  /* If id and not prefix is at end, it can't have pre as prefix! */
-  if(*pre)
-  {
-   assert(!*id);
-   goto noExposedPre;
-  }
-
-  /* Now, pre is the string with prefix cut off. */
-  if(lexer_specialID_string(me, rBE, rUE,
-   EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, id))
-  {
-   FREE_IF_NZ (me->curID);
-   found=TRUE;
-  }
- }
-noExposedPre:
-
- /* Try without prefix if not found */
+ if(rBO)
+  *rBO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom, arr, arrCnt);
+ if(rUO)
+  *rUO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
+   userArr, userCnt);
  if(!found)
- {
-  if(lexer_specialID(me, rBE, rUE, EXPOSED_FIELD, EXPOSED_FIELD_COUNT,
-   user_exposedField))
-   found=TRUE;
- }
- 
- return found;
-}
+  found=((rBO && *rBO!=ID_UNDEFINED) || (rUO && *rUO!=ID_UNDEFINED));
 
-/* A eventOut terminal symbol */
-BOOL lexer_eventOut(struct VRMLLexer* me,
- indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE)
-{
- BOOL found=FALSE;
+ /*printf("%p %u %d\n", rBO, *rBO, *rBO!=ID_UNDEFINED);*/
 
- if(lexer_specialID(me, rBO, rUO, EVENT_OUT, EVENT_OUT_COUNT,
-  user_eventOut))
-  found=TRUE;
- if(rBE) *rBE=ID_UNDEFINED;
- if(rUE) *rUE=ID_UNDEFINED;
+ userArr=&vector_get(const char*, user_exposedField, 0);
+ userCnt=vector_size(user_exposedField);
 
- /* XXX:  See lexer_eventIn */
+ if(rBE)
+  *rBE=findRoutedFieldInEXPOSED_FIELD(routedNode, me->curID, routedToFrom);
+ if(rUE)
+  *rUE=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
+   userArr, userCnt);
+ if(!found)
+  found=((rBE && *rBE!=ID_UNDEFINED) || (rUE && *rUE!=ID_UNDEFINED));
+
  if(found)
-  return TRUE;
-
- /* Exposed field with _changed suffix? */
- if(!lexer_setCurID(me))
-  return found;
- assert(me->curID);
- {
-  char* begId=me->curID;
-  char* curId=begId+strlen(begId);
-  const char* begSuf=EXPOSED_EVENT_OUT_SUF;
-  const char* curSuf=begSuf+strlen(begSuf);
-
-  while(curId>=begId && curSuf>=begSuf)
-  {
-   /* Mismatch? */
-   if(*curId!=*curSuf)
-    goto noExposedSuf;
-   --curId;
-   --curSuf;
-  }
-  
-  /* If only id reached "end", it can't be suffixed by suf! */
-  if(curSuf>=begSuf)
-  {
-   assert(curId<begId);
-   goto noExposedSuf;
-  }
-
-  /* Otherwise, chop off the suffix!  At least temporarily... */
-  assert(curId[1]==*begSuf);
-  curId[1]=0;
-
-  if(lexer_specialID_string(me, rBE, rUE,
-   EXPOSED_FIELD, EXPOSED_FIELD_COUNT, NULL, begId))
-  {
-   FREE_IF_NZ (me->curID);
-   found=TRUE;
-  } else /* Wrong, revert the chop-off */
-   curId[1]=*begSuf;
- }
-noExposedSuf:
-
- /* Try without suffix if not found */
- if(!found)
- {
-  if(lexer_specialID(me, rBE, rUE, EXPOSED_FIELD, EXPOSED_FIELD_COUNT,
-   user_exposedField))
-   found=TRUE;
- }
+  FREE_IF_NZ(me->curID)
 
  return found;
 }
@@ -473,12 +385,27 @@ BOOL lexer_field(struct VRMLLexer* me,
   return FALSE;
  assert(me->curID);
 
- if(lexer_specialID_string(me, retBO, retUO,
-  FIELD, FIELD_COUNT, user_field, me->curID))
-  found=TRUE;
- if(lexer_specialID_string(me, retBE, retUE,
-  EXPOSED_FIELD, EXPOSED_FIELD_COUNT, user_exposedField, me->curID))
-  found=TRUE;
+ const char** userArr=&vector_get(const char*, user_field, 0);
+ size_t userCnt=vector_size(user_field);
+
+ /*printf("%s\n", me->curID);*/
+
+ if(retBO)
+  *retBO=findFieldInFIELD(me->curID);
+ if(retUO)
+  *retUO=findFieldInARR(me->curID, userArr, userCnt);
+ if(!found)
+  found=((retBO && *retBO!=ID_UNDEFINED) || (retUO && *retUO!=ID_UNDEFINED));
+
+ userArr=&vector_get(const char*, user_exposedField, 0);
+ userCnt=vector_size(user_exposedField);
+  
+ if(retBE)
+  *retBE=findFieldInEXPOSED_FIELD(me->curID);
+ if(retUE)
+  *retUE=findFieldInARR(me->curID, userArr, userCnt);
+ if(!found)
+  found=((retBE && *retBE!=ID_UNDEFINED) || (retUE && *retUE!=ID_UNDEFINED));
 
  if(found)
  {

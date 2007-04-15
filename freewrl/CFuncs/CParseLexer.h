@@ -98,8 +98,13 @@ BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector*, BOOL);
 #define lexer_define_eventOut(me, ret) \
  lexer_defineID(me, ret, user_eventOut, TRUE)
 BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
-BOOL lexer_eventIn(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
-BOOL lexer_eventOut(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
+BOOL lexer_event(struct VRMLLexer*, struct X3D_Node*,
+ indexT*, indexT*, indexT*, indexT*,
+ const char** arr, size_t arrCnt, int routeToFrom);
+#define lexer_eventIn(me, node, a, b, c, d) \
+ lexer_event(me, node, a, b, c, d, EVENT_IN, EVENT_IN_COUNT, 1)
+#define lexer_eventOut(me, node, a, b, c, d) \
+ lexer_event(me, node, a, b, c, d, EVENT_OUT, EVENT_OUT_COUNT, 0)
 #define lexer_node(me, r1, r2) \
  lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec)
 #define lexer_nodeName(me, ret) \

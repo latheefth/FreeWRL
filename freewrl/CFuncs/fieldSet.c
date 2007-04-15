@@ -509,10 +509,14 @@ int findFieldInARR(char* field, const char** arr, size_t cnt)
 	}
 
 	mystrlen = strlen(field);
-	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
+	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen); */
 	for (x=0; x!=cnt; ++x) {
 		if (strlen(arr[x]) == mystrlen) {
-			if (strcmp(field, arr[x])==0) return x;
+			if (strcmp(field, arr[x])==0)
+			{
+				/* printf("%s %d\n", arr[x], x); */
+				return x;
+			}
 		} 
 	}
 	return -1;
@@ -541,10 +545,13 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 
 #define FIELDCHECK(fld) \
 	if (retval >=0) { \
-		findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], retval,&a,&b,&c); \
-		/* did this return any of the ints as != -1? */ \
-		/* printf ("     findRoutedField for field %s, nodetype %s is %d\n",fld,stringNodeType(node->_nodeType),a); */ \
-		if (a != -1) return retval;  /* found it! */ \
+		int fieldnamesIndex=findIndexInFIELDNAMES(retval, arr, cnt); \
+		if(fieldnamesIndex>=0) { \
+		  findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], fieldnamesIndex,&a,&b,&c); \
+		  /* did this return any of the ints as != -1? */ \
+		  /* printf ("     findRoutedField for field %s, nodetype %s is %d\n",fld,stringNodeType(node->_nodeType),a); */ \
+		  if (a != -1) return retval;  /* found it! */ \
+		} \
 	} 
 
 	/* try removing the "set_" or "_changed" */
@@ -576,6 +583,25 @@ DEF_FINDROUTEDFIELD(FIELDNAMES)
 DEF_FINDROUTEDFIELD(EXPOSED_FIELD)
 DEF_FINDROUTEDFIELD(EVENT_IN)
 DEF_FINDROUTEDFIELD(EVENT_OUT)
+
+/* Map the given index into arr to an index into FIELDNAMES or -1, if the
+ * string in question isn't there. */
+int findIndexInFIELDNAMES(int index, const char** arr, size_t arrCnt) {
+  int i;
+
+  /* If this is already FIELDNAMES, return index. */
+  if(arr==FIELDNAMES)
+    return index;
+
+  /* Look for the string */
+  for(i=0; i!=FIELDNAMES_COUNT; ++i) {
+    if(!strcmp(FIELDNAMES[i], arr[index]))
+      return i;
+  }
+
+  /* Not found */
+  return -1;
+}
 
 /* go through the generated table NODENAMES, and find the int of this string, returning it, or -1 on error */
 int findNodeInNODES(char *node) {
