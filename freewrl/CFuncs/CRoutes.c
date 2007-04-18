@@ -201,29 +201,8 @@ void initializeScript(uintptr_t num,int evIn) {
 		/* printf ("initializeScript, tn %d\n",tn); */
 
 		if (!(ScriptControl[tn]._initialized)) {
-#ifdef OLDCODE
-			switch (ScriptControl[tn].thisScriptType) {
-				case JAVASCRIPT: {
-#endif
-			 		ActualrunScript(tn, "initialize()" ,&retval);
-					ScriptControl[tn]._initialized=TRUE;
-#ifdef OLDCODE
-					break;
-				}
-				case CLASSSCRIPT: {
-					/* printf ("have to initialize this CLASS script!\n"); */
-					/* this is done later, so that we don't have thread */
-					/* conflicts, because perl calls this, and the javaclass */
-					/* invocation might call perl, and that causes a thread */
-					/* deadlock. So, we delay initialization until later. */
-					break;
-				  }
-				default: {
-					printf ("do not handle Initialize for script type %d\n",
-						ScriptControl[tn].thisScriptType);
-				 }
-			}
-#endif
+                                        ActualrunScript(tn, "initialize()" ,&retval);
+                                        ScriptControl[tn]._initialized=TRUE;
 		}
 	    }
 	} else {
@@ -232,29 +211,8 @@ void initializeScript(uintptr_t num,int evIn) {
 
 		/* this script initialized yet? */
 		if (!(ScriptControl[num]._initialized)) {
-#ifdef OLDCODE
-			switch (ScriptControl[num].thisScriptType) {
-				case JAVASCRIPT: {
-#endif
-			 		ActualrunScript(num, "initialize()" ,&retval);
-					ScriptControl[num]._initialized=TRUE;
-#ifdef OLDCODE
-					break;
-				}
-				case CLASSSCRIPT: {
-					/* printf ("have to initialize this CLASS script!\n"); */
-					/* this is done later, so that we don't have thread
-					conflicts, because perl calls this, and the javaclass
-					invocation might call perl, and that causes a thread
-					deadlock. So, we delay initialization until later. */
-					break;
-				  }
-				default: {
-					printf ("do not handle Initialize for script type %d\n",
-						ScriptControl[num].thisScriptType);
-				 }
-			}
-#endif
+                                        ActualrunScript(num, "initialize()" ,&retval);
+                                        ScriptControl[num]._initialized=TRUE;
 		}
 	}
 }
@@ -564,7 +522,6 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	}
 	return FALSE; /*  should never get here */
 }
-
 
 
 /****************************************************************/
@@ -1299,18 +1256,9 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	unsigned len;
  	void * tn;
 	void * fn;
-        SFNodeNative *sfnode;
-/*
-	float fl[4];
-	double tval;
-	int ival;
-	int rv; 	
-*/
 
 	/* temp for sscanf retvals */
 
-        JSString *strval; /* strings */
-        char *strp = 0;
 	int fromalready=FALSE;	 /* we have already got the from value string */
 	int touched_flag=FALSE;
 	unsigned int to_counter;
@@ -1370,39 +1318,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			#endif
 			touched_flag = get_touched_flag(fptr,actualscript);
-
-			if (touched_flag) {
-				#ifdef CRVERBOSE 
-					printf ("got TRUE touched_flag\n");
-				#endif
-				/* we did, so get the value */
-				/* if this is a SFNode, lets get the pointer to memory from the private area */
-				if (JSparamnames[fptr].type == FIELDTYPE_SFNode) {
-					#ifdef CRVERBOSE
-					printf ("HAVE SFNODE = get private data here for object %d\n",global_return_val);
-					#endif
-
-					if ((sfnode = (SFNodeNative *)JS_GetPrivate((JSContext *)ScriptControl[actualscript].cx, global_return_val)) == NULL) {
-						printf( "JS_GetPrivate failed for obj in SFRotationGetAxis.\n");
-						return JS_FALSE;
-					}
-
-					#ifdef CRVERBOSE
-					printf ("PAST SFNODE get private - data is %s\n",sfnode->X3DString);
-					printf ("and handle is %d\n",sfnode->handle);
-					#endif
-
-					strp = MALLOC (100);
-					sprintf (strp,"%d",sfnode->handle);
-				} else {
-					strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
-			        	strp = JS_GetStringBytes(strval);
-				}
-
-				#ifdef CRVERBOSE 
-					printf ("retval string is %s\n",strp);
-				#endif
-			}
 		}
 
 		if (touched_flag) {
@@ -1414,10 +1329,9 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 
 				#ifdef CRVERBOSE 
 					printf ("%s script %d VALUE CHANGED! copy value and update %d\n",JSparamnames[fptr].name,actualscript,tn);
-					printf (" -- string from javascript is %s\n",strp);
 				#endif
 				/* eventOuts go to VRML data structures */
-				setField_method3((struct X3D_Node *)tn,tptr,strp,JSparamnames[fptr].type, len, 
+				setField_javascriptEventOut((struct X3D_Node *)tn,tptr,JSparamnames[fptr].type, len, 
 					CRoutes[route].extra, ScriptControl[actualscript].cx);
 
 				/* tell this node now needs to redraw */
@@ -1433,182 +1347,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 }
 
 
-#ifdef OLDCODE
-/* start getting events from a Class script. IF the script is not
- * initialized, do it. This will happen once only */
-
-void gatherClassEventOuts (uintptr_t script) {
-	int startEntry;
-	int endEntry;
-
-	/* is this class initialized? */
-	if (!(ScriptControl[script]._initialized)) {
-		/* printf ("initializing script %d in gatherClassEventOuts\n",script); */
-		initJavaClass(script);
-		ScriptControl[script]._initialized=TRUE;
-	}
-
-
-	/* routing table is ordered, so we can walk up to this script */
-	startEntry=1;
-
-	while (((uintptr_t)CRoutes[startEntry].fromnode)<((uintptr_t)script)) startEntry++;
-	endEntry = startEntry;
-	while (((uintptr_t)CRoutes[endEntry].fromnode) == ((uintptr_t)script)) endEntry++;
-	/* printf ("routing table entries to scan between: %d and %d\n", startEntry, endEntry); */
-
-	/* now, process received commands... */
-	processClassEvents(script,startEntry,endEntry);
-
-}
-
-
-/* this is from a Class receive SENDEVENT; a class is returning a
- * variable. We need access to routing structure to actually send the
- * values along.
- */
-
-char *processThisClassEvent (void *fn,
-		int startEntry, int endEntry, char *buf) {
-	int ctr;
-	char fieldName[MAXJSVARIABLELENGTH];
-	char membuffer[2000];
-	int thislen;
-	int entry;
-	int rv; 		/* temp for sscanf retvals */
-
-	unsigned int tptr, len;
-	void * tn;
-
-	CRnodeStruct *to_ptr = NULL;
-	int to_counter;
-
-	int fieldType, fieldOffs, fieldLen;
-	char *memptr;
-
-	#ifdef CRVERBOSE
-		printf ("processThisClassEvent, starting at %d ending at %d\nstring %s\n",
-				startEntry, endEntry, buf);
-	#endif
-
-	/* copy over the fieldname */
-	ctr = 0;
-	while (*buf > ' ') { fieldName[ctr] = *buf; buf++; ctr++; }
-	fieldName[ctr]= '\0';
-	buf ++;
-	thislen = strlen(fieldName);
-
-	/* copy over the fieldOffset */
-	rv=sscanf (buf, "%d %d %d",&fieldType, &fieldOffs, &fieldLen);
-	while (*buf >= ' ') buf++; if (*buf>'\0') *buf++;
-
-	/* find the JSparam name index. */
-	/* note that this does not match types, so if 2 scripts
-	 * with same name but different types exist... we might have
-	 * to add another field to JSparamnames; one with the
-	 * scriptnumber in it. */
-
-	entry = -1;
-	for (ctr=0; ctr<=jsnameindex; ctr++) {
-		if (strlen(JSparamnames[ctr].name) == thislen) {
-			if (strncmp (fieldName,JSparamnames[ctr].name,thislen)==0){
-				entry = ctr;
-			}
-		}
-	}
-
-	/* scan the ASCII string into memory */
-	len = ScanValtoBuffer(&fieldLen, fieldType, buf, membuffer,
-			sizeof(membuffer));
-
-	/* can we do a direct copy here? (ie, is this a USE?) */
-	if ((len > 0) && (fieldOffs>0) && (fn > 0)) {
-	        memptr = (char *)fn+fieldOffs;
-		memcpy (memptr, membuffer,len);
-	} else if (entry == -1) {
-		printf ("routing: can not find %s in parameter table and it is not a USE field\n", fieldName);
-		return (buf);
-	}
-
-	if (len == 0) {
-		/* some error occurred in conversion */
-		return (buf);
-	}
-
-	/* go through all routing table entries with this from script/node */
-	for (ctr = startEntry; ctr < endEntry; ctr++) {
-		/* printf ("routing table entry, for index %d start %d end %d paramname %d\n", ctr,
-				startEntry, endEntry, entry); */
-
-		/* now, for each entry, go through each destination */
-		if (CRoutes[ctr].fnptr == entry) {
-			for (to_counter = 0; to_counter < CRoutes[ctr].tonode_count; to_counter++) {
-				to_ptr = &(CRoutes[ctr].tonodes[to_counter]);
-				tn = to_ptr->node;
-				tptr = to_ptr->foffset;
-
-				#ifdef CRVERBOSE
-					printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
-						tn, tptr, len, CRoutes[ctr].len);
-				#endif
-
-				memptr = tn+tptr;
-
-				if (CRoutes[ctr].len < 0) {
-				    /* this is a MF*node type - the extra field should be 1 for add */
-				    getCLASSMultNumType (membuffer, len,
-							 (struct Multi_Vec3f *) memptr,
-							 (struct X3D_Box *)tn,
-							 CRoutes[ctr].len, CRoutes[ctr].extra);
-				} else {
-					/* simple copy */
-					memcpy ((void *)memptr, membuffer,len);
-				}
-
-				/* tell the routing table that this CLASS script did something */
-				markScriptResults(tn, tptr, ctr,to_ptr->node);
-			}
-		} else {
-			/* printf ("same script %d diff offset %d %d\n",
-				CRoutes[ctr].fromnode, CRoutes[ctr].fnptr, entry); */
-		}
-	}
-	return buf;
-}
-
-
-/* sets a CLASS variable - routing into the .class file */
-void sendJClassEventIn(int num, int fromoffset) {
-	uintptr_t fn, tn;
-	int tptr;
-	int len;
-	unsigned int to_counter;
-	CRnodeStruct *to_ptr = NULL;
-
-	/* printf ("sendJClassEventIn, num %d fromoffset %d\n",num,fromoffset);  */
-
-	fn = (uintptr_t) (CRoutes[num].fromnode + CRoutes[num].fnptr);
-	len = CRoutes[num].len;
-
-	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = (uintptr_t) to_ptr->node;
-		tptr = to_ptr->foffset;
-
-		/* is this class initialized? */
-		if (!(ScriptControl[tn]._initialized)) {
-			/* printf ("initializing script %d in sendJClassEventIn\n",tn); */
-			initJavaClass(tn);
-			ScriptControl[tn]._initialized=TRUE;
-		}
-
-
-		sendCLASSEvent(fn, tn, JSparamnames[tptr].name,
-			JSparamnames[tptr].type,len);
-
-	}
-}
-#endif
 
 void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
@@ -1633,26 +1371,8 @@ void sendScriptEventIn(uintptr_t num) {
 			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 			mark_script((uintptr_t) to_ptr->node);
 
-			#ifdef OLDCODE
-			switch (ScriptControl[(uintptr_t)to_ptr->node].thisScriptType) {
-				case CLASSSCRIPT: {
-					/* sendJClassEventIn(to_ptr->node, to_ptr->foffset); */
-					sendJClassEventIn(num, to_ptr->foffset);
-					break;
-				}
-				case JAVASCRIPT: {
-			#endif
 					getField_ToJavascript(num,to_ptr->foffset);
 
-			#ifdef OLDCODE
-					break;
-				  }
-				default: {
-				printf ("do not handle eventins for script type %d\n",
-						ScriptControl[(uintptr_t)to_ptr->node].thisScriptType);
-				 }
-			}
-			#endif
 		}
 	} else {
 		#ifdef CRVERBOSE 
@@ -1804,18 +1524,8 @@ void process_eventsProcessed() {
 	jsval retval;
 
 	for (counter = 0; counter <= max_script_found; counter++) {
-#ifdef OLDCODE
-	    if (ScriptControl[counter].thisScriptType == JAVASCRIPT) {
-#endif
-      		if (!ActualrunScript(counter, "eventsProcessed()" ,&retval))
-                	printf ("failed to run eventsProcessed for script %d\n",counter);
-#ifdef OLDCODE
-	    } else {
-		    /* printf ("process_eventsProcessed; script %d is a CLASSSCRIPT\n",
-				    ScriptControl[counter].thisScriptType); */
-	    }
-#endif
-
+                if (!ActualrunScript(counter, "eventsProcessed()" ,&retval))
+                        printf ("failed to run eventsProcessed for script %d\n",counter);
 	}
 }
 

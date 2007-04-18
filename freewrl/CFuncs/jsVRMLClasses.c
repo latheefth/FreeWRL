@@ -515,28 +515,6 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 }
 
 
-/* static JSBool
-getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow)
-{
-	jsval _b_val;
-
-	if (!JS_GetProperty(context, obj, "Browser", &_b_val)) {
-		printf( "JS_GetProperty failed for \"Browser\" in getBrowser.\n");
-		return JS_FALSE;
-	}
-	if (!JSVAL_IS_OBJECT(_b_val)) {
-		printf( "\"Browser\" property is not an object in getBrowser.\n");
-		return JS_FALSE;
-	}
-
-	if ((*brow = (BrowserNative *)JS_GetPrivate(context, JSVAL_TO_OBJECT(_b_val))) == NULL) {
-		printf( "JS_GetPrivate failed in getBrowser.\n");
-		return JS_FALSE;
-	}
-	return JS_TRUE;
-}
-*/
-
 static JSBool
 doMFStringUnquote(JSContext *cx, jsval *vp)
 {

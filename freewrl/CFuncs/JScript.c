@@ -61,6 +61,9 @@ Javascript C language binding.
  *
  */
 
+
+char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false; function print(x) {Browser.print(x)};";
+
 static JSRuntime *runtime = NULL;
 static JSClass globalClass = {
 	"global",
@@ -78,7 +81,6 @@ static JSClass globalClass = {
 
 int JSMaxScript = 0;
 
-char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false; function print(x) {Browser.print(x)} ";
 
 /* housekeeping routines */
 void kill_javascript(void) {
@@ -180,7 +182,6 @@ void JSInit(uintptr_t num) {
 	/* for this script, here are the necessary data areas */
 	ScriptControl[num].cx = (uintptr_t) _context;
 	ScriptControl[num].glob = (uintptr_t) _globalObj;
-	ScriptControl[num].brow = (uintptr_t) br;
 
 
 	if (!loadVrmlClasses(_context, _globalObj))
@@ -199,8 +200,6 @@ void JSInit(uintptr_t num) {
 	printf("\tVRML Browser interface loaded,\n");
 	#endif
 
-
-	/* now, run initial scripts */
 	if (!ActualrunScript(num,DefaultScriptMethods,&rval))
 		cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
 

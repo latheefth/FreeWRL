@@ -154,7 +154,7 @@ void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
 void setField_fromJavascript (uintptr_t *ptr, char *field, char *value);
 unsigned int setField_method2 (char *ptr);
-void setField_method3(struct X3D_Node  *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx);
+void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
 extern char *GL_VEN;
 extern char *GL_VER;
@@ -571,7 +571,6 @@ struct CRscriptStruct {
 	/* Javascript parameters */
 	uintptr_t	cx;	/* JSContext		*/
 	uintptr_t	glob;	/* JSGlobals		*/
-	uintptr_t	brow;	/* BrowserIntern	*/
 
 	/* Java .CLASS parameters */
 	unsigned int 	_initialized; 	/* has initialize been sent? */

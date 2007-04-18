@@ -20,9 +20,10 @@ getField_ToJavascript.
 this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
+
 void getField_ToJavascript (int num, int fromoffset) {
 
-	#ifdef CRVERBOSE 
+	#ifdef SETFIELDVERBOSE 
 		printf ("CRoutes, sending ScriptEventIn to from offset %d type %d\n",
 			fromoffset,JSparamnames[fromoffset].type);  
 	#endif
@@ -72,64 +73,61 @@ void getField_ToJavascript (int num, int fromoffset) {
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
 
 	char scriptline[100];
+	char scl[100];
 	jsval retval;
 	float fl;
 	double dl;
 	int il;
 	int intval = 0;
 
-	/* printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
-		tonode,toname,JSparamnames[toname].name,dataType,datalen); */
+	#ifdef SETFIELDVERBOSE
+	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
+		tonode,toname,JSparamnames[toname].name,dataType,datalen); 
+	#endif
 	
 
 	switch (dataType) {
 		case FIELDTYPE_SFBool:	{	/* SFBool */
 			memcpy ((void *) &intval,Data, datalen);
-			if (intval == 1) sprintf (scriptline,"__tmp_arg_%s=true",JSparamnames[toname].name);
-			else sprintf (scriptline,"__tmp_arg_%s=false",JSparamnames[toname].name);
+			if (intval == 1) sprintf (scl,"true");
+			else sprintf (scl,"false");
 			break;
 		}
 
 		case FIELDTYPE_SFFloat:	{
 			memcpy ((void *) &fl, Data, datalen);
-			sprintf (scriptline,"__tmp_arg_%s=%f", JSparamnames[toname].name,fl);
+			sprintf (scl,"%f",fl);
 			break;
 		}
 		case FIELDTYPE_SFTime:	{
 			memcpy ((void *) &dl, Data, datalen);
-			sprintf (scriptline,"__tmp_arg_%s=%f", JSparamnames[toname].name,dl);
+			sprintf (scl,"%f", dl);
 			break;
 		}
 		case FIELDTYPE_SFInt32: 	{ 
 			memcpy ((void *) &il,Data, datalen);
-			sprintf (scriptline,"__tmp_arg_%s=%d", JSparamnames[toname].name,il);
+			sprintf (scl,"%d", il);
 			break;
 		}
 
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 			memcpy((void *) &ms,Data, datalen);
-			sprintf (scriptline,"__tmp_arg_%s='%s'",JSparamnames[toname].name,ms->strptr);
+			sprintf (scl,"'%s'",ms->strptr);
 			break;
 		}
 		default: {	printf("WARNING: SHOULD NOT BE HERE! %d\n",JSparamnames[toname].type);
 		}
 	}
 
-	/* set property */
-	if (!ActualrunScript(tonode, scriptline ,&retval))
-		printf ("failed to set parameter, line %s\n",scriptline);
-
-	/* ECMAScriptNative SF nodes require a touched=0 */
-	sprintf (scriptline,"___tmp_arg_%s__touched=0", JSparamnames[toname].name);
-	if (!ActualrunScript(tonode, scriptline ,&retval))
-		printf ("failed to set parameter, line %s\n",scriptline);
-
-
+	
 	/* and set the value */
-	sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
-			 JSparamnames[toname].name,JSparamnames[toname].name,
-			 TickTime);
+	sprintf (scriptline,"%s(%s,%f)",
+			 JSparamnames[toname].name,scl, TickTime);
+	#ifdef SETFIELDVERBOSE
+	printf ("set_one_ECMAtype sending in script %s\n",scriptline);
+	#endif
+	
 	if (!ActualrunScript(tonode, scriptline ,&retval)) {
 		printf ("failed to set parameter, line %s\n",scriptline);
 	}
@@ -185,7 +183,7 @@ void setMFElementtype (uintptr_t num) {
 	JSContext *_context;
 	JSObject *_globalObj;
 
-	#ifdef CRVERBOSE 
+	#ifdef SETFIELDVERBOSE 
 		printf("------------BEGIN setMFElementtype ---------------\n");
 	#endif
 
@@ -200,7 +198,7 @@ void setMFElementtype (uintptr_t num) {
 
 	/* is this from a MFElementType? */
 	if (len <= 0) {
-		#ifdef CRVERBOSE 
+		#ifdef SETFIELDVERBOSE 
 		printf ("len of %d means that this is a MF type\n",len);
 		#endif
 		mfp = (struct Multi_Node *) pptr;
@@ -209,7 +207,7 @@ void setMFElementtype (uintptr_t num) {
 		/* get the number of elements */
 		len = mfp->n;  
 		pptr = (char *) mfp->p; /* pptr is a char * just for math stuff */
-		#ifdef CRVERBOSE 
+		#ifdef SETFIELDVERBOSE 
 		printf ("setMFElementtype, len now %d, from %d\n",len,fn);
 		#endif
 	}
@@ -222,7 +220,7 @@ void setMFElementtype (uintptr_t num) {
 		tptr = to_ptr->foffset;
 		indexPointer = (uintptr_t) tn; /* tn should be a small int here - it is script # */
 
-		#ifdef CRVERBOSE 
+		#ifdef SETFIELDVERBOSE 
 			printf ("got a script event! index %d type %d\n",
 					num, CRoutes[num].direction_flag);
 			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,tptr);
@@ -404,7 +402,7 @@ void setMFElementtype (uintptr_t num) {
 		strcat (scriptline,JSparamnames[tptr].name);
 		strcat (scriptline,"(xxy);");
 
-		#ifdef CRVERBOSE 
+		#ifdef SETFIELDVERBOSE 
 			printf("ScriptLine: %s\n",scriptline);
 		#endif
 
@@ -413,12 +411,12 @@ void setMFElementtype (uintptr_t num) {
 
 
 	}
-	#ifdef CRVERBOSE 
+	#ifdef SETFIELDVERBOSE 
 		printf("------------END setMFElementtype ---------------\n");
 	#endif
 }
 
-
+#define SETFIELDVERBOSE
 void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 
     int tn, tptr;
@@ -434,14 +432,14 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     JSContext *_context;
     JSObject *_globalObj;
 
-    #ifdef CRVERBOSE 
+    #ifdef SETFIELDVERBOSE 
 	printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
     #endif
 
     tn   = num;
     tptr = offset;
 
-    #ifdef CRVERBOSE 
+    #ifdef SETFIELDVERBOSE 
 	printf ("got a script event! index %d\n",num);
 	printf ("\tto %#x toptr %#x\n",tn,tptr);
 	printf ("\tdata length %d\n",len);
@@ -585,7 +583,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     /* convert these values to a jsval type */
     strcat (scriptline,"))");
 
-    #ifdef CRVERBOSE 
+    #ifdef SETFIELDVERBOSE 
 	printf("ScriptLine: %s\n",scriptline);
     #endif
 
@@ -593,11 +591,11 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     if (!ActualrunScript(tn,scriptline,&retval))
       printf ("AR failed in setxx\n");
 
-    #ifdef CRVERBOSE 
+    #ifdef SETFIELDVERBOSE 
 	printf("------------END set_EAI_MFElementtype ---------------\n");
     #endif
 }
-
+#undef SETFIELDVERBOSE
 
 
 
@@ -620,7 +618,7 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	SFVec3fNative *_privPtr;
 
 	JSContext *_context;
-	JSObject *_globalObj, *_sfvec3fObj;
+	JSObject *_TimeObj, *_globalObj, *_sfvec3fObj;
 
 
 	/* get context and global object for this script */
@@ -628,7 +626,7 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	_globalObj = (JSObject *)ScriptControl[tonode].glob;
 
 
-	/* make up the name */
+	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__tmp_arg_%s", JSparamnames[tnfield].name);
 
 	#ifdef SETFIELDVERBOSE 
@@ -646,25 +644,23 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(_context, _sfvec3fObj)) == NULL)
 		printf("JS_GetPrivate failed in jsSFVec3fSet.\n");
 
-	/* copy over the data from the perl/C VRML side into the script. */
+	/* copy over the data from the VRML side into the script variable. */
 	memcpy ((void *) &_privPtr->v,Data, dataLen);
 
+	/* set the touched flag to 0 - I don't think this is ever looked at */
 	_privPtr->touched = 0;
-
-	/* now, runscript to tell it that it has been touched */
-	sprintf (scriptline,"__tmp_arg_%s.__touched()", JSparamnames[tnfield].name);
-	if (!ActualrunScript(tonode, scriptline ,&retval))
-		printf ("failed to set parameter, line %s\n",scriptline);
 
 	/* and run the function */
 	sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
-			 JSparamnames[tnfield].name,JSparamnames[tnfield].name,
-			 TickTime);
+			 JSparamnames[tnfield].name,JSparamnames[tnfield].name,TickTime);
+	#ifdef SETFIELDVERBOSE
+	printf ("Set_one_MultiElementtype: running script %s\n",scriptline);
+	#endif
+
 	if (!ActualrunScript(tonode, scriptline ,&retval)) {
 		printf ("failed to set parameter, line %s\n",scriptline);
 	}
 }
-
 
 void setScriptMultiElementtype (uintptr_t num) {
 	void * fn;

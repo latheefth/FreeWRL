@@ -237,12 +237,27 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	uintptr_t inNode[4];
 	double dv;
 
-	/* printf ("PST, for %s we have %s strlen %d\n",FIELDTYPES[ctype], value, strlen(value)); */
+	#ifdef SETFIELDVERBOSE
+	printf ("PST, for %s we have %s strlen %d\n",FIELDTYPES[ctype], value, strlen(value));
+	#endif
+
 	nst = (char *) ptr; /* should be 64 bit compatible */
 	nst += coffset;
 
+	/* go to the start of the string - javascript will return this with open/close brackets */
+	while (*value == ' ') value ++;
+	if (*value == '[') {
+		value ++;
+		Cptr = strrchr(value,']');
+		if (Cptr!=NULL) *Cptr = '\0';
+		#ifdef SETFIELDVERBOSE
+		printf ("PST, string was from Javascript, now is %s\n",value);
+		#endif
+	}
+
 	datasize = returnElementLength(ctype);
 	elementCount = countElements(ctype,value);
+
 	switch (ctype) {
 
 		case FIELDTYPE_SFBool: {
@@ -335,12 +350,14 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 		case FIELDTYPE_MFColorRGBA: {
 			/* skip past any brackets, etc, that might come via Javascript.
 			   see tests/8.wrl for one of these */
-			while ((*value == ' ') || (*value == '[')) value ++;
 
 			/* get the row size */
 			rowsize = returnElementRowSize(ctype);
 
-			/* printf ("data size is %d elerow %d elementCount %d\n",datasize, returnElementRowSize(ctype),elementCount); */
+			#ifdef SETFIELDVERBOSE
+			printf ("MF* data size is %d elerow %d elementCount %d str %s\n",datasize, returnElementRowSize(ctype),elementCount,value);
+			#endif
+
 			mdata = MALLOC (elementCount * datasize);
 			fptr = (float *)mdata;
 			for (tmp = 0; tmp < elementCount; tmp++) {

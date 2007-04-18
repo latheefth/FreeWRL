@@ -10,7 +10,6 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
-
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
 void SetMemory (int type, void *destptr, void *srcptr, int len);
@@ -51,7 +50,6 @@ void setField_fromJavascript (uintptr_t *ptr, char *field, char *value) {
 	foffset = findRoutedFieldInFIELDNAMES(node,field,1);	
 	if (foffset < 0) {
 		printf ("setField_fromJavascript, field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
-		/* return; */
 	}
 
 	/* get offsets for this field in this nodeType */
@@ -60,7 +58,9 @@ void setField_fromJavascript (uintptr_t *ptr, char *field, char *value) {
 	#endif
 	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
 
-	/* printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value); */
+	#ifdef SETFIELDVERBOSE
+	printf ("so, offset is %d, type %d value %s\n",coffset, ctype, value);
+	#endif
 
 	if (coffset <= 0) {
 		printf ("setField_fromJavascript, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
@@ -298,35 +298,42 @@ unsigned int setField_method2 (char *ptr) {
 	return TRUE;
 }
 
-void setField_method3(struct X3D_Node *tn,unsigned int tptr, char *strp, int fieldType, unsigned len, int extraData, uintptr_t mycx) {
+
+void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, uintptr_t cx) {
         int ival;
         double tval;
         float fl[4];
         int rv;
 	JSContext *scriptContext;
 	char *memptr;
+        JSString *strval; /* strings */
+	char *strp;
+        SFNodeNative *sfnode;
+	SFVec2fNative *sfvec2f;
+	SFVec3fNative *sfvec3f;
+	SFRotationNative *sfrotation;
+
 
 	/* set up a pointer to where to put this stuff */
 	memptr = (char *)tn;
 	memptr += tptr;
 
+	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
+	scriptContext = (JSContext *) cx;
+
 
 	#ifdef SETFIELDVERBOSE
-	printf ("start of setField_method3, to %d:%d = %d, fieldtype %d, string %s\n",tn, tptr, memptr, fieldType, strp);
+	strval = JS_ValueToString(scriptContext, global_return_val);
+       	strp = JS_GetStringBytes(strval);
+	printf ("start of setField_javascriptEventOut, to %d:%d = %d, fieldtype %d string %s\n",tn, tptr, memptr, fieldType, strp);
 	#endif
 
-
-	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
-	scriptContext = (JSContext *) mycx;
-
 	switch (fieldType) {
+		case FIELDTYPE_SFInt32: 
 		case FIELDTYPE_SFBool:	{	/* SFBool */
-			/* printf ("we have a boolean, copy value over string is %s\n",strp); */
-			if (strcmp(strp,"true")==0) {
-				ival = 1;
-			} else {
-				/* printf ("ASSUMED TO BE FALSE\n"); */
-				ival = 0;
+			if (!JS_ValueToInt32(scriptContext, global_return_val,&ival)) {
+				printf ("error\n");
+				ival=0;
 			}
 			memcpy ((void *)memptr, (void *)&ival,len);
 			break;
@@ -334,52 +341,66 @@ void setField_method3(struct X3D_Node *tn,unsigned int tptr, char *strp, int fie
 
 		case FIELDTYPE_SFTime: {
 			if (!JS_ValueToNumber(scriptContext, global_return_val,&tval)) tval=0.0;
-
-			/* printf ("SFTime conversion numbers %f from string %s\n",tval,strp); */
-			/* printf ("copying to %#x offset %#x len %d\n",tn, tptr,len); */
 			memcpy ((void *)memptr, (void *)&tval,len);
 			break;
 		}
-		case FIELDTYPE_SFNode:
-		case FIELDTYPE_SFInt32: {
-			rv=sscanf (strp,"%d",&ival);
-			if (rv != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",strp);
-			/* printf ("SFInt, SFNode conversion number %d\n",ival); */
-			memcpy ((void *)memptr, (void *)&ival,len);
+
+		case FIELDTYPE_SFNode: {
+			if ((sfnode = (SFNodeNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
+				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
+				return;
+			}
+			memcpy ((void *)memptr, (void *)&(sfnode->handle),len);
+			#ifdef SETFIELDVERBOSE
+			printf ("PAST SFNODE get private - data is %s\n",sfnode->X3DString);
+			printf ("and handle is %d\n",sfnode->handle);
+			#endif
+
 			break;
 		}
+
 		case FIELDTYPE_SFFloat: {
-			rv=sscanf (strp,"%f",&fl[0]);
-			if (rv != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",strp);
-			memcpy ((void *)memptr, (void *)&fl,len);
+			if (!JS_ValueToNumber(scriptContext, global_return_val,&tval)) tval=0.0;
+			/* convert double precision to single, for X3D */
+			fl[0] = (float) tval;
+			memcpy ((void *)memptr, (void *)fl,len);
 			break;
 		}
 
 		case FIELDTYPE_SFVec2f: {	/* SFVec2f */
-			rv=sscanf (strp,"%f %f",&fl[0],&fl[1]);
-			if (rv != 2) ConsoleMessage ("setField_method2: error reading 2 numbers from the string :%s:\n",strp);
-			/* printf ("conversion numbers %f %f\n",fl[0],fl[1]); */
-			memcpy ((void *)memptr, (void *)fl,len);
-			break;
-		}
-		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_SFColor: {	/* SFColor */
-			rv=sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-			if (rv != 3) ConsoleMessage ("setField_method3: error reading 3 numbers from the string :%s:\n",strp);
-			/* printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]); */
-			memcpy ((void *)memptr, (void *)fl,len);
+			if ((sfvec2f = (SFVec2fNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
+				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
+				return;
+			}
+			memcpy ((void *)memptr, (void *)&(sfvec2f->v),len);
 			break;
 		}
 
-		case FIELDTYPE_SFRotation: {
-			rv=sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-			if (rv != 4) ConsoleMessage ("setField_method3: error reading 3 numbers from the string :%s:\n",strp);
-			/* printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]); */
-			memcpy ((void *)memptr, (void *)fl,len);
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor: {	/* SFColor */
+			if ((sfvec3f = (SFVec3fNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
+				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
+				return;
+			}
+			memcpy ((void *)memptr, (void *)&(sfvec3f->v),len);
 			break;
 		}
+
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_SFRotation: {
+			if ((sfrotation = (SFRotationNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
+				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
+				return;
+			}
+			memcpy ((void *)memptr, (void *)&(sfrotation->v),len);
+			break;
+		}
+/**/
 		case FIELDTYPE_SFImage: {
 			/* the string should be saved as an SFImage */
+			strval = JS_ValueToString(scriptContext, global_return_val);
+	        	strp = JS_GetStringBytes(strval);
+
 			Parser_scanStringValueToMem(tn, tptr, FIELDTYPE_SFImage, strp);
 			break;
 		}
@@ -387,6 +408,9 @@ void setField_method3(struct X3D_Node *tn,unsigned int tptr, char *strp, int fie
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 			uintptr_t *newptr;
+
+			strval = JS_ValueToString(scriptContext, global_return_val);
+	        	strp = JS_GetStringBytes(strval);
 
 			/* copy the string over, delete the old one, if need be */
 			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
@@ -400,27 +424,30 @@ void setField_method3(struct X3D_Node *tn,unsigned int tptr, char *strp, int fie
 
 			/* a series of Floats... */
 		case FIELDTYPE_MFVec3f:
-		case FIELDTYPE_MFColor: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,3); break;}
-		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,1); break;}
-		case FIELDTYPE_MFRotation: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,4); break;}
-		case FIELDTYPE_MFVec2f: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,2); break;}
-		case FIELDTYPE_MFNode: {getMFNodetype (strp,(struct Multi_Node *)memptr,(struct X3D_Box *)tn,extraData); break;}
+		case FIELDTYPE_MFColor: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFColor); break;}
+		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFFloat); break;}
+		case FIELDTYPE_MFRotation: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFRotation); break;}
+		case FIELDTYPE_MFVec2f: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFVec2f); break;}
+		case FIELDTYPE_MFNode: {
+				strval = JS_ValueToString(scriptContext, global_return_val);
+	        		strp = JS_GetStringBytes(strval);
+				getMFNodetype (strp,(struct Multi_Node *)memptr,(struct X3D_Box *)tn,extraData); break;
+		}
 		case FIELDTYPE_MFString: {
 			getMFStringtype (scriptContext, (jsval *)global_return_val,(struct Multi_String *)memptr);
 			break;
 		}
 
-		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,0); break;}
-		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,5); break;}
+		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
+		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
 
 		default: {	printf("WARNING: unhandled from type %s\n", FIELDTYPES[fieldType]);
-		printf (" -- string from javascript is %s\n",strp);
 		}
 	}
 
 	#ifdef SETFIELDVERBOSE
 	if (fieldType == FIELDTYPE_MFInt32) {
-		printf ("setField_method3, checking the pointers...\n");
+		printf ("setField_javascriptEventOut, checking the pointers...\n");
 		printf ("node type is %s\n",stringNodeType(((struct X3D_Node *)tn)->_nodeType));
 		
 	
@@ -509,14 +536,10 @@ int findFieldInARR(char* field, const char** arr, size_t cnt)
 	}
 
 	mystrlen = strlen(field);
-	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen); */
+	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
 	for (x=0; x!=cnt; ++x) {
 		if (strlen(arr[x]) == mystrlen) {
-			if (strcmp(field, arr[x])==0)
-			{
-				/* printf("%s %d\n", arr[x], x); */
-				return x;
-			}
+			if (strcmp(field, arr[x])==0) return x;
 		} 
 	}
 	return -1;
@@ -545,13 +568,10 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 
 #define FIELDCHECK(fld) \
 	if (retval >=0) { \
-		int fieldnamesIndex=findIndexInFIELDNAMES(retval, arr, cnt); \
-		if(fieldnamesIndex>=0) { \
-		  findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], fieldnamesIndex,&a,&b,&c); \
-		  /* did this return any of the ints as != -1? */ \
-		  /* printf ("     findRoutedField for field %s, nodetype %s is %d\n",fld,stringNodeType(node->_nodeType),a); */ \
-		  if (a != -1) return retval;  /* found it! */ \
-		} \
+		findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], retval,&a,&b,&c); \
+		/* did this return any of the ints as != -1? */ \
+		/* printf ("     findRoutedField for field %s, nodetype %s is %d\n",fld,stringNodeType(node->_nodeType),a); */ \
+		if (a != -1) return retval;  /* found it! */ \
 	} 
 
 	/* try removing the "set_" or "_changed" */
@@ -583,25 +603,6 @@ DEF_FINDROUTEDFIELD(FIELDNAMES)
 DEF_FINDROUTEDFIELD(EXPOSED_FIELD)
 DEF_FINDROUTEDFIELD(EVENT_IN)
 DEF_FINDROUTEDFIELD(EVENT_OUT)
-
-/* Map the given index into arr to an index into FIELDNAMES or -1, if the
- * string in question isn't there. */
-int findIndexInFIELDNAMES(int index, const char** arr, size_t arrCnt) {
-  int i;
-
-  /* If this is already FIELDNAMES, return index. */
-  if(arr==FIELDNAMES)
-    return index;
-
-  /* Look for the string */
-  for(i=0; i!=FIELDNAMES_COUNT; ++i) {
-    if(!strcmp(FIELDNAMES[i], arr[index]))
-      return i;
-  }
-
-  /* Not found */
-  return -1;
-}
 
 /* go through the generated table NODENAMES, and find the int of this string, returning it, or -1 on error */
 int findNodeInNODES(char *node) {
@@ -691,13 +692,6 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 /* a series of Multi_Vec3f's while in reality the structure	*/
 /* of the multi structures is the same - so we "fudge" things	*/
 /* to make this multi-purpose.					*/
-/* eletype switches depending on:				*/
-/* 	0: FIELDTYPE_MFInt32						*/
-/* 	1: FIELDTYPE_MFFloat						*/
-/* 	2: FIELDTYPE_MFVec2f						*/
-/* 	3: FIELDTYPE_MFColor						*/
-/* 	4: FIELDTYPE_MFRotation						*/
-/*	5: FIELDTYPE_MFTime						*/
 /****************************************************************/
 
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
@@ -705,7 +699,8 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	int *il;
 	double *dl;
 
-	float f2, f3, f4;
+	float f[4];
+	double dtmp;
 	jsval mainElement;
 	int len;
 	int i;
@@ -713,6 +708,10 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	char *strp;
 	int elesize;
 	int rv; /* temp for sscanf return vals */
+        SFNodeNative *sfnode;
+	SFVec2fNative *sfvec2f;
+	SFVec3fNative *sfvec3f;
+	SFRotationNative *sfrotation;
 
 
 	/* get size of each element, used for MALLOCing memory */
@@ -763,23 +762,62 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			printf ("JS_GetElement failed for %d in getJSMultiNumType\n",i);
 			return;
 		}
-
+		#ifdef SETFIELDVERBOSE
                 _tmpStr = JS_ValueToString(cx, mainElement);
 		strp = JS_GetStringBytes(_tmpStr);
-		#ifdef SETFIELDVERBOSE
                 printf ("sub element %d is \"%s\" \n",i,strp);  
 		#endif
 
+		/* code is pretty much same as SF* values in setField_javascriptEventOut */
 		switch (eletype) {
-		case 0: { rv=sscanf(strp,"%d",il); il++; break;}
-		case 1: { rv=sscanf(strp,"%f",fl); fl++; break;}
-		case 2: { rv=sscanf (strp,"%f %f",fl,&f2);
-			fl++; *fl=f2; fl++; break;}
-		case 3: { rv=sscanf (strp,"%f %f %f",fl,&f2,&f3);
-			fl++; *fl=f2; fl++; *fl=f3; fl++; break;}
-		case 4: { rv=sscanf (strp,"%f %f %f %f",fl,&f2,&f3,&f4);
-			fl++; *fl=f2; fl++; *fl=f3; fl++; *fl=f4; fl++; break;}
-		case 5: {rv=sscanf (strp,"%lf",dl); dl++; break;}
+		case FIELDTYPE_SFInt32: {
+			if (!JS_ValueToInt32(cx, mainElement ,il)) {
+				printf ("error\n");
+				*il=0;
+			}
+			il++;
+			break;
+		}
+		case FIELDTYPE_SFTime: {
+			if (!JS_ValueToNumber(cx, mainElement ,dl)) *dl=0.0;
+			dl++;
+			break;
+		}
+		case FIELDTYPE_SFFloat: {
+			if (!JS_ValueToNumber(cx, mainElement, &dtmp)) dtmp=0.0;
+			/* convert double precision to single, for X3D */
+			*fl = (float) dtmp;
+			fl++;
+			break;
+		}
+		case FIELDTYPE_SFVec2f: {
+                        if ((sfvec2f = (SFVec2fNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+                                printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
+                                return;
+                        }
+                        memcpy ((void *)fl, (void *)&(sfvec2f->v),2*sizeof(float));
+			fl += 2;
+                        break;
+		}
+		case FIELDTYPE_SFVec3f:
+                case FIELDTYPE_SFColor: {       /* SFColor */
+                        if ((sfvec3f = (SFVec3fNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+                                printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
+                                return;
+                        }
+                        memcpy ((void *)fl, (void *)&(sfvec3f->v),3*sizeof(float));
+			fl += 3;
+                        break;
+		}
+		case FIELDTYPE_SFRotation: {
+                        if ((sfrotation = (SFVec3fNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+                                printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
+                                return;
+                        }
+                        memcpy ((void *)fl, (void *)&(sfrotation->v),4*sizeof(float));
+			fl += 4;
+                        break;
+		}
 
 		default : {printf ("getJSMultiNumType unhandled eletype: %d\n",
 				eletype);

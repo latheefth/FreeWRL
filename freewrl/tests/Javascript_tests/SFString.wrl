@@ -39,7 +39,7 @@ Transform {
 children Shape {
 			appearance Appearance {
 				material Material { }
-				texture ImageTexture {url "helpers/mandrill.jpg" }
+				texture ImageTexture {url "../helpers/mandrill.jpg" }
 			}
                         geometry IndexedFaceSet {
                 texCoord DEF TCG TextureCoordinateGenerator { mode "SPHERE" }
