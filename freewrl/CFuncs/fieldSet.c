@@ -714,10 +714,9 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	SFRotationNative *sfrotation;
 
 
-	/* get size of each element, used for MALLOCing memory */
-	if (eletype == 0) elesize = sizeof (int);		/* integer */
-	else if (eletype == 5) elesize = sizeof (double);	/* doubles. */
-	else elesize = sizeof (float)*eletype;			/* 1, 2, 3 or 4 floats per element. */
+	/* get size of each element, used for MALLOCing memory  - eg, this will
+	   be sizeof(float) * 3 for a SFColor */
+	elesize = returnElementLength(eletype) * returnElementRowSize(eletype);
 
 	/* rough check of return value */
 	if (!JSVAL_IS_OBJECT(global_return_val)) {
