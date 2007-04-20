@@ -1,3 +1,10 @@
+For 1.19.3:
+	- re-ordered routing field lookups for nodes with both field and eventIn names "same".
+
+	- Java/ecmascript fixes and tests for most MF* nodes.
+
+	- Javascript/ecmascript add/delete Route now works with new parser formats.
+
 For 1.19.2:
 
 	- let scripts start with whitespace before the "vrmlscript".

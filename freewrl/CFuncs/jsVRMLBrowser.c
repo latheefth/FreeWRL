@@ -227,8 +227,6 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 		*_c_format = "o";
 	char *tptr;
 
-	/*FUNC_INIT*/
-
 	if (JS_ConvertArguments(context, argc, argv, _c_format, &_obj)) {
 		if ((_cls = JS_GetClass(_obj)) == NULL) {
 			printf("JS_GetClass failed in VrmlBrowserReplaceWorld.\n");
@@ -274,8 +272,6 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 		*_c_format = "o o";
 	#define myBufSize 2000
 	char myBuf[myBufSize];
-
-	/*FUNC_INIT*/
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format, &(_obj[0]), &(_obj[1]))) {
 		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
@@ -325,8 +321,6 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 {
 	char *_c, *_c_args = "SFString description", *_c_format = "s";
 
-	/*FUNC_INIT*/
-
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
 
@@ -357,8 +351,6 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 
 	/* make this a default value */
 	*rval = INT_TO_JSVAL(0);
-
-	/*FUNC_INIT*/
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
@@ -436,8 +428,6 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	*rval = INT_TO_JSVAL(0);
 
 printf ("must fix Javascript VrmlBrowserCreateVrmlFromURL\n");
-	/*FUNC_INIT*/
-
 	if (JS_ConvertArguments(context, argc, argv, _c_format,
 			&(_obj[0]), &(_obj[1]), &_c)) {
 		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
@@ -636,23 +626,18 @@ VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 	}
 	*rval = _rval;
 	return JS_TRUE;
-
-	printf ("VrmlBrowserDeleteRoute\n");
-printf ("must fix doVRMLRoute\n");
 }
 
-
-static JSBool
-doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
-			const char *callingFunc)
-{
+/* internal to add/remove a ROUTE */
+static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, const char *callingFunc) {
 	jsval _v[2];
-	JSObject *_obj[2];
+	JSObject *fromNodeObj, *toNodeObj;
+	SFNodeNative *fromNative, *toNative;
 	JSClass *_cls[2];
 	JSString *_str[2];
 	char 
-		*_cstr[2],
 		*_costr[2],
+		*fromFieldString, *toFieldString,
 		*_c_args =
 		"SFNode fromNode, SFString fromEventOut, SFNode toNode, SFString toEventIn",
 		*_c_format = "o s o s";
@@ -663,24 +648,27 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 	int xxx;
 	int myField;
 
-	/*FUNC_INIT*/
-printf ("must fix doVRMLRoute\n");
+	/* first, are there 4 arguments? */
+	if (argc != 4) {
+		printf ("Problem with script - add/delete route command needs 4 parameters\n");
+		return JS_FALSE;
+	}
 
-	if (JS_ConvertArguments(context,
-				argc,
-				argv,
-				_c_format,
-				&(_obj[0]), &(_cstr[0]), &(_obj[1]), &(_cstr[1]))) {
-		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
+	/* get the arguments, and ensure that they are obj, string, obj, string */
+	if (JS_ConvertArguments(context, argc, argv, _c_format,
+				&fromNodeObj, &fromFieldString, &toNodeObj, &toFieldString)) {
+		if ((_cls[0] = JS_GetClass(fromNodeObj)) == NULL) {
 			printf("JS_GetClass failed for arg 0 in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;
 		}
-		if ((_cls[1] = JS_GetClass(_obj[1])) == NULL) {
+		if ((_cls[1] = JS_GetClass(toNodeObj)) == NULL) {
 			printf("JS_GetClass failed for arg 2 in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;
 		}
+
+		/* make sure these are both SFNodes */
 		if (memcmp("SFNode", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
 			memcmp("SFNode", (_cls[1])->name, strlen((_cls[1])->name)) != 0) {
 			printf("\nArguments 0 and 2 must be SFNode in doVRMLRoute called from %s(%s): %s\n",
@@ -688,60 +676,48 @@ printf ("must fix doVRMLRoute\n");
 			return JS_FALSE;
 		}
 
-		if (!JS_GetProperty(context, _obj[0], "__handle", &(_v[0]))) {
-			printf("JS_GetProperty failed for arg 0 and \"__handle\" in doVRMLRoute called from %s.\n",
-					callingFunc);
+		/* get the "private" data for these nodes. It will consist of a SFNodeNative structure */
+		if ((fromNative = (SFNodeNative *)JS_GetPrivate(context, fromNodeObj)) == NULL) {
+			printf ("problem getting native props\n");
 			return JS_FALSE;
 		}
-		_str[0] = JS_ValueToString(context, _v[0]);
-		_costr[0] = JS_GetStringBytes(_str[0]);
-
-		if (!JS_GetProperty(context, _obj[1], "__handle", &(_v[1]))) {
-			printf("JS_GetProperty failed for arg 2 and \"__handle\" in doVRMLRoute called from %s.\n",
-					callingFunc);
+		if ((toNative = (SFNodeNative *)JS_GetPrivate(context, toNodeObj)) == NULL) {
+			printf ("problem getting native props\n");
 			return JS_FALSE;
 		}
-		_str[1] = JS_ValueToString(context, _v[1]);
-		_costr[1] = JS_GetStringBytes(_str[1]);
+		/* get the "handle" for the actual memory pointer */
+		fromNode = fromNative->handle;
+		toNode = toNative->handle;
 
-		/* printf ("routing from %s %s to %s %s\n", _costr[0], _cstr[0], _costr[1], _cstr[1]); */
-
-		/* convert the "handles" into memory pointers */
-		if ((sscanf (_costr[0],"%d",&fromNode) == 0) ||
-			(sscanf (_costr[1],"%d",&toNode) == 0)) {
-			printf ("JS Routing, problem converting %s or %s to node pointer\n",_costr[0],_costr[1]);
-			return JS_FALSE;
-		}
-
-		/*
+		#ifdef JSVERBOSE
 		printf ("routing from a node of type %s to a node of type %s\n",
 			stringNodeType(fromNode->_nodeType), 
 			stringNodeType(toNode->_nodeType));
-		*/
+		#endif	
 
 		/* From field */
-		if ((strcmp (_cstr[0],"addChildren") == 0) || 
-		(strcmp (_cstr[0],"removeChildren") == 0)) {
+		if ((strcmp (fromFieldString,"addChildren") == 0) || 
+		(strcmp (fromFieldString,"removeChildren") == 0)) {
 			myField = findFieldInALLFIELDNAMES("children");
 		} else {
 			/* try finding it, maybe with a "set_" or "changed" removed */
-			myField = findRoutedFieldInFIELDNAMES(fromNode,_cstr[0],0);
+			myField = findRoutedFieldInFIELDNAMES(fromNode,fromFieldString,0);
 			if (myField == -1) 
-				myField = findRoutedFieldInFIELDNAMES(fromNode,_cstr[0],1);
+				myField = findRoutedFieldInFIELDNAMES(fromNode,fromFieldString,1);
 		}
 
 		/* find offsets, etc */
        		findFieldInOFFSETS(NODE_OFFSETS[fromNode->_nodeType], myField, &fromOfs, &fromtype, &xxx);
 
 		/* To field */
-		if ((strcmp (_cstr[1],"addChildren") == 0) || 
-		(strcmp (_cstr[1],"removeChildren") == 0)) {
+		if ((strcmp (toFieldString,"addChildren") == 0) || 
+		(strcmp (toFieldString,"removeChildren") == 0)) {
 			myField = findFieldInALLFIELDNAMES("children");
 		} else {
 			/* try finding it, maybe with a "set_" or "changed" removed */
-			myField = findRoutedFieldInFIELDNAMES(toNode,_cstr[1],0);
+			myField = findRoutedFieldInFIELDNAMES(toNode,toFieldString,0);
 			if (myField == -1) 
-				myField = findRoutedFieldInFIELDNAMES(toNode,_cstr[1],1);
+				myField = findRoutedFieldInFIELDNAMES(toNode,toFieldString,1);
 		}
 
 		/* find offsets, etc */

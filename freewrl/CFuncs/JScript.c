@@ -62,7 +62,24 @@ Javascript C language binding.
  */
 
 
-char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false; function print(x) {Browser.print(x)};";
+char *DefaultScriptMethods = "function initialize() {}; " \
+			" function shutdown() {}; " \
+			" function eventsProcessed() {}; " \
+			" TRUE=true; FALSE=false; " \
+			" function print(x) {Browser.print(x)}; " \	
+			" function getName() {Browser.getName()}; "\
+			" function getVersion() {Browser.getVersion()}; "\
+			" function getCurrentSpeed() {Browser.getCurrentSpeed()}; "\
+			" function getCurrentFrameRate() {Browser.getCurrentFrameRate()}; "\
+			" function getWorldURL() {Browser.getWorldURL()}; "\
+			" function replaceWorld(x) {Browser.replaceWorld(x)}; "\
+			" function loadURL(x) {Browser.loadURL(x)}; "\
+			" function setDescription(x) {Browser.setDescription(x)}; "\
+			" function createVrmlFromString(x) {Browser.createVrmlFromString(x)}; "\
+			" function createVrmlFromURL(x) {Browser.createVrmlFromURL(x)}; "\
+			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
+			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "\
+			"";
 
 static JSRuntime *runtime = NULL;
 static JSClass globalClass = {
