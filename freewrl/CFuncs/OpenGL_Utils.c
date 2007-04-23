@@ -451,81 +451,82 @@ void kill_X3DNodes(void){
 	uintptr_t *fieldOffsetsPtr;
 	char * fieldPtr;
 	struct X3D_Node* structptr;
+	struct Multi_Float* MFloat;
+	struct Multi_Rotation* MRotation;
+	struct Multi_Vec3f* MVec3f;
+	struct Multi_Bool* Mbool;
+	struct Multi_Int32* MInt32;
+	struct Multi_Node* MNode;
+	struct Multi_Color* MColor;
+	struct Multi_ColorRGBA* MColorRGBA;
+	struct Multi_Time* MTime;
+	struct Multi_String* MString;
+	struct Multi_Vec2f* MVec2f;
+	uintptr_t * VPtr;
+	struct Uni_String *MyS;
+
 	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
 		structptr = (struct X3D_Node*)memoryTable[i];		
-		/*printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);*/
-		/* printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType)); */
+		/* printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);
+		printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType));  */
+
+		/* kill any parents that may exist. */
+		FREE_IF_NZ (structptr->_parents);
+
 		fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];
 		/*go thru all field*/				
 		while (*fieldOffsetsPtr != -1) {
+			fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
+			/* printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
+
 			switch(*(fieldOffsetsPtr+2)){
 				case FIELDTYPE_MFFloat:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Float* MFloat;
 					MFloat=(struct Multi_Float *)fieldPtr;
 					MFloat->n=0;
 					FREE_IF_NZ(MFloat->p);
 					break;
 				case FIELDTYPE_MFRotation:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Rotation* MRotation;
 					MRotation=(struct Multi_Rotation *)fieldPtr;
 					MRotation->n=0;
 					FREE_IF_NZ(MRotation->p);
 					break;
 				case FIELDTYPE_MFVec3f:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Vec3f* MVec3f;
 					MVec3f=(struct Multi_Vec3f *)fieldPtr;
 					MVec3f->n=0;
 					FREE_IF_NZ(MVec3f->p);
 					break;
 				case FIELDTYPE_MFBool:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Bool* Mbool;
 					Mbool=(struct Multi_Bool *)fieldPtr;
 					Mbool->n=0;
 					FREE_IF_NZ(Mbool->p);
 					break;
 				case FIELDTYPE_MFInt32:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Int32* MInt32;
 					MInt32=(struct Multi_Int32 *)fieldPtr;
 					MInt32->n=0;
 					FREE_IF_NZ(MInt32->p);
 					break;
 				case FIELDTYPE_MFNode:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Node* MNode;
 					MNode=(struct Multi_Node *)fieldPtr;
 					MNode->n=0;
 					FREE_IF_NZ(MNode->p);
 					break;
 				case FIELDTYPE_MFColor:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Color* MColor;
 					MColor=(struct Multi_Color *)fieldPtr;
 					MColor->n=0;
 					FREE_IF_NZ(MColor->p);
 					break;
 				case FIELDTYPE_MFColorRGBA:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_ColorRGBA* MColorRGBA;
 					MColorRGBA=(struct Multi_ColorRGBA *)fieldPtr;
 					MColorRGBA->n=0;
 					FREE_IF_NZ(MColorRGBA->p);
 					break;
 				case FIELDTYPE_MFTime:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Time* MTime;
 					MTime=(struct Multi_Time *)fieldPtr;
 					MTime->n=0;
 					FREE_IF_NZ(MTime->p);
 					break;
 				case FIELDTYPE_MFString: 
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_String* MString;
 					MString=(struct Multi_String *)fieldPtr;
 					struct Uni_String* ustr;
 					for (j=0; j<MString->n; j++) {
@@ -538,13 +539,23 @@ void kill_X3DNodes(void){
 					FREE_IF_NZ(MString->p);
 					break;
 				case FIELDTYPE_MFVec2f:
-					fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
-					struct Multi_Vec2f* MVec2f;
 					MVec2f=(struct Multi_Vec2f *)fieldPtr;
 					MVec2f->n=0;
 					FREE_IF_NZ(MVec2f->p);
 					break;
-				default:;
+				case FIELDTYPE_FreeWRLPTR:
+					VPtr = (uintptr_t *) fieldPtr;
+					FREE_IF_NZ(*VPtr);
+					break;
+				case FIELDTYPE_SFString:
+					VPtr = (uintptr_t *) fieldPtr;
+					MyS = (struct Uni_String *) *VPtr;
+					MyS->len = 0;
+					FREE_IF_NZ(MyS->strptr);
+					FREE_IF_NZ(MyS);
+					break;
+					
+				default:; /* do nothing - field not malloc'd */
 			}
 			fieldOffsetsPtr+=4;	
 		}

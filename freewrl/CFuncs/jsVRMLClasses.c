@@ -1885,7 +1885,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	cString = NULL;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("Start of SFNodeConstr\n");
+	printf ("Start of SFNodeConstr argc %d\n",argc);
 	#endif
 
 	/* verify the argc */
@@ -1942,6 +1942,38 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 				newHandle = (uintptr_t *) myGroup->children.p[0];
 			}
 		}	
+
+	} else if (argc == 2) {
+		/* eg, createVrmlFromString will send a bunch of SFNodes to a MFNode with text */
+
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("SFNodeConstr - have 2 arguments\n");
+		#endif
+
+		if ((JSVAL_IS_STRING(argv[0])) && (JSVAL_IS_STRING(argv[1]))) {
+        		JSString *_idStr;
+        		char *_id_c;
+
+			_idStr = JS_ValueToString(cx, argv[0]);
+			_id_c = JS_GetStringBytes(_idStr);
+			cString = strdup(_id_c);
+
+			_idStr = JS_ValueToString(cx, argv[1]);
+			_id_c = JS_GetStringBytes(_idStr);
+
+			if (sscanf (_id_c,"%d",&newHandle) != 1) {
+				printf ("SFNodeConstr - can not get handle from %s\n",_id_c);
+				return JS_FALSE;
+			}
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("string is :%s: new handle is %d\n",cString,newHandle);
+			#endif
+
+		} else {
+			printf ("SFNodeConstr - 2 args, expected 2 strings\n");
+			return JS_FALSE;
+		}
+
 
 	} else {
 		printf( "SFNodeConstr requires at least 1 string arg.\n");
@@ -4029,20 +4061,32 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	#endif
 
 	for (i = 0; i < argc; i++) {
-		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
-			printf( "JS_ValueToObject failed in MFNodeConstr.\n");
-			return JS_FALSE;
-		}
-		if (!JS_InstanceOf(cx, _obj, &SFNodeClass, NULL)) {
-			printf( "JS_InstanceOf failed in MFNodeConstr.\n");
-			return JS_FALSE;
-		}
+		if (JSVAL_IS_OBJECT(argv[i])) {
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
-							  JS_PropertyStub, JS_PropertyStub,
-							  JSPROP_ENUMERATE)) {
-			printf( "JS_DefineElement failed for arg %d in MFNodeConstr.\n", i);
-			return JS_FALSE;
+			if (!JS_ValueToObject(cx, argv[i], &_obj)) {
+				printf( "JS_ValueToObject failed in MFNodeConstr.\n");
+				return JS_FALSE;
+			}
+			if (!JS_InstanceOf(cx, _obj, &SFNodeClass, NULL)) {
+				printf( "JS_InstanceOf failed in MFNodeConstr.\n");
+				return JS_FALSE;
+			}
+	
+			if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
+								  JS_PropertyStub, JS_PropertyStub,
+								  JSPROP_ENUMERATE)) {
+				printf( "JS_DefineElement failed for arg %d in MFNodeConstr.\n", i);
+				return JS_FALSE;
+			}
+		} else {
+			/* if a NULL is passed in, eg, we have a script with an MFNode eventOut, and
+			   nothing sets it, we have a NULL here. Lets just ignore it */
+			/* hmmm - this is not an object - lets see... */
+			#ifdef JSVRMLCLASSESVERBOSE
+			if (JSVAL_IS_NULL(argv[i])) { printf ("MFNodeConstr - its a NULL\n");}
+			if (JSVAL_IS_INT(argv[i])) { printf ("MFNodeConstr - its a INT\n");}
+			if (JSVAL_IS_STRING(argv[i])) { printf ("MFNodeConstr - its a STRING\n");}
+			#endif
 		}
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
