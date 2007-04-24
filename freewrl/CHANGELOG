@@ -1,9 +1,16 @@
 For 1.19.3:
 	- re-ordered routing field lookups for nodes with both field and eventIn names "same".
 
-	- Java/ecmascript fixes and tests for most MF* nodes.
-
-	- Javascript/ecmascript add/delete Route now works with new parser formats.
+	- Java/ecmascript:
+	 	- fixes and tests for most MF* nodes.
+		- addRoute / deleteRoute now works with new parser formats.
+		- replaceWorld() works with new parsers.
+		- createVrmlFromString() verified.
+		- getName() verified.
+		- getVersion() verified.
+		- getCurrentSpeed() verified.
+		- getCurrentFrameRate() verified.
+		- getWorldURL() verified.
 
 For 1.19.2:
 

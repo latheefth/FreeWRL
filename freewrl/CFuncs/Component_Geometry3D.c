@@ -207,6 +207,9 @@ void compile_Cone (struct X3D_Cone *node) {
 	if (!node->__botpoints) node->__botpoints = MALLOC (sizeof(struct SFColor)*(CONEDIV+3));
 	if (!node->__sidepoints) node->__sidepoints = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));
 
+printf ("sidepoints is %d botpoints %d for cone\n",node->__sidepoints, node->__botpoints);
+printf ("node is %d, offset %d\n",node,offsetof(struct X3D_Cone, __sidepoints));
+
 	/* use normals for compiled flag for threading */
 
 	if (!node->__normals) ptr = MALLOC (sizeof(struct SFColor)*3*(CONEDIV+1));

@@ -67,11 +67,11 @@ char *DefaultScriptMethods = "function initialize() {}; " \
 			" function eventsProcessed() {}; " \
 			" TRUE=true; FALSE=false; " \
 			" function print(x) {Browser.print(x)}; " \	
-			" function getName() {Browser.getName()}; "\
-			" function getVersion() {Browser.getVersion()}; "\
-			" function getCurrentSpeed() {Browser.getCurrentSpeed()}; "\
-			" function getCurrentFrameRate() {Browser.getCurrentFrameRate()}; "\
-			" function getWorldURL() {Browser.getWorldURL()}; "\
+			" function getName() {return Browser.getName()}; "\
+			" function getVersion() {return Browser.getVersion()}; "\
+			" function getCurrentSpeed() {return Browser.getCurrentSpeed()}; "\
+			" function getCurrentFrameRate() {return Browser.getCurrentFrameRate()}; "\
+			" function getWorldURL() {return Browser.getWorldURL()}; "\
 			" function replaceWorld(x) {Browser.replaceWorld(x)}; "\
 			" function loadURL(x) {Browser.loadURL(x)}; "\
 			" function setDescription(x) {Browser.setDescription(x)}; "\

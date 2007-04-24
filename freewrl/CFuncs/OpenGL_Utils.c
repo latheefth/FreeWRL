@@ -353,58 +353,73 @@ void kill_rendering() {kill_X3DNodes();}
 
 
 /* if we have a ReplaceWorld style command, we have to remove the old world. */
+/* NOTE: There are 2 kinds of of replaceworld commands - sometimes we have a URL
+   (eg, from an Anchor) and sometimes we have a list of nodes (from a Javascript
+   replaceWorld, for instance). The URL ones can really replaceWorld, the node
+   ones, really, it's just replace the rootNode children, as WE DO NOT KNOW
+   what the user has programmed, and what nodes are (re) used in the Scene Graph */
 
-void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
         char mystring[20];
 
 	/* consoleMessage - ok, not exactly a kill, more of a reset */
 	consMsgCount = 0;
 
-	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
-	#ifdef OCCLUSION
-	zeroOcclusion();
-	#endif
+	if (loadedFromURL) {
+		/* occlusion testing - zero total count, but keep MALLOC'd memory around */
+		#ifdef OCCLUSION
+		zeroOcclusion();
+		#endif
 
-	/* clock events - stop them from ticking */
-	kill_clockEvents();
+		/* clock events - stop them from ticking */
+		kill_clockEvents();
 
-	/* kill DEFS, handles */
-	EAI_killBindables();
+		/* kill DEFS, handles */
+		EAI_killBindables();
 
-	/* stop routing */
-	kill_routing();
+		/* stop routing */
+		kill_routing();
 
-	/* stop rendering */
-	((struct X3D_Group*)rootNode)->children.n = 0;
+		/* stop rendering */
+		((struct X3D_Group*)rootNode)->children.n = 0;
 
 
-	/* free textures */
-	kill_openGLTextures();
+		/* free textures */
+		kill_openGLTextures();
 	
-	/* free scripts */
-	kill_javascript();
+		/* free scripts */
+		kill_javascript();
 
-	/* free EAI */
-	if (kill_EAI) {
-        	shutdown_EAI();
-	}
+		/* free EAI */
+		if (kill_EAI) {
+	        	shutdown_EAI();
+		}
 
-	/* free memory */
-	kill_X3DNodes();
+		/* free memory */
+		kill_X3DNodes();
 
-	/* free java Class invocation */
 
-	#ifndef AQUA
-        sprintf (mystring, "QUIT");
-        Sound_toserver(mystring);
-	#endif
+		#ifndef AQUA
+	        sprintf (mystring, "QUIT");
+	        Sound_toserver(mystring);
+		#endif
 
-	/* reset any VRML and X3D Parser data */
-	parser_destroyData();
+		/* reset any VRML and X3D Parser data */
+		parser_destroyData();
 
-        /* tell statusbar that we have none */
-        viewer_default();
-        setMenuStatus("NONE");
+	        /* tell statusbar that we have none */
+	        viewer_default();
+	        setMenuStatus("NONE");
+	} else {
+		/* just a replaceWorld from EAI or from Javascript */
+
+		/* stop rendering */
+		((struct X3D_Group*)rootNode)->children.n = 0;
+
+	        /* tell statusbar that we have none */
+	        viewer_default();
+	        setMenuStatus("NONE");
+	}	
 }
 
 /*keep track of node created*/

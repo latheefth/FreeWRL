@@ -13,7 +13,6 @@
 #include "jsVRMLClasses.h"
 
 /* quick fix to get around some compiler warnings on 64 bit systems */
-
 #define VERBOSE_OBJX (unsigned long)
 #define VERBOSE_OBJ 
 
@@ -1782,8 +1781,12 @@ SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	}
 
 	/* get the string from creation, and return it. */
+#ifdef WANTVRMLSTRING
 	_str = JS_NewStringCopyZ(cx, ptr->X3DString);
 	*rval = STRING_TO_JSVAL(_str);
+#else
+	*rval = INT_TO_JSVAL(ptr->handle);
+#endif
 
 	return JS_TRUE;
 }

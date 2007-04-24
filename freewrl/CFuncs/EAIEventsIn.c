@@ -894,7 +894,7 @@ void EAI_RW(char *str) {
 	char *tmp;
 
 	/* clean the slate! keep EAI running, though */
-	kill_oldWorld(FALSE,TRUE,TRUE);
+	kill_oldWorld(FALSE,TRUE,FALSE);
 
 	tmp = (char *) rootNode;
 
