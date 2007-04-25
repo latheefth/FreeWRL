@@ -12,6 +12,7 @@
 #include "headers.h"
 #include "jsVRMLClasses.h"
 
+
 /* quick fix to get around some compiler warnings on 64 bit systems */
 #define VERBOSE_OBJX (unsigned long)
 #define VERBOSE_OBJ 
@@ -1803,33 +1804,40 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	printf ("start of SFNodeAssign argc %d\n",argc);
 	#endif
 
+	/* are we saving to a SFNode? */
+	if (!JS_InstanceOf(cx, obj, &SFNodeClass, argv)) {
+		printf( "JS_InstanceOf failed for obj in SFNodeAssign.\n");
+                        printNodeType(cx,obj);
+	    return JS_FALSE;
+	}
+
+	/* get the pointer to the internal stuff */
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed for obj in SFNodeAssign.\n");
 	    return JS_FALSE;
 	}
-	if (!JS_InstanceOf(cx, obj, &SFNodeClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFNodeAssign.\n");
-                        printNodeType(cx,obj);
 
-	    return JS_FALSE;
-	}
+	/* get the from, and the string */
+	printf ("SFNodeAssign, we have %d and %d\n",argv[0], argv[1]);
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFNodeAssign.\n");
 		return JS_FALSE;
 	}
-	if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFNodeAssign.\n");
-		printNodeType(cx,_from_obj); printf ("\n");
-	    return JS_FALSE;
-	}
-	if ((fptr = (SFNodeNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
-		printf( "JS_GetPrivate failed for _from_obj in SFNodeAssign.\n");
-	    return JS_FALSE;
-	}
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
-			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
-	#endif
+	if (_from_obj != NULL) {
+		if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
+			printf( "JS_InstanceOf failed for _from_obj in SFNodeAssign.\n");
+			printNodeType(cx,_from_obj); printf ("\n");
+		    return JS_FALSE;
+		}
+		if ((fptr = (SFNodeNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
+			printf( "JS_GetPrivate failed for _from_obj in SFNodeAssign.\n");
+		    return JS_FALSE;
+		}
+		#ifdef JSVRMLCLASSESVERBOSE
+			printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
+				   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
+		#endif
+	} else { fptr = NULL; }
 
 	/* assign this internally */
 	if (!SFNodeNativeAssign(ptr, fptr)) {
@@ -1925,7 +1933,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			/* is this just an integer, eg, "0" - happens on initialization for SFNodes */
 			if (JSVAL_IS_INT(argv[0])) {
 				sscanf (cString,"%ld",&newHandle);
-				/* cString = strdup("empty node created in SFNodeConstr"); */
+				cString = strdup("node created in SFNodeConstr");
 			} else {
 
 				/* try compiling this X3D code... */

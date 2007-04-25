@@ -73,10 +73,10 @@ char *DefaultScriptMethods = "function initialize() {}; " \
 			" function getCurrentFrameRate() {return Browser.getCurrentFrameRate()}; "\
 			" function getWorldURL() {return Browser.getWorldURL()}; "\
 			" function replaceWorld(x) {Browser.replaceWorld(x)}; "\
-			" function loadURL(x) {Browser.loadURL(x)}; "\
+			" function loadURL(x,y) {Browser.loadURL(x,y)}; "\
 			" function setDescription(x) {Browser.setDescription(x)}; "\
 			" function createVrmlFromString(x) {Browser.createVrmlFromString(x)}; "\
-			" function createVrmlFromURL(x) {Browser.createVrmlFromURL(x)}; "\
+			" function createVrmlFromURL(x,y,z) {Browser.createVrmlFromURL(x,y,z)}; "\
 			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
 			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "\
 			"";
@@ -319,12 +319,18 @@ SFNodeNativeAssign(void *top, void *fromp)
 
 	/* indicate that this was touched; and copy contents over */
 	to->touched++;
-	to->handle = from->handle;
-	to->X3DString = strdup(from->X3DString);
 
-	#ifdef JAVASCRIPTVERBOSE
-	printf ("SFNodeNativeAssign, copied %d to %d, handle %d, string %s\n", from, to, to->handle, to->X3DString);
-	#endif
+	if (from != NULL) {
+		to->handle = from->handle;
+		to->X3DString = strdup(from->X3DString);
+
+		#ifdef JAVASCRIPTVERBOSE
+		printf ("SFNodeNativeAssign, copied %d to %d, handle %d, string %s\n", from, to, to->handle, to->X3DString);
+		#endif
+	} else {
+		to->handle = 0;
+		to->X3DString = strdup("from a NULL assignment");
+	}
 
 	return JS_TRUE;
 }

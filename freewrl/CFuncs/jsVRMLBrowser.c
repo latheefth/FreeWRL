@@ -13,6 +13,71 @@
 #include "headers.h"
 #include "jsVRMLBrowser.h"
 
+#ifdef JSVERBOSE
+#include "jsVRMLClasses.h"
+#include "jsUtils.h"
+#include "jsNative.h"
+
+/* try and print what an element is in case of error */
+static void
+printNodeType (JSContext *context, JSObject *myobj) {
+	if (JS_InstanceOf(context, myobj, &SFColorClass, NULL)) {
+	printf ("SFColorClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFVec2fClass, NULL)) {
+	printf ("SFVec2fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFVec3fClass, NULL)) {
+	printf ("SFVec3fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFRotationClass, NULL)) {
+	printf ("SFRotationClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFImageClass, NULL)) {
+	printf ("SFImageClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFNodeClass, NULL)) {
+	printf ("SFNodeClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFFloatClass, NULL)) {
+	printf ("MFFloatClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFTimeClass, NULL)) {
+	printf ("MFTimeClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFInt32Class, NULL)) {
+	printf ("MFInt32Class\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFColorClass, NULL)) {
+	printf ("MFColorClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFVec2fClass, NULL)) {
+	printf ("MFVec2fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFVec3fClass, NULL)) {
+	printf ("MFVec3fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFRotationClass, NULL)) {
+	printf ("MFRotationClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFNodeClass, NULL)) {
+	printf ("MFNodeClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFColorRGBAClass, NULL)) {
+	printf ("SFColorRGBA\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFStringClass, NULL)) {
+	printf ("MFStringClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &VrmlMatrixClass, NULL)) {
+	printf ("VrmlMatrixClass\n");
+	}
+
+	else printf ("javaclass type Unknown\n");
+}
+#endif
+
+
 /* we add/remove routes with this call */
 void jsRegisterRoute(
 	struct X3D_Node* from, int fromOfs,
@@ -400,6 +465,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	JSObject *_obj[2];
 	JSString *_str[2];
 	JSClass *_cls[2];
+	SFNodeNative *oldPtr;
 	jsval _v;
 	char *_c,
 		*_c_args = "MFString url, SFNode node, SFString event",
@@ -407,7 +473,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		*_costr1,
 		*_c_format = "o o s";
 	uintptr_t nodarr[200];
-	uintptr_t myptr;
+	struct X3D_Node *myptr;
 	int ra;
 	#define myFileSizeLimit 4000
 	char filename[myFileSizeLimit];
@@ -423,140 +489,161 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
 
-printf ("must fix Javascript VrmlBrowserCreateVrmlFromURL\n");
-	if (JS_ConvertArguments(context, argc, argv, _c_format,
-			&(_obj[0]), &(_obj[1]), &_c)) {
-		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
-			printf( "JS_GetClass failed for arg 0 in VrmlBrowserCreateVrmlFromURL.\n");
+
+	/* first parameter - expect a MFString Object here */
+	if (JSVAL_IS_OBJECT(argv[0])) {
+                if ((_cls[0] = JS_GetClass(argv[0])) == NULL) {
+                        printf( "JS_GetClass failed for arg 0 in VrmlBrowserLoadURL.\n");
+                        return JS_FALSE;
+                }
+	} else {
+		printf ("VrmlBrowserCreateVrmlFromURL - expect first parameter to be an object\n");
+		return JS_FALSE;
+	}
+
+	/* second parameter - expect a SFNode Object here */
+	if (JSVAL_IS_OBJECT(argv[1])) {
+                if ((_cls[1] = JS_GetClass(argv[1])) == NULL) {
+                        printf( "JS_GetClass failed for arg 1 in VrmlBrowserLoadURL.\n");
+                        return JS_FALSE;
+                }
+	} else {
+		printf ("VrmlBrowserCreateVrmlFromURL - expect first parameter to be an object\n");
+		return JS_FALSE;
+	}
+
+	/* make sure these 2 objects are really MFString and SFNode */
+	if (memcmp("MFString", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
+		memcmp("SFNode", (_cls[1])->name, strlen((_cls[1])->name)) != 0) {
+		printf( "\nIncorrect arguments in VrmlBrowserLoadURL.\n");
+		return JS_FALSE;
+	}
+
+	/* third parameter should be a string */
+	if (JSVAL_IS_STRING(argv[2])) {
+		_str[1] = JSVAL_TO_STRING(argv[2]);
+		_c = JS_GetStringBytes(_str[1]);
+		#ifdef JSVERBOSE
+		printf ("field string is %s\n"); 
+		#endif
+	}
+
+	/* printf ("passed object type tests\n"); */
+
+	/* get the URL listing as a string */
+	_str[0] = JS_ValueToString(context, argv[0]);
+	_costr0 = JS_GetStringBytes(_str[0]);
+
+
+	#ifdef JSVERBOSE
+	printf ("URL string is %s\n",_costr0);
+	#endif
+
+
+	/* get a pointer to the SFNode structure, in order to properly place the new string */
+	if ((oldPtr = (SFNodeNative *)JS_GetPrivate(context, (JSObject *)argv[1])) == NULL) {
+		printf( "JS_GetPrivate failed in VrmlBrowserLoadURL for SFNode parameter.\n");
+		return JS_FALSE;
+	}
+	myptr = (struct X3D_Node *) oldPtr->handle;
+
+	#ifdef JSVERBOSE
+	printf ("SFNode handle %d, old X3DString %s\n",oldPtr->handle, oldPtr->X3DString);
+	printf ("myptr %d\n",myptr);
+	printf ("points to a %s\n",stringNodeType(myptr->_nodeType));
+	#endif
+
+
+	/* bounds checks */
+	if (sizeof (_costr0) > (myFileSizeLimit-200)) {
+		printf ("VrmlBrowserCreateVrmlFromURL, url too long...\n"); return;
+	}
+
+	/* ok - here we have:
+		_costr0	: the url string array; eg: [ "vrml.wrl" ]
+		opldPtr	: pointer to a SFNode, with oldPtr->handle as C memory location. 
+		_c	: the field to send this to, eg: addChildren
+	*/
+
+	/* find a file name that exists. If not, return JS_FALSE */
+	bfp = strdup(BrowserFullPath);
+	/* and strip off the file name, leaving any path */
+	slashindex = (char *) rindex(bfp, ((int) '/'));
+	if (slashindex != NULL) {
+		slashindex ++; /* leave the slash there */
+		*slashindex = 0;
+	} else {bfp[0] = 0;}
+
+	/* go through the elements and find which (if any) url exists */	
+	found = FALSE;
+	coptr = _costr0;
+
+	while (!found) {
+		tfptr = tfilename;
+		/*printf ("start of loop, coptr :%s:\n",coptr); */
+		if (*coptr == '[') coptr++;
+		while ((*coptr != '\0') && (*coptr == ' ')) coptr++;
+		if (*coptr == '\0') {
+			ConsoleMessage ("javascript: could not find a valid url in %s",_costr0);
 			return JS_FALSE;
 		}
-		if ((_cls[1] = JS_GetClass(_obj[1])) == NULL) {
-			printf("JS_GetClass failed for arg 1 in VrmlBrowserCreateVrmlFromURL.\n");
-			return JS_FALSE;
-		}
-		if (memcmp("MFString", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
-			memcmp("SFNode", (_cls[1])->name, strlen((_cls[1])->name)) != 0) {
-			printf( "Incorrect arguments in VrmlBrowserCreateVrmlFromURL.\n");
-			return JS_FALSE;
-		}
 
-		_str[0] = JS_ValueToString(context, argv[0]);
-		_costr0 = JS_GetStringBytes(_str[0]);
-printf ("costr0 %s\n",_costr0);
-
-		if (!JS_GetProperty(context, _obj[1], "__handle", &_v)) {
-			printf("JS_GetProperty failed for \"__handle\" in VrmlBrowserCreateVrmlFromURL.\n");
-			return JS_FALSE;
-		}
-		_str[1] = JS_ValueToString(context, _v);
-		_costr1 = JS_GetStringBytes(_str[1]);
-printf ("costr1 %d from %d\n",_costr1,_v);
-		ra = sscanf (_costr1,"%d",&myptr);
-printf ("scanf returns %d\n",ra);
-printf ("myptr %d\n",myptr);
-
-
-		/* bounds checks */
-		if (sizeof (_costr0) > (myFileSizeLimit-200)) {
-			printf ("VrmlBrowserCreateVrmlFromURL, url too long...\n"); return;
-		}
-
-		/* ok - here we have:
-			_costr0	: the url string array; eg: [ "vrml.wrl" ]
-			_costr1	: the handle (memory pointer) of the node to send this to, eg 143203016
-			_c	: the field to send this to, eg: addChildren
-		*/
-
-		/* find a file name that exists. If not, return JS_FALSE */
-		bfp = strdup(BrowserFullPath);
-		/* and strip off the file name, leaving any path */
-		slashindex = (char *) rindex(bfp, ((int) '/'));
-		if (slashindex != NULL) {
-			slashindex ++; /* leave the slash there */
-			*slashindex = 0;
-		} else {bfp[0] = 0;}
-
-		/* go through the elements and find which (if any) url exists */	
-		found = FALSE;
-		coptr = _costr0;
-
-		while (!found) {
-			tfptr = tfilename;
-			/*printf ("start of loop, coptr :%s:\n",coptr); */
-			if (*coptr == '[') coptr++;
-			while ((*coptr != '\0') && (*coptr == ' ')) coptr++;
-			if (*coptr == '\0') {
-				ConsoleMessage ("javascript: could not find a valid url in %s",_costr0);
-				return JS_FALSE;
+		if (*coptr == '"') {
+			coptr++;
+			/* printf ("have the initial quote string here is %s\n",coptr); */
+			while (*coptr != '"') {
+				*tfptr = *coptr;
+				tfptr++; coptr++;
 			}
-
-			if (*coptr == '"') {
-				coptr++;
-				/* printf ("have the initial quote string here is %s\n",coptr); */
-				while (*coptr != '"') {
-					*tfptr = *coptr;
-					tfptr++; coptr++;
-				}
-				*tfptr = '\0';
-				/* printf ("found string is :%s:\n",tfilename); */
-			}
+			*tfptr = '\0';
+			/* printf ("found string is :%s:\n",tfilename); */
+		}
 
 
         	        /* we work in absolute filenames... */
                 	makeAbsoluteFileName(filename,bfp,tfilename);
 
                 	if (fileExists(filename,firstBytes,TRUE)) {
-				/* printf ("file exists, break\n"); */
-				found = TRUE;
+			/* printf ("file exists, break\n"); */
+			found = TRUE;
         	        } 
-				#ifdef JSVERBOSE
-				else printf ("nope, file %s does not exist\n",filename);
-				#endif
+			#ifdef JSVERBOSE
+			else printf ("nope, file %s does not exist\n",filename);
+			#endif
 
-			/* skip along to the start of the next name */
-			if (*coptr == '"') coptr++;
-			if (*coptr == ',') coptr++;
-			if (*coptr == ']') coptr++; /* this allows us to error out, above */
+		/* skip along to the start of the next name */
+		if (*coptr == '"') coptr++;
+		if (*coptr == ',') coptr++;
+		if (*coptr == ']') coptr++; /* this allows us to error out, above */
 
-		}
-
-
-		/* call the parser */
-		ra = EAI_CreateVrml("URL",filename,nodarr,200);
-
-		/* now, we make up a string of nodes, pass it to setField_fromJavascript that
-		takes this string apart. oh well... */
-
-		filename[0] = '\0'; /* just reuse these variables */
-		
-		for (count = 1; count < ra; count +=2) {
-			sprintf (tfilename, "%d,",nodarr[count]);	
-			strcat (filename, tfilename);
-		}
-
-		#ifdef JSVERBOSE
-		printf ("node string is %s\n",filename);
-		#endif
-
-{
-struct X3D_Node *myNode;
-
-myNode = (struct X3D_Node* )myptr;
-
-printf ("myptr points to a %s\n",stringNodeType(myNode->_nodeType));
-}
-		/* remember the freewrl addChildren removeChildren stuff? */
-		if ((strcmp (_c,"addChildren") == 0) ||
-		(strcmp (_c,"removeChildren") == 0)) {
-			setField_fromJavascript ((uintptr_t *)myptr, "children", filename);
-		} else {
-			setField_fromJavascript ((uintptr_t *)myptr, _c, filename);
-		}
-
-	} else {
-		printf( "Incorrect argument format for createVrmlFromURL(%s).\n", _c_args);
-		return JS_FALSE;
 	}
+
+
+	/* call the parser */
+	ra = EAI_CreateVrml("URL",filename,nodarr,200);
+
+	/* now, we make up a string of nodes, pass it to setField_fromJavascript that
+	takes this string apart. oh well... */
+
+	filename[0] = '\0'; /* just reuse these variables */
+	
+	for (count = 1; count < ra; count +=2) {
+		sprintf (tfilename, "%d,",nodarr[count]);	
+		strcat (filename, tfilename);
+	}
+
+	#ifdef JSVERBOSE
+	printf ("node string is %s\n",filename);
+	#endif
+
+	/* remember the freewrl addChildren removeChildren stuff? */
+	if ((strcmp (_c,"addChildren") == 0) ||
+	(strcmp (_c,"removeChildren") == 0)) {
+		setField_fromJavascript ((uintptr_t *)myptr, "children", filename);
+	} else {
+		setField_fromJavascript ((uintptr_t *)myptr, _c, filename);
+	}
+
 	return JS_TRUE;
 }
 
