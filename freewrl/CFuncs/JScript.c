@@ -79,8 +79,8 @@ char *DefaultScriptMethods = "function initialize() {}; " \
 			" function createVrmlFromURL(x,y,z) {Browser.createVrmlFromURL(x,y,z)}; "\
 			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
 			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "\
-			" function getMidiDeviceList() {return Browser.getMidiDeviceList())}; "\
-			" function getMidiDeviceInfo(x) {return Browser.getMidiDeviceInfo(x))}; "\
+			" function getMidiDeviceList() {return Browser.getMidiDeviceList()}; "\
+			" function getMidiDeviceInfo(x) {return Browser.getMidiDeviceInfo(x)}; "\
 			"";
 
 static JSRuntime *runtime = NULL;
