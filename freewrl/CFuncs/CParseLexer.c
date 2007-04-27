@@ -349,10 +349,11 @@ BOOL lexer_event(struct VRMLLexer* me,
  size_t userCnt=vector_size(user_eventIn);
 
  if(rBO)
-  *rBO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom, arr, arrCnt);
+  *rBO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom, arr, arrCnt,
+   FALSE);
  if(rUO)
   *rUO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
-   userArr, userCnt);
+   userArr, userCnt, TRUE);
  if(!found)
   found=((rBO && *rBO!=ID_UNDEFINED) || (rUO && *rUO!=ID_UNDEFINED));
 
@@ -365,7 +366,7 @@ BOOL lexer_event(struct VRMLLexer* me,
   *rBE=findRoutedFieldInEXPOSED_FIELD(routedNode, me->curID, routedToFrom);
  if(rUE)
   *rUE=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
-   userArr, userCnt);
+   userArr, userCnt, TRUE);
  if(!found)
   found=((rBE && *rBE!=ID_UNDEFINED) || (rUE && *rUE!=ID_UNDEFINED));
 

@@ -558,8 +558,9 @@ DEF_FINDFIELD(EVENT_OUT)
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */
+/* for user-fields, the additional check is skipped */
 int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
- const char** arr, size_t cnt) {
+  const char** arr, size_t cnt, BOOL user) {
 	int retval;
 	char mychar[200];
 	int a,b,c;
@@ -567,19 +568,25 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 	retval = -1;
 
 #define FIELDCHECK(fld) \
-	if (retval >=0) { \
-		findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], retval,&a,&b,&c); \
-		/* did this return any of the ints as != -1? */ \
-		/* printf ("     findRoutedField for field %s, nodetype %s is %d\n",fld,stringNodeType(node->_nodeType),a); */ \
-		if (a != -1) return retval;  /* found it! */ \
+	if (retval >= 0) { \
+	  if (user) return retval; \
+	  int fieldNamesIndex = findIndexInFIELDNAMES(retval, arr, cnt); \
+	  if (fieldNamesIndex >= 0) { \
+	    findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], fieldNamesIndex,\
+	      &a, &b, &c); \
+	    /* did this return any of the ints as != -1? */ \
+	    printf ("     findRoutedField for field %s, nodetype %s is %d\n", \
+	      fld,stringNodeType(node->_nodeType),a); \
+	    if (a >= 0) return retval;  /* found it! */ \
+	  } \
 	} 
 
 	/* try removing the "set_" or "_changed" */
 	/* XXX: Not checking if substring is really "set_" or "_changed"! */
 	strncpy (mychar, field, 100);
 	if (fromTo != 0) {
-		if (strlen(field) > 4)
-			retval = findFieldInARR(mychar+4, arr, cnt);
+		if (strlen(field) > strlen("set_"))
+			retval=findFieldInARR(mychar+strlen("set_"), arr, cnt);
 	} else {
 		if (strlen(field) > strlen("_changed")) {
 			mychar[strlen(field) - strlen("_changed")] = '\0';
@@ -597,7 +604,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 #define DEF_FINDROUTEDFIELD(arr) \
  int findRoutedFieldIn##arr(struct X3D_Node* node, char* field, int fromTo) \
  { \
-  return findRoutedFieldInARR(node, field, fromTo, arr, arr##_COUNT); \
+  return findRoutedFieldInARR(node, field, fromTo, arr, arr##_COUNT, FALSE); \
  }
 DEF_FINDROUTEDFIELD(FIELDNAMES)
 DEF_FINDROUTEDFIELD(EXPOSED_FIELD)
@@ -1394,4 +1401,23 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    }
 	}
 	return (len);
+}
+
+/* Map the given index into arr to an index into FIELDNAMES or -1, if the
+ * string in question isn't there. */
+int findIndexInFIELDNAMES(int index, const char** arr, size_t arrCnt) {
+  int i;
+
+  /* If this is already FIELDNAMES, return index. */
+  if(arr==FIELDNAMES)
+    return index;
+
+  /* Look for the string */
+  for(i=0; i!=FIELDNAMES_COUNT; ++i) {
+    if(!strcmp(FIELDNAMES[i], arr[index]))
+      return i;
+  }
+
+  /* Not found */
+  return -1;
 }
