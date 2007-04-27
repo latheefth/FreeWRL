@@ -337,16 +337,32 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
 BOOL lexer_event(struct VRMLLexer* me,
  struct X3D_Node* routedNode,
  indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE,
- const char** arr, size_t arrCnt, int routedToFrom)
+ int routedToFrom)
 {
  BOOL found=FALSE;
+
+ struct Vector* uarr;
+ const char** arr;
+ size_t arrCnt;
+
+ if(routedToFrom==ROUTED_FIELD_EVENT_IN)
+ {
+  uarr=user_eventIn;
+  arr=EVENT_IN;
+  arrCnt=EVENT_IN_COUNT;
+ } else
+ {
+  uarr=user_eventOut;
+  arr=EVENT_OUT;
+  arrCnt=EVENT_OUT_COUNT;
+ }
 
  if(!lexer_setCurID(me))
   return FALSE;
  assert(me->curID);
 
- const char** userArr=&vector_get(const char*, user_eventIn, 0);
- size_t userCnt=vector_size(user_eventIn);
+ const char** userArr=&vector_get(const char*, uarr, 0);
+ size_t userCnt=vector_size(uarr);
 
  if(rBO)
   *rBO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom, arr, arrCnt,

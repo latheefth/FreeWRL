@@ -1144,7 +1144,11 @@ int findFieldInX3DACCESSORS(char *field);
 int findFieldInEXPOSED_FIELD(char* field);
 int findFieldInEVENT_IN(char* field);
 int findFieldInEVENT_OUT(char* field);
-int findRoutedFieldInFIELDNAMES (struct X3D_Node *node, char *field, int fromTo);
+
+/* Values for fromTo */
+#define ROUTED_FIELD_EVENT_OUT 0
+#define ROUTED_FIELD_EVENT_IN  1
+int findRoutedFieldInFIELDNAMES(struct X3D_Node *node, char *field, int fromTo);
 int findRoutedFieldInEXPOSED_FIELD(struct X3D_Node*, char*, int);
 int findRoutedFieldInEVENT_IN(struct X3D_Node*, char*, int);
 int findRoutedFieldInEVENT_OUT(struct X3D_Node*, char*, int);

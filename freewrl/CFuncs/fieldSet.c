@@ -575,8 +575,8 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 	    findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], fieldNamesIndex,\
 	      &a, &b, &c); \
 	    /* did this return any of the ints as != -1? */ \
-	    printf ("     findRoutedField for field %s, nodetype %s is %d\n", \
-	      fld,stringNodeType(node->_nodeType),a); \
+	    /*printf ("     findRoutedField for field %s, nodetype %s is %d\n",  \
+	      fld,stringNodeType(node->_nodeType),a);*/ \
 	    if (a >= 0) return retval;  /* found it! */ \
 	  } \
 	} 
