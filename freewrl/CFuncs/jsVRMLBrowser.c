@@ -710,6 +710,30 @@ VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 	return JS_TRUE;
 }
 
+/* return an MFString containing all of the devices CURRENTLY defined on the MIDI interface list */
+JSBool
+VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc != 0) {
+		printf ("getMidiDeviceList does not take parameters\n");
+		return JS_FALSE;
+	}
+	return JS_TRUE;
+}
+
+/* find a MIDI device, (parameter input is a SFString) and return MFString of controller names */
+JSBool
+VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (argc != 1) {
+		printf ("getMidiDeviceInfo expects 1 parameter\n");
+		return JS_FALSE;
+	}
+	return JS_TRUE;
+}
+
+/****************************************************************************************************/
+
 /* internal to add/remove a ROUTE */
 static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, const char *callingFunc) {
 	jsval _v[2];

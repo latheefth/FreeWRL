@@ -12,6 +12,7 @@ For 1.19.3:
 		- getCurrentFrameRate() verified.
 		- getWorldURL() verified.
 		- loadURL() verified.
+		- createVrmlFromUrl() verified.
 
 For 1.19.2:
 

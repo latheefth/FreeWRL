@@ -141,6 +141,20 @@ VrmlBrowserDeleteRoute(JSContext *cx,
 					   jsval *argv,
 					   jsval *rval);
 
+JSBool
+VrmlBrowserGetMidiDeviceList(JSContext *cx,
+					   JSObject *obj,
+					   uintN argc,
+					   jsval *argv,
+					   jsval *rval);
+
+JSBool
+VrmlBrowserGetMidiDeviceInfo(JSContext *cx,
+					   JSObject *obj,
+					   uintN argc,
+					   jsval *argv,
+					   jsval *rval);
+
 
 
 static JSClass Browser = {
@@ -171,6 +185,8 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
 	{"print", VrmlBrowserPrint, 0},
+	{"getMidiDeviceList", VrmlBrowserGetMidiDeviceList, 0},
+	{"getMidiDeviceInfo", VrmlBrowserGetMidiDeviceInfo, 0},
 	{0}
 };
 
