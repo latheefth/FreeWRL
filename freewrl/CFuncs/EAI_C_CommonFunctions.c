@@ -24,9 +24,9 @@ struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
 	int len;
 
-	#ifdef EAIVERBOSE
+	if (eaiverbose) {
 	printf ("newASCIIString for :%s:\n",str);
-	#endif
+	}
 
 	/* the returning Uni_String is here. Make blank struct */
 	retval = MALLOC (sizeof (struct Uni_String));

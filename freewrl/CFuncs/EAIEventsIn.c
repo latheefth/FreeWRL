@@ -121,49 +121,48 @@ void EAI_parse_commands () {
 
 
 	while (EAI_BUFFER_CUR> 0) {
-		#ifdef EAIVERBOSE
-		printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen((&EAI_BUFFER_CUR)),(&EAI_BUFFER_CUR));
-		#endif
+		if (eaiverbose) {
+			printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen((&EAI_BUFFER_CUR)),(&EAI_BUFFER_CUR));
+		}
 
 		/* step 1, get the command sequence number */
 		if (sscanf ((&EAI_BUFFER_CUR),"%d",&count) != 1) {
 			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",(&EAI_BUFFER_CUR));
 			count = 0;
 		}
-		#ifdef EAIVERBOSE
-		/* printf ("EAI - seq number %d\n",count); */
-		#endif
+		if (eaiverbose) {
+			printf ("EAI - seq number %d\n",count);
+		}
 
 		/* step 2, skip past the sequence number */
 		while (isdigit(EAI_BUFFER_CUR)) bufPtr++;
-		#ifdef EAIVERBOSE
-		/*printf("past sequence number, string:%s\n",(&EAI_BUFFER_CUR)); */
-		#endif
+		if (eaiverbose) {
+			printf("past sequence number, string:%s\n",(&EAI_BUFFER_CUR));
+		}
 
 		while (EAI_BUFFER_CUR == ' ') bufPtr++;
-		#ifdef EAIVERBOSE
-		/* printf ("past the space, string:%s\n",(&EAI_BUFFER_CUR)); */
-		#endif
+		if (eaiverbose) {
+			printf ("past the space, string:%s\n",(&EAI_BUFFER_CUR)); 
+		}
 
 		/* step 3, get the command */
 
 		command = EAI_BUFFER_CUR;
-		#ifdef EAIVERBOSE
-		printf ("command %c\n",command);
-		#endif
+		if (eaiverbose) {
+			printf ("command %c\n",command);
+		}
 		bufPtr++;
 
 		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
-
-		#ifdef EAIVERBOSE 
-		printf ("\n... %d ",count);
-		#endif
+		if (eaiverbose) {
+			printf ("\n... %d ",count);
+		}
 
 		switch (command) {
 			case GETRENDPROP: {
-				#ifdef EAIVERBOSE 
-				printf ("GETRENDPROP\n");
-				#endif
+				if (eaiverbose) {
+					printf ("GETRENDPROP\n");
+				}
 
 				/* is MultiTexture initialized yet? */
 				if (maxTexelUnits < 0) init_multitexture_handling();
@@ -182,46 +181,46 @@ void EAI_parse_commands () {
 				}
 
 			case GETNAME: {
-				#ifdef EAIVERBOSE 
-				printf ("GETNAME\n");
-				#endif
+				if (eaiverbose) {
+					printf ("GETNAME\n");
+				}
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserName);
 				break;
 				}
 			case GETVERSION: {
-				#ifdef EAIVERBOSE 
-				printf ("GETVERSION\n");
-				#endif
+				if (eaiverbose) {
+					printf ("GETVERSION\n");
+				}
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,FWVER);
 				break;
 				}
 			case GETENCODING: {
-				#ifdef EAIVERBOSE 
-				printf ("GETENCODING\n");
-				#endif
+				if (eaiverbose) {
+					printf ("GETENCODING\n");
+				}
 				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,currentFileVersion);
 				break;
 				}
 			case GETCURSPEED: {
-				#ifdef EAIVERBOSE 
-				printf ("GETCURRENTSPEED\n");
-				#endif
+				if (eaiverbose) {
+					printf ("GETCURRENTSPEED\n");
+				}
 				/* get the BrowserSpeed variable updated */
 				getCurrentSpeed();
 				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserSpeed);
 				break;
 				}
 			case GETFRAMERATE: {
-				#ifdef EAIVERBOSE 
-				printf ("GETFRAMERATE\n");
-				#endif
+				if (eaiverbose) {
+					printf ("GETFRAMERATE\n");
+				}	
 				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserFPS);
 				break;
 				}
 			case GETURL: {
-				#ifdef EAIVERBOSE 
-				printf ("GETURL\n");
-				#endif
+				if (eaiverbose) {	
+					printf ("GETURL\n");
+				}	
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserFullPath);
 				break;
 				}
@@ -235,9 +234,9 @@ void EAI_parse_commands () {
 			}
 
 			case GETNODETYPE: {
-				#ifdef EAIVERBOSE 
-				printf ("GENODETYPE\n");
-				#endif
+				if (eaiverbose) {	
+					printf ("GENODETYPE\n");
+				}	
 				retint = sscanf(&EAI_BUFFER_CUR,"%d",&cNode);
 				if (cNode != 0) {
 					boxptr = (struct X3D_Box *) cNode;
@@ -256,9 +255,9 @@ void EAI_parse_commands () {
 				xxx = KW_exposedField; /* set this to something */
 
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %s",&perlNode, &cNode, ctmp,dtmp);
-				#ifdef EAIVERBOSE 
-				printf ("GETFIELDTYPE cptr %d %s %s\n",cNode, ctmp, dtmp);
-				#endif
+				if (eaiverbose) {	
+					printf ("GETFIELDTYPE cptr %d %s %s\n",cNode, ctmp, dtmp);
+				}	
 
 				/* is this a valid C node? if so, lets just get the info... */
 				if (cNode != 0) {
@@ -274,16 +273,16 @@ void EAI_parse_commands () {
 				}
 			case SENDEVENT:   {
 				/*format int seq# COMMAND NODETYPE pointer offset data*/
-				#ifdef EAIVERBOSE 
-				printf ("SENDEVENT %s\n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("SENDEVENT %s\n",&EAI_BUFFER_CUR);
+				}	
 				setField_method2 (&EAI_BUFFER_CUR);
 				break;
 				}
 			case MIDIINFO: {
-				#ifdef EAIVERBOSE 
-				printf ("MIDIINFO %s\n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("MIDIINFO %s\n",&EAI_BUFFER_CUR);
+				}	
 
 				EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
 				/* if we do not have a string yet, we have to do this...*/
@@ -301,9 +300,9 @@ void EAI_parse_commands () {
 				break;
 				}
 			case MIDICONTROL: {
-				#ifdef EAIVERBOSE
-				printf ("MIDICONTROL, %s\n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("MIDICONTROL, %s\n",&EAI_BUFFER_CUR);
+				}	
 				/* sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count, ReWireMIDIControl(&EAI_BUFFER_CUR)); */
 				ReWireMIDIControl(&EAI_BUFFER_CUR);
 				break;
@@ -312,9 +311,9 @@ void EAI_parse_commands () {
 			case CREATEVS: {
 				/*format int seq# COMMAND vrml text     string EOT*/
 				if (command == CREATEVS) {
-					#ifdef EAIVERBOSE 
-					printf ("CREATEVS %s\n",&EAI_BUFFER_CUR);
-					#endif
+					if (eaiverbose) {	
+						printf ("CREATEVS %s\n",&EAI_BUFFER_CUR);
+					}	
 
 					EOT = strstr(&EAI_BUFFER_CUR,"\nEOT\n");
 					/* if we do not have a string yet, we have to do this...*/
@@ -339,9 +338,9 @@ void EAI_parse_commands () {
 					dtmp[0] = 0;
 					makeAbsoluteFileName (dtmp, "./",ctmp);
 
-					#ifdef EAIVERBOSE 
-					printf ("CREATEVU %s\n",dtmp);
-					#endif
+					if (eaiverbose) {	
+						printf ("CREATEVU %s\n",dtmp);
+					}	
 					ra = EAI_CreateVrml("URL",dtmp,nodarr,200);
 				}
 
@@ -359,9 +358,9 @@ void EAI_parse_commands () {
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
 				rc = ra+rb; /* final pointer- should point to a Multi_Node*/
 
-				#ifdef EAIVERBOSE 
-				printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
-				#endif
+				if (eaiverbose) {	
+					printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
+				}	
 
 				/* add (1), remove (2) or replace (0) for the add/remove/set flag. But,
 				   we only have addChildren or removeChildren, so flag can be 1 or 2 only */
@@ -379,17 +378,17 @@ void EAI_parse_commands () {
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",&ra,&rb,ctmp,&rc);
-				#ifdef EAIVERBOSE 
-				printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
-				#endif
+				if (eaiverbose) {	
+					printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
+				}	
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case REGLISTENER: {
-				#ifdef EAIVERBOSE 
-				printf ("REGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("REGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
+				}	
 
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&ra,&rb,ctmp,&rc);
@@ -413,9 +412,9 @@ void EAI_parse_commands () {
 				}
 
 			case UNREGLISTENER: {
-				#ifdef EAIVERBOSE 
-				printf ("UNREGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("UNREGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
+				}	
 
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&ra,&rb,ctmp,&rc);
@@ -438,9 +437,9 @@ void EAI_parse_commands () {
 				}
 
 			case GETVALUE: {
-				#ifdef EAIVERBOSE 
-				printf ("GETVALUE %s \n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("GETVALUE %s \n",&EAI_BUFFER_CUR);
+				}	
 
 
 				/* format: ptr, offset, type, length (bytes)*/
@@ -451,9 +450,9 @@ void EAI_parse_commands () {
 				break;
 				}
 			case REPLACEWORLD:  {
-				#ifdef EAIVERBOSE 
-				printf ("REPLACEWORLD %s \n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("REPLACEWORLD %s \n",&EAI_BUFFER_CUR);
+				}	
 
 				EAI_RW(&EAI_BUFFER_CUR);
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
@@ -461,9 +460,9 @@ void EAI_parse_commands () {
 				}
 
 			case GETPROTODECL:  {
-				#ifdef EAIVERBOSE 
-				/* printf ("SAI SV ret command .%s\n",&EAI_BUFFER_CUR); */
-				#endif
+				if (eaiverbose) {	
+					printf ("SAI SV ret command .%s\n",&EAI_BUFFER_CUR);
+				}	
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,SAI_StrRetCommand ((char) command,&EAI_BUFFER_CUR));
 				break;
 				}
@@ -471,9 +470,9 @@ void EAI_parse_commands () {
 			case UPDPROTODECL: 
 			case UPDNAMEDNODE: 
 			case REMNAMEDNODE:  {
-				#ifdef EAIVERBOSE 
-				printf ("SV int ret command ..%s\n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("SV int ret command ..%s\n",&EAI_BUFFER_CUR);
+				}	
 				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,
 					SAI_IntRetCommand ((char) command,&EAI_BUFFER_CUR));
 				break;
@@ -485,18 +484,18 @@ void EAI_parse_commands () {
 				}
 
 		  	case STOPFREEWRL: {
-				#ifdef EAIVERBOSE 
-				printf ("Shutting down Freewrl\n");
-				#endif
+				if (eaiverbose) {	
+					printf ("Shutting down Freewrl\n");
+				}	
 				if (!RUNNINGASPLUGIN) {
 					doQuit();
 				    break;
 				}
 			    }
 			  case VIEWPOINT: {
-				#ifdef EAIVERBOSE 
-				printf ("Viewpoint :%s:\n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("Viewpoint :%s:\n",&EAI_BUFFER_CUR);
+				}	
 				/* do the viewpoints. Note the spaces in the strings */
 				if (!strcmp(&EAI_BUFFER_CUR, " NEXT")) Next_ViewPoint();
 				if (!strcmp(&EAI_BUFFER_CUR, " FIRST")) First_ViewPoint();
@@ -508,9 +507,9 @@ void EAI_parse_commands () {
 			    }
 
 			case LOADURL: {
-				#ifdef EAIVERBOSE
-				printf ("loadURL %s\n",&EAI_BUFFER_CUR);
-				#endif
+				if (eaiverbose) {	
+					printf ("loadURL %s\n",&EAI_BUFFER_CUR);
+				}	
 
 				/* signal that we want to send the Anchor pass/fail to the EAI code */
 				waiting_for_anchor = TRUE;
@@ -536,17 +535,17 @@ void EAI_parse_commands () {
 				while (EAI_BUFFER_CUR > ' ') { ctmp[rb] = EAI_BUFFER_CUR; rb ++; bufPtr++; }
 
 				ctmp[rb] = 0;
-				#ifdef EAIVERBOSE 
-				printf ("CREATENODE/PROTO %s\n",ctmp);
-				#endif
+				if (eaiverbose) {	
+					printf ("CREATENODE/PROTO %s\n",ctmp);
+				}	
 
 				/* set up the beginnings of the return string... */
 				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
 
 				if (command == CREATENODE) {
-					#ifdef EAIVERBOSE
-					printf ("CREATENODE, %s is this a simple node? %d\n",ctmp,findNodeInNODES(ctmp));
-					#endif
+					if (eaiverbose) {	
+						printf ("CREATENODE, %s is this a simple node? %d\n",ctmp,findNodeInNODES(ctmp));
+					}	
 
 					ctype = findNodeInNODES(ctmp);
 					if (ctype > -1) {
@@ -686,9 +685,9 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 	retint=sscanf (bufptr," %s",ctmp);
 	mystrlen = strlen(ctmp);
 
-	#ifdef EAIVERBOSE
-	printf ("GETNODE %s\n",ctmp); 
-	#endif
+	if (eaiverbose) {	
+		printf ("GETNODE %s\n",ctmp); 
+	}	
 
 	/* does this event exist? */
 	for (count=0; count <num_EAINodeTable; count ++) {
@@ -696,9 +695,9 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 			sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
 				0,
 				EAINodeTable[count].nodePtr);
-			#ifdef EAIVERBOSE
-			printf ("GETNODE fast returns %s\n",buf);
-			#endif
+			if (eaiverbose) {	
+				printf ("GETNODE fast returns %s\n",buf);
+			}	
 			return;
 		}	
 	}
@@ -725,9 +724,9 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno,
 			rootNode);
 	}
-	#ifdef EAIVERBOSE
-	printf ("GETNODE returns %s\n",buf); 
-	#endif
+	if (eaiverbose) {	
+		printf ("GETNODE returns %s\n",buf); 
+	}	
 }
 
 /* add or delete a route */

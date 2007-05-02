@@ -57,14 +57,14 @@ This struct contains both a node and an ofs field.
 uintptr_t EAI_GetNode(const char *str) {
 	struct X3D_Node *myn;
 
-	#ifdef EAIVERBOSE
-	printf ("EAI_GetNode - getting %s\n",str);
-	#endif
+	if (eaiverbose) {
+		printf ("EAI_GetNode - getting %s\n",str);
+	}	
 
 	myn = parser_getNodeFromName(str);
-	#ifdef EAIVERBOSE
-	printf ("EAI_GetNode for %s returns %x - it is a %s\n",str,myn,stringNodeType(myn->_nodeType));
-	#endif
+	if (eaiverbose) {
+		printf ("EAI_GetNode for %s returns %x - it is a %s\n",str,myn,stringNodeType(myn->_nodeType));
+	}	
 	return (uintptr_t) myn;
 }
 
@@ -267,11 +267,11 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 
 	nodePtr = (struct X3D_Node*) cNode;
 	
-	#ifdef EAIVERBOSE
-	printf ("start of EAI_GetType, this is a valid C node %d (%x)\n",nodePtr,nodePtr);
-	printf ("	of type %d\n",nodePtr->_nodeType);
-	printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
-	#endif
+	if (eaiverbose) {
+		printf ("start of EAI_GetType, this is a valid C node %d (%x)\n",nodePtr,nodePtr);
+		printf ("	of type %d\n",nodePtr->_nodeType);
+		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
+	}	
 
 					
 
@@ -291,9 +291,9 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 
 	/* is this a PROTO, or just an invalid field?? */ 
 	if (myFieldOffs <= 0) {
-		#ifdef EAIVERBOSE
+		if (eaiverbose) {
 			printf ("EAI_GetType, myFieldOffs %d, try findFieldInPROTOOFFSETS\n",myFieldOffs);
-		#endif
+		}	
 		findFieldInPROTOOFFSETS (nodePtr, ctmp, cNodePtr, &myFieldOffs, &ctype, accessType ,&myProtoIndex,
 			myCharBuffer);
 	} else {
@@ -312,9 +312,9 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	if (strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) *accessType = KW_eventIn; 
 	if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) *accessType = KW_eventOut;
 					
-	#ifdef EAIVERBOSE
-	printf ("EAI_GetType, so we have coffset %d, ctype %x, ctmp %s\n",*fieldOffset,ctype, KEYWORDS[*accessType]);
-	#endif
+	if (eaiverbose) {
+		printf ("EAI_GetType, so we have coffset %d, ctype %x, ctmp %s\n",*fieldOffset,ctype, KEYWORDS[*accessType]);
+	}
 }
 
 

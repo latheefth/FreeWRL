@@ -30,6 +30,7 @@ int parseCommandLine (int argc, char **argv) {
 			{"nostatus",0, 0, 's'},		/* Alberto Dubuc */
 			{"nocollision",0, 0, 'Q'},		/* Alberto Dubuc */
 			{"keypress",1, 0, 'K'},		/* Robert Sim */
+			{"eaiverbose", 0, 0, 'V'},
 
 			{"seq", 0, 0, 'l'},
 			{"seqb",1, 0, 'm'},
@@ -128,6 +129,10 @@ int parseCommandLine (int argc, char **argv) {
 			case 'o':
 				  setSeqTemp(argv[optind]);
 				  break;
+
+			case 'V':
+				setEaiVerbose();
+				break;
 
 			case 'b': /* Alberto Dubuc - bigger window */
 				setGeometry ("800x600");

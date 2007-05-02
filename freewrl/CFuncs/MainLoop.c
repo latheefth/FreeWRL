@@ -47,6 +47,7 @@
 
 #include <pthread.h>
 pthread_t DispThrd = 0;
+int eaiverbose = 0;
 char* threadmsg;
 
 
@@ -1698,3 +1699,6 @@ void aquaPrintVersion() {
 	exit(0);
 }
 #endif
+void setEaiVerbose() {
+	eaiverbose = 1;
+}

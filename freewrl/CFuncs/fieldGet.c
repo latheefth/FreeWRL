@@ -732,9 +732,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 	switch (type) {
 		case FIELDTYPE_SFBool: 	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFBOOL\n");
-			#endif
+			}
 
 			if (*intptr == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
 			else sprintf (buf,"%s\n%f\n%d\nFALSE",reptype,TickTime,id);
@@ -742,27 +742,27 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		}
 
 		case FIELDTYPE_SFTime:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFTIME\n");
-			#endif
+			}
 			memcpy(&dval,memptr,sizeof(double));
 			sprintf (buf, "%s\n%f\n%d\n%lf",reptype,TickTime,id,dval);
 			break;
 		}
 
 		case FIELDTYPE_SFInt32:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFINT32 or EAI_SFNODE\n");
-			#endif
+			}
 			memcpy(&ival,memptr,sizeof(int));
 			sprintf (buf, "%s\n%f\n%d\n%d",reptype,TickTime,id,ival);
 			break;
 		}
 
 		case FIELDTYPE_SFFloat:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFFLOAT\n");
-			#endif
+			}
 
 			memcpy(fl,memptr,sizeof(float));
 			sprintf (buf, "%s\n%f\n%d\n%f",reptype,TickTime,id,fl[0]);
@@ -771,18 +771,18 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
-			#endif
+			}
 			memcpy(fl,memptr,sizeof(float)*3);
 			sprintf (buf, "%s\n%f\n%d\n%f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2]);
 			break;
 		}
 
 		case FIELDTYPE_SFVec2f:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFVEC2F\n");
-			#endif
+			}
 			memcpy(fl,memptr,sizeof(float)*2);
 			sprintf (buf, "%s\n%f\n%d\n%f %f",reptype,TickTime,id,fl[0],fl[1]);
 			break;
@@ -790,9 +790,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case FIELDTYPE_SFColorRGBA:
 		case FIELDTYPE_SFRotation:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFROTATION\n");
-			#endif
+			}
 
 			memcpy(fl,memptr,sizeof(float)*4);
 			sprintf (buf, "%s\n%f\n%d\n%f %f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2],fl[3]);
@@ -801,9 +801,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case FIELDTYPE_SFImage:
 		case FIELDTYPE_SFString:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_SFSTRING\n");
-			#endif
+			}
 
 			svptr = (struct Uni_String *)memptr;
 			retSFString = (unsigned char *)svptr->strptr; 
@@ -812,9 +812,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		}
 
 		case FIELDTYPE_MFString:	{
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_MFSTRING\n");
-			#endif
+			}
 
 			/* make the Multi_String pointer */
 			MSptr = (struct Multi_String *) memptr;
@@ -840,9 +840,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case FIELDTYPE_MFNode: 	{
 			MNptr = (struct Multi_Node *) memptr;
 
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 			printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(int) memptr);
-			#endif
+			}
 
 			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
@@ -856,9 +856,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case FIELDTYPE_MFInt32: {
 			MCptr = (struct Multi_Color *) memptr;
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
-			#endif
+			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
 			ptr = buf + strlen(buf);
@@ -887,9 +887,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			else if (type==FIELDTYPE_MFColorRGBA) {numPerRow=4;}
 
 			MCptr = (struct Multi_Color *) memptr;
-			#ifdef EAIVERBOSE 
+			if (eaiverbose) { 
 				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
-			#endif
+			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
 			ptr = buf + strlen(buf);

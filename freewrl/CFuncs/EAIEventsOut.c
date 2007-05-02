@@ -45,9 +45,9 @@ void handle_Listener () {
 	tp = CRoutesExtra&0xff;
 	id = (CRoutesExtra & 0xffffff00) >>8;
 
-	#ifdef EAIVERBOSE
+	if (eaiverbose) {
 		printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
-	#endif
+	}	
 
 	/* convert the data to string form, for sending to the EAI java client */
 	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
@@ -80,9 +80,9 @@ void handle_Listener () {
 	/* append the EV_EOT marker to the end of the string */
 	strcat (buf,"\nEV_EOT");
 
-	#ifdef EAIVERBOSE
-	printf ("Handle Listener, returning %s\n",buf);
-	#endif
+	if (eaiverbose) {
+		printf ("Handle Listener, returning %s\n",buf);
+	}	
 
 	/* send the EV reply */
 	EAI_send_string(buf,EAIlistenfd);

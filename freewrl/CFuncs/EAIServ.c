@@ -123,9 +123,9 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 			}
 		}
 
-		#ifdef EAIVERBOSE 
+		if (eaiverbose) { 
 		printf ("conEAIorCLASS - socket made\n");
-		#endif
+		}
 
 
 		/* step 2 - bind to socket*/
@@ -140,9 +140,9 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 			return FALSE;
 		}
 
-		#ifdef EAIVERBOSE 
+		if (eaiverbose) { 
 		printf ("EAISERVER: bound to socket %d\n",EAIBASESOCKET+socketincrement);
-		#endif
+		}
 
 
 		/* step 3 - listen*/
@@ -158,18 +158,18 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		/* step 4 - accept*/
 		len = sizeof(cliaddr);
 	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &cliaddr, (socklen_t *)&len)) < 0) {
-			#ifdef EAIVERBOSE
+			if (eaiverbose) {
 			if (!(loopFlags&NO_CLIENT_CONNECTED)) {
 				printf ("EAISERVER: no client yet\n");
 				loopFlags |= NO_CLIENT_CONNECTED;
 			}
-			#endif
+			}
 
 		} else {
 			loopFlags &= ~NO_CLIENT_CONNECTED;
-			#ifdef EAIVERBOSE
+			if (eaiverbose) {
 				printf ("EAISERVER: no client yet\n");
-			#endif
+			}
 		}
 	}
 
@@ -190,12 +190,12 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	}
 	/* printf ("EAISERVER: conEAIorCLASS returning TRUE\n");*/
 
-	#ifdef EAIVERBOSE
+	if (eaiverbose) {
 	if ( !(loopFlags&NO_EAI_CLASS)) {
 		printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
 		loopFlags |= NO_EAI_CLASS;
 	}
-	#endif
+	}
 
 	return TRUE;
 }
@@ -204,9 +204,9 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 /* the user has pressed the "q" key */
 void shutdown_EAI() {
 
-	#ifdef EAIVERBOSE 
+	if (eaiverbose) { 
 	printf ("shutting down EAI\n");
-	#endif
+	}
 
 	strcpy (EAIListenerData,"QUIT\n\n\n");
 	if (EAIinitialized) {
@@ -215,9 +215,9 @@ void shutdown_EAI() {
 
 }
 void create_EAI() {
-        #ifdef EAIVERBOSE 
+        if (eaiverbose) { 
 	printf ("EAISERVER:create_EAI called\n");
-	#endif
+	}
 
 
 	/* already wanted? if so, just return */
@@ -251,9 +251,9 @@ void handle_EAI () {
 
 	/* make this into a C string */
 	EAIbuffer[EAIbufcount] = 0;
-	#ifdef EAIVERBOSE
+	if (eaiverbose) {
 		if (EAIbufcount) printf ("handle_EAI-- Data is :%s:\n",EAIbuffer);
-	#endif
+	}
 
 	/* any command read in? */
 	if (EAIbufcount > 1)
@@ -267,16 +267,16 @@ void EAI_send_string(char *str, int lfd){
 	/* add a trailing newline */
 	strcat (str,"\n");
 
-	#ifdef EAIVERBOSE
+	if (eaiverbose) {
 		printf ("EAI/CLASS Command returns\n%s(end of command)\n",str);
-	#endif
+	}
 
 	/*printf ("EAI_send_string, sending :%s:\n",str);*/
 	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
-		#ifdef EAIVERBOSE
+		if (eaiverbose) {
 		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
-		#endif
+		}
 	}
 	/*printf ("EAI_send_string, wrote %d\n",n);*/
 }
@@ -310,21 +310,21 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 			loopFlags &= NO_RETVAL_CHANGE;
 		}
 
-		#ifdef EAIVERBOSE
+		if (eaiverbose) {
 		if (!(loopFlags&NO_RETVAL_CHANGE)) {
 			printf ("readEAIsocket--, retval %d\n",retval);
 			loopFlags |= NO_RETVAL_CHANGE;
 		}
-		#endif
+		}
 
 
 		if (retval) {
 			retval = read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
 
 			if (retval <= 0) {
-				#ifdef EAIVERBOSE
+				if (eaiverbose) {
 					printf ("read_EAI_socket, client is gone!\n");
-				#endif
+				}
 
 				/*perror("READ_EAISOCKET");*/
 				/* client disappeared*/
@@ -336,15 +336,13 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 				doQuit();
 			}
 
-			#ifdef EAIVERBOSE
-			{
+			if (eaiverbose) {
 			    char tmpBuff1[EAIREADSIZE];
 			    strncpy(tmpBuff1,&bf[(*bfct)],retval);
 			    tmpBuff1[retval] = '\0';
 			    printf ("read in from socket %d bytes, max %d bfct %d cmd <%s>\n",
 				    retval,EAIREADSIZE, *bfct,tmpBuff1);/*, &bf[(*bfct)]);*/
 			}
-			#endif
 
 
 			(*bfct) += retval;

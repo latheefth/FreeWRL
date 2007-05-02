@@ -253,7 +253,7 @@ extern int QueryCount;
 #undef COLLISIONVERBOSE
 
 /* External Authoring Interface */
-#undef  EAIVERBOSE
+extern int eaiverbose;
 
 #ifndef AQUA
 #include <GL/glu.h>
@@ -1191,6 +1191,7 @@ void setIsPlugin();
 void sendPluginFD(int fd);
 void aquaPrintVersion();
 #endif
+void setEaiVerbose();
 
 /* X3D C parser */
 int initializeX3DParser (void);
