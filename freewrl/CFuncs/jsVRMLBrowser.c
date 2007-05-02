@@ -12,9 +12,9 @@
 
 #include "headers.h"
 #include "jsVRMLBrowser.h"
+#include "jsVRMLClasses.h"
 
 #ifdef JSVERBOSE
-#include "jsVRMLClasses.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 
@@ -714,11 +714,35 @@ VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 JSBool
 VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	int i;
+	JSString *_str;
+	JSObject *myObj;
+
 	if (argc != 0) {
 		printf ("getMidiDeviceList does not take parameters\n");
 		return JS_FALSE;
 	}
-	return JS_TRUE;
+
+	printf ("VrmlBrowserGetMidiDeviceList\n");
+
+        if ((myObj = JS_ConstructObject(context, &MFStringClass, NULL, NULL)) == NULL) {
+                printf( "JS_ConstructObject failed in VrmlBrowserGetMidiDeviceList.\n");
+                return JS_FALSE;
+        }
+        *rval = OBJECT_TO_JSVAL(myObj);
+
+	printf ("myObj created\n");
+
+	for (i = 0; i < 2; i ++) {
+        	_str = JS_NewString(context,BrowserName,strlen(BrowserName)+1);
+                if (!JS_DefineElement(context, myObj, (jsint) i, STRING_TO_JSVAL(_str),
+			JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+                        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
+                        return JS_FALSE;
+                }
+        }
+        *rval = OBJECT_TO_JSVAL(myObj);
+        return JS_TRUE;
 }
 
 /* find a MIDI device, (parameter input is a SFString) and return MFString of controller names */

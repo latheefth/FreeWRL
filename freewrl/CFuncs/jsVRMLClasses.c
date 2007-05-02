@@ -4866,6 +4866,38 @@ MFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 JSBool
 MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf("MFStringAddProperty: vp = %u\n", VERBOSE_OBJ obj);
+                if (JSVAL_IS_STRING(*vp)==TRUE) {
+		printf("	is a common string :%s:\n",
+                        JS_GetStringBytes(JS_ValueToString(cx, *vp)));
+                }
+                if (JSVAL_IS_OBJECT(*vp)==TRUE) {
+                        printf ("       parameter is an object\n");
+                }
+                if (JSVAL_IS_PRIMITIVE(*vp)==TRUE) {
+                        printf ("       parameter is a primitive\n");
+                }
+		if (JSVAL_IS_NULL(*vp)) { printf ("	- its a NULL\n");}
+		if (JSVAL_IS_INT(*vp)) { printf ("	- its a INT %d\n",JSVAL_TO_INT(*vp));}
+
+		printf("MFStringAddProperty: id = %u\n", VERBOSE_OBJ obj);
+                if (JSVAL_IS_STRING(id)==TRUE) {
+		printf("	is a common string :%s:\n",
+                        JS_GetStringBytes(JS_ValueToString(cx, id)));
+                }
+                if (JSVAL_IS_OBJECT(id)==TRUE) {
+                        printf ("       parameter is an object\n");
+                }
+                if (JSVAL_IS_PRIMITIVE(id)==TRUE) {
+                        printf ("       parameter is a primitive\n");
+                }
+		if (JSVAL_IS_NULL(id)) { printf ("	- its a NULL\n");}
+		if (JSVAL_IS_INT(id)) { printf ("	- its a INT %d\n",JSVAL_TO_INT(id));}
+
+	#endif
+
+
 	/* unquote parts of vp string if necessary */
 	if (JSVAL_IS_STRING(*vp)) {
 		if (!doMFStringUnquote(cx, vp)) {
@@ -4883,6 +4915,10 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	JSString *_str;
 	int32 _length, _index;
     jsval _length_val;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf("MFStringGetProperty: obj = %u\n", VERBOSE_OBJ obj);
+	#endif
 
     if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
 		printf(
@@ -4925,6 +4961,10 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 JSBool
 MFStringSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf("MFStringSetProperty: obj = %u\n", VERBOSE_OBJ obj);
+	#endif
+
 	/* unquote parts of vp string if necessary */
 	if (JSVAL_IS_STRING(*vp)) {
 		if (!doMFStringUnquote(cx, vp)) {
@@ -4941,6 +4981,10 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 {
 	UNUSED(argc);
 	UNUSED(argv);
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf("MFStringToString: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+	#endif
+
 
 	return doMFToString(cx, obj, "MFString", rval);
 }
@@ -4952,43 +4996,52 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFStringConstr.\n");
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf("MFStringConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+	#endif
+
+
+	if (!JS_DefineProperty(cx, obj, "length", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"length\" in MFStringConstr.\n");
 		return JS_FALSE;
 	}
 
 	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFStringConstr.\n");
+	if (!JS_DefineProperty(cx, obj, "__touched_flag", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFStringConstr.\n");
 		return JS_FALSE;
 	}
 	if (!argv) {
 		return JS_TRUE;
 	}
 
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFStringConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
-	#endif
-
 	for (i = 0; i < argc; i++) {
+		#ifdef JSVRMLCLASSESVERBOSE
+	  	printf ("MFStringConstr: argv %d is a ...\n",i);
+
+		if (JSVAL_IS_STRING(argv[i])==TRUE) {
+        	        printf ("	parameter %d , a Common String, is",i);
+			_str = JS_ValueToString(cx, argv[i]);
+			printf (JS_GetStringBytes(_str));
+			printf ("\n");
+		
+	        }                                          
+		if (JSVAL_IS_OBJECT(argv[i])==TRUE) {   
+	                printf ("	parameter %d is an object\n",i);
+	        }                       
+		if (JSVAL_IS_PRIMITIVE(argv[i])==TRUE) {
+        	        printf ("	parameter %d is a primitive\n",i);
+        	}
+
 		if ((_str = JS_ValueToString(cx, argv[i])) == NULL) {
-			printf(
-					"JS_ValueToString failed in MFStringConstr.\n");
+			printf( "JS_ValueToString failed in MFStringConstr.\n");
 			return JS_FALSE;
 		}
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
-							  JS_PropertyStub, JS_PropertyStub,
-							  JSPROP_ENUMERATE)) {
-			printf(
-					"JS_DefineElement failed for arg %d in MFStringConstr.\n",
-					i);
+		#endif
+
+	
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+			printf( "JS_DefineElement failed for arg %d in MFStringConstr.\n", i);
 			return JS_FALSE;
 		}
 	}
