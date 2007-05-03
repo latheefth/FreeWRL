@@ -1068,6 +1068,31 @@ void changed_Anchor (struct X3D_Anchor *this_);
 void prep_MidiControl (struct X3D_MidiControl *node);
 void do_MidiControl (void *node);
 void MIDIRegisterMIDI(char *str);
+/* ReWire device/controller  table */
+struct ReWireDeviceStruct {
+        struct X3D_MidiControl* node;   /* pointer to the node that controls this */
+        int encodedDeviceName;          /* index into ReWireNamenames */
+        int bus;                        /* which MIDI bus this is */
+        int channel;                    /* which MIDI channel on this bus it is */
+        int encodedControllerName;      /* index into ReWireNamenames */
+        int controller;                 /* controller number */
+        int cmin;                       /* minimum value for this controller */
+        int cmax;                       /* maximum value for this controller */
+        int ctype;                      /* controller type TYPE OF FADER control - not used currently */
+};
+
+/* ReWireName table */
+struct ReWireNamenameStruct {
+        char *name;
+};
+
+extern struct ReWireNamenameStruct *ReWireNamenames;
+extern int ReWireNametableSize;
+extern int MAXReWireNameNames;
+extern struct ReWireDeviceStruct *ReWireDevices;
+extern int ReWireDevicetableSize;
+extern int MAXReWireDevices;
+
 
 /* Event Utilities Component */
 void do_BooleanFilter (void *node);
