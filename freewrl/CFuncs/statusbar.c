@@ -28,7 +28,9 @@ void update_status(char* msg) {
 	}
 	sprintf(myline->strptr, "%s", msg);
 	myline->len = strlen(msg)+1; /* length of message, plus the null terminator */
+	#ifdef VERBOSE
 	printf("myline-> strptr is %s, len is %d\n", myline->strptr, myline->len);
+	#endif
 	update_node((void*) holder);
 }
 

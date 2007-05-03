@@ -29,6 +29,10 @@ for loosing the reference. Also, most if it is found in
 #define STRING_LENGTH 2000	/* something 'safe'	*/
 #define MAXMESSAGES 5000
 
+/* for sending text to the System Console */
+uid_t myUid = 0;
+FILE *ConsoleLog = NULL;
+
 static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
@@ -46,7 +50,17 @@ int ConsoleMessage(const char *fmt, ...) {
 	unsigned u;
 	char *s;
 	void *v;
+	char ConsoleLogName[100];
 
+	/* try to open a file descriptor to the Console Log - on OS X 
+	   this should display the text on the "Console.app" */
+	#ifdef AQUA
+	if (myUid == 0) {
+		myUid = getuid();
+		sprintf(ConsoleLogName, "/Library/Logs/Console/%d/console.log",myUid);
+		ConsoleLog = fopen(ConsoleLogName,"w+");
+	}
+	#endif
 
 	#ifdef HAVE_MOTIF
 	FWbuffer[0] = '\n';
@@ -152,11 +166,18 @@ int ConsoleMessage(const char *fmt, ...) {
 #endif
 
 #ifdef AQUA
-		printf (FWbuffer);
-		printf ("\n");
+	/* print this to stdio */
+	printf (FWbuffer);
+	if (ConsoleLog != NULL) {
+		fprintf (ConsoleLog,FWbuffer);
+	}
+
+	/*printf ("\n"); */
+
+	/* and, put something on the screen */
 	if (!isMacPlugin) {
 		if (strcmp(FWbuffer, "\n")) {
-		update_status("ERROR: Check console log");
+		update_status("Status message on console log");
 		aquaSetConsoleMessage(FWbuffer);
 		}
 	} else {

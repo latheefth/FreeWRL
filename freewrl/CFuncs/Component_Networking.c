@@ -20,27 +20,9 @@
 static uintptr_t *MidiNodes = NULL;
 static int num_MidiNodes = 0;
 
-/* ReWireName table */
-struct ReWireNamenameStruct {
-        char *name;
-};
-
 struct ReWireNamenameStruct *ReWireNamenames = 0;
 int ReWireNametableSize = -1;
 int MAXReWireNameNames = 0;
-
-/* ReWire device/controller  table */
-struct ReWireDeviceStruct {
-	struct X3D_MidiControl* node;	/* pointer to the node that controls this */
-	int encodedDeviceName;		/* index into ReWireNamenames */
-	int bus;			/* which MIDI bus this is */
-	int channel;			/* which MIDI channel on this bus it is */
-	int encodedControllerName;	/* index into ReWireNamenames */
-	int controller;			/* controller number */
-	int cmin;			/* minimum value for this controller */
-	int cmax;			/* maximum value for this controller */
-	int ctype;			/* controller type TYPE OF FADER control - not used currently */
-};
 
 struct ReWireDeviceStruct *ReWireDevices = 0;
 int ReWireDevicetableSize = -1;
@@ -241,6 +223,10 @@ int ReWireDeviceRegister (int dev, int cont, int *bus, int *channel,
 	ReWireDevices[ReWireDevicetableSize].node = NULL;
 	#ifdef MIDIVERBOSE
 		printf ("ReWireDeviceRegister, new entry at %d\n",ReWireDevicetableSize);
+		printf ("	Device %s (%d) controller %s (%d) ", ReWireNamenames[dev].name,
+					dev, ReWireNamenames[cont].name, cont);
+		printf ("	bus %d channel %d controller %d cmin %d cmax %d\n",*bus, *channel, 
+				*controller, *cmin, *cmax);
 	#endif
 	return TRUE; /* name not found, but, requested */
 }

@@ -81,6 +81,9 @@ char *DefaultScriptMethods = "function initialize() {}; " \
 			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "\
 			" function getMidiDeviceList() {return Browser.getMidiDeviceList()}; "\
 			" function getMidiDeviceInfo(x) {return Browser.getMidiDeviceInfo(x)}; "\
+			" function getMidiControlMin(x,y) {return Browser.getMidiControlMin(x,y)}; "\
+			" function getMidiControlMax(x,y) {return Browser.getMidiControlMax(x,y)}; "\
+			" function getMidiControlNumber(x,y) {return Browser.getMidiControlNumber(x,y)}; "\
 			"";
 
 static JSRuntime *runtime = NULL;
