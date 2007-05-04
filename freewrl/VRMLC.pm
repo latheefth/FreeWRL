@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.270  2007/05/04 15:12:39  sdumoulin
+# Removed status bar code
+#
 # Revision 1.269  2007/03/21 18:07:34  dtrembla
 # Free memory on scene graph
 #
@@ -710,8 +713,8 @@ sub gen {
 	push @genFuncs2, "\t};\n";
 	push @genFuncs2,
 	"	\n".
-	"	/* is this possibly the text node for the statusbar?? */ \n".
-	"	if (nt == NODE_Text) lastTextNode = (struct X3D_Text *) tmp; \n".
+	#"	/* is this possibly the text node for the statusbar?? */ \n".
+	#"	if (nt == NODE_Text) lastTextNode = (struct X3D_Text *) tmp; \n".
 	"	/* is this a ReWire node?? */ \n".
 	"	registerReWireNode(tmp); \n".
 	"	/* is this a texture holding node? */\n".
