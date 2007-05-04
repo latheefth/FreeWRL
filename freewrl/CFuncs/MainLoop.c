@@ -1270,14 +1270,18 @@ void initFreewrl() {
                 doNotRegisterThisNodeForDestroy(rootNode);
 
 		/* create the statusbar nodes */
+		/*
 		#ifndef AQUA
 		statusbar_init();
 		#endif
+		*/
 	}
 
+	/*
 	#ifdef AQUA 
 	statusbar_init();
 	#endif
+	*/
 	
 
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
@@ -1297,12 +1301,16 @@ void closeFreewrl() {
 	int i;
 
 	#ifdef AQUA
+/*
 	clear_status();
+*/
 	pluginRunning = FALSE;
 	kill_clockEvents();
 	EAI_killBindables();
 	kill_routing();
+/*
 	kill_rendering(rootNode);
+*/
 	kill_openGLTextures();
 	kill_javascript();
 

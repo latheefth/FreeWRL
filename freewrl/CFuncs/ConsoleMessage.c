@@ -177,12 +177,20 @@ int ConsoleMessage(const char *fmt, ...) {
 	/* and, put something on the screen */
 	if (!isMacPlugin) {
 		if (strcmp(FWbuffer, "\n")) {
+		/*
 		update_status("Status message on console log");
+		*/
 		aquaSetConsoleMessage(FWbuffer);
 		}
 	} else {
+		/*
 		update_status(FWbuffer);
 		requestPluginPrint(_fw_browser_plugin, FWbuffer);
+		*/
+                char systemBuffer[STRING_LENGTH + 10];
+                printf("should be calling say ... ");
+                sprintf(systemBuffer, "say %s", FWbuffer);
+                system(systemBuffer);
 	}
 #else
 	/* are we running under Motif or Gtk? */
