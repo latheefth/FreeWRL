@@ -14,6 +14,15 @@ For 1.19.3:
 		- loadURL() verified.
 		- createVrmlFromUrl() verified.
 
+	- ReWire/Midi:
+		- added following Javascript functions:
+			getMidiDeviceList()
+			getMidiDeviceInfo(x)
+			getMidiControlMin(x,y)
+			getMidiControlMax(x,y)
+			getMidiControlNumber(x,y)
+
+
 For 1.19.2:
 
 	- let scripts start with whitespace before the "vrmlscript".
