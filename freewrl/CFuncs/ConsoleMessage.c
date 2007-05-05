@@ -37,8 +37,6 @@ static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
 
-extern int isMacPlugin;
-
 int ConsoleMessage(const char *fmt, ...) {
 	va_list ap;
 	char tempbuf[STRING_LENGTH];
