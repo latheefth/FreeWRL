@@ -8,6 +8,10 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
+#ifndef Boolean
+#define Boolean int
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -491,6 +495,7 @@ extern uintptr_t _fw_instance;
 int checkIfX3DVRMLFile(char *fn);
 void Anchor_ReplaceWorld (char *fn);
 void EAI_Anchor_Response (int resp);
+extern int wantEAI;
 struct Uni_String *newASCIIString(char *str);
 void verify_Uni_String(struct  Uni_String *unis, char *str);
 
@@ -625,11 +630,9 @@ extern uintptr_t *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 
-/*
 void statusbar_init(void);
 void update_status(char* msg);
 void clear_status();
-*/
 
 /* menubar stuff */
 void frontendUpdateButtons(void); /* used only if we are not able to multi-thread OpenGL */
@@ -743,7 +746,7 @@ extern int isPerlinitialized(void);
 	#endif
 #endif
 
-extern char *BrowserName, *BrowserFullPath; /* defined in VRMLC.pm */
+extern char *BrowserName, *BrowserFullPath, *firefoxUrlPath; /* defined in VRMLC.pm */
 extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
@@ -771,7 +774,7 @@ extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
-void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl,int rup);
 
 
 void create_EAI(void);
@@ -1224,5 +1227,8 @@ void setEaiVerbose();
 int initializeX3DParser (void);
 void shutdownX3DParser (void);
 int X3DParse (struct X3D_Group *parent, char *inputstring);
+
+/* this is set by OSX, or to FALSE if on Linux. */
+extern Boolean isMacPlugin;
 
 #endif /* __HEADERS_H__ */
