@@ -201,7 +201,7 @@ void doBrowserAction () {
 		*slashindex = 0;
 	 } else {mypath[0] = 0;}
 
-	/* printf ("Anchor, url so far is %s\n",mypath);*/
+	/* printf ("Anchor, url so far is %s\n",mypath); */
 
 	/* try the first url, up to the last */
 	count = 0;
@@ -239,8 +239,10 @@ void doBrowserAction () {
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
 
+
 		/* put the path and the file name together */
-		makeAbsoluteFileName(filename,mypath,thisurl);
+		makeAbsoluteFileName(filename,mypath,thisurl,FALSE);
+		/* printf ("so, Anchor, filename %s, mypath %s, thisurl %s\n",filename, mypath, thisurl); */
 
 		/* if this is a html page, just assume it's ok. If
 		 * it is a VRML/X3D file, check to make sure it exists */
@@ -263,7 +265,7 @@ void doBrowserAction () {
 		EAI_Anchor_Response (FALSE);
 		return;
 	}
-	/* printf ("we were successful at locating :%s:\n",filename);*/
+	/* printf ("we were successful at locating :%s:\n",filename); */
 
 	/* which browser are we running under? if we are running as a*/
 	/* plugin, we'll have some of this information already.*/

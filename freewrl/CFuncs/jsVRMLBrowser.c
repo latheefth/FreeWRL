@@ -601,7 +601,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 
         	        /* we work in absolute filenames... */
-                	makeAbsoluteFileName(filename,bfp,tfilename);
+                	makeAbsoluteFileName(filename,bfp,tfilename,RUNNINGASPLUGIN || isMacPlugin);
 
                 	if (fileExists(filename,firstBytes,TRUE)) {
 			/* printf ("file exists, break\n"); */

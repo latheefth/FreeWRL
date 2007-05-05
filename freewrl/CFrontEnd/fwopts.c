@@ -9,8 +9,6 @@
 #include <getopt.h>
 #include <Snapshot.h>
 
-extern int wantEAI;
-
 int parseCommandLine (int argc, char **argv) {
 	int c;
 	int tmp;
@@ -44,6 +42,9 @@ int parseCommandLine (int argc, char **argv) {
 			{"stereoparameter", 1, 0, 't'},
 			{"screendist", 1, 0, 'r'},
 			{"linewidth", 1, 0, 'W'},  /* Petr Mikulik */
+
+			{"originalFirefoxUrl", 1, 0, 'A'},
+
 
 			{"parent", 1, 0, 'x'},
 			{"server", 1, 0, 'x'},
@@ -159,6 +160,10 @@ int parseCommandLine (int argc, char **argv) {
 				/* initial string of keypresses once main url is loaded */
 			case 'K':
 				keypress_string=optarg;
+				break;
+			case 'A':
+				/* printf ("original URL is %s\n",optarg); */
+				firefoxUrlPath = strdup (optarg);
 				break;
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */

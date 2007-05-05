@@ -110,13 +110,6 @@ GLint maxTexelUnits = -1;
 int	*global_tcin;
 int	global_tcin_count;
 
-/* this is set by OSX, or to FALSE if on Linux. */
-#ifdef AQUA
-extern Boolean isMacPlugin;
-#else
-extern int isMacPlugin;
-#endif
-
 /* for AQUA OS X sharing of OpenGL Contexts */
 #ifdef AQUA
 #include "CGDirectDisplay.h"
@@ -1159,7 +1152,7 @@ int findTextureFile (int cwo, int *istemp) {
 			if ((strlen(thisurl)+strlen(mypath)) > 900) break;
 
 			/* put the path and the file name together */
-			makeAbsoluteFileName(filename,mypath,thisurl);
+			makeAbsoluteFileName(filename,mypath,thisurl,RUNNINGASPLUGIN || isMacPlugin);
 
 			#ifdef TEXVERBOSE 
 			printf ("textureThread: checking for %s\n", filename);

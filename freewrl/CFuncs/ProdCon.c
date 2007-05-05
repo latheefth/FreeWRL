@@ -30,7 +30,6 @@
 
 #define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"
 
-extern int isMacPlugin;
 char* PluginPath = "/private/tmp";
 int PluginLength = 12;
 
@@ -179,7 +178,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
 
-
+#ifdef AQUA
+	/* if running on OS X, do Sarah's logic for how to get the file */
 	if ((RUNNINGASPLUGIN || isMacPlugin) && (strcmp(BrowserFullPath,fname)!=0) && (strncmp(PluginPath,fname,PluginLength)!=0)) {
 		/* are we running locally? If so, just get the file here */
 		if (checkNetworkFile(fname) || isMacPlugin) {
@@ -190,11 +190,31 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			strcpy (fname,retName);
 		}
 	}
+#else
+	/* on Linux, if we are running as a plugin, ask the HTML browser for ALL files, as it'll know
+	   proxies, etc. */
+
+
+	/* if (RUNNINGASPLUGIN) printf ("we are running as a plugin\n"); else printf ("we are NOT a plugin\n");
+	   printf ("BFP right now is %s\n",BrowserFullPath); */
+
+	if ((RUNNINGASPLUGIN)&& (strcmp(BrowserFullPath,fname)!=0)) {
+		/* are we running as a plugin? If so, ask the HTML browser to get the file, and place
+		   it in the local cache for ANY file, except for the main "url" */
+		retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
+
+		/* check for timeout; if not found, return false */
+		if (!retName) return (FALSE);
+		strcpy (fname,retName);
+	}
+#endif
 
 	/* if not, do we need to invoke lwp to get the file, or
 	   is it just local? if we are running as a plugin, this should
 	   be a local file by now
 	 */
+	/* printf ("AFTER, now NAME is %s\n",fname); */
+
 	if (checkNetworkFile(fname)) {
 		/*  Is this an Anchor? if so, lets just assume we can*/
 		/*  get it*/
@@ -239,11 +259,12 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 /* filename is MALLOC'd, combine pspath and thisurl to make an
    absolute file name */
-void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl, int useHTMLBrowserIfPossible){
 	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
 
 	/* if we are running under a browser, let it handle things */
-	if (RUNNINGASPLUGIN || isMacPlugin) {
+	/* sometimes we don't - for instannce, starting up a new file via Anchor. */
+	if (useHTMLBrowserIfPossible) {
 		strcpy (filename, thisurl);
 		return;
 	}
@@ -788,7 +809,7 @@ void __pt_doInline() {
 		if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
 
 		/* we work in absolute filenames... */
-		makeAbsoluteFileName(filename,psp.path,thisurl);
+		makeAbsoluteFileName(filename,psp.path,thisurl,RUNNINGASPLUGIN || isMacPlugin);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
 			break;
@@ -815,7 +836,8 @@ void __pt_doStringUrl () {
 	int retval;
 
 	/* for cParser */
-        char *buffer;
+        char *buffer = NULL;
+	char *ctmp = NULL;
 	struct X3D_Group *nRn;
 
 	
@@ -846,8 +868,42 @@ void __pt_doStringUrl () {
 		haveParsed = TRUE;
 
 	} else if (psp.type==FROMURL) {
-		pushInputURL (psp.inp);
-	       	buffer = readInputString(psp.inp,"");
+
+		/* get the input */
+		buffer = readInputString(psp.inp,"");
+	
+		/* ok, if we are running as a Firefox plugin on Linux, the 
+		   firefoxUrlPath will be non-null. What happens is that, the BrowserFullPath
+		   will have a cache address; the firefoxUrlPath will have the "real" network
+		   address. So, in this case we get the data from the local cache, THEN tell
+		   the FreeWRL system what the "network" url is, for any other additional
+		   files coming in.
+		*/
+		
+		/*
+		printf ("PRODCON, %s should be same as %s first time\n",BrowserFullPath, psp.inp);
+		if (strcmp(BrowserFullPath,psp.inp)==0) printf ("strings same\n"); else printf ("strings different\n");
+		printf ("firefoxUrlPath is %s\n",firefoxUrlPath);
+		*/
+
+		if (firefoxUrlPath != NULL)  {
+
+			/* worry about possible threading issues; keep the malloc'd memory
+			   for BrowserFullPath around for a bit. */
+			ctmp = BrowserFullPath;
+			BrowserFullPath = strdup(firefoxUrlPath);
+			pushInputURL(BrowserFullPath);
+
+			/* zero the firefoxUrlPath, as we no longer need it */
+			FREE_IF_NZ(firefoxUrlPath);
+
+		} else {
+			pushInputURL (psp.inp);
+		}
+
+		/* printf ("data is %s\n",buffer); */
+
+		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 
 		if (ifIsX3D(buffer)) {
@@ -863,6 +919,7 @@ void __pt_doStringUrl () {
 		}
 		haveParsed = TRUE;
 		FREE_IF_NZ (buffer); 
+		FREE_IF_NZ(ctmp);
 
 
 	} else if (psp.type==FROMCREATENODE) {

@@ -1472,7 +1472,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
 
 		/* put the path and the file name together */
-		makeAbsoluteFileName(filename,mypath,thisurl);
+		makeAbsoluteFileName(filename,mypath,thisurl,RUNNINGASPLUGIN || isMacPlugin);
 
 		if (fileExists(filename,firstBytes,TRUE)) { break; }
 		count ++;

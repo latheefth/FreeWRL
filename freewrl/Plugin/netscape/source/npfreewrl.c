@@ -310,7 +310,7 @@ int init_socket(int fileDescriptor, Boolean nonblock) {
 }
 
 /* actually run FreeWRL and swallow it, if enough information has been found */
-void Run (NPP instance) {
+void Run (NPP instance, char *origUrl) {
 
 	FW_PluginInstance* FW_Plugin;
 
@@ -373,8 +373,11 @@ void Run (NPP instance) {
 				paramline[7] = childFd;
 				paramline[8] = "--instance";
 				paramline[9] = instanceStr;
+				
+				paramline[10] = "--originalFirefoxUrl";
+				paramline[11] = origUrl;
 
-				paramline[10] = NULL;
+				paramline[12] = NULL;
 
 
 				/* create pipe string */
@@ -386,10 +389,11 @@ void Run (NPP instance) {
 				/* Instance, so that FreeWRL knows its us... */
 				sprintf (instanceStr, "%u",(uintptr_t) instance);
 
-				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s",
+				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s %s %s",
 						paramline[0],paramline[1],paramline[2],paramline[3],
 						paramline[4],paramline[5],paramline[6],paramline[7],
-						paramline[8],paramline[9],paramline[10]);
+						paramline[8],paramline[9],paramline[10],paramline[11],
+						paramline[12]);
 
 				print_here (debs);
 			    	execvp(paramline[0], (char* const *) paramline);
@@ -708,7 +712,7 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 		/* run FreeWRL, if it is not already running. It might not be... */
 		if (!FW_Plugin->freewrl_running) {
 			print_here ("NPP_SetWindow, running FreeWRL here!");
-				Run(instance);
+				Run(instance,FW_Plugin->fName);
 		}
 	}
 
@@ -832,10 +836,12 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 		strcpy(FW_Plugin->fName,fname);
 		sprintf (debs,"NPP_StreamAsFile, name is %s",FW_Plugin->fName);
 		print_here(debs);
+		sprintf (debs,"NPP_StreamAsFile, stream url is %s",stream->url);
+		print_here(debs);
 
 		if (!FW_Plugin->freewrl_running) {
 			/* if we are not running yet, see if we have enough to start. */
-			Run (instance);
+			Run (instance,stream->url);
 
 		} else {
 			if (fname == NULL) {

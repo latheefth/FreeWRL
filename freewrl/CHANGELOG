@@ -1,4 +1,7 @@
 For 1.19.3:
+	- Linux Plugin code reworked - had problems looking up correct urls for textures, inlines
+	  and anchors. Should be better.
+
 	- re-ordered routing field lookups for nodes with both field and eventIn names "same".
 
 	- Java/ecmascript:

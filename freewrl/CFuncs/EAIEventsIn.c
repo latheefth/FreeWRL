@@ -336,7 +336,7 @@ void EAI_parse_commands () {
 					/* ok, lets make a real name from this; maybe it is local to us? */
 					ctmp[rb] = 0;
 					dtmp[0] = 0;
-					makeAbsoluteFileName (dtmp, "./",ctmp);
+					makeAbsoluteFileName (dtmp, "./",ctmp,RUNNINGASPLUGIN || isMacPlugin);
 
 					if (eaiverbose) {	
 						printf ("CREATEVU %s\n",dtmp);
