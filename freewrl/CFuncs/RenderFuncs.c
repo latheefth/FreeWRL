@@ -153,7 +153,6 @@ int SoundEngineStarted = FALSE;
 
 /* stored FreeWRL version, pointers to initialize data */
 char *BrowserFullPath = NULL;
-char *firefoxUrlPath = NULL;	/* only used when running on Linux, as a firefox plugin */
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 char *lastReadFile = NULL;
 
