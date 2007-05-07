@@ -153,7 +153,9 @@ void sendSensorEvents(unsigned char *COS,int ev, int status);
 Boolean firstTime;
 Boolean pluginRunning;
 Boolean inLoop;
+#ifdef AQUA
 Boolean isMacPlugin = FALSE;
+#endif
 
 /******************************************************************************/
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not

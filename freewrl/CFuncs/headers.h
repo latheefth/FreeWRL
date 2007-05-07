@@ -8,10 +8,6 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
-#ifndef Boolean
-#define Boolean int
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -746,7 +742,7 @@ extern int isPerlinitialized(void);
 	#endif
 #endif
 
-extern char *BrowserName, *BrowserFullPath, *firefoxUrlPath; /* defined in VRMLC.pm */
+extern char *BrowserName, *BrowserFullPath; 
 extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
@@ -1229,6 +1225,11 @@ void shutdownX3DParser (void);
 int X3DParse (struct X3D_Group *parent, char *inputstring);
 
 /* this is set by OSX, or to FALSE if on Linux. */
+#ifdef AQUA
 extern Boolean isMacPlugin;
+#else
+#define isMacPlugin FALSE
+#endif
+
 
 #endif /* __HEADERS_H__ */

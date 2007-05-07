@@ -5,6 +5,7 @@
  * PluginGlue too?)
  */
 
+#include "headers.h"
 #include "PluginSocket.h"
 #ifdef F_SETSIG
 #define FSIGOK
@@ -15,7 +16,6 @@
 
 fd_set rfds;
 struct timeval tv;
-extern int isMacPlugin;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 

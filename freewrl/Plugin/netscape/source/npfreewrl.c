@@ -35,7 +35,7 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V4.3 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#define PLUGIN_DESCRIPTION	"V4.4 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
 
@@ -310,7 +310,7 @@ int init_socket(int fileDescriptor, Boolean nonblock) {
 }
 
 /* actually run FreeWRL and swallow it, if enough information has been found */
-void Run (NPP instance, char *origUrl) {
+void Run (NPP instance) {
 
 	FW_PluginInstance* FW_Plugin;
 
@@ -374,10 +374,7 @@ void Run (NPP instance, char *origUrl) {
 				paramline[8] = "--instance";
 				paramline[9] = instanceStr;
 				
-				paramline[10] = "--originalFirefoxUrl";
-				paramline[11] = origUrl;
-
-				paramline[12] = NULL;
+				paramline[10] = NULL;
 
 
 				/* create pipe string */
@@ -389,11 +386,10 @@ void Run (NPP instance, char *origUrl) {
 				/* Instance, so that FreeWRL knows its us... */
 				sprintf (instanceStr, "%u",(uintptr_t) instance);
 
-				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s %s %s",
+				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s",
 						paramline[0],paramline[1],paramline[2],paramline[3],
 						paramline[4],paramline[5],paramline[6],paramline[7],
-						paramline[8],paramline[9],paramline[10],paramline[11],
-						paramline[12]);
+						paramline[8],paramline[9],paramline[10]);
 
 				print_here (debs);
 			    	execvp(paramline[0], (char* const *) paramline);
@@ -712,7 +708,7 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 		/* run FreeWRL, if it is not already running. It might not be... */
 		if (!FW_Plugin->freewrl_running) {
 			print_here ("NPP_SetWindow, running FreeWRL here!");
-				Run(instance,FW_Plugin->fName);
+				Run(instance);
 		}
 	}
 
@@ -832,16 +828,14 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 		FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
 		/* Get the base file name for FreeWRL to run */
-		FW_Plugin->fName = (char *) NPN_MemAlloc((strlen(fname) +1) *sizeof(char *));
-		strcpy(FW_Plugin->fName,fname);
+		FW_Plugin->fName = (char *) NPN_MemAlloc((strlen(stream->url) +1) *sizeof(char *));
+		strcpy(FW_Plugin->fName,stream->url);
 		sprintf (debs,"NPP_StreamAsFile, name is %s",FW_Plugin->fName);
-		print_here(debs);
-		sprintf (debs,"NPP_StreamAsFile, stream url is %s",stream->url);
 		print_here(debs);
 
 		if (!FW_Plugin->freewrl_running) {
 			/* if we are not running yet, see if we have enough to start. */
-			Run (instance,stream->url);
+			Run (instance);
 
 		} else {
 			if (fname == NULL) {
