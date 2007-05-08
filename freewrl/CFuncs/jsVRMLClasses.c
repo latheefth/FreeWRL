@@ -104,6 +104,7 @@ static JSBool _simplecopyElements (JSContext *cx,
 	int i;
 	jsval val;
 
+printf ("start of simplecopyElements, count %d, name %s\n",count,name);
 	for (i = 0; i < count; i++) {
 		if (!JS_GetElement(cx, fromObj, (jsint) i, &val)) {
 			printf( "failed in get %s index %d.\n",name, i);
@@ -152,6 +153,8 @@ JSBool _standardMFAssign(JSContext *cx,
 		printf("JS_SetProperty failed for \"__touched_flag\" in %s.\n",name);
 		return JS_FALSE;
 	}
+printf ("setting touched flag on %d\n",obj);
+
 
 	if (!JS_GetProperty(cx, _from_obj, "length", &val)) {
 		printf("JS_GetProperty failed for \"length\" in %s.\n",name);
@@ -265,8 +268,6 @@ _standardMFGetProperty(JSContext *cx,
 	return JS_TRUE;
 }
 
-
-
 static JSBool
 doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 {
@@ -288,6 +289,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("doMFToString, len %d\n",len);
+	printNodeType (cx,obj);
 	#endif
 
 	if (len == 0) {
@@ -320,6 +322,13 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 				i, len,className);
 			return JS_FALSE;
 		}
+
+		#ifdef JSVRMLCLASSESVERBOSE
+		if (JSVAL_IS_NUMBER(_v)) printf ("is a number\n");
+		if (JSVAL_IS_INT(_v)) printf ("is an integer\n");
+		if (JSVAL_IS_DOUBLE(_v)) printf ("is an double\n");
+		#endif
+
 		_tmpStr = JS_ValueToString(cx, _v);
 		if (_tmpStr==NULL) {
 			_tmp_valStr = "NULL";
@@ -328,6 +337,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("doMFToString, element %d is %d, string %s\n",i,_v,_tmp_valStr);
+	
 		#endif
 		tmp_valStr_len = strlen(_tmp_valStr) + 1;
 		tmp_buff_len = strlen(_buff);
@@ -338,9 +348,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 				 (char *)
 				 JS_realloc(cx, _buff, buff_size * sizeof(char *)))
 				== NULL) {
-				printf(
-						"JS_realloc failed for %d in doMFToString for %s.\n",
-						i, className);
+				printf( "JS_realloc failed for %d in doMFToString for %s.\n", i, className);
 				return JS_FALSE;
 			}
 		}
@@ -403,7 +411,6 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	FREE_IF_NZ (_buff);
     return JS_TRUE;
 }
-
 
 static JSBool
 doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
@@ -485,6 +492,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 	char *_c, *_cc;
 	jsval myv;
 	jsint _index;
+	int i;
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("doMFSetProperty, for vp %d %x\n",
@@ -500,6 +508,30 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 			   VERBOSE_OBJ obj, _c, _cc);
 		
 	#endif
+
+	/* should this value be checked for possible conversions */
+	if (!strcmp("MFInt32SetProperty",name)) {
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("doMFSetProperty, this should be an int \n");
+		#endif
+
+		if (!JSVAL_IS_INT(*vp)) {
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("is NOT an int\n");
+			#endif
+
+			if (!JS_ValueToInt32(cx, *vp, &i)) {
+				_sstr = JS_ValueToString(cx, *vp);
+				_cc = JS_GetStringBytes(_sstr);
+				printf ("can not convert %s to an integer in %s\n",_cc,name);
+				return JS_FALSE;
+			}
+
+			*vp = INT_TO_JSVAL(i);
+		}
+	}
+	
+
 
 	if (JSVAL_IS_INT(id)) {
 		_index = JSVAL_TO_INT(id);
@@ -1650,6 +1682,10 @@ SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 	UNUSED(argc);
 	UNUSED(argv);
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFImageTouched: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+	#endif
+
 	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFSFImageTouched.\n");
 		return JS_FALSE;
@@ -1681,6 +1717,10 @@ SFImageFinalize(JSContext *cx, JSObject *obj)
 
 JSBool
 SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFImageToString: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+	#endif
+
 	UNUSED(argc);
 	UNUSED(argv);
 	return doMFToString(cx, obj, "SFImage", rval);
@@ -1688,6 +1728,10 @@ SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 
 JSBool
 SFImageAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFImageAssign: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+	#endif
+
 	return _standardMFAssign (cx, obj, argc, argv, rval, &SFImageClass,"SFImageAssign");
 }
 
@@ -1696,51 +1740,87 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 {
 	JSString *_str;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
-
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in SFImageConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in SFImageConstr.\n");
-		return JS_FALSE;
-	}
-	if (!argv) {
-		return JS_TRUE;
-	}
+	jsval mv;
+	int param[3];
+	int expectedSize;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFImageConstr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("SFImageConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
 
+	if (!argv) { return JS_TRUE; }
+	if (argc != 4) {
+		printf ("SFImageConstr, expect 4 parameters, got %d\n",argc);
+		return JS_FALSE;
+	}
 
+	mv = INT_TO_JSVAL(4);
+	if (!JS_DefineProperty(cx, obj, "length", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"length\" in SFImageConstr.\n");
+		return JS_FALSE;
+	}
 
-	for (i = 0; i < argc; i++) {
-		if ((_str = JS_ValueToString(cx, argv[i])) == NULL) {
-			printf(
-					"JS_ValueToString failed in SFImageConstr.\n");
+	mv = INT_TO_JSVAL(0);
+	if (!JS_DefineProperty(cx, obj, "__touched_flag", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"__touched_flag\" in SFImageConstr.\n");
+		return JS_FALSE;
+	}
+
+	/* expect arguments to be number, number, number, mfint32 */
+	for (i=0; i<3; i++) {
+		/* printf ("looking at parameter %d\n",i); */
+        	if (JSVAL_IS_INT(argv[i])) { 
+			/* printf ("parameter is a number\n"); */
+                	param[i] =  JSVAL_TO_INT(argv[i]);
+			/* printf ("param is %d\n",param[i]); */
+        	} else {        
+                	printf ("SFImageConstr: parameter %d is not a number\n",i);
+                	return JS_FALSE;
+		}
+	}
+	
+	/* the third number should be in the range of 1-4 inclusive (number of components in image) */
+	if ((param[2]<1) || (param[2]>4)) {
+		printf ("SFImageConstr: comp must be between 1 and 4 inclusive, got %d\n",param[2]);
+		return JS_FALSE;
+	}
+
+	/* now look at the MFInt32 array, and tack it on here */
+	expectedSize = param[0] * param[1];
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printNodeType(cx,argv[3]);
+	#endif
+
+	/* worry about the MFInt32 array. Note that we copy the object pointer here. Should
+	   we copy ALL of the elements, or just the object itself?? */
+
+	if (!JS_InstanceOf(cx, argv[3], &MFInt32Class, NULL)) {
+		printf ("SFImageConstr: expected array element to be an MFInt32 array\n");
+		return JS_FALSE;
+	} else {
+		if (!JS_GetProperty(cx, argv[3], "length", &mv)) {
+			printf( "JS_GetProperty failed for MFInt32 length in SFNodeConstr\n");
+        		return JS_FALSE;
+		}
+        	if (expectedSize != JSVAL_TO_INT(mv)) {
+			printf ("SFImageConstr: expected %d elements in image data, got %d\n",expectedSize, JSVAL_TO_INT(mv));
 			return JS_FALSE;
 		}
+
+
+	}
+
+	/* parameters are ok - just save them now in the new object. */
+	for (i=0; i<4; i++) {
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
-							  JS_PropertyStub, JS_PropertyStub,
-							  JSPROP_ENUMERATE)) {
-			printf(
-					"JS_DefineElement failed for arg %d in SFImageConstr.\n",
-					i);
+			  JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+			printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
 			return JS_FALSE;
 		}
 	}
-
+	
+	/* if we are here, we must have had some success... */
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
 }
@@ -3956,11 +4036,19 @@ JSBool
 MFInt32ToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of MFInt32ToString\n");
+	#endif
+
 	return doMFToString(cx, obj, "MFInt32", rval);
 }
 
 JSBool
 MFInt32Assign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of MFInt32Assign\n");
+	#endif
+
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFInt32Class,"MFInt32Assign");
 }
 
@@ -3970,6 +4058,10 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	int32 _i;
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of MFInt32Constr\n");
+	#endif
+
 
 	if (!JS_DefineProperty(cx, obj, "length", v,
 						   JS_PropertyStub, JS_PropertyStub,
@@ -4000,8 +4092,11 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			printf( "JS_ValueToBoolean failed in MFInt32Constr.\n");
 			return JS_FALSE;
 		}
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("value at %d is %d\n",i,_i);
+		#endif
 
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
+		if (!JS_DefineElement(cx, obj, (jsint) i, _i,
 			  JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %u in MFInt32Constr.\n", i);
 			return JS_FALSE;
@@ -4013,17 +4108,29 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 JSBool
 MFInt32AddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of MFInt32AddProperty\n");
+	#endif
+
 	return doMFAddProperty(cx, obj, id, vp,"MFInt32AddProperty");
 }
 
 JSBool
 MFInt32GetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of MFInt32GetProperty\n");
+	#endif
+
 	return _standardMFGetProperty(cx, obj, id, vp,
 			"_FreeWRL_Internal = 0", "MFInt32");
 }
 
 JSBool
 MFInt32SetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of MFInt32SetProperty\n");
+	#endif
+
 	return doMFSetProperty(cx, obj, id, vp,"MFInt32SetProperty");
 }
 

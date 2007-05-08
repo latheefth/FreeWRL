@@ -18,7 +18,6 @@
 #include "OpenGL_Utils.h"
 #include <setjmp.h>
 
-
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
                 return;	\
@@ -231,14 +230,19 @@ void releaseTexture(struct X3D_Node *node) {
 
 	#ifdef TEXVERBOSE
 	printf ("releaseTexture, calling getTableIndex\n");
-	#endif
+	ti = getTableIndex(tableIndex);
+	ti->status = TEX_NOTLOADED;
 
+	if (ti->OpenGLTexture != NULL) {
+		printf ("deleting %d textures, starting at %d\n",ti->frames, *(ti->OpenGLTexture));
+		FREE_IF_NZ(ti->OpenGLTexture);
+	}
+	#endif
 	ti = getTableIndex(tableIndex);
 	if (ti->OpenGLTexture != NULL) {
 		glDeleteTextures(ti->frames, ti->OpenGLTexture);
 		FREE_IF_NZ(ti->OpenGLTexture);
 	}
-
 }
 
 /* called on "kill oldworld" */
@@ -291,6 +295,7 @@ void copyPixelTextureEntry (struct X3D_PixelTexture *me) {
 	ptr = &(me->image);
 	myEntry = getTableIndex(me->__textureTableIndex);
 	myEntry->pixelData =  ptr;
+	myEntry->status = TEX_NOTLOADED;
 }
 
 
@@ -525,8 +530,9 @@ void loadTextureNode (struct X3D_Node *node, void *param) {
 		   if we have an ImageTexture that is bad, we change *that* into a 
 		   PixelTexture; so we need to have the pixeltexture raw data in
 		   the textureTableIndexStruct entry */
-		if (node->_nodeType == NODE_PixelTexture) 
+		if (node->_nodeType == NODE_PixelTexture) {
 			copyPixelTextureEntry((struct X3D_PixelTexture*)node);
+		}
 	}
 
 	new_bind_image ((struct X3D_Node*)node, param);
@@ -800,7 +806,6 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	if (me->OpenGLTexture == NULL) {
 		me->OpenGLTexture = MALLOC (sizeof (GLuint) * me->frames);
 		glGenTextures(me->frames, me->OpenGLTexture);
-
 		#ifdef TEXVERBOSE
 		printf ("just glGend %d textures  for block %x is %x\n",me->frames, me, me->OpenGLTexture);
 		#endif
@@ -981,6 +986,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	#endif
 
 
+
 	/* have we already processed this one before? */
 	if (myTableIndex->status == TEX_LOADED) {
 		#ifdef TEXVERBOSE 
@@ -997,6 +1003,13 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 		}
 
 		if (myTableIndex->nodeType != NODE_MovieTexture) {
+			if (myTableIndex->OpenGLTexture == NULL) {
+				#ifdef TEXVERBOSE
+				printf ("no openGLtexture here status %s\n",texst(myTableIndex->status));
+				#endif
+				return;
+			}
+
 			bound_textures[texture_count] = myTableIndex->OpenGLTexture[0];
 		} else {
 			bound_textures[texture_count] = 

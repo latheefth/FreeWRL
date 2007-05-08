@@ -310,7 +310,6 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 
 	/* Multi types */
 	switch (JSparamnames[fptr].type) {
-	case FIELDTYPE_SFImage:
 	case FIELDTYPE_MFFloat:
 	case FIELDTYPE_MFTime:
 	case FIELDTYPE_MFInt32:
@@ -335,6 +334,7 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	case FIELDTYPE_SFTime:
 	case FIELDTYPE_SFInt32:
 	case FIELDTYPE_SFString:
+	case FIELDTYPE_SFImage:
 		if (complex_name) strcpy (tmethod,"_touched");
 		else sprintf (tmethod, "_%s_touched",fullname);
 		break;
@@ -1326,7 +1326,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				to_ptr = &(CRoutes[route].tonodes[to_counter]);
 				tn = to_ptr->node;
 				tptr = to_ptr->foffset;
-
 				#ifdef CRVERBOSE 
 					printf ("%s script %d VALUE CHANGED! copy value and update %d\n",JSparamnames[fptr].name,actualscript,tn);
 				#endif
