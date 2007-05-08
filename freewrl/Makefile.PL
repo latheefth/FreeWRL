@@ -736,9 +736,11 @@ sub tryToFind() {
 		# more than 1 possibility - remove whitespace after each try
 		$try = `which firefox`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 		if ("" eq $try) { $try = `which safari`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
-		if ("" eq $try) { $try = `which opera`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
 		if ("" eq $try) { $try = `which mozilla`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
 		if ("" eq $try) { $try = `which netscape`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
+		if ("" eq $try) { $try = `which opera`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
+		if ("" eq $try) { $try = `which firefox`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
+		if ("" eq $try) { $try = `which seamonkey`; $try =~ s/^\s+//; $try =~ s/\s+$//; }
 	} elsif ("SOUNDCONV" eq $tofind) {
 		$try = `which sox`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	} elsif ("UNZIP" eq $tofind) {
