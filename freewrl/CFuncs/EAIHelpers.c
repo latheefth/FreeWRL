@@ -51,16 +51,34 @@ This struct contains both a node and an ofs field.
 #include "EAIheaders.h"
 #include "CProto.h"
 #include "CParseLexer.h"
+struct DEFnameStruct {
+	struct X3D_Node *node;
+	struct Uni_String *name;
+};
+extern struct DEFnameStruct *DEFnames;
+extern int DEFtableSize;
 
 
 /* get a node pointer in memory for a node. Return the node pointer, or NULL if it fails */
 uintptr_t EAI_GetNode(const char *str) {
 	struct X3D_Node *myn;
+	int ctr;
+	struct Uni_String* tmp;
+
 
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
+	
+	/* Try to get X3D node name */
+	for (ctr = 0; ctr <= DEFtableSize; ctr++) {
+		tmp = DEFnames[ctr].name;
+		if (strcmp(str, tmp->strptr) == 0) {
+			return (uintptr_t) DEFnames[ctr].node;
+		}
+	}
 
+	/* Try to get VRML node name */
 	myn = parser_getNodeFromName(str);
 	if (eaiverbose) {
 		printf ("EAI_GetNode for %s returns %x - it is a %s\n",str,myn,stringNodeType(myn->_nodeType));
