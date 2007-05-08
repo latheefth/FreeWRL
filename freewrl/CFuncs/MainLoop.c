@@ -50,6 +50,9 @@ pthread_t DispThrd = 0;
 int eaiverbose = 0;
 char* threadmsg;
 
+int replaceWorld = FALSE;
+char  replace_name[FILENAME_MAX];
+
 
 /* linewidth for lines and points - passed in on command line */
 float gl_linewidth = 1.0;
@@ -267,6 +270,11 @@ void EventLoop() {
 	if (BrowserAction) {
 		doBrowserAction ();
 		BrowserAction = FALSE;	/* action complete */
+	}
+
+	if (replaceWorld) {
+		Anchor_ReplaceWorld(replace_name);
+		replaceWorld= FALSE;
 	}
 
 	#ifdef PROFILEMARKER
@@ -1711,4 +1719,9 @@ void aquaPrintVersion() {
 #endif
 void setEaiVerbose() {
 	eaiverbose = 1;
+}
+	
+void replaceWorldNeeded(char* str) {
+	strncpy(&replace_name, str, FILENAME_MAX);
+	replaceWorld= TRUE; 
 }

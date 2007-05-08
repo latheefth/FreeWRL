@@ -376,6 +376,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 
 		/* kill DEFS, handles */
 		EAI_killBindables();
+		kill_bindables();
 
 		/* stop routing */
 		kill_routing();

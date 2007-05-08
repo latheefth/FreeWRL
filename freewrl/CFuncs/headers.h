@@ -1218,6 +1218,7 @@ void sendPluginFD(int fd);
 void aquaPrintVersion();
 #endif
 void setEaiVerbose();
+void replaceWorldNeeded(char* str);
 
 /* X3D C parser */
 int initializeX3DParser (void);
