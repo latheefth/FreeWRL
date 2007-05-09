@@ -44,9 +44,6 @@ typedef struct _SFVec3fNative {
 
 typedef struct _SFImageNative {
 	int touched;
-#if FALSE
-	/* struct SFImage v; */
-#endif
 } SFImageNative;
 
 typedef struct _SFColorNative {
@@ -129,9 +126,6 @@ SFVec2fNativeSet(void *p, struct Uni_String *sv);
 
 extern void *
 SFImageNativeNew(void);
-
-extern void
-SFImageNativeDelete(void *p);
 
 extern void
 SFImageNativeAssign(void *top, void *fromp);

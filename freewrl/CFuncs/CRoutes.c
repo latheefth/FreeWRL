@@ -1369,8 +1369,7 @@ void sendScriptEventIn(uintptr_t num) {
 
 			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 			mark_script((uintptr_t) to_ptr->node);
-
-					getField_ToJavascript(num,to_ptr->foffset);
+			getField_ToJavascript(num,to_ptr->foffset);
 
 		}
 	} else {

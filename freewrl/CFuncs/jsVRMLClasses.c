@@ -153,7 +153,6 @@ JSBool _standardMFAssign(JSContext *cx,
 		printf("JS_SetProperty failed for \"__touched_flag\" in %s.\n",name);
 		return JS_FALSE;
 	}
-printf ("setting touched flag on %d\n",obj);
 
 
 	if (!JS_GetProperty(cx, _from_obj, "length", &val)) {
@@ -1700,21 +1699,6 @@ SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
     return JS_TRUE;
 }
 
-void
-SFImageFinalize(JSContext *cx, JSObject *obj)
-{
-	SFImageNative *ptr;
-
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFImageFinalize: obj = %u\n", VERBOSE_OBJ obj);
-	#endif
-	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFImageFinalize.\n");
-		return;
-	}
-	SFImageNativeDelete(ptr);
-}
-
 JSBool
 SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1748,7 +1732,43 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		printf("SFImageConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
 
-	if (!argv) { return JS_TRUE; }
+	/* make this so that one can get the ".x", ".y", ".comp" and ".array" */
+	if (!JS_DefineProperties(cx, obj, SFImageProperties)) {
+		printf( "JS_DefineProperties failed in SFImageConstr.\n");
+		return JS_FALSE;
+	}
+
+	/* null image. Make this [0, 0, 0] NOTE - there are only 3 elements now! */
+	if (!argc) { 
+		/* expect arguments to be number, number, number, mfint32 */
+		mv = INT_TO_JSVAL(0);
+		for (i=0; i<4; i++) {
+			if (i==3) {
+				MFInt32Constr(cx, obj, 0, NULL, &mv);
+			}
+			if (!JS_DefineElement(cx, obj, (jsint) i, mv,
+			  JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+				printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
+				return JS_FALSE;
+			}
+		}
+		mv = INT_TO_JSVAL(4);
+		if (!JS_DefineProperty(cx, obj, "length", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+			printf( "JS_DefineProperty failed for \"length\" in SFImageConstr.\n");
+			return JS_FALSE;
+		}
+
+		mv = INT_TO_JSVAL(0);
+		if (!JS_DefineProperty(cx, obj, "__touched_flag", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+			printf( "JS_DefineProperty failed for \"__touched_flag\" in SFImageConstr.\n");
+			return JS_FALSE;
+		}
+
+
+		return JS_TRUE; 
+	}
+	
+	/* ok, ok. There are some parameters here. There had better be 4, or else... */
 	if (argc != 4) {
 		printf ("SFImageConstr, expect 4 parameters, got %d\n",argc);
 		return JS_FALSE;
@@ -1778,15 +1798,27 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
                 	return JS_FALSE;
 		}
 	}
+	/* now look at the MFInt32 array, and tack it on here */
+	expectedSize = param[0] * param[1];
+
 	
-	/* the third number should be in the range of 1-4 inclusive (number of components in image) */
-	if ((param[2]<1) || (param[2]>4)) {
-		printf ("SFImageConstr: comp must be between 1 and 4 inclusive, got %d\n",param[2]);
+	/* the third number should be in the range of 0-4 inclusive (number of components in image) */
+	if ((param[2]<0) || (param[2]>4)) {
+			
+		printf ("SFImageConstr: with size > 0, comp must be between 1 and 4 inclusive, got %d\n",param[2]);
 		return JS_FALSE;
 	}
 
-	/* now look at the MFInt32 array, and tack it on here */
-	expectedSize = param[0] * param[1];
+	/* case 1 of null initializer */
+	if ((expectedSize == 0) && (param[2] != 0)) {
+		printf ("SFImageConstr: with x and y equal to zero, comp must be zero\n");
+		return JS_FALSE;
+	}
+	/* case 2 of null initializer */
+	if ((expectedSize != 0) && (param[2] == 0)) {
+		printf ("SFImageConstr: with x and y not zero, comp must be non-zero\n");
+		return JS_FALSE;
+	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printNodeType(cx,argv[3]);
@@ -1832,8 +1864,7 @@ SFImageAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool
 SFImageGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,
-			"_FreeWRL_Internal = 0", "SFImage");
+	return _standardMFGetProperty(cx, obj, id, vp, "_FreeWRL_Internal = 0", "SFImage");
 }
 
 JSBool
@@ -4062,21 +4093,14 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	printf ("start of MFInt32Constr\n");
 	#endif
 
-
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFInt32Constr.\n");
+	if (!JS_DefineProperty(cx, obj, "length", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"length\" in MFInt32Constr.\n");
 		return JS_FALSE;
 	}
 
 	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFInt32Constr.\n");
+	if (!JS_DefineProperty(cx, obj, "__touched_flag", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFInt32Constr.\n");
 		return JS_FALSE;
 	}
 	if (!argv) {
@@ -4084,8 +4108,7 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("MFInt32Constr: obj = %u, %u args\n",
-			   VERBOSE_OBJ obj, argc);
+		printf("MFInt32Constr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToInt32(cx, argv[i], &_i)) {

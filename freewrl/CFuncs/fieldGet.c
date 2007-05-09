@@ -20,7 +20,6 @@ getField_ToJavascript.
 this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
-
 void getField_ToJavascript (int num, int fromoffset) {
 
 	#ifdef SETFIELDVERBOSE 
@@ -47,6 +46,7 @@ void getField_ToJavascript (int num, int fromoffset) {
 	case FIELDTYPE_SFVec2f:
 	case FIELDTYPE_SFVec3f:
 	case FIELDTYPE_SFRotation:
+	case FIELDTYPE_SFImage:
 		setScriptMultiElementtype(num);
 		break;
 	case FIELDTYPE_MFColor:
@@ -54,7 +54,6 @@ void getField_ToJavascript (int num, int fromoffset) {
 	case FIELDTYPE_MFFloat:
 	case FIELDTYPE_MFTime:
 	case FIELDTYPE_MFInt32:
-	case FIELDTYPE_SFImage:
 	case FIELDTYPE_MFString:
 	case FIELDTYPE_MFNode:
 	case FIELDTYPE_MFRotation:
@@ -416,7 +415,6 @@ void setMFElementtype (uintptr_t num) {
 	#endif
 }
 
-#define SETFIELDVERBOSE
 void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 
     int tn, tptr;
@@ -595,9 +593,6 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	printf("------------END set_EAI_MFElementtype ---------------\n");
     #endif
 }
-#undef SETFIELDVERBOSE
-
-
 
 
 /****************************************************************/
@@ -703,7 +698,6 @@ void setScriptMultiElementtype (uintptr_t num) {
 		Set_one_MultiElementtype (indexPointer, tptr, fn, len);
 	}
 }
-
 
 /* convert a number in memory to a printable type. Used to send back EVents, or replies to
    the Java client program. */

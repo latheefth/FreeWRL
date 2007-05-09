@@ -407,16 +407,6 @@ SFImageNativeNew()
 }
 
 void
-SFImageNativeDelete(void *p)
-{
-	SFImageNative *ptr;
-	if (p != NULL) {
-		ptr = (SFImageNative *)p;
-		FREE_IF_NZ (ptr);
-	}
-}
-
-void
 SFImageNativeAssign(void *top, void *fromp)
 {
 	SFImageNative *to = (SFImageNative *)top;

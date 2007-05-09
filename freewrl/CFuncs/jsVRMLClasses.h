@@ -238,10 +238,6 @@ SFImageConstr(JSContext *cx,
 			  jsval *argv,
 			  jsval *rval);
 
-void
-SFImageFinalize(JSContext *cx,
-				JSObject *obj);
-
 JSBool
 SFImageGetProperty(JSContext *cx,
 				   JSObject *obj,
@@ -1103,7 +1099,7 @@ static JSClass SFImageClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	SFImageFinalize
+	JS_FinalizeStub
 };
 
 static JSPropertySpec (SFImageProperties)[] = {
