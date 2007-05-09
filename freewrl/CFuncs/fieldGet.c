@@ -46,7 +46,6 @@ void getField_ToJavascript (int num, int fromoffset) {
 	case FIELDTYPE_SFVec2f:
 	case FIELDTYPE_SFVec3f:
 	case FIELDTYPE_SFRotation:
-	case FIELDTYPE_SFImage:
 		setScriptMultiElementtype(num);
 		break;
 	case FIELDTYPE_MFColor:
@@ -57,6 +56,7 @@ void getField_ToJavascript (int num, int fromoffset) {
 	case FIELDTYPE_MFString:
 	case FIELDTYPE_MFNode:
 	case FIELDTYPE_MFRotation:
+	case FIELDTYPE_SFImage:
 		setMFElementtype(num);
 		break;
 	default : {
@@ -162,7 +162,7 @@ void setMFElementtype (uintptr_t num) {
 	int len;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
-	char scriptline[2000];
+	char scriptline[20000];
 	char sline[100];
 	jsval retval;
 	int x;
@@ -181,6 +181,11 @@ void setMFElementtype (uintptr_t num) {
 
 	JSContext *_context;
 	JSObject *_globalObj;
+
+	/* for PixelTextures we have: */
+	struct X3D_PixelTexture *mePix;
+	struct Multi_Int32 image;
+	int pixcount;
 
 	#ifdef SETFIELDVERBOSE 
 		printf("------------BEGIN setMFElementtype ---------------\n");
@@ -313,7 +318,31 @@ void setMFElementtype (uintptr_t num) {
 				}
 				break;
 				}
-			case FIELDTYPE_SFImage:	/* JAS - SFIMAGES are SFStrings in Perl, but an MFInt in Java */
+			case FIELDTYPE_SFImage:	{
+
+				mePix = (struct X3D_PixelTexture *) fn;
+				strcpy (scriptline, "xxy = new SFImage(");
+				if (mePix->_nodeType == NODE_PixelTexture) {
+					image = mePix->image;
+					if (image.n > 2) {
+						sprintf (sline, "%d, %d, %d, new MFInt32(",image.p[0], image.p[1], image.p[2]);
+						strcat (scriptline,sline);
+						for (pixcount = 3; pixcount < image.n; pixcount++) {
+							sprintf (sline,"%d",image.p[pixcount]);
+							if (pixcount < (image.n-1)) {
+								strcat(sline,",");
+							}
+							strcat (scriptline,sline);
+						}
+
+						strcat (scriptline, ")");
+					}
+				}
+
+
+				break;
+				} 
+
 			case FIELDTYPE_MFInt32: {
 				strcpy (scriptline, "xxy = new MFInt32(");
 				elementlen = sizeof (int);
@@ -629,15 +658,15 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	#endif
 
 	if (!JS_GetProperty(_context,_globalObj,scriptline,&retval))
-		printf ("JS_GetProperty failed in jsSFVec3fSet.\n");
+		printf ("JS_GetProperty failed in Set_one_MultiElementtype.\n");
 
 	if (!JSVAL_IS_OBJECT(retval))
-		printf ("jsSFVec3fSet - not an object\n");
+		printf ("Set_one_MultiElementtype - not an object\n");
 
 	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
 
 	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(_context, _sfvec3fObj)) == NULL)
-		printf("JS_GetPrivate failed in jsSFVec3fSet.\n");
+		printf("JS_GetPrivate failed Set_one_MultiElementtype.\n");
 
 	/* copy over the data from the VRML side into the script variable. */
 	memcpy ((void *) &_privPtr->v,Data, dataLen);

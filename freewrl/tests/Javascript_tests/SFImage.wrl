@@ -4,19 +4,31 @@
 Transform {translation -2.5 0 0 children [ 
 	Shape {
 		appearance Appearance {
-   			texture DEF TEXTURE PixelTexture { }
+   			texture DEF CONE_TEXTURE PixelTexture { }
 			material Material { }
 		}
 		geometry Cone { }
 	}
 ] }
 
+Transform {translation 2.5 0 0 children [ 
+	Shape {
+		appearance Appearance {
+   			texture DEF BOX_TEXTURE PixelTexture { }
+			material Material { }
+		}
+		geometry Box { }
+	}
+] }
+
 DEF SCRIPT Script {
-      eventIn SFFloat trigger
-      field SFInt32 xsize 10
-      field SFInt32 ysize 10
+	eventIn SFFloat trigger
+	eventIn SFImage coneImageChanged
+	field SFInt32 xsize 10
+	field SFInt32 ysize 10
 	field SFInt32 triggerflip 0
-      eventOut SFImage image_changed
+	eventOut SFImage changeConeImage
+	eventOut SFImage changeBoxImage
       url [
          "javascript:
             function generate_texture() {
@@ -25,18 +37,23 @@ DEF SCRIPT Script {
                for (i=0; i<size; i++) {
                   pixels[i] = Math.random() * 255
                }
-               image_changed = new SFImage(xsize,ysize,1,pixels);
+               changeConeImage = new SFImage(xsize,ysize,1,pixels);
+
             }
             function initialize() {
                generate_texture();
             }
             function trigger(value,time) {
 		triggerflip += 1;
-		if (triggerflip == 10) {
+		if (triggerflip == 50) {
                		generate_texture();
 			triggerflip = 0;
 		}
             }
+	function coneImageChanged (value,time) {
+		changeBoxImage = value;
+	}
+
          "
       ]
    }
@@ -45,4 +62,6 @@ DEF SCRIPT Script {
       cycleInterval 10
    }
 ROUTE TIMER.fraction_changed TO SCRIPT.trigger
-ROUTE SCRIPT.image_changed TO TEXTURE.set_image
+ROUTE SCRIPT.changeConeImage TO CONE_TEXTURE.set_image
+ROUTE CONE_TEXTURE.image_changed TO SCRIPT.coneImageChanged
+ROUTE SCRIPT.changeBoxImage TO BOX_TEXTURE.set_image
