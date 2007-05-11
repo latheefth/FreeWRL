@@ -27,7 +27,7 @@ for loosing the reference. Also, most if it is found in
 #include <stdarg.h>
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
-#define MAXMESSAGES 5000
+#define MAXMESSAGES 5 
 
 /* for sending text to the System Console */
 uid_t myUid = 0;
@@ -77,6 +77,14 @@ int ConsoleMessage(const char *fmt, ...) {
 	#ifndef HAVE_MOTIF
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
+
+	if (isMacPlugin && consMsgCount > MAXMESSAGES) {
+		if (consMsgCount > (MAXMESSAGES + 5)) return;
+		strcpy(FWbuffer, "Too many freewrl messages - stopping ConsoleMessage");
+		consMsgCount = MAXMESSAGES + 100;
+	} else {
+		consMsgCount++;
+	}
 
 #ifndef AQUA
 	if (!isMacPlugin && consMsgCount > MAXMESSAGES) {
