@@ -14,68 +14,8 @@
 #include "jsVRMLBrowser.h"
 #include "jsVRMLClasses.h"
 
-#ifdef JSVERBOSE
 #include "jsUtils.h"
 #include "jsNative.h"
-
-/* try and print what an element is in case of error */
-static void
-printNodeType (JSContext *context, JSObject *myobj) {
-	if (JS_InstanceOf(context, myobj, &SFColorClass, NULL)) {
-	printf ("SFColorClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &SFVec2fClass, NULL)) {
-	printf ("SFVec2fClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &SFVec3fClass, NULL)) {
-	printf ("SFVec3fClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &SFRotationClass, NULL)) {
-	printf ("SFRotationClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &SFImageClass, NULL)) {
-	printf ("SFImageClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &SFNodeClass, NULL)) {
-	printf ("SFNodeClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFFloatClass, NULL)) {
-	printf ("MFFloatClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFTimeClass, NULL)) {
-	printf ("MFTimeClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFInt32Class, NULL)) {
-	printf ("MFInt32Class\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFColorClass, NULL)) {
-	printf ("MFColorClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFVec2fClass, NULL)) {
-	printf ("MFVec2fClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFVec3fClass, NULL)) {
-	printf ("MFVec3fClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFRotationClass, NULL)) {
-	printf ("MFRotationClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFNodeClass, NULL)) {
-	printf ("MFNodeClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &SFColorRGBAClass, NULL)) {
-	printf ("SFColorRGBA\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &MFStringClass, NULL)) {
-	printf ("MFStringClass\n");
-	}
-	else if (JS_InstanceOf(context, myobj, &VrmlMatrixClass, NULL)) {
-	printf ("VrmlMatrixClass\n");
-	}
-
-	else printf ("javaclass type Unknown\n");
-}
-#endif
 
 
 /* we add/remove routes with this call */

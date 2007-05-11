@@ -36,18 +36,9 @@
 #define INIT_ARGC_NODE 1
 #define INIT_ARGC 0
 
-#define NULL_HANDLE "NULL_HANDLE"
-
-#if 0
-/* #define AVECLEN(x) (sqrt((x)[0]*(x)[0]+(x)[1]*(x)[1]+(x)[2]*(x)[2])) */
-/* #define AVECPT(x,y) ((x)[0]*(y)[0]+(x)[1]*(y)[1]+(x)[2]*(y)[2]) */
-/* #define AVECSCALE(x,y) x[0] *= y;\ */
-/* x[1] *= y;\ */
-/* x[2] *= y; */
-/* #define AVECCP(x,y,z) (z)[0]=(x)[1]*(y)[2]-(x)[2]*(y)[1]; \ */
-/* (z)[1]=(x)[2]*(y)[0]-(x)[0]*(y)[2]; \ */
-/* (z)[2]=(x)[0]*(y)[1]-(x)[1]*(y)[0]; */
-#endif
+/* quick fix to get around some compiler warnings on 64 bit systems */
+#define VERBOSE_OBJX (unsigned long)
+#define VERBOSE_OBJ 
 
 /*
  * The following VRML field types don't need JS classes:
@@ -84,34 +75,11 @@
 
 /* helper functions */
 
-void newJS_SFNode(char *_vrmlstr,char *_handle, JSContext *cx, JSObject *obj);
-
-static JSBool
-doMFToString(JSContext *cx,
-				JSObject *obj,
-				const char *className,
-				jsval *rval);
-
-static JSBool
-doMFAddProperty(JSContext *cx,
-				JSObject *obj,
-				jsval id,
-				jsval *vp, char *name);
-
-static JSBool
-doMFSetProperty(JSContext *cx,
-				JSObject *obj,
-				jsval id,
-				jsval *vp, char *name);
-
-static JSBool
-getBrowser(JSContext *context,
-		   JSObject *obj,
-		   BrowserNative **brow);
-
-static JSBool
-doMFStringUnquote(JSContext *cx,
-				  jsval *vp);
+JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval); 
+JSBool doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name); 
+JSBool doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name); 
+JSBool getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow); 
+JSBool doMFStringUnquote(JSContext *cx, jsval *vp);
 
 
 /* class functions */
@@ -176,12 +144,9 @@ SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 JSBool
 SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 
-
-/* not implemented */
 JSBool
 SFColorRGBAGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
-/* not implemented */
 JSBool
 SFColorRGBASetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
@@ -205,9 +170,6 @@ SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 
 JSBool
 SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
-
-
-
 
 
 JSBool
@@ -312,7 +274,6 @@ SFRotationInverse(JSContext *cx,
 				  jsval *argv,
 				  jsval *rval);
 
-/* not implemented */
 JSBool
 SFRotationMultiply(JSContext *cx,
 				   JSObject *obj,
@@ -1016,481 +977,46 @@ VrmlMatrixSetProperty(JSContext *cx,
 				   jsval *vp);
 
 
-
-/*
- * VRML Node types as JS classes:
- */
-
-
-static JSObject *proto_SFColor;
-
-static JSClass SFColorClass = {
-	"SFColor",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFColorGetProperty,
-	SFColorSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	SFColorFinalize
-};
-
-static JSPropertySpec (SFColorProperties)[] = {
-	{"r", 0, JSPROP_ENUMERATE},
-	{"g", 1, JSPROP_ENUMERATE},
-	{"b", 2, JSPROP_ENUMERATE},
-	{0}
-};
-
-static JSFunctionSpec (SFColorFunctions)[] = {
-	{"getHSV", SFColorGetHSV, 0},
-	{"setHSV", SFColorSetHSV, 0},
-	{"toString", SFColorToString, 0},
-	{"assign", SFColorAssign, 0},
-	{"__touched", SFColorTouched, 0},
-	{0}
-};
-
-
-static JSObject *proto_SFColorRGBA;
-
-static JSClass SFColorRGBAClass = {
-	"SFColorRGBA",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFColorRGBAGetProperty,
-	SFColorRGBASetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	SFColorRGBAFinalize
-};
-
-static JSPropertySpec (SFColorRGBAProperties)[] = {
-	{"r", 0, JSPROP_ENUMERATE},
-	{"g", 1, JSPROP_ENUMERATE},
-	{"b", 2, JSPROP_ENUMERATE},
-	{"a", 3, JSPROP_ENUMERATE},
-	{0}
-};
-
-static JSFunctionSpec (SFColorRGBAFunctions)[] = {
-	{"getHSV", SFColorRGBAGetHSV, 0},
-	{"setHSV", SFColorRGBASetHSV, 0},
-	{"toString", SFColorRGBAToString, 0},
-	{"assign", SFColorRGBAAssign, 0},
-	{"__touched", SFColorRGBATouched, 0},
-	{0}
-};
-
-
-static JSObject *proto_SFImage;
-
-static JSClass SFImageClass = {
-	"SFImage",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFImageGetProperty,
-	SFImageSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSPropertySpec (SFImageProperties)[] = {
-	{"x", 0, JSPROP_ENUMERATE},
-	{"y", 1, JSPROP_ENUMERATE},
-	{"comp", 2, JSPROP_ENUMERATE},
-	{"array", 3, JSPROP_ENUMERATE},
-	{0}
-};
-
-static JSFunctionSpec (SFImageFunctions)[] = {
-	{"toString", SFImageToString, 0},
-	{"assign", SFImageAssign, 0},
-	{"__touched", SFImageTouched, 0},
-	{0}
-};
-
-
-static JSObject *proto_SFNode;
-
-static JSClass SFNodeClass = {
-	"SFNode",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFNodeGetProperty,
-	SFNodeSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	SFNodeFinalize
-};
-
-static JSPropertySpec (SFNodeProperties)[] = {
-	/*
-	{"__handle", 1, JSPROP_ENUMERATE},
-	{"__X3DString", 0, JSPROP_ENUMERATE},
-	*/
-	{0}
-};
-
-static JSFunctionSpec (SFNodeFunctions)[] = {
-	{"toString", SFNodeToString, 0},
-	{"assign", SFNodeAssign, 0},
-	{"__touched", SFNodeTouched, 0},
-	{0}
-};
-
-
-static JSObject *proto_SFRotation;
-
-static JSClass SFRotationClass = {
-	"SFRotation",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFRotationGetProperty,
-	SFRotationSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	SFRotationFinalize
-};
-
-static JSPropertySpec (SFRotationProperties)[] = {
-	{"x", 0, JSPROP_ENUMERATE},
-	{"y", 1, JSPROP_ENUMERATE},
-	{"z", 2, JSPROP_ENUMERATE},
-	{"angle",3, JSPROP_ENUMERATE},
-	{0}
-};
-
-static JSFunctionSpec (SFRotationFunctions)[] = {
-	{"getAxis", SFRotationGetAxis, 0},
-	{"inverse", SFRotationInverse, 0},
-	{"multiply", SFRotationMultiply, 0},
-	{"multVec", SFRotationMultVec, 0},
-	{"setAxis", SFRotationSetAxis, 0},
-	{"slerp", SFRotationSlerp, 0},
-	{"toString", SFRotationToString, 0},
-	{"assign", SFRotationAssign, 0},
-	{"__touched", SFRotationTouched, 0},
-	{0}
-};
-
-
-static JSObject *proto_SFVec2f;
-
-static JSClass SFVec2fClass = {
-	"SFVec2f",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFVec2fGetProperty,
-	SFVec2fSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	SFVec2fFinalize
-};
-
-static JSPropertySpec (SFVec2fProperties)[] = {
-	{"x", 0, JSPROP_ENUMERATE},
-	{"y", 1, JSPROP_ENUMERATE},
-	{0}
-};
-
-static JSFunctionSpec (SFVec2fFunctions)[] = {
-	{"add", SFVec2fAdd, 0},
-	{"divide", SFVec2fDivide, 0},
-	{"dot", SFVec2fDot, 0},
-	{"length", SFVec2fLength, 0},
-	{"multiply", SFVec2fMultiply, 0},
-	/* {"negate", SFVec2fNegate, 0}, */
-	{"normalize", SFVec2fNormalize, 0},
-	{"subtract", SFVec2fSubtract, 0},
-	{"toString", SFVec2fToString, 0},
-	{"assign", SFVec2fAssign, 0},
-	{"__touched", SFVec2fTouched, 0},
-	{0}
-};
-
-
-static JSObject *proto_SFVec3f;
-
-static JSClass SFVec3fClass = {
-	"SFVec3f",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFVec3fGetProperty,
-	SFVec3fSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	SFVec3fFinalize
-};
-
-static JSPropertySpec (SFVec3fProperties)[] = {
-	{"x", 0, JSPROP_ENUMERATE},
-	{"y", 1, JSPROP_ENUMERATE},
-	{"z", 2, JSPROP_ENUMERATE},
-	{0}
-};
-
-static JSFunctionSpec (SFVec3fFunctions)[] = {
-	{"add", SFVec3fAdd, 0},
-	{"cross", SFVec3fCross, 0},
-	{"divide", SFVec3fDivide, 0},
-	{"dot", SFVec3fDot, 0},
-	{"length", SFVec3fLength, 0},
-	{"multiply", SFVec3fMultiply, 0},
-	{"negate", SFVec3fNegate, 0},
-	{"normalize", SFVec3fNormalize, 0},
-	{"subtract", SFVec3fSubtract, 0},
-	{"toString", SFVec3fToString, 0},
-	{"assign", SFVec3fAssign, 0},
-	{"__touched", SFVec3fTouched, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFColor;
-
-static JSClass MFColorClass = {
-	"MFColor",
-	JSCLASS_HAS_PRIVATE,
-	MFColorAddProperty,
-	JS_PropertyStub,
-	MFColorGetProperty,
-	MFColorSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFColorFunctions)[] = {
-	{"toString", MFColorToString, 0},
-	{"assign", MFColorAssign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFFloat;
-
-static JSClass MFFloatClass = {
-	"MFFloat",
-	JSCLASS_HAS_PRIVATE,
-	MFFloatAddProperty,
-	JS_PropertyStub,
-	MFFloatGetProperty,
-	MFFloatSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFFloatFunctions)[] = {
-	{"toString", MFFloatToString, 0},
-	{"assign", MFFloatAssign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFInt32;
-
-static JSClass MFInt32Class = {
-	"MFInt32",
-	JSCLASS_HAS_PRIVATE,
-	MFInt32AddProperty,
-	JS_PropertyStub,
-	MFInt32GetProperty,
-	MFInt32SetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFInt32Functions)[] = {
-	{"toString", MFInt32ToString, 0},
-	{"assign", MFInt32Assign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFNode;
-
-static JSClass MFNodeClass = {
-	"MFNode",
-	JSCLASS_HAS_PRIVATE,
-	MFNodeAddProperty,
-	JS_PropertyStub,
-	MFNodeGetProperty,
-	MFNodeSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFNodeFunctions)[] = {
-	{"toString", MFNodeToString, 0},
-	{"assign", MFNodeAssign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFRotation;
-
-static JSClass MFRotationClass = {
-	"MFRotation",
-	JSCLASS_HAS_PRIVATE,
-	MFRotationAddProperty,
-	JS_PropertyStub,
-	MFRotationGetProperty,
-	MFRotationSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFRotationFunctions)[] = {
-	{"toString", MFRotationToString, 0},
-	{"assign", MFRotationAssign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFString;
-
-static JSClass MFStringClass = {
-	"MFString",
-	JSCLASS_HAS_PRIVATE,
-	MFStringAddProperty,
-	JS_PropertyStub,
-	MFStringGetProperty,
-	MFStringSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFStringFunctions)[] = {
-	{"toString", MFStringToString, 0},
-	{"assign", MFStringAssign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFTime;
-
-static JSClass MFTimeClass = {
-	"MFTime",
-	JSCLASS_HAS_PRIVATE,
-	MFTimeAddProperty,
-	JS_PropertyStub,
-	MFTimeGetProperty,
-	MFTimeSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSPropertySpec (MFTimeProperties)[] = { 
- 	{0} 
-};
-
-static JSFunctionSpec (MFTimeFunctions)[] = {
-	{"toString", MFTimeToString, 0},
-	{"assign", MFTimeAssign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFVec2f;
-
-static JSClass MFVec2fClass = {
-	"MFVec2f",
-	JSCLASS_HAS_PRIVATE,
-	MFVec2fAddProperty,
-	JS_PropertyStub,
-	MFVec2fGetProperty,
-	MFVec2fSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFVec2fFunctions)[] = {
-	{"toString", MFVec2fToString, 0},
-	{"assign", MFVec2fAssign, 0},
-	{0}
-};
-
-
-static JSObject *proto_MFVec3f;
-
-static JSClass MFVec3fClass = {
-	"MFVec3f",
-	JSCLASS_HAS_PRIVATE,
-	MFVec3fAddProperty,
-	JS_PropertyStub,
-	MFVec3fGetProperty,
-	MFVec3fSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (MFVec3fFunctions)[] = {
-	{"toString", MFVec3fToString, 0},
-	{"assign", MFVec3fAssign, 0},
-	{0}
-};
-
-/* VrmlMatrix - JAS */
-static JSObject *proto_VrmlMatrix;
-
-static JSClass VrmlMatrixClass = {
-	"VrmlMatrix",
-	JSCLASS_HAS_PRIVATE,
-	VrmlMatrixAddProperty,
-	JS_PropertyStub,
-	VrmlMatrixGetProperty,
-	VrmlMatrixSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	JS_FinalizeStub
-};
-
-static JSFunctionSpec (VrmlMatrixFunctions)[] = {
-	{"toString", VrmlMatrixToString, 0},
-	{"assign", VrmlMatrixAssign, 0},
-	{"getTransform", VrmlMatrixgetTransform, 0},
-	{"setTransform", VrmlMatrixsetTransform, 0},
-	{"inverse", VrmlMatrixinverse, 0},
-	{"transpose", VrmlMatrixtranspose, 0},
-	{"multLeft", VrmlMatrixmultLeft, 0},
-	{"multRight", VrmlMatrixmultRight, 0},
-	{"multVecMatrix", VrmlMatrixmultVecMatrix, 0},
-	{"multMatrixVec", VrmlMatrixmultMatrixVec, 0},
-	{0}
-};
-
+extern JSClass SFColorClass;
+extern JSPropertySpec (SFColorProperties)[];
+extern JSFunctionSpec (SFColorFunctions)[];
+extern JSClass SFColorRGBAClass;
+extern JSPropertySpec (SFColorRGBAProperties)[];
+extern JSFunctionSpec (SFColorRGBAFunctions)[];
+extern JSClass SFImageClass;
+extern JSPropertySpec (SFImageProperties)[];
+extern JSFunctionSpec (SFImageFunctions)[];
+extern JSClass SFNodeClass;
+extern JSPropertySpec (SFNodeProperties)[];
+extern JSFunctionSpec (SFNodeFunctions)[];
+extern JSClass SFRotationClass;
+extern JSPropertySpec (SFRotationProperties)[];
+extern JSFunctionSpec (SFRotationFunctions)[];
+extern JSClass SFVec2fClass;
+extern JSPropertySpec (SFVec2fProperties)[];
+extern JSFunctionSpec (SFVec2fFunctions)[];
+extern JSClass SFVec3fClass;
+extern JSPropertySpec (SFVec3fProperties)[];
+extern JSFunctionSpec (SFVec3fFunctions)[];
+extern JSClass MFColorClass;
+extern JSFunctionSpec (MFColorFunctions)[];
+extern JSClass MFFloatClass;
+extern JSFunctionSpec (MFFloatFunctions)[];
+extern JSClass MFInt32Class;
+extern JSFunctionSpec (MFInt32Functions)[];
+extern JSClass MFNodeClass;
+extern JSFunctionSpec (MFNodeFunctions)[];
+extern JSClass MFRotationClass;
+extern JSFunctionSpec (MFRotationFunctions)[];
+extern JSClass MFStringClass;
+extern JSFunctionSpec (MFStringFunctions)[];
+extern JSClass MFTimeClass;
+extern JSPropertySpec (MFTimeProperties)[] ;
+extern JSFunctionSpec (MFTimeFunctions)[];
+extern JSClass MFVec2fClass;
+extern JSFunctionSpec (MFVec2fFunctions)[];
+extern JSClass MFVec3fClass;
+extern JSFunctionSpec (MFVec3fFunctions)[];
+extern JSClass VrmlMatrixClass;
+extern JSFunctionSpec (VrmlMatrixFunctions)[];
 #endif /*  __jsVRMLClasses_h__ */
