@@ -1,5 +1,11 @@
 For 1.19.3:
+	- OS X - console messages improved.
+
+	- Makefile.PL - .rpm and .deb package makes updated.
+
 	- add Seamonkey and Firefox as possible browsers in Makefile.PL
+
+	- Classic VRML parser has improved in it's use of Scripts within PROTOs.
 
 	- Linux Plugin code reworked - had problems looking up correct urls for textures, inlines
 	  and anchors. Should be better.
