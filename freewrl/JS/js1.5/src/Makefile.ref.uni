@@ -80,7 +80,7 @@ endif
 #
 # XCFLAGS may be set in the environment or on the gmake command line
 #
-CFLAGS          += $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS)
+CFLAGS          += -fPIC $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS)
 
 LDFLAGS		= $(XLDFLAGS)
 

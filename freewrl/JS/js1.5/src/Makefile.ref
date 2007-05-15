@@ -80,7 +80,7 @@ endif
 #
 # XCFLAGS may be set in the environment or on the gmake command line
 #
-CFLAGS          += $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS)
+CFLAGS          += -fPIC $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS)
 
 LDFLAGS		= $(XLDFLAGS)
 
@@ -281,7 +281,7 @@ LIBRARY = $(OBJDIR)/js32.lib
 SHARED_LIBRARY = $(OBJDIR)/js32.dll
 PROGRAM = $(OBJDIR)/js.exe
 else
-#change libjs to libFreeWRLjs to avoid version problems - J. Stewart
+# change libjs to libFreeWRLjs to avoid version problems. J. Stewart.
 LIBRARY = $(OBJDIR)/libFreeWRLjs.a
 SHARED_LIBRARY = $(OBJDIR)/libFreeWRLjs.$(SO_SUFFIX)
 PROGRAM = $(OBJDIR)/js
@@ -319,7 +319,7 @@ $(OBJDIR)/jsautocfg.h: $(OBJDIR)/jscpucfg
 	$(OBJDIR)/jscpucfg > $@
 
 $(OBJDIR)/jscpucfg: $(OBJDIR)/jscpucfg.o
-	$(CC) -o $@ $(OBJDIR)/jscpucfg.o
+	$(CC) $(CFLAGS) -o $@ $(OBJDIR)/jscpucfg.o
 
 # Look in OBJDIR to find jsautocfg.h
 INCLUDES   += -I$(OBJDIR)
@@ -343,14 +343,16 @@ ifeq ($(OS_ARCH),QNX)
 ifneq ($(OS_TARGET),NTO)
 	@cp $(JSMATH_PRELINK) $@
 else	
-	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+	$(LD) $(DASH_R) -o $@  $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
 endif
 else
 ifdef USE_MSVC
 	@echo Warning: to use $(LIBRARY) must also link against $(FDLIBM_LIBRARY)
 	@cp $(JSMATH_PRELINK) $@
 endif
-	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+	$(LD) $(DASH_R) $(LDFLAGS) -o Darwin_OPT.OBJ/jsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+#	$(LD) $(DASH_R) -arch i386 -o  Darwin_OPT.OBJ/ijsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+#	lipo -arch ppc Darwin_OPT.OBJ/ppcjsmath.o -arch i386 Darwin_OPT.OBJ/ijsmath.o -create -output Darwin_OPT.OBJ/jsmath.o
 endif
 
 # Note: generated headers must be built before descending
