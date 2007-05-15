@@ -1,3 +1,8 @@
+For 1.19.4:
+	- Javascript functions that returned strings, were not concatable. This
+	  was caused by returning a trailing NULL character (as is usually the case with C strings).
+	  This NULL was removed, and eg: print ('the ' + getName() + ' Browser works now');
+
 For 1.19.3:
 	- OS X - console messages improved.
 

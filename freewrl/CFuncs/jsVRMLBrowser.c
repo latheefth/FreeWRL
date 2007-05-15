@@ -111,8 +111,6 @@ void createLoadUrlString(char *out, int outLen, char *url, char *param) {
 	conCat (out,param);
 }
 
-
-
 JSBool
 VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 {
@@ -146,7 +144,7 @@ VrmlBrowserGetName(JSContext *context, JSObject *obj, uintN argc, jsval *argv, j
 	UNUSED(argc);
 	UNUSED(argv);
 
-	_str = JS_NewString(context,BrowserName,strlen(BrowserName)+1);
+	_str = JS_NewString(context,BrowserName,strlen(BrowserName));
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -162,7 +160,7 @@ VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv
 	UNUSED(argc);
 	UNUSED(argv);
 
-	_str = JS_NewString(context,FWVER,strlen(FWVER)+1);
+	_str = JS_NewString(context,FWVER,strlen(FWVER));
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -181,7 +179,7 @@ VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval 
 	/* get the variable updated */
 	getCurrentSpeed();
 	sprintf (string,"%f",BrowserSpeed);
-	_str = JS_NewString(context,string,strlen(string)+1);
+	_str = JS_NewString(context,string,strlen(string));
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -198,7 +196,7 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, js
 	UNUSED(argv);
 
 	sprintf (FPSstring,"%6.2f",BrowserFPS);
-	_str = JS_NewString(context,FPSstring,strlen(FPSstring)+1);
+	_str = JS_NewString(context,FPSstring,strlen(FPSstring));
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -213,7 +211,7 @@ VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 	UNUSED(argc);
 	UNUSED(argv);
 
-	_str = JS_NewString(context,BrowserFullPath,strlen(BrowserFullPath)+1);
+	_str = JS_NewString(context,BrowserFullPath,strlen(BrowserFullPath));
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -716,7 +714,7 @@ VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsva
 			printf ("getMidiDeviceList: device %d is %s\n",deviceIndexInList,ReWireNamenames[currentDevice].name);
 			#endif
 
-        		_str = JS_NewString(context,ReWireNamenames[currentDevice].name,strlen(ReWireNamenames[currentDevice].name)+1);
+        		_str = JS_NewString(context,ReWireNamenames[currentDevice].name,strlen(ReWireNamenames[currentDevice].name));
                 	if (!JS_DefineElement(context, myObj, (jsint) deviceIndexInList, STRING_TO_JSVAL(_str),
 				JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
                 	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
@@ -803,7 +801,7 @@ VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsva
 				printf ("getMidiDeviceList: controller %d is %s\n",controllerIndexInList,ReWireNamenames[currentController].name);
 				#endif
 	
-	        		_str = JS_NewString(context,ReWireNamenames[currentController].name,strlen(ReWireNamenames[currentController].name)+1);
+	        		_str = JS_NewString(context,ReWireNamenames[currentController].name,strlen(ReWireNamenames[currentController].name));
 	                	if (!JS_DefineElement(context, myObj, (jsint) controllerIndexInList, STRING_TO_JSVAL(_str),
 					JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
 	                	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
