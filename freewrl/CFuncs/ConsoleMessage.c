@@ -77,23 +77,17 @@ int ConsoleMessage(const char *fmt, ...) {
 	#ifndef HAVE_MOTIF
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
-
-	if (isMacPlugin && consMsgCount > MAXMESSAGES) {
+	#ifdef AQUA
+		if (isMacPlugin && consMsgCount > MAXMESSAGES) {
+	#else 
+		if (consMsgCount > MAXMESSAGES) {
+	#endif
 		if (consMsgCount > (MAXMESSAGES + 5)) return;
 		strcpy(FWbuffer, "Too many freewrl messages - stopping ConsoleMessage");
 		consMsgCount = MAXMESSAGES + 100;
 	} else {
 		consMsgCount++;
-	}
 
-#ifndef AQUA
-	if (!isMacPlugin && consMsgCount > MAXMESSAGES) {
-		if (consMsgCount > (MAXMESSAGES+5)) return;
-		strcpy (FWbuffer,"Too many FreeWRL messages - stopping ConsoleMessage");
-		consMsgCount = MAXMESSAGES + 100; /* some number quite large */
-	} else {
-		consMsgCount++;
-#endif
 	#endif
 	
 		va_start(ap, fmt);		 /* must be called before work	 */
@@ -165,36 +159,30 @@ int ConsoleMessage(const char *fmt, ...) {
 		}
 	
 		va_end(ap);				/* clean up				 */
-#ifndef AQUA
 #ifndef HAVE_MOTIF
 	}
-#endif
 #endif
 
 #ifdef AQUA
 	/* print this to stdio */
 	printf (FWbuffer);
+
+        if ((strlen(FWbuffer)) < (STRING_LENGTH) -10) {
+		strcat (FWbuffer,"\n");
+	}
+
+	/* print this to the console log */
 	if (ConsoleLog != NULL) {
 		fprintf (ConsoleLog,FWbuffer);
 	}
 
-	/*printf ("\n"); */
-
-	/* and, put something on the screen */
+	/* print this to the application console log if running standalone, or speak it if running as a plug in */
 	if (!isMacPlugin) {
-		if (strcmp(FWbuffer, "\n")) {
-		/*
-		update_status("Status message on console log");
-		*/
-		aquaSetConsoleMessage(FWbuffer);
+		if (strcmp(FWbuffer, "\n") && strcmp(FWbuffer, "\n\n")) {
+			aquaSetConsoleMessage(FWbuffer);
 		}
 	} else {
-		/*
-		update_status(FWbuffer);
-		requestPluginPrint(_fw_browser_plugin, FWbuffer);
-		*/
                 char systemBuffer[STRING_LENGTH + 10];
-                printf("should be calling say ... ");
                 sprintf(systemBuffer, "say %s", FWbuffer);
                 system(systemBuffer);
 	}
