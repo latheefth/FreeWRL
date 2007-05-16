@@ -35,11 +35,20 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V4.4 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#define PLUGIN_DESCRIPTION	"V4.5 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
 
 #define ERRORMSG "FILE DOES NOT EXIST"
+
+#define RECORD_FILE_NAME_IF_NULL \
+	if (FW_Plugin->fName == NULL) { \
+		/* Get the base file name for FreeWRL to run */ \
+		FW_Plugin->fName = (char *) NPN_MemAlloc((strlen(stream->url) +1) *sizeof(char *)); \
+		strcpy(FW_Plugin->fName,stream->url); \
+		sprintf (debs,"Can record filename now, name is %s",FW_Plugin->fName); \
+		print_here(debs); \
+	}
 
 char *paramline[15]; /* parameter line */
 
@@ -102,7 +111,7 @@ static void print_here (char * xx) {
 	if (!PluginVerbose) return;
 
 	if (tty == NULL) {
-		tty = fopen("/home/luigi/log", "w");
+		tty = fopen("/home/luigi/pluginlog", "w");
 		if (tty == NULL)
 			PluginVerbose = FALSE;
 		fprintf (tty, "\nplugin restarted\n");
@@ -266,6 +275,7 @@ int freewrlReceive(int fileDescriptor) {
 
 		/* now, put a status line on bottom of browser */
 		sprintf (debs, "FreeWRL loading: %s\n",request.url);
+		print_here(debs);
 		NPN_Status (request.instance, debs);
 	}
 
@@ -321,6 +331,10 @@ void Run (NPP instance) {
 	print_here ("start of Run");
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
+	sprintf (debs,"Run, checking if can run; disp win %x %x fname %s",
+		FW_Plugin->mozwindow, FW_Plugin->display, FW_Plugin->fName); 
+	print_here (debs);
+
 	/* Return if we do not have all of the required parameters. */
 	if (FW_Plugin->mozwindow == 0) return;
 
@@ -329,8 +343,7 @@ void Run (NPP instance) {
 	if (FW_Plugin->display == 0) return;
 
 	sprintf (debs,"Run, can run; disp win %x %x fname %s",
-			FW_Plugin->mozwindow, FW_Plugin->display,
-			FW_Plugin->fName);
+		FW_Plugin->mozwindow, FW_Plugin->display, FW_Plugin->fName);
 	print_here (debs);
 
 
@@ -671,6 +684,9 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
+	/* do we have a file name yet? */
+	sprintf (debs,"file name in SetWindow is %s",FW_Plugin->fName);
+	print_here(debs);
 
 	/* set the display, if we know it yet */ 
 	if (!FW_Plugin->display) { 
@@ -738,22 +754,29 @@ NPP_NewStream(NPP instance,
 {
 	FW_PluginInstance* FW_Plugin;
 
+	if (instance == NULL) return NPERR_INVALID_INSTANCE_ERROR;
+
+
+	if (stream->url == NULL) return(NPERR_NO_DATA);
+
 	if (currentStream == NULL) {
 		currentStream = stream;
 	} else {
 		print_here("NPP_NewStream, currentstream NOT NULL");
 	}
 
-	sprintf (debs,"NPP_NewStream, instance %d, type %d, stream %d, seekable %d stype %d",instance,
-			stream, seekable,*stype);
-	print_here(debs);
-	if (instance == NULL)
-		return NPERR_INVALID_INSTANCE_ERROR;
-
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	if (stream->url == NULL) {
-		return(NPERR_NO_DATA);
+	sprintf (debs,"NPP_NewStream, filename %sinstance %d, type %d, stream %d, seekable %d stype %d",
+		FW_Plugin->fName, instance, stream, seekable,*stype);
+	print_here(debs);
+
+	RECORD_FILE_NAME_IF_NULL
+
+	/* run FreeWRL, if it is not already running. It might not be... */
+	if (!FW_Plugin->freewrl_running) {
+		print_here ("NPP_NewStream, running FreeWRL here!");
+			Run(instance);
 	}
 
 	/* Lets tell netscape to save this to a file. */
@@ -826,12 +849,8 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 	FW_PluginInstance* FW_Plugin;
 	if (instance != NULL) {
 		FW_Plugin = (FW_PluginInstance*) instance->pdata;
-
-		/* Get the base file name for FreeWRL to run */
-		FW_Plugin->fName = (char *) NPN_MemAlloc((strlen(stream->url) +1) *sizeof(char *));
-		strcpy(FW_Plugin->fName,stream->url);
-		sprintf (debs,"NPP_StreamAsFile, name is %s",FW_Plugin->fName);
-		print_here(debs);
+	
+		RECORD_FILE_NAME_IF_NULL
 
 		if (!FW_Plugin->freewrl_running) {
 			/* if we are not running yet, see if we have enough to start. */
