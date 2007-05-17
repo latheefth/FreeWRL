@@ -14,6 +14,7 @@
 #include "jsapi.h"
 #include "jsUtils.h"
 #include "headers.h"
+
 /*
 #include <stdio.h>
 #define TRUE 1==1
@@ -149,6 +150,10 @@ static int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *ty
 	struct Uni_String *tmp;
 	int len;
 
+	#ifdef X3DPARSERVERBOSE
+	printf ("getFieldFromScript, looking for %s\n",fieldName);
+	#endif
+	
 	len = strlen(fieldName) +1; /* len in Uni_String has the '\0' on it */
 	
         for (ctr=0; ctr<=ScriptFieldTableSize; ctr++) {
@@ -166,6 +171,9 @@ static int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *ty
                 }
         }
         
+	#ifdef X3DPARSERVERBOSE
+	printf ("getFieldFromScript, did not find field %s in script %d\n",fieldName,scriptno);
+	#endif
 	
 	/* did not find it */
 	*offs = -1; *type = 0;
@@ -181,7 +189,7 @@ static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *nam
  
 	if (node->_nodeType == NODE_Script) {
 		sc = (struct X3D_Script *) node;
-		error = getFieldFromScript (name,sc->__scriptObj,offs,type);
+		error = !(getFieldFromScript (name,sc->__scriptObj,offs,type));
 	} else {
 
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
@@ -213,7 +221,6 @@ static void parseX3DRoutes (char **atts) {
 	int toType;
 
 	int scriptDiri = 0;
-
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("\nstart ofrouting\n");	
@@ -292,7 +299,6 @@ static void parseX3DRoutes (char **atts) {
 	/* can we register the route? */
 	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType),scriptDiri);
 }
-
 
 static int canWeIgnoreThisNode(char *name) {
 
@@ -421,21 +427,27 @@ static void parseScriptField(char *name, char **atts) {
 	
 
 	/* copy the fields over */
+	/* have a "key" "value" pairing here. */
 	for (i = 0; atts[i]; i += 2) {
-		if (strcmp(atts[i],"name") == 0) { which = 0;	
-		} else if (strcmp(atts[i],"accessType") == 0) { which = 1;
-		} else if (strcmp(atts[i],"type") == 0) { which = 2;
-		} else {
-			ConsoleMessage ("X3D Script parsing line %d- unknown field type %s",LINE,atts[i]);
-			return;
-		}
+		/* skip any "appinfo" field here */
+		if (strcmp(atts[i],"appinfo") != 0) {
+			if (strcmp(atts[i],"name") == 0) { which = 0;	
+			} else if (strcmp(atts[i],"accessType") == 0) { which = 1;
+			} else if (strcmp(atts[i],"type") == 0) { which = 2;
+			} else {
+				ConsoleMessage ("X3D Script parsing line %d- unknown field type %s",LINE,atts[i]);
+				return;
+			}
 			if (myparams[which][0] != '\0') {
 				ConsoleMessage ("X3DScriptParsing line %d, field %s already has name - is %s",
 					LINE,myparams[which],atts[i+1]);
 			}
-		strl = strlen(atts[i+1]); if (strl>250) strl=250;
-		strncpy(myparams[which],atts[i+1],strl);
-		myparams[which][strl]='\0';
+
+			/* have the key, copy the value over */
+			strl = strlen(atts[i+1]); if (strl>250) strl=250;
+			strncpy(myparams[which],atts[i+1],strl);
+			myparams[which][strl]='\0';
+		}
 	}
 
 	#ifdef X3DPARSERVERBOSE
@@ -461,6 +473,82 @@ static int inCDATA = FALSE;
 static char *scriptText = NULL;
 static int scriptTextMallocSize = 0;
 
+/* we get script text from a number of sources; from the URL field, from CDATA, from a file
+   pointed to by the URL field, etc... handle the data in one place */
+
+void initScriptWithScript() {
+	uintptr_t myScriptNumber;
+	char *startingIndex;
+	jsval rval;
+	struct X3D_Script * me;
+	char *myText = NULL;
+	int i;
+	struct Uni_String *myUni;
+/*
+	struct Uni_String {
+        int len;
+        char * strptr;
+        int touched;
+};
+*/
+
+
+	/* sanity checking... */
+	me = (struct X3D_Script *)parentStack[parentIndex-1];
+
+	if (me->_nodeType != NODE_Script) {
+		ConsoleMessage ("initScriptWithScript - Expected to find a NODE_Script, got a %s\n",
+		stringNodeType(me->_nodeType));
+		return;
+	}
+
+	myScriptNumber = me->__scriptObj;
+
+	/* did the script text come from a CDATA node?? */
+	if (scriptText != NULL) if (scriptText[0] != '\0') myText = scriptText;
+
+	if (myText == NULL) {
+		for (i = 0; i < me->url.n; i++) {
+			myUni = me->url.p[i];
+/*
+printf ("nistring len %d\n",myUni->len);
+printf ("nistring strptr %s\n",myUni->strptr);
+*/
+			myText = myUni->strptr;
+		}
+	}
+
+/*
+	for (i=0; i<strlen(myText); i++) {
+printf ("i %d ch %c %d\n",i,myText[i],myText[i]);
+}
+*/
+
+	/* peel off the ecmascript etc */
+	startingIndex = strstr(myText,"ecmascript:");
+	if (startingIndex != NULL) {
+		startingIndex += strlen ("ecmascript:");
+	} else if (startingIndex == NULL) {
+		startingIndex = strstr(myText,"vrmlscript:");
+		if (startingIndex != NULL)
+			startingIndex += strlen ("vrmlscript:");
+	} else if (startingIndex == NULL) {
+		startingIndex = strstr(myText,"javascript:");
+		if (startingIndex != NULL)
+			startingIndex += strlen ("javacript:");
+	}
+
+	if (startingIndex == NULL) {
+		ConsoleMessage ("X3DParser, line %d have Script node, but no valid script",LINE);
+		return;
+	}
+
+	if (!ActualrunScript (myScriptNumber, myText, &rval)) {
+		ConsoleMessage ("X3DParser, script initialization error at line %d",LINE);
+		return;
+	}
+}
+
 static void XMLCALL startCDATA (void *userData) {
 	#ifdef X3DPARSERVERBOSE
 	printf ("start CDATA\n");
@@ -469,9 +557,6 @@ static void XMLCALL startCDATA (void *userData) {
 }
 
 static void XMLCALL endCDATA (void *userData) {
-	uintptr_t myScriptNumber;
-	char *startingIndex;
-	jsval rval;
 	#ifdef X3DPARSERVERBOSE
 	printf ("EndCData is %s\n",scriptText);
 	#endif
@@ -483,31 +568,10 @@ static void XMLCALL endCDATA (void *userData) {
 		return;
 	}
 	
-	myScriptNumber = ((struct X3D_Script *)parentStack[parentIndex-1])->__scriptObj;
+	#ifdef X3DPARSERVERBOSE
+        printf ("returning from EndCData\n");
+        #endif  
 
-	/* peel off the ecmascript etc */
-	startingIndex = strstr(scriptText,"ecmascript:");
-	if (startingIndex != NULL) {
-		startingIndex += strlen ("ecmascript:");
-	} else if (startingIndex == NULL) {
-		startingIndex = strstr(scriptText,"vrmlscript:");
-		if (startingIndex != NULL)
-			startingIndex += strlen ("vrmlscript:");
-	} else if (startingIndex == NULL) {
-		startingIndex = strstr(scriptText,"vrmlscript:");
-		if (startingIndex != NULL)
-			startingIndex += strlen ("vrmlscript:");
-	}
-
-	if (startingIndex == NULL) {
-		ConsoleMessage ("X3DParser, line %d have Script node, but no valid script",LINE);
-		return;
-	}
-
-	if (!ActualrunScript (myScriptNumber, scriptText, &rval)) {
-		ConsoleMessage ("X3DParser, script initialization error at line %d",LINE);
-		return;
-	}
 }
 
 static void XMLCALL handleCDATA (void *userData, const char *string, int len) {
@@ -585,6 +649,11 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	/* is this the end of a Script? */
 	if (strcmp(name,"Script") == 0) {
 		#ifdef X3DPARSERVERBOSE
+		printf ("scriptText is %s\n",scriptText);
+		initScriptWithScript();
+
+		FREE_IF_NZ(scriptText);
+		scriptTextMallocSize = 0;
 		printf ("got END of script - script should be registered\n");
 		#endif
 
