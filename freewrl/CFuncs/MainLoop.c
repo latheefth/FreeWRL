@@ -1317,21 +1317,20 @@ void closeFreewrl() {
 	pluginRunning = FALSE;
 	kill_clockEvents();
 	EAI_killBindables();
+	kill_bindables();
 	kill_routing();
-/*
+	/*
 	kill_rendering(rootNode);
-*/
+	*/
 	kill_openGLTextures();
 	kill_javascript();
 
 	#endif
         /* kill any remaining children */
         /* printf ("doQuit - calling exit(0)\n"); */
-	/*
         rn = (struct X3D_Group*) rootNode;
         tn =  &(rn->children);
         tn->n = 0;
-	*/
         quitThread = 1;
         viewer_initialized = FALSE;
 
@@ -1725,3 +1724,4 @@ void replaceWorldNeeded(char* str) {
 	strncpy(&replace_name, str, FILENAME_MAX);
 	replaceWorld= TRUE; 
 }
+
