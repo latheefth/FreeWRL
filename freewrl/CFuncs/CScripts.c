@@ -153,10 +153,20 @@ BOOL script_initCode(struct Script* me, const char* code)
  return TRUE;
 }
 
+/* get the script from this SFString. First checks to see if the string
+   contains the script; if not, it goes and tries to see if the SFString 
+   contains a file that (hopefully) contains the script */
+
 BOOL script_initCodeFromUri(struct Script* me, const char* uri)
 {
  size_t i;
- 
+ char *filename = NULL;
+ char *buffer = NULL;
+ char *mypath[1000];
+ char *slashindex;
+ char firstBytes[4]; /* not used here, but required for function call */
+ int rv;
+
  /* strip off whitespace at the beginning JAS */
  while ((*uri<= ' ') && (*uri>0)) uri++;
 
@@ -172,9 +182,40 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
    ++v;
   }
 
+  /* Is this a simple "javascript:" "ecmascript:" or "vrmlscript:" uri? JAS*/
   if(!*v && *u==':')
    return script_initCode(me, u+1);
  }
+
+ /* Not a valid script in this SFString. Lets see if this
+    is this a possible file that we have to get? */
+
+ /* printf ("script_initCodeFromUri, uri is %s\n",uri); */
+ filename = (char *)MALLOC(1000);
+
+ /* get the current parent */
+ strcpy (mypath,getInputURL());
+
+ /* and strip off the file name, leaving any path */
+ slashindex = (char *)rindex(mypath,'/');
+ if (slashindex != NULL) {
+       slashindex ++; /* leave the slash on */
+       *slashindex = 0;
+ } else {mypath[0] = 0;}
+
+ /* add the two together */
+ makeAbsoluteFileName(filename,mypath,uri,RUNNINGASPLUGIN || isMacPlugin);
+
+ /* and see if it exists. If it does, try running script_initCode() on it */
+ if (fileExists(filename,firstBytes,TRUE)) {
+	buffer = readInputString(filename,"");
+	rv = script_initCode(me,buffer);
+	FREE_IF_NZ (filename);
+	FREE_IF_NZ (buffer);
+	return rv;
+ }
+ FREE_IF_NZ (filename);
+
 
  /* Other protocols not supported */
  return FALSE;

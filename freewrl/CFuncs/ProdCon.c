@@ -256,6 +256,22 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 /* filename is MALLOC'd, combine pspath and thisurl to make an
    absolute file name */
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl, int useHTMLBrowserIfPossible){
+	char *end;
+
+	/* remove whitespace from beginning and ends of pspath and thisurl */
+	while ((*pspath <= ' ') && (*pspath != '\0')) pspath++;
+	while ((*thisurl <= ' ') && (*thisurl != '\0')) thisurl++;
+
+	if (*pspath != '\0') {
+		end = strchr(pspath,'\0'); 
+		while ((*end <= ' ') && (end != pspath)) end--; end++; *end = '\0';
+	}
+
+	if (*thisurl != '\0') {
+		end = strchr(thisurl,'\0'); 
+		while ((*end <= ' ') && (end != thisurl)) end--; end++; *end = '\0';
+	}
+
 	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
 
 	/* if we are running under a browser, let it handle things */
