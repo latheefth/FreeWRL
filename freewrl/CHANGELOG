@@ -1,4 +1,17 @@
 For 1.19.4:
+	- Compile changes to allow rpms to be built and distributed for Fedora Core 6;
+
+	- AMD64 browser plugin now compiled by default;
+
+	- Plugin code changed to better locate initial URL;
+
+	- OS X Console work, and plugin work to better handle multiple invocations of FreeWRL.
+
+	- XML parser has had a bit of Javascript coding changes. More required, for non-CDATA
+	  script text.
+
+	- Classic parser now looks to see if a Javascript URL is a file name - if it is, it loads the file.
+
 	- Javascript functions that returned strings, were not concatable. This
 	  was caused by returning a trailing NULL character (as is usually the case with C strings).
 	  This NULL was removed, and eg: print ('the ' + getName() + ' Browser works now');
