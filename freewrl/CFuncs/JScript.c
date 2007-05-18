@@ -23,7 +23,7 @@ Javascript C language binding.
 #include "CParseGeneral.h"
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
-#define MAX_RUNTIME_BYTES 0x100000L
+#define MAX_RUNTIME_BYTES 0x400000L
 /*   #define MAX_RUNTIME_BYTES 0x1000000L */
 /* #define STACK_CHUNK_SIZE 0x2000L*/
 #define STACK_CHUNK_SIZE 0x20000L
