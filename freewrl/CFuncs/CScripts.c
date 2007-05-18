@@ -162,8 +162,7 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  size_t i;
  char *filename = NULL;
  char *buffer = NULL;
- char *mypath[1000];
- char *slashindex;
+ char *mypath = NULL;
  char firstBytes[4]; /* not used here, but required for function call */
  int rv;
 
@@ -194,14 +193,10 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  filename = (char *)MALLOC(1000);
 
  /* get the current parent */
- strcpy (mypath,getInputURL());
+ mypath = strdup(getInputURL());
 
  /* and strip off the file name, leaving any path */
- slashindex = (char *)rindex(mypath,'/');
- if (slashindex != NULL) {
-       slashindex ++; /* leave the slash on */
-       *slashindex = 0;
- } else {mypath[0] = 0;}
+ removeFilenameFromPath (mypath);
 
  /* add the two together */
  makeAbsoluteFileName(filename,mypath,uri,RUNNINGASPLUGIN || isMacPlugin);
@@ -212,9 +207,12 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
 	rv = script_initCode(me,buffer);
 	FREE_IF_NZ (filename);
 	FREE_IF_NZ (buffer);
+	FREE_IF_NZ (mypath);
 	return rv;
  }
  FREE_IF_NZ (filename);
+ FREE_IF_NZ (buffer);
+ FREE_IF_NZ (mypath);
 
 
  /* Other protocols not supported */

@@ -170,7 +170,6 @@ void doBrowserAction () {
 	char *filename;
 	char *mypath;
 	char *thisurl;
-	char *slashindex;
 	int flen;
 	char firstBytes[4];
 	char sysline[1000];
@@ -187,19 +186,11 @@ void doBrowserAction () {
 
 	filename = (char *)MALLOC(1000);
 
-	/* lets make up the path and save it, and make it the global path */
-	count = strlen(AnchorsAnchor->__parenturl->strptr);
-	mypath = (char *)MALLOC ((sizeof(char)* count)+1);
-
 	/* copy the parent path over */
-	strcpy (mypath,AnchorsAnchor->__parenturl->strptr);
+	mypath = strdup(AnchorsAnchor->__parenturl->strptr);
 
 	/* and strip off the file name, leaving any path */
-	slashindex = (char *)rindex(mypath,'/');
-	if (slashindex != NULL) {
-		slashindex ++; /* leave the slash on */
-		*slashindex = 0;
-	 } else {mypath[0] = 0;}
+	removeFilenameFromPath (mypath);
 
 	/* printf ("Anchor, url so far is %s\n",mypath); */
 

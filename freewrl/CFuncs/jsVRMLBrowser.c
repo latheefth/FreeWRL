@@ -420,7 +420,6 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	char *coptr;
 	char firstBytes[4];
 	char *bfp;
-	char *slashindex;
 	int found;
 	int count;
 
@@ -506,11 +505,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* find a file name that exists. If not, return JS_FALSE */
 	bfp = strdup(BrowserFullPath);
 	/* and strip off the file name, leaving any path */
-	slashindex = (char *) rindex(bfp, ((int) '/'));
-	if (slashindex != NULL) {
-		slashindex ++; /* leave the slash there */
-		*slashindex = 0;
-	} else {bfp[0] = 0;}
+	removeFilenameFromPath (bfp);
 
 	/* go through the elements and find which (if any) url exists */	
 	found = FALSE;

@@ -485,6 +485,12 @@ void initScriptWithScript() {
 	char *myText = NULL;
 	int i;
 	struct Uni_String *myUni;
+	char *mypath;
+	char *thisurl;
+	int count;
+	char filename[1000];
+	char firstBytes[4];
+	int fromFile = FALSE;
 
 	/* sanity checking... */
 	me = (struct X3D_Script *)parentStack[parentIndex-1];
@@ -500,35 +506,67 @@ void initScriptWithScript() {
 	/* did the script text come from a CDATA node?? */
 	if (scriptText != NULL) if (scriptText[0] != '\0') myText = scriptText;
 
+	/* do we still have nothing? Look in the url node for a file or a script. */
 	if (myText == NULL) {
-		for (i = 0; i < me->url.n; i++) {
-			myUni = me->url.p[i];
+	        /* lets make up the path and save it, and make it the global path */
+	        /* copy the parent path over */
+	        mypath = strdup(me->__parenturl->strptr);
+	        removeFilenameFromPath (mypath);
 
-printf ("nistring len %d\n",myUni->len);
-printf ("nistring strptr %s\n",myUni->strptr);
+		/* try the first url, up to the last, until we find a valid one */
+		count = 0;
+		while (count < me->url.n) {
+			thisurl = me->url.p[count]->strptr;
 
-			myText = myUni->strptr;
+			/* leading whitespace removal */
+			while ((*thisurl <= ' ') && (*thisurl != '\0')) thisurl++;
+
+			/* is thisurl a vrml/ecma/javascript string?? */
+			if ((strstr(thisurl,"ecmascript:")!= 0) ||
+				(strstr(thisurl,"vrmlscript:")!=0) ||
+				(strstr(thisurl,"javascript:")!=0)) {
+				myText = thisurl;
+				break;
+			} else {
+				/* check to make sure we don't overflow */
+				if ((strlen(thisurl)+strlen(mypath)) > 900) return FALSE;
+
+				/* we work in absolute filenames... */
+				makeAbsoluteFileName(filename,mypath,thisurl,RUNNINGASPLUGIN || isMacPlugin);
+
+				if (fileExists(filename,firstBytes,TRUE)) {
+					myText = readInputString(filename,"");
+					fromFile = TRUE;
+					break;
+				}
+			}
+			count ++;
 		}
+/* error condition, if count >= me->url.n */
 	}
 
-/*
-	for (i=0; i<strlen(myText); i++) {
-printf ("i %d ch %c %d\n",i,myText[i],myText[i]);
-}
-*/
+	/* still have a problem here? */
+	if (myText == NULL) {
+		ConsoleMessage ("could not find Script text in url or CDATA");
+		return;
+	}
 
-	/* peel off the ecmascript etc */
-	startingIndex = strstr(myText,"ecmascript:");
-	if (startingIndex != NULL) { startingIndex += strlen ("ecmascript:");
-	} else if (startingIndex == NULL) {
-		startingIndex = strstr(myText,"vrmlscript:");
-		if (startingIndex != NULL) startingIndex += strlen ("vrmlscript:");
-	} else if (startingIndex == NULL) {
-		startingIndex = strstr(myText,"javascript:");
-		if (startingIndex != NULL) startingIndex += strlen ("javacript:");
+	/* peel off the ecmascript etc unless it was read in from a file */
+	if (!fromFile) {
+		startingIndex = strstr(myText,"ecmascript:");
+		if (startingIndex != NULL) { startingIndex += strlen ("ecmascript:");
+		} else if (startingIndex == NULL) {
+			startingIndex = strstr(myText,"vrmlscript:");
+			if (startingIndex != NULL) startingIndex += strlen ("vrmlscript:");
+		} else if (startingIndex == NULL) {
+			startingIndex = strstr(myText,"javascript:");
+			if (startingIndex != NULL) startingIndex += strlen ("javacript:");
+		} else {
+			/* text is from a file in the URL field */
+			startingIndex = myText;
+		}
 	} else {
-		/* text is from a file in the URL field */
-		startingIndex = myText;
+		startingIndex = myText; /* from a file, no ecmascript: required */
 	}
 
 	if (startingIndex == NULL) {

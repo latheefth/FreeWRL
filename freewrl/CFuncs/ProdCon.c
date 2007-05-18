@@ -140,6 +140,46 @@ int isinputThreadParsing() {return(inputThreadParsing);}
 /* is the initial URL loaded? Robert Sim */
 int isURLLoaded() {return(URLLoaded&&!inputThreadParsing);}
 
+void removeFilenameFromPath (char *path) {
+	char *slashindex;
+
+	/* and strip off the file name from the current path, leaving any path */
+	slashindex = (char *) rindex(path, ((int) '/'));
+	if (slashindex != NULL) {
+		slashindex ++; /* leave the slash there */
+		*slashindex = 0;
+	} else {path[0] = 0;}
+	/* printf ("removeFielnameFromPath, parenturl is %s\n",path);*/
+}
+
+
+/* given a URL, find the first valid file, and return it */
+int getValidFileFromUrl (char *filename, char *path, int absFlags, struct Multi_String *inurl, char *firstBytes) {
+	char *thisurl;
+	int count;
+
+	/* and strip off the file name from the current path, leaving any path */
+	removeFilenameFromPath(path);
+
+	/* try the first url, up to the last, until we find a valid one */
+	count = 0;
+	while (count < inurl->n) {
+		thisurl = inurl->p[count]->strptr;
+
+		/* check to make sure we don't overflow */
+		if ((strlen(thisurl)+strlen(path)) > 900) return FALSE;
+
+		/* we work in absolute filenames... */
+		makeAbsoluteFileName(filename,path,thisurl,absFlags);
+
+		if (fileExists(filename,firstBytes,TRUE)) {
+			break;
+		}
+		count ++;
+	}
+	return count != inurl->n;
+}
+
 /*
  * Check to see if the file name is a local file, or a network file.
  * return TRUE if it looks like a file from the network, false if it
@@ -790,56 +830,25 @@ void __pt_doInline() {
 	char *filename;
 	struct Multi_String *inurl;
 	struct X3D_Inline *inl;
-	char *thisurl;
-	char *slashindex;
 	char firstBytes[4];
 	inl = (struct X3D_Inline *)psp.ptr;
 	inurl = &(inl->url);
 	filename = (char *)MALLOC(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(inl->__parenturl->strptr);
-	psp.path = (char *)MALLOC ((unsigned)(count+1));
+	psp.path = strdup(inl->__parenturl->strptr);
 
-	/* copy the parent path over */
-	strcpy (psp.path,inl->__parenturl->strptr);
-
-	/* and strip off the file name, leaving any path */
-	slashindex = (char *) rindex(psp.path, ((int) '/'));
-	if (slashindex != NULL) {
-		slashindex ++; /* leave the slash there */
-		*slashindex = 0;
-	} else {psp.path[0] = 0;}
-	/* printf ("doInLine, parenturl is %s\n",psp.path);*/
-
-	/* try the first url, up to the last, until we find a valid one */
-	count = 0;
-	while (count < inurl->n) {
-		thisurl = inurl->p[count]->strptr;
-
-		/* check to make sure we don't overflow */
-		if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
-
-		/* we work in absolute filenames... */
-		makeAbsoluteFileName(filename,psp.path,thisurl,RUNNINGASPLUGIN || isMacPlugin);
-
-		if (fileExists(filename,firstBytes,TRUE)) {
-			break;
-		}
-		count ++;
-	}
-	psp.inp = filename; /* will be freed later */
-	/* printf ("doinline, psp.inp = %s\n",psp.inp);*/
-	/* printf ("inlining %s\n",filename); */
-
-	/* were we successful at locating one of these? if so,
-	   make it into a FROMURL */
-	if (count != inurl->n) {
+	if (getValidFileFromUrl (filename, psp.path, RUNNINGASPLUGIN || isMacPlugin, inurl, firstBytes)) {
+		/* were we successful at locating one of these? if so, make it into a FROMURL */
 		/* printf ("we were successful at locating %s\n",filename); */
 		psp.type=FROMURL;
 	} else {
 		if (count > 0) printf ("Could Not Locate URL (last choice was %s)\n",filename);
 	}
+	psp.inp = filename; /* will be freed later */
+
+	/* printf ("doinline, psp.inp = %s\n",psp.inp);*/
+	/* printf ("inlining %s\n",filename); */
 }
 
 /* this is a CreateVrmlFrom URL or STRING command */

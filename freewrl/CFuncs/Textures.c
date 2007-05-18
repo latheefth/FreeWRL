@@ -1110,7 +1110,6 @@ int findTextureFile (int cwo, int *istemp) {
 	char *filename;
 	char *mypath;
 	char *thisurl;
-	char *slashindex;
 	int count;
 	char firstBytes[4];
 	char *sysline;
@@ -1142,40 +1141,10 @@ int findTextureFile (int cwo, int *istemp) {
 			thisParent = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->__parenturl;
 			thisUrl = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->url;
 		}
-		count = strlen(thisParent->strptr);
-		mypath = (char *)MALLOC ((sizeof(char)* count)+1);
+		mypath = strdup(thisParent->strptr);
 		filename = (char *)MALLOC(1000);
 
-		/* copy the parent path over */
-		strcpy (mypath,thisParent->strptr);
-
-		/* and strip off the file name, leaving any path */
-		slashindex = (char *)rindex(mypath,'/');
-		if (slashindex != NULL) {
-			slashindex ++; /* leave the slash on */
-			*slashindex = 0;
-		 } else {mypath[0] = 0;}
-
-		/* try the first url, up to the last */
-		count = 0;
-		while (count < thisUrl.n) {
-			thisurl = thisUrl.p[count]->strptr;
-
-			/* check to make sure we don't overflow */
-			if ((strlen(thisurl)+strlen(mypath)) > 900) break;
-
-			/* put the path and the file name together */
-			makeAbsoluteFileName(filename,mypath,thisurl,RUNNINGASPLUGIN || isMacPlugin);
-
-			#ifdef TEXVERBOSE 
-			printf ("textureThread: checking for %s\n", filename);
-			#endif
-
-			if (fileExists(filename,firstBytes,TRUE)) { break; }
-			count ++;
-		}
-
-		if (count != thisUrl.n) {
+		if (getValidFileFromUrl (filename,mypath,RUNNINGASPLUGIN || isMacPlugin, &thisUrl, firstBytes)) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: we were successful at locating %s\n",filename); 
 			#endif

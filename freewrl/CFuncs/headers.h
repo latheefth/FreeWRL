@@ -771,6 +771,8 @@ extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_siz
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl,int rup);
+int getValidFileFromUrl (char *filename, char *path, int absFlags, struct Multi_String *inurl, char *firstBytes);
+void removeFilenameFromPath (char *path);
 
 
 void create_EAI(void);

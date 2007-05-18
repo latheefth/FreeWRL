@@ -1437,11 +1437,8 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 }
 
 void locateAudioSource (struct X3D_AudioClip *node) {
-	int count;
 	char *filename;
 	char *mypath;
-	char *slashindex;
-	char *thisurl;
 	char firstBytes[4]; /* not used here, but required for function call */
 
 	node->__sourceNumber = SoundSourceNumber;
@@ -1450,42 +1447,18 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	filename = (char*)MALLOC(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(node->__parenturl->strptr);
-	mypath = (char *)MALLOC ((sizeof(char)* count)+1);
-
 	/* copy the parent path over */
-	strcpy (mypath,node->__parenturl->strptr);
+	mypath = strdup(node->__parenturl->strptr);
 
-	/* and strip off the file name, leaving any path */
-	slashindex = (char *)rindex(mypath,'/');
-	if (slashindex != NULL) {
-		slashindex ++; /* leave the slash on */
-		*slashindex = 0;
-	 } else {mypath[0] = 0;}
-
-	/* try the first url, up to the last */
-	count = 0;
-	while (count < (node->url).n) {
-		thisurl = (node->url).p[count]->strptr;
-
-		/* check to make sure we don't overflow */
-		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
-
-		/* put the path and the file name together */
-		makeAbsoluteFileName(filename,mypath,thisurl,RUNNINGASPLUGIN || isMacPlugin);
-
-		if (fileExists(filename,firstBytes,TRUE)) { break; }
-		count ++;
-	}
-	if (count == (node->url).n) {
+	if (getValidFileFromUrl (filename,mypath,RUNNINGASPLUGIN || isMacPlugin, &(node->url), firstBytes)) {
+		/* save local file in the structure, so that it can
+		   be initialized later */
+		node->__localFileName = (void *) filename;
+	} else {
 		/* well, no file found */
 		printf ("Audio: could not find audio file\n");
 		FREE_IF_NZ (filename);
 		node->__sourceNumber = BADAUDIOSOURCE;
-	} else {
-		/* save local file in the structure, so that it can
-		   be initialized later */
-		node->__localFileName = (void *) filename;
 	}
 	FREE_IF_NZ (mypath);
 }
