@@ -1453,7 +1453,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	if (getValidFileFromUrl (filename,mypath,RUNNINGASPLUGIN || isMacPlugin, &(node->url), firstBytes)) {
 		/* save local file in the structure, so that it can
 		   be initialized later */
-		node->__localFileName = (void *) filename;
+		node->__localFileName = strdup(cacheFileName);
 	} else {
 		/* well, no file found */
 		printf ("Audio: could not find audio file\n");
@@ -1461,4 +1461,5 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 		node->__sourceNumber = BADAUDIOSOURCE;
 	}
 	FREE_IF_NZ (mypath);
+	FREE_IF_NZ (filename);
 }

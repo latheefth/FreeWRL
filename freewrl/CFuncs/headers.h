@@ -226,7 +226,7 @@ extern int QueryCount;
 *********************************/
 
 /* Java Class invocation */
-#undef JSVRMLCLASSVERBOSE
+#undef JSVRMLCLASSESVERBOSE
 
 /* child node parsing */
 #undef CHILDVERBOSE
@@ -742,7 +742,7 @@ extern int isPerlinitialized(void);
 	#endif
 #endif
 
-extern char *BrowserName, *BrowserFullPath; 
+extern char *BrowserName, *BrowserFullPath, *cacheFileName; 
 extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */

@@ -60,9 +60,9 @@ char * readInputString(char *fn, char *parent) {
 	bufsize = 5 * READSIZE; /*  initial size*/
 	buffer =(char *)MALLOC(bufsize * sizeof (char));
 
-	/* printf ("start of readInputString, \n\tfile: %s\n\tparent: %s\n",*/
-	/* 		fn,parent);*/
-	/* printf ("\tBrowserFullPath: %s\n\n",BrowserFullPath);*/
+	/*printf ("start of readInputString, \n\tfile: %s\n\tparent: %s\n",
+	 		fn,parent);
+	printf ("\tBrowserFullPath: %s\n\n",BrowserFullPath); */
 
 	/* verify (possibly, once again) the file name. This
 	 * should have been done already, with the exception of
@@ -76,11 +76,16 @@ char * readInputString(char *fn, char *parent) {
 	makeAbsoluteFileName(mynewname,parent,fn,RUNNINGASPLUGIN || isMacPlugin);
 
 	/* check to see if this file exists */
+	FREE_IF_NZ(cacheFileName);
 	if (!fileExists(mynewname,firstbytes,TRUE)) {
 		ConsoleMessage("problem reading file '%s' ('%s')",fn,mynewname);
 		strcpy (buffer,"\n");
 		return buffer;
 	}
+
+	/* was this a network file that got copied to the local cache? */
+	/* printf ("readInputString, cache name %s stack name %s\n",cacheFileName, mynewname); */
+
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
 			((unsigned char) firstbytes[1] == 0x8b)) {
@@ -88,16 +93,17 @@ char * readInputString(char *fn, char *parent) {
 		isTemp = TRUE;
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 		/* first, move this to a .gz file */
-		sprintf (sysline, "%s %s %s.gz",COPIER,mynewname,tempname);
+		sprintf (sysline, "%s %s %s.gz",COPIER,cacheFileName,tempname);
 		freewrlSystem (sysline);
 
 		sprintf (sysline,"%s %s",UNZIP,tempname);
 		freewrlSystem (sysline);
-		strcpy (mynewname,tempname);
-	}
+		infile = fopen(tempname,"r");
+	} else {
 
-	/* ok, now, really read this one. */
-	infile = fopen(mynewname,"r");
+		/* ok, now, really read this one. */
+		infile = fopen(cacheFileName,"r");
+	}
 
 	if ((buffer == 0) || (infile == NULL)){
 		ConsoleMessage("problem reading file '%s' (stdio:'%s')",fn,mynewname);
@@ -106,11 +112,7 @@ char * readInputString(char *fn, char *parent) {
 	}
 
 
-	/* save the file name, in case something in perl wants it */
-	if (lastReadFile != NULL) free(lastReadFile);
-	lastReadFile = (char *)MALLOC(strlen(mynewname)+2);
-	strncpy(lastReadFile,mynewname,strlen(mynewname)+1);
-
+	/* read in the file */
 	do {
 		justread = fread (&buffer[bufcount],1,READSIZE,infile);
 		bufcount += justread;

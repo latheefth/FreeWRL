@@ -35,7 +35,7 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V4.5 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#define PLUGIN_DESCRIPTION	"V4.6 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
 
@@ -49,6 +49,10 @@
 		sprintf (debs,"Can record filename now, name is %s",FW_Plugin->fName); \
 		print_here(debs); \
 	}
+
+/* used in init. Don't write to the socket until a request has been received */
+int gotRequestFromFreeWRL = FALSE;
+
 
 char *paramline[15]; /* parameter line */
 
@@ -228,6 +232,9 @@ int freewrlReceive(int fileDescriptor) {
 		sprintf (debs, "notifyCode = %d url = %s", request.notifyCode, request.url);
 		print_here(debs);
 
+		/* signal that we have now received a file request from FreeWRL */
+		gotRequestFromFreeWRL = TRUE;
+
 		/* is this a getUrl, or a "open new window for url" */
 		if (request.notifyCode == 0) {
 			/* get Url and return it to FreeWRL */
@@ -237,7 +244,7 @@ int freewrlReceive(int fileDescriptor) {
 				print_here(debs);
 				retval = NPERR_GENERIC_ERROR;
 			}
-			sprintf (debs, "step 2a, request.url %s",request.url);
+			sprintf (debs, "step 2a, NPN_GetURLNotify with request.url %s",request.url);
 			print_here(debs);
 
 		} else if (request.notifyCode == -99) {
@@ -349,7 +356,7 @@ void Run (NPP instance) {
 
 	/* start FreeWRL, if it is not running already. */
 	if (!FW_Plugin->freewrl_running) {
-		FW_Plugin->freewrl_running = 1;
+		FW_Plugin->freewrl_running = TRUE;
 		sprintf (debs,"STARTING testrun program, disp and win %x %x\n",FW_Plugin->display, FW_Plugin->mozwindow);
 		print_here (debs);
 
@@ -556,7 +563,8 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->fwwindow = 0;
 	FW_Plugin->childPID=0;
 	FW_Plugin->fName = NULL;
-	FW_Plugin->freewrl_running = 0;
+	FW_Plugin->freewrl_running = FALSE;
+	gotRequestFromFreeWRL = FALSE;
 	pipe(FW_Plugin->interfacePipe);
 
 	sprintf (debs, "Pipe created, PIPE_FREEWRLSIDE %d PIPE_PLUGINSIDE %d",
@@ -631,7 +639,8 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 		NPN_MemFree(instance->pdata);
 		instance->pdata = NULL;
 	}
-	FW_Plugin->freewrl_running = 0;
+	FW_Plugin->freewrl_running = FALSE;
+	gotRequestFromFreeWRL = FALSE;
 
 	return NPERR_NO_ERROR;
 }
@@ -663,8 +672,15 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 		returnBadURL, strlen (returnBadURL) ,FW_Plugin->interfaceFile[SOCKET_1]);
 	print_here(debs);
 
-	if (write(FW_Plugin->interfaceFile[SOCKET_1], returnBadURL, strlen (returnBadURL)) < 0) {
-		print_here ("Call to write failed");
+	/* if we got a request from FreeWRL for the file, then return the name. If FreeWRL was "Run",
+	   from within NPP_NewStream, it will not be expecting this write, until it asks for a file -
+	   a case of "the cart before the horse" */
+	if (gotRequestFromFreeWRL) {
+		if (write(FW_Plugin->interfaceFile[SOCKET_1], returnBadURL, strlen (returnBadURL)) < 0) {
+			print_here ("Call to write failed");
+		}
+	} else {
+		print_here ("call to write (for returnBadURL) skipped, because gotRequestFromFreeWRL = FALSE");
 	}
 }
 
@@ -865,18 +881,27 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 					print_here ("Call to write failed");
 				}
 			} else {
-				bytes = (strlen(fname)+1)*sizeof(const char *);
-				sprintf (debs,"writing %s (%u bytes) to socket %d",
-						fname, bytes,FW_Plugin->interfaceFile[SOCKET_1]);
-				print_here(debs);
 
-				if (write(FW_Plugin->interfaceFile[SOCKET_1], fname, bytes) < 0) {
-					print_here ("Call to write failed");
+				
+				/* if we got a request from FreeWRL for the file, then return the name. If FreeWRL was "Run",
+				   from within NPP_NewStream, it will not be expecting this write, until it asks for a file -
+				   a case of "the cart before the horse" */
+				if (gotRequestFromFreeWRL) {
+					bytes = (strlen(fname)+1)*sizeof(const char *);
+					sprintf (debs,"NPP_StreamAsFile: writing %s (%u bytes) to socket %d",
+							fname, bytes,FW_Plugin->interfaceFile[SOCKET_1]);
+					print_here(debs);
+	
+					if (write(FW_Plugin->interfaceFile[SOCKET_1], fname, bytes) < 0) {
+						print_here ("Call to write failed");
+					}
+	
+					/* send a "done" message to status bar */
+					sprintf (debs, "NPP_StreamAsFile: Done\n");
+					NPN_Status(instance,debs);
+				} else {
+					print_here("NPP_StreamAsFile: skipping file write, as gotRequestFromFreeWRL = FALSE\n");
 				}
-
-				/* send a "done" message to status bar */
-				sprintf (debs, "FreeWRL: Done\n");
-				NPN_Status(instance,debs);
 
 			}
 		}

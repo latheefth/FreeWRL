@@ -33,7 +33,7 @@ Transform {
 		Shape {
 			appearance Appearance {
 				texture ImageTexture {
-					url "helpers/bookcase.gif"
+					url "helpers/bookcase.jpg"
 				}
 			}
 			geometry IndexedFaceSet {

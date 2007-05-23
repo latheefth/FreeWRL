@@ -173,6 +173,7 @@ int getValidFileFromUrl (char *filename, char *path, int absFlags, struct Multi_
 		makeAbsoluteFileName(filename,path,thisurl,absFlags);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
+			/* printf ("getValidFileFromUrl, filename %s, cacheFileName %s\n",filename,cacheFileName); */
 			break;
 		}
 		count ++;
@@ -214,6 +215,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	char sysline[1000];
 
 	/* printf ("checking for filename here %s\n",fname);  */
+	FREE_IF_NZ(cacheFileName);
 
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
@@ -227,7 +229,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 			/* check for timeout; if not found, return false */
 			if (!retName) return (FALSE);
-			strcpy (fname,retName);
+			cacheFileName = strdup(retName);
 		}
 	}
 #else
@@ -237,11 +239,13 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	if (RUNNINGASPLUGIN) {
 		/* are we running as a plugin? If so, ask the HTML browser to get the file, and place
 		   it in the local cache for ANY file, except for the main "url" */
-		retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
+		if (checkNetworkFile(fname)) {
+			retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
 
-		/* check for timeout; if not found, return false */
-		if (!retName) return (FALSE);
-		strcpy (fname,retName);
+			/* check for timeout; if not found, return false */
+			if (!retName) return (FALSE);
+			cacheFileName = strdup(retName);
+		}
 	}
 #endif
 
@@ -251,37 +255,41 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	 */
 	/* printf ("AFTER, now NAME is %s\n",fname); */
 
-	if (checkNetworkFile(fname)) {
-		/*  Is this an Anchor? if so, lets just assume we can*/
-		/*  get it*/
-		if (!GetIt) {
-			/* printf ("Assuming Anchor mode, returning TRUE\n");*/
-			return (TRUE);
-		}
-
-		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
-
-		/* string length checking */
-		if ((strlen(WGET)+strlen(fname)+strlen(tempname)) < (1000-10)) {
-#ifdef AQUA
-		    sprintf (sysline,"%s %s -o %s",WGET,fname,tempname);
-#else
-		    sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
-#endif
-		    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
-		    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
-		    freewrlSystem (sysline);
-		    strcpy (fname,tempname);
-		} else {
-		    printf ("Internal FreeWRL problem - strings too long for wget\n");
-		    strcat (fname,"");
+	if (cacheFileName == NULL) {
+		cacheFileName = strdup(fname);
+		if (checkNetworkFile(fname)) {
+			/*  Is this an Anchor? if so, lets just assume we can*/
+			/*  get it*/
+			if (!GetIt) {
+				/* printf ("Assuming Anchor mode, returning TRUE\n");*/
+				return (TRUE);
+			}
+	
+			sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
+	
+			/* string length checking */
+			if ((strlen(WGET)+strlen(fname)+strlen(tempname)) < (1000-10)) {
+	#ifdef AQUA
+			    sprintf (sysline,"%s %s -o %s",WGET,fname,tempname);
+	#else
+			    sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
+	#endif
+			    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
+			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
+			    freewrlSystem (sysline);
+			    FREE_IF_NZ(cacheFileName);
+			    cacheFileName = strdup(tempname);
+			} else {
+			    printf ("Internal FreeWRL problem - strings too long for wget\n");
+			    cacheFileName = strdup("");
+			}
 		}
 	}
 
-	/* printf ("opening file %s\n",fname); */
+	/* printf ("FileExists: opening file %s\n",cacheFileName);  */
 
 
-	fp= fopen (fname,"r");
+	fp= fopen (cacheFileName,"r");
 	ok = (fp != NULL);
 
 	/* try reading the first 4 bytes into the firstBytes array */
@@ -316,10 +324,12 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl, int useHTM
 
 	/* if we are running under a browser, let it handle things */
 	/* sometimes we don't - for instannce, starting up a new file via Anchor. */
+#ifdef XXXXX
 	if (useHTMLBrowserIfPossible) {
 		strcpy (filename, thisurl);
 		return;
 	}
+#endif
 
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {

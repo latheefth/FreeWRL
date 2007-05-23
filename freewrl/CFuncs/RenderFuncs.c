@@ -154,7 +154,7 @@ int SoundEngineStarted = FALSE;
 /* stored FreeWRL version, pointers to initialize data */
 char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
-char *lastReadFile = NULL;
+char *cacheFileName = NULL;
 
 void *rootNode=0;	/* scene graph root node */
 void *empty_group=0;

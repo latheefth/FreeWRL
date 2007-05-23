@@ -12,7 +12,7 @@
 #endif
 
 /*  CHECK DIRECTORY IN PLUGINPRINT*/
-#undef PLUGINSOCKETVERBOSE
+#define PLUGINSOCKETVERBOSE
 
 fd_set rfds;
 struct timeval tv;
@@ -28,13 +28,20 @@ extern double TickTime;
 
 /* prints to a log file if we are running as a plugin */
 void pluginprint (const char *m, const char *p) {
+	double myt;
+        struct timeval mytime;
+        struct timezone tz; /* unused see man gettimeofday */
+
+        /* Set the timestamp */
+        gettimeofday (&mytime,&tz);
+	myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	if (tty == NULL) {
 		tty = fopen("/home/luigi/logPluginSocket", "w");
 		if (tty == NULL)
 			abort();
 		fprintf (tty, "\nplugin restarted\n");
 	}
-        fprintf (tty,"%f: freewrl: ",TickTime);
+        fprintf (tty,"%f: freewrl: ",myt);
 
 	fprintf(tty, m,p);
 	fflush(tty);
@@ -125,6 +132,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	}
 
 	#ifdef PLUGINSOCKETVERBOSE
+	pluginprint ("NEW REQUEST\n",url);
 	pluginprint ("requestURL fromPlugin, getting %s\n",url);
 	pluginprint ("   ... encoded is %s\n",encodedUrl);
 	#endif
@@ -193,6 +201,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, returning %s\n",return_url);
+	pluginprint ("REQUEST FINISHED\n",return_url);
 	#endif
 
 	/* is this a string from URLNotify? (see plugin code for this "special" string) */
