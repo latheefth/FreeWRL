@@ -719,6 +719,10 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	   and for each point, we know the faces that it is in */
 	if (!IFS_face_normals (facenormals,faceok,pointfaces,faces,npoints,cin,points,this_,ccw)) {
 		rep_->ntri=0;
+		FREE_IF_NZ (facenormals);
+		FREE_IF_NZ (faceok);
+		FREE_IF_NZ (pointfaces);
+
 		return;
 	}
 

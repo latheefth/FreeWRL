@@ -229,7 +229,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 			/* check for timeout; if not found, return false */
 			if (!retName) return (FALSE);
-			cacheFileName = strdup(retName);
+			cacheFileName = STRDUP(retName);
 		}
 	}
 #else
@@ -244,7 +244,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 			/* check for timeout; if not found, return false */
 			if (!retName) return (FALSE);
-			cacheFileName = strdup(retName);
+			cacheFileName = STRDUP(retName);
 		}
 	}
 #endif
@@ -256,7 +256,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	/* printf ("AFTER, now NAME is %s\n",fname); */
 
 	if (cacheFileName == NULL) {
-		cacheFileName = strdup(fname);
+		cacheFileName = STRDUP(fname);
 		if (checkNetworkFile(fname)) {
 			/*  Is this an Anchor? if so, lets just assume we can*/
 			/*  get it*/
@@ -278,10 +278,10 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 			    freewrlSystem (sysline);
 			    FREE_IF_NZ(cacheFileName);
-			    cacheFileName = strdup(tempname);
+			    cacheFileName = STRDUP(tempname);
 			} else {
 			    printf ("Internal FreeWRL problem - strings too long for wget\n");
-			    cacheFileName = strdup("");
+			    cacheFileName = STRDUP("");
 			}
 		}
 	}
@@ -374,7 +374,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 void pushInputURL(char *url) {
 
 	FREE_IF_NZ(currentWorkingUrl);
-	currentWorkingUrl = strdup(url);
+	currentWorkingUrl = STRDUP(url);
 	/* printf ("currenturl is %s\n",currentWorkingUrl); */
 }
 
@@ -837,7 +837,7 @@ void __pt_doInline() {
 	filename = (char *)MALLOC(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	psp.path = strdup(inl->__parenturl->strptr);
+	psp.path = STRDUP(inl->__parenturl->strptr);
 
 	if (getValidFileFromUrl (filename, psp.path, inurl, firstBytes)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */

@@ -1141,7 +1141,7 @@ int findTextureFile (int cwo, int *istemp) {
 			thisParent = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->__parenturl;
 			thisUrl = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->url;
 		}
-		mypath = strdup(thisParent->strptr);
+		mypath = STRDUP(thisParent->strptr);
 		filename = (char *)MALLOC(1000);
 
 		if (getValidFileFromUrl (filename,mypath, &thisUrl, firstBytes)) {
@@ -1181,14 +1181,13 @@ int findTextureFile (int cwo, int *istemp) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: running convert on %s\n",sysline);
 			#endif
-				printf ("textureThread: running convert on %s\n",sysline);
 
 			if (freewrlSystem (sysline) != TRUE) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			} else {
 				FREE_IF_NZ(cacheFileName);
 				sprintf (filename,"/tmp/freewrl%d.png",getpid());
-				cacheFileName = strdup(filename);
+				cacheFileName = STRDUP(filename);
 				*istemp=TRUE;
 			}
 			FREE_IF_NZ (sysline);
@@ -1201,7 +1200,7 @@ int findTextureFile (int cwo, int *istemp) {
 	#endif
 
 	FREE_IF_NZ(loadThisTexture->filename);
-	loadThisTexture->filename = strdup(cacheFileName);
+	loadThisTexture->filename = STRDUP(cacheFileName);
 	FREE_IF_NZ (filename);
 	return TRUE;
 }

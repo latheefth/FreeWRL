@@ -327,14 +327,14 @@ SFNodeNativeAssign(void *top, void *fromp)
 
 	if (from != NULL) {
 		to->handle = from->handle;
-		to->X3DString = strdup(from->X3DString);
+		to->X3DString = STRDUP(from->X3DString);
 
 		#ifdef JAVASCRIPTVERBOSE
 		printf ("SFNodeNativeAssign, copied %d to %d, handle %d, string %s\n", from, to, to->handle, to->X3DString);
 		#endif
 	} else {
 		to->handle = 0;
-		to->X3DString = strdup("from a NULL assignment");
+		to->X3DString = STRDUP("from a NULL assignment");
 	}
 
 	return JS_TRUE;
@@ -769,7 +769,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			 else haveMulti = FALSE;
 			
 			/* the sftype is the SF form of either the MF or SF */
-			sftype = strdup(FIELDTYPES[convertToSFType(type)]);
+			sftype = STRDUP(FIELDTYPES[convertToSFType(type)]);
 
 			/* SFStrings are Strings */
 			if (strncmp(sftype,"SFString",8)==0) strcpy (sftype,"String");

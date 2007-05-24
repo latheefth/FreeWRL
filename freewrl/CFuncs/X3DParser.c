@@ -510,7 +510,7 @@ void initScriptWithScript() {
 	if (myText == NULL) {
 	        /* lets make up the path and save it, and make it the global path */
 	        /* copy the parent path over */
-	        mypath = strdup(me->__parenturl->strptr);
+	        mypath = STRDUP(me->__parenturl->strptr);
 	        removeFilenameFromPath (mypath);
 
 		/* try the first url, up to the last, until we find a valid one */

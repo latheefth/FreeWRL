@@ -503,7 +503,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	*/
 
 	/* find a file name that exists. If not, return JS_FALSE */
-	bfp = strdup(BrowserFullPath);
+	bfp = STRDUP(BrowserFullPath);
 	/* and strip off the file name, leaving any path */
 	removeFilenameFromPath (bfp);
 

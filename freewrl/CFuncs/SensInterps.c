@@ -1448,12 +1448,12 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 
 	/* lets make up the path and save it, and make it the global path */
 	/* copy the parent path over */
-	mypath = strdup(node->__parenturl->strptr);
+	mypath = STRDUP(node->__parenturl->strptr);
 
 	if (getValidFileFromUrl (filename,mypath, &(node->url), firstBytes)) {
 		/* save local file in the structure, so that it can
 		   be initialized later */
-		node->__localFileName = strdup(cacheFileName);
+		node->__localFileName = STRDUP(cacheFileName);
 	} else {
 		/* well, no file found */
 		printf ("Audio: could not find audio file\n");

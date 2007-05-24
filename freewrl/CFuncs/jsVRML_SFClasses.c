@@ -1046,7 +1046,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	/* verify the argc */
 	if (argc == 0) {
 		newHandle = 0;
-		cString = strdup("SFNodeConstr from argc eq 0");
+		cString = STRDUP("SFNodeConstr from argc eq 0");
 	} else if (argc == 1) {
 		/* is this a string, or a number indicating a node? */
 		myStr = JS_ValueToString(cx, argv[0]);
@@ -1067,7 +1067,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
         		}
 
 			newHandle = oldPtr->handle;
-			cString = strdup(oldPtr->X3DString);
+			cString = STRDUP(oldPtr->X3DString);
 
 		} else {
 			#ifdef JSVRMLCLASSESVERBOSE
@@ -1077,7 +1077,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 			/* is this just an integer, eg, "0" - happens on initialization for SFNodes */
 			if (JSVAL_IS_INT(argv[0])) {
 				sscanf (cString,"%ld",&newHandle);
-				cString = strdup("node created in SFNodeConstr");
+				cString = STRDUP("node created in SFNodeConstr");
 			} else {
 
 				/* try compiling this X3D code... */
@@ -1111,7 +1111,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 			_idStr = JS_ValueToString(cx, argv[0]);
 			_id_c = JS_GetStringBytes(_idStr);
-			cString = strdup(_id_c);
+			cString = STRDUP(_id_c);
 
 			_idStr = JS_ValueToString(cx, argv[1]);
 			_id_c = JS_GetStringBytes(_idStr);
@@ -1153,7 +1153,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	}
 
 	newPtr->handle = newHandle;
-	newPtr->X3DString = (char *)strdup(cString);
+	newPtr->X3DString = (char *)STRDUP(cString);
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFNodeConstr: created obj = %u, argc: %u mem ptr: %d text string: %s\n",

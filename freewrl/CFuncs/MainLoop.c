@@ -47,7 +47,7 @@
 
 #include <pthread.h>
 pthread_t DispThrd = 0;
-int eaiverbose = 0;
+int eaiverbose = FALSE;
 char* threadmsg;
 
 int replaceWorld = FALSE;
@@ -1118,7 +1118,7 @@ void setFullPath(const char* file) {
 		do_keyPress(ks, KeyPress);
 	}
 	FREE_IF_NZ (BrowserFullPath);
-	BrowserFullPath = strdup(file);
+	BrowserFullPath = STRDUP(file);
 	/* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath)); */
 }
 
@@ -1440,7 +1440,7 @@ static int mlineno[MAXMALLOCSTOKEEP];
 static int mcount;
 
 void freewrlFree(int line, char *file, void *a) {
-	/* printf ("%x xfree at %s:%d\n",a,file,line); */
+	 printf ("%x xfree at %s:%d\n",a,file,line); 
 	FREETABLE(a,file,line)
 	free(a);
 }
@@ -1504,6 +1504,27 @@ void *freewrlRealloc (int line, char *file, void *ptr, size_t size) {
 }
 
 
+void *freewrlStrdup (int line, char *file, char *str) {
+	void *rv;
+	char myline[400];
+	#ifdef DEBUG_MALLOC
+		/* printf ("%x xfree (from realloc) at %s:%d\n",ptr,file,line); */
+	#endif
+	rv = strdup (str);
+	if (rv==NULL) {
+		sprintf (myline, "STRDUP PROBLEM - out of memory at %s:%d ",file,line);
+		outOfMemory (myline);
+	}
+
+	#ifdef DEBUG_MALLOC
+		/* printf ("%x malloc (from realloc) %d at %s:%d\n",rv,size,file,line); */
+		RESERVETABLE(rv,file,line)
+
+	#endif
+	return rv;
+}
+
+
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
 	kill_oldWorld(TRUE,TRUE,TRUE);
@@ -1559,7 +1580,7 @@ void setIsPlugin() {
 	if (tmpfile) {
 		fgets(tmppath, 512, tmpfile);
 	}
-	BrowserFullPath = strdup(tmppath);	
+	BrowserFullPath = STRDUP(tmppath);	
 	fclose(tmpfile);
 	//system("rm /tmp/freewrl_filename");	
 	tmpfile = fopen("/tmp/after", "w");
@@ -1717,7 +1738,7 @@ void aquaPrintVersion() {
 }
 #endif
 void setEaiVerbose() {
-	eaiverbose = 1;
+	eaiverbose = TRUE;
 }
 	
 void replaceWorldNeeded(char* str) {

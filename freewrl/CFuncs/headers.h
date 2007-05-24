@@ -21,9 +21,11 @@
 
 void *freewrlMalloc(int line, char *file, size_t sz);
 void *freewrlRealloc (int line, char *file, void *ptr, size_t size);
+void *freewrlStrdup (int line, char *file, char *str);
 #define MALLOC(sz) FWMALLOC (__LINE__,__FILE__,sz)
 #define FWMALLOC(l,f,sz) freewrlMalloc(l,f,sz)
 #define REALLOC(a,b) freewrlRealloc(__LINE__,__FILE__,a,b)
+#define STRDUP(a) freewrlStrdup(__LINE__,__FILE__,a)
 #ifdef DEBUG_MALLOC
 	/* free a malloc'd pointer */
 	void freewrlFree(int line, char *file, void *a);
