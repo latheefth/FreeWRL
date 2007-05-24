@@ -299,7 +299,7 @@ int ReWireNameIndex (char *name) {
 		ReWireNamenames = (struct ReWireNamenameStruct*)REALLOC (ReWireNamenames, sizeof(*ReWireNamenames) * MAXReWireNameNames);
 	}
 
-	ReWireNamenames[ReWireNametableSize].name = strdup(name);
+	ReWireNamenames[ReWireNametableSize].name = STRDUP(name);
 	/* printf ("ReWireNameIndex, new entry at %d\n",ReWireNametableSize); */
 	return ReWireNametableSize;
 }

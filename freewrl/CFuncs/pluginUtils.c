@@ -189,7 +189,7 @@ void doBrowserAction () {
 	filename = (char *)MALLOC(1000);
 
 	/* copy the parent path over */
-	mypath = strdup(AnchorsAnchor->__parenturl->strptr);
+	mypath = STRDUP(AnchorsAnchor->__parenturl->strptr);
 
 	/* and strip off the file name, leaving any path */
 	removeFilenameFromPath (mypath);
@@ -348,7 +348,7 @@ void Anchor_ReplaceWorld (char *filename) {
 				TRUE);
 			
 			tt = BrowserFullPath;
-			BrowserFullPath = strdup(filename);
+			BrowserFullPath = STRDUP(filename);
 			FREE_IF_NZ(tt);
 			EAI_Anchor_Response (TRUE);
 			return;

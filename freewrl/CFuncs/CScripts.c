@@ -193,7 +193,7 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  filename = (char *)MALLOC(1000);
 
  /* get the current parent */
- mypath = strdup(getInputURL());
+ mypath = STRDUP(getInputURL());
 
  /* and strip off the file name, leaving any path */
  removeFilenameFromPath (mypath);

@@ -23,9 +23,6 @@
 #include "LinearAlgebra.h"
 
 
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
-
-
 /* transformed ray */
 extern struct pt t_r1;
 extern struct pt t_r2;
