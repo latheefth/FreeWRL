@@ -365,6 +365,11 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 		return FALSE;
         } else {
        	        strval = JS_ValueToString(mycx, retval);
+		if (strval == NULL) {
+			/* there was a javascript error here */
+			printf ("possible javascript error found in get_touched while running routes\n");
+			return FALSE;
+		}
                	strtouched = JS_GetStringBytes(strval);
                	#ifdef CRVERBOSE  
 			printf ("and get of actual property %d returns %s\n",retval,strtouched); 

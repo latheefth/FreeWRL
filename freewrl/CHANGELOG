@@ -1,3 +1,6 @@
+For 1.19.5:
+	- more plugin work on Linux and OS X.
+
 For 1.19.4:
 	- Compile changes to allow rpms to be built and distributed for Fedora Core 6;
 

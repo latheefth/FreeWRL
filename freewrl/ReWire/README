@@ -175,24 +175,12 @@ sleep (4);
 	printf ("adding X3DClock and interpolator \n");
 
 	X3DClock = X3D_createVrmlFromString("TimeSensor{cycleInterval 4.0 loop TRUE}");
-	reWire1 = X3D_createVrmlFromString("ReWireMidiControl { " \
-        			" deviceName \"Keyboard 2\" " \
-        			" channel \"KeyPress\" " \
-        			" controllerType \"Step\" " \
-        			" useIntValue FALSE " \
-        			" minVal 28 " \
-        			" maxVal 31 }");
-
 
 	X3DColumnpath = X3D_createVrmlFromString("OrientationInterpolator {key [ 0.0 0.5 1.0 ] keyValue " \
 				"[0 0 1 0, 0 0 1 3.14, 0 0 1 6.28]}");
 
 	X3D_setValue(addChildren,X3DClock);
-	X3D_setValue(addChildren,reWire1);
 	X3DClock_frac_changed = X3D_getEventOut(X3DClock,"fraction_changed");
-	reWire1_setFloat = X3D_getEventIn(reWire1,"set_floatValue");
-	X3D_addRoute (X3DClock_frac_changed, reWire1_setFloat);
-
 
 	X3D_setValue(addChildren,X3DColumnpath);
 
