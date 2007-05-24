@@ -81,13 +81,13 @@ int freewrlSystem (const char *sysline) {
 	} else {
 		/* split the command off of internbuf, for execing. */
 		while (internbuf != NULL) {
-			/* printf ("freewrlSystem: looping, count is %d\n",count); */
+			/* printf ("freewrlSystem: looping, count is %d\n",count);  */
 			paramline[count] = internbuf;
 			internbuf = strchr(internbuf,' ');
 			if (internbuf != NULL) {
 				/* printf ("freewrlSystem: more strings here! :%s:\n",internbuf); */
 				*internbuf = '\0';
-				/* printf ("param %d is :%s:\n",count,paramline[count]);*/
+				/* printf ("param %d is :%s:\n",count,paramline[count]); */
 				internbuf++;
 				count ++;
 				if (count >= MAXEXECPARAMS) return -1; /*  never...*/
@@ -96,10 +96,12 @@ int freewrlSystem (const char *sysline) {
 	}
 	
 	/* printf ("freewrlSystem: finished while loop, count %d\n",count); */
-	/* { int xx;
+	/*
+	 { int xx;
 		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
-	}} */
+	}} 
+	*/
 	
 
 
@@ -272,10 +274,11 @@ void doBrowserAction () {
 		/* 	requestNewWindowfromPlugin(_fw_FD,_fw_instance,filename);*/
 		/* } else {*/
 			/* printf ("IS NOT a vrml/x3d file\n");*/
-			/* printf ("Anchor: -DBROWSER is :%s:\n",BROWSER);*/
+			/* printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
 
 
 			char *browser = getenv("BROWSER");
+#ifndef AQUA
 			if (browser)
 				strcpy (sysline, browser);
 			else
@@ -284,6 +287,14 @@ void doBrowserAction () {
 			strcat (sysline, filename);
 			strcat (sysline, " &");
 			freewrlSystem (sysline);
+#else
+		if (browser)
+			sprintf(sysline, "open -a %s %s &", browser, filename);
+		else 
+			sprintf(sysline, "open -a %s %s &",  BROWSER, filename);
+		system (sysline);
+#endif
+		
 		/* }*/
 	}
 	FREE_IF_NZ (filename);
