@@ -532,7 +532,7 @@ void initScriptWithScript() {
 				if ((strlen(thisurl)+strlen(mypath)) > 900) return FALSE;
 
 				/* we work in absolute filenames... */
-				makeAbsoluteFileName(filename,mypath,thisurl,RUNNINGASPLUGIN || isMacPlugin);
+				makeAbsoluteFileName(filename,mypath,thisurl);
 
 				if (fileExists(filename,firstBytes,TRUE)) {
 					myText = readInputString(filename,"");

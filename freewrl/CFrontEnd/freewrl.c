@@ -106,7 +106,7 @@ int main (int argc, char **argv) {
 			setFullPath(argv[optind]);
 	
 	        } else {
-	                makeAbsoluteFileName(initialFilename, pwd, argv[optind],TRUE);
+	                makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
 	                setFullPath(initialFilename);
 	        }
 		FREE_IF_NZ (initialFilename);

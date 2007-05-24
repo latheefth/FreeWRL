@@ -73,7 +73,7 @@ char * readInputString(char *fn, char *parent) {
 
 	/* combine parent and fn to make mynewname */
 	/* printf ("before mas, in Input, fn %s\n",fn);*/
-	makeAbsoluteFileName(mynewname,parent,fn,RUNNINGASPLUGIN || isMacPlugin);
+	makeAbsoluteFileName(mynewname,parent,fn);
 
 	/* check to see if this file exists */
 	FREE_IF_NZ(cacheFileName);

@@ -154,7 +154,7 @@ void removeFilenameFromPath (char *path) {
 
 
 /* given a URL, find the first valid file, and return it */
-int getValidFileFromUrl (char *filename, char *path, int absFlags, struct Multi_String *inurl, char *firstBytes) {
+int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes) {
 	char *thisurl;
 	int count;
 
@@ -170,7 +170,7 @@ int getValidFileFromUrl (char *filename, char *path, int absFlags, struct Multi_
 		if ((strlen(thisurl)+strlen(path)) > 900) return FALSE;
 
 		/* we work in absolute filenames... */
-		makeAbsoluteFileName(filename,path,thisurl,absFlags);
+		makeAbsoluteFileName(filename,path,thisurl);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
 			/* printf ("getValidFileFromUrl, filename %s, cacheFileName %s\n",filename,cacheFileName); */
@@ -303,7 +303,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 /* filename is MALLOC'd, combine pspath and thisurl to make an
    absolute file name */
-void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl, int useHTMLBrowserIfPossible){
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	char *end;
 
 	/* remove whitespace from beginning and ends of pspath and thisurl */
@@ -321,15 +321,6 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl, int useHTM
 	}
 
 	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
-
-	/* if we are running under a browser, let it handle things */
-	/* sometimes we don't - for instannce, starting up a new file via Anchor. */
-#ifdef XXXXX
-	if (useHTMLBrowserIfPossible) {
-		strcpy (filename, thisurl);
-		return;
-	}
-#endif
 
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
@@ -848,7 +839,7 @@ void __pt_doInline() {
 	/* lets make up the path and save it, and make it the global path */
 	psp.path = strdup(inl->__parenturl->strptr);
 
-	if (getValidFileFromUrl (filename, psp.path, RUNNINGASPLUGIN || isMacPlugin, inurl, firstBytes)) {
+	if (getValidFileFromUrl (filename, psp.path, inurl, firstBytes)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */
 		/* printf ("we were successful at locating %s\n",filename); */
 		psp.type=FROMURL;

@@ -1450,7 +1450,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	/* copy the parent path over */
 	mypath = strdup(node->__parenturl->strptr);
 
-	if (getValidFileFromUrl (filename,mypath,RUNNINGASPLUGIN || isMacPlugin, &(node->url), firstBytes)) {
+	if (getValidFileFromUrl (filename,mypath, &(node->url), firstBytes)) {
 		/* save local file in the structure, so that it can
 		   be initialized later */
 		node->__localFileName = strdup(cacheFileName);

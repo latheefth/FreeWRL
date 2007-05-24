@@ -232,7 +232,7 @@ void doBrowserAction () {
 
 
 		/* put the path and the file name together */
-		makeAbsoluteFileName(filename,mypath,thisurl,FALSE);
+		makeAbsoluteFileName(filename,mypath,thisurl);
 		/* printf ("so, Anchor, filename %s, mypath %s, thisurl %s\n",filename, mypath, thisurl); */
 
 		/* if this is a html page, just assume it's ok. If

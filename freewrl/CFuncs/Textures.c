@@ -1144,7 +1144,7 @@ int findTextureFile (int cwo, int *istemp) {
 		mypath = strdup(thisParent->strptr);
 		filename = (char *)MALLOC(1000);
 
-		if (getValidFileFromUrl (filename,mypath,RUNNINGASPLUGIN || isMacPlugin, &thisUrl, firstBytes)) {
+		if (getValidFileFromUrl (filename,mypath, &thisUrl, firstBytes)) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: we were successful at locating %s\n",filename); 
 			#endif

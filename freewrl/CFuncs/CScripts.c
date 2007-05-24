@@ -199,7 +199,7 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  removeFilenameFromPath (mypath);
 
  /* add the two together */
- makeAbsoluteFileName(filename,mypath,uri,RUNNINGASPLUGIN || isMacPlugin);
+ makeAbsoluteFileName(filename,mypath,uri);
 
  /* and see if it exists. If it does, try running script_initCode() on it */
  if (fileExists(filename,firstBytes,TRUE)) {
