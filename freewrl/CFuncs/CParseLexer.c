@@ -465,16 +465,20 @@ void lexer_skip(struct VRMLLexer* me)
    /* Whitespace:  Simply ignore. */
    case ' ':
    case '\n':
-   case '\r':
+   case '\r': 
    case '\t':
    case ',':
     break;
 
    /* Comment:  Ignore until end of line. */
    case '#':
-    do
+    do {
      LEXER_GETINPUT(c)
-    while(c!='\n' && c!=EOF);
+	/* printf ("lexer, found comment, current char %d:%c:\n",c,c); */
+	/* for those files created by ith VRML97 plugin for LightWave3D v6 from NewTek, Inc
+	   we have added the \r check. JAS */
+    } while(c!='\n' && c!= '\r' && c!=EOF);
+	
     break;
 
    /* Everything else:  Unget and return. */
