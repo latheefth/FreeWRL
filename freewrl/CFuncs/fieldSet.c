@@ -298,7 +298,6 @@ unsigned int setField_method2 (char *ptr) {
 	return TRUE;
 }
 
-
 void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fieldType, unsigned len, int extraData, uintptr_t cx) {
         int ival;
         double tval;
@@ -428,6 +427,8 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFFloat); break;}
 		case FIELDTYPE_MFRotation: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFRotation); break;}
 		case FIELDTYPE_MFVec2f: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFVec2f); break;}
+		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
+		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
 		case FIELDTYPE_MFNode: {
 				strval = JS_ValueToString(scriptContext, global_return_val);
 	        		strp = JS_GetStringBytes(strval);
@@ -438,8 +439,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			break;
 		}
 
-		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
-		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
 
 		default: {	printf("WARNING: unhandled from type %s\n", FIELDTYPES[fieldType]);
 		}
@@ -896,7 +895,11 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		}
 		FREE_IF_NZ (svptr);
 		svptr = to->p;
+	} else {
+		/* possibly truncate this, but leave the memory alone. */
+		to->n = newlen;
 	}
+
 	/* printf ("verifying structure here\n");
 	for (i=0; i<(to->n); i++) {
 		printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
@@ -928,22 +931,14 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 			svptr[i] =  newASCIIString(valStr);
 		}
 	}
-	/* printf ("\n new structure: %d %d\n",svptr,newlen);
+	/*
+	printf ("\n new structure: %d %d\n",svptr,newlen);
 	for (i=0; i<newlen; i++) {
 		printf ("indx %d string :%s: len1 %d len2 %d\n",i,
 				mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
 	}
 	*/
-
-	/* JAS 
-	myv = INT_TO_JSVAL(1);
-	printf ("b setting touched_flag for %d %d\n",cx,obj);
-
-	if (!JS_SetProperty(cx, obj, "__touched_flag", (jsval *)&myv)) {
-		fprintf(stderr,
-			"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
-	}
-	*/
+	
 }
 
 

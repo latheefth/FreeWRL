@@ -1,6 +1,14 @@
 For 1.19.5:
 	- more plugin work on Linux and OS X.
 
+	- VRML Parsing - reduce strictness to allow Lightwave VRML output to load.
+	  (see comments in CFuncs/CParseLexer.c)
+
+	- Javascript MFString routing - concatenate FreeWRL's MFString nodes to the length that
+	  a Javascript MFString eventOut specifies.
+
+	- JAVA EAI/SAI - callbacks expanded to allow for all VRML/X3D data types.
+
 For 1.19.4:
 	- Compile changes to allow rpms to be built and distributed for Fedora Core 6;
 

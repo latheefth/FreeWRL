@@ -627,6 +627,12 @@ BOOL lexer_float(struct VRMLLexer* me, vrmlFloatT* ret)
     *ret*=10;
     *ret+=c-'0';
    }
+	/* JAS - I hate doing this, but Lightwave exporter SOMETIMES seems to put double dots
+	   in a VRML file. This catches them...  see
+	   http://neptune.gsfc.nasa.gov/osb/aquarius/animations/vrml.php */
+  else if (c=='.') {
+	/*printf ("double dots\n");*/
+  }
   else
    break;
 

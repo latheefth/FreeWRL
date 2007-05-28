@@ -97,33 +97,44 @@ public class EAIAsyncThread extends Thread {
       //System.out.println ("EAIAsyncThread.callback - value " + msg.value +
 	//		" EventType " + msg.EventNumber );
 
-      if (BrowserGlobals.EVtype[msg.EventNumber]==18) {
+      if (BrowserGlobals.EVtype[msg.EventNumber]==19) {
+        me = new EventOutMFVec3f();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==18) {
 	me = new EventOutSFVec3f();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==17) {
+        me = new EventOutMFVec2f();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==16) {
+        me = new EventOutSFVec2f();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==15) {
+        me = new EventOutMFString();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==14) {
+        me = new EventOutSFString();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==13) {
+        me = new EventOutMFRotation();
       } else if (BrowserGlobals.EVtype[msg.EventNumber]==12) {
         me = new EventOutSFRotation();
       } else if (BrowserGlobals.EVtype[msg.EventNumber]==11) {
         me = new EventOutMFNode();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==10) {
+        me = new EventOutSFNode ();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==9) {
+        me = new EventOutMFInt32();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==8) {
+        me = new EventOutSFInt32();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==7) {
+        me = new EventOutMFFloat();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==6) {
+        me = new EventOutSFFloat();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==5) {
+        me = new EventOutMFColor();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==4) {
+        me = new EventOutSFColor();
       } else if (BrowserGlobals.EVtype[msg.EventNumber]==3) {
         me = new EventOutSFTime();
+      } else if (BrowserGlobals.EVtype[msg.EventNumber]==2) {
+        me = new EventOutSFImage();
       } else if (BrowserGlobals.EVtype[msg.EventNumber]==1) {
         me = new EventOutSFBool();
-
-      // These are not yet properly handled...
-      //  public final static int SFIMAGE      = 2;
-      //  public final static int SFTIME       = 3;
-      //  public final static int SFCOLOR      = 4;
-      //  public final static int MFCOLOR      = 5;
-      //  public final static int SFFLOAT      = 6;
-      //  public final static int MFFLOAT      = 7;
-      //  public final static int SFINT32      = 8;
-      //  public final static int MFINT32      = 9;
-      //  public final static int SFNODE       = 10;
-      //  public final static int MFROTATION   = 13;
-      //  public final static int SFSTRING     = 14;
-      //  public final static int MFSTRING     = 15;
-      //  public final static int SFVEC2F      = 16;
-      //  public final static int MFVEC2F      = 17;
-      //  public final static int MFVEC3F      = 19;
 
 
       } else {
