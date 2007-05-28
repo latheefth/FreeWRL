@@ -170,7 +170,10 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 		if ((strlen(thisurl)+strlen(path)) > 900) return FALSE;
 
 		/* we work in absolute filenames... */
-		makeAbsoluteFileName(filename,path,thisurl);
+		if (!isMacPlugin) 
+			makeAbsoluteFileName(filename,path,thisurl);
+		else
+			strcpy(filename, thisurl);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
 			/* printf ("getValidFileFromUrl, filename %s, cacheFileName %s\n",filename,cacheFileName); */

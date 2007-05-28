@@ -1200,7 +1200,11 @@ int findTextureFile (int cwo, int *istemp) {
 	#endif
 
 	FREE_IF_NZ(loadThisTexture->filename);
-	loadThisTexture->filename = STRDUP(cacheFileName);
+	if (cacheFileName != NULL)
+		loadThisTexture->filename = STRDUP(cacheFileName);
+	else if (filename != NULL)
+		loadThisTexture->filename = STRDUP(filename);
+	
 	FREE_IF_NZ (filename);
 	return TRUE;
 }

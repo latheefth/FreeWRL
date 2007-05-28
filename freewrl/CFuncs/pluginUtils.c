@@ -175,6 +175,7 @@ void doBrowserAction () {
 	int flen;
 	char firstBytes[4];
 	char sysline[1000];
+	char aquaPath[1000];
 
 
 	struct Multi_String Anchor_url;
@@ -234,7 +235,11 @@ void doBrowserAction () {
 
 
 		/* put the path and the file name together */
-		makeAbsoluteFileName(filename,mypath,thisurl);
+		if (!isMacPlugin) {
+			makeAbsoluteFileName(filename,mypath,thisurl);
+		} else {
+			strcpy(filename, thisurl);
+		}
 		/* printf ("so, Anchor, filename %s, mypath %s, thisurl %s\n",filename, mypath, thisurl); */
 
 		/* if this is a html page, just assume it's ok. If
@@ -288,6 +293,20 @@ void doBrowserAction () {
 			strcat (sysline, " &");
 			freewrlSystem (sysline);
 #else
+                if (isMacPlugin) {
+                        if (strncmp(filename, "http", 4)) {
+                                /* This isn't an absolute path, we have to make it into one ... */
+                                if (PluginFullPath == NULL) {
+                                        /* We haven't got a path from the plugin yet */
+                                        requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, filename);
+                                } 
+                
+                                strcat(aquaPath, PluginFullPath);
+                                strcat(aquaPath, filename);
+                                strcpy(filename, aquaPath);
+                        }
+                }
+
 		if (browser)
 			sprintf(sysline, "open -a %s %s &", browser, filename);
 		else 

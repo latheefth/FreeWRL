@@ -49,6 +49,7 @@
 pthread_t DispThrd = 0;
 int eaiverbose = FALSE;
 char* threadmsg;
+char* PluginFullPath;
 
 int replaceWorld = FALSE;
 char  replace_name[FILENAME_MAX];
@@ -1736,6 +1737,11 @@ void aquaPrintVersion() {
 	printf ("FreeWRL version: %s\n",FWVER); 
 	exit(0);
 }
+void setPluginPath(char* path) {
+	FREE_IF_NZ(PluginFullPath);
+	PluginFullPath = strdup(path);
+}
+
 #endif
 void setEaiVerbose() {
 	eaiverbose = TRUE;

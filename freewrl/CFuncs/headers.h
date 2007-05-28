@@ -744,7 +744,7 @@ extern int isPerlinitialized(void);
 	#endif
 #endif
 
-extern char *BrowserName, *BrowserFullPath, *cacheFileName; 
+extern char *BrowserName, *BrowserFullPath, *cacheFileName, *PluginFullPath; 
 extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
@@ -1220,6 +1220,7 @@ void createContext(CGrafPtr grafPtr);
 void setIsPlugin();
 void sendPluginFD(int fd);
 void aquaPrintVersion();
+void setPluginPath(char* path);
 #endif
 void setEaiVerbose();
 void replaceWorldNeeded(char* str);
