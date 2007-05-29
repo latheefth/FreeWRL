@@ -12,7 +12,6 @@
 #endif
 
 /*  CHECK DIRECTORY IN PLUGINPRINT*/
-#define PLUGINSOCKETVERBOSE
 
 fd_set rfds;
 struct timeval tv;
