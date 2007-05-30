@@ -80,7 +80,7 @@ endif
 #
 # XCFLAGS may be set in the environment or on the gmake command line
 #
-CFLAGS          += -fPIC $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS)
+CFLAGS          += -fPIC $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS) -fno-stack-protector
 
 LDFLAGS		= $(XLDFLAGS)
 
@@ -350,8 +350,7 @@ ifdef USE_MSVC
 	@echo Warning: to use $(LIBRARY) must also link against $(FDLIBM_LIBRARY)
 	@cp $(JSMATH_PRELINK) $@
 endif
-	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
-#	$(LD) $(DASH_R) $(LDFLAGS) -o Darwin_OPT.OBJ/jsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+	$(LD) $(DASH_R) $(LDFLAGS) -o Darwin_OPT.OBJ/jsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
 #	$(LD) $(DASH_R) -arch i386 -o  Darwin_OPT.OBJ/ijsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
 #	lipo -arch ppc Darwin_OPT.OBJ/ppcjsmath.o -arch i386 Darwin_OPT.OBJ/ijsmath.o -create -output Darwin_OPT.OBJ/jsmath.o
 endif
