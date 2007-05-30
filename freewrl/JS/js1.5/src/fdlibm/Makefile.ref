@@ -92,7 +92,7 @@ include $(DEPTH)/config.mk
 # Default IEEE libm
 #
 CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
-		  -DJSFILE $(XCFLAGS) -D_IEEE_LIBM -fPIC
+		  -DJSFILE $(XCFLAGS) -D_IEEE_LIBM -fPIC -fno-stack-protector
 
 # Need for jstypes.h and friends
 INCLUDES += -I..
