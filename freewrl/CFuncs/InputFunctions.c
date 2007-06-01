@@ -89,7 +89,7 @@ char * readInputString(char *fn, char *parent) {
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
 			((unsigned char) firstbytes[1] == 0x8b)) {
-		/* printf ("this is a gzipped file!\n");*/
+		/* printf ("this is a gzipped file!\n"); */
 		isTemp = TRUE;
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 		/* first, move this to a .gz file */
@@ -98,6 +98,7 @@ char * readInputString(char *fn, char *parent) {
 
 		sprintf (sysline,"%s %s",UNZIP,tempname);
 		freewrlSystem (sysline);
+		strcpy(mynewname, tempname);
 		infile = fopen(tempname,"r");
 	} else {
 
@@ -127,7 +128,7 @@ char * readInputString(char *fn, char *parent) {
 	} while (justread>0);
 
 	buffer[bufcount] = '\0';
-	/* printf ("finished read, buffcount %d\n string %s",bufcount,buffer);*/
+	/* printf ("finished read, buffcount %d\n string %s",bufcount,buffer); */
 	fclose (infile);
 
 	if (isTemp) unlink(mynewname);
