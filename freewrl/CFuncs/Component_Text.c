@@ -600,7 +600,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 		if (fsparam & 0x800) { pen_x = -rowlen/2.0; }
 
 		/* END */
-		if ((fsparam & 0x1000) & (fsparam & 0x01)) {
+		if ((fsparam & 0x1000) && (fsparam & 0x01)) {
 			/* printf ("rowlen is %f\n",rowlen); */
 			pen_x = -rowlen;
 		}
