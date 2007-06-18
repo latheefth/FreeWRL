@@ -84,9 +84,18 @@ char fw_outline[2000];
   struct X3D_##node* node2=(struct X3D_##node*)ptr; \
   switch(fieldInd) \
   {
-#define EVENT_END_NODE(node) \
+#define EVENT_END_NODE(node,fieldString) \
   default: \
-   PARSE_ERROR("Unsupported event for node!") \
+	/* printf ("node is a %s, event %s\n",stringNodeType(node2->_nodeType),fieldString);*/ \
+   	/* PARSE_ERROR("Unsupported event for node!") */ \
+	strcpy (fw_outline,"ERROR: Unsupported event ("); \
+	strcat (fw_outline,fieldString); \
+	strcat (fw_outline,") for node of type "); \
+	strcat (fw_outline,stringNodeType(node2->_nodeType)); \
+  	ConsoleMessage(fw_outline);  \
+	fprintf (stderr,"%s\n",fw_outline); \
+  	PARSER_FINALLY  \
+  	return FALSE;  \
   } \
   break; \
  }
@@ -550,8 +559,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  /* Ignore the fields. */
  #define FIELD(n, f, t, v)
 
- #define END_NODE(n) \
-  EVENT_END_NODE(n)
+ #define END_NODE(n) EVENT_END_NODE(n,XFIELD[fromFieldE])
 
  /* potentially rename the Event_From and Event_To */
 
@@ -627,7 +635,9 @@ printf ("\n\n");
   toFieldE = tempTE;
   toFieldO = tempTO;
 
- 
+ #undef END_NODE 
+ #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[fromFieldE])
+
  /* Process from eventOut */
  if(!fromProtoField && !fromScriptField)
   if(fromFieldE!=ID_UNDEFINED) {
@@ -645,6 +655,10 @@ printf ("\n\n");
     #undef BEGIN_NODE
     EVENT_NODE_DEFAULT
    }
+
+ #undef END_NODE 
+ #define END_NODE(n) EVENT_END_NODE(n,EVENT_OUT[fromFieldO])
+
   } else if(fromFieldO!=ID_UNDEFINED) {
    switch(fromNode->_nodeType) {
     #define EVENT_IN(n, f, t, v)
@@ -661,6 +675,10 @@ printf ("\n\n");
     EVENT_NODE_DEFAULT
    }
   }
+
+
+ #undef END_NODE 
+ #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[toFieldE])
 
  /* Process to eventIn */
  if(!toProtoField && !toScriptField)
@@ -679,6 +697,10 @@ printf ("\n\n");
     #undef BEGIN_NODE
     EVENT_NODE_DEFAULT
    }
+
+ #undef END_NODE 
+ #define END_NODE(n) EVENT_END_NODE(n,EVENT_IN[toFieldO])
+
   } else if(toFieldO!=ID_UNDEFINED) {
    switch(toNode->_nodeType) {
     #define EVENT_OUT(n, f, t, v)
@@ -980,6 +1002,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
  indexT type, indexT origFieldE)
 {
+ #undef PARSER_FINALLY
  #define PARSER_FINALLY \
   deleteOffsetPointer(ret);
 
@@ -1305,8 +1328,7 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  #define FIELD(n, f, t, v)
 
  /* Basics */
- #define END_NODE(n) \
-  EVENT_END_NODE(n)
+ #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[evE])
 
  /* exposedField */
  if(evE!=ID_UNDEFINED)
@@ -1336,6 +1358,10 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
   #define BEGIN_NODE(n) \
    EVENT_BEGIN_NODE(evO, ptr, n)
   #define EXPOSED_FIELD(n, f, t, v)
+
+ #undef END_NODE
+ #define END_NODE(n) EVENT_END_NODE(n,EVENT_IN[evO])
+
   
   /* eventIn */
   if(isIn)
@@ -1353,6 +1379,10 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
    #undef EVENT_IN
    #undef EVENT_OUT
   }
+
+
+ #undef END_NODE
+ #define END_NODE(n) EVENT_END_NODE(n,EVENT_OUT[evO])
 
   /* eventOut */
   else if(isOut)
