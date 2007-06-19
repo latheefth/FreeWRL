@@ -85,8 +85,14 @@ include $(DEPTH)/config.mk
 #
 # Default IEEE libm
 #
-CFLAGS          += -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
+
+ifeq ($(OS_NAME),"Ubuntu")
+CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
 		  -DJSFILE $(XCFLAGS) $(DEFS) -fno-stack-protector -fPIC
+else
+CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
+		  -DJSFILE $(XCFLAGS) $(DEFS) -fPIC
+endif
 
 INCFILES = editline.h
 .INIT: $(INCFILES)
