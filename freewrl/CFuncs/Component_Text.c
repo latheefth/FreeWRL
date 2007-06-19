@@ -324,7 +324,7 @@ double FW_extent (int start, int length) {
 	int count;
 	double ret = 0;
 
-	for (count = start; count <length; count++) {
+	for (count = start; count <length+start; count++) {
 		ret += glyphs[count]->advance.x >> 10;
 	}
 	return ret;
