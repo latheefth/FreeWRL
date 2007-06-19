@@ -43,6 +43,10 @@ else
 DIST = $(DEPTH)/../../dist/$(OBJDIR)
 endif
 
+#Is this ubuntu?
+OS_NAME		:= $(shell lsb_release --id | cut -f2)
+
+
 # Set os+release dependent make variables
 OS_ARCH         := $(subst /,_,$(shell uname -s | sed /\ /s//_/))
 
