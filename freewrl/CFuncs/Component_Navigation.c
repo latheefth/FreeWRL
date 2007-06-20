@@ -358,7 +358,7 @@ void changed_Inline (struct X3D_Inline *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-		DIRECTIONAL_LIGHT_FIND
+		DIRECTIONAL_LIGHT_FIND_W___CHILDREN
 		INITIALIZE_EXTENT
 }
 
