@@ -1626,7 +1626,7 @@ package VRML::NodeType;
 												# and >=minVal >= deviceMinVal
 
 						intValue => [SFInt32, 0, exposedField],		# integer value for i/o
-						_oldintValue => [SFInt32, -99, field],		# old integer value for i/o
+						_oldintValue => [SFInt32, 0, field],		# old integer value for i/o
 						floatValue => [SFFloat, 0, exposedField],	# float value for i/o
 						useIntValue => [SFBool, TRUE, exposedField],	# which value to use for input
 
