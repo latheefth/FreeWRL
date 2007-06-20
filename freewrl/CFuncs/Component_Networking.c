@@ -322,7 +322,7 @@ void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 int requestToStartEAIdone = FALSE;
 static void midiStartEAI() {
 	if (!requestToStartEAIdone) {
-		/* printf ("MidiControl - turning EAI on\n"); */
+		printf ("MidiControl - turning EAI on\n");
 		create_EAI();
 		if (system ("/usr/bin/freewrlRewireServer &")==127)
 			ConsoleMessage ("could not start /usr/bin/freewrlReWireServer");
@@ -631,7 +631,6 @@ void do_MidiControl (void *this) {
 	printf ("do MidiControl for node %s\n",stringNodeType(node->_nodeType));
 	#endif
 	if (NODE_MidiControl == node->_nodeType) {
-
 		#ifdef MIDIVERBOSE
 		printf ("ReWire change %d %d ", node->_ichange, node->_change); 
 
@@ -644,7 +643,6 @@ void do_MidiControl (void *this) {
 
 		value = node->intValue;
 		fV = node->floatValue;
-
 		if (node->useIntValue) {
 			determineMIDIValFromInt (node, &value, &fV);
 		} else {
@@ -653,16 +651,6 @@ void do_MidiControl (void *this) {
 
 		/* should we send this event? */
 		sendEvent = FALSE;
-
-		/* did any of the strings change? */
-		if ((node->channel->touched != 0) ||
-			(node->controllerType->touched != 0) ||
-			(node->deviceName->touched != 0)) sendEvent = TRUE;
-
-
-
-
-
 		if (node->_intControllerType == MIDI_CONTROLLER_FADER) {
 			if (value != node->_oldintValue) sendEvent = TRUE;
 		} else {
@@ -716,29 +704,11 @@ void do_MidiControl (void *this) {
 		}
 					
 		if (sendEvent) {
-			/* did the value change? */
-			if (node->_oldintValue != value) {
-				node->intValue = value;
-				node->_oldintValue = value;
-				node->floatValue = fV;
-				mark_event(node,offsetof(struct X3D_MidiControl, intValue));
-				mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
-			}
-
-			/* did one of the strings change? */
-			if (node->channel->touched != 0) {
-				mark_event(node,offsetof(struct X3D_MidiControl, channel));
-				node->channel->touched = 0;
-			}
-			if (node->controllerType->touched != 0) {
-				mark_event(node,offsetof(struct X3D_MidiControl, controllerType));
-				node->controllerType->touched = 0;
-			}
-			if (node->deviceName->touched != 0) {
-				mark_event(node,offsetof(struct X3D_MidiControl, deviceName));
-				node->deviceName->touched = 0;
-			}
-
+			node->intValue = value;
+			node->_oldintValue = value;
+			node->floatValue = fV;
+			mark_event(node,offsetof(struct X3D_MidiControl, intValue));
+			mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
 
 			#ifdef MIDIVERBOSE
 			printf ("intValue changed - now is %d sentvel %d\n",node->intValue, node->_sentVel); 
