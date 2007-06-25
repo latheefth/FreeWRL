@@ -1,3 +1,7 @@
+
+
+
+
 /*
  * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -40,6 +44,17 @@
 #define VERBOSE_OBJX (unsigned long)
 #define VERBOSE_OBJ 
 
+#define ADD_ROOT(a,b) \
+	/* printf ("adding root %x\n",b); */ \
+        if (JS_AddRoot(a,b) != JS_TRUE) { \
+                printf ("JA_AddRoot failed at %s:%d\n",__FILE__,__LINE__); \
+                return JS_FALSE; \
+        }
+
+#define REMOVE_ROOT(a,b) \
+	/* printf ("removing root %x\n",b); */ \
+        JS_RemoveRoot(a,b); 
+
 /*
  * The following VRML field types don't need JS classes:
  * (ECMAScript native datatypes, see JS.pm):
@@ -72,8 +87,8 @@
  */
 
 
-
 /* helper functions */
+void JS_MY_Finalize(JSContext *cx, JSObject *obj);
 
 JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval); 
 JSBool doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name); 
@@ -115,11 +130,9 @@ setAssignProperty(JSContext *context,
 
 
 
-/* not implemented */
 JSBool
 SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
-/* not implemented */
 JSBool
 SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
@@ -134,9 +147,6 @@ SFColorTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 JSBool
 SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-
-void
-SFColorFinalize(JSContext *cx, JSObject *obj);
 
 JSBool
 SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
@@ -162,15 +172,11 @@ SFColorRGBATouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 JSBool
 SFColorRGBAConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
-void
-SFColorRGBAFinalize(JSContext *cx, JSObject *obj);
-
 JSBool
 SFColorRGBAGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
 
 JSBool
 SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
-
 
 JSBool
 SFImageToString(JSContext *cx,
@@ -241,9 +247,7 @@ SFNodeConstr(JSContext *cx,
 			 jsval *argv,
 			 jsval *rval);
 
-void
-SFNodeFinalize(JSContext *cx,
-			   JSObject *obj);
+void SFNodeFinalize(JSContext *cx, JSObject *obj);
 
 JSBool
 SFNodeGetProperty(JSContext *cx,
@@ -328,10 +332,6 @@ SFRotationConstr(JSContext *cx,
 				 uintN argc,
 				 jsval *argv,
 				 jsval *rval);
-
-void
-SFRotationFinalize(JSContext *cx,
-				   JSObject *obj);
 
 JSBool
 SFRotationGetProperty(JSContext *cx,
@@ -431,10 +431,6 @@ SFVec2fConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
-
-void
-SFVec2fFinalize(JSContext *cx,
-				JSObject *obj);
 
 JSBool
 SFVec2fGetProperty(JSContext *cx,
@@ -540,10 +536,6 @@ SFVec3fConstr(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
-
-void
-SFVec3fFinalize(JSContext *cx,
-				JSObject *obj);
 
 JSBool
 SFVec3fGetProperty(JSContext *cx,
@@ -681,7 +673,6 @@ MFInt32SetProperty(JSContext *cx,
 				   jsval *vp);
 
 
-
 JSBool
 MFNodeToString(JSContext *cx,
 			   JSObject *obj,
@@ -803,7 +794,6 @@ MFStringAddProperty(JSContext *cx,
 					JSObject *obj,
 					jsval id,
 					jsval *vp);
-
 
 
 JSBool

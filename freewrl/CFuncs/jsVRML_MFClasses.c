@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
  * 2007 John Stewart CRC Canada.
@@ -21,6 +22,22 @@
 /*							*/
 /********************************************************/
 
+/* remove any private data from this datatype, and let the garbage collector handle the object */
+void
+JS_MY_Finalize(JSContext *cx, JSObject *obj)
+{
+	void *ptr;
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("finalizing %d\n",obj);
+	#endif
+
+	REMOVE_ROOT(cx,obj)
+
+	if ((ptr = (void *)JS_GetPrivate(cx, obj)) != NULL) {
+		FREE_IF_NZ(ptr);
+	}
+}
+
 JSBool
 MFColorToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
@@ -39,6 +56,8 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	JSObject *_obj;
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
+	
+	ADD_ROOT(cx,obj)
 
 	if (!JS_DefineProperty(cx, obj, "length", v,
 						   JS_PropertyStub, JS_PropertyStub,
@@ -124,11 +143,12 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
 
+	ADD_ROOT(cx,obj)
+
 	if (!JS_DefineProperty(cx, obj, "length", v,
 						   JS_PropertyStub, JS_PropertyStub,
 						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFFloatConstr.\n");
+		printf( "JS_DefineProperty failed for \"length\" in MFFloatConstr.\n");
 		return JS_FALSE;
 	}
 
@@ -136,8 +156,7 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
 						   JS_PropertyStub, JS_PropertyStub,
 						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFFloatConstr.\n");
+		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFFloatConstr.\n");
 		return JS_FALSE;
 	}
 	if (!argv) {
@@ -211,6 +230,8 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of MFInt32Constr\n");
 	#endif
+
+	ADD_ROOT(cx,obj)
 
 	if (!JS_DefineProperty(cx, obj, "length", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
 		printf( "JS_DefineProperty failed for \"length\" in MFInt32Constr.\n");
@@ -313,6 +334,8 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	JSObject *_obj;
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
+
+	ADD_ROOT(cx,obj)
 
 	if (!JS_DefineProperty(cx, obj, "length", v,
 		   JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
@@ -453,6 +476,8 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
 
+	ADD_ROOT(cx,obj)
+
 	if (!JS_DefineProperty(cx, obj, "length", v,
 						   JS_PropertyStub, JS_PropertyStub,
 						   JSPROP_PERMANENT)) {
@@ -532,6 +557,8 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	JSObject *_obj;
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
+
+	ADD_ROOT(cx,obj)
 
 	if (!JS_DefineProperty(cx, obj, "length", v,
 				   JS_PropertyStub, JS_PropertyStub,
@@ -613,6 +640,8 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	JSObject *_obj;
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
+
+	ADD_ROOT(cx,obj)
 
 	if (!JS_DefineProperty(cx, obj, "length", v,
 						   JS_PropertyStub, JS_PropertyStub,
@@ -917,6 +946,8 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	jsval v = INT_TO_JSVAL(16);
 	jsdouble d, *dp;
 
+	ADD_ROOT(cx,obj)
+
 	if ((argc != 16) && (argc != 0)) {
 		printf ("VrmlMatrixConstr - require either 16 or no values\n");
 		return JS_FALSE;
@@ -1066,6 +1097,8 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	JSObject *_obj;
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
+
+	ADD_ROOT(cx,obj)
 
 	if (!JS_DefineProperty(cx, obj, "length", v,
 						   JS_PropertyStub, JS_PropertyStub,
@@ -1254,10 +1287,16 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(argc);
 
+	ADD_ROOT(cx,obj)
+
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf("MFStringConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
 
+	if (JS_AddRoot(cx, obj) != JS_TRUE) {
+		printf ("JA_AddRoot failed at %s:%d\n",__FILE__,__LINE__);
+		return JS_FALSE;
+	}
 
 	if (!JS_DefineProperty(cx, obj, "length", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
 		printf( "JS_DefineProperty failed for \"length\" in MFStringConstr.\n");

@@ -257,6 +257,8 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 	SFColorNative *ptr;
 	jsdouble pars[3];
 
+	ADD_ROOT(cx,obj)
+
 	if ((ptr = (SFColorNative *) SFColorNativeNew()) == NULL) {
 		printf( "SFColorNativeNew failed in SFColorConstr.\n");
 		return JS_FALSE;
@@ -294,20 +296,6 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 	return JS_TRUE;
 }
 
-void
-SFColorFinalize(JSContext *cx, JSObject *obj)
-{
-	SFColorNative *ptr;
-
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorFinalize: obj = %u\n", VERBOSE_OBJ obj);
-	#endif
-	if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFColorFinalize.\n");
-		return;
-	}
-	SFColorNativeDelete(ptr);
-}
 
 JSBool
 SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
@@ -553,6 +541,8 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	SFColorRGBANative *ptr;
 	jsdouble pars[3];
 
+	ADD_ROOT(cx,obj)
+
 	if ((ptr = (SFColorRGBANative *) SFColorNativeNew()) == NULL) {
 		printf( "SFColorRGBANativeNew failed in SFColorConstr.\n");
 		return JS_FALSE;
@@ -591,21 +581,6 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	*rval = OBJECT_TO_JSVAL(obj);
 
 	return JS_TRUE;
-}
-
-void
-SFColorRGBAFinalize(JSContext *cx, JSObject *obj)
-{
-	SFColorRGBANative *ptr;
-
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorRGBAFinalize: obj = %u\n", VERBOSE_OBJ obj);
-	#endif
-	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFColorRGBAFinalize.\n");
-		return;
-	}
-	SFColorRGBANativeDelete(ptr);
 }
 
 JSBool
@@ -760,6 +735,8 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	jsval mv;
 	int param[3];
 	int expectedSize;
+
+	ADD_ROOT(cx,obj)
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFImageConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
@@ -1036,6 +1013,8 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	struct X3D_Group *myGroup;
 
+
+	ADD_ROOT(cx,obj)
 	newHandle = 0;
 	cString = NULL;
 
@@ -1172,11 +1151,15 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFNodeFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	#endif
+
+	REMOVE_ROOT(cx,obj)
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFNodeFinalize.\n");
 		return;
-	}
-	SFNodeNativeDelete(ptr);
+	} else {
+                FREE_IF_NZ (ptr->X3DString);
+                FREE_IF_NZ (ptr);
+        }
 }
 
 JSBool
@@ -1724,6 +1707,8 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of SFRotationConstr\n");
 	#endif
+
+	ADD_ROOT(cx,obj)
 	if ((ptr = (SFRotationNative *)SFRotationNativeNew()) == NULL) {
 		printf( "SFRotationNativeNew failed in SFRotationConstr.\n");
 		return JS_FALSE;
@@ -1819,22 +1804,6 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	#endif
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
-}
-
-void
-SFRotationFinalize(JSContext *cx, JSObject *obj)
-{
-	SFRotationNative *ptr;
-
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationFinalize: obj = %u\n", VERBOSE_OBJ obj);
-	#endif
-
-	if ((ptr = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFRotationFinalize.\n");
-		return;
-	}
-	SFRotationNativeDelete(ptr);
 }
 
 JSBool
@@ -2255,6 +2224,8 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 	SFVec2fNative *ptr;
 	jsdouble pars[2];
 
+	ADD_ROOT(cx,obj)
+
 	if ((ptr = (SFVec2fNative *) SFVec2fNativeNew()) == NULL) {
 		printf( "SFVec2fNativeNew failed in SFVec2fConstr.\n");
 		return JS_FALSE;
@@ -2289,22 +2260,6 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 	return JS_TRUE;
 }
 
-
-void
-SFVec2fFinalize(JSContext *cx, JSObject *obj)
-{
-	SFVec2fNative *ptr;
-
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorFinalize: obj = %u\n", VERBOSE_OBJ obj);
-	#endif
-
-	if ((ptr = (SFVec2fNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFVec2fFinalize.\n");
-		return;
-	}
-	SFVec2fNativeDelete(ptr);
-}
 
 JSBool
 SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
@@ -2762,6 +2717,8 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 		printf ("start of SFVec3fConstr\n");
 	#endif
 
+	ADD_ROOT(cx,obj)
+
 	if ((ptr = (SFVec3fNative *) SFVec3fNativeNew()) == NULL) {
 		printf( "SFVec3fNativeNew failed in SFVec3fConstr.\n");
 		return JS_FALSE;
@@ -2797,22 +2754,6 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 	#endif
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
-}
-
-void
-SFVec3fFinalize(JSContext *cx, JSObject *obj)
-{
-	SFVec3fNative *ptr;
-
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3fFinalize: obj = %u\n", VERBOSE_OBJ obj);
-	#endif
-
-	if ((ptr = (SFVec3fNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFVec3fFinalize.\n");
-		return;
-	}
-	SFVec3fNativeDelete(ptr);
 }
 
 JSBool

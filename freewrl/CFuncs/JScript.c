@@ -66,7 +66,7 @@ char *DefaultScriptMethods = "function initialize() {}; " \
 			" function shutdown() {}; " \
 			" function eventsProcessed() {}; " \
 			" TRUE=true; FALSE=false; " \
-			" function print(x) {Browser.print(x)}; " \	
+			" function print(x) {Browser.print(x)}; " \
 			" function getName() {return Browser.getName()}; "\
 			" function getVersion() {return Browser.getVersion()}; "\
 			" function getCurrentSpeed() {return Browser.getCurrentSpeed()}; "\
@@ -304,17 +304,6 @@ SFNodeNativeNew()
 	return ptr;
 }
 
-void
-SFNodeNativeDelete(void *p)
-{
-	SFNodeNative *ptr;
-	if (p != NULL) {
-		ptr = (SFNodeNative *)p;
-		FREE_IF_NZ (ptr->X3DString);
-		FREE_IF_NZ (ptr);
-	}
-}
-
 /* assign this internally to the Javascript engine environment */
 int
 SFNodeNativeAssign(void *top, void *fromp)
@@ -351,16 +340,6 @@ SFColorRGBANativeNew()
 }
 
 void
-SFColorRGBANativeDelete(void *p)
-{
-	SFColorRGBANative *ptr;
-	if (p != NULL) {
-		ptr = (SFColorRGBANative *)p;
-		FREE_IF_NZ (ptr);
-	}
-}
-
-void
 SFColorRGBANativeAssign(void *top, void *fromp)
 {
 	SFColorRGBANative *to = (SFColorRGBANative *)top;
@@ -376,16 +355,6 @@ SFColorNativeNew()
 	ptr = (SFColorNative *)MALLOC(sizeof(*ptr));
 	ptr->touched = 0;
 	return ptr;
-}
-
-void
-SFColorNativeDelete(void *p)
-{
-	SFColorNative *ptr;
-	if (p != NULL) {
-		ptr = (SFColorNative *)p;
-		FREE_IF_NZ (ptr);
-	}
 }
 
 void
@@ -427,16 +396,6 @@ SFRotationNativeNew()
 }
 
 void
-SFRotationNativeDelete(void *p)
-{
-	SFRotationNative *ptr;
-	if (p != NULL) {
-		ptr = (SFRotationNative *)p;
-		FREE_IF_NZ (ptr);
-	}
-}
-
-void
 SFRotationNativeAssign(void *top, void *fromp)
 {
 	SFRotationNative *to = (SFRotationNative *)top;
@@ -455,16 +414,6 @@ SFVec2fNativeNew()
 }
 
 void
-SFVec2fNativeDelete(void *p)
-{
-	SFVec2fNative *ptr;
-	if (p != NULL) {
-		ptr = (SFVec2fNative *)p;
-		FREE_IF_NZ (ptr);
-	}
-}
-
-void
 SFVec2fNativeAssign(void *top, void *fromp)
 {
 	SFVec2fNative *to = (SFVec2fNative *)top;
@@ -480,16 +429,6 @@ SFVec3fNativeNew()
 	ptr = (SFVec3fNative *)MALLOC(sizeof(*ptr));
 	ptr->touched = 0;
 	return ptr;
-}
-
-void
-SFVec3fNativeDelete(void *p)
-{
-	SFVec3fNative *ptr;
-	if (p != NULL) {
-		ptr = (SFVec3fNative *)p;
-		FREE_IF_NZ (ptr);
-	}
 }
 
 void

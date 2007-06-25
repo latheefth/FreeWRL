@@ -40,7 +40,7 @@ JSClass SFColorClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	SFColorFinalize
+	JS_MY_Finalize
 };
 
 JSPropertySpec (SFColorProperties)[] = {
@@ -71,7 +71,7 @@ JSClass SFColorRGBAClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	SFColorRGBAFinalize
+	JS_MY_Finalize
 };
 
 JSPropertySpec (SFColorRGBAProperties)[] = {
@@ -103,7 +103,7 @@ JSClass SFImageClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSPropertySpec (SFImageProperties)[] = {
@@ -133,7 +133,7 @@ JSClass SFNodeClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	SFNodeFinalize
+	SFNodeFinalize	/* note, this is different, as it contains a string to get rid of */
 };
 
 JSPropertySpec (SFNodeProperties)[] = {
@@ -163,7 +163,7 @@ JSClass SFRotationClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	SFRotationFinalize
+	JS_MY_Finalize
 };
 
 JSPropertySpec (SFRotationProperties)[] = {
@@ -199,7 +199,7 @@ JSClass SFVec2fClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	SFVec2fFinalize
+	JS_MY_Finalize
 };
 
 JSPropertySpec (SFVec2fProperties)[] = {
@@ -235,7 +235,7 @@ JSClass SFVec3fClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	SFVec3fFinalize
+	JS_MY_Finalize
 };
 
 JSPropertySpec (SFVec3fProperties)[] = {
@@ -273,7 +273,7 @@ JSClass MFColorClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFColorFunctions)[] = {
@@ -294,7 +294,7 @@ JSClass MFFloatClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFFloatFunctions)[] = {
@@ -315,7 +315,7 @@ JSClass MFInt32Class = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFInt32Functions)[] = {
@@ -336,7 +336,7 @@ JSClass MFNodeClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFNodeFunctions)[] = {
@@ -357,7 +357,7 @@ JSClass MFRotationClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFRotationFunctions)[] = {
@@ -379,7 +379,7 @@ JSClass MFStringClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFStringFunctions)[] = {
@@ -400,7 +400,7 @@ JSClass MFTimeClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSPropertySpec (MFTimeProperties)[] = { 
@@ -425,7 +425,7 @@ JSClass MFVec2fClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFVec2fFunctions)[] = {
@@ -446,7 +446,7 @@ JSClass MFVec3fClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (MFVec3fFunctions)[] = {
@@ -468,7 +468,7 @@ JSClass VrmlMatrixClass = {
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
-	JS_FinalizeStub
+	JS_MY_Finalize
 };
 
 JSFunctionSpec (VrmlMatrixFunctions)[] = {
