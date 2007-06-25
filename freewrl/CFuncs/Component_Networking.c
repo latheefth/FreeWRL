@@ -136,7 +136,7 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *channel,
 	   name lengths have to be the same, and the strings have to be the same.
 	*/
 	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
-		#ifdef VERBOSE
+		#ifdef MIDIVERBOSE
 			printf ("comparing %d %d to %d %d\n",dev,ReWireDevices[ctr].encodedDeviceName,
 			cont, ReWireDevices[ctr].encodedControllerName); 
 		#endif
@@ -188,7 +188,7 @@ int ReWireDeviceRegister (int dev, int cont, int *bus, int *channel,
 	   name lengths have to be the same, and the strings have to be the same.
 	*/
 	for (ctr=0; ctr<=ReWireDevicetableSize; ctr++) {
-		#ifdef VERBOSE
+		#ifdef MIDIVERBOSE
 			printf ("comparing %d %d to %d %d\n",dev,ReWireDevices[ctr].encodedDeviceName,
 			cont, ReWireDevices[ctr].encodedControllerName); 
 		#endif
