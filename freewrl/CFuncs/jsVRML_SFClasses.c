@@ -113,7 +113,7 @@ SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	#endif
 
 	result = JS_NewArrayObject(cx, 3, NULL); 
-        JS_AddRoot(cx, &result); 
+        ADD_ROOT(cx, result); 
         for(i=0; i<3; i++) { 
 		if ((dp = JS_NewDouble(cx, xp[i])) == NULL) {
 			printf( "JS_NewDouble failed for %f in SFColorGetHSV.\n", xp[i]);
@@ -123,7 +123,7 @@ SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
         	JS_SetElement(cx, result, (jsint)i, &_v); 
         } 
 
-        JS_RemoveRoot(cx, &result); 
+        /* JAS - should we remove this here, or on finalize? JS_RemoveRoot(cx, &result);  */
         *rval = OBJECT_TO_JSVAL(result); 
 	return JS_TRUE;
 }
