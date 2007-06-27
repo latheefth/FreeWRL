@@ -23,12 +23,13 @@
 /********************************************************/
 
 /* remove any private data from this datatype, and let the garbage collector handle the object */
+
 void
 JS_MY_Finalize(JSContext *cx, JSObject *obj)
 {
 	void *ptr;
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("finalizing %d\n",obj);
+	printf ("finalizing %x\n",obj);
 	#endif
 
 	REMOVE_ROOT(cx,obj)
@@ -1292,11 +1293,6 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf("MFStringConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
-
-	if (JS_AddRoot(cx, obj) != JS_TRUE) {
-		printf ("JA_AddRoot failed at %s:%d\n",__FILE__,__LINE__);
-		return JS_FALSE;
-	}
 
 	if (!JS_DefineProperty(cx, obj, "length", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
 		printf( "JS_DefineProperty failed for \"length\" in MFStringConstr.\n");
