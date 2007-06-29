@@ -34,6 +34,8 @@
 #define LINENO_STUB 0
 
 extern jsval global_return_val;
+extern jsval JSglobal_return_val;
+extern uintptr_t *JSSFpointer;
 
 static JSBool reportWarnings = JS_TRUE;
 

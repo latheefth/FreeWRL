@@ -533,17 +533,46 @@ JSBool _simplecopyElements (JSContext *cx,
 		JSObject *fromObj,
 		JSObject *toObj,
 		int count,
-		char *name) {
+		int type) {
 	int i;
 	jsval val;
+	double dd;
+	int ii;
+        jsdouble *dp;
+
+
 
 	for (i = 0; i < count; i++) {
 		if (!JS_GetElement(cx, fromObj, (jsint) i, &val)) {
-			printf( "failed in get %s index %d.\n",name, i);
+			printf( "failed in get %d index %d.\n",type, i);
 			return JS_FALSE;
 		}
+		/* ensure that the types are ok */
+		if ((type == FIELDTYPE_SFFloat) || (type == FIELDTYPE_SFTime)) {
+			/* if we expect a double, and we have an INT... */
+			if (JSVAL_IS_INT(val)) {
+				ii = JSVAL_TO_INT(val);
+				dd = (double) ii;
+				/* printf ("integer is %d doulbe %lf\n",ii,dd); */
+		                if ((dp = JS_NewDouble(cx,dd)) == NULL) {
+                		        printf( "JS_NewDouble failed for %f in simplecopyelements.\n",dd);
+                        		return JS_FALSE;
+                		}
+                		val = DOUBLE_TO_JSVAL(dp);
+
+			}
+		}
+
+		/*
+		if (JSVAL_IS_OBJECT(val)) printf ("sc, element %d is an OBJECT\n",i);
+		if (JSVAL_IS_STRING(val)) printf ("sc, element %d is an STRING\n",i);
+		if (JSVAL_IS_NUMBER(val)) printf ("sc, element %d is an NUMBER\n",i);
+		if (JSVAL_IS_DOUBLE(val)) printf ("sc, element %d is an DOUBLE\n",i);
+		if (JSVAL_IS_INT(val)) printf ("sc, element %d is an INT\n",i);
+		*/
+
 		if (!JS_SetElement(cx, toObj, (jsint) i, &val)) {
-			printf( "failed in set %s index %d.\n", name, i);
+			printf( "failed in set %s index %d.\n", type, i);
 			return JS_FALSE;
 		}
 	}
@@ -558,7 +587,7 @@ JSBool _standardMFAssign(JSContext *cx,
 	jsval *argv,
 	jsval *rval,
 	JSClass *myClass,
-	char *name) {
+	int type) {
 
 	JSObject *_from_obj;
 	jsval val, myv;
@@ -566,47 +595,46 @@ JSBool _standardMFAssign(JSContext *cx,
 	char *_id_str;
 
 	if (!JS_InstanceOf(cx, obj, myClass, argv)) {
-		printf("JS_InstanceOf failed in %s.\n",name);
+		printf("JS_InstanceOf failed in %d.\n",type);
 		return JS_FALSE;
 	}
 
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
-		printf("JS_ConvertArguments failed in %s.\n",name);
+		printf("JS_ConvertArguments failed in %d.\n",type);
 		return JS_FALSE;
 	}
-
 	if (!JS_InstanceOf(cx, _from_obj, myClass, argv)) {
-		printf("JS_InstanceOf failed in %s.\n",name);
+		printf("JS_InstanceOf failed in %d.\n",type);
 		return JS_FALSE;
 	}
 
 	myv = INT_TO_JSVAL(1);
 	if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
-		printf("JS_SetProperty failed for \"__touched_flag\" in %s.\n",name);
+		printf("JS_SetProperty failed for \"__touched_flag\" in %d.\n",type);
 		return JS_FALSE;
 	}
 
 
 	if (!JS_GetProperty(cx, _from_obj, "length", &val)) {
-		printf("JS_GetProperty failed for \"length\" in %s.\n",name);
+		printf("JS_GetProperty failed for \"length\" in %d.\n",type);
 		return JS_FALSE;
 	}
 
 	if (!JS_SetProperty(cx, obj, "length", &val)) {
-		printf("JS_SetProperty failed for \"length\" in %s\n",name);
+		printf("JS_SetProperty failed for \"length\" in %d\n",type);
 		return JS_FALSE;
 	}
 
 	len = JSVAL_TO_INT(val);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("%s: obj = %u, id = \"%s\", from = %u, len = %d\n",name,
+		printf("%s: obj = %u, id = \"%s\", from = %u, len = %d\n",FIELDTYPES[type],
 		VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj, len);
 	#endif
 
 	/* copyElements */
 	*rval = OBJECT_TO_JSVAL(obj);
-	return _simplecopyElements(cx, _from_obj, obj, len,name);
+	return _simplecopyElements(cx, _from_obj, obj, len,type);
 }
 
 /* standardized GetProperty for MF's */

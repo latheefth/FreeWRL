@@ -78,7 +78,7 @@ struct CRStruct {
         uintptr_t fnptr;
         unsigned int tonode_count;
         CRnodeStruct *tonodes;
-        int     act;
+        int     isActive;
         int     len;
         void    (*interpptr)(void *); /* pointer to an interpolator to run */
         int     direction_flag; /* if non-zero indicates script in/out,

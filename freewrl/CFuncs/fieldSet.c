@@ -307,9 +307,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	char *memptr;
         JSString *strval; /* strings */
 	char *strp;
-        SFNodeNative *sfnode;
-	SFVec2fNative *sfvec2f;
-	SFVec3fNative *sfvec3f;
 	SFRotationNative *sfrotation;
 
 
@@ -327,10 +324,35 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	printf ("start of setField_javascriptEventOut, to %d:%d = %d, fieldtype %d string %s\n",tn, tptr, memptr, fieldType, strp);
 	#endif
 
+
+#define GETJSVAL_TYPE_A(thistype,field) \
+		case FIELDTYPE_##thistype: { \
+			memcpy ((void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); \
+			break; \
+		} 
+
+#define GETJSVAL_TYPE_MF_A(MFtype,SFtype) \
+		case FIELDTYPE_##MFtype: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_##SFtype); break;}
+
 	switch (fieldType) {
+                        GETJSVAL_TYPE_A(SFRotation,v)
+                        GETJSVAL_TYPE_A(SFNode,handle)
+                        GETJSVAL_TYPE_A(SFVec2f,v)
+                        GETJSVAL_TYPE_A(SFVec3f,v)
+                        GETJSVAL_TYPE_A(SFColor,v)
+                        GETJSVAL_TYPE_A(SFColorRGBA,v)
+
+                        GETJSVAL_TYPE_MF_A(MFRotation,SFRotation)
+                        /* GETJSVAL_TYPE_MF_A(MFNode,SFNode) */
+                        GETJSVAL_TYPE_MF_A(MFVec2f,SFVec2f)
+                        GETJSVAL_TYPE_MF_A(MFVec3f,SFVec3f)
+                        GETJSVAL_TYPE_MF_A(MFColor,SFColor)
+                        GETJSVAL_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
+
+
 		case FIELDTYPE_SFInt32: 
 		case FIELDTYPE_SFBool:	{	/* SFBool */
-			if (!JS_ValueToInt32(scriptContext, global_return_val,&ival)) {
+			if (!JS_ValueToInt32(scriptContext, JSglobal_return_val,&ival)) {
 				printf ("error\n");
 				ival=0;
 			}
@@ -339,65 +361,22 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		}
 
 		case FIELDTYPE_SFTime: {
-			if (!JS_ValueToNumber(scriptContext, global_return_val,&tval)) tval=0.0;
+			if (!JS_ValueToNumber(scriptContext, JSglobal_return_val,&tval)) tval=0.0;
 			memcpy ((void *)memptr, (void *)&tval,len);
 			break;
 		}
 
-		case FIELDTYPE_SFNode: {
-			if ((sfnode = (SFNodeNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
-				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
-				return;
-			}
-			memcpy ((void *)memptr, (void *)&(sfnode->handle),len);
-			#ifdef SETFIELDVERBOSE
-			printf ("PAST SFNODE get private - data is %s\n",sfnode->X3DString);
-			printf ("and handle is %d\n",sfnode->handle);
-			#endif
-
-			break;
-		}
-
 		case FIELDTYPE_SFFloat: {
-			if (!JS_ValueToNumber(scriptContext, global_return_val,&tval)) tval=0.0;
+			if (!JS_ValueToNumber(scriptContext, JSglobal_return_val,&tval)) tval=0.0;
 			/* convert double precision to single, for X3D */
 			fl[0] = (float) tval;
 			memcpy ((void *)memptr, (void *)fl,len);
 			break;
 		}
 
-		case FIELDTYPE_SFVec2f: {	/* SFVec2f */
-			if ((sfvec2f = (SFVec2fNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
-				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
-				return;
-			}
-			memcpy ((void *)memptr, (void *)&(sfvec2f->v),len);
-			break;
-		}
-
-		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_SFColor: {	/* SFColor */
-			if ((sfvec3f = (SFVec3fNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
-				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
-				return;
-			}
-			memcpy ((void *)memptr, (void *)&(sfvec3f->v),len);
-			break;
-		}
-
-		case FIELDTYPE_SFColorRGBA:
-		case FIELDTYPE_SFRotation: {
-			if ((sfrotation = (SFRotationNative *)JS_GetPrivate(scriptContext, (JSObject *)global_return_val)) == NULL) {
-				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
-				return;
-			}
-			memcpy ((void *)memptr, (void *)&(sfrotation->v),len);
-			break;
-		}
-/**/
 		case FIELDTYPE_SFImage: {
 			/* the string should be saved as an SFImage */
-			strval = JS_ValueToString(scriptContext, global_return_val);
+			strval = JS_ValueToString(scriptContext, JSglobal_return_val);
 	        	strp = JS_GetStringBytes(strval);
 
 			Parser_scanStringValueToMem(tn, tptr, FIELDTYPE_SFImage, strp);
@@ -408,7 +387,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 			struct Uni_String *ms;
 			uintptr_t *newptr;
 
-			strval = JS_ValueToString(scriptContext, global_return_val);
+			strval = JS_ValueToString(scriptContext, JSglobal_return_val);
 	        	strp = JS_GetStringBytes(strval);
 
 			/* copy the string over, delete the old one, if need be */
@@ -422,11 +401,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 
 			/* a series of Floats... */
-		case FIELDTYPE_MFVec3f:
-		case FIELDTYPE_MFColor: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFColor); break;}
 		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFFloat); break;}
-		case FIELDTYPE_MFRotation: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFRotation); break;}
-		case FIELDTYPE_MFVec2f: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFVec2f); break;}
 		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
 		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
 		case FIELDTYPE_MFNode: {
@@ -699,7 +674,6 @@ void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset,
 /* of the multi structures is the same - so we "fudge" things	*/
 /* to make this multi-purpose.					*/
 /****************************************************************/
-
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	float *fl;
 	int *il;
@@ -725,7 +699,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	elesize = returnElementLength(eletype) * returnElementRowSize(eletype);
 
 	/* rough check of return value */
-	if (!JSVAL_IS_OBJECT(global_return_val)) {
+	if (!JSVAL_IS_OBJECT(JSglobal_return_val)) {
 		printf ("getJSMultiNumType - did not get an object\n");
 		return;
 	}
@@ -735,7 +709,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	#endif
 
 
-	if (!JS_GetProperty(cx, (JSObject *)global_return_val, "length", &mainElement)) {
+	if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) {
 		printf ("JS_GetProperty failed for \"length\" in getJSMultiNumType\n");
 		return;
 	}
@@ -763,7 +737,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* go through each element of the main array. */
 	for (i = 0; i < len; i++) {
-		if (!JS_GetElement(cx, (JSObject *)global_return_val, i, &mainElement)) {
+		if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) {
 			printf ("JS_GetElement failed for %d in getJSMultiNumType\n",i);
 			return;
 		}
@@ -837,7 +811,6 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	tn->n = len;
 }
-
 
 /****************************************************************/
 /* a script is returning a MFString type; add this to the C	*/

@@ -48,7 +48,7 @@ MFColorToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 
 JSBool
 MFColorAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFColorClass,"MFColorAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFColorClass,FIELDTYPE_SFColor);
 }
 
 JSBool
@@ -134,7 +134,7 @@ MFFloatToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 
 JSBool
 MFFloatAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFFloatClass,"MFFloatAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFFloatClass,FIELDTYPE_SFFloat);
 }
 
 JSBool
@@ -218,7 +218,7 @@ MFInt32Assign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	printf ("start of MFInt32Assign\n");
 	#endif
 
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFInt32Class,"MFInt32Assign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFInt32Class,FIELDTYPE_SFInt32);
 }
 
 
@@ -326,7 +326,7 @@ MFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	printf ("start of MFNODEASSIGN, obj %d\n",obj);
 	#endif
 
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFNodeClass,"MFNodeAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFNodeClass,FIELDTYPE_SFNode);
 }
 
 JSBool
@@ -525,7 +525,7 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 JSBool
 MFTimeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFTimeClass,"MFTimeAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFTimeClass,FIELDTYPE_SFTime);
 }
 
 
@@ -607,7 +607,7 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 JSBool
 MFVec2fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFVec2fClass,"MFVec2fAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFVec2fClass,FIELDTYPE_SFVec2f);
 }
 
 /* MFVec3f */
@@ -691,7 +691,7 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 JSBool
 MFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFVec3fClass,"MFVec3fAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFVec3fClass,FIELDTYPE_SFVec3f);
 }
 
 /* VrmlMatrix */
@@ -936,7 +936,7 @@ VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 
 JSBool
 VrmlMatrixAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &VrmlMatrixClass,"VrmlMatrixAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &VrmlMatrixClass,FIELDTYPE_FreeWRLPTR/*does not matter*/);
 }
 
 JSBool
@@ -1151,7 +1151,7 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 
 JSBool
 MFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFRotationClass,"MFRotationAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFRotationClass,FIELDTYPE_SFRotation);
 }
 
 /* MFStrings */
@@ -1344,5 +1344,5 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 JSBool
 MFStringAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	return _standardMFAssign (cx, obj, argc, argv, rval, &MFStringClass,"MFStringAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &MFStringClass,FIELDTYPE_SFString);
 }

@@ -21,6 +21,232 @@
 #define STRUCT_SV sv
 #endif
 
+/* defines for getting touched flags and exact Javascript pointers */
+
+/****************************** ECMA types ******************************************/
+/* where we have a Native structure to go along with it */
+#define GETJSPTR_TYPE_A(thistype) \
+			 case FIELDTYPE_##thistype:  {  \
+				thistype##Native *ptr; \
+        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, (JSObject *)retval)) == NULL) { \
+                			printf( "JS_GetPrivate failed in get_touched_flag\n"); \
+                			return JS_FALSE; \
+				} \
+				JSSFpointer = (uintptr_t *)ptr; /* save this for quick extraction of values */ \
+				touched = ptr->touched; \
+				break; \
+			} 
+
+#define RESET_TOUCHED_TYPE_A(thistype) \
+                case FIELDTYPE_##thistype: { \
+                        ((thistype##Native *)JSSFpointer)->touched = 0; \
+                        break; \
+                }       
+
+#define GETJSPTR_TYPE_MF_A(thisMFtype,thisSFtype) \
+	case FIELDTYPE_##thisMFtype: { \
+		thisSFtype##Native *ptr; \
+		jsval mainElement; \
+		int len; \
+		int i; \
+		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
+			printf ("JS_GetProperty failed for \"length\" in get_touched_flag\n"); \
+			return; \
+		} \
+		len = JSVAL_TO_INT(mainElement); \
+		/* go through each element of the main array. */ \
+		for (i = 0; i < len; i++) { \
+			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
+				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
+				return FALSE; \
+			} \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
+				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
+				return FALSE; \
+			} \
+			if (ptr->touched > 0) touched = TRUE; /* did this element change? */ \
+			/* printf ("touched flag for element %d is %d\n",i,ptr->touched); */ \
+		} \
+		break; \
+	} 
+
+#define RESET_TOUCHED_TYPE_MF_A(thisMFtype,thisSFtype) \
+	case FIELDTYPE_##thisMFtype: { \
+		thisSFtype##Native *ptr; \
+		jsval mainElement; \
+		int len; \
+		int i; \
+		JSContext *cx; \
+		cx = ScriptControl[actualscript].cx; \
+		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
+			printf ("JS_GetProperty failed for \"length\" in get_touched_flag\n"); \
+			break; \
+		} \
+		len = JSVAL_TO_INT(mainElement); \
+		/* go through each element of the main array. */ \
+		for (i = 0; i < len; i++) { \
+			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
+				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
+				break; \
+			} \
+			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
+				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
+				break; \
+			} \
+			ptr->touched = 0; \
+		} \
+		break; \
+	} 
+
+/****************************** ECMA types ******************************************/
+/* where we have to keep a table of old values, because we do not have "private" data */
+#define FIND_IN_ECMA_TABLE(whatToFind) \
+			while ((i < maxECMAVal) && (!found)) { \
+				if (ECMAValues[i].JS_address = whatToFind) {\
+					/* printf ("found value at %d\n",i); */\
+					found = TRUE;\
+				}\
+			}
+
+/* "Bool" might be already declared - we DO NOT want it to be declared as an "int" */
+#define savedBool Bool
+#ifdef Bool
+#undef Bool
+#endif
+
+#define JS_ValueToBool JS_ValueToInt32
+#define JS_ValueToFloat JS_ValueToNumber
+#define JS_ValueToTime JS_ValueToNumber
+#define FIND_TOUCHED_FOR_ECMA(thistype,ctype) \
+				i=0;  found = FALSE; \
+				FIND_IN_ECMA_TABLE(JSglobal_return_val) \
+				if (found) { \
+					if (!JS_ValueTo##thistype(cx, JSglobal_return_val, &temp)) { printf ("wow - ECMA problems\n"); }  \
+					ECMAValues[i].touched = (temp != ECMAValues[i].old##thistype); \
+					ECMAValues[i].old##thistype = (ctype) temp; \
+					touched = ECMAValues[i].touched;\
+				} else {\
+					/* printf ("new ecma value\n"); */\
+					maxECMAVal++;\
+					ECMAValues[i].JS_address = JSglobal_return_val;\
+					ECMAValues[i].touched = 1;\
+					if (!JS_ValueTo##thistype(cx, JSglobal_return_val, &temp)) {\
+						printf ("wow - ECMA problems\n");\
+					}\
+					ECMAValues[i].old##thistype = (ctype) temp; \
+					touched = TRUE;\
+				}
+
+#define GET_ECMA_TOUCHED(thistype,ctype) \
+	case FIELDTYPE_SF##thistype: {	int i; int found; ctype temp; \
+			FIND_TOUCHED_FOR_ECMA(thistype,ctype) \
+				break;\
+			}
+
+#define GET_ECMA_MF_TOUCHED(thistype,ctype) \
+	case FIELDTYPE_MF##thistype: {	int i; int found; ctype temp; \
+		i=0;  found = FALSE; \
+		jsval mainElement; \
+		int len; \
+		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
+			printf ("JS_GetProperty failed for \"length\" in get_touched_flag\n"); \
+			return; \
+		} \
+		len = JSVAL_TO_INT(mainElement); \
+		/* go through each element of the main array. */ \
+		for (i = 0; i < len; i++) { \
+			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
+				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
+				return FALSE; \
+			} \
+			/*printf ("main element is %x for index %d\n",mainElement,i); \
+			if (JSVAL_IS_NUMBER(mainElement)) printf ("	it is a NUMBER\n"); \
+			if (JSVAL_IS_DOUBLE(mainElement)) printf ("	it is a DOUBLE\n"); \
+			if (JSVAL_IS_INT(mainElement)) printf ("	it is a INT\n"); \
+			if (JSVAL_IS_STRING(mainElement)) printf ("	it is a STRING\n"); \
+			if (JSVAL_IS_OBJECT(mainElement)) printf ("	it is a OBJECT\n"); \
+			if (JSVAL_IS_PRIMITIVE(mainElement)) printf ("	it is a PRIMITIVE\n"); \
+			*/ \
+			FIND_IN_ECMA_TABLE(mainElement) \
+			if (found) { \
+				if (!JS_ValueTo##thistype(cx, mainElement, &temp)) { printf ("wow - ECMA problems\n"); }  \
+				ECMAValues[i].touched = (temp != ECMAValues[i].old##thistype); \
+				ECMAValues[i].old##thistype = (ctype) temp; \
+				touched = ECMAValues[i].touched;\
+			} else {\
+				/* printf ("GET_ECMA_MF_TOUCHED new ecma value\n"); */ \
+				maxECMAVal++;\
+				ECMAValues[i].JS_address = mainElement;\
+				ECMAValues[i].touched = 1;\
+				if (!JS_ValueTo##thistype(cx, mainElement, &temp)) {\
+					printf ("wow - ECMA problems\n");\
+				}\
+				ECMAValues[i].old##thistype = (ctype) temp; \
+				touched = TRUE;\
+			}\
+		} \
+		break; \
+	}
+
+#define RESET_ECMA_MF_TOUCHED(thistype) \
+	case FIELDTYPE_##thistype: {	int i; int found; \
+		i=0;  found = FALSE; \
+		jsval mainElement; \
+		int len; \
+		if (!JS_GetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
+			printf ("JS_GetProperty failed for \"length\" in reset_touched_flag\n"); \
+		} \
+		len = JSVAL_TO_INT(mainElement); \
+		/* go through each element of the main array. */ \
+		for (i = 0; i < len; i++) { \
+			if (!JS_GetElement((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
+				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
+			} \
+			FIND_IN_ECMA_TABLE(mainElement) \
+			if (found) { \
+				ECMAValues[i].touched = 0;\
+			} else {\
+				printf ("RESET_ECMA_MF_TOUCHED new ecma value - huh?\n"); \
+			}\
+		} \
+		break; \
+	}
+
+#define GET_ECMA_TOUCHED_String \
+	case FIELDTYPE_SFString: {	JSString *temp; int i; int found; \
+				i=0;  found = FALSE; \
+				FIND_IN_ECMA_TABLE(JSglobal_return_val) \
+		if (!JSVAL_IS_STRING(JSglobal_return_val)) printf ("is NOT a string\n"); else printf ("IS a string\n"); \
+				if (found) { \
+					temp = JS_ValueToString(cx, JSglobal_return_val); \
+					ECMAValues[i].touched = (temp != ECMAValues[i].oldString); \
+					ECMAValues[i].oldString = temp; \
+					touched = ECMAValues[i].touched;\
+				} else {\
+					/* printf ("new ecma value\n"); */\
+					maxECMAVal++;\
+					ECMAValues[i].JS_address = JSglobal_return_val;\
+					ECMAValues[i].touched = 1;\
+					touched = TRUE;\
+				}\
+				break;\
+			}
+
+#define RESET_TOUCHED_TYPE_ECMA(thistype) \
+	case FIELDTYPE_##thistype: { int i; int found; \
+				i=0;  found = FALSE;  \
+				FIND_IN_ECMA_TABLE(JSglobal_return_val) \
+				if (found) { \
+					ECMAValues[i].touched = 0; \
+				} else { \
+					printf ("did not find value for reset_touched\n"); \
+				} \
+				break; \
+			}
+/* in case Bool was defined above, restore the value */
+#define Bool savedBool
+
+
 void AddRemoveChildren (struct X3D_Box *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
 void setMFElementtype (uintptr_t num);
 
@@ -136,6 +362,8 @@ int CRoutesExtra = 0;
 
 /* global return value for getting the value of a variable within Javascript */
 jsval global_return_val;
+jsval JSglobal_return_val;
+uintptr_t *JSSFpointer;
 
 /* ClockTick structure for processing all of the initevents - eg, TimeSensors */
 struct FirstStruct {
@@ -217,16 +445,126 @@ void initializeScript(uintptr_t num,int evIn) {
 	}
 }
 
-/****************************************************************************/
-/*									    */
-/* get_touched_flag - see if this variable (can be a sub-field; see tests   */
-/* 8.wrl for the DEF PI PositionInterpolator). return true if variable is   */
-/* touched, and pointer to touched value is in global variable              */
-/* global_return_val							    */
+/********************************************************************************/
+/*									    	*/
+/* get_touched_flag - see if this variable (can be a sub-field; see tests   	*/
+/* 8.wrl for the DEF PI PositionInterpolator). return true if variable is   	*/
+/* touched, and pointer to touched value is in global variable              	*/
+/* JSglobal_return_val, AND possibly:						*/
+/*	uintptr_t *JSSFpointer for SF non-ECMA nodes.				*/
+/* 										*/
+/* the way touched, and, the actual values work is as follows:			*/
+/*										*/
+/* keep track of the old value in a table, and compare:				*/
+/* FIELDTYPE_SFInt32								*/
+/* FIELDTYPE_SFBool								*/
+/* FIELDTYPE_SFFloat								*/
+/* FIELDTYPE_SFTime								*/
+/*										*/
+/* check the "touched" flag for non-zero in the private area:			*/
+/* FIELDTYPE_SFRotation								*/
+/* FIELDTYPE_SFNode								*/
+/* FIELDTYPE_SFVec2f								*/
+/* FIELDTYPE_SFVec3f								*/
+/* FIELDTYPE_SFImage								*/
+/* FIELDTYPE_SFColor								*/
+/* FIELDTYPE_SFColorRGBA							*/
+/*										*/
+/* go through all elements, and find if at least one SF has been touched:	*/
+/* FIELDTYPE_MFRotation								*/
+/* FIELDTYPE_MFNode								*/
+/* FIELDTYPE_MFVec2f								*/
+/* FIELDTYPE_MFVec3f								*/
+/* FIELDTYPE_MFColor								*/
+/* FIELDTYPE_MFColorRGBA							*/
+
+/* FIELDTYPE_SFString	*/
+/* FIELDTYPE_MFString	*/
+
+/* still to do:	*/
+/* FIELDTYPE_MFFloat	*/
+/* FIELDTYPE_MFBool	*/
+/* FIELDTYPE_MFInt32	*/
+/* FIELDTYPE_MFTime	*/
+/* FIELDTYPE_FreeWRLPTR	*/
 /*                                                                          */
 /****************************************************************************/
+struct ECMAValueStruct {
+	jsval	JS_address;
+	int	touched;
+	int 	oldInt32;
+	JSString *oldString;
+	double	oldFloat;
+	double	oldTime;
+	int 	oldBool;
+};
+
+struct ECMAValueStruct ECMAValues[10];
+int maxECMAVal = 0;
+
 
 int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
+	JSContext *cx;
+	jsval interpobj;
+	char *fullname;
+	jsval retval;
+	int touched;
+
+	touched = FALSE;
+	interpobj = ScriptControl[actualscript].glob;
+	cx = (JSContext *) ScriptControl[actualscript].cx;
+	fullname = JSparamnames[fptr].name;
+
+	if (!JS_GetProperty(cx, (JSObject *) interpobj ,fullname,&retval)) {
+               	printf ("cant get property for %s\n",fullname);
+		return FALSE;
+        } else {
+		JSglobal_return_val = retval; /* save this for extraction of values, and for resetting touched pointers */
+		/* ADD_ROOT (cx,JSglobal_return_val); */
+
+		#ifdef CRVERBOSE
+		printf("get_touched_flag: node type: %s\n",FIELDTYPES[JSparamnames[fptr].type]);
+		#endif
+
+		switch (JSparamnames[fptr].type) {
+			GETJSPTR_TYPE_A(SFRotation)
+			GETJSPTR_TYPE_A(SFNode)
+			GETJSPTR_TYPE_A(SFVec2f)
+			GETJSPTR_TYPE_A(SFVec3f)
+			GETJSPTR_TYPE_A(SFImage)
+			GETJSPTR_TYPE_A(SFColor)
+			GETJSPTR_TYPE_A(SFColorRGBA)
+
+			GETJSPTR_TYPE_MF_A(MFRotation,SFRotation)
+			GETJSPTR_TYPE_MF_A(MFNode,SFNode)
+			GETJSPTR_TYPE_MF_A(MFVec2f,SFVec2f)
+			GETJSPTR_TYPE_MF_A(MFVec3f,SFVec3f)
+			/* GETJSPTR_TYPE_MF_A(MFImage,SFImage) */
+			GETJSPTR_TYPE_MF_A(MFColor,SFColor)
+			GETJSPTR_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
+			
+			GET_ECMA_MF_TOUCHED(Int32,int) /* note ,no SF for these ones */
+			GET_ECMA_MF_TOUCHED(Bool,int) /* note ,no SF for these ones */
+			GET_ECMA_MF_TOUCHED(Time,double) /* note ,no SF for these ones */
+			GET_ECMA_MF_TOUCHED(Float,double) /* note ,no SF for these ones */
+
+			GET_ECMA_TOUCHED(Int32,int) /* note ,no SF for these ones */
+			GET_ECMA_TOUCHED(Bool,int) /* note ,no SF for these ones */
+			GET_ECMA_TOUCHED(Float,double) /* note ,no SF for these ones */
+			GET_ECMA_TOUCHED(Time,double) /* note ,no SF for these ones */
+			GET_ECMA_TOUCHED_String 
+
+			
+			default: {printf ("not handled yet in get_touched_flag %s\n",FIELDTYPES[JSparamnames[fptr].type]);
+			}
+		}
+	}
+	return touched;
+}
+
+#ifdef OLDGETTOUCHED
+int old_get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
+	JSContext *mycx;
 	char fullname[100];
 	char tmethod[100];
 	jsval v, retval, retval2;
@@ -242,7 +580,6 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	int len;
 	int complex_name; /* a name with a period in it */
 	char *myname;
-	JSContext *mycx;
 
 	/* used for finding touched flag in multi nodes */
 	jsval vp;
@@ -251,6 +588,40 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	jsval _length_val;
 	int count;
 
+	/* first - lets see if we can use a newer way of doing this */
+	switch (JSparamnames[fptr].type) {
+	/* possible field types 
+FIELDTYPE_SFFloat
+FIELDTYPE_MFFloat
+FIELDTYPE_MFRotation
+FIELDTYPE_MFVec3f
+FIELDTYPE_SFBool
+FIELDTYPE_MFBool
+FIELDTYPE_SFInt32
+FIELDTYPE_MFInt32
+FIELDTYPE_MFNode
+FIELDTYPE_MFColor
+FIELDTYPE_MFColorRGBA
+FIELDTYPE_SFTime
+FIELDTYPE_MFTime
+FIELDTYPE_SFString
+FIELDTYPE_MFString
+FIELDTYPE_MFVec2f
+FIELDTYPE_FreeWRLPTR
+
+		case FIELDTYPE_SFRotation: 
+		case FIELDTYPE_SFNode:
+		case FIELDTYPE_SFVec2f:
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFImage:
+		case FIELDTYPE_SFColor:
+		case FIELDTYPE_SFColorRGBA:
+
+			return new_get_touched_flag(fptr,actualscript);
+		default: {}
+	}
+
+	*/
 	mycx = (JSContext *) ScriptControl[actualscript].cx;
 	myname = JSparamnames[fptr].name;
 	#ifdef CRVERBOSE 
@@ -359,18 +730,21 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	#ifdef CRVERBOSE 
 	printf ("getting property for fullname %s\n",fullname);
 	#endif
-
 	if (!JS_GetProperty(mycx, (JSObject *) interpobj ,fullname,&retval)) {
                	printf ("cant get property for %s\n",fullname);
 		return FALSE;
         } else {
+		ADD_ROOT(mycx,retval);
+	printf ("got property for fullname %s\n",fullname);
        	        strval = JS_ValueToString(mycx, retval);
+	printf ("got strval for fullname %s\n",fullname);
 		if (strval == NULL) {
 			/* there was a javascript error here */
 			printf ("possible javascript error found in get_touched while running routes\n");
 			return FALSE;
 		}
                	strtouched = JS_GetStringBytes(strval);
+			printf ("and get of actual property %d returns %s\n",retval,strtouched); 
                	#ifdef CRVERBOSE  
 			printf ("and get of actual property %d returns %s\n",retval,strtouched); 
 		#endif
@@ -527,7 +901,7 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	}
 	return FALSE; /*  should never get here */
 }
-
+#endif
 
 /****************************************************************/
 /* Add or Remove a series of children				*/
@@ -991,13 +1365,13 @@ void CRoutes_Register(
 		CRoutes[0].fnptr = 0;
 		CRoutes[0].tonode_count = 0;
 		CRoutes[0].tonodes = NULL;
-		CRoutes[0].act = FALSE;
+		CRoutes[0].isActive = FALSE;
 		CRoutes[0].interpptr = 0;
 		CRoutes[1].fromnode = (char *) -1;
 		CRoutes[1].fnptr = 0x8FFFFFFF;
 		CRoutes[1].tonode_count = 0;
 		CRoutes[1].tonodes = NULL;
-		CRoutes[1].act = FALSE;
+		CRoutes[1].isActive = FALSE;
 		CRoutes[1].interpptr = 0;
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
@@ -1107,7 +1481,7 @@ void CRoutes_Register(
 	/* and put it in */
 	CRoutes[insert_here].fromnode = from;
 	CRoutes[insert_here].fnptr = fromoffset;
-	CRoutes[insert_here].act = FALSE;
+	CRoutes[insert_here].isActive = FALSE;
 	CRoutes[insert_here].tonode_count = 0;
 	CRoutes[insert_here].tonodes = NULL;
 	CRoutes[insert_here].len = length;
@@ -1222,7 +1596,7 @@ void mark_event (void *from, unsigned int totalptr) {
 		#ifdef CRVERBOSE
 			printf ("found event at %d\n",findit);
 		#endif
-		CRoutes[findit].act=TRUE;
+		CRoutes[findit].isActive=TRUE;
 		findit ++;
 	}
 	#ifdef CRVERBOSE
@@ -1343,6 +1717,40 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 			}
 		}
 		route++;
+
+		/* unset the touched flag */
+		switch (JSparamnames[fptr].type) {
+			RESET_TOUCHED_TYPE_A(SFRotation)
+			RESET_TOUCHED_TYPE_A(SFNode)
+			RESET_TOUCHED_TYPE_A(SFVec2f)
+			RESET_TOUCHED_TYPE_A(SFVec3f)
+			RESET_TOUCHED_TYPE_A(SFImage)
+			RESET_TOUCHED_TYPE_A(SFColor)
+			RESET_TOUCHED_TYPE_A(SFColorRGBA)
+			RESET_TOUCHED_TYPE_MF_A(MFRotation,SFRotation)
+			RESET_TOUCHED_TYPE_MF_A(MFNode,SFNode)
+			RESET_TOUCHED_TYPE_MF_A(MFVec2f,SFVec2f)
+			RESET_TOUCHED_TYPE_MF_A(MFVec3f,SFVec3f)
+			/* RESET_TOUCHED_TYPE_MF_A(MFImage,SFImage) */
+			RESET_TOUCHED_TYPE_MF_A(MFColor,SFColor)
+			RESET_TOUCHED_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
+
+			RESET_TOUCHED_TYPE_ECMA (SFInt32)
+			RESET_TOUCHED_TYPE_ECMA (SFBool)
+			RESET_TOUCHED_TYPE_ECMA (SFFloat)
+			RESET_TOUCHED_TYPE_ECMA (SFTime)
+			RESET_TOUCHED_TYPE_ECMA (SFString)
+			RESET_ECMA_MF_TOUCHED(MFInt32)
+			RESET_ECMA_MF_TOUCHED(MFBool) 
+			RESET_ECMA_MF_TOUCHED(MFFloat) 
+			RESET_ECMA_MF_TOUCHED(MFTime) 
+			
+			
+			default: {printf ("can not reset touched_flag for %s\n",FIELDTYPES[JSparamnames[fptr].type]);
+			}
+		}
+		
+		/* REMOVE_ROOT(ScriptControl[actualscript].cx,global_return_val); */
 	}
 
 	#ifdef CRVERBOSE 
@@ -1426,7 +1834,7 @@ void propagate_events() {
 							CRoutes[counter].direction_flag);
 				#endif
 
-				if (CRoutes[counter].act == TRUE) {
+				if (CRoutes[counter].isActive == TRUE) {
 						#ifdef CRVERBOSE
 						printf("event %u %u sent something\n", CRoutes[counter].fromnode, CRoutes[counter].fnptr);
 						#endif
@@ -1487,9 +1895,9 @@ void propagate_events() {
 				}
 			}
 
-			if (CRoutes[counter].act == TRUE) {
+			if (CRoutes[counter].isActive == TRUE) {
 				/* we have this event found */
-				CRoutes[counter].act = FALSE;
+				CRoutes[counter].isActive = FALSE;
 			}
 
 		}

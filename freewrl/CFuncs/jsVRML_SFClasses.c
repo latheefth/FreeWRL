@@ -291,6 +291,9 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
+	
+	ptr->touched = 1; /* constructors touch! */
+
 	*rval = OBJECT_TO_JSVAL(obj);
 
 	return JS_TRUE;
@@ -573,6 +576,10 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 		printf( "Invalid arguments for SFColorRGBAConstr.\n");
 		return JS_FALSE;
 	}
+
+	
+	ptr->touched = 1; /* constructors touch! */
+
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFColorRGBAConstr: obj = %u, %u args, %f %f %fi %f\n",
 			   VERBOSE_OBJ obj, argc,
@@ -724,7 +731,7 @@ SFImageAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		printf("SFImageAssign: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
 
-	return _standardMFAssign (cx, obj, argc, argv, rval, &SFImageClass,"SFImageAssign");
+	return _standardMFAssign (cx, obj, argc, argv, rval, &SFImageClass,FIELDTYPE_SFImage);
 }
 
 JSBool
@@ -735,12 +742,28 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	jsval mv;
 	int param[3];
 	int expectedSize;
+        SFImageNative *ptr;
+
+
 
 	ADD_ROOT(cx,obj)
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFImageConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
+
+	/* SFImage really only has the touched flag. */
+        if ((ptr = (SFImageNative *) SFImageNativeNew()) == NULL) {
+                printf( "SFImageNativeNew failed in SFImageConstr.\n");
+                return JS_FALSE;
+        }
+
+        if (!JS_SetPrivate(cx, obj, ptr)) {
+                printf( "JS_SetPrivate failed in SFImageConstr.\n");
+                return JS_FALSE;
+        }
+
+	ptr->touched = 1;  /* constructors touch! */
 
 	/* make this so that one can get the ".x", ".y", ".comp" and ".array" */
 	if (!JS_DefineProperties(cx, obj, SFImageProperties)) {
@@ -939,7 +962,10 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	}
 
 	/* get the from, and the string */
+	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("SFNodeAssign, we have %d and %d\n",argv[0], argv[1]);
+	#endif
+
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		printf( "JS_ConvertArguments failed in SFNodeAssign.\n");
 		return JS_FALSE;
@@ -1133,6 +1159,9 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	newPtr->handle = newHandle;
 	newPtr->X3DString = (char *)STRDUP(cString);
+	
+	newPtr->touched = 1; /* constructors touch! */
+
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFNodeConstr: created obj = %u, argc: %u mem ptr: %d text string: %s\n",
@@ -1588,6 +1617,7 @@ SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 	return JS_TRUE;
 }
 
+#define JSVRMLCLASSESVERBOSE
 JSBool
 SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
@@ -1601,19 +1631,28 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	printf ("start of SFRotationToString\n");
 	#endif
 
+	ADD_ROOT (cx,ptr)
+	ADD_ROOT(cx,_str)
 	if ((ptr = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFRotationToString.\n");
 		return JS_FALSE;
 	}
-
+printf ("past the get_private stuff\n");
 	memset(buff, 0, STRING);
 	sprintf(buff, "%.9g %.9g %.9g %.9g",
-			(ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
+			ptr->v.r[0], ptr->v.r[1], ptr->v.r[2], ptr->v.r[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
-    *rval = STRING_TO_JSVAL(_str);
+printf ("got copyZ in SFRToString\n");
 
+    *rval = STRING_TO_JSVAL(_str);
+printf ("got STRING_TO_JSVAL\n");
+	
+	REMOVE_ROOT (cx,ptr)
+	REMOVE_ROOT (cx,_str)
+printf ("returning from SFRTS\n");
     return JS_TRUE;
 }
+#undef JSVRMLCLASSESVERBOSE
 
 JSBool
 SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
@@ -1802,6 +1841,9 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
 	#endif
+	
+	ptr->touched = 1; /* constructors touch! */
+
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
 }
@@ -2256,6 +2298,9 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1]);
 	#endif
+	
+	ptr->touched = 1; /* constructors touch! */
+
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
 }
@@ -2752,6 +2797,9 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
+	
+	ptr->touched = 1; /* constructors touch! */
+
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
 }
