@@ -319,7 +319,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 
 	#ifdef SETFIELDVERBOSE
-	strval = JS_ValueToString(scriptContext, global_return_val);
+	strval = JS_ValueToString(scriptContext, JSglobal_return_val);
        	strp = JS_GetStringBytes(strval);
 	printf ("start of setField_javascriptEventOut, to %d:%d = %d, fieldtype %d string %s\n",tn, tptr, memptr, fieldType, strp);
 	#endif
@@ -405,12 +405,12 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
 		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
 		case FIELDTYPE_MFNode: {
-				strval = JS_ValueToString(scriptContext, global_return_val);
+				strval = JS_ValueToString(scriptContext, JSglobal_return_val);
 	        		strp = JS_GetStringBytes(strval);
 				getMFNodetype (strp,(struct Multi_Node *)memptr,(struct X3D_Box *)tn,extraData); break;
 		}
 		case FIELDTYPE_MFString: {
-			getMFStringtype (scriptContext, (jsval *)global_return_val,(struct Multi_String *)memptr);
+			getMFStringtype (scriptContext, (jsval *)JSglobal_return_val,(struct Multi_String *)memptr);
 			break;
 		}
 
@@ -1021,9 +1021,6 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 
 	/* oldlen = what was there in the first place */
 	/*  should be ok verifySVtype(from); */
-	#ifdef OLDCODE
-	verifySVtype(to);
-	#endif
 
 	oldlen = to->n;
 	oldsvptr = to->p;

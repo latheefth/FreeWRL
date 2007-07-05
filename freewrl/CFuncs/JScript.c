@@ -132,6 +132,10 @@ void JSMaxAlloc() {
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
 		scr_act[count]= FALSE;
 		ScriptControl[count].thisScriptType = NOSCRIPT;
+		ScriptControl[count].TickTime = FALSE;
+		ScriptControl[count].eventsProcessed = NULL;
+		ScriptControl[count].cx = 0;
+		ScriptControl[count].glob = 0;
 	}
 }
 
@@ -244,13 +248,13 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE
-		printf("ActualrunScript script %d cx %x \"%s\", \n",
-			   num, _context, script);
+		printf("ActualrunScript script %d cx %x \"%s\", \n", num, _context, script);
 	#endif
+
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
-		printf("JS_EvaluateScript failed for \"%s\".\n", script);
+		ConsoleMessage ("JS_EvaluateScript failed for \"%s\".\n", script);
 		return JS_FALSE;
 	 }
 
@@ -299,7 +303,7 @@ SFNodeNativeNew()
 	/* printf ("SFNodeNativeNew; string len %d handle_len %d\n",vrmlstring_len,handle_len);*/
 
 	ptr->handle = 0;
-	ptr->touched = 0;
+	ptr->valueChanged = 0;
 	ptr->X3DString = NULL;
 	return ptr;
 }
@@ -312,7 +316,7 @@ SFNodeNativeAssign(void *top, void *fromp)
 	SFNodeNative *from = (SFNodeNative *)fromp;
 
 	/* indicate that this was touched; and copy contents over */
-	to->touched++;
+	to->valueChanged++;
 
 	if (from != NULL) {
 		to->handle = from->handle;
@@ -335,7 +339,7 @@ SFColorRGBANativeNew()
 {
 	SFColorRGBANative *ptr;
 	ptr = (SFColorRGBANative *)MALLOC(sizeof(*ptr));
-	ptr->touched = 0;
+	ptr->valueChanged = 0;
 	return ptr;
 }
 
@@ -344,7 +348,7 @@ SFColorRGBANativeAssign(void *top, void *fromp)
 {
 	SFColorRGBANative *to = (SFColorRGBANative *)top;
 	SFColorRGBANative *from = (SFColorRGBANative *)fromp;
-	to->touched++;
+	to->valueChanged ++;
 	(to->v) = (from->v);
 }
 
@@ -353,7 +357,7 @@ SFColorNativeNew()
 {
 	SFColorNative *ptr;
 	ptr = (SFColorNative *)MALLOC(sizeof(*ptr));
-	ptr->touched = 0;
+	ptr->valueChanged = 0;
 	return ptr;
 }
 
@@ -362,7 +366,7 @@ SFColorNativeAssign(void *top, void *fromp)
 {
 	SFColorNative *to = (SFColorNative *)top;
 	SFColorNative *from = (SFColorNative *)fromp;
-	to->touched++;
+	to->valueChanged++;
 	(to->v) = (from->v);
 }
 
@@ -371,7 +375,7 @@ SFImageNativeNew()
 {
 	SFImageNative *ptr;
 	ptr =(SFImageNative *) MALLOC(sizeof(*ptr));
-	ptr->touched = 0;
+	ptr->valueChanged = 0;
 	return ptr;
 }
 
@@ -382,7 +386,7 @@ SFImageNativeAssign(void *top, void *fromp)
 	/* SFImageNative *from = fromp; */
 	UNUSED(fromp);
 
-	to->touched++;
+	to->valueChanged++;
 /* 	(to->v) = (from->v); */
 }
 
@@ -391,7 +395,7 @@ SFRotationNativeNew()
 {
 	SFRotationNative *ptr;
 	ptr = (SFRotationNative *)MALLOC(sizeof(*ptr));
-	ptr->touched = 0;
+	ptr->valueChanged = 0;
 	return ptr;
 }
 
@@ -400,7 +404,7 @@ SFRotationNativeAssign(void *top, void *fromp)
 {
 	SFRotationNative *to = (SFRotationNative *)top;
 	SFRotationNative *from = (SFRotationNative *)fromp;
-	to->touched++;
+	to->valueChanged++;
 	(to->v) = (from->v);
 }
 
@@ -409,7 +413,7 @@ SFVec2fNativeNew()
 {
 	SFVec2fNative *ptr;
 	ptr = (SFVec2fNative *)MALLOC(sizeof(*ptr));
-	ptr->touched = 0;
+	ptr->valueChanged = 0;
 	return ptr;
 }
 
@@ -418,7 +422,7 @@ SFVec2fNativeAssign(void *top, void *fromp)
 {
 	SFVec2fNative *to = (SFVec2fNative *)top;
 	SFVec2fNative *from = (SFVec2fNative *)fromp;
-	to->touched++;
+	to->valueChanged++;
 	(to->v) = (from->v);
 }
 
@@ -427,7 +431,7 @@ SFVec3fNativeNew()
 {
 	SFVec3fNative *ptr;
 	ptr = (SFVec3fNative *)MALLOC(sizeof(*ptr));
-	ptr->touched = 0;
+	ptr->valueChanged = 0;
 	return ptr;
 }
 
@@ -436,7 +440,7 @@ SFVec3fNativeAssign(void *top, void *fromp)
 {
 	SFVec3fNative *to = (SFVec3fNative *)top;
 	SFVec3fNative *from = (SFVec3fNative *)fromp;
-	to->touched++;
+	to->valueChanged++;
 	(to->v) = (from->v);
 }
 
@@ -480,9 +484,16 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	struct Uni_String *sptr[1];
 
 	 #ifdef JAVASCRIPTVERBOSE
-	printf ("\nInitScriptFieldC, num %d, kind %d type %d field %s value %d\n", num,kind,type,field,value);
+	printf ("\nInitScriptFieldC, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value);
 	#endif
 	
+	/* first, for this script, make up a TickTime variable */
+	if (ScriptControl[num].TickTime == FALSE) {
+		if (!JSaddGlobalAssignProperty(num, "__eventInTickTime", "0.0")) {
+			printf ("can not create script TickTime\n");
+		}
+		ScriptControl[num].TickTime = TRUE;
+	}
 
         /* input check */
 	if (kind == X3DACCESSOR_inputOnly) kind = PKW_eventIn;
@@ -506,18 +517,13 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFFloat:
 		case FIELDTYPE_SFTime:
-		case FIELDTYPE_SFImage:
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFString: {
 			/* do not care about eventIns */
 			if (kind != PKW_eventIn)  {
 				JSaddGlobalECMANativeProperty(num, field);
-
 				if (kind == PKW_field) {
-					if (type == FIELDTYPE_SFImage) {
-							vrmlImagePtr = &(value.sfimage);
-
-					} else if  (type == FIELDTYPE_SFString) {
+					if  (type == FIELDTYPE_SFString) {
 						tlen = strlen(value.sfstring->strptr) + 20;
 					} else {
 						tlen = strlen(field) + 20;
@@ -533,14 +539,6 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 							if (value.sfbool == 1) sprintf (smallfield,"%s=true",field);
 							else sprintf (smallfield,"%s=false",field);
 							break;
-						case FIELDTYPE_SFImage: 
-							iptr = vrmlImagePtr->p;
-                					SFImage_wid = *iptr; iptr++;
-              						SFImage_hei = *iptr; iptr++;
-                					SFImage_depth = *iptr; iptr++;
-printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth);
-
-							break;
 						case FIELDTYPE_SFString:  
 							sprintf (smallfield,"%s=\"%s\"\n",field,value.sfstring->strptr); break;
 					}
@@ -554,7 +552,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 		default: {
 			/* first, do we need to make a new name up? */
 			if (kind == PKW_eventIn) {
-				sprintf (mynewname,"__tmp_arg_%s",field);
+				sprintf (mynewname,"__eventIn_Value_%s",field);
 			} else strcpy(mynewname,field);
 
 
@@ -569,6 +567,7 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 				case FIELDTYPE_MFInt32:
 				case FIELDTYPE_MFNode:
 				case FIELDTYPE_MFFloat: 
+				JSaddGlobalECMANativeProperty(num, field);
 					MFhasECMAtype = TRUE;
 					break;
 				default: {
@@ -584,6 +583,9 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 			VoidPtr = NULL;
 			if (kind == PKW_field) {
 				switch (type) {
+					case FIELDTYPE_SFImage:
+						VoidPtr = (uintptr_t *) (&(value.sfimage)); elements = 1;
+						break;
 					case FIELDTYPE_SFNode:
 						VoidPtr = (uintptr_t *) (&(value.sfnode)); elements = 1;
 						break;
@@ -679,6 +681,11 @@ printf ("image wid %d hei %d depth %d\n",SFImage_wid, SFImage_hei, SFImage_depth
 					case FIELDTYPE_MFString:
 						sptr[0] = newASCIIString("");
 						SVPtr = sptr;
+						break;
+
+					/* SFImage */
+					case FIELDTYPE_SFImage:
+						IntPtr = defaultInt;
 						break;
 
 					/* Double types */
@@ -791,23 +798,11 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	#endif
 	
 
-	if (!JS_DefineProperty(_context, _globalObj, name, rval,
-						   NULL, setECMANative,
-						   0 | JSPROP_PERMANENT)) {
-		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
-				name);
+	if (!JS_DefineProperty(_context, _globalObj, name, rval, NULL, setECMANative, 0 | JSPROP_PERMANENT)) {
+		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n", name);
 		return JS_FALSE;
 	}
 
-	memset(buffer, 0, STRING);
-	sprintf(buffer, "_%s_touched", name);
-	_val = INT_TO_JSVAL(0);
-
-	if (!JS_SetProperty(_context, _globalObj, buffer, &_val)) {
-		printf("JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
-				buffer);
-		return JS_FALSE;
-	}
 	return JS_TRUE;
 }
 

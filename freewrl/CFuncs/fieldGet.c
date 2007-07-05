@@ -643,15 +643,22 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 
 	JSContext *_context;
 	JSObject *_TimeObj, *_globalObj, *_sfvec3fObj;
+	jsval zimbo;
 
 
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[tonode].cx;
 	_globalObj = (JSObject *)ScriptControl[tonode].glob;
 
+	/* set the time for this script */
+        zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(_context, TickTime)); 
+        if (!JS_DefineProperty(_context,_globalObj, "__eventInTickTime", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { 
+                printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); 
+                return; 
+        }
 
 	/* get the variable name to hold the incoming value */
-	sprintf (scriptline,"__tmp_arg_%s", JSparamnames[tnfield].name);
+	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
 
 	#ifdef SETFIELDVERBOSE 
 	printf ("Set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
@@ -671,19 +678,26 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	/* copy over the data from the VRML side into the script variable. */
 	memcpy ((void *) &_privPtr->v,Data, dataLen);
 
-	/* set the touched flag to 0 - I don't think this is ever looked at */
-	_privPtr->touched = 0;
-
+	/* is the function compiled yet? */
+	if (JSparamnames[tnfield].eventInFunction == 0) {
+		sprintf (scriptline,"%s(__eventIn_Value_%s,__eventInTickTime)", JSparamnames[tnfield].name,JSparamnames[tnfield].name);
+		JSparamnames[tnfield].eventInFunction = (uintptr_t) JS_CompileScript(
+			_context, _globalObj, scriptline, strlen(scriptline), "compile eventIn",1);
+	}
 	/* and run the function */
-	sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
-			 JSparamnames[tnfield].name,JSparamnames[tnfield].name,TickTime);
 	#ifdef SETFIELDVERBOSE
 	printf ("Set_one_MultiElementtype: running script %s\n",scriptline);
 	#endif
 
-	if (!ActualrunScript(tonode, scriptline ,&retval)) {
-		printf ("failed to set parameter, line %s\n",scriptline);
+	if (!JS_ExecuteScript(_context, _globalObj, JSparamnames[tnfield].eventInFunction, &zimbo)) {
+		printf ("failed to set parameter for eventIne %s\n",JSparamnames[tnfield].name);
 	}
+		
+	#ifdef OLDCODE
+		if (!ActualrunScript(tonode, scriptline ,&retval)) {
+			printf ("failed to set parameter, line %s\n",scriptline);
+	}
+	#endif
 }
 
 void setScriptMultiElementtype (uintptr_t num) {

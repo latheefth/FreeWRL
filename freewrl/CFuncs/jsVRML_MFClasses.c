@@ -56,26 +56,10 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 {
 	JSObject *_obj;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 	
 	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH(argc)
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFColorConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFColorConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -117,12 +101,12 @@ MFColorAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			"_FreeWRL_Internal = new SFColor()", "MFColor");
+			"_FreeWRL_Internal = new SFColor()", FIELDTYPE_MFColor);
 }
 
 JSBool
 MFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"MFColorSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFColor);
 }
 
 JSBool
@@ -142,24 +126,11 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 {
 	jsdouble _d;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 
 	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH (argc)
+	DEFINE_MF_ECMA_HAS_CHANGED
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"length\" in MFFloatConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFFloatConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -193,12 +164,12 @@ MFFloatAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFFloatGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			"_FreeWRL_Internal = 0.0", "MFFloat");
+			"_FreeWRL_Internal = 0.0", FIELDTYPE_MFFloat);
 }
 
 JSBool
 MFFloatSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"MFFloatSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFFloat);
 }
 
 JSBool
@@ -227,23 +198,14 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 {
 	int32 _i;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of MFInt32Constr\n");
 	#endif
 
 	ADD_ROOT(cx,obj)
-
-	if (!JS_DefineProperty(cx, obj, "length", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"length\" in MFInt32Constr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFInt32Constr.\n");
-		return JS_FALSE;
-	}
+        DEFINE_LENGTH(argc)
+        DEFINE_MF_ECMA_HAS_CHANGED
+	
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -268,15 +230,6 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			return JS_FALSE;
 		}
 	}
-	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("setting __touched_flag\n");
-	#endif
-	v = INT_TO_JSVAL(1);
-
-	if (!JS_SetProperty(cx, obj, "__touched_flag", &v)) {
-		printf( "JS_SetProperty failed for \"__touched_flag\" in doMFSetProperty.\n");
-		return JS_FALSE;
-	}
 
 	*rval = OBJECT_TO_JSVAL(obj);
 
@@ -299,7 +252,7 @@ MFInt32GetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	#endif
 
 	return _standardMFGetProperty(cx, obj, id, vp,
-			"_FreeWRL_Internal = 0", "MFInt32");
+			"_FreeWRL_Internal = 0", FIELDTYPE_MFInt32);
 }
 
 JSBool
@@ -308,7 +261,7 @@ MFInt32SetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	printf ("start of MFInt32SetProperty\n");
 	#endif
 
-	return doMFSetProperty(cx, obj, id, vp,"MFInt32SetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFInt32);
 }
 
 
@@ -334,22 +287,10 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	JSObject *_obj;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 
 	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH(argc)
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-		   JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"length\" in MFNodeConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-		   JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFNodeConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -406,7 +347,7 @@ MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	#endif
 	return _standardMFGetProperty(cx, obj, id, vp,
 			"_FreeWRL_Internal = 0",
-			"MFNode");
+			FIELDTYPE_MFNode);
 }
 
 JSBool
@@ -441,7 +382,7 @@ MFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 		}
 	}
 	#endif
-	return doMFSetProperty(cx, obj, id, vp,"MFNodeSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFNode);
 }
 
 
@@ -454,14 +395,13 @@ MFTimeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFTimeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			/* &MFTimeClass, proto_MFTime,*/
 			 "_FreeWRL_Internal = 0.0",
-			"MFTime");
+			FIELDTYPE_MFTime);
 }
 
 JSBool
 MFTimeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"MFTimeSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFTime);
 }
 
 JSBool
@@ -475,26 +415,11 @@ JSBool
 MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	jsdouble _d;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 
 	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH(argc)
+	DEFINE_MF_ECMA_HAS_CHANGED
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFTimeConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFTimeConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -538,12 +463,12 @@ MFVec2fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			 "_FreeWRL_Internal = new SFVec2f()","MFVec2f");
+			 "_FreeWRL_Internal = new SFVec2f()",FIELDTYPE_MFVec2f);
 }
 
 JSBool
 MFVec2fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"MFVec2fSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFVec2f);
 }
 
 JSBool
@@ -557,24 +482,10 @@ JSBool
 MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	JSObject *_obj;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 
 	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH(argc)
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-				   JS_PropertyStub, JS_PropertyStub,
-				   JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"length\" in MFVec2fConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-				   JS_PropertyStub, JS_PropertyStub,
-				   JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFVec2fConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -619,12 +530,12 @@ MFVec3fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			 "_FreeWRL_Internal = new SFVec3f()","MFVec3f");
+			 "_FreeWRL_Internal = new SFVec3f()",FIELDTYPE_MFVec3f);
 }
 
 JSBool
 MFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"MFVec3fSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFVec3f);
 }
 
 JSBool
@@ -640,26 +551,10 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 {
 	JSObject *_obj;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 
 	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH(argc)
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFVec3fConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFVec3fConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -944,7 +839,6 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 {
 	jsdouble _d;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(16);
 	jsdouble d, *dp;
 
 	ADD_ROOT(cx,obj)
@@ -954,22 +848,7 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-				   JS_PropertyStub, JS_PropertyStub,
-				   JSPROP_PERMANENT)) {
-		printf(
-			"JS_DefineProperty failed for \"length\" in VrmlMatrixConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-				   JS_PropertyStub, JS_PropertyStub,
-				   JSPROP_PERMANENT)) {
-		printf(
-			"JS_DefineProperty failed for \"__touched_flag\" in VrmlMatrixConstr.\n");
-		return JS_FALSE;
-	}
+	DEFINE_LENGTH(16)
 
 	if (argc == 16) {
 		for (i = 0; i < 16; i++) {
@@ -1026,8 +905,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
     jsval _length_val;
 
     if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
-		printf(
-				"JS_GetProperty failed for \"length\" in VrmlMatrixGetProperty.\n");
+		printf( "JS_GetProperty failed for \"length\" in VrmlMatrixGetProperty.\n");
         return JS_FALSE;
 	}
 	_length = JSVAL_TO_INT(_length_val);
@@ -1064,7 +942,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 JSBool
 VrmlMatrixSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"VrmlMatrixSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,1000); /* do not have a FIELDTYPE for this */
 }
 
 /* MFRotation */
@@ -1076,12 +954,12 @@ MFRotationAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			 "_FreeWRL_Internal = new SFRotation()","MFRotation");
+			 "_FreeWRL_Internal = new SFRotation()",FIELDTYPE_MFRotation);
 }
 
 JSBool
 MFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"MFRotationSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFRotation);
 }
 
 JSBool
@@ -1097,26 +975,10 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 {
 	JSObject *_obj;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 
 	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH(argc)
 
-	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFRotationConstr.\n");
-		return JS_FALSE;
-	}
-
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFRotationConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}
@@ -1213,8 +1075,7 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	#endif
 
     if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
-		printf(
-				"JS_GetProperty failed for \"length\" in MFStringGetProperty.\n");
+		printf( "JS_GetProperty failed for \"length\" in MFStringGetProperty.\n");
         return JS_FALSE;
 	}
 	_length = JSVAL_TO_INT(_length_val);
@@ -1265,7 +1126,7 @@ MFStringSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 	}
-	return doMFSetProperty(cx, obj, id, vp,"MFStringSetProperty");
+	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFString);
 }
 
 JSBool
@@ -1286,7 +1147,6 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 {
 	JSString *_str;
 	unsigned int i;
-	jsval v = INT_TO_JSVAL(argc);
 
 	ADD_ROOT(cx,obj)
 
@@ -1294,16 +1154,9 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	printf("MFStringConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
 
-	if (!JS_DefineProperty(cx, obj, "length", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"length\" in MFStringConstr.\n");
-		return JS_FALSE;
-	}
+	DEFINE_LENGTH(argc)
+	DEFINE_MF_ECMA_HAS_CHANGED
 
-	v = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", v, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFStringConstr.\n");
-		return JS_FALSE;
-	}
 	if (!argv) {
 		return JS_TRUE;
 	}

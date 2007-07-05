@@ -16,11 +16,6 @@
 
 #include "SensInterps.h"
 
-/* old perl - eg, IRIX 6.5, perl 5.6.0 */
-#ifndef STRUCT_SV
-#define STRUCT_SV sv
-#endif
-
 /* defines for getting touched flags and exact Javascript pointers */
 
 /****************************** ECMA types ******************************************/
@@ -28,18 +23,20 @@
 #define GETJSPTR_TYPE_A(thistype) \
 			 case FIELDTYPE_##thistype:  {  \
 				thistype##Native *ptr; \
-        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, (JSObject *)retval)) == NULL) { \
-                			printf( "JS_GetPrivate failed in get_touched_flag\n"); \
+				/* printf ("getting private data in GETJSPTR for %d \n",retval); */ \
+        			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, (JSObject *)JSglobal_return_val)) == NULL) { \
+                			printf( "JS_GetPrivate failed in get_valueChanged_flag\n"); \
                 			return JS_FALSE; \
 				} \
+				/* printf ("private is %d touched %d\n",ptr,ptr->touched); */ \
 				JSSFpointer = (uintptr_t *)ptr; /* save this for quick extraction of values */ \
-				touched = ptr->touched; \
+				touched = ptr->valueChanged; \
 				break; \
 			} 
 
 #define RESET_TOUCHED_TYPE_A(thistype) \
                 case FIELDTYPE_##thistype: { \
-                        ((thistype##Native *)JSSFpointer)->touched = 0; \
+                        ((thistype##Native *)JSSFpointer)->valueChanged = 0; \
                         break; \
                 }       
 
@@ -50,21 +47,21 @@
 		int len; \
 		int i; \
 		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
-			printf ("JS_GetProperty failed for \"length\" in get_touched_flag\n"); \
+			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			return; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
 			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
-				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
+				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				return FALSE; \
 			} \
 			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
 				return FALSE; \
 			} \
-			if (ptr->touched > 0) touched = TRUE; /* did this element change? */ \
+			if (ptr->valueChanged > 0) touched = TRUE; /* did this element change? */ \
 			/* printf ("touched flag for element %d is %d\n",i,ptr->touched); */ \
 		} \
 		break; \
@@ -79,34 +76,26 @@
 		JSContext *cx; \
 		cx = ScriptControl[actualscript].cx; \
 		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
-			printf ("JS_GetProperty failed for \"length\" in get_touched_flag\n"); \
+			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			break; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
 		for (i = 0; i < len; i++) { \
 			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
-				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
+				printf ("JS_GetElement failed for %d in get_valueChanged_flag\n",i); \
 				break; \
 			} \
 			if ((ptr = (thisSFtype##Native *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) { \
 				printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n"); \
 				break; \
 			} \
-			ptr->touched = 0; \
+			ptr->valueChanged = 0; \
 		} \
 		break; \
 	} 
 
 /****************************** ECMA types ******************************************/
-/* where we have to keep a table of old values, because we do not have "private" data */
-#define FIND_IN_ECMA_TABLE(whatToFind) \
-			while ((i < maxECMAVal) && (!found)) { \
-				if (ECMAValues[i].JS_address = whatToFind) {\
-					/* printf ("found value at %d\n",i); */\
-					found = TRUE;\
-				}\
-			}
 
 /* "Bool" might be already declared - we DO NOT want it to be declared as an "int" */
 #define savedBool Bool
@@ -114,133 +103,36 @@
 #undef Bool
 #endif
 
-#define JS_ValueToBool JS_ValueToInt32
-#define JS_ValueToFloat JS_ValueToNumber
-#define JS_ValueToTime JS_ValueToNumber
-#define FIND_TOUCHED_FOR_ECMA(thistype,ctype) \
-				i=0;  found = FALSE; \
-				FIND_IN_ECMA_TABLE(JSglobal_return_val) \
-				if (found) { \
-					if (!JS_ValueTo##thistype(cx, JSglobal_return_val, &temp)) { printf ("wow - ECMA problems\n"); }  \
-					ECMAValues[i].touched = (temp != ECMAValues[i].old##thistype); \
-					ECMAValues[i].old##thistype = (ctype) temp; \
-					touched = ECMAValues[i].touched;\
-				} else {\
-					/* printf ("new ecma value\n"); */\
-					maxECMAVal++;\
-					ECMAValues[i].JS_address = JSglobal_return_val;\
-					ECMAValues[i].touched = 1;\
-					if (!JS_ValueTo##thistype(cx, JSglobal_return_val, &temp)) {\
-						printf ("wow - ECMA problems\n");\
-					}\
-					ECMAValues[i].old##thistype = (ctype) temp; \
-					touched = TRUE;\
-				}
-
-#define GET_ECMA_TOUCHED(thistype,ctype) \
-	case FIELDTYPE_SF##thistype: {	int i; int found; ctype temp; \
-			FIND_TOUCHED_FOR_ECMA(thistype,ctype) \
+#define GET_ECMA_TOUCHED(thistype) \
+	case FIELDTYPE_SF##thistype: {	\
+				touched = findNameInECMATable(fullname);\
 				break;\
 			}
 
-#define GET_ECMA_MF_TOUCHED(thistype,ctype) \
-	case FIELDTYPE_MF##thistype: {	int i; int found; ctype temp; \
-		i=0;  found = FALSE; \
+#define GET_ECMA_MF_TOUCHED(thistype) \
+	case FIELDTYPE_MF##thistype: {\
 		jsval mainElement; \
-		int len; \
-		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
-			printf ("JS_GetProperty failed for \"length\" in get_touched_flag\n"); \
-			return; \
-		} \
-		len = JSVAL_TO_INT(mainElement); \
-		/* go through each element of the main array. */ \
-		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
-				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
-				return FALSE; \
-			} \
-			/*printf ("main element is %x for index %d\n",mainElement,i); \
-			if (JSVAL_IS_NUMBER(mainElement)) printf ("	it is a NUMBER\n"); \
-			if (JSVAL_IS_DOUBLE(mainElement)) printf ("	it is a DOUBLE\n"); \
-			if (JSVAL_IS_INT(mainElement)) printf ("	it is a INT\n"); \
-			if (JSVAL_IS_STRING(mainElement)) printf ("	it is a STRING\n"); \
-			if (JSVAL_IS_OBJECT(mainElement)) printf ("	it is a OBJECT\n"); \
-			if (JSVAL_IS_PRIMITIVE(mainElement)) printf ("	it is a PRIMITIVE\n"); \
-			*/ \
-			FIND_IN_ECMA_TABLE(mainElement) \
-			if (found) { \
-				if (!JS_ValueTo##thistype(cx, mainElement, &temp)) { printf ("wow - ECMA problems\n"); }  \
-				ECMAValues[i].touched = (temp != ECMAValues[i].old##thistype); \
-				ECMAValues[i].old##thistype = (ctype) temp; \
-				touched = ECMAValues[i].touched;\
-			} else {\
-				/* printf ("GET_ECMA_MF_TOUCHED new ecma value\n"); */ \
-				maxECMAVal++;\
-				ECMAValues[i].JS_address = mainElement;\
-				ECMAValues[i].touched = 1;\
-				if (!JS_ValueTo##thistype(cx, mainElement, &temp)) {\
-					printf ("wow - ECMA problems\n");\
-				}\
-				ECMAValues[i].old##thistype = (ctype) temp; \
-				touched = TRUE;\
-			}\
-		} \
+		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);*/ \
+		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+			printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
+		} /* else printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d\n",mainElement);*/ \
+		touched = JSVAL_TO_INT(mainElement);\
 		break; \
 	}
 
 #define RESET_ECMA_MF_TOUCHED(thistype) \
-	case FIELDTYPE_##thistype: {	int i; int found; \
-		i=0;  found = FALSE; \
-		jsval mainElement; \
-		int len; \
-		if (!JS_GetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
-			printf ("JS_GetProperty failed for \"length\" in reset_touched_flag\n"); \
-		} \
-		len = JSVAL_TO_INT(mainElement); \
-		/* go through each element of the main array. */ \
-		for (i = 0; i < len; i++) { \
-			if (!JS_GetElement((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, i, &mainElement)) { \
-				printf ("JS_GetElement failed for %d in get_touched_flag\n",i); \
-			} \
-			FIND_IN_ECMA_TABLE(mainElement) \
-			if (found) { \
-				ECMAValues[i].touched = 0;\
-			} else {\
-				printf ("RESET_ECMA_MF_TOUCHED new ecma value - huh?\n"); \
-			}\
-		} \
-		break; \
+	case FIELDTYPE_##thistype: {	int i; \
+		jsval myv = INT_TO_JSVAL(0); \
+		/* printf ("\nRESET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);*/ \
+        	if (!JS_SetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
+        		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
+        	}\
+	break; \
 	}
 
-#define GET_ECMA_TOUCHED_String \
-	case FIELDTYPE_SFString: {	JSString *temp; int i; int found; \
-				i=0;  found = FALSE; \
-				FIND_IN_ECMA_TABLE(JSglobal_return_val) \
-		if (!JSVAL_IS_STRING(JSglobal_return_val)) printf ("is NOT a string\n"); else printf ("IS a string\n"); \
-				if (found) { \
-					temp = JS_ValueToString(cx, JSglobal_return_val); \
-					ECMAValues[i].touched = (temp != ECMAValues[i].oldString); \
-					ECMAValues[i].oldString = temp; \
-					touched = ECMAValues[i].touched;\
-				} else {\
-					/* printf ("new ecma value\n"); */\
-					maxECMAVal++;\
-					ECMAValues[i].JS_address = JSglobal_return_val;\
-					ECMAValues[i].touched = 1;\
-					touched = TRUE;\
-				}\
-				break;\
-			}
-
 #define RESET_TOUCHED_TYPE_ECMA(thistype) \
-	case FIELDTYPE_##thistype: { int i; int found; \
-				i=0;  found = FALSE;  \
-				FIND_IN_ECMA_TABLE(JSglobal_return_val) \
-				if (found) { \
-					ECMAValues[i].touched = 0; \
-				} else { \
-					printf ("did not find value for reset_touched\n"); \
-				} \
+	case FIELDTYPE_##thistype: { \
+				resetNameInECMATable(JSparamnames[fptr].name); \
 				break; \
 			}
 /* in case Bool was defined above, restore the value */
@@ -361,7 +253,6 @@ int MAXJSparamNames = 0;
 int CRoutesExtra = 0;
 
 /* global return value for getting the value of a variable within Javascript */
-jsval global_return_val;
 jsval JSglobal_return_val;
 uintptr_t *JSSFpointer;
 
@@ -447,7 +338,7 @@ void initializeScript(uintptr_t num,int evIn) {
 
 /********************************************************************************/
 /*									    	*/
-/* get_touched_flag - see if this variable (can be a sub-field; see tests   	*/
+/* get_valueChanged_flag - see if this variable (can be a sub-field; see tests   	*/
 /* 8.wrl for the DEF PI PositionInterpolator). return true if variable is   	*/
 /* touched, and pointer to touched value is in global variable              	*/
 /* JSglobal_return_val, AND possibly:						*/
@@ -455,11 +346,13 @@ void initializeScript(uintptr_t num,int evIn) {
 /* 										*/
 /* the way touched, and, the actual values work is as follows:			*/
 /*										*/
-/* keep track of the old value in a table, and compare:				*/
+/* keep track of the name in a table, and set valueChanged flag.		*/
+/* look around the function setECMANative to see how this is done.		*/
 /* FIELDTYPE_SFInt32								*/
 /* FIELDTYPE_SFBool								*/
 /* FIELDTYPE_SFFloat								*/
 /* FIELDTYPE_SFTime								*/
+/* FIELDTYPE_SFString								*/
 /*										*/
 /* check the "touched" flag for non-zero in the private area:			*/
 /* FIELDTYPE_SFRotation								*/
@@ -478,36 +371,20 @@ void initializeScript(uintptr_t num,int evIn) {
 /* FIELDTYPE_MFColor								*/
 /* FIELDTYPE_MFColorRGBA							*/
 
-/* FIELDTYPE_SFString	*/
-/* FIELDTYPE_MFString	*/
 
-/* still to do:	*/
+/* has a flag called "MF_ECMA_has_changed" that is used here 			*/
 /* FIELDTYPE_MFFloat	*/
 /* FIELDTYPE_MFBool	*/
 /* FIELDTYPE_MFInt32	*/
 /* FIELDTYPE_MFTime	*/
-/* FIELDTYPE_FreeWRLPTR	*/
+/* FIELDTYPE_MFString	*/
 /*                                                                          */
 /****************************************************************************/
-struct ECMAValueStruct {
-	jsval	JS_address;
-	int	touched;
-	int 	oldInt32;
-	JSString *oldString;
-	double	oldFloat;
-	double	oldTime;
-	int 	oldBool;
-};
 
-struct ECMAValueStruct ECMAValues[10];
-int maxECMAVal = 0;
-
-
-int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
+int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	JSContext *cx;
 	jsval interpobj;
 	char *fullname;
-	jsval retval;
 	int touched;
 
 	touched = FALSE;
@@ -515,15 +392,17 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	cx = (JSContext *) ScriptControl[actualscript].cx;
 	fullname = JSparamnames[fptr].name;
 
-	if (!JS_GetProperty(cx, (JSObject *) interpobj ,fullname,&retval)) {
+	#ifdef CRVERBOSE
+	printf ("getting property for fullname %s, cx %d, interpobj %d\n",fullname,cx,interpobj);
+	#endif
+
+	if (!JS_GetProperty(cx, (JSObject *) interpobj ,fullname,&JSglobal_return_val)) {
                	printf ("cant get property for %s\n",fullname);
 		return FALSE;
         } else {
-		JSglobal_return_val = retval; /* save this for extraction of values, and for resetting touched pointers */
-		/* ADD_ROOT (cx,JSglobal_return_val); */
-
 		#ifdef CRVERBOSE
-		printf("get_touched_flag: node type: %s\n",FIELDTYPES[JSparamnames[fptr].type]);
+		printf ("so, property is %d\n",JSglobal_return_val);
+		printf("get_valueChanged_flag: node type: %s name %s\n",FIELDTYPES[JSparamnames[fptr].type],JSparamnames[fptr].name);
 		#endif
 
 		switch (JSparamnames[fptr].type) {
@@ -539,23 +418,23 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 			GETJSPTR_TYPE_MF_A(MFNode,SFNode)
 			GETJSPTR_TYPE_MF_A(MFVec2f,SFVec2f)
 			GETJSPTR_TYPE_MF_A(MFVec3f,SFVec3f)
-			/* GETJSPTR_TYPE_MF_A(MFImage,SFImage) */
+			/* GETJSPTR_TYPE_MF_A(MFImage,SFImage)  */
 			GETJSPTR_TYPE_MF_A(MFColor,SFColor)
 			GETJSPTR_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
 			
-			GET_ECMA_MF_TOUCHED(Int32,int) /* note ,no SF for these ones */
-			GET_ECMA_MF_TOUCHED(Bool,int) /* note ,no SF for these ones */
-			GET_ECMA_MF_TOUCHED(Time,double) /* note ,no SF for these ones */
-			GET_ECMA_MF_TOUCHED(Float,double) /* note ,no SF for these ones */
+			GET_ECMA_MF_TOUCHED(Int32)
+			GET_ECMA_MF_TOUCHED(Bool)
+			GET_ECMA_MF_TOUCHED(Time)
+			GET_ECMA_MF_TOUCHED(Float)
+			GET_ECMA_MF_TOUCHED(String)
 
-			GET_ECMA_TOUCHED(Int32,int) /* note ,no SF for these ones */
-			GET_ECMA_TOUCHED(Bool,int) /* note ,no SF for these ones */
-			GET_ECMA_TOUCHED(Float,double) /* note ,no SF for these ones */
-			GET_ECMA_TOUCHED(Time,double) /* note ,no SF for these ones */
-			GET_ECMA_TOUCHED_String 
-
+			GET_ECMA_TOUCHED(Int32) 
+			GET_ECMA_TOUCHED(Bool) 
+			GET_ECMA_TOUCHED(Float)
+			GET_ECMA_TOUCHED(Time)
+			GET_ECMA_TOUCHED(String)
 			
-			default: {printf ("not handled yet in get_touched_flag %s\n",FIELDTYPES[JSparamnames[fptr].type]);
+			default: {printf ("not handled yet in get_valueChanged_flag %s\n",FIELDTYPES[JSparamnames[fptr].type]);
 			}
 		}
 	}
@@ -563,7 +442,7 @@ int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 }
 
 #ifdef OLDGETTOUCHED
-int old_get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
+int old_get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 	JSContext *mycx;
 	char fullname[100];
 	char tmethod[100];
@@ -617,7 +496,7 @@ FIELDTYPE_FreeWRLPTR
 		case FIELDTYPE_SFColor:
 		case FIELDTYPE_SFColorRGBA:
 
-			return new_get_touched_flag(fptr,actualscript);
+			return new_get_valueChanged_flag(fptr,actualscript);
 		default: {}
 	}
 
@@ -625,7 +504,7 @@ FIELDTYPE_FreeWRLPTR
 	mycx = (JSContext *) ScriptControl[actualscript].cx;
 	myname = JSparamnames[fptr].name;
 	#ifdef CRVERBOSE 
-		printf ("\nget_touched_flag, name %s script %d context %#x \n",myname,
+		printf ("\nget_valueChanged_flag, name %s script %d context %#x \n",myname,
 				actualscript,mycx);
 	#endif
 
@@ -670,7 +549,7 @@ FIELDTYPE_FreeWRLPTR
 
 	/* now construct the varable name; it might have a prefix as found above. */
 
-	/* printf ("get_touched_flag, before constructor, fullname is %s\n",fullname); */
+	/* printf ("get_valueChanged_flag, before constructor, fullname is %s\n",fullname); */
 	strcat (fullname,myname);
 	touched_function = FALSE;
 	touched_Multi = FALSE;
@@ -685,7 +564,7 @@ FIELDTYPE_FreeWRLPTR
 	case FIELDTYPE_MFTime:
 	case FIELDTYPE_MFInt32:
 	case FIELDTYPE_MFString:
-		strcpy (tmethod,"__touched_flag");
+		strcpy (tmethod,"__OLDtouched_flag");
 		complex_name = TRUE;
 		break;
 
@@ -694,7 +573,7 @@ FIELDTYPE_FreeWRLPTR
 	case FIELDTYPE_MFNode:
 	case FIELDTYPE_MFVec2f:
 	case FIELDTYPE_MFVec3f:
-		strcpy (tmethod,"__touched_flag");
+		strcpy (tmethod,"__OLDtouched_flag");
 		touched_Multi = TRUE;
 		complex_name = TRUE;
 		break;
@@ -797,8 +676,8 @@ FIELDTYPE_FreeWRLPTR
 
 		/* lets try the MF touched flag. If this is 0, then go
 		 through each element. */
-		if (!JS_GetProperty(mycx, (JSObject *) interpobj, "__touched_flag", &_length_val)) {
-				fprintf(stderr, "JS_GetProperty failed for \"__touched_flag\" in here.\n");
+		if (!JS_GetProperty(mycx, (JSObject *) interpobj, "__OLDtouched_flag", &_length_val)) {
+				fprintf(stderr, "JS_GetProperty failed for \"__OLDtouched_flag\" in here.\n");
 				            return JS_FALSE;
             	}
 
@@ -812,7 +691,7 @@ FIELDTYPE_FreeWRLPTR
 			set it to "0" for next time. */
 			v = INT_TO_JSVAL(0);
 			JS_SetProperty (mycx, (JSObject *)  interpobj,
-					"__touched_flag", &v);
+					"__OLDtouched_flag", &v);
 			return TRUE;
 		}
 
@@ -1262,6 +1141,7 @@ int JSparamIndex (char *name, char *type) {
 	strncpy (JSparamnames[jsnameindex].name,name,len);
 	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
+	JSparamnames[jsnameindex].eventInFunction = 0;
 	/* printf ("JSparamNameIndex, returning %d\n",jsnameindex);  */
 	return jsnameindex;
 }
@@ -1682,7 +1562,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 		#endif
 
 		/* in Ayla's Perl code, the following happened:
-			MF* - run __touched_flag
+			MF* - run __OLDtouched_flag
 
 			SFBool, SFFloat, SFTime, SFInt32, SFString-
 				this is her $ECMASCriptNative; run _name_touched
@@ -1696,7 +1576,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 			#ifdef CRVERBOSE 
 				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			#endif
-			touched_flag = get_touched_flag(fptr,actualscript);
+			touched_flag = get_valueChanged_flag(fptr,actualscript);
 		}
 
 		if (touched_flag) {
@@ -1744,6 +1624,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 			RESET_ECMA_MF_TOUCHED(MFBool) 
 			RESET_ECMA_MF_TOUCHED(MFFloat) 
 			RESET_ECMA_MF_TOUCHED(MFTime) 
+			RESET_ECMA_MF_TOUCHED(MFString) 
 			
 			
 			default: {printf ("can not reset touched_flag for %s\n",FIELDTYPES[JSparamnames[fptr].type]);
@@ -1828,7 +1709,7 @@ void propagate_events() {
 
 				#ifdef CRVERBOSE
 					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u dir %d\n",
-						   counter, to_counter, BOOL_STRING(CRoutes[counter].act),
+						   counter, to_counter, BOOL_STRING(CRoutes[counter].isActive),
 						   CRoutes[counter].fromnode, CRoutes[counter].fnptr,
 						   to_ptr->node, to_ptr->foffset, CRoutes[counter].interpptr,
 							CRoutes[counter].direction_flag);
@@ -1929,14 +1810,28 @@ According to the spec, all scripts can have an eventsProcessed
 function - see section C.4.3 of the spec.
 
 ********************************************************************/
+/* run the script from within C */
 void process_eventsProcessed() {
 
 	int counter;
 	jsval retval;
 
 	for (counter = 0; counter <= max_script_found; counter++) {
-                if (!ActualrunScript(counter, "eventsProcessed()" ,&retval))
-                        printf ("failed to run eventsProcessed for script %d\n",counter);
+		if (ScriptControl[counter].eventsProcessed == NULL) {
+			ScriptControl[counter].eventsProcessed = (uintptr_t) JS_CompileScript(
+				(JSContext *) ScriptControl[counter].cx,
+				(JSContext *) ScriptControl[counter].glob,
+				"eventsProcessed()", strlen ("eventsProcessed()"),
+				"compile eventsProcessed()", 1);
+
+		}
+
+		if (!JS_ExecuteScript((JSContext *) ScriptControl[counter].cx,
+                                (JSContext *) ScriptControl[counter].glob,
+				(JSScript *) ScriptControl[counter].eventsProcessed, &retval)) {
+			printf ("can not run eventsProcessed()\n");
+		}
+
 	}
 }
 

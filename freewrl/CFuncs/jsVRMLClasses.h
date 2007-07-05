@@ -51,6 +51,23 @@
 	/* printf ("removing root %x\n",b); */ \
         JS_RemoveRoot(a,&b); 
 
+
+#define DEFINE_LENGTH(thislength) \
+	{jsval zimbo = INT_TO_JSVAL(thislength);\
+	/* printf ("defining length to %d for %d %d\n",thislength,cx,obj);*/ \
+	if (!JS_DefineProperty(cx, obj, "length", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { \
+		printf( "JS_DefineProperty failed for \"length\" at %s:%d.\n",__FILE__,__LINE__); \
+		return JS_FALSE;\
+	}}
+
+#define DEFINE_MF_ECMA_HAS_CHANGED \
+	{jsval zimbo = INT_TO_JSVAL(1); \
+	if (!JS_DefineProperty(cx, obj, "MF_ECMA_has_changed", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { \
+		printf( "JS_DefineProperty failed for \"MF_ECMA_has_changed\" at %s:%d.\n",__FILE__,__LINE__); \
+		return JS_FALSE; \
+	}}
+
+
 /*
  * The following VRML field types don't need JS classes:
  * (ECMAScript native datatypes, see JS.pm):
@@ -88,7 +105,7 @@ void JS_MY_Finalize(JSContext *cx, JSObject *obj);
 
 JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval); 
 JSBool doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name); 
-JSBool doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name); 
+JSBool doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type); 
 JSBool getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow); 
 JSBool doMFStringUnquote(JSContext *cx, jsval *vp);
 
@@ -139,9 +156,6 @@ JSBool
 SFColorAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
-SFColorTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-
-JSBool
 SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
@@ -161,9 +175,6 @@ SFColorRGBAToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 JSBool
 SFColorRGBAAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
-
-JSBool
-SFColorRGBATouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
 
 JSBool
 SFColorRGBAConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
@@ -188,12 +199,6 @@ SFImageAssign(JSContext *cx,
 			  jsval *argv,
 			  jsval *rval);
 
-JSBool
-SFImageTouched(JSContext *cx,
-			   JSObject *obj,
-			   uintN argc,
-			   jsval *argv,
-			   jsval *rval);
 
 JSBool
 SFImageConstr(JSContext *cx,
@@ -228,13 +233,6 @@ SFNodeAssign(JSContext *cx, JSObject *obj,
 			 uintN argc,
 			 jsval *argv,
 			 jsval *rval);
-
-JSBool
-SFNodeTouched(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
 
 JSBool
 SFNodeConstr(JSContext *cx,
@@ -314,13 +312,6 @@ SFRotationAssign(JSContext *cx,
 				 uintN argc,
 				 jsval *argv,
 				 jsval *rval);
-
-JSBool
-SFRotationTouched(JSContext *cx,
-				  JSObject *obj,
-				  uintN argc,
-				  jsval *argv,
-				  jsval *rval);
 
 JSBool
 SFRotationConstr(JSContext *cx,
@@ -413,13 +404,6 @@ SFVec2fAssign(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
-
-JSBool
-SFVec2fTouched(JSContext *cx,
-			   JSObject *obj,
-			   uintN argc,
-			   jsval *argv,
-			   jsval *rval);
 
 JSBool
 SFVec2fConstr(JSContext *cx,
@@ -518,13 +502,6 @@ SFVec3fAssign(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
-
-JSBool
-SFVec3fTouched(JSContext *cx,
-			   JSObject *obj,
-			   uintN argc,
-			   jsval *argv,
-			   jsval *rval);
 
 JSBool
 SFVec3fConstr(JSContext *cx,

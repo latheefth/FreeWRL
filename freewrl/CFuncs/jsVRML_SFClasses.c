@@ -153,7 +153,7 @@ SFColorSetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	ptr->v.c[0] = red;
 	ptr->v.c[1] = green;
 	ptr->v.c[2] = blue;
-	ptr->touched++;
+	ptr->valueChanged ++;
 	#ifdef JSCLASSESVERBOSE
         printf("hsv code, now rgb is %.9g %.9g %.9g\n", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
@@ -227,30 +227,6 @@ SFColorAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFColorTouched(JSContext *cx, JSObject *obj,
-			   uintN argc, jsval *argv, jsval *rval)
-{
-    SFColorNative *ptr;
-    int t;
-
-	UNUSED(argc);
-	UNUSED(argv);
-	if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFSFColorTouched.\n");
-		return JS_FALSE;
-	}
-
-    t = ptr->touched;
-	ptr->touched = 0;
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
-	#endif
-	
-    *rval = INT_TO_JSVAL(t);
-    return JS_TRUE;
-}
-
-JSBool
 SFColorConstr(JSContext *cx, JSObject *obj,
 			  uintN argc, jsval *argv, jsval *rval)
 {
@@ -292,7 +268,7 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
-	ptr->touched = 1; /* constructors touch! */
+	ptr->valueChanged = 1; /* constructors touch! */
 
 	*rval = OBJECT_TO_JSVAL(obj);
 
@@ -357,10 +333,10 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		printf( "JS_GetPrivate failed in SFColorSetProperty.\n");
 		return JS_FALSE;
 	}
-	ptr->touched++;
+	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorSetProperty: obj = %u, id = %d, touched = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
+		printf("SFColorSetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &_val)) {
@@ -515,29 +491,6 @@ SFColorRGBAAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFColorRGBATouched(JSContext *cx, JSObject *obj,
-			   uintN argc, jsval *argv, jsval *rval)
-{
-    SFColorRGBANative *ptr;
-    int t;
-
-	UNUSED(argc);
-	UNUSED(argv);
-	if ((ptr = (SFColorRGBANative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFSFColorRGBATouched.\n");
-		return JS_FALSE;
-	}
-
-    t = ptr->touched;
-	ptr->touched = 0;
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorRGBATouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
-	#endif
-    *rval = INT_TO_JSVAL(t);
-    return JS_TRUE;
-}
-
-JSBool
 SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 			  uintN argc, jsval *argv, jsval *rval)
 {
@@ -578,7 +531,7 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	}
 
 	
-	ptr->touched = 1; /* constructors touch! */
+	ptr->valueChanged = 1; /* constructors touch! */
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFColorRGBAConstr: obj = %u, %u args, %f %f %fi %f\n",
@@ -657,10 +610,10 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		printf( "JS_GetPrivate failed in SFColorRGBASetProperty.\n");
 		return JS_FALSE;
 	}
-	ptr->touched++;
+	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFColorRGBASetProperty: obj = %u, id = %d, touched = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
+		printf("SFColorRGBASetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &_val)) {
@@ -686,32 +639,6 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		}
 	}
 	return JS_TRUE;
-}
-
-JSBool
-SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-    SFImageNative *ptr;
-    int t;
-
-	UNUSED(argc);
-	UNUSED(argv);
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFImageTouched: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
-	#endif
-
-	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFSFImageTouched.\n");
-		return JS_FALSE;
-	}
-
-    t = ptr->touched;
-	ptr->touched = 0;
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFImageTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
-	#endif
-    *rval = INT_TO_JSVAL(t);
-    return JS_TRUE;
 }
 
 JSBool
@@ -752,7 +679,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		printf("SFImageConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	#endif
 
-	/* SFImage really only has the touched flag. */
+	/* SFImage really only has the valueChanged flag. */
         if ((ptr = (SFImageNative *) SFImageNativeNew()) == NULL) {
                 printf( "SFImageNativeNew failed in SFImageConstr.\n");
                 return JS_FALSE;
@@ -763,7 +690,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
                 return JS_FALSE;
         }
 
-	ptr->touched = 1;  /* constructors touch! */
+	ptr->valueChanged = 1;  /* constructors touch! */
 
 	/* make this so that one can get the ".x", ".y", ".comp" and ".array" */
 	if (!JS_DefineProperties(cx, obj, SFImageProperties)) {
@@ -785,39 +712,18 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 				return JS_FALSE;
 			}
 		}
-		mv = INT_TO_JSVAL(4);
-		if (!JS_DefineProperty(cx, obj, "length", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-			printf( "JS_DefineProperty failed for \"length\" in SFImageConstr.\n");
-			return JS_FALSE;
-		}
-
-		mv = INT_TO_JSVAL(0);
-		if (!JS_DefineProperty(cx, obj, "__touched_flag", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-			printf( "JS_DefineProperty failed for \"__touched_flag\" in SFImageConstr.\n");
-			return JS_FALSE;
-		}
-
+		DEFINE_LENGTH(4)
 
 		return JS_TRUE; 
 	}
 	
 	/* ok, ok. There are some parameters here. There had better be 4, or else... */
-	if (argc != 4) {
+	if ((argc != 4) && (argc != 3)) {
 		printf ("SFImageConstr, expect 4 parameters, got %d\n",argc);
 		return JS_FALSE;
 	}
 
-	mv = INT_TO_JSVAL(4);
-	if (!JS_DefineProperty(cx, obj, "length", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"length\" in SFImageConstr.\n");
-		return JS_FALSE;
-	}
-
-	mv = INT_TO_JSVAL(0);
-	if (!JS_DefineProperty(cx, obj, "__touched_flag", mv, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {
-		printf( "JS_DefineProperty failed for \"__touched_flag\" in SFImageConstr.\n");
-		return JS_FALSE;
-	}
+	DEFINE_LENGTH(argc)
 
 	/* expect arguments to be number, number, number, mfint32 */
 	for (i=0; i<3; i++) {
@@ -853,31 +759,31 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		return JS_FALSE;
 	}
 
-	#ifdef JSVRMLCLASSESVERBOSE
-	printJSNodeType(cx,argv[3]);
-	#endif
-
 	/* worry about the MFInt32 array. Note that we copy the object pointer here. Should
 	   we copy ALL of the elements, or just the object itself?? */
 
-	if (!JS_InstanceOf(cx, argv[3], &MFInt32Class, NULL)) {
-		printf ("SFImageConstr: expected array element to be an MFInt32 array\n");
-		return JS_FALSE;
-	} else {
-		if (!JS_GetProperty(cx, argv[3], "length", &mv)) {
-			printf( "JS_GetProperty failed for MFInt32 length in SFNodeConstr\n");
-        		return JS_FALSE;
-		}
-        	if (expectedSize != JSVAL_TO_INT(mv)) {
-			printf ("SFImageConstr: expected %d elements in image data, got %d\n",expectedSize, JSVAL_TO_INT(mv));
+	if (argc == 4) {
+		#ifdef JSVRMLCLASSESVERBOSE
+		printJSNodeType(cx,argv[3]);
+		#endif
+
+		if (!JS_InstanceOf(cx, argv[3], &MFInt32Class, NULL)) {
+			printf ("SFImageConstr: expected array element to be an MFInt32 array\n");
 			return JS_FALSE;
+		} else {
+			if (!JS_GetProperty(cx, argv[3], "length", &mv)) {
+				printf( "JS_GetProperty failed for MFInt32 length in SFNodeConstr\n");
+	        		return JS_FALSE;
+			}
+	        	if (expectedSize != JSVAL_TO_INT(mv)) {
+				printf ("SFImageConstr: expected %d elements in image data, got %d\n",expectedSize, JSVAL_TO_INT(mv));
+				return JS_FALSE;
+			}
 		}
-
-
 	}
 
 	/* parameters are ok - just save them now in the new object. */
-	for (i=0; i<4; i++) {
+	for (i=0; i<argc; i++) {
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
 			  JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
@@ -905,6 +811,7 @@ SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,"SFImageSetProperty");
 }
 
+#undef JSVRMLCLASSESVERBOSE
 
 /**********************************************************************************/
 
@@ -998,34 +905,6 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	printf ("end of SFNodeAssign\n");
 	#endif
 	return JS_TRUE;
-}
-
-JSBool
-SFNodeTouched(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
-    SFNodeNative *ptr;
-    int t;
-
-	UNUSED(argc);
-	UNUSED(argv);
-
-	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("start of SFNodeTouched\n");
-	#endif
-	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFNodeTouched.\n");
-		return JS_FALSE;
-	}
-
-	t = ptr->touched;
-	ptr->touched = 0;
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFNodeTouched: obj = %u, touched = %d\n",
-			   VERBOSE_OBJ obj, t);
-	#endif
-    *rval = INT_TO_JSVAL(t);
-    return JS_TRUE;
 }
 
 JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
@@ -1160,7 +1039,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	newPtr->handle = newHandle;
 	newPtr->X3DString = (char *)STRDUP(cString);
 	
-	newPtr->touched = 1; /* constructors touch! */
+	newPtr->valueChanged = 1; /* constructors touch! */
 
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1235,7 +1114,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 
 	if (JSVAL_IS_INT(id)) {
-		ptr->touched++;
+		ptr->valueChanged++;
 		val_len = strlen(_val_c) + 1;
 
 		#ifdef JSVRMLCLASSESVERBOSE
@@ -1704,32 +1583,6 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 }
 
 JSBool
-SFRotationTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-    SFRotationNative *ptr;
-    int t;
-
-	UNUSED(argc);
-	UNUSED(argv);
-	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("start of SFRotationTouched\n");
-	#endif
-
-	if ((ptr = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFRotationTouched.\n");
-		return JS_FALSE;
-	}
-
-    t = ptr->touched;
-	ptr->touched = 0;
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
-	#endif
-    *rval = INT_TO_JSVAL(t);
-    return JS_TRUE;
-}
-
-JSBool
 SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	SFVec3fNative *_vec;
@@ -1842,7 +1695,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
 	#endif
 	
-	ptr->touched = 1; /* constructors touch! */
+	ptr->valueChanged = 1; /* constructors touch! */
 
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
@@ -1924,10 +1777,10 @@ SFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		printf( "JS_GetPrivate failed in SFRotationSetProperty.\n");
 		return JS_FALSE;
 	}
-	ptr->touched++;
+	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFRotationSetProperty: obj = %u, id = %d, touched = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
+		printf("SFRotationSetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -2237,29 +2090,6 @@ SFVec2fAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec2fTouched(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval)
-{
-    SFVec2fNative *ptr;
-    int t;
-
-	UNUSED(argc);
-	UNUSED(argv);
-	if ((ptr = (SFVec2fNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFVec2fTouched.\n");
-		return JS_FALSE;
-	}
-
-    t = ptr->touched;
-	ptr->touched = 0;
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec2fTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
-	#endif
-    *rval = INT_TO_JSVAL(t);
-    return JS_TRUE;
-}
-
-JSBool
 SFVec2fConstr(JSContext *cx, JSObject *obj,
 			  uintN argc, jsval *argv, jsval *rval)
 {
@@ -2299,7 +2129,7 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 			   (ptr->v).c[0], (ptr->v).c[1]);
 	#endif
 	
-	ptr->touched = 1; /* constructors touch! */
+	ptr->valueChanged = 1; /* constructors touch! */
 
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
@@ -2354,10 +2184,10 @@ SFVec2fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		printf( "JS_GetPrivate failed in SFVec2fSetProperty.\n");
 		return JS_FALSE;
 	}
-	ptr->touched++;
+	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec2fSetProperty: obj = %u, id = %d, touched = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
+		printf("SFVec2fSetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -2724,34 +2554,6 @@ SFVec3fAssign(JSContext *cx, JSObject *obj,
 }
 
 JSBool
-SFVec3fTouched(JSContext *cx, JSObject *obj,
-			 uintN argc, jsval *argv, jsval *rval)
-{
-    SFVec3fNative *ptr;
-    int t;
-
-	UNUSED(argc);
-	UNUSED(argv);
-
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf ("start of SFVec3fTouched\n");
-	#endif
-
-	if ((ptr = (SFVec3fNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFVec3fTouched.\n");
-		return JS_FALSE;
-	}
-
-    t = ptr->touched;
-	ptr->touched = 0;
-	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3fTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
-	#endif
-    *rval = INT_TO_JSVAL(t);
-    return JS_TRUE;
-}
-
-JSBool
 SFVec3fConstr(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval)
 {
@@ -2798,7 +2600,7 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
-	ptr->touched = 1; /* constructors touch! */
+	ptr->valueChanged = 1; /* constructors touch! */
 
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
@@ -2828,14 +2630,6 @@ printf ("start of SFVec3fGetProperty... vp is %s\n",_id_c);
 		printf( "JS_GetPrivate failed in SFVec3fGetProperty.\n");
 		return JS_FALSE;
 	}
-
-#ifdef OLDCODE
-    if (!JS_InstanceOf(cx, obj, &SFVec3fClass, id)) {
-                printf( "JS_InstanceOf failed for obj in SFVec3fGetProperty.\n");
-        return JS_FALSE;
-        }
-#endif
-
 
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
@@ -2889,10 +2683,10 @@ SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		printf( "JS_GetPrivate failed in SFVec3fSetProperty.\n");
 		return JS_FALSE;
 	}
-	ptr->touched++;
+	ptr->valueChanged++;
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFVec3fSetProperty: obj = %u, id = %d, touched = %d\n",
-			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
+		printf("SFVec3fSetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
 	#endif
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {

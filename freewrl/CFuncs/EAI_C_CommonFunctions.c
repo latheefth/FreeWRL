@@ -127,6 +127,7 @@ int returnElementRowSize (int type) {
 		case FIELDTYPE_MFColor:
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_SFImage: /* initialization - we can have a "0,0,0" for no texture */
 			return 3;
 		case FIELDTYPE_SFRotation:
 		case FIELDTYPE_MFRotation:

@@ -86,8 +86,9 @@ struct CRStruct {
         int     extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
 };
 struct CRjsnameStruct {
-        int     type;
-        char    name[MAXJSVARIABLELENGTH];
+        int     	type;
+        char    	name[MAXJSVARIABLELENGTH];
+	uintptr_t 	eventInFunction;		/* compiled javascript function... if it is required */
 };
 
 
@@ -572,8 +573,10 @@ struct CRscriptStruct {
 	int thisScriptType;
 
 	/* Javascript parameters */
-	uintptr_t	cx;	/* JSContext		*/
-	uintptr_t	glob;	/* JSGlobals		*/
+	uintptr_t	cx;			/* JSContext		*/
+	uintptr_t	glob;			/* JSGlobals		*/
+	uintptr_t	eventsProcessed; 	/* eventsProcessed() */
+	uintptr_t	TickTime;		/* TickTime variable 	*/
 
 	/* Java .CLASS parameters */
 	unsigned int 	_initialized; 	/* has initialize been sent? */

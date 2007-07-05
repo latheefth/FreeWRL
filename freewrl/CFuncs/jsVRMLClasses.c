@@ -23,6 +23,11 @@
 void _get4f(double *ret, double *mat, int row);
 void _set4f(double len, double *mat, int row);
 
+/* for keeping track of the ECMA values */
+#define ECMAValueTableSize 100
+struct ECMAValueStruct ECMAValues[ECMAValueTableSize];
+int maxECMAVal = 0;
+
 
 /*
  * VRML Node types as JS classes:
@@ -55,7 +60,6 @@ JSFunctionSpec (SFColorFunctions)[] = {
 	{"setHSV", SFColorSetHSV, 0},
 	{"toString", SFColorToString, 0},
 	{"assign", SFColorAssign, 0},
-	{"__touched", SFColorTouched, 0},
 	{0}
 };
 
@@ -87,7 +91,6 @@ JSFunctionSpec (SFColorRGBAFunctions)[] = {
 	{"setHSV", SFColorRGBASetHSV, 0},
 	{"toString", SFColorRGBAToString, 0},
 	{"assign", SFColorRGBAAssign, 0},
-	{"__touched", SFColorRGBATouched, 0},
 	{0}
 };
 
@@ -117,7 +120,6 @@ JSPropertySpec (SFImageProperties)[] = {
 JSFunctionSpec (SFImageFunctions)[] = {
 	{"toString", SFImageToString, 0},
 	{"assign", SFImageAssign, 0},
-	{"__touched", SFImageTouched, 0},
 	{0}
 };
 
@@ -147,7 +149,6 @@ JSPropertySpec (SFNodeProperties)[] = {
 JSFunctionSpec (SFNodeFunctions)[] = {
 	{"toString", SFNodeToString, 0},
 	{"assign", SFNodeAssign, 0},
-	{"__touched", SFNodeTouched, 0},
 	{0}
 };
 
@@ -183,7 +184,6 @@ JSFunctionSpec (SFRotationFunctions)[] = {
 	{"slerp", SFRotationSlerp, 0},
 	{"toString", SFRotationToString, 0},
 	{"assign", SFRotationAssign, 0},
-	{"__touched", SFRotationTouched, 0},
 	{0}
 };
 
@@ -219,7 +219,6 @@ JSFunctionSpec (SFVec2fFunctions)[] = {
 	{"subtract", SFVec2fSubtract, 0},
 	{"toString", SFVec2fToString, 0},
 	{"assign", SFVec2fAssign, 0},
-	{"__touched", SFVec2fTouched, 0},
 	{0}
 };
 
@@ -257,7 +256,6 @@ JSFunctionSpec (SFVec3fFunctions)[] = {
 	{"subtract", SFVec3fSubtract, 0},
 	{"toString", SFVec3fToString, 0},
 	{"assign", SFVec3fAssign, 0},
-	{"__touched", SFVec3fTouched, 0},
 	{0}
 };
 
@@ -593,6 +591,7 @@ JSBool _standardMFAssign(JSContext *cx,
 	jsval val, myv;
 	int32 len;
 	char *_id_str;
+        SFImageNative *ptr;
 
 	if (!JS_InstanceOf(cx, obj, myClass, argv)) {
 		printf("JS_InstanceOf failed in %d.\n",type);
@@ -607,13 +606,6 @@ JSBool _standardMFAssign(JSContext *cx,
 		printf("JS_InstanceOf failed in %d.\n",type);
 		return JS_FALSE;
 	}
-
-	myv = INT_TO_JSVAL(1);
-	if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
-		printf("JS_SetProperty failed for \"__touched_flag\" in %d.\n",type);
-		return JS_FALSE;
-	}
-
 
 	if (!JS_GetProperty(cx, _from_obj, "length", &val)) {
 		printf("JS_GetProperty failed for \"length\" in %d.\n",type);
@@ -634,6 +626,17 @@ JSBool _standardMFAssign(JSContext *cx,
 
 	/* copyElements */
 	*rval = OBJECT_TO_JSVAL(obj);
+
+	/* SF* values that use this routine - check if we need to set valueChanged in private area */
+
+	if (type == FIELDTYPE_SFImage) {
+        	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
+        	        printf( "JS_GetPrivate failed in standard MF assign.\n");
+        	        return;
+        	}
+		ptr->valueChanged = 1;
+	}
+
 	return _simplecopyElements(cx, _from_obj, obj, len,type);
 }
 
@@ -644,7 +647,7 @@ _standardMFGetProperty(JSContext *cx,
 		jsval id,
 		jsval *vp,
 		char *makeNewElement,
-		char *name) {
+		int type) {
 
 	int32 _length, _index;
 	jsval _length_val;
@@ -654,12 +657,12 @@ _standardMFGetProperty(JSContext *cx,
 	jsval newEle;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("_standardMFGetProperty starting for type %s\n",name);
+	printf ("_standardMFGetProperty starting for type %d\n",type);
 	printJSNodeType (cx,obj);
 	#endif
 
 	if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
-		printf( "JS_GetProperty failed for \"length\" in %s.\n",name);
+		printf( "JS_GetProperty failed for \"length\" in %d.\n",type);
 		return JS_FALSE;
 	}
 
@@ -699,11 +702,11 @@ _standardMFGetProperty(JSContext *cx,
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp,
 				JS_PropertyStub, JS_PropertyStub,
 				JSPROP_ENUMERATE)) {
-				printf( "JS_DefineElement failed in %s.\n",name);
+				printf( "JS_DefineElement failed in %d.\n",type);
 				return JS_FALSE;
 			}
 
-			if (!doMFSetProperty(cx,obj,id,vp,name)) {
+			if (!doMFSetProperty(cx,obj,id,vp,type)) {
 				printf ("wow, cant assign property\n");
 			}
 		}
@@ -711,11 +714,11 @@ _standardMFGetProperty(JSContext *cx,
 		printf ("object already has this index\n");
 		#endif
 		if (!JS_LookupElement(cx, obj, _index, vp)) {
-			printf( "JS_LookupElement failed in %s.\n",name);
+			printf( "JS_LookupElement failed in %d.\n",type);
 			return JS_FALSE;
 		}
 		if (*vp == JSVAL_VOID) {
-			printf( "warning: %s: obj = %u, jsval = %d does not exist!\n",name,
+			printf( "warning: %d: obj = %u, jsval = %d does not exist!\n",type,
 				VERBOSE_OBJ obj, (int) _index);
 			return JS_FALSE;
 		}
@@ -886,14 +889,13 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	str = JS_ValueToString(cx, id);
 	p = JS_GetStringBytes(str);
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("\tid string  %s ",p);
+		printf("\tid string  %s\n ",p);
 	#endif
-
 
 	p_len = strlen(p);
 	if (!strcmp(p, "length") ||
+		!strcmp(p, "MF_ECMA_has_changed") ||
 		!strcmp(p, "toString") ||
-		!strcmp(p, "__touched_flag") ||
 		!strcmp(p, "setTransform") ||
 		!strcmp(p, "assign") ||
 		!strcmp(p, "inverse") ||
@@ -934,23 +936,18 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	#endif
 
 	myv = INT_TO_JSVAL(1);
-
-	if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
-		printf(
-				"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
-		return JS_FALSE;
-	}
 	return JS_TRUE;
 }
 
 JSBool
-doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
+doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 {
 	JSString *_str, *_sstr;
 	char *_c, *_cc;
 	jsval myv;
 	jsint _index;
 	int i;
+	double dd;
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf ("doMFSetProperty, for vp %d %x\n",
@@ -962,13 +959,13 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 		_sstr = JS_ValueToString(cx, *vp);
 		printf ("looking up value for %d %x object %u\n",*vp,*vp,VERBOSE_OBJ obj);
 			_cc = JS_GetStringBytes(_sstr);
-			printf("\tdoMFSetProperty:%s: obj = %u, id = %s, vp = %s\n",name,
+			printf("\tdoMFSetProperty:%d: obj = %u, id = %s, vp = %s\n",type,
 			   VERBOSE_OBJ obj, _c, _cc);
 		
 	#endif
 
 	/* should this value be checked for possible conversions */
-	if (!strcmp("MFInt32SetProperty",name)) {
+	if (type == FIELDTYPE_MFInt32) {
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("doMFSetProperty, this should be an int \n");
 		#endif
@@ -981,27 +978,59 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 			if (!JS_ValueToInt32(cx, *vp, &i)) {
 				_sstr = JS_ValueToString(cx, *vp);
 				_cc = JS_GetStringBytes(_sstr);
-				printf ("can not convert %s to an integer in %s\n",_cc,name);
+				printf ("can not convert %s to an integer in doMFAddProperty for type %d\n",_cc,type);
 				return JS_FALSE;
 			}
 
 			*vp = INT_TO_JSVAL(i);
 		}
-	}
-	
-
-
-	if (JSVAL_IS_INT(id)) {
+	} else if ((type == FIELDTYPE_MFFloat) || (type == FIELDTYPE_MFTime)) {
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("setting __touched_flag\n");
+		printf ("doMFSetProperty - ensure that this is a DOUBLE ");
+				_sstr = JS_ValueToString(cx, *vp);
+				_cc = JS_GetStringBytes(_sstr);
+				printf ("value is  %s \n",_cc);
 		#endif
-		myv = INT_TO_JSVAL(1);
 
-		if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
-			printf( "JS_SetProperty failed for \"__touched_flag\" in doMFSetProperty.\n");
-			return JS_FALSE;
+		if (!JSVAL_IS_DOUBLE(*vp)) {
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("is NOT a double\n");
+			#endif
+
+			if (!JS_ValueToNumber(cx, *vp, &dd)) {
+				_sstr = JS_ValueToString(cx, *vp);
+				_cc = JS_GetStringBytes(_sstr);
+				printf ("can not convert %s to a double in doMFAddProperty for type %d\n",_cc,type);
+				return JS_FALSE;
+			}
+
+			*vp = DOUBLE_TO_JSVAL(dd);
 		}
+
 	}
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("setting changed flag on %d\n",obj);
+	#endif     
+
+	/* is this an MF ECMA type that uses the MF_ECMA_has_changed flag? */
+	switch (type) {
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_MFBool:
+		case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFFloat:
+		case FIELDTYPE_MFString: {
+			myv = INT_TO_JSVAL(1);
+			if (!JS_SetProperty(cx, obj, "MF_ECMA_has_changed", &myv)) {
+				printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in doMFSetProperty.\n");
+				return JS_FALSE;
+			}
+			break;
+		}
+		default: {}
+	}
+
+
 	return JS_TRUE;
 }
 
@@ -1087,19 +1116,122 @@ JSBool loadVrmlClasses(JSContext *context, JSObject *globalObj) {
 	return JS_TRUE;
 }
 
+/* go through and see if the setECMA routine touched this name */
+int findNameInECMATable(char *toFind) {
+	int i;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("findNameInECMATable, looking for %s\n",toFind);
+	#endif
+	
+	i=0;
+	while (i < maxECMAVal) { 
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("	%d: %s==%s\n",i,ECMAValues[i].name,toFind);
+		#endif
+
+		
+		if (strcmp(ECMAValues[i].name,toFind)==NULL) {
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("fineInECMATable: found value at %d\n",i);
+			#endif
+			return ECMAValues[i].valueChanged;
+		}
+		i++;
+	}
+	
+	/* did not find this one, add it */
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("findInECMATable - did not find %s\n",toFind);
+	#endif
+
+	return FALSE;
+}
+
+/* go through the ECMA table, and reset the valueChanged flag. */
+void resetNameInECMATable(char *toFind) {
+	int i;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("findNameInECMATable, looking for %s\n",toFind);
+	#endif
+	
+	i=0;
+	while (i < maxECMAVal) { 
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("	%d: %s==%s\n",i,ECMAValues[i].name,toFind);
+		#endif
+
+		
+		if (strcmp(ECMAValues[i].name,toFind)==NULL) {
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("fineInECMATable: found value at %d\n",i);
+			#endif
+			ECMAValues[i].valueChanged = FALSE;
+			return;
+		}
+		i++;
+	}
+}
+
+/* set the valueChanged flag - add a new entry to the table if required */
+void setInECMATable(char *toFind) {
+	int i;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("setInECMATable, looking for %s\n",toFind);
+	#endif
+	
+	i=0;
+	while (i < maxECMAVal) { 
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("setInECMATable	%d: %s==%s\n",i,ECMAValues[i].name,toFind);
+		#endif
+
+		
+		if (strcmp(ECMAValues[i].name,toFind) == NULL) {
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("setInECMATable: found value at %d\n",i);
+			#endif
+			ECMAValues[i].valueChanged = TRUE;
+			return;
+		}
+		i++;
+	}
+	
+	/* did not find this one, add it */
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("setInECMATable - new entry at %d for %s\n",maxECMAVal, toFind);
+	#endif
+
+	maxECMAVal ++;
+	if (maxECMAVal == ECMAValueTableSize) {
+		ConsoleMessage ("problem in setInECMATable for scripting\n");
+		maxECMAVal = ECMAValueTableSize - 10;
+	}
+	ECMAValues[maxECMAVal-1].JS_address = toFind;
+	ECMAValues[maxECMAVal-1].valueChanged = TRUE;
+	ECMAValues[maxECMAVal-1].name = strdup(toFind);
+}
 
 JSBool
 setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 {
-	JSString *_idStr, *_vpStr, *_newVpStr;
+	JSString *_idStr;
+	JSString *_vpStr, *_newVpStr;
 	JSBool ret = JS_TRUE;
 	jsval v;
-	char *_id_c, *_vp_c, *_new_vp_c, *_buff;
+	char *_id_c;
+
+	char * *_vp_c, *_new_vp_c, *_buff;
 	const size_t touched_len = 10;
 	size_t len = 0;
 
 	_idStr = JS_ValueToString(context, id);
 	_id_c = JS_GetStringBytes(_idStr);
+
+        /* "register" this ECMA value for routing changed flag stuff */
+       	setInECMATable(_id_c);
 
 	if (JSVAL_IS_STRING(*vp)) {
 		_vpStr = JS_ValueToString(context, *vp);
@@ -1122,39 +1254,21 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 		*vp = STRING_TO_JSVAL(_newVpStr);
 
 		#ifdef JSVRMLCLASSESVERBOSE
-			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
+			printf("setECMANative: have string obj = %u, id = \"%s\", vp = %s\n",
 				   VERBOSE_OBJ obj, _id_c, _new_vp_c);
 		#endif
 		FREE_IF_NZ (_new_vp_c);
 	} else {
 		#ifdef JSVRMLCLASSESVERBOSE
-			_vpStr = JS_ValueToString(context, *vp);
-			_vp_c = JS_GetStringBytes(_vpStr);
-			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
-				   VERBOSE_OBJ obj, _id_c, _vp_c);
+		_vpStr = JS_ValueToString(context, *vp);
+		_vp_c = JS_GetStringBytes(_vpStr);
+		printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
+			   VERBOSE_OBJ obj, _id_c, _vp_c);
 		#endif
 	}
 
-	len = strlen(_id_c);
-	if (len + touched_len >= STRING) {
-		len += SMALLSTRING;
-	} else {
-		len = STRING;
-	}
-	_buff = (char *) MALLOC(len * sizeof(char));
-	memset(_buff, 0, len);
-	sprintf(_buff, "_%.*s_touched", len, _id_c);
-	v = INT_TO_JSVAL(1);
-	if (!JS_SetProperty(context, obj, _buff, &v)) {
-		printf(
-				"JS_SetProperty failed in setECMANative.\n");
-		ret = JS_FALSE;
-	}
-	FREE_IF_NZ (_buff);
-
 	return ret;
 }
-
 
 /* used mostly for debugging */
 JSBool
