@@ -1296,33 +1296,58 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	JSObject *_o;
 	JSString *_str;
 	const uintN _argc = 2;
-	jsval _newVal, _initVal, _argv[_argc];
+	jsval newVal, initVal, _argv[_argc];
 	char *_id_c;
 
 	if (JSVAL_IS_STRING(id)) {
 		_str = JSVAL_TO_STRING(id);
 		_id_c = JS_GetStringBytes(_str);
-		if (!JS_ConvertValue(cx, *vp, JSTYPE_OBJECT, &_newVal)) {
+		if (!JS_ConvertValue(cx, *vp, JSTYPE_OBJECT, &newVal)) {
 			printf( "JS_ConvertValue failed in setAssignProperty.\n");
 			return JS_FALSE;
 		}
-		if (!JS_GetProperty(cx, obj, _id_c, &_initVal)) {
+		if (!JS_GetProperty(cx, obj, _id_c, &initVal)) {
 			printf( "JS_GetProperty failed in setAssignProperty.\n");
 			return JS_FALSE;
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
 			printf("setAssignProperty: obj = %u, id = \"%s\", from = %ld, to = %ld\n",
-				   VERBOSE_OBJ obj, _id_c, _newVal, _initVal);
-		#endif
-		_o = JSVAL_TO_OBJECT(_initVal);
+				   VERBOSE_OBJ obj, _id_c, newVal, initVal);
 
-		#ifdef JSVRMLCLASSESVERBOSE
-			printf ("in setAssignProperty, o is ");
+                if (JSVAL_IS_OBJECT(initVal)) printf ("initVal is an OBJECT\n");
+                if (JSVAL_IS_STRING(initVal)) printf ("initVal is an STRING\n");
+                if (JSVAL_IS_NUMBER(initVal)) printf ("initVal is an NUMBER\n");
+                if (JSVAL_IS_DOUBLE(initVal)) printf ("initVal is an DOUBLE\n");
+                if (JSVAL_IS_INT(initVal)) printf ("initVal is an INT\n");
+
+                if (JSVAL_IS_OBJECT(newVal)) printf ("newVal is an OBJECT\n");
+                if (JSVAL_IS_STRING(newVal)) printf ("newVal is an STRING\n");
+                if (JSVAL_IS_NUMBER(newVal)) printf ("newVal is an NUMBER\n");
+                if (JSVAL_IS_DOUBLE(newVal)) printf ("newVal is an DOUBLE\n");
+                if (JSVAL_IS_INT(newVal)) printf ("newVal is an INT\n");
+
+                if (JSVAL_IS_OBJECT(id)) printf ("id is an OBJECT\n");
+                if (JSVAL_IS_STRING(id)) printf ("id is an STRING\n");
+                if (JSVAL_IS_NUMBER(id)) printf ("id is an NUMBER\n");
+                if (JSVAL_IS_DOUBLE(id)) printf ("id is an DOUBLE\n");
+                if (JSVAL_IS_INT(id)) printf ("id is an INT\n");
+
+		printf ("id is %s\n",JS_GetStringBytes(JS_ValueToString(cx,id)));
+		printf ("initVal is %s\n",JS_GetStringBytes(JS_ValueToString(cx,initVal)));
+		printf ("newVal is %s\n",JS_GetStringBytes(JS_ValueToString(cx,newVal)));
+
+		#endif
+
+
+		_o = JSVAL_TO_OBJECT(initVal);
+
+		#ifdef xxJSVRMLCLASSESVERBOSE
+			printf ("in setAssignProperty, o is %d type ",_o);
 			printJSNodeType(cx,_o);
 			printf ("\n");
 		#endif
  
-		_argv[0] = _newVal;
+		_argv[0] = newVal;
 		_argv[1] = id;
 
 		if (!JS_CallFunctionName(cx, _o, "assign", _argc, _argv, vp)) {

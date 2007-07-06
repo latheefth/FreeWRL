@@ -7,8 +7,7 @@
 
 #include "headers.h"
 #include "EAIheaders.h"
-#include "jsUtils.h"
-#include "jsNative.h"
+#include "jsVRMLClasses.h"
 
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 void setMFElementtype (uintptr_t num);
@@ -72,64 +71,69 @@ void getField_ToJavascript (int num, int fromoffset) {
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
 
 	char scriptline[100];
-	char scl[100];
 	jsval retval;
+	jsval newval;
 	float fl;
 	double dl;
 	int il;
 	int intval = 0;
+	JSContext *cx;
+	JSObject *obj, *_sfvec3fObj;
 
 	#ifdef SETFIELDVERBOSE
 	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
 		tonode,toname,JSparamnames[toname].name,dataType,datalen); 
 	#endif
-	
+
+	/* get context and global object for this script */
+	cx = (JSContext *) ScriptControl[tonode].cx;
+	obj = (JSObject *)ScriptControl[tonode].glob;
+
+	/* set the time for this script */
+	SET_JS_TICKTIME
+
 
 	switch (dataType) {
-		case FIELDTYPE_SFBool:	{	/* SFBool */
-			memcpy ((void *) &intval,Data, datalen);
-			if (intval == 1) sprintf (scl,"true");
-			else sprintf (scl,"false");
-			break;
-		}
 
 		case FIELDTYPE_SFFloat:	{
 			memcpy ((void *) &fl, Data, datalen);
-			sprintf (scl,"%f",fl);
+			newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)fl));
 			break;
 		}
 		case FIELDTYPE_SFTime:	{
 			memcpy ((void *) &dl, Data, datalen);
-			sprintf (scl,"%f", dl);
+			newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,dl));
 			break;
 		}
+		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFInt32: 	{ 
 			memcpy ((void *) &il,Data, datalen);
-			sprintf (scl,"%d", il);
+			newval = INT_TO_JSVAL(il);
 			break;
 		}
 
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 			memcpy((void *) &ms,Data, datalen);
-			sprintf (scl,"'%s'",ms->strptr);
+			newval = STRING_TO_JSVAL(JS_NewString(cx,ms->strptr,strlen(ms->strptr)));
 			break;
 		}
 		default: {	printf("WARNING: SHOULD NOT BE HERE! %d\n",JSparamnames[toname].type);
 		}
 	}
 
-	
-	/* and set the value */
-	sprintf (scriptline,"%s(%s,%f)",
-			 JSparamnames[toname].name,scl, TickTime);
-	#ifdef SETFIELDVERBOSE
-	printf ("set_one_ECMAtype sending in script %s\n",scriptline);
-	#endif
-	
-	if (!ActualrunScript(tonode, scriptline ,&retval)) {
-		printf ("failed to set parameter, line %s\n",scriptline);
-	}
+	/* get the variable name to hold the incoming value */
+	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[toname].name);
+        if (!JS_DefineProperty(cx,obj, scriptline, newval, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {  
+                printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__); 
+                return; 
+        }
+
+	/* is the function compiled yet? */
+	COMPILE_FUNCTION_IF_NEEDED(toname)
+
+	/* and run the function */
+	RUN_FUNCTION (toname)
 }
 
 /* sets a SFBool, SFFloat, SFTime, SFIint32, SFString in a script */
@@ -641,21 +645,16 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	jsval retval;
 	SFVec3fNative *_privPtr;
 
-	JSContext *_context;
-	JSObject *_TimeObj, *_globalObj, *_sfvec3fObj;
-	jsval zimbo;
+	JSContext *cx;
+	JSObject *obj, *_sfvec3fObj;
 
 
 	/* get context and global object for this script */
-	_context = (JSContext *) ScriptControl[tonode].cx;
-	_globalObj = (JSObject *)ScriptControl[tonode].glob;
+	cx = (JSContext *) ScriptControl[tonode].cx;
+	obj = (JSObject *)ScriptControl[tonode].glob;
 
 	/* set the time for this script */
-        zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(_context, TickTime)); 
-        if (!JS_DefineProperty(_context,_globalObj, "__eventInTickTime", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { 
-                printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); 
-                return; 
-        }
+	SET_JS_TICKTIME
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[tnfield].name);
@@ -664,7 +663,7 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 	printf ("Set_one_MultiElementType: script %d line %s\n",tonode, scriptline);
 	#endif
 
-	if (!JS_GetProperty(_context,_globalObj,scriptline,&retval))
+	if (!JS_GetProperty(cx,obj,scriptline,&retval))
 		printf ("JS_GetProperty failed in Set_one_MultiElementtype.\n");
 
 	if (!JSVAL_IS_OBJECT(retval))
@@ -672,32 +671,21 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 
 	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
 
-	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(_context, _sfvec3fObj)) == NULL)
+	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(cx, _sfvec3fObj)) == NULL)
 		printf("JS_GetPrivate failed Set_one_MultiElementtype.\n");
 
 	/* copy over the data from the VRML side into the script variable. */
 	memcpy ((void *) &_privPtr->v,Data, dataLen);
 
 	/* is the function compiled yet? */
-	if (JSparamnames[tnfield].eventInFunction == 0) {
-		sprintf (scriptline,"%s(__eventIn_Value_%s,__eventInTickTime)", JSparamnames[tnfield].name,JSparamnames[tnfield].name);
-		JSparamnames[tnfield].eventInFunction = (uintptr_t) JS_CompileScript(
-			_context, _globalObj, scriptline, strlen(scriptline), "compile eventIn",1);
-	}
+	COMPILE_FUNCTION_IF_NEEDED(tnfield)
+
 	/* and run the function */
 	#ifdef SETFIELDVERBOSE
 	printf ("Set_one_MultiElementtype: running script %s\n",scriptline);
 	#endif
 
-	if (!JS_ExecuteScript(_context, _globalObj, JSparamnames[tnfield].eventInFunction, &zimbo)) {
-		printf ("failed to set parameter for eventIne %s\n",JSparamnames[tnfield].name);
-	}
-		
-	#ifdef OLDCODE
-		if (!ActualrunScript(tonode, scriptline ,&retval)) {
-			printf ("failed to set parameter, line %s\n",scriptline);
-	}
-	#endif
+	RUN_FUNCTION (tnfield)
 }
 
 void setScriptMultiElementtype (uintptr_t num) {

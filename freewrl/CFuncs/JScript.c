@@ -132,7 +132,6 @@ void JSMaxAlloc() {
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
 		scr_act[count]= FALSE;
 		ScriptControl[count].thisScriptType = NOSCRIPT;
-		ScriptControl[count].TickTime = FALSE;
 		ScriptControl[count].eventsProcessed = NULL;
 		ScriptControl[count].cx = 0;
 		ScriptControl[count].glob = 0;
@@ -486,14 +485,6 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	 #ifdef JAVASCRIPTVERBOSE
 	printf ("\nInitScriptFieldC, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value);
 	#endif
-	
-	/* first, for this script, make up a TickTime variable */
-	if (ScriptControl[num].TickTime == FALSE) {
-		if (!JSaddGlobalAssignProperty(num, "__eventInTickTime", "0.0")) {
-			printf ("can not create script TickTime\n");
-		}
-		ScriptControl[num].TickTime = TRUE;
-	}
 
         /* input check */
 	if (kind == X3DACCESSOR_inputOnly) kind = PKW_eventIn;
@@ -510,6 +501,10 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
                 return;
         }
 
+	/* first, make a new name up */
+	if (kind == PKW_eventIn) {
+		sprintf (mynewname,"__eventIn_Value_%s",field);
+	} else strcpy(mynewname,field);
 
 	/* ok, lets handle the types here */
 	switch (type) {
@@ -550,12 +545,6 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 		}
 		/* non ECMA types */
 		default: {
-			/* first, do we need to make a new name up? */
-			if (kind == PKW_eventIn) {
-				sprintf (mynewname,"__eventIn_Value_%s",field);
-			} else strcpy(mynewname,field);
-
-
 			/* get an appropriate pointer - we either point to the initialization value
 			   in the script header, or we point to some data here that are default values */
 			
@@ -644,8 +633,6 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 				}
 
 			} else {
-
-
 				/* make up a default pointer */
 				elements = 1;
 				switch (type) {
@@ -770,7 +757,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 				
 			/* Warp factor 5, Dr Sulu... */
 			#ifdef JAVASCRIPTVERBOSE 
-			printf ("JScript, for newname %s, sending %s\n",mynewname,smallfield); 
+			printf ("JScript, for non-ECMA newname %s, sending %s\n",mynewname,smallfield); 
 			#endif
 
 			JSaddGlobalAssignProperty (num,mynewname,smallfield);
@@ -814,6 +801,7 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
+
 	#ifdef JAVASCRIPTVERBOSE 
 		printf("addGlobalAssignProperty: cx: %d obj %d name \"%s\", evaluate script \"%s\"\n",
 			   _context, _globalObj, name, str);

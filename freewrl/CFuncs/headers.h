@@ -575,8 +575,7 @@ struct CRscriptStruct {
 	/* Javascript parameters */
 	uintptr_t	cx;			/* JSContext		*/
 	uintptr_t	glob;			/* JSGlobals		*/
-	uintptr_t	eventsProcessed; 	/* eventsProcessed() */
-	uintptr_t	TickTime;		/* TickTime variable 	*/
+	uintptr_t	eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
 
 	/* Java .CLASS parameters */
 	unsigned int 	_initialized; 	/* has initialize been sent? */
