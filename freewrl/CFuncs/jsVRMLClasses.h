@@ -52,20 +52,29 @@
         JS_RemoveRoot(a,&b); 
 
 
-#define DEFINE_LENGTH(thislength) \
+#define DEFINE_LENGTH(thislength,thisobject) \
 	{jsval zimbo = INT_TO_JSVAL(thislength);\
 	/* printf ("defining length to %d for %d %d\n",thislength,cx,obj);*/ \
-	if (!JS_DefineProperty(cx, obj, "length", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { \
+	if (!JS_DefineProperty(cx, thisobject, "length", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"length\" at %s:%d.\n",__FILE__,__LINE__); \
 		return JS_FALSE;\
 	}}
 
 #define DEFINE_MF_ECMA_HAS_CHANGED \
-	{jsval zimbo = INT_TO_JSVAL(1); \
+	{jsval zimbo = INT_TO_JSVAL(0); \
+	/* printf ("defining property for MF_ECMA_HAS_CHANGED... %d %d ",cx,obj); */ \
 	if (!JS_DefineProperty(cx, obj, "MF_ECMA_has_changed", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"MF_ECMA_has_changed\" at %s:%d.\n",__FILE__,__LINE__); \
 		return JS_FALSE; \
 	}}
+
+#define SET_MF_ECMA_HAS_CHANGED { jsval myv; \
+                        myv = INT_TO_JSVAL(1); \
+			/* printf ("setting property for MF_ECMA_has_changed %d %d\n",cx,obj); */ \
+                        if (!JS_SetProperty(cx, obj, "MF_ECMA_has_changed", &myv)) { \
+                                printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in doMFSetProperty.\n"); \
+                                return JS_FALSE; \
+                        }}
 
 
 #define SET_JS_TICKTIME { jsval zimbo; \
@@ -88,6 +97,23 @@
 		printf ("failed to set parameter for eventIne %s\n",JSparamnames[tnfield].name); \
 	}} 
 
+
+#define SET_LENGTH(cx,newMFObject,length) \
+	{ jsval lenval; \
+                lenval = INT_TO_JSVAL(length); \
+                if (!JS_SetProperty(cx, newMFObject, "length", &lenval)) { \
+                        printf( "JS_SetProperty failed for \"length\" at %s:%d\n",__FILE__,__LINE__); \
+                        return JS_FALSE; \
+                }} 
+
+#define SET_EVENTIN_VALUE(cx,obj,nameIndex,newObj) \
+	{ char scriptline[100]; \
+		sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[nameIndex].name); \
+        	if (!JS_DefineProperty(cx,obj, scriptline, OBJECT_TO_JSVAL(newObj), JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {  \
+        	        printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__);  \
+        	        return JS_FALSE; \
+        }	}
+	
 
 /*
  * The following VRML field types don't need JS classes:

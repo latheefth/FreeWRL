@@ -620,7 +620,7 @@ JSBool _standardMFAssign(JSContext *cx,
 	len = JSVAL_TO_INT(val);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("%s: obj = %u, id = \"%s\", from = %u, len = %d\n",FIELDTYPES[type],
+		printf("StandardMFAssign %s: obj = %u, id = \"%s\", from = %u, len = %d\n",FIELDTYPES[type],
 		VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj, len);
 	#endif
 
@@ -729,6 +729,7 @@ _standardMFGetProperty(JSContext *cx,
 
 	return JS_TRUE;
 }
+#undef JSVRMLCLASSESVERBOSE
 
 JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 {
@@ -1020,11 +1021,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 		case FIELDTYPE_MFTime:
 		case FIELDTYPE_MFFloat:
 		case FIELDTYPE_MFString: {
-			myv = INT_TO_JSVAL(1);
-			if (!JS_SetProperty(cx, obj, "MF_ECMA_has_changed", &myv)) {
-				printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in doMFSetProperty.\n");
-				return JS_FALSE;
-			}
+			SET_MF_ECMA_HAS_CHANGED
 			break;
 		}
 		default: {}
@@ -1111,6 +1108,7 @@ JSBool loadVrmlClasses(JSContext *context, JSObject *globalObj) {
 			printf("JS_SetProperty for %s failed in loadVrmlClasses.\n",JSLoadProps[i].id);
 			return JS_FALSE;
 		}
+
 		i++;
 	}
 	return JS_TRUE;

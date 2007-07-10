@@ -712,7 +712,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 				return JS_FALSE;
 			}
 		}
-		DEFINE_LENGTH(4)
+		DEFINE_LENGTH(4,obj)
 
 		return JS_TRUE; 
 	}
@@ -723,7 +723,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		return JS_FALSE;
 	}
 
-	DEFINE_LENGTH(argc)
+	DEFINE_LENGTH(argc,obj)
 
 	/* expect arguments to be number, number, number, mfint32 */
 	for (i=0; i<3; i++) {

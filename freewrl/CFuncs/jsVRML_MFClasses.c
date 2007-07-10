@@ -58,7 +58,7 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 	
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc)
+	DEFINE_LENGTH(argc,obj)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -118,6 +118,8 @@ MFFloatToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 
 JSBool
 MFFloatAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	SET_MF_ECMA_HAS_CHANGED
+
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFFloatClass,FIELDTYPE_SFFloat);
 }
 
@@ -128,7 +130,7 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH (argc)
+	DEFINE_LENGTH (argc,obj)
 	DEFINE_MF_ECMA_HAS_CHANGED
 
 	if (!argv) {
@@ -189,6 +191,8 @@ MFInt32Assign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	printf ("start of MFInt32Assign\n");
 	#endif
 
+	SET_MF_ECMA_HAS_CHANGED
+
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFInt32Class,FIELDTYPE_SFInt32);
 }
 
@@ -203,7 +207,7 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	#endif
 
 	ADD_ROOT(cx,obj)
-        DEFINE_LENGTH(argc)
+        DEFINE_LENGTH(argc,obj)
         DEFINE_MF_ECMA_HAS_CHANGED
 	
 	if (!argv) {
@@ -289,7 +293,7 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc)
+	DEFINE_LENGTH(argc,obj)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -417,7 +421,7 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc)
+	DEFINE_LENGTH(argc,obj)
 	DEFINE_MF_ECMA_HAS_CHANGED
 
 	if (!argv) {
@@ -450,6 +454,8 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 JSBool
 MFTimeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	SET_MF_ECMA_HAS_CHANGED
+
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFTimeClass,FIELDTYPE_SFTime);
 }
 
@@ -484,7 +490,7 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc)
+	DEFINE_LENGTH(argc,obj)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -553,7 +559,7 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc)
+	DEFINE_LENGTH(argc,obj)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -848,7 +854,7 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		return JS_FALSE;
 	}
 
-	DEFINE_LENGTH(16)
+	DEFINE_LENGTH(16,obj)
 
 	if (argc == 16) {
 		for (i = 0; i < 16; i++) {
@@ -977,7 +983,7 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	unsigned int i;
 
 	ADD_ROOT(cx,obj)
-	DEFINE_LENGTH(argc)
+	DEFINE_LENGTH(argc,obj)
 
 	if (!argv) {
 		return JS_TRUE;
@@ -1142,19 +1148,20 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	return doMFToString(cx, obj, "MFString", rval);
 }
 
+
 JSBool
 MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	JSString *_str;
 	unsigned int i;
 
-	ADD_ROOT(cx,obj)
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf("MFStringConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
+	printf("MFStringConstr: cx %u, obj %u args %d rval %d parent %d... ", cx, obj, argc, rval, JS_GetParent(cx, obj));
 	#endif
 
-	DEFINE_LENGTH(argc)
+	ADD_ROOT(cx,obj)
+	DEFINE_LENGTH(argc,obj)
 	DEFINE_MF_ECMA_HAS_CHANGED
 
 	if (!argv) {
@@ -1163,26 +1170,27 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 	for (i = 0; i < argc; i++) {
 		#ifdef JSVRMLCLASSESVERBOSE
-	  	printf ("MFStringConstr: argv %d is a ...\n",i);
+	  	printf ("argv %d is a ...",i);
 
 		if (JSVAL_IS_STRING(argv[i])==TRUE) {
-        	        printf ("	parameter %d , a Common String, is",i);
+        	        printf (" Common String, is");
 			_str = JS_ValueToString(cx, argv[i]);
 			printf (JS_GetStringBytes(_str));
-			printf ("\n");
+			printf ("..");
 		
 	        }                                          
 		if (JSVAL_IS_OBJECT(argv[i])==TRUE) {   
-	                printf ("	parameter %d is an object\n",i);
+	                printf (" is an object");
 	        }                       
 		if (JSVAL_IS_PRIMITIVE(argv[i])==TRUE) {
-        	        printf ("	parameter %d is a primitive\n",i);
+        	        printf (" is a primitive");
         	}
 
 		if ((_str = JS_ValueToString(cx, argv[i])) == NULL) {
-			printf( "JS_ValueToString failed in MFStringConstr.\n");
+			printf( "JS_ValueToString failed in MFStringConstr.");
 			return JS_FALSE;
 		}
+		printf ("\n");
 		#endif
 
 	
@@ -1197,5 +1205,10 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 JSBool
 MFStringAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf("MFStringAssign: obj = %u, %u args %d... ", VERBOSE_OBJ obj, argc);
+	#endif
+	SET_MF_ECMA_HAS_CHANGED
+
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFStringClass,FIELDTYPE_SFString);
 }

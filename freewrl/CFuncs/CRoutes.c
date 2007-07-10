@@ -115,18 +115,22 @@
 		/* printf ("GET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);*/ \
 		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
-		} /* else printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d\n",mainElement);*/ \
+		} else /* printf ("GET_ECMA_MF_TOUCHED MF_ECMA_has_changed is %d for %d %d\n",JSVAL_TO_INT(mainElement),cx,JSglobal_return_val); */ \
 		touched = JSVAL_TO_INT(mainElement);\
 		break; \
 	}
 
 #define RESET_ECMA_MF_TOUCHED(thistype) \
-	case FIELDTYPE_##thistype: {	int i; \
+	case FIELDTYPE_##thistype: {	int i; jsval mainElement; \
 		jsval myv = INT_TO_JSVAL(0); \
-		/* printf ("\nRESET_ECMA_MF_TOUCHED called on %d\n",JSglobal_return_val);*/ \
+		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val);*/ \
         	if (!JS_SetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
         		printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in RESET_ECMA_MF_TOUCHED.\n"); \
         	}\
+                /* if (!JS_GetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &mainElement)) { \
+                        printf ("JS_GetProperty failed for \"MF_ECMA_HAS_changed\" in get_valueChanged_flag\n"); \
+		} \
+                printf ("and MF_ECMA_has_changed is %d\n",JSVAL_TO_INT(mainElement)); */\
 	break; \
 	}
 
@@ -916,7 +920,6 @@ void CRoutes_Register(
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
 	}
-
 	#ifdef CRVERBOSE  
 		printf ("\n\nCRoutes_Register adrem %d from %u off %u to %u %s len %d intptr %u\n",
 				adrem, from, fromoffset, to_count, tonode_str, length, intptr);
@@ -1221,16 +1224,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				JSparamnames[fptr].type, len);
 		#endif
 
-		/* in Ayla's Perl code, the following happened:
-			MF* - run __OLDtouched_flag
-
-			SFBool, SFFloat, SFTime, SFInt32, SFString-
-				this is her $ECMASCriptNative; run _name_touched
-				and _name_touched=0
-
-			else, run _name.__touched()
-		*/
-
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
 			#ifdef CRVERBOSE 
@@ -1239,7 +1232,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 			touched_flag = get_valueChanged_flag(fptr,actualscript);
 		}
 
-		if (touched_flag) {
+		if (touched_flag!= 0) {
 			/* get some easy to use pointers */
 			for (to_counter = 0; to_counter < CRoutes[route].tonode_count; to_counter++) {
 				to_ptr = &(CRoutes[route].tonodes[to_counter]);
@@ -1256,7 +1249,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				markScriptResults(tn, tptr, route, to_ptr->node);
 			}
 		}
-		route++;
 
 		/* unset the touched flag */
 		switch (JSparamnames[fptr].type) {
@@ -1290,6 +1282,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 			default: {printf ("can not reset touched_flag for %s\n",FIELDTYPES[JSparamnames[fptr].type]);
 			}
 		}
+		route++;
 		
 		/* REMOVE_ROOT(ScriptControl[actualscript].cx,global_return_val); */
 	}

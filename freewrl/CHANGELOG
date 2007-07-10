@@ -1,6 +1,11 @@
 For 1.19.6:
 	- MidiControl - work on event routing of values (Strings changed, etc).
 
+	- Javascript - more work on efficiency of eventIn/Outs.
+
+	- Text node work.
+
+	- bug on command-line execution on OS X fixed.
 
 
 For 1.19.5:
