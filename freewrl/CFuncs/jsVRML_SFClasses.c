@@ -268,7 +268,7 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
-	ptr->valueChanged = 1; /* constructors touch! */
+	ptr->valueChanged = 0;
 
 	*rval = OBJECT_TO_JSVAL(obj);
 
@@ -531,7 +531,7 @@ SFColorRGBAConstr(JSContext *cx, JSObject *obj,
 	}
 
 	
-	ptr->valueChanged = 1; /* constructors touch! */
+	ptr->valueChanged = 0;
 
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("SFColorRGBAConstr: obj = %u, %u args, %f %f %fi %f\n",
@@ -690,7 +690,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
                 return JS_FALSE;
         }
 
-	ptr->valueChanged = 1;  /* constructors touch! */
+	ptr->valueChanged = 0;
 
 	/* make this so that one can get the ".x", ".y", ".comp" and ".array" */
 	if (!JS_DefineProperties(cx, obj, SFImageProperties)) {
@@ -1039,7 +1039,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	newPtr->handle = newHandle;
 	newPtr->X3DString = (char *)STRDUP(cString);
 	
-	newPtr->valueChanged = 1; /* constructors touch! */
+	newPtr->valueChanged = 0;
 
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1695,7 +1695,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
 	#endif
 	
-	ptr->valueChanged = 1; /* constructors touch! */
+	ptr->valueChanged = 0;
 
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
@@ -2129,7 +2129,7 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 			   (ptr->v).c[0], (ptr->v).c[1]);
 	#endif
 	
-	ptr->valueChanged = 1; /* constructors touch! */
+	ptr->valueChanged = 0;
 
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
@@ -2600,7 +2600,7 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	#endif
 	
-	ptr->valueChanged = 1; /* constructors touch! */
+	ptr->valueChanged = 0;
 
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
