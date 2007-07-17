@@ -86,13 +86,8 @@ include $(DEPTH)/config.mk
 # Default IEEE libm
 #
 
-ifeq ($(OS_NAME),Ubuntu)
 CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
-		  -DJSFILE $(XCFLAGS) $(DEFS) -fno-stack-protector -fPIC
-else
-CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
-		  -DJSFILE $(XCFLAGS) $(DEFS) -fPIC
-endif
+		  -DJSFILE $(XCFLAGS) $(DEFS) $(STACKPROT) -fPIC
 
 INCFILES = editline.h
 .INIT: $(INCFILES)

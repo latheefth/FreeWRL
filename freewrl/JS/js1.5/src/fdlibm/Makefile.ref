@@ -92,13 +92,8 @@ include $(DEPTH)/config.mk
 # Default IEEE libm
 #
 
-ifeq ($(OS_NAME),Ubuntu)
 CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
-		  -DJSFILE $(XCFLAGS) -D_IEEE_LIBM -fPIC -fno-stack-protector
-else
-CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
-		  -DJSFILE $(XCFLAGS) -D_IEEE_LIBM -fPIC
-endif
+		  -DJSFILE $(XCFLAGS) -D_IEEE_LIBM -fPIC $(STACKPROT)
 
 # Need for jstypes.h and friends
 INCLUDES += -I..

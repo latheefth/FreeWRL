@@ -80,14 +80,12 @@ endif
 #
 # XCFLAGS may be set in the environment or on the gmake command line
 #
-ifeq ($(OS_NAME),Ubuntu)
-CFLAGS          += -fPIC $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS) -fno-stack-protector
-else
-CFLAGS          += -fPIC $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS)
-endif
+# STACKPROT = -fno-stack-protector if the Makefile.PL determines that this is required. JAS.
 
+CFLAGS          += -fPIC $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) $(XCFLAGS) $(STACKPROT)
 
 LDFLAGS		= $(XLDFLAGS)
+
 
 ifndef NO_LIBM
 LDFLAGS += -lm

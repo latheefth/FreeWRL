@@ -6,8 +6,6 @@
 BIN_DIR => "/usr/bin",
 LIB_DIR => "/usr/lib",
 DEBUG => "off",
-BOUNDS_CHECK => "off",
-LIBCHECK_INST => "",
 BROWSER => "/Applications/Safari.app/Contents/MacOS/Safari",
 WGET => "/usr/bin/curl",
 ASCIITERM => "/usr/X11R6/bin/rxvt",

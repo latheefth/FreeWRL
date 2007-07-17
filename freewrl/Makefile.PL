@@ -4,7 +4,7 @@
 # for conditions of use and redistribution.
 
 # Version of FreeWRL
-my $VERSION = "V1.19.6";
+my $VERSION = "V1.19.7";
 
 # what OS are we running under?
 my $OS = `uname`;
@@ -110,8 +110,8 @@ $VRML_CONFIG{PLATFORM} = $OS;
 
 my $jsdir = "js1.5/src";
 my $jsobjdir;
+my $noStackProtector = "";
 
-my @ccflags;
 my @inc;
 my @libs;
 my @ldflags;
@@ -137,11 +137,22 @@ my $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
 
 
 
-if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
-	print "MAKING WITH BOUNDSCHECKING ENABLED\n";
-	push @inc, "-fbounds-checking";
-	push @ldflags, "-L$VRML_CONFIG{LIBCHECK_INST}";
-	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}";
+######################
+# Stack Protector flag. Some gcc compiler environments REQUIRE this flag.
+# just check to see if it exists.
+
+my $ok;
+system ("echo \"int main(){}\" > sp.c");
+$ok = system ("gcc -fno-stack-protector sp.c 2>0");
+system ("rm sp.c");
+
+# did this -no-stack-protector flag compile ok? If so, lets include it
+if ($ok eq 0) { 
+	print "adding -fno-stack-protector flag to compiles\n";
+	system ("rm a.out");
+	$noStackProtector = "-fno-stack-protector";
+} else {
+	print "this system does not use the -fno-stack-protector flag\n";
 }
 
 push @inc, $VRML_CONFIG{FREEWRL_INC}, "-IJS/$jsobjdir", "-IJS/$jsdir", "-ICFuncs -ICFrontEnd ";
@@ -152,7 +163,6 @@ push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
 
 # push build directory, for running standalone
 
-$VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 
@@ -247,14 +257,6 @@ sub writeMakefileInitialize() {
 		 $MYFELIBS = $MYFELIBS . " -lXm ";
 	}
 
-	# compiling with bounds checking??
-	if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
-		print "COMPILING WITH BOUNDSCHECKING\n";
-		 $MYFELIBS = $MYFELIBS . " -lboundscheck";
-		 $MYSELIBS = $MYSELIBS . " -lboundscheck";
-		 $MYMESLIBS = $MYMESLIBS . " -lboundscheck";
-	}
-
 	# add on the shared libs, etc. to MYFELIBS for making the freewrl executable.
 	# NOTE: order of linking is important; the javascript library should be near
 	# the end.
@@ -270,7 +272,7 @@ sub writeMakefileInitialize() {
 	print MK "CC = gcc\n";
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
-	print MK "DEFINE = $MYDEFINE\n";
+	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
 	#print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
 
 	# different compiler flags for different architectures
@@ -301,12 +303,10 @@ sub writeMakefileFinalTargets() {
 
 	print MK "install:\tall	\n";
 	if ($OS ne "Darwin") {
-	if ($VRML_CONFIG{BOUNDS_CHECK} eq "off") {
-		print MK "\tstrip CFrontEnd/freewrl\n";
-		print MK "\tstrip FreeWRL_Msg/FreeWRL_Message\n";
-		if ($VRML_CONFIG{SOUND_ENGINE}) { 
-			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
-		}
+	print MK "\tstrip CFrontEnd/freewrl\n";
+	print MK "\tstrip FreeWRL_Msg/FreeWRL_Message\n";
+	if ($VRML_CONFIG{SOUND_ENGINE}) { 
+		print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
 	}
 	print MK "\tinstall -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
 	print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
@@ -465,7 +465,7 @@ sub write_linux_makefile_javascript() {
 	## make the Javascript libraries if needed
     
 	print MK "Javascript:\n";
-	print MK "\tcd JS/$jsdir; make -f Makefile.ref BUILD_OPT=1; cd $pwd\n";
+	print MK "\tcd JS/$jsdir; make -f Makefile.ref BUILD_OPT=1 STACKPROT=$noStackProtector; cd $pwd\n";
 }
 
 
