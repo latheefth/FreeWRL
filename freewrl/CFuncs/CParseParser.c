@@ -103,6 +103,71 @@ char fw_outline[2000];
  default: \
   PARSE_ERROR("Unsupported node!")
 
+
+/* debugging stuff */
+void dump_scene (int level, struct X3D_Node* node) {
+	#define spacer	for (lc=0; lc<level; lc++) printf ("  ");
+	int lc;
+	int i;
+	if (level == 0) printf ("starting dump_scene\n");
+	spacer printf ("L%d: node type %s\n",level,stringNodeType(node->_nodeType));
+	switch (node->_nodeType) {
+		case NODE_Transform: { 
+			struct X3D_Transform * this;
+			this = (struct X3D_Transform *) node;
+			for (i=0; i<this->children.n; i++) {
+				dump_scene(level+1,this->children.p[i]);
+			}
+			break;
+		}
+		case NODE_Group: { 
+			struct X3D_Group * this;
+			this = (struct X3D_Group *) node;
+			for (i=0; i<this->children.n; i++) {
+				dump_scene(level+1,this->children.p[i]);
+			}
+			break;
+		}
+		case NODE_Shape: { 
+			struct X3D_Shape * this;
+			this = (struct X3D_Shape *) node;
+			if ((this->appearance) != NULL) dump_scene(level+1,this->appearance);
+			if ((this->geometry) != NULL) dump_scene(level+1,this->geometry);
+			break;
+		}
+		case NODE_Material: { 
+			struct X3D_Material * this;
+			this = (struct X3D_Material *) node;
+			spacer printf ("diffuseColor %f %f %f\n",this->diffuseColor.c[0], 
+				this->diffuseColor.c[1], this->diffuseColor.c[2]);
+			break;
+		}
+		case NODE_Appearance: { 
+			struct X3D_Appearance * this;
+			this = (struct X3D_Appearance *) node;
+			if ((this->material) != NULL) dump_scene(level+1,this->material);
+			break;
+		}
+		case NODE_Script: { 
+			struct X3D_Script * this;
+			struct Script *so;
+			this = (struct X3D_Script *) node;
+			so = (struct Script *) this->__scriptObj;
+			spacer printf ("parenturl %s\n",this->__parenturl->strptr);
+			spacer printf ("script __scriptObj %d\n",so);
+			if (so != NULL) { spacer printf ("scriptObj: scriptnum %d\n",so->num); }
+			
+			break;
+		}
+
+
+		default: {}
+
+	}
+	spacer printf ("L%d\n",level);
+	if (level == 0) printf ("ending dump_scene\n");
+
+}
 /* ************************************************************************** */
 /* Constructor and destructor */
 
@@ -249,6 +314,11 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  union anyVrml defaultVal;
  struct ProtoFieldDecl* pdecl=NULL;
  struct ScriptFieldDecl* sdecl=NULL;
+ int haveISinPROTO = FALSE;			/* did we find an IS in a Script declaration? */
+ int i;
+ struct ProtoFieldDecl* jaspdecl=NULL;
+ int foundIt = FALSE;
+ char *nm;
 
  /* Either PROTO or Script interface! */
  assert((proto || script) && !(proto && script));
@@ -279,29 +349,74 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 #endif
  }
 
- if(proto)
+ if(proto) {
   pdecl=newProtoFieldDecl(mode, type, name);
- else
-  sdecl=newScriptFieldDecl(mode, type, name);
-  
- if(mode==PKW_field || mode==PKW_exposedField)
- {
-  assert(PARSE_TYPE[type]);
-  if(!PARSE_TYPE[type](me, (void*)&defaultVal))
-  {
-   parseError("Expected default value for field!");
-   if(pdecl) deleteProtoFieldDecl(pdecl);
-   if(sdecl) deleteScriptFieldDecl(sdecl);
-   return FALSE;
-  }
+ } else {
+	/* get the name and type */
+	haveISinPROTO = (me->curPROTO && lexer_keyword(me->lexer, KW_IS));
 
-  if(proto)
-   pdecl->defaultVal=defaultVal;
-  else
-  {
-   assert(script);
-   scriptFieldDecl_setFieldValue(sdecl, defaultVal);
-  }
+  	sdecl=newScriptFieldDecl(mode, type, name);
+
+	/* JAS are we running as a proto, and do we have an "IS" */
+ 	if(haveISinPROTO) {
+
+		/* skip to the name, and find it */
+		FREE_IF_NZ(me->lexer->curID)
+
+		lexer_setCurID(me->lexer);
+		/* printf ("next id is %s\n",me->lexer->curID);
+		printf ("PROTO field size is %d\n",protoDefinition_getFieldCount(me->curPROTO)); */
+		i=0; while (i<protoDefinition_getFieldCount(me->curPROTO)) {
+			jaspdecl = protoDefinition_getFieldByNum(me->curPROTO,i);
+			nm = protoFieldDecl_getStringName(jaspdecl);
+			/* printf ("name at index %d is %s comparing to %s\n",i,nm,me->lexer->curID); */
+			if (nm != NULL) {
+			if (strcmp(me->lexer->curID,nm) == 0) {
+				/* printf ("FOUND NAME IN TABLE \n");
+				printf ("index type is %d\n",protoFieldDecl_getType(jaspdecl));
+				printf ("index accesstype is %d\n",protoFieldDecl_getAccessType(jaspdecl));  */
+				defaultVal = protoFieldDecl_getDefaultValue(jaspdecl);
+
+				sdecl->ISname= strdup(me->lexer->curID);
+				i = protoDefinition_getFieldCount(me->curPROTO); /* end loop */
+
+				foundIt = TRUE;
+				FREE_IF_NZ(me->lexer->curID);
+			}
+			}
+			i++;
+		}
+		if (!foundIt) {
+			parseError ("error in finding IS for field in Script interface declaration");
+			haveISinPROTO = FALSE;
+			FREE_IF_NZ(sdecl->ISname);
+		}
+	}
+
+ }
+  
+ if (!haveISinPROTO) {
+ 	if(mode==PKW_field || mode==PKW_exposedField) {
+ 	 assert(PARSE_TYPE[type]);
+ 	 if(!PARSE_TYPE[type](me, (void*)&defaultVal))
+ 	 {
+ 	  parseError("Expected default value for field!");
+ 	  if(pdecl) deleteProtoFieldDecl(pdecl);
+ 	  if(sdecl) deleteScriptFieldDecl(sdecl);
+ 	  return FALSE;
+ 	 }
+	
+	  if(proto)
+	   pdecl->defaultVal=defaultVal;
+	  else
+	  {
+	   assert(script);
+	   scriptFieldDecl_setFieldValue(sdecl, defaultVal);
+	  }
+	 }
+ } else {
+	assert(script);
+	scriptFieldDecl_setFieldValue(sdecl,defaultVal);
  }
 
  if(proto)
@@ -893,6 +1008,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
   struct Script* script=NULL;
  
   node=X3D_NODE(createNewX3DNode(nodeTypeB));
+
   assert(node);
   /* Node specific initialization */
   parser_specificInitNode(node);
@@ -910,9 +1026,18 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
    break;
   }
 
-  /* Init code for Scripts */
-  if(script)
-   script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
+  /* Init code for Scripts. if this script is within a PROTO, initiate it when the PROTO
+     is instantiated. */
+  if(script) {
+	if (!me->curPROTO)  {
+		/* printf ("parser_node, proto %d, going to init script\n",me->curPROTO); */
+	   	script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
+	} else {
+		/* printf ("in parser_node, have script and me->curPROTO not null\n"); */
+		vector_pushBack(struct X3D_Script*, me->curPROTO->scripts, node);
+		/* printf ("added this script %d to the scripts field of this proto\n",node); */
+	}
+   }
  }
  
  /* Proto */
@@ -920,6 +1045,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  {
   /* The copy of our ProtoDefinition; here are the fields filled in. */
   struct ProtoDefinition* protoCopy;
+	int i;
 
   assert(nodeTypeU!=ID_UNDEFINED);
   assert(PROTOs);
@@ -927,14 +1053,28 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
   protoCopy=protoDefinition_copy(vector_get(struct ProtoDefinition*,
    PROTOs, nodeTypeU));
+
   while(parser_protoField(me, protoCopy) ||
    parser_routeStatement(me) || parser_protoStatement(me));
+
   node=protoDefinition_extractScene(protoCopy);
+
+  /* do the script interface and initialization */
+  /* printf ("extracting scripts in protoDefinition_extractScene size %d\n",vector_size(protoCopy->scripts)); */
+  for(i=0; i!=vector_size(protoCopy->scripts); ++i) {
+        struct X3D_Script *scr;
+        scr = (struct Script *)vector_get(struct X3D_Script*, protoCopy->scripts,i);
+        /* printf ("HAVE Scropt = script %d, script number %d\n",scr,((struct Script *) (scr->__scriptObj))->num); */
+        registerScriptInPROTO((struct X3D_Node *)scr,protoCopy);
+  }
+
+
   assert(node);
 
   /* Can't delete ProtoDefinition, it is referenced! */
   /*deleteProtoDefinition(protoCopy);*/
  }
+
  assert(node);
 
  if(!lexer_closeCurly(me->lexer)) {
@@ -950,6 +1090,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  }
 
  *ret=node;
+
  return TRUE;
 }
 
@@ -1482,9 +1623,11 @@ PARSER_MFFIELD(vec3f, Vec3f)
  { \
   int i; \
   assert(me->lexer); \
-  for(i=0; i!=cnt; ++i) \
+  for(i=0; i!=cnt; ++i) {\
    if(!parser_sffloatValue(me, ret->dest+i)) \
     return FALSE; \
+	/* printf ("PARSER_FIXED_VEC, just read in %f\n",*(ret->dest+i)); */\
+	} \
   return TRUE; \
  }
 
@@ -1520,42 +1663,6 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 PARSER_FIXED_VEC(color, Color, 3, c)
 PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
 
-#ifdef OLDCODE
-/* JAS this returns a pointer to a Multi_Int32 */
-BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
-{
- vrmlInt32T width, height, depth;
- vrmlInt32T* ptr;
- 
- if(!lexer_int32(me->lexer, &width))
-  return FALSE;
- if(!lexer_int32(me->lexer, &height))
-  return FALSE;
- if(!lexer_int32(me->lexer, &depth))
-  return FALSE;
-
- *ret=MALLOC(sizeof(struct Multi_Int32));
- assert(*ret);
-
- (*ret)->n=3+width*height;
- (*ret)->p=MALLOC(sizeof(*(*ret)->p)*(*ret)->n);
- assert((*ret)->p);
- (*ret)->p[0]=width;
- (*ret)->p[1]=height;
- (*ret)->p[2]=depth;
-
- for(ptr=(*ret)->p+3; ptr!=(*ret)->p+(*ret)->n; ++ptr)
-  if(!lexer_int32(me->lexer, ptr))
-  {
-   FREE_IF_NZ((*ret)->p);
-   (*ret)->n=0;
-   FREE_IF_NZ(*ret);
-   return FALSE;
-  }
-
- return TRUE;
-}
-#else
 /* JAS this code assumes that the ret points to a SFInt_32 type, and just
 fills in the values. */
  
@@ -1588,8 +1695,6 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
 
  return TRUE;
 }
-
-#endif
 
 BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
 {

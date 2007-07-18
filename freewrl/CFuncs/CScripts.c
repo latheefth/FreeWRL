@@ -25,6 +25,7 @@ const char* JS_PROTOCOLS[]={
 struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
 {
  struct ScriptFieldDecl* ret=MALLOC(sizeof(struct ScriptFieldDecl));
+
  assert(ret);
 
  assert(mod!=PKW_exposedField);
@@ -35,10 +36,13 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  /* Stringify */
  ret->name=fieldDecl_getStringName(ret->fieldDecl);
  ret->type=FIELDTYPES[type];
+ ret->ISname = NULL;
 
  /* Field's value not yet initialized! */
  ret->valueSet=(mod!=PKW_field);
  /* value is set later on */
+
+ /* printf ("newScriptFieldDecl, returning name %s, type %s\n",ret->name, ret->type); */
 
  return ret;
 }
@@ -89,10 +93,28 @@ static uintptr_t handleCnt=0;
 
 uintptr_t nextScriptHandle (void) {uintptr_t retval; retval = handleCnt; handleCnt++; return retval;}
 
+/* copy a Script node in a proto. */
+struct X3D_Script * protoScript_copy (struct X3D_Script *me) {
+	struct X3D_Script* ret;
+
+	ret = createNewX3DNode(NODE_Script);
+	ret->__parenturl = me->__parenturl;
+	ret->directOutput = me->directOutput;
+	ret->mustEvaluate = me->mustEvaluate;
+	ret->url = me->url;
+	ret->__scriptObj = me->__scriptObj;
+
+	/* script handle gets updated in registerScriptInPROTO */
+	/* ((struct Script *) (ret->__scriptObj))->num = nextScriptHandle(); */
+
+	return ret;
+	
+}
+
 /* on a reload, zero script counts */
 void zeroScriptHandles (void) {handleCnt = 0;}
 
-struct Script* newScript()
+struct Script* newScript(void)
 {
  struct Script* ret=MALLOC(sizeof(struct Script));
  assert(ret);
@@ -137,6 +159,7 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
 
 void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 {
+ /* printf ("script_addField: adding field %d to script %d (pointer %d)\n",field,me->num,field); */
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
  scriptFieldDecl_jsFieldInit(field, me->num);
 }

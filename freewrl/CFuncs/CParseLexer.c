@@ -177,7 +177,7 @@ BOOL lexer_setCurID(struct VRMLLexer* me)
  char* cur=buf;
 
  /* If it is already set, simply return. */
- if(me->curID)
+ if(me->curID) 
   return TRUE;
 
  lexer_skip(me);
@@ -213,6 +213,7 @@ breakIdLoop:
  me->curID=MALLOC(sizeof(char)*(cur-buf+1));
 
  strcpy(me->curID, buf);
+	/* JAS printf ("lexer_setCurID, got %s\n",me->curID); */
  return TRUE;
 }
 
@@ -328,6 +329,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
 
  /* Define the id */
  *ret=vector_size(vec);
+ /* printf ("lexer_defineID, curID %s\n",me->curID); */
  vector_pushBack(char*, vec, me->curID);
  me->curID=NULL;
  return TRUE;

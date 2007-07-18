@@ -15,6 +15,7 @@
 /* ************************************************************************** */
 uintptr_t nextScriptHandle (void);
 void zeroScriptHandles (void);
+struct X3D_Script * protoScript_copy (struct X3D_Script *me);
 
 
 /* ************************************************************************** */
@@ -32,6 +33,7 @@ struct ScriptFieldDecl
  /* Stringified */
  const char* name;
  const char* type;
+ const char* ISname;
 
  /* For fields */
  union anyVrml value;

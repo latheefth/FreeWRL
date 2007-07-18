@@ -314,14 +314,11 @@ void initializeScript(uintptr_t num,int evIn) {
 	CRnodeStruct *to_ptr = NULL;
 
 
-	/* printf ("initializeScript script, table element %d evin %d\n",num,evIn); */
-
 	/* is this an event in? If so, num is a routing table entry */
 	if (evIn) {
 	    for (counter = 0; counter < CRoutes[num].tonode_count; counter++) {
 		to_ptr = &(CRoutes[num].tonodes[counter]);
 		tn = (uintptr_t) to_ptr->node;
-		/* printf ("initializeScript, tn %d\n",tn); */
 
 		if (!(ScriptControl[tn]._initialized)) {
                                         ActualrunScript(tn, "initialize()" ,&retval);
@@ -330,13 +327,13 @@ void initializeScript(uintptr_t num,int evIn) {
 	    }
 	} else {
 		/* bounds check */
-		if ((num <0) || (num>max_script_found)) return;
+		if ((int)num <0) return;
 
 		/* this script initialized yet? */
 		if (!(ScriptControl[num]._initialized)) {
                                         ActualrunScript(num, "initialize()" ,&retval);
                                         ScriptControl[num]._initialized=TRUE;
-		}
+		} 
 	}
 }
 
@@ -747,9 +744,8 @@ void CRoutes_js_new (uintptr_t num, int scriptType) {
 	ScriptControl[num]._initialized = FALSE;
 
 	/* compare with a intptr_t, because we need to compare to -1 */
-	if ((intptr_t)num > max_script_found) max_script_found = (intptr_t)num;
-	/* printf ("returning from CRoutes_js_new - num %d max_script_found %d\n",num,max_script_found); */
 
+	if ((intptr_t)num > max_script_found) max_script_found = (intptr_t)num;
 }
 
 

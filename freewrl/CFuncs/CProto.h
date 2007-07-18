@@ -35,7 +35,7 @@ struct OffsetPointer* newOffsetPointer(struct X3D_Node*, unsigned);
 #define offsetPointer_copy(me) \
  newOffsetPointer((me)->node, (me)->ofs)
 #define deleteOffsetPointer(me) \
- free(me)
+ FREE_IF_NZ(me)
 
 /* Dereference to simple pointer */
 #define offsetPointer_deref(t, me) \
@@ -56,6 +56,8 @@ struct ProtoFieldDecl
  /* Only for exposedField or field */
  BOOL alreadySet; /* Has the value already been set? */
  union anyVrml defaultVal; /* Default value */
+ BOOL scriptFieldSet; /* does the PROTO invocation actually change the default value? */
+ union anyVrml valueForScriptFields; /* field value for PROTO script invocation */
 };
 
 /* Constructor and destructor */
@@ -81,6 +83,11 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
  vector_get(struct OffsetPointer*, (me)->dests, i)
 #define protoFieldDecl_getDefaultValue(me) \
  ((me)->defaultVal)
+#define protoFieldDecl_getScriptInitValue(me) \
+ ((me)->valueForScriptFields)
+#define protoFieldDecl_getScriptFieldSet(me) \
+ ((me)->scriptFieldSet)
+
 
 /* Add a destination this field's value must be assigned to */
 #define protoFieldDecl_addDestinationOptr(me, optr) \
@@ -132,7 +139,7 @@ struct ProtoRoute* newProtoRoute(struct X3D_Node*, int, struct X3D_Node*, int,
  newProtoRoute((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, \
  (me)->len, (me)->dir)
 #define deleteProtoRoute(me) \
- free(me)
+ FREE_IF_NZ(me)
 
 /* Register this route */
 #define protoRoute_register(me) \
@@ -157,6 +164,7 @@ struct ProtoDefinition
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
  struct Vector* routes; /* Inner ROUTEs */
  struct Vector* innerPtrs; /* Pointers to pointers which need to be updated */
+ struct Vector* scripts; /* any imbedded scripts here? */
 };
 
 /* Constructor and destructor */
@@ -231,5 +239,8 @@ struct X3D_Node* pointerHash_get(struct PointerHash*, struct X3D_Node*);
 
 /* Add to the hash */
 void pointerHash_add(struct PointerHash*, struct X3D_Node*, struct X3D_Node*);
+
+/* JAS - make a copy of a script in a PROTO, and give it a new number */
+void registerScriptInPROTO (struct X3D_Script *scr,struct ProtoDefinition* new);
 
 #endif /* Once-check */

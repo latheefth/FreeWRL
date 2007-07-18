@@ -7,6 +7,7 @@
 #include "CProto.h"
 #include "CParseGeneral.h"
 #include "CParseLexer.h"
+#include "CScripts.h"
 
 /* ************************************************************************** */
 /* ******************************** OffsetPointer *************************** */
@@ -41,6 +42,7 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->type=type;
  ret->name=name;
  ret->alreadySet=FALSE;
+ ret->scriptFieldSet = FALSE;
  ret->dests=newVector(struct OffsetPointer*, 4);
  assert(ret->dests);
  return ret;
@@ -171,6 +173,9 @@ struct ProtoDefinition* newProtoDefinition()
  ret->routes=newVector(struct ProtoRoute*, 4);
  assert(ret->routes);
 
+ ret->scripts = newVector(struct X3D_Script *,4);
+ assert (ret->scripts);
+
  ret->innerPtrs=NULL;
 
  return ret;
@@ -187,9 +192,14 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
   for(i=0; i!=vector_size(me->iface); ++i)
    deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
   deleteVector(struct ProtoDefinition*, me->iface);
-  for(i=0; i!=vector_size(me->routes); ++i)
+  for(i=0; i!=vector_size(me->routes); ++i) 
    deleteProtoRoute(vector_get(struct ProtoRoute*, me->routes, i));
   deleteVector(struct ProtoRoute*, me->routes);
+
+  for (i=0; i!=vector_size(me->scripts); i++) {
+	/*deleteProtoScript (vector_get(struct X3D_Script*, me->scripts, i)); */
+  }
+  deleteVector (struct X3D_Script*, me->scripts);
  }
 
  if(me->innerPtrs)
@@ -247,6 +257,17 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
   vector_pushBack(struct ProtoRoute*, ret->routes,
    protoRoute_copy(vector_get(struct ProtoRoute*, me->routes, i)));
 
+ /* Copy scripts */
+ ret->scripts=newVector(struct X3D_Script*, vector_size(me->scripts));
+ assert(ret->scripts);
+ for(i=0; i!=vector_size(me->scripts); ++i) {
+	struct X3D_Script * temp;
+  /* vector_pushBack(struct X3D_Script*, ret->scripts, protoScript_copy(vector_get(struct X3D_Script*, me->scripts, i))); */
+  temp = vector_get(struct X3D_Script*, me->scripts, i);
+  temp = protoScript_copy(temp);
+  vector_pushBack(struct X3D_Script*, ret->scripts,temp);
+ }
+
  /* Fill inner pointers */
  ret->innerPtrs=NULL;
  protoDefinition_fillInnerPtrs(ret);
@@ -274,12 +295,15 @@ struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
  me->tree=NULL;
 
  /* Finish all fields now */
- for(i=0; i!=vector_size(me->iface); ++i)
-  protoFieldDecl_finish(vector_get(struct ProtoFieldDecl*, me->iface, i));
+ for(i=0; i!=vector_size(me->iface); ++i) {
+	protoFieldDecl_finish(vector_get(struct ProtoFieldDecl*, me->iface, i));
+}
 
  /* Register all routes */
- for(i=0; i!=vector_size(me->routes); ++i)
-  protoRoute_register(vector_get(struct ProtoRoute*, me->routes, i));
+ for(i=0; i!=vector_size(me->routes); ++i) {
+	/* printf ("protoDefinition_extractScene, doing ROUTES\n"); */
+ 	protoRoute_register(vector_get(struct ProtoRoute*, me->routes, i));
+}
 
  assert(ret->__protoDef);
 
@@ -473,6 +497,11 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
  assert(!me->alreadySet);
  me->alreadySet=TRUE;
 
+ /* make a copy of this value, for script initialization */
+ /* memcpy(me->valueForScriptFields,*val,sizeof (union anyVal)); */
+ me->valueForScriptFields = *val;
+ me->scriptFieldSet = TRUE;
+
  /* If there are no targets, destroy the value */
  if(vector_empty(me->dests))
  {
@@ -534,6 +563,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
  struct ProtoFieldDecl* ret=newProtoFieldDecl(me->mode, me->type, me->name);
  size_t i;
  ret->alreadySet=FALSE;
+ ret->scriptFieldSet = FALSE;
 
  /* Copy destination pointers */
  for(i=0; i!=vector_size(me->dests); ++i)
@@ -624,4 +654,79 @@ void pointerHash_add(struct PointerHash* me,
  entry.copy=c;
 
  vector_pushBack(struct PointerHashEntry, me->data[pos], entry);
+}
+
+/* John Stewart's "use Scripts in PROTOS" hacks */
+void registerScriptInPROTO (struct X3D_Script *node,struct ProtoDefinition* new) {
+	struct Script *mys;
+	struct Multi_String* myurl;
+	int i,j;
+	struct ProtoFieldDecl* jaspdecl;
+	struct ScriptFieldDecl* curField;
+	union anyVrml fieldVal;
+
+
+	/* printf ("\n\n*********** start of registerScriptInPROTO ***** protoDefinition %d\n",new); */
+	mys = node->__scriptObj;
+	/* printf ("copy, script has %d fields\n",vector_size(mys->fields)); */
+
+	/* set up some initial fields. */
+	mys->num=nextScriptHandle();
+	mys->loaded=FALSE;
+	JSInit(mys->num);
+
+	/* save the URL for the initialization of this PROTO'd Script */
+	myurl = &((struct X3D_Script*)node)->url;
+
+	/* look through all of the fields of this script */
+	for(i=0; i < vector_size(mys->fields); ++i) {
+		curField= vector_get(struct ScriptFieldDecl*, mys->fields, i);
+
+		/* get a copy of its defined value */
+		fieldVal = curField->value;
+
+		/* we are going to set this field for the invocation of this Script within this PROTO */
+		curField->valueSet = FALSE;
+
+		/* we worry about Fields here; eventIns and eventOuts happen in ROUTing */
+		if ((curField->fieldDecl->mode==PKW_field) || (curField->fieldDecl->mode==PKW_exposedField)) {
+
+
+			/* is it an IS'd field? if so, find it, and get its defined value */
+			if (curField->ISname != NULL) {
+				for (j=0; j<protoDefinition_getFieldCount(new); j++) {
+					jaspdecl = protoDefinition_getFieldByNum(new,j);
+					if (strcmp(curField->ISname,protoFieldDecl_getStringName(jaspdecl)) == 0) {
+
+						/* found a name match; do the types match?? */
+						if (curField->fieldDecl->type != protoFieldDecl_getType(jaspdecl)) {
+						        printf ("type mismatch on Script IS for fields %s: %s %s\n",
+							curField->ISname, curField->type,FIELDTYPES[protoFieldDecl_getType(jaspdecl)]);
+
+						} else {
+
+
+						if (protoFieldDecl_getScriptFieldSet(jaspdecl)) {
+							fieldVal = protoFieldDecl_getScriptInitValue(jaspdecl);
+							/* printf ("registerScriptInPROTO, using special script value\n"); */
+						} else {
+							fieldVal = protoFieldDecl_getDefaultValue(jaspdecl);
+							/* printf ("registerScriptInPROTO, just using default value\n"); */
+							}
+						}
+					}
+
+				}
+			}
+
+		/* save this field value in the new invocation of this script */
+		assert(mys);
+		scriptFieldDecl_setFieldValue(curField,fieldVal);
+		scriptFieldDecl_jsFieldInit(curField,mys->num);
+
+		}
+
+	}
+
+	script_initCodeFromMFUri(mys, myurl);
 }
