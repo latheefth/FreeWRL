@@ -1,3 +1,6 @@
+For 1.19.7:
+	- fixed (linux) snapshot arguments in CFrontEnd/fwopts.c 
+
 For 1.19.6:
 	- MidiControl - work on event routing of values (Strings changed, etc).
 

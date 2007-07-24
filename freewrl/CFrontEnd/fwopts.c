@@ -119,13 +119,13 @@ int parseCommandLine (int argc, char **argv) {
 				  break;
 
 			case 'm':
-				  setSeqFile(argv[optind]);
+				  setSeqFile(optarg);
 				  break;
 			case 'n':
-				  setSnapFile(argv[optind]);
+				  setSnapFile(optarg);
 				  break;
 			case 'o':
-				  setSeqTemp(argv[optind]);
+				  setSeqTemp(optarg);
 				  break;
 
 			case 'V':

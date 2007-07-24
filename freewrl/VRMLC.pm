@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.271  2007/07/24 14:30:22  crc_canada
+# add scene-graph dump (debug) and fix snapshot parameters
+#
 # Revision 1.270  2007/05/04 15:12:39  sdumoulin
 # Removed status bar code
 #
@@ -729,6 +732,96 @@ sub gen {
 
 	push @genFuncs2, "\treturn tmp;\n}\n";
 
+
+	#####################################################################
+	# create a routine to dump scene graph. 
+
+	push @genFuncs2,
+	"/* Dump the scene graph.  */\n".
+	"void dump_scene (int level, struct X3D_Node* node) {\n".
+	"	#define spacer	for (lc=0; lc<level; lc++) printf (\"\\t\");\n".
+	"	int lc;\n".
+	"	int i;\n".
+	"	if (node==NULL) return; \n".
+	"	if (level == 0) printf (\"starting dump_scene\\n\");\n".
+	"	spacer printf (\"L%d: node type %s\\n\",level,stringNodeType(node->_nodeType));\n".
+	"	switch (node->_nodeType) {\n";
+
+	for my $node (@sortedNodeList) {
+		push @genFuncs2, "		case NODE_$node : {\n";
+		push @genFuncs2, "			struct X3D_$node *tmp;\n";
+		push @genFuncs2, "			tmp = (struct X3D_$node *) node;\n";
+ 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
+			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
+			if (($fk eq "field") ||($fk eq "exposedField")) {
+				if ($ft eq "FreeWRLPTR") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) (void pointer, not dumped)\\n\");\n";
+				} elsif ($ft eq "SFInt32") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%d\\n\",tmp->$field);\n";
+				} elsif ($ft eq "SFFloat") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%4.3f\\n\",tmp->$field);\n";
+				} elsif ($ft eq "SFTime") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%4.3f\\n\",tmp->$field);\n";
+				} elsif ($ft eq "SFBool") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%d\\n\",tmp->$field);\n";
+				} elsif ($ft eq "SFString") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) \\t%s\\n\",tmp->$field->strptr);\n";
+				} elsif ($ft eq "SFNode") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\"); ";
+                        		push @genFuncs2, "dump_scene(level+1,tmp->$field); \n";
+				} elsif (($ft eq "SFRotation") || ($ft eq "SFColorRGBA")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<4; i++) { printf (\"%4.3f  \",tmp->$field.r[i]); }\n";
+					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+				} elsif (($ft eq "SFColor") || ($ft eq "SFVec3f")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<3; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
+					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+				} elsif ($ft eq "SFVec2f") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<2; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
+					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+				} elsif ($ft eq "SFImage") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): (not dumped)\\t\");\n";
+					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+				} elsif ($ft eq "MFString") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer printf (\"\t\t\t%d: \\t%s\\n\",i,tmp->$field.p[i]->strptr); }\n";
+				} elsif ($ft eq "MFNode") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { dump_scene(level+1,tmp->$field.p[i]); }\n";
+				} elsif (($ft eq "MFInt32") || ($ft eq "MFBool")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer printf (\"\t\t\t%d: \\t%d\\n\",i,tmp->$field.p[i]); }\n";
+				} elsif ($ft eq "MFFloat") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer printf (\"\t\t\t%d: \\t%4.3f\\n\",i,tmp->$field.p[i]); }\n";
+				} elsif (($ft eq "MFVec3f") || ($ft eq "MFColor")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
+						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2]); }\n";
+				} elsif ($ft eq "MFVec2f") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
+						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1]); }\n";
+				} elsif (($ft eq "MFRotation") || ($ft eq "MFColorRGBA")) {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
+						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).r[0], (tmp->$field.p[i]).r[1],(tmp->$field.p[i]).r[2],(tmp->$field.p[i]).r[3]); }\n";
+				} else {
+					print "type $ft not handled yet\n";
+				}
+
+			}
+		}
+
+		push @genFuncs2, "		break;}\n";
+	}
+	push @genFuncs2, "		default: {}\n";
+
+	push @genFuncs2, " } spacer printf (\"L%d end\\n\",level); if (level == 0) printf (\"ending dump_scene\\n\"); }\n\n";
+	
 	#####################
 	# create an array for each node. The array contains the following:
 	# const int OFFSETS_Text[
