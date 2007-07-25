@@ -791,7 +791,7 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
 
 #define FIND_PROTO_IN_proto_BUFFER \
 		do { \
-			proto = strstr (buffer,"PROTO"); \
+			proto = strstr (proto,"PROTO"); \
 			if (proto == NULL) \
 				PARSE_ERROR ("EXTERNPROTO does not contain a PROTO!"); \
 			if (*(proto-1) != 'N') { \
@@ -932,9 +932,12 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	char *pound;
 	char *savedCurInputURL;
 	char *buffer;
-	char firstBytes[4];
+	char emptyString[100];
 	char *testname;
+	char *savedPosition;
 
+	/* save where we are in case of errors in getting the EXTERNPROTO */
+	savedPosition = me->nextIn;
 	testname = (char *)MALLOC (1000);
 
 	/* expect the EXTERNPROTO proto name */
@@ -991,7 +994,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 		}
 		
 
-		if (getValidFileFromUrl (testname ,getInputURL(), &url, firstBytes)) {
+		if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
 
 
                 	buffer = readInputString(testname,"");
@@ -1002,5 +1005,10 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 		}
 
 	}
-	PARSE_ERROR ("Not Successful at getting EXTERNPROTO");
+	strcpy (emptyString, "Not Successful at getting EXTERNPROTO \"");
+	if (strlen(myName) > 100) myName[100] = '\0';
+	strcat (emptyString,myName);
+	strcat (emptyString,"\"");
+	ConsoleMessage("Parse error: %s ", emptyString); fprintf(stderr, "%s\n",emptyString);
+	me->nextIn = savedPosition; /* go back to here, and continue... */
 }
