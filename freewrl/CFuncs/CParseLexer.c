@@ -7,6 +7,9 @@
 
 #include "CParseLexer.h"
 
+void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
+char *externProtoPointer = NULL;
+
 /* Pre- and suffix for exposed events. */
 const char* EXPOSED_EVENT_IN_PRE="set_";
 const char* EXPOSED_EVENT_OUT_SUF="_changed";
@@ -75,6 +78,7 @@ void deleteLexer(struct VRMLLexer* me)
 {
  FREE_IF_NZ (me->curID);
  FREE_IF_NZ (me);
+ FREE_IF_NZ (externProtoPointer);
 }
 
 static void lexer_scopeOut_(Stack*);
@@ -213,6 +217,15 @@ breakIdLoop:
  me->curID=MALLOC(sizeof(char)*(cur-buf+1));
 
  strcpy(me->curID, buf);
+
+ /* is this an EXTERNPROTO? if so, handle it here */
+ if (lexer_keyword(me,KW_EXTERNPROTO)) {
+	lexer_handle_EXTERNPROTO(me);
+
+	/* ok - we are replacing EXTERNPROTO with PROTO */
+	me->curID = MALLOC (sizeof(char)*20);
+	strcpy(me->curID,"PROTO");
+ }
 	/* JAS printf ("lexer_setCurID, got %s\n",me->curID); */
  return TRUE;
 }
@@ -763,4 +776,231 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
  }
 
  return TRUE;
+}
+
+/* EXTERNPROTO HANDLING */
+/************************/
+#define PARSE_ERROR(msg) \
+ { \
+  parseError(msg); \
+  return; \
+ }
+
+#define parser_sfstringValue(me, ret) \
+ lexer_string(me, ret)
+
+#define FIND_PROTO_IN_proto_BUFFER \
+		do { \
+			proto = strstr (buffer,"PROTO"); \
+			if (proto == NULL) \
+				PARSE_ERROR ("EXTERNPROTO does not contain a PROTO!"); \
+			if (*(proto-1) != 'N') { \
+				break; \
+			} \
+		} while (1==1); 
+
+/* the following is cribbed from CParseParser for MFStrings, but we pass a VRMLLexer, not a VRMLParser */
+int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* ret) { 
+	struct Vector* vec=NULL; 
+	char fw_outline[2000];
+
+	/* Just a single value? */ 
+	if(!lexer_openSquare(me)) { 
+		ret->p=MALLOC(sizeof(vrmlStringT)); 
+		if(!parser_sfstringValue(me, (void*)ret->p)) 
+			return FALSE; 
+		ret->n=1; 
+		return TRUE; 
+	} 
+  
+	/* Otherwise, a real vector */ 
+	vec=newVector(vrmlStringT, 128); 
+	while(!lexer_closeSquare(me)) { 
+		vrmlStringT val; 
+		if(!parser_sfstringValue (me, &val)) { 
+			/* parseError("Expected ] before end of MF-Value!"); */ 
+			strcpy (fw_outline,"ERROR:Expected \"]\" before end of EXTERNPROTO URL value, found \""); 
+			if (me->curID != ((void *)0)) 
+				strcat (fw_outline, me->curID); 
+			else 
+				strcat (fw_outline, "(EOF)"); 
+			strcat (fw_outline,"\" "); 
+			ConsoleMessage(fw_outline); 
+			fprintf (stderr,"%s\n",fw_outline); 
+			break; 
+		} 
+
+		vector_pushBack(vrmlStringT, vec, val); 
+	} 
+
+	ret->n=vector_size(vec); 
+	ret->p=vector_releaseData(vrmlStringT, vec); 
+
+	deleteVector(vrmlStringT, vec); 
+	return TRUE; 
+}
+
+/* isolate the PROTO that we want from the just read in EXTERNPROTO string */
+void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound) {
+	char *cp;
+	char *externProto;
+	char *proto;
+	int curlscount;
+	int foundBracket;
+	int str1len, str2len;
+
+	/* step 1. Remove comments, so that we do not locate the requested PROTO in comments. */
+	cp = buffer;
+
+	while (*cp != '\0') {
+		if (*cp == '#') {
+			do {
+				*cp = ' ';
+				cp++;
+			        /* printf ("lexer, found comment, current char %d:%c:\n",c,c); */
+			        /* for those files created by ith VRML97 plugin for LightWave3D v6 from NewTek, Inc
+			           we have added the \r check. JAS */
+			} while((*cp!='\n') && (*cp!= '\r') && (*cp!='\0'));
+		} else {
+			cp++;
+		}
+	}
+
+	/* find the requested name, or find the first PROTO here */
+	if (pound != NULL) {
+		pound++;
+		/* printf ("looking for ID %s\n",pound); */
+		proto=buffer;
+
+		do {
+			FIND_PROTO_IN_proto_BUFFER
+
+			/* is this the PROTO we are looking for? */
+			proto += sizeof ("PROTO");
+			while ((*proto <= ' ') && (*proto != '\0')) proto++;
+			/* printf ("found PROTO at %s\n",proto); */
+		} while (strncmp(pound,proto,sizeof(pound)) != 0);
+	} else {
+		/* no name requested; find the first PROTO that is not an EXTERNPROTO */
+		proto = buffer;
+		FIND_PROTO_IN_proto_BUFFER
+		/* printf ("found PROTO at %s\n",proto); */
+	}
+
+	/* go to the first '[' of the proto */
+	cp = strchr(proto,'[');
+	if (cp != NULL) proto = cp;
+
+	/* now, isolate this PROTO from the rest ... count the curly braces */
+	cp = proto;
+	curlscount = 0;
+	foundBracket = FALSE;
+	do {
+		if (*cp == '{') {curlscount++; foundBracket = TRUE;}
+		if (*cp == '}') curlscount--;
+		cp++;
+		if (*cp == '\0') 
+			PARSE_ERROR ("brackets missing in EXTERNPROTO");
+
+	} while (!foundBracket || (curlscount > 0));
+	*cp = '\0';
+
+	/* now, insert this PROTO text INTO the stream */
+	cp = externProtoPointer; /* keep a handle on this */
+
+	externProtoPointer = MALLOC (sizeof (char) * (strlen (me->nextIn)+strlen (proto)+strlen(myName) +4));
+	strcpy (externProtoPointer,myName);
+	strcat (externProtoPointer," ");
+	strcat (externProtoPointer,proto);
+	strcat (externProtoPointer,me->nextIn);
+	lexer_fromString(me,externProtoPointer);
+
+	FREE_IF_NZ(cp); /* free, now that we have copied all we need from (possibly) this */
+
+
+}
+
+/* the curID is EXTERNPROTO. Replace the EXTERNPROTO with the actual PROTO string read in from
+   an external file */
+
+void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
+	char *myName = NULL;
+	indexT mode;
+	indexT type;
+	struct Multi_String url;
+	int i;
+	char *pound;
+	char *savedCurInputURL;
+	char *buffer;
+	char firstBytes[4];
+	char *testname;
+
+	testname = (char *)MALLOC (1000);
+
+	/* expect the EXTERNPROTO proto name */
+	if (lexer_setCurID(me)) {
+		/* printf ("next token is %s\n",me->curID); */
+		myName = STRDUP(me->curID);
+		FREE_IF_NZ(me->curID);
+	} else {
+		PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
+	}
+
+	/* go through and save the parameters and types. */
+	
+	if (!lexer_openSquare(me)) 
+		PARSE_ERROR ("EXTERNPROTO - expected a '['");
+
+	
+	/* XXX - we should save these mode/type/name pairs, and compare them to the 
+	   ones in the EXTERNPROTO definition. But, for now, we don't */
+
+	/* get the Name/Type value pairs and save them */
+	while (lexer_protoFieldMode(me, &mode)) {
+		/* printf ("mode is %d\n",mode); */
+
+		if(!lexer_fieldType(me, &type))
+			PARSE_ERROR("Expected fieldType after proto-field keyword!")
+
+		/* printf ("type is %d\n",type); */
+
+
+		if (lexer_setCurID(me)) {
+			/* printf ("param name is %s\n",me->curID); */
+			FREE_IF_NZ(me->curID);
+		} else {
+			PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
+		}
+	}
+
+	/* now, check for closed square */
+	if (!lexer_closeSquare(me))
+		PARSE_ERROR ("EXTERNPROTO - expected a ']'");
+
+	/* get the URL string */
+	if (!lexer_EXTERNPROTO_mfstringValue(me,&url)) {
+		PARSE_ERROR ("EXTERNPROTO - problem reading URL string");
+	}
+
+	for (i=0; i< url.n; i++) {
+		/* printf ("trying url %s\n",(url.p[i])->strptr); */
+		pound = strchr((url.p[i])->strptr,'#');
+		if (pound != NULL) {
+			/* we take the pound character off, BUT USE this variable later */
+			*pound = '\0';
+		}
+		
+
+		if (getValidFileFromUrl (testname ,getInputURL(), &url, firstBytes)) {
+
+
+                	buffer = readInputString(testname,"");
+			embedEXTERNPROTO(me,myName,buffer,pound);
+			return;
+		} else {
+			/* printf ("fileExists returns failure for %s\n",testname); */
+		}
+
+	}
+	PARSE_ERROR ("Not Successful at getting EXTERNPROTO");
 }
