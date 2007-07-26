@@ -219,14 +219,10 @@ breakIdLoop:
  strcpy(me->curID, buf);
 
  /* is this an EXTERNPROTO? if so, handle it here */
- if (lexer_keyword(me,KW_EXTERNPROTO)) {
+ if (lexer_keyword(me,KW_EXTERNPROTO)) 
 	lexer_handle_EXTERNPROTO(me);
 
-	/* ok - we are replacing EXTERNPROTO with PROTO */
-	me->curID = MALLOC (sizeof(char)*20);
-	strcpy(me->curID,"PROTO");
- }
-	/* JAS printf ("lexer_setCurID, got %s\n",me->curID); */
+ /* JAS printf ("lexer_setCurID, got %s\n",me->curID); */
  return TRUE;
 }
 
@@ -923,7 +919,7 @@ void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *po
 /* the curID is EXTERNPROTO. Replace the EXTERNPROTO with the actual PROTO string read in from
    an external file */
 
-void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
+lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	char *myName = NULL;
 	indexT mode;
 	indexT type;
@@ -934,10 +930,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 	char *buffer;
 	char emptyString[100];
 	char *testname;
-	char *savedPosition;
 
-	/* save where we are in case of errors in getting the EXTERNPROTO */
-	savedPosition = me->nextIn;
 	testname = (char *)MALLOC (1000);
 
 	/* expect the EXTERNPROTO proto name */
@@ -998,17 +991,30 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 
 
                 	buffer = readInputString(testname,"");
+			FREE_IF_NZ(testname)
 			embedEXTERNPROTO(me,myName,buffer,pound);
+
+			/* ok - we are replacing EXTERNPROTO with PROTO */
+			me->curID = MALLOC (sizeof(char)*20);
+			strcpy(me->curID,"PROTO");
 			return;
 		} else {
 			/* printf ("fileExists returns failure for %s\n",testname); */
 		}
 
 	}
+
+	FREE_IF_NZ(testname)
+
+	/* print up an error message, then get the next token */
 	strcpy (emptyString, "Not Successful at getting EXTERNPROTO \"");
 	if (strlen(myName) > 100) myName[100] = '\0';
 	strcat (emptyString,myName);
 	strcat (emptyString,"\"");
 	ConsoleMessage("Parse error: %s ", emptyString); fprintf(stderr, "%s\n",emptyString);
-	me->nextIn = savedPosition; /* go back to here, and continue... */
+
+	/* so, lets continue. Maybe this EXTERNPROTO is never referenced?? */
+	lexer_setCurID(me);
+	/* printf ("so, curID is :%s: and rest is :%s:\n",me->curID, me->nextIn); */
+	return;
 }
