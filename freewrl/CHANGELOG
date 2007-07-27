@@ -1,7 +1,11 @@
 For 1.19.7:
+	- Classic VRML parser routing work.
+
 	- fixed (linux) snapshot arguments in CFrontEnd/fwopts.c 
 
 	- EXTERNPROTOS should be working in "classic" VRML Parser
+
+	- Javascript - mfColor, etc, now produce an event on creation.
 
 For 1.19.6:
 	- MidiControl - work on event routing of values (Strings changed, etc).

@@ -457,13 +457,17 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT toFieldE;
  indexT toUFieldO;
  indexT toUFieldE;
+
  int toOfs;
  int toLen;
  struct ProtoFieldDecl* toProtoField=NULL;
  struct ScriptFieldDecl* toScriptField=NULL;
-int temp, tempFE, tempFO, tempTE, tempTO;
+int temp;
 
  int routingDir;
+
+
+ fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED; 
 
  assert(me->lexer);
  lexer_skip(me->lexer);
@@ -604,14 +608,6 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  }
  ROUTE_PARSE_NODEFIELD(to, In)
 
- /* Now, do the really hard macro work... */
- /* ************************************* */
-
- /* Ignore the fields. */
- #define FIELD(n, f, t, v)
-
- #define END_NODE(n) EVENT_END_NODE(n,XFIELD[fromFieldE])
-
  /* potentially rename the Event_From and Event_To */
 
  /* REASON: we had a problem with (eg) set_scale in tests/27.wrl. 
@@ -624,164 +620,66 @@ int temp, tempFE, tempFO, tempTE, tempTO;
     seem to work, and it is only SLOW during ROUTE parsing, which (hopefully) there are not
     thousands of. Code efficiency changes more than welcome, from anyone. ;-) */
 
- tempFE=ID_UNDEFINED; tempFO=ID_UNDEFINED; tempTE=ID_UNDEFINED; tempTO=ID_UNDEFINED;
  if(!fromProtoField && !fromScriptField) {
+	int b,c, tmp;
 	/* fromFieldE = Daniel's code thinks this is from an exposedField */
 	/* fromFieldO = Daniel's code thinks this is from an eventOut */
 
 	/* first, convert this to a FIELDNAME table index. */
   	if(fromFieldE!=ID_UNDEFINED) {
-		/* printf ("step1a, node type %s fromFieldE %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldE,EXPOSED_FIELD[fromFieldE]); */
-		tempFE = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],0);
-		if (tempFE != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempFE]);
+		 /* printf ("step1a, node type %s fromFieldE %d (%s)\n",stringNodeType(fromNode->_nodeType),fromFieldE,EXPOSED_FIELD[fromFieldE]);  */
+		tmp = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],0);
 	}
 	if (fromFieldO != ID_UNDEFINED) {
-		/* printf ("step2a, node type %s fromFieldO %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldO,EVENT_OUT[fromFieldO]); */
-		tempFO = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],0);
-		if (tempFO != ID_UNDEFINED) {
-			 tempFO = findFieldInEVENT_OUT(FIELDNAMES[tempFO]);
-		}  
-		if (tempFO == ID_UNDEFINED) {
-			/* hmmm - maybe this is NOW just an exposedField? */
-			temp = findRoutedFieldInFIELDNAMES(toNode,EVENT_OUT[toFieldO],0);
-			if (temp != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[temp]);
-		}
+		/* printf ("step2a, node type %s fromFieldO %d (%s)\n",stringNodeType(fromNode->_nodeType),fromFieldO,EVENT_OUT[fromFieldO]); */
+		tmp = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],0);
 	}
+	findFieldInOFFSETS( NODE_OFFSETS[fromNode->_nodeType], tmp,  &fromOfs, &b, &c);
+	fromLen = returnRoutingElementLength(b);
+
+	/*
+	if (fromFieldE != ID_UNDEFINED) {printf ("from EXPOSED_FIELD %s ",EXPOSED_FIELD[fromFieldE]);}
+	if (fromFieldO != ID_UNDEFINED) {printf ("from EVENT_OUT %s ",EVENT_OUT[fromFieldO]);}
+	*/
  }
  if(!toProtoField && !toScriptField) {
+	int b,c, tmp;
 	/* toFieldE = Daniel's code thinks this is from an exposedField */
 	/* toFieldO = Daniel's code thinks this is from an eventIn */
 
   	if(toFieldE!=ID_UNDEFINED) {
-		/* printf ("step3a, node type %s toFieldE %d %s\n",stringNodeType(toNode->_nodeType),toFieldE,EXPOSED_FIELD[toFieldE]); */
-		tempTE = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
-		if (tempTE != ID_UNDEFINED) tempTE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempTE]);
-
+		/* printf ("step3a, node type %s toFieldE %d %s\n",stringNodeType(toNode->_nodeType),toFieldE,EXPOSED_FIELD[toFieldE]);  */
+		tmp = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
 	}
   	if(toFieldO!=ID_UNDEFINED) {
 		/* printf ("step4a, node type %s toFieldO %d %s\n",stringNodeType(toNode->_nodeType),toFieldO,EVENT_IN[toFieldO]); */
-		tempTO = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
-		if (tempTO != ID_UNDEFINED) {
-			tempTO = findFieldInEVENT_IN(FIELDNAMES[tempTO]);
-		}  
-		if (tempTO == ID_UNDEFINED) {
-			/* hmmm - maybe this is NOW just an exposedField? */
-			temp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
-			if (temp != ID_UNDEFINED) tempTE = findFieldInEXPOSED_FIELD(FIELDNAMES[temp]);
-		}
+		tmp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
 	}
+	findFieldInOFFSETS( NODE_OFFSETS[toNode->_nodeType], tmp,  &toOfs, &b, &c);
+	toLen = returnRoutingElementLength(b);
+
+	/*
+	if (toFieldE != ID_UNDEFINED) {printf ("to EXPOSED_FIELD %s ",EXPOSED_FIELD[toFieldE]);}
+	if (toFieldO != ID_UNDEFINED) {printf ("to EVENT_IN %s ",EVENT_IN[toFieldO]);}
+	*/
 }
-/*
-printf ("so, before routing we have: ");
-if (tempFE != ID_UNDEFINED) {printf ("from EXPOSED_FIELD %s ",EXPOSED_FIELD[tempFE]);}
-if (tempFO != ID_UNDEFINED) {printf ("from EVENT_OUT %s ",EVENT_OUT[tempFO]);}
-if (tempTE != ID_UNDEFINED) {printf ("to EXPOSED_FIELD %s ",EXPOSED_FIELD[tempTE]);}
-if (tempTO != ID_UNDEFINED) {printf ("to EVENT_IN %s ",EVENT_IN[tempTO]);}
-printf ("\n\n");
-*/
 
-  /* so, lets try and assign what we think we have now... */
-  fromFieldE = tempFE;
-  fromFieldO = tempFO;
-  toFieldE = tempTE;
-  toFieldO = tempTO;
-
- #undef END_NODE 
- #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[fromFieldE])
-
- /* Process from eventOut */
- if(!fromProtoField && !fromScriptField)
-  if(fromFieldE!=ID_UNDEFINED) {
-   switch(fromNode->_nodeType) {
-    #define EVENT_IN(n, f, t, v)
-    #define EVENT_OUT(n, f, t, v)
-    #define EXPOSED_FIELD(node, field, type, var) \
-     PROCESS_EVENT(EXPOSED_FIELD, from, node, field, type, var)
-    #define BEGIN_NODE(node) \
-     EVENT_BEGIN_NODE(fromFieldE, fromNode, node)
-    #include "NodeFields.h"
-    #undef EVENT_IN
-    #undef EVENT_OUT
-    #undef EXPOSED_FIELD
-    #undef BEGIN_NODE
-    EVENT_NODE_DEFAULT
-   }
-
- #undef END_NODE 
- #define END_NODE(n) EVENT_END_NODE(n,EVENT_OUT[fromFieldO])
-
-  } else if(fromFieldO!=ID_UNDEFINED) {
-   switch(fromNode->_nodeType) {
-    #define EVENT_IN(n, f, t, v)
-    #define EXPOSED_FIELD(n, f, t, v)
-    #define EVENT_OUT(node, field, type, var) \
-     PROCESS_EVENT(EVENT_OUT, from, node, field, type, var)
-    #define BEGIN_NODE(node) \
-     EVENT_BEGIN_NODE(fromFieldO, fromNode, node)
-    #include "NodeFields.h"
-    #undef EVENT_IN
-    #undef EVENT_OUT
-    #undef EXPOSED_FIELD
-    #undef BEGIN_NODE
-    EVENT_NODE_DEFAULT
-   }
-  }
-
-
- #undef END_NODE 
- #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[toFieldE])
-
- /* Process to eventIn */
- if(!toProtoField && !toScriptField)
-  if(toFieldE!=ID_UNDEFINED) {
-   switch(toNode->_nodeType) {
-    #define EVENT_IN(n, f, t, v)
-    #define EVENT_OUT(n, f, t, v)
-    #define EXPOSED_FIELD(node, field, type, var) \
-     PROCESS_EVENT(EXPOSED_FIELD, to, node, field, type, var)
-    #define BEGIN_NODE(node) \
-     EVENT_BEGIN_NODE(toFieldE, toNode, node)
-    #include "NodeFields.h"
-    #undef EVENT_IN
-    #undef EVENT_OUT
-    #undef EXPOSED_FIELD
-    #undef BEGIN_NODE
-    EVENT_NODE_DEFAULT
-   }
-
- #undef END_NODE 
- #define END_NODE(n) EVENT_END_NODE(n,EVENT_IN[toFieldO])
-
-  } else if(toFieldO!=ID_UNDEFINED) {
-   switch(toNode->_nodeType) {
-    #define EVENT_OUT(n, f, t, v)
-    #define EXPOSED_FIELD(n, f, t, v)
-    #define EVENT_IN(node, field, type, var) \
-     PROCESS_EVENT(EVENT_IN, to, node, field, type, var)
-    #define BEGIN_NODE(node) \
-     EVENT_BEGIN_NODE(toFieldO, toNode, node)
-    #include "NodeFields.h"
-    #undef EVENT_IN
-    #undef EVENT_OUT
-    #undef EXPOSED_FIELD
-    #undef BEGIN_NODE
-    EVENT_NODE_DEFAULT
-   }
-  }
-
- /* Clean up. */
- #undef FIELD
- #undef END_NODE
-
- /* Update length for fields */
+ /* Update length for fields if we have Scripts or PROTOS */
  if(fromProtoField)
   fromLen=protoFieldDecl_getLength(fromProtoField);
  else if(fromScriptField)
-  fromLen=scriptFieldDecl_getLength(fromScriptField);
+  fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
+
  if(toProtoField)
   toLen=protoFieldDecl_getLength(toProtoField);
  else if(toScriptField)
-  toLen=scriptFieldDecl_getLength(toScriptField);
+  toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
+/*
+printf ("so, before routing we have: ");
+printf ("fromLen %d toLen %d\n",fromLen, toLen);
+printf ("fromFieldE %d\n",fromFieldE);
+printf ("\n");
+*/
 
  /* FIXME:  Not a really safe check for types in ROUTE! */
  /* JAS - made message better. Should compare types, not lengths. */
@@ -791,10 +689,12 @@ printf ("\n\n");
 	if (fromNode != NULL) { strcat (fw_outline, " from type:"); strcat (fw_outline, stringNodeType(fromNode->_nodeType)); strcat (fw_outline, " "); }
 	if (fromFieldE != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EXPOSED_FIELD[fromFieldE]); strcat (fw_outline, " "); }
 	if (fromFieldO != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EVENT_OUT[fromFieldO]); strcat (fw_outline, " "); }
+	if (fromScriptField) {strcat (fw_outline, " Script, field:"); strcat(fw_outline,fromScriptField->name); strcat (fw_outline," ");}
 
 	if (toNode != NULL) { strcat (fw_outline, " to type:"); strcat (fw_outline, stringNodeType(toNode->_nodeType)); strcat (fw_outline, " "); }
 	if (toFieldE != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EXPOSED_FIELD[toFieldE]); strcat (fw_outline, " "); }
 	if (toFieldO != ID_UNDEFINED) { strcat (fw_outline, ":"); strcat (fw_outline, EVENT_IN[toFieldO]); strcat (fw_outline, " "); }
+	if (toScriptField) {strcat (fw_outline, " Script, field:"); strcat(fw_outline,toScriptField->name); strcat (fw_outline," ");}
 
   	/* PARSE_ERROR(fw_outline) */
   	ConsoleMessage(fw_outline); 
