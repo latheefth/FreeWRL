@@ -7,9 +7,6 @@
 
 #include "CParseLexer.h"
 
-void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
-char *externProtoPointer = NULL;
-
 /* Pre- and suffix for exposed events. */
 const char* EXPOSED_EVENT_IN_PRE="set_";
 const char* EXPOSED_EVENT_OUT_SUF="_changed";
@@ -78,7 +75,6 @@ void deleteLexer(struct VRMLLexer* me)
 {
  FREE_IF_NZ (me->curID);
  FREE_IF_NZ (me);
- FREE_IF_NZ (externProtoPointer);
 }
 
 static void lexer_scopeOut_(Stack*);
@@ -148,6 +144,7 @@ static void lexer_scopeOut_(Stack* s)
 void lexer_scopeIn()
 {
  lexer_scopeIn_(&userNodeNames);
+  printf("push on value %d\n", vector_size(userNodeTypesVec));
  stack_push(size_t, userNodeTypesStack, vector_size(userNodeTypesVec));
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
@@ -181,7 +178,7 @@ BOOL lexer_setCurID(struct VRMLLexer* me)
  char* cur=buf;
 
  /* If it is already set, simply return. */
- if(me->curID) 
+ if(me->curID)
   return TRUE;
 
  lexer_skip(me);
@@ -217,12 +214,6 @@ breakIdLoop:
  me->curID=MALLOC(sizeof(char)*(cur-buf+1));
 
  strcpy(me->curID, buf);
-
- /* is this an EXTERNPROTO? if so, handle it here */
- if (lexer_keyword(me,KW_EXTERNPROTO)) 
-	lexer_handle_EXTERNPROTO(me);
-
- /* JAS printf ("lexer_setCurID, got %s\n",me->curID); */
  return TRUE;
 }
 
@@ -252,9 +243,14 @@ indexT lexer_string2id(const char* str, const struct Vector* v)
 }
 
 /* Lexes an ID (node type, field name...) depending on args. */
+/* Basically, just calls lexer_specialID_string with the same args plus the current token */
+/* Checks for an ID (the next lexer token) in the builtin array of IDs passed in builtin and/or in the array of user defined
+   IDs passed in user.  Returns the index to the ID in retB (if found in the built in list) or retU (if found in the 
+   user defined list) if it is found.  */
 BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount, struct Vector* user)
 {
+ /* Get the next token */
  if(!lexer_setCurID(me))
   return FALSE;
  assert(me->curID);
@@ -268,6 +264,10 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
 
  return FALSE;
 }
+
+/* Checks for the ID passed in str in the builtin array of IDs passed in builtin and/or in the array of user defined
+   IDs passed in user.  Returns the index to the ID in retB (if found in the built in list) or retU (if found in the 
+   user defined list) if it is found.  */
 BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount,
  struct Vector* user, const char* str)
@@ -275,6 +275,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  indexT i;
  BOOL found=FALSE;
 
+ /* Have to be looking in either the builtin and/or the user defined lists */
  if(!retB && !retU)
   return FALSE;
 
@@ -282,6 +283,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  if(retU) *retU=ID_UNDEFINED;
 
  /* Try as built-in */
+ /* Look for the ID in the passed built in array.  If it is found, return the index to the ID in retB */
  for(i=0; i!=builtInCount; ++i)
   if(!strcmp(str, builtIn[i]))
   {
@@ -298,6 +300,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
   return found;
 
  /* Already defined user id? */
+ /* Look for the ID in the passed user array.  If it is found, return the index to the ID in retU */
  for(i=0; i!=vector_size(user); ++i)
   if(!strcmp(str, vector_get(char*, user, i)))
   {
@@ -313,9 +316,13 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 }
 
 /* Lexes and defines an ID */
+/* Adds the ID to the passed vector of IDs (unless it is already present) */
+/* Note that we only check for duplicate IDs if multi is TRUE */
 BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
  BOOL multi)
 {
+ 
+ /* Get the next token */
  if(!lexer_setCurID(me))
   return FALSE;
  assert(me->curID);
@@ -323,7 +330,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
  /* User list should be created */
  assert(vec);
 
- /* Look if the ID's already there */
+ /* If multiple definition possible? Look if the ID's already there */
  if(multi)
  {
   size_t i;
@@ -337,14 +344,22 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
  }
 
  /* Define the id */
+ /* Add this ID to the passed vector of IDs */
  *ret=vector_size(vec);
- /* printf ("lexer_defineID, curID %s\n",me->curID); */
+	printf("adding %s\n", me->curID);
  vector_pushBack(char*, vec, me->curID);
  me->curID=NULL;
  return TRUE;
 }
 
 /* A eventIn/eventOut terminal symbol */
+/* Looks for the current token in builtin and/or user defined name arrays depending on the requested return values and the eventtype (in or out)
+   If looking through EVENT_IN, EVENT_OUT, or EXPOSED_FIELD, checks to see if the current token is valid with either set_ or _changed stripped from it 
+   If rBO is non-null, then search through EVENT_IN or EVENT_OUT and return the index of the event (if found) in rBO
+   If rBE is non-null, then search through EXPOSED_FIELD and return the index of the event (if found) in rBE
+   If rUO is non-null, then search through user_eventIn or user_eventOut and return the index of the event (if found) in rUO
+   if rUE is non-null, then search through user_exposedField and return the index of the event (if found) in rUE */ 
+
 BOOL lexer_event(struct VRMLLexer* me,
  struct X3D_Node* routedNode,
  indexT* rBO, indexT* rBE, indexT* rUO, indexT* rUE,
@@ -358,42 +373,64 @@ BOOL lexer_event(struct VRMLLexer* me,
 
  if(routedToFrom==ROUTED_FIELD_EVENT_IN)
  {
+  /* If we are looking for an eventIn we need to look through the EVENT_IN array and the user_eventIn vector */
   uarr=user_eventIn;
   arr=EVENT_IN;
   arrCnt=EVENT_IN_COUNT;
  } else
  {
+  /* If we are looking for an eventOut we need to look through the EVENT_OUT array and the user_eventOut vector */
   uarr=user_eventOut;
   arr=EVENT_OUT;
   arrCnt=EVENT_OUT_COUNT;
  }
 
+ /* Get the next token *?
  if(!lexer_setCurID(me))
   return FALSE;
  assert(me->curID);
 
+ /* Get a pointer to the data in the vector of user defined event names */
  const char** userArr=&vector_get(const char*, uarr, 0);
  size_t userCnt=vector_size(uarr);
 
+ /* Strip off set_ or _changed from current token.  Then look through the EVENT_IN/EVENT_OUT array for the eventname (current token).  
+    If it is found, return the index of the eventname. Also looks through fields of the routedNode to check if fieldname is valid for that node 
+    (but doesn't seem to do anything if not valid ... ) */
  if(rBO)
   *rBO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom, arr, arrCnt,
    FALSE);
+
+ /* Strip off set_ or _changed from current token.  Then look through the user_eventIn/user_eventOut array for the eventname (current token).  
+    If it is found, return the index of the eventname.  */
  if(rUO)
   *rUO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
    userArr, userCnt, TRUE);
+
+ /* Set the found flag to TRUE if the eventname was found in either the EVENT_IN/EVENT_OUT or user_eventIn/user_eventOut arrays */ 
  if(!found)
   found=((rBO && *rBO!=ID_UNDEFINED) || (rUO && *rUO!=ID_UNDEFINED));
 
  /*printf("%p %u %d\n", rBO, *rBO, *rBO!=ID_UNDEFINED);*/
 
+ /* Get a pointer to the event names in the vector of user defined exposed fields */
  userArr=&vector_get(const char*, user_exposedField, 0);
  userCnt=vector_size(user_exposedField);
 
+ /* findRoutedFieldInEXPOSED_FIELD calls findRoutedFieldInARR(node, field, fromTo, EXPOSED_FIELD, EXPOSED_FIELD_COUNT, 0) */
+ /* Strip off set_ or _changed from current token.  Then look through the EXPOSED_FIELD array for the eventname (current token). 
+    If it is found, return the index of the eventname.  Also looks through fields of the routedNode to check if fieldname is valid for that node
+    (but doesn't seem to do anything if not valid ... ) */ 
  if(rBE)
   *rBE=findRoutedFieldInEXPOSED_FIELD(routedNode, me->curID, routedToFrom);
+
+ /* Strip off set_ or _changed from current token.  Then look through the user_exposedField array for the eventname (current token). 
+    If it is found, return the index of the eventname.  */ 
  if(rUE)
   *rUE=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
    userArr, userCnt, TRUE);
+
+ /* Set the found flag to TRUE if the eventname was found in either the EXPOSED_FIELD or user_exposedField arrays */ 
  if(!found)
   found=((rBE && *rBE!=ID_UNDEFINED) || (rUE && *rUE!=ID_UNDEFINED));
 
@@ -404,34 +441,55 @@ BOOL lexer_event(struct VRMLLexer* me,
 }
 
 /* Lexes a fieldId terminal symbol */
+/* If retBO isn't null, checks for the field in the FIELDNAMES array */
+/* If retBE isn't null, checks for the field in the EXPOSED_FIELD array */
+/* if retUO isn't null, checks for the field in the user_field vector */
+/* if retUE isn't null, checks for the field in the user_exposedField vector */
+/* returns the index of the field in the corresponding ret value if found */
 BOOL lexer_field(struct VRMLLexer* me,
  indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE)
 {
  BOOL found=FALSE;
 
+  /* Get next token */
  if(!lexer_setCurID(me))
   return FALSE;
  assert(me->curID);
 
+  /* Get a pointer to the entries in the user_field vector */
  const char** userArr=&vector_get(const char*, user_field, 0);
  size_t userCnt=vector_size(user_field);
 
  /*printf("%s\n", me->curID);*/
-
+ /* findFieldInFIELD is #defined to findFieldInARR(field, FIELDNAMES, FIELDNAMES_COUNT) */
+ /* look through the FIELDNAMES array for the fieldname (current token).  If it is found, return the index of the fieldname */
  if(retBO)
   *retBO=findFieldInFIELD(me->curID);
+
+ /* look through the fieldnames from the user_field names vector for the fieldname (current token).  If it is found, return the index 
+   of the fieldname */
  if(retUO)
   *retUO=findFieldInARR(me->curID, userArr, userCnt);
+
+  /* Set the found flag to TRUE if the fieldname was found in either FIELDNAMES or user_field */
  if(!found)
   found=((retBO && *retBO!=ID_UNDEFINED) || (retUO && *retUO!=ID_UNDEFINED));
 
+  /* Get a pointer to the entries in the user_exposedField vector */
  userArr=&vector_get(const char*, user_exposedField, 0);
  userCnt=vector_size(user_exposedField);
   
+  /* findFieldInEXPOSED_FIELD #defined to findFieldInARR(field, EXPOSED_FIELD, EXPOSED_FIELD_COUNT) */
+  /* look through the EXPOSED_FIELD array for the fieldname (current token).  If it is found, return the index of the fieldname.  */
  if(retBE)
   *retBE=findFieldInEXPOSED_FIELD(me->curID);
+
+ /* look through the fieldnames from the user_exposedField names vector for the fieldname (current token).  If it is found, return the
+    index of the fieldname */
  if(retUE)
   *retUE=findFieldInARR(me->curID, userArr, userCnt);
+
+ /* Set the found flag to TRUE if the fieldname was found in either EXPOSED_FIELD or user_exposedField */
  if(!found)
   found=((retBE && *retBE!=ID_UNDEFINED) || (retUE && *retUE!=ID_UNDEFINED));
 
@@ -772,249 +830,4 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
  }
 
  return TRUE;
-}
-
-/* EXTERNPROTO HANDLING */
-/************************/
-#define PARSE_ERROR(msg) \
- { \
-  parseError(msg); \
-  return; \
- }
-
-#define parser_sfstringValue(me, ret) \
- lexer_string(me, ret)
-
-#define FIND_PROTO_IN_proto_BUFFER \
-		do { \
-			proto = strstr (proto,"PROTO"); \
-			if (proto == NULL) \
-				PARSE_ERROR ("EXTERNPROTO does not contain a PROTO!"); \
-			if (*(proto-1) != 'N') { \
-				break; \
-			} \
-		} while (1==1); 
-
-/* the following is cribbed from CParseParser for MFStrings, but we pass a VRMLLexer, not a VRMLParser */
-int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* ret) { 
-	struct Vector* vec=NULL; 
-	char fw_outline[2000];
-
-	/* Just a single value? */ 
-	if(!lexer_openSquare(me)) { 
-		ret->p=MALLOC(sizeof(vrmlStringT)); 
-		if(!parser_sfstringValue(me, (void*)ret->p)) 
-			return FALSE; 
-		ret->n=1; 
-		return TRUE; 
-	} 
-  
-	/* Otherwise, a real vector */ 
-	vec=newVector(vrmlStringT, 128); 
-	while(!lexer_closeSquare(me)) { 
-		vrmlStringT val; 
-		if(!parser_sfstringValue (me, &val)) { 
-			/* parseError("Expected ] before end of MF-Value!"); */ 
-			strcpy (fw_outline,"ERROR:Expected \"]\" before end of EXTERNPROTO URL value, found \""); 
-			if (me->curID != ((void *)0)) 
-				strcat (fw_outline, me->curID); 
-			else 
-				strcat (fw_outline, "(EOF)"); 
-			strcat (fw_outline,"\" "); 
-			ConsoleMessage(fw_outline); 
-			fprintf (stderr,"%s\n",fw_outline); 
-			break; 
-		} 
-
-		vector_pushBack(vrmlStringT, vec, val); 
-	} 
-
-	ret->n=vector_size(vec); 
-	ret->p=vector_releaseData(vrmlStringT, vec); 
-
-	deleteVector(vrmlStringT, vec); 
-	return TRUE; 
-}
-
-/* isolate the PROTO that we want from the just read in EXTERNPROTO string */
-void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound) {
-	char *cp;
-	char *externProto;
-	char *proto;
-	int curlscount;
-	int foundBracket;
-	int str1len, str2len;
-
-	/* step 1. Remove comments, so that we do not locate the requested PROTO in comments. */
-	cp = buffer;
-
-	while (*cp != '\0') {
-		if (*cp == '#') {
-			do {
-				*cp = ' ';
-				cp++;
-			        /* printf ("lexer, found comment, current char %d:%c:\n",c,c); */
-			        /* for those files created by ith VRML97 plugin for LightWave3D v6 from NewTek, Inc
-			           we have added the \r check. JAS */
-			} while((*cp!='\n') && (*cp!= '\r') && (*cp!='\0'));
-		} else {
-			cp++;
-		}
-	}
-
-	/* find the requested name, or find the first PROTO here */
-	if (pound != NULL) {
-		pound++;
-		/* printf ("looking for ID %s\n",pound); */
-		proto=buffer;
-
-		do {
-			FIND_PROTO_IN_proto_BUFFER
-
-			/* is this the PROTO we are looking for? */
-			proto += sizeof ("PROTO");
-			while ((*proto <= ' ') && (*proto != '\0')) proto++;
-			/* printf ("found PROTO at %s\n",proto); */
-		} while (strncmp(pound,proto,sizeof(pound)) != 0);
-	} else {
-		/* no name requested; find the first PROTO that is not an EXTERNPROTO */
-		proto = buffer;
-		FIND_PROTO_IN_proto_BUFFER
-		/* printf ("found PROTO at %s\n",proto); */
-	}
-
-	/* go to the first '[' of the proto */
-	cp = strchr(proto,'[');
-	if (cp != NULL) proto = cp;
-
-	/* now, isolate this PROTO from the rest ... count the curly braces */
-	cp = proto;
-	curlscount = 0;
-	foundBracket = FALSE;
-	do {
-		if (*cp == '{') {curlscount++; foundBracket = TRUE;}
-		if (*cp == '}') curlscount--;
-		cp++;
-		if (*cp == '\0') 
-			PARSE_ERROR ("brackets missing in EXTERNPROTO");
-
-	} while (!foundBracket || (curlscount > 0));
-	*cp = '\0';
-
-	/* now, insert this PROTO text INTO the stream */
-	cp = externProtoPointer; /* keep a handle on this */
-
-	externProtoPointer = MALLOC (sizeof (char) * (strlen (me->nextIn)+strlen (proto)+strlen(myName) +4));
-	strcpy (externProtoPointer,myName);
-	strcat (externProtoPointer," ");
-	strcat (externProtoPointer,proto);
-	strcat (externProtoPointer,me->nextIn);
-	lexer_fromString(me,externProtoPointer);
-
-	FREE_IF_NZ(cp); /* free, now that we have copied all we need from (possibly) this */
-
-
-}
-
-/* the curID is EXTERNPROTO. Replace the EXTERNPROTO with the actual PROTO string read in from
-   an external file */
-
-lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
-	char *myName = NULL;
-	indexT mode;
-	indexT type;
-	struct Multi_String url;
-	int i;
-	char *pound;
-	char *savedCurInputURL;
-	char *buffer;
-	char emptyString[100];
-	char *testname;
-
-	testname = (char *)MALLOC (1000);
-
-	/* expect the EXTERNPROTO proto name */
-	if (lexer_setCurID(me)) {
-		/* printf ("next token is %s\n",me->curID); */
-		myName = STRDUP(me->curID);
-		FREE_IF_NZ(me->curID);
-	} else {
-		PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
-	}
-
-	/* go through and save the parameters and types. */
-	
-	if (!lexer_openSquare(me)) 
-		PARSE_ERROR ("EXTERNPROTO - expected a '['");
-
-	
-	/* XXX - we should save these mode/type/name pairs, and compare them to the 
-	   ones in the EXTERNPROTO definition. But, for now, we don't */
-
-	/* get the Name/Type value pairs and save them */
-	while (lexer_protoFieldMode(me, &mode)) {
-		/* printf ("mode is %d\n",mode); */
-
-		if(!lexer_fieldType(me, &type))
-			PARSE_ERROR("Expected fieldType after proto-field keyword!")
-
-		/* printf ("type is %d\n",type); */
-
-
-		if (lexer_setCurID(me)) {
-			/* printf ("param name is %s\n",me->curID); */
-			FREE_IF_NZ(me->curID);
-		} else {
-			PARSE_ERROR ("EXTERNPROTO - expected a PROTO name\n");
-		}
-	}
-
-	/* now, check for closed square */
-	if (!lexer_closeSquare(me))
-		PARSE_ERROR ("EXTERNPROTO - expected a ']'");
-
-	/* get the URL string */
-	if (!lexer_EXTERNPROTO_mfstringValue(me,&url)) {
-		PARSE_ERROR ("EXTERNPROTO - problem reading URL string");
-	}
-
-	for (i=0; i< url.n; i++) {
-		/* printf ("trying url %s\n",(url.p[i])->strptr); */
-		pound = strchr((url.p[i])->strptr,'#');
-		if (pound != NULL) {
-			/* we take the pound character off, BUT USE this variable later */
-			*pound = '\0';
-		}
-		
-
-		if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
-
-
-                	buffer = readInputString(testname,"");
-			FREE_IF_NZ(testname)
-			embedEXTERNPROTO(me,myName,buffer,pound);
-
-			/* ok - we are replacing EXTERNPROTO with PROTO */
-			me->curID = MALLOC (sizeof(char)*20);
-			strcpy(me->curID,"PROTO");
-			return;
-		} else {
-			/* printf ("fileExists returns failure for %s\n",testname); */
-		}
-
-	}
-
-	FREE_IF_NZ(testname)
-
-	/* print up an error message, then get the next token */
-	strcpy (emptyString, "Not Successful at getting EXTERNPROTO \"");
-	if (strlen(myName) > 100) myName[100] = '\0';
-	strcat (emptyString,myName);
-	strcat (emptyString,"\"");
-	ConsoleMessage("Parse error: %s ", emptyString); fprintf(stderr, "%s\n",emptyString);
-
-	/* so, lets continue. Maybe this EXTERNPROTO is never referenced?? */
-	lexer_setCurID(me);
-	/* printf ("so, curID is :%s: and rest is :%s:\n",me->curID, me->nextIn); */
-	return;
 }
