@@ -20,7 +20,7 @@
 /* The DEF/USE memory. */
 Stack* DEFedNodes=NULL;
 
-/* Our PROTOs */
+/* PROTOs definitions  */
 Stack* PROTOs=NULL;
 
 /* Parsing a specific type */
@@ -168,12 +168,19 @@ static void parser_scopeIn_DEFUSE()
   newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
  assert(!stack_empty(DEFedNodes));
 }
+
+/* PROTOs are scope by the parser in the PROTOs vector, and by the lexer in the userNodeTypesVec vector.  
+   This is accomplished by keeping track of the number of PROTOs defined so far in a the userNodeTypesStack.  
+   When a new scope is entered, the number of PROTOs defined up to this point is pushed onto the stack.  When
+   we leave the scope the number of PROTOs now defined is compared to the top value of the stack, and the newest
+   PROTOs are removed until the number of PROTOs defined equals the top value of the stack.
+
+   Management of the userNodeTypesStack is accomplished by the lexer.  Therefore, scoping in PROTOs for the parser
+   does nothing except to make sure that the PROTOs vector has been initialized. */ 
 static void parser_scopeIn_PROTO()
 {
-	/* printf("in parser_scopeIn_PROTO\n"); */
  if(!PROTOs) {
-	/* printf("making newVector for PROTOs ... \n"); */
-  PROTOs=newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE);
+  	PROTOs=newVector(struct ProtoDefinition*, DEFMEM_INIT_SIZE);
   }
 }
 
@@ -186,16 +193,19 @@ static void parser_scopeOut_DEFUSE()
  stack_pop(struct Vector*, DEFedNodes);
 }
 
+/* Scoping out of PROTOs.  Check the difference between the number of PROTO definitions currently 
+   available and the number of PROTO definitions available when we first entered this scope (this is
+   the top value on the userNodeTypesVec stack). Remove all PROTO definitions from the PROTOs list that have 
+   been added since we first entered this scope. */ 
 static void parser_scopeOut_PROTO()
 {
  indexT i;
  /* Do not delete the ProtoDefinitions, as they are referenced in the scene
   * graph!  TODO:  How to delete them properly? */
 
-  /* printf("lexer_getProtoPopCnt is %d\n", lexer_getProtoPopCnt()); */
-  /* printf("this comes from %d - %d\n", vector_size(userNodeTypesVec) - stack_top(size_t, userNodeTypesStack)); */
+   /* printf("parse_scopeOut_PROTO: popping %d from PROTOs list\n", lexer_getProtoPopCnt()); 
+   printf("	this comes from %d - %d\n", vector_size(userNodeTypesVec), stack_top(size_t, userNodeTypesStack));  */
  vector_popBackN(struct ProtoDefinition*, PROTOs, lexer_getProtoPopCnt());
- lexer_scopeOut_PROTO();
 }
 
 void parser_scopeIn()
@@ -227,10 +237,16 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
      If the node is a user-defined node (PROTO expansion) this will expand the PROTO (propagate
      all field values, and add all routes to the CRoute table), and returns a pointer to the
      root node of the scene graph for this PROTO */
+#ifdef CPARSERVERBOSE
+   printf("parser_vrmlScene: Try node\n");
+#endif
    if(parser_nodeStatement(me, &node))
    {
     /* Add the node just parsed to the ROOT node for this scene */
     addToNode(me->ptr, me->ofs, node);
+#ifdef CPARSERVERBOSE
+    printf("parser_vrmlScene: node parsed\n");
+#endif
     continue;
    }
   }
@@ -238,8 +254,16 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
   /* Try routeStatement */
   /* Checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations
    exist, and that they are compatible) and then adds the route to the CRoutes table of routes. */
-  if(parser_routeStatement(me))
-   continue;
+
+#ifdef CPARSERVERBOSE
+   printf("parser_vrmlScene: Try route\n");
+#endif
+  if(parser_routeStatement(me)) {
+#ifdef CPARSERVERBOSE
+    printf("parser_vrmlScene: route parsed\n");
+#endif
+    continue;
+  }
 
   /* Try protoStatement */
    /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
@@ -249,8 +273,15 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
       Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
       is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed (FIXME - BROKEN)!
     */
-  if(parser_protoStatement(me))
+#ifdef CPARSERVERBOSE
+   printf("parser_vrmlScene: Try proto\n");
+#endif
+  if(parser_protoStatement(me)) {
+#ifdef CPARSERVERBOSE
+   printf("parser_vrmlScene: route parsed\n");
+#endif
    continue;
+  }
 
   break;
  }
@@ -393,26 +424,21 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  if(!lexer_defineNodeType(me->lexer, &name))
   PARSE_ERROR("Expected nodeTypeId after PROTO!\n")
  assert(name!=ID_UNDEFINED);
-  /* printf("name is %d\n", name); */
 
  /* Create a new blank ProtoDefinition structure to contain the data for this PROTO */
  obj=newProtoDefinition();
-  /* printf("PROTOs is %d\n", PROTOs); */
 
  /* If the PROTOs stack has not yet been created, create it */
  if(!PROTOs) {
-	/* printf("calling scopeIn ... PROTO check failed?\n"); */
   	parser_scopeIn_PROTO();
   }
-
- /* printf("vector size is %d\n", vector_size(PROTOs)); */
 
  assert(PROTOs);
  /*  assert(name==vector_size(PROTOs)); */
 
  /* Add the empty ProtoDefinition structure we just created onto the PROTOs stack */
  vector_pushBack(struct ProtoDefinition*, PROTOs, obj);
-
+ 
  /* Now we want to fill in the information in the ProtoDefinition */
 
  /* Interface declarations */
@@ -441,7 +467,6 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  /* Also checks that the PROTOs vector exists, and creates it if it does not */
  /* FIXME: should handle local PROTO scope just like for DEFedNodes ... */
  parser_scopeIn();
- /* printf("should parse body here ... \n"); */
 
  /* Parse body */
  {
@@ -452,48 +477,56 @@ BOOL parser_protoStatement(struct VRMLParser* me)
   /* While we are able to parse nodes, routes, and protos, keep doing so */
   while(TRUE)
   {
-   /* printf("top of loop\n"); */
    {
     vrmlNodeT node;
     
     /* If we can successfully parse the next section of the file as a node statement, we do so and get a pointer 
        to the X3D_Node structure containing the values for the node. Then we add the node to the scene graph for
        this proto */
-    /* printf("try node .. \n"); */
+#ifdef CPARSERVERBOSE
+    printf("protoStatement: try node .. \n");
+#endif
     if(parser_nodeStatement(me, &node))
     {
      protoDefinition_addNode(obj, node);
-      /* printf("parsed node\n"); */
+#ifdef CPARSERVERBOSE
+      printf("protoStatement: parsed node\n");
+#endif
      continue;
     }
    }
 
    /*  Parse a ROUTE statement and add a new ProtoRoute structure to the routes vector of this ProtoDefinition */ 
-   /* printf("try ROUTE statement ...\n"); */
+#ifdef CPARSERVERBOSE
+   printf("protoStatement: try ROUTE statement ...\n");
+#endif
    if(parser_routeStatement(me)) {
-    /* printf("parsed route\n"); */
+#ifdef CPARSERVERBOSE
+    printf("protoStatement: parsed route\n");
+#endif
     continue;
    }
 
    /* Nested PROTO.  Parse the PROTO and add it to the PROTOs list */
-   /* printf("try protoStatement .. \n"); */
+#ifdef CPARSERVERBOSE
+   printf("protoStatement: try protoStatement .. \n");
+#endif
    /* A proto within a proto ....
       Parse the PROTO and add the ProtoDefinition to the PROTOs stack */
    if(parser_protoStatement(me)) {
-    /* printf("parsed proto\n"); */
+#ifdef CPARSERVERBOSE
+    printf("protoStatement: parsed proto\n");
+#endif
     continue;
    }
 
-   /* printf("calling break?\n"); */
    break;
   }
-  /* printf("out of loop\n"); */
 
   /* We are done parsing this proto.  Set the curPROTO to the last proto we were parsing. */
   me->curPROTO=oldCurPROTO;
  }
 
-  /* printf("calling scopeOut ..\n"); */
  /* Takes the top DEFedNodes vector off of the stack.  The local scope now refers to the next vector in the DEFedNodes stack */
  /* FIXME: also tries to do some vodoo with the PROTOs "stack" (popping off vectors), but as the stack is never used as a vector until now,
     this doesn't work. */
@@ -1011,7 +1044,7 @@ void parser_registerRoute(struct VRMLParser* me,
 /* Parses a nodeStatement */
 /* If the statement starts with DEF, and has not previously been defined, we add it to the userNodeNames and DEFedNodes vectors.  We parse the node
    and return a pointer to the node in ret.
-   If the statement is a USE statement, we look up the user-defined node name in the userNodeNamesVec vector and retrieve a pointer to the node from 
+   If the statement is a USE statement, we look up the user-defined node name in the userNodeTypesVec vector and retrieve a pointer to the node from 
    the DEFedNodes vector and return it in ret.
    Otherwise, this is just a regular node statement. We parse the node into a X3D_Node structure of the appropriate type, and return a pointer to 
    this structure in ret. 
@@ -1037,8 +1070,6 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   assert(DEFedNodes);
   assert(!stack_empty(DEFedNodes));
 
-  /* printf("ind is %d vector size is %d\n", ind, vector_size(stack_top(struct Vector*, DEFedNodes))); */
-
   /* Did we just add the name to the userNodeNames vector?  If so, then the node hasn't yet been added to the DEFedNodes vector, so add it */
   assert(ind<=vector_size(stack_top(struct Vector*, DEFedNodes)));
   if(ind==vector_size(stack_top(struct Vector*, DEFedNodes)))
@@ -1050,6 +1081,9 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 
   /* Parse this node.  Create an X3D_Node structure of the appropriate type for this node and fill in the values for the fields
      specified.  Add any routes to the CRoutes table. Add any PROTOs to the PROTOs vector */
+#ifdef CPARSERVERBOSE
+  printf("parser_nodeStatement: parsing DEFed node \n");
+#endif
   if(!parser_node(me, &node)) {
    	/* PARSE_ERROR("Expected node in DEF statement!\n") */
 	/* try to make a better error message. */
@@ -1061,6 +1095,9 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   	PARSER_FINALLY 
   	return FALSE; 
    }
+#ifdef CPARSERVERBOSE
+  printf("parser_nodeStatement: DEFed node successfully parsed\n");
+#endif
 
   /* Get a pointer to the node structure */
   /* Why?? */
@@ -1087,6 +1124,9 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
   if(!lexer_nodeName(me->lexer, &ind)) {
    PARSE_ERROR("Expected nodeNameId after USE!\n")
   }
+#ifdef CPARSERVERBOSE
+   printf("parser_nodeStatement: parsing USE\n");
+#endif
 
   /* If we're USEing it, it has to already be defined. */
   assert(ind!=ID_UNDEFINED);
@@ -1128,7 +1168,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
   /* lexer_node( ... ) #defined to lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec) where userNodeTypesVec is a list of PROTO defs */
   /* this will get the next token (which will be the node type) and search the NODES array for it.  If it is found in the NODES array nodeTypeB will be set to 
      the index of type in the NODES array.  If it is not in NODES, the list of user-defined nodes will be searched for the type.  If it is found in the user-defined 
-     list nodeTypeU will be set to the index of the type in userNodeNamesVec.  A return value of FALSE indicates that the node type wasn't found in either list */
+     list nodeTypeU will be set to the index of the type in userNodeTypesVec.  A return value of FALSE indicates that the node type wasn't found in either list */
  if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU))
   return FALSE;
 
@@ -1140,6 +1180,9 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  /* Node was found in NODES array */
  if(nodeTypeB!=ID_UNDEFINED)
  {
+#ifdef CPARSERVERBOSE
+  printf("parser_node: parsing builtin node\n");
+#endif
   struct Script* script=NULL;
  
   /* Get malloced struct of appropriate X3D_Node type with default values filled in */
@@ -1161,12 +1204,28 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
       to be processed) and stores it as the appropriate type in the node.
       For IS statements (i.e. position IS mypos) this adds the node-field combo (as an offsetPointer) to the dests list for the protoFieldDecl associated with the user
       defined field (in the given case, this would be mypos).  */
-   if(parser_field(me, node)) continue;
+#ifdef CPARSERVERBOSE
+   printf("parser_node: try parsing field ... \n");
+#endif
+   if(parser_field(me, node)) {
+#ifdef CPARSERVERBOSE
+        printf("parser_node: field parsed\n");
+#endif
+	continue;
+   }
 
    /* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
       exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
       ProtoDefinition->routes if we are parsing a PROTO */
-   if(parser_routeStatement(me)) continue;
+#ifdef CPARSERVERBOSE
+   printf("parser_node: try parsing ROUTE ... \n");
+#endif
+   if(parser_routeStatement(me))  {
+#ifdef CPARSERVERBOSE
+	printf("parser_node: ROUTE parsed\n");
+#endif
+	continue;
+   }
 
    /* Try to parse the next statement as a PROTO (i.e. statement starts with PROTO).  */
    /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
@@ -1176,7 +1235,16 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
       Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
       is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed (FIXME - BROKEN)!
     */
-   if(parser_protoStatement(me)) continue;
+#ifdef CPARSERVERBOSE
+   printf("parser_node: try parsing PROTO ... \n");
+#endif
+   if(parser_protoStatement(me)) {
+#ifdef CPARSERVERBOSE
+	printf("parser_node: PROTO parsed\n");
+#endif
+	continue;
+   }
+
    if(script && parser_interfaceDeclaration(me, NULL, script)) continue;
    break;
   }
@@ -1186,9 +1254,12 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
    script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
  }
  
- /* The node name was located in userNodeNamesVec (list of defined PROTOs), therefore this is an attempt to instantiate a PROTO */
+ /* The node name was located in userNodeTypesVec (list of defined PROTOs), therefore this is an attempt to instantiate a PROTO */
  else
  {
+#ifdef CPARSERVERBOSE
+  printf("parser_node: parsing user defined node\n");
+#endif
   struct ProtoDefinition* protoCopy;
 
   /* If this is a PROTO instantiation, then there must be at least one PROTO defined.  Also, the index retrieved for
@@ -1201,11 +1272,15 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
   protoCopy=protoDefinition_copy(vector_get(struct ProtoDefinition*,
    PROTOs, nodeTypeU));
 
+#ifdef CPARSERVERBOSE
+  printf("parser_node: expanding proto\n");
+#endif
+
   /* Parse all fields, routes, and PROTOs */
   /* Fields are parsed by setting the value of all destinations for this field to the value specified in the field statement */ 
   /* Routes are parsed by adding them to the CRoutes table */
   /* PROTOs are parsed by creating a new protoDefinition structure and adding it to the PROTOs vector, and adding the name to the 
-     userNodeNamesVec vector  */
+     userNodeTypesVec vector  */
 
   /* FIXME - there shouldn't be parser_protoStatement here ... should there?  */
   while(parser_protoField(me, protoCopy) ||
@@ -1329,6 +1404,9 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
   indexT fieldO, fieldE;
   struct ProtoFieldDecl* pField=NULL;
 
+#ifdef CPARSERVERBOSE
+  printf("parser_fieldValue: this is an IS statement\n");
+#endif
   /* If the field was found in the built in arrays of fields, then try to see if this is followed by a valid IS statement */
   /* Check that the part after IS consists of a valid user-defined eventIn/eventOut/exposed field and then add an Offset_Pointer struct (pointer to the node with the IS statement
     and an offset to the field that uses the IS) to the dests list of the fieldDeclaration structure of the proto */
@@ -1650,25 +1728,50 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  /* ************************** */
 
  /* We should be in a PROTO */
- if(!me->curPROTO)
-  return FALSE;
+ if(!me->curPROTO) {
+  return FALSE; 
+ }
 
  /* And finally the PROTO's event to be linked */
  /* lexer_eventIn is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_IN) */
  /* Look for the event name (current token) in the user_eventIn and user_exposedField vectors.  Return the index of the event name in pevO if it was found in the
     user_eventIn vector or in pevE if it was found in the user_exposedField vector. */
- if(isIn && lexer_eventIn(me->lexer, ptr, NULL, NULL, &pevO, &pevE))
+  /* printf("parser_fieldEventAfterISPart: looking for event in user_eventIn and user_exposedField\n"); */
+ if(isIn && lexer_eventIn(me->lexer, ptr, NULL, NULL, &pevO, &pevE)) {
   pevFound=TRUE;
+
+#ifdef CPARSERVERBOSE
+  if (pevO != ID_UNDEFINED)
+    printf("parser_fieldEventAfterISPart: found field in user_eventIn\n");
+
+  if (pevE != ID_UNDEFINED) 
+    printf("parser_fieldEventAfterISPart: found field in user_exposedField\n");
+  }
+#endif
 
  /* lexer_event in is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_OUT) */
  /* Look for the event name (current token) in the user_eventOut and user_exposedField vectors.  Return the index of the event name in pevO if it was found in the
     user_eventOut vector or in pevE if it was found in the user_exposedField vector. */
- else if(isOut && lexer_eventOut(me->lexer, ptr, NULL, NULL, &pevO, &pevE))
-  pevFound=TRUE;
+ else {
+  	/* printf("parser_fieldEventAfterISPart: looking for event in user_eventOut and user_exposedField\n"); */
+	if(isOut && lexer_eventOut(me->lexer, ptr, NULL, NULL, &pevO, &pevE)) {
+
+  		pevFound=TRUE;
+
+#ifdef CPARSERVERBOSE
+ 		if (pevO != ID_UNDEFINED) 
+ 			  printf("parser_fieldEventAfterISPart: found field in user_eventout\n");
+#endif
+	}
+ }
 
  /* If the event name was not found in the searched vectors return FALSE */
- if(!pevFound)
+ if(!pevFound) {
+#ifdef CPARSERVERBOSE
+  printf("parser_fieldEventAfterISPart: field name not found in user_eventIn, user_eventOut or user_exposedField\n");
+#endif
   return FALSE;
+  }
 
  /* Now, retrieve the ProtoFieldDecl. */
  /* If the event name is an exposedField */
