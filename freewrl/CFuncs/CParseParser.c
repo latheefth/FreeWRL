@@ -1292,6 +1292,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
      pair in the dests list), and puts all routes in the protoDefinition's route vector
      into the CRoutes table */
   node=protoDefinition_extractScene(protoCopy);
+  dump_scene(0, node);
   assert(node);
 
   /* Can't delete ProtoDefinition, it is referenced! */
@@ -1746,8 +1747,8 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
 
   if (pevE != ID_UNDEFINED) 
     printf("parser_fieldEventAfterISPart: found field in user_exposedField\n");
-  }
 #endif
+  }
 
  /* lexer_event in is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_OUT) */
  /* Look for the event name (current token) in the user_eventOut and user_exposedField vectors.  Return the index of the event name in pevO if it was found in the
