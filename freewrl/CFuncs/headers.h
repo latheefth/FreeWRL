@@ -163,6 +163,12 @@ extern char *GL_VEN;
 extern char *GL_VER;
 extern char *GL_REN;
 
+#define OCCLUSION
+#define VISIBILITYOCCLUSION
+#define TRANSFORMOCCLUSION
+#define SHAPEOCCLUSION
+#define STATICGROUPOCCLUSION
+/*
 #ifdef GL_VERSION_1_5
 #ifdef GL_ARB_occlusion_query
 #undef OCCLUSION
@@ -172,6 +178,8 @@ extern char *GL_REN;
 #undef STATICGROUPOCCLUSION
 #endif
 #endif
+
+*/
 
 #ifdef OCCLUSION
 
@@ -184,6 +192,8 @@ extern char *GL_REN;
 #define glGetQueryObjectiv(a,b,c) glGetQueryObjectivARB(a,b,c)
 #define glGetQueryObjectuiv(a,b,c) glGetQueryObjectuivARB(a,b,c)
 
+extern int OccQuerySize;
+extern int OccFailed;
 extern GLuint *OccQueries;
 extern void * *OccNodes;
 extern int *OccActive;
@@ -195,7 +205,7 @@ extern int QueryCount;
 #define BEGINOCCLUSIONQUERY \
 				if (render_geom) { \
                                 /* printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType( \
-                                                ((struct X3D_Box*) node->geometry)->_nodeType)); */ \
+                                                ((struct X3D_Box*) node->geometry)->_nodeType)); */\
                                 if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
 					OccActive[node->__OccludeNumber] = TRUE; \
 					if (OccNodes[node->__OccludeNumber] == 0) { \
@@ -207,7 +217,7 @@ extern int QueryCount;
 #define ENDOCCLUSIONQUERY \
 			if (render_geom) { \
                         if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
-				/* printf ("ending query for %d (%s)\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); */ \
+				printf ("ending query for %d (%s)\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); \
                                 glEndQuery(GL_SAMPLES_PASSED);   \
                         } }
 #endif

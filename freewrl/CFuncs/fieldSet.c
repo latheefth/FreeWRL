@@ -505,9 +505,11 @@ int findFieldInARR(char* field, const char** arr, size_t cnt)
 	int x;
 	int mystrlen;
 	
+	#ifdef SETFIELDVERBOSE
 	if (field[0] == '_') {
 		printf ("findFieldInFIELDNAMES - internal field %s\n",field);
 	}
+	#endif
 
 	mystrlen = strlen(field);
 	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
@@ -840,6 +842,9 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
         }
 
 	newlen = JSVAL_TO_INT(_v);
+
+	/* printf ("getMFStringType, newlen %d oldlen %d\n",newlen,oldlen); */
+
 
 	/*  if we have to expand size of SV... */
 	if (newlen > oldlen) {

@@ -16,6 +16,9 @@
 #include "installdir.h"
 #include "LinearAlgebra.h"
 
+/* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
+int candoVisibility = TRUE;
+
 void rendVisibilityBox (struct X3D_VisibilitySensor *node);
 
 
@@ -151,6 +154,15 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		if (!node) return;
 		if (!node->enabled) return;
+		if (!candoVisibility) return;
+
+		/* first time through, if we have a visibility sensor, but do not have the OpenGL ability to
+		   use it, we print up a console message */
+		if (OccFailed) {
+			candoVisibility = FALSE;
+			ConsoleMessage("VisibilitySensor: OpenGL on this machine does not support GL_ARB_occlusion_query");
+			return;
+		}
 
 		/* do we need to do some distance calculations? */
 		if (((!render_vp) && render_light)) {
@@ -164,10 +176,9 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 		if ((node->_renderFlags & VF_Blend) != VF_Blend)
 			update_renderFlag(node,VF_Blend);
 
-		if (render_blend) {
-
+		/*if (render_blend) { */
                         #ifdef VISIBILITYOCCLUSION
-			/* printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber); */
+			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);
 			BEGINOCCLUSIONQUERY
                         #endif
 
@@ -179,8 +190,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
                         #ifdef VISIBILITYOCCLUSION
 			ENDOCCLUSIONQUERY
                         #endif
-
-		}
+		/* } */
 
 }
 

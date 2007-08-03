@@ -93,7 +93,7 @@ void get_collisionoffset(double *x, double *y, double *z);
 struct SensStruct {
 	void *fromnode;
 	void *datanode;
-	void (*interpptr)(void *, int, int);
+	void (*interpptr)(void *, int, int, int);
 };
 struct SensStruct *SensorEvents = 0;
 int num_SensorEvents = 0;
@@ -153,7 +153,7 @@ void XEventStereo(void);
 void EventLoop(void);
 unsigned char*  rayHit(void);
 void get_hyperhit(void);
-void sendSensorEvents(unsigned char *COS,int ev, int status);
+void sendSensorEvents(unsigned char *COS,int ev, int butStatus, int status);
 Boolean firstTime;
 Boolean pluginRunning;
 Boolean inLoop;
@@ -384,27 +384,29 @@ void EventLoop() {
 		render_hier(rootNode,VF_Sensitive);
 		CursorOverSensitive = rayHit();
 
-		/* printf ("last pressed over %d cos %d\n", lastPressedOver, CursorOverSensitive); */
-
 		/* did we have a click of button 1? */
 		if (ButDown[1] && (lastPressedOver==0)) {
 			/*  printf ("Not Navigation and 1 down\n");*/
 			/* send an event of ButtonPress and isOver=true */
 			lastPressedOver = CursorOverSensitive;
-			sendSensorEvents(lastPressedOver, ButtonPress, TRUE);
+			sendSensorEvents(lastPressedOver, ButtonPress, ButDown[1], TRUE);
 		}
 
 		if ((ButDown[1]==0) && lastPressedOver) {
 			/*  printf ("Not Navigation and 1 up\n");*/
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
-			sendSensorEvents(lastPressedOver, ButtonRelease, TRUE);
+			sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
 			lastPressedOver = 0;
 		}
 
-		if ((lastMouseEvent == MotionNotify) && ButDown[1]) {
-			/*  printf ("Not Navigation and motion\n");*/
-			sendSensorEvents(lastPressedOver,MotionNotify, TRUE);
+		if (lastMouseEvent == MotionNotify) {
+			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
+			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
+			sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[1], TRUE);
+
+			/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
+			sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
 		}
 
 
@@ -421,8 +423,8 @@ void EventLoop() {
 			/* is this a new node that we are now over?
 			   don't change the node pointer if we are clicked down */
 			if ((lastPressedOver==0) && (CursorOverSensitive != oldCOS)) {
-				sendSensorEvents(oldCOS,MapNotify,FALSE);
-				sendSensorEvents(CursorOverSensitive,MapNotify,TRUE);
+				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+				sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[1], TRUE);
 				oldCOS=CursorOverSensitive;
 			}
 
@@ -444,7 +446,7 @@ void EventLoop() {
 
 			/* were we over a sensitive node? */
 			if (oldCOS!=0) {
-				sendSensorEvents(oldCOS,MapNotify,FALSE);
+				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
 				oldCOS=0;
 			}
 		}
@@ -986,10 +988,10 @@ void setSensitive(void *parentNode,void *datanode) {
 
 /* we have a sensor event changed, look up event and do it */
 /* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
-void sendSensorEvents(unsigned char * COS,int ev, int status) {
+void sendSensorEvents(unsigned char * COS,int ev, int butStatus, int status) {
 	int count;
 
-	/* printf ("sio, COS %d ev %d status %d\n",COS,ev,status); */
+	/* if we are not calling a valid node, dont do anything! */
 	if (COS==0) return;
 
 	for (count = 0; count < num_SensorEvents; count++) {
@@ -1006,7 +1008,7 @@ void sendSensorEvents(unsigned char * COS,int ev, int status) {
 			}
 
 
-			SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,status);
+			SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,butStatus, status);
 			/* return; do not do this, incase more than 1 node uses this, eg,
 				an Anchor with a child of TouchSensor */
 		}

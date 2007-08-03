@@ -641,8 +641,6 @@ SFColorRGBASetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	return JS_TRUE;
 }
 
-#define JSVRMLCLASSESVERBOSE
-
 JSBool
 SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -812,8 +810,6 @@ JSBool
 SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return doMFSetProperty(cx, obj, id, vp,"SFImageSetProperty");
 }
-
-#undef JSVRMLCLASSESVERBOSE
 
 /**********************************************************************************/
 
@@ -1498,7 +1494,6 @@ SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 	return JS_TRUE;
 }
 
-#define JSVRMLCLASSESVERBOSE
 JSBool
 SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
@@ -1518,22 +1513,17 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 		printf( "JS_GetPrivate failed in SFRotationToString.\n");
 		return JS_FALSE;
 	}
-printf ("past the get_private stuff\n");
 	memset(buff, 0, STRING);
 	sprintf(buff, "%.9g %.9g %.9g %.9g",
 			ptr->v.r[0], ptr->v.r[1], ptr->v.r[2], ptr->v.r[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
-printf ("got copyZ in SFRToString\n");
 
     *rval = STRING_TO_JSVAL(_str);
-printf ("got STRING_TO_JSVAL\n");
 	
 	REMOVE_ROOT (cx,ptr)
 	REMOVE_ROOT (cx,_str)
-printf ("returning from SFRTS\n");
     return JS_TRUE;
 }
-#undef JSVRMLCLASSESVERBOSE
 
 JSBool
 SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)

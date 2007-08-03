@@ -341,6 +341,9 @@ void do_OintCoord(void *node) {
 						interval * (kVs[thisone].c[tmp] -
 							kVs[prevone].c[tmp]);
 			}
+			#ifdef SEVERBOSE
+			printf ("	1 %d interval %f prev %f this %f final %f\n",1,interval,kVs[prevone].c[1],kVs[thisone].c[1],valchanged[indx].c[1]);
+			#endif
 		}
 		#ifdef SEVERBOSE
 		printf ("COINT out3 finished\n");
@@ -1006,7 +1009,7 @@ void do_MovieTextureTick( void *ptr) {
 
 *****************************************************************************/
 /* void do_GeoTouchSensor (struct X3D_GeoTouchSensor *node, int ev, int over) {*/
-void do_GeoTouchSensor ( void *ptr, int ev, int over) {
+void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 
 struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
 UNUSED(node);
@@ -1017,7 +1020,7 @@ UNUSED(over);
 
 
 /* void do_TouchSensor (struct X3D_TouchSensor *node, int ev, int over) {*/
-void do_TouchSensor ( void *ptr, int ev, int over) {
+void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
 	struct pt normalval;	/* different structures for normalization calls */
@@ -1050,8 +1053,7 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 		}
 
 		/* hitPoint and hitNormal */
-		memcpy ((void *) &node->hitPoint_changed,
-				(void *) &ray_save_posn,sizeof(struct SFColor));
+		memcpy ((void *) &node->hitPoint_changed, (void *) &ray_save_posn,sizeof(struct SFColor));
 		mark_event(ptr, offsetof (struct X3D_TouchSensor, hitPoint_changed));
 
 		/* have to normalize normal; change it from SFColor to struct pt. */
@@ -1067,7 +1069,7 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 }
 
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
-void do_PlaneSensor ( void *ptr, int ev, int over) {
+void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_PlaneSensor *node = (struct X3D_PlaneSensor *)ptr;
 	float mult, nx, ny;
 	struct SFColor tr;
@@ -1076,6 +1078,9 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 	UNUSED(over);
 
 	if (!node) return;
+
+	/* only do something when button pressed */
+	if (!but1) return;
 
 	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
@@ -1153,9 +1158,10 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 
 
 /* void do_Anchor (struct X3D_Anchor *node, int ev, int over) {*/
-void do_Anchor ( void *ptr, int ev, int over) {
+void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_Anchor *node = (struct X3D_Anchor *)ptr;
 	UNUSED(over);
+	UNUSED(but1);
 
 	if (!node) return;
 	if (ev==ButtonPress) {
@@ -1168,7 +1174,7 @@ void do_Anchor ( void *ptr, int ev, int over) {
 
 
 /* void do_CylinderSensor (struct X3D_CylinderSensor *node, int ev, int over) {*/
-void do_CylinderSensor ( void *ptr, int ev, int over) {
+void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_CylinderSensor *node = (struct X3D_CylinderSensor *)ptr;
 	float rot, radius, ang, length;
 	double det, pos, neg, temp;
@@ -1178,6 +1184,10 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 	UNUSED(over);
 
 	if (!node) return;
+
+	/* only do something if the button is pressed */
+	if (!but1) return;
+
 
 	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
@@ -1310,7 +1320,7 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 
 
 /* void do_SphereSensor (struct X3D_SphereSensor *node, int ev, int over) {*/
-void do_SphereSensor ( void *ptr, int ev, int over) {
+void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_SphereSensor *node = (struct X3D_SphereSensor *)ptr;
 	int tmp;
 	float tr1sq, tr2sq, tr1tr2;
@@ -1322,6 +1332,9 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 	UNUSED(over);
 
 	if (!node) return;
+
+	/* only do something if button1 is pressed */
+	if (!but1) return;
 
 	if (ev==ButtonPress) {
 		/* record the current position from the saved position */

@@ -18,6 +18,8 @@
 #include "OpenGL_Utils.h"
 #include <setjmp.h>
 
+#undef TEXVERBOSE
+
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
                 return;	\
@@ -239,6 +241,7 @@ void releaseTexture(struct X3D_Node *node) {
 	}
 	#endif
 	ti = getTableIndex(tableIndex);
+	ti->status = TEX_NOTLOADED;
 	if (ti->OpenGLTexture != NULL) {
 		glDeleteTextures(ti->frames, ti->OpenGLTexture);
 		FREE_IF_NZ(ti->OpenGLTexture);
@@ -936,7 +939,6 @@ char *texst (int num) {
 	return "unknown";
 }
 #endif
-
 
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \

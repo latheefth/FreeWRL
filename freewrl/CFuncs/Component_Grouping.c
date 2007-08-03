@@ -527,7 +527,6 @@ void child_Transform (struct X3D_Transform *node) {
                                                 node->_nodeType));
 			
 
-                                if (node->__OccludeNumber > maxShapeFound) maxShapeFound = node->__OccludeNumber;
                                 if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < OccQuerySize)) {
 					OccActive[node->__OccludeNumber] = TRUE;
 					if (OccNodes[node->__OccludeNumber] == 0) {
