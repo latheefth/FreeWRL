@@ -165,6 +165,7 @@ struct ProtoDefinition
  struct Vector* routes; /* Inner ROUTEs */
  struct Vector* innerPtrs; /* Pointers to pointers which need to be updated */
  struct Vector* scripts; /* any imbedded scripts here? */
+ struct Vector* nestedProtoFields; /* Are there any nested proto fields in this proto?  (see comments for struct NestedProtoField) */
 };
 
 /* Constructor and destructor */
@@ -242,5 +243,33 @@ void pointerHash_add(struct PointerHash*, struct X3D_Node*, struct X3D_Node*);
 
 /* JAS - make a copy of a script in a PROTO, and give it a new number */
 void registerScriptInPROTO (struct X3D_Script *scr,struct ProtoDefinition* new);
+
+/* This structure holds information about a nested proto reference. That is to say, when a we have an instantiation
+   of a proto within another proto definition, and two user defined fields are linked to each other in an IS statement.
+   PROTO Proto1 [
+	field SFFloat myvalue 0.1
+  ] {
+	DEF MAT Material { shininess IS myvalue }	
+  }
+  PROTO Proto2 [
+	field SFFloat secondvalue 0.5
+  ] { 
+	DEF MAT2 Proto1 { myvalue IS secondvalue } 
+  {
+
+  In this case, we need the dests for myvalue must be replicated for secondvalue, but the references to nodes must be for the nodes in the proto expansion of Proto1, 
+  not references to nodes in Proto1 itself.  We accomplish this by traversing the scenegraph of the original proto and the proto expansion simultaneously and mapping
+  all of the nodes on the dests list of myvalue to the equivalent nodes in the proto expansion.  
+
+  The NestedProtoFields structure is used when parsing a nested proto expansion in order to keep track of all instances of linked user defined fields so that the dests
+  lists may be adjusted appropriately when parsing is finalised for the node. */
+struct NestedProtoField 
+{
+   struct ProtoDefinition* origProto;
+   struct ProtoFieldDecl* origField;
+   struct ProtoFieldDecl* localField;
+};
+
+void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 
 #endif /* Once-check */

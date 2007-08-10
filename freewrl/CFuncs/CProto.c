@@ -18,6 +18,7 @@
 struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
 {
  struct OffsetPointer* ret=MALLOC(sizeof(struct OffsetPointer));
+ /* printf("creating offsetpointer %p\n", ret); */
  assert(ret);
 
  ret->node=node;
@@ -37,6 +38,7 @@ struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
 struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
 {
  struct ProtoFieldDecl* ret=MALLOC(sizeof(struct ProtoFieldDecl));
+  /* printf("creating ProtoFieldDecl %p\n", ret); */
  ret->mode=mode;
  ret->type=type;
  ret->name=name;
@@ -171,9 +173,10 @@ struct ProtoDefinition* newProtoDefinition()
  ret->routes=newVector(struct ProtoRoute*, 4);
  assert(ret->routes);
 
- ret->innerPtrs=NULL;
+ ret->nestedProtoFields = newVector(struct NestedProtoField*, 4);
+ assert(ret->nestedProtoFields);
 
-	printf("returning new blank proto def\n");
+ ret->innerPtrs=NULL;
 
  return ret;
 }
@@ -235,6 +238,7 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
  size_t i;
  assert(ret);
 
+
  /* Copy interface */
  ret->iface=newVector(struct ProtoFieldDecl*, vector_size(me->iface));
  assert(ret->iface);
@@ -252,6 +256,9 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
  /* Fill inner pointers */
  ret->innerPtrs=NULL;
  protoDefinition_fillInnerPtrs(ret);
+
+ ret->nestedProtoFields = newVector(struct NestedProtoField*, 4);
+ assert(ret->nestedProtoFields);
 
  /* Copy the scene graph and fill the fields thereby */
  ret->tree=protoDefinition_deepCopy(me->tree, ret, NULL);
@@ -276,16 +283,45 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
 struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
 {
  size_t i;
+ size_t j;
  struct X3D_Group* ret=me->tree;
+ struct NestedProtoField* nestedField;
+ struct OffsetPointer* toCopy;
  assert(ret);
  me->tree=NULL;
 
+ struct OffsetPointer* copy=MALLOC(sizeof(struct OffsetPointer));
+
+ /* First check if there are any nested proto fields.  If there are, we need to go through the dests list for the original field and
+    translate the node pointers to pointers that are valid for the proto expansion.  We add these translated pointers and their 
+    offsets to the dest list for the local field. */
+ for (i=0; i<vector_size(me->nestedProtoFields); i++) {
+	nestedField = vector_get(struct NestedProtoField*, me->nestedProtoFields, i);
+	struct ProtoDefinition* origProto;
+   	struct ProtoFieldDecl* origField;
+	struct ProtoFieldDecl* localField;
+	struct X3D_Node* localTree;
+	struct X3D_Node* origTree;
+	origProto = nestedField->origProto;
+	origField = nestedField->origField;
+	localField = nestedField->localField;
+	localTree = (struct X3D_Node*) ret;
+	origTree = (struct X3D_Node*) origProto->tree;
+	for (j=0; j<vector_size(origField->dests); j++) {
+		toCopy = vector_get(struct OffsetPointer*, origField->dests, j);
+		getEquivPointer(toCopy, copy, origTree, localTree);
+		vector_pushBack(struct OffsetPointer*, localField->dests, copy);
+		/* printf("copied offset pointer %p %u to equivalent %p %u\n", toCopy->node, toCopy->ofs, copy->node, copy->ofs);  */
+	}
+  }
+	
  /* Finish all fields now */
  /* If we haven't already done so, call protoFieldDecl_setValue for this field.
     This will only happen if no value for the field was parsed (i.e. a default value must be used).
     This will go through the dests vector for this field, and set the value of each dest to the default value.
      (Note that the first element of the dests vector is actually assigned the value of "val".  While
      subsequent elements of the dests vector have a DEEPCOPY of the "val" assigned (if appropriate). */
+	/* printf("calling protoField setvalue/finish ...\n"); */
  for(i=0; i!=vector_size(me->iface); ++i)
   protoFieldDecl_finish(vector_get(struct ProtoFieldDecl*, me->iface, i));
 
@@ -484,6 +520,10 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
 void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
 {
  size_t i;
+ struct OffsetPointer* myptr;
+
+  /* printf("calling set value for field %p\n", me); */
+
 
  assert(!me->alreadySet);
  me->alreadySet=TRUE;
@@ -496,10 +536,15 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
  }
 
  /* Otherwise, assign first target to val */
+/* 
+    printf("got myptr %p\n", myptr); \ 
+    printf("setting node %p offset %u\n", myptr->node, myptr->ofs); \
+*/
  switch(me->type)
  {
   #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
+    myptr = vector_get(struct OffsetPointer*, me->dests, 0); \
     *offsetPointer_deref(vrml##ttype##T*, \
      vector_get(struct OffsetPointer*, me->dests, 0))=val->type; \
     break;
@@ -523,6 +568,7 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
   {
    #define SF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
+    myptr = vector_get(struct OffsetPointer*, me->dests, i); \
      *offsetPointer_deref(vrml##ttype##T*, \
       vector_get(struct OffsetPointer*, me->dests, i))= \
       DEEPCOPY_##type(val->type, NULL, NULL); \
@@ -549,11 +595,19 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
  struct ProtoFieldDecl* ret=newProtoFieldDecl(me->mode, me->type, me->name);
  size_t i;
  ret->alreadySet=FALSE;
+ struct OffsetPointer* temp;
+ struct OffsetPointer* temp2;
 
+
+  /* printf("copying decl %p to %p\n", me, ret); */
  /* Copy destination pointers */
- for(i=0; i!=vector_size(me->dests); ++i)
+ for(i=0; i!=vector_size(me->dests); ++i) {
   vector_pushBack(struct OffsetPointer*, ret->dests,
    offsetPointer_copy(vector_get(struct OffsetPointer*, me->dests, i)));
+   temp = vector_get(struct OffsetPointer*, me->dests, i);
+   temp2 = vector_get(struct OffsetPointer*, ret->dests, i);
+   /* printf("copied offset pointer (%p) %p %u to (%p) %p %u\n", temp, temp->node, temp->ofs, temp2, temp2->node, temp2->ofs); */
+  }
 
  /* Copy default value */
  switch(me->type)
@@ -639,4 +693,19 @@ void pointerHash_add(struct PointerHash* me,
  entry.copy=c;
 
  vector_pushBack(struct PointerHashEntry, me->data[pos], entry);
+}
+
+
+struct NestedProtoField* newNestedProtoField(struct ProtoDefinition* origProto, struct ProtoFieldDecl* origField, struct ProtoFieldDecl* localField)
+{
+ struct NestedProtoField* ret = MALLOC(sizeof(struct NestedProtoField));
+ assert(ret);
+
+ /* printf("creating nested field %p with values %p %p %p\n", ret, origField, localField, origProto); */
+
+ ret->origField=origField;
+ ret->localField = localField;
+ ret->origProto = origProto;
+
+ return ret;
 }

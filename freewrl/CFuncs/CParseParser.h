@@ -12,6 +12,7 @@
 #include "CParseLexer.h"
 
 struct ProtoDefinition;
+struct ProtoFieldDecl;
 struct Script;
 struct OffsetPointer;
 
@@ -95,7 +96,7 @@ BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
 BOOL parser_fieldEvent(struct VRMLParser*, struct X3D_Node*);
 BOOL parser_fieldEventAfterISPart(struct VRMLParser*, struct X3D_Node*,
  BOOL isIn, BOOL isOut, indexT, indexT);
-BOOL parser_protoField(struct VRMLParser*, struct ProtoDefinition*);
+BOOL parser_protoField(struct VRMLParser*, struct ProtoDefinition*, struct ProtoDefinition*);
 
 /* Initializes node-specific fields */
 void parser_specificInitNode(struct X3D_Node*);
@@ -105,10 +106,12 @@ void parser_registerRoute(struct VRMLParser*,
  struct X3D_Node*, unsigned, struct X3D_Node*, unsigned, size_t, int);
 
 /* Parses a field value of a certain type (literally or IS) */
-BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT,
- indexT fieldE);
+BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT, indexT, BOOL, struct ProtoDefinition*, struct ProtoDefinition*, struct ProtoFieldDecl*);
 
 /* Main parsing routine, parses the start symbol (vrmlScene) */
 BOOL parser_vrmlScene(struct VRMLParser*);
 
+/*
+void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
+*/
 #endif /* Once-check */
