@@ -75,33 +75,7 @@ void prep_Transform (struct X3D_Transform *node) {
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 	/* do we have any geometry visible, and are we doing anything with geometry? */
-/*
-#define VF_hasVisibleChildren                   0x0100
-#define VF_removeHasVisibleChildren             0xFEFF
-#define VF_hasGeometryChildren                  0x0200
-#define VF_hasBeenScannedForGeometryChildren    0x0400
-*/
-	#ifdef TRANSFORMOCCLUSION
-	if (render_geom | render_sensitive) {
-		printf ("Trans %d, rg and rd ",node);
-		printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
-		if (node->_renderFlags & VF_hasBeenScannedForGeometryChildren) {
-			printf ("node, hasScaned Gild\n");
-
-			if ((node->_renderFlags & VF_hasVisibleChildren) == 0) {
-				printf ("WOW - we do NOT need to do this transform!\n");
-				return;
-			}
-
-		}
-	}
-	#endif
-/*
-	if ((render_geom | render_sensitive) & node->_renderFlags & VF_hasBeenScannedForGeometryChildren) {
-		printf ("Transform, %d, geom %d sens %d no need to go down here\n",node,render_geom, render_sensitive);
-	}
-*/
+	BEGINOCCLUSIONTEST
 
 	if(!render_vp) {
                 /* glPushMatrix();*/
@@ -167,22 +141,8 @@ void prep_Transform (struct X3D_Transform *node) {
 
 
 void fin_Transform (struct X3D_Transform *node) {
-	#ifdef TRANSFORMOCCLUSION
-	if (render_geom | render_sensitive) {
-		printf ("FIN Trans %d, rg and rd ",node);
-		printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-			render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
-		if (node->_renderFlags & VF_hasBeenScannedForGeometryChildren) {
-			printf ("FIN node, hasScaned Gild\n");
+	FINISHOCCLUSIONTEST
 
-			if ((node->_renderFlags & VF_hasVisibleChildren) == 0) {
-				printf ("FIN WOW - we do NOT need to do this transform!\n");
-				return;
-			}
-
-		}
-	}
-	#endif
         if(!render_vp) {
             /* glPopMatrix();*/
             fwXformPop(node);
@@ -521,20 +481,6 @@ void child_Transform (struct X3D_Transform *node) {
 		propagateExtent((struct X3D_Box*)node);
 		BOUNDINGBOX
 
-                        #ifdef TRANSFORMOCCLUSION
-			
-                                printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType(
-                                                node->_nodeType));
-			
-
-                                if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < OccQuerySize)) {
-					OccActive[node->__OccludeNumber] = TRUE;
-					if (OccNodes[node->__OccludeNumber] == 0) {
-						OccNodes[node->__OccludeNumber] = node;
-					}
-                                        /* glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]);  */
-                                }
-                        #endif
 	}
 
 

@@ -17,12 +17,12 @@
 #include <math.h>
 #include "headers.h"
 
+#undef OCCLUSIONVERBOSE
 
 /* Occlusion VisibilitySensor code */
-#ifdef OCCLUSION
 GLuint *OccQueries = NULL;
 void* *OccNodes = NULL;
-int *OccActive = NULL;
+int *OccInvisibleCount = NULL;
 GLint *OccSamples = NULL;
 
 int maxOccludersFound = 0;
@@ -30,8 +30,7 @@ int OccQuerySize=0;
 int QueryCount = 0;
 GLint queryCounterBits;
 int OccInitialized = FALSE;
-static int OccFailed = FALSE;
-#endif
+int OccFailed = FALSE;
 
 /* take the measurements of a geometry (eg, box), and save it. Note
  * that what is given is a Shape, the values get pushed up to the
@@ -230,8 +229,6 @@ void recordDistance(struct X3D_Transform *nod) {
 void OcclusionStartofEventLoop() {
 	int i;
 
-        #ifdef OCCLUSION
-
 	/* did we have a failure here ? */
 	if (OccFailed) return;
 
@@ -239,7 +236,9 @@ void OcclusionStartofEventLoop() {
 	if (OccInitialized == FALSE) {
         	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS));  */
         	if (strstr((const char *)glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
-        	        /* printf ("have OcclusionQuery\n"); */
+			#ifdef OCCLUSIONVERBOSE
+        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
+			#endif
 
 
 			/* we make the OccQuerySize larger than the maximum number of occluders,
@@ -247,62 +246,71 @@ void OcclusionStartofEventLoop() {
 			OccQuerySize = maxOccludersFound + 1000;
 			OccQueries = MALLOC (sizeof(int) * OccQuerySize);
 			OccNodes = MALLOC (sizeof (void *) * OccQuerySize);
-			OccActive = MALLOC (sizeof (int) * OccQuerySize);
+			OccInvisibleCount = MALLOC (sizeof (int) * OccQuerySize);
 			OccSamples = MALLOC (sizeof (int) * OccQuerySize);
                 	glGenQueries(OccQuerySize,OccQueries);
 			OccInitialized = TRUE;
 			for (i=0; i<OccQuerySize; i++) {
 				OccNodes[i] = 0;
 				OccSamples[i]=0;
+				OccInvisibleCount[i]=0;
 			}
 			QueryCount = maxOccludersFound; /* for queries - we can do this number */
+			#ifdef OCCLUSIONVERBOSE
+			printf ("QueryCount now %d\n",QueryCount);
+			#endif
 
         	} else {
+			#ifdef OCCLUSIONVERBOSE
+        	        printf ("OcclusionStartofEventLoop: DO NOT have OcclusionQuery\n"); 
+			#endif
+
 			/* we dont seem to have this extension here at runtime! */
 			/* this happened, eg, on my Core4 AMD64 box with Mesa	*/
 			OccFailed = TRUE;
+			return;
 		}
 
 	}
 
-	/* can we do OcclusionQueries? */
-	if (!OccInitialized) return;
-
 	/* did we find more shapes than before? */
-        if (maxOccludersFound > OccQuerySize) {
-                /* printf ("have to regen queries\n"); */
-		QueryCount = 0;
+	if (maxOccludersFound > QueryCount) {
+        	if (maxOccludersFound > OccQuerySize) {
+        	        /* printf ("have to regen queries\n"); */
+			QueryCount = 0;
 
-		/* possibly previous had zero occluders, lets just not bother deleting for zero */
-		if (OccQuerySize > 0) {
-			glDeleteQueries (OccQuerySize, OccQueries);
-			glFlush();
-		}
+			/* possibly previous had zero occluders, lets just not bother deleting for zero */
+			if (OccQuerySize > 0) {
+				glDeleteQueries (OccQuerySize, OccQueries);
+				glFlush();
+			}
 
-		OccQuerySize = maxOccludersFound + 1000;
-		OccQueries = REALLOC (OccQueries,sizeof (int) * OccQuerySize);
-		OccNodes = REALLOC (OccNodes,sizeof (void *) * OccQuerySize);
-		OccActive = REALLOC (OccActive,sizeof (int) * OccQuerySize);
-		OccSamples = REALLOC (OccSamples,sizeof (int) * OccQuerySize);
-                glGenQueries(OccQuerySize,OccQueries);
-		for (i=0; i<OccQuerySize; i++) {
-			OccNodes[i] = 0;
-			OccSamples[i]=0;
+			OccQuerySize = maxOccludersFound + 1000;
+			OccQueries = REALLOC (OccQueries,sizeof (int) * OccQuerySize);
+			OccNodes = REALLOC (OccNodes,sizeof (void *) * OccQuerySize);
+			OccInvisibleCount = REALLOC (OccInvisibleCount,sizeof (int) * OccQuerySize);
+			OccSamples = REALLOC (OccSamples,sizeof (int) * OccQuerySize);
+        	        glGenQueries(OccQuerySize,OccQueries);
+			for (i=0; i<OccQuerySize; i++) {
+				OccNodes[i] = 0;
+				OccSamples[i]=0;
+			}
 		}
 		QueryCount = maxOccludersFound; /* for queries - we can do this number */
+		#ifdef OCCLUSIONVERBOSE
+		printf ("QueryCount here is %d\n",QueryCount);
+		#endif
 
        }
 
-        /* glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &queryCounterBits);
-        printf ("queryCounterBits %d\n",queryCounterBits); */
+	#ifdef OCCLUSIONVERBOSE
+        glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &queryCounterBits);
+        printf ("queryCounterBits %d\n",queryCounterBits);
         #endif
 }
 
 
 void OcclusionCulling ()  {
-
-
-	#ifdef OCCLUSION
 	int i;
 	int maxcount;
 	struct X3D_Shape *xx;
@@ -310,6 +318,12 @@ void OcclusionCulling ()  {
 	/* did we have some problem with Occlusion ? */
 	if (OccFailed) return;
 
+	/* Step 1. go through list of assigned nodes, and REMOVE the VF_hasVisibleChildren flag. */
+	zeroVisibilityFlag();
+	 
+	/* Step 2. go through the list of "OccludeCount" nodes, and determine if they are visible. 
+	   If they are not, then, we have to, at some point, make them visible, so that we can test again. */
+ 
 	for (i=0; i<=QueryCount; i++) {
 	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &OccSamples[i]);
 		if (OccNodes[i] != 0) {
@@ -317,71 +331,65 @@ void OcclusionCulling ()  {
 
 			/* if this is a VisibilitySensor, record the samples */
 			if (xx->_nodeType == NODE_VisibilitySensor) {
-				/* printf ("vis found\n"); */
 				((struct X3D_VisibilitySensor *)xx)->__Samples =  OccSamples[i]; 
+				#ifdef OCCLUSIONVERBOSE
+				printf ("OcclusionCulling, found VisibilitySensor at %d, fragments %d active %d\n",i,OccSamples[i],OccInvisibleCount[i]);
+				#endif
 			}
 
 
 			/* is this is Shape? */
 			else if (xx->_nodeType == NODE_Shape) {
-	        		printf ("Occ %d fragments %d active %d ",i,OccSamples[i],OccActive[i]);
-				printf (" nodeType %s",stringNodeType(xx->_nodeType));
-				xx = (struct X3D_Shape *) xx->geometry;
-				if (xx != 0) {
-					printf (" (%s)",stringNodeType(xx->_nodeType));
-				}
-				printf ("\n");
+				#ifdef OCCLUSIONVERBOSE
+	        		printf ("OcclusionCulling, Shape found,  %d OccSamples %d OccInvisibleCount %d\n",i,OccSamples[i],OccInvisibleCount[i]);
+				#endif
 
+				/* is this node visible? If so, tell the parents! */
 				if (OccSamples[i] > 0) {
-					update_renderFlag (xx,VF_hasVisibleChildren  |
-							VF_hasGeometryChildren  |
-							VF_hasBeenScannedForGeometryChildren);
+					update_renderFlag (xx,VF_hasVisibleChildren);
+					OccInvisibleCount[i] = OccSamples[i];
 				} else {
-					update_renderFlag (xx,
-							VF_hasGeometryChildren |
-							VF_hasBeenScannedForGeometryChildren);
-				}
-							
-			}
-		}
-	
-		for (i=0; i<=QueryCount; i++) {
-			if (OccNodes[i] != 0) {
-				xx = (struct X3D_Shape *) OccNodes[i];
-		
-				if (xx->_nodeType == NODE_Transform) {
-		        		printf ("Occ %d fragments %d active %d ",i,OccSamples[i],OccActive[i]);
-					printf (" nodeType %s",stringNodeType(xx->_nodeType));
-					printf (" %d renderFlags (",xx,xx->_renderFlags);
-					if (xx->_renderFlags & VF_hasGeometryChildren) printf (" GEOM ");
-					if (xx->_renderFlags & VF_hasVisibleChildren) printf (" VIS ");
-					if (xx->_renderFlags & VF_hasBeenScannedForGeometryChildren) printf (" SCANNED ");
-					printf (")\n");
-	
-					/* remove the hasVisibleChildren flag */
-					xx->_renderFlags = xx->_renderFlags & VF_removeHasVisibleChildren;
+					/* has this just gone invisible? */
+					if (OccInvisibleCount[i] > 0) 
+						OccInvisibleCount[i] = 0; 
 				}
 			}
-			OccActive[i] = FALSE;
 		}
 	}
-	#endif
+
+	/* determine if we should try a node again */
+	for (i=0; i<QueryCount; i++) {
+		/* printf ("VisibleCount for %d is %d\n",i,OccInvisibleCount[i]);  */
+		(OccInvisibleCount[i])--;
+		/* once in a while, try to see if any of these are visible. Stagger
+		   tries, so we don't oscillate. (note the last term, below */
+		/* if (OccInvisibleCount[i] < -(32 + (i&0x0f))) { */
+		if (OccInvisibleCount[i] < -(i&0x01f)) {
+			xx = (struct X3D_Shape *) OccNodes[i];
+			OccInvisibleCount[i] = 0;
+			if (xx != 0) {
+				update_renderFlag(xx,VF_hasVisibleChildren);
+				/* printf ("OcclusionCulling, node %d is invisible, trying it again\n",i); */
+			}
+		}
+	}
 }
 
 int newOcclude() {
 	int retval;
-	#ifdef OCCLUSION
+	if (!OccFailed) {
 		retval = maxOccludersFound;
 		maxOccludersFound ++;
-	#else
+	} else {
 		retval = 0;
-	#endif	
+	}
 	return retval;
 }
 
 /* shut down the occlusion stuff */
-#ifdef OCCLUSION
 void zeroOcclusion(void) {
+	if (OccFailed) return;
+
 	QueryCount = 0;
 	glDeleteQueries (OccQuerySize, OccQueries);
 	glFlush();
@@ -390,7 +398,6 @@ void zeroOcclusion(void) {
 	maxOccludersFound = 0;
 	FREE_IF_NZ(OccQueries);
 	FREE_IF_NZ(OccNodes);
-	FREE_IF_NZ(OccActive);
+	FREE_IF_NZ(OccInvisibleCount);
 	FREE_IF_NZ(OccSamples);
 }
-#endif

@@ -367,9 +367,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 
 	if (loadedFromURL) {
 		/* occlusion testing - zero total count, but keep MALLOC'd memory around */
-		#ifdef OCCLUSION
 		zeroOcclusion();
-		#endif
 
 		/* clock events - stop them from ticking */
 		kill_clockEvents();
@@ -459,6 +457,20 @@ void increaseMemoryTable(){
 	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(memoryTable) );
 	/*printf("increasing memory table=%d\n",sizeof(memoryTable));*/
 }
+
+/* zero the Visibility flag in all nodes */
+void zeroVisibilityFlag(void) {
+	struct X3D_Node* node;
+	int i;
+
+	for (i=0; i<nextEntry; i++){		
+		node = (struct X3D_Node*)memoryTable[i];		
+		/* printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); */
+		node->_renderFlags = node->_renderFlags & VF_removeHasVisibleChildren;
+	}
+
+}
+
 
 /*delete node created*/
 void kill_X3DNodes(void){

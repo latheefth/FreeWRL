@@ -155,6 +155,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
+void zeroVisibilityFlag(void);
 void setField_fromJavascript (uintptr_t *ptr, char *field, char *value);
 unsigned int setField_method2 (char *ptr);
 void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
@@ -165,23 +166,7 @@ extern char *GL_REN;
 
 #define OCCLUSION
 #define VISIBILITYOCCLUSION
-#define TRANSFORMOCCLUSION
 #define SHAPEOCCLUSION
-#define STATICGROUPOCCLUSION
-/*
-#ifdef GL_VERSION_1_5
-#ifdef GL_ARB_occlusion_query
-#undef OCCLUSION
-#undef VISIBILITYOCCLUSION
-#undef TRANSFORMOCCLUSION
-#undef SHAPEOCCLUSION
-#undef STATICGROUPOCCLUSION
-#endif
-#endif
-
-*/
-
-#ifdef OCCLUSION
 
 #define glGenQueries(a,b) glGenQueriesARB(a,b)
 #define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
@@ -196,31 +181,46 @@ extern int OccQuerySize;
 extern int OccFailed;
 extern GLuint *OccQueries;
 extern void * *OccNodes;
-extern int *OccActive;
 extern GLint *OccSamples;
 int newOcclude(void);
 void zeroOcclusion(void);
 extern int QueryCount;
+
+#define BEGINOCCLUSIONTEST \
+        if (render_geom | render_sensitive) { \
+                if ((node->_renderFlags & VF_hasVisibleChildren) == 0) { \
+                        /* printf ("WOW - we do NOT need to do this transform!\n"); */ \
+                        return; \
+                } \
+        } 
+
+
+#define FINISHOCCLUSIONTEST \
+        if (render_geom | render_sensitive) { \
+                if ((node->_renderFlags & VF_hasVisibleChildren) == 0) { \
+                        /* printf ("FIN WOW - we do NOT need to do this transform!\n"); */ \
+                        return; \
+                } \
+        }
+
 
 #define BEGINOCCLUSIONQUERY \
 				if (render_geom) { \
                                 /* printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType( \
                                                 ((struct X3D_Box*) node->geometry)->_nodeType)); */\
                                 if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
-					OccActive[node->__OccludeNumber] = TRUE; \
+					/* Occlude table is large enough now to add this entry */ \
 					if (OccNodes[node->__OccludeNumber] == 0) { \
 						OccNodes[node->__OccludeNumber] = node; \
 					} \
-/* printf ("beginning quert for %d %s\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); */ \
                                         glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]); \
                                 } }
 #define ENDOCCLUSIONQUERY \
 			if (render_geom) { \
                         if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
-				printf ("ending query for %d (%s)\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); \
+				/* printf ("ending query for %d (%s)\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); */ \
                                 glEndQuery(GL_SAMPLES_PASSED);   \
                         } }
-#endif
 
 /* bounding box calculations */
 #define EXTENTTOBBOX    node->bboxSize.c[0] = node->EXTENT_MAX_X; \
