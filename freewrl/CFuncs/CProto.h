@@ -258,14 +258,12 @@ void registerScriptInPROTO (struct X3D_Script *scr,struct ProtoDefinition* new);
   {
 
   In this case, we need the dests for myvalue must be replicated for secondvalue, but the references to nodes must be for the nodes in the proto expansion of Proto1, 
-  not references to nodes in Proto1 itself.  We accomplish this by traversing the scenegraph of the original proto and the proto expansion simultaneously and mapping
-  all of the nodes on the dests list of myvalue to the equivalent nodes in the proto expansion.  
+  not references to nodes in Proto1 itself.  We accomplish this by copying the dests list for the proto field after the proto has been expanded.
 
   The NestedProtoFields structure is used when parsing a nested proto expansion in order to keep track of all instances of linked user defined fields so that the dests
   lists may be adjusted appropriately when parsing is finalised for the node. */
 struct NestedProtoField 
 {
-   struct ProtoDefinition* origProto;
    struct ProtoFieldDecl* origField;
    struct ProtoFieldDecl* localField;
 };

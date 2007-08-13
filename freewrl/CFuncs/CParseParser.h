@@ -106,7 +106,7 @@ void parser_registerRoute(struct VRMLParser*,
  struct X3D_Node*, unsigned, struct X3D_Node*, unsigned, size_t, int);
 
 /* Parses a field value of a certain type (literally or IS) */
-BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT, indexT, BOOL, struct ProtoDefinition*, struct ProtoDefinition*, struct ProtoFieldDecl*);
+BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT, indexT, BOOL, struct ProtoDefinition*, struct ProtoFieldDecl*);
 
 /* Main parsing routine, parses the start symbol (vrmlScene) */
 BOOL parser_vrmlScene(struct VRMLParser*);

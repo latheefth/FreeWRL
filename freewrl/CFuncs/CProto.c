@@ -287,29 +287,22 @@ struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
  struct X3D_Group* ret=me->tree;
  struct NestedProtoField* nestedField;
  struct OffsetPointer* toCopy;
+ struct OffsetPointer* copy;
  assert(ret);
+
  me->tree=NULL;
 
- struct OffsetPointer* copy=MALLOC(sizeof(struct OffsetPointer));
-
  /* First check if there are any nested proto fields.  If there are, we need to go through the dests list for the original field and
-    translate the node pointers to pointers that are valid for the proto expansion.  We add these translated pointers and their 
-    offsets to the dest list for the local field. */
+    copy the offset pointers into the dests list for the local field. */
  for (i=0; i<vector_size(me->nestedProtoFields); i++) {
 	nestedField = vector_get(struct NestedProtoField*, me->nestedProtoFields, i);
-	struct ProtoDefinition* origProto;
    	struct ProtoFieldDecl* origField;
 	struct ProtoFieldDecl* localField;
-	struct X3D_Node* localTree;
-	struct X3D_Node* origTree;
-	origProto = nestedField->origProto;
 	origField = nestedField->origField;
 	localField = nestedField->localField;
-	localTree = (struct X3D_Node*) ret;
-	origTree = (struct X3D_Node*) origProto->tree;
 	for (j=0; j<vector_size(origField->dests); j++) {
 		toCopy = vector_get(struct OffsetPointer*, origField->dests, j);
-		getEquivPointer(toCopy, copy, origTree, localTree);
+		copy = newOffsetPointer(toCopy->node, toCopy->ofs);
 		vector_pushBack(struct OffsetPointer*, localField->dests, copy);
 		/* printf("copied offset pointer %p %u to equivalent %p %u\n", toCopy->node, toCopy->ofs, copy->node, copy->ofs);  */
 	}
@@ -696,7 +689,7 @@ void pointerHash_add(struct PointerHash* me,
 }
 
 
-struct NestedProtoField* newNestedProtoField(struct ProtoDefinition* origProto, struct ProtoFieldDecl* origField, struct ProtoFieldDecl* localField)
+struct NestedProtoField* newNestedProtoField(struct ProtoFieldDecl* origField, struct ProtoFieldDecl* localField)
 {
  struct NestedProtoField* ret = MALLOC(sizeof(struct NestedProtoField));
  assert(ret);
@@ -705,7 +698,6 @@ struct NestedProtoField* newNestedProtoField(struct ProtoDefinition* origProto, 
 
  ret->origField=origField;
  ret->localField = localField;
- ret->origProto = origProto;
 
  return ret;
 }

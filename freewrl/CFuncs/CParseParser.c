@@ -1376,7 +1376,7 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct 
      as if passed a node pointer with an offset of 0 - placing the value into the anyVrml union. */
    /*** FIXME:  WE ARE STORING val (local variable) with offset 0 in the dests array ***/
    /* We need to store offsetpointer(p->tree, ) */
-  if(!parser_fieldValue(me, newOffsetPointer(&val, 0), field->type, ID_UNDEFINED, TRUE, p, op, field))
+  if(!parser_fieldValue(me, newOffsetPointer(&val, 0), field->type, ID_UNDEFINED, TRUE, p, field))
    PARSE_ERROR("Expected value of field after fieldId!")
 
   /* Go throught the dests vector for this field, and set the value of each dest to this value.  
@@ -1402,7 +1402,7 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 /* Passed pointer to the parser, an offsetPointer structure pointing to the current node and an offset to the field being parsed, type of the event value (i.e. MFString) index in FIELDTYPES, */
 /* index of the field in the FIELDNAMES (or equivalent) array */
 BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
- indexT type, indexT origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoDefinition* opdef, struct ProtoFieldDecl* origField)
+ indexT type, indexT origFieldE, BOOL protoExpansion, struct ProtoDefinition* pdef, struct ProtoFieldDecl* origField)
 {
  #undef PARSER_FINALLY
  #define PARSER_FINALLY \
@@ -1469,11 +1469,11 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
 
 	  We also need to make the dests list for anotheruserdefinedfield point to all
           of the same places as userdefinedfield did. We do this when the scene for the proto is extracted after all fields have been parsed by
-	  going through the list of nestedProtoFields and mapping their dests to valid dests in the proto expansion.  This nested field is
-	  added to the nestedProtoFields list below. */
+	  going through the list of nestedProtoFields and copying all of the dests for userdefinedfield into the dests list for
+	  anotheruserdefinedfield.  This nested field is added to the nestedProtoFields list below. */
 
  struct NestedProtoField* nestedField;
- nestedField = newNestedProtoField(opdef, origField, pField);
+ nestedField = newNestedProtoField(origField, pField);
  vector_pushBack(struct NestedProtoField*, pdef->nestedProtoFields, nestedField);
 
  switch(pField->type)
@@ -1628,7 +1628,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
   case exposed##FIELD_##field: \
    if(!parser_fieldValue(me, \
     newOffsetPointer(X3D_NODE(node2), offsetof(struct X3D_##node, var)), \
-    FTIND_##fieldType, fe, FALSE, NULL, NULL, NULL)) \
+    FTIND_##fieldType, fe, FALSE, NULL, NULL)) \
     PARSE_ERROR("Expected " #fieldType "Value!") \
    INIT_CODE_##fieldType(var) \
    return TRUE;

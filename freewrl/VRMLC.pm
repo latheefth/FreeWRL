@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.273  2007/08/13 18:05:34  sdumoulin
+# Fixed nested protos
+#
 # Revision 1.272  2007/08/10 18:03:20  sdumoulin
 # Added function to parse a scene graph in search for a specific node in order to create an equivalent offset pointer in a protoexpansionn
 #
@@ -826,46 +829,6 @@ sub gen {
 
 	push @genFuncs2, " } spacer printf (\"L%d end\\n\",level); if (level == 0) printf (\"ending dump_scene\\n\"); }\n\n";
 	
-	#####################################################################
-	# create a routine to dump scene graph. 
-
-	push @genFuncs2,
-	"/* Search a scene graph for a particular node.  */\n".
-	"void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode) {\n".
-	"	struct OffsetPointer* newPointer;".
-	"	int i;\n".
-	"	struct X3D_Node* node;\n".
-	" 	if (origPointer->node == origProtoNode) {\n".
-	"		ret->node = curProtoNode;\n".
-	"		ret->ofs = origPointer->ofs;\n".
-	"	} else {\n".
-	"	node = origPointer->node;\n".
-	"	switch (node->_nodeType) {\n";
-
-	for my $node (@sortedNodeList) {
-		push @genFuncs2, "		case NODE_$node : {\n";
-		push @genFuncs2, "			struct X3D_$node *tmp;\n";
-		push @genFuncs2, "			struct X3D_$node *tmp2;\n";
-		push @genFuncs2, "			tmp = (struct X3D_$node *) origProtoNode;\n";
-		push @genFuncs2, "			tmp2 = (struct X3D_$node *) curProtoNode;\n";
- 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
-			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
-			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-			if (($fk eq "field") ||($fk eq "exposedField")) {
-				if ($ft eq "MFNode") {
-                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { getEquivPointer(origPointer, ret,tmp->$field.p[i], tmp2->$field.p[i]); }\n";
-				} elsif ($ft eq "SFNode") {
-					push @genFuncs2, "\t\t\tgetEquivPointer(origPointer, ret, tmp->$field, tmp2->$field);\n";
-				}
-			}
-		}
-
-		push @genFuncs2, "		break;}\n";
-	}
-	push @genFuncs2, "		default: {}\n";
-
-	push @genFuncs2, " } } }\n\n";
-
 	#####################
 	# create an array for each node. The array contains the following:
 	# const int OFFSETS_Text[
