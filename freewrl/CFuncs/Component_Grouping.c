@@ -75,7 +75,7 @@ void prep_Transform (struct X3D_Transform *node) {
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 	/* do we have any geometry visible, and are we doing anything with geometry? */
-	BEGINOCCLUSIONTEST
+	OCCLUSIONTEST
 
 	if(!render_vp) {
                 /* glPushMatrix();*/
@@ -90,7 +90,6 @@ void prep_Transform (struct X3D_Transform *node) {
 			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
 			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
 			node->_dlchange = node->_change;
-			node->_renderFlags = node->_renderFlags & 0x00FF; /* remove Occlusion flags */
 		}
 
 		/* TRANSLATION */
@@ -141,7 +140,7 @@ void prep_Transform (struct X3D_Transform *node) {
 
 
 void fin_Transform (struct X3D_Transform *node) {
-	FINISHOCCLUSIONTEST
+	OCCLUSIONTEST
 
         if(!render_vp) {
             /* glPopMatrix();*/
@@ -360,6 +359,9 @@ void child_Group (struct X3D_Group *node) {
 
 void child_Transform (struct X3D_Transform *node) {
 	int nc = (node->children).n;
+
+	OCCLUSIONTEST
+
 	DIRECTIONAL_LIGHT_SAVE
 
 	/* any children at all? */

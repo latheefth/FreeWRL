@@ -315,11 +315,13 @@ void OcclusionCulling ()  {
 	int maxcount;
 	struct X3D_Shape *xx;
 	
-	/* did we have some problem with Occlusion ? */
-	if (OccFailed) return;
-
-	/* Step 1. go through list of assigned nodes, and REMOVE the VF_hasVisibleChildren flag. */
+	/* Step 0. go through list of assigned nodes, and either:
+		- if we have OcclusionQueries: REMOVE the VF_hasVisibleChildren flag;
+		- else, set every node to VF_hasVisibleChildren */
 	zeroVisibilityFlag();
+
+	/* Step 1. did we have some problem with Occlusion ? */
+	if (OccFailed) return;
 	 
 	/* Step 2. go through the list of "OccludeCount" nodes, and determine if they are visible. 
 	   If they are not, then, we have to, at some point, make them visible, so that we can test again. */
@@ -359,17 +361,27 @@ void OcclusionCulling ()  {
 
 	/* determine if we should try a node again */
 	for (i=0; i<QueryCount; i++) {
-		/* printf ("VisibleCount for %d is %d\n",i,OccInvisibleCount[i]);  */
+		#ifdef OCCLUSIONVERBOSE
+		printf ("VisibleCount for %d is %d\n",i,OccInvisibleCount[i]);
+		#endif
+
 		(OccInvisibleCount[i])--;
+
 		/* once in a while, try to see if any of these are visible. Stagger
 		   tries, so we don't oscillate. (note the last term, below */
-		/* if (OccInvisibleCount[i] < -(32 + (i&0x0f))) { */
-		if (OccInvisibleCount[i] < -(i&0x01f)) {
+
+		if (OccInvisibleCount[i] < -(16+ (i&0x0f))) {
 			xx = (struct X3D_Shape *) OccNodes[i];
 			OccInvisibleCount[i] = 0;
+			#ifdef OCCLUSIONVERBOSE
+			printf ("resetting VisibleCount to 0 for %d because it is less than %d; node %d\n",i,-(16+ (i&0x0f)),xx);
+			#endif
+
 			if (xx != 0) {
 				update_renderFlag(xx,VF_hasVisibleChildren);
-				/* printf ("OcclusionCulling, node %d is invisible, trying it again\n",i); */
+				#ifdef OCCLUSIONVERBOSE
+				printf ("OcclusionCulling, node %d is invisible, trying it again\n",i);
+				#endif
 			}
 		}
 	}

@@ -176,21 +176,24 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 		if ((node->_renderFlags & VF_Blend) != VF_Blend)
 			update_renderFlag(node,VF_Blend);
 
-		/*if (render_blend) { */
+		if (render_blend) { 
                         #ifdef VISIBILITYOCCLUSION
+			#ifdef SEVERBOSE
 			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);
+			#endif
 			BEGINOCCLUSIONQUERY
-                        #endif
+			
+			LIGHTING_OFF
 
 			DISABLE_CULL_FACE 
 			rendVisibilityBox(node);
-
+			
+			ENABLE_CULL_FACE
 			LIGHTING_ON
-
-                        #ifdef VISIBILITYOCCLUSION
+			
 			ENDOCCLUSIONQUERY
                         #endif
-		/* } */
+		}
 
 }
 
@@ -241,8 +244,12 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 		*pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z;
 	}
 
+	/*
 	glColorMask (0,0,0,0);
+	*/
 
+
+	glColor4f(0.0, 1.0, 0.0, 0.0);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
@@ -250,8 +257,9 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	glDrawArrays (GL_QUADS, 0, 24);
-
+	/*
 	glColorMask (1,1,1,1);
+	*/
 }
 
 
@@ -263,9 +271,10 @@ void do_VisibilitySensorTick (void *ptr) {
 	if (!node->enabled) return;
 	if (node->__OccludeNumber <0) return;
 
-
-#ifdef OCCLUSION
-	/* printf ("visibilitytick... %d\n",node->__Samples); */
+	#ifdef SEVERBOSE
+	printf ("do_VisibilitySensorTick, samples %d\n",node->__samples);
+	#endif
+	
 	if (node->__Samples > 0) {
 		/* we are here... */
                 if (!node->isActive) {
@@ -293,9 +302,4 @@ void do_VisibilitySensorTick (void *ptr) {
 		}
 	}
 
-	/*
-	printf ("doVisibilitySensorTick...\n");
-	printf ("do_VisibilitySensorTick, samples %d\n",node->__samples);
-	*/
-#endif
 }

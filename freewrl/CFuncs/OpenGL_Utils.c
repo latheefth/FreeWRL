@@ -462,13 +462,38 @@ void increaseMemoryTable(){
 void zeroVisibilityFlag(void) {
 	struct X3D_Node* node;
 	int i;
+	int ocnum;
 
-	for (i=0; i<nextEntry; i++){		
-		node = (struct X3D_Node*)memoryTable[i];		
-		/* printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); */
-		node->_renderFlags = node->_renderFlags & VF_removeHasVisibleChildren;
+	ocnum=-1;
+
+	/* do we have GL_ARB_occlusion_query? */
+	if (!OccFailed) {
+		/* we do... lets zero the hasVisibleChildren flag */
+		for (i=0; i<nextEntry; i++){		
+			node = (struct X3D_Node*)memoryTable[i];		
+			/* printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); */
+			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
+	
+			/* do we have a tie in here for node-name? */
+			if (node->_nodeType == NODE_Shape) ocnum = ((struct X3D_Shape *)node)->__OccludeNumber;
+			if (node->_nodeType == NODE_VisibilitySensor) ocnum = ((struct X3D_VisibilitySensor*)node)->__OccludeNumber;
+			if ((ocnum>=0) & (ocnum < OccQuerySize)) {
+				if (OccNodes[ocnum]==0) {
+					/* printf ("zeroVis, recording occlude %d as %d was %d\n",ocnum,node,OccNodes[ocnum]); */
+					OccNodes[ocnum]=(void *)node;
+				}
+				ocnum=-1;
+			
+			}
+		}			
+	} else {
+		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
+		   and hope that, sometime, the user gets a good computer graphics card */
+		for (i=0; i<nextEntry; i++){		
+			node = (struct X3D_Node*)memoryTable[i];		
+			node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
+		}	
 	}
-
 }
 
 

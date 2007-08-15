@@ -122,7 +122,6 @@ extern struct CRStruct *CRoutes;
 #define VF_Collision 	0x0040
 
 #define VF_hasVisibleChildren 			0x0100
-#define VF_removeHasVisibleChildren		0xFEFF
 #define VF_hasGeometryChildren 			0x0200
 #define VF_hasBeenScannedForGeometryChildren	0x0400
 
@@ -186,33 +185,27 @@ int newOcclude(void);
 void zeroOcclusion(void);
 extern int QueryCount;
 
-#define BEGINOCCLUSIONTEST \
-        if (render_geom | render_sensitive) { \
+#define OCCLUSIONTEST \
+	/* a value of ZERO means that it HAS visible children - helps with initialization */ \
+        if ((render_geom!=0) | (render_sensitive!=0)) { \
+		/* printf ("node %d fl %x\n",node, node->_renderFlags & VF_hasVisibleChildren); */ \
                 if ((node->_renderFlags & VF_hasVisibleChildren) == 0) { \
-                        /* printf ("WOW - we do NOT need to do this transform!\n"); */ \
+                        /* printf ("WOW - we do NOT need to do this transform %x!\n",(node->_renderFlags & VF_hasVisibleChildren)); */ \
                         return; \
                 } \
         } 
 
 
-#define FINISHOCCLUSIONTEST \
-        if (render_geom | render_sensitive) { \
-                if ((node->_renderFlags & VF_hasVisibleChildren) == 0) { \
-                        /* printf ("FIN WOW - we do NOT need to do this transform!\n"); */ \
-                        return; \
-                } \
-        }
-
-
 #define BEGINOCCLUSIONQUERY \
 				if (render_geom) { \
                                 /* printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType( \
-                                                ((struct X3D_Box*) node->geometry)->_nodeType)); */\
+                                                ((struct X3D_Box*) node)->_nodeType)); */ \
                                 if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
 					/* Occlude table is large enough now to add this entry */ \
-					if (OccNodes[node->__OccludeNumber] == 0) { \
+					/* now done elsewhere if (OccNodes[node->__OccludeNumber] == 0) { \
+						printf ("recording node number for occlude query\n"); \
 						OccNodes[node->__OccludeNumber] = node; \
-					} \
+					} */ \
                                         glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]); \
                                 } }
 #define ENDOCCLUSIONQUERY \
