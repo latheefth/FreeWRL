@@ -131,7 +131,7 @@ double BrowserFPS = 0.0;	/* calculated FPS		*/
 double BrowserSpeed = 0.0;	/* calculated movement speed	*/
 
 #ifdef PROFILE
-static double timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;
+static double timeAA, timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;
 #endif
 
 int trisThisLoop;
@@ -206,7 +206,7 @@ void EventLoop() {
         }
 	#endif
 
-	/* printf ("start of MainLoop\n");*/
+	/* printf ("start of MainLoop\n"); */
 	#ifdef PROFILEMARKER
 	glTranslatef(1,1,1); glTranslatef (-1,-1,-1);
 	#endif
@@ -226,7 +226,7 @@ void EventLoop() {
 		lastTime = TickTime;
 		#ifdef PROFILE
 		/* printf ("time setup for debugging\n"); */ 
-		timeA = timeB = timeC = timeD = timeE = timeF =0.0;
+		timeAA = timeA = timeB = timeC = timeD = timeE = timeF =0.0;
 		#endif
 	} else {
 		/*  rate limit ourselves to about 65fps.*/
@@ -246,14 +246,13 @@ void EventLoop() {
 		/* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
 
 		#ifdef PROFILE
-		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
-		/* printf ("times %lf %lf %lf %lf %lf %lf\n",
-				timeA,timeB,
-				timeC, timeD,
-				timeE,timeF); */
-				/* timeA/oxf*100.0,timeB/oxf*100.0,*/
-				/* timeC/oxf*100.0, timeD/oxf*100.0,*/
-				/* timeE/oxf*100.0,timeF/oxf*100.0);*/
+		oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;
+		if (oxf > 0.01) 
+		printf ("times beg:%lf eve:%lf handle_tick:%lf render_pre:%lf do_first:%lf render:%lf ending:%lf\n",
+				timeAA/oxf*100.0,
+				timeA/oxf*100.0,timeB/oxf*100.0,
+				timeC/oxf*100.0, timeD/oxf*100.0,
+				timeE/oxf*100.0,timeF/oxf*100.0);
 		#endif
 		BrowserStartTime = TickTime;
 		loop_count = 1;
@@ -263,9 +262,13 @@ void EventLoop() {
 
 	trisThisLoop = 0;
 
+	#ifdef PROFILE
+	gettimeofday (&mytime,&tz);
+	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	timeAA = (double)timeAA +  (double)xxf - TickTime;
+	#endif
 	/* should we do events, or maybe Perl is parsing? */
 	doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
-/*printf ("doe %d at %f\n",doEvents,TickTime);*/
 
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {
@@ -318,8 +321,9 @@ void EventLoop() {
 
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
+	oxf = xxf;
 	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-	timeA = (double)timeA +  (double)xxf - TickTime;
+	timeA = (double)timeA +  (double)xxf - oxf;
 	#endif
 
 	/* Viewer move viewpoint */

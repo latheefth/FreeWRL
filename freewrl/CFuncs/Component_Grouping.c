@@ -48,12 +48,6 @@ void prep_Group (struct X3D_Group *node) {
 	 examine mode, sensitive node code is not rendered. So, we choose
 	 the second-last pass. ;-) */
 
-	if (node->_change != node->_dlchange) {
-		node->_dlchange = node->_change;
-	
-		/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-		if (node->children.n > 1) sortChildren(node->children);
-	}
 
         if (render_light) {
 		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
@@ -89,16 +83,13 @@ void prep_Transform (struct X3D_Transform *node) {
 
 		/* might we have had a change to a previously ignored value? */
 		if (node->_change != node->_dlchange) {
-			/* printf ("re-rendering for %d\n",node); */
+			/* printf ("re-rendering for %d\n",node);*/
 			node->__do_center = verify_translate ((GLfloat *)node->center.c);
 			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
 			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
 			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
 			node->_dlchange = node->_change;
-	
-			/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-			if (node->children.n > 1) sortChildren(node->children);
 		}
 
 		/* TRANSLATION */
@@ -250,6 +241,9 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 
 
 
+	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
+	if ((nc > 1)  && !render_blend) sortChildren(node->children);
+
 	/* do we have a DirectionalLight for a child? */
 	if(node->has_light) {
 		#ifdef CHILDVERBOSE
@@ -323,6 +317,9 @@ void child_Group (struct X3D_Group *node) {
 			#endif
 			return;
 		}
+
+	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
+	if ((!node->__protoDef) && (nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(node->has_light) {
@@ -447,6 +444,8 @@ void child_Transform (struct X3D_Transform *node) {
 #ifdef XXBOUNDINGBOX
 	if (node->PIV > 0) {
 #endif
+	/* do we have to sort this node? */
+	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(node->has_light) {

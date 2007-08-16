@@ -178,6 +178,7 @@ extern char *GL_REN;
 
 extern int OccQuerySize;
 extern int OccFailed;
+extern int *OccCheckCount;
 extern GLuint *OccQueries;
 extern void * *OccNodes;
 extern GLint *OccSamples;
@@ -198,22 +199,20 @@ extern int QueryCount;
 
 #define BEGINOCCLUSIONQUERY \
 				if (render_geom) { \
-                                /* printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType( \
-                                                ((struct X3D_Box*) node)->_nodeType)); */ \
                                 if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
 					/* Occlude table is large enough now to add this entry */ \
-					/* now done elsewhere if (OccNodes[node->__OccludeNumber] == 0) { \
-						printf ("recording node number for occlude query\n"); \
-						OccNodes[node->__OccludeNumber] = node; \
-					} */ \
-                                        glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]); \
-                                } }
+					if (OccCheckCount[node->__OccludeNumber]<0) {\
+                                        	glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]); \
+						/* printf ("beginning query for %d\n",node->__OccludeNumber); */ \
+					}}} 
+
 #define ENDOCCLUSIONQUERY \
 			if (render_geom) { \
                         if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < QueryCount)) { \
-				/* printf ("ending query for %d (%s)\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); */ \
-                                glEndQuery(GL_SAMPLES_PASSED);   \
-                        } }
+					if (OccCheckCount[node->__OccludeNumber]<0) {\
+                                		glEndQuery(GL_SAMPLES_PASSED);   \
+						/* printf ("ending query for %d\n",node->__OccludeNumber); */ \
+					}}} 
 
 /* bounding box calculations */
 #define EXTENTTOBBOX    node->bboxSize.c[0] = node->EXTENT_MAX_X; \
