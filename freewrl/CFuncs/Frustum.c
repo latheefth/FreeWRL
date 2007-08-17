@@ -31,7 +31,7 @@
 
 /* how many samples of a Shape are needed before it becomes visible? If it is too
    small, don't worry about displaying it */
-#define OCCSHAPESAMPLESIZE	10
+#define OCCSHAPESAMPLESIZE	8
 
 
 /* Occlusion VisibilitySensor code */

@@ -5,7 +5,13 @@ For 1.19.7:
 
 	- EXTERNPROTOS should be working in "classic" VRML Parser
 
-	- Javascript - mfColor, etc, now produce an event on creation.
+	- PROTO IS fields now can be nested, and now work properly with SCRIPTS 
+
+	- use GL_ARB_occlusion_query for visibility culling, and VisibilitySensors.
+	  Computers that do not have GL_ARB_occlusion_query will not have a 
+	  functioning VisibilitySensor.
+
+	- Mipmap textures (PixelTexture and ImageTexture only)
 
 For 1.19.6:
 	- MidiControl - work on event routing of values (Strings changed, etc).

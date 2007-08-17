@@ -844,29 +844,35 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		x = me->x;
 		y = me->y;
 
-		/* Image should be GL_LINEAR for pictures, GL_NEAREST for pixelTs */
-		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
-		if ((x<=256) || (y<=256)) {
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		/* Mipmap PixelTextures and ImageTextures, NOT MovieTextures */
+		if (me->frames == 1) {
+			/* must be a PixelTexture or ImageTexture */
+			/* choose smaller images to be NEAREST, larger ones to be LINEAR */
+			if ((x<=256) || (y<=256)) {
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			} else {
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			}
+
 		} else {
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			/* Must be a MovieTexture */
+			/* choose smaller images to be NEAREST, larger ones to be LINEAR */
+			if ((x<=256) || (y<=256)) {
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			} else {
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			}
 		}
 	
 		switch (depth) {
-			case 1: iformat = GL_LUMINANCE;
-				format = GL_LUMINANCE;
-				break;
-			case 2: iformat = GL_LUMINANCE_ALPHA;
-				format = GL_LUMINANCE_ALPHA;
-				break;
-			case 3: iformat = GL_RGB;
-				format = GL_RGB;
-				break;
-			default: iformat = GL_RGBA;
-				format = GL_RGBA;
-				break;
+			case 1: iformat = GL_LUMINANCE; format = GL_LUMINANCE; break;
+			case 2: iformat = GL_LUMINANCE_ALPHA; format = GL_LUMINANCE_ALPHA; break;
+			case 3: iformat = GL_RGB; format = GL_RGB; break;
+			default: iformat = GL_RGBA; format = GL_RGBA; break;
 		}
 	
 		/* do the image. */
@@ -891,8 +897,11 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	
 			}
 	
-			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format,
-				     GL_UNSIGNED_BYTE, dest);
+			/* again, Mipmap only if we have Pixel or ImageTextures */
+			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+			if (me->frames==1) 
+				gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
+
 			if((mytexdata) != dest) FREE_IF_NZ(dest);
 	
 		}
