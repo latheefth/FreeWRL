@@ -93,7 +93,7 @@ void get_collisionoffset(double *x, double *y, double *z);
 struct SensStruct {
 	void *fromnode;
 	void *datanode;
-	void (*interpptr)(void *, int, int, int);
+	void (*interpptr)(void *, int, int, int, int *);
 };
 struct SensStruct *SensorEvents = 0;
 int num_SensorEvents = 0;
@@ -110,6 +110,10 @@ double farPlane=21000.0;
 double screenRatio=1.5;
 double fieldofview=45.0;
 
+/* Umut Sezen's changes for Sensored nodes:  A sensor like (TouchSensor) is included in a group.
+   The browser mouse functionality (like rotation) is disabled whether the sensor is enabled or not. This
+   patch fixes the problem by enabling the browser mouse functionality when the sensors are all disabled. */
+int all_sensitivity_nodes_disabled = TRUE;
 
 unsigned char * CursorOverSensitive=0;		/*  is Cursor over a Sensitive node?*/
 unsigned char * oldCOS=0;			/*  which node was cursor over before this node?*/
@@ -153,7 +157,7 @@ void XEventStereo(void);
 void EventLoop(void);
 unsigned char*  rayHit(void);
 void get_hyperhit(void);
-void sendSensorEvents(unsigned char *COS,int ev, int butStatus, int status);
+int sendSensorEvents(unsigned char *COS,int ev, int butStatus, int status);
 Boolean firstTime;
 Boolean pluginRunning;
 Boolean inLoop;
@@ -393,24 +397,24 @@ void EventLoop() {
 			/*  printf ("Not Navigation and 1 down\n");*/
 			/* send an event of ButtonPress and isOver=true */
 			lastPressedOver = CursorOverSensitive;
-			sendSensorEvents(lastPressedOver, ButtonPress, ButDown[1], TRUE);
+			all_sensitivity_nodes_disabled = sendSensorEvents(lastPressedOver, ButtonPress, ButDown[1], TRUE);
 		}
 
 		if ((ButDown[1]==0) && lastPressedOver) {
 			/*  printf ("Not Navigation and 1 up\n");*/
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
-			sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
+			all_sensitivity_nodes_disabled = sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
 			lastPressedOver = 0;
 		}
 
 		if (lastMouseEvent == MotionNotify) {
 			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
 			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-			sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[1], TRUE);
+			all_sensitivity_nodes_disabled = sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[1], TRUE);
 
 			/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-			sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
+			all_sensitivity_nodes_disabled = sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
 		}
 
 
@@ -427,8 +431,8 @@ void EventLoop() {
 			/* is this a new node that we are now over?
 			   don't change the node pointer if we are clicked down */
 			if ((lastPressedOver==0) && (CursorOverSensitive != oldCOS)) {
-				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
-				sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[1], TRUE);
+				all_sensitivity_nodes_disabled = sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+				all_sensitivity_nodes_disabled = sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[1], TRUE);
 				oldCOS=CursorOverSensitive;
 			}
 
@@ -450,7 +454,7 @@ void EventLoop() {
 
 			/* were we over a sensitive node? */
 			if (oldCOS!=0) {
-				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+				all_sensitivity_nodes_disabled = sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
 				oldCOS=0;
 			}
 		}
@@ -586,11 +590,10 @@ void handle_Xevents(XEvent event) {
 			if (event.xbutton.button>=5) break;  /* bounds check*/
 			ButDown[event.xbutton.button] = (event.type == ButtonPress);
 
-			/* if we are Not over a sensitive node, and we do NOT
+			/* if we are Not over an enabled sensitive node, and we do NOT
 			   already have a button down from a sensitive node... */
 			/* printf("cursoroversensitive is %d\n", CursorOverSensitive); */
-			if ((CursorOverSensitive==0) &&
-					(lastPressedOver==0))  {
+			if (all_sensitivity_nodes_disabled || ((CursorOverSensitive==0) && (lastPressedOver==0)))  {
 				NavigationMode=ButDown[1] || ButDown[3];
 				handle (event.type,event.xbutton.button,
 					(float) ((float)event.xbutton.x/screenWidth),
@@ -992,8 +995,9 @@ void setSensitive(void *parentNode,void *datanode) {
 
 /* we have a sensor event changed, look up event and do it */
 /* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
-void sendSensorEvents(unsigned char * COS,int ev, int butStatus, int status) {
+int sendSensorEvents(unsigned char * COS,int ev, int butStatus, int status) {
 	int count;
+	int disabled = TRUE;
 
 	/* if we are not calling a valid node, dont do anything! */
 	if (COS==0) return;
@@ -1012,11 +1016,12 @@ void sendSensorEvents(unsigned char * COS,int ev, int butStatus, int status) {
 			}
 
 
-			SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,butStatus, status);
+			SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,butStatus, status, &disabled);
 			/* return; do not do this, incase more than 1 node uses this, eg,
 				an Anchor with a child of TouchSensor */
 		}
 	}
+	return disabled;
 }
 
 
@@ -1562,7 +1567,7 @@ void freewrlDie (const char *format) {
 void handle_aqua(const int mev, const unsigned int button, const float x, const float y) {
         if ((mev == ButtonPress) || (mev == ButtonRelease))
         {
-                if ((CursorOverSensitive ==0) && (lastPressedOver ==0)) {
+                if (all_sensitivity_nodes_disabled || ((CursorOverSensitive ==0) && (lastPressedOver ==0))) {
 			NavigationMode=ButDown[1] || ButDown[3];
                         handle(mev, button, x, y);
                 }
