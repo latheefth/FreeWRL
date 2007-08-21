@@ -70,7 +70,6 @@
 
 #ifdef __STDC__
 #include <stdlib.h>
-#include <string.h>
 #endif
 
 #include <netinet/in.h>

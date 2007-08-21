@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <pthread.h>
 #include <fcntl.h>
+#include <string.h>
 
 /* get the definitions from the command line */
 #include "vrmlconf.h"

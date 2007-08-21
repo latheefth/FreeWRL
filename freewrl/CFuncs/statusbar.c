@@ -4,6 +4,8 @@
  * distribution) for details.
  */
 
+#ifdef OLDCODE
+
 #include <math.h>
 
 #include "headers.h"
@@ -102,3 +104,4 @@ void render_init() {
 	sb_initialized = TRUE;
 }
  
+#endif
