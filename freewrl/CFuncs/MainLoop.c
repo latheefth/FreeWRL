@@ -459,6 +459,14 @@ void EventLoop() {
 			}
 		}
 
+                if (all_sensitivity_nodes_disabled) {
+#ifndef AQUA
+				cursor = arrowc;
+#else
+				ccurse = ACURSE;
+#endif
+		}
+
 		/* do we have to change cursor? */
 #ifndef AQUA
 
