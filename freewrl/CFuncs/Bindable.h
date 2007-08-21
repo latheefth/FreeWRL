@@ -13,6 +13,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
 
 #include <math.h>
+#include <stdint.h>
 
 #ifdef AQUA
 #include <gl.h>
@@ -45,8 +46,8 @@ extern int background_tos;
 extern int fog_tos;
 extern int navi_tos;
 
-extern unsigned int viewpoint_stack[];
-extern unsigned int navi_stack[];
+extern uintptr_t viewpoint_stack[];
+extern uintptr_t navi_stack[];
 
 void
 reset_upvector(void);
@@ -58,7 +59,7 @@ void
 send_bind_to(int nodetype, void *node, int value);
 
 void
-bind_node(void *node, int *tos, unsigned int *stack);
+bind_node(void *node, int *tos, uintptr_t *stack);
 
 void
 render_Fog(struct X3D_Fog *node);

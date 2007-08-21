@@ -23,10 +23,10 @@ int background_tos = -1;
 int fog_tos = -1;
 int navi_tos = -1;
 int viewpoint_tos = -1;
-unsigned int background_stack[MAX_STACK];
-unsigned int fog_stack[MAX_STACK];
-unsigned int viewpoint_stack[MAX_STACK];
-unsigned int navi_stack[MAX_STACK];
+uintptr_t background_stack[MAX_STACK];
+uintptr_t fog_stack[MAX_STACK];
+uintptr_t viewpoint_stack[MAX_STACK];
+uintptr_t navi_stack[MAX_STACK];
 
 /* Background - fog nodes do not affect the background node rendering. */
 int fog_enabled = FALSE;
@@ -222,14 +222,14 @@ int isboundofst(void *node) {
 	return 0;
 }
 
-void bind_node (void *node, int *tos, unsigned int *stack) {
+void bind_node (void *node, int *tos, uintptr_t *stack) {
 
-	unsigned long int *oldstacktop;
-	unsigned long int *newstacktop;
+	uintptr_t *oldstacktop;
+	uintptr_t *newstacktop;
 	char *nst;			/* used for pointer maths */
 	unsigned int *setBindptr;	/* this nodes setBind */
 	unsigned int *isBoundptr;	/* this nodes isBound */
-	unsigned long int *oldboundptr;	/* previous nodes isBound */
+	unsigned int *oldboundptr;	/* previous nodes isBound */
 
 	struct X3D_Background *bgnode;
 	bgnode=(struct X3D_Background*) node;
@@ -247,8 +247,10 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 	nst += isboundofst(node);
 	isBoundptr = (unsigned int *) nst;
 
-	if (*tos >=0) {oldstacktop = (unsigned long int *)stack + *tos;}
-	else oldstacktop = (unsigned long int *)stack;
+        if (*isBoundptr && (*setBindptr != 0) ) return; /* It has to be at the top of the stack so return */
+
+	if (*tos >=0) {oldstacktop = stack + *tos;}
+	else oldstacktop = stack;
 
 	/*
 	printf ("\nbind_node, node %d, set_bind %d tos %d\n",node,*setBindptr,*tos); 
@@ -279,12 +281,12 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 		*tos = *tos+1;
 		/* printf ("just incremented tos, ptr %d val %d\n",tos,*tos); */
 
-		newstacktop = (unsigned long int *)stack + *tos;
+		newstacktop = stack + *tos;
 		/* printf ("so, newstacktop is %x\n",newstacktop); */
 
 
 		/* save pointer to new top of stack */
-		*newstacktop = (unsigned long int) node;
+		*newstacktop = (uintptr_t) node;
 		update_node((void *) newstacktop);
 
 		/* was there another DIFFERENT node at the top of the stack?
@@ -295,12 +297,12 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 
 		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
-			oldboundptr = (unsigned long int *) ((long int) *oldstacktop  + (long int)isboundofst((void *)*oldstacktop));
+			oldboundptr = (unsigned int *) (*oldstacktop  + (uintptr_t)isboundofst((void *)*oldstacktop));
 			*oldboundptr = 0;
 			/* printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop); */
 
 			/* tell the possible parents of this change */
-			update_node((void *) ((long int) *oldstacktop));
+			update_node((void *) (*oldstacktop));
 		}
 	} else {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
@@ -317,7 +319,7 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 		mark_event (node, (unsigned int) isboundofst(node));
 
 		/* printf ("old TOS is %d, we are %d\n",*oldstacktop, node);  */
-		if ((unsigned long int) node != *oldstacktop) return;
+		if ((uintptr_t) node != *oldstacktop) return;
 
 		/* printf ("ok, we were TOS, setting %d to 0\n",node); */
 
@@ -326,11 +328,11 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 
 		if (*tos >= 0) {
 			/* stack is not empty */
-			newstacktop = (unsigned long int *) ((unsigned long int)stack + *tos);
+			newstacktop = stack + *tos;
 			/* printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);  */
 
 			/* set the popped value of isBound to true */
-			isBoundptr = (unsigned int *) (*newstacktop + isboundofst((void *)*newstacktop));
+			isBoundptr = (unsigned int *) (*newstacktop + (uintptr_t)isboundofst((void *)*newstacktop));
 
 			*isBoundptr = 1;
 
