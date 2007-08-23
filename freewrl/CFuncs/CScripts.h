@@ -40,10 +40,18 @@ struct ScriptFieldDecl
  BOOL valueSet;	/* Has the value been set? */
 };
 
+/* Structure that holds information regarding script fields that are targets in PROTO IS statements */
+struct ScriptFieldInstanceInfo {
+	struct ScriptFieldDecl* decl;
+	struct Script* script;
+};
+
 /* Constructor and destructor */
 /* ************************** */
 
 struct ScriptFieldDecl* newScriptFieldDecl(indexT, indexT, indexT);
+struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl*, struct Script*);
+struct ScriptFieldDecl* scriptFieldDecl_copy(struct ScriptFieldDecl*);
 void deleteScriptFieldDecl(struct ScriptFieldDecl*);
 
 /* Other members */

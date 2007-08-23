@@ -97,9 +97,10 @@ BOOL parser_fieldEvent(struct VRMLParser*, struct X3D_Node*);
 BOOL parser_fieldEventAfterISPart(struct VRMLParser*, struct X3D_Node*,
  BOOL isIn, BOOL isOut, indexT, indexT);
 BOOL parser_protoField(struct VRMLParser*, struct ProtoDefinition*, struct ProtoDefinition*);
+BOOL parser_protoEvent(struct VRMLParser*, struct ProtoDefinition*, struct ProtoDefinition*);
 
 /* Initializes node-specific fields */
-void parser_specificInitNode(struct X3D_Node*);
+void parser_specificInitNode(struct X3D_Node*, struct VRMLParser*);
 
 /* Registers a ROUTE, in current PROTO or scene */
 void parser_registerRoute(struct VRMLParser*,

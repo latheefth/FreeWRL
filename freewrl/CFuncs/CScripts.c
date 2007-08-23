@@ -47,6 +47,52 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  return ret;
 }
 
+/* Create a new ScriptFieldInstanceInfo structure to hold information about script fields that are destinations for IS statements in PROTOs */
+struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl* dec, struct Script* script) {
+	struct ScriptFieldInstanceInfo* ret = MALLOC(sizeof(struct ScriptFieldInstanceInfo));
+	
+	assert(ret);
+
+	ret->decl = dec;
+	ret->script = script;
+
+	/* printf("creating new scriptfieldinstanceinfo with decl %p script %p\n", dec, script); */
+
+	return(ret);
+}
+
+/* Copy a ScriptFieldInstanceInfo structure to a new structure */
+struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo* me) {
+	struct ScriptFieldInstanceInfo* ret = MALLOC(sizeof(struct ScriptFieldInstanceInfo));
+
+	/* printf("copying instanceinfo %p (%p %p) to %p\n", me, me->decl, me->script, ret); */
+	
+	assert(ret);
+
+	ret->decl = me->decl;
+	ret->script = me->script;
+
+	return ret;
+}
+
+struct ScriptFieldDecl* scriptFieldDecl_copy(struct ScriptFieldDecl* me) 
+{
+	struct ScriptFieldDecl* ret = MALLOC(sizeof (struct ScriptFieldDecl));
+	assert(ret);
+
+	/* printf("copying script field decl %p to %p\n", me, ret); */
+
+	ret->fieldDecl = fieldDecl_copy(me->fieldDecl);
+	assert(ret->fieldDecl);	
+
+	ret->name = fieldDecl_getStringName(ret->fieldDecl);
+	ret->type = me->type;
+	ret->ISname = me->ISname;
+	
+	ret->valueSet=((ret->fieldDecl->mode)!=PKW_field);
+	return ret;
+}
+
 void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 {
  deleteFieldDecl(me->fieldDecl);
@@ -59,8 +105,9 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Sets script field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
- assert(me->fieldDecl->mode==PKW_field);
- assert(!me->valueSet);
+ assert(me->fieldDecl->mode==PKW_field); 
+ /* assert(!me->valueSet); */
+
 
  me->value=v;
 
@@ -120,6 +167,7 @@ struct Script* newScript(void)
  assert(ret);
 
  ret->num=nextScriptHandle();
+ /* printf("newScript: created new script with num %d\n", ret->num); */
  ret->loaded=FALSE;
 
  ret->fields=newVector(struct ScriptFieldDecl*, 4);
@@ -159,7 +207,7 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
 
 void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 {
- /* printf ("script_addField: adding field %d to script %d (pointer %d)\n",field,me->num,field); */
+ /* printf ("script_addField: adding field %p to script %d (pointer %p)\n",field,me->num,me); */
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
  scriptFieldDecl_jsFieldInit(field, me->num);
 }

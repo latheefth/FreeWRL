@@ -15,6 +15,7 @@
 
 #include "CParseGeneral.h"
 #include "Vector.h"
+#include "CScripts.h"
 
 struct PointerHash;
 struct VRMLParser;
@@ -56,8 +57,8 @@ struct ProtoFieldDecl
  /* Only for exposedField or field */
  BOOL alreadySet; /* Has the value already been set? */
  union anyVrml defaultVal; /* Default value */
- BOOL scriptFieldSet; /* does the PROTO invocation actually change the default value? */
- union anyVrml valueForScriptFields; /* field value for PROTO script invocation */
+ /* Script fields */
+ struct Vector* scriptDests;
 };
 
 /* Constructor and destructor */
@@ -83,10 +84,6 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
  vector_get(struct OffsetPointer*, (me)->dests, i)
 #define protoFieldDecl_getDefaultValue(me) \
  ((me)->defaultVal)
-#define protoFieldDecl_getScriptInitValue(me) \
- ((me)->valueForScriptFields)
-#define protoFieldDecl_getScriptFieldSet(me) \
- ((me)->scriptFieldSet)
 
 
 /* Add a destination this field's value must be assigned to */
@@ -164,7 +161,6 @@ struct ProtoDefinition
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
  struct Vector* routes; /* Inner ROUTEs */
  struct Vector* innerPtrs; /* Pointers to pointers which need to be updated */
- struct Vector* scripts; /* any imbedded scripts here? */
  struct Vector* nestedProtoFields; /* Are there any nested proto fields in this proto?  (see comments for struct NestedProtoField) */
 };
 

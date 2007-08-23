@@ -305,7 +305,9 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  indexT name;
  union anyVrml defaultVal;
  struct ProtoFieldDecl* pdecl=NULL;
+ struct ProtoFieldDecl* pField=NULL;
  struct ScriptFieldDecl* sdecl=NULL;
+ BOOL scriptISfield = FALSE;
 
  /* Either PROTO or Script interface! */
  assert((proto || script) && !(proto && script));
@@ -362,14 +364,46 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  {
   /* Get the next token(s) from the lexer and store them in defaultVal as the appropriate type. 
     This is the default value for this field.  */
-  assert(PARSE_TYPE[type]);
-  if(!PARSE_TYPE[type](me, (void*)&defaultVal))
-  {
-   /* Invalid default value parsed.  Delete the proto or script declaration. */
-   parseError("Expected default value for field!");
-   if(pdecl) deleteProtoFieldDecl(pdecl);
-   if(sdecl) deleteScriptFieldDecl(sdecl);
-   return FALSE;
+  if (script && lexer_keyword(me->lexer, KW_IS)) {
+	indexT fieldE;
+	indexT fieldO;
+
+	/* Find the proto field that this field is mapped to */
+  	if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
+  		 PARSE_ERROR("Expected fieldId after IS!")
+
+	 if(fieldO!=ID_UNDEFINED)
+ 	 {
+  		 /* Get the protoFieldDeclaration for the field at index fieldO */
+   		pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_field);
+   		if(!pField)
+    			PARSE_ERROR("IS source is no field of current PROTO!")
+   		assert(pField->mode==PKW_field);
+  	} else {
+  		/* If the field was found in user_exposedFields */
+  		 assert(fieldE!=ID_UNDEFINED);
+   		/* Get the protoFieldDeclaration for the exposedField at index fieldO */
+   		pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_exposedField);
+   		if(!pField)
+    			PARSE_ERROR("IS source is no field of current PROTO!")
+   		assert(pField->mode==PKW_exposedField);
+  	}
+	
+	/* Add this scriptfielddecl to the list of script fields mapped to this proto field */
+	struct ScriptFieldInstanceInfo* sfield = newScriptFieldInstanceInfo(sdecl, script);
+	vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
+	defaultVal = pField->defaultVal;
+
+  } else {
+  	assert(PARSE_TYPE[type]);
+  	if(!PARSE_TYPE[type](me, (void*)&defaultVal))
+  	{
+  		 /* Invalid default value parsed.  Delete the proto or script declaration. */
+  		 parseError("Expected default value for field!");
+  		 if(pdecl) deleteProtoFieldDecl(pdecl);
+  		 if(sdecl) deleteScriptFieldDecl(sdecl);
+  		 return FALSE;
+	}
   }
 
   /* Store the default field value in the protoFieldDeclaration or scriptFieldDecl structure */
@@ -380,6 +414,37 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
   {
    assert(script);
    scriptFieldDecl_setFieldValue(sdecl, defaultVal);
+  }
+ } else {
+  /* If this is a Script eventIn/eventOut IS statement */
+  if (script && lexer_keyword(me->lexer, KW_IS)) {
+  	indexT evE, evO;
+  	BOOL isIn = FALSE, isOut = FALSE;
+	
+	/* Get the eventIn or eventOut that this field IS */
+	if (mode == PKW_eventIn) {
+		if (lexer_eventIn(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+			isIn = TRUE;
+			isOut = (evE != ID_UNDEFINED);
+		}
+	} else {
+		if (lexer_eventOut(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+			isOut = TRUE;
+		}
+	}
+
+	/* Check that the event was found somewhere ... */
+	if (!isIn && !isOut) 
+		return FALSE;
+
+	/* Get the Proto field definition for the field that this IS */
+	pField = protoDefinition_getField(me->curPROTO, evO, isIn ? PKW_eventIn: PKW_eventOut);
+	
+	assert(pField);
+
+	/* Add this script as a destination for this proto field */
+	struct ScriptFieldInstanceInfo* sfield = newScriptFieldInstanceInfo(sdecl, script);
+	vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
   }
  }
 
@@ -617,7 +682,8 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   	 case NODE_Group: \
           /* Get a pointer to the protoDefinition for this group node */ \
   	  pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
-  	  assert(pre##Proto); \
+	  /* SJD: If we don't get a proto definition here, then it was just a plain old DEFed Group node ... */ \
+  	  /* assert(pre##Proto); */ \
   	  break; \
          /* Get a pointer to the Script structure for this script node */ \
   	 case NODE_Script: \
@@ -833,14 +899,14 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 		}
 	}
   }
-	/*
+#ifdef CPARSERVERBOSE
 	printf ("so, before routing we have: ");
 	if (tempFE != ID_UNDEFINED) {printf ("from EXPOSED_FIELD %s ",EXPOSED_FIELD[tempFE]);}
 	if (tempFO != ID_UNDEFINED) {printf ("from EVENT_OUT %s ",EVENT_OUT[tempFO]);}
 	if (tempTE != ID_UNDEFINED) {printf ("to EXPOSED_FIELD %s ",EXPOSED_FIELD[tempTE]);}
 	if (tempTO != ID_UNDEFINED) {printf ("to EVENT_IN %s ",EVENT_IN[tempTO]);}
 	printf ("\n\n");
-	*/
+#endif
 
   /* so, lets try and assign what we think we have now... */
   fromFieldE = tempFE;
@@ -1004,13 +1070,13 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen, routingDir);
 
  /* Built-in to user-def */
- else if(!fromProtoField && toProtoField)
+ else if(!fromProtoField && toProtoField) {
   /* For each member of the dests vector for this protoFieldDecl call parser_registerRoute for that destination node and offset */
   /* i.e. for every statement field IS user_field for the user_field defined in protoFieldDecl, register a route 
      to the node and field where the IS statement occurred */
   protoFieldDecl_routeTo(toProtoField, fromNode, fromOfs, routingDir, me);
  /* User-def to built-in */
- else if(fromProtoField && !toProtoField)
+ } else if(fromProtoField && !toProtoField)
   /* For each member of the dests vector for this protoFieldDecl call parser_registerRoute for that destination node and offset */
   /* i.e. for every statement field IS user_field for the user_field defined in protoFieldDecl, register a route from the node and
      field where the IS statement occurred */
@@ -1192,7 +1258,11 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
   /* Node specific initialization */
   /* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to newScript() */
-  parser_specificInitNode(node);
+  if (!me->curPROTO) {
+ 	 parser_specificInitNode(node, me);
+   } else {
+ 	 parser_specificInitNode(node, me);
+   }
 
   /* Set curScript for Script-nodes */
   if(node->_nodeType==NODE_Script)
@@ -1246,13 +1316,28 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 	continue;
    }
 
-   if(script && parser_interfaceDeclaration(me, NULL, script)) continue;
+#ifdef CPARSERVERBOSE
+	printf("parser_node: try parsing SCRIPT field\n");
+#endif
+   if(script && parser_interfaceDeclaration(me, NULL, script)) {
+#ifdef CPARSERVERBOSE
+	printf("parser_node: SCRIPT field parsed\n");
+#endif
+	continue;
+   }
    break;
   }
 
   /* Init code for Scripts */
-  if(script)
+  if(script) {
+#ifdef CPARSERVERBOSE
+	printf("parser_node: try parsing SCRIPT url\n");
+#endif
    script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
+#ifdef CPARSERVERBOSE
+	printf("parser_node: SCRIPT url parsed\n");
+#endif
+  }
  }
  
  /* The node name was located in userNodeTypesVec (list of defined PROTOs), therefore this is an attempt to instantiate a PROTO */
@@ -1323,6 +1408,71 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  return TRUE;
 }
 
+/* Parses a eventIn/eventOut IS statement in a proto instantiation */
+BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct ProtoDefinition* op) {
+ indexT evE, evO;
+ indexT local_evE, local_evO;
+ BOOL isIn = FALSE, isOut = FALSE;
+ BOOL local_isIn = FALSE, local_isOut = FALSE;
+ struct ProtoFieldDecl* first_field;
+ struct ProtoFieldDecl* second_field;
+
+ /* Locate the user defined event in user_eventIn or user_eventOut */
+ if(lexer_eventIn(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+	isIn = TRUE;
+	isOut = (evE != ID_UNDEFINED);
+ } else if (lexer_eventOut(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+	isOut = TRUE;
+ } 	
+
+ /* Check that we found the event somewhere ... */
+ if (!isIn && !isOut)
+	return FALSE;
+ /* Check that the next token in the lexer is "IS" */
+ if (!lexer_keyword(me->lexer, KW_IS))
+	return FALSE;
+
+
+ /* Locate the second user defined event in user_eventIn or user_eventOut */
+ if(lexer_eventIn(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
+	local_isIn = TRUE;
+	local_isOut = (local_evE != ID_UNDEFINED);
+ } else if (lexer_eventOut(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
+	local_isOut = TRUE;
+ } 	
+
+ /* Check that we found the event somewhere ... */
+ if (!local_isIn && !local_isOut)
+	return FALSE;
+
+ /* Check that we found the field somewhere ... */
+ if (!isIn && !isOut)
+	return FALSE;
+
+ /* Get the field declaration for the first user defined event from the proto being expanded */
+ if (evE != ID_UNDEFINED) 
+ 	first_field = protoDefinition_getField(p, evE, PKW_exposedField);
+ else 
+	first_field = protoDefinition_getField(p, evO, isIn ? PKW_eventIn : PKW_eventOut);
+
+ assert(first_field);
+
+ /* Get the field declaration for the second user defined event from the current proto being parsed */
+ if (evE != ID_UNDEFINED) 
+ 	second_field = protoDefinition_getField(me->curPROTO, local_evE, PKW_exposedField);
+ else 
+	second_field = protoDefinition_getField(me->curPROTO, local_evO, isIn ? PKW_eventIn : PKW_eventOut);
+
+ assert(second_field);
+
+ /* Add a nestedproto field structure to the list of nested fields for this proto expansion */
+ struct NestedProtoField* nestedField = newNestedProtoField(first_field, second_field);
+ vector_pushBack(struct NestedProtoField*, p->nestedProtoFields, nestedField);
+
+ return TRUE;
+
+}
+
 /* Parses a field assignment of a PROTOtyped node */
 /* Fetches the protoFieldDecl for the named field from the iface list of this ProtoDefinition. */
 /* Then fetches the value for this field from the lexer and assigns it to every node/field combination
@@ -1337,7 +1487,8 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct 
 #endif
  /* Checks for the field name in user_field and user_exposedField */
  if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE)) {
-  return FALSE;
+	/* Not in user_field or user_exposedfield?  Then this must be an event in or event out ... */
+	return parser_protoEvent(me, p, op);
   }
 
  /* If this field was found in user_field */
@@ -1374,15 +1525,13 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct 
   /* Get the value for this field and store it in the union anyVrml as the correct type.
      (In essence, the anyVrml union acts as a fake node here.  The function fills in the value 
      as if passed a node pointer with an offset of 0 - placing the value into the anyVrml union. */
-   /*** FIXME:  WE ARE STORING val (local variable) with offset 0 in the dests array ***/
-   /* We need to store offsetpointer(p->tree, ) */
+
   if(!parser_fieldValue(me, newOffsetPointer(&val, 0), field->type, ID_UNDEFINED, TRUE, p, field))
    PARSE_ERROR("Expected value of field after fieldId!")
 
   /* Go throught the dests vector for this field, and set the value of each dest to this value.  
      (Note that the first element of the dests vector is actually assigned the value of "val".  While
      subsequent elements of the dests vector have a DEEPCOPY of the "val" assigned (if appropriate). */
-  /* printf("set value %f\n", val.sffloat); */
   protoFieldDecl_setValue(field, &val);
  }
 
@@ -1514,7 +1663,7 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
 }
 
 /* Specific initialization of node fields */
-void parser_specificInitNode(struct X3D_Node* n)
+void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
 {
  switch(n->_nodeType)
  {
@@ -1935,7 +2084,6 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  /* Link it */
  /* protoFeildDecl_addDestination(me, optr)  is #defined to vector_pushBack(struct OffsetPointer*, me->dests, optr) */
  /* Adds a new OffsetPointer structure (with node ptr and offset myOfs) to the dests vector list for the protofieldDeclaration pfield. */ 
-  printf("adding node %p ofs %u to pfield %p\n", ptr, myOfs, pfield);
  protoFieldDecl_addDestination(pfield, ptr, myOfs);
 
  return TRUE;
@@ -1954,7 +2102,6 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
   /* Just a single value? */ \
   if(!lexer_openSquare(me->lexer)) \
   { \
-   printf("mallocing %d bytes\n", sizeof(vrml##type##T)); \
    ret->p=MALLOC(sizeof(vrml##type##T)); \
    if(!parser_sf##name##Value(me, (void*)ret->p)) \
     return FALSE; \
