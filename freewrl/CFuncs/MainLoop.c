@@ -236,7 +236,6 @@ void EventLoop() {
 		/*  rate limit ourselves to about 65fps.*/
 		/* waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0;*/
 		waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
-		lastTime = TickTime;
 		if (waittime.tv_usec < 0.0) {
 			waittime.tv_usec = -waittime.tv_usec;
 			/* printf ("waiting %d\n",(int)waittime.tv_usec);*/
@@ -523,6 +522,11 @@ void EventLoop() {
 		    myMaxScript = max_script_found;
 		}
 	}
+
+	/* record the TickTime here, for rate setting. We don't do this earlier, as some
+	   nodes use the lastTime variable */
+	lastTime = TickTime;
+
 
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);

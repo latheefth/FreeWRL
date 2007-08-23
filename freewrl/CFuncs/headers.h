@@ -464,6 +464,7 @@ extern int have_transparency;
 
 /* current time */
 extern double TickTime;
+extern double lastTime;
 
 /* number of triangles this rendering loop */
 extern int trisThisLoop;
@@ -952,6 +953,7 @@ void changed_HAnimSite (struct X3D_HAnimSite *this_);
 
 /* Sound Component */
 void render_Sound (struct X3D_Sound *this_);
+void render_AudioControl (struct X3D_AudioControl *this_);
 void render_AudioClip (struct X3D_AudioClip *this_);
 
 /* Texturing Component */

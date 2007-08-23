@@ -726,6 +726,35 @@ package VRML::NodeType;
 						source => [SFNode, NULL, exposedField],
 						spatialize => [SFBool,1, field]
 					   },"X3DSoundSourceNode"),
+	
+	# for testing MIDI sounds
+	AudioControl => new VRML::NodeType("AudioControl", {
+						direction => [SFVec3f, [0, 0, 1], exposedField],
+						intensity => [SFFloat, 1.0, exposedField],
+						location => [SFVec3f, [0, 0, 0], exposedField],
+						maxBack => [SFFloat, 10.0, exposedField],
+						maxFront => [SFFloat, 10.0, exposedField],
+						minBack => [SFFloat, 1.0, exposedField],
+						minFront => [SFFloat, 1.0, exposedField],
+						enabled => [SFBool, 1, exposedField],
+						source => [SFString, "", exposedField],
+
+						isActive => [SFBool, 0, eventOut],
+						# need distance, pan position as ints and floats
+						volumeInt32Val => [SFInt32, 0, eventOut],
+						volumeFloatVal => [SFFloat, 0.0, eventOut],
+						panInt32Val => [SFInt32, 0, eventOut],
+						panFloatVal => [SFInt32, 0.0, eventOut],
+						deltaInt32Val => [SFInt32, 0, eventOut],
+						deltaFloatVal => [SFInt32, 0.0, eventOut],
+
+
+						# used for determing rate of change of position:
+						__oldLen =>[SFTime, 0.0, field],
+						maxDelta => [SFFloat, 10.0, exposedField],
+						
+
+					   },"X3DSoundSourceNode"),
 
 	###################################################################################
 

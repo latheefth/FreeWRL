@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.208  2007/08/23 14:01:22  crc_canada
+# Initial AudioControl work
+#
 # Revision 1.207  2007/03/12 20:54:00  crc_canada
 # MidiKey started.
 #
@@ -112,6 +115,7 @@
 	Anchor 			=>children,
 	Appearance 		=>appearance,
 	AudioClip 		=>source,
+	AudioControl		=>children,
 	Background 		=>children,
 	Billboard 		=>children,
 	Box 			=>geometry,
@@ -273,6 +277,7 @@
 	MultiTexture 
 	MovieTexture 
 	Sound 
+	AudioControl
 	AudioClip 
 	DirectionalLight 
 	HAnimHumanoid
