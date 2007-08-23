@@ -744,9 +744,9 @@ package VRML::NodeType;
 						volumeInt32Val => [SFInt32, 0, eventOut],
 						volumeFloatVal => [SFFloat, 0.0, eventOut],
 						panInt32Val => [SFInt32, 0, eventOut],
-						panFloatVal => [SFInt32, 0.0, eventOut],
+						panFloatVal => [SFFloat, 0.0, eventOut],
 						deltaInt32Val => [SFInt32, 0, eventOut],
-						deltaFloatVal => [SFInt32, 0.0, eventOut],
+						deltaFloatVal => [SFFloat, 0.0, eventOut],
 
 
 						# used for determing rate of change of position:

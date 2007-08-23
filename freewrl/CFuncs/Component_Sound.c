@@ -109,13 +109,15 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		/*  bounds check...*/
 		if (angle > 1.0) angle = 1.0;
 		if (angle < 0.0) angle = 0.0;
-		/* printf ("angle: %f\n",angle); */
+		#ifdef SOUNDVERBOSE
+		printf ("angle: %f\n",angle); 
+		#endif
 	}
 
 	/* convert to a MIDI control value */
+	node->panFloatVal = (float) angle;
 	node->panInt32Val = (int) (angle * 128);
 	if (node->panInt32Val < 0) node->panInt32Val = 0; if (node->panInt32Val > 127) node->panInt32Val = 127;
-	node->panFloatVal = (float) angle;
 
 
 	node->volumeFloatVal = 0.0;
@@ -127,7 +129,10 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		if (!node->isActive) {
 			node->isActive = TRUE;
 			mark_event (node, offsetof (struct X3D_AudioControl, isActive));
+			#ifdef SOUNDVERBOSE
 			printf ("AudioControl node is now ACTIVE\n");
+			#endif
+
 
 			/* record the length for doppler shift comparisons */
 			node->__oldLen = len;
@@ -148,7 +153,10 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 			printf ("AudioControl: maxDelta approaches zero!\n");
 			node->deltaFloatVal = 0.0;
 		} else {
+			#ifdef SOUNDVERBOSE
 			printf ("maxM/S %f \n",(node->__oldLen - len)/ (TickTime- lastTime));
+			#endif
+
 			/* calculate change as Metres/second */
 
 			/* compute node->deltaFloatVal, and clamp to range of -1.0 to 1.0 */
@@ -166,18 +174,10 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		node->deltaInt32Val = (int) (node->deltaFloatVal * 64.0) + 64; 
 		if (node->deltaInt32Val < 0) node->deltaInt32Val = 0; if (node->deltaInt32Val > 127) node->deltaInt32Val = 127;
 
+		#ifdef SOUNDVERBOSE
 		printf ("AudioControl: amp: %f (%d)  angle: %f (%d)  delta: %f (%d)\n",node->volumeFloatVal,node->volumeInt32Val,
 			node->panFloatVal, node->panInt32Val ,node->deltaFloatVal,node->deltaInt32Val);
-
-/*
-                                                # need distance, pan position as ints and floats
-                                                done volumeInt32Val => [SFInt32, 0, eventOut],
-                                                done volumeFloatVal => [SFFloat, 0.0, eventOut],
-                                                done panInt32Val => [SFInt32, 0, eventOut],
-                                                done panFloatVal => [SFInt32, 0.0, eventOut],
-                                                done deltaInt32Val => [SFInt32, 0, eventOut],
-                                                done deltaFloatVal => [SFInt32, 0.0, eventOut],
-*/
+		#endif
 
 		mark_event (node, offsetof (struct X3D_AudioControl, volumeInt32Val));
 		mark_event (node, offsetof (struct X3D_AudioControl, volumeFloatVal));
@@ -191,7 +191,9 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		if (node->isActive) {
 			node->isActive = FALSE;
 			mark_event (node, offsetof (struct X3D_AudioControl, isActive));
+			#ifdef SOUNDVERBOSE
 			printf ("AudioControl node is now INACTIVE\n");
+			#endif
 		}
 	}
 
