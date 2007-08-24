@@ -10,6 +10,7 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
+extern uintptr_t Multi_Struct_memptr (int type, void *memptr);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
 void SetMemory (int type, void *destptr, void *srcptr, int len);

@@ -361,6 +361,7 @@ void render_node(void *node) {
 	 
 	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
 	  {
+printf ("renderSensitive 5, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType),p->_renderFlags);
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 5\n");
 	    #endif
@@ -418,6 +419,7 @@ void render_node(void *node) {
 
 	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
 	  {
+printf ("renderSensitive 9, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType),p->_renderFlags);
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 9\n");
 	    #endif
@@ -847,7 +849,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 				if (offsetptr[2] == FIELDTYPE_SFNode) {
 					/* get the field as a POINTER VALUE, not just a pointer... */
 					voidptr = memptr;
-					voidptr = *voidptr;
+					voidptr = (uintptr_t *) *voidptr;
 
 					/* is there a node here? */
 					if (voidptr != NULL) {

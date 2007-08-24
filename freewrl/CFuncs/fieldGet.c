@@ -1137,7 +1137,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			MNptr = (struct Multi_Node *) memptr;
 
 			if (eaiverbose) { 
-			printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(int) memptr);
+			printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(intptr_t) memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
@@ -1153,7 +1153,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case FIELDTYPE_MFInt32: {
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
+				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(intptr_t) memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
@@ -1184,7 +1184,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 			MCptr = (struct Multi_Color *) memptr;
 			if (eaiverbose) { 
-				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
+				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(intptr_t) memptr);
 			}
 
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);

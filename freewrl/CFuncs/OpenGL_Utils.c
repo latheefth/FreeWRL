@@ -434,7 +434,7 @@ void registerX3DNode(void * tmp){
 		increaseMemoryTable();
 	}
 	/*adding node in table*/	
-	memoryTable[nextEntry]=tmp;
+	memoryTable[nextEntry] = (uintptr_t) tmp;
 	nextEntry+=1;
 }
 

@@ -20,8 +20,8 @@ static struct X3D_Text *holder = NULL;
 struct X3D_Text *lastTextNode = NULL;
 static struct Uni_String *myline;
 void render_init(void);
-static uintptr_t proxNode = NULL;
-static uintptr_t transNode = NULL;
+static uintptr_t proxNode = (uintptr_t) NULL;
+static uintptr_t transNode = (uintptr_t) NULL;
 /* trigger a update */
 
 void update_status(char* msg) {

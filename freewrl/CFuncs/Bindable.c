@@ -247,7 +247,7 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 	nst += isboundofst(node);
 	isBoundptr = (unsigned int *) nst;
 
-        if (*isBoundptr && (*setBindptr != 0) ) return; /* It has to be at the top of the stack so return */
+        if (*isBoundptr && (*setBindptr != 0) ){ *setBindptr = 100; return; } /* It has to be at the top of the stack so return */
 
 	if (*tos >=0) {oldstacktop = stack + *tos;}
 	else oldstacktop = stack;
@@ -295,11 +295,14 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 		   top of stack Viewpoint is unbound! */
 		/* printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, *oldstacktop, *newstacktop); */
 
+
 		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = (unsigned int *) (*oldstacktop  + (uintptr_t)isboundofst((void *)*oldstacktop));
 			*oldboundptr = 0;
 			/* printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop); */
+
+			mark_event (*oldstacktop, (unsigned int) isboundofst((void *)*oldstacktop));
 
 			/* tell the possible parents of this change */
 			update_node((void *) (*oldstacktop));
@@ -307,14 +310,14 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 	} else {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
 
-		/* anything on stack? */
-		if (*tos <= -1) return;   /* too many pops */
-
 		/* isBound mimics setBind */
 		*isBoundptr = 0;
 
 		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
 		*setBindptr = 100;
+
+		/* anything on stack? */
+		if (*tos <= -1) return;   /* too many pops */
 
 		mark_event (node, (unsigned int) isboundofst(node));
 

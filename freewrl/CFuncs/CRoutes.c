@@ -74,7 +74,7 @@
 		int len; \
 		int i; \
 		JSContext *cx; \
-		cx = ScriptControl[actualscript].cx; \
+		cx = (JSContext *)ScriptControl[actualscript].cx; \
 		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
 			break; \
@@ -1541,7 +1541,7 @@ void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset,
 	printf ("getSpecificRoute, fromNode %d fromPtr %d tonode_count %d\n",
 		CRoutes[routeNo].fromnode, CRoutes[routeNo].fnptr, CRoutes[routeNo].tonode_count);
 */
-		*fromNode = CRoutes[routeNo].fromnode;
+		*fromNode = (uintptr_t) CRoutes[routeNo].fromnode;
 		*fromOffset = CRoutes[routeNo].fnptr;
 	/* there is not a case where tonode_count != 1 for a valid route... */
 	if (CRoutes[routeNo].tonode_count != 1) {
@@ -1552,7 +1552,7 @@ void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset,
 
 	/* get the first toNode,toOffset */
         to_ptr = &(CRoutes[routeNo].tonodes[0]);
-        *toNode = to_ptr->node;
+        *toNode = (uintptr_t) to_ptr->node;
 	*toOffset = to_ptr->foffset;
 
 

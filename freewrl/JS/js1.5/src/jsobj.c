@@ -377,7 +377,7 @@ js_SetProtoOrParent(JSContext *cx, JSObject *obj, uint32 slot, JSObject *pobj)
 JS_STATIC_DLL_CALLBACK(JSHashNumber)
 js_hash_object(const void *key)
 {
-    return (JSHashNumber)key >> JSVAL_TAGBITS;
+    return ((JSHashNumber)(JSUword)key) >> JSVAL_TAGBITS;
 }
 
 static JSHashEntry *
@@ -1103,7 +1103,7 @@ resolving_HashKey(JSDHashTable *table, const void *ptr)
 {
     const JSResolvingKey *key = (const JSResolvingKey *)ptr;
 
-    return ((JSDHashNumber)key->obj >> JSVAL_TAGBITS) ^ key->id;
+    return (((JSDHashNumber)(JSUword)key->obj) >> JSVAL_TAGBITS) ^ key->id;
 }
 
 JS_PUBLIC_API(JSBool)

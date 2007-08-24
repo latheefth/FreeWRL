@@ -50,6 +50,7 @@ This struct contains both a node and an ofs field.
 
 #include "EAIheaders.h"
 #include "CProto.h"
+#include "CParse.h"
 #include "CParseLexer.h"
 struct DEFnameStruct {
 	struct X3D_Node *node;

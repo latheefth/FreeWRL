@@ -775,7 +775,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   if(pre##Script) \
   { \
    assert(pre##ScriptField); \
-   pre##Node=pre##Script->num; \
+   pre##Node=(struct X3D_Node*)pre##Script->num; \
    pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
   } 
 

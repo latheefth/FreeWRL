@@ -101,8 +101,8 @@ struct JSAtomListElement {
 #define ALE_NEXT(ale)   ((JSAtomListElement *) (ale)->entry.next)
 
 #define ALE_SET_ATOM(ale,atom)  ((ale)->entry.key = (const void *)(atom))
-#define ALE_SET_INDEX(ale,index)((ale)->entry.value = (void *)(index))
-#define ALE_SET_JSOP(ale,op)    ((ale)->entry.value = (void *)(op))
+#define ALE_SET_INDEX(ale,index)((ale)->entry.value = (void *)(JSUword)(index))
+#define ALE_SET_JSOP(ale,op)    ((ale)->entry.value = (void *)(JSUword)(op))
 #define ALE_SET_VALUE(ale,val)  ((ale)->entry.value = (JSHashEntry *)(val))
 #define ALE_SET_NEXT(ale,link)  ((ale)->entry.next = (JSHashEntry *)(link))
 

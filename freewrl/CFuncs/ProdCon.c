@@ -859,6 +859,7 @@ void __pt_doInline() {
 void __pt_doStringUrl () {
 	int count;
 	int retval;
+        int i;
 
 	/* for cParser */
         char *buffer = NULL;
@@ -957,17 +958,29 @@ void __pt_doStringUrl () {
 
 	/* set bindables, if required */
 	if (psp.bind) {
-		if (totfognodes != 0) send_bind_to (NODE_Fog,(fognodes[0]),1);
-		if (totbacknodes != 0) send_bind_to (NODE_Background,(void *)(backgroundnodes[0]),1);
-		if (totnavnodes != 0) send_bind_to (NODE_NavigationInfo,(void *)(navnodes[0]),1);
-		if (totviewpointnodes != 0) send_bind_to(NODE_Viewpoint,(void *)(viewpointnodes[0]),1);
+	        if (totfognodes != 0) { 
+		   for (i=0; i < totfognodes; ++i) send_bind_to(NODE_Fog, fognodes[i], 0); /* Initialize binding info */
+                   send_bind_to(NODE_Fog, fognodes[0], 1);
+		}
+		if (totbacknodes != 0) {
+                   for (i=0; i < totbacknodes; ++i) send_bind_to(NODE_Background, backgroundnodes[i], 0);  /* Initialize binding info */
+                   send_bind_to(NODE_Background,backgroundnodes[0], 1);
+		}
+		if (totnavnodes != 0) {
+                   for (i=0; i < totnavnodes; ++i) send_bind_to(NODE_NavigationInfo, navnodes[i], 0);  /* Initialize binding info */
+                   send_bind_to(NODE_NavigationInfo, navnodes[0], 1);
+		}
+		if (totviewpointnodes != 0) {
+                   for (i=0; i < totviewpointnodes; ++i) send_bind_to(NODE_Viewpoint, viewpointnodes[i], 0);  /* Initialize binding info */
+                   send_bind_to(NODE_Viewpoint, viewpointnodes[0], 1);
+		}
 	}
 
 	/* did the caller want these values returned? */
 	if (psp.retarr != NULL) {
 		for (count=0; count < nRn->children.n; count++) {
 			psp.retarr[count*2] = 0; /* the "perl" node number */
-			psp.retarr[count*2+1] = ((uintptr_t *) 
+			psp.retarr[count*2+1] = ((uintptr_t) 
 				nRn->children.p[count]); /* the Node Pointer */
 		}
 		psp.retarrsize = nRn->children.n * 2; /* remember, the old "perl node number" */

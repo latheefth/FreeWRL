@@ -132,7 +132,7 @@ void JSMaxAlloc() {
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
 		scr_act[count]= FALSE;
 		ScriptControl[count].thisScriptType = NOSCRIPT;
-		ScriptControl[count].eventsProcessed = NULL;
+		ScriptControl[count].eventsProcessed = (uintptr_t) NULL;
 		ScriptControl[count].cx = 0;
 		ScriptControl[count].glob = 0;
 	}

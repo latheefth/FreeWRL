@@ -1207,7 +1207,7 @@ void setInECMATable(char *toFind) {
 		ConsoleMessage ("problem in setInECMATable for scripting\n");
 		maxECMAVal = ECMAValueTableSize - 10;
 	}
-	ECMAValues[maxECMAVal-1].JS_address = toFind;
+	ECMAValues[maxECMAVal-1].JS_address = (jsval) toFind;
 	ECMAValues[maxECMAVal-1].valueChanged = TRUE;
 	ECMAValues[maxECMAVal-1].name = strdup(toFind);
 }

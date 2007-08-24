@@ -54,12 +54,13 @@
  * make dependency induced by this file should not prove painful.
  */
 
+#include <stdint.h>
 #include "jspubtd.h"
 
 /* Scalar typedefs. */
 typedef uint8  jsbytecode;
 typedef uint8  jssrcnote;
-typedef uint32 jsatomid;
+typedef uintptr_t jsatomid;
 
 /* Struct typedefs. */
 typedef struct JSArgumentFormatMap  JSArgumentFormatMap;

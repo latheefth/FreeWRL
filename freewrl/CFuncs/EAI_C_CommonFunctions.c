@@ -235,7 +235,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 
 	/* temporary for sscanfing */
 	float fl[4];
-	int in[4];
+	intptr_t in[4];
 	uintptr_t inNode[4];
 	double dv;
 

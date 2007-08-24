@@ -1238,6 +1238,7 @@ void replaceWorldNeeded(char* str);
 int initializeX3DParser (void);
 void shutdownX3DParser (void);
 int X3DParse (struct X3D_Group *parent, char *inputstring);
+void *createNewX3DNode (int nt);
 
 /* this is set by OSX, or to FALSE if on Linux. */
 #ifdef AQUA

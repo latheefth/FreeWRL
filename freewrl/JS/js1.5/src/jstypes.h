@@ -55,6 +55,7 @@
 #define jstypes_h___
 
 #include <stddef.h>
+#include <stdint.h>
 
 /***********************************************************************
 ** MACROS:      JS_EXTERN_API
@@ -377,8 +378,8 @@ typedef JSUint8 JSPackedBool;
 /*
 ** A JSWord is an integer that is the same size as a void*
 */
-typedef long JSWord;
-typedef unsigned long JSUword;
+typedef intptr_t JSWord;
+typedef uintptr_t JSUword;
 
 #include "jsotypes.h"
 

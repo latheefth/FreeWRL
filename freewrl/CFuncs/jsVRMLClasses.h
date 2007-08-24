@@ -93,7 +93,7 @@
 	}
 #define RUN_FUNCTION(tnfield) \
 	{jsval zimbo; \
-	if (!JS_ExecuteScript(cx, obj, JSparamnames[tnfield].eventInFunction, &zimbo)) { \
+	if (!JS_ExecuteScript(cx, obj, (JSScript *) JSparamnames[tnfield].eventInFunction, &zimbo)) { \
 		printf ("failed to set parameter for eventIne %s\n",JSparamnames[tnfield].name); \
 	}} 
 
