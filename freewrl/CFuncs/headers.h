@@ -114,14 +114,14 @@ extern struct CRStruct *CRoutes;
 #undef DISPLAYBOUNDINGBOX
 
 /* rendering constants used in SceneGraph, etc. */
-#define VF_Viewpoint 	0x0001
-#define VF_Geom 	0x0002
-#define VF_Lights	0x0004 
-#define VF_Sensitive 	0x0008
-#define VF_Blend 	0x0010
-#define VF_Proximity 	0x0020
-#define VF_Collision 	0x0040
-
+#define VF_Viewpoint 				0x0001
+#define VF_Geom 				0x0002
+#define VF_Lights				0x0004 
+#define VF_Sensitive 				0x0008
+#define VF_Blend 				0x0010
+#define VF_Proximity 				0x0020
+#define VF_Collision 				0x0040
+#define VF_hasSensitiveChildren			0x0080
 #define VF_hasVisibleChildren 			0x0100
 #define VF_hasGeometryChildren 			0x0200
 #define VF_hasBeenScannedForGeometryChildren	0x0400
@@ -153,8 +153,10 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 #define MARK_NODE_COMPILED node->_ichange = node->_change;
 /* end of compile simple nodes code */
 
+void startOfLoopNodeUpdates(void);
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
+extern int HaveSensitive;
 void zeroVisibilityFlag(void);
 void setField_fromJavascript (uintptr_t *ptr, char *field, char *value);
 unsigned int setField_method2 (char *ptr);
@@ -764,7 +766,7 @@ extern void *hypersensitive; 		/* in VRMLC.pm */
 extern int hyperhit;			/* in VRMLC.pm */
 extern struct pt r1, r2;		/* in VRMLC.pm */
 extern struct sCollisionInfo CollisionInfo;
-extern struct currayhit rh,rph,rhhyper;
+extern struct currayhit rayHit,rayph,rayHitHyper;
 extern GLint smooth_normals;
 
 extern void xs_init(void);

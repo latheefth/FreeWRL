@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.274  2007/08/24 15:13:42  crc_canada
+# Sensitive nodes now are dynamically pruned, and, if disabled, do not
+# change cursor shape
+#
 # Revision 1.273  2007/08/13 18:05:34  sdumoulin
 # Fixed nested protos
 #
@@ -115,7 +119,6 @@ require 'VRMLRend.pm';
 my $interalNodeCommonFields = 
                "       struct X3D_Virt *v;\n"         	.
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
-               "       int _sens; /*THIS is sensitive */ \n"                  	.
                "       int _hit; \n"                   	.
                "       int _change; \n"                	.
 	       "       int _dlchange; \n"              	.
@@ -659,7 +662,6 @@ sub gen {
 	"	   in this way throughought the code */\n".
 	"	node = (struct X3D_Box *) tmp;\n".
 	"	node->_renderFlags = 0; /*sensitive, etc */\n".
-	"	node->_sens = FALSE; /*THIS is sensitive */\n".
 	"	node->_hit = 0;\n".
 	"	node->_change = 153; \n".
 	"	node->_dlchange = 0;\n".

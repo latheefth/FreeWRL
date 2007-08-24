@@ -1009,10 +1009,9 @@ void do_MovieTextureTick( void *ptr) {
 
 *****************************************************************************/
 /* void do_GeoTouchSensor (struct X3D_GeoTouchSensor *node, int ev, int over) {*/
-void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
+void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 
 struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
-*enabled = (!node) ? FALSE: node->enabled;
 UNUSED(node);
 UNUSED(ev);
 UNUSED(over);
@@ -1020,16 +1019,14 @@ UNUSED(over);
 };
 
 
-/* void do_TouchSensor (struct X3D_TouchSensor *node, int ev, int over, int *enabled) {*/
-void do_TouchSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
+/* void do_TouchSensor (struct X3D_TouchSensor *node, int ev, int over) {*/
+void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
 	struct pt normalval;	/* different structures for normalization calls */
 
-	*enabled = FALSE;
 	/* if not enabled, do nothing */
 	if (!node) return;
-	*enabled = node->enabled;
 	if (!node->enabled) return;
 
 	/* isOver state */
@@ -1071,8 +1068,8 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
 	}
 }
 
-/* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over, int *enabled) {*/
-void do_PlaneSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
+/* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
+void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_PlaneSensor *node = (struct X3D_PlaneSensor *)ptr;
 	float mult, nx, ny;
 	struct SFColor tr;
@@ -1080,9 +1077,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
 
 	UNUSED(over);
 
-	*enabled = FALSE;
 	if (!node) return;
-	*enabled = node->enabled;
 
 	/* only do something when button pressed */
 	if (!but1) return;
@@ -1162,13 +1157,12 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
 }
 
 
-/* void do_Anchor (struct X3D_Anchor *node, int ev, int over, int *enabled) {*/
-void do_Anchor ( void *ptr, int ev, int but1, int over, int *enabled) {
+/* void do_Anchor (struct X3D_Anchor *node, int ev, int over) {*/
+void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_Anchor *node = (struct X3D_Anchor *)ptr;
 	UNUSED(over);
 	UNUSED(but1);
 
-	*enabled = TRUE;
 	if (!node) return;
 	if (ev==ButtonPress) {
 		/* no parameters in url field? */
@@ -1179,8 +1173,8 @@ void do_Anchor ( void *ptr, int ev, int but1, int over, int *enabled) {
 }
 
 
-/* void do_CylinderSensor (struct X3D_CylinderSensor *node, int ev, int over, int *enabled) {*/
-void do_CylinderSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
+/* void do_CylinderSensor (struct X3D_CylinderSensor *node, int ev, int over) {*/
+void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_CylinderSensor *node = (struct X3D_CylinderSensor *)ptr;
 	float rot, radius, ang, length;
 	double det, pos, neg, temp;
@@ -1189,9 +1183,8 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
 
 	UNUSED(over);
 	
-	*enabled = FALSE;
 	if (!node) return;
-	*enabled = node->enabled;
+	if (!node->enabled) return;
 
 	/* only do something if the button is pressed */
 	if (!but1) return;
@@ -1327,8 +1320,8 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
 }
 
 
-/* void do_SphereSensor (struct X3D_SphereSensor *node, int ev, int over, int *enabled) {*/
-void do_SphereSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
+/* void do_SphereSensor (struct X3D_SphereSensor *node, int ev, int over) {*/
+void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_SphereSensor *node = (struct X3D_SphereSensor *)ptr;
 	int tmp;
 	float tr1sq, tr2sq, tr1tr2;
@@ -1339,9 +1332,8 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over, int *enabled) {
 
 	UNUSED(over);
 
-	*enabled = FALSE;
 	if (!node) return;
-	*enabled = node->enabled;
+	if (!node->enabled) return;
 
 	/* only do something if button1 is pressed */
 	if (!but1) return;

@@ -131,7 +131,7 @@ int BrowserAction = FALSE;
 struct X3D_Anchor *AnchorsAnchor;
 
 
-struct currayhit  rh,rph,rhhyper;
+struct currayhit rayHit,rayph,rayHitHyper;
 /* used to test new hits */
 
 /* this is used to return the duration of an audioclip to the perl
@@ -184,8 +184,8 @@ float tx,float ty, char *descr)  {
 	gluProject(cx,cy,cz, modelMatrix, projMatrix, viewport,
 		&hp.x, &hp.y, &hp.z);
 	hpdist = rat;
-	rh=rph;
-	rhhyper=rph;
+	rayHit=rayph;
+	rayHitHyper=rayph;
 	#ifdef RENDERVERBOSE 
 		printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
 	#endif
@@ -358,12 +358,8 @@ void render_node(void *node) {
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_light";
 	    #endif
 	  }
-	/* Future optimization: when doing VP/Lights, do only
-	 * that child... further in future: could just calculate
-	 * transforms myself..
-	 */
-	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
-	if(render_sensitive && p->_sens)
+	 
+	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
 	  {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 5\n");
@@ -378,10 +374,10 @@ void render_node(void *node) {
 	    sch = cur_hits;
 	    cur_hits = 0;
 	    /* HP */
-	      srh = rph;
-	    rph.node = node;
-	    fwGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
-	    fwGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
+	      srh = rayph;
+	    rayph.node = node;
+	    fwGetDoublev(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
+	    fwGetDoublev(GL_PROJECTION_MATRIX, rayph.projMatrix);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
 	    #endif
@@ -420,8 +416,7 @@ void render_node(void *node) {
 	    #endif
         }
 
-	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
-	if(render_sensitive && p->_sens)
+	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
 	  {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 9\n");
@@ -434,7 +429,7 @@ void render_node(void *node) {
 	    #endif
 
 	    /* HP */
-	      rph = srh;
+	      rayph = srh;
 	  }
 	if(v->fin)
 	  {

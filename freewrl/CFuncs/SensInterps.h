@@ -68,12 +68,12 @@ void do_ProximitySensorTick(void *ptr);
 void do_MovieTextureTick(void *ptr);
 void do_VisibilitySensorTick(void *ptr);
 
-void do_Anchor( void *ptr, int typ, int but1, int over, int *enabled);
-void do_TouchSensor( void *ptr, int typ, int but1, int over, int *enabled);
-void do_GeoTouchSensor(void *ptr, int typ, int but1, int over, int *enabled);
-void do_PlaneSensor(void *ptr, int typ, int but1, int over, int *enabled);
-void do_CylinderSensor(void *ptr, int typ, int but1, int over, int *enabled);
-void do_SphereSensor(void *ptr, int typ, int but1, int over, int *enabled);
+void do_Anchor( void *ptr, int typ, int but1, int over);
+void do_TouchSensor( void *ptr, int typ, int but1, int over);
+void do_GeoTouchSensor(void *ptr, int typ, int but1, int over);
+void do_PlaneSensor(void *ptr, int typ, int but1, int over);
+void do_CylinderSensor(void *ptr, int typ, int but1, int over);
+void do_SphereSensor(void *ptr, int typ, int but1, int over);
 
 
 #endif /* __SENSINTERPS_H__ */
