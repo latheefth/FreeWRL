@@ -204,6 +204,7 @@ static void parser_scopeOut_PROTO()
   * graph!  TODO:  How to delete them properly? */
 
  vector_popBackN(struct ProtoDefinition*, PROTOs, lexer_getProtoPopCnt());
+ lexer_scopeOut_PROTO();
 }
 
 void parser_scopeIn()

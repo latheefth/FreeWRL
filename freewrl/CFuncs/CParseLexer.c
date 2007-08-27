@@ -68,14 +68,22 @@ struct VRMLLexer* newLexer()
  ret->isEof=TRUE;
  
  /* Init id tables */
- userNodeNames=newStack(struct Vector*);
- userNodeTypesStack=newStack(size_t);
- stack_push(size_t, userNodeTypesStack, 0);
- userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
- user_field=newVector(char*, USER_IDS_INIT_SIZE);
- user_exposedField=newVector(char*, USER_IDS_INIT_SIZE);
- user_eventIn=newVector(char*, USER_IDS_INIT_SIZE);
- user_eventOut=newVector(char*, USER_IDS_INIT_SIZE);
+ if (!userNodeNames)
+ 	userNodeNames=newStack(struct Vector*);
+ if (!userNodeTypesStack) {
+ 	userNodeTypesStack=newStack(size_t);
+ 	stack_push(size_t, userNodeTypesStack, 0);
+ }
+ if (!userNodeTypesVec)
+ 	userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
+ if (!user_field)
+ 	user_field=newVector(char*, USER_IDS_INIT_SIZE);
+ if (!user_exposedField)
+ 	user_exposedField=newVector(char*, USER_IDS_INIT_SIZE);
+ if (!user_eventIn)
+ 	user_eventIn=newVector(char*, USER_IDS_INIT_SIZE);
+ if (!user_eventOut)
+ 	user_eventOut=newVector(char*, USER_IDS_INIT_SIZE);
  lexer_scopeIn();
 
 #ifdef CPARSERVERBOSE
@@ -171,7 +179,7 @@ void lexer_scopeIn()
 void lexer_scopeOut()
 {
  lexer_scopeOut_(userNodeNames);
- lexer_scopeOut_PROTO(); 
+ /* lexer_scopeOut_PROTO();  */
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
