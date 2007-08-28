@@ -646,7 +646,7 @@ void _inputParseThread(void) {
 		case ZEROBINDABLES: 
 			/* for the VRML parser */
 			if (haveParsed) {
-				destroyCParserData();
+				destroyCParserData(globalParser);
 				haveParsed = FALSE;
 			}
 
@@ -869,7 +869,7 @@ void __pt_doStringUrl () {
 	
 	if (psp.zeroBind) {
 		if (haveParsed) {
-			destroyCParserData();
+			destroyCParserData(globalParser);
 			kill_bindables();
 		}
 		psp.zeroBind = FALSE;

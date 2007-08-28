@@ -12,6 +12,7 @@
  *
  */
 #include "headers.h"
+#include "CParse.h"
 
 #include "OpenGL_Utils.h"
 #ifdef AQUA
@@ -404,7 +405,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 		#endif
 
 		/* reset any VRML and X3D Parser data */
-		parser_destroyData();
+                parser_destroyData(globalParser);
+                globalParser = NULL;
+
 
 	        /* tell statusbar that we have none */
 	        viewer_default();
