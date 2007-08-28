@@ -466,8 +466,18 @@ void zeroVisibilityFlag(void) {
 
 	ocnum=-1;
 
-	/* do we have GL_ARB_occlusion_query? */
-	if (!OccFailed) {
+	/* do we have GL_ARB_occlusion_query, or are we still parsing Textures? */
+	if ((OccFailed) || isTextureParsing()) {
+
+		/* if we have textures still loading, display all the nodes, so that the textures actually
+		   get put into OpenGL-land. If we are not texture parsing... */
+		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
+		   and hope that, sometime, the user gets a good computer graphics card */
+		for (i=0; i<nextEntry; i++){		
+			node = (struct X3D_Node*)memoryTable[i];		
+			node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
+		}	
+	} else {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<nextEntry; i++){		
 			node = (struct X3D_Node*)memoryTable[i];		
@@ -486,13 +496,6 @@ void zeroVisibilityFlag(void) {
 			
 			}
 		}			
-	} else {
-		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
-		   and hope that, sometime, the user gets a good computer graphics card */
-		for (i=0; i<nextEntry; i++){		
-			node = (struct X3D_Node*)memoryTable[i];		
-			node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
-		}	
 	}
 }
 
