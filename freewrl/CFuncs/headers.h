@@ -232,6 +232,8 @@ extern int QueryCount;
 /********************************
 	Verbosity
 *********************************/
+/* Parsing & Lexing */
+#undef CPARSERVERBOSE 
 
 /* Java Class invocation */
 #undef JSVRMLCLASSESVERBOSE

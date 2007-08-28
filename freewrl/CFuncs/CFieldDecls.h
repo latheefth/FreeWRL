@@ -44,8 +44,8 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT);
  ((me)->mode)
 #define fieldDecl_getIndexName(me) \
  ((me)->name)
-#define fieldDecl_getStringName(me) \
- lexer_stringUser_fieldName(fieldDecl_getIndexName(me), \
+#define fieldDecl_getStringName(lex, me) \
+ lexer_stringUser_fieldName(lex, fieldDecl_getIndexName(me), \
   fieldDecl_getAccessType(me))
 
 /* Other members */
