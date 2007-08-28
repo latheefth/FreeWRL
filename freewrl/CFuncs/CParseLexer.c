@@ -16,20 +16,6 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 
 /* Tables of user-defined IDs */
 #define USER_IDS_INIT_SIZE	16
-/* DEFed node names stack */
-Stack* userNodeNames=NULL;
-/* Stack to keep track of the number of PROTOs defined upon entry of each scope */
-Stack* userNodeTypesStack=NULL;
-/* PROTO names list */
-struct Vector* userNodeTypesVec=NULL;
-/* User defined fields */
-struct Vector* user_field=NULL;
-/* User defined exposed fields */
-struct Vector* user_exposedField=NULL;
-/* User defined eventIns */
-struct Vector* user_eventIn=NULL;
-/* User defined eventOuts */
-struct Vector* user_eventOut=NULL;
 
 /* Maximum id length (input buffer size) */
 #define MAX_IDLEN	127
@@ -68,26 +54,18 @@ struct VRMLLexer* newLexer()
  ret->isEof=TRUE;
  
  /* Init id tables */
- if (!userNodeNames)
- 	userNodeNames=newStack(struct Vector*);
- if (!userNodeTypesStack) {
- 	userNodeTypesStack=newStack(size_t);
- 	stack_push(size_t, userNodeTypesStack, 0);
- }
- if (!userNodeTypesVec)
- 	userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
- if (!user_field)
- 	user_field=newVector(char*, USER_IDS_INIT_SIZE);
- if (!user_exposedField)
- 	user_exposedField=newVector(char*, USER_IDS_INIT_SIZE);
- if (!user_eventIn)
- 	user_eventIn=newVector(char*, USER_IDS_INIT_SIZE);
- if (!user_eventOut)
- 	user_eventOut=newVector(char*, USER_IDS_INIT_SIZE);
- lexer_scopeIn();
+ ret->userNodeNames=newStack(struct Vector*);
+ ret->userNodeTypesStack=newStack(size_t);
+ stack_push(size_t, ret->userNodeTypesStack, 0);
+ ret->userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_field=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_exposedField=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_eventIn=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_eventOut=newVector(char*, USER_IDS_INIT_SIZE);
+ lexer_scopeIn(ret);
 
 #ifdef CPARSERVERBOSE
- printf("new lexer created, userNodeTypesVec is %p, user_field is %p, user_exposedField is %p, user_eventIn is %p, user_eventOut is %p\n", userNodeTypesVec, user_field, user_exposedField, user_eventIn, user_eventOut); 
+ printf("new lexer created, userNodeTypesVec is %p, user_field is %p, user_exposedField is %p, user_eventIn is %p, user_eventOut is %p\n", ret->userNodeTypesVec, ret->user_field, ret->user_exposedField, ret->user_eventIn, ret->user_eventOut); 
 #endif 
 
  return ret;
@@ -118,7 +96,7 @@ void lexer_destroyIdVector(struct Vector* v)
  deleteVector(char*, v);
 }
 
-void lexer_destroyData()
+void lexer_destroyData(struct VRMLLexer* me)
 {
  #define DESTROY_IDVEC(v) \
   if(v) \
@@ -126,22 +104,22 @@ void lexer_destroyData()
   v=NULL;
   
  /* User node names */
- if(userNodeNames)
-  lexer_destroyIdStack(userNodeNames);
- userNodeNames=NULL;
+ if(me->userNodeNames)
+  lexer_destroyIdStack(me->userNodeNames);
+ me->userNodeNames=NULL;
 
  /* User node types */
- DESTROY_IDVEC(userNodeTypesVec)
- if(userNodeTypesStack) {
-  	deleteStack(size_t, userNodeTypesStack);
-	userNodeTypesStack = NULL; /* JAS */
+ DESTROY_IDVEC(me->userNodeTypesVec)
+ if(me->userNodeTypesStack) {
+  	deleteStack(size_t, me->userNodeTypesStack);
+	me->userNodeTypesStack = NULL; /* JAS */
  }
 
  /* User fields */
- DESTROY_IDVEC(user_field)
- DESTROY_IDVEC(user_exposedField)
- DESTROY_IDVEC(user_eventIn)
- DESTROY_IDVEC(user_eventOut)
+ DESTROY_IDVEC(me->user_field)
+ DESTROY_IDVEC(me->user_exposedField)
+ DESTROY_IDVEC(me->user_eventIn)
+ DESTROY_IDVEC(me->user_eventOut)
 }
 
 /* Scope in and scope out for IDs */
@@ -165,44 +143,44 @@ static void lexer_scopeOut_(Stack* s)
 }
 
 /* Scope in PROTOs and DEFed nodes */
-void lexer_scopeIn()
+void lexer_scopeIn(struct VRMLLexer* me)
 {
- lexer_scopeIn_(&userNodeNames);
-  /* printf("lexer_scopeIn: push value %d onto userNodeTypesStack\n", vector_size(userNodeTypesVec)); */
+ lexer_scopeIn_(&me->userNodeNames);
+  /* printf("lexer_scopeIn: push value %d onto userNodeTypesStack\n", vector_size(me->userNodeTypesVec)); */
  /* Remember the number of PROTOs that were defined when we first entered this scope.  This is the 
     number of PROTOs that must be defined when we leave this scope.  Keep this number on the userNodeTypesStack */
- stack_push(size_t, userNodeTypesStack, vector_size(userNodeTypesVec));
+ stack_push(size_t, me->userNodeTypesStack, vector_size(me->userNodeTypesVec));
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
 /* Scope out PROTOs and DEFed nodes */
-void lexer_scopeOut()
+void lexer_scopeOut(struct VRMLLexer* me)
 {
- lexer_scopeOut_(userNodeNames);
+ lexer_scopeOut_(me->userNodeNames);
  /* lexer_scopeOut_PROTO();  */
  /* Fields aren't scoped because they need to be accessible in two levels */
 }
 
-/* stack_top(size_t, userNodeTypesStack) returns the number of PROTOs that were defined before
+/* stack_top(size_t, me->userNodeTypesStack) returns the number of PROTOs that were defined before
    we reached the local scope.  To scope out any added names, we take off names added to the vector
    userNodeTypesVec since the local scope started.  i.e. we keep removing the newest PROTO name 
    from userNodeTypesVec until the size of this vector is the same as the number popped off of the top of
    the userNodeTypesStack.  Afterwards, pop off the top value of the userNodeTypesStack, to complete
    the scopeOut  */
-void lexer_scopeOut_PROTO()
+void lexer_scopeOut_PROTO(struct VRMLLexer* me)
 {
- /* printf("lexer_scopeOut_PROTO: userNodeTypesVec has %d PROTO IDs top of userNodeTypesStack is %d\n", vector_size(userNodeTypesVec), stack_top(size_t, userNodeTypesStack)); */
- while(vector_size(userNodeTypesVec)>stack_top(size_t, userNodeTypesStack))
+ /* printf("lexer_scopeOut_PROTO: userNodeTypesVec has %d PROTO IDs top of userNodeTypesStack is %d\n", vector_size(me->userNodeTypesVec), stack_top(size_t, userNodeTypesStack)); */
+ while(vector_size(me->userNodeTypesVec)>stack_top(size_t, me->userNodeTypesStack))
  {
   /* Free the last element added to the vector */
-  FREE_IF_NZ (vector_back(char*, userNodeTypesVec));
+  FREE_IF_NZ (vector_back(char*, me->userNodeTypesVec));
   /* Decrement the number of items in the vector */
   /* printf("	popping item off of userNodeTypesVec\n"); */
-  vector_popBack(char*, userNodeTypesVec);
+  vector_popBack(char*, me->userNodeTypesVec);
  }
  /* Take off the top value of userNodeTypesStack */
  /* printf("	popped items off of userNodeTypesVec, now take top item off of userNodeTypesStack\n"); */
- stack_pop(size_t, userNodeTypesStack);
+ stack_pop(size_t, me->userNodeTypesStack);
 }
 
 /* Sets curID of lexer */
@@ -433,13 +411,13 @@ BOOL lexer_event(struct VRMLLexer* me,
  if(routedToFrom==ROUTED_FIELD_EVENT_IN)
  {
   /* If we are looking for an eventIn we need to look through the EVENT_IN array and the user_eventIn vector */
-  uarr=user_eventIn;
+  uarr=me->user_eventIn;
   arr=EVENT_IN;
   arrCnt=EVENT_IN_COUNT;
  } else
  {
   /* If we are looking for an eventOut we need to look through the EVENT_OUT array and the user_eventOut vector */
-  uarr=user_eventOut;
+  uarr=me->user_eventOut;
   arr=EVENT_OUT;
   arrCnt=EVENT_OUT_COUNT;
  }
@@ -485,8 +463,8 @@ BOOL lexer_event(struct VRMLLexer* me,
 #endif
 
  /* Get a pointer to the event names in the vector of user defined exposed fields */
- userArr=&vector_get(const char*, user_exposedField, 0);
- userCnt=vector_size(user_exposedField);
+ userArr=&vector_get(const char*, me->user_exposedField, 0);
+ userCnt=vector_size(me->user_exposedField);
 
  /* findRoutedFieldInEXPOSED_FIELD calls findRoutedFieldInARR(node, field, fromTo, EXPOSED_FIELD, EXPOSED_FIELD_COUNT, 0) */
  /* Strip off set_ or _changed from current token.  Then look through the EXPOSED_FIELD array for the eventname (current token). 
@@ -536,8 +514,8 @@ BOOL lexer_field(struct VRMLLexer* me,
  assert(me->curID);
 
   /* Get a pointer to the entries in the user_field vector */
- const char** userArr=&vector_get(const char*, user_field, 0);
- size_t userCnt=vector_size(user_field);
+ const char** userArr=&vector_get(const char*, me->user_field, 0);
+ size_t userCnt=vector_size(me->user_field);
 
 #ifdef CPARSERVERBOSE
  printf("lexer_field: looking for %s\n", me->curID);
@@ -557,8 +535,8 @@ BOOL lexer_field(struct VRMLLexer* me,
   found=((retBO && *retBO!=ID_UNDEFINED) || (retUO && *retUO!=ID_UNDEFINED));
 
   /* Get a pointer to the entries in the user_exposedField vector */
- userArr=&vector_get(const char*, user_exposedField, 0);
- userCnt=vector_size(user_exposedField);
+ userArr=&vector_get(const char*, me->user_exposedField, 0);
+ userCnt=vector_size(me->user_exposedField);
   
   /* findFieldInEXPOSED_FIELD #defined to findFieldInARR(field, EXPOSED_FIELD, EXPOSED_FIELD_COUNT) */
   /* look through the EXPOSED_FIELD array for the fieldname (current token).  If it is found, return the index of the fieldname.  */
@@ -578,11 +556,11 @@ BOOL lexer_field(struct VRMLLexer* me,
  if (retBO && *retBO != ID_UNDEFINED) 
    printf("lexer_field: found field in FIELDNAMES\n");
  if (retUO && *retUO != ID_UNDEFINED) 
-   printf("lexer_field: found field in user_field\n");
+   printf("lexer_field: found field in me->user_field\n");
  if (retBE && *retBE != ID_UNDEFINED) 
    printf("lexer_field: found field in EXPOSED_FIELD\n");
  if (retUE && *retUE != ID_UNDEFINED) 
-   printf("lexer_field: found field in user_exposedField\n");
+   printf("lexer_field: found field in me->user_exposedField\n");
 #endif
 
  if(found)
@@ -594,18 +572,18 @@ BOOL lexer_field(struct VRMLLexer* me,
 }
 
 /* Conversion of user field name to char* */
-const char* lexer_stringUser_fieldName(indexT name, indexT mode)
+const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT mode)
 {
  switch(mode)
  {
   case PKW_field:
-   return lexer_stringUser_field(name);
+   return lexer_stringUser_field(me, name);
   case PKW_exposedField:
-   return lexer_stringUser_exposedField(name);
+   return lexer_stringUser_exposedField(me, name);
   case PKW_eventIn:
-   return lexer_stringUser_eventIn(name);
+   return lexer_stringUser_eventIn(me, name);
   case PKW_eventOut:
-   return lexer_stringUser_eventOut(name);
+   return lexer_stringUser_eventOut(me, name);
  }
  assert(FALSE);
 }

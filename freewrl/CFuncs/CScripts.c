@@ -22,7 +22,7 @@ const char* JS_PROTOCOLS[]={
 /* Constructor and destructor */
 /* ************************** */
 
-struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
+struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, indexT type, indexT name)
 {
  struct ScriptFieldDecl* ret=MALLOC(sizeof(struct ScriptFieldDecl));
 
@@ -34,7 +34,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(indexT mod, indexT type, indexT name)
  assert(ret->fieldDecl);
 
  /* Stringify */
- ret->name=fieldDecl_getStringName(ret->fieldDecl);
+ ret->name=fieldDecl_getStringName(me, ret->fieldDecl);
  ret->type=FIELDTYPES[type];
  ret->ISname = NULL;
 
@@ -75,7 +75,7 @@ struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldI
 	return ret;
 }
 
-struct ScriptFieldDecl* scriptFieldDecl_copy(struct ScriptFieldDecl* me) 
+struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct ScriptFieldDecl* me) 
 {
 	struct ScriptFieldDecl* ret = MALLOC(sizeof (struct ScriptFieldDecl));
 	assert(ret);
@@ -85,7 +85,7 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct ScriptFieldDecl* me)
 	ret->fieldDecl = fieldDecl_copy(me->fieldDecl);
 	assert(ret->fieldDecl);	
 
-	ret->name = fieldDecl_getStringName(ret->fieldDecl);
+	ret->name = fieldDecl_getStringName(lex, ret->fieldDecl);
 	ret->type = me->type;
 	ret->ISname = me->ISname;
 	

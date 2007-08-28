@@ -265,7 +265,7 @@ void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
 }
 
 /* Copies the PROTO */
-struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
+struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
 {
  struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
  size_t i;
@@ -278,7 +278,7 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
  assert(ret->iface);
  for(i=0; i!=vector_size(me->iface); ++i)
   vector_pushBack(struct ProtoFieldDecl*, ret->iface,
-   protoFieldDecl_copy(vector_get(struct ProtoFieldDecl*, me->iface, i)));
+   protoFieldDecl_copy(lex, vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
  /* Copy routes */
  ret->routes=newVector(struct ProtoRoute*, vector_size(me->routes));
@@ -296,7 +296,7 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
 
 
  /* Copy the scene graph and fill the fields thereby */
- ret->tree=protoDefinition_deepCopy(me->tree, ret, NULL);
+ ret->tree=protoDefinition_deepCopy(lex, me->tree, ret, NULL);
  /* Set reference */
  /* XXX:  Do we need the *original* reference? */
  ret->tree->__protoDef=ret;
@@ -315,7 +315,7 @@ struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition* me)
    already have had that value parsed and propagagted to all dests.)
    Adds all of the routes in the route vector for this ProtoDefinition to the CRoutes table.
    Gets the scene graph for this protoDefinition and returns it. */
-struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
+struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct ProtoDefinition* me)
 {
  size_t i;
  size_t j;
@@ -358,7 +358,7 @@ struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition* me)
  for(i=0; i!=vector_size(me->iface); ++i) {
    struct ProtoFieldDecl* pField;
    pField = vector_get(struct ProtoFieldDecl*, me->iface, i);
-   protoFieldDecl_finish(pField);
+   protoFieldDecl_finish(lex, pField);
   }
 
  /* Register all routes */
@@ -408,44 +408,44 @@ void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
 /* ************ */
 
 /* Deepcopies sf */
-#define DEEPCOPY_sfbool(v, i, h) v
-#define DEEPCOPY_sfcolor(v, i, h) v
-#define DEEPCOPY_sfcolorrgba(v, i, h) v
-#define DEEPCOPY_sffloat(v, i, h) v
-#define DEEPCOPY_sfint32(v, i, h) v
-#define DEEPCOPY_sfnode(v, i, h) protoDefinition_deepCopy(v, i, h)
-#define DEEPCOPY_sfrotation(v, i, h) v
-#define DEEPCOPY_sfstring(v, i, h) deepcopy_sfstring(v)
-#define DEEPCOPY_sftime(v, i, h) v
-#define DEEPCOPY_sfvec2f(v, i, h) v
-#define DEEPCOPY_sfvec3f(v, i, h) v
+#define DEEPCOPY_sfbool(l, v, i, h) v
+#define DEEPCOPY_sfcolor(l,v, i, h) v
+#define DEEPCOPY_sfcolorrgba(l,v, i, h) v
+#define DEEPCOPY_sffloat(l,v, i, h) v
+#define DEEPCOPY_sfint32(l,v, i, h) v
+#define DEEPCOPY_sfnode(l,v, i, h) protoDefinition_deepCopy(l,v, i, h)
+#define DEEPCOPY_sfrotation(l,v, i, h) v
+#define DEEPCOPY_sfstring(l,v, i, h) deepcopy_sfstring(l, v)
+#define DEEPCOPY_sftime(l,v, i, h) v
+#define DEEPCOPY_sfvec2f(l,v, i, h) v
+#define DEEPCOPY_sfvec3f(l,v, i, h) v
 
 #ifdef OLDCODE
 /* JAS sfimages have changed structure types */
-#define DEEPCOPY_sfimage(v, i, h) deepcopy_sfimage(v, i, h)
+#define DEEPCOPY_sfimage(l, v, i, h) deepcopy_sfimage(l, v, i, h)
 
-static struct Multi_Int32 DEEPCOPY_mfint32(struct Multi_Int32,
+static struct Multi_Int32 DEEPCOPY_mfint32(struct VRMLLexer*, struct Multi_Int32,
  struct ProtoDefinition*, struct PointerHash*);
-static vrmlImageT deepcopy_sfimage(vrmlImageT img,
+static vrmlImageT deepcopy_sfimage(struct VRMLLexer* lex, vrmlImageT img,
  struct ProtoDefinition* new, struct PointerHash* hash)
 {
  vrmlImageT ret=MALLOC(sizeof(*img));
- *ret=DEEPCOPY_mfint32(*img, new, hash);
+ *ret=DEEPCOPY_mfint32(lex, *img, new, hash);
  return ret;
 }
 #else
 
-#define DEEPCOPY_sfimage(v, i, h) v
+#define DEEPCOPY_sfimage(l, v, i, h) v
 
 #endif
-static vrmlStringT deepcopy_sfstring(vrmlStringT str)
+static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
 {
  return newASCIIString (str->strptr);
 }
 
 /* Deepcopies a mf* */
-#define DEEPCOPY_MFVALUE(type, stype) \
- static struct Multi_##stype DEEPCOPY_mf##type(struct Multi_##stype src, \
+#define DEEPCOPY_MFVALUE(lex, type, stype) \
+ static struct Multi_##stype DEEPCOPY_mf##type(struct VRMLLexer* lex, struct Multi_##stype src, \
   struct ProtoDefinition* new, struct PointerHash* hash) \
  { \
   int i; \
@@ -453,28 +453,28 @@ static vrmlStringT deepcopy_sfstring(vrmlStringT str)
   dest.n=src.n; \
   dest.p=MALLOC(sizeof(src.p[0])*src.n); \
   for(i=0; i!=src.n; ++i) \
-   dest.p[i]=DEEPCOPY_sf##type(src.p[i], new, hash); \
+   dest.p[i]=DEEPCOPY_sf##type(lex, src.p[i], new, hash); \
   if(new) \
    protoDefinition_doPtrUpdate(new, \
     (uint8_t*)src.p, (uint8_t*)(src.p+src.n), (uint8_t*)dest.p); \
   return dest; \
  }
-DEEPCOPY_MFVALUE(bool, Bool)
-DEEPCOPY_MFVALUE(color, Color)
-DEEPCOPY_MFVALUE(colorrgba, ColorRGBA)
-DEEPCOPY_MFVALUE(float, Float)
-DEEPCOPY_MFVALUE(int32, Int32)
-DEEPCOPY_MFVALUE(node, Node)
-DEEPCOPY_MFVALUE(rotation, Rotation)
-DEEPCOPY_MFVALUE(string, String)
-DEEPCOPY_MFVALUE(time, Time)
-DEEPCOPY_MFVALUE(vec2f, Vec2f)
-DEEPCOPY_MFVALUE(vec3f, Vec3f)
+DEEPCOPY_MFVALUE(lex, bool, Bool)
+DEEPCOPY_MFVALUE(lex, color, Color)
+DEEPCOPY_MFVALUE(lex, colorrgba, ColorRGBA)
+DEEPCOPY_MFVALUE(lex, float, Float)
+DEEPCOPY_MFVALUE(lex, int32, Int32)
+DEEPCOPY_MFVALUE(lex, node, Node)
+DEEPCOPY_MFVALUE(lex, rotation, Rotation)
+DEEPCOPY_MFVALUE(lex, string, String)
+DEEPCOPY_MFVALUE(lex, time, Time)
+DEEPCOPY_MFVALUE(lex, vec2f, Vec2f)
+DEEPCOPY_MFVALUE(lex, vec3f, Vec3f)
 
 /* ************************************************************************** */
 
 /* Nodes; may be used to update the interface-pointers, too. */
-struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
+struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node* node,
  struct ProtoDefinition* new, struct PointerHash* hash)
 {
  struct X3D_Node* ret;
@@ -520,7 +520,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
   /* Copying of fields depending on type */
 
   #define FIELD(n, field, type, var) \
-   ret2->var=DEEPCOPY_##type(node2->var, new, hash);
+   ret2->var=DEEPCOPY_##type(lex, node2->var, new, hash);
 
   #define EVENT_IN(n, f, t, v)
   #define EVENT_OUT(n, f, t, v)
@@ -561,7 +561,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
 	/* Add in the fields defined for the old script into the new script */
 	for (i = 0; i !=  vector_size(old_script->fields); ++i) {
 		struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, old_script->fields, i);
-		struct ScriptFieldDecl* newfield = scriptFieldDecl_copy(sfield);
+		struct ScriptFieldDecl* newfield = scriptFieldDecl_copy(lex, sfield);
 		if (sfield->fieldDecl->mode == PKW_field) {
 			scriptFieldDecl_setFieldValue(newfield, sfield->value);
 		}
@@ -597,7 +597,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node* node,
 /* ************************************************************************** */
 
 /* Set a field's value */
-void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
+void protoFieldDecl_setValue(struct VRMLLexer* lex, struct ProtoFieldDecl* me, union anyVrml* val)
 {
  size_t i;
  struct OffsetPointer* myptr;
@@ -651,13 +651,13 @@ void protoFieldDecl_setValue(struct ProtoFieldDecl* me, union anyVrml* val)
     myptr = vector_get(struct OffsetPointer*, me->dests, i); \
      *offsetPointer_deref(vrml##ttype##T*, \
       vector_get(struct OffsetPointer*, me->dests, i))= \
-      DEEPCOPY_##type(val->type, NULL, NULL); \
+      DEEPCOPY_##type(lex, val->type, NULL, NULL); \
      break;
    #define MF_TYPE(fttype, type, ttype) \
     case FIELDTYPE_##fttype: \
      *offsetPointer_deref(struct Multi_##ttype*, \
       vector_get(struct OffsetPointer*, me->dests, i))= \
-      DEEPCOPY_##type(val->type, NULL, NULL); \
+      DEEPCOPY_##type(lex, val->type, NULL, NULL); \
      break;
    #include "VrmlTypeList.h"
    #undef SF_TYPE
@@ -681,7 +681,7 @@ if (!vector_empty(me->scriptDests)) {
 }
 
 /* Copies a fieldDeclaration */
-struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
+struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFieldDecl* me)
 {
  struct ProtoFieldDecl* ret=newProtoFieldDecl(me->mode, me->type, me->name);
  size_t i;
@@ -708,7 +708,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl* me)
  {
   #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
-    ret->defaultVal.type=DEEPCOPY_##type(me->defaultVal.type, NULL, NULL); \
+    ret->defaultVal.type=DEEPCOPY_##type(lex, me->defaultVal.type, NULL, NULL); \
     break;
   #define MF_TYPE(fttype, type, ttype) \
    SF_TYPE(fttype, type, ttype)

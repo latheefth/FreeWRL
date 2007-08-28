@@ -66,7 +66,7 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT, indexT, indexT);
 void deleteProtoFieldDecl(struct ProtoFieldDecl*);
 
 /* Copies */
-struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
+struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldDecl*);
 
 /* Accessors */
 #define protoFieldDecl_getType(me) \
@@ -75,8 +75,8 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
  ((me)->mode)
 #define protoFieldDecl_getIndexName(me) \
  ((me)->name)
-#define protoFieldDecl_getStringName(me) \
- lexer_stringUser_fieldName(protoFieldDecl_getIndexName(me), \
+#define protoFieldDecl_getStringName(lex, me) \
+ lexer_stringUser_fieldName(lex, protoFieldDecl_getIndexName(me), \
   protoFieldDecl_getAccessType(me))
 #define protoFieldDecl_getDestinationCount(me) \
  vector_size((me)->dests)
@@ -93,7 +93,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct ProtoFieldDecl*);
  protoFieldDecl_addDestinationOptr(me, newOffsetPointer(n, o))
 
 /* Sets this field's value (copy to destinations) */
-void protoFieldDecl_setValue(struct ProtoFieldDecl*, union anyVrml*);
+void protoFieldDecl_setValue(struct VRMLLexer*, struct ProtoFieldDecl*, union anyVrml*);
 
 /* Build a ROUTE from/to this field */
 void protoFieldDecl_routeTo(struct ProtoFieldDecl*,
@@ -102,10 +102,10 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
  struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
 
 /* Finish this field - if value is not yet set, use default. */
-#define protoFieldDecl_finish(me) \
+#define protoFieldDecl_finish(lex, me) \
  if(((me)->mode==PKW_field || (me)->mode==PKW_exposedField) && \
   !(me)->alreadySet) \
-  protoFieldDecl_setValue(me, &(me)->defaultVal)
+  protoFieldDecl_setValue(lex, me, &(me)->defaultVal)
 
 /* Add inner pointers' pointers to the vector */
 void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl*,
@@ -186,10 +186,10 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*,
  indexT, indexT);
 
 /* Copies a ProtoDefinition, so that we can afterwards fill in field values */
-struct ProtoDefinition* protoDefinition_copy(struct ProtoDefinition*);
+struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer*, struct ProtoDefinition*);
 
 /* Extracts the scene graph out of a ProtoDefinition */
-struct X3D_Group* protoDefinition_extractScene(struct ProtoDefinition*);
+struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct ProtoDefinition*);
 
 /* Fills the innerPtrs field */
 void protoDefinition_fillInnerPtrs(struct ProtoDefinition*);
@@ -199,7 +199,7 @@ void protoDefinition_doPtrUpdate(struct ProtoDefinition*,
  uint8_t*, uint8_t*, uint8_t*);
 
 /* Does a recursively deep copy of a node-tree */
-struct X3D_Node* protoDefinition_deepCopy(struct X3D_Node*,
+struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer*, struct X3D_Node*,
  struct ProtoDefinition*, struct PointerHash*);
 
 /* Adds an inner route */

@@ -49,9 +49,9 @@ struct ScriptFieldInstanceInfo {
 /* Constructor and destructor */
 /* ************************** */
 
-struct ScriptFieldDecl* newScriptFieldDecl(indexT, indexT, indexT);
+struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer*, indexT, indexT, indexT);
 struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl*, struct Script*);
-struct ScriptFieldDecl* scriptFieldDecl_copy(struct ScriptFieldDecl*);
+struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer*, struct ScriptFieldDecl*);
 void deleteScriptFieldDecl(struct ScriptFieldDecl*);
 
 /* Other members */

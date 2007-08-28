@@ -25,7 +25,7 @@ indexT protoFieldDEcl_getAccessType(fdecl)
 
 Get name:
 indexT protoFieldDecl_getIndexName(fdecl)
-const char* protoFieldDecl_getStringName(fdecl)
+const char* protoFieldDecl_getStringName(lexer, fdecl)
 
 Default value:
 union anyVrml protoFieldDecl_getDefaultValue(fdecl)
@@ -40,6 +40,8 @@ This struct contains both a node and an ofs field.
 ************************************************************************/
 
 #include "headers.h"
+#include "CParse.h"
+#include "CParseParser.h"
 #include "Viewer.h"
 #include <sys/time.h>
 
@@ -106,7 +108,7 @@ indexT protoFieldDEcl_getAccessType(fdecl)
 
 Get name:
 indexT protoFieldDecl_getIndexName(fdecl)
-const char* protoFieldDecl_getStringName(fdecl)
+const char* protoFieldDecl_getStringName(lexer, fdecl)
 
 Default value:
 union anyVrml protoFieldDecl_getDefaultValue(fdecl)
@@ -195,12 +197,12 @@ void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t 
 
 				#ifdef FF_PROTO_PRINT
 				printf ("working through index %d\n",fc); 
-				printf ("	field name is %s\n",protoFieldDecl_getStringName(thisIndex));
+				printf ("	field name is %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
 				printf ("	type is %d which is %s\n",protoFieldDecl_getType(thisIndex),
 					FIELDTYPES[protoFieldDecl_getType(thisIndex)]);
 				printf ("	Accesstype is %d as string %s\n",protoFieldDecl_getAccessType(thisIndex),
 					PROTOKEYWORDS[protoFieldDecl_getAccessType(thisIndex)]);
-				printf ("	indexnameString %s\n",protoFieldDecl_getStringName(thisIndex));
+				printf ("	indexnameString %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
 
 
 
@@ -230,8 +232,8 @@ void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t 
 				#endif
 
 				/* is this the node we are looking for? */
-				if (strlen(protoFieldDecl_getStringName(thisIndex)) == strlen(myField)) {
-					if (strcmp(protoFieldDecl_getStringName(thisIndex),myField) == 0) {
+				if (strlen(protoFieldDecl_getStringName(globalParser->lexer, thisIndex)) == strlen(myField)) {
+					if (strcmp(protoFieldDecl_getStringName(globalParser->lexer, thisIndex),myField) == 0) {
 			
 						#ifdef FF_PROTO_PRINT
 						printf ("		found the field in the PROTO\n");

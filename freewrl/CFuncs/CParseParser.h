@@ -16,11 +16,7 @@ struct ProtoFieldDecl;
 struct Script;
 struct OffsetPointer;
 
-/* This is the DEF/USE memory. */
-extern Stack* DEFedNodes;
 
-/* This is for PROTOs -- not stacked, as explained in CParseLexer.h */
-extern struct Vector* PROTOs;
 
 /* This is our parser-object. */
 struct VRMLParser
@@ -31,6 +27,12 @@ struct VRMLParser
  unsigned ofs;
  /* Currently parsing a PROTO? */
  struct ProtoDefinition* curPROTO;
+
+ /* This is the DEF/USE memory. */
+ Stack* DEFedNodes;
+
+ /* This is for PROTOs -- not stacked, as explained in CParseLexer.h */
+ struct Vector* PROTOs;
 };
 
 /* Functions parsing a type by its index */
@@ -41,11 +43,11 @@ struct VRMLParser* newParser(void*, unsigned);
 void deleteParser(struct VRMLParser*);
 
 /* Other clean up */
-void parser_destroyData();
+void parser_destroyData(struct VRMLParser*);
 
 /* Scoping */
-void parser_scopeIn();
-void parser_scopeOut();
+void parser_scopeIn(struct VRMLParser*);
+void parser_scopeOut(struct VRMLParser*);
 
 /* Sets parser's input */
 #define parser_fromString(me, str) \
