@@ -415,7 +415,7 @@ void fin_HAnimSite (struct X3D_HAnimSite * node) {
             fwXformPop((struct X3D_Transform *)node);
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
-            if(found_vp) {
+            if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 glTranslatef(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
                 );
                 glRotatef(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
@@ -440,7 +440,7 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
             fwXformPop((struct X3D_Transform *)node);
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
-            if(found_vp) {
+            if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
                 glTranslatef(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
                 );
                 glRotatef(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])

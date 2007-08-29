@@ -85,7 +85,7 @@ int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 
 extern int viewer_initialized;
 
 void Next_ViewPoint(void);		/*  switch to next viewpoint -*/
-void setup_viewpoint(int doBinding);
+void setup_viewpoint();
 void get_collisionoffset(double *x, double *y, double *z);
 
 /* Sensor table. When clicked, we get back from getRayHit the fromnode,
@@ -383,7 +383,7 @@ void EventLoop() {
 	/* handle_mouse events if clicked on a sensitive node */
 	if (!NavigationMode && HaveSensitive) {
 		setup_projection(TRUE,currentX,currentY);
-		setup_viewpoint(FALSE);
+		setup_viewpoint();
 		render_hier(rootNode,VF_Sensitive);
 		CursorOverSensitive = getRayHit();
 
@@ -646,12 +646,12 @@ void render_pre() {
 
 
 	/* 3. Viewpoint */
-	setup_viewpoint(TRUE); 	/*  need this to render collisions correctly*/
+	setup_viewpoint(); 	/*  need this to render collisions correctly*/
 
 	/* 4. Collisions */
 	if (be_collision == 1) {
 		render_collisions();
-		setup_viewpoint(FALSE); /*  update viewer position after collision, to*/
+		setup_viewpoint(); /*  update viewer position after collision, to*/
 				   /*  give accurate info to Proximity sensors.*/
 	}
 
@@ -703,7 +703,7 @@ void render() {
 
 
 		/*  Correct Viewpoint, only needed when in stereo mode.*/
-		if (maxbuffers > 1) setup_viewpoint(FALSE);
+		if (maxbuffers > 1) setup_viewpoint();
 
 
 		#ifdef PROFILEMARKER
@@ -820,52 +820,11 @@ void render_collisions() {
 	increment_pos(&v);
 }
 
-void setup_viewpoint(int doBinding) {
-	int i;
-	unsigned int *setBindPtr;
-	int render_flag;	/* is this a VF_Viewpoint, or a VF_Blend? */
-
-	/* first, go through, and see if any viewpoints require binding. */
-	/* some scripts just send a set_bind to a Viewpoint; if another  */
-	/* viewpoint beforehand is bound, the set_bind will never get	 */
-	/* seen if we leave this to the rendering stage	(grep for 	 */
-	/* found_vp to see why	JAS					 */
-
-	/* also, we can sort nodes for proper blending here, using the	*/
-	/* doBinding flag also. JAS 					*/
-
-	render_flag = VF_Viewpoint;
-
-	if (doBinding & (!isinputThreadParsing())) {
-		/* top of mainloop, we can tell the renderer to sort children */
-		/* render_flag = VF_Viewpoint | VF_SortChildren;*/
-		render_flag = VF_Viewpoint;
-
-		for (i=0; i<totviewpointnodes; i++) {
-			setBindPtr = (unsigned int *)(viewpointnodes[i]+
-				offsetof (struct X3D_Viewpoint, set_bind));
-
-			/* check the set_bind eventin to see if it is TRUE or FALSE */
-			if (*setBindPtr < 100) {
-				/* printf ("Found a vp to modify %d\n",viewpointnodes[i]);*/
-				/* up_vector is reset after a bind */
-				if (*setBindPtr==1) reset_upvector();
-
-				bind_node ((void *)viewpointnodes[i],
-					&viewpoint_tos,&viewpoint_stack[0]);
-			}
-		}
-	}
-
+void setup_viewpoint() {
         fwMatrixMode(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         fwLoadIdentity();
-
-        /* Make viewpoint, adds offset in stereo mode.*/
-        /* FIXME: I think it also adds offset of left eye in mono mode.*/
-
         viewer_togl(fieldofview);
-
-        render_hier((void *)rootNode, render_flag);
+        render_hier((void *)rootNode, VF_Viewpoint);
         glPrintError("XEvents::setup_viewpoint");
 }
 

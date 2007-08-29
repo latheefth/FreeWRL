@@ -202,8 +202,6 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	   shouldnt we check for what_vp????
            maybe only one viewpoint is in the tree at a time? -  ncoder*/
 
-	found_vp = 1; /* We found the viewpoint */
-
 	/* is the position "compiled" yet? */
 	if (node->_change != node->_dlchange) {
 		/* printf ("have to recompile position...\n"); */

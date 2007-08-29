@@ -68,8 +68,6 @@ int render_collision;
 int be_collision = 0;	/* do collision detection? */
 int display_status = 1;
 
-int found_vp; /*true when viewpoint found*/
-
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint bound_textures[MAX_MULTITEXTURE];
 int bound_texture_depths[MAX_MULTITEXTURE];
@@ -280,9 +278,6 @@ void render_node(void *node) {
 		   render_sensitive);
 	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
 	#endif
-
-        /* we found viewpoint on render_vp pass, stop exploring tree.. */
-        if(render_vp && found_vp) return;
 
 	/* call the "changed_" function */
 	if(p->_change != p->_ichange && v->changed)
@@ -567,7 +562,6 @@ render_hier(void *p, int rwhat)
 
 
 	render_vp = rwhat & VF_Viewpoint;
-	found_vp = 0;
 	render_geom =  rwhat & VF_Geom;
 	render_light = rwhat & VF_Lights;
 	render_sensitive = rwhat & VF_Sensitive;

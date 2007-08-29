@@ -36,7 +36,9 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 
 	if(!node->isBound) return;
 
-	found_vp = 1; /* We found the viewpoint */
+	/*
+	printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr);
+	*/
 
 	/* perform Viewpoint translations */
 	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],

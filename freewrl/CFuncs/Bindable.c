@@ -234,7 +234,10 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 	struct X3D_Background *bgnode;
 	bgnode=(struct X3D_Background*) node;
 	/* lets see what kind of node this is... */
-	/* printf ("bind_node, we have %d tos %d \n",bgnode->_nodeType,*tos);  */
+	
+	#ifdef BINDVERBOSE
+	printf ("bind_node, we have %d (%s) tos %d \n",bgnode->_nodeType,stringNodeType(bgnode->_nodeType),*tos); 
+	#endif
 
 	
 	/* setup some variables. Use char * as a pointer as it is ok between 32
@@ -252,11 +255,13 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 	if (*tos >=0) {oldstacktop = stack + *tos;}
 	else oldstacktop = stack;
 
-	/*
+	
+	#ifdef BINDVERBOSE
 	printf ("\nbind_node, node %d, set_bind %d tos %d\n",node,*setBindptr,*tos); 
 	printf ("stack %x, oldstacktop %x sizeof usint %x\n",stack, oldstacktop,
 			sizeof(unsigned int));
-	*/
+	#endif
+	
 	
 
 	/* we either have a setBind of 1, which is a push, or 0, which
@@ -279,10 +284,14 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 
 		/* set up pointers, increment stack */
 		*tos = *tos+1;
-		/* printf ("just incremented tos, ptr %d val %d\n",tos,*tos); */
+		#ifdef BINDVERBOSE
+		printf ("just incremented tos, ptr %d val %d\n",tos,*tos);
+		#endif
 
 		newstacktop = stack + *tos;
-		/* printf ("so, newstacktop is %x\n",newstacktop); */
+		#ifdef BINDVERBOSE
+		printf ("so, newstacktop is %x\n",newstacktop);
+		#endif
 
 
 		/* save pointer to new top of stack */
@@ -293,14 +302,19 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 		   have to check for a different one, as if we are binding to the current
 		   Viewpoint, then we do NOT want to unbind it, if we do then the current
 		   top of stack Viewpoint is unbound! */
-		/* printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, *oldstacktop, *newstacktop); */
 
+		#ifdef BINDVERBOSE
+		printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, *oldstacktop, *newstacktop);
+		#endif
 
 		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = (unsigned int *) (*oldstacktop  + (uintptr_t)isboundofst((void *)*oldstacktop));
 			*oldboundptr = 0;
-			/* printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop); */
+
+			#ifdef BINDVERBOSE
+			printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
+			#endif
 
 			mark_event (*oldstacktop, (unsigned int) isboundofst((void *)*oldstacktop));
 
@@ -321,10 +335,17 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 
 		mark_event (node, (unsigned int) isboundofst(node));
 
-		/* printf ("old TOS is %d, we are %d\n",*oldstacktop, node);  */
+		#ifdef BINDVERBOSE
+		printf ("old TOS is %d (%s) , we are %d (%s)\n",*oldstacktop,
+		((struct X3D_Viewpoint *)(*oldstacktop))->description->strptr, node, ((struct X3D_Viewpoint *)node)->description->strptr);
+		#endif
+
+
 		if ((uintptr_t) node != *oldstacktop) return;
 
-		/* printf ("ok, we were TOS, setting %d to 0\n",node); */
+		#ifdef BINDVERBOSE
+		printf ("ok, we were TOS, setting %d (%s) to 0\n",node, ((struct X3D_Viewpoint *)node)->description->strptr);
+		#endif
 
 
 		*tos = *tos - 1;
@@ -332,7 +353,9 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 		if (*tos >= 0) {
 			/* stack is not empty */
 			newstacktop = stack + *tos;
-			/* printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);  */
+			#ifdef BINDVERBOSE
+			printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);
+			#endif
 
 			/* set the popped value of isBound to true */
 			isBoundptr = (unsigned int *) (*newstacktop + (uintptr_t)isboundofst((void *)*newstacktop));

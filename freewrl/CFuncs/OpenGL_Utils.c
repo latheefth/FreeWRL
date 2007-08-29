@@ -12,6 +12,7 @@
  *
  */
 #include "headers.h"
+#include "Bindable.h"
 #include "CParse.h"
 
 #include "OpenGL_Utils.h"
@@ -405,8 +406,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 		#endif
 
 		/* reset any VRML and X3D Parser data */
-                parser_destroyData(globalParser);
-                globalParser = NULL;
+		parser_destroyData(globalParser);
+		globalParser = NULL;
 
 
 	        /* tell statusbar that we have none */
@@ -503,7 +504,15 @@ void zeroVisibilityFlag(void) {
 }
 
 /* go through the linear list of nodes, and do "special things" for special nodes, like
-   Sensitive nodes */
+   Sensitive nodes, Viewpoint nodes, ... */
+
+
+#define MOUSE_SENSITIVE(thistype) \
+                case NODE_##thistype:  \
+			if (((struct X3D_##thistype *)node)->enabled) { \
+				nParents = ((struct X3D_##thistype *)node)->_nparents; \
+				pp = (((struct X3D_##thistype *)node)->_parents); \
+			} break; 
 
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
@@ -511,6 +520,8 @@ void startOfLoopNodeUpdates(void) {
 	void **pp;
 	int nParents;
 	int i,j;
+	unsigned int *setBindPtr;
+
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
@@ -520,52 +531,28 @@ void startOfLoopNodeUpdates(void) {
 		node = (struct X3D_Node*)memoryTable[i];		
 		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
 		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasSensitiveChildren);
+		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
 	}
 
 	/* find ENABLED sensitive nodes, for mouse clicking */
 	for (i=0; i<nextEntry; i++){		
 		node = (struct X3D_Node*)memoryTable[i];		
 		nParents = 0;
+		setBindPtr = NULL;
 
 		switch (node->_nodeType) {
 
 			/* get ready to mark these nodes as Mouse Sensitive */
-			case NODE_PlaneSensor:
-				if (((struct X3D_PlaneSensor *)node)->enabled) {
-					nParents = ((struct X3D_PlaneSensor *)node)->_nparents;
-					pp = (((struct X3D_PlaneSensor *)node)->_parents);
-				}
-				break;
-			
-	
-			case NODE_TouchSensor:
-				if (((struct X3D_TouchSensor *)node)->enabled) {
-					nParents = ((struct X3D_TouchSensor *)node)->_nparents;
-					pp = (((struct X3D_TouchSensor *)node)->_parents);
-				}
-				break;
-	
-			case NODE_SphereSensor:
-				if (((struct X3D_SphereSensor *)node)->enabled) {
-					nParents = ((struct X3D_SphereSensor *)node)->_nparents;
-					pp = (((struct X3D_SphereSensor *)node)->_parents);
-				}
-				break;
-	
-			case NODE_CylinderSensor:
-				if (((struct X3D_CylinderSensor *)node)->enabled) {
-					/* mark THIS node as sensitive. */
-					nParents = ((struct X3D_CylinderSensor *)node)->_nparents;
-					pp = (((struct X3D_CylinderSensor *)node)->_parents);
-				}
-				break;
+			MOUSE_SENSITIVE(PlaneSensor)
+			MOUSE_SENSITIVE(TouchSensor)
+			MOUSE_SENSITIVE(SphereSensor)
+			MOUSE_SENSITIVE(CylinderSensor)
+			MOUSE_SENSITIVE(GeoTouchSensor)
 
-			case NODE_GeoTouchSensor:
-				if (((struct X3D_GeoTouchSensor *)node)->enabled) {
-					nParents = ((struct X3D_GeoTouchSensor *)node)->_nparents;
-					pp = (((struct X3D_GeoTouchSensor *)node)->_parents);
-				}
-				break;
+			/* maybe this is the current Viewpoint? */
+			case NODE_Viewpoint: setBindPtr = (unsigned int *)(node+ offsetof (struct X3D_Viewpoint, set_bind)); break;
+			case NODE_GeoViewpoint: setBindPtr = (unsigned int *)(node+ offsetof (struct X3D_GeoViewpoint, set_bind)); break;
+				
 		}
 
 		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they
@@ -585,7 +572,24 @@ void startOfLoopNodeUpdates(void) {
 			/* tell mainloop that we have to do a sensitive pass now */
 			HaveSensitive = TRUE;
 		}
-	}			
+
+		/* do BINDING of Viewpoint Nodes */
+		if (setBindPtr != NULL) {
+			/* check the set_bind eventin to see if it is TRUE or FALSE */
+			if (*setBindPtr < 100) {
+				/* printf ("Found a vp to modify %d\n",node); */
+				/* up_vector is reset after a bind */
+				if (*setBindPtr==1) reset_upvector();
+				bind_node ((void *)node, &viewpoint_tos,&viewpoint_stack[0]);
+			}
+		}
+	}
+
+	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
+	if (viewpoint_stack[viewpoint_tos] != NULL) {
+		update_renderFlag(viewpoint_stack[viewpoint_tos], VF_Viewpoint);
+	}
+
 }
 
 
