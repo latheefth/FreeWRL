@@ -280,8 +280,7 @@ void render_node(void *node) {
 	#endif
 
 	/* call the "changed_" function */
-	if(p->_change != p->_ichange && v->changed)
-	  {
+	if(p->_change != p->_ichange && v->changed) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
 	    #endif
@@ -292,15 +291,24 @@ void render_node(void *node) {
 	    #endif
 	  }
 
-	if(v->prep)
-	  {
+        /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
+        if (render_vp == VF_Viewpoint) { 
+                if ((p->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
+			#ifdef RENDERVERBOSE
+                        printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
+			#endif
+                        return; 
+                } 
+        }
+
+
+	if(v->prep) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 2\n");
 	    #endif
 
 	    v->prep(node);
-	    if(render_sensitive && !hypersensitive)
-	      {
+	    if(render_sensitive && !hypersensitive) {
 		upd_ray();
 	      }
 	      #ifdef GLERRORS
@@ -308,8 +316,7 @@ void render_node(void *node) {
 	    #endif
 	  }
 
-	if(render_proximity && v->proximity)
-	{
+	if(render_proximity && v->proximity) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 2a\n");
 	    #endif
@@ -319,8 +326,7 @@ void render_node(void *node) {
 	    #endif
 	}
 
-	if(render_collision && v->collision)
-	{
+	if(render_collision && v->collision) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 2b\n");
 	    #endif
@@ -331,8 +337,7 @@ void render_node(void *node) {
 	    #endif
 	}
 
-	if(render_geom && !render_sensitive && v->rend)
-	  {
+	if(render_geom && !render_sensitive && v->rend) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 3\n");
 	    #endif
@@ -342,8 +347,7 @@ void render_node(void *node) {
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
 	    #endif
 	  }
-	if(render_light && v->light)
-	  {
+	if(render_light && v->light) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 4\n");
 	    #endif
@@ -354,9 +358,7 @@ void render_node(void *node) {
 	    #endif
 	  }
 	 
-	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
-	  {
-printf ("renderSensitive 5, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType),p->_renderFlags);
+	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 5\n");
 	    #endif
@@ -379,8 +381,7 @@ printf ("renderSensitive 5, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType
 	    #endif
 
 	  }
-	if(render_geom && render_sensitive && !hypersensitive && v->rendray)
-	  {
+	if(render_geom && render_sensitive && !hypersensitive && v->rendray) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 6\n");
 	    #endif
@@ -401,8 +402,8 @@ printf ("renderSensitive 5, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType
             hyper_r2 = t_r2;
             hyperhit = 1;
         }
-        if(v->children) {
-            #ifdef RENDERVERBOSE 
+        if(v->children) { 
+	#ifdef RENDERVERBOSE 
 		printf ("rs 8\n");
 	    #endif
 
@@ -412,9 +413,7 @@ printf ("renderSensitive 5, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType
 	    #endif
         }
 
-	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
-	  {
-printf ("renderSensitive 9, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType),p->_renderFlags);
+	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 9\n");
 	    #endif
@@ -428,8 +427,7 @@ printf ("renderSensitive 9, p %d (%s), flags %x\n",p,stringNodeType(p->_nodeType
 	    /* HP */
 	      rayph = srh;
 	  }
-	if(v->fin)
-	  {
+	if(v->fin) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs A\n");
 	    #endif

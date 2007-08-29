@@ -189,17 +189,6 @@ int newOcclude(void);
 void zeroOcclusion(void);
 extern int QueryCount;
 
-#define VIEWPOINTTEST \
-	/* printf ("child_Transform, node %d _renderFlags %d VF_VP %d render_vp %d\n",node,node->_renderFlags & VF_Viewpoint,VF_Viewpoint,render_vp); */ \
-	/* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ \
-	if (render_vp == VF_Viewpoint) { \
-		if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { \
-			/* printf ("doing Viewpoint, but this Transform is not for us - just returning\n"); */\
-			return; \
-		}  else { \
-		} \
-	} 
-
 #define OCCLUSIONTEST \
 	/* a value of ZERO means that it HAS visible children - helps with initialization */ \
         if ((render_geom!=0) | (render_sensitive!=0)) { \

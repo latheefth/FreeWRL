@@ -166,7 +166,6 @@ void fin_Transform (struct X3D_Transform *node) {
 } 
 
 void child_Switch (struct X3D_Switch *node) {
-		VIEWPOINTTEST
                 /* exceedingly simple - render only one child */
                 int wc = (node->whichChoice) /*cget*/;
                 if(wc >= 0 && wc < ((node->choice).n)) {
@@ -178,7 +177,6 @@ void child_Switch (struct X3D_Switch *node) {
 
 void child_StaticGroup (struct X3D_StaticGroup *node) {
 	int nc = ((node->children).n);
-		VIEWPOINTTEST
 	DIRECTIONAL_LIGHT_SAVE
 	int createlist = FALSE;
 
@@ -279,7 +277,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 
 void child_Group (struct X3D_Group *node) {
 	int nc = ((node->children).n);
-		VIEWPOINTTEST
 	DIRECTIONAL_LIGHT_SAVE
 
 	/* any children at all? */
@@ -361,9 +358,6 @@ void child_Group (struct X3D_Group *node) {
 
 void child_Transform (struct X3D_Transform *node) {
 	int nc = (node->children).n;
-
-
-	VIEWPOINTTEST
 	OCCLUSIONTEST
 
 	DIRECTIONAL_LIGHT_SAVE
