@@ -109,6 +109,7 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  for(i=0; i!=vector_size(me->dests); ++i)
  {
   struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
+  /* printf("protoFieldDecl_routeTo: registering route from %p %u to dest %p %u dir is %d\n", node, ofs, optr->node, optr->ofs, dir); */
   parser_registerRoute(p, node, ofs, optr->node, optr->ofs, len, dir);
  }
 
@@ -122,6 +123,7 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
 	} else if (dir == 0) {
 		dir = TO_SCRIPT;
 	}
+  	/* printf("protoFieldDecl_routeTo: registering route from %p %u to script dest %p %u %d\n", node, ofs, toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), dir); */
 	parser_registerRoute(p, node, ofs, toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), len, dir);
  }
 }
@@ -138,6 +140,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
  {
   struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
   parser_registerRoute(p, optr->node, optr->ofs, node, ofs, len, dir);
+  /* printf("protoFieldDecl_routeFrom: registering route from dest %p %u to %p %u dir is %d\n", optr->node, optr->ofs, node, ofs, dir); */
  }
 
  /* For each script field mapped to this proto field, add a route */
@@ -151,6 +154,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 		dir = FROM_SCRIPT;
 	}
 	parser_registerRoute(p, fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs, len, dir);
+  	/* printf("protoFieldDecl_routeFrom: registering route from script dest %p %u to %p %u %d\n", fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs,  dir); */
  }
 }
 
@@ -169,6 +173,8 @@ struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
 {
  struct ProtoRoute* ret=MALLOC(sizeof(struct ProtoRoute));
  assert(ret);
+
+ /* printf("creating new proto route from %p %u to %p %u dir %d\n", from, fromOfs, to, toOfs, dir); */
 
  ret->from=from;
  ret->to=to;
@@ -283,9 +289,12 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
  /* Copy routes */
  ret->routes=newVector(struct ProtoRoute*, vector_size(me->routes));
  assert(ret->routes);
- for(i=0; i!=vector_size(me->routes); ++i)
+ for(i=0; i!=vector_size(me->routes); ++i) {
+  struct ProtoRoute* theRoute = vector_get(struct ProtoRoute*, me->routes, i);
+  /* printf("copying proto route from %p %u to %p %u dir %d\n", theRoute->from, theRoute->fromOfs, theRoute->to, theRoute->toOfs, theRoute->dir); */
   vector_pushBack(struct ProtoRoute*, ret->routes,
    protoRoute_copy(vector_get(struct ProtoRoute*, me->routes, i)));
+ }
 
  /* Fill inner pointers */
  ret->innerPtrs=NULL;
@@ -365,8 +374,12 @@ struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct Pro
  /* This is #defined as  CRoutes_RegisterSimple((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, (me)->len, (me)->dir) */
  /* Goes through the list of routes for this proto (the routes vector) and adds each one
     to the CRoutes table */
- for(i=0; i!=vector_size(me->routes); ++i)
+ for(i=0; i!=vector_size(me->routes); ++i) {
+  struct ProtoRoute* theRoute;
+  theRoute = vector_get(struct ProtoRoute*, me->routes, i);
+  /* printf("extract_scene: register route from %p %u to %p %u (dir is %d)\n", theRoute->from, theRoute->fromOfs, theRoute->to, theRoute->toOfs, theRoute->dir); */
   protoRoute_register(vector_get(struct ProtoRoute*, me->routes, i));
+ }
 
  assert(ret->__protoDef);
 
@@ -582,6 +595,18 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
         	        }
         	}
 	}
+	for (i = 0; i != vector_size(new->routes); i++) {
+		struct ProtoRoute* curRoute = vector_get(struct ProtoRoute*, new->routes, i);
+		if (curRoute->dir == TO_SCRIPT) {
+			if (curRoute->to == old_script->num) {
+				curRoute->to = new_script->num;
+			}
+		} else if (curRoute->dir == FROM_SCRIPT) {
+			if (curRoute->from == old_script->num) {
+				curRoute->from = new_script->num;
+		}
+	}
+    }
   }
 
  if(myHash)

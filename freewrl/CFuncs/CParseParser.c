@@ -1022,6 +1022,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  else if(toScriptField)
   toLen=scriptFieldDecl_getLength(toScriptField);
 
+
  /* FIXME:  Not a really safe check for types in ROUTE! */
  /* JAS - made message better. Should compare types, not lengths. */
  /* We can only ROUTE between two equivalent fields.  If the size of one field value is different from the size of the other, we have problems (i.e. can't route SFInt to MFNode) */
@@ -1047,16 +1048,21 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  /* **************************** */
 
  /* Calculate dir parameter */
- if(fromScript && toScript)
+ if(fromScript && toScript) {
   routingDir=SCRIPT_TO_SCRIPT;
+ }
  else if(fromScript)
  {
   assert(!toScript);
   routingDir=FROM_SCRIPT;
+  fromNode = fromScript->num;
+  fromOfs = scriptFieldDecl_getRoutingOffset(fromScriptField);
  } else if(toScript)
  {
   assert(!fromScript);
   routingDir=TO_SCRIPT;
+  toNode = toScript->num;
+  toOfs = scriptFieldDecl_getRoutingOffset(toScriptField);
  } else
  {
   assert(!fromScript && !toScript);
@@ -1064,10 +1070,12 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  }
 
  /* Built-in to built-in */
- if(!fromProtoField && !toProtoField)
+ if(!fromProtoField && !toProtoField) {
   /* If we are in a PROTO add a new ProtoRoute structure to the vector ProtoDefinition->routes */
   /* Otherwise, add the ROUTE to the routing table CRoutes */
   parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen, routingDir);
+  
+}
 
  /* Built-in to user-def */
  else if(!fromProtoField && toProtoField) {
@@ -1076,12 +1084,13 @@ int temp, tempFE, tempFO, tempTE, tempTO;
      to the node and field where the IS statement occurred */
   protoFieldDecl_routeTo(toProtoField, fromNode, fromOfs, routingDir, me);
  /* User-def to built-in */
- } else if(fromProtoField && !toProtoField)
+ } else if(fromProtoField && !toProtoField) {
   /* For each member of the dests vector for this protoFieldDecl call parser_registerRoute for that destination node and offset */
   /* i.e. for every statement field IS user_field for the user_field defined in protoFieldDecl, register a route from the node and
      field where the IS statement occurred */
   protoFieldDecl_routeFrom(fromProtoField, toNode, toOfs, routingDir, me);
  /* User-def to user-def */
+ }
  else
   PARSE_ERROR("Routing from user-event to user-event is currently unsupported!")
 
@@ -1382,6 +1391,15 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
   node=protoDefinition_extractScene(me->lexer, protoCopy);
   /* dump_scene(0, node); */
   assert(node);
+
+  /* If we are currently in a PROTO definition, we need to copy over any PROTO routes ... */
+  int i;
+  if (me->curPROTO) {
+	struct ProtoDefinition* theProto = me->curPROTO;
+	for (i=0; i != vector_size(protoCopy->routes); i++) {
+		vector_pushBack(struct ProtoRoute*, theProto->routes, protoRoute_copy(vector_get(struct ProtoRoute*, protoCopy->routes, i)));
+	}
+  }
 
   /* Can't delete ProtoDefinition, it is referenced! */
   /*deleteProtoDefinition(protoCopy);*/
