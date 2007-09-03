@@ -1,4 +1,7 @@
 For 1.19.7:
+
+	- Javascript MFNode work - should be ok now??
+
 	- work on mouse-sensitive nodes; when they are disabled, mouse does not
 	  change shape, and nodes are ignored. Works dynamically; scene graph
 	  is pruned when sensitive nodes become disabled.

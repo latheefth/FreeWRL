@@ -821,7 +821,9 @@ void CRoutes_RegisterSimple(
  /* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  char tonode_str[15];
  void* interpolatorPointer;
- snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+ int extraData = 0;
+
+
 
  /* When routing to a script, to is not a node pointer! */
  if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
@@ -829,8 +831,62 @@ void CRoutes_RegisterSimple(
  else
   interpolatorPointer=NULL;
 
+  /* JAS - children AddRemove Children needs a "direction" of:
+	- 0 - "set (replace) Children"
+ 	- 1 - "addChildren"
+	- 2 - "removeChildren"
+
+	We could do these tests during runtime, or we can do them here... 
+  */
+
+ if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT) {
+	switch (to->_nodeType) {
+		case NODE_Transform:
+			if (toOfs == offsetof (struct X3D_Transform, addChildren)) {
+				toOfs = offsetof (struct X3D_Transform, children);
+				extraData = 1;
+			} else  if (toOfs == offsetof (struct X3D_Transform, removeChildren)) {
+				toOfs = offsetof (struct X3D_Transform, children);
+				extraData = 2;
+			} else {
+				/* this is a replace Children type of call */
+				extraData = 0;
+			}
+			break;
+		case NODE_Group:
+			if (toOfs == offsetof (struct X3D_Group, addChildren)) {
+				toOfs = offsetof (struct X3D_Group, children);
+				extraData = 1;
+			} else  if (toOfs == offsetof (struct X3D_Group, removeChildren)) {
+				toOfs = offsetof (struct X3D_Group, children);
+				extraData = 2;
+			} else {
+				/* this is a replace Children type of call */
+				extraData = 0;
+			}
+			break;
+		case NODE_Switch:
+			if (toOfs == offsetof (struct X3D_Switch, addChildren)) {
+				toOfs = offsetof (struct X3D_Switch, choice);
+				extraData = 1;
+			} else  if (toOfs == offsetof (struct X3D_Switch, removeChildren)) {
+				toOfs = offsetof (struct X3D_Switch, choice);
+				extraData = 2;
+			} else {
+				/* this is a replace Children type of call */
+				extraData = 0;
+				toOfs = offsetof (struct X3D_Switch, choice);
+			}
+			break;
+
+		default: {}
+	}
+  }
+
+ snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+
  CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, 
-  interpolatorPointer, dir, 0);
+  interpolatorPointer, dir, extraData);
 }
  
 

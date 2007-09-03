@@ -556,7 +556,6 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 				case FIELDTYPE_MFTime:
 				case FIELDTYPE_MFBool:
 				case FIELDTYPE_MFInt32:
-				case FIELDTYPE_MFNode:
 				case FIELDTYPE_MFFloat: 
 				JSaddGlobalECMANativeProperty(num, field);
 					MFhasECMAtype = TRUE;
@@ -642,6 +641,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 					case FIELDTYPE_SFNode:
 					case FIELDTYPE_MFNode:
 						VoidPtr = defaultVoid; 
+						elements = 0;
 						break;
 
 					/* Float types */
@@ -708,6 +708,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 
 			/* SFStrings are Strings */
 			if (strncmp(sftype,"SFString",8)==0) strcpy (sftype,"String");
+
 
 			/* start the string */
 			smallfield[0] = '\0';
