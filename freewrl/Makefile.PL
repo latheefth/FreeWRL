@@ -4,7 +4,7 @@
 # for conditions of use and redistribution.
 
 # Version of FreeWRL
-my $VERSION = "V1.19.7";
+my $VERSION = "V1.19.8";
 
 # what OS are we running under?
 my $OS = `uname`;

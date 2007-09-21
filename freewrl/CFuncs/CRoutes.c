@@ -143,7 +143,6 @@
 #define Bool savedBool
 
 
-void AddRemoveChildren (struct X3D_Box *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
 void setMFElementtype (uintptr_t num);
 
 /*****************************************
@@ -455,7 +454,7 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 /****************************************************************/
 
 void AddRemoveChildren (
-		struct X3D_Box *parent,
+		struct X3D_Node *parent,
 		struct Multi_Node *tn,
 		uintptr_t *nodelist,
 		int len,
@@ -831,58 +830,6 @@ void CRoutes_RegisterSimple(
  else
   interpolatorPointer=NULL;
 
-  /* JAS - children AddRemove Children needs a "direction" of:
-	- 0 - "set (replace) Children"
- 	- 1 - "addChildren"
-	- 2 - "removeChildren"
-
-	We could do these tests during runtime, or we can do them here... 
-  */
-
- if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT) {
-	switch (to->_nodeType) {
-		case NODE_Transform:
-			if (toOfs == offsetof (struct X3D_Transform, addChildren)) {
-				toOfs = offsetof (struct X3D_Transform, children);
-				extraData = 1;
-			} else  if (toOfs == offsetof (struct X3D_Transform, removeChildren)) {
-				toOfs = offsetof (struct X3D_Transform, children);
-				extraData = 2;
-			} else {
-				/* this is a replace Children type of call */
-				extraData = 0;
-			}
-			break;
-		case NODE_Group:
-			if (toOfs == offsetof (struct X3D_Group, addChildren)) {
-				toOfs = offsetof (struct X3D_Group, children);
-				extraData = 1;
-			} else  if (toOfs == offsetof (struct X3D_Group, removeChildren)) {
-				toOfs = offsetof (struct X3D_Group, children);
-				extraData = 2;
-			} else {
-				/* this is a replace Children type of call */
-				extraData = 0;
-			}
-			break;
-		case NODE_Switch:
-			if (toOfs == offsetof (struct X3D_Switch, addChildren)) {
-				toOfs = offsetof (struct X3D_Switch, choice);
-				extraData = 1;
-			} else  if (toOfs == offsetof (struct X3D_Switch, removeChildren)) {
-				toOfs = offsetof (struct X3D_Switch, choice);
-				extraData = 2;
-			} else {
-				/* this is a replace Children type of call */
-				extraData = 0;
-				toOfs = offsetof (struct X3D_Switch, choice);
-			}
-			break;
-
-		default: {}
-	}
-  }
-
  snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
 
  CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, 
@@ -972,6 +919,7 @@ void CRoutes_Register(
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
 	}
+
 	#ifdef CRVERBOSE  
 		printf ("\n\nCRoutes_Register adrem %d from %u off %u to %u %s len %d intptr %u\n",
 				adrem, from, fromoffset, to_count, tonode_str, length, intptr);
@@ -1165,7 +1113,7 @@ void mark_event (void *from, unsigned int totalptr) {
 	findit = 1;
 
 	#ifdef CRVERBOSE 
-		printf ("\nmark_event, from %u fromoffset %u\n", from, totalptr);
+		printf ("\nmark_event, from %s (%u) fromoffset %u\n", stringNodeType(((struct X3D_Node*)from)->_nodeType),from, totalptr);
 	#endif
 
 	/* events in the routing table are sorted by fromnode. Find
@@ -1688,8 +1636,8 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 		case -18: {structlen = sizeof (struct SFVec2f); break;}
 		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
 		default: {
-			/* this is MOST LIKELY for an EAI handle_Listener call 
-			printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype); */
+			 /* this is MOST LIKELY for an EAI handle_Listener call - if not, it is a ROUTING problem... */
+			/* printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);  */
 			structlen=0;
 			return;
 		}

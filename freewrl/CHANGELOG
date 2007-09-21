@@ -1,3 +1,12 @@
+For 1.19.8:
+	- ROUTE bug for some MF* nodes was fixed in 1.19.7, but fix was edited out
+	  from CParseParser.c; re-applied.
+
+	- add/removeChildren routing now done before Scenegraph renders, rather than trying to
+	  second guess routes in CRoutes_Register.
+
+	- TouchSensor bug (where the javascript sphere box test would fail) fixed.
+
 For 1.19.7:
 
 	- Javascript MFNode work - should be ok now??

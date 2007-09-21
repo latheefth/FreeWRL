@@ -1025,12 +1025,29 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
 	struct pt normalval;	/* different structures for normalization calls */
 
+	#ifdef SENSVERBOSE
+	printf ("TS ");
+	if (ev==ButtonPress) printf ("ButtonPress ");
+	else if (ev==ButtonRelease) printf ("ButtonRelease ");
+	else if (ev==KeyPress) printf ("KeyPress ");
+	else if (ev==KeyRelease) printf ("KeyRelease ");
+	else if (ev==MotionNotify) printf ("MotionNotify ");
+	else printf ("ev %d ",ev);
+	
+	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
+	if (over) printf ("over TRUE "); else printf ("over FALSE ");
+	printf ("\n");
+	#endif
+
 	/* if not enabled, do nothing */
 	if (!node) return;
 	if (!node->enabled) return;
 
 	/* isOver state */
 	if (over != node->isOver) {
+		#ifdef SENSVERBOSE
+		printf ("TS, isOver changed %d\n",over);
+		#endif
 		node->isOver = over;
 		mark_event (ptr, offsetof (struct X3D_TouchSensor, isOver));
 	}
@@ -1042,14 +1059,19 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		if (ev == ButtonPress) {
 			node->isActive=1;
 			mark_event (ptr, offsetof (struct X3D_TouchSensor, isActive));
+			#ifdef SENSVERBOSE
+			printf ("touchSens, butPress\n");
+			#endif
 
 			node->touchTime = TickTime;
 			mark_event(ptr, offsetof (struct X3D_TouchSensor, touchTime));
 
 		} else if (ev == ButtonRelease) {
+			#ifdef SENSVERBOSE
+			printf ("touchSens, butRelease\n");
+			#endif
 			node->isActive=0;
-			mark_event (ptr,
-				offsetof (struct X3D_TouchSensor, isActive));
+			mark_event (ptr, offsetof (struct X3D_TouchSensor, isActive));
 		}
 
 		/* hitPoint and hitNormal */

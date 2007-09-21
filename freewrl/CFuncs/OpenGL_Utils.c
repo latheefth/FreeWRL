@@ -514,6 +514,45 @@ void zeroVisibilityFlag(void) {
 				pp = (((struct X3D_##thistype *)node)->_parents); \
 			} break; 
 
+#define CHILDREN_NODE(thistype) \
+                case NODE_##thistype:  \
+			addChildren = NULL; removeChildren = NULL; \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->children; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->children; \
+			} \
+			 break; 
+
+#define CHILDREN_SWITCH_NODE(thistype) \
+                case NODE_##thistype:  \
+			addChildren = NULL; removeChildren = NULL; \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
+			} \
+			 break; 
+
+#define CHILDREN_LOD_NODE(thistype) \
+                case NODE_##thistype:  \
+			addChildren = NULL; removeChildren = NULL; \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->level; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->level; \
+			} \
+			 break; 
+
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Node* parents;
@@ -521,6 +560,10 @@ void startOfLoopNodeUpdates(void) {
 	int nParents;
 	int i,j;
 	unsigned int *setBindPtr;
+
+	struct Multi_Node *addChildren;
+	struct Multi_Node *removeChildren;
+	struct Multi_Node *childrenPtr;
 
 
 	/* assume that we do not have any sensitive nodes at all... */
@@ -534,11 +577,13 @@ void startOfLoopNodeUpdates(void) {
 		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
 	}
 
-	/* find ENABLED sensitive nodes, for mouse clicking */
+	/* go through the list of nodes, and "work" on any that need work */
+	nParents = 0;
+	setBindPtr = NULL;
+	childrenPtr = NULL;
+
 	for (i=0; i<nextEntry; i++){		
 		node = (struct X3D_Node*)memoryTable[i];		
-		nParents = 0;
-		setBindPtr = NULL;
 
 		switch (node->_nodeType) {
 
@@ -552,25 +597,36 @@ void startOfLoopNodeUpdates(void) {
 			/* maybe this is the current Viewpoint? */
 			case NODE_Viewpoint: setBindPtr = (unsigned int *)(node+ offsetof (struct X3D_Viewpoint, set_bind)); break;
 			case NODE_GeoViewpoint: setBindPtr = (unsigned int *)(node+ offsetof (struct X3D_GeoViewpoint, set_bind)); break;
-				
+
+			/* does this one possibly have add/removeChildren? */
+			CHILDREN_NODE(Group)
+			CHILDREN_NODE(Transform)
+			CHILDREN_NODE(NurbsGroup)
+			CHILDREN_NODE(Contour2D)
+			CHILDREN_NODE(HAnimSite)
+			CHILDREN_NODE(HAnimSegment)
+			CHILDREN_NODE(HAnimJoint)
+			CHILDREN_NODE(Anchor)
+			CHILDREN_NODE(Billboard)
+			CHILDREN_NODE(Collision)
+			CHILDREN_SWITCH_NODE(Switch)
+			CHILDREN_LOD_NODE(LOD)
+
 		}
 
-		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they
-		   are sensitive */
+		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they are sensitive */
 		if (nParents != 0) {
 			for (j=0; j<nParents; j++) {
 				struct X3D_Node *n = (struct X3D_Node *)pp[j];
 				n->_renderFlags = n->_renderFlags  | VF_Sensitive;
 
- 				/* and tell the rendering pass that there is a sensitive node down*/
- 	 			/* this branch */
-				
+ 				/* and tell the rendering pass that there is a sensitive node down this branch */
 				update_renderFlag(n,VF_hasSensitiveChildren);
-				
 			}
 
 			/* tell mainloop that we have to do a sensitive pass now */
 			HaveSensitive = TRUE;
+			nParents = 0;
 		}
 
 		/* do BINDING of Viewpoint Nodes */
@@ -582,6 +638,20 @@ void startOfLoopNodeUpdates(void) {
 				if (*setBindPtr==1) reset_upvector();
 				bind_node ((void *)node, &viewpoint_tos,&viewpoint_stack[0]);
 			}
+			setBindPtr = NULL;
+		}
+
+		/* this node possibly has to do add/remove children? */
+		if (childrenPtr != NULL) {
+			if (addChildren != NULL) {
+				AddRemoveChildren(node,childrenPtr,addChildren->p,addChildren->n,1);
+				addChildren->n=0;
+			}
+			if (removeChildren != NULL) {
+				AddRemoveChildren(node,childrenPtr,removeChildren->p,removeChildren->n,2);
+				removeChildren->n=0;
+			}
+			childrenPtr = NULL;
 		}
 	}
 

@@ -118,6 +118,7 @@ int ButDown[] = {FALSE,FALSE,FALSE,FALSE,FALSE};
 int currentX, currentY;			/*  current mouse position.*/
 int lastMouseEvent = MapNotify;		/*  last event a mouse did; care about Button and Motion events only.*/
 unsigned char * lastPressedOver = 0;		/*  the sensitive node that the mouse was last buttonpressed over.*/
+unsigned char * lastOver = 0;		/* last node we were over */
 
 int maxbuffers = 1;			/*  how many active indexes in bufferarray*/
 int bufferarray[] = {GL_BACK,0};
@@ -387,16 +388,37 @@ void EventLoop() {
 		render_hier(rootNode,VF_Sensitive);
 		CursorOverSensitive = getRayHit();
 
+#ifdef XXXX
+		/* this is for the isOver tests. */
+		if (lastOver != CursorOverSensitive) {
+			/* when the left button is pressed, CursorOverSensitive gets set to 0,
+			   so, ignore this when in this state */
+			if  (ButDown[1]==0) {
+printf ("ButDown[1] %d, lpo %d lo %d cos %d\n", ButDown[1], lastPressedOver,lastOver,CursorOverSensitive);
+printf ("sending MapNotify here\n");
+			sendSensorEvents(CursorOverSensitive,MapNotify,FALSE,TRUE);
+printf ("...\n");
+			sendSensorEvents(lastOver,MapNotify,FALSE,FALSE);
+printf ("finished sending MapNotify here\n");
+			lastOver = CursorOverSensitive;
+		} else {
+			printf  ("lastOver !- COS, but button down\n");
+		}
+		
+		}
+#endif
+
 		/* did we have a click of button 1? */
+
 		if (ButDown[1] && (lastPressedOver==0)) {
-			/*  printf ("Not Navigation and 1 down\n");*/
+			/* printf ("Not Navigation and 1 down\n"); */
 			/* send an event of ButtonPress and isOver=true */
 			lastPressedOver = CursorOverSensitive;
 			sendSensorEvents(lastPressedOver, ButtonPress, ButDown[1], TRUE);
 		}
 
-		if ((ButDown[1]==0) && lastPressedOver) {
-			/*  printf ("Not Navigation and 1 up\n");*/
+		if ((ButDown[1]==0) && lastPressedOver!=0) {
+			/* printf ("Not Navigation and 1 up\n"); */
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
 			sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
@@ -946,6 +968,7 @@ void setSensitive(void *parentNode,void *datanode) {
 /* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
 void sendSensorEvents(unsigned char * COS,int ev, int butStatus, int status) {
 	int count;
+
 
 	/* if we are not calling a valid node, dont do anything! */
 	if (COS==0) return;

@@ -637,6 +637,9 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 
  int routingDir;
 
+ fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED;
+
+
  assert(me->lexer);
  lexer_skip(me->lexer);
 
@@ -1013,14 +1016,34 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  #undef END_NODE
 
  /* Get size information for user defined fields */
- if(fromProtoField)
-  fromLen=protoFieldDecl_getLength(fromProtoField);
- else if(fromScriptField)
-  fromLen=scriptFieldDecl_getLength(fromScriptField);
- if(toProtoField)
-  toLen=protoFieldDecl_getLength(toProtoField);
- else if(toScriptField)
-  toLen=scriptFieldDecl_getLength(toScriptField);
+ if(fromProtoField) fromLen=protoFieldDecl_getLength(fromProtoField);
+ else if(fromScriptField) fromLen=scriptFieldDecl_getLength(fromScriptField);
+ if(toProtoField) toLen=protoFieldDecl_getLength(toProtoField);
+ else if(toScriptField) toLen=scriptFieldDecl_getLength(toScriptField);
+
+ /* to "simple" MF nodes, we have to call a procedure to determine exactly what kind of "length" this
+    node has - it is not as simple as using a "sizeof(int)" command, but, something that is interpreted at
+    runtime. So, looking at "#define ROUTE_REAL_SIZE_mffloat FALSE" above, anything that is defined as FALSE
+    is a complex type, and, we will have a length as 0 right here. Lets really fill in the "special" lengths
+    for these ones. */
+ if (toLen == 0) {
+	int b,c,tmp;
+	if (toNode != NULL) {
+		if (toFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
+		if (toFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
+		findFieldInOFFSETS( NODE_OFFSETS[toNode->_nodeType], tmp,  &toOfs, &b, &c);	 
+		toLen = returnRoutingElementLength(b);
+	}
+ }
+ if (fromLen == 0) {
+	int b,c,tmp;
+	if (fromNode != NULL) {
+		if (fromFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],1);
+		if (fromFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],1);
+		findFieldInOFFSETS( NODE_OFFSETS[fromNode->_nodeType], tmp,  &fromOfs, &b, &c);	 
+		fromLen = returnRoutingElementLength(b);
+	}
+ }
 
 
  /* FIXME:  Not a really safe check for types in ROUTE! */
