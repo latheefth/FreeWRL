@@ -26,9 +26,6 @@ void getField_ToJavascript (int num, int fromoffset) {
 			fromoffset,JSparamnames[fromoffset].type);  
 	#endif
 
-	/* this script initialized yet? */
-	initializeScript(num, TRUE);
-
 	/* set the parameter */
 	/* see comments in gatherScriptEventOuts to see exact formats */
 

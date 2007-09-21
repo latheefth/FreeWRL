@@ -145,10 +145,10 @@ void JSInit(uintptr_t num) {
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
+
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("init: script %d\n",num);
 	#endif
-	if (num > max_script_found) max_script_found = num;
 
 
 	/* more scripts than we can handle right now? */
@@ -234,7 +234,7 @@ void JSInit(uintptr_t num) {
 	CRoutes_js_new (num, JAVASCRIPT);
 
 	#ifdef JAVASCRIPTVERBOSE 
-	printf("\tVRML browser initialized\n");
+	printf("\tVRML browser initialized, thread %d\n",pthread_self());
 	#endif
 }
 

@@ -84,7 +84,10 @@ int returnElementLength(int type) {
 }
 
 /* for passing into CRoutes/CRoutes_Register */
-/* the numbers match the "sub clength" in VRMLFields.pm, and the getClen in VRMLC.pm */
+/* lengths are either positive numbers, or, if there is a complex type, a negative number. If positive,
+   in routing a memcpy is performed; if negative, then some inquiry is required to get correct length
+   of both source/dest during routing. */
+
 int returnRoutingElementLength(int type) {
 	  switch (type) {
 		case FIELDTYPE_SFTime:	return sizeof(double); break;

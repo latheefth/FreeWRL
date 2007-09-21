@@ -136,9 +136,6 @@ static double timeAA, timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;
 
 int trisThisLoop;
 
-/* used for initializing (sometimes!) javascript initialize() */
-int myMaxScript = -1;
-
 /* do we have some sensitive nodes in scene graph? */
 int HaveSensitive = FALSE;
 
@@ -519,18 +516,6 @@ printf ("finished sending MapNotify here\n");
 	glTranslatef(10,10,10); glTranslatef (-10,-10,-10);
 	#endif
 
-	}
-	/* any new scripts in here, that maybe are not initialized yet?
-	 * If they had some events already, they'll already be initialized;
-	 * but don't do this if perl is parsing, because script init might
-	 * reference VRML constructs NOT found yet */
-	if (myMaxScript != max_script_found) {
-		if (!isinputThreadParsing()) {
-		    for (counter = myMaxScript; counter <= max_script_found; counter++) {
-			initializeScript(counter, FALSE);
-		    }
-		    myMaxScript = max_script_found;
-		}
 	}
 
 	/* record the TickTime here, for rate setting. We don't do this earlier, as some

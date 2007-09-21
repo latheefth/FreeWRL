@@ -305,37 +305,6 @@ void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 }
 
 
-/* call initialize on this script. called for script eventins and eventouts */
-void initializeScript(uintptr_t num,int evIn) {
-	jsval retval;
-	int counter;
-	uintptr_t tn;
-	CRnodeStruct *to_ptr = NULL;
-
-
-	/* is this an event in? If so, num is a routing table entry */
-	if (evIn) {
-	    for (counter = 0; counter < CRoutes[num].tonode_count; counter++) {
-		to_ptr = &(CRoutes[num].tonodes[counter]);
-		tn = (uintptr_t) to_ptr->node;
-
-		if (!(ScriptControl[tn]._initialized)) {
-                                        ActualrunScript(tn, "initialize()" ,&retval);
-                                        ScriptControl[tn]._initialized=TRUE;
-		}
-	    }
-	} else {
-		/* bounds check */
-		if ((int)num <0) return;
-
-		/* this script initialized yet? */
-		if (!(ScriptControl[num]._initialized)) {
-                                        ActualrunScript(num, "initialize()" ,&retval);
-                                        ScriptControl[num]._initialized=TRUE;
-		} 
-	}
-}
-
 /********************************************************************************/
 /*									    	*/
 /* get_valueChanged_flag - see if this variable (can be a sub-field; see tests   	*/
@@ -727,6 +696,7 @@ Register a new script for future routing
 ********************************************************************/
 
 void CRoutes_js_new (uintptr_t num, int scriptType) {
+	jsval retval;
 
 	/* printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl);  */
 
@@ -740,7 +710,8 @@ void CRoutes_js_new (uintptr_t num, int scriptType) {
 	 * tries to get something via perl...
 	 */
 
-	ScriptControl[num]._initialized = FALSE;
+	ActualrunScript(num, "initialize()" ,&retval);
+	ScriptControl[num]._initialized=TRUE;
 
 	/* compare with a intptr_t, because we need to compare to -1 */
 
@@ -1192,8 +1163,9 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	if (!CRoutes_Initiated) return;
 
 	/* this script initialized yet? */
-	/* JAS - events are running already if (!isinputThreadParsing()) */
-	initializeScript(actualscript, FALSE);
+	if (ScriptControl[actualscript]._initialized!=TRUE) {
+		ConsoleMessage ("Problem here - script not initialized, but we are routing to it...");
+	}
 
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
@@ -1482,7 +1454,7 @@ void process_eventsProcessed() {
 		if (!JS_ExecuteScript((JSContext *) ScriptControl[counter].cx,
                                 (JSContext *) ScriptControl[counter].glob,
 				(JSScript *) ScriptControl[counter].eventsProcessed, &retval)) {
-			printf ("can not run eventsProcessed()\n");
+			printf ("can not run eventsProcessed() for script %d thread %d\n",counter,pthread_self());
 		}
 
 	}

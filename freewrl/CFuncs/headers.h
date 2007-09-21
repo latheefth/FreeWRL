@@ -1165,7 +1165,6 @@ int ConsoleMessage(const char *fmt, ...);
 extern int consMsgCount;
 
 void outOfMemory(const char *message);
-void initializeScript(uintptr_t  num,int evIn);
 
 void killErrantChildren(void);
 

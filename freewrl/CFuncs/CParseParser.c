@@ -1015,11 +1015,11 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  #undef FIELD
  #undef END_NODE
 
- /* Get size information for user defined fields */
- if(fromProtoField) fromLen=protoFieldDecl_getLength(fromProtoField);
- else if(fromScriptField) fromLen=scriptFieldDecl_getLength(fromScriptField);
- if(toProtoField) toLen=protoFieldDecl_getLength(toProtoField);
- else if(toScriptField) toLen=scriptFieldDecl_getLength(toScriptField);
+ /* set the toLen and fromLen from the PROTO/Script info, if appropriate */
+ if(fromProtoField) fromLen=returnRoutingElementLength(fromProtoField->type);
+ else if(fromScriptField) fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
+ if(toProtoField) toLen=returnRoutingElementLength(toProtoField->type);
+ else if(toScriptField) toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
 
  /* to "simple" MF nodes, we have to call a procedure to determine exactly what kind of "length" this
     node has - it is not as simple as using a "sizeof(int)" command, but, something that is interpreted at

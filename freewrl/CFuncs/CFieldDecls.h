@@ -55,7 +55,4 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT);
 #define fieldDecl_isField(me, nam, mod) \
  ((me)->name==(nam) && (me)->mode==(mod))
 
-/* Return the length in bytes of this field's type */
-size_t fieldDecl_getLength(struct FieldDecl*);
-
 #endif /* Once-check */

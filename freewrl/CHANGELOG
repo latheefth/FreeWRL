@@ -1,4 +1,8 @@
 For 1.19.8:
+	- Javascript was not thread-safe; should be ok now.
+
+	- Javascript/PROTO MF*nodes also had problems with routing; fixed. (see next fix, below)
+
 	- ROUTE bug for some MF* nodes was fixed in 1.19.7, but fix was edited out
 	  from CParseParser.c; re-applied.
 

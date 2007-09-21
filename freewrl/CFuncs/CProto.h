@@ -111,9 +111,6 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
 void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl*,
  struct Vector*);
 
-/* Return the length in bytes of this field's type */
-size_t protoFieldDecl_getLength(struct ProtoFieldDecl*);
-
 /* ************************************************************************** */
 /* ******************************* ProtoRoute ******************************* */
 /* ************************************************************************** */

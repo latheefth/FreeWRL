@@ -72,37 +72,12 @@ void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl* me,
    &vector_get(struct OffsetPointer*, me->dests, i)->node);
 }
 
-size_t protoFieldDecl_getLength(struct ProtoFieldDecl* me)
-{
- #define SF_TYPE(ttype, type, stype) \
-  case FIELDTYPE_##ttype: \
-   return sizeof(vrml##stype##T);
- #define MF_TYPE(ttype, type, stype) \
-  case FIELDTYPE_##ttype: \
-   return 0;
-
- switch(me->type)
- {
-  #include "VrmlTypeList.h"
-#ifndef NDEBUG
-  default:
-   assert(FALSE);
-#endif
- }
-
- #undef SF_TYPE
- #undef MF_TYPE
-
- assert(FALSE);
- return 0;
-}
-
 /* Routing to/from */
 void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- size_t len=protoFieldDecl_getLength(me);
+ size_t len=returnRoutingElementLength(me->type);
  assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
 
  /* For each destination mapped to this proto field, add a route */
@@ -132,7 +107,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- size_t len=protoFieldDecl_getLength(me);
+ size_t len=returnRoutingElementLength(me->type);
  assert(me->mode==PKW_exposedField || me->mode==PKW_eventOut);
 
  /* For each destination mapped to this proto field, add a route */

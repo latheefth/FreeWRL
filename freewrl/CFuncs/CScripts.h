@@ -67,8 +67,6 @@ void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl*, union anyVrml);
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl*, uintptr_t);
 
 /* Forwards to inherited methods */
-#define scriptFieldDecl_getLength(me) \
- fieldDecl_getLength((me)->fieldDecl)
 #define scriptFieldDecl_isField(me, nam, mod) \
  fieldDecl_isField((me)->fieldDecl, nam, mod)
 
