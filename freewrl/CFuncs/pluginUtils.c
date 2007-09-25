@@ -174,8 +174,11 @@ void doBrowserAction () {
 	char *thisurl;
 	int flen;
 	char firstBytes[4];
-	char sysline[1000];
-	char aquaPath[1000];
+
+#define LINELEN 2000
+	char sysline[LINELEN];
+	char aquaPath[LINELEN];
+	int testlen;
 
 
 	struct Multi_String Anchor_url;
@@ -284,14 +287,21 @@ void doBrowserAction () {
 
 			char *browser = getenv("BROWSER");
 #ifndef AQUA
-			if (browser)
-				strcpy (sysline, browser);
-			else
-				strcpy (sysline, BROWSER);
-			strcat (sysline, " ");
-			strcat (sysline, filename);
-			strcat (sysline, " &");
-			freewrlSystem (sysline);
+			/* bounds check here */
+			if (browser) testlen = strlen(browser);
+			else testlen = strlen(BROWSER);
+			testlen += strlen(filename) + 10; 
+			if (testlen > LINELEN) {
+				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+			} else {
+
+				if (browser) strcpy (sysline, browser);
+				else strcpy (sysline, BROWSER);
+				strcat (sysline, " ");
+				strcat (sysline, filename);
+				strcat (sysline, " &");
+				freewrlSystem (sysline);
+			}
 #else
                 if (isMacPlugin) {
                         if (strncmp(filename, "http", 4)) {
@@ -307,14 +317,20 @@ void doBrowserAction () {
                         }
                 }
 
-		if (browser)
-			sprintf(sysline, "open -a %s %s &", browser, filename);
-		else 
-			sprintf(sysline, "open -a %s %s &",  BROWSER, filename);
-		system (sysline);
+		/* bounds check here */
+		if (browser) testlen = strlen(browser) + strlen(filename) + 20;
+		else testlen = strlen (BROWSER) + strlen(filename) + 20;
+
+
+		if (testlen > LINELEN) {
+			ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+		} else {
+			if (browser) sprintf(sysline, "open -a %s %s &", browser, filename);
+			else sprintf(sysline, "open -a %s %s &",  BROWSER, filename);
+			system (sysline);
+		}
 #endif
 		
-		/* }*/
 	}
 	FREE_IF_NZ (filename);
 }

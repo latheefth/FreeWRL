@@ -385,7 +385,11 @@ void EventLoop() {
 		render_hier(rootNode,VF_Sensitive);
 		CursorOverSensitive = getRayHit();
 
-#ifdef XXXX
+		#ifdef VERBOSE
+		if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(((struct X3D_Node*)CursorOverSensitive)->_nodeType));
+		#endif
+
+#ifdef OLDCODE
 		/* this is for the isOver tests. */
 		if (lastOver != CursorOverSensitive) {
 			/* when the left button is pressed, CursorOverSensitive gets set to 0,
@@ -919,18 +923,21 @@ void setSensitive(void *parentNode,void *datanode) {
 
 	me = (struct X3D_Node*)datanode;
 
-	/* printf ("set_sensitive ,parentNode %d data %d type %s\n",parentNode,datanode,stringNodeType (me->_nodeType)); */
 
 	switch (me->_nodeType) {
+		/* sibling sensitive nodes - we have a parent node, and we use it! */
 		case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
 		case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
 		case NODE_PlaneSensor: myp = (void *)do_PlaneSensor; break;
 		case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
 		case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
 		case NODE_ProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
-		case NODE_Anchor: myp = (void *)do_Anchor; break;
+
+		/* Anchor is a special case, as it has children, so this is the "parent" node. */
+		case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
 		default: return;
 	}
+	/* printf ("set_sensitive ,parentNode %d data %d type %s\n",parentNode,datanode,stringNodeType (me->_nodeType)); */
 
 	/* record this sensor event for clicking purposes */
 	SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));

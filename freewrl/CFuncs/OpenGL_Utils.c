@@ -506,16 +506,27 @@ void zeroVisibilityFlag(void) {
 /* go through the linear list of nodes, and do "special things" for special nodes, like
    Sensitive nodes, Viewpoint nodes, ... */
 
+#define BEGIN_NODE(thistype) case NODE_##thistype:
+#define END_NODE break;
 
-#define MOUSE_SENSITIVE(thistype) \
-                case NODE_##thistype:  \
+#define SIBLING_SENSITIVE(thistype) \
+			/* make Sensitive */ \
 			if (((struct X3D_##thistype *)node)->enabled) { \
 				nParents = ((struct X3D_##thistype *)node)->_nparents; \
 				pp = (((struct X3D_##thistype *)node)->_parents); \
-			} break; 
+			}  
+
+#define ANCHOR_SENSITIVE(thistype) \
+			/* make THIS Sensitive - most nodes make the parents sensitive, Anchors have children...*/ \
+			anchorPtr = (struct X3D_Anchor *)node;
+#ifdef xxx
+			nParents = ((struct X3D_Anchor *)node)->children.n; pp = ((struct X3D_Anchor *)node)->children.p; 
+#endif
+
+#define VIEWPOINT(thistype) \
+			setBindPtr = (unsigned int *)(node+ offsetof (struct X3D_##thistype, set_bind));
 
 #define CHILDREN_NODE(thistype) \
-                case NODE_##thistype:  \
 			addChildren = NULL; removeChildren = NULL; \
 			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
 				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
@@ -524,11 +535,9 @@ void zeroVisibilityFlag(void) {
 			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
 				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
 				childrenPtr = &((struct X3D_##thistype *)node)->children; \
-			} \
-			 break; 
+			} 
 
 #define CHILDREN_SWITCH_NODE(thistype) \
-                case NODE_##thistype:  \
 			addChildren = NULL; removeChildren = NULL; \
 			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
 				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
@@ -537,11 +546,9 @@ void zeroVisibilityFlag(void) {
 			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
 				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
 				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
-			} \
-			 break; 
+			} 
 
 #define CHILDREN_LOD_NODE(thistype) \
-                case NODE_##thistype:  \
 			addChildren = NULL; removeChildren = NULL; \
 			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
 				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
@@ -550,12 +557,12 @@ void zeroVisibilityFlag(void) {
 			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
 				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
 				childrenPtr = &((struct X3D_##thistype *)node)->level; \
-			} \
-			 break; 
+			}
 
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Node* parents;
+	struct X3D_Anchor* anchorPtr;
 	void **pp;
 	int nParents;
 	int i,j;
@@ -581,6 +588,7 @@ void startOfLoopNodeUpdates(void) {
 	nParents = 0;
 	setBindPtr = NULL;
 	childrenPtr = NULL;
+	anchorPtr = NULL;
 
 	for (i=0; i<nextEntry; i++){		
 		node = (struct X3D_Node*)memoryTable[i];		
@@ -588,29 +596,34 @@ void startOfLoopNodeUpdates(void) {
 		switch (node->_nodeType) {
 
 			/* get ready to mark these nodes as Mouse Sensitive */
-			MOUSE_SENSITIVE(PlaneSensor)
-			MOUSE_SENSITIVE(TouchSensor)
-			MOUSE_SENSITIVE(SphereSensor)
-			MOUSE_SENSITIVE(CylinderSensor)
-			MOUSE_SENSITIVE(GeoTouchSensor)
+			BEGIN_NODE(PlaneSensor) SIBLING_SENSITIVE(PlaneSensor) END_NODE
+			BEGIN_NODE(SphereSensor) SIBLING_SENSITIVE(SphereSensor) END_NODE
+			BEGIN_NODE(CylinderSensor) SIBLING_SENSITIVE(CylinderSensor) END_NODE
+			BEGIN_NODE(TouchSensor) SIBLING_SENSITIVE(TouchSensor) END_NODE
+			BEGIN_NODE(GeoTouchSensor) SIBLING_SENSITIVE(GeoTouchSensor) END_NODE
 
+			/* Anchor is Mouse Sensitive, AND has Children nodes */
+			BEGIN_NODE(Anchor)
+			ANCHOR_SENSITIVE(Anchor)
+			CHILDREN_NODE(Anchor)
+			END_NODE
+			
 			/* maybe this is the current Viewpoint? */
-			case NODE_Viewpoint: setBindPtr = (unsigned int *)(node+ offsetof (struct X3D_Viewpoint, set_bind)); break;
-			case NODE_GeoViewpoint: setBindPtr = (unsigned int *)(node+ offsetof (struct X3D_GeoViewpoint, set_bind)); break;
+			BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
+			BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
 
 			/* does this one possibly have add/removeChildren? */
-			CHILDREN_NODE(Group)
-			CHILDREN_NODE(Transform)
-			CHILDREN_NODE(NurbsGroup)
-			CHILDREN_NODE(Contour2D)
-			CHILDREN_NODE(HAnimSite)
-			CHILDREN_NODE(HAnimSegment)
-			CHILDREN_NODE(HAnimJoint)
-			CHILDREN_NODE(Anchor)
-			CHILDREN_NODE(Billboard)
-			CHILDREN_NODE(Collision)
-			CHILDREN_SWITCH_NODE(Switch)
-			CHILDREN_LOD_NODE(LOD)
+			BEGIN_NODE(Group) CHILDREN_NODE(Group) END_NODE
+			BEGIN_NODE(Transform) CHILDREN_NODE(Transform) END_NODE
+			BEGIN_NODE(NurbsGroup) CHILDREN_NODE(NurbsGroup) END_NODE
+			BEGIN_NODE(Contour2D) CHILDREN_NODE(Contour2D) END_NODE
+			BEGIN_NODE(HAnimSite) CHILDREN_NODE(HAnimSite) END_NODE
+			BEGIN_NODE(HAnimSegment) CHILDREN_NODE(HAnimSegment) END_NODE
+			BEGIN_NODE(HAnimJoint) CHILDREN_NODE(HAnimJoint) END_NODE
+			BEGIN_NODE(Billboard) CHILDREN_NODE(Billboard) END_NODE
+			BEGIN_NODE(Collision) CHILDREN_NODE(Collision) END_NODE
+			BEGIN_NODE(Switch) CHILDREN_SWITCH_NODE(Switch) END_NODE
+			BEGIN_NODE(LOD) CHILDREN_LOD_NODE(LOD) END_NODE
 
 		}
 
@@ -627,6 +640,18 @@ void startOfLoopNodeUpdates(void) {
 			/* tell mainloop that we have to do a sensitive pass now */
 			HaveSensitive = TRUE;
 			nParents = 0;
+		}
+
+		/* Anchor nodes are slightly different than sibling-sensitive nodes */
+		if (anchorPtr != NULL) {
+			anchorPtr->_renderFlags = anchorPtr->_renderFlags  | VF_Sensitive;
+
+ 			/* and tell the rendering pass that there is a sensitive node down this branch */
+			update_renderFlag(anchorPtr,VF_hasSensitiveChildren);
+
+			/* tell mainloop that we have to do a sensitive pass now */
+			HaveSensitive = TRUE;
+			anchorPtr = NULL;
 		}
 
 		/* do BINDING of Viewpoint Nodes */

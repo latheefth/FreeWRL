@@ -1,3 +1,11 @@
+For 1.19.9:
+	- Anchors were coded as being "sibling-sensitive" - this has been
+	  changed, as they are not. This was causing problems where 2 Anchors were
+	  within the same Scene Graph grouping node.
+
+	- potential buffer overflow problem resolved in Anchor node. 
+	  see:http://www.securityfocus.com/archive/1/473187
+
 For 1.19.8:
 	- Javascript was not thread-safe; should be ok now.
 
