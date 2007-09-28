@@ -321,11 +321,17 @@ void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 /* make sure the EAI port is turned on... */
 int requestToStartEAIdone = FALSE;
 static void midiStartEAI() {
+	char myline[2000];
 	if (!requestToStartEAIdone) {
 		printf ("MidiControl - turning EAI on\n");
+		strncpy (myline,REWIRE_SERVER,1000);
+		strcat (myline, " &");
 		create_EAI();
-		if (system ("/usr/bin/freewrlRewireServer &")==127)
-			ConsoleMessage ("could not start /usr/bin/freewrlReWireServer");
+		if (system (myline)==127) {
+			strcpy (myline,"could not start ");
+			strncat (myline, REWIRE_SERVER,1000);
+			ConsoleMessage (myline);
+		}
 	}
 	requestToStartEAIdone = TRUE;
 }

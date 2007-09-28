@@ -186,6 +186,7 @@ if ($OS eq "Darwin") {
 print OUT "#define BUILDDIR \"$pwd\"\n";
 print OUT "#define FWVER \"",$VERSION,"\"\n";
 print OUT "#define XMESSAGE \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_Message\"\n";
+print OUT "#define REWIRE_SERVER \"",$VRML_CONFIG{BIN_DIR},"/freewrlReWireServer\"\n";
 print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
 
 findAndPrintUtilities();
