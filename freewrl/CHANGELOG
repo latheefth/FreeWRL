@@ -1,3 +1,8 @@
+For 1.20.0:
+	- SpotLight - bounds checking on some parameters added.
+
+	- OcclusionQueries code revisited.
+
 For 1.19.9:
 	- Anchors were coded as being "sibling-sensitive" - this has been
 	  changed, as they are not. This was causing problems where 2 Anchors were
