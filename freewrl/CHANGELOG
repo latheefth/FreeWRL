@@ -1,4 +1,6 @@
 For 1.20.0:
+	- Linux MIDI code added.
+
 	- SpotLight - bounds checking on some parameters added.
 
 	- OcclusionQueries code revisited so that un-rendered Shape nodes (eg, in Switch statements)

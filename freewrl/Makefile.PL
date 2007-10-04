@@ -385,10 +385,10 @@ sub writeVariables () {
 	if ($OS ne "Darwin") {
 	my @CMIDISourceFiles = split (' ',`ls MIDI/*c`);
 	print MK "\n#CMIDI Make\n";
-	print MK "MIDSRCS=";
+	print MK "MIDISRCS=";
 	foreach my $fullname (@CMIDISourceFiles) { print MK "$fullname "; }
 	print MK "\n";
-	print MK "MIDOBJS=";
+	print MK "MIDIOBJS=";
 	foreach my $fullname (@CMIDISourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
 	}
