@@ -150,6 +150,9 @@ void child_Shape (struct X3D_Shape *node) {
 
 		if(!(node->geometry)) { return; }
 
+		/* mark that this shape was "done" for OcclusionTests */
+		if (node->__OccludeNumber < QueryCount) OccNodeRendered[node->__OccludeNumber] = TRUE;
+
 		/* do we need to do some distance calculations? */
 		if (((!render_vp) && render_light)) {
 			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);

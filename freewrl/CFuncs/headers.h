@@ -182,6 +182,7 @@ extern char *GL_REN;
 extern int OccQuerySize;
 extern int OccFailed;
 extern int *OccCheckCount;
+extern int *OccNodeRendered;
 extern GLuint *OccQueries;
 extern void * *OccNodes;
 extern GLint *OccSamples;

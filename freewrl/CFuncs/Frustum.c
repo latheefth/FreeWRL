@@ -38,6 +38,7 @@
 GLuint *OccQueries = NULL;
 void* *OccNodes = NULL;
 int *OccCheckCount = NULL;
+int *OccNodeRendered = NULL;
 int *OccVisible = NULL;
 GLint *OccSamples = NULL;
 
@@ -263,6 +264,7 @@ void OcclusionStartofEventLoop() {
 			OccQueries = MALLOC (sizeof(int) * OccQuerySize);
 			OccNodes = MALLOC (sizeof (void *) * OccQuerySize);
 			OccCheckCount = MALLOC (sizeof (int) * OccQuerySize);
+			OccNodeRendered = MALLOC (sizeof (int) * OccQuerySize);
 			OccVisible = MALLOC (sizeof (int) * OccQuerySize);
 			OccSamples = MALLOC (sizeof (int) * OccQuerySize);
                 	glGenQueries(OccQuerySize,OccQueries);
@@ -271,6 +273,7 @@ void OcclusionStartofEventLoop() {
 				OccNodes[i] = 0;
 				OccSamples[i]=0;
 				OccCheckCount[i]=i&0x03; /* we test only once every 4 frames */
+				OccNodeRendered[i] = FALSE;
 				OccVisible[i]=TRUE;
 			}
 			QueryCount = maxOccludersFound; /* for queries - we can do this number */
@@ -307,6 +310,7 @@ void OcclusionStartofEventLoop() {
 			OccQueries = REALLOC (OccQueries,sizeof (int) * OccQuerySize);
 			OccNodes = REALLOC (OccNodes,sizeof (void *) * OccQuerySize);
 			OccCheckCount = REALLOC (OccCheckCount,sizeof (int) * OccQuerySize);
+			OccNodeRendered = REALLOC (OccNodeRendered,sizeof (int) * OccQuerySize);
 			OccVisible = REALLOC (OccVisible,sizeof (int) * OccQuerySize);
 			OccSamples = REALLOC (OccSamples,sizeof (int) * OccQuerySize);
         	        glGenQueries(OccQuerySize,OccQueries);
@@ -314,6 +318,7 @@ void OcclusionStartofEventLoop() {
 				OccNodes[i] = 0;
 				OccSamples[i]=0;
 				OccCheckCount[i]=i&0x03; /* we test only once every 4 frames */
+				OccNodeRendered [i]= FALSE;
 				OccVisible[i] = TRUE;
 			}
 		}
@@ -362,7 +367,7 @@ void OcclusionCulling ()  {
 		if (xx!=NULL) printf ("for a %s (%d)\n",stringNodeType(xx->_nodeType),i);
 		#endif
 
-		if (OccCheckCount[i]<0) {
+		if ((OccNodeRendered[i]) && (OccCheckCount[i]<0)) {
 			/* an Occlusion test will have been run on this one */
 			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&rv);
 			glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
