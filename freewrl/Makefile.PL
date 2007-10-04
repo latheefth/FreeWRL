@@ -210,6 +210,7 @@ writeMakefileLibFreeWRL();
 writeMakefileCfrontend();
 
 writeMakefileSoundEngine();
+writeMakefileMIDI();
 writeMakefileFreeWRLMessage();
 write_linux_makefile_javascript();
 write_linux_makefile_javaClasses();
@@ -225,7 +226,7 @@ sub writeAllTarget () {
 	if ($OS eq "Darwin") {
 		print MK "all: Javascript libFreeWRL CFrontEnd";
 	} else {
-		print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd";
+		print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd MIDI";
 	}
 	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
@@ -304,13 +305,15 @@ sub writeMakefileFinalTargets() {
 
 	print MK "install:\tall	\n";
 	if ($OS ne "Darwin") {
-	print MK "\tstrip CFrontEnd/freewrl\n";
-	print MK "\tstrip FreeWRL_Msg/FreeWRL_Message\n";
-	if ($VRML_CONFIG{SOUND_ENGINE}) { 
-		print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
-	}
-	print MK "\tinstall -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
-	print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
+		print MK "\tstrip CFrontEnd/freewrl\n";
+		print MK "\tstrip FreeWRL_Msg/FreeWRL_Message\n";
+		print MK "\tstrip MIDI/freewrlReWireServer\n";
+		if ($VRML_CONFIG{SOUND_ENGINE}) { 
+			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
+		}
+		print MK "\tinstall -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
+		print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
+		print MK "\tinstall -D MIDI/freewrlReWireServer \$(DESTDIR)\$(FRONTEND_DIR)/freewrlReWireServer\n";
 
 	}
 	if ($OS eq "Linux") {
@@ -379,6 +382,18 @@ sub writeVariables () {
 	print MK "\n\n";
 	}
 
+	if ($OS ne "Darwin") {
+	my @CMIDISourceFiles = split (' ',`ls MIDI/*c`);
+	print MK "\n#CMIDI Make\n";
+	print MK "MIDSRCS=";
+	foreach my $fullname (@CMIDISourceFiles) { print MK "$fullname "; }
+	print MK "\n";
+	print MK "MIDOBJS=";
+	foreach my $fullname (@CMIDISourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
+	print MK "\n\n";
+	}
+
+	
 	my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*c`);
 	print MK "\n#SoundEngine Make\n";
 	print MK "SESRCS=";
@@ -436,12 +451,26 @@ sub writeMakefileSoundEngine() {
 	# SoundEngine
 	# make the sound engine, console message, and frontend if NOT OSX.
 
+	
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
 		print MK "\n# make the Unix sound engine \n";
 		print MK "\$(SESRCS):\n";
 		print MK "\t\$(CC) -c \$*.c\n\n";
 		print MK "SoundEngine:      \$(SEOBJS)\n";
 		print MK "\t\$(CC)  -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(SEOBJS) \$(MYSELIBS)\n\n";
+	}
+}
+
+sub writeMakefileMIDI() {
+	#############################################################################
+	# MIDI Interface (Linux only)
+
+	if ($OS ne "Darwin") {
+		print MK "\n# make the Unix MIDI Interface \n";
+		print MK "\$(MIDISRCS):\n";
+		print MK "\t\$(CC) -c \$*.c\n\n";
+		print MK "MIDI:      \$(MIDIOBJS)\n";
+		print MK "\t\$(CC)  -o MIDI/freewrlReWireServer \$(MYLIBS) \$(MIDIOBJS) \n\n";
 	}
 }
 
@@ -584,6 +613,10 @@ sub writeMakefileDistclean() {
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
 		print MK "	rm -f SoundEngine/*o\n";
 		print MK "	rm -f SoundEngine/FreeWRL_SoundServer\n";
+	}
+	if ($OS ne "Darwin") {
+		print MK "	rm -f MIDI/*o\n";
+		print MK "	rm -f MIDI/freewrlReWireServer\n";
 	}
 	print MK "	rm -f java/classes/vrml/external/field/*class\n";
 	print MK "	rm -f java/classes/vrml/field/*class\n";
