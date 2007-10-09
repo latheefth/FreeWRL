@@ -382,7 +382,20 @@ sub writeVariables () {
 	print MK "\n\n";
 	}
 
+	## MIDI sources. Have to link in some files in, and compile them here, but with different flags.
 	if ($OS ne "Darwin") {
+	system ("cp ReWire/EAI_C_Control.c MIDI");
+	system ("cp ReWire/EAI_C_Field.c MIDI");
+	system ("cp ReWire/EAI_C_Internals.c MIDI");
+	system ("cp ReWire/EAI_C_Node.c MIDI");
+	system ("cp ReWire/EAI_C_Advise.c MIDI");
+	system ("cp CFuncs/EAI_C_CommonFunctions.c MIDI");
+	system ("cp ReWire/EAI_C_ReWire.c MIDI");
+	system ("cp ReWire/GeneratedCode.c MIDI");
+	system ("cp ReWire/Eai_C.h MIDI");
+	system ("cp ReWire/GeneratedHeaders.h MIDI");
+	system ("cp ReWire/X3D_Node.h MIDI");
+	
 	my @CMIDISourceFiles = split (' ',`ls MIDI/*c`);
 	print MK "\n#CMIDI Make\n";
 	print MK "MIDISRCS=";
@@ -468,9 +481,9 @@ sub writeMakefileMIDI() {
 	if ($OS ne "Darwin") {
 		print MK "\n# make the Unix MIDI Interface \n";
 		print MK "\$(MIDISRCS):\n";
-		print MK "\t\$(CC) -c \$*.c\n\n";
+		print MK "\t\$(CC) -c -DREWIRE -DMIDI -I../ReWire -I../CFuncs \$*.c\n\n";
 		print MK "MIDI:      \$(MIDIOBJS)\n";
-		print MK "\t\$(CC)  -o MIDI/freewrlReWireServer \$(MYLIBS) \$(MIDIOBJS) \n\n";
+		print MK "\t\$(CC)  -o MIDI/freewrlReWireServer -L/usr/lib -lpthread  \$(MIDIOBJS) \n\n";
 	}
 }
 

@@ -179,7 +179,6 @@ void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
 	/* sanity check */
 	if (dest->datatype != node->type) {
 		printf ("X3D_setValue mismatch: event type %s, value type %s\n", 
-				//stringFieldType(dest->datatype), stringFieldType(node->type));
 				FIELDTYPES[(int)dest->datatype], FIELDTYPES[node->type]);
 		return;
 	}

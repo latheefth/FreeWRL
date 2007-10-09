@@ -19,7 +19,7 @@
 # 1 "<built-in>"
 # 1 "<command line>"
 # 1 "LinuxMIDIInterface.c"
-# 12 "LinuxMIDIInterface.c"
+# 13 "LinuxMIDIInterface.c"
 # 1 "/usr/include/fcntl.h" 1 3 4
 # 27 "/usr/include/fcntl.h" 3 4
 # 1 "/usr/include/features.h" 1 3 4
@@ -580,7 +580,7 @@ extern int posix_fadvise (int __fd, __off_t __offset, __off_t __len,
 extern int posix_fallocate (int __fd, __off_t __offset, __off_t __len);
 # 213 "/usr/include/fcntl.h" 3 4
 
-# 13 "LinuxMIDIInterface.c" 2
+# 14 "LinuxMIDIInterface.c" 2
 
 # 1 "/usr/include/sys/uio.h" 1 3 4
 # 26 "/usr/include/sys/uio.h" 3 4
@@ -601,7 +601,7 @@ extern ssize_t readv (int __fd, __const struct iovec *__iovec, int __count);
 extern ssize_t writev (int __fd, __const struct iovec *__iovec, int __count);
 
 
-# 15 "LinuxMIDIInterface.c" 2
+# 16 "LinuxMIDIInterface.c" 2
 # 1 "/usr/include/unistd.h" 1 3 4
 # 28 "/usr/include/unistd.h" 3 4
 
@@ -1631,7 +1631,7 @@ extern long int syscall (long int __sysno, ...) __attribute__ ((__nothrow__));
 extern int fdatasync (int __fildes) __attribute__ ((__nothrow__));
 # 1101 "/usr/include/unistd.h" 3 4
 
-# 16 "LinuxMIDIInterface.c" 2
+# 17 "LinuxMIDIInterface.c" 2
 # 1 "/usr/include/string.h" 1 3 4
 # 28 "/usr/include/string.h" 3 4
 
@@ -1805,7 +1805,7 @@ extern char *strsep (char **__restrict __stringp,
      __attribute__ ((__nothrow__)) __attribute__ ((__nonnull__ (1, 2)));
 # 426 "/usr/include/string.h" 3 4
 
-# 17 "LinuxMIDIInterface.c" 2
+# 18 "LinuxMIDIInterface.c" 2
 
 # 1 "/root/freewrl/freewrl-1.19.9/ReWire/Eai_C.h" 1
 
@@ -6180,7 +6180,7 @@ struct Uni_String {
         char * strptr;
  int touched;
 };
-# 19 "LinuxMIDIInterface.c" 2
+# 20 "LinuxMIDIInterface.c" 2
 # 1 "LinuxMIDIHeaders.h" 1
 # 12 "LinuxMIDIHeaders.h"
 typedef int Byte;
@@ -6221,7 +6221,7 @@ void MIDIObjectGetStringProperty(MIDIEndpointRef dev, int i, CFStringRef *ret);
 MIDIPacket *MIDIPacketListInit(MIDIPacketList *pl);
 void readFromMIDIBusses(char *inData, int datalen, int dest);
 void dataWaiting(void);
-# 20 "LinuxMIDIInterface.c" 2
+# 21 "LinuxMIDIInterface.c" 2
 # 1 "localMIDIInterface.h" 1
 void checkInstalledMIDIDevices (void);
 void startUpReWire(void);
@@ -6234,10 +6234,7 @@ extern int haveNewReWireConfig;
 extern int haveNewLocalMIDIConfig;
 extern char *localMidiString;
 extern int localMidiStringSize;
-
-
-
-
+# 20 "localMIDIInterface.h"
 struct localMidiDevicesStruct {
  char *name;
  int midiSource;
@@ -6251,12 +6248,12 @@ struct localMidiDevicesStruct {
 typedef struct localMidiDevicesStruct localMidiDevicesStruct;
 
 extern localMidiDevicesStruct localDev[];
-# 21 "LinuxMIDIInterface.c" 2
+# 22 "LinuxMIDIInterface.c" 2
 
 
 char *listingOfMIDIDevices = ((void *)0);
 int currentNumberOfMIDIDevices = 0;
-# 58 "LinuxMIDIInterface.c"
+# 59 "LinuxMIDIInterface.c"
 struct MDInfo {
  int cardNo;
  int portNo;
@@ -6317,7 +6314,7 @@ void saveMIDIDeviceInfo(int card) {
  int jr;
  char temp[4000];
  int whereToStartmidiCardInfo = currentNumberOfMIDIDevices;
-# 128 "LinuxMIDIInterface.c"
+# 129 "LinuxMIDIInterface.c"
  sprintf (tempfilename,"/proc/asound/card%d/id",card);
 
 
@@ -6399,7 +6396,7 @@ int newMIDI(void) {
  int card;
  char *ptr;
  int goodOne;
-# 218 "LinuxMIDIInterface.c"
+# 219 "LinuxMIDIInterface.c"
  if (listingOfMIDIDevices == ((void *)0)) return 0;
 
 
@@ -6485,7 +6482,7 @@ int MIDISend (int bus, Byte *data, int len) {
   printf ("MIDISend: fileDescriptor for %d %d is %d\n",outDevice, outChannel, midiCardInfo[outDevice].fileDesc);
   return 1!=1;
  }
-# 311 "LinuxMIDIInterface.c"
+# 312 "LinuxMIDIInterface.c"
  x = write (midiCardInfo[outDevice].fileDesc, data, len);
 
 
@@ -6560,7 +6557,7 @@ MIDIEndpointRef MIDIGetSource (int i) {
 
 void MIDIPortConnectSource (MIDIPortRef port, MIDIEndpointRef dev,void *ref) {
  char tempfilename[200];
-# 396 "LinuxMIDIInterface.c"
+# 397 "LinuxMIDIInterface.c"
  if (midiCardInfo[*dev].fileDesc == -1) {
   sprintf (tempfilename,"/dev/snd/midiC%dD%d",midiCardInfo[*dev].cardNo,midiCardInfo[*dev].portNo); midiCardInfo[*dev].fileDesc = open(tempfilename,02);
 
@@ -6576,7 +6573,7 @@ void MIDIPortConnectSource (MIDIPortRef port, MIDIEndpointRef dev,void *ref) {
 }
 
 void MIDIPortDisconnectSource (MIDIPortRef port, MIDIEndpointRef dev) {
-# 420 "LinuxMIDIInterface.c"
+# 421 "LinuxMIDIInterface.c"
  if (midiCardInfo[*dev].fileDesc != -1) {
 
 

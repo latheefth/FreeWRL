@@ -3981,7 +3981,7 @@ extern char *strsep (char **__restrict __stringp,
 # 426 "/usr/include/string.h" 3 4
 
 # 12 "reasonMIDIInterface.h" 2
-# 29 "reasonMIDIInterface.h"
+# 33 "reasonMIDIInterface.h"
 extern int deviceAudioActive[100];
 
 extern int ReWireConfigStrlen;

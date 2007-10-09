@@ -19,7 +19,7 @@
 # 1 "<built-in>"
 # 1 "<command line>"
 # 1 "FreeWRLMIDIInterface.c"
-# 14 "FreeWRLMIDIInterface.c"
+# 16 "FreeWRLMIDIInterface.c"
 # 1 "LinuxMIDIHeaders.h" 1
 # 12 "LinuxMIDIHeaders.h"
 typedef int Byte;
@@ -60,7 +60,7 @@ void MIDIObjectGetStringProperty(MIDIEndpointRef dev, int i, CFStringRef *ret);
 MIDIPacket *MIDIPacketListInit(MIDIPacketList *pl);
 void readFromMIDIBusses(char *inData, int datalen, int dest);
 void dataWaiting(void);
-# 15 "FreeWRLMIDIInterface.c" 2
+# 17 "FreeWRLMIDIInterface.c" 2
 
 
 # 1 "reasonMIDIInterface.h" 1
@@ -4026,7 +4026,7 @@ extern char *strsep (char **__restrict __stringp,
 # 426 "/usr/include/string.h" 3 4
 
 # 12 "reasonMIDIInterface.h" 2
-# 29 "reasonMIDIInterface.h"
+# 33 "reasonMIDIInterface.h"
 extern int deviceAudioActive[100];
 
 extern int ReWireConfigStrlen;
@@ -4041,7 +4041,7 @@ int reasonStartAudio(void);
 void openReasonDevice(void);
 void scanReasonDeviceForMIDIEvents(void);
 void rewireFatalError (int result);
-# 18 "FreeWRLMIDIInterface.c" 2
+# 20 "FreeWRLMIDIInterface.c" 2
 extern long reasonDevice;
 
 # 1 "localMIDIInterface.h" 1
@@ -4056,10 +4056,7 @@ extern int haveNewReWireConfig;
 extern int haveNewLocalMIDIConfig;
 extern char *localMidiString;
 extern int localMidiStringSize;
-
-
-
-
+# 20 "localMIDIInterface.h"
 struct localMidiDevicesStruct {
  char *name;
  int midiSource;
@@ -4073,7 +4070,7 @@ struct localMidiDevicesStruct {
 typedef struct localMidiDevicesStruct localMidiDevicesStruct;
 
 extern localMidiDevicesStruct localDev[];
-# 21 "FreeWRLMIDIInterface.c" 2
+# 23 "FreeWRLMIDIInterface.c" 2
 # 1 "/root/freewrl/freewrl-1.19.9/ReWire/Eai_C.h" 1
 
 # 1 "/usr/include/stdint.h" 1 3 4
@@ -6237,7 +6234,7 @@ struct Uni_String {
         char * strptr;
  int touched;
 };
-# 22 "FreeWRLMIDIInterface.c" 2
+# 24 "FreeWRLMIDIInterface.c" 2
 
 void createConfigThread ();
 
@@ -6253,7 +6250,7 @@ void fatalError (char *str) {
 
  exit(0);
 }
-# 151 "FreeWRLMIDIInterface.c"
+# 153 "FreeWRLMIDIInterface.c"
 int main () {
 
 
@@ -6261,7 +6258,7 @@ int main () {
 
  printf ("start of main\n");
         X3D_initialize ("");
-# 180 "FreeWRLMIDIInterface.c"
+# 182 "FreeWRLMIDIInterface.c"
 printf ("going to call startUpLocalMIDI\n");
  startUpLocalMIDI();
 

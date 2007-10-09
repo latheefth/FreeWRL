@@ -30,10 +30,7 @@ extern int haveNewReWireConfig;
 extern int haveNewLocalMIDIConfig;
 extern char *localMidiString;
 extern int localMidiStringSize;
-
-
-
-
+# 20 "localMIDIInterface.h"
 struct localMidiDevicesStruct {
  char *name;
  int midiSource;
