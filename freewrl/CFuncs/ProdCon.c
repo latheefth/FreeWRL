@@ -188,6 +188,9 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
  * Check to see if the file name is a local file, or a network file.
  * return TRUE if it looks like a file from the network, false if it
  * is local to this machine
+
+ * October 2007 - Michel Briand suggested the https:// lines.
+
  */
 
 
@@ -196,6 +199,8 @@ int checkNetworkFile(char *fn) {
 	   (strncmp(fn,"FTP://", strlen("FTP://"))) &&
 	   (strncmp(fn,"http://", strlen("http://"))) &&
 	   (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
+	   (strncmp(fn,"https://", strlen("https://"))) &&
+	   (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
 	   (strncmp(fn,"urn://", strlen("urn://"))) &&
 	   (strncmp(fn,"URN://", strlen("URN://")))) {
 	   return FALSE;
