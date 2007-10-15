@@ -9,7 +9,7 @@ void EAI_RW(char *bufptr);
 
 
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */
-#define EAIREADSIZE	4096		/* maximum we are allowed to read in from socket */
+#define EAIREADSIZE	8192		/* maximum we are allowed to read in from socket */
 #define EAIBASESOCKET   9877		/* socket number to start at */
 
 

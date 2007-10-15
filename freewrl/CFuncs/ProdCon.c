@@ -276,11 +276,17 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 	
 			/* string length checking */
-			if ((strlen(WGET)+strlen(fname)+strlen(tempname)) < (1000-10)) {
+			if ((strlen(WGET)+strlen(fname)+strlen(tempname)) < (1000-20)) {
 	#ifdef AQUA
 			    sprintf (sysline,"%s %s -o %s",WGET,fname,tempname);
 	#else
-			    sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
+			    /* hmmm - if this is a https:// line, we can try the "--no-check-certificate" and cross our
+			       fingers - suggested by Michel Briand */
+
+			    if ((strncmp(fname,"https://",strlen("https://")) == 0) ||
+			    	(strncmp(fname,"HTTPS://",strlen("HTTPS://")) == 0)) 
+			    sprintf (sysline,"%s --no-check-certificate %s -O %s",WGET,fname,tempname);
+			    else sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
 	#endif
 			    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
 			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);

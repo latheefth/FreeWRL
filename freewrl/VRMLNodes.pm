@@ -1629,15 +1629,16 @@ package VRML::NodeType;
 	new VRML::NodeType("MidiControl",
 					{
 						deviceName => [SFString,"",exposedField],	# "Subtractor 1"
-						channel => [SFString,"",exposedField],		# "Osc1 Wave"
+						channel => [SFInt32,0,exposedField],		# channel in range 0-16, on MIDI bus
+						controller => [SFString,"",exposedField],	# "Osc1 Wave"
 						_deviceNameIndex => [SFInt32, -99, field],	#  name in name table index
-						_channelIndex => [SFInt32, -99, field],		#  name in name table index
+						_controllerIndex => [SFInt32, -99, field],		#  name in name table index
 
 
-						# encoded bus,device,channel
-						_bus => [SFInt32,0,field],			# internal for efficiency
-						_channel => [SFInt32,0,field],			# internal for efficiency
-						_controller => [SFInt32,0,field],		# internal for efficiency
+						# encoded bus,channel,controller
+						_bus => [SFInt32,-99,field],			# internal for efficiency
+						_channel => [SFInt32,-99,field],			# internal for efficiency
+						_controller => [SFInt32,-99,field],		# internal for efficiency
 
 						deviceMinVal => [SFInt32, 0, field],		# what the device sets
 						deviceMaxVal => [SFInt32, 0, field],		# what the device sets
