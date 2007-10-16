@@ -642,7 +642,7 @@ extern int EAIwanted;
 extern int EAIbufsize;
 extern char *EAIbuffer;
 extern int EAIbufcount;
-extern char EAIListenerData[4096];
+extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
 # 4 "/root/freewrl/freewrl-1.19.9/ReWire/Eai_C.h" 2
 # 1 "/usr/include/unistd.h" 1 3 4
@@ -5069,7 +5069,7 @@ extern int EAIwanted;
 extern int EAIbufsize;
 extern char *EAIbuffer;
 extern int EAIbufcount;
-extern char EAIListenerData[4096];
+extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
 # 4 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
 # 12 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h"
@@ -6223,7 +6223,13 @@ extern int haveNewReWireConfig;
 extern int haveNewLocalMIDIConfig;
 extern char *localMidiString;
 extern int localMidiStringSize;
-# 20 "localMIDIInterface.h"
+
+
+
+
+
+
+
 struct localMidiDevicesStruct {
  char *name;
  int midiSource;
@@ -6233,6 +6239,8 @@ struct localMidiDevicesStruct {
  SInt32 olduniqueID;
  MIDIEndpointRef outDevice;
  MIDIEndpointRef inDevice;
+ int channelActive[16];
+ int newChannelActive[16];
 };
 typedef struct localMidiDevicesStruct localMidiDevicesStruct;
 
@@ -6270,7 +6278,7 @@ MIDIPacket *outPacketPtr = ((void *)0);
 int destCount = 0;
 int sourceCount = 0;
 
-localMidiDevicesStruct localDev[10];
+localMidiDevicesStruct localDev[16];
 
 
 
@@ -6296,7 +6304,6 @@ void sendMIDI (int bus,int channel, int controllerOrVelocity, int controlType, i
 
 
 
-
   if (controlType == 1) {
    midi[0] = 0xB0 + (channel & 0x0f);
    midi[1] = controllerOrVelocity & 0xff;
@@ -6317,17 +6324,19 @@ void sendMIDI (int bus,int channel, int controllerOrVelocity, int controlType, i
    printf ("sendMIDI - unknown controller type: %d\n",controlType);
    return;
   }
-# 125 "localMIDIInterface.c"
+# 124 "localMIDIInterface.c"
   MIDISend(bus,midi,3);
 
 
  }
 }
-# 230 "localMIDIInterface.c"
+# 156 "localMIDIInterface.c"
 void readFromMIDIBusses(char *inData, int datalen, int dest) {
  int myPos;
  int packetOk;
  char *data;
+ int thisChan;
+ int posInc = 3;;
 
  myPos = 0;
 
@@ -6335,98 +6344,94 @@ void readFromMIDIBusses(char *inData, int datalen, int dest) {
  while (myPos < datalen) {
   data = &inData[myPos];
 
-
   packetOk = 1!=1;
+
+  thisChan = data[0] & 0x0F;
+
   if ((data[0] & 0xF0) == 0x90) {
    if (data[2]==0) {
 
     data[0]= (data[0]& 0x0f) | 0x80;
    } else {
 
-    printf ("Note On %02d Key %02x velocity %02x\n ",
-     (data[0] & 0x0F),data[1],data[2]);
+
+
 
    }
+   posInc = 3;;
    packetOk = 1==1;
   }
 
-  if ((data[0] & 0xF0) == 0x80) {
+  else if ((data[0] & 0xF0) == 0x80) {
 
-    printf ("Note Off %02d Key %02x velocity %02x \n",
-     (data[0] & 0x0F),data[1],data[2]);
 
+
+
+   posInc = 3;;
    packetOk = 1==1;
   }
 
-  if ((data[0] & 0xF0) == 0xa0) {
+  else if ((data[0] & 0xF0) == 0xa0) {
 
-    printf ("Aftertouch %02d Key %02x touch %02x \n",
-     (data[0] & 0x0F),data[1],data[2]);
 
+
+
+   posInc = 3;;
   }
-  if ((data[0] & 0xF0) == 0xb0) {
-
-    printf ("Fader %02d controller %02x value %02x \n",
-     (data[0] & 0x0F),data[1],data[2]);
+  else if ((data[0] & 0xF0) == 0xb0) {
 
 
+
+
+
+   posInc = 3;;
    packetOk = 1==1;
 
   }
 
-  if (packetOk) sendMIDIControlToFreeWRL( 0.0, 1000+(dest*16), data[0], data[1],data[2]);
+  else if ((data[0] & 0xF0) == 0xc0) {
 
 
 
-  if ((data[0] & 0xF0) == 0xc0) printf ("Patch Change: instrument %02x\n",
-     data[1]);
-  if ((data[0] & 0xF0) == 0xd0) printf ("Channel Pressure: %02x \n",
-     data[1]);
-  if ((data[0] & 0xF0) == 0xe0) printf ("Pitch Bend lsb %02x msb %02x\n",
-     data[1],data[2]);
-  if ((data[0] & 0xF0) == 0xf0) {
-   switch (data[0] & 0x0f) {
-    case 0: printf ("start of sysex message\n");
-      break;
-    case 1: printf ("MIDI Time Code Quarter Frame\n");
-      break;
-    case 2: printf ("Song Position Pointer\n");
-      break;
-    case 3: printf ("Song Select\n");
-      break;
-    case 6: printf ("Time Request\n");
-      break;
-    case 7: printf ("end of SYSEX\n");
-      break;
-    case 8: printf ("timing clock\n");
-      break;
-    case 0x0a: printf ("Start sys realtime\n");
-      break;
-    case 0x0b: printf ("continue (sys realtime)\n");
-      break;
-    case 0x0c: printf ("stop (sys realtime)\n");
-      break;
-    case 0x0e: printf ("active sensing\n");
-      break;
-    case 0x0f: printf ("system reset\n");
-      break;
-    default:
-      printf ("unknown MIDI System command\n");
-      break;
+   posInc = 2;;
+  }
+  else if ((data[0] & 0xF0) == 0xd0) {
+
+
+
+   posInc = 2;;
+  }
+  else if ((data[0] & 0xF0) == 0xe0) {
+
+
+
+   posInc = 3;;
+  }
+  else if ((data[0] & 0xF0) == 0xf0) {
+# 265 "localMIDIInterface.c"
+  }
+
+
+  if (packetOk) {
+   if (!(localDev[dest].channelActive[data[0]&0x0F])) {
+
+
+
+
+    localDev[dest].newChannelActive[data[0]&0x0F] = 1==1;
    }
+   sendMIDIControlToFreeWRL( 0.0, 1000+(dest*16), data[0], data[1],data[2]);
   }
 
 
 
-  myPos += 3;
+  myPos += posInc;
  }
-
 
 }
 
-
 void startUpLocalMIDI () {
- int i;
+ int i,j;
 
 
 
@@ -6439,7 +6444,7 @@ void startUpLocalMIDI () {
  localMidiString[0] = '\n';
 
 
- for (i=0; i<10; i++) {
+ for (i=0; i<16; i++) {
   localDev[i].inDevice = ((void *)0);
   localDev[i].outDevice = ((void *)0);
   localDev[i].name = ((void *)0);
@@ -6448,6 +6453,13 @@ void startUpLocalMIDI () {
   localDev[i].present = 1!=1;
   localDev[i].uniqueID = 0;
   localDev[i].olduniqueID = 0;
+  for (j=0; j<16; j++) {
+   localDev[i].channelActive[j] = 1!=1;
+   localDev[i].newChannelActive[j] = 1!=1;
+  }
+
+
+  localDev[i].channelActive[0] = 1==1;
  }
  sourceCount = 0;
  destCount = 0;
@@ -6472,7 +6484,7 @@ void closeLocalMIDI() {
 
 
 void regenLocalMidiInfo() {
- int i;
+ int device,chan;
 
 
 
@@ -6481,35 +6493,40 @@ void regenLocalMidiInfo() {
  char linestr[200];
  localMidiString[0] = '\0';
 
- for (i = 0; i < 10; ++i) {
-
-  if (localDev[i].present) {
+ for (device = 0; device < 16; device++) {
 
 
-   if ((localMidiStringSize - strlen(localMidiString)) < 4096) {
-    localMidiStringSize *=2;
-    printf("localMidiStringSize now is %d\n",localMidiStringSize);
-    localMidiString = realloc (localMidiString, localMidiStringSize);
-   }
+  if (localDev[device].present) {
 
-                 sprintf (linestr,"\"%s\" %d %d\n", localDev[i].name, 1000+(i*16), 0);
-                 strcat (localMidiString,linestr);
+   for (chan=0; chan<16;chan++)
+     if (localDev[device].channelActive[chan]) {
 
 
+    if ((localMidiStringSize - strlen(localMidiString)) < 4096) {
+     localMidiStringSize *=2;
+     printf("localMidiStringSize now is %d\n",localMidiStringSize);
+     localMidiString = realloc (localMidiString, localMidiStringSize);
+    }
+
+                  sprintf (linestr,"\"%s\" %d %d\n", localDev[device].name, 1000+(device*16), chan);
+                  strcat (localMidiString,linestr);
 
 
 
-   if (strcmp(localDev[i].name,"MidiKeys") == 0) {
-   strcat (localMidiString,
-           "	1 \"Mod Wheel\" 1 127 0\n" "	31 \"Control\" 0 127 0\n" );
 
 
-   } else {
+    if (strcmp(localDev[device].name,"MidiKeys") == 0) {
     strcat (localMidiString,
-    "	0   \"Bank Select (coarse)\" 0 127 0\n" "	1   \"Modulation Wheel (coarse)\" 0 127 0\n" "	2   \"Breath controller (coarse)\" 0 127 0\n" "	4   \"Foot Pedal (coarse)\" 0 127 0\n" "	5   \"Portamento Time (coarse)\" 0 127 0\n" "	6   \"Data Entry (coarse)\" 0 127 0\n" "	7   \"Volume (coarse)\" 0 127 0\n" "	8   \"Balance (coarse)\" 0 127 0\n" "	10  \"Pan position (coarse)\" 0 127 0\n" "	11  \"Expression (coarse)\" 0 127 0\n" "	12  \"Effect Control 1 (coarse)\" 0 127 0\n" "	13  \"Effect Control 2 (coarse)\" 0 127 0\n" "	16  \"General Purpose Slider 1\" 0 127 0\n" "	17  \"General Purpose Slider 2\" 0 127 0\n" "	18  \"General Purpose Slider 3\" 0 127 0\n" "	19  \"General Purpose Slider 4\" 0 127 0\n" "	32  \"Bank Select (fine)\" 0 127 0\n" "	33  \"Modulation Wheel (fine)\" 0 127 0\n" "	34  \"Breath controller (fine)\" 0 127 0\n" "	36  \"Foot Pedal (fine)\" 0 127 0\n" "	37  \"Portamento Time (fine)\" 0 127 0\n" "	38  \"Data Entry (fine)\" 0 127 0\n" "	39  \"Volume (fine)\" 0 127 0\n" "	40  \"Balance (fine)\" 0 127 0\n" "	42  \"Pan position (fine)\" 0 127 0\n" "	43  \"Expression (fine)\" 0 127 0\n" "	44  \"Effect Control 1 (fine)\" 0 127 0\n" "	45  \"Effect Control 2 (fine)\" 0 127 0\n" "	64  \"Hold Pedal (on off)\" 0 127 0\n" "	65  \"Portamento (on off)\" 0 127 0\n" "	66  \"Sustenuto Pedal (on off)\" 0 127 0\n" "	67  \"Soft Pedal (on off)\" 0 127 0\n" "	68  \"Legato Pedal (on off)\" 0 127 0\n" "	69  \"Hold 2 Pedal (on off)\" 0 127 0\n" "	70  \"Sound Variation\" 0 127 0\n" "	71  \"Sound Timbre\" 0 127 0\n" "	72  \"Sound Release Time\" 0 127 0\n" "	73  \"Sound Attack Time\" 0 127 0\n" "	74  \"Sound Brightness\" 0 127 0\n" "	75  \"Sound Control 6\" 0 127 0\n" "	76  \"Sound Control 7\" 0 127 0\n" "	77  \"Sound Control 8\" 0 127 0\n" "	78  \"Sound Control 9\" 0 127 0\n" "	79  \"Sound Control 10\" 0 127 0\n" "	80  \"General Purpose Button 1 (on off)\" 0 127 0\n" "	81  \"General Purpose Button 2 (on off)\" 0 127 0\n" "	82  \"General Purpose Button 3 (on off)\" 0 127 0\n" "	83  \"General Purpose Button 4 (on off)\" 0 127 0\n" "	91  \"Effects Level\" 0 127 0\n" "	92  \"Tremulo Level\" 0 127 0\n" "	93  \"Chorus Level\" 0 127 0\n" "	94  \"Celeste Level\" 0 127 0\n" "	95  \"Phaser Level\" 0 127 0\n" "	96  \"Data Button increment\" 0 127 0\n" "	97  \"Data Button decrement\" 0 127 0\n" "	98  \"Non-registered Parameter (fine)\" 0 127 0\n" "	99  \"Non-registered Parameter (coarse)\" 0 127 0\n" "	100 \"Registered Parameter (fine)\" 0 127 0\n" "	101 \"Registered Parameter (coarse)\" 0 127 0\n" "	120 \"All Sound Off\" 0 127 0\n" "	121 \"All Controllers Off\" 0 127 0\n" "	122 \"Local Keyboard (on off)\" 0 127 0\n" "	123 \"All Notes Off\" 0 127 0\n" "	124 \"Omni Mode Off\" 0 127 0\n" "	125 \"Omni Mode On\" 0 127 0\n" "	126 \"Mono Operation\" 0 127 0\n" "	127 \"Poly Operation\" 0 127 0\n" );
-# 479 "localMIDIInterface.c"
+            "	1 \"Mod Wheel\" 1 127 0\n" "	31 \"Control\" 0 127 0\n" );
+
+
+    } else {
+     strcat (localMidiString,
+     "	0   \"Bank Select (coarse)\" 0 127 0\n" "	1   \"Modulation Wheel (coarse)\" 0 127 0\n" "	2   \"Breath controller (coarse)\" 0 127 0\n" "	4   \"Foot Pedal (coarse)\" 0 127 0\n" "	5   \"Portamento Time (coarse)\" 0 127 0\n" "	6   \"Data Entry (coarse)\" 0 127 0\n" "	7   \"Volume (coarse)\" 0 127 0\n" "	8   \"Balance (coarse)\" 0 127 0\n" "	10  \"Pan position (coarse)\" 0 127 0\n" "	11  \"Expression (coarse)\" 0 127 0\n" "	12  \"Effect Control 1 (coarse)\" 0 127 0\n" "	13  \"Effect Control 2 (coarse)\" 0 127 0\n" "	16  \"General Purpose Slider 1\" 0 127 0\n" "	17  \"General Purpose Slider 2\" 0 127 0\n" "	18  \"General Purpose Slider 3\" 0 127 0\n" "	19  \"General Purpose Slider 4\" 0 127 0\n" "	32  \"Bank Select (fine)\" 0 127 0\n" "	33  \"Modulation Wheel (fine)\" 0 127 0\n" "	34  \"Breath controller (fine)\" 0 127 0\n" "	36  \"Foot Pedal (fine)\" 0 127 0\n" "	37  \"Portamento Time (fine)\" 0 127 0\n" "	38  \"Data Entry (fine)\" 0 127 0\n" "	39  \"Volume (fine)\" 0 127 0\n" "	40  \"Balance (fine)\" 0 127 0\n" "	42  \"Pan position (fine)\" 0 127 0\n" "	43  \"Expression (fine)\" 0 127 0\n" "	44  \"Effect Control 1 (fine)\" 0 127 0\n" "	45  \"Effect Control 2 (fine)\" 0 127 0\n" "	64  \"Hold Pedal (on off)\" 0 127 0\n" "	65  \"Portamento (on off)\" 0 127 0\n" "	66  \"Sustenuto Pedal (on off)\" 0 127 0\n" "	67  \"Soft Pedal (on off)\" 0 127 0\n" "	68  \"Legato Pedal (on off)\" 0 127 0\n" "	69  \"Hold 2 Pedal (on off)\" 0 127 0\n" "	70  \"Sound Variation\" 0 127 0\n" "	71  \"Sound Timbre\" 0 127 0\n" "	72  \"Sound Release Time\" 0 127 0\n" "	73  \"Sound Attack Time\" 0 127 0\n" "	74  \"Sound Brightness\" 0 127 0\n" "	75  \"Sound Control 6\" 0 127 0\n" "	76  \"Sound Control 7\" 0 127 0\n" "	77  \"Sound Control 8\" 0 127 0\n" "	78  \"Sound Control 9\" 0 127 0\n" "	79  \"Sound Control 10\" 0 127 0\n" "	80  \"General Purpose Button 1 (on off)\" 0 127 0\n" "	81  \"General Purpose Button 2 (on off)\" 0 127 0\n" "	82  \"General Purpose Button 3 (on off)\" 0 127 0\n" "	83  \"General Purpose Button 4 (on off)\" 0 127 0\n" "	91  \"Effects Level\" 0 127 0\n" "	92  \"Tremulo Level\" 0 127 0\n" "	93  \"Chorus Level\" 0 127 0\n" "	94  \"Celeste Level\" 0 127 0\n" "	95  \"Phaser Level\" 0 127 0\n" "	96  \"Data Button increment\" 0 127 0\n" "	97  \"Data Button decrement\" 0 127 0\n" "	98  \"Non-registered Parameter (fine)\" 0 127 0\n" "	99  \"Non-registered Parameter (coarse)\" 0 127 0\n" "	100 \"Registered Parameter (fine)\" 0 127 0\n" "	101 \"Registered Parameter (coarse)\" 0 127 0\n" "	120 \"All Sound Off\" 0 127 0\n" "	121 \"All Controllers Off\" 0 127 0\n" "	122 \"Local Keyboard (on off)\" 0 127 0\n" "	123 \"All Notes Off\" 0 127 0\n" "	124 \"Omni Mode Off\" 0 127 0\n" "	125 \"Omni Mode On\" 0 127 0\n" "	126 \"Mono Operation\" 0 127 0\n" "	127 \"Poly Operation\" 0 127 0\n" );
+# 445 "localMIDIInterface.c"
+    }
+# 512 "localMIDIInterface.c"
    }
-# 546 "localMIDIInterface.c"
   }
  }
 
@@ -6533,7 +6550,7 @@ void tagDevicePresent(MIDIEndpointRef dev, int inputDirection) {
 
         MIDIObjectGetIntegerProperty(dev, 116, &uniq);
 
- for (i=0; i<10; i++) {
+ for (i=0; i<16; i++) {
   if (uniq == localDev[i].uniqueID) {
 
 
@@ -6556,7 +6573,7 @@ void tagDevicePresent(MIDIEndpointRef dev, int inputDirection) {
 
 
  i=0;
- while ((i<(10 -1)) && (localDev[i].uniqueID != 0)) i++;
+ while ((i<(16 -1)) && (localDev[i].uniqueID != 0)) i++;
 
  MIDIObjectGetStringProperty(dev, 117, &pname);
  CFStringGetCString(pname, name, sizeof(name), 0);
@@ -6585,7 +6602,7 @@ void tagDevicePresent(MIDIEndpointRef dev, int inputDirection) {
 
 void copyFoundMidiDeviceInfo() {
  int i;
- for (i=0; i<10; i++) {
+ for (i=0; i<16; i++) {
   localDev[i].olduniqueID = localDev[i].uniqueID;
   localDev[i].uniqueID = 0;
  }
@@ -6593,9 +6610,14 @@ void copyFoundMidiDeviceInfo() {
 
 
 void diffFoundMidiDeviceInfo() {
- int i;
+ int i,j;
  int needToRegen = 1!=1;
- for (i=0; i<10; i++) {
+ for (i=0; i<16; i++) {
+
+
+
+
+
   if (localDev[i].olduniqueID != localDev[i].uniqueID) {
 
 
@@ -6617,6 +6639,16 @@ void diffFoundMidiDeviceInfo() {
    }
 
   }
+
+
+  for (j=0; j<16;j++) {
+   if (localDev[i].newChannelActive[j]) {
+    needToRegen = 1==1;
+    localDev[i].channelActive[j] = 1==1;
+    localDev[i].newChannelActive[j] = 1!=1;
+   }
+  }
+
  }
  if (needToRegen) {
   regenLocalMidiInfo();
@@ -6634,9 +6666,9 @@ void checkInstalledMIDIDevices() {
  sourceCount = MIDIGetNumberOfSources();
 
  if (sourceCount>0) {
-  if (sourceCount > 10) {
-   printf ("too many MIDI sources, cutting it back to %d\n",10);
-   sourceCount = 10;
+  if (sourceCount > 16) {
+   printf ("too many MIDI sources, cutting it back to %d\n",16);
+   sourceCount = 16;
   }
 
   for (i = 0; i < sourceCount; ++i)
@@ -6648,9 +6680,9 @@ void checkInstalledMIDIDevices() {
 
  destCount = MIDIGetNumberOfDestinations();
  if (destCount>0) {
-  if (destCount > 10) {
-   printf ("too many MIDI dests, cutting it back to %d\n",10);
-   destCount = 10;
+  if (destCount > 16) {
+   printf ("too many MIDI dests, cutting it back to %d\n",16);
+   destCount = 16;
   }
 
   for (i = 0; i < destCount; ++i) {

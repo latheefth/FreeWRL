@@ -4056,7 +4056,13 @@ extern int haveNewReWireConfig;
 extern int haveNewLocalMIDIConfig;
 extern char *localMidiString;
 extern int localMidiStringSize;
-# 20 "localMIDIInterface.h"
+
+
+
+
+
+
+
 struct localMidiDevicesStruct {
  char *name;
  int midiSource;
@@ -4066,6 +4072,8 @@ struct localMidiDevicesStruct {
  SInt32 olduniqueID;
  MIDIEndpointRef outDevice;
  MIDIEndpointRef inDevice;
+ int channelActive[16];
+ int newChannelActive[16];
 };
 typedef struct localMidiDevicesStruct localMidiDevicesStruct;
 
@@ -4172,7 +4180,7 @@ extern int EAIwanted;
 extern int EAIbufsize;
 extern char *EAIbuffer;
 extern int EAIbufcount;
-extern char EAIListenerData[4096];
+extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
 # 4 "/root/freewrl/freewrl-1.19.9/ReWire/Eai_C.h" 2
 
@@ -6032,7 +6040,7 @@ extern int EAIwanted;
 extern int EAIbufsize;
 extern char *EAIbuffer;
 extern int EAIbufcount;
-extern char EAIListenerData[4096];
+extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
 # 4 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
 # 14 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h"
@@ -6252,27 +6260,16 @@ void fatalError (char *str) {
 }
 # 153 "FreeWRLMIDIInterface.c"
 int main () {
-
-
-
-
- printf ("start of main\n");
+# 162 "FreeWRLMIDIInterface.c"
         X3D_initialize ("");
-# 182 "FreeWRLMIDIInterface.c"
-printf ("going to call startUpLocalMIDI\n");
+# 188 "FreeWRLMIDIInterface.c"
  startUpLocalMIDI();
 
-printf ("going to call createConfigThread\n");
+
+
+
  createConfigThread ();
-
-
-
-
-
-
-
-printf ("now, main is going to sleep forever\n");
-
+# 205 "FreeWRLMIDIInterface.c"
  sleep(10000000);
 
 
@@ -6331,10 +6328,6 @@ void configThread (void) {
    strcat (totalConfigString,"EOT\n");
 
 
-
-
-
-   printf ("config thread, sending len %d %s\n",strlen(totalConfigString),totalConfigString);
 
 
 

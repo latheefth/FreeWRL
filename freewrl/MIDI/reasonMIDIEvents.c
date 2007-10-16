@@ -4100,7 +4100,7 @@ extern int EAIwanted;
 extern int EAIbufsize;
 extern char *EAIbuffer;
 extern int EAIbufcount;
-extern char EAIListenerData[4096];
+extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
 # 4 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
 

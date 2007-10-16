@@ -348,11 +348,11 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 			(*bfct) += retval;
 
 			if (((*bfsz) - (*bfct)) <= EAIREADSIZE) {
-				printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %x bfsz %d bfct %d\n",bf,*bfsz, *bfct);
+				/* printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %x bfsz %d bfct %d\n",bf,*bfsz, *bfct); */
 				(*bfsz) += EAIREADSIZE;
-				printf ("read_EAI_socket: bfsz now %d\n",*bfsz);
+				/* printf ("read_EAI_socket: bfsz now %d\n",*bfsz); */
 				bf = (char *)REALLOC (bf, (unsigned int) (*bfsz));
-				printf ("read_EAI_socket: REALLOC complete\n");
+				/* printf ("read_EAI_socket: REALLOC complete\n"); */
 			}
 		}
 	} while (retval);

@@ -1910,7 +1910,7 @@ extern int EAIwanted;
 extern int EAIbufsize;
 extern char *EAIbuffer;
 extern int EAIbufcount;
-extern char EAIListenerData[4096];
+extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
 # 4 "/root/freewrl/freewrl-1.19.9/ReWire/Eai_C.h" 2
 
@@ -5086,7 +5086,7 @@ extern int EAIwanted;
 extern int EAIbufsize;
 extern char *EAIbuffer;
 extern int EAIbufcount;
-extern char EAIListenerData[4096];
+extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
 # 4 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
 # 12 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h"
@@ -6234,7 +6234,13 @@ extern int haveNewReWireConfig;
 extern int haveNewLocalMIDIConfig;
 extern char *localMidiString;
 extern int localMidiStringSize;
-# 20 "localMIDIInterface.h"
+
+
+
+
+
+
+
 struct localMidiDevicesStruct {
  char *name;
  int midiSource;
@@ -6244,6 +6250,8 @@ struct localMidiDevicesStruct {
  SInt32 olduniqueID;
  MIDIEndpointRef outDevice;
  MIDIEndpointRef inDevice;
+ int channelActive[16];
+ int newChannelActive[16];
 };
 typedef struct localMidiDevicesStruct localMidiDevicesStruct;
 
@@ -6492,7 +6500,6 @@ int MIDISend (int bus, Byte *data, int len) {
  }
 
  return 1==1;
-
 }
 
 MIDIPacket * MIDIPacketNext(MIDIPacket *inPacket) {
@@ -6557,7 +6564,7 @@ MIDIEndpointRef MIDIGetSource (int i) {
 
 void MIDIPortConnectSource (MIDIPortRef port, MIDIEndpointRef dev,void *ref) {
  char tempfilename[200];
-# 397 "LinuxMIDIInterface.c"
+# 396 "LinuxMIDIInterface.c"
  if (midiCardInfo[*dev].fileDesc == -1) {
   sprintf (tempfilename,"/dev/snd/midiC%dD%d",midiCardInfo[*dev].cardNo,midiCardInfo[*dev].portNo); midiCardInfo[*dev].fileDesc = open(tempfilename,02);
 
@@ -6573,7 +6580,7 @@ void MIDIPortConnectSource (MIDIPortRef port, MIDIEndpointRef dev,void *ref) {
 }
 
 void MIDIPortDisconnectSource (MIDIPortRef port, MIDIEndpointRef dev) {
-# 421 "LinuxMIDIInterface.c"
+# 420 "LinuxMIDIInterface.c"
  if (midiCardInfo[*dev].fileDesc != -1) {
 
 
@@ -6665,10 +6672,8 @@ MIDIPacket *MIDIPacketListInit(MIDIPacketList *pl) {
 
  pl->numPackets = 0;
  pl->packet = ((void *)0);
- printf ("MIDIPacketListInit: - packetList %d, returning %d\n",(int)pl,(int)retval);
  return retval;
 }
-
 
 
 void dataWaiting(void) {
@@ -6683,8 +6688,8 @@ void dataWaiting(void) {
 
  while (1==1) {
 
-  tv2.tv_sec = 10;
-  tv2.tv_usec = 0;
+  tv2.tv_sec = 0;
+  tv2.tv_usec = 1000;
   do { int __d0, __d1; __asm__ __volatile__ ("cld; rep; stosl" : "=c" (__d0), "=D" (__d1) : "a" (0), "0" (sizeof (fd_set) / sizeof (__fd_mask)), "1" (&((&rfds2)->__fds_bits)[0]) : "memory"); } while (0);
   max = -1;
 
@@ -6704,7 +6709,6 @@ void dataWaiting(void) {
 
 
 
-
   if (retval > 0) {
    for (i=0; i<currentNumberOfMIDIDevices; i++) {
     if (midiCardInfo[i].cardNo!=-1) {
@@ -6714,15 +6718,51 @@ void dataWaiting(void) {
 
 
 
-      rd = read (midiCardInfo[i].fileDesc,temp,4000);
+      rd = read (midiCardInfo[i].fileDesc,temp,1);
 
 
 
 
 
 
+      if (((temp[0] & 0xF0) == 0x90)
+         || ((temp[0] & 0xF0) == 0x80)
+         || ((temp[0] & 0xF0) == 0xA0)
+         || ((temp[0] & 0xF0) == 0xB0)
+         || ((temp[0] & 0xF0) == 0xE0))
+         {
 
-      readFromMIDIBusses(temp, rd, i);
+       rd = read (midiCardInfo[i].fileDesc,&temp[1],1);
+       rd = read (midiCardInfo[i].fileDesc,&temp[2],1);
+
+
+
+
+
+       readFromMIDIBusses(temp, 3, i);
+
+      } else if (((temp[0] & 0xF0) == 0xc0)
+       || ((temp[0] & 0xF0) == 0xD0))
+       {
+
+       rd = read (midiCardInfo[i].fileDesc,&temp[1],1);
+
+
+       readFromMIDIBusses(temp, 2, i);
+
+      } else if ((temp[0] & 0xF0) == 0xf0) {
+# 605 "LinuxMIDIInterface.c"
+       while (temp[0] != 0xF7) {
+        rd = read (midiCardInfo[i].fileDesc,temp,1);
+        if (rd == 0) usleep(1000);
+       }
+
+
+
+      } else {
+       printf ("UNDECODED PACKET - going to screw us up... %x\n",temp[0]&0xF0);
+      }
+
 
      }
     }

@@ -155,8 +155,12 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 			match = FALSE;
 
 			/* ok - so if the user asked for a specific channel, look for this, if not, make first match */
-			if ((node->channel >= 0) || (node->channel<=15)) {
-				if (node->channel == ReWireDevices[ctr].channel) match = TRUE;
+			/* NOTE that MIDI USER DEVICES use channels 1-16, but the MIDI SPEC says 0-15 */
+
+			if ((node->channel >= 1) || (node->channel<=16)) {
+				if (((node->channel)-1)  == ReWireDevices[ctr].channel) {
+					match = TRUE;
+				}
 			} else {
 				match = TRUE;
 			}
@@ -622,7 +626,6 @@ void ReWireRegisterMIDI (char *str) {
 			encodedDeviceName = ReWireNameIndex(str);
 			str = EOT+1;
 			sscanf (str, "%d %d",&curBus, &curChannel);
-printf ("ReWireRegisterMIDI - curbus %d curchannel %d\n",curBus, curChannel);
 
 			/* make an entry for devices that have NO controllers, maybe only buttonPresses */
 			encodedControllerName = ReWireNameIndex("use_for_buttonPresses");
@@ -678,7 +681,6 @@ printf ("ReWireRegisterMIDI - curbus %d curchannel %d\n",curBus, curChannel);
 	}
 }
 
-
 void do_MidiControl (void *this) {
 	struct X3D_MidiControl* node;
 	int value;
@@ -694,8 +696,9 @@ void do_MidiControl (void *this) {
 		#ifdef MIDIVERBOSE
 		printf ("ReWire change %d %d ", node->_ichange, node->_change); 
 
-		printf ("bus %d channel :%s: controllerType :%s: device :%s: ",
-			node->_bus, node->channel->strptr, node->controllerType->strptr, node->deviceName->strptr);
+		printf ("bus %d channel %d(%d) controller :%s: controllerType :%s: device :%s: ",
+			node->_bus, node->_channel, node->channel,
+			node->controller->strptr, node->controllerType->strptr, node->deviceName->strptr);
 		printf (" devp %d fv %f iv %d hr %d ct %d intVal %d max %d min %d\n",
 			node->controllerPresent, node->floatValue, node->intValue, node->highResolution,
 			node->_intControllerType, node->intValue, node->maxVal, node->minVal);
@@ -783,6 +786,7 @@ void do_MidiControl (void *this) {
 	}	
 }
 
+
 /* a MIDI event is coming in from the EAI port! */
 void ReWireMIDIControl (char *line) {
 	long int timeDiff;
@@ -824,6 +828,7 @@ void ReWireMIDIControl (char *line) {
 		#ifdef MIDIVERBOSE
 			printf ("ReWireMIDIControl - input timedif %ld bus %d channel %d controller %d value %d\n",
 						timeDiff, bus, channel, controller, value);
+			printf ("ReWireDevicetableSize %d\n",ReWireDevicetableSize);
 		#endif
 	
 	
@@ -958,7 +963,6 @@ void ReWireMIDIControl (char *line) {
 		#endif
 	}
 }
-
 
 
 /************ END OF MIDI CONTROL **************************/
