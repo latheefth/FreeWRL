@@ -11,6 +11,27 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+/* First, a generic struct, contains only the common elements */
+struct X3D_Node {
+       struct X3D_Virt *v;
+       int _renderFlags; /*sensitive, etc */
+       int _hit;
+       int _change;
+       int _dlchange;
+       unsigned int _dlist;
+       void **_parents;
+       int _nparents;
+       int _nparalloc;
+       int _ichange;
+       float _dist; /*sorting for blending */
+       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */
+       void *_intern;
+       int _nodeType; /* unique integer for each type */
+       int _defaultContainer; /* holds the container */
+        /*** node specific data: *****/
+};
+
+
 typedef struct { int type; int value; } _intX3D_SFBool;
 typedef struct { int type; float value; } _intX3D_SFFloat;
 typedef struct { int type; float value; } _intX3D_SFTime;
@@ -41,7 +62,7 @@ typedef struct { int type; int n; _intX3D_SFNode *p; } _intX3D_MFNode;
 typedef struct { int type; int n; _intX3D_SFString *p; } _intX3D_MFString;
 typedef struct { int type; int n; _intX3D_SFImage *p; } _intX3D_MFImage;
 
-typedef union _X3D_Node {
+typedef union _X3DNode {
 	int 	type;
 	_intX3D_SFBool		X3D_SFBool;
 	_intX3D_SFFloat		X3D_SFFloat;
@@ -68,7 +89,7 @@ typedef union _X3D_Node {
 	_intX3D_MFVec3f		X3D_MFVec3f;
 	_intX3D_MFImage		X3D_MFImage;
 
-} X3D_Node;
+} X3DNode;
 
 #ifndef TRUE
 #define TRUE 1==1
@@ -83,7 +104,7 @@ typedef union _X3D_Node {
 /* structures */
 
 
-struct _intX3D_EventIn {
+struct _intX3DEventIn {
 	uintptr_t	nodeptr;
 	int 		offset;
 	int		datatype;
@@ -92,17 +113,17 @@ struct _intX3D_EventIn {
 	char 		*field;
 };
 
-#define X3D_EventIn struct _intX3D_EventIn
-#define X3D_EventOut struct _intX3D_EventIn
+#define X3DEventIn struct _intX3DEventIn
+#define X3DEventOut struct _intX3DEventIn
 /* single value structures */
 
 
-X3D_Node *X3D_getNode (char *name);
-X3D_EventIn *X3D_getEventIn(X3D_Node *node, char *name);
-X3D_EventOut *X3D_getEventOut(X3D_Node *node, char *name);
-void X3D_setValue (X3D_EventIn *dest, X3D_Node *node);
-void X3D_addRoute (X3D_EventOut *from, X3D_EventIn *to);
-void X3D_deleteRoute (X3D_EventOut *from, X3D_EventIn *to);
+X3DNode *X3D_getNode (char *name);
+X3DEventIn *X3D_getEventIn(X3DNode *node, char *name);
+X3DEventOut *X3D_getEventOut(X3DNode *node, char *name);
+void X3D_setValue (X3DEventIn *dest, X3DNode *node);
+void X3D_addRoute (X3DEventOut *from, X3DEventIn *to);
+void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to);
 
 
 /* initialize, shutdown public methods */
@@ -128,34 +149,34 @@ char *X3D_getVersion();
 char *X3D_getWorldURL();
 
 /* MFNode public methods */
-X3D_Node *X3D_createVrmlFromString(char *str);
-X3D_Node *X3D_newSFVec3f (float a, float b, float c);
-X3D_Node *X3D_newSFColor (float a, float b, float c);
-X3D_Node *X3D_newSFVec2f (float a, float b);
-X3D_Node *X3D_newSFRotation (float a, float b,float c, float d);
-X3D_Node *X3D_newSFColorRGBA (float a, float b,float c, float d);
-X3D_Node *X3D_newSFVec3d (double a, double b,double c);
-X3D_Node *X3D_newSFVec2d (double a, double b);
-X3D_Node *X3D_newSFBool (int a);
-X3D_Node *X3D_newSFFloat (float a);
-X3D_Node *X3D_newSFTime (double a);
-X3D_Node *X3D_newSFInt32 (int a);
-X3D_Node *X3D_newSFString();
-X3D_Node *X3D_newSFNode();
-X3D_Node *X3D_newSFImage();
-X3D_Node *X3D_newMFColor();
-X3D_Node *X3D_newMFFloat();
-X3D_Node *X3D_newMFTime();
-X3D_Node *X3D_newMFInt32();
-X3D_Node *X3D_newMFString();
-X3D_Node *X3D_newMFNode();
-X3D_Node *X3D_newMFRotation();
-X3D_Node *X3D_newMFVec2f();
-X3D_Node *X3D_newMFVec3f();
-X3D_Node *X3D_newMFColorRGBA();
-X3D_Node *X3D_newMFBool();
-X3D_Node *X3D_newMFVec3d();
-X3D_Node *X3D_newMFVec2d();
+X3DNode *X3D_createVrmlFromString(char *str);
+X3DNode *X3D_newSFVec3f (float a, float b, float c);
+X3DNode *X3D_newSFColor (float a, float b, float c);
+X3DNode *X3D_newSFVec2f (float a, float b);
+X3DNode *X3D_newSFRotation (float a, float b,float c, float d);
+X3DNode *X3D_newSFColorRGBA (float a, float b,float c, float d);
+X3DNode *X3D_newSFVec3d (double a, double b,double c);
+X3DNode *X3D_newSFVec2d (double a, double b);
+X3DNode *X3D_newSFBool (int a);
+X3DNode *X3D_newSFFloat (float a);
+X3DNode *X3D_newSFTime (double a);
+X3DNode *X3D_newSFInt32 (int a);
+X3DNode *X3D_newSFString();
+X3DNode *X3D_newSFNode();
+X3DNode *X3D_newSFImage();
+X3DNode *X3D_newMFColor();
+X3DNode *X3D_newMFFloat();
+X3DNode *X3D_newMFTime();
+X3DNode *X3D_newMFInt32();
+X3DNode *X3D_newMFString();
+X3DNode *X3D_newMFNode();
+X3DNode *X3D_newMFRotation();
+X3DNode *X3D_newMFVec2f();
+X3DNode *X3D_newMFVec3f();
+X3DNode *X3D_newMFColorRGBA();
+X3DNode *X3D_newMFBool();
+X3DNode *X3D_newMFVec3d();
+X3DNode *X3D_newMFVec2d();
 
 extern int _X3D_queryno;
 extern int _X3D_FreeWRL_FD;
@@ -170,10 +191,10 @@ void _handleFreeWRLcallback(char *command);
 void X3D_error(char *msg);
 char *fieldTypeName(char type);
 
-char * _RegisterListener (X3D_EventOut *node, int adin);
-int X3DAdvise (X3D_EventOut *node, void *fn);
+char * _RegisterListener (X3DEventOut *node, int adin);
+int X3DAdvise (X3DEventOut *node, void *fn);
 void _handleReWireCallback(char *buf);
-void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
+void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value);
 char mapFieldTypeToEAItype (int st);
 int mapEAItypeToFieldType (char st);
 void sendMIDITableToFreeWRL(char *buf);
