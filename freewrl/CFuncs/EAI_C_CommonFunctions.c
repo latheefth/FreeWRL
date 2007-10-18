@@ -220,7 +220,7 @@ int countElements (int ctype, char *instr) {
 }
 
 /* called effectively by VRMLCU.pm */
-void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value) {
+void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value) {
 	int datasize;
 	int rowsize;
 	int elementCount;
@@ -246,7 +246,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 	printf ("PST, for %s we have %s strlen %d\n",FIELDTYPES[ctype], value, strlen(value));
 	#endif
 
-	nst = (char *) ptr; /* should be 64 bit compatible */
+	nst = (char *) node; /* should be 64 bit compatible */
 	nst += coffset;
 
 	/* go to the start of the string - javascript will return this with open/close brackets */
@@ -277,7 +277,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 				memcpy(nst,in,datasize); 
 				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
 				if (ctype == FIELDTYPE_SFNode) {
-					add_parent((void *)in[0], ptr); 
+					add_parent(X3D_NODE(in[0]), node); 
 				}
 				
 			break;}
@@ -287,12 +287,12 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 				sscanf (value,"%ld",inNode); 
 				/*
 				if (inNode[0] != 0) {
-					printf (" andof type %s\n",stringNodeType(((struct X3D_Box *)inNode[0])->_nodeType));
+					printf (" andof type %s\n",stringNodeType(X3D_NODE(inNode[0])->_nodeType));
 				} */
 				memcpy(nst,inNode,datasize); 
 				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
 				if (ctype == FIELDTYPE_SFNode) {
-					add_parent((void *)inNode[0], ptr); 
+					add_parent(X3D_NODE(inNode[0]), node); 
 				}
 				
 			break;}
@@ -331,9 +331,9 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				/* JAS changed %d to %ld for 1.18.15 */
 				sscanf(value, "%ld",inNode);
-				addToNode(ptr,coffset,(void *)inNode[0]); 
-				/* printf ("MFNODE, have to add child %d to parent %d\n",inNode[0],ptr);  */
-				add_parent((void *)inNode[0], ptr); 
+				addToNode(node,coffset,(void *)inNode[0]); 
+				/* printf ("MFNODE, have to add child %d to parent %d\n",inNode[0],node);  */
+				add_parent((void *)inNode[0], node); 
 				/* skip past the number and trailing comma, if there is one */
 				if (*value == '-') value++;
 				while (*value>='0') value++;
@@ -425,7 +425,7 @@ void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value)
 			printf ("unhandled PST type, check code in EAI_C_CommonFunctions\n");
 			#else
 			printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
-			FIELDTYPES[ctype],value,stringNodeType(((struct X3D_Box *)ptr)->_nodeType),nst,coffset,elementCount+1);
+			FIELDTYPES[ctype],value,stringNodeType(node->_nodeType),nst,coffset,elementCount+1);
 			#endif
 			break;
 			};

@@ -174,7 +174,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		have_transparency ++;
 		if ((node->_renderFlags & VF_Blend) != VF_Blend)
-			update_renderFlag(node,VF_Blend);
+			update_renderFlag(X3D_NODE(node),VF_Blend);
 
 		if (render_blend) { 
                         #ifdef VISIBILITYOCCLUSION
@@ -211,7 +211,7 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
 	/* for BoundingBox calculations */
-	setExtent(cx+x, cx-x, cx+y, cx-y, cx+z, cx-z,(struct X3D_Box *)node);
+	setExtent(cx+x, cx-x, cx+y, cx-y, cx+z, cx-z,X3D_NODE(node));
 
 
 	if (node->_ichange != node->_change) {
@@ -284,8 +284,8 @@ void do_VisibilitySensorTick (void *ptr) {
 
                         node->isActive = 1;
                         node->enterTime = TickTime;
-                        mark_event (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
-                        mark_event (ptr, offsetof(struct X3D_VisibilitySensor, enterTime));
+                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
+                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, enterTime));
 
                 }
 	} else {
@@ -297,8 +297,8 @@ void do_VisibilitySensorTick (void *ptr) {
 
                         node->isActive = 0;
                         node->exitTime = TickTime;
-                        mark_event (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
-                        mark_event (ptr, offsetof(struct X3D_VisibilitySensor, exitTime));
+                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
+                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, exitTime));
 		}
 	}
 

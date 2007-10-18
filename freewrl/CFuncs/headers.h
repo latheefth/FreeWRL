@@ -55,7 +55,7 @@ them around */
 #include "Structs.h"
 
 typedef struct _CRnodeStruct {
-        void *node;
+        struct X3D_Node *routeToNode;
         unsigned int foffset;
 } CRnodeStruct;
 
@@ -75,7 +75,7 @@ typedef struct _CRnodeStruct {
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 
 struct CRStruct {
-        void *  fromnode;
+        struct X3D_Node*  routeFromNode;
         uintptr_t fnptr;
         unsigned int tonode_count;
         CRnodeStruct *tonodes;
@@ -158,7 +158,7 @@ void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
 extern int HaveSensitive;
 void zeroVisibilityFlag(void);
-void setField_fromJavascript (uintptr_t *ptr, char *field, char *value);
+void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value);
 unsigned int setField_method2 (char *ptr);
 void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
@@ -347,7 +347,7 @@ extern struct X3D_Text *lastTextNode;
 
 /* Function Prototypes */
 
-void render_node(void *node);
+void render_node(struct X3D_Node *node);
 
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 float tx,float ty, char *descr) ;
@@ -371,7 +371,7 @@ void DirectionalLight_Rend(void *nod_);
                 (node->has_light) = 0; \
                 /* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
                 for(i=0; i<nc; i++) { \
-                        p = (struct X3D_Box *)((node->children).p[i]); \
+                        p = (struct X3D_Node *)((node->children).p[i]); \
                         if (p!=NULL) { \
                             if ((p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_SpotLight)) { \
                                 (node->has_light) ++; \
@@ -383,7 +383,7 @@ void DirectionalLight_Rend(void *nod_);
                 (node->has_light) = 0; \
                 /* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
                 for(i=0; i<nc; i++) { \
-                        p = (struct X3D_Box *)((node->__children).p[i]); \
+                        p = (struct X3D_Node *)((node->__children).p[i]); \
                         if (p!=NULL) { \
                             if ((p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_SpotLight)) { \
                                 (node->has_light) ++; \
@@ -480,13 +480,14 @@ int verify_rotate(GLfloat *params);
 int verify_translate(GLfloat *params);
 int verify_scale(GLfloat *params);
 
-void mark_event (void *from, unsigned int fromoffset);
+void mark_event (struct X3D_Node *from, unsigned int fromoffset);
+void mark_event_check (struct X3D_Node *from, unsigned int fromoffset,char *fn, int line);
 
 /* saved rayhit and hyperhit */
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 
 /* set a node to be sensitive */
-void setSensitive(void *parent,void *me);
+void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 
 /* bindable nodes */
 extern GLint viewport[];
@@ -554,11 +555,11 @@ void *returnInterpolatorPointer (const char *x);
 
 void CRoutes_js_new (uintptr_t num,int scriptType);
 extern int max_script_found;
-void getMFNodetype (char *strp, struct Multi_Node *ch, struct X3D_Box *par, int ar);
+void getMFNodetype (char *strp, struct Multi_Node *ch, struct X3D_Node *par, int ar);
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
 
-void update_node(void *ptr);
-void update_renderFlag(void *ptr, int flag);
+void update_node(struct X3D_Node *ptr);
+void update_renderFlag(struct X3D_Node *ptr, int flag);
 
 int JSparamIndex (char *name, char *type);
 
@@ -606,11 +607,11 @@ void setScriptECMAtype(uintptr_t);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
-void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
+void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value);
 void Multimemcpy(void *tn, void *fn, int len);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len, int dir);
-void CRoutes_Register(int adrem,        void *from,
+void CRoutes_Register(int adrem,        struct X3D_Node *from,
                                  int fromoffset,
                                  unsigned int to_count,
                                  char *tonode_str,
@@ -625,9 +626,11 @@ void getSpecificRoute (int routeNo, uintptr_t *fromNode, int *fromOffset,
                 uintptr_t *toNode, int *toOffset);
 void sendScriptEventIn(uintptr_t num);
 void getField_ToJavascript (int num, int fromoffset);
-void add_first(void * node);
-void registerTexture(void * node);
-void registerMIDINode(void *node);
+void add_first(struct X3D_Node * node);
+void registerTexture(struct X3D_Node * node);
+void registerMIDINode(struct X3D_Node *node);
+int checkNode(struct X3D_Node *node, char *fn, int line);
+
 void do_first(void);
 void process_eventsProcessed(void);
 
@@ -845,13 +848,13 @@ extern char *myPerlInstallDir;
 #define EXTENT_MIN_Y _extent[3]
 #define EXTENT_MAX_Z _extent[4]
 #define EXTENT_MIN_Z _extent[5]
-void setExtent (float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Box *this_);
+void setExtent (float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *this_);
 void recordDistance(struct X3D_Transform *nod);
-void propagateExtent (struct X3D_Box *this_);
+void propagateExtent (struct X3D_Node *this_);
 
 #ifdef DISPLAYBOUNDINGBOX
-void BoundingBox(struct X3D_Box* node);
-#define BOUNDINGBOX BoundingBox ((struct X3D_Box *)node);
+void BoundingBox(struct X3D_Node* node);
+#define BOUNDINGBOX BoundingBox ((struct X3D_Node *)node);
 #else
 #define BOUNDINGBOX
 #endif
@@ -884,7 +887,7 @@ char *processThisClassEvent (void *fn, int startEntry, int endEntry, char *buf);
 int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen);
 void getCLASSMultNumType (char *buf, int bufSize,
 	struct Multi_Vec3f *tn,
-	struct X3D_Box *parent,
+	struct X3D_Node *parent,
 	int eletype, int addChild);
 
 void fwGetDoublev (int ty, double *mat);
@@ -894,10 +897,10 @@ void fwXformPop(struct X3D_Transform *me);
 void fwLoadIdentity (void);
 void invalidateCurMat(void);
 void doBrowserAction (void);
-void add_parent(void *node_, void *parent_);
-void remove_parent(void *node_, void *parent_);
+void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_);
+void remove_parent(struct X3D_Node *node_, struct X3D_Node *parent_);
 void EAI_readNewWorld(char *inputstring);
-void addToNode (void *rc,  int offs, void *newNode);
+void addToNode (void *rc,  int offs, struct X3D_Node *newNode);
 void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
 
 void render_LoadSensor(struct X3D_LoadSensor *this);
@@ -1122,8 +1125,8 @@ void do_TimeTrigger (void *node);
 
 
 
-#define NODE_ADD_PARENT(a) add_parent(a,ptr)
-#define NODE_REMOVE_PARENT(a) add_parent(a,ptr)
+#define NODE_ADD_PARENT(a) add_parent(a,X3D_NODE(ptr))
+#define NODE_REMOVE_PARENT(a) add_parent(a,X3D_NODE(ptr))
 
 
 /* OpenGL state cache */
@@ -1178,26 +1181,26 @@ void kill_openGLTextures(void);
 void kill_X3DDefs(void);
 extern int currentFileVersion;
 
-int findFieldInFIELDNAMES(char *field);
-int findFieldInFIELD(char* field);
-int findFieldInFIELDTYPES(char *field);
-int findFieldInX3DACCESSORS(char *field);
-int findFieldInEXPOSED_FIELD(char* field);
-int findFieldInEVENT_IN(char* field);
-int findFieldInEVENT_OUT(char* field);
+int findFieldInFIELDNAMES(const char *field);
+int findFieldInFIELD(const char* field);
+int findFieldInFIELDTYPES(const char *field);
+int findFieldInX3DACCESSORS(const char *field);
+int findFieldInEXPOSED_FIELD(const char* field);
+int findFieldInEVENT_IN(const char* field);
+int findFieldInEVENT_OUT(const char* field);
 
 /* Values for fromTo */
 #define ROUTED_FIELD_EVENT_OUT 0
 #define ROUTED_FIELD_EVENT_IN  1
-int findRoutedFieldInFIELDNAMES(struct X3D_Node *node, char *field, int fromTo);
-int findRoutedFieldInEXPOSED_FIELD(struct X3D_Node*, char*, int);
-int findRoutedFieldInEVENT_IN(struct X3D_Node*, char*, int);
-int findRoutedFieldInEVENT_OUT(struct X3D_Node*, char*, int);
-int findNodeInNODES(char *node);
-int findFieldInALLFIELDNAMES(char *field);
+int findRoutedFieldInFIELDNAMES(struct X3D_Node *node, const char *field, int fromTo);
+int findRoutedFieldInEXPOSED_FIELD(struct X3D_Node*, const char*, int);
+int findRoutedFieldInEVENT_IN(struct X3D_Node*, const char*, int);
+int findRoutedFieldInEVENT_OUT(struct X3D_Node*, const char*, int);
+int findNodeInNODES(const char *node);
+int findFieldInALLFIELDNAMES(const char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
-char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset);
-int findFieldInKEYWORDS(char *field);
+char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
+int findFieldInKEYWORDS(const char *field);
 int countCommas (char *instr);
 void sortChildren (struct Multi_Node ch);
 void dirlightChildren(struct Multi_Node ch);
@@ -1220,8 +1223,9 @@ void ReWireRegisterMIDI (char *str);
 void ReWireMIDIControl(char *str);
 
 /* free memory */
-void registerX3DNode(void * node);
-void doNotRegisterThisNodeForDestroy(void * nodePtr);
+void registerX3DNode(struct X3D_Node * node);
+
+void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr);
 
 #ifdef AQUA
 Boolean notFinished();

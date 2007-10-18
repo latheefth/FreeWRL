@@ -286,7 +286,7 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	char myCharBuffer[300];
 	int myFieldOffs;
 
-	nodePtr = (struct X3D_Node*) cNode;
+	nodePtr = X3D_NODE(cNode);
 	
 	if (eaiverbose) {
 		printf ("start of EAI_GetType, this is a valid C node %d (%x)\n",nodePtr,nodePtr);

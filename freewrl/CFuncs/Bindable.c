@@ -210,6 +210,9 @@ unsigned int setBindofst(void *node) {
 int isboundofst(void *node) {
 	struct X3D_Background *tn;
 	tn = (struct X3D_Background *) node;
+
+	X3D_NODE_CHECK(node);
+
 	switch (tn->_nodeType) {
 		case NODE_Background: return offsetof(struct X3D_Background, isBound);
 		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, isBound);
@@ -222,7 +225,7 @@ int isboundofst(void *node) {
 	return 0;
 }
 
-void bind_node (void *node, int *tos, uintptr_t *stack) {
+void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 
 	uintptr_t *oldstacktop;
 	uintptr_t *newstacktop;
@@ -232,6 +235,9 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 	unsigned int *oldboundptr;	/* previous nodes isBound */
 
 	struct X3D_Background *bgnode;
+
+	X3D_NODE_CHECK(node);
+
 	bgnode=(struct X3D_Background*) node;
 	/* lets see what kind of node this is... */
 	
@@ -280,7 +286,7 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
 		*setBindptr = 100;
 
-		mark_event (node, (unsigned int) isboundofst(node));
+		MARK_EVENT (node, (unsigned int) isboundofst(node));
 
 		/* set up pointers, increment stack */
 		*tos = *tos+1;
@@ -296,7 +302,7 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 
 		/* save pointer to new top of stack */
 		*newstacktop = (uintptr_t) node;
-		update_node((void *) newstacktop);
+		update_node(X3D_NODE(newstacktop));
 
 		/* was there another DIFFERENT node at the top of the stack?
 		   have to check for a different one, as if we are binding to the current
@@ -316,10 +322,10 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 			printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
 			#endif
 
-			mark_event (*oldstacktop, (unsigned int) isboundofst((void *)*oldstacktop));
+			MARK_EVENT (X3D_NODE(*oldstacktop), (unsigned int) isboundofst((void *)*oldstacktop));
 
 			/* tell the possible parents of this change */
-			update_node((void *) (*oldstacktop));
+			update_node(X3D_NODE(*oldstacktop));
 		}
 	} else {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
@@ -333,7 +339,7 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 		/* anything on stack? */
 		if (*tos <= -1) return;   /* too many pops */
 
-		mark_event (node, (unsigned int) isboundofst(node));
+		MARK_EVENT (node, (unsigned int) isboundofst(node));
 
 		#ifdef BINDVERBOSE
 		printf ("old TOS is %d (%s) , we are %d (%s)\n",*oldstacktop,
@@ -364,9 +370,9 @@ void bind_node (void *node, int *tos, uintptr_t *stack) {
 
 			/* tell the possible parents of this change */
 			nst = (void *) (*newstacktop + (int) 0);
-			update_node(nst);
+			update_node(X3D_NODE(nst));
 
-			mark_event (nst, (unsigned int) isboundofst(nst));
+			MARK_EVENT (nst, (unsigned int) isboundofst(nst));
 		}
 	}
 }
@@ -389,7 +395,7 @@ void render_Fog (struct X3D_Fog *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 
-		bind_node (node, &fog_tos,&fog_stack[0]);
+		bind_node (X3D_NODE(node), &fog_tos,&fog_stack[0]);
 
 		/* if we do not have any more nodes on top of stack, disable fog */
 		glDisable (GL_FOG);
@@ -736,7 +742,7 @@ void render_Background (struct X3D_Background *node) {
 	/* printf ("RBG, num %d node %d ib %d sb %d gepvp\n",node->__BGNumber, node,node->isBound,node->set_bind);   */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
-		bind_node (node, &background_tos,&background_stack[0]);
+		bind_node (X3D_NODE(node), &background_tos,&background_stack[0]);
 	}
 
 	/* don't even bother going further if this node is not bound on the top */
@@ -796,7 +802,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* printf ("RTBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);  */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
-		bind_node (node, &background_tos,&background_stack[0]);
+		bind_node (X3D_NODE(node), &background_tos,&background_stack[0]);
 	}
 
 	/* don't even bother going further if this node is not bound on the top */

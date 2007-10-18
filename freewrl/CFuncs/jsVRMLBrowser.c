@@ -482,7 +482,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 		printf( "JS_GetPrivate failed in VrmlBrowserLoadURL for SFNode parameter.\n");
 		return JS_FALSE;
 	}
-	myptr = (struct X3D_Node *) oldPtr->handle;
+	myptr = X3D_NODE(oldPtr->handle);
 
 	#ifdef JSVERBOSE
 	printf ("SFNode handle %d, old X3DString %s\n",oldPtr->handle, oldPtr->X3DString);
@@ -572,9 +572,9 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* remember the freewrl addChildren removeChildren stuff? */
 	if ((strcmp (_c,"addChildren") == 0) ||
 	(strcmp (_c,"removeChildren") == 0)) {
-		setField_fromJavascript ((uintptr_t *)myptr, "children", filename);
+		setField_fromJavascript (myptr, "children", filename);
 	} else {
-		setField_fromJavascript ((uintptr_t *)myptr, _c, filename);
+		setField_fromJavascript (myptr, _c, filename);
 	}
 
 	return JS_TRUE;

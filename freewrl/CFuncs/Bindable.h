@@ -59,7 +59,7 @@ void
 send_bind_to(int nodetype, void *node, int value);
 
 void
-bind_node(void *node, int *tos, uintptr_t *stack);
+bind_node(struct X3D_Node *node, int *tos, uintptr_t *stack);
 
 void
 render_Fog(struct X3D_Fog *node);

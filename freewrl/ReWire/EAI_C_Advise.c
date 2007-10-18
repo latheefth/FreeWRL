@@ -13,13 +13,13 @@ struct EAI_ListenerStruct *EAI_ListenerTable = 0;
 int MaxEAIListeners = 0;
 int AdviseIndex = -1;
 
-int X3DAdvise (X3D_EventOut *node, void *fn) {
+int X3DAdvise (X3DEventOut *node, void *fn) {
 
 	AdviseIndex ++;
 	/* Browser.RegisterListener (f, userData, nodeptr,offset,datatype , datasize, EventType); */
 
 	/* save the data, and the node, so that if this listener is called, we can call
-		the function and pass it the correct X3D_Node */
+		the function and pass it the correct X3DNode */
 
 	/*printf ("in X3DAdvise, we have queryno %d nodeptr %d offset %d datatype %d datasize %d field %s\n",
 		AdviseIndex, node->nodeptr, node->offset, node->datatype, node->datasize, node->field); */

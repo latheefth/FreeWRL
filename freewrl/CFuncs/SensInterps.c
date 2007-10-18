@@ -179,7 +179,7 @@ void do_OintScalar (void *node) {
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
 
-	mark_event (node, offsetof (struct X3D_ScalarInterpolator, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_ScalarInterpolator, value_changed));
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -231,7 +231,7 @@ void do_OintCoord(void *node) {
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
 	#endif
 
-	mark_event (node, offsetof (struct X3D_CoordinateInterpolator, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_CoordinateInterpolator, value_changed));
 
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -389,7 +389,7 @@ void do_OintCoord2D(void *node) {
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
 	#endif
 
-	mark_event (node, offsetof (struct X3D_CoordinateInterpolator2D, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_CoordinateInterpolator2D, value_changed));
 
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -522,7 +522,7 @@ void do_OintPos2D(void *node) {
 	if (!node) return;
 	px = (struct X3D_PositionInterpolator2D *) node;
 
-	mark_event (node, offsetof (struct X3D_PositionInterpolator2D, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_PositionInterpolator2D, value_changed));
 
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -581,7 +581,7 @@ void do_Oint3 (void *node) {
 	if (!node) return;
 	px = (struct X3D_PositionInterpolator *) node;
 
-	mark_event (node, offsetof (struct X3D_PositionInterpolator, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_PositionInterpolator, value_changed));
 
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -656,7 +656,7 @@ void do_Oint4 (void *node) {
 	#endif
 
 
-	mark_event (node, offsetof (struct X3D_OrientationInterpolator, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_OrientationInterpolator, value_changed));
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -802,7 +802,7 @@ void do_CollisionTick( void *ptr) {
         if (cx->__hit == 3) {
                 /* printf ("COLLISION at %f\n",TickTime); */
                 cx->collideTime = TickTime;
-                mark_event (ptr, offsetof(struct X3D_Collision, collideTime));
+                MARK_EVENT (ptr, offsetof(struct X3D_Collision, collideTime));
         }
 }
 
@@ -845,7 +845,7 @@ void do_AudioTick(void *ptr) {
 
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		mark_event (node, offsetof(struct X3D_AudioClip, isActive));
+		MARK_EVENT (node, offsetof(struct X3D_AudioClip, isActive));
 		/* tell SoundEngine that this source has changed.  */
 	        if (!SoundEngineStarted) {
         	        #ifdef SEVERBOSE
@@ -870,7 +870,7 @@ void do_ProximitySensorTick( void *ptr) {
 
 	/* make sure scenegraph rendering knows we exist */
 	if ((node->_renderFlags & VF_Proximity) != VF_Proximity)
-		update_renderFlag(node,VF_Proximity);
+		update_renderFlag(X3D_NODE(node),VF_Proximity);
 
 	/* did we get a signal? */
 	if (node->__hit) {
@@ -881,8 +881,8 @@ void do_ProximitySensorTick( void *ptr) {
 
 			node->isActive = 1;
 			node->enterTime = TickTime;
-			mark_event (ptr, offsetof(struct X3D_ProximitySensor, isActive));
-			mark_event (ptr, offsetof(struct X3D_ProximitySensor, enterTime));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, enterTime));
 
 		}
 
@@ -894,7 +894,7 @@ void do_ProximitySensorTick( void *ptr) {
 
 			memcpy ((void *) &node->position_changed,
 				(void *) &node->__t1,sizeof(struct SFColor));
-			mark_event (ptr, offsetof(struct X3D_ProximitySensor, position_changed));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, position_changed));
 		}
 		if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
 			#ifdef SEVERBOSE
@@ -903,7 +903,7 @@ void do_ProximitySensorTick( void *ptr) {
 
 			memcpy ((void *) &node->orientation_changed,
 				(void *) &node->__t2,sizeof(struct SFRotation));
-			mark_event (ptr, offsetof(struct X3D_ProximitySensor, orientation_changed));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, orientation_changed));
 		}
 	} else {
 		if (node->isActive) {
@@ -913,9 +913,9 @@ void do_ProximitySensorTick( void *ptr) {
 
 			node->isActive = 0;
 			node->exitTime = TickTime;
-			mark_event (ptr, offsetof(struct X3D_ProximitySensor, isActive));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
 
-			mark_event (ptr, offsetof(struct X3D_ProximitySensor, exitTime));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, exitTime));
 		}
 	}
 	node->__hit=FALSE;
@@ -956,7 +956,7 @@ void do_MovieTextureTick( void *ptr) {
 	/* what we do now depends on whether we are active or not */
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		mark_event (ptr, offsetof(struct X3D_MovieTexture, isActive));
+		MARK_EVENT (ptr, offsetof(struct X3D_MovieTexture, isActive));
 	}
 
 	if(node->isActive == 1) {
@@ -997,7 +997,7 @@ void do_MovieTextureTick( void *ptr) {
 		if (! APPROX(node->__ctex, frac)) {
 			node->__ctex = (int)frac;
 			/* force a change to re-render this node */
-			update_node(node);
+			update_node(X3D_NODE(node));
 		}
 	}
 }
@@ -1049,7 +1049,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		printf ("TS, isOver changed %d\n",over);
 		#endif
 		node->isOver = over;
-		mark_event (ptr, offsetof (struct X3D_TouchSensor, isOver));
+		MARK_EVENT (ptr, offsetof (struct X3D_TouchSensor, isOver));
 	}
 
 	/* active */
@@ -1058,25 +1058,25 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		/* button presses */
 		if (ev == ButtonPress) {
 			node->isActive=1;
-			mark_event (ptr, offsetof (struct X3D_TouchSensor, isActive));
+			MARK_EVENT (ptr, offsetof (struct X3D_TouchSensor, isActive));
 			#ifdef SENSVERBOSE
 			printf ("touchSens, butPress\n");
 			#endif
 
 			node->touchTime = TickTime;
-			mark_event(ptr, offsetof (struct X3D_TouchSensor, touchTime));
+			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, touchTime));
 
 		} else if (ev == ButtonRelease) {
 			#ifdef SENSVERBOSE
 			printf ("touchSens, butRelease\n");
 			#endif
 			node->isActive=0;
-			mark_event (ptr, offsetof (struct X3D_TouchSensor, isActive));
+			MARK_EVENT (ptr, offsetof (struct X3D_TouchSensor, isActive));
 		}
 
 		/* hitPoint and hitNormal */
 		memcpy ((void *) &node->hitPoint_changed, (void *) &ray_save_posn,sizeof(struct SFColor));
-		mark_event(ptr, offsetof (struct X3D_TouchSensor, hitPoint_changed));
+		MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitPoint_changed));
 
 		/* have to normalize normal; change it from SFColor to struct pt. */
 		normalval.x = hyp_save_norm.c[0];
@@ -1086,7 +1086,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		node->hitNormal_changed.c[0] = normalval.x;
 		node->hitNormal_changed.c[1] = normalval.y;
 		node->hitNormal_changed.c[2] = normalval.z;
-		mark_event(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
+		MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
 	}
 }
 
@@ -1111,7 +1111,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 		/* set isActive true */
 		node->isActive=1;
-		mark_event (ptr, offsetof (struct X3D_PlaneSensor, isActive));
+		MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, isActive));
 
 	} else if ((ev==MotionNotify) && (node->isActive==1)) {
 		/* hyperhit saved in render_hypersensitive phase */
@@ -1131,7 +1131,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		node->trackPoint_changed.c[1] = ny;
 		node->trackPoint_changed.c[2] = node->_origPoint.c[2];
 
-		mark_event (ptr, offsetof (struct X3D_PlaneSensor, trackPoint_changed));
+		MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, trackPoint_changed));
 
 		/* clamp translation to max/min position */
 		tr.c[0] = nx - node->_origPoint.c[0] + node->offset.c[0];
@@ -1158,14 +1158,14 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		#endif
 
 		/* and send this event */
-		mark_event (ptr, offsetof (struct X3D_PlaneSensor, translation_changed));
+		MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, translation_changed));
 
 
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event (ptr, offsetof (struct X3D_PlaneSensor, isActive));
+		MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, isActive));
 
 		/* autoOffset? */
 		if (node->autoOffset) {
@@ -1173,7 +1173,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 			node->offset.c[1] = node->translation_changed.c[1];
 			node->offset.c[2] = node->translation_changed.c[2];
 
-			mark_event (ptr, offsetof (struct X3D_PlaneSensor, translation_changed));
+			MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, translation_changed));
 		}
 	}
 }
@@ -1219,7 +1219,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 		/* set isActive true */
 		node->isActive=1;
-		mark_event (ptr, offsetof (struct X3D_CylinderSensor, isActive));
+		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, isActive));
 
     		/* record the current Radius */
 		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] +
@@ -1272,7 +1272,7 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 		memcpy ((void *) &node->trackPoint_changed,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
 
-		mark_event (ptr, offsetof (struct X3D_CylinderSensor, trackPoint_changed));
+		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, trackPoint_changed));
 
 		dir1.w=0;
   		dir1.x=ray_save_posn.c[0];
@@ -1324,19 +1324,19 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 		node->rotation_changed.r[2] = 0;
 		node->rotation_changed.r[3] = rot;
 
-		mark_event (ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
+		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event (ptr, offsetof (struct X3D_CylinderSensor, isActive));
+		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, isActive));
 		/* save auto offset of rotation */
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
 				(void *) &node->rotation_changed.r[3],
 				sizeof (float));
 
-		mark_event (ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
+		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
 		}
 	}
 }
@@ -1372,12 +1372,12 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 
 		/* set isActive true */
 		node->isActive=1;
-		mark_event (ptr, offsetof (struct X3D_SphereSensor, isActive));
+		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, isActive));
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event (ptr, offsetof (struct X3D_SphereSensor, isActive));
+		MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, isActive));
 
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
@@ -1451,7 +1451,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			}
 			memcpy ((void *)&node->trackPoint_changed,
 				(void *)&arr, sizeof (struct SFColor));
-			mark_event (ptr, offsetof (struct X3D_SphereSensor, trackPoint_changed));
+			MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, trackPoint_changed));
 
 			vrmlrot_to_quaternion(&q, cp.c[0], cp.c[1], cp.c[2], -an);
 			vrmlrot_to_quaternion(&q2,
@@ -1468,7 +1468,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			node->rotation_changed.r[2] = s3;
 			node->rotation_changed.r[3] = s4;
 
-			mark_event (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
+			MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
 		}
 	}
 }

@@ -211,28 +211,22 @@ void upd_ray() {
 /* if a node changes, void the display lists */
 /* Courtesy of Jochen Hoenicke */
 
-void update_node(void *ptr) {
-	struct X3D_Box *p;
+void update_node(struct X3D_Node *node) {
 	int i;
 
-	p = (struct X3D_Box*) ptr;
+	/* printf ("update_node for %d %s nparents %d\n",node, stringNodeType(node->_nodeType),node->_nparents);  */
 
-	/* printf ("update_node for %d %s nparents %d\n",ptr, stringNodeType(p->_nodeType),p->_nparents);  */
-
-	p->_change ++;
-	for (i = 0; i < p->_nparents; i++) {
-		void *n = (void *)p->_parents[i];
-		if(n == p) {
-		    fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(p->_nodeType));
-		    p->_parents[i] = empty_group;
+	node->_change ++;
+	for (i = 0; i < node->_nparents; i++) {
+		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
+		if(n == node) {
+		    fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(node->_nodeType));
+		    node->_parents[i] = empty_group;
 		} else if( n != 0 ) {
 		    update_node(n);
 		}
 	}
 }
-
-/*explicit declaration. Needed for Collision_Child*/
-void Group_Child(void *nod_);
 
 /*********************************************************************
  *********************************************************************
@@ -241,9 +235,8 @@ void Group_Child(void *nod_);
  * depending on what we are doing right now.
  */
 
-void render_node(void *node) {
+void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *v;
-	struct X3D_Box *p;
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
@@ -252,20 +245,21 @@ void render_node(void *node) {
 	char* stage = "";
 	#endif
 
+	X3D_NODE_CHECK(node);
+
 	#ifdef RENDERVERBOSE
 		printf("\nRender_node %u\n",(unsigned int) node);
 	#endif
 
 	if(!node) {return;}
 	v = *(struct X3D_Virt **)node;
-	p = (struct X3D_Box *)node;
 
 	#ifdef RENDERVERBOSE 
 	    printf("=========================================NODE RENDERED===================================================\n");
 	printf ("node %d %d\n",p,v);
-	printf ("nodename %s\n",stringNodeType(p->_nodeType));
+	printf ("nodename %s\n",stringNodeType(node->_nodeType));
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   stringNodeType(p->_nodeType),
+		   stringNodeType(node->_nodeType),
 		   v->prep,
 		   v->rend,
 		   v->children,
@@ -276,16 +270,16 @@ void render_node(void *node) {
 		   render_geom,
 		   render_light,
 		   render_sensitive);
-	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
+	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,v->changed);
 	#endif
 
 	/* call the "changed_" function */
-	if(p->_change != p->_ichange && v->changed) {
+	if((node->_change != node->_ichange)  && (v->changed != NULL)) {
 	    #ifdef RENDERVERBOSE 
-		printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
+		printf ("rs 1 pch %d pich %d vch %d\n",node->_change,node->_ichange,v->changed);
 	    #endif
 	    v->changed(node);
-	    p->_ichange = p->_change;
+	    node->_ichange = node->_change;
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
 	    #endif
@@ -293,7 +287,7 @@ void render_node(void *node) {
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
         if (render_vp == VF_Viewpoint) { 
-                if ((p->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
+                if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
 			#ifdef RENDERVERBOSE
                         printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
 			#endif
@@ -358,7 +352,7 @@ void render_node(void *node) {
 	    #endif
 	  }
 	 
-	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) {
+	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 5\n");
 	    #endif
@@ -366,7 +360,7 @@ void render_node(void *node) {
 	    srg = render_geom;
 	    render_geom = 1;
 	    #ifdef RENDERVERBOSE 
-		printf("CH1 %d: %d\n",node, cur_hits, p->_hit);
+		printf("CH1 %d: %d\n",node, cur_hits, node->_hit);
 	    #endif
 
 	    sch = cur_hits;
@@ -413,7 +407,7 @@ void render_node(void *node) {
 	    #endif
         }
 
-	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) {
+	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 9\n");
 	    #endif
@@ -421,7 +415,7 @@ void render_node(void *node) {
 	    render_geom = srg;
 	    cur_hits = sch;
 	    #ifdef RENDERVERBOSE 
-		printf("CH3: %d %d\n",cur_hits, p->_hit);
+		printf("CH3: %d %d\n",cur_hits, node->_hit);
 	    #endif
 
 	    /* HP */
@@ -451,7 +445,7 @@ void render_node(void *node) {
 	  {
 	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   stringNodeType(p->_nodeType),
+		   stringNodeType(node->_nodeType),
 		   v->prep,
 		   v->rend,
 		   v->children,
@@ -462,7 +456,7 @@ void render_node(void *node) {
 		   render_geom,
 		   render_light,
 		   render_sensitive);
-	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
+	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,v->changed);
 	    printf("==============\n");
 	  }
 	  #endif
@@ -476,16 +470,11 @@ void render_node(void *node) {
  * hundreds of children and don't usually shuffle them too much.
  */
 
-void add_parent(void *node_, void *parent_) {
-	struct X3D_Box *node;
-	struct X3D_Box *parent;
+void add_parent(struct X3D_Node *node, struct X3D_Node *parent) {
 	int oldparcount;
 	int count;
 
-	if(!node_) return;
-
-	node = (struct X3D_Box *)node_;
-	parent = (struct X3D_Box *)parent_;
+	if(!node) return;
 
 	#ifdef CHILDVERBOSE
 	printf ("add_parent; adding node %d (%s) to parent %d (%s)\n",node, stringNodeType(node->_nodeType), 
@@ -494,7 +483,7 @@ void add_parent(void *node_, void *parent_) {
 
 	/* does this already exist? */
 	for (count=0; count<node->_nparents; count++) {
-		if (node->_parents[count] == parent_) {
+		if (node->_parents[count] == parent) {
 			#ifdef CHILDVERBOSE
 			printf ("add_parent; parent already exists in this node\n");
 			#endif
@@ -515,20 +504,16 @@ void add_parent(void *node_, void *parent_) {
 							node->_nparalloc) ;
 		}
 	}
-	node->_parents[oldparcount] = parent_;
+	node->_parents[oldparcount] = parent;
 	node->_nparents = oldparcount+1;
 
 	/* tie in sensitive nodes */
-	setSensitive (parent_, node_);
+	setSensitive (parent, node);
 }
 
-void remove_parent(void *node_, void *parent_) {
-	struct X3D_Box *node;
-	struct X3D_Box *parent;
+void remove_parent(struct X3D_Node *node, struct X3D_Node *parent) {
 	int i;
-	if(!node_) return;
-	node = (struct X3D_Box *)node_;
-	parent = (struct X3D_Box *)parent_;
+	if(!node) return;
 	node->_nparents --;
 	for(i=0; i<node->_nparents; i++) {
 		if(node->_parents[i] == parent) {
@@ -817,7 +802,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	}
 
 	/* find all the fields of this node */
-	offsetptr = NODE_OFFSETS[node->_nodeType];
+	offsetptr = (int *)NODE_OFFSETS[node->_nodeType];
 
 	/* FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_field, */
 	while (*offsetptr >= 0) {
@@ -840,12 +825,12 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 
 				if (offsetptr[2] == FIELDTYPE_SFNode) {
 					/* get the field as a POINTER VALUE, not just a pointer... */
-					voidptr = memptr;
+					voidptr = (uintptr_t *) memptr;
 					voidptr = (uintptr_t *) *voidptr;
 
 					/* is there a node here? */
 					if (voidptr != NULL) {
-						checkParentLink((struct X3D_Node *)voidptr,node);
+						checkParentLink(X3D_NODE(voidptr),node);
 					}
 				} else {
 					mfn = (struct Multi_Node*) memptr;

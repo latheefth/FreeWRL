@@ -128,7 +128,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		/* did this node become active? */
 		if (!node->isActive) {
 			node->isActive = TRUE;
-			mark_event (node, offsetof (struct X3D_AudioControl, isActive));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, isActive));
 			#ifdef SOUNDVERBOSE
 			printf ("AudioControl node is now ACTIVE\n");
 			#endif
@@ -179,18 +179,18 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 			node->panFloatVal, node->panInt32Val ,node->deltaFloatVal,node->deltaInt32Val);
 		#endif
 
-		mark_event (node, offsetof (struct X3D_AudioControl, volumeInt32Val));
-		mark_event (node, offsetof (struct X3D_AudioControl, volumeFloatVal));
-		mark_event (node, offsetof (struct X3D_AudioControl, panInt32Val));
-		mark_event (node, offsetof (struct X3D_AudioControl, panFloatVal));
-		mark_event (node, offsetof (struct X3D_AudioControl, deltaInt32Val));
-		mark_event (node, offsetof (struct X3D_AudioControl, deltaFloatVal));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, volumeInt32Val));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, volumeFloatVal));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, panInt32Val));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, panFloatVal));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, deltaInt32Val));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, deltaFloatVal));
 
 	} else {
 		/* node just became inActive */
 		if (node->isActive) {
 			node->isActive = FALSE;
-			mark_event (node, offsetof (struct X3D_AudioControl, isActive));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_AudioControl, isActive));
 			#ifdef SOUNDVERBOSE
 			printf ("AudioControl node is now INACTIVE\n");
 			#endif
@@ -235,7 +235,7 @@ void render_Sound (struct X3D_Sound *node) {
 		/*  do the sound registering first, and tell us if this is an audioclip*/
 		/*  or movietexture.*/
 
-		render_node(acp);
+		render_node(X3D_NODE(acp));
 
 		/*  if the attached node is not active, just return*/
 		/* printf ("in Sound, checking AudioClip isactive %d\n", acp->isActive); */

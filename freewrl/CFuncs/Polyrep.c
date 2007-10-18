@@ -731,12 +731,12 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 
 void render_polyrep(void *node) {
 	struct X3D_Virt *v;
-	struct X3D_Box *genericNodePtr;
+	struct X3D_Node *genericNodePtr;
 	struct X3D_IndexedFaceSet *IFSNodePtr;
 	struct X3D_PolyRep *r;
 
 	v = *(struct X3D_Virt **)node;
-	genericNodePtr = (struct X3D_Box *)node;
+	genericNodePtr = X3D_NODE(node);
 	r = (struct X3D_PolyRep *)genericNodePtr->_intern;
 
 	#ifdef TEXVERBOSE
@@ -863,7 +863,7 @@ printf ("\n\nrender_polyrep:\n");
 
 void render_ray_polyrep(void *node) {
 	struct X3D_Virt *v;
-	struct X3D_Box *genericNodePtr;
+	struct X3D_Node *genericNodePtr;
 	struct X3D_PolyRep *polyRep;
 	int i;
 	int pt;
@@ -883,7 +883,7 @@ void render_ray_polyrep(void *node) {
 	ray.y = t_r2.y - t_r1.y;
 	ray.z = t_r2.z - t_r1.z;
 
-	genericNodePtr = (struct X3D_Box *)node;
+	genericNodePtr = X3D_NODE(node);
 	v = *(struct X3D_Virt **)node;
 	
 	/* is this structure still loading? */
@@ -999,11 +999,11 @@ void render_ray_polyrep(void *node) {
 /* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
 void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
 	struct X3D_Virt *v;
-	struct X3D_Box *p;
+	struct X3D_Node *p;
 	struct X3D_PolyRep *r;
 
 	v = *(struct X3D_Virt **)node;
-	p = (struct X3D_Box *)node;
+	p = X3D_NODE(node);
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
 

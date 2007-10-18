@@ -127,12 +127,12 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 
 
 void render_PixelTexture (struct X3D_PixelTexture *node) {
-	loadTextureNode((struct X3D_Node*)node,NULL);
+	loadTextureNode(X3D_NODE(node),NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
-	loadTextureNode((struct X3D_Node*)node,NULL);
+	loadTextureNode(X3D_NODE(node),NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }
 
@@ -147,7 +147,7 @@ void render_MovieTexture (struct X3D_MovieTexture *node) {
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
-	loadTextureNode((struct X3D_Node*)node,NULL);
+	loadTextureNode(X3D_NODE(node),NULL);
 	bound_textures[texture_count] = node->__ctex;
 	/* not multitexture, should have saved to bound_textures[0] */
 	

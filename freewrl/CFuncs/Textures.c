@@ -333,7 +333,7 @@ struct textureTableIndexStruct *getTableIndex(int indx) {
 
 /* is this node a texture node? if so, lets keep track of its textures. */
 /* worry about threads - do not make anything reallocable */
-void registerTexture(void *tmp) {
+void registerTexture(struct X3D_Node *tmp) {
 	struct X3D_ImageTexture *it;
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
@@ -398,7 +398,7 @@ void registerTexture(void *tmp) {
 
 		currentBlock->entry[whichEntry].nodeType = it->_nodeType;
 		/* set the scenegraphNode here */
-		currentBlock->entry[whichEntry].scenegraphNode = (struct X3D_Node*) tmp;
+		currentBlock->entry[whichEntry].scenegraphNode = X3D_NODE(tmp);
 		#ifdef TEXVERBOSE
 			printf ("registerNode, sgn0 is %d, sgn1 is %d\n",currentBlock->entry[0].scenegraphNode,
 				currentBlock->entry[1].scenegraphNode);
@@ -454,18 +454,18 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 
 /* do TextureBackground textures, if possible */
 void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
-	struct X3D_Box *thistex = 0;
+	struct X3D_Node *thistex = 0;
 	int count;
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
 		switch (count) {
-			case 0: {thistex = (struct X3D_Box *)node->frontTexture;  break;}
-			case 1: {thistex = (struct X3D_Box *)node->backTexture;   break;}
-			case 2: {thistex = (struct X3D_Box *)node->topTexture;    break;}
-			case 3: {thistex = (struct X3D_Box *)node->bottomTexture; break;}
-			case 4: {thistex = (struct X3D_Box *)node->rightTexture;  break;}
-			case 5: {thistex = (struct X3D_Box *)node->leftTexture;   break;}
+			case 0: {thistex = X3D_NODE(node->frontTexture);  break;}
+			case 1: {thistex = X3D_NODE(node->backTexture);   break;}
+			case 2: {thistex = X3D_NODE(node->topTexture);    break;}
+			case 3: {thistex = X3D_NODE(node->bottomTexture); break;}
+			case 4: {thistex = X3D_NODE(node->rightTexture);  break;}
+			case 5: {thistex = X3D_NODE(node->leftTexture);   break;}
 		}
 		if (thistex != 0) {
 			/* we have an image specified for this face */
@@ -518,7 +518,7 @@ void loadTextureNode (struct X3D_Node *node, void *param) {
 	                /*  did the URL's change? we can't test for _change here, because
         	           movie running will change it, so we look at the urls. */
        	         	if ((mym->url.p) != (mym->__oldurl.p)) {
-				releaseTexture(mym); 
+				releaseTexture(node); 
                         	mym->__oldurl.p = mym->url.p;
 			}
                 }
@@ -538,7 +538,7 @@ void loadTextureNode (struct X3D_Node *node, void *param) {
 		}
 	}
 
-	new_bind_image ((struct X3D_Node*)node, param);
+	new_bind_image (X3D_NODE(node), param);
 }
 
 void loadMultiTexture (struct X3D_MultiTexture *node) {
@@ -737,7 +737,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_ImageTexture : 
 			case NODE_MovieTexture:
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-				loadTextureNode ((struct X3D_Node*) nt, (void *)paramPtr);
+				loadTextureNode (X3D_NODE(nt), (void *)paramPtr);
 				break;
 			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
@@ -902,7 +902,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			if (me->frames==1) 
 				gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
 
-			if((mytexdata) != dest) FREE_IF_NZ(dest);
+			if(mytexdata != dest) FREE_IF_NZ(dest);
 	
 		}
 
@@ -987,7 +987,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	#ifdef TEXVERBOSE
 	printf ("myTableIndex %x\n",myTableIndex);
 	printf ("	scenegraphNode %d (%s)\n",myTableIndex->scenegraphNode,
-				stringNodeType(((struct X3D_Node*)myTableIndex->scenegraphNode)->_nodeType));
+				stringNodeType(X3D_NODE(myTableIndex->scenegraphNode)->_nodeType));
 	printf ("	status %d\n",myTableIndex->status);
 	printf ("	status %d\n",myTableIndex->status);
 	printf ("	frames %d\n",myTableIndex->frames);
@@ -1531,7 +1531,7 @@ void __reallyloadImageTexture() {
 			printf ("FreeWRL Image problem - could not read %s\n", filename);
 			jpeg_destroy_compress((j_compress_ptr)&cinfo);
 			fclose (infile);
-			releaseTexture(loadThisTexture);
+			releaseTexture(loadThisTexture->scenegraphNode); 
 			return;
 		}
 
@@ -1574,7 +1574,7 @@ void __reallyloadImageTexture() {
 
 		if (jpeg_finish_decompress(&cinfo) != TRUE) {
 			printf("warning: jpeg_finish_decompress error\n");
-			releaseTexture(loadThisTexture);
+			releaseTexture(loadThisTexture->scenegraphNode);
 		}
 		jpeg_destroy_decompress(&cinfo);
 		FREE_IF_NZ(row);
@@ -1584,7 +1584,7 @@ void __reallyloadImageTexture() {
 			(int)cinfo.output_height,image_data);
 	} else {
 		if (rc != 0) {
-		releaseTexture(loadThisTexture);
+		releaseTexture(loadThisTexture->scenegraphNode);
 		switch (rc) {
 			case 1:
 				printf("[%s] is not a PNG file: incorrect signature\n", filename);

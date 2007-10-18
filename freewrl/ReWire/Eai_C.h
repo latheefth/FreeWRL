@@ -16,7 +16,7 @@
 #include <math.h>
 #include <stddef.h>
 
-#include "X3D_Node.h"
+#include "X3DNode.h"
 
 #include "GeneratedHeaders.h"
 

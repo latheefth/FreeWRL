@@ -767,11 +767,11 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		printJSNodeType(cx,argv[3]);
 		#endif
 
-		if (!JS_InstanceOf(cx, argv[3], &MFInt32Class, NULL)) {
+		if (!JS_InstanceOf(cx, (JSObject *)argv[3], &MFInt32Class, NULL)) {
 			printf ("SFImageConstr: expected array element to be an MFInt32 array\n");
 			return JS_FALSE;
 		} else {
-			if (!JS_GetProperty(cx, argv[3], "length", &mv)) {
+			if (!JS_GetProperty(cx, (JSObject *)argv[3], "length", &mv)) {
 				printf( "JS_GetProperty failed for MFInt32 length in SFNodeConstr\n");
 	        		return JS_FALSE;
 			}
@@ -808,7 +808,7 @@ SFImageGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool
 SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return doMFSetProperty(cx, obj, id, vp,"SFImageSetProperty");
+	return doMFSetProperty(cx, obj, id, vp, FIELDTYPE_SFImage);
 }
 
 /**********************************************************************************/
@@ -1092,6 +1092,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	int val_len;
 	int retint;
 	uintptr_t ra;
+	uintptr_t tmp;
 
 
 	_idStr = JS_ValueToString(cx, id);
@@ -1129,12 +1130,10 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			memmove(ptr->X3DString, _val_c, val_len);
 			break;
 		case 1:
-			if ((strlen(ptr->handle) + 1) > val_len) {
-				ptr->handle =
-					(char *) REALLOC (ptr->handle, val_len * sizeof(char));
-			}
-			memset(ptr->handle, 0, val_len);
-			memmove(ptr->handle, _val_c, val_len);
+			ra = sscanf (_val_c,"%u",&tmp);
+			if (ra != 1) {ConsoleMessage ("SFNodeSetProperty, case 1 error\n");}
+
+			ptr->handle = (uintptr_t *) tmp;
 			break;
 		}
 
@@ -1146,11 +1145,11 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 		{
 			struct X3D_Node* ptx;
-			ptx = (struct X3D_Node*) ptr->handle;
+			ptx = X3D_NODE(ptr->handle);
 			printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
 		}
 		#endif
-		setField_fromJavascript ((void *)ptr->handle, _id_c, _val_c);
+		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c);
 	}
 
 	return JS_TRUE;
@@ -1552,7 +1551,7 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	/* is this an assignment of NULL? */
 	if (_from_obj == NULL) {
 		printf ("we have an assignment to null in SFRotationAssign\n");
-		*rval = NULL;
+		*rval = 0;
 	} else {
 
 	    if (!JS_InstanceOf(cx, _from_obj, &SFRotationClass, argv)) {
@@ -1613,7 +1612,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	} else if (argc == 2) {
 		/* two possibilities - SFVec3f/numeric, or SFVec3f/SFVec3f */
 		if (JSVAL_IS_OBJECT(argv[0])) {
-			_ob1 = argv[0];
+			_ob1 = (JSObject *)argv[0];
 			if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
 				printf( "JS_InstanceOf failed for 2 arg format in SFRotationConstr.\n");
 				return JS_FALSE;
@@ -1624,7 +1623,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			}
 		}
 		if (JSVAL_IS_OBJECT(argv[1])) {
-			_ob2 = argv[1];
+			_ob2 = (JSObject *)argv[1];
 
 			v3fv3f = TRUE;
 			if (!JS_InstanceOf(cx, _ob2, &SFVec3fClass, argv)) {

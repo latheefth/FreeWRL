@@ -384,7 +384,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	if (!node->__points) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,-x,y,-y,0.0,0.0,(struct X3D_Box *)node);
+	setExtent(x,-x,y,-y,0.0,0.0,X3D_NODE(node));
 
 	CULL_FACE(node->solid)
 

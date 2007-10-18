@@ -704,7 +704,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 			 else haveMulti = FALSE;
 			
 			/* the sftype is the SF form of either the MF or SF */
-			sftype = STRDUP(FIELDTYPES[convertToSFType(type)]);
+			sftype = STRDUP((char *)FIELDTYPES[convertToSFType(type)]);
 
 			/* SFStrings are Strings */
 			if (strncmp(sftype,"SFString",8)==0) strcpy (sftype,"String");

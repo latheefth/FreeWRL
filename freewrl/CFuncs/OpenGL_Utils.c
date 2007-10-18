@@ -41,6 +41,7 @@ int nodeNumber = 0;
 int tableIndexSize = 0;
 int nextEntry = 0;
 int i=0;
+struct X3D_Node *forgottenNode;
 
 /* lights status. Light 0 is the headlight */
 static int lights[8];
@@ -425,8 +426,28 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 	}	
 }
 
+/* for verifying that a memory pointer exists */
+int checkNode(struct X3D_Node *node, char *fn, int line) {
+	int tc;
+
+	if (node == NULL) {
+		printf ("checkNode, node is NULL at %s %d\n",node,fn,line);
+		return FALSE;
+	}
+
+	if (node == forgottenNode) return TRUE;
+
+	for (tc = 0; tc< nextEntry; tc++)
+		if (memoryTable[tc] == (uintptr_t)node) return TRUE;
+
+	printf ("checkNode: did not find %d in memory table at i%s %d\n",node,fn,line);
+
+	return FALSE;
+}
+
+
 /*keep track of node created*/
-void registerX3DNode(void * tmp){	
+void registerX3DNode(struct X3D_Node * tmp){	
 	/*printf("nextEntry=%d	",nextEntry);
 	printf("tableIndexSize=%d \n",tableIndexSize);*/
 	/*is table exist*/	
@@ -443,9 +464,10 @@ void registerX3DNode(void * tmp){
 }
 
 /*We don't register the first node created for reload reason*/
-void doNotRegisterThisNodeForDestroy(void * nodePtr){
-	if(nodePtr==memoryTable[nextEntry-1]){
+void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
+	if((uintptr_t)nodePtr==(memoryTable[nextEntry-1])){
 		nextEntry-=1;
+		forgottenNode = nodePtr;
 	}
 }
 
@@ -478,13 +500,13 @@ void zeroVisibilityFlag(void) {
 		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
 		   and hope that, sometime, the user gets a good computer graphics card */
 		for (i=0; i<nextEntry; i++){		
-			node = (struct X3D_Node*)memoryTable[i];		
+			node = X3D_NODE(memoryTable[i]);	
 			node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
 		}	
 	} else {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<nextEntry; i++){		
-			node = (struct X3D_Node*)memoryTable[i];		
+			node = X3D_NODE(memoryTable[i]);		
 			/* printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); */
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
 	
@@ -578,7 +600,7 @@ void startOfLoopNodeUpdates(void) {
 
 	/* go through the node table, and zero any bits of interest */
 	for (i=0; i<nextEntry; i++){		
-		node = (struct X3D_Node*)memoryTable[i];		
+		node = X3D_NODE(memoryTable[i]);	
 		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
 		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasSensitiveChildren);
 		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
@@ -591,7 +613,7 @@ void startOfLoopNodeUpdates(void) {
 	anchorPtr = NULL;
 
 	for (i=0; i<nextEntry; i++){		
-		node = (struct X3D_Node*)memoryTable[i];		
+		node = X3D_NODE(memoryTable[i]);		
 
 		switch (node->_nodeType) {
 
@@ -630,7 +652,7 @@ void startOfLoopNodeUpdates(void) {
 		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they are sensitive */
 		if (nParents != 0) {
 			for (j=0; j<nParents; j++) {
-				struct X3D_Node *n = (struct X3D_Node *)pp[j];
+				struct X3D_Node *n = X3D_NODE(pp[j]);
 				n->_renderFlags = n->_renderFlags  | VF_Sensitive;
 
  				/* and tell the rendering pass that there is a sensitive node down this branch */
@@ -647,7 +669,7 @@ void startOfLoopNodeUpdates(void) {
 			anchorPtr->_renderFlags = anchorPtr->_renderFlags  | VF_Sensitive;
 
  			/* and tell the rendering pass that there is a sensitive node down this branch */
-			update_renderFlag(anchorPtr,VF_hasSensitiveChildren);
+			update_renderFlag(X3D_NODE(anchorPtr),VF_hasSensitiveChildren);
 
 			/* tell mainloop that we have to do a sensitive pass now */
 			HaveSensitive = TRUE;
@@ -669,11 +691,11 @@ void startOfLoopNodeUpdates(void) {
 		/* this node possibly has to do add/remove children? */
 		if (childrenPtr != NULL) {
 			if (addChildren != NULL) {
-				AddRemoveChildren(node,childrenPtr,addChildren->p,addChildren->n,1);
+				AddRemoveChildren(node,childrenPtr,(uintptr_t *) addChildren->p,addChildren->n,1);
 				addChildren->n=0;
 			}
 			if (removeChildren != NULL) {
-				AddRemoveChildren(node,childrenPtr,removeChildren->p,removeChildren->n,2);
+				AddRemoveChildren(node,childrenPtr,(uintptr_t *) removeChildren->p,removeChildren->n,2);
 				removeChildren->n=0;
 			}
 			childrenPtr = NULL;
@@ -681,8 +703,8 @@ void startOfLoopNodeUpdates(void) {
 	}
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
-	if (viewpoint_stack[viewpoint_tos] != NULL) {
-		update_renderFlag(viewpoint_stack[viewpoint_tos], VF_Viewpoint);
+	if (viewpoint_stack[viewpoint_tos] != 0) {
+		update_renderFlag(X3D_NODE(viewpoint_stack[viewpoint_tos]), VF_Viewpoint);
 	}
 
 }
@@ -711,14 +733,14 @@ void kill_X3DNodes(void){
 
 	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
-		structptr = (struct X3D_Node*)memoryTable[i];		
+		structptr = X3D_NODE(memoryTable[i]);		
 		/* printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);
 		printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType));  */
 
 		/* kill any parents that may exist. */
 		FREE_IF_NZ (structptr->_parents);
 
-		fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];
+		fieldOffsetsPtr = (uintptr_t *) NODE_OFFSETS[structptr->_nodeType];
 		/*go thru all field*/				
 		while (*fieldOffsetsPtr != -1) {
 			fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
@@ -804,7 +826,7 @@ void kill_X3DNodes(void){
 			fieldOffsetsPtr+=4;	
 		}
 		FREE_IF_NZ(memoryTable[i]);
-		memoryTable[i]=NULL;
+		memoryTable[i]=0;
 	}
 	FREE_IF_NZ(memoryTable);
 	memoryTable=NULL;

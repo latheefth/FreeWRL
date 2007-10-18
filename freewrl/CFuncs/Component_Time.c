@@ -27,7 +27,7 @@ void do_TimeSensorTick ( void *ptr) {
 	if (!node->enabled) {
 		if (node->isActive) {
 			node->isActive=0;
-			mark_event (ptr, offsetof(struct X3D_TimeSensor, isActive));
+			MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, isActive));
 		}
 		return;
 	}
@@ -72,14 +72,14 @@ void do_TimeSensorTick ( void *ptr) {
 		}
 
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		mark_event (ptr, offsetof(struct X3D_TimeSensor, isActive));
+		MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, isActive));
 	}
 
 
 	if(node->isActive == 1) {
 		/* set time field */
 		node->time = TickTime;
-		mark_event (ptr, offsetof(struct X3D_TimeSensor, time));
+		MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, time));
 
 		/* calculate what fraction we should be */
  		myTime = (TickTime - node->startTime) / myDuration;
@@ -98,12 +98,12 @@ void do_TimeSensorTick ( void *ptr) {
 		if (frac < node->__ctflag) {
 			/* push @e, [$t, cycleTime, $TickTime]; */
 			node->cycleTime = TickTime;
-			mark_event (ptr, offsetof(struct X3D_TimeSensor, cycleTime));
+			MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, cycleTime));
 		}
 		node->__ctflag = frac;
 
 		node->fraction_changed = frac;
-		mark_event (ptr, offsetof(struct X3D_TimeSensor, fraction_changed));
+		MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, fraction_changed));
 
 	}
 }

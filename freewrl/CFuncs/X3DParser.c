@@ -190,7 +190,7 @@ static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *nam
  
 	if (node->_nodeType == NODE_Script) {
 		sc = (struct X3D_Script *) node;
-		error = !(getFieldFromScript (name,sc->__scriptObj,offs,type));
+		error = !(getFieldFromScript (name,sc->_X3DScript,offs,type));
 	} else {
 
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
@@ -279,8 +279,8 @@ static void parseX3DRoutes (char **atts) {
 
 
 	/* is there a script here? if so, now change the script NODE pointer to a Script index */
-	if (fromNode->_nodeType == NODE_Script) fromNode = ((struct X3D_Node*) ((struct X3D_Script*)fromNode)->__scriptObj);
-	if (toNode->_nodeType == NODE_Script) toNode = ((struct X3D_Node*) ((struct X3D_Script*)toNode)->__scriptObj);
+	if (fromNode->_nodeType == NODE_Script) fromNode = ((struct X3D_Node*) ((struct X3D_Script*)fromNode)->_X3DScript);
+	if (toNode->_nodeType == NODE_Script) toNode = ((struct X3D_Node*) ((struct X3D_Script*)toNode)->_X3DScript);
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("now routing from a %s to a %s %d %d\n",FIELDTYPES[fromType], FIELDTYPES[toType],fromType,toType);
@@ -313,7 +313,7 @@ return FALSE;
 }
 
 /* parse normal X3D nodes/fields */
-void parseNormalX3D(char *name, char** atts) {
+static void parseNormalX3D(const char *name, const char** atts) {
 	int i;
 
 	struct X3D_Node *thisNode;
@@ -325,7 +325,7 @@ void parseNormalX3D(char *name, char** atts) {
 
 	int myNodeType;
 	/* create this to be a new node */	
-	myNodeType = findNodeInNODES(name);
+	myNodeType = findNodeInNODES((char *) name);
 
 	if (myNodeType != -1) {
 		thisNode = createNewX3DNode(myNodeType);
@@ -339,8 +339,8 @@ void parseNormalX3D(char *name, char** atts) {
 			#endif
 			parserMode = PARSING_SCRIPT;
 
-			((struct X3D_Script *)thisNode)->__scriptObj = nextScriptHandle();
-			JSInit(((struct X3D_Script *)thisNode)->__scriptObj);
+			((struct X3D_Script *)thisNode)->_X3DScript = (int) nextScriptHandle();
+			JSInit(((struct X3D_Script *)thisNode)->_X3DScript);
 		}
 
 		/* go through the fields, and link them in. SFNode and MFNodes will be handled 
@@ -359,7 +359,7 @@ void parseNormalX3D(char *name, char** atts) {
 				printf ("this is a DEF, name %s\n",atts[i+1]);
 				#endif
 
-				fromDEFtable = DEFNameIndex (atts[i+1],thisNode);
+				fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode);
 				if (fromDEFtable != thisNode) {
 					ConsoleMessage ("Warning - line %d duplicate DEF name: \'%s\'",LINE,atts[i+1]);
 				}
@@ -369,7 +369,7 @@ void parseNormalX3D(char *name, char** atts) {
 				printf ("this is a USE, name %s\n",atts[i+1]);
 				#endif
 
-				fromDEFtable = DEFNameIndex (atts[i+1],thisNode);
+				fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode);
 				if (fromDEFtable == thisNode) {
 					ConsoleMessage ("Warning - line %d DEF name: \'%s\' not found",LINE,atts[i+1]);
 				} else {
@@ -390,7 +390,7 @@ void parseNormalX3D(char *name, char** atts) {
 					}
 				}
 			} else {
-				setField_fromJavascript (thisNode, atts[i],atts[i+1]);
+				setField_fromJavascript (thisNode, (char *)atts[i],(char *)atts[i+1]);
 			}
 		}
 	} else if (strcmp(name,"ROUTE") == 0) {
@@ -407,7 +407,7 @@ void parseNormalX3D(char *name, char** atts) {
 	
 }
 
-static void parseScriptField(char *name, char **atts) {
+static void parseScriptField(const char *name, const char **atts) {
 	int i;
 	uintptr_t myScriptNumber;
 	char myparams[3][255];
@@ -421,7 +421,7 @@ static void parseScriptField(char *name, char **atts) {
 		return;
 	}
 	
-	myScriptNumber = ((struct X3D_Script *)parentStack[parentIndex-1])->__scriptObj;
+	myScriptNumber = ((struct X3D_Script *)parentStack[parentIndex-1])->_X3DScript;
 
 	/* set up defaults for field parsing */
 	for (i=0;i<3;i++) myparams[i][0] = '\0';
@@ -501,7 +501,7 @@ void initScriptWithScript() {
 		return;
 	}
 
-	myScriptNumber = me->__scriptObj;
+	myScriptNumber = me->_X3DScript;
 
 	/* did the script text come from a CDATA node?? */
 	if (scriptText != NULL) if (scriptText[0] != '\0') myText = scriptText;
@@ -529,7 +529,10 @@ void initScriptWithScript() {
 				break;
 			} else {
 				/* check to make sure we don't overflow */
-				if ((strlen(thisurl)+strlen(mypath)) > 900) return FALSE;
+				if ((strlen(thisurl)+strlen(mypath)) > 900) { 
+					ConsoleMessage ("url is waaaay too long for me.");
+					return;
+				}
 
 				/* we work in absolute filenames... */
 				makeAbsoluteFileName(filename,mypath,thisurl);
@@ -634,7 +637,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	int i;
 
 	/* is this a node that we can ignore? */
-	if (canWeIgnoreThisNode(name)) return;
+	if (canWeIgnoreThisNode((char *)name)) return;
 
 	#ifdef X3DPARSERVERBOSE
 	for (i = 0; i < parentIndex; i++) putchar('\t');
@@ -744,8 +747,8 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	} else {
 		AddRemoveChildren (
 			parentStack[parentIndex-1], /* parent */
-			memptr,			/* where the children field is */
-			&(parentStack[parentIndex]),	/* this child, 1 node */
+			(struct Multi_Node *) memptr,			/* where the children field is */
+			((uintptr_t *) &(parentStack[parentIndex])),	/* this child, 1 node */
                 1, 1);
 
 	}

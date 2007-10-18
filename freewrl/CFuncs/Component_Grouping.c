@@ -19,7 +19,7 @@
 #ifdef CHILDVERBOSE
 static int VerboseIndent = 0;
 
-void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
+void VerboseStart (char *whoami, struct X3D_Node *me, int nc) {
 	int c;
 
 	for (c=0; c<VerboseIndent; c++) printf ("  ");
@@ -71,8 +71,8 @@ void prep_Transform (struct X3D_Transform *node) {
 	 the second-last pass. ;-) */
 	recalculate_dist = render_light;
 
-	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
-	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
+	/* printf ("prep_Transform, render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
 	/* do we have any geometry visible, and are we doing anything with geometry? */
 	OCCLUSIONTEST
@@ -184,7 +184,7 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	if (nc==0) return;
 
 	#ifdef CHILDVERBOSE
-	VerboseStart ("STATICGROUP", (struct X3D_Box *)node, nc);
+	VerboseStart ("STATICGROUP", X3D_NODE(node), nc);
 	#endif
 
 	/* should we go down here? */
@@ -260,7 +260,7 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 		EXTENTTOBBOX	
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((struct X3D_Box *)node);
+		propagateExtent(X3D_NODE(node));
 		BOUNDINGBOX
 	}
 
@@ -283,16 +283,16 @@ void child_Group (struct X3D_Group *node) {
 	if (nc==0) return;
 
 	#ifdef CHILDVERBOSE
-	VerboseStart ("GROUP", (struct X3D_Box *)node, nc);
+	VerboseStart ("GROUP", X3D_NODE(node), nc);
 	#endif
 
 	/* {
 		int x;
-		struct X3D_Box *xx;
+		struct X3D_Node *xx;
 
 		printf ("child_Group, this %d isProto %p\n",node,node->__protoDef);
 		for (x=0; x<nc; x++) {
-			xx = (struct X3D_Box *)node->children.p[x];
+			xx = X3D_NODE(node->children.p[x]);
 			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
 	} */
@@ -343,7 +343,7 @@ void child_Group (struct X3D_Group *node) {
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((struct X3D_Box *)node);
+		propagateExtent(X3D_NODE(node));
 		BOUNDINGBOX
 	}
 
@@ -367,17 +367,17 @@ void child_Transform (struct X3D_Transform *node) {
 
 	/* {
 		int x;
-		struct X3D_Box *xx;
+		struct X3D_Node *xx;
 
 		printf ("child_Transform, this %d \n",node);
 		for (x=0; x<nc; x++) {
-			xx = (struct X3D_Box *)node->children.p[x];
+			xx = X3D_NODE(node->children.p[x]);
 			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
 	} */
 
 	#ifdef CHILDVERBOSE
-	VerboseStart ("TRANSFORM",(struct X3D_Box *)node, nc);
+	VerboseStart ("TRANSFORM",X3D_NODE(node), nc);
 	#endif
 
 	/* Check to see if we have to check for collisions for this transform. */
@@ -478,7 +478,7 @@ void child_Transform (struct X3D_Transform *node) {
 		node->bboxCenter.c[2] = node->translation.c[2];
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((struct X3D_Box*)node);
+		propagateExtent(X3D_NODE(node));
 		BOUNDINGBOX
 
 	}
@@ -494,7 +494,7 @@ void child_Transform (struct X3D_Transform *node) {
 void changed_StaticGroup (struct X3D_StaticGroup *node) {
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
 
 		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
@@ -503,7 +503,7 @@ void changed_StaticGroup (struct X3D_StaticGroup *node) {
 void changed_Transform (struct X3D_Transform *node) {
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
 
 		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
@@ -514,7 +514,7 @@ void changed_Transform (struct X3D_Transform *node) {
 void changed_Group (struct X3D_Group *node) {
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
 
 		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND

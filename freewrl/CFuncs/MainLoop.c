@@ -386,28 +386,8 @@ void EventLoop() {
 		CursorOverSensitive = getRayHit();
 
 		#ifdef VERBOSE
-		if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(((struct X3D_Node*)CursorOverSensitive)->_nodeType));
+		if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(X3D_NODE(CursorOverSensitive)->_nodeType));
 		#endif
-
-#ifdef OLDCODE
-		/* this is for the isOver tests. */
-		if (lastOver != CursorOverSensitive) {
-			/* when the left button is pressed, CursorOverSensitive gets set to 0,
-			   so, ignore this when in this state */
-			if  (ButDown[1]==0) {
-printf ("ButDown[1] %d, lpo %d lo %d cos %d\n", ButDown[1], lastPressedOver,lastOver,CursorOverSensitive);
-printf ("sending MapNotify here\n");
-			sendSensorEvents(CursorOverSensitive,MapNotify,FALSE,TRUE);
-printf ("...\n");
-			sendSensorEvents(lastOver,MapNotify,FALSE,FALSE);
-printf ("finished sending MapNotify here\n");
-			lastOver = CursorOverSensitive;
-		} else {
-			printf  ("lastOver !- COS, but button down\n");
-		}
-		
-		}
-#endif
 
 		/* did we have a click of button 1? */
 
@@ -916,15 +896,10 @@ unsigned char* getRayHit() {
 
 
 /* set a node to be sensitive, and record info for this node */
-void setSensitive(void *parentNode,void *datanode) {
-	struct X3D_Node *p;
-	struct X3D_Node *me;
+void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 	void (*myp)(unsigned *);
 
-	me = (struct X3D_Node*)datanode;
-
-
-	switch (me->_nodeType) {
+	switch (datanode->_nodeType) {
 		/* sibling sensitive nodes - we have a parent node, and we use it! */
 		case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
 		case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
@@ -937,13 +912,13 @@ void setSensitive(void *parentNode,void *datanode) {
 		case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
 		default: return;
 	}
-	/* printf ("set_sensitive ,parentNode %d data %d type %s\n",parentNode,datanode,stringNodeType (me->_nodeType)); */
+	/* printf ("set_sensitive ,parentNode %d data %d type %s\n",parentNode,datanode,stringNodeType (datanode->_nodeType)); */
 
 	/* record this sensor event for clicking purposes */
 	SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
 
 	if (datanode == 0) {
-		printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(me->_nodeType));
+		printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(datanode->_nodeType));
 		return;
 	}
 
@@ -1092,7 +1067,7 @@ void setFullPath(const char* file) {
 		do_keyPress(ks, KeyPress);
 	}
 	FREE_IF_NZ (BrowserFullPath);
-	BrowserFullPath = STRDUP(file);
+	BrowserFullPath = STRDUP((char *) file);
 	/* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath)); */
 }
 
@@ -1721,7 +1696,7 @@ void setEaiVerbose() {
 }
 	
 void replaceWorldNeeded(char* str) {
-	strncpy(&replace_name, str, FILENAME_MAX);
+	strncpy(&replace_name, (const char*) str, FILENAME_MAX);
 	replaceWorld= TRUE; 
 }
 

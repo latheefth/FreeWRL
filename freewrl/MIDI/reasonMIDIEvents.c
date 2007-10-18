@@ -3999,7 +3999,7 @@ void openReasonDevice(void);
 void scanReasonDeviceForMIDIEvents(void);
 void rewireFatalError (int result);
 # 15 "reasonMIDIEvents.c" 2
-# 1 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 1
+# 1 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h" 1
 
 # 1 "/usr/include/stdint.h" 1 3 4
 # 28 "/usr/include/stdint.h" 3 4
@@ -4078,7 +4078,7 @@ __extension__
 typedef long long int intmax_t;
 __extension__
 typedef unsigned long long int uintmax_t;
-# 3 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
+# 3 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h" 2
 # 1 "/root/freewrl/freewrl-1.19.9/CFuncs/EAIheaders.h" 1
 
 
@@ -4102,7 +4102,7 @@ extern char *EAIbuffer;
 extern int EAIbufcount;
 extern char EAIListenerData[8192];
 extern char EAIListenerArea[40];
-# 4 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
+# 4 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h" 2
 
 
 # 1 "/usr/include/sys/socket.h" 1 3 4
@@ -4481,7 +4481,7 @@ extern int sockatmark (int __fd) __attribute__ ((__nothrow__));
 extern int isfdtype (int __fd, int __fdtype) __attribute__ ((__nothrow__));
 # 240 "/usr/include/sys/socket.h" 3 4
 
-# 7 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
+# 7 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h" 2
 # 1 "/usr/include/netinet/in.h" 1 3 4
 # 28 "/usr/include/netinet/in.h" 3 4
 
@@ -4792,7 +4792,7 @@ struct ip6_mtuinfo
   };
 # 551 "/usr/include/netinet/in.h" 3 4
 
-# 8 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
+# 8 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h" 2
 # 1 "/usr/include/netdb.h" 1 3 4
 # 33 "/usr/include/netdb.h" 3 4
 # 1 "/usr/include/rpc/netdb.h" 1 3 4
@@ -5190,9 +5190,9 @@ extern int getnameinfo (__const struct sockaddr *__restrict __sa,
    socklen_t __servlen, unsigned int __flags);
 # 682 "/usr/include/netdb.h" 3 4
 
-# 9 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
+# 9 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h" 2
 # 1 "/usr/include/strings.h" 1 3 4
-# 10 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h" 2
+# 10 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h" 2
 
 
 
@@ -5227,7 +5227,7 @@ typedef struct { int type; int n; _intX3D_SFNode *p; } _intX3D_MFNode;
 typedef struct { int type; int n; _intX3D_SFString *p; } _intX3D_MFString;
 typedef struct { int type; int n; _intX3D_SFImage *p; } _intX3D_MFImage;
 
-typedef union _X3D_Node {
+typedef union _X3DNode {
  int type;
  _intX3D_SFBool X3D_SFBool;
  _intX3D_SFFloat X3D_SFFloat;
@@ -5254,9 +5254,9 @@ typedef union _X3D_Node {
  _intX3D_MFVec3f X3D_MFVec3f;
  _intX3D_MFImage X3D_MFImage;
 
-} X3D_Node;
-# 86 "/root/freewrl/freewrl-1.19.9/ReWire/X3D_Node.h"
-struct _intX3D_EventIn {
+} X3DNode;
+# 86 "/root/freewrl/freewrl-1.19.9/ReWire/X3DNode.h"
+struct _intX3DEventIn {
  uintptr_t nodeptr;
  int offset;
  int datatype;
@@ -5270,12 +5270,12 @@ struct _intX3D_EventIn {
 
 
 
-X3D_Node *X3D_getNode (char *name);
-struct _intX3D_EventIn *X3D_getEventIn(X3D_Node *node, char *name);
-struct _intX3D_EventIn *X3D_getEventOut(X3D_Node *node, char *name);
-void X3D_setValue (struct _intX3D_EventIn *dest, X3D_Node *node);
-void X3D_addRoute (struct _intX3D_EventIn *from, struct _intX3D_EventIn *to);
-void X3D_deleteRoute (struct _intX3D_EventIn *from, struct _intX3D_EventIn *to);
+X3DNode *X3D_getNode (char *name);
+struct _intX3DEventIn *X3D_getEventIn(X3DNode *node, char *name);
+struct _intX3DEventIn *X3D_getEventOut(X3DNode *node, char *name);
+void X3D_setValue (struct _intX3DEventIn *dest, X3DNode *node);
+void X3D_addRoute (struct _intX3DEventIn *from, struct _intX3DEventIn *to);
+void X3D_deleteRoute (struct _intX3DEventIn *from, struct _intX3DEventIn *to);
 
 
 
@@ -5301,34 +5301,34 @@ char *X3D_getVersion();
 char *X3D_getWorldURL();
 
 
-X3D_Node *X3D_createVrmlFromString(char *str);
-X3D_Node *X3D_newSFVec3f (float a, float b, float c);
-X3D_Node *X3D_newSFColor (float a, float b, float c);
-X3D_Node *X3D_newSFVec2f (float a, float b);
-X3D_Node *X3D_newSFRotation (float a, float b,float c, float d);
-X3D_Node *X3D_newSFColorRGBA (float a, float b,float c, float d);
-X3D_Node *X3D_newSFVec3d (double a, double b,double c);
-X3D_Node *X3D_newSFVec2d (double a, double b);
-X3D_Node *X3D_newSFBool (int a);
-X3D_Node *X3D_newSFFloat (float a);
-X3D_Node *X3D_newSFTime (double a);
-X3D_Node *X3D_newSFInt32 (int a);
-X3D_Node *X3D_newSFString();
-X3D_Node *X3D_newSFNode();
-X3D_Node *X3D_newSFImage();
-X3D_Node *X3D_newMFColor();
-X3D_Node *X3D_newMFFloat();
-X3D_Node *X3D_newMFTime();
-X3D_Node *X3D_newMFInt32();
-X3D_Node *X3D_newMFString();
-X3D_Node *X3D_newMFNode();
-X3D_Node *X3D_newMFRotation();
-X3D_Node *X3D_newMFVec2f();
-X3D_Node *X3D_newMFVec3f();
-X3D_Node *X3D_newMFColorRGBA();
-X3D_Node *X3D_newMFBool();
-X3D_Node *X3D_newMFVec3d();
-X3D_Node *X3D_newMFVec2d();
+X3DNode *X3D_createVrmlFromString(char *str);
+X3DNode *X3D_newSFVec3f (float a, float b, float c);
+X3DNode *X3D_newSFColor (float a, float b, float c);
+X3DNode *X3D_newSFVec2f (float a, float b);
+X3DNode *X3D_newSFRotation (float a, float b,float c, float d);
+X3DNode *X3D_newSFColorRGBA (float a, float b,float c, float d);
+X3DNode *X3D_newSFVec3d (double a, double b,double c);
+X3DNode *X3D_newSFVec2d (double a, double b);
+X3DNode *X3D_newSFBool (int a);
+X3DNode *X3D_newSFFloat (float a);
+X3DNode *X3D_newSFTime (double a);
+X3DNode *X3D_newSFInt32 (int a);
+X3DNode *X3D_newSFString();
+X3DNode *X3D_newSFNode();
+X3DNode *X3D_newSFImage();
+X3DNode *X3D_newMFColor();
+X3DNode *X3D_newMFFloat();
+X3DNode *X3D_newMFTime();
+X3DNode *X3D_newMFInt32();
+X3DNode *X3D_newMFString();
+X3DNode *X3D_newMFNode();
+X3DNode *X3D_newMFRotation();
+X3DNode *X3D_newMFVec2f();
+X3DNode *X3D_newMFVec3f();
+X3DNode *X3D_newMFColorRGBA();
+X3DNode *X3D_newMFBool();
+X3DNode *X3D_newMFVec3d();
+X3DNode *X3D_newMFVec2d();
 
 extern int _X3D_queryno;
 extern int _X3D_FreeWRL_FD;
@@ -5343,8 +5343,8 @@ void _handleFreeWRLcallback(char *command);
 void X3D_error(char *msg);
 char *fieldTypeName(char type);
 
-char * _RegisterListener (struct _intX3D_EventIn *node, int adin);
-int X3DAdvise (struct _intX3D_EventIn *node, void *fn);
+char * _RegisterListener (struct _intX3DEventIn *node, int adin);
+int X3DAdvise (struct _intX3DEventIn *node, void *fn);
 void _handleReWireCallback(char *buf);
 void Parser_scanStringValueToMem(void *ptr, int coffset, int ctype, char *value);
 char mapFieldTypeToEAItype (int st);

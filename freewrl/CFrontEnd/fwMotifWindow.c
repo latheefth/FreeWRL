@@ -450,8 +450,8 @@ void createFilePulldown () {
 	/* newFileWidget = XmCreateFileSelectionDialog(menubar, "select", args, 1); */
 	newFileWidget = XmCreateFileSelectionDialog(mainw, "select", args, 1);        
 
-	XtAddCallback(newFileWidget, XmNokCallback, fileSelectPressed, NULL);
-	XtAddCallback(newFileWidget, XmNcancelCallback, unManageMe, NULL);
+	XtAddCallback(newFileWidget, XmNokCallback, (XtCallbackProc)fileSelectPressed, NULL);
+	XtAddCallback(newFileWidget, XmNcancelCallback, (XtCallbackProc)unManageMe, NULL);
 	/* delete buttons not wanted */
 	removeWidgetFromSelect(newFileWidget,XmDIALOG_HELP_BUTTON);
 	XtUnmanageChild(newFileWidget);
@@ -459,14 +459,14 @@ void createFilePulldown () {
 
 	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
 		btn = XmCreatePushButton (menupane, "Reload", NULL, 0);
-		XtAddCallback (btn, XmNactivateCallback, reloadFile, NULL);
+		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)reloadFile, NULL);
 		myXtManageChild (5,btn);
 		btn = XmCreatePushButton (menupane, "New...", NULL, 0);
-		XtAddCallback (btn, XmNactivateCallback, newFilePopup, NULL);
+		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)newFilePopup, NULL);
 		myXtManageChild (6,btn);
 
 		btn = XmCreatePushButton (menupane, "Quit", NULL, 0);
-		XtAddCallback (btn, XmNactivateCallback, quitMenuBar, NULL);
+		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)quitMenuBar, NULL);
 		myXtManageChild (7,btn);
 	XtSetArg (args[0], XmNsubMenuId, menupane);
 	cascade = XmCreateCascadeButton (menubar, "File", args, 1);
@@ -576,7 +576,7 @@ void createPreferencesPulldown() {
 		for (count = colourBlack; count <= colourWhite; count++ ){
 			backgroundColourSelector[count] = 
 				XtCreateManagedWidget(BackString[count], xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-			XtAddCallback (backgroundColourSelector[count], XmNvalueChangedCallback, (XtCallbackProc)BackColour, count);
+			XtAddCallback (backgroundColourSelector[count], XmNvalueChangedCallback, (XtCallbackProc)BackColour, (XtPointer)count);
 			myXtManageChild (40,backgroundColourSelector[count]);
 		}
 		XmToggleButtonSetState (backgroundColourSelector[colourBlack], TRUE, FALSE);
@@ -634,7 +634,7 @@ void createHelpPulldown() {
 		*/
 		XtSetArg(args[ac], XmNmessageAlignment,XmALIGNMENT_CENTER); ac++;
 		about_widget = XmCreateInformationDialog(menubar, "about", args, ac);        
-		XtAddCallback(about_widget, XmNokCallback, unManageMe, NULL);
+		XtAddCallback(about_widget, XmNokCallback, (XtCallbackProc)unManageMe, NULL);
 		removeWidgetFromSelect (about_widget, XmDIALOG_CANCEL_BUTTON);
 		/*
 		 causes segfault on Core3 removeWidgetFromSelect (about_widget, XmDIALOG_HELP_BUTTON);

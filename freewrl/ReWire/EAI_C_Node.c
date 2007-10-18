@@ -3,13 +3,13 @@
 #include "Eai_C.h"
 
 /* get a node pointer */
-X3D_Node *X3D_getNode (char *name) {
+X3DNode *X3D_getNode (char *name) {
 	char *ptr;
 	uintptr_t adr;
 	int oldPerl;
-	X3D_Node *retval;
+	X3DNode *retval;
 
-	retval = malloc (sizeof(X3D_Node));
+	retval = malloc (sizeof(X3DNode));
 	retval->type = FIELDTYPE_SFNode;
 	retval->X3D_SFNode.SFNodeType = '\0';
 
@@ -39,15 +39,15 @@ X3D_Node *X3D_getNode (char *name) {
 
 /* get an eventIn */
 
-X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
+X3DEventIn *_X3D_getEvent(X3DNode *node, char *name, int into) {
 	char *ptr;
 	uintptr_t origPtr;
 	int offset;
 	int nds;
-	X3D_EventIn *retval;
+	X3DEventIn *retval;
 	uintptr_t *adr;
 
-        retval = malloc (sizeof (struct _intX3D_EventIn));
+        retval = malloc (sizeof (struct _intX3DEventIn));
 	retval->offset = 0;
 	retval->nodeptr = 0;
 	retval->datasize = 0;
@@ -143,27 +143,27 @@ X3D_EventIn *_X3D_getEvent(X3D_Node *node, char *name, int into) {
 }
 
 
-X3D_EventIn *X3D_getEventIn(X3D_Node *node, char *name) {
-	X3D_EventIn *retval;
+X3DEventIn *X3D_getEventIn(X3DNode *node, char *name) {
+	X3DEventIn *retval;
 	retval = _X3D_getEvent(node, name,TRUE);
 	return retval;
 }
 
-X3D_EventOut *X3D_getEventOut(X3D_Node *node, char *name) {
-	X3D_EventOut *retval;
+X3DEventOut *X3D_getEventOut(X3DNode *node, char *name) {
+	X3DEventOut *retval;
 	retval = _X3D_getEvent(node, name,FALSE);
 	return retval;
 
 }
 
-void X3D_addRoute (X3D_EventOut *from, X3D_EventIn *to) {
+void X3D_addRoute (X3DEventOut *from, X3DEventIn *to) {
 	char myline[200];
 	char *ptr;
 	sprintf (myline,"%ld %s %ld %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(ADDROUTE,myline);
 }
 
-void X3D_deleteRoute (X3D_EventOut *from, X3D_EventIn *to) {
+void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to) {
 	char myline[200];
 	char *ptr;
 	sprintf (myline,"%ld %s %ld %s",from->nodeptr,from->field,to->nodeptr,to->field);
@@ -171,7 +171,7 @@ void X3D_deleteRoute (X3D_EventOut *from, X3D_EventIn *to) {
 }
 
 
-void X3D_setValue (X3D_EventIn *dest, X3D_Node *node) {
+void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 	char myline[2048];
 	int count;
 	uintptr_t *ptr;
@@ -290,14 +290,14 @@ float X3D_getCurrentFrameRate() {
 	return curframe;
 }
 
-X3D_Node *X3D_createVrmlFromString(char *str) {
-	X3D_Node *retval;
+X3DNode *X3D_createVrmlFromString(char *str) {
+	X3DNode *retval;
 	char *ptr;
 	int retvals;
 	int count;
 	uintptr_t *mytmp;
 	
-        retval = malloc (sizeof(X3D_Node));
+        retval = malloc (sizeof(X3DNode));
 	retval->type = FIELDTYPE_MFNode;
 	retval->X3D_MFNode.n = 0;
 

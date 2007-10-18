@@ -71,7 +71,7 @@ void render_Box (struct X3D_Box *node) {
 	if (!node->__points) return; /* still compiling */
 
 	/* for BoundingBox calculations */
-	setExtent(x,-x,y,-y,z,-z,(struct X3D_Box *)node);
+	setExtent(x,-x,y,-y,z,-z,X3D_NODE(node));
 
 	CULL_FACE(node->solid)
 
@@ -144,7 +144,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
-	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
+	setExtent(r,-r,h,-h,r,-r,X3D_NODE(node));
 
 	COMPILE_IF_REQUIRED
 	if (!node->__points) return;
@@ -278,7 +278,7 @@ void render_Cone (struct X3D_Cone *node) {
 	if (!node->__normals) return;
 
 	/* for BoundingBox calculations */
-	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
+	setExtent(r,-r,h,-h,r,-r,X3D_NODE(node));
 
 
 	CULL_FACE(node->solid)
@@ -393,7 +393,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	if (rad<=0.0) { return;}
 
 	/* for BoundingBox calculations */
-	setExtent(rad,-rad,rad,-rad,rad,-rad,(struct X3D_Box *)node);
+	setExtent(rad,-rad,rad,-rad,rad,-rad,X3D_NODE(node));
 
 	COMPILE_IF_REQUIRED
 

@@ -394,7 +394,7 @@ sub writeVariables () {
 	system ("cp ReWire/GeneratedCode.c MIDI");
 	system ("cp ReWire/Eai_C.h MIDI");
 	system ("cp ReWire/GeneratedHeaders.h MIDI");
-	system ("cp ReWire/X3D_Node.h MIDI");
+	system ("cp ReWire/X3DNode.h MIDI");
 	
 	my @CMIDISourceFiles = split (' ',`ls MIDI/*c`);
 	print MK "\n#CMIDI Make\n";

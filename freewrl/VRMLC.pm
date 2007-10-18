@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.276  2007/10/18 20:09:59  crc_canada
+# changes that affect warnings on compiling.
+#
 # Revision 1.275  2007/09/21 17:55:55  crc_canada
 # Routing changes - fixing a bug with MF* nodes (was fixed recently, but changes removed by accident)
 #
@@ -623,6 +626,14 @@ sub gen {
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
+	"#define DEBUG_VALIDNODE\n".
+	"#ifdef DEBUG_VALIDNODE	\n".
+	"#define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)\n".
+	"#define MARK_EVENT(node,offset) mark_event_check(node,offset,__FILE__,__LINE__)\n".
+	"#else\n".
+	"#define X3D_NODE_CHECK(node)\n".
+	"#define MARK_EVENT(node,offset)	mark_event(node,offset)\n".
+	"#endif\n".
 	"\n/* now, generated structures for each VRML/X3D Node*/\n";
 
 
@@ -1001,7 +1012,7 @@ struct X3D_Virt {
 	void (*changed)(void *);
 	void (*proximity)(void *);
 	void (*collision)(void *);
-	void (*compile)(void *);
+	void (*compile)(void *, void *, void *, void *, void *);
 	/* char *name; */
 };
 

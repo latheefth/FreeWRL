@@ -266,7 +266,7 @@ void haveMultiTexCoord(struct X3D_IndexedFaceSet *texC) {
 			   MultiTextureCoordinate node? */
 			if ((myTCnode->_nodeType == NODE_TextureCoordinate) ||
 			    (myTCnode->_nodeType == NODE_TextureCoordinateGenerator)) {
-				render_node (myTCnode);
+				render_node (X3D_NODE(myTCnode));
 				/* are we ok with this texture yet? */
 				if (bound_textures[c] != 0) {
 					if (setActiveTexture(c)) {

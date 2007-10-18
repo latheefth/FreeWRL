@@ -33,16 +33,14 @@ Different methods are used, depending on the format of the call.
 
 This is used mainly in parsing */
 
-void setField_fromJavascript (uintptr_t *ptr, char *field, char *value) {
+void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 	int foffset;
 	int coffset;
 	int ctype;
 	int ctmp;
 
-	struct X3D_Node *node;
 	struct X3D_Group *group;
 
-	node = (struct X3D_Node *)ptr;
 	#ifdef SETFIELDVERBOSE
 	printf ("\nsetField_fromJavascript, node %d field %s value %s\n", node, field, value);
 	#endif
@@ -76,7 +74,7 @@ void setField_fromJavascript (uintptr_t *ptr, char *field, char *value) {
 	}
 
 	if (strlen(value)>0) 
-		Parser_scanStringValueToMem(ptr, coffset, ctype, value);
+		Parser_scanStringValueToMem(node, coffset, ctype, value);
 }
 
 
@@ -294,7 +292,7 @@ unsigned int setField_method2 (char *ptr) {
 		if (offset > 0) update_node ((void *)nodeptr);
 
 		/* if anything uses this for routing, tell it that it has changed */
-		mark_event ((void *)nodeptr,offset);
+		MARK_EVENT (X3D_NODE(nodeptr),offset);
 	}
 	return TRUE;
 }
@@ -408,7 +406,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		case FIELDTYPE_MFNode: {
 				strval = JS_ValueToString(scriptContext, JSglobal_return_val);
 	        		strp = JS_GetStringBytes(strval);
-				getMFNodetype (strp,(struct Multi_Node *)memptr,(struct X3D_Box *)tn,extraData); break;
+				getMFNodetype (strp,(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); break;
 		}
 		case FIELDTYPE_MFString: {
 			getMFStringtype (scriptContext, (jsval *)JSglobal_return_val,(struct Multi_String *)memptr);
@@ -423,7 +421,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	#ifdef SETFIELDVERBOSE
 	if (fieldType == FIELDTYPE_MFInt32) {
 		printf ("setField_javascriptEventOut, checking the pointers...\n");
-		printf ("node type is %s\n",stringNodeType(((struct X3D_Node *)tn)->_nodeType));
+		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
 		
 	
 	}
@@ -432,18 +430,11 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 }
 
 /* find the ASCII string name of this field of this node */
-char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
-	struct X3D_Box *no;
+char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
 	int* np;
-	int nodeType;
-
 	if (node == 0) return "unknown";
 
-	no = (struct X3D_Box *) node;
-	nodeType = no->_nodeType;
-
-	
-	np = (int *) NODE_OFFSETS[nodeType];  /* it is a const int* type */
+	np = (int *) NODE_OFFSETS[node->_nodeType];  /* it is a const int* type */
 	np++;  /* go to the offset field */
 
 	while ((*np != -1) && (*np != offset)) np +=4;
@@ -461,7 +452,7 @@ char *findFIELDNAMESfromNodeOffset(uintptr_t node, int offset) {
 /* go through the generated table X3DACCESSORS, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
 /* XXX:  Do we really need the strlen-call to go next to strcmp?! */
-int findFieldInX3DACCESSORS(char *field) {
+int findFieldInX3DACCESSORS(const char *field) {
 	int x;
 	int mystrlen;
 	
@@ -481,7 +472,7 @@ int findFieldInX3DACCESSORS(char *field) {
 
 /* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
-int findFieldInFIELDTYPES(char *field) {
+int findFieldInFIELDTYPES(const char *field) {
 	int x;
 	int mystrlen;
 	
@@ -501,7 +492,7 @@ int findFieldInFIELDTYPES(char *field) {
 
 /* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
-int findFieldInARR(char* field, const char** arr, size_t cnt)
+int findFieldInARR(const char* field, const char** arr, size_t cnt)
 {
 	int x;
 	int mystrlen;
@@ -523,7 +514,7 @@ int findFieldInARR(char* field, const char** arr, size_t cnt)
 
 }
 #define DEF_FINDFIELD(arr) \
- int findFieldIn##arr(char* field) \
+ int findFieldIn##arr(const char* field) \
  { \
   return findFieldInARR(field, arr, arr##_COUNT); \
  }
@@ -536,7 +527,7 @@ DEF_FINDFIELD(EVENT_OUT)
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */
 /* for user-fields, the additional check is skipped */
-int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
+int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
   const char** arr, size_t cnt, BOOL user) {
 	int retval;
 	char mychar[200];
@@ -579,7 +570,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, char *field, int fromTo,
 	return retval;
 }
 #define DEF_FINDROUTEDFIELD(arr) \
- int findRoutedFieldIn##arr(struct X3D_Node* node, char* field, int fromTo) \
+ int findRoutedFieldIn##arr(struct X3D_Node* node, const char* field, int fromTo) \
  { \
   return findRoutedFieldInARR(node, field, fromTo, arr, arr##_COUNT, FALSE); \
  }
@@ -589,7 +580,7 @@ DEF_FINDROUTEDFIELD(EVENT_IN)
 DEF_FINDROUTEDFIELD(EVENT_OUT)
 
 /* go through the generated table NODENAMES, and find the int of this string, returning it, or -1 on error */
-int findNodeInNODES(char *node) {
+int findNodeInNODES(const char *node) {
 	int x;
 	int mystrlen;
 	
@@ -603,7 +594,7 @@ int findNodeInNODES(char *node) {
 	return -1;
 }
 /* go through the generated table KEYWORDS, and find the int of this string, returning it, or -1 on error */
-int findFieldInKEYWORDS(char *field) {
+int findFieldInKEYWORDS(const char *field) {
 	int x;
 	int mystrlen;
 	
@@ -618,7 +609,7 @@ int findFieldInKEYWORDS(char *field) {
 }
 
 /* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error */
-int findFieldInALLFIELDNAMES(char *field) {
+int findFieldInALLFIELDNAMES(const char *field) {
 	int x;
 	int mystrlen;
 	
@@ -792,7 +783,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
                         break;
 		}
 		case FIELDTYPE_SFRotation: {
-                        if ((sfrotation = (SFVec3fNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
+                        if ((sfrotation = (SFRotationNative *)JS_GetPrivate(cx, (JSObject *)mainElement)) == NULL) {
                                 printf( "JS_GetPrivate failed for obj in setField_javascriptEventOut.\n");
                                 return;
                         }
@@ -928,7 +919,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /* structure								*/
 /************************************************************************/
 
-void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, int ar) {
+void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar) {
 	uintptr_t newptr;
 	int newlen;
 	char *cptr;
@@ -969,7 +960,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 	/* scan through the string again, and get the node numbers. */
 	while (sscanf (cptr,"%d", (uintptr_t *)tmpptr) == 1) {
 		/* printf ("just scanned in %d, which is a %s\n",*tmpptr, 
-			stringNodeType(((struct X3D_Node*) (*tmpptr))->_nodeType)); */
+			stringNodeType((X3D_NODE(*tmpptr))->_nodeType)); */
 
 		/* skip past this number */
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;

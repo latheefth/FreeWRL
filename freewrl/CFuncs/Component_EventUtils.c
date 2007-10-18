@@ -18,7 +18,7 @@
 
 /******************************************************************************/
 /* see the spec for a description. fields inputTrue and inputFalse are set in
-   VRMLNodes.pm and are never changed, ONLY mark_event is called when
+   VRMLNodes.pm and are never changed, ONLY MARK_EVENT is called when
    appropriate. So, inputFalse will ALWAYS be false, BUT, the event will
    be called when set_boolean is set to false.  */
 
@@ -30,12 +30,12 @@ void do_BooleanFilter (void *node){
 
 	if (px->set_boolean == TRUE) {
 		px->inputNegate = FALSE;
-		mark_event (node, offsetof (struct X3D_BooleanFilter, inputTrue));
-		mark_event (node, offsetof (struct X3D_BooleanFilter, inputNegate));
+		MARK_EVENT (node, offsetof (struct X3D_BooleanFilter, inputTrue));
+		MARK_EVENT (node, offsetof (struct X3D_BooleanFilter, inputNegate));
 	} else {
 		px->inputNegate = TRUE;
-		mark_event (node, offsetof (struct X3D_BooleanFilter, inputFalse));
-		mark_event (node, offsetof (struct X3D_BooleanFilter, inputNegate));
+		MARK_EVENT (node, offsetof (struct X3D_BooleanFilter, inputFalse));
+		MARK_EVENT (node, offsetof (struct X3D_BooleanFilter, inputNegate));
 	}
 }
 
@@ -57,7 +57,7 @@ void do_BooleanSequencer (void *node){
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
 
-	mark_event (node, offsetof (struct X3D_BooleanSequencer, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_BooleanSequencer, value_changed));
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -97,7 +97,7 @@ void do_BooleanToggle (void *node){
 	if (px->set_boolean == TRUE) px->toggle = FALSE; 
 	else px->toggle = TRUE; 
 
-	mark_event (node, offsetof (struct X3D_BooleanToggle, toggle));
+	MARK_EVENT (node, offsetof (struct X3D_BooleanToggle, toggle));
 }
 
 /******************************************************************************/
@@ -109,7 +109,7 @@ void do_BooleanTrigger (void *node){
 	px = (struct X3D_BooleanTrigger *) node;
 
 	px->triggerTrue = TRUE; /* spec says that this is ALWAYS true */
-	mark_event (node, offsetof (struct X3D_BooleanTrigger, triggerTrue));
+	MARK_EVENT (node, offsetof (struct X3D_BooleanTrigger, triggerTrue));
 }
 
 /******************************************************************************/
@@ -130,7 +130,7 @@ void do_IntegerSequencer (void *node){
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
 
-	mark_event (node, offsetof (struct X3D_IntegerSequencer, value_changed));
+	MARK_EVENT (node, offsetof (struct X3D_IntegerSequencer, value_changed));
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -168,7 +168,7 @@ void do_IntegerTrigger (void *node){
 
 	px = (struct X3D_IntegerTrigger *) node;
 	px->triggerValue = px->integerKey;
-	mark_event (node, offsetof (struct X3D_IntegerTrigger,triggerValue));
+	MARK_EVENT (node, offsetof (struct X3D_IntegerTrigger,triggerValue));
 }
 
 /******************************************************************************/
@@ -180,6 +180,6 @@ void do_TimeTrigger (void *node){
 	px = (struct X3D_TimeTrigger *) node;
 
 	px->triggerTime = TickTime;
-	mark_event (node, offsetof (struct X3D_TimeTrigger,triggerTime));
+	MARK_EVENT (node, offsetof (struct X3D_TimeTrigger,triggerTime));
 }
 

@@ -82,7 +82,7 @@ void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *f
 
 /* send this node out to the ReWire network */
 sendNodeToReWire(struct X3D_MidiControl *node) {
-	int buf[200];
+	char buf[200];
 
 	#ifdef MIDIVERBOSE
 	if (node->controllerPresent) {
@@ -237,7 +237,7 @@ int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controlle
 	if (ReWireDevicetableSize >= MAXReWireDevices) {
 		/* oooh! not enough room at the table */
 		MAXReWireDevices += 1024; /* arbitrary number */
-		ReWireDevices = (struct ReWireDevicenameStruct*)REALLOC (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
+		ReWireDevices = (struct ReWireDeviceStruct*)REALLOC (ReWireDevices, sizeof(*ReWireDevices) * MAXReWireDevices);
 	}
 	
 	ReWireDevices[ReWireDevicetableSize].bus = bus;
@@ -260,8 +260,7 @@ int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controlle
 }
 
 
-void registerReWireNode(void *node) {
-	struct X3D_Box * tmp;
+void registerReWireNode(struct X3D_Node *node) {
 	int count;
 	uintptr_t *myptr;
 
@@ -270,9 +269,7 @@ void registerReWireNode(void *node) {
 		return;
 	}
 
-	tmp = (struct X3D_Box*) node;
-
-	if (tmp->_nodeType != NODE_MidiControl) return;
+	if (node->_nodeType != NODE_MidiControl) return;
 
 	MidiNodes = (uintptr_t *) REALLOC (MidiNodes,sizeof (uintptr_t *) * (num_MidiNodes+1));
 	myptr = MidiNodes;
@@ -433,7 +430,7 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 		#endif
 		node->_deviceNameIndex = ReWireNameIndex(node->deviceName->strptr);
 		node->deviceName->touched = 0;
-		if (node->_deviceNameIndex>=0) mark_event (node, offsetof(struct X3D_MidiControl, deviceName));
+		if (node->_deviceNameIndex>=0) MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, deviceName));
 	}
 	if ((node->controller->touched > 0) || (node->_controllerIndex < 0)) {
 		#ifdef MIDIVERBOSE
@@ -441,7 +438,7 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 		#endif
 		node->_controllerIndex = ReWireNameIndex(node->controller->strptr);
 		node->controller->touched = 0;
-		if (node->_controllerIndex>=0) mark_event (node, offsetof(struct X3D_MidiControl, controller));
+		if (node->_controllerIndex>=0) MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, controller));
 	}
 
 
@@ -458,7 +455,7 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 			ConsoleMessage ("MidiControl - unknown controllerType :%s:\n",node->controllerType->strptr);
 		}
 
-		mark_event (node, offsetof(struct X3D_MidiControl, controllerType));
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, controllerType));
 	}
 
 	/* look for the end point to be there - if a "Slider" we need the device AND controller; if
@@ -489,7 +486,7 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 		if (!controllerPresent) printf ("controllerPresent changed LOST CONTROLLER\n");
 		#endif
 		node->controllerPresent = controllerPresent;
-		mark_event (node, offsetof(struct X3D_MidiControl, controllerPresent));
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, controllerPresent));
 	}
 
 
@@ -517,7 +514,7 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 			printf ("deviceMinVal changed from %d to %d\n",node->deviceMinVal, tmpdeviceMinVal);
 			#endif
 			node->deviceMinVal = tmpdeviceMinVal;
-			mark_event (node, offsetof(struct X3D_MidiControl, deviceMinVal));
+			MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, deviceMinVal));
 		}
 		if (node->_vel != node->velocity) {
 			#ifdef MIDIVERBOSE
@@ -527,14 +524,14 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 			if (node->velocity <0) node->velocity = 0;
 
 			node->_vel = node->velocity;
-			mark_event (node, offsetof(struct X3D_MidiControl, velocity));
+			MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, velocity));
 		}
 		if (tmpdeviceMaxVal != node->deviceMaxVal) {
 			#ifdef MIDIVERBOSE
 			printf ("deviceMaxVal changed from %d to %d\n",node->deviceMaxVal, tmpdeviceMaxVal);
 			#endif
 			node->deviceMaxVal = tmpdeviceMaxVal;
-			mark_event (node, offsetof(struct X3D_MidiControl, deviceMaxVal));
+			MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, deviceMaxVal));
 		}
 		if (tmpintControllerType != node->_intControllerType) {
 			#ifdef MIDIVERBOSE
@@ -542,7 +539,7 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 			#endif
 
 			node->_intControllerType = tmpintControllerType;
-			mark_event (node, offsetof(struct X3D_MidiControl, controllerType));
+			MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, controllerType));
 			switch (node->_intControllerType) {
 				case MIDI_CONTROLLER_FADER:
 					verify_Uni_String(node->controllerType,"Slider");
@@ -770,8 +767,8 @@ void do_MidiControl (void *this) {
 			node->intValue = value;
 			node->_oldintValue = value;
 			node->floatValue = fV;
-			mark_event(node,offsetof(struct X3D_MidiControl, intValue));
-			mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
+			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_MidiControl, intValue));
+			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_MidiControl, floatValue));
 
 			#ifdef MIDIVERBOSE
 			printf ("intValue changed - now is %d sentvel %d\n",node->intValue, node->_sentVel); 
@@ -781,7 +778,7 @@ void do_MidiControl (void *this) {
 			#endif
 
 			sendNodeToReWire(node);
-			update_node (node);
+			update_node (X3D_NODE(node));
 		}
 	}	
 }
@@ -950,10 +947,10 @@ void ReWireMIDIControl (char *line) {
 		node->intValue = value;
 		node->_oldintValue = value;
 		node->floatValue = fV;
-		mark_event(node,offsetof(struct X3D_MidiControl, intValue));
-		mark_event(node,offsetof(struct X3D_MidiControl, floatValue));
-		mark_event(node,offsetof(struct X3D_MidiControl, buttonPress));
-		mark_event(node,offsetof(struct X3D_MidiControl, velocity));
+		MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_MidiControl, intValue));
+		MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_MidiControl, floatValue));
+		MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_MidiControl, buttonPress));
+		MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_MidiControl, velocity));
 
 		#ifdef MIDIVERBOSE
 		printf ("intValue changed - now is %d sentvel %d\n",node->intValue, node->_sentVel); 
@@ -1058,23 +1055,23 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	/* ok, are we NOW finished loading? */
 	if (nowFinished == node->watchList.n) {
 		node->isActive = 0;
-		mark_event (node, offsetof (struct X3D_LoadSensor, isActive));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isActive));
 
 		node->isLoaded = 1;
-		mark_event (node, offsetof (struct X3D_LoadSensor, isLoaded));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isLoaded));
 
 		node->progress = 1.0;
-		mark_event (node, offsetof (struct X3D_LoadSensor, progress));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, progress));
 
 		node->loadTime = TickTime;
-		mark_event (node, offsetof (struct X3D_LoadSensor, loadTime));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, loadTime));
 	}	
 
 	/* have we NOW started loading? */
 	if ((nowLoading > 0) && (node->__loading == 0)) {
 		/* mark event isActive TRUE */
 		node->isActive = 1;
-		mark_event (node, offsetof (struct X3D_LoadSensor, isActive));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isActive));
 
 	
 		node->__StartLoadTime = TickTime;
@@ -1083,7 +1080,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	/* what is our progress? */
 	if (node->isActive == 1) {
 		node->progress = (float)(nowFinished)/(float)(node->watchList.n);
-		mark_event (node, offsetof (struct X3D_LoadSensor, progress));
+		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, progress));
 	}
 
 	/* remember our status for next time. */
@@ -1097,10 +1094,10 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 			/* ok, we should look at time outs */
 			if ((TickTime - node->__StartLoadTime) > node->timeOut) {
 				node->isLoaded = 0;
-				mark_event (node, offsetof (struct X3D_LoadSensor, isLoaded));
+				MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isLoaded));
 
 				node->isActive = 0;
-				mark_event (node, offsetof (struct X3D_LoadSensor, isActive));
+				MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_LoadSensor, isActive));
 
 				/* and, we will just assume that we have loaded everything next iteration */
 				node->__finishedloading = node->watchList.n;
@@ -1171,7 +1168,7 @@ void child_Inline (struct X3D_Inline *node) {
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
                 /* pass the bounding box calculations on up the chain */
-                propagateExtent((struct X3D_Box *)node);
+                propagateExtent(X3D_NODE(node));
 
 		BOUNDINGBOX
 	}
@@ -1186,7 +1183,7 @@ void child_Inline (struct X3D_Inline *node) {
 void changed_Anchor (struct X3D_Anchor *node) {
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
                 struct X3D_Virt *v;
 
 		INITIALIZE_EXTENT

@@ -193,7 +193,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 		/* up_vector is reset after a bind */
 		if (node->set_bind==1) reset_upvector();
 
-		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
+		bind_node (X3D_NODE(node), &viewpoint_tos,&viewpoint_stack[0]);
 	}
 
 	if(!node->isBound) return;
@@ -295,7 +295,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
 		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT
         }

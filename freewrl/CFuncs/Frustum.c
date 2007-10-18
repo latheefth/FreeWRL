@@ -57,10 +57,10 @@ int OccFailed = FALSE;
 /* this is used for collision in transformChildren - don't bother going through
    children of a transform if there is nothing close... */
 
-void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Box *me) {
+void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *me) {
 	int c,d;
-	struct X3D_Box *shapeParent;
-	struct X3D_Box *geomParent;
+	struct X3D_Node *shapeParent;
+	struct X3D_Node *geomParent;
 
 	#ifdef FRUSTUMVERBOSE
 	printf ("setExtent - Shape node has %d parents\n",me->_nparents);
@@ -68,12 +68,12 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 
 	for (c=0; c<(me->_nparents); c++) {
 		/*printf ("parent %d of %d is %d\n",c,me,me->_parents[c]);*/
-		shapeParent = (struct X3D_Box *)me->_parents[c];
+		shapeParent = X3D_NODE(me->_parents[c]);
 		/*printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents);*/
 		/*printf ("parent %d of %d is %d\n",c,shapeParent,shapeParent->_parents[c]);*/
 
 		for (d=0; d<(shapeParent->_nparents); d++) {
-			geomParent = (struct X3D_Box *)shapeParent->_parents[d];
+			geomParent = X3D_NODE(shapeParent->_parents[d]);
 			if (maxx > geomParent->EXTENT_MAX_X) geomParent->EXTENT_MAX_X = maxx;
 			if (minx < geomParent->EXTENT_MIN_X) geomParent->EXTENT_MIN_X = minx;
 			if (maxy > geomParent->EXTENT_MAX_Y) geomParent->EXTENT_MAX_Y = maxy;
@@ -88,10 +88,10 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 /* for children nodes; set the parent grouping nodes extent - we expect the center
  * of the group to be passed in in the floats x,y,z */
 
-void propagateExtent(struct X3D_Box *me) {
+void propagateExtent(struct X3D_Node *me) {
 	float minx, miny, minz, maxx, maxy, maxz;
 	int i;
-	struct X3D_Box *geomParent;
+	struct X3D_Node *geomParent;
 	struct X3D_Transform *trans;
 
 	#ifdef FRUSTUMPRINT
@@ -122,7 +122,7 @@ void propagateExtent(struct X3D_Box *me) {
 	
 
 	for (i=0; i<(me->_nparents); i++) {
-		geomParent = (struct X3D_Box *)me->_parents[i];
+		geomParent = X3D_NODE(me->_parents[i]);
 		#ifdef FRUSTUMPRINT
 		printf ("propextent, me %d my parent %d is %d (%s) ext %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f\n",
 			me,i,geomParent, stringNodeType(geomParent->_nodeType),
@@ -148,7 +148,7 @@ void propagateExtent(struct X3D_Box *me) {
 }
 
 #ifdef DISPLAYBOUNDINGBOX
-void BoundingBox(struct X3D_Box * me) {
+void BoundingBox(struct X3D_Node * me) {
 	int nt;
 
 	nt = me->_nodeType;
@@ -425,7 +425,7 @@ void OcclusionCulling ()  {
 
 		/* is this node visible? Should we TRY again?? */
 		if ((OccVisible[i]) || (OccCheckCount[i]<0)) {
-			if (OccNodes[i]!=0) update_renderFlag (xx,VF_hasVisibleChildren);
+			if (OccNodes[i]!=0) update_renderFlag (X3D_NODE(xx),VF_hasVisibleChildren);
 		}
 	}
 }

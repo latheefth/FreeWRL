@@ -18,7 +18,7 @@ void sortChildren (struct Multi_Node ch) {
 	int i,j;
 	int nc;
 	int noswitch;
-	struct X3D_Box *a, *b, *c;
+	struct X3D_Node *a, *b, *c;
 
 	/* simple, inefficient bubble sort */
 	/* this is a fast sort when nodes are already sorted;
@@ -32,8 +32,8 @@ void sortChildren (struct Multi_Node ch) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
 			/* printf ("comparing %d %d\n",i,j); */
-			a = (struct X3D_Box *)ch.p[j-1];
-			b = (struct X3D_Box *)ch.p[j];
+			a = X3D_NODE(ch.p[j-1]);
+			b = X3D_NODE(ch.p[j]);
 
 			/* check to see if a child is NULL - if so, skip it */
 			if ((a != NULL) && (b != NULL)) {
@@ -66,7 +66,7 @@ void dirlightChildren(struct Multi_Node ch) {
 
 	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT); */
 	for(i=0; i<ch.n; i++) {
-		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
+		struct X3D_Node *p = X3D_NODE(ch.p[i]);
 		if (p != NULL) {
 			if ((p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_SpotLight))
 				render_node(p);
@@ -79,7 +79,7 @@ void normalChildren(struct Multi_Node ch) {
 	int i;
 
 	for(i=0; i<ch.n; i++) {
-		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
+		struct X3D_Node *p = X3D_NODE(ch.p[i]);
 
 		if (p != NULL) {
 			if ((p->_nodeType != NODE_DirectionalLight) &&
@@ -98,8 +98,7 @@ void normalChildren(struct Multi_Node ch) {
  * of interest down the branch. Eg, Transparent nodes - no sense going
  * through it all when rendering only for nodes. */
 
-void update_renderFlag(void *ptr, int flag) {
-	struct X3D_Box *p = (struct X3D_Box *)ptr;
+void update_renderFlag (struct X3D_Node *p, int flag) {
 	int i;
 
 	/* send notification up the chain */

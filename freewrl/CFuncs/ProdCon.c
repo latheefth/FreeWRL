@@ -685,7 +685,7 @@ void _inputParseThread(void) {
 /*  add a node to the root group. ASSUMES ROOT IS A GROUP NODE! (it should be)*/
 /*  this code is very similar to getMFNode in CFuncs/CRoutes.c, except that*/
 /*  we do not pass in a string of nodes to assign. (and, do not remove, etc)*/
-void addToNode (void *rc, int offs, void *newNode) {
+void addToNode (void *rc, int offs, struct X3D_Node *newNode) {
 
 	int oldlen, newlen;
 	void **newmal;
@@ -703,7 +703,7 @@ void addToNode (void *rc, int offs, void *newNode) {
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
-	/* printf ("addToNode, ptr %d offs %d type %s, oldlen %d\n",rc, offs, stringNodeType(((struct X3D_Box*)rc)->_nodeType),oldlen);  */
+	/* printf ("addToNode, ptr %d offs %d type %s, oldlen %d\n",rc, offs, stringNodeType(X3D_NODE(rc)->_nodeType),oldlen);  */
 	par->n = 0; /* temporary, in case render thread goes here */
 
 	newlen=1;
@@ -716,7 +716,7 @@ void addToNode (void *rc, int offs, void *newNode) {
 	place = (void **) ((unsigned long int) newmal + sizeof (void **) * oldlen);
 
 	/* and store the new child. */
-	*place = newNode;
+	*place = (void *)newNode;
 
 	/* set up the C structures for this new MFNode addition */
 	tmp = par->p;
@@ -759,33 +759,30 @@ void kill_bindables (void) {
 }
 
 
-void registerBindable (void *ptr) {
-	struct X3D_Box *node;
+void registerBindable (struct X3D_Node *node) {
 
-
-	node = (struct X3D_Box *)ptr;
 	/* printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType));  */
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
 		case NODE_GeoViewpoint:
 			viewpointnodes = REALLOC (viewpointnodes, (sizeof(void *)*(totviewpointnodes+1)));
-			viewpointnodes[totviewpointnodes] = ptr;
+			viewpointnodes[totviewpointnodes] = node;
 			totviewpointnodes ++;
 			break;
 		case NODE_Background:
 		case NODE_TextureBackground:
 			backgroundnodes = REALLOC (backgroundnodes, (sizeof(void *)*(totbacknodes+1)));
-			backgroundnodes[totbacknodes] = ptr;
+			backgroundnodes[totbacknodes] = node;
 			totbacknodes ++;
 			break;
 		case NODE_NavigationInfo:
 			navnodes = REALLOC (navnodes, (sizeof(void *)*(totnavnodes+1)));
-			navnodes[totnavnodes] = ptr;
+			navnodes[totnavnodes] = node;
 			totnavnodes ++;
 			break;
 		case NODE_Fog:
 			fognodes = REALLOC (fognodes, (sizeof(void *)*(totfognodes+1)));
-			fognodes[totfognodes] = ptr;
+			fognodes[totfognodes] = node;
 			totfognodes ++;
 			break;
 		default: {

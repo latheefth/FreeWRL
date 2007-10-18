@@ -105,7 +105,7 @@ void render_Material (struct X3D_Material *node) {
 		if (trans <=0.99) {
 			have_transparency++;
 			if ((node->_renderFlags & VF_Blend) != VF_Blend)
-				update_renderFlag(node,VF_Blend);
+				update_renderFlag(X3D_NODE(node),VF_Blend);
 			last_transparency=trans;
 		}
 
@@ -210,7 +210,7 @@ void child_Shape (struct X3D_Shape *node) {
 		if ((last_texture_depth==2) || (last_texture_depth==4)) {
 			have_transparency++;
 			if ((node->_renderFlags & VF_Blend) != VF_Blend)
-				update_renderFlag(node,VF_Blend);
+				update_renderFlag(X3D_NODE(node),VF_Blend);
 		}
 
 		/* printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",

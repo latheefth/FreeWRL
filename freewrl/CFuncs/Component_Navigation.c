@@ -140,7 +140,7 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	if (node->set_bind < 100) {
 		if (node->set_bind == 1) set_naviinfo(node);
 
-		bind_node (node, &navi_tos,&navi_stack[0]);
+		bind_node (X3D_NODE(node), &navi_tos,&navi_stack[0]);
 	}
 	if(!node->isBound) return;
 }
@@ -346,7 +346,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 void changed_Billboard (struct X3D_Billboard *node) {
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
                 struct X3D_Virt *v;
 
 		DIRECTIONAL_LIGHT_FIND
@@ -357,7 +357,7 @@ void changed_Billboard (struct X3D_Billboard *node) {
 void changed_Inline (struct X3D_Inline *node) {
                 int i;
                 int nc = ((node->__children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
                 struct X3D_Virt *v;
 
 		DIRECTIONAL_LIGHT_FIND_W___CHILDREN
@@ -368,7 +368,7 @@ void changed_Inline (struct X3D_Inline *node) {
 void changed_Collision (struct X3D_Collision *node) {
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
                 struct X3D_Virt *v;
 
 		DIRECTIONAL_LIGHT_FIND
@@ -379,7 +379,7 @@ void changed_Collision (struct X3D_Collision *node) {
 void changed_InlineLoadControl (struct X3D_InlineLoadControl *node) {
                 int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
                 struct X3D_Virt *v;
 
 		DIRECTIONAL_LIGHT_FIND

@@ -115,7 +115,7 @@ void EAI_parse_commands () {
 	int retint;		/* used for getting retval for sscanf */
 	int flag;
 
-	struct X3D_Box *boxptr;
+	struct X3D_Node *boxptr;
         int ctype;
 	int xxx;
 
@@ -239,7 +239,7 @@ void EAI_parse_commands () {
 				}	
 				retint = sscanf(&EAI_BUFFER_CUR,"%d",&cNode);
 				if (cNode != 0) {
-					boxptr = (struct X3D_Box *) cNode;
+					boxptr = X3D_NODE(cNode);
 					sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,getSAI_X3DNodeType (
 						boxptr->_nodeType));
 				} else {
@@ -366,10 +366,10 @@ void EAI_parse_commands () {
 				   we only have addChildren or removeChildren, so flag can be 1 or 2 only */
 				if (strcmp(ctmp,"removeChildren")==0) { flag = 2;} else {flag = 1;}
 
-				getMFNodetype (dtmp,(struct Multi_Node *)rc, (struct X3D_Box *)ra, flag);
+				getMFNodetype (dtmp,(struct Multi_Node *)rc, X3D_NODE(ra), flag);
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
-				mark_event((void *)ra,rb);
+				MARK_EVENT(X3D_NODE(ra),rb);
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -610,7 +610,7 @@ void EAI_parse_commands () {
 }
 
 /* read in a C pointer, and field offset, and make sense of it */
-int getEAINodeAndOffset (char *bufptr, uintptr_t *Node, int *FieldInt, int fromto) {
+int getEAINodeAndOffset (char *bufptr, struct X3D_Node **Node, int *FieldInt, int fromto) {
 	int rv;
 	char *x;
 	char fieldTemp[2000];
@@ -618,7 +618,7 @@ int getEAINodeAndOffset (char *bufptr, uintptr_t *Node, int *FieldInt, int fromt
 
 	rv = TRUE;
 	sscanf (bufptr, "%d", Node);
-	sn = (struct X3D_Box *) *Node;
+	sn = *Node;
 
 	/* copy the from field */
 	x = fieldTemp;
@@ -663,9 +663,9 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
 
 		sprintf (ctmp, "%d %d %s %d %d %s ",0,fromNode,
-			findFIELDNAMESfromNodeOffset(fromNode,fromOffset),
+			findFIELDNAMESfromNodeOffset(X3D_NODE(fromNode),fromOffset),
 			0,toNode,
-			findFIELDNAMESfromNodeOffset(toNode,toOffset)
+			findFIELDNAMESfromNodeOffset(X3D_NODE(toNode),toOffset)
 			);
 		strcat (buf,ctmp);
 		/* printf ("route %d is:%s:\n",count,ctmp); */
@@ -731,8 +731,8 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 
 /* add or delete a route */
 void handleRoute (char command, char *bufptr, char *buf, int repno) {
-	struct X3D_Box *fromNode;
-	struct X3D_Box *toNode;
+	struct X3D_Node *fromNode;
+	struct X3D_Node *toNode;
 	char fieldTemp[2000];
 	int fromFieldInt, toFieldInt;
 	int *np;
@@ -769,7 +769,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	/* ------- can these routes work in these nodes?  -------- */
 	if (rv == TRUE) {
 		/* get the from field info */
-		np = NODE_OFFSETS[fromNode->_nodeType];
+		np = (int *)NODE_OFFSETS[fromNode->_nodeType];
 
 		/* go through and find the entry for this field, looks like:
 		const int OFFSETS_TimeSensor[] = {
@@ -792,7 +792,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		}
 
 		/* get the to field info */
-		np = NODE_OFFSETS[toNode->_nodeType];
+		np = (int *)NODE_OFFSETS[toNode->_nodeType];
 
 		while ((*np != -1) && (*np != toFieldInt)) np += 4;
 		np++; toOffset = *np; np++; toVRMLtype = *np; np++;
@@ -835,12 +835,12 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 /* for a GetFieldTypes command for a node, we return a string giving the field types */
 
 void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
-	struct X3D_Box *boxptr;
+	struct X3D_Node *boxptr;
 	int myc;
 	int *np;
 	char myline[200];
 
-	boxptr = (struct X3D_Box *) myptr;
+	boxptr = X3D_NODE(myptr);
 	
 	/* printf ("GETFIELDDEFS, node %d\n",boxptr); */
 
@@ -855,7 +855,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 
 
 	/* how many fields in this node? */
-	np = NODE_OFFSETS[boxptr->_nodeType];
+	np = (int *)NODE_OFFSETS[boxptr->_nodeType];
 	myc = 0;
 	while (*np != -1) {
 		/* is this a hidden field? */
@@ -873,7 +873,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 	strcat (buf, myline);
 
 	/* now go through and get the name, type, keyword */
-	np = NODE_OFFSETS[boxptr->_nodeType];
+	np = (int *)NODE_OFFSETS[boxptr->_nodeType];
 	while (*np != -1) {
 		if (strcmp (FIELDNAMES[*np],"_") != 0) {
 			sprintf (myline,"%s %c %s ",FIELDNAMES[np[0]], (char) mapFieldTypeToEAItype(np[2]), 
@@ -888,14 +888,11 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 
 /* EAI, replaceWorld. */
 void EAI_RW(char *str) {
-	char *newNode;
+	struct X3D_Node *newNode;
 	int i;
-	char *tmp;
 
 	/* clean the slate! keep EAI running, though */
 	kill_oldWorld(FALSE,TRUE,FALSE);
-
-	tmp = (char *) rootNode;
 
 	/* go through the string, and send the nodes into the rootnode */
 	/* first, remove the command, and get to the beginning of node */
@@ -903,7 +900,7 @@ void EAI_RW(char *str) {
 	while (isspace(*str)) str++;
 	while (strlen(str) > 0) {
 		i = sscanf (str, "%u",&newNode);
-		if (i>0) addToNode (tmp,offsetof (struct X3D_Group, children),newNode);
+		if (i>0) addToNode (rootNode,offsetof (struct X3D_Group, children),newNode);
 
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;

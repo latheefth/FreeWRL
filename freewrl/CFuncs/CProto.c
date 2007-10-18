@@ -1,3 +1,11 @@
+/*******************************************************************
+  Copyright (C) 2007 Daniel Kraft,  John Stewart, CRC Canada.
+  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+  See the GNU Library General Public License (file COPYING in the distribution)
+  for conditions of use and redistribution.
+ *********************************************************************/
+
+
 /* CProto.c - Sourcecode for CProto.h */
 /* TODO:  Pointer updating could be made more efficient! */
 
@@ -241,7 +249,7 @@ void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
 {
  assert(me);
  assert(me->tree);
- add_parent(node, me->tree);
+ add_parent(node, X3D_NODE(me->tree));
  addToNode(me->tree, offsetof(struct X3D_Group, children), node);
 }
 

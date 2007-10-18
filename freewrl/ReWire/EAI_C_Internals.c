@@ -256,7 +256,7 @@ char *_X3D_Browser_SendEventType(uintptr_t *adr,char *name, char *evtype) {
 	return myptr;
 }
 
-char * _RegisterListener (X3D_EventOut *node, int adin) {
+char * _RegisterListener (X3DEventOut *node, int adin) {
 	char *myptr;
 	
 

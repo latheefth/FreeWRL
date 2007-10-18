@@ -1,3 +1,11 @@
+/*******************************************************************
+  Copyright (C) 2007 Daniel Kraft,  John Stewart, CRC Canada.
+  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+  See the GNU Library General Public License (file COPYING in the distribution)
+  for conditions of use and redistribution.
+ *********************************************************************/
+
+
 /* Sourcecode for CParseParser.h */
 
 #include <stdlib.h>
@@ -1761,7 +1769,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
  /* The init codes used. */
  #define INIT_CODE_sfnode(var) \
-  add_parent(node2->var, node2);
+  add_parent(node2->var, X3D_NODE(node2));
  #define INIT_CODE_mfnode(var) \
   mfnode_add_parent(&node2->var, X3D_NODE(node2));
  #define INIT_CODE_sfbool(var)

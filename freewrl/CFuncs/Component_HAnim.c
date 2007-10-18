@@ -284,7 +284,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((struct X3D_Box *)node);
+		propagateExtent(X3D_NODE(node));
 		BOUNDINGBOX
 	}
 
@@ -324,7 +324,7 @@ return;
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((struct X3D_Box *)node);
+		propagateExtent(X3D_NODE(node));
 		BOUNDINGBOX
 	}
 #endif
@@ -360,7 +360,7 @@ return;
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((struct X3D_Box *)node);
+		propagateExtent(X3D_NODE(node));
 		BOUNDINGBOX
 	}
 #endif
@@ -401,7 +401,7 @@ return;
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((struct X3D_Box *)node);
+		propagateExtent(X3D_NODE(node));
 		BOUNDINGBOX
 	}
 
@@ -462,7 +462,7 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
 void changed_HAnimSite (struct X3D_HAnimSite *node) {
                int i;
                 int nc = ((node->children).n);
-                struct X3D_Box *p;
+                struct X3D_Node *p;
 
 		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT

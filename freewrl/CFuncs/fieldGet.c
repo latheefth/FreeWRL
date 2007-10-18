@@ -149,12 +149,12 @@ void setScriptECMAtype (uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	fn = (uintptr_t)(CRoutes[num].fromnode) + (uintptr_t)(CRoutes[num].fnptr);
+	fn = (uintptr_t)(CRoutes[num].routeFromNode) + (uintptr_t)(CRoutes[num].fnptr);
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = (uintptr_t) to_ptr->node;
+		tn = (uintptr_t) to_ptr->routeToNode;
 		tptr = to_ptr->foffset;
 		set_one_ECMAtype (tn, tptr, JSparamnames[tptr].type, (void *)fn,len);
 	}
@@ -210,7 +210,7 @@ int setMFElementtype (uintptr_t num) {
 	#endif
 
 
-	fn = CRoutes[num].fromnode;
+	fn = (void *)CRoutes[num].routeFromNode;
 	fptr = CRoutes[num].fnptr;
 	
 	/* we can do arithmetic on character pointers; so we have to cast void *
@@ -240,7 +240,7 @@ int setMFElementtype (uintptr_t num) {
 	/* go through all the nodes that this script sends to for this entry in the CRoutes table */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = to_ptr->node;
+		tn = to_ptr->routeToNode;
 		tptr = to_ptr->foffset;
 		indexPointer = (uintptr_t) tn; /* tn should be a small int here - it is script # */
 
@@ -970,7 +970,7 @@ void setScriptMultiElementtype (uintptr_t num) {
 	JSContext *cx;
 	JSObject *obj;
 
-	fn = CRoutes[num].fromnode;
+	fn = (void *)CRoutes[num].routeFromNode;
 	fptr = CRoutes[num].fnptr;
 	len = CRoutes[num].len;
 
@@ -978,7 +978,7 @@ void setScriptMultiElementtype (uintptr_t num) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 
 		/* the to_node should be a script number; it will be a small integer */
-		tn = to_ptr->node;
+		tn = to_ptr->routeToNode;
 		indexPointer = (uintptr_t) tn;
 		tptr = to_ptr->foffset;
 

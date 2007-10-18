@@ -152,9 +152,9 @@ void createGLContext(void) {
 	glXMakeCurrent (Xdpy, GLwin,  GLcx);
 
 	/* save this info for later use */
-        GL_REN = glGetString(GL_RENDERER);
-        GL_VER = glGetString(GL_VERSION);
-        GL_VEN = glGetString(GL_VENDOR);
+        GL_REN = (char *)glGetString(GL_RENDERER);
+        GL_VER = (char *)glGetString(GL_VERSION);
+        GL_VEN = (char *)glGetString(GL_VENDOR);
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	glClearDepth (1.0);
