@@ -372,7 +372,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 			nst = (void *) (*newstacktop + (int) 0);
 			update_node(X3D_NODE(nst));
 
-			MARK_EVENT (nst, (unsigned int) isboundofst(nst));
+			MARK_EVENT (X3D_NODE(nst), (unsigned int) isboundofst(nst));
 		}
 	}
 }

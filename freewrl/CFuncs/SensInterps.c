@@ -845,7 +845,7 @@ void do_AudioTick(void *ptr) {
 
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		MARK_EVENT (node, offsetof(struct X3D_AudioClip, isActive));
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isActive));
 		/* tell SoundEngine that this source has changed.  */
 	        if (!SoundEngineStarted) {
         	        #ifdef SEVERBOSE

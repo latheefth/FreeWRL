@@ -957,8 +957,8 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 			return JS_FALSE;
 		}
 		/* get the "handle" for the actual memory pointer */
-		fromNode = fromNative->handle;
-		toNode = toNative->handle;
+		fromNode = X3D_NODE(fromNative->handle);
+		toNode = X3D_NODE(toNative->handle);
 
 		#ifdef JSVERBOSE
 		printf ("routing from a node of type %s to a node of type %s\n",
