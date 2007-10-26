@@ -36,12 +36,12 @@ void kill_rendering(void);
 void kill_X3DNodes(void);
 void createdMemoryTable();
 void increaseMemoryTable();
-uintptr_t * memoryTable = NULL;
-int nodeNumber = 0;
-int tableIndexSize = 0;
-int nextEntry = 0;
-int i=0;
-struct X3D_Node *forgottenNode;
+static uintptr_t * memoryTable = NULL;
+static int nodeNumber = 0;
+static int tableIndexSize = ID_UNDEFINED;
+static int nextEntry = 0;
+static int i=0;
+static struct X3D_Node *forgottenNode;
 
 /* lights status. Light 0 is the headlight */
 static int lights[8];
@@ -448,15 +448,15 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 /*keep track of node created*/
 void registerX3DNode(struct X3D_Node * tmp){	
-	/*printf("nextEntry=%d	",nextEntry);
-	printf("tableIndexSize=%d \n",tableIndexSize);*/
-	/*is table exist*/	
-	if (tableIndexSize <= 0){
-		createdMemoryTable();		
-	}
-	/*is table to small*/
-	if (nextEntry >= tableIndexSize){
-		increaseMemoryTable();
+	/*printf("nextEntry=%d	",nextEntry); printf("tableIndexSize=%d \n",tableIndexSize);*/
+	/*is table to small give us some leeway in threads */
+	if (nextEntry >= (tableIndexSize-10)){
+		/*is table exist*/	
+		if (tableIndexSize <= ID_UNDEFINED){
+			createdMemoryTable();		
+		} else {
+			increaseMemoryTable();
+		}
 	}
 	/*adding node in table*/	
 	memoryTable[nextEntry] = (uintptr_t) tmp;
@@ -473,14 +473,32 @@ void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
 
 /*creating node table*/
 void createdMemoryTable(){
-	tableIndexSize=200;
+	int count;
+
+	tableIndexSize=5000;
 	memoryTable = MALLOC(tableIndexSize * sizeof(uintptr_t));
+
+	/* initialize this to a known state */
+	for (count=0; count < tableIndexSize; count++) {
+		memoryTable[count] = NULL;
+	}
 }
 
 /*making table bigger*/
 void increaseMemoryTable(){
+	int count;
+	int oldhigh;
+
+	oldhigh = tableIndexSize;
+
+	
 	tableIndexSize*=2;
 	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(memoryTable) );
+
+	/* initialize this to a known state */
+	for (count=oldhigh; count < tableIndexSize; count++) {
+		memoryTable[count] = NULL;
+	}
 	/*printf("increasing memory table=%d\n",sizeof(memoryTable));*/
 }
 
@@ -611,9 +629,11 @@ void startOfLoopNodeUpdates(void) {
 	/* go through the node table, and zero any bits of interest */
 	for (i=0; i<nextEntry; i++){		
 		node = X3D_NODE(memoryTable[i]);	
-		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
-		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasSensitiveChildren);
-		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
+		if (node != NULL) {
+			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
+			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasSensitiveChildren);
+			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
+		}
 	}
 
 	/* go through the list of nodes, and "work" on any that need work */
@@ -624,117 +644,118 @@ void startOfLoopNodeUpdates(void) {
 
 	for (i=0; i<nextEntry; i++){		
 		node = X3D_NODE(memoryTable[i]);		
-
-		switch (node->_nodeType) {
-			/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,
-			   eg, "set_spine" and "spine". Here we just copy the fields over, and remove the
-			   "set_" fields. */
-			BEGIN_NODE(IndexedLineSet)
-				EVIN_AND_FIELD_SAME(colorIndex,IndexedLineSet)
-				EVIN_AND_FIELD_SAME(coordIndex,IndexedLineSet)
-			END_NODE
-			BEGIN_NODE(IndexedTriangleFanSet)
-				EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleFanSet)
-				EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleFanSet)
-				EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleFanSet)
-				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleFanSet)
-				EVIN_AND_FIELD_SAME(height,IndexedTriangleFanSet)
-			END_NODE
-			BEGIN_NODE(IndexedTriangleSet)
-				EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleSet)
-				EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleSet)
-				EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleSet)
-				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleSet)
-				EVIN_AND_FIELD_SAME(height,IndexedTriangleSet)
-			END_NODE
-			BEGIN_NODE(IndexedTriangleStripSet)
-				EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleStripSet)
-				EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleStripSet)
-				EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleStripSet)
-				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleStripSet)
-				EVIN_AND_FIELD_SAME(height,IndexedTriangleStripSet)
-			END_NODE
-			BEGIN_NODE(TriangleFanSet)
-				EVIN_AND_FIELD_SAME(colorIndex,TriangleFanSet)
-				EVIN_AND_FIELD_SAME(coordIndex,TriangleFanSet)
-				EVIN_AND_FIELD_SAME(normalIndex,TriangleFanSet)
-				EVIN_AND_FIELD_SAME(texCoordIndex,TriangleFanSet)
-				EVIN_AND_FIELD_SAME(height,TriangleFanSet)
-			END_NODE
-			BEGIN_NODE(TriangleStripSet)
-				EVIN_AND_FIELD_SAME(colorIndex,TriangleStripSet)
-				EVIN_AND_FIELD_SAME(coordIndex,TriangleStripSet)
-				EVIN_AND_FIELD_SAME(normalIndex,TriangleStripSet)
-				EVIN_AND_FIELD_SAME(texCoordIndex,TriangleStripSet)
-				EVIN_AND_FIELD_SAME(height,TriangleStripSet)
-			END_NODE
-			BEGIN_NODE(TriangleSet)
-				EVIN_AND_FIELD_SAME(colorIndex,TriangleSet) 
-				EVIN_AND_FIELD_SAME(coordIndex,TriangleSet) 
-				EVIN_AND_FIELD_SAME(normalIndex,TriangleSet) 
-				EVIN_AND_FIELD_SAME(texCoordIndex,TriangleSet) 
-				EVIN_AND_FIELD_SAME(height,TriangleSet) 
-			END_NODE
-			BEGIN_NODE(ElevationGrid)
-				EVIN_AND_FIELD_SAME(colorIndex,ElevationGrid)
-				EVIN_AND_FIELD_SAME(coordIndex,ElevationGrid)
-				EVIN_AND_FIELD_SAME(normalIndex,ElevationGrid)
-				EVIN_AND_FIELD_SAME(texCoordIndex,ElevationGrid)
-				EVIN_AND_FIELD_SAME(height,ElevationGrid)
-			END_NODE
-			BEGIN_NODE(Extrusion)
-				EVIN_AND_FIELD_SAME(crossSection,Extrusion)
-				EVIN_AND_FIELD_SAME(orientation,Extrusion)
-				EVIN_AND_FIELD_SAME(scale,Extrusion)
-				EVIN_AND_FIELD_SAME(spine,Extrusion)
-			END_NODE
-			BEGIN_NODE(IndexedFaceSet)
-				EVIN_AND_FIELD_SAME(colorIndex,IndexedFaceSet)
-				EVIN_AND_FIELD_SAME(coordIndex,IndexedFaceSet)
-				EVIN_AND_FIELD_SAME(normalIndex,IndexedFaceSet)
-				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedFaceSet)
-				EVIN_AND_FIELD_SAME(height,IndexedFaceSet)
-			END_NODE
-			BEGIN_NODE(GeoElevationGrid)
-				EVIN_AND_FIELD_SAME(height,GeoElevationGrid)
-			END_NODE
-			/* these are actually compiled in by the GeoViewpoint code 
-			BEGIN_NODE(GeoViewpoint)
-				EVIN_AND_FIELD_SAME(orientation,GeoViewpoint) 
-				EVIN_AND_FIELD_SAME(position,GeoViewpoint)
-			END_NODE
-			*/
-
-			/* get ready to mark these nodes as Mouse Sensitive */
-			BEGIN_NODE(PlaneSensor) SIBLING_SENSITIVE(PlaneSensor) END_NODE
-			BEGIN_NODE(SphereSensor) SIBLING_SENSITIVE(SphereSensor) END_NODE
-			BEGIN_NODE(CylinderSensor) SIBLING_SENSITIVE(CylinderSensor) END_NODE
-			BEGIN_NODE(TouchSensor) SIBLING_SENSITIVE(TouchSensor) END_NODE
-			BEGIN_NODE(GeoTouchSensor) SIBLING_SENSITIVE(GeoTouchSensor) END_NODE
-
-			/* Anchor is Mouse Sensitive, AND has Children nodes */
-			BEGIN_NODE(Anchor)
-			ANCHOR_SENSITIVE(Anchor)
-			CHILDREN_NODE(Anchor)
-			END_NODE
-			
-			/* maybe this is the current Viewpoint? */
-			BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
-			BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
-
-			/* does this one possibly have add/removeChildren? */
-			BEGIN_NODE(Group) CHILDREN_NODE(Group) END_NODE
-			BEGIN_NODE(Transform) CHILDREN_NODE(Transform) END_NODE
-			BEGIN_NODE(NurbsGroup) CHILDREN_NODE(NurbsGroup) END_NODE
-			BEGIN_NODE(Contour2D) CHILDREN_NODE(Contour2D) END_NODE
-			BEGIN_NODE(HAnimSite) CHILDREN_NODE(HAnimSite) END_NODE
-			BEGIN_NODE(HAnimSegment) CHILDREN_NODE(HAnimSegment) END_NODE
-			BEGIN_NODE(HAnimJoint) CHILDREN_NODE(HAnimJoint) END_NODE
-			BEGIN_NODE(Billboard) CHILDREN_NODE(Billboard) END_NODE
-			BEGIN_NODE(Collision) CHILDREN_NODE(Collision) END_NODE
-			BEGIN_NODE(Switch) CHILDREN_SWITCH_NODE(Switch) END_NODE
-			BEGIN_NODE(LOD) CHILDREN_LOD_NODE(LOD) END_NODE
-
+		if (node != NULL) {
+			switch (node->_nodeType) {
+				/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,
+				   eg, "set_spine" and "spine". Here we just copy the fields over, and remove the
+				   "set_" fields. */
+				BEGIN_NODE(IndexedLineSet)
+					EVIN_AND_FIELD_SAME(colorIndex,IndexedLineSet)
+					EVIN_AND_FIELD_SAME(coordIndex,IndexedLineSet)
+				END_NODE
+				BEGIN_NODE(IndexedTriangleFanSet)
+					EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleFanSet)
+					EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleFanSet)
+					EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleFanSet)
+					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleFanSet)
+					EVIN_AND_FIELD_SAME(height,IndexedTriangleFanSet)
+				END_NODE
+				BEGIN_NODE(IndexedTriangleSet)
+					EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleSet)
+					EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleSet)
+					EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleSet)
+					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleSet)
+					EVIN_AND_FIELD_SAME(height,IndexedTriangleSet)
+				END_NODE
+				BEGIN_NODE(IndexedTriangleStripSet)
+					EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleStripSet)
+					EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleStripSet)
+					EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleStripSet)
+					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleStripSet)
+					EVIN_AND_FIELD_SAME(height,IndexedTriangleStripSet)
+				END_NODE
+				BEGIN_NODE(TriangleFanSet)
+					EVIN_AND_FIELD_SAME(colorIndex,TriangleFanSet)
+					EVIN_AND_FIELD_SAME(coordIndex,TriangleFanSet)
+					EVIN_AND_FIELD_SAME(normalIndex,TriangleFanSet)
+					EVIN_AND_FIELD_SAME(texCoordIndex,TriangleFanSet)
+					EVIN_AND_FIELD_SAME(height,TriangleFanSet)
+				END_NODE
+				BEGIN_NODE(TriangleStripSet)
+					EVIN_AND_FIELD_SAME(colorIndex,TriangleStripSet)
+					EVIN_AND_FIELD_SAME(coordIndex,TriangleStripSet)
+					EVIN_AND_FIELD_SAME(normalIndex,TriangleStripSet)
+					EVIN_AND_FIELD_SAME(texCoordIndex,TriangleStripSet)
+					EVIN_AND_FIELD_SAME(height,TriangleStripSet)
+				END_NODE
+				BEGIN_NODE(TriangleSet)
+					EVIN_AND_FIELD_SAME(colorIndex,TriangleSet) 
+					EVIN_AND_FIELD_SAME(coordIndex,TriangleSet) 
+					EVIN_AND_FIELD_SAME(normalIndex,TriangleSet) 
+					EVIN_AND_FIELD_SAME(texCoordIndex,TriangleSet) 
+					EVIN_AND_FIELD_SAME(height,TriangleSet) 
+				END_NODE
+				BEGIN_NODE(ElevationGrid)
+					EVIN_AND_FIELD_SAME(colorIndex,ElevationGrid)
+					EVIN_AND_FIELD_SAME(coordIndex,ElevationGrid)
+					EVIN_AND_FIELD_SAME(normalIndex,ElevationGrid)
+					EVIN_AND_FIELD_SAME(texCoordIndex,ElevationGrid)
+					EVIN_AND_FIELD_SAME(height,ElevationGrid)
+				END_NODE
+				BEGIN_NODE(Extrusion)
+					EVIN_AND_FIELD_SAME(crossSection,Extrusion)
+					EVIN_AND_FIELD_SAME(orientation,Extrusion)
+					EVIN_AND_FIELD_SAME(scale,Extrusion)
+					EVIN_AND_FIELD_SAME(spine,Extrusion)
+				END_NODE
+				BEGIN_NODE(IndexedFaceSet)
+					EVIN_AND_FIELD_SAME(colorIndex,IndexedFaceSet)
+					EVIN_AND_FIELD_SAME(coordIndex,IndexedFaceSet)
+					EVIN_AND_FIELD_SAME(normalIndex,IndexedFaceSet)
+					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedFaceSet)
+					EVIN_AND_FIELD_SAME(height,IndexedFaceSet)
+				END_NODE
+				BEGIN_NODE(GeoElevationGrid)
+					EVIN_AND_FIELD_SAME(height,GeoElevationGrid)
+				END_NODE
+				/* these are actually compiled in by the GeoViewpoint code 
+				BEGIN_NODE(GeoViewpoint)
+					EVIN_AND_FIELD_SAME(orientation,GeoViewpoint) 
+					EVIN_AND_FIELD_SAME(position,GeoViewpoint)
+				END_NODE
+				*/
+	
+				/* get ready to mark these nodes as Mouse Sensitive */
+				BEGIN_NODE(PlaneSensor) SIBLING_SENSITIVE(PlaneSensor) END_NODE
+				BEGIN_NODE(SphereSensor) SIBLING_SENSITIVE(SphereSensor) END_NODE
+				BEGIN_NODE(CylinderSensor) SIBLING_SENSITIVE(CylinderSensor) END_NODE
+				BEGIN_NODE(TouchSensor) SIBLING_SENSITIVE(TouchSensor) END_NODE
+				BEGIN_NODE(GeoTouchSensor) SIBLING_SENSITIVE(GeoTouchSensor) END_NODE
+	
+				/* Anchor is Mouse Sensitive, AND has Children nodes */
+				BEGIN_NODE(Anchor)
+				ANCHOR_SENSITIVE(Anchor)
+				CHILDREN_NODE(Anchor)
+				END_NODE
+				
+				/* maybe this is the current Viewpoint? */
+				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
+				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
+	
+				/* does this one possibly have add/removeChildren? */
+				BEGIN_NODE(Group) CHILDREN_NODE(Group) END_NODE
+				BEGIN_NODE(Transform) CHILDREN_NODE(Transform) END_NODE
+				BEGIN_NODE(NurbsGroup) CHILDREN_NODE(NurbsGroup) END_NODE
+				BEGIN_NODE(Contour2D) CHILDREN_NODE(Contour2D) END_NODE
+				BEGIN_NODE(HAnimSite) CHILDREN_NODE(HAnimSite) END_NODE
+				BEGIN_NODE(HAnimSegment) CHILDREN_NODE(HAnimSegment) END_NODE
+				BEGIN_NODE(HAnimJoint) CHILDREN_NODE(HAnimJoint) END_NODE
+				BEGIN_NODE(Billboard) CHILDREN_NODE(Billboard) END_NODE
+				BEGIN_NODE(Collision) CHILDREN_NODE(Collision) END_NODE
+				BEGIN_NODE(Switch) CHILDREN_SWITCH_NODE(Switch) END_NODE
+				BEGIN_NODE(LOD) CHILDREN_LOD_NODE(LOD) END_NODE
+	
+			}
 		}
 
 		/* now, act on this node  for Sensitive nodes. here we tell the PARENTS that they are sensitive */
