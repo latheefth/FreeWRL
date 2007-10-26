@@ -581,6 +581,16 @@ void zeroVisibilityFlag(void) {
 				childrenPtr = &((struct X3D_##thistype *)node)->level; \
 			}
 
+#define EVIN_AND_FIELD_SAME(thisfield, thistype) \
+			if ((((struct X3D_##thistype *)node)->set_##thisfield.n) > 0) { \
+				((struct X3D_##thistype *)node)->thisfield.n = 0; \
+				FREE_IF_NZ (((struct X3D_##thistype *)node)->thisfield.p); \
+				((struct X3D_##thistype *)node)->thisfield.p = ((struct X3D_##thistype *)node)->set_##thisfield.p; \
+				((struct X3D_##thistype *)node)->thisfield.n = ((struct X3D_##thistype *)node)->set_##thisfield.n; \
+				((struct X3D_##thistype *)node)->set_##thisfield.n = 0; \
+				((struct X3D_##thistype *)node)->set_##thisfield.p = NULL; \
+			} 
+
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Node* parents;
@@ -616,6 +626,84 @@ void startOfLoopNodeUpdates(void) {
 		node = X3D_NODE(memoryTable[i]);		
 
 		switch (node->_nodeType) {
+			/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,
+			   eg, "set_spine" and "spine". Here we just copy the fields over, and remove the
+			   "set_" fields. */
+			BEGIN_NODE(IndexedLineSet)
+				EVIN_AND_FIELD_SAME(colorIndex,IndexedLineSet)
+				EVIN_AND_FIELD_SAME(coordIndex,IndexedLineSet)
+			END_NODE
+			BEGIN_NODE(IndexedTriangleFanSet)
+				EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleFanSet)
+				EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleFanSet)
+				EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleFanSet)
+				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleFanSet)
+				EVIN_AND_FIELD_SAME(height,IndexedTriangleFanSet)
+			END_NODE
+			BEGIN_NODE(IndexedTriangleSet)
+				EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleSet)
+				EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleSet)
+				EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleSet)
+				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleSet)
+				EVIN_AND_FIELD_SAME(height,IndexedTriangleSet)
+			END_NODE
+			BEGIN_NODE(IndexedTriangleStripSet)
+				EVIN_AND_FIELD_SAME(colorIndex,IndexedTriangleStripSet)
+				EVIN_AND_FIELD_SAME(coordIndex,IndexedTriangleStripSet)
+				EVIN_AND_FIELD_SAME(normalIndex,IndexedTriangleStripSet)
+				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedTriangleStripSet)
+				EVIN_AND_FIELD_SAME(height,IndexedTriangleStripSet)
+			END_NODE
+			BEGIN_NODE(TriangleFanSet)
+				EVIN_AND_FIELD_SAME(colorIndex,TriangleFanSet)
+				EVIN_AND_FIELD_SAME(coordIndex,TriangleFanSet)
+				EVIN_AND_FIELD_SAME(normalIndex,TriangleFanSet)
+				EVIN_AND_FIELD_SAME(texCoordIndex,TriangleFanSet)
+				EVIN_AND_FIELD_SAME(height,TriangleFanSet)
+			END_NODE
+			BEGIN_NODE(TriangleStripSet)
+				EVIN_AND_FIELD_SAME(colorIndex,TriangleStripSet)
+				EVIN_AND_FIELD_SAME(coordIndex,TriangleStripSet)
+				EVIN_AND_FIELD_SAME(normalIndex,TriangleStripSet)
+				EVIN_AND_FIELD_SAME(texCoordIndex,TriangleStripSet)
+				EVIN_AND_FIELD_SAME(height,TriangleStripSet)
+			END_NODE
+			BEGIN_NODE(TriangleSet)
+				EVIN_AND_FIELD_SAME(colorIndex,TriangleSet) 
+				EVIN_AND_FIELD_SAME(coordIndex,TriangleSet) 
+				EVIN_AND_FIELD_SAME(normalIndex,TriangleSet) 
+				EVIN_AND_FIELD_SAME(texCoordIndex,TriangleSet) 
+				EVIN_AND_FIELD_SAME(height,TriangleSet) 
+			END_NODE
+			BEGIN_NODE(ElevationGrid)
+				EVIN_AND_FIELD_SAME(colorIndex,ElevationGrid)
+				EVIN_AND_FIELD_SAME(coordIndex,ElevationGrid)
+				EVIN_AND_FIELD_SAME(normalIndex,ElevationGrid)
+				EVIN_AND_FIELD_SAME(texCoordIndex,ElevationGrid)
+				EVIN_AND_FIELD_SAME(height,ElevationGrid)
+			END_NODE
+			BEGIN_NODE(Extrusion)
+				EVIN_AND_FIELD_SAME(crossSection,Extrusion)
+				EVIN_AND_FIELD_SAME(orientation,Extrusion)
+				EVIN_AND_FIELD_SAME(scale,Extrusion)
+				EVIN_AND_FIELD_SAME(spine,Extrusion)
+			END_NODE
+			BEGIN_NODE(IndexedFaceSet)
+				EVIN_AND_FIELD_SAME(colorIndex,IndexedFaceSet)
+				EVIN_AND_FIELD_SAME(coordIndex,IndexedFaceSet)
+				EVIN_AND_FIELD_SAME(normalIndex,IndexedFaceSet)
+				EVIN_AND_FIELD_SAME(texCoordIndex,IndexedFaceSet)
+				EVIN_AND_FIELD_SAME(height,IndexedFaceSet)
+			END_NODE
+			BEGIN_NODE(GeoElevationGrid)
+				EVIN_AND_FIELD_SAME(height,GeoElevationGrid)
+			END_NODE
+			/* these are actually compiled in by the GeoViewpoint code 
+			BEGIN_NODE(GeoViewpoint)
+				EVIN_AND_FIELD_SAME(orientation,GeoViewpoint) 
+				EVIN_AND_FIELD_SAME(position,GeoViewpoint)
+			END_NODE
+			*/
 
 			/* get ready to mark these nodes as Mouse Sensitive */
 			BEGIN_NODE(PlaneSensor) SIBLING_SENSITIVE(PlaneSensor) END_NODE

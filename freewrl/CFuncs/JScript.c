@@ -697,7 +697,8 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 			printf ("in fieldSet, we have ElementRowSize %d and individual elements %d\n",rows,elements);
 			#endif
 
-			smallfield = MALLOC ( (elements*15) + 100);
+			/* make this at least as large as required, then add some more on to the end... */
+			smallfield = MALLOC (rows*((elements*15) + 100));
 
 			/* what is the equivalent SF for this MF?? */
 			if (type != convertToSFType(type)) haveMulti = TRUE;

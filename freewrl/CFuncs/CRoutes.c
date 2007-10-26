@@ -1067,6 +1067,7 @@ void CRoutes_Register(
 	#endif
 }
 
+#ifdef DEBUG_VALIDNODE
 /* only if DEBUG_VALIDNODE is defined; helps us find memory/routing problems */
 void mark_event_check (struct X3D_Node *from, unsigned int totalptr, char *fn, int line) {
 	printf ("mark_event_check: at %s:%d\n",fn,line);
@@ -1080,6 +1081,7 @@ void mark_event_check (struct X3D_Node *from, unsigned int totalptr, char *fn, i
 	mark_event(from,totalptr);
 	printf ("mark_event_check: finished at %s:%d\n",fn,line); 
 }
+#endif
 	
 /********************************************************************
 

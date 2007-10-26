@@ -125,7 +125,7 @@ void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 /* Get "offset" data for routing */
 int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 {
- return JSparamIndex(me->name, me->type);
+ return JSparamIndex((char *)me->name, (char *)me->type);
 }
 
 /* Initialize JSField */
@@ -225,7 +225,7 @@ BOOL script_initCode(struct Script* me, const char* code)
  jsval jsret;
  assert(!me->loaded);
 
- if(!ActualrunScript(me->num, code, &jsret))
+ if(!ActualrunScript(me->num, (char *)code, &jsret))
   return FALSE;
 
  me->loaded=TRUE;
@@ -278,7 +278,7 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  removeFilenameFromPath (mypath);
 
  /* add the two together */
- makeAbsoluteFileName(filename,mypath,uri);
+ makeAbsoluteFileName(filename,mypath,(char *)uri);
 
  /* and see if it exists. If it does, try running script_initCode() on it */
  if (fileExists(filename,firstBytes,TRUE)) {

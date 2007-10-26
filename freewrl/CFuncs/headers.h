@@ -36,6 +36,7 @@ void *freewrlStrdup (int line, char *file, char *str);
 	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 #endif
 
+#define ID_UNDEFINED -1
 
 /* Perl was used for parsing. The runtime ideas work very well - so lets just try and keep
 them around */
@@ -1241,8 +1242,6 @@ void setEaiVerbose();
 void replaceWorldNeeded(char* str);
 
 /* X3D C parser */
-int initializeX3DParser (void);
-void shutdownX3DParser (void);
 int X3DParse (struct X3D_Group *parent, char *inputstring);
 void *createNewX3DNode (int nt);
 

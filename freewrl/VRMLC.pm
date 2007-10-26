@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.277  2007/10/26 16:35:38  crc_canada
+# XML encoded parsing changes
+#
 # Revision 1.276  2007/10/18 20:09:59  crc_canada
 # changes that affect warnings on compiling.
 #
@@ -626,7 +629,7 @@ sub gen {
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
-	"#define DEBUG_VALIDNODE\n".
+	"#undef DEBUG_VALIDNODE\n".
 	"#ifdef DEBUG_VALIDNODE	\n".
 	"#define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)\n".
 	"#define MARK_EVENT(node,offset) mark_event_check(node,offset,__FILE__,__LINE__)\n".

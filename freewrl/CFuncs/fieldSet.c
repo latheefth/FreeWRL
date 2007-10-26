@@ -543,11 +543,15 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	    findFieldInOFFSETS (NODE_OFFSETS[node->_nodeType], fieldNamesIndex,\
 	      &a, &b, &c); \
 	    /* did this return any of the ints as != -1? */ \
-	    /*printf ("     findRoutedField for field %s, nodetype %s is %d\n",  \
-	      fld,stringNodeType(node->_nodeType),a);*/ \
+	    /* printf ("     findRoutedField for field %s, nodetype %s is %d\n",  fld,stringNodeType(node->_nodeType),a); */ \
 	    if (a >= 0) return retval;  /* found it! */ \
 	  } \
 	} 
+
+	/* step try the field as is. */
+	retval = findFieldInARR(field, arr, cnt);
+	/* printf ("findRoutedField, field %s retval %d\n",field,retval); */ 
+	FIELDCHECK (field)
 
 	/* try removing the "set_" or "_changed" */
 	/* XXX: Not checking if substring is really "set_" or "_changed"! */
@@ -561,11 +565,9 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 			retval = findFieldInARR(mychar, arr, cnt);
 		}
 	}
+	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval); */
 	FIELDCHECK (mychar)
 
-	/* step 2. try the field as is. */
-	retval = findFieldInARR(field, arr, cnt);
-	FIELDCHECK (field)
 
 	return retval;
 }

@@ -120,7 +120,7 @@ int URLLoaded=FALSE;
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
 
-static int haveParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
+static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
 				   as destroyCParserData can segfault otherwise */
 
 void initializeInputParseThread(void) {
@@ -473,10 +473,10 @@ void EAI_killBindables (void) {
 	UNLOCK;
 
 	/* and, reset our stack pointers */
-	background_tos = -1;
-	fog_tos = -1;
-	navi_tos = -1;
-	viewpoint_tos = -1;
+	background_tos = ID_UNDEFINED;
+	fog_tos = ID_UNDEFINED;
+	navi_tos = ID_UNDEFINED;
+	viewpoint_tos = ID_UNDEFINED;
 }
 
 /* interface for creating VRML for EAI */
@@ -656,9 +656,9 @@ void _inputParseThread(void) {
 
 		case ZEROBINDABLES: 
 			/* for the VRML parser */
-			if (haveParsed) {
+			if (haveParsedCParsed) {
 				destroyCParserData(globalParser);
-				haveParsed = FALSE;
+				haveParsedCParsed = FALSE;
 			}
 
 			/* for the X3D Parser */
@@ -876,7 +876,7 @@ void __pt_doStringUrl () {
 
 	
 	if (psp.zeroBind) {
-		if (haveParsed) {
+		if (haveParsedCParsed) {
 			destroyCParserData(globalParser);
 			kill_bindables();
 		}
@@ -889,7 +889,6 @@ void __pt_doStringUrl () {
 
 		/* look to see if this is X3D */
 		if (ifIsX3D(psp.inp)) {
-			initializeX3DParser ();
 			if (!X3DParse (nRn, psp.inp)) {
 				ConsoleMessage ("Parse Unsuccessful");
 
@@ -898,8 +897,8 @@ void __pt_doStringUrl () {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			haveParsedCParsed = TRUE;
 		}
-		haveParsed = TRUE;
 
 	} else if (psp.type==FROMURL) {
 
@@ -913,7 +912,6 @@ void __pt_doStringUrl () {
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 
 		if (ifIsX3D(buffer)) {
-			initializeX3DParser ();
 			if (!X3DParse (nRn, buffer)) {
 				ConsoleMessage ("Parse Unsuccessful");
 
@@ -922,8 +920,8 @@ void __pt_doStringUrl () {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
+			haveParsedCParsed = TRUE;
 		}
-		haveParsed = TRUE;
 		FREE_IF_NZ (buffer); 
 		FREE_IF_NZ(ctmp);
 
@@ -931,7 +929,6 @@ void __pt_doStringUrl () {
 	} else if (psp.type==FROMCREATENODE) {
 		/* look to see if this is X3D */
 		if (ifIsX3D(psp.inp)) {
-			initializeX3DParser ();
 			if (!X3DParse (nRn, psp.inp)) {
 				ConsoleMessage ("Parse Unsuccessful");
 
@@ -940,8 +937,8 @@ void __pt_doStringUrl () {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			haveParsedCParsed = TRUE;
 		}
-		haveParsed = TRUE;
 	
 	} else {
 		/* this will be a proto expansion, because otherwise the EAI code
@@ -949,7 +946,6 @@ void __pt_doStringUrl () {
 		/* lets try this - same as FROMSTRING above... */
 		/* look to see if this is X3D */
 		if (ifIsX3D(psp.inp)) {
-			initializeX3DParser ();
 			if (!X3DParse (nRn, psp.inp)) {
 				ConsoleMessage ("Parse Unsuccessful");
 
@@ -958,8 +954,8 @@ void __pt_doStringUrl () {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			haveParsedCParsed = TRUE;
 		}
-		haveParsed = TRUE;
 	
 	}
 	

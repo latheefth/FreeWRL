@@ -1,4 +1,9 @@
 For 1.20.0:
+	- changed routing to nodes. with an eventIn the same as an internal field. (eg,
+	  Extrusion set_spine and spine). Now these fields are handled before eventloop runs.
+
+	- Javascript field initialization bug - (memory allocation problem) fixed.
+
 	- Linux MIDI code added.
 
 	- SpotLight - bounds checking on some parameters added.

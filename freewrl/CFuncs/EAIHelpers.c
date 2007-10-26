@@ -305,7 +305,7 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 		if (myField == -1) 
 			myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,1);
 	}
-	myofs = NODE_OFFSETS[nodePtr->_nodeType];
+	myofs = (int *)NODE_OFFSETS[nodePtr->_nodeType];
 
 	/* find offsets, etc */
        	findFieldInOFFSETS(myofs, myField, &myFieldOffs, &ctype, accessType);
