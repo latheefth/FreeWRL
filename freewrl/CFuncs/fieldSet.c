@@ -48,7 +48,9 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 	/* is this a valid field? */
 	foffset = findRoutedFieldInFIELDNAMES(node,field,1);	
 	if (foffset < 0) {
-		printf ("setField_fromJavascript, field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
+		ConsoleMessage ("field %s is not a valid field of a node %s",field,stringNodeType(node->_nodeType));
+		printf ("field %s is not a valid field of a node %s\n",field,stringNodeType(node->_nodeType));
+		return;
 	}
 
 	/* get offsets for this field in this nodeType */
