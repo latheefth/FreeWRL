@@ -19,19 +19,35 @@ if (($JAVAC eq "") || ($JAR eq "")) {
 	$JAVAC = "";
 }
 
-# some versions of Linux require the command 
-#chcon -t texrel_shlib_t /usr/lib/libFreeWRL*so to be run.
-
-my $CHCON = `which chcon`;
-if ($CHCON eq "") {print "chcon command not on system; will NOT run it on install.\n";}
-if ($CHCON ne "") {print "chcon command found, will run it on install.\n";}
-$CHCON =~ s/\s+$//;
-
 # remove whitespace at beginning and end.
 $OS =~ s/\s+$//;
 $OS =~ s/^\s+//;
 
-print "\n";
+# Detect if SELinux is activated
+my $SELINUX = "NO";
+if ($OS eq "Linux") {
+	if (-e "/etc/selinux/config") {
+		my $selinux = `grep ^SELINUX= /etc/selinux/config 2>/dev/null`;
+		chomp($selinux);
+		$selinux =~ s/^SELINUX=//;
+		if ($selinux eq "enforcing") {
+			$SELINUX = "YES";
+		}
+	}
+}
+print "SELINUX=$SELINUX\n";
+
+# Some versions of Linux require the command 
+# chcon -t texrel_shlib_t /usr/lib/libFreeWRL*so to be run.
+# If SELinux is activated, search for chcon
+my $CHCON = "";
+if ($SELINUX eq "YES") {
+	$CHCON = `which chcon`;
+	if ($CHCON eq "") {print "chcon command not on system; will NOT run it on install.\n";}
+	if ($CHCON ne "") {print "chcon command found, will run it on install.\n";}
+	$CHCON =~ s/\s+$//;
+}
+
 if ($OS eq "Darwin") { print "This install is running on an Apple OS X computer\n";
 } elsif ($OS eq "Linux") { print "This install is running on a Linux based computer\n";
 } else { print "The uname command returned $OS - dont know what platform - assuming Linux\n"; }
@@ -39,9 +55,7 @@ if ($OS eq "Darwin") { print "This install is running on an Apple OS X computer\
 # create the generated code/header files.
 system "perl VRMLC.pm";
 
-
 use Cwd qw(getcwd chdir);
-
 
 # get the correct.conf file.
 if ($OS eq "Darwin") {
@@ -324,9 +338,6 @@ sub writeMakefileFinalTargets() {
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
 		}
-		if ($HAVE_UBUNTU eq "NO") {
-			print MK "\t/sbin/ldconfig\n";
-		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
 		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
@@ -594,7 +605,6 @@ sub writeMakeDebAndRpm () {
 		print MK "\techo \"%install\" >> $specfile\n";
 		print MK "\techo \"make install\" >> $specfile\n";
 		print MK "\techo \"%post\" >> $specfile\n";
-		print MK "\techo \"\/sbin\/ldconfig\" >> $specfile\n";
 		print MK "\techo \"%clean\" >> $specfile\n";
 		print MK "\techo \"%files\" >> $specfile\n";
 		print MK "\techo \"%defattr(-,root,root)\" >> $specfile\n";
@@ -665,9 +675,6 @@ sub writeMakefileDistclean() {
 	if ($OS eq "Linux") {
 		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
 		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
-		if ($HAVE_UBUNTU eq "NO") {
-			print MK "\t/sbin/ldconfig\n";
-		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
 		print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
