@@ -36,7 +36,7 @@ void kill_rendering(void);
 void kill_X3DNodes(void);
 void createdMemoryTable();
 void increaseMemoryTable();
-static uintptr_t * memoryTable = NULL;
+static struct X3D_Node ** memoryTable = NULL;
 static int nodeNumber = 0;
 static int tableIndexSize = ID_UNDEFINED;
 static int nextEntry = 0;
@@ -52,6 +52,14 @@ int displayDepth = 24;
 
 float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
 int cc_changed = FALSE;
+
+pthread_mutex_t  memtablelock = PTHREAD_MUTEX_INITIALIZER;
+/*
+#define LOCK_MEMORYTABLE
+#define UNLOCK_MEMORYTABLE
+*/
+#define LOCK_MEMORYTABLE 		pthread_mutex_lock(&memtablelock);
+#define UNLOCK_MEMORYTABLE		pthread_mutex_unlock(&memtablelock);
 
 /******************************************************************/
 /* textureTransforms of all kinds */
@@ -412,7 +420,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 			globalParser = NULL;
 		}
 
-
 	        /* tell statusbar that we have none */
 	        viewer_default();
 	        setMenuStatus("NONE");
@@ -439,8 +446,11 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 	if (node == forgottenNode) return TRUE;
 
+
+	LOCK_MEMORYTABLE
 	for (tc = 0; tc< nextEntry; tc++)
-		if (memoryTable[tc] == (uintptr_t)node) return TRUE;
+		if (memoryTable[tc] == node) return TRUE;
+	UNLOCK_MEMORYTABLE
 
 	printf ("checkNode: did not find %d in memory table at i%s %d\n",node,fn,line);
 
@@ -450,6 +460,7 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 /*keep track of node created*/
 void registerX3DNode(struct X3D_Node * tmp){	
+	LOCK_MEMORYTABLE
 	/*printf("nextEntry=%d	",nextEntry); printf("tableIndexSize=%d \n",tableIndexSize);*/
 	/*is table to small give us some leeway in threads */
 	if (nextEntry >= (tableIndexSize-10)){
@@ -461,24 +472,27 @@ void registerX3DNode(struct X3D_Node * tmp){
 		}
 	}
 	/*adding node in table*/	
-	memoryTable[nextEntry] = (uintptr_t) tmp;
+	memoryTable[nextEntry] = tmp;
 	nextEntry+=1;
+	UNLOCK_MEMORYTABLE
 }
 
 /*We don't register the first node created for reload reason*/
 void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
-	if((uintptr_t)nodePtr==(memoryTable[nextEntry-1])){
+	LOCK_MEMORYTABLE
+	if(nodePtr==(memoryTable[nextEntry-1])){
 		nextEntry-=1;
 		forgottenNode = nodePtr;
-	}
+	}	
+	UNLOCK_MEMORYTABLE
 }
 
 /*creating node table*/
 void createdMemoryTable(){
 	int count;
 
-	tableIndexSize=5000;
-	memoryTable = MALLOC(tableIndexSize * sizeof(uintptr_t));
+	tableIndexSize=50;
+	memoryTable = MALLOC(tableIndexSize * sizeof(struct X3D_Node*));
 
 	/* initialize this to a known state */
 	for (count=0; count < tableIndexSize; count++) {
@@ -495,7 +509,7 @@ void increaseMemoryTable(){
 
 	
 	tableIndexSize*=2;
-	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(memoryTable) );
+	memoryTable = REALLOC (memoryTable, tableIndexSize * sizeof(struct X3D_Node*) );
 
 	/* initialize this to a known state */
 	for (count=oldhigh; count < tableIndexSize; count++) {
@@ -512,6 +526,8 @@ void zeroVisibilityFlag(void) {
 
 	ocnum=-1;
 
+ 	LOCK_MEMORYTABLE
+
 	/* do we have GL_ARB_occlusion_query, or are we still parsing Textures? */
 	if ((OccFailed) || isTextureParsing()) {
 
@@ -520,13 +536,13 @@ void zeroVisibilityFlag(void) {
 		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
 		   and hope that, sometime, the user gets a good computer graphics card */
 		for (i=0; i<nextEntry; i++){		
-			node = X3D_NODE(memoryTable[i]);	
+			node = memoryTable[i];	
 			node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
 		}	
 	} else {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<nextEntry; i++){		
-			node = X3D_NODE(memoryTable[i]);		
+			node = memoryTable[i];		
 			/* printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); */
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
 	
@@ -541,8 +557,9 @@ void zeroVisibilityFlag(void) {
 				ocnum=-1;
 			
 			}
-		}			
+		}		
 	}
+	UNLOCK_MEMORYTABLE
 }
 
 /* go through the linear list of nodes, and do "special things" for special nodes, like
@@ -628,9 +645,11 @@ void startOfLoopNodeUpdates(void) {
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
 
+	LOCK_MEMORYTABLE
+
 	/* go through the node table, and zero any bits of interest */
 	for (i=0; i<nextEntry; i++){		
-		node = X3D_NODE(memoryTable[i]);	
+		node = memoryTable[i];	
 		if (node != NULL) {
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasSensitiveChildren);
@@ -645,7 +664,7 @@ void startOfLoopNodeUpdates(void) {
 	anchorPtr = NULL;
 
 	for (i=0; i<nextEntry; i++){		
-		node = X3D_NODE(memoryTable[i]);		
+		node = memoryTable[i];		
 		if (node != NULL) {
 			switch (node->_nodeType) {
 				/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,
@@ -813,6 +832,8 @@ void startOfLoopNodeUpdates(void) {
 		}
 	}
 
+	UNLOCK_MEMORYTABLE
+
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (viewpoint_stack[viewpoint_tos] != 0) {
 		update_renderFlag(X3D_NODE(viewpoint_stack[viewpoint_tos]), VF_Viewpoint);
@@ -842,9 +863,10 @@ void kill_X3DNodes(void){
 	uintptr_t * VPtr;
 	struct Uni_String *MyS;
 
+	LOCK_MEMORYTABLE
 	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
-		structptr = X3D_NODE(memoryTable[i]);		
+		structptr = memoryTable[i];		
 		/* printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);
 		printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType));  */
 
@@ -937,12 +959,13 @@ void kill_X3DNodes(void){
 			fieldOffsetsPtr+=4;	
 		}
 		FREE_IF_NZ(memoryTable[i]);
-		memoryTable[i]=0;
+		memoryTable[i]=NULL;
 	}
 	FREE_IF_NZ(memoryTable);
 	memoryTable=NULL;
 	tableIndexSize=0;
 	nextEntry=0;
+	UNLOCK_MEMORYTABLE
 }
 
 
