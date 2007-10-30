@@ -456,6 +456,8 @@ void EventLoop() {
 			/* were we over a sensitive node? */
 			if (oldCOS!=0) {
 				sendSensorEvents(X3D_NODE(oldCOS),MapNotify,ButDown[1], FALSE);
+				/* remove any display on-screen */
+				sendDescriptionToStatusBar(NULL);
 				oldCOS=0;
 			}
 		}

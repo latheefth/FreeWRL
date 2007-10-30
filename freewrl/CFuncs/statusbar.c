@@ -1,5 +1,5 @@
 /*
- * Copyright(C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart. CRC Canada.
+ * Copyright(C) 1998 Tuomas J. Lukka, 2001, 2002, 2007 John Stewart. CRC Canada.
  * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
  * distribution) for details.
  */
@@ -11,7 +11,7 @@
 
 /* DO NOT CHANGE THESE DEFINES WITHOUT CHECKING THE USE OF THE CODE, BELOW */
 #define PROX "ProximitySensor { size 1000 1000 1000 }"
-#define TEXT "Transform{translation 0 0 10 children[Collision{collide FALSE children [Transform{scale 0.4 0.8 0.8 translation 0 -0.1 -.2 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+#define TEXT "Transform{translation 0 0 10 children[Collision{collide FALSE children [Transform{scale 0.1 0.1 1 translation 0 -0.024  0 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
 
 
 
