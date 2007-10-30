@@ -91,8 +91,8 @@ void get_collisionoffset(double *x, double *y, double *z);
 /* Sensor table. When clicked, we get back from getRayHit the fromnode,
 	have to look up type and data in order to properly handle it */
 struct SensStruct {
-	void *fromnode;
-	void *datanode;
+	struct X3D_Node *fromnode;
+	struct X3D_Node *datanode;
 	void (*interpptr)(void *, int, int, int);
 };
 struct SensStruct *SensorEvents = 0;
@@ -140,6 +140,7 @@ int trisThisLoop;
 int HaveSensitive = FALSE;
 
 /* Function protos */
+void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 void do_keyPress(char kp, int type);
 void render_collisions(void);
 void render_pre(void);
@@ -150,7 +151,7 @@ void XEventStereo(void);
 void EventLoop(void);
 unsigned char*  getRayHit(void);
 void get_hyperhit(void);
-void sendSensorEvents(unsigned char *COS,int ev, int butStatus, int status);
+void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
 Boolean firstTime;
 Boolean pluginRunning;
 Boolean inLoop;
@@ -395,24 +396,24 @@ void EventLoop() {
 			/* printf ("Not Navigation and 1 down\n"); */
 			/* send an event of ButtonPress and isOver=true */
 			lastPressedOver = CursorOverSensitive;
-			sendSensorEvents(lastPressedOver, ButtonPress, ButDown[1], TRUE);
+			sendSensorEvents(X3D_NODE(lastPressedOver), ButtonPress, ButDown[1], TRUE);
 		}
 
 		if ((ButDown[1]==0) && lastPressedOver!=0) {
 			/* printf ("Not Navigation and 1 up\n"); */
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
-			sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
+			sendSensorEvents(X3D_NODE(lastPressedOver), ButtonRelease, ButDown[1], TRUE);
 			lastPressedOver = 0;
 		}
 
 		if (lastMouseEvent == MotionNotify) {
 			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
 			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-			sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[1], TRUE);
+			sendSensorEvents(X3D_NODE(CursorOverSensitive),MotionNotify, ButDown[1], TRUE);
 
 			/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-			sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
+			sendSensorEvents(X3D_NODE(lastPressedOver),MotionNotify, ButDown[1], TRUE);
 		}
 
 
@@ -429,9 +430,11 @@ void EventLoop() {
 			/* is this a new node that we are now over?
 			   don't change the node pointer if we are clicked down */
 			if ((lastPressedOver==0) && (CursorOverSensitive != oldCOS)) {
-				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
-				sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[1], TRUE);
+				sendSensorEvents(X3D_NODE(oldCOS),MapNotify,ButDown[1], FALSE);
+				sendSensorEvents(X3D_NODE(CursorOverSensitive),MapNotify,ButDown[1], TRUE);
 				oldCOS=CursorOverSensitive;
+
+				sendDescriptionToStatusBar(X3D_NODE(CursorOverSensitive));
 			}
 
 		} else {
@@ -452,7 +455,7 @@ void EventLoop() {
 
 			/* were we over a sensitive node? */
 			if (oldCOS!=0) {
-				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+				sendSensorEvents(X3D_NODE(oldCOS),MapNotify,ButDown[1], FALSE);
 				oldCOS=0;
 			}
 		}
@@ -933,7 +936,7 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 
 /* we have a sensor event changed, look up event and do it */
 /* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
-void sendSensorEvents(unsigned char * COS,int ev, int butStatus, int status) {
+void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
 	int count;
 
 
@@ -1227,22 +1230,9 @@ void initFreewrl() {
 
 		/*remove this node from the deleting list*/
                 doNotRegisterThisNodeForDestroy(rootNode);
-
-		/* create the statusbar nodes */
-		/*
-		#ifndef AQUA
-		statusbar_init();
-		#endif
-		*/
 	}
 
-	/*
-	#ifdef AQUA 
-	statusbar_init();
-	#endif
-	*/
 	
-
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
 	if (BrowserFullPath != NULL) 
 		if (strlen(BrowserFullPath) > 1) 
@@ -1259,10 +1249,8 @@ void closeFreewrl() {
         struct X3D_Group* rn;
 	int i;
 
-	#ifdef AQUA
-/*
 	clear_status();
-*/
+	#ifdef AQUA
 	pluginRunning = FALSE;
 	kill_clockEvents();
 	EAI_killBindables();
@@ -1700,3 +1688,33 @@ void replaceWorldNeeded(char* str) {
 	replaceWorld= TRUE; 
 }
 
+
+/* send the description to the statusbar line */
+void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
+	int tmp;
+	char *ns;
+
+	if (CursorOverSensitive == NULL) update_status ("");
+	else {
+
+		ns = "(over sensitive)";
+		for (tmp=0; tmp<num_SensorEvents; tmp++) {
+			if (SensorEvents[tmp].fromnode == CursorOverSensitive) {
+				switch (SensorEvents[tmp].datanode->_nodeType) {
+					case NODE_Anchor: ns = ((struct X3D_Anchor *)SensorEvents[tmp].datanode)->description->strptr; break;
+					case NODE_PlaneSensor: ns = ((struct X3D_PlaneSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
+					case NODE_SphereSensor: ns = ((struct X3D_SphereSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
+					case NODE_TouchSensor: ns = ((struct X3D_TouchSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
+					case NODE_GeoTouchSensor: ns = ((struct X3D_GeoTouchSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
+					case NODE_CylinderSensor: ns = ((struct X3D_CylinderSensor *)SensorEvents[tmp].datanode)->description->strptr; break;
+				default: {}
+				}
+				/* if there is no description, put the node type on the screen */
+				if (ns[0] == '\0') ns = stringNodeType(SensorEvents[tmp].datanode->_nodeType);
+	
+				/* send this string to the screen */
+				update_status(ns);
+			}
+		}
+	}
+}
