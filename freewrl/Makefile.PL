@@ -72,14 +72,14 @@ if ($OS eq "Darwin") {
 	my ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile) = linux_system_info();
 print "specfile $specfile\n";
 
-	# is this an Ubuntu distro?? 
-	if (substr($osname,0,6) eq "Ubuntu") {
-		$HAVE_UBUNTU = "YES";
-		require './vrml.conf.ubuntu';
-		print "using \"vrml.conf.ubuntu\" for config variables\n";
+# 	# is this an Ubuntu distro?? 
+# 	if (substr($osname,0,6) eq "Ubuntu") {
+# 		$HAVE_UBUNTU = "YES";
+# 		require './vrml.conf.ubuntu';
+# 		print "using \"vrml.conf.ubuntu\" for config variables\n";
 
-	# we can use the generic distros for the architecture.
-	} else {
+# 	# we can use the generic distros for the architecture.
+# 	} else {
 		if ($ARCH eq "x86_64") {
 			# 64 bit architecture.
 			require './vrml.conf.x86_64';
@@ -89,7 +89,7 @@ print "specfile $specfile\n";
 			require './vrml.conf';
 			printf "using \"vrml.conf\" for config variables\n";
 		}
-	}
+# 	}
 
 	# add these keys for later use when making distribution (rpm) file
 	$VRML_CONFIG{RPMPREFIX} = $rpm_prefix;
@@ -122,30 +122,50 @@ $VRML_CONFIG{PLATFORM} = $OS;
 ## Handle platform-specific compile options for the Javascript engine
 ## and others specific to FreeWRL.
 
-my $jsdir = "js1.5/src";
-my $jsobjdir;
-my $noStackProtector = "";
+my $pg_js = "";
+my $jsCFLAGS = "";
+my $jsLDFLAGS = "";
 
-my @inc;
-my @libs;
-my @ldflags;
-my @jsinc;
-my @jslibs;
-
-
-if ($OS eq  "IRIX64") {
-	$jsobjdir = "$jsdir/IRIX6.5";
-} elsif ($OS eq "Darwin") {
-	$jsobjdir = "$jsdir/Darwin";
-} elsif ($OS eq "SunOS") {
-	$jsobjdir = "$jsdir/SunOS5.8";
-} else { ## linux used by default
-	$jsobjdir = "$jsdir/Linux_All";
+my $pkgconfig = `which pkg-config`;
+if ($pkgconfig eq "") {
+    print "No pkg-config in PATH\n";
+} else {
+    $pg_js = `pkg-config --cflags xulrunner-js 2>0`;
+    chomp($pg_js);
 }
 
-#location of the spidermonkey js engine.
-$jsobjdir .= "_OPT.OBJ";
-my $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
+if ($pg_js eq "") {
+    my $jsdir = "js1.5/src";
+    my $jsobjdir;
+    my $noStackProtector = "";
+
+    my @inc;
+    my @libs;
+    my @ldflags;
+    my @jsinc;
+    my @jslibs;
+
+
+    if ($OS eq  "IRIX64") {
+	$jsobjdir = "$jsdir/IRIX6.5";
+    } elsif ($OS eq "Darwin") {
+	$jsobjdir = "$jsdir/Darwin";
+    } elsif ($OS eq "SunOS") {
+	$jsobjdir = "$jsdir/SunOS5.8";
+    } else { ## linux used by default
+	$jsobjdir = "$jsdir/Linux_All";
+    }
+
+    #location of the spidermonkey js engine.
+    $jsobjdir .= "_OPT.OBJ";
+    my $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
+}
+else {
+    $jsCFLAGS = $pg_js;
+    $jsLDFLAGS = `pkg-config --libs xulrunner-js 2>0`;
+    chomp($jsLDFLAGS);
+    print "Javascript:\ncflags=$jsCFLAGS\nlibs=$jsLDFLAGS\n";
+}
 
 #print "the javascript engine should be located at: $libFreeWRLjspath\n";
 
@@ -169,10 +189,23 @@ if ($ok eq 0) {
 	print "this system does not use the -fno-stack-protector flag\n";
 }
 
-push @inc, $VRML_CONFIG{FREEWRL_INC}, "-IJS/$jsobjdir", "-IJS/$jsdir", "-ICFuncs -ICFrontEnd ";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-lFreeWRLjs";
+if ($jsCFLAGS eq "") {
+    push @inc, $VRML_CONFIG{FREEWRL_INC}, "-IJS/$jsobjdir", "-IJS/$jsdir", "-ICFuncs -ICFrontEnd ";
+} else {
+    push @inc, $VRML_CONFIG{FREEWRL_INC}, "$jsCFLAGS", "-ICFuncs -ICFrontEnd ";
+}
+if ($jsLDFLAGS eq "") {
+    push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-lFreeWRLjs";
+} else {
+    push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "$jsLDFLAGS";
+}
+
 if ($OS eq "Darwin") {
-push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
+    if ($jsLDFLAGS eq "") {
+    push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
+    } else {
+    push @ldflags, $VRML_CONFIG{LDFLAGS}, "$jsLDFLAGS";
+    }
 }
 
 # push build directory, for running standalone
@@ -233,17 +266,26 @@ writeMakeDebAndRpm();
 writeMakefileDistclean();
 writeMakefileFinalTargets();
 
-print "The Makefile has been generated. Type \"make\" and\/or \"make install\" to build (and install)\n\n";
+# print "The Makefile has been generated. Type \"make\" and\/or \"make install" to build (and install)\n\n";
 
 sub writeAllTarget () {
-	# should edit this line to suit build
-	if ($OS eq "Darwin") {
-		print MK "all: Javascript libFreeWRL CFrontEnd";
-	} else {
-		print MK "all: Javascript libFreeWRL FreeWRL_Message CFrontEnd MIDI";
+	# Javascript library will be build only if $jsLDFLAGS is not empty (= this means
+        # mozjs library was found in system.
+	my $all = "all:";
+	if ($jsLDFLAGS eq "") {
+	    $all = "$all Javascript";
 	}
-	if ($JAVAC ne "") {print MK " JavaClasses Plugin";}
-	if ($VRML_CONFIG{SOUND_ENGINE}) { print MK " SoundEngine"; }
+	$all = "$all libFreeWRL CFrontEnd Plugin";
+	if (!($OS eq "Darwin")) {
+	    $all = "$all FreeWRL_Message MIDI";
+	}
+	if ($JAVAC ne "") {
+	    $all = "$all JavaClasses";
+	}
+	if ($VRML_CONFIG{SOUND_ENGINE}) {
+	    $all = "$all SoundEngine";
+	}
+	print MK $all;
 	print MK "\n";
 }
 
@@ -288,6 +330,9 @@ sub writeMakefileInitialize() {
 	print MK "CC = gcc\n";
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
+	if ($DEBUG) {
+	    $MYDEFINE = "$MYDEFINE -DDEBUG -D_DEBUG -DPLUGINSOCKETVERBOSE";
+	}
 	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
 	#print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
 
@@ -319,56 +364,48 @@ sub writeMakefileFinalTargets() {
 
 	print MK "install:\tall	\n";
 	if ($OS ne "Darwin") {
-		print MK "\tstrip CFrontEnd/freewrl\n";
-		print MK "\tstrip FreeWRL_Msg/FreeWRL_Message\n";
-		print MK "\tstrip MIDI/freewrlReWireServer\n";
-		if ($VRML_CONFIG{SOUND_ENGINE}) { 
-			print MK "\tstrip SoundEngine/FreeWRL_SoundServer\n";
-		}
-		print MK "\tinstall -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
-		print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
-		print MK "\tinstall -D MIDI/freewrlReWireServer \$(DESTDIR)\$(FRONTEND_DIR)/freewrlReWireServer\n";
-
+		print MK "\tinstall -s -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
+		print MK "\tinstall -s -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
+		print MK "\tinstall -s -D MIDI/freewrlReWireServer \$(DESTDIR)\$(FRONTEND_DIR)/freewrlReWireServer\n";
 	}
 	if ($OS eq "Linux") {
 		print MK "\tinstall -D libFreeWRLFunc.so \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
-		print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
-
+		if (! $jsLDPATH eq "") {
+		    print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
+		}
 		if ($CHCON ne "") {
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
-		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
+		print MK "\tinstall -s -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
-
-	
 	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
-		if ($OS ne "Darwin") {
-			print MK "\tinstall -D java/classes/vrml.jar \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
-			print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
-			if ($CHCON ne "") {
-				print MK "\t-$CHCON -t texrel_shlib_t \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
-			}
-		} else {
-			print MK "\tinstall -d  \$(INSTALL_DIR)\/freewrl\n";
-			print MK "\tinstall java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
+	    if ($OS ne "Darwin") {
+		print MK "\tinstall -D java/classes/vrml.jar \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
+		print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+		if ($CHCON ne "") {
+		    print MK "\t-$CHCON -t texrel_shlib_t \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
 		}
+	    } else {
+		print MK "\tinstall -d \$(INSTALL_DIR)\/freewrl\n";
+		print MK "\tinstall java/classes/vrml.jar \$(INSTALL_DIR)\/freewrl\n";
+	    }
 	}
 	if ($OS ne "Darwin") {
-	print MK "\tinstall -D Desktop/freewrl.png \$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
-	print MK "\tinstall -D Desktop/freewrl.desktop \$(DESTDIR)\$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
-	# we need the 2 installs for the following; the first makes the directory, the second fills it.
-	print MK "\tinstall -d fonts \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall -D fonts/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
+	    print MK "\tinstall -D Desktop/freewrl.png \$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
+	    print MK "\tinstall -D Desktop/freewrl.desktop \$(DESTDIR)\$(INSTALL_DIR)\/applications/freewrl.desktop\n";
+	    # fonts shall not be installed : prefer depends on vera ttf package
+	    #print MK "\tinstall -d fonts \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
+	    #print MK "\tinstall -D fonts/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
 	} else {
-	print MK "\tcp -f freewrl.aquascript /usr/bin/freewrl\n";
-	print MK "\tchmod 755 /usr/bin/freewrl\n";
-	print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall fonts/*.ttf \$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall fonts/*.TXT \$(INSTALL_DIR)/freewrl/fonts\n";
-	print MK "\tinstall fonts/*.conf \$(INSTALL_DIR)/freewrl/fonts\n";
+	    print MK "\tcp -f freewrl.aquascript /usr/bin/freewrl\n";
+	    print MK "\tchmod 755 /usr/bin/freewrl\n";
+	    print MK "\tinstall -d \$(INSTALL_DIR)/freewrl/fonts\n";
+	    print MK "\tinstall fonts/*.ttf \$(INSTALL_DIR)/freewrl/fonts\n";
+	    print MK "\tinstall fonts/*.TXT \$(INSTALL_DIR)/freewrl/fonts\n";
+	    print MK "\tinstall fonts/*.conf \$(INSTALL_DIR)/freewrl/fonts\n";
 	}
 }
 
@@ -383,38 +420,38 @@ sub writeVariables () {
 	print MK "\n\n";
 	
 	if ($OS ne "Darwin") {
-	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
-	print MK "\n#CFrontEnd Make\n";
-	print MK "FESRCS=";
-	foreach my $fullname (@CFrontEndSourceFiles) { print MK "$fullname "; }
-	print MK "\n";
-	print MK "FEOBJS=";
-	foreach my $fullname (@CFrontEndSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
-	print MK "\n\n";
+	    my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
+	    print MK "\n#CFrontEnd Make\n";
+	    print MK "FESRCS=";
+	    foreach my $fullname (@CFrontEndSourceFiles) { print MK "$fullname "; }
+	    print MK "\n";
+	    print MK "FEOBJS=";
+	    foreach my $fullname (@CFrontEndSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
+	    print MK "\n\n";
 	}
 
 	## MIDI sources. Have to link in some files in, and compile them here, but with different flags.
 	if ($OS ne "Darwin") {
-	system ("cp ReWire/EAI_C_Control.c MIDI");
-	system ("cp ReWire/EAI_C_Field.c MIDI");
-	system ("cp ReWire/EAI_C_Internals.c MIDI");
-	system ("cp ReWire/EAI_C_Node.c MIDI");
-	system ("cp ReWire/EAI_C_Advise.c MIDI");
-	system ("cp CFuncs/EAI_C_CommonFunctions.c MIDI");
-	system ("cp ReWire/EAI_C_ReWire.c MIDI");
-	system ("cp ReWire/GeneratedCode.c MIDI");
-	system ("cp ReWire/Eai_C.h MIDI");
-	system ("cp ReWire/GeneratedHeaders.h MIDI");
-	system ("cp ReWire/X3DNode.h MIDI");
-	
-	my @CMIDISourceFiles = split (' ',`ls MIDI/*c`);
-	print MK "\n#CMIDI Make\n";
-	print MK "MIDISRCS=";
-	foreach my $fullname (@CMIDISourceFiles) { print MK "$fullname "; }
-	print MK "\n";
-	print MK "MIDIOBJS=";
-	foreach my $fullname (@CMIDISourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
-	print MK "\n\n";
+	    system ("cp ReWire/EAI_C_Control.c MIDI");
+	    system ("cp ReWire/EAI_C_Field.c MIDI");
+	    system ("cp ReWire/EAI_C_Internals.c MIDI");
+	    system ("cp ReWire/EAI_C_Node.c MIDI");
+	    system ("cp ReWire/EAI_C_Advise.c MIDI");
+	    system ("cp CFuncs/EAI_C_CommonFunctions.c MIDI");
+	    system ("cp ReWire/EAI_C_ReWire.c MIDI");
+	    system ("cp ReWire/GeneratedCode.c MIDI");
+	    system ("cp ReWire/Eai_C.h MIDI");
+	    system ("cp ReWire/GeneratedHeaders.h MIDI");
+	    system ("cp ReWire/X3DNode.h MIDI");
+	    
+	    my @CMIDISourceFiles = split (' ',`ls MIDI/*c`);
+	    print MK "\n#CMIDI Make\n";
+	    print MK "MIDISRCS=";
+	    foreach my $fullname (@CMIDISourceFiles) { print MK "$fullname "; }
+	    print MK "\n";
+	    print MK "MIDIOBJS=";
+	    foreach my $fullname (@CMIDISourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
+	    print MK "\n\n";
 	}
 
 	
@@ -427,36 +464,37 @@ sub writeVariables () {
 	foreach my $fullname (@SoundEngineSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
 
-	if ($OS ne  "Darwin") {
-	print MK "\n#Console Message Files\n";
-	print MK "FWMSRCS=FreeWRL_Msg/FreeWRL_Message.c\n";
-	print MK "FWMOBJS=FreeWRL_Msg/FreeWRL_Message.o\n";
-	print MK "\n\n";
+	if ($OS ne "Darwin") {
+	    print MK "\n#Console Message Files\n";
+	    print MK "FWMSRCS=FreeWRL_Msg/FreeWRL_Message.c\n";
+	    print MK "FWMOBJS=FreeWRL_Msg/FreeWRL_Message.o\n";
+	    print MK "\n\n";
 	}
 	
 	if ($OS ne "Darwin") {
-	print MK "\n#Plugin Files\n";
-	print MK "PLSRCS=Plugin/netscape/source/npfreewrl.c Plugin/netscape/source/common/npunix.c\n";
-	print MK "PLOBJS=Plugin/netscape/source/npfreewrl.o Plugin/netscape/source/common/npunix.o\n";
-	print MK "\n\n";
+	    print MK "\n#Plugin Files\n";
+	    print MK "PLSRCS=Plugin/netscape/source/npfreewrl.c Plugin/netscape/source/common/npunix.c\n";
+	    print MK "PLOBJS=Plugin/netscape/source/npfreewrl.o Plugin/netscape/source/common/npunix.o\n";
+	    print MK "\n\n";
 	}
-	
 }
-
 
 sub writeMakefileLibFreeWRL() {
 	#############################################################################
 	#LIBFREEWRL
 	print MK "\$(LIBFWSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	print MK "libFreeWRL:      \$(LIBFWOBJS)\n";
-	if ($OS eq "Darwin") { 
-	print MK "\t\$(CC) -dynamiclib \$(MYFELIBS) \$(MYLDFLAGS) -o libFreeWRLFunc.dylib  \$(MYLIBS) \$(LIBFWOBJS)\n\n";
+
+	if ($OS eq "Darwin") {
+	    print MK "libFreeWRL: libFreeWRLFunc.dylib\n";
+	    print MK "libFreeWRLFunc.dylib: \$(LIBFWOBJS)\n";
+	    print MK "\t\$(CC) -dynamiclib \$(MYFELIBS) \$(MYLDFLAGS) -o libFreeWRLFunc.dylib \$(MYLIBS) \$(LIBFWOBJS) \n\n";
 	} else {
-	print MK "\t\$(CC) -shared -o libFreeWRLFunc.so \$(LIBFWOBJS)\n\n";
+	    print MK "libFreeWRL: libFreeWRLFunc.so\n";
+	    print MK "libFreeWRLFunc.so: \$(LIBFWOBJS)\n";
+	    print MK "\t\$(CC) -shared -o libFreeWRLFunc.so \$(LIBFWOBJS) \n\n";
 	}
 }
-
 
 sub writeMakefileCfrontend() {
 	#############################################################################
@@ -465,7 +503,8 @@ sub writeMakefileCfrontend() {
 	print MK "\n# make the Unix front end\n";
 	print MK "\$(FESRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	print MK "CFrontEnd:      \$(FEOBJS)\n";
+	print MK "CFrontEnd: CFrontEnd/freewrl\n";
+	print MK "CFrontEnd/freewrl: \$(FEOBJS)\n";
 	print MK "\t\$(CC) \$(FEOBJS) \$(MYFELIBS) -o CFrontEnd/freewrl\n\n";
 	}
 }
@@ -475,13 +514,13 @@ sub writeMakefileSoundEngine() {
 	# SoundEngine
 	# make the sound engine, console message, and frontend if NOT OSX.
 
-	
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
 		print MK "\n# make the Unix sound engine \n";
 		print MK "\$(SESRCS):\n";
 		print MK "\t\$(CC) -c \$*.c\n\n";
-		print MK "SoundEngine:      \$(SEOBJS)\n";
-		print MK "\t\$(CC)  -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(SEOBJS) \$(MYSELIBS)\n\n";
+		print MK "SoundEngine: SoundEngine/FreeWRL_SoundServer\n";
+		print MK "SoundEngine/FreeWRL_SoundServer: \$(SEOBJS)\n";
+		print MK "\t\$(CC) -o SoundEngine/FreeWRL_SoundServer \$(MYLIBS) \$(SEOBJS) \$(MYSELIBS)\n\n";
 	}
 }
 
@@ -493,24 +532,24 @@ sub writeMakefileMIDI() {
 		print MK "\n# make the Unix MIDI Interface \n";
 		print MK "\$(MIDISRCS):\n";
 		print MK "\t\$(CC) -c -DREWIRE -DMIDI -I../ReWire -I../CFuncs \$*.c\n\n";
-		print MK "MIDI:      \$(MIDIOBJS)\n";
-		print MK "\t\$(CC)  -o MIDI/freewrlReWireServer -L/usr/lib -lpthread  \$(MIDIOBJS) \n\n";
+		print MK "MIDI: MIDI/freewrlReWireServer\n";
+		print MK "MIDI/freewrlReWireServer: \$(MIDIOBJS)\n";
+		print MK "\t\$(CC) -o MIDI/freewrlReWireServer -L/usr/lib -lpthread  \$(MIDIOBJS) \n\n";
 	}
 }
-
 
 sub writeMakefileFreeWRLMessage() {
 	#############################################################################
 	# FreeWRL_Message 
 	# make a program that displays a message if NOT OSX and if we are not using Motif.
 
-
 	if ($OS ne "Darwin") { 
 	print MK "\n# make the Unix Console Message \n";
 	print MK "\$(FWMSRCS):\n";
 	print MK "\t\$(CC) -c \$*.c\n\n";
-	print MK "FreeWRL_Message:      \$(FWMOBJS)\n";
-	print MK "\t\$(CC) FreeWRL_Msg/FreeWRL_Message.o  -o FreeWRL_Msg/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n\n";
+	print MK "FreeWRL_Message: FreeWRL_Msg/FreeWRL_Message\n";
+	print MK "FreeWRL_Msg/FreeWRL_Message: \$(FWMOBJS)\n";
+	print MK "\t\$(CC) FreeWRL_Msg/FreeWRL_Message.o -o FreeWRL_Msg/FreeWRL_Message \$(MYLIBS) \$(MYMESLIBS) \n\n";
 	}
 }
 
@@ -518,11 +557,11 @@ sub write_linux_makefile_javascript() {
 	#############################################################################
 	## make the Javascript libraries if needed
     
-	print MK "Javascript:\n";
-	print MK "\tcd JS/$jsdir; make -f Makefile.ref BUILD_OPT=1 STACKPROT=$noStackProtector; cd $pwd\n";
+	if (! $jsLDPATH eq "") {
+	    print MK "Javascript:\n";
+	    print MK "\tcd JS/$jsdir; make -f Makefile.ref BUILD_OPT=1 STACKPROT=$noStackProtector; cd $pwd\n";
+	}
 }
-
-
 
 sub write_linux_makefile_javaClasses() {
 	if ($JAVAC ne "" ) {
@@ -534,8 +573,7 @@ sub write_linux_makefile_javaClasses() {
 	
 			print MK "$nm:\n	\$(JAVAC) -classpath java/classes $fullname\n";
 		}
-		
-		print MK "JavaClasses:\t";
+		print MK "JAVASOURCE=$JavaSourceFiles";
 		foreach my $fullname (@JavaSourceFiles) {
 			# remove the Java from the front, and the .c from the end.
 			my $nm = $fullname;
@@ -544,20 +582,25 @@ sub write_linux_makefile_javaClasses() {
 			print MK "$nm ";
 		}
 		print MK "\n";
+
+		print MK "JavaClasses: java/classes/vrml.jar\n";
+		print MK "java/classes/vrml.jar: \$(JAVASOURCE)\n";
 	
 		# make the jar file here
 		print MK "	\$(JAR) -cf java/classes/vrml.jar $@ `find java/classes/vrml -name *.class`\n";
 	}
 }
+
 sub writeMakefileBrowserPlugin() {
 	if ($OS ne "Darwin") {
-	if ($VRML_CONFIG{NETSCAPE_INST}) {
+	    if ($VRML_CONFIG{NETSCAPE_INST}) {
 		print MK "\n# make the Unix front end\n";
 		print MK "\$(PLSRCS):\n";
 		print MK "\t\$(CC) -c \$*.c\n\n";
-		print MK "Plugin:      \$(PLOBJS)\n";
-		print MK "\t\$(CC)  -shared -o Plugin/npfreewrl.so \$(PLOBJS)\n\n";
-	}
+		print MK "Plugin: Plugin/npfreewrl.so\n";
+		print MK "Plugin/npfreewrl.so: \$(PLOBJS)\n";
+		print MK "\t\$(CC) -shared -o Plugin/npfreewrl.so \$(PLOBJS)\n\n";
+	    }
 	}
 }
 
@@ -615,12 +658,11 @@ sub writeMakeDebAndRpm () {
 		print MK "\techo \"\$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\" >> $specfile\n";
                 print MK "\techo \"\$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\" >> $specfile\n";
                 print MK "\techo \"\$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\" >> $specfile\n";
-                print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\" >> $specfile\n";
-                print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\" >> $specfile\n";
-                print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\" >> $specfile\n";
+                print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/freewrl.png\" >> $specfile\n";
+                print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)\/applications/freewrl.desktop\" >> $specfile\n";
+#                 print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\" >> $specfile\n";
 	}
 }
-
 
 sub writeMakefileDistclean() {
 	#############################################################################
@@ -654,7 +696,9 @@ sub writeMakefileDistclean() {
 	print MK "	rm -f java/classes/sai/eai/*class\n";
 	print MK "	rm -f java/classes/org/web3d/x3d/sai/*class\n";
 	print MK "	rm -f java/classes/vrml.jar\n";
-	print MK "	rm -rf JS/$jsobjdir\n";
+	if (! $jsobjdir eq "") {
+	    print MK "	rm -rf JS/$jsobjdir\n";
+	}
 
 	if ($OS eq "Darwin") {
 		print MK "	rm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
@@ -662,10 +706,12 @@ sub writeMakefileDistclean() {
 	}
 
 	# remove other JS directories
-	$jsobjdir =~s/src/src\/editline/;
-	print MK "	rm -rf JS/$jsobjdir\n";
-	$jsobjdir =~ s/editline/fdlibm/;
-	print MK "	rm -rf JS/$jsobjdir\n";
+	if (! $jsobjdir eq "") {
+	    $jsobjdir =~s/src/src\/editline/;
+	    print MK "	rm -rf JS/$jsobjdir\n";
+	    $jsobjdir =~ s/editline/fdlibm/;
+	    print MK "	rm -rf JS/$jsobjdir\n";
+	}
 
 	print MK "\n#remove installed images\n";
 	print MK "distclean:	clean\n";
@@ -679,25 +725,22 @@ sub writeMakefileDistclean() {
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
 		print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
-
 	if (($JAVAC ne "") && ($VRML_CONFIG{NETSCAPE_INST} ne "")) {
-	if ($OS ne "Darwin") {
+	    if ($OS ne "Darwin") {
 		print MK "\trm -f \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
 		print MK "\trm -f \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
 		print MK "\trm -f Plugin/npfreewrl.so\n";
 		print MK "\trm -f Plugin/netscape/source/npfreewrl.o\n";
 		print MK "\trm -f Plugin/netscape/source/common/npunix.o\n";
-	}
+	    }
 	}
 	if ($OS ne "Darwin") {
-		print MK "\trm -f \$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/Desktop/freewrl.png\n";
-		print MK "\trm -f \$(DESTDIR)\$(INSTALL_DIR)\/applications/Desktop/freewrl.desktop\n";
+		print MK "\trm -f \$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
+		print MK "\trm -f \$(DESTDIR)\$(INSTALL_DIR)\/applications/freewrl.desktop\n";
 	}
-	print MK "\trm -rf \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
+# 	print MK "\trm -rf \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\trm -rf \$(DESTDIR)\$(INSTALL_DIR)/freewrl/x3d\n";
 }
-
-
 
 ###################################################################################
 # determine on what system we are running, and if we can make a package for it for
