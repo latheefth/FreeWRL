@@ -963,7 +963,7 @@ void kill_X3DNodes(void){
 	}
 	FREE_IF_NZ(memoryTable);
 	memoryTable=NULL;
-	tableIndexSize=0;
+	tableIndexSize=ID_UNDEFINED;
 	nextEntry=0;
 	UNLOCK_MEMORYTABLE
 }
