@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rm -f TAGS
+find . \( -name "*.h" -o -name "*.c" \) -print | \
+	grep -v CVS | xargs etags -
+
