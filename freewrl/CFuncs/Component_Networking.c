@@ -347,6 +347,9 @@ void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 /* make sure the EAI port is turned on... */
 int requestToStartEAIdone = FALSE;
 static void midiStartEAI() {
+#if !defined(REWIRE_SERVER)
+    ConsoleMessage("MIDI disabled at compile time.\n");
+#else
 	char myline[2000];
 	if (!requestToStartEAIdone) {
 		printf ("MidiControl - turning EAI on\n");
@@ -360,6 +363,7 @@ static void midiStartEAI() {
 		}
 	}
 	requestToStartEAIdone = TRUE;
+#endif
 }
 
 void prep_MidiControl (struct X3D_MidiControl *node) {
