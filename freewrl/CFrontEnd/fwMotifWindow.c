@@ -743,11 +743,11 @@ void openMotifMainWindow (int argc, char **argv) {
 	Xdpy = XtDisplay (freewrlTopWidget);
 	/* do not bother mapping this, if we are a plugin. */
 	/* NOTE: have problems with AMD64 firefox plugin right now; just keep mapped*/
-	if (!RUNNINGONAMD64) {
+/* 	if (!RUNNINGONAMD64) { */
 		if (RUNNINGASPLUGIN) {
 			XtSetMappedWhenManaged (freewrlTopWidget,False);
 		}
-	}
+/* 	} */
 }
 
 
