@@ -87,6 +87,16 @@ if ($OS eq "Darwin") {
 		}
 	}
 
+	# Default Mozilla / Firefox plugins directory
+	my $issue = `head -1 /etc/issue`;
+	if ($issue =~ /Debian/) {
+		print "DEBIAN found\n";
+		$VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla-firefox/plugins";
+	} elsif ($issue =~ /Ubuntu/) {
+		print "UBUNTU found\n";
+	} else {
+	}
+
 }
 
 $VRML_CONFIG{VERSION} = $VERSION;
