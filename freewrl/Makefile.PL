@@ -8,20 +8,25 @@ my $VERSION = "V1.19.9";
 
 # what OS are we running under?
 my $OS = `uname`;
+chomp($OS);
+
+if ($OS eq "Darwin") { print "This install is running on an Apple OS X computer\n";
+} elsif ($OS eq "Linux") { print "This install is running on a Linux based computer\n";
+} else { print "The uname command returned $OS - dont know what platform - assuming Linux\n"; }
+
 my $HAVE_UBUNTU = "NO";
 chomp ($pwd = getcwd());
 
 # What compilers do we have?
 my $JAVAC = `which javac`;
+chomp($JAVAC);
 my $JAR = `which jar`;
+chomp($JAR);
+
 if (($JAVAC eq "") || ($JAR eq "")) { 
 	print "can not find a java compiler and archiver  - skipping java class making\n";
 	$JAVAC = "";
 }
-
-# remove whitespace at beginning and end.
-$OS =~ s/\s+$//;
-$OS =~ s/^\s+//;
 
 # Detect if SELinux is activated
 my $SELINUX = "NO";
@@ -48,10 +53,6 @@ if ($SELINUX eq "YES") {
 	$CHCON =~ s/\s+$//;
 }
 
-if ($OS eq "Darwin") { print "This install is running on an Apple OS X computer\n";
-} elsif ($OS eq "Linux") { print "This install is running on a Linux based computer\n";
-} else { print "The uname command returned $OS - dont know what platform - assuming Linux\n"; }
-
 # create the generated code/header files.
 system "perl VRMLC.pm";
 
@@ -61,39 +62,49 @@ use Cwd qw(getcwd chdir);
 if ($OS eq "Darwin") {
 	require './vrml.conf.aqua';
 } else {
-	# assume a Linux computer.
+
+	# Test different flavours of Linux
+	my $issue = `head -1 /etc/issue`;
+
 	my $ARCH = `uname -m`;
 	chomp($ARCH);
 	print "ARCH=$ARCH\n";
-	
-	# find out what the distribution is.
-	my ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile) = linux_system_info();
-	print "specfile $specfile\n";
 
 	require './vrml.conf.linux';
 
-	# add these keys for later use when making distribution (rpm) file
-	$VRML_CONFIG{RPMPREFIX} = $rpm_prefix;
-	$VRML_CONFIG{SOURCEPACKAGE} = $sourcepackage;
-	$VRML_CONFIG{RPMVERSION} = $rpmversion;
-	$VRML_CONFIG{OSNAME} = $osname;
-	$VRML_CONFIG{SPECFILE} = $specfile;
+	if ($issue =~ /RedHat/) {
+	    print "Linux flavour: RedHat\n";
+
+	    # find out what the distribution is.
+	    my ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile) = 
+		linux_system_info();
+	    if ( -f "$specfile") {
+		print "RedHat specfile is: $specfile\n";
+	    }
+
+	    # add these keys for later use when making distribution (rpm) file
+	    $VRML_CONFIG{RPMPREFIX} = $rpm_prefix;
+	    $VRML_CONFIG{SOURCEPACKAGE} = $sourcepackage;
+	    $VRML_CONFIG{RPMVERSION} = $rpmversion;
+	    $VRML_CONFIG{OSNAME} = $osname;
+	    $VRML_CONFIG{SPECFILE} = $specfile;
+	    
+	}
 
 	# Can we add FreeWRL to the desktop?
 	$VRML_CONFIG{DESKTOP} = "NO";	# default value.
 	if (-e "/usr/share/applications") {
-		if (-e "/usr/share/pixmaps") {
-			$VRML_CONFIG{DESKTOP} = "/usr/share";
-		}
+	    if (-e "/usr/share/pixmaps") {
+		$VRML_CONFIG{DESKTOP} = "/usr/share";
+	    }
 	}
 
 	# Default Mozilla / Firefox plugins directory
-	my $issue = `head -1 /etc/issue`;
 	if ($issue =~ /Debian/) {
-		print "DEBIAN found\n";
-		$VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla-firefox/plugins";
+	    print "Linux flavour: Debian\n";
+	    $VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla-firefox/plugins";
 	} elsif ($issue =~ /Ubuntu/) {
-		print "UBUNTU found\n";
+	    print "Linux flavour: Ubuntu\n";
 	} else {
 	}
 
@@ -631,16 +642,15 @@ sub writeMakefileBrowserPlugin() {
 }
 
 sub writeMakeDebAndRpm () {
-	if ($OS ne "Darwin") {
+
+	if ($OS eq "Linux") {
+
+	    if ($issue =~ /RedHat/) {
 		$specfile = $VRML_CONFIG{SPECFILE};
 		$rpm_prefix = $VRML_CONFIG{RPMPREFIX};
 		$sourcepackage = $VRML_CONFIG{SOURCEPACKAGE};
 		$rpmversion = $VRML_CONFIG{RPMVERSION}; 
 		$osname = $VRML_CONFIG{OSNAME};
-
-		print MK "deb::\n";
-		print MK "\tsudo debuild -S\n";
-		print MK "\tsudo pbuilder build ../*.dsc\n";
 		print MK "rpm::\n";
 		print MK "\t# make the gzip file of the dist.\n";
 		print MK "\ttar -cf $rpm_prefix/SOURCES/$sourcepackage ..\/$srcdir\n";
@@ -686,29 +696,37 @@ sub writeMakeDebAndRpm () {
                 print MK "\techo \"\$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\" >> $specfile\n";
                 print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/freewrl.png\" >> $specfile\n";
                 print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)\/applications/freewrl.desktop\" >> $specfile\n";
-#                 print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\" >> $specfile\n";
+		#print MK "\techo \"\$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\" >> $specfile\n";
+	    } 
+
+	    if (($issue =~ /Debian/) || ($issue =~ /Ubuntu/)) {
+		print MK "deb::\n";
+		print MK "\tsudo debuild -S\n";
+		print MK "\tsudo pbuilder build ../*.dsc\n";
+	    }
 	}
 }
 
 sub writeMakefileDistclean() {
 	#############################################################################
 	# Misc targets
-	print MK "\nclean:\n";
-	print MK "	rm -f CFuncs/*o\n";
-	print MK "	rm -f libFreeWRLFunc.so\n";
-	print MK "	rm -f FreeWRL_Msg/*o\n";
-	print MK "	rm -f FreeWRL_Msg/FreeWRL_Message\n";
-	print MK "	rm -f CFrontEnd/*o\n";
-	print MK "	rm -f CFrontEnd/freewrl\n";
-	print MK "	rm -f freewrl\n";
+	print MK ".PHONY: clean distclean\n";
+	print MK "clean:\n";
+	print MK "\trm -f CFuncs/*o\n";
+	print MK "\trm -f libFreeWRLFunc.so\n";
+	print MK "\trm -f FreeWRL_Msg/*o\n";
+	print MK "\trm -f FreeWRL_Msg/FreeWRL_Message\n";
+	print MK "\trm -f CFrontEnd/*o\n";
+	print MK "\trm -f CFrontEnd/freewrl\n";
+	print MK "\trm -f freewrl\n";
 	if ($VRML_CONFIG{SOUND_ENGINE}) {
-	    print MK "	rm -f SoundEngine/*o\n";
-	    print MK "	rm -f SoundEngine/FreeWRL_SoundServer\n";
+	    print MK "\trm -f SoundEngine/*o\n";
+	    print MK "\trm -f SoundEngine/FreeWRL_SoundServer\n";
 	}
 	if ($VRML_CONFIG{MIDI_ENGINE}) {
 	    if ($OS ne "Darwin") {
-		print MK "	rm -f MIDI/*o\n";
-		print MK "	rm -f MIDI/freewrlReWireServer\n";
+		print MK "\trm -f MIDI/*o\n";
+		print MK "\trm -f MIDI/freewrlReWireServer\n";
 	    }
 	}
 	if ($VRML_CONFIG{NETSCAPE_INST} ne "") {
@@ -735,23 +753,26 @@ sub writeMakefileDistclean() {
 	}
 
 	if (! $jsobjdir eq "") {
-	    print MK "	rm -rf JS/$jsobjdir\n";
+	    print MK "\trm -rf JS/$jsobjdir\n";
 	}
 	# remove other JS directories
 	if (! $jsobjdir eq "") {
 	    $jsobjdir =~s/src/src\/editline/;
-	    print MK "	rm -rf JS/$jsobjdir\n";
+	    print MK "\trm -rf JS/$jsobjdir\n";
 	    $jsobjdir =~ s/editline/fdlibm/;
-	    print MK "	rm -rf JS/$jsobjdir\n";
+	    print MK "\trm -rf JS/$jsobjdir\n";
 	}
 
 	print MK "\n#remove installed images\n";
-	print MK "distclean:	clean\n";
+	print MK "distclean: clean\n";
+	print MK "\trm -f Makefile\n";
+	print MK "\trm -f \$(shell find . -type f -name \"*~\")\n";
+	print MK "\trm -f TAGS\n";
 	print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
 	print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
 	if ($OS eq "Darwin") {
-		print MK "	rm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
-		print MK "	rm -f /usr/local/lib/libFreeWRLjs.dylib\n";
+		print MK "\trm -f /usr/local/lib/libFreeWRLFunc.dylib\n";
+		print MK "\trm -f /usr/local/lib/libFreeWRLjs.dylib\n";
 	}
 	if ($OS eq "Linux") {
 		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
@@ -765,9 +786,6 @@ sub writeMakefileDistclean() {
 	if ($VRML_CONFIG{NETSCAPE_INST} ne "") {
 	    if ($OS ne "Darwin") {
 		print MK "\trm -f \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
-		print MK "\trm -f Plugin/npfreewrl.so\n";
-		print MK "\trm -f Plugin/netscape/source/npfreewrl.o\n";
-		print MK "\trm -f Plugin/netscape/source/common/npunix.o\n";
 	    }
 	}
 	if ($JAVAC ne "") {
@@ -826,21 +844,24 @@ sub linux_system_info() {
 	}
 	#print "osname is: $osname\n";
 	
-	
 	# sourcepackage is a file created by "packagemaker" - it contains the version, etc.
-	my $sourcepackage = `cat sourcepackage`;
-	# remove whitespace at beginning and end of this package name (check packagemaker in CVS tree)
-	$sourcepackage =~ s/\s+$//;
-	$sourcepackage =~ s/^\s+//;
-	my $srcdir = substr($sourcepackage, 0, rindex ($sourcepackage,".tar"));
-	my $rpmversion = substr ($srcdir,index($srcdir,"-")+1,100);
-	#print "srcdir $srcdirrpmversion $rpmversion sourcepackage $sourcepackage\n";
+	if (-f "sourcepackage") {
+	    my $sourcepackage = `cat sourcepackage`;
+	    # remove whitespace at beginning and end of this package name
+	    $sourcepackage =~ s/\s+$//;
+	    $sourcepackage =~ s/^\s+//;
+	    my $srcdir = substr($sourcepackage, 0, rindex ($sourcepackage,".tar"));
+	    my $rpmversion = substr ($srcdir,index($srcdir,"-")+1,100);
+	    #print "srcdir $srcdirrpmversion $rpmversion sourcepackage $sourcepackage\n";
 	
-	# make spec file name.
-	my $specfile = "$rpm_prefix/SPECS/".$srcdir.".".$osname.".spec";
-	#print "spec file is $specfile\n";
+	    # make spec file name.
+	    my $specfile = "$rpm_prefix/SPECS/".$srcdir.".".$osname.".spec";
+	    #print "spec file is $specfile\n";
 	
-	return ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile);
+	    return ($rpm_prefix,$sourcepackage, $rpmversion, $osname, $specfile);
+	} else {
+	    return "sourcepackage must be created with ./packagemaker\n";
+	}
 }
 
 sub findAndPrintUtilities() {
