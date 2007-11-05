@@ -865,7 +865,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 		if (tempFO == ID_UNDEFINED) {
 
         		/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
-			temp = findRoutedFieldInFIELDNAMES(toNode,EVENT_OUT[toFieldO],0);
+			temp = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],0);
 
   			/* Field found in FIELDNAMES and it is a valid field?  Then find it in EXPOSED_FIELD */
 			if (temp != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[temp]);

@@ -23,12 +23,12 @@
 #define GETJSPTR_TYPE_A(thistype) \
 			 case FIELDTYPE_##thistype:  {  \
 				thistype##Native *ptr; \
-				/* printf ("getting private data in GETJSPTR for %d \n",retval); */ \
+				/* printf ("getting private data in GETJSPTR for %p \n",JSglobal_return_val); */ \
         			if ((ptr = (thistype##Native *)JS_GetPrivate(cx, (JSObject *)JSglobal_return_val)) == NULL) { \
                 			printf( "JS_GetPrivate failed in get_valueChanged_flag\n"); \
                 			return JS_FALSE; \
 				} \
-				/* printf ("private is %d touched %d\n",ptr,ptr->touched); */ \
+				/* if (ptr->valueChanged > 0) printf ("private is %d valueChanged %d\n",ptr,ptr->valueChanged); */ \
 				JSSFpointer = (uintptr_t *)ptr; /* save this for quick extraction of values */ \
 				touched = ptr->valueChanged; \
 				break; \
@@ -370,7 +370,7 @@ int get_valueChanged_flag (uintptr_t fptr, uintptr_t actualscript) {
 		return FALSE;
         } else {
 		#ifdef CRVERBOSE
-		printf ("so, property is %d\n",JSglobal_return_val);
+		printf ("so, property is %d (%p)\n",JSglobal_return_val,JSglobal_return_val);
 		printf("get_valueChanged_flag: node type: %s name %s\n",FIELDTYPES[JSparamnames[fptr].type],JSparamnames[fptr].name);
 		#endif
 
@@ -694,25 +694,10 @@ Register a new script for future routing
 ********************************************************************/
 
 void CRoutes_js_new (uintptr_t num, int scriptType) {
-	jsval retval;
-
-	/* printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl);  */
-
 	/* record whether this is a javascript, class invocation, ... */
 	ScriptControl[num].thisScriptType = scriptType;
 
-	/* if it is a script (class or javascript), make sure we know that it is not
-	 * initialized yet; because of threading, we have to wait until
-	 * the creating (perl) function is finished, otherwise a
-	 * potential deadlock situation occurs, if the initialize
-	 * tries to get something via perl...
-	 */
-
-	ActualrunScript(num, "initialize()" ,&retval);
-	ScriptControl[num]._initialized=TRUE;
-
 	/* compare with a intptr_t, because we need to compare to -1 */
-
 	if ((intptr_t)num > max_script_found) max_script_found = (intptr_t)num;
 }
 
@@ -1171,6 +1156,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	unsigned len;
  	void * tn;
 	void * fn;
+	jsval retval;
 
 	/* temp for sscanf retvals */
 
@@ -1186,7 +1172,9 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 
 	/* this script initialized yet? */
 	if (ScriptControl[actualscript]._initialized!=TRUE) {
-		ConsoleMessage ("Problem here - script not initialized, but we are routing to it...");
+		/* ConsoleMessage ("Problem here - script not initialized, but we are routing to it..."); */
+		ACTUALRUNSCRIPT(actualscript, "initialize()" ,&retval);
+		ScriptControl[actualscript]._initialized=TRUE;
 	}
 
 	/* routing table is ordered, so we can walk up to this script */
@@ -1232,9 +1220,11 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 				to_ptr = &(CRoutes[route].tonodes[to_counter]);
 				tn = to_ptr->routeToNode;
 				tptr = to_ptr->foffset;
+
 				#ifdef CRVERBOSE 
 					printf ("%s script %d VALUE CHANGED! copy value and update %d\n",JSparamnames[fptr].name,actualscript,tn);
 				#endif
+
 				/* eventOuts go to VRML data structures */
 				setField_javascriptEventOut(X3D_NODE(tn),tptr,JSparamnames[fptr].type, len, 
 					CRoutes[route].extra, ScriptControl[actualscript].cx);
@@ -1291,6 +1281,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
+	jsval retval;
 
 	#ifdef CRVERBOSE
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d direction %d\n",num,
@@ -1305,6 +1296,14 @@ void sendScriptEventIn(uintptr_t num) {
 	if (CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
+
+
+			/* this script initialized yet? */
+			if (ScriptControl[(uintptr_t)to_ptr->routeToNode]._initialized!=TRUE) {
+				/* ConsoleMessage ("Problem here - script not initialized, but we are routing to it..."); */
+				ACTUALRUNSCRIPT((uintptr_t)to_ptr->routeToNode, "initialize()" ,&retval);
+				ScriptControl[(uintptr_t)to_ptr->routeToNode]._initialized=TRUE;
+			}
 
 			/* get the value from the VRML structure, in order to propagate it to a script */
 

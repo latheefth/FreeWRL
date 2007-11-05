@@ -916,7 +916,6 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	struct X3D_Group *myGroup;
 
-
 	ADD_ROOT(cx,obj)
 	newHandle = 0;
 	cString = NULL;
@@ -1048,6 +1047,8 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	return JS_TRUE;
 }
+
+
 
 void
 SFNodeFinalize(JSContext *cx, JSObject *obj)

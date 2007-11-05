@@ -139,7 +139,6 @@ void JSMaxAlloc() {
 }
 
 
-
 void JSInit(uintptr_t num) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
@@ -227,7 +226,7 @@ void JSInit(uintptr_t num) {
 	printf("\tVRML Browser interface loaded,\n");
 	#endif
 
-	if (!ActualrunScript(num,DefaultScriptMethods,&rval))
+	if (!ACTUALRUNSCRIPT(num,DefaultScriptMethods,&rval))
 		cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
 
 	/* send this data over to the routing table functions. */
@@ -239,7 +238,7 @@ void JSInit(uintptr_t num) {
 }
 
 /* run the script from within C */
-int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
+int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line) {
 	size_t len;
 	JSContext *_context;
 	JSObject *_globalObj;
@@ -249,7 +248,8 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 	#ifdef JAVASCRIPTVERBOSE
-		printf("ActualrunScript script %d cx %x \"%s\", \n", num, _context, script);
+		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
+			fn, line, num, _context, script);
 	#endif
 
 	len = strlen(script);
@@ -265,7 +265,6 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 
 	return JS_TRUE;
 }
-
 
 
 /* run the script from within Javascript  */
@@ -539,7 +538,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 						case FIELDTYPE_SFString:  
 							sprintf (smallfield,"%s=\"%s\"\n",field,value.sfstring->strptr); break;
 					}
-					if (!ActualrunScript(num,smallfield,&rval))
+					if (!ACTUALRUNSCRIPT(num,smallfield,&rval))
 						printf ("huh??? Field initialization script failed %s\n",smallfield);
 				}
 			}
@@ -641,7 +640,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 					case FIELDTYPE_SFNode:
 					case FIELDTYPE_MFNode:
 						VoidPtr = defaultVoid; 
-						elements = 0;
+						/* elements = 0; */
 						break;
 
 					/* Float types */
@@ -761,7 +760,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 				
 			/* Warp factor 5, Dr Sulu... */
 			#ifdef JAVASCRIPTVERBOSE 
-			printf ("JScript, for non-ECMA newname %s, sending %s\n",mynewname,smallfield); 
+			printf ("JScript, for non-ECMA newname %s, sending :%s:\n",mynewname,smallfield); 
 			#endif
 
 			JSaddGlobalAssignProperty (num,mynewname,smallfield);

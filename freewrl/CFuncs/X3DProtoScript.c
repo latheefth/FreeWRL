@@ -948,11 +948,12 @@ void initScriptWithScript() {
 		return;
 	}
 
-	if (!ActualrunScript (myScriptNumber, startingIndex, &rval)) {
+	if (!ACTUALRUNSCRIPT (myScriptNumber, startingIndex, &rval)) {
 		ConsoleMessage ("X3DParser, script initialization error at line %d",LINE);
 		FREE_IF_NZ(scriptText);
 		return;
 	}
+
 	FREE_IF_NZ(scriptText);
 }
 

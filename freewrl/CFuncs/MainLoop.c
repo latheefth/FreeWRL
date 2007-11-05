@@ -1343,14 +1343,14 @@ void setSeqTemp(const char* file) {
         printf("seqtmp is %s\n", seqtmp);
 }
 
-/* if we had an exit(1) anywhere in this C code - it means
+/* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means
    a memory error. So... print out a standard message to the
    console. */
 void outOfMemory(const char *msg) {
 	ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
 			"and is exiting.\nPlease email this file to freewrl-06@rogers.com\n -- %s--",msg);
 	sleep(10);
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 #ifdef DEBUG_MALLOC
@@ -1482,7 +1482,7 @@ void doQuit(void) {
 	#endif
 
 
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 void freewrlDie (const char *format) {
@@ -1673,7 +1673,7 @@ void sendPluginFD(int fd) {
 }
 void aquaPrintVersion() {
 	printf ("FreeWRL version: %s\n",FWVER); 
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 void setPluginPath(char* path) {
 	FREE_IF_NZ(PluginFullPath);

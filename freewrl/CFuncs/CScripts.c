@@ -225,7 +225,7 @@ BOOL script_initCode(struct Script* me, const char* code)
  jsval jsret;
  assert(!me->loaded);
 
- if(!ActualrunScript(me->num, (char *)code, &jsret))
+ if(!ACTUALRUNSCRIPT(me->num, (char *)code, &jsret))
   return FALSE;
 
  me->loaded=TRUE;

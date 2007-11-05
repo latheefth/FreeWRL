@@ -550,13 +550,13 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	  } \
 	} 
 
+
 	/* step try the field as is. */
 	retval = findFieldInARR(field, arr, cnt);
 	/* printf ("findRoutedField, field %s retval %d\n",field,retval); */ 
 	FIELDCHECK (field)
 
-	/* try removing the "set_" or "_changed" */
-	/* XXX: Not checking if substring is really "set_" or "_changed"! */
+	/* try ADDING the "set_" or "_changed" */
 	strncpy (mychar, field, 100);
 	if (fromTo != 0) {
 		if (strlen(field) > strlen("set_"))
@@ -568,6 +568,20 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 		}
 	}
 	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval); */
+	FIELDCHECK (mychar)
+
+	/* try ADDING the "set_" or "_changed"  some nodes have fields ending in "_changed" - maybe the
+  	   user forgot about that? (eg, ProximitySensor) */
+	if (fromTo != 0) {
+		strcpy (mychar,"set_");
+		strncat (mychar, field,100);
+		retval=findFieldInARR(mychar+strlen("set_"), arr, cnt);
+	} else {
+		strncpy (mychar, field, 100);
+		strcat (mychar,"_changed");
+		retval = findFieldInARR(mychar, arr, cnt);
+	}
+	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval);*/
 	FIELDCHECK (mychar)
 
 

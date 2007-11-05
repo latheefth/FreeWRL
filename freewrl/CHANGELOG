@@ -1,4 +1,11 @@
 For 1.20.0:
+
+	- VIEWPOINT macro generated invalid addresses for set_bind flag operation.
+
+	- looping through nodes between scenegraph traversals required MUTEX locking.
+
+	- looping through nodes code was not reset properly on reload.
+
 	- changed routing to nodes. with an eventIn the same as an internal field. (eg,
 	  Extrusion set_spine and spine). Now these fields are handled before eventloop runs.
 

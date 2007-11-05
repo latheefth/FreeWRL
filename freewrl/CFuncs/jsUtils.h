@@ -51,10 +51,8 @@ extern uintptr_t *JSSFpointer;
 static JSBool reportWarnings = JS_TRUE;
 
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
-int
-ActualrunScript(uintptr_t num,
-				char *script,
-				jsval *rval);
+#define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c,__FILE__,__LINE__)
+int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *file, int line);
 
 int
 JSrunScript(uintptr_t num,
