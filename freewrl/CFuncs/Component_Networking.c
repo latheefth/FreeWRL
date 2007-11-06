@@ -1123,7 +1123,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->children);
+	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -1160,7 +1160,7 @@ void child_Inline (struct X3D_Inline *node) {
 	if ((nc > 1 && !render_blend)) sortChildren(node->__children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->__children);
+	DIRLIGHTCHILDREN(node->__children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->__children);
@@ -1187,5 +1187,4 @@ void changed_Anchor (struct X3D_Anchor *node) {
                 struct X3D_Virt *v;
 
 		INITIALIZE_EXTENT
-		DIRECTIONAL_LIGHT_FIND
 }

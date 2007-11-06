@@ -1,4 +1,6 @@
 For 1.20.0:
+	- PointLight and SpotLight were not calculated correctly in the Scenegraph.
+	  Lighting revisited.
 
 	- VIEWPOINT macro generated invalid addresses for set_bind flag operation.
 

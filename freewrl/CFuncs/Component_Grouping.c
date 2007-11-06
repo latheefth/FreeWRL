@@ -244,12 +244,7 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	if ((nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) {
-		#ifdef CHILDVERBOSE
-		printf ("node %d has_light, doing dirlightChildren\n",node);
-		#endif
-		dirlightChildren(node->children);
-	}
+	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -321,12 +316,7 @@ void child_Group (struct X3D_Group *node) {
 	if ((!node->__protoDef) && (nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) {
-		#ifdef CHILDVERBOSE
-		printf ("node %d has_light, doing dirlightChildren\n",node);
-		#endif
-		dirlightChildren(node->children);
-	}
+	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	if (node->__protoDef && render_geom) {
@@ -350,7 +340,6 @@ void child_Group (struct X3D_Group *node) {
 	#ifdef CHILDVERBOSE
 	VerboseEnd ("GROUP");
 	#endif
-
 
 	DIRECTIONAL_LIGHT_OFF
 }
@@ -446,12 +435,7 @@ void child_Transform (struct X3D_Transform *node) {
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) {
-		#ifdef CHILDVERBOSE
-		printf ("node %d has_light, doing dirlightChildren\n",node);
-		#endif
-		dirlightChildren(node->children);
-	}
+	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 
@@ -497,7 +481,6 @@ void changed_StaticGroup (struct X3D_StaticGroup *node) {
                 struct X3D_Node *p;
 
 		INITIALIZE_EXTENT
-		DIRECTIONAL_LIGHT_FIND
 
 }
 void changed_Transform (struct X3D_Transform *node) {
@@ -506,7 +489,6 @@ void changed_Transform (struct X3D_Transform *node) {
                 struct X3D_Node *p;
 
 		INITIALIZE_EXTENT
-		DIRECTIONAL_LIGHT_FIND
 
 }
 
@@ -517,7 +499,6 @@ void changed_Group (struct X3D_Group *node) {
                 struct X3D_Node *p;
 
 		INITIALIZE_EXTENT
-		DIRECTIONAL_LIGHT_FIND
 }
 
 

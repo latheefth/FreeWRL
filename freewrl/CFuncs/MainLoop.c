@@ -184,7 +184,6 @@ void EventLoop() {
 	int doEvents;
 	int counter;
 
-
 	#ifndef AQUA
 	Cursor cursor;
 	#endif
@@ -652,7 +651,7 @@ void render_pre() {
 	}
 
 	/* 5. render hierarchy - proximity */
-	render_hier((void *)rootNode, VF_Proximity);
+	render_hier(rootNode, VF_Proximity);
 
 	glPrintError("GLBackend::render_pre");
 }
@@ -712,8 +711,8 @@ void render() {
 		/*  Other lights*/
 		glPrintError("XEvents::render, before render_hier");
 
-		render_hier((void *)rootNode, VF_Lights);
-		glPrintError("XEvents::render, render_hier(VF_Lights)");
+		render_hier(rootNode, VF_otherLight);
+		glPrintError("XEvents::render, render_hier(VF_VF_otherLight)");
 
 
 		#ifdef PROFILEMARKER
@@ -725,7 +724,7 @@ void render() {
 
 		/*  4. Nodes (not the blended ones)*/
 
-		render_hier((void *)rootNode, VF_Geom);
+		render_hier(rootNode, VF_Geom);
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 
 		/*  5. Blended Nodes*/
@@ -743,7 +742,7 @@ void render() {
 			glDepthMask(FALSE);
 
 			/*  render the blended nodes*/
-			render_hier((void *)rootNode, VF_Geom | VF_Blend);
+			render_hier(rootNode, VF_Geom | VF_Blend);
 
 			/*  and turn writing to the depth buffer back on*/
 			glDepthMask(TRUE);
@@ -811,7 +810,7 @@ void render_collisions() {
 	CollisionInfo.Count = 0;
 	CollisionInfo.Maximum2 = 0.;
 
-	render_hier((void *)rootNode, VF_Collision);
+	render_hier(rootNode, VF_Collision);
 	get_collisionoffset(&(v.x), &(v.y), &(v.z));
 	increment_pos(&v);
 }
@@ -820,7 +819,7 @@ void setup_viewpoint() {
         fwMatrixMode(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         fwLoadIdentity();
         viewer_togl(fieldofview);
-        render_hier((void *)rootNode, VF_Viewpoint);
+        render_hier(rootNode, VF_Viewpoint);
         glPrintError("XEvents::setup_viewpoint");
 }
 

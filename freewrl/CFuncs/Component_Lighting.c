@@ -53,7 +53,11 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 
 
 
-void light_PointLight (struct X3D_PointLight *node) {
+/* pointLights are done before the rendering of geometry */
+void prep_PointLight (struct X3D_PointLight *node) {
+
+	if (!render_light) return;
+
                 if(node->on) {
                         int light = nextlight();
                         if(light >= 0) {
@@ -98,8 +102,10 @@ void light_PointLight (struct X3D_PointLight *node) {
 }
 
 
-void light_SpotLight (struct X3D_SpotLight *node) {
+/* SpotLights are done before the rendering of geometry */
+void prep_SpotLight (struct X3D_SpotLight *node) {
 	float ft;
+	if (!render_light) return;
                 if(((node->on))) {
                         int light = nextlight();
                         if(light >= 0) {

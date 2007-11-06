@@ -274,7 +274,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
         if (nc > 1 && !render_blend) sortChildren(node->children);
 
         /* do we have a DirectionalLight for a child? */
-        if(node->has_light) dirlightChildren(node->children);
+        DIRLIGHTCHILDREN (node->children);
 
         /* now, just render the non-directionalLight children */
         normalChildren(node->children);
@@ -296,7 +296,6 @@ void changed_GeoLocation ( struct X3D_GeoLocation *node) {
                 int i;
                 int nc = ((node->children).n);
                 struct X3D_Node *p;
-		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT
         }
 

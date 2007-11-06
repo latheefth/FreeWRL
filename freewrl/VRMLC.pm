@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.278  2007/11/06 20:25:27  crc_canada
+# Lighting revisited - pointlights and spotlights should all now work ok
+#
 # Revision 1.277  2007/10/26 16:35:38  crc_canada
 # XML encoded parsing changes
 #
@@ -161,7 +164,6 @@ sub gen_struct {
 		$s .= "\t$cty;\n";
 	}
 
-	$s .= $ExtraMem{$name};
 	$s .= "};\n";
 	return ($s);
 }
@@ -172,7 +174,7 @@ sub get_rendfunc {
 	my($n) = @_;
 	#JAS print "RENDF $n ";
 	# XXX
-	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light Changed Proximity Collision Compile/;
+	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Changed Proximity Collision Compile/;
 	my $comma = "";
 	my $f = "extern struct X3D_Virt virt_${n};\n";
 	my $v = "struct X3D_Virt virt_${n} = { ";
@@ -190,8 +192,6 @@ sub get_rendfunc {
 				$v .= $comma."(void *)fin_".${n};
 			} elsif ($_ eq "Child") {
 				$v .= $comma."(void *)child_".${n};
-			} elsif ($_ eq "Light") {
-				$v .= $comma."(void *)light_".${n};
 			} elsif ($_ eq "Changed") {
 				$v .= $comma."(void *)changed_".${n};
 			} elsif ($_ eq "Proximity") {
@@ -1011,7 +1011,6 @@ struct X3D_Virt {
 	void (*fin)(void *);
 	void (*rendray)(void *);
 	void (*mkpolyrep)(void *);
-	void (*light)(void *);
 	void (*changed)(void *);
 	void (*proximity)(void *);
 	void (*collision)(void *);

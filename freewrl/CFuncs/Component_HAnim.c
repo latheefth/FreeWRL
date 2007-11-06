@@ -257,7 +257,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* do we have to sort this node? */
 	if ((node->sites.n > 1)  && !render_blend) sortChildren(node->sites);
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->sites);
+	DIRLIGHTCHILDREN(node->sites);
 	/* now, just render the non-directionalLight sites */
 	normalChildren(node->sites);
 
@@ -271,7 +271,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* do we have to sort this node? */
 	if ((node->skin.n > 1)  && !render_blend) sortChildren(node->skin);
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->skin);
+	DIRLIGHTCHILDREN(node->skin);
 	/* now, just render the non-directionalLight skin */
 	normalChildren(node->skin);
 
@@ -390,7 +390,7 @@ return;
 	if ((nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->children);
+	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -464,6 +464,5 @@ void changed_HAnimSite (struct X3D_HAnimSite *node) {
                 int nc = ((node->children).n);
                 struct X3D_Node *p;
 
-		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT
 }

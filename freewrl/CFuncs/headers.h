@@ -117,7 +117,7 @@ extern struct CRStruct *CRoutes;
 /* rendering constants used in SceneGraph, etc. */
 #define VF_Viewpoint 				0x0001
 #define VF_Geom 				0x0002
-#define VF_Lights				0x0004 
+#define VF_DirectionalLight			0x0004 
 #define VF_Sensitive 				0x0008
 #define VF_Blend 				0x0010
 #define VF_Proximity 				0x0020
@@ -126,6 +126,7 @@ extern struct CRStruct *CRoutes;
 #define VF_hasVisibleChildren 			0x0100
 #define VF_hasGeometryChildren 			0x0200
 #define VF_hasBeenScannedForGeometryChildren	0x0400
+#define VF_otherLight				0x0800 
 
 /* compile simple nodes (eg, Cone, LineSet) into an internal format. Check out
    CompileC in VRMLRend.pm, and look for compile_* functions in code. General
@@ -366,33 +367,12 @@ unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 
 /* Used to determine in Group, etc, if a child is a DirectionalLight; do comparison with this */
 void DirectionalLight_Rend(void *nod_);
-#define DIRECTIONAL_LIGHT_OFF if (node->has_light) lightState(savedlight+1,FALSE); curlight = savedlight;
+#define DIRLIGHTCHILDREN(a) \
+	if ((node->_renderFlags & VF_DirectionalLight)==VF_DirectionalLight)dirlightChildren(a);
+
+#define DIRECTIONAL_LIGHT_OFF if ((node->_renderFlags & VF_DirectionalLight)==VF_DirectionalLight) { \
+		lightState(savedlight+1,FALSE); curlight = savedlight; }
 #define DIRECTIONAL_LIGHT_SAVE int savedlight = curlight;
-#define DIRECTIONAL_LIGHT_FIND  \
-                (node->has_light) = 0; \
-                /* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
-                for(i=0; i<nc; i++) { \
-                        p = (struct X3D_Node *)((node->children).p[i]); \
-                        if (p!=NULL) { \
-                            if ((p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_SpotLight)) { \
-                                (node->has_light) ++; \
-                            } \
-                        } \
-                } 
-
-#define DIRECTIONAL_LIGHT_FIND_W___CHILDREN  \
-                (node->has_light) = 0; \
-                /* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
-                for(i=0; i<nc; i++) { \
-                        p = (struct X3D_Node *)((node->__children).p[i]); \
-                        if (p!=NULL) { \
-                            if ((p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_SpotLight)) { \
-                                (node->has_light) ++; \
-                            } \
-                        } \
-                }
-
-
 
 void normalize_ifs_face (float *point_normal,
                          struct pt *facenormals,
@@ -796,7 +776,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, i
 void EAI_Route(char cmnd, const char *tf);
 void EAI_replaceWorld(const char *inputstring);
 
-void render_hier(void *p, int rwhat);
+void render_hier(struct X3D_Node *p, int rwhat);
 void handle_EAI(void);
 void handle_aqua(const int mev, const unsigned int button, const float x, const float y);
 
@@ -1063,8 +1043,8 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *this_);
 
 /* Component Lighting Nodes */
 void render_DirectionalLight (struct X3D_DirectionalLight *this_);
-void light_SpotLight (struct X3D_SpotLight *this_);
-void light_PointLight (struct X3D_PointLight *this_);
+void prep_SpotLight (struct X3D_SpotLight *this_);
+void prep_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);

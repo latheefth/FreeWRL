@@ -879,7 +879,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	printf("ScriptLine: %s\n",scriptline);
     #endif
 
-    if (!ActualrunScript(tn,scriptline,&retval))
+    if (!ACTUALRUNSCRIPT(tn,scriptline,&retval))
       printf ("AR failed in setxx\n");
 
     #ifdef SETFIELDVERBOSE 

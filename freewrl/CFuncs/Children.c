@@ -68,7 +68,7 @@ void dirlightChildren(struct Multi_Node ch) {
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Node *p = X3D_NODE(ch.p[i]);
 		if (p != NULL) {
-			if ((p->_nodeType == NODE_DirectionalLight) || (p->_nodeType == NODE_PointLight) || (p->_nodeType == NODE_SpotLight))
+			if (p->_nodeType == NODE_DirectionalLight) 
 				render_node(p);
 		}
 	}
@@ -82,9 +82,7 @@ void normalChildren(struct Multi_Node ch) {
 		struct X3D_Node *p = X3D_NODE(ch.p[i]);
 
 		if (p != NULL) {
-			if ((p->_nodeType != NODE_DirectionalLight) &&
-			     (p->_nodeType != NODE_PointLight) &&
-			     (p->_nodeType != NODE_SpotLight)) {
+			if (p->_nodeType != NODE_DirectionalLight) {
 			/*printf ("normalchildren, (%d of %d) child %d\n",i,ch.n,p);   */
 			/*			if ((p->PIV) > 0) */
 				render_node(p);
@@ -103,9 +101,9 @@ void update_renderFlag (struct X3D_Node *p, int flag) {
 
 	/* send notification up the chain */
 	
-	/*	printf ("start of update_RenderFlag for %d (%s) flag %x parents %d\n",p, stringNodeType(p->_nodeType),
-			flag, p->_nparents); 
-	*/
+	/* printf ("start of update_RenderFlag for %d (%s) flag %x parents %d\n",p, stringNodeType(p->_nodeType),
+			flag, p->_nparents);  */
+	
 	
 
 	p->_renderFlags = p->_renderFlags | flag;
@@ -114,5 +112,5 @@ void update_renderFlag (struct X3D_Node *p, int flag) {
 		/* printf ("node %d has %d for a parent\n",p,p->_parents[i]); */
 		update_renderFlag(p->_parents[i],flag);
 	}
-	/* printf ("finished update_RenderFlag for %d\n",p); */
+	/* printf ("finished update_RenderFlag for %d\n",p);  */
 }

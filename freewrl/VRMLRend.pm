@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.209  2007/11/06 20:25:28  crc_canada
+# Lighting revisited - pointlights and spotlights should all now work ok
+#
 # Revision 1.208  2007/08/23 14:01:22  crc_canada
 # Initial AudioControl work
 #
@@ -329,6 +332,8 @@
 	Group
 	MidiControl
 	MidiKey
+	PointLight
+	SpotLight
 /;
 
 #######################################################################
@@ -381,16 +386,6 @@
 	Shape
 	VisibilitySensor
 /;
-#######################################################################
-#######################################################################
-#######################################################################
-#
-# Light --
-#
-%LightC = map {($_=>1)} qw/
-	PointLight
-	SpotLight
-/;
 
 
 #######################################################################
@@ -413,27 +408,6 @@
 	Cylinder
 	Sphere
 /;
-
-
-#######################################################################
-#
-# ExtraMem - extra members for the structures to hold
-# 	cached info
-#
-%ExtraMem = (
-	Group => 'int has_light; ',
-);
-
-$ExtraMem{Transform} = $ExtraMem{Group};
-$ExtraMem{Billboard} = $ExtraMem{Group};
-$ExtraMem{Anchor} = $ExtraMem{Group};
-$ExtraMem{Collision} = $ExtraMem{Group};
-$ExtraMem{GeoLocation} = $ExtraMem{Group};
-$ExtraMem{Inline} = $ExtraMem{Group};
-$ExtraMem{InlineLoadControl} = $ExtraMem{Group};
-$ExtraMem{StaticGroup} = $ExtraMem{Group};
-$ExtraMem{HAnimSite} = $ExtraMem{Group};
-$ExtraMem{HAnimHumanoid} = $ExtraMem{Group};
 
 
 #######################################################################

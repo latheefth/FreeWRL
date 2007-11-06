@@ -196,7 +196,7 @@ void child_Collision (struct X3D_Collision *node) {
 		if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 		/* do we have a DirectionalLight for a child? */
-		if(node->has_light) dirlightChildren(node->children);
+		DIRLIGHTCHILDREN(node->children);
 
 		/* now, just render the non-directionalLight children */
 		normalChildren(node->children);
@@ -292,7 +292,7 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->children);
+	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -325,7 +325,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(node->has_light) dirlightChildren(node->children);
+	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -349,7 +349,6 @@ void changed_Billboard (struct X3D_Billboard *node) {
                 struct X3D_Node *p;
                 struct X3D_Virt *v;
 
-		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT
 }
 
@@ -360,7 +359,6 @@ void changed_Inline (struct X3D_Inline *node) {
                 struct X3D_Node *p;
                 struct X3D_Virt *v;
 
-		DIRECTIONAL_LIGHT_FIND_W___CHILDREN
 		INITIALIZE_EXTENT
 }
 
@@ -371,7 +369,6 @@ void changed_Collision (struct X3D_Collision *node) {
                 struct X3D_Node *p;
                 struct X3D_Virt *v;
 
-		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT
 }
 
@@ -382,7 +379,6 @@ void changed_InlineLoadControl (struct X3D_InlineLoadControl *node) {
                 struct X3D_Node *p;
                 struct X3D_Virt *v;
 
-		DIRECTIONAL_LIGHT_FIND
 		INITIALIZE_EXTENT
 }
 

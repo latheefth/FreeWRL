@@ -256,7 +256,7 @@ void render_node(struct X3D_Node *node) {
 
 	#ifdef RENDERVERBOSE 
 	    printf("=========================================NODE RENDERED===================================================\n");
-	printf ("node %d %d\n",p,v);
+	printf ("node %d %d\n",node,v);
 	printf ("nodename %s\n",stringNodeType(node->_nodeType));
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
 		   stringNodeType(node->_nodeType),
@@ -272,6 +272,7 @@ void render_node(struct X3D_Node *node) {
 		   render_sensitive);
 	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,v->changed);
 	#endif
+
 
 	/* call the "changed_" function */
 	if((node->_change != node->_ichange)  && (v->changed != NULL)) {
@@ -293,6 +294,16 @@ void render_node(struct X3D_Node *node) {
 			#endif
                         return; 
                 } 
+        }
+
+	/* are we working through PointLights or SpotLights, but none exist from here on down? */
+        if (render_light == VF_otherLight) { 
+                if ((node->_renderFlags & VF_otherLight) != VF_otherLight) { 
+			#ifdef RENDERVERBOSE
+                        printf ("doing otherLight, but this  node is not for us - just returning\n"); 
+			#endif
+                        return; 
+                }
         }
 
 
@@ -331,6 +342,8 @@ void render_node(struct X3D_Node *node) {
 	    #endif
 	}
 
+
+
 	if(render_geom && !render_sensitive && v->rend) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 3\n");
@@ -339,16 +352,6 @@ void render_node(struct X3D_Node *node) {
 	    v->rend(node);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
-	    #endif
-	  }
-	if(render_light && v->light) {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 4\n");
-	    #endif
-
-	    v->light(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_light";
 	    #endif
 	  }
 	 
@@ -531,8 +534,7 @@ void remove_parent(struct X3D_Node *node, struct X3D_Node *parent) {
 }
 
 void
-render_hier(void *p, int rwhat)
-{
+render_hier(struct X3D_Node *p, int rwhat) {
 	struct pt upvec = {0,1,0};
 	GLdouble modelMatrix[16];
 	#define XXXrender_pre_profile
@@ -546,7 +548,7 @@ render_hier(void *p, int rwhat)
 
 	render_vp = rwhat & VF_Viewpoint;
 	render_geom =  rwhat & VF_Geom;
-	render_light = rwhat & VF_Lights;
+	render_light = rwhat & VF_otherLight;
 	render_sensitive = rwhat & VF_Sensitive;
 	render_blend = rwhat & VF_Blend;
 	render_proximity = rwhat & VF_Proximity;
@@ -562,8 +564,8 @@ render_hier(void *p, int rwhat)
 	}
 	#endif
 
-	/*printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
 
 	if (!p) {
 		/* we have no geometry yet, sleep for a tiny bit */
