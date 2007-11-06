@@ -168,12 +168,21 @@ extern char *GL_VEN;
 extern char *GL_VER;
 extern char *GL_REN;
 
-#define OCCLUSION
-#define VISIBILITYOCCLUSION
-#define SHAPEOCCLUSION
+/* do we have GL Occlusion Culling? */
+#ifdef HAVE_GL_QUERIES_ARB
+	#define OCCLUSION
+	#define VISIBILITYOCCLUSION
+	#define SHAPEOCCLUSION
+	#define glGenQueries(a,b) glGenQueriesARB(a,b)
+	#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
+#else 
+	#undef OCCLUSION
+	#undef VISIBILITYOCCLUSION
+	#undef SHAPEOCCLUSION
+	#define glGenQueries(a,b)
+	#define glDeleteQueries(a,b)
+#endif
 
-#define glGenQueries(a,b) glGenQueriesARB(a,b)
-#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
 #define glIsQuery(a) glIsQueryARB(a)
 #define glBeginQuery(a,b) glBeginQueryARB(a,b)
 #define glEndQuery(a) glEndQueryARB(a)
@@ -192,6 +201,7 @@ int newOcclude(void);
 void zeroOcclusion(void);
 extern int QueryCount;
 
+#ifdef OCCLUSION
 #define OCCLUSIONTEST \
 	/* a value of ZERO means that it HAS visible children - helps with initialization */ \
         if ((render_geom!=0) | (render_sensitive!=0)) { \
@@ -201,6 +211,10 @@ extern int QueryCount;
                         return; \
                 } \
         } 
+#else
+#define OCCLUSIONTEST
+#endif
+
 
 
 #define BEGINOCCLUSIONQUERY \

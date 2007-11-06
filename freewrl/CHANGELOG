@@ -1,4 +1,6 @@
-For 1.20.0:
+For 1.19.9:
+	- Should now compile on systems without Occlusion Culling in OpenGL.
+
 	- PointLight and SpotLight were not calculated correctly in the Scenegraph.
 	  Lighting revisited.
 
@@ -20,7 +22,6 @@ For 1.20.0:
 	- OcclusionQueries code revisited so that un-rendered Shape nodes (eg, in Switch statements)
 	  do not generate OpenGL errors.
 
-For 1.19.9:
 	- Anchors were coded as being "sibling-sensitive" - this has been
 	  changed, as they are not. This was causing problems where 2 Anchors were
 	  within the same Scene Graph grouping node.

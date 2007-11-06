@@ -337,6 +337,7 @@ void OcclusionStartofEventLoop() {
 
 
 void OcclusionCulling ()  {
+#ifdef OCCLUSION
 	int i;
 	int maxcount;
 	struct X3D_Shape *xx;
@@ -428,6 +429,7 @@ void OcclusionCulling ()  {
 			if (OccNodes[i]!=0) update_renderFlag (X3D_NODE(xx),VF_hasVisibleChildren);
 		}
 	}
+#endif
 }
 
 int newOcclude() {
