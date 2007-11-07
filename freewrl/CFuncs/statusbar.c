@@ -11,7 +11,11 @@
 
 /* DO NOT CHANGE THESE DEFINES WITHOUT CHECKING THE USE OF THE CODE, BELOW */
 #define PROX "ProximitySensor { size 1000 1000 1000 }"
-#define TEXT "Transform{translation 0 0 10 children[Collision{collide FALSE children [Transform{scale 0.1 0.1 1 translation 0 -0.024  0 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+
+/* put the text (second translation) back behind where the clip plane will be (the z axis) and down near the bottom of the screen a bit */
+/* look at the gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); line in MainLoop.c */
+
+#define TEXT "Transform{children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
 
 
 
@@ -26,7 +30,6 @@ static struct X3D_Text *textNode = NULL;
 #define STATUS_LEN 2000
 
 /* trigger a update */
-
 void update_status(char* msg) {
 	if (!sb_initialized) {
 		if (rootNode == NULL) return; /* system not running yet?? */
@@ -112,8 +115,10 @@ static void statusbar_init() {
 	add_parent((void *)proxNode, rootNode);
 	add_parent((void *)transNode, rootNode);
 
+
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 
 		(void *)transNode, offsetof (struct X3D_Transform, rotation), sizeof (struct SFRotation), 0);
+
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, position_changed), 
 		(void *)transNode, offsetof (struct X3D_Transform, translation), sizeof (struct SFColor), 0);
 	

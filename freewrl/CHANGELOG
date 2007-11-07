@@ -1,4 +1,7 @@
 For 1.19.9:
+	- statusbar now has name or description of mouse over sensitive node. near clipplane
+	  moved to help in rendering this.
+
 	- Should now compile on systems without Occlusion Culling in OpenGL.
 
 	- PointLight and SpotLight were not calculated correctly in the Scenegraph.

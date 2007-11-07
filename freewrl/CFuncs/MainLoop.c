@@ -105,7 +105,7 @@ GLint viewPort2[10];
 int screenWidth=1;
 int screenHeight=1;
 int cp = 0;
-double nearPlane=0.1;
+double nearPlane=0.1; 				/* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=21000.0;
 double screenRatio=1.5;
 double fieldofview=45.0;
