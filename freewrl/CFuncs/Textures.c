@@ -1063,7 +1063,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 
 
 	#ifdef AQUA
-        if (isMacPlugin) {
+        if (RUNNINGASPLUGIN) {
 		DO_POSSIBLE_TEXTURE_SEQUENCE
         }
 	#endif
@@ -1233,7 +1233,7 @@ void _textureThread(void) {
 	#ifdef AQUA
 	/* To get this thread to be able to manipulate textures, first, get the 
 	   Display attributes */
-	if (!isMacPlugin) {
+	if (!RUNNINGASPLUGIN) {
 		CGDirectDisplayID display = CGMainDisplayID ();
 		attribs[1] = CGDisplayIDToOpenGLDisplayMask (display);
 
@@ -1257,7 +1257,7 @@ void _textureThread(void) {
 
 	/* set up some common storage info */
 	#ifdef DO_MULTI_OPENGL_THREADS
-		if (!isMacPlugin) {
+		if (!RUNNINGASPLUGIN) {
 			glEnable(GL_TEXTURE_2D);
 			glPixelStorei(GL_PACK_ALIGNMENT,1);
 			glPixelStorei(GL_UNPACK_ALIGNMENT,1);
@@ -1306,7 +1306,7 @@ void _textureThread(void) {
 			#endif
 
 				# ifdef DO_MULTI_OPENGL_THREADS
-				if (!isMacPlugin) {
+				if (!RUNNINGASPLUGIN) {
 				#ifdef TEXVERBOSE 
 				printf ("tex %d needs binding, name %s\n",*loadparams[currentlyWorkingOn].texture_num,
 					loadparams[*loadparams[currentlyWorkingOn].texture_num].filename);

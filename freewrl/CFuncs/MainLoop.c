@@ -23,6 +23,9 @@
 #include "Collision.h"
 #include "SensInterps.h"
 
+static char debs[300];
+void debug_print(char *s) {printf ("debug_print:%s\n",s);}
+
 /* handle X11 requests, windowing calls, etc if on X11 */
 #ifndef AQUA
 	#include <X11/cursorfont.h>
@@ -156,7 +159,9 @@ Boolean firstTime;
 Boolean pluginRunning;
 Boolean inLoop;
 #ifdef AQUA
-Boolean isMacPlugin = FALSE;
+Boolean isBrowserPlugin = FALSE;
+#else
+int isBrowserPlugin = FALSE;
 #endif
 
 /******************************************************************************/
@@ -195,7 +200,7 @@ void EventLoop() {
 	struct timezone tz; /* unused see man gettimeofday */
 
 	#ifdef AQUA
-        if (isMacPlugin) {
+        if (RUNNINGASPLUGIN) {
                 cErr = aglSetCurrentContext(aqglobalContext);
                 if (cErr == GL_FALSE) {
                         printf("set current context error!");
@@ -240,7 +245,7 @@ void EventLoop() {
 
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-		/* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
+		/* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop); */
 
 		#ifdef PROFILE
 		oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;
@@ -763,7 +768,7 @@ void render() {
 #ifndef AQUA
 	glXSwapBuffers(Xdpy,GLwin);
 #else
-        if (isMacPlugin) {
+        if (RUNNINGASPLUGIN) {
                 aglSetCurrentContext(aqglobalContext);
                 aglSwapBuffers(aqglobalContext);
         } else {
@@ -827,7 +832,7 @@ void setup_viewpoint() {
 
 void setup_projection(int pick, int x, int y) {
 	#ifdef AQUA
-        if (isMacPlugin) {
+        if (RUNNINGASPLUGIN) {
                 aglSetCurrentContext(aqglobalContext);
         } else {
                 CGLSetCurrentContext(myglobalContext);
@@ -1065,6 +1070,12 @@ void setScreenDim(int wi, int he) {
         else screenRatio =  screenWidth;
 }
 
+/* OSX plugin is telling us the id to refer to */
+void setInstance (uintptr_t instance) {
+	_fw_instance = instance;
+}
+
+/* osx Safari plugin is telling us where the initial file is */
 void setFullPath(const char* file) {
 	if (!be_collision) {
 		char ks = 'c';
@@ -1072,7 +1083,7 @@ void setFullPath(const char* file) {
 	}
 	FREE_IF_NZ (BrowserFullPath);
 	BrowserFullPath = STRDUP((char *) file);
-	/* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath)); */
+	/* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath));  */
 }
 
 
@@ -1083,7 +1094,7 @@ void displayThread() {
         /* Create an OpenGL rendering context. */
 
 	#ifdef AQUA
-        	if (isMacPlugin) {
+        	if (RUNNINGASPLUGIN) {
                 	aglSetCurrentContext(aqglobalContext);
         	} else {
                 	glpOpenGLInitialize();
@@ -1110,7 +1121,7 @@ void displayThread() {
 		while (!quitThread) {
 			#ifdef AQUA
                         inLoop = TRUE;
-                        if (isMacPlugin && firstTime) {
+                        if (RUNNINGASPLUGIN && firstTime) {
                                 glpOpenGLInitialize();
                                 new_tessellation();
                                 set_viewer_type(EXAMINE);
@@ -1161,7 +1172,7 @@ void displayThread() {
 
 #ifdef AQUA
 void initGL() {
-        if (isMacPlugin) {
+        if (RUNNINGASPLUGIN) {
                 //aqglobalContext = aglGetCurrentContext();
                 pluginRunning = TRUE;
                 aglSetCurrentContext(aqglobalContext);
@@ -1204,7 +1215,6 @@ void initFreewrl() {
                 aglSetCurrentContext(aqglobalContext);
         }
 	#endif
-
 	if (DispThrd <= 0) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
 #ifndef AQUA
@@ -1233,7 +1243,6 @@ void initFreewrl() {
                 doNotRegisterThisNodeForDestroy(rootNode);
 	}
 
-	
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
 	if (BrowserFullPath != NULL) 
 		if (strlen(BrowserFullPath) > 1) 
@@ -1272,7 +1281,7 @@ void closeFreewrl() {
         quitThread = 1;
         viewer_initialized = FALSE;
 
-        if (!isMacPlugin) {
+        if (!RUNNINGASPLUGIN) {
                 set_viewer_type (EXAMINE);
 	}
         glFlush();
@@ -1507,7 +1516,7 @@ void setIsPlugin() {
 	FILE* tmpfile;
 	char tmppath[512];
 
-        isMacPlugin = TRUE;
+        RUNNINGASPLUGIN = TRUE;
         setUseShapeThreadIfPossible(0);
 		
 	// Save local working directory
@@ -1530,15 +1539,13 @@ void setIsPlugin() {
 	
 }
 void createContext(CGrafPtr grafPtr) {
-AGLPixelFormat  fmt;
-GLboolean      mkc, ok;
-const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_DEPTH_SIZE, 24, AGL_STENCIL_SIZE, 8, AGL_NONE};
-AGLDrawable             aglWin;
+	AGLPixelFormat  fmt;
+	GLboolean      mkc, ok;
+	const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_DEPTH_SIZE, 24, AGL_STENCIL_SIZE, 8, AGL_NONE};
+	AGLDrawable             aglWin;
 
-        //debug_print("In create draw context!");
-
-        if (aqglobalContext)
-        {
+        if (aqglobalContext) {
+		printf ("FreeWRL: createContext already made\n");
                 aglUpdateContext(aqglobalContext);
                 return;
         }
@@ -1546,37 +1553,29 @@ AGLDrawable             aglWin;
         gGDevice = GetMainDevice();
         fmt = aglChoosePixelFormat(&gGDevice, 1, attribWindow);
 
-        if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR))
-        {
-                //debug_print("aglChoosePixelFormat failed!\n");
+        if ((fmt == NULL) || (aglGetError() != AGL_NO_ERROR)) {
+                printf("FreeWRL: aglChoosePixelFormat failed!\n");
         }
 
         aqglobalContext = aglCreateContext(fmt, nil);
-        if ((aqglobalContext == nil) || (aglGetError() != AGL_NO_ERROR))
-        {
-                //debug_print("aglCreateContext failed!\n");
+        if ((aqglobalContext == nil) || (aglGetError() != AGL_NO_ERROR)) {
+                printf("FreeWRL: aglCreateContext failed!\n");
         }
 
         aglWin = (AGLDrawable)grafPtr;
         ok = aglSetDrawable(aqglobalContext, aglWin);
 
-        if ((!ok) || (aglGetError() != AGL_NO_ERROR))
-        {
-                if (aglGetError() == AGL_BAD_ALLOC)
-                {
-                        //debug_print("Not enough VRAM to initialize the draw context.\n");
-                }
-                else
-                {
-                        //debug_print("OGL_InitDrawContext: aglSetDrawable failed!\n");
+        if ((!ok) || (aglGetError() != AGL_NO_ERROR)) {
+                if (aglGetError() == AGL_BAD_ALLOC) {
+                        printf("FreeWRL: Not enough VRAM to initialize the draw context.\n");
+                } else {
+                        printf("FreeWRL: OGL_InitDrawContext: aglSetDrawable failed!\n");
                 }
         }
 
-
         mkc = aglSetCurrentContext(aqglobalContext);
-        if ((mkc == NULL) || (aglGetError() != AGL_NO_ERROR))
-        {
-                //debug_print("aglSetCurrentContext failed!\n");
+        if ((mkc == NULL) || (aglGetError() != AGL_NO_ERROR)) {
+                printf("FreeWRL: aglSetCurrentContext failed!\n");
         }
 
         aglDestroyPixelFormat(fmt);
@@ -1585,7 +1584,6 @@ AGLDrawable             aglWin;
         //debug_print(debs);
 
         pluginRunning = TRUE;
-
 }
 void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
 GLint           bufferRect[4];
@@ -1605,7 +1603,7 @@ int                     windowHeight;
 
         cErr = aglSetCurrentContext(aqglobalContext);
         if (cErr == GL_FALSE) {
-                //debug_print("set current context error!");
+                printf("FreeWRL: set current context error!\n");
         }
         //glFlush();
         //glFinish();
@@ -1641,28 +1639,62 @@ int                     windowHeight;
         //sprintf(debs, "leaving set clip - set cp to %d\n", cp);
         //debug_print(debs);
 }
-void disposeContext() {
+
+/* make a disposeContext but without some of the node destroys. */
+void Safari_disposeContext() {
         //debug_print("called dispose context");
         //sprintf(debs, "context is currently %p\n", aqglobalContext);
         //debug_print(debs);
+
         quitThread = 1;
         while (inLoop) {
                 //debug_print("waiting for end of loop");
                 usleep(10);
         }
-	kill_X3DDefs();
-        closeFreewrl();
+
         cErr = aglSetCurrentContext(nil);
         if (cErr == GL_FALSE) {
-                //debug_print("set current context error!");
+                printf("FreeWRL: set current context error!\n");
         }
         cErr = aglSetDrawable(aqglobalContext, nil);
         if (cErr == GL_FALSE) {
-                //debug_print("set current context error!");
+                printf("FreeWRL: set current context error!\n");
         }
         cErr = aglDestroyContext(aqglobalContext);
         if (cErr == GL_FALSE) {
-                //debug_print("set current context error!");
+                printf("FreeWRL: set current context error!\n");
+        }
+        aqglobalContext = nil;
+}
+
+/* older code - is this called from the front end? keep it around until
+verified that it is no longer required: */
+
+void disposeContext() {
+        //debug_print("called dispose context");
+        //sprintf(debs, "context is currently %p\n", aqglobalContext);
+        //debug_print(debs);
+
+        quitThread = 1;
+        while (inLoop) {
+                //debug_print("waiting for end of loop");
+                usleep(10);
+        }
+
+	kill_X3DDefs();
+        closeFreewrl();
+
+        cErr = aglSetCurrentContext(nil);
+        if (cErr == GL_FALSE) {
+                printf("FreeWRL: set current context error!\n");
+        }
+        cErr = aglSetDrawable(aqglobalContext, nil);
+        if (cErr == GL_FALSE) {
+                printf("FreeWRL: set current context error!\n");
+        }
+        cErr = aglDestroyContext(aqglobalContext);
+        if (cErr == GL_FALSE) {
+                printf("FreeWRL: set current context error!\n");
         }
         aqglobalContext = nil;
 }
@@ -1684,11 +1716,11 @@ void setEaiVerbose() {
 	eaiverbose = TRUE;
 }
 	
-void replaceWorldNeeded(char* str) {
+/* JAS void replaceWorldNeeded(char* str) {
 	strncpy(&replace_name, (const char*) str, FILENAME_MAX);
 	replaceWorld= TRUE; 
 }
-
+*/
 
 /* send the description to the statusbar line */
 void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {

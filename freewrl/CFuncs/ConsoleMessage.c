@@ -78,7 +78,7 @@ int ConsoleMessage(const char *fmt, ...) {
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
 	#ifdef AQUA
-		if (isMacPlugin && consMsgCount > MAXMESSAGES) {
+		if (RUNNINGASPLUGIN && consMsgCount > MAXMESSAGES) {
 	#else 
 		if (consMsgCount > MAXMESSAGES) {
 	#endif
@@ -177,13 +177,13 @@ int ConsoleMessage(const char *fmt, ...) {
 	}
 
 	/* print this to the application console log if running standalone, or speak it if running as a plug in */
-	if (!isMacPlugin) {
+	if (!RUNNINGASPLUGIN) {
 		if (strcmp(FWbuffer, "\n") && strcmp(FWbuffer, "\n\n")) {
 			aquaSetConsoleMessage(FWbuffer);
 		}
 	} else {
                 char systemBuffer[STRING_LENGTH + 10];
-                sprintf(systemBuffer, "say %s", FWbuffer);
+                sprintf(systemBuffer, "say \"%s\"", FWbuffer);
                 system(systemBuffer);
 	}
 #else

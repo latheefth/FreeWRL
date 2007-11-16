@@ -101,7 +101,7 @@ int parseCommandLine (int argc, char **argv) {
 				printf ("   type \"man freewrl\" to view man pages\n\n");
 				break;
 
-			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); break;
+			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); isBrowserPlugin = TRUE; break;
 			case 'j': sscanf (optarg,"%d",&_fw_browser_plugin);  break;
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
 			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;

@@ -238,11 +238,7 @@ void doBrowserAction () {
 
 
 		/* put the path and the file name together */
-		if (!isMacPlugin) {
-			makeAbsoluteFileName(filename,mypath,thisurl);
-		} else {
-			strcpy(filename, thisurl);
-		}
+		makeAbsoluteFileName(filename,mypath,thisurl);
 		/* printf ("so, Anchor, filename %s, mypath %s, thisurl %s\n",filename, mypath, thisurl); */
 
 		/* if this is a html page, just assume it's ok. If
@@ -286,7 +282,7 @@ void doBrowserAction () {
 
 
 			char *browser = getenv("BROWSER");
-#ifndef AQUA
+
 			/* bounds check here */
 			if (browser) testlen = strlen(browser);
 			else testlen = strlen(BROWSER);
@@ -302,20 +298,6 @@ void doBrowserAction () {
 				strcat (sysline, " &");
 				freewrlSystem (sysline);
 			}
-#else
-                if (isMacPlugin) {
-                        if (strncmp(filename, "http", 4)) {
-                                /* This isn't an absolute path, we have to make it into one ... */
-                                if (PluginFullPath == NULL) {
-                                        /* We haven't got a path from the plugin yet */
-                                        requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, filename);
-                                } 
-                
-                                strcat(aquaPath, PluginFullPath);
-                                strcat(aquaPath, filename);
-                                strcpy(filename, aquaPath);
-                        }
-                }
 
 		/* bounds check here */
 		if (browser) testlen = strlen(browser) + strlen(filename) + 20;
@@ -329,8 +311,6 @@ void doBrowserAction () {
 			else sprintf(sysline, "open -a %s %s &",  BROWSER, filename);
 			system (sysline);
 		}
-#endif
-		
 	}
 	FREE_IF_NZ (filename);
 }
@@ -367,31 +347,40 @@ int checkIfX3DVRMLFile(char *fn) {
  * trying to do an external VRML or X3D world.
  */
 
-void Anchor_ReplaceWorld (char *filename) {
+void Anchor_ReplaceWorld (char *name) {
 	int tmp;
 	void *tt;
+	char filename[1000];
+	char firstBytes[4];
 
 	/* sanity check - are we actually going to do something with a name? */
+	if (name != NULL)
+		if (strlen (name) > 1) {
+			strcpy (filename,name);
 
-	if (filename != NULL)
-		if (strlen (filename) > 1) {
-			/* kill off the old world, but keep EAI open, if it is... */
-			kill_oldWorld(FALSE,TRUE,TRUE);
+			/* there is a good chance that this name has already been vetted from the
+			   network. BUT - plugin code might pass us a networked file name for loading,
+			   (eg, check out current OSX plugin; hopefully still valid) */
 
-			inputParse(FROMURL, filename,TRUE,FALSE,
-				rootNode, offsetof (struct X3D_Group, children),&tmp,
-				TRUE);
+	                if (fileExists(filename,firstBytes,TRUE)) {
+				/* kill off the old world, but keep EAI open, if it is... */
+				kill_oldWorld(FALSE,TRUE,TRUE);
+
+				inputParse(FROMURL, filename,TRUE,FALSE, 
+					rootNode, offsetof (struct X3D_Group, children),&tmp,
+					TRUE);
 			
-			tt = BrowserFullPath;
-			BrowserFullPath = STRDUP(filename);
-			FREE_IF_NZ(tt);
-			EAI_Anchor_Response (TRUE);
-			return;
+				tt = BrowserFullPath;
+				BrowserFullPath = STRDUP(filename);
+				FREE_IF_NZ(tt);
+				EAI_Anchor_Response (TRUE);
+				return;
+			} else {
+				ConsoleMessage ("file %s does not exist",name);
+			}
 		} 
 	EAI_Anchor_Response (FALSE);
 }
-
-
 
 
 /* send in a 0 to 15, return a char representation */

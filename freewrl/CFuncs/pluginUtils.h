@@ -13,13 +13,11 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-
 #ifdef AQUA
 #include <unistd.h>
 #else
 #include <X11/X.h>
 #endif
-
 
 #ifdef __cplusplus
 extern "C" {

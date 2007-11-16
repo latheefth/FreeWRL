@@ -431,7 +431,8 @@ extern int display_status;
 
 extern int _fw_pipe, _fw_FD;
 extern int _fw_browser_plugin;
-#define RUNNINGASPLUGIN (_fw_pipe != 0)
+#define RUNNINGASPLUGIN (isBrowserPlugin)
+
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
 
 /* appearance does material depending on last texture depth */
@@ -808,6 +809,7 @@ extern int getOffset();
 extern void initGL();
 extern void setButDown(int button, int value);
 extern void setCurXY(int x, int y);
+extern void do_keyPress (char ch, int ev);
 extern void setLastMouseEvent(int etype);
 extern void initFreewrl();
 extern void aqDisplayThread();
@@ -826,6 +828,7 @@ extern void setMaxImages(int max);
 extern void setBrowserFullPath(const char *str);
 extern void setSeqTemp(const char* file);
 extern void setFullPath(const char *str);
+extern void setInstance(uintptr_t instance);
 extern void setScreenDim(int w, int h);
 
 extern char *getLibVersion();
@@ -1240,9 +1243,9 @@ void *createNewX3DNode (int nt);
 
 /* this is set by OSX, or to FALSE if on Linux. */
 #ifdef AQUA
-extern Boolean isMacPlugin;
+extern Boolean isBrowserPlugin;
 #else
-#define isMacPlugin FALSE
+extern int isBrowserPlugin;
 #endif
 
 

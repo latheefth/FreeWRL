@@ -19,7 +19,6 @@
 #ifdef AQUA
 #include <OpenGL.h>
 extern CGLContextObj myglobalContext;
-extern Boolean isMacPlugin;
 extern AGLContext aqglobalContext;
 #else 
 Display *Xdpy;
@@ -164,7 +163,7 @@ void glpOpenGLInitialize() {
 	   we make it the current Context. */
 
         /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
-        if (isMacPlugin) {
+        if (RUNNINGASPLUGIN) {
                 aglSetCurrentContext(aqglobalContext);
         } else {
                 CGLSetCurrentContext(myglobalContext);
@@ -392,7 +391,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 
 		/* stop rendering */
 		((struct X3D_Group*)rootNode)->children.n = 0;
-
 
 		/* free textures */
 		kill_openGLTextures();

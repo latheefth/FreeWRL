@@ -21,12 +21,12 @@
 #endif
 
 /*  CHECK DIRECTORY IN PLUGINPRINT*/
+#undef PLUGINSOCKETVERBOSE
 
 fd_set rfds;
 struct timeval tv;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
-
 
 #ifdef PLUGINSOCKETVERBOSE
 static FILE * tty = NULL;
@@ -44,7 +44,7 @@ void pluginprint (const char *m, const char *p) {
         gettimeofday (&mytime,&tz);
 	myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	if (tty == NULL) {
-		tty = fopen("/home/luigi/logPluginSocket", "w");
+		tty = fopen("/tmp/logPluginSocket", "w");
 		if (tty == NULL)
 			abort();
 		fprintf (tty, "\nplugin restarted\n");
@@ -53,6 +53,7 @@ void pluginprint (const char *m, const char *p) {
 
 	fprintf(tty, m,p);
 	fflush(tty);
+	/* printf ("%f: freewrl:%s:%s:\n", myt,m,p); */
 }
 #endif
 
@@ -115,10 +116,8 @@ void  requestPluginPrint(int to_plugin, const char *msg) {
         len = FILENAME_MAX * sizeof(char);
         memset(request.url, 0, len);
 
-        if (isMacPlugin) {
-                ulen = strlen(msg) + 1;
-                memmove(request.url, msg, ulen);
-        }
+	ulen = strlen(msg) + 1;
+	memmove(request.url, msg, ulen);
 
         bytes = sizeof(urlRequest);
 
@@ -135,9 +134,9 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	char buf[2004];
 	char encodedUrl[2000];
 
-	if (!isMacPlugin) {
+	/* encode the url - if it has funny characters (eg, spaces) asciify them 
+	   in accordance to some HTML web standard */
         URLencod(encodedUrl,url,2000);
-	}
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("NEW REQUEST\n",url);
@@ -152,25 +151,15 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	memset(request.url, 0, len);
 	memset(return_url, 0, len);
 
-	if (isMacPlugin) {
-		ulen = strlen(url) + 1;
-		memmove(request.url, url, ulen);
-	} else {
-		ulen = strlen(encodedUrl) + 1;
-		memmove(request.url, encodedUrl, ulen);
+	ulen = strlen(encodedUrl) + 1;
+	memmove(request.url, encodedUrl, ulen);
 
-	}
 	bytes = sizeof(urlRequest);
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, step 1\n","");
 	pluginprint ("sending url request to socket %d\n",to_plugin);
 	#endif
-
-	#ifdef ARCH_PPC
-	ConsoleMessage("Textures not working on PPC");
-	return NULL;
-	#endif 
 
 	if (write(to_plugin, (urlRequest *) &request, bytes) < 0) {
 		#ifdef PLUGINSOCKETVERBOSE
@@ -182,6 +171,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, step 2\n","");
 	#endif
+
 
 
 	/* wait around for a bit to see if this is going to pass or fail */

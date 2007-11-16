@@ -170,10 +170,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 		if ((strlen(thisurl)+strlen(path)) > 900) return FALSE;
 
 		/* we work in absolute filenames... */
-		if (!isMacPlugin) 
-			makeAbsoluteFileName(filename,path,thisurl);
-		else
-			strcpy(filename, thisurl);
+		makeAbsoluteFileName(filename,path,thisurl);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
 			/* printf ("getValidFileFromUrl, filename %s, cacheFileName %s\n",filename,cacheFileName); */
@@ -201,6 +198,8 @@ int checkNetworkFile(char *fn) {
 	   (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
 	   (strncmp(fn,"https://", strlen("https://"))) &&
 	   (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
+	   (strncmp(fn,"file://", strlen("file://"))) &&
+	   (strncmp(fn,"FILE://", strlen("FILE://"))) &&
 	   (strncmp(fn,"urn://", strlen("urn://"))) &&
 	   (strncmp(fn,"URN://", strlen("URN://")))) {
 	   return FALSE;
@@ -222,40 +221,30 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	char tempname[1000];
 	char sysline[1000];
 
-	/* printf ("checking for filename here %s\n",fname);  */
+	/* printf ("fileExists: checking for filename here %s\n",fname); */
 	FREE_IF_NZ(cacheFileName);
 
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
 
-#ifdef AQUA
-	/* if running on OS X, do Sarah's logic for how to get the file */
-	if ((RUNNINGASPLUGIN || isMacPlugin) && (strcmp(BrowserFullPath,fname)!=0) && (strncmp(PluginPath,fname,PluginLength)!=0)) {
-		/* are we running locally? If so, just get the file here */
-		if (checkNetworkFile(fname) || isMacPlugin) {
-			retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
-
-			/* check for timeout; if not found, return false */
-			if (!retName) return (FALSE);
-			cacheFileName = STRDUP(retName);
-		}
-	}
-#else
-	/* on Linux, if we are running as a plugin, ask the HTML browser for ALL files, as it'll know
-	   proxies, etc. */
+	/* if we are running as a plugin, ask the HTML browser for ALL files, as it'll know proxies, etc. */
 
 	if (RUNNINGASPLUGIN) {
+		/* printf ("fileExists, runningasplugin\n"); */
+
 		/* are we running as a plugin? If so, ask the HTML browser to get the file, and place
 		   it in the local cache for ANY file, except for the main "url" */
 		if (checkNetworkFile(fname)) {
+			/* printf ("requesting URL from plugin...\n"); */
+
 			retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
 
 			/* check for timeout; if not found, return false */
 			if (!retName) return (FALSE);
 			cacheFileName = STRDUP(retName);
+			/* printf ("requesting URL - retname is %s\n",retName); */
 		}
 	}
-#endif
 
 	/* if not, do we need to invoke lwp to get the file, or
 	   is it just local? if we are running as a plugin, this should
@@ -277,9 +266,6 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	
 			/* string length checking */
 			if ((strlen(WGET)+strlen(fname)+strlen(tempname)) < (1000-20)) {
-	#ifdef AQUA
-			    sprintf (sysline,"%s %s -o %s",WGET,fname,tempname);
-	#else
 			    /* hmmm - if this is a https:// line, we can try the "--no-check-certificate" and cross our
 			       fingers - suggested by Michel Briand */
 
@@ -287,7 +273,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			    	(strncmp(fname,"HTTPS://",strlen("HTTPS://")) == 0)) 
 			    sprintf (sysline,"%s --no-check-certificate %s -O %s",WGET,fname,tempname);
 			    else sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
-	#endif
+
 			    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
 			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 			    freewrlSystem (sysline);
@@ -300,7 +286,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 		}
 	}
 
-	/* printf ("FileExists: opening file %s\n",cacheFileName);  */
+	/* printf ("FileExists: opening file %s\n",cacheFileName); */
 
 
 	fp= fopen (cacheFileName,"r");
@@ -338,7 +324,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
-		/* printf ("copying psppath over for %s\n",thisurl);*/
+		/* printf ("copying psppath over for %s\n",thisurl); */
 		strcpy (filename,pspath);
 		/* do we actually have anything here? */
 		if (strlen(pspath) > 0) {
@@ -349,13 +335,13 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 		/* does this "thisurl" start with file:, as in "freewrl file:test.wrl" ? */
 		if ((strncmp(thisurl,"file:",strlen("file:"))==0) || 
 				(strncmp(thisurl,"FILE:",strlen("FILE:"))==0)) {
-			/* printf ("stripping file off of start\n");  */
+			/* printf ("stripping file off of start\n"); */
 			thisurl += strlen ("file:");
 
 			/* now, is this a relative or absolute filename? */
 			if (strncmp(thisurl,"/",strlen("/")) !=0) {
 				/* printf ("we have a leading slash after removing file: from name\n");
-				printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename);  */
+				printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename); */
 				strcat(filename,thisurl);
 			
 			} else {
