@@ -74,7 +74,6 @@
 ##  If you have -DUSE_TERMCAP, set this as appropriate:
 #LDFLAGS = -ltermlib
 #LDFLAGS = -ltermcap
-LDFLAGS = -isysroot /Developer/SDKs/MacOSX10.3.9.sdk -arch ppc
 
 DEFS	= -DANSI_ARROWS -DHAVE_TCGETATTR -DHIDE -DUSE_DIRENT -DSYS_UNIX \
 	-DHAVE_STDLIB -DUNIQUE_HISTORY
@@ -86,8 +85,9 @@ include $(DEPTH)/config.mk
 #
 # Default IEEE libm
 #
-CFLAGS          += -arch ppc -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
-		  -DJSFILE $(XCFLAGS) $(DEFS) -I/Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/FlatCarbon -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3 -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++ -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++/ppc-darwin -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include
+
+CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
+		  -DJSFILE $(XCFLAGS) $(DEFS) $(STACKPROT) -fPIC
 
 INCFILES = editline.h
 .INIT: $(INCFILES)

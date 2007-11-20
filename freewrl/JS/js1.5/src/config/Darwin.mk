@@ -39,14 +39,13 @@
 # Just ripped from Linux config
 #
 
-CC = /usr/bin/gcc-3.3
+CC = cc
 CCC = g++
-XLDFLAGS = -arch ppc
-CFLAGS +=  -Wall -Wno-format -arch ppc -I/Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/FlatCarbon -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3 -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++ -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++/ppc-darwin -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include
+CFLAGS +=  -Wall -Wno-format
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN
 
 RANLIB = ranlib
-MKSHLIB = $(CC) -framework System
+MKSHLIB = libtool $(XMKSHLIBOPTS) -framework System
 
 #.c.o:
 #      $(CC) -c -MD $*.d $(CFLAGS) $<
