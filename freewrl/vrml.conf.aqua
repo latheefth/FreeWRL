@@ -8,6 +8,7 @@ LIB_DIR => "/usr/lib",
 DEBUG => "off",
 BROWSER => "/Applications/Safari.app/Contents/MacOS/Safari",
 WGET => "/usr/bin/curl",
+ASCIITERM => "/usr/X11R6/bin/rxvt",
 CONVERT => "/usr/local/bin/convert",
 UNZIP => "/usr/bin/gunzip",
 
@@ -16,30 +17,35 @@ JAVA => "/usr/bin/java",
 
 COPIER => "/bin/cp",                    # copy one file to another
 SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
+FREEWRL_CCFLAGS => '-arch '.
+		   'ppc ',
 
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/lib '.
+		'-L/usr/local/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
-		'-L/Users/daniel/FreeWRL/jpeg-6b '.
+		'-L/FreeWRL/jpeg-6b '.
 		'-ljpeg '.
-		'-lpng '.
+		'-lpng12 '.
+		'-lexpat '.
 		'-lz '.
 		'-lSystem '.
 		'-lfreetype '.
 		'-lGL -lGLU '.
-		' -F/System/Library/Frameworks -framework OpenGL -framework AGL -framework GLUT -framework Cocoa',
+		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
 
-    FREEWRL_DEFINE => '-D_REENTRANT `perl -MExtUtils::Embed -e ccopts`',
+    FREEWRL_DEFINE => '-DAQUA -DARCH_PPC -D_REENTRANT -arch ppc -fno-common',
 
-    FREEWRL_INC => '-I/usr/include '.
-		'-I/usr/include/sys '.
-		'-I/Users/daniel/FreeWRL/jpeg-6b '.
+    FREEWRL_INC => '-I/FreeWRL/jpeg-6b '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
+		'-I/usr/local/include '.
+		'-I/Developer/SDKs/MacOSX10.3.9.sdk/usr/X11R6/include/freetype2 '.
+		'-I/Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/FlatCarbon -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3 -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++ -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++/ppc-darwin -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include '.
 		' ',
 
 ############################################################################
@@ -51,13 +57,12 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 # LD flags
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
-		'-dynamiclib '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '. 
+		'-arch ppc '.
+		#'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk -Wl -syslibroot /Developer/SDKs/MacOSX10.3.9.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
-		'-framework AGL '.
 		'-framework Cocoa '.
 		'-lAquaIntLib ',
 
@@ -65,11 +70,11 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-undefined error '.
 		'-bundle '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '.
+		'-arch ppc '.
+		'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
-		'-framework AGL '.
 		'-framework Cocoa '.
 		'-lAquaIntLib ',
 );

@@ -154,7 +154,7 @@ char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 char *cacheFileName = NULL;
 
-void *rootNode=0;	/* scene graph root node */
+void *rootNode=NULL;	/* scene graph root node */
 void *empty_group=0;
 
 /*******************************************************************************/
@@ -638,7 +638,7 @@ void setShutter (void) {
 #ifdef DO_MULTI_OPENGL_THREADS
 
 /* threading variables for loading shapes in threads */
-static pthread_t shapeThread;
+static pthread_t shapeThread = NULL;
 static pthread_mutex_t shapeMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t shapeCond   = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t shapeGenMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -681,7 +681,10 @@ void _shapeCompileThread () {
 
 void initializeShapeCompileThread() {
 	int iret;
-        iret = pthread_create(&shapeThread, NULL, (void *(*)(void *))&_shapeCompileThread, NULL);
+
+	if (shapeThread == NULL) {
+        	iret = pthread_create(&shapeThread, NULL, (void *(*)(void *))&_shapeCompileThread, NULL);
+	}
 }
 
 #endif

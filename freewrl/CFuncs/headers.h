@@ -38,8 +38,15 @@ void *freewrlStrdup (int line, char *file, char *str);
 
 #define ID_UNDEFINED -1
 
-/* Perl was used for parsing. The runtime ideas work very well - so lets just try and keep
-them around */
+/* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
+most things around, just stops display thread, when the user exits a world. */
+#define STOP_DISPLAY_THREAD \
+        if (DispThrd != NULL) { \
+                quitThread = TRUE; \
+                pthread_join(DispThrd,NULL); \
+                DispThrd = NULL; \
+        }
+
 
 /* vrmlconf.h should have the AQUA definition - so get the GL headers */
 #ifdef AQUA

@@ -79,7 +79,7 @@ static struct Multi_Int32 invalidFilePixelDataNode;
 static int	invalidFilePixelData[] = {1,1,3,0x707070};
 
 /* threading variables for loading textures in threads */
-static pthread_t loadThread;
+static pthread_t loadThread = NULL;
 static pthread_mutex_t texmutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t texcond   = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t genmutex = PTHREAD_MUTEX_INITIALIZER;
@@ -152,7 +152,9 @@ void readpng_cleanup(int free_image_data);
 /************************************************************************/
 /* start up the texture thread */
 void initializeTextureThread() {
-	pthread_create (&loadThread, NULL, (void*(*)(void *))&_textureThread, NULL);
+	if (loadThread == NULL) {
+		pthread_create (&loadThread, NULL, (void*(*)(void *))&_textureThread, NULL);
+	}
 }
 
 /* is the texture thread initialized yet? */

@@ -106,7 +106,7 @@ int totviewpointnodes = 0;
 int currboundvpno=0;
 
 /* keep track of the producer thread made */
-pthread_t PCthread;
+pthread_t PCthread = NULL;
 
 /* is the inputParse thread created? */
 int inputParseInitialized=FALSE;
@@ -126,8 +126,10 @@ static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call dest
 void initializeInputParseThread(void) {
 	int iret;
 
-	/* create consumer thread and set the "read only" flag indicating this */
-	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
+	if (PCthread == NULL) {
+		/* create consumer thread and set the "read only" flag indicating this */
+		iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
+	}
 }
 
 /* is Perl running? this is a function, because if we need to mutex lock, we

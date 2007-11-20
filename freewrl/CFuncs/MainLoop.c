@@ -82,7 +82,7 @@ int currentFileVersion = 0;
 	static GDHandle gGDevice;
 #endif
 
-int quitThread = 0;
+int quitThread = FALSE;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 per loop */
 extern int viewer_initialized;
@@ -155,9 +155,10 @@ void EventLoop(void);
 unsigned char*  getRayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
-Boolean firstTime;
 Boolean pluginRunning;
+/*
 Boolean inLoop;
+*/
 #ifdef AQUA
 Boolean isBrowserPlugin = FALSE;
 #else
@@ -1096,6 +1097,9 @@ void displayThread() {
 	#ifdef AQUA
         	if (RUNNINGASPLUGIN) {
                 	aglSetCurrentContext(aqglobalContext);
+                        glpOpenGLInitialize();
+                        new_tessellation();
+                        set_viewer_type(EXAMINE);
         	} else {
                 	glpOpenGLInitialize();
                 	new_tessellation();
@@ -1108,66 +1112,44 @@ void displayThread() {
                 new_tessellation();
 	#endif
 
-	while (1) {
-		#ifdef AQUA
-                if (pluginRunning) {
-			//printf("current context is %p\n", aqglobalContext);
-                        //aglSetCurrentContext(aqglobalContext);
-                }
-		firstTime = TRUE;
-		#endif
+	/* loop and loop, and loop... */
+	while (!quitThread) {
 
-		/* loop and loop, and loop... */
-		while (!quitThread) {
-			#ifdef AQUA
-                        inLoop = TRUE;
-                        if (RUNNINGASPLUGIN && firstTime) {
-                                glpOpenGLInitialize();
-                                new_tessellation();
-                                set_viewer_type(EXAMINE);
-                                firstTime = FALSE;
-                        }
-			#endif
+		/* FreeWRL SceneGraph */
+		EventLoop();
 
-			/* FreeWRL SceneGraph */
-			EventLoop();
-
-			#ifndef AQUA
-				#ifdef HAVE_MOTIF
-				/* X11 Windowing calls */
-
-				/* any updates to the menu buttons? Because of Linux threading
-				   issues, we try to make all updates come from 1 thread */
-				frontendUpdateButtons();
-
-			
-				/* do the Xt events here. */
-        			while (XtAppPending(freewrlXtAppContext)!= 0) {
-                			XtAppNextEvent(freewrlXtAppContext, &event);
-                			XtDispatchEvent (&event);
-				}
-				#endif
-
-				#ifdef HAVE_GTK2
-				/* X11 GTK windowing calls */
-				/* any updates to the menu buttons? Because of Linux threading
-				   issues, we try to make all updates come from 1 thread */
-				frontendUpdateButtons();
-
-				/* GTK events here */
-				printf ("look for GTK events here\n");
-				#endif
-
-			
-			#else 
-			inLoop = FALSE;
-			#endif
-		}
-	
 		#ifndef AQUA
-		if (fullscreen) resetGeometry();
+			#ifdef HAVE_MOTIF
+			/* X11 Windowing calls */
+
+			/* any updates to the menu buttons? Because of Linux threading
+			   issues, we try to make all updates come from 1 thread */
+			frontendUpdateButtons();
+
+			
+			/* do the Xt events here. */
+       			while (XtAppPending(freewrlXtAppContext)!= 0) {
+               			XtAppNextEvent(freewrlXtAppContext, &event);
+               			XtDispatchEvent (&event);
+			}
+			#endif
+
+			#ifdef HAVE_GTK2
+			/* X11 GTK windowing calls */
+			/* any updates to the menu buttons? Because of Linux threading
+			   issues, we try to make all updates come from 1 thread */
+			frontendUpdateButtons();
+
+			/* GTK events here */
+			printf ("look for GTK events here\n");
+			#endif
+
 		#endif
 	}
+	
+	#ifndef AQUA
+	if (fullscreen) resetGeometry();
+	#endif
 }
 
 #ifdef AQUA
@@ -1208,18 +1190,20 @@ void initFreewrl() {
 	setbuf(stdout,0);
 	setbuf(stderr,0);
         threadmsg = "event loop";
-	quitThread = 0;
+	quitThread = FALSE;
 
 	#ifdef AQUA
         if (pluginRunning) {
                 aglSetCurrentContext(aqglobalContext);
         }
 	#endif
-	if (DispThrd <= 0) {
+
+	if (DispThrd == NULL) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
-#ifndef AQUA
+
+		#ifndef AQUA
 		while (ISDISPLAYINITIALIZED == FALSE) { usleep(50);}
-#endif
+		#endif
 
 
 		/* shape compiler thread - if we can do this */
@@ -1237,10 +1221,12 @@ void initFreewrl() {
         	}
 
                 /* create the root node */
-                rootNode = createNewX3DNode (NODE_Group);
+		if (rootNode == NULL) {
+                	rootNode = createNewX3DNode (NODE_Group);
 
-		/*remove this node from the deleting list*/
-                doNotRegisterThisNodeForDestroy(rootNode);
+			/*remove this node from the deleting list*/
+               	 	doNotRegisterThisNodeForDestroy(rootNode);
+		}
 	}
 
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
@@ -1278,7 +1264,7 @@ void closeFreewrl() {
         rn = (struct X3D_Group*) rootNode;
         tn =  &(rn->children);
         tn->n = 0;
-        quitThread = 1;
+        quitThread = TRUE;
         viewer_initialized = FALSE;
 
         if (!RUNNINGASPLUGIN) {
@@ -1545,7 +1531,7 @@ void createContext(CGrafPtr grafPtr) {
 	AGLDrawable             aglWin;
 
         if (aqglobalContext) {
-		printf ("FreeWRL: createContext already made\n");
+		/* printf ("FreeWRL: createContext already made\n"); */
                 aglUpdateContext(aqglobalContext);
                 return;
         }
@@ -1646,11 +1632,8 @@ void Safari_disposeContext() {
         //sprintf(debs, "context is currently %p\n", aqglobalContext);
         //debug_print(debs);
 
-        quitThread = 1;
-        while (inLoop) {
-                //debug_print("waiting for end of loop");
-                usleep(10);
-        }
+
+	STOP_DISPLAY_THREAD
 
         cErr = aglSetCurrentContext(nil);
         if (cErr == GL_FALSE) {
@@ -1675,11 +1658,7 @@ void disposeContext() {
         //sprintf(debs, "context is currently %p\n", aqglobalContext);
         //debug_print(debs);
 
-        quitThread = 1;
-        while (inLoop) {
-                //debug_print("waiting for end of loop");
-                usleep(10);
-        }
+	STOP_DISPLAY_THREAD 
 
 	kill_X3DDefs();
         closeFreewrl();
@@ -1716,11 +1695,12 @@ void setEaiVerbose() {
 	eaiverbose = TRUE;
 }
 	
-/* JAS void replaceWorldNeeded(char* str) {
+/* called from the standalone OSX front end */
+void replaceWorldNeeded(char* str) {
 	strncpy(&replace_name, (const char*) str, FILENAME_MAX);
 	replaceWorld= TRUE; 
 }
-*/
+
 
 /* send the description to the statusbar line */
 void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
