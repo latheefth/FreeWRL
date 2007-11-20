@@ -1252,15 +1252,11 @@ void closeFreewrl() {
 	EAI_killBindables();
 	kill_bindables();
 	kill_routing();
-	/*
-	kill_rendering(rootNode);
-	*/
 	kill_openGLTextures();
 	kill_javascript();
 
 	#endif
         /* kill any remaining children */
-        /* printf ("doQuit - calling exit(0)\n"); */
         rn = (struct X3D_Group*) rootNode;
         tn =  &(rn->children);
         tn->n = 0;
@@ -1460,6 +1456,8 @@ void *freewrlStrdup (int line, char *file, char *str) {
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
+	STOP_DISPLAY_THREAD
+
 	kill_oldWorld(TRUE,TRUE,TRUE);
 
 	/* set geometry to normal size from fullscreen */

@@ -67,7 +67,7 @@ struct textureTableStruct {
 	struct textureTableStruct * next;
 	struct textureTableIndexStruct entry[32];
 };
-struct textureTableStruct* textureTable = NULL;
+struct textureTableStruct* readTextureTable = NULL;
 
 static int nextFreeTexture = 0;
 char *workingOnFileName = NULL;
@@ -242,6 +242,7 @@ void releaseTexture(struct X3D_Node *node) {
 		FREE_IF_NZ(ti->OpenGLTexture);
 	}
 	#endif
+
 	ti = getTableIndex(tableIndex);
 	ti->status = TEX_NOTLOADED;
 	if (ti->OpenGLTexture != NULL) {
@@ -257,24 +258,28 @@ void kill_openGLTextures() {
 	struct textureTableStruct * tmp;
 
 	/* remove the OpenGL textures */
-	listRunner = textureTable;
+	listRunner = readTextureTable;
 
 	while (listRunner != NULL) {
 		/* zero out the fields in this new block */
 		for (count = 0; count < 32; count ++) {
 			if  (listRunner->entry[count].OpenGLTexture != NULL) {
-				listRunner->entry[count].OpenGLTexture = NULL;
-				listRunner->entry[count].frames = 0;
+				#ifdef TEXVERBOSE
+				printf ("deleting %d %d\n",listRunner->entry[count].frames, listRunner->entry[count].OpenGLTexture);
+				#endif
+
 				glDeleteTextures(listRunner->entry[count].frames, listRunner->entry[count].OpenGLTexture);
 				FREE_IF_NZ (listRunner->entry[count].OpenGLTexture);
+				listRunner->entry[count].OpenGLTexture = NULL;
+				listRunner->entry[count].frames = 0;
 			}
 		}
 		listRunner = listRunner->next;
 	}
 
 	/* now, delete the tables themselves */
-	listRunner = textureTable;
-	textureTable = NULL;
+	listRunner = readTextureTable;
+	readTextureTable = NULL;
 	nextFreeTexture = 0;
 	while (listRunner != NULL) {
 		tmp = listRunner;
@@ -318,7 +323,7 @@ struct textureTableIndexStruct *getTableIndex(int indx) {
 		printf ("whichBlock = %d, wichEntry = %d ",whichBlock, whichEntry);
 	#endif
 
-	currentBlock = textureTable;
+	currentBlock = readTextureTable;
 	for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
 
 	#ifdef TEXVERBOSE
@@ -371,8 +376,8 @@ void registerTexture(struct X3D_Node *tmp) {
 			newStruct->next = NULL;
 			
 			/* link this one in */
-			listRunner = textureTable;
-			if (listRunner == NULL) textureTable = newStruct;
+			listRunner = readTextureTable;
+			if (listRunner == NULL) readTextureTable = newStruct;
 			else {
 				while (listRunner->next != NULL) 
 					listRunner = listRunner->next;
@@ -384,7 +389,7 @@ void registerTexture(struct X3D_Node *tmp) {
 		whichBlock = (nextFreeTexture & 0xffe0) >> 5;
 		whichEntry = nextFreeTexture & 0x1f;
 
-		currentBlock = textureTable;
+		currentBlock = readTextureTable;
 		for (count=0; count<whichBlock; count++) currentBlock = currentBlock->next;
 
 		/* save this index in the scene graph node */
