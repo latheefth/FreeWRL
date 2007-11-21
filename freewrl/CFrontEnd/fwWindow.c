@@ -164,7 +164,7 @@ void createGLContext(void) {
 	glMatrixMode (GL_MODELVIEW);
 
 	/* Mesa 6.4.1 on AMD64 will segfault. Check for this. */
-	if (sizeof(void*) == 8) {
+/* 	if (sizeof(void*) == 8) { */
 		/* running on a 64 bit system */
 		if (strstr (GL_VER, "Mesa 6.4.1") != NULL) {
 			printf ("Warning - Mesa located, needs to be version 6.4.2 or above, have %s\n",glGetString(GL_VERSION));
@@ -172,7 +172,7 @@ void createGLContext(void) {
 			printf ("FreeWRL will crash because of bugs in this version of Mesa\nget a new version from http://mesa3d.org, or install an NVidia driver and card.\n");
 			ConsoleMessage ("FreeWRL will crash because of bugs in this version of Mesa\nget a new version from http://mesa3d.org, or install an NVidia driver and card.\n");
 		}
-	}
+/* 	} */
 }
 
 

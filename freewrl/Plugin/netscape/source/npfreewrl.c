@@ -66,7 +66,7 @@ typedef struct _FW_PluginInstance
 {
 	int			interfaceFile[2];
 	Display 		*display;
-	uint32 			x, y;
+	int32 			x, y;
 	uint32 			width, height;
 	Window 			mozwindow;
 	Window 			fwwindow;
@@ -115,7 +115,7 @@ static void print_here (char * xx) {
 	if (!PluginVerbose) return;
 
 	if (tty == NULL) {
-		tty = fopen("/home/luigi/pluginlog", "w");
+		tty = fopen("/tmp/npfreewrl.log", "a");
 		if (tty == NULL)
 			PluginVerbose = FALSE;
 		fprintf (tty, "\nplugin restarted\n");
@@ -435,30 +435,26 @@ void Run (NPP instance) {
 	print_here (debs);
 	*/
 
-
 	/*reparent the window */
-	if (!RUNNINGONAMD64) {
-		/* print_here ("going to XFlush"); */
 
-		XFlush(FW_Plugin->display);
-		
-		/* print_here ("going to XSync"); */
-
-		XSync (FW_Plugin->display, FALSE);
-
-		/* print_here ("going to reparent"); */
-		XReparentWindow(FW_Plugin->display,
-			FW_Plugin->fwwindow,
-			FW_Plugin->mozwindow,
-			0,0);
-
-		XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
-				FW_Plugin->width, FW_Plugin->height);
-
-
-		XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
-		print_here ("after mapwindow");
-	}
+	/* print_here ("going to XFlush"); */
+	XFlush(FW_Plugin->display);
+	
+	/* print_here ("going to XSync"); */
+	XSync (FW_Plugin->display, FALSE);
+	
+	/* print_here ("going to reparent"); */
+	XReparentWindow(FW_Plugin->display,
+					FW_Plugin->fwwindow,
+					FW_Plugin->mozwindow,
+					0,0);
+	
+	XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
+				  FW_Plugin->width, FW_Plugin->height);
+	
+	
+	XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
+	print_here ("after mapwindow");
 
 	print_here ("Run function finished\n");
 }
@@ -474,7 +470,7 @@ NPP_GetMIMEDescription(void)
 }
 
 NPError
-NPP_GetValue(void *future, NPPVariable variable, void *value)
+NPP_GetValue(NPP instance, NPPVariable variable, void *value)
 {
     NPError err = NPERR_NO_ERROR;
 	print_here ("NPP_GetValue");

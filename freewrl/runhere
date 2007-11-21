@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ ! -x "CFrontEnd/freewrl" ] ; then
+	echo "make CFrontEnd before !"
+fi
+
+if [ ! -x "libFreeWRLFunc.so" ] ; then
+	echo "make libFreeWRLFunc before !"
+fi
+
+export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+
+CFrontEnd/freewrl "$@"

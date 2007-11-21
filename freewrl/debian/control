@@ -1,11 +1,11 @@
 Source: freewrl
-Section: unknown
+Section: graphics
 Priority: optional
 Maintainer: sarah <sarah.dumoulin@crc.ca>
-Build-Depends: debhelper (>= 4.0.0), libosmesa6-dev, libglut3-dev, libjpeg62-dev, libpng12-dev, libfreetype6-dev, libperl-dev, free-java-sdk, lesstif2-dev, libxaw7-dev, firefox, perl, perl-base
+Build-Depends: debhelper (>= 4.0.0), free-java-sdk, lesstif2-dev, libexpat1-dev, libfreetype6-dev, libgl-dev, libjpeg62-dev, libmozjs-dev, libpng12-dev, libxaw7-dev, perl
 Standards-Version: 3.6.2
 
 Package: freewrl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, ttf-bitstream-vera
 Description: FreeWRL X3D/VRML browser 

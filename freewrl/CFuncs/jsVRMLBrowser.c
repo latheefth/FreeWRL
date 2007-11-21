@@ -231,7 +231,7 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 	char *tptr;
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format, &_obj)) {
-		if ((_cls = JS_GetClass(_obj)) == NULL) {
+		if ((_cls = JS_GET_CLASS(context, _obj)) == NULL) {
 			printf("JS_GetClass failed in VrmlBrowserReplaceWorld.\n");
 			return JS_FALSE;
 		}
@@ -276,11 +276,11 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 	char myBuf[myBufSize];
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format, &(_obj[0]), &(_obj[1]))) {
-		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
+		if ((_cls[0] = JS_GET_CLASS(context, _obj[0])) == NULL) {
 			printf( "JS_GetClass failed for arg 0 in VrmlBrowserLoadURL.\n");
 			return JS_FALSE;
 		}
-		if ((_cls[1] = JS_GetClass(_obj[1])) == NULL) {
+		if ((_cls[1] = JS_GET_CLASS(context, _obj[1])) == NULL) {
 			printf( "JS_GetClass failed for arg 1 in VrmlBrowserLoadURL.\n");
 			return JS_FALSE;
 		}
@@ -429,7 +429,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	/* first parameter - expect a MFString Object here */
 	if (JSVAL_IS_OBJECT(argv[0])) {
-                if ((_cls[0] = JS_GetClass((JSObject *)argv[0])) == NULL) {
+		if ((_cls[0] = JS_GET_CLASS(context, (JSObject *)argv[0])) == NULL) {
                         printf( "JS_GetClass failed for arg 0 in VrmlBrowserLoadURL.\n");
                         return JS_FALSE;
                 }
@@ -440,7 +440,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	/* second parameter - expect a SFNode Object here */
 	if (JSVAL_IS_OBJECT(argv[1])) {
-                if ((_cls[1] = JS_GetClass((JSObject *)argv[1])) == NULL) {
+		if ((_cls[1] = JS_GET_CLASS(context, (JSObject *)argv[1])) == NULL) {
                         printf( "JS_GetClass failed for arg 1 in VrmlBrowserLoadURL.\n");
                         return JS_FALSE;
                 }
@@ -928,12 +928,12 @@ static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *
 	/* get the arguments, and ensure that they are obj, string, obj, string */
 	if (JS_ConvertArguments(context, argc, argv, _c_format,
 				&fromNodeObj, &fromFieldString, &toNodeObj, &toFieldString)) {
-		if ((_cls[0] = JS_GetClass(fromNodeObj)) == NULL) {
+		if ((_cls[0] = JS_GET_CLASS(context, fromNodeObj)) == NULL) {
 			printf("JS_GetClass failed for arg 0 in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;
 		}
-		if ((_cls[1] = JS_GetClass(toNodeObj)) == NULL) {
+		if ((_cls[1] = JS_GET_CLASS(context, toNodeObj)) == NULL) {
 			printf("JS_GetClass failed for arg 2 in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;

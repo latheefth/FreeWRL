@@ -82,13 +82,13 @@ void createBareMainWindow () {
 	XSetWMIconName(Xdpy, Xwin, &windowName);
 	
 	/* are we running without Motif, and as a plugin? */
-	if (!RUNNINGONAMD64) {
+/* 	if (!RUNNINGONAMD64) { */
 		if (!RUNNINGASPLUGIN) {
                         /* just map us to the display */
                         XMapWindow(Xdpy, Xwin);
                         XSetInputFocus(Xdpy, Pwin, RevertToParent, CurrentTime);
 		}
-	}
+/* 	} */
 }
 #endif
 #endif
