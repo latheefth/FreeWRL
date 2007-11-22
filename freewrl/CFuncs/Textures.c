@@ -26,12 +26,20 @@
 		}
 /* lets check the max texture size */
 static int checktexsize;
+
+/* note - we reduce the max texture size on computers with the (incredibly inept) Intel GMA 9xx chipsets - like the Intel
+   Mac minis, and macbooks up to November 2007 */
 #define CHECK_MAX_TEXTURE_SIZE \
 	if (global_texSize<=0) { \
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); \
 		global_texSize = -global_texSize; \
 		if (global_texSize == 0) global_texSize = checktexsize; \
 		if (global_texSize > checktexsize) global_texSize = checktexsize; \
+		if (strncmp(glGetString(GL_RENDERER),"Intel GMA 9",strlen("Intel GMA 9")) == 0) { \
+		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */ \
+			if (global_texSize > 1024) global_texSize = 1024; \
+		}  \
+		/* printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); */ \
 		setMenuButton_texSize (global_texSize); \
 	} 
 
