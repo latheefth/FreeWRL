@@ -35,15 +35,16 @@
 /* for keeping track of the ECMA values */
 struct ECMAValueStruct {
 	jsval	JS_address;
+	JSContext *context;
 	int	valueChanged;
 	char 	*name;
 };
 
 extern struct ECMAValueStruct ECMAValues[];
 extern int maxECMAVal;
-int findInECMATable(jsval toFind);
-int findNameInECMATable(char *toFind);
-void resetNameInECMATable(char *toFind);
+int findInECMATable(JSContext *context, jsval toFind);
+int findNameInECMATable(JSContext *context, char *toFind);
+void resetNameInECMATable(JSContext *context, char *toFind);
 
 extern jsval JSglobal_return_val;
 extern uintptr_t *JSSFpointer;

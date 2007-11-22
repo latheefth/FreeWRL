@@ -1,4 +1,7 @@
 For 1.19.9:
+	- ECMAscript values when multiple scripts used same textual name reported incorrect
+	  values.
+
 	- statusbar now has name or description of mouse over sensitive node. near clipplane
 	  moved to help in rendering this.
 

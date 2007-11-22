@@ -447,11 +447,15 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 	LOCK_MEMORYTABLE
 	for (tc = 0; tc< nextEntry; tc++)
-		if (memoryTable[tc] == node) return TRUE;
-	UNLOCK_MEMORYTABLE
+		if (memoryTable[tc] == node) {
+			UNLOCK_MEMORYTABLE
+			return TRUE;
+	}
+
 
 	printf ("checkNode: did not find %d in memory table at i%s %d\n",node,fn,line);
 
+	UNLOCK_MEMORYTABLE
 	return FALSE;
 }
 

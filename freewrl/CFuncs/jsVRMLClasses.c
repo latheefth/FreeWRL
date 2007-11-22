@@ -729,7 +729,6 @@ _standardMFGetProperty(JSContext *cx,
 
 	return JS_TRUE;
 }
-#undef JSVRMLCLASSESVERBOSE
 
 JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 {
@@ -1115,21 +1114,21 @@ JSBool loadVrmlClasses(JSContext *context, JSObject *globalObj) {
 }
 
 /* go through and see if the setECMA routine touched this name */
-int findNameInECMATable(char *toFind) {
+int findNameInECMATable(JSContext *context, char *toFind) {
 	int i;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("findNameInECMATable, looking for %s\n",toFind);
+	printf ("findNameInECMATable, looking for %s context %u\n",toFind,context);
 	#endif
 	
 	i=0;
 	while (i < maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("	%d: %s==%s\n",i,ECMAValues[i].name,toFind);
+		printf ("	%d: %s==%s cx %u==%u\n",i,ECMAValues[i].name,toFind,ECMAValues[i].context,context);
 		#endif
 
 		
-		if (strcmp(ECMAValues[i].name,toFind)==0) {
+		if ((ECMAValues[i].context == context) && (strcmp(ECMAValues[i].name,toFind)==0)) {
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("fineInECMATable: found value at %d\n",i);
 			#endif
@@ -1147,7 +1146,7 @@ int findNameInECMATable(char *toFind) {
 }
 
 /* go through the ECMA table, and reset the valueChanged flag. */
-void resetNameInECMATable(char *toFind) {
+void resetNameInECMATable(JSContext *context, char *toFind) {
 	int i;
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1157,11 +1156,11 @@ void resetNameInECMATable(char *toFind) {
 	i=0;
 	while (i < maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("	%d: %s==%s\n",i,ECMAValues[i].name,toFind);
+		printf ("	%d: %s==%s cx %u==%u\n",i,ECMAValues[i].name,toFind,ECMAValues[i].context,context);
 		#endif
 
 		
-		if (strcmp(ECMAValues[i].name,toFind)==0) {
+		if ((ECMAValues[i].context == context) && (strcmp(ECMAValues[i].name,toFind)==0)) {
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("fineInECMATable: found value at %d\n",i);
 			#endif
@@ -1173,7 +1172,7 @@ void resetNameInECMATable(char *toFind) {
 }
 
 /* set the valueChanged flag - add a new entry to the table if required */
-void setInECMATable(char *toFind) {
+void setInECMATable(JSContext *context, char *toFind) {
 	int i;
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1183,11 +1182,11 @@ void setInECMATable(char *toFind) {
 	i=0;
 	while (i < maxECMAVal) { 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("setInECMATable	%d: %s==%s\n",i,ECMAValues[i].name,toFind);
+		printf ("	%d: %s==%s cx %u==%u\n",i,ECMAValues[i].name,toFind,ECMAValues[i].context,context);
 		#endif
 
 		
-		if (strcmp(ECMAValues[i].name,toFind) == 0) {
+		if ((ECMAValues[i].context == context) && (strcmp(ECMAValues[i].name,toFind)==0)) {
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("setInECMATable: found value at %d\n",i);
 			#endif
@@ -1210,6 +1209,7 @@ void setInECMATable(char *toFind) {
 	ECMAValues[maxECMAVal-1].JS_address = (jsval) toFind;
 	ECMAValues[maxECMAVal-1].valueChanged = TRUE;
 	ECMAValues[maxECMAVal-1].name = strdup(toFind);
+	ECMAValues[maxECMAVal-1].context = context;
 }
 
 JSBool
@@ -1229,7 +1229,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 	_id_c = JS_GetStringBytes(_idStr);
 
         /* "register" this ECMA value for routing changed flag stuff */
-       	setInECMATable(_id_c);
+       	setInECMATable(context, _id_c);
 
 	if (JSVAL_IS_STRING(*vp)) {
 		_vpStr = JS_ValueToString(context, *vp);

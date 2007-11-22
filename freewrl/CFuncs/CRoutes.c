@@ -105,7 +105,7 @@
 
 #define GET_ECMA_TOUCHED(thistype) \
 	case FIELDTYPE_SF##thistype: {	\
-				touched = findNameInECMATable(fullname);\
+				touched = findNameInECMATable((JSContext *) ScriptControl[actualscript].cx,fullname);\
 				break;\
 			}
 
@@ -134,9 +134,9 @@
 	break; \
 	}
 
-#define RESET_TOUCHED_TYPE_ECMA(thistype) \
-	case FIELDTYPE_##thistype: { \
-				resetNameInECMATable(JSparamnames[fptr].name); \
+#define RESET_TOUCHED_TYPE_ECMA(thistype) \ 
+			case FIELDTYPE_##thistype: { \
+				resetNameInECMATable((JSContext *) ScriptControl[actualscript].cx,JSparamnames[fptr].name); \
 				break; \
 			}
 /* in case Bool was defined above, restore the value */
@@ -951,7 +951,7 @@ void CRoutes_Register(
 				#ifdef CRVERBOSE 
 					printf ("routing table now %d\n",CRoutes_Count);
 					for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-						printf ("%d %d %d\n",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+						printf ("%u %u %u\n",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
 							CRoutes[shifter].interpptr);
 					}
 				#endif
@@ -1041,10 +1041,10 @@ void CRoutes_Register(
 	#ifdef CRVERBOSE 
 		printf ("routing table now %d\n",CRoutes_Count);
 		for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-			printf ("%d %d %d : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
+			printf ("%u %u %u : ",CRoutes[shifter].routeFromNode, CRoutes[shifter].fnptr,
 				CRoutes[shifter].interpptr);
 			for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
-				printf (" to: %d %d",CRoutes[shifter].tonodes[insert_here].node,
+				printf (" to: %u %u",CRoutes[shifter].tonodes[insert_here].routeToNode,
 							CRoutes[shifter].tonodes[insert_here].foffset);
 			}
 			printf ("\n");
@@ -1202,7 +1202,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 		len = CRoutes[route].len;
 
 		#ifdef CRVERBOSE
-			printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
+			printf ("\ngatherSentEvents, script %d from %s type %d len %d\n",actualscript, JSparamnames[fptr].name,
 				JSparamnames[fptr].type, len);
 		#endif
 
@@ -1363,7 +1363,12 @@ void propagate_events() {
 
 				if (CRoutes[counter].isActive == TRUE) {
 						#ifdef CRVERBOSE
-						printf("event %u %u sent something\n", CRoutes[counter].routeFromNode, CRoutes[counter].fnptr);
+						printf("event %u %u sent something", CRoutes[counter].routeFromNode, CRoutes[counter].fnptr);
+						if (CRoutes[counter].fnptr < 20) printf (" (script param: %s)",JSparamnames[CRoutes[counter].fnptr].name);
+						else {
+							printf (" (nodeType %s)",stringNodeType(X3D_NODE(CRoutes[counter].routeFromNode)->_nodeType));
+						}
+						printf ("\n");
 						#endif
 
 					/* to get routing to/from exposedFields, lets
