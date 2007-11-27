@@ -29,6 +29,13 @@ static struct X3D_Text *textNode = NULL;
 
 #define STATUS_LEN 2000
 
+/* make sure that on a re-load that we re-init */
+void kill_status (void) {
+	/* hopefully, by this time, rendering has been stopped */
+	sb_initialized = FALSE;
+}
+
+
 /* trigger a update */
 void update_status(char* msg) {
 	if (!sb_initialized) {
@@ -39,22 +46,13 @@ void update_status(char* msg) {
 	/* bounds check here - if the string is this long, it deserves to be ignored! */
 	if (strlen(msg) > (STATUS_LEN-10)) return;
 
-	sprintf(myline->strptr, "%s", msg);
+	strcpy(myline->strptr, msg);
 	myline->len = strlen(msg)+1; /* length of message, plus the null terminator */
 	#ifdef VERBOSE
 	printf("myline-> strptr is %s, len is %d\n", myline->strptr, myline->len);
 	#endif
 	update_node((void*) textNode);
 }
-
-void clear_status() {
-	if (!sb_initialized) return;
-
-	sb_initialized = FALSE;
-
-	myline->len = 0;
-}
-
 
 /* render the status bar. If it is required... */ 
 static void statusbar_init() {

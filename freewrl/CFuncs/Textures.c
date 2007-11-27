@@ -39,7 +39,7 @@ static int checktexsize;
 		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */ \
 			if (global_texSize > 1024) global_texSize = 1024; \
 		}  \
-		/* printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); */ \
+		/* printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); */\
 		setMenuButton_texSize (global_texSize); \
 	} 
 

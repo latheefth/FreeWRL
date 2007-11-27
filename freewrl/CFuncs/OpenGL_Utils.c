@@ -392,6 +392,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 		/* stop rendering */
 		((struct X3D_Group*)rootNode)->children.n = 0;
 
+		/* tell the statusbar that it needs to reinitialize */
+		kill_status();
+
 		/* free textures */
 		kill_openGLTextures();
 	

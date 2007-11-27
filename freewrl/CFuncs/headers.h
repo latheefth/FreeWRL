@@ -646,7 +646,7 @@ extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 
 void update_status(char* msg);
-void clear_status();
+void kill_status();
 
 /* menubar stuff */
 void frontendUpdateButtons(void); /* used only if we are not able to multi-thread OpenGL */
@@ -800,7 +800,7 @@ void EAI_replaceWorld(const char *inputstring);
 
 void render_hier(struct X3D_Node *p, int rwhat);
 void handle_EAI(void);
-void handle_aqua(const int mev, const unsigned int button, const float x, const float y);
+void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 
 extern int screenWidth, screenHeight;

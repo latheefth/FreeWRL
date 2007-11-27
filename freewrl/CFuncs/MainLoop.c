@@ -24,7 +24,7 @@
 #include "SensInterps.h"
 
 static char debs[300];
-void debug_print(char *s) {printf ("debug_print:%s\n",s);}
+/* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
 
 /* handle X11 requests, windowing calls, etc if on X11 */
 #ifndef AQUA
@@ -57,7 +57,6 @@ char* PluginFullPath;
 int replaceWorld = FALSE;
 char  replace_name[FILENAME_MAX];
 
-
 /* linewidth for lines and points - passed in on command line */
 float gl_linewidth = 1.0;
 
@@ -80,6 +79,18 @@ int currentFileVersion = 0;
 	int ocurse = ACURSE;
 	GLboolean cErr;
 	static GDHandle gGDevice;
+
+	/* for handling Safari window changes at the top of the display event loop */
+	int PaneClipnpx;
+	int PaneClipnpy;
+	WindowPtr PaneClipfwWindow;
+	int PaneClipct;
+	int PaneClipcb;
+	int PaneClipcr;
+	int PaneClipcl;
+	int PaneClipwidth;
+	int PaneClipheight;
+	int PaneClipChanged = FALSE;
 #endif
 
 int quitThread = FALSE;
@@ -107,7 +118,7 @@ GLint viewPort2[10];
 /* screen width and height. */
 int screenWidth=1;
 int screenHeight=1;
-int cp = 0;
+int clipPlane = 0;
 double nearPlane=0.1; 				/* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=21000.0;
 double screenRatio=1.5;
@@ -207,12 +218,18 @@ void EventLoop() {
                         printf("set current context error!");
                 }
         }
+
+	/* window size changed by Safari? */
+	if (PaneClipChanged) {
+		eventLoopsetPaneClipRect( PaneClipnpx, PaneClipnpy, PaneClipfwWindow,
+        		PaneClipct, PaneClipcb, PaneClipcr, PaneClipcl,
+        		PaneClipwidth, PaneClipheight);
+        	PaneClipChanged = FALSE;
+	}
+
 	#endif
 
 	/* printf ("start of MainLoop\n"); */
-	#ifdef PROFILEMARKER
-	glTranslatef(1,1,1); glTranslatef (-1,-1,-1);
-	#endif
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
@@ -284,10 +301,6 @@ void EventLoop() {
 		replaceWorld= FALSE;
 	}
 
-	#ifdef PROFILEMARKER
-	glTranslatef(2,2,2); glTranslatef (-2,-2,-2);
-	#endif
-
 	/* handle any events provided on the command line - Robert Sim */
 	if (keypress_string && doEvents) {
 		if (keypress_wait_for_settle > 0) {
@@ -317,11 +330,6 @@ void EventLoop() {
 	#endif
 	#endif
 
-	#ifdef PROFILEMARKER
-	glTranslatef(3,3,3); glTranslatef (-3,-3,-3);
-	#endif
-
-
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -342,11 +350,6 @@ void EventLoop() {
 	/* setup Projection and activate ProximitySensors */
 	render_pre();
 
-
-	#ifdef PROFILEMARKER
-	glTranslatef(4,4,4); glTranslatef (-4,-4,-4);
-	#endif
-
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -358,11 +361,6 @@ void EventLoop() {
 	/* first events (clock ticks, etc) if we have other things to do, yield */
 	if (doEvents) do_first (); else sched_yield();
 
-
-	#ifdef PROFILEMARKER
-	glTranslatef(5,5,5); glTranslatef (-5,-5,-5);
-	#endif
-
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -372,10 +370,6 @@ void EventLoop() {
 
 	/* actual rendering */
 	render();
-
-	#ifdef PROFILEMARKER
-	glTranslatef(6,6,6); glTranslatef (-6,-6,-6);
-	#endif
 
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
@@ -488,13 +482,9 @@ void EventLoop() {
 	}
 
 
-	#ifdef PROFILEMARKER
-	glTranslatef(7,7,7); glTranslatef (-7,-7,-7);
-	#endif
-
 	/* do OcclusionCulling, etc */
 	OcclusionCulling();
-
+	
 	if (doEvents) {
 		/* handle ROUTES - at least the ones not generated in do_first() */
 		propagate_events();
@@ -504,12 +494,6 @@ void EventLoop() {
 
 		/* EAI */
 		handle_EAI();
-
-
-	#ifdef PROFILEMARKER
-	glTranslatef(10,10,10); glTranslatef (-10,-10,-10);
-	#endif
-
 	}
 
 	/* record the TickTime here, for rate setting. We don't do this earlier, as some
@@ -580,10 +564,13 @@ void handle_Xevents(XEvent event) {
 			   case XK_Num_Lock: ks = XK_h; break;
 			   default: break;
 			   }
-			buf[0]=(char)ks;buf[1]='\0';
-			do_keyPress((char)ks,event.type);
 
+			/* doubt that this is necessary */
+			buf[0]=(char)ks;buf[1]='\0';
+
+			do_keyPress((char)ks,event.type);
 			break;
+
 		case ButtonPress:
 		case ButtonRelease:
 			/* printf("got a button press or button release\n"); */
@@ -601,8 +588,9 @@ void handle_Xevents(XEvent event) {
 					(float) ((float)event.xbutton.x/screenWidth),
 					(float) ((float)event.xbutton.y/screenHeight));
 			}
-                                break;
-                        case MotionNotify:
+			break;
+
+		case MotionNotify:
 			/* printf("got a motion notify\n"); */
 			/*  do we have more motion notify events queued?*/
 			if (XPending(Xdpy)) {
@@ -675,16 +663,6 @@ void render() {
 	have_transparency = 0;
 
 	for (count = 0; count < maxbuffers; count++) {
-
-
-	#ifdef PROFILEMARKER
-	glTranslatef(50,50,50); glTranslatef (-50,-50,-50);
-	#endif
-
-
-	/* gettimeofday (&mytime,&tz);*/
-	/* aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
-
 		set_buffer((unsigned)bufferarray[count]);		/*  in Viewer.c*/
 		glDrawBuffer((unsigned)bufferarray[count]);
 
@@ -697,22 +675,8 @@ void render() {
 			lightState(0,FALSE);
 		}
 
-
-		#ifdef PROFILEMARKER
-		glTranslatef(50,50,50); glTranslatef (-50,-50,-50);
-		#endif
-
-
 		/*  Correct Viewpoint, only needed when in stereo mode.*/
 		if (maxbuffers > 1) setup_viewpoint();
-
-
-		#ifdef PROFILEMARKER
-		glTranslatef(51,51,51); glTranslatef (-51,-51,-51);
-		#endif
-
-	/* gettimeofday (&mytime,&tz);*/
-	/* bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
 
 		/*  Other lights*/
 		glPrintError("XEvents::render, before render_hier");
@@ -720,29 +684,11 @@ void render() {
 		render_hier(rootNode, VF_otherLight);
 		glPrintError("XEvents::render, render_hier(VF_VF_otherLight)");
 
-
-		#ifdef PROFILEMARKER
-		glTranslatef(52,52,52); glTranslatef (-52,-52,-52);
-		#endif
-
-	/* gettimeofday (&mytime,&tz);*/
-	/* cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
-
 		/*  4. Nodes (not the blended ones)*/
-
 		render_hier(rootNode, VF_Geom);
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 
 		/*  5. Blended Nodes*/
-
-
-		#ifdef PROFILEMARKER
-		glTranslatef(53,53,53); glTranslatef (-53,-53,-53);
-		#endif
-
-	/* gettimeofday (&mytime,&tz);*/
-	/* dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
-
 		if (have_transparency > 0) {
 			/*  turn off writing to the depth buffer*/
 			glDepthMask(FALSE);
@@ -755,33 +701,18 @@ void render() {
 			glPrintError("XEvents::render, render_hier(VF_Geom)");
 		}
 
-		#ifdef PROFILEMARKER
-		glTranslatef(54,54,54); glTranslatef (-54,-54,-54);
-		#endif
-
-
-
-	/* gettimeofday (&mytime,&tz);*/
-	/* ee = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
-
-	/* printf ("render %f %f %f %f\n",bb-aa, cc-bb, dd-cc, ee-dd);*/
 	}
-#ifndef AQUA
-	glXSwapBuffers(Xdpy,GLwin);
-#else
-        if (RUNNINGASPLUGIN) {
-                aglSetCurrentContext(aqglobalContext);
-                aglSwapBuffers(aqglobalContext);
-        } else {
-                CGLError err = CGLFlushDrawable(myglobalContext);
-                updateContext();
-        }
-#endif
-
-	#ifdef PROFILEMARKER
-	glTranslatef(55,55,55); glTranslatef (-55,-55,-55);
+	#ifndef AQUA
+		glXSwapBuffers(Xdpy,GLwin);
+	#else
+	        if (RUNNINGASPLUGIN) {
+	                aglSetCurrentContext(aqglobalContext);
+	                aglSwapBuffers(aqglobalContext);
+	        } else {
+	                CGLError err = CGLFlushDrawable(myglobalContext);
+	                updateContext();
+	        }
 	#endif
-
 
 	glPrintError("XEvents::render");
 }
@@ -841,7 +772,7 @@ void setup_projection(int pick, int x, int y) {
 	#endif
 
 	fwMatrixMode(GL_PROJECTION);
-	glViewport(0,cp,screenWidth,screenHeight);
+	glViewport(0,clipPlane,screenWidth,screenHeight);
 	fwLoadIdentity();
 	if(pick) {
 		/* picking for mouse events */
@@ -1245,13 +1176,13 @@ void closeFreewrl() {
         struct X3D_Group* rn;
 	int i;
 
-	clear_status();
 	#ifdef AQUA
 	pluginRunning = FALSE;
 	kill_clockEvents();
 	EAI_killBindables();
 	kill_bindables();
 	kill_routing();
+	kill_status();
 	kill_openGLTextures();
 	kill_javascript();
 
@@ -1269,7 +1200,7 @@ void closeFreewrl() {
         glFlush();
         glFinish();
         screenWidth = screenHeight = 1;
-        cp = 0;
+        clipPlane = 0;
 }
 
 void setEAIport(int pnum) {
@@ -1483,17 +1414,41 @@ void freewrlDie (const char *format) {
 }
 
 #ifdef AQUA
-void handle_aqua(const int mev, const unsigned int button, const float x, const float y) {
-        if ((mev == ButtonPress) || (mev == ButtonRelease))
-        {
+
+/* MIMIC what happens in handle_Xevents, but without the X events */
+void handle_aqua(const int mev, const unsigned int button, int x, int y) {
+	int count;
+
+	/* printf ("handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d\n",
+		button, x,y,screenWidth,screenHeight); */
+
+        if ((mev == ButtonPress) || (mev == ButtonRelease)) {
+		/* record which button is down */
+		ButDown[button] = (mev == ButtonPress);
+
+		/* if we are Not over an enabled sensitive node, and we do NOT already have a 
+		   button down from a sensitive node... */
+
                 if ((CursorOverSensitive ==0) && (lastPressedOver ==0)) {
 			NavigationMode=ButDown[1] || ButDown[3];
-                        handle(mev, button, x, y);
+                        handle(mev, button, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
                 }
-                } else if (mev == MotionNotify) {
-                        if (NavigationMode) {
-                                handle(mev, button, x, y);
-                }
+	}
+
+	if (mev == MotionNotify) {
+
+		/* save the current x and y positions for picking. */
+		currentX = x;
+		currentY = y;
+
+		if (NavigationMode) {
+			/* find out what the first button down is */
+			count = 0;
+			while ((count < 5) && (!ButDown[count])) count++;
+			if (count == 5) return; /* no buttons down???*/
+
+			handle (mev, (unsigned) count, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
+		}
         }
 }
 void setIsPlugin() {
@@ -1569,38 +1524,65 @@ void createContext(CGrafPtr grafPtr) {
 
         pluginRunning = TRUE;
 }
+
+
+
 void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
-GLint           bufferRect[4];
-Rect            r;
-int                     x,y;
-int                     clipHeight;
-int                     windowHeight;
+	/* record these items so that they get handled in the display thread */
+	PaneClipnpx = npx;
+	PaneClipnpy = npy;
+	PaneClipfwWindow = fwWindow;
+	PaneClipct = ct;
+	PaneClipcb = cb;
+	PaneClipcr = cr;
+	PaneClipcl = cl;
+	PaneClipwidth = width;
+	PaneClipheight = height;
 
+	PaneClipChanged = TRUE;
+}
 
-        //sprintf(debs, "int set clip got npx %d npy %d ct %d cb %d cr %d cl %d width %d height %d\n", npx, npy, ct, cb, cr, cl, width, height);
-        //debug_print(debs);
-        if (aqglobalContext == nil)
-                return;
+void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) {
+	GLint	bufferRect[4];
+	Rect	r;
+	int	x,y;
+	int	clipHeight;
+	int	windowHeight;
 
-        if (!pluginRunning)
-                return;
+	#ifdef VERBOSE
+        sprintf(debs, "eventLoopPaneClipRect npx %d npy %d ct %d cb %d cr %d cl %d width %d height %d\n", 
+		npx, npy, ct, cb, cr, cl, width, height);
+        debug_print(debs);
+	#endif
+
+        if (aqglobalContext == nil) return;
+
+        if (!pluginRunning) return;
 
         cErr = aglSetCurrentContext(aqglobalContext);
         if (cErr == GL_FALSE) {
-                printf("FreeWRL: set current context error!\n");
+                printf("FreeWRL: EventLoopPaneClipRect: set current context error!\n");
+		return;
         }
-        //glFlush();
-        //glFinish();
 
         x = npx;
 
-        //debug_print("get window bounds");
+
+	#ifdef VERBOSE
+        debug_print("get window bounds");
+	#endif
+
         GetWindowBounds(fwWindow, kWindowContentRgn, &r);               // get size of actual Mac window
 
         windowHeight = r.bottom - r.top;
 
-        cp = cb - npy;
-        y = windowHeight - npy - cp;
+	#ifdef VERBOSE
+	sprintf (debs,"window from getWindowBounds, t %d b %d l %d r %d\n",r.top,r.bottom,r.left,r.right);
+	debug_print(debs);
+	#endif
+
+        clipPlane = cb - npy;
+        y = windowHeight - npy - clipPlane;
 
         clipHeight = cb - ct;
 
@@ -1609,19 +1591,42 @@ int                     windowHeight;
         bufferRect[2] = cr - x;
         bufferRect[3] = clipHeight;
 
-        //debug_print("calling agl buffer rect ... ");
-        aglSetInteger (aqglobalContext, AGL_BUFFER_RECT, bufferRect);
+	#ifdef VERBOSE
+	sprintf (debs,"setting bufferRect  to %d %d %d %d\n",bufferRect[0],bufferRect[1],bufferRect[2],bufferRect[3]);
+	debug_print(debs);
+	sprintf (debs,"but, screen width/height is %d %d\n",width,height); debug_print(debs);
+	#endif
 
+	if ((width != bufferRect[2]) || (height != bufferRect[3])) {
+		#ifdef VERBOSE
+		debug_print("DIFFERENCE IN SIZES! choosing the largest \n");
+		#endif
+
+		if (bufferRect[2] > width) width = bufferRect[2];
+		if (bufferRect[3] > height) height = bufferRect[3];
+	} else {
+        	setScreenDim(width, height);
+
+		#ifdef VERBOSE
+        	debug_print("calling agl buffer rect ... ");
+		#endif
+
+        	aglSetInteger (aqglobalContext, AGL_BUFFER_RECT, bufferRect);
+	}
+
+
+	/* ok to here... */
         aglEnable (aqglobalContext, AGL_BUFFER_RECT);
-        cp = y - npy;
-        cp += cb - height;
+        clipPlane = y - npy;
+        clipPlane += cb - height;
 
-        cp -= (r.bottom - cb);
-        cp += r.top;
+        clipPlane -= (r.bottom - cb);
+        clipPlane += r.top;
 
-        setScreenDim(width, height);
-        //sprintf(debs, "leaving set clip - set cp to %d\n", cp);
-        //debug_print(debs);
+	#ifdef VERBOSE
+        sprintf(debs, "leaving set clip - set cp to %d\n", clipPlane);
+        debug_print(debs);
+	#endif
 }
 
 /* make a disposeContext but without some of the node destroys. */
@@ -1708,7 +1713,7 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
 	if (CursorOverSensitive == NULL) update_status ("");
 	else {
 
-		ns = "(over sensitive)";
+		ns = NULL;
 		for (tmp=0; tmp<num_SensorEvents; tmp++) {
 			if (SensorEvents[tmp].fromnode == CursorOverSensitive) {
 				switch (SensorEvents[tmp].datanode->_nodeType) {
@@ -1721,7 +1726,8 @@ void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive) {
 				default: {}
 				}
 				/* if there is no description, put the node type on the screen */
-				if (ns[0] == '\0') ns = stringNodeType(SensorEvents[tmp].datanode->_nodeType);
+				if (ns == NULL) {ns = "(over sensitive)";}
+				else if (ns[0] == '\0') ns = stringNodeType(SensorEvents[tmp].datanode->_nodeType);
 	
 				/* send this string to the screen */
 				update_status(ns);
