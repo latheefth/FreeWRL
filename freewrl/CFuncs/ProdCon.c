@@ -165,6 +165,8 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
+	filename[0] = '\0'; /* terminate, in case the user did not specify ANY files; error messages will tell us this */
+
 	while (count < inurl->n) {
 		thisurl = inurl->p[count]->strptr;
 
