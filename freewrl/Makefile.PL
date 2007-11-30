@@ -137,6 +137,7 @@ my $pg_js = "";
 my $jsCFLAGS = "";
 my $jsLDFLAGS = "";
 my $jsdir = "js1.5/src";
+my $libFreeWRLjspath = "";
 my $jsobjdir;
 my $noStackProtector = "";
 my @inc;
@@ -158,7 +159,7 @@ if ($pg_js eq "") {
 
     #location of the spidermonkey js engine.
     $jsobjdir .= "_OPT.OBJ";
-    my $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
+    $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
 
 } else {
 
@@ -358,9 +359,7 @@ sub writeMakefileFinalTargets() {
 	}
 	if ($OS eq "Linux") {
 		print MK "\tinstall -D libFreeWRLFunc.so \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
-		if (! $jsLDPATH eq "") {
-		    print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
-		}
+		print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 		if ($CHCON ne "") {
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
