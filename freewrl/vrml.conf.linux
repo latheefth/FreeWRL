@@ -16,7 +16,7 @@
 BIN_DIR =>  "/usr/bin",				# binary files
 LIB_DIR => "/usr/lib",				# shared libraries
 INSTALL_DIR =>"/usr/share",			# fonts, application pixmaps, etc
-NETSCAPE_INST => '/usr/lib/mozilla/plugins',	# plugin stuff. If not wanted, COMMENT OUT
+NETSCAPE_INST => '/usr/lib/firefox/plugins',	# plugin stuff. If not wanted, COMMENT OUT
 
 # tell FreeWRL which commands to invoke for Anchors, graphics conversions, etc.
 
