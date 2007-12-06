@@ -13,6 +13,7 @@
 #include "jsUtils.h"
 #include "headers.h"
 #include "X3DParser.h"
+#include "CParseGeneral.h"
 
 static int currentProtoDeclare  = ID_UNDEFINED;
 static int MAXProtos = 0;
@@ -30,6 +31,13 @@ static int currentProtoInstance = ID_UNDEFINED;
 #define MAX_ID_SIZE 1000
 #define NODEFIELD_EQUALS "nodeField=\""
 #define PROTOFIELD_EQUALS "protoField=\""
+
+/* for parsing script initial fields */
+#define MPFIELDS 4
+#define MP_NAME 0
+#define MP_ACCESSTYPE 1
+#define MP_TYPE 2
+#define MP_VALUE 3
 
 /* ProtoInstance table This table is a dynamic table that is used for keeping track of ProtoInstance field values... */
 static int curProtoInsStackInd = -1;
@@ -740,12 +748,37 @@ void parseProtoInterface (const char **atts) {
 }
 
 
+/* for initializing the script fields, make up a default value, in case the user has not specified one */
+void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
+	switch (type) {
+		case FIELDTYPE_SFFloat: value->sffloat = 0.0; break;
+		case FIELDTYPE_MFFloat: value->mffloat.n=0; break;
+		case FIELDTYPE_SFRotation: value->sfrotation.r[0] =0.0; value->sfrotation.r[1]=0.0; value->sfrotation.r[2] = 0.0; value->sfrotation.r[3] = 1.0; break;
+		case FIELDTYPE_MFRotation: value->mfrotation.n=0; break;
+		case FIELDTYPE_SFVec3f: value->sfvec3f.c[0] =0.0; value->sfvec3f.c[1]=0.0; value->sfvec3f.c[2] = 0.0; break;
+		case FIELDTYPE_MFVec3f: value->mfvec3f.n=0; break;
+		case FIELDTYPE_SFBool: value->sfbool=FALSE; break;
+		case FIELDTYPE_MFBool: value->mfbool.n=0; break;
+		case FIELDTYPE_SFInt32: value->sfint32 = 0; break;
+		case FIELDTYPE_MFInt32: value->mfint32.n = 0; break;
+		case FIELDTYPE_SFNode: value->sfnode = NULL; break;
+		case FIELDTYPE_MFNode: value->mfnode.n = 0; break;
+		case FIELDTYPE_SFColor: value->sfcolor.c[0] =0.0; value->sfcolor.c[1]=0.0; value->sfcolor.c[2] = 0.0; break;
+		case FIELDTYPE_MFColor: value->mfcolor.n=0; break;
+		case FIELDTYPE_SFColorRGBA: value->sfcolorrgba.r[0] =0.0; value->sfcolorrgba.r[1]=0.0; value->sfcolorrgba.r[2] = 0.0; value->sfcolorrgba.r[3] = 1.0; break;
+		case FIELDTYPE_MFColorRGBA: value->mfcolorrgba.n = 0; break;
+		case FIELDTYPE_SFTime: value->sftime = 0.0; break;
+		case FIELDTYPE_MFTime: value->mftime.n=0; break;
+		case FIELDTYPE_SFString: value->sfstring->strptr=NULL; value->sfstring->len=0; break;
+		case FIELDTYPE_MFString: value->mfstring.n=0; break;
+		case FIELDTYPE_SFVec2f: value->sfvec2f.c[0] =0.0; value->sfvec2f.c[1]=0.0; break;
+		case FIELDTYPE_MFVec2f: value->mfvec2f.n=0; break;
+		case FIELDTYPE_SFImage: value->sfimage.n=0;
+		default: ConsoleMessage ("X3DProtoScript - can't parse default field value for script init");
+	}
+}
 
-#define MPFIELDS 4
-#define MP_NAME 0
-#define MP_ACCESSTYPE 1
-#define MP_TYPE 2
-#define MP_VALUE 3
+
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
 void parseScriptProtoField(int fromScriptNotProto, const char *name, const char **atts) {
 	int i;
@@ -755,6 +788,8 @@ void parseScriptProtoField(int fromScriptNotProto, const char *name, const char 
 	int which;
 	int myFieldNumber;
 	char *myValueString = NULL;
+	union anyVrml value;
+
 	
 	/* configure internal variables, and check sanity for top of stack This should be a Script node */
 	if (fromScriptNotProto) {
@@ -837,8 +872,15 @@ void parseScriptProtoField(int fromScriptNotProto, const char *name, const char 
 
 	/* and initialize it if a Script */
 	if (fromScriptNotProto) {
+		/* parse this string value into a anyVrml union representation */
+		if (myValueString != NULL)
+			Parser_scanStringValueToMem(X3D_NODE(&value), 0, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), myValueString);
+		else
+			parseScriptFieldDefaultValue(findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), &value);
+		
+		/* send in the script field for initialization */
 		InitScriptFieldC (myScriptNumber, findFieldInX3DACCESSORS(atts[myparams[MP_ACCESSTYPE]]), 
-				findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],NULL);
+				findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
 	}
 }
 

@@ -485,16 +485,18 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	double defaultDouble[] = {0.0, 0.0};
 	struct Uni_String *sptr[1];
 
+        /* input check Convert from X3D style of names to VRML */
+	if (kind == X3DACCESSOR_inputOnly) kind = PKW_eventIn;
+	else if (kind == X3DACCESSOR_outputOnly) kind = PKW_eventOut;
+	else if (kind == X3DACCESSOR_inputOutput) kind = PKW_exposedField;
+	else if (kind == X3DACCESSOR_initializeOnly) kind = PKW_field;
+
 	 #ifdef JAVASCRIPTVERBOSE
 	printf ("\nInitScriptFieldC, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value);
 	#endif
 
-        /* input check */
-	if (kind == X3DACCESSOR_inputOnly) kind = PKW_eventIn;
-	else if (kind == X3DACCESSOR_outputOnly) kind = PKW_eventOut;
-	else if (kind == X3DACCESSOR_inputOutput) kind = PKW_field;
 
-        if ((kind != PKW_eventIn) && (kind != PKW_eventOut) && (kind != PKW_field)) {
+        if ((kind != PKW_eventIn) && (kind != PKW_eventOut) && (kind != PKW_field) && (kind != PKW_exposedField)) {
                 ConsoleMessage ("InitScriptField: invalid kind for script: %d\n",kind);
                 return;
         }

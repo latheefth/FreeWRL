@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.279  2007/12/06 21:50:57  crc_canada
+# Javascript X3D initializers
+#
 # Revision 1.278  2007/11/06 20:25:27  crc_canada
 # Lighting revisited - pointlights and spotlights should all now work ok
 #
@@ -492,7 +495,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of Field Types */\n       const char *X3DACCESSORS[] = {\n";
 
-	$fieldTypeCount = 7000;
+	$fieldTypeCount = 0;
 	for(keys %X3Daccessors) {
 		# print "node $_ is tagged as $fieldTypeCount\n";
 		# tag each node type with a integer key.

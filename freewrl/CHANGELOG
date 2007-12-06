@@ -1,3 +1,13 @@
+For 1.20.0:
+	- Javascript via X3D - initializers were not correctly set for X3D types (fixed VRMLC.pm to
+	  start at 0, not 7000 for X3DACCESSORS, code required in X3DProtoScript.c)
+
+	- Javascript ADD_ROOT and REMOVE_ROOT commands removed;
+
+	- Javascript garbage collection run when FreeWRL decides, so that gc does not happen
+	  in the middle of creating large data types;
+
+
 For 1.19.9:
 	- ECMAscript values when multiple scripts used same textual name reported incorrect
 	  values.

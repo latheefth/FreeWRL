@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.210  2007/12/06 21:50:57  crc_canada
+# Javascript X3D initializers
+#
 # Revision 1.209  2007/11/06 20:25:28  crc_canada
 # Lighting revisited - pointlights and spotlights should all now work ok
 #
@@ -95,6 +98,7 @@
 	inputOnly
 	outputOnly
 	inputOutput
+	initializeOnly
 /;
 
 
