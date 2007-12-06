@@ -30,12 +30,35 @@ JS_MY_Finalize(JSContext *cx, JSObject *obj)
 	void *ptr;
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("finalizing %x\n",obj);
+	if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &SFColorClass, NULL)) { printf ("this is a SFColorClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &SFColorRGBAClass, NULL)) { printf ("this is a SFColorRGBAClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &SFImageClass, NULL)) { printf ("this is a SFImageClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &SFRotationClass, NULL)) { printf ("this is a SFRotationClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &SFVec2fClass, NULL)) { printf ("this is a SFVec2fClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &SFVec3fClass, NULL)) { printf ("this is a SFVec3fClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFColorClass, NULL)) { printf ("this is a MFColorClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFFloatClass, NULL)) { printf ("this is a MFFloatClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFInt32Class, NULL)) { printf ("this is a MFInt32Class...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFNodeClass, NULL)) { printf ("this is a MFNodeClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFStringClass, NULL)) { printf ("this is a MFStringClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFTimeClass, NULL)) { printf ("this is a MFTimeClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFRotationClass, NULL)) { printf ("this is a MFRotationClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFVec2fClass, NULL)) { printf ("this is a MFVec2fClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &MFVec3fClass, NULL)) { printf ("this is a MFVec3fClass...\n"); }
+	else if (JS_InstanceOf(cx, obj, &VrmlMatrixClass, NULL)) { printf ("this is a VrmlMatrixClass...\n"); }
+	else printf ("this class is unknown???\n");
 	#endif
 
 	REMOVE_ROOT(cx,obj)
 
 	if ((ptr = (void *)JS_GetPrivate(cx, obj)) != NULL) {
 		FREE_IF_NZ(ptr);
+	#ifdef JSVRMLCLASSESVERBOSE
+	} else {
+		printf ("Finalize - no private data!\n");
+	#endif
 	}
 }
 

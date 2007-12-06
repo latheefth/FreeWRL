@@ -1292,7 +1292,7 @@ void outOfMemory(const char *msg) {
 			mlineno[mcount] = line;\
 			mplace[mcount] = strdup(file);\
 		}
-#define MAXMALLOCSTOKEEP 10000
+#define MAXMALLOCSTOKEEP 100000
 static int mcheckinit = FALSE;
 static void* mcheck[MAXMALLOCSTOKEEP];
 static char* mplace[MAXMALLOCSTOKEEP];

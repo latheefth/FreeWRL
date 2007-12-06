@@ -19,6 +19,7 @@
 typedef struct _BrowserNative {
 	/* int magic; does this really do anything ??? */
 	/* and, this really does nothing SV *sv_js; */
+	int dummyEntry;
 } BrowserNative;
 
 typedef struct _SFNodeNative {

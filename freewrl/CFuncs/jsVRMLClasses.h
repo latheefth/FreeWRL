@@ -40,16 +40,18 @@
 #define VERBOSE_OBJX (unsigned long)
 #define VERBOSE_OBJ 
 
+/* tie a node into the root. Currently not required, as we do a better job
+of garbage collection */
 #define ADD_ROOT(a,b) \
-	/* printf ("adding root  cx %x pointer %x value %x\n",a,&b,b); */ \
+	/* printf ("adding root  cx %u pointer %u value %u\n",a,&b,b); \
         if (JS_AddRoot(a,&b) != JS_TRUE) { \
                 printf ("JA_AddRoot failed at %s:%d\n",__FILE__,__LINE__); \
                 return JS_FALSE; \
-        }
+        } */
 
 #define REMOVE_ROOT(a,b) \
-	/* printf ("removing root %x\n",b); */ \
-        JS_RemoveRoot(a,&b); 
+	/* printf ("removing root %u\n",b); \
+        JS_RemoveRoot(a,&b);  */
 
 
 #define DEFINE_LENGTH(thislength,thisobject) \

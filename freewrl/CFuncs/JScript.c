@@ -23,9 +23,9 @@ Javascript C language binding.
 #include "CParseGeneral.h"
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
-#define MAX_RUNTIME_BYTES 0x400000L
 /*   #define MAX_RUNTIME_BYTES 0x1000000L */
 /* #define STACK_CHUNK_SIZE 0x2000L*/
+#define MAX_RUNTIME_BYTES 0x800000L
 #define STACK_CHUNK_SIZE 0x20000L
 
 /*
@@ -202,7 +202,6 @@ void JSInit(uintptr_t num) {
 	printf("\tJS errror reporter set,\n");
 	#endif
 
-
 	br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
 
 	/* for this script, here are the necessary data areas */
@@ -243,9 +242,12 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line
 	JSContext *_context;
 	JSObject *_globalObj;
 
+
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
+
+	CLEANUP_JAVASCRIPT(_context)
 
 	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
@@ -766,6 +768,8 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 			JSaddGlobalAssignProperty (num,mynewname,smallfield);
 		}
 	}
+
+	CLEANUP_JAVASCRIPT(ScriptControl[num].cx)
 
 	FREE_IF_NZ (smallfield);
 	FREE_IF_NZ (sftype);

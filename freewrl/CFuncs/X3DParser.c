@@ -410,6 +410,9 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	int i;
 
 	/* is this a node that we can ignore? */
+
+	/* printf ("startElement name %s\n",name); */
+
 	if (canWeIgnoreThisNode((char *)name)) return;
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
@@ -446,6 +449,11 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	uintptr_t *destnode;
 	char *memptr;
 	struct X3D_Group *protoExpGroup = NULL;
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("endElement %s\n",name);
+	#endif
+
 
 	/* is this a node that we can ignore? */
 	if (canWeIgnoreThisNode(name)) return;
@@ -558,6 +566,14 @@ static void XMLCALL endElement(void *unused, const char *name) {
 		protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		expandProtoInstance(protoExpGroup);
 		/* printf ("after calling expandProtoInstance, our group has %d nodes in it\n",protoExpGroup->children.n); */
+	}
+
+	/* ending <Route> */
+	else if (strcmp(name,"ROUTE") == 0) {
+		#ifdef X3DPARSERVERBOSE
+		printf ("endElement, got ROUTE, it should have happened by now\n");
+		#endif
+		return;
 	}
 
 

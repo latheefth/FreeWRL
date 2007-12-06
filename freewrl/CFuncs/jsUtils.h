@@ -25,6 +25,10 @@
 #define FALSE 0
 #endif /* FALSE */
 
+#define CLEANUP_JAVASCRIPT(cx) \
+	/* printf ("calling JS_GC at %s:%d cx %u\n",__FILE__,__LINE__,cx); */ \
+	JS_GC(cx);
+
 #define LARGESTRING 2048
 #define STRING 512
 #define SMALLSTRING 128

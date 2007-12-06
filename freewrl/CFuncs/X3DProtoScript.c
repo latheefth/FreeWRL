@@ -665,7 +665,7 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 			FIELDNAMES[pf],myGroup->_defaultContainer);
 		#endif
 	} else {
-		#ifdef X3XPARSERVERBOSE
+		#ifdef X3DPARSERVERBOSE
 		printf ("DID NOT PARSE THAT WELL:\n%s\n:\n",protoInString);
 		#endif
 	}
@@ -839,7 +839,6 @@ void parseScriptProtoField(int fromScriptNotProto, const char *name, const char 
 	if (fromScriptNotProto) {
 		InitScriptFieldC (myScriptNumber, findFieldInX3DACCESSORS(atts[myparams[MP_ACCESSTYPE]]), 
 				findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],NULL);
-		printf ("Script init - have to parse the value fields\n");
 	}
 }
 

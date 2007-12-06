@@ -1446,9 +1446,17 @@ printf ("script type %d\n",ScriptControl[counter].thisScriptType);
 
 	} while (havinterp==TRUE);
 
-		#ifdef CRVERBOSE
-		printf ("done propagate_events\n\n");
-		#endif
+	/* now, go through and clean up all of the scripts */
+	for (counter =0; counter <= max_script_found; counter++) {
+		if (scr_act[counter]) {
+			scr_act[counter] = FALSE;
+			CLEANUP_JAVASCRIPT(ScriptControl[counter].cx);
+		}
+	}	
+
+	#ifdef CRVERBOSE
+	printf ("done propagate_events\n\n");
+	#endif
 }
 
 
