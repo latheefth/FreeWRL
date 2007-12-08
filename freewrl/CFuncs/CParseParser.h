@@ -17,6 +17,30 @@ struct Script;
 struct OffsetPointer;
 
 
+#define BLOCK_STATEMENT(LOCATION) \
+   if(parser_routeStatement(me))  { \
+	continue; \
+   } \
+ \
+  if (parser_componentStatement(me)) { \
+	continue; \
+  } \
+ \
+  if (parser_exportStatement(me)) { \
+	continue; \
+  } \
+ \
+  if (parser_importStatement(me)) { \
+	continue; \
+  } \
+ \
+  if (parser_metaStatement(me)) { \
+	continue; \
+  } \
+ \
+  if (parser_profileStatement(me)) { \
+	continue; \
+  } 
 
 /* This is our parser-object. */
 struct VRMLParser
@@ -89,6 +113,12 @@ BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
 
 /* Parses nodes, fields and other statements. */
 BOOL parser_routeStatement(struct VRMLParser*);
+BOOL parser_componentStatement(struct VRMLParser*);
+BOOL parser_exportStatement(struct VRMLParser*);
+BOOL parser_importStatement(struct VRMLParser*);
+BOOL parser_metaStatement(struct VRMLParser*);
+BOOL parser_profileStatement(struct VRMLParser*);
+
 BOOL parser_protoStatement(struct VRMLParser*);
 BOOL parser_interfaceDeclaration(struct VRMLParser*,
  struct ProtoDefinition*, struct Script*);

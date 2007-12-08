@@ -82,6 +82,7 @@ char fw_outline[2000];
   destPre##Ofs=offsetof(struct X3D_##node, var); \
   break;
 #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
+printf ("eventBeginNode, fieldInd %d\n",fieldInd); \
  case NODE_##node: \
  { \
   struct X3D_##node* node2=(struct X3D_##node*)ptr; \
@@ -89,7 +90,7 @@ char fw_outline[2000];
   {
 #define EVENT_END_NODE(node,fieldString) \
   default: \
-	/* printf ("node is a %s, event %s\n",stringNodeType(node2->_nodeType),fieldString);*/ \
+	printf ("node is a %s, event %s at %s:%d\n",stringNodeType(node2->_nodeType),fieldString, __FILE__, __LINE__); \
    	/* PARSE_ERROR("Unsupported event for node!") */ \
 	strcpy (fw_outline,"ERROR: Unsupported event ("); \
 	strcat (fw_outline,fieldString); \
@@ -261,15 +262,13 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
   /* Checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations
    exist, and that they are compatible) and then adds the route to the CRoutes table of routes. */
 
-#ifdef CPARSERVERBOSE
+   #ifdef CPARSERVERBOSE
    printf("parser_vrmlScene: Try route\n");
-#endif
-  if(parser_routeStatement(me)) {
-#ifdef CPARSERVERBOSE
-    printf("parser_vrmlScene: route parsed\n");
-#endif
-    continue;
-  }
+   #endif
+
+
+  /* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
+  BLOCK_STATEMENT(parser_vrmlScene)
 
   /* Try protoStatement */
    /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
@@ -283,10 +282,10 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
    printf("parser_vrmlScene: Try proto\n");
 #endif
   if(parser_protoStatement(me)) {
-#ifdef CPARSERVERBOSE
-   printf("parser_vrmlScene: PROTO parsed\n");
-#endif
-   continue;
+   	#ifdef CPARSERVERBOSE
+   	printf("parser_vrmlScene: PROTO parsed\n");
+   	#endif
+   	continue;
   }
 
   break;
@@ -570,15 +569,12 @@ BOOL parser_protoStatement(struct VRMLParser* me)
    }
 
    /*  Parse a ROUTE statement and add a new ProtoRoute structure to the routes vector of this ProtoDefinition */ 
-#ifdef CPARSERVERBOSE
+   #ifdef CPARSERVERBOSE
    printf("protoStatement: try ROUTE statement ...\n");
-#endif
-   if(parser_routeStatement(me)) {
-#ifdef CPARSERVERBOSE
-    printf("protoStatement: parsed route\n");
-#endif
-    continue;
-   }
+   #endif
+
+  /* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
+  BLOCK_STATEMENT(protoStatement)
 
    /* Nested PROTO.  Parse the PROTO and add it to the PROTOs list */
 #ifdef CPARSERVERBOSE
@@ -608,6 +604,104 @@ BOOL parser_protoStatement(struct VRMLParser* me)
   PARSE_ERROR("Expected } after PROTO body!")
 
  return TRUE;
+}
+
+BOOL parser_componentStatement(struct VRMLParser* me) {
+	assert(me->lexer);
+	lexer_skip(me->lexer);
+
+	/* Is this a COMPONENT statement? */
+	if(!lexer_keyword(me->lexer, KW_COMPONENT))
+	return FALSE;
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_componentStatement...\n");
+	#endif
+}
+
+BOOL parser_exportStatement(struct VRMLParser* me) {
+	assert(me->lexer);
+	lexer_skip(me->lexer);
+
+	/* Is this a EXPORT statement? */
+	if(!lexer_keyword(me->lexer, KW_EXPORT))
+	return FALSE;
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_exportStatement...\n");
+	#endif
+
+}
+BOOL parser_importStatement(struct VRMLParser* me) {
+	assert(me->lexer);
+	lexer_skip(me->lexer);
+
+	/* Is this a IMPORT statement? */
+	if(!lexer_keyword(me->lexer, KW_IMPORT))
+	return FALSE;
+
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_importStatement...\n");
+	#endif
+}
+BOOL parser_metaStatement(struct VRMLParser* me) {
+	vrmlStringT val1, val2;
+
+	assert(me->lexer);
+	lexer_skip(me->lexer);
+
+	/* Is this a META statement? */
+	if(!lexer_keyword(me->lexer, KW_META))
+	return FALSE;
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_metaStatement...\n");
+	#endif
+
+
+	/* META lines have 2 strings */
+
+        /* Otherwise, a real vector */
+	val1 = NULL; val2 = NULL;
+
+	if(!parser_sfstringValue (me, &val1)) {
+		/* parseError("Expected a string after a META keyword"); */
+		strcpy (fw_outline,"ERROR:Expected a string after META keyword, found \"");
+		if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID);
+		else strcat (fw_outline, "(EOF)");
+		strcat (fw_outline,"\" ");
+		ConsoleMessage(fw_outline);
+		fprintf (stderr,"%s\n",fw_outline);
+		return TRUE;
+	}
+
+	if(!parser_sfstringValue (me, &val2)) {
+		/* parseError("Expected a string after a META keyword"); */
+		strcpy (fw_outline,"ERROR:Expected a string after META keyword, found \"");
+		if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID);
+		else strcat (fw_outline, "(EOF)");
+		strcat (fw_outline,"\" ");
+		ConsoleMessage(fw_outline);
+		fprintf (stderr,"%s\n",fw_outline);
+		return TRUE;
+	}
+
+printf ("CParsePArser, have to handle meta for %s and %s\n",val1,val2);
+}
+
+BOOL parser_profileStatement(struct VRMLParser* me) {
+
+	assert(me->lexer);
+	lexer_skip(me->lexer);
+
+	/* Is this a PROFILE statement? */
+	if(!lexer_keyword(me->lexer, KW_PROFILE))
+	return FALSE;
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_profileStatement...\n");
+	#endif
 }
 
 /* Parses a routeStatement */
@@ -1328,15 +1422,12 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
    /* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
       exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
       ProtoDefinition->routes if we are parsing a PROTO */
-#ifdef CPARSERVERBOSE
+   #ifdef CPARSERVERBOSE
    printf("parser_node: try parsing ROUTE ... \n");
-#endif
-   if(parser_routeStatement(me))  {
-#ifdef CPARSERVERBOSE
-	printf("parser_node: ROUTE parsed\n");
-#endif
-	continue;
-   }
+   #endif
+
+  /* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
+  BLOCK_STATEMENT(parser_node)
 
    /* Try to parse the next statement as a PROTO (i.e. statement starts with PROTO).  */
    /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
@@ -1412,7 +1503,14 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
   /* FIXME - there shouldn't be parser_protoStatement here ... should there?  */
   while(parser_protoField(me, protoCopy, origProto) ||
-   parser_routeStatement(me) || parser_protoStatement(me));
+   	parser_routeStatement(me) || 
+   	parser_componentStatement(me) || 
+   	parser_exportStatement(me) || 
+   	parser_importStatement(me) || 
+   	parser_metaStatement(me) || 
+   	parser_profileStatement(me) || 
+	parser_protoStatement(me));
+
 
   /* Gets the scene tree for this protoDefinition and returns a pointer to it. 
      Also propogates the value of each field in the proto for which no non-default

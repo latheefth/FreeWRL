@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.211  2007/12/08 13:38:17  crc_canada
+# first changes for x3dv handling of META, COMPONENT, etc. taga.
+#
 # Revision 1.210  2007/12/06 21:50:57  crc_canada
 # Javascript X3D initializers
 #
@@ -604,16 +607,25 @@
 # 
 
 %KeywordC = map {($_=>1)} qw/
+	COMPONENT
 	DEF
+	EXPORT
 	EXTERNPROTO
 	FALSE
+	IMPORT
 	IS
+	META
 	NULL
+	PROFILE
 	PROTO
 	ROUTE
 	TO
 	TRUE
 	USE
+	inputOnly
+	outputOnly
+	inputOutput
+	initializeOnly
 	exposedField
 	field
 	eventIn
@@ -635,5 +647,9 @@
 	field
 	eventIn
 	eventOut
+	inputOnly
+	outputOnly
+	inputOutput
+	initializeOnly
 /;
 1;

@@ -451,7 +451,7 @@ SFVec3fNativeAssign(void *top, void *fromp)
  * simple and restricted wrapper, but it could replace it soon? */
 /* Parameters:
 	num:		Script number. Starts at 0. 
-	kind:		One of PKW_eventIn, PKW_eventOut, PKW_field
+	kind:		One of PKW_initializeOnly PKW_outputOnly PKW_inputOutput PKW_inputOnly
 	type:		One of the FIELDTYPE_ defines, eg, FIELDTYPE_MFFloat
 	field:		the field name as found in the VRML/X3D file. eg "set_myField"
 		
@@ -485,18 +485,11 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	double defaultDouble[] = {0.0, 0.0};
 	struct Uni_String *sptr[1];
 
-        /* input check Convert from X3D style of names to VRML */
-	if (kind == X3DACCESSOR_inputOnly) kind = PKW_eventIn;
-	else if (kind == X3DACCESSOR_outputOnly) kind = PKW_eventOut;
-	else if (kind == X3DACCESSOR_inputOutput) kind = PKW_exposedField;
-	else if (kind == X3DACCESSOR_initializeOnly) kind = PKW_field;
-
 	 #ifdef JAVASCRIPTVERBOSE
 	printf ("\nInitScriptFieldC, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value);
 	#endif
 
-
-        if ((kind != PKW_eventIn) && (kind != PKW_eventOut) && (kind != PKW_field) && (kind != PKW_exposedField)) {
+        if ((kind != PKW_inputOnly) && (kind != PKW_outputOnly) && (kind != PKW_initializeOnly) && (kind != PKW_inputOutput)) {
                 ConsoleMessage ("InitScriptField: invalid kind for script: %d\n",kind);
                 return;
         }
@@ -507,7 +500,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
         }
 
 	/* first, make a new name up */
-	if (kind == PKW_eventIn) {
+	if (kind == PKW_inputOnly) {
 		sprintf (mynewname,"__eventIn_Value_%s",field);
 	} else strcpy(mynewname,field);
 
@@ -520,9 +513,9 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFString: {
 			/* do not care about eventIns */
-			if (kind != PKW_eventIn)  {
+			if (kind != PKW_inputOnly)  {
 				JSaddGlobalECMANativeProperty(num, field);
-				if (kind == PKW_field) {
+				if (kind == PKW_initializeOnly) {
 					if  (type == FIELDTYPE_SFString) {
 						tlen = strlen(value.sfstring->strptr) + 20;
 					} else {
@@ -574,7 +567,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 			DoublePtr = NULL;
 			SVPtr = NULL;
 			VoidPtr = NULL;
-			if (kind == PKW_field) {
+			if (kind == PKW_initializeOnly) {
 				switch (type) {
 					case FIELDTYPE_SFImage:
 						VoidPtr = (uintptr_t *) (&(value.sfimage)); elements = 1;

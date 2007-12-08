@@ -782,6 +782,7 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
 void parseScriptProtoField(int fromScriptNotProto, const char *name, const char **atts) {
 	int i;
+	int nt;
 	uintptr_t myScriptNumber;
 	int myparams[MPFIELDS];
 	int strl;
@@ -878,9 +879,17 @@ void parseScriptProtoField(int fromScriptNotProto, const char *name, const char 
 		else
 			parseScriptFieldDefaultValue(findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), &value);
 		
+		/* convert the X3DACCESSOR into a common x3d/x3dv accessor */
+		switch (findFieldInX3DACCESSORS(atts[myparams[MP_ACCESSTYPE]])) {
+			case X3DACCESSOR_inputOnly: nt = PKW_inputOnly; break;
+			case X3DACCESSOR_outputOnly: nt = PKW_outputOnly; break;
+			case X3DACCESSOR_inputOutput: nt = PKW_inputOutput; break;
+			case X3DACCESSOR_initializeOnly: nt = PKW_initializeOnly; break;
+			default: nt = -1;
+		}
+
 		/* send in the script field for initialization */
-		InitScriptFieldC (myScriptNumber, findFieldInX3DACCESSORS(atts[myparams[MP_ACCESSTYPE]]), 
-				findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
+		InitScriptFieldC (myScriptNumber, nt, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
 	}
 }
 
