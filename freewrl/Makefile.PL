@@ -364,6 +364,9 @@ sub writeMakefileFinalTargets() {
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
 		}
+		if ($HAVE_UBUNTU eq "NO") {
+			print MK "\t/sbin/ldconfig\n";
+		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
 		print MK "\tinstall -s -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
@@ -602,6 +605,7 @@ sub writeMakeDebAndRpm () {
 		print MK "\techo \"%install\" >> $specfile\n";
 		print MK "\techo \"make install\" >> $specfile\n";
 		print MK "\techo \"%post\" >> $specfile\n";
+		print MK "\techo \"\/sbin\/ldconfig\" >> $specfile\n";
 		print MK "\techo \"%clean\" >> $specfile\n";
 		print MK "\techo \"%files\" >> $specfile\n";
 		print MK "\techo \"%defattr(-,root,root)\" >> $specfile\n";
@@ -686,8 +690,9 @@ sub writeMakefileDistclean() {
 	print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
 	if ($OS eq "Linux") {
 		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
-		if (! $jsobjdir eq "") {
-		    print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
+		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
+		if ($HAVE_UBUNTU eq "NO") {
+			print MK "\t/sbin/ldconfig\n";
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
