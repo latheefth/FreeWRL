@@ -286,6 +286,9 @@ extern int QueryCount;
 /* collision */
 #undef COLLISIONVERBOSE
 
+/* Capabilities of x3dv and x3d */
+#undef CAPABILITIESVERBOSE
+
 /* External Authoring Interface */
 extern int eaiverbose;
 
@@ -1200,7 +1203,9 @@ int findRoutedFieldInFIELDNAMES(struct X3D_Node *node, const char *field, int fr
 int findRoutedFieldInEXPOSED_FIELD(struct X3D_Node*, const char*, int);
 int findRoutedFieldInEVENT_IN(struct X3D_Node*, const char*, int);
 int findRoutedFieldInEVENT_OUT(struct X3D_Node*, const char*, int);
-int findNodeInNODES(const char *node);
+int findFieldInNODES(const char *node);
+int findFieldInCOMPONENTS(const char *node);
+int findFieldInPROFILESS(const char *node);
 int findFieldInALLFIELDNAMES(const char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
@@ -1225,6 +1230,15 @@ void resetEventLoop();
 /* MIDI stuff... */
 void ReWireRegisterMIDI (char *str);
 void ReWireMIDIControl(char *str);
+
+
+/* META data, component, profile  stuff */
+void handleMetaDataStringString(struct Uni_String *val1,struct Uni_String *val2);
+void handleProfile(int myp);
+void handleComponent(int com, int lev);
+void handleExport (char *node, char *as);
+void handleImport (char *nodeName,char *nodeImport, char *as);
+
 
 /* free memory */
 void registerX3DNode(struct X3D_Node * node);

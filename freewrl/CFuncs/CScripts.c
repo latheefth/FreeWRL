@@ -132,7 +132,8 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
 	int nt;
 	assert(me->valueSet);
-	printf ("CParse, converting field types from PKW to X3DACCESSOR\n");
+	/* printf ("CParse, converting field types from old to new\n"); */
+
 	switch (me->fieldDecl->mode) {
 		case PKW_eventIn: nt = PKW_inputOnly; break;
 		case PKW_eventOut: nt = PKW_outputOnly; break;

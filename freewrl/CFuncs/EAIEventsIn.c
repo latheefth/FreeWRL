@@ -544,10 +544,10 @@ void EAI_parse_commands () {
 
 				if (command == CREATENODE) {
 					if (eaiverbose) {	
-						printf ("CREATENODE, %s is this a simple node? %d\n",ctmp,findNodeInNODES(ctmp));
+						printf ("CREATENODE, %s is this a simple node? %d\n",ctmp,findFieldInNODES(ctmp));
 					}	
 
-					ctype = findNodeInNODES(ctmp);
+					ctype = findFieldInNODES(ctmp);
 					if (ctype > -1) {
 						/* yes, use C only to create this node */
 						sprintf (ctmp, "0 %d ",createNewX3DNode(ctype));

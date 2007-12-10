@@ -298,7 +298,7 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 
 	if ((strncmp (ctmp,"addChildren",strlen("addChildren")) == 0) || 
 	(strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0)) {
-		myField = findFieldInALLFIELDNAMES("children");
+		myField = findFieldInFIELDNAMES("children");
 	} else {
 		/* try finding it, maybe with a "set_" or "changed" removed */
 		myField = findRoutedFieldInFIELDNAMES(nodePtr,ctmp,0);

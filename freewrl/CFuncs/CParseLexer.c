@@ -194,7 +194,7 @@ void lexer_scopeOut_PROTO(struct VRMLLexer* me)
 /* Sets curID of lexer */
 #define IS_ID_REST(c) \
  (c>0x20 && c!=0x22 && c!=0x23 && c!=0x27 && c!=0x2C && c!=0x2E && c!=0x5B && \
-  c!=0x5C && c!=0x5D && c!=0x7B && c!=0x7D && c!=0x7F)
+  c!=0x5C && c!=0x5D && c!=0x3A && c!=0x7B && c!=0x7D && c!=0x7F)
 #define IS_ID_FIRST(c) \
  (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D)
 BOOL lexer_setCurID(struct VRMLLexer* me)
@@ -251,18 +251,15 @@ breakIdLoop:
 }
 
 /* Lexes a keyword */
-BOOL lexer_keyword(struct VRMLLexer* me, indexT kw)
-{
- if(!lexer_setCurID(me)) return FALSE;
- assert(me->curID);
+BOOL lexer_keyword(struct VRMLLexer* me, indexT kw) {
+	if(!lexer_setCurID(me)) return FALSE;
+	assert(me->curID);
 
- if(!strcmp(me->curID, KEYWORDS[kw]))
- {
-  FREE_IF_NZ (me->curID);
-  return TRUE;
- }
-
- return FALSE;
+	if(!strcmp(me->curID, KEYWORDS[kw])) {
+		FREE_IF_NZ (me->curID);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /* Finds the index of a given string */
@@ -896,7 +893,8 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
 {
  int c;
 
- if(me->curID) return FALSE;
+if (me->curID) printf ("lexer_operator, curID is NOT NULL\n");
+
  lexer_skip(me);
 
  LEXER_GETINPUT(c)

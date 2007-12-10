@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.280  2007/12/10 19:13:53  crc_canada
+# Add parsing for x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE
+#
 # Revision 1.279  2007/12/06 21:50:57  crc_canada
 # Javascript X3D initializers
 #
@@ -441,11 +444,14 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of keywords */\n       const char *KEYWORDS[] = {\n";
 
+	$keywordIntegerType = 0;
         my @sf = keys %KeywordC;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
-		push @str, "#define KW_".$_."	$keywordIntegerType\n";
+
+		my $kw = $_;
+		push @str, "#define KW_".$kw."	$keywordIntegerType\n";
 		$keywordIntegerType ++;
 		push @genFuncs1, "	\"$_\",\n";
 	}
@@ -458,6 +464,67 @@ sub gen {
 		"	if ((st < 0) || (st >= KEYWORDS_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
 		"	return KEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringKeywordType(int st);\n";
+
+
+	#####################
+	# process  profiles
+	push @str, "\n/* Table of built-in profiles */\nextern const char *PROFILES[];\n";
+	push @str, "extern const indexT PROFILES_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of profiles */\n       const char *PROFILES[] = {\n";
+
+	my $profileIntegerType = 0;
+        my @sf = keys %ProfileC;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+
+		# NOTE: We can not have a profile of "MPEG-4", make it MPEG4 (no "-" allowed)
+		my $kw = $_;
+		if ($kw eq "MPEG-4") {$kw = "MPEG4";}
+		push @str, "#define PRO_".$kw."	$profileIntegerType\n";
+		$profileIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT PROFILES_COUNT = ARR_SIZE(PROFILES);\n\n";
+
+	# make a function to print Profile name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the profile type */\n". 
+		"const char *stringProfileType (int st) {\n".
+		"	if ((st < 0) || (st >= PROFILES_COUNT)) return \"PROFILE OUT OF RANGE\"; \n".
+		"	return PROFILES[st];\n}\n\n";
+	push @str, "const char *stringProfileType(int st);\n";
+
+	#####################
+	# process components 
+	push @str, "\n/* Table of built-in components */\nextern const char *COMPONENTS[];\n";
+	push @str, "extern const indexT COMPONENTS_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of components */\n       const char *COMPONENTS[] = {\n";
+
+	my $componentIntegerType = 0;
+        my @sf = keys %ComponentC;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+
+		# NOTE: We can not have a component of "H-ANIM", make it HANIM (no "-" allowed)
+		my $kw = $_;
+		if ($kw eq "H-Anim") {$kw = "HAnim";}
+		push @str, "#define COM_".$kw."	$componentIntegerType\n";
+		$componentIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT COMPONENTS_COUNT = ARR_SIZE(COMPONENTS);\n\n";
+
+	# make a function to print Component name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the component type */\n". 
+		"const char *stringComponentType (int st) {\n".
+		"	if ((st < 0) || (st >= COMPONENTS_COUNT)) return \"COMPONENT OUT OF RANGE\"; \n".
+		"	return COMPONENTS[st];\n}\n\n";
+	push @str, "const char *stringComponentType(int st);\n";
 
 
 	#####################

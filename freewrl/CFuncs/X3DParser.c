@@ -268,7 +268,7 @@ static void parseNormalX3D(const char *name, const char** atts) {
 
 	int myNodeType;
 	/* create this to be a new node */	
-	myNodeType = findNodeInNODES((char *) name);
+	myNodeType = findFieldInNODES((char *) name);
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("parseNormalX3D: for name %s, myNodeType = %d\n",name,myNodeType);
@@ -462,7 +462,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	if (parserMode == PARSING_PROTOBODY) {
 	
 		/* is this a valid node, or is this maybe the end of an IS, within the Proto? */
-		if ((findNodeInNODES((char *) name)!= ID_UNDEFINED) || 
+		if ((findFieldInNODES((char *) name)!= ID_UNDEFINED) || 
 			(strcmp(name,"ROUTE")==0) || 
 			(strcmp(name,"IS")==0)) {
 			

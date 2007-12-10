@@ -82,7 +82,6 @@ char fw_outline[2000];
   destPre##Ofs=offsetof(struct X3D_##node, var); \
   break;
 #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
-printf ("eventBeginNode, fieldInd %d\n",fieldInd); \
  case NODE_##node: \
  { \
   struct X3D_##node* node2=(struct X3D_##node*)ptr; \
@@ -90,7 +89,6 @@ printf ("eventBeginNode, fieldInd %d\n",fieldInd); \
   {
 #define EVENT_END_NODE(node,fieldString) \
   default: \
-	printf ("node is a %s, event %s at %s:%d\n",stringNodeType(node2->_nodeType),fieldString, __FILE__, __LINE__); \
    	/* PARSE_ERROR("Unsupported event for node!") */ \
 	strcpy (fw_outline,"ERROR: Unsupported event ("); \
 	strcat (fw_outline,fieldString); \
@@ -607,43 +605,147 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 }
 
 BOOL parser_componentStatement(struct VRMLParser* me) {
+	int myComponent = ID_UNDEFINED;
+	int myLevel = ID_UNDEFINED;
+	#define COMPSTRINGSIZE 20
+
 	assert(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a COMPONENT statement? */
-	if(!lexer_keyword(me->lexer, KW_COMPONENT))
-	return FALSE;
+	if(!lexer_keyword(me->lexer, KW_COMPONENT)) return FALSE;
 
 	#ifdef CPARSERVERBOSE
 	printf ("parser_componentStatement...\n");
 	#endif
+
+	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS a COMPONENT statement */
+	assert(me->lexer->curID);
+
+	myComponent = findFieldInCOMPONENTS(me->lexer->curID);
+	if (myComponent == ID_UNDEFINED) {
+		CPARSE_ERROR_CURID("Invalid COMPONENT name ");
+		return TRUE;
+	}
+		
+	#ifdef CPARSERVERBOSE
+	printf ("my COMPONENT is %s\n",COMPONENTS[myComponent]);
+	#endif
+
+	/* now, we are finished with this COMPONENT */
+	FREE_IF_NZ(me->lexer->curID);
+
+	/* we should have a ":" then an integer supportLevel */
+	if (!lexer_colon(me->lexer)) {
+		CPARSE_ERROR_CURID("expected colon in COMPONENT statement")
+		return TRUE;
+	}
+
+	if (!parser_sfint32Value(me,&myLevel)) {
+		CPARSE_ERROR_CURID("expected supportLevel")
+		return TRUE;
+	}	
+	handleComponent(myComponent,myLevel);
+
+	return TRUE;
 }
 
 BOOL parser_exportStatement(struct VRMLParser* me) {
+	char *nodeToExport = NULL;
+	char *alias = NULL;	
+
 	assert(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a EXPORT statement? */
-	if(!lexer_keyword(me->lexer, KW_EXPORT))
-	return FALSE;
+	if(!lexer_keyword(me->lexer, KW_EXPORT)) return FALSE;
 
 	#ifdef CPARSERVERBOSE
 	printf ("parser_exportStatement...\n");
 	#endif
 
+	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an EXPORT statement... */
+	assert(me->lexer->curID);
+
+	/* save this, and find the next token... */
+	nodeToExport = me->lexer->curID;
+	me->lexer->curID = NULL;
+
+	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an EXPORT statement...*/
+	assert(me->lexer->curID);
+
+	/* do we have an "AS" statement? */
+	if (strcmp("AS",me->lexer->curID) == 0) {
+		FREE_IF_NZ(me->lexer->curID);
+		if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an EXPORT statement...*/
+		assert(me->lexer->curID);
+		alias = me->lexer->curID;
+	}
+
+	/* do the EXPORT */
+	handleExport(nodeToExport, alias);
+
+	/* free things up, only as required */
+	FREE_IF_NZ(nodeToExport);
+	if (alias != NULL) FREE_IF_NZ(me->lexer->curID);
+	return TRUE;
 }
+
 BOOL parser_importStatement(struct VRMLParser* me) {
+	char *inlineNodeName = NULL;
+	char *alias = NULL;	
+	char *nodeToImport = NULL;
+
 	assert(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a IMPORT statement? */
-	if(!lexer_keyword(me->lexer, KW_IMPORT))
-	return FALSE;
-
+	if(!lexer_keyword(me->lexer, KW_IMPORT)) return FALSE;
 
 	#ifdef CPARSERVERBOSE
 	printf ("parser_importStatement...\n");
 	#endif
+
+	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an IMPORT statement... */
+	assert(me->lexer->curID);
+
+	/* save this, and find the next token... */
+	inlineNodeName = STRDUP(me->lexer->curID);
+	FREE_IF_NZ(me->lexer->curID);
+
+	/* we should have a "." then an integer supportLevel */
+	if (!lexer_point(me->lexer)) {
+		CPARSE_ERROR_CURID("expected period in IMPORT statement")
+		return TRUE;
+	}
+
+	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an IMPORT statement... */
+	assert(me->lexer->curID);
+
+	/* ok, now, we should have the nodeToImport name... */
+	nodeToImport = STRDUP(me->lexer->curID);
+	FREE_IF_NZ(me->lexer->curID);
+
+	/* get the next token */
+	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an IMPORT statement...*/
+	assert(me->lexer->curID);
+
+	/* do we have an "AS" statement? */
+	if (strcmp("AS",me->lexer->curID) == 0) {
+		FREE_IF_NZ(me->lexer->curID);
+		if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an IMPORT statement...*/
+		assert(me->lexer->curID);
+		alias = STRDUP(me->lexer->curID);
+		FREE_IF_NZ(me->lexer->curID);
+	}
+
+	/* do the IMPORT */
+	handleImport(inlineNodeName, nodeToImport, alias);
+
+	FREE_IF_NZ (inlineNodeName);
+	FREE_IF_NZ (nodeToImport);
+	FREE_IF_NZ (alias);
+	return TRUE;
 }
 BOOL parser_metaStatement(struct VRMLParser* me) {
 	vrmlStringT val1, val2;
@@ -652,8 +754,7 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
 	lexer_skip(me->lexer);
 
 	/* Is this a META statement? */
-	if(!lexer_keyword(me->lexer, KW_META))
-	return FALSE;
+	if(!lexer_keyword(me->lexer, KW_META)) return FALSE;
 
 	#ifdef CPARSERVERBOSE
 	printf ("parser_metaStatement...\n");
@@ -663,51 +764,63 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
 	/* META lines have 2 strings */
 
         /* Otherwise, a real vector */
-	val1 = NULL; val2 = NULL;
+	val1=NULL; val2 = NULL;
 
 	if(!parser_sfstringValue (me, &val1)) {
-		/* parseError("Expected a string after a META keyword"); */
-		strcpy (fw_outline,"ERROR:Expected a string after META keyword, found \"");
-		if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID);
-		else strcat (fw_outline, "(EOF)");
-		strcat (fw_outline,"\" ");
-		ConsoleMessage(fw_outline);
-		fprintf (stderr,"%s\n",fw_outline);
-		return TRUE;
+		CPARSE_ERROR_CURID("Expected a string after a META keyword")
 	}
 
 	if(!parser_sfstringValue (me, &val2)) {
-		/* parseError("Expected a string after a META keyword"); */
-		strcpy (fw_outline,"ERROR:Expected a string after META keyword, found \"");
-		if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID);
-		else strcat (fw_outline, "(EOF)");
-		strcat (fw_outline,"\" ");
-		ConsoleMessage(fw_outline);
-		fprintf (stderr,"%s\n",fw_outline);
-		return TRUE;
+		CPARSE_ERROR_CURID("Expected a string after a META keyword")
 	}
 
-printf ("CParsePArser, have to handle meta for %s and %s\n",val1,val2);
+	if ((val1 != NULL) && (val2 != NULL)) { handleMetaDataStringString(val1,val2); }
+
+	/* cleanup */
+	if (val1 != NULL) {FREE_IF_NZ(val1->strptr); FREE_IF_NZ(val1);}
+	if (val2 != NULL) {FREE_IF_NZ(val2->strptr); FREE_IF_NZ(val2);}
+	return TRUE;
 }
 
 BOOL parser_profileStatement(struct VRMLParser* me) {
+	int myProfile = ID_UNDEFINED;
 
 	assert(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a PROFILE statement? */
-	if(!lexer_keyword(me->lexer, KW_PROFILE))
-	return FALSE;
+	if(!lexer_keyword(me->lexer, KW_PROFILE)) return FALSE;
 
 	#ifdef CPARSERVERBOSE
 	printf ("parser_profileStatement...\n");
 	#endif
+
+	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an PROFILE statement... */
+	assert(me->lexer->curID);
+
+	myProfile = findFieldInPROFILES(me->lexer->curID);
+
+	if (myProfile != ID_UNDEFINED) {
+		handleProfile(myProfile);
+	} else {
+		CPARSE_ERROR_CURID("Expected a profile after a PROFILE keyword")
+		return TRUE;
+	}
+		
+	/* XXX FIXME - do something with the Profile statement */
+	#ifdef CPARSERVERBOSE
+	printf ("my profile is %d\n",myProfile);
+	#endif
+	/* now, we are finished with this PROFILE */
+	FREE_IF_NZ(me->lexer->curID);
+	return TRUE;
 }
 
 /* Parses a routeStatement */
 /* Checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
    exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
    ProtoDefinition->routes if we are parsing a PROTO */
+
 BOOL parser_routeStatement(struct VRMLParser* me)
 {
  indexT fromNodeIndex;
@@ -801,13 +914,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   assert(!(pre##Proto && pre##Script)); \
   /* The next character has to be a '.' - skip over it */ \
   if(!lexer_point(me->lexer)) {\
-   	/* PARSE_ERROR("Expected . after node-name!")*/ \
-	/* try to make a better error message. */ \
-	strcpy (fw_outline,"ERROR:ROUTE: Expected \".\" after the NODE name, found \""); \
-	if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)"); \
-	strcat (fw_outline,"\" "); \
-  	ConsoleMessage(fw_outline);  \
-	fprintf (stderr,"%s\n",fw_outline); \
+	CPARSE_ERROR_CURID("ERROR:ROUTE: Expected \".\" after the NODE name") \
   	PARSER_FINALLY  \
   	return FALSE;  \
   } \
@@ -819,13 +926,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
    if(!lexer_event##eventType(me->lexer, pre##Node, \
     &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
         /* event not found in any built in array.  Error. */ \
-        /*PARSE_ERROR("Expected built-in event" #eventType " after .!") */ \
-	/* try to make a better error message. */ \
-	strcpy (fw_outline,"ERROR:ROUTE: Expected event" #eventType " field after \".\" found \""); \
-	if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)"); \
-	strcat (fw_outline,"\" "); \
-  	ConsoleMessage(fw_outline);  \
-	fprintf (stderr,"%s\n",fw_outline); \
+	CPARSE_ERROR_CURID("ERROR:Expected built-in event" #eventType " after .") \
   	PARSER_FINALLY  \
   	return FALSE;  \
     } \
@@ -887,6 +988,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  /* Parse the first part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays
     and locating the event in the builtin or user-defined event name arrays */
  ROUTE_PARSE_NODEFIELD(from, Out)
+
  /* Next token has to be "TO" */
  if(!lexer_keyword(me->lexer, KW_TO)) {
 	/* try to make a better error message. */
@@ -929,23 +1031,25 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 
  tempFE=ID_UNDEFINED; tempFO=ID_UNDEFINED; tempTE=ID_UNDEFINED; tempTO=ID_UNDEFINED;
 
+
+		#ifdef CPARSERVERBOSE
+		printf ("fromProtoField %d fromScriptField %d fromFieldE %d fromFieldO %d\n",fromProtoField,fromScriptField,fromFieldE,fromFieldO);
+		printf ("toProtoField %d toScriptField %d toFieldE %d toFieldO %d\n",toProtoField,toScriptField,toFieldE,toFieldO);
+		#endif
+
  if(!fromProtoField && !fromScriptField) {
 	/* fromFieldE = Daniel's code thinks this is from an exposedField */
 	/* fromFieldO = Daniel's code thinks this is from an eventOut */
 
-	/* If the field was found in the EXPOSED_FIELDS array */
-  	if(fromFieldE!=ID_UNDEFINED) {
-		/* printf ("step1a, node type %s fromFieldE %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldE,EXPOSED_FIELD[fromFieldE]); */
-
-        	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
-		tempFE = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],0);
-
-        	/* Field was found in FIELDNAMES, and this is a valid field?  Then, try to find the index of the event in EXPOSEDFIELD */
-		if (tempFE != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempFE]);
-	}
         /* If the from event was found in the EVENT_OUT array */
+	/* if we have an EVENT_OUT, we have to ensure that the exposedField is NOT used (eg, IndexedFaceSet has set_x and x fields */
 	if (fromFieldO != ID_UNDEFINED) {
-		/* printf ("step2a, node type %s fromFieldO %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldO,EVENT_OUT[fromFieldO]); */
+		#ifdef CPARSERVERBOSE
+		printf ("step1a, node type %s fromFieldO %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldO,EVENT_OUT[fromFieldO]);
+		#endif
+
+		/* ensure that the exposedField is NOT going to be used */
+		fromFieldE = ID_UNDEFINED;
 
         	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
 		tempFO = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],0);
@@ -964,27 +1068,34 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   			/* Field found in FIELDNAMES and it is a valid field?  Then find it in EXPOSED_FIELD */
 			if (temp != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[temp]);
 		}
+	} else if(fromFieldE!=ID_UNDEFINED) {
+		/* If the field was found in the EXPOSED_FIELDS array */
+		#ifdef CPARSERVERBOSE
+		printf ("step2a, node type %s fromFieldE %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldE,EXPOSED_FIELD[fromFieldE]);
+		#endif
+
+        	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
+		tempFE = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],0);
+
+        	/* Field was found in FIELDNAMES, and this is a valid field?  Then, try to find the index of the event in EXPOSEDFIELD */
+		if (tempFE != ID_UNDEFINED) tempFE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempFE]);
 	}
  }
+
+
  if(!toProtoField && !toScriptField) {
 	/* toFieldE = Daniel's code thinks this is from an exposedField */
 	/* toFieldO = Daniel's code thinks this is from an eventIn */
 
-	/* If the field was found in the EXPOSED_FIELDS array */
-  	if(toFieldE!=ID_UNDEFINED) {
-		/* printf ("step3a, node type %s toFieldE %d %s\n",stringNodeType(toNode->_nodeType),toFieldE,EXPOSED_FIELD[toFieldE]); */
-
-        	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
-		tempTE = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
-
-        	/* Field was found in FIELDNAMES, and this is a valid field?  Then, try to find the index of the event in EXPOSEDFIELD */
-		if (tempTE != ID_UNDEFINED) tempTE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempTE]);
-	}
-
-
         /* If the from event was found in the EVENT_IN array */
+	/* if both are defined, use the eventIn - eg, IndexedFaceSet might have set_coordIndex and coordIndex */
   	if(toFieldO!=ID_UNDEFINED) {
-		/* printf ("step4a, node type %s toFieldO %d %s\n",stringNodeType(toNode->_nodeType),toFieldO,EVENT_IN[toFieldO]); */
+		#ifdef CPARSERVERBOSE
+		printf ("step3a, node type %s toFieldO %d %s\n",stringNodeType(toNode->_nodeType),toFieldO,EVENT_IN[toFieldO]);
+		#endif
+		
+		/* ensure that we will NOT use the exposedField, if one exists... */
+		toFieldE = ID_UNDEFINED;
 
         	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
 		tempTO = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
@@ -1003,6 +1114,20 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 			if (temp != ID_UNDEFINED) tempTE = findFieldInEXPOSED_FIELD(FIELDNAMES[temp]);
 		}
 	}
+	/* If the field was found in the EXPOSED_FIELDS array */
+  	else if(toFieldE!=ID_UNDEFINED) {
+		#ifdef CPARSERVERBOSE
+		printf ("step4a, node type %s toFieldE %d %s\n",stringNodeType(toNode->_nodeType),toFieldE,EXPOSED_FIELD[toFieldE]);
+		#endif
+
+        	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
+		tempTE = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
+
+        	/* Field was found in FIELDNAMES, and this is a valid field?  Then, try to find the index of the event in EXPOSEDFIELD */
+		if (tempTE != ID_UNDEFINED) tempTE = findFieldInEXPOSED_FIELD(FIELDNAMES[tempTE]);
+	}
+
+
   }
 #ifdef CPARSERVERBOSE
 	printf ("so, before routing we have: ");
@@ -1221,6 +1346,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 
  return TRUE;
 }
+
 
 /* Register a ROUTE here */
 /* If we are in a PROTO add a new ProtoRoute structure to the vector ProtoDefinition->routes */
@@ -1539,13 +1665,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
  /* Check that the node is closed by a '}', and skip this token */
  if(!lexer_closeCurly(me->lexer)) {
-  	/* parseError("Expected } after fields of node!"); */
-	/* try to make a better error message. */
-	strcpy (fw_outline,"ERROR: Expected \"}\" after fields of a node; found \"");
-	if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)");
-	strcat (fw_outline,"\" ");
-  	ConsoleMessage(fw_outline); 
-	fprintf (stderr,"%s\n",fw_outline);
+	CPARSE_ERROR_CURID("ERROR: Expected \"}\" after fields of a node;")
   	PARSER_FINALLY 
   	return FALSE; 
  }
@@ -2264,12 +2384,7 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
    \
    if(!parser_sf##name##Value(me, &val)) \
    { \
-        /* parseError("Expected ] before end of MF-Value!"); */ \
-	strcpy (fw_outline,"ERROR:Expected \"]\" before end of MF-Value, found \""); \
-	if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)"); \
-	strcat (fw_outline,"\" "); \
-  	ConsoleMessage(fw_outline); \
-	fprintf (stderr,"%s\n",fw_outline);\
+	CPARSE_ERROR_CURID("ERROR:Expected \"]\" before end of MF-Value") \
     break; \
    } \
    vector_pushBack(vrml##type##T, vec, val); \

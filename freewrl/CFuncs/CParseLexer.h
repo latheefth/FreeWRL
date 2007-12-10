@@ -134,5 +134,7 @@ BOOL lexer_operator(struct VRMLLexer*, char);
  lexer_operator(me, '[')
 #define lexer_closeSquare(me) \
  lexer_operator(me, ']')
+#define lexer_colon(me) \
+ lexer_operator(me,':')
 
 #endif /* Once-check */

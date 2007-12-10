@@ -1,4 +1,13 @@
-For 1.20.0:
+For 1.20.0 (Some came out with 1.19.9 for Linux):
+	- parse (only) x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE statements. Note that currently nothing
+	  is done with these statements.
+
+	- VRML,x3dv routing to nodes with both (set_x and x) fields was broken - ensure that we route
+	  only to the set_x fields. (same with eventOuts).
+
+	- migrate scripts from depreciated eventIn, eventOut, exposedField, initializeOnly to 
+	  inputOnly, outputOnly, inputOutput, initializeOnly, but keep backwards compatibility.
+
 	- Javascript via X3D - initializers were not correctly set for X3D types (fixed VRMLC.pm to
 	  start at 0, not 7000 for X3DACCESSORS, code required in X3DProtoScript.c)
 

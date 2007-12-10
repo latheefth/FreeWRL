@@ -448,50 +448,6 @@ char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
 	return ((char *) FIELDNAMES[*np]);
 }
 
-
-
-
-/* go through the generated table X3DACCESSORS, and find the int of this string, returning it, or -1 on error 
-	or if it is an "internal" field */
-/* XXX:  Do we really need the strlen-call to go next to strcmp?! */
-int findFieldInX3DACCESSORS(const char *field) {
-	int x;
-	int mystrlen;
-	
-	if (field[0] == '_') {
-		printf ("findFieldInX3DACCESSORS - internal field %s\n",field);
-	}
-
-	mystrlen = strlen(field);
-	/* printf ("findFieldInX3DACCESSORS, string :%s: is %d long\n",field,mystrlen);  */
-	for (x=0; x<X3DACCESSORS_COUNT; x++) {
-		if (strlen(X3DACCESSORS[x]) == mystrlen) {
-			if (strcmp(field,X3DACCESSORS[x])==0) return x;
-		} 
-	}
-	return -1;
-}
-
-/* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
-	or if it is an "internal" field */
-int findFieldInFIELDTYPES(const char *field) {
-	int x;
-	int mystrlen;
-	
-	if (field[0] == '_') {
-		printf ("findFieldInFIELDTYPES - internal field %s\n",field);
-	}
-
-	mystrlen = strlen(field);
-	/* printf ("findFieldInFIELDTYPES, string :%s: is %d long\n",field,mystrlen);  */
-	for (x=0; x<FIELDTYPES_COUNT; x++) {
-		if (strlen(FIELDTYPES[x]) == mystrlen) {
-			if (strcmp(field,FIELDTYPES[x])==0) return x;
-		} 
-	}
-	return -1;
-}
-
 /* go through the generated table FIELDTYPES, and find the int of this string, returning it, or -1 on error 
 	or if it is an "internal" field */
 int findFieldInARR(const char* field, const char** arr, size_t cnt)
@@ -525,6 +481,12 @@ DEF_FINDFIELD(FIELD)
 DEF_FINDFIELD(EXPOSED_FIELD)
 DEF_FINDFIELD(EVENT_IN)
 DEF_FINDFIELD(EVENT_OUT)
+DEF_FINDFIELD(KEYWORDS)
+DEF_FINDFIELD(NODES)
+DEF_FINDFIELD(PROFILES)
+DEF_FINDFIELD(COMPONENTS)
+DEF_FINDFIELD(X3DACCESSORS)
+DEF_FINDFIELD(FIELDTYPES)
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */
@@ -597,49 +559,6 @@ DEF_FINDROUTEDFIELD(EXPOSED_FIELD)
 DEF_FINDROUTEDFIELD(EVENT_IN)
 DEF_FINDROUTEDFIELD(EVENT_OUT)
 
-/* go through the generated table NODENAMES, and find the int of this string, returning it, or -1 on error */
-int findNodeInNODES(const char *node) {
-	int x;
-	int mystrlen;
-	
-	mystrlen = strlen(node);
-	/* printf ("findNodeInNODENAMES, string :%s: is %d long\n",node,mystrlen); */
-	for (x=0; x<NODES_COUNT; x++) {
-		if (strlen(NODES[x]) == mystrlen) {
-			if (strcmp(node,NODES[x])==0) return x;
-		} 
-	}
-	return -1;
-}
-/* go through the generated table KEYWORDS, and find the int of this string, returning it, or -1 on error */
-int findFieldInKEYWORDS(const char *field) {
-	int x;
-	int mystrlen;
-	
-	mystrlen = strlen(field);
-	/* printf ("findFieldInKEYWORDS, string :%s: is %d long\n",field,mystrlen); */
-	for (x=0; x<KEYWORDS_COUNT; x++) {
-		if (strlen(KEYWORDS[x]) == mystrlen) {
-			if (strcmp(field,KEYWORDS[x])==0) return x;
-		} 
-	}
-	return -1;
-}
-
-/* go through the generated table FIELDNAMES, and find the int of this string, returning it, or -1 on error */
-int findFieldInALLFIELDNAMES(const char *field) {
-	int x;
-	int mystrlen;
-	
-	mystrlen = strlen(field);
-	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen); */
-	for (x=0; x<FIELDNAMES_COUNT; x++) {
-		if (strlen(FIELDNAMES[x]) == mystrlen) {
-			if (strcmp(field,FIELDNAMES[x])==0) return x;
-		} 
-	}
-	return -1;
-}
 
 /* go through the OFFSETS for this node, looking for field, and return offset, type, and kind */
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind) {

@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.212  2007/12/10 19:13:53  crc_canada
+# Add parsing for x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE
+#
 # Revision 1.211  2007/12/08 13:38:17  crc_canada
 # first changes for x3dv handling of META, COMPONENT, etc. taga.
 #
@@ -599,7 +602,6 @@
 #######################################################################
 #######################################################################
 #######################################################################
-
 #
 # Keywords
 # a listing of keywords for use in the C VRML parser.
@@ -630,6 +632,69 @@
 	field
 	eventIn
 	eventOut
+/;
+
+
+#######################################################################
+#
+# Components 
+# a listing of Components for use in the C VRML parser.
+#
+# 
+
+%ComponentC = map {($_=>1)} qw/
+	CADGeometry
+	Core
+	CubeMapTexturing
+	DIS
+	EnvironmentalEffects
+	EnvironmentalSensor
+	EventUtilities
+	Followers
+	Geometry2D
+	Geometry3D
+	Geospatial
+	Grouping
+	H-Anim
+	Interpolation
+	KeyDeviceSensor
+	Layering
+	Layout
+	Lighting
+	Navigation
+	Networking
+	NURBS
+	ParticleSystems
+	PickingSensor
+	PointDeviceSensor
+	Shaders
+	Rendering
+	RigidBodyPhysics
+	Scripting
+	Shape
+	Sound
+	Text
+	Texturing
+	Texturing3D
+	Time
+/;
+
+
+#######################################################################
+#
+# Profiles 
+# a listing of Profiles for use in the C VRML parser.
+#
+# 
+
+%ProfileC = map {($_=>1)} qw/
+	CADInterchange
+	Core
+	Full
+	Immersive
+	Interactive
+	Interchange
+	MPEG-4
 /;
 
 #######################################################################
