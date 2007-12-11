@@ -36,7 +36,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 
  assert(ret);
 
- assert(mod!=PKW_exposedField);
+ assert(mod!=PKW_inputOutput);
 
  ret->fieldDecl=newFieldDecl(mod, type, name);
  assert(ret->fieldDecl);
@@ -47,10 +47,10 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  ret->ISname = NULL;
 
  /* Field's value not yet initialized! */
- ret->valueSet=(mod!=PKW_field);
+ ret->valueSet=(mod!=PKW_initializeOnly);
  /* value is set later on */
 
- /* printf ("newScriptFieldDecl, returning name %s, type %s\n",ret->name, ret->type); */
+ /* printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->name, ret->type,PROTOKEYWORDS[ret->fieldDecl->mode]); */
 
  return ret;
 }
@@ -97,7 +97,7 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 	ret->type = me->type;
 	ret->ISname = me->ISname;
 	
-	ret->valueSet=((ret->fieldDecl->mode)!=PKW_field);
+	ret->valueSet=((ret->fieldDecl->mode)!=PKW_initializeOnly);
 	return ret;
 }
 
@@ -113,7 +113,7 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Sets script field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
- assert(me->fieldDecl->mode==PKW_field); 
+ assert(me->fieldDecl->mode==PKW_initializeOnly); 
  /* assert(!me->valueSet); */
 
 
@@ -130,19 +130,9 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 
 /* Initialize JSField */
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
-	int nt;
+	/* printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode); */
 	assert(me->valueSet);
-	/* printf ("CParse, converting field types from old to new\n"); */
-
-	switch (me->fieldDecl->mode) {
-		case PKW_eventIn: nt = PKW_inputOnly; break;
-		case PKW_eventOut: nt = PKW_outputOnly; break;
-		case PKW_exposedField: nt = PKW_inputOutput; break;
-		case PKW_field: nt = PKW_initializeOnly; break;
-		default: nt = -1;
-	}
-
- 	InitScriptFieldC(num, nt, me->fieldDecl->type, me->name, me->value);
+ 	InitScriptFieldC(num, me->fieldDecl->mode, me->fieldDecl->type, me->name, me->value);
 }
 
 /* ************************************************************************** */
@@ -224,7 +214,7 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
 
 void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 {
- /* printf ("script_addField: adding field %p to script %d (pointer %p)\n",field,me->num,me); */
+ /* printf ("script_addField: adding field %p to script %d (pointer %p)\n",field,me->num,me);  */
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
  scriptFieldDecl_jsFieldInit(field, me->num);
 }

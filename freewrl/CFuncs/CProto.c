@@ -86,7 +86,7 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
 {
  int i;
  size_t len=returnRoutingElementLength(me->type);
- assert(me->mode==PKW_exposedField || me->mode==PKW_eventIn);
+ assert(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
 
  /* For each destination mapped to this proto field, add a route */
  for(i=0; i!=vector_size(me->dests); ++i)
@@ -116,7 +116,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 {
  int i;
  size_t len=returnRoutingElementLength(me->type);
- assert(me->mode==PKW_exposedField || me->mode==PKW_eventOut);
+ assert(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
 
  /* For each destination mapped to this proto field, add a route */
  for(i=0; i!=vector_size(me->dests); ++i)
@@ -558,7 +558,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
 	for (i = 0; i !=  vector_size(old_script->fields); ++i) {
 		struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, old_script->fields, i);
 		struct ScriptFieldDecl* newfield = scriptFieldDecl_copy(lex, sfield);
-		if (sfield->fieldDecl->mode == PKW_field) {
+		if (sfield->fieldDecl->mode == PKW_initializeOnly) {
 			scriptFieldDecl_setFieldValue(newfield, sfield->value);
 		}
 		script_addField(new_script, newfield);

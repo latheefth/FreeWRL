@@ -91,10 +91,10 @@ uintptr_t EAI_GetNode(const char *str) {
 
 
 int mapToKEYWORDindex (indexT pkwIndex) {
-	if (pkwIndex == PKW_exposedField) return KW_exposedField;
-	if (pkwIndex == PKW_eventIn) return KW_eventIn;
-	if (pkwIndex == PKW_eventOut) return KW_eventOut;
-	if (pkwIndex == PKW_field) return KW_field;
+	if (pkwIndex == PKW_inputOutput) return KW_inputOutput;
+	if (pkwIndex == PKW_inputOnly) return KW_inputOnly;
+	if (pkwIndex == PKW_outputOnly) return KW_outputOnly;
+	if (pkwIndex == PKW_initializeOnly) return KW_initializeOnly;
 	return 0;
 }
 /***************

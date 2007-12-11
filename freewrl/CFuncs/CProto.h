@@ -103,7 +103,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
 
 /* Finish this field - if value is not yet set, use default. */
 #define protoFieldDecl_finish(lex, me) \
- if(((me)->mode==PKW_field || (me)->mode==PKW_exposedField) && \
+ if(((me)->mode==PKW_initializeOnly || (me)->mode==PKW_inputOutput) && \
   !(me)->alreadySet) \
   protoFieldDecl_setValue(lex, me, &(me)->defaultVal)
 

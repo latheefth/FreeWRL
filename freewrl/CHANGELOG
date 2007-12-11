@@ -5,7 +5,7 @@ For 1.20.0 (Some came out with 1.19.9 for Linux):
 	- VRML,x3dv routing to nodes with both (set_x and x) fields was broken - ensure that we route
 	  only to the set_x fields. (same with eventOuts).
 
-	- migrate scripts from depreciated eventIn, eventOut, exposedField, initializeOnly to 
+	- migrate protos scripts from depreciated eventIn, eventOut, exposedField, initializeOnly to 
 	  inputOnly, outputOnly, inputOutput, initializeOnly, but keep backwards compatibility.
 
 	- Javascript via X3D - initializers were not correctly set for X3D types (fixed VRMLC.pm to

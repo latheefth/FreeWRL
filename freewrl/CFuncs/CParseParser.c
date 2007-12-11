@@ -270,9 +270,9 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 
   /* Try protoStatement */
    /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
-      Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_field,
-      user_eventIn, user_eventOut, or user_exposedField), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition,
-      and, in the case of fields and exposedFields, gets the default value of the field and stores it in the protoFieldDecl.
+      Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_initializeOnly,
+      user_inputOnly, Out, or user_inputOutput), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition,
+      and, in the case of fields and inputOutputs, gets the default value of the field and stores it in the protoFieldDecl.
       Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
       is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
     */
@@ -298,9 +298,9 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 /* Nodes and fields */
 
 /* Parses an interface declaration and adds it to the PROTO or Script definition */
-/* Adds the user-defined name to the appropriate user-defined name list (user_field, user_exposedField, user_eventIn, or user_eventOut)
+/* Adds the user-defined name to the appropriate user-defined name list (user_initializeOnly, user_inputOutput, user_inputOnly, or Out)
    Creates a protoFieldDecl or scriptFieldDecl structure to hold field data.
-   Parses and stores the default value of fields and exposedFields.
+   Parses and stores the default value of fields and inputOutputs.
    Adds the protoFieldDecl or scriptFieldDecl to the list of fields in the ProtoDefinition or Script structure. */ 
 BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  struct ProtoDefinition* proto, struct Script* script)
@@ -318,26 +318,20 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  assert((proto || script) && !(proto && script));
 
  /* lexer_protoFieldMode is #defined as lexer_specialID(me, r, NULL, PROTOKEYWORDS, PROTOKEYWORDS_COUNT, NULL) */
- /* Looks for the next token in the array PROTOKEYWORDS (eventIn, eventOut, exposedField, or field) and returns the 
+ /* Looks for the next token in the array PROTOKEYWORDS (inputOnly, outputOnly, inputOutput, field) and returns the 
     appropriate index in mode */
  if(!lexer_protoFieldMode(me->lexer, &mode))
   return FALSE;
 
- /* Script can not take exposedFields */
- if(script && mode==PKW_exposedField)
-  PARSE_ERROR("Scripts must not have exposedFields!")
+ /* Script can not take inputOutputs */
+ if(script && mode==PKW_inputOutput)
+  PARSE_ERROR("Scripts must not have inputOutputs!")
   
  /* lexer_fieldType is #defined as lexer_specialID(me, r, NULL, FIELDTYPES, FIELDTYPES_COUNT, NULL) */
  /* Looks for the next token in the array FIELDTYPES and returns the index in type */
  if(!lexer_fieldType(me->lexer, &type))
   PARSE_ERROR("Expected fieldType after proto-field keyword!")
 
- /* Add the next token (which is the user-defined name) to the appropriate vector.  
-    For eventIns, this is user_eventIn.
-    For eventOuts, this is user_eventOut.
-    For exposedFields, this is user_exposedField.
-    For fields, this is user_field.
- */
  switch(mode)
  {
   #define LEX_DEFINE_FIELDID(suff) \
@@ -345,10 +339,14 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
     if(!lexer_define_##suff(me->lexer, &name)) \
      PARSE_ERROR("Expected fieldNameId after field type!") \
     break;
-  LEX_DEFINE_FIELDID(field)
-  LEX_DEFINE_FIELDID(exposedField)
-  LEX_DEFINE_FIELDID(eventIn)
-  LEX_DEFINE_FIELDID(eventOut)
+
+  LEX_DEFINE_FIELDID(initializeOnly)
+  LEX_DEFINE_FIELDID(inputOnly)
+  LEX_DEFINE_FIELDID(outputOnly)
+  LEX_DEFINE_FIELDID(inputOutput)
+
+
+
 #ifndef NDEBUG
   default:
    assert(FALSE);
@@ -365,7 +363,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 
  
  /* If this is a field or an exposed field */ 
- if(mode==PKW_field || mode==PKW_exposedField)
+ if(mode==PKW_initializeOnly || mode==PKW_inputOutput)
  {
   /* Get the next token(s) from the lexer and store them in defaultVal as the appropriate type. 
     This is the default value for this field.  */
@@ -380,18 +378,18 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 	 if(fieldO!=ID_UNDEFINED)
  	 {
   		 /* Get the protoFieldDeclaration for the field at index fieldO */
-   		pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_field);
+   		pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_initializeOnly);
    		if(!pField)
     			PARSE_ERROR("IS source is no field of current PROTO!")
-   		assert(pField->mode==PKW_field);
+   		assert(pField->mode==PKW_initializeOnly);
   	} else {
-  		/* If the field was found in user_exposedFields */
+  		/* If the field was found in user_inputOutputs */
   		 assert(fieldE!=ID_UNDEFINED);
-   		/* Get the protoFieldDeclaration for the exposedField at index fieldO */
-   		pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_exposedField);
+   		/* Get the protoFieldDeclaration for the inputOutput at index fieldO */
+   		pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_inputOutput);
    		if(!pField)
     			PARSE_ERROR("IS source is no field of current PROTO!")
-   		assert(pField->mode==PKW_exposedField);
+   		assert(pField->mode==PKW_inputOutput);
   	}
 	
 	/* Add this scriptfielddecl to the list of script fields mapped to this proto field */
@@ -421,19 +419,19 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
    scriptFieldDecl_setFieldValue(sdecl, defaultVal);
   }
  } else {
-  /* If this is a Script eventIn/eventOut IS statement */
+  /* If this is a Script inputOnly/outputOnly IS statement */
   if (script && lexer_keyword(me->lexer, KW_IS)) {
   	indexT evE, evO;
   	BOOL isIn = FALSE, isOut = FALSE;
 	
-	/* Get the eventIn or eventOut that this field IS */
-	if (mode == PKW_eventIn) {
-		if (lexer_eventIn(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+	/* Get the inputOnly or outputOnly that this field IS */
+	if ((mode == PKW_inputOnly) || (mode==PKW_outputOnly)) {
+		if (lexer_inputOnly(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
 			isIn = TRUE;
 			isOut = (evE != ID_UNDEFINED);
 		}
 	} else {
-		if (lexer_eventOut(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+		if (lexer_outputOnly(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
 			isOut = TRUE;
 		}
 	}
@@ -443,7 +441,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 		return FALSE;
 
 	/* Get the Proto field definition for the field that this IS */
-	pField = protoDefinition_getField(me->curPROTO, evO, isIn ? PKW_eventIn: PKW_eventOut);
+	pField = protoDefinition_getField(me->curPROTO, evO, isIn ? PKW_inputOnly: PKW_outputOnly); /* can handle inputOnly, outputOnly */
 	
 	assert(pField);
 
@@ -474,9 +472,9 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 /* Parses a protoStatement */
 /* Adds the PROTO name to the userNodeTypesVec list of names.  
    Creates a new protoDefinition structure and adds it to the PROTOs list.
-   Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_field, 
-   user_eventIn, user_eventOut, or user_exposedField), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
-   and, in the case of fields and exposedFields, gets the default value of the field and stores it in the protoFieldDecl. 
+   Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_initializeOnly, 
+   user_inputOnly, user_outputOnly, or user_inputOutput), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
+   and, in the case of fields and inputOutputs, gets the default value of the field and stores it in the protoFieldDecl. 
    Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
    is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
 */ 
@@ -519,9 +517,9 @@ BOOL parser_protoStatement(struct VRMLParser* me)
   PARSE_ERROR("Expected [ to start interface declaration!")
 
  /* Read the next line and parse it as an interface declaration. */
- /* Add the user-defined field name to the appropriate list of user-defined names (user_field, user_eventIn, user_eventOut, or user_exposedField).
+ /* Add the user-defined field name to the appropriate list of user-defined names (user_initializeOnly, user_inputOnly, Out, or user_inputOutput).
     Create a new protoFieldDecl for this field and add it to the iface vector for the ProtoDefinition obj.
-    For fields and exposedFields, get the default value of the field and store it in the protoFieldDecl. */
+    For fields and inputOutputs, get the default value of the field and store it in the protoFieldDecl. */
  while(parser_interfaceDeclaration(me, obj, NULL));
 
  /* Make sure that the next token is a ']'.  Skip over it. */
@@ -923,7 +921,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   { \
    /* This is a builtin DEFed node.  */ \
    /* Look for the next token (field of the DEFed node) in the builtin EVENT_IN/EVENT_OUT or EXPOSED_FIELD arrays */ \
-   if(!lexer_event##eventType(me->lexer, pre##Node, \
+   if(!lexer_##eventType(me->lexer, pre##Node, \
     &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
         /* event not found in any built in array.  Error. */ \
 	CPARSE_ERROR_CURID("ERROR:Expected built-in event" #eventType " after .") \
@@ -934,42 +932,42 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   { \
    assert(pre##Proto || pre##Script); \
    /* This is a user defined node type */ \
-   /* Look for the next token (field of the DEFed node) in the user_eventIn/user_eventOut, user_exposedField arrays */ \
-   if(lexer_event##eventType(me->lexer, pre##Node, \
+   /* Look for the next token (field of the DEFed node) in the user_inputOnly/user_outputOnly, user_inputOutput arrays */ \
+   if(lexer_##eventType(me->lexer, pre##Node, \
     NULL, NULL, &pre##UFieldO, &pre##UFieldE)) \
    { \
     if(pre##UFieldO!=ID_UNDEFINED) \
     { \
-     /* We found the event in user_eventIn or user_eventOut */ \
+     /* We found the event in user_inputOnly or Out */ \
      if(pre##Proto) \
      { \
       assert(!pre##Script); \
       /* If this is a PROTO get the ProtoFieldDecl for this event */ \
       pre##ProtoField=protoDefinition_getField(pre##Proto, pre##UFieldO, \
-       PKW_event##eventType); \
+       PKW_##eventType); \
      } else \
      { \
       assert(pre##Script && !pre##Proto); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
       pre##ScriptField=script_getField(pre##Script, pre##UFieldO, \
-       PKW_event##eventType); \
+       PKW_##eventType); \
      } \
     } else \
     { \
-     /* We found the event in user_exposedField */ \
+     /* We found the event in user_inputOutput */ \
      if(pre##Proto) \
      { \
       assert(!pre##Script); \
       assert(pre##UFieldE!=ID_UNDEFINED); \
       /* If this is a PROTO get the ProtoFieldDecl for this event */ \
       pre##ProtoField=protoDefinition_getField(pre##Proto, pre##UFieldE, \
-       PKW_exposedField); \
+       PKW_inputOutput); \
      } else \
      { \
       assert(pre##Script && !pre##Proto); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
       pre##ScriptField=script_getField(pre##Script, pre##UFieldE, \
-       PKW_exposedField); \
+       PKW_inputOutput); \
      } \
     } \
     if((pre##Proto && !pre##ProtoField) || (pre##Script && !pre##ScriptField)) \
@@ -987,7 +985,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 
  /* Parse the first part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays
     and locating the event in the builtin or user-defined event name arrays */
- ROUTE_PARSE_NODEFIELD(from, Out)
+ ROUTE_PARSE_NODEFIELD(from, outputOnly)
 
  /* Next token has to be "TO" */
  if(!lexer_keyword(me->lexer, KW_TO)) {
@@ -1007,7 +1005,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  }
 /* Parse the second part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays 
    and locating the event in the builtin or user-defined event name arrays */
- ROUTE_PARSE_NODEFIELD(to, In)
+ ROUTE_PARSE_NODEFIELD(to, inputOnly)
 
  /* Now, do the really hard macro work... */
  /* ************************************* */
@@ -1038,17 +1036,17 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 		#endif
 
  if(!fromProtoField && !fromScriptField) {
-	/* fromFieldE = Daniel's code thinks this is from an exposedField */
-	/* fromFieldO = Daniel's code thinks this is from an eventOut */
+	/* fromFieldE = Daniel's code thinks this is from an inputOutput */
+	/* fromFieldO = Daniel's code thinks this is from an outputOnly */
 
         /* If the from event was found in the EVENT_OUT array */
-	/* if we have an EVENT_OUT, we have to ensure that the exposedField is NOT used (eg, IndexedFaceSet has set_x and x fields */
+	/* if we have an EVENT_OUT, we have to ensure that the inputOutput is NOT used (eg, IndexedFaceSet has set_x and x fields */
 	if (fromFieldO != ID_UNDEFINED) {
 		#ifdef CPARSERVERBOSE
 		printf ("step1a, node type %s fromFieldO %d %s\n",stringNodeType(fromNode->_nodeType),fromFieldO,EVENT_OUT[fromFieldO]);
 		#endif
 
-		/* ensure that the exposedField is NOT going to be used */
+		/* ensure that the inputOutput is NOT going to be used */
 		fromFieldE = ID_UNDEFINED;
 
         	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
@@ -1084,17 +1082,17 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 
 
  if(!toProtoField && !toScriptField) {
-	/* toFieldE = Daniel's code thinks this is from an exposedField */
-	/* toFieldO = Daniel's code thinks this is from an eventIn */
+	/* toFieldE = Daniel's code thinks this is from an inputOutput */
+	/* toFieldO = Daniel's code thinks this is from an inputOnly */
 
         /* If the from event was found in the EVENT_IN array */
-	/* if both are defined, use the eventIn - eg, IndexedFaceSet might have set_coordIndex and coordIndex */
+	/* if both are defined, use the inputOnly - eg, IndexedFaceSet might have set_coordIndex and coordIndex */
   	if(toFieldO!=ID_UNDEFINED) {
 		#ifdef CPARSERVERBOSE
 		printf ("step3a, node type %s toFieldO %d %s\n",stringNodeType(toNode->_nodeType),toFieldO,EVENT_IN[toFieldO]);
 		#endif
 		
-		/* ensure that we will NOT use the exposedField, if one exists... */
+		/* ensure that we will NOT use the inputOutput, if one exists... */
 		toFieldE = ID_UNDEFINED;
 
         	/* Try to find the index of the event in FIELDNAMES, and check that this is a valid event for the node fromNode */
@@ -1147,9 +1145,9 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  #undef END_NODE 
  #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[fromFieldE])
 
- /* Process from eventOut */
- /* Get the offset to the eventOut in the fromNode and store it in fromOfs */
- /* Get the size of the eventOut type and store it in fromLen */
+ /* Process from outputOnly */
+ /* Get the offset to the outputOnly in the fromNode and store it in fromOfs */
+ /* Get the size of the outputOnly type and store it in fromLen */
  if(!fromProtoField && !fromScriptField)
   /* If the from field is an exposed field */
   if(fromFieldE!=ID_UNDEFINED) {
@@ -1194,9 +1192,9 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  #undef END_NODE 
  #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[toFieldE])
 
- /* Process to eventIn */
- /* Get the offset to the eventIn in the toNode and store it in toOfs */
- /* Get the size of the eventOut type and store it in fromLen */
+ /* Process to inputOnly */
+ /* Get the offset to the inputOnly in the toNode and store it in toOfs */
+ /* Get the size of the outputOnly type and store it in fromLen */
  if(!toProtoField && !toScriptField)
   /* If this is an exposed field */
   if(toFieldE!=ID_UNDEFINED) {
@@ -1219,7 +1217,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  #undef END_NODE 
  #define END_NODE(n) EVENT_END_NODE(n,EVENT_IN[toFieldO])
 
-  /* If this is an eventIn */
+  /* If this is an inputOnly */
   } else if(toFieldO!=ID_UNDEFINED) {
    /* Get the offset and size of this field in the toNode */
    switch(toNode->_nodeType) {
@@ -1330,13 +1328,13 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  /* Built-in to user-def */
  else if(!fromProtoField && toProtoField) {
   /* For each member of the dests vector for this protoFieldDecl call parser_registerRoute for that destination node and offset */
-  /* i.e. for every statement field IS user_field for the user_field defined in protoFieldDecl, register a route 
+  /* i.e. for every statement field IS user_initializeOnly for the user_initializeOnly defined in protoFieldDecl, register a route 
      to the node and field where the IS statement occurred */
   protoFieldDecl_routeTo(toProtoField, fromNode, fromOfs, routingDir, me);
  /* User-def to built-in */
  } else if(fromProtoField && !toProtoField) {
   /* For each member of the dests vector for this protoFieldDecl call parser_registerRoute for that destination node and offset */
-  /* i.e. for every statement field IS user_field for the user_field defined in protoFieldDecl, register a route from the node and
+  /* i.e. for every statement field IS user_initializeOnly for the user_initializeOnly defined in protoFieldDecl, register a route from the node and
      field where the IS statement occurred */
   protoFieldDecl_routeFrom(fromProtoField, toNode, toOfs, routingDir, me);
  /* User-def to user-def */
@@ -1557,9 +1555,9 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
    /* Try to parse the next statement as a PROTO (i.e. statement starts with PROTO).  */
    /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
-      Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_field, 
-      user_eventIn, user_eventOut, or user_exposedField), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
-      and, in the case of fields and exposedFields, gets the default value of the field and stores it in the protoFieldDecl. 
+      Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_initializeOnly, 
+      user_inputOnly, Out, or user_inputOutput), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
+      and, in the case of fields and inputOutputs, gets the default value of the field and stores it in the protoFieldDecl. 
       Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
       is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
     */
@@ -1675,7 +1673,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  return TRUE;
 }
 
-/* Parses a eventIn/eventOut IS statement in a proto instantiation */
+/* Parses a inputOnly/outputOnly IS statement in a proto instantiation */
 BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct ProtoDefinition* op) {
  indexT evE, evO;
  indexT local_evE, local_evO;
@@ -1684,11 +1682,11 @@ BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct 
  struct ProtoFieldDecl* first_field;
  struct ProtoFieldDecl* second_field;
 
- /* Locate the user defined event in user_eventIn or user_eventOut */
- if(lexer_eventIn(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+ /* Locate the user defined event in user_inputOnly or Out */
+ if(lexer_inputOnly(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
 	isIn = TRUE;
 	isOut = (evE != ID_UNDEFINED);
- } else if (lexer_eventOut(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
+ } else if (lexer_outputOnly(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
 	isOut = TRUE;
  } 	
 
@@ -1700,11 +1698,11 @@ BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct 
 	return FALSE;
 
 
- /* Locate the second user defined event in user_eventIn or user_eventOut */
- if(lexer_eventIn(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
+ /* Locate the second user defined event in user_inputOnly or Out */
+ if(lexer_inputOnly(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
 	local_isIn = TRUE;
 	local_isOut = (local_evE != ID_UNDEFINED);
- } else if (lexer_eventOut(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
+ } else if (lexer_outputOnly(me->lexer, NULL, NULL, NULL, &local_evO, &local_evE)) {
 	local_isOut = TRUE;
  } 	
 
@@ -1718,17 +1716,17 @@ BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct 
 
  /* Get the field declaration for the first user defined event from the proto being expanded */
  if (evE != ID_UNDEFINED) 
- 	first_field = protoDefinition_getField(p, evE, PKW_exposedField);
+ 	first_field = protoDefinition_getField(p, evE, PKW_inputOutput);
  else 
-	first_field = protoDefinition_getField(p, evO, isIn ? PKW_eventIn : PKW_eventOut);
+	first_field = protoDefinition_getField(p, evO, isIn ? PKW_inputOnly : PKW_outputOnly);
 
  assert(first_field);
 
  /* Get the field declaration for the second user defined event from the current proto being parsed */
  if (evE != ID_UNDEFINED) 
- 	second_field = protoDefinition_getField(me->curPROTO, local_evE, PKW_exposedField);
+ 	second_field = protoDefinition_getField(me->curPROTO, local_evE, PKW_inputOutput);
  else 
-	second_field = protoDefinition_getField(me->curPROTO, local_evO, isIn ? PKW_eventIn : PKW_eventOut);
+	second_field = protoDefinition_getField(me->curPROTO, local_evO, isIn ? PKW_inputOnly : PKW_outputOnly);
 
  assert(second_field);
 
@@ -1750,37 +1748,37 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct 
  struct ProtoFieldDecl* field=NULL;
 
 #ifdef CPARSERVERBOSE
-  printf("parser_protoField: look for field in user_field and user_exposedField\n");
+  printf("parser_protoField: look for field in user_initializeOnly and user_inputOutput\n");
 #endif
- /* Checks for the field name in user_field and user_exposedField */
+ /* Checks for the field name in user_initializeOnly and user_inputOutput */
  if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE)) {
-	/* Not in user_field or user_exposedfield?  Then this must be an event in or event out ... */
+	/* Not in user_initializeOnly or user_exposedfield?  Then this must be an event in or event out ... */
 	return parser_protoEvent(me, p, op);
   }
 
- /* If this field was found in user_field */
+ /* If this field was found in user_initializeOnly */
  if(fieldO!=ID_UNDEFINED)
  {
   /* Get the protoFieldDecl for this field from the iface list for this PROTO */
-  field=protoDefinition_getField(p, fieldO, PKW_field);
+  field=protoDefinition_getField(p, fieldO, PKW_initializeOnly);
 
   /* This field is not defined for this PROTO.  Error. */
   if(!field)
    PARSE_ERROR("Field is not part of PROTO's interface!")
 
-  assert(field->mode==PKW_field);
+  assert(field->mode==PKW_initializeOnly);
  } else
  {
-  /* If this field wasn't found in user_field, it must be found in user_exposedField */
+  /* If this field wasn't found in user_initializeOnly, it must be found in user_inputOutput */
   assert(fieldE!=ID_UNDEFINED);
 
   /* Get the protoFieldDecl for this field from the iface list for this PROTO */
-  field=protoDefinition_getField(p, fieldE, PKW_exposedField);
+  field=protoDefinition_getField(p, fieldE, PKW_inputOutput);
 
-  /* This exposedField is not defined for this PROTO.  Error. */
+  /* This inputOutput is not defined for this PROTO.  Error. */
   if(!field)
    PARSE_ERROR("Field is not part of PROTO's interface!")
-  assert(field->mode==PKW_exposedField);
+  assert(field->mode==PKW_inputOutput);
  }
 
  /* We must have retrieved the field */
@@ -1834,7 +1832,7 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
   printf("parser_fieldValue: this is an IS statement\n");
 #endif
   /* If the field was found in the built in arrays of fields, then try to see if this is followed by a valid IS statement */
-  /* Check that the part after IS consists of a valid user-defined eventIn/eventOut/exposed field and then add an Offset_Pointer struct (pointer to the node with the IS statement
+  /* Check that the part after IS consists of a valid user-defined inputOnly/outputOnly/exposed field and then add an Offset_Pointer struct (pointer to the node with the IS statement
     and an offset to the field that uses the IS) to the dests list of the fieldDeclaration structure of the proto */
   /* If this is valid, then we've parsed the field, so return */
   if(origFieldE!=ID_UNDEFINED &&
@@ -1843,27 +1841,27 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
    return TRUE;
 
   /* Must be a user-defined fieldname */
-  /* Check that the field exists in either user_exposedFields or user_fields */
+  /* Check that the field exists in either user_inputOutputs or user_initializeOnlys */
   if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
    PARSE_ERROR("Expected fieldId after IS!")
 
-  /* If the field was found in user_fields */
+  /* If the field was found in user_initializeOnlys */
   if(fieldO!=ID_UNDEFINED)
   {
    /* Get the protoFieldDeclaration for the field at index fieldO */
-   pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_field);
+   pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_initializeOnly);
    if(!pField)
     PARSE_ERROR("IS source is no field of current PROTO!")
-   assert(pField->mode==PKW_field);
+   assert(pField->mode==PKW_initializeOnly);
   } else
-  /* If the field was found in user_exposedFields */
+  /* If the field was found in user_inputOutputs */
   {
    assert(fieldE!=ID_UNDEFINED);
-   /* Get the protoFieldDeclaration for the exposedField at index fieldO */
-   pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_exposedField);
+   /* Get the protoFieldDeclaration for the inputOutput at index fieldO */
+   pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_inputOutput);
    if(!pField)
     PARSE_ERROR("IS source is no field of current PROTO!")
-   assert(pField->mode==PKW_exposedField);
+   assert(pField->mode==PKW_inputOutput);
   }
   assert(pField);
 
@@ -1965,7 +1963,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
     index of the field in the array is returned in fieldO (if found in FIELDNAMES) or fieldE (if found in EXPOSED_FIELD).  
     If the fieldname is found in neither array, lexer_field will return FALSE. */
  if(!lexer_field(me->lexer, &fieldO, &fieldE, NULL, NULL))
-  /* If lexer_field does return false, this is an eventIn/eventOut IS user_definedField statement.  Add a Offset_Pointer structure to the dests list for the protoFieldDecl for 
+  /* If lexer_field does return false, this is an inputOnly/outputOnly IS user_definedField statement.  Add a Offset_Pointer structure to the dests list for the protoFieldDecl for 
      the user defined field.  The Offset_Pointer structure contains a pointer to the node currently being parsed along with an offset that references the field that is linked to the
      user defined field. 
 
@@ -1979,7 +1977,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define EVENT_IN(n, f, t, v)
  #define EVENT_OUT(n, f, t, v)
 
- /* End of node is the same for fields and exposedFields */
+ /* End of node is the same for fields and inputOutputs */
  #define END_NODE(type) \
    } \
   } \
@@ -2137,24 +2135,24 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
  if(!me->curPROTO)
   return FALSE;
 
- /* There should be really an eventIn or an eventOut...
-  * In case of exposedField, both is true, but evE should be the same (and is
+ /* There should be really an inputOnly or an outputOnly...
+  * In case of inputOutput, both is true, but evE should be the same (and is
   * therefore not overridden). */
- /* lexer_eventIn(me, node, a, b, c, d)  is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_IN) */
+ /* lexer_inputOnly(me, node, a, b, c, d)  is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_IN) */
  /* look through the EVENT_IN array and the EXPOSED_FIELD array for the event name (current token).  Returns the index of the event name in evO if found in the 
     EVENT_IN array, or in evE if found in the EXPOSED_FIELD array.  Returns false if the event was found in neither array.  */
- if(lexer_eventIn(me->lexer, ptr, &evO, &evE, NULL, NULL))
+ if(lexer_inputOnly(me->lexer, ptr, &evO, &evE, NULL, NULL))
  {
   isIn=TRUE;
-  /* When exposedField, out is allowed, too */
+  /* When inputOutput, out is allowed, too */
   /* i.e. if this event was located in the EXPOSED_FIELD array isOut is also set to TRUE */
   isOut=(evE!=ID_UNDEFINED);
 
-  /* lexer_eventIn(me, node, a, b, c, d) is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_OUT) */
+  /* lexer_inputOnly(me, node, a, b, c, d) is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_OUT) */
   /* look through the EVENT_OUT array and the EXPOSED_FIELD array for the event name (current token).  Returns the index of the event name in evO if found in the 
     EVENT_OUT  array, or in evE if found in the EXPOSED_FIELD array.  Returns false if the event was found in neither array.  */
-  /* This should really be lexer_eventOut(me->lexer, ptr, &evO, NULL, NULL, NULL) as the EXPOSED_FIELD array was already searched above. */
- } else if(lexer_eventOut(me->lexer, ptr, &evO, &evE, NULL, NULL))
+  /* This should really be lexer_outputOnly(me->lexer, ptr, &evO, NULL, NULL, NULL) as the EXPOSED_FIELD array was already searched above. */
+ } else if(lexer_outputOnly(me->lexer, ptr, &evO, &evE, NULL, NULL))
   isOut=TRUE;
 
  /* event name was not found in EVENT_IN or EVENT_OUT or EXPOSED_FIELD.  Return FALSE. */
@@ -2170,7 +2168,7 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
  if(!lexer_keyword(me->lexer, KW_IS))
   return FALSE;
   
- /* Check that the part after IS consists of a valid user-defined eventIn/eventOut/exposed field and then add an Offset_Pointer struct (pointer to the node with the IS statement
+ /* Check that the part after IS consists of a valid user-defined inputOnly/outputOnly/exposed field and then add an Offset_Pointer struct (pointer to the node with the IS statement
     and an offset to the field that uses the IS) to the dests list of the fieldDeclaration structure of the proto */
  return parser_fieldEventAfterISPart(me, ptr, isIn, isOut, evO, evE);
 }
@@ -2194,33 +2192,33 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  }
 
  /* And finally the PROTO's event to be linked */
- /* lexer_eventIn is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_IN) */
- /* Look for the event name (current token) in the user_eventIn and user_exposedField vectors.  Return the index of the event name in pevO if it was found in the
-    user_eventIn vector or in pevE if it was found in the user_exposedField vector. */
- if(isIn && lexer_eventIn(me->lexer, ptr, NULL, NULL, &pevO, &pevE)) {
+ /* lexer_inputOnly is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_IN) */
+ /* Look for the event name (current token) in the user_inputOnly and user_inputOutput vectors.  Return the index of the event name in pevO if it was found in the
+    user_inputOnly vector or in pevE if it was found in the user_inputOutput vector. */
+ if(isIn && lexer_inputOnly(me->lexer, ptr, NULL, NULL, &pevO, &pevE)) {
   pevFound=TRUE;
 
 #ifdef CPARSERVERBOSE
   if (pevO != ID_UNDEFINED)
-    printf("parser_fieldEventAfterISPart: found field in user_eventIn\n");
+    printf("parser_fieldEventAfterISPart: found field in user_inputOnly\n");
 
   if (pevE != ID_UNDEFINED) 
-    printf("parser_fieldEventAfterISPart: found field in user_exposedField\n");
+    printf("parser_fieldEventAfterISPart: found field in user_inputOutput\n");
 #endif
   }
 
  /* lexer_event in is #defined to lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_OUT) */
- /* Look for the event name (current token) in the user_eventOut and user_exposedField vectors.  Return the index of the event name in pevO if it was found in the
-    user_eventOut vector or in pevE if it was found in the user_exposedField vector. */
+ /* Look for the event name (current token) in the Out and user_inputOutput vectors.  Return the index of the event name in pevO if it was found in the
+    Out vector or in pevE if it was found in the user_inputOutput vector. */
  else {
-  	/* printf("parser_fieldEventAfterISPart: looking for event in user_eventOut and user_exposedField\n"); */
-	if(isOut && lexer_eventOut(me->lexer, ptr, NULL, NULL, &pevO, &pevE)) {
+  	/* printf("parser_fieldEventAfterISPart: looking for event in Out and user_inputOutput\n"); */
+	if(isOut && lexer_outputOnly(me->lexer, ptr, NULL, NULL, &pevO, &pevE)) {
 
   		pevFound=TRUE;
 
 #ifdef CPARSERVERBOSE
  		if (pevO != ID_UNDEFINED) 
- 			  printf("parser_fieldEventAfterISPart: found field in user_eventout\n");
+ 			  printf("parser_fieldEventAfterISPart: found field in out\n");
 #endif
 	}
  }
@@ -2228,26 +2226,25 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  /* If the event name was not found in the searched vectors return FALSE */
  if(!pevFound) {
 #ifdef CPARSERVERBOSE
-  printf("parser_fieldEventAfterISPart: field name not found in user_eventIn, user_eventOut or user_exposedField\n");
+  printf("parser_fieldEventAfterISPart: field name not found in user_inputOnly, Out or user_inputOutput\n");
 #endif
   return FALSE;
   }
 
  /* Now, retrieve the ProtoFieldDecl. */
- /* If the event name is an exposedField */
+ /* If the event name is an inputOutput */
  if(pevE!=ID_UNDEFINED)
  {
-  /* Search through the current PROTO definition for an exposed field that matches the field at index pevE in the user_exposedField array. */
-  pfield=protoDefinition_getField(me->curPROTO, pevE, PKW_exposedField);
+  /* Search through the current PROTO definition for an exposed field that matches the field at index pevE in the user_inputOutput array. */
+  pfield=protoDefinition_getField(me->curPROTO, pevE, PKW_inputOutput);
   if(!pfield)
-   PARSE_ERROR("This exposedField is not member of current PROTO!")
- } else if(pevO!=ID_UNDEFINED) /* if the event is and eventOut or an eventIn */
+   PARSE_ERROR("This inputOutput is not member of current PROTO!")
+ } else if(pevO!=ID_UNDEFINED) /* if the event is and outputOnly or an inputOnly */
  {
   assert(!pfield);
  
-  /* Search through the current PROTO definition for an eventIn or eventOut that matches the field at index pevO in the user_eventIn or user_eventOut array. */
-  pfield=protoDefinition_getField(me->curPROTO, pevO,
-   isIn ? PKW_eventIn : PKW_eventOut);
+  /* Search through the current PROTO definition for an inputOnly or outputOnly that matches the field at index pevO in the user_inputOnly or Out array. */
+  pfield=protoDefinition_getField(me->curPROTO, pevO, isIn ? PKW_inputOnly : PKW_outputOnly);
   if(!pfield)
    PARSE_ERROR("This event is not member of current PROTO!")
  }
@@ -2262,7 +2259,7 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  /* Basics */
  #define END_NODE(n) EVENT_END_NODE(n,EXPOSED_FIELD[evE])
 
- /* exposedField */
+ /* inputOutput */
  /* i.e. the passed index into the EXPOSED_FIELD array is valid */
  if(evE!=ID_UNDEFINED)
  {
@@ -2301,7 +2298,7 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
 
   
   /* All of this seems to just get the offset of the event evO in the node referenced by ptr and stores it in myOfs */
-  /* This is an eventIn */
+  /* This is an inputOnly */
   if(isIn)
   {
    #define EVENT_OUT(n, f, t, v)
@@ -2323,7 +2320,7 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  #define END_NODE(n) EVENT_END_NODE(n,EVENT_OUT[evO])
 
   /* All of this seems to just get the offset of the event evO in the node referenced by ptr and stores it in myOfs */
-  /* This is an eventOut */
+  /* This is an outputOnly */
   else if(isOut)
   {
    #define EVENT_IN(n, f, t, v)

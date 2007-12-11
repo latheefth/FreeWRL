@@ -29,10 +29,10 @@ struct VRMLLexer
  Stack* userNodeNames;
  struct Vector* userNodeTypesVec;
  Stack* userNodeTypesStack;
- struct Vector* user_field;
- struct Vector* user_exposedField;
- struct Vector* user_eventIn;
- struct Vector* user_eventOut;
+ struct Vector* user_initializeOnly;
+ struct Vector* user_inputOutput;
+ struct Vector* user_inputOnly;
+ struct Vector* user_outputOnly;
 };
 
 /* Constructor and destructor */
@@ -58,14 +58,14 @@ void lexer_destroyIdStack(Stack*);
 /* indexT -> char* conversion */
 #define lexer_stringUFieldName(me, index, type) \
  vector_get(char*, me->user_##type, index)
-#define lexer_stringUser_field(me, index) \
- lexer_stringUFieldName(me, index, field)
-#define lexer_stringUser_exposedField(me, index) \
- lexer_stringUFieldName(me, index, exposedField)
-#define lexer_stringUser_eventIn(me, index) \
- lexer_stringUFieldName(me, index, eventIn)
-#define lexer_stringUser_eventOut(me, index) \
- lexer_stringUFieldName(me, index, eventOut)
+#define lexer_stringUser_initializeOnly(me, index) \
+ lexer_stringUFieldName(me, index, initializeOnly)
+#define lexer_stringUser_inputOutput(me, index) \
+ lexer_stringUFieldName(me, index, inputOutput)
+#define lexer_stringUser_inputOnly(me, index) \
+ lexer_stringUFieldName(me, index, inputOnly)
+#define lexer_stringUser_outputOnly(me, index) \
+ lexer_stringUFieldName(me, index, outputOnly)
 /* User field name -> char*, takes care of access mode */
 const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT mode);
 
@@ -89,20 +89,20 @@ BOOL lexer_defineID(struct VRMLLexer*, indexT*, struct Vector*, BOOL);
  lexer_defineID(me, ret, stack_top(struct Vector*, me->userNodeNames), TRUE)
 #define lexer_defineNodeType(me, ret) \
  lexer_defineID(me, ret, me->userNodeTypesVec, FALSE)
-#define lexer_define_field(me, ret) \
- lexer_defineID(me, ret, me->user_field, TRUE)
-#define lexer_define_exposedField(me, ret) \
- lexer_defineID(me, ret, me->user_exposedField, TRUE)
-#define lexer_define_eventIn(me, ret) \
- lexer_defineID(me, ret, me->user_eventIn, TRUE)
-#define lexer_define_eventOut(me, ret) \
- lexer_defineID(me, ret, me->user_eventOut, TRUE)
-BOOL lexer_field(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
+#define lexer_define_initializeOnly(me, ret) \
+ lexer_defineID(me, ret, me->user_initializeOnly, TRUE)
+#define lexer_define_inputOutput(me, ret) \
+ lexer_defineID(me, ret, me->user_inputOutput, TRUE)
+#define lexer_define_inputOnly(me, ret) \
+ lexer_defineID(me, ret, me->user_inputOnly, TRUE)
+#define lexer_define_outputOnly(me, ret) \
+ lexer_defineID(me, ret, me->user_outputOnly, TRUE)
+BOOL lexer_initializeOnly(struct VRMLLexer*, indexT*, indexT*, indexT*, indexT*);
 BOOL lexer_event(struct VRMLLexer*, struct X3D_Node*,
  indexT*, indexT*, indexT*, indexT*, int routeToFrom);
-#define lexer_eventIn(me, node, a, b, c, d) \
+#define lexer_inputOnly(me, node, a, b, c, d) \
  lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_IN)
-#define lexer_eventOut(me, node, a, b, c, d) \
+#define lexer_outputOnly(me, node, a, b, c, d) \
  lexer_event(me, node, a, b, c, d, ROUTED_FIELD_EVENT_OUT)
 #define lexer_node(me, r1, r2) \
  lexer_specialID(me, r1, r2, NODES, NODES_COUNT, me->userNodeTypesVec)

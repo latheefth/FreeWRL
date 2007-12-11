@@ -66,14 +66,14 @@ struct VRMLLexer* newLexer()
  ret->userNodeTypesStack=newStack(size_t);
  stack_push(size_t, ret->userNodeTypesStack, 0);
  ret->userNodeTypesVec=newVector(char*, USER_IDS_INIT_SIZE);
- ret->user_field=newVector(char*, USER_IDS_INIT_SIZE);
- ret->user_exposedField=newVector(char*, USER_IDS_INIT_SIZE);
- ret->user_eventIn=newVector(char*, USER_IDS_INIT_SIZE);
- ret->user_eventOut=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_initializeOnly=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_inputOutput=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_inputOnly=newVector(char*, USER_IDS_INIT_SIZE);
+ ret->user_outputOnly=newVector(char*, USER_IDS_INIT_SIZE);
  lexer_scopeIn(ret);
 
 #ifdef CPARSERVERBOSE
- printf("new lexer created, userNodeTypesVec is %p, user_field is %p, user_exposedField is %p, user_eventIn is %p, user_eventOut is %p\n", ret->userNodeTypesVec, ret->user_field, ret->user_exposedField, ret->user_eventIn, ret->user_eventOut); 
+ printf("new lexer created, userNodeTypesVec is %p, user_initializeOnly is %p, user_inputOutput is %p, user_inputOnly is %p, user_outputOnly is %p\n", ret->userNodeTypesVec, ret->user_initializeOnly, ret->user_inputOutput, ret->user_inputOnly, ret->user_outputOnly); 
 #endif 
 
  return ret;
@@ -124,10 +124,10 @@ void lexer_destroyData(struct VRMLLexer* me)
  }
 
  /* User fields */
- DESTROY_IDVEC(me->user_field)
- DESTROY_IDVEC(me->user_exposedField)
- DESTROY_IDVEC(me->user_eventIn)
- DESTROY_IDVEC(me->user_eventOut)
+ DESTROY_IDVEC(me->user_initializeOnly)
+ DESTROY_IDVEC(me->user_inputOutput)
+ DESTROY_IDVEC(me->user_inputOnly)
+ DESTROY_IDVEC(me->user_outputOnly)
 }
 
 /* Scope in and scope out for IDs */
@@ -324,8 +324,21 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 #ifdef CPARSERVERBOSE
    printf("found ID %s matches %s, return retB %d\n", str, builtIn[i], i);
 #endif
-   if(retB)
-   {
+	/* is this a PROTOKEYWORD? If so, change any possible depreciated tags to new ones */
+	if (builtIn == PROTOKEYWORDS) {
+		switch (i) {
+			case PKW_eventIn: i = PKW_inputOnly; break;
+			case PKW_eventOut: i= PKW_outputOnly; break;
+			case PKW_exposedField: i= PKW_inputOutput; break;
+			case PKW_field: i= PKW_initializeOnly; break;
+			default : { /* do nothing - already in new format */ }
+		}
+		#ifdef CPARSERVERBOSE
+   		printf("CONVERTED - found ID %s matches %s, return retB %d\n", str, builtIn[i], i);
+		#endif
+	}
+
+   if(retB) {
     *retB=i;
     found=TRUE;
    }
@@ -399,8 +412,8 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
    If looking through EVENT_IN, EVENT_OUT, or EXPOSED_FIELD, checks to see if the current token is valid with either set_ or _changed stripped from it 
    If rBO is non-null, then search through EVENT_IN or EVENT_OUT and return the index of the event (if found) in rBO
    If rBE is non-null, then search through EXPOSED_FIELD and return the index of the event (if found) in rBE
-   If rUO is non-null, then search through user_eventIn or user_eventOut and return the index of the event (if found) in rUO
-   if rUE is non-null, then search through user_exposedField and return the index of the event (if found) in rUE */ 
+   If rUO is non-null, then search through user_inputOnly or user_outputOnly and return the index of the event (if found) in rUO
+   if rUE is non-null, then search through user_inputOutput and return the index of the event (if found) in rUE */ 
 
 BOOL lexer_event(struct VRMLLexer* me,
  struct X3D_Node* routedNode,
@@ -415,14 +428,14 @@ BOOL lexer_event(struct VRMLLexer* me,
 
  if(routedToFrom==ROUTED_FIELD_EVENT_IN)
  {
-  /* If we are looking for an eventIn we need to look through the EVENT_IN array and the user_eventIn vector */
-  uarr=me->user_eventIn;
+  /* If we are looking for an eventIn we need to look through the EVENT_IN array and the user_inputOnly vector */
+  uarr=me->user_inputOnly;
   arr=EVENT_IN;
   arrCnt=EVENT_IN_COUNT;
  } else
  {
-  /* If we are looking for an eventOut we need to look through the EVENT_OUT array and the user_eventOut vector */
-  uarr=me->user_eventOut;
+  /* If we are looking for an eventOut we need to look through the EVENT_OUT array and the user_outputOnly vector */
+  uarr=me->user_outputOnly;
   arr=EVENT_OUT;
   arrCnt=EVENT_OUT_COUNT;
  }
@@ -449,13 +462,13 @@ BOOL lexer_event(struct VRMLLexer* me,
   *rBO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom, arr, arrCnt,
    FALSE);
 
- /* Strip off set_ or _changed from current token.  Then look through the user_eventIn/user_eventOut array for the eventname (current token).  
+ /* Strip off set_ or _changed from current token.  Then look through the user_inputOnly/user_outputOnly array for the eventname (current token).  
     If it is found, return the index of the eventname.  */
  if(rUO)
   *rUO=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
    userArr, userCnt, TRUE);
 
- /* Set the found flag to TRUE if the eventname was found in either the EVENT_IN/EVENT_OUT or user_eventIn/user_eventOut arrays */ 
+ /* Set the found flag to TRUE if the eventname was found in either the EVENT_IN/EVENT_OUT or user_inputOnly/user_outputOnly arrays */ 
  if(!found)
   found=((rBO && *rBO!=ID_UNDEFINED) || (rUO && *rUO!=ID_UNDEFINED));
 
@@ -464,12 +477,12 @@ BOOL lexer_event(struct VRMLLexer* me,
 	printf("lexer_event: found in EVENT_IN/EVENT_OUT\n");
 
  if (rUO && *rUO != ID_UNDEFINED)
-	printf("lexer_event: found in user_eventIn/user_eventOut\n");
+	printf("lexer_event: found in user_inputOnly/user_outputOnly\n");
 #endif
 
  /* Get a pointer to the event names in the vector of user defined exposed fields */
- userArr=&vector_get(const char*, me->user_exposedField, 0);
- userCnt=vector_size(me->user_exposedField);
+ userArr=&vector_get(const char*, me->user_inputOutput, 0);
+ userCnt=vector_size(me->user_inputOutput);
 
  /* findRoutedFieldInEXPOSED_FIELD calls findRoutedFieldInARR(node, field, fromTo, EXPOSED_FIELD, EXPOSED_FIELD_COUNT, 0) */
  /* Strip off set_ or _changed from current token.  Then look through the EXPOSED_FIELD array for the eventname (current token). 
@@ -478,13 +491,13 @@ BOOL lexer_event(struct VRMLLexer* me,
  if(rBE)
   *rBE=findRoutedFieldInEXPOSED_FIELD(routedNode, me->curID, routedToFrom);
 
- /* Strip off set_ or _changed from current token.  Then look through the user_exposedField array for the eventname (current token). 
+ /* Strip off set_ or _changed from current token.  Then look through the user_inputOutput array for the eventname (current token). 
     If it is found, return the index of the eventname.  */ 
  if(rUE)
   *rUE=findRoutedFieldInARR(routedNode, me->curID, routedToFrom,
    userArr, userCnt, TRUE);
 
- /* Set the found flag to TRUE if the eventname was found in either the EXPOSED_FIELD or user_exposedField arrays */ 
+ /* Set the found flag to TRUE if the eventname was found in either the EXPOSED_FIELD or user_inputOutput arrays */ 
  if(!found)
   found=((rBE && *rBE!=ID_UNDEFINED) || (rUE && *rUE!=ID_UNDEFINED));
 
@@ -493,7 +506,7 @@ BOOL lexer_event(struct VRMLLexer* me,
 	printf("lexer_event: found in EXPOSED_FIELD\n");
 
  if (rUE && *rUE != ID_UNDEFINED)
-	printf("lexer_event: found in user_exposedField\n");
+	printf("lexer_event: found in user_inputOutput\n");
 #endif
 
  if(found)
@@ -505,8 +518,8 @@ BOOL lexer_event(struct VRMLLexer* me,
 /* Lexes a fieldId terminal symbol */
 /* If retBO isn't null, checks for the field in the FIELDNAMES array */
 /* If retBE isn't null, checks for the field in the EXPOSED_FIELD array */
-/* if retUO isn't null, checks for the field in the user_field vector */
-/* if retUE isn't null, checks for the field in the user_exposedField vector */
+/* if retUO isn't null, checks for the field in the user_initializeOnly vector */
+/* if retUE isn't null, checks for the field in the user_inputOutput vector */
 /* returns the index of the field in the corresponding ret value if found */
 BOOL lexer_field(struct VRMLLexer* me,
  indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE)
@@ -518,9 +531,9 @@ BOOL lexer_field(struct VRMLLexer* me,
   return FALSE;
  assert(me->curID);
 
-  /* Get a pointer to the entries in the user_field vector */
- const char** userArr=&vector_get(const char*, me->user_field, 0);
- size_t userCnt=vector_size(me->user_field);
+  /* Get a pointer to the entries in the user_initializeOnly vector */
+ const char** userArr=&vector_get(const char*, me->user_initializeOnly, 0);
+ size_t userCnt=vector_size(me->user_initializeOnly);
 
 #ifdef CPARSERVERBOSE
  printf("lexer_field: looking for %s\n", me->curID);
@@ -530,30 +543,30 @@ BOOL lexer_field(struct VRMLLexer* me,
  if(retBO)
   *retBO=findFieldInFIELD(me->curID);
 
- /* look through the fieldnames from the user_field names vector for the fieldname (current token).  If it is found, return the index 
+ /* look through the fieldnames from the user_initializeOnly names vector for the fieldname (current token).  If it is found, return the index 
    of the fieldname */
  if(retUO)
   *retUO=findFieldInARR(me->curID, userArr, userCnt);
 
-  /* Set the found flag to TRUE if the fieldname was found in either FIELDNAMES or user_field */
+  /* Set the found flag to TRUE if the fieldname was found in either FIELDNAMES or user_initializeOnly */
  if(!found)
   found=((retBO && *retBO!=ID_UNDEFINED) || (retUO && *retUO!=ID_UNDEFINED));
 
-  /* Get a pointer to the entries in the user_exposedField vector */
- userArr=&vector_get(const char*, me->user_exposedField, 0);
- userCnt=vector_size(me->user_exposedField);
+  /* Get a pointer to the entries in the user_inputOutput vector */
+ userArr=&vector_get(const char*, me->user_inputOutput, 0);
+ userCnt=vector_size(me->user_inputOutput);
   
   /* findFieldInEXPOSED_FIELD #defined to findFieldInARR(field, EXPOSED_FIELD, EXPOSED_FIELD_COUNT) */
   /* look through the EXPOSED_FIELD array for the fieldname (current token).  If it is found, return the index of the fieldname.  */
  if(retBE)
   *retBE=findFieldInEXPOSED_FIELD(me->curID);
 
- /* look through the fieldnames from the user_exposedField names vector for the fieldname (current token).  If it is found, return the
+ /* look through the fieldnames from the user_inputOutput names vector for the fieldname (current token).  If it is found, return the
     index of the fieldname */
  if(retUE)
   *retUE=findFieldInARR(me->curID, userArr, userCnt);
 
- /* Set the found flag to TRUE if the fieldname was found in either EXPOSED_FIELD or user_exposedField */
+ /* Set the found flag to TRUE if the fieldname was found in either EXPOSED_FIELD or user_inputOutput */
  if(!found)
   found=((retBE && *retBE!=ID_UNDEFINED) || (retUE && *retUE!=ID_UNDEFINED));
 
@@ -561,11 +574,11 @@ BOOL lexer_field(struct VRMLLexer* me,
  if (retBO && *retBO != ID_UNDEFINED) 
    printf("lexer_field: found field in FIELDNAMES\n");
  if (retUO && *retUO != ID_UNDEFINED) 
-   printf("lexer_field: found field in me->user_field\n");
+   printf("lexer_field: found field in me->user_initializeOnly\n");
  if (retBE && *retBE != ID_UNDEFINED) 
    printf("lexer_field: found field in EXPOSED_FIELD\n");
  if (retUE && *retUE != ID_UNDEFINED) 
-   printf("lexer_field: found field in me->user_exposedField\n");
+   printf("lexer_field: found field in me->user_inputOutput\n");
 #endif
 
  if(found)
@@ -581,14 +594,14 @@ const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT
 {
  switch(mode)
  {
-  case PKW_field:
-   return lexer_stringUser_field(me, name);
-  case PKW_exposedField:
-   return lexer_stringUser_exposedField(me, name);
-  case PKW_eventIn:
-   return lexer_stringUser_eventIn(me, name);
-  case PKW_eventOut:
-   return lexer_stringUser_eventOut(me, name);
+  case PKW_initializeOnly:
+   return lexer_stringUser_initializeOnly(me, name);
+  case PKW_inputOutput:
+   return lexer_stringUser_inputOutput(me, name);
+  case PKW_inputOnly:
+   return lexer_stringUser_inputOnly(me, name);
+  case PKW_outputOnly:
+   return lexer_stringUser_outputOnly(me, name);
  }
  assert(FALSE);
 }
