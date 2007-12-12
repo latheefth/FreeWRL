@@ -1,4 +1,6 @@
 For 1.20.0 (Some came out with 1.19.9 for Linux):
+	- X3DParser reviewed, and parts rewritten 
+
 	- parse (only) x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE statements. Note that currently nothing
 	  is done with these statements.
 

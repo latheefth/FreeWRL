@@ -238,7 +238,6 @@ void endDumpProtoBody (const char *name) {
 			printf ("endDumpProtoBody, just closed %s, it is %d characters long\n",
 				PROTONames[currentProtoDeclare].fileName, PROTONames[currentProtoDeclare].charLen);
 		#endif
-
 	}
 }
 
@@ -689,10 +688,13 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	printf ("expandProtoInstance: decrementing curProtoInsStackInd from %d\n",curProtoInsStackInd);
 	#endif
 
+	linkNodeIn();
+	DECREMENT_PARENTINDEX
 	curProtoInsStackInd--;
 	FREE_IF_NZ(protoInString);
         FREE_IF_NZ(origString);
 }
+#undef X3DPARSERVERBOSE
 
 void parseProtoBody (const char **atts) {
 	int i;
@@ -780,9 +782,8 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 
 
 /* parse a script or proto field. Note that they are in essence the same, just used differently */
-void parseScriptProtoField(int fromScriptNotProto, const char *name, const char **atts) {
+void parseScriptProtoField(const char **atts) {
 	int i;
-	int nt;
 	uintptr_t myScriptNumber;
 	int myparams[MPFIELDS];
 	int strl;
@@ -790,15 +791,17 @@ void parseScriptProtoField(int fromScriptNotProto, const char *name, const char 
 	int myFieldNumber;
 	char *myValueString = NULL;
 	union anyVrml value;
+	int myAccessType;
 
-	
+
 	/* configure internal variables, and check sanity for top of stack This should be a Script node */
-	if (fromScriptNotProto) {
-		myScriptNumber = ((struct X3D_Script *)parentStack[parentIndex-1])->_X3DScript;
-		if (parentStack[parentIndex-1]->_nodeType != NODE_Script) {
+	if (parserMode == PARSING_SCRIPT) {
+		if (parentStack[parentIndex]->_nodeType != NODE_Script) {
 			ConsoleMessage ("X3DParser, line %d, expected the parent to be a Script node",LINE);
+			printf ("X3DParser, parentIndex is %d\n",parentIndex);
 			return;
 		}
+		myScriptNumber = ((struct X3D_Script *)parentStack[parentIndex])->_X3DScript;
 	} else {
 		myScriptNumber = currentProtoDeclare;
 
@@ -866,30 +869,31 @@ void parseScriptProtoField(int fromScriptNotProto, const char *name, const char 
 	myFieldNumber = JSparamIndex((char *)atts[myparams[MP_NAME]],(char *)atts[myparams[MP_TYPE]]);
 
 
-	registerX3DScriptField(fromScriptNotProto, myScriptNumber,
+	/* convert eventIn, eventOut, field, and exposedField to new names */
+	myAccessType = findFieldInPROTOKEYWORDS(atts[myparams[MP_ACCESSTYPE]]);
+	switch (myAccessType) {
+		case PKW_eventIn: myAccessType = PKW_inputOnly;
+		case PKW_eventOut: myAccessType = PKW_outputOnly;
+		case PKW_exposedField: myAccessType = PKW_inputOutput;
+		case PKW_field: myAccessType = PKW_initializeOnly;
+		default: {}
+	}
+	
+	registerX3DScriptField(myScriptNumber,
 		findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),
-		findFieldInX3DACCESSORS(atts[myparams[MP_ACCESSTYPE]]),
+		myAccessType,
 		myFieldNumber,atts[myparams[MP_NAME]],myValueString);
 
 	/* and initialize it if a Script */
-	if (fromScriptNotProto) {
+	if (parserMode == PARSING_SCRIPT) {
 		/* parse this string value into a anyVrml union representation */
 		if (myValueString != NULL)
 			Parser_scanStringValueToMem(X3D_NODE(&value), 0, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), myValueString);
 		else
 			parseScriptFieldDefaultValue(findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), &value);
 		
-		/* convert the X3DACCESSOR into a common x3d/x3dv accessor */
-		switch (findFieldInX3DACCESSORS(atts[myparams[MP_ACCESSTYPE]])) {
-			case X3DACCESSOR_inputOnly: nt = PKW_inputOnly; break;
-			case X3DACCESSOR_outputOnly: nt = PKW_outputOnly; break;
-			case X3DACCESSOR_inputOutput: nt = PKW_inputOutput; break;
-			case X3DACCESSOR_initializeOnly: nt = PKW_initializeOnly; break;
-			default: nt = -1;
-		}
-
 		/* send in the script field for initialization */
-		InitScriptFieldC (myScriptNumber, nt, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
+		InitScriptFieldC (myScriptNumber, myAccessType, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
 	}
 }
 
@@ -911,14 +915,18 @@ void initScriptWithScript() {
 	char firstBytes[4];
 	int fromFile = FALSE;
 
-	/* sanity checking... */
-	me = (struct X3D_Script *)parentStack[parentIndex-1];
+	/* semantic checking... */
+	me = (struct X3D_Script *)parentStack[parentIndex];
 
 	if (me->_nodeType != NODE_Script) {
 		ConsoleMessage ("initScriptWithScript - Expected to find a NODE_Script, got a %s\n",
 		stringNodeType(me->_nodeType));
 		return;
 	}
+
+	#ifdef X3DPARSERVERBOSE
+	printf ("endElement: scriptText is %s\n",scriptText);
+	#endif
 
 	myScriptNumber = me->_X3DScript;
 
@@ -1005,6 +1013,12 @@ void initScriptWithScript() {
 	}
 
 	FREE_IF_NZ(scriptText);
+	scriptTextMallocSize = 0;
+	parserMode = PARSING_NODES;
+	#ifdef X3DPARSERVERBOSE
+	printf ("endElement: got END of script - script should be registered\n");
+	#endif
+
 }
 
 void addToProtoCode(const char *name) {
@@ -1062,7 +1076,13 @@ int getFieldValueFromProtoInterface (char *fieldName, int protono, char **value)
 }
 
 /* record each field of each script - the type, kind, name, and associated script */
-void registerX3DScriptField(int scriptNotProto, int myScriptNumber,int type,int kind, int myFieldOffs, char *name, char *value) {
+void registerX3DScriptField(int myScriptNumber,int type,int kind, int myFieldOffs, char *name, char *value) {
+
+	/* semantic check */
+	if ((parserMode != PARSING_SCRIPT) && (parserMode != PARSING_PROTOINTERFACE)) {
+		ConsoleMessage ("registerX3DScriptField: wrong mode - got %d\n",parserMode);
+	}
+
 	ScriptFieldTableSize ++;
 
 	#ifdef X3DPARSERVERBOSE
@@ -1082,7 +1102,7 @@ void registerX3DScriptField(int scriptNotProto, int myScriptNumber,int type,int 
 	ScriptFieldNames[ScriptFieldTableSize].fieldName = newASCIIString(name);
 	if (value == NULL) ScriptFieldNames[ScriptFieldTableSize].value = NULL;
 	else ScriptFieldNames[ScriptFieldTableSize].value = newASCIIString(value);
-	ScriptFieldNames[ScriptFieldTableSize].fromScriptNotPROTO = scriptNotProto;
+	ScriptFieldNames[ScriptFieldTableSize].fromScriptNotPROTO = parserMode == PARSING_SCRIPT;
 	ScriptFieldNames[ScriptFieldTableSize].type = type;
 	ScriptFieldNames[ScriptFieldTableSize].kind = kind;
 	ScriptFieldNames[ScriptFieldTableSize].offs = myFieldOffs;

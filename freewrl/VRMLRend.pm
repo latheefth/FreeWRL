@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.213  2007/12/12 23:24:58  crc_canada
+# X3DParser work
+#
 # Revision 1.212  2007/12/10 19:13:53  crc_canada
 # Add parsing for x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE
 #
@@ -99,14 +102,6 @@
 # Revision 1.185  2005/12/13 17:00:29  crc_canada
 # Arc2D work.
 #.....
-
-%X3Daccessors  = map {($_=>1)} qw/
-	inputOnly
-	outputOnly
-	inputOutput
-	initializeOnly
-/;
-
 
 # used for the X3D Parser only. Return type of node.
 %defaultContainerType = (
@@ -716,5 +711,32 @@
 	outputOnly
 	inputOutput
 	initializeOnly
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# X3DSPECIAL Keywords
+# a listing of PROTO define keywords for use in the C VRML parser.
+#
+# 
+
+%X3DSpecialC = map {($_=>1)} qw/
+	Scene
+	Header
+	head
+	meta
+	ProtoDeclare
+	ProtoInterface
+	ProtoInstance
+	ProtoBody
+	ROUTE
+	IS
+	connect
+	X3D
+	field
+	fieldValue
 /;
 1;

@@ -1195,6 +1195,7 @@ int findFieldInX3DACCESSORS(const char *field);
 int findFieldInEXPOSED_FIELD(const char* field);
 int findFieldInEVENT_IN(const char* field);
 int findFieldInEVENT_OUT(const char* field);
+int findFieldInX3DSPECIALKEYWORDS(const char *field);
 
 /* Values for fromTo */
 #define ROUTED_FIELD_EVENT_OUT 0
@@ -1210,6 +1211,7 @@ int findFieldInALLFIELDNAMES(const char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);
 int findFieldInKEYWORDS(const char *field);
+int findFieldInPROTOKEYWORDS(const char *field);
 int countCommas (char *instr);
 void sortChildren (struct Multi_Node ch);
 void dirlightChildren(struct Multi_Node ch);

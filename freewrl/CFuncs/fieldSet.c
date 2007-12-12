@@ -455,12 +455,14 @@ int findFieldInARR(const char* field, const char** arr, size_t cnt)
 	int x;
 	int mystrlen;
 	
+	if (field == NULL) return -1;
+
 	#ifdef SETFIELDVERBOSE
 	if (field[0] == '_') {
 		printf ("findFieldInFIELDNAMES - internal field %s\n",field);
 	}
 	#endif
-
+	
 	mystrlen = strlen(field);
 	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
 	for (x=0; x!=cnt; ++x) {
@@ -482,11 +484,12 @@ DEF_FINDFIELD(EXPOSED_FIELD)
 DEF_FINDFIELD(EVENT_IN)
 DEF_FINDFIELD(EVENT_OUT)
 DEF_FINDFIELD(KEYWORDS)
+DEF_FINDFIELD(PROTOKEYWORDS)
 DEF_FINDFIELD(NODES)
 DEF_FINDFIELD(PROFILES)
 DEF_FINDFIELD(COMPONENTS)
-DEF_FINDFIELD(X3DACCESSORS)
 DEF_FINDFIELD(FIELDTYPES)
+DEF_FINDFIELD(X3DSPECIAL)
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */

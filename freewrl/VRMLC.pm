@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.281  2007/12/12 23:24:58  crc_canada
+# X3DParser work
+#
 # Revision 1.280  2007/12/10 19:13:53  crc_canada
 # Add parsing for x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE
 #
@@ -553,27 +556,32 @@ sub gen {
 		"	return PROTOKEYWORDS[st];\n}\n\n";
 	push @str, "const char *stringPROTOKeywordType(int st);\n";
 
-
-
 	#####################
-	# give each field an identifier
-	push @str, "\n/* Table of built-in fieldIds */\nextern const char *X3DACCESSORS[];\n";
-	push @str, "extern const indexT X3DACCESSORS_COUNT;\n";
+	# process X3DSPECIAL keywords 
+	push @str, "\n/* Table of built-in X3DSPECIAL keywords */\nextern const char *X3DSPECIAL[];\n";
+	push @str, "extern const indexT X3DSPECIAL_COUNT;\n";
 
-	push @genFuncs1, "\n/* Table of Field Types */\n       const char *X3DACCESSORS[] = {\n";
+	push @genFuncs1, "\n/* Table of X3DSPECIAL keywords */\n       const char *X3DSPECIAL[] = {\n";
 
-	$fieldTypeCount = 0;
-	for(keys %X3Daccessors) {
-		# print "node $_ is tagged as $fieldTypeCount\n";
+        my @sf = keys %X3DSpecialC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
-		my $defstr = "#define X3DACCESSOR_".$_."	$fieldTypeCount\n";
-		push @str, $defstr;
-		$fieldTypeCount ++;
-		$printNodeStr = "	\"$_\",\n";
-		push @genFuncs1, $printNodeStr;
+		push @str, "#define X3DSP_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
 	}
 	push @str, "\n";
-	push @genFuncs1, "};\nconst indexT X3DACCESSORS_COUNT = ARR_SIZE(X3DACCESSORS);\n\n";
+	push @genFuncs1, "};\nconst indexT X3DSPECIAL_COUNT = ARR_SIZE(X3DSPECIAL);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the X3DSPECIAL keyword type */\n". 
+		"const char *stringX3DSPECIALType (int st) {\n".
+		"	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	return X3DSPECIAL[st];\n}\n\n";
+	push @str, "const char *stringX3DSPECIALType(int st);\n";
+
 
 	##############################################################
 
