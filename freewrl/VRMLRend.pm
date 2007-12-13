@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.214  2007/12/13 20:12:52  crc_canada
+# KeySensor and StringSensor
+#
 # Revision 1.213  2007/12/12 23:24:58  crc_canada
 # X3DParser work
 #
@@ -168,6 +171,7 @@
 	IndexedTriangleStripSet	=>geometry,
 	Inline 			=>children,
 	InlineLoadControl 	=>children,
+	KeySensor		=>children,
 	LineSet 		=>geometry,
 	LineProperties		=>lineProperties,
 	LoadSensor		=>children,
@@ -203,6 +207,7 @@
 	SphereSensor 		=>children,
 	SpotLight 		=>children,
 	StaticGroup		=>children,
+	StringSensor		=>children,
 	Switch 			=>children,
 	Text 			=>geometry,
 	TextureBackground 	=>children,

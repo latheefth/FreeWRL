@@ -793,30 +793,36 @@ void setup_projection(int pick, int x, int y) {
 
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
-	if (type == KeyPress) {
-		switch (kp) {
-			case 'e': { set_viewer_type (EXAMINE); break; }
-			case 'w': { set_viewer_type (WALK); break; }
-			case 'd': { set_viewer_type (FLY); break; }
-			case 'f': { set_viewer_type (EXFLY); break; }
-			case 'h': { toggle_headlight(); break;}
-			case '/': { print_viewer(); break; }
-			case '.': { display_status = !display_status; break; }
-			case 'q': { if (!RUNNINGASPLUGIN) {
-					  doQuit();
-				    }
-				    break;
-				  }
-			case 'c': {be_collision = !be_collision; 
-					setMenuButton_collision(be_collision); break; }
-			case 'v': {Next_ViewPoint(); break;}
-			case 'b': {Prev_ViewPoint(); break;}
-			case 's': {setSnapshot(); break;}
-			default: {handle_key(kp);}
-
-		}
+	/* does this X3D file have a KeyDevice node? if so, send it to it */
+	
+	if (KeySensorNodePresent()) {
+		sendKeyToKeySensor(kp,type);
 	} else {
-		handle_keyrelease(kp);
+		if (type == KeyPress) {
+			switch (kp) {
+				case 'e': { set_viewer_type (EXAMINE); break; }
+				case 'w': { set_viewer_type (WALK); break; }
+				case 'd': { set_viewer_type (FLY); break; }
+				case 'f': { set_viewer_type (EXFLY); break; }
+				case 'h': { toggle_headlight(); break;}
+				case '/': { print_viewer(); break; }
+				case '.': { display_status = !display_status; break; }
+				case 'q': { if (!RUNNINGASPLUGIN) {
+						  doQuit();
+					    }
+					    break;
+					  }
+				case 'c': {be_collision = !be_collision; 
+						setMenuButton_collision(be_collision); break; }
+				case 'v': {Next_ViewPoint(); break;}
+				case 'b': {Prev_ViewPoint(); break;}
+				case 's': {setSnapshot(); break;}
+				default: {handle_key(kp);}
+	
+			}
+		} else {
+			handle_keyrelease(kp);
+		}
 	}
 }
 

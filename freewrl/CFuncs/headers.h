@@ -1092,6 +1092,12 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_Anchor (struct X3D_Anchor *this_);
 
+/* KeyDevice Component */
+void killKeySensorNodeList(void);
+void addNodeToKeySensorList(struct X3D_Node* node);
+int KeySensorNodePresent(void);
+void sendKeyToKeySensor(const char key, int upDown);
+
 void prep_MidiControl (struct X3D_MidiControl *node);
 void do_MidiControl (void *node);
 void MIDIRegisterMIDI(char *str);

@@ -1007,7 +1007,28 @@ package VRML::NodeType;
 	###################################################################################
 
 	# KeySensor
+	KeySensor => new VRML::NodeType("KeySensor", {
+						enabled => [SFBool, 1, inputOutput],
+						actionKeyPress =>[SFInt32,0,outputOnly],
+						actionKeyRelease =>[SFInt32,0,outputOnly],
+						altKey =>[SFBool,0,outputOnly],
+						controlKey =>[SFBool,0,outputOnly],
+						isActive =>[SFBool,0,outputOnly],
+						keyPress =>[SFString,"",outputOnly],
+						keyRelease =>[SFString,"",outputOnly],
+						shiftKey =>[SFBool,0,outputOnly],
+					   },"X3DKeyDeviceSensorNode"),
+
 	# StringSensor
+	StringSensor => new VRML::NodeType("StringSensor", {
+						deletionAllowed => [SFBool, 1, inputOutput],
+						enabled => [SFBool, 1, inputOutput],
+						enteredText => [SFString,"",outputOnly],
+						finalText => [SFString,"",outputOnly],
+						isActive =>[SFBool,0,outputOnly],
+						_initialized =>[SFBool,0,field],
+					   },"X3DKeyDeviceSensorNode"),
+
 
 	###################################################################################
 
