@@ -67,6 +67,7 @@ char *DefaultScriptMethods = "function initialize() {}; " \
 			" function eventsProcessed() {}; " \
 			" TRUE=true; FALSE=false; " \
 			" function print(x) {Browser.print(x)}; " \
+			" function println(x) {Browser.println(x)}; " \
 			" function getName() {return Browser.getName()}; "\
 			" function getVersion() {return Browser.getVersion()}; "\
 			" function getCurrentSpeed() {return Browser.getCurrentSpeed()}; "\

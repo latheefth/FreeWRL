@@ -34,13 +34,15 @@ static void sendToKS(int key, int upDown);
 static void sendToSS(int key, int upDown);
 
 /* mapped from my Apple OSX keyboard, canadian setup, so here goes... */
+#ifndef AQUA
 #define HOME_KEY 80
 #define PGDN_KEY 86
+#define LEFT_KEY 106
 #define END_KEY 87
 #define UP_KEY 112
 #define RIGHT_KEY 108
 #define PGUP_KEY 85
-#define PGDN_KEY 86
+#define DOWN_KEY 59
 #define F1_KEY  0xFFBE
 #define F2_KEY  0xFFBF
 #define F3_KEY  0XFFC0
@@ -60,6 +62,35 @@ static void sendToSS(int key, int upDown);
 #define RTN_KEY 13
 #define KEYDOWN 2
 #define KEYUP	3
+#else
+#define HOME_KEY 0x29
+#define PGDN_KEY 0x2d
+#define LEFT_KEY 0x02
+#define END_KEY  0x3b
+#define UP_KEY   0x00
+#define RIGHT_KEY 0x03
+#define PGUP_KEY 0x2c
+#define DOWN_KEY 0x01
+#define F1_KEY  0x4
+#define F2_KEY  0x5
+#define F3_KEY  0X6
+#define F4_KEY  0X7
+#define F5_KEY  0X8
+#define F6_KEY  0X9
+#define F7_KEY  0X10
+#define F8_KEY  0X11
+#define F9_KEY  0X12
+#define F10_KEY 0X13
+#define F11_KEY 0X14
+#define F12_KEY 0X15
+#define ALT_KEY	0X0 /* not available on OSX */
+#define CTL_KEY 0X0 /* not available on OSX */
+#define SFT_KEY 0X0 /* not available on OSX */
+#define DEL_KEY 0x7F
+#define RTN_KEY 13
+#define KEYDOWN 2
+#define KEYUP	3
+#endif
 
 
 /* only keep 1 keyDevice node around; we can make a list if that is eventually
@@ -90,7 +121,7 @@ void addNodeToKeySensorList(struct X3D_Node* node) {
 }
 
 void killKeySensorNodeList() {
-	printf ("killKeySenoorNodeList\n");
+	/* printf ("killKeySenoorNodeList\n"); */
 	keySink = NULL;
 }
 
@@ -113,10 +144,12 @@ static void sendToKS(int key, int upDown) {
 	switch (key) {
 		case HOME_KEY:
 		case PGDN_KEY:
+		case LEFT_KEY:
 		case END_KEY:
 		case UP_KEY:
 		case RIGHT_KEY:
 		case PGUP_KEY:
+		case DOWN_KEY:
 		case F1_KEY:
 		case F2_KEY:
 		case F3_KEY:
@@ -173,7 +206,7 @@ static void sendToSS(int key, int upDown) {
 	#define MYN X3D_STRINGSENSOR(keySink)
 	#define MAXSTRINGLEN 512
 
-	printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); 
+	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown);  */
 
 	if (!MYN->enabled) return;
 	if (upDown != KEYDOWN) return;
@@ -213,21 +246,19 @@ static void sendToSS(int key, int upDown) {
 		}
 	}
 
-printf ("enteredText:%s:\n",MYN->enteredText->strptr);
+
+	/* printf ("enteredText:%s:\n",MYN->enteredText->strptr); */
 	/* finalText */
 	if (key==RTN_KEY) {
-		strncpy (MYN->finalText->strptr, MYN->enteredText->strptr, MAXSTRINGLEN);
+		memcpy(MYN->finalText->strptr, MYN->enteredText->strptr, MAXSTRINGLEN);
 		MYN->finalText->len = MYN->enteredText->len;
 		MYN->enteredText->len=1;
 		MYN->enteredText->strptr[0] = '\0';
 		mark_event(keySink, offsetof (struct X3D_StringSensor, finalText));
+		mark_event(keySink, offsetof (struct X3D_StringSensor, enteredText));
 
 		MYN->isActive = FALSE;
 		mark_event(keySink, offsetof (struct X3D_StringSensor, isActive));
-printf ("finalText:%s:\n",MYN->finalText->strptr);
+		/* printf ("finalText:%s:\n",MYN->finalText->strptr); */
 	}
-
-
-
-
 }

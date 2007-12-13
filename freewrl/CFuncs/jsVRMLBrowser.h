@@ -185,6 +185,7 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
 	{"print", VrmlBrowserPrint, 0},
+	{"println", VrmlBrowserPrint, 0},
 	{"getMidiDeviceList", VrmlBrowserGetMidiDeviceList, 0},
 	{"getMidiDeviceInfo", VrmlBrowserGetMidiDeviceInfo, 0},
 	{0}

@@ -113,7 +113,8 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 			memcpy((void *) &ms,Data, datalen);
-			newval = STRING_TO_JSVAL(JS_NewString(cx,ms->strptr,strlen(ms->strptr)));
+printf ("fieldGet, have string now:%s: cx %u, len %d\n",ms->strptr,cx,strlen(ms->strptr));
+			newval = STRING_TO_JSVAL(JS_NewStringCopyZ(cx,ms->strptr));
 			break;
 		}
 		default: {	printf("WARNING: SHOULD NOT BE HERE! %d\n",JSparamnames[toname].type);
@@ -574,7 +575,7 @@ int setMFElementtype (uintptr_t num) {
 					/* create a new SFString object */
 					
 					chptr = ptr[x]->strptr;
-					newjsval = STRING_TO_JSVAL(JS_NewString(cx,chptr,strlen(chptr)));
+					newjsval = STRING_TO_JSVAL( JS_NewStringCopyZ(cx,chptr));
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
