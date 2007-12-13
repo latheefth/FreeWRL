@@ -113,7 +113,6 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 		case FIELDTYPE_SFString: {
 			struct Uni_String *ms;
 			memcpy((void *) &ms,Data, datalen);
-printf ("fieldGet, have string now:%s: cx %u, len %d\n",ms->strptr,cx,strlen(ms->strptr));
 			newval = STRING_TO_JSVAL(JS_NewStringCopyZ(cx,ms->strptr));
 			break;
 		}
