@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.282  2007/12/13 14:54:13  crc_canada
+# code cleanup and change to inputOnly, outputOnly, initializeOnly, inputOutput
+# ----------------------------------------------------------------------
+#
 # Revision 1.281  2007/12/12 23:24:58  crc_canada
 # X3DParser work
 #
@@ -52,7 +56,7 @@
 # MALLOC/REALLOC macros to check mallocs for errors.
 #
 # Revision 1.267  2007/02/27 13:32:14  crc_canada
-# initialize eventIn fields to a zero value.
+# initialize inputOnly fields to a zero value.
 #
 # Revision 1.266  2007/02/22 13:41:09  crc_canada
 # more ReWire work
@@ -256,9 +260,9 @@ sub gen {
 	my $keywordIntegerType = 0; 
 	my %totalfields = ();
 	my %allfields = ();
-	my %allexposedFields = ();
-	my %alleventInFields = ();
-	my %alleventOutFields = ();
+	my %allinputOutputs = ();
+	my %allinputOnlyFields = ();
+	my %alloutputOnlyFields = ();
 
 
 	#####################
@@ -337,10 +341,10 @@ sub gen {
 		# have  a valid fieldtype, if not, there is an error somewhere.
  		foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {
 			my $fk = $VRML::Nodes{$_}{FieldKinds}{$field};
-			if ($fk eq "field") { $allfields{$field} = $fk;}
-			elsif ($fk eq "eventIn") { $alleventIns{$field} = $fk;}
-			elsif ($fk eq "eventOut") { $alleventOuts{$field} = $fk;}
-			elsif ($fk eq "exposedField") { $allexposedFields{$field} = $fk;}
+			if ($fk eq "initializeOnly") { $allfields{$field} = $fk;}
+			elsif ($fk eq "inputOnly") { $allinputOnlys{$field} = $fk;}
+			elsif ($fk eq "outputOnly") { $alloutputOnlys{$field} = $fk;}
+			elsif ($fk eq "inputOutput") { $allinputOutputs{$field} = $fk;}
 			else {
 				print "field $field fieldKind $fk is invalid\n";
 			}
@@ -380,7 +384,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EVENT_OUTs */\n       const char *EVENT_OUT[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %alleventOuts) { 
+	foreach (keys %alloutputOnlys) { 
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EVENT_OUT_$_	$nodeIntegerType\n";
@@ -396,7 +400,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EVENT_INs */\n       const char *EVENT_IN[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %alleventIns) { 
+	foreach (keys %allinputOnlys) { 
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EVENT_IN_$_	$nodeIntegerType\n";
@@ -412,7 +416,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of EXPOSED_FIELDs */\n       const char *EXPOSED_FIELD[] = {\n";
 
 	$nodeIntegerType = 0;
-	foreach (keys %allexposedFields) { 
+	foreach (keys %allinputOutputs) { 
 		if (index($_,"_") !=0) {
 			push @genFuncs1, "	\"$_\",\n";
 			push @str, "#define EXPOSED_FIELD_$_	$nodeIntegerType\n";
@@ -792,7 +796,7 @@ sub gen {
 			#print "		fieldDefaults ". $VRML::Nodes{$node}{Defaults}{$field}."\n";
 			#print "		fieldKinds ". $VRML::Nodes{$node}{FieldKinds}{$field}."\n";
 			#print "		fieldTypes ". $VRML::Nodes{$node}{FieldTypes}{$field}."\n";
-	#		if ($fk ne "eventIn") {
+	#		if ($fk ne "inputOnly") {
 				#print "		do thisfield\n";
 
 				# do we need to initialize the occlusion number for fields?
@@ -858,7 +862,7 @@ sub gen {
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
 			my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
 			my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-			if (($fk eq "field") ||($fk eq "exposedField")) {
+			if (($fk eq "field") ||($fk eq "inputOutput")) {
 				if ($ft eq "FreeWRLPTR") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft) (void pointer, not dumped)\\n\");\n";
 				} elsif ($ft eq "SFInt32") {
@@ -929,8 +933,8 @@ sub gen {
 	#####################
 	# create an array for each node. The array contains the following:
 	# const int OFFSETS_Text[
-	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_exposedField,
-	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_exposedField,
+	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_inputOutput,
+	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_inputOutput,
 	# ....
 	# 	-1, -1, -1, -1];
 	# NOTES:
@@ -977,14 +981,20 @@ sub gen {
 
  		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
 			if (index($field,"_") !=0) {
-				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
-				if ("eventOut" eq $fk)     {$fk = "EVENT_OUT";}
-				if ("eventIn" eq $fk)      {$fk = "EVENT_IN";}
-				if ("exposedField" eq $fk) {$fk = "EXPOSED_FIELD";}
-				if ("field" eq $fk)        {$fk = "FIELD";}
+				my $fk = "";
+				my $ofk = $VRML::Nodes{$node}{FieldKinds}{$field};
+				if ("outputOnly" eq $ofk)     {$fk = "EVENT_OUT";}
+				if ("inputOnly" eq $ofk)      {$fk = "EVENT_IN";}
+				if ("inputOutput" eq $ofk) {$fk = "EXPOSED_FIELD";}
+				if ("initializeOnly" eq $ofk)        {$fk = "FIELD";}
+
+				if ("" eq $fk) {
+					print "error in fieldKind for node $node, was $ofk\n";
+				}
 
 				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
 				$ft =~ tr/A-Z/a-z/; # convert to lowercase
+
 				push @fieldNodes, "$fk($node,$field,$ft,$field)\n";
 			}
 		};

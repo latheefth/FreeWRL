@@ -11,11 +11,15 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.78  2007/12/13 14:54:13  crc_canada
+# code cleanup and change to inputOnly, outputOnly, initializeOnly, inputOutput
+# ----------------------------------------------------------------------
+#
 # Revision 1.77  2007/03/20 20:36:10  crc_canada
 # MALLOC/REALLOC macros to check mallocs for errors.
 #
 # Revision 1.76  2007/02/27 13:32:15  crc_canada
-# initialize eventIn fields to a zero value.
+# initialize inputOnly fields to a zero value.
 #
 # Revision 1.75  2007/02/13 22:45:24  crc_canada
 # PixelTexture default image should now be ok
@@ -84,7 +88,7 @@ VRML::Error->import();
 sub ctype {"float $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {$val = 0.0} # eventIns, set it to any value
+	if (!defined $val) {$val = 0.0} # inputOnlys, set it to any value
 	return "$field = $val";
 }
 
@@ -97,7 +101,7 @@ package VRML::Field::SFTime;
 sub ctype {"double $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {$val = 0.0} # eventIns, set it to any value
+	if (!defined $val) {$val = 0.0} # inputOnlys, set it to any value
 	return "$field = $val";
 }
 
@@ -112,7 +116,7 @@ VRML::Error->import;
 sub ctype {return "void * $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {$val = 0} # eventIns, set it to any value
+	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
 	return "$field = $val";
 }
 
@@ -127,7 +131,7 @@ VRML::Error->import;
 sub ctype {return "int $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {$val = 0} # eventIns, set it to any value
+	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
 	return "$field = $val";
 }
 
@@ -144,7 +148,7 @@ sub cstruct {return "struct SFColor {
 sub ctype {return "struct SFColor $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFColor\n"} # eventIns, set it to any value
+	if (!defined $val) {print "undefined in SFColor\n"} # inputOnlys, set it to any value
 	return 	"$field.c[0] = @{$val}[0];".
 		"$field.c[1] = @{$val}[1];".
 		"$field.c[2] = @{$val}[2];";
@@ -169,7 +173,7 @@ package VRML::Field::SFVec3f;
 sub cstruct {return ""}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFVec3f\n"} # eventIns, set it to any value
+	if (!defined $val) {print "undefined in SFVec3f\n"} # inputOnlys, set it to any value
 	return 	"$field.c[0] = @{$val}[0];".
 		"$field.c[1] = @{$val}[1];".
 		"$field.c[2] = @{$val}[2];";
@@ -185,7 +189,7 @@ sub cstruct {return "struct SFVec2f {
 sub ctype {return "struct SFVec2f $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFVec2f\n"} # eventIns, set it to any value
+	if (!defined $val) {print "undefined in SFVec2f\n"} # inputOnlys, set it to any value
 	return 	"$field.c[0] = @{$val}[0];".
 		"$field.c[1] = @{$val}[1];";
 }
@@ -203,7 +207,7 @@ sub cstruct {return "struct SFRotation {
 sub ctype {return "struct SFRotation $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFVRotation\n"} # eventIns, set it to any value
+	if (!defined $val) {print "undefined in SFVRotation\n"} # inputOnlys, set it to any value
 	return 	"$field.r[0] = @{$val}[0];".
 		"$field.r[1] = @{$val}[1];".
 		"$field.r[2] = @{$val}[2];".
@@ -219,7 +223,7 @@ package VRML::Field::SFBool;
 sub ctype {return "int $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {$val = 0} # eventIns, set it to any value
+	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
 	return "$field = $val";
 }
 
@@ -232,7 +236,7 @@ sub ctype {return "struct Uni_String *$_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 
-	if (!defined $val) {$val = "";} # eventIns, set it to any value
+	if (!defined $val) {$val = "";} # inputOnlys, set it to any value
 	if ($field eq "tmp2->__parenturl") {
 		return "$field = newASCIIString(getInputURL())";
 	} else {
@@ -251,7 +255,7 @@ sub cInitialize {
 	my $retstr;
 	my $tmp;
 
-	if (!defined $val) {$count=0} # eventIns, set it to any value
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFSTRING field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFSTRING field $field val @{$val} has $count INIT\n";
@@ -279,7 +283,7 @@ sub cInitialize {
 	my $retstr;
 	my $tmp;
 
-	if (!defined $val) {$count = 0;} # eventIns, set it to any value
+	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
 	#print "MFFLOAT field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFFLOAT field $field val @{$val} has $count INIT\n";
@@ -316,7 +320,7 @@ sub cInitialize {
 	my $tmp;
 	my $whichVal;
 
-	if (!defined $val) {$count = 0;} # eventIns, set it to any value
+	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
 	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFVEC3F field $field val @{$val} has $count INIT\n";
@@ -342,7 +346,7 @@ package VRML::Field::MFNode;
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
-	if (!defined $val) {$count=0;} # eventIns, set it to any value
+	if (!defined $val) {$count=0;} # inputOnlys, set it to any value
 	#print "MFNODE field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		print "MFNODE HAVE TO MALLOC HERE\n";
@@ -363,7 +367,7 @@ sub cInitialize {
 	my $tmp;
 	my $whichVal;
 
-	if (!defined $val) {$count=0} # eventIns, set it to any value
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFCOLOR field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFCOLOR field $field val @{$val} has $count INIT\n";
@@ -392,7 +396,7 @@ package VRML::Field::MFColorRGBA;
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
-	if (!defined $val) {$count=0} # eventIns, set it to any value
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFCOLORRGBA field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
@@ -423,7 +427,7 @@ sub cInitialize {
 	my $tmp;
 	my $whichVal;
 
-	if (!defined $val) {$count=0} # eventIns, set it to any value
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFVec2F field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFVec2F field $field val @{$val} has $count INIT\n";
@@ -451,7 +455,7 @@ sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
 	#print "MFINT32 field $field val @{$val} has $count INIT\n";
-	if (!defined $val) {$count=0} # eventIns, set it to any value
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
 		print "HAVE TO MALLOC HERE\n";
 	} else {
@@ -469,7 +473,7 @@ sub cInitialize {
 	my $retstr;
 	my $tmp;
 
-	if (!defined $val) {$count=0} # eventIns, set it to any value
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFBOOL field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFBOOL field $field val @{$val} has $count INIT\n";
@@ -500,7 +504,7 @@ sub cInitialize {
 	my $tmp;
 	my $whichVal;
 
-	if (!defined $val) {$count=0} # eventIns, set it to any value
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFROTATION field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
 		#print "MALLOC MFROTATION field $field val @{$val} has $count INIT\n";
@@ -548,7 +552,7 @@ sub cstruct {""}
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFNode\n"} # eventIns, set it to any value
+	if (!defined $val) {print "undefined in SFNode\n"} # inputOnlys, set it to any value
 	return "$field = $val";
 }
 
@@ -562,7 +566,7 @@ sub ctype {return "struct Multi_Int32 $_[1]"}
 
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFImage\n"} # eventIns, set it to any value
+	if (!defined $val) {print "undefined in SFImage\n"} # inputOnlys, set it to any value
 	my $count = @{$val};
 	#SFImage defaults to 0,0,0\n";
 	return "$field.n=3; $field.p=MALLOC (sizeof(int)*3); $field.p[0] = 0; $field.p[1] = 0; $field.p[2] = 0;";
