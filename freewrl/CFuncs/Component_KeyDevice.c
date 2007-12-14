@@ -1,5 +1,5 @@
 /*******************************************************************
- Copyright (C) 2005, 2006 John Stewart, Ayla Khan, Sarah Dumoulin, CRC Canada.
+ Copyright (C) 2007 John Stewart, CRC Canada.
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
@@ -32,6 +32,11 @@ Anyway, with that, lets blindly forge along...
 #define X3D_STRINGSENSOR(node) ((struct X3D_StringSensor*)node)
 static void sendToKS(int key, int upDown);
 static void sendToSS(int key, int upDown);
+
+#ifndef AQUA
+int shiftPressed = 0;
+int ctrlPressed = 0;
+#endif
 
 /* mapped from my Apple OSX keyboard, canadian setup, so here goes... */
 #ifndef AQUA
@@ -123,6 +128,12 @@ void addNodeToKeySensorList(struct X3D_Node* node) {
 void killKeySensorNodeList() {
 	/* printf ("killKeySenoorNodeList\n"); */
 	keySink = NULL;
+
+	#ifndef AQUA
+	shiftPressed = 0;
+	ctrlPressed = 0;
+	#endif
+
 }
 
 void sendKeyToKeySensor(const char key, int upDown) {
@@ -206,10 +217,30 @@ static void sendToSS(int key, int upDown) {
 	#define MYN X3D_STRINGSENSOR(keySink)
 	#define MAXSTRINGLEN 512
 
-	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown);  */
+	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown);   */
 
 	if (!MYN->enabled) return;
+
+	#ifndef AQUA
+	/* on Unix, we have to handle control/shift keys ourselves. OSX handles this
+	   by itself */
+	if (key == SFT_KEY) {
+		shiftPressed = (upDown == KEYDOWN);
+		return;
+	}
+
+	/* ignore the control key here. OSX will not event let one come this far... */
+	if (key == CTL_KEY) return;
+
+	/* do the shift of the A-Z keys if shift pressed */
+	if ((key >= 'a') && (key<='z'))
+		if (shiftPressed)
+			key=key-'a'+'A';
+	#endif
+
+	/* we only care about key presses here */
 	if (upDown != KEYDOWN) return;
+
 
 	/* is this initialized? */
 	if (!MYN->_initialized) {
