@@ -52,3 +52,4 @@ void parseScriptProtoField(const char **atts);
 int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type);
 void expandProtoInstance(struct X3D_Group * myGroup);
 void freeProtoMemory (void);
+kill_X3DProtoScripts(void);

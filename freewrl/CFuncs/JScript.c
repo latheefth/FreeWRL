@@ -25,7 +25,7 @@ Javascript C language binding.
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
 /*   #define MAX_RUNTIME_BYTES 0x1000000L */
 /* #define STACK_CHUNK_SIZE 0x2000L*/
-#define MAX_RUNTIME_BYTES 0x800000L
+#define MAX_RUNTIME_BYTES 0xC00000L
 #define STACK_CHUNK_SIZE 0x20000L
 
 /*

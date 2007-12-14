@@ -100,6 +100,10 @@ void freeProtoMemory () {
 		}
 		FREE_IF_NZ(PROTONames);
 	}
+
+	currentProtoDeclare  = ID_UNDEFINED;
+	MAXProtos = 0;
+
 	#ifdef X3DPARSERVERBOSE
 	printf ("freeProtoMemory,ScriptFieldNames is %d ScriptFieldTableSize %d, MAXScriptFieldParams %d\n",ScriptFieldNames, ScriptFieldTableSize, MAXScriptFieldParams);
 	#endif
@@ -115,7 +119,10 @@ void freeProtoMemory () {
 				FREE_IF_NZ(ScriptFieldNames[i].value);
 			}
 		}
+		FREE_IF_NZ(ScriptFieldNames);
 	}
+	ScriptFieldTableSize = ID_UNDEFINED;
+	MAXScriptFieldParams = 0;
 }
 
 
