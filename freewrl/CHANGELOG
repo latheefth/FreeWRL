@@ -1,4 +1,12 @@
 For 1.20.0 (Some came out with 1.19.9 for Linux):
+	- KeySensor and StringSensor written and tested on OSX and Linux.
+
+	- Javascript SFString events were calling an incorrect Javascript call;
+	  changed all JS_NewString calls to JS_NewStringCopyZ.
+
+	- added code in Javascript to enable println command; it is just a copy of print, as most
+	  scripts seem to assume that print gives a carrage return.
+
 	- X3DParser reviewed, and parts rewritten 
 
 	- parse (only) x3dv COMPONENT, EXPORT, IMPORT, META, PROFILE statements. Note that currently nothing
