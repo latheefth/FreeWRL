@@ -774,6 +774,13 @@ void collide_Text (struct X3D_Text *node) {
 	         correclty in the RENDER pass */
 
 	       pr = *((struct X3D_PolyRep*)node->_intern);
+
+		/* do the triangle test again, now that we may have compiled the node. */
+		if (pr.ntri == 0) {
+			/* printf ("TRIANGLE NOW HAS ZERO NODES...\n"); */
+			return;
+		}
+
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
