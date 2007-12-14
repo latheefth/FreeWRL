@@ -218,7 +218,13 @@ void dumpProtoBody (const char *name, const char **atts) {
 		}
 		PROTONames[currentProtoDeclare].charLen += fprintf (PROTONames[currentProtoDeclare].fileDescriptor,">\n");
 	}
+}
 
+void dumpCDATAtoProtoBody (char *str) {
+	if (PROTONames[currentProtoDeclare].fileOpen) {
+		PROTONames[currentProtoDeclare].charLen += 
+			fprintf (PROTONames[currentProtoDeclare].fileDescriptor,"<![CDATA[%s]]>",str);
+	}
 }
 
 void endDumpProtoBody (const char *name) {
@@ -771,7 +777,8 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 		case FIELDTYPE_MFColorRGBA: value->mfcolorrgba.n = 0; break;
 		case FIELDTYPE_SFTime: value->sftime = 0.0; break;
 		case FIELDTYPE_MFTime: value->mftime.n=0; break;
-		case FIELDTYPE_SFString: value->sfstring->strptr=NULL; value->sfstring->len=0; break;
+		case FIELDTYPE_SFString: value->sfstring=newASCIIString(""); break;
+
 		case FIELDTYPE_MFString: value->mfstring.n=0; break;
 		case FIELDTYPE_SFVec2f: value->sfvec2f.c[0] =0.0; value->sfvec2f.c[1]=0.0; break;
 		case FIELDTYPE_MFVec2f: value->mfvec2f.n=0; break;

@@ -30,8 +30,8 @@ Anyway, with that, lets blindly forge along...
 
 #define X3D_KEYSENSOR(node) ((struct X3D_KeySensor*)node)
 #define X3D_STRINGSENSOR(node) ((struct X3D_StringSensor*)node)
-static void sendToKS(int key, int upDown);
-static void sendToSS(int key, int upDown);
+static void sendToKS(struct X3D_Node * wsk, int key, int upDown);
+static void sendToSS(struct X3D_Node * wsk, int key, int upDown);
 
 #ifndef AQUA
 int shiftPressed = 0;
@@ -101,33 +101,49 @@ int ctrlPressed = 0;
 /* only keep 1 keyDevice node around; we can make a list if that is eventually
 required by the spec. From what I can see, the spec is silent on this regard */
 
-static struct X3D_Node *keySink = NULL;
+static struct X3D_Node **keySink = NULL;
+static int keySyncMallocLen = 0;
+static int keySinkCurMax = 0;
+
+static void incrementKeySinkList() {
+	if (keySinkCurMax >= keySyncMallocLen) {
+		keySyncMallocLen += 10; /* arbitrary number */
+		keySink = REALLOC(keySink, sizeof (struct X3D_Node *) * keySyncMallocLen);
+	}
+}
 
 int KeySensorNodePresent() {
+	int count;
+
 	/* no KeyDevice node present */
 	if (keySink == NULL) return FALSE;
 
-	/* hmmm, there is one, but is it enabled? */
-	if (keySink->_nodeType == NODE_KeySensor) return X3D_KEYSENSOR(keySink)->enabled;
-	if (keySink->_nodeType == NODE_StringSensor) return X3D_STRINGSENSOR(keySink)->enabled;
+	for (count=0; count < keySinkCurMax; count++) {
+		/* hmmm, there is one, but is it enabled? */
+		/* printf ("ks, checking %d\n",keySink[count]); */
 
-	/* should never get this far... */
+		if (keySink[count]->_nodeType == NODE_KeySensor) 
+			if (X3D_KEYSENSOR(keySink[count])->enabled) return TRUE;
+
+		if (keySink[count]->_nodeType == NODE_StringSensor) 
+			if (X3D_STRINGSENSOR(keySink[count])->enabled) return TRUE;
+	}
+
 	return FALSE;
 }
 
 
 void addNodeToKeySensorList(struct X3D_Node* node) {
 	if ((node->_nodeType == NODE_KeySensor) || (node->_nodeType == NODE_StringSensor)) {
-		if (keySink != NULL) {
-			ConsoleMessage("More than 1 KeyDevice node; using last one defined");
-		}
-		keySink = node;
+		incrementKeySinkList();
+		keySink[keySinkCurMax] = node;
+		keySinkCurMax ++;
 	}
 }
 
 void killKeySensorNodeList() {
 	/* printf ("killKeySenoorNodeList\n"); */
-	keySink = NULL;
+	FREE_IF_NZ(keySink);
 
 	#ifndef AQUA
 	shiftPressed = 0;
@@ -137,16 +153,19 @@ void killKeySensorNodeList() {
 }
 
 void sendKeyToKeySensor(const char key, int upDown) {
+	int count;
 	if (keySink == NULL) return;
 
-	if (keySink->_nodeType == NODE_KeySensor) sendToKS((int)key&0xFFFF, upDown);
-	if (keySink->_nodeType == NODE_StringSensor) sendToSS((int)key&0xFFFF, upDown);
+	for (count=0; count < keySinkCurMax; count++) {
+		if (keySink[count]->_nodeType == NODE_KeySensor) sendToKS(keySink[count], (int)key&0xFFFF, upDown);
+		if (keySink[count]->_nodeType == NODE_StringSensor) sendToSS(keySink[count], (int)key&0xFFFF, upDown);
+	}
 }
 
 /*******************************************************/
 
-static void sendToKS(int key, int upDown) {
-	#define MYN X3D_KEYSENSOR(keySink)
+static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
+	#define MYN X3D_KEYSENSOR(wsk)
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 	
 	if (!MYN->enabled) return;
@@ -175,10 +194,10 @@ static void sendToKS(int key, int upDown) {
 		case F12_KEY:
 			if (upDown == KEYDOWN)  {
 				MYN->actionKeyPress = TRUE; 
-				mark_event(keySink, offsetof (struct X3D_KeySensor, actionKeyPress));
+				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyPress));
 			} else {
 				MYN->actionKeyRelease = TRUE;
-				mark_event(keySink, offsetof (struct X3D_KeySensor, actionKeyRelease));
+				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyRelease));
 			}
 			break;
 		default: {
@@ -191,35 +210,36 @@ static void sendToKS(int key, int upDown) {
 				
 			if (upDown == KEYDOWN) {
 				MYN->keyPress->strptr[0] = (char) (key&0xFF);
-				mark_event(keySink, offsetof (struct X3D_KeySensor, keyPress));
+				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyPress));
 			} else {
 				MYN->keyRelease->strptr[0] = (char) (key&0xFF);
-				mark_event(keySink, offsetof (struct X3D_KeySensor, keyRelease));
+				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyRelease));
 			}
 		}
 	}
 
 	/* now, for some of the other keys, the ones that are modifiers, not ACTION (tm) keys. */
 	MYN->altKey = key==ALT_KEY;
-	mark_event(keySink, offsetof (struct X3D_KeySensor, altKey));
+	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, altKey));
 	MYN->controlKey = key==ALT_KEY;
-	mark_event(keySink, offsetof (struct X3D_KeySensor, controlKey));
+	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, controlKey));
 	MYN->shiftKey = key==ALT_KEY;
-	mark_event(keySink, offsetof (struct X3D_KeySensor, shiftKey));
+	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, shiftKey));
 
 	/* now, presumably "isActive" means that the key is down... */
 	MYN->isActive = upDown == KEYDOWN;
-	mark_event(keySink, offsetof (struct X3D_KeySensor, isActive));
+	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, isActive));
 	#undef MYN
 	
 }
-static void sendToSS(int key, int upDown) {
-	#define MYN X3D_STRINGSENSOR(keySink)
+static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
+	#define MYN X3D_STRINGSENSOR(wsk)
 	#define MAXSTRINGLEN 512
 
-	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown);   */
+	/* printf ("SS, %u enabled %d\n",wsk, MYN->enabled); */
 
 	if (!MYN->enabled) return;
+	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 
 	#ifndef AQUA
 	/* on Unix, we have to handle control/shift keys ourselves. OSX handles this
@@ -260,18 +280,18 @@ static void sendToSS(int key, int upDown) {
 		if (MYN->enteredText->len > 1) {
 			MYN->enteredText->len--;
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = '\0';
-			mark_event(keySink, offsetof (struct X3D_StringSensor, enteredText));
+			mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 		}
 	} else {
 		if ((key != RTN_KEY) && (key != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = (char)key;
 			MYN->enteredText->strptr[MYN->enteredText->len] = '\0';
 			MYN->enteredText->len++;
-			mark_event(keySink, offsetof (struct X3D_StringSensor, enteredText));
+			mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 
 			if (!MYN->isActive) {
 				MYN->isActive = TRUE;
-				mark_event(keySink, offsetof (struct X3D_StringSensor, isActive));
+				mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));
 			}
 			
 		}
@@ -285,11 +305,11 @@ static void sendToSS(int key, int upDown) {
 		MYN->finalText->len = MYN->enteredText->len;
 		MYN->enteredText->len=1;
 		MYN->enteredText->strptr[0] = '\0';
-		mark_event(keySink, offsetof (struct X3D_StringSensor, finalText));
-		mark_event(keySink, offsetof (struct X3D_StringSensor, enteredText));
+		mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, finalText));
+		mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 
 		MYN->isActive = FALSE;
-		mark_event(keySink, offsetof (struct X3D_StringSensor, isActive));
+		mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));
 		/* printf ("finalText:%s:\n",MYN->finalText->strptr); */
 	}
 }

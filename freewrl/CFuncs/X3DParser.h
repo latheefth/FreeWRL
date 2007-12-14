@@ -46,6 +46,7 @@ void registerX3DScriptField(int myScriptNumber,int type,int kind, int myFieldOff
 void parseProtoInstance (const char **atts);
 void parseProtoInstanceFields(const char *name, const char **atts);
 void dumpProtoBody (const char *name, const char **atts);
+void dumpCDATAtoProtoBody (char *str);
 void endDumpProtoBody (const char *name);
 void parseScriptProtoField(const char **atts);
 int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type);

@@ -85,7 +85,7 @@ void kill_X3DDefs(void) {
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
 the new node */
-struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node) {
+static struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) {
 	unsigned len;
 	int ctr;
 	struct Uni_String *tmp;
@@ -102,6 +102,11 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node) {
 	for (ctr=0; ctr<=DEFtableSize; ctr++) {
 		tmp = DEFnames[ctr].name;
 		if (strcmp(name,tmp->strptr)==0) {
+			/* do we really want to change this one if it is already found? */
+			if (force) {
+				/* printf ("DEFNameIndex, rewriting node :%s: at index %d\n",tmp->strptr,ctr); */
+				DEFnames[ctr].node = node;
+			}
 			return DEFnames[ctr].node;
 		}
 	}
@@ -174,13 +179,13 @@ static void parseRoutes (const char **atts) {
 		#endif
 
 		if (strcmp("fromNode",atts[i]) == 0) {
-			fromNode = DEFNameIndex (atts[i+1], NULL);
+			fromNode = DEFNameIndex (atts[i+1], NULL, FALSE);
 			if (fromNode == NULL) {
 				ConsoleMessage ("ROUTE statement, line %d fromNode (%s) does not exist",LINE,atts[i+1]);
 				error = TRUE;
 			}
 		} else if (strcmp("toNode",atts[i]) == 0) {
-			toNode = DEFNameIndex (atts[i+1],NULL);
+			toNode = DEFNameIndex (atts[i+1],NULL, FALSE);
 			if (toNode == NULL) {
 				ConsoleMessage ("ROUTE statement, line %d toNode (%s) does not exist",LINE,atts[i+1]);
 				error = TRUE;
@@ -304,11 +309,12 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 			printf ("this is a DEF, name %s\n",atts[i+1]);
 			#endif
 
-			fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode);
+			fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode, TRUE);
 			if (fromDEFtable != thisNode) {
 				#ifdef X3DPARSERVERBOSE
 				printf ("Warning - line %d duplicate DEF name: \'%s\'\n",LINE,atts[i+1]);
 				#endif
+				printf ("Warning - line %d duplicate DEF name: \'%s\'\n",LINE,atts[i+1]);
 			}
 
 		} else if (strcmp ("USE",atts[i]) == 0) {
@@ -316,7 +322,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 			printf ("this is a USE, name %s\n",atts[i+1]);
 			#endif
 
-			fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode);
+			fromDEFtable = DEFNameIndex ((char *)atts[i+1],thisNode, FALSE);
 			if (fromDEFtable == thisNode) {
 				ConsoleMessage ("Warning - line %d DEF name: \'%s\' not found",LINE,atts[i+1]);
 			} else {
@@ -345,21 +351,26 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 static void XMLCALL startCDATA (void *userData) {
 	#ifdef X3DPARSERVERBOSE
-	printf ("start CDATA\n");
+	printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[parserMode]);
 	#endif
 	inCDATA = TRUE;
 }
 
 static void XMLCALL endCDATA (void *userData) {
 	#ifdef X3DPARSERVERBOSE
-	printf ("EndCData is %s\n",scriptText);
+	printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[parserMode]);
 	#endif
 	inCDATA = FALSE;
 
-	/* check sanity for top of stack This should be a Script node */
-	if (parentStack[parentIndex]->_nodeType != NODE_Script) {
-		ConsoleMessage ("endCDATA, line %d, expected the parent to be a Script node",LINE);
-		return;
+
+	if (parserMode == PARSING_PROTOBODY) {
+		dumpCDATAtoProtoBody (scriptText);
+	} else {
+		/* check sanity for top of stack This should be a Script node */
+		if (parentStack[parentIndex]->_nodeType != NODE_Script) {
+			ConsoleMessage ("endCDATA, line %d, expected the parent to be a Script node",LINE);
+			return;
+		}
 	}
 	
 	#ifdef X3DPARSERVERBOSE
