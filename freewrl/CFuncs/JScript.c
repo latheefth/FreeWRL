@@ -103,16 +103,30 @@ static JSClass globalClass = {
 
 
 int JSMaxScript = 0;
+/* Script name/type table */
+struct CRjsnameStruct *JSparamnames = NULL;
+int jsnameindex = -1;
+int MAXJSparamNames = 0;
 
 
 /* housekeeping routines */
 void kill_javascript(void) {
-/*printf ("calling kill_javascript()\n");*/
-return;
-	JS_DestroyRuntime(runtime);
-	runtime = NULL;
+	/* printf ("calling kill_javascript()\n"); */
+	zeroScriptHandles();
+	if (runtime != NULL) {
+		JS_DestroyRuntime(runtime);
+		runtime = NULL;
+	}
 	JSMaxScript = 0;
+	max_script_found = -1;
 	FREE_IF_NZ (ScriptControl)
+	FREE_IF_NZ(scr_act)
+
+	/* Script name/type table */
+	FREE_IF_NZ(JSparamnames);
+	jsnameindex = -1;
+	MAXJSparamNames = 0;
+
 }
 
 
@@ -125,6 +139,8 @@ void JSMaxAlloc() {
 	/* perform some REALLOCs on JavaScript database stuff for interfacing */
 	uintptr_t count;
 
+	/* printf ("start of JSMaxAlloc, JSMaxScript %d\n",JSMaxScript); */
+
 	JSMaxScript += 10;
 	ScriptControl = (struct CRscriptStruct*)REALLOC (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
 	scr_act = (uintptr_t *)REALLOC (scr_act, sizeof (*scr_act) * JSMaxScript);
@@ -136,6 +152,7 @@ void JSMaxAlloc() {
 		ScriptControl[count].eventsProcessed = (uintptr_t) NULL;
 		ScriptControl[count].cx = 0;
 		ScriptControl[count].glob = 0;
+		ScriptControl[count]._initialized = FALSE;
 	}
 }
 
@@ -147,7 +164,7 @@ void JSInit(uintptr_t num) {
 	BrowserNative *br; 	/* these are set here */
 
 	#ifdef JAVASCRIPTVERBOSE 
-	printf("init: script %d\n",num);
+	printf("JSinit: script %d\n",num);
 	#endif
 
 

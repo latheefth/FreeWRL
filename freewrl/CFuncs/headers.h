@@ -5,6 +5,8 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
+
+
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
@@ -103,6 +105,9 @@ struct CRjsnameStruct {
 
 extern struct CRjsnameStruct *JSparamnames;
 extern struct CRStruct *CRoutes;
+extern int jsnameindex;
+extern int MAXJSparamNames;
+
 
 
 /* To allow BOOL for boolean values */

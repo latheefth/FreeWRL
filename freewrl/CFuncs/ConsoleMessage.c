@@ -165,7 +165,7 @@ int ConsoleMessage(const char *fmt, ...) {
 
 #ifdef AQUA
 	/* print this to stdio */
-	printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n");
+	/* printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n"); */
 
         if ((strlen(FWbuffer)) < (STRING_LENGTH) -10) {
 		strcat (FWbuffer,"\n");

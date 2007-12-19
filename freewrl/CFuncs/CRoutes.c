@@ -247,11 +247,6 @@ struct CRscriptStruct *ScriptControl = 0; 	/* global objects and contexts for ea
 uintptr_t *scr_act = 0;			/* this script has been sent an eventIn */
 int max_script_found = -1;	/* the maximum script number found */
 
-/* Script name/type table */
-struct CRjsnameStruct *JSparamnames = 0;
-int jsnameindex = -1;
-int MAXJSparamNames = 0;
-
 /* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
 int CRoutesExtra = 0;
 
@@ -1172,7 +1167,7 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 
 	/* this script initialized yet? */
 	if (ScriptControl[actualscript]._initialized!=TRUE) {
-		/* ConsoleMessage ("Problem here - script not initialized, but we are routing to it..."); */
+		/* printf ("initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
 		ACTUALRUNSCRIPT(actualscript, "initialize()" ,&retval);
 		ScriptControl[actualscript]._initialized=TRUE;
 	}
@@ -1300,7 +1295,7 @@ void sendScriptEventIn(uintptr_t num) {
 
 			/* this script initialized yet? */
 			if (ScriptControl[(uintptr_t)to_ptr->routeToNode]._initialized!=TRUE) {
-				/* ConsoleMessage ("Problem here - script not initialized, but we are routing to it..."); */
+				/* printf ("initializing script %d at %s:%d\n",to_ptr->routeToNode, __FILE__,__LINE__); */
 				ACTUALRUNSCRIPT((uintptr_t)to_ptr->routeToNode, "initialize()" ,&retval);
 				ScriptControl[(uintptr_t)to_ptr->routeToNode]._initialized=TRUE;
 			}

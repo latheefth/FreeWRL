@@ -43,6 +43,9 @@ void pluginprint (const char *m, const char *p) {
         /* Set the timestamp */
         gettimeofday (&mytime,&tz);
 	myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+
+	/* really, we can just dump this to the console, not to a file */
+
 	if (tty == NULL) {
 		tty = fopen("/tmp/logPluginSocket", "w");
 		if (tty == NULL)
@@ -50,10 +53,13 @@ void pluginprint (const char *m, const char *p) {
 		fprintf (tty, "\nplugin restarted\n");
 	}
         fprintf (tty,"%f: freewrl: ",myt);
-
 	fprintf(tty, m,p);
 	fflush(tty);
-	/* printf ("%f: freewrl:%s:%s:\n", myt,m,p); */
+
+
+/*        printf ("%f: freewrl: ",myt);
+	printf(m,p);
+*/
 }
 #endif
 
@@ -122,6 +128,7 @@ void  requestPluginPrint(int to_plugin, const char *msg) {
         bytes = sizeof(urlRequest);
 
         if (write(to_plugin, (urlRequest *) &request, bytes) < 0) {
+		printf ("COULD NOT WRITE TO THE PLUGIN SOCKET!\n");
         }
 }
 
@@ -206,10 +213,15 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	#define returnErrorString "this file is not to be found on the internet"
 	if (strncmp(return_url,returnErrorString,strlen(returnErrorString)) == 0) return NULL;
 
-
 	/* now, did this request return a text file with a html page indicating 404- not found? */
 	infile = fopen (return_url,"r");
-	if (infile < 0) return NULL;
+	if (infile == NULL) {
+		#ifdef PLUGINSOCKETVERBOSE
+		pluginprint ("requestUrlFromPlugin, file %s could not be opened",return_url);
+		#endif
+		/* hmmm - I think that this file should exist, why did it not open? */
+		return NULL;
+	}
 
 	linecount = 0;
 	linelen = fread (buf,1,2000,infile);

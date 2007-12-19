@@ -177,7 +177,6 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 		makeAbsoluteFileName(filename,path,thisurl);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
-			/* printf ("getValidFileFromUrl, filename %s, cacheFileName %s\n",filename,cacheFileName); */
 			break;
 		}
 		count ++;
