@@ -177,11 +177,11 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 		makeAbsoluteFileName(filename,path,thisurl);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
-			break;
+			return TRUE;
 		}
 		count ++;
 	}
-	return count != inurl->n;
+	return FALSE;
 }
 
 /*
@@ -289,15 +289,19 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 		}
 	}
 
-	/* printf ("FileExists: opening file %s\n",cacheFileName); */
-
-
 	fp= fopen (cacheFileName,"r");
 	ok = (fp != NULL);
 
 	/* try reading the first 4 bytes into the firstBytes array */
 	if (ok) {
-		if (fread(firstBytes,1,4,fp)!=4) ok = FALSE;
+		if (fread(firstBytes,1,4,fp)!=4) {
+			printf ("file %s exists, but has a length < 4; can not determine type from first bytes\n",cacheFileName);
+			/* a file with less than 4 bytes in it. fill in the firstBytes with "something" */
+			firstBytes[0] = 0;
+			firstBytes[1] = 0;
+			firstBytes[2] = 0;
+			firstBytes[3] = 0;
+		}
 		fclose (fp);
 	}
 	return (ok);
@@ -838,16 +842,19 @@ void __pt_doInline() {
 	inl = (struct X3D_Inline *)psp.ptr;
 	inurl = &(inl->url);
 	filename = (char *)MALLOC(1000);
+	filename[0] = '\0';
 
 	/* lets make up the path and save it, and make it the global path */
 	psp.path = STRDUP(inl->__parenturl->strptr);
 
+	/* printf ("doInline, checking for file %s from path %s\n",inurl,psp.path); */
+
 	if (getValidFileFromUrl (filename, psp.path, inurl, firstBytes)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */
-		/* printf ("we were successful at locating %s\n",filename); */
+		/* printf ("we were successful at locating %s\n",filename);  */
 		psp.type=FROMURL;
 	} else {
-		if (count > 0) printf ("Could Not Locate URL (last choice was %s)\n",filename);
+		ConsoleMessage ("Could Not Locate Inline URL %s\n",filename);
 	}
 	psp.inp = filename; /* will be freed later */
 

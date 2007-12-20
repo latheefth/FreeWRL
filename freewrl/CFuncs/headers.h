@@ -164,6 +164,17 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		if (node->_ichange == 0) return; \
 	}
 
+
+/* convert a PROTO node (which will be a Group node) into a node. eg, for Materials  - this is a possible child
+node for ANY node that takes something other than a Group */
+#define POSSIBLE_PROTO_EXPANSION(inNode,outNode) \
+	if (inNode == NULL) outNode = NULL; \
+	else {if (X3D_NODE(inNode)->_nodeType == NODE_Group) { \
+		if (X3D_GROUP(inNode)->children.n>0) { \
+			outNode = X3D_GROUP(inNode)->children.p[0]; \
+		} else outNode = NULL; \
+	} else outNode = inNode; };
+
 #define MARK_NODE_COMPILED node->_ichange = node->_change;
 /* end of compile simple nodes code */
 

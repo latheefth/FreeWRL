@@ -201,19 +201,6 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 }
 
 void render_Sound (struct X3D_Sound *node) {
-/* node fields...
-	direction => [SFVec3f, [0, 0, 1]],
-	intensity => [SFFloat, 1.0],
-	location => [SFVec3f, [0,0,0]],
-	maxBack => [SFFloat, 10],
-	maxFront => [SFFloat, 10],
-	minBack => [SFFloat, 1],
-	minFront => [SFFloat, 1],
-	priority => [SFFloat, 0],
-	source => [SFNode, NULL],
-	spatialize => [SFBool,1, ""]	# not exposedfield
-*/
-
 	GLdouble mod[16];
 	GLdouble proj[16];
 	struct pt vec, direction, location;
@@ -222,13 +209,34 @@ void render_Sound (struct X3D_Sound *node) {
 	float midmin, midmax;
 	float amp;
 
-	struct X3D_AudioClip *acp;
-	struct X3D_MovieTexture *mcp;
+	struct X3D_AudioClip *acp = NULL;
+	struct X3D_MovieTexture *mcp = NULL;
+	struct X3D_Node *tmpN = NULL;
 	char mystring[256];
 
-	acp = (struct X3D_AudioClip *) node->source;
-	mcp = (struct X3D_MovieTexture *) node->source;
+	/* why bother doing this if there is no source? */
+	if (node->source == NULL) return;
 
+	/* ok, is the source a valid node?? */
+
+	/* might be a PROTO expansion, as in what Adam Nash does... */
+	POSSIBLE_PROTO_EXPANSION(node->source,tmpN)
+
+	/* did not find a valid source node, even after really looking at a PROTO def */
+	if (tmpN == NULL) return;
+
+	if (tmpN->_nodeType == NODE_AudioClip) 
+		acp = (struct X3D_AudioClip *) tmpN;
+	else if (tmpN->_nodeType == NODE_MovieTexture)
+		mcp = (struct X3D_MovieTexture *) tmpN;
+
+	else {
+		ConsoleMessage ("Sound node- source type of %s invalid",stringNodeType(tmpN->_nodeType));
+		node->source = NULL; /* stop messages from scrolling forever */
+		return;
+	}
+
+	/* printf ("sound, node %d, acp %d source %d\n",node, acp, acp->__sourceNumber); */
 	/*  MovieTextures NOT handled yet*/
 	/*  first - is there a node (any node!) attached here?*/
 	if (acp) {
@@ -324,6 +332,7 @@ void render_Sound (struct X3D_Sound *node) {
 		amp = 0.0;
 		/* is this within the maxFront maxBack? */
 
+		/* printf ("sound %d len %f maxFront %f\n",acp->__sourceNumber, len, node->maxFront); */
 		/* this code needs rework JAS */
 		if (len < node->maxFront) {
 

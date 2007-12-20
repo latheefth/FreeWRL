@@ -828,7 +828,7 @@ void do_AudioTick(void *ptr) {
 	/* is this audio wavelet initialized yet? */
 	if (node->__sourceNumber == -1) {
 		locateAudioSource (node);
-		/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber); */
+		/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber);  */
 	}
 
 	/* is this audio ok? if so, the sourceNumber will range
@@ -1482,6 +1482,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	SoundSourceNumber++;
 
 	filename = (char*)MALLOC(1000);
+	filename[0] = '\0';
 
 	/* lets make up the path and save it, and make it the global path */
 	/* copy the parent path over */
@@ -1493,7 +1494,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 		node->__localFileName = STRDUP(cacheFileName);
 	} else {
 		/* well, no file found */
-		printf ("Audio: could not find audio file\n");
+		printf ("Audio: could not find audio file :%s:\n",filename);
 		FREE_IF_NZ (filename);
 		node->__sourceNumber = BADAUDIOSOURCE;
 	}
