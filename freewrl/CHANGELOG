@@ -1,4 +1,8 @@
 For 1.20.0 (Some came out with 1.19.9 for Linux):
+	- Linux Sound - changed the maximum number of concurrent sound files to 128.
+
+	- PROTO expansion for SFNodes verified.
+
 	- KeySensor and StringSensor written and tested on OSX and Linux.
 
 	- Javascript SFString events were calling an incorrect Javascript call;

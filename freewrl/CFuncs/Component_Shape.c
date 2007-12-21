@@ -147,6 +147,7 @@ void child_Shape (struct X3D_Shape *node) {
 		int should_rend;
 		GLdouble modelMatrix[16];
 		int count;
+		void *tmpN;
 
 		if(!(node->geometry)) { return; }
 
@@ -163,7 +164,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 		if((render_collision) || (render_sensitive)) {
 			/* only need to forward the call to the child */
-			render_node((node->geometry));
+			POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN)
+			render_node(tmpN);
 			return;
 		}
 
@@ -191,8 +193,9 @@ void child_Shape (struct X3D_Shape *node) {
 		
 
 		/* is there an associated appearance node? */
-       	        if((node->appearance)) {
-                        render_node((node->appearance));
+       	        if(node->appearance) {
+			POSSIBLE_PROTO_EXPANSION(node->appearance,tmpN)
+                        render_node(node->appearance);
        	        } else {
                         /* no material, so just colour the following shape */
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
@@ -239,7 +242,8 @@ void child_Shape (struct X3D_Shape *node) {
 			BEGINOCCLUSIONQUERY
                         #endif
 
-			render_node((node->geometry));
+			POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN)
+			render_node(node->geometry);
 
                         #ifdef SHAPEOCCLUSION
 			ENDOCCLUSIONQUERY
@@ -268,13 +272,15 @@ void child_Shape (struct X3D_Shape *node) {
 void child_Appearance (struct X3D_Appearance *node) {
                 last_texture_depth = 0;
                 last_transparency = 1.0;
+		void *tmpN;
 
         /* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
          printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
          render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-                if((node->material)) {
-                        render_node((node->material));
+                if(node->material) {
+			POSSIBLE_PROTO_EXPANSION(node->material,tmpN)
+                        render_node(tmpN);
                 } else {
                         /* no material, so just colour the following shape */
                         /* Spec says to disable lighting and set coloUr to 1,1,1 */
@@ -282,24 +288,28 @@ void child_Appearance (struct X3D_Appearance *node) {
                         glColor3f(1.0,1.0,1.0);
                 }
 
-                if ((node->fillProperties)) {
-                        render_node((node->fillProperties));
+                if (node->fillProperties) {
+			POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN)
+                        render_node(tmpN);
                 }
 
                 /* set line widths - if we have line a lineProperties node */
-                if ((node->lineProperties)) {
-                        render_node((node->lineProperties));
+                if (node->lineProperties) {
+			POSSIBLE_PROTO_EXPANSION(node->lineProperties,tmpN)
+                        render_node(tmpN);
                 }
 
-                if((node->texture)) {
+                if(node->texture) {
                         /* we have to do a glPush, then restore, later */
                         have_texture=TRUE;
                         /* glPushAttrib(GL_ENABLE_BIT); */
 
                         /* is there a TextureTransform? if no texture, fugutaboutit */
-                        this_textureTransform = node->textureTransform;
+			POSSIBLE_PROTO_EXPANSION(node->textureTransform,this_textureTransform)
+                        /* this_textureTransform = node->textureTransform; */
 
                         /* now, render the texture */
-                        render_node((node->texture));
+			POSSIBLE_PROTO_EXPANSION(node->texture,tmpN)
+                        render_node(tmpN);
                 }
 }

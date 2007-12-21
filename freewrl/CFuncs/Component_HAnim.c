@@ -195,9 +195,8 @@ return;
 
 void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 	/* save the skinCoords and skinNormals for use in following HAnimJoints */
-	HANimSkinCoord = node->skinCoord;
-	HAnimSkinNormal = node->skinNormal;
-
+	POSSIBLE_PROTO_EXPANSION(node->skinCoord,HANimSkinCoord)
+	POSSIBLE_PROTO_EXPANSION(node->skinNormal,HAnimSkinNormal)
 	/* printf ("rendering HAnimHumanoid\n"); */
 }
 
@@ -334,6 +333,10 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 	/* int nc = ((node->children).n); */
 return;
 #ifdef HANIMHANIM
+
+
+note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
+
 	/* any children at all? */
 	if (nc==0) return;
 

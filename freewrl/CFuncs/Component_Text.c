@@ -823,7 +823,7 @@ void make_Text (struct X3D_Text *node) {
 	/* We need both sides */
 	DISABLE_CULL_FACE
 
-	if((node->fontStyle)) {
+	if(node->fontStyle) {
 		/* We have a FontStyle. Parse params (except size and spacing) and
 		   make up an unsigned int with bits indicating params, to be
 		   passed to the Text Renderer
@@ -863,7 +863,12 @@ void make_Text (struct X3D_Text *node) {
 		unsigned char *stmp;
 
 		/* step 0 - is the FontStyle a proto? */
-		fsp = (struct X3D_FontStyle *)node->fontStyle;
+		POSSIBLE_PROTO_EXPANSION(node->fontStyle,fsp)
+		/* fsp = (struct X3D_FontStyle *)node->fontStyle; */
+		if (fsp->_nodeType != NODE_FontStyle) {
+			ConsoleMessage ("Text node has FontStyle of %s",stringNodeType(fsp->_nodeType));
+			node->fontStyle = NULL; /* stop dumping these messages */
+		}
 
 		/* step 0.5 - now that we know FontStyle points ok, go for
 		 * the other pointers */

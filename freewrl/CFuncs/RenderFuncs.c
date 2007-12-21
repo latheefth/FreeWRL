@@ -697,7 +697,8 @@ int isShapeCompilerParsing() {
 	#endif
 }
 
-void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *coord, void *color, void *normal, void *texCoord) {
+void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *Icoord, void *Icolor, void *Inormal, void *ItexCoord) {
+	void *coord; void *color; void *normal; void *texCoord;
 	/* check to see if textures are being parsed right now */
 
 	/* give textures priority over node compiling */
@@ -707,6 +708,12 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 			return;
 		}
 	}
+
+	/* are any of these SFNodes PROTOS? If so, get the underlying real node, as PROTOS are handled like Groups. */
+	POSSIBLE_PROTO_EXPANSION(Icoord,coord)
+	POSSIBLE_PROTO_EXPANSION(Icolor,color)
+	POSSIBLE_PROTO_EXPANSION(Inormal,normal)
+	POSSIBLE_PROTO_EXPANSION(ItexCoord,texCoord)
 
 	#ifdef DO_MULTI_OPENGL_THREADS
 

@@ -155,6 +155,7 @@ void fin_Billboard (struct X3D_Billboard *node) {
 void child_Collision (struct X3D_Collision *node) {
 	int nc = (node->children).n;
 	int i;
+	void *tmpN;
 
 	if(render_collision) {
 		if((node->collide) && !(node->proxy)) {
@@ -183,8 +184,10 @@ void child_Collision (struct X3D_Collision *node) {
 				node->__hit = (node->__hit & 1) ? 2 : 0;
 
 		}
-        	        if(node->proxy)
-                        render_node(node->proxy);
+        	if(node->proxy) {
+			POSSIBLE_PROTO_EXPANSION(node->proxy,tmpN)
+                       	render_node(tmpN);
+		}
 
 	} else { /*standard group behaviour*/
 		DIRECTIONAL_LIGHT_SAVE

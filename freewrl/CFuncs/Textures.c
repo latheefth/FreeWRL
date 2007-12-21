@@ -475,12 +475,12 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
 		switch (count) {
-			case 0: {thistex = X3D_NODE(node->frontTexture);  break;}
-			case 1: {thistex = X3D_NODE(node->backTexture);   break;}
-			case 2: {thistex = X3D_NODE(node->topTexture);    break;}
-			case 3: {thistex = X3D_NODE(node->bottomTexture); break;}
-			case 4: {thistex = X3D_NODE(node->rightTexture);  break;}
-			case 5: {thistex = X3D_NODE(node->leftTexture);   break;}
+			case 0: {POSSIBLE_PROTO_EXPANSION(node->frontTexture,thistex);  break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(node->backTexture,thistex);   break;}
+			case 2: {POSSIBLE_PROTO_EXPANSION(node->topTexture,thistex);    break;}
+			case 3: {POSSIBLE_PROTO_EXPANSION(node->bottomTexture,thistex); break;}
+			case 4: {POSSIBLE_PROTO_EXPANSION(node->rightTexture,thistex);  break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(node->leftTexture,thistex);   break;}
 		}
 		if (thistex != 0) {
 			/* we have an image specified for this face */

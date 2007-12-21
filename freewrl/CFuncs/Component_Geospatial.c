@@ -142,6 +142,7 @@ void prep_GeoOrigin (struct X3D_GeoOrigin *node) {
 
 void prep_GeoLocation (struct X3D_GeoLocation *node) {
 	/* GLdouble modelMatrix[16]; */
+	void *tmpN;
 	
 	if (!render_vp) {
 		glPushMatrix();
@@ -163,7 +164,10 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 		printf ("modelmatrix shows us at %f %f %f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
 		*/
 
-		if (node->geoOrigin) render_node(node->geoOrigin);
+		if (node->geoOrigin) {
+			POSSIBLE_PROTO_EXPANSION(node->geoOrigin,tmpN)
+			render_node(tmpN);
+		}
 
 		if (GeoVerbose) printf ("GeoLocating to %f %f %f\n",
 			(double)node->__geoCoords.c[0]-GeoOrig[0],
@@ -184,6 +188,7 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 	char *posnstring;
+	void *tmpN;
 
 	if (!render_vp) return;
 
@@ -220,7 +225,8 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	}
 
 	if (node->geoOrigin) {
-		render_node (node->geoOrigin);
+		POSSIBLE_PROTO_EXPANSION(node->geoOrigin,tmpN)
+		render_node (tmpN);
 	}
 
 	/* perform GeoViewpoint translations */
@@ -256,6 +262,8 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 void child_GeoLOD (struct X3D_GeoLOD *node) {
 	/* do nothing yet */
 	UNUSED (node);
+	/* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
+
 }
 
 void child_GeoLocation (struct X3D_GeoLocation *node) {

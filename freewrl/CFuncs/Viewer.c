@@ -818,6 +818,9 @@ bind_geoviewpoint (struct X3D_GeoViewpoint *vp) {
 
 	/* set Viewer position and orientation */
 
+        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
+
+
 	/*printf ("bind_geoviewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);

@@ -789,6 +789,9 @@ void do_Oint4 (void *node) {
 
 void do_GeoOint (void *node) {
 	struct X3D_GeoPositionInterpolator *px;
+
+        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
+
 	UNUSED(node);
 	UNUSED(px);
 }
@@ -1012,6 +1015,9 @@ void do_MovieTextureTick( void *ptr) {
 void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 
 struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
+
+        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
+
 UNUSED(node);
 UNUSED(ev);
 UNUSED(over);

@@ -26,7 +26,7 @@
 
 #define DSP "/dev/dsp"
 
-#define MAXSOURCES 50
+#define MAXSOURCES 128
 #define BUFSIZE  512
 #define MAXBUFSIZE 8192
 #define NUMBUFS 2
