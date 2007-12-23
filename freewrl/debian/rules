@@ -58,6 +58,15 @@ install: build
 
 	# Add here commands to install the package into debian/freewrl.
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/freewrl
+	# Plugin is installed in /usr/lib/mozilla-firefox/plugins
+	# but we create symlink in other directories
+	for i in firefox iceape iceweasel mozilla; do \
+	mkdir -p $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
+	cd $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
+	pwd; echo $$i; \
+	ln -s ../../mozilla-firefox/plugins/npfreewrl.so npfreewrl.so; \
+	ln -s ../../mozilla-firefox/plugins/vrml.jar vrml.jar; \
+	done
 
 
 # Build architecture-independent files here.
