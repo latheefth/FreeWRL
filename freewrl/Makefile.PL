@@ -16,6 +16,11 @@ if ($OS eq "Linux") { print "This install is running on a Linux based computer\n
 my $HAVE_UBUNTU = "NO";
 chomp ($pwd = getcwd());
 
+# Do we need ldconfig ?
+# If we are running under the control of dpkg (Debian, Ubuntu, Fink, ...)
+# we do not need ldconfig...
+my $NEED_LDCONFIG = 1;
+
 # What compilers do we have?
 my $JAVAC = `which javac`;
 chomp($JAVAC);
@@ -98,8 +103,10 @@ if (-e "/usr/share/applications") {
 if ($issue =~ /Debian/) {
     print "Linux flavour: Debian\n";
     $VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla-firefox/plugins";
+    $NEED_LDCONFIG = 0;
 } elsif ($issue =~ /Ubuntu/) {
     print "Linux flavour: Ubuntu\n";
+    $NEED_LDCONFIG = 0;
 } else {
 }
 
@@ -142,6 +149,7 @@ my $jsobjdir;
 my $noStackProtector = "";
 my @inc;
 my @libs;
+my $INCLUDED_JS = 0;
 
 if (!($pkgconfig eq "")) {
     $pg_js = `pkg-config --cflags xulrunner-js 2>0`;
@@ -160,7 +168,7 @@ if ($pg_js eq "") {
     #location of the spidermonkey js engine.
     $jsobjdir .= "_OPT.OBJ";
     $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
-
+    $INCLUDED_JS = 1;
 } else {
 
     $jsCFLAGS = $pg_js;
@@ -191,12 +199,12 @@ if ($ok eq 0) {
 	print "this system does not use the -fno-stack-protector flag\n";
 }
 
-if ($jsCFLAGS eq "") {
+if ($INCLUDED_JS) {
     push @inc, $VRML_CONFIG{FREEWRL_INC}, "-IJS/$jsobjdir", "-IJS/$jsdir", "-ICFuncs -ICFrontEnd ";
 } else {
     push @inc, $VRML_CONFIG{FREEWRL_INC}, "$jsCFLAGS", "-ICFuncs -ICFrontEnd ";
 }
-if ($jsLDFLAGS eq "") {
+if ($INCLUDED_JS) {
     push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-lFreeWRLjs";
 } else {
     push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "$jsLDFLAGS";
@@ -263,7 +271,7 @@ sub writeAllTarget () {
 	# Javascript library will be build only if $jsLDFLAGS is not empty (= this means
         # mozjs library was found in system.
 	my $all = "all:";
-	if ($jsLDFLAGS eq "") {
+	if ($INCLUDED_JS) {
 	    $all = "$all Javascript";
 	}
 	$all = "$all libFreeWRL CFrontEnd";
@@ -359,12 +367,16 @@ sub writeMakefileFinalTargets() {
 	}
 	if ($OS eq "Linux") {
 		print MK "\tinstall -D libFreeWRLFunc.so \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
-		print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
-		if ($CHCON ne "") {
-			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
-			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
+		if ($INCLUDED_JS) {
+		    print MK "\tinstall -D $libFreeWRLjspath \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
 		}
-		if ($HAVE_UBUNTU eq "NO") {
+		if ($CHCON ne "") {
+		    if ($INCLUDED_JS) {
+			print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
+		    }
+		    print MK "\t-$CHCON -t texrel_shlib_t  \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
+		}
+		if ($NEED_LDCONFIG) {
 			print MK "\t/sbin/ldconfig\n";
 		}
 	}
@@ -610,7 +622,9 @@ sub writeMakeDebAndRpm () {
 		print MK "\techo \"%files\" >> $specfile\n";
 		print MK "\techo \"%defattr(-,root,root)\" >> $specfile\n";
 		print MK "\techo \"\$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\" >> $specfile\n";
-		print MK "\techo \"\$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\" >> $specfile\n";
+		if ($INCLUDED_JS) {
+		    print MK "\techo \"\$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\" >> $specfile\n";
+		}
 		print MK "\techo \"\$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\" >> $specfile\n";
 		print MK "\techo \"\$(DESTDIR)\$(FRONTEND_DIR)/freewrl\" >> $specfile\n";
 		print MK "\techo \"\$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\" >> $specfile\n";
@@ -670,11 +684,8 @@ sub writeMakefileDistclean() {
 	    print MK "\trm -f java/classes/vrml.jar\n";
 	}
 
-	if (! $jsobjdir eq "") {
+	if ($INCLUDED_JS) {
 	    print MK "\trm -rf JS/$jsobjdir\n";
-	}
-	# remove other JS directories
-	if (! $jsobjdir eq "") {
 	    $jsobjdir =~s/src/src\/editline/;
 	    print MK "\trm -rf JS/$jsobjdir\n";
 	    $jsobjdir =~ s/editline/fdlibm/;
@@ -688,11 +699,14 @@ sub writeMakefileDistclean() {
 	print MK "\trm -f TAGS\n";
 	print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
 	print MK "\trm -f \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
+
 	if ($OS eq "Linux") {
 		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
-		print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
-		if ($HAVE_UBUNTU eq "NO") {
-			print MK "\t/sbin/ldconfig\n";
+		if ($INCLUDED_JS) {
+		    print MK "\trm -f \$(DESTDIR)\$(LIB_DIR)/libFreeWRLjs.so\n";
+		}
+		if ($NEED_LDCONFIG) {
+		    print MK "\t/sbin/ldconfig\n";
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
