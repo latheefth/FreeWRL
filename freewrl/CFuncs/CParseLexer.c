@@ -197,6 +197,7 @@ void lexer_scopeOut_PROTO(struct VRMLLexer* me)
   c!=0x5C && c!=0x5D && c!=0x3A && c!=0x7B && c!=0x7D && c!=0x7F)
 #define IS_ID_FIRST(c) \
  (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D)
+
 BOOL lexer_setCurID(struct VRMLLexer* me)
 {
  int c;
@@ -245,7 +246,7 @@ breakIdLoop:
  if (lexer_keyword(me,KW_EXTERNPROTO))
         lexer_handle_EXTERNPROTO(me);
 
- /* JAS printf ("lexer_setCurID, got %s\n",me->curID); */
+ printf ("lexer_setCurID, got %s\n",me->curID);
 
  return TRUE;
 }
@@ -906,7 +907,7 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
 {
  int c;
 
-if (me->curID) printf ("lexer_operator, curID is NOT NULL\n");
+if (me->curID) printf ("lexer_operator, curID is NOT NULL - it is %s - but I am looking for a :%c:\n",me->curID,op);
 
  lexer_skip(me);
 

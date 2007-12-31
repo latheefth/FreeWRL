@@ -17,6 +17,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#define CPARSERVERBOSE
+
 /* JavaScript-"protocols" */
 const char* JS_PROTOCOLS[]={
  "javascript",
@@ -50,7 +52,9 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  ret->valueSet=(mod!=PKW_initializeOnly);
  /* value is set later on */
 
- /* printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->name, ret->type,PROTOKEYWORDS[ret->fieldDecl->mode]); */
+ #ifdef CPARSERVERBOSE
+ printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->name, ret->type,PROTOKEYWORDS[ret->fieldDecl->mode]); 
+ #endif
 
  return ret;
 }
@@ -64,7 +68,9 @@ struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDec
 	ret->decl = dec;
 	ret->script = script;
 
-	/* printf("creating new scriptfieldinstanceinfo with decl %p script %p\n", dec, script); */
+	#ifdef CPARSERVERBOSE
+	printf("creating new scriptfieldinstanceinfo with decl %p script %p\n", dec, script); 
+	#endif
 
 	return(ret);
 }
@@ -73,7 +79,10 @@ struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDec
 struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo* me) {
 	struct ScriptFieldInstanceInfo* ret = MALLOC(sizeof(struct ScriptFieldInstanceInfo));
 
-	/* printf("copying instanceinfo %p (%p %p) to %p\n", me, me->decl, me->script, ret); */
+	#ifdef CPARSERVERBOSE
+	printf("copying instanceinfo %p (%p %p) to %p\n", me, me->decl, me->script, ret);
+	#endif
+
 	
 	assert(ret);
 
@@ -88,7 +97,10 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 	struct ScriptFieldDecl* ret = MALLOC(sizeof (struct ScriptFieldDecl));
 	assert(ret);
 
-	/* printf("copying script field decl %p to %p\n", me, ret); */
+	#ifdef CPARSERVERBOSE
+	printf("copying script field decl %p to %p\n", me, ret);
+	#endif
+
 
 	ret->fieldDecl = fieldDecl_copy(me->fieldDecl);
 	assert(ret->fieldDecl);	
@@ -130,7 +142,10 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 
 /* Initialize JSField */
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
-	/* printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode); */
+	#ifdef CPARSERVERBOSE
+	printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode);
+	#endif
+
 	assert(me->valueSet);
  	InitScriptFieldC(num, me->fieldDecl->mode, me->fieldDecl->type, me->name, me->value);
 }
@@ -174,7 +189,9 @@ struct Script* newScript(void)
  assert(ret);
 
  ret->num=nextScriptHandle();
- /* printf("newScript: created new script with num %d\n", ret->num); */
+ 	#ifdef CPARSERVERBOSE
+	printf("newScript: created new script with num %d\n", ret->num);
+	#endif
  ret->loaded=FALSE;
 
  ret->fields=newVector(struct ScriptFieldDecl*, 4);
@@ -214,7 +231,10 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
 
 void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 {
- /* printf ("script_addField: adding field %p to script %d (pointer %p)\n",field,me->num,me);  */
+ #ifdef CPARSERVERBOSE
+ printf ("script_addField: adding field %p to script %d (pointer %p)\n",field,me->num,me); 
+ #endif 
+
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
  scriptFieldDecl_jsFieldInit(field, me->num);
 }
@@ -267,7 +287,10 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  /* Not a valid script in this SFString. Lets see if this
     is this a possible file that we have to get? */
 
- /* printf ("script_initCodeFromUri, uri is %s\n",uri); */
+ #ifdef CPARSERVERBOSE
+ printf ("script_initCodeFromUri, uri is %s\n",uri); 
+ #endif
+
  filename = (char *)MALLOC(1000);
 
  /* get the current parent */

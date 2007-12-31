@@ -15,6 +15,8 @@
 #include "CProto.h"
 #include "CScripts.h"
 
+#undef CPARSERVERBOSE
+
 #define PARSE_ERROR(msg) \
  { \
   parseError(msg); \
@@ -363,8 +365,8 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 
  
  /* If this is a field or an exposed field */ 
- if(mode==PKW_initializeOnly || mode==PKW_inputOutput)
- {
+ if(mode==PKW_initializeOnly || mode==PKW_inputOutput) {
+
   /* Get the next token(s) from the lexer and store them in defaultVal as the appropriate type. 
     This is the default value for this field.  */
   if (script && lexer_keyword(me->lexer, KW_IS)) {
@@ -401,6 +403,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
   	assert(PARSE_TYPE[type]);
   	if(!PARSE_TYPE[type](me, (void*)&defaultVal))
   	{
+
   		 /* Invalid default value parsed.  Delete the proto or script declaration. */
   		 parseError("Expected default value for field!");
   		 if(pdecl) deleteProtoFieldDecl(pdecl);
@@ -1363,6 +1366,105 @@ void parser_registerRoute(struct VRMLParser* me,
   CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len, dir);
 }
 
+
+/* parse a DEF statement. Return a pointer to a vrmlNodeT */
+static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
+	indexT ind;
+	vrmlNodeT node;
+
+	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
+	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
+	if(!lexer_defineNodeName(me->lexer, &ind))
+		PARSE_ERROR("Expected nodeNameId after DEF!\n")
+	assert(ind!=ID_UNDEFINED);
+
+	/* If the DEFedNodes stack has not already been created.  If not, create new stack and add an X3D_Nodes vector to that stack */ 
+	if(!me->DEFedNodes || stack_empty(me->DEFedNodes))
+		parser_scopeIn_DEFUSE(me);
+	assert(me->DEFedNodes);
+	assert(!stack_empty(me->DEFedNodes));
+
+	/* Did we just add the name to the userNodeNames vector?  If so, then the node hasn't yet been added to the DEFedNodes vector, so add it */
+	assert(ind<=vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+	if(ind==vector_size(stack_top(struct Vector*, me->DEFedNodes))) {
+		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), NULL);
+	}
+	assert(ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+
+
+	/* Parse this node.  Create an X3D_Node structure of the appropriate type for this node and fill in the values for the fields
+	specified.  Add any routes to the CRoutes table. Add any PROTOs to the PROTOs vector */
+	#ifdef CPARSERVERBOSE
+		printf("parser_nodeStatement: parsing DEFed node \n");
+	#endif
+	if(!parser_node(me, &node)) {
+		/* PARSE_ERROR("Expected node in DEF statement!\n") */
+		/* try to make a better error message. */
+		strcpy (fw_outline,"ERROR:Expected an X3D node in a DEF statement, got \"");
+		if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)");
+		strcat (fw_outline,"\" ");
+		ConsoleMessage(fw_outline); 
+		fprintf (stderr,"%s\n",fw_outline);
+		PARSER_FINALLY 
+		return NULL; 
+	}
+	#ifdef CPARSERVERBOSE
+		printf("parser_nodeStatement: DEFed node successfully parsed\n");
+	#endif
+
+	/* Set the top memmber of the DEFed nodes stack to this node */
+	vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
+	#ifdef CPARSERVERBOSE
+	printf("parser_nodeStatement: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
+	#endif
+
+	/*
+	if(!parser_node(me, &vector_get(struct X3D_Node*,
+	stack_top(struct Vector*, me->DEFedNodes), ind)))
+	PARSE_ERROR("Expected node in DEF statement!\n")
+	*/
+
+	/* Return a pointer to the node in the variable ret */
+	return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
+}
+
+
+/* parse a USE statement. Return a pointer to a vrmlNodeT */
+static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
+	indexT ind;
+
+	/* lexer_nodeName is #defined as lexer_specialID(me, NULL, ret, NULL, 0, stack_top(struct Vector*, userNodeNames)) */
+	/* Look for the nodename in list of user-defined node names (userNodeNames) and return the index in ret */
+	if(!lexer_nodeName(me->lexer, &ind)) {
+		/* PARSE_ERROR("Expected valid DEF name after USE!\n") */
+		/* try to make a better error message. */
+		strcpy (fw_outline,"ERROR:Expected valid DEF name after USE keyword");
+		if (me->lexer->curID != NULL) {
+			strcat (fw_outline, ", found \"");
+			strcat (fw_outline, me->lexer->curID); 
+			strcat (fw_outline,"\" ");
+		}
+		ConsoleMessage(fw_outline); 
+		fprintf (stderr,"%s\n",fw_outline);
+	}
+	printf("parser_nodeStatement: parsing USE\n");
+	#ifdef CPARSERVERBOSE
+		printf("parser_nodeStatement: parsing USE\n");
+	#endif
+
+	/* If we're USEing it, it has to already be defined. */
+	assert(ind!=ID_UNDEFINED);
+
+	/* It also has to be in the DEFedNodes stack */
+	assert(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
+	ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+
+	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
+	return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
+}
+
+
+
 /* Parses a nodeStatement */
 /* If the statement starts with DEF, and has not previously been defined, we add it to the userNodeNames and DEFedNodes vectors.  We parse the node
    and return a pointer to the node in ret.
@@ -1376,93 +1478,15 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
  assert(me->lexer);
 
  /* A DEF-statement? */
- if(lexer_keyword(me->lexer, KW_DEF))
- {
-  indexT ind;
-
-  /* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
-  /* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
-  if(!lexer_defineNodeName(me->lexer, &ind))
-   PARSE_ERROR("Expected nodeNameId after DEF!\n")
-  assert(ind!=ID_UNDEFINED);
-
-  /* If the DEFedNodes stack has not already been created.  If not, create new stack and add an X3D_Nodes vector to that stack */ 
-  if(!me->DEFedNodes || stack_empty(me->DEFedNodes))
-   parser_scopeIn_DEFUSE(me);
-  assert(me->DEFedNodes);
-  assert(!stack_empty(me->DEFedNodes));
-
-  /* Did we just add the name to the userNodeNames vector?  If so, then the node hasn't yet been added to the DEFedNodes vector, so add it */
-  assert(ind<=vector_size(stack_top(struct Vector*, me->DEFedNodes)));
-  if(ind==vector_size(stack_top(struct Vector*, me->DEFedNodes))) {
-   vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes),
-    NULL);
-  }
-  assert(ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
-
-  vrmlNodeT node;
-
-  /* Parse this node.  Create an X3D_Node structure of the appropriate type for this node and fill in the values for the fields
-     specified.  Add any routes to the CRoutes table. Add any PROTOs to the PROTOs vector */
-#ifdef CPARSERVERBOSE
-  printf("parser_nodeStatement: parsing DEFed node \n");
-#endif
-  if(!parser_node(me, &node)) {
-   	/* PARSE_ERROR("Expected node in DEF statement!\n") */
-	/* try to make a better error message. */
-	strcpy (fw_outline,"ERROR:Expected an X3D node in a DEF statement, got \"");
-	if (me->lexer->curID != NULL) strcat (fw_outline, me->lexer->curID); else strcat (fw_outline, "(EOF)");
-	strcat (fw_outline,"\" ");
-  	ConsoleMessage(fw_outline); 
-	fprintf (stderr,"%s\n",fw_outline);
-  	PARSER_FINALLY 
-  	return FALSE; 
-   }
-#ifdef CPARSERVERBOSE
-  printf("parser_nodeStatement: DEFed node successfully parsed\n");
-#endif
-
-  /* Set the top memmber of the DEFed nodes stack to this node */
-  vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
-#ifdef CPARSERVERBOSE
-    printf("parser_nodeStatement: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
-#endif
-
-  /*
-  if(!parser_node(me, &vector_get(struct X3D_Node*,
-   stack_top(struct Vector*, me->DEFedNodes), ind)))
-   PARSE_ERROR("Expected node in DEF statement!\n")
-  */
-
-  /* Return a pointer to the node in the variable ret */
-  *ret=vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
-  return TRUE;
+ if(lexer_keyword(me->lexer, KW_DEF)) {
+	*ret=parse_KW_DEF(me);
+  	return TRUE;
  }
 
  /* A USE-statement? */
- if(lexer_keyword(me->lexer, KW_USE))
- {
-  indexT ind;
-
-  /* lexer_nodeName is #defined as lexer_specialID(me, NULL, ret, NULL, 0, stack_top(struct Vector*, userNodeNames)) */
-  /* Look for the nodename in list of user-defined node names (userNodeNames) and return the index in ret */
-  if(!lexer_nodeName(me->lexer, &ind)) {
-   PARSE_ERROR("Expected nodeNameId after USE!\n")
-  }
-#ifdef CPARSERVERBOSE
-   printf("parser_nodeStatement: parsing USE\n");
-#endif
-
-  /* If we're USEing it, it has to already be defined. */
-  assert(ind!=ID_UNDEFINED);
-
-  /* It also has to be in the DEFedNodes stack */
-  assert(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
-   ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
-
-  /* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
-  *ret=vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
-  return TRUE;
+ if(lexer_keyword(me->lexer, KW_USE)) {
+	*ret=parse_KW_USE(me);
+	return TRUE;
  }
 
  /* Otherwise, simply a node. */
@@ -2356,6 +2380,46 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
 /* ************************************************************************** */
 /* MF* field values */
 
+/* take a USE field, and stuff it into a Multi*type field  - see parser_mf routines below */
+static void stuff_it_in(void *out, vrmlNodeT in, int type) {
+
+	int n;
+	void *p;
+
+printf ("stuff_it_in, got vrmlT vector successfully - it is a type of %s\n",stringNodeType(in->_nodeType)); 
+printf ("stuff_it_in, ret is %d\n",out);
+	/* convert, say, a X3D_something to a struct Multi_Node { int n; int  *p; }; */
+	switch (type) {
+		/* convert the node pointer into the "p" field of a Multi_MFNode */
+		case FIELDTYPE_MFNode: 
+			/*struct Multi_Node { int n; void * *p; };*/
+			((struct Multi_Node *)out)->n=1;
+			((struct Multi_Node *)out)->p=MALLOC(sizeof(struct X3D_Node*));
+			((struct Multi_Node *)out)->p[0] = in;
+			break;	
+			
+		case FIELDTYPE_MFFloat: 
+		case FIELDTYPE_MFRotation: 
+		case FIELDTYPE_MFVec3f: 
+		case FIELDTYPE_MFBool: 
+		case FIELDTYPE_MFInt32: 
+		case FIELDTYPE_MFColor: 
+		case FIELDTYPE_MFColorRGBA: 
+		case FIELDTYPE_MFTime: 
+		case FIELDTYPE_MFString: 
+		case FIELDTYPE_MFVec2f: 
+			/* struct Multi_Float { int n; float  *p; }; */
+			/* treat these all the same, as the data type is same size */
+			((struct Multi_Node *)out)->n=1;
+			((struct Multi_Node *)out)->p=MALLOC(sizeof(float));
+			((struct Multi_Node *)out)->p[0] = in;
+			break;
+		default: {
+			ConsoleMessage ("VRML Parser; stuff_it_in, unhandled type");
+		}	
+	}
+}
+
 /* Parse a MF* field */
 #define PARSER_MFFIELD(name, type) \
  BOOL parser_mf##name##Value(struct VRMLParser* me, \
@@ -2363,17 +2427,64 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
  { \
   struct Vector* vec=NULL; \
   \
-  /* Just a single value? */ \
-  if(!lexer_openSquare(me->lexer)) \
-  { \
-   ret->p=MALLOC(sizeof(vrml##type##T)); \
-   if(!parser_sf##name##Value(me, (void*)ret->p)) \
-    return FALSE; \
-   ret->n=1; \
-   return TRUE; \
-  } \
-  \
+if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n"); \
+  /* is this a USE statement? */ \
+ if(lexer_keyword(me->lexer, KW_USE)) { \
+	vrmlNodeT RCX; \
+	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
+	RCX=parse_KW_USE(me); \
+	if (RCX == NULL) return FALSE; \
+	\
+	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
+	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
+	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
+	return TRUE; \
+ } \
+ \
+ else if (lexer_keyword(me->lexer, KW_DEF)) { \
+	printf ("parser_MF, got the DEF!\n"); \
+	vrmlNodeT RCX; \
+	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
+	RCX=parse_KW_DEF(me); \
+	if (RCX == NULL) return FALSE; \
+	\
+	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
+	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
+	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
+	return TRUE; \
+} \
+\
+/* possibly a SFNodeish type value?? */ \
+if (me->lexer->curID != NULL) { \
+	vrmlNodeT RCX; \
+printf ("parser_MF, curID was not null... lets just parse node\n");\
+	if (!parser_node(me, RCX)) {  \
+	/* if(!parser_sf##name##Value(me, RCX)) {*/ \
+		return FALSE; \
+	} \
+	if (RCX == NULL) return FALSE; \
+	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
+	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
+	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
+	return TRUE; \
+} \
+/* Just a single value? */ \
+if(!lexer_openSquare(me->lexer)) { \
+	vrmlNodeT RCX; \
+printf ("parser_MF, not an opensquare, lets just parse node\n");\
+	/* if (!parser_node(me, RCX)) { */ \
+	if(!parser_sf##name##Value(me, RCX)) { \
+		return FALSE; \
+	} \
+	if (RCX == NULL) return FALSE; \
+	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
+	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
+	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
+	return TRUE; \
+} \
+\
   /* Otherwise, a real vector */ \
+printf ("parser_MF, this is a real vector\n");\
   vec=newVector(vrml##type##T, 128); \
   while(!lexer_closeSquare(me->lexer)) \
   { \
