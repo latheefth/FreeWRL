@@ -37,6 +37,14 @@ static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
 
+void closeConsoleMessage() {
+	consMsgCount = 0;
+	if (ConsoleLog != NULL) {
+		fclose (ConsoleLog);
+		ConsoleLog = NULL;
+	}
+}
+
 int ConsoleMessage(const char *fmt, ...) {
 	va_list ap;
 	char tempbuf[STRING_LENGTH];
@@ -184,6 +192,8 @@ int ConsoleMessage(const char *fmt, ...) {
 	} else {
                 char systemBuffer[STRING_LENGTH + 10];
                 sprintf(systemBuffer, "say \"%s\"", FWbuffer);
+printf (systemBuffer);
+
                 system(systemBuffer);
 	}
 #else

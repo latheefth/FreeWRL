@@ -142,7 +142,7 @@ void addNodeToKeySensorList(struct X3D_Node* node) {
 }
 
 void killKeySensorNodeList() {
-	/* printf ("killKeySenoorNodeList\n"); */
+
 	FREE_IF_NZ(keySink);
 	keySyncMallocLen = 0; 
 	keySinkCurMax = 0;

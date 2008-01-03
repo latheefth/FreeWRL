@@ -372,8 +372,8 @@ void kill_rendering() {kill_X3DNodes();}
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
         char mystring[20];
 
-	/* consoleMessage - ok, not exactly a kill, more of a reset */
-	consMsgCount = 0;
+	/* close the Console Message system, if required. */
+	closeConsoleMessage();
 
 	if (loadedFromURL) {
 		/* occlusion testing - zero total count, but keep MALLOC'd memory around */

@@ -1195,6 +1195,7 @@ void destroyCParserData();
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 
 int ConsoleMessage(const char *fmt, ...);
+void closeConsoleMessage(void);
 extern int consMsgCount;
 
 void outOfMemory(const char *message);
