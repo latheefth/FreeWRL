@@ -15,8 +15,6 @@
 #include "CProto.h"
 #include "CScripts.h"
 
-#undef CPARSERVERBOSE
-
 #define PARSE_ERROR(msg) \
  { \
   parseError(msg); \
@@ -304,9 +302,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
    Creates a protoFieldDecl or scriptFieldDecl structure to hold field data.
    Parses and stores the default value of fields and inputOutputs.
    Adds the protoFieldDecl or scriptFieldDecl to the list of fields in the ProtoDefinition or Script structure. */ 
-BOOL parser_interfaceDeclaration(struct VRMLParser* me,
- struct ProtoDefinition* proto, struct Script* script)
-{
+BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* proto, struct Script* script) {
  indexT mode;
  indexT type;
  indexT name;
@@ -316,14 +312,23 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  struct ScriptFieldDecl* sdecl=NULL;
  BOOL scriptISfield = FALSE;
 
+ #ifdef CPARSERVERBOSE
+ printf ("start of parser_interfaceDeclaration\n");
+ #endif
+
  /* Either PROTO or Script interface! */
  assert((proto || script) && !(proto && script));
 
  /* lexer_protoFieldMode is #defined as lexer_specialID(me, r, NULL, PROTOKEYWORDS, PROTOKEYWORDS_COUNT, NULL) */
  /* Looks for the next token in the array PROTOKEYWORDS (inputOnly, outputOnly, inputOutput, field) and returns the 
     appropriate index in mode */
- if(!lexer_protoFieldMode(me->lexer, &mode))
-  return FALSE;
+ if(!lexer_protoFieldMode(me->lexer, &mode)) {
+ 	#ifdef CPARSERVERBOSE
+ 	printf ("parser_interfaceDeclaration, not lexer_protoFieldMode\n");
+ 	#endif
+
+  	return FALSE;
+ }
 
  /* Script can not take inputOutputs */
  if(script && mode==PKW_inputOutput)
@@ -333,6 +338,10 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  /* Looks for the next token in the array FIELDTYPES and returns the index in type */
  if(!lexer_fieldType(me->lexer, &type))
   PARSE_ERROR("Expected fieldType after proto-field keyword!")
+
+ #ifdef CPARSERVERBOSE
+ printf ("parser_interfaceDeclaration, switching on mode %s\n",PROTOKEYWORDS[mode]);
+ #endif
 
  switch(mode)
  {
@@ -358,14 +367,26 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
  /* If we are parsing a PROTO, create a new  protoFieldDecl.
     If we are parsing a Script, create a new scriptFieldDecl. */
  if(proto) {
-  pdecl=newProtoFieldDecl(mode, type, name);
+	#ifdef CPARSERVERBOSE
+	printf ("parser_interfaceDeclaration, calling newProtoFieldDecl\n");
+	#endif
+
+	pdecl=newProtoFieldDecl(mode, type, name);
+ } else {
+	#ifdef CPARSERVERBOSE
+	printf ("parser_interfaceDeclaration, calling newScriptFieldDecl\n");
+	#endif
+
+	sdecl=newScriptFieldDecl(me->lexer, mode, type, name);
  }
- else
-  sdecl=newScriptFieldDecl(me->lexer, mode, type, name);
 
  
  /* If this is a field or an exposed field */ 
- if(mode==PKW_initializeOnly || mode==PKW_inputOutput) {
+ if(mode==PKW_initializeOnly || mode==PKW_inputOutput) { 
+	#ifdef CPARSERVERBOSE
+	printf ("parser_interfaceDeclaration, mode==PKW_initializeOnly || mode==PKW_inputOutput\n");
+	#endif
+
 
   /* Get the next token(s) from the lexer and store them in defaultVal as the appropriate type. 
     This is the default value for this field.  */
@@ -422,13 +443,21 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
    scriptFieldDecl_setFieldValue(sdecl, defaultVal);
   }
  } else {
+	#ifdef CPARSERVERBOSE
+	printf ("parser_interfaceDeclaration, NOT mode==PKW_initializeOnly || mode==PKW_inputOutput\n");
+	#endif
+
   /* If this is a Script inputOnly/outputOnly IS statement */
   if (script && lexer_keyword(me->lexer, KW_IS)) {
   	indexT evE, evO;
   	BOOL isIn = FALSE, isOut = FALSE;
+
+	#ifdef CPARSERVERBOSE
+	printf ("parser_interfaceDeclaration, got IS\n");
+	#endif
 	
 	/* Get the inputOnly or outputOnly that this field IS */
-	if ((mode == PKW_inputOnly) || (mode==PKW_outputOnly)) {
+	if (mode == PKW_inputOnly) {
 		if (lexer_inputOnly(me->lexer, NULL, NULL, NULL, &evO, &evE)) {
 			isIn = TRUE;
 			isOut = (evE != ID_UNDEFINED);
@@ -440,8 +469,14 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me,
 	}
 
 	/* Check that the event was found somewhere ... */
-	if (!isIn && !isOut) 
+	if (!isIn && !isOut)  {
+		#ifdef CPARSERVERBOSE
+		printf ("parser_interfaceDeclaration, NOT isIn Nor isOut\n");
+		#endif
+
 		return FALSE;
+	}
+
 
 	/* Get the Proto field definition for the field that this IS */
 	pField = protoDefinition_getField(me->curPROTO, evO, isIn ? PKW_inputOnly: PKW_outputOnly); /* can handle inputOnly, outputOnly */
@@ -599,6 +634,10 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  parser_scopeOut(me);
 
  /* Make sure that the next token is a '}'.  Skip over it. */
+ #ifdef CPARSERVERBOSE
+ printf ("calling lexer_closeCurly at A\n");
+ #endif
+
  if(!lexer_closeCurly(me->lexer))
   PARSE_ERROR("Expected } after PROTO body!")
 
@@ -1511,8 +1550,7 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 	For each route in the routes list of the ProtoDefinition, add the route to the CRoutes table.
 	Return a pointer to the X3D_Node structure that is the scenegraph for this PROTO.
 */
-BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
-{
+BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret) {
  indexT nodeTypeB, nodeTypeU;
  struct X3D_Node* node=NULL;
 
@@ -1531,8 +1569,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
 
  /* Built-in node */
  /* Node was found in NODES array */
- if(nodeTypeB!=ID_UNDEFINED)
- {
+ if(nodeTypeB!=ID_UNDEFINED) {
 #ifdef CPARSERVERBOSE
   printf("parser_node: parsing builtin node\n");
 #endif
@@ -1690,6 +1727,10 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  assert(node);
 
  /* Check that the node is closed by a '}', and skip this token */
+ #ifdef CPARSERVERBOSE
+ printf ("calling lexer_closeCurly at B\n");
+ #endif
+
  if(!lexer_closeCurly(me->lexer)) {
 	CPARSE_ERROR_CURID("ERROR: Expected \"}\" after fields of a node;")
   	PARSER_FINALLY 
@@ -1700,6 +1741,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret)
  *ret=node;
  return TRUE;
 }
+
 
 /* Parses a inputOnly/outputOnly IS statement in a proto instantiation */
 BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct ProtoDefinition* op) {

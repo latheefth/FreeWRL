@@ -246,7 +246,9 @@ breakIdLoop:
  if (lexer_keyword(me,KW_EXTERNPROTO))
         lexer_handle_EXTERNPROTO(me);
 
- /* printf ("lexer_setCurID, got %s\n",me->curID); */
+ #ifdef CPARSERVERBOSE
+ printf ("lexer_setCurID, got %s\n",me->curID); 
+ #endif
 
  return TRUE;
 }
@@ -907,7 +909,7 @@ BOOL lexer_operator(struct VRMLLexer* me, char op)
 {
  int c;
 
-if (me->curID) printf ("lexer_operator, curID is NOT NULL - it is %s - but I am looking for a :%c:\n",me->curID,op);
+if (me->curID) printf ("lexer_operator, curID is NOT NULL - it is \"%s\" - but I am looking for a \'%c\'\n",me->curID,op);
 
  lexer_skip(me);
 
