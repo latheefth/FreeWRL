@@ -17,7 +17,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#define CPARSERVERBOSE
+#undef CPARSERVERBOSE
 
 /* JavaScript-"protocols" */
 const char* JS_PROTOCOLS[]={

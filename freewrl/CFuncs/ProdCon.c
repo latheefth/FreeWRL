@@ -1000,7 +1000,7 @@ void __pt_doStringUrl () {
 			addToNode(psp.ptr,psp.ofs,nRn->children.p[count]);
 
 			/* tell the child that it has a new parent! */
-			add_parent(nRn->children.p[count],psp.ptr);
+			ADD_PARENT(nRn->children.p[count],psp.ptr);
 		}
 		update_node(psp.ptr);
 	}

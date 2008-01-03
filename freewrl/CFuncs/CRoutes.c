@@ -482,7 +482,7 @@ void AddRemoveChildren (
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
-			add_parent((void *)nodelist[counter],(void *)parent);
+			ADD_PARENT((void *)nodelist[counter],(void *)parent);
 		}
 
 		/* and, set the new length */
@@ -818,6 +818,15 @@ void CRoutes_Register(
 	long unsigned int toof;		/* used to help determine duplicate routes */
 	long unsigned int toN;
 
+	#ifdef CRVERBOSE  
+		printf ("CRoutes_Register adrem %d from %u ",adrem, from);
+		if (from > 20) printf ("(%s) ",stringNodeType(X3D_NODE(from->_nodeType)));
+
+		printf ("off %u to %u %s len %d intptr %u\n",
+				fromoffset, to_count, tonode_str, length, intptr);
+		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
+	#endif
+
 	/* is this a script to script route??? */
 	/* if so, we need an intermediate location for memory, as the values must
 	   be placed somewhere FROM the script node, to be found when sending TO
@@ -869,12 +878,6 @@ void CRoutes_Register(
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
 	}
-
-	#ifdef CRVERBOSE  
-		printf ("\n\nCRoutes_Register adrem %d from %u off %u to %u %s len %d intptr %u\n",
-				adrem, from, fromoffset, to_count, tonode_str, length, intptr);
-		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
-	#endif
 
 	insert_here = 1;
 

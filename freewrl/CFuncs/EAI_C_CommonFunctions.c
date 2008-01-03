@@ -9,7 +9,7 @@ for conditions of use and redistribution.
 #include "location.h"
 #ifdef  REWIRE
 	#include "Eai_C.h"
-	#define add_parent(a,b)
+	#define ADD_PARENT(a,b)
 	#define addToNode(a,b,c)
 	#define MALLOC(a) malloc(a)
 	int eaiverbose = FALSE;
@@ -277,7 +277,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 				memcpy(nst,in,datasize); 
 				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
 				if (ctype == FIELDTYPE_SFNode) {
-					add_parent(X3D_NODE(in[0]), node); 
+					ADD_PARENT(X3D_NODE(in[0]), node); 
 				}
 				
 			break;}
@@ -292,7 +292,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 				memcpy(nst,inNode,datasize); 
 				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
 				if (ctype == FIELDTYPE_SFNode) {
-					add_parent(X3D_NODE(inNode[0]), node); 
+					ADD_PARENT(X3D_NODE(inNode[0]), node); 
 				}
 				
 			break;}
@@ -333,7 +333,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 				sscanf(value, "%ld",inNode);
 				addToNode(node,coffset,(void *)inNode[0]); 
 				/* printf ("MFNODE, have to add child %d to parent %d\n",inNode[0],node);  */
-				add_parent((void *)inNode[0], node); 
+				ADD_PARENT((void *)inNode[0], node); 
 				/* skip past the number and trailing comma, if there is one */
 				if (*value == '-') value++;
 				while (*value>='0') value++;

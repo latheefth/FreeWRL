@@ -473,15 +473,15 @@ void render_node(struct X3D_Node *node) {
  * hundreds of children and don't usually shuffle them too much.
  */
 
-void add_parent(struct X3D_Node *node, struct X3D_Node *parent) {
+void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int line) {
 	int oldparcount;
 	int count;
 
 	if(!node) return;
 
 	#ifdef CHILDVERBOSE
-	printf ("add_parent; adding node %d (%s) to parent %d (%s)\n",node, stringNodeType(node->_nodeType), 
-			parent, stringNodeType(parent->_nodeType));
+	printf ("add_parent; adding node %u (%s) to parent %u (%s) at %s:%d\n",node, stringNodeType(node->_nodeType), 
+			parent, stringNodeType(parent->_nodeType),file,line);
 	#endif
 
 	/* does this already exist? */
@@ -803,10 +803,11 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	struct Multi_Node *mfn;
 	uintptr_t *voidptr;
 
-	/* printf ("checkParentLink for node %d type %s\n",node,stringNodeType(node->_nodeType)); */
- 
         if (node == NULL) return;
-        if (parent != NULL) add_parent(node, parent);
+
+	/* printf ("checkParentLink for node %u parent %u type %s\n",node,parent,stringNodeType(node->_nodeType)); */
+ 
+        if (parent != NULL) ADD_PARENT(node, parent);
 
 	if ((node->_nodeType<0) || (node->_nodeType>NODES_COUNT)) {
 		ConsoleMessage ("checkParentLink - %d not a valid nodeType",node->_nodeType);
@@ -819,17 +820,16 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 	/* FIELDNAMES_bboxCenter, offsetof (struct X3D_Group, bboxCenter),  FIELDTYPE_SFVec3f, KW_field, */
 	while (*offsetptr >= 0) {
 
-		/*  print field names
+		/* 
 		printf ("	field %s",FIELDNAMES[offsetptr[0]]); 
 		printf ("	offset %d",offsetptr[1]);
 		printf ("	type %s",FIELDTYPES[offsetptr[2]]);
 		printf ("	kind %s\n",KEYWORDS[offsetptr[3]]);
 		*/
 
-
 		/* worry about SFNodes and MFNodes */
 		if ((offsetptr[2] == FIELDTYPE_SFNode) || (offsetptr[2] == FIELDTYPE_MFNode)) {
-			if ((offsetptr[3] == KW_field) || (offsetptr[3] == KW_exposedField)) {
+			if ((offsetptr[3] == KW_initializeOnly) || (offsetptr[3] == KW_inputOutput)) {
 
 				/* create a pointer to the actual field */
 				memptr = (char *) node;

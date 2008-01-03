@@ -116,7 +116,8 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 {
  int i;
  size_t len=returnRoutingElementLength(me->type);
- assert(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
+
+ assert(me->mode==PKW_inputOutput || me->mode==PKW_outputOnly);
 
  /* For each destination mapped to this proto field, add a route */
  for(i=0; i!=vector_size(me->dests); ++i)
@@ -249,7 +250,7 @@ void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
 {
  assert(me);
  assert(me->tree);
- add_parent(node, X3D_NODE(me->tree));
+ ADD_PARENT(node, X3D_NODE(me->tree));
  addToNode(me->tree, offsetof(struct X3D_Group, children), node);
 }
 
@@ -296,7 +297,11 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
  /* JAS - call a function to ensure that the parents are filled in properly -
     sometimes the reverse links are required, especially when propagating sensitive info 
     back up the tree */
+ /* printf ("going to call checkParentLink\n"); */
+
  checkParentLink(ret->tree,NULL);
+
+ /* printf ("finished calling checkParentLink, tree is %u\n",ret->tree);  */
 
  return ret;
 }
@@ -476,7 +481,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
  struct X3D_Node* ret;
  BOOL myHash=(!hash);
 
- /* printf("doing a deepcopy of proto with root node %p\n", node); */
+  /* printf("doing a deepcopy of proto with root node %p\n", node); */
 
  /* If we get nothing, what can we return? */
  if(!node) return NULL;
@@ -494,6 +499,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
 
  /* Create it */
  ret=createNewX3DNode(node->_nodeType);
+ /* printf ("CProto deepcopy, created a node %u of type %s\n",ret, stringNodeType(ret->_nodeType)); */
 
  /* Copy the fields using the NodeFields.h file */
  switch(node->_nodeType)

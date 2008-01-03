@@ -55,7 +55,7 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_sfbool	TRUE
 #define ROUTE_REAL_SIZE_sfcolor	TRUE
 #define ROUTE_REAL_SIZE_sffloat	TRUE
-#define ROUTE_REAL_SIZE_sfimage	TRUE
+#define ROUTE_REAL_SIZE_sfimage	FALSE
 #define ROUTE_REAL_SIZE_sfint32	TRUE
 #define ROUTE_REAL_SIZE_sfnode	TRUE
 #define ROUTE_REAL_SIZE_sfrotation	TRUE
@@ -832,8 +832,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT fromFieldE;
  indexT fromUFieldO;
  indexT fromUFieldE;
- int fromOfs;
- int fromLen;
+ int fromOfs = 0;
+ int fromLen = 0;
  struct ProtoFieldDecl* fromProtoField=NULL;
  struct ScriptFieldDecl* fromScriptField=NULL;
 
@@ -845,8 +845,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT toFieldE;
  indexT toUFieldO;
  indexT toUFieldE;
- int toOfs;
- int toLen;
+ int toOfs = 0;
+ int toLen = 0;
  struct ProtoFieldDecl* toProtoField=NULL;
  struct ScriptFieldDecl* toScriptField=NULL;
 int temp, tempFE, tempFO, tempTE, tempTO;
@@ -1243,11 +1243,15 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  #undef FIELD
  #undef END_NODE
 
+
  /* set the toLen and fromLen from the PROTO/Script info, if appropriate */
  if(fromProtoField) fromLen=returnRoutingElementLength(fromProtoField->type);
  else if(fromScriptField) fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
  if(toProtoField) toLen=returnRoutingElementLength(toProtoField->type);
  else if(toScriptField) toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
+
+/* printf ("fromProtoField %d, fromScriptField %d, toProtoField %d, toScriptField %d\n",fromProtoField, fromScriptField, toProtoField, toScriptField);
+printf ("fromlen %d tolen %d\n",fromLen, toLen); */
 
  /* to "simple" MF nodes, we have to call a procedure to determine exactly what kind of "length" this
     node has - it is not as simple as using a "sizeof(int)" command, but, something that is interpreted at
@@ -1272,6 +1276,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 		fromLen = returnRoutingElementLength(b);
 	}
  }
+/* printf ("before test, fromlen %d tolen %d\n",fromLen, toLen); */
 
 
  /* FIXME:  Not a really safe check for types in ROUTE! */
@@ -1447,7 +1452,6 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
 		ConsoleMessage(fw_outline); 
 		fprintf (stderr,"%s\n",fw_outline);
 	}
-	printf("parser_nodeStatement: parsing USE\n");
 	#ifdef CPARSERVERBOSE
 		printf("parser_nodeStatement: parsing USE\n");
 	#endif
@@ -1831,8 +1835,9 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct 
 void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
 {
  int i;
- for(i=0; i!=node->n; ++i)
-  add_parent(node->p[i], parent);
+ for(i=0; i!=node->n; ++i) {
+  	ADD_PARENT(node->p[i], parent);
+  }
 }
 
 /* Parses a field value (literally or IS) */
@@ -2009,7 +2014,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
  /* The init codes used. */
  #define INIT_CODE_sfnode(var) \
-  add_parent(node2->var, X3D_NODE(node2));
+  ADD_PARENT(node2->var, X3D_NODE(node2));
  #define INIT_CODE_mfnode(var) \
   mfnode_add_parent(&node2->var, X3D_NODE(node2));
  #define INIT_CODE_sfbool(var)
@@ -2386,8 +2391,9 @@ static void stuff_it_in(void *out, vrmlNodeT in, int type) {
 	int n;
 	void *p;
 
-printf ("stuff_it_in, got vrmlT vector successfully - it is a type of %s\n",stringNodeType(in->_nodeType)); 
-printf ("stuff_it_in, ret is %d\n",out);
+	/* printf ("stuff_it_in, got vrmlT vector successfully - it is a type of %s\n",stringNodeType(in->_nodeType)); 
+	printf ("stuff_it_in, ret is %d\n",out); */
+
 	/* convert, say, a X3D_something to a struct Multi_Node { int n; int  *p; }; */
 	switch (type) {
 		/* convert the node pointer into the "p" field of a Multi_MFNode */
@@ -2422,69 +2428,60 @@ printf ("stuff_it_in, ret is %d\n",out);
 
 /* Parse a MF* field */
 #define PARSER_MFFIELD(name, type) \
- BOOL parser_mf##name##Value(struct VRMLParser* me, \
-  struct Multi_##type* ret) \
- { \
+ BOOL parser_mf##name##Value(struct VRMLParser* me, struct Multi_##type* ret) { \
   struct Vector* vec=NULL; \
+  vrmlNodeT RCX; \
   \
-if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n"); \
+  /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n"); */ \
   /* is this a USE statement? */ \
  if(lexer_keyword(me->lexer, KW_USE)) { \
-	vrmlNodeT RCX; \
+	/* printf ("parser_MF, got a USE!\n"); */ \
 	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
 	RCX=parse_KW_USE(me); \
 	if (RCX == NULL) return FALSE; \
-	\
 	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
 	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
-	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
 	return TRUE; \
  } \
  \
  else if (lexer_keyword(me->lexer, KW_DEF)) { \
-	printf ("parser_MF, got the DEF!\n"); \
-	vrmlNodeT RCX; \
+	/* printf ("parser_MF, got the DEF!\n"); */ \
 	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
 	RCX=parse_KW_DEF(me); \
 	if (RCX == NULL) return FALSE; \
 	\
 	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
 	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
-	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
 	return TRUE; \
 } \
 \
 /* possibly a SFNodeish type value?? */ \
 if (me->lexer->curID != NULL) { \
-	vrmlNodeT RCX; \
-printf ("parser_MF, curID was not null... lets just parse node\n");\
-	if (!parser_node(me, RCX)) {  \
+	/* printf ("parser_MF, curID was not null (it is %s)... lets just parse node\n",me->lexer->curID); */ \
+	if (!parser_node(me, &RCX)) {  \
 	/* if(!parser_sf##name##Value(me, RCX)) {*/ \
 		return FALSE; \
 	} \
 	if (RCX == NULL) return FALSE; \
 	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
 	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
-	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
 	return TRUE; \
 } \
 /* Just a single value? */ \
 if(!lexer_openSquare(me->lexer)) { \
-	vrmlNodeT RCX; \
-printf ("parser_MF, not an opensquare, lets just parse node\n");\
+	/* printf ("parser_MF, not an opensquare, lets just parse node\n"); */ \
 	/* if (!parser_node(me, RCX)) { */ \
-	if(!parser_sf##name##Value(me, RCX)) { \
+	if(!parser_sf##name##Value(me, &RCX)) { \
 		return FALSE; \
 	} \
 	if (RCX == NULL) return FALSE; \
 	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
 	stuff_it_in(ret, RCX, FIELDTYPE_MF##type); \
-	printf ("after call to stuff_it_in, ret has %d children\n",ret->n); \
 	return TRUE; \
 } \
 \
   /* Otherwise, a real vector */ \
-printf ("parser_MF, this is a real vector\n");\
+  /* printf ("parser_MF, this is a real vector\n"); */ \
   vec=newVector(vrml##type##T, 128); \
   while(!lexer_closeSquare(me->lexer)) \
   { \

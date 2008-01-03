@@ -1,4 +1,8 @@
 For 1.20.0 (Some came out with 1.19.9 for Linux):
+	- Routing to SFImages was broken - tests/Javascript/SFImage.wrl works with new parser.
+
+	- Classic parser - refactor DEF and USE within MF* fields.
+
 	- Linux Sound - changed the maximum number of concurrent sound files to 128.
 
 	- PROTO expansion for SFNodes verified.

@@ -246,7 +246,7 @@ breakIdLoop:
  if (lexer_keyword(me,KW_EXTERNPROTO))
         lexer_handle_EXTERNPROTO(me);
 
- printf ("lexer_setCurID, got %s\n",me->curID);
+ /* printf ("lexer_setCurID, got %s\n",me->curID); */
 
  return TRUE;
 }

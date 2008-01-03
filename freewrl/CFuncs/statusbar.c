@@ -110,8 +110,8 @@ static void statusbar_init() {
 
 	addToNode (rootNode,offsetof (struct X3D_Group, children), (void *)proxNode);
 	addToNode (rootNode,offsetof (struct X3D_Group, children), (void *)transNode);
-	add_parent((void *)proxNode, rootNode);
-	add_parent((void *)transNode, rootNode);
+	ADD_PARENT((void *)proxNode, rootNode);
+	ADD_PARENT((void *)transNode, rootNode);
 
 
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 

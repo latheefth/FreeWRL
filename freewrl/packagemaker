@@ -2,7 +2,7 @@
 
 
 #make the VERSION lower case; make sure there are no arithmetic operators here...
-VERSION="freewrl-1.19.9"
+VERSION="freewrl-1.20.0"
 
 # make distribution directory, and copy all needed files over.
 # Assume you are in root of FreeWRL directory.

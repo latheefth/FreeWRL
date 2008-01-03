@@ -920,7 +920,7 @@ void fwXformPop(struct X3D_Transform *me);
 void fwLoadIdentity (void);
 void invalidateCurMat(void);
 void doBrowserAction (void);
-void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_);
+void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_,char *file, int line);
 void remove_parent(struct X3D_Node *node_, struct X3D_Node *parent_);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (void *rc,  int offs, struct X3D_Node *newNode);
@@ -1153,9 +1153,9 @@ void do_IntegerTrigger (void *node);
 void do_TimeTrigger (void *node);
 
 
-
-#define NODE_ADD_PARENT(a) add_parent(a,X3D_NODE(ptr))
-#define NODE_REMOVE_PARENT(a) add_parent(a,X3D_NODE(ptr))
+#define ADD_PARENT(a,b) add_parent(a,b,__FILE__,__LINE__)
+#define NODE_ADD_PARENT(a) ADD_PARENT(a,X3D_NODE(ptr))
+#define NODE_REMOVE_PARENT(a) ADD_PARENT(a,X3D_NODE(ptr))
 
 
 /* OpenGL state cache */
