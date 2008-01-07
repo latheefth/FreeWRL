@@ -1643,7 +1643,7 @@ package VRML::NodeType;
 	new VRML::NodeType("MidiControl",
 					{
 						deviceName => [SFString,"",inputOutput],	# "Subtractor 1"
-						channel => [SFInt32,0,inputOutput],		# channel in range 0-16, on MIDI bus
+						channel => [SFInt32,-1,inputOutput],		# channel in range 0-16, on MIDI bus
 						controller => [SFString,"",inputOutput],	# "Osc1 Wave"
 						_deviceNameIndex => [SFInt32, -99, initializeOnly],	#  name in name table index
 						_controllerIndex => [SFInt32, -99, initializeOnly],		#  name in name table index

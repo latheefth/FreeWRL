@@ -148,8 +148,8 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 		/* possible match? */
 		if ((dev == ReWireDevices[ctr].encodedDeviceName) && (cont == ReWireDevices[ctr].encodedControllerName)) {
 			#ifdef MIDIVERBOSE
-			printf ("ReWireDeviceIndex, possible match\n");
-			printf ("we have, for ReWireDevices[%d]: bus %d channel %d\n",ctr,ReWireDevices[ctr].bus,ReWireDevices[ctr].channel);
+			printf ("ReWireDeviceIndex, possible match; dev, cont == ReWireDevices[]encodedDevice, encodedControl\n");
+			printf (" for ReWireDevices[%d]: bus %d node->channel %d comparing to our requested channel %d\n",ctr,ReWireDevices[ctr].bus,ReWireDevices[ctr].channel,node->channel);
 			#endif
 
 			match = FALSE;
@@ -157,7 +157,11 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 			/* ok - so if the user asked for a specific channel, look for this, if not, make first match */
 			/* NOTE that MIDI USER DEVICES use channels 1-16, but the MIDI SPEC says 0-15 */
 
-			if ((node->channel >= 1) || (node->channel<=16)) {
+			if ((node->channel >= 1) && (node->channel<=16)) {
+				#ifdef MIDIVERBOSE
+				printf ("user specified channel is %d, we map it to %d\n",node->channel, node->channel-1);
+				#endif
+
 				if (((node->channel)-1)  == ReWireDevices[ctr].channel) {
 					match = TRUE;
 				}
@@ -203,7 +207,6 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 	#endif
 	return FALSE; /* name not added, name not found */ 
 }
-
 
 /* returns TRUE if register goes ok, FALSE if already registered */
 int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controller, int cmin, int cmax, int ctptr) {
@@ -611,6 +614,7 @@ void ReWireRegisterMIDI (char *str) {
 	printf ("ReWireRegisterMIDI - have string :%s:\n",str);
 	#endif
 
+
 	while (*str != '\0') {
 		while (*str == '\n') str++;
 		/* is this a new device? */
@@ -652,14 +656,14 @@ void ReWireRegisterMIDI (char *str) {
 				printf ("ReWireRegisterMidi, expected string here: %s\n",str);
 			}
 			#ifdef MIDIVERBOSE
-			printf ("	controllername is :%s:\n",str);
+			printf ("	controllername is :%s: ",str);
 			#endif
 			encodedControllerName = ReWireNameIndex(str);
 			str = EOT+1;
 			sscanf (str, "%d %d %d",&curType, &curMax, &curMin);
 
 			#ifdef MIDIVERBOSE
-			printf ("dev (%d %d)  %d %d controller %d curMin %d curMax %d curType %d\n",encodedDeviceName, encodedControllerName, curBus, curChannel,
+			printf ("(encodedDevice:%d encodedController:%d)  Bus:%d Channel:%d controller %d curMin %d curMax %d curType %d\n",encodedDeviceName, encodedControllerName, curBus, curChannel,
 				curController, curMin, curMax, curType);
 			#endif
 		
