@@ -1071,7 +1071,7 @@ void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *po
 /* the curID is EXTERNPROTO. Replace the EXTERNPROTO with the actual PROTO string read in from
    an external file */
 
-lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
+void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         char *myName = NULL;
         indexT mode;
         indexT type;
