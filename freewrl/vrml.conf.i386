@@ -17,8 +17,14 @@ JAVA => "/usr/bin/java",
 
 COPIER => "/bin/cp",                    # copy one file to another
 SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
+
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
 FREEWRL_CCFLAGS => '-arch '.
 		   'i386 '.
+		   '-mmacosx-version-min=10.4 '.
 		   '-fno-common ',
 
 ############################################################################
@@ -36,7 +42,11 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lGL -lGLU '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
 
-    FREEWRL_DEFINE => '-D_REENTRANT -DAQUA -fno-common -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
+    FREEWRL_DEFINE => '-D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
@@ -57,11 +67,18 @@ FREEWRL_CCFLAGS => '-arch '.
 
 ############################################################################
 # LD flags
+
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
+
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '. 
 		'-arch i386 '.
+		'-mmacosx-version-min=10.4 '.
 		'-isysroot /Developer/SDKs/MacOSX10.4u.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.

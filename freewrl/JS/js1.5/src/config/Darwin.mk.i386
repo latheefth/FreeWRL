@@ -41,9 +41,14 @@
 
 CC = cc
 CCC = g++
-CFLAGS +=  -Wall -Wno-format -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DAQUA
-XLDFLAGS = -arch i386
-#XLDFLAGS = -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk
+
+# when building on Leopard 10.5, keep the version at 10.4 - see:
+# http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+# make sure you change the vrml.conf.i386 also!
+
+CFLAGS +=  -Wall -Wno-format -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DAQUA
+#XLDFLAGS = -arch i386 -mmacosx-version-min=10.4
+XLDFLAGS = -arch i386 
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN
 
 RANLIB = ranlib
