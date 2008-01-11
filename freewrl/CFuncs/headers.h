@@ -577,6 +577,7 @@ void *returnInterpolatorPointer (const char *x);
 
 void CRoutes_js_new (uintptr_t num,int scriptType);
 extern int max_script_found;
+extern int max_script_found_and_initialized;
 void getMFNodetype (char *strp, struct Multi_Node *ch, struct X3D_Node *par, int ar);
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
 

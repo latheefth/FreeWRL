@@ -119,6 +119,7 @@ void kill_javascript(void) {
 	}
 	JSMaxScript = 0;
 	max_script_found = -1;
+	max_script_found_and_initialized = -1;
 	FREE_IF_NZ (ScriptControl)
 	FREE_IF_NZ(scr_act)
 
@@ -255,7 +256,11 @@ void JSInit(uintptr_t num) {
 }
 
 /* run the script from within C */
+#ifdef JAVASCRIPTVERBOSE
 int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line) {
+#else
+int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
+#endif
 	size_t len;
 	JSContext *_context;
 	JSObject *_globalObj;
@@ -266,7 +271,6 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 	CLEANUP_JAVASCRIPT(_context)
-
 	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
 			fn, line, num, _context, script);

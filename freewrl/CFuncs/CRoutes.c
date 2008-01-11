@@ -244,8 +244,9 @@ int CRoutes_MAX;
 
 /* Structure table */
 struct CRscriptStruct *ScriptControl = 0; 	/* global objects and contexts for each script */
-uintptr_t *scr_act = 0;			/* this script has been sent an eventIn */
-int max_script_found = -1;	/* the maximum script number found */
+uintptr_t *scr_act = 0;				/* this script has been sent an eventIn */
+int max_script_found = -1;			/* the maximum script number found */
+int max_script_found_and_initialized = -1;	/* the maximum script number found */
 
 /* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
 int CRoutesExtra = 0;
@@ -1168,11 +1169,11 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	/* do we have any routes yet? - we can gather events before any routes are made */
 	if (!CRoutes_Initiated) return;
 
-	/* this script initialized yet? */
+	/* this script initialized yet? We make sure that on initialization that the Parse Thread
+	   does the initialization, once it is finished parsing. */
 	if (ScriptControl[actualscript]._initialized!=TRUE) {
-		/* printf ("initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
-		ACTUALRUNSCRIPT(actualscript, "initialize()" ,&retval);
-		ScriptControl[actualscript]._initialized=TRUE;
+		/* printf ("waiting for initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
+		return;
 	}
 
 	/* routing table is ordered, so we can walk up to this script */
@@ -1296,11 +1297,12 @@ void sendScriptEventIn(uintptr_t num) {
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
 
 
-			/* this script initialized yet? */
+
+			/* this script initialized yet? We make sure that on initialization that the Parse Thread
+			   does the initialization, once it is finished parsing. */
 			if (ScriptControl[(uintptr_t)to_ptr->routeToNode]._initialized!=TRUE) {
-				/* printf ("initializing script %d at %s:%d\n",to_ptr->routeToNode, __FILE__,__LINE__); */
-				ACTUALRUNSCRIPT((uintptr_t)to_ptr->routeToNode, "initialize()" ,&retval);
-				ScriptControl[(uintptr_t)to_ptr->routeToNode]._initialized=TRUE;
+				/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
+				return;
 			}
 
 			/* get the value from the VRML structure, in order to propagate it to a script */
@@ -1432,11 +1434,11 @@ void propagate_events() {
 		}
 
 		/* run gatherScriptEventOuts for each active script */
-		for (counter =0; counter <= max_script_found; counter++) {
-/*
-printf ("msf %d c %d\n",max_script_found, counter);
-printf ("script type %d\n",ScriptControl[counter].thisScriptType);
-*/
+		for (counter =0; counter <= max_script_found_and_initialized; counter++) {
+			/* 
+				printf ("msf %d c %d\n",max_script_found, counter);
+				printf ("script type %d\n",ScriptControl[counter].thisScriptType);
+			*/
 
 			gatherScriptEventOuts (counter);
 
@@ -1445,7 +1447,7 @@ printf ("script type %d\n",ScriptControl[counter].thisScriptType);
 	} while (havinterp==TRUE);
 
 	/* now, go through and clean up all of the scripts */
-	for (counter =0; counter <= max_script_found; counter++) {
+	for (counter =0; counter <= max_script_found_and_initialized; counter++) {
 		if (scr_act[counter]) {
 			scr_act[counter] = FALSE;
 			CLEANUP_JAVASCRIPT(ScriptControl[counter].cx);
@@ -1472,7 +1474,7 @@ void process_eventsProcessed() {
 	int counter;
 	jsval retval;
 
-	for (counter = 0; counter <= max_script_found; counter++) {
+	for (counter = 0; counter <= max_script_found_and_initialized; counter++) {
 		if (ScriptControl[counter].eventsProcessed == 0) {
 			ScriptControl[counter].eventsProcessed = (uintptr_t) JS_CompileScript(
 				(JSContext *) ScriptControl[counter].cx,

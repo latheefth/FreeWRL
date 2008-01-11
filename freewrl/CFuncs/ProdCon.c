@@ -982,6 +982,22 @@ void __pt_doStringUrl () {
 		}
 	}
 
+	/* any scripts to initialize here? we do it here, because we may just have created new scripts during
+	   X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until 
+	   we have told it that the scripts are initialized. */
+	if (max_script_found != max_script_found_and_initialized) {
+		/* printf ("have scripts to initialize in ProdCon old %d new %d\n",max_script_found, max_script_found_and_initialized); */
+		for (i=max_script_found_and_initialized+1; i <= max_script_found; i++) {
+			/*  printf ("initializing script %d in ProdCon\n",i);  */
+                	ACTUALRUNSCRIPT(i, "initialize()" ,&retval);
+                	ScriptControl[i]._initialized=TRUE;
+			/* printf ("initialized script %d\n",i); */
+		}
+
+		/* now, let the routing loop go through to the max of this one */
+		max_script_found_and_initialized = max_script_found;
+	}
+
 	/* did the caller want these values returned? */
 	if (psp.retarr != NULL) {
 		for (count=0; count < nRn->children.n; count++) {
@@ -992,7 +1008,7 @@ void __pt_doStringUrl () {
 		psp.retarrsize = nRn->children.n * 2; /* remember, the old "perl node number" */
 	}
 
-	      	/* now that we have the VRML/X3D file, load it into the scene. */
+      	/* now that we have the VRML/X3D file, load it into the scene. */
 	if (psp.ptr != NULL) {
 		/* add the new nodes to wherever the caller wanted */
 		for (count=0; count < nRn->children.n; count++) {

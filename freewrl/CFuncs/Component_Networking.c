@@ -20,6 +20,8 @@
 static uintptr_t *MidiNodes = NULL;
 static int num_MidiNodes = 0;
 
+#define BUTTON_PRESS_STRING "use_for_buttonPresses"
+
 struct ReWireNamenameStruct *ReWireNamenames = 0;
 int ReWireNametableSize = -1;
 int MAXReWireNameNames = 0;
@@ -84,6 +86,8 @@ void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *f
 sendNodeToReWire(struct X3D_MidiControl *node) {
 	char buf[200];
 
+#define MIDIVERBOSE
+
 	#ifdef MIDIVERBOSE
 	if (node->controllerPresent) {
 		printf ("sendNodeToReWire - controller present\n");
@@ -114,10 +118,15 @@ sendNodeToReWire(struct X3D_MidiControl *node) {
 				#endif
 		}
 
+		#ifdef MIDIVERBOSE
+		printf ("sendNodeToReWire: sending string:%s:\n",buf);
+		#endif
+
 		EAI_send_string(buf,EAIlistenfd);
 	}	
 }
 
+#undef MIDIVERBOSE
 
 /* return parameters associated with this name. returns TRUE if this device has been added by
 the ReWire system */
@@ -131,7 +140,8 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 	int cont = node->_controllerIndex;
 
 	#ifdef MIDIVERBOSE
-	printf ("ReWireDeviceIndex, looking for a device for bus %d channel %d and controller %d\n",*bus,node->channel,*controller);
+	printf ("ReWireDeviceIndex, tblsz %d, looking for a device for bus %d channel %d and controller %d\n",
+			ReWireDevicetableSize, *bus,node->channel,*controller);
 	#endif
 	
 	/* is this a duplicate name and type? types have to be same,
@@ -151,6 +161,7 @@ int ReWireDeviceIndex (struct X3D_MidiControl *node, int *bus, int *internChan,
 			printf ("ReWireDeviceIndex, possible match; dev, cont == ReWireDevices[]encodedDevice, encodedControl\n");
 			printf (" for ReWireDevices[%d]: bus %d node->channel %d comparing to our requested channel %d\n",ctr,ReWireDevices[ctr].bus,ReWireDevices[ctr].channel,node->channel);
 			#endif
+#undef MIDIVERBOSE
 
 			match = FALSE;
 
@@ -261,7 +272,6 @@ int ReWireDeviceRegister (int dev, int cont, int bus, int channel, int controlle
 	#endif
 	return TRUE; /* name not found, but, requested */
 }
-
 
 void registerReWireNode(struct X3D_Node *node) {
 	int count;
@@ -439,6 +449,36 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 		node->deviceName->touched = 0;
 		if (node->_deviceNameIndex>=0) MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, deviceName));
 	}
+
+	/* controller type... */
+	if (node->controllerType->touched != 0) {
+		#ifdef MIDIVERBOSE
+		printf ("CONTROLLERTYPE CHANGED\n");
+		#endif
+		node->controllerType->touched = 0;  
+		if (strcmp(node->controllerType->strptr,"Slider") == 0) {
+			#ifdef MIDIVERBOSE
+			printf ("midi controller is a fader\n");
+			#endif
+
+			node->_intControllerType = MIDI_CONTROLLER_FADER;
+		} else if (strcmp(node->controllerType->strptr,"ButtonPress") == 0) {
+			#ifdef MIDIVERBOSE
+			printf ("midi controller is a keypress\n");
+			#endif
+
+			node->_intControllerType = MIDI_CONTROLLER_KEYPRESS;
+			/* we have a special controller name for the "keypress" nodes; controllers are not valid here */
+			node->controller = newASCIIString(BUTTON_PRESS_STRING);
+		} else {
+			ConsoleMessage ("MidiControl - unknown controllerType :%s:\n",node->controllerType->strptr);
+		}
+
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, controllerType));
+	}
+
+	/* is this a controller, or a keypress node? Keypresses go directly to the bus/channel, they do not have
+	   a controller number, so we have a default controller number */
 	if ((node->controller->touched > 0) || (node->_controllerIndex < 0)) {
 		#ifdef MIDIVERBOSE
 		printf ("NODE CONTROLLER CHANGED now is %s\n",node->controller->strptr);
@@ -449,27 +489,20 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 	}
 
 
-	if (node->controllerType->touched != 0) {
-		#ifdef MIDIVERBOSE
-		printf ("CONTROLLERTYPE CHANGED\n");
-		#endif
-		node->controllerType->touched = 0;  
-		if (strcmp(node->controllerType->strptr,"Slider") == 0) {
-			node->_intControllerType = MIDI_CONTROLLER_FADER;
-		} else if (strcmp(node->controllerType->strptr,"ButtonPress") == 0) {
-			node->_intControllerType = MIDI_CONTROLLER_KEYPRESS;
-		} else {
-			ConsoleMessage ("MidiControl - unknown controllerType :%s:\n",node->controllerType->strptr);
-		}
-
-		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, controllerType));
-	}
 
 	/* look for the end point to be there - if a "Slider" we need the device AND controller; if
 	   "ButtonPress" need just the device */
 	tmpintControllerType = node->_intControllerType;
 	tmp_bus = node->_bus;
 	tmp_internchan = node->_channel;
+	if (node->_intControllerType == MIDI_CONTROLLER_KEYPRESS) {
+		/* this is a keypress to the midi bus/channel; it is not really a controller */
+		node->_controller = ReWireNameIndex(BUTTON_PRESS_STRING);
+
+		#ifdef MIDIVERBOSE
+		printf ("FYI - ReWireNameIndex for keypress is %d\n",node->_controller);
+		#endif
+	}
 	tmp_controller = node->_controller;
 
 	controllerPresent = ReWireDeviceIndex (node,
@@ -495,7 +528,6 @@ printf (" _deviceNameIndex %d _controllerIndex %d\n",node->_deviceNameIndex, nod
 		node->controllerPresent = controllerPresent;
 		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MidiControl, controllerPresent));
 	}
-
 
 	if (controllerPresent) {
 		if (tmp_bus != node->_bus) {
@@ -633,7 +665,7 @@ void ReWireRegisterMIDI (char *str) {
 			sscanf (str, "%d %d",&curBus, &curChannel);
 
 			/* make an entry for devices that have NO controllers, maybe only buttonPresses */
-			encodedControllerName = ReWireNameIndex("use_for_buttonPresses");
+			encodedControllerName = ReWireNameIndex(BUTTON_PRESS_STRING);
 			curController = -1; curMin = 0; curMax = 127; curType = MIDI_CONTROLLER_KEYPRESS;
 
 			if (!ReWireDeviceRegister(encodedDeviceName, encodedControllerName, curBus, 

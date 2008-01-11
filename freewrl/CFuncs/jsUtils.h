@@ -26,7 +26,7 @@
 #endif /* FALSE */
 
 #define CLEANUP_JAVASCRIPT(cx) \
-	/* printf ("calling JS_GC at %s:%d cx %u\n",__FILE__,__LINE__,cx); */ \
+	/* printf ("calling JS_GC at %s:%d cx %u thread %d\n",__FILE__,__LINE__,cx,pthread_self()); */ \
 	JS_GC(cx);
 
 #define LARGESTRING 2048
@@ -56,8 +56,14 @@ extern uintptr_t *JSSFpointer;
 static JSBool reportWarnings = JS_TRUE;
 
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
+
+#ifdef JAVASCRIPTVERBOSE
 #define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c,__FILE__,__LINE__)
-int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *file, int line);
+int ActualrunScript(uintptr_t num, char *script, jsval *rval, char *fn, int line);
+#else
+#define ACTUALRUNSCRIPT(a,b,c) ActualrunScript(a,b,c)
+int ActualrunScript(uintptr_t num, char *script, jsval *rval);
+#endif
 
 int
 JSrunScript(uintptr_t num,

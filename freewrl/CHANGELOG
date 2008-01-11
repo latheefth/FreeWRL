@@ -1,3 +1,7 @@
+For 1.20.1
+	- possible threading issue fixed whereby a script can be called in Routing before parsing has
+	  initialized it.
+
 For 1.20.0 (Some came out with 1.19.9 for Linux):
 	- Routing to SFImages was broken - tests/Javascript/SFImage.wrl works with new parser.
 
