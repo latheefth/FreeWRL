@@ -6,7 +6,6 @@ for conditions of use and redistribution.
 *********************************************************************/
 
 /* Common functions between the FreeWRL code and the ReWire C code */
-#include "location.h"
 #ifdef  REWIRE
 	#include "Eai_C.h"
 	#define ADD_PARENT(a,b)
