@@ -86,8 +86,6 @@ void determineMIDIValFromInt (struct X3D_MidiControl *node, int *value, float *f
 sendNodeToReWire(struct X3D_MidiControl *node) {
 	char buf[200];
 
-#define MIDIVERBOSE
-
 	#ifdef MIDIVERBOSE
 	if (node->controllerPresent) {
 		printf ("sendNodeToReWire - controller present\n");
@@ -125,8 +123,6 @@ sendNodeToReWire(struct X3D_MidiControl *node) {
 		EAI_send_string(buf,EAIlistenfd);
 	}	
 }
-
-#undef MIDIVERBOSE
 
 /* return parameters associated with this name. returns TRUE if this device has been added by
 the ReWire system */
@@ -365,9 +361,11 @@ static void midiStartEAI() {
 #else
 	char myline[2000];
 	if (!requestToStartEAIdone) {
+		if (strlen(REWIRE_SERVER) > 1000) return; /* bounds check this compile time value */
+
 		printf ("MidiControl - turning EAI on\n");
-		strncpy (myline,REWIRE_SERVER,1000);
-		strcat (myline, " &");
+		sprintf (myline,"%s %u &",REWIRE_SERVER,getpid());
+printf ("midiStartEAI, line %s\n",myline);
 		create_EAI();
 		if (system (myline)==127) {
 			strcpy (myline,"could not start ");
