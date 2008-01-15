@@ -4,7 +4,7 @@
 # for conditions of use and redistribution.
 
 # Version of FreeWRL
-my $VERSION = "V1.20.1";
+my $VERSION = "V1.20.0";
 
 # what OS are we running under?
 my $OS = `uname`;
@@ -72,7 +72,7 @@ print "ARCH=$ARCH\n";
 
 require './vrml.conf.linux';
 
-if ($issue =~ /RedHat/) {
+if (($issue =~ /Fedora/) || ($issue =~ /RedHat/)) {
     print "Linux flavour: RedHat\n";
 
     # find out what the distribution is.
@@ -578,7 +578,7 @@ sub writeMakeDebAndRpm () {
 
 	if ($OS eq "Linux") {
 
-	    if ($issue =~ /RedHat/) {
+	    if (($issue =~ /Fedora/) || ($issue =~ /RedHat/)) {
 		$specfile = $VRML_CONFIG{SPECFILE};
 		$rpm_prefix = $VRML_CONFIG{RPMPREFIX};
 		$sourcepackage = $VRML_CONFIG{SOURCEPACKAGE};
