@@ -66,6 +66,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 
 	float *fptr;
 
+
 	#ifdef TEXVERBOSE
 	printf ("rendering TextureCoordinate node __compiledpoint %d\n",node->__compiledpoint);
 	printf ("tcin %d tcin_count %d oldpoint.n %d\n",global_tcin, global_tcin_count, node->point.n);
@@ -74,7 +75,13 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 	/* is node the statusbar? we should *always* have a global_tcin textureIndex */
 	if (global_tcin == 0) return;
 
-	if (node->_ichange != node->_change) {
+	/* note: IF this TextureCoordinate is USEd in more than one node, WE CAN NOT "pre-compile" the
+	   coordinates, because, potentially the order of texture coordinate usage would be different. 
+	   So, in the case where there is more than 1 parent, we have to re-calculate this ordering 
+	   every time a texture is displayed */
+
+	if ((node->_ichange != node->_change) || (node->__lastParent != global_tcin_lastParent)) {
+
 		MARK_NODE_COMPILED
 
 		if (node->__compiledpoint.n == 0) {
@@ -119,12 +126,14 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		#endif
 	}
 
+	/* keep this last parent around, so that MAYBE we do not have to re-do the compiled node */
+	node->__lastParent = global_tcin_lastParent;
+
 	if (node->__compiledpoint.n < global_tcin_count) {
 		printf ("TextureCoordinate - problem %d < %d\n",node->__compiledpoint.n,global_tcin_count);
 	}
 
 }
-
 
 void render_PixelTexture (struct X3D_PixelTexture *node) {
 	loadTextureNode(X3D_NODE(node),NULL);

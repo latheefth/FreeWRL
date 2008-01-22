@@ -850,6 +850,7 @@ package VRML::NodeType;
 	TextureCoordinate => new VRML::NodeType("TextureCoordinate", { 
 						point => [MFVec2f, [], inputOutput],
 						__compiledpoint => [MFVec2f, [], initializeOnly],
+						__lastParent => [FreeWRLPTR, 0, initializeOnly],
 					 },"X3DTextureCoordinateNode"),
 
 	TextureCoordinateGenerator => new VRML::NodeType("TextureCoordinateGenerator", { 

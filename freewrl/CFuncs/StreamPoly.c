@@ -84,7 +84,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	p = (struct X3D_IndexedFaceSet *)node;
 	r = (struct X3D_PolyRep *)p->_intern;
 
-	/* printf ("stream_polyrep, at start, we have %d triangles\n",r->ntri); */
+	/* printf ("stream_polyrep, at start, we have %d triangles texCoord %u\n",r->ntri,texCoord);  */
 
 	/* does this one have any triangles here? (eg, an IFS without coordIndex) */
 	if (r->ntri==0) {

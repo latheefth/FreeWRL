@@ -756,6 +756,7 @@ void render_polyrep(void *node) {
 	/* save these values for streaming the texture coordinates later */
 	global_tcin = r->tcindex;
 	global_tcin_count = r->ntri*3;
+	global_tcin_lastParent = node;
 
         setExtent( genericNodePtr->EXTENT_MAX_X, genericNodePtr->EXTENT_MIN_X, genericNodePtr->EXTENT_MAX_Y,
                 genericNodePtr->EXTENT_MIN_Y, genericNodePtr->EXTENT_MAX_Z, genericNodePtr->EXTENT_MIN_Z,

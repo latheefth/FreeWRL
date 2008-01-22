@@ -478,6 +478,7 @@ void registerX3DNode(struct X3D_Node * tmp){
 		}
 	}
 	/*adding node in table*/	
+	/* printf ("registerX3DNode, adding %x at %d\n",tmp,nextEntry); */
 	memoryTable[nextEntry] = tmp;
 	nextEntry+=1;
 	UNLOCK_MEMORYTABLE
@@ -899,8 +900,8 @@ void kill_X3DNodes(void){
 	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
 		structptr = memoryTable[i];		
-		/* printf("\nNode pointer	= %d entry %d of %d\n",structptr,i,nextEntry);
-		printf("\nNode Type	= %s\n",stringNodeType(structptr->_nodeType));  */
+		/* printf("Node pointer	= %x entry %d of %d ",structptr,i,nextEntry);
+		printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));   */
 
 		/* kill any parents that may exist. */
 		FREE_IF_NZ (structptr->_parents);
@@ -975,8 +976,14 @@ void kill_X3DNodes(void){
 					FREE_IF_NZ(MVec2f->p);
 					break;
 				case FIELDTYPE_FreeWRLPTR:
-					VPtr = (uintptr_t *) fieldPtr;
-					FREE_IF_NZ(*VPtr);
+					/* if this is a TextureCoordinate, and this is the __lastParent pointer,
+					   SKIP this, because, this parent will be freed' elsewhere */
+					/* Yes, Virginia, this will miss the __compiled.. field, but this is a 
+					   relatively small problem */
+					if (structptr->_nodeType != NODE_TextureCoordinate) {
+						VPtr = (uintptr_t *) fieldPtr;
+						FREE_IF_NZ(*VPtr);
+					}
 					break;
 				case FIELDTYPE_SFString:
 					VPtr = (uintptr_t *) fieldPtr;

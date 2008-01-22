@@ -32,6 +32,8 @@ static int checktexsize;
 #define CHECK_MAX_TEXTURE_SIZE \
 	if (global_texSize<=0) { \
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &checktexsize); \
+		if (getenv("FREEWRL_256x256_TEXTURES")!= NULL) checktexsize = 256; \
+		if (getenv("FREEWRL_512x512_TEXTURES")!= NULL) checktexsize = 512; \
 		global_texSize = -global_texSize; \
 		if (global_texSize == 0) global_texSize = checktexsize; \
 		if (global_texSize > checktexsize) global_texSize = checktexsize; \
@@ -118,6 +120,7 @@ GLint maxTexelUnits = -1;
 /* for texture remapping in TextureCoordinate nodes */
 int	*global_tcin;
 int	global_tcin_count;
+void 	*global_tcin_lastParent;
 
 /* for AQUA OS X sharing of OpenGL Contexts */
 #ifdef AQUA

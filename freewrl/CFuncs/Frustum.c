@@ -251,45 +251,52 @@ void OcclusionStartofEventLoop() {
 
 	/* have we been through this yet? */
 	if (OccInitialized == FALSE) {
-        	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS));  */
-        	if (strstr((const char *)glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
-			#ifdef OCCLUSIONVERBOSE
-        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
-			#endif
 
-
-			/* we make the OccQuerySize larger than the maximum number of occluders,
-			   so we don't have to realloc too much */
-			OccQuerySize = maxOccludersFound + 1000;
-			OccQueries = MALLOC (sizeof(int) * OccQuerySize);
-			OccNodes = MALLOC (sizeof (void *) * OccQuerySize);
-			OccCheckCount = MALLOC (sizeof (int) * OccQuerySize);
-			OccNodeRendered = MALLOC (sizeof (int) * OccQuerySize);
-			OccVisible = MALLOC (sizeof (int) * OccQuerySize);
-			OccSamples = MALLOC (sizeof (int) * OccQuerySize);
-                	glGenQueries(OccQuerySize,OccQueries);
-			OccInitialized = TRUE;
-			for (i=0; i<OccQuerySize; i++) {
-				OccNodes[i] = 0;
-				OccSamples[i]=0;
-				OccCheckCount[i]=i&0x03; /* we test only once every 4 frames */
-				OccNodeRendered[i] = FALSE;
-				OccVisible[i]=TRUE;
-			}
-			QueryCount = maxOccludersFound; /* for queries - we can do this number */
-			#ifdef OCCLUSIONVERBOSE
-			printf ("QueryCount now %d\n",QueryCount);
-			#endif
-
-        	} else {
-			#ifdef OCCLUSIONVERBOSE
-        	        printf ("OcclusionStartofEventLoop: DO NOT have OcclusionQuery\n"); 
-			#endif
-
-			/* we dont seem to have this extension here at runtime! */
-			/* this happened, eg, on my Core4 AMD64 box with Mesa	*/
+		/* do we have an environment variable for this? */
+		if (getenv ("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY")!= NULL) {
+			printf ("FreeWRL: FREEWRL_NO_GL_ARB_OCCLUSION_QUERY set, turning off hardware Occlusion Culling\n");
 			OccFailed = TRUE;
-			return;
+		} else {
+	        	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS));  */
+	        	if (strstr((const char *)glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
+				#ifdef OCCLUSIONVERBOSE
+	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
+				#endif
+	
+	
+				/* we make the OccQuerySize larger than the maximum number of occluders,
+				   so we don't have to realloc too much */
+				OccQuerySize = maxOccludersFound + 1000;
+				OccQueries = MALLOC (sizeof(int) * OccQuerySize);
+				OccNodes = MALLOC (sizeof (void *) * OccQuerySize);
+				OccCheckCount = MALLOC (sizeof (int) * OccQuerySize);
+				OccNodeRendered = MALLOC (sizeof (int) * OccQuerySize);
+				OccVisible = MALLOC (sizeof (int) * OccQuerySize);
+				OccSamples = MALLOC (sizeof (int) * OccQuerySize);
+	                	glGenQueries(OccQuerySize,OccQueries);
+				OccInitialized = TRUE;
+				for (i=0; i<OccQuerySize; i++) {
+					OccNodes[i] = 0;
+					OccSamples[i]=0;
+					OccCheckCount[i]=i&0x03; /* we test only once every 4 frames */
+					OccNodeRendered[i] = FALSE;
+					OccVisible[i]=TRUE;
+				}
+				QueryCount = maxOccludersFound; /* for queries - we can do this number */
+				#ifdef OCCLUSIONVERBOSE
+				printf ("QueryCount now %d\n",QueryCount);
+				#endif
+
+        		} else {
+				#ifdef OCCLUSIONVERBOSE
+        	       		 printf ("OcclusionStartofEventLoop: DO NOT have OcclusionQuery\n"); 
+				#endif
+
+				/* we dont seem to have this extension here at runtime! */
+				/* this happened, eg, on my Core4 AMD64 box with Mesa	*/
+				OccFailed = TRUE;
+				return;
+			}
 		}
 
 	}
