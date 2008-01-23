@@ -127,7 +127,11 @@ struct VRMLParser* reuseParser(void* ptr, unsigned ofs) {
 
  /* keep the defined nodes around, etc */
  ret = globalParser;
+
+ /* keep the old lexer around, so that the asserts do not get confused with sizes of stacks, etc
+if (ret->lexer != NULL) deleteLexer(ret->lexer);
  ret->lexer=newLexer();
+*/
  assert(ret->lexer);
  ret->ptr=ptr;
  ret->ofs=ofs;
