@@ -68,7 +68,6 @@ uintptr_t EAI_GetNode(const char *str) {
 	int ctr;
 	struct Uni_String* tmp;
 
-
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
@@ -84,7 +83,8 @@ uintptr_t EAI_GetNode(const char *str) {
 	/* Try to get VRML node name */
 	myn = parser_getNodeFromName(str);
 	if (eaiverbose) {
-		printf ("EAI_GetNode for %s returns %x - it is a %s\n",str,myn,stringNodeType(myn->_nodeType));
+		if (myn == NULL) printf ("EAI_GetNode for %s returns %u\n",str,myn);
+		else printf ("EAI_GetNode for %s returns %x - it is a %s\n",str,myn,stringNodeType(myn->_nodeType));
 	}	
 	return (uintptr_t) myn;
 }

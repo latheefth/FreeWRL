@@ -268,10 +268,14 @@ BOOL lexer_keyword(struct VRMLLexer* me, indexT kw) {
 /* Finds the index of a given string */
 indexT lexer_string2id(const char* str, const struct Vector* v)
 {
+
+/* printf ("lexer_string2id looking for %s vector %u\n",str,v); */
  indexT i;
- for(i=0; i!=vector_size(v); ++i)
+ for(i=0; i!=vector_size(v); ++i) {
+	/* printf ("lexer_string2id, comparing %s to %s\n",str,vector_get(const char*, v, i)); */
   if(!strcmp(str, vector_get(const char*, v, i)))
    return i;
+}
  return ID_UNDEFINED;
 }
 
@@ -383,6 +387,8 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
   return FALSE;
  assert(me->curID);
 
+ /* printf ("lexer_defineID, VRMLLexer %u Vector %u\n",me,vec); */
+
  /* User list should be created */
  assert(vec);
 
@@ -390,13 +396,15 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
  if(multi)
  {
   size_t i;
-  for(i=0; i!=vector_size(vec); ++i)
+  for(i=0; i!=vector_size(vec); ++i) {
+   /* printf ("lexer_defineID, comparing %s to %s\n",me->curID, vector_get(const char*, vec, i)); */
    if(!strcmp(me->curID, vector_get(const char*, vec, i)))
    {
     FREE_IF_NZ (me->curID);
     *ret=i;
     return TRUE;
    }
+  }
  }
 
  /* Define the id */

@@ -25,17 +25,23 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data)
  struct VRMLParser* parser;
  struct X3D_Node* node;
 
- parser=newParser(ptr, ofs);
 
  if (!globalParser) {
+	/* printf ("cParse, new parser\n"); */
+ 	parser=newParser(ptr, ofs);
 	globalParser = parser;
+ } else {
+	/* printf ("cParse, using old parser\n"); */
+	parser=reuseParser(ptr,ofs);
  }
+
  parser_fromString(parser, data);
  assert(parser->lexer);
 
  if(!parser_vrmlScene(parser))
   fprintf(stderr, "Parser failed!\n");
 
+ /* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */
  /* deleteParser(parser); */
 
  return TRUE;
@@ -50,7 +56,7 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
  indexT ind=lexer_nodeName2id(globalParser->lexer, name);
  if(ind==ID_UNDEFINED)
   return NULL;
-  
+
  assert(!stack_empty(globalParser->DEFedNodes));
  assert(ind<vector_size(stack_top(struct Vector*, globalParser->DEFedNodes)));
  return vector_get(struct X3D_Node*,

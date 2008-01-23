@@ -1,4 +1,6 @@
 For 1.20.1
+	- EAI/SAI changes for VRML parser - keep DEFines around between calls of cParse.
+
 	- possible threading issue fixed whereby a script can be called in Routing before parsing has
 	  initialized it.
 

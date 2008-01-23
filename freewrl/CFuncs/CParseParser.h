@@ -64,6 +64,7 @@ extern BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*);
 
 /* Constructor and destructor */
 struct VRMLParser* newParser(void*, unsigned);
+struct VRMLParser* reuseParser(void*, unsigned);
 void deleteParser(struct VRMLParser*);
 
 /* Other clean up */

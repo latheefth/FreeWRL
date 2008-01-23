@@ -14,6 +14,7 @@
 #include "CParseParser.h"
 #include "CProto.h"
 #include "CScripts.h"
+#include "CParse.h"
 
 #define PARSE_ERROR(msg) \
  { \
@@ -108,8 +109,7 @@ char fw_outline[2000];
 /* ************************************************************************** */
 /* Constructor and destructor */
 
-struct VRMLParser* newParser(void* ptr, unsigned ofs)
-{
+struct VRMLParser* newParser(void* ptr, unsigned ofs) {
  struct VRMLParser* ret=MALLOC(sizeof(struct VRMLParser));
  ret->lexer=newLexer();
  assert(ret->lexer);
@@ -119,6 +119,23 @@ struct VRMLParser* newParser(void* ptr, unsigned ofs)
  ret->DEFedNodes = NULL;
  ret->PROTOs = NULL;
 
+ return ret;
+}
+
+struct VRMLParser* reuseParser(void* ptr, unsigned ofs) {
+ struct VRMLParser* ret;
+
+ /* keep the defined nodes around, etc */
+ ret = globalParser;
+ ret->lexer=newLexer();
+ assert(ret->lexer);
+ ret->ptr=ptr;
+ ret->ofs=ofs;
+/* We now need to keep the PROTOS and DEFS around 
+ ret->curPROTO=NULL;
+ ret->DEFedNodes = NULL;
+ ret->PROTOs = NULL;
+*/ 
 
  return ret;
 }
@@ -135,6 +152,9 @@ static void parser_scopeOut_DEFUSE();
 static void parser_scopeOut_PROTO();
 void parser_destroyData(struct VRMLParser* me)
 {
+
+ /* printf ("\nCParser: parser_destroyData, destroyCParserData: , destroying data, me->DEFedNodes %u\n",me->DEFedNodes); */
+
  /* DEFed Nodes. */
  if(me->DEFedNodes)
  {
@@ -1410,7 +1430,6 @@ void parser_registerRoute(struct VRMLParser* me,
   CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len, dir);
 }
 
-
 /* parse a DEF statement. Return a pointer to a vrmlNodeT */
 static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 	indexT ind;
@@ -1422,9 +1441,12 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 		PARSE_ERROR("Expected nodeNameId after DEF!\n")
 	assert(ind!=ID_UNDEFINED);
 
+
 	/* If the DEFedNodes stack has not already been created.  If not, create new stack and add an X3D_Nodes vector to that stack */ 
-	if(!me->DEFedNodes || stack_empty(me->DEFedNodes))
+	if(!me->DEFedNodes || stack_empty(me->DEFedNodes)) {
+		/* printf ("parsing KW_DEF, creating new Vectors...\n"); */
 		parser_scopeIn_DEFUSE(me);
+	}
 	assert(me->DEFedNodes);
 	assert(!stack_empty(me->DEFedNodes));
 
@@ -1471,6 +1493,7 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 	/* Return a pointer to the node in the variable ret */
 	return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
 }
+
 
 
 /* parse a USE statement. Return a pointer to a vrmlNodeT */
