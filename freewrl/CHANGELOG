@@ -1,4 +1,10 @@
 For 1.20.1
+	- Collision equations for collision with Polyreps improved by having a quick check
+	  to reduce testing on all triangles of distant shapes.
+
+	- Frustum culling was not working on OSX computers - differences in OpenGL headers
+	  between Linux and OSX; a #ifdef AQUA added to differentiate.
+
 	- EAI/SAI changes for VRML parser - keep DEFines around between calls of cParse.
 
 	- possible threading issue fixed whereby a script can be called in Routing before parsing has

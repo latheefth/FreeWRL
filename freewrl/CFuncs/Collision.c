@@ -1124,6 +1124,42 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct pt pcente
     return lefteq*lefteq > vecdot(&pcenter,&pcenter);
 }
 
+/*
+ * fast test to see if a box intersects a y-cylinder,
+ * gives false positives.
+
+ * this code is adapted from the fast_ycylinder_cone_intersect code, below.
+ */
+int fast_ycylinder_polyrep_intersect(double y1, double y2, double AVr,struct pt pcenter, double scale, struct X3D_PolyRep *pr) {
+	double AVy = pcenter.y < 0 ? y1 : y2;
+	double rx, rz, myr;
+	double myh;
+	double lefteq;
+
+	/*
+	printf ("fast_ycylinder_polyrep, y %lf, r %lf, scale %lf, pcenter %lf %lf %lf\n",AVy,AVr,scale,pcenter.x,pcenter.y,pcenter.z);
+	printf ("we have min/max for x and z: %lf, %lf and %lf %lf\n",pr->minVals[0],pr->maxVals[0], pr->minVals[2], pr->maxVals[2]);
+	*/
+
+	/* find the largest radius - use this for the cylinder radius */
+	rx = (pr->maxVals[0]-pr->minVals[0])/2.0;
+	myh = (pr->maxVals[1]-pr->minVals[1])/2.0*scale;
+	rz = (pr->maxVals[2]-pr->minVals[2])/2.0;
+	myr = sqrt (rx*rx + rz*rz)*scale;
+
+	/*
+	printf ("chose radius %lf from %lf, %lf passed in r is %lf\n",myr, rx,rz,AVr);
+	*/
+
+	/* simplify - we know that (A + B)(A + B) = AA + AB + BA + BB */
+	lefteq = sqrt(AVy*AVy + AVr*AVr) + sqrt(myh*myh + myr*myr); 
+
+	/* if (lefteq*lefteq > vecdot(&pcenter,&pcenter)) printf ("returning TRUE\n"); else printf ("returing FALSE\n"); */
+	
+
+	return lefteq*lefteq > vecdot(&pcenter,&pcenter);
+}
+
 
 /*fast test to see if a cone intersects a y-cylinder. */
 /*gives false positives. */

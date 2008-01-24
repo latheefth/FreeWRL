@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.284  2008/01/24 18:33:13  crc_canada
+# Rendering speedups on large worlds via improved collision routines
+#
 # Revision 1.283  2007/12/13 20:12:52  crc_canada
 # KeySensor and StringSensor
 #
@@ -1138,6 +1141,8 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
         int *tcindex; /* triples or null */
         float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
+	GLfloat minVals[3];		/* for collision and default texture coord generation */
+	GLfloat maxVals[3];		/* for collision and default texture coord generation */
 };
 
 /* viewer dimentions (for collision detection) */

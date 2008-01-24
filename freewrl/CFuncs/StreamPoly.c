@@ -57,7 +57,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	struct X3D_IndexedFaceSet *p;
 	struct X3D_PolyRep *r;
-	int i;
+	int i, j;
 	int hasc;
 
 	struct SFColor *points=0; int npoints;
@@ -172,6 +172,32 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		oldColorsRGBA = (struct SFColorRGBA*) colors;
 	}
 
+	/* gather the min/max values for x,y, and z for default texture mapping, and Collisions */
+	for (j=0; j<3; j++) {
+		if (points) {
+			r->minVals[j] = points[r->cindex[0]].c[j];
+			r->maxVals[j] = points[r->cindex[0]].c[j];
+		} else {
+			if (r->coord!=NULL) {
+				r->minVals[j] = r->coord[3*r->cindex[0]+j];
+				r->maxVals[j] = r->coord[3*r->cindex[0]+j];
+			}
+		}
+	}
+
+
+	for(i=0; i<r->ntri*3; i++) {
+	  int ind = r->cindex[i];
+	  for (j=0; j<3; j++) {
+	      if(points) {
+		    if (r->minVals[j] > points[ind].c[j]) r->minVals[j] = points[ind].c[j];
+		    if (r->maxVals[j] < points[ind].c[j]) r->maxVals[j] = points[ind].c[j];
+	      } else if(r->coord) {
+		    if (r->minVals[j] >  r->coord[3*ind+j]) r->minVals[j] =  r->coord[3*ind+j];
+		    if (r->maxVals[j] <  r->coord[3*ind+j]) r->maxVals[j] =  r->coord[3*ind+j];
+	      }
+	  }
+	}
 
 	/* do we need to generate default texture mapping? */
 	if (MUST_GENERATE_TEXTURES) defaultTextureMap(p, r, points, npoints);
@@ -338,7 +364,6 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, struct SFColor *points, int npoints) {
 
 	/* variables used only in this routine */
-	GLfloat maxVals[] = {-99999.9, -999999.9, -99999.0};
 	GLfloat Tsize = 0.0;
 	GLfloat Xsize = 0.0;
 	GLfloat Ysize = 0.0;
@@ -348,9 +373,9 @@ void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, str
 	/* initialize variables used in other routines in this file. */
 	Sindex = 0; Tindex = 0;
 	Ssize = 0.0;
-	minVals[0]=999999.9; 
-	minVals[1]=999999.9; 
-	minVals[2]=999999.9; 
+	minVals[0]=r->minVals[0]; 
+	minVals[1]=r->minVals[1]; 
+	minVals[2]=r->minVals[2]; 
 
 		#ifdef STREAM_POLY_VERBOSE
 		printf ("have to gen default textures\n");
@@ -359,37 +384,13 @@ void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, str
 		if ((p->_nodeType == NODE_IndexedFaceSet) ||
 		   (p->_nodeType == NODE_ElevationGrid)) {
 
-		/* use Mufti's initialization scheme for minVals and maxVals; */
-			for (j=0; j<3; j++) {
-				if (points) {
-					minVals[j] = points[r->cindex[0]].c[j];
-					maxVals[j] = points[r->cindex[0]].c[j];
-				} else {
-					if (r->coord!=NULL) {
-						minVals[j] = r->coord[3*r->cindex[0]+j];
-						maxVals[j] = r->coord[3*r->cindex[0]+j];
-					}
-				}
-			}
-
-
-			for(i=0; i<r->ntri*3; i++) {
-			  int ind = r->cindex[i];
-			  for (j=0; j<3; j++) {
-			      if(points) {
-				    if (minVals[j] > points[ind].c[j]) minVals[j] = points[ind].c[j];
-				    if (maxVals[j] < points[ind].c[j]) maxVals[j] = points[ind].c[j];
-			      } else if(r->coord) {
-				    if (minVals[j] >  r->coord[3*ind+j]) minVals[j] =  r->coord[3*ind+j];
-				    if (maxVals[j] <  r->coord[3*ind+j]) maxVals[j] =  r->coord[3*ind+j];
-			      }
-			  }
-			}
-
 			/* find the S,T mapping. */
-			Xsize = maxVals[0]-minVals[0];
-			Ysize = maxVals[1]-minVals[1];
-			Zsize = maxVals[2]-minVals[2];
+			Xsize = r->maxVals[0]-minVals[0];
+			Ysize = r->maxVals[1]-minVals[1];
+			Zsize = r->maxVals[2]-minVals[2];
+
+			/* printf ("defaultTextureMap, %f %f %f\n",Xsize,Ysize,Zsize); */
+
 	
 			if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
 				/* X size largest */

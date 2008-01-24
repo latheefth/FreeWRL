@@ -192,18 +192,27 @@ extern char *GL_VER;
 extern char *GL_REN;
 
 /* do we have GL Occlusion Culling? */
-#ifdef HAVE_GL_QUERIES_ARB
+#ifdef AQUA
 	#define OCCLUSION
-	#define VISIBILITYOCCLUSION
-	#define SHAPEOCCLUSION
-	#define glGenQueries(a,b) glGenQueriesARB(a,b)
-	#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
-#else 
-	#undef OCCLUSION
-	#undef VISIBILITYOCCLUSION
-	#undef SHAPEOCCLUSION
-	#define glGenQueries(a,b)
-	#define glDeleteQueries(a,b)
+        #define VISIBILITYOCCLUSION
+        #define SHAPEOCCLUSION
+        #define glGenQueries(a,b) glGenQueriesARB(a,b)
+        #define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
+#else
+	/* on Linux, test to see if we have this defined. */
+	#ifdef HAVE_GL_QUERIES_ARB
+		#define OCCLUSION
+		#define VISIBILITYOCCLUSION
+		#define SHAPEOCCLUSION
+		#define glGenQueries(a,b) glGenQueriesARB(a,b)
+		#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
+	#else 
+		#undef OCCLUSION
+		#undef VISIBILITYOCCLUSION
+		#undef SHAPEOCCLUSION
+		#define glGenQueries(a,b)
+		#define glDeleteQueries(a,b)
+	#endif
 #endif
 
 #define glIsQuery(a) glIsQueryARB(a)

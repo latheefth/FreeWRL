@@ -1017,6 +1017,15 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		r->tcindex = 0; 
 		r->tcoordtype = 0;
 		r->streamed = FALSE;
+
+		/* for Collision, default texture generation */
+		r->minVals[0] =  999999.9;
+		r->minVals[1] =  999999.9;
+		r->minVals[2] =  999999.9;
+		r->maxVals[0] =  -999999.9;
+		r->maxVals[1] =  -999999.9;
+		r->maxVals[2] =  -999999.9;
+
 	}
 	r = (struct X3D_PolyRep *)p->_intern;
 	/* if multithreading, tell the rendering loop that we are regenning this one */

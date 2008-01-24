@@ -500,19 +500,24 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
-/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
 
+		/* lets try and see if we are close - this gives false positives, but it does
+		   weed out fairly distant objects */
+		if(!fast_ycylinder_polyrep_intersect(abottom,atop,awidth,t_orig,scale, &pr)) return;
 
-/*	       printf("npoints=%d\n",npoints);
-	       for(i = 0; i < npoints; i++) {
-		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
-	       }*/
 	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+
+
+
+		/*  printf ("collide_IFS, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
 
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
+		/* printf ("collide_IFS after transform, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
 
 	       accumulate_disp(&CollisionInfo,delta);
+		/* printf ("collide_IFS, colinfo %lf %lf %lf, count %d Maximum2 %lf\n",CollisionInfo.Offset.x,
+			CollisionInfo.Offset.y, CollisionInfo.Offset.z,CollisionInfo.Count, CollisionInfo.Maximum2); */
 
 		#ifdef COLLISIONVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {

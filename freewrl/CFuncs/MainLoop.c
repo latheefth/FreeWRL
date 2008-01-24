@@ -268,11 +268,19 @@ void EventLoop() {
 		#ifdef PROFILE
 		oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;
 		if (oxf > 0.01) 
-		printf ("times beg:%lf eve:%lf handle_tick:%lf render_pre:%lf do_first:%lf render:%lf ending:%lf\n",
+		printf ("fps %f times beg:%lf eve:%lf handle_tick:%lf render_pre:%lf do_first:%lf render:%lf ending:%lf\n",
+				BrowserFPS,
+/*
+				timeAA,
+				timeA,timeB,
+				timeC, timeD,
+				timeE,timeF);
+*/
 				timeAA/oxf*100.0,
 				timeA/oxf*100.0,timeB/oxf*100.0,
 				timeC/oxf*100.0, timeD/oxf*100.0,
 				timeE/oxf*100.0,timeF/oxf*100.0);
+
 		#endif
 		BrowserStartTime = TickTime;
 		loop_count = 1;
@@ -735,6 +743,7 @@ get_collisionoffset(double *x, double *y, double *z)
 			*x = res.x;
 			*y = res.y;
 			*z = res.z;
+			/* printf ("get_collisionoffset, %lf %lf %lf\n",*x, *y, *z); */
 	    }
 	}
 }

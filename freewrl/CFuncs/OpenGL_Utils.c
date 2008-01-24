@@ -550,7 +550,13 @@ void zeroVisibilityFlag(void) {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<nextEntry; i++){		
 			node = memoryTable[i];		
-			/* printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); */
+			
+			#ifdef OCCLUSIONVERBOSE
+			if (((node->_renderFlags) & VF_hasVisibleChildren) != 0) {
+			printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); 
+			}
+			#endif
+
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
 	
 			/* do we have a tie in here for node-name? */

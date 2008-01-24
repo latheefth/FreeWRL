@@ -1149,9 +1149,13 @@ void child_Anchor (struct X3D_Anchor *node) {
 	int nc = (node->children).n;
 	DIRECTIONAL_LIGHT_SAVE
 
+	/* printf ("child_Anchor node %u, vis %d\n",node,node->_renderFlags & VF_hasVisibleChildren); */
 
 	/* any children at all? */
 	if (nc==0) return;
+
+	/* any visible children? */
+	OCCLUSIONTEST
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER ANCHOR START %d (%d)\n",node, nc);

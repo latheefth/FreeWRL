@@ -242,7 +242,6 @@ void recordDistance(struct X3D_Transform *nod) {
 
 /***************************************************************************/
 
-
 void OcclusionStartofEventLoop() {
 	int i;
 
@@ -251,6 +250,9 @@ void OcclusionStartofEventLoop() {
 
 	/* have we been through this yet? */
 	if (OccInitialized == FALSE) {
+		#ifdef OCCLUSIONVERBOSE
+		printf ("initializing OcclusionCulling...\n");
+		#endif
 
 		/* do we have an environment variable for this? */
 		if (getenv ("FREEWRL_NO_GL_ARB_OCCLUSION_QUERY")!= NULL) {
@@ -336,12 +338,12 @@ void OcclusionStartofEventLoop() {
 
        }
 
+
 	#ifdef OCCLUSIONVERBOSE
         glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &queryCounterBits);
         printf ("queryCounterBits %d\n",queryCounterBits);
         #endif
 }
-
 
 void OcclusionCulling ()  {
 #ifdef OCCLUSION
@@ -373,6 +375,7 @@ void OcclusionCulling ()  {
 		xx = (struct X3D_Shape *) OccNodes[i];
 		#ifdef OCCLUSIONVERBOSE
 		if (xx!=NULL) printf ("for a %s (%d)\n",stringNodeType(xx->_nodeType),i);
+		else printf ("OcclusionCulling, node for %d is still NULL\n",i);
 		#endif
 
 		if ((OccNodeRendered[i]) && (OccCheckCount[i]<0)) {
