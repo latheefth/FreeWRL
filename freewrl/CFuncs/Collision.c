@@ -334,6 +334,9 @@ struct pt weighted_sum(struct pt p1, struct pt p2, double k) {
 	    p1.x*(1-k)+p2.x*k,
 	    p1.y*(1-k)+p2.y*k,
 	    p1.z*(1-k)+p2.z*k);
+
+	/* printf ("weighted sum, from %lf %lf %lf, %lf %lf %lf, return %lf %lf %lf\n",
+	   p1.x,p1.y,p1.z,p2.x,p2.y,p2.z,ret.x,ret.y,ret.z); */
     return ret;
 }
 
@@ -750,7 +753,13 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
 
     /*calculate the closest point to origin */
     for(i = 0; i < clippedPoly4num; i++) {
+	/* printf ("get_poly_min_disp_with_sphere, checking against %d %f %f %f",i,clippedPoly4[i].x, 
+	clippedPoly4[i].y,clippedPoly4[i].z); */
+
 	double disp = vecdot(&clippedPoly4[i],&clippedPoly4[i]);
+
+	/* printf (" disp %lf, get_poly_mindisp %lf\n",disp,get_poly_mindisp); */
+
 	if(disp < get_poly_mindisp) {
 	    get_poly_mindisp = disp;
 	    result = clippedPoly4[i];
@@ -760,10 +769,13 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
 	/*  scale result to length of missing distance. */
 	double rl;
 	rl = veclength(result);
+	/* printf ("get_poly_min_disp_with_sphere, comparing %f and %f veclen %lf result %f %f %f\n",get_poly_mindisp, r*r, rl, result.x,result.y,result.z); */
 	/* if(rl != 0.) */
-	if(! APPROX(rl, 0))
+	if(! APPROX(rl, 0)) {
+		/* printf ("approx rl, 0... scaling by %lf, %lf - %lf / %lf\n",(r-sqrt(get_poly_mindisp)) / rl,
+			r, sqrt(get_poly_mindisp), rl); */
 	    vecscale(&result,&result,(r-sqrt(get_poly_mindisp)) / rl);
-	else
+	} else
 	    result = zero;
     }
     else
@@ -1136,10 +1148,12 @@ int fast_ycylinder_polyrep_intersect(double y1, double y2, double AVr,struct pt 
 	double myh;
 	double lefteq;
 
+	
 	/*
 	printf ("fast_ycylinder_polyrep, y %lf, r %lf, scale %lf, pcenter %lf %lf %lf\n",AVy,AVr,scale,pcenter.x,pcenter.y,pcenter.z);
 	printf ("we have min/max for x and z: %lf, %lf and %lf %lf\n",pr->minVals[0],pr->maxVals[0], pr->minVals[2], pr->maxVals[2]);
 	*/
+	
 
 	/* find the largest radius - use this for the cylinder radius */
 	rx = (pr->maxVals[0]-pr->minVals[0])/2.0;
@@ -1147,14 +1161,14 @@ int fast_ycylinder_polyrep_intersect(double y1, double y2, double AVr,struct pt 
 	rz = (pr->maxVals[2]-pr->minVals[2])/2.0;
 	myr = sqrt (rx*rx + rz*rz)*scale;
 
-	/*
-	printf ("chose radius %lf from %lf, %lf passed in r is %lf\n",myr, rx,rz,AVr);
-	*/
+	
+	/* printf ("chose radius %lf from %lf, %lf passed in r is %lf\n",myr, rx,rz,AVr); */
+	
 
 	/* simplify - we know that (A + B)(A + B) = AA + AB + BA + BB */
 	lefteq = sqrt(AVy*AVy + AVr*AVr) + sqrt(myh*myh + myr*myr); 
 
-	/* if (lefteq*lefteq > vecdot(&pcenter,&pcenter)) printf ("returning TRUE\n"); else printf ("returing FALSE\n"); */
+	/* if (lefteq*lefteq > vecdot(&pcenter,&pcenter)) printf ("returning TRUE\n"); else printf ("returing FALSE\n");  */
 	
 
 	return lefteq*lefteq > vecdot(&pcenter,&pcenter);
@@ -1417,6 +1431,7 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 		maxdispv = dispv;
 		nextrec = 1;
 		minisfrontfacing = frontfacing;
+		/* printf ("polyrep_disp_rec, maxdisp now %f, dispv %f %f %f\n",maxdisp,dispv.x, dispv.y, dispv.z); */
 	    }
 	}
 
@@ -1442,6 +1457,7 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 	printf("recursion_count = %d\n",recursion_count);
 #endif
 	recursion_count = 0;
+	/* printf ("polyrep_disp_rec, returning recurs %d %f %f %f\n",recursion_count, dispsum.x, dispsum.y, dispsum.z); */
 	return dispsum;
     }
 

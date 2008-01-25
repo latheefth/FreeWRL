@@ -179,8 +179,7 @@ float tx,float ty, char *descr)  {
 	}
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluProject(cx,cy,cz, modelMatrix, projMatrix, viewport,
-		&hp.x, &hp.y, &hp.z);
+	gluProject(cx,cy,cz, modelMatrix, projMatrix, viewport, &hp.x, &hp.y, &hp.z);
 	hpdist = rat;
 	rayHit=rayph;
 	rayHitHyper=rayph;

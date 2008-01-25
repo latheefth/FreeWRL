@@ -505,11 +505,14 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 		   weed out fairly distant objects */
 		if(!fast_ycylinder_polyrep_intersect(abottom,atop,awidth,t_orig,scale, &pr)) return;
 
+		/* printf ("trying larger radius \n"); */
+	       /* delta = polyrep_disp(abottom,atop,astep,awidth*2,pr,modelMatrix,flags); */
 	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
 
 
 
-		/*  printf ("collide_IFS, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
+
+		/* printf ("collide_IFS, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
 
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
@@ -517,7 +520,7 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 
 	       accumulate_disp(&CollisionInfo,delta);
 		/* printf ("collide_IFS, colinfo %lf %lf %lf, count %d Maximum2 %lf\n",CollisionInfo.Offset.x,
-			CollisionInfo.Offset.y, CollisionInfo.Offset.z,CollisionInfo.Count, CollisionInfo.Maximum2); */
+			CollisionInfo.Offset.y, CollisionInfo.Offset.z,CollisionInfo.Count, CollisionInfo.Maximum2);  */
 
 		#ifdef COLLISIONVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {

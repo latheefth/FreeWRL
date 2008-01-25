@@ -1,4 +1,11 @@
 For 1.20.1
+	- polyrep collision with high NavigationInfo speed not working 100%; some changes
+	  made, but code still needs debugging.
+
+	- "Sensitive" nature of sensitive nodes would flow up the scenegraph too far, now
+	  code verifies that sensitive nodes are indeed registered; branches above sensitive
+	  nodes ignored.
+
 	- Collision equations for collision with Polyreps improved by having a quick check
 	  to reduce testing on all triangles of distant shapes.
 

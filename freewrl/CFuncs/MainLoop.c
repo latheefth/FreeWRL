@@ -124,15 +124,14 @@ double farPlane=21000.0;
 double screenRatio=1.5;
 double fieldofview=45.0;
 
-unsigned char * CursorOverSensitive=0;		/*  is Cursor over a Sensitive node?*/
-unsigned char * oldCOS=0;			/*  which node was cursor over before this node?*/
+struct X3D_Node* CursorOverSensitive=NULL;	/*  is Cursor over a Sensitive node?*/
+struct X3D_Node* oldCOS=NULL;			/*  which node was cursor over before this node?*/
 int NavigationMode=FALSE;		/*  are we navigating or sensing?*/
 int ButDown[] = {FALSE,FALSE,FALSE,FALSE,FALSE};
 
 int currentX, currentY;			/*  current mouse position.*/
 int lastMouseEvent = MapNotify;		/*  last event a mouse did; care about Button and Motion events only.*/
-unsigned char * lastPressedOver = 0;		/*  the sensitive node that the mouse was last buttonpressed over.*/
-unsigned char * lastOver = 0;		/* last node we were over */
+struct X3D_Node* lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 
 int maxbuffers = 1;			/*  how many active indexes in bufferarray*/
 int bufferarray[] = {GL_BACK,0};
@@ -163,7 +162,7 @@ void setup_projection(int pick, int x, int y);
 void glPrintError(char *str);
 void XEventStereo(void);
 void EventLoop(void);
-unsigned char*  getRayHit(void);
+struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
 Boolean pluginRunning;
@@ -394,40 +393,40 @@ void EventLoop() {
 		CursorOverSensitive = getRayHit();
 
 		#ifdef VERBOSE
-		if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(X3D_NODE(CursorOverSensitive)->_nodeType));
+		if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(CursorOverSensitive->_nodeType));
 		#endif
 
 		/* did we have a click of button 1? */
 
-		if (ButDown[1] && (lastPressedOver==0)) {
+		if (ButDown[1] && (lastPressedOver==NULL)) {
 			/* printf ("Not Navigation and 1 down\n"); */
 			/* send an event of ButtonPress and isOver=true */
 			lastPressedOver = CursorOverSensitive;
-			sendSensorEvents(X3D_NODE(lastPressedOver), ButtonPress, ButDown[1], TRUE);
+			sendSensorEvents(lastPressedOver, ButtonPress, ButDown[1], TRUE);
 		}
 
-		if ((ButDown[1]==0) && lastPressedOver!=0) {
+		if ((ButDown[1]==0) && lastPressedOver!=NULL) {
 			/* printf ("Not Navigation and 1 up\n"); */
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
-			sendSensorEvents(X3D_NODE(lastPressedOver), ButtonRelease, ButDown[1], TRUE);
-			lastPressedOver = 0;
+			sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
+			lastPressedOver = NULL;
 		}
 
 		if (lastMouseEvent == MotionNotify) {
 			/* printf ("Not Navigation and motion - going into sendSensorEvents\n"); */
 			/* TouchSensor hitPoint_changed needs to know if we are over a sensitive node or not */
-			sendSensorEvents(X3D_NODE(CursorOverSensitive),MotionNotify, ButDown[1], TRUE);
+			sendSensorEvents(CursorOverSensitive,MotionNotify, ButDown[1], TRUE);
 
 			/* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
-			sendSensorEvents(X3D_NODE(lastPressedOver),MotionNotify, ButDown[1], TRUE);
+			sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
 		}
 
 
 
 		/* do we need to re-define cursor style? 	*/
 		/* do we need to send an isOver event?		*/
-		if (CursorOverSensitive!= 0) {
+		if (CursorOverSensitive!= NULL) {
 #ifndef AQUA
 			cursor= sensorc;
 #else
@@ -436,17 +435,17 @@ void EventLoop() {
 
 			/* is this a new node that we are now over?
 			   don't change the node pointer if we are clicked down */
-			if ((lastPressedOver==0) && (CursorOverSensitive != oldCOS)) {
-				sendSensorEvents(X3D_NODE(oldCOS),MapNotify,ButDown[1], FALSE);
-				sendSensorEvents(X3D_NODE(CursorOverSensitive),MapNotify,ButDown[1], TRUE);
+			if ((lastPressedOver==NULL) && (CursorOverSensitive != oldCOS)) {
+				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
+				sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[1], TRUE);
 				oldCOS=CursorOverSensitive;
 
-				sendDescriptionToStatusBar(X3D_NODE(CursorOverSensitive));
+				sendDescriptionToStatusBar(CursorOverSensitive);
 			}
 
 		} else {
 			/* hold off on cursor change if dragging a sensor */
-			if (lastPressedOver!=0) {
+			if (lastPressedOver!=NULL) {
 #ifndef AQUA
 				cursor = sensorc;
 #else
@@ -461,11 +460,11 @@ void EventLoop() {
 			}
 
 			/* were we over a sensitive node? */
-			if (oldCOS!=0) {
-				sendSensorEvents(X3D_NODE(oldCOS),MapNotify,ButDown[1], FALSE);
+			if (oldCOS!=NULL) {
+				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
 				/* remove any display on-screen */
 				sendDescriptionToStatusBar(NULL);
-				oldCOS=0;
+				oldCOS=NULL;
 			}
 		}
 
@@ -589,8 +588,8 @@ void handle_Xevents(XEvent event) {
 
 			/* if we are Not over an enabled sensitive node, and we do NOT
 			   already have a button down from a sensitive node... */
-			/* printf("cursoroversensitive is %d\n", CursorOverSensitive); */
-			if ((CursorOverSensitive==0) && (lastPressedOver==0))  {
+			printf("cursoroversensitive is %u lastPressedOver %u\n", CursorOverSensitive,lastPressedOver); 
+			if ((CursorOverSensitive==NULL) && (lastPressedOver==NULL))  {
 				NavigationMode=ButDown[1] || ButDown[3];
 				handle (event.type,event.xbutton.button,
 					(float) ((float)event.xbutton.x/screenWidth),
@@ -613,6 +612,7 @@ void handle_Xevents(XEvent event) {
 			/* printf("navigationMode is %d\n", NavigationMode); */
 
 			if (NavigationMode) {
+printf ("MOT, NavigationMode set properly\n");
 				/*  find out what the first button down is*/
 				count = 0;
 				while ((count < 5) && (!ButDown[count])) count++;
@@ -835,8 +835,9 @@ void do_keyPress(const char kp, int type) {
 	}
 }
 
-unsigned char* getRayHit() {
+struct X3D_Node* getRayHit() {
         double x,y,z;
+	int i;
 
         if(hpdist >= 0) {
                 gluUnProject(hp.x,hp.y,hp.z,rayHit.modelMatrix,rayHit.projMatrix,viewport,&x,&y,&z);
@@ -844,10 +845,25 @@ unsigned char* getRayHit() {
                 /* and save this globally */
                 ray_save_posn.c[0] = x; ray_save_posn.c[1] = y; ray_save_posn.c[2] = z;
 
-                return ((unsigned char*) rayHit.node);
-        } else {
-                return(0);
+		/* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
+		   if it exists */
+		/*
+		printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
+			rayHit.node,stringNodeType(rayHit.node->_nodeType), x,y,z);
+		printf (" dist %f ",rayHit.node->_dist);
+		printf (" hasSensitiveChildren %x\n",rayHit.node->_renderFlags & VF_hasSensitiveChildren);
+		*/
+
+		for (i=0; i<num_SensorEvents; i++) {
+			if (SensorEvents[i].fromnode == rayHit.node) {
+				/* printf ("found this node to be sensitive - returning %u\n",rayHit.node); */
+                		return ((struct X3D_Node*) rayHit.node);
+			}
+		}
         }
+
+	/* no rayhit, or, node was "close" (scenegraph-wise) to a sensitive node, but is not one itself */
+        return(NULL);
 }
 
 
@@ -868,7 +884,8 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 		case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
 		default: return;
 	}
-	/* printf ("set_sensitive ,parentNode %d data %d type %s\n",parentNode,datanode,stringNodeType (datanode->_nodeType)); */
+	/* printf ("set_sensitive ,parentNode %d  type %s data %d type %s\n",parentNode,
+			stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType)); */
 
 	/* record this sensor event for clicking purposes */
 	SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
@@ -1444,7 +1461,7 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
 		/* if we are Not over an enabled sensitive node, and we do NOT already have a 
 		   button down from a sensitive node... */
 
-                if ((CursorOverSensitive ==0) && (lastPressedOver ==0)) {
+                if ((CursorOverSensitive ==NULL) && (lastPressedOver ==NULL)) {
 			NavigationMode=ButDown[1] || ButDown[3];
                         handle(mev, button, (float) ((float)x/screenWidth), (float) ((float)y/screenHeight));
                 }

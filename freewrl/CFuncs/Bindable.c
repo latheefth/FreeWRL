@@ -54,7 +54,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	} else {
         	naviinfo.width = node->avatarSize.p[0];
         	naviinfo.height = node->avatarSize.p[1];
-        	naviinfo.step = node->avatarSize.p[2];
+        	naviinfo.step = (node->avatarSize.p[2] * node->speed) * 2;
 	}
         Viewer.speed = (double) node->speed;
 

@@ -605,7 +605,7 @@ void mark_script (uintptr_t num);
 
 /* structure for rayhits */
 struct currayhit {
-	void *node; /* What node hit at that distance? */
+	struct X3D_Node *node; /* What node hit at that distance? */
 	GLdouble modelMatrix[16]; /* What the matrices were at that node */
 	GLdouble projMatrix[16];
 };
