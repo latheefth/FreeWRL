@@ -106,9 +106,13 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 		/*  now scale to 0 to 1*/
 		angle = angle + 0.5;
 
+		/* and, "reverse" the value, so that left is left, and right is right */
+		angle = 1.0 - angle;
+
 		/*  bounds check...*/
 		if (angle > 1.0) angle = 1.0;
 		if (angle < 0.0) angle = 0.0;
+
 		#ifdef SOUNDVERBOSE
 		printf ("angle: %f\n",angle); 
 		#endif
