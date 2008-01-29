@@ -1,4 +1,6 @@
 For 1.20.1
+	- Midi nodes - pan values were reversed. Fixed.
+
 	- polyrep collision with high NavigationInfo speed not working 100%; some changes
 	  made, but code still needs debugging.
 
