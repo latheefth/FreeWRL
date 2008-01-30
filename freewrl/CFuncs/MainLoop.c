@@ -588,7 +588,7 @@ void handle_Xevents(XEvent event) {
 
 			/* if we are Not over an enabled sensitive node, and we do NOT
 			   already have a button down from a sensitive node... */
-			printf("cursoroversensitive is %u lastPressedOver %u\n", CursorOverSensitive,lastPressedOver); 
+			/* printf("cursoroversensitive is %u lastPressedOver %u\n", CursorOverSensitive,lastPressedOver); */
 			if ((CursorOverSensitive==NULL) && (lastPressedOver==NULL))  {
 				NavigationMode=ButDown[1] || ButDown[3];
 				handle (event.type,event.xbutton.button,
@@ -612,7 +612,6 @@ void handle_Xevents(XEvent event) {
 			/* printf("navigationMode is %d\n", NavigationMode); */
 
 			if (NavigationMode) {
-printf ("MOT, NavigationMode set properly\n");
 				/*  find out what the first button down is*/
 				count = 0;
 				while ((count < 5) && (!ButDown[count])) count++;
