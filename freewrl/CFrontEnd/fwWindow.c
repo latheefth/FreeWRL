@@ -26,6 +26,10 @@
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 
+/* count XLib errors - do not continuously go on for decades... */
+static int XLIB_errors = 0;
+
+
 int xPos = 0; 
 int yPos = 0;
 static int screen;
@@ -327,11 +331,16 @@ void resetGeometry() {
 #endif
 }
 
+
 static int catch_XLIB (Display *disp, XErrorEvent *err) {
-	int x;
-	
 	printf ("FreeWRL caught an XLib error on Display:%s We are just going to ignore error:%d request:%d and continue on\n",
 		XDisplayName(NULL), err->error_code, err->request_code);
+
+	XLIB_errors++;
+	if (XLIB_errors > 20) {
+		printf ("FreeWRL - too many XLib errors, exiting...\n");
+		exit(0);
+	}
 	return 0;
 
 }
