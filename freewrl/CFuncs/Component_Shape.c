@@ -203,21 +203,21 @@ void child_Shape (struct X3D_Shape *node) {
        	                glColor3f(1.0,1.0,1.0);
 
 			/* tell the rendering passes that this is just "normal" */
-			last_texture_depth = 0;
+			last_texture_type = NOTEXTURE;
 			last_transparency = 1.0;
                 }
 
 
 		/* lets look at texture depth, and if it has alpha, call
 		it a transparent node */
-		if ((last_texture_depth==2) || (last_texture_depth==4)) {
+		if (last_texture_type == TEXTURE_ALPHA) {
 			have_transparency++;
 			if ((node->_renderFlags & VF_Blend) != VF_Blend)
 				update_renderFlag(X3D_NODE(node),VF_Blend);
 		}
 
-		/* printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",
-		 	have_transparency, trans, last_texture_depth); */
+		/* printf ("Shape, last_trans %d this trans %d last_texture_type %d\n",
+		 	have_transparency, trans, last_texture_type); */
 
 		should_rend = FALSE;
 		/* now, are we rendering blended nodes? */
@@ -270,7 +270,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 
 void child_Appearance (struct X3D_Appearance *node) {
-                last_texture_depth = 0;
+                last_texture_type = NOTEXTURE;
                 last_transparency = 1.0;
 		void *tmpN;
 

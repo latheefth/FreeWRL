@@ -48,135 +48,145 @@ void setSnapshot() {
 
 /* convert a sequence of snaps into a movie */
 void saveSnapSequence() {
-	char *mytmp, *myseqb;
-	char sysline[2000];
-	char thisRawFile[2000];
-	char thisGoodFile[2000];
-	int xx;
-
-	/* make up base names - these may be command line parameters */
-        if (snapseqB == NULL)  myseqb  = "freewrl.seq";
-        else myseqb = snapseqB;
-        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
-        else mytmp = seqtmp;
-
-	snapGoodCount++;
-
-	if (snapGif) {
-		sprintf (thisGoodFile,"%s/%s.%04d.gif",mytmp,myseqb,snapGoodCount);
-	} else {
-		sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,snapGoodCount);
-	}
-	/* sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s", */
-
-	/* Dani Rozenbaum - In order to generate 
-	 movies (e.g. with mencoder) images have to be three-band RGB (in other 
-	 words 24-bits) */
-sprintf(sysline, "%s -size %dx%d -depth 24 -colorspace RGB +matte -flip %s/%s*rgb %s",
-		CONVERT, screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
-
-	/* printf ("convert line %s\n",sysline); */
-
-	if (system (sysline) != 0) {
-		printf ("Freewrl: error running convert line %s\n",sysline);
-	}
-	printf ("snapshot is :%s\n",thisGoodFile);
-	/* remove temporary files */
-	for (xx=1; xx <= snapRawCount; xx++) {
-		sprintf (thisRawFile, "%s/%s.%04d.rgb",mytmp,myseqb,xx);
-		unlink (thisRawFile);
-	}
-	snapRawCount=0;
-}
-
-/* get 1 frame; convert if we are doing 1 image at a time */
-void Snapshot () {
-	GLvoid *buffer;
-	char sysline[2000];
-	FILE * tmpfile;
-	DIR *mydir;
-	char thisRawFile[2000];
-	char thisGoodFile[2000];
-
-
-	char *mytmp, *mysnapb;
-
-	/* make up base names - these may be command line parameters */
-
-	if (snapsequence) {
-                if (snapseqB == NULL)
-                        mysnapb  = "freewrl.seq";
-                else
-                        mysnapb = snapseqB;
-        } else {
-                if (snapsnapB == NULL)
-                        mysnapb = "freewrl.snap";
-                else
-                        mysnapb = snapsnapB;
-        }
-
-
-        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
-        else mytmp = seqtmp;
-
-	/*does the directory exist? */
-	if ((mydir = opendir(mytmp)) == NULL) {
-		mkdir (mytmp,0755);
-		if ((mydir = opendir(mytmp)) == NULL) {
-			printf ("error opening Snapshot directory %s\n",mytmp);
-			return;
-		}
-	}
-
-	/* are we sequencing, or just single snapping? */
-	if (!snapsequence) doSnapshot=FALSE;  	/* reset snapshot key */
-
-	/* MALLOC 3 bytes per pixel */
-	buffer = MALLOC (3*screenWidth*screenHeight*sizeof(char));
-
-	/* grab the data */
-	glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-	glPixelStorei (GL_PACK_ALIGNMENT, 1);
-	glReadPixels (0,0,screenWidth,screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
-
-	/* save this snapshot */
-	snapRawCount ++;
-	if (snapRawCount > maxSnapImages) {
-		FREE_IF_NZ (buffer);
-		return;
-	}
-
-	/* save the file */
-	sprintf (thisRawFile,"%s/%s.%04d.rgb",mytmp,mysnapb,snapRawCount);
-	tmpfile = fopen(thisRawFile,"w");
-	if (tmpfile == NULL) {
-		printf ("can not open temp file (%s) for writing\n",thisRawFile);
-		FREE_IF_NZ (buffer);
-		return;
-	}
-
-	if (fwrite(buffer, 1, screenHeight*screenWidth*3, tmpfile) <= 0) {
-		printf ("error writing snapshot to %s, aborting snapshot\n",thisRawFile);
-		FREE_IF_NZ (buffer);
-		return;
-	}
-	fclose (tmpfile);
-
-	/* convert -size 450x300 -depth 8 -flip /tmp/snappedfile.rgb out.png works. */
-
-	FREE_IF_NZ (buffer);
-
-	/* now, if we are doing only 1, convert the raw into the good.... */
-	if (!snapsequence) {
+	#ifdef AQUA
+		snapRawCount=0;
+		ConsoleMessage ("Snapshots currently disabled on OSX");
+	#else
+		char *mytmp, *myseqb;
+		char sysline[2000];
+		char thisRawFile[2000];
+		char thisGoodFile[2000];
+		int xx;
+	
+		/* make up base names - these may be command line parameters */
+	        if (snapseqB == NULL)  myseqb  = "freewrl.seq";
+	        else myseqb = snapseqB;
+	        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
+	        else mytmp = seqtmp;
+	
 		snapGoodCount++;
-		sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
-		sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s %s",
-		CONVERT,screenWidth, screenHeight,thisRawFile,thisGoodFile);
-
+	
+		if (snapGif) {
+			sprintf (thisGoodFile,"%s/%s.%04d.gif",mytmp,myseqb,snapGoodCount);
+		} else {
+			sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,snapGoodCount);
+		}
+		/* sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s", */
+	
+		/* Dani Rozenbaum - In order to generate 
+		 movies (e.g. with mencoder) images have to be three-band RGB (in other 
+		 words 24-bits) */
+	sprintf(sysline, "%s -size %dx%d -depth 24 -colorspace RGB +matte -flip %s/%s*rgb %s",
+			CONVERT, screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
+	
+		/* printf ("convert line %s\n",sysline); */
+	
 		if (system (sysline) != 0) {
 			printf ("Freewrl: error running convert line %s\n",sysline);
 		}
 		printf ("snapshot is :%s\n",thisGoodFile);
-		unlink (thisRawFile);
-	}
+		/* remove temporary files */
+		for (xx=1; xx <= snapRawCount; xx++) {
+			sprintf (thisRawFile, "%s/%s.%04d.rgb",mytmp,myseqb,xx);
+			unlink (thisRawFile);
+		}
+		snapRawCount=0;
+	#endif
+}
+
+/* get 1 frame; convert if we are doing 1 image at a time */
+void Snapshot () {
+	#ifdef AQUA
+		snapRawCount=0;
+		ConsoleMessage ("Snapshots currently disabled on OSX");
+	#else
+		GLvoid *buffer;
+		char sysline[2000];
+		FILE * tmpfile;
+		DIR *mydir;
+		char thisRawFile[2000];
+		char thisGoodFile[2000];
+	
+	
+		char *mytmp, *mysnapb;
+	
+		/* make up base names - these may be command line parameters */
+	
+		if (snapsequence) {
+	                if (snapseqB == NULL)
+	                        mysnapb  = "freewrl.seq";
+	                else
+	                        mysnapb = snapseqB;
+	        } else {
+	                if (snapsnapB == NULL)
+	                        mysnapb = "freewrl.snap";
+	                else
+	                        mysnapb = snapsnapB;
+	        }
+	
+	
+	        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
+	        else mytmp = seqtmp;
+	
+		/*does the directory exist? */
+		if ((mydir = opendir(mytmp)) == NULL) {
+			mkdir (mytmp,0755);
+			if ((mydir = opendir(mytmp)) == NULL) {
+				printf ("error opening Snapshot directory %s\n",mytmp);
+				return;
+			}
+		}
+	
+		/* are we sequencing, or just single snapping? */
+		if (!snapsequence) doSnapshot=FALSE;  	/* reset snapshot key */
+	
+		/* MALLOC 3 bytes per pixel */
+		buffer = MALLOC (3*screenWidth*screenHeight*sizeof(char));
+	
+		/* grab the data */
+		glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei (GL_PACK_ALIGNMENT, 1);
+		glReadPixels (0,0,screenWidth,screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
+	
+		/* save this snapshot */
+		snapRawCount ++;
+		if (snapRawCount > maxSnapImages) {
+			FREE_IF_NZ (buffer);
+			return;
+		}
+	
+		/* save the file */
+		sprintf (thisRawFile,"%s/%s.%04d.rgb",mytmp,mysnapb,snapRawCount);
+		tmpfile = fopen(thisRawFile,"w");
+		if (tmpfile == NULL) {
+			printf ("can not open temp file (%s) for writing\n",thisRawFile);
+			FREE_IF_NZ (buffer);
+			return;
+		}
+	
+		if (fwrite(buffer, 1, screenHeight*screenWidth*3, tmpfile) <= 0) {
+			printf ("error writing snapshot to %s, aborting snapshot\n",thisRawFile);
+			FREE_IF_NZ (buffer);
+			return;
+		}
+		fclose (tmpfile);
+	
+		/* convert -size 450x300 -depth 8 -flip /tmp/snappedfile.rgb out.png works. */
+	
+		FREE_IF_NZ (buffer);
+	
+		/* now, if we are doing only 1, convert the raw into the good.... */
+		if (!snapsequence) {
+			snapGoodCount++;
+			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
+			sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s %s",
+			CONVERT,screenWidth, screenHeight,thisRawFile,thisGoodFile);
+	
+			if (system (sysline) != 0) {
+				printf ("Freewrl: error running convert line %s\n",sysline);
+			}
+			printf ("snapshot is :%s\n",thisGoodFile);
+			unlink (thisRawFile);
+		}
+	#endif
 }

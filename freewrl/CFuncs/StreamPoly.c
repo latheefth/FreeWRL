@@ -140,7 +140,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	#endif
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
-	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
+	hasc = ((ncolors || r->color) && (last_texture_type!=NOTEXTURE));
 
 	if MUST_GENERATE_TEXTURES {
 		#ifdef STREAM_POLY_VERBOSE

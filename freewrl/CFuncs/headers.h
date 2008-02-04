@@ -473,7 +473,11 @@ extern int _fw_browser_plugin;
 #define RUNNINGONAMD64 (sizeof(void *) == 8)
 
 /* appearance does material depending on last texture depth */
-extern int last_texture_depth;
+#define NOTEXTURE 0
+#define TEXTURE_NO_ALPHA 1
+#define TEXTURE_ALPHA 2
+
+extern int last_texture_type;
 extern float last_transparency;
 
 

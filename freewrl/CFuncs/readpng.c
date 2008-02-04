@@ -1,3 +1,11 @@
+# ifndef AQUA
+
+/* FreeWRL now only uses this on Linux machines. */
+
+
+
+
+
 /*---------------------------------------------------------------------------
 
    rpng - simple PNG display program                              readpng.c
@@ -221,3 +229,5 @@ void readpng_cleanup(int free_image_data)
         info_ptr = NULL;
     }
 }
+#endif
+

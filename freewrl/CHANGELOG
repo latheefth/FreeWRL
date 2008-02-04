@@ -1,4 +1,7 @@
 For 1.20.2
+	- OSX - use QuickTime/Quartz for image loading, rather than libraries supplied
+	  in FeeeWRL dmg package.
+ 
 	- Linux: XLib errors limited to 20; more than that FreeWRL exits. (ideally, no
 	  XLib errors would occur; this is just to help in case of failures elsewhere)
 

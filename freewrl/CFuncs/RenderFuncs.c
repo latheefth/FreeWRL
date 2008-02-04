@@ -41,7 +41,8 @@ int nextlight() {
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
-int last_texture_depth = 0;
+
+int last_texture_type = NOTEXTURE;
 float last_transparency = 0.0;
 
 /* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different

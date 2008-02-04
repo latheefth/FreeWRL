@@ -9,7 +9,6 @@ DEBUG => "off",
 BROWSER => "/Applications/Safari.app/Contents/MacOS/Safari",
 WGET => "/usr/bin/curl",
 ASCIITERM => "/usr/X11R6/bin/rxvt",
-CONVERT => "/usr/local/bin/convert",
 UNZIP => "/usr/bin/gunzip",
 
 # Java compiler - if no java, comment this line and the JAVA_INST line below.
@@ -28,19 +27,14 @@ FREEWRL_CCFLAGS => '-arch '.
 		   '-fno-common ',
 
 ############################################################################
-# Main defines for OpenGL, libjpeg, libpng, and freetype
+# Main defines for OpenGL, freetype
     FREEWRL_LIBS => '-L/usr/lib '.
 		'-L/usr/local/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
-		'-L/FreeWRL/jpeg-6b '.
-		'-ljpeg '.
-		'-lpng12 '.
-		'-lz '.
 		'-lSystem '.
 		'-lexpat '.
 		'-lfreetype '.
-		'-lGL -lGLU '.
-		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
+		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework QuickTime',
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
@@ -50,7 +44,6 @@ FREEWRL_CCFLAGS => '-arch '.
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
-		'-I/FreeWRL/jpeg-6b '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.

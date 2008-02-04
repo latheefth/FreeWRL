@@ -18,10 +18,10 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glx.h>
+#include "jpeglib.h"
 #endif
 
 #include "headers.h"
-#include "jpeglib.h"
 
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \

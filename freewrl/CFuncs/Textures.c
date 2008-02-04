@@ -17,6 +17,8 @@
 #include "readpng.h"
 #include "OpenGL_Utils.h"
 #include <setjmp.h>
+#include <Carbon/Carbon.h>
+#include <QuickTime/QuickTime.h>
 
 #undef TEXVERBOSE
 
@@ -56,6 +58,7 @@ struct textureTableIndexStruct {
 	int			nodeType;
 	int 	status;
 	int	depth;
+	int 	hasAlpha;
 	GLuint	*OpenGLTexture;
 	int	frames;
 	char    *filename;
@@ -147,7 +150,8 @@ void store_tex_info(
 		int depth,
 		int x,
 		int y,
-		unsigned char *ptr);
+		unsigned char *ptr,
+		int hasAlpha);
 
 void __reallyloadPixelTexure(void);
 void __reallyloadImageTexture(void);
@@ -784,13 +788,15 @@ void store_tex_info(
 		int depth,
 		int x,
 		int y,
-		unsigned char *ptr) {
+		unsigned char *ptr,
+		int hasAlpha) {
 
 		me->frames=1;
 		me->depth=depth;
 		me->x = x;
 		me->y = y;
 		me->texdata = ptr;
+		me->hasAlpha = hasAlpha;
 }
 
 /* do we do 1 texture, or is this a series of textures, requiring final binding
@@ -1022,12 +1028,13 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 		printf ("now binding to pre-bound mti%d tex%d\n",myTableIndex,myTableIndex->OpenGLTexture[0]);
 		#endif
 		/* set the texture depth - required for Material diffuseColor selection */
-		last_texture_depth = myTableIndex->depth;
+		if (myTableIndex->hasAlpha) last_texture_type =  TEXTURE_ALPHA;
+		else last_texture_type = TEXTURE_NO_ALPHA;
 
 		/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
 		   ignored. We do this here, because when we do the Material node, we do not know what the
 		   texture depth is (if there is any texture, even) */
-		if (last_texture_depth >=3) {
+		if (myTableIndex->depth  >=3) {
 			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 		}
 
@@ -1198,6 +1205,8 @@ int findTextureFile (int cwo, int *istemp) {
 		sprintf (filename,"PixelTexture_%d",loadThisTexture);
 	}
 
+	#ifndef AQUA
+	/* on AQUA/OSX, let QuickTime do the conversion for us */
 	if (loadThisTexture->nodeType == NODE_ImageTexture) {
 		/* is this a texture type that is *not* handled internally? */
 		if ((strncmp(firstBytes,firstPNG,4) != 0) &&
@@ -1222,6 +1231,7 @@ int findTextureFile (int cwo, int *istemp) {
 			FREE_IF_NZ (sysline);
 		}
 	}
+	#endif
 
 	/* save filename in data structure for later comparisons */
 	#ifdef TEXVERBOSE
@@ -1441,12 +1451,160 @@ void __reallyloadPixelTexure() {
 
 			iptr++;
 		}
-		store_tex_info(loadThisTexture, (int)depth,(int)wid,(int)hei,texture);
+		store_tex_info(loadThisTexture, (int)depth,(int)wid,(int)hei,texture,
+			((depth==2)||(depth==4)) );
 	}
 
 }
 
 
+#ifdef AQUA
+
+
+/* render from aCGImageRef into a buffer, to get EXACT bits, as a CGImageRef contains only
+estimates. */
+/* from http://developer.apple.com/qa/qa2007/qa1509.html */
+
+static inline double radians (double degrees) {return degrees * M_PI/180;}
+CGContextRef CreateARGBBitmapContext (CGImageRef inImage)
+{
+    CGContextRef    context = NULL;
+    CGColorSpaceRef colorSpace;
+    void *          bitmapData;
+    int             bitmapByteCount;
+    int             bitmapBytesPerRow;
+
+     // Get image width, height. We'll use the entire image.
+    size_t pixelsWide = CGImageGetWidth(inImage);
+    size_t pixelsHigh = CGImageGetHeight(inImage);
+
+    // Declare the number of bytes per row. Each pixel in the bitmap in this
+    // example is represented by 4 bytes; 8 bits each of red, green, blue, and
+    // alpha.
+    bitmapBytesPerRow   = (pixelsWide * 4);
+    bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
+
+    // Use the generic RGB color space.
+    colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+    if (colorSpace == NULL)
+    {
+        fprintf(stderr, "Error allocating color space\n");
+        return NULL;
+    }
+
+    // Allocate memory for image data. This is the destination in memory
+    // where any drawing to the bitmap context will be rendered.
+    bitmapData = malloc( bitmapByteCount );
+    if (bitmapData == NULL)
+    {
+        fprintf (stderr, "Memory not allocated!");
+        CGColorSpaceRelease( colorSpace );
+        return NULL;
+    }
+
+    // Create the bitmap context. We want pre-multiplied ARGB, 8-bits
+    // per component. Regardless of what the source image format is
+    // (CMYK, Grayscale, and so on) it will be converted over to the format
+    // specified here by CGBitmapContextCreate.
+    context = CGBitmapContextCreate (bitmapData,
+                                    pixelsWide,
+                                    pixelsHigh,
+                                    8,      // bits per component
+                                    bitmapBytesPerRow,
+                                    colorSpace,
+                                    kCGImageAlphaNoneSkipLast);
+				/* kCGImageAlphaLast); */
+
+    if (context == NULL) {
+        free (bitmapData);
+        fprintf (stderr, "Context not created!");
+    } else {
+
+    	// try scaling and rotating this image to fit our ideas on life in general
+    	CGContextTranslateCTM (context, 0, pixelsHigh);
+    	CGContextScaleCTM (context,1.0, -1.0);
+    }
+
+    // Make sure and release colorspace before returning
+    CGColorSpaceRelease( colorSpace );
+
+    return context;
+}
+
+
+
+void __reallyloadImageTexture() {
+	CGImageRef 	image;
+	CFStringRef	path;
+	CFURLRef 	url;
+	size_t 		image_width;
+	size_t 		image_height;
+
+	Handle 		dataRef;
+	OSType 		dataRefType;
+	GraphicsImportComponent gi;
+
+	CGContextRef 	cgctx;
+	OSErr 		err;
+
+	unsigned char *	data;
+	int		hasAlpha = FALSE;
+	int		count;
+
+	path = CFStringCreateWithCString(NULL, loadThisTexture->filename, kCFStringEncodingUTF8);
+	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+	err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
+
+	if (dataRef != NULL) {
+		err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
+		err = GraphicsImportCreateCGImage (gi, &image, 0);
+		DisposeHandle (dataRef);
+		CloseComponent(gi);
+	}
+
+	CFRelease(url);
+	CFRelease(path);
+
+	image_width = CGImageGetWidth(image);
+	image_height = CGImageGetHeight(image);
+
+
+	/* printf ("ok, so we have this image of bitsperpix %d bitspercomponent %d bytesperrow  %d height %d width %d\n",
+		CGImageGetBitsPerPixel(image),
+		CGImageGetBitsPerComponent(image),
+		CGImageGetBytesPerRow(image),
+		image_height, image_width); */
+
+	/* now, lets "draw" this so that we get the exact bit values */
+	cgctx = CreateARGBBitmapContext(image);
+	CGRect rect = {{0,0},{image_width,image_height}};
+	CGContextDrawImage(cgctx, rect,image);
+
+	data = (unsigned char *)CGBitmapContextGetData(cgctx);
+
+	if (data != NULL) {
+
+		/* have an image. Quartz/Quicktime will read this in as a 4 byte alligned
+		   image; RGB images will have 4 bytes, RGBx where x is 0xff; RGBA images
+		   will have something sometimes other than 0xff. Go through and look at
+		   this last byte and see what we have */
+		for (count=3; count<image_width * image_height; count+=4) {
+			/* printf ("count %d byte %x\n",count,data[count]); */
+			if (data[count] != 0xff) {
+				/* printf ("image has alpha\n"); */
+				hasAlpha = TRUE;
+				break;
+			}
+		}
+		store_tex_info (loadThisTexture,
+		CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image),
+		image_width, image_height, data, hasAlpha);
+	}
+
+	CGContextRelease(cgctx);
+}
+
+#else
 /*********************************************************************************************/
 
 /*
@@ -1599,7 +1757,7 @@ void __reallyloadImageTexture() {
 
 		store_tex_info(loadThisTexture,
 			cinfo.output_components, (int)cinfo.output_width,
-			(int)cinfo.output_height,image_data);
+			(int)cinfo.output_height,image_data,cinfo.output_components==4);
 	} else {
 		if (rc != 0) {
 		releaseTexture(loadThisTexture->scenegraphNode);
@@ -1623,12 +1781,14 @@ void __reallyloadImageTexture() {
 
 			store_tex_info (loadThisTexture, image_channels,
 				(int)image_width, (int)image_height,
-				image_data);
+				image_data,image_channels=4);
 		}
 		readpng_cleanup (FALSE);
 	}
 	fclose (infile);
 }
+
+#endif
 
 
 void __reallyloadMovieTexture () {
@@ -1645,7 +1805,7 @@ void __reallyloadMovieTexture () {
 	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
 	#endif
 
-	store_tex_info (loadThisTexture, depth, x, y, ptr);
+	store_tex_info (loadThisTexture, depth, x, y, ptr,depth==4);
 
 	/* and, manually put the frameCount in. */
 	loadThisTexture->frames = frameCount;
