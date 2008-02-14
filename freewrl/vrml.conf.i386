@@ -34,7 +34,7 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-lSystem '.
 		'-lexpat '.
 		'-lfreetype '.
-		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework QuickTime',
+		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
     # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html

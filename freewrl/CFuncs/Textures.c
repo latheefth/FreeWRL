@@ -56,6 +56,7 @@ extern void *texParams[];
 struct textureTableIndexStruct {
 	struct	X3D_Node*	scenegraphNode;
 	int			nodeType;
+	int	imageType;
 	int 	status;
 	int	depth;
 	int 	hasAlpha;
@@ -74,6 +75,8 @@ struct textureTableIndexStruct {
         GLint Src;
         GLint Trc;
 };
+#define PNGTexture 200
+#define JPGTexture 300
 
 /* each block of allocated code contains this... */
 struct textureTableStruct {
@@ -790,13 +793,12 @@ void store_tex_info(
 		int y,
 		unsigned char *ptr,
 		int hasAlpha) {
-
-		me->frames=1;
-		me->depth=depth;
-		me->x = x;
-		me->y = y;
-		me->texdata = ptr;
-		me->hasAlpha = hasAlpha;
+	me->frames=1;
+	me->depth=depth;
+	me->x = x;
+	me->y = y;
+	me->texdata = ptr;
+	me->hasAlpha = hasAlpha;
 }
 
 /* do we do 1 texture, or is this a series of textures, requiring final binding
@@ -1205,8 +1207,16 @@ int findTextureFile (int cwo, int *istemp) {
 		sprintf (filename,"PixelTexture_%d",loadThisTexture);
 	}
 
-	#ifndef AQUA
-	/* on AQUA/OSX, let QuickTime do the conversion for us */
+	#ifdef AQUA
+	/* on AQUA/OSX, let QuickTime do the conversion for us, but maybe we can help it out
+	   by keeping a tab on what kind of image this is  */
+	if (loadThisTexture->nodeType == NODE_ImageTexture) {
+		loadThisTexture->imageType = ID_UNDEFINED;
+		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
+		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
+	}
+
+	#else	
 	if (loadThisTexture->nodeType == NODE_ImageTexture) {
 		/* is this a texture type that is *not* handled internally? */
 		if ((strncmp(firstBytes,firstPNG,4) != 0) &&
@@ -1466,8 +1476,7 @@ estimates. */
 /* from http://developer.apple.com/qa/qa2007/qa1509.html */
 
 static inline double radians (double degrees) {return degrees * M_PI/180;}
-CGContextRef CreateARGBBitmapContext (CGImageRef inImage)
-{
+CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
     CGContextRef    context = NULL;
     CGColorSpaceRef colorSpace;
     void *          bitmapData;
@@ -1509,7 +1518,8 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage)
     context = CGBitmapContextCreate (bitmapData,
                                     pixelsWide,
                                     pixelsHigh,
-                                    8,      // bits per component
+//                                    CGImageGetBitsPerComponent(inImage),      // bits per component
+					8,
                                     bitmapBytesPerRow,
                                     colorSpace,
                                     kCGImageAlphaNoneSkipLast);
@@ -1551,15 +1561,45 @@ void __reallyloadImageTexture() {
 	int		hasAlpha = FALSE;
 	int		count;
 
+	CGDataProviderRef provider;
+	CGImageSourceRef 	sourceRef;
+
+
 	path = CFStringCreateWithCString(NULL, loadThisTexture->filename, kCFStringEncodingUTF8);
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
-	err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
 
-	if (dataRef != NULL) {
-		err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
-		err = GraphicsImportCreateCGImage (gi, &image, 0);
-		DisposeHandle (dataRef);
-		CloseComponent(gi);
+	/* can we directly import this a a jpeg or png?? */
+	if (loadThisTexture->imageType != ID_UNDEFINED) {
+		/* printf ("this is a JPEG texture, try direct loading\n"); */
+		provider = CGDataProviderCreateWithURL(url);
+		if (loadThisTexture->imageType == JPGTexture) 
+			image = CGImageCreateWithJPEGDataProvider(provider, NULL, TRUE, kCGRenderingIntentDefault);
+		else
+			image = CGImageCreateWithPNGDataProvider(provider, NULL, TRUE, kCGRenderingIntentDefault);
+		CGDataProviderRelease(provider);
+	} else {
+#ifdef TRY_QUICKTIME
+   I don't know whether to use quicktime or not... Probably not... as the other ways using core 
+graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs??
+
+		/* lets let quicktime decide on what to do with this image */
+		err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
+
+		if (dataRef != NULL) {
+			err = GetGraphicsImporterForDataRef (dataRef, dataRefType, &gi);
+			err = GraphicsImportCreateCGImage (gi, &image, 0);
+			DisposeHandle (dataRef);
+			CloseComponent(gi);
+		}
+#else
+		sourceRef = CGImageSourceCreateWithURL(url,NULL);
+
+		if (sourceRef != NULL) {
+			image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
+			CFRelease (sourceRef);
+		}
+#endif
+
 	}
 
 	CFRelease(url);
@@ -1569,11 +1609,14 @@ void __reallyloadImageTexture() {
 	image_height = CGImageGetHeight(image);
 
 
-	/* printf ("ok, so we have this image of bitsperpix %d bitspercomponent %d bytesperrow  %d height %d width %d\n",
+	/*
+	printf ("ok, so we have this image of bitsperpix %d; bitspercomponent %d; bytesperrow %d; height %d width %d\n",
 		CGImageGetBitsPerPixel(image),
 		CGImageGetBitsPerComponent(image),
 		CGImageGetBytesPerRow(image),
-		image_height, image_width); */
+		image_height, image_width); 
+	printf ("image has %d layers\n",CGImageSourceGetCount(sourceRef));
+	*/
 
 	/* now, lets "draw" this so that we get the exact bit values */
 	cgctx = CreateARGBBitmapContext(image);
@@ -1583,22 +1626,25 @@ void __reallyloadImageTexture() {
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
 	if (data != NULL) {
+		/* printf ("bit depth is %d, if it is 4 we will look for alpha\n",
+			CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image)); */
 
-		/* have an image. Quartz/Quicktime will read this in as a 4 byte alligned
-		   image; RGB images will have 4 bytes, RGBx where x is 0xff; RGBA images
-		   will have something sometimes other than 0xff. Go through and look at
-		   this last byte and see what we have */
-		for (count=3; count<image_width * image_height; count+=4) {
-			/* printf ("count %d byte %x\n",count,data[count]); */
-			if (data[count] != 0xff) {
-				/* printf ("image has alpha\n"); */
-				hasAlpha = TRUE;
-				break;
+		if ((CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image)) == 4) {
+			/* printf ("checking to see if image actually has alpha \n"); */
+			/* have an image. Quartz/Quicktime will read this in as a 4 byte alligned
+			   image; RGB images will have 4 bytes, RGBx where x is 0xff; RGBA images
+			   will have something sometimes other than 0xff. Go through and look at
+			   this last byte and see what we have */
+			for (count=3; count<image_width * image_height; count+=4) {
+				/* printf ("count %d byte %x\n",count,data[count]); */
+				if (data[count] != 0xff) {
+					/* printf ("image has alpha\n");   */
+					hasAlpha = TRUE;
+					break;
+				}
 			}
 		}
-		store_tex_info (loadThisTexture,
-		CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image),
-		image_width, image_height, data, hasAlpha);
+		store_tex_info (loadThisTexture, 4, image_width, image_height,  data, hasAlpha);
 	}
 
 	CGContextRelease(cgctx);
