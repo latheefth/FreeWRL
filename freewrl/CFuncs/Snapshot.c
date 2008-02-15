@@ -1,5 +1,5 @@
 /*******************************************************************
- Copyright (C) 2004 John Stewart, CRC Canada.
+ Copyright (C) 2004, 2008  John Stewart, CRC Canada.
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
@@ -48,10 +48,6 @@ void setSnapshot() {
 
 /* convert a sequence of snaps into a movie */
 void saveSnapSequence() {
-	#ifdef AQUA
-		snapRawCount=0;
-		ConsoleMessage ("Snapshots currently disabled on OSX");
-	#else
 		char *mytmp, *myseqb;
 		char sysline[2000];
 		char thisRawFile[2000];
@@ -91,55 +87,114 @@ void saveSnapSequence() {
 			unlink (thisRawFile);
 		}
 		snapRawCount=0;
-	#endif
 }
+
+#ifdef AQUA
+
+CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char *buffer) { 
+	CGContextRef context=NULL; 
+	CGColorSpaceRef colorSpace; 
+	unsigned char* bitmapData; 
+	int bitmapByteCount; 
+	int bitmapBytesPerRow; 
+	int i;
+
+	bitmapBytesPerRow =(pixelsWide*4); 
+	bitmapByteCount =(bitmapBytesPerRow*pixelsHigh); 
+	colorSpace=CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB); 
+	bitmapData=(unsigned char*) malloc(bitmapByteCount); 
+
+	if(bitmapData==NULL) 
+	{ 
+		fprintf(stderr,"Memorynotallocated!"); 
+		return NULL; 
+	} 
+
+	/* copy the saved OpenGL data, but, invert it */
+	for (i=0; i<pixelsHigh; i++) {
+		memcpy (&bitmapData[i*bitmapBytesPerRow], 
+			&buffer[(pixelsHigh-i-1)*bitmapBytesPerRow], 
+			bitmapBytesPerRow);
+	}
+
+	context=CGBitmapContextCreate(bitmapData, 
+		pixelsWide, 
+		pixelsHigh, 
+		8, // bits per component 
+		bitmapBytesPerRow, 
+		colorSpace, 
+		kCGImageAlphaPremultipliedLast); 
+	if (context== NULL) 
+	{ 
+		free (bitmapData); 
+		fprintf (stderr, "Context not created!"); 
+		return NULL; 
+	} 
+	CGColorSpaceRelease( colorSpace ); 
+	return context; 
+} 
+#endif
 
 /* get 1 frame; convert if we are doing 1 image at a time */
 void Snapshot () {
+	GLvoid *buffer;
+	char sysline[2000];
+	FILE * tmpfile;
+	DIR *mydir;
+	char thisRawFile[2000];
+	char thisGoodFile[2000];
+	char *mytmp, *mysnapb;
+
 	#ifdef AQUA
-		snapRawCount=0;
-		ConsoleMessage ("Snapshots currently disabled on OSX");
-	#else
-		GLvoid *buffer;
-		char sysline[2000];
-		FILE * tmpfile;
-		DIR *mydir;
-		char thisRawFile[2000];
-		char thisGoodFile[2000];
+        CFStringRef     path;
+        CFURLRef        url;
+	CGImageRef	image;
+	CGImageDestinationRef imageDest;
+	CGRect myBoundingBox; 
+	CGContextRef myBitmapContext;
+	#endif
+	
+	/* make up base names - these may be command line parameters */
+	
+	if (snapsequence) {
+	        if (snapseqB == NULL)
+	                mysnapb  = "freewrl.seq";
+	        else
+	                mysnapb = snapseqB;
+	} else {
+	        if (snapsnapB == NULL)
+	                mysnapb = "freewrl.snap";
+	        else
+	                mysnapb = snapsnapB;
+	}
 	
 	
-		char *mytmp, *mysnapb;
+	if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
+	else mytmp = seqtmp;
 	
-		/* make up base names - these may be command line parameters */
-	
-		if (snapsequence) {
-	                if (snapseqB == NULL)
-	                        mysnapb  = "freewrl.seq";
-	                else
-	                        mysnapb = snapseqB;
-	        } else {
-	                if (snapsnapB == NULL)
-	                        mysnapb = "freewrl.snap";
-	                else
-	                        mysnapb = snapsnapB;
-	        }
-	
-	
-	        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
-	        else mytmp = seqtmp;
-	
-		/*does the directory exist? */
+	/*does the directory exist? */
+	if ((mydir = opendir(mytmp)) == NULL) {
+		mkdir (mytmp,0755);
 		if ((mydir = opendir(mytmp)) == NULL) {
-			mkdir (mytmp,0755);
-			if ((mydir = opendir(mytmp)) == NULL) {
-				printf ("error opening Snapshot directory %s\n",mytmp);
-				return;
-			}
+			ConsoleMessage ("error opening Snapshot directory %s\n",mytmp);
+			return;
 		}
+	}
 	
-		/* are we sequencing, or just single snapping? */
-		if (!snapsequence) doSnapshot=FALSE;  	/* reset snapshot key */
+	/* are we sequencing, or just single snapping? */
+	if (!snapsequence) doSnapshot=FALSE;  	/* reset snapshot key */
 	
+	#ifdef AQUA	
+		/* OSX needs 32 bits per byte. */
+		/* MALLOC 4 bytes per pixel */
+		buffer = MALLOC (4*screenWidth*screenHeight*sizeof(char));
+	
+		/* grab the data */
+		glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei (GL_PACK_ALIGNMENT, 1);
+		glReadPixels (0,0,screenWidth,screenHeight,GL_RGBA,GL_UNSIGNED_BYTE, buffer);
+	#else	
+		/* Linux, etc, can get by with 3 bytes per pixel */
 		/* MALLOC 3 bytes per pixel */
 		buffer = MALLOC (3*screenWidth*screenHeight*sizeof(char));
 	
@@ -147,14 +202,50 @@ void Snapshot () {
 		glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei (GL_PACK_ALIGNMENT, 1);
 		glReadPixels (0,0,screenWidth,screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
+	#endif
 	
-		/* save this snapshot */
-		snapRawCount ++;
-		if (snapRawCount > maxSnapImages) {
-			FREE_IF_NZ (buffer);
+	/* save this snapshot */
+	snapRawCount ++;
+	if (snapRawCount > maxSnapImages) {
+		FREE_IF_NZ (buffer);
+		return;
+	}
+
+	#ifdef AQUA
+
+		myBoundingBox = CGRectMake (0, 0, screenWidth, screenHeight); 
+		myBitmapContext = MyCreateBitmapContext (screenWidth, screenHeight,buffer); 
+
+		image = CGBitmapContextCreateImage (myBitmapContext); 
+		CGContextDrawImage(myBitmapContext, myBoundingBox, image); 
+		char *bitmapData = CGBitmapContextGetData(myBitmapContext); 
+
+		CGContextRelease (myBitmapContext); 
+		if (bitmapData) free(bitmapData); 
+
+
+		snapGoodCount++;
+		sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
+
+	        path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
+	        url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
+
+		imageDest = CGImageDestinationCreateWithURL(url, CFSTR("public.png"), 1, NULL);
+		CFRelease(url);
+		CFRelease(path);
+
+		if (!imageDest) {
+			ConsoleMessage("Snapshot can not be written");
 			return;
 		}
-	
+
+		CGImageDestinationAddImage(imageDest, image, NULL);
+		if (!CGImageDestinationFinalize(imageDest)) {
+			ConsoleMessage ("Snapshot can not be written, part 2");
+		}
+		CFRelease(imageDest);
+		CGImageRelease(image); 
+	#else	
 		/* save the file */
 		sprintf (thisRawFile,"%s/%s.%04d.rgb",mytmp,mysnapb,snapRawCount);
 		tmpfile = fopen(thisRawFile,"w");
