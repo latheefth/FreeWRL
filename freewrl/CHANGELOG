@@ -1,4 +1,9 @@
 For 1.20.2
+	- Nodes with a "bindTime" outputOnly were not sending events correctly; fixed.
+
+	- VRML/Classic - using SF* datatypes where MF* types were expected could lead to
+	  invalid data being used - fixed.
+
 	- OSX - use QuickTime/Quartz for image loading, rather than libraries supplied
 	  in FeeeWRL dmg package.
  
