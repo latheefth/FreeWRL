@@ -65,12 +65,6 @@ which work in all the modes:</p>
 Display this man page in a window
 </dd>
 <p></p>
-<dt><strong><a name="item__2e">.</a></strong><br />
-</dt>
-<dd>
-Switch status bar display on or off
-</dd>
-<p></p>
 <dt><strong><a name="item_d">d</a></strong><br />
 </dt>
 <dd>
@@ -122,10 +116,10 @@ go to this viewpoint) with these values.</p>
 <dt><strong><a name="item_s">s</a></strong><br />
 </dt>
 <dd>
-Save a snapshot or (with the ``-seq'' option) start/stop saving a
-sequence of images. By default, snapshots are saved to
-<em>freewrl.snap.NNNN.ppm</em> and sequences to <em>freewrl.seq.mpg</em>; see
-options ``-gif'', ``-seqb'' and ``-snapb''. While saving images, freewrl is
+Save a snapshot.
+By default, snapshots are saved to
+<em>freewrl.snap.NNNN.png</em>; see
+option ``-snapb'' for directory specification. While saving images, freewrl is
 slower.
 </dd>
 <p></p>
@@ -253,13 +247,6 @@ not already been enabled. (see also --big option)
 Forces FreeWRL to run in 800x600 mode.   See also --fullscreen option
 </dd>
 <p></p>
-<dt><strong><a name="item__2d_2dnostatus"><code>--nostatus</code></a></strong><br />
-</dt>
-<dd>
-Starts FreeWRL without the on-screen status bar. See the ``.'' key definition
-for how to toggle this status bar display when running.
-</dd>
-<p></p>
 <dt><strong><a name="item__2d_2dkeypress"><code>--keypress</code></a></strong><br />
 </dt>
 <dd>
@@ -288,20 +275,6 @@ window title.
 </dt>
 <dd>
 Set the initial window geometry with the usual X window format string.
-</dd>
-<p></p>
-<dt><strong><a name="item__2d_2dseq"><code>--seq</code></a></strong><br />
-</dt>
-<dd>
-The ``s'' key will start/stop saving a sequence of images rather than
-saving a single snapshot.
-</dd>
-<p></p>
-<dt><strong><a name="item__2d_2dseqb_basename"><code>--seqb</code> <em>basename</em></a></strong><br />
-</dt>
-<dd>
-Specify base name for the sequence file. Default is
-``freewrl.seq''. Sets the ``--seq'' option.
 </dd>
 <p></p>
 <dt><strong><a name="item__2d_2dsnapb_basename"><code>--snapb</code> <em>basename</em></a></strong><br />
@@ -340,20 +313,6 @@ Distance between the eyes of the viewer in shutter mode, default 0.06
 <dd>
 Distance between screen and the eyes of the viewer in shutter mode,
 default 0.8
-</dd>
-<p></p>
-<dt><strong><a name="item__2d_2dgif"><code>--gif</code></a></strong><br />
-</dt>
-<dd>
-In conjunction of ``--seq'' only, the sequence will be saved as an animated gif,
-rather than a mpg file.
-</dd>
-<p></p>
-<dt><strong><a name="item__2d_2dmaximg"><code>--maximg</code></a></strong><br />
-</dt>
-<dd>
-Maximum number of snapshots or images in the sequence. Default is 100
-to avoid filling up disk.
 </dd>
 <p></p>
 <dt><strong><a name="item__2d_2deai_host_3aport"><code>--eai</code> <em>host:port</em></a></strong><br />

@@ -24,27 +24,43 @@
 /* snapshot stuff */
 int snapRawCount=0;
 int snapGoodCount=0;
+
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
 int snapsequence=FALSE;		/* --seq - snapshot sequence, not single click  */
 int maxSnapImages=100; 		/* --maximg command line parameter 		*/
 int snapGif = FALSE;		/* --gif save as an animated GIF, not mpg	*/
 char *snapseqB = NULL;		/* --seqb - snap sequence base filename		*/
+#endif
+
 char *snapsnapB = NULL;		/* --snapb -single snapshot files		*/
 char *seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
 int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 void saveSnapSequence();
+#endif
 
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
 void setSnapshot() {
 	if (!doSnapshot) {
 		doSnapshot = TRUE;
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 	} else {
 		if (snapsequence) {
 			doSnapshot = FALSE;
 			saveSnapSequence();
 		}
+#endif
 	}
 }
+
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
 
 /* convert a sequence of snaps into a movie */
 void saveSnapSequence() {
@@ -88,6 +104,8 @@ void saveSnapSequence() {
 		}
 		snapRawCount=0;
 }
+#endif
+
 
 #ifdef AQUA
 
@@ -156,17 +174,25 @@ void Snapshot () {
 	
 	/* make up base names - these may be command line parameters */
 	
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 	if (snapsequence) {
 	        if (snapseqB == NULL)
 	                mysnapb  = "freewrl.seq";
 	        else
 	                mysnapb = snapseqB;
 	} else {
+#endif
 	        if (snapsnapB == NULL)
 	                mysnapb = "freewrl.snap";
 	        else
 	                mysnapb = snapsnapB;
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 	}
+#endif
 	
 	
 	if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
@@ -181,8 +207,13 @@ void Snapshot () {
 		}
 	}
 	
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 	/* are we sequencing, or just single snapping? */
 	if (!snapsequence) doSnapshot=FALSE;  	/* reset snapshot key */
+#endif
+
 	
 	#ifdef AQUA	
 		/* OSX needs 32 bits per byte. */
@@ -206,10 +237,14 @@ void Snapshot () {
 	
 	/* save this snapshot */
 	snapRawCount ++;
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 	if (snapRawCount > maxSnapImages) {
 		FREE_IF_NZ (buffer);
 		return;
 	}
+#endif
 
 	#ifdef AQUA
 
@@ -266,8 +301,12 @@ void Snapshot () {
 	
 		FREE_IF_NZ (buffer);
 	
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 		/* now, if we are doing only 1, convert the raw into the good.... */
 		if (!snapsequence) {
+#endif
 			snapGoodCount++;
 			sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
 			sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s %s",
@@ -278,6 +317,10 @@ void Snapshot () {
 			}
 			printf ("snapshot is :%s\n",thisGoodFile);
 			unlink (thisRawFile);
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
 		}
+#endif
 	#endif
 }

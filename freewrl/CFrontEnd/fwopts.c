@@ -25,17 +25,18 @@ int parseCommandLine (int argc, char **argv) {
 			{"instance", 1, 0, 'k'},
 			{"version", 0, 0, 'v'},
 			{"big",  0, 0, 'b'},		/* Alberto Dubuc */
-			{"nostatus",0, 0, 's'},		/* Alberto Dubuc */
 			{"nocollision",0, 0, 'Q'},		/* Alberto Dubuc */
 			{"keypress",1, 0, 'K'},		/* Robert Sim */
 			{"eaiverbose", 0, 0, 'V'},
 
+#ifdef DOSNAPSEQUENCE
 			{"seq", 0, 0, 'l'},
+			{"gif", 0, 0, 'p'},
 			{"seqb",1, 0, 'm'},
+			{"maximg", 1, 0, 'q'},
+#endif
 			{"snapb", 1, 0, 'n'},
 			{"seqtmp", 1, 0, 'o'},
-			{"gif", 0, 0, 'p'},
-			{"maximg", 1, 0, 'q'},
 			{"shutter", 0, 0, 'u'},
 			{"eyedist", 1, 0, 'y'},
 			{"fullscreen", 0, 0, 'c'},
@@ -112,15 +113,18 @@ int parseCommandLine (int argc, char **argv) {
 
 
 			/* Snapshot stuff */
+#ifdef DOSNAPSEQUENCE
 			case 'l': setSnapSeq(); break;
 			case 'p': snapGif = TRUE; break;
+			case 'm':
+				  setSeqFile(optarg);
+				  break;
 			case 'q': sscanf (optarg,"%d",&maxSnapImages);
 				  setMaxImages(maxSnapImages);
 				  break;
 
-			case 'm':
-				  setSeqFile(optarg);
-				  break;
+#endif
+
 			case 'n':
 				  setSnapFile(optarg);
 				  break;
@@ -134,9 +138,6 @@ int parseCommandLine (int argc, char **argv) {
 
 			case 'b': /* Alberto Dubuc - bigger window */
 				setGeometry ("800x600");
-				break;
-			case 's': /* Alberto Dubuc - no status bar */
-				/* display_status = 0; */
 				break;
 
 				/* Shutter patches from Mufti @rus */

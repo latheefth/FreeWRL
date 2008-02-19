@@ -67,7 +67,6 @@ int render_proximity;
 int render_collision;
 
 int be_collision = 0;	/* do collision detection? */
-int display_status = 1;
 
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint bound_textures[MAX_MULTITEXTURE];

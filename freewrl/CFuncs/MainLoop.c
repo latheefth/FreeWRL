@@ -814,7 +814,6 @@ void do_keyPress(const char kp, int type) {
 				case 'f': { set_viewer_type (EXFLY); break; }
 				case 'h': { toggle_headlight(); break;}
 				case '/': { print_viewer(); break; }
-				case '.': { display_status = !display_status; break; }
 				case 'q': { if (!RUNNINGASPLUGIN) {
 						  doQuit();
 					    }
@@ -1199,7 +1198,10 @@ void initFreewrl() {
 
 
 void setSnapSeq() {
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
         snapsequence = TRUE;
+#endif
 }
 
 void closeFreewrl() {
@@ -1263,7 +1265,11 @@ void setTexSize(int requestedsize) {
 
 
 void setSnapGif() {
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
         snapGif = 1;
+#endif
 }
 
 void setNoCollision() {
@@ -1276,8 +1282,12 @@ void setKeyString(const char* kstring) {
 }
 
 void setSeqFile(const char* file) {
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
         snapseqB = fw_strndup(file, 500);
         printf("snapseqB is %s\n", snapseqB);
+#endif
 }
 
 void setSnapFile(const char* file) {
@@ -1286,9 +1296,14 @@ void setSnapFile(const char* file) {
 }
 
 void setMaxImages(int max) {
+#ifdef DOSNAPSEQUENCE
+/* need to re-implement this for OSX generating QTVR */
+
         if (max <=0)
                 max = 100;
         maxSnapImages = max;
+#endif
+
 }
 void setSeqTemp(const char* file) {
         seqtmp = fw_strndup(file, 500);
