@@ -1146,6 +1146,7 @@ package VRML::NodeType;
 						fogType => [SFString, "LINEAR", inputOutput],
 						visibilityRange => [SFFloat, 0, inputOutput],
 						isBound => [SFBool, 0, outputOnly],
+						bindTime => [SFTime, -1, outputOnly],
 						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 					   },"X3DBindableNode"),
 

@@ -207,6 +207,22 @@ unsigned int setBindofst(void *node) {
 }
 
 /* return the isBound offset of this node */
+int bindTimeoffst (struct X3D_Node  *node) {
+	X3D_NODE_CHECK(node);
+
+	switch (node->_nodeType) {
+		case NODE_Background: return offsetof(struct X3D_Background, bindTime);
+		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, bindTime);
+		case NODE_Viewpoint: return offsetof(struct X3D_Viewpoint, bindTime);
+		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, bindTime);
+		case NODE_Fog: return offsetof(struct X3D_Fog, bindTime);
+		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, bindTime);
+		default: {printf ("isBoundoffst - huh? node type %d\n",node->_nodeType); }
+	}
+	return 0;
+}
+
+/* return the isBound offset of this node */
 int isboundofst(void *node) {
 	struct X3D_Background *tn;
 	tn = (struct X3D_Background *) node;
@@ -235,6 +251,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 	unsigned int *oldboundptr;	/* previous nodes isBound */
 
 	struct X3D_Background *bgnode;
+	unsigned int offst;
 
 	X3D_NODE_CHECK(node);
 
@@ -287,6 +304,17 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 		*setBindptr = 100;
 
 		MARK_EVENT (node, (unsigned int) isboundofst(node));
+
+		/* set up the "bindTime" field */
+		offst = bindTimeoffst(node);
+		if (offst != 0) {
+			double *dp;
+			/* add them as bytes, not pointers. */
+			dp = (double *) (((unsigned char*)node)+offst);
+			*dp = TickTime;
+			MARK_EVENT (node, offst);
+		} 
+
 
 		/* set up pointers, increment stack */
 		*tos = *tos+1;
