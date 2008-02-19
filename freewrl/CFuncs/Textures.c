@@ -17,8 +17,11 @@
 #include "readpng.h"
 #include "OpenGL_Utils.h"
 #include <setjmp.h>
+
+#ifdef AQUA
 #include <Carbon/Carbon.h>
 #include <QuickTime/QuickTime.h>
+#endif
 
 #undef TEXVERBOSE
 
@@ -1565,6 +1568,10 @@ void __reallyloadImageTexture() {
 	CGImageSourceRef 	sourceRef;
 
 
+	/*
+	printf ("loading %s\n",loadThisTexture->filename);
+	*/
+
 	path = CFStringCreateWithCString(NULL, loadThisTexture->filename, kCFStringEncodingUTF8);
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
 
@@ -1608,14 +1615,12 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 	image_width = CGImageGetWidth(image);
 	image_height = CGImageGetHeight(image);
 
-
 	/*
 	printf ("ok, so we have this image of bitsperpix %d; bitspercomponent %d; bytesperrow %d; height %d width %d\n",
 		CGImageGetBitsPerPixel(image),
 		CGImageGetBitsPerComponent(image),
 		CGImageGetBytesPerRow(image),
 		image_height, image_width); 
-	printf ("image has %d layers\n",CGImageSourceGetCount(sourceRef));
 	*/
 
 	/* now, lets "draw" this so that we get the exact bit values */
@@ -1626,21 +1631,23 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
 	if (data != NULL) {
-		/* printf ("bit depth is %d, if it is 4 we will look for alpha\n",
-			CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image)); */
+		/* printf ("bit depth is %d / %d, if it is 4 we will look for alpha\n",
+			CGImageGetBitsPerPixel(image), CGImageGetBitsPerComponent(image));  */
 
-		if ((CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image)) == 4) {
-			/* printf ("checking to see if image actually has alpha \n"); */
-			/* have an image. Quartz/Quicktime will read this in as a 4 byte alligned
-			   image; RGB images will have 4 bytes, RGBx where x is 0xff; RGBA images
-			   will have something sometimes other than 0xff. Go through and look at
-			   this last byte and see what we have */
-			for (count=3; count<image_width * image_height; count+=4) {
-				/* printf ("count %d byte %x\n",count,data[count]); */
-				if (data[count] != 0xff) {
-					/* printf ("image has alpha\n");   */
-					hasAlpha = TRUE;
-					break;
+		if (CGImageGetBitsPerComponent(image) != 0) {
+			if ((CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image)) == 4) {
+				/* printf ("checking to see if image actually has alpha \n"); */
+				/* have an image. Quartz/Quicktime will read this in as a 4 byte alligned
+				   image; RGB images will have 4 bytes, RGBx where x is 0xff; RGBA images
+				   will have something sometimes other than 0xff. Go through and look at
+				   this last byte and see what we have */
+				for (count=3; count<image_width * image_height; count+=4) {
+					/* printf ("count %d byte %x\n",count,data[count]); */
+					if (data[count] != 0xff) {
+						/* printf ("image has alpha\n");   */
+						hasAlpha = TRUE;
+						break;
+					}
 				}
 			}
 		}
