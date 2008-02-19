@@ -1,4 +1,8 @@
 For 1.20.2
+	- OSX running within Safari; speaking error messages sometimes hung safari; use
+	  "freewrlSystem" call now, instead of "system" - seems to work well. Messages
+	  also copied to the console.
+
 	- Nodes with a "bindTime" outputOnly were not sending events correctly; fixed.
 
 	- VRML/Classic - using SF* datatypes where MF* types were expected could lead to

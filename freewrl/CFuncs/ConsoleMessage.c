@@ -191,10 +191,22 @@ int ConsoleMessage(const char *fmt, ...) {
 		}
 	} else {
                 char systemBuffer[STRING_LENGTH + 10];
-                sprintf(systemBuffer, "say \"%s\"", FWbuffer);
-printf (systemBuffer);
+		int i;
 
-                system(systemBuffer);
+		/* remove any newlines; this may have been giving us problems */
+		for (i=0; i<strlen(FWbuffer); i++) {
+			if (FWbuffer[i] == '\n') { FWbuffer[i] = ' '; }
+		}
+
+		
+
+		/* put the error on the console */
+                sprintf(systemBuffer, "%s \"%s\"", "FreeWRL: ", FWbuffer);
+		printf (systemBuffer);
+
+		/* and call freewrlSystem to speak to the user */
+                sprintf(systemBuffer, "%s \"%s\"", XMESSAGE, FWbuffer);
+                freewrlSystem(systemBuffer); 
 	}
 #else
 	/* are we running under Motif or Gtk? */

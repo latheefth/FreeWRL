@@ -95,13 +95,13 @@ int freewrlSystem (const char *sysline) {
 		}
 	}
 	
-	/* printf ("freewrlSystem: finished while loop, count %d\n",count); */
-	/*
+	/* printf ("freewrlSystem: finished while loop, count %d\n",count); 
+	
 	 { int xx;
 		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
-	}} 
-	*/
+	}} */
+	
 	
 
 
@@ -129,7 +129,8 @@ int freewrlSystem (const char *sysline) {
 				(const char *)paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
 				paramline[6],paramline[7]);
-			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]); 
+			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
+			perror("FreeWRL: "); 
 			exit (Xrv);
 			}
 			default: {
