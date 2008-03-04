@@ -1,4 +1,9 @@
 For 1.20.2
+	- ConsoleMessage had a potential memory overrun on large messages; messages
+	  truncated if too large.
+
+	- Many, many Javascript changes, especially around SFNode and MFNode implementations.
+
 	- cleanup OSX build; remove redundant installed code from dmg.
 
 	- comment out movie-snapshot code, pending rethink.

@@ -14,7 +14,6 @@
 #include "headers.h"
 #include "jsVRMLClasses.h"
 
-
 /********************************************************/
 /*							*/
 /* Second part - SF classes				*/
@@ -706,8 +705,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			if (i==3) {
 				MFInt32Constr(cx, obj, 0, NULL, &mv);
 			}
-			if (!JS_DefineElement(cx, obj, (jsint) i, mv,
-			  JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+			if (!JS_DefineElement(cx, obj, (jsint) i, mv, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
 				return JS_FALSE;
 			}
@@ -784,8 +782,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	/* parameters are ok - just save them now in the new object. */
 	for (i=0; i<argc; i++) {
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
-			  JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
 			return JS_FALSE;
 		}
@@ -836,8 +833,16 @@ SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	*rval = STRING_TO_JSVAL(_str);
 #else
 	*rval = INT_TO_JSVAL(ptr->handle);
+	
 #endif
 
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("SFNodeToString, handle %u ",ptr->handle);
+	if (ptr->handle != NULL) {
+		printf (" (%s) ", stringNodeType (((struct X3D_Node *)ptr->handle)->_nodeType));
+	}
+	printf ("string \"%s\"\n",ptr->X3DString);
+	#endif
 	return JS_TRUE;
 }
 
@@ -921,7 +926,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	cString = NULL;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("Start of SFNodeConstr argc %d\n",argc);
+	printf ("Start of SFNodeConstr argc %d object %u\n",argc,obj);
 	#endif
 
 	/* verify the argc */
@@ -1035,13 +1040,25 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	newPtr->handle = newHandle;
 	newPtr->X3DString = (char *)STRDUP(cString);
+
+	if (!JS_DefineSFNodeSpecificProperties (cx, obj, newHandle)) {
+		printf( "JS_DefineSFNodeSpecificProperties failed in SFNodeConstr.\n");
+		return JS_FALSE;
+
+	}
 	
 	newPtr->valueChanged = 1;
 
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("SFNodeConstr: created obj = %u, argc: %u mem ptr: %d text string: %s\n",
+	{
+		if (newHandle == NULL) 
+			printf("end of SFNodeConstr: created obj = %u, argc: %u mem ptr: %d (null pointer) text string: %s\n",
 			   VERBOSE_OBJ obj, argc, newHandle, cString);
+		else 
+			printf("end of SFNodeConstr: created obj = %u, argc: %u mem ptr: %u (%s) text string: %s\n",
+			   VERBOSE_OBJ obj, argc, newHandle, stringNodeType(((struct X3D_Node *) newHandle)->_nodeType),cString);
+	}
 	#endif
 	*rval = OBJECT_TO_JSVAL(obj);
 
@@ -1077,10 +1094,47 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	   so we don't do anything. Check out SFVec3fGetProperty to see how it handles
 	   properties, should we need to have properties in the future. */
 
-	UNUSED (cx);
-	UNUSED (obj);
-	UNUSED (id);
-	UNUSED (vp);
+	SFNodeNative *ptr;
+        JSString *_idStr;
+        char *_id_c;
+	jsval rval;
+
+        _idStr = JS_ValueToString(cx, id);
+        _id_c = JS_GetStringBytes(_idStr);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of SFNodeGetProperty... id is %s\n",_id_c);
+	#endif
+
+	/* is this the string "undefined" ? */
+	if (strcmp ("undefined",_id_c) == 0) return JS_TRUE;
+
+	/* is this one of the SFNode standard functions? see JSFunctionSpec (SFNodeFunctions)[] */
+	if (strcmp ("toString",_id_c) == 0) return JS_TRUE;
+	if (strcmp ("assign",_id_c) == 0) return JS_TRUE;
+
+
+	/* get the private pointer for this node */
+        if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) != NULL) {
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("SFNodeGetProperty, working on node %u, field %s\n",ptr->handle,_id_c);
+		#endif
+
+		JS_DefineSFNodeSpecificProperties (cx, obj, (struct X3D_Node *) ptr->handle);
+
+                if (JS_GetProperty (cx, obj, _id_c, &rval)) {
+			#ifdef JSVRMLCLASSESVERBOSE
+                        printf ("SFNodeGetProperty, found field \"%s\" in node, returning property\n",_id_c);
+			#endif
+
+			*vp = rval;
+                } else {
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("SFNodeGetProperty, did not find field \"%s\" in node.\n",_id_c);
+			#endif
+		}
+	}
+
 	return JS_TRUE;
 }
 
@@ -1155,6 +1209,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	return JS_TRUE;
 }
+
 
 /********************************************************************/
 

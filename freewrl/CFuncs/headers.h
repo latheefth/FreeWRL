@@ -38,6 +38,28 @@ void *freewrlStrdup (int line, char *file, char *str);
 	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 #endif
 
+
+#undef DEBUG_JAVASCRIPT_PROPERTY
+#ifdef DEBUG_JAVASCRIPT_PROPERTY
+#define JS_GET_PROPERTY_STUB js_GetPropertyDebug
+#define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
+#define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2 
+#define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
+#define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
+#define JS_SET_PROPERTY_STUB5 js_SetPropertyDebug5 
+#define JS_SET_PROPERTY_STUB6 js_SetPropertyDebug6 
+#define JS_SET_PROPERTY_STUB7 js_SetPropertyDebug7 
+#else
+#define JS_GET_PROPERTY_STUB JS_PropertyStub
+#define JS_SET_PROPERTY_STUB1 JS_PropertyStub
+#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
+#define JS_SET_PROPERTY_STUB3 JS_PropertyStub
+#define JS_SET_PROPERTY_STUB4 JS_PropertyStub
+#define JS_SET_PROPERTY_STUB5 JS_PropertyStub
+#define JS_SET_PROPERTY_STUB6 JS_PropertyStub
+#define JS_SET_PROPERTY_STUB7 JS_PropertyStub
+#endif
+
 #define ID_UNDEFINED -1
 
 /* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
@@ -669,6 +691,7 @@ void registerTexture(struct X3D_Node * node);
 void registerMIDINode(struct X3D_Node *node);
 int checkNode(struct X3D_Node *node, char *fn, int line);
 
+
 void do_first(void);
 void process_eventsProcessed(void);
 
@@ -1210,7 +1233,9 @@ void destroyCParserData();
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 
+
 int ConsoleMessage(const char *fmt, ...);
+
 void closeConsoleMessage(void);
 extern int consMsgCount;
 

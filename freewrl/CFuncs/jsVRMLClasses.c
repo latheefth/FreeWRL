@@ -139,10 +139,6 @@ JSClass SFNodeClass = {
 };
 
 JSPropertySpec (SFNodeProperties)[] = {
-	/*
-	{"__handle", 1, JSPROP_ENUMERATE},
-	{"__X3DString", 0, JSPROP_ENUMERATE},
-	*/
 	{0}
 };
 
@@ -517,6 +513,12 @@ struct JSLoadPropElement (JSLoadProps) [] = {
 void printJSNodeType (JSContext *context, JSObject *myobj) {
 	int i;
 	i=0;
+	
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("printJSNodeType, obj pointer is %u\n",myobj);
+	#endif
+
+	/* ok - this is an object, lets find out what class it is */
 	while (JSLoadProps[i].class != NULL) {
 		if (JS_InstanceOf(context, myobj, JSLoadProps[i].class, NULL)) {
 			printf ("%s\n",JSLoadProps[i].id);
@@ -539,6 +541,9 @@ JSBool _simplecopyElements (JSContext *cx,
         jsdouble *dp;
 
 
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("simpleCopyElements, count %d\n",count);
+	#endif
 
 	for (i = 0; i < count; i++) {
 		if (!JS_GetElement(cx, fromObj, (jsint) i, &val)) {
@@ -689,7 +694,7 @@ _standardMFGetProperty(JSContext *cx,
 
 			if (!JS_EvaluateScript(cx, obj, makeNewElement, newElemenLen,
 				FNAME_STUB, LINENO_STUB, &newEle)) {
-				printf("JS_EvaluateScript failed for \"%s\".\n", makeNewElement);
+				ConsoleMessage ("standardMFGetProperty: JS_EvaluateScript failed for %s", makeNewElement);
 				return JS_FALSE;
 			}
 
@@ -700,7 +705,7 @@ _standardMFGetProperty(JSContext *cx,
 			#endif
 
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp,
-				JS_PropertyStub, JS_PropertyStub,
+				JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5,
 				JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed in %d.\n",type);
 				return JS_FALSE;
@@ -711,7 +716,7 @@ _standardMFGetProperty(JSContext *cx,
 			}
 		}
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("object already has this index\n");
+		printf ("object might already have this index\n");
 		#endif
 		if (!JS_LookupElement(cx, obj, _index, vp)) {
 			printf( "JS_LookupElement failed in %d.\n",type);
@@ -720,11 +725,11 @@ _standardMFGetProperty(JSContext *cx,
 		if (*vp == JSVAL_VOID) {
 			printf( "warning: %d: obj = %u, jsval = %d does not exist!\n",type,
 				VERBOSE_OBJ obj, (int) _index);
-			return JS_FALSE;
+			return JS_TRUE;
 		}
 	}
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("_standardMFGetProperty finishing; element is %d %x\n",*vp,*vp);
+	printf ("_standardMFGetProperty finishing; element is %u\n",*vp);
 	#endif
 
 	return JS_TRUE;
@@ -749,7 +754,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	len = JSVAL_TO_INT(_v);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("doMFToString, len %d\n",len);
+	printf ("doMFToString, obj%u len %d\n",obj, len);
 	printJSNodeType (cx,obj);
 	#endif
 
@@ -779,23 +784,25 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 
     for (i = 0; i < len; i++) {
 		if (!JS_GetElement(cx, obj, i, &_v)) {
-			printf("JS_GetElement failed for %d of %d in doMFToString for %s.\n",
+			printf("warning, no element %d of %d in doMFToString for a type of %s.\n",
 				i, len,className);
-			return JS_FALSE;
-		}
-
-		#ifdef JSVRMLCLASSESVERBOSE
-		if (JSVAL_IS_NUMBER(_v)) printf ("is a number\n");
-		if (JSVAL_IS_INT(_v)) printf ("is an integer\n");
-		if (JSVAL_IS_DOUBLE(_v)) printf ("is an double\n");
-		#endif
-
-		_tmpStr = JS_ValueToString(cx, _v);
-		if (_tmpStr==NULL) {
 			_tmp_valStr = "NULL";
 		} else {
-			_tmp_valStr = JS_GetStringBytes(_tmpStr);
+
+			#ifdef JSVRMLCLASSESVERBOSE
+			if (JSVAL_IS_NUMBER(_v)) printf ("is a number\n");
+			if (JSVAL_IS_INT(_v)) printf ("is an integer\n");
+			if (JSVAL_IS_DOUBLE(_v)) printf ("is an double\n");
+			#endif
+
+			_tmpStr = JS_ValueToString(cx, _v);
+			if (_tmpStr==NULL) {
+				_tmp_valStr = "NULL";
+			} else {
+				_tmp_valStr = JS_GetStringBytes(_tmpStr);
+			}
 		}
+
 		#ifdef JSVRMLCLASSESVERBOSE
 		printf ("doMFToString, element %d is %d, string %s\n",i,_v,_tmp_valStr);
 	
@@ -873,6 +880,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
     return JS_TRUE;
 }
 
+
 JSBool
 doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	JSString *str;
@@ -883,7 +891,8 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	int len = 0, ind = JSVAL_TO_INT(id);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("\tdoMFAddProperty:%s id %d ",name,id);
+		printf("\tdoMFAddProperty:%s id %d NodeType: ",name,id);
+		printJSNodeType(cx,obj);
 	#endif
 
 	str = JS_ValueToString(cx, id);
@@ -895,6 +904,7 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	p_len = strlen(p);
 	if (!strcmp(p, "length") ||
 		!strcmp(p, "MF_ECMA_has_changed") ||
+		!strcmp(p, "_parentField") ||
 		!strcmp(p, "toString") ||
 		!strcmp(p, "setTransform") ||
 		!strcmp(p, "assign") ||
@@ -911,6 +921,11 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 		#endif
 		return JS_TRUE;
 	}
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("\tdoMFAddProperty:%s id %d NodeType: ",name,id);
+		printJSNodeType(cx,obj);
+		printf("\tdoMFAddProperty:%s id %d string %s ",name,id,p);
+	#endif
 
 	if (!JSVAL_IS_INT(id)){
 		printf( "JSVAL_IS_INT failed for id in doMFAddProperty.\n");
@@ -924,13 +939,18 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	len = JSVAL_TO_INT(v);
 	if (ind >= len) {
 		len = ind + 1;
+
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("doMFAddProperty, len %d ind %d\n",len,ind);
+		#endif
+
 		v = INT_TO_JSVAL(len);
 		if (!JS_SetProperty(cx, obj, "length", &v)) {
-			printf(
-					"JS_SetProperty failed for \"length\" in doMFAddProperty.\n");
+			printf( "JS_SetProperty failed for \"length\" in doMFAddProperty.\n");
 			return JS_FALSE;
 		}
 	}
+
 	#ifdef JSVRMLCLASSESVERBOSE
 		printf("index = %d, length = %d\n", ind, len);
 	#endif
@@ -938,6 +958,7 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	myv = INT_TO_JSVAL(1);
 	return JS_TRUE;
 }
+
 
 JSBool
 doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
@@ -949,9 +970,18 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 	int i;
 	double dd;
 
+        int ii;
+        jsdouble *dp;
+
+	JSObject *par;
+	JSObject *me;
+	SFNodeNative *ptr;
+	struct X3D_Node *node;
+	jsval pf;
+	jsval nf;
+
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf ("doMFSetProperty, for vp %d %x\n",
-				*vp,*vp);
+		printf ("doMFSetProperty, for object %u, vp %u\n", obj,*vp);
 		_str = JS_ValueToString(cx, id);
 		_c = JS_GetStringBytes(_str);
 		printf ("id is %s\n",_c);
@@ -961,6 +991,11 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 			_cc = JS_GetStringBytes(_sstr);
 			printf("\tdoMFSetProperty:%d: obj = %u, id = %s, vp = %s\n",type,
 			   VERBOSE_OBJ obj, _c, _cc);
+		if (JSVAL_IS_OBJECT(*vp)) { printf ("doMFSet, vp is an OBJECT\n"); }
+		if (JSVAL_IS_PRIMITIVE(*vp)) { printf ("doMFSet, vp is an PRIMITIVE\n"); }
+
+		printf ("parent is a "); printJSNodeType(cx,obj);
+		/* printf ("jsval is is a "); printJSNodeType(cx,*vp);  */
 		
 	#endif
 
@@ -992,21 +1027,17 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 				printf ("value is  %s \n",_cc);
 		#endif
 
-		if (!JSVAL_IS_DOUBLE(*vp)) {
-			#ifdef JSVRMLCLASSESVERBOSE
-			printf ("is NOT a double\n");
-			#endif
+		if (JSVAL_IS_INT(*vp)) {
+			ii = JSVAL_TO_INT(*vp);
+			dd = (double) ii;
+			/* printf ("integer is %d doulbe %lf\n",ii,dd); */
+	                if ((dp = JS_NewDouble(cx,dd)) == NULL) {
+               		        printf( "JS_NewDouble failed for %f in simplecopyelements.\n",dd);
+                       		return JS_FALSE;
+               		}
+               		*vp = DOUBLE_TO_JSVAL(dp);
 
-			if (!JS_ValueToNumber(cx, *vp, &dd)) {
-				_sstr = JS_ValueToString(cx, *vp);
-				_cc = JS_GetStringBytes(_sstr);
-				printf ("can not convert %s to a double in doMFAddProperty for type %d\n",_cc,type);
-				return JS_FALSE;
-			}
-
-			*vp = DOUBLE_TO_JSVAL(dd);
 		}
-
 	}
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1026,6 +1057,83 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 		default: {}
 	}
 
+
+	if (JSVAL_IS_INT(id)) {
+		/* save this element into the parent at index */
+printf ("saving element %d\n",JSVAL_TO_INT(id));
+
+		if (!JS_DefineElement(cx, obj, JSVAL_TO_INT(id), *vp,
+			JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5,
+			JSPROP_ENUMERATE)) {
+			printf( "JS_DefineElement failed in doMFSetProperty.\n");
+			return JS_FALSE;
+		}
+
+		/* has the length changed? */
+		if (!JS_GetProperty(cx, obj, "length", &myv)) {
+			printf("JS_GetProperty failed for \"length\" in doMFSetProperty.\n");
+			return JS_FALSE;
+		}
+
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("object %u old length %d, possibly new length is going to be %d\n",obj,JSVAL_TO_INT(myv), JSVAL_TO_INT(id)+1);
+		#endif
+
+		if (JSVAL_TO_INT(myv) < (JSVAL_TO_INT(id)+1)) {
+			printf ("new length is %d\n",JSVAL_TO_INT(id)+1);
+			myv = INT_TO_JSVAL(JSVAL_TO_INT(id)+1);
+			if (!JS_SetProperty(cx, obj, "length", &myv)) {
+				printf("JS_SetProperty failed for \"length\" in doMFSetProperty.\n");
+				return JS_FALSE;
+			}
+		}
+	}
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("doMFSetProperty, lets see if we have an SFNode somewhere up the chain...\n");
+	#endif
+
+        /* ok - if we are setting an MF* field by a thing like myField[10] = new String(); the
+           set method does not really get called. So, we go up the parental chain until we get
+           either no parent, or a SFNode. If we get a SFNode, we call the "save this" function
+           so that the X3D scene graph gets the updated array value. To make a long story short,
+           here's the call to find the parent for the above. */
+
+	me = obj;
+	par = JS_GetParent(cx, me);
+	while (par != NULL) {
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("for obj %u: ",me);
+			printJSNodeType(cx,me);
+		printf ("... parent %u\n",par);
+			printJSNodeType(cx,par);
+		#endif
+
+		if (JS_InstanceOf (cx, par, &SFNodeClass, NULL)) {
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf (" the parent IS AN SFNODE - it is %u\n",par);
+			#endif
+
+
+			if (!JS_GetProperty(cx, obj, "_parentField", &pf)) {
+				printf ("doMFSetProperty, can not get parent field from this object\n");
+				return JS_FALSE;
+			}
+
+			nf = OBJECT_TO_JSVAL(me);
+
+			#ifdef JSVRMLCLASSESVERBOSE
+			printf ("parentField is %u \"%s\"\n", pf, JS_GetStringBytes(JSVAL_TO_STRING(pf)));
+			#endif
+
+			if (!setSFNodeField (cx, par, pf, &nf)) {
+				printf ("could not set field of SFNode\n");
+			}
+
+		}
+		me = par;
+		par = JS_GetParent(cx, me);
+	}
 
 	return JS_TRUE;
 }
@@ -1069,7 +1177,6 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 
 	return JS_TRUE;
 }
-
 
 
 JSBool
@@ -1340,7 +1447,7 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		_o = JSVAL_TO_OBJECT(initVal);
 
 		#ifdef xxJSVRMLCLASSESVERBOSE
-			printf ("in setAssignProperty, o is %d type ",_o);
+			printf ("in setAssignProperty, o is %u type ",_o);
 			printJSNodeType(cx,_o);
 			printf ("\n");
 		#endif

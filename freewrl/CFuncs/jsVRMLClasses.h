@@ -57,7 +57,7 @@ of garbage collection */
 #define DEFINE_LENGTH(thislength,thisobject) \
 	{jsval zimbo = INT_TO_JSVAL(thislength);\
 	/* printf ("defining length to %d for %d %d\n",thislength,cx,obj);*/ \
-	if (!JS_DefineProperty(cx, thisobject, "length", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { \
+	if (!JS_DefineProperty(cx, thisobject, "length", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"length\" at %s:%d.\n",__FILE__,__LINE__); \
 		return JS_FALSE;\
 	}}
@@ -65,7 +65,7 @@ of garbage collection */
 #define DEFINE_MF_ECMA_HAS_CHANGED \
 	{jsval zimbo = INT_TO_JSVAL(0); \
 	/* printf ("defining property for MF_ECMA_HAS_CHANGED... %d %d ",cx,obj); */ \
-	if (!JS_DefineProperty(cx, obj, "MF_ECMA_has_changed", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) { \
+	if (!JS_DefineProperty(cx, obj, "MF_ECMA_has_changed", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"MF_ECMA_has_changed\" at %s:%d.\n",__FILE__,__LINE__); \
 		return JS_FALSE; \
 	}}
@@ -81,7 +81,7 @@ of garbage collection */
 
 #define SET_JS_TICKTIME { jsval zimbo; \
         zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(cx, TickTime));  \
-        if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {  \
+        if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
                 printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
                 return; \
         }}
@@ -111,7 +111,7 @@ of garbage collection */
 #define SET_EVENTIN_VALUE(cx,obj,nameIndex,newObj) \
 	{ char scriptline[100]; \
 		sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[nameIndex].name); \
-        	if (!JS_DefineProperty(cx,obj, scriptline, OBJECT_TO_JSVAL(newObj), JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {  \
+        	if (!JS_DefineProperty(cx,obj, scriptline, OBJECT_TO_JSVAL(newObj), JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
         	        printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__);  \
         	        return JS_FALSE; \
         }	}
@@ -1031,4 +1031,18 @@ extern JSClass MFVec3fClass;
 extern JSFunctionSpec (MFVec3fFunctions)[];
 extern JSClass VrmlMatrixClass;
 extern JSFunctionSpec (VrmlMatrixFunctions)[];
+
+#ifdef DEBUG_JAVASCRIPT_PROPERTY
+JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug3 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug4 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug5 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
+#endif
+
 #endif /*  __jsVRMLClasses_h__ */

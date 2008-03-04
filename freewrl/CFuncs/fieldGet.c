@@ -71,9 +71,6 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	char scriptline[100];
 	jsval retval;
 	jsval newval;
-	float fl;
-	double dl;
-	int il;
 	int intval = 0;
 	JSContext *cx;
 	JSObject *obj, *_sfvec3fObj;
@@ -90,39 +87,13 @@ void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, u
 	/* set the time for this script */
 	SET_JS_TICKTIME
 
-
-	switch (dataType) {
-
-		case FIELDTYPE_SFFloat:	{
-			memcpy ((void *) &fl, Data, datalen);
-			newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)fl));
-			break;
-		}
-		case FIELDTYPE_SFTime:	{
-			memcpy ((void *) &dl, Data, datalen);
-			newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,dl));
-			break;
-		}
-		case FIELDTYPE_SFBool:
-		case FIELDTYPE_SFInt32: 	{ 
-			memcpy ((void *) &il,Data, datalen);
-			newval = INT_TO_JSVAL(il);
-			break;
-		}
-
-		case FIELDTYPE_SFString: {
-			struct Uni_String *ms;
-			memcpy((void *) &ms,Data, datalen);
-			newval = STRING_TO_JSVAL(JS_NewStringCopyZ(cx,ms->strptr));
-			break;
-		}
-		default: {	printf("WARNING: SHOULD NOT BE HERE! %d\n",JSparamnames[toname].type);
-		}
-	}
+	X3D_ECMA_TO_JS(cx, Data, datalen, dataType, &newval);
 
 	/* get the variable name to hold the incoming value */
 	sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[toname].name);
-        if (!JS_DefineProperty(cx,obj, scriptline, newval, JS_PropertyStub, JS_PropertyStub, JSPROP_PERMANENT)) {  
+printf ("set_one_ECMAtype, calling JS_DefineProperty on name %s obj %u, setting setECMANative, 0 \n",scriptline,obj);
+
+        if (!JS_DefineProperty(cx,obj, scriptline, newval, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_PERMANENT)) {  
                 printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__); 
                 return; 
         }
@@ -293,7 +264,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -339,7 +310,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -385,7 +356,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -430,7 +401,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -469,7 +440,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -506,7 +477,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newjsval),
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -543,7 +514,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -578,7 +549,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -613,7 +584,7 @@ int setMFElementtype (uintptr_t num) {
 
 					/* put this object into the MF class */
 					if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-						JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+						JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 							printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 					}
 				}
@@ -651,7 +622,7 @@ int setMFElementtype (uintptr_t num) {
 							newjsval = INT_TO_JSVAL(image.p[x]);
 							/* put this object into the MF class */
 							if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-							JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+							JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 								printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 							}
 						}
@@ -661,7 +632,7 @@ int setMFElementtype (uintptr_t num) {
 							newjsval = INT_TO_JSVAL(0);
 							/* put this object into the MF class */
 							if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-							JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+							JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 								printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 							}
 						}
@@ -674,7 +645,7 @@ int setMFElementtype (uintptr_t num) {
 							newjsval = INT_TO_JSVAL(0);
 							/* put this object into the MF class */
 							if (!JS_DefineElement(cx, newMFObject, (jsint) x, newjsval,
-							JS_PropertyStub, JS_PropertyStub, JSPROP_ENUMERATE)) {
+							JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB3, JSPROP_ENUMERATE)) {
 								printf("failure in inserting SF class at %s:%d\n",__FILE__,__LINE__);
 							}
 						}

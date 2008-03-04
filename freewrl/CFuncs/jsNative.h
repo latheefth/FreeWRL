@@ -26,6 +26,7 @@ typedef struct _SFNodeNative {
 	int valueChanged;
 	uintptr_t *handle;
 	char *X3DString;
+	int fieldsExpanded;
 } SFNodeNative;
 
 typedef struct _SFRotationNative {

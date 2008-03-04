@@ -157,7 +157,6 @@ void JSMaxAlloc() {
 	}
 }
 
-
 void JSInit(uintptr_t num) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
@@ -271,15 +270,17 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 	CLEANUP_JAVASCRIPT(_context)
+
 	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
 			fn, line, num, _context, script);
 	#endif
 
 	len = strlen(script);
-	if (!JS_EvaluateScript(_context, _globalObj, script, len,
-						   FNAME_STUB, LINENO_STUB, rval)) {
-		ConsoleMessage ("JS_EvaluateScript failed for \"%s\".\n", script);
+	if (!JS_EvaluateScript(_context, _globalObj, script, len, FNAME_STUB, LINENO_STUB, rval)) {
+		printf ("ActualrunScript - JS_EvaluateScript failed for %s", script);
+		printf ("\n");
+		ConsoleMessage ("ActualrunScript - JS_EvaluateScript failed for %s", script);
 		return JS_FALSE;
 	 }
 
@@ -304,7 +305,7 @@ int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval 
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
-		printf("JS_EvaluateScript failed for \"%s\".\n", script);
+		ConsoleMessage ("jsrunScript - JS_EvaluateScript failed for %s", script);
 		return JS_FALSE;
 	 }
 
@@ -329,6 +330,7 @@ SFNodeNativeNew()
 	ptr->handle = 0;
 	ptr->valueChanged = 0;
 	ptr->X3DString = NULL;
+	ptr->fieldsExpanded = FALSE;
 	return ptr;
 }
 
@@ -506,6 +508,7 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	int defaultInt[] = {0,0,0,0};
 	double defaultDouble[] = {0.0, 0.0};
 	struct Uni_String *sptr[1];
+
 
 	 #ifdef JAVASCRIPTVERBOSE
 	printf ("\nInitScriptFieldC, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value);
@@ -791,6 +794,10 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	FREE_IF_NZ (smallfield);
 	FREE_IF_NZ (sftype);
 
+	#ifdef JAVASCRIPTVERBOSE
+	printf ("finished InitScriptFieldC\n");
+	#endif
+
 }
 
 int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
@@ -807,6 +814,7 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	#ifdef  JAVASCRIPTVERBOSE
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
 	#endif
+		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
 	
 
 	if (!JS_DefineProperty(_context, _globalObj, name, rval, NULL, setECMANative, 0 | JSPROP_PERMANENT)) {
@@ -831,17 +839,12 @@ int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 			   _context, _globalObj, name, str);
 	#endif
 
-	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
-						   FNAME_STUB, LINENO_STUB, &_rval)) {
-		printf("JS_EvaluateScript failed for \"%s\" in addGlobalAssignProperty.\n",
-				str);
+	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str), FNAME_STUB, LINENO_STUB, &_rval)) {
+		ConsoleMessage ("JSaddGlobalAssignProperty - JS_EvaluateScript failed for %s", str);
 		return JS_FALSE;
 	}
-	if (!JS_DefineProperty(_context, _globalObj, name, _rval,
-						   getAssignProperty, setAssignProperty,
-						   0 | JSPROP_PERMANENT)) {
-		printf("JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n",
-				name);
+	if (!JS_DefineProperty(_context, _globalObj, name, _rval, getAssignProperty, setAssignProperty, 0 | JSPROP_PERMANENT)) {
+		printf("JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n", name);
 		return JS_FALSE;
 	}
 	return JS_TRUE;
