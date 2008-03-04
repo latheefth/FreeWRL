@@ -51,7 +51,7 @@ JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 			SFVec3fNative *parentPtr;
 			jsval vp;
 	
-			* printf ("parent is an MFVec3f, lets hope the child is a SFVec3F... \n"); */
+			/* printf ("parent is an MFVec3f, lets hope the child is a SFVec3F... \n"); */
 			if (!JS_InstanceOf(cx, childObj, &SFVec3fClass, NULL)) {
 				printf ("setSF_in_MF, expected a SFVec3f as a child\n");
 				return JS_FALSE;

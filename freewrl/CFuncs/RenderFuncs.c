@@ -213,7 +213,7 @@ void upd_ray() {
 void update_node(struct X3D_Node *node) {
 	int i;
 
-	printf ("update_node for %d %s nparents %d\n",node, stringNodeType(node->_nodeType),node->_nparents); 
+	/* printf ("update_node for %d %s nparents %d\n",node, stringNodeType(node->_nodeType),node->_nparents);  */
 
 	node->_change ++;
 	for (i = 0; i < node->_nparents; i++) {
