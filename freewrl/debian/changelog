@@ -1,3 +1,9 @@
+freewrl (1.20.2) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Michel BRIAND <michelbriand@free.fr>  Wed, 05 Mar 2008 11:01:23 +0100
+
 freewrl (1.19.9-1) unstable; urgency=low
 
   * Adapt package from Ubuntu to Debian. Changed policy, build depends,
