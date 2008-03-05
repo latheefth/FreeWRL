@@ -1060,7 +1060,10 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 
 	if (JSVAL_IS_INT(id)) {
 		/* save this element into the parent at index */
-printf ("saving element %d\n",JSVAL_TO_INT(id));
+
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("saving element %d\n",JSVAL_TO_INT(id));
+		#endif
 
 		if (!JS_DefineElement(cx, obj, JSVAL_TO_INT(id), *vp,
 			JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5,
