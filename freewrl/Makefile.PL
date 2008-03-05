@@ -557,7 +557,7 @@ sub write_linux_makefile_javaClasses() {
 		print MK "JavaClasses: java/classes/vrml.jar\n";
 		print MK "java/classes/vrml.jar: \$(JAVASOURCE)\n";
 		# remove the old jar file (it could be read-only 'cause of CVS, and jar will fail...)
-		print MK "\trm -f $@\n";
+		print MK "\trm -f \$@\n";
 		# make the jar file here
 		print MK "\t\$(JAR) -cf java/classes/vrml.jar $@ `find java/classes/vrml -name *.class`\n";
 	}
