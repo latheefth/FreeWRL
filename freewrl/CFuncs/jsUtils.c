@@ -26,59 +26,41 @@
    on these because it would be a recursive call; thus we set the private data */
 
 
+static int insetSFStr = FALSE;
 JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	char *_id_c = "(no value in string)";
 	int num;
 	jsval pf;
 	jsval nf;
-        JSObject *childObj;
-	int indx;
 	JSObject *me;
 	JSObject *par;
+	jsval ele; 
 
-	/* this is the child... */
-	childObj = JSVAL_TO_OBJECT(*vp);
+	/* when we save the value, we will be called again, so we make sure that we
+	   know if we are being called from within, or from without */
+	if (insetSFStr) { 
+		printf ("already caught this value...\n"); 
+		return JS_TRUE;
+	}
+
+	/* ok, we are really called to replace an existing SFNode MF value assignment */
+	insetSFStr = TRUE; 
 
 	if (JSVAL_IS_INT(id)) {
 		if (!JS_ValueToInt32(cx,id,&num)) {
 			printf ("setSF_in_MF: error converting to number...\n");
 			return JS_FALSE;
 		}
-
-		/* go through each type, and set the private data for this element. */
-		if (JS_InstanceOf(cx, obj, &MFVec3fClass, NULL)) {
-			SFVec3fNative *childPtr;
-			SFVec3fNative *parentPtr;
-			jsval vp;
-	
-			/* printf ("parent is an MFVec3f, lets hope the child is a SFVec3F... \n"); */
-			if (!JS_InstanceOf(cx, childObj, &SFVec3fClass, NULL)) {
-				printf ("setSF_in_MF, expected a SFVec3f as a child\n");
-				return JS_FALSE;
-			}
-
-			/* get a pointer to the child internal private data */
-			if ((childPtr = (SFVec3fNative *)JS_GetPrivate(cx, childObj)) == NULL) {
-				printf( "JS_GetPrivate failed for child in setSF_in_MF.\n");
-				return JS_FALSE;
-			}
-	
-			/* get a pointer to the object at the index in the parent */
-			if (!JS_GetElement(cx, obj, num, &vp)) {
-				printf ("error getting child %d in setSF_in_MF\n",num);
-				return JS_FALSE;
-			}
-	
-			/* get a pointer to the child internal private data */
-			if ((parentPtr = (SFVec3fNative *)JS_GetPrivate(cx, JSVAL_TO_OBJECT(vp))) == NULL) {
-				printf( "JS_GetPrivate failed for parent index %d in setSF_in_MF.\n",num);
-				return JS_FALSE;
-			}
-	
-			/* now, copy the values over from child to parent */
-			parentPtr->valueChanged = 1;
-			memcpy(parentPtr->v.c, childPtr->v.c, returnRoutingElementLength(FIELDTYPE_SFVec3f));
-		}
+		/* get a pointer to the object at the index in the parent */ 
+		if (!JS_GetElement(cx, obj, num, &ele)) { 
+			printf ("error getting child %d in setSF_in_MF\n",num); 
+			return JS_FALSE; 
+		} 
+		/* THIS is the touching that will cause us to be called recursively,
+		   which is why insetSFStr is TRUE right here */
+		if (!JS_SetElement(cx,obj,num,vp)) { 
+			printf ("can not set element %d in MFString\n",num); 
+			return JS_FALSE; 
+		} 
 	} else {
 		printf ("expect an integer id in setSF_in_MF\n");
 		return JS_FALSE;
@@ -121,6 +103,7 @@ JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 		me = par;
 		par = JS_GetParent(cx, me);
 	}
+	insetSFStr = FALSE;
 	return JS_TRUE;
 }
 
