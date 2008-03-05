@@ -814,8 +814,6 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	#ifdef  JAVASCRIPTVERBOSE
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
 	#endif
-		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
-	
 
 	if (!JS_DefineProperty(_context, _globalObj, name, rval, NULL, setECMANative, 0 | JSPROP_PERMANENT)) {
 		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n", name);
