@@ -38,7 +38,9 @@ JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	/* when we save the value, we will be called again, so we make sure that we
 	   know if we are being called from within, or from without */
 	if (insetSFStr) { 
-		printf ("already caught this value...\n"); 
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("setSF_in_MF: already caught this value; this is our JS_SetElement call\n"); 
+		#endif
 		return JS_TRUE;
 	}
 
