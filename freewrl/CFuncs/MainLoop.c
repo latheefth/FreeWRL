@@ -67,12 +67,6 @@ int currentFileVersion = 0;
 	#include <OpenGL.h>
         CGLContextObj myglobalContext;
         AGLContext aqglobalContext;
-	#define KeyPress        2
-	#define KeyRelease      3
-	#define ButtonPress     4
-	#define ButtonRelease   5
-	#define MotionNotify    6
-	#define MapNotify       19
 	#define SCURSE 1
 	#define ACURSE 0
 	int ccurse = ACURSE;
@@ -1465,8 +1459,15 @@ void freewrlDie (const char *format) {
 void handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	int count;
 
-	/* printf ("handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d\n",
-		button, x,y,screenWidth,screenHeight); */
+	 /* printf ("handle_aqua in MainLoop; but %d x %d y %d screenWidth %d screenHeight %d",
+		button, x,y,screenWidth,screenHeight); 
+	if (mev == ButtonPress) printf ("ButtonPress\n");
+	else if (mev == ButtonRelease) printf ("ButtonRelease\n");
+	else if (mev == MotionNotify) printf ("MotionNotify\n");
+	else printf ("event %d\n",mev); */
+
+	/* save this one... This allows Sensors to get mouse movements if required. */
+	lastMouseEvent = mev;
 
         if ((mev == ButtonPress) || (mev == ButtonRelease)) {
 		/* record which button is down */

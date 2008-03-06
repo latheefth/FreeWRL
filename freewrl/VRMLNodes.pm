@@ -948,6 +948,9 @@ package VRML::NodeType;
 						hitNormal_changed => [SFVec3f, [0, 0, 0], outputOnly],
 						hitPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
 						hitTexCoord_changed => [SFVec2f, [0, 0], outputOnly],
+						_oldhitNormal => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
+						_oldhitPoint => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
+						_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
 						isActive => [SFBool, 0, outputOnly],
 						isOver => [SFBool, 0, outputOnly],
 						description => [SFString, "", initializeOnly],
@@ -965,6 +968,8 @@ package VRML::NodeType;
 						description => [SFString, "", initializeOnly],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
 						translation_changed => [SFVec3f, [0, 0, 0], outputOnly],
+						_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
+						_oldtranslation => [SFVec3f, [0, 0, 0], outputOnly],
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
 					   },"X3DPointingDeviceSensorNode"),
@@ -976,6 +981,8 @@ package VRML::NodeType;
 						isActive => [SFBool, 0, outputOnly],
 						rotation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
+						_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
+						_oldrotation => [SFRotation, [0, 0, 1, 0], outputOnly],
 						isOver => [SFBool, 0, outputOnly],
 						description => [SFString, "", initializeOnly],
 						# where we are at a press...
@@ -995,6 +1002,8 @@ package VRML::NodeType;
 						description => [SFString, "", initializeOnly],
 						rotation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
+						_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
+						_oldrotation => [SFRotation, [0, 0, 1, 0], outputOnly],
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
 						_radius => [SFFloat, 0, initializeOnly],

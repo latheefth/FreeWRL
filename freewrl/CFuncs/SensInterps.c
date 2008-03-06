@@ -13,14 +13,6 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 ******************************************/
 #include "headers.h"
-
-#ifdef AQUA
-#define KeyPress        2
-#define KeyRelease      3
-#define ButtonPress     4
-#define ButtonRelease   5
-#define MotionNotify    6
-#endif
 #include "SensInterps.h"
 
 /* if a Sound {} can not be found... */
@@ -1081,18 +1073,35 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		}
 
 		/* hitPoint and hitNormal */
-		memcpy ((void *) &node->hitPoint_changed, (void *) &ray_save_posn,sizeof(struct SFColor));
-		MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitPoint_changed));
+		/* save the current hitPoint for determining if this changes between runs */
+		memcpy ((void *) &node->_oldhitPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
+
+		/* did the hitPoint change between runs? */
+		if ((APPROX(node->_oldhitPoint.c[0],node->hitPoint_changed.c[0])!= TRUE) ||
+			(APPROX(node->_oldhitPoint.c[1],node->hitPoint_changed.c[1])!= TRUE) ||
+			(APPROX(node->_oldhitPoint.c[2],node->hitPoint_changed.c[2])!= TRUE)) {
+
+			memcpy ((void *) &node->hitPoint_changed, (void *) &node->_oldhitPoint, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitPoint_changed));
+		}
 
 		/* have to normalize normal; change it from SFColor to struct pt. */
 		normalval.x = hyp_save_norm.c[0];
 		normalval.y = hyp_save_norm.c[1];
 		normalval.z = hyp_save_norm.c[2];
 		normalize_vector(&normalval);
-		node->hitNormal_changed.c[0] = normalval.x;
-		node->hitNormal_changed.c[1] = normalval.y;
-		node->hitNormal_changed.c[2] = normalval.z;
-		MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
+		node->_oldhitNormal.c[0] = normalval.x;
+		node->_oldhitNormal.c[1] = normalval.y;
+		node->_oldhitNormal.c[2] = normalval.z;
+
+		/* did the hitNormal change between runs? */
+		if ((APPROX(node->_oldhitNormal.c[0],node->hitNormal_changed.c[0])!= TRUE) ||
+			(APPROX(node->_oldhitNormal.c[1],node->hitNormal_changed.c[1])!= TRUE) ||
+			(APPROX(node->_oldhitNormal.c[2],node->hitNormal_changed.c[2])!= TRUE)) {
+
+			memcpy ((void *) &node->hitNormal_changed, (void *) &node->_oldhitNormal, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
+		}
 	}
 }
 
@@ -1133,11 +1142,16 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		#endif
 
 		/* trackpoint changed */
-		node->trackPoint_changed.c[0] = nx;
-		node->trackPoint_changed.c[1] = ny;
-		node->trackPoint_changed.c[2] = node->_origPoint.c[2];
+		node->_oldtrackPoint.c[0] = nx;
+		node->_oldtrackPoint.c[1] = ny;
+		node->_oldtrackPoint.c[2] = node->_origPoint.c[2];
+		if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[2],node->trackPoint_changed.c[2])!= TRUE)) {
 
-		MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, trackPoint_changed));
+			memcpy ((void *) &node->trackPoint_changed, (void *) &node->_oldtrackPoint, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof (struct X3D_PlaneSensor, trackPoint_changed));
+		}
 
 		/* clamp translation to max/min position */
 		tr.c[0] = nx - node->_origPoint.c[0] + node->offset.c[0];
@@ -1154,19 +1168,17 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 			}
 		}
 
-		node->translation_changed.c[0] = tr.c[0];
-		node->translation_changed.c[1] = tr.c[1];
-		node->translation_changed.c[2] = tr.c[2];
+		node->_oldtranslation.c[0] = tr.c[0];
+		node->_oldtranslation.c[1] = tr.c[1];
+		node->_oldtranslation.c[2] = tr.c[2];
 
-		#ifdef SEVERBOSE
-		printf ("TRC %f %f %f\n",node->translation_changed.c[0],
-			node->translation_changed.c[1],node->translation_changed.c[2]);
-		#endif
+		if ((APPROX(node->_oldtranslation.c[0],node->translation_changed.c[0])!= TRUE) ||
+			(APPROX(node->_oldtranslation.c[1],node->translation_changed.c[1])!= TRUE) ||
+			(APPROX(node->_oldtranslation.c[2],node->translation_changed.c[2])!= TRUE)) {
 
-		/* and send this event */
-		MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, translation_changed));
-
-
+			memcpy ((void *) &node->translation_changed, (void *) &node->_oldtranslation, sizeof(struct SFColor));
+			MARK_EVENT(ptr, offsetof (struct X3D_PlaneSensor, translation_changed));
+		}
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
@@ -1273,12 +1285,17 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 			node->_dlchange=0;
         	}
 
-	} else if (ev==MotionNotify) {
+	} else if ((ev==MotionNotify) && (node->isActive==1)) {
 
-		memcpy ((void *) &node->trackPoint_changed,
-			(void *) &ray_save_posn,sizeof(struct SFColor));
+		memcpy ((void *) &node->_oldtrackPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
+		if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||
+			(APPROX(node->_oldtrackPoint.c[2],node->trackPoint_changed.c[2])!= TRUE)) {
 
-		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, trackPoint_changed));
+			memcpy ((void *) &node->trackPoint_changed, (void *) &node->_oldtrackPoint, sizeof(struct SFColor));
+			MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, trackPoint_changed));
+		}
+
 
 		dir1.w=0;
   		dir1.x=ray_save_posn.c[0];
@@ -1325,12 +1342,20 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
             		}
         	}
 
-		node->rotation_changed.r[0] = 0;
-		node->rotation_changed.r[1] = 1;
-		node->rotation_changed.r[2] = 0;
-		node->rotation_changed.r[3] = rot;
+		node->_oldrotation.r[0] = 0;
+		node->_oldrotation.r[1] = 1;
+		node->_oldrotation.r[2] = 0;
+		node->_oldrotation.r[3] = rot;
 
-		MARK_EVENT (ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
+		if ((APPROX(node->_oldrotation.r[0],node->rotation_changed.r[0])!= TRUE) ||
+			(APPROX(node->_oldrotation.r[1],node->rotation_changed.r[1])!= TRUE) ||
+			(APPROX(node->_oldrotation.r[2],node->rotation_changed.r[2])!= TRUE) ||
+			(APPROX(node->_oldrotation.r[3],node->rotation_changed.r[3])!= TRUE)) {
+
+			memcpy ((void *) &node->rotation_changed, (void *) &node->_oldrotation, sizeof(struct SFRotation));
+			MARK_EVENT(ptr, offsetof (struct X3D_CylinderSensor, rotation_changed));
+		}
+
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
@@ -1390,7 +1415,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 				(void *) &node->rotation_changed,
 				sizeof (struct SFRotation));
 		}
-	} else if (ev==MotionNotify) {
+	} else if ((ev==MotionNotify) && (node->isActive==1)) {
 		/* 1. get the point on the plane */
 
 		tr1sq = hyp_save_posn.c[0] * hyp_save_posn.c[0] +
@@ -1455,26 +1480,43 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 			for (tmp=0; tmp<3;tmp++) {
 				cp.c[tmp] = cp.c[tmp]/cl;
 			}
-			memcpy ((void *)&node->trackPoint_changed,
-				(void *)&arr, sizeof (struct SFColor));
-			MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, trackPoint_changed));
+
+			memcpy ((void *) &node->_oldtrackPoint, (void *) &arr,sizeof(struct SFColor));
+			if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
+				(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||
+				(APPROX(node->_oldtrackPoint.c[2],node->trackPoint_changed.c[2])!= TRUE)) {
+
+				memcpy ((void *) &node->trackPoint_changed, (void *) &node->_oldtrackPoint, sizeof(struct SFColor));
+				MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, trackPoint_changed));
+			}
 
 			vrmlrot_to_quaternion(&q, cp.c[0], cp.c[1], cp.c[2], -an);
 			vrmlrot_to_quaternion(&q2,
-								  (node->offset).r[0],
-								  (node->offset).r[1],
-								  (node->offset).r[2],
-								  (node->offset).r[3]);
+					  (node->offset).r[0],
+					  (node->offset).r[1],
+					  (node->offset).r[2],
+					  (node->offset).r[3]);
 			multiply(&q_r, &q, &q2);
 
 			/* calculate VRML rotation; note we have pointers to doubles, but rotation is float */
 			quaternion_to_vrmlrot(&q_r,&s1,&s2,&s3,&s4);
-			node->rotation_changed.r[0] = s1;
-			node->rotation_changed.r[1] = s2;
-			node->rotation_changed.r[2] = s3;
-			node->rotation_changed.r[3] = s4;
+			node->_oldrotation.r[0] = s1;
+			node->_oldrotation.r[1] = s2;
+			node->_oldrotation.r[2] = s3;
+			node->_oldrotation.r[3] = s4;
 
 			MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
+
+
+
+			if ((APPROX(node->_oldrotation.r[0],node->rotation_changed.r[0])!= TRUE) ||
+				(APPROX(node->_oldrotation.r[1],node->rotation_changed.r[1])!= TRUE) ||
+				(APPROX(node->_oldrotation.r[2],node->rotation_changed.r[2])!= TRUE) ||
+				(APPROX(node->_oldrotation.r[3],node->rotation_changed.r[3])!= TRUE)) {
+
+				memcpy ((void *) &node->rotation_changed, (void *) &node->_oldrotation, sizeof(struct SFRotation));
+				MARK_EVENT (ptr, offsetof (struct X3D_SphereSensor, rotation_changed));
+			}
 		}
 	}
 }

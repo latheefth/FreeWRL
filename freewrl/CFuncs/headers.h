@@ -863,6 +863,17 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 extern int screenWidth, screenHeight;
 
+/* mimic X11 events in AQUA */
+#ifdef AQUA
+#define KeyPress        2
+#define KeyRelease      3
+#define ButtonPress     4
+#define ButtonRelease   5
+#define MotionNotify    6
+#define MapNotify       19
+
+#endif
+
 /* Unix front end height/width */
 #ifndef AQUA
 extern int feWidth, feHeight;

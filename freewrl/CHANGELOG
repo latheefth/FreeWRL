@@ -1,4 +1,8 @@
 For 1.20.2
+	- SphereSensor, PlaneSensor, TouchSensor, CylinderSensor; on Linux, these
+	  nodes would continuously send "_changed" events when the nodes were active;
+	  now only sends events when values change (and, node is active)
+
 	- ConsoleMessage had a potential memory overrun on large messages; messages
 	  truncated if too large.
 
