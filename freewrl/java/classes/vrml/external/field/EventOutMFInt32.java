@@ -1,4 +1,4 @@
-// read in a multi float value from the FreeWRL browser.
+// read in a multi Int32 value from the FreeWRL browser.
 
 package vrml.external.field;
 import vrml.external.Browser;
