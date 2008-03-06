@@ -395,7 +395,7 @@ void EAI_parse_commands () {
 				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
 				ctmp[1]=0;
 
-				printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
+				if (eaiverbose) printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
 						ra, rb,rc,ctmp);
 
 
@@ -421,8 +421,8 @@ void EAI_parse_commands () {
 				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
 				ctmp[1]=0;
 
-				/* printf ("UNREGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
-						ra, rb,rc,ctmp); */
+				if (eaiverbose) printf ("UNREGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
+						ra, rb,rc,ctmp); 
 
 
 				/* put the address of the listener area in a string format for registering
