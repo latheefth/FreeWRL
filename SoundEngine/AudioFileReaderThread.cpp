@@ -40,7 +40,7 @@
 //
 #include "AudioFilePlayer.h"
 #include <mach/mach.h> //used for setting policy of thread
-#include "../CAGuard.h"
+#include "CAGuard.h"
 #include <pthread.h>
 
 #include <vector>

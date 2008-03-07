@@ -46,7 +46,7 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <AudioUnit/AudioUnit.h>
 
-#include "../AudioFilePlay.h"
+#include "AudioFilePlay.h"
 
 #define THROW_RESULT(str) 										\
 	if (result) {												\

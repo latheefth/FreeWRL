@@ -44,6 +44,7 @@
 //	Includes
 //=============================================================================
 
+#include "errno.h"
 #include "CAGuard.h"
 #include "CADebugMacros.h"
 #include "CAException.h"
