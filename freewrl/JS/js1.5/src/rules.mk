@@ -113,10 +113,9 @@ else
 $(LIBRARY): $(LIB_OBJS)
 	$(AR) rv $@ $?
 	$(RANLIB) $@
-	cp $(OBJDIR)/libFreeWRLjs.a $(OBJDIR)/libFreeWRLjs.so
 
 $(SHARED_LIBRARY): $(LIB_OBJS)
-	$(MKSHLIB) -dynamic  -o $@ $(LIB_OBJS) $(LDFLAGS) $(OTHER_LIBS)
+	$(MKSHLIB) -o $@ $(LIB_OBJS) $(LDFLAGS) $(OTHER_LIBS)
 endif
 endif
 
