@@ -9,7 +9,6 @@ DEBUG => "off",
 BROWSER => "/Applications/Safari.app/Contents/MacOS/Safari",
 WGET => "/usr/bin/curl",
 ASCIITERM => "/usr/X11R6/bin/rxvt",
-CONVERT => "/usr/local/bin/convert",
 UNZIP => "/usr/bin/gunzip",
 
 # Java compiler - if no java, comment this line and the JAVA_INST line below.
@@ -17,35 +16,41 @@ JAVA => "/usr/bin/java",
 
 COPIER => "/bin/cp",                    # copy one file to another
 SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
+
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
 FREEWRL_CCFLAGS => '-arch '.
-		   'ppc ',
+		   'i386 '.
+		   '-mmacosx-version-min=10.4 '.
+		   '-fno-common ',
 
 ############################################################################
-# Main defines for OpenGL, libjpeg, libpng, and freetype
+# Main defines for OpenGL, freetype
     FREEWRL_LIBS => '-L/usr/lib '.
 		'-L/usr/local/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
-		'-L/FreeWRL/jpeg-6b '.
-		'-ljpeg '.
-		'-lpng12 '.
-		'-lexpat '.
-		'-lz '.
 		'-lSystem '.
+		'-lexpat '.
 		'-lfreetype '.
-		'-lGL -lGLU '.
-		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
+		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -framework ApplicationServices',
 
-    FREEWRL_DEFINE => '-DAQUA -DARCH_PPC -D_REENTRANT -arch ppc -fno-common',
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
 
-    FREEWRL_INC => '-I/FreeWRL/jpeg-6b '.
+    FREEWRL_DEFINE => '-D_REENTRANT -DAQUA -fno-common -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk',
+
+    FREEWRL_INC => '-I/usr/include '.
+		'-I/usr/include/sys '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
 		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
 		'-I/usr/local/include '.
-		'-I/Developer/SDKs/MacOSX10.3.9.sdk/usr/X11R6/include/freetype2 '.
-		'-I/Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/FlatCarbon -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3 -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++ -I/Developer/SDKs/MacOSX10.3.9.sdk/usr/include/gcc/darwin/3.3/c++/ppc-darwin -isystem /Developer/SDKs/MacOSX10.3.9.sdk/usr/include '.
+		'-I/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/include '.
 		' ',
 
 ############################################################################
@@ -55,12 +60,19 @@ FREEWRL_CCFLAGS => '-arch '.
 
 ############################################################################
 # LD flags
+
+    # when building on Leopard 10.5, keep the version at 10.4 - see:
+    # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
+    # make sure you change the JS/js1.5/src/config/Darwin.mk.i386 also!
+
+
 	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '. 
-		'-arch ppc '.
-		#'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk -Wl -syslibroot /Developer/SDKs/MacOSX10.3.9.sdk '.
+		'-arch i386 '.
+		'-mmacosx-version-min=10.4 '.
+		'-isysroot /Developer/SDKs/MacOSX10.4u.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.
@@ -71,8 +83,6 @@ FREEWRL_CCFLAGS => '-arch '.
 		'-bundle '.
 		'-L/usr/lib '.
 		'-F/System/Library/Frameworks '.
-		'-arch ppc '.
-		'-isysroot /Developer/SDKs/MacOSX10.3.9.sdk '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
 		'-framework Cocoa '.

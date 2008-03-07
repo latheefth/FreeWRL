@@ -59,6 +59,31 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 
 
+/* we want to run initialize() from the calling thread. NOTE: if initialize creates VRML/X3D nodes, it
+   will call the ProdCon methods to do this, and these methods will check to see if nodes, yada, yada,
+   yada, until we run out of stack. So, we check to see if we are initializing; if so, don't worry about
+   checking for new scripts */
+static int initializingScripts = FALSE;
+#define INITIALIZE_ANY_SCRIPTS \
+	/* any scripts to initialize here? we do it here, because we may just have created new scripts during \
+	   X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until  \
+	   we have told it that the scripts are initialized. */ \
+	if ((max_script_found != max_script_found_and_initialized) && (!initializingScripts)) { \
+		initializingScripts = TRUE; \
+		/* printf ("have scripts to initialize in ProdCon old %d new %d\n",max_script_found, max_script_found_and_initialized); */ \
+		int i; jsval retval; \
+		for (i=max_script_found_and_initialized+1; i <= max_script_found; i++) { \
+			/*  printf ("initializing script %d in ProdCon\n",i);  */ \
+                	ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
+                	ScriptControl[i]._initialized=TRUE; \
+			/* printf ("initialized script %d\n",i); */ \
+		} \
+ 		initializingScripts = FALSE; \
+		max_script_found_and_initialized = max_script_found; \
+	}
+
+
+
 struct PSStruct {
 	unsigned type;		/* what is this task? 			*/
 	char *inp;		/* data for task (eg, vrml text)	*/
@@ -518,7 +543,12 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, i
 
 	/* grab data */
 	retval = psp.retarrsize;
+
 	UNLOCK;
+
+	/* are there, possibly any new scripts that have been made? */
+	INITIALIZE_ANY_SCRIPTS
+
 	return (retval);
 }
 
@@ -546,8 +576,12 @@ void EAI_readNewWorld(char *inputstring) {
 
 	/* wait for data */
 	WAIT_WHILE_PERL_BUSY;
-	/* grab data */
+
 	UNLOCK;
+
+	/* are there, possibly any new scripts that have been made? */
+	INITIALIZE_ANY_SCRIPTS
+
 }
 
 /****************************************************************************/
@@ -589,7 +623,12 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 	/* wait for data */
 	WAIT_WHILE_PERL_BUSY;
 	/* grab data */
+
 	UNLOCK;
+
+	/* are there, possibly any new scripts that have been made? */
+	INITIALIZE_ANY_SCRIPTS
+
 
 	return (TRUE);
 }
@@ -873,7 +912,6 @@ void __pt_doStringUrl () {
 	char *ctmp = NULL;
 	struct X3D_Group *nRn;
 
-	
 	if (psp.zeroBind) {
 		if (haveParsedCParsed) {
 			if (globalParser != NULL) {
@@ -929,6 +967,7 @@ void __pt_doStringUrl () {
 
 
 	} else if (psp.type==FROMCREATENODE) {
+
 		/* look to see if this is X3D */
 		if (ifIsX3D(psp.inp)) {
 			if (!X3DParse (nRn, psp.inp)) {
@@ -980,22 +1019,6 @@ void __pt_doStringUrl () {
                    for (i=0; i < totviewpointnodes; ++i) send_bind_to(NODE_Viewpoint, viewpointnodes[i], 0);  /* Initialize binding info */
                    send_bind_to(NODE_Viewpoint, viewpointnodes[0], 1);
 		}
-	}
-
-	/* any scripts to initialize here? we do it here, because we may just have created new scripts during
-	   X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until 
-	   we have told it that the scripts are initialized. */
-	if (max_script_found != max_script_found_and_initialized) {
-		/* printf ("have scripts to initialize in ProdCon old %d new %d\n",max_script_found, max_script_found_and_initialized); */
-		for (i=max_script_found_and_initialized+1; i <= max_script_found; i++) {
-			/*  printf ("initializing script %d in ProdCon\n",i);  */
-                	ACTUALRUNSCRIPT(i, "initialize()" ,&retval);
-                	ScriptControl[i]._initialized=TRUE;
-			/* printf ("initialized script %d\n",i); */
-		}
-
-		/* now, let the routing loop go through to the max of this one */
-		max_script_found_and_initialized = max_script_found;
 	}
 
 	/* did the caller want these values returned? */

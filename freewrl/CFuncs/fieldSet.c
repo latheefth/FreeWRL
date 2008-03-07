@@ -628,7 +628,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	SFVec3fNative *sfvec3f;
 	SFRotationNative *sfrotation;
 	struct Uni_String * *ms;
-
+	jsval myJSVal;
 
 
 	/* get size of each element, used for MALLOCing memory  - eg, this will
@@ -636,7 +636,27 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	elesize = returnElementLength(eletype) * returnElementRowSize(eletype);
 
 	/* rough check of return value */
-	if (!JSVAL_IS_OBJECT(JSglobal_return_val)) {
+	/* where did this come from? Was it from a script execution, or from an assignment from within a script?? */
+	#ifdef SETFIELDVERBOSE
+	printf ("getJSMultiNumType, JSCreate_global_return_val %u, JSglobal_return_val %u\n",JSCreate_global_return_val, JSglobal_return_val);
+	#endif
+
+	if (JSCreate_global_return_val!= INT_TO_JSVAL(0)) {
+		myJSVal = JSCreate_global_return_val;
+		JSCreate_global_return_val = INT_TO_JSVAL(0);
+
+		#ifdef SETFIELDVERBOSE
+		printf ("getJSMultiNumType: using JSCreate_global_return_val\n");
+		#endif
+	} else {
+		#ifdef SETFIELDVERBOSE
+		printf ("getJSMultiNumType: using JSglobal_return_val\n");
+		#endif
+
+		myJSVal = JSglobal_return_val;
+	}
+
+	if (!JSVAL_IS_OBJECT(myJSVal)) {
 		printf ("getJSMultiNumType - did not get an object\n");
 		return;
 	}
@@ -644,11 +664,11 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	#ifdef SETFIELDVERBOSE
 	printf ("getJSMultiNumType, tn %d dest has  %s size %d\n",tn,FIELDTYPES[eletype], elesize); 
 
-	printf("getJSMulitNumType, node type of JSglobal_return_val is :");
-	printJSNodeType (cx,JSglobal_return_val);
+	printf("getJSMulitNumType, node type of myJSVal is :");
+	printJSNodeType (cx,myJSVal);
 	#endif
 
-	if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) {
+	if (!JS_GetProperty(cx, (JSObject *)myJSVal, "length", &mainElement)) {
 		printf ("JS_GetProperty failed for \"length\" in getJSMultiNumType\n");
 		return;
 	}
@@ -693,7 +713,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* go through each element of the main array. */
 	for (i = 0; i < len; i++) {
-		if (!JS_GetElement(cx, (JSObject *)JSglobal_return_val, i, &mainElement)) {
+		if (!JS_GetElement(cx, (JSObject *)myJSVal, i, &mainElement)) {
 			printf ("WARNING: JS_GetElement failed for %d in getJSMultiNumType\n",i);
 			switch (eletype) {
 			case FIELDTYPE_SFNode:

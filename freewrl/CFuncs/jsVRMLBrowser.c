@@ -17,6 +17,9 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
+/* for setting field values to the output of a CreateVrml style of call */
+/* it is kept at zero, unless it has been used. Then it is reset to zero */
+jsval JSCreate_global_return_val = INT_TO_JSVAL(0);
 
 /* we add/remove routes with this call */
 void jsRegisterRoute(
@@ -386,6 +389,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		}
 		strcat (xstr,")");
 		
+		#ifdef JSVERBOSE
+		printf ("running runscript on :%s:\n",xstr);
+		#endif
+
 		/* create this value NOTE: rval is set here. */
 		jsrrunScript(context, obj, xstr, rval);
 		FREE_IF_NZ (xstr);
@@ -395,6 +402,9 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		return JS_FALSE;
 	}
 
+
+	/* save this value, in case we need it */
+	JSCreate_global_return_val = *rval;
 	return JS_TRUE;
 }
 

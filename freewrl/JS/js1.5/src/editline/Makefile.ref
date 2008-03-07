@@ -85,9 +85,8 @@ include $(DEPTH)/config.mk
 #
 # Default IEEE libm
 #
-
-CFLAGS          += -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
-		  -DJSFILE $(XCFLAGS) $(DEFS) $(STACKPROT) -fPIC
+CFLAGS          += -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DXP_UNIX $(OPTIMIZER) $(OS_CFLAGS) $(DEFINES) $(INCLUDES) \
+		  -DJSFILE $(XCFLAGS) $(DEFS)
 
 INCFILES = editline.h
 .INIT: $(INCFILES)

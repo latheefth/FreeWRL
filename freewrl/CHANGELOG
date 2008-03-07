@@ -1,4 +1,8 @@
 For 1.20.2
+	- Javascript "initialize()" - if parsing was required (eg, createVrmlFromString)
+	  a thread lock would happen. Initialize() call moved out of parse thread to 
+	  the callers thread.
+
 	- SphereSensor, PlaneSensor, TouchSensor, CylinderSensor; on Linux, these
 	  nodes would continuously send "_changed" events when the nodes were active;
 	  now only sends events when values change (and, node is active)

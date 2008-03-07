@@ -51,6 +51,8 @@ int findInECMATable(JSContext *context, jsval toFind);
 int findNameInECMATable(JSContext *context, char *toFind);
 void resetNameInECMATable(JSContext *context, char *toFind);
 
+/* We keep around the results of script routing, or just script running... */
+extern jsval JSCreate_global_return_val;
 extern jsval JSglobal_return_val;
 extern uintptr_t *JSSFpointer;
 
