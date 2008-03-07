@@ -20,6 +20,17 @@
 
 #include "soundheader.h"
 
+
+#define USE_THREAD_TO_MONITOR
+#ifdef USE_THREAD_TO_MONITOR
+#include <pthread.h>
+
+static pid_t freewrlPID;
+static pthread_t freewrlMonitor;
+void startFreeWRLMonitor(char *);
+#endif
+
+
 key_t IPCKey;
 #ifndef __APPLE__
 int msq_fromclnt;
@@ -421,6 +432,12 @@ int main(int argc,char **argv) {
 		exit(1);
 	}
 
+
+#ifdef USE_THREAD_TO_MONITOR
+         startFreeWRLMonitor(argv[0]);
+#endif
+
+
 	// initiate tables
 	for (xx=0; xx<MAXSOURCES; xx++) {
 		registered[xx] = 0;
@@ -498,3 +515,129 @@ int main(int argc,char **argv) {
 	exit(0);
 }
 
+
+#ifdef USE_THREAD_TO_MONITOR
+void monThread(void) {
+	char inl[8000];
+	char *ptr;
+	int i;
+	FILE *rwc;
+	pid_t tpid;
+	int freewrlFound;
+	int Version;
+
+	#define UNKNOWN 1
+	#define OSX10_4	2
+	#define OSX10_5 3
+
+	#define fwf "/tmp/freewrlReWireChecker"
+	#define versFile "/System/Library/CoreServices/SystemVersion.plist"
+	#define prodKeyline "<key>ProductVersion</key>"
+	#define String "<string>"
+
+	/* what version are we running under? */
+	Version = UNKNOWN;
+
+	rwc = fopen (versFile,"r");
+	if (rwc != NULL) {
+		while ((i=fread(inl,1,8000,rwc)) >0) {
+			//printf ("version checking: just read in %d bytes\n",i); 
+			inl[i] = '\0';
+			//printf ("monp, %s\n",inl); 
+
+			/* look for the "<key>ProductVersion</key>" line */
+			ptr = strstr (inl,prodKeyline);
+			if (ptr != NULL) {
+				ptr += strlen (prodKeyline);
+				
+				/* look for the "<string>" */
+				ptr = strstr (ptr,String);
+				if (ptr != NULL) {
+					ptr += strlen(String);
+					/* in case there is a space in there */
+					while (isspace(*ptr)) ptr++;
+					//printf ("ptr now is %s\n",ptr);
+
+					if (strncmp("10.4",ptr,4) == 0) Version = OSX10_4;
+					else if (strncmp("10.5",ptr,4) == 0) Version = OSX10_5;
+					
+				}	
+			}
+		}
+		fclose (rwc);
+	}
+
+	//printf ("OSX Version %d\n",Version);
+
+
+	while (1==1) {
+		//printf ("monThread running...looking for PID %u\n",freewrlPID); 
+
+		/* first, the old way, OSX 10.4 and before... */
+		if (Version != OSX10_5) {
+			sprintf (inl, "ps -aux | grep %u > %s",freewrlPID,fwf);
+		} else {
+			/* ...now, the OSX 10.5 way*/
+			sprintf (inl, "ps -a | grep %u > %s",freewrlPID,fwf);
+		}
+
+		//printf ("doing system on :%s:\n",inl);
+		system (inl);
+
+		rwc = fopen (fwf, "r");
+		if (rwc != NULL) {
+			while ((i=fread(inl,1,8000,rwc)) >0) {
+				/* printf ("just read in %d bytes\n",i); */
+				inl[i] = '\0';
+				//printf ("monp, %s\n",inl); 
+
+				/* go through, looking for the FreeWRL pid, to ensure that it is still running */
+				ptr = inl;
+				freewrlFound = FALSE;
+
+				while ((*ptr != '\0') &&(!freewrlFound)) {
+					/* Version 10.4 will have a user name as the first token... */
+					if (Version != OSX10_5) {
+						while (!isspace(*ptr)) ptr++;
+					}
+					/* printf ("scanning for uid on :%s:\n",ptr); */
+
+					sscanf (ptr,"%u",&tpid);
+					/* printf ("scanned pid %u, expected %u line %s\n",tpid,freewrlPID,ptr); */
+					while (*ptr >= ' ') ptr++; /* go until a cret, or end of string */
+					while ((*ptr > '\0') && (*ptr < ' ')) ptr++;
+
+					/* did we find it? */
+					freewrlFound = (tpid == freewrlPID);
+				}
+			}
+		}
+
+		unlink(fwf);
+
+
+		/* did we find it??? */
+		if (!freewrlFound) {
+			printf ("freewrlReWireServer, exiting, did not find the FreeWRL process, did it crash?\n");
+			exit(0);
+
+		}
+		sleep (6);
+	}
+}
+
+/* FreeWRL has given us its PID, lets monitor this, and if FreeWRL crashes for any
+   reason, AND, IT IS NOT CAUGHT IN OTHER WAYS, we can stop ourselves */
+
+void startFreeWRLMonitor (char * pidstr) {
+	freewrlPID = 0;
+
+	/* look for the FreeWRL pid on argc[0]; string should be something like "INIT 334332" */
+	sscanf (pidstr,"INIT %u",&freewrlPID);
+	// printf ("startFreeWRLMonitor - found pid to be %u\n",freewrlPID); 
+
+	if (freewrlPID != 0) {
+		pthread_create(&freewrlMonitor, NULL, (void*(*)(void *))&monThread, NULL);
+	}
+}
+#endif
