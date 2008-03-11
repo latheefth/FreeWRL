@@ -1834,7 +1834,7 @@ void __reallyloadImageTexture() {
 
 			store_tex_info (loadThisTexture, image_channels,
 				(int)image_width, (int)image_height,
-				image_data,image_channels=4);
+				image_data,image_channels==4);
 		}
 		readpng_cleanup (FALSE);
 	}
