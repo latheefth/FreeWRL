@@ -335,12 +335,13 @@ sub writeMakefileInitialize() {
 	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
 	#print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
 
-	# different compiler flags for different architectures
-#	if ($ARCH eq "x86_64") {
-#		print MK "FWFLAGS = -c -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
-#	} else {
-		print MK "FWFLAGS = -O0 -g -pipe -fno-strict-aliasing -fPIC\n";
-#	}
+	# different firefox plugin location for AMD64 and 32 bit processors on at least Ubuntu 
+	#print "NETSCAPE_INST was ",$VRML_CONFIG{NETSCAPE_INST},"\n";
+	if ($ARCH ne "x86_64") {
+		$VRML_CONFIG{NETSCAPE_INST} =~ s/lib64/lib/;
+	}
+	#print "NETSCAPE_INST now ",$VRML_CONFIG{NETSCAPE_INST},"\n";
+
 	print MK "MYLIBS = $MYLIBS\n";
 	print MK "MYFELIBS = $MYFELIBS\n";
 	print MK "MYSELIBS = $MYSELIBS\n";
