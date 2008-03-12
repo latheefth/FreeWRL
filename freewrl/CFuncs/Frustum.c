@@ -21,7 +21,7 @@
 
 /* if we have a visible Shape node, how long should we wait until we try to determine
    if it is still visible? */
-#define OCCWAIT 		10 
+#define OCCWAIT 		20 
 
 /* we have a visibility sensor, we want to really see when it becomes invis. */
 #define OCCCHECKNEXTLOOP	1
@@ -30,8 +30,10 @@
 #define OCCCHECKSOON		4
 
 /* how many samples of a Shape are needed before it becomes visible? If it is too
-   small, don't worry about displaying it */
-#define OCCSHAPESAMPLESIZE	8
+   small, don't worry about displaying it If this number is too large, "flashing" 
+   will occur, as the shape is dropped, while still displaying (the number) of pixels
+   on the screen */
+#define OCCSHAPESAMPLESIZE	1	
 
 
 /* Occlusion VisibilitySensor code */
