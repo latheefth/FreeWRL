@@ -1,4 +1,15 @@
 For 1.20.2
+	- Linux Firefox/Opera/Icecape/Mozilla plugin - reworked to prevent a possible
+	  synchronization problem at plugin startup.
+
+	- Makefile.PL automatically determines whether we are building on a 64 or 32 bit
+	  Linux system, and adjusts build/install paths to suit.
+
+	- ReWire and MIDI nodes on OSX - code now works on OSX 10.5.
+
+	- OSX SoundEngine now detects FreeWRL abnormal shutdowns, and will send a message
+	  to the console, and terminate execution.
+
 	- Javascript "initialize()" - if parsing was required (eg, createVrmlFromString)
 	  a thread lock would happen. Initialize() call moved out of parse thread to 
 	  the callers thread.

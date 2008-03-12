@@ -490,12 +490,38 @@ void URLencod (char *dest, const char *src, int maxlen) {
 /* this is for Unix only */
 #ifndef AQUA 
 void sendXwinToPlugin() {
+	XWindowAttributes mywin;
+
 	/* send the window id back to the plugin parent */
+
 	#ifdef URLPRINTDEBUG
+        XGetWindowAttributes(Xdpy,Xwin, &mywin);
+        printf ("sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+
 	URLprint ("sending Xwin ID back to plugin - %d bytes\n",sizeof (Xwin));
 	#endif
+
 	write (_fw_pipe,&Xwin,sizeof(Xwin));
 	close (_fw_pipe);
+
+	/* wait for the plugin to change the map_state */
+        XGetWindowAttributes(Xdpy,Xwin, &mywin);
+	
+	while (mywin.map_state == IsUnmapped) {
+		usleep (100);
+        	XGetWindowAttributes(Xdpy,Xwin, &mywin);
+		#ifdef URLPRINTDEBUG
+        	printf ("sendXwin in sleep loope, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+		#endif
+
+	}
+
+	#ifdef URLPRINTDEBUG
+        XGetWindowAttributes(Xdpy,Xwin, &mywin);
+        printf ("sendXwin at end,  mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+        printf ("x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
+	#endif
+
 }
 #endif
 

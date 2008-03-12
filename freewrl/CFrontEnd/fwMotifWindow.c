@@ -741,13 +741,11 @@ void openMotifMainWindow (int argc, char **argv) {
 		&argc, dummyargc, NULL, initArgs, initArgc);
 
 	Xdpy = XtDisplay (freewrlTopWidget);
-	/* do not bother mapping this, if we are a plugin. */
-	/* NOTE: have problems with AMD64 firefox plugin right now; just keep mapped*/
-/* 	if (!RUNNINGONAMD64) { */
-		if (RUNNINGASPLUGIN) {
-			XtSetMappedWhenManaged (freewrlTopWidget,False);
-		}
-/* 	} */
+
+	/* if we are running as a plugin, let the plugin control code map and manage this window. */
+	if (RUNNINGASPLUGIN) {
+		XtSetMappedWhenManaged (freewrlTopWidget,False);
+	}
 }
 
 
@@ -892,8 +890,9 @@ void  getMotifWindowedGLwin(Window *win) {
         *win = XtWindow(freewrlDrawArea);
 }
 
+
 int isMotifDisplayInitialized (void) {
-        return  (MainWidgetRealized);
+        	return  (MainWidgetRealized);
 }               
 
 void setDefaultBackground(int colour) {

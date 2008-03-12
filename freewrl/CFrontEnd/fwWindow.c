@@ -139,7 +139,7 @@ void createGLContext(void) {
 
 	/* we have to wait until the main widget is realized to get the GLwin */
 	while (ISDISPLAYINITIALIZED == FALSE) {
-		printf ("MainWidgetRealized = FALSE, sleeping...\n");
+		/* printf ("MainWidgetRealized = FALSE, sleeping...\n"); */
 		sleep (1);
 	}
 
@@ -229,7 +229,7 @@ void openMainWindow (int argc, char **argv) {
 	CREATE_TOOLKIT_MAIN_WINDOW
 
 	if (RUNNINGASPLUGIN) {
-		sendXwinToPlugin(Xwin);
+		sendXwinToPlugin();
 	}
 }
 

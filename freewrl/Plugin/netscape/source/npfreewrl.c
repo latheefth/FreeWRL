@@ -35,9 +35,7 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V4.6 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
-
-#define RUNNINGONAMD64 (sizeof(void *) == 8)
+#define PLUGIN_DESCRIPTION	"V4.8 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
 #define ERRORMSG "FILE DOES NOT EXIST"
 
@@ -55,6 +53,7 @@ int gotRequestFromFreeWRL = FALSE;
 
 
 char *paramline[15]; /* parameter line */
+static int seqNo = 0;
 
 static int PluginVerbose = 0;  /* CHECK LOG FILE PATH BEFORE SETTING THIS TO 1 */
 
@@ -74,6 +73,8 @@ typedef struct _FW_PluginInstance
 	char 			*fName;
 	int			freewrl_running;
 	int			interfacePipe[2];		/* pipe plugin FROM freewrl	*/
+	char 			*cacheFileName;
+	int 			cacheFileNameLen;
 } FW_PluginInstance;
 
 
@@ -97,6 +98,7 @@ static void signalHandler (int);
 static int freewrlRecieve (int);
 static int init_socket (int, Boolean);
 Sigfunc signal (int, Sigfunc func);
+void freewrlReceive(int fileDescriptor);
 
 /*******************************************************************************
  ******************************************************************************/
@@ -112,6 +114,10 @@ NPStream *currentStream = NULL;
 
 /* Debugging routine */
 static void print_here (char * xx) {
+/*
+	printf ("debug: %f : ",TickTime);
+	printf("plug-in: %s\n", xx);
+*/
 	if (!PluginVerbose) return;
 
 	if (tty == NULL) {
@@ -160,8 +166,7 @@ Sigfunc signal(int signo, Sigfunc func) {
 }
 
 void signalHandler(int signo) {
-	print_here("\n");
-	sprintf(debs, "ACTION on our port - Signal %d caught from signalHandler.", signo);
+	sprintf(debs, "ACTION signalHandler %d", signo);
 	print_here(debs);
 
 	if (signo == SIGIO) {
@@ -173,18 +178,14 @@ void signalHandler(int signo) {
 	}
 }
 
-int freewrlReceive(int fileDescriptor) {
+void freewrlReceive(int fileDescriptor) {
 	sigset_t newmask, oldmask;
 
 	urlRequest request;
 	size_t request_size = 0;
 	int rv = 0;
-	int retval;
 
-	retval = NPERR_NO_ERROR;
-
-	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.", fileDescriptor);
-	print_here (debs);
+	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.", fileDescriptor); print_here (debs);
 
 	bzero(request.url, FILENAME_MAX);
 	request.instance = 0;
@@ -201,23 +202,23 @@ int freewrlReceive(int fileDescriptor) {
 	/* Init. the signal sets as empty sets. */
 	if (sigemptyset(&newmask) < 0) {
 		print_here("Call to sigemptyset with arg newmask failed");
-		return(NPERR_GENERIC_ERROR);
+		return;
 	}
 
 	if (sigemptyset(&oldmask) < 0) {
 		print_here("Call to sigemptyset with arg oldmask failed");
-		return(NPERR_GENERIC_ERROR);
+		return;
 	}
 
 	if (sigaddset(&newmask, SIGIO) < 0) {
 		print_here("Call to sigaddset failed");
-		return(NPERR_GENERIC_ERROR);
+		return;
 	}
 
 	/* Code to block SIGIO while saving the old signal set. */
 	if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0) {
 		print_here("Call to sigprocmask failed");
-		return(NPERR_GENERIC_ERROR);
+		return;
 	}
 
 	/* If blocked or interrupted, be silent. */
@@ -227,7 +228,7 @@ int freewrlReceive(int fileDescriptor) {
 		}
 		/* FreeWRL has died, or THIS IS US WRITING CREATING THAT SIG. */
 		print_here ("freewrlReceive, quick return; either this is us writing or freewrl croaked");
-		return(NPERR_GENERIC_ERROR);
+		return;
 	} else {
 		sprintf (debs, "notifyCode = %d url = %s", request.notifyCode, request.url);
 		print_here(debs);
@@ -238,12 +239,17 @@ int freewrlReceive(int fileDescriptor) {
 		/* is this a getUrl, or a "open new window for url" */
 		if (request.notifyCode == 0) {
 			/* get Url and return it to FreeWRL */
-			if ((rv = NPN_GetURLNotify(request.instance, request.url, NULL,(void *)request.url))
+
+			seqNo++;
+			/* printf ("request seq %d, url %s\n",seqNo, request.url); */
+
+			if ((rv = NPN_GetURLNotify(request.instance, request.url, NULL,(void *)(seqNo)))
 				!= NPERR_NO_ERROR) {
 				sprintf(debs, "Call to NPN_GetURLNotify failed with error %d.", rv);
 				print_here(debs);
-				retval = NPERR_GENERIC_ERROR;
 			}
+
+
 			sprintf (debs, "step 2a, NPN_GetURLNotify with request.url %s",request.url);
 			print_here(debs);
 
@@ -281,19 +287,19 @@ int freewrlReceive(int fileDescriptor) {
 		}
 
 		/* now, put a status line on bottom of browser */
-		sprintf (debs, "FreeWRL loading: %s\n",request.url);
+		sprintf (debs, "FreeWRL loading: %s",request.url);
 		print_here(debs);
-		NPN_Status (request.instance, debs);
+		NPN_Status (request.instance, debs); 
 	}
 
 	/* Restore old signal set, which unblocks SIGIO. */
 	if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0) {
 		print_here("Call to sigprocmask failed");
-		return(NPERR_GENERIC_ERROR);
+		return;
 	}
 
-	return(retval);
-	print_here("returning from freewrl_receive\n");
+	print_here("returning from freewrl_receive");
+	return;
 }
 
 int init_socket(int fileDescriptor, Boolean nonblock) {
@@ -334,6 +340,8 @@ void Run (NPP instance) {
 	char	pipetome[25];
 	char	childFd[25];
 	char	instanceStr[25];
+
+	XWindowAttributes mywin;
 
 	print_here ("start of Run");
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
@@ -437,6 +445,12 @@ void Run (NPP instance) {
 
 	/*reparent the window */
 
+	#ifdef ewrwetw
+	XGetWindowAttributes(FW_Plugin->display,FW_Plugin->fwwindow, &mywin);
+	printf ("Plugin: mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+	printf ("x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
+	#endif
+
 	/* print_here ("going to XFlush"); */
 	XFlush(FW_Plugin->display);
 	
@@ -444,17 +458,19 @@ void Run (NPP instance) {
 	XSync (FW_Plugin->display, FALSE);
 	
 	/* print_here ("going to reparent"); */
-	XReparentWindow(FW_Plugin->display,
-					FW_Plugin->fwwindow,
-					FW_Plugin->mozwindow,
-					0,0);
+	XReparentWindow(FW_Plugin->display, FW_Plugin->fwwindow, FW_Plugin->mozwindow, 0,0);
 	
 	XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
 				  FW_Plugin->width, FW_Plugin->height);
 	
-	
 	XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
-	print_here ("after mapwindow");
+
+	#ifdef ewrwetw
+	XGetWindowAttributes(FW_Plugin->display,FW_Plugin->fwwindow, &mywin);
+	printf ("Plugin, after reparenting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
+	printf ("x %d y %d wid %d height %d\n",mywin.x,mywin.y,mywin.width,mywin.height);
+	#endif
+	
 
 	print_here ("Run function finished\n");
 }
@@ -560,6 +576,10 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->childPID=0;
 	FW_Plugin->fName = NULL;
 	FW_Plugin->freewrl_running = FALSE;
+	seqNo = 0;
+	FW_Plugin->cacheFileName = NULL;
+	FW_Plugin->cacheFileNameLen = 0;
+
 	gotRequestFromFreeWRL = FALSE;
 	pipe(FW_Plugin->interfacePipe);
 
@@ -611,11 +631,6 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 
 	if (FW_Plugin != NULL) {
 
-		if (FW_Plugin->interfacePipe[PIPE_PLUGINSIDE] > 0) {
-			close (FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE]);
-			close (FW_Plugin->interfacePipe[PIPE_PLUGINSIDE]);
-		}
-
 
 		if (FW_Plugin->fName != NULL) {
 			NPN_MemFree(FW_Plugin->fName);
@@ -632,6 +647,15 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 			waitpid(FW_Plugin->childPID, &status, 0);
 		}
 
+		if (FW_Plugin->cacheFileName != NULL) {
+			NPN_MemFree(FW_Plugin->cacheFileName);
+		}
+
+		if (FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE] != 0) {
+			close (FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE]);
+			close (FW_Plugin->interfacePipe[PIPE_PLUGINSIDE]);
+		}
+
 		NPN_MemFree(instance->pdata);
 		instance->pdata = NULL;
 	}
@@ -646,14 +670,28 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 
 	#define returnBadURL "this file is not to be found on the internet"
 	FW_PluginInstance* FW_Plugin;
+	int bytes;
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	sprintf (debs,"NPP_URLNotify, url %s reason %d",url,reason);
+	sprintf (debs,"NPP_URLNotify, url %s reason %d notifyData %d",url,reason, notifyData);
 	print_here (debs);
+
+	if (seqNo != ((int)notifyData)) {
+		printf ("NPP_URLNotify, expected seq %d, got %d for %s\n",seqNo, (int)notifyData, url);
+		return;
+	}
+
 
 	if (reason == NPRES_DONE) {
 		print_here ("NPP_UrlNotify - NPRES_DONE");
+		bytes = (strlen(FW_Plugin->cacheFileName)+1)*sizeof(const char *);
+		if (write(FW_Plugin->interfaceFile[SOCKET_1], FW_Plugin->cacheFileName, bytes) < 0) {
+			print_here ("Call to write failed");
+		}
+
+		/* send a "done" message to status bar */
+		NPN_Status(instance,"FreeWRL: Done");
 		return;
 	} else if (reason == NPRES_USER_BREAK) {
 		print_here ("NPP_UrlNotify - NPRES_USER_BREAK");
@@ -663,15 +701,16 @@ NPP_URLNotify (NPP instance, const char *url, NPReason reason, void* notifyData)
 		print_here ("NPP_UrlNotify - unknown");
 	}
 
-
 	sprintf (debs,"NPP_UrlNotify - writing %s (%u bytes) to socket %d",
 		returnBadURL, strlen (returnBadURL) ,FW_Plugin->interfaceFile[SOCKET_1]);
 	print_here(debs);
+	NPN_Status(instance,"FreeWRL: NPP_URLNotify failed");
 
 	/* if we got a request from FreeWRL for the file, then return the name. If FreeWRL was "Run",
 	   from within NPP_NewStream, it will not be expecting this write, until it asks for a file -
 	   a case of "the cart before the horse" */
 	if (gotRequestFromFreeWRL) {
+		print_here ("NPP_UrlNotify, gotRequestFromFreeWRL - writing data\n");
 		if (write(FW_Plugin->interfaceFile[SOCKET_1], returnBadURL, strlen (returnBadURL)) < 0) {
 			print_here ("Call to write failed");
 		}
@@ -689,7 +728,7 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 	int X_err;
 	int count;
 
-	print_here ("start of NPP_SetWindow");
+	print_here ("start of NPP_SetWindow"); 
 
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
@@ -736,7 +775,7 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 		/* run FreeWRL, if it is not already running. It might not be... */
 		if (!FW_Plugin->freewrl_running) {
 			print_here ("NPP_SetWindow, running FreeWRL here!");
-				Run(instance);
+			Run(instance);
 		}
 	}
 
@@ -779,8 +818,8 @@ NPP_NewStream(NPP instance,
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	sprintf (debs,"NPP_NewStream, filename %sinstance %d, type %d, stream %d, seekable %d stype %d",
-		FW_Plugin->fName, instance, stream, seekable,*stype);
+	sprintf (debs,"NPP_NewStream, filename %s instance %d, type %d, stream %d, seekable %d stype %d",
+		FW_Plugin->fName, instance, type, stream, seekable,*stype);
 	print_here(debs);
 
 	RECORD_FILE_NAME_IF_NULL
@@ -859,6 +898,9 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 	int bytes;
 
 	FW_PluginInstance* FW_Plugin;
+
+	sprintf (debs,"NPP_StreamAsFile, start with fname %s",fname); print_here(debs);
+
 	if (instance != NULL) {
 		FW_Plugin = (FW_PluginInstance*) instance->pdata;
 	
@@ -884,17 +926,19 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 				   a case of "the cart before the horse" */
 				if (gotRequestFromFreeWRL) {
 					bytes = (strlen(fname)+1)*sizeof(const char *);
-					sprintf (debs,"NPP_StreamAsFile: writing %s (%u bytes) to socket %d",
-							fname, bytes,FW_Plugin->interfaceFile[SOCKET_1]);
+					if (bytes > (FW_Plugin->cacheFileNameLen -10)) {
+						if (FW_Plugin->cacheFileName != NULL) {
+							NPN_MemFree(FW_Plugin->cacheFileName);
+						}
+
+						FW_Plugin->cacheFileNameLen = bytes+20;
+						FW_Plugin->cacheFileName = NPN_MemAlloc(FW_Plugin->cacheFileNameLen);
+					}
+
+					memcpy (FW_Plugin->cacheFileName, fname, bytes);
+					sprintf (debs,"NPP_StreamAsFile: saving name to cachename");
 					print_here(debs);
 	
-					if (write(FW_Plugin->interfaceFile[SOCKET_1], fname, bytes) < 0) {
-						print_here ("Call to write failed");
-					}
-	
-					/* send a "done" message to status bar */
-					sprintf (debs, "NPP_StreamAsFile: Done\n");
-					NPN_Status(instance,debs);
 				} else {
 					print_here("NPP_StreamAsFile: skipping file write, as gotRequestFromFreeWRL = FALSE\n");
 				}
