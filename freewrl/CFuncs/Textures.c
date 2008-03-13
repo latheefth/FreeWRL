@@ -1486,7 +1486,7 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
     int             bitmapByteCount;
     int             bitmapBytesPerRow;
 
-     // Get image width, height. We'll use the entire image.
+     // Get image width, height. We will use the entire image.
     size_t pixelsWide = CGImageGetWidth(inImage);
     size_t pixelsHigh = CGImageGetHeight(inImage);
 
@@ -1586,7 +1586,7 @@ void __reallyloadImageTexture() {
 		CGDataProviderRelease(provider);
 	} else {
 #ifdef TRY_QUICKTIME
-   I don't know whether to use quicktime or not... Probably not... as the other ways using core 
+   I dont know whether to use quicktime or not... Probably not... as the other ways using core 
 graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs??
 
 		/* lets let quicktime decide on what to do with this image */
