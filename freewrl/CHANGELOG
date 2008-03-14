@@ -1,3 +1,6 @@
+For 1.20.3
+	- EAI setting MFStrings had code that could cause memory problems.
+
 For 1.20.2
 	- adjusted the OcclusionCulling parameters to better handle nodes with few pixels
 	  visible.
