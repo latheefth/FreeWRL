@@ -248,6 +248,7 @@ void handle_EAI () {
 	EAIbufcount = 0;
 
 	EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
+	/* printf ("read, EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
 
 	/* make this into a C string */
 	EAIbuffer[EAIbufcount] = 0;
@@ -271,14 +272,14 @@ void EAI_send_string(char *str, int lfd){
 		printf ("EAI/CLASS Command returns\n%s(end of command)\n",str);
 	}
 
-	/*printf ("EAI_send_string, sending :%s:\n",str);*/
+	/* printf ("EAI_send_string, sending :%s:\n",str); */
 	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
 		if (eaiverbose) {
 		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
 		}
 	}
-	/*printf ("EAI_send_string, wrote %d\n",n);*/
+	/* printf ("EAI_send_string, wrote %d\n",n); */
 }
 
 
@@ -294,7 +295,7 @@ void EAI_send_string(char *str, int lfd){
 char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 	int retval, oldRetval;
 
-	/*printf ("read_EAI_socket, EAIlistenfd %d buffer addr %d\n",*EAIlistenfd,bf);*/
+	if (eaiverbose) printf ("read_EAI_socket, thread %d EAIlistenfd %d buffer addr %d time %lf\n",pthread_self(),*EAIlistenfd,bf,TickTime);
 	retval = FALSE;
 	do {
 		tv2.tv_sec = 0;
@@ -304,7 +305,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 		oldRetval = retval;
 		retval = select((*EAIlistenfd)+1, &rfds2, NULL, NULL, &tv2);
-		/*printf ("select retval %d\n",retval);*/
+		if (eaiverbose) printf ("select retval %d\n",retval);
 
 		if (retval != oldRetval) {
 			loopFlags &= NO_RETVAL_CHANGE;
@@ -320,7 +321,6 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 		if (retval) {
 			retval = read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
-
 			if (retval <= 0) {
 				if (eaiverbose) {
 					printf ("read_EAI_socket, client is gone!\n");
@@ -348,7 +348,8 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 			(*bfct) += retval;
 
 			if (((*bfsz) - (*bfct)) <= EAIREADSIZE) {
-				/* printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %x bfsz %d bfct %d\n",bf,*bfsz, *bfct); */
+				if (eaiverbose) 
+				printf ("read_EAI_socket: HAVE TO REALLOC INPUT MEMORY:bf %x bfsz %d bfct %d\n",bf,*bfsz, *bfct);  
 				(*bfsz) += EAIREADSIZE;
 				/* printf ("read_EAI_socket: bfsz now %d\n",*bfsz); */
 				bf = (char *)REALLOC (bf, (unsigned int) (*bfsz));

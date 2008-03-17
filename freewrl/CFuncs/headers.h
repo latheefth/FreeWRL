@@ -206,7 +206,7 @@ void OcclusionStartofEventLoop(void);
 extern int HaveSensitive;
 void zeroVisibilityFlag(void);
 void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value);
-unsigned int setField_method2 (char *ptr);
+unsigned int setField_FromEAI (char *ptr);
 void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
 extern char *GL_VEN;

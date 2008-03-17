@@ -119,7 +119,6 @@ void EAI_parse_commands () {
         int ctype;
 	int xxx;
 
-
 	while (EAI_BUFFER_CUR> 0) {
 		if (eaiverbose) {
 			printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen((&EAI_BUFFER_CUR)),(&EAI_BUFFER_CUR));
@@ -136,20 +135,20 @@ void EAI_parse_commands () {
 
 		/* step 2, skip past the sequence number */
 		while (isdigit(EAI_BUFFER_CUR)) bufPtr++;
-		if (eaiverbose) {
+		/* if (eaiverbose) {
 			printf("past sequence number, string:%s\n",(&EAI_BUFFER_CUR));
-		}
+		} */
 
 		while (EAI_BUFFER_CUR == ' ') bufPtr++;
-		if (eaiverbose) {
+		/* if (eaiverbose) {
 			printf ("past the space, string:%s\n",(&EAI_BUFFER_CUR)); 
-		}
+		} */
 
 		/* step 3, get the command */
 
 		command = EAI_BUFFER_CUR;
 		if (eaiverbose) {
-			printf ("command %c\n",command);
+			printf ("command %c strlen %d\n",command,strlen(&EAI_BUFFER_CUR));
 		}
 		bufPtr++;
 
@@ -274,9 +273,12 @@ void EAI_parse_commands () {
 			case SENDEVENT:   {
 				/*format int seq# COMMAND NODETYPE pointer offset data*/
 				if (eaiverbose) {	
-					printf ("SENDEVENT %s\n",&EAI_BUFFER_CUR);
-				}	
-				setField_method2 (&EAI_BUFFER_CUR);
+					printf ("SENDEVENT, strlen %d\n",strlen(&EAI_BUFFER_CUR));
+				}
+				setField_FromEAI (&EAI_BUFFER_CUR);
+				if (eaiverbose) {	
+					printf ("after SENDEVENT, strlen %d\n",strlen(&EAI_BUFFER_CUR));
+				}
 				break;
 				}
 			case MIDIINFO: {
@@ -601,11 +603,13 @@ void EAI_parse_commands () {
 			EAI_send_string (buf,EAIlistenfd);
 		}
 
+		/* printf ("end of command, remainder %d ",strlen(&EAI_BUFFER_CUR)); */
 		/* skip to the next command */
 		while (EAI_BUFFER_CUR >= ' ') bufPtr++;
 
 		/* skip any new lines that may be there */
 		while ((EAI_BUFFER_CUR == 10) || (EAI_BUFFER_CUR == 13)) bufPtr++;
+		/* printf ("and %d : indx %d thread %d\n",strlen(&EAI_BUFFER_CUR),bufPtr,pthread_self()); */
 	}
 }
 

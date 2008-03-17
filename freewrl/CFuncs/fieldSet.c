@@ -86,7 +86,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 /* an incoming EAI/CLASS event has come in, convert the ASCII characters
  * to an internal representation, and act upon it */
 
-unsigned int setField_method2 (char *ptr) {
+unsigned int setField_FromEAI (char *ptr) {
 	unsigned char nt;
 	int nodetype;
 	uintptr_t nodeptr;
@@ -104,7 +104,7 @@ unsigned int setField_method2 (char *ptr) {
 	char myBuffer[6000];
 
 	#ifdef SETFIELDVERBOSE
-	printf ("\nsetField_method2, string :%s:\n",ptr);
+	printf ("\nsetField_FromEAI, string :%s:\n",ptr);
 	#endif
 	
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
@@ -120,7 +120,7 @@ unsigned int setField_method2 (char *ptr) {
 
 	/* nodeptr, offset */
 	retint=sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
-	if (retint != 3) ConsoleMessage ("setField_method2: error reading 3 numbers from the string :%s:\n",ptr);
+	if (retint != 3) ConsoleMessage ("setField_FromEAI: error reading 3 numbers from the string :%s:\n",ptr);
 
 	while ((*ptr) > ' ') ptr++; 	/* node ptr */
 	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
@@ -134,9 +134,9 @@ unsigned int setField_method2 (char *ptr) {
 	{
 		struct X3D_Node *np;
 		np = (struct X3D_Node*) nodeptr;
-		printf ("setField_method2 np %u\n",np);
-		printf ("setField_method2 np->_nodeType %d\n",np->_nodeType);
-		printf ("setField_method2 np->_nodeType %s\n",stringNodeType(np->_nodeType));
+		printf ("setField_FromEAI np %u\n",np);
+		printf ("setField_FromEAI np->_nodeType %d\n",np->_nodeType);
+		printf ("setField_FromEAI np->_nodeType %s\n",stringNodeType(np->_nodeType));
 		}
 	#endif
 
@@ -149,17 +149,16 @@ unsigned int setField_method2 (char *ptr) {
 	{
 		struct Multi_String *ns;
 		ns = (struct Multi_String *) memptr;
-		printf ("setField_method2 and, the MultiString %u has %d strings\n",memptr,ns->n);
+		printf ("setField_FromEAI and, the MultiString %u has %d strings\n",memptr,ns->n);
 	}
 	#endif
 
 	/* now, we are at start of data. */
 
-
 	/* lets go to the first non-blank character in the string */
 	while (*ptr == ' ') ptr++;
 	#ifdef SETFIELDVERBOSE 
-	printf ("setField_method2 EAI_SendEvent, event string now is :%s:\n",ptr);
+	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
 	#endif
 
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
@@ -170,7 +169,7 @@ unsigned int setField_method2 (char *ptr) {
 		/* find out which element the user wants to set - that should be the next number */
 		while (*ptr==' ')ptr++;
 		retint=sscanf (ptr,"%d",&valIndex);
-		if (retint != 1) ConsoleMessage ("setField_method2: error reading 1 numbers from the string :%s:\n",ptr);
+		if (retint != 1) ConsoleMessage ("setField_FromEAI: error reading 1 numbers from the string :%s:\n",ptr);
 		while (*ptr>' ')ptr++; /* past the number */
 		while (*ptr==' ')ptr++;
 
@@ -206,7 +205,6 @@ unsigned int setField_method2 (char *ptr) {
 		printf ("EAI_SendEvent, conversion failure\n");
 		return( -1 );
 	}
-
 
 	MultiElement=FALSE;
 	switch (nodetype) {
@@ -1190,6 +1188,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	int count;
 	int len;
 	int retint;	/* used for getting sscanf return val */
+	char savedChar;
 	
 	/* pointers to cast memptr to*/
 	float *flmem;
@@ -1369,11 +1368,12 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			while (*buf!=':') buf++; buf++;
 
 			/* replace the space at stringln with a 0 */
-			buf += thissize; *buf = 0; buf-=thissize;
+			buf += thissize; savedChar = *buf; *buf = 0; buf-=thissize;
 			MFStringptr->p[0] = newASCIIString(buf);
 
 			/* go to end of string */
-			buf += thissize+1;
+			buf += thissize; *buf=savedChar; buf++;
+
 			/* watch this return value: -1 means that it is a full string replace, so lets "code" this
 			   one element to replace */
 			len =  -thisele -10;
@@ -1397,11 +1397,11 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 				while (*buf!=':') buf++; buf++;
 	
 				/* replace the space at stringln with a 0 */
-				buf += thissize; *buf = 0; buf-=thissize;
+				buf += thissize; savedChar = *buf; *buf = 0; buf-=thissize;
 				MFStringptr->p[thisele] = newASCIIString(buf);
 
 				/* go to end of string */
-				buf += thissize+1;
+				buf += thissize; *buf=savedChar; buf++;
 	
 				/* scan to next start of string, or end of line*/
 				while (*buf==' ') buf++;
@@ -1411,6 +1411,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			} while (((int)*buf)>=32);
 			len = -1;
 		}
+
 		/* return -length  to indicate that this is "wierd".*/
 
 		break;
