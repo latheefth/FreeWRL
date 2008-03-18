@@ -1,5 +1,7 @@
 For 1.20.3
+	- EAI - setting one value of MF/SF nodes did not work.
 	- EAI setting MFStrings had code that could cause memory problems.
+	- EAI creating EventInMFVec3f did not work - error in java code Node.java.
 
 For 1.20.2
 	- adjusted the OcclusionCulling parameters to better handle nodes with few pixels

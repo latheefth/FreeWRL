@@ -145,14 +145,6 @@ unsigned int setField_FromEAI (char *ptr) {
 
 	memptr = nodeptr+offset;	/* actual pointer to start of destination data in memory */
 
-	#ifdef SETFIELDVERBOSE
-	{
-		struct Multi_String *ns;
-		ns = (struct Multi_String *) memptr;
-		printf ("setField_FromEAI and, the MultiString %u has %d strings\n",memptr,ns->n);
-	}
-	#endif
-
 	/* now, we are at start of data. */
 
 	/* lets go to the first non-blank character in the string */
@@ -163,8 +155,8 @@ unsigned int setField_FromEAI (char *ptr) {
 
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
 	/* check out the java external/field/MF*java files for the string "ONEVAL "		*/
-	if (strcmp("ONEVAL ",ptr) == 0) {
-		ptr += 7;
+	if (strncmp("ONEVAL ",ptr, strlen("ONEVAL ")) == 0) {
+		ptr += strlen ("ONEVAL ");
 
 		/* find out which element the user wants to set - that should be the next number */
 		while (*ptr==' ')ptr++;
@@ -185,6 +177,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		memptr = Multi_Struct_memptr(nodetype, (void *) memptr);
 
 		/* and index into that array; we have the index, and sizes to worry about 	*/
+
 		memptr += valIndex * returnElementLength(nodetype) *  returnElementRowSize(nodetype);
 
 		/* and change the nodetype to reflect this change */

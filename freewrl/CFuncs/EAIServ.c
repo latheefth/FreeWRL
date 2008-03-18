@@ -295,7 +295,7 @@ void EAI_send_string(char *str, int lfd){
 char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 	int retval, oldRetval;
 
-	if (eaiverbose) printf ("read_EAI_socket, thread %d EAIlistenfd %d buffer addr %d time %lf\n",pthread_self(),*EAIlistenfd,bf,TickTime);
+	/* if (eaiverbose) printf ("read_EAI_socket, thread %d EAIlistenfd %d buffer addr %d time %lf\n",pthread_self(),*EAIlistenfd,bf,TickTime); */
 	retval = FALSE;
 	do {
 		tv2.tv_sec = 0;
@@ -305,7 +305,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 		oldRetval = retval;
 		retval = select((*EAIlistenfd)+1, &rfds2, NULL, NULL, &tv2);
-		if (eaiverbose) printf ("select retval %d\n",retval);
+		/* if (eaiverbose) printf ("select retval %d\n",retval); */
 
 		if (retval != oldRetval) {
 			loopFlags &= NO_RETVAL_CHANGE;

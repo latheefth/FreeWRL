@@ -78,7 +78,7 @@ public class Node {
     } else if(NewDT.equals("r")) { ret = new EventInMFRotation();
     } else if(NewDT.equals("s")) { ret = new EventInMFVec2f();
     } else if(NewDT.equals("j")) { ret = new EventInSFVec2f();
-    } else if(NewDT.equals("l")) { ret = new EventInMFVec3f();
+    } else if(NewDT.equals("t")) { ret = new EventInMFVec3f();
     } else if(NewDT.equals("q")) { ret = new EventInMFNode();
     } else if(NewDT.equals("i")) { ret = new EventInSFRotation();
     } else if(NewDT.equals("g")) { ret = new EventInSFString();
