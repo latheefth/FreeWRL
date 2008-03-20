@@ -143,7 +143,7 @@ if (!($pkgconfig eq "")) {
 my $pg_js = "";
 my $jsCFLAGS = "";
 my $jsLDFLAGS = "";
-my $jsdir = "js1.5/src";
+my $jsdir = "js1.7/src";
 my $libFreeWRLjspath = "";
 my $jsobjdir;
 my $noStackProtector = "";

@@ -281,7 +281,23 @@ unsigned int setField_FromEAI (char *ptr) {
 		/* if we have a positive len, then, do a straight copy */
 
 		if (len > 0) {
-			SetMemory(nodetype,(void *)memptr,(void *)myBuffer,len);
+			/* SFStrings and SFImages are, of course, different... */
+			if ((nodetype == FIELDTYPE_SFString) || (nodetype == FIELDTYPE_SFImage)) {
+				uintptr_t *xx;
+				struct Uni_String *svptr;
+
+				/* printf ("ScanValtoBuffer, have SFString to verify - :%s:\n",(unsigned char*)myBuffer); */
+
+	                        /* get the pointer to the string, do this in a couple of steps... */
+				xx= (uintptr_t *) memptr;
+				svptr = (struct Uni_String *) *xx;
+
+				verify_Uni_String(svptr, (char *)myBuffer);
+				
+			} else {
+				/* a straight copy over */
+				SetMemory(nodetype,(void *)memptr,(void *)myBuffer,len);
+			}
 		} else {
 			/* if len < 0, it is "wierd". See ScanValtoBuffer
 			 * for accurate return values. */
@@ -1413,8 +1429,10 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	case FIELDTYPE_SFImage:
 	case FIELDTYPE_SFString: {
 		int thissize;
+		char savedChar;
 
 		/* save this stuff to a global SV, rather than worrying about memory pointers */
+
 		#ifdef SETFIELDVERBOSE
 		printf ("ScanValtoBuffer: FIELDTYPE_SFString, string is %s, ptr %x %d\n",buf,memptr,memptr);
 		#endif
@@ -1431,16 +1449,21 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 		/* replace the space at stringln with a 0 */
 		buf += thissize; 
+		savedChar = *buf;
 		*buf=0;
 		buf -= thissize;
-                printf ("do not know where to save this: %s\n",buf); 
+
+		if (thissize >= bufsz) {
+			ConsoleMessage ("EAI_SFSTRING, have to truncate, too long\n");
+			buf[100] = '\0'; /* yes, this will cause problems */
+		}
+		strcpy ((unsigned char *)memptr, buf);
 
 		/* return char to a space */
 		buf += thissize;
-		*buf=' ';
+		*buf= savedChar;
 
-		/*len = maxele*sizeof(struct Multi_String);*/
-		len = sizeof (void *);
+		len = thissize; /* might as well set it to something possibly useful later on */
 		break;
 	}
 		

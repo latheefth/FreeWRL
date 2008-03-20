@@ -1068,11 +1068,17 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case FIELDTYPE_SFImage:
 		case FIELDTYPE_SFString:	{
+			uintptr_t *xx;
+
 			if (eaiverbose) { 
 			printf ("EAI_SFSTRING\n");
 			}
 
+			/* get the pointer to the string, do this in a couple of steps... */
 			svptr = (struct Uni_String *)memptr;
+			xx= (uintptr_t *) memptr;
+			svptr = (struct Uni_String *) *xx;
+
 			retSFString = (unsigned char *)svptr->strptr; 
 			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,retSFString);
 			break;
