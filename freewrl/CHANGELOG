@@ -1,4 +1,7 @@
 For 1.20.3
+	- VRML Parser - morphing SF types into MF types (where an MF was expected, but an SF
+	  was given) was not correct for SF types with a size > 1 float, eg SFColors. 
+
 	- EAI SF/MFString set/get reworked.
 	- EAI - setting one value of MF/SF nodes did not work.
 	- EAI setting MFStrings had code that could cause memory problems.

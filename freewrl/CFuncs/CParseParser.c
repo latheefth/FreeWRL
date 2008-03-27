@@ -1920,15 +1920,21 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
  #define PARSER_FINALLY \
   deleteOffsetPointer(ret);
 
+  #ifdef CPARSERVERBOSE
+  printf ("start of parser_fieldValue\n");
+  printf ("me->curPROTO = %u\n",me->curPROTO);
+  #endif
+
  /* If we are inside a PROTO, IS is possible */
  if(me->curPROTO && lexer_keyword(me->lexer, KW_IS))
  {
   indexT fieldO, fieldE;
   struct ProtoFieldDecl* pField=NULL;
 
-#ifdef CPARSERVERBOSE
+  #ifdef CPARSERVERBOSE
   printf("parser_fieldValue: this is an IS statement\n");
-#endif
+  #endif
+
   /* If the field was found in the built in arrays of fields, then try to see if this is followed by a valid IS statement */
   /* Check that the part after IS consists of a valid user-defined inputOnly/outputOnly/exposed field and then add an Offset_Pointer struct (pointer to the node with the IS statement
     and an offset to the field that uses the IS) to the dests list of the fieldDeclaration structure of the proto */
@@ -1992,11 +1998,13 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
  {
   #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
+	/* printf ("parse_fieldValue, working through %d\n",FIELDTYPE_##fttype); */ \
    *((vrml##ttype##T*)((char*)(ret->node))) = (pField->defaultVal).type;  \
     break; 
 
   #define MF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
+	/* printf ("parse_fieldValue, working through %d\n",FIELDTYPE_##fttype); */ \
     *((struct Multi_##ttype*)((char*)(ret->node))) = (pField->defaultVal).type; \
     break; 
 
@@ -2013,8 +2021,26 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
 
  /* Otherwise this is not an IS statement */
  {
+int i;
+  #ifdef CPARSERVERBOSE
+	printf ("parser_fieldValue, not an IS\n");
+  #endif
   /* Get a pointer to the actual field */
   void* directRet=offsetPointer_deref(void*, ret);
+
+	/* we could print out a type, as shown below for the first element of a Multi_Color:
+	{ struct Multi_Color * mc;
+	mc = (struct Multi_Color *) directRet;
+	printf ("directret n is %d\n",mc->n);
+	
+	printf ("directret orig is %u, %f %f %f\n",
+	mc->p,
+	mc->p[0].c[0],
+	mc->p[0].c[1],
+	mc->p[0].c[2]);
+	}
+	*/
+
   PARSER_FINALLY
  
   /* Get the actual value from the file (next token from lexer) and store it as the appropriate type in the node */
@@ -2140,8 +2166,9 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
   case exposed##FIELD_##field: \
    if(!parser_fieldValue(me, \
     newOffsetPointer(X3D_NODE(node2), offsetof(struct X3D_##node, var)), \
-    FTIND_##fieldType, fe, FALSE, NULL, NULL)) \
-    PARSE_ERROR("Expected " #fieldType " Value for a fieldtype!") \
+    FTIND_##fieldType, fe, FALSE, NULL, NULL)) {\
+    printf ("error in parser_fieldValue by call 2\n"); \
+	PARSE_ERROR("Expected " #fieldType " Value for a fieldtype!") }\
    INIT_CODE_##fieldType(var) \
    return TRUE;
  
@@ -2507,7 +2534,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 	void *p;
 	int rsz,elelen,count;
 
-	/* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]);  */
+	/* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]); */
 
 	rsz = returnElementRowSize(type);
 	elelen = returnElementLength(type);
@@ -2536,10 +2563,15 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 			/* struct Multi_Vec3f { int n; struct SFColor  *p; }; */
 			/* treat these all the same, as the data type is same size */
 
-			((struct Multi_Node *)out)->n=1;
-			((struct Multi_Node *)out)->p=MALLOC(rsz * elelen);
+			/* is the "old" size something other than 1? */
+			/* I am not sure when this would ever happen, but one never knows... */
+			if (((struct Multi_Node *)out)->n != 1) {
+				FREE_IF_NZ(((struct Multi_Node *)out)->p);
+				((struct Multi_Node *)out)->n=1;
+				((struct Multi_Node *)out)->p=MALLOC(rsz * elelen);
+			}
 
-			/* { float *ptr; ptr = (float *) in; for (n=0; n<rsz; n++) { printf ("float %d is %f\n",n,*ptr); ptr++; } } */
+			/* { float *ptr; ptr = (float *) in; for (n=0; n<rsz; n++) { printf ("float %d is %f\n",n,*ptr); ptr++; } }  */
 
 			memcpy (((struct Multi_Node *)out)->p, in, rsz * elelen); 
 			break;
@@ -2555,6 +2587,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
   struct Vector* vec=NULL; \
   vrmlNodeT RCX; \
   \
+  /* printf ("start of a mfield parse for type %d\n",FIELDTYPE_MF##type); */ \
   /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n"); */ \
   /* is this a USE statement? */ \
  if(lexer_keyword(me->lexer, KW_USE)) { \
@@ -2581,8 +2614,8 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 /* possibly a SFNodeish type value?? */ \
 if (me->lexer->curID != NULL) { \
 	/* printf ("parser_MF, curID was not null (it is %s)... lets just parse node\n",me->lexer->curID); */ \
-	if (!parser_node(me, &RCX)) {  \
-	/* if(!parser_sf##name##Value(me, RCX)) {*/ \
+	if (!parser_node(me, &RCX)) { \
+	/* if(!parser_sf##name##Value(me, RCX)) ... */ \
 		return FALSE; \
 	} \
 	if (RCX == NULL) return FALSE; \
@@ -2592,15 +2625,17 @@ if (me->lexer->curID != NULL) { \
 } \
 /* Just a single value? */ \
 if(!lexer_openSquare(me->lexer)) { \
+	vrml##type##T RCXRet; \
 	/* printf ("parser_MF, not an opensquare, lets just parse node\n"); */ \
-	/* if (!parser_node(me, RCX)) { */ \
-	if(!parser_sf##name##Value(me, &RCX)) { \
+	/* if (!parser_node(me, RCXRet)) ... */ \
+	if(!parser_sf##name##Value(me, &RCXRet)) { \
 		return FALSE; \
 	} \
+	/* printf ("after sf parse rcx %u\n",RCXRet); */ \
 	/* RCX is the return value, if this value IN THE VRML FILE IS ZERO, then this valid parse will fail... */ \
 	/* so it is commented out if (RCX == NULL) return FALSE; */ \
 	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-	stuffSFintoMF(ret, &RCX, FIELDTYPE_MF##type); \
+	stuffSFintoMF(ret, &RCXRet, FIELDTYPE_MF##type); \
 	return TRUE; \
 } \
 \
@@ -2686,42 +2721,6 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 PARSER_FIXED_VEC(color, Color, 3, c)
 PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
 
-#ifdef OLDCODE
-/* JAS this returns a pointer to a Multi_Int32 */
-BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
-{
- vrmlInt32T width, height, depth;
- vrmlInt32T* ptr;
- 
- if(!lexer_int32(me->lexer, &width))
-  return FALSE;
- if(!lexer_int32(me->lexer, &height))
-  return FALSE;
- if(!lexer_int32(me->lexer, &depth))
-  return FALSE;
-
- *ret=MALLOC(sizeof(struct Multi_Int32));
- assert(*ret);
-
- (*ret)->n=3+width*height;
- (*ret)->p=MALLOC(sizeof(*(*ret)->p)*(*ret)->n);
- assert((*ret)->p);
- (*ret)->p[0]=width;
- (*ret)->p[1]=height;
- (*ret)->p[2]=depth;
-
- for(ptr=(*ret)->p+3; ptr!=(*ret)->p+(*ret)->n; ++ptr)
-  if(!lexer_int32(me->lexer, ptr))
-  {
-   FREE_IF_NZ((*ret)->p);
-   (*ret)->n=0;
-   FREE_IF_NZ(*ret);
-   return FALSE;
-  }
-
- return TRUE;
-}
-#else
 /* JAS this code assumes that the ret points to a SFInt_32 type, and just
 fills in the values. */
  
@@ -2755,7 +2754,6 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
  return TRUE;
 }
 
-#endif
 
 BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
 {
