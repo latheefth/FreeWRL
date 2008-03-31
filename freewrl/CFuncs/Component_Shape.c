@@ -99,17 +99,12 @@ void render_Material (struct X3D_Material *node) {
 		if (trans<0.0) trans = 0.0;
 		if (trans>=0.99) trans = 0.99;
 
-		/* and, record that we have a transparency here */
-		/* and record transparency value, in case we have an
-		   indexedfaceset with colour node */
-		if (trans <=0.99) {
-			have_transparency++;
-			if ((node->_renderFlags & VF_Blend) != VF_Blend)
-				update_renderFlag(X3D_NODE(node),VF_Blend);
-			last_transparency=trans;
-		}
+		/* record this for possible texture filtering later */
+		last_transparency = trans;
 
 		dcol[3] = trans;
+		scol[3] = trans;
+		ecol[3] = trans;
 
 		/* the diffuseColor might change, depending on the texture depth - that we do not have yet */
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
@@ -119,21 +114,14 @@ void render_Material (struct X3D_Material *node) {
 		   set to 0.0 by default; this should make ambientIntensity lighting be zero
 		   via OpenGL lighting equations. */
 		amb = node->ambientIntensity;
- 		for(i=0; i<3; i++) { 
-                         dcol[i] *= amb;
- 		} 
 
+ 		for(i=0; i<3; i++) { dcol[i] *= amb; } 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
 		for (i=0; i<3;i++){ scol[i] = node->specularColor.c[i]; }
-		scol[3] = trans;
-		/* scol[3] = 1.0;*/
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
 		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.c[i]; }
-		ecol[3] = trans;
-		/* ecol[3] = 1.0;*/
-
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
 		glColor3f(ecol[0],ecol[1],ecol[2]);
 
@@ -143,8 +131,6 @@ void render_Material (struct X3D_Material *node) {
 
 
 void child_Shape (struct X3D_Shape *node) {
-		int trans;
-		int should_rend;
 		GLdouble modelMatrix[16];
 		int count;
 		void *tmpN;
@@ -182,7 +168,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 		/* a texture and a transparency flag... */
 		texture_count = 0; /* will be >=1 if textures found */
-		trans = have_transparency;
 		have_texture = FALSE;
 
                 /* assume that lighting is enabled. Absence of Material or Appearance
@@ -191,11 +176,10 @@ void child_Shape (struct X3D_Shape *node) {
                 LIGHTING_ON
 		COLOR_MATERIAL_OFF
 		
-
 		/* is there an associated appearance node? */
        	        if(node->appearance) {
 			POSSIBLE_PROTO_EXPANSION(node->appearance,tmpN)
-                        render_node(node->appearance);
+                        render_node(tmpN);
        	        } else {
                         /* no material, so just colour the following shape */
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
@@ -207,43 +191,15 @@ void child_Shape (struct X3D_Shape *node) {
 			last_transparency = 1.0;
                 }
 
+		/* now, are we rendering blended nodes or normal nodes?*/
+		if (render_blend == (node->_renderFlags & VF_Blend)) {
 
-		/* lets look at texture depth, and if it has alpha, call
-		it a transparent node */
-		if (last_texture_type == TEXTURE_ALPHA) {
-			have_transparency++;
-			if ((node->_renderFlags & VF_Blend) != VF_Blend)
-				update_renderFlag(X3D_NODE(node),VF_Blend);
-		}
-
-		/* printf ("Shape, last_trans %d this trans %d last_texture_type %d\n",
-		 	have_transparency, trans, last_texture_type); */
-
-		should_rend = FALSE;
-		/* now, are we rendering blended nodes? */
-		if (render_blend) {
-			if (have_transparency!=trans) {
-					should_rend = TRUE;
-			}
-
-		/* no, maybe we are rendering straight nodes? */
-		} else {
-			if (have_transparency == trans) {
-					should_rend = TRUE;
-			}
-		}
-
-		/* if (should_rend) {printf ("RENDERING THIS ONE\n");*/
-		/* } else { printf ("NOT RENDERING THIS ONE\n");}*/
-
-		/* should we render this node on this pass? */
-		if (should_rend) {
                         #ifdef SHAPEOCCLUSION
 			BEGINOCCLUSIONQUERY
                         #endif
 
 			POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN)
-			render_node(node->geometry);
+			render_node(tmpN);
 
                         #ifdef SHAPEOCCLUSION
 			ENDOCCLUSIONQUERY
@@ -264,8 +220,6 @@ void child_Shape (struct X3D_Shape *node) {
 			glLineWidth(1.0);
 			glPointSize(1.0);
 		}
-
-		/* if (have_texture) glPopAttrib();  */
 }
 
 

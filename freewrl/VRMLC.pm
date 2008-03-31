@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.285  2008/03/31 20:10:16  crc_canada
+# Review texture transparency, use node table to update scenegraph to allow for
+# node updating.
+#
 # Revision 1.284  2008/01/24 18:33:13  crc_canada
 # Rendering speedups on large worlds via improved collision routines
 #
@@ -592,6 +596,31 @@ sub gen {
 		"	return X3DSPECIAL[st];\n}\n\n";
 	push @str, "const char *stringX3DSPECIALType(int st);\n";
 
+	#####################
+	# process GEOSPATIAL keywords 
+	push @str, "\n/* Table of built-in GEOSPATIAL keywords */\nextern const char *GEOSPATIAL[];\n";
+	push @str, "extern const indexT GEOSPATIAL_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of GEOSPATIAL keywords */\n       const char *GEOSPATIAL[] = {\n";
+
+        my @sf = keys %GEOSpatialKeywordC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define GEOSP_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT GEOSPATIAL_COUNT = ARR_SIZE(GEOSPATIAL);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the GEOSPATIAL keyword type */\n". 
+		"const char *stringGEOSPATIALType (int st) {\n".
+		"	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	return GEOSPATIAL[st];\n}\n\n";
+	push @str, "const char *stringGEOSPATIALType(int st);\n";
 
 	##############################################################
 

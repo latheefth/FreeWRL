@@ -1,4 +1,6 @@
 For 1.20.3
+	- tests  directory, tests/20.wrl changed to show material transparency affecting solid texture.
+
 	- VRML Parser - morphing SF types into MF types (where an MF was expected, but an SF
 	  was given) was not correct for SF types with a size > 1 float, eg SFColors. 
 

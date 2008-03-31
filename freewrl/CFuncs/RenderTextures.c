@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include "readpng.h"
 
+#define TEXVERBOSE
+
+
 /* variables for keeping track of status */
 static int currentTextureUnit = 99;
 static int textureEnabled = FALSE;
@@ -72,17 +75,20 @@ int setActiveTexture (int c) {
 
 	if (texParams[c] == NULL) {
 		#ifdef TEXVERBOSE
-		printf ("simple texture NOT a MultiTexture \n"); 
+		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
 		#endif
+
                 /* should we set the coloUr to 1,1,1,1 so that the material does not show
                    through a RGB texture?? */
                 /* only do for the first texture if MultiTexturing */
                 if (c == 0) {
-                        if (bound_texture_depths[c] == 3) {
-                                /* printf ("setting color to 1 for tex %d\n",node->__texture); */
-                                glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
-                                /* glColor3d (1.0, 1.0, 1.0);    */
-                        }
+			#ifdef TEXVERBOSE
+			printf ("setActiveTexture - firsttexture  \n"); 
+			#endif
+
+			/* flit in the Material transparency here */
+			allones[3] = last_transparency;
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
                 }
 
 		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -225,13 +231,15 @@ void haveTexCoord(struct X3D_IndexedFaceSet *texC, struct X3D_TextureCoordinate 
 
 	#ifdef TEXVERBOSE
 	printf ("have a NODE_TextureCoordinate\n");
-	printf ("and this texture has %d points we have texturedepth of %d\n",myTCnode->point.n,texture_count);
+	printf ("and this texture has %d points we have texture stacking depth of %d\n",myTCnode->point.n,texture_count);
 	#endif
 
 	/* render the TextureCoordinate node for every texture in this node */
 	for (c=0; c<texture_count; c++) {
+		printf ("haveTexCoord, rendering node... \n");
 		render_node (texC->texCoord);
 		/* are we ok with this texture yet? */
+		/* printf ("haveTexCoord, bound_textures[c] = %d\n",bound_textures[c]); */
 		if (bound_textures[c] !=0) {
 			if (setActiveTexture(c)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);

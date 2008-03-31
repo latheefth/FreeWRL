@@ -17,6 +17,10 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.215  2008/03/31 20:10:17  crc_canada
+# Review texture transparency, use node table to update scenegraph to allow for
+# node updating.
+#
 # Revision 1.214  2007/12/13 20:12:52  crc_canada
 # KeySensor and StringSensor
 #
@@ -695,6 +699,63 @@
 	Interactive
 	Interchange
 	MPEG-4
+/;
+
+#######################################################################
+#######################################################################
+#######################################################################
+
+#
+# GEOSpatialKeywords
+# a listing of Geospatial Elipsoid keywords.
+#
+# 
+
+%GEOSpatialKeywordC = map {($_=>1)} qw/
+	AM
+	AN
+	BN
+	BR
+	CC
+	CD
+	EA
+	EB
+	EC
+	ED
+	EE
+	EF
+	FA
+	GC
+	GCC
+	GCC
+	GD
+	GDC
+	GDC
+	HE
+	HO
+	ID
+	IN
+	KA
+	RF
+	SA
+	UTM
+	WD
+	WE
+	WGS84
+	coordinateSystem
+	copyright
+	dataFormat
+	dataUrl
+	date
+	description
+	ellipsoid
+	extent
+	horizontalDatum
+	metadataFormat
+	originator
+	resolution
+	title
+	verticalDatum
 /;
 
 #######################################################################

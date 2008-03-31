@@ -281,18 +281,22 @@ unsigned int setField_FromEAI (char *ptr) {
 		/* if we have a positive len, then, do a straight copy */
 
 		if (len > 0) {
-			/* SFStrings and SFImages are, of course, different... */
-			if ((nodetype == FIELDTYPE_SFString) || (nodetype == FIELDTYPE_SFImage)) {
-				uintptr_t *xx;
-				struct Uni_String *svptr;
+			/* SFStrings are, of course, different... */
+			if (nodetype == FIELDTYPE_SFString) {
+				printf ("ScanValtoBuffer, have SFString to verify - :%s:\n",(unsigned char*)myBuffer);
+{
 
-				/* printf ("ScanValtoBuffer, have SFString to verify - :%s:\n",(unsigned char*)myBuffer); */
 
-	                        /* get the pointer to the string, do this in a couple of steps... */
-				xx= (uintptr_t *) memptr;
-				svptr = (struct Uni_String *) *xx;
+uintptr_t *xx;
+struct Uni_String *svptr;
 
+                        /* get the pointer to the string, do this in a couple of steps... */
+                        xx= (uintptr_t *) memptr;
+                        svptr = (struct Uni_String *) *xx;
+
+printf ("and old string was :%s:\n",                        (unsigned char *)svptr->strptr);
 				verify_Uni_String(svptr, (char *)myBuffer);
+}
 				
 			} else {
 				/* a straight copy over */
@@ -351,7 +355,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 #define GETJSVAL_TYPE_A(thistype,field) \
 		case FIELDTYPE_##thistype: { \
-			printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); \
+			/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); */ \
 			memcpy ((void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); \
 			break; \
 		} 
@@ -1436,6 +1440,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		#ifdef SETFIELDVERBOSE
 		printf ("ScanValtoBuffer: FIELDTYPE_SFString, string is %s, ptr %x %d\n",buf,memptr,memptr);
 		#endif
+		printf ("ScanValtoBuffer: FIELDTYPE_SFString, string is %s, ptr %x %d\n",buf,memptr,memptr);
 
 		/* strings in the format "25:2 2 1 0xff 0x80 0x80 0xff" where 25 is the length */
 		while (*buf == ' ') buf++;

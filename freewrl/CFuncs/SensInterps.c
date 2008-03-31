@@ -774,22 +774,6 @@ void do_Oint4 (void *node) {
 	}
 }
 
-/* GeoPositionInterpolator				 		*/
-/* Called during the "events_processed" section of the event loop,	*/
-/* so this is called ONLY when there is something required to do, thus	*/
-/* there is no need to look at whether it is active or not		*/
-
-void do_GeoOint (void *node) {
-	struct X3D_GeoPositionInterpolator *px;
-
-        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
-
-	UNUSED(node);
-	UNUSED(px);
-}
-
-
-
 /* fired at start of event loop for every Collision */
 /* void do_CollisionTick(struct X3D_Collision *cx) {*/
 void do_CollisionTick( void *ptr) {
@@ -1003,20 +987,6 @@ void do_MovieTextureTick( void *ptr) {
 	Sensitive nodes
 
 *****************************************************************************/
-/* void do_GeoTouchSensor (struct X3D_GeoTouchSensor *node, int ev, int over) {*/
-void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
-
-struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
-
-        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
-
-UNUSED(node);
-UNUSED(ev);
-UNUSED(over);
-
-};
-
-
 /* void do_TouchSensor (struct X3D_TouchSensor *node, int ev, int over) {*/
 void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 

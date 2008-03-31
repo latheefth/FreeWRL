@@ -660,9 +660,6 @@ void render() {
 	/* struct timeval mytime;*/
 	/* struct timezone tz; unused see man gettimeofday */
 
-	/* set transparency flag */
-	have_transparency = 0;
-
 	for (count = 0; count < maxbuffers; count++) {
 		set_buffer((unsigned)bufferarray[count]);		/*  in Viewer.c*/
 		glDrawBuffer((unsigned)bufferarray[count]);
@@ -690,7 +687,8 @@ void render() {
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 
 		/*  5. Blended Nodes*/
-		if (have_transparency > 0) {
+		if (have_transparency) {
+
 			/*  turn off writing to the depth buffer*/
 			glDepthMask(FALSE);
 

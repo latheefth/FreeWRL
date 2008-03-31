@@ -49,7 +49,7 @@ void
 do_OintScalar(void *node);
 
 void
-do_GeoOint(void *node);
+do_GeoPositionInterpolator(void *node);
 
 void
 do_OintCoord(void *node);

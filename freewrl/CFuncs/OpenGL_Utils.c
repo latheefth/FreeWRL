@@ -650,6 +650,37 @@ void zeroVisibilityFlag(void) {
 	} \
 }
 
+
+
+#define  CHECK_MATERIAL_TRANSPARENCY \
+	if (((struct X3D_Material *)node)->transparency > 0.0001) { \
+		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \ 
+		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		have_transparency = TRUE; \
+	}
+ 
+#define CHECK_IMAGETEXTURE_TRANSPARENCY \
+	if (isTextureAlpha(((struct X3D_ImageTexture *)node)->__textureTableIndex)) { \
+		/* printf ("node %d IMAGETEXTURE HAS TRANSPARENCY\n", node); */ \
+		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		have_transparency = TRUE; \
+	}
+
+#define CHECK_PIXELTEXTURE_TRANSPARENCY \
+	if (isTextureAlpha(((struct X3D_PixelTexture *)node)->__textureTableIndex)) { \
+		/* printf ("node %d PIXELTEXTURE HAS TRANSPARENCY\n", node); */ \
+		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		have_transparency = TRUE; \
+	}
+
+#define CHECK_MOVIETEXTURE_TRANSPARENCY \
+	if (isTextureAlpha(((struct X3D_MovieTexture *)node)->__textureTableIndex)) { \
+		/* printf ("node %d MOVIETEXTURE HAS TRANSPARENCY\n", node); */ \
+		update_renderFlag(X3D_NODE(node),VF_Blend);\
+		have_transparency = TRUE; \
+	}
+
+
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Node* parents;
@@ -666,6 +697,7 @@ void startOfLoopNodeUpdates(void) {
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
+	have_transparency = FALSE;
 
 	LOCK_MEMORYTABLE
 
@@ -679,6 +711,7 @@ void startOfLoopNodeUpdates(void) {
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_DirectionalLight);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_otherLight);
+			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Blend);
 		}
 	}
 
@@ -814,6 +847,14 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Collision) CHILDREN_NODE(Collision) END_NODE
 				BEGIN_NODE(Switch) CHILDREN_SWITCH_NODE(Switch) END_NODE
 				BEGIN_NODE(LOD) CHILDREN_LOD_NODE(LOD) END_NODE
+
+				/* Material - transparency of materials */
+				BEGIN_NODE(Material) CHECK_MATERIAL_TRANSPARENCY END_NODE
+
+				/* Textures - check transparency  */
+				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
+				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
+				BEGIN_NODE(MovieTexture) CHECK_MOVIETEXTURE_TRANSPARENCY END_NODE
 	
 			}
 		}

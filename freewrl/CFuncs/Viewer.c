@@ -805,34 +805,3 @@ bind_viewpoint (struct X3D_Viewpoint *vp) {
 	resolve_pos(&Viewer);
 }
 
-void
-bind_geoviewpoint (struct X3D_GeoViewpoint *vp) {
-	Quaternion q_i;
-
-	/* set Viewer position and orientation */
-
-        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
-
-
-	/*printf ("bind_geoviewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
-	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
-	vp->orientation.r[3]);
-	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); */
-
-
-	Viewer.Pos.x = vp->__position.c[0];
-	Viewer.Pos.y = vp->__position.c[1];
-	Viewer.Pos.z = vp->__position.c[2];
-	Viewer.AntiPos.x = vp->__position.c[0];
-	Viewer.AntiPos.y = vp->__position.c[1];
-	Viewer.AntiPos.z = vp->__position.c[2];
-
-	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
-		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
-
-	vrmlrot_to_quaternion (&q_i,vp->orientation.r[0],
-		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
-	inverse(&(Viewer.AntiQuat),&q_i);
-
-	resolve_pos(&Viewer);
-}

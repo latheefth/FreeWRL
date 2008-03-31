@@ -472,7 +472,7 @@ extern int global_IFS_Coord_count;
 
 /* texture stuff - see code. Need array because of MultiTextures */
 extern GLuint bound_textures[MAX_MULTITEXTURE];
-extern int bound_texture_depths[MAX_MULTITEXTURE];
+extern int bound_texture_alphas[MAX_MULTITEXTURE];
 extern GLint maxTexelUnits;
 extern int texture_count; 
 extern int     *global_tcin;
@@ -485,6 +485,7 @@ extern void textureDraw_end(void);
 extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
 
 extern int isTextureLoaded(int texno);
+extern int isTextureAlpha(int n);
 extern int displayDepth;
 extern int display_status;
 
@@ -1139,6 +1140,8 @@ void prep_SpotLight (struct X3D_SpotLight *this_);
 void prep_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */
+void prep_GeoLocation (struct X3D_GeoLocation *this_);
+void prep_GeoOrigin (struct X3D_GeoOrigin *this_);
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 #define rendray_GeoElevationGrid render_ray_polyrep
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);

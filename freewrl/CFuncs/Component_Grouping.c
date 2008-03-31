@@ -220,9 +220,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 			} else {
 				/* printf ("calling solid list\n"); */
 				glCallList (node->__solid);
-				/* do we have to tell the MainLoop that we have transparency down here? */
-				/* is the transparency display list created? */
-				if (node->__transparency > -1) have_transparency++;
 				return;
 			}
 		}

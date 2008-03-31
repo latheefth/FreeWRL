@@ -172,11 +172,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			/* 	node->_dist,node);*/
 		}
 
-		have_transparency ++;
-		if ((node->_renderFlags & VF_Blend) != VF_Blend)
-			update_renderFlag(X3D_NODE(node),VF_Blend);
-
-		if (render_blend) { 
+		if (render_blend == VF_Blend) { 
                         #ifdef VISIBILITYOCCLUSION
 			#ifdef SEVERBOSE
 			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);

@@ -70,10 +70,10 @@ int be_collision = 0;	/* do collision detection? */
 
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint bound_textures[MAX_MULTITEXTURE];
-int bound_texture_depths[MAX_MULTITEXTURE];
+int bound_texture_alphas[MAX_MULTITEXTURE];
 int texture_count;
 
-int	have_transparency;	/* did this Shape have transparent material? */
+int	have_transparency=FALSE;/* did any Shape have transparent material? */
 void *	this_textureTransform;  /* do we have some kind of textureTransform? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	have_texture;		/* do we have a texture (And thus a push?) */
@@ -769,7 +769,7 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("NormalInterpolator",x)==0) {
 		return (void *)do_OintCoord;
 	} else if (strcmp("GeoPositionInterpolator",x)==0) {
-		return (void *)do_GeoOint;
+		return (void *)do_GeoPositionInterpolator;
 	} else if (strcmp("BooleanFilter",x)==0) {
 		return (void *)do_BooleanFilter;
 	} else if (strcmp("BooleanSequencer",x)==0) {

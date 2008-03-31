@@ -178,6 +178,21 @@ void initializeTextureThread() {
 	}
 }
 
+/* does a texture have alpha?  - pass in a __tableIndex from a MovieTexture, ImageTexture or PixelTexture. */
+int isTextureAlpha(int texno) {
+	struct textureTableIndexStruct *ti;
+
+	/* no, have not even started looking at this */
+	/* if (texno == 0) return FALSE; */
+
+	ti = getTableIndex(texno);
+	if (ti->status==TEX_LOADED) {
+		return ti->hasAlpha;
+	}
+	return FALSE;
+}
+
+
 /* is the texture thread initialized yet? */
 int isTextureinitialized() {
 	return TextureThreadInitialized;
@@ -186,13 +201,11 @@ int isTextureinitialized() {
 /* is this texture loaded? used in LoadSensor */
 int isTextureLoaded(int texno) {
 	struct textureTableIndexStruct *ti;
+
 	/* no, have not even started looking at this */
+	/* if (texno == 0) return FALSE; */
 
-	if (texno == 0) return FALSE;
-
-	printf ("isTextureLoaded, calling getTableIndex\n");
 	ti = getTableIndex(texno);
-
 	return (ti->status==TEX_LOADED);
 }
 
@@ -815,7 +828,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	GLubyte *imageptr;
 	int c;
 	int rx,ry,sx,sy;
-	int depth,x,y;
+	int x,y;
 	GLint iformat;
 	GLenum format;
 	int count;
@@ -869,7 +882,6 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, me->Src);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, me->Trc);
-		depth = me->depth;
 		x = me->x;
 		y = me->y;
 
@@ -897,15 +909,19 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			}
 		}
 	
-		switch (depth) {
-			case 1: iformat = GL_LUMINANCE; format = GL_LUMINANCE; break;
-			case 2: iformat = GL_LUMINANCE_ALPHA; format = GL_LUMINANCE_ALPHA; break;
-			case 3: iformat = GL_RGB; format = GL_RGB; break;
-			default: iformat = GL_RGBA; format = GL_RGBA; break;
+		if (me->hasAlpha) {
+			iformat = GL_RGBA; format = GL_RGBA; break;
+		} else {
+			switch (me->depth) {
+				case 1: iformat = GL_LUMINANCE; format = GL_LUMINANCE; break;
+				case 2: iformat = GL_LUMINANCE_ALPHA; format = GL_LUMINANCE_ALPHA; break;
+				case 3: iformat = GL_RGB; format = GL_RGB; break;
+				default: iformat = GL_RGBA; format = GL_RGBA; break;
+			}
 		}
 	
 		/* do the image. */
-		if((depth) && x && y) {
+		if((me->depth) && x && y) {
 			unsigned char *dest = mytexdata;
 			rx = 1; sx = x;
 			while(sx) {sx /= 2; rx *= 2;}
@@ -919,7 +935,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 				if (ry > global_texSize) ry = global_texSize;
 	
 				/* We have to scale */
-				dest = (unsigned char *)MALLOC((unsigned) (depth) * rx * ry);
+				dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
 				gluScaleImage(format,
 				     x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry,
 				     GL_UNSIGNED_BYTE, dest);
@@ -928,15 +944,15 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	
 			/* again, Mipmap only if we have Pixel or ImageTextures */
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+
 			if (me->frames==1) 
 				gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
 
 			if(mytexdata != dest) FREE_IF_NZ(dest);
-	
 		}
 
 		/* increment, used in movietextures for frames more than 1 */
-		mytexdata += x*y*depth;
+		mytexdata += x*y*me->depth;
 	}
 
 	FREE_IF_NZ (me->texdata);
@@ -1004,7 +1020,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	GET_THIS_TEXTURE
 
 	bound_textures[texture_count] = 0;
-	bound_texture_depths[texture_count] = 0;
+	bound_texture_alphas[texture_count] = FALSE;
 
 	/* what is the status of this texture? */
 	#ifdef TEXVERBOSE
@@ -1039,7 +1055,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 		/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
 		   ignored. We do this here, because when we do the Material node, we do not know what the
 		   texture depth is (if there is any texture, even) */
-		if (myTableIndex->depth  >=3) {
+		if (myTableIndex->hasAlpha) {
 			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 		}
 
@@ -1056,7 +1072,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 			bound_textures[texture_count] = 
 				((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
 		}
-		bound_texture_depths[texture_count] = myTableIndex->depth;
+		bound_texture_alphas[texture_count] = myTableIndex->hasAlpha;
 
 		/* save the texture params for when we go through the MultiTexture stack. Non
 		   MultiTextures should have this texture_count as 0 */
@@ -1486,7 +1502,7 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
     int             bitmapByteCount;
     int             bitmapBytesPerRow;
 
-     // Get image width, height. We will use the entire image.
+     // Get image width, height. We'll use the entire image.
     size_t pixelsWide = CGImageGetWidth(inImage);
     size_t pixelsHigh = CGImageGetHeight(inImage);
 
@@ -1586,7 +1602,7 @@ void __reallyloadImageTexture() {
 		CGDataProviderRelease(provider);
 	} else {
 #ifdef TRY_QUICKTIME
-   I dont know whether to use quicktime or not... Probably not... as the other ways using core 
+   I don't know whether to use quicktime or not... Probably not... as the other ways using core 
 graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs??
 
 		/* lets let quicktime decide on what to do with this image */
@@ -1644,7 +1660,7 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 				for (count=3; count<image_width * image_height; count+=4) {
 					/* printf ("count %d byte %x\n",count,data[count]); */
 					if (data[count] != 0xff) {
-						/* printf ("image has alpha\n");   */
+						printf ("image has alpha\n");  
 						hasAlpha = TRUE;
 						break;
 					}
@@ -1809,7 +1825,8 @@ void __reallyloadImageTexture() {
 		FREE_IF_NZ(row);
 
 		store_tex_info(loadThisTexture,
-			cinfo.output_components, (int)cinfo.output_width,
+			cinfo.output_components, 
+			(int)cinfo.output_width,
 			(int)cinfo.output_height,image_data,cinfo.output_components==4);
 	} else {
 		if (rc != 0) {
@@ -1832,7 +1849,8 @@ void __reallyloadImageTexture() {
 			image_data = readpng_get_image(display_exponent, &image_channels,
 					&image_rowbytes);
 
-			store_tex_info (loadThisTexture, image_channels,
+			store_tex_info (loadThisTexture, 
+				image_channels, 
 				(int)image_width, (int)image_height,
 				image_data,image_channels==4);
 		}
@@ -1858,7 +1876,9 @@ void __reallyloadMovieTexture () {
 	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
 	#endif
 
-	store_tex_info (loadThisTexture, depth, x, y, ptr,depth==4);
+	store_tex_info (loadThisTexture, 
+		depth, 
+	x, y, ptr,depth==4);
 
 	/* and, manually put the frameCount in. */
 	loadThisTexture->frames = frameCount;
