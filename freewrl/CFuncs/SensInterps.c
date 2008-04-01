@@ -847,10 +847,6 @@ void do_ProximitySensorTick( void *ptr) {
 	if (!node) return;
 	if (!node->enabled) return;
 
-	/* make sure scenegraph rendering knows we exist */
-	if ((node->_renderFlags & VF_Proximity) != VF_Proximity)
-		update_renderFlag(X3D_NODE(node),VF_Proximity);
-
 	/* did we get a signal? */
 	if (node->__hit) {
 		if (!node->isActive) {
