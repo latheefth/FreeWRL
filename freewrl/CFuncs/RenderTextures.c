@@ -236,7 +236,7 @@ void haveTexCoord(struct X3D_IndexedFaceSet *texC, struct X3D_TextureCoordinate 
 
 	/* render the TextureCoordinate node for every texture in this node */
 	for (c=0; c<texture_count; c++) {
-		printf ("haveTexCoord, rendering node... \n");
+		/* printf ("haveTexCoord, rendering node... \n"); */
 		render_node (texC->texCoord);
 		/* are we ok with this texture yet? */
 		/* printf ("haveTexCoord, bound_textures[c] = %d\n",bound_textures[c]); */
