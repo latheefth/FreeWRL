@@ -8,14 +8,12 @@ Shape {
 		material Material {
 			transparency 0.2
 		}
-	texture ImageTexture {url "helpers/bookcase.gif"}
+		texture ImageTexture {url "bookcase.gif"}
 	}
-	geometry Cone { height 3
-	}
+	geometry Cone { height 3 }
 }
 
 # put a shape that circles the cone.
-
 DEF BOX Transform { children [
 Transform { translation 0 0 -3 children Shape {
 	appearance Appearance {
@@ -29,13 +27,24 @@ Transform { translation 0 0 -3 children Shape {
 
 ]}
 
+DEF CYL Transform { children [
+Transform { translation 0 0 2.4 children Shape {
+	appearance Appearance {
+		material Material {
+		}
+		texture ImageTexture {url "blendwin.png"}
+	}
+	geometry Cylinder {
+		height 2 radius 0.5
+	}
+} }
+
+]}
+
 
 
 # Animation clock
-	DEF Clock TimeSensor {
-		cycleInterval 10.0
-		loop TRUE
-	},
+	DEF Clock1 TimeSensor { cycleInterval 20.0 loop TRUE },
 
 # Animation path
 
@@ -48,5 +57,6 @@ Transform { translation 0 0 -3 children Shape {
 		]
 }
 
-ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
+ROUTE Clock1.fraction_changed TO ColumnPath.set_fraction
 ROUTE ColumnPath.value_changed TO BOX.set_rotation
+ROUTE ColumnPath.value_changed TO CYL.set_rotation

@@ -910,7 +910,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		}
 	
 		if (me->hasAlpha) {
-			iformat = GL_RGBA; format = GL_RGBA; break;
+			iformat = GL_RGBA; format = GL_RGBA;
 		} else {
 			switch (me->depth) {
 				case 1: iformat = GL_LUMINANCE; format = GL_LUMINANCE; break;
@@ -1660,7 +1660,7 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 				for (count=3; count<image_width * image_height; count+=4) {
 					/* printf ("count %d byte %x\n",count,data[count]); */
 					if (data[count] != 0xff) {
-						printf ("image has alpha\n");  
+						/* printf ("image has alpha\n");   */
 						hasAlpha = TRUE;
 						break;
 					}

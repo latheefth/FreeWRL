@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include "readpng.h"
 
-#define TEXVERBOSE
+#undef TEXVERBOSE
 
 
 /* variables for keeping track of status */
