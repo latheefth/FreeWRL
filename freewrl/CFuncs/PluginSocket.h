@@ -34,14 +34,9 @@ extern "C" {
 extern char NetscapeName[MAXNETSCAPENAMELEN];
 
 char *requestUrlfromPlugin(int sockDesc, uintptr_t plugin_instance, const char *url);
+void  requestNewWindowfromPlugin( int sockDesc, uintptr_t plugin_instance, const char *url);
 void requestPluginPrint(int sockDesc, const char* msg);
-
-void requestNewWindowfromPlugin(int sockDesc,
-		                   uintptr_t plugin_instance,
-				                      const char *url);
-
-int
-receiveUrl(int sockDesc, urlRequest *request);
+int receiveUrl(int sockDesc, urlRequest *request);
 
 
 #ifdef __cplusplus

@@ -20,17 +20,10 @@
 #define FSIGOK
 #endif
 
-/*  CHECK DIRECTORY IN PLUGINPRINT*/
-#undef PLUGINSOCKETVERBOSE
-
 fd_set rfds;
 struct timeval tv;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
-
-#ifdef PLUGINSOCKETVERBOSE
-static FILE * tty = NULL;
-extern void abort();
 extern double TickTime;
 
 
@@ -40,28 +33,16 @@ void pluginprint (const char *m, const char *p) {
         struct timeval mytime;
         struct timezone tz; /* unused see man gettimeofday */
 
-        /* Set the timestamp */
-        gettimeofday (&mytime,&tz);
-	myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	if (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL) {
 
-	/* really, we can just dump this to the console, not to a file */
-
-	if (tty == NULL) {
-		tty = fopen("/tmp/logPluginSocket", "w");
-		if (tty == NULL)
-			abort();
-		fprintf (tty, "\nplugin restarted\n");
+        	/* Set the timestamp */
+        	gettimeofday (&mytime,&tz);
+		myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+        	printf ("%f: freewrl: ",myt);
+		printf(m,p);
 	}
-        fprintf (tty,"%f: freewrl: ",myt);
-	fprintf(tty, m,p);
-	fflush(tty);
 
-
-/*        printf ("%f: freewrl: ",myt);
-	printf(m,p);
-*/
 }
-#endif
 
 /* loop about waiting for the Browser to send us some stuff. */
 int waitForData(int sock) {

@@ -1026,6 +1026,7 @@ void setScreenDim(int wi, int he) {
 
 /* OSX plugin is telling us the id to refer to */
 void setInstance (uintptr_t instance) {
+	/* printf ("setInstance, setting to %u\n",instance); */
 	_fw_instance = instance;
 }
 
@@ -1107,13 +1108,16 @@ void displayThread() {
 
 #ifdef AQUA
 void initGL() {
+	/* printf ("initGL called\n"); */
         if (RUNNINGASPLUGIN) {
                 //aqglobalContext = aglGetCurrentContext();
+	/* printf ("initGL - runningasplugin...\n"); */
                 pluginRunning = TRUE;
                 aglSetCurrentContext(aqglobalContext);
         } else {
                 myglobalContext = CGLGetCurrentContext();
         }
+	/* printf ("initGL call finished\n"); */
 }
 
 int getOffset() {
@@ -1145,17 +1149,24 @@ void initFreewrl() {
         threadmsg = "event loop";
 	quitThread = FALSE;
 
+	/* printf ("initFreewrl called\n"); */
+
 	#ifdef AQUA
         if (pluginRunning) {
+	/* printf ("initFreeWRL, setting aglSetCurrentContext %u\n", aqglobalContext); */
                 aglSetCurrentContext(aqglobalContext);
         }
 	#endif
+
+	/* printf ("initFreewrl, hows the DispThrd? %u\n",DispThrd); */
 
 	if (DispThrd == NULL) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
 
 		#ifndef AQUA
-		while (ISDISPLAYINITIALIZED == FALSE) { usleep(50);}
+		while (ISDISPLAYINITIALIZED == FALSE) { usleep(50);
+	/* printf ("initFreewrl, waiting for display to become initialized...\n"); */
+}
 		#endif
 
 
@@ -1180,12 +1191,16 @@ void initFreewrl() {
 			/*remove this node from the deleting list*/
                	 	doNotRegisterThisNodeForDestroy(rootNode);
 		}
+	/* printf ("initFreewrl, down to here\n"); */
 	}
+
+	/* printf ("initFreewrl, bfp %s\n",BrowserFullPath); */
 
 	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
 	if (BrowserFullPath != NULL) 
 		if (strlen(BrowserFullPath) > 1) 
         		inputParse(FROMURL, BrowserFullPath, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
+	/* printf ("initFreewrl call finished\n"); */
 }
 
 
@@ -1200,6 +1215,7 @@ void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
 	int i;
+	/* printf ("closeFreewrl called\n"); */
 
 	#ifdef AQUA
 	pluginRunning = FALSE;
@@ -1226,6 +1242,7 @@ void closeFreewrl() {
         glFinish();
         screenWidth = screenHeight = 1;
         clipPlane = 0;
+	/* printf ("closeFreewrl call finished\n"); */
 }
 
 void setEAIport(int pnum) {
@@ -1528,8 +1545,10 @@ void createContext(CGrafPtr grafPtr) {
 	const GLint    attribWindow[]   = {AGL_RGBA, AGL_DOUBLEBUFFER, AGL_NO_RECOVERY, AGL_ALL_RENDERERS, AGL_ACCELERATED, AGL_DEPTH_SIZE, 24, AGL_STENCIL_SIZE, 8, AGL_NONE};
 	AGLDrawable             aglWin;
 
+	/* printf ("createContext called\n"); */
         if (aqglobalContext) {
 		/* printf ("FreeWRL: createContext already made\n"); */
+	/* printf ("FreeWRL: createContext already made\n");  */
                 aglUpdateContext(aqglobalContext);
                 return;
         }
@@ -1568,6 +1587,7 @@ void createContext(CGrafPtr grafPtr) {
         //debug_print(debs);
 
         pluginRunning = TRUE;
+	/* printf ("createContext call finished\n"); */
 }
 
 
@@ -1676,9 +1696,7 @@ void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int 
 
 /* make a disposeContext but without some of the node destroys. */
 void Safari_disposeContext() {
-        //debug_print("called dispose context");
-        //sprintf(debs, "context is currently %p\n", aqglobalContext);
-        //debug_print(debs);
+	/* printf ("Safari_disposeContext called\n"); */
 
 
 	STOP_DISPLAY_THREAD
@@ -1696,6 +1714,7 @@ void Safari_disposeContext() {
                 printf("FreeWRL: set current context error!\n");
         }
         aqglobalContext = nil;
+	/* printf ("Safari_disposeContext call finished\n"); */
 }
 
 /* older code - is this called from the front end? keep it around until
@@ -1727,6 +1746,7 @@ void disposeContext() {
 }
 
 void sendPluginFD(int fd) {
+	/* printf ("sendPluginFD, FreeWRL received %d\n",fd); */
         _fw_browser_plugin = fd;
 }
 void aquaPrintVersion() {

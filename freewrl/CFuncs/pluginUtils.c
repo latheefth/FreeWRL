@@ -187,9 +187,10 @@ void doBrowserAction () {
 
 	Anchor_url = AnchorsAnchor->url;
 
-	if (!RUNNINGASPLUGIN)
+	/* if (!RUNNINGASPLUGIN)
 		printf ("FreeWRL::Anchor: going to \"%s\"\n",
 			AnchorsAnchor->description->strptr);
+	*/
 
 	filename = (char *)MALLOC(1000);
 
@@ -271,15 +272,14 @@ void doBrowserAction () {
 	if (checkIfX3DVRMLFile(filename)) {
 		Anchor_ReplaceWorld (filename);
 	} else {
-		/*  We should get the browser to get the new window,*/
-		/*  but this code seems to fail in mozilla. So, lets*/
-		/*  just open a new browser, and see what happens...*/
-		/* if (RUNNINGASPLUGIN) {*/
-		/* 	printf ("Anchor, running as a plugin - load non-vrml file\n");*/
-		/* 	requestNewWindowfromPlugin(_fw_FD,_fw_instance,filename);*/
-		/* } else {*/
-			/* printf ("IS NOT a vrml/x3d file\n");*/
-			/* printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
+		#ifdef AQUA
+		if (RUNNINGASPLUGIN) {
+		 	/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
+		 	requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, filename);
+		} else {
+		#endif
+			/* printf ("IS NOT a vrml/x3d file\n");
+			printf ("Anchor: -DBROWSER is :%s:\n",BROWSER); */
 
 
 			char *browser = getenv("BROWSER");
@@ -300,18 +300,22 @@ void doBrowserAction () {
 				freewrlSystem (sysline);
 			}
 
-		/* bounds check here */
-		if (browser) testlen = strlen(browser) + strlen(filename) + 20;
-		else testlen = strlen (BROWSER) + strlen(filename) + 20;
+			/* bounds check here */
+			if (browser) testlen = strlen(browser) + strlen(filename) + 20;
+			else testlen = strlen (BROWSER) + strlen(filename) + 20;
 
 
-		if (testlen > LINELEN) {
-			ConsoleMessage ("Anchor: combination of browser name and file name too long.");
-		} else {
-			if (browser) sprintf(sysline, "open -a %s %s &", browser, filename);
-			else sprintf(sysline, "open -a %s %s &",  BROWSER, filename);
-			system (sysline);
+			if (testlen > LINELEN) {
+				ConsoleMessage ("Anchor: combination of browser name and file name too long.");
+			} else {
+				if (browser) sprintf(sysline, "open -a %s %s &", browser, filename);
+				else sprintf(sysline, "open -a %s %s &",  BROWSER, filename);
+				system (sysline);
+			}
+		#ifdef AQUA
 		}
+		#endif
+
 	}
 	FREE_IF_NZ (filename);
 }
