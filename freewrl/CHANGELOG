@@ -1,4 +1,9 @@
 For 1.20.3
+	- OSX plugin change to better handle Anchor to non-x3d pages when running within Safari.
+
+	- OSX - when running non-embedded; will use default browser for html pages, rather than defaulting
+	  to Safari.
+
 	- tests  directory, tests/20.wrl changed to show material transparency affecting solid texture.
 
 	- VRML Parser - morphing SF types into MF types (where an MF was expected, but an SF
