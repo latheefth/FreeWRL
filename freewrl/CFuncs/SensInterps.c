@@ -990,12 +990,12 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	struct pt normalval;	/* different structures for normalization calls */
 
 	#ifdef SENSVERBOSE
-	printf ("TS ");
+	printf ("%lf: TS ",TickTime);
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
 	else if (ev==KeyPress) printf ("KeyPress ");
 	else if (ev==KeyRelease) printf ("KeyRelease ");
-	else if (ev==MotionNotify) printf ("MotionNotify ");
+	else if (ev==MotionNotify) printf ("%lf MotionNotify ");
 	else printf ("ev %d ",ev);
 	
 	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
@@ -1008,7 +1008,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	if (!node->enabled) return;
 
 	/* isOver state */
-	if (over != node->isOver) {
+	if ((ev == overMark) && (over != node->isOver)) {
 		#ifdef SENSVERBOSE
 		printf ("TS, isOver changed %d\n",over);
 		#endif
@@ -1070,6 +1070,8 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 		}
 	}
 }
+
+#undef SENSVERBOSE
 
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {

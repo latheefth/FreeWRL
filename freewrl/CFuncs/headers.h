@@ -864,6 +864,8 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 extern int screenWidth, screenHeight;
 
+
+#define overMark        23425
 /* mimic X11 events in AQUA */
 #ifdef AQUA
 #define KeyPress        2

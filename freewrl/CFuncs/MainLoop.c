@@ -23,6 +23,15 @@
 #include "Collision.h"
 #include "SensInterps.h"
 
+#ifndef AQUA
+	#define SENSOR_CURSOR cursor= sensorc;
+	#define ARROW_CURSOR  cursor = arrowc;
+#else
+	#define SENSOR_CURSOR 	ccurse = SCURSE;
+	#define ARROW_CURSOR    ccurse = ACURSE;
+#endif
+
+
 static char debs[300];
 /* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
 
@@ -126,6 +135,7 @@ int ButDown[] = {FALSE,FALSE,FALSE,FALSE,FALSE};
 int currentX, currentY;			/*  current mouse position.*/
 int lastMouseEvent = MapNotify;		/*  last event a mouse did; care about Button and Motion events only.*/
 struct X3D_Node* lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
+struct X3D_Node* lastOver = NULL;	/*  the sensitive node that the mouse was last moused over.*/
 
 int maxbuffers = 1;			/*  how many active indexes in bufferarray*/
 int bufferarray[] = {GL_BACK,0};
@@ -386,6 +396,17 @@ void EventLoop() {
 		render_hier(rootNode,VF_Sensitive);
 		CursorOverSensitive = getRayHit();
 
+
+		/* for nodes that use an "isOver" eventOut... */
+		if ((lastOver != CursorOverSensitive) && (ButDown[1]==0)) {
+			#ifdef VERBOSE
+			printf ("over changed, from %u to %u, butDown1 %d\n",lastOver,CursorOverSensitive,ButDown[1]);
+			#endif
+
+			sendSensorEvents(lastOver, overMark, 0, FALSE);
+			sendSensorEvents(CursorOverSensitive, overMark, 0, TRUE);
+			lastOver = CursorOverSensitive;
+		}
 		#ifdef VERBOSE
 		if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(CursorOverSensitive->_nodeType));
 		#endif
@@ -400,7 +421,7 @@ void EventLoop() {
 		}
 
 		if ((ButDown[1]==0) && lastPressedOver!=NULL) {
-			/* printf ("Not Navigation and 1 up\n"); */
+			/* printf ("Not Navigation and 1 up\n");  */
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
 			sendSensorEvents(lastPressedOver, ButtonRelease, ButDown[1], TRUE);
@@ -421,11 +442,7 @@ void EventLoop() {
 		/* do we need to re-define cursor style? 	*/
 		/* do we need to send an isOver event?		*/
 		if (CursorOverSensitive!= NULL) {
-#ifndef AQUA
-			cursor= sensorc;
-#else
-		ccurse = SCURSE;
-#endif
+			SENSOR_CURSOR
 
 			/* is this a new node that we are now over?
 			   don't change the node pointer if we are clicked down */
@@ -433,28 +450,19 @@ void EventLoop() {
 				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
 				sendSensorEvents(CursorOverSensitive,MapNotify,ButDown[1], TRUE);
 				oldCOS=CursorOverSensitive;
-
 				sendDescriptionToStatusBar(CursorOverSensitive);
 			}
 
 		} else {
 			/* hold off on cursor change if dragging a sensor */
 			if (lastPressedOver!=NULL) {
-#ifndef AQUA
-				cursor = sensorc;
-#else
-				ccurse = SCURSE;
-#endif
+				SENSOR_CURSOR
 			} else {
-#ifndef AQUA
-				cursor = arrowc;
-#else
-				ccurse = ACURSE;
-#endif
+				ARROW_CURSOR
 			}
 
 			/* were we over a sensitive node? */
-			if (oldCOS!=NULL) {
+			if ((oldCOS!=NULL)  && (ButDown[1]==0)) {
 				sendSensorEvents(oldCOS,MapNotify,ButDown[1], FALSE);
 				/* remove any display on-screen */
 				sendDescriptionToStatusBar(NULL);
@@ -901,7 +909,7 @@ void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
 
 
 	/* if we are not calling a valid node, dont do anything! */
-	if (COS==0) return;
+	if (COS==NULL) return;
 
 	for (count = 0; count < num_SensorEvents; count++) {
 		if (SensorEvents[count].fromnode == COS) {
