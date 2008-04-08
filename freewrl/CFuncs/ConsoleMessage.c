@@ -43,7 +43,7 @@ extern int _fw_browser_plugin;
 
 void closeConsoleMessage() {
 	consMsgCount = 0;
-	if (logFileOpened) syslog (LOG_INFO, "FreeWRL loading a new file");
+	if (logFileOpened) syslog (LOG_ALERT, "FreeWRL loading a new file");
 	logFileOpened = FALSE;
 }
 
@@ -67,7 +67,7 @@ int ConsoleMessage(const char *fmt, ...) {
 		logFileOpened = TRUE;
 		openlog("freewrl", LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
 		setlogmask(LOG_UPTO(LOG_ERR));
-		syslog(LOG_INFO,"FreeWRL opened Console Log");
+		syslog(LOG_ALERT,"FreeWRL opened Console Log");
 	}
 	#endif
 
