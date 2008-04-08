@@ -26,23 +26,25 @@ for loosing the reference. Also, most if it is found in
 #include "PluginSocket.h"
 #include <stdarg.h>
 
+#ifdef AQUA
+#include <syslog.h>
+#endif
+
 #define STRING_LENGTH 2000	/* something 'safe'	*/
 #define MAXMESSAGES 5 
 
 /* for sending text to the System Console */
-uid_t myUid = 0;
-FILE *ConsoleLog = NULL;
+static int logFileOpened = FALSE;
 
 static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
 
+
 void closeConsoleMessage() {
 	consMsgCount = 0;
-	if (ConsoleLog != NULL) {
-		fclose (ConsoleLog);
-		ConsoleLog = NULL;
-	}
+	if (logFileOpened) syslog (LOG_INFO, "FreeWRL loading a new file");
+	logFileOpened = FALSE;
 }
 
 int ConsoleMessage(const char *fmt, ...) {
@@ -61,12 +63,14 @@ int ConsoleMessage(const char *fmt, ...) {
 	/* try to open a file descriptor to the Console Log - on OS X 
 	   this should display the text on the "Console.app" */
 	#ifdef AQUA
-	if (myUid == 0) {
-		myUid = getuid();
-		sprintf(ConsoleLogName, "/Library/Logs/Console/%d/console.log",myUid);
-		ConsoleLog = fopen(ConsoleLogName,"w+");
+	if (!logFileOpened) {
+		logFileOpened = TRUE;
+		openlog("freewrl", LOG_CONS | LOG_NDELAY | LOG_PERROR | LOG_PID, LOG_USER);
+		setlogmask(LOG_UPTO(LOG_ERR));
+		syslog(LOG_INFO,"FreeWRL opened Console Log");
 	}
 	#endif
+
 
 	#ifdef HAVE_MOTIF
 	FWbuffer[0] = '\n';
@@ -196,9 +200,8 @@ int ConsoleMessage(const char *fmt, ...) {
 	}
 
 	/* print this to the console log */
-	if (ConsoleLog != NULL) {
-		fprintf (ConsoleLog,FWbuffer);
-	}
+	syslog (LOG_INFO, FWbuffer);
+
 
 	/* print this to the application console log if running standalone, or speak it if running as a plug in */
 	if (!RUNNINGASPLUGIN) {
@@ -213,12 +216,6 @@ int ConsoleMessage(const char *fmt, ...) {
 		for (i=0; i<strlen(FWbuffer); i++) {
 			if (FWbuffer[i] == '\n') { FWbuffer[i] = ' '; }
 		}
-
-		
-
-		/* put the error on the console */
-                sprintf(systemBuffer, "%s \"%s\"", "FreeWRL: ", FWbuffer);
-		printf (systemBuffer);
 
 		/* and call freewrlSystem to speak to the user */
                 sprintf(systemBuffer, "%s \"%s\"", XMESSAGE, FWbuffer);
