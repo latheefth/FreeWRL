@@ -25,10 +25,7 @@ for loosing the reference. Also, most if it is found in
 #include "headers.h"
 #include "PluginSocket.h"
 #include <stdarg.h>
-
-#ifdef AQUA
 #include <syslog.h>
-#endif
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
 #define MAXMESSAGES 5 
