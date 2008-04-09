@@ -483,7 +483,8 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 			parent, stringNodeType(parent->_nodeType),file,line);
 	#endif
 
-	/* does this already exist? */
+	/* does this already exist? it is OK to have this added more than once */
+	#ifdef checkforduplicateparentsinaddparent
 	for (count=0; count<node->_nparents; count++) {
 		if (node->_parents[count] == parent) {
 			#ifdef CHILDVERBOSE
@@ -492,6 +493,7 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 			return;
 		}
 	}
+	#endif
  
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
@@ -513,23 +515,48 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 	setSensitive (parent, node);
 }
 
-void remove_parent(struct X3D_Node *node, struct X3D_Node *parent) {
+void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 	int i;
-	if(!node) return;
-	node->_nparents --;
-	for(i=0; i<node->_nparents; i++) {
-		if(node->_parents[i] == parent) {
+	int pi;
+
+	if(!child) return;
+	if(!parent) return;
+	
+	#ifdef CHILDVERBOSE
+	printf ("remove_parent, parent %u (%s) , child %u (%s)\n",parent, stringNodeType(parent->_nodeType),
+		child, stringNodeType(child->_nodeType));
+	#endif
+
+	/* find the index of this parent in this child. */
+	pi = -1;
+
+	for(i=0; i<child->_nparents; i++) {
+		if(child->_parents[i] == parent) {
+			pi = i;
 			break;
 		}
 	}
+
+	if (pi < 0) return; /* child does not have this parent - removed already?? anyway... */
+
 	/* The order of parents does not matter. Instead of moving the whole
 	 * block of data after the current position, we simply swap the one to
 	 * delete at the end and do a vector pop_back (decrease nparents, which
 	 * has already happened).
 	 */
-	if(i<node->_nparents) {
-		node->_parents[i]=node->_parents[node->_nparents];
+
+	#ifdef CHILDVERBOSE
+	printf ("remove_parent, pi %d, index at end %d\n",pi, child->_nparents-1);
+		child->_parents[pi]=child->_parents[child->_nparents-1];
+	#endif
+	
+	child->_nparents--;
+
+	#ifdef CHILDVERBOSE
+	if (child->_nparents == -1) {
+		printf ("remove_parent, THIS NODE HAS NO PARENTS...\n");
 	}
+	#endif
 }
 
 void

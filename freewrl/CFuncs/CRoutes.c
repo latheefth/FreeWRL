@@ -430,10 +430,11 @@ void AddRemoveChildren (
 	uintptr_t *remchild;
 	uintptr_t *remptr;
 	uintptr_t *tmpptr;
+	int done;
 
 	int counter, c2;
 
-	/* printf ("AddRemove Children parent %d tn %d, len %d\n",parent,tn,len); */
+	/* printf ("AddRemove Children parent %u tn %u, len %d ar %d\n",parent,tn,len,ar); */
 	/* if no elements, just return */
 	if (len <=0) return;
 	if ((parent==0) || (tn == 0)) {
@@ -442,7 +443,7 @@ void AddRemoveChildren (
 	}
 
 	oldlen = tn->n;
-	/* printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);  */
+	/* printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar); */
 
 	/* to do a "set_children", we remove the children, then do an add */
 	if (ar == 0) {
@@ -452,6 +453,11 @@ void AddRemoveChildren (
 
 		/* make it so that we have 0 children */
 		tn->n=0; 
+
+		/* go through the children, and tell them that they are no longer wanted here */
+		for (counter ==0; counter < oldlen; counter ++) remove_parent(tn->p[counter],parent);
+
+		/* now, totally free the old children array */
 		if (oldlen > 0) FREE_IF_NZ(tn->p);
 
 		/* now, make this into an addChildren */
@@ -499,11 +505,16 @@ void AddRemoveChildren (
 		remchild = nodelist;
 		for (c2 = 0; c2 < len; c2++) {
 			remptr = (uintptr_t*) tn->p;
+			done = FALSE;
+
 			for (counter = 0; counter < tn->n; counter ++) {
 				/* printf ("remove, comparing %d with %d\n",*remptr, *remchild); */
-				if (*remptr == *remchild) {
+				if ((*remptr == *remchild) && (!done)) {
 					*remptr = 0;  /* "0" can not be a valid memory address */
+					remove_parent(*remchild,parent);
 					num_removed ++;
+					done = TRUE; /* remove this child ONLY ONCE - in case it has been added
+							more than once. */
 				}
 				remptr ++;
 			}
@@ -524,7 +535,6 @@ void AddRemoveChildren (
 				if (*remptr != 0) {
 					*tmpptr = *remptr;
 					/* printf ("now, tmpptr %d is %d\n",tmpptr,*tmpptr); */
-					remove_parent((void *)*remptr,(void *)tn);
 					tmpptr ++;
 				}
 				remptr ++;
