@@ -1,4 +1,6 @@
 For 1.20.3
+	- Elevation Grid colors were not working after an earlier texture change; should now
+	  work. (affected other polyrep structures, too)
 	- OSX plugin change to better handle Anchor to non-x3d pages when running within Safari.
 
 	- OSX - when running non-embedded; will use default browser for html pages, rather than defaulting
