@@ -195,10 +195,10 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 		case F12_KEY:
 			if (upDown == KEYDOWN)  {
 				MYN->actionKeyPress = TRUE; 
-				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyPress));
+				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyPress));
 			} else {
 				MYN->actionKeyRelease = TRUE;
-				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyRelease));
+				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyRelease));
 			}
 			break;
 		default: {
@@ -211,25 +211,25 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 				
 			if (upDown == KEYDOWN) {
 				MYN->keyPress->strptr[0] = (char) (key&0xFF);
-				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyPress));
+				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyPress));
 			} else {
 				MYN->keyRelease->strptr[0] = (char) (key&0xFF);
-				mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyRelease));
+				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, keyRelease));
 			}
 		}
 	}
 
 	/* now, for some of the other keys, the ones that are modifiers, not ACTION (tm) keys. */
 	MYN->altKey = key==ALT_KEY;
-	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, altKey));
+	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, altKey));
 	MYN->controlKey = key==ALT_KEY;
-	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, controlKey));
+	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, controlKey));
 	MYN->shiftKey = key==ALT_KEY;
-	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, shiftKey));
+	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, shiftKey));
 
 	/* now, presumably "isActive" means that the key is down... */
 	MYN->isActive = upDown == KEYDOWN;
-	mark_event(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, isActive));
+	MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, isActive));
 	#undef MYN
 	
 }
@@ -281,18 +281,18 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 		if (MYN->enteredText->len > 1) {
 			MYN->enteredText->len--;
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = '\0';
-			mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
+			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 		}
 	} else {
 		if ((key != RTN_KEY) && (key != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = (char)key;
 			MYN->enteredText->strptr[MYN->enteredText->len] = '\0';
 			MYN->enteredText->len++;
-			mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
+			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 
 			if (!MYN->isActive) {
 				MYN->isActive = TRUE;
-				mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));
+				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));
 			}
 			
 		}
@@ -306,11 +306,11 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 		MYN->finalText->len = MYN->enteredText->len;
 		MYN->enteredText->len=1;
 		MYN->enteredText->strptr[0] = '\0';
-		mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, finalText));
-		mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
+		MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, finalText));
+		MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 
 		MYN->isActive = FALSE;
-		mark_event(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));
+		MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, isActive));
 		/* printf ("finalText:%s:\n",MYN->finalText->strptr); */
 	}
 }
