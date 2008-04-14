@@ -29,16 +29,6 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 struct X3D_Anchor EAI_AnchorNode;
 int waiting_for_anchor = FALSE;
 
-/* keep a table of nodename/pointer pairs */
-struct NodeTableStruct {
-	char *nodeName;
-	uintptr_t nodePtr;
-};
-
-struct NodeTableStruct *EAINodeTable = 0;
-int num_EAINodeTable = 0;
-
-
 void createLoadURL(char *bufptr);
 void makeFIELDDEFret(uintptr_t,char *buf,int c);
 void handleRoute (char command, char *bufptr, char *buf, int repno);
@@ -693,40 +683,12 @@ void handleGETNODE (char *bufptr, char *buf, int repno) {
 		printf ("GETNODE %s\n",ctmp); 
 	}	
 
-	/* does this event exist? */
-	for (count=0; count <num_EAINodeTable; count ++) {
-		if (strcmp(EAINodeTable[count].nodeName, ctmp) == 0) {
-			sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
-				0,
-				EAINodeTable[count].nodePtr);
-			if (eaiverbose) {	
-				printf ("GETNODE fast returns %s\n",buf);
-			}	
-			return;
-		}	
-	}
-
 	/* is this the SAI asking for the root node? */
 	if (strcmp(ctmp,SYSTEMROOTNODE)) {
-
-		/* nope, lets see if we have it, or if we need to ask Perl for it */
-		EAINodeTable = (struct NodeTableStruct *)REALLOC(EAINodeTable,sizeof (struct NodeTableStruct) * (num_EAINodeTable+1));
-		EAINodeTable[num_EAINodeTable].nodePtr = EAI_GetNode(ctmp);
-		
-
-		/* now, put the function pointer and data pointer into the structure entry */
-		EAINodeTable[num_EAINodeTable].nodeName = MALLOC (sizeof (char) * mystrlen+2);
-		memcpy (EAINodeTable[num_EAINodeTable].nodeName, ctmp, mystrlen+1);
-
-		sprintf (buf,"RE\n%f\n%d\n%d %d",TickTime,repno,
-			0,
-			EAINodeTable[num_EAINodeTable].nodePtr);
-
-		num_EAINodeTable++;
+		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno, EAI_GetNode(ctmp));
 	} else {
 		/* yep i this is a call for the rootNode */
-		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno,
-			rootNode);
+		sprintf (buf,"RE\n%f\n%d\n0 %d",TickTime,repno, rootNode);
 	}
 	if (eaiverbose) {	
 		printf ("GETNODE returns %s\n",buf); 
