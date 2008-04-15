@@ -721,16 +721,18 @@ int JSparamIndex (char *name, char *type) {
 	int ty;
 	int ctr;
 
-	/*
+	#ifdef CRVERBOSE
 	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
 	printf ("start of JSparamIndex, lengths name %d, type %d\n",
 			strlen(name),strlen(type)); 
-	*/
-
+	#endif
 
 	ty = findFieldInFIELDTYPES(type);
 
-	/* printf ("JSParamIndex, type %d, %s\n",ty,type);  */
+	#ifdef CRVERBOSE
+	printf ("JSParamIndex, type %d, %s\n",ty,type); 
+	#endif
+
 	len = strlen(name);
 
 	/* is this a duplicate name and type? types have to be same,
@@ -740,6 +742,10 @@ int JSparamIndex (char *name, char *type) {
 		if (ty==JSparamnames[ctr].type) {
 			if ((strlen(JSparamnames[ctr].name) == len) &&
 				(strncmp(name,JSparamnames[ctr].name,len)==0)) {
+				#ifdef CRVERBOSE
+				printf ("JSparamnames, duplicate, returning %d\n",ctr);
+				#endif
+
 				return ctr;
 			}
 		}
@@ -761,7 +767,10 @@ int JSparamIndex (char *name, char *type) {
 	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
 	JSparamnames[jsnameindex].eventInFunction = 0;
-	/* printf ("JSparamNameIndex, returning %d\n",jsnameindex);  */
+	#ifdef CRVERBOSE
+	printf ("JSparamNameIndex, returning %d\n",jsnameindex); 
+	#endif
+
 	return jsnameindex;
 }
 
@@ -1244,39 +1253,9 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 		}
 
 		/* unset the touched flag */
-		switch (JSparamnames[fptr].type) {
-			RESET_TOUCHED_TYPE_A(SFRotation)
-			RESET_TOUCHED_TYPE_A(SFNode)
-			RESET_TOUCHED_TYPE_A(SFVec2f)
-			RESET_TOUCHED_TYPE_A(SFVec3f)
-			RESET_TOUCHED_TYPE_A(SFImage)
-			RESET_TOUCHED_TYPE_A(SFColor)
-			RESET_TOUCHED_TYPE_A(SFColorRGBA)
-			RESET_TOUCHED_TYPE_MF_A(MFRotation,SFRotation)
-			RESET_TOUCHED_TYPE_MF_A(MFNode,SFNode)
-			RESET_TOUCHED_TYPE_MF_A(MFVec2f,SFVec2f)
-			RESET_TOUCHED_TYPE_MF_A(MFVec3f,SFVec3f)
-			/* RESET_TOUCHED_TYPE_MF_A(MFImage,SFImage) */
-			RESET_TOUCHED_TYPE_MF_A(MFColor,SFColor)
-			RESET_TOUCHED_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
-
-			RESET_TOUCHED_TYPE_ECMA (SFInt32)
-			RESET_TOUCHED_TYPE_ECMA (SFBool)
-			RESET_TOUCHED_TYPE_ECMA (SFFloat)
-			RESET_TOUCHED_TYPE_ECMA (SFTime)
-			RESET_TOUCHED_TYPE_ECMA (SFString)
-			RESET_ECMA_MF_TOUCHED(MFInt32)
-			RESET_ECMA_MF_TOUCHED(MFBool) 
-			RESET_ECMA_MF_TOUCHED(MFFloat) 
-			RESET_ECMA_MF_TOUCHED(MFTime) 
-			RESET_ECMA_MF_TOUCHED(MFString) 
-			
-			
-			default: {printf ("can not reset touched_flag for %s\n",FIELDTYPES[JSparamnames[fptr].type]);
-			}
-		}
+		resetScriptTouchedFlag (actualscript, fptr);
 		route++;
-		
+
 		/* REMOVE_ROOT(ScriptControl[actualscript].cx,global_return_val); */
 	}
 
@@ -1675,5 +1654,45 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 	/* and do the copy of the data */
 	memcpy (toptr,fromptr,structlen * fromcount);
+}
+
+/* this script value has been looked at, set the touched flag in it to FALSE. */
+void resetScriptTouchedFlag(int actualscript, int fptr) {
+
+	#ifdef CRVERBOSE
+	printf ("resetScriptTouchedFlag, name %s type %s script %d, fptr %d\n",JSparamnames[fptr].name, stringFieldtypeType(JSparamnames[fptr].type), actualscript, fptr);
+	#endif
+
+	switch (JSparamnames[fptr].type) {
+		RESET_TOUCHED_TYPE_A(SFRotation)
+		RESET_TOUCHED_TYPE_A(SFNode)
+		RESET_TOUCHED_TYPE_A(SFVec2f)
+		RESET_TOUCHED_TYPE_A(SFVec3f)
+		RESET_TOUCHED_TYPE_A(SFImage)
+		RESET_TOUCHED_TYPE_A(SFColor)
+		RESET_TOUCHED_TYPE_A(SFColorRGBA)
+		RESET_TOUCHED_TYPE_MF_A(MFRotation,SFRotation)
+		RESET_TOUCHED_TYPE_MF_A(MFNode,SFNode)
+		RESET_TOUCHED_TYPE_MF_A(MFVec2f,SFVec2f)
+		RESET_TOUCHED_TYPE_MF_A(MFVec3f,SFVec3f)
+		/* RESET_TOUCHED_TYPE_MF_A(MFImage,SFImage) */
+		RESET_TOUCHED_TYPE_MF_A(MFColor,SFColor)
+		RESET_TOUCHED_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
+
+		RESET_TOUCHED_TYPE_ECMA (SFInt32)
+		RESET_TOUCHED_TYPE_ECMA (SFBool)
+		RESET_TOUCHED_TYPE_ECMA (SFFloat)
+		RESET_TOUCHED_TYPE_ECMA (SFTime)
+		RESET_TOUCHED_TYPE_ECMA (SFString)
+		RESET_ECMA_MF_TOUCHED(MFInt32)
+		RESET_ECMA_MF_TOUCHED(MFBool) 
+		RESET_ECMA_MF_TOUCHED(MFFloat) 
+		RESET_ECMA_MF_TOUCHED(MFTime) 
+		RESET_ECMA_MF_TOUCHED(MFString) 
+		
+			
+		default: {printf ("can not reset touched_flag for %s\n",stringFieldtypeType(JSparamnames[fptr].type));
+		}
+	}
 }
 

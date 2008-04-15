@@ -789,6 +789,23 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 		}
 	}
 
+	/* Fields can generate an event, so we allow the touched flag to remain set. eventOuts have just
+	   been initialized, and as such, should not send events, until after they really have been set.
+	*/
+	if (kind == PKW_outputOnly) {
+		int fptr;
+		int touched;
+
+		/* get the number representing this type */
+		fptr = JSparamIndex (field, FIELDTYPES[type]);
+
+		/* set up global variables so that we can reset the touched flag */
+		touched = get_valueChanged_flag (fptr, num);
+
+		/* and, reset the touched flag, knowing that we have the variables set properly */
+		resetScriptTouchedFlag(num, fptr); 
+	}
+
 	CLEANUP_JAVASCRIPT(ScriptControl[num].cx)
 
 	FREE_IF_NZ (smallfield);

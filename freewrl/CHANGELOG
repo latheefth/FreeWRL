@@ -1,4 +1,9 @@
 For 1.20.3
+	- Javascripts - evenOuts (outputOnlys) were generating an event on startup; value was "zero".
+	  changed so values initialized, but not "touched", so will not generate initial events.
+	  Fields will still generate an initial event, so that field values will be reflected in X3D scene
+	  graph.
+
 	- Elevation Grid colors were not working after an earlier texture change; should now
 	  work. (affected other polyrep structures, too)
 	- OSX plugin change to better handle Anchor to non-x3d pages when running within Safari.

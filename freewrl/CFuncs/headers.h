@@ -665,6 +665,7 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 
 
 void setScriptECMAtype(uintptr_t);
+void resetScriptTouchedFlag(int actualscript, int fptr);
 int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
@@ -973,7 +974,7 @@ void fwLoadIdentity (void);
 void invalidateCurMat(void);
 void doBrowserAction (void);
 void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_,char *file, int line);
-void remove_parent(struct X3D_Node *node_, struct X3D_Node *parent_);
+void remove_parent(struct X3D_Node *child, struct X3D_Node *parent);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (void *rc,  int offs, struct X3D_Node *newNode);
 void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
