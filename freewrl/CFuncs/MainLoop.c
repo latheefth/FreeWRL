@@ -136,6 +136,7 @@ int currentX, currentY;			/*  current mouse position.*/
 int lastMouseEvent = MapNotify;		/*  last event a mouse did; care about Button and Motion events only.*/
 struct X3D_Node* lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 struct X3D_Node* lastOver = NULL;	/*  the sensitive node that the mouse was last moused over.*/
+int lastOverButtonPressed = FALSE;	/*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
 
 int maxbuffers = 1;			/*  how many active indexes in bufferarray*/
 int bufferarray[] = {GL_BACK,0};
@@ -398,14 +399,26 @@ void EventLoop() {
 
 
 		/* for nodes that use an "isOver" eventOut... */
-		if ((lastOver != CursorOverSensitive) && (ButDown[1]==0)) {
+		if (lastOver != CursorOverSensitive) {
 			#ifdef VERBOSE
-			printf ("over changed, from %u to %u, butDown1 %d\n",lastOver,CursorOverSensitive,ButDown[1]);
+			printf ("%lf over changed, lastOver %u cursorOverSensitive %u, butDown1 %d\n",TickTime, lastOver,CursorOverSensitive,ButDown[1]);
 			#endif
 
-			sendSensorEvents(lastOver, overMark, 0, FALSE);
-			sendSensorEvents(CursorOverSensitive, overMark, 0, TRUE);
-			lastOver = CursorOverSensitive;
+			if (ButDown[1]==0) {
+
+				/* ok, when the user releases a button, cursorOverSensitive WILL BE NULL
+				   until it gets sensed again. So, we use the lastOverButtonPressed flag to delay 
+				   sending this flag by one event loop loop. */
+				if (!lastOverButtonPressed) {
+					sendSensorEvents(lastOver, overMark, 0, FALSE);
+					sendSensorEvents(CursorOverSensitive, overMark, 0, TRUE);
+					lastOver = CursorOverSensitive;
+				}
+				lastOverButtonPressed = FALSE;
+			} else {
+				lastOverButtonPressed = TRUE;
+			}
+
 		}
 		#ifdef VERBOSE
 		if (CursorOverSensitive != NULL) printf ("COS %d (%s)\n",CursorOverSensitive,stringNodeType(CursorOverSensitive->_nodeType));

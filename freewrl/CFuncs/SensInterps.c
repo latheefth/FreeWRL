@@ -1010,21 +1010,21 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	/* isOver state */
 	if ((ev == overMark) && (over != node->isOver)) {
 		#ifdef SENSVERBOSE
-		printf ("TS, isOver changed %d\n",over);
+		printf ("TS %u, isOver changed %d\n",node, over);
 		#endif
 		node->isOver = over;
 		MARK_EVENT (ptr, offsetof (struct X3D_TouchSensor, isOver));
 	}
 
 	/* active */
-	if (over) {
+	/* if (over) { */
 
 		/* button presses */
 		if (ev == ButtonPress) {
 			node->isActive=1;
 			MARK_EVENT (ptr, offsetof (struct X3D_TouchSensor, isActive));
 			#ifdef SENSVERBOSE
-			printf ("touchSens, butPress\n");
+			printf ("touchSens %u, butPress\n",node);
 			#endif
 
 			node->touchTime = TickTime;
@@ -1032,7 +1032,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 		} else if (ev == ButtonRelease) {
 			#ifdef SENSVERBOSE
-			printf ("touchSens, butRelease\n");
+			printf ("touchSens %u, butRelease\n",node);
 			#endif
 			node->isActive=0;
 			MARK_EVENT (ptr, offsetof (struct X3D_TouchSensor, isActive));
@@ -1068,10 +1068,8 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			memcpy ((void *) &node->hitNormal_changed, (void *) &node->_oldhitNormal, sizeof(struct SFColor));
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitNormal_changed));
 		}
-	}
+	/* } */
 }
-
-#undef SENSVERBOSE
 
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
