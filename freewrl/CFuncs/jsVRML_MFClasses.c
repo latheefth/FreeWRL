@@ -1196,7 +1196,6 @@ MFStringAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf("MFStringAssign: obj = %u, %u args %d... ", VERBOSE_OBJ obj, argc);
 	#endif
-	printf("MFStringAssign: obj = %u, %u args %d... ", VERBOSE_OBJ obj, argc);
 	SET_MF_ECMA_HAS_CHANGED
 
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFStringClass,FIELDTYPE_SFString);

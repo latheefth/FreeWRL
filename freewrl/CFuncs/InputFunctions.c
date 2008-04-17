@@ -42,7 +42,7 @@ char *findPathToFreeWRLFile(char *lfn) {
 	strcpy(sys_fp,INSTALLDIR);
 	strcat (sys_fp, "/fonts");
 	strcat(sys_fp,lfn);
-	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
+	printf ("checking to see if directory %s exists\n",sys_fp);
 	tmpfile = fopen(sys_fp,"r");
 	if (tmpfile) {
 		fclose(tmpfile);
@@ -58,7 +58,7 @@ char *findPathToFreeWRLFile(char *lfn) {
 	strcpy(sys_fp,BUILDDIR);
 	strcat (sys_fp, "/fonts");
 	strcat(sys_fp,lfn);
-	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
+	printf ("checking to see if directory %s exists\n",sys_fp);
 	tmpfile = fopen(sys_fp,"r");
 	if (tmpfile) {
 		fclose(tmpfile);
