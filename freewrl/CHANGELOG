@@ -1,6 +1,7 @@
 For 1.20.3
 	- Linux/Motif - ConsoleMessages were not printing properly when running standalone. Had extra copies
-	  of data, causing increasing delays when printing lots of information.
+	  of data, causing increasing delays when printing lots of information. When running in HTML browser,
+	  line breaks were not correct. 
 
 	- use system fonts, if they are installed. (Linux). Check is done at build time and at run time. Look
 	  for "FONTSDIR" in the code. If not found, will try the INSTALLDIR, then BUILDDIR.

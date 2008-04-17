@@ -76,13 +76,6 @@ int ConsoleMessage(const char *fmt, ...) {
 	FWbuffer[0] = '\0';
 	#endif
 
-	#ifndef AQUA
-	if (RUNNINGASPLUGIN) {
-		strcpy (FWbuffer,XMESSAGE);
-		strcat (FWbuffer, " ");
-	}
-	#endif
-
 	#ifndef HAVE_MOTIF
 	/* did we have too many messages - don't want to make this into a 
 	   denial of service attack! (thanks, Mufti) */
