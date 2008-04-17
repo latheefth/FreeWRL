@@ -790,7 +790,7 @@ sub linux_system_info() {
 
 sub findAndPrintUtilities() {
 	# lets just dump out some standard defines, from the vrml.conf file.
-	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA");
+	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA", "FONTSDIR");
 
 	my $val;
 
@@ -838,6 +838,13 @@ sub tryToFind() {
 		$try = `which cp`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	} elsif ("JAVA" eq $tofind) {
 		$try = `which java`; $try =~ s/^\s+//; $try =~ s/\s+$//;
+	} elsif ("FONTSDIR" eq $tofind) {
+		# lets look and see if fonts are installed in a common place:
+		if (-e "/usr/share/fonts/truetype/ttf-bitstream-vera/VeraBd.ttf") {
+			$try = "/usr/share/fonts/truetype/ttf-bitstream-vera";
+		} else {
+			$try = "";
+		}
 	}
 
 	if ("" ne $try) {

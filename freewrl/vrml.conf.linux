@@ -20,6 +20,11 @@ INSTALL_DIR =>"/usr/share",			# fonts, application pixmaps, etc
 #NETSCAPE_INST => '/usr/lib/mozilla/plugins-wrapped/',
 NETSCAPE_INST => '/usr/lib64/firefox/plugins/',  #Ubuntu 64 
 
+
+# fontsdir - we can specify exactly where fonts files for "Text" nodes are:
+#FONTSDIR => '/path/to/installed/fonts',
+
+
 # tell FreeWRL which commands to invoke for Anchors, graphics conversions, etc.
 
 # Which browser to invoke for Anchors, etc:

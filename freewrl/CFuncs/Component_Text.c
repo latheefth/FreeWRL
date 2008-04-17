@@ -713,7 +713,11 @@ open_font() {
 	FW_outline_interface.delta = 0;
 
 	/* where are the fonts stored? */
-	flloc = findPathToFreeWRLFile("/fonts/Vera.ttf");
+	flloc = findPathToFreeWRLFile("/Vera.ttf");
+
+	/* if the fonts are in the BUILDDIR, or in the INSTALLDIR, append a "/fonts" to it */
+	if (strcmp(INSTALLDIR,flloc) == NULL) strcat (flloc,"/fonts");
+	if (strcmp(BUILDDIR,flloc) == NULL) strcat (flloc,"/fonts");
 
 	if (flloc == NULL) {
 		ConsoleMessage ("Problem - can not find font files!\n");
@@ -723,7 +727,6 @@ open_font() {
 
 	/* we know where the fonts are now, save this path */
 	strcpy(sys_fp,flloc);
-	strcat (sys_fp,"/fonts");
 	
 	/* lets initialize some things */
 	for (len = 0; len < num_fonts; len++) {

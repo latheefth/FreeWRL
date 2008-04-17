@@ -15,30 +15,56 @@ char *findPathToFreeWRLFile(char *lfn) {
 	FILE *tmpfile;
 	char sys_fp[200];
 
+	/* try the "FONTSDIR" */
+	if ((strlen(FONTSDIR) > (fp_name_len-50)) ||
+		(strlen(BUILDDIR) > (fp_name_len-50))) {
+		printf ("Internal problem; fp_name_len is not long enough\n");
+		return NULL;
+	}
+	strcpy(sys_fp,FONTSDIR);
+	strcat(sys_fp,lfn);
+	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
+	tmpfile = fopen(sys_fp,"r");
+	if (tmpfile) {
+		fclose(tmpfile);
+		return (FONTSDIR);
+	}
+
+
+	/* try the "INSTALLDIR" with "/fonts" appended */
 	if ((strlen(INSTALLDIR) > (fp_name_len-50)) ||
 		(strlen(BUILDDIR) > (fp_name_len-50))) {
 		printf ("Internal problem; fp_name_len is not long enough\n");
 		return NULL;
 	}
 	strcpy(sys_fp,INSTALLDIR);
+	strcat (sys_fp, "/fonts");
 	strcat(sys_fp,lfn);
 	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
 	tmpfile = fopen(sys_fp,"r");
-	if (!tmpfile) {
-		/* printf ("FreeWRL not installed; trying build dir copy\n"); */
-		strcpy(sys_fp,BUILDDIR);
-		strcat(sys_fp,lfn);
-		/* printf ("checking to see if directory %s exists\n",sys_fp); */
-		tmpfile = fopen(sys_fp,"r");
-		if (!tmpfile) {
-			/* printf ("NO SYSTEM FONTS FOUND\n"); */
-			return NULL;
-		} else {
-			return (BUILDDIR);
-		}
-
+	if (tmpfile) {
+		fclose(tmpfile);
+		return (INSTALLDIR);
 	}
-	return (INSTALLDIR);
+
+	/* try the "BUILDDIR" with "/fonts" appended */
+	if ((strlen(BUILDDIR) > (fp_name_len-50)) ||
+		(strlen(BUILDDIR) > (fp_name_len-50))) {
+		printf ("Internal problem; fp_name_len is not long enough\n");
+		return NULL;
+	}
+	strcpy(sys_fp,BUILDDIR);
+	strcat (sys_fp, "/fonts");
+	strcat(sys_fp,lfn);
+	/* printf ("checking to see if directory %s exists\n",sys_fp);  */
+	tmpfile = fopen(sys_fp,"r");
+	if (tmpfile) {
+		fclose(tmpfile);
+		return (INSTALLDIR);
+	}
+
+	/* printf - no system fonts found.... */
+	return (NULL);
 }
 
 

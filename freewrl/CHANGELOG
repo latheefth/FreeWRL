@@ -1,4 +1,7 @@
 For 1.20.3
+	- use system fonts, if they are installed. (Linux). Check is done at build time and at run time. Look
+	  for "FONTSDIR" in the code. If not found, will try the INSTALLDIR, then BUILDDIR.
+
 	- Javascripts - evenOuts (outputOnlys) were generating an event on startup; value was "zero".
 	  changed so values initialized, but not "touched", so will not generate initial events.
 	  Fields will still generate an initial event, so that field values will be reflected in X3D scene
