@@ -15,6 +15,7 @@ char *findPathToFreeWRLFile(char *lfn) {
 	FILE *tmpfile;
 	char sys_fp[200];
 
+	#ifndef AQUA
 	/* try the "FONTSDIR" */
 	if ((strlen(FONTSDIR) > (fp_name_len-50)) ||
 		(strlen(BUILDDIR) > (fp_name_len-50))) {
@@ -29,6 +30,7 @@ char *findPathToFreeWRLFile(char *lfn) {
 		fclose(tmpfile);
 		return (FONTSDIR);
 	}
+	#endif
 
 
 	/* try the "INSTALLDIR" with "/fonts" appended */
