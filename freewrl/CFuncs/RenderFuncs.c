@@ -547,9 +547,9 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 
 	#ifdef CHILDVERBOSE
 	printf ("remove_parent, pi %d, index at end %d\n",pi, child->_nparents-1);
-		child->_parents[pi]=child->_parents[child->_nparents-1];
 	#endif
-	
+
+	child->_parents[pi]=child->_parents[child->_nparents-1];
 	child->_nparents--;
 
 	#ifdef CHILDVERBOSE
