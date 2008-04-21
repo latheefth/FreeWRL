@@ -1,4 +1,7 @@
 For 1.20.3
+	- Routing table additions now buffered, and performed at a specific place in event loop; helped
+	  a bug where an event generated routing table entries.
+
 	- Javascript createVrmlFromString and createVrmlFromURL had problems with name-cross contamination
 	  between caller and created VRML/X3D code.
 
