@@ -16,6 +16,13 @@
 
 #include "jsUtils.h"
 #include "jsNative.h"
+#include "CParse.h"
+
+
+/* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
+struct VRMLParser* savedParser;
+
+
 
 /* for setting field values to the output of a CreateVrml style of call */
 /* it is kept at zero, unless it has been used. Then it is reset to zero */
@@ -363,8 +370,12 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 				   obj, _c);
 		#endif
 
-		/* do the call to make the VRML code */
+		/* do the call to make the VRML code  - create a new browser just for this string */
+		savedParser = globalParser; globalParser = NULL;
 		ra = EAI_CreateVrml("String",_c,nodarr,200);
+		globalParser = savedParser; /* restore it */
+
+
 		#ifdef JSVERBOSE
 		printf ("EAI_CreateVrml returns %d nodes\n",ra);
 		printf ("nodes %d %d\n",nodarr[0],nodarr[1]);
@@ -563,7 +574,11 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 
 	/* call the parser */
+	/* "save" the old classic parser state, so that names do not cross-pollute */
+	savedParser = globalParser;
+	globalParser = NULL;
 	ra = EAI_CreateVrml("URL",filename,nodarr,200);
+	globalParser = savedParser;
 
 	/* now, we make up a string of nodes, pass it to setField_fromJavascript that
 	takes this string apart. oh well... */
