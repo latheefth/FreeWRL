@@ -1089,7 +1089,7 @@ static void actually_do_CRoutes_Register(int num) {
 
 	/* record that we have one more route, with upper limit checking... */
 	if (CRoutes_Count >= (CRoutes_MAX-2)) {
-		printf("WARNING: expanding routing table\n"); 
+		/* printf("WARNING: expanding routing table\n");  */
 		CRoutes_MAX += 50; /* arbitrary expansion number */
 		CRoutes =(struct CRStruct *) REALLOC (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 	}
