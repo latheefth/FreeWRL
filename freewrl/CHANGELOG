@@ -1,4 +1,7 @@
 For 1.20.3
+	- Javascript createVrmlFromString and createVrmlFromURL had problems with name-cross contamination
+	  between caller and created VRML/X3D code.
+
 	- Linux/Motif - ConsoleMessages were not printing properly when running standalone. Had extra copies
 	  of data, causing increasing delays when printing lots of information. When running in HTML browser,
 	  line breaks were not correct. 
