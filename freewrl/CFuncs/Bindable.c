@@ -767,7 +767,10 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 }
 
 void render_Background (struct X3D_Background *node) {
-	/* printf ("RBG, num %d node %d ib %d sb %d gepvp\n",node->__BGNumber, node,node->isBound,node->set_bind);   */
+	/* if we are rendering blended nodes, don't bother with this one */
+	if (render_blend) return;
+
+	/* printf ("RBG, num %d node %d ib %d sb %d gepvp\n",node->__BGNumber, node,node->isBound,node->set_bind);    */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		bind_node (X3D_NODE(node), &background_tos,&background_stack[0]);
@@ -826,6 +829,9 @@ void render_Background (struct X3D_Background *node) {
 
 
 void render_TextureBackground (struct X3D_TextureBackground *node) {
+	/* if we are rendering blended nodes, don't bother with this one */
+	if (render_blend) return;
+
 
 	/* printf ("RTBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);  */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
