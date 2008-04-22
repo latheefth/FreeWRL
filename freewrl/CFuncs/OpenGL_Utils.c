@@ -856,6 +856,11 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(MovieTexture) CHECK_MOVIETEXTURE_TRANSPARENCY END_NODE
 
+				/* VisibilitySensor needs its own flag sent up the chain */
+				BEGIN_NODE (VisibilitySensor)
+                		update_renderFlag(node,VF_Blend);
+				END_NODE
+
 				/* ProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (ProximitySensor)
                 		update_renderFlag(node,VF_Proximity);

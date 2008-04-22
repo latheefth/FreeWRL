@@ -173,20 +173,26 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 		}
 
 		if (render_blend == VF_Blend) { 
+			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);
                         #ifdef VISIBILITYOCCLUSION
 			#ifdef SEVERBOSE
 			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);
 			#endif
+printf ("going to begin cooqueat\n");
 			BEGINOCCLUSIONQUERY
-			
+		/*	
 			LIGHTING_OFF
 
 			DISABLE_CULL_FACE 
+*/
 			rendVisibilityBox(node);
 			
+printf ("rendered visbox\n");
+/*
 			ENABLE_CULL_FACE
 			LIGHTING_ON
 			
+*/
 			ENDOCCLUSIONQUERY
                         #endif
 		}
