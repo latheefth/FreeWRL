@@ -173,26 +173,20 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 		}
 
 		if (render_blend == VF_Blend) { 
-			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);
                         #ifdef VISIBILITYOCCLUSION
 			#ifdef SEVERBOSE
 			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);
 			#endif
-printf ("going to begin cooqueat\n");
-			BEGINOCCLUSIONQUERY
-		/*	
-			LIGHTING_OFF
 
+			BEGINOCCLUSIONQUERY
+			LIGHTING_OFF
 			DISABLE_CULL_FACE 
-*/
+
 			rendVisibilityBox(node);
 			
-printf ("rendered visbox\n");
-/*
 			ENABLE_CULL_FACE
 			LIGHTING_ON
 			
-*/
 			ENDOCCLUSIONQUERY
                         #endif
 		}
@@ -211,6 +205,9 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0) || (z < 0)) return;
+
+	/* tell the Occlusion stuff that this node has been rendered */
+	if (node->__OccludeNumber < QueryCount) OccNodeRendered[node->__OccludeNumber] = TRUE;
 
 	/* for BoundingBox calculations */
 	setExtent(cx+x, cx-x, cx+y, cx-y, cx+z, cx-z,X3D_NODE(node));
@@ -246,11 +243,7 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 		*pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z;
 	}
 
-	/*
-	glColorMask (0,0,0,0);
-	*/
-
-
+	/* note the ALPHA of zero - totally transparent */
 	glColor4f(0.0, 1.0, 0.0, 0.0);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
@@ -259,9 +252,6 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	glDrawArrays (GL_QUADS, 0, 24);
-	/*
-	glColorMask (1,1,1,1);
-	*/
 }
 
 

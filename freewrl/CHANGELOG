@@ -1,4 +1,7 @@
 For 1.20.3
+	- VisibilitySensors were not properly added to new internal scenegraph code, so were not working
+	  reliably.
+
 	- Routing table additions now buffered, and performed at a specific place in event loop; helped
 	  a bug where an event generated routing table entries.
 
