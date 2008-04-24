@@ -216,6 +216,7 @@ void child_Collision (struct X3D_Collision *node) {
 	}
 }
 
+/* LOD changes between X3D and VRML - level and children fields are "equivalent" */
 void child_LOD (struct X3D_LOD *node) {
         GLdouble mod[16];
         GLdouble proj[16];
@@ -223,11 +224,16 @@ void child_LOD (struct X3D_LOD *node) {
         double dist;
         int nran = (node->range).n;
         int nnod = (node->level).n;
+        int xnod = (node->children).n;
         int i;
-        void *p; 
+printf ("child_LOD, nran %d nnod %d xnod %d\n",nran,nnod,xnod);
+
 
         if(!nran) {
-                void *p = (node->level).p[0];
+        	void *p = NULL; 
+		/* no range; choose first VRML level OR firxt X3D child to display */
+		if (nnod > 0) p = (node->level).p[0];
+		else if (xnod > 0) p = (node->children).p[0];
                 render_node(p);
                 return;
         }
@@ -250,11 +256,22 @@ void child_LOD (struct X3D_LOD *node) {
                         if(dist < ((node->range).p[i])) { break; }
                         i++;
                 }
-                if(i >= nnod) i = nnod-1;
-                node->_selected = i;
+
+		/* is this VRML or X3D? */
+		if (nnod > 0) {
+			/* VRML "range" field */
+                	if(i >= nnod) i = nnod-1;
+                	node->_selected = (node->level).p[i];
+printf ("selecting vrml nod\n");
+
+		} else if (xnod > 0) {
+			/* X3D "children" field */
+                	if(i >= xnod) i = xnod-1;
+                	node->_selected = (node->children).p[i];
+printf ("selecting X3D nod %d \n",i);
+		} else node->_selected = NULL;
         }
-        p = (node->level).p[node->_selected];
-        render_node(p);
+        render_node(node->_selected);
 }
 
 void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {

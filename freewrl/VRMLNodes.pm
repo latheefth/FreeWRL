@@ -1087,10 +1087,11 @@ package VRML::NodeType;
 	LOD => new VRML::NodeType("LOD", {
 						 addChildren => [MFNode, undef, inputOnly],
 						 removeChildren => [MFNode, undef, inputOnly],
-						level => [MFNode, [], inputOutput],
+						level => [MFNode, [], inputOutput], 		# for VRML spec
+						children => [MFNode, [], inputOutput],		# for X3D spec
 						center => [SFVec3f, [0, 0, 0],  initializeOnly],
 						range => [MFFloat, [], initializeOnly],
-						_selected =>[SFInt32,0,initializeOnly],
+						_selected =>[FreeWRLPTR,0,initializeOnly],
 					   },"X3DGroupingNode"),
 
 	Billboard => new VRML::NodeType("Billboard", {
