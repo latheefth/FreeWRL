@@ -7,5 +7,6 @@ Standards-Version: 3.6.2
 
 Package: freewrl
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ttf-bitstream-vera
+Depends: libglu1-mesa | libglu1, libxaw7, libnspr4-0d , libc6 , lesstif2, libxt6, libfreetype6 (>= 2.3.5), libpng12-0 (>= 1.2), libxext6, libmozjs0d (>= 1.8), zlib1g , libjpeg62, libexpat1 (>= 1.95.8), libgl1-mesa-glx | libgl1, libx11-6
+Recommends: ttf-bitstream-vera
 Description: FreeWRL X3D/VRML browser 

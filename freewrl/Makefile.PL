@@ -333,6 +333,7 @@ sub writeMakefileInitialize() {
 	    $MYDEFINE = "$MYDEFINE -DDEBUG -D_DEBUG -DPLUGINSOCKETVERBOSE";
 	}
 	print MK "DEFINE = $noStackProtector $MYDEFINE\n";
+	print MK "FWFLAGS = -fPIC\n";
 	#print MK "FWFLAGS = -c -Wall -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
 
 	# different firefox plugin location for AMD64 and 32 bit processors on at least Ubuntu 
