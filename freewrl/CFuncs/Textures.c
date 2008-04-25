@@ -1638,13 +1638,12 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 	image_width = CGImageGetWidth(image);
 	image_height = CGImageGetHeight(image);
 
-	/*
-	printf ("ok, so we have this image of bitsperpix %d; bitspercomponent %d; bytesperrow %d; height %d width %d\n",
+/*	printf ("ok, so we have this image of bitsperpix %d; bitspercomponent %d; bytesperrow %d; height %d width %d\n",
 		CGImageGetBitsPerPixel(image),
 		CGImageGetBitsPerComponent(image),
 		CGImageGetBytesPerRow(image),
 		image_height, image_width); 
-	*/
+*/
 
 	/* now, lets "draw" this so that we get the exact bit values */
 	cgctx = CreateARGBBitmapContext(image);
@@ -1652,6 +1651,11 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 	CGContextDrawImage(cgctx, rect,image);
 
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
+
+	/* is there possibly an error here, like a file that is not a texture? */
+	if (CGImageGetBitsPerPixel(image) == 0) {
+		ConsoleMessage ("texture file invalid: %s",loadThisTexture->filename);
+	}
 
 	if (data != NULL) {
 		/* printf ("bit depth is %d / %d, if it is 4 we will look for alpha\n",

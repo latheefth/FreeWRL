@@ -320,7 +320,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	/* try reading the first 4 bytes into the firstBytes array */
 	if (ok) {
 		if (fread(firstBytes,1,4,fp)!=4) {
-			printf ("file %s exists, but has a length < 4; can not determine type from first bytes\n",cacheFileName);
+			ConsoleMessage ("file %s exists, but has a length < 4; can not determine type from first bytes\n",cacheFileName);
 			/* a file with less than 4 bytes in it. fill in the firstBytes with "something" */
 			firstBytes[0] = 0;
 			firstBytes[1] = 0;
