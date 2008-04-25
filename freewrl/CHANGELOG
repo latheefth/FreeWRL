@@ -1,3 +1,7 @@
+For 1.20.4
+	- Linux, if a texture comes in, but is invalid, handle this in a nicer way than
+	  before. - print up a message, and continue.
+
 For 1.20.3
 	- VisibilitySensors were not properly added to new internal scenegraph code, so were not working
 	  reliably.

@@ -255,6 +255,7 @@ void init_multitexture_handling() {
 
 /* this node has changed - if there was a texture, destroy it */
 void releaseTexture(struct X3D_Node *node) {
+
 	int tableIndex;
 	struct textureTableIndexStruct *ti;
 
@@ -269,6 +270,7 @@ void releaseTexture(struct X3D_Node *node) {
 	#ifdef TEXVERBOSE
 	printf ("releaseTexture, calling getTableIndex\n");
 	ti = getTableIndex(tableIndex);
+	printf ("releaseTexture, ti %u, ti->status %d\n",ti,ti->status);
 	ti->status = TEX_NOTLOADED;
 
 	if (ti->OpenGLTexture != NULL) {
@@ -1237,6 +1239,10 @@ int findTextureFile (int cwo, int *istemp) {
 
 	#else	
 	if (loadThisTexture->nodeType == NODE_ImageTexture) {
+		loadThisTexture->imageType = ID_UNDEFINED;
+		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
+		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
+
 		/* is this a texture type that is *not* handled internally? */
 		if ((strncmp(firstBytes,firstPNG,4) != 0) &&
 		    (strncmp(firstBytes,firstJPG,4) != 0) &&
@@ -1248,6 +1254,7 @@ int findTextureFile (int cwo, int *istemp) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: running convert on %s\n",sysline);
 			#endif
+				printf ("textureThread: running convert on %s\n",sysline);
 
 			if (freewrlSystem (sysline) != TRUE) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
@@ -1756,7 +1763,16 @@ void __reallyloadImageTexture() {
 	filename = loadThisTexture->filename;
 	infile = fopen(filename,"r");
 
-	if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
+
+	/* printf ("reallyLoad on linux, texture type %d\n",loadThisTexture->imageType); */
+
+	/* ok - this is a JPGTexture if specified, or a PNG texture either directly,
+	   or converted. */
+
+	if (loadThisTexture->imageType == JPGTexture) {
+
+
+
 		/* it is not a png file - assume a jpeg file */
 		/* start from the beginning again */
 		rewind (infile);
@@ -1829,6 +1845,8 @@ void __reallyloadImageTexture() {
 			(int)cinfo.output_width,
 			(int)cinfo.output_height,image_data,cinfo.output_components==4);
 	} else {
+		/* assume a PNG, whether direct, or converted from (eg) gif */
+		rc = readpng_init(infile, &image_width, &image_height);
 		if (rc != 0) {
 		releaseTexture(loadThisTexture->scenegraphNode);
 		switch (rc) {
