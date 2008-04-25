@@ -1,4 +1,6 @@
 For 1.20.4
+	- LOD changed to accept either VRML "level" or X3D "children" fields.
+
 	- Texture files that are located, but are invalid textures, are now reported in a more user-friendly
 	  way.
 
