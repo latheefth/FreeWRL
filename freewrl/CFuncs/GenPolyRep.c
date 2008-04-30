@@ -1060,8 +1060,8 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	int t;					/* another loop var		*/
 
 
-	int circular = 0;			/* is spine  closed?		*/
-	int tubular=0;				/* is the 2D curve closed?	*/
+	int circular = FALSE;			/* is spine  closed?		*/
+	int tubular=FALSE;				/* is the 2D curve closed?	*/
 	int spine_is_one_vertix;		/* only one real spine vertix	*/
 
 	float spxlen,spylen,spzlen;		/* help vars for scaling	*/
@@ -1099,11 +1099,9 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	float *endVals;
 	struct SFVec2f *crossSection;
 
-	int Extru_Verbose = 0;
-
-
-	if (Extru_Verbose)
+	#ifdef VERBOSE
 		printf ("VRMLExtrusion.pm start\n");
+	#endif
 
 	/***********************************************************************
 	 *
@@ -1142,7 +1140,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 						break;
 					} else {
 						/* printf ("... we are tubular\n");*/
-						tubular = 1;
+						tubular = TRUE;
 					}
 				}
 			}
@@ -1150,8 +1148,10 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			currentlocn += increment;
 		}
 
-		if (Extru_Verbose)
+		#ifdef VERBOSE
 			printf ("we had nsec %d coords, but now we have %d\n",nsec,currentlocn);
+		#endif
+
 		nsec = currentlocn;
 	}
 
@@ -1159,18 +1159,19 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	/* now that we have removed possible coincident vertices, we can calc ntris */
 	ntri = 2 * (nspi-1) * (nsec-1);
 
-
-	if (Extru_Verbose)
+	#ifdef VERBOSE
 		printf ("so, we have ntri %d nspi %d nsec %d\n",ntri,nspi,nsec);
+	#endif
 
 	/* check if the spline is closed					*/
 
-	if(APPROX(spine[0].c[0], spine[nspi-1].c[0]) &&
-	   APPROX(spine[0].c[1], spine[nspi-1].c[1]) &&
-	   APPROX(spine[0].c[2], spine[nspi-1].c[2]))
-		circular = 1;
+	circular = APPROX(spine[0].c[0], spine[nspi-1].c[0]) &&
+	   		APPROX(spine[0].c[1], spine[nspi-1].c[1]) &&
+	  		APPROX(spine[0].c[2], spine[nspi-1].c[2]);
 
-	if (Extru_Verbose) printf ("tubular %d circular %d\n",tubular, circular);
+	#ifdef VERBOSE
+		printf ("tubular %d circular %d\n",tubular, circular);
+	#endif
 
 
 	/************************************************************************
@@ -1182,17 +1183,22 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			freewrlDie("Only two real vertices in crossSection. Caps not possible!");
 		}
 
-		if(Extru_Verbose && circular && tubular) {
+		#ifdef VERBOSE
+		if(circular && tubular) {
 			printf("Spine and crossSection-curve are closed - how strange! ;-)\n");
 			/* maybe we want to fly in this tunnel? Or it is semi
 			   transparent somehow? It is possible to create
 			   nice figures if you rotate the cap planes... */
 		}
+		#endif
 
 		if(tubular)	nctri=nsec-2;
 		else		nctri=nsec-1;
 
-		if (Extru_Verbose) printf ("nsec = %d, ntri = %d nctri = %d\n",nsec, ntri,nctri);
+		#ifdef VERBOSE
+			printf ("nsec = %d, ntri = %d nctri = %d\n",nsec, ntri,nctri);
+		#endif
+
 
 			/* check if there are colinear points at the beginning of the curve*/
 		sec=0;
@@ -1273,16 +1279,19 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 		tcoordsize = (nctri + (ntri*2))*3;
 
-		if (Extru_Verbose)
+		#ifdef VERBOSE
 			printf ("tcoordsize is %d\n",tcoordsize);
+		# endif
+
 		FREE_IF_NZ (rep_->GeneratedTexCoords);
 		FREE_IF_NZ (rep_->tcindex);
 
 		tcoord = (float *)MALLOC(sizeof(*(rep_->GeneratedTexCoords))*tcoordsize);
 
 		tcindexsize = rep_->ntri*3;
-		if (Extru_Verbose)
+		#ifdef VERBOSE
 			printf ("tcindexsize %d\n",tcindexsize);
+		#endif
 
 		tcindex = (int *)MALLOC(sizeof(*(rep_->tcindex))*tcindexsize);
 
@@ -1313,7 +1322,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	 *	They should have exactly the same SCP, therefore only one of
 	 *	an group of sucessive equal spine vertices (now called SESVs)
 	 *	must be used for calculation.
-	 *	For calculation the previous and next different spine vertix
+	 *	For calculation the previous and next different spine vertex
 	 *	must be known. We save that info in the prev and next fields of
 	 *	the SCP struct.
 	 *	Note: We have start and end SESVs which will be treated differently
@@ -1329,7 +1338,10 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		}
 		if(next_spi<nspi) SCP[next_spi].prev=next_spi-1;
 
-		if(Extru_Verbose) printf("spi=%d next_spi=%d\n",spi,next_spi); /**/
+		#ifdef VERBOSE
+			printf("spi=%d next_spi=%d\n",spi,next_spi); /**/
+		#endif
+
 		prev_spi=spi-1;
 		SCP[spi].next=next_spi;
 		SCP[spi].prev=prev_spi;
@@ -1346,12 +1358,17 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 	/* calculate the SCPs now...						*/
 
-	if (Extru_Verbose) printf (" SCP[0].next = %d, nspi = %d\n",SCP[0].next,nspi);
+	#ifdef VERBOSE
+		printf (" SCP[0].next = %d, nspi = %d\n",SCP[0].next,nspi);
+	#endif
+
 
 
 	if(SCP[0].next==nspi) {
 		spine_is_one_vertix=1;
-		if (Extru_Verbose) printf("All spine vertices are the same!\n");
+		#ifdef VERBOSE
+			printf("All spine vertices are the same!\n");
+		#endif
 
 		/* initialize all y and z values with zero, they will		*/
 		/* be treated as colinear case later then			*/
@@ -1362,12 +1379,12 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			SCP[spi].z=SCP[0].z;
 		}
 	}else{
-		if(Extru_Verbose) {
+		#ifdef VERBOSE
 			for(spi=0;spi<nspi;spi++) {
 				printf("SCP[%d].next=%d, SCP[%d].prev=%d\n",
 					spi,SCP[spi].next,spi,SCP[spi].prev);
 			}
-		}
+		#endif
 
 		/* find spine vertix different to the first spine vertix	*/
 		spi=0;
@@ -1377,8 +1394,9 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		t=nspi-1;
 		while(SCP[t].next==nspi) t--;
 
-		if (Extru_Verbose)
+		#ifdef VERBOSE
 			printf ("now, spi = %d, t = %d\n",spi,t);
+		#endif
 
 		/* for all but the first + last really different spine vertix	*/
 		/* add case for then there are only 2 spines, and spi is already */
@@ -1391,12 +1409,12 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			VEC_FROM_CDIFF(spine[1],spine[0],spp1);
 			VEC_FROM_CDIFF(spine[1],spine[0],spm1);
 	 		VECCP(spp1,spm1,SCP[1].z);
-			if (Extru_Verbose) {
+			#ifdef VERBOSE
 			printf ("just calculated z for spi 0\n");
 			printf("SCP[0].y=[%f,%f,%f], SCP[1].z=[%f,%f,%f]\n",
 				SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
 				SCP[1].z.x,SCP[1].z.y,SCP[1].z.z);
-			}
+			#endif
 		}
 
 		else {
@@ -1407,12 +1425,16 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 				VEC_FROM_CDIFF(spine[SCP[spi].next],spine[spi],spp1);
 				VEC_FROM_CDIFF(spine[SCP[spi].prev],spine[spi],spm1);
 	 			VECCP(spp1,spm1,SCP[spi].z);
-				if (Extru_Verbose) printf ("just calculated z for spi %d\n",spi);
+				#ifdef VERBOSE
+					printf ("just calculated z for spi %d\n",spi);
+				#endif
 	 		}
 		}
 
 	 	if(circular) {
-			if (Extru_Verbose) printf ("we are circular\n");
+			#ifdef VERBOSE
+				printf ("we are circular\n");
+			#endif
 	 		/* calc y for first SCP				*/
 			VEC_FROM_CDIFF(spine[SCP[0].next],spine[SCP[nspi-1].prev],SCP[0].y);
 	 		/* the last is the same as the first */
@@ -1426,7 +1448,9 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			SCP[nspi-1].z=SCP[0].z;
 
 	 	} else {
-			if (Extru_Verbose) printf ("we are not circular\n");
+			#ifdef VERBOSE
+				printf ("we are not circular\n");
+			#endif
 
 	 		/* calc y for first SCP				*/
 			VEC_FROM_CDIFF(spine[SCP[0].next],spine[0],SCP[0].y);
@@ -1440,14 +1464,14 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	 		/* z for the last SCP is the same as for the one before the last*/
 			SCP[nspi-1].z=SCP[SCP[nspi-1].prev].z;
 
-			if (Extru_Verbose) {
+			#ifdef VERBOSE
 			printf("SCP[0].y=[%f,%f,%f], SCP[0].z=[%f,%f,%f]\n",
 				SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
 				SCP[0].z.x,SCP[0].z.y,SCP[0].z.z);
 			printf("SCP[1].y=[%f,%f,%f], SCP[1].z=[%f,%f,%f]\n",
 				SCP[1].y.x,SCP[1].y.y,SCP[1].y.z,
 				SCP[1].z.x,SCP[1].z.y,SCP[1].z.z);
-			}
+			#endif
 		} /* else */
 
 		/* fill the other start SESVs SCPs*/
@@ -1479,14 +1503,19 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		} else
 			if(!APPROX(VECSQ(SCP[spi].z),0)) {
 				/* we got the first, fill the previous		*/
-				if(Extru_Verbose) printf("Found z-Value!\n");
+				#ifdef VERBOSE
+					printf("Found z-Value!\n");
+				#endif
+
 				for(t=spi-1; t>-1; t--)
 					SCP[t].z=SCP[spi].z;
 	 			pos_of_last_zvalue=spi;
 			}
 	}
 
-	if(Extru_Verbose) printf("pos_of_last_zvalue=%d\n",pos_of_last_zvalue);
+	#ifdef VERBOSE
+		printf("pos_of_last_zvalue=%d\n",pos_of_last_zvalue);
+	#endif
 
 
 	/* z axis flipping, if VECPT(SCP[i].z,SCP[i-1].z)<0 			*/
@@ -1494,14 +1523,24 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	for(spi=(circular?2:1);spi<nspi;spi++) {
 		if(VECPT(SCP[spi].z,SCP[spi-1].z)<0) {
 			VECSCALE(SCP[spi].z,-1);
-			if(Extru_Verbose)
+			#ifdef VERBOSE
 			    printf("Extrusion.GenPloyRep: Flipped axis spi=%d\n",spi);
+			#endif
 		}
 	} /* for */
 
 	/* One case is missing: whole spine is colinear				*/
 	if(pos_of_last_zvalue==-1) {
-		if (Extru_Verbose) printf("Extrusion.GenPloyRep:Whole spine is colinear!\n");
+		int majorX = FALSE;
+		int majorY = FALSE;
+		int majorZ = FALSE;
+		int minorX = FALSE;
+		int minorY = FALSE;
+		int minorZ = FALSE;
+
+		#ifdef VERBOSE
+			printf("Extrusion.GenPloyRep:Whole spine is colinear!\n");
+		#endif
 
 		/* this is the default, if we don`t need to rotate		*/
 		spy.x=0; spy.y=1; spy.z=0;
@@ -1523,12 +1562,25 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 			/* normalize the non trivial vector */
 			spylen=1/sqrt(VECSQ(spp1)); VECSCALE(spp1,spylen);
-			if(Extru_Verbose)
+			#ifdef VERBOSE
 				printf("Reference vector along spine=[%f,%f,%f]\n",
 					spp1.x,spp1.y,spp1.z);
+			#endif
 
 
-			if(!(APPROX(spp1.x,0))) {
+			if ((fabs(spp1.x) >= fabs(spp1.y)) && (fabs(spp1.x) >= fabs(spp1.z))) majorX = TRUE;
+			else if ((fabs(spp1.y) >= fabs(spp1.x)) && (fabs(spp1.y) >= fabs(spp1.z))) majorY = TRUE;
+			else majorZ = TRUE;
+			if ((fabs(spp1.x) <= fabs(spp1.y)) && (fabs(spp1.x) <= fabs(spp1.z))) minorX = TRUE;
+			else if ((fabs(spp1.y) <= fabs(spp1.x)) && (fabs(spp1.y) <= fabs(spp1.z))) minorY = TRUE;
+			else minorZ = TRUE;
+
+			#ifdef VERBOSE
+			printf ("major axis %d %d %d\n",majorX, majorY, majorZ);
+			printf ("minor axis %d %d %d\n",minorX, minorY, minorZ);
+			#endif
+
+			if(majorX) {
 				/* get the angle for the x axis rotation	*/
 				/* asin of 1.0000 seems to fail sometimes, so */
 				if (spp1.x >= 0.99999) { alpha = asin(0.9999);
@@ -1537,13 +1589,16 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 				if(APPROX(cos(alpha),0))
 					gamma=0;
 				else {
+
 					gamma=acos(spp1.y / cos(alpha) );
 					if(fabs(sin(gamma)-(-spp1.z/cos(alpha))
 						)>fabs(sin(gamma)))
 						gamma=-gamma;
 				}
 
-	 			if(Extru_Verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
+	 			#ifdef VERBOSE
+					printf("alpha=%f gamma=%f\n",alpha,gamma);
+				#endif
 
 				spy.y=-(cos(alpha)*(-sin(gamma)));
 				spy.z=cos(alpha)*cos(gamma);
@@ -1551,23 +1606,36 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 				spz.y=-(sin(alpha)*sin(gamma));
 				spz.z=(-sin(alpha))*cos(gamma);
 				spz.x=cos(alpha);
-			}
-			if(!(APPROX(spp1.z,0))) {
+			} else if(majorZ) {
 				/* get the angle for the z axis rotation	*/
 				/* asin of 1.0000 seems to fail sometimes, so */
-				if (spp1.z >= 0.99999) { alpha = asin(0.9999);
-				} else if (spp1.z <= -0.99999) { alpha = asin(-0.9999);
+#ifdef VERBOSE
+printf ("majorZ, spp1.z = %f\n",spp1.z);
+#endif
+
+				if (spp1.z >= 0.99999) { 
+					alpha = asin(0.9999);
+				} else if (spp1.z <= -0.99999) { 
+					alpha = asin(-0.9999);
 				} else alpha=asin((double)spp1.z);
+#ifdef VERBOSE
+printf ("so, now alpha is %f\n",alpha);
+#endif
+
 				if(APPROX(cos(alpha),0))
 					gamma=0;
 				else {
-					gamma=acos(spp1.y / cos(alpha) );
-					if(fabs(sin(gamma)-(-spp1.x/cos(alpha))
+					if (minorX) gamma=acos(spp1.x / cos(alpha));
+					else gamma=acos(spp1.y / cos(alpha)); /* minorY */
+
+					if(fabs(sin(gamma)-(-spp1.y/cos(alpha))
 						)>fabs(sin(gamma)))
 						gamma=-gamma;
 				}
 
-	 			if(Extru_Verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
+	 			#ifdef VERBOSE
+					printf("alpha=%f gamma=%f\n",alpha,gamma);
+				#endif
 				spy.y=-(cos(alpha)*(-sin(gamma)));
 				spy.x=cos(alpha)*cos(gamma);
 				spy.z=sin(alpha);
@@ -1575,9 +1643,11 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 				spz.x=(-sin(alpha))*cos(gamma);
 				spz.z=cos(alpha);
 			}
+		} 
 
-
-		} /* else */
+		#ifdef VERBOSE
+		printf ("so, spy [%f %f %f], spz [%f %f %f]\n", spy.x, spy.y,spy.z, spz.x, spz.y, spz.z);
+		#endif
 
 		/* apply new y and z values to all SCPs	*/
 		for(spi=0;spi<nspi;spi++) {
@@ -1587,13 +1657,13 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 	} /* if all colinear */
 
-	if(Extru_Verbose) {
+	#ifdef VERBOSE
 		for(spi=0;spi<nspi;spi++) {
 			printf("SCP[%d].y=[%f,%f,%f], SCP[%d].z=[%f,%f,%f]\n",
 				spi,SCP[spi].y.x,SCP[spi].y.y,SCP[spi].y.z,
 				spi,SCP[spi].z.x,SCP[spi].z.y,SCP[spi].z.z);
 		}
-	}
+	#endif
 
 
 	/************************************************************************
@@ -1712,7 +1782,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		denominator,	/* ... */
 		numerator;	/* ... */
 
-	if(Extru_Verbose) {
+	#ifdef VERBOSE
 		printf("Coords: \n");
 
 		for(x=0; x<nsec; x++) {
@@ -1725,7 +1795,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		printf("\n");
 		}
 		printf("\n");
-	}
+	#endif
 
 
 	/* Now, lay out the spines/sections, and generate triangles */
@@ -1778,7 +1848,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	    	VEC_FROM_COORDDIFF(coord,B,coord,A,ab);
 	  	VEC_FROM_COORDDIFF(coord,D,coord,C,cd);
 		/* ca=-ac */
-		if(Extru_Verbose) {
+		#ifdef VERBOSE
 			printf("ab=[%f,%f,%f],cd=[%f,%f,%f]\n",
 				ab.x,ab.y,ab.z,cd.x,cd.y,cd.z);
 			printf("Orig: %d %d  [%f %f %f] [%f %f %f] (%d, %d, %d) \n",
@@ -1787,7 +1857,8 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 					coord[C*3], coord[C*3+1], coord[C*3+2],
 					ncoord, nsec, nspi
 			);
-		}
+		#endif
+
 		denominator= ab.y*cd.x-ab.x*cd.y;
 		numerator  = (-ac.x)*cd.y-(-ac.y)*cd.x;
 
@@ -1807,17 +1878,23 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 				}
 			}
 		} /* else */
-		if(Extru_Verbose) printf("u=%f, r=%f\n",u,r);
+		#ifdef VERBOSE
+			printf("u=%f, r=%f\n",u,r);
+		#endif
+
 		if(u>=0 && u<=1 && r>=0 && r<=1
 			&& APPROX((-ac.x)+u*ab.x,r*cd.x)
 			&& APPROX((-ac.y)+u*ab.y,r*cd.y)
 			&& APPROX((-ac.z)+u*ab.z,r*cd.z)) {
 
-			if(Extru_Verbose) printf("Intersection found at P=[%f,%f,%f]!\n",
+			#ifdef VERBOSE
+				printf("Intersection found at P=[%f,%f,%f]!\n",
 				coord[A*3]+u*ab.x,
 				coord[A*3+1]+u*ab.y,
 				coord[A*3+2]+u*ab.y
 				);
+			#endif
+
 			coord[(ncoord)*3  ]=coord[A*3  ]+u*ab.x;
 			coord[(ncoord)*3+1]=coord[A*3+1]+u*ab.y;
 			coord[(ncoord)*3+2]=coord[A*3+2]+u*ab.z;
@@ -2041,7 +2118,9 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			}
 		}
 
-	if (Extru_Verbose) printf ("done, lets free\n");
+	#ifdef VERBOSE
+		printf ("done, lets free\n");
+	#endif
 
 	/* we no longer need to keep normal-generating memory around */
 	FREE_IF_NZ (defaultface);
@@ -2061,13 +2140,13 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	FREE_IF_NZ (tcindex);
 
 
-	if(Extru_Verbose)
+	#ifdef VERBOSE
 		printf("Extrusion.GenPloyRep: triind=%d  ntri=%d nctri=%d "
 		"ncolinear_at_begin=%d ncolinear_at_end=%d\n",
 		triind,ntri,nctri,ncolinear_at_begin,ncolinear_at_end);
 
-	if(Extru_Verbose)
 		printf ("end VRMLExtrusion.pm\n");
+	#endif
 
 	/*****end of Member Extrusion	*/
 }
