@@ -962,6 +962,130 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	FREE_IF_NZ (faceok);
 	FREE_IF_NZ (pointfaces);
 }
+/********************************************************************************************/
+/* get a valid alpha angle from that that is passed in */
+/* asin of 1.0000 seems to fail sometimes, so */
+double getAlpha(float ang) {
+	if (ang >= 0.99999) return asin(0.9999);
+	else if (ang <= -0.99999) return asin(-0.9999);
+	return asin((double)ang);
+}
+
+
+double getGamma(double alpha, double minor) {
+	double gamma;
+
+	if(APPROX(cos(alpha),0))
+		return (double) 0;
+	else {
+		gamma=acos(minor / cos(alpha));
+		if(fabs(sin(gamma)-(-minor/cos(alpha)))>fabs(sin(gamma))) gamma=-gamma;
+	}
+	return gamma;
+}
+
+void compute_spy_spz(struct pt *spy, struct pt *spz, struct SFColor *spine, int nspi) {
+	int majorX = FALSE;
+	int majorY = FALSE;
+	int majorZ = FALSE;
+	int minorX = FALSE;
+	int minorY = FALSE;
+	int minorZ = FALSE;
+	double alpha,gamma;	/* angles for the rotation	*/
+	int spi;
+	float spylen;
+	struct pt spp1;
+
+
+	/* need to find the rotation from SCP[spi].y to (0 1 0)*/
+	/* and rotate (0 0 1) and (0 1 0) to be the new y and z	*/
+	/* values for all SCPs					*/
+	/* I will choose rotation about the x and z axis	*/
+
+	/* search a non trivial vector along the spine */
+	for(spi=1;spi<nspi;spi++) {
+		VEC_FROM_CDIFF(spine[spi],spine[0],spp1);
+		if(!APPROX(VECSQ(spp1),0))
+ 			break;
+ 	}
+
+	/* normalize the non trivial vector */
+	spylen=1/sqrt(VECSQ(spp1)); VECSCALE(spp1,spylen);
+	#ifdef VERBOSE
+		printf("Reference vector along spine=[%f,%f,%f]\n", spp1.x,spp1.y,spp1.z);
+	#endif
+
+
+	/* find the major and minor axes */
+	if ((fabs(spp1.x) >= fabs(spp1.y)) && (fabs(spp1.x) >= fabs(spp1.z))) majorX = TRUE;
+	else if ((fabs(spp1.y) >= fabs(spp1.x)) && (fabs(spp1.y) >= fabs(spp1.z))) majorY = TRUE;
+	else majorZ = TRUE;
+	if ((fabs(spp1.x) <= fabs(spp1.y)) && (fabs(spp1.x) <= fabs(spp1.z))) minorX = TRUE;
+	else if ((fabs(spp1.y) <= fabs(spp1.x)) && (fabs(spp1.y) <= fabs(spp1.z))) minorY = TRUE;
+	else minorZ = TRUE;
+
+	#ifdef VERBOSE
+	printf ("major axis %d %d %d\n",majorX, majorY, majorZ);
+	printf ("minor axis %d %d %d\n",minorX, minorY, minorZ);
+	#endif
+
+	if(majorX) {
+		/* get the angle for the x axis rotation	*/
+		/* asin of 1.0000 seems to fail sometimes, so */
+
+		alpha = getAlpha(spp1.x);
+		gamma = getGamma(alpha,minorY?spp1.y:spp1.z);
+
+		#ifdef VERBOSE
+			printf("majorX: alpha=%f gamma=%f\n",alpha,gamma);
+		#endif
+
+
+		/* XXX: should we use the minor axis to determine the order of minor calculations???? */
+		spy->y=-(cos(alpha)*(-sin(gamma)));
+		spy->z=cos(alpha)*cos(gamma);
+		spy->x=sin(alpha);
+		spz->y=-(sin(alpha)*sin(gamma));
+		spz->z=(-sin(alpha))*cos(gamma);
+		spz->x=cos(alpha);
+	} else if(majorZ) {
+		/* get the angle for the z axis rotation	*/
+
+		alpha = getAlpha(spp1.z);
+		gamma = getGamma(alpha,minorX?spp1.x:spp1.y);
+
+		#ifdef VERBOSE
+			printf("majorZ: alpha=%f gamma=%f\n",alpha,gamma);
+		#endif
+		/* XXX: should we use the minor axis to determine the order of minor calculations???? */
+		spy->y=-(cos(alpha)*(-sin(gamma)));
+		spy->x=cos(alpha)*cos(gamma);
+		spy->z=sin(alpha);
+		spz->y=-(sin(alpha)*sin(gamma));
+		spz->x=(-sin(alpha))*cos(gamma);
+		spz->z=cos(alpha);
+	} else {
+		/* get the angle for the y axis rotation	*/
+
+		alpha = getAlpha(spp1.y);
+		gamma = getGamma(alpha,minorX?spp1.x:spp1.z);
+
+		#ifdef VERBOSE
+			printf("majorY: lpha=%f gamma=%f\n",alpha,gamma);
+		#endif
+		/* XXX: should we use the minor axis to determine the order of minor calculations???? */
+		spy->x=-(cos(alpha)*(-sin(gamma)));
+		spy->z=cos(alpha)*cos(gamma);
+		spy->y=sin(alpha);
+		spz->x=-(sin(alpha)*sin(gamma));
+		spz->z=(-sin(alpha))*cos(gamma);
+		spz->y=cos(alpha);
+	}
+} 
+
+
+
+
 
 /***************************************************************
    stream the extrusion texture coords. We do this now because 
@@ -999,7 +1123,7 @@ void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_,
 }
 
 
-void make_Extrusion(struct X3D_Extrusion *this_) {
+void make_Extrusion(struct X3D_Extrusion *node) {
 
 	/*****begin of Member Extrusion	*/
 	/* This code originates from the file VRMLExtrusion.pm */
@@ -1007,21 +1131,21 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	int tcoordsize;
 	int tcindexsize;
 
-	int nspi = ((this_->spine).n);			/* number of spine points	*/
-	int nsec = ((this_->crossSection).n);		/* no. of points in the 2D curve
-						   but note that this is verified
-						   and coincident points thrown out */
+	int nspi = node->spine.n;			/* number of spine points	*/
+	int nsec = node->crossSection.n;		/* no. of points in the 2D curve
+							   but note that this is verified
+							   and coincident points thrown out */
 
-	int nori = ((this_->orientation).n);		/* no. of given orientators
-						   which rotate the calculated SCPs =
-						   spine-aligned cross-section planes*/
-	int nsca = ((this_->scale).n);			/* no. of scale parameters	*/
+	int nori = node->orientation.n;			/* no. of given orientators
+							   which rotate the calculated SCPs =
+							   spine-aligned cross-section planes*/
+	int nsca = node->scale.n;			/* no. of scale parameters	*/
 
-	struct SFColor *spine =((this_->spine).p);	/* vector of spine vertices	*/
-	struct SFVec2f *curve =((this_->crossSection).p);/* vector of 2D curve points	*/
-	struct SFRotation *orientation=((this_->orientation).p);/*vector of SCP rotations*/
+	struct SFColor *spine =node->spine.p;		/* vector of spine vertices	*/
+	struct SFVec2f *curve =node->crossSection.p;	/* vector of 2D curve points	*/
+	struct SFRotation *orientation=node->orientation.p;/*vector of SCP rotations*/
 
-	struct X3D_PolyRep *rep_=(struct X3D_PolyRep *)this_->_intern;/*internal rep, we want to fill*/
+	struct X3D_PolyRep *rep_=(struct X3D_PolyRep *)node->_intern;/*internal rep, we want to fill*/
 
 	/* the next variables will point at members of *rep		*/
 	int   *cindex;				/* field containing indices into
@@ -1062,7 +1186,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 	int circular = FALSE;			/* is spine  closed?		*/
 	int tubular=FALSE;				/* is the 2D curve closed?	*/
-	int spine_is_one_vertix;		/* only one real spine vertix	*/
+	int spine_is_one_vertex;		/* only one real spine vertix	*/
 
 	float spxlen,spylen,spzlen;		/* help vars for scaling	*/
 
@@ -1088,8 +1212,8 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	int	*defaultface = 0;
 	int	this_face = 0;			/* always counts up		*/
 	int	tmp;
-	float creaseAngle = (this_->creaseAngle);
-	int	ccw = ((this_->ccw));
+	float creaseAngle = node->creaseAngle;
+	int	ccw = node->ccw;
 	int	end_of_sides;			/* for triangle normal generation,
 						   keep track of where the sides end
 						   and caps begin		*/
@@ -1178,7 +1302,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	 * calc number of triangles per cap, if caps are enabled and possible
 	 */
 
-	if(((this_->beginCap))||((this_->endCap))) {
+	if(node->beginCap||node->endCap) {
 		if(tubular?nsec<4:nsec<3) {
 			freewrlDie("Only two real vertices in crossSection. Caps not possible!");
 		}
@@ -1231,12 +1355,12 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	 	}
 
 		/* so we have calculated nctri for one cap, but we might have two*/
-		nctri= ((((this_->beginCap)))?nctri:0) + ((((this_->endCap)))?nctri:0) ;
+		nctri= ((node->beginCap)?nctri:0) + ((node->endCap)?nctri:0) ;
 	}
 
 	/* if we have non-convex polygons, we might need a few triangles more	*/
 	/* 	The unused memory will be freed with realloc later		*/
-	if(!((this_->convex))) {
+	if(!node->convex) {
 
 		max_ncoord_add=(nspi-1)*(nsec-1) /* because of intersections	*/
 				+nctri;		/* because of cap tesselation	*/
@@ -1314,7 +1438,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 	 * calculate all SCPs
 	 */
 
-	spine_is_one_vertix=0;
+	spine_is_one_vertex=0;
 
 	/* fill the prev and next values in the SCP structs first
 	 *
@@ -1365,7 +1489,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 
 	if(SCP[0].next==nspi) {
-		spine_is_one_vertix=1;
+		spine_is_one_vertex=1;
 		#ifdef VERBOSE
 			printf("All spine vertices are the same!\n");
 		#endif
@@ -1531,12 +1655,6 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 	/* One case is missing: whole spine is colinear				*/
 	if(pos_of_last_zvalue==-1) {
-		int majorX = FALSE;
-		int majorY = FALSE;
-		int majorZ = FALSE;
-		int minorX = FALSE;
-		int minorY = FALSE;
-		int minorZ = FALSE;
 
 		#ifdef VERBOSE
 			printf("Extrusion.GenPloyRep:Whole spine is colinear!\n");
@@ -1546,104 +1664,9 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 		spy.x=0; spy.y=1; spy.z=0;
 		spz.x=0; spz.y=0; spz.z=1;
 
-		if(!spine_is_one_vertix) {
-			/* need to find the rotation from SCP[spi].y to (0 1 0)*/
-			/* and rotate (0 0 1) and (0 1 0) to be the new y and z	*/
-			/* values for all SCPs					*/
-			/* I will choose roation about the x and z axis		*/
-			double alpha,gamma;	/* angles for the rotation	*/
-
-			/* search a non trivial vector along the spine */
-			for(spi=1;spi<nspi;spi++) {
-				VEC_FROM_CDIFF(spine[spi],spine[0],spp1);
-				if(!APPROX(VECSQ(spp1),0))
-	 				break;
-	 		}
-
-			/* normalize the non trivial vector */
-			spylen=1/sqrt(VECSQ(spp1)); VECSCALE(spp1,spylen);
-			#ifdef VERBOSE
-				printf("Reference vector along spine=[%f,%f,%f]\n",
-					spp1.x,spp1.y,spp1.z);
-			#endif
-
-
-			if ((fabs(spp1.x) >= fabs(spp1.y)) && (fabs(spp1.x) >= fabs(spp1.z))) majorX = TRUE;
-			else if ((fabs(spp1.y) >= fabs(spp1.x)) && (fabs(spp1.y) >= fabs(spp1.z))) majorY = TRUE;
-			else majorZ = TRUE;
-			if ((fabs(spp1.x) <= fabs(spp1.y)) && (fabs(spp1.x) <= fabs(spp1.z))) minorX = TRUE;
-			else if ((fabs(spp1.y) <= fabs(spp1.x)) && (fabs(spp1.y) <= fabs(spp1.z))) minorY = TRUE;
-			else minorZ = TRUE;
-
-			#ifdef VERBOSE
-			printf ("major axis %d %d %d\n",majorX, majorY, majorZ);
-			printf ("minor axis %d %d %d\n",minorX, minorY, minorZ);
-			#endif
-
-			if(majorX) {
-				/* get the angle for the x axis rotation	*/
-				/* asin of 1.0000 seems to fail sometimes, so */
-				if (spp1.x >= 0.99999) { alpha = asin(0.9999);
-				} else if (spp1.x <= -0.99999) { alpha = asin(-0.9999);
-				} else alpha=asin((double)spp1.x);
-				if(APPROX(cos(alpha),0))
-					gamma=0;
-				else {
-
-					gamma=acos(spp1.y / cos(alpha) );
-					if(fabs(sin(gamma)-(-spp1.z/cos(alpha))
-						)>fabs(sin(gamma)))
-						gamma=-gamma;
-				}
-
-	 			#ifdef VERBOSE
-					printf("alpha=%f gamma=%f\n",alpha,gamma);
-				#endif
-
-				spy.y=-(cos(alpha)*(-sin(gamma)));
-				spy.z=cos(alpha)*cos(gamma);
-				spy.x=sin(alpha);
-				spz.y=-(sin(alpha)*sin(gamma));
-				spz.z=(-sin(alpha))*cos(gamma);
-				spz.x=cos(alpha);
-			} else if(majorZ) {
-				/* get the angle for the z axis rotation	*/
-				/* asin of 1.0000 seems to fail sometimes, so */
-#ifdef VERBOSE
-printf ("majorZ, spp1.z = %f\n",spp1.z);
-#endif
-
-				if (spp1.z >= 0.99999) { 
-					alpha = asin(0.9999);
-				} else if (spp1.z <= -0.99999) { 
-					alpha = asin(-0.9999);
-				} else alpha=asin((double)spp1.z);
-#ifdef VERBOSE
-printf ("so, now alpha is %f\n",alpha);
-#endif
-
-				if(APPROX(cos(alpha),0))
-					gamma=0;
-				else {
-					if (minorX) gamma=acos(spp1.x / cos(alpha));
-					else gamma=acos(spp1.y / cos(alpha)); /* minorY */
-
-					if(fabs(sin(gamma)-(-spp1.y/cos(alpha))
-						)>fabs(sin(gamma)))
-						gamma=-gamma;
-				}
-
-	 			#ifdef VERBOSE
-					printf("alpha=%f gamma=%f\n",alpha,gamma);
-				#endif
-				spy.y=-(cos(alpha)*(-sin(gamma)));
-				spy.x=cos(alpha)*cos(gamma);
-				spy.z=sin(alpha);
-				spz.y=-(sin(alpha)*sin(gamma));
-				spz.x=(-sin(alpha))*cos(gamma);
-				spz.z=cos(alpha);
-			}
-		} 
+		if(!spine_is_one_vertex) {
+			compute_spy_spz(&spy,&spz,spine,nspi);
+		}
 
 		#ifdef VERBOSE
 		printf ("so, spy [%f %f %f], spz [%f %f %f]\n", spy.x, spy.y,spy.z, spz.x, spz.y, spz.z);
@@ -1685,7 +1708,8 @@ printf ("so, now alpha is %f\n",alpha);
 
 	for(spi = 0; spi<nspi; spi++) {
 		double m[3][3];		/* space for the rotation matrix	*/
-		spy=SCP[spi].y; spz=SCP[spi].z;
+		spy=SCP[spi].y; 
+		spz=SCP[spi].z;
 		VECCP(spy,spz,spx);
 		spylen = 1/sqrt(VECSQ(spy)); VECSCALE(spy, spylen);
 		spzlen = 1/sqrt(VECSQ(spz)); VECSCALE(spz, spzlen);
@@ -1713,8 +1737,8 @@ printf ("so, now alpha is %f\n",alpha);
 			float ptz = crossSection[sec].c[1];
 			if(nsca) {
 				int sca = (nsca==nspi ? spi : 0);
-				ptx *= ((this_->scale).p[sca]).c[0];
-				ptz *= ((this_->scale).p[sca]).c[1];
+				ptx *= node->scale.p[sca].c[0];
+				ptz *= node->scale.p[sca].c[1];
 	 		}
 			point.x = ptx;
 			point.y = 0;
@@ -1740,13 +1764,13 @@ printf ("so, now alpha is %f\n",alpha);
 
 		   coord[(sec+spi*nsec)*3+0] =
 		    spx.x * point.x + spy.x * point.y + spz.x * point.z
-		    + ((this_->spine).p[spi]).c[0];
+		    + node->spine.p[spi].c[0];
 		   coord[(sec+spi*nsec)*3+1] =
 		    spx.y * point.x + spy.y * point.y + spz.y * point.z
-		    + ((this_->spine).p[spi]).c[1];
+		    + node->spine.p[spi].c[1];
 		   coord[(sec+spi*nsec)*3+2] =
 		    spx.z * point.x + spy.z * point.y + spz.z * point.z
-		    + ((this_->spine).p[spi]).c[2];
+		    + node->spine.p[spi].c[2];
 
 		} /* for(sec */
 	} /* for(spi */
@@ -1844,7 +1868,7 @@ printf ("so, now alpha is %f\n",alpha);
 
 	  /* if concave polygons are expected, we also expect intersecting ones
 	  	so we are testing, whether A-B and D-C intersect	*/
-	  if(!((this_->convex))) {
+	  if(!node->convex) {
 	    	VEC_FROM_COORDDIFF(coord,B,coord,A,ab);
 	  	VEC_FROM_COORDDIFF(coord,D,coord,C,cd);
 		/* ca=-ac */
@@ -1955,7 +1979,7 @@ printf ("so, now alpha is %f\n",alpha);
 	   doing textures in the end caps */
 	tci_ct = nspi*nsec;
 
-	if(((this_->convex))) {
+	if(node->convex) {
 		int endpoint;
 
 		int triind_start; 	/* textures need 2 passes */
@@ -1968,7 +1992,7 @@ printf ("so, now alpha is %f\n",alpha);
 		/* printf ("beginCap, starting at triind %d\n",triind);*/
 
 		/* this is the simple case with convex polygons	*/
-		if(((this_->beginCap))) {
+		if(node->beginCap) {
 			triind_start = triind;
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
@@ -1985,7 +2009,7 @@ printf ("so, now alpha is %f\n",alpha);
 			this_face++;
 		} /* if beginCap */
 
-		if(((this_->endCap))) {
+		if(node->endCap) {
 			triind_start = triind;
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
@@ -2006,7 +2030,7 @@ printf ("so, now alpha is %f\n",alpha);
 	 	/* for (tmp=0;tmp<tcindexsize; tmp++) printf ("index1D %d tcindex %d\n",tmp,tcindex[tmp]);*/
 
 	} else
-	    if(((this_->beginCap))||((this_->endCap))) {
+	    if(node->beginCap||node->endCap) {
 		/* polygons might be concave-> do tessellation			*/
 		/* XXX - no textures yet - Linux Tesselators give me enough headaches;
 		   lets wait until they are all ok before trying texture mapping */
@@ -2024,7 +2048,7 @@ printf ("so, now alpha is %f\n",alpha);
 		else endpoint = nsec-ncolinear_at_end;
 
 
-		if(((this_->beginCap))) {
+		if (node->beginCap) {
 			global_IFS_Coord_count = 0;
 			gluBeginPolygon(global_tessobj);
 
@@ -2056,7 +2080,7 @@ printf ("so, now alpha is %f\n",alpha);
 			this_face++;
 		}
 
-		if(((this_->endCap))){
+		if (node->endCap) {
 			global_IFS_Coord_count = 0;
 			gluBeginPolygon(global_tessobj);
 
