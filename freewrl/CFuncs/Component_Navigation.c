@@ -260,13 +260,13 @@ void child_LOD (struct X3D_LOD *node) {
 			/* VRML "range" field */
                 	if(i >= nnod) i = nnod-1;
                 	node->_selected = (node->level).p[i];
-printf ("selecting vrml nod\n");
+			/* printf ("selecting vrml nod\n"); */
 
 		} else if (xnod > 0) {
 			/* X3D "children" field */
                 	if(i >= xnod) i = xnod-1;
                 	node->_selected = (node->children).p[i];
-printf ("selecting X3D nod %d \n",i);
+			/* printf ("selecting X3D nod %d \n",i); */
 		} else node->_selected = NULL;
         }
         render_node(node->_selected);
