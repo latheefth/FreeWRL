@@ -226,8 +226,6 @@ void child_LOD (struct X3D_LOD *node) {
         int nnod = (node->level).n;
         int xnod = (node->children).n;
         int i;
-printf ("child_LOD, nran %d nnod %d xnod %d\n",nran,nnod,xnod);
-
 
         if(!nran) {
         	void *p = NULL; 
