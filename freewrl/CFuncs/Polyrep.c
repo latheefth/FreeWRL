@@ -343,13 +343,14 @@ void Extru_check_normal (
 	facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]) * direction;
 	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1] * direction;
 
-	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
-		printf ("INTERNAL ERROR: tesselator should not give degenerate triangles back\n");
+	if (APPROX(calc_vector_length (facenormals[this_face]),0.0)) { 
+		ConsoleMessage ("WARNING: FreeWRL got degenerate triangle; OpenGL tesselator should not give degenerate triangles back %f\n",
+			fabs(calc_vector_length (facenormals[this_face])));
 	}
 
 	normalize_vector(&facenormals[this_face]);
-	/* printf ("facenormal for %d is %f %f %f\n",this_face, facenormals[this_face].x,*/
-	/* 		facenormals[this_face].y, facenormals[this_face].z);*/
+	/* printf ("facenormal for %d is %f %f %f\n",this_face, facenormals[this_face].x,
+			facenormals[this_face].y, facenormals[this_face].z); */
 }
 
 /* Tesselated faces MAY have the wrong normal calculated. re-calculate after tesselation	*/
@@ -392,9 +393,9 @@ void IFS_check_normal (
 	facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
 	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
 
-	/* printf ("vector length is %f\n",calc_vector_length (facenormals[this_face]));*/
+	/* printf ("vector length is %f\n",calc_vector_length (facenormals[this_face])); */
 
-	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
+	if (APPROX(calc_vector_length (facenormals[this_face]),0.0)) {
 		/* printf ("warning: Tesselated surface has invalid normal - if this is an IndexedFaceSet, check coordinates of ALL faces\n");*/
 	} else {
 
