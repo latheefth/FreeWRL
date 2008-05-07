@@ -1143,13 +1143,10 @@ void prep_SpotLight (struct X3D_SpotLight *this_);
 void prep_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */
-void prep_GeoLocation (struct X3D_GeoLocation *this_);
-void prep_GeoOrigin (struct X3D_GeoOrigin *this_);
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 #define rendray_GeoElevationGrid render_ray_polyrep
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 void make_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
-void prep_GeoViewpoint(struct X3D_GeoViewpoint *node);
 void fin_GeoLocation (struct X3D_GeoLocation *this_);
 void changed_GeoLocation (struct X3D_GeoLocation *this_);
 void child_GeoLOD (struct X3D_GeoLOD *this_);

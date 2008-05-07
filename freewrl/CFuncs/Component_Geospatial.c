@@ -82,19 +82,6 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	printf ("render_GeoElevationGrid\n");
 }
 
-void prep_GeoOrigin (struct X3D_GeoOrigin *node) {
-	printf ("prep_GeoOrigin\n");
-}
-
-void prep_GeoLocation (struct X3D_GeoLocation *node) {
-	printf ("prep_GeoLocation\n");
-}
-
-
-void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
-	printf ("prep_GeoViewpoint\n");
-}
-
 void fin_GeoLocation (struct X3D_GeoLocation *node) {
 	printf ("fin_GeoLocation\n");
 }

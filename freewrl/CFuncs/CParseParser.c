@@ -1436,7 +1436,7 @@ void parser_registerRoute(struct VRMLParser* me,
 
 /* parse a DEF statement. Return a pointer to a vrmlNodeT */
 static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
-	indexT ind;
+	indexT ind = ID_UNDEFINED;
 	vrmlNodeT node;
 
 	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
@@ -1465,9 +1465,9 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 	/* Parse this node.  Create an X3D_Node structure of the appropriate type for this node and fill in the values for the fields
 	specified.  Add any routes to the CRoutes table. Add any PROTOs to the PROTOs vector */
 	#ifdef CPARSERVERBOSE
-		printf("parser_nodeStatement: parsing DEFed node \n");
+		printf("parser_KW_DEF: parsing DEFed node \n");
 	#endif
-	if(!parser_node(me, &node)) {
+	if(!parser_node(me, &node,ind)) {
 		/* PARSE_ERROR("Expected node in DEF statement!\n") */
 		/* try to make a better error message. */
 		strcpy (fw_outline,"ERROR:Expected an X3D node in a DEF statement, got \"");
@@ -1479,20 +1479,16 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 		return NULL; 
 	}
 	#ifdef CPARSERVERBOSE
-		printf("parser_nodeStatement: DEFed node successfully parsed\n");
+		printf("parser_KW_DEF: DEFed node successfully parsed\n");
 	#endif
 
+#ifdef OLDCODE
 	/* Set the top memmber of the DEFed nodes stack to this node */
 	vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
 	#ifdef CPARSERVERBOSE
 	printf("parser_nodeStatement: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
 	#endif
-
-	/*
-	if(!parser_node(me, &vector_get(struct X3D_Node*,
-	stack_top(struct Vector*, me->DEFedNodes), ind)))
-	PARSE_ERROR("Expected node in DEF statement!\n")
-	*/
+#endif
 
 	/* Return a pointer to the node in the variable ret */
 	return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
@@ -1519,7 +1515,7 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
 		fprintf (stderr,"%s\n",fw_outline);
 	}
 	#ifdef CPARSERVERBOSE
-		printf("parser_nodeStatement: parsing USE\n");
+		printf("parser_KW_USE: parsing USE\n");
 	#endif
 
 	/* If we're USEing it, it has to already be defined. */
@@ -1560,7 +1556,7 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
  }
 
  /* Otherwise, simply a node. */
- return parser_node(me, ret);
+ return parser_node(me, ret, ID_UNDEFINED);
 }
 
 /* Parses a node (node non-terminal) */
@@ -1577,7 +1573,7 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 	For each route in the routes list of the ProtoDefinition, add the route to the CRoutes table.
 	Return a pointer to the X3D_Node structure that is the scenegraph for this PROTO.
 */
-BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret) {
+BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
  indexT nodeTypeB, nodeTypeU;
  struct X3D_Node* node=NULL;
 
@@ -1606,13 +1602,19 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret) {
   node=X3D_NODE(createNewX3DNode(nodeTypeB));
   assert(node);
 
+  /* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
+     some code uses it. eg: DEF xx Transform {children Script {field yy USE xx}} */
+  if (ind != ID_UNDEFINED) {
+	/* Set the top memmber of the DEFed nodes stack to this node */
+	vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
+	#ifdef CPARSERVERBOSE
+	printf("parser_node: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
+	#endif
+  }
+
   /* Node specific initialization */
   /* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to newScript() */
-  if (!me->curPROTO) {
- 	 parser_specificInitNode(node, me);
-   } else {
- 	 parser_specificInitNode(node, me);
-   }
+   parser_specificInitNode(node, me);
 
   /* Set curScript for Script-nodes */
   if(node->_nodeType==NODE_Script)
@@ -2614,7 +2616,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 /* possibly a SFNodeish type value?? */ \
 if (me->lexer->curID != NULL) { \
 	/* printf ("parser_MF, curID was not null (it is %s)... lets just parse node\n",me->lexer->curID); */ \
-	if (!parser_node(me, &RCX)) { \
+	if (!parser_node(me, &RCX, ID_UNDEFINED)) { \
 	/* if(!parser_sf##name##Value(me, RCX)) ... */ \
 		return FALSE; \
 	} \
@@ -2627,7 +2629,7 @@ if (me->lexer->curID != NULL) { \
 if(!lexer_openSquare(me->lexer)) { \
 	vrml##type##T RCXRet; \
 	/* printf ("parser_MF, not an opensquare, lets just parse node\n"); */ \
-	/* if (!parser_node(me, RCXRet)) ... */ \
+	/* if (!parser_node(me, RCXRet, ID_UNDEFINED)) ... */ \
 	if(!parser_sf##name##Value(me, &RCXRet)) { \
 		return FALSE; \
 	} \

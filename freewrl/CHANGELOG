@@ -1,4 +1,7 @@
 For 1.20.4
+	- change order of actual DEF node pointer saving so that, within a DEFine, the name can
+	  be used. (eg, DEF xx Transform{children Script{field yy USE xx}}
+
 	- Javascript - accessing an MFRotation from a specified SFNode gave an error - now fixed.
 
 	- LOD changed to accept either VRML "level" or X3D "children" fields.

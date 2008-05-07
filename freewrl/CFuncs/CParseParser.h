@@ -124,7 +124,7 @@ BOOL parser_protoStatement(struct VRMLParser*);
 BOOL parser_interfaceDeclaration(struct VRMLParser*,
  struct ProtoDefinition*, struct Script*);
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
-BOOL parser_node(struct VRMLParser*, vrmlNodeT*);
+BOOL parser_node(struct VRMLParser*, vrmlNodeT*, indexT);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);
 BOOL parser_fieldEvent(struct VRMLParser*, struct X3D_Node*);
 BOOL parser_fieldEventAfterISPart(struct VRMLParser*, struct X3D_Node*,
