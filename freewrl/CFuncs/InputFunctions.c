@@ -147,7 +147,7 @@ char * readInputString(char *fn, char *parent) {
 		bufcount += justread;
 		/* printf ("just read in %d bytes\n",justread);*/
 
-		if ((bufsize - bufcount) < READSIZE) {
+		if ((bufsize - bufcount-10) < READSIZE) {
 			/* printf ("HAVE TO REALLOC INPUT MEMORY\n");*/
 			bufsize <<=1; 
 
@@ -155,6 +155,8 @@ char * readInputString(char *fn, char *parent) {
 		}
 	} while (justread>0);
 
+	/* make sure we have a carrage return at the end - helps the parser find the end of line. */
+	buffer[bufcount] = '\n'; bufcount++;
 	buffer[bufcount] = '\0';
 	/* printf ("finished read, buffcount %d\n string %s",bufcount,buffer); */
 	fclose (infile);
