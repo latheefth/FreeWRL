@@ -29,7 +29,7 @@ struct FieldDecl
 
 struct FieldDecl* newFieldDecl(indexT, indexT, indexT);
 #define deleteFieldDecl(me) \
- free(me)
+ FREE_IF_NZ(me)
 
 /* Copies */
 #define fieldDecl_copy(me) \

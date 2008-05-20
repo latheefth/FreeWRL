@@ -106,6 +106,213 @@ char fw_outline[2000];
  default: \
   PARSE_ERROR("Unsupported node!")
 
+/************************************************************************************************/
+/* parse an SF/MF; return the parsed value in the defaultVal field */
+BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal) {
+  	assert(PARSE_TYPE[type]);
+  	return PARSE_TYPE[type](me, (void*)defaultVal);
+}
+
+
+void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText) {
+	char *insertedPROTOcode;
+
+	#ifdef CPARSERVERBOSE
+	printf ("****** start of insertProtoExpansionIntoStream\n"); 
+	#endif
+
+	/* skip the lexer along to the end of the proto fields */
+	/* skipToEndOfOpenCurly(me->lexer,0); */
+	
+
+        insertedPROTOcode = MALLOC (sizeof (char) * (strlen (me->lexer->nextIn)+strlen (newProtoText)+1));
+        strcpy (insertedPROTOcode,newProtoText);
+
+	#ifdef CPARSERVERBOSE
+	printf ("****** insertProtoExpansionIntoStream insertedPROTOcode:%s:\n",insertedPROTOcode); 
+	printf ("****** insertProtoExpansionIntoStream me->lexer->nextIn:%s:\n",me->lexer->nextIn);
+	#endif
+
+
+        strcat (insertedPROTOcode,me->lexer->nextIn);
+
+	#ifdef CPARSERVERBOSE
+	printf ("****** insertProtoExpansionIntoStream npt+remainder:%s:\n",insertedPROTOcode); 
+	#endif
+
+
+        parser_fromString(me,insertedPROTOcode);
+
+	#ifdef CPARSERVERBOSE
+	printf ("****** end of insertProtoExpansionIntoStream\n"); 
+	#endif
+
+}
+
+/* put the string value of the PROTO field into the input stream */
+void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize) {
+	struct ProtoFieldDecl* pdecl=NULL;
+	/* find the ascii name, and try and find it's protodefinition by type */
+	#ifdef CPARSERVERBOSE
+	printf ("start of replaceProtoField\n");
+	#endif
+
+	/* BTW - I'm not sure which array to look in, so I end up looking in them all */
+	pdecl = getProtoFieldDeclaration(me,thisProto,thisID);
+	#ifdef CPARSERVERBOSE
+	printf ("replaceProtoField, so, pdecl is %u\n",pdecl);
+	#endif
+
+	if (pdecl!=NULL) {
+		if (pdecl->fieldString!=NULL) {
+			#ifdef CPARSERVERBOSE
+			printf ("PROTO FIELD VALUE IS :%s:\n",pdecl->fieldString);
+			printf ("see if we need to realloc: outSize %d, curlen %d, newlen %d\n",*outSize, strlen(*outTextPtr), strlen (pdecl->fieldString));
+			#endif
+	
+			strcat (*outTextPtr,pdecl->fieldString);
+		} else {
+			#ifdef CPARSERVERBOSE
+			printf ("PROTO FIELD VALUE is NULL, just skip\n");
+			#endif
+	
+		}
+	}
+	#ifdef CPARSERVERBOSE
+	printf ("replaceProtoField returning\n");
+	#endif
+	
+
+}
+
+#define STARTPROTOGROUP "Group{children[ #PROTOGROUP\n"
+#define ENDPROTOGROUP "]}#END PROTOGROUP\n"
+char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
+	char *newProtoText;
+	char *isPtr;
+	char *op;
+	int newProtoTextLen;
+	int validIs;
+	char tmp;
+	char thisID[1000];
+
+	#ifdef CPARSERVERBOSE
+	printf ("start of protoExpand\n");
+	#endif
+
+	*thisProto = protoDefinition_copy(me->lexer, vector_get(struct ProtoDefinition*, me->PROTOs, nodeTypeU));
+	#ifdef CPARSERVERBOSE
+	printf ("expanding proto, protoBody :%s:\n",(*thisProto)->protoBody); 
+	printf ("thisProto %u, me->curPROTO %u\n",(*thisProto),me->curPROTO);
+	#endif
+
+
+	newProtoTextLen = strlen((*thisProto)->protoBody) * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP);
+	newProtoText = MALLOC(newProtoTextLen);
+	newProtoText[0] = '\0';
+	strcat (newProtoText, STARTPROTOGROUP);
+
+	/* printf ("copying proto fields here\n"); */
+	/* copy the proto fields, so that we have either the defined field, or the field at invocation */
+
+	#ifdef CPARSERVERBOSE
+	printf ("\n\ngetProtoInvocationFields being called\n");
+	#endif
+
+	getProtoInvocationFields(me,(*thisProto));
+
+	
+
+	/* change any real "IS"s to the expanded fields */
+	op = (*thisProto)->protoBody;
+
+	#ifdef CPARSERVERBOSE
+	printf ("going to replace any ISs with real parameters in:%s:\n",op);
+	#endif
+
+	while ((isPtr = strstr(op,"IS")) != NULL) {
+		int va = FALSE;
+		char *bef;
+		validIs = FALSE;
+
+		#ifdef CPARSERVERBOSE
+		printf ("isPtr :%s:\n",isPtr);
+		#endif
+
+
+		/* is this a real word, or just "IS" stuffed somewhere in a DEF or something? */
+		/* if we have a valid character before, this is not an IS */
+		if (isPtr != (*thisProto)->protoBody) {
+			bef = isPtr; bef--; va = !IS_ID_FIRST(*bef);
+		} else { va = TRUE; }
+
+		bef = isPtr; bef+=strlen("IS");
+		validIs = va & (!IS_ID_REST(*bef));
+
+		/* copy up to this point */
+		tmp = *isPtr; *isPtr='\0'; 
+		strcat (newProtoText,op);
+		*isPtr=tmp;
+
+		/* is this a valid "IS"? if so, deal with it, if not keep going */
+		if (validIs) {
+			char *st;
+
+			/* this is a real "IS" - find the field, and replace the value */
+			/* printf ("this one is a valid is\n"); */
+			/* now, put the proto expansion on the end of this string */
+
+			isPtr += strlen ("IS");
+			while (isspace (*isPtr)) isPtr++;
+			/* printf ("now at the beginning of the id :%s:\n",isPtr); */
+			st = isPtr;
+			while (IS_ID_REST(*isPtr)) isPtr++;
+
+			/* copy this ID over */
+			tmp = *isPtr; *isPtr= '\0';
+			if (strlen(st) > 1000) {
+				ConsoleMessage ("IS name too large");
+				return ("");
+			}
+			strcpy (thisID,st);
+			#ifdef CPARSERVERBOSE
+			printf ("thisID :%s: ",thisID);
+			#endif
+
+			*isPtr = tmp;
+			#ifdef CPARSERVERBOSE
+			printf ("remainder is  :%s:\n",isPtr);
+			#endif
+
+
+			/* replace the IS ID with it's proto'd value */
+			#ifdef CPARSERVERBOSE
+			printf ("have to get the fieldString for this proto here\n");
+			#endif
+
+			replaceProtoField(me->lexer, *thisProto, thisID,&newProtoText,&newProtoTextLen);
+			op = isPtr;
+		} else {
+			/* printf ("this one is not valid\n"); */
+			strcat (newProtoText, "IS");
+			op = isPtr+strlen("IS");
+		}
+	}
+
+	#ifdef CPARSERVERBOSE
+	printf ("so, newProtoText %s, op %s\n",newProtoText,op);
+	#endif
+
+	strcat (newProtoText,op);
+	strcat (newProtoText,ENDPROTOGROUP);
+
+	#ifdef CPARSERVERBOSE
+	printf ("done replacement of IS; newProtoText is :%s:\n",newProtoText); 
+	#endif
+
+	return newProtoText;
+}
+
 /* ************************************************************************** */
 /* Constructor and destructor */
 
@@ -335,10 +542,12 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
  struct ProtoFieldDecl* pField=NULL;
  struct ScriptFieldDecl* sdecl=NULL;
  BOOL scriptISfield = FALSE;
+ char *startOfField = NULL; char *endOfField = NULL;
 
  #ifdef CPARSERVERBOSE
  printf ("start of parser_interfaceDeclaration\n");
  #endif
+
 
  /* Either PROTO or Script interface! */
  assert((proto || script) && !(proto && script));
@@ -445,10 +654,8 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
 	defaultVal = pField->defaultVal;
 
   } else {
-  	assert(PARSE_TYPE[type]);
-  	if(!PARSE_TYPE[type](me, (void*)&defaultVal))
-  	{
-
+ 	startOfField = me->lexer->nextIn;
+	if (!parseType(me, type, &defaultVal)) {
   		 /* Invalid default value parsed.  Delete the proto or script declaration. */
   		 parseError("Expected default value for field!");
   		 if(pdecl) deleteProtoFieldDecl(pdecl);
@@ -520,6 +727,16 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
  {
   /* protoDefinition_addIfaceField is #defined as vector_pushBack(struct ProtoFieldDecl*, (me)->iface, field) */
   /* Add the protoFieldDecl structure to the iface vector of the protoDefinition structure */
+
+  /* copy the ASCII text over and save it as part of the field */
+  if (startOfField != NULL) {
+	unsigned int sz = me->lexer->nextIn-startOfField;
+	FREE_IF_NZ(pdecl->fieldString);
+	pdecl->fieldString = MALLOC (sz + 2);
+	strncpy(pdecl->fieldString,startOfField,sz);
+	pdecl->fieldString[sz]='\0';
+  }
+  /* printf ("pdecl->fieldString is :%s:\n",pdecl->fieldString); */
   protoDefinition_addIfaceField(proto, pdecl);
  } else
  {
@@ -544,6 +761,12 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 {
  indexT name;
  struct ProtoDefinition* obj;
+ char *startOfBody;
+ char *startOfStringPtr;
+ char *endOfBody;
+ char *initCP;
+ unsigned int bodyLen;
+
 
  /* Really a PROTO? */
  if(!lexer_keyword(me->lexer, KW_PROTO))
@@ -588,10 +811,15 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  if(!lexer_closeSquare(me->lexer))
   PARSE_ERROR("Expected ] after interface declaration!")
 
+
  /* PROTO body */
  /* Make sure that the next oken is a '{'.  Skip over it. */
  if(!lexer_openCurly(me->lexer))
   PARSE_ERROR("Expected { to start PROTO body!")
+
+ /* record the start of this proto body - keep the text around */
+ startOfBody = me->lexer->nextIn;
+ initCP = me->lexer->startOfStringPtr;
 
  /* Create a new vector of nodes and push it onto the DEFedNodes stack */
  /* This is the list of nodes defined for this scope */
@@ -602,8 +830,14 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  {
   /* Store the previous currentProto for future reference, and set the PROTO we are now parsing to the currentProto */
   struct ProtoDefinition* oldCurPROTO=me->curPROTO;
-  me->curPROTO=obj;
- 
+
+	#ifdef CPARSERVERBOSE
+	printf ("about to parse PROTO body; curPROTO = %u, new proto def %u\n",oldCurPROTO,obj);
+	#endif
+
+	me->curPROTO=obj;
+
+#ifdef OLDCODE 
   /* While we are able to parse nodes, routes, and protos, keep doing so */
   while(TRUE)
   {
@@ -649,6 +883,46 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 
    break;
   }
+#endif
+
+	/* just go to the end of the proto body */
+	skipToEndOfOpenCurly(me->lexer,0);
+
+	/* end of the proto body */
+	/* printf ("parsing proto , obj %u me->curPROTO %u ocp %u\n",obj, me->curPROTO,oldCurPROTO); */
+	endOfBody = me->lexer->nextIn;
+	
+	/* has a proto expansion come through here yet? */
+	if (me->lexer->startOfStringPtr != initCP) { 
+		#ifdef CPARSERVERBOSE
+		printf ("parsing proto, body changed!\n");
+		#endif
+
+		startOfBody = me->lexer->startOfStringPtr; }
+
+	bodyLen = endOfBody - startOfBody;
+	#ifdef CPARSERVERBOSE
+	printf ("PROTO has a body of %u len\n",bodyLen);
+	#endif
+
+	/* copy this proto body */
+	me->curPROTO->protoBody = MALLOC (bodyLen+10);
+	strncpy (me->curPROTO->protoBody, startOfBody, bodyLen);
+
+	if (bodyLen>0) {
+		/* printf ("copied this PROTO, but lets see if we need to remove a curly brace... :%c:\n",
+			me->curPROTO->protoBody[bodyLen-1]); */
+		if (me->curPROTO->protoBody[bodyLen-1] == '}') {
+			bodyLen--;
+		}
+	}
+	me->curPROTO->protoBody[bodyLen] = '\n';
+	me->curPROTO->protoBody[bodyLen+1] = '\0';
+
+	#ifdef CPARSERVERBOSE
+	printf ("*** proto body for proto %u is :%s:\n",me, obj->protoBody); 
+	#endif
+
 
   /* We are done parsing this proto.  Set the curPROTO to the last proto we were parsing. */
   me->curPROTO=oldCurPROTO;
@@ -662,8 +936,10 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  printf ("calling lexer_closeCurly at A\n");
  #endif
 
+#ifdef OLDCODE
  if(!lexer_closeCurly(me->lexer))
   PARSE_ERROR("Expected } after PROTO body!")
+#endif
 
  return TRUE;
 }
@@ -713,6 +989,7 @@ BOOL parser_componentStatement(struct VRMLParser* me) {
 
 	return TRUE;
 }
+
 
 BOOL parser_exportStatement(struct VRMLParser* me) {
 	char *nodeToExport = NULL;
@@ -990,7 +1267,8 @@ int temp, tempFE, tempFO, tempTE, tempTO;
    if(!lexer_##eventType(me->lexer, pre##Node, \
     &pre##FieldO, &pre##FieldE, NULL, NULL))  {\
         /* event not found in any built in array.  Error. */ \
-	CPARSE_ERROR_CURID("ERROR:Expected built-in event" #eventType " after .") \
+	printf ("error curID :%s:, here :%s:\n", me->lexer->curID, me->lexer->nextIn); /* OLDCODE XXX */ \
+	CPARSE_ERROR_CURID("ERROR:Expected built-in event " #eventType " after .") \
   	PARSER_FINALLY  \
   	return FALSE;  \
     } \
@@ -1482,14 +1760,6 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 		printf("parser_KW_DEF: DEFed node successfully parsed\n");
 	#endif
 
-#ifdef OLDCODE
-	/* Set the top memmber of the DEFed nodes stack to this node */
-	vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
-	#ifdef CPARSERVERBOSE
-	printf("parser_nodeStatement: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
-	#endif
-#endif
-
 	/* Return a pointer to the node in the variable ret */
 	return vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
 }
@@ -1573,204 +1843,260 @@ BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 	For each route in the routes list of the ProtoDefinition, add the route to the CRoutes table.
 	Return a pointer to the X3D_Node structure that is the scenegraph for this PROTO.
 */
+
 BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
- indexT nodeTypeB, nodeTypeU;
- struct X3D_Node* node=NULL;
+	indexT nodeTypeB, nodeTypeU;
+	struct X3D_Node* node=NULL;
+	struct ProtoDefinition *thisProto = NULL;
+	
+	assert(me->lexer);
+	 
+	/* lexer_node( ... ) #defined to lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec) where userNodeTypesVec is a list of PROTO defs */
+	/* this will get the next token (which will be the node type) and search the NODES array for it.  If it is found in the NODES array nodeTypeB will be set to 
+	the index of type in the NODES array.  If it is not in NODES, the list of user-defined nodes will be searched for the type.  If it is found in the user-defined 
+	list nodeTypeU will be set to the index of the type in userNodeTypesVec.  A return value of FALSE indicates that the node type wasn't found in either list */
 
- assert(me->lexer);
- 
-  /* lexer_node( ... ) #defined to lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec) where userNodeTypesVec is a list of PROTO defs */
-  /* this will get the next token (which will be the node type) and search the NODES array for it.  If it is found in the NODES array nodeTypeB will be set to 
-     the index of type in the NODES array.  If it is not in NODES, the list of user-defined nodes will be searched for the type.  If it is found in the user-defined 
-     list nodeTypeU will be set to the index of the type in userNodeTypesVec.  A return value of FALSE indicates that the node type wasn't found in either list */
- if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU))
-  return FALSE;
-
-  /* Checks that the next non-whitespace non-comment character is '{' and skips it. */
- if(!lexer_openCurly(me->lexer))
-  PARSE_ERROR("Expected { after node-type id!")
-
- /* Built-in node */
- /* Node was found in NODES array */
- if(nodeTypeB!=ID_UNDEFINED) {
-#ifdef CPARSERVERBOSE
-  printf("parser_node: parsing builtin node\n");
-#endif
-  struct Script* script=NULL;
- 
-  /* Get malloced struct of appropriate X3D_Node type with default values filled in */
-  node=X3D_NODE(createNewX3DNode(nodeTypeB));
-  assert(node);
-
-  /* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
-     some code uses it. eg: DEF xx Transform {children Script {field yy USE xx}} */
-  if (ind != ID_UNDEFINED) {
-	/* Set the top memmber of the DEFed nodes stack to this node */
-	vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
 	#ifdef CPARSERVERBOSE
-	printf("parser_node: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
+	printf ("parser_node START, curID :%s: nextIn :%s:\n",me->lexer->curID, me->lexer->nextIn);
 	#endif
+
+#define XBLOCK_STATEMENT(LOCATION) \
+   if(parser_routeStatement(me))  { \
+	return TRUE; \
+   } \
+ \
+  if (parser_componentStatement(me)) { \
+	return TRUE; \
+  } \
+ \
+  if (parser_exportStatement(me)) { \
+	return TRUE; \
+  } \
+ \
+  if (parser_importStatement(me)) { \
+	return TRUE; \
+  } \
+ \
+  if (parser_metaStatement(me)) { \
+	return TRUE; \
+  } \
+ \
+  if (parser_profileStatement(me)) { \
+	return TRUE; \
   }
-
-  /* Node specific initialization */
-  /* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to newScript() */
-   parser_specificInitNode(node, me);
-
-  /* Set curScript for Script-nodes */
-  if(node->_nodeType==NODE_Script)
-   script=X3D_SCRIPT(node)->__scriptObj;
-
-  /* As long as the lexer is returning field statements, ROUTE statements, or PROTO statements continue parsing node */
-  while(TRUE)
-  {
-   /* Try to parse the next statement as a field.  For normal "field value" statements (i.e. position 1 0 1) this gets the value of the field from the lexer (next token(s)
-      to be processed) and stores it as the appropriate type in the node.
-      For IS statements (i.e. position IS mypos) this adds the node-field combo (as an offsetPointer) to the dests list for the protoFieldDecl associated with the user
-      defined field (in the given case, this would be mypos).  */
-#ifdef CPARSERVERBOSE
-   printf("parser_node: try parsing field ... \n");
-#endif
-   if(parser_field(me, node)) {
-#ifdef CPARSERVERBOSE
-        printf("parser_node: field parsed\n");
-#endif
-	continue;
-   }
-
-   /* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
-      exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
-      ProtoDefinition->routes if we are parsing a PROTO */
-   #ifdef CPARSERVERBOSE
-   printf("parser_node: try parsing ROUTE ... \n");
-   #endif
-
-  /* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
-  BLOCK_STATEMENT(parser_node)
-
-   /* Try to parse the next statement as a PROTO (i.e. statement starts with PROTO).  */
-   /* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
-      Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_initializeOnly, 
-      user_inputOnly, Out, or user_inputOutput), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
-      and, in the case of fields and inputOutputs, gets the default value of the field and stores it in the protoFieldDecl. 
-      Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
-      is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
-    */
-#ifdef CPARSERVERBOSE
-   printf("parser_node: try parsing PROTO ... \n");
-#endif
-   if(parser_protoStatement(me)) {
-#ifdef CPARSERVERBOSE
-	printf("parser_node: PROTO parsed\n");
-#endif
-	continue;
-   }
-
-#ifdef CPARSERVERBOSE
-	printf("parser_node: try parsing SCRIPT field\n");
-#endif
-   if(script && parser_interfaceDeclaration(me, NULL, script)) {
-#ifdef CPARSERVERBOSE
-	printf("parser_node: SCRIPT field parsed\n");
-#endif
-	continue;
-   }
-   break;
-  }
-
-  /* Init code for Scripts */
-  if(script) {
-#ifdef CPARSERVERBOSE
-	printf("parser_node: try parsing SCRIPT url\n");
-#endif
-   script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
-#ifdef CPARSERVERBOSE
-	printf("parser_node: SCRIPT url parsed\n");
-#endif
-  }
- }
- 
- /* The node name was located in userNodeTypesVec (list of defined PROTOs), therefore this is an attempt to instantiate a PROTO */
- else
- {
-#ifdef CPARSERVERBOSE
-  printf("parser_node: parsing user defined node\n");
-#endif
-  struct ProtoDefinition* protoCopy;
-  struct ProtoDefinition* origProto;
-
-  /* If this is a PROTO instantiation, then there must be at least one PROTO defined.  Also, the index retrieved for
-     this PROTO must be valid. */
-  assert(nodeTypeU!=ID_UNDEFINED);
-  assert(me->PROTOs);
-  assert(nodeTypeU<vector_size(me->PROTOs));
-
-  /* Fetch the PROTO for this user-defined name from the PROTOs list, and copy the protoDefinition into the structure protoCopy */
-  protoCopy=protoDefinition_copy(me->lexer, vector_get(struct ProtoDefinition*,
-   me->PROTOs, nodeTypeU));
-  origProto = vector_get(struct ProtoDefinition*, me->PROTOs, nodeTypeU);
-
-#ifdef CPARSERVERBOSE
-  printf("parser_node: expanding proto\n");
-#endif
-
-  /* Parse all fields, routes, and PROTOs */
-  /* Fields are parsed by setting the value of all destinations for this field to the value specified in the field statement */ 
-  /* Routes are parsed by adding them to the CRoutes table */
-  /* PROTOs are parsed by creating a new protoDefinition structure and adding it to the PROTOs vector, and adding the name to the 
-     userNodeTypesVec vector  */
-
-  /* FIXME - there shouldn't be parser_protoStatement here ... should there?  */
-  while(parser_protoField(me, protoCopy, origProto) ||
-   	parser_routeStatement(me) || 
-   	parser_componentStatement(me) || 
-   	parser_exportStatement(me) || 
-   	parser_importStatement(me) || 
-   	parser_metaStatement(me) || 
-   	parser_profileStatement(me) || 
-	parser_protoStatement(me));
+XBLOCK_STATEMENT(ddd)
 
 
-  /* Gets the scene tree for this protoDefinition and returns a pointer to it. 
-     Also propogates the value of each field in the proto for which no non-default
-     value has been specified (that is, copies the default value into each node/field 
-     pair in the dests list), and puts all routes in the protoDefinition's route vector
-     into the CRoutes table */
-  node=protoDefinition_extractScene(me->lexer, protoCopy);
-  /* dump_scene(0, node); */
-  assert(node);
-
-  /* If we are currently in a PROTO definition, we need to copy over any PROTO routes ... */
-  int i;
-  if (me->curPROTO) {
-	struct ProtoDefinition* theProto = me->curPROTO;
-	for (i=0; i != vector_size(protoCopy->routes); i++) {
-		vector_pushBack(struct ProtoRoute*, theProto->routes, protoRoute_copy(vector_get(struct ProtoRoute*, protoCopy->routes, i)));
+	if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU)) {
+		#ifdef CPARSERVERBOSE
+		printf ("parser_node, not lexed - is this one of those special nodes?\n");
+		#endif
+		return FALSE;
 	}
-  }
+	
+	/* printf ("after lexer_node, at this point, me->lexer->curID :%s:\n",me->lexer->curID); */
+	/* could this be a proto expansion?? */
 
-  /* Can't delete ProtoDefinition, it is referenced! */
-  /*deleteProtoDefinition(protoCopy);*/
- }
+	/* Checks that the next non-whitespace non-comment character is '{' and skips it. */
+	if(!lexer_openCurly(me->lexer))
+		PARSE_ERROR("Expected { after node-type id!")
 
- /* We must have a node that we've parsed at this point. */
- assert(node);
+	#ifdef CPARSERVERBOSE
+	printf ("parser_node: have nodeTypeB %d nodeTypeU %d\n",nodeTypeB, nodeTypeU);
+	#endif
 
- /* Check that the node is closed by a '}', and skip this token */
- #ifdef CPARSERVERBOSE
- printf ("calling lexer_closeCurly at B\n");
- #endif
+	if (nodeTypeU != ID_UNDEFINED) {
+		/* The node name was located in userNodeTypesVec (list of defined PROTOs), therefore this is an attempt to instantiate a PROTO */
+		/* expand this PROTO, put the code right in line, and let the parser go over it as if there was never a proto here... */
+	
+		char *newProtoText;
+	
+		#ifdef CPARSERVERBOSE
+		printf ("nodeTypeB = ID_UNDEFINED, but nodeTypeU is %d\n",nodeTypeU);
+		#endif
+		
+		/* If this is a PROTO instantiation, then there must be at least one PROTO defined.  Also, the index retrieved for
+		this PROTO must be valid. */
+		assert(nodeTypeU!=ID_UNDEFINED);
+		assert(me->PROTOs);
+		assert(nodeTypeU<vector_size(me->PROTOs));
+		
+		if (me->curPROTO == NULL) {
+			/* printf ("curPROTO = NULL: before protoExpand, current stream :%s:\n",me->lexer->nextIn); */
+		
+			/* find and expand the PROTO definition */
+			newProtoText = protoExpand(me, nodeTypeU,&thisProto);
+		
+			/* printf ("curPROTO = NULL: past protoExpand\n"); */
+			insertProtoExpansionIntoStream(me,newProtoText);
+		
+			/* printf ("curPROTO = NULL: past insertProtoExpansionIntoStream\n"); */
+			/* and, now, lets get the id for the lexer */
+			if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU)) {
+				printf ("after protoexpand lexer_node, is this one of those special ones? \n");
+				return FALSE;
+			}
+		
+			/* printf ("curPROTO = NULL: after possible proto expansion, me->lexer->curID :%s: ",me->lexer->curID);
+			printf ("curPROTO = NULL: and remainder, me->lexer->nextIn :%s:\n",me->lexer->nextIn); */
 
- if(!lexer_closeCurly(me->lexer)) {
-	CPARSE_ERROR_CURID("ERROR: Expected \"}\" after fields of a node;")
-  	PARSER_FINALLY 
-  	return FALSE; 
- }
+			if(!lexer_openCurly(me->lexer))
+				PARSE_ERROR("Expected { after node-type id!")
 
- /* Return the parsed node */
- *ret=node;
- return TRUE;
+		
+		} else {
+			/* Checks that the next non-whitespace non-comment character is an openCurly and skips it. */
+			if(!lexer_openCurly(me->lexer)) {
+				PARSE_ERROR("Expected after node-type id!")
+			} else {
+				/* printf ("curPROTO != NULL; lets skip these fields\n"); */
+				skipToEndOfOpenCurly(me->lexer,0);
+				/* printf ("after skipToEndOfOpenCurly, we have :%s:\n",me->lexer->nextIn); */
+			}
+		}
+	}
+	
+	/* Built-in node */
+	/* Node was found in NODES array */
+	 if(nodeTypeB!=ID_UNDEFINED) {
+		#ifdef CPARSERVERBOSE
+		printf("parser_node: parsing builtin node\n");
+		#endif
+		struct Script* script=NULL;
+		 
+		/* Get malloced struct of appropriate X3D_Node type with default values filled in */
+		node=X3D_NODE(createNewX3DNode(nodeTypeB));
+		assert(node);
+		
+		/* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
+		some code uses it. eg: DEF xx Transform {children Script {field yy USE xx}} */
+		if (ind != ID_UNDEFINED) {
+			/* Set the top memmber of the DEFed nodes stack to this node */
+			vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
+			#ifdef CPARSERVERBOSE
+			printf("parser_node: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
+			#endif
+		}
+		
+		/* Node specific initialization */
+		/* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to newScript() */
+		parser_specificInitNode(node, me);
+		
+		/* Set curScript for Script-nodes */
+		if(node->_nodeType==NODE_Script)
+		script=X3D_SCRIPT(node)->__scriptObj;
+	
+		/* As long as the lexer is returning field statements, ROUTE statements, or PROTO statements continue parsing node */
+		while(TRUE)
+		{
+			/* Try to parse the next statement as a field.  For normal "field value" statements (i.e. position 1 0 1) this gets the value of the field from the lexer (next token(s)
+			to be processed) and stores it as the appropriate type in the node.
+			For IS statements (i.e. position IS mypos) this adds the node-field combo (as an offsetPointer) to the dests list for the protoFieldDecl associated with the user
+			defined field (in the given case, this would be mypos).  */
+			#ifdef CPARSERVERBOSE
+			printf("parser_node: try parsing field ... \n");
+			#endif
+			if(parser_field(me, node)) {
+				#ifdef CPARSERVERBOSE
+				printf("parser_node: field parsed\n");
+				#endif
+				continue;
+			}
+			
+			/* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
+			exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
+			ProtoDefinition->routes if we are parsing a PROTO */
+			#ifdef CPARSERVERBOSE
+			printf("parser_node: try parsing ROUTE ... \n");
+			#endif
+			
+			/* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
+			BLOCK_STATEMENT(parser_node)
+			
+			/* Try to parse the next statement as a PROTO (i.e. statement starts with PROTO).  */
+			/* Add the PROTO name to the userNodeTypesVec list of names.  Create and fill in a new protoDefinition structure and add it to the PROTOs list.
+			Goes through the interface declarations for the PROTO and adds each user-defined field name to the appropriate list of user-defined names (user_initializeOnly, 
+			user_inputOnly, Out, or user_inputOutput), creates a new protoFieldDecl for the field and adds it to the iface vector of the ProtoDefinition, 
+			and, in the case of fields and inputOutputs, gets the default value of the field and stores it in the protoFieldDecl. 
+			Parses the body of the PROTO.  Nodes are added to the scene graph for this PROTO.  Routes are parsed and a new ProtoRoute structure
+			is created for each one and added to the routes vector of the ProtoDefinition.  PROTOs are recursively parsed!
+			*/
+			#ifdef CPARSERVERBOSE
+			printf("parser_node: try parsing PROTO ... \n");
+			#endif
+			if(parser_protoStatement(me)) {
+				#ifdef CPARSERVERBOSE
+				printf("parser_node: PROTO parsed\n");
+				#endif
+				continue;
+			}
+			#ifdef CPARSERVERBOSE
+			printf("parser_node: try parsing SCRIPT field\n");
+			#endif
+			if(script && parser_interfaceDeclaration(me, NULL, script)) {
+				#ifdef CPARSERVERBOSE
+				printf("parser_node: SCRIPT field parsed\n");
+				#endif
+				continue;
+			}
+			break;
+		}
+		
+		/* Init code for Scripts */
+		if(script) {
+			#ifdef CPARSERVERBOSE
+			printf("parser_node: try parsing SCRIPT url\n");
+			#endif
+			script_initCodeFromMFUri(script, &X3D_SCRIPT(node)->url);
+			#ifdef CPARSERVERBOSE
+			printf("parser_node: SCRIPT url parsed\n");
+			#endif
+		}
+		
+		/* We must have a node that we've parsed at this point. */
+		assert(node);
+	}
+	
+	/* Check that the node is closed by a '}', and skip this token */
+	#ifdef CPARSERVERBOSE
+	printf ("calling lexer_closeCurly at B\n");
+	#endif
+	
+	if(!lexer_closeCurly(me->lexer)) {
+		printf ("(error, curId %s, nextIn %s\n",me->lexer->curID, me->lexer->nextIn);
+		CPARSE_ERROR_CURID("ERROR: Expected a closing brace after fields of a node;")
+		PARSER_FINALLY 
+		return FALSE; 
+	}
+	
+	/* Return the parsed node */
+
+	if (thisProto != NULL) {
+		#ifdef CPARSERVERBOSE
+		printf ("parser_node, have a proto somewhere here\n");
+		#endif
+
+		if (node != NULL) {
+			#ifdef CPARSERVERBOSE
+			printf ("parser_node, and the node is made...\n");
+			#endif
+
+			if (node->_nodeType == NODE_Group) {
+				#ifdef CPARSERVERBOSE
+				printf ("and, it is a GROUP node...\n");
+				#endif
+
+				X3D_GROUP(node)->__protoDef = thisProto;
+			}
+		}
+	}
+	#ifdef CPARSERVERBOSE
+	printf ("returning at end of parser_node, ret %u\n",node);
+	if (node != NULL) printf ("and, node type is %s\n",stringNodeType(node->_nodeType));
+	#endif
+	*ret=node;
+	return TRUE;
 }
-
 
 /* Parses a inputOnly/outputOnly IS statement in a proto instantiation */
 BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct ProtoDefinition* op) {
@@ -1789,9 +2115,14 @@ BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct 
 	isOut = TRUE;
  } 	
 
+ #ifdef CPARSERVERBOSE
+ printf ("parser_protoEvent, isIn %d isOut %d\n",isIn, isOut);
+ #endif
+
  /* Check that we found the event somewhere ... */
- if (!isIn && !isOut)
+ if (!isIn && !isOut) {
 	return FALSE;
+ }
  /* Check that the next token in the lexer is "IS" */
  if (!lexer_keyword(me->lexer, KW_IS))
 	return FALSE;
@@ -1852,8 +2183,16 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct 
  /* Checks for the field name in user_initializeOnly and user_inputOutput */
  if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE)) {
 	/* Not in user_initializeOnly or user_exposedfield?  Then this must be an event in or event out ... */
+	#ifdef CPARSERVERBOSE
+	printf ("going to call parser_protoEvent from parser_protoField\n");
+	#endif
+
 	return parser_protoEvent(me, p, op);
   }
+
+#ifdef CPARSERVERBOSE
+printf ("parser_protoField, have fieldO %d fieldE %d\n");
+#endif
 
  /* If this field was found in user_initializeOnly */
  if(fieldO!=ID_UNDEFINED)
@@ -1901,6 +2240,7 @@ BOOL parser_protoField(struct VRMLParser* me, struct ProtoDefinition* p, struct 
 
  return TRUE;
 }
+
 
 /* add_parent for Multi_Node */
 void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
@@ -2000,13 +2340,13 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
  {
   #define SF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
-	/* printf ("parse_fieldValue, working through %d\n",FIELDTYPE_##fttype); */ \
+	printf ("parse_fieldValue, working through %d\n",FIELDTYPE_##fttype); \
    *((vrml##ttype##T*)((char*)(ret->node))) = (pField->defaultVal).type;  \
     break; 
 
   #define MF_TYPE(fttype, type, ttype) \
    case FIELDTYPE_##fttype: \
-	/* printf ("parse_fieldValue, working through %d\n",FIELDTYPE_##fttype); */ \
+	printf ("parse_fieldValue, working through %d\n",FIELDTYPE_##fttype); \
     *((struct Multi_##ttype*)((char*)(ret->node))) = (pField->defaultVal).type; \
     break; 
 
@@ -2084,6 +2424,8 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  indexT fieldE;
 
  assert(me->lexer);
+
+/* printf ("start of parser_field, me->lexer->nextIn :%s:\n",me->lexer->nextIn); */
 
  /* Ask the lexer to find the field (next lexer token) in either the FIELDNAMES array or the EXPOSED_FIELD array. The 
     index of the field in the array is returned in fieldO (if found in FIELDNAMES) or fieldE (if found in EXPOSED_FIELD).  

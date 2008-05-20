@@ -13,6 +13,8 @@
 #include <string.h>
 #include <math.h> /* Using pow() to parse floats */
 
+#include "CParse.h"
+#include "CProto.h"
 #include "CParseLexer.h"
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
@@ -58,6 +60,7 @@ struct VRMLLexer* newLexer()
  struct VRMLLexer* ret=MALLOC(sizeof(struct VRMLLexer));
 
  ret->nextIn=NULL;
+ ret->startOfStringPtr = NULL;
  ret->curID=NULL;
  ret->isEof=TRUE;
  
@@ -192,12 +195,6 @@ void lexer_scopeOut_PROTO(struct VRMLLexer* me)
 }
 
 /* Sets curID of lexer */
-#define IS_ID_REST(c) \
- (c>0x20 && c!=0x22 && c!=0x23 && c!=0x27 && c!=0x2C && c!=0x2E && c!=0x5B && \
-  c!=0x5C && c!=0x5D && c!=0x7B && c!=0x7D && c!=0x7F)
-#define IS_ID_FIRST(c) \
- (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D)
-
 BOOL lexer_setCurID(struct VRMLLexer* me)
 {
  int c;
@@ -287,23 +284,21 @@ indexT lexer_string2id(const char* str, const struct Vector* v)
 BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
  const char** builtIn, const indexT builtInCount, struct Vector* user)
 {
- /* Get the next token */
- if(!lexer_setCurID(me))
-  return FALSE;
- assert(me->curID);
+	/* Get the next token */
+	if(!lexer_setCurID(me))
+		 return FALSE;
+	assert(me->curID);
 
-#ifdef CPARSERVERBOSE
-  printf("lexer_specialID looking for %s\n", me->curID);
-#endif
+	#ifdef CPARSERVERBOSE
+	printf("lexer_specialID looking for %s\n", me->curID);
+	#endif
 
- if(lexer_specialID_string(me, retB, retU, builtIn, builtInCount, user,
-  me->curID))
- {
-  FREE_IF_NZ (me->curID);
-  return TRUE;
- }
+	if(lexer_specialID_string(me, retB, retU, builtIn, builtInCount, user, me->curID)) {
+		FREE_IF_NZ (me->curID);
+		return TRUE;
+	}
 
- return FALSE;
+	return FALSE;
 }
 
 /* Checks for the ID passed in str in the builtin array of IDs passed in builtin and/or in the array of user defined
@@ -325,7 +320,8 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 
  /* Try as built-in */
  /* Look for the ID in the passed built in array.  If it is found, return the index to the ID in retB */
- for(i=0; i!=builtInCount; ++i)
+  for(i=0; i!=builtInCount; ++i) {
+	/* printf ("lexer_specialID_string, comparing :%s: and :%s:\n",str,builtIn[i]); */
   if(!strcmp(str, builtIn[i]))
   {
 #ifdef CPARSERVERBOSE
@@ -351,6 +347,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
    }
    break;
   }
+}
 
  /* Return if no user list is requested or it is empty */
  if(!user)
@@ -378,44 +375,44 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 /* Lexes and defines an ID */
 /* Adds the ID to the passed vector of IDs (unless it is already present) */
 /* Note that we only check for duplicate IDs if multi is TRUE */
-BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec,
- BOOL multi)
-{
- 
- /* Get the next token */
- if(!lexer_setCurID(me))
-  return FALSE;
- assert(me->curID);
+BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL multi) {
 
- /* printf ("lexer_defineID, VRMLLexer %u Vector %u\n",me,vec); */
+	/* Get the next token */
+	if(!lexer_setCurID(me))
+		return FALSE;
+	assert(me->curID);
 
- /* User list should be created */
- assert(vec);
+	/* printf ("lexer_defineID, VRMLLexer %u Vector %u\n",me,vec); */
 
- /* If multiple definition possible? Look if the ID's already there */
- if(multi)
- {
-  size_t i;
-  for(i=0; i!=vector_size(vec); ++i) {
-   /* printf ("lexer_defineID, comparing %s to %s\n",me->curID, vector_get(const char*, vec, i)); */
-   if(!strcmp(me->curID, vector_get(const char*, vec, i)))
-   {
-    FREE_IF_NZ (me->curID);
-    *ret=i;
-    return TRUE;
-   }
-  }
- }
+	/* User list should be created */
+	assert(vec);
 
- /* Define the id */
- /* Add this ID to the passed vector of IDs */
- *ret=vector_size(vec);
-#ifdef CPARSERVERBOSE
- printf("lexer_defineID: adding %s to vector %p\n", me->curID, vec);
-#endif
- vector_pushBack(char*, vec, me->curID);
- me->curID=NULL;
- return TRUE;
+	/* If multiple definition possible? Look if the ID's already there */
+	if(multi) {
+		size_t i;
+		for(i=0; i!=vector_size(vec); ++i) {
+		/* printf ("lexer_defineID, comparing %s to %s\n",me->curID, vector_get(const char*, vec, i)); */
+		if(!strcmp(me->curID, vector_get(const char*, vec, i))) {
+			FREE_IF_NZ (me->curID);
+			*ret=i;
+			return TRUE;
+		}
+		}
+	}
+
+	/* Define the id */
+	/* Add this ID to the passed vector of IDs */
+	*ret=vector_size(vec);
+	#ifdef CPARSERVERBOSE
+		printf("lexer_defineID: adding %s to vector %p\n", me->curID, vec);
+	#endif
+	/* save the curID on the stack... */
+	vector_pushBack(char*, vec, me->curID);
+
+	/* set curID to NULL to indicate that we have used this id */
+	me->curID=NULL;
+
+	return TRUE;
 }
 
 /* A eventIn/eventOut terminal symbol */
@@ -599,6 +596,8 @@ BOOL lexer_field(struct VRMLLexer* me,
 
  return found;
 }
+
+
 
 /* Conversion of user field name to char* */
 const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT mode)
@@ -923,6 +922,8 @@ if (me->curID) printf ("lexer_operator, curID is NOT NULL - it is \"%s\" - but I
 
  LEXER_GETINPUT(c)
  CHECK_EOF(c)
+ /* printf ("lxer_opr, got %d\n",c); */
+
  if(c!=op)
  {
   LEXER_UNGETINPUT(c)
@@ -997,7 +998,7 @@ int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* r
 /* isolate the PROTO that we want from the just read in EXTERNPROTO string */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound) {
         char *cp;
-        char *externProto;
+        char *externProtoPointer;
         char *proto;
         int curlscount;
         int foundBracket;
@@ -1062,18 +1063,13 @@ void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *po
 
         /* now, insert this PROTO text INTO the stream */
 
-        cp = externProtoPointer; /* keep a handle on this */
 
-        externProtoPointer = MALLOC (sizeof (char) * (strlen (me->nextIn)+strlen (proto)+strlen(myName) +4));
+        externProtoPointer = MALLOC (sizeof (char) * (strlen (proto)+strlen(myName) +4));
         strcpy (externProtoPointer,myName);
         strcat (externProtoPointer," ");
         strcat (externProtoPointer,proto);
-        strcat (externProtoPointer,me->nextIn);
-        lexer_fromString(me,externProtoPointer);
 
-        FREE_IF_NZ(cp); /* free, now that we have copied all we need from (possibly) this */
-
-
+	concatAndGiveToLexer(me, externProtoPointer, me->nextIn);
 }
 
 /* the curID is EXTERNPROTO. Replace the EXTERNPROTO with the actual PROTO string read in from
@@ -1155,8 +1151,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                         embedEXTERNPROTO(me,myName,buffer,pound);
 
                         /* ok - we are replacing EXTERNPROTO with PROTO */
-                        me->curID = MALLOC (sizeof(char)*20);
-                        strcpy(me->curID,"PROTO");
+                        me->curID = STRDUP("PROTO");
                         return;
                 } else {
                         /* printf ("fileExists returns failure for %s\n",testname); */
@@ -1177,4 +1172,58 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         lexer_setCurID(me);
         /* printf ("so, curID is :%s: and rest is :%s:\n",me->curID, me->nextIn); */
         return;
+}
+
+
+/* recursively skip to the closing curly bracket - ignoring all that comes between. */
+void skipToEndOfOpenCurly(struct VRMLLexer *me, int level) {
+	char c = 33;
+
+	#ifdef CPARSELEXERVERBOSE
+	if (level == 0) printf ("start of skipToEndOfOpenCurly, have :%s:\n",me->nextIn);
+	#endif
+
+
+	while ((!lexer_closeCurly(me)) & (c!=EOF)) {
+		if (lexer_openCurly(me)) {
+			/* printf ("skipToEndOfOpenCurly %d, found lexer_openCurly\n",level);  */
+			skipToEndOfOpenCurly(me,level+1);
+		} else if (!lexer_closeCurly(me)) {
+	
+			/* printf ("skipToEndOfOpenCurly %d, found something else",level); */ 
+			LEXER_GETINPUT(c);
+			/* printf (".... it was :%c:\n",c);  */
+		}
+	} 
+	if (level == 0) {
+		/* put the trailing bracket back on - for syntax checking */
+		if (c=='}')
+		LEXER_UNGETINPUT(c)
+	}
+
+	#ifdef CPARSELEXERVERBOSE
+	if (level == 0) printf ("returning from skipToEndOfOpenCurly nextIn :%s:\n",me->nextIn);
+	#endif
+}
+
+/* concat 2 strings, and tell the lexer to scan from this new string */
+void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b) {
+	char *newstring;
+	int len_a=0;
+	int len_b=0;
+	if (str_a != NULL) len_a = strlen(str_a);
+	if (str_b != NULL) len_b = strlen(str_b);
+
+	if ((len_a == 0) & (len_b == 0)) {
+		printf ("concatAndGiveToLexer, no input!\n");
+		return;
+	}
+
+	newstring = MALLOC(sizeof (char) * (len_a + len_b +10));
+	newstring[0] = '\0';
+	if (len_a != 0) strcat (newstring,str_a);
+	if (len_b != 0) strcat (newstring,str_b);
+
+	printf ("concatAndGiveToLexer, sending in :%s:\n",newstring);
+	lexer_fromString(me,newstring);
 }

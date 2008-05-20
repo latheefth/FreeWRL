@@ -954,15 +954,14 @@ void __pt_doStringUrl () {
 		if (ifIsX3D(buffer)) {
 			if (!X3DParse (nRn, buffer)) {
 				ConsoleMessage ("Parse Unsuccessful");
-
 			}
+			FREE_IF_NZ (buffer); 
 		} else if (ifIsVRML1(buffer)) {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
 			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
 			haveParsedCParsed = TRUE;
 		}
-		FREE_IF_NZ (buffer); 
 		FREE_IF_NZ(ctmp);
 
 

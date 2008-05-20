@@ -24,6 +24,7 @@
 struct VRMLLexer
 {
  const char* nextIn;	/* Next input character. */
+ const char* startOfStringPtr; /* beginning address of string, for FREE calls */
  char* curID;	/* Currently input but not lexed id. */
  BOOL isEof;	/* Error because of EOF? */
  Stack* userNodeNames;
@@ -49,7 +50,8 @@ void lexer_destroyIdStack(Stack*);
 
 /* Set input */
 #define lexer_fromString(me, str) \
- ((me)->isEof=FALSE, (me)->nextIn=str)
+ { /* printf ("lexer_fromString, new string :%s:\n",str); */ \
+	 (me)->isEof==(strlen(str)==0); FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
 
 /* Is EOF? */
 #define lexer_eof(me) \
@@ -136,5 +138,10 @@ BOOL lexer_operator(struct VRMLLexer*, char);
  lexer_operator(me, ']')
 #define lexer_colon(me) \
  lexer_operator(me,':')
+
+/* recursively skip to the closing curly bracket */
+void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
+
+void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
 
 #endif /* Once-check */

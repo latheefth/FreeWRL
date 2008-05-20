@@ -14,7 +14,12 @@
 
 #include "CProto.h"
 #include "CParseGeneral.h"
+#include "CParseParser.h"
 #include "CParseLexer.h"
+
+/* internal sequence number for protos */
+static  indexT latest_protoDefNumber =1;
+
 
 /* ************************************************************************** */
 /* ******************************** OffsetPointer *************************** */
@@ -51,6 +56,7 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->type=type;
  ret->name=name;
  ret->alreadySet=FALSE;
+ ret->fieldString = NULL;
  ret->dests=newVector(struct OffsetPointer*, 4);
  assert(ret->dests);
  ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
@@ -188,7 +194,7 @@ struct ProtoDefinition* newProtoDefinition()
  ret->tree=createNewX3DNode(NODE_Group);
  assert(ret->tree);
 
- /* printf("creating new ProtoDefinition %p\n", ret); */
+ /* printf("creating new ProtoDefinition %u\n", ret);  */
 
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
  assert(ret->iface);
@@ -201,6 +207,10 @@ struct ProtoDefinition* newProtoDefinition()
  
  ret->innerPtrs=NULL;
 
+ ret->protoBody = NULL; /* string copy of the proto body */
+
+ ret->protoDefNumber = latest_protoDefNumber++;
+
  return ret;
 }
 
@@ -209,6 +219,7 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
  /* FIXME:  Not deep-destroying nodes!!! */
  /* If tree is NULL, it is already extracted! */
   FREE_IF_NZ (me->tree);
+  FREE_IF_NZ (me->protoBody);
 
  {
   size_t i;
@@ -235,11 +246,14 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 {
  /* TODO:  O(log(n)) by sorting */
  size_t i;
+/* printf ("protoDefinition_getField; sizeof iface %d\n",vector_size(me->iface)); */
  for(i=0; i!=vector_size(me->iface); ++i)
  {
   struct ProtoFieldDecl* f=vector_get(struct ProtoFieldDecl*, me->iface, i);
-  if(f->name==ind && f->mode==mode)
+  if(f->name==ind && f->mode==mode) {
+   /* printf ("protoDefinition_getField, comparing %d %d and %d %d\n", f->name, ind, f->mode, mode); */
    return f;
+  }
  }
 
  return NULL;
@@ -261,8 +275,11 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
  size_t i;
  assert(ret);
 
+	/* printf ("coping protoBody...\n");  */
+	ret->protoBody = STRDUP (me->protoBody);
+	/* printf ("copied proto body as %s\n",ret->protoBody); */
 
- /* printf("protoDefinition_copy: copying %p to %p\n", me, ret); */
+	/* printf("protoDefinition_copy: copying %u to %u\n", me, ret);  */
  /* Copy interface */
  ret->iface=newVector(struct ProtoFieldDecl*, vector_size(me->iface));
  assert(ret->iface);
@@ -287,7 +304,6 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
  ret->nestedProtoFields = newVector(struct NestedProtoField*, 4);
  assert(ret->nestedProtoFields);
 
-
  /* Copy the scene graph and fill the fields thereby */
  ret->tree=protoDefinition_deepCopy(lex, me->tree, ret, NULL);
  /* Set reference */
@@ -300,6 +316,8 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
  /* printf ("going to call checkParentLink\n"); */
 
  checkParentLink(ret->tree,NULL);
+
+ ret->protoDefNumber = latest_protoDefNumber++;
 
  /* printf ("finished calling checkParentLink, tree is %u\n",ret->tree);  */
 
@@ -322,7 +340,10 @@ struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct Pro
  struct OffsetPointer* copy;
  assert(ret);
 
- /* printf("protoDefinition_extractScene: Extracting scene for protodef %p\n", me); */
+	#ifdef CPROTOVERBOSE
+ 	printf("protoDefinition_extractScene: Extracting scene for protodef %u protoBody :%s:\n", me,me->protoBody);
+	#endif
+
  me->tree=NULL;
 
  /* First check if there are any nested proto fields.  If there are, we need to go through the dests list for the original field and
@@ -701,6 +722,17 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
  size_t i;
  ret->alreadySet=FALSE;
 
+ /* copy over the fieldString */
+ /* printf ("copying field string for field... %s\n",me->fieldString); */
+ if (me->fieldString != NULL) ret->fieldString = STRDUP(me->fieldString);
+
+ ret->mode=me->mode;
+ ret->type=me->type;
+ ret->name=me->name;
+ /* printf ("copied mode %s type %s and name %d\n",stringPROTOKeywordType(ret->mode)
+	, stringFieldtypeType(ret->type), ret->name);
+
+ printf ("protoFieldDecl_copy, copied fieldString for proto field\n"); */
 
  /* Copy destination pointers */
  for(i=0; i!=vector_size(me->dests); ++i) {
@@ -815,4 +847,160 @@ struct NestedProtoField* newNestedProtoField(struct ProtoFieldDecl* origField, s
  ret->localField = localField;
 
  return ret;
+}
+
+
+/* go through a proto invocation, and get the invocation fields (if any) */
+void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto) {
+	int c;
+	char *cp;
+	char *initCP;
+	char tmp;
+
+	struct ProtoFieldDecl* pdecl;
+	union anyVrml thisVal;
+
+	#ifdef CPROTOVERBOSE
+	printf ("start of getProtoInvocationFields, nextIn :%s:\n",me->lexer->nextIn);
+	#endif
+
+	while (!lexer_closeCurly(me->lexer)) {
+
+		lexer_setCurID(me->lexer);
+		#ifdef CPROTOVERBOSE
+		printf ("getProtoInvocationFields, id is %s\n",me->lexer->curID);
+		#endif
+
+		if (me->lexer->curID != NULL) {
+			pdecl = getProtoFieldDeclaration(me->lexer, thisProto,me->lexer->curID);
+			if (pdecl != NULL) {
+				#ifdef CPROTOVERBOSE
+				printf ("in getProtoInvocationFields, we have pdecl original as %s\n",pdecl->fieldString);
+				#endif
+
+	
+				/* get a link to the beginning of this field */
+				FREE_IF_NZ(me->lexer->curID);
+				cp = me->lexer->nextIn;
+				initCP = me->lexer->startOfStringPtr;
+
+				#ifdef CPROTOVERBOSE
+				printf ("going to parse type of %d mode (%s), curID %s, starting at :%s:\n",pdecl->type, stringPROTOKeywordType(pdecl->mode),
+						me->lexer->curID, me->lexer->nextIn);
+				#endif
+
+				if (pdecl->mode != PKW_outputOnly) {
+
+/* 					lexer_skip(me); */
+					lexer_setCurID(me->lexer);
+					#ifdef CPROTOVERBOSE
+					printf ("checking if this is an IS :%s:\n",me->lexer->curID);
+					#endif
+
+					if(me->curPROTO && lexer_keyword(me->lexer, KW_IS)) {
+						struct ProtoFieldDecl* pexp;
+
+						#ifdef CPROTOVERBOSE
+						printf ("FOUND IS on protoInvocationFields; have to replace \n");
+						#endif
+
+
+						FREE_IF_NZ(me->lexer->curID);
+						lexer_setCurID(me->lexer);
+						#ifdef CPROTOVERBOSE
+						printf ("going to try and find :%s: in curPROTO\n",me->lexer->curID);
+						#endif
+
+						pexp = getProtoFieldDeclaration(me->lexer,me->curPROTO,me->lexer->curID);
+						if (pexp != NULL) {
+							#ifdef CPROTOVERBOSE
+							printf ("attaching :%s: to :%s:\n",pexp->fieldString, me->lexer->nextIn);
+							#endif
+
+							concatAndGiveToLexer(me->lexer, pexp->fieldString, me->lexer->nextIn);
+						}
+						FREE_IF_NZ(me->lexer->curID);
+					}
+
+					if (!parseType(me, pdecl->type, &thisVal)) {
+						#ifdef CPROTOVERBOSE
+						printf ("parsing error on field value in proto expansion\n");
+						#endif
+
+					} else {
+						#ifdef CPROTOVERBOSE
+						printf ("parsed field; nextin was %u, now %u\n",cp, me->lexer->nextIn);
+						#endif
+
+					}
+	
+					/* was this possibly a proto expansion? */
+					if (initCP != me->lexer->startOfStringPtr) cp = me->lexer->startOfStringPtr;
+
+					/* copy over the new value */
+					initCP = (char *) (me->lexer->nextIn);
+					tmp = *initCP; *initCP = '\0';
+					FREE_IF_NZ(pdecl->fieldString); pdecl->fieldString = strdup (cp);
+					*initCP = tmp;
+					/* printf ("getProtoInvocationFields, just copied :%s:\n",pdecl->fieldString); */
+				} else {
+					#ifdef CPROTOVERBOSE
+					printf ("skipped parsing this type of %s\n",stringPROTOKeywordType(pdecl->type));
+					#endif
+
+				}
+			}
+		}
+		#ifdef CPROTOVERBOSE
+		printf ("after pt, curID %s\n",me->lexer->curID);
+		#endif
+
+		lexer_skip (me);
+	}
+
+}
+
+
+/* find the proto field declare for a particular proto */
+struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID) {
+	indexT retUO;
+	const char** userArr;
+	size_t userCnt;
+	struct ProtoFieldDecl* ret = NULL;
+
+	#ifdef CPROTOVERBOSE
+	printf ("getProtoFieldDeclaration, for field :%s:\n",thisID);
+	#endif
+
+	userArr=&vector_get(const char*, me->user_initializeOnly, 0);
+	userCnt=vector_size(me->user_initializeOnly);
+	retUO=findFieldInARR(thisID, userArr, userCnt);
+	if (retUO != ID_UNDEFINED) 
+		ret=protoDefinition_getField(thisProto,retUO,PKW_initializeOnly);
+	else {
+		userArr=&vector_get(const char*, me->user_inputOutput, 0);
+		userCnt=vector_size(me->user_inputOutput);
+		retUO=findFieldInARR(thisID, userArr, userCnt);
+		if (retUO != ID_UNDEFINED) 
+			ret=protoDefinition_getField(thisProto,retUO,PKW_inputOutput);
+		else {
+			userArr=&vector_get(const char*, me->user_inputOnly, 0);
+			userCnt=vector_size(me->user_inputOnly);
+			retUO=findFieldInARR(thisID, userArr, userCnt);
+			if (retUO != ID_UNDEFINED) 
+				ret=protoDefinition_getField(thisProto,retUO,PKW_inputOnly);
+			else {
+				userArr=&vector_get(const char*, me->user_outputOnly, 0);
+				userCnt=vector_size(me->user_outputOnly);
+				retUO=findFieldInARR(thisID, userArr, userCnt);
+				if (retUO != ID_UNDEFINED) ret=protoDefinition_getField(thisProto,retUO,PKW_outputOnly);
+			}
+		}
+	}	
+
+	#ifdef CPROTOVERBOSE
+	printf ("getProtoFieldDeclaration, ret is %u\n",ret);
+	#endif
+
+	return ret;
 }

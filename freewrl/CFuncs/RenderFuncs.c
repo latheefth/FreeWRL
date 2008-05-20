@@ -336,6 +336,10 @@ void render_node(struct X3D_Node *node) {
 	    #endif
 
 	    v->collision(node);
+	    #ifdef RENDERVERBOSE 
+printf ("finished render_collision on node\n");
+	    #endif
+	
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
 	    #endif
@@ -429,6 +433,7 @@ void render_node(struct X3D_Node *node) {
 	    #endif
 
 	    v->fin(node);
+
 	    if(render_sensitive && v == &virt_Transform)
 	      {
 		upd_ray();
@@ -440,7 +445,6 @@ void render_node(struct X3D_Node *node) {
 	#ifdef RENDERVERBOSE 
 		printf("(end render_node)\n");
 	#endif
-
 
 	#ifdef GLERRORS
 	if(glerror != GL_NONE)

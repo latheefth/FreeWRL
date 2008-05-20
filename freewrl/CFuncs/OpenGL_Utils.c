@@ -962,7 +962,7 @@ void kill_X3DNodes(void){
 	for (i=0; i<nextEntry; i++){		
 		structptr = memoryTable[i];		
 		/* printf("Node pointer	= %x entry %d of %d ",structptr,i,nextEntry);
-		printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));   */
+		printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  */
 
 		/* kill any parents that may exist. */
 		FREE_IF_NZ (structptr->_parents);
@@ -973,7 +973,17 @@ void kill_X3DNodes(void){
 			fieldPtr=(char*)structptr+(*(fieldOffsetsPtr+1));
 			/* printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
 
-			switch(*(fieldOffsetsPtr+2)){
+			/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
+			if ((X3D_NODE(structptr)->_nodeType == NODE_Group) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_Group, __protoDef))) {
+				break;
+			} else if ((X3D_NODE(structptr)->_nodeType == NODE_TextureCoordinate) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_TextureCoordinate, __lastParent))) {
+				break;
+			} else if ((X3D_NODE(structptr)->_nodeType == NODE_LOD) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_LOD, _selected))) {
+				break;
+			}
+
+			/* nope, not a special field, lets just get rid of it as best we can */
+			else switch(*(fieldOffsetsPtr+2)){
 				case FIELDTYPE_MFFloat:
 					MFloat=(struct Multi_Float *)fieldPtr;
 					MFloat->n=0;
@@ -1037,16 +1047,8 @@ void kill_X3DNodes(void){
 					FREE_IF_NZ(MVec2f->p);
 					break;
 				case FIELDTYPE_FreeWRLPTR:
-					/* if this is a TextureCoordinate, and this is the __lastParent pointer,
-					   SKIP this, because, this parent will be freed' elsewhere */
-					/* Yes, Virginia, this will miss the __compiled.. field, but this is a 
-					   relatively small problem */
-					/* if this is a LOD, do not do the "_selected" node, as it is a dup pointer */
-					if ((structptr->_nodeType != NODE_TextureCoordinate) &&
-					   (structptr->_nodeType != NODE_LOD)) {
-						VPtr = (uintptr_t *) fieldPtr;
-						FREE_IF_NZ(*VPtr);
-					}
+					VPtr = (uintptr_t *) fieldPtr;
+					FREE_IF_NZ(*VPtr);
 					break;
 				case FIELDTYPE_SFString:
 					VPtr = (uintptr_t *) fieldPtr;

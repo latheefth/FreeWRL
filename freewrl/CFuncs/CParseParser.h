@@ -145,6 +145,8 @@ BOOL parser_fieldValue(struct VRMLParser*, struct OffsetPointer*, indexT, indexT
 /* Main parsing routine, parses the start symbol (vrmlScene) */
 BOOL parser_vrmlScene(struct VRMLParser*);
 
+BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal);
+
 /*
 void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 */

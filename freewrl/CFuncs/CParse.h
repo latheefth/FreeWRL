@@ -5,6 +5,13 @@
 
 #include "headers.h"
 
+/* for scanning and determining whether a character is part of a valid X3D name */
+#define IS_ID_REST(c) \
+ (c>0x20 && c!=0x22 && c!=0x23 && c!=0x27 && c!=0x2C && c!=0x2E && c!=0x5B && \
+  c!=0x5C && c!=0x5D && c!=0x7B && c!=0x7D && c!=0x7F)
+#define IS_ID_FIRST(c) \
+ (IS_ID_REST(c) && (c<0x30 || c>0x39) && c!=0x2B && c!=0x2D)
+
 BOOL cParse(void*, unsigned, const char*);
 
 /* Destroy all data associated with the currently parsed world kept. */

@@ -52,6 +52,7 @@ struct ProtoFieldDecl
  indexT mode; /* field, exposedField, eventIn, eventOut */
  indexT type; /* field type */
  indexT name; /* field "name" (its lexer-index) */
+ char *fieldString; /* the field, in ascii form */
  /* This is the list of desination pointers for this field */
  struct Vector* dests;
  /* Only for exposedField or field */
@@ -154,11 +155,14 @@ struct ProtoRoute* newProtoRoute(struct X3D_Node*, int, struct X3D_Node*, int,
 /* The object */
 struct ProtoDefinition
 {
+ indexT protoDefNumber;	/* unique sequence number */
  struct X3D_Group* tree; /* The scene graph of the PROTO definition */
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
  struct Vector* routes; /* Inner ROUTEs */
  struct Vector* innerPtrs; /* Pointers to pointers which need to be updated */
  struct Vector* nestedProtoFields; /* Are there any nested proto fields in this proto?  (see comments for struct NestedProtoField) */
+
+ char *protoBody; /* string copy of the proto body */
 };
 
 /* Constructor and destructor */
@@ -262,5 +266,7 @@ struct NestedProtoField
 };
 
 void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
+void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto);
+struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID);
 
 #endif /* Once-check */
