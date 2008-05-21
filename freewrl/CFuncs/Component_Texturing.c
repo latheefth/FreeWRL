@@ -21,7 +21,7 @@
 void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *node) {
 	char *modeptr;
 
-	if (node->_ichange != node->_change) {
+	if NODE_NEEDS_COMPILING {
 		MARK_NODE_COMPILED
 
 		modeptr = node->mode->strptr;
@@ -80,7 +80,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 	   So, in the case where there is more than 1 parent, we have to re-calculate this ordering 
 	   every time a texture is displayed */
 
-	if ((node->_ichange != node->_change) || (node->__lastParent != global_tcin_lastParent)) {
+	if (NODE_NEEDS_COMPILING || (node->__lastParent != global_tcin_lastParent)) {
 
 		MARK_NODE_COMPILED
 

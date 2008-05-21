@@ -1007,6 +1007,7 @@ package VRML::NodeType;
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
 						_radius => [SFFloat, 0, initializeOnly],
+						_dlchange => [SFInt32, 0, initializeOnly],
 					   },"X3DPointingDeviceSensorNode"),
 
 

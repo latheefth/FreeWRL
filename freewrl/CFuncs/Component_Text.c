@@ -772,9 +772,9 @@ void collide_Text (struct X3D_Text *node) {
 
 
 	       /*save changed state.*/
-	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
+	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->irep_change;
                COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
- 	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
+ 	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->irep_change = change;
 	       /*restore changes state, invalidates compile_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 

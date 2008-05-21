@@ -170,7 +170,7 @@ extern int MAXJSparamNames;
 int isShapeCompilerParsing(void);
 void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
 #define COMPILE_POLY_IF_REQUIRED(a,b,c,d) \
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) { \
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { \
                         compileNode ((void *)compile_polyrep, node, a,b,c,d); \
 		} \
 		if (!node->_intern) return;
@@ -198,6 +198,7 @@ node for ANY node that takes something other than a Group */
 	} else outNode = inNode; };
 
 #define MARK_NODE_COMPILED node->_ichange = node->_change;
+#define NODE_NEEDS_COMPILING (node->_ichange != node->_change)
 /* end of compile simple nodes code */
 
 void startOfLoopNodeUpdates(void);

@@ -1052,6 +1052,6 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		stream_polyrep(node, coord, color, normal, texCoord);
 
 	/* and, tell the rendering process that this shape is now compiled */
-	r->_change = p->_change;
+	r->irep_change = p->_change;
 }
 

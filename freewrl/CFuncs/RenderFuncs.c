@@ -274,12 +274,13 @@ void render_node(struct X3D_Node *node) {
 
 
 	/* call the "changed_" function */
-	if((node->_change != node->_ichange)  && (v->changed != NULL)) {
+	if(NODE_NEEDS_COMPILING  && (v->changed != NULL)) {
 	    #ifdef RENDERVERBOSE 
 		printf ("rs 1 pch %d pich %d vch %d\n",node->_change,node->_ichange,v->changed);
 	    #endif
 	    v->changed(node);
-	    node->_ichange = node->_change;
+	    MARK_NODE_COMPILED
+
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
 	    #endif

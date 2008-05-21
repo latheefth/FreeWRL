@@ -213,10 +213,10 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	setExtent(cx+x, cx-x, cx+y, cx-y, cx+z, cx-z,X3D_NODE(node));
 
 
-	if (node->_ichange != node->_change) {
+	if NODE_NEEDS_COMPILING {
 		/*  have to regen the shape*/
 
-		node->_ichange = node->_change;
+		MARK_NODE_COMPILED
 
 		/*  MALLOC memory (if possible)*/
 		if (!node->__points) node->__points = MALLOC (sizeof(struct SFColor)*(24));

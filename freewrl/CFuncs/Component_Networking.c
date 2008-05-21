@@ -1020,8 +1020,8 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	if (!render_geom) return;
 
 	/* do we need to re-generate our internal variables? */
-	if (node->_change != node->_ichange) {
-		node->_ichange = node->_change;
+	if NODE_NEEDS_COMPILING {
+		MARK_NODE_COMPILED
 		node->__loading = 0;
 		node->__finishedloading = 0;
 		node->progress = 0.0;

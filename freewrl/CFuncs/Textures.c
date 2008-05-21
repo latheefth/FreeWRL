@@ -542,13 +542,13 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 void loadTextureNode (struct X3D_Node *node, void *param) {
 	struct X3D_MovieTexture *mym;
 
-	if (node->_ichange != node->_change) {
+	if NODE_NEEDS_COMPILING {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
 		 texture is shared, then ALL references will change! so,
 		 we just accept that the current texture parameters have to
 		 be left behind. */
-		node->_ichange = node->_change;
+		MARK_NODE_COMPILED
 
 		/* this will cause bind_image to create a new "slot" for this texture */
 		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
@@ -601,9 +601,9 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	#endif
 	
 	/* new node, or node paramaters changed */
-        if (node->_ichange != node->_change) {
+        if NODE_NEEDS_COMPILING {
                 /*  have to regen the shape*/
-                node->_ichange = node->_change;
+		MARK_NODE_COMPILED
 
 		/* have we initiated multitexture support yet? */
 		if (maxTexelUnits < 0)  {

@@ -582,13 +582,14 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	/* do we have NO background triangles? (ie, maybe all textures??) */
 	if ((skyColCt == 0) & (gndColCt == 0)) {
         	if (node->_nodeType == NODE_Background) {
-                	node->_ichange = node->_change;
+			MARK_NODE_COMPILED
                 	/* do we have an old background to destroy? */
                 	FREE_IF_NZ (node->__points);
                 	FREE_IF_NZ (node->__colours);
                 	node->__quadcount = 0;
         	} else {
-                	tbnode->_ichange = tbnode->_change;
+                	tbnode->_ichange = tbnode->_change; /* mimic MARK_NODE_COMPILED */
+
                 	/* do we have an old background to destroy? */
                 	FREE_IF_NZ (tbnode->__points);
                 	FREE_IF_NZ (tbnode->__colours);
@@ -747,7 +748,8 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 
 	/* save changes */
 	if (node->_nodeType == NODE_Background) {
-		node->_ichange = node->_change;
+		MARK_NODE_COMPILED
+
 		/* do we have an old background to destroy? */
 		FREE_IF_NZ (node->__points);
 		FREE_IF_NZ (node->__colours);
@@ -756,7 +758,7 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 		node->__quadcount = actq;
 
 	} else {
-		tbnode->_ichange = tbnode->_change;
+		tbnode->_ichange = tbnode->_change; /* mimic MARK_NODE_COMPILED */
 		/* do we have an old background to destroy? */
 		FREE_IF_NZ (tbnode->__points);
 		FREE_IF_NZ (tbnode->__colours);
@@ -785,7 +787,7 @@ void render_Background (struct X3D_Background *node) {
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
 
-	if (node->_change != node->_ichange) 
+	if NODE_NEEDS_COMPILING 
 		recalculateBackgroundVectors(node);
 
 
@@ -848,7 +850,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
 
-	if (node->_change != node->_ichange) 
+	if  NODE_NEEDS_COMPILING
 		/* recalculateBackgroundVectors will determine exact node type */
 		recalculateBackgroundVectors((struct X3D_Background *)node);	
 

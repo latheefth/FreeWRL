@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.286  2008/05/21 20:16:48  crc_canada
+# Standard defines for node rebuilding
+#
 # Revision 1.285  2008/03/31 20:10:16  crc_canada
 # Review texture transparency, use node table to update scenegraph to allow for
 # node updating.
@@ -156,7 +159,6 @@ my $interalNodeCommonFields =
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _hit; \n"                   	.
                "       int _change; \n"                	.
-	       "       int _dlchange; \n"              	.
                "       GLuint _dlist; \n"              	.
 	       "       void **_parents; \n"	  	.
 	       "       int _nparents; \n"		.
@@ -798,7 +800,6 @@ sub gen {
 	"	node->_renderFlags = 0; /*sensitive, etc */\n".
 	"	node->_hit = 0;\n".
 	"	node->_change = 153; \n".
-	"	node->_dlchange = 0;\n".
 	"	node->_dlist = 0;\n".
 	"	node->_parents = 0;\n".
 	"	node->_nparents = 0;\n".
@@ -1156,7 +1157,7 @@ struct Uni_String {
  * done so that we get rid of concave polygons etc.
  */
 struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
-	int _change;
+	int irep_change;
 	int ccw;	/* ccw field for single faced structures */
 	int ntri; /* number of triangles */
 	int streamed;	/* is this done the streaming pass? */
