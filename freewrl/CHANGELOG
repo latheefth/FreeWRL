@@ -1,4 +1,6 @@
 For 1.20.4
+	- Linux: if iconified, skip all OpenGL rendering calls.
+
 	- modified file-read function to handle files without an end of line character on last 
 	  line - some older Microsoft-generated files would cause last line to be lost. 
 

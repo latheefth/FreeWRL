@@ -31,6 +31,8 @@
 	#define ARROW_CURSOR    ccurse = ACURSE;
 #endif
 
+/* are we displayed, or iconic? */
+static int onScreen = TRUE;
 
 static char debs[300];
 /* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
@@ -360,7 +362,7 @@ void EventLoop() {
 	#endif
 
 	/* setup Projection and activate ProximitySensors */
-	render_pre();
+	if (onScreen) render_pre();
 
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
@@ -381,7 +383,7 @@ void EventLoop() {
 	#endif
 
 	/* actual rendering */
-	render();
+	if (onScreen) render();
 
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
@@ -541,6 +543,20 @@ void handle_Xevents(XEvent event) {
 	int count;
 
 	lastMouseEvent=event.type;
+
+	#ifdef VERBOSE
+	switch (event.type) {
+		case ConfigureNotify: printf ("Event: ConfigureNotify\n"); break;
+		case KeyPress: printf ("Event: KeyPress\n"); break;
+		case KeyRelease: printf ("Event: KeyRelease\n"); break;
+		case ButtonPress: printf ("Event: ButtonPress\n"); break;
+		case ButtonRelease: printf ("Event: ButtonRelease\n"); break;
+		case MotionNotify: printf ("Event: MotionNotify\n"); break;
+		case MapNotify: printf ("Event: MapNotify\n"); break;
+		case UnmapNotify: printf ("Event: *****UnmapNotify\n"); break;
+		default: printf ("event, unknown %d\n", event.type);
+	}
+	#endif
 
 	switch(event.type) {
 		#ifdef HAVE_NOTOOLKIT
@@ -1779,7 +1795,18 @@ void setPluginPath(char* path) {
 	PluginFullPath = strdup(path);
 }
 
+
 #endif
+
+/* if we are visible, draw the OpenGL stuff, if not, don not bother */
+void setDisplayed (int state) {
+	#ifdef VERBOSE
+	if (state) printf ("WE ARE DISPLAYED\n");
+	else printf ("we are now iconic\n");
+	#endif
+	onScreen = state;
+}
+
 void setEaiVerbose() {
 	eaiverbose = TRUE;
 }

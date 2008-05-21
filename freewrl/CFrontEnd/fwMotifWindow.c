@@ -139,6 +139,13 @@ void myXtManageChild (int c, Widget child) {
 	if (child != NULL) XtManageChild (child);
 }
 
+
+/* see if/when we become iconified - if so, dont bother doing OpenGL stuff */
+XtEventHandler StateWatcher (Widget w, caddr_t unused, XEvent *event) {
+if (event->type == MapNotify) setDisplayed (TRUE);
+        else if (event->type == UnmapNotify) setDisplayed (FALSE);
+}
+
 void createMotifMainWindow() {
         Dimension width, height;
 
@@ -175,6 +182,9 @@ void createMotifMainWindow() {
 
         XtVaGetValues (freewrlDrawArea, XmNwidth, &width, XmNheight, &height, NULL);
         setScreenDim (width,height);
+
+	/* lets see when this goes iconic */
+	XtAddEventHandler (freewrlTopWidget, StructureNotifyMask, FALSE, StateWatcher, NULL);
 
 }
 
@@ -330,6 +340,18 @@ void newFilePopup(Widget cascade_button, char *text, XmPushButtonCallbackStruct 
 	XtPopup(XtParent(newFileWidget), XtGrabNone); 
 }
  
+
+
+#ifdef DOESNOTGETICONICSTATE
+/* resize, configure events */
+void GLAreaexpose (Widget w, XtPointer data, XtPointer callData) {
+	XmDrawingAreaCallbackStruct *cd = (XmDrawingAreaCallbackStruct *) callData;
+	switch (cd->reason) {
+		case XmCR_EXPOSE: printf ("got expose event \n");
+		default: printf ("not known event, %d\n",cd->reason);
+	}
+}
+#endif
 
 /* resize, configure events */
 void GLArearesize (Widget w, XtPointer data, XtPointer callData) {
@@ -714,6 +736,10 @@ void createDrawingFrame(void) {
 	XmNleftAttachment, XmATTACH_FORM,
 	XmNrightAttachment, XmATTACH_FORM,
 			NULL);
+
+	#ifdef DOESNOTGETICONICSTATE
+	XtAddCallback (freewrlDrawArea, XmNexposeCallback, GLAreaexpose, NULL);
+	#endif
 
 	XtAddCallback (freewrlDrawArea, XmNresizeCallback, GLArearesize, NULL);
 	XtAddCallback (freewrlDrawArea, XmNinputCallback, GLAreainput, NULL);
