@@ -82,14 +82,14 @@ void prep_Transform (struct X3D_Transform *node) {
 		fwXformPush(node);
 
 		/* might we have had a change to a previously ignored value? */
-		if NODE_NEEDS_COMPILING {
+		if (node->_change != node->__verify_transforms) {
 			/* printf ("re-rendering for %d\n",node);*/
 			node->__do_center = verify_translate ((GLfloat *)node->center.c);
 			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
 			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
 			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
-			MARK_NODE_COMPILED
+			node->__verify_transforms = node->_change;
 		}
 
 		/* TRANSLATION */

@@ -160,6 +160,7 @@ package VRML::NodeType;
 						 __do_rotation => [SFInt32, 0, initializeOnly],
 						 __do_scaleO => [SFInt32, 0, initializeOnly],
 						 __do_scale => [SFInt32, 0, initializeOnly],
+						 __verify_transforms => [SFInt32, 0, initializeOnly],
 						},"X3DGroupingNode"),
 
 	WorldInfo => new VRML::NodeType("WorldInfo", {
