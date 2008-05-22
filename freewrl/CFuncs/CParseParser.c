@@ -837,54 +837,6 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 
 	me->curPROTO=obj;
 
-#ifdef OLDCODE 
-  /* While we are able to parse nodes, routes, and protos, keep doing so */
-  while(TRUE)
-  {
-   {
-    vrmlNodeT node;
-    
-    /* If we can successfully parse the next section of the file as a node statement, we do so and get a pointer 
-       to the X3D_Node structure containing the values for the node. Then we add the node to the scene graph for
-       this proto */
-#ifdef CPARSERVERBOSE
-    printf("protoStatement: try node .. \n");
-#endif
-    if(parser_nodeStatement(me, &node))
-    {
-     protoDefinition_addNode(obj, node);
-#ifdef CPARSERVERBOSE
-      printf("protoStatement: parsed node\n");
-#endif
-     continue;
-    }
-   }
-
-   /*  Parse a ROUTE statement and add a new ProtoRoute structure to the routes vector of this ProtoDefinition */ 
-   #ifdef CPARSERVERBOSE
-   printf("protoStatement: try ROUTE statement ...\n");
-   #endif
-
-  /* try ROUTE, COMPONENT, EXPORT, IMPORT, META, PROFILE statements here */
-  BLOCK_STATEMENT(protoStatement)
-
-   /* Nested PROTO.  Parse the PROTO and add it to the PROTOs list */
-#ifdef CPARSERVERBOSE
-   printf("protoStatement: try protoStatement .. \n");
-#endif
-   /* A proto within a proto ....
-      Parse the PROTO and add the ProtoDefinition to the PROTOs stack */
-   if(parser_protoStatement(me)) {
-#ifdef CPARSERVERBOSE
-    printf("protoStatement: parsed proto\n");
-#endif
-    continue;
-   }
-
-   break;
-  }
-#endif
-
 	/* just go to the end of the proto body */
 	skipToEndOfOpenCurly(me->lexer,0);
 
@@ -937,11 +889,6 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  #ifdef CPARSERVERBOSE
  printf ("calling lexer_closeCurly at A\n");
  #endif
-
-#ifdef OLDCODE
- if(!lexer_closeCurly(me->lexer))
-  PARSE_ERROR("Expected } after PROTO body!")
-#endif
 
  return TRUE;
 }
@@ -1708,8 +1655,9 @@ void parser_registerRoute(struct VRMLParser* me,
  assert(me);
  if(me->curPROTO)
  {
-  protoDefinition_addRoute(me->curPROTO,
-   newProtoRoute(fromNode, fromOfs, toNode, toOfs, len, dir));
+printf ("routing to/from proto not working at moment\n");
+  /* OLDCODE protoDefinition_addRoute(me->curPROTO,
+   newProtoRoute(fromNode, fromOfs, toNode, toOfs, len, dir)); */
  } else
   CRoutes_RegisterSimple(fromNode, fromOfs, toNode, toOfs, len, dir);
 }
@@ -2162,10 +2110,6 @@ BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct 
 
  assert(second_field);
 
- /* Add a nestedproto field structure to the list of nested fields for this proto expansion */
- struct NestedProtoField* nestedField = newNestedProtoField(first_field, second_field);
- vector_pushBack(struct NestedProtoField*, p->nestedProtoFields, nestedField);
-
  return TRUE;
 
 }
@@ -2333,10 +2277,6 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
           of the same places as userdefinedfield did. We do this when the scene for the proto is extracted after all fields have been parsed by
 	  going through the list of nestedProtoFields and copying all of the dests for userdefinedfield into the dests list for
 	  anotheruserdefinedfield.  This nested field is added to the nestedProtoFields list below. */
-
- struct NestedProtoField* nestedField;
- nestedField = newNestedProtoField(origField, pField);
- vector_pushBack(struct NestedProtoField*, pdef->nestedProtoFields, nestedField);
 
  switch(pField->type)
  {

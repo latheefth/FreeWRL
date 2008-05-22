@@ -156,21 +156,14 @@ struct ProtoRoute* newProtoRoute(struct X3D_Node*, int, struct X3D_Node*, int,
 struct ProtoDefinition
 {
  indexT protoDefNumber;	/* unique sequence number */
- struct X3D_Group* tree; /* The scene graph of the PROTO definition */
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
- struct Vector* routes; /* Inner ROUTEs */
- struct Vector* innerPtrs; /* Pointers to pointers which need to be updated */
- struct Vector* nestedProtoFields; /* Are there any nested proto fields in this proto?  (see comments for struct NestedProtoField) */
-
  char *protoBody; /* string copy of the proto body */
+ struct Vector* deconstructedProtoBody; /* Inner ROUTEs */
 };
 
 /* Constructor and destructor */
 struct ProtoDefinition* newProtoDefinition();
 void deleteProtoDefinition(struct ProtoDefinition*);
-
-/* Add a node to the virtual group node */
-void protoDefinition_addNode(struct ProtoDefinition*, struct X3D_Node*);
 
 /* Adds a field declaration to the interface */
 #define protoDefinition_addIfaceField(me, field) \
@@ -192,20 +185,9 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer*, struct ProtoDefi
 /* Extracts the scene graph out of a ProtoDefinition */
 struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct ProtoDefinition*);
 
-/* Fills the innerPtrs field */
-void protoDefinition_fillInnerPtrs(struct ProtoDefinition*);
-
-/* Updates interface-pointers to a given memory block */
-void protoDefinition_doPtrUpdate(struct ProtoDefinition*,
- uint8_t*, uint8_t*, uint8_t*);
-
 /* Does a recursively deep copy of a node-tree */
 struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer*, struct X3D_Node*,
  struct ProtoDefinition*, struct PointerHash*);
-
-/* Adds an inner route */
-#define protoDefinition_addRoute(me, r) \
- vector_pushBack(struct ProtoRoute*, (me)->routes, r)
 
 /* ************************************************************************** */
 /* ******************************* PointerHash ****************************** */

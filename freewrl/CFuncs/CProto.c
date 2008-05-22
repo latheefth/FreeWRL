@@ -76,16 +76,6 @@ void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 /* Other members */
 /* ************* */
 
-/* Add destinations to innerPtrs vector */
-void protoFieldDecl_addInnerPointersPointers(struct ProtoFieldDecl* me,
- struct Vector* v)
-{
- size_t i;
- for(i=0; i!=vector_size(me->dests); ++i)
-  vector_pushBack(void**, v,
-   &vector_get(struct OffsetPointer*, me->dests, i)->node);
-}
-
 /* Routing to/from */
 void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
@@ -191,21 +181,15 @@ struct ProtoDefinition* newProtoDefinition()
 
  struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
  assert(ret);
- ret->tree=createNewX3DNode(NODE_Group);
- assert(ret->tree);
 
  /* printf("creating new ProtoDefinition %u\n", ret);  */
 
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
  assert(ret->iface);
 
- ret->routes=newVector(struct ProtoRoute*, 4);
- assert(ret->routes);
-
- ret->nestedProtoFields = newVector(struct NestedProtoField*, 4);
- assert(ret->nestedProtoFields);
- 
- ret->innerPtrs=NULL;
+ /* proto bodies are tokenized to help IS and routing to/from PROTOS */
+ ret->deconstructedProtoBody=newVector(char *, 4);
+ assert(ret->deconstructedProtoBody);
 
  ret->protoBody = NULL; /* string copy of the proto body */
 
@@ -216,9 +200,6 @@ struct ProtoDefinition* newProtoDefinition()
 
 void deleteProtoDefinition(struct ProtoDefinition* me)
 {
- /* FIXME:  Not deep-destroying nodes!!! */
- /* If tree is NULL, it is already extracted! */
-  FREE_IF_NZ (me->tree);
   FREE_IF_NZ (me->protoBody);
 
  {
@@ -226,14 +207,11 @@ void deleteProtoDefinition(struct ProtoDefinition* me)
   for(i=0; i!=vector_size(me->iface); ++i)
    deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
   deleteVector(struct ProtoDefinition*, me->iface);
-  for(i=0; i!=vector_size(me->routes); ++i)
-   deleteProtoRoute(vector_get(struct ProtoRoute*, me->routes, i));
-  deleteVector(struct ProtoRoute*, me->routes);
+	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i)
+		FREE_IF_NZ(vector_get(struct ProtoRoute*, me->deconstructedProtoBody, i));
+	deleteVector(struct ProtoRoute*, me->deconstructedProtoBody);
  }
 
- if(me->innerPtrs)
-  deleteVector(void**, me->innerPtrs);
- 
  FREE_IF_NZ (me);
 }
 
@@ -259,15 +237,6 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
  return NULL;
 }
 
-/* Add a node */
-void protoDefinition_addNode(struct ProtoDefinition* me, struct X3D_Node* node)
-{
- assert(me);
- assert(me->tree);
- ADD_PARENT(node, X3D_NODE(me->tree));
- addToNode(me->tree, offsetof(struct X3D_Group, children), node);
-}
-
 /* Copies the PROTO */
 struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
 {
@@ -287,144 +256,18 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
   vector_pushBack(struct ProtoFieldDecl*, ret->iface,
    protoFieldDecl_copy(lex, vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
- /* Copy routes */
- ret->routes=newVector(struct ProtoRoute*, vector_size(me->routes));
- assert(ret->routes);
- for(i=0; i!=vector_size(me->routes); ++i) {
-  struct ProtoRoute* theRoute = vector_get(struct ProtoRoute*, me->routes, i);
-  /* printf("copying proto route from %p %u to %p %u dir %d\n", theRoute->from, theRoute->fromOfs, theRoute->to, theRoute->toOfs, theRoute->dir); */
-  vector_pushBack(struct ProtoRoute*, ret->routes,
-   protoRoute_copy(vector_get(struct ProtoRoute*, me->routes, i)));
- }
-
- /* Fill inner pointers */
- ret->innerPtrs=NULL;
- protoDefinition_fillInnerPtrs(ret);
-
- ret->nestedProtoFields = newVector(struct NestedProtoField*, 4);
- assert(ret->nestedProtoFields);
-
- /* Copy the scene graph and fill the fields thereby */
- ret->tree=protoDefinition_deepCopy(lex, me->tree, ret, NULL);
- /* Set reference */
- /* XXX:  Do we need the *original* reference? */
- ret->tree->__protoDef=ret;
-
- /* JAS - call a function to ensure that the parents are filled in properly -
-    sometimes the reverse links are required, especially when propagating sensitive info 
-    back up the tree */
- /* printf ("going to call checkParentLink\n"); */
-
- checkParentLink(ret->tree,NULL);
-
- ret->protoDefNumber = latest_protoDefNumber++;
-
- /* printf ("finished calling checkParentLink, tree is %u\n",ret->tree);  */
-
- return ret;
-}
-
-/* Extracts the scene graph */
-/* Checks that every field and exposed field has had it's value propagated to all of it's destinations.
-   (i.e. propogates the value of fields using the default value.  Fields where values were specified will
-   already have had that value parsed and propagagted to all dests.)
-   Adds all of the routes in the route vector for this ProtoDefinition to the CRoutes table.
-   Gets the scene graph for this protoDefinition and returns it. */
-struct X3D_Group* protoDefinition_extractScene(struct VRMLLexer* lex, struct ProtoDefinition* me)
-{
- size_t i;
- size_t j;
- struct X3D_Group* ret=me->tree;
- struct NestedProtoField* nestedField;
- struct OffsetPointer* toCopy;
- struct OffsetPointer* copy;
- assert(ret);
-
-	#ifdef CPROTOVERBOSE
- 	printf("protoDefinition_extractScene: Extracting scene for protodef %u protoBody :%s:\n", me,me->protoBody);
-	#endif
-
- me->tree=NULL;
-
- /* First check if there are any nested proto fields.  If there are, we need to go through the dests list for the original field and
-    copy the offset pointers into the dests list for the local field. We also need to copy over the scriptDests list for the original field
-    into the scriptDests list for the local field */
- for (i=0; i<vector_size(me->nestedProtoFields); i++) {
-	nestedField = vector_get(struct NestedProtoField*, me->nestedProtoFields, i);
-   	struct ProtoFieldDecl* origField;
-	struct ProtoFieldDecl* localField;
-	origField = nestedField->origField;
-	localField = nestedField->localField;
-	for (j=0; j<vector_size(origField->dests); j++) {
-		toCopy = vector_get(struct OffsetPointer*, origField->dests, j);
-		copy = newOffsetPointer(toCopy->node, toCopy->ofs);
-		vector_pushBack(struct OffsetPointer*, localField->dests, copy);
+	/* copy the deconsctructed PROTO body */
+	ret->deconstructedProtoBody = newVector (char *, vector_size(me->deconstructedProtoBody));
+	assert (ret->deconstructedProtoBody);
+	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i) {
+		vector_pushBack(char *, ret->deconstructedProtoBody, STRDUP(vector_get(char *, me->deconstructedProtoBody, i)));
 	}
-	for (j=0; j < vector_size(origField->scriptDests); j++) {
-		struct ScriptFieldInstanceInfo* sCopy = vector_get(struct ScriptFieldInstanceInfo*, origField->scriptDests, j);
-		struct ScriptFieldInstanceInfo* snew = newScriptFieldInstanceInfo(sCopy->decl, sCopy->script);
-		vector_pushBack(struct ScriptFieldInstanceInfo*, localField->scriptDests, snew);
-	}
-  }
 	
- /* Finish all fields now */
- /* If we haven't already done so, call protoFieldDecl_setValue for this field.
-    This will only happen if no value for the field was parsed (i.e. a default value must be used).
-    This will go through the dests vector for this field, and set the value of each dest to the default value.
-     (Note that the first element of the dests vector is actually assigned the value of "val".  While
-     subsequent elements of the dests vector have a DEEPCOPY of the "val" assigned (if appropriate). */
- for(i=0; i!=vector_size(me->iface); ++i) {
-   struct ProtoFieldDecl* pField;
-   pField = vector_get(struct ProtoFieldDecl*, me->iface, i);
-   protoFieldDecl_finish(lex, pField);
-  }
+	ret->protoDefNumber = latest_protoDefNumber++;
 
- /* Register all routes */
- /* This is #defined as  CRoutes_RegisterSimple((me)->from, (me)->fromOfs, (me)->to, (me)->toOfs, (me)->len, (me)->dir) */
- /* Goes through the list of routes for this proto (the routes vector) and adds each one
-    to the CRoutes table */
- for(i=0; i!=vector_size(me->routes); ++i) {
-  struct ProtoRoute* theRoute;
-  theRoute = vector_get(struct ProtoRoute*, me->routes, i);
-  /* printf("extract_scene: register route from %p %u to %p %u (dir is %d)\n", theRoute->from, theRoute->fromOfs, theRoute->to, theRoute->toOfs, theRoute->dir); */
-  protoRoute_register(vector_get(struct ProtoRoute*, me->routes, i));
- }
-
- assert(ret->__protoDef);
-
- return ret;
+	return ret;
 }
 
-/* Update pointers; only some pointer-arithmetic here */
-void protoDefinition_doPtrUpdate(struct ProtoDefinition* me,
- uint8_t* beg, uint8_t* end, uint8_t* newPos)
-{
- size_t i;
- assert(me->innerPtrs);
- for(i=0; i!=vector_size(me->innerPtrs); ++i)
- {
-  uint8_t** curPtr=vector_get(uint8_t**, me->innerPtrs, i);
-  if(*curPtr>=beg && *curPtr<end)
-   *curPtr=newPos+(*curPtr-beg);
- }
-}
-
-/* Fills the innerPtrs field */
-void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
-{
- size_t i;
-
- assert(!me->innerPtrs);
- me->innerPtrs=newVector(void**, 8);
-
- for(i=0; i!=vector_size(me->iface); ++i)
-  protoFieldDecl_addInnerPointersPointers(
-   vector_get(struct ProtoFieldDecl*, me->iface, i), me->innerPtrs);
-
- for(i=0; i!=vector_size(me->routes); ++i)
-  protoRoute_addInnerPointersPointers(
-   vector_get(struct ProtoRoute*, me->routes, i), me->innerPtrs);
-}
 
 /* Deep copying */
 /* ************ */
@@ -441,25 +284,8 @@ void protoDefinition_fillInnerPtrs(struct ProtoDefinition* me)
 #define DEEPCOPY_sftime(l,v, i, h) v
 #define DEEPCOPY_sfvec2f(l,v, i, h) v
 #define DEEPCOPY_sfvec3f(l,v, i, h) v
-
-#ifdef OLDCODE
-/* JAS sfimages have changed structure types */
-#define DEEPCOPY_sfimage(l, v, i, h) deepcopy_sfimage(l, v, i, h)
-
-static struct Multi_Int32 DEEPCOPY_mfint32(struct VRMLLexer*, struct Multi_Int32,
- struct ProtoDefinition*, struct PointerHash*);
-static vrmlImageT deepcopy_sfimage(struct VRMLLexer* lex, vrmlImageT img,
- struct ProtoDefinition* new, struct PointerHash* hash)
-{
- vrmlImageT ret=MALLOC(sizeof(*img));
- *ret=DEEPCOPY_mfint32(lex, *img, new, hash);
- return ret;
-}
-#else
-
 #define DEEPCOPY_sfimage(l, v, i, h) v
 
-#endif
 static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
 {
  return newASCIIString (str->strptr);
@@ -476,9 +302,6 @@ static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
   dest.p=MALLOC(sizeof(src.p[0])*src.n); \
   for(i=0; i!=src.n; ++i) \
    dest.p[i]=DEEPCOPY_sf##type(lex, src.p[i], new, hash); \
-  if(new) \
-   protoDefinition_doPtrUpdate(new, \
-    (uint8_t*)src.p, (uint8_t*)(src.p+src.n), (uint8_t*)dest.p); \
   return dest; \
  }
 DEEPCOPY_MFVALUE(lex, bool, Bool)
@@ -531,10 +354,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
    { \
     struct X3D_##n* node2=(struct X3D_##n*)node; \
     struct X3D_##n* ret2=(struct X3D_##n*)ret; \
-    if(new) \
-     protoDefinition_doPtrUpdate(new, \
-      (uint8_t*)node2, ((uint8_t*)node2)+sizeof(struct X3D_##n), \
-      (uint8_t*)ret2);
+
   #define END_NODE(n) \
     break; \
    }
@@ -605,18 +425,8 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
         	        }
         	}
 	}
-	for (i = 0; i != vector_size(new->routes); i++) {
-		struct ProtoRoute* curRoute = vector_get(struct ProtoRoute*, new->routes, i);
-		if (curRoute->dir == TO_SCRIPT) {
-			if (curRoute->to == old_script->num) {
-				curRoute->to = new_script->num;
-			}
-		} else if (curRoute->dir == FROM_SCRIPT) {
-			if (curRoute->from == old_script->num) {
-				curRoute->from = new_script->num;
-		}
-	}
-    }
+
+/* a bunch of "OLDCODE" was here */
   }
 
  if(myHash)
@@ -1013,42 +823,55 @@ void tokenizeProtoBody(struct ProtoDefinition *me) {
 	vrmlInt32T tmp32;
 	vrmlFloatT tmpfloat;
 	vrmlStringT tmpstring;
+	char *ptr;
+return; /* work on this when you get back from vacation XXXX */
 
-return;
 	printf ("start of tokenizeProtoBody:%s:\n",me->protoBody);
 
 	lex = newLexer();
 	lexer_fromString(lex,me->protoBody);
 
-
-if (lex->isEof) printf ("start, isEOF true\n");
-if (lex->isEof == FALSE) printf ("start, isEOF FALS\n");
-printf ("strlen is %d\n",strlen (lex->nextIn));
-printf ("tokenizing:\n");
 	while (lex->isEof == FALSE) {
 		if (lexer_setCurID(lex)) {
 			printf ("\"%s\"\n",lex->curID);
-			FREE_IF_NZ(lex->curID);
+			vector_pushBack(char *, me->deconstructedProtoBody, lex->curID);
+			lex->curID = NULL;
+			/* FREE_IF_NZ(lex->curID); */
 		} else if (lexer_point(lex)) {
 			printf ("\".\"\n");
+			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("."));
 		} else if (lexer_openCurly(lex)) {
 			printf ("\"{\"\n");
+			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("{"));
 		} else if (lexer_closeCurly(lex)) {
 			printf ("\"}\"\n");
+			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("}"));
 		} else if (lexer_openSquare(lex)) {
 			printf ("\"[\"\n");
+			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("["));
 		} else if (lexer_closeSquare(lex)) {
 			printf ("\"]\"\n");
+			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("]"));
 		} else if (lexer_colon(lex)) {
 			printf ("\":\"\n");
+			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP (":"));
 		} else if (lexer_float(lex,&tmpfloat)) {
 			printf ("\"%f\"\n",tmpfloat);
+			ptr = MALLOC (10);
+			assert (ptr);
+			sprintf (ptr,"%f",tmpfloat);
+			vector_pushBack(char *, me->deconstructedProtoBody, ptr);
 		} else if (lexer_int32(lex,&tmp32)) {
 			printf ("\"%d\"\n",tmp32);
+			ptr = MALLOC (10);
+			assert (ptr);
+			sprintf (ptr,"%d",tmp32);
+			vector_pushBack(char *, me->deconstructedProtoBody, ptr);
 		} else if (lexer_string(lex,&tmpstring)) {
 			printf ("\"%s\"\n",tmpstring->strptr);
+			vector_pushBack(char *, me->deconstructedProtoBody, tmpstring->strptr);
 		} else {
-			printf ("lexer_setCurID failed on char :%c:\n",*lex->nextIn);
+			printf ("lexer_setCurID failed on char :%d:\n",*lex->nextIn);
 			lex->nextIn++;
 		}
 	}
