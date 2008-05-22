@@ -1004,3 +1004,54 @@ struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct Pro
 
 	return ret;
 }
+
+
+/* take an ascii string apart, and tokenize this so that we can extract
+	IS fields, and route to/from properly */
+void tokenizeProtoBody(struct ProtoDefinition *me) {
+	struct VRMLLexer *lex;
+	vrmlInt32T tmp32;
+	vrmlFloatT tmpfloat;
+	vrmlStringT tmpstring;
+
+return;
+	printf ("start of tokenizeProtoBody:%s:\n",me->protoBody);
+
+	lex = newLexer();
+	lexer_fromString(lex,me->protoBody);
+
+
+if (lex->isEof) printf ("start, isEOF true\n");
+if (lex->isEof == FALSE) printf ("start, isEOF FALS\n");
+printf ("strlen is %d\n",strlen (lex->nextIn));
+printf ("tokenizing:\n");
+	while (lex->isEof == FALSE) {
+		if (lexer_setCurID(lex)) {
+			printf ("\"%s\"\n",lex->curID);
+			FREE_IF_NZ(lex->curID);
+		} else if (lexer_point(lex)) {
+			printf ("\".\"\n");
+		} else if (lexer_openCurly(lex)) {
+			printf ("\"{\"\n");
+		} else if (lexer_closeCurly(lex)) {
+			printf ("\"}\"\n");
+		} else if (lexer_openSquare(lex)) {
+			printf ("\"[\"\n");
+		} else if (lexer_closeSquare(lex)) {
+			printf ("\"]\"\n");
+		} else if (lexer_colon(lex)) {
+			printf ("\":\"\n");
+		} else if (lexer_float(lex,&tmpfloat)) {
+			printf ("\"%f\"\n",tmpfloat);
+		} else if (lexer_int32(lex,&tmp32)) {
+			printf ("\"%d\"\n",tmp32);
+		} else if (lexer_string(lex,&tmpstring)) {
+			printf ("\"%s\"\n",tmpstring->strptr);
+		} else {
+			printf ("lexer_setCurID failed on char :%c:\n",*lex->nextIn);
+			lex->nextIn++;
+		}
+	}
+	deleteLexer(lex);
+}
+

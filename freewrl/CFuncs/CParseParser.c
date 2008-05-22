@@ -923,6 +923,8 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 	printf ("*** proto body for proto %u is :%s:\n",me, obj->protoBody); 
 	#endif
 
+	tokenizeProtoBody(me->curPROTO);
+
 
   /* We are done parsing this proto.  Set the curPROTO to the last proto we were parsing. */
   me->curPROTO=oldCurPROTO;

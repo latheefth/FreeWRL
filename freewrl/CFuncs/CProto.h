@@ -268,5 +268,6 @@ struct NestedProtoField
 void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto);
 struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID);
+void tokenizeProtoBody(struct ProtoDefinition *);
 
 #endif /* Once-check */
