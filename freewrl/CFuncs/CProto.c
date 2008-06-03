@@ -20,6 +20,39 @@
 /* internal sequence number for protos */
 static  indexT latest_protoDefNumber =1;
 
+/* ************************************************************************** */
+/* ************************** ProtoElementPointer *************************** */
+/* ************************************************************************** */
+
+/* Constructor/destructor */
+struct ProtoElementPointer* newProtoElementPointer(void) {
+	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
+	assert (ret);
+
+	ret->stringToken = NULL;
+	ret->isNODE = ID_UNDEFINED;
+	ret->isKEYWORD = ID_UNDEFINED;
+	ret->terminalSymbol = ID_UNDEFINED;	
+	return ret;
+}
+
+/* in CFuncs/CProto.h #define deleteProtoElementPointer(me)  */
+
+struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer * me) {
+	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
+	assert (ret);
+
+	if (me->stringToken != NULL) ret->stringToken = STRDUP(me->stringToken);
+	else ret->stringToken = NULL;
+	ret->isNODE = me->isNODE;
+	ret->isKEYWORD = me->isKEYWORD;
+	ret->terminalSymbol = me->terminalSymbol;	
+	return ret;
+}
+
+
+
+
 
 /* ************************************************************************** */
 /* ******************************** OffsetPointer *************************** */
@@ -188,31 +221,30 @@ struct ProtoDefinition* newProtoDefinition()
  assert(ret->iface);
 
  /* proto bodies are tokenized to help IS and routing to/from PROTOS */
- ret->deconstructedProtoBody=newVector(char *, 4);
+ ret->deconstructedProtoBody=newVector(struct ProtoElementPointer*, 128);
  assert(ret->deconstructedProtoBody);
 
- ret->protoBody = NULL; /* string copy of the proto body */
-
  ret->protoDefNumber = latest_protoDefNumber++;
+ ret->estimatedBodyLen = 0;
 
  return ret;
 }
 
-void deleteProtoDefinition(struct ProtoDefinition* me)
-{
-  FREE_IF_NZ (me->protoBody);
+void deleteProtoDefinition(struct ProtoDefinition* me) {
+	size_t i;
 
- {
-  size_t i;
-  for(i=0; i!=vector_size(me->iface); ++i)
-   deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
-  deleteVector(struct ProtoDefinition*, me->iface);
-	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i)
-		FREE_IF_NZ(vector_get(struct ProtoRoute*, me->deconstructedProtoBody, i));
+	for(i=0; i!=vector_size(me->iface); ++i)
+		deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
+	deleteVector(struct ProtoDefinition*, me->iface);
+
+	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i) {
+		struct ProtoElementPointer* ele;
+		ele = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
+		FREE_IF_NZ(ele->stringToken);
+		FREE_IF_NZ(ele);
+	}
 	deleteVector(struct ProtoRoute*, me->deconstructedProtoBody);
- }
-
- FREE_IF_NZ (me);
+	FREE_IF_NZ (me);
 }
 
 /* Other members */
@@ -238,29 +270,25 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 }
 
 /* Copies the PROTO */
-struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me)
-{
- struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
- size_t i;
- assert(ret);
+struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct ProtoDefinition* me) {
+	struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
+	size_t i;
 
-	/* printf ("coping protoBody...\n");  */
-	ret->protoBody = STRDUP (me->protoBody);
-	/* printf ("copied proto body as %s\n",ret->protoBody); */
+	assert(ret);
 
 	/* printf("protoDefinition_copy: copying %u to %u\n", me, ret);  */
- /* Copy interface */
- ret->iface=newVector(struct ProtoFieldDecl*, vector_size(me->iface));
- assert(ret->iface);
- for(i=0; i!=vector_size(me->iface); ++i)
-  vector_pushBack(struct ProtoFieldDecl*, ret->iface,
-   protoFieldDecl_copy(lex, vector_get(struct ProtoFieldDecl*, me->iface, i)));
+	/* Copy interface */
+	ret->iface=newVector(struct ProtoFieldDecl*, vector_size(me->iface));
+	assert(ret->iface);
+	for(i=0; i!=vector_size(me->iface); ++i)
+		vector_pushBack(struct ProtoFieldDecl*, ret->iface,
+	protoFieldDecl_copy(lex, vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
 	/* copy the deconsctructed PROTO body */
-	ret->deconstructedProtoBody = newVector (char *, vector_size(me->deconstructedProtoBody));
+	ret->deconstructedProtoBody = newVector (struct ProtoElementPointer* , vector_size(me->deconstructedProtoBody));
 	assert (ret->deconstructedProtoBody);
 	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i) {
-		vector_pushBack(char *, ret->deconstructedProtoBody, STRDUP(vector_get(char *, me->deconstructedProtoBody, i)));
+		vector_pushBack(struct ProtoElementPointer *, ret->deconstructedProtoBody, copyProtoElementPointer(vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i)));
 	}
 	
 	ret->protoDefNumber = latest_protoDefNumber++;
@@ -818,62 +846,62 @@ struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct Pro
 
 /* take an ascii string apart, and tokenize this so that we can extract
 	IS fields, and route to/from properly */
-void tokenizeProtoBody(struct ProtoDefinition *me) {
+void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	struct VRMLLexer *lex;
 	vrmlInt32T tmp32;
 	vrmlFloatT tmpfloat;
 	vrmlStringT tmpstring;
-	char *ptr;
-return; /* work on this when you get back from vacation XXXX */
+	struct ProtoElementPointer* ele;
+	int toPush;
 
-	printf ("start of tokenizeProtoBody:%s:\n",me->protoBody);
+	/* remove spaces at start of string, to help to see if string is empty */
+	while ((*pb != '\0') && (*pb <= ' ')) pb++;
+
+	printf ("start of tokenizeProtoBody:%s:\n",pb);
+	me->estimatedBodyLen = strlen(pb) * 2;
+	
 
 	lex = newLexer();
-	lexer_fromString(lex,me->protoBody);
+	lexer_fromString(lex,pb);
 
 	while (lex->isEof == FALSE) {
+		ele = newProtoElementPointer();
+		toPush = TRUE;
+
 		if (lexer_setCurID(lex)) {
-			printf ("\"%s\"\n",lex->curID);
-			vector_pushBack(char *, me->deconstructedProtoBody, lex->curID);
-			lex->curID = NULL;
-			/* FREE_IF_NZ(lex->curID); */
-		} else if (lexer_point(lex)) {
-			printf ("\".\"\n");
-			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("."));
-		} else if (lexer_openCurly(lex)) {
-			printf ("\"{\"\n");
-			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("{"));
-		} else if (lexer_closeCurly(lex)) {
-			printf ("\"}\"\n");
-			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("}"));
-		} else if (lexer_openSquare(lex)) {
-			printf ("\"[\"\n");
-			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("["));
-		} else if (lexer_closeSquare(lex)) {
-			printf ("\"]\"\n");
-			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP ("]"));
-		} else if (lexer_colon(lex)) {
-			printf ("\":\"\n");
-			vector_pushBack(char *, me->deconstructedProtoBody, STRDUP (":"));
+			if ((ele->isKEYWORD = findFieldInKEYWORDS(lex->curID)) == ID_UNDEFINED)  {
+				if ((ele->isNODE = findFieldInNODES(lex->curID)) == ID_UNDEFINED)  {
+					ele->stringToken = lex->curID;
+					lex->curID = NULL;
+				}
+			}
+			FREE_IF_NZ(lex->curID);
+		} else if (lexer_point(lex)) { ele->terminalSymbol = (indexT) '.';
+		} else if (lexer_openCurly(lex)) { ele->terminalSymbol = (indexT) '{';
+		} else if (lexer_closeCurly(lex)) { ele->terminalSymbol = (indexT) '}';
+		} else if (lexer_openSquare(lex)) { ele->terminalSymbol = (indexT) '[';
+		} else if (lexer_closeSquare(lex)) { ele->terminalSymbol = (indexT) ']';
+		} else if (lexer_colon(lex)) { ele->terminalSymbol = (indexT) ':';
+
 		} else if (lexer_float(lex,&tmpfloat)) {
-			printf ("\"%f\"\n",tmpfloat);
-			ptr = MALLOC (10);
-			assert (ptr);
-			sprintf (ptr,"%f",tmpfloat);
-			vector_pushBack(char *, me->deconstructedProtoBody, ptr);
+			ele->stringToken = MALLOC (10);
+			assert (ele->stringToken);
+			sprintf (ele->stringToken,"%f",tmpfloat);
 		} else if (lexer_int32(lex,&tmp32)) {
-			printf ("\"%d\"\n",tmp32);
-			ptr = MALLOC (10);
-			assert (ptr);
-			sprintf (ptr,"%d",tmp32);
-			vector_pushBack(char *, me->deconstructedProtoBody, ptr);
-		} else if (lexer_string(lex,&tmpstring)) {
-			printf ("\"%s\"\n",tmpstring->strptr);
-			vector_pushBack(char *, me->deconstructedProtoBody, tmpstring->strptr);
+			ele->stringToken = MALLOC (10);
+			assert (ele->stringToken);
+			sprintf (ele->stringToken,"%d",tmp32);
+		} else if (lexer_string(lex,&tmpstring)) { ele->stringToken = tmpstring->strptr;
 		} else {
-			printf ("lexer_setCurID failed on char :%d:\n",*lex->nextIn);
+			if (lex->nextIn != '\0') ConsoleMessage ("lexer_setCurID failed on char :%d:\n",*lex->nextIn);
 			lex->nextIn++;
+			toPush = FALSE;
 		}
+
+		/* printf ("newprotoele (%u), NODE %d KW %d ts %d\n",ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol); */
+
+		/* push this element on the vector for the PROTO */
+		if (toPush) vector_pushBack(struct ProtoElementPointer*, me->deconstructedProtoBody, ele);
 	}
 	deleteLexer(lex);
 }

@@ -43,6 +43,27 @@ struct OffsetPointer* newOffsetPointer(struct X3D_Node*, unsigned);
  ((t)(((char*)((me)->node))+(me)->ofs))
 
 /* ************************************************************************** */
+/* ************************** ProtoElementPointer *************************** */
+/* ************************************************************************** */
+
+/* A pointer which is made up of the offset/node pair */
+struct ProtoElementPointer
+{
+	char *stringToken; 	/* pointer to a name, etc. NULL if one of the index_t fields is in use */
+	indexT isNODE;		/* NODES index, if found, ID_UNDEFINED  otherwise */
+	indexT isKEYWORD;	/* KEYWORDS index, if found, ID_UNDEFINED otherwise */ 
+	indexT terminalSymbol;	/* ASCII value of ".", "{", "}", "[", "]", ":", ID_UNDEFINED otherwise */
+};
+
+/* Constructor/destructor */
+struct ProtoElementPointer* newProtoElementPointer(void);
+
+#define deleteProtoElementPointer(me) \
+ {FREE_IF_NZ(me->stringToken); FREE_IF_NZ(me);}
+
+struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer *);
+
+/* ************************************************************************** */
 /* ********************************* ProtoFieldDecl ************************* */
 /* ************************************************************************** */
 
@@ -157,8 +178,8 @@ struct ProtoDefinition
 {
  indexT protoDefNumber;	/* unique sequence number */
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
- char *protoBody; /* string copy of the proto body */
- struct Vector* deconstructedProtoBody; /* Inner ROUTEs */
+ struct Vector* deconstructedProtoBody; /* PROTO body tokenized */
+ int estimatedBodyLen; /* an estimate of the expanded proto body size, to give us an output string len */
 };
 
 /* Constructor and destructor */
@@ -250,6 +271,6 @@ struct NestedProtoField
 void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* ret, struct X3D_Node* origProtoNode, struct X3D_Node* curProtoNode);
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto);
 struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID);
-void tokenizeProtoBody(struct ProtoDefinition *);
+void tokenizeProtoBody(struct ProtoDefinition *, char *);
 
 #endif /* Once-check */

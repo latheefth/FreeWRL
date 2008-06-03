@@ -121,11 +121,15 @@ void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText) {
 	printf ("****** start of insertProtoExpansionIntoStream\n"); 
 	#endif
 
-	/* skip the lexer along to the end of the proto fields */
-	/* skipToEndOfOpenCurly(me->lexer,0); */
-	
+printf ("\ninsertProtoExpansionIntoStream, newProtoText :%s:\n",newProtoText);
+
+        printf ("insertProtoExpansion, mallocing %d for nextin\n",strlen (me->lexer->nextIn));
+        printf ("insertProtoExpansion, mallocing %d for newProtoText\n",strlen (newProtoText)+1);
+printf ("and, whole, %d\n",sizeof (char) * (strlen (me->lexer->nextIn)+strlen (newProtoText)+1));
 
         insertedPROTOcode = MALLOC (sizeof (char) * (strlen (me->lexer->nextIn)+strlen (newProtoText)+1));
+printf ("past MALLOC in insertProtoExpansionIntoStream\n");
+
         strcpy (insertedPROTOcode,newProtoText);
 
 	#ifdef CPARSERVERBOSE
@@ -195,6 +199,9 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	int validIs;
 	char tmp;
 	char thisID[1000];
+	indexT i;
+	struct ProtoElementPointer* ele;
+
 
 	#ifdef CPARSERVERBOSE
 	printf ("start of protoExpand\n");
@@ -202,12 +209,12 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 	*thisProto = protoDefinition_copy(me->lexer, vector_get(struct ProtoDefinition*, me->PROTOs, nodeTypeU));
 	#ifdef CPARSERVERBOSE
-	printf ("expanding proto, protoBody :%s:\n",(*thisProto)->protoBody); 
+	printf ("expanding proto, "); 
 	printf ("thisProto %u, me->curPROTO %u\n",(*thisProto),me->curPROTO);
 	#endif
 
 
-	newProtoTextLen = strlen((*thisProto)->protoBody) * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP);
+	newProtoTextLen = (*thisProto)->estimatedBodyLen * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP);
 	newProtoText = MALLOC(newProtoTextLen);
 	newProtoText[0] = '\0';
 	strcat (newProtoText, STARTPROTOGROUP);
@@ -221,8 +228,35 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 	getProtoInvocationFields(me,(*thisProto));
 
-	
+	/* go through each part of this deconstructedProtoBody, and see what needs doing... */
 
+	
+	for(i=0; i!=vector_size((*thisProto)->deconstructedProtoBody); ++i) {
+		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
+		assert(ele);
+
+		/* printf ("ele is %u isNODE %d isKEYWORD %d ts %d st %s\n",ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
+		if (ele->isNODE != ID_UNDEFINED) {
+			strcat (newProtoText,stringNodeType(ele->isNODE));
+			strcat (newProtoText, " ");
+		} else if (ele->isKEYWORD != ID_UNDEFINED) {
+			strcat (newProtoText,stringKeywordType(ele->isKEYWORD));
+			strcat (newProtoText, " ");
+		} else if (ele->terminalSymbol != ID_UNDEFINED) {
+			char chars[3];
+			chars[0] = (char) ele->terminalSymbol;
+			chars[1] = '\0';
+			strcat (newProtoText, chars);
+		} else if (ele->stringToken != NULL) {
+			strcat (newProtoText, ele->stringToken);
+			strcat (newProtoText, " ");
+		} else {
+			/* this is a blank proto... */
+			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
+		}
+	}
+
+#ifdef OLDCODE
 	/* change any real "IS"s to the expanded fields */
 	op = (*thisProto)->protoBody;
 
@@ -298,13 +332,18 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 			op = isPtr+strlen("IS");
 		}
 	}
+#endif
 
 	#ifdef CPARSERVERBOSE
 	printf ("so, newProtoText %s, op %s\n",newProtoText,op);
 	#endif
 
+#ifdef OLDCODE
 	strcat (newProtoText,op);
+#endif
 	strcat (newProtoText,ENDPROTOGROUP);
+
+printf ("expanded proto:%s: len %d\n",newProtoText, strlen(newProtoText));
 
 	#ifdef CPARSERVERBOSE
 	printf ("done replacement of IS; newProtoText is :%s:\n",newProtoText); 
@@ -830,6 +869,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  {
   /* Store the previous currentProto for future reference, and set the PROTO we are now parsing to the currentProto */
   struct ProtoDefinition* oldCurPROTO=me->curPROTO;
+	char *protoBody;
 
 	#ifdef CPARSERVERBOSE
 	printf ("about to parse PROTO body; curPROTO = %u, new proto def %u\n",oldCurPROTO,obj);
@@ -856,26 +896,26 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 	#ifdef CPARSERVERBOSE
 	printf ("PROTO has a body of %u len\n",bodyLen);
 	#endif
+printf ("PROTO has a body of %u len\n",bodyLen);
 
 	/* copy this proto body */
-	me->curPROTO->protoBody = MALLOC (bodyLen+10);
-	strncpy (me->curPROTO->protoBody, startOfBody, bodyLen);
+	protoBody = MALLOC (bodyLen+10);
+	strncpy (protoBody, startOfBody, bodyLen);
 
 	if (bodyLen>0) {
 		/* printf ("copied this PROTO, but lets see if we need to remove a curly brace... :%c:\n",
-			me->curPROTO->protoBody[bodyLen-1]); */
-		if (me->curPROTO->protoBody[bodyLen-1] == '}') {
+			protoBody[bodyLen-1]); */
+		if (protoBody[bodyLen-1] == '}') {
 			bodyLen--;
 		}
 	}
-	me->curPROTO->protoBody[bodyLen] = '\n';
-	me->curPROTO->protoBody[bodyLen+1] = '\0';
+	protoBody[bodyLen] = '\0';
 
 	#ifdef CPARSERVERBOSE
-	printf ("*** proto body for proto %u is :%s:\n",me, obj->protoBody); 
+	printf ("*** proto body for proto %u is :%s:\n",me, protoBody); 
 	#endif
 
-	tokenizeProtoBody(me->curPROTO);
+	tokenizeProtoBody(me->curPROTO, protoBody);
 
 
   /* We are done parsing this proto.  Set the curPROTO to the last proto we were parsing. */
@@ -1876,6 +1916,7 @@ XBLOCK_STATEMENT(ddd)
 		
 			/* find and expand the PROTO definition */
 			newProtoText = protoExpand(me, nodeTypeU,&thisProto);
+printf ("got newProtoText, length %d\n",strlen( newProtoText));
 		
 			/* printf ("curPROTO = NULL: past protoExpand\n"); */
 			insertProtoExpansionIntoStream(me,newProtoText);
