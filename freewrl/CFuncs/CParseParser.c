@@ -121,15 +121,7 @@ void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText) {
 	printf ("****** start of insertProtoExpansionIntoStream\n"); 
 	#endif
 
-printf ("\ninsertProtoExpansionIntoStream, newProtoText :%s:\n",newProtoText);
-
-        printf ("insertProtoExpansion, mallocing %d for nextin\n",strlen (me->lexer->nextIn));
-        printf ("insertProtoExpansion, mallocing %d for newProtoText\n",strlen (newProtoText)+1);
-printf ("and, whole, %d\n",sizeof (char) * (strlen (me->lexer->nextIn)+strlen (newProtoText)+1));
-
         insertedPROTOcode = MALLOC (sizeof (char) * (strlen (me->lexer->nextIn)+strlen (newProtoText)+1));
-printf ("past MALLOC in insertProtoExpansionIntoStream\n");
-
         strcpy (insertedPROTOcode,newProtoText);
 
 	#ifdef CPARSERVERBOSE
@@ -214,8 +206,10 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#endif
 
 
-	newProtoTextLen = (*thisProto)->estimatedBodyLen * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP);
+	newProtoTextLen = (*thisProto)->estimatedBodyLen * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) +
+		strlen (STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
 	newProtoText = MALLOC(newProtoTextLen);
+
 	newProtoText[0] = '\0';
 	strcat (newProtoText, STARTPROTOGROUP);
 
@@ -253,6 +247,12 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 		} else {
 			/* this is a blank proto... */
 			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
+		}
+
+		/* possible overflow condition */
+		if (strlen(newProtoText) > (newProtoTextLen - 40)) {
+			newProtoTextLen << 1;
+			newProtoText = REALLOC(newProtoText, newProtoTextLen);
 		}
 	}
 
