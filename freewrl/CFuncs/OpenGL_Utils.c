@@ -974,7 +974,7 @@ void kill_X3DNodes(void){
 			/* printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
 
 			/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
-			if ((X3D_NODE(structptr)->_nodeType == NODE_Group) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_Group, __protoDef))) {
+			if ((X3D_NODE(structptr)->_nodeType == NODE_Group) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_Group, FreeWRL__protoDef))) {
 				break;
 			} else if ((X3D_NODE(structptr)->_nodeType == NODE_TextureCoordinate) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_TextureCoordinate, __lastParent))) {
 				break;

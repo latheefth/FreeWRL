@@ -68,11 +68,11 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 
 	if (coffset <= 0) {
 		printf ("setField_fromJavascript, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
-		printf ("is this maybe a PROTO?? if so, it will be a Group node with __protoDef set to the pointer\n");
+		printf ("is this maybe a PROTO?? if so, it will be a Group node with FreeWRL__protoDef set to the pointer\n");
 		if (node->_nodeType == NODE_Group) {
 			group = (struct X3D_Group *)node;
 			printf ("it IS a group...\n");
-			if (group->__protoDef) {
+			if (group->FreeWRL__protoDef) {
 				printf ("and, this is a PROTO...have to go through PROTO defs to get to it\n");
 			}
 		}

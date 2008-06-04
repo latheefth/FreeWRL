@@ -53,6 +53,7 @@ struct ProtoElementPointer
 	indexT isNODE;		/* NODES index, if found, ID_UNDEFINED  otherwise */
 	indexT isKEYWORD;	/* KEYWORDS index, if found, ID_UNDEFINED otherwise */ 
 	indexT terminalSymbol;	/* ASCII value of ".", "{", "}", "[", "]", ":", ID_UNDEFINED otherwise */
+	indexT fabricatedDef;	/* for making a unique DEF name */
 };
 
 /* Constructor/destructor */
@@ -62,6 +63,12 @@ struct ProtoElementPointer* newProtoElementPointer(void);
  {FREE_IF_NZ(me->stringToken); FREE_IF_NZ(me);}
 
 struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer *);
+
+#define ASSIGN_UNIQUE_ID(me) \
+	{me->fabricatedDef = nextFabricatedDef; nextFabricatedDef ++; }
+
+#define FABRICATED_DEF_HEADER "fReEwEL_fAbricatio_dEF_" /* hopefully quite unique! */
+#define FABRICATED_DEF_HEADER "FABDEF_" /* hopefully quite unique! */
 
 /* ************************************************************************** */
 /* ********************************* ProtoFieldDecl ************************* */
@@ -272,5 +279,6 @@ void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* re
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto);
 struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID);
 void tokenizeProtoBody(struct ProtoDefinition *, char *);
+char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto);
 
 #endif /* Once-check */

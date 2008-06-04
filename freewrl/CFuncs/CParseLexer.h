@@ -51,7 +51,7 @@ void lexer_destroyIdStack(Stack*);
 /* Set input */
 #define lexer_fromString(me, str) \
  { /* printf ("lexer_fromString, new string :%s:\n",str); */ \
-	 (me)->isEof=(strlen(str)==0); FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
+	 (me)->isEof=(strlen(str)<=1); FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
 
 /* Is EOF? */
 #define lexer_eof(me) \

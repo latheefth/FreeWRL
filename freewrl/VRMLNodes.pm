@@ -122,7 +122,7 @@ package VRML::NodeType;
 						children => [MFNode, [], inputOutput],
 						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						 __protoDef => [FreeWRLPTR, 0, initializeOnly], # tell renderer that this is a proto...
+						 FreeWRL__protoDef => [SFInt32, 0, initializeOnly], # tell renderer that this is a proto...
 					   },"X3DGroupingNode"),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {

@@ -126,7 +126,7 @@ findFieldInPROTOOFFSETS General purpose PROTO field lookup function.
 parameters:
 
 	strct X3D_Node *myNode	a node pointer to an X3D_Node. This should be to an X3D_Group with the
-				__protoDef field pointing to a valid data structure.
+				FreeWRL__protoDef field pointing to a valid data structure.
 
 	char *myField		a string pointer to a field name to look up.
 
@@ -172,7 +172,7 @@ void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t 
 
 	#ifdef FF_PROTO_PRINT
 	printf ("setField_method1, trouble finding field %s in node %s\n",myField,stringNodeType(myNode->_nodeType));
-	printf ("is this maybe a PROTO?? if so, it will be a Group node with __protoDef set to the pointer\n");
+	printf ("is this maybe a PROTO?? if so, it will be a Group node with FreeWRL__protoDef set to the pointer\n");
 	#endif
 
 	if (myNode->_nodeType == NODE_Group) {
@@ -181,12 +181,12 @@ void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t 
 		printf ("it IS a group...\n"); 
 		#endif
 
-		if (group->__protoDef) {
+		if (group->FreeWRL__protoDef) {
 			#ifdef FF_PROTO_PRINT
 			printf ("and, this is a PROTO...have to go through PROTO defs to get to it\n");
 			#endif
 
-			myProtoDecl = (struct ProtoDefinition *) group->__protoDef;
+			myProtoDecl = (struct ProtoDefinition *) group->FreeWRL__protoDef;
 
 			#ifdef FF_PROTO_PRINT
 			printf ("proto has %d fields...\n",protoDefinition_getFieldCount(myProtoDecl)); 

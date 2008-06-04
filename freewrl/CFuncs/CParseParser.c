@@ -181,176 +181,6 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 
 }
 
-#define STARTPROTOGROUP "Group{children[ #PROTOGROUP\n"
-#define ENDPROTOGROUP "]}#END PROTOGROUP\n"
-char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
-	char *newProtoText;
-	char *isPtr;
-	char *op;
-	int newProtoTextLen;
-	int validIs;
-	char tmp;
-	char thisID[1000];
-	indexT i;
-	struct ProtoElementPointer* ele;
-
-
-	#ifdef CPARSERVERBOSE
-	printf ("start of protoExpand\n");
-	#endif
-
-	*thisProto = protoDefinition_copy(me->lexer, vector_get(struct ProtoDefinition*, me->PROTOs, nodeTypeU));
-	#ifdef CPARSERVERBOSE
-	printf ("expanding proto, "); 
-	printf ("thisProto %u, me->curPROTO %u\n",(*thisProto),me->curPROTO);
-	#endif
-
-
-	newProtoTextLen = (*thisProto)->estimatedBodyLen * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) +
-		strlen (STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
-	newProtoText = MALLOC(newProtoTextLen);
-
-	newProtoText[0] = '\0';
-	strcat (newProtoText, STARTPROTOGROUP);
-
-	/* printf ("copying proto fields here\n"); */
-	/* copy the proto fields, so that we have either the defined field, or the field at invocation */
-
-	#ifdef CPARSERVERBOSE
-	printf ("\n\ngetProtoInvocationFields being called\n");
-	#endif
-
-	getProtoInvocationFields(me,(*thisProto));
-
-	/* go through each part of this deconstructedProtoBody, and see what needs doing... */
-
-	
-	for(i=0; i!=vector_size((*thisProto)->deconstructedProtoBody); ++i) {
-		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
-		assert(ele);
-
-		/* printf ("ele is %u isNODE %d isKEYWORD %d ts %d st %s\n",ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
-		if (ele->isNODE != ID_UNDEFINED) {
-			strcat (newProtoText,stringNodeType(ele->isNODE));
-			strcat (newProtoText, " ");
-		} else if (ele->isKEYWORD != ID_UNDEFINED) {
-			strcat (newProtoText,stringKeywordType(ele->isKEYWORD));
-			strcat (newProtoText, " ");
-		} else if (ele->terminalSymbol != ID_UNDEFINED) {
-			char chars[3];
-			chars[0] = (char) ele->terminalSymbol;
-			chars[1] = '\0';
-			strcat (newProtoText, chars);
-		} else if (ele->stringToken != NULL) {
-			strcat (newProtoText, ele->stringToken);
-			strcat (newProtoText, " ");
-		} else {
-			/* this is a blank proto... */
-			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
-		}
-
-		/* possible overflow condition */
-		if (strlen(newProtoText) > (newProtoTextLen - 40)) {
-			newProtoTextLen << 1;
-			newProtoText = REALLOC(newProtoText, newProtoTextLen);
-		}
-	}
-
-#ifdef OLDCODE
-	/* change any real "IS"s to the expanded fields */
-	op = (*thisProto)->protoBody;
-
-	#ifdef CPARSERVERBOSE
-	printf ("going to replace any ISs with real parameters in:%s:\n",op);
-	#endif
-
-	while ((isPtr = strstr(op,"IS")) != NULL) {
-		int va = FALSE;
-		char *bef;
-		validIs = FALSE;
-
-		#ifdef CPARSERVERBOSE
-		printf ("isPtr :%s:\n",isPtr);
-		#endif
-
-
-		/* is this a real word, or just "IS" stuffed somewhere in a DEF or something? */
-		/* if we have a valid character before, this is not an IS */
-		if (isPtr != (*thisProto)->protoBody) {
-			bef = isPtr; bef--; va = !IS_ID_FIRST(*bef);
-		} else { va = TRUE; }
-
-		bef = isPtr; bef+=strlen("IS");
-		validIs = va & (!IS_ID_REST(*bef));
-
-		/* copy up to this point */
-		tmp = *isPtr; *isPtr='\0'; 
-		strcat (newProtoText,op);
-		*isPtr=tmp;
-
-		/* is this a valid "IS"? if so, deal with it, if not keep going */
-		if (validIs) {
-			char *st;
-
-			/* this is a real "IS" - find the field, and replace the value */
-			/* printf ("this one is a valid is\n"); */
-			/* now, put the proto expansion on the end of this string */
-
-			isPtr += strlen ("IS");
-			while (isspace (*isPtr)) isPtr++;
-			/* printf ("now at the beginning of the id :%s:\n",isPtr); */
-			st = isPtr;
-			while (IS_ID_REST(*isPtr)) isPtr++;
-
-			/* copy this ID over */
-			tmp = *isPtr; *isPtr= '\0';
-			if (strlen(st) > 1000) {
-				ConsoleMessage ("IS name too large");
-				return ("");
-			}
-			strcpy (thisID,st);
-			#ifdef CPARSERVERBOSE
-			printf ("thisID :%s: ",thisID);
-			#endif
-
-			*isPtr = tmp;
-			#ifdef CPARSERVERBOSE
-			printf ("remainder is  :%s:\n",isPtr);
-			#endif
-
-
-			/* replace the IS ID with it's proto'd value */
-			#ifdef CPARSERVERBOSE
-			printf ("have to get the fieldString for this proto here\n");
-			#endif
-
-			replaceProtoField(me->lexer, *thisProto, thisID,&newProtoText,&newProtoTextLen);
-			op = isPtr;
-		} else {
-			/* printf ("this one is not valid\n"); */
-			strcat (newProtoText, "IS");
-			op = isPtr+strlen("IS");
-		}
-	}
-#endif
-
-	#ifdef CPARSERVERBOSE
-	printf ("so, newProtoText %s, op %s\n",newProtoText,op);
-	#endif
-
-#ifdef OLDCODE
-	strcat (newProtoText,op);
-#endif
-	strcat (newProtoText,ENDPROTOGROUP);
-
-printf ("expanded proto:%s: len %d\n",newProtoText, strlen(newProtoText));
-
-	#ifdef CPARSERVERBOSE
-	printf ("done replacement of IS; newProtoText is :%s:\n",newProtoText); 
-	#endif
-
-	return newProtoText;
-}
 
 /* ************************************************************************** */
 /* Constructor and destructor */
@@ -896,7 +726,6 @@ BOOL parser_protoStatement(struct VRMLParser* me)
 	#ifdef CPARSERVERBOSE
 	printf ("PROTO has a body of %u len\n",bodyLen);
 	#endif
-printf ("PROTO has a body of %u len\n",bodyLen);
 
 	/* copy this proto body */
 	protoBody = MALLOC (bodyLen+10);
@@ -916,10 +745,10 @@ printf ("PROTO has a body of %u len\n",bodyLen);
 	#endif
 
 	tokenizeProtoBody(me->curPROTO, protoBody);
+	FREE_IF_NZ(protoBody);
 
-
-  /* We are done parsing this proto.  Set the curPROTO to the last proto we were parsing. */
-  me->curPROTO=oldCurPROTO;
+  	/* We are done parsing this proto.  Set the curPROTO to the last proto we were parsing. */
+  	me->curPROTO=oldCurPROTO;
  }
 
  /* Takes the top DEFedNodes vector off of the stack.  The local scope now refers to the next vector in the DEFedNodes stack */
@@ -1229,7 +1058,8 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   	{ \
   	 case NODE_Group: \
           /* Get a pointer to the protoDefinition for this group node */ \
-  	  pre##Proto=X3D_GROUP(pre##Node)->__protoDef; \
+  	  pre##Proto=X3D_GROUP(pre##Node)->FreeWRL__protoDef; \
+/* JAS printf ("routing found protoGroup of %u\n",pre##Proto); */ \
 	  /* SJD: If we don't get a proto definition here, then it was just a plain old DEFed Group node ... */ \
   	  /* assert(pre##Proto); */ \
   	  break; \
@@ -1320,6 +1150,8 @@ int temp, tempFE, tempFO, tempTE, tempTO;
     and locating the event in the builtin or user-defined event name arrays */
  ROUTE_PARSE_NODEFIELD(from, outputOnly)
 
+/* JAS printf ("ROUTE_PARSE_NODEFIELD, found fromFieldE %d fromFieldO %d\n",fromFieldE, fromFieldO); */
+
  /* Next token has to be "TO" */
  if(!lexer_keyword(me->lexer, KW_TO)) {
 	/* try to make a better error message. */
@@ -1339,6 +1171,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 /* Parse the second part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays 
    and locating the event in the builtin or user-defined event name arrays */
  ROUTE_PARSE_NODEFIELD(to, inputOnly)
+/* printf ("ROUTE_PARSE_NODEFIELD, found toFieldE %d toFieldO %d\n",toFieldE, toFieldO); */
 
  /* Now, do the really hard macro work... */
  /* ************************************* */
@@ -1916,7 +1749,6 @@ XBLOCK_STATEMENT(ddd)
 		
 			/* find and expand the PROTO definition */
 			newProtoText = protoExpand(me, nodeTypeU,&thisProto);
-printf ("got newProtoText, length %d\n",strlen( newProtoText));
 		
 			/* printf ("curPROTO = NULL: past protoExpand\n"); */
 			insertProtoExpansionIntoStream(me,newProtoText);
@@ -2077,7 +1909,7 @@ printf ("got newProtoText, length %d\n",strlen( newProtoText));
 				printf ("and, it is a GROUP node...\n");
 				#endif
 
-				X3D_GROUP(node)->__protoDef = thisProto;
+				X3D_GROUP(node)->FreeWRL__protoDef = thisProto;
 			}
 		}
 	}

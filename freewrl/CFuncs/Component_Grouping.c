@@ -282,7 +282,7 @@ void child_Group (struct X3D_Group *node) {
 		int x;
 		struct X3D_Node *xx;
 
-		printf ("child_Group, this %d isProto %p\n",node,node->__protoDef);
+		printf ("child_Group, this %d isProto %p\n",node,node->FreeWRL__protoDef);
 		for (x=0; x<nc; x++) {
 			xx = X3D_NODE(node->children.p[x]);
 			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
@@ -310,13 +310,13 @@ void child_Group (struct X3D_Group *node) {
 		}
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((!node->__protoDef) && (nc > 1)  && !render_blend) sortChildren(node->children);
+	if ((!node->FreeWRL__protoDef) && (nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
 	DIRLIGHTCHILDREN(node->children);
 
 	/* now, just render the non-directionalLight children */
-	if (node->__protoDef && render_geom) {
+	if (node->FreeWRL__protoDef && render_geom) {
 		(node->children).n = 1;
 		normalChildren(node->children);
 		(node->children).n = nc;

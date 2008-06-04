@@ -19,6 +19,7 @@
 
 /* internal sequence number for protos */
 static  indexT latest_protoDefNumber =1;
+static  indexT nextFabricatedDef=1;
 
 /* ************************************************************************** */
 /* ************************** ProtoElementPointer *************************** */
@@ -33,6 +34,7 @@ struct ProtoElementPointer* newProtoElementPointer(void) {
 	ret->isNODE = ID_UNDEFINED;
 	ret->isKEYWORD = ID_UNDEFINED;
 	ret->terminalSymbol = ID_UNDEFINED;	
+	ret->fabricatedDef = ID_UNDEFINED;
 	return ret;
 }
 
@@ -47,6 +49,7 @@ struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer *
 	ret->isNODE = me->isNODE;
 	ret->isKEYWORD = me->isKEYWORD;
 	ret->terminalSymbol = me->terminalSymbol;	
+	ret->fabricatedDef = me->fabricatedDef;	
 	return ret;
 }
 
@@ -291,6 +294,7 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 		vector_pushBack(struct ProtoElementPointer *, ret->deconstructedProtoBody, copyProtoElementPointer(vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i)));
 	}
 	
+ 	ret->estimatedBodyLen = me->estimatedBodyLen;
 	ret->protoDefNumber = latest_protoDefNumber++;
 
 	return ret;
@@ -687,7 +691,6 @@ struct NestedProtoField* newNestedProtoField(struct ProtoFieldDecl* origField, s
  return ret;
 }
 
-
 /* go through a proto invocation, and get the invocation fields (if any) */
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto) {
 	int c;
@@ -729,7 +732,6 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 
 				if (pdecl->mode != PKW_outputOnly) {
 
-/* 					lexer_skip(me); */
 					lexer_setCurID(me->lexer);
 					#ifdef CPROTOVERBOSE
 					printf ("checking if this is an IS :%s:\n",me->lexer->curID);
@@ -780,7 +782,9 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 					tmp = *initCP; *initCP = '\0';
 					FREE_IF_NZ(pdecl->fieldString); pdecl->fieldString = strdup (cp);
 					*initCP = tmp;
-					/* printf ("getProtoInvocationFields, just copied :%s:\n",pdecl->fieldString); */
+					#ifdef CPROTOVERBOSE
+					printf ("getProtoInvocationFields, just copied :%s: remainder :%s:\n",pdecl->fieldString,me->lexer->nextIn);
+					#endif
 				} else {
 					#ifdef CPROTOVERBOSE
 					printf ("skipped parsing this type of %s\n",stringPROTOKeywordType(pdecl->type));
@@ -795,6 +799,9 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 
 		lexer_skip (me);
 	}
+	#ifdef CPROTOVERBOSE
+	printf ("end of getProtoInvocationFields\n");
+	#endif
 
 }
 
@@ -852,21 +859,24 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	vrmlFloatT tmpfloat;
 	vrmlStringT tmpstring;
 	struct ProtoElementPointer* ele;
+	struct ProtoElementPointer* tE;
+	struct ProtoElementPointer* tD;
 	int toPush;
+	indexT i;
+	indexT ct = 0;
 
 	/* remove spaces at start of string, to help to see if string is empty */
 	while ((*pb != '\0') && (*pb <= ' ')) pb++;
 
-	printf ("start of tokenizeProtoBody:%s:\n",pb);
+	/* record this body length to help us with MALLOCing when expanding PROTO */
 	me->estimatedBodyLen = strlen(pb) * 2;
-	
 
 	lex = newLexer();
 	lexer_fromString(lex,pb);
 
 	while (lex->isEof == FALSE) {
 		ele = newProtoElementPointer();
-		toPush = TRUE;
+		toPush = TRUE; /* only put this new element on Vector if it is successful */
 
 		if (lexer_setCurID(lex)) {
 			if ((ele->isKEYWORD = findFieldInKEYWORDS(lex->curID)) == ID_UNDEFINED)  {
@@ -876,6 +886,45 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 				}
 			}
 			FREE_IF_NZ(lex->curID);
+
+			/* ok, if this is an IS, go back to the controlling NODE, and ENSURE that
+			   it has a DEF to enable it to accept external ROUTE requests */
+			if (ele->isKEYWORD == KW_IS) {
+				i = vector_size(me->deconstructedProtoBody) -1; /* remember, 0->(x-1), not 1->x */
+				/* printf ("tokenizeProtoBody, found an IS, lets go back... we currently have %d\n",i); */
+				if (i>0) {
+					do {
+                				tE = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
+                				assert(tE);
+						i--;
+					} while ((i>0) && (tE->isNODE == ID_UNDEFINED));
+
+					/* ok, we should be at the NODE for this IS */
+
+					if (tE->isNODE != ID_UNDEFINED) {
+						/* printf ("node for IS is an %s\n",stringNodeType(tE->isNODE)); */
+						tD = NULL;
+						i--; 		/* back up to where the DEF should be */
+						if (i>=0) {
+							tD = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
+							/* printf ("backed up, have NO %d KW %d te %d str %s\n",
+								tD->isNODE, tD->isKEYWORD, tD->terminalSymbol, tD->stringToken); */
+
+							assert (tD);
+							if (tD->isKEYWORD != KW_DEF) {
+								tD = NULL; /* not a DEF, we have to make a special note of this */
+							}
+
+						}
+
+						/* if we DID NOT find a DEF back in the stack, tell this NODE to put a DEF in */
+						if (tD == NULL) {
+							ASSIGN_UNIQUE_ID(tE)
+						}
+					}
+				}
+			}
+				
 		} else if (lexer_point(lex)) { ele->terminalSymbol = (indexT) '.';
 		} else if (lexer_openCurly(lex)) { ele->terminalSymbol = (indexT) '{';
 		} else if (lexer_closeCurly(lex)) { ele->terminalSymbol = (indexT) '}';
@@ -883,22 +932,58 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 		} else if (lexer_closeSquare(lex)) { ele->terminalSymbol = (indexT) ']';
 		} else if (lexer_colon(lex)) { ele->terminalSymbol = (indexT) ':';
 
-		} else if (lexer_float(lex,&tmpfloat)) {
-			ele->stringToken = MALLOC (10);
-			assert (ele->stringToken);
-			sprintf (ele->stringToken,"%f",tmpfloat);
-		} else if (lexer_int32(lex,&tmp32)) {
-			ele->stringToken = MALLOC (10);
-			assert (ele->stringToken);
-			sprintf (ele->stringToken,"%d",tmp32);
-		} else if (lexer_string(lex,&tmpstring)) { ele->stringToken = tmpstring->strptr;
+		} else if (lexer_string(lex,&tmpstring)) { 
+			/* must put the double quotes back on */
+			ele->stringToken = malloc (tmpstring->len) + 3;
+			sprintf (ele->stringToken, "\"%s\"",tmpstring->strptr);
 		} else {
-			if (lex->nextIn != '\0') ConsoleMessage ("lexer_setCurID failed on char :%d:\n",*lex->nextIn);
-			lex->nextIn++;
-			toPush = FALSE;
+			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
+			if ((*lex->nextIn == '-') || (*lex->nextIn >= '0') && (*lex->nextIn <= '9')) {
+				uintptr_t ip; uintptr_t fp; char *cur;
+				int ilen; int flen;
+				int ignore;
+
+				/* see which of float, int32 gobbles up more of the string */
+				cur = lex->nextIn;
+
+				ignore = lexer_float(lex,&tmpfloat);
+				fp = (uintptr_t) lex->nextIn;
+				/* put the next in pointer back to the beginning of the number */
+				lex->nextIn = cur;
+
+
+				ignore = lexer_int32(lex,&tmp32);
+				ip = (uintptr_t) lex->nextIn;
+
+				/* put the next in pointer back to the beginning of the number */
+				lex->nextIn = cur;
+
+				ele->stringToken = MALLOC (10);
+				assert (ele->stringToken);
+
+
+				/* now, really scan depending on the type - which one got us further? */
+				if (ip > fp) {
+					/* printf ("this is an int\n"); */
+					ignore = lexer_int32(lex,&tmp32);
+					sprintf (ele->stringToken,"%d",tmp32);
+				} else {
+					ignore = lexer_float(lex,&tmpfloat);
+					/* printf ("this is a float\n"); */
+					sprintf (ele->stringToken,"%f",tmpfloat);
+				}
+
+			
+			} else {
+				if (*lex->nextIn != '\0') ConsoleMessage ("lexer_setCurID failed on char :%d:\n",*lex->nextIn);
+				lex->nextIn++;
+				toPush = FALSE;
+			}
 		}
 
-		/* printf ("newprotoele (%u), NODE %d KW %d ts %d\n",ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol); */
+
+		/* printf ("newprotoele %d, NODE %d KW %d ts %d st %s\n",ct, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
+		ct ++;
 
 		/* push this element on the vector for the PROTO */
 		if (toPush) vector_pushBack(struct ProtoElementPointer*, me->deconstructedProtoBody, ele);
@@ -906,3 +991,123 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	deleteLexer(lex);
 }
 
+
+#define STARTPROTOGROUP "Group{FreeWRL__protoDef %u children[ #PROTOGROUP\n"
+#define ENDPROTOGROUP "]}#END PROTOGROUP\n"
+char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
+	char *newProtoText;
+	char *isPtr;
+	int newProtoTextLen;
+	int validIs;
+	char tmp;
+	char thisID[1000];
+	indexT i;
+	struct ProtoElementPointer* ele;
+	struct ProtoElementPointer* lastKeyword = NULL;
+
+	#ifdef CPARSERVERBOSE
+	printf ("start of protoExpand\n");
+	#endif
+
+	*thisProto = protoDefinition_copy(me->lexer, vector_get(struct ProtoDefinition*, me->PROTOs, nodeTypeU));
+	#ifdef CPARSERVERBOSE
+	printf ("expanding proto, "); 
+	printf ("thisProto %u, me->curPROTO %u\n",(*thisProto),me->curPROTO);
+	#endif
+
+
+	newProtoTextLen = (*thisProto)->estimatedBodyLen * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
+	newProtoText = MALLOC(newProtoTextLen);
+
+	newProtoText[0] = '\0';
+	sprintf (newProtoText, STARTPROTOGROUP, *thisProto);
+
+	/* printf ("copying proto fields here\n"); */
+	/* copy the proto fields, so that we have either the defined field, or the field at invocation */
+
+	#ifdef CPARSERVERBOSE
+	printf ("\n\ngetProtoInvocationFields being called\n");
+	#endif
+
+	getProtoInvocationFields(me,(*thisProto));
+
+	/* go through each part of this deconstructedProtoBody, and see what needs doing... */
+
+	
+	for(i=0; i!=vector_size((*thisProto)->deconstructedProtoBody); ++i) {
+		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
+		assert(ele);
+
+		/* printf ("\nele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
+
+		if (ele->isNODE != ID_UNDEFINED) {
+			/* possibly this is a synthetic DEF for possible external IS routing */
+			if (ele->fabricatedDef != ID_UNDEFINED) {
+				sprintf (thisID,"DEF %s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
+				strcat (newProtoText,thisID);
+				strcat (newProtoText, " ");
+			}
+			strcat (newProtoText,stringNodeType(ele->isNODE));
+			strcat (newProtoText, " ");
+
+		} else if (ele->isKEYWORD != ID_UNDEFINED) {
+			if ((ele->isKEYWORD == KW_DEF) ||
+			    (ele->isKEYWORD == KW_USE) ||
+			    (ele->isKEYWORD == KW_IS) ||
+			    (ele->isKEYWORD == KW_ROUTE) ||
+			    (ele->isKEYWORD == KW_TO))
+				lastKeyword = ele;
+
+			if (ele->isKEYWORD != KW_IS) {
+				strcat (newProtoText,stringKeywordType(ele->isKEYWORD));
+				strcat (newProtoText, " ");
+			}
+
+		} else if (ele->terminalSymbol != ID_UNDEFINED) {
+			char chars[3];
+			chars[0] = (char) ele->terminalSymbol;
+			chars[1] = '\0';
+			strcat (newProtoText, chars);
+
+		} else if (ele->stringToken != NULL) {
+			if (lastKeyword != NULL) {
+				/* is this a KW_IS, or another keyword that needs a PROTO expansion specific ID? */
+				if (lastKeyword->isKEYWORD == KW_IS) {
+					replaceProtoField(me->lexer, *thisProto, ele->stringToken,&newProtoText,&newProtoTextLen);
+				} else {
+					sprintf (thisID," %s%d_",FABRICATED_DEF_HEADER,(*thisProto)->protoDefNumber);
+					strcat (newProtoText,thisID);
+					strcat (newProtoText, ele->stringToken);
+				}
+				lastKeyword = NULL;
+			} else {
+				/* just throw this string on */
+				strcat (newProtoText, ele->stringToken);
+			}
+
+				
+			strcat (newProtoText, " ");
+		} else {
+			/* this is a blank proto... */
+			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
+		}
+
+		/* possible overflow condition */
+		if (strlen(newProtoText) > (newProtoTextLen - 40)) {
+			newProtoTextLen << 1;
+			newProtoText = REALLOC(newProtoText, newProtoTextLen);
+		}
+	}
+
+	#ifdef CPARSERVERBOSE
+	printf ("so, newProtoText %s\n",newProtoText);
+	#endif
+
+	strcat (newProtoText,ENDPROTOGROUP);
+
+	#ifdef CPARSERVERBOSE
+	printf ("done replacement of IS; newProtoText is :%s:\n",newProtoText); 
+	#endif
+
+	return newProtoText;
+}
