@@ -936,7 +936,7 @@ void __pt_doStringUrl () {
 		} else if (ifIsVRML1(psp.inp)) {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(psp.inp));
 			haveParsedCParsed = TRUE;
 		}
 
@@ -959,7 +959,7 @@ void __pt_doStringUrl () {
 		} else if (ifIsVRML1(buffer)) {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), buffer);
+			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(buffer));
 			haveParsedCParsed = TRUE;
 		}
 		FREE_IF_NZ(ctmp);
@@ -976,7 +976,7 @@ void __pt_doStringUrl () {
 		} else if (ifIsVRML1(psp.inp)) {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(psp.inp));
 			haveParsedCParsed = TRUE;
 		}
 	
@@ -993,7 +993,7 @@ void __pt_doStringUrl () {
 		} else if (ifIsVRML1(psp.inp)) {
 			ConsoleMessage (VRML1ERRORMSG);
 		} else {
-			cParse (nRn,offsetof (struct X3D_Group, children), psp.inp);
+			cParse (nRn,offsetof (struct X3D_Group, children), STRDUP(psp.inp));
 			haveParsedCParsed = TRUE;
 		}
 	
