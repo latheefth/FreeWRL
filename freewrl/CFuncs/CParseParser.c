@@ -975,6 +975,8 @@ BOOL parser_profileStatement(struct VRMLParser* me) {
 	return TRUE;
 }
 
+
+
 /* Parses a routeStatement */
 /* Checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
    exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
@@ -992,7 +994,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT fromUFieldE;
  int fromOfs = 0;
  int fromLen = 0;
- struct ProtoFieldDecl* fromProtoField=NULL;
  struct ScriptFieldDecl* fromScriptField=NULL;
 
  indexT toNodeIndex;
@@ -1005,7 +1006,6 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT toUFieldE;
  int toOfs = 0;
  int toLen = 0;
- struct ProtoFieldDecl* toProtoField=NULL;
  struct ScriptFieldDecl* toScriptField=NULL;
 int temp, tempFE, tempFO, tempTE, tempTO;
 
@@ -1051,7 +1051,8 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 	fprintf (stderr,"%s\n",fw_outline); \
   	PARSER_FINALLY  \
   	return FALSE; \
- } else { \
+ } \
+ \
   /* PROTO/Script? */ \
   /* We got the node structure for the DEFed node. If this is a Group or a Script node do some more processing */ \
   	switch(pre##Node->_nodeType) \
@@ -1059,7 +1060,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   	 case NODE_Group: \
           /* Get a pointer to the protoDefinition for this group node */ \
   	  pre##Proto=X3D_GROUP(pre##Node)->FreeWRL__protoDef; \
-/* JAS printf ("routing found protoGroup of %u\n",pre##Proto); */ \
+	  /* printf ("routing found protoGroup of %u\n",pre##Proto); */ \
 	  /* SJD: If we don't get a proto definition here, then it was just a plain old DEFed Group node ... */ \
   	  /* assert(pre##Proto); */ \
   	  break; \
@@ -1069,18 +1070,29 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   	  assert(pre##Script); \
   	  break; \
   	} \
-  } \
+  \
   /* Can't be both a PROTO and a Script node */ \
   assert(!(pre##Proto && pre##Script)); \
+  \
   /* The next character has to be a '.' - skip over it */ \
   if(!lexer_point(me->lexer)) {\
 	CPARSE_ERROR_CURID("ERROR:ROUTE: Expected \".\" after the NODE name") \
   	PARSER_FINALLY  \
   	return FALSE;  \
   } \
-  /* Field, user/built-in depending on whether node is a PROTO instance */ \
-  if(!pre##Proto && !pre##Script) \
-  { \
+  /* if this is a PROTO, then lets look through the tokenizedProtoBody for the REAL NODE.FIELD! */ \
+  if (pre##Proto) { \
+	lexer_setCurID(me->lexer); \
+	/* printf ("have a proto, field is %s have to resolve this to a real node.field \n",me->lexer->curID); */ \
+	if (!resolveProtoNodeField(me, pre##Proto, &pre##Node)) return FALSE; \
+	/* possible Script node? */ \
+	if (pre##Node->_nodeType == NODE_Script) { pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
+        	  assert(pre##Script); }\
+	pre##Proto = NULL; /* forget about this being a PROTO because PROTO is expanded */ \
+  } \
+  \
+  /* Field, user/built-in depending on whether node is a Script instance */ \
+  if(!pre##Script) { \
    /* This is a builtin DEFed node.  */ \
    /* Look for the next token (field of the DEFed node) in the builtin EVENT_IN/EVENT_OUT or EXPOSED_FIELD arrays */ \
    if(!lexer_##eventType(me->lexer, pre##Node, \
@@ -1093,7 +1105,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
     } \
   } else \
   { \
-   assert(pre##Proto || pre##Script); \
+   assert(pre##Script); \
    /* This is a user defined node type */ \
    /* Look for the next token (field of the DEFed node) in the user_inputOnly/user_outputOnly, user_inputOutput arrays */ \
    if(lexer_##eventType(me->lexer, pre##Node, \
@@ -1102,38 +1114,19 @@ int temp, tempFE, tempFO, tempTE, tempTO;
     if(pre##UFieldO!=ID_UNDEFINED) \
     { \
      /* We found the event in user_inputOnly or Out */ \
-     if(pre##Proto) \
-     { \
-      assert(!pre##Script); \
-      /* If this is a PROTO get the ProtoFieldDecl for this event */ \
-      pre##ProtoField=protoDefinition_getField(pre##Proto, pre##UFieldO, \
-       PKW_##eventType); \
-     } else \
-     { \
-      assert(pre##Script && !pre##Proto); \
+      assert(pre##Script); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
       pre##ScriptField=script_getField(pre##Script, pre##UFieldO, \
        PKW_##eventType); \
-     } \
     } else \
     { \
      /* We found the event in user_inputOutput */ \
-     if(pre##Proto) \
-     { \
-      assert(!pre##Script); \
-      assert(pre##UFieldE!=ID_UNDEFINED); \
-      /* If this is a PROTO get the ProtoFieldDecl for this event */ \
-      pre##ProtoField=protoDefinition_getField(pre##Proto, pre##UFieldE, \
-       PKW_inputOutput); \
-     } else \
-     { \
-      assert(pre##Script && !pre##Proto); \
+      assert(pre##Script); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
       pre##ScriptField=script_getField(pre##Script, pre##UFieldE, \
        PKW_inputOutput); \
-     } \
     } \
-    if((pre##Proto && !pre##ProtoField) || (pre##Script && !pre##ScriptField)) \
+    if(pre##Script && !pre##ScriptField) \
      PARSE_ERROR("Event-field invalid for this PROTO/Script!") \
    } else \
     PARSE_ERROR("Expected event" #eventType "!") \
@@ -1146,11 +1139,15 @@ int temp, tempFE, tempFO, tempTE, tempTO;
    pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
   } 
 
+
+
+
  /* Parse the first part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays
     and locating the event in the builtin or user-defined event name arrays */
  ROUTE_PARSE_NODEFIELD(from, outputOnly)
 
-/* JAS printf ("ROUTE_PARSE_NODEFIELD, found fromFieldE %d fromFieldO %d\n",fromFieldE, fromFieldO); */
+ /* printf ("ROUTE_PARSE_NODEFIELD, found fromFieldE %d fromFieldO %d\n",fromFieldE, fromFieldO);
+    printf ("fromNode %u fromProto %u fromScript %u fromNodeIndex %d\n",fromNode, fromScript, fromProto, fromNodeIndex); */
 
  /* Next token has to be "TO" */
  if(!lexer_keyword(me->lexer, KW_TO)) {
@@ -1171,7 +1168,8 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 /* Parse the second part of a routing statement: DEFEDNODE.event by locating the node DEFEDNODE in either the builtin or user-defined name arrays 
    and locating the event in the builtin or user-defined event name arrays */
  ROUTE_PARSE_NODEFIELD(to, inputOnly)
-/* printf ("ROUTE_PARSE_NODEFIELD, found toFieldE %d toFieldO %d\n",toFieldE, toFieldO); */
+ /* printf ("ROUTE_PARSE_NODEFIELD, found toFieldE %d toFieldO %d\n",toFieldE, toFieldO);
+    printf ("toNode %u toProto %u toScript %u toNodeIndex %d\n",toNode, toScript, toProto, toNodeIndex); */
 
  /* Now, do the really hard macro work... */
  /* ************************************* */
@@ -1197,11 +1195,11 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 
 
 		#ifdef CPARSERVERBOSE
-		printf ("fromProtoField %d fromScriptField %d fromFieldE %d fromFieldO %d\n",fromProtoField,fromScriptField,fromFieldE,fromFieldO);
-		printf ("toProtoField %d toScriptField %d toFieldE %d toFieldO %d\n",toProtoField,toScriptField,toFieldE,toFieldO);
+		printf ("fromScriptField %d fromFieldE %d fromFieldO %d\n",fromScriptField,fromFieldE,fromFieldO);
+		printf ("toScriptField %d toFieldE %d toFieldO %d\n",toScriptField,toFieldE,toFieldO);
 		#endif
 
- if(!fromProtoField && !fromScriptField) {
+ if(!fromScriptField) {
 	/* fromFieldE = Daniel's code thinks this is from an inputOutput */
 	/* fromFieldO = Daniel's code thinks this is from an outputOnly */
 
@@ -1247,7 +1245,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  }
 
 
- if(!toProtoField && !toScriptField) {
+ if(!toScriptField) {
 	/* toFieldE = Daniel's code thinks this is from an inputOutput */
 	/* toFieldO = Daniel's code thinks this is from an inputOnly */
 
@@ -1314,7 +1312,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  /* Process from outputOnly */
  /* Get the offset to the outputOnly in the fromNode and store it in fromOfs */
  /* Get the size of the outputOnly type and store it in fromLen */
- if(!fromProtoField && !fromScriptField)
+ if(!fromScriptField)
   /* If the from field is an exposed field */
   if(fromFieldE!=ID_UNDEFINED) {
    /* Get the offset and size of this field in the fromNode */
@@ -1361,7 +1359,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  /* Process to inputOnly */
  /* Get the offset to the inputOnly in the toNode and store it in toOfs */
  /* Get the size of the outputOnly type and store it in fromLen */
- if(!toProtoField && !toScriptField)
+ if(!toScriptField)
   /* If this is an exposed field */
   if(toFieldE!=ID_UNDEFINED) {
    /* get the offset and size of this field in the toNode */
@@ -1408,12 +1406,10 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 
 
  /* set the toLen and fromLen from the PROTO/Script info, if appropriate */
- if(fromProtoField) fromLen=returnRoutingElementLength(fromProtoField->type);
- else if(fromScriptField) fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
- if(toProtoField) toLen=returnRoutingElementLength(toProtoField->type);
- else if(toScriptField) toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
+ if(fromScriptField) fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
+ if(toScriptField) toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
 
-/* printf ("fromProtoField %d, fromScriptField %d, toProtoField %d, toScriptField %d\n",fromProtoField, fromScriptField, toProtoField, toScriptField);
+/* printf ("fromScriptField %d, toScriptField %d\n",fromScriptField, toScriptField);
 printf ("fromlen %d tolen %d\n",fromLen, toLen); */
 
  /* to "simple" MF nodes, we have to call a procedure to determine exactly what kind of "length" this
@@ -1489,30 +1485,8 @@ printf ("fromlen %d tolen %d\n",fromLen, toLen); */
  }
 
  /* Built-in to built-in */
- if(!fromProtoField && !toProtoField) {
-  /* If we are in a PROTO add a new ProtoRoute structure to the vector ProtoDefinition->routes */
-  /* Otherwise, add the ROUTE to the routing table CRoutes */
   parser_registerRoute(me, fromNode, fromOfs, toNode, toOfs, toLen, routingDir);
   
-}
-
- /* Built-in to user-def */
- else if(!fromProtoField && toProtoField) {
-  /* For each member of the dests vector for this protoFieldDecl call parser_registerRoute for that destination node and offset */
-  /* i.e. for every statement field IS user_initializeOnly for the user_initializeOnly defined in protoFieldDecl, register a route 
-     to the node and field where the IS statement occurred */
-  protoFieldDecl_routeTo(toProtoField, fromNode, fromOfs, routingDir, me);
- /* User-def to built-in */
- } else if(fromProtoField && !toProtoField) {
-  /* For each member of the dests vector for this protoFieldDecl call parser_registerRoute for that destination node and offset */
-  /* i.e. for every statement field IS user_initializeOnly for the user_initializeOnly defined in protoFieldDecl, register a route from the node and
-     field where the IS statement occurred */
-  protoFieldDecl_routeFrom(fromProtoField, toNode, toOfs, routingDir, me);
- /* User-def to user-def */
- }
- else
-  PARSE_ERROR("Routing from user-event to user-event is currently unsupported!")
-
  return TRUE;
 }
 
@@ -1528,7 +1502,6 @@ void parser_registerRoute(struct VRMLParser* me,
  assert(me);
  if(me->curPROTO)
  {
-printf ("routing to/from proto not working at moment\n");
   /* OLDCODE protoDefinition_addRoute(me->curPROTO,
    newProtoRoute(fromNode, fromOfs, toNode, toOfs, len, dir)); */
  } else

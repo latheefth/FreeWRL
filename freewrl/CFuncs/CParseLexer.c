@@ -156,6 +156,7 @@ static void lexer_scopeOut_(Stack* s)
 /* Scope in PROTOs and DEFed nodes */
 void lexer_scopeIn(struct VRMLLexer* me)
 {
+/* printf ("lexer_scopeIn, not doing push anymore \n"); */
  lexer_scopeIn_(&me->userNodeNames);
   /* printf("lexer_scopeIn: push value %d onto userNodeTypesStack\n", vector_size(me->userNodeTypesVec)); */
  /* Remember the number of PROTOs that were defined when we first entered this scope.  This is the 
@@ -167,6 +168,7 @@ void lexer_scopeIn(struct VRMLLexer* me)
 /* Scope out PROTOs and DEFed nodes */
 void lexer_scopeOut(struct VRMLLexer* me)
 {
+/* printf ("lexer_scopeOut, not doing push anymore \n"); */
  lexer_scopeOut_(me->userNodeNames);
  /* lexer_scopeOut_PROTO();  */
  /* Fields aren't scoped because they need to be accessible in two levels */
@@ -311,6 +313,8 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  indexT i;
  BOOL found=FALSE;
 
+ /* printf ("lexer_specialID_string, builtInCount %d, builtIn %u\n",builtInCount, builtIn); */
+
  /* Have to be looking in either the builtin and/or the user defined lists */
  if(!retB && !retU)
   return FALSE;
@@ -322,8 +326,7 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
  /* Look for the ID in the passed built in array.  If it is found, return the index to the ID in retB */
   for(i=0; i!=builtInCount; ++i) {
 	/* printf ("lexer_specialID_string, comparing :%s: and :%s:\n",str,builtIn[i]); */
-  if(!strcmp(str, builtIn[i]))
-  {
+  if(!strcmp(str, builtIn[i])) {
 #ifdef CPARSERVERBOSE
    printf("found ID %s matches %s, return retB %d\n", str, builtIn[i], i);
 #endif
@@ -355,19 +358,22 @@ BOOL lexer_specialID_string(struct VRMLLexer* me, indexT* retB, indexT* retU,
 
  /* Already defined user id? */
  /* Look for the ID in the passed user array.  If it is found, return the index to the ID in retU */
- for(i=0; i!=vector_size(user); ++i)
-  if(!strcmp(str, vector_get(char*, user, i)))
-  {
-#ifdef CPARSERVERBOSE
+ for(i=0; i!=vector_size(user); ++i) {
+	/* printf ("lexer_specialID_string, part II, comparing :%s: and :%s: lengths %d and %d\n", 
+	str, vector_get(char*, user, i), 
+	strlen(str), strlen(vector_get(char*, user, i))); */
+
+  if(!strcmp(str, vector_get(char*, user, i))) {
+   #ifdef CPARSERVERBOSE
    printf("found ID %s matches %s, return retU %d\n", str, vector_get(char*, user, i), i);
-#endif
-   if(retU)
-   {
+   #endif
+   if(retU) {
     *retU=i;
     found=TRUE;
    }
    break;
   }
+ }
  
  return found;
 }
@@ -448,7 +454,8 @@ BOOL lexer_event(struct VRMLLexer* me,
   arrCnt=EVENT_OUT_COUNT;
  }
 
- /* Get the next token */
+ /* Get the next token  - if this is a PROTO expansion, this will be non-NULL */
+ if (me->curID == NULL) 
  if(!lexer_setCurID(me)) {
   return FALSE;
  }

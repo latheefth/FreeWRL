@@ -1111,3 +1111,114 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 	return newProtoText;
 }
+
+
+
+/* for resolving ROUTEs to/from PROTOS... */
+/* this is a PROTO; go through and find the node, and fill in the correct curID so that parsing can
+   continue. XXX - only works with one IS routed field; if a PROTO has more than one IS, then this will fail. */
+BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, struct X3D_Node **Node) {
+	indexT i,j,k;
+	indexT ret;
+	struct ProtoElementPointer *ele;
+	char thisID[200];
+
+	#ifdef CPARSERVERBOSE
+	printf ("resolveProtoNodeField, looking for field %s\n",me->lexer->curID);
+	#endif
+
+	for(i=0; i!=vector_size(Proto->deconstructedProtoBody); ++i) {
+		ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, i);
+		assert(ele);
+
+		/* printf ("ele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
+
+		/* is this an KW_IS? */
+		if (ele->isKEYWORD == KW_IS) {
+			/* printf ("resolveProtoNodeField, found an IS\n"); */
+			if (i<(vector_size(Proto->deconstructedProtoBody)-1)) {
+				/* look for a match with this field */
+				j = i+1;
+				ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j);
+				/* printf ("resolveProtoNodeField next ele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",j, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
+				/* printf ("resolveProtoNodeField comparing %s to %s\n",me->lexer->curID, ele->stringToken); */
+				if (strcmp(me->lexer->curID,ele->stringToken) == NULL) {
+					/* printf ("resolveProtoNodeField ID MATCH!!\n"); */
+					/* go back 2 (the word before the IS) and get the real field name */
+					j = i-1;
+					ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j);
+					#ifdef CPARSERVERBOSE
+					printf ("resolveProtoNodeField REAL FIELD IS %s\n",ele->stringToken);
+					#endif
+
+					if (ele->stringToken != NULL) {
+						FREE_IF_NZ(me->lexer->curID);
+						me->lexer->curID = STRDUP(ele->stringToken);
+					}
+
+					#ifdef CPARSERVERBOSE
+					printf ("resolveProtoNodeField ok, now going back and finding the DEF name for the node for this field \n");
+					#endif
+
+					while (j>0) {
+						j--;
+						ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j);
+						if ((ele->fabricatedDef != ID_UNDEFINED) || (ele->isKEYWORD == KW_DEF)) {
+							if (ele->fabricatedDef != ID_UNDEFINED) {
+								/* printf ("FOUND A FABRICATED DEF HERE\n"); */
+								sprintf (thisID,"%s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
+							} else {
+								/* printf ("FOUND A KW_DEF HERE\n"); */
+								ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, j+1);
+								/* printf ("name is %s\n",ele->stringToken); */
+								sprintf (thisID,"%s%d_",FABRICATED_DEF_HEADER,Proto->protoDefNumber);
+								strcat (thisID, ele->stringToken);
+							}
+
+							/* ok, now we have a DEF name, lets look it up. */
+							#ifdef CPARSERVERBOSE
+							printf ("resolveProtoNodeField looking up :%s:\n",thisID);
+							#endif
+
+							lexer_specialID_string(me->lexer, NULL, &ret, NULL, 
+								0, stack_top(struct Vector*, me->lexer->userNodeNames), thisID);
+							#ifdef CPARSERVERBOSE
+							printf ("resolveProtoNodeField after lookup, ret %d\n",ret);
+							#endif
+
+
+        						/* If we're USEing it, it has to already be defined. */
+        						assert(ret!=ID_UNDEFINED);
+
+        						/* It also has to be in the DEFedNodes stack */
+        						assert(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
+        							ret<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+
+        						/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
+        						*Node = vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ret);
+							#ifdef CPARSERVERBOSE
+							printf ("RETURNING; so, now the node of the DEF is %u, type %s\n",*Node, stringNodeType((*Node)->_nodeType));
+							#endif
+
+
+							return TRUE;
+
+
+						}
+					}
+				} else {
+					#ifdef CPARSERVERBOSE
+					printf ("resolveProtoNodeField, no match, maybe next one?\n");
+					#endif
+				}
+			}
+		}
+	}
+	/* no luck here */
+	#ifdef CPARSERVERBOSE
+	printf  ("could not find encompassing DEF for PROTO field %s of node %s\n", me->lexer->curID,thisID);
+	#endif
+
+	ConsoleMessage ("could not find encompassing DEF for PROTO field %s", me->lexer->curID);
+	return FALSE;
+}

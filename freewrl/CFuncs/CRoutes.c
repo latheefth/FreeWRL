@@ -811,6 +811,8 @@ void CRoutes_RegisterSimple(
  int extraData = 0;
 
 
+ /* printf ("CRoutes_RegisterSimple, from %u fromOfs %u, to %u toOfs %u, len %d dir %d\n",from, fromOfs, to, toOfs, len, dir); */
+
 
  /* When routing to a script, to is not a node pointer! */
  if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)

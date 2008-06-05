@@ -137,12 +137,12 @@ Transform {
 		speed1 11 speed2 12}
 }
 
-# Transform {
-# 	translation 0 0 0
-# 	rotation 1 0 0 3.141593
-# 	children Wheel {
-# 		color 0.1 1 0.1
-# 		speed1 20 speed2 40
-# 		transl 0 2.3 0
-# 	}
-# }
+Transform {
+	translation 0 0 0
+	rotation 1 0 0 3.141593
+	children Wheel {
+		color 0.1 1 0.1
+		speed1 20 speed2 40
+		transl 0 2.3 0
+	}
+}
