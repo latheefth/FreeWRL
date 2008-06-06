@@ -1238,6 +1238,6 @@ void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b) {
 	if (len_a != 0) strcat (newstring,str_a);
 	if (len_b != 0) strcat (newstring,str_b);
 
-	printf ("concatAndGiveToLexer, sending in :%s:\n",newstring);
+	/* printf ("concatAndGiveToLexer, sending in :%s:\n",newstring); */
 	lexer_fromString(me,newstring);
 }
