@@ -68,7 +68,6 @@ struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer *
 	{me->fabricatedDef = nextFabricatedDef; nextFabricatedDef ++; }
 
 #define FABRICATED_DEF_HEADER "fReEwEL_fAbricatio_dEF_" /* hopefully quite unique! */
-#define FABRICATED_DEF_HEADER "FABDEF_" /* hopefully quite unique! */
 
 /* ************************************************************************** */
 /* ********************************* ProtoFieldDecl ************************* */

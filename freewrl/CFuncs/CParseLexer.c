@@ -1188,27 +1188,31 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 /* recursively skip to the closing curly bracket - ignoring all that comes between. */
 void skipToEndOfOpenCurly(struct VRMLLexer *me, int level) {
 	char c = 33;
+	int curlyCount = 1;
+	vrmlStringT tmpstring;
 
 	#ifdef CPARSELEXERVERBOSE
 	if (level == 0) printf ("start of skipToEndOfOpenCurly, have :%s:\n",me->nextIn);
 	#endif
 
+	while ((curlyCount > 0) && (*me->nextIn != '\0')) {
+		lexer_skip(me);
+		#ifdef CPARSELEXERVERBOSE
+		printf ("cc %d, looking at :%c:\n",curlyCount,*me->nextIn);
+		#endif
 
-	while ((!lexer_closeCurly(me)) & (c!=EOF)) {
-		if (lexer_openCurly(me)) {
-			/* printf ("skipToEndOfOpenCurly %d, found lexer_openCurly\n",level);  */
-			skipToEndOfOpenCurly(me,level+1);
-		} else if (!lexer_closeCurly(me)) {
-	
-			/* printf ("skipToEndOfOpenCurly %d, found something else",level); */ 
-			LEXER_GETINPUT(c);
-			/* printf (".... it was :%c:\n",c);  */
+		if (*me->nextIn == '{') curlyCount++;
+		else if (*me->nextIn == '}') curlyCount--;
+		if (lexer_string(me,&tmpstring)) {
+			#ifdef CPARSELEXERVERBOSE
+			printf ("after string, :%s:\n",me->nextIn);
+			printf ("and string :%s:\n",tmpstring->strptr);
+			#endif
+
+			FREE_IF_NZ(tmpstring->strptr); /* throw it away */
+		} else {
+			me->nextIn++;
 		}
-	} 
-	if (level == 0) {
-		/* put the trailing bracket back on - for syntax checking */
-		if (c=='}')
-		LEXER_UNGETINPUT(c)
 	}
 
 	#ifdef CPARSELEXERVERBOSE

@@ -992,8 +992,51 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 }
 
 
-#define STARTPROTOGROUP "Group{FreeWRL__protoDef %u children[ #PROTOGROUP\n"
+#define STARTPROTOGROUP "Group{FreeWRL__protoDef %d children[ #PROTOGROUP\n"
 #define ENDPROTOGROUP "]}#END PROTOGROUP\n"
+#define VERIFY_OUTPUT_LEN(extra) \
+		if (strlen(newProtoText) > (newProtoTextLen - extra)) { \
+			newProtoTextLen << 1; \
+			newProtoText = REALLOC(newProtoText, newProtoTextLen); \
+		}
+
+#define APPEND_SPACE strcat (newProtoText, " ");
+#define APPEND_THISID strcat (newProtoText,thisID);
+#define APPEND_NODE strcat (newProtoText,stringNodeType(ele->isNODE));
+#define APPEND_KEYWORD strcat (newProtoText,stringKeywordType(ele->isKEYWORD));
+#define APPEND_STRINGTOKEN strcat (newProtoText, ele->stringToken);
+#define APPEND_TERMINALSYMBOL \
+			{ char chars[3]; \
+			chars[0] = (char) ele->terminalSymbol;\
+			chars[1] = '\0';\
+			strcat (newProtoText, chars);\
+			}
+#define APPEND_ENDPROTOGROUP strcat (newProtoText,ENDPROTOGROUP);
+#define APPEND_STARTPROTOGROUP	sprintf (newProtoText, STARTPROTOGROUP, *thisProto);
+#define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
+#define APPEND_ISVALUE strcat (newProtoText,newTl);
+
+#define APPEND_IF_NOT_OUTPUTONLY \
+{ int coffset, ctype, ckind, field; \
+	printf ("checking to see if node %s has an outputOnly field %s\n",stringNodeType(lastNode->isNODE), ele->stringToken); \
+	findFieldInOFFSETS(NODE_OFFSETS[lastNode->isNODE], findFieldInFIELDNAMES(ele->stringToken), &coffset, &ctype, &ckind); \
+	printf ("found coffset %d ctype %d ckind %d\n",coffset, ctype, ckind); \
+	if (ckind != KW_outputOnly) { printf ("APPENDING\n"); APPEND_STRINGTOKEN } else printf ("NOT APPENDING\n"); \
+}
+
+#define APPEND_EDITED_STRINGTOKEN \
+	/* if this is an outputOnly field, dont bother printing it. It SHOULD be followed by an \
+	   KW_IS, but the IS value from the PROTO definition will be blank */ \
+	if (lastKeyword != NULL) { \
+		/* is this a KW_IS, or another keyword that needs a PROTO expansion specific ID? */ \
+		if (lastKeyword->isKEYWORD != KW_IS) { \
+			sprintf (thisID," %s%d_",FABRICATED_DEF_HEADER,(*thisProto)->protoDefNumber); \
+			APPEND_THISID \
+			APPEND_STRINGTOKEN \
+		} \
+		lastKeyword = NULL; \
+	} else {APPEND_STRINGTOKEN}
+
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
 	char *newProtoText;
 	char *isPtr;
@@ -1002,8 +1045,12 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	char tmp;
 	char thisID[1000];
 	indexT i;
+	indexT protoElementCount;
 	struct ProtoElementPointer* ele;
+	struct ProtoElementPointer* tempEle;
+	
 	struct ProtoElementPointer* lastKeyword = NULL;
+	struct ProtoElementPointer* lastNode = NULL;
 
 	#ifdef CPARSERVERBOSE
 	printf ("start of protoExpand\n");
@@ -1020,7 +1067,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	newProtoText = MALLOC(newProtoTextLen);
 
 	newProtoText[0] = '\0';
-	sprintf (newProtoText, STARTPROTOGROUP, *thisProto);
+	APPEND_STARTPROTOGROUP
 
 	/* printf ("copying proto fields here\n"); */
 	/* copy the proto fields, so that we have either the defined field, or the field at invocation */
@@ -1032,24 +1079,32 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	getProtoInvocationFields(me,(*thisProto));
 
 	/* go through each part of this deconstructedProtoBody, and see what needs doing... */
+	protoElementCount = vector_size((*thisProto)->deconstructedProtoBody);
 
 	
-	for(i=0; i!=vector_size((*thisProto)->deconstructedProtoBody); ++i) {
+	i = 0;
+	while (i < protoElementCount) {
+		/* get the current element */
 		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
 		assert(ele);
 
 		/* printf ("\nele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
 
+		/* this is a NODE, eg, "SphereSensor". If we need this DEFined because it contains an IS, then make the DEF */
 		if (ele->isNODE != ID_UNDEFINED) {
+			/* keep this entry around, to see if there is an outputOnly ISd field */
+			lastNode = ele; 
+
 			/* possibly this is a synthetic DEF for possible external IS routing */
 			if (ele->fabricatedDef != ID_UNDEFINED) {
 				sprintf (thisID,"DEF %s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
-				strcat (newProtoText,thisID);
-				strcat (newProtoText, " ");
+				APPEND_THISID
+				APPEND_SPACE
 			}
-			strcat (newProtoText,stringNodeType(ele->isNODE));
-			strcat (newProtoText, " ");
+			APPEND_NODE
+			APPEND_SPACE
 
+		/* Maybe this is a KEYWORD, like "USE" or "DEFINE". if this is an "IS" DO NOT print it out */
 		} else if (ele->isKEYWORD != ID_UNDEFINED) {
 			if ((ele->isKEYWORD == KW_DEF) ||
 			    (ele->isKEYWORD == KW_USE) ||
@@ -1058,55 +1113,70 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 			    (ele->isKEYWORD == KW_TO))
 				lastKeyword = ele;
 
-			if (ele->isKEYWORD != KW_IS) {
-				strcat (newProtoText,stringKeywordType(ele->isKEYWORD));
-				strcat (newProtoText, " ");
-			}
+			if (ele->isKEYWORD != KW_IS) { APPEND_KEYWORD APPEND_SPACE }
 
+		/* Hmmm - maybe this is a "{" or something like that */
 		} else if (ele->terminalSymbol != ID_UNDEFINED) {
-			char chars[3];
-			chars[0] = (char) ele->terminalSymbol;
-			chars[1] = '\0';
-			strcat (newProtoText, chars);
+			APPEND_TERMINALSYMBOL
 
+		/* nope, this is a fieldname, DEF name, or string, or something equivalent */
 		} else if (ele->stringToken != NULL) {
-			if (lastKeyword != NULL) {
-				/* is this a KW_IS, or another keyword that needs a PROTO expansion specific ID? */
-				if (lastKeyword->isKEYWORD == KW_IS) {
-					replaceProtoField(me->lexer, *thisProto, ele->stringToken,&newProtoText,&newProtoTextLen);
-				} else {
-					sprintf (thisID," %s%d_",FABRICATED_DEF_HEADER,(*thisProto)->protoDefNumber);
-					strcat (newProtoText,thisID);
-					strcat (newProtoText, ele->stringToken);
+			/* ok we have a name. Is the NEXT token an IS? If not, just continue */
+			/* printf ("we have a normal stringToken - :%s:\n",ele->stringToken); */
+
+			if (i<(protoElementCount-2)) {
+				tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+1);
+				if ((tempEle != NULL) && (tempEle->isKEYWORD == KW_IS)) {
+					indexT tl =100;
+					char *newTl = MALLOC(100);
+					newTl[0] = '\0';
+
+					/* printf ("next element is an IS \n"); */
+					tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+2);
+					/* printf ("ok, so IS of :%s: is :%s:\n",ele->stringToken, tempEle->stringToken); */
+
+					replaceProtoField(me->lexer, *thisProto, tempEle->stringToken,&newTl,&tl);
+					/* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl); */
+
+					/* is there actually a value for this field?? */
+					if SOMETHING_IN_ISVALUE {
+						VERIFY_OUTPUT_LEN(strlen(newTl))
+						APPEND_STRINGTOKEN
+						APPEND_SPACE
+						APPEND_ISVALUE
+					} else if (lastNode->isNODE == NODE_Script) {
+						/* Script nodes NEED the fieldname, even if it is blank, so... */
+						APPEND_STRINGTOKEN
+						APPEND_SPACE
+					}
+
+					i+=2; /* skip the IS and the field */
+					FREE_IF_NZ(newTl);
+				} else { 
+					APPEND_EDITED_STRINGTOKEN
 				}
-				lastKeyword = NULL;
-			} else {
-				/* just throw this string on */
-				strcat (newProtoText, ele->stringToken);
+
+			} else { 
+				APPEND_EDITED_STRINGTOKEN
 			}
 
-				
-			strcat (newProtoText, " ");
+			APPEND_SPACE
 		} else {
 			/* this is a blank proto... */
 			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
 		}
 
 		/* possible overflow condition */
-		if (strlen(newProtoText) > (newProtoTextLen - 40)) {
-			newProtoTextLen << 1;
-			newProtoText = REALLOC(newProtoText, newProtoTextLen);
-		}
+		VERIFY_OUTPUT_LEN(128)
+
+		/* go to the next token */
+		i++;
 	}
+
+	APPEND_ENDPROTOGROUP
 
 	#ifdef CPARSERVERBOSE
 	printf ("so, newProtoText %s\n",newProtoText);
-	#endif
-
-	strcat (newProtoText,ENDPROTOGROUP);
-
-	#ifdef CPARSERVERBOSE
-	printf ("done replacement of IS; newProtoText is :%s:\n",newProtoText); 
 	#endif
 
 	return newProtoText;
