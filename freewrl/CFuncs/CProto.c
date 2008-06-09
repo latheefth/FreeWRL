@@ -961,15 +961,18 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 				ele->stringToken = MALLOC (10);
 				assert (ele->stringToken);
 
+				/* printf ("so we read in from :%s:\n",lex->nextIn); */
 
 				/* now, really scan depending on the type - which one got us further? */
-				if (ip > fp) {
+				/* note that if they are the same, we choose the INT because of expansion
+				   problems if we write an int as a float... (eg, coordinates in an IFS) */
+				if (ip >= fp) {
 					/* printf ("this is an int\n"); */
 					ignore = lexer_int32(lex,&tmp32);
 					sprintf (ele->stringToken,"%d",tmp32);
 				} else {
-					ignore = lexer_float(lex,&tmpfloat);
 					/* printf ("this is a float\n"); */
+					ignore = lexer_float(lex,&tmpfloat); 
 					sprintf (ele->stringToken,"%f",tmpfloat);
 				}
 
