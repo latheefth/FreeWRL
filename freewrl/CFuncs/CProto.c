@@ -934,7 +934,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 
 		} else if (lexer_string(lex,&tmpstring)) { 
 			/* must put the double quotes back on */
-			ele->stringToken = malloc (tmpstring->len) + 3;
+			ele->stringToken = MALLOC (tmpstring->len + 3);
 			sprintf (ele->stringToken, "\"%s\"",tmpstring->strptr);
 		} else {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
@@ -1091,7 +1091,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
 		assert(ele);
 
-		/* printf ("\nele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
+		printf ("\nele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken);
 
 		/* this is a NODE, eg, "SphereSensor". If we need this DEFined because it contains an IS, then make the DEF */
 		if (ele->isNODE != ID_UNDEFINED) {
@@ -1134,12 +1134,12 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 					char *newTl = MALLOC(100);
 					newTl[0] = '\0';
 
-					/* printf ("next element is an IS \n"); */
+					printf ("next element is an IS \n");
 					tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+2);
-					/* printf ("ok, so IS of :%s: is :%s:\n",ele->stringToken, tempEle->stringToken); */
+					printf ("ok, so IS of :%s: is :%s:\n",ele->stringToken, tempEle->stringToken);
 
 					replaceProtoField(me->lexer, *thisProto, tempEle->stringToken,&newTl,&tl);
-					/* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl); */
+					printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl);
 
 					/* is there actually a value for this field?? */
 					if SOMETHING_IN_ISVALUE {

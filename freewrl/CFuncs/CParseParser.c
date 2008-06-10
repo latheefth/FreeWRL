@@ -165,6 +165,15 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 			printf ("PROTO FIELD VALUE IS :%s:\n",pdecl->fieldString);
 			printf ("see if we need to realloc: outSize %d, curlen %d, newlen %d\n",*outSize, strlen(*outTextPtr), strlen (pdecl->fieldString));
 			#endif
+
+			if (strlen(pdecl->fieldString) > *outSize-5) {
+				#ifdef CPARSERVERBOSE
+				printf ("replaceProtoField, reallocing outTextPtr\n");
+				#endif
+
+				*outSize = strlen(pdecl->fieldString) + 5;
+				*outTextPtr = REALLOC(*outTextPtr,*outSize);
+			}
 	
 			strcat (*outTextPtr,pdecl->fieldString);
 		} else {
@@ -178,7 +187,6 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 	printf ("replaceProtoField returning\n");
 	#endif
 	
-
 }
 
 
