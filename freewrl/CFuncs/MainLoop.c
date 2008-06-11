@@ -396,9 +396,9 @@ void EventLoop() {
 	if (!NavigationMode && HaveSensitive) {
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint();
-		render_hier(rootNode,VF_Sensitive);
+		/* original: render_hier(rootNode,VF_Sensitive); */
+		render_hier(rootNode,VF_Sensitive  | VF_Geom); 
 		CursorOverSensitive = getRayHit();
-
 
 		/* for nodes that use an "isOver" eventOut... */
 		if (lastOver != CursorOverSensitive) {
@@ -878,7 +878,6 @@ struct X3D_Node* getRayHit() {
 		printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
 			rayHit.node,stringNodeType(rayHit.node->_nodeType), x,y,z);
 		printf (" dist %f ",rayHit.node->_dist);
-		printf (" hasSensitiveChildren %x\n",rayHit.node->_renderFlags & VF_hasSensitiveChildren);
 		*/
 
 		for (i=0; i<num_SensorEvents; i++) {
