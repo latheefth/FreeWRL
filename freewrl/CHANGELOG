@@ -1,4 +1,7 @@
 For 1.20.4
+	- problem parsing floats/doubles with a positive sign starting(or part of exponent),
+	  eg, "123e+10" now parses - before expected "123e10".
+
 	- start on Geospatial nodes.
 
 	- SFVec3d and MFVec3d code handling added to classic and xml parser.

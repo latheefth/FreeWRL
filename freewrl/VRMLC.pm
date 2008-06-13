@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.288  2008/06/13 18:33:21  crc_canada
+# float/double parsing with plus signs in exponents.
+#
 # Revision 1.287  2008/06/13 13:50:47  crc_canada
 # Geospatial, SF/MFVec3d support.
 #
@@ -313,13 +316,13 @@ sub gen {
 		"#define SCANTOSTRING(value) while ((*value==' ') || (*value==',')) value++; \n".
 		"#define SCANPASTFLOATNUMBER(value) while (isdigit(*value) \\\n".
 		"		|| (*value == '.') || \\\n".
-		"		(*value == 'E') || (*value == 'e') || (*value == '-')) value++; \n".
-		"#define SCANPASTINTNUMBER(value) if (isdigit(*value) || (*value == '-')) value++; \\\n".
+		"		(*value == 'E') || (*value == 'e') || (*value == '+') || (*value == '-')) value++; \n".
+		"#define SCANPASTINTNUMBER(value) if (isdigit(*value) || (*value == '-') || (*value == '+')) value++; \\\n".
 		"		while (isdigit(*value) || \\\n".
 		"		(*value == 'x') || (*value == 'X') ||\\\n".
 		"		((*value >='a') && (*value <='f')) || \\\n".
 		"		((*value >='A') && (*value <='F')) || \\\n".
-		"		(*value == '-')) value++; \n";
+		"		(*value == '-') || (*value == '+')) value++; \n";
 	push @str, $st; push @EAIHeader, $st;
 
 	#####################
@@ -751,6 +754,7 @@ sub gen {
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
+	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#undef DEBUG_VALIDNODE\n".
 	"#ifdef DEBUG_VALIDNODE	\n".
 	"#define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)\n".

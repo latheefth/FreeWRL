@@ -82,6 +82,31 @@ static int geoInitialized = FALSE;
 		geoInitialized = TRUE; \
 	}
 
+/* calculate a translation that moves a Geo node to local space */
+static void GeoMove(void *geoOrigin, struct Multi_Int32* geoSystem, struct SFVec3d geoCoords, struct SFVec3d *outCoords) {
+	struct SFVec3d *gcc;
+
+	outCoords->c[0] = (double) 0.0; outCoords->c[1] = (double) 0.0; outCoords->c[2] = (double) 0.0;
+
+	/* check the GeoOrigin attached node */
+	if (geoOrigin == NULL) {
+		ConsoleMessage ("GeoMove, null origin for Geospatial node");
+		return;
+	}
+
+	if (X3D_GEOORIGIN(geoOrigin)->_nodeType != NODE_GeoOrigin) {
+		ConsoleMessage ("GeoMove, expected a GeoOrigin, found a %s",stringNodeType(X3D_GEOORIGIN(geoOrigin)->_nodeType));
+		return;
+	}
+
+	printf ("GeoMove, past step 1\n");
+	gcc = &X3D_GEOORIGIN(geoOrigin)->geoCoords;
+	printf ("GeoMove, origin coords %lf %lf %lf, this coords %lf %lf %lf\n",gcc->c[0],gcc->c[1],gcc->c[2],
+			geoCoords.c[0],geoCoords.c[1],geoCoords.c[2]);
+		
+
+}
+
 /* compileGeosystem - encode the return value such that srf->p[x] is...
 			0:	spatial reference frame	(GEOSP_UTM, GEOSP_GC, GEOSP_GD);
 			1:	spatial coordinates (defaults to GEOSP_WE)
@@ -180,7 +205,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 				} else if (args->p[i]->strptr[0] = 'Z') {
 					int zone = -1;
 					sscanf(args->p[i]->strptr,"Z%d",&zone);
-					printf ("zone found as %d\n",zone);
+					/* printf ("zone found as %d\n",zone); */
 					srf->p[2] = zone;
 				} else { 
 					indexT tc = findFieldInGEOSPATIAL(args->p[i]->strptr);
@@ -223,8 +248,11 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 }
 
 void compile_GeoLocation (struct X3D_GeoLocation * node) {
+        struct SFVec3d translatedCoords;
 	printf ("compiling GeoLocation\n");
 	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
+
+	GeoMove(node->geoOrigin, &node->__geoSystem, node->geoCoords, &translatedCoords);
 
 	MARK_NODE_COMPILED
 }
