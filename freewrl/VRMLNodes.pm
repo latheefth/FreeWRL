@@ -1229,6 +1229,7 @@ package VRML::NodeType;
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						point => [MFString,[],initializeOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 					},"X3DCoordinateNode"),
 
 	GeoElevationGrid => new VRML::NodeType("GeoElevationGrid", {
@@ -1250,7 +1251,8 @@ package VRML::NodeType;
 						xSpacing => [SFString, "1.0", initializeOnly],
 						yScale => [SFFloat, 1.0, initializeOnly],
 						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFString, "1.0", initializeOnly]
+						zSpacing => [SFString, "1.0", initializeOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 					},"X3DGeometryNode"),
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {
@@ -1265,6 +1267,7 @@ package VRML::NodeType;
 						rootUrl => [MFString,[],initializeOnly],
 						rootNode => [MFNode,[],initializeOnly],
 						children => [MFNode,[],outputOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 					},"X3DGroupingNode"),
 
 
@@ -1282,6 +1285,7 @@ package VRML::NodeType;
 						keyValue => [MFString,[],initializeOnly],
 						geovalue_changed => [SFString,"",outputOnly],
 						value_changed => [SFVec3f,[0,0,0],outputOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 					},"X3DInterpolatorNode"),
 
 
@@ -1296,54 +1300,65 @@ package VRML::NodeType;
 						isActive => [SFBool, 0, outputOnly],
 						isOver => [SFBool, 0, outputOnly],
 						description => [SFString, "", initializeOnly],
-						touchTime => [SFTime, -1, outputOnly]
+						touchTime => [SFTime, -1, outputOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 					},"X3DPointingDeviceSensorNode"),
 
 	GeoViewpoint => new VRML::NodeType("GeoViewpoint", {
 						set_bind => [SFBool, undef, inputOnly],
-						set_orientation => [SFString, undef, inputOnly],
-						set_position => [SFString, undef, inputOnly],
+						set_orientation => [SFRotation, [0, 0, 1, 0], inputOnly],
+						set_position => [SFVec3d, [0, 0, 0], inputOnly],
+						description => [SFString, "", inputOutput],
 						fieldOfView => [SFFloat, 0.785398, inputOutput],
 						headlight => [SFBool, 1, inputOutput],
 						jump => [SFBool, 1, inputOutput],
 						navType => [MFString, ["EXAMINE","ANY"],inputOutput],
-						description => [SFString, "", initializeOnly],
+						bindTime => [SFTime, -1, outputOnly],
+						isBound => [SFBool, 0, outputOnly],
+
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						orientation => [SFRotation, [0, 0, 1, 0], initializeOnly],
-						position => [SFString,"0, 0, 100000", initializeOnly],
+						position => [SFVec3d,[0, 0, 100000], initializeOnly],
 						speedFactor => [SFFloat,1.0,initializeOnly],
-						bindTime => [SFTime, -1, outputOnly],
-						isBound => [SFBool, 0, outputOnly],
 						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 
 						# "compiled" versions of strings above
-						__position => [SFVec3f,[0, 0, 100000], initializeOnly],
-						__geoSystem => [SFInt32,0,initializeOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 					   },"X3DBindableNode"),
 
 	GeoOrigin => new VRML::NodeType("GeoOrigin", {
+						geoCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						geoSystem => [MFString,["GD","WE"],inputOutput],
-						geoCoords => [SFString,"",inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
 						rotateYUp => [SFBool,0,initializeOnly],
 
 						# these are now static in CFuncs/GeoVRML.c
 						# "compiled" versions of strings above
-						#__geoCoords => [SFVec3f,[0, 0, 0], initializeOnly],
-						#__geoSystem => [SFInt32,0,initializeOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 					},"X3DChildNode"),
 
 	GeoLocation => new VRML::NodeType("GeoLocation", {
-						geoCoords => [SFString,"",inputOutput],
-						children => [MFNode, [], initializeOnly],
+						addChildren => [MFNode, undef, inputOnly],
+						removeChildren => [MFNode, undef, inputOnly],
+						children => [MFNode, [], inputOutput],
+						geoCoords => [SFVec3d, [0, 0, 0], inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 
+						# fields for reducing redundant calls
+						__do_center => [SFInt32, 0, initializeOnly],
+						__do_trans => [SFInt32, 0, initializeOnly],
+						__do_rotation => [SFInt32, 0, initializeOnly],
+						__do_scaleO => [SFInt32, 0, initializeOnly],
+						__do_scale => [SFInt32, 0, initializeOnly],
+						__verify_transforms => [SFInt32, 0, initializeOnly],
+
 						# "compiled" versions of strings above
-						__geoCoords => [SFVec3f,[0, 0, 0], initializeOnly],
-						__geoSystem => [SFInt32,0,initializeOnly],
+						__geoSystem => [MFInt32,[],initializeOnly],
 
 					},"X3DGroupingNode"),
 

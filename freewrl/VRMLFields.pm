@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.79  2008/06/13 13:50:48  crc_canada
+# Geospatial, SF/MFVec3d support.
+#
 # Revision 1.78  2007/12/13 14:54:13  crc_canada
 # code cleanup and change to inputOnly, outputOnly, initializeOnly, inputOutput
 # ----------------------------------------------------------------------
@@ -68,6 +71,8 @@
 	MFVec2f
 	SFImage
 	FreeWRLPTR
+	SFVec3d
+	MFVec3d
 /;
 
 ###########################################################
@@ -143,8 +148,7 @@ VRML::Error->import;
 
 
 
-sub cstruct {return "struct SFColor {
-	float c[3]; };"}
+sub cstruct {return "struct SFColor { float c[3]; };"}
 sub ctype {return "struct SFColor $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -162,9 +166,7 @@ VRML::Error->import();
 
 sub cstruct {return "struct SFColorRGBA { float r[4]; };"}
 sub ctype {return "struct SFColorRGBA $_[1]"}
-sub cInitialize {
-	print "SFCOLORRGBA INIT\n";
-	return 0;
+sub cInitialize { print "SFCOLORRGBA INIT\n"; return 0;
 }
 
 ###########################################################
@@ -180,12 +182,24 @@ sub cInitialize {
 }
 
 ###########################################################
+package VRML::Field::SFVec3d;
+@ISA=VRML::Field;
+sub cstruct {return "struct SFVec3d { double c[3]; };"}
+sub ctype {return "struct SFVec3d $_[1]";}
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	if (!defined $val) {print "undefined in SFVec3d\n"} # inputOnlys, set it to any value
+	return 	"$field.c[0] = @{$val}[0];".
+		"$field.c[1] = @{$val}[1];".
+		"$field.c[2] = @{$val}[2];";
+}
+
+###########################################################
 package VRML::Field::SFVec2f;
 @ISA=VRML::Field;
 VRML::Error->import();
 
-sub cstruct {return "struct SFVec2f {
-	float c[2]; };"}
+sub cstruct {return "struct SFVec2f { float c[2]; };"}
 sub ctype {return "struct SFVec2f $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -201,13 +215,12 @@ package VRML::Field::SFRotation;
 VRML::Error->import();
 
 
-sub cstruct {return "struct SFRotation {
- 	float r[4]; };"}
+sub cstruct {return "struct SFRotation { float r[4]; };"}
 
 sub ctype {return "struct SFRotation $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFVRotation\n"} # inputOnlys, set it to any value
+	if (!defined $val) {print "undefined in SFRotation\n"} # inputOnlys, set it to any value
 	return 	"$field.r[0] = @{$val}[0];".
 		"$field.r[1] = @{$val}[1];".
 		"$field.r[2] = @{$val}[2];".
@@ -340,6 +353,11 @@ sub cInitialize {
 }
 
 ###########################################################
+package VRML::Field::MFVec3d;
+@ISA=VRML::Field::MFVec3f;
+
+
+###########################################################
 package VRML::Field::MFNode;
 @ISA=VRML::Field::Multi;
 
@@ -457,7 +475,7 @@ sub cInitialize {
 	#print "MFINT32 field $field val @{$val} has $count INIT\n";
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	if ($count > 0) {
-		print "HAVE TO MALLOC HERE\n";
+		print "MFINT32 HAVE TO MALLOC HERE\n";
 	} else {
 		return "$field.n=0; $field.p=0";
 	}

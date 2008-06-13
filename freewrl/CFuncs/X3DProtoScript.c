@@ -772,6 +772,8 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 		case FIELDTYPE_MFRotation: value->mfrotation.n=0; break;
 		case FIELDTYPE_SFVec3f: value->sfvec3f.c[0] =0.0; value->sfvec3f.c[1]=0.0; value->sfvec3f.c[2] = 0.0; break;
 		case FIELDTYPE_MFVec3f: value->mfvec3f.n=0; break;
+		case FIELDTYPE_SFVec3d: value->sfvec3d.c[0] =(double) 0.0; value->sfvec3d.c[1]=(double) 0.0; value->sfvec3d.c[2] = (double) 0.0; break;
+		case FIELDTYPE_MFVec3d: value->mfvec3d.n=0; break;
 		case FIELDTYPE_SFBool: value->sfbool=FALSE; break;
 		case FIELDTYPE_MFBool: value->mfbool.n=0; break;
 		case FIELDTYPE_SFInt32: value->sfint32 = 0; break;

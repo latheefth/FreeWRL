@@ -848,6 +848,95 @@ BOOL lexer_float(struct VRMLLexer* me, vrmlFloatT* ret)
  RETURN_NUMBER_WITH_SIGN
 }
 
+
+BOOL lexer_double(struct VRMLLexer* me, vrmlDoubleT* ret)
+{
+ int c;
+
+ BOOL neg;
+ BOOL afterPoint;	/* Already after decimal point? */
+ double decimalFact;	/* Factor next decimal digit is multiplied with */
+
+ if(me->curID) return FALSE;
+ lexer_skip(me);
+
+ /* Really a double? */
+ LEXER_GETINPUT(c)
+ CHECK_EOF(c)
+ if(c!='-' && c!='+' && c!='.' && !(c>='0' && c<='9'))
+ {
+  LEXER_UNGETINPUT(c)
+  return FALSE;
+ }
+
+ /* Process sign. */
+ NUMBER_PROCESS_SIGN_FLOAT
+ 
+ /* Main processing loop. */
+ *ret=0;
+ afterPoint=FALSE;
+ decimalFact=.1;
+ while(TRUE)
+ {
+  if(c=='.' && !afterPoint)
+   afterPoint=TRUE;
+  else if(c>='0' && c<='9')
+   if(afterPoint)
+   {
+    *ret+=decimalFact*(c-'0');
+    decimalFact/=10;
+   } else
+   {
+    *ret*=10;
+    *ret+=c-'0';
+   }
+	/* JAS - I hate doing this, but Lightwave exporter SOMETIMES seems to put double dots
+	   in a VRML file. This catches them...  see
+	   http://neptune.gsfc.nasa.gov/osb/aquarius/animations/vrml.php */
+  else if (c=='.') {
+	/*printf ("double dots\n");*/
+  }
+  else
+   break;
+
+  LEXER_GETINPUT(c)
+ }
+ /* No unget, because c is needed later. */
+
+ /* Exponential factor? */
+ if(c=='e' || c=='E')
+ {
+  BOOL negExp;
+  int exp;
+
+  LEXER_GETINPUT(c)
+  negExp=(c=='-');
+  /* FIXME:  Wrong for things like 1e-. */
+  if(c=='-' || c=='+')
+   LEXER_GETINPUT(c)
+
+  exp=0;
+  while(TRUE)
+  {
+   if(c>='0' && c<='9')
+   {
+    exp*=10;
+    exp+=c-'0';
+   } else
+    break;
+
+   LEXER_GETINPUT(c)
+  }
+
+  if(negExp)
+   exp=-exp;
+  *ret*=pow(10, exp);
+ }
+ LEXER_UNGETINPUT(c)
+
+ RETURN_NUMBER_WITH_SIGN
+}
+
 BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
 {
  int c;

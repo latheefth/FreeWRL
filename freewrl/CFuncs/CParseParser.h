@@ -90,6 +90,7 @@ BOOL parser_mfstringValue(struct VRMLParser*, struct Multi_String*);
 BOOL parser_mftimeValue(struct VRMLParser*, struct Multi_Time*);
 BOOL parser_mfvec2fValue(struct VRMLParser*, struct Multi_Vec2f*);
 BOOL parser_mfvec3fValue(struct VRMLParser*, struct Multi_Vec3f*);
+BOOL parser_mfvec3dValue(struct VRMLParser*, struct Multi_Vec3d*);
 
 /* Parses SF* field values */
 BOOL parser_sfboolValue(struct VRMLParser*, vrmlBoolT*);
@@ -109,6 +110,7 @@ BOOL parser_sfstringValue_(struct VRMLParser*, vrmlStringT*);
  lexer_string(me->lexer, ret)
 BOOL parser_sftimeValue(struct VRMLParser*, vrmlTimeT*);
 BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
+BOOL parser_sfvec3dValue(struct VRMLParser*, vrmlVec3dT*);
 #define parser_sfvec3fValue(me, ret) \
  parser_sfcolorValue(me, ret)
 

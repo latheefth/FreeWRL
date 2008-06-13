@@ -249,7 +249,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	char tempname[1000];
 	char sysline[1000];
 
-	/* printf ("fileExists: checking for filename here %s\n",fname); */
+	/* printf ("fileExists: checking for filename here %s\n",fname);  */
 	FREE_IF_NZ(cacheFileName);
 
 	/* are we running under netscape? if so, ask the browser, and

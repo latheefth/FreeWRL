@@ -1,4 +1,10 @@
 For 1.20.4
+	- start on Geospatial nodes.
+
+	- SFVec3d and MFVec3d code handling added to classic and xml parser.
+
+	- Sensitive nodes can now be partially occluded by other (non-sensitive) geometry.
+
 	- Linux: if iconified, skip all OpenGL rendering calls.
 
 	- modified file-read function to handle files without an end of line character on last 

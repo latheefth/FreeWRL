@@ -156,10 +156,7 @@ extern int MAXJSparamNames;
 #define VF_Blend 				0x0010
 #define VF_Proximity 				0x0020
 #define VF_Collision 				0x0040
-#define VF_hasSensitiveChildren			0x0080
 #define VF_hasVisibleChildren 			0x0100
-#define VF_hasGeometryChildren 			0x0200
-#define VF_hasBeenScannedForGeometryChildren	0x0400
 #define VF_otherLight				0x0800 
 
 /* compile simple nodes (eg, Cone, LineSet) into an internal format. Check out
@@ -1152,6 +1149,16 @@ void fin_GeoLocation (struct X3D_GeoLocation *this_);
 void changed_GeoLocation (struct X3D_GeoLocation *this_);
 void child_GeoLOD (struct X3D_GeoLOD *this_);
 void child_GeoLocation (struct X3D_GeoLocation *this_);
+void compile_GeoCoordinate (struct X3D_GeoCoordinate * this);
+void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * this);
+void compile_GeoLocation (struct X3D_GeoLocation * this);
+void compile_GeoLOD (struct X3D_GeoLOD * this);
+void compile_GeoMetadata (struct X3D_GeoMetadata * this);
+void compile_GeoOrigin (struct X3D_GeoOrigin * this);
+void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * this);
+void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * this);
+void compile_GeoViewpoint (struct X3D_GeoViewpoint * this);
+
 
 /* Networking Component */
 void child_Anchor (struct X3D_Anchor *this_);
@@ -1274,6 +1281,7 @@ int findFieldInEXPOSED_FIELD(const char* field);
 int findFieldInEVENT_IN(const char* field);
 int findFieldInEVENT_OUT(const char* field);
 int findFieldInX3DSPECIALKEYWORDS(const char *field);
+int findFieldInGEOSPATIAL(const char *field);
 
 /* Values for fromTo */
 #define ROUTED_FIELD_EVENT_OUT 0

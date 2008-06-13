@@ -709,7 +709,6 @@ void startOfLoopNodeUpdates(void) {
 		if (node != NULL) {
 			/* turn OFF these flags */
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
-			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasSensitiveChildren);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_DirectionalLight);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_otherLight);
@@ -878,9 +877,6 @@ void startOfLoopNodeUpdates(void) {
 			for (j=0; j<nParents; j++) {
 				struct X3D_Node *n = X3D_NODE(pp[j]);
 				n->_renderFlags = n->_renderFlags  | VF_Sensitive;
-
- 				/* and tell the rendering pass that there is a sensitive node down this branch */
-				update_renderFlag(n,VF_hasSensitiveChildren);
 			}
 
 			/* tell mainloop that we have to do a sensitive pass now */
@@ -891,9 +887,6 @@ void startOfLoopNodeUpdates(void) {
 		/* Anchor nodes are slightly different than sibling-sensitive nodes */
 		if (anchorPtr != NULL) {
 			anchorPtr->_renderFlags = anchorPtr->_renderFlags  | VF_Sensitive;
-
- 			/* and tell the rendering pass that there is a sensitive node down this branch */
-			update_renderFlag(X3D_NODE(anchorPtr),VF_hasSensitiveChildren);
 
 			/* tell mainloop that we have to do a sensitive pass now */
 			HaveSensitive = TRUE;

@@ -518,6 +518,7 @@ DEF_FINDFIELD(PROFILES)
 DEF_FINDFIELD(COMPONENTS)
 DEF_FINDFIELD(FIELDTYPES)
 DEF_FINDFIELD(X3DSPECIAL)
+DEF_FINDFIELD(GEOSPATIAL)
 
 /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
 /* returns the FIELDNAMES index. */

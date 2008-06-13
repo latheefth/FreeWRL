@@ -587,6 +587,7 @@ void AddRemoveChildren (
 /*  "Color" {return -1;}        				*/
 /*  "Vec2f" {return -18;}        				*/
 /*  "Vec3f" {return -19;}         				*/
+/*  "Vec3d" {return -20;}         				*/
 /*  "Node" {return -10;}         				*/
 /****************************************************************/
 
@@ -615,8 +616,9 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	    elesize = sizeof(float)*3;
 	    break;	/* SFColor, SFVec3f */
 	  case -18: elesize = sizeof(float)*2; break;	/* SFVec2f */
-		case -10: elesize = sizeof(int); break;
-		default: {printf ("getCLASSMulNumType - unknown type %d\n",eletype); return;}
+	  case -20: elesize = sizeof(double)*3; break;	/* SFVec3d */
+	  case -10: elesize = sizeof(int); break;
+	  default: {printf ("getCLASSMulNumType - unknown type %d\n",eletype); return;}
 	}
 
 	len = bufSize / elesize;  /* convert Bytes into whatever */
@@ -1648,6 +1650,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 		 -16 is a Multi_Int32
 		 -18 is a Multi_Vec2f
 		 -19 is a Multi_Vec3f
+		 -20 is a Multi_Vec3d
 	*/
 
 	/* Multi_XXX nodes always consist of a count then a pointer - see
@@ -1678,6 +1681,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 		case -16: {structlen = sizeof (int); break;}
 		case -18: {structlen = sizeof (struct SFVec2f); break;}
 		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
+		case -20: {structlen = sizeof (struct SFVec3d); break;} 
 		default: {
 			 /* this is MOST LIKELY for an EAI handle_Listener call - if not, it is a ROUTING problem... */
 			/* printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);  */

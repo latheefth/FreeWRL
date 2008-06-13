@@ -71,6 +71,8 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 /* get how many bytes in the type */
 int returnElementLength(int type) {
 	  switch (type) {
+		case FIELDTYPE_MFVec3d:
+		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_SFTime :
     		case FIELDTYPE_MFTime : return sizeof(double); break;
     		case FIELDTYPE_MFInt32: return sizeof(int)   ; break;
@@ -89,7 +91,8 @@ int returnElementLength(int type) {
 
 int returnRoutingElementLength(int type) {
 	  switch (type) {
-		case FIELDTYPE_SFTime:	return sizeof(double); break;
+		case FIELDTYPE_SFTime:	
+				return sizeof(double); break;
 		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFString:
 		case FIELDTYPE_SFInt32:	return sizeof(int); break;
@@ -97,6 +100,7 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_SFVec2f:	return sizeof (struct SFVec2f); break;
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor: 	return sizeof (struct SFColor); break;
+		case FIELDTYPE_SFVec3d: return sizeof (struct SFVec3d); break;
 		case FIELDTYPE_SFColorRGBA:
 		case FIELDTYPE_SFRotation:return sizeof (struct SFRotation); break;
 		case FIELDTYPE_SFNode:	return sizeof (uintptr_t); break;
@@ -111,6 +115,7 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_MFColor:	return -17; break;
 		case FIELDTYPE_MFVec2f:	return -18; break;
 		case FIELDTYPE_MFVec3f:	return -19; break;
+		case FIELDTYPE_MFVec3d: return -20; break;
 
                 default:       return type;
 	}
@@ -128,6 +133,7 @@ int returnElementRowSize (int type) {
 		case FIELDTYPE_SFColor:
 		case FIELDTYPE_MFColor:
 		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_MFVec3f:
 		case FIELDTYPE_SFImage: /* initialization - we can have a "0,0,0" for no texture */
 			return 3;
@@ -199,6 +205,7 @@ int countElements (int ctype, char *instr) {
 		case FIELDTYPE_SFRotation:
 		case FIELDTYPE_SFColorRGBA: elementCount = 4; break;
 		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_SFColor: elementCount = 3; break;
 		case FIELDTYPE_MFRotation:
 		case FIELDTYPE_MFColor:
@@ -206,6 +213,7 @@ int countElements (int ctype, char *instr) {
 		case FIELDTYPE_MFTime:
 		case FIELDTYPE_MFVec2f:
 		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFVec3d:
 		case FIELDTYPE_MFColorRGBA: 
 		case FIELDTYPE_MFNode: elementCount = countFloatElements(instr); break;
 		case FIELDTYPE_MFBool: elementCount = countBoolElements(instr); break;
@@ -228,6 +236,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 	void *mdata;
 	int *iptr;
 	float *fptr;
+	double *dptr;
 	struct Uni_String **svptr;
 	struct Uni_String *mysv;
 	int tmp;
@@ -237,6 +246,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 
 	/* temporary for sscanfing */
 	float fl[4];
+	double dl[4];
 	intptr_t in[4];
 	uintptr_t inNode[4];
 	double dv;
@@ -309,6 +319,15 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 				SCANPASTFLOATNUMBER(value);
 			}
 			memcpy (nst,fl,datasize*elementCount); break;}
+
+		case FIELDTYPE_SFVec3d: {
+			for (tmp = 0; tmp < elementCount; tmp++) {
+				SCANTONUMBER(value);
+				sscanf (value, "%lf",&dl[tmp]);
+				SCANPASTFLOATNUMBER(value);
+			}
+			memcpy (nst,dl,datasize*elementCount); break;}
+
 		case FIELDTYPE_MFBool:
 		case FIELDTYPE_SFImage: 
 		case FIELDTYPE_MFInt32: {
@@ -374,6 +393,30 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			((struct Multi_Node *)nst)->n = elementCount/rowsize;
 			break;
 			}
+		case FIELDTYPE_MFVec3d: {
+			/* skip past any brackets, etc, that might come via Javascript.
+			   see tests/8.wrl for one of these */
+
+			/* get the row size */
+			rowsize = returnElementRowSize(ctype);
+
+			#ifdef SETFIELDVERBOSE
+			printf ("MF* data size is %d elerow %d elementCount %d str %s\n",datasize, returnElementRowSize(ctype),elementCount,value);
+			#endif
+
+			mdata = MALLOC (elementCount * datasize);
+			dptr = (double *)mdata;
+			for (tmp = 0; tmp < elementCount; tmp++) {
+				SCANTONUMBER(value);
+				sscanf(value, "%lf",fptr);
+				dptr ++;
+				SCANPASTFLOATNUMBER(value);
+			}
+			((struct Multi_Node *)nst)->p=mdata;
+			((struct Multi_Node *)nst)->n = elementCount/rowsize;
+			break;
+			}
+
 
 		case FIELDTYPE_SFString: 
 			{

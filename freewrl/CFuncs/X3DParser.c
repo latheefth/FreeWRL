@@ -342,6 +342,16 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 				}
 			}
+		} else if (strcmp("containerField",atts[i])==0) {
+			indexT tmp;
+			/* printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",(char *)atts[i+1], stringNodeType(thisNode->_nodeType ));*/
+			tmp = findFieldInFIELDNAMES((char *)atts[i+1]);
+			if (tmp == ID_UNDEFINED) {
+				ConsoleMessage ("Error setting containerField to :%s: for node of type :%s:\n",
+					(char *)atts[i+1], stringNodeType(thisNode->_nodeType ));
+			} else {
+				thisNode->_defaultContainer = tmp;
+			}
 		} else {
 			setField_fromJavascript (thisNode, (char *)atts[i],(char *)atts[i+1]);
 		}
@@ -404,12 +414,75 @@ static void XMLCALL handleCDATA (void *userData, const char *string, int len) {
 	}
 }
 
+/* parse a export statement, and send the results along */
+static void parseImport(const char **atts) {
+	int i;
+        char *nodeToImport = NULL;
+        char *alias = NULL;
 
-static void parseMeta(const char *atts) {}
-static void parseHeader(const char *atts) {}
-static void parseScene(const char *atts) {
+        for (i = 0; atts[i]; i += 2) {
+		printf("import field:%s=%s\n", atts[i], atts[i + 1]);
+	}
+/* do nothing right now */
+return;
 }
-static void parseX3Dhead(const char *atts) {
+
+
+/* parse a export statement, and send the results along */
+static void parseExport(const char **atts) {
+	int i;
+        char *nodeToExport = NULL;
+        char *alias = NULL;
+
+        for (i = 0; atts[i]; i += 2) {
+		printf("export field:%s=%s\n", atts[i], atts[i + 1]);
+	}
+/* do nothing right now */
+return;
+
+        	handleExport(nodeToExport, alias);
+}
+
+/* parse a component statement, and send the results along */
+static void parseComponent(const char **atts) {
+	int i;
+	int myComponent = ID_UNDEFINED;
+	int myLevel = ID_UNDEFINED;
+
+	/* go through the fields and make sense of them */
+        for (i = 0; atts[i]; i += 2) {
+		/* printf("components field:%s=%s\n", atts[i], atts[i + 1]);  */
+		if (strcmp("level",atts[i]) == 0) {
+			if (sscanf(atts[i+1],"%d",&myLevel) != 1) {
+				ConsoleMessage ("expected Component level for component %s, got %s",atts[i], atts[i+1]);
+				return;
+			}
+		} else if (strcmp("name",atts[i]) == 0) {
+			myComponent = findFieldInCOMPONENTS(atts[i+1]);
+			if (myComponent == ID_UNDEFINED) {
+				ConsoleMessage("Component statement, but component name not valid :%s:",atts[i+1]);
+				return;
+			}
+
+		} else {
+			ConsoleMessage ("Unknown fields in Component statement :%s: :%s:",atts[i], atts[i+1]);
+		}
+	}
+
+	if (myComponent == ID_UNDEFINED) {
+		ConsoleMessage("Component statement, but component name not stated");
+	} else if (myLevel == ID_UNDEFINED) {
+		ConsoleMessage("Component statement, but component level not stated");
+	} else {
+		handleComponent(myComponent,myLevel);
+	}
+}
+
+static void parseMeta(const char **atts) {}
+static void parseHeader(const char **atts) {}
+static void parseScene(const char **atts) {
+}
+static void parseX3Dhead(const char **atts) {
 }
 static void parseIS() {
 	if (parserMode != PARSING_PROTOBODY) {
@@ -559,6 +632,9 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("startElement: %s : level %d\n",name,parentIndex);
+        for (i = 0; atts[i]; i += 2) {
+		printf("	field:%s=%s\n", atts[i], atts[i + 1]);
+	}
 	#endif
 
 	/* are we storing a PROTO body?? */
@@ -593,6 +669,9 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 			case X3DSP_fieldValue: parseProtoInstanceFields (name, atts); break;
 			case X3DSP_field: parseScriptProtoField (atts); break;
 			case X3DSP_IS: parseIS(); break;
+			case X3DSP_component: parseComponent(atts); break;
+			case X3DSP_export: parseExport(atts); break;
+			case X3DSP_import: parseImport(atts); break;
 			
 			/* should never do this: */
 			default: printf ("huh? X3DSPECIAL, but not handled?? %s\n",X3DSPECIAL[myNodeIndex]);

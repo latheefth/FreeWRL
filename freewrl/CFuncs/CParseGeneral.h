@@ -18,8 +18,10 @@ typedef struct X3D_Node*	vrmlNodeT;
 typedef struct SFRotation	vrmlRotationT;
 typedef struct Uni_String*	vrmlStringT;
 typedef double	vrmlTimeT;
+typedef double	vrmlDoubleT;
 typedef struct SFVec2f	vrmlVec2fT;
 typedef struct SFColor	vrmlVec3fT;
+typedef struct SFVec3d  vrmlVec3dT;
 
 /* This is an union to hold every vrml-type */
 union anyVrml

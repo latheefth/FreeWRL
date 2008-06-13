@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.217  2008/06/13 13:50:49  crc_canada
+# Geospatial, SF/MFVec3d support.
+#
 # Revision 1.216  2008/05/07 15:22:41  crc_canada
 # input function modified to better handle files without clear end of line on last line.
 #
@@ -421,6 +424,16 @@
 	Cone
 	Cylinder
 	Sphere
+	GeoLocation
+	GeoCoordinate
+	GeoElevationGrid
+	GeoLocation
+	GeoLOD
+	GeoMetadata
+	GeoOrigin
+	GeoPositionInterpolator
+	GeoTouchSensor
+	GeoViewpoint	
 /;
 
 
@@ -785,7 +798,7 @@
 
 #
 # X3DSPECIAL Keywords
-# a listing of PROTO define keywords for use in the C VRML parser.
+# a listing of control keywords for use in the XML parser.
 #
 # 
 
@@ -804,5 +817,8 @@
 	X3D
 	field
 	fieldValue
+	component
+	import
+	export
 /;
 1;

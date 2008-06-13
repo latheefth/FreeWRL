@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.287  2008/06/13 13:50:47  crc_canada
+# Geospatial, SF/MFVec3d support.
+#
 # Revision 1.286  2008/05/21 20:16:48  crc_canada
 # Standard defines for node rebuilding
 #
@@ -921,7 +924,7 @@ sub gen {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<4; i++) { printf (\"%4.3f  \",tmp->$field.r[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
-				} elsif (($ft eq "SFColor") || ($ft eq "SFVec3f")) {
+				} elsif (($ft eq "SFColor") || ($ft eq "SFVec3f") || ($ft eq "SFVec3d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<3; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";

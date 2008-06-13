@@ -84,9 +84,10 @@ void EAI_RW(char *bufptr);
 #define EAI_SFColorRGBA		'w'
 #define EAI_MFBool		'x'
 #define EAI_FreeWRLPTR		'y'
-#define EAI_MFVec3D		'A'
-#define EAI_SFVec2D		'B'
-#define EAI_SFVec3D		'C'
+#define EAI_MFVec3d		'A'
+#define EAI_SFVec2d		'B'
+#define EAI_SFVec3d		'C'
+#define EAI_MFVec2d		'D'
 
 
 /* Function Prototype for plugins, Java Class Invocation */

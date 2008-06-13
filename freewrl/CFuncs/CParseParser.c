@@ -28,6 +28,37 @@
 
 
 /* Parsing a specific type */
+/* NOTE! We have to keep the order of these function calls the same
+   as the FIELDTYPE names, created from the @VRML::Fields = qw/ in
+   VRMLFields.pm (which writes the FIELDTYPE* defines in 
+   CFuncs/Structs.h. Currently (June, 2008) this is the list:
+        SFFloat
+        MFFloat
+        SFRotation
+        MFRotation
+        SFVec3f
+        MFVec3f
+        SFBool
+        MFBool
+        SFInt32
+        MFInt32
+        SFNode
+        MFNode
+        SFColor
+        MFColor
+        SFColorRGBA
+        MFColorRGBA
+        SFTime
+        MFTime
+        SFString
+        MFString
+        SFVec2f
+        MFVec2f
+        SFImage
+        FreeWRLPTR
+        SFVec3d
+        MFVec3d
+*/
 BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sffloatValue_, &parser_mffloatValue,
  &parser_sfrotationValue, &parser_mfrotationValue,
@@ -40,8 +71,9 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sftimeValue, &parser_mftimeValue,
  &parser_sfstringValue_, &parser_mfstringValue,
  &parser_sfvec2fValue, &parser_mfvec2fValue,
- &parser_sfimageValue,
- NULL
+ &parser_sfimageValue, NULL,
+ &parser_sfvec3dValue, &parser_mfvec3dValue
+
 };
 
 /* for error messages */
@@ -62,6 +94,7 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_sftime	TRUE
 #define ROUTE_REAL_SIZE_sfvec2f	TRUE
 #define ROUTE_REAL_SIZE_sfvec3f	TRUE
+#define ROUTE_REAL_SIZE_sfvec3d	TRUE
 #define ROUTE_REAL_SIZE_mfbool	FALSE
 #define ROUTE_REAL_SIZE_mfcolor	FALSE
 #define ROUTE_REAL_SIZE_mfcolorrgba	FALSE
@@ -74,6 +107,7 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_mftime	FALSE
 #define ROUTE_REAL_SIZE_mfvec2f	FALSE
 #define ROUTE_REAL_SIZE_mfvec3f	FALSE
+#define ROUTE_REAL_SIZE_mfvec3d	FALSE
 
 /* General processing macros */
 #define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
@@ -2263,6 +2297,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define INIT_CODE_sftime(var)
  #define INIT_CODE_sfvec2f(var)
  #define INIT_CODE_sfvec3f(var)
+ #define INIT_CODE_sfvec3d(var)
  #define INIT_CODE_mfbool(var)
  #define INIT_CODE_mfcolor(var)
  #define INIT_CODE_mfcolorrgba(var)
@@ -2273,6 +2308,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define INIT_CODE_mftime(var)
  #define INIT_CODE_mfvec2f(var)
  #define INIT_CODE_mfvec3f(var)
+ #define INIT_CODE_mfvec3d(var)
 
  /* The field type indices */
  #define FTIND_sfnode	FIELDTYPE_SFNode
@@ -2288,6 +2324,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define FTIND_sftime	FIELDTYPE_SFTime
  #define FTIND_sfvec2f	FIELDTYPE_SFVec2f
  #define FTIND_sfvec3f	FIELDTYPE_SFVec3f
+ #define FTIND_sfvec3d	FIELDTYPE_SFVec3d
  #define FTIND_mfbool	FIELDTYPE_MFBool
  #define FTIND_mfcolor	FIELDTYPE_MFColor
  #define FTIND_mfcolorrgba	FIELDTYPE_MFColorRGBA
@@ -2298,6 +2335,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define FTIND_mftime	FIELDTYPE_MFTime
  #define FTIND_mfvec2f	FIELDTYPE_MFVec2f
  #define FTIND_mfvec3f	FIELDTYPE_MFVec3f
+ #define FTIND_mfvec3d	FIELDTYPE_MFVec3d
  
  /* Process a field (either exposed or ordinary) generally */
  /* For a normal "field value" (i.e. position 1 0 1) statement gets the actual value of the field from the file (next token(s) to be processed) and stores it in the node
@@ -2812,6 +2850,7 @@ PARSER_MFFIELD(string, String)
 PARSER_MFFIELD(time, Time)
 PARSER_MFFIELD(vec2f, Vec2f)
 PARSER_MFFIELD(vec3f, Vec3f)
+PARSER_MFFIELD(vec3d, Vec3d)
 
 /* ************************************************************************** */
 /* SF* field values */
@@ -2829,6 +2868,23 @@ PARSER_MFFIELD(vec3f, Vec3f)
   return TRUE; \
  }
 
+/* Parses a fixed-size vector-field of floats (SFColor, SFRotation, SFVecXf) */
+#define PARSER_FIXED_DOUBLE_VEC(name, type, cnt, dest) \
+ BOOL parser_sf##name##Value(struct VRMLParser* me, vrml##type##T* ret) \
+ { \
+  int i; \
+  assert(me->lexer); \
+  for(i=0; i!=cnt; ++i) {\
+   if(!parser_sfdoubleValue_(me, ret->dest+i)) \
+    return FALSE; \
+  }\
+  return TRUE; \
+ }
+
+BOOL parser_sfdoubleValue_(struct VRMLParser* me, vrmlFloatT* ret)
+{
+ return lexer_double(me->lexer, ret);
+}
 BOOL parser_sffloatValue_(struct VRMLParser* me, vrmlFloatT* ret)
 {
  return lexer_float(me->lexer, ret);
@@ -2860,6 +2916,7 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 
 PARSER_FIXED_VEC(color, Color, 3, c)
 PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
+PARSER_FIXED_DOUBLE_VEC(vec3d, Vec3d, 3, c)
 
 /* JAS this code assumes that the ret points to a SFInt_32 type, and just
 fills in the values. */

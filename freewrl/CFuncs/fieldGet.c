@@ -41,11 +41,13 @@ void getField_ToJavascript (int num, int fromoffset) {
 	case FIELDTYPE_SFNode:
 	case FIELDTYPE_SFVec2f:
 	case FIELDTYPE_SFVec3f:
+	case FIELDTYPE_SFVec3d:
 	case FIELDTYPE_SFRotation:
 		setScriptMultiElementtype(num);
 		break;
 	case FIELDTYPE_MFColor:
 	case FIELDTYPE_MFVec3f:
+	case FIELDTYPE_MFVec3d:
 	case FIELDTYPE_MFVec2f:
 	case FIELDTYPE_MFFloat:
 	case FIELDTYPE_MFTime:
@@ -979,7 +981,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 	double dval;
 	float fl[4];
+	float dl[4];
 	float *fp;
+	float *dp;
 	int *ip;
 	int ival;
 	int row;			/* MF* counter */
@@ -1043,6 +1047,15 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			}
 			memcpy(fl,memptr,sizeof(float)*3);
 			sprintf (buf, "%s\n%f\n%d\n%f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2]);
+			break;
+		}
+
+		case FIELDTYPE_SFVec3d:	{
+			if (eaiverbose) { 
+			printf ("EAI_SFVEC3D\n");
+			}
+			memcpy(dl,memptr,sizeof(double)*3);
+			sprintf (buf, "%s\n%f\n%d\n%lf %lf %lf",reptype,TickTime,id,dl[0],dl[1],dl[2]);
 			break;
 		}
 

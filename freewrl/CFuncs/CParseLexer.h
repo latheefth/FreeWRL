@@ -122,6 +122,7 @@ indexT lexer_string2id(const char*, const struct Vector*);
 /* Input the basic literals */
 BOOL lexer_int32(struct VRMLLexer*, vrmlInt32T*);
 BOOL lexer_float(struct VRMLLexer*, vrmlFloatT*);
+BOOL lexer_double(struct VRMLLexer*, vrmlDoubleT*);
 BOOL lexer_string(struct VRMLLexer*, vrmlStringT*);
 
 /* Checks for the five operators of VRML */
