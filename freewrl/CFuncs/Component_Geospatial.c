@@ -74,13 +74,23 @@ GeoViewpoint
 
 static int GeoVerbose = 0;
 
-static int geoInitialized = FALSE;
+static struct X3D_GeoOrigin *geoorigin = NULL;
 
-#define INITIALIZE_GEOSPATIAL \
-	if (!geoInitialized) { \
-		printf ("initializing GeoSpatial code\n"); \
-		geoInitialized = TRUE; \
+static void initializeGeospatial (struct X3D_GeoOrigin *node)  {
+	if (geoorigin == NULL) { 
+		printf ("initializing GeoSpatial code\n"); 
+		if (X3D_GEOORIGIN(node)->_nodeType != NODE_GeoOrigin) {
+			ConsoleMessage ("expected a GeoOrigin node, but got a node of type %s",
+				X3D_GEOORIGIN(node)->_nodeType);
+			geoorigin = CreateNewX3DNode(NODE_GeoOrigin); /* dummy node, because of error */
+		} else {
+			geoorigin = X3D_GEOORIGIN(node);
+		}
+		
+	} else if (node != geoorigin) {
+		ConsoleMessage ("have more than 1 GeoOrigin...");
 	}
+}
 
 /* calculate a translation that moves a Geo node to local space */
 static void GeoMove(void *geoOrigin, struct Multi_Int32* geoSystem, struct SFVec3d geoCoords, struct SFVec3d *outCoords) {
@@ -301,39 +311,39 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 /**************************************************************************/
 void make_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
 
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
 
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
 
 /**************************************************************************/
 void child_GeoLocation (struct X3D_GeoLocation *node) {
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
 
 void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
 
 void fin_GeoLocation (struct X3D_GeoLocation *node) {
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
 
 /**************************************************************************/
 void child_GeoLOD (struct X3D_GeoLOD *node) {
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
 
@@ -348,7 +358,7 @@ void do_GeoPositionInterpolator (void *this) {
         /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
 	printf ("do_GeoPositionInterpolator\n");
 
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
         
@@ -359,7 +369,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
 
 
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
         /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
 	printf ("do_GeoTouchSensor\n");
@@ -370,6 +380,6 @@ void
 bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	printf ("bind_geoviewpoint\n");
 
-	INITIALIZE_GEOSPATIAL
+	initializeGeospatial(node->geoOrigin);
 	COMPILE_IF_REQUIRED
 }
