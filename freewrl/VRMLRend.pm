@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.218  2008/06/17 19:00:27  crc_canada
+# Geospatial work - June 17 2008
+#
 # Revision 1.217  2008/06/13 13:50:49  crc_canada
 # Geospatial, SF/MFVec3d support.
 #
@@ -163,7 +166,7 @@
 	GeoLocation 		=>children,
 	GeoLOD 			=>children,
 	GeoMetadata		=>children,
-	GeoOrigin 		=>children,
+	GeoOrigin 		=>geoOrigin,
 	GeoPositionInterpolator	=>children,
 	GeoTouchSensor		=>children,
 	GeoViewpoint 		=>children,
@@ -351,6 +354,8 @@
 	MidiKey
 	PointLight
 	SpotLight
+	GeoLocation
+	GeoViewpoint
 /;
 
 #######################################################################
@@ -725,6 +730,7 @@
 # 
 
 %GEOSpatialKeywordC = map {($_=>1)} qw/
+	AA
 	AM
 	AN
 	BN

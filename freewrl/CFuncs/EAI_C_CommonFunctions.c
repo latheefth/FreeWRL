@@ -326,6 +326,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 				sscanf (value, "%lf",&dl[tmp]);
 				SCANPASTFLOATNUMBER(value);
 			}
+printf ("scanned in elementCount %d, datasize %d, %lf %lf %lf\n",elementCount, datasize, dl[0], dl[1], dl[2]);
 			memcpy (nst,dl,datasize*elementCount); break;}
 
 		case FIELDTYPE_MFBool:
@@ -467,7 +468,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			printf ("unhandled PST type, check code in EAI_C_CommonFunctions\n");
 			#else
 			printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
-			FIELDTYPES[ctype],value,stringNodeType(node->_nodeType),nst,coffset,elementCount+1);
+			stringFieldtypeType(ctype), value,stringNodeType(node->_nodeType),nst,coffset,elementCount+1);
 			#endif
 			break;
 			};

@@ -1145,6 +1145,8 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 #define rendray_GeoElevationGrid render_ray_polyrep
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 void make_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
+void prep_GeoLocation (struct X3D_GeoLocation *this_);
+void prep_GeoViewpoint (struct X3D_GeoViewpoint *this_);
 void fin_GeoLocation (struct X3D_GeoLocation *this_);
 void changed_GeoLocation (struct X3D_GeoLocation *this_);
 void child_GeoLOD (struct X3D_GeoLOD *this_);

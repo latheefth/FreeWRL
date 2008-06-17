@@ -1312,6 +1312,7 @@ package VRML::NodeType;
 						fieldOfView => [SFFloat, 0.785398, inputOutput],
 						headlight => [SFBool, 1, inputOutput],
 						jump => [SFBool, 1, inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
 						navType => [MFString, ["EXAMINE","ANY"],inputOutput],
 						bindTime => [SFTime, -1, outputOnly],
 						isBound => [SFBool, 0, outputOnly],
@@ -1325,6 +1326,9 @@ package VRML::NodeType;
 
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
+						__movedPosition => [SFVec3d, [0, 0, 0], inputOutput],
+						__movedOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+					
 					   },"X3DBindableNode"),
 
 	GeoOrigin => new VRML::NodeType("GeoOrigin", {
@@ -1336,6 +1340,7 @@ package VRML::NodeType;
 						# these are now static in CFuncs/GeoVRML.c
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
+						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 					},"X3DChildNode"),
 
 	GeoLocation => new VRML::NodeType("GeoLocation", {
@@ -1349,16 +1354,9 @@ package VRML::NodeType;
 						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 
-						# fields for reducing redundant calls
-						__do_center => [SFInt32, 0, initializeOnly],
-						__do_trans => [SFInt32, 0, initializeOnly],
-						__do_rotation => [SFInt32, 0, initializeOnly],
-						__do_scaleO => [SFInt32, 0, initializeOnly],
-						__do_scale => [SFInt32, 0, initializeOnly],
-						__verify_transforms => [SFInt32, 0, initializeOnly],
-
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
+						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 
 					},"X3DGroupingNode"),
 
