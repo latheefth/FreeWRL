@@ -326,7 +326,6 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 				sscanf (value, "%lf",&dl[tmp]);
 				SCANPASTFLOATNUMBER(value);
 			}
-printf ("scanned in elementCount %d, datasize %d, %lf %lf %lf\n",elementCount, datasize, dl[0], dl[1], dl[2]);
 			memcpy (nst,dl,datasize*elementCount); break;}
 
 		case FIELDTYPE_MFBool:
