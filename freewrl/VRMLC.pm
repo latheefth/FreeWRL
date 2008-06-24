@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.289  2008/06/24 19:37:47  crc_canada
+# Geospatial, June 24 2008 checkin
+#
 # Revision 1.288  2008/06/13 18:33:21  crc_canada
 # float/double parsing with plus signs in exponents.
 #
@@ -924,7 +927,7 @@ sub gen {
 				} elsif ($ft eq "SFNode") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\"); ";
                         		push @genFuncs2, "dump_scene(level+1,tmp->$field); \n";
-				} elsif (($ft eq "SFRotation") || ($ft eq "SFColorRGBA")) {
+				} elsif (($ft eq "SFRotation") || ($ft eq "SFColorRGBA") || ($ft eq "DFRotation")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<4; i++) { printf (\"%4.3f  \",tmp->$field.r[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
@@ -1135,7 +1138,7 @@ END_NODE(NodeName)
 /* for time tick calculations */
 #include <sys/time.h>
 
-struct pt {GLdouble x,y,z;};
+struct point_XYZ {GLdouble x,y,z;};
 struct orient {GLdouble x,y,z,a;};
 
 struct X3D_Virt {

@@ -138,57 +138,57 @@
 
 #define calc_vector_length(pt) veclength(pt)
 
-float veclength( struct pt p );
+float veclength( struct point_XYZ p );
 
 /* returns vector length, too */
-GLdouble vecnormal(struct pt*r, struct pt* v);
+GLdouble vecnormal(struct point_XYZ*r, struct point_XYZ* v);
 
 #define normalize_vector(pt) vecnormal(pt,pt)
 
-float calc_angle_between_two_vectors(struct pt a, struct pt b);
+float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b);
 
-double vecangle(struct pt* V1, struct pt* V2);
+double vecangle(struct point_XYZ* V1, struct point_XYZ* V2);
 
 
 #define calc_vector_product(a,b,c) veccross(c,a,b);
 
-void veccross(struct pt *c , struct pt a, struct pt b);
+void veccross(struct point_XYZ *c , struct point_XYZ a, struct point_XYZ b);
 
 
 GLdouble det3x3(GLdouble* data);
 
-struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b);
+struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b);
 float* transformf(float* r, const float* a, const GLdouble* b);
 
 /*only transforms using the rotation component.
   Usefull for transforming normals, and optimizing when you know there's no translation */
-struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b);
+struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b);
 
-struct pt* vecscale(struct pt* r, struct pt* v, GLdouble s);
+struct point_XYZ* vecscale(struct point_XYZ* r, struct point_XYZ* v, GLdouble s);
 
-double vecdot(struct pt* a, struct pt* b);
+double vecdot(struct point_XYZ* a, struct point_XYZ* b);
 
 #define calc_vector_scalar_product(a,b) vecdot(&(a),&(b))
 
-double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct pt p1, struct pt p2);
+double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct point_XYZ p1, struct point_XYZ p2);
 
-struct pt* vecadd(struct pt* r, struct pt* v, struct pt* v2);
+struct point_XYZ* vecadd(struct point_XYZ* r, struct point_XYZ* v, struct point_XYZ* v2);
 
-struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2);
+struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point_XYZ* v2);
 
 /*specify a direction "n", and you get two vectors i, and j, perpendicular to n and themselfs. */
-void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n);
+void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n);
 
 GLdouble* matinverse(GLdouble* res, GLdouble* m);
 
-struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3);
+struct point_XYZ* polynormal(struct point_XYZ* r, struct point_XYZ* p1, struct point_XYZ* p2, struct point_XYZ* p3);
 /*simple wrapper for now. optimize later */
-struct pt* polynormalf(struct pt* r, float* p1, float* p2, float* p3);
+struct point_XYZ* polynormalf(struct point_XYZ* r, float* p1, float* p2, float* p3);
 
 GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z);
 
 /*rotates dv back on iv*/
-double matrotate2v(GLdouble* res, struct pt iv/*original*/, struct pt dv/*result*/);
+double matrotate2v(GLdouble* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/);
 
 GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
 

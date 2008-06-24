@@ -85,7 +85,7 @@
 #define QUAT_Z_OFFSET 53
 
 
-/* extern struct pt ViewerPosition; */
+/* extern struct point_XYZ ViewerPosition; */
 /* extern struct orient ViewerOrientation; */
 
 
@@ -100,7 +100,7 @@ typedef struct viewer_walk {
 
 
 typedef struct viewer_examine {
-	struct pt Origin;
+	struct point_XYZ Origin;
 	Quaternion OQuat;
 	Quaternion SQuat;
 	double ODist;
@@ -124,8 +124,8 @@ typedef struct viewer_fly {
 
 
 typedef struct viewer {
-	struct pt Pos;
-	struct pt AntiPos;
+	struct point_XYZ Pos;
+	struct point_XYZ AntiPos;
 	Quaternion Quat;
 	Quaternion AntiQuat;
 	int headlight;
@@ -224,7 +224,7 @@ set_stereo_offset(unsigned int buffer,
 				  double fieldofview);
 
 void
-increment_pos( struct pt *vec);
+increment_pos( struct point_XYZ *vec);
 
 void
 bind_viewpoint(struct X3D_Viewpoint *node);

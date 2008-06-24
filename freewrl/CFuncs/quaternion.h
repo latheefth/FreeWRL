@@ -97,9 +97,9 @@ scalar_multiply(Quaternion *quat,
 				const double s);
 
 void
-rotation(struct pt *ret,
+rotation(struct point_XYZ *ret,
 		 const Quaternion *quat,
-		 const struct pt *v);
+		 const struct point_XYZ *v);
 
 void
 togl(Quaternion *quat);

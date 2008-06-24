@@ -24,9 +24,9 @@
 
 
 /* transformed ray */
-extern struct pt t_r1;
-extern struct pt t_r2;
-extern struct pt t_r3;
+extern struct point_XYZ t_r1;
+extern struct point_XYZ t_r2;
+extern struct point_XYZ t_r3;
 
 
 
@@ -35,7 +35,7 @@ count_IFS_faces(int cin,
 				struct X3D_IndexedFaceSet *this_IFS);
 
 int 
-IFS_face_normals(struct pt *facenormals,
+IFS_face_normals(struct point_XYZ *facenormals,
 				 int *faceok,
 				 int *pointfaces,
 				 int faces,
@@ -46,7 +46,7 @@ IFS_face_normals(struct pt *facenormals,
 				 int ccw);
 
 void
-IFS_check_normal(struct pt *facenormals,
+IFS_check_normal(struct point_XYZ *facenormals,
 				 int this_face,
 				 struct SFColor *points,
 				 int base,
@@ -66,7 +66,7 @@ Elev_Tri(int vertex_ind,
 		 int E,
 		 int NONORMALS,
 		 struct X3D_PolyRep *this_Elev,
-		 struct pt *facenormals,
+		 struct point_XYZ *facenormals,
 		 int *pointfaces,
 		 int ccw);
 
@@ -92,7 +92,7 @@ void Extru_ST_map(
         int tcoordsize);
 
 void
-Extru_check_normal(struct pt *facenormals,
+Extru_check_normal(struct point_XYZ *facenormals,
 				   int this_face,
 				   int dire,
 				   struct X3D_PolyRep *rep_,

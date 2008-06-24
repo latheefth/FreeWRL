@@ -344,7 +344,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 			}
 		} else if (strcmp("containerField",atts[i])==0) {
 			indexT tmp;
-			/* printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",(char *)atts[i+1], stringNodeType(thisNode->_nodeType ));*/
+			/* printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",(char *)atts[i+1], stringNodeType(thisNode->_nodeType )); */
 			tmp = findFieldInFIELDNAMES((char *)atts[i+1]);
 			if (tmp == ID_UNDEFINED) {
 				ConsoleMessage ("Error setting containerField to :%s: for node of type :%s:\n",
@@ -592,7 +592,6 @@ void linkNodeIn() {
 		stringFieldType(parentStack[parentIndex]->_defaultContainer),
 		parentStack[parentIndex]->_defaultContainer);
 	#endif
-
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
 	findFieldInOFFSETS(NODE_OFFSETS[parentStack[parentIndex-1]->_nodeType], 

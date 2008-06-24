@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.80  2008/06/24 19:37:48  crc_canada
+# Geospatial, June 24 2008 checkin
+#
 # Revision 1.79  2008/06/13 13:50:48  crc_canada
 # Geospatial, SF/MFVec3d support.
 #
@@ -73,6 +76,7 @@
 	FreeWRLPTR
 	SFVec3d
 	MFVec3d
+	DFRotation
 /;
 
 ###########################################################
@@ -221,6 +225,23 @@ sub ctype {return "struct SFRotation $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	if (!defined $val) {print "undefined in SFRotation\n"} # inputOnlys, set it to any value
+	return 	"$field.r[0] = @{$val}[0];".
+		"$field.r[1] = @{$val}[1];".
+		"$field.r[2] = @{$val}[2];".
+		"$field.r[3] = @{$val}[3];";
+}
+
+package VRML::Field::DFRotation;
+@ISA=VRML::Field;
+VRML::Error->import();
+
+
+sub cstruct {return "struct DFRotation { double r[4]; };"}
+
+sub ctype {return "struct DFRotation $_[1]"}
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	if (!defined $val) {print "undefined in DFRotation\n"} # inputOnlys, set it to any value
 	return 	"$field.r[0] = @{$val}[0];".
 		"$field.r[1] = @{$val}[1];".
 		"$field.r[2] = @{$val}[2];".

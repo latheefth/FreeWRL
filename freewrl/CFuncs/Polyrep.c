@@ -67,7 +67,7 @@ int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS) {
 /*	- point-face;   for each point, tell me the face(s)	*/
 
 int IFS_face_normals (
-	struct pt *facenormals,
+	struct point_XYZ *facenormals,
 	int *faceok,
 	int *pointfaces,
 	int faces,
@@ -88,7 +88,7 @@ int IFS_face_normals (
 	int retval = FALSE;
 
 	float this_vl;
-	struct pt thisfaceNorms;
+	struct point_XYZ thisfaceNorms;
 
 
 	/* printf ("IFS_face_normals, faces %d\n",faces); */
@@ -300,7 +300,7 @@ int IFS_face_normals (
 /* Tesselated faces MAY have the wrong normal calculated. re-calculate after tesselation	*/
 
 void Extru_check_normal (
-	struct pt *facenormals,
+	struct point_XYZ *facenormals,
 	int this_face,
 	int direction,
 	struct X3D_PolyRep  *rep_,
@@ -357,7 +357,7 @@ void Extru_check_normal (
 
 
 void IFS_check_normal (
-	struct pt *facenormals,
+	struct point_XYZ *facenormals,
 	int this_face,
 	struct SFColor *points, int base,
 	struct X3D_IndexedFaceSet *this_IFS, int ccw) {
@@ -443,7 +443,7 @@ void Elev_Tri (
 	int E,
 	int NONORMALS,
 	struct X3D_PolyRep *this_Elev,
-	struct pt *facenormals,
+	struct point_XYZ *facenormals,
 	int *pointfaces,
 	int ccw) {
 
@@ -708,7 +708,7 @@ void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA) {
 
 
 void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
-	struct pt myp;
+	struct point_XYZ myp;
 
 	/* normalize all vectors; even if they are coded into a VRML file */
 
@@ -870,10 +870,10 @@ void render_ray_polyrep(void *node) {
 	int i;
 	int pt;
 	float *point[3];
-	struct pt v1, v2, v3;
-	struct pt ray;
+	struct point_XYZ v1, v2, v3;
+	struct point_XYZ ray;
 	float pt1, pt2, pt3;
-	struct pt hitpoint;
+	struct point_XYZ hitpoint;
 	float tmp1,tmp2;
 	float v1len, v2len, v3len;
 	float v12pt;
@@ -952,7 +952,7 @@ void render_ray_polyrep(void *node) {
 			 if(!APPROX(tmp1,0)) {
 			 	float ra, rb;
 				float k,l;
-				struct pt p0h;
+				struct point_XYZ p0h;
 
 			 	tmp2 = (pt1-pt3) / (pt1-pt2);
 				hitpoint.x = MRATX(tmp2);

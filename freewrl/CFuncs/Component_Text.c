@@ -751,15 +751,15 @@ void collide_Text (struct X3D_Text *node) {
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
 
-	       struct pt t_orig = {0,0,0};
+	       struct point_XYZ t_orig = {0,0,0};
 	       static int refnum = 0;
 
 		/*JAS - normals are always this way - helps because some
 			normal calculations failed because of very small triangles
 			which made collision calcs fail, which moved the Viewpoint...
 			so, if there is no need to calculate normals..., why do it? */
-	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,-1};
+	       struct point_XYZ tupv = {0,1,0};
+	       struct point_XYZ delta = {0,0,-1};
 	       struct X3D_PolyRep pr;
 	       int change = 0;
 

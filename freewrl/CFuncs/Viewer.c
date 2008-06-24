@@ -24,7 +24,7 @@ static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
 static FILE *exfly_in_file;
 
-struct pt VPvelocity;
+struct point_XYZ VPvelocity;
 
 void print_viewer(void);
 unsigned int get_buffer(void);
@@ -199,7 +199,7 @@ int use_keys() {
 
 void resolve_pos(X3D_Viewer *viewer) {
 	/* my($this) = @_; */
-	struct pt rot, z_axis = { 0, 0, 1 };
+	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
 	double dist = 0;
 	X3D_Viewer_Examine *examine = viewer->examine;
@@ -293,7 +293,7 @@ void handle_walk(const int mev, const unsigned int button, const float x, const 
 
 void handle_examine(const int mev, const unsigned int button, float x, float y) {
 	Quaternion q, q_i, arc;
-	struct pt p = { 0, 0, 0};
+	struct point_XYZ p = { 0, 0, 0};
 	X3D_Viewer_Examine *examine = Viewer.examine;
 	double squat_norm;
 
@@ -431,7 +431,7 @@ handle_tick_walk()
 {
 	X3D_Viewer_Walk *walk = Viewer.walk;
 	Quaternion q, nq;
-	struct pt p;
+	struct point_XYZ p;
 
 	p.x = 0.15 * walk->XD;
 	p.y = 0.15 * walk->YD;
@@ -589,7 +589,7 @@ handle_tick_fly()
 	X3D_Viewer_Fly *fly = Viewer.fly;
 	Key ps[KEYS_HANDLED] = KEYMAP;
 	Quaternion q_v, nq = { 1, 0, 0, 0 };
-	struct pt v;
+	struct point_XYZ v;
 	double changed = 0, time_diff = -1;
 	int i;
 
@@ -756,8 +756,8 @@ set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehal
 
 
 /* used to move, in WALK, FLY modes. */
-void increment_pos(struct pt *vec) {
-	struct pt nv;
+void increment_pos(struct point_XYZ *vec) {
+	struct point_XYZ nv;
 	Quaternion q_i;
 
 

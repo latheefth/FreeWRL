@@ -1356,7 +1356,7 @@ SFRotationMultVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	SFRotationNative *_rot;
 	SFVec3fNative *_vec, *_retNative;
 	float rl, vl, rlpt, s, c, angle;
-	struct pt r, v, c1, c2;
+	struct point_XYZ r, v, c1, c2;
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("start of SFRotationMultiVec\n");
@@ -1640,7 +1640,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	jsdouble doub;
 	float v1len, v2len;
 	double v12dp;
-	struct pt v1, v2;
+	struct point_XYZ v1, v2;
 	int v3fv3f;
 
 	#ifdef JSVRMLCLASSESVERBOSE
@@ -1873,7 +1873,7 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 	jsdouble d0=0.0;
 	jsdouble d1=0.0;
 	jsdouble *dp;
-	struct pt v1, v2;
+	struct point_XYZ v1, v2;
 
 
 	/* parameters */
@@ -2281,7 +2281,7 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 	jsdouble d1=0.0;
 	jsdouble d2=0.0;
 	jsdouble *dp;
-	struct pt v1, v2, ret;
+	struct point_XYZ v1, v2, ret;
 
 
 	/* parameters */

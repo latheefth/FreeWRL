@@ -33,11 +33,11 @@
         f == NODE_TriangleSet             ? "TriangleSet" : "unknown X3DComposedGeometry Node"))))))))
 
 
-extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
+extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct point_XYZ *facenormals,int *pointfaces,int ccw);
 extern int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS);
 extern void verify_global_IFS_Coords(int max);
-extern void IFS_check_normal(struct pt *facenormals,int this_face,struct SFColor *points,int base,struct X3D_IndexedFaceSet *this_IFS,int ccw);
-extern void Extru_check_normal(struct pt *facenormals,int this_face,int dire,struct X3D_PolyRep *rep_,int ccw);
+extern void IFS_check_normal(struct point_XYZ *facenormals,int this_face,struct SFColor *points,int base,struct X3D_IndexedFaceSet *this_IFS,int ccw);
+extern void Extru_check_normal(struct point_XYZ *facenormals,int this_face,int dire,struct X3D_PolyRep *rep_,int ccw);
 
 
 
@@ -575,7 +575,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	int *norindex;		/* Normals Index	*/
 
 	int faces=0;
-	struct pt *facenormals; /*  normals for each face*/
+	struct point_XYZ *facenormals; /*  normals for each face*/
 	int	*faceok;	/*  is this face ok? (ie, not degenerate triangles, etc)*/
 	int	*pointfaces;
 
@@ -711,7 +711,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 		return;
 	}
 
-	facenormals = (struct pt*)MALLOC(sizeof(*facenormals)*faces);
+	facenormals = (struct point_XYZ*)MALLOC(sizeof(*facenormals)*faces);
 	faceok = (int*)MALLOC(sizeof(int)*faces);
 	pointfaces = (int*)MALLOC(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
 
@@ -984,7 +984,7 @@ double getGamma(double alpha, double minor) {
 	return gamma;
 }
 
-void compute_spy_spz(struct pt *spy, struct pt *spz, struct SFColor *spine, int nspi) {
+void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFColor *spine, int nspi) {
 	int majorX = FALSE;
 	int majorY = FALSE;
 	int majorZ = FALSE;
@@ -994,7 +994,7 @@ void compute_spy_spz(struct pt *spy, struct pt *spz, struct SFColor *spine, int 
 	double alpha,gamma;	/* angles for the rotation	*/
 	int spi;
 	float spylen;
-	struct pt spp1;
+	struct point_XYZ spp1;
 
 
 	/* need to find the rotation from SCP[spi].y to (0 1 0)*/
@@ -1192,8 +1192,8 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 						/* def:struct representing SCPs	*/
 	struct SCP { 				/* spine-aligned cross-section plane*/
-		struct pt y;			/* y axis of SCP		*/
-		struct pt z;			/* z axis of SCP		*/
+		struct point_XYZ y;			/* y axis of SCP		*/
+		struct point_XYZ z;			/* z axis of SCP		*/
 		int prev,next;			/* index in SCP[]
 						prev/next different vertix for
 						calculation of this SCP		*/
@@ -1201,13 +1201,13 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 	struct SCP *SCP;			/* dyn. vector rep. the SCPs	*/
 
-	struct pt spm1,spp1,spy,spz,spx;	/* help vertix vars	*/
+	struct point_XYZ spm1,spp1,spy,spz,spx;	/* help vertix vars	*/
 
 	int	tci_ct;				/* Tex Gen index counter	*/
 
 	/* variables for calculating smooth normals */
 	int 	HAVETOSMOOTH;
-	struct 	pt *facenormals = 0;
+	struct 	point_XYZ *facenormals = 0;
 	int	*pointfaces = 0;
 	int	*defaultface = 0;
 	int	this_face = 0;			/* always counts up		*/
@@ -1386,7 +1386,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	/* have to make sure that if nctri is odd, that we increment by one	*/
 
 
-	facenormals = (struct pt *)MALLOC(sizeof(*facenormals)*(rep_->ntri+1)/2);
+	facenormals = (struct point_XYZ *)MALLOC(sizeof(*facenormals)*(rep_->ntri+1)/2);
 
 	/* for each triangle vertex, tell me which face(s) it is in		*/
 	pointfaces = (int *)MALLOC(sizeof(*pointfaces)*POINT_FACES*3*rep_->ntri);
@@ -1732,7 +1732,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		}
 
 		for(sec = 0; sec<nsec; sec++) {
-			struct pt point;
+			struct point_XYZ point;
 			float ptx = crossSection[sec].c[0];
 			float ptz = crossSection[sec].c[1];
 			if(nsca) {
@@ -1799,7 +1799,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			*/
 	int Atex, Btex, Ctex, Dtex, Etex, Ftex;	/* Tex Coord points */
 
-	struct pt ac,bd,	/* help vectors	*/
+	struct point_XYZ ac,bd,	/* help vectors	*/
 		ab,cd;		/* help vectors	for testing intersection */
 	int E,F;		/* third point to be used for the triangles*/
 	double u,r,		/* help variables for testing intersection */

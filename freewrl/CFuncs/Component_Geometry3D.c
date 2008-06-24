@@ -441,10 +441,10 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 	       GLdouble upvecmat[16];
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
-	       struct pt t_orig = {0,0,0};
+	       struct point_XYZ t_orig = {0,0,0};
 
-	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,0};
+	       struct point_XYZ tupv = {0,1,0};
+	       struct point_XYZ delta = {0,0,0};
 
 	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
@@ -537,13 +537,13 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 
 
 void collide_Sphere (struct X3D_Sphere *node) {
-	       struct pt t_orig; /*transformed origin*/
-	       struct pt p_orig; /*projected transformed origin */
-	       struct pt n_orig; /*normal(unit length) transformed origin */
+	       struct point_XYZ t_orig; /*transformed origin*/
+	       struct point_XYZ p_orig; /*projected transformed origin */
+	       struct point_XYZ n_orig; /*normal(unit length) transformed origin */
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
 	       GLdouble dist2;
-	       struct pt delta = {0,0,0};
+	       struct point_XYZ delta = {0,0,0};
 	       GLdouble radius;
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
@@ -551,7 +551,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 
-	       struct pt tupv = {0,1,0};
+	       struct point_XYZ tupv = {0,1,0};
 
 		/* are we initialized yet? */
 		if (node->__points==0) {
@@ -610,7 +610,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 
 		       delta.y = (p_orig.y - radius) - (atop);
 		   } else {
-		       struct pt d2s;
+		       struct point_XYZ d2s;
 		       GLdouble ratio;
 		       #ifdef RENDERVERBOSE
 			printf(" /* over side */ \n");
@@ -644,7 +644,7 @@ void collide_Sphere (struct X3D_Sphere *node) {
 
 		       delta.y = (p_orig.y + radius) -abottom;
 		   } else {
-		       struct pt d2s;
+		       struct point_XYZ d2s;
 		       GLdouble ratio;
 			#ifdef RENDERVERBOSE
 		       printf(" /* under side */ \n");
@@ -704,16 +704,16 @@ void collide_Box (struct X3D_Box *node) {
 
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
-	       struct pt iv = {0,0,0};
-	       struct pt jv = {0,0,0};
-	       struct pt kv = {0,0,0};
-	       struct pt ov = {0,0,0};
+	       struct point_XYZ iv = {0,0,0};
+	       struct point_XYZ jv = {0,0,0};
+	       struct point_XYZ kv = {0,0,0};
+	       struct point_XYZ ov = {0,0,0};
 
-	       struct pt t_orig = {0,0,0};
+	       struct point_XYZ t_orig = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 
-	       struct pt delta;
-	       struct pt tupv = {0,1,0};
+	       struct point_XYZ delta;
+	       struct point_XYZ tupv = {0,1,0};
 
 
                 iv.x = ((node->size).c[0]);
@@ -784,13 +784,13 @@ void collide_Cone (struct X3D_Cone *node) {
 
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
-	       struct pt iv = {0,0,0};
-	       struct pt jv = {0,0,0};
+	       struct point_XYZ iv = {0,0,0};
+	       struct point_XYZ jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
-	       struct pt t_orig = {0,0,0};
+	       struct point_XYZ t_orig = {0,0,0};
 
-	       struct pt delta;
-	       struct pt tupv = {0,1,0};
+	       struct point_XYZ delta;
+	       struct point_XYZ tupv = {0,1,0};
 
 	       iv.y = h; jv.y = -h;
 
@@ -849,13 +849,13 @@ void collide_Cylinder (struct X3D_Cylinder *node) {
 
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
-	       struct pt iv = {0,0,0};
-	       struct pt jv = {0,0,0};
+	       struct point_XYZ iv = {0,0,0};
+	       struct point_XYZ jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
-	       struct pt t_orig = {0,0,0};
+	       struct point_XYZ t_orig = {0,0,0};
 
-	       struct pt tupv = {0,1,0};
-	       struct pt delta;
+	       struct point_XYZ tupv = {0,1,0};
+	       struct point_XYZ delta;
 
 
 		iv.y = h;
@@ -914,10 +914,10 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       GLdouble upvecmat[16];
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
-	       struct pt t_orig = {0,0,0};
+	       struct point_XYZ t_orig = {0,0,0};
 
-	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,0};
+	       struct point_XYZ tupv = {0,1,0};
+	       struct point_XYZ delta = {0,0,0};
 
 	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
@@ -986,7 +986,7 @@ void rendray_Sphere (struct X3D_Sphere *node) {
         float tr1sq = VECSQ(t_r1);
         /* float tr2sq = VECSQ(t_r2); */
         /* float tr1tr2 = VECPT(t_r1,t_r2); */
-        struct pt dr2r1;
+        struct point_XYZ dr2r1;
         float dlen;
         float a,b,c,disc;
 

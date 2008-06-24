@@ -15,26 +15,26 @@
 #include <memory.h>
 /* Altenate implemetations available, should merge them eventually */
 
-void veccross(struct pt *c, struct pt a, struct pt b)
+void veccross(struct point_XYZ *c, struct point_XYZ a, struct point_XYZ b)
 {
     c->x = a.y * b.z - a.z * b.y;
     c->y = a.z * b.x - a.x * b.z;
     c->z = a.x * b.y - a.y * b.x;
 }
 
-float veclength( struct pt p )
+float veclength( struct point_XYZ p )
 {
     return sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
 }
 
 
-double vecangle(struct pt* V1, struct pt* V2) {
+double vecangle(struct point_XYZ* V1, struct point_XYZ* V2) {
     return acos((V1->x*V2->x + V1->y*V2->y +V1->z*V2->z) /
 		sqrt( (V1->x*V1->x + V1->y*V1->y + V1->z*V1->z)*(V2->x*V2->x + V2->y*V2->y + V2->z*V2->z) )  );
 };
 
 
-float calc_angle_between_two_vectors(struct pt a, struct pt b)
+float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
 {
     float length_a, length_b, scalar, temp;
     scalar = calc_vector_scalar_product(a,b);
@@ -66,7 +66,7 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
 }
 
 /* returns vector length, too */
-GLdouble vecnormal(struct pt*r, struct pt* v)
+GLdouble vecnormal(struct point_XYZ*r, struct point_XYZ* v)
 {
     GLdouble ret = sqrt(vecdot(v,v));
     /* if(ret == 0.) return 0.; */
@@ -83,16 +83,16 @@ GLdouble det3x3(GLdouble* data)
     return -data[1]*data[10]*data[4] +data[0]*data[10]*data[5] -data[2]*data[5]*data[8] +data[1]*data[6]*data[8] +data[2]*data[4]*data[9] -data[0]*data[6]*data[9];
 }
 
-struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b)
+struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b)
 {
-    struct pt tmp; /* JAS*/
+    struct point_XYZ tmp; /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
 	r->x = b[0]*a->x +b[4]*a->y +b[8]*a->z +b[12];
 	r->y = b[1]*a->x +b[5]*a->y +b[9]*a->z +b[13];
 	r->z = b[2]*a->x +b[6]*a->y +b[10]*a->z +b[14];
     } else {
-	/* JAS was  - struct pt tmp = {a->x,a->y,a->z};*/
+	/* JAS was  - struct point_XYZ tmp = {a->x,a->y,a->z};*/
 	tmp.x = a->x; tmp.y = a->y; tmp.z = a->z;
 	r->x = b[0]*tmp.x +b[4]*tmp.y +b[8]*tmp.z +b[12];
 	r->y = b[1]*tmp.x +b[5]*tmp.y +b[9]*tmp.z +b[13];
@@ -118,16 +118,16 @@ float* transformf(float* r, const float* a, const GLdouble* b)
     return r;
 }
 /*transform point, but ignores translation.*/
-struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b)
+struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLdouble* b)
 {
-    struct pt tmp;
+    struct point_XYZ tmp;
 
     if(r != a) { /*protect from self-assignments */
 	r->x = b[0]*a->x +b[4]*a->y +b[8]*a->z;
 	r->y = b[1]*a->x +b[5]*a->y +b[9]*a->z;
 	r->z = b[2]*a->x +b[6]*a->y +b[10]*a->z;
     } else {
-	/* JAS struct pt tmp = {a->x,a->y,a->z};*/
+	/* JAS struct point_XYZ tmp = {a->x,a->y,a->z};*/
 	tmp.x = a->x; tmp.y = a->y; tmp.z = a->z;
 	r->x = b[0]*tmp.x +b[4]*tmp.y +b[8]*tmp.z;
 	r->y = b[1]*tmp.x +b[5]*tmp.y +b[9]*tmp.z;
@@ -136,7 +136,7 @@ struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b)
     return r;
 }
 
-struct pt* vecscale(struct pt* r, struct pt* v, GLdouble s)
+struct point_XYZ* vecscale(struct point_XYZ* r, struct point_XYZ* v, GLdouble s)
 {
     r->x = v->x * s;
     r->y = v->y * s;
@@ -144,7 +144,7 @@ struct pt* vecscale(struct pt* r, struct pt* v, GLdouble s)
     return r;
 }
 
-double vecdot(struct pt* a, struct pt* b)
+double vecdot(struct point_XYZ* a, struct point_XYZ* b)
 {
     return (a->x*b->x) + (a->y*b->y) + (a->z*b->z);
 }
@@ -153,7 +153,7 @@ double vecdot(struct pt* a, struct pt* b)
 /* returns 0 if p1 is closest, 1 if p2 is closest, and a fraction if the closest point is in between */
 /* To get the closest point, use pclose = retval*p1 + (1-retval)p2; */
 /* y1 must be smaller than y2 */
-/*double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct pt p1, struct pt p2) {
+/*double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct point_XYZ p1, struct point_XYZ p2) {
   double imin = (y1- p1.y) / (p2.y - p1.y);
   double imax = (y2- p1.y) / (p2.y - p1.y);
 
@@ -165,7 +165,7 @@ double vecdot(struct pt* a, struct pt* b)
 
   }*/
 
-double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct pt p1, struct pt p2) {
+double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct point_XYZ p1, struct point_XYZ p2) {
     /*cylinder constraints (to be between y1 and y2) */
     double imin = (y1- p1.y) / (p2.y - p1.y);
     double imax = (y2- p1.y) / (p2.y - p1.y);
@@ -199,7 +199,7 @@ double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct p
 
 }
 
-struct pt* vecadd(struct pt* r, struct pt* v, struct pt* v2)
+struct point_XYZ* vecadd(struct point_XYZ* r, struct point_XYZ* v, struct point_XYZ* v2)
 {
     r->x = v->x + v2->x;
     r->y = v->y + v2->y;
@@ -207,7 +207,7 @@ struct pt* vecadd(struct pt* r, struct pt* v, struct pt* v2)
     return r;
 }
 
-struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2)
+struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point_XYZ* v2)
 {
     r->x = v->x - v2->x;
     r->y = v->y - v2->y;
@@ -216,7 +216,7 @@ struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2)
 }
 
 /*i,j,n will form an orthogonal vector space */
-void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
+void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n) {
     /* optimal axis finding algorithm. the solution isn't unique.*/
     /*  each of these three calculations doesn't work (or works poorly)*/
     /*  in certain distinct cases. (gives zero vectors when two axes are 0)*/
@@ -285,9 +285,9 @@ GLdouble* matinverse(GLdouble* res, GLdouble* m)
     return res;
 }
 
-struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3) {
-    struct pt v1;
-    struct pt v2;
+struct point_XYZ* polynormal(struct point_XYZ* r, struct point_XYZ* p1, struct point_XYZ* p2, struct point_XYZ* p3) {
+    struct point_XYZ v1;
+    struct point_XYZ v2;
     VECDIFF(*p2,*p1,v1);
     VECDIFF(*p3,*p1,v2);
     veccross(r,v1,v2);
@@ -296,8 +296,8 @@ struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3)
 }
 
 /*simple wrapper for now. optimize later */
-struct pt* polynormalf(struct pt* r, float* p1, float* p2, float* p3) {
-    struct pt pp[3];
+struct point_XYZ* polynormalf(struct point_XYZ* r, float* p1, float* p2, float* p3) {
+    struct point_XYZ pp[3];
     pp[0].x = p1[0];
     pp[0].y = p1[1];
     pp[0].z = p1[2];
@@ -379,8 +379,8 @@ GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n)
 }
 
 /*puts dv back on iv*/
-double matrotate2v(GLdouble* res, struct pt iv/*original*/, struct pt dv/*result*/) {
-    struct pt cv;
+double matrotate2v(GLdouble* res, struct point_XYZ iv/*original*/, struct point_XYZ dv/*result*/) {
+    struct point_XYZ cv;
     double cvl,a;
 
     vecnormal(&dv,&dv);

@@ -501,16 +501,16 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
-	       struct pt iv = {0,0,0};
-	       struct pt jv = {0,0,0};
-	       struct pt kv = {0,0,0};
-	       struct pt ov = {0,0,0};
+	       struct point_XYZ iv = {0,0,0};
+	       struct point_XYZ jv = {0,0,0};
+	       struct point_XYZ kv = {0,0,0};
+	       struct point_XYZ ov = {0,0,0};
 
-	       struct pt t_orig = {0,0,0};
+	       struct point_XYZ t_orig = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 
-	       struct pt delta;
-	       struct pt tupv = {0,1,0};
+	       struct point_XYZ delta;
+	       struct point_XYZ tupv = {0,1,0};
 
 		iv.x = node->size.c[0];
 		jv.y = node->size.c[1]; 

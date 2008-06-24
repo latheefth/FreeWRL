@@ -391,7 +391,7 @@ extern int fullscreen;
 extern float gl_linewidth;
 extern int soundWarned;
 extern int cur_hits;
-extern struct pt hyper_r1,hyper_r2;
+extern struct point_XYZ hyper_r1,hyper_r2;
 
 extern struct X3D_Text *lastTextNode;
 
@@ -444,7 +444,7 @@ void DirectionalLight_Rend(void *nod_);
 #define DIRECTIONAL_LIGHT_SAVE int savedlight = curlight;
 
 void normalize_ifs_face (float *point_normal,
-                         struct pt *facenormals,
+                         struct point_XYZ *facenormals,
                          int *pointfaces,
                         int mypoint,
                         int curpoly,
@@ -550,7 +550,7 @@ void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 /* bindable nodes */
 extern GLint viewport[];
 extern GLdouble fieldofview;
-extern struct pt ViewerUpvector;
+extern struct point_XYZ ViewerUpvector;
 extern struct sNaviInfo naviinfo;
 
 
@@ -827,10 +827,10 @@ extern int  lightingOn;			/* state of GL_LIGHTING */
 extern int cullFace;			/* state of GL_CULL_FACE */
 extern int colorMaterialEnabled;	/* state of GL_COLOR_MATERIAL */
 extern double hpdist;			/* in VRMLC.pm */
-extern struct pt hp;			/* in VRMLC.pm */
+extern struct point_XYZ hp;			/* in VRMLC.pm */
 extern void *hypersensitive; 		/* in VRMLC.pm */
 extern int hyperhit;			/* in VRMLC.pm */
-extern struct pt r1, r2;		/* in VRMLC.pm */
+extern struct point_XYZ r1, r2;		/* in VRMLC.pm */
 extern struct sCollisionInfo CollisionInfo;
 extern struct currayhit rayHit,rayph,rayHitHyper;
 extern GLint smooth_normals;

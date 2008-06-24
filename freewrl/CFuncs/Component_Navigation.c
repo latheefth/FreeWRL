@@ -59,9 +59,9 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 }
 
 void prep_Billboard (struct X3D_Billboard *node) {
-	struct pt vpos, ax, cp, cp2, arcp;
-	static const struct pt orig = {0.0, 0.0, 0.0};
-	static const struct pt zvec = {0.0, 0.0, 1.0};
+	struct point_XYZ vpos, ax, cp, cp2, arcp;
+	static const struct point_XYZ orig = {0.0, 0.0, 0.0};
+	static const struct point_XYZ zvec = {0.0, 0.0, 1.0};
 	struct orient viewer_orient;
 	GLdouble mod[16];
 	GLdouble proj[16];
@@ -220,7 +220,7 @@ void child_Collision (struct X3D_Collision *node) {
 void child_LOD (struct X3D_LOD *node) {
         GLdouble mod[16];
         GLdouble proj[16];
-        struct pt vec;
+        struct point_XYZ vec;
         double dist;
         int nran = (node->range).n;
         int nnod = (node->level).n;

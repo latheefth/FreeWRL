@@ -26,15 +26,15 @@ void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
 	/* Viewer pos = t_r2 */
 	double cx,cy,cz;
 	double len;
-	struct pt dr1r2;
-	struct pt dr2r3;
-	struct pt nor1,nor2;
-	struct pt ins;
-	static const struct pt yvec = {0,0.05,0};
-	static const struct pt zvec = {0,0,-0.05};
-	static const struct pt zpvec = {0,0,0.05};
-	static const struct pt orig = {0,0,0};
-	struct pt t_zvec, t_yvec, t_orig;
+	struct point_XYZ dr1r2;
+	struct point_XYZ dr2r3;
+	struct point_XYZ nor1,nor2;
+	struct point_XYZ ins;
+	static const struct point_XYZ yvec = {0,0.05,0};
+	static const struct point_XYZ zvec = {0,0,-0.05};
+	static const struct point_XYZ zpvec = {0,0,0.05};
+	static const struct point_XYZ orig = {0,0,0};
+	struct point_XYZ t_zvec, t_yvec, t_orig;
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
 

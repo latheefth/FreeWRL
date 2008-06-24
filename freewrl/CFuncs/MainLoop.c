@@ -758,7 +758,7 @@ void render() {
 void
 get_collisionoffset(double *x, double *y, double *z)
 {
-	struct pt res = CollisionInfo.Offset;
+	struct point_XYZ res = CollisionInfo.Offset;
 
 	/* uses mean direction, with maximum distance */
 	if (CollisionInfo.Count == 0) {
@@ -777,7 +777,7 @@ get_collisionoffset(double *x, double *y, double *z)
 }
 
 void render_collisions() {
-	struct pt v;
+	struct point_XYZ v;
 	CollisionInfo.Offset.x = 0;
 	CollisionInfo.Offset.y = 0;
 	CollisionInfo.Offset.z = 0;

@@ -92,24 +92,21 @@ int cur_hits=0;
 /* Collision detection results */
 struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
 
-/* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
-struct pt ViewerDelta = {0,0,0};
-
 /* dimentions of viewer, and "up" vector (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
 /* for alignment of collision cylinder, and gravity (later). */
-struct pt ViewerUpvector = {0,0,0};
+struct point_XYZ ViewerUpvector = {0,0,0};
 
-X3D_Viewer Viewer;
+X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
 
 
 /* These two points define a ray in window coordinates */
 
-struct pt r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
-struct pt t_r1,t_r2,t_r3; /* transformed ray */
+struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
+struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 void *hypersensitive = 0; int hyperhit = 0;
-struct pt hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
+struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 
 GLint viewport[4] = {-1,-1,2,2};
 
@@ -118,7 +115,7 @@ GLint viewport[4] = {-1,-1,2,2};
 
 /* All in window coordinates */
 
-struct pt hp, ht1, ht2;
+struct point_XYZ hp, ht1, ht2;
 double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 
 /* used to save rayhit and hyperhit for later use by C functions */
@@ -566,7 +563,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 
 void
 render_hier(struct X3D_Node *p, int rwhat) {
-	struct pt upvec = {0,1,0};
+	struct point_XYZ upvec = {0,1,0};
 	GLdouble modelMatrix[16];
 	#define XXXrender_pre_profile
 	#ifdef render_pre_profile

@@ -15,7 +15,7 @@ void fwnorprint (float *norm) {
 }
 
 void normalize_ifs_face (float *point_normal,
-			 struct pt *facenormals,
+			 struct point_XYZ *facenormals,
 			 int *pointfaces,
 			int mypoint,
 			int curpoly,
@@ -36,7 +36,7 @@ void normalize_ifs_face (float *point_normal,
 	int tmp_b;
 	int facecount;
 	float zz;
-	struct pt temp;
+	struct point_XYZ temp;
 
 	point_normal[0] = 0.0; point_normal[1] = 0.0; point_normal[2] = 0.0;
 

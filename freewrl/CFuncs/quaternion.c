@@ -261,13 +261,37 @@ normalize(Quaternion *quat)
 	quat->z /= n;
 }
 
-void
-add(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
-{
-	ret->w = q1->w + q2->w;
-	ret->x = q1->x + q2->x;
-	ret->y = q1->y + q2->y;
-	ret->z = q1->z + q2->z;
+void add(Quaternion *ret, const Quaternion *q1, const Quaternion *q2) {
+	double t1[3];
+	double t2[3];
+
+	/* scale_v3f (Q(*q2)[3], (v3f *) q1, &t1); */
+	t1[0] = q2->w * q1->x;
+	t1[1] = q2->w * q1->y;
+	t1[2] = q2->w * q1->z;
+
+	/* scale_v3f (Q(*q1)[3], (v3f *) q2, &t2); */
+	t2[0] = q1->w * q2->x;
+	t2[1] = q1->w * q2->y;
+	t2[2] = q1->w * q2->z;
+
+	/* add_v3f (&t1, &t2, &t1); */
+	t1[0] = t1[0] + t2[0];
+	t1[1] = t1[1] + t2[1];
+	t1[2] = t1[2] + t2[2];
+
+	/* cross_v3f ((v3f *) q2, (v3f *) q1, &t2); */
+	t2[0] = ( q2->y * q1->z - q2->z * q1->y );
+	t2[1] = ( q2->z * q1->x - q2->x * q1->z );
+	t2[2] = ( q2->x * q1->y - q2->y * q1->x );
+
+	/* add_v3f (&t1, &t2, (v3f *) dest); */
+	ret->x = t1[0] + t2[0];
+	ret->y = t1[1] + t2[1];
+	ret->z = t1[2] + t2[2];
+
+	/* Q(*dest)[3] = Q(*q1)[3] * Q(*q2)[3] - inner_v3f((v3f *) q1, (v3f *) q2); */
+	ret->w = q1->w * q2->w - ( q1->x * q2->x + q1->y * q2->y + q1->z * q2->z );
 }
 
 void
@@ -295,7 +319,7 @@ scalar_multiply(Quaternion *quat, double s)
  * v' = q q_v q^-1, where q_v = [0, v]
  */
 void
-rotation(struct pt *ret, const Quaternion *quat, const struct pt *v)
+rotation(struct point_XYZ *ret, const Quaternion *quat, const struct point_XYZ *v)
 {
 	Quaternion q_v, q_i, q_r1, q_r2;
 

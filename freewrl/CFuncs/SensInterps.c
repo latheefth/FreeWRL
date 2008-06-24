@@ -210,7 +210,7 @@ void do_OintCoord(void *node) {
 	int thisone, prevone;	/* which keyValues we are interpolating between */
 	int tmp;
 	float interval;		/* where we are between 2 values */
-	struct pt normalval;	/* different structures for normalization calls */
+	struct point_XYZ normalval;	/* different structures for normalization calls */
 	int kpkv; /* keys per key value */
 	int indx;
 	int myKey;
@@ -987,7 +987,7 @@ void do_MovieTextureTick( void *ptr) {
 void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
-	struct pt normalval;	/* different structures for normalization calls */
+	struct point_XYZ normalval;	/* different structures for normalization calls */
 
 	#ifdef SENSVERBOSE
 	printf ("%lf: TS ",TickTime);
@@ -1051,7 +1051,7 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 			MARK_EVENT(ptr, offsetof (struct X3D_TouchSensor, hitPoint_changed));
 		}
 
-		/* have to normalize normal; change it from SFColor to struct pt. */
+		/* have to normalize normal; change it from SFColor to struct point_XYZ. */
 		normalval.x = hyp_save_norm.c[0];
 		normalval.y = hyp_save_norm.c[1];
 		normalval.z = hyp_save_norm.c[2];

@@ -20,7 +20,7 @@
 void render_AudioControl (struct X3D_AudioControl *node) {
 	GLdouble mod[16];
 	GLdouble proj[16];
-	struct pt vec, direction, location;
+	struct point_XYZ vec, direction, location;
 	double len;
 	double angle;
 	float midmin, midmax;
@@ -207,7 +207,7 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 void render_Sound (struct X3D_Sound *node) {
 	GLdouble mod[16];
 	GLdouble proj[16];
-	struct pt vec, direction, location;
+	struct point_XYZ vec, direction, location;
 	double len;
 	double angle;
 	float midmin, midmax;

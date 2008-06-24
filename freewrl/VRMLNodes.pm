@@ -1357,6 +1357,8 @@ package VRML::NodeType;
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+						__localOrient => [DFRotation, [0, 0, 1, 0], inputOutput],
+
 
 					},"X3DGroupingNode"),
 
