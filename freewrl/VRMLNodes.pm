@@ -1327,7 +1327,6 @@ package VRML::NodeType;
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedPosition => [SFVec3d, [0, 0, 0], inputOutput],
-						__movedOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
 					
 					   },"X3DBindableNode"),
 
