@@ -1125,7 +1125,12 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
 
 void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	struct DFRotation localOrient;
+	struct DFRotation orient;
 	int i;
+	Quaternion localQuat;
+	Quaternion relQuat;
+	Quaternion combQuat;
+
 	MF_SF_TEMPS
 
 	#ifdef VERBOSE
@@ -1139,18 +1144,38 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	GeoMove(X3D_GEOORIGIN(node->geoOrigin), &node->__geoSystem, MF_FIELD_IN_OUT);
 	COPY_MF_TO_SF(node, __movedPosition)
 
+
 	/* work out the local orientation and copy doubles to floats */
 	GeoOrient(&node->__movedPosition, &localOrient);
-	for (i=0; i<4; i++) node->orientation.r[i] = localOrient.r[i];
 
-	/* flip view 180 degrees */
-#ifdef OLDCODE
-	printf ("VP, ori was %f ",localOrient.r[3]);
-	localOrient.r[3] += PI;
-	if (localOrient.r[3] > (PI*2)) localOrient.r[3] -= PI*2;
-	printf ("is %f\n ",localOrient.r[3]);
-#endif
+	/* Quaternize the local Geospatial quaternion, and the specified rotation from the GeoViewpoint orientation field */
+	vrmlrot_to_quaternion (&localQuat, localOrient.r[0], localOrient.r[1], localOrient.r[2], localOrient.r[3]);
+	vrmlrot_to_quaternion (&relQuat, node->orientation.r[0], node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
 
+	/* add these together */
+        add (&combQuat, &relQuat, &localQuat);
+
+	/* get the rotation; 2 steps to convert doubles to floats;
+           should be quaternion_to_vrmlrot(&combQuat, &node->__movedOrientation.r[0]... */
+        quaternion_to_vrmlrot(&combQuat, &orient.r[0], &orient.r[1], &orient.r[2], &orient.r[3]);
+	for (i=0; i<4; i++) node->__movedOrientation.r[i] = (float) orient.r[i];
+
+
+#define VERBOSE
+        #ifdef VERBOSE
+	printf ("compile_GeoViewpoint, final position %lf %lf %lf\n",node->__movedPosition.c[0],
+		node->__movedPosition.c[1], node->__movedPosition.c[2]);
+
+	printf ("compile_GeoViewpoint, getLocalOrientation %lf %lf %lf %lf\n",localOrient.r[0],
+		localOrient.r[1], localOrient.r[2], localOrient.r[3]);
+	printf ("compile_GeoViewpoint, initial orientation: %lf %lf %lf %lf\n",node->orientation.r[0],
+		node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
+	printf ("compile_GeoViewpoint, final rotation %lf %lf %lf %lf\n",node->__movedOrientation.r[0], 
+		node->__movedOrientation.r[1], node->__movedOrientation.r[2], node->__movedOrientation.r[3]);
+        #endif
+#undef VERBOSE
+
+printf ("remember about speed and avatar size in GeoViewpoint\n");
 
 	MARK_NODE_COMPILED
 
@@ -1183,8 +1208,8 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	*/
 
 	/* perform GeoViewpoint translations */
-	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
-		node->orientation.r[2]); 
+	glRotated(-node->__movedOrientation.r[3]/PI*180.0,node->__movedOrientation.r[0],node->__movedOrientation.r[1],
+		node->__movedOrientation.r[2]); 
 	glTranslated(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
@@ -1208,6 +1233,7 @@ bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	COMPILE_IF_REQUIRED
 
 	/* set Viewer position and orientation */
+#define VERBOSE
 
 	#ifdef VERBOSE
 	printf ("bind_viewpoint, setting Viewer to %lf %lf %lf orient %f %f %f %f\n",node->__movedPosition.c[0],node->__movedPosition.c[1],
@@ -1225,12 +1251,14 @@ bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	Viewer.AntiPos.y = node->__movedPosition.c[1];
 	Viewer.AntiPos.z = node->__movedPosition.c[2];
 
-	vrmlrot_to_quaternion (&Viewer.Quat,node->orientation.r[0],
-		node->orientation.r[1],node->orientation.r[2],node->orientation.r[3]);
+	vrmlrot_to_quaternion (&Viewer.Quat,node->__movedOrientation.r[0],
+		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
 
-	vrmlrot_to_quaternion (&q_i,node->orientation.r[0],
-		node->orientation.r[1],node->orientation.r[2],node->orientation.r[3]);
+	vrmlrot_to_quaternion (&q_i,node->__movedOrientation.r[0],
+		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
 	inverse(&(Viewer.AntiQuat),&q_i);
+
+#undef VERBOSE
 
 	resolve_pos(&Viewer);
 }
