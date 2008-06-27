@@ -138,6 +138,8 @@ typedef struct viewer {
 	X3D_Viewer_Walk *walk;
 	X3D_Viewer_Examine *examine;
 	X3D_Viewer_Fly *fly;
+
+	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
 
 
@@ -231,6 +233,8 @@ bind_viewpoint(struct X3D_Viewpoint *node);
 
 void
 bind_geoviewpoint(struct X3D_GeoViewpoint *node);
+
+float viewer_calculate_speed(void);
 
 extern X3D_Viewer Viewer; /* in VRMLC.pm */
 

@@ -22,6 +22,9 @@ static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
+static int movedPosition = FALSE;
+static int walkMotion = FALSE;
+
 static FILE *exfly_in_file;
 
 struct point_XYZ VPvelocity;
@@ -71,6 +74,9 @@ void viewer_default() {
 
 	set_eyehalf( eyedist/2.0,
 		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
+
+	/* assume we are not bound to a GeoViewpoint */
+	Viewer.GeoSpatialNode = NULL;
 
 #ifndef AQUA
 	if (shutterGlasses)
@@ -268,10 +274,14 @@ void viewer_togl(double fieldofview) {
 void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
 	X3D_Viewer_Walk *walk = Viewer.walk;
 
+	walkMotion = FALSE;	/* assume no motion right now */
 	if (mev == ButtonPress ) {
 		walk->SY = y;
 		walk->SX = x;
 	} else if (mev == MotionNotify) {
+		/* ok, we HAVE done something here */
+		walkMotion = TRUE;
+
 		if (button == 1) {
 			walk->ZD = (y - walk->SY) * Viewer.speed;
 			walk->RD = (x - walk->SX) * 0.1;
@@ -308,6 +318,9 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 			examine->ODist = Viewer.Dist;
 		}
 	} else if (mev == MotionNotify) {
+		/* ok, we HAVE done something here */
+		movedPosition = TRUE;
+
 		if (button == 1) {
 			squat_norm = norm(&(examine->SQuat));
 			/* we have missed the press */
@@ -433,6 +446,10 @@ handle_tick_walk()
 	Quaternion q, nq;
 	struct point_XYZ p;
 
+	
+	if (!walkMotion) return;
+	movedPosition = TRUE;
+
 	p.x = 0.15 * walk->XD;
 	p.y = 0.15 * walk->YD;
 	p.z = 0.15 * walk->ZD;
@@ -449,11 +466,6 @@ handle_tick_walk()
 
 	normalize(&nq);
 	multiply(&(Viewer.Quat), &nq, &q);
-
-	/* info passed to Collision routines */
-	/* VRML::VRMLFunc::set_viewer_delta($this->{XD},
-	 * $this->{YD},$this->{ZD}); #interresting idea, but not quite.
-	 */
 }
 
 
@@ -604,7 +616,7 @@ handle_tick_fly()
 		}
 	}
 
-	/* printf ("speed %f timedif %lf\n",Viewer.speed,time_diff); */
+	/* printf ("speed %f timedif %lf\n",Viewer.speed,time_diff);  */
 
 	/* first, get all the keypresses since the last time */
 	for (i = 0; i < KEYS_HANDLED; i++) {
@@ -626,6 +638,8 @@ handle_tick_fly()
 	}
 
 	/* has anything changed? if so, then re-render */
+
+	/* linear movement */
 	for (i = 0; i < COORD_SYS; i++) {
 		fly->Velocity[i] *= pow(0.06, time_diff);
 
@@ -635,25 +649,33 @@ handle_tick_fly()
 			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
 		}
 		changed += fly->Velocity[i];
-	/* printf ("vel %d %f\n",i,fly->Velocity[i]); */
+		/* printf ("vel %d %f\n",i,fly->Velocity[i]); */
 	}
 
-	v.x = fly->Velocity[0] * time_diff;
-	v.y = fly->Velocity[1] * time_diff;
-	v.z = fly->Velocity[2] * time_diff;
 
-	increment_pos(&v);
-
+	/* angular movement */
 	for (i = 0; i < COORD_SYS; i++) {
 		fly->AVelocity[i] *= pow(0.04, time_diff);
-		fly->AVelocity[i] += time_diff * rotate[i] * 0.025 * Viewer.speed;
+		fly->AVelocity[i] += time_diff * rotate[i] * 0.025;
 
 		if (fabs(fly->AVelocity[i]) > 0.8) {
 			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
 		}
 		changed += fly->AVelocity[i];
-	/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
+		/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
 	}
+
+	/* have we done anything here? */
+	if (APPROX(changed,0.0)) return;
+
+	/* Yes, something has changed, as we are still here */
+	movedPosition = TRUE;
+
+	v.x = fly->Velocity[0] * time_diff;
+	v.y = fly->Velocity[1] * time_diff;
+	v.z = fly->Velocity[2] * time_diff;
+	increment_pos(&v);
+
 
 	nq.x = fly->AVelocity[0];
 	nq.y = fly->AVelocity[1];
@@ -667,6 +689,7 @@ handle_tick_fly()
 void
 handle_tick()
 {
+
 	switch(viewer_type) {
 	case NONE:
 		break;
@@ -683,6 +706,13 @@ handle_tick()
 		break;
 	default:
 		break;
+	}
+
+	/* have we moved? */
+	if (movedPosition) {
+		if (Viewer.GeoSpatialNode) 
+			viewer_calculate_speed();
+		movedPosition = FALSE;
 	}
 }
 
@@ -778,6 +808,9 @@ void increment_pos(struct point_XYZ *vec) {
 void
 bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
+
+	/* since this is not a bind to a GeoViewpoint node... */
+	Viewer.GeoSpatialNode = NULL;
 
 	/* set Viewer position and orientation */
 
