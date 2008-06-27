@@ -69,13 +69,17 @@ Geocentric to Geodetic:
 
 /* defines used to get a SFVec3d into/outof a function that expects a MFVec3d */
 #define MF_SF_TEMPS	struct Multi_Vec3d mIN; struct Multi_Vec3d  mOUT; struct Multi_Vec3d gdCoords;
+#define FREE_MF_SF_TEMPS FREE_IF_NZ(gdCoords.p); FREE_IF_NZ(mOUT.p);
+
+
 #define INIT_MF_FROM_SF(myNode, myField) \
 	mIN.n = 1; \
 	mIN.p = MALLOC(sizeof (struct SFVec3d)); \
 	mIN.p[0].c[0] = myNode-> myField .c[0];\
 	mIN.p[0].c[1] = myNode-> myField .c[1];\
 	mIN.p[0].c[2] = myNode-> myField .c[2];\
-	mOUT.n=0; mOUT.p = NULL;
+	mOUT.n=0; mOUT.p = NULL; \
+	gdCoords.n=0; gdCoords.p = NULL;
 
 #define MF_FIELD_IN_OUT &mIN, &mOUT, &gdCoords
 #define COPY_MF_TO_SF(myNode, myField) \
@@ -84,6 +88,8 @@ Geocentric to Geodetic:
 	myNode-> myField .c[2] = mOUT.p[0].c[2]; \
 	FREE_IF_NZ(mIN.p); FREE_IF_NZ(mOUT.p);
 
+
+#define MOVE_TO_ORIGIN	GeoMove(X3D_GEOORIGIN(node->geoOrigin), &node->__geoSystem, &mIN, &mOUT, &gdCoords);
 
 #define RADIANS_PER_DEGREE (double)0.0174532925199432957692
 #define DEGREES_PER_RADIAN (double)57.2957795130823208768
@@ -199,6 +205,20 @@ static void gccToGdc (struct SFVec3d *, struct SFVec3d *);
 /* for converting from GC to GD */
 static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
                  CE2, CEEps2, TwoCEE, tem, ARat1, ARat2, BRat1, BRat2, B1,B2,B3,B4,B5;
+
+/* move ourselves BACK to the from the GeoOrigin */
+static void retractOrigin(struct SFVec3d *gcCoords) {
+	if (geoorigin != NULL) {
+		gcCoords->c[0] += geoorigin->__movedCoords.c[0];
+		gcCoords->c[1] += geoorigin->__movedCoords.c[1];
+		gcCoords->c[2] += geoorigin->__movedCoords.c[2];
+	} else {
+		gcCoords->c[0] = 0.0; 
+		gcCoords->c[1] = 0.0; 
+		gcCoords->c[2] = 0.0; 
+	}
+}
+
 
 /* convert GD ellipsiod to GC coordinates */
 static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double radius, double eccentricity, int lat_first) {
@@ -554,7 +574,6 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 	compile_geoSystem (geoorigin->_nodeType, &geoorigin->geoSystem, &geoorigin->__geoSystem);
 	INIT_MF_FROM_SF(geoorigin,geoCoords)
 	moveCoords(&geoorigin->__geoSystem, MF_FIELD_IN_OUT);
-
 	COPY_MF_TO_SF(geoorigin, __movedCoords)
 
 	#ifdef VERBOSE
@@ -569,14 +588,14 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 		geoorigin->__geoSystem.p[3]);
 	printf ("initializeGeospatial, done\n\n");
 	#endif
-printf ("initializeGeospatial, do something with the gdCoords pointer\n");
+
+	FREE_MF_SF_TEMPS
 }
 
 
 /* calculate a translation that moves a Geo node to local space */
 static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoords, struct Multi_Vec3d *outCoords,
 		struct Multi_Vec3d *gdCoords) {
-#define VERBOSE
 	int i;
 	struct X3D_GeoOrigin * myOrigin;
 
@@ -640,7 +659,6 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 	printf ("GeoMove, after subtracting origin %lf %lf %lf\n", outCoords->p[i].c[0], outCoords->p[i].c[1], outCoords->p[i].c[2]);
 	#endif
 	}
-#undef VERBOSE
 }
 
 /* for converting BACK to GD from GC */
@@ -846,83 +864,25 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
         GDC_LON *= DEGREES_PER_RADIAN;
 }
 
-#ifdef RETRACT_GC_TO_GD
-/* move ourselves BACK to the from the GeoOrigin */
-static void retractOrigin(struct SFVec3d *gcCoords) {
-    if (geoorigin != NULL) {
-      gcCoords->c[0] += geoorigin->__movedCoords.c[0];
-      gcCoords->c[1] += geoorigin->__movedCoords.c[1];
-      gcCoords->c[2] += geoorigin->__movedCoords.c[2];
-    }
-}
-#endif
-
 /* calculate the rotation needed to apply to this position on the GC coordinate location */
-static void GeoOrient (struct SFVec3d *locPos, struct DFRotation *orient, struct Multi_Vec3d *origgdCoords) {
-
-	struct SFVec3d gdCoords;
-	struct SFVec3d gcCoords;
+static void GeoOrient (struct SFVec3d *gdCoords, struct DFRotation *orient) {
 	Quaternion qx;
 	Quaternion qz;
 	Quaternion qr;
 
-	/* copy the local position */
-	gcCoords.c[0] = locPos->c[0];
-	gcCoords.c[1] = locPos->c[1];
-	gcCoords.c[2] = locPos->c[2];
-
-#ifdef RETRACT_GC_TO_GD
-	#ifdef VERBOSE
-	printf ("GeoOrient, calculating orient for %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
-	#endif
-
-	retractOrigin(&gcCoords);
-
-	#ifdef VERBOSE
-	printf ("GeoOrient: retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
-	printf ("	(origin %lf %lf %lf\n",geoorigin->__movedCoords.c[0], geoorigin->__movedCoords.c[1], geoorigin->__movedCoords.c[2]);
-	#endif
-
-	/* convert from local (gc) to gd coordinates, using WE ellipsoid */
-	gccToGdc (&gcCoords, &gdCoords);
-
-	#ifdef VERBOSE
-	printf ("GeoOrient: converted to GD: %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]);
-printf ("GeoOrient: original gd coords  size %d\n",origgdCoords->n);
-printf ("GeoOrient: original gd coords %f %f %f\n",
-	origgdCoords->p[0].c[0],
-	origgdCoords->p[0].c[1],
-	origgdCoords->p[0].c[2]);
-	#endif
-#else
-	if (origgdCoords->n <1) printf ("CAN NOT RETRACT!!!!\n");
-	gdCoords.c[0]=origgdCoords->p[0].c[0];
-	gdCoords.c[1]=origgdCoords->p[0].c[1];
-	gdCoords.c[2]=origgdCoords->p[0].c[2];
-	
-
-#endif
-
-printf ("diff between calculated and original gd coords %lf %lf %lf\n",
-		gdCoords.c[0]-origgdCoords->p[0].c[0],
-		gdCoords.c[1]-origgdCoords->p[0].c[1],
-		gdCoords.c[2]-origgdCoords->p[0].c[2]);
-
-
-#undef VERBOSE
 	/* initialie qx and qz */
-	vrmlrot_to_quaternion (&qz,0.0, 0.0, 1.0, RADIANS_PER_DEGREE*((double)90.0 + gdCoords.c[1]));
+	vrmlrot_to_quaternion (&qz,0.0, 0.0, 1.0, RADIANS_PER_DEGREE*((double)90.0 + gdCoords->c[1]));
 
 	#ifdef VERBOSE 
-	printf ("qz angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",((double)90.0 + gdCoords.c[1]), 
-		RADIANS_PER_DEGREE*((double)90.0 + gdCoords.c[1]),qz.x, qz.y, qz.z,qz.w);
+	printf ("qz angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",((double)90.0 + gdCoords->c[1]), 
+		RADIANS_PER_DEGREE*((double)90.0 + gdCoords->c[1]),qz.x, qz.y, qz.z,qz.w);
 	#endif
 
-	vrmlrot_to_quaternion (&qx,1.0, 0.0, 0.0, RADIANS_PER_DEGREE*((double)180.0 - gdCoords.c[0]));
+	vrmlrot_to_quaternion (&qx,1.0, 0.0, 0.0, RADIANS_PER_DEGREE*((double)180.0 - gdCoords->c[0]));
 
 	#ifdef VERBOSE 
 	printf ("qx angle (deg) %lf angle (rad) %lf quat: %lf %lf %lf %lf\n",
-		((double)180.0 - gdCoords.c[0]), RADIANS_PER_DEGREE*((double)180.0 - gdCoords.c[0]), qx.x, qx.y, qx.z,qx.w);
+		((double)180.0 - gdCoords->c[0]), RADIANS_PER_DEGREE*((double)180.0 - gdCoords->c[0]), qx.x, qx.y, qx.z,qx.w);
 	#endif
 
 	add (&qr, &qx, &qz);
@@ -1106,11 +1066,12 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	/* work out the position */
 	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
 	INIT_MF_FROM_SF(node, geoCoords)
-	GeoMove(X3D_GEOORIGIN(node->geoOrigin), &node->__geoSystem, MF_FIELD_IN_OUT);
+	MOVE_TO_ORIGIN
+
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&node->__movedCoords, &node->__localOrient, &gdCoords);
+	GeoOrient(&gdCoords.p[0], &node->__localOrient);
 
 	#ifdef VERBOSE
 	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1122,6 +1083,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	#endif
 
 	MARK_NODE_COMPILED
+	FREE_MF_SF_TEMPS
 
 	#ifdef VERBOSE
 	printf ("compiled GeoLocation\n\n");
@@ -1198,12 +1160,12 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	/* work out the position */
 	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
 	INIT_MF_FROM_SF(node, position)
-	GeoMove(X3D_GEOORIGIN(node->geoOrigin), &node->__geoSystem, MF_FIELD_IN_OUT);
+	MOVE_TO_ORIGIN
 	COPY_MF_TO_SF(node, __movedPosition)
 
 
 	/* work out the local orientation and copy doubles to floats */
-	GeoOrient(&node->__movedPosition, &localOrient, &gdCoords);
+	GeoOrient(&gdCoords.p[0], &localOrient);
 
 	/* Quaternize the local Geospatial quaternion, and the specified rotation from the GeoViewpoint orientation field */
 	vrmlrot_to_quaternion (&localQuat, localOrient.r[0], localOrient.r[1], localOrient.r[2], localOrient.r[3]);
@@ -1228,16 +1190,15 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 		node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
 	printf ("compile_GeoViewpoint, final rotation %lf %lf %lf %lf\n",node->__movedOrientation.r[0], 
 		node->__movedOrientation.r[1], node->__movedOrientation.r[2], node->__movedOrientation.r[3]);
+	printf ("compile_GeoViewpoint, elevation from the WGS84 ellipsoid is %lf\n",gdCoords.p[0].c[2]);
         #endif
 
-printf ("remember about speed and avatar size in GeoViewpoint\n");
-
 	MARK_NODE_COMPILED
+	FREE_MF_SF_TEMPS
 
 	#ifdef VERBOSE
 	printf ("compiled GeoViewpoint\n\n");
 	#endif
-
 }
 
 
@@ -1258,9 +1219,6 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	if(!node->isBound) return;
 	COMPILE_IF_REQUIRED
 
-	/*
-	printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr);
-	*/
 
 	/* perform GeoViewpoint translations */
 	glRotated(-node->__movedOrientation.r[3]/PI*180.0,node->__movedOrientation.r[0],node->__movedOrientation.r[1],
@@ -1280,8 +1238,47 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
-void
-bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
+/* GeoViewpoint speeds and avatar sizes are depenent on elevation above WGS_84. These are calculated here */
+/* this is called from the Viewer functions */
+float viewer_calculate_speed() {
+	struct SFVec3d gcCoords;
+	struct SFVec3d gdCoords;
+
+	/* the current position is the GC coordinate */
+	gcCoords.c[0]= Viewer.Pos.x;
+	gcCoords.c[1] = Viewer.Pos.y;
+	gcCoords.c[2] = Viewer.Pos.z;
+
+        retractOrigin(&gcCoords);
+
+        #ifdef VERBOSE
+        printf ("viewer_calculate_speed, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+        #endif
+
+        /* convert from local (gc) to gd coordinates, using WGS84 ellipsoid */
+        gccToGdc (&gcCoords, &gdCoords);
+
+	/* printf ("speed is calculated from height %lf\n",gdCoords.c[2]); */
+
+	/* speed is dependent on elevation above WGS84 ellipsoid */
+	#define speed_scale 1.0
+	Viewer.speed = fabs(gdCoords.c[2]/10.0 * Viewer.GeoSpatialNode->speedFactor);
+
+	#ifdef VERBOSE
+	printf ("speed is %lf\n",Viewer.speed); 
+	#endif
+
+
+	/* set the navigation info - use the GeoVRML algorithms */
+	naviinfo.width = Viewer.speed*0.25;
+	naviinfo.height = Viewer.speed*1.6;
+	naviinfo.step = Viewer.speed*0.25;
+
+}
+
+
+
+void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	Quaternion q_i;
 
 	INITIALIZE_GEOSPATIAL
@@ -1296,6 +1293,8 @@ bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	printf ("	node %u fieldOfView %f\n",node,node->fieldOfView);
 	#endif
 	
+	Viewer.GeoSpatialNode = node;
+
 	Viewer.Pos.x = node->__movedPosition.c[0];
 	Viewer.Pos.y = node->__movedPosition.c[1];
 	Viewer.Pos.z = node->__movedPosition.c[2];
