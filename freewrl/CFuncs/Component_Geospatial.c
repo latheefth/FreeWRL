@@ -68,7 +68,7 @@ Geocentric to Geodetic:
 
 
 /* defines used to get a SFVec3d into/outof a function that expects a MFVec3d */
-#define MF_SF_TEMPS	struct Multi_Vec3d mIN; struct Multi_Vec3d  mOUT;
+#define MF_SF_TEMPS	struct Multi_Vec3d mIN; struct Multi_Vec3d  mOUT; struct Multi_Vec3d gdCoords;
 #define INIT_MF_FROM_SF(myNode, myField) \
 	mIN.n = 1; \
 	mIN.p = MALLOC(sizeof (struct SFVec3d)); \
@@ -77,7 +77,7 @@ Geocentric to Geodetic:
 	mIN.p[0].c[2] = myNode-> myField .c[2];\
 	mOUT.n=0; mOUT.p = NULL;
 
-#define MF_FIELD_IN_OUT &mIN, &mOUT
+#define MF_FIELD_IN_OUT &mIN, &mOUT, &gdCoords
 #define COPY_MF_TO_SF(myNode, myField) \
 	myNode-> myField .c[0] = mOUT.p[0].c[0]; \
 	myNode-> myField .c[1] = mOUT.p[0].c[1]; \
@@ -161,11 +161,11 @@ Geocentric to Geodetic:
 #define GEOSP_WE_F	(double)298.257223563
 
 #define ELLIPSOID(typ) \
-	case typ: Gd_Gc(inCoords,outCoords,typ##_A, typ##_F); break;
+	case typ: Gd_Gc(inCoords,outCoords,typ##_A, typ##_F,geoSystem->p[3]); break;
 
 #define UTM_ELLIPSOID(typ) \
-	case typ: Utm_Gd (inCoords, tcp, typ##_A, typ##_F, geoSystem->p[3], geoSystem->p[2], TRUE); \
-		  Gd_Gc(tcp,outCoords,typ##_A, typ##_F); break;
+	case typ: Utm_Gd (inCoords, gdCoords, typ##_A, typ##_F, geoSystem->p[3], geoSystem->p[2], TRUE); \
+		  Gd_Gc(gdCoords,outCoords,typ##_A, typ##_F, geoSystem->p[3]); break;
 
 /* single SFVec3d pointers */
 #define GCC_X gcc->c[0]
@@ -175,6 +175,14 @@ Geocentric to Geodetic:
 #define GDC_LON gdc->c[1]
 #define GDC_ELE gdc->c[2]
 
+#define INITIALIZE_GEOSPATIAL \
+	if (geoorigin == NULL) { \
+		initializeGeospatial((struct X3D_GeoOrigin **) &node->geoOrigin); \
+		/* printf ("initgeosp, node initialized %u (%s) has geoo %u\n",node, stringNodeType(node->_nodeType), node->geoOrigin); */ \
+	} else if (X3D_GEOORIGIN(node->geoOrigin) != geoorigin) { \
+		if (node->geoOrigin != NULL) ConsoleMessage ("have more than 1 GeoOrigin..."); \
+		node->geoOrigin = geoorigin; /* make all same */ \
+	}
 
 
 static int gcToGdInit = FALSE;
@@ -184,15 +192,16 @@ static int geoInit = FALSE;
 static struct X3D_GeoOrigin *geoorigin = NULL;
 
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf);
-static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *);
-static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double);
+static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *, struct Multi_Vec3d *);
+static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double, int);
+static void gccToGdc (struct SFVec3d *, struct SFVec3d *); 
 
 /* for converting from GC to GD */
 static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
                  CE2, CEEps2, TwoCEE, tem, ARat1, ARat2, BRat1, BRat2, B1,B2,B3,B4,B5;
 
 /* convert GD ellipsiod to GC coordinates */
-static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double radius, double eccentricity) {
+static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double radius, double eccentricity, int lat_first) {
 	int i;
 	double A = radius;
 	double A2 = radius*radius;
@@ -213,6 +222,11 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 	double clat;
 	double Rn;
 	double RnPh;
+
+	if (!lat_first) {
+		printf ("Gd_Gc, NOT lat first\n");
+		latitude = 1; longitude = 0;
+	}
 
 	/* enough room for output? */
 	if (outc->n < inc->n) {
@@ -306,6 +320,7 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 
 	/* is the values specified with an "easting_first?" */
 	if (!northing_first) { northing = 1; easting = 0; }
+if (!northing_first) printf ("UTM to GD, not northing first, flipping norhting and easting\n");
 		
 	#ifdef VERBOSE
 	if (northing_first) printf ("northing first\n"); else printf ("NOT northing_first\n");
@@ -410,21 +425,30 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 }
 
 /* take a set of coords, and a geoSystem, and create a set of moved coords */
-static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoords, struct Multi_Vec3d *outCoords) {
-	struct Multi_Vec3d tmpCoords; /* used UTM conversions */
-	struct Multi_Vec3d *tcp; /* used UTM conversions */
+/* we keep around the GD coords because we need them for rotation calculations */
+/* parameters: 
+	geoSystem:	compiled geoSystem integer array pointer
+	inCoords:	coordinate structure for input coordinates, ANY coordinate type
+	outCoords:	area for GC coordinates. Will MALLOC size if required 
+	gdCoords:	GD coordinates, used for rotation calculations in later stages. WILL MALLOC THIS */
+
+static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoords, struct Multi_Vec3d *outCoords, struct Multi_Vec3d *gdCoords) {
 
 	int i;
 
 	/* tmpCoords used for UTM coding */
-	tmpCoords.n=0; tmpCoords.p=NULL;
-	tcp = &tmpCoords;
+	gdCoords->n=0; gdCoords->p=NULL;
 
 	/* make sure the output has enough space for our converted data */
 	ENSURE_SPACE(outCoords)
+	ENSURE_SPACE(gdCoords)
 
+	/* GD Geosystem - copy coordinates, and convert them to GC */
 	switch (geoSystem->p[0]) {
 		case  GEOSP_GD:
+				/* just copy the coordinates for the GD temporary return */
+				memcpy (gdCoords->p, inCoords->p, sizeof (struct SFVec3d) * inCoords->n);
+				gdCoords->n = inCoords->n;
 
 				/* GD_Gd_Gc_convert (inCoords, outCoords); */
 				switch (geoSystem->p[1]) {
@@ -452,7 +476,6 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 					ELLIPSOID(GEOSP_WD)
 					ELLIPSOID(GEOSP_WE)
 					default: printf ("unknown Gd_Gc: %s\n", stringGEOSPATIALType(geoSystem->p[1]));
-
 				}
 			break;
 		case GEOSP_GC:
@@ -461,12 +484,14 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 				outCoords->p[i].c[0] = inCoords->p[i].c[0];
 				outCoords->p[i].c[1] = inCoords->p[i].c[1];
 				outCoords->p[i].c[2] = inCoords->p[i].c[2];
+
+				/* convert this coord from GC to GD */
+				gccToGdc (&inCoords->p[i], &outCoords->p[i]);
 			}
 
 			break;
 		case GEOSP_UTM:
-				ENSURE_SPACE(tcp)
-
+				/* GD coords will be returned from the conversion process....*/
 				/* first, convert UTM to GC, then GD, then GD to GC */
 				/* see the compileGeosystem function for geoSystem fields */
 				switch (geoSystem->p[1]) {
@@ -495,7 +520,6 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 					UTM_ELLIPSOID(GEOSP_WE)
 					default: printf ("unknown Gd_Gc: %s\n", stringGEOSPATIALType(geoSystem->p[1]));
 				}
-				FREE_IF_NZ(tcp->p)
 			break;
 		default :
 			printf ("incorrect geoSystem field, %s\n",stringGEOSPATIALType(geoSystem->p[0]));
@@ -504,14 +528,6 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 	}
 }
 
-#define INITIALIZE_GEOSPATIAL \
-	if (geoorigin == NULL) { \
-		initializeGeospatial((struct X3D_GeoOrigin **) &node->geoOrigin); \
-		/* printf ("initgeosp, node initialized %u (%s) has geoo %u\n",node, stringNodeType(node->_nodeType), node->geoOrigin); */ \
-	} else if (X3D_GEOORIGIN(node->geoOrigin) != geoorigin) { \
-		if (node->geoOrigin != NULL) ConsoleMessage ("have more than 1 GeoOrigin..."); \
-		node->geoOrigin = geoorigin; /* make all same */ \
-	}
 
 static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 	MF_SF_TEMPS
@@ -538,6 +554,7 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 	compile_geoSystem (geoorigin->_nodeType, &geoorigin->geoSystem, &geoorigin->__geoSystem);
 	INIT_MF_FROM_SF(geoorigin,geoCoords)
 	moveCoords(&geoorigin->__geoSystem, MF_FIELD_IN_OUT);
+
 	COPY_MF_TO_SF(geoorigin, __movedCoords)
 
 	#ifdef VERBOSE
@@ -552,11 +569,14 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 		geoorigin->__geoSystem.p[3]);
 	printf ("initializeGeospatial, done\n\n");
 	#endif
+printf ("initializeGeospatial, do something with the gdCoords pointer\n");
 }
 
 
 /* calculate a translation that moves a Geo node to local space */
-static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoords, struct Multi_Vec3d *outCoords) {
+static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoords, struct Multi_Vec3d *outCoords,
+		struct Multi_Vec3d *gdCoords) {
+#define VERBOSE
 	int i;
 	struct X3D_GeoOrigin * myOrigin;
 
@@ -574,6 +594,7 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		outCoords->n = inCoords->n;
 	}
 
+	/* set out values to 0.0 for now */
 	for (i=0; i<outCoords->n; i++) {
 		outCoords->p[i].c[0] = (double) 0.0; outCoords->p[i].c[1] = (double) 0.0; outCoords->p[i].c[2] = (double) 0.0;
 	}
@@ -602,7 +623,7 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		myOrigin->geoCoords.c[0], myOrigin->geoCoords.c[1], myOrigin->geoCoords.c[2] ); */
 		
 
-	moveCoords(geoSystem, inCoords, outCoords);
+	moveCoords(geoSystem, inCoords, outCoords, gdCoords);
 
 	for (i=0; i<outCoords->n; i++) {
 
@@ -619,6 +640,7 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 	printf ("GeoMove, after subtracting origin %lf %lf %lf\n", outCoords->p[i].c[0], outCoords->p[i].c[1], outCoords->p[i].c[2]);
 	#endif
 	}
+#undef VERBOSE
 }
 
 /* for converting BACK to GD from GC */
@@ -824,7 +846,7 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
         GDC_LON *= DEGREES_PER_RADIAN;
 }
 
-
+#ifdef RETRACT_GC_TO_GD
 /* move ourselves BACK to the from the GeoOrigin */
 static void retractOrigin(struct SFVec3d *gcCoords) {
     if (geoorigin != NULL) {
@@ -833,9 +855,10 @@ static void retractOrigin(struct SFVec3d *gcCoords) {
       gcCoords->c[2] += geoorigin->__movedCoords.c[2];
     }
 }
+#endif
 
 /* calculate the rotation needed to apply to this position on the GC coordinate location */
-static void GeoOrient (struct SFVec3d *locPos, struct DFRotation *orient) {
+static void GeoOrient (struct SFVec3d *locPos, struct DFRotation *orient, struct Multi_Vec3d *origgdCoords) {
 
 	struct SFVec3d gdCoords;
 	struct SFVec3d gcCoords;
@@ -848,7 +871,7 @@ static void GeoOrient (struct SFVec3d *locPos, struct DFRotation *orient) {
 	gcCoords.c[1] = locPos->c[1];
 	gcCoords.c[2] = locPos->c[2];
 
-
+#ifdef RETRACT_GC_TO_GD
 	#ifdef VERBOSE
 	printf ("GeoOrient, calculating orient for %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
 	#endif
@@ -856,16 +879,37 @@ static void GeoOrient (struct SFVec3d *locPos, struct DFRotation *orient) {
 	retractOrigin(&gcCoords);
 
 	#ifdef VERBOSE
-	printf ("GeoOrient, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+	printf ("GeoOrient: retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+	printf ("	(origin %lf %lf %lf\n",geoorigin->__movedCoords.c[0], geoorigin->__movedCoords.c[1], geoorigin->__movedCoords.c[2]);
 	#endif
 
 	/* convert from local (gc) to gd coordinates, using WE ellipsoid */
 	gccToGdc (&gcCoords, &gdCoords);
 
 	#ifdef VERBOSE
-	printf ("converted to GD: %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]);
+	printf ("GeoOrient: converted to GD: %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]);
+printf ("GeoOrient: original gd coords  size %d\n",origgdCoords->n);
+printf ("GeoOrient: original gd coords %f %f %f\n",
+	origgdCoords->p[0].c[0],
+	origgdCoords->p[0].c[1],
+	origgdCoords->p[0].c[2]);
 	#endif
+#else
+	if (origgdCoords->n <1) printf ("CAN NOT RETRACT!!!!\n");
+	gdCoords.c[0]=origgdCoords->p[0].c[0];
+	gdCoords.c[1]=origgdCoords->p[0].c[1];
+	gdCoords.c[2]=origgdCoords->p[0].c[2];
+	
 
+#endif
+
+printf ("diff between calculated and original gd coords %lf %lf %lf\n",
+		gdCoords.c[0]-origgdCoords->p[0].c[0],
+		gdCoords.c[1]-origgdCoords->p[0].c[1],
+		gdCoords.c[2]-origgdCoords->p[0].c[2]);
+
+
+#undef VERBOSE
 	/* initialie qx and qz */
 	vrmlrot_to_quaternion (&qz,0.0, 0.0, 1.0, RADIANS_PER_DEGREE*((double)90.0 + gdCoords.c[1]));
 
@@ -900,7 +944,9 @@ static void GeoOrient (struct SFVec3d *locPos, struct DFRotation *orient) {
 			0:	spatial reference frame	(GEOSP_UTM, GEOSP_GC, GEOSP_GD);
 			1:	spatial coordinates (defaults to GEOSP_WE)
 			2:	UTM zone number, 1..60. ID_UNDEFINED = not specified
-			3:	"S" - value is FALSE, not S, value is TRUE */
+			3:	UTM:	if "S" - value is FALSE, not S, value is TRUE 
+				GD:	if "latitude_first" TRUE, if "longitude_first", FALSE
+				GC:	if "northing_first" TRUE, if "easting_first", FALSE */
 
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf) {
 	int i;
@@ -948,36 +994,47 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 	srf->p[0] = this_srf;
 	/* go through and ensure that we have the correct parameters for this spatial reference frame */
 	if (this_srf == GEOSP_GC) {
-		if (args->n != 1) {
-			ConsoleMessage ("geoSystem in node %s, GC not allowed geospatial coordinates",stringNodeType(nodeType));
-		}
+		/* possible parameter: GC:	if "northing_first" TRUE, if "easting_first", FALSE */
 		srf->p[1] = ID_UNDEFINED;
-		
+		for (i=0; i<args->n; i++) {
+			if (strcmp("northing_first",args->p[i]->strptr) == 0) { srf->p[3] = TRUE;
+			} else if (strcmp("easting_first",args->p[i]->strptr) == 0) { srf->p[3] = FALSE;
+			} else if (i!=this_srf_ind) ConsoleMessage ("geoSystem GC parameter %s not allowed geospatial coordinates",args->p[i]->strptr);
+		}
 	} else if (this_srf == GEOSP_GD) {
 		indexT this_p_ind;
 
-		/* is there an optional argument? */
-		if (this_srf_ind == 0) this_p_ind = 1; else this_p_ind = 0;
-		if (args->n == 2) {
-			indexT tc = findFieldInGEOSPATIAL(args->p[this_p_ind]->strptr);
-			switch (tc) {
-				case ID_UNDEFINED:
-				case GEOSP_GC:
-				case GEOSP_GCC:
-				case GEOSP_GD:
-				case GEOSP_GDC:
-				case GEOSP_UTM:
-					ConsoleMessage("expected valid GC parameter in node %s",stringNodeType(nodeType));
-					srf->p[1] = GEOSP_WE;
-					break;
+		srf->p[1] = GEOSP_WE;
+		/* possible parameters: ellipsoid, gets put into element 1.
+				if "latitude_first" TRUE, if "longitude_first", FALSE */
 
-				default:
-					srf->p[1] = tc;
+		/* is there an optional argument? */
+		for (i=0; i<args->n; i++) {
+                        if (strcmp("latitude_first", args->p[i]->strptr) == 0) {
+				srf->p[3] = TRUE;
+                        } else if (strcmp("longitude_first", args->p[i]->strptr) == 0) {
+				srf->p[3] = FALSE;
+			} else {
+				if (i!= this_srf_ind) 
+					ConsoleMessage ("geoSystem GD parameter %s not allowed geospatial coordinates",args->p[i]->strptr);
+				else {
+					indexT tc = findFieldInGEOSPATIAL(args->p[i]->strptr);
+					switch (tc) {
+						case ID_UNDEFINED:
+						case GEOSP_GC:
+						case GEOSP_GCC:
+						case GEOSP_GD:
+						case GEOSP_GDC:
+						case GEOSP_UTM:
+						ConsoleMessage("expected valid GC parameter in node %s",stringNodeType(nodeType));
+						srf->p[1] = GEOSP_WE;
+						break;
+
+						default:
+						srf->p[1] = tc;
+					}
+				}
 			}
-		} else {
-			if (args->n != 1) 
-				ConsoleMessage ("geoSystem GC can take only 1 extra parameter in node %s",stringNodeType(nodeType));
-			srf->p[1] = GEOSP_WE;
 		}
 	} else {
 		/* this must be UTM */
@@ -985,7 +1042,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 			0:	spatial reference frame	(GEOSP_UTM, GEOSP_GC, GEOSP_GD);
 			1:	spatial coordinates (defaults to GEOSP_WE)
 			2:	UTM zone number, 1..60. ID_UNDEFINED = not specified
-			3:	"S" - value is FALSE, not S, value is TRUE */
+			3:	UTM:	if "S" - value is FALSE, not S, value is TRUE  */
 		/* first go through, and find the Spatial Reference Frame, GD, UTM, or GC */
 		for (i=0; i<args->n; i++) {
 			if (i != this_srf_ind) {
@@ -1053,7 +1110,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	COPY_MF_TO_SF(node, __movedCoords)
 
 	/* work out the local orientation */
-	GeoOrient(&node->__movedCoords, &node->__localOrient);
+	GeoOrient(&node->__movedCoords, &node->__localOrient, &gdCoords);
 
 	#ifdef VERBOSE
 	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1146,7 +1203,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 
 	/* work out the local orientation and copy doubles to floats */
-	GeoOrient(&node->__movedPosition, &localOrient);
+	GeoOrient(&node->__movedPosition, &localOrient, &gdCoords);
 
 	/* Quaternize the local Geospatial quaternion, and the specified rotation from the GeoViewpoint orientation field */
 	vrmlrot_to_quaternion (&localQuat, localOrient.r[0], localOrient.r[1], localOrient.r[2], localOrient.r[3]);
@@ -1161,7 +1218,6 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	for (i=0; i<4; i++) node->__movedOrientation.r[i] = (float) orient.r[i];
 
 
-#define VERBOSE
         #ifdef VERBOSE
 	printf ("compile_GeoViewpoint, final position %lf %lf %lf\n",node->__movedPosition.c[0],
 		node->__movedPosition.c[1], node->__movedPosition.c[2]);
@@ -1173,7 +1229,6 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	printf ("compile_GeoViewpoint, final rotation %lf %lf %lf %lf\n",node->__movedOrientation.r[0], 
 		node->__movedOrientation.r[1], node->__movedOrientation.r[2], node->__movedOrientation.r[3]);
         #endif
-#undef VERBOSE
 
 printf ("remember about speed and avatar size in GeoViewpoint\n");
 
@@ -1233,7 +1288,6 @@ bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	COMPILE_IF_REQUIRED
 
 	/* set Viewer position and orientation */
-#define VERBOSE
 
 	#ifdef VERBOSE
 	printf ("bind_viewpoint, setting Viewer to %lf %lf %lf orient %f %f %f %f\n",node->__movedPosition.c[0],node->__movedPosition.c[1],
@@ -1242,8 +1296,6 @@ bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	printf ("	node %u fieldOfView %f\n",node,node->fieldOfView);
 	#endif
 	
-
-
 	Viewer.Pos.x = node->__movedPosition.c[0];
 	Viewer.Pos.y = node->__movedPosition.c[1];
 	Viewer.Pos.z = node->__movedPosition.c[2];
@@ -1257,8 +1309,6 @@ bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	vrmlrot_to_quaternion (&q_i,node->__movedOrientation.r[0],
 		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
 	inverse(&(Viewer.AntiQuat),&q_i);
-
-#undef VERBOSE
 
 	resolve_pos(&Viewer);
 }
