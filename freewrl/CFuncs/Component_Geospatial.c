@@ -466,10 +466,6 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 	/* GD Geosystem - copy coordinates, and convert them to GC */
 	switch (geoSystem->p[0]) {
 		case  GEOSP_GD:
-				/* just copy the coordinates for the GD temporary return */
-				memcpy (gdCoords->p, inCoords->p, sizeof (struct SFVec3d) * inCoords->n);
-				gdCoords->n = inCoords->n;
-
 				/* GD_Gd_Gc_convert (inCoords, outCoords); */
 				switch (geoSystem->p[1]) {
 					ELLIPSOID(GEOSP_AA)
@@ -497,16 +493,31 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 					ELLIPSOID(GEOSP_WE)
 					default: printf ("unknown Gd_Gc: %s\n", stringGEOSPATIALType(geoSystem->p[1]));
 				}
+
+				/* now, for the GD coord return values; is this in the correct format for calculating 
+				   rotations? */
+				gdCoords->n = inCoords->n;
+
+				/* is the GD value NOT the WGS84 ellipsoid? */
+				if (geoSystem->p[1] != GEOSP_WE) {
+					/*no, convert BACK from the GC to GD, WGS84 level for the gd value returns */
+					for (i=0; i<outCoords->n; i++) {
+						gccToGdc (&outCoords->p[i], &gdCoords->p[i]);
+					}
+				} else {
+					/* just copy the coordinates for the GD temporary return  */
+					memcpy (gdCoords->p, inCoords->p, sizeof (struct SFVec3d) * inCoords->n);
+				}
 			break;
 		case GEOSP_GC:
-			/* an earth-fixed geocentric coord; no conversion required */
+			/* an earth-fixed geocentric coord; no conversion required for gc value returns */
 			for (i=0; i< inCoords->n; i++) {
 				outCoords->p[i].c[0] = inCoords->p[i].c[0];
 				outCoords->p[i].c[1] = inCoords->p[i].c[1];
 				outCoords->p[i].c[2] = inCoords->p[i].c[2];
 
-				/* convert this coord from GC to GD */
-				gccToGdc (&inCoords->p[i], &outCoords->p[i]);
+				/* convert this coord from GC to GD, WGS84 ellipsoid for gd value returns */
+				gccToGdc (&inCoords->p[i], &gdCoords->p[i]);
 			}
 
 			break;
@@ -803,37 +814,21 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
         else /* Do Exact Solution  ************ */
         { 
             wp2=GCC_X * GCC_X + GCC_Y * GCC_Y;
-
             zp2=GCC_Z * GCC_Z;
-
             wp=sqrt(wp2);
-
             cf=C254 * zp2;
-
             gee=wp2 - (Eps21 * zp2) - CEEps2;
-    
             alpha=cf / (gee*gee);
-
             cl=CEE * wp2 * alpha / gee;
-
             arg2=cl * (cl + 2.0);
-    
             s1=1.0 + cl + sqrt(arg2);
-    
             s=pow(s1,(1.0/3.0));
-    
             p=alpha / (3.0 * pow(( s + (1.0/s) + 1.0),2));
-    
             xarg= 1.0 + (TwoCEE * p);
-    
             q=sqrt(xarg);
-
             r2= -p * (2.0 * (1.0 - Eps2) * zp2 / ( q * ( 1.0 + q) ) + wp2);
-      
             r1=(1.0 + (1.0 / q));
-      
             r2 /=A2;
-
 
             /*    DUE TO PRECISION ERRORS THE ARGUMENT MAY BECOME NEGATIVE IF SO SET THE ARGUMENT TO ZERO.*/
 
@@ -843,19 +838,13 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
                 ro=0.0;
 
             ro=ro - p * Eps2 * wp / ( 1.0 + q);
-    
             arg0 = pow(( wp - Eps2 * ro),2) + zp2;
-    
             roe = Eps2 * ro;
             arg = pow(( wp - roe),2) + zp2;
             v=sqrt(arg - Eps2 * zp2);
-
             zo=C2DA * GCC_Z / v;
-
             GDC_ELE = sqrt(arg) * (1.0 - C2DA / v);
-
             top=GCC_Z+ tem*zo;
-    
             GDC_LAT = atan( top / wp );
             GDC_LON =atan2(GCC_Y,GCC_X);
         }  /* end of Exact solution */

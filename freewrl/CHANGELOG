@@ -2,7 +2,8 @@ For 1.20.4
 	- problem parsing floats/doubles with a positive sign starting(or part of exponent),
 	  eg, "123e+10" now parses - before expected "123e10".
 
-	- start on Geospatial nodes.
+	- start on Geospatial nodes. GeoLocation, GeoViewpoint and GeoOrigin coded. Note -
+	  eventOuts not in code yet, until there are more Geo nodes to test routing with.
 
 	- SFVec3d and MFVec3d code handling added to classic and xml parser.
 
