@@ -90,6 +90,7 @@ Geocentric to Geodetic:
 
 
 #define MOVE_TO_ORIGIN	GeoMove(X3D_GEOORIGIN(node->geoOrigin), &node->__geoSystem, &mIN, &mOUT, &gdCoords);
+#define COMPILE_GEOSYSTEM compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
 
 #define RADIANS_PER_DEGREE (double)0.0174532925199432957692
 #define DEGREES_PER_RADIAN (double)57.2957795130823208768
@@ -1029,16 +1030,25 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 /***********************************************************************/
 
 void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
+	MF_SF_TEMPS
+
 	printf ("compiling GeoCoordinate\n");
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
+
+
+	/* standard MACROS expect specific field names */
+	mIN = node->point;
+	mOUT = node->__movedCoords;
+
+	COMPILE_GEOSYSTEM
+	MOVE_TO_ORIGIN
 
 	MARK_NODE_COMPILED
+	FREE_IF_NZ(gdCoords.p);
 }
 
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	printf ("compiling GeoElevationGrid\n");
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
-
+	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
 
@@ -1053,7 +1063,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	#endif
 
 	/* work out the position */
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
+	COMPILE_GEOSYSTEM
 	INIT_MF_FROM_SF(node, geoCoords)
 	MOVE_TO_ORIGIN
 
@@ -1084,8 +1094,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	printf ("compiling GeoLOD\n");
 	#endif
 
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
-
+	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
 
@@ -1104,8 +1113,7 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	printf ("compiling GeoOrigin\n");
 	#endif
 
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
-
+	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
 
@@ -1114,8 +1122,7 @@ void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node)
 	printf ("compiling GeoPositionInterpolator\n");
 	#endif
 
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
-
+	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
 
@@ -1147,7 +1154,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	#endif
 
 	/* work out the position */
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
+	COMPILE_GEOSYSTEM
 	INIT_MF_FROM_SF(node, position)
 	MOVE_TO_ORIGIN
 	COPY_MF_TO_SF(node, __movedPosition)

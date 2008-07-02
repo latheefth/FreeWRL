@@ -480,12 +480,7 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 		   see whether we have got here before the first rendering of a possibly new
 		   IndexedFaceSet */
 		if (!pr.coord) {
-	                xc = (struct X3D_Coordinate *) node->coord;
-	                if (xc->_nodeType != NODE_Coordinate) {
-	                        printf ("Collision - coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
-	                } else {
-	                        pr.coord = (float *) xc->point.p;
-	                }
+			pr.coord = getCoordinate(node->coord,"Collision");
 		}
 
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);

@@ -954,8 +954,11 @@ void kill_X3DNodes(void){
 	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
 		structptr = memoryTable[i];		
-		/* printf("Node pointer	= %x entry %d of %d ",structptr,i,nextEntry);
-		printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  */
+		#ifdef VERBOSE
+		printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
+		printf (" number of parents %d ", structptr->_nparents);
+		printf("Node Type	= %s\n",stringNodeType(structptr->_nodeType));  
+		#endif
 
 		/* kill any parents that may exist. */
 		FREE_IF_NZ (structptr->_parents);
@@ -1004,9 +1007,22 @@ void kill_X3DNodes(void){
 					break;
 				case FIELDTYPE_MFNode:
 					MNode=(struct Multi_Node *)fieldPtr;
+					#ifdef VERBOSE
+					/* verify node structure. Each child should point back to me. */
+					{
+						int i;
+						struct X3D_Node *tp;
+						for (i=0; i<MNode->n; i++) {
+							tp = MNode->p[i];
+							printf ("	MNode field has child %u\n",tp);
+							printf ("	ct %s\n",stringNodeType(tp->_nodeType));
+						}
+					}	
+					#endif
 					MNode->n=0;
 					FREE_IF_NZ(MNode->p);
 					break;
+
 				case FIELDTYPE_MFColor:
 					MColor=(struct Multi_Color *)fieldPtr;
 					MColor->n=0;

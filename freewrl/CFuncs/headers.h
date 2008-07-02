@@ -1335,6 +1335,8 @@ void registerX3DNode(struct X3D_Node * node);
 
 void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr);
 
+float *getCoordinate (void *node, char *str);
+
 #ifdef AQUA
 Boolean notFinished();
 void disposeContext();
