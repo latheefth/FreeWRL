@@ -320,9 +320,9 @@ void Extru_check_normal (
 	}
 
 	/* first three coords give us the normal */
- 	c1 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[0]];
- 	c2 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[zz1]];
- 	c3 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[zz2]];
+ 	c1 = (struct SFColor *) &rep_->actualCoord[3*global_IFS_Coords[0]];
+ 	c2 = (struct SFColor *) &rep_->actualCoord[3*global_IFS_Coords[zz1]];
+ 	c3 = (struct SFColor *) &rep_->actualCoord[3*global_IFS_Coords[zz2]];
 
 	/*printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
 		global_IFS_Coords[1],global_IFS_Coords[2]);
@@ -467,9 +467,9 @@ void Elev_Tri (
 
 	/*
 	printf ("Elev_Tri, vertices for vertex_ind %d are:",vertex_ind);
-               c1 = (struct SFColor *) &this_Elev->coord[3*A];
-               c2 = (struct SFColor *) &this_Elev->coord[3*D];
-               c3 = (struct SFColor *) &this_Elev->coord[3*E];
+               c1 = (struct SFColor *) &this_Elev->actualCoord[3*A];
+               c2 = (struct SFColor *) &this_Elev->actualCoord[3*D];
+               c3 = (struct SFColor *) &this_Elev->actualCoord[3*E];
 
 	printf ("\n%f %f %f\n%f %f %f\n%f %f %f\n\n",
 		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
@@ -479,9 +479,9 @@ void Elev_Tri (
 
 	if (NONORMALS) {
 		/* calculate normal for this triangle */
-                c1 = (struct SFColor *) &this_Elev->coord[3*A];
-                c2 = (struct SFColor *) &this_Elev->coord[3*D];
-                c3 = (struct SFColor *) &this_Elev->coord[3*E];
+                c1 = (struct SFColor *) &this_Elev->actualCoord[3*A];
+                c2 = (struct SFColor *) &this_Elev->actualCoord[3*D];
+                c3 = (struct SFColor *) &this_Elev->actualCoord[3*E];
 
 		/*
 		printf ("calc norms \n%f %f %f\n%f %f %f\n%f %f %f\n",
@@ -795,7 +795,7 @@ void render_polyrep(void *node) {
 	}
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->coord);
+	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
 
 	trisThisLoop += r->ntri;
@@ -906,7 +906,7 @@ void render_ray_polyrep(void *node) {
 	for(i=0; i<polyRep->ntri; i++) {
 		for(pt = 0; pt<3; pt++) {
 			int ind = polyRep->cindex[i*3+pt];
-			point[pt] = (polyRep->coord+3*ind);
+			point[pt] = (polyRep->actualCoord+3*ind);
 		}
 
 		/*
@@ -1013,7 +1013,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 		r = (struct X3D_PolyRep *)p->_intern;
 		r->ntri = -1;
-		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
+		r->cindex = 0; r->actualCoord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0; r->GeneratedTexCoords = 0;
 		r->tcindex = 0; 
 		r->tcoordtype = 0;
@@ -1034,7 +1034,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 	r->streamed = FALSE;
 
 	FREE_IF_NZ(r->cindex);
-	FREE_IF_NZ(r->coord);
+	FREE_IF_NZ(r->actualCoord);
 	FREE_IF_NZ(r->GeneratedTexCoords);
 	FREE_IF_NZ(r->colindex);
 	FREE_IF_NZ(r->color);

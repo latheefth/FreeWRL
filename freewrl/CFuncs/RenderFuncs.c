@@ -890,18 +890,22 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 #define X3D_GEOCOORD(node) ((struct X3D_GeoCoordinate*)node)
 
 /* get a coordinate array - (SFVec3f) from either a NODE_Coordinate or NODE_GeoCoordinate */
-float *getCoordinate (void *node, char *str) {
+struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	struct X3D_Coordinate * xc;
 	struct X3D_GeoCoordinate *gxc;
+	struct X3D_Node *node;
+
+	POSSIBLE_PROTO_EXPANSION (innode,node)
 
 	xc = X3D_COORD(node);
-printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType));
+	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
 
 	if (xc->_nodeType == NODE_Coordinate) {
-		return xc->point.p;
+		return &(xc->point);
 	} else if (xc->_nodeType == NODE_GeoCoordinate) {
+		COMPILE_IF_REQUIRED
 		gxc = X3D_GEOCOORD(node);
-		return gxc->__movedCoords.p;
+		return &(gxc->__movedCoords);
 	} else {
 		ConsoleMessage ("%s - coord expected but got %s\n", stringNodeType(xc->_nodeType));
 	}

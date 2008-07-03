@@ -150,8 +150,8 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 	/* a point is a vertex and consists of 3 floats (x,y,z) */
 	newpoints = (float *)MALLOC (sizeof (float) * nz * nx * 3);
 	 
-	FREE_IF_NZ(rep->coord);
-	rep->coord = (float *)newpoints;
+	FREE_IF_NZ(rep->actualCoord);
+	rep->actualCoord = (float *)newpoints;
 
 	/* make up coord index */
 	if (this_->coordIndex.n > 0) FREE_IF_NZ(this_->coordIndex.p);
@@ -409,14 +409,12 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
                 	break;
 
 		case NODE_TriangleSet :
+
 		        if(this_->coord) {
-		                xc = (struct X3D_Coordinate *) this_->coord;
-		                if (xc->_nodeType != NODE_Coordinate) {
-		                        printf ("TriangleSet, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
-		                } else {
-		                        points = xc->point.p;
-		                        npoints = xc->point.n;
-		                }
+				struct Multi_Vec3f *dtmp;
+				dtmp = getCoordinate (this_->coord, "TriangleSet");
+				npoints = dtmp->n;
+				points = dtmp->p;
 		        }
 
 			/* verify whether we have an incorrect number of coords or not */
@@ -648,13 +646,10 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	/* texture coords IndexedFaceSet coords colors and normals */
 	if(this_->coord) {
-		xc = (struct X3D_Coordinate *) this_->coord;
-		if (xc->_nodeType != NODE_Coordinate) {
-			printf ("make_IFS, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
-		} else {
-			points = xc->point.p;
-			npoints = xc->point.n;
-		}
+		struct Multi_Vec3f *dtmp;
+		dtmp = getCoordinate (this_->coord, "make FacedSet");
+		npoints = dtmp->n;
+		points = dtmp->p;
 	}
 
 
@@ -1378,7 +1373,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 	/* get some memory							*/
 	cindex  = rep_->cindex   = (int *)MALLOC(sizeof(*(rep_->cindex))*3*(rep_->ntri));
-	coord   = rep_->coord    = (float *)MALLOC(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
+	coord   = rep_->actualCoord    = (float *)MALLOC(sizeof(*(rep_->actualCoord))*(nspi*nsec+max_ncoord_add)*3);
 	normal  = rep_->normal   = (float *)MALLOC(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
 	norindex= rep_->norindex = (int *)MALLOC(sizeof(*(rep_->norindex))*3*(rep_->ntri));
 
@@ -2054,7 +2049,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 				/* printf ("starting tv for x %d of %d\n",x,endpoint);*/
-	                	c1 = (struct SFColor *) &rep_->coord[3*x];
+	                	c1 = (struct SFColor *) &rep_->actualCoord[3*x];
 				/* printf ("and, coords for this one are: %f %f %f\n",*/
 				/* 		c1->c[0], c1->c[1],c1->c[2]);*/
 
@@ -2085,7 +2080,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			gluBeginPolygon(global_tessobj);
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
-	                	c1 = (struct SFColor *) &rep_->coord[3*(x+(nspi-1)*nsec)];
+	                	c1 = (struct SFColor *) &rep_->actualCoord[3*(x+(nspi-1)*nsec)];
 				tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
 				tess_vs[x] = x+(nspi-1)*nsec;
 				gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);

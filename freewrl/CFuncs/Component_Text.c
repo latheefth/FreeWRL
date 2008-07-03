@@ -116,26 +116,26 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 	UNUSED(Vertex_y);
 
 	/* printf ("FW_NewVertexPoint setting coord index %d %d %d\n", */
-	/* 	FW_pointctr, FW_pointctr*3+2,FW_rep_->coord[FW_pointctr*3+2]); */
-	FW_rep_->coord[FW_pointctr*3+0] = OUT2GL(last_point.x + pen_x);
-	FW_rep_->coord[FW_pointctr*3+1] = OUT2GL(last_point.y) + pen_y;
-	FW_rep_->coord[FW_pointctr*3+2] = TextZdist;
+	/* 	FW_pointctr, FW_pointctr*3+2,FW_rep_->actualCoord[FW_pointctr*3+2]); */
+	FW_rep_->actualCoord[FW_pointctr*3+0] = OUT2GL(last_point.x + pen_x);
+	FW_rep_->actualCoord[FW_pointctr*3+1] = OUT2GL(last_point.y) + pen_y;
+	FW_rep_->actualCoord[FW_pointctr*3+2] = TextZdist;
 
 	/* the following should NEVER happen.... */
 	if (FW_RIA_indx >500) { ConsoleMessage ("Text, relative index too small\n");exit(1);}
 
 	FW_RIA[FW_RIA_indx]=FW_pointctr;
-	v2[0]=FW_rep_->coord[FW_pointctr*3+0];
-	v2[1]=FW_rep_->coord[FW_pointctr*3+1];
-	v2[2]=FW_rep_->coord[FW_pointctr*3+2];
+	v2[0]=FW_rep_->actualCoord[FW_pointctr*3+0];
+	v2[1]=FW_rep_->actualCoord[FW_pointctr*3+1];
+	v2[2]=FW_rep_->actualCoord[FW_pointctr*3+2];
 
 	gluTessVertex(global_tessobj,v2,&FW_RIA[FW_RIA_indx]);
 
 	if (TextVerbose) {
 		printf ("FW_NewVertexPoint %f %f %f index %d\n",
-				FW_rep_->coord[FW_pointctr*3+0],
-				FW_rep_->coord[FW_pointctr*3+1],
-				FW_rep_->coord[FW_pointctr*3+2],
+				FW_rep_->actualCoord[FW_pointctr*3+0],
+				FW_rep_->actualCoord[FW_pointctr*3+1],
+				FW_rep_->actualCoord[FW_pointctr*3+2],
 				FW_RIA_indx);
 	}
 	FW_pointctr++;
@@ -143,7 +143,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 
 	if (FW_pointctr >= coordmaxsize) {
 		coordmaxsize+=800;
-		FW_rep_->coord = (float *)REALLOC(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
+		FW_rep_->actualCoord = (float *)REALLOC(FW_rep_->actualCoord, sizeof(*(FW_rep_->actualCoord))*coordmaxsize*3);
 	}
 
   }
@@ -547,7 +547,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 	coordmaxsize=est_tri;
 	cindexmaxsize=est_tri;
 	FW_rep_->cindex=(int*)MALLOC(sizeof(*(FW_rep_->cindex))*est_tri);
-	FW_rep_->coord = (float*)MALLOC(sizeof(*(FW_rep_->coord))*est_tri*3);
+	FW_rep_->actualCoord = (float*)MALLOC(sizeof(*(FW_rep_->actualCoord))*est_tri*3);
 
 	if(maxext > 0) {
 	   double maxlen = 0;
@@ -664,7 +664,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 	if (indx_count !=0) {
 		/* REALLOC bug in linux - this causes the pointers to be eventually lost... */
 		/* REALLOC (FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*indx_count); */
-		/* REALLOC (FW_rep_->coord,sizeof(*(FW_rep_->coord))*FW_pointctr*3); */
+		/* REALLOC (FW_rep_->actualCoord,sizeof(*(FW_rep_->actualCoord))*FW_pointctr*3); */
 	}
 
 	/* now, generate normals */
@@ -682,9 +682,9 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 		/* an attempt to try to make this look like the NIST example */
 		/* I can't find a standard as to how to map textures to text JAS */
 		for (i=0; i<(unsigned int)FW_pointctr; i++) {
-			FW_rep_->GeneratedTexCoords[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
+			FW_rep_->GeneratedTexCoords[i*3+0] = FW_rep_->actualCoord[i*3+0]*1.66;
 			FW_rep_->GeneratedTexCoords[i*3+1] = 0.0;
-			FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
+			FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->actualCoord[i*3+1]*1.66;
 		}
 
 	}

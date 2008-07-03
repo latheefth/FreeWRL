@@ -178,9 +178,9 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 			r->minVals[j] = points[r->cindex[0]].c[j];
 			r->maxVals[j] = points[r->cindex[0]].c[j];
 		} else {
-			if (r->coord!=NULL) {
-				r->minVals[j] = r->coord[3*r->cindex[0]+j];
-				r->maxVals[j] = r->coord[3*r->cindex[0]+j];
+			if (r->actualCoord!=NULL) {
+				r->minVals[j] = r->actualCoord[3*r->cindex[0]+j];
+				r->maxVals[j] = r->actualCoord[3*r->cindex[0]+j];
 			}
 		}
 	}
@@ -192,9 +192,9 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	      if(points) {
 		    if (r->minVals[j] > points[ind].c[j]) r->minVals[j] = points[ind].c[j];
 		    if (r->maxVals[j] < points[ind].c[j]) r->maxVals[j] = points[ind].c[j];
-	      } else if(r->coord) {
-		    if (r->minVals[j] >  r->coord[3*ind+j]) r->minVals[j] =  r->coord[3*ind+j];
-		    if (r->maxVals[j] <  r->coord[3*ind+j]) r->maxVals[j] =  r->coord[3*ind+j];
+	      } else if(r->actualCoord) {
+		    if (r->minVals[j] >  r->actualCoord[3*ind+j]) r->minVals[j] =  r->actualCoord[3*ind+j];
+		    if (r->maxVals[j] <  r->actualCoord[3*ind+j]) r->maxVals[j] =  r->actualCoord[3*ind+j];
 	      }
 	  }
 	}
@@ -297,11 +297,11 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 			#endif
-		} else if(r->coord) {
-			memcpy (&newpoints[i].c[0], &r->coord[3*ind], sizeof(struct SFColor));
-			/* XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2];*/
+		} else if(r->actualCoord) {
+			memcpy (&newpoints[i].c[0], &r->actualCoord[3*ind], sizeof(struct SFColor));
+			/* XYZ[0]=r->actualCoord[3*ind+0]; XYZ[1]=r->actualCoord[3*ind+1]; XYZ[2]=r->actualCoord[3*ind+2];*/
 			#ifdef STREAM_POLY_VERBOSE
-				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",i,
+				printf("Render (r->actualCoord) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 			#endif
 		}
@@ -327,8 +327,8 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	/* free the old, and make the new current. Just in case threading on a multiprocessor
 	   machine comes walking through and expects to stream... */
-	FREE_IF_NZ(r->coord);
-	r->coord = (float *)newpoints;
+	FREE_IF_NZ(r->actualCoord);
+	r->actualCoord = (float *)newpoints;
 	FREE_IF_NZ(r->normal);
 	r->normal = (float *)newnorms;
 	FREE_IF_NZ(r->cindex);
