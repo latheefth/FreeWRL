@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.290  2008/07/03 20:01:29  crc_canada
+# GeoCoordinate work.
+#
 # Revision 1.289  2008/06/24 19:37:47  crc_canada
 # Geospatial, June 24 2008 checkin
 #
@@ -1173,7 +1176,7 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int streamed;	/* is this done the streaming pass? */
 	int alloc_tri; /* number of allocated triangles */
 	int *cindex;   /* triples (per triangle) */
-	float *coord; /* triples (per point) */
+	float *actualCoord; /* triples (per point) */
 	int *colindex;   /* triples (per triangle) */
 	float *color; /* triples or null */
 	int *norindex;

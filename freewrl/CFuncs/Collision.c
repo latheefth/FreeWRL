@@ -1368,9 +1368,9 @@ struct point_XYZ polyrep_disp_rec(double y1, double y2, double ystep, double r, 
     int minisfrontfacing = 1;
 
     for(i = 0; i < pr->ntri; i++) {
-	p[0].x = pr->coord[pr->cindex[i*3]*3]    +dispsum.x;
-	p[0].y = pr->coord[pr->cindex[i*3]*3+1]  +dispsum.y;
-	p[0].z = pr->coord[pr->cindex[i*3]*3+2]  +dispsum.z;
+	p[0].x = pr->actualCoord[pr->cindex[i*3]*3]    +dispsum.x;
+	p[0].y = pr->actualCoord[pr->cindex[i*3]*3+1]  +dispsum.y;
+	p[0].z = pr->actualCoord[pr->cindex[i*3]*3+2]  +dispsum.z;
 
 	frontfacing = (vecdot(&n[i],&p[0]) < 0);	/*if normal facing avatar */
 	/* use if either:
@@ -1387,12 +1387,12 @@ struct point_XYZ polyrep_disp_rec(double y1, double y2, double ystep, double r, 
 
 	    struct point_XYZ nused;
 
-	    p[1].x = pr->coord[pr->cindex[i*3+1]*3]    +dispsum.x;
-	    p[1].y = pr->coord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
-	    p[1].z = pr->coord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
-	    p[2].x = pr->coord[pr->cindex[i*3+2]*3]    +dispsum.x;
-	    p[2].y = pr->coord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
-	    p[2].z = pr->coord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
+	    p[1].x = pr->actualCoord[pr->cindex[i*3+1]*3]    +dispsum.x;
+	    p[1].y = pr->actualCoord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
+	    p[1].z = pr->actualCoord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
+	    p[2].x = pr->actualCoord[pr->cindex[i*3+2]*3]    +dispsum.x;
+	    p[2].y = pr->actualCoord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
+	    p[2].z = pr->actualCoord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
 
 	    if(frontfacing) {
 		nused = n[i];
@@ -1490,10 +1490,10 @@ struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, stru
 
 
     for(i = 0; i < pr.ntri*3; i++) {
-	transformf(&prd_newc_floats[pr.cindex[i]*3],&pr.coord[pr.cindex[i]*3],mat);
+	transformf(&prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
    }
 
-    pr.coord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
+    pr.actualCoord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
 
     /*pre-calculate face normals */
     if (pr.ntri>prd_normals_size) {
@@ -1502,11 +1502,11 @@ struct point_XYZ polyrep_disp(double y1, double y2, double ystep, double r, stru
     }
 
     for(i = 0; i < pr.ntri; i++) {
-	polynormalf(&prd_normals[i],&pr.coord[pr.cindex[i*3]*3],&pr.coord[pr.cindex[i*3+1]*3],&pr.coord[pr.cindex[i*3+2]*3]);
+	polynormalf(&prd_normals[i],&pr.actualCoord[pr.cindex[i*3]*3],&pr.actualCoord[pr.cindex[i*3+1]*3],&pr.actualCoord[pr.cindex[i*3+2]*3]);
     }
     res = polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
 
-    pr.coord = 0;
+    pr.actualCoord = 0;
     return res;
 }
 
@@ -1526,9 +1526,9 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
     int i;
     int frontfacing;
 
-    p[0].x = pr->coord[pr->cindex[0]*3]    +dispsum.x;
-    p[0].y = pr->coord[pr->cindex[0]*3+1]  +dispsum.y;
-    p[0].z = pr->coord[pr->cindex[0]*3+2]  +dispsum.z;
+    p[0].x = pr->actualCoord[pr->cindex[0]*3]    +dispsum.x;
+    p[0].y = pr->actualCoord[pr->cindex[0]*3+1]  +dispsum.y;
+    p[0].z = pr->actualCoord[pr->cindex[0]*3+2]  +dispsum.z;
 
     frontfacing = (vecdot(&n,&p[0]) < 0);	/*if normal facing avatar */
 
@@ -1537,15 +1537,15 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
     if(!frontfacing) vecscale(&n,&n,-1.0);
 
     for(i = 0; i < pr->ntri; i++) {
-	p[0].x = pr->coord[pr->cindex[i*3]*3]    +dispsum.x;
-	p[0].y = pr->coord[pr->cindex[i*3]*3+1]  +dispsum.y;
-	p[0].z = pr->coord[pr->cindex[i*3]*3+2]  +dispsum.z;
-	p[1].x = pr->coord[pr->cindex[i*3+1]*3]    +dispsum.x;
-	p[1].y = pr->coord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
-	p[1].z = pr->coord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
-	p[2].x = pr->coord[pr->cindex[i*3+2]*3]    +dispsum.x;
-	p[2].y = pr->coord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
-	p[2].z = pr->coord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
+	p[0].x = pr->actualCoord[pr->cindex[i*3]*3]    +dispsum.x;
+	p[0].y = pr->actualCoord[pr->cindex[i*3]*3+1]  +dispsum.y;
+	p[0].z = pr->actualCoord[pr->cindex[i*3]*3+2]  +dispsum.z;
+	p[1].x = pr->actualCoord[pr->cindex[i*3+1]*3]    +dispsum.x;
+	p[1].y = pr->actualCoord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
+	p[1].z = pr->actualCoord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
+	p[2].x = pr->actualCoord[pr->cindex[i*3+2]*3]    +dispsum.x;
+	p[2].y = pr->actualCoord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
+	p[2].z = pr->actualCoord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
 
 	dispv = get_poly_disp(y1,y2,ystep, r, p, 3, n);
 	disp = -get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
@@ -1590,14 +1590,14 @@ struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double 
     }
 
     for(i = 0; i < pr.ntri*3; i++) {
-	transformf(&prd_newc_floats[pr.cindex[i]*3],&pr.coord[pr.cindex[i]*3],mat);
+	transformf(&prd_newc_floats[pr.cindex[i]*3],&pr.actualCoord[pr.cindex[i]*3],mat);
     }
-    pr.coord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
+    pr.actualCoord = prd_newc_floats; /*remember, coords are only replaced in our local copy of PolyRep */
 
     /*if normal not speced, calculate it */
     /* if(n.x == 0 && n.y == 0 && n.z == 0.) */
     if(APPROX(n.x, 0) && APPROX(n.y, 0) && APPROX(n.z, 0)) {
-	polynormalf(&n,&pr.coord[pr.cindex[0]*3],&pr.coord[pr.cindex[1]*3],&pr.coord[pr.cindex[2]*3]);
+	polynormalf(&n,&pr.actualCoord[pr.cindex[0]*3],&pr.actualCoord[pr.cindex[1]*3],&pr.actualCoord[pr.cindex[2]*3]);
     }
 
     res = planar_polyrep_disp_rec(y1,y2,ystep,r,&pr,n,res,flags);
@@ -1648,16 +1648,16 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double 
     if(z1 >= z2) return zero; /*  outside*/
     /* printf ("coll, xdim %d, zdim %d\n",xdim, zdim);*/
 
-    if(!pr.cindex || !pr.coord)
+    if(!pr.cindex || !pr.actualCoord)
 	printf("ZERO PTR! WE ARE DOOMED!\n");
 
     newc = (float*)MALLOC(xdim*zdim*3*sizeof(float)); /* big chunk will be uninitialized.*/
     /*  transform points that will be used.*/
     for(z = z1; z <= z2; z++)
 	for(x = x1; x <= x2; x++) {
-	    transformf(&newc[(x+xdim*z)*3],&pr.coord[(x+xdim*z)*3],mat);
+	    transformf(&newc[(x+xdim*z)*3],&pr.actualCoord[(x+xdim*z)*3],mat);
 	}
-    pr.coord = newc;
+    pr.actualCoord = newc;
 
     /* changed to go to (z2-1) and (x2-1) from z2 and x2 - Apr 04 - JAS */
     for(z = z1; z < (z2-1); z++)
@@ -1684,12 +1684,12 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double 
 		3*(2*(x+(xdim-1)*z)+1)+i + 2);
 		*/
 
-		tris[i].x = pr.coord[3*(2*(x+(xdim-1)*z)+0)+i + 0];
-		tris[i].y = pr.coord[3*(2*(x+(xdim-1)*z)+0)+i + 1];
-		tris[i].z = pr.coord[3*(2*(x+(xdim-1)*z)+0)+i + 2];
-		tris[3+i].x = pr.coord[3*(2*(x+(xdim-1)*z)+1)+i + 0];
-		tris[3+i].y = pr.coord[3*(2*(x+(xdim-1)*z)+1)+i + 1];
-		tris[3+i].z = pr.coord[3*(2*(x+(xdim-1)*z)+1)+i + 2];
+		tris[i].x = pr.actualCoord[3*(2*(x+(xdim-1)*z)+0)+i + 0];
+		tris[i].y = pr.actualCoord[3*(2*(x+(xdim-1)*z)+0)+i + 1];
+		tris[i].z = pr.actualCoord[3*(2*(x+(xdim-1)*z)+0)+i + 2];
+		tris[3+i].x = pr.actualCoord[3*(2*(x+(xdim-1)*z)+1)+i + 0];
+		tris[3+i].y = pr.actualCoord[3*(2*(x+(xdim-1)*z)+1)+i + 1];
+		tris[3+i].z = pr.actualCoord[3*(2*(x+(xdim-1)*z)+1)+i + 2];
 	    }
 
 	    for(i = 0; i < 2; i++) { /* repeat for both triangles*/
@@ -1776,8 +1776,8 @@ void printpolyrep(struct X3D_PolyRep pr) {
 
     printf(" float coordt[%d] = {",npoints*3);
     for(i=0; i < npoints*3-1; i++)
-	printf("%f,",pr.coord[i]);
-    printf("%f};\n",pr.coord[i]);
+	printf("%f,",pr.actualCoord[i]);
+    printf("%f};\n",pr.actualCoord[i]);
 
     printf("static int cindex[%d];\nstatic float coord[%d];\n",pr.ntri*3,npoints*3);
     printf("X3D_PolyRep pr = {0,%d,%d,cindex,coord,NULL,NULL,NULL,NULL,NULL,NULL};\n",pr.ntri,pr.alloc_tri);

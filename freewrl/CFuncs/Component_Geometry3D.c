@@ -479,8 +479,10 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 		   them to make rendering much faster on hardware accel. We have to check to
 		   see whether we have got here before the first rendering of a possibly new
 		   IndexedFaceSet */
-		if (!pr.coord) {
-			pr.coord = getCoordinate(node->coord,"Collision");
+		if (!pr.actualCoord) {
+			struct Multi_Vec3f* tmp;
+			tmp = getCoordinate(node->coord,"Collision");
+			pr.actualCoord = (float *) tmp->p;
 		}
 
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);

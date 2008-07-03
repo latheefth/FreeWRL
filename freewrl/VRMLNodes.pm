@@ -1231,7 +1231,7 @@ package VRML::NodeType;
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedCoords => [MFVec3d, [], inputOutput],
+						__movedCoords => [MFVec3f, [], inputOutput],
 					},"X3DCoordinateNode"),
 
 	GeoElevationGrid => new VRML::NodeType("GeoElevationGrid", {

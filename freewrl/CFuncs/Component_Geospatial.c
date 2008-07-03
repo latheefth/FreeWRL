@@ -183,20 +183,14 @@ Geocentric to Geodetic:
 #define GDC_ELE gdc->c[2]
 
 #define INITIALIZE_GEOSPATIAL \
-	if (geoorigin == NULL) { \
-		initializeGeospatial((struct X3D_GeoOrigin **) &node->geoOrigin); \
-		/* printf ("initgeosp, node initialized %u (%s) has geoo %u\n",node, stringNodeType(node->_nodeType), node->geoOrigin); */ \
-	} else if (X3D_GEOORIGIN(node->geoOrigin) != geoorigin) { \
-		if (node->geoOrigin != NULL) ConsoleMessage ("have more than 1 GeoOrigin..."); \
-		node->geoOrigin = geoorigin; /* make all same */ \
-	}
+	initializeGeospatial((struct X3D_GeoOrigin **) &node->geoOrigin); 
 
 
 static int gcToGdInit = FALSE;
 static int geoInit = FALSE;
 /*static struct SFVec3d geoViewPointCenter = {(double)0.0, (double)0.0, (double)0.0}; */
 
-static struct X3D_GeoOrigin *geoorigin = NULL;
+/* static struct X3D_GeoOrigin *geoorigin = NULL; */
 
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf);
 static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *, struct Multi_Vec3d *);
@@ -208,11 +202,11 @@ static double A, F, C, A2, C2, Eps2, Eps21, Eps25, C254, C2DA, CEE,
                  CE2, CEEps2, TwoCEE, tem, ARat1, ARat2, BRat1, BRat2, B1,B2,B3,B4,B5;
 
 /* move ourselves BACK to the from the GeoOrigin */
-static void retractOrigin(struct SFVec3d *gcCoords) {
-	if (geoorigin != NULL) {
-		gcCoords->c[0] += geoorigin->__movedCoords.c[0];
-		gcCoords->c[1] += geoorigin->__movedCoords.c[1];
-		gcCoords->c[2] += geoorigin->__movedCoords.c[2];
+static void retractOrigin(struct X3D_GeoOrigin *myGeoOrigin, struct SFVec3d *gcCoords) {
+	if (myGeoOrigin != NULL) {
+		gcCoords->c[0] += myGeoOrigin->__movedCoords.c[0];
+		gcCoords->c[1] += myGeoOrigin->__movedCoords.c[1];
+		gcCoords->c[2] += myGeoOrigin->__movedCoords.c[2];
 	} else {
 		gcCoords->c[0] = 0.0; 
 		gcCoords->c[1] = 0.0; 
@@ -563,45 +557,41 @@ static void moveCoords (struct Multi_Int32* geoSystem, struct Multi_Vec3d *inCoo
 
 static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 	MF_SF_TEMPS
+	struct X3D_GeoOrigin *myGeoOrigin = NULL;
 
 	#ifdef VERBOSE
-	printf ("\ninitializing GeoSpatial code nodeptr %u, geoorigin %u\n",*nodeptr, geoorigin); 
+	printf ("\ninitializing GeoSpatial code nodeptr %u\n",*nodeptr); 
 	#endif
 
 	if (*nodeptr != NULL) {
 		if (X3D_GEOORIGIN(*nodeptr)->_nodeType != NODE_GeoOrigin) {
 			printf ("expected a GeoOrigin node, but got a node of type %s\n",
 				X3D_GEOORIGIN(*nodeptr)->_nodeType);
-			geoorigin = createNewX3DNode(NODE_GeoOrigin); /* dummy node, because of error */
+			*nodeptr = NULL;
+			return;
 		} else {
 			/* printf ("um, just setting geoorign to %u\n",(*nodeptr)); */
-			geoorigin = X3D_GEOORIGIN(*nodeptr);
+			myGeoOrigin = X3D_GEOORIGIN(*nodeptr);
 		}
-	} else {
-		printf ("expected a non-null geoOrigin, faking it\n");
-		geoorigin = createNewX3DNode(NODE_GeoOrigin); /* dummy node, because none specified */
-		*nodeptr = geoorigin;
+		compile_geoSystem (myGeoOrigin->_nodeType, &myGeoOrigin->geoSystem, &myGeoOrigin->__geoSystem);
+		INIT_MF_FROM_SF(myGeoOrigin,geoCoords)
+		moveCoords(&myGeoOrigin->__geoSystem, MF_FIELD_IN_OUT);
+		COPY_MF_TO_SF(myGeoOrigin, __movedCoords)
+
+		#ifdef VERBOSE
+		printf ("initializeGeospatial, __movedCoords %lf %lf %lf, ryup %d, geoSystem %d %d %d %d\n",
+			myGeoOrigin->__movedCoords.c[0],
+			myGeoOrigin->__movedCoords.c[1],
+			myGeoOrigin->__movedCoords.c[2],
+			myGeoOrigin->rotateYUp,
+			myGeoOrigin->__geoSystem.p[0],
+			myGeoOrigin->__geoSystem.p[1],
+			myGeoOrigin->__geoSystem.p[2],
+			myGeoOrigin->__geoSystem.p[3]);
+		printf ("initializeGeospatial, done\n\n");
+		#endif
+		FREE_MF_SF_TEMPS
 	}
-
-	compile_geoSystem (geoorigin->_nodeType, &geoorigin->geoSystem, &geoorigin->__geoSystem);
-	INIT_MF_FROM_SF(geoorigin,geoCoords)
-	moveCoords(&geoorigin->__geoSystem, MF_FIELD_IN_OUT);
-	COPY_MF_TO_SF(geoorigin, __movedCoords)
-
-	#ifdef VERBOSE
-	printf ("initializeGeospatial, __movedCoords %lf %lf %lf, ryup %d, geoSystem %d %d %d %d\n",
-		geoorigin->__movedCoords.c[0],
-		geoorigin->__movedCoords.c[1],
-		geoorigin->__movedCoords.c[2],
-		geoorigin->rotateYUp,
-		geoorigin->__geoSystem.p[0],
-		geoorigin->__geoSystem.p[1],
-		geoorigin->__geoSystem.p[2],
-		geoorigin->__geoSystem.p[3]);
-	printf ("initializeGeospatial, done\n\n");
-	#endif
-
-	FREE_MF_SF_TEMPS
 }
 
 
@@ -639,6 +629,7 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 
 
 	/* check the GeoOrigin attached node */
+	myOrigin = NULL;
 	if (geoOrigin != NULL) {
 		if (X3D_GEOORIGIN(geoOrigin)->_nodeType != NODE_GeoOrigin) {
 			ConsoleMessage ("GeoMove, expected a GeoOrigin, found a %s",stringNodeType(X3D_GEOORIGIN(geoOrigin)->_nodeType));
@@ -647,10 +638,8 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 		}
 
 		myOrigin = geoOrigin; /* local one */
-	} else {
-		myOrigin = geoorigin; /* global one */
 	}
-	/* printf ("GeoMove, using myOrigin %u, geoorigin %u, passed in geoOrigin %u with vals %lf %lf %lf\n",myOrigin, geoorigin, myOrigin,
+	/* printf ("GeoMove, using myOrigin %u, passed in geoOrigin %u with vals %lf %lf %lf\n",myOrigin, myOrigin,
 		myOrigin->geoCoords.c[0], myOrigin->geoCoords.c[1], myOrigin->geoCoords.c[2] ); */
 		
 
@@ -663,9 +652,11 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 	printf ("	... origin %lf %lf %lf\n",myOrigin->__movedCoords.c[0], myOrigin->__movedCoords.c[1], myOrigin->__movedCoords.c[2]);
 	#endif
 
-	outCoords->p[i].c[0] -= myOrigin->__movedCoords.c[0];
-	outCoords->p[i].c[1] -= myOrigin->__movedCoords.c[1];
-	outCoords->p[i].c[2] -= myOrigin->__movedCoords.c[2];
+	if (myOrigin != NULL) {
+		outCoords->p[i].c[0] -= myOrigin->__movedCoords.c[0];
+		outCoords->p[i].c[1] -= myOrigin->__movedCoords.c[1];
+		outCoords->p[i].c[2] -= myOrigin->__movedCoords.c[2];
+	}
 
 	#ifdef VERBOSE
 	printf ("GeoMove, after subtracting origin %lf %lf %lf\n", outCoords->p[i].c[0], outCoords->p[i].c[1], outCoords->p[i].c[2]);
@@ -960,14 +951,13 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 
 		/* is there an optional argument? */
 		for (i=0; i<args->n; i++) {
+			/* printf ("geosp_gd, ind %d i am %d string %s\n",i, this_srf_ind,args->p[i]->strptr); */
                         if (strcmp("latitude_first", args->p[i]->strptr) == 0) {
 				srf->p[3] = TRUE;
                         } else if (strcmp("longitude_first", args->p[i]->strptr) == 0) {
 				srf->p[3] = FALSE;
 			} else {
-				if (i!= this_srf_ind) 
-					ConsoleMessage ("geoSystem GD parameter %s not allowed geospatial coordinates",args->p[i]->strptr);
-				else {
+				if (i!= this_srf_ind) {
 					indexT tc = findFieldInGEOSPATIAL(args->p[i]->strptr);
 					switch (tc) {
 						case ID_UNDEFINED:
@@ -1031,23 +1021,42 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 
 void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 	MF_SF_TEMPS
+	int i;
 
+	#ifdef VERBOSE
 	printf ("compiling GeoCoordinate\n");
-
+	#endif
 
 	/* standard MACROS expect specific field names */
 	mIN = node->point;
-	mOUT = node->__movedCoords;
+	mOUT.p = NULL; mOUT.n = 0;
 
+
+	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	MOVE_TO_ORIGIN
 
-	MARK_NODE_COMPILED
+	/* convert the doubles down to floats, because coords are used as floats in FreeWRL. */
+	FREE_IF_NZ(node->__movedCoords.p);
+	node->__movedCoords.p = MALLOC (sizeof (struct SFColor)  * mOUT.n);
+	for (i=0; i<mOUT.n; i++) {
+		node->__movedCoords.p[i].c[0] = (float) mOUT.p[i].c[0];
+		node->__movedCoords.p[i].c[1] = (float) mOUT.p[i].c[1];
+		node->__movedCoords.p[i].c[2] = (float) mOUT.p[i].c[2];
+		#ifdef VERBOSE
+		printf ("coord %d now is %f %f %f\n", i, node->__movedCoords.p[i].c[0],node->__movedCoords.p[i].c[1],node->__movedCoords.p[i].c[2]);
+		#endif
+	}
+	node->__movedCoords.n = mOUT.n;
+
 	FREE_IF_NZ(gdCoords.p);
+	FREE_IF_NZ(mOUT.p);
+	MARK_NODE_COMPILED
 }
 
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	printf ("compiling GeoElevationGrid\n");
+	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
@@ -1063,6 +1072,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	#endif
 
 	/* work out the position */
+	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	INIT_MF_FROM_SF(node, geoCoords)
 	MOVE_TO_ORIGIN
@@ -1094,6 +1104,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	printf ("compiling GeoLOD\n");
 	#endif
 
+	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
@@ -1113,6 +1124,7 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	printf ("compiling GeoOrigin\n");
 	#endif
 
+	/* INITIALIZE_GEOSPATIAL */
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
@@ -1122,6 +1134,7 @@ void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node)
 	printf ("compiling GeoPositionInterpolator\n");
 	#endif
 
+	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
@@ -1131,8 +1144,9 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
 	printf ("compiling GeoTouchSensor\n");
 	#endif
 
-	compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem);
-
+	INITIALIZE_GEOSPATIAL
+	/* compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem); */
+	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
 }
 
@@ -1149,11 +1163,12 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	MF_SF_TEMPS
 
 	#ifdef VERBOSE
-	printf ("compileViewpoint is %u, its geoOrigin is %u (type %s) \n",node, node->geoOrigin, 
-		stringNodeType(X3D_GEOORIGIN(node->geoOrigin)->_nodeType));
+	printf ("compileViewpoint is %u, its geoOrigin is %u \n",node, node->geoOrigin);
+	if (node->geoOrigin!=NULL) printf ("type %s\n",stringNodeType(X3D_GEOORIGIN(node->geoOrigin)->_nodeType));
 	#endif
 
 	/* work out the position */
+	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	INIT_MF_FROM_SF(node, position)
 	MOVE_TO_ORIGIN
@@ -1245,7 +1260,9 @@ float viewer_calculate_speed() {
 	gcCoords.c[1] = Viewer.Pos.y;
 	gcCoords.c[2] = Viewer.Pos.z;
 
-        retractOrigin(&gcCoords);
+	if (Viewer.GeoSpatialNode != NULL) {
+        	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
+	}
 
         #ifdef VERBOSE
         printf ("viewer_calculate_speed, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
@@ -1505,7 +1522,6 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
 
 
-	INITIALIZE_GEOSPATIAL
 	COMPILE_IF_REQUIRED
         /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
 	printf ("do_GeoTouchSensor\n");

@@ -60,7 +60,6 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	struct SFColorRGBA *newcolors;
 	struct SFColorRGBA *oldcolor;
 	int npoints;
-	struct X3D_Coordinate *xc;
 	int maxCoordFound;		/* for bounds checking				*/
 	int maxColorFound;		/* for bounds checking				*/
 	struct X3D_Color *cc;
@@ -93,15 +92,10 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	*/
 
 	if (node->coord) {
-		POSSIBLE_PROTO_EXPANSION(node->coord,xc)
-		/* xc = (struct X3D_Coordinate *) node->coord; */
-		if (xc->_nodeType != NODE_Coordinate) {
-			ConsoleMessage ("IndexedLineSet - Coordinate node expected for coord field");
-			return;
-		} else {
-			npoints = xc->point.n;
-			points = xc->point.p;
-		}
+		struct Multi_Vec3f *dtmp;
+		dtmp = getCoordinate (node->coord, "IndexedLineSet");
+		npoints = dtmp->n;
+		points = dtmp->p;
 	} else {
 		return; /* no coordinates - nothing to do */
 	}
@@ -331,7 +325,6 @@ void render_PointSet (struct X3D_PointSet *node) {
 	int i;
 	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
-	struct X3D_Coordinate *xc;
 	struct X3D_Color *cc;
 
 	/* believe it or not - material emissiveColor can affect us... */
@@ -347,17 +340,15 @@ void render_PointSet (struct X3D_PointSet *node) {
 	}
 
 
-       	if(node->coord) {
-               	/* xc = (struct X3D_Coordinate *) node->coord; */
-		POSSIBLE_PROTO_EXPANSION(node->coord,xc)
-               	if (xc->_nodeType != NODE_Coordinate) {
-                	ConsoleMessage ("make_PointSet, coord node expected but not found");
-			return;
-              	} else {
-                       	points = xc->point.p;
-                       	npoints = xc->point.n;
-               	}
-       	}
+	if (node->coord) {
+		struct Multi_Vec3f *dtmp;
+		dtmp = getCoordinate (node->coord, "IndexedLineSet");
+		npoints = dtmp->n;
+		points = dtmp->p;
+	} else {
+		return; /* no coordinates - nothing to do */
+	}
+
 	if (npoints <=0 ) return; /* nothing to do */
  
 
@@ -400,8 +391,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	/* draw the shape */
 	glDisableClientState (GL_NORMAL_ARRAY);
 
-        xc = (struct X3D_Coordinate *) node->coord;
-	glVertexPointer (3,GL_FLOAT,0,xc->point.p);
+	glVertexPointer (3,GL_FLOAT,0,points);
 	glDrawArrays(GL_POINTS,0,npoints);
 
 	/* put things back to normal */
@@ -418,10 +408,10 @@ void render_LineSet (struct X3D_LineSet *node) {
 	GLfloat defColor[] = {1.0, 1.0, 1.0};
 	GLfloat *thisColor;
 	struct X3D_Color *cc;
-	struct X3D_Coordinate *xc;
 	GLvoid **indices;
 	GLsizei *count;
 	int i;
+	struct Multi_Vec3f* points;
 
 	/* is there an emissiveColor here??? */
 	if (lightingOn) {
@@ -453,8 +443,8 @@ void render_LineSet (struct X3D_LineSet *node) {
 		} else {
 			glColor3fv (thisColor);
 		}
-        	xc = (struct X3D_Coordinate *) node->coord;
-		glVertexPointer (3,GL_FLOAT,0,xc->point.p);
+		points = getCoordinate(node->coord, "LineSet");
+		glVertexPointer (3,GL_FLOAT,0,points->p);
 
 		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
 		indices = node->__vertIndx;
@@ -483,7 +473,6 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	int *vertexC; int nvertexc;
 	int totVertexRequired;
 
-	struct X3D_Coordinate *xc;
 	struct X3D_Color *cc;
 	GLuint *pt;
 	uintptr_t *vpt;
@@ -506,16 +495,14 @@ void compile_LineSet (struct X3D_LineSet *node) {
 		}
 	}
 
-       	if(node->coord) {
-               	/* xc = (struct X3D_Coordinate *) node->coord; */
-		POSSIBLE_PROTO_EXPANSION(node->coord,xc)
-               	if (xc->_nodeType != NODE_Coordinate) {
-               	        ConsoleMessage ("make_LineSet, coord node expected but not found");
-               	} else {
-                       	coord = xc->point.p;
-                       	ncoord = xc->point.n;
-               	}
-       	}
+	if (node->coord) {
+		struct Multi_Vec3f *dtmp;
+		dtmp = getCoordinate (node->coord, "IndexedLineSet");
+		ncoord = dtmp->n;
+		coord = dtmp->p;
+	} else {
+		return; /* no coordinates - nothing to do */
+	}
 
 	/* check that we have enough vertexes */
 	if (totVertexRequired > ncoord) {
