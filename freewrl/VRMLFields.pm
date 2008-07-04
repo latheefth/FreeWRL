@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.81  2008/07/04 18:19:44  crc_canada
+# GeoPositionInterpolator, and start on GeoElevationGrid
+#
 # Revision 1.80  2008/06/24 19:37:48  crc_canada
 # Geospatial, June 24 2008 checkin
 #
@@ -77,6 +80,8 @@
 	SFVec3d
 	MFVec3d
 	DFRotation
+	MFDouble
+	SFDouble
 /;
 
 ###########################################################
@@ -106,7 +111,6 @@ sub cInitialize {
 package VRML::Field::SFTime;
 @ISA=VRML::Field::SFFloat;
 
-
 sub ctype {"double $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
@@ -114,6 +118,18 @@ sub cInitialize {
 	return "$field = $val";
 }
 
+
+###########################################################
+package VRML::Field::SFDouble;
+@ISA=VRML::Field;
+VRML::Error->import;
+
+sub ctype {return "double $_[1]"}
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
+	return "$field = $val";
+}
 
 ###########################################################
 package VRML::Field::FreeWRLPTR;
@@ -300,7 +316,7 @@ sub cInitialize {
 		$retstr = $retstr . "$field.n=$count; ";
 		
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr = "$field.n=0; $field.p=0";
 	}
 	return $retstr;
 }
@@ -328,7 +344,7 @@ sub cInitialize {
 		$retstr = $retstr . "\t\t\t$field.n=$count;";
 		
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr =  "$field.n=0; $field.p=0";
 	}
 	return $retstr;
 }
@@ -367,15 +383,40 @@ sub cInitialize {
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
-		return $retstr;
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr = "$field.n=0; $field.p=0";
 	}
+	return $retstr;
 }
 
 ###########################################################
 package VRML::Field::MFVec3d;
-@ISA=VRML::Field::MFVec3f;
+@ISA=VRML::Field::Multi;
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	my $retstr;
+	my $tmp;
+
+	if (!defined $val) {$count = 0;} # inputOnlys, set it to any value
+	#print "MFVEC3F field $field val @{$val} has $count INIT\n";
+	if ($count > 0) {
+		#print "MALLOC MFVEC3d field $field val @{$val} has $count INIT\n";
+
+		$retstr = "$field.p = MALLOC (sizeof(struct SFVec3d)*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			my $arline = @{$val}[$tmp];
+			for ($whichVal = 0; $whichVal < 3; $whichVal++) {
+				$retstr = $retstr. "\n\t\t\t$field.p[$tmp].c[$whichVal] = ".@{$arline}[$whichVal]."; ";
+			}
+		}
+		$retstr = $retstr."\n\t\t\t$field.n=$count;";
+	} else {
+		$retstr = "$field.n=0; $field.p=0";
+	}
+	return $retstr;
+}
 
 
 ###########################################################
@@ -419,12 +460,10 @@ sub cInitialize {
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
-		return $retstr;
-
-
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr = "$field.n=0; $field.p=0";
 	}
+	return $retstr;
 }
 
 ###########################################################
@@ -435,6 +474,9 @@ package VRML::Field::MFColorRGBA;
 sub cInitialize {
 	my ($this,$field,$val) = @_;
 	my $count = @{$val};
+	my $retstr;
+	my $tmp;
+
 	if (!defined $val) {$count=0} # inputOnlys, set it to any value
 	#print "MFCOLORRGBA field $field val @{$val} has $count INIT\n";
 	if ($count > 0) {
@@ -448,10 +490,10 @@ sub cInitialize {
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
-		return $retstr;
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr = "$field.n=0; $field.p=0";
 	}
+	return $retstr;
 }
 
 ###########################################################
@@ -479,11 +521,11 @@ sub cInitialize {
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count";
-		return $retstr;
 
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr = "$field.n=0; $field.p=0";
 	}
+	return $retstr;
 }
 
 ###########################################################
@@ -500,6 +542,30 @@ sub cInitialize {
 	} else {
 		return "$field.n=0; $field.p=0";
 	}
+}
+###########################################################
+package VRML::Field::MFDouble;
+@ISA=VRML::Field::Multi;
+
+sub cInitialize {
+	my ($this,$field,$val) = @_;
+	my $count = @{$val};
+	my $retstr;
+	my $tmp;
+
+	#print "MFDouble field $field val @{$val} has $count INIT\n";
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
+	if ($count > 0) {
+		#print "MALLOC MFDouble field $field val @{$val} has $count INIT\n";
+		$retstr = $restsr . "$field.p = MALLOC (sizeof(double)*$count);\n";
+		for ($tmp=0; $tmp<$count; $tmp++) {
+			$retstr = $retstr .  "\t\t\t$field.p[$tmp] = @{$val}[tmp];\n";
+		}
+		$retstr = $retstr . "\t\t\t$field.n=$count;";
+	} else {
+		$retstr =  "$field.n=0; $field.p=0";
+	}
+	return $retstr;
 }
 
 ###########################################################
@@ -523,12 +589,10 @@ sub cInitialize {
 			$retstr = $retstr. "\n\t\t\t$field.p[$tmp] = $arline; ";
 		}
 		$retstr = $retstr."$field.n=$count;";
-
-
-
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr = "$field.n=0; $field.p=0";
 	}
+	return $retstr;
 }
 
 ###########################################################
@@ -556,10 +620,10 @@ sub cInitialize {
 			}
 		}
 		$retstr = $retstr."\n\t\t\t$field.n=$count;";
-		return $retstr;
 	} else {
-		return "$field.n=0; $field.p=0";
+		$retstr =  "$field.n=0; $field.p=0";
 	}
+	return $retstr;
 }
 
 ###########################################################

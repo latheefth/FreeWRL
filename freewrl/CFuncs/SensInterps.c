@@ -559,28 +559,88 @@ void do_OintPos2D(void *node) {
 	#endif
 }
 
-/* PositionInterpolator, ColorInterpolator		 		*/
+/* PositionInterpolator, ColorInterpolator, GeoPositionInterpolator	*/
 /* Called during the "events_processed" section of the event loop,	*/
 /* so this is called ONLY when there is something required to do, thus	*/
 /* there is no need to look at whether it is active or not		*/
 
-void do_Oint3 (void *node) {
-	/* PositionInterpolator - store final value in px->value_changed */
-	struct X3D_PositionInterpolator *px;
+/* GeoPositionInterpolator == PositionIterpolator but with geovalue_changed and coordinate conversions */
+void do_GeoPositionInterpolator (void *innode) {
+	struct X3D_GeoPositionInterpolator *node;
 	int kin, kvin, counter, tmp;
-	struct SFColor *kVs;
+	struct SFVec3d *kVs;
+	/* struct SFColor *kVs */
 
 	if (!node) return;
-	px = (struct X3D_PositionInterpolator *) node;
+	node = (struct X3D_GeoPositionInterpolator *) innode;
 
-	MARK_EVENT (node, offsetof (struct X3D_PositionInterpolator, value_changed));
+	if (NODE_NEEDS_COMPILING) compile_GeoPositionInterpolator(node);
+	kvin = node->__movedValue.n;
+	kVs = node->__movedValue.p;
+	kin = node->key.n;
+	MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, value_changed)); 
+	MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, geovalue_changed)); 
 
-	kin = px->key.n;
-	kvin = px->keyValue.n;
-	kVs = px->keyValue.p;
 
 	#ifdef SEVERBOSE
-		printf("do_Oint3: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
+		printf("do_GeoPos: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, node->set_fraction);
+	#endif
+
+	/* make sure we have the keys and keyValues */
+	if ((kvin == 0) || (kin == 0)) {
+		node->value_changed.c[0] = 0.0;
+		node->value_changed.c[1] = 0.0;
+		node->value_changed.c[2] = 0.0;
+		node->geovalue_changed.c[0] = 0.0;
+		node->geovalue_changed.c[1] = 0.0;
+		node->geovalue_changed.c[2] = 0.0;
+		return;
+	}
+
+	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+
+	/* set_fraction less than or greater than keys */
+	if (node->set_fraction <= ((node->key).p[0])) {
+		memcpy ((void *)&node->geovalue_changed, (void *)&kVs[0], sizeof (struct SFVec3d));
+		for (tmp=0;tmp<3;tmp++) node->value_changed.c[tmp] = (float)node->geovalue_changed.c[tmp];
+	} else if (node->set_fraction >= node->key.p[kin-1]) {
+		memcpy ((void *)&node->geovalue_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3d));
+		for (tmp=0;tmp<3;tmp++) node->value_changed.c[tmp] = (float)node->geovalue_changed.c[tmp];
+	} else {
+		/* have to go through and find the key before */
+		counter = find_key(kin,((float)(node->set_fraction)),node->key.p);
+		for (tmp=0; tmp<3; tmp++) {
+			node->geovalue_changed.c[tmp] =
+				(node->set_fraction - node->key.p[counter-1]) /
+				(node->key.p[counter] - node->key.p[counter-1]) *
+				(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
+			node->value_changed.c[tmp] = (float)node->geovalue_changed.c[tmp];
+		}
+	}
+	#ifdef SEVERBOSE
+	printf ("Pos/Col, new value (%f %f %f)\n",
+		node->value_changed.c[0],node->value_changed.c[1],node->value_changed.c[2]);
+	#endif
+}
+
+/* ColorInterpolator == PositionIterpolator */
+void do_ColorInterpolator (void *node) {
+	struct X3D_ColorInterpolator *px;
+	int kin, kvin, counter, tmp;
+	struct SFColor *kVs; 
+
+	if (!node) return;
+	px = (struct X3D_ColorInterpolator *) node;
+
+	kvin = px->keyValue.n;
+	kVs = px->keyValue.p;
+	kin = px->key.n;
+
+	MARK_EVENT (node, offsetof (struct X3D_ColorInterpolator, value_changed)); 
+
+	#ifdef SEVERBOSE
+		printf("do_ColorInt: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
 			   node, kin, kvin, px->set_fraction);
 	#endif
 
@@ -591,16 +651,14 @@ void do_Oint3 (void *node) {
 		px->value_changed.c[2] = 0.0;
 		return;
 	}
-	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
 
+	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed,
-				(void *)&kVs[0], sizeof (struct SFColor));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3d));
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed,
-				(void *)&kVs[kvin-1], sizeof (struct SFColor));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3d));
 	} else {
 		/* have to go through and find the key before */
 		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
@@ -608,9 +666,58 @@ void do_Oint3 (void *node) {
 			px->value_changed.c[tmp] =
 				(px->set_fraction - px->key.p[counter-1]) /
 				(px->key.p[counter] - px->key.p[counter-1]) *
-				(kVs[counter].c[tmp] -
-					kVs[counter-1].c[tmp]) +
-				kVs[counter-1].c[tmp];
+				(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
+		}
+	}
+	#ifdef SEVERBOSE
+	printf ("Pos/Col, new value (%f %f %f)\n",
+		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
+	#endif
+}
+
+
+void do_PositionInterpolator (void *node) {
+	struct X3D_PositionInterpolator *px;
+	int kin, kvin, counter, tmp;
+	struct SFColor *kVs; 
+
+	if (!node) return;
+	px = (struct X3D_PositionInterpolator *) node;
+
+	kvin = px->keyValue.n;
+	kVs = px->keyValue.p;
+	kin = px->key.n;
+
+	MARK_EVENT (node, offsetof (struct X3D_PositionInterpolator, value_changed)); 
+
+	#ifdef SEVERBOSE
+		printf("do_PositionInt: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, px->set_fraction);
+	#endif
+
+	/* make sure we have the keys and keyValues */
+	if ((kvin == 0) || (kin == 0)) {
+		px->value_changed.c[0] = 0.0;
+		px->value_changed.c[1] = 0.0;
+		px->value_changed.c[2] = 0.0;
+		return;
+	}
+
+	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+
+	/* set_fraction less than or greater than keys */
+	if (px->set_fraction <= ((px->key).p[0])) {
+		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3d));
+	} else if (px->set_fraction >= px->key.p[kin-1]) {
+		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3d));
+	} else {
+		/* have to go through and find the key before */
+		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
+		for (tmp=0; tmp<3; tmp++) {
+			px->value_changed.c[tmp] =
+				(px->set_fraction - px->key.p[counter-1]) /
+				(px->key.p[counter] - px->key.p[counter-1]) *
+				(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
 		}
 	}
 	#ifdef SEVERBOSE

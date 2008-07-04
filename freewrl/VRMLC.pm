@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.291  2008/07/04 18:19:44  crc_canada
+# GeoPositionInterpolator, and start on GeoElevationGrid
+#
 # Revision 1.290  2008/07/03 20:01:29  crc_canada
 # GeoCoordinate work.
 #
@@ -957,7 +960,7 @@ sub gen {
 				} elsif ($ft eq "MFFloat") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer printf (\"\t\t\t%d: \\t%4.3f\\n\",i,tmp->$field.p[i]); }\n";
-				} elsif (($ft eq "MFVec3f") || ($ft eq "MFColor")) {
+				} elsif (($ft eq "MFVec3f") || ($ft eq "MFColor") || ($ft eq "MFVec3d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2]); }\n";

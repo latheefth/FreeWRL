@@ -24,6 +24,7 @@ package VRML::NodeType;
 						 },$type;
 		my $t;
 		for (keys %$fields) {
+			#print "field key $_\n";
 			if (ref $fields->{$_}[1] eq "ARRAY") {
 				push @{$this->{Defaults}{$_}}, @{$fields->{$_}[1]};
 			} else {
@@ -32,7 +33,7 @@ package VRML::NodeType;
 			$this->{FieldTypes}{$_} = $fields->{$_}[0];
 			$t = $fields->{$_}[2];
 			if (!defined $t) {
-				die("Missing field or event type for $_ in $name");
+				die("Missing field or event type $type X3DNodeType $X3DNodeType for $_ in $name");
 			}
 
 			$this->{FieldKinds}{$_} = $t;
@@ -1232,30 +1233,32 @@ package VRML::NodeType;
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [MFVec3f, [], inputOutput],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					},"X3DCoordinateNode"),
 
 	GeoElevationGrid => new VRML::NodeType("GeoElevationGrid", {
-						set_height => [MFFloat, undef, inputOnly],
-						set_YScale => [MFFloat, undef, inputOnly],
+	#					set_height => [MFDouble, undef, inputOnly],
 						color => [SFNode, NULL, inputOutput],
 						metadata => [SFNode, NULL, inputOutput],
 						normal => [SFNode, NULL, inputOutput],
 						texCoord => [SFNode, NULL, inputOutput],
+						yScale => [SFFloat, 1.0, initializeOnly],
 						ccw => [SFBool,1,initializeOnly],
 						colorPerVertex => [SFBool, 1, initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
+	#					creaseAngle => [SFDouble, 0, initializeOnly],
+						geoGridOrigin => [SFVec3d,[0,0,0],initializeOnly],
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						geoGridOrigin => [SFString,"0 0 0",initializeOnly],
-						height => [MFFloat, [], initializeOnly],
+	#					height => [MFDouble, [0,0], initializeOnly],
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFString, "1.0", initializeOnly],
-						yScale => [SFFloat, 1.0, initializeOnly],
+	#					xSpacing => [SFDouble, 1.0, initializeOnly],
 						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFString, "1.0", initializeOnly],
+	#					zSpacing => [SFDouble, 1.0, initializeOnly],
+
 						__geoSystem => [MFInt32,[],initializeOnly],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					},"X3DGeometryNode"),
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {
@@ -1272,6 +1275,7 @@ package VRML::NodeType;
 						rootNode => [MFNode,[],initializeOnly],
 						children => [MFNode,[],outputOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					},"X3DGroupingNode"),
 
 
@@ -1282,15 +1286,17 @@ package VRML::NodeType;
 					},"X3DChildNode"),
 
 	GeoPositionInterpolator=> new VRML::NodeType("GeoPositionInterpolator", {
-						metadata => [SFNode, NULL, inputOutput],
 						set_fraction => [SFFloat,undef,inputOnly],
+						key => [MFFloat,[],inputOutput],
+						keyValue => [MFVec3d,[],inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
+						geovalue_changed => [SFVec3d,[0,0,0],outputOnly],
+						value_changed => [SFVec3f,[0,0,0],outputOnly],
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						key => [MFFloat,[],initializeOnly],
-						keyValue => [MFString,[],initializeOnly],
-						geovalue_changed => [SFString,"",outputOnly],
-						value_changed => [SFVec3f,[0,0,0],outputOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
+						__movedValue => [MFVec3d, [], inputOutput],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					},"X3DInterpolatorNode"),
 
 
@@ -1308,6 +1314,7 @@ package VRML::NodeType;
 						description => [SFString, "", initializeOnly],
 						touchTime => [SFTime, -1, outputOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					},"X3DPointingDeviceSensorNode"),
 
 	GeoViewpoint => new VRML::NodeType("GeoViewpoint", {
@@ -1334,6 +1341,7 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedPosition => [SFVec3d, [0, 0, 0], inputOutput],
 						__movedOrientation => [SFRotation, [0, 0, 1, 0], initializeOnly],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					
 					   },"X3DBindableNode"),
 
@@ -1347,6 +1355,9 @@ package VRML::NodeType;
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+						__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
+						
 					},"X3DChildNode"),
 
 	GeoLocation => new VRML::NodeType("GeoLocation", {
@@ -1364,8 +1375,7 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__localOrient => [DFRotation, [0, 0, 1, 0], inputOutput],
-
-
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					},"X3DGroupingNode"),
 
 

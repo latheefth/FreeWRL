@@ -166,6 +166,7 @@ Different nodes produce eventins/eventouts...
 		OrientationInterpolator
 		ColorInterpolator
 		PositionInterpolator
+		GeoPositionInterpolator
 		NormalInterpolator
 		CoordinateInterpolator
 		Fog

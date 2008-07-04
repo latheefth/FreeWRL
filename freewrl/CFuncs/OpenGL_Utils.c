@@ -656,7 +656,7 @@ void zeroVisibilityFlag(void) {
 
 #define  CHECK_MATERIAL_TRANSPARENCY \
 	if (((struct X3D_Material *)node)->transparency > 0.0001) { \
-		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \ 
+		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \
 		update_renderFlag(X3D_NODE(node),VF_Blend);\
 		have_transparency = TRUE; \
 	}
@@ -809,8 +809,10 @@ void startOfLoopNodeUpdates(void) {
 					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedFaceSet)
 					EVIN_AND_FIELD_SAME(height,IndexedFaceSet)
 				END_NODE
+				/*
 				BEGIN_NODE(GeoElevationGrid)
 					EVIN_AND_FIELD_SAME(height,GeoElevationGrid)
+				*/
 				END_NODE
 				/* these are actually compiled in by the GeoViewpoint code 
 				BEGIN_NODE(GeoViewpoint)
@@ -970,16 +972,21 @@ void kill_X3DNodes(void){
 			/* printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
 
 			/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
-			if ((X3D_NODE(structptr)->_nodeType == NODE_Group) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_Group, FreeWRL__protoDef))) {
-				break;
-			} else if ((X3D_NODE(structptr)->_nodeType == NODE_TextureCoordinate) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_TextureCoordinate, __lastParent))) {
-				break;
-			} else if ((X3D_NODE(structptr)->_nodeType == NODE_LOD) && ((*(fieldOffsetsPtr+1)) == offsetof (struct X3D_LOD, _selected))) {
-				break;
-			}
 
+			if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
+				break; /* can be a duplicate SFNode pointer */
+		
+			if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
+				break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
+		
+			if (*fieldOffsetsPtr == FIELDNAMES_FreeWRL__protoDef) 
+				break; /* can be a duplicate SFNode pointer - field only in NODE_Group */
+		
+			if (*fieldOffsetsPtr == FIELDNAMES__selected) 
+				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+		
 			/* nope, not a special field, lets just get rid of it as best we can */
-			else switch(*(fieldOffsetsPtr+2)){
+			switch(*(fieldOffsetsPtr+2)){
 				case FIELDTYPE_MFFloat:
 					MFloat=(struct Multi_Float *)fieldPtr;
 					MFloat->n=0;

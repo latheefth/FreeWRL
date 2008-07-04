@@ -67,6 +67,14 @@ Geocentric to Geodetic:
 #include "OpenGL_Utils.h"
 
 
+#define MARK_META_EVENT(type) \
+	/* we store oldmetadata as a SFTime because it =64 bits, and it will not cause problems \
+	   on node garbage collection as it will not then be a duplicate SFNode pointer */ \
+	if (node->__oldmetadata != node->metadata) { \
+		MARK_EVENT((void*)node, offsetof (struct X3D_##type, metadata));  \
+		node->__oldmetadata = node->metadata; \
+	}
+
 /* defines used to get a SFVec3d into/outof a function that expects a MFVec3d */
 #define MF_SF_TEMPS	struct Multi_Vec3d mIN; struct Multi_Vec3d  mOUT; struct Multi_Vec3d gdCoords;
 #define FREE_MF_SF_TEMPS FREE_IF_NZ(gdCoords.p); FREE_IF_NZ(mOUT.p);
@@ -1052,6 +1060,10 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 	FREE_IF_NZ(gdCoords.p);
 	FREE_IF_NZ(mOUT.p);
 	MARK_NODE_COMPILED
+	
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
 }
 
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
@@ -1059,6 +1071,10 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
+	
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
 }
 
 
@@ -1093,6 +1109,10 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
+	
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
 
 	#ifdef VERBOSE
 	printf ("compiled GeoLocation\n\n");
@@ -1107,6 +1127,10 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
+	
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
 }
 
 void compile_GeoMetadata (struct X3D_GeoMetadata * node) {
@@ -1114,7 +1138,6 @@ void compile_GeoMetadata (struct X3D_GeoMetadata * node) {
 	printf ("compiling GeoMetadata\n");
 
 	#endif
-
 
 	MARK_NODE_COMPILED
 }
@@ -1127,16 +1150,47 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	/* INITIALIZE_GEOSPATIAL */
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
+
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
+	if ((!APPROX(node->geoCoords.c[0],node->__oldgeoCoords.c[0])) ||
+	   (!APPROX(node->geoCoords.c[1],node->__oldgeoCoords.c[1])) ||
+	   (!APPROX(node->geoCoords.c[2],node->__oldgeoCoords.c[2]))) {
+		MARK_EVENT(node, offsetof (struct X3D_GeoOrigin, geoCoords)); 
+		memcpy (&node->__oldgeoCoords, &node->geoCoords, sizeof (struct SFVec3d));
+	}
 }
 
 void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node) {
+	MF_SF_TEMPS
+	int i;
+
 	#ifdef VERBOSE
 	printf ("compiling GeoPositionInterpolator\n");
 	#endif
 
+	/* standard MACROS expect specific field names */
+	mIN = node->keyValue;
+	mOUT.p = NULL; mOUT.n = 0;
+
+
 	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
+	MOVE_TO_ORIGIN
+
+	
+	/* keep the output values of this process */
+	FREE_IF_NZ(node->__movedValue.p);
+	node->__movedValue.p = mOUT.p;
+	node->__movedValue.n = mOUT.n;
+
+	FREE_IF_NZ(gdCoords.p);
 	MARK_NODE_COMPILED
+	
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
 }
 
 void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
@@ -1148,6 +1202,10 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
 	/* compile_geoSystem (node->_nodeType, &node->geoSystem, &node->__geoSystem); */
 	COMPILE_GEOSYSTEM
 	MARK_NODE_COMPILED
+	
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
 }
 
 /**************************************************************************/
@@ -1206,6 +1264,10 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
+	
+	/* events */
+	MARK_META_EVENT(GeoOrigin)
+
 
 	#ifdef VERBOSE
 	printf ("compiled GeoViewpoint\n\n");
@@ -1499,22 +1561,6 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 	INITIALIZE_GEOSPATIAL
 	COMPILE_IF_REQUIRED
 }
-
-/* GeoPositionInterpolator                                              */
-/* Called during the "events_processed" section of the event loop,      */
-/* so this is called ONLY when there is something required to do, thus  */
-/* there is no need to look at whether it is active or not              */
-
-void do_GeoPositionInterpolator (void *this) {
-        struct X3D_GeoPositionInterpolator *node = this;
-        
-        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
-	printf ("do_GeoPositionInterpolator\n");
-
-	INITIALIZE_GEOSPATIAL
-	COMPILE_IF_REQUIRED
-}
-        
 
 /* void do_GeoTouchSensor (struct X3D_GeoTouchSensor *node, int ev, int over) {*/
 void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {

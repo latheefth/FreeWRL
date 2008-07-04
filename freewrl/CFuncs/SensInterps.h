@@ -49,14 +49,13 @@ void
 do_OintScalar(void *node);
 
 void
-do_GeoPositionInterpolator(void *node);
-
-void
 do_OintCoord(void *node);
 
 void do_OintCoord2D(void *node);
 void do_OintPos2D(void *node);
-void do_Oint3(void *node);
+void do_PositionInterpolator(void *node);
+void do_ColorInterpolator(void *node);
+void do_GeoPositionInterpolator(void *node);
 
 void
 do_Oint4(void *node);

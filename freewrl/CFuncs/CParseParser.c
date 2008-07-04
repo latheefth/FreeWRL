@@ -108,6 +108,7 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_mfvec2f	FALSE
 #define ROUTE_REAL_SIZE_mfvec3f	FALSE
 #define ROUTE_REAL_SIZE_mfvec3d	FALSE
+#define ROUTE_REAL_SIZE_mfdouble	FALSE
 
 /* General processing macros */
 #define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
@@ -2322,6 +2323,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define FTIND_sfrotation	FIELDTYPE_SFRotation
  #define FTIND_sfstring	FIELDTYPE_SFString
  #define FTIND_sftime	FIELDTYPE_SFTime
+ #define FTIND_sfdouble	FIELDTYPE_SFDouble
  #define FTIND_sfvec2f	FIELDTYPE_SFVec2f
  #define FTIND_sfvec3f	FIELDTYPE_SFVec3f
  #define FTIND_sfvec3d	FIELDTYPE_SFVec3d
@@ -2336,6 +2338,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define FTIND_mfvec2f	FIELDTYPE_MFVec2f
  #define FTIND_mfvec3f	FIELDTYPE_MFVec3f
  #define FTIND_mfvec3d	FIELDTYPE_MFVec3d
+ #define FTIND_mfdouble	FIELDTYPE_MFDouble
  
  /* Process a field (either exposed or ordinary) generally */
  /* For a normal "field value" (i.e. position 1 0 1) statement gets the actual value of the field from the file (next token(s) to be processed) and stores it in the node

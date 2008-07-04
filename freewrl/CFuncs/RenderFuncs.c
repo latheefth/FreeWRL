@@ -790,9 +790,9 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("ScalarInterpolator",x)==0) {
 		return (void *)do_OintScalar;
 	} else if (strcmp("ColorInterpolator",x)==0) {
-		return (void *)do_Oint3;
+		return (void *)do_ColorInterpolator;
 	} else if (strcmp("PositionInterpolator",x)==0) {
-		return (void *)do_Oint3;
+		return (void *)do_PositionInterpolator;
 	} else if (strcmp("CoordinateInterpolator",x)==0) {
 		return (void *)do_OintCoord;
 	} else if (strcmp("NormalInterpolator",x)==0) {
