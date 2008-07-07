@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.82  2008/07/07 15:43:04  crc_canada
+# SFDouble, MFDouble, some compiler warnings reduced.
+#
 # Revision 1.81  2008/07/04 18:19:44  crc_canada
 # GeoPositionInterpolator, and start on GeoElevationGrid
 #
@@ -79,9 +82,9 @@
 	FreeWRLPTR
 	SFVec3d
 	MFVec3d
-	DFRotation
-	MFDouble
 	SFDouble
+	MFDouble
+	DFRotation
 /;
 
 ###########################################################

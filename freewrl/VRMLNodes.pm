@@ -1237,7 +1237,7 @@ package VRML::NodeType;
 					},"X3DCoordinateNode"),
 
 	GeoElevationGrid => new VRML::NodeType("GeoElevationGrid", {
-	#					set_height => [MFDouble, undef, inputOnly],
+						set_height => [MFDouble, undef, inputOnly],
 						color => [SFNode, NULL, inputOutput],
 						metadata => [SFNode, NULL, inputOutput],
 						normal => [SFNode, NULL, inputOutput],
@@ -1245,20 +1245,21 @@ package VRML::NodeType;
 						yScale => [SFFloat, 1.0, initializeOnly],
 						ccw => [SFBool,1,initializeOnly],
 						colorPerVertex => [SFBool, 1, initializeOnly],
-	#					creaseAngle => [SFDouble, 0, initializeOnly],
+						creaseAngle => [SFDouble, 0, initializeOnly],
 						geoGridOrigin => [SFVec3d,[0,0,0],initializeOnly],
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
-	#					height => [MFDouble, [0,0], initializeOnly],
+						height => [MFDouble, [0,0], initializeOnly],
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						xDimension => [SFInt32, 0, initializeOnly],
-	#					xSpacing => [SFDouble, 1.0, initializeOnly],
+						xSpacing => [SFDouble, 1.0, initializeOnly],
 						zDimension => [SFInt32, 0, initializeOnly],
-	#					zSpacing => [SFDouble, 1.0, initializeOnly],
+						zSpacing => [SFDouble, 1.0, initializeOnly],
 
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
+						__realElevationGrid => [SFNode, NULL, initializeOnly],
 					},"X3DGeometryNode"),
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {

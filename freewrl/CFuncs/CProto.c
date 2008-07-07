@@ -139,7 +139,8 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
 		dir = TO_SCRIPT;
 	}
   	/* printf("protoFieldDecl_routeTo: registering route from %p %u to script dest %p %u %d\n", node, ofs, toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), dir); */
-	parser_registerRoute(p, node, ofs, toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), len, dir);
+	/* parser_registerRoute, cast the toscript->num so as to get around compiler warnings, it IS NOT a pointer, though */
+	parser_registerRoute(p, node, ofs, (struct X3D_Node *) toscript->num, scriptFieldDecl_getRoutingOffset(tosfield), len, dir);
  }
 }
 
@@ -169,7 +170,8 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
 	} else if (dir == 0) {
 		dir = FROM_SCRIPT;
 	}
-	parser_registerRoute(p, fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs, len, dir);
+	/* parser_registerRoute, cast the fromscript->num to get around compiler warnings, but it is NOT a pointer, though */
+	parser_registerRoute(p, (struct X3D_Node *) fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs, len, dir);
   	/* printf("protoFieldDecl_routeFrom: registering route from script dest %p %u to %p %u %d\n", fromscript->num, scriptFieldDecl_getRoutingOffset(fromsfield), node, ofs,  dir); */
  }
 }
@@ -318,6 +320,9 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 #define DEEPCOPY_sfvec3f(l,v, i, h) v
 #define DEEPCOPY_sfvec3d(l,v, i, h) v
 #define DEEPCOPY_sfimage(l, v, i, h) v
+#define DEEPCOPY_sfdouble(l, v, i, h) v
+#define DEEPCOPY_dfrotation(l, v, i, h) v
+
 
 static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
 {
@@ -346,6 +351,7 @@ DEEPCOPY_MFVALUE(lex, node, Node)
 DEEPCOPY_MFVALUE(lex, rotation, Rotation)
 DEEPCOPY_MFVALUE(lex, string, String)
 DEEPCOPY_MFVALUE(lex, time, Time)
+DEEPCOPY_MFVALUE(lex, double, Double)
 DEEPCOPY_MFVALUE(lex, vec2f, Vec2f)
 DEEPCOPY_MFVALUE(lex, vec3f, Vec3f)
 DEEPCOPY_MFVALUE(lex, vec3d, Vec3d)

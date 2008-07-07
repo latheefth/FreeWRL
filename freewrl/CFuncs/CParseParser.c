@@ -58,6 +58,10 @@
         FreeWRLPTR
         SFVec3d
         MFVec3d
+        SFDouble
+        MFDouble
+        DFRotation
+
 */
 BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sffloatValue_, &parser_mffloatValue,
@@ -72,7 +76,9 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sfstringValue_, &parser_mfstringValue,
  &parser_sfvec2fValue, &parser_mfvec2fValue,
  &parser_sfimageValue, NULL,
- &parser_sfvec3dValue, &parser_mfvec3dValue
+ &parser_sfvec3dValue, &parser_mfvec3dValue,
+ &parser_sftimeValue, &parser_mftimeValue,
+ NULL,			/* DFRotation - (rotation with doubles) no user input? */
 
 };
 
@@ -2310,6 +2316,9 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define INIT_CODE_mfvec2f(var)
  #define INIT_CODE_mfvec3f(var)
  #define INIT_CODE_mfvec3d(var)
+ #define INIT_CODE_sfdouble(var)
+ #define INIT_CODE_mfdouble(var)
+ #define INIT_CODE_dfrotation(var)
 
  /* The field type indices */
  #define FTIND_sfnode	FIELDTYPE_SFNode
@@ -2339,6 +2348,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define FTIND_mfvec3f	FIELDTYPE_MFVec3f
  #define FTIND_mfvec3d	FIELDTYPE_MFVec3d
  #define FTIND_mfdouble	FIELDTYPE_MFDouble
+ #define FTIND_dfrotation FIELDTYPE_DFRotation
  
  /* Process a field (either exposed or ordinary) generally */
  /* For a normal "field value" (i.e. position 1 0 1) statement gets the actual value of the field from the file (next token(s) to be processed) and stores it in the node
@@ -2690,16 +2700,18 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
                 case FIELDTYPE_MFColor:
                 case FIELDTYPE_MFColorRGBA:
                 case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFDouble:
                 case FIELDTYPE_MFString:
                 case FIELDTYPE_MFVec2f:
-
-		/* WARNING - does this work? Maybe not... */
+			{ int localSize;
+			localSize =  returnRoutingElementLength(convertToSFType(type)); /* converts MF to equiv SF type */
                         /* struct Multi_Float { int n; float  *p; }; */
                         /* treat these all the same, as the data type is same size */
                         ((struct Multi_Node *)out)->n=1;
-                        ((struct Multi_Node *)out)->p=MALLOC(sizeof(float));
-                        ((struct Multi_Node *)out)->p[0] = in;
+                        ((struct Multi_Node *)out)->p=MALLOC(localSize);
+                        memcpy (&((struct Multi_Node *)out)->p[0], &in, localSize);
                         break;
+			}
                 default: {
                         ConsoleMessage ("VRML Parser; stuffDEFUSE, unhandled type");
                 }
@@ -2728,6 +2740,7 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
 		case FIELDTYPE_MFBool: 
 		case FIELDTYPE_MFInt32: 
 		case FIELDTYPE_MFTime: 
+		case FIELDTYPE_MFDouble: 
 		case FIELDTYPE_MFString: 
                         /* treat these all the same, as the data type is same size */
                         ((struct Multi_Node *)out)->n=1;
