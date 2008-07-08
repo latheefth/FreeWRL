@@ -183,6 +183,18 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		if (node->_ichange == 0) return; \
 	}
 
+/* same as COMPILE_IF_REQUIRED, but passes in node name */
+#define COMPILE_IF_REQUIRED2(node) { struct X3D_Virt *v; \
+	if (node->_ichange != node->_change) { \
+	/* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
+		v = *(struct X3D_Virt **)node; \
+		if (v->compile) { \
+			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
+		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
+		} \
+		if (node->_ichange == 0) return; \
+	}
+
 
 /* convert a PROTO node (which will be a Group node) into a node. eg, for Materials  - this is a possible child
 node for ANY node that takes something other than a Group */
