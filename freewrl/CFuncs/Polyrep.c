@@ -742,7 +742,9 @@ void render_polyrep(void *node) {
 
 	#ifdef TEXVERBOSE
 	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(genericNodePtr->_nodeType)); 
+	printf ("ntri %d\n",r->ntri);
 	#endif
+
 
 	if (r->ntri==0) {
 		/* no triangles */
@@ -800,6 +802,7 @@ void render_polyrep(void *node) {
 
 	trisThisLoop += r->ntri;
 
+
 /*
 	{
 		int i;
@@ -807,9 +810,8 @@ void render_polyrep(void *node) {
 		float *cod;
 		float *tcod;
 		tcod = r->GeneratedTexCoords;
-		cod = r->coord;
+		cod = r->actualCoord;
 		cin = r->cindex;
-
 printf ("\n\nrender_polyrep:\n");
 		for (i=0; i<r->ntri*3; i++) {
 			printf ("i %d cindex %d vertex %f %f %f",i,cin[i],
@@ -825,7 +827,8 @@ printf ("\n\nrender_polyrep:\n");
 			printf ("\n");
 		}
 	}
-*/
+	*/
+
 
 	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
@@ -841,7 +844,6 @@ printf ("\n\nrender_polyrep:\n");
 
 	if (!r->ccw) glFrontFace(GL_CCW);
 }
-
 
 /*********************************************************************
  *

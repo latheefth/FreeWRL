@@ -459,7 +459,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 	   either no parent, or a SFNode. If we get a SFNode, we call the "save this" function
 	   so that the X3D scene graph gets the updated array value. To make a long story short,
 	   here's the call to set the parent for the above. */
-	if (!JS_SetParent (cx, *newval, obj)) {
+	if (!JS_SetParent (cx, (JSObject *)*newval, obj)) {
 		printf ("X3D_MF_TO_JS - can not set parent!\n");
 	} 
 
@@ -467,11 +467,11 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 	printf ("telling %u that it is a child \"%s\" of parent %u\n",*newval, fieldName, obj);
 	#endif
 
-	fieldNameAsJSVAL = JS_NewStringCopyZ(cx,fieldName);
+	fieldNameAsJSVAL = (jsval)JS_NewStringCopyZ(cx,fieldName);
         if (!JS_DefineProperty(cx, JSVAL_TO_OBJECT(*newval), "_parentField", fieldNameAsJSVAL, 
 			JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_READONLY)) {
                 printf("JS_DefineProperty failed for \"%s\" in X3D_MF_TO_JS.\n", fieldName);
-                return JS_FALSE;
+                return;
        	}
 
 
@@ -485,7 +485,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 		case FIELDTYPE_MFInt32:
 			MIptr = (struct Multi_Int32*) Data;
 			for (i=0; i<MIptr->n; i++) {
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, INT_TO_JSVAL(MIptr->p[i]),
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, INT_TO_JSVAL(MIptr->p[i]),
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u in MFInt32Constr.\n", i);
                         		return;
@@ -495,7 +495,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 		case FIELDTYPE_MFFloat:
 			MFptr = (struct Multi_Float*) Data;
 			for (i=0; i<MFptr->n; i++) {
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, INT_TO_JSVAL(MFptr->p[i]),
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, INT_TO_JSVAL(MFptr->p[i]),
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u in MFFloatConstr.\n", i);
                         		return;
@@ -505,7 +505,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 		case FIELDTYPE_MFTime:
 			MTptr = (struct Multi_Time*) Data;
 			for (i=0; i<MTptr->n; i++) {
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, INT_TO_JSVAL(MTptr->p[i]),
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, INT_TO_JSVAL(MTptr->p[i]),
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u in MFTimeConstr.\n", i);
                         		return;
@@ -525,11 +525,11 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 					sprintf (newline,"new SFColor(%f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2]);	
 				else
 					sprintf (newline,"new SFColor(%f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1], MCptr->p[i].c[2]);	
-				if (!JS_EvaluateScript(cx, *newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, xf,
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u .\n", i);
                         		return;
@@ -545,11 +545,11 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			MCptr = (struct Multi_Vec2f *) Data;
 			for (i=0; i<MCptr->n; i++) {
 				sprintf (newline,"new SFVec2f(%f, %f, %f)", MCptr->p[i].c[0], MCptr->p[i].c[1]);	
-				if (!JS_EvaluateScript(cx, *newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, xf,
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u .\n", i);
                         		return;
@@ -564,11 +564,11 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			MCptr = (struct Multi_Rotation*) Data;
 			for (i=0; i<MCptr->n; i++) {
 				sprintf (newline,"new SFRotation(%f, %f, %f, %f)", MCptr->p[i].r[0], MCptr->p[i].r[1], MCptr->p[i].r[2], MCptr->p[i].r[3]);	
-				if (!JS_EvaluateScript(cx, *newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, xf,
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u .\n", i);
                         		return;
@@ -585,11 +585,11 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 
 			for (i=0; i<MCptr->n; i++) {
 				sprintf (newline,"new SFNode(%u)", MCptr->p[i]);	
-				if (!JS_EvaluateScript(cx, *newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, xf,
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u .\n", i);
                         		return;
@@ -618,11 +618,11 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 				printf ("X3D_MF_TO_JS, we have a new script to evaluate: \"%s\"\n",newline);
 				#endif
 
-				if (!JS_EvaluateScript(cx, *newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+				if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 					printf ("error creating the new object in X3D_MF_TO_JS\n");
 					return;
 				}
-                		if (!JS_DefineElement(cx, *newval, (jsint) i, xf,
+                		if (!JS_DefineElement(cx, (JSObject *)*newval, (jsint) i, xf,
                         		  JS_GET_PROPERTY_STUB, setSF_in_MF, JSPROP_ENUMERATE)) {
                         		printf( "JS_DefineElement failed for arg %u .\n", i);
                         		return;
@@ -650,7 +650,7 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			}
 			strcat (newline, "))");
 
-			if (!JS_EvaluateScript(cx, *newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
+			if (!JS_EvaluateScript(cx, (JSObject *)*newval, newline, strlen(newline), FNAME_STUB, LINENO_STUB, &xf)) {
 				printf ("error creating the new object in X3D_MF_TO_JS\n");
 				return;
 			}
@@ -716,7 +716,8 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 
 
 /* SFNode - find the fieldOffset pointer for this field within this node */
-uintptr_t *getFOP (struct X3D_Node *node, const char *str) {
+uintptr_t *getFOP (uintptr_t *handle, const char *str) {
+	struct X3D_Node *node = (struct X3D_Node *)handle;
 	uintptr_t *fieldOffsetsPtr;
 
 

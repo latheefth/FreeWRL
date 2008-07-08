@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.292  2008/07/08 16:30:24  crc_canada
+# more GeoElevationGrid changes.
+#
 # Revision 1.291  2008/07/04 18:19:44  crc_canada
 # GeoPositionInterpolator, and start on GeoElevationGrid
 #
@@ -764,6 +767,8 @@ sub gen {
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
+	"#define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)\n".
+	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#undef DEBUG_VALIDNODE\n".
 	"#ifdef DEBUG_VALIDNODE	\n".
 	"#define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)\n".

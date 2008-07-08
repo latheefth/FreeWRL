@@ -13,7 +13,6 @@
 
 void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep *r, struct SFColor *points, int npoints);
 
-
 /********************************************************************
 *
 * stream_polyrep
@@ -84,11 +83,11 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	p = (struct X3D_IndexedFaceSet *)node;
 	r = (struct X3D_PolyRep *)p->_intern;
 
-	/* printf ("stream_polyrep, at start, we have %d triangles texCoord %u\n",r->ntri,texCoord);  */
+	/* printf ("stream_polyrep, at start, we have %d triangles texCoord %u\n",r->ntri,texCoord); */
 
 	/* does this one have any triangles here? (eg, an IFS without coordIndex) */
 	if (r->ntri==0) {
-		/* printf ("stream IFS, at start, this guy is empty, just returning \n"); */
+		printf ("stream IFS, at start, this guy is empty, just returning \n");
 		return;
 	}
 
@@ -129,14 +128,14 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	}
 
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("\nstart stream_polyrep ncoords %d ncolors %d nnormals %d ntexcoords %d ntri %d\n",
-			npoints, ncolors, nnormals, ntexcoords,r->ntri);
+	printf ("\nstart stream_polyrep ncoords %d ncolors %d nnormals %d ntri %d\n",
+			npoints, ncolors, nnormals, r->ntri);
 	#endif
 
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("stream polyrep, have an intern type of %d GeneratedTexCoords %d tcindex %d\n",r->tcoordtype, r->GeneratedTexCoords,r->tcindex);
-	printf ("polyv, points %d coord %d ntri %d rnormal nnormal\n",points,r->coord,r->ntri,r->normal, nnormals);
+	printf ("polyv, points %d coord %d ntri %d rnormal nnormal\n",points,r->actualCoord,r->ntri,r->normal, nnormals);
 	#endif
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
@@ -381,8 +380,7 @@ void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, str
 		printf ("have to gen default textures\n");
 		#endif
 
-		if ((p->_nodeType == NODE_IndexedFaceSet) ||
-		   (p->_nodeType == NODE_ElevationGrid)) {
+		if ((p->_nodeType == NODE_IndexedFaceSet) ||(p->_nodeType == NODE_ElevationGrid)) {
 
 			/* find the S,T mapping. */
 			Xsize = r->maxVals[0]-minVals[0];

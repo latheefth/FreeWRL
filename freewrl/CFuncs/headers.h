@@ -1141,8 +1141,9 @@ void prep_SpotLight (struct X3D_SpotLight *this_);
 void prep_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */
+int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **points, int *npoints);
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
-#define rendray_GeoElevationGrid render_ray_polyrep
+void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 void make_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 void prep_GeoLocation (struct X3D_GeoLocation *this_);

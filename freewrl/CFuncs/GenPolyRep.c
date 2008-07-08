@@ -100,8 +100,7 @@ int checkX3DIndexedFaceSetFields (struct X3D_IndexedFaceSet *this_) {
 }
 
 /* check validity of ElevationGrid fields */
-int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
-				float **points, int *npoints) {
+int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points, int *npoints) {
 	int i,j;
 	int nx = (this_->xDimension);
 	float xSp = (this_->xSpacing);
@@ -214,6 +213,7 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 
 	for (j=0; j<nz; j++) {
 		for (i=0; i < nx; i++) {
+		
 		/*
 		 printf ("point [%d,%d] is %f %f %f (hei ind %d)\n",
 			i,j,
@@ -222,6 +222,7 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 			zSp * j,
 			i+(j*nx));
 		*/
+		
 		
 		newPoint[0] = xSp * i; newPoint[1] = height[i+(j*nx)]; newPoint[2]=zSp*j;
 		memcpy(newpoints,newPoint,sizeof(float)*3);
@@ -590,7 +591,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	struct X3D_TextureCoordinate *tc;
 
 	#ifdef VERBOSE
-	printf ("start of make_indexedfaceset for node %d\n",this_);
+	printf ("start of make_indexedfaceset for node %u, cin %d\n",this_, this_->coordIndex.n);
 	#endif
 
 	if (this_->_nodeType == NODE_IndexedFaceSet) {
@@ -601,12 +602,21 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 		
 
 	} else if (this_->_nodeType == NODE_ElevationGrid) {
-		if (!checkX3DElevationGridFields((struct X3D_ElevationGrid *)this_,
-			(float **)&points, &npoints)) {
-	        	rep_->ntri = 0;
-	        	return;
+		/* this might be an ElevationGrid based on a GeoElevationGrid */
+		if ((this_->_nparents>=1) && (X3D_NODE(this_->_parents[0])->_nodeType == NODE_GeoElevationGrid)) {
+			if (!checkX3DGeoElevationGridFields(X3D_ELEVATIONGRID(this_),
+				(float **)&points, &npoints)) {
+		        	rep_->ntri = 0;
+		        	return;
+			}
+		} else {
+			if (!checkX3DElevationGridFields(X3D_ELEVATIONGRID(this_),
+				(float **)&points, &npoints)) {
+		        	rep_->ntri = 0;
+		        	return;
+			}
 		}
-	
+
 	/* if this is a X3DComposedGeom - check fields */
 	} else {
 		if (!checkX3DComposedGeomFields(this_)) {

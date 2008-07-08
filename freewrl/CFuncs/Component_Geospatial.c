@@ -1066,7 +1066,172 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 
 }
 
+
+/***********************************************************************/
+/* check validity of ElevationGrid fields */
+int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **points, int *npoints) {
+	int i,j;
+	int nx;
+	double xSp;
+	int nz;
+	double zSp;
+	double *height;
+	int ntri;
+	int nh;
+	struct X3D_PolyRep *rep;
+	struct X3D_GeoElevationGrid *parent; /* this ElevationGrid is the child of a GeoElevationGrid */
+	float *newpoints;
+	double newPoint[3];
+	int nquads = ntri/2;
+	int *cindexptr;
+	float *tcoord;
+	
+
+
+	/* ok, a GeoElevationGrid has an ElevationGrid for a child; the ElevationGrid does all the
+	   rendering, colliding, etc, etc, as it has coords in local coord system. The GeoElevationGrid
+	   contains the user source. */
+
+	if (node->_nparents<1) {
+		printf ("checkX3DGeoElevationGrids - no parent?? \n");
+		return FALSE;
+	}
+
+	parent = node->_parents[0]; /* this ElevationGrid is the child of a GeoElevationGrid */
+
+	/* get these from the GeoElevationGrid */
+	nx = parent->xDimension;
+	xSp = parent->xSpacing;
+	nz = parent->zDimension;
+	zSp = parent->zSpacing;
+	height = parent->height.p;
+	nh = parent->height.n;
+
+	rep = (struct X3D_PolyRep *)node->_intern;
+	ntri = (nx && nz ? 2 * (nx-1) * (nz-1) : 0);
+
+for (i=0; i<nh; i++) printf ("height %d %f\n",i,height[i]);
+
+	/* check validity of input fields */
+	if(nh != nx * nz) {
+		if (nh > nx * nz) {
+			printf ("GeoElevationgrid: warning: x,y vs. height: %d * %d ne %d:\n", nx,nz,nh);
+		} else {
+			printf ("GeoElevationgrid: error: x,y vs. height: %d * %d ne %d:\n", nx,nz,nh);
+			return FALSE;
+		}
+	}
+
+	/* do we have any triangles? */
+	if ((nx < 2) || (nz < 2)) {
+		printf ("GeoElevationGrid: xDimension and zDimension less than 2 %d %d\n", nx,nz);
+		return FALSE;
+	}
+
+	/* any texture coordinates passed in? if so, DO NOT generate any texture coords here. */
+        if (!(node->texCoord)) {
+		/* allocate memory for texture coords */
+		FREE_IF_NZ(rep->GeneratedTexCoords);
+
+		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
+		tcoord = rep->GeneratedTexCoords = (float *)MALLOC (sizeof (float) * nquads * 12); 
+
+		rep->tcindex=0; /* we will generate our own mapping */
+	}
+
+	/* make up points array */
+	/* a point is a vertex and consists of 3 floats (x,y,z) */
+	newpoints = (float *)MALLOC (sizeof (float) * nz * nx * 3);
+	 
+	FREE_IF_NZ(rep->actualCoord);
+	rep->actualCoord = (float *)newpoints;
+
+	/* make up coord index */
+	if (node->coordIndex.n > 0) FREE_IF_NZ(node->coordIndex.p);
+	node->coordIndex.p = MALLOC (sizeof(int) * nquads * 5);
+	cindexptr = node->coordIndex.p;
+
+	node->coordIndex.n = nquads * 5;
+	/* return the newpoints array to the caller */
+	*points = newpoints;
+	*npoints = node->coordIndex.n;
+
+	for (j = 0; j < (nz -1); j++) {
+		for (i=0; i < (nx-1) ; i++) {
+			/*
+			 printf ("coord maker, j %d i %d\n",j,i);
+			printf ("coords for this quad: %d %d %d %d %d\n",
+				j*nx+i, j*nx+i+nx, j*nx+i+nx+1, j*nx+i+1, -1);
+			*/
+			
+			*cindexptr = j*nx+i; cindexptr++;
+			*cindexptr = j*nx+i+nx; cindexptr++;
+			*cindexptr = j*nx+i+nx+1; cindexptr++;
+			*cindexptr = j*nx+i+1; cindexptr++;
+			*cindexptr = -1; cindexptr++;
+
+		}
+	}
+
+	/* tex coords These need to be streamed now; that means for each quad, each vertex needs its tex coords. */
+	/* if the texCoord node exists, let render_TextureCoordinate (or whatever the node is) do our work for us */
+	if (!(node->texCoord)) {
+		for (j = 0; j < (nz -1); j++) {
+			for (i=0; i < (nx-1) ; i++) {
+				/* first triangle, 3 vertexes */
+				/* first tri */
+				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+			
+				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+				/* second tri */
+				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+	
+				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+			}
+		}
+	}
+			
+	/* Render_Polyrep will use this number of triangles */
+	rep->ntri = ntri;
+printf ("checkGeoEle, returning ntri %d\n",rep->ntri);
+
+	for (j=0; j<nz; j++) {
+		for (i=0; i < nx; i++) {
+		
+		 printf ("point [%d,%d] is %lf %lf %lf (hei ind %d)\n",
+			i,j,
+			xSp * i,
+			height[i+(j*nx)],
+			zSp * j,
+			i+(j*nx));
+		
+		
+		newPoint[0] = xSp * i; newPoint[1] = height[i+(j*nx)]; newPoint[2]=zSp*j;
+		newpoints[0] = (float) newPoint[0];
+		newpoints[1] = (float) newPoint[1];
+		newpoints[2] = (float) newPoint[2];
+		newpoints += 3;
+		}
+	}
+
+	return TRUE;
+}
+
+
+/* a GeoElevationGrid creates a "real" elevationGrid node as a child for rendering. */
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
+
 	printf ("compiling GeoElevationGrid\n");
 	INITIALIZE_GEOSPATIAL
 	COMPILE_GEOSYSTEM
@@ -1077,6 +1242,42 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 
 }
 
+void render_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
+	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
+
+	if (node == NULL) {	
+		/* create an ElevationGrid so that we can render this. Actual vertex
+		   data will be created via the checkX3DGeoElevationGrid function */
+		node = createNewX3DNode(NODE_ElevationGrid);
+		innode->__realElevationGrid =  node;
+		ADD_PARENT(X3D_NODE(innode->__realElevationGrid), X3D_NODE(innode));
+printf ("render_GeoElevationGrid, made node %u, me is %u\n",node, innode);
+	} 
+	COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord)
+	CULL_FACE(node->solid)
+	render_polyrep(node);
+}
+
+
+/* deref real ElevationGrid pointer */
+void make_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
+printf ("make_GeoElevationGrid called\n");
+}
+
+/* deref real ElevationGrid pointer */
+void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
+	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
+	if (node != NULL) collide_IndexedFaceSet ((struct X3D_IndexedFaceSet *)node);
+}
+
+/* deref real ElevationGrid pointer */
+void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
+	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
+	if (node != NULL) rendray_IndexedFaceSet ((struct X3D_IndexedFaceSet *)node);
+}
+
+
+/***************************************************************************************/
 
 
 
@@ -1157,7 +1358,7 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	if ((!APPROX(node->geoCoords.c[0],node->__oldgeoCoords.c[0])) ||
 	   (!APPROX(node->geoCoords.c[1],node->__oldgeoCoords.c[1])) ||
 	   (!APPROX(node->geoCoords.c[2],node->__oldgeoCoords.c[2]))) {
-		MARK_EVENT(node, offsetof (struct X3D_GeoOrigin, geoCoords)); 
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoOrigin, geoCoords)); 
 		memcpy (&node->__oldgeoCoords, &node->geoCoords, sizeof (struct SFVec3d));
 	}
 }
@@ -1385,22 +1586,6 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos(&Viewer);
-}
-
-/**************************************************************************/
-void make_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
-	INITIALIZE_GEOSPATIAL
-	COMPILE_IF_REQUIRED
-}
-
-void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
-	INITIALIZE_GEOSPATIAL
-	COMPILE_IF_REQUIRED
-}
-
-void render_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
-	INITIALIZE_GEOSPATIAL
-	COMPILE_IF_REQUIRED
 }
 
 /**************************************************************************/

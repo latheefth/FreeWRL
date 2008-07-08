@@ -1260,6 +1260,7 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 						__realElevationGrid => [SFNode, NULL, initializeOnly],
+		
 					},"X3DGeometryNode"),
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {

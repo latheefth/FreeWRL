@@ -377,7 +377,6 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 		case FIELDTYPE_MFRotation:
 		case FIELDTYPE_MFColor:
 		case FIELDTYPE_MFFloat:
-		case FIELDTYPE_MFTime:
 		case FIELDTYPE_MFVec2f:
 		case FIELDTYPE_MFVec3f:
 		case FIELDTYPE_MFColorRGBA: {
@@ -403,6 +402,8 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			((struct Multi_Node *)nst)->n = elementCount/rowsize;
 			break;
 			}
+		case FIELDTYPE_MFDouble:
+		case FIELDTYPE_MFTime:
 		case FIELDTYPE_MFVec3d: {
 			/* skip past any brackets, etc, that might come via Javascript.
 			   see tests/8.wrl for one of these */
@@ -418,7 +419,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			dptr = (double *)mdata;
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				SCANTONUMBER(value);
-				sscanf(value, "%lf",fptr);
+				sscanf(value, "%lf",dptr);
 				dptr ++;
 				SCANPASTFLOATNUMBER(value);
 			}
