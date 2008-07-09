@@ -1258,6 +1258,7 @@ printf ("cjeckX3DEle, worry about yScale\n");
 		newpoints[0] = (float) mOUT.p[i+(j*nx)].c[0];
 		newpoints[1] = (float) mOUT.p[i+(j*nx)].c[1];
 		newpoints[2] = (float) mOUT.p[i+(j*nx)].c[2];
+printf ("point %f %f %f\n",newpoints[0],newpoints[1],newpoints[2]);
 		newpoints += 3;
 		}
 	}
