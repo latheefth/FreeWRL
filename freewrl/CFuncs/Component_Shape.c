@@ -131,7 +131,6 @@ void render_Material (struct X3D_Material *node) {
 
 
 void child_Shape (struct X3D_Shape *node) {
-		GLdouble modelMatrix[16];
 		int count;
 		void *tmpN;
 
@@ -140,13 +139,7 @@ void child_Shape (struct X3D_Shape *node) {
 		/* mark that this shape was "done" for OcclusionTests */
 		if (node->__OccludeNumber < QueryCount) OccNodeRendered[node->__OccludeNumber] = TRUE;
 
-		/* do we need to do some distance calculations? */
-		if (((!render_vp) && render_light)) {
-			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-			node->_dist = modelMatrix[14];
-			/* printf ("getDist - recalculating distance, it is %f for %d\n",*/
-			/* 	node->_dist,node);*/
-		}
+		RECORD_DISTANCE
 
 		if((render_collision) || (render_sensitive)) {
 			/* only need to forward the call to the child */

@@ -76,6 +76,7 @@ int currentFileVersion = 0;
 
 #ifdef AQUA
 	#include <OpenGL.h>
+	void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height) ;
         CGLContextObj myglobalContext;
         AGLContext aqglobalContext;
 	#define SCURSE 1
@@ -125,7 +126,7 @@ int screenWidth=1;
 int screenHeight=1;
 int clipPlane = 0;
 double nearPlane=0.1; 				/* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
-double farPlane=21000.0;
+double farPlane=21000.0;			/* a good default value */
 double screenRatio=1.5;
 double fieldofview=45.0;
 
@@ -874,11 +875,11 @@ struct X3D_Node* getRayHit() {
 
 		/* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
 		   if it exists */
-		/*
+		
 		printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
 			rayHit.node,stringNodeType(rayHit.node->_nodeType), x,y,z);
 		printf (" dist %f ",rayHit.node->_dist);
-		*/
+	
 
 		for (i=0; i<num_SensorEvents; i++) {
 			if (SensorEvents[i].fromnode == rayHit.node) {

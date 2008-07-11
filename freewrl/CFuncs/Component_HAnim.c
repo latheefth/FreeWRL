@@ -24,19 +24,11 @@ void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
 /*
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
-	int	recalculate_dist;
 */
 return;
 #ifdef HANIMHANIM
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
-
-	 /* we recalculate distance on last pass, or close to it, and only
-	 once per event-loop tick. we can do it on the last pass - the
-	 render_sensitive pass, but when mouse is clicked (eg, moving in
-	 examine mode, sensitive node code is not rendered. So, we choose
-	 the second-last pass. ;-) */
-	recalculate_dist = render_light;
 
 	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -94,13 +86,7 @@ return;
 		if (node->__do_center)
 			glTranslatef(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
 
-		/* did either we or the Viewpoint move since last time? */
-		if (recalculate_dist) {
-			/* printf ("calling recordDistance for %d\n",node);*/
-			recordDistance(node);
-			/* printf ("ppv %d\n");*/
-
-	       }
+		RECORD_DISTANCE
         }
 #endif
 }
@@ -111,20 +97,12 @@ void prep_HAnimSite (struct X3D_HAnimSite *node) {
 	/*
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
-	int	recalculate_dist;
 	*/
 return;
 #ifdef HANIMHANIM
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
-
-	 /* we recalculate distance on last pass, or close to it, and only
-	 once per event-loop tick. we can do it on the last pass - the
-	 render_sensitive pass, but when mouse is clicked (eg, moving in
-	 examine mode, sensitive node code is not rendered. So, we choose
-	 the second-last pass. ;-) */
-	recalculate_dist = render_light;
 
 	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -181,14 +159,8 @@ return;
 		/* REVERSE CENTER */
 		if (node->__do_center)
 			glTranslatef(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
-
-		/* did either we or the Viewpoint move since last time? */
-		if (recalculate_dist) {
-			/* printf ("calling recordDistance for %d\n",node);*/
-			recordDistance(node);
-			/* printf ("ppv %d\n");*/
-
-	       }
+		
+		RECORD_DISTANCE
         }
 #endif
 }

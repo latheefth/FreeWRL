@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.293  2008/07/11 19:28:44  crc_canada
+# GeoElevationGrid node changes.
+#
 # Revision 1.292  2008/07/08 16:30:24  crc_canada
 # more GeoElevationGrid changes.
 #
@@ -182,7 +185,7 @@ my $interalNodeCommonFields =
 	       "       int _nparents; \n"		.
 	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
-	       "       float _dist; /*sorting for blending */ \n".
+	       "       double _dist; /*sorting for blending */ \n".
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       void *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
@@ -769,6 +772,7 @@ sub gen {
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)\n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
+	"#define X3D_TRANSFORM(node) ((struct X3D_Transform*)node)\n".
 	"#undef DEBUG_VALIDNODE\n".
 	"#ifdef DEBUG_VALIDNODE	\n".
 	"#define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)\n".

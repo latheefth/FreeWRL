@@ -803,7 +803,7 @@ void render_polyrep(void *node) {
 	trisThisLoop += r->ntri;
 
 
-/*
+	#ifdef TEXVERBOSE
 	{
 		int i;
 		int *cin;
@@ -827,7 +827,7 @@ printf ("\n\nrender_polyrep:\n");
 			printf ("\n");
 		}
 	}
-	*/
+	#endif
 
 
 	/*  put things back to the way they were;*/
@@ -844,6 +844,7 @@ printf ("\n\nrender_polyrep:\n");
 
 	if (!r->ccw) glFrontFace(GL_CCW);
 }
+
 
 /*********************************************************************
  *

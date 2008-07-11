@@ -65,17 +65,11 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	struct orient viewer_orient;
 	GLdouble mod[16];
 	GLdouble proj[16];
-        GLdouble modelMatrix[16];
-
-
 	int align;
 	double len, len2, angle;
 	int sign;
 
-        if (render_light) {
-                fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-                node->_dist = modelMatrix[14];
-        }
+	RECORD_DISTANCE
 
 	ax.x = node->axisOfRotation.c[0];
 	ax.y = node->axisOfRotation.c[1];

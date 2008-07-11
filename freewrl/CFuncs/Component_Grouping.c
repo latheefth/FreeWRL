@@ -40,36 +40,16 @@ void VerboseEnd (char *whoami) {
 
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
 void prep_Group (struct X3D_Group *node) {
-        GLdouble modelMatrix[16];
-
-	 /* we recalculate distance on last pass, or close to it, and only
-	 once per event-loop tick. we can do it on the last pass - the
-	 render_sensitive pass, but when mouse is clicked (eg, moving in
-	 examine mode, sensitive node code is not rendered. So, we choose
-	 the second-last pass. ;-) */
-
-
-        if (render_light) {
-		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-		node->_dist = modelMatrix[14];
-	}
+	RECORD_DISTANCE
 }
 
 /* do transforms, calculate the distance */
 void prep_Transform (struct X3D_Transform *node) {
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
-	int	recalculate_dist;
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
-
-	 /* we recalculate distance on last pass, or close to it, and only
-	 once per event-loop tick. we can do it on the last pass - the
-	 render_sensitive pass, but when mouse is clicked (eg, moving in
-	 examine mode, sensitive node code is not rendered. So, we choose
-	 the second-last pass. ;-) */
-	recalculate_dist = render_light;
 
 	/* printf ("prep_Transform, render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
@@ -128,13 +108,7 @@ void prep_Transform (struct X3D_Transform *node) {
 		if (node->__do_center)
 			glTranslatef(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
 
-		/* did either we or the Viewpoint move since last time? */
-		if (recalculate_dist) {
-			/* printf ("calling recordDistance for %d\n",node);*/
-			recordDistance(node);
-			/* printf ("ppv %d\n"g);*/
-
-	       }
+		RECORD_DISTANCE
         }
 }
 

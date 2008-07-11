@@ -241,6 +241,12 @@ int checkNetworkFile(char *fn) {
    within a Browser, so make sure it is large, like 1000 bytes. 	   */
 
 /* parameter "GetIt" used as FALSE in Anchor */
+#ifdef AQUA
+#define outputDirector "-o"
+#else
+#define outputDirector "-O"
+#endif
+
 int fileExists(char *fname, char *firstBytes, int GetIt) {
 	FILE *fp;
 	int ok;
@@ -300,7 +306,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			    if ((strncmp(fname,"https://",strlen("https://")) == 0) ||
 			    	(strncmp(fname,"HTTPS://",strlen("HTTPS://")) == 0)) 
 			    sprintf (sysline,"%s --no-check-certificate %s -O %s",WGET,fname,tempname);
-			    else sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
+			    else sprintf (sysline,"%s %s %s %s",WGET,fname,outputDirector, tempname);
 
 			    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
 			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);

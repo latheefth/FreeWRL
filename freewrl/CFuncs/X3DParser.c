@@ -604,7 +604,7 @@ void linkNodeIn() {
 	}
 
 	if ((ctype != FIELDTYPE_MFNode) && (ctype != FIELDTYPE_SFNode)) {
-		ConsoleMessage ("X3DParser, line %d trouble linking to field %s, node type %s (this nodeType %s)", LINE,
+		ConsoleMessage ("X3DParser: warning, line %d: trouble linking to containerField %s of parent node type %s (in a %s node)", LINE,
 			stringFieldType(parentStack[parentIndex]->_defaultContainer),
 			stringNodeType(parentStack[parentIndex-1]->_nodeType),
 			stringNodeType(parentStack[parentIndex]->_nodeType));

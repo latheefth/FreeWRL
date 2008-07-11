@@ -150,8 +150,6 @@ void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
 
 
 void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
-		GLdouble modelMatrix[16];
-
 		if (!node) return;
 		if (!node->enabled) return;
 		if (!candoVisibility) return;
@@ -164,13 +162,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			return;
 		}
 
-		/* do we need to do some distance calculations? */
-		if (((!render_vp) && render_light)) {
-			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-			node->_dist = modelMatrix[14];
-			/* printf ("getDist - recalculating distance, it is %f for %d\n",*/
-			/* 	node->_dist,node);*/
-		}
+		RECORD_DISTANCE
 
 		if (render_blend == VF_Blend) { 
                         #ifdef VISIBILITYOCCLUSION

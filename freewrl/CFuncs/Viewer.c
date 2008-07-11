@@ -789,6 +789,7 @@ set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehal
 void increment_pos(struct point_XYZ *vec) {
 	struct point_XYZ nv;
 	Quaternion q_i;
+	double cp,np,tmp;
 
 
 	inverse(&q_i, &(Viewer.Quat));
@@ -801,6 +802,23 @@ void increment_pos(struct point_XYZ *vec) {
 	(Viewer.Pos).x += nv.x;
 	(Viewer.Pos).y += nv.y;
 	(Viewer.Pos).z += nv.z;
+
+#ifdef HANDLE_NEARPLANE_HERE
+	/* handle the farPlane and nearPlane... Geospatial nodes without a GeoOrigin can put us
+	   out in outer space... */
+	cp = (double)21000.0;	/* good starting value */ 
+	cp = (double)41000.0;	/* good starting value */ 
+	np = 0.100;		/* good starting value */
+
+	/* 2.0 is a bit of overkill, but not too much of an overkill... */
+	tmp=fabs(Viewer.Pos.x*((double)2.0)); if (tmp > cp) {cp = tmp; np = fabs(Viewer.Pos.x/((double)2.0)); forceBackgroundRecompile=TRUE;}
+	tmp=fabs(Viewer.Pos.y*((double)2.0)); if (tmp > cp) {cp = tmp; np = fabs(Viewer.Pos.y/((double)2.0)); forceBackgroundRecompile=TRUE;}
+	tmp=fabs(Viewer.Pos.z*((double)2.0)); if (tmp > cp) {cp = tmp; np = fabs(Viewer.Pos.z/((double)2.0)); forceBackgroundRecompile=TRUE;}
+	farPlane = cp;
+	nearPlane = np;
+	printf ("farPlane now %lf, nearPlane %lf\n",farPlane,nearPlane); 
+#endif
+
 }
 
 

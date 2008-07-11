@@ -69,7 +69,7 @@ int freewrlSystem (const char *sysline) {
 	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
-	/* printf ("freewrlSystem, have %s here\n",internbuf);  */
+	/* printf ("freewrlSystem, have %s here\n",internbuf); */
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 	count = 0;
 

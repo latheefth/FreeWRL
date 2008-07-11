@@ -27,6 +27,7 @@ uintptr_t background_stack[MAX_STACK];
 uintptr_t fog_stack[MAX_STACK];
 uintptr_t viewpoint_stack[MAX_STACK];
 uintptr_t navi_stack[MAX_STACK];
+int forceBackgroundRecompile = FALSE;
 
 /* Background - fog nodes do not affect the background node rendering. */
 int fog_enabled = FALSE;
@@ -556,6 +557,9 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	float  *gndAng; int gndAngCt;
 	float *newPoints; float *newColors;
 
+	/* We draw spheres, one for the sky, one for the ground - outsideRadius and insideRadius */
+	double outsideRadius = farPlane * 0.750;
+	double insideRadius = farPlane * 0.70;
 
 	/* handle Background and TextureBackgrounds here */
 	if (node->_nodeType == NODE_Background) {
@@ -631,13 +635,13 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 			for(h=0; h<hdiv; h++) {
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
-				saveBGVert (newColors, newPoints, &actq,&c1->c[0],20000.0,
+				saveBGVert (newColors, newPoints, &actq,&c1->c[0],outsideRadius,
 				  sin(va2)*cos(ha1), cos(va2), sin(va2)*sin(ha1));
-				saveBGVert (newColors, newPoints, &actq,&c1->c[0],20000.0,
+				saveBGVert (newColors, newPoints, &actq,&c1->c[0],outsideRadius,
 				  sin(va2)*cos(ha2), cos(va2), sin(va2)*sin(ha2));
-				saveBGVert (newColors, newPoints, &actq,&c1->c[0],20000.0,
+				saveBGVert (newColors, newPoints, &actq,&c1->c[0],outsideRadius,
 				  sin(va1)*cos(ha2), cos(va1), sin(va1)*sin(ha2));
-				saveBGVert (newColors, newPoints, &actq,&c1->c[0],20000.0,
+				saveBGVert (newColors, newPoints, &actq,&c1->c[0],outsideRadius,
 				  sin(va1)*cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}
 			va1 = va2;
@@ -665,13 +669,13 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 			for(h=0; h<hdiv; h++) {
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
-				saveBGVert(newColors,newPoints, &actq,&c2->c[0],20000.0,
+				saveBGVert(newColors,newPoints, &actq,&c2->c[0],outsideRadius,
 				  sin(va2)*cos(ha1), cos(va2), sin(va2) * sin(ha1));
-				saveBGVert(newColors,newPoints, &actq,&c2->c[0],20000.0,
+				saveBGVert(newColors,newPoints, &actq,&c2->c[0],outsideRadius,
 				  sin(va2)*cos(ha2), cos(va2), sin(va2) * sin(ha2));
-				saveBGVert(newColors,newPoints, &actq,&c1->c[0],20000.0,
+				saveBGVert(newColors,newPoints, &actq,&c1->c[0],outsideRadius,
 				  sin(va1)*cos(ha2), cos(va1), sin(va1) * sin(ha2));
-				saveBGVert(newColors,newPoints, &actq,&c1->c[0],20000.0,
+				saveBGVert(newColors,newPoints, &actq,&c1->c[0],outsideRadius,
 				  sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}
 			va1 = va2;
@@ -683,13 +687,13 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 			for(h=0; h<hdiv; h++) {
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
-				saveBGVert(newColors,newPoints,&actq,&c2->c[0],20000.0,
+				saveBGVert(newColors,newPoints,&actq,&c2->c[0],outsideRadius,
 				  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
-				saveBGVert(newColors,newPoints,&actq,&c2->c[0],20000.0,
+				saveBGVert(newColors,newPoints,&actq,&c2->c[0],outsideRadius,
 				  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
-				saveBGVert(newColors,newPoints,&actq,&c2->c[0],20000.0,
+				saveBGVert(newColors,newPoints,&actq,&c2->c[0],outsideRadius,
 				  sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
-				saveBGVert(newColors,newPoints,&actq,&c2->c[0],20000.0,
+				saveBGVert(newColors,newPoints,&actq,&c2->c[0],outsideRadius,
 				  sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 			}
 		}
@@ -703,13 +707,13 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
 
-				saveBGVert(newColors,newPoints,&actq,&c1->c[0],12500.0,
+				saveBGVert(newColors,newPoints,&actq,&c1->c[0],insideRadius,
 				  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
-				saveBGVert(newColors,newPoints,&actq,&c1->c[0],12500.0,
+				saveBGVert(newColors,newPoints,&actq,&c1->c[0],insideRadius,
 				  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
-				saveBGVert(newColors,newPoints,&actq,&c1->c[0],12500.0,
+				saveBGVert(newColors,newPoints,&actq,&c1->c[0],insideRadius,
 				  sin(PI/2) * cos(ha2), cos(PI/2), sin(PI/2) * sin(ha2));
-				saveBGVert(newColors,newPoints,&actq,&c1->c[0],12500.0,
+				saveBGVert(newColors,newPoints,&actq,&c1->c[0],insideRadius,
 				  sin(PI/2) * cos(ha1), cos(PI/2), sin(PI/2) * sin(ha1));
 			}
 		} else {
@@ -724,13 +728,13 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
 
-					saveBGVert(newColors,newPoints,&actq,&c1->c[0],12500.0,
+					saveBGVert(newColors,newPoints,&actq,&c1->c[0],insideRadius,
 					  sin(va1)*cos(ha1), cos(va1), sin(va1)*sin(ha1));
-					saveBGVert(newColors,newPoints,&actq,&c1->c[0],12500.0,
+					saveBGVert(newColors,newPoints,&actq,&c1->c[0],insideRadius,
 					  sin(va1)*cos(ha2), cos(va1), sin(va1)*sin(ha2));
-					saveBGVert(newColors,newPoints,&actq,&c2->c[0],12500.0,
+					saveBGVert(newColors,newPoints,&actq,&c2->c[0],insideRadius,
 					  sin(va2)*cos(ha2), cos(va2), sin(va2)*sin(ha2));
-					saveBGVert(newColors,newPoints,&actq,&c2->c[0],12500.0,
+					saveBGVert(newColors,newPoints,&actq,&c2->c[0],insideRadius,
 					  sin(va2) * cos(ha1), cos(va2), sin(va2)*sin(ha1));
 				}
 				va1 = va2;
@@ -787,8 +791,10 @@ void render_Background (struct X3D_Background *node) {
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
 
-	if NODE_NEEDS_COMPILING 
+	if (forceBackgroundRecompile || NODE_NEEDS_COMPILING) {
 		recalculateBackgroundVectors(node);
+		forceBackgroundRecompile = FALSE;
+	}
 
 
 	/* now, display the lists */

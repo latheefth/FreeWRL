@@ -707,6 +707,9 @@ void startOfLoopNodeUpdates(void) {
 	for (i=0; i<nextEntry; i++){		
 		node = memoryTable[i];	
 		if (node != NULL) {
+			/* reset distance, for distance calculations */
+			node->_dist=-1000.0;
+
 			/* turn OFF these flags */
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);

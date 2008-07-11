@@ -936,7 +936,10 @@ extern char *myPerlInstallDir;
 #define EXTENT_MAX_Z _extent[4]
 #define EXTENT_MIN_Z _extent[5]
 void setExtent (float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *this_);
-void recordDistance(struct X3D_Transform *nod);
+
+#define RECORD_DISTANCE if (render_geom) recordDistance (X3D_GROUP(node));
+void recordDistance(struct X3D_Node *nod);
+
 void propagateExtent (struct X3D_Node *this_);
 
 #ifdef DISPLAYBOUNDINGBOX
@@ -950,7 +953,7 @@ void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
 
-extern double nearPlane, farPlane, screenRatio;
+extern double nearPlane, farPlane, screenRatio, calculatedFarPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
@@ -1323,6 +1326,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent);
 void setglClearColor (float *val); 
 void doglClearColor(void);
 extern int cc_changed;
+extern int forceBackgroundRecompile;
 
 char *findPathToFreeWRLFile(char *lfn);
 

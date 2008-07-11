@@ -225,7 +225,7 @@ void BoundingBox(struct X3D_Node * me) {
 
 #endif
 
-void recordDistance(struct X3D_Transform *nod) {
+void recordDistance(struct X3D_Node *node) {
 	GLdouble modelMatrix[16];
 	int retval;
 	int xcount, pointok;
@@ -235,11 +235,32 @@ void recordDistance(struct X3D_Transform *nod) {
 	pointok=0;
 
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	nod->bboxCenter.c[0] = modelMatrix[12];
-	nod->bboxCenter.c[1] = modelMatrix[13];
-	nod->bboxCenter.c[2] = modelMatrix[14];
 
-	nod->_dist = modelMatrix[14];
+	if (node->_nodeType == NODE_Transform) {
+		X3D_TRANSFORM(node)->bboxCenter.c[0] = modelMatrix[12];
+		X3D_TRANSFORM(node)->bboxCenter.c[1] = modelMatrix[13];
+		X3D_TRANSFORM(node)->bboxCenter.c[2] = modelMatrix[14];
+		#ifdef VERBOSE
+		printf ("bbs %f %f %f ",X3D_TRANSFORM(node)->bboxSize.c[0], 
+			X3D_TRANSFORM(node)->bboxSize.c[1],X3D_TRANSFORM(node)->bboxSize.c[2]);
+		#endif
+	}
+
+	node->_dist = modelMatrix[14];
+	#ifdef VERBOSE
+	printf ("dist %f nodeType %s",node->_dist, stringNodeType(node->_nodeType));
+        printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+       	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+	#endif
+
+	#define FP_MULTIPLIER 2.0
+	if (node->_dist < 0.0) 
+		if (farPlane < (-node->_dist * FP_MULTIPLIER) ) 
+			farPlane = -node->_dist * FP_MULTIPLIER;
+
+	#ifdef VERBOSE
+	printf ("farPlane %lf\n",farPlane);
+	#endif
 }
 
 /***************************************************************************/
