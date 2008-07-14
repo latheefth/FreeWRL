@@ -616,7 +616,7 @@ handle_tick_fly()
 		}
 	}
 
-	/* printf ("speed %f timedif %lf\n",Viewer.speed,time_diff);  */
+	printf ("speed %f timedif %lf\n",Viewer.speed,time_diff); 
 
 	/* first, get all the keypresses since the last time */
 	for (i = 0; i < KEYS_HANDLED; i++) {
@@ -644,14 +644,15 @@ handle_tick_fly()
 		fly->Velocity[i] *= pow(0.06, time_diff);
 
 		fly->Velocity[i] += time_diff * translate[i] * 14.5 * Viewer.speed;
-
-		if (fabs(fly->Velocity[i]) >9.0) {
-			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
-		}
 		changed += fly->Velocity[i];
 		/* printf ("vel %d %f\n",i,fly->Velocity[i]); */
 	}
 
+	/* if we do NOT have a GeoViewpoint node, constrain all 3 axis */
+	if (Viewer.GeoSpatialNode == NULL) 
+		for (i = 0; i < COORD_SYS; i++) {
+			if (fabs(fly->Velocity[i]) >9.0) fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
+		}
 
 	/* angular movement */
 	for (i = 0; i < COORD_SYS; i++) {

@@ -1265,7 +1265,10 @@ package VRML::NodeType;
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {
 						metadata => [SFNode, NULL, inputOutput],
-						center => [SFString,"",initializeOnly],
+						children => [MFNode,[],outputOnly],
+						level_changed =>[SFInt32,0,outputOnly],
+
+						center => [SFVec3d,[0,0,0],initializeOnly],
 						child1Url =>[MFString,[],initializeOnly],
 						child2Url =>[MFString,[],initializeOnly],
 						child3Url =>[MFString,[],initializeOnly],
@@ -1275,9 +1278,12 @@ package VRML::NodeType;
 						range => [SFFloat,10.0,initializeOnly],
 						rootUrl => [MFString,[],initializeOnly],
 						rootNode => [MFNode,[],initializeOnly],
-						children => [MFNode,[],outputOnly],
+						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
+						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 					},"X3DGroupingNode"),
 
 
