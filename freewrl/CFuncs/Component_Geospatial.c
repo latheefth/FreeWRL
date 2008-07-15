@@ -1286,7 +1286,6 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 			/* Make up a new vertex. Add the geoGridOrigin to every point */
 
 			if ((mySRF == GEOSP_GD) || (mySRF == GEOSP_UTM)) {
-printf ("checkX = GEOSP_GD or GEOSP_UTM here \n");
 				/* GD - give it to em in Latitude/Longitude/Elevation order */
 				/* UTM- or give it to em in Northing/Easting/Elevation order */
 				/* latitude - range of -90 to +90 */
@@ -1299,7 +1298,6 @@ printf ("checkX = GEOSP_GD or GEOSP_UTM here \n");
 				mIN.p[i+(j*nx)].c[2] = (height[i+(j*nx)] *(parent->yScale)) + parent->geoGridOrigin.c[2]
 					+ myHeightAboveEllip; 
 			} else {
-printf ("checkX = do not know what to do here \n");
 				/* nothing quite specified here - what do we really do??? */
 				mIN.p[i+(j*nx)].c[0] = zSp * j + parent->geoGridOrigin.c[0]; 
 	
@@ -1328,7 +1326,6 @@ printf ("checkX = do not know what to do here \n");
 
 	/* copy the resulting array back to the ElevationGrid */
 
-#define VERBOSE
 	#ifdef VERBOSE
 	printf ("points:\n");
 	#endif
@@ -1351,8 +1348,6 @@ printf ("checkX = do not know what to do here \n");
 
 	return TRUE;
 }
-
-#undef VERBOSE
 
 
 /************************************************************************/
@@ -1432,7 +1427,6 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 
 	/* work out the local orientation */
 	GeoOrient(&gdCoords.p[0], &node->__localOrient);
-#define VERBOSE
 
 	#ifdef VERBOSE
 	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
@@ -1442,8 +1436,6 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 			node->__localOrient.r[2],
 			node->__localOrient.r[3]);
 	#endif
-
-#undef VERBOSE
 
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
@@ -1602,8 +1594,6 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	MF_SF_TEMPS
 
-#define VERBOSE
-
 	#ifdef VERBOSE
 	printf ("compiling GeoLOD\n");
 	#endif
@@ -1641,7 +1631,6 @@ printf ("children.n %d childurl 1: %d 2: %d 3: %d 4: %d rootUrl: %d rootNode: %d
 	#ifdef VERBOSE
 	printf ("compiled GeoLOD\n\n");
 	#endif
-#undef VERBOSE
 }
 
 

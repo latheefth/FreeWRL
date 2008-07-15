@@ -509,7 +509,7 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 
 
 
-		/* printf ("collide_IFS, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
+	/*	printf ("collide_IFS, node %u, delta %f %f %f\n",node,delta.x, delta.y, delta.z); */
 
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
@@ -522,7 +522,7 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 		#ifdef COLLISIONVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
 /*		   printmatrix(modelMatrix);*/
-		   fprintf(stderr,"COLLISION_IFS: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+		   fprintf(stderr,"COLLISION_IFS: (%f %f %f) (%f %f %f)\n",
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
@@ -967,7 +967,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 		#ifdef COLLISIONVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
 /*		   printmatrix(modelMatrix);*/
-		   fprintf(stderr,"COLLISION_EXT: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+		   fprintf(stderr,"COLLISION_EXT: (%f %f %f) (%f %f %f)\n",
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );

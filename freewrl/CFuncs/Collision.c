@@ -1366,13 +1366,20 @@ struct point_XYZ polyrep_disp_rec(double y1, double y2, double ystep, double r, 
     int i;
     int frontfacing;
     int minisfrontfacing = 1;
+    int ccw;
+
+    ccw = pr->ccw;
 
     for(i = 0; i < pr->ntri; i++) {
 	p[0].x = pr->actualCoord[pr->cindex[i*3]*3]    +dispsum.x;
 	p[0].y = pr->actualCoord[pr->cindex[i*3]*3+1]  +dispsum.y;
 	p[0].z = pr->actualCoord[pr->cindex[i*3]*3+2]  +dispsum.z;
 
-	frontfacing = (vecdot(&n[i],&p[0]) < 0);	/*if normal facing avatar */
+	if (ccw) frontfacing = (vecdot(&n[i],&p[0]) < 0);	/*if normal facing avatar */
+	else frontfacing = (vecdot(&n[i],&p[0]) >= 0);		/*if ccw facing avatar */
+
+	/* printf ("polyrep_disp_rec, frontfacing %d BACKFACING %d FRONTFACING %d DOUBLESIDED %d\n",
+		frontfacing, flags & PR_BACKFACING, flags & PR_FRONTFACING, flags & PR_DOUBLESIDED); */
 	/* use if either:
 	   -frontfacing and not in doubleside mode;
 	   -if in doubleside mode:

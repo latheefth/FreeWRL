@@ -63,9 +63,10 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	int c,d;
 	struct X3D_Node *shapeParent;
 	struct X3D_Node *geomParent;
+	double tminp, tmaxp;
 
 	#ifdef FRUSTUMVERBOSE
-	printf ("setExtent - Shape node has %d parents\n",me->_nparents);
+	printf ("setExtent maxz %f minz %f nt %s\n",maxz, minz, stringNodeType(me->_nodeType));
 	#endif
 
 	for (c=0; c<(me->_nparents); c++) {
@@ -76,6 +77,20 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 
 		for (d=0; d<(shapeParent->_nparents); d++) {
 			geomParent = X3D_NODE(shapeParent->_parents[d]);
+
+			/* printf ("geomParent dist is %lf\n",geomParent->_dist); */
+			/* note, maxz is positive, minz is negative, distance should be negative, so we take a negative distance,
+				and subtract the "positive" z value to get the closest point, then take the negative distance,
+				and subtract the "negative" z value to get the far distance */
+
+			/* printf ("so, z buffer for this shape should be: %lf, %lf\n",geomParent->_dist-minz, geomParent->_dist-maxz); */
+			tminp = -(geomParent->_dist-minz) / 1.4; /* numbers should be rotated as per parent rotation */
+			tmaxp = -(geomParent->_dist-maxz) * 1.4; /* numbers should be rotated as per parent rotation */
+
+			/* printf ("tminp %lf, tmaxp %lf\n",tminp, tmaxp); */
+			if (tminp < calculatedNearPlane) calculatedNearPlane = tminp;
+			if (tmaxp > calculatedFarPlane) calculatedFarPlane = tmaxp;
+ 
 			if (maxx > geomParent->EXTENT_MAX_X) geomParent->EXTENT_MAX_X = maxx;
 			if (minx < geomParent->EXTENT_MIN_X) geomParent->EXTENT_MIN_X = minx;
 			if (maxy > geomParent->EXTENT_MAX_Y) geomParent->EXTENT_MAX_Y = maxy;

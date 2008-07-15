@@ -1,4 +1,7 @@
 For 1.20.4
+	- fixed problem with collision and ccw/solid polygons whereby one would collide with
+	  the transparent surface, not the visible surface.
+
 	- problem parsing floats/doubles with a positive sign starting(or part of exponent),
 	  eg, "123e+10" now parses - before expected "123e10".
 

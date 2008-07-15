@@ -125,10 +125,14 @@ GLint viewPort2[10];
 int screenWidth=1;
 int screenHeight=1;
 int clipPlane = 0;
-double nearPlane=0.1; 				/* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
-double farPlane=21000.0;			/* a good default value */
+#define DEFAULT_NEARPLANE 0.01
+#define DEFAULT_FARPLANE 21000.0
+double nearPlane=DEFAULT_NEARPLANE; 			/* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
+double farPlane=DEFAULT_FARPLANE;			/* a good default value */
 double screenRatio=1.5;
 double fieldofview=45.0;
+double calculatedNearPlane = 0.0;
+double calculatedFarPlane = 0.0;
 
 struct X3D_Node* CursorOverSensitive=NULL;	/*  is Cursor over a Sensitive node?*/
 struct X3D_Node* oldCOS=NULL;			/*  which node was cursor over before this node?*/
@@ -237,6 +241,16 @@ void EventLoop() {
 	#endif
 
 	/* printf ("start of MainLoop\n"); */
+
+	/* for calculating the near/far plane */
+	/* printf ("eventLoop cnearPlane %lf, cfarPlane %lf\n",calculatedNearPlane, calculatedFarPlane); */
+	/* our setExtent calculations are rough - so if things are closer than the DEFAULT_FARPLANE, make
+	   the z-buffer calculations quite rigid. */
+	if (calculatedNearPlane > DEFAULT_FARPLANE) nearPlane = calculatedNearPlane; else nearPlane = DEFAULT_NEARPLANE;
+	if (calculatedFarPlane > DEFAULT_FARPLANE) farPlane = calculatedFarPlane; else farPlane = DEFAULT_FARPLANE;
+	calculatedNearPlane = 999999999999999999999999.9;
+	calculatedFarPlane = 0.0;
+	/* printf ("eventLoop after bounding, nearPlane %lf, farPlane %lf\n",nearPlane, farPlane); */
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);

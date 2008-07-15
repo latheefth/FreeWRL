@@ -953,7 +953,7 @@ void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
 
-extern double nearPlane, farPlane, screenRatio, calculatedFarPlane;
+extern double nearPlane, farPlane, screenRatio, calculatedNearPlane, calculatedFarPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
