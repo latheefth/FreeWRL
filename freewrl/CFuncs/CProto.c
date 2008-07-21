@@ -22,7 +22,7 @@
 #define ENDPROTOGROUP "]}#END PROTOGROUP\n"
 #define VERIFY_OUTPUT_LEN(extra) \
 		if (strlen(newProtoText) > (newProtoTextLen - extra)) { \
-			newProtoTextLen << 1; \
+			newProtoTextLen *=2 ; \
 			newProtoText = REALLOC(newProtoText, newProtoTextLen); \
 		}
 
@@ -806,7 +806,7 @@ void removeProtoFieldFromThis(char *inputCopy) {
 /* go through a proto invocation, and get the invocation fields (if any) */
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto) {
 	int c;
-	char *cp;
+	char *copyPointer;
 	char *initCP;
 	char tmp;
 	char *inputCopy = NULL;
@@ -839,7 +839,7 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 	
 				/* get a link to the beginning of this field */
 				FREE_IF_NZ(me->lexer->curID);
-				cp = me->lexer->nextIn;
+				copyPointer = me->lexer->nextIn;
 				initCP = me->lexer->startOfStringPtr;
 				inputCopy = STRDUP(me->lexer->nextIn);
 				/* printf ("inputCopy is %s\n",inputCopy); */
@@ -889,7 +889,7 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 
 					} else {
 						#ifdef CPROTOVERBOSE
-						printf ("getProtoInvocationField, parsed field; nextin was :%s:, now :%s:\n",cp, me->lexer->nextIn);
+						printf ("getProtoInvocationField, parsed field; nextin was :%s:, now :%s:\n",copyPointer, me->lexer->nextIn);
 						#endif
 
 					}
@@ -928,25 +928,23 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 						/* printf ("so, inputCopy is :%s:\n",inputCopy); */
 
 
-						cp = me->lexer->startOfStringPtr;
+						copyPointer = me->lexer->startOfStringPtr;
+					} else {
+						inputCopy[0] = '\0';
 					}
 
 					/* copy over the new value */
-printf ("initCP - going to set this to null :%s:\n",me->lexer->nextIn);
 					initCP = (char *) (me->lexer->nextIn);
 					tmp = *initCP; *initCP = '\0';
 					FREE_IF_NZ(pdecl->fieldString); 
-printf ("inputCopy :%s:\n",inputCopy);
-printf ("cp :%s:\n",cp);
-					pdecl->fieldString = MALLOC (3 + strlen(inputCopy) + strlen(cp));
+					pdecl->fieldString = MALLOC (3 + strlen(inputCopy) + strlen(copyPointer));
 					strcpy(pdecl->fieldString,inputCopy);
 					strcat (pdecl->fieldString, " ");
-					strcat(pdecl->fieldString,cp);
+					strcat(pdecl->fieldString,copyPointer);
 					*initCP = tmp;
 					#ifdef CPROTOVERBOSE
 					printf ("getProtoInvocationFields, just copied :%s: remainder :%s:\n",pdecl->fieldString,me->lexer->nextIn);
 					#endif
-printf ("getProtoInvocationFields, just copied :%s: remainder :%s:\n",pdecl->fieldString,me->lexer->nextIn);
 				} else {
 					#ifdef CPROTOVERBOSE
 					printf ("getProtoInvocationField, skipped parsing this type of %s\n",stringPROTOKeywordType(pdecl->type));
@@ -1157,7 +1155,6 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	deleteLexer(lex);
 }
 
-
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
 	char *newProtoText;
 	char *isPtr;
@@ -1208,9 +1205,9 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 		/* get the current element */
 		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
 		assert(ele);
-#ifdef XXX
-strcat (newProtoText, "# at A\n");
-#endif
+		#ifdef XXX
+		strcat (newProtoText, "# at A\n");
+		#endif
 
 		/* printf ("\nPROTO - ele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
 
@@ -1221,16 +1218,18 @@ strcat (newProtoText, "# at A\n");
 
 			/* possibly this is a synthetic DEF for possible external IS routing */
 			if (ele->fabricatedDef != ID_UNDEFINED) {
-#ifdef XXX
-strcat (newProtoText, "# at B\n");
-#endif
+			#ifdef XXX
+			strcat (newProtoText, "# at B\n");
+			printf ("newProtoText :%s:\n",newProtoText);
+			#endif
 				sprintf (thisID,"DEF %s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
 				APPEND_THISID
 				APPEND_SPACE
 			}
-#ifdef XXX
-strcat (newProtoText, "# at C\n");
-#endif
+			#ifdef XXX
+			strcat (newProtoText, "# at C\n");
+			printf ("newProtoText :%s:\n",newProtoText);
+			#endif
 			APPEND_NODE
 			APPEND_SPACE
 
@@ -1244,16 +1243,20 @@ strcat (newProtoText, "# at C\n");
 				lastKeyword = ele;
 
 			if (ele->isKEYWORD != KW_IS) { 
-#ifdef XXX
-strcat (newProtoText, "# at D\n");
-#endif
-APPEND_KEYWORD APPEND_SPACE }
+				#ifdef XXX
+				strcat (newProtoText, "# at D\n");
+				printf ("newProtoText :%s:\n",newProtoText);
+				#endif
+				APPEND_KEYWORD APPEND_SPACE 
+			}
 
 		/* Hmmm - maybe this is a "{" or something like that */
 		} else if (ele->terminalSymbol != ID_UNDEFINED) {
-#ifdef XXX
-strcat (newProtoText, "# at E\n");
-#endif
+			#ifdef XXX
+			strcat (newProtoText, "# at E\n");
+			printf ("newProtoText :%s:\n",newProtoText);
+			#endif
+
 			APPEND_TERMINALSYMBOL
 
 		/* nope, this is a fieldname, DEF name, or string, or something equivalent */
@@ -1264,7 +1267,7 @@ strcat (newProtoText, "# at E\n");
 			if (i<(protoElementCount-2)) {
 				tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+1);
 				if ((tempEle != NULL) && (tempEle->isKEYWORD == KW_IS)) {
-					indexT tl =100;
+					int tl =100;
 					char *newTl = MALLOC(100);
 					newTl[0] = '\0';
 
@@ -1277,17 +1280,21 @@ strcat (newProtoText, "# at E\n");
 
 					/* is there actually a value for this field?? */
 					if SOMETHING_IN_ISVALUE {
-#ifdef XXX
-strcat (newProtoText, "# at F\n");
-#endif
+						#ifdef XXX
+						strcat (newProtoText, "# at F\n");
+						printf ("newProtoText :%s:\n",newProtoText);
+						#endif
+
 						VERIFY_OUTPUT_LEN(strlen(newTl))
 						APPEND_STRINGTOKEN
 						APPEND_SPACE
 						APPEND_ISVALUE
 					} else if (lastNode->isNODE == NODE_Script) {
-#ifdef XXX
-strcat (newProtoText, "# at G\n");
-#endif
+						#ifdef XXX
+						strcat (newProtoText, "# at G\n");
+						printf ("newProtoText :%s:\n",newProtoText);
+						#endif
+
 						/* Script nodes NEED the fieldname, even if it is blank, so... */
 						APPEND_STRINGTOKEN
 						APPEND_SPACE
@@ -1296,16 +1303,19 @@ strcat (newProtoText, "# at G\n");
 					i+=2; /* skip the IS and the field */
 					FREE_IF_NZ(newTl);
 				} else { 
-#ifdef XXX
-strcat (newProtoText, "# at H\n");
-#endif
+					#ifdef XXX
+					strcat (newProtoText, "# at H\n");
+					printf ("newProtoText :%s:\n",newProtoText);
+					#endif
+
 					APPEND_EDITED_STRINGTOKEN
 				}
 
 			} else { 
-#ifdef XXX
-strcat (newProtoText, "# at I\n");
-#endif
+				#ifdef XXX
+				strcat (newProtoText, "# at I\n");
+				printf ("newProtoText :%s:\n",newProtoText);
+				#endif
 				APPEND_EDITED_STRINGTOKEN
 			}
 
@@ -1330,8 +1340,6 @@ strcat (newProtoText, "# at I\n");
 
 	return newProtoText;
 }
-
-
 
 /* for resolving ROUTEs to/from PROTOS... */
 /* this is a PROTO; go through and find the node, and fill in the correct curID so that parsing can
