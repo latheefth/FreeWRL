@@ -931,10 +931,13 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			ry = 1; sy = y;
 			while(sy) {sy /= 2; ry *= 2;}
 			if(ry/2 == y) {ry /= 2;}
+printf ("scaling texture to %d %d\n",rx,ry);
+
 			if(rx != x || ry != y || rx > global_texSize || ry > global_texSize) {
 				/* do we have texture limits??? */
 				if (rx > global_texSize) rx = global_texSize;
 				if (ry > global_texSize) ry = global_texSize;
+printf ("final size %d %d, %d %d\n",rx,ry,x,y);
 	
 				/* We have to scale */
 				dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
@@ -1372,14 +1375,14 @@ void _textureThread(void) {
 				# ifdef DO_MULTI_OPENGL_THREADS
 				if (!RUNNINGASPLUGIN) {
 				#ifdef TEXVERBOSE 
-				printf ("tex %d needs binding, name %s\n",*loadparams[currentlyWorkingOn].texture_num,
-					loadparams[*loadparams[currentlyWorkingOn].texture_num].filename);
+				printf ("tex %d needs binding, name %s\n",loadThisTexture->OpenGLTexture,
+					loadThisTexture->filename);
 				#endif
 
 				do_possible_textureSequence(loadThisTexture);
 
 				#ifdef TEXVERBOSE 
-				printf ("tex %d now loaded\n",*loadparams[currentlyWorkingOn].texture_num);
+				printf ("tex %d now loaded\n",loadThisTexture->OpenGLTexture);
 				#endif
 				} else {
 					loadThisTexture->status = TEX_NEEDSBINDING;

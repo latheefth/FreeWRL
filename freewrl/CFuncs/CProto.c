@@ -17,6 +17,52 @@
 #include "CParseParser.h"
 #include "CParseLexer.h"
 
+#define STARTPROTOGROUP "Group{FreeWRL__protoDef"
+#define PROTOGROUPNUMBER "%s %d children[ #PROTOGROUP\n"
+#define ENDPROTOGROUP "]}#END PROTOGROUP\n"
+#define VERIFY_OUTPUT_LEN(extra) \
+		if (strlen(newProtoText) > (newProtoTextLen - extra)) { \
+			newProtoTextLen << 1; \
+			newProtoText = REALLOC(newProtoText, newProtoTextLen); \
+		}
+
+#define APPEND_SPACE strcat (newProtoText, " ");
+#define APPEND_THISID strcat (newProtoText,thisID);
+#define APPEND_NODE strcat (newProtoText,stringNodeType(ele->isNODE));
+#define APPEND_KEYWORD strcat (newProtoText,stringKeywordType(ele->isKEYWORD));
+#define APPEND_STRINGTOKEN strcat (newProtoText, ele->stringToken);
+#define APPEND_TERMINALSYMBOL \
+			{ char chars[3]; \
+			chars[0] = (char) ele->terminalSymbol;\
+			chars[1] = '\0';\
+			strcat (newProtoText, chars);\
+			}
+#define APPEND_ENDPROTOGROUP strcat (newProtoText,ENDPROTOGROUP);
+#define APPEND_STARTPROTOGROUP	sprintf (newProtoText, PROTOGROUPNUMBER, STARTPROTOGROUP, *thisProto);
+#define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
+#define APPEND_ISVALUE strcat (newProtoText,newTl);
+
+#define APPEND_IF_NOT_OUTPUTONLY \
+{ int coffset, ctype, ckind, field; \
+	printf ("checking to see if node %s has an outputOnly field %s\n",stringNodeType(lastNode->isNODE), ele->stringToken); \
+	findFieldInOFFSETS(NODE_OFFSETS[lastNode->isNODE], findFieldInFIELDNAMES(ele->stringToken), &coffset, &ctype, &ckind); \
+	printf ("found coffset %d ctype %d ckind %d\n",coffset, ctype, ckind); \
+	if (ckind != KW_outputOnly) { printf ("APPENDING\n"); APPEND_STRINGTOKEN } else printf ("NOT APPENDING\n"); \
+}
+
+#define APPEND_EDITED_STRINGTOKEN \
+	/* if this is an outputOnly field, dont bother printing it. It SHOULD be followed by an \
+	   KW_IS, but the IS value from the PROTO definition will be blank */ \
+	if (lastKeyword != NULL) { \
+		/* is this a KW_IS, or another keyword that needs a PROTO expansion specific ID? */ \
+		if (lastKeyword->isKEYWORD != KW_IS) { \
+			sprintf (thisID," %s%d_",FABRICATED_DEF_HEADER,(*thisProto)->protoDefNumber); \
+			APPEND_THISID \
+			APPEND_STRINGTOKEN \
+		} \
+		lastKeyword = NULL; \
+	} else {APPEND_STRINGTOKEN}
+
 /* internal sequence number for protos */
 static  indexT latest_protoDefNumber =1;
 static  indexT nextFabricatedDef=1;
@@ -573,7 +619,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
  ret->alreadySet=FALSE;
 
  /* copy over the fieldString */
- /* printf ("copying field string for field... %s\n",me->fieldString); */
+ /* printf ("protoFieldDecl_copy: copying field string for field... %s\n",me->fieldString); */
  if (me->fieldString != NULL) ret->fieldString = STRDUP(me->fieldString);
 
  ret->mode=me->mode;
@@ -699,18 +745,77 @@ struct NestedProtoField* newNestedProtoField(struct ProtoFieldDecl* origField, s
  return ret;
 }
 
+
+
+/* for backtracking to see if this field expansion has a proto expansion in it */
+/* I know, I know - going backwards through input, but what can happen is that:
+
+
+#VRML V2.0 utf8
+PROTO StandardAppearance [ ] { Appearance { material Material { } } } #end of proto standardAppearance
+PROTO Test [ field MFNode children [ ] ] { Transform { children IS children } } #end of protoTest
+
+See the PROTO expansion in the "children" field of the Test proto invocation in the following:
+Test { children Shape { appearance StandardAppearance { } geometry Sphere { } } } #end of test expansion 
+
+the "children" field expansion gets:
+Shape { appearance Group{FreeWRL__protoDef 5980080 children[ #PROTOGROUP
+Appearance {material Material {}}]}#END PROTOGROUP
+ geometry Sphere { } }
+
+And, the whole thing becomes:
+Group{FreeWRL__protoDef 5975760 children[ #PROTOGROUP
+Transform {children  Shape { appearance Group{FreeWRL__protoDef 5980080 children[ #PROTOGROUP
+Appearance {material Material {}}]}#END PROTOGROUP
+ geometry Sphere { } } }]}#END PROTOGROUP
+
+*/
+
+void removeProtoFieldFromThis(char *inputCopy) {
+	char *cp;
+	int closeBrackCount = 0;
+	int inName = FALSE;
+
+	/* printf ("removeProtoFieldFromThis, have :%s:\n",inputCopy); */
+	
+	cp = inputCopy + strlen(inputCopy);
+	while (cp > inputCopy) {
+		/* printf ("cp at 1 :%s:\n",cp); */
+		cp --;
+		if (*cp == '}') closeBrackCount++;
+		if (*cp == '{') { closeBrackCount--; *cp = '\0'; }
+
+		if (closeBrackCount == 0) {
+			if (*cp <= ' ') {
+				if (inName) {
+					/* printf ("inName, cp :%s: are we finished? \n",cp); */
+					*cp = '\0';
+					return;
+				} else {
+					*cp = '\0'; 
+				}
+			} else {
+				inName = TRUE;
+				/* printf ("worrying at :%s:\n",inputCopy); */
+			}
+		}		
+	}
+}
+
+
 /* go through a proto invocation, and get the invocation fields (if any) */
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto) {
 	int c;
 	char *cp;
 	char *initCP;
 	char tmp;
+	char *inputCopy = NULL;
 
 	struct ProtoFieldDecl* pdecl;
 	union anyVrml thisVal;
 
 	#ifdef CPROTOVERBOSE
-	printf ("start of getProtoInvocationFields, nextIn :%s:\n",me->lexer->nextIn);
+	printf ("start of getProtoInvocationFields, lexer %u nextIn :%s:\n",me->lexer, me->lexer->nextIn);
 	#endif
 
 	while (!lexer_closeCurly(me->lexer)) {
@@ -721,10 +826,14 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 		#endif
 
 		if (me->lexer->curID != NULL) {
+			#ifdef CPROTOVERBOSE
+			printf ("getProtoInvocationFields, curID != NULL\n");
+			#endif
+
 			pdecl = getProtoFieldDeclaration(me->lexer, thisProto,me->lexer->curID);
 			if (pdecl != NULL) {
 				#ifdef CPROTOVERBOSE
-				printf ("in getProtoInvocationFields, we have pdecl original as %s\n",pdecl->fieldString);
+				printf ("getProtoInvocationFields, we have pdecl original as %s\n",pdecl->fieldString);
 				#endif
 
 	
@@ -732,9 +841,11 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 				FREE_IF_NZ(me->lexer->curID);
 				cp = me->lexer->nextIn;
 				initCP = me->lexer->startOfStringPtr;
+				inputCopy = STRDUP(me->lexer->nextIn);
+				/* printf ("inputCopy is %s\n",inputCopy); */
 
 				#ifdef CPROTOVERBOSE
-				printf ("going to parse type of %d mode (%s), curID %s, starting at :%s:\n",pdecl->type, stringPROTOKeywordType(pdecl->mode),
+				printf ("getProtoInvocationField, going to parse type of %d mode (%s), curID %s, starting at :%s:\n",pdecl->type, stringPROTOKeywordType(pdecl->mode),
 						me->lexer->curID, me->lexer->nextIn);
 				#endif
 
@@ -742,27 +853,27 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 
 					lexer_setCurID(me->lexer);
 					#ifdef CPROTOVERBOSE
-					printf ("checking if this is an IS :%s:\n",me->lexer->curID);
+					printf ("getProtoInvocationField, checking if this is an IS :%s:\n",me->lexer->curID);
 					#endif
 
 					if(me->curPROTO && lexer_keyword(me->lexer, KW_IS)) {
 						struct ProtoFieldDecl* pexp;
 
 						#ifdef CPROTOVERBOSE
-						printf ("FOUND IS on protoInvocationFields; have to replace \n");
+						printf ("getProtoInvocationField, FOUND IS on protoInvocationFields; have to replace \n");
 						#endif
 
 
 						FREE_IF_NZ(me->lexer->curID);
 						lexer_setCurID(me->lexer);
 						#ifdef CPROTOVERBOSE
-						printf ("going to try and find :%s: in curPROTO\n",me->lexer->curID);
+						printf ("getProtoInvocationField, going to try and find :%s: in curPROTO\n",me->lexer->curID);
 						#endif
 
 						pexp = getProtoFieldDeclaration(me->lexer,me->curPROTO,me->lexer->curID);
 						if (pexp != NULL) {
 							#ifdef CPROTOVERBOSE
-							printf ("attaching :%s: to :%s:\n",pexp->fieldString, me->lexer->nextIn);
+							printf ("getProtoInvocationField, attaching :%s: to :%s:\n",pexp->fieldString, me->lexer->nextIn);
 							#endif
 
 							concatAndGiveToLexer(me->lexer, pexp->fieldString, me->lexer->nextIn);
@@ -770,32 +881,75 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 						FREE_IF_NZ(me->lexer->curID);
 					}
 
+					/* printf ("getPRotoInvocationFields, before parseType, nextIn %s\n",me->lexer->nextIn); */
 					if (!parseType(me, pdecl->type, &thisVal)) {
 						#ifdef CPROTOVERBOSE
-						printf ("parsing error on field value in proto expansion\n");
+						printf ("getProtoInvocationField, parsing error on field value in proto expansion\n");
 						#endif
 
 					} else {
 						#ifdef CPROTOVERBOSE
-						printf ("parsed field; nextin was %u, now %u\n",cp, me->lexer->nextIn);
+						printf ("getProtoInvocationField, parsed field; nextin was :%s:, now :%s:\n",cp, me->lexer->nextIn);
 						#endif
 
 					}
 	
 					/* was this possibly a proto expansion? */
-					if (initCP != me->lexer->startOfStringPtr) cp = me->lexer->startOfStringPtr;
+					/* printf ("getProtoInvocationField, initCP %u startOfStringPtr %u\n",initCP, me->lexer->startOfStringPtr); */
+
+					if (initCP != me->lexer->startOfStringPtr) {
+						char *a1;
+						char *a2;
+						/* we had a proto expansion of a field here... */
+							
+						/* printf ("we are probably missing %s off of front\n", inputCopy);
+						printf ("currently, lexer is %u\n",me->lexer); */
+
+						a1 = strstr(me->lexer->startOfStringPtr,ENDPROTOGROUP);
+						if (a1 != NULL) {
+							/* printf ("a1 before adding len %s\n",a1); */
+							a1 = a1+strlen(ENDPROTOGROUP);
+		
+							/* printf ("a1 is :%s:\n",a1);  */
+							/* ok, where is that string in the original? */
+							a2 = strstr (inputCopy,a1);
+
+							if (a2 != NULL) {
+								/* printf ("in inputcopy, we found :%s: here :%s:\n", a1, a2); */
+								*a2 = '\0';
+								/* printf ("should remove the last field of:%s:\n",inputCopy); */
+								/* go back, and try and remove the PROTO name and parameters from this field */
+								removeProtoFieldFromThis(inputCopy);
+
+							} else inputCopy[0] = '\0';
+
+						} else inputCopy[0] = '\0';
+
+						/* printf ("so, inputCopy is :%s:\n",inputCopy); */
+
+
+						cp = me->lexer->startOfStringPtr;
+					}
 
 					/* copy over the new value */
+printf ("initCP - going to set this to null :%s:\n",me->lexer->nextIn);
 					initCP = (char *) (me->lexer->nextIn);
 					tmp = *initCP; *initCP = '\0';
-					FREE_IF_NZ(pdecl->fieldString); pdecl->fieldString = strdup (cp);
+					FREE_IF_NZ(pdecl->fieldString); 
+printf ("inputCopy :%s:\n",inputCopy);
+printf ("cp :%s:\n",cp);
+					pdecl->fieldString = MALLOC (3 + strlen(inputCopy) + strlen(cp));
+					strcpy(pdecl->fieldString,inputCopy);
+					strcat (pdecl->fieldString, " ");
+					strcat(pdecl->fieldString,cp);
 					*initCP = tmp;
 					#ifdef CPROTOVERBOSE
 					printf ("getProtoInvocationFields, just copied :%s: remainder :%s:\n",pdecl->fieldString,me->lexer->nextIn);
 					#endif
+printf ("getProtoInvocationFields, just copied :%s: remainder :%s:\n",pdecl->fieldString,me->lexer->nextIn);
 				} else {
 					#ifdef CPROTOVERBOSE
-					printf ("skipped parsing this type of %s\n",stringPROTOKeywordType(pdecl->type));
+					printf ("getProtoInvocationField, skipped parsing this type of %s\n",stringPROTOKeywordType(pdecl->type));
 					#endif
 
 				}
@@ -807,12 +961,13 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 
 		lexer_skip (me);
 	}
+	FREE_IF_NZ (inputCopy);
+
 	#ifdef CPROTOVERBOSE
 	printf ("end of getProtoInvocationFields\n");
 	#endif
 
 }
-
 
 /* find the proto field declare for a particular proto */
 struct ProtoFieldDecl* getProtoFieldDeclaration(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID) {
@@ -1003,51 +1158,6 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 }
 
 
-#define STARTPROTOGROUP "Group{FreeWRL__protoDef %d children[ #PROTOGROUP\n"
-#define ENDPROTOGROUP "]}#END PROTOGROUP\n"
-#define VERIFY_OUTPUT_LEN(extra) \
-		if (strlen(newProtoText) > (newProtoTextLen - extra)) { \
-			newProtoTextLen << 1; \
-			newProtoText = REALLOC(newProtoText, newProtoTextLen); \
-		}
-
-#define APPEND_SPACE strcat (newProtoText, " ");
-#define APPEND_THISID strcat (newProtoText,thisID);
-#define APPEND_NODE strcat (newProtoText,stringNodeType(ele->isNODE));
-#define APPEND_KEYWORD strcat (newProtoText,stringKeywordType(ele->isKEYWORD));
-#define APPEND_STRINGTOKEN strcat (newProtoText, ele->stringToken);
-#define APPEND_TERMINALSYMBOL \
-			{ char chars[3]; \
-			chars[0] = (char) ele->terminalSymbol;\
-			chars[1] = '\0';\
-			strcat (newProtoText, chars);\
-			}
-#define APPEND_ENDPROTOGROUP strcat (newProtoText,ENDPROTOGROUP);
-#define APPEND_STARTPROTOGROUP	sprintf (newProtoText, STARTPROTOGROUP, *thisProto);
-#define SOMETHING_IN_ISVALUE (strlen(newTl) > 0) 
-#define APPEND_ISVALUE strcat (newProtoText,newTl);
-
-#define APPEND_IF_NOT_OUTPUTONLY \
-{ int coffset, ctype, ckind, field; \
-	printf ("checking to see if node %s has an outputOnly field %s\n",stringNodeType(lastNode->isNODE), ele->stringToken); \
-	findFieldInOFFSETS(NODE_OFFSETS[lastNode->isNODE], findFieldInFIELDNAMES(ele->stringToken), &coffset, &ctype, &ckind); \
-	printf ("found coffset %d ctype %d ckind %d\n",coffset, ctype, ckind); \
-	if (ckind != KW_outputOnly) { printf ("APPENDING\n"); APPEND_STRINGTOKEN } else printf ("NOT APPENDING\n"); \
-}
-
-#define APPEND_EDITED_STRINGTOKEN \
-	/* if this is an outputOnly field, dont bother printing it. It SHOULD be followed by an \
-	   KW_IS, but the IS value from the PROTO definition will be blank */ \
-	if (lastKeyword != NULL) { \
-		/* is this a KW_IS, or another keyword that needs a PROTO expansion specific ID? */ \
-		if (lastKeyword->isKEYWORD != KW_IS) { \
-			sprintf (thisID," %s%d_",FABRICATED_DEF_HEADER,(*thisProto)->protoDefNumber); \
-			APPEND_THISID \
-			APPEND_STRINGTOKEN \
-		} \
-		lastKeyword = NULL; \
-	} else {APPEND_STRINGTOKEN}
-
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
 	char *newProtoText;
 	char *isPtr;
@@ -1074,7 +1184,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#endif
 
 
-	newProtoTextLen = (*thisProto)->estimatedBodyLen * 2 + strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
+	newProtoTextLen = (*thisProto)->estimatedBodyLen * 2 + strlen(PROTOGROUPNUMBER) +strlen(STARTPROTOGROUP) + strlen (ENDPROTOGROUP) + 10;
 	newProtoText = MALLOC(newProtoTextLen);
 
 	newProtoText[0] = '\0';
@@ -1098,8 +1208,11 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 		/* get the current element */
 		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
 		assert(ele);
+#ifdef XXX
+strcat (newProtoText, "# at A\n");
+#endif
 
-		/* printf ("\nele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
+		/* printf ("\nPROTO - ele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
 
 		/* this is a NODE, eg, "SphereSensor". If we need this DEFined because it contains an IS, then make the DEF */
 		if (ele->isNODE != ID_UNDEFINED) {
@@ -1108,10 +1221,16 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 			/* possibly this is a synthetic DEF for possible external IS routing */
 			if (ele->fabricatedDef != ID_UNDEFINED) {
+#ifdef XXX
+strcat (newProtoText, "# at B\n");
+#endif
 				sprintf (thisID,"DEF %s%d_",FABRICATED_DEF_HEADER,ele->fabricatedDef);
 				APPEND_THISID
 				APPEND_SPACE
 			}
+#ifdef XXX
+strcat (newProtoText, "# at C\n");
+#endif
 			APPEND_NODE
 			APPEND_SPACE
 
@@ -1124,10 +1243,17 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 			    (ele->isKEYWORD == KW_TO))
 				lastKeyword = ele;
 
-			if (ele->isKEYWORD != KW_IS) { APPEND_KEYWORD APPEND_SPACE }
+			if (ele->isKEYWORD != KW_IS) { 
+#ifdef XXX
+strcat (newProtoText, "# at D\n");
+#endif
+APPEND_KEYWORD APPEND_SPACE }
 
 		/* Hmmm - maybe this is a "{" or something like that */
 		} else if (ele->terminalSymbol != ID_UNDEFINED) {
+#ifdef XXX
+strcat (newProtoText, "# at E\n");
+#endif
 			APPEND_TERMINALSYMBOL
 
 		/* nope, this is a fieldname, DEF name, or string, or something equivalent */
@@ -1151,11 +1277,17 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 					/* is there actually a value for this field?? */
 					if SOMETHING_IN_ISVALUE {
+#ifdef XXX
+strcat (newProtoText, "# at F\n");
+#endif
 						VERIFY_OUTPUT_LEN(strlen(newTl))
 						APPEND_STRINGTOKEN
 						APPEND_SPACE
 						APPEND_ISVALUE
 					} else if (lastNode->isNODE == NODE_Script) {
+#ifdef XXX
+strcat (newProtoText, "# at G\n");
+#endif
 						/* Script nodes NEED the fieldname, even if it is blank, so... */
 						APPEND_STRINGTOKEN
 						APPEND_SPACE
@@ -1164,10 +1296,16 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 					i+=2; /* skip the IS and the field */
 					FREE_IF_NZ(newTl);
 				} else { 
+#ifdef XXX
+strcat (newProtoText, "# at H\n");
+#endif
 					APPEND_EDITED_STRINGTOKEN
 				}
 
 			} else { 
+#ifdef XXX
+strcat (newProtoText, "# at I\n");
+#endif
 				APPEND_EDITED_STRINGTOKEN
 			}
 

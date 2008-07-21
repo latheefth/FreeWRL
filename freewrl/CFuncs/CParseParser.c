@@ -186,12 +186,14 @@ void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText) {
 
 }
 
+
+
 /* put the string value of the PROTO field into the input stream */
 void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize) {
 	struct ProtoFieldDecl* pdecl=NULL;
 	/* find the ascii name, and try and find it's protodefinition by type */
 	#ifdef CPARSERVERBOSE
-	printf ("start of replaceProtoField\n");
+	printf ("start of replaceProtoField for id %s\n",thisID);
 	#endif
 
 	/* BTW - I'm not sure which array to look in, so I end up looking in them all */
@@ -203,7 +205,7 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 	if (pdecl!=NULL) {
 		if (pdecl->fieldString!=NULL) {
 			#ifdef CPARSERVERBOSE
-			printf ("PROTO FIELD VALUE IS :%s:\n",pdecl->fieldString);
+			printf ("PROTO FIELD VALUE IS :xxx: %s :xxx:\n",pdecl->fieldString);
 			printf ("see if we need to realloc: outSize %d, curlen %d, newlen %d\n",*outSize, strlen(*outTextPtr), strlen (pdecl->fieldString));
 			#endif
 
@@ -225,7 +227,7 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 		}
 	}
 	#ifdef CPARSERVERBOSE
-	printf ("replaceProtoField returning\n");
+	printf ("replaceProtoField returning for id %s\n",thisID);
 	#endif
 	
 }
@@ -2262,7 +2264,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
  assert(me->lexer);
 
-/* printf ("start of parser_field, me->lexer->nextIn :%s:\n",me->lexer->nextIn); */
+	/* printf ("start of parser_field, me->lexer->nextIn :%s:\n",me->lexer->nextIn);  */
 
  /* Ask the lexer to find the field (next lexer token) in either the FIELDNAMES array or the EXPOSED_FIELD array. The 
     index of the field in the array is returned in fieldO (if found in FIELDNAMES) or fieldE (if found in EXPOSED_FIELD).  
@@ -2368,6 +2370,10 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
   default: \
    PARSE_ERROR("Unsupported node!")
 
+ /* printf ("at XXX, fieldE = %d, fieldO = %d nodeType %s\n",fieldE, fieldO,stringNodeType (node->_nodeType));
+	if (fieldE!=ID_UNDEFINED) printf (".... field is %s\n",EXPOSED_FIELD[fieldE]);
+	if (fieldO!=ID_UNDEFINED) printf (".... field is %s\n",FIELD[fieldO]); */
+
  /* Field was found in EXPOSED_FIELD list.  Parse value or IS statement */
  if(fieldE!=ID_UNDEFINED)
   switch(node->_nodeType)
@@ -2400,7 +2406,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 
   }
 
- /* Field was found in FIELDNAMES list.  Parse value or IS statement */
+ /* Field was found in FIELDS list.  Parse value or IS statement */
  if(fieldO!=ID_UNDEFINED)
   switch(node->_nodeType)
   {
