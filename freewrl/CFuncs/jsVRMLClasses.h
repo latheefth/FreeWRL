@@ -59,6 +59,7 @@ of garbage collection */
 	/* printf ("defining length to %d for %d %d\n",thislength,cx,obj);*/ \
 	if (!JS_DefineProperty(cx, thisobject, "length", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"length\" at %s:%d.\n",__FILE__,__LINE__); \
+		printf ("myThread is %u\n",pthread_self()); \
 		return JS_FALSE;\
 	}}
 
@@ -67,6 +68,7 @@ of garbage collection */
 	/* printf ("defining property for MF_ECMA_HAS_CHANGED... %d %d ",cx,obj); */ \
 	if (!JS_DefineProperty(cx, obj, "MF_ECMA_has_changed", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"MF_ECMA_has_changed\" at %s:%d.\n",__FILE__,__LINE__); \
+		printf ("myThread is %u\n",pthread_self()); \
 		return JS_FALSE; \
 	}}
 
@@ -75,6 +77,7 @@ of garbage collection */
 			/* printf ("setting property for MF_ECMA_has_changed %d %d\n",cx,obj); */ \
                         if (!JS_SetProperty(cx, obj, "MF_ECMA_has_changed", &myv)) { \
                                 printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in doMFSetProperty.\n"); \
+		printf ("myThread is %u\n",pthread_self()); \
                                 return JS_FALSE; \
                         }}
 
@@ -83,6 +86,7 @@ of garbage collection */
         zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(cx, TickTime));  \
         if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
                 printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
+		printf ("myThread is %u\n",pthread_self()); \
                 return; \
         }}
 
@@ -97,6 +101,7 @@ of garbage collection */
 	{jsval zimbo; \
 	if (!JS_ExecuteScript(cx, obj, (JSScript *) JSparamnames[tnfield].eventInFunction, &zimbo)) { \
 		printf ("failed to set parameter for eventIn %s in FreeWRL code %s:%d\n",JSparamnames[tnfield].name,__FILE__,__LINE__); \
+		printf ("myThread is %u\n",pthread_self()); \
 	}} 
 
 
@@ -105,6 +110,7 @@ of garbage collection */
                 lenval = INT_TO_JSVAL(length); \
                 if (!JS_SetProperty(cx, newMFObject, "length", &lenval)) { \
                         printf( "JS_SetProperty failed for \"length\" at %s:%d\n",__FILE__,__LINE__); \
+		printf ("myThread is %u\n",pthread_self()); \
                         return JS_FALSE; \
                 }} 
 
@@ -113,6 +119,7 @@ of garbage collection */
 		sprintf (scriptline,"__eventIn_Value_%s", JSparamnames[nameIndex].name); \
         	if (!JS_DefineProperty(cx,obj, scriptline, OBJECT_TO_JSVAL(newObj), JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
         	        printf( "JS_DefineProperty failed for \"ECMA in\" at %s:%d.\n",__FILE__,__LINE__);  \
+		printf ("myThread is %u\n",pthread_self()); \
         	        return JS_FALSE; \
         }	}
 	

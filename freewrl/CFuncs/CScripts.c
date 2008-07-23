@@ -147,7 +147,7 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
 	#endif
 
 	assert(me->valueSet);
- 	InitScriptFieldC(num, me->fieldDecl->mode, me->fieldDecl->type, me->name, me->value);
+ 	SaveScriptField(num, me->fieldDecl->mode, me->fieldDecl->type, me->name, me->value);
 }
 
 /* ************************************************************************** */
@@ -239,16 +239,14 @@ void script_addField(struct Script* me, struct ScriptFieldDecl* field)
  scriptFieldDecl_jsFieldInit(field, me->num);
 }
 
+/* save the script code, as found in the VRML/X3D URL for this script */
 BOOL script_initCode(struct Script* me, const char* code)
 {
- jsval jsret;
- assert(!me->loaded);
+ 	assert(!me->loaded);
 
- if(!ACTUALRUNSCRIPT(me->num, (char *)code, &jsret))
-  return FALSE;
-
- me->loaded=TRUE;
- return TRUE;
+	SaveScriptText (me->num, (char *)code);
+ 	me->loaded=TRUE;
+ 	return TRUE;
 }
 
 /* get the script from this SFString. First checks to see if the string

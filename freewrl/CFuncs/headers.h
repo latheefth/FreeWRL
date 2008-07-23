@@ -649,21 +649,6 @@ struct currayhit {
 
 
 
-struct CRscriptStruct {
-	/* type */
-	int thisScriptType;
-
-	/* Javascript parameters */
-	uintptr_t	cx;			/* JSContext		*/
-	uintptr_t	glob;			/* JSGlobals		*/
-	uintptr_t	eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
-
-	/* Java .CLASS parameters */
-	unsigned int 	_initialized; 	/* has initialize been sent? */
-	int listen_fd, send_fd;		/* socket descriptors */
-	char NodeID[20];		/* combo Perl NODEXXX, and CNODE */
-
-};
 void JSMaxAlloc(void);
 void cleanupDie(uintptr_t num, const char *msg);
 void shutdown_EAI(void);
@@ -714,6 +699,10 @@ extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */
 extern uintptr_t *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
+void JSCreateScriptContext(uintptr_t num); 
+void JSInitializeScriptAndFields (uintptr_t num);
+void SaveScriptText(uintptr_t num, char *text);
+
 
 void update_status(char* msg);
 void kill_status();

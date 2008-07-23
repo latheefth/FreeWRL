@@ -26,7 +26,7 @@
 #endif /* FALSE */
 
 #define CLEANUP_JAVASCRIPT(cx) \
-	/* printf ("calling JS_GC at %s:%d cx %u thread %d\n",__FILE__,__LINE__,cx,pthread_self()); */ \
+	/* printf ("calling JS_GC at %s:%d cx %u thread %u\n",__FILE__,__LINE__,cx,pthread_self()); */ \
 	JS_GC(cx);
 
 #define LARGESTRING 2048

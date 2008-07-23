@@ -104,4 +104,27 @@ void script_addField(struct Script*, struct ScriptFieldDecl*);
 /* Get a field by name */
 struct ScriptFieldDecl* script_getField(struct Script*, indexT ind, indexT mod);
 
+
+void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value);
+void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyVrml value);
+struct ScriptParamList {
+        struct ScriptParamList *next;
+        indexT kind;
+        indexT type;
+        char *field;
+        union anyVrml value;
+};
+
+struct CRscriptStruct {
+	/* type */
+	int thisScriptType;
+
+	/* Javascript parameters */
+	int _initialized;			/* this script initialized yet? */
+	uintptr_t	cx;			/* JSContext		*/
+	uintptr_t	glob;			/* JSGlobals		*/
+	uintptr_t	eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
+	char *scriptText;
+	struct ScriptParamList *paramList;
+};
 #endif /* Once-check */

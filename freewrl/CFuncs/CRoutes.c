@@ -13,6 +13,7 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
+#include "CScripts.h"
 
 #include "SensInterps.h"
 
@@ -1517,7 +1518,7 @@ void process_eventsProcessed() {
 		if (!JS_ExecuteScript((JSContext *) ScriptControl[counter].cx,
                                 (JSObject *) ScriptControl[counter].glob,
 				(JSScript *) ScriptControl[counter].eventsProcessed, &retval)) {
-			printf ("can not run eventsProcessed() for script %d thread %d\n",counter,pthread_self());
+			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,pthread_self());
 		}
 
 	}

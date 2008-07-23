@@ -58,32 +58,6 @@ int _P_LOCK_VAR;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 
-
-/* we want to run initialize() from the calling thread. NOTE: if initialize creates VRML/X3D nodes, it
-   will call the ProdCon methods to do this, and these methods will check to see if nodes, yada, yada,
-   yada, until we run out of stack. So, we check to see if we are initializing; if so, don't worry about
-   checking for new scripts */
-static int initializingScripts = FALSE;
-#define INITIALIZE_ANY_SCRIPTS \
-	/* any scripts to initialize here? we do it here, because we may just have created new scripts during \
-	   X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until  \
-	   we have told it that the scripts are initialized. */ \
-	if ((max_script_found != max_script_found_and_initialized) && (!initializingScripts)) { \
-		initializingScripts = TRUE; \
-		/* printf ("have scripts to initialize in ProdCon old %d new %d\n",max_script_found, max_script_found_and_initialized); */ \
-		int i; jsval retval; \
-		for (i=max_script_found_and_initialized+1; i <= max_script_found; i++) { \
-			/*  printf ("initializing script %d in ProdCon\n",i);  */ \
-                	ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
-                	ScriptControl[i]._initialized=TRUE; \
-			/* printf ("initialized script %d\n",i); */ \
-		} \
- 		initializingScripts = FALSE; \
-		max_script_found_and_initialized = max_script_found; \
-	}
-
-
-
 struct PSStruct {
 	unsigned type;		/* what is this task? 			*/
 	char *inp;		/* data for task (eg, vrml text)	*/
@@ -551,10 +525,6 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, i
 	retval = psp.retarrsize;
 
 	UNLOCK;
-
-	/* are there, possibly any new scripts that have been made? */
-	INITIALIZE_ANY_SCRIPTS
-
 	return (retval);
 }
 
@@ -584,10 +554,6 @@ void EAI_readNewWorld(char *inputstring) {
 	WAIT_WHILE_PERL_BUSY;
 
 	UNLOCK;
-
-	/* are there, possibly any new scripts that have been made? */
-	INITIALIZE_ANY_SCRIPTS
-
 }
 
 /****************************************************************************/
@@ -631,18 +597,13 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 	/* grab data */
 
 	UNLOCK;
-
-	/* are there, possibly any new scripts that have been made? */
-	INITIALIZE_ANY_SCRIPTS
-
-
 	return (TRUE);
 }
 
 /***********************************************************************************/
 
 void _inputParseThread(void) {
-	/* printf ("inputParseThread is %d\n",pthread_self()); */
+	/* printf ("inputParseThread is %u\n",pthread_self()); */
 
 	PERL_LOCKING_INIT;
 
@@ -652,7 +613,7 @@ void _inputParseThread(void) {
 
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
-		/* printf ("thread %d waiting for data\n",pthread_self()); */
+		/* printf ("thread %u waiting for data\n",pthread_self()); */
 		WAIT_WHILE_NO_DATA;
 
 		inputThreadParsing=TRUE;

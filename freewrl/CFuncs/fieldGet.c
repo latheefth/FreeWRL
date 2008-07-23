@@ -8,6 +8,7 @@
 #include "headers.h"
 #include "EAIheaders.h"
 #include "jsVRMLClasses.h"
+#include "CScripts.h"
 
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 int setMFElementtype (uintptr_t num);

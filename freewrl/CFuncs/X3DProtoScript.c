@@ -909,7 +909,7 @@ void parseScriptProtoField(const char **atts) {
 			parseScriptFieldDefaultValue(findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), &value);
 		
 		/* send in the script field for initialization */
-		InitScriptFieldC (myScriptNumber, myAccessType, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
+		SaveScriptField (myScriptNumber, myAccessType, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]),atts[myparams[MP_NAME]],value);
 	}
 }
 
@@ -1022,11 +1022,7 @@ void initScriptWithScript() {
 		return;
 	}
 
-	if (!ACTUALRUNSCRIPT (myScriptNumber, startingIndex, &rval)) {
-		ConsoleMessage ("X3DParser, script initialization error at line %d",LINE);
-		FREE_IF_NZ(scriptText);
-		return;
-	}
+	SaveScriptText (myScriptNumber, startingIndex);
 
 	FREE_IF_NZ(scriptText);
 	scriptTextMallocSize = 0;

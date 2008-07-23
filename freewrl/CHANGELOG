@@ -1,7 +1,19 @@
-For 1.20.4
+For 1.20.5
+	- GeoSpatial nodes: GeoViewpoint, GeoLocation, GeoElevationGrid, GeoCoordinate,
+	  GeoOrigin, GeoPositionInterpolator, GeoLOD nodes should be pretty stable.
+
+	- Classic VRML parser had difficulties with field replacements on PROTO invocations,
+	  if PROTO invocations were nested. 
+
+	- Threading and Javascript. Now, all initialization happens in same thread as 
+	  FreeWRL event loops; it has been determined that there were problems with the Javascript
+	  interpreters garbage collection as it is not Javascript context-based, thus was
+	  not thread-safe for the scripting methods previously used in FreeWRL.
+
 	- fixed problem with collision and ccw/solid polygons whereby one would collide with
 	  the transparent surface, not the visible surface.
 
+For 1.20.4
 	- problem parsing floats/doubles with a positive sign starting(or part of exponent),
 	  eg, "123e+10" now parses - before expected "123e10".
 

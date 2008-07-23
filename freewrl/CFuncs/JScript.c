@@ -19,14 +19,15 @@ Javascript C language binding.
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
+#include "CScripts.h"
 
 #include "CParseGeneral.h"
 
 /* MAX_RUNTIME_BYTES controls when garbage collection takes place. */
-/*   #define MAX_RUNTIME_BYTES 0x1000000L */
-/* #define STACK_CHUNK_SIZE 0x2000L*/
-#define MAX_RUNTIME_BYTES 0xC00000L
-#define STACK_CHUNK_SIZE 0x20000L
+#define MAX_RUNTIME_BYTES 0x1000000L
+/* #define MAX_RUNTIME_BYTES 0x4000000L */
+/* #define MAX_RUNTIME_BYTES 0xC00000L */
+#define STACK_CHUNK_SIZE 8192
 
 /*
  * Global JS variables (from Brendan Eichs short embedding tutorial):
@@ -154,26 +155,79 @@ void JSMaxAlloc() {
 		ScriptControl[count].cx = 0;
 		ScriptControl[count].glob = 0;
 		ScriptControl[count]._initialized = FALSE;
+		ScriptControl[count].scriptText = NULL;
+		ScriptControl[count].paramList = NULL;
 	}
 }
 
+/* set up table entry for this new script */
 void JSInit(uintptr_t num) {
-	jsval rval;
-	JSContext *_context; 	/* these are set here */
-	JSObject *_globalObj; 	/* these are set here */
-	BrowserNative *br; 	/* these are set here */
 
 	#ifdef JAVASCRIPTVERBOSE 
 	printf("JSinit: script %d\n",num);
 	#endif
 
-
 	/* more scripts than we can handle right now? */
 	if (num >= JSMaxScript)  {
 		JSMaxAlloc();
 	}
+}
 
 
+/* Save the text, so that when the script is initialized in the EventLoop thread, it will be there */
+void SaveScriptText(uintptr_t num, char *text) {
+	/* printf ("JSSaveScriptText, num %d, thread %u saving :%s:\n",num, pthread_self(),text); */
+	if (num >= JSMaxScript)  {
+		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
+		return;
+	}
+	FREE_IF_NZ(ScriptControl[num].scriptText);
+	ScriptControl[num].scriptText = STRDUP(text);
+
+	if (((int)num) > max_script_found) max_script_found = num;
+	/* printf ("SaveScriptText, max_script_found now %d\n",max_script_found); */
+}
+
+void JSInitializeScriptAndFields (uintptr_t num) {
+        struct ScriptParamList **nextInsert;
+        struct ScriptParamList *thisEntry;
+	jsval rval;
+
+	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self()); */
+	/* run through paramList, and run the script */
+	/* printf ("JSInitializeScriptAndFields, running through params and main script\n"); */
+	if (num >= JSMaxScript)  {
+		ConsoleMessage ("JSInitializeScriptAndFields: warning, script %d initialization out of order",num);
+		return;
+	}
+	
+	/* go and initialize the fields */
+        nextInsert = &(ScriptControl[num].paramList);
+        while (*nextInsert != NULL) {
+		thisEntry = *nextInsert;
+		InitScriptField(num, thisEntry->kind, thisEntry->type, thisEntry->field, thisEntry->value);
+		FREE_IF_NZ (thisEntry->field);
+                nextInsert = &(thisEntry->next);
+		FREE_IF_NZ(thisEntry);
+	}
+
+	if (!ACTUALRUNSCRIPT(num, ScriptControl[num].scriptText, &rval)) {
+		ConsoleMessage ("JSInitializeScriptAndFields, script failure");
+		return;
+	}
+	FREE_IF_NZ(ScriptControl[num].scriptText);
+	ScriptControl[num]._initialized = TRUE;
+}
+
+
+
+/* create the script context for this script. This is called from the thread
+   that handles script calling in the EventLoop */
+void JSCreateScriptContext(uintptr_t num) {
+	jsval rval;
+	JSContext *_context; 	/* these are set here */
+	JSObject *_globalObj; 	/* these are set here */
+	BrowserNative *br; 	/* these are set here */
 	/* is this the first time through? */
 	if (runtime == NULL) {
 		runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
@@ -250,7 +304,7 @@ void JSInit(uintptr_t num) {
 	CRoutes_js_new (num, JAVASCRIPT);
 
 	#ifdef JAVASCRIPTVERBOSE 
-	printf("\tVRML browser initialized, thread %d\n",pthread_self());
+	printf("\tVRML browser initialized, thread %u\n",pthread_self());
 	#endif
 }
 
@@ -269,12 +323,13 @@ int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	CLEANUP_JAVASCRIPT(_context)
+
 
 	#ifdef JAVASCRIPTVERBOSE
 		printf("ActualrunScript script called at %s:%d  num: %d cx %x \"%s\", \n", 
 			fn, line, num, _context, script);
 	#endif
+	CLEANUP_JAVASCRIPT(_context)
 
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len, FNAME_STUB, LINENO_STUB, rval)) {
@@ -481,7 +536,37 @@ SFVec3fNativeAssign(void *top, void *fromp)
 		
 */
 
-void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyVrml value) {
+/* save this field from the parser; initialize it when the EventLoop wants to initialize it */
+void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyVrml value) {
+	struct ScriptParamList **nextInsert;
+	struct ScriptParamList *newEntry;
+
+	if (num >= JSMaxScript)  {
+		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
+		return;
+	}
+	/* printf ("SaveScriptField, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value); */
+
+	/* generate a new ScriptParamList entry */
+	nextInsert = &(ScriptControl[num].paramList);
+	while (*nextInsert != NULL) {
+		nextInsert = &(*nextInsert)->next;
+	}
+
+	/* create a new entry and link it in */
+	newEntry = (struct ScriptParamList *) MALLOC (sizeof (struct ScriptParamList));
+	*nextInsert = newEntry;
+	
+	/* initialize the new entry */
+	newEntry->next = NULL;
+	newEntry->kind = kind;
+	newEntry->type = type;
+	newEntry->field = STRDUP(field);
+	newEntry->value = value;
+}
+
+/* the EventLoop is initializing this field now */
+void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value) {
 	jsval rval;
 	char *smallfield = NULL;
 	char mynewname[400];
@@ -509,9 +594,9 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	double defaultDouble[] = {0.0, 0.0};
 	struct Uni_String *sptr[1];
 
-
-	 #ifdef JAVASCRIPTVERBOSE
-	printf ("\nInitScriptFieldC, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value);
+	#ifdef JAVASCRIPTVERBOSE
+	printf ("calling InitScriptField from thread %u\n",pthread_self());
+	printf ("\nInitScriptField, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value);
 	#endif
 
         if ((kind != PKW_inputOnly) && (kind != PKW_outputOnly) && (kind != PKW_initializeOnly) && (kind != PKW_inputOutput)) {
@@ -812,9 +897,8 @@ void InitScriptFieldC(int num, indexT kind, indexT type, char* field, union anyV
 	FREE_IF_NZ (sftype);
 
 	#ifdef JAVASCRIPTVERBOSE
-	printf ("finished InitScriptFieldC\n");
+	printf ("finished InitScriptField\n");
 	#endif
-
 }
 
 int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {

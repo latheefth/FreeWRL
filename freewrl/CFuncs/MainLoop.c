@@ -8,6 +8,13 @@
 #include "headers.h"
 #include "PluginSocket.h"
 
+#include "jsapi.h"
+#include "jsUtils.h"
+#include "jsNative.h"
+#include "jsVRMLClasses.h"
+#include "CScripts.h"
+
+
 /*
  * handle X events.
  */
@@ -98,6 +105,28 @@ int currentFileVersion = 0;
 	int PaneClipheight;
 	int PaneClipChanged = FALSE;
 #endif
+
+/* we want to run initialize() from the calling thread. NOTE: if initialize creates VRML/X3D nodes, it
+   will call the ProdCon methods to do this, and these methods will check to see if nodes, yada, yada,
+   yada, until we run out of stack. So, we check to see if we are initializing; if so, don't worry about
+   checking for new scripts */
+#define INITIALIZE_ANY_SCRIPTS \
+	/* any scripts to initialize here? we do it here, because we may just have created new scripts during \
+	   X3D/VRML parsing. Routing in the Display thread may have noted new scripts, but will ignore them until  \
+	   we have told it that the scripts are initialized. */ \
+	if (max_script_found != max_script_found_and_initialized) { \
+		/* printf ("have scripts to initialize in EventLoop old %d new %d\n",max_script_found, max_script_found_and_initialized); */ \
+		int i; jsval retval; \
+		for (i=max_script_found_and_initialized+1; i <= max_script_found; i++) { \
+			/* printf ("initializing script %d in thread %u\n",i,pthread_self()); */  \
+			JSCreateScriptContext(i); \
+			JSInitializeScriptAndFields(i); \
+                	ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
+                	ScriptControl[i]._initialized=TRUE; \
+			/* printf ("initialized script %d\n",i); */ \
+		} \
+		max_script_found_and_initialized = max_script_found; \
+	}
 
 int quitThread = FALSE;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
@@ -255,6 +284,9 @@ void EventLoop() {
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	
+	/* any scripts to do?? */
+	INITIALIZE_ANY_SCRIPTS
 
 	/* has the default background changed? */
 	if (cc_changed) doglClearColor();
@@ -890,9 +922,10 @@ struct X3D_Node* getRayHit() {
 		/* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
 		   if it exists */
 		
-		printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
+		/* printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
 			rayHit.node,stringNodeType(rayHit.node->_nodeType), x,y,z);
 		printf (" dist %f ",rayHit.node->_dist);
+		*/
 	
 
 		for (i=0; i<num_SensorEvents; i++) {
@@ -1095,7 +1128,7 @@ void setFullPath(const char* file) {
 
 /* handle all the displaying and event loop stuff. */
 void displayThread() {
-	/* printf ("displayThread, I am %d \n",pthread_self());  */
+	/* printf ("displayThread, I am %u \n",pthread_self());  */
 
         /* Create an OpenGL rendering context. */
 
