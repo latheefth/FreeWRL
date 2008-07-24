@@ -16,7 +16,6 @@
 #include "headers.h"
 #include "X3DParser.h"
 
-
 /* If XMLCALL isn't defined, use empty one */
 #ifndef XMLCALL
  #define XMLCALL
@@ -276,6 +275,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 	#endif
 
 	thisNode = createNewX3DNode(myNodeType);
+	printf ("parseNormalX3D: for name %s, myNodeType = %d is %u parentInded %d\n",name,myNodeType,thisNode,parentIndex);
 	parentStack[parentIndex] = thisNode; 
 
 	if (thisNode->_nodeType == NODE_Script) {
@@ -285,12 +285,6 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 		((struct X3D_Script *)thisNode)->_X3DScript = (int) nextScriptHandle();
 		JSInit(((struct X3D_Script *)thisNode)->_X3DScript);
-	} else {
-		#ifdef X3DPARSERVERBOSE
-		printf ("going to add_parent %u and %u\n",thisNode,parentStack[parentIndex-1]);
-		#endif
-
-		ADD_PARENT((void *)thisNode, parentStack[parentIndex-1]);
 	}
 
 	/* go through the fields, and link them in. SFNode and MFNodes will be handled 
@@ -582,6 +576,7 @@ void linkNodeIn() {
 		return;
 	}
 
+#define X3DPARSERVERBOSE
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("linkNodeIn: parserMode %s parentIndex %d, ",
@@ -592,6 +587,7 @@ void linkNodeIn() {
 		stringFieldType(parentStack[parentIndex]->_defaultContainer),
 		parentStack[parentIndex]->_defaultContainer);
 	#endif
+#undef X3DPARSERVERBOSE
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
 	findFieldInOFFSETS(NODE_OFFSETS[parentStack[parentIndex-1]->_nodeType], 
@@ -615,6 +611,7 @@ void linkNodeIn() {
 		/* copy over a single memory pointer */
 		destnode = (uintptr_t *) memptr;
 		*destnode = parentStack[parentIndex];
+		ADD_PARENT(X3D_NODE(parentStack[parentIndex]), X3D_NODE(parentStack[parentIndex-1]));
 	} else {
 		AddRemoveChildren (
 			parentStack[parentIndex-1], /* parent */
@@ -789,6 +786,7 @@ static void shutdownX3DParser () {
 int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 	currentX3DParser = initializeX3DParser();
 
+printf ("x3dparse ,parent %u\n",myParent);
 	INCREMENT_PARENTINDEX
 	parentStack[parentIndex] = X3D_NODE(myParent);
 	

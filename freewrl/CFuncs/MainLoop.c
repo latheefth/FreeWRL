@@ -38,6 +38,10 @@
 	#define ARROW_CURSOR    ccurse = ACURSE;
 #endif
 
+/* do we want OpenGL errors to be printed to the console?? */
+int displayOpenGLErrors = FALSE;
+
+
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
 
@@ -154,7 +158,7 @@ GLint viewPort2[10];
 int screenWidth=1;
 int screenHeight=1;
 int clipPlane = 0;
-#define DEFAULT_NEARPLANE 0.01
+#define DEFAULT_NEARPLANE 0.1
 #define DEFAULT_FARPLANE 21000.0
 double nearPlane=DEFAULT_NEARPLANE; 			/* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=DEFAULT_FARPLANE;			/* a good default value */
@@ -316,7 +320,7 @@ void EventLoop() {
 
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-		/* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop); */
+		/* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
 
 		#ifdef PROFILE
 		oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;
@@ -1045,13 +1049,12 @@ void XEventStereo() {
 
 /* if we had an opengl error... */
 void glPrintError(char *str) {
-#ifdef GLERRORS
-        int err;
-        while((err = glGetError()) != GL_NO_ERROR)
-                fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
-
-#endif
-        }
+	if (displayOpenGLErrors) {
+        	int err;
+        	while((err = glGetError()) != GL_NO_ERROR)
+                	printf("OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
+       	}
+}
 
 /* go to the first viewpoint */
 void First_ViewPoint() {
@@ -1130,8 +1133,13 @@ void setFullPath(const char* file) {
 void displayThread() {
 	/* printf ("displayThread, I am %u \n",pthread_self());  */
 
-        /* Create an OpenGL rendering context. */
+	/* see if we want OpenGL errors to be found and printed - note, this creates bottlenecks,
+	   in the OpenGL pipeline, so we do not do this all the time, only for debugging */
 
+	if (getenv ("FREEWRL_PRINT_OPENGL_ERRORS")!= NULL)
+		displayOpenGLErrors = TRUE;
+
+        /* Create an OpenGL rendering context. */
 	#ifdef AQUA
         	if (RUNNINGASPLUGIN) {
                 	aglSetCurrentContext(aqglobalContext);

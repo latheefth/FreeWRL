@@ -472,10 +472,11 @@ void OcclusionCulling ()  {
 			OccCheckCount[i]--; /* get closer to < zero... */
 		}
 
-		/* is this node visible? Should we TRY again?? */
-		if ((OccVisible[i]) || (OccCheckCount[i]<0)) {
-			if (OccNodes[i]!=0) update_renderFlag (X3D_NODE(xx),VF_hasVisibleChildren);
+		/* is this node visible? If we are getting CLOSE to <0, should we TRY again?? */
+		if ((OccVisible[i]) || (OccCheckCount[i]<=0)) {
+			if (xx!=0) update_renderFlag (X3D_NODE(xx),VF_hasVisibleChildren);
 		}
+
 	}
 #endif
 }

@@ -399,7 +399,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
    if(parser_nodeStatement(me, &node))
    {
     /* Add the node just parsed to the ROOT node for this scene */
-    addToNode(me->ptr, me->ofs, node);
+	AddRemoveChildren(me->ptr, me->ptr+me->ofs, &node, 1, 1);
 #ifdef CPARSERVERBOSE
     printf("parser_vrmlScene: node parsed\n");
 #endif
@@ -966,10 +966,10 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
 	/* Is this a META statement? */
 	if(!lexer_keyword(me->lexer, KW_META)) return FALSE;
 
+#define CPARSERVERBOSE
 	#ifdef CPARSERVERBOSE
 	printf ("parser_metaStatement...\n");
 	#endif
-
 
 	/* META lines have 2 strings */
 
@@ -991,6 +991,7 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
 	if (val2 != NULL) {FREE_IF_NZ(val2->strptr); FREE_IF_NZ(val2);}
 	return TRUE;
 }
+#undef CPARSERVERBOSE
 
 BOOL parser_profileStatement(struct VRMLParser* me) {
 	int myProfile = ID_UNDEFINED;
@@ -1697,6 +1698,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 	struct ProtoDefinition *thisProto = NULL;
 	
 	assert(me->lexer);
+	*ret=node; /* set this to NULL, for now... if this is a real node, it will return a node pointer */
 	 
 	/* lexer_node( ... ) #defined to lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec) where userNodeTypesVec is a list of PROTO defs */
 	/* this will get the next token (which will be the node type) and search the NODES array for it.  If it is found in the NODES array nodeTypeB will be set to 
@@ -1706,6 +1708,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 	#ifdef CPARSERVERBOSE
 	printf ("parser_node START, curID :%s: nextIn :%s:\n",me->lexer->curID, me->lexer->nextIn);
 	#endif
+
 
 #define XBLOCK_STATEMENT(LOCATION) \
    if(parser_routeStatement(me))  { \
@@ -1731,7 +1734,8 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
   if (parser_profileStatement(me)) { \
 	return TRUE; \
   }
-XBLOCK_STATEMENT(ddd)
+
+	XBLOCK_STATEMENT(ddd)
 
 
 	if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU)) {

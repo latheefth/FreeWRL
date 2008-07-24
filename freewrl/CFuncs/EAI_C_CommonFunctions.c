@@ -9,7 +9,6 @@ for conditions of use and redistribution.
 #ifdef  REWIRE
 	#include "Eai_C.h"
 	#define ADD_PARENT(a,b)
-	#define addToNode(a,b,c)
 	#define MALLOC(a) malloc(a)
 	int eaiverbose = FALSE;
 #else
@@ -358,9 +357,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			for (tmp = 0; tmp < elementCount; tmp++) {
 				/* JAS changed %d to %ld for 1.18.15 */
 				sscanf(value, "%ld",inNode);
-				addToNode(node,coffset,(void *)inNode[0]); 
-				/* printf ("MFNODE, have to add child %d to parent %d\n",inNode[0],node);  */
-				ADD_PARENT((void *)inNode[0], node); 
+				AddRemoveChildren(node,(struct Multi_Node *) nst, inNode, 1, 1);
 				/* skip past the number and trailing comma, if there is one */
 				if (*value == '-') value++;
 				while (*value>='0') value++;

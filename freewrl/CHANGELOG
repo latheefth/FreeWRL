@@ -1,4 +1,9 @@
 For 1.20.5
+	- x3dv files - memory pointer problem (pointer not zeroed) when parsing META, PROFILE, etc.
+
+	- OcclusionCulling; if a Shape was down some Transforms, it might never get displayed, if
+	  its' geometry is changing. Reference John Carlsons' waves.x3d.
+
 	- GeoSpatial nodes: GeoViewpoint, GeoLocation, GeoElevationGrid, GeoCoordinate,
 	  GeoOrigin, GeoPositionInterpolator, GeoLOD nodes should be pretty stable.
 

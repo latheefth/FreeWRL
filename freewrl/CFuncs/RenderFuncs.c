@@ -210,7 +210,7 @@ void upd_ray() {
 void update_node(struct X3D_Node *node) {
 	int i;
 
-	/* printf ("update_node for %d %s nparents %d\n",node, stringNodeType(node->_nodeType),node->_nparents);  */
+	/* printf ("update_node for %d %s nparents %d renderflags %x\n",node, stringNodeType(node->_nodeType),node->_nparents, node->_renderFlags); */
 
 	node->_change ++;
 	for (i = 0; i < node->_nparents; i++) {
@@ -236,10 +236,8 @@ void render_node(struct X3D_Node *node) {
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
-	#ifdef GLERRORS
 	GLint glerror = GL_NONE;
 	char* stage = "";
-	#endif
 
 	X3D_NODE_CHECK(node);
 
@@ -278,9 +276,8 @@ void render_node(struct X3D_Node *node) {
 	    v->changed(node);
 	    MARK_NODE_COMPILED
 
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
-	    #endif
+	    if (displayOpenGLErrors) 
+	  	  if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
 	  }
 
         /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
@@ -313,9 +310,7 @@ void render_node(struct X3D_Node *node) {
 	    if(render_sensitive && !hypersensitive) {
 		upd_ray();
 	      }
-	      #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "prep";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "prep";
 	  }
 
 	if(render_proximity && v->proximity) {
@@ -323,9 +318,7 @@ void render_node(struct X3D_Node *node) {
 		printf ("rs 2a\n");
 	    #endif
 	    v->proximity(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
 	}
 
 	if(render_collision && v->collision) {
@@ -338,9 +331,7 @@ void render_node(struct X3D_Node *node) {
 printf ("finished render_collision on node\n");
 	    #endif
 	
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
 	}
 
 
@@ -351,9 +342,7 @@ printf ("finished render_collision on node\n");
 	    #endif
 
 	    v->rend(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
 	  }
 	 
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
@@ -374,9 +363,7 @@ printf ("finished render_collision on node\n");
 	    rayph.node = node;
 	    fwGetDoublev(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
 	    fwGetDoublev(GL_PROJECTION_MATRIX, rayph.projMatrix);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
 
 	  }
 	if(render_geom && render_sensitive && !hypersensitive && v->rendray) {
@@ -385,9 +372,7 @@ printf ("finished render_collision on node\n");
 	    #endif
 
 	    v->rendray(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
 	  }
 
 
@@ -406,9 +391,7 @@ printf ("finished render_collision on node\n");
 	    #endif
 
             v->children(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
         }
 
 	if(render_sensitive && (node->_renderFlags & VF_Sensitive)) {
@@ -436,16 +419,13 @@ printf ("finished render_collision on node\n");
 	      {
 		upd_ray();
 	      }
-	    #ifdef GLERRORS
-	    if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
-	    #endif
+	    if (displayOpenGLErrors) if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
 	  }
 	#ifdef RENDERVERBOSE 
 		printf("(end render_node)\n");
 	#endif
 
-	#ifdef GLERRORS
-	if(glerror != GL_NONE)
+	if (displayOpenGLErrors) if(glerror != GL_NONE)
 	  {
 	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
@@ -463,7 +443,6 @@ printf ("finished render_collision on node\n");
 	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,v->changed);
 	    printf("==============\n");
 	  }
-	  #endif
 }
 
 /*
@@ -479,7 +458,6 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 	int count;
 
 	if(!node) return;
-
 	#ifdef CHILDVERBOSE
 	printf ("add_parent; adding node %u (%s) to parent %u (%s) at %s:%d\n",node, stringNodeType(node->_nodeType), 
 			parent, stringNodeType(parent->_nodeType),file,line);
@@ -533,6 +511,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 	pi = -1;
 
 	for(i=0; i<child->_nparents; i++) {
+		/* printf ("comparing %u and %u\n",child->_parents[i], parent); */
 		if(child->_parents[i] == parent) {
 			pi = i;
 			break;

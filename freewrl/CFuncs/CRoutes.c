@@ -455,7 +455,12 @@ void AddRemoveChildren (
 
 	int counter, c2;
 
-	/* printf ("AddRemove Children parent %u tn %u, len %d ar %d\n",parent,tn,len,ar); */
+	/* printf ("AddRemove, field is %d in from parent offsetof (struct X3D_Group, children) is %d\n",(char *)tn - (char *)parent,
+			offsetof (struct X3D_Group, children));
+
+	printf ("AddRemove Children parent %u tn %u, len %d ar %d\n",parent,tn,len,ar);
+	*/
+
 	/* if no elements, just return */
 	if (len <=0) return;
 	if ((parent==0) || (tn == 0)) {
@@ -484,6 +489,7 @@ void AddRemoveChildren (
 		/* now, make this into an addChildren */
 		oldlen = 0;
 		ar = 1;
+
 	}
 
 	if (ar == 1) {
@@ -499,7 +505,6 @@ void AddRemoveChildren (
 
 		/* set up the C structures for this new MFNode addition */
 		FREE_IF_NZ (tn->p);
-		/* JAS tn->p = &newmal; */
 		tn->p = newmal;
 
 		/* copy the new stuff over - note, newmal changes 
@@ -510,6 +515,7 @@ void AddRemoveChildren (
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
+			/* printf ("AddRemove, count %d of %d, node %u parent %u\n",counter, len,nodelist[counter],parent); */
 			ADD_PARENT((void *)nodelist[counter],(void *)parent);
 		}
 
@@ -524,15 +530,16 @@ void AddRemoveChildren (
 
 		num_removed = 0;
 		remchild = nodelist;
+		/* printf ("removing, len %d, tn->n %d\n",len,tn->n); */
 		for (c2 = 0; c2 < len; c2++) {
 			remptr = (uintptr_t*) tn->p;
 			done = FALSE;
 
 			for (counter = 0; counter < tn->n; counter ++) {
-				/* printf ("remove, comparing %d with %d\n",*remptr, *remchild); */
+				/* printf ("remove, comparing %d with %d\n",*remptr, *remchild);  */
 				if ((*remptr == *remchild) && (!done)) {
-					*remptr = 0;  /* "0" can not be a valid memory address */
 					remove_parent(*remchild,parent);
+					*remptr = 0;  /* "0" can not be a valid memory address */
 					num_removed ++;
 					done = TRUE; /* remove this child ONLY ONCE - in case it has been added
 							more than once. */
@@ -542,7 +549,7 @@ void AddRemoveChildren (
 			remchild ++;
 		}
 
-		/* printf ("end of finding, num_removed is %d\n",num_removed);  */
+		/* printf ("end of finding, num_removed is %d\n",num_removed); */
 
 		if (num_removed > 0) {
 			/* printf ("MALLOCing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
@@ -569,6 +576,7 @@ void AddRemoveChildren (
 			tn->n = oldlen - num_removed;
 		}
 	}
+	update_node(parent);
 }
 
 /****************************************************************/

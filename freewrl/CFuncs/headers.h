@@ -142,9 +142,6 @@ extern int MAXJSparamNames;
 	#define DO_MULTI_OPENGL_THREADS
 #endif
 
-/* if we want to see our opengl errors, define this and recompile everything. */
-#undef GLERRORS
-
 /* display the BoundingBoxen */
 #undef DISPLAYBOUNDINGBOX
 
@@ -395,6 +392,7 @@ extern AGLContext aqglobalContext;
 )
 
 /* from VRMLC.pm */
+extern int displayOpenGLErrors;
 extern int sound_from_audioclip;
 extern int have_texture;
 extern int global_lineProperties;
@@ -978,7 +976,6 @@ void doBrowserAction (void);
 void add_parent(struct X3D_Node *node_, struct X3D_Node *parent_,char *file, int line);
 void remove_parent(struct X3D_Node *child, struct X3D_Node *parent);
 void EAI_readNewWorld(char *inputstring);
-void addToNode (void *rc,  int offs, struct X3D_Node *newNode);
 void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
 
 void render_LoadSensor(struct X3D_LoadSensor *this);

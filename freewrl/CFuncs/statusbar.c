@@ -107,12 +107,8 @@ static void statusbar_init() {
 
 	/* set the Uni_String to zero length */
 	myline->len = 0;
-
-	addToNode (rootNode,offsetof (struct X3D_Group, children), (void *)proxNode);
-	addToNode (rootNode,offsetof (struct X3D_Group, children), (void *)transNode);
-	ADD_PARENT((void *)proxNode, rootNode);
-	ADD_PARENT((void *)transNode, rootNode);
-
+	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), &proxNode, 1, 1);
+	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), &transNode, 1, 1);
 
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 
 		(void *)transNode, offsetof (struct X3D_Transform, rotation), sizeof (struct SFRotation), 0);

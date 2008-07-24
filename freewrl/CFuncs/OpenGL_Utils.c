@@ -537,7 +537,6 @@ void zeroVisibilityFlag(void) {
 
 	/* do we have GL_ARB_occlusion_query, or are we still parsing Textures? */
 	if ((OccFailed) || isTextureParsing()) {
-
 		/* if we have textures still loading, display all the nodes, so that the textures actually
 		   get put into OpenGL-land. If we are not texture parsing... */
 		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 

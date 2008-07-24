@@ -456,7 +456,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	}
 	
 	#endif
-
 }
 
 /* find the ASCII string name of this field of this node */

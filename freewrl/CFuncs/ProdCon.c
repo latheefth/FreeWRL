@@ -684,68 +684,6 @@ void _inputParseThread(void) {
 	}
 }
 
-/*  add a node to the root group. ASSUMES ROOT IS A GROUP NODE! (it should be)*/
-/*  this code is very similar to getMFNode in CFuncs/CRoutes.c, except that*/
-/*  we do not pass in a string of nodes to assign. (and, do not remove, etc)*/
-void addToNode (void *rc, int offs, struct X3D_Node *newNode) {
-
-	int oldlen, newlen;
-	void **newmal;
-	void **place;
-	struct Multi_Node *par;
-	void **tmp;
-
-	char *tmpptr;
-
-	tmpptr = (char *)rc;
-	tmpptr = tmpptr + offs;
-
-	par = (struct Multi_Node *) tmpptr;
-	/* printf ("addToNode, adding %d to %d offset %d\n",newNode,rc,offs); */
-
-	/* oldlen = what was there in the first place */
-	oldlen = par->n;
-	/* printf ("addToNode, ptr %d offs %d type %s, oldlen %d\n",rc, offs, stringNodeType(X3D_NODE(rc)->_nodeType),oldlen);  */
-	par->n = 0; /* temporary, in case render thread goes here */
-
-	newlen=1;
-	newmal = (void **)MALLOC ((oldlen+newlen)*sizeof(void **));
-
-	/* copy the old stuff over */
-	if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(void **));
-
-	/* increment pointer to point to place for new addition */
-	place = (void **) ((unsigned long int) newmal + sizeof (void **) * oldlen);
-
-	/* and store the new child. */
-	*place = (void *)newNode;
-
-	/* set up the C structures for this new MFNode addition */
-	tmp = par->p;
-	par->p = newmal;
-	par->n = oldlen+newlen;
-
-	/* XXXX MEMORY LEAK XXXX */
-	/* if tmp is freed, and if the caller to this is not the rendering thread,
-	   and the freed memory is used somewhere else, it is possible to have the 
-	   rendering thread use the values that the memory block is assigned - so
-	   for now, don't free it. We could keep a list for later garbage collection,
-	   but, generally, it is not too many bytes lost if we ignore it. 
-
-	   oh, and, if you don't believe the above comment; run tests/33.wrl with
-	   bounds checking, and see what happens with the free uncommented. */
-
-	/* FREE_IF_NZ(tmp); */
-
-	
-	/* { int i;
-		for (i=0; i<par->n; i++) {
-		printf ("addToNode, child %d is %d\n",i,par->p[i]);
-		}
-	} */
-
-}
-
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
 
 void kill_bindables (void) {
@@ -893,7 +831,6 @@ void __pt_doStringUrl () {
 	if (psp.type==FROMSTRING) {
 		/* check and convert to VRML... */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-
 		/* look to see if this is X3D */
 		if (ifIsX3D(psp.inp)) {
 			if (!X3DParse (nRn, psp.inp)) {
@@ -917,7 +854,6 @@ void __pt_doStringUrl () {
 
 		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-
 		if (ifIsX3D(buffer)) {
 			if (!X3DParse (nRn, buffer)) {
 				ConsoleMessage ("Parse Unsuccessful");
@@ -933,6 +869,7 @@ void __pt_doStringUrl () {
 
 
 	} else if (psp.type==FROMCREATENODE) {
+		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 
 		/* look to see if this is X3D */
 		if (ifIsX3D(psp.inp)) {
@@ -948,6 +885,7 @@ void __pt_doStringUrl () {
 		}
 	
 	} else {
+		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		/* this will be a proto expansion, because otherwise the EAI code
 		   would have gotten this before here */
 		/* lets try this - same as FROMSTRING above... */
@@ -1000,14 +938,10 @@ void __pt_doStringUrl () {
       	/* now that we have the VRML/X3D file, load it into the scene. */
 	if (psp.ptr != NULL) {
 		/* add the new nodes to wherever the caller wanted */
-		for (count=0; count < nRn->children.n; count++) {
-			/* add this child to the node */
-			addToNode(psp.ptr,psp.ofs,nRn->children.p[count]);
+		AddRemoveChildren(psp.ptr, psp.ptr+psp.ofs, (uintptr_t*)nRn->children.p,nRn->children.n,1);
 
-			/* tell the child that it has a new parent! */
-			ADD_PARENT(nRn->children.p[count],psp.ptr);
-		}
-		update_node(psp.ptr);
+		/* and, remove them from this nRn node, so that they are not multi-parented */
+		AddRemoveChildren(X3D_NODE(nRn), (struct Multi_Node *)((char *)nRn + offsetof (struct X3D_Group, children)), (uintptr_t *)nRn->children.p,nRn->children.n,2);
 	}
 
 

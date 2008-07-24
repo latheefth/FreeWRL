@@ -188,6 +188,7 @@ int ConsoleMessage(const char *fmt, ...) {
         if ((strlen(FWbuffer)) < (STRING_LENGTH) -10) {
 		strcat (FWbuffer,"\n");
 	}
+printf ("FWbuffer: %s",FWbuffer);
 
 	/* print this to the console log */
 	syslog (LOG_INFO, FWbuffer);
