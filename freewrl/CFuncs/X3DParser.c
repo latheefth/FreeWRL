@@ -269,14 +269,13 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 
 	/* create this to be a new node */	
+	thisNode = createNewX3DNode(myNodeType);
+	parentStack[parentIndex] = thisNode; 
+
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
-	printf ("parseNormalX3D: for name %s, myNodeType = %d\n",name,myNodeType);
-	#endif
-
-	thisNode = createNewX3DNode(myNodeType);
 	printf ("parseNormalX3D: for name %s, myNodeType = %d is %u parentInded %d\n",name,myNodeType,thisNode,parentIndex);
-	parentStack[parentIndex] = thisNode; 
+	#endif
 
 	if (thisNode->_nodeType == NODE_Script) {
 		#ifdef X3DPARSERVERBOSE
@@ -576,7 +575,6 @@ void linkNodeIn() {
 		return;
 	}
 
-#define X3DPARSERVERBOSE
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("linkNodeIn: parserMode %s parentIndex %d, ",
@@ -587,7 +585,6 @@ void linkNodeIn() {
 		stringFieldType(parentStack[parentIndex]->_defaultContainer),
 		parentStack[parentIndex]->_defaultContainer);
 	#endif
-#undef X3DPARSERVERBOSE
 
 	/* Link it in; the parent containerField should exist, and should be an SF or MFNode  */
 	findFieldInOFFSETS(NODE_OFFSETS[parentStack[parentIndex-1]->_nodeType], 
@@ -786,7 +783,7 @@ static void shutdownX3DParser () {
 int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 	currentX3DParser = initializeX3DParser();
 
-printf ("x3dparse ,parent %u\n",myParent);
+	/* printf ("x3dparse ,parent %u\n",myParent); */
 	INCREMENT_PARENTINDEX
 	parentStack[parentIndex] = X3D_NODE(myParent);
 	

@@ -966,7 +966,6 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
 	/* Is this a META statement? */
 	if(!lexer_keyword(me->lexer, KW_META)) return FALSE;
 
-#define CPARSERVERBOSE
 	#ifdef CPARSERVERBOSE
 	printf ("parser_metaStatement...\n");
 	#endif
@@ -991,7 +990,6 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
 	if (val2 != NULL) {FREE_IF_NZ(val2->strptr); FREE_IF_NZ(val2);}
 	return TRUE;
 }
-#undef CPARSERVERBOSE
 
 BOOL parser_profileStatement(struct VRMLParser* me) {
 	int myProfile = ID_UNDEFINED;
