@@ -42,11 +42,15 @@ static int checktexsize;
 		global_texSize = -global_texSize; \
 		if (global_texSize == 0) global_texSize = checktexsize; \
 		if (global_texSize > checktexsize) global_texSize = checktexsize; \
+		if (strncmp(glGetString(GL_RENDERER),"NVIDIA GeForce2",strlen("NVIDIA GeForce2")) == 0) { \
+		/* 	printf ("possibly reducing texture size because of NVIDIA GeForce2 chip\n"); */ \
+			if (global_texSize > 1024) global_texSize = 1024; \
+		}  \
 		if (strncmp(glGetString(GL_RENDERER),"Intel GMA 9",strlen("Intel GMA 9")) == 0) { \
 		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */ \
 			if (global_texSize > 1024) global_texSize = 1024; \
 		}  \
-		printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); \
+		if (displayOpenGLErrors) printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); \
 		setMenuButton_texSize (global_texSize); \
 	} 
 
