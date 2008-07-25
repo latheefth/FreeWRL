@@ -1133,12 +1133,6 @@ void setFullPath(const char* file) {
 void displayThread() {
 	/* printf ("displayThread, I am %u \n",pthread_self());  */
 
-	/* see if we want OpenGL errors to be found and printed - note, this creates bottlenecks,
-	   in the OpenGL pipeline, so we do not do this all the time, only for debugging */
-
-	if (getenv ("FREEWRL_PRINT_OPENGL_ERRORS")!= NULL)
-		displayOpenGLErrors = TRUE;
-
         /* Create an OpenGL rendering context. */
 	#ifdef AQUA
         	if (RUNNINGASPLUGIN) {
@@ -1157,6 +1151,15 @@ void displayThread() {
                 glpOpenGLInitialize();
                 new_tessellation();
 	#endif
+
+	/* see if we want OpenGL errors to be found and printed - note, this creates bottlenecks,
+	   in the OpenGL pipeline, so we do not do this all the time, only for debugging */
+	if (getenv ("FREEWRL_PRINT_OPENGL_ERRORS")!= NULL) {
+		displayOpenGLErrors = TRUE;
+		printf ("FREEWRL_PRINT_OPENGL_ERRORS set\n");
+		printf ("rendering on a \"%s\" chipset\n",glGetString(GL_RENDERER));
+	}
+
 
 	/* loop and loop, and loop... */
 	while (!quitThread) {

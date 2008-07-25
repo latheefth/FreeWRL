@@ -46,7 +46,7 @@ static int checktexsize;
 		/* 	printf ("possibly reducing texture size because of Intel GMA chip\n"); */ \
 			if (global_texSize > 1024) global_texSize = 1024; \
 		}  \
-		/* printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); */\
+		printf ("CHECK_MAX_TEXTURE_SIZE, ren %s ver %s ven %s ts %d\n",glGetString(GL_RENDERER), glGetString(GL_VERSION), glGetString(GL_VENDOR),global_texSize); \
 		setMenuButton_texSize (global_texSize); \
 	} 
 
@@ -924,6 +924,8 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	
 		/* do the image. */
 		if((me->depth) && x && y) {
+			int texOk = FALSE;
+
 			unsigned char *dest = mytexdata;
 			rx = 1; sx = x;
 			while(sx) {sx /= 2; rx *= 2;}
@@ -931,25 +933,51 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			ry = 1; sy = y;
 			while(sy) {sy /= 2; ry *= 2;}
 			if(ry/2 == y) {ry /= 2;}
-printf ("scaling texture to %d %d\n",rx,ry);
+
+			if (displayOpenGLErrors) printf ("initial texture scale to %d %d\n",rx,ry);
 
 			if(rx != x || ry != y || rx > global_texSize || ry > global_texSize) {
 				/* do we have texture limits??? */
 				if (rx > global_texSize) rx = global_texSize;
 				if (ry > global_texSize) ry = global_texSize;
-printf ("final size %d %d, %d %d\n",rx,ry,x,y);
-	
-				/* We have to scale */
-				dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
-				gluScaleImage(format,
-				     x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry,
-				     GL_UNSIGNED_BYTE, dest);
-	
 			}
+
+			if (displayOpenGLErrors)
+				printf ("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 	
-			/* again, Mipmap only if we have Pixel or ImageTextures */
+			/* try this texture on for size, keep scaling down until we can do it */
+			texOk = FALSE;
+			dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
+			while (!texOk) {
+				GLint width, height;
+				gluScaleImage(format, x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry, GL_UNSIGNED_BYTE, dest);
+				glTexImage2D(GL_PROXY_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+
+				glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_WIDTH, &width); 
+				glGetTexLevelParameteriv (GL_PROXY_TEXTURE_2D, 0,GL_TEXTURE_HEIGHT, &height); 
+
+				if ((width == 0) || (height == 0)) {
+					rx= rx/2; ry = ry/2;
+					if (displayOpenGLErrors)
+					    printf ("width %d height %d going to try size %d %d, last time %d %d\n",
+						width, height, rx,ry,x,y);
+					if ((rx==0) || (ry==0)) {
+					    ConsoleMessage ("out of texture memory");
+					    me->status = TEX_LOADED; /* yeah, right */
+					    return;
+					}
+				} else {
+					texOk = TRUE;
+				}
+			}
+
+
+			if (displayOpenGLErrors)
+				printf ("after proxy image stuff, size %d %d\n",rx,ry);
+
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
+			/* again, Mipmap only if we have Pixel or ImageTextures */
 			if (me->frames==1) 
 				gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
 
