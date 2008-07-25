@@ -14,7 +14,7 @@
 #include "jsUtils.h"
 #include "headers.h"
 
-#include <assert.h>
+#include <ASSERT.h>
 #include <stdlib.h>
 
 #undef CPARSERVERBOSE
@@ -36,12 +36,12 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 {
  struct ScriptFieldDecl* ret=MALLOC(sizeof(struct ScriptFieldDecl));
 
- assert(ret);
+ ASSERT(ret);
 
- assert(mod!=PKW_inputOutput);
+ ASSERT(mod!=PKW_inputOutput);
 
  ret->fieldDecl=newFieldDecl(mod, type, name);
- assert(ret->fieldDecl);
+ ASSERT(ret->fieldDecl);
 
  /* Stringify */
  ret->name=fieldDecl_getStringName(me, ret->fieldDecl);
@@ -63,7 +63,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl* dec, struct Script* script) {
 	struct ScriptFieldInstanceInfo* ret = MALLOC(sizeof(struct ScriptFieldInstanceInfo));
 	
-	assert(ret);
+	ASSERT(ret);
 
 	ret->decl = dec;
 	ret->script = script;
@@ -84,7 +84,7 @@ struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldI
 	#endif
 
 	
-	assert(ret);
+	ASSERT(ret);
 
 	ret->decl = me->decl;
 	ret->script = me->script;
@@ -95,7 +95,7 @@ struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldI
 struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct ScriptFieldDecl* me) 
 {
 	struct ScriptFieldDecl* ret = MALLOC(sizeof (struct ScriptFieldDecl));
-	assert(ret);
+	ASSERT(ret);
 
 	#ifdef CPARSERVERBOSE
 	printf("copying script field decl %p to %p\n", me, ret);
@@ -103,7 +103,7 @@ struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer* lex, struct Scrip
 
 
 	ret->fieldDecl = fieldDecl_copy(me->fieldDecl);
-	assert(ret->fieldDecl);	
+	ASSERT(ret->fieldDecl);	
 
 	ret->name = fieldDecl_getStringName(lex, ret->fieldDecl);
 	ret->type = me->type;
@@ -125,8 +125,8 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Sets script field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
- assert(me->fieldDecl->mode==PKW_initializeOnly); 
- /* assert(!me->valueSet); */
+ ASSERT(me->fieldDecl->mode==PKW_initializeOnly); 
+ /* ASSERT(!me->valueSet); */
 
 
  me->value=v;
@@ -146,7 +146,7 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, uintptr_t num) {
 	printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode);
 	#endif
 
-	assert(me->valueSet);
+	ASSERT(me->valueSet);
  	SaveScriptField(num, me->fieldDecl->mode, me->fieldDecl->type, me->name, me->value);
 }
 
@@ -186,7 +186,7 @@ void zeroScriptHandles (void) {handleCnt = 0;}
 struct Script* newScript(void)
 {
  struct Script* ret=MALLOC(sizeof(struct Script));
- assert(ret);
+ ASSERT(ret);
 
  ret->num=nextScriptHandle();
  	#ifdef CPARSERVERBOSE
@@ -242,7 +242,7 @@ void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 /* save the script code, as found in the VRML/X3D URL for this script */
 BOOL script_initCode(struct Script* me, const char* code)
 {
- 	assert(!me->loaded);
+ 	ASSERT(!me->loaded);
 
 	SaveScriptText (me->num, (char *)code);
  	me->loaded=TRUE;

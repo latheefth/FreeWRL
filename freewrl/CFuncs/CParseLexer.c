@@ -8,7 +8,7 @@
 
 /* Sourcecode for CParseLexer.h */
 
-#include <assert.h>
+#include <ASSERT.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h> /* Using pow() to parse floats */
@@ -35,7 +35,7 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 /* Input data */
 #define LEXER_GETINPUT(c) \
  { \
-  assert(!me->curID); \
+  ASSERT(!me->curID); \
   if(!*me->nextIn) c=EOF; \
   else c=(int)*(me->nextIn++); \
  }
@@ -92,7 +92,7 @@ void deleteLexer(struct VRMLLexer* me)
 static void lexer_scopeOut_(Stack*);
 void lexer_destroyIdStack(Stack* s)
 {
- assert(s);
+ ASSERT(s);
  while(!stack_empty(s))
   lexer_scopeOut_(s);
  deleteStack(struct Vector*, s);
@@ -101,7 +101,7 @@ void lexer_destroyIdStack(Stack* s)
 void lexer_destroyIdVector(struct Vector* v)
 {
  size_t i;
- assert(v);
+ ASSERT(v);
  for(i=0; i!=vector_size(v); ++i)
   FREE_IF_NZ (vector_get(char*, v, i));
  deleteVector(char*, v);
@@ -145,7 +145,7 @@ static void lexer_scopeIn_(Stack** s)
 static void lexer_scopeOut_(Stack* s)
 {
  indexT i;
- assert(!stack_empty(s));
+ ASSERT(!stack_empty(s));
 
  for(i=0; i!=vector_size(stack_top(struct Vector*, s)); ++i)
   FREE_IF_NZ (vector_get(char*, stack_top(struct Vector*, s), i));
@@ -221,7 +221,7 @@ BOOL lexer_setCurID(struct VRMLLexer* me)
  /* Main loop. */
  while(cur!=buf+MAX_IDLEN)
  {
-  assert(cur<buf+MAX_IDLEN);
+  ASSERT(cur<buf+MAX_IDLEN);
   *cur=c;
   ++cur;
   
@@ -232,11 +232,11 @@ BOOL lexer_setCurID(struct VRMLLexer* me)
  parseError("ID buffer length hit!");
 breakIdLoop:
  LEXER_UNGETINPUT(c)
- assert(cur<=buf+MAX_IDLEN);
+ ASSERT(cur<=buf+MAX_IDLEN);
  *cur=0;
 
- assert(strlen(buf)==(cur-buf));
- assert(!me->curID);
+ ASSERT(strlen(buf)==(cur-buf));
+ ASSERT(!me->curID);
  me->curID=MALLOC(sizeof(char)*(cur-buf+1));
 
  strcpy(me->curID, buf);
@@ -255,7 +255,7 @@ breakIdLoop:
 /* Lexes a keyword */
 BOOL lexer_keyword(struct VRMLLexer* me, indexT kw) {
 	if(!lexer_setCurID(me)) return FALSE;
-	assert(me->curID);
+	ASSERT(me->curID);
 
 	if(!strcmp(me->curID, KEYWORDS[kw])) {
 		FREE_IF_NZ (me->curID);
@@ -289,7 +289,7 @@ BOOL lexer_specialID(struct VRMLLexer* me, indexT* retB, indexT* retU,
 	/* Get the next token */
 	if(!lexer_setCurID(me))
 		 return FALSE;
-	assert(me->curID);
+	ASSERT(me->curID);
 
 	#ifdef CPARSERVERBOSE
 	printf("lexer_specialID looking for %s\n", me->curID);
@@ -386,12 +386,12 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 	/* Get the next token */
 	if(!lexer_setCurID(me))
 		return FALSE;
-	assert(me->curID);
+	ASSERT(me->curID);
 
 	/* printf ("lexer_defineID, VRMLLexer %u Vector %u\n",me,vec); */
 
 	/* User list should be created */
-	assert(vec);
+	ASSERT(vec);
 
 	/* If multiple definition possible? Look if the ID's already there */
 	if(multi) {
@@ -460,7 +460,7 @@ BOOL lexer_event(struct VRMLLexer* me,
   return FALSE;
  }
 
- assert(me->curID);
+ ASSERT(me->curID);
 
 #ifdef CPARSERVERBOSE
  printf("lexer_event: looking for %s\n", me->curID);
@@ -544,7 +544,7 @@ BOOL lexer_field(struct VRMLLexer* me,
   /* Get next token */
  if(!lexer_setCurID(me))
   return FALSE;
- assert(me->curID);
+ ASSERT(me->curID);
 
   /* Get a pointer to the entries in the user_initializeOnly vector */
  const char** userArr=&vector_get(const char*, me->user_initializeOnly, 0);
@@ -620,7 +620,7 @@ const char* lexer_stringUser_fieldName(struct VRMLLexer* me, indexT name, indexT
   case PKW_outputOnly:
    return lexer_stringUser_outputOnly(me, name);
  }
- assert(FALSE);
+ ASSERT(FALSE);
 }
 
 /* Skip whitespace and comments. */
@@ -738,7 +738,7 @@ BOOL lexer_int32(struct VRMLLexer* me, vrmlInt32T* ret)
      break;
    }
    LEXER_UNGETINPUT(c)
-   assert(!(*ret%0x10));
+   ASSERT(!(*ret%0x10));
    *ret/=0x10;
 
    RETURN_NUMBER_WITH_SIGN
@@ -958,7 +958,7 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
 
  /* Set up buffer */
  buf=MALLOC(sizeof(*buf)*bufLen);
- assert(buf);
+ ASSERT(buf);
 
  /* Main processing loop */
  while(TRUE)
@@ -969,7 +969,7 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
    bufLen*=2;
    buf=REALLOC(buf, sizeof(*buf)*bufLen);
   }
-  assert(cur+1<bufLen);
+  ASSERT(cur+1<bufLen);
 
   LEXER_GETINPUT(c)
   switch(c)
@@ -997,7 +997,7 @@ BOOL lexer_string(struct VRMLLexer* me, vrmlStringT* ret)
  }
 breakStringLoop:
  /* No unget, because c is closing quote */
- assert(cur<bufLen);
+ ASSERT(cur<bufLen);
  buf[cur]=0;
 
  *ret=newASCIIString(buf);

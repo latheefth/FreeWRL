@@ -47,4 +47,8 @@ union anyVrml
 		ConsoleMessage(fw_outline); \
 		fprintf (stderr,"%s\n",fw_outline);
 
+/* tie assert in here to give better failure methodology */
+#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
+void fw_assert(char *,int);
+
 #endif /* Once-check */

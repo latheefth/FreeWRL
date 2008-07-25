@@ -10,7 +10,7 @@
 /* TODO:  Pointer updating could be made more efficient! */
 
 #include <stdlib.h>
-#include <assert.h>
+#include <ASSERT.h>
 
 #include "CProto.h"
 #include "CParseGeneral.h"
@@ -74,7 +74,7 @@ static  indexT nextFabricatedDef=1;
 /* Constructor/destructor */
 struct ProtoElementPointer* newProtoElementPointer(void) {
 	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
-	assert (ret);
+	ASSERT (ret);
 
 	ret->stringToken = NULL;
 	ret->isNODE = ID_UNDEFINED;
@@ -88,7 +88,7 @@ struct ProtoElementPointer* newProtoElementPointer(void) {
 
 struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer * me) {
 	struct ProtoElementPointer *ret=MALLOC(sizeof(struct ProtoElementPointer));
-	assert (ret);
+	ASSERT (ret);
 
 	if (me->stringToken != NULL) ret->stringToken = STRDUP(me->stringToken);
 	else ret->stringToken = NULL;
@@ -114,7 +114,7 @@ struct OffsetPointer* newOffsetPointer(struct X3D_Node* node, unsigned ofs)
 {
  struct OffsetPointer* ret=MALLOC(sizeof(struct OffsetPointer));
  /* printf("creating offsetpointer %p\n", ret); */
- assert(ret);
+ ASSERT(ret);
 
  ret->node=node;
  ret->ofs=ofs;
@@ -140,9 +140,9 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->alreadySet=FALSE;
  ret->fieldString = NULL;
  ret->dests=newVector(struct OffsetPointer*, 4);
- assert(ret->dests);
+ ASSERT(ret->dests);
  ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
- assert(ret->scriptDests);
+ ASSERT(ret->scriptDests);
  return ret;
 }
 
@@ -164,7 +164,7 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
 {
  int i;
  size_t len=returnRoutingElementLength(me->type);
- assert(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
+ ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
 
  /* For each destination mapped to this proto field, add a route */
  for(i=0; i!=vector_size(me->dests); ++i)
@@ -196,7 +196,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
  int i;
  size_t len=returnRoutingElementLength(me->type);
 
- assert(me->mode==PKW_inputOutput || me->mode==PKW_outputOnly);
+ ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_outputOnly);
 
  /* For each destination mapped to this proto field, add a route */
  for(i=0; i!=vector_size(me->dests); ++i)
@@ -236,7 +236,7 @@ struct ProtoRoute* newProtoRoute(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, size_t len, int dir)
 {
  struct ProtoRoute* ret=MALLOC(sizeof(struct ProtoRoute));
- assert(ret);
+ ASSERT(ret);
 
  /* printf("creating new proto route from %p %u to %p %u dir %d\n", from, fromOfs, to, toOfs, dir); */
 
@@ -264,16 +264,16 @@ struct ProtoDefinition* newProtoDefinition()
   */
 
  struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
- assert(ret);
+ ASSERT(ret);
 
  /* printf("creating new ProtoDefinition %u\n", ret);  */
 
  ret->iface=newVector(struct ProtoFieldDecl*, 4);
- assert(ret->iface);
+ ASSERT(ret->iface);
 
  /* proto bodies are tokenized to help IS and routing to/from PROTOS */
  ret->deconstructedProtoBody=newVector(struct ProtoElementPointer*, 128);
- assert(ret->deconstructedProtoBody);
+ ASSERT(ret->deconstructedProtoBody);
 
  ret->protoDefNumber = latest_protoDefNumber++;
  ret->estimatedBodyLen = 0;
@@ -325,19 +325,19 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 	struct ProtoDefinition* ret=MALLOC(sizeof(struct ProtoDefinition));
 	size_t i;
 
-	assert(ret);
+	ASSERT(ret);
 
 	/* printf("protoDefinition_copy: copying %u to %u\n", me, ret);  */
 	/* Copy interface */
 	ret->iface=newVector(struct ProtoFieldDecl*, vector_size(me->iface));
-	assert(ret->iface);
+	ASSERT(ret->iface);
 	for(i=0; i!=vector_size(me->iface); ++i)
 		vector_pushBack(struct ProtoFieldDecl*, ret->iface,
 	protoFieldDecl_copy(lex, vector_get(struct ProtoFieldDecl*, me->iface, i)));
 
 	/* copy the deconsctructed PROTO body */
 	ret->deconstructedProtoBody = newVector (struct ProtoElementPointer* , vector_size(me->deconstructedProtoBody));
-	assert (ret->deconstructedProtoBody);
+	ASSERT (ret->deconstructedProtoBody);
 	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i) {
 		vector_pushBack(struct ProtoElementPointer *, ret->deconstructedProtoBody, copyProtoElementPointer(vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i)));
 	}
@@ -535,7 +535,7 @@ void protoFieldDecl_setValue(struct VRMLLexer* lex, struct ProtoFieldDecl* me, u
 
 
 
- assert(!me->alreadySet);
+ ASSERT(!me->alreadySet);
  me->alreadySet=TRUE;
 
  /* If there are no targets, destroy the value */
@@ -676,7 +676,7 @@ struct PointerHash* newPointerHash()
 {
  struct PointerHash* ret=MALLOC(sizeof(struct PointerHash));
  size_t i;
- assert(ret);
+ ASSERT(ret);
 
  for(i=0; i!=POINTER_HASH_SIZE; ++i)
   ret->data[i]=NULL;
@@ -720,7 +720,7 @@ void pointerHash_add(struct PointerHash* me,
  size_t pos=((unsigned long)o)%POINTER_HASH_SIZE;
  struct PointerHashEntry entry;
 
- assert(!pointerHash_get(me, o));
+ ASSERT(!pointerHash_get(me, o));
 
  if(!me->data[pos])
   me->data[pos]=newVector(struct PointerHashEntry, 4);
@@ -735,7 +735,7 @@ void pointerHash_add(struct PointerHash* me,
 struct NestedProtoField* newNestedProtoField(struct ProtoFieldDecl* origField, struct ProtoFieldDecl* localField)
 {
  struct NestedProtoField* ret = MALLOC(sizeof(struct NestedProtoField));
- assert(ret);
+ ASSERT(ret);
 
  /* printf("creating nested field %p with values %p %p %p\n", ret, origField, localField, origProto); */
 
@@ -1056,7 +1056,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 				if (i>0) {
 					do {
                 				tE = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
-                				assert(tE);
+                				ASSERT(tE);
 						i--;
 					} while ((i>0) && (tE->isNODE == ID_UNDEFINED));
 
@@ -1071,7 +1071,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 							/* printf ("backed up, have NO %d KW %d te %d str %s\n",
 								tD->isNODE, tD->isKEYWORD, tD->terminalSymbol, tD->stringToken); */
 
-							assert (tD);
+							ASSERT (tD);
 							if (tD->isKEYWORD != KW_DEF) {
 								tD = NULL; /* not a DEF, we have to make a special note of this */
 							}
@@ -1120,7 +1120,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 				lex->nextIn = cur;
 
 				ele->stringToken = MALLOC (10);
-				assert (ele->stringToken);
+				ASSERT (ele->stringToken);
 
 				/* printf ("so we read in from :%s:\n",lex->nextIn); */
 
@@ -1204,7 +1204,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	while (i < protoElementCount) {
 		/* get the current element */
 		ele = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i);
-		assert(ele);
+		ASSERT(ele);
 		#ifdef XXX
 		strcat (newProtoText, "# at A\n");
 		#endif
@@ -1356,7 +1356,7 @@ BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto,
 
 	for(i=0; i!=vector_size(Proto->deconstructedProtoBody); ++i) {
 		ele = vector_get(struct ProtoElementPointer*, Proto->deconstructedProtoBody, i);
-		assert(ele);
+		ASSERT(ele);
 
 		/* printf ("ele %d is %u isNODE %d isKEYWORD %d ts %d st %s\n",i, ele, ele->isNODE, ele->isKEYWORD, ele->terminalSymbol, ele->stringToken); */
 
@@ -1415,10 +1415,10 @@ BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto,
 
 
         						/* If we're USEing it, it has to already be defined. */
-        						assert(ret!=ID_UNDEFINED);
+        						ASSERT(ret!=ID_UNDEFINED);
 
         						/* It also has to be in the DEFedNodes stack */
-        						assert(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
+        						ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
         							ret<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
 
         						/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */

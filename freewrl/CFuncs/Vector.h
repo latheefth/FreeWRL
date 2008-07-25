@@ -61,7 +61,7 @@ void vector_shrink_(size_t, struct Vector*);
 #define vector_pushBack(type, me, el) \
  { \
   vector_ensureSpace_(sizeof(type), me); \
-  assert(((struct Vector*)me)->n<((struct Vector*)me)->allocn); \
+  ASSERT(((struct Vector*)me)->n<((struct Vector*)me)->allocn); \
   vector_get(type, me, ((struct Vector*)me)->n)=el; \
   ++((struct Vector*)me)->n; \
  }
@@ -69,12 +69,12 @@ void vector_shrink_(size_t, struct Vector*);
 /* Pop back operation */
 #define vector_popBack(type, me) \
  { \
-  assert(!vector_empty(me)); \
+  ASSERT(!vector_empty(me)); \
   --((struct Vector*)me)->n; \
  }
 #define vector_popBackN(type, me, popn) \
  { \
-  assert(popn<=vector_size(me)); \
+  ASSERT(popn<=vector_size(me)); \
   ((struct Vector*)me)->n-=popn; \
  }
 
@@ -109,5 +109,9 @@ typedef struct Vector Stack;
 /* Is the stack empty? */
 #define stack_empty(me) \
  vector_empty(me)
+
+/* tie assert in here to give better failure methodology */
+#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
+void fw_assert(char *,int);
 
 #endif /* Once-check */

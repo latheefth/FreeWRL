@@ -9,7 +9,7 @@
 /* Sourcecode for CParseParser.h */
 
 #include <stdlib.h>
-#include <assert.h>
+#include <ASSERT.h>
 
 #include "CParseParser.h"
 #include "CProto.h"
@@ -150,7 +150,7 @@ char fw_outline[2000];
 /************************************************************************************************/
 /* parse an SF/MF; return the parsed value in the defaultVal field */
 BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal) {
-  	assert(PARSE_TYPE[type]);
+  	ASSERT(PARSE_TYPE[type]);
   	return PARSE_TYPE[type](me, (void*)defaultVal);
 }
 
@@ -239,7 +239,7 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 struct VRMLParser* newParser(void* ptr, unsigned ofs) {
  struct VRMLParser* ret=MALLOC(sizeof(struct VRMLParser));
  ret->lexer=newLexer();
- assert(ret->lexer);
+ ASSERT(ret->lexer);
  ret->ptr=ptr;
  ret->ofs=ofs;
  ret->curPROTO=NULL;
@@ -255,11 +255,11 @@ struct VRMLParser* reuseParser(void* ptr, unsigned ofs) {
  /* keep the defined nodes around, etc */
  ret = globalParser;
 
- /* keep the old lexer around, so that the asserts do not get confused with sizes of stacks, etc
+ /* keep the old lexer around, so that the ASSERTs do not get confused with sizes of stacks, etc
 if (ret->lexer != NULL) deleteLexer(ret->lexer);
  ret->lexer=newLexer();
 */
- assert(ret->lexer);
+ ASSERT(ret->lexer);
  ret->ptr=ptr;
  ret->ofs=ofs;
 /* We now need to keep the PROTOS and DEFS around 
@@ -273,7 +273,7 @@ if (ret->lexer != NULL) deleteLexer(ret->lexer);
 
 void deleteParser(struct VRMLParser* me)
 {
- assert(me->lexer);
+ ASSERT(me->lexer);
  deleteLexer(me->lexer);
 
  FREE_IF_NZ (me);
@@ -294,7 +294,7 @@ void parser_destroyData(struct VRMLParser* me)
   deleteStack(struct Vector*, me->DEFedNodes);
   me->DEFedNodes=NULL;
  }
- assert(!me->DEFedNodes);
+ ASSERT(!me->DEFedNodes);
 
  /* PROTOs */
  /* FIXME: PROTOs must not be stacked here!!! */
@@ -305,7 +305,7 @@ void parser_destroyData(struct VRMLParser* me)
   deleteStack(struct Vector*, me->PROTOs);
   me->PROTOs=NULL;
  }
- assert(!me->PROTOs);
+ ASSERT(!me->PROTOs);
 
  lexer_destroyData(me->lexer);
 
@@ -320,10 +320,10 @@ static void parser_scopeIn_DEFUSE(struct VRMLParser* me)
  if(!me->DEFedNodes)
   me->DEFedNodes=newStack(struct Vector*);
 
- assert(me->DEFedNodes);
+ ASSERT(me->DEFedNodes);
  stack_push(struct Vector*, me->DEFedNodes,
   newVector(struct X3D_Node*, DEFMEM_INIT_SIZE));
- assert(!stack_empty(me->DEFedNodes));
+ ASSERT(!stack_empty(me->DEFedNodes));
 }
 
 /* PROTOs are scope by the parser in the PROTOs vector, and by the lexer in the userNodeTypesVec vector.  
@@ -344,7 +344,7 @@ static void parser_scopeIn_PROTO(struct VRMLParser* me)
 static void parser_scopeOut_DEFUSE(struct VRMLParser* me)
 {
  indexT i;
- assert(!stack_empty(me->DEFedNodes));
+ ASSERT(!stack_empty(me->DEFedNodes));
  /* FIXME:  Can't delete individual nodes, as they might be referenced! */
  deleteVector(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes));
  stack_pop(struct Vector*, me->DEFedNodes);
@@ -470,7 +470,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
 
 
  /* Either PROTO or Script interface! */
- assert((proto || script) && !(proto && script));
+ ASSERT((proto || script) && !(proto && script));
 
  /* lexer_protoFieldMode is #defined as lexer_specialID(me, r, NULL, PROTOKEYWORDS, PROTOKEYWORDS_COUNT, NULL) */
  /* Looks for the next token in the array PROTOKEYWORDS (inputOnly, outputOnly, inputOutput, field) and returns the 
@@ -513,7 +513,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
 
 #ifndef NDEBUG
   default:
-   assert(FALSE);
+   ASSERT(FALSE);
 #endif
  }
 
@@ -557,15 +557,15 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
    		pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_initializeOnly);
    		if(!pField)
     			PARSE_ERROR("IS source is no field of current PROTO!")
-   		assert(pField->mode==PKW_initializeOnly);
+   		ASSERT(pField->mode==PKW_initializeOnly);
   	} else {
   		/* If the field was found in user_inputOutputs */
-  		 assert(fieldE!=ID_UNDEFINED);
+  		 ASSERT(fieldE!=ID_UNDEFINED);
    		/* Get the protoFieldDeclaration for the inputOutput at index fieldO */
    		pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_inputOutput);
    		if(!pField)
     			PARSE_ERROR("IS source is no field of current PROTO!")
-   		assert(pField->mode==PKW_inputOutput);
+   		ASSERT(pField->mode==PKW_inputOutput);
   	}
 	
 	/* Add this scriptfielddecl to the list of script fields mapped to this proto field */
@@ -590,7 +590,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
   }
   else
   {
-   assert(script);
+   ASSERT(script);
    scriptFieldDecl_setFieldValue(sdecl, defaultVal);
   }
  } else {
@@ -632,7 +632,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
 	/* Get the Proto field definition for the field that this IS */
 	pField = protoDefinition_getField(me->curPROTO, evO, isIn ? PKW_inputOnly: PKW_outputOnly); /* can handle inputOnly, outputOnly */
 	
-	assert(pField);
+	ASSERT(pField);
 
 	/* Add this script as a destination for this proto field */
 	struct ScriptFieldInstanceInfo* sfield = newScriptFieldInstanceInfo(sdecl, script);
@@ -661,7 +661,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
  } else
  {
   /* Add the scriptFieldDecl structure to the fields vector of the Script structure */
-  assert(script);
+  ASSERT(script);
   script_addField(script, sdecl);
  }
 
@@ -697,7 +697,7 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  /* Add the PROTO name to the userNodeTypesVec list of names return the index of the name in the list in name */ 
  if(!lexer_defineNodeType(me->lexer, &name))
   PARSE_ERROR("Expected nodeTypeId after PROTO!\n")
- assert(name!=ID_UNDEFINED);
+ ASSERT(name!=ID_UNDEFINED);
 
  /* Create a new blank ProtoDefinition structure to contain the data for this PROTO */
  obj=newProtoDefinition();
@@ -707,8 +707,8 @@ BOOL parser_protoStatement(struct VRMLParser* me)
   	parser_scopeIn_PROTO(me);
   }
 
- assert(me->PROTOs);
- /*  assert(name==vector_size(me->PROTOs)); */
+ ASSERT(me->PROTOs);
+ /*  ASSERT(name==vector_size(me->PROTOs)); */
 
  /* Add the empty ProtoDefinition structure we just created onto the PROTOs stack */
  vector_pushBack(struct ProtoDefinition*, me->PROTOs, obj);
@@ -818,7 +818,7 @@ BOOL parser_componentStatement(struct VRMLParser* me) {
 	int myLevel = ID_UNDEFINED;
 	#define COMPSTRINGSIZE 20
 
-	assert(me->lexer);
+	ASSERT(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a COMPONENT statement? */
@@ -829,7 +829,7 @@ BOOL parser_componentStatement(struct VRMLParser* me) {
 	#endif
 
 	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS a COMPONENT statement */
-	assert(me->lexer->curID);
+	ASSERT(me->lexer->curID);
 
 	myComponent = findFieldInCOMPONENTS(me->lexer->curID);
 	if (myComponent == ID_UNDEFINED) {
@@ -864,7 +864,7 @@ BOOL parser_exportStatement(struct VRMLParser* me) {
 	char *nodeToExport = NULL;
 	char *alias = NULL;	
 
-	assert(me->lexer);
+	ASSERT(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a EXPORT statement? */
@@ -875,20 +875,20 @@ BOOL parser_exportStatement(struct VRMLParser* me) {
 	#endif
 
 	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an EXPORT statement... */
-	assert(me->lexer->curID);
+	ASSERT(me->lexer->curID);
 
 	/* save this, and find the next token... */
 	nodeToExport = me->lexer->curID;
 	me->lexer->curID = NULL;
 
 	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an EXPORT statement...*/
-	assert(me->lexer->curID);
+	ASSERT(me->lexer->curID);
 
 	/* do we have an "AS" statement? */
 	if (strcmp("AS",me->lexer->curID) == 0) {
 		FREE_IF_NZ(me->lexer->curID);
 		if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an EXPORT statement...*/
-		assert(me->lexer->curID);
+		ASSERT(me->lexer->curID);
 		alias = me->lexer->curID;
 	}
 
@@ -906,7 +906,7 @@ BOOL parser_importStatement(struct VRMLParser* me) {
 	char *alias = NULL;	
 	char *nodeToImport = NULL;
 
-	assert(me->lexer);
+	ASSERT(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a IMPORT statement? */
@@ -917,7 +917,7 @@ BOOL parser_importStatement(struct VRMLParser* me) {
 	#endif
 
 	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an IMPORT statement... */
-	assert(me->lexer->curID);
+	ASSERT(me->lexer->curID);
 
 	/* save this, and find the next token... */
 	inlineNodeName = STRDUP(me->lexer->curID);
@@ -930,7 +930,7 @@ BOOL parser_importStatement(struct VRMLParser* me) {
 	}
 
 	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an IMPORT statement... */
-	assert(me->lexer->curID);
+	ASSERT(me->lexer->curID);
 
 	/* ok, now, we should have the nodeToImport name... */
 	nodeToImport = STRDUP(me->lexer->curID);
@@ -938,13 +938,13 @@ BOOL parser_importStatement(struct VRMLParser* me) {
 
 	/* get the next token */
 	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an IMPORT statement...*/
-	assert(me->lexer->curID);
+	ASSERT(me->lexer->curID);
 
 	/* do we have an "AS" statement? */
 	if (strcmp("AS",me->lexer->curID) == 0) {
 		FREE_IF_NZ(me->lexer->curID);
 		if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is an IMPORT statement...*/
-		assert(me->lexer->curID);
+		ASSERT(me->lexer->curID);
 		alias = STRDUP(me->lexer->curID);
 		FREE_IF_NZ(me->lexer->curID);
 	}
@@ -960,7 +960,7 @@ BOOL parser_importStatement(struct VRMLParser* me) {
 BOOL parser_metaStatement(struct VRMLParser* me) {
 	vrmlStringT val1, val2;
 
-	assert(me->lexer);
+	ASSERT(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a META statement? */
@@ -994,7 +994,7 @@ BOOL parser_metaStatement(struct VRMLParser* me) {
 BOOL parser_profileStatement(struct VRMLParser* me) {
 	int myProfile = ID_UNDEFINED;
 
-	assert(me->lexer);
+	ASSERT(me->lexer);
 	lexer_skip(me->lexer);
 
 	/* Is this a PROFILE statement? */
@@ -1005,7 +1005,7 @@ BOOL parser_profileStatement(struct VRMLParser* me) {
 	#endif
 
 	if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this IS an PROFILE statement... */
-	assert(me->lexer->curID);
+	ASSERT(me->lexer->curID);
 
 	myProfile = findFieldInPROFILES(me->lexer->curID);
 
@@ -1064,7 +1064,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
  fromFieldE = ID_UNDEFINED; fromFieldO = ID_UNDEFINED; toFieldE = ID_UNDEFINED; toFieldO = ID_UNDEFINED;
 
 
- assert(me->lexer);
+ ASSERT(me->lexer);
  lexer_skip(me->lexer);
 
  /* Is this a routeStatement? */
@@ -1087,7 +1087,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   	return FALSE; \
   } \
   /* Check that there are DEFedNodes in the DEFedNodes vector, and that the index given for this node is valid */ \
-  assert(me->DEFedNodes && !stack_empty(me->DEFedNodes) && \
+  ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) && \
    pre##NodeIndex<vector_size(stack_top(struct Vector*, me->DEFedNodes))); \
   /* Get the X3D_Node structure for the DEFed node we just looked up in the userNodeNames list */ \
   pre##Node=vector_get(struct X3D_Node*, \
@@ -1112,17 +1112,17 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   	  pre##Proto=X3D_GROUP(pre##Node)->FreeWRL__protoDef; \
 	  /* printf ("routing found protoGroup of %u\n",pre##Proto); */ \
 	  /* SJD: If we don't get a proto definition here, then it was just a plain old DEFed Group node ... */ \
-  	  /* assert(pre##Proto); */ \
+  	  /* ASSERT(pre##Proto); */ \
   	  break; \
          /* Get a pointer to the Script structure for this script node */ \
   	 case NODE_Script: \
   	  pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
-  	  assert(pre##Script); \
+  	  ASSERT(pre##Script); \
   	  break; \
   	} \
   \
   /* Can't be both a PROTO and a Script node */ \
-  assert(!(pre##Proto && pre##Script)); \
+  ASSERT(!(pre##Proto && pre##Script)); \
   \
   /* The next character has to be a '.' - skip over it */ \
   if(!lexer_point(me->lexer)) {\
@@ -1137,7 +1137,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
 	if (!resolveProtoNodeField(me, pre##Proto, &pre##Node)) return FALSE; \
 	/* possible Script node? */ \
 	if (pre##Node->_nodeType == NODE_Script) { pre##Script=((struct X3D_Script*)pre##Node)->__scriptObj; \
-        	  assert(pre##Script); }\
+        	  ASSERT(pre##Script); }\
 	pre##Proto = NULL; /* forget about this being a PROTO because PROTO is expanded */ \
   } \
   \
@@ -1155,7 +1155,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
     } \
   } else \
   { \
-   assert(pre##Script); \
+   ASSERT(pre##Script); \
    /* This is a user defined node type */ \
    /* Look for the next token (field of the DEFed node) in the user_inputOnly/user_outputOnly, user_inputOutput arrays */ \
    if(lexer_##eventType(me->lexer, pre##Node, \
@@ -1164,14 +1164,14 @@ int temp, tempFE, tempFO, tempTE, tempTO;
     if(pre##UFieldO!=ID_UNDEFINED) \
     { \
      /* We found the event in user_inputOnly or Out */ \
-      assert(pre##Script); \
+      ASSERT(pre##Script); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
       pre##ScriptField=script_getField(pre##Script, pre##UFieldO, \
        PKW_##eventType); \
     } else \
     { \
      /* We found the event in user_inputOutput */ \
-      assert(pre##Script); \
+      ASSERT(pre##Script); \
       /* If this is a Script get the scriptFieldDecl for this event */ \
       pre##ScriptField=script_getField(pre##Script, pre##UFieldE, \
        PKW_inputOutput); \
@@ -1184,7 +1184,7 @@ int temp, tempFE, tempFO, tempTE, tempTO;
   /* Process script routing */ \
   if(pre##Script) \
   { \
-   assert(pre##ScriptField); \
+   ASSERT(pre##ScriptField); \
    pre##Node=(struct X3D_Node*)pre##Script->num; \
    pre##Ofs=scriptFieldDecl_getRoutingOffset(pre##ScriptField); \
   } 
@@ -1518,19 +1518,19 @@ printf ("fromlen %d tolen %d\n",fromLen, toLen); */
  }
  else if(fromScript)
  {
-  assert(!toScript);
+  ASSERT(!toScript);
   routingDir=FROM_SCRIPT;
   fromNode = fromScript->num;
   fromOfs = scriptFieldDecl_getRoutingOffset(fromScriptField);
  } else if(toScript)
  {
-  assert(!fromScript);
+  ASSERT(!fromScript);
   routingDir=TO_SCRIPT;
   toNode = toScript->num;
   toOfs = scriptFieldDecl_getRoutingOffset(toScriptField);
  } else
  {
-  assert(!fromScript && !toScript);
+  ASSERT(!fromScript && !toScript);
   routingDir=0;
  }
 
@@ -1549,7 +1549,7 @@ void parser_registerRoute(struct VRMLParser* me,
  struct X3D_Node* toNode, unsigned toOfs,
  size_t len, int dir)
 {
- assert(me);
+ ASSERT(me);
  if(me->curPROTO)
  {
   /* OLDCODE protoDefinition_addRoute(me->curPROTO,
@@ -1567,7 +1567,7 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
 	if(!lexer_defineNodeName(me->lexer, &ind))
 		PARSE_ERROR("Expected nodeNameId after DEF!\n")
-	assert(ind!=ID_UNDEFINED);
+	ASSERT(ind!=ID_UNDEFINED);
 
 
 	/* If the DEFedNodes stack has not already been created.  If not, create new stack and add an X3D_Nodes vector to that stack */ 
@@ -1575,15 +1575,15 @@ static vrmlNodeT* parse_KW_DEF(struct VRMLParser *me) {
 		/* printf ("parsing KW_DEF, creating new Vectors...\n"); */
 		parser_scopeIn_DEFUSE(me);
 	}
-	assert(me->DEFedNodes);
-	assert(!stack_empty(me->DEFedNodes));
+	ASSERT(me->DEFedNodes);
+	ASSERT(!stack_empty(me->DEFedNodes));
 
 	/* Did we just add the name to the userNodeNames vector?  If so, then the node hasn't yet been added to the DEFedNodes vector, so add it */
-	assert(ind<=vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+	ASSERT(ind<=vector_size(stack_top(struct Vector*, me->DEFedNodes)));
 	if(ind==vector_size(stack_top(struct Vector*, me->DEFedNodes))) {
 		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), NULL);
 	}
-	assert(ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
+	ASSERT(ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
 
 
 	/* Parse this node.  Create an X3D_Node structure of the appropriate type for this node and fill in the values for the fields
@@ -1635,10 +1635,10 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
 	#endif
 
 	/* If we're USEing it, it has to already be defined. */
-	assert(ind!=ID_UNDEFINED);
+	ASSERT(ind!=ID_UNDEFINED);
 
 	/* It also has to be in the DEFedNodes stack */
-	assert(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
+	ASSERT(me->DEFedNodes && !stack_empty(me->DEFedNodes) &&
 	ind<vector_size(stack_top(struct Vector*, me->DEFedNodes)));
 
 	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */
@@ -1657,7 +1657,7 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
 */ 
 BOOL parser_nodeStatement(struct VRMLParser* me, vrmlNodeT* ret)
 {
- assert(me->lexer);
+ ASSERT(me->lexer);
 
  /* A DEF-statement? */
  if(lexer_keyword(me->lexer, KW_DEF)) {
@@ -1695,7 +1695,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 	struct X3D_Node* node=NULL;
 	struct ProtoDefinition *thisProto = NULL;
 	
-	assert(me->lexer);
+	ASSERT(me->lexer);
 	*ret=node; /* set this to NULL, for now... if this is a real node, it will return a node pointer */
 	 
 	/* lexer_node( ... ) #defined to lexer_specialID(me, r1, r2, NODES, NODES_COUNT, userNodeTypesVec) where userNodeTypesVec is a list of PROTO defs */
@@ -1766,9 +1766,9 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 		
 		/* If this is a PROTO instantiation, then there must be at least one PROTO defined.  Also, the index retrieved for
 		this PROTO must be valid. */
-		assert(nodeTypeU!=ID_UNDEFINED);
-		assert(me->PROTOs);
-		assert(nodeTypeU<vector_size(me->PROTOs));
+		ASSERT(nodeTypeU!=ID_UNDEFINED);
+		ASSERT(me->PROTOs);
+		ASSERT(nodeTypeU<vector_size(me->PROTOs));
 		
 		if (me->curPROTO == NULL) {
 			/* printf ("curPROTO = NULL: before protoExpand, current stream :%s:\n",me->lexer->nextIn); */
@@ -1815,7 +1815,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 		 
 		/* Get malloced struct of appropriate X3D_Node type with default values filled in */
 		node=X3D_NODE(createNewX3DNode(nodeTypeB));
-		assert(node);
+		ASSERT(node);
 		
 		/* if ind != ID_UNDEFINED, we have the first node of a DEF. Save this node pointer, in case
 		some code uses it. eg: DEF xx Transform {children Script {field yy USE xx}} */
@@ -1903,7 +1903,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 		}
 		
 		/* We must have a node that we've parsed at this point. */
-		assert(node);
+		ASSERT(node);
 	}
 	
 	/* Check that the node is closed by a '}', and skip this token */
@@ -1999,7 +1999,7 @@ BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct 
  else 
 	first_field = protoDefinition_getField(p, evO, isIn ? PKW_inputOnly : PKW_outputOnly);
 
- assert(first_field);
+ ASSERT(first_field);
 
  /* Get the field declaration for the second user defined event from the current proto being parsed */
  if (evE != ID_UNDEFINED) 
@@ -2007,7 +2007,7 @@ BOOL parser_protoEvent(struct VRMLParser* me, struct ProtoDefinition* p, struct 
  else 
 	second_field = protoDefinition_getField(me->curPROTO, local_evO, isIn ? PKW_inputOnly : PKW_outputOnly);
 
- assert(second_field);
+ ASSERT(second_field);
 
  return TRUE;
 
@@ -2049,11 +2049,11 @@ printf ("parser_protoField, have fieldO %d fieldE %d\n");
   if(!field)
    PARSE_ERROR("Field is not part of PROTO's interface!")
 
-  assert(field->mode==PKW_initializeOnly);
+  ASSERT(field->mode==PKW_initializeOnly);
  } else
  {
   /* If this field wasn't found in user_initializeOnly, it must be found in user_inputOutput */
-  assert(fieldE!=ID_UNDEFINED);
+  ASSERT(fieldE!=ID_UNDEFINED);
 
   /* Get the protoFieldDecl for this field from the iface list for this PROTO */
   field=protoDefinition_getField(p, fieldE, PKW_inputOutput);
@@ -2061,11 +2061,11 @@ printf ("parser_protoField, have fieldO %d fieldE %d\n");
   /* This inputOutput is not defined for this PROTO.  Error. */
   if(!field)
    PARSE_ERROR("Field is not part of PROTO's interface!")
-  assert(field->mode==PKW_inputOutput);
+  ASSERT(field->mode==PKW_inputOutput);
  }
 
  /* We must have retrieved the field */
- assert(field);
+ ASSERT(field);
 
  /* Parse the value */
  {
@@ -2143,18 +2143,18 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
    pField=protoDefinition_getField(me->curPROTO, fieldO, PKW_initializeOnly);
    if(!pField)
     PARSE_ERROR("IS source is no field of current PROTO!")
-   assert(pField->mode==PKW_initializeOnly);
+   ASSERT(pField->mode==PKW_initializeOnly);
   } else
   /* If the field was found in user_inputOutputs */
   {
-   assert(fieldE!=ID_UNDEFINED);
+   ASSERT(fieldE!=ID_UNDEFINED);
    /* Get the protoFieldDeclaration for the inputOutput at index fieldO */
    pField=protoDefinition_getField(me->curPROTO, fieldE, PKW_inputOutput);
    if(!pField)
     PARSE_ERROR("IS source is no field of current PROTO!")
-   assert(pField->mode==PKW_inputOutput);
+   ASSERT(pField->mode==PKW_inputOutput);
   }
-  assert(pField);
+  ASSERT(pField);
 
   /* Check type */
   /* Check that the field type (i.e. SFInt) is the same as the field type in the protoFieldDeclaration */
@@ -2264,7 +2264,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  indexT fieldO;
  indexT fieldE;
 
- assert(me->lexer);
+ ASSERT(me->lexer);
 
 	/* printf ("start of parser_field, me->lexer->nextIn :%s:\n",me->lexer->nextIn);  */
 
@@ -2485,7 +2485,7 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
 
 #ifndef NDEBUG
  if(isIn && isOut)
-  assert(evE!=ID_UNDEFINED);
+  ASSERT(evE!=ID_UNDEFINED);
 #endif
 
  /* Check that the next token in the lexer is "IS" */
@@ -2565,14 +2565,14 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
    PARSE_ERROR("This inputOutput is not member of current PROTO!")
  } else if(pevO!=ID_UNDEFINED) /* if the event is and outputOnly or an inputOnly */
  {
-  assert(!pfield);
+  ASSERT(!pfield);
  
   /* Search through the current PROTO definition for an inputOnly or outputOnly that matches the field at index pevO in the user_inputOnly or Out array. */
   pfield=protoDefinition_getField(me->curPROTO, pevO, isIn ? PKW_inputOnly : PKW_outputOnly);
   if(!pfield)
    PARSE_ERROR("This event is not member of current PROTO!")
  }
- assert(pfield);
+ ASSERT(pfield);
 
  /* Register the link by some macros */
  /* ******************************** */
@@ -2610,8 +2610,8 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
 
  /* Otherwise, the passed index into the EVENT_IN or EVENT_OUT arrays must be valid */
  {
-  assert(evO!=ID_UNDEFINED);
-  assert((isIn || isOut) && !(isIn && isOut));
+  ASSERT(evO!=ID_UNDEFINED);
+  ASSERT((isIn || isOut) && !(isIn && isOut));
 
   #define BEGIN_NODE(n) \
    EVENT_BEGIN_NODE(evO, ptr, n)
@@ -2884,7 +2884,7 @@ PARSER_MFFIELD(vec3d, Vec3d)
  BOOL parser_sf##name##Value(struct VRMLParser* me, vrml##type##T* ret) \
  { \
   int i; \
-  assert(me->lexer); \
+  ASSERT(me->lexer); \
   for(i=0; i!=cnt; ++i) {\
    if(!parser_sffloatValue(me, ret->dest+i)) \
     return FALSE; \
@@ -2897,7 +2897,7 @@ PARSER_MFFIELD(vec3d, Vec3d)
  BOOL parser_sf##name##Value(struct VRMLParser* me, vrml##type##T* ret) \
  { \
   int i; \
-  assert(me->lexer); \
+  ASSERT(me->lexer); \
   for(i=0; i!=cnt; ++i) {\
    if(!parser_sfdoubleValue_(me, ret->dest+i)) \
     return FALSE; \
@@ -2978,7 +2978,7 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
 
 BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
 {
- assert(me->lexer);
+ ASSERT(me->lexer);
  if(lexer_keyword(me->lexer, KW_NULL))
  {
   *ret=NULL;
@@ -2994,7 +2994,7 @@ BOOL parser_sftimeValue(struct VRMLParser* me, vrmlTimeT* ret)
 {
  vrmlFloatT f;
 
- assert(me->lexer);
+ ASSERT(me->lexer);
  if(!lexer_float(me->lexer, &f))
   return FALSE;
 

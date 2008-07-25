@@ -22,4 +22,8 @@ BOOL cParse(void*, unsigned, const char*);
 struct X3D_Node* parser_getNodeFromName(const char*);
 extern struct VRMLParser* globalParser;
 
+/* tie assert in here to give better failure methodology */
+#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
+void fw_assert(char *,int);
+
 #endif /* Once-check */

@@ -190,7 +190,7 @@ int ConsoleMessage(const char *fmt, ...) {
 	}
 
 	/* print this to the console log */
-	syslog (LOG_INFO, FWbuffer);
+	syslog (LOG_ALERT, FWbuffer);
 
 
 	/* print this to the application console log if running standalone, or speak it if running as a plug in */

@@ -10,7 +10,7 @@
 Sourcecode for CParse.h
 */
 
-#include <assert.h>
+#include <ASSERT.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -35,7 +35,7 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data)
  }
 
  parser_fromString(parser, data);
- assert(parser->lexer);
+ ASSERT(parser->lexer);
 
  if(!parser_vrmlScene(parser))
   fprintf(stderr, "Parser failed!\n");
@@ -59,8 +59,23 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
  if(ind==ID_UNDEFINED)
   return NULL;
 
- assert(!stack_empty(globalParser->DEFedNodes));
- assert(ind<vector_size(stack_top(struct Vector*, globalParser->DEFedNodes)));
+ ASSERT(!stack_empty(globalParser->DEFedNodes));
+ ASSERT(ind<vector_size(stack_top(struct Vector*, globalParser->DEFedNodes)));
  return vector_get(struct X3D_Node*,
   stack_top(struct Vector*, globalParser->DEFedNodes), ind);
 }
+
+
+void fw_assert (char *file, int line) {
+	int looper;
+	printf ("FreeWRL Internal Error at line %d in %s\n",line,file);
+	ConsoleMessage ("FreeWRL Internal Error at line %d in %s",line,file);
+	
+	for (looper=1; looper<60; looper++) {
+		sleep(1);
+		sched_yield();
+	}
+	printf ("FreeWRL exiting...\n");
+	exit(1);
+}
+

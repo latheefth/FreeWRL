@@ -1,4 +1,9 @@
 For 1.20.5
+	- Textures use proxy loads now, rather than always relying on max texture size value.
+
+	- asserts in classic parser now print line/file to stdout and log files (on OSX) when
+	  fatal internal errors happen.
+
 	- x3dv files - memory pointer problem (pointer not zeroed) when parsing META, PROFILE, etc.
 
 	- OcclusionCulling; if a Shape was down some Transforms, it might never get displayed, if
