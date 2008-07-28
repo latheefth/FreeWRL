@@ -1,4 +1,6 @@
 For 1.20.5
+	- Filenames with spaces better handled now - some handling bugs fixed.
+
 	- Textures use proxy loads now, rather than always relying on max texture size value.
 
 	- asserts in classic parser now print line/file to stdout and log files (on OSX) when

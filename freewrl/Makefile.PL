@@ -791,7 +791,7 @@ sub linux_system_info() {
 
 sub findAndPrintUtilities() {
 	# lets just dump out some standard defines, from the vrml.conf file.
-	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "COPIER", "JAVA", "FONTSDIR");
+	my @dumpToVRMLCONF = ( "BROWSER", "SOUNDCONV", "UNZIP", "WGET", "CONVERT", "JAVA", "FONTSDIR");
 
 	my $val;
 
@@ -835,8 +835,6 @@ sub tryToFind() {
 		if ("" eq $try) {$try = `which curl`; $try =~ s/^\s+//; $try =~ s/\s+$//;}
 	} elsif ("CONVERT" eq $tofind) {
 		$try = `which convert`; $try =~ s/^\s+//; $try =~ s/\s+$//;
-	} elsif ("COPIER" eq $tofind) {
-		$try = `which cp`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	} elsif ("JAVA" eq $tofind) {
 		$try = `which java`; $try =~ s/^\s+//; $try =~ s/\s+$//;
 	} elsif ("FONTSDIR" eq $tofind) {

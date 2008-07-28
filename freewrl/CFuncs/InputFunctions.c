@@ -69,7 +69,40 @@ char *findPathToFreeWRLFile(char *lfn) {
 	return (NULL);
 }
 
+/* simulate a command line cp command */
+/* we do this, rather than systeming cp, because sometimes we have filenames with spaces, etc, etc 
+   and handling this with a system call is a pain */
+void localCopy(char *inFile, char *outFile) {
+ FILE *in, *out;
+  char ch;
 
+  if((in=fopen(inFile, "rb")) == NULL) {
+    ConsoleMessage ("FreeWRL copy: Cannot open input file.");
+  }
+  if((out=fopen(outFile, "wb")) == NULL) {
+    ConsoleMessage ("FreeWRL copy: Cannot open output file.");
+  }
+
+  while(!feof(in)) {
+    ch = getc(in);
+    if(ferror(in)) {
+      ConsoleMessage ("FreeWRL copy: input error.");
+      clearerr(in);
+      break;
+    } else {
+      if(!feof(in)) putc(ch, out);
+      if(ferror(out)) {
+        ConsoleMessage ("FreeWRL copy: output error.");
+        clearerr(out);
+        break;
+      }
+    }
+  }
+  fclose(in);
+  fclose(out);
+
+  return;
+}
 /* read a file, put it into memory. */
 char * readInputString(char *fn, char *parent) {
 	char *buffer;
@@ -117,14 +150,20 @@ char * readInputString(char *fn, char *parent) {
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
 			((unsigned char) firstbytes[1] == 0x8b)) {
+		int len;
+
 		/* printf ("this is a gzipped file!\n"); */
 		isTemp = TRUE;
-		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
-		/* first, move this to a .gz file */
-		sprintf (sysline, "%s %s %s.gz",COPIER,cacheFileName,tempname);
-		freewrlSystem (sysline);
+		sprintf (tempname, "%s.gz",tempnam("/tmp","freewrl_tmp"));
 
+		/* first, move this to a .gz file */
+		localCopy(cacheFileName,tempname);
+
+		/* now, unzip it */
+		/* remove the .gz from the file name - ".gz" is 3 characters */
+		len = strlen(tempname); tempname[len-3] = '\0';
 		sprintf (sysline,"%s %s",UNZIP,tempname);
+
 		freewrlSystem (sysline);
 		strcpy(mynewname, tempname);
 		infile = fopen(tempname,"r");

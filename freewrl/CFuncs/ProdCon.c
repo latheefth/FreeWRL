@@ -237,14 +237,16 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 	/* if we are running as a plugin, ask the HTML browser for ALL files, as it'll know proxies, etc. */
 
+
 	if (RUNNINGASPLUGIN) {
 		/* printf ("fileExists, runningasplugin\n"); */
 
 		/* are we running as a plugin? If so, ask the HTML browser to get the file, and place
 		   it in the local cache for ANY file, except for the main "url" */
 		if (checkNetworkFile(fname)) {
-			/* printf ("requesting URL from plugin...\n"); */
+			/* printf ("requesting URL from plugin...\n");  */
 
+			retName = NULL;
 			retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
 
 			/* check for timeout; if not found, return false */
@@ -331,8 +333,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 		end = strchr(thisurl,'\0'); 
 		while ((*end <= ' ') && (end != thisurl)) end--; end++; *end = '\0';
 	}
-
-	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
+	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl);  */
 
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
