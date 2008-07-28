@@ -35,9 +35,6 @@ UNZIP => "/bin/gunzip",
 #if you do not have Java, comment this and the JAVA_INST line below out.
 JAVA => "/usr/bin/java",
 
-# how to copy one file to another:
-COPIER => "/bin/cp",
-
 # allow freewrl to play many, many types of sound files; eg, AIFF, etc.
 SOUNDCONV => "/usr/bin/sox",
 

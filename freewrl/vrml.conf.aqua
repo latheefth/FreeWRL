@@ -15,7 +15,6 @@ UNZIP => "/usr/bin/gunzip",
 # Java compiler - if no java, comment this line and the JAVA_INST line below.
 JAVA => "/usr/bin/java",
 
-COPIER => "/bin/cp",                    # copy one file to another
 SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 
     # when building on Leopard 10.5, keep the version at 10.4 - see:
