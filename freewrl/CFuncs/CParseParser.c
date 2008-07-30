@@ -9,7 +9,7 @@
 /* Sourcecode for CParseParser.h */
 
 #include <stdlib.h>
-#include <ASSERT.h>
+#include <assert.h>
 
 #include "CParseParser.h"
 #include "CProto.h"

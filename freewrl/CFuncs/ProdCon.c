@@ -141,8 +141,10 @@ int isinputThreadParsing() {return(inputThreadParsing);}
 /* is the initial URL loaded? Robert Sim */
 int isURLLoaded() {return(URLLoaded&&!inputThreadParsing);}
 
+#define SLASHDOTDOTSLASH "/../"
 void removeFilenameFromPath (char *path) {
 	char *slashindex;
+	char *slashDotDotSlash;
 
 	/* and strip off the file name from the current path, leaving any path */
 	slashindex = (char *) rindex(path, ((int) '/'));
@@ -150,7 +152,34 @@ void removeFilenameFromPath (char *path) {
 		slashindex ++; /* leave the slash there */
 		*slashindex = 0;
 	} else {path[0] = 0;}
-	/* printf ("removeFielnameFromPath, parenturl is %s\n",path);*/
+	printf ("removeFielnameFromPath, parenturl is %s\n",path);
+
+	/* are there any "/../" bits in the path? if so, lets clean them up */
+	slashDotDotSlash = strstr(path, SLASHDOTDOTSLASH);
+	while (slashDotDotSlash != NULL) {
+		char tmpline[2000];
+		/* might have something like: _levels_plus/tiles/0/../1/../1/../2/../ */
+		/* find the preceeding slash: */
+		*slashDotDotSlash = '\0';
+printf ("have slashdotdot, path now :%s:\n",path);
+
+		slashindex = (char *)rindex(path, ((int) '/'));
+		if (slashindex != NULL) {
+			
+			slashindex ++;
+			*slashindex = '\0';
+			slashDotDotSlash += strlen(SLASHDOTDOTSLASH);
+			strcpy(tmpline,path);
+printf ("tmpline step 1 is :%s:\n",tmpline);
+			strcat (tmpline, slashDotDotSlash);
+printf ("tmpline step 2 is :%s:\n",tmpline);
+			strcpy (path, tmpline);
+			slashDotDotSlash = strstr(path, SLASHDOTDOTSLASH);
+printf ("end of loop, path :%s: slashdot %u\n",path,slashDotDotSlash);
+
+
+		}
+	}
 }
 
 
@@ -161,6 +190,9 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 
 	/* and strip off the file name from the current path, leaving any path */
 	removeFilenameFromPath(path);
+
+printf ("getValidFileFromUrl, path now :%s:\n",path);
+printf ("and, inurl.n is %d\n",inurl->n);
 
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
@@ -174,6 +206,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 
 		/* we work in absolute filenames... */
 		makeAbsoluteFileName(filename,path,thisurl);
+printf ("getValidFile, filename %s\n",filename);
 
 		if (fileExists(filename,firstBytes,TRUE)) {
 			return TRUE;
@@ -792,7 +825,7 @@ void __pt_doInline() {
 	/* lets make up the path and save it, and make it the global path */
 	psp.path = STRDUP(inl->__parenturl->strptr);
 
-	printf ("doInline, checking for file %s from path %s\n",inurl,psp.path); 
+	printf ("doInline, checking for file from path %s\n",psp.path); 
 
 	if (getValidFileFromUrl (filename, psp.path, inurl, firstBytes)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */

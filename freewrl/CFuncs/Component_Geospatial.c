@@ -1593,9 +1593,10 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 
 #define LOAD_CHILD(childNode,childUrl) \
 		/* create new inline node, link it in */ \
-		if (node->childNode == NULL) node->childNode = createNewX3DNode(NODE_Inline); \
-		ADD_PARENT(node->childNode, node); \
- \
+		if (node->childNode == NULL) { \
+			node->childNode = createNewX3DNode(NODE_Inline); \
+			ADD_PARENT(node->childNode, node); \
+ 		}\
 		/* copy over the URL from parent */ \
 		X3D_INLINE(node->childNode)->url.n = node->childUrl.n; \
 		if (node->childUrl.n > 0) { \

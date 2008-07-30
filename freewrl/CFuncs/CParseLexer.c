@@ -8,7 +8,7 @@
 
 /* Sourcecode for CParseLexer.h */
 
-#include <ASSERT.h>
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h> /* Using pow() to parse floats */

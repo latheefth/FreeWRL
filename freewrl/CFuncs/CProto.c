@@ -10,7 +10,7 @@
 /* TODO:  Pointer updating could be made more efficient! */
 
 #include <stdlib.h>
-#include <ASSERT.h>
+#include <assert.h>
 
 #include "CProto.h"
 #include "CParseGeneral.h"

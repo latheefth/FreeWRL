@@ -14,7 +14,7 @@
 #include "jsUtils.h"
 #include "headers.h"
 
-#include <ASSERT.h>
+#include <assert.h>
 #include <stdlib.h>
 
 #undef CPARSERVERBOSE
