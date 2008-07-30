@@ -1168,8 +1168,6 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * this);
 void child_Anchor (struct X3D_Anchor *this_);
 void child_Inline (struct X3D_Inline *this_);
 void changed_Inline (struct X3D_Inline *this_);
-void child_InlineLoadControl (struct X3D_InlineLoadControl *this_);
-void changed_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_Anchor (struct X3D_Anchor *this_);
 
 /* KeyDevice Component */

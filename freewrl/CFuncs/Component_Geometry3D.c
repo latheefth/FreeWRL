@@ -64,6 +64,7 @@ void render_Box (struct X3D_Box *node) {
 	float y = ((node->size).c[1])/2;
 	float z = ((node->size).c[2])/2;
 
+printf ("rendering BOX\n");
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 

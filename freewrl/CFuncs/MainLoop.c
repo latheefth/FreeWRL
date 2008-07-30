@@ -281,6 +281,12 @@ void EventLoop() {
 	   the z-buffer calculations quite rigid. */
 	if (calculatedNearPlane > DEFAULT_FARPLANE) nearPlane = calculatedNearPlane; else nearPlane = DEFAULT_NEARPLANE;
 	if (calculatedFarPlane > DEFAULT_FARPLANE) farPlane = calculatedFarPlane; else farPlane = DEFAULT_FARPLANE;
+
+	/* and, if we do not have much in the way of geometry, we can end up with something silly, so: */
+	if (nearPlane > farPlane) { nearPlane = DEFAULT_NEARPLANE; farPlane = DEFAULT_FARPLANE;
+		/* printf ("silly numbers, so using DEFAULT_NEARPLANE and DEFAULT_FARPLANE\n"); */
+	}
+
 	calculatedNearPlane = 999999999999999999999999.9;
 	calculatedFarPlane = 0.0;
 	/* printf ("eventLoop after bounding, nearPlane %lf, farPlane %lf\n",nearPlane, farPlane); */

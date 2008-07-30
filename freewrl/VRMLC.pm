@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.296  2008/07/30 18:08:34  crc_canada
+# GeoLOD, July 30 changes.
+#
 # Revision 1.295  2008/07/21 20:13:13  crc_canada
 # For 1.20.5
 #
@@ -774,6 +777,7 @@ sub gen {
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
+	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)\n".

@@ -792,19 +792,20 @@ void __pt_doInline() {
 	/* lets make up the path and save it, and make it the global path */
 	psp.path = STRDUP(inl->__parenturl->strptr);
 
-	/* printf ("doInline, checking for file %s from path %s\n",inurl,psp.path); */
+	printf ("doInline, checking for file %s from path %s\n",inurl,psp.path); 
 
 	if (getValidFileFromUrl (filename, psp.path, inurl, firstBytes)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */
-		/* printf ("we were successful at locating %s\n",filename);  */
+		printf ("doInline, we were successful at locating %s\n",filename); 
 		psp.type=FROMURL;
 	} else {
+		printf ("doInline, NOT successful at locating %s\n",filename); 
 		ConsoleMessage ("Could Not Locate Inline URL %s\n",filename);
 	}
 	psp.inp = filename; /* will be freed later */
 
-	/* printf ("doinline, psp.inp = %s\n",psp.inp);*/
-	/* printf ("inlining %s\n",filename); */
+	printf ("doinline, psp.inp = %s\n",psp.inp);
+	printf ("inlining %s\n",filename); 
 }
 
 /* this is a CreateVrmlFrom URL or STRING command */
@@ -855,6 +856,7 @@ void __pt_doStringUrl () {
 
 		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+printf ("nRn %u rootNode %u\n",nRn,rootNode);
 		if (ifIsX3D(buffer)) {
 			if (!X3DParse (nRn, buffer)) {
 				ConsoleMessage ("Parse Unsuccessful");

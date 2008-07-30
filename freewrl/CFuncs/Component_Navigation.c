@@ -266,61 +266,6 @@ void child_LOD (struct X3D_LOD *node) {
         render_node(node->_selected);
 }
 
-void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
-	int nc = (node->children).n;
-	DIRECTIONAL_LIGHT_SAVE
-	struct X3D_Inline *inl;
-
-
-	/* any children at all? */
-	if (nc==0) return;
-
-	#ifdef CHILDVERBOSE
-	printf("RENDER INLINELOADCHILD START %d (%d)\n",node, nc);
-	#endif
-
-	/* lets see if we still have to load this one... */
-	if (((node->__loadstatus)==0) && (node->load)) {
-		/* treat this as an inline; copy params over */
-		inl->url = node->url;
-		inl->__children = node->children;
-		inl->__parenturl = node->__parenturl;
-		inl->__loadstatus = node->__loadstatus;
-
-		loadInline(inl);
-
-		node->url = inl->url;
-		node->children = inl->__children;
-		node->__parenturl = inl->__parenturl;
-		node->__loadstatus = inl->__loadstatus;
-	} else if (!(node->load) && ((node->__loadstatus) != 0)) {
-		printf ("InlineLoadControl, removing children\n");
-		node->children.n = 0;
-		FREE_IF_NZ (node->children.p);
-		node->__loadstatus = 0;
-	}
-
-	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->children);
-
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
-
-	/* now, just render the non-directionalLight children */
-	normalChildren(node->children);
-
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-		BOUNDINGBOX
-	}
-
-	#ifdef CHILDVERBOSE
-	printf("RENDER INLINELOADCHILD END %d\n",node);
-	#endif
-
-	DIRECTIONAL_LIGHT_OFF
-}
-
 void  child_Billboard (struct X3D_Billboard *node) {
 	int nc = (node->children).n;
 	DIRECTIONAL_LIGHT_SAVE
@@ -383,15 +328,3 @@ void changed_Collision (struct X3D_Collision *node) {
 
 		INITIALIZE_EXTENT
 }
-
-
-void changed_InlineLoadControl (struct X3D_InlineLoadControl *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-                struct X3D_Virt *v;
-
-		INITIALIZE_EXTENT
-}
-
-

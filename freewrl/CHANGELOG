@@ -1,4 +1,6 @@
 For 1.20.5
+	- remove InlineLoadControl - old VRML Geospatial 1.1 node.
+
 	- Filenames with spaces better handled now - some handling bugs fixed.
 
 	- Textures use proxy loads now, rather than always relying on max texture size value.

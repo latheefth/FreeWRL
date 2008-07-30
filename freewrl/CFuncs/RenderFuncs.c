@@ -210,7 +210,21 @@ void upd_ray() {
 void update_node(struct X3D_Node *node) {
 	int i;
 
-	/* printf ("update_node for %d %s nparents %d renderflags %x\n",node, stringNodeType(node->_nodeType),node->_nparents, node->_renderFlags); */
+	#ifdef VERBOSE
+	printf ("update_node for %d %s nparents %d renderflags %x\n",node, stringNodeType(node->_nodeType),node->_nparents, node->_renderFlags); 
+	if (node->_nparents == 0) {
+		if (node == rootNode) printf ("...no parents, this IS the rootNode\n"); 
+		else printf ("...no parents, this IS NOT the rootNode\n");
+	}
+	for (i = 0; i < node->_nparents; i++) {
+		struct X3D_Node *n = X3D_NODE(node->_parents[i]);
+		if( n != 0 ) {
+			printf ("	parent %u is %s\n",n,stringNodeType(n->_nodeType));
+		} else {
+			printf ("	parent %d is NULL\n",i);
+		}
+	}
+	#endif
 
 	node->_change ++;
 	for (i = 0; i < node->_nparents; i++) {
