@@ -191,6 +191,7 @@ void SaveScriptText(uintptr_t num, char *text) {
 void JSInitializeScriptAndFields (uintptr_t num) {
         struct ScriptParamList **nextInsert;
         struct ScriptParamList *thisEntry;
+        struct ScriptParamList *nextEntry;
 	jsval rval;
 
 	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self()); */
@@ -200,16 +201,21 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 		ConsoleMessage ("JSInitializeScriptAndFields: warning, script %d initialization out of order",num);
 		return;
 	}
-	
-	/* go and initialize the fields */
-        nextInsert = &(ScriptControl[num].paramList);
-        while (*nextInsert != NULL) {
-		thisEntry = *nextInsert;
+	/* run through fields in order of entry in the X3D file */
+        thisEntry = ScriptControl[num].paramList;
+        while (thisEntry != NULL) {
+		/* printf ("script field is %s\n",thisEntry->field); */
 		InitScriptField(num, thisEntry->kind, thisEntry->type, thisEntry->field, thisEntry->value);
+
+		/* get the next block; free the current name, current block, and make current = next */
+		nextEntry = thisEntry->next;
 		FREE_IF_NZ (thisEntry->field);
-                nextInsert = &(thisEntry->next);
-		FREE_IF_NZ(thisEntry);
+		FREE_IF_NZ (thisEntry);
+		thisEntry = nextEntry;
 	}
+	
+	/* we have freed each element, set list to NULL in case anyone else comes along */
+	ScriptControl[num].paramList = NULL;
 
 	if (!ACTUALRUNSCRIPT(num, ScriptControl[num].scriptText, &rval)) {
 		ConsoleMessage ("JSInitializeScriptAndFields, script failure");
@@ -548,6 +554,8 @@ void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyV
 	/* printf ("SaveScriptField, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value); */
 
 	/* generate a new ScriptParamList entry */
+	/* note that this is a linked list, and we put things on at the end. The END MUST
+	   have NULL termination */
 	nextInsert = &(ScriptControl[num].paramList);
 	while (*nextInsert != NULL) {
 		nextInsert = &(*nextInsert)->next;
