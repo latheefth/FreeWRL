@@ -152,7 +152,7 @@ void removeFilenameFromPath (char *path) {
 		slashindex ++; /* leave the slash there */
 		*slashindex = 0;
 	} else {path[0] = 0;}
-	printf ("removeFielnameFromPath, parenturl is %s\n",path);
+	/* printf ("removeFielnameFromPath, parenturl is %s\n",path); */
 
 	/* are there any "/../" bits in the path? if so, lets clean them up */
 	slashDotDotSlash = strstr(path, SLASHDOTDOTSLASH);
@@ -161,7 +161,7 @@ void removeFilenameFromPath (char *path) {
 		/* might have something like: _levels_plus/tiles/0/../1/../1/../2/../ */
 		/* find the preceeding slash: */
 		*slashDotDotSlash = '\0';
-printf ("have slashdotdot, path now :%s:\n",path);
+		/* printf ("have slashdotdot, path now :%s:\n",path); */
 
 		slashindex = (char *)rindex(path, ((int) '/'));
 		if (slashindex != NULL) {
@@ -170,12 +170,12 @@ printf ("have slashdotdot, path now :%s:\n",path);
 			*slashindex = '\0';
 			slashDotDotSlash += strlen(SLASHDOTDOTSLASH);
 			strcpy(tmpline,path);
-printf ("tmpline step 1 is :%s:\n",tmpline);
+			/* printf ("tmpline step 1 is :%s:\n",tmpline); */
 			strcat (tmpline, slashDotDotSlash);
-printf ("tmpline step 2 is :%s:\n",tmpline);
+			/* printf ("tmpline step 2 is :%s:\n",tmpline); */
 			strcpy (path, tmpline);
 			slashDotDotSlash = strstr(path, SLASHDOTDOTSLASH);
-printf ("end of loop, path :%s: slashdot %u\n",path,slashDotDotSlash);
+			/* printf ("end of loop, path :%s: slashdot %u\n",path,slashDotDotSlash); */
 
 
 		}
@@ -191,8 +191,8 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 	/* and strip off the file name from the current path, leaving any path */
 	removeFilenameFromPath(path);
 
-printf ("getValidFileFromUrl, path now :%s:\n",path);
-printf ("and, inurl.n is %d\n",inurl->n);
+	/* printf ("getValidFileFromUrl, path now :%s:\n",path);
+	printf ("and, inurl.n is %d\n",inurl->n); */
 
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
@@ -206,7 +206,7 @@ printf ("and, inurl.n is %d\n",inurl->n);
 
 		/* we work in absolute filenames... */
 		makeAbsoluteFileName(filename,path,thisurl);
-printf ("getValidFile, filename %s\n",filename);
+		/* printf ("getValidFile, filename %s\n",filename); */
 
 		if (fileExists(filename,firstBytes,TRUE)) {
 			return TRUE;
@@ -825,20 +825,20 @@ void __pt_doInline() {
 	/* lets make up the path and save it, and make it the global path */
 	psp.path = STRDUP(inl->__parenturl->strptr);
 
-	printf ("doInline, checking for file from path %s\n",psp.path); 
+	/* printf ("doInline, checking for file from path %s\n",psp.path); */
 
 	if (getValidFileFromUrl (filename, psp.path, inurl, firstBytes)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */
-		printf ("doInline, we were successful at locating %s\n",filename); 
+		/* printf ("doInline, we were successful at locating %s\n",filename);  */
 		psp.type=FROMURL;
 	} else {
-		printf ("doInline, NOT successful at locating %s\n",filename); 
+		/* printf ("doInline, NOT successful at locating %s\n",filename);  */
 		ConsoleMessage ("Could Not Locate Inline URL %s\n",filename);
 	}
 	psp.inp = filename; /* will be freed later */
 
-	printf ("doinline, psp.inp = %s\n",psp.inp);
-	printf ("inlining %s\n",filename); 
+	/* printf ("doinline, psp.inp = %s\n",psp.inp);
+	printf ("inlining %s\n",filename);  */
 }
 
 /* this is a CreateVrmlFrom URL or STRING command */
@@ -889,7 +889,6 @@ void __pt_doStringUrl () {
 
 		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
-printf ("nRn %u rootNode %u\n",nRn,rootNode);
 		if (ifIsX3D(buffer)) {
 			if (!X3DParse (nRn, buffer)) {
 				ConsoleMessage ("Parse Unsuccessful");

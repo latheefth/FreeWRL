@@ -275,21 +275,28 @@ void EventLoop() {
 
 	/* printf ("start of MainLoop\n"); */
 
+	/* calculate the near and far planes. Do this every 4 times through the EventLoop, just
+	   so we don't get oscillations - 4 times is enough to ensure that geometry is written
+	   more than once, so that we do get a good idea of where things are */
+	if (loop_count & 0x03 == 0) {
 	/* for calculating the near/far plane */
-	/* printf ("eventLoop cnearPlane %lf, cfarPlane %lf\n",calculatedNearPlane, calculatedFarPlane); */
-	/* our setExtent calculations are rough - so if things are closer than the DEFAULT_FARPLANE, make
-	   the z-buffer calculations quite rigid. */
-	if (calculatedNearPlane > DEFAULT_FARPLANE) nearPlane = calculatedNearPlane; else nearPlane = DEFAULT_NEARPLANE;
-	if (calculatedFarPlane > DEFAULT_FARPLANE) farPlane = calculatedFarPlane; else farPlane = DEFAULT_FARPLANE;
-
-	/* and, if we do not have much in the way of geometry, we can end up with something silly, so: */
-	if (nearPlane > farPlane) { nearPlane = DEFAULT_NEARPLANE; farPlane = DEFAULT_FARPLANE;
-		/* printf ("silly numbers, so using DEFAULT_NEARPLANE and DEFAULT_FARPLANE\n"); */
+		/* printf ("eventLoop cnearPlane %lf, cfarPlane %lf\n",calculatedNearPlane, calculatedFarPlane); */
+		/* our setExtent calculations are rough - so if things are closer than the DEFAULT_FARPLANE, make
+		   the z-buffer calculations quite rigid. */
+		if (calculatedNearPlane > DEFAULT_FARPLANE) nearPlane = calculatedNearPlane; else nearPlane = DEFAULT_NEARPLANE;
+		if (calculatedFarPlane > DEFAULT_FARPLANE) farPlane = calculatedFarPlane; else farPlane = DEFAULT_FARPLANE;
+	
+		/* and, if we do not have much in the way of geometry, we can end up with something silly, so: */
+		if (nearPlane > farPlane) { nearPlane = DEFAULT_NEARPLANE; farPlane = DEFAULT_FARPLANE;
+			/* printf ("silly numbers, so using DEFAULT_NEARPLANE and DEFAULT_FARPLANE\n"); */
+		}
+	
+		calculatedNearPlane = 999999999999999999999999.9;
+		calculatedFarPlane = 0.0;
+		/* printf ("eventLoop after bounding, nearPlane %lf, farPlane %lf\n",nearPlane, farPlane); 
+	} else {
+		printf ("skipping calculating planes\n"); */
 	}
-
-	calculatedNearPlane = 999999999999999999999999.9;
-	calculatedFarPlane = 0.0;
-	/* printf ("eventLoop after bounding, nearPlane %lf, farPlane %lf\n",nearPlane, farPlane); */
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
