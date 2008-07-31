@@ -656,9 +656,9 @@ void do_ColorInterpolator (void *node) {
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3d));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFColor));
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3d));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFColor));
 	} else {
 		/* have to go through and find the key before */
 		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
@@ -707,9 +707,9 @@ void do_PositionInterpolator (void *node) {
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3d));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFColor));
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3d));
+		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFColor));
 	} else {
 		/* have to go through and find the key before */
 		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
