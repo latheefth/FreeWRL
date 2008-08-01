@@ -14,6 +14,7 @@
 #include "headers.h"
 #include "Bindable.h"
 #include "CParse.h"
+#include <float.h>
 
 #include "OpenGL_Utils.h"
 #ifdef AQUA
