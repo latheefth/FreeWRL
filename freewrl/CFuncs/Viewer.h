@@ -174,6 +174,7 @@ set_viewer_type(const int type);
 
 void
 resolve_pos(X3D_Viewer *viewer);
+void getViewpointExamineDistance(void);
 
 void
 xy2qua(Quaternion *ret,
@@ -242,7 +243,6 @@ void viewer_default(void);
 
 extern float eyedist;
 extern float screendist;
-
 
 void XEventStereo(void);
 

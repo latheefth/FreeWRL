@@ -29,6 +29,17 @@ static FILE *exfly_in_file;
 
 struct point_XYZ VPvelocity;
 
+double defaultExamineDist;
+#define DEFAULT_NEARPLANE 0.1
+#define DEFAULT_FARPLANE 21000.0
+double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
+double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
+double screenRatio=1.5;
+double fieldofview=45.0;
+double calculatedNearPlane = 0.0;
+double calculatedFarPlane = 0.0;
+
+
 void print_viewer(void);
 unsigned int get_buffer(void);
 int get_headlight(void);
@@ -202,12 +213,41 @@ int use_keys() {
 	return FALSE;
 }
 
+/* get the distance to the closest shape, if the Examine distance is = 0.0; this
+   can happen on startup, because there is no geometry to find distance to */
+void getViewpointExamineDistance(void) {
+	/* for calculating the near/far plane */
+	if (Viewer.GeoSpatialNode == NULL) {
+		/* printf ("eventLoop cnearPlane %lf, cfarPlane %lf\n",calculatedNearPlane, calculatedFarPlane); */
+		/* our setExtent calculations are rough - so if things are closer than the DEFAULT_FARPLANE, make
+		   the z-buffer calculations quite rigid. */
+		if (calculatedNearPlane > DEFAULT_FARPLANE) nearPlane = calculatedNearPlane; else nearPlane = DEFAULT_NEARPLANE;
+		if (calculatedFarPlane > DEFAULT_FARPLANE) farPlane = calculatedFarPlane; else farPlane = DEFAULT_FARPLANE;
+	
+		/* and, if we do not have much in the way of geometry, we can end up with something silly, so: */
+		if (nearPlane > farPlane) { nearPlane = DEFAULT_NEARPLANE; farPlane = DEFAULT_FARPLANE;
+			/* printf ("silly numbers, so using DEFAULT_NEARPLANE and DEFAULT_FARPLANE\n"); */
+		}
+	
+		calculatedNearPlane = 999999999999999999999999.9;
+		calculatedFarPlane = 0.0;
+
+		if (viewer_type == EXAMINE) {
+			if (APPROX(Viewer.Dist, 0.0)) {
+				/* printf ("Viewer is approx 0.0, getting dist \n"); */
+				resolve_pos(&Viewer);
+			}
+		}
+	}
+}
 
 void resolve_pos(X3D_Viewer *viewer) {
 	/* my($this) = @_; */
 	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
+
 	double dist = 0;
+
 	X3D_Viewer_Examine *examine = viewer->examine;
 
 	if (viewer_type == EXAMINE) {
@@ -215,19 +255,31 @@ void resolve_pos(X3D_Viewer *viewer) {
 		inverse(&q_inv, &(viewer->Quat));
 		rotation(&rot, &q_inv, &z_axis);
 
-		/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
-		dist = VECPT(viewer->Pos, rot);
-
-		/*
-		 * Fix the rotation point to be 10m in front of the user (dist = 10.0)
-		 * or, try for the origin. Preferential treatment would be to choose
-		 * the shape within the center of the viewpoint. This information is
-		 * found in the matrix, and is used for collision calculations - we
-		 * need to better store it.
-		 */
-
-		/* $d = abs($d); $this->{Dist} = $d; */
-		viewer->Dist = fabs(dist);
+		if (Viewer.GeoSpatialNode == NULL) {
+			/* printf ("resolve_pos, NOT a Geospatial Viewpoint\n"); */
+			if (defaultExamineDist > -(farPlane/2.0)) {
+				viewer->Dist = -defaultExamineDist;
+			} else {
+				viewer->Dist = 10.0;
+			}
+		} else {
+			/* printf ("resolve_pos, a Geospatial Viewpoint\n"); */
+			/* Geospatial Viewpoint - */
+			/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
+			dist = VECPT(viewer->Pos, rot);
+	
+			/*
+			 * Fix the rotation point to be 10m in front of the user (dist = 10.0)
+			 * or, try for the origin. Preferential treatment would be to choose
+			 * the shape within the center of the viewpoint. This information is
+			 * found in the matrix, and is used for collision calculations - we
+			 * need to better store it.
+			 */
+	
+			/* $d = abs($d); $this->{Dist} = $d; */
+			viewer->Dist = fabs(dist);
+		}
+		/* printf ("resolve_pos, dist %lf, calculated %lf\n",viewer->Dist, defaultExamineDist); */
 
 		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
 		(examine->Origin).x = (viewer->Pos).x - viewer->Dist * rot.x;

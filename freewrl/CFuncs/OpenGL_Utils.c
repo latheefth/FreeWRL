@@ -695,10 +695,19 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *removeChildren;
 	struct Multi_Node *childrenPtr;
 
+	/* for Shape distance calculations */
+	double farDistThreshold;
+	double farDefaultDistance;
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
 	have_transparency = FALSE;
+
+	/* for sorting nodes, and for determining examine mode rotate distance */
+	farDistThreshold = -(farPlane/2.0);
+	farDefaultDistance = -(farPlane/4.0);
+	defaultExamineDist = -DBL_MAX;
+	
 
 	LOCK_MEMORYTABLE
 
@@ -706,8 +715,15 @@ void startOfLoopNodeUpdates(void) {
 	for (i=0; i<nextEntry; i++){		
 		node = memoryTable[i];	
 		if (node != NULL) {
+			/* record a value for Examine mode rotations here */
+			if (node->_nodeType == NODE_Shape) {
+				if ((node->_dist > defaultExamineDist) && (node->_dist<-2.0)) 
+					defaultExamineDist = node->_dist;
+				/* printf ("defaultExamineDist %lf\n",defaultExamineDist); */
+			}
+
 			/* reset distance, for distance calculations */
-			node->_dist=-1000.0;
+			node->_dist=farDistThreshold;
 
 			/* turn OFF these flags */
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);

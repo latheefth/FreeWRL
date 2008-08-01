@@ -562,6 +562,7 @@ extern GLint viewport[];
 extern GLdouble fieldofview;
 extern struct point_XYZ ViewerUpvector;
 extern struct sNaviInfo naviinfo;
+extern double defaultExamineDist;
 
 
 /* Sending events back to Browser (eg, Anchor) */
