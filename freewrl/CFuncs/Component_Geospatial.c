@@ -1102,7 +1102,10 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 }
 
 
-/***********************************************************************/
+/************************************************************************/
+/* GeoElevationGrid							*/
+/************************************************************************/
+
 /* check validity of ElevationGrid fields */
 int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **points, int *npoints) {
 	MF_SF_TEMPS
@@ -1208,11 +1211,19 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 			#ifdef VERBOSE
 			printf ("	%d %d %d %d %d\n", j*nx+i, j*nx+i+nx, j*nx+i+nx+1, j*nx+i+1, -1);
 			#endif
+#define OLDCODE
+#ifdef OLDCODE
+			*cindexptr = j*nx+i; cindexptr++; 	/* 1 */
+			*cindexptr = j*nx+i+nx; cindexptr++; 	/* 2 */
+			*cindexptr = j*nx+i+nx+1; cindexptr++;  /* 3 */
+			*cindexptr = j*nx+i+1; cindexptr++; 	/* 4 */
+#else
+			*cindexptr = j*nx+i+1; cindexptr++; 	/* 4 */
+			*cindexptr = j*nx+i+nx+1; cindexptr++;  /* 3 */
+			*cindexptr = j*nx+i+nx; cindexptr++; 	/* 2 */
+			*cindexptr = j*nx+i; cindexptr++; 	/* 1 */
+#endif
 			
-			*cindexptr = j*nx+i; cindexptr++;
-			*cindexptr = j*nx+i+nx; cindexptr++;
-			*cindexptr = j*nx+i+nx+1; cindexptr++;
-			*cindexptr = j*nx+i+1; cindexptr++;
 			*cindexptr = -1; cindexptr++;
 
 		}
@@ -1256,7 +1267,11 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	node->color = parent->color;
 	node->normal = parent->normal;
 	node->texCoord = parent->texCoord;
+#ifdef OLDCODE
 	node->ccw = !parent->ccw; /* NOTE THE FLIP HERE */
+#else
+	node->ccw = parent->ccw;
+#endif
 	node->colorPerVertex = parent->colorPerVertex;
 	node->creaseAngle = (float) parent->creaseAngle;
 	node->normalPerVertex = parent->normalPerVertex;
@@ -1348,11 +1363,6 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 
 	return TRUE;
 }
-
-
-/************************************************************************/
-/* GeoElevationGrid							*/
-/************************************************************************/
 
 /* a GeoElevationGrid creates a "real" elevationGrid node as a child for rendering. */
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
@@ -1619,6 +1629,7 @@ void GeoLODchildren (struct X3D_GeoLOD *node) {
 
         /* lets see if we still have to load this one... */
         if (((node->__childloadstatus)==0) && (load)) {
+		/* printf ("GeoLODchildren - have to LOAD_CHILD for node %u\n",node); */
 		LOAD_CHILD(__child1Node,child1Url)
 		LOAD_CHILD(__child2Node,child2Url)
 		LOAD_CHILD(__child3Node,child3Url)

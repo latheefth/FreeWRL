@@ -145,6 +145,7 @@ int IFS_face_normals (
 
 		/* face has passed checks so far... */
 		if (faceok[i]) {
+			/* printf ("face %d ok\n",i); */
 			/* check for degenerate triangles -- we go through all triangles in a face to see which
 			   triangle has the largest vector length */
 
@@ -171,15 +172,17 @@ int IFS_face_normals (
 				b[1] = c3->c[1] - c1->c[1];
 				b[2] = c3->c[2] - c1->c[2];
 
+				/* printf ("a0 %f a1 %f a2 %f b0 %f b1 %f b2 %f\n", a[0],a[1],a[2],b[0],b[1],b[2]); */
+
 				thisfaceNorms.x = a[1]*b[2] - b[1]*a[2];
 				thisfaceNorms.y = -(a[0]*b[2] - b[0]*a[2]);
 				thisfaceNorms.z = a[0]*b[1] - b[0]*a[1];
 
-				/* printf ("vector length is %f\n",calc_vector_length (thisfaceNorms)); */
+				/* printf ("vector length is %f\n",calc_vector_length (thisfaceNorms));  */
 
 				/* is this vector length greater than a previous one? */
 				if (calc_vector_length(thisfaceNorms) > this_vl) {
-					/* printf ("for face, using points %d %d %d\n",pt_1, pt_2, pt_3); */
+					/* printf ("for face, using points %d %d %d\n",pt_1, pt_2, pt_3);  */
 					this_vl = calc_vector_length(thisfaceNorms);
 					facenormals[i].x = thisfaceNorms.x;
 					facenormals[i].y = thisfaceNorms.y;
@@ -190,18 +193,28 @@ int IFS_face_normals (
 
 				AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
 				BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
-				/* printf ("AC %f ",AC);
-				printf ("BC %f \n",BC);  */
+				/* printf ("AC %f ",AC); printf ("BC %f \n",BC); */
 
 				/* we have 3 points, a, b, c */
 				/* we also have 3 vectors, AB, AC, BC */
 				/* find out which one looks the closest one to skip out */
 				/* either we move both 2nd and 3rd points, or just the 3rd */
+
+				if (ccw) {
+					/* printf ("moving along IFS face normals CCW\n");  */
+					if (fabs(AC) < fabs(BC)) { pt_2++; }
+					pt_3++;
+				} else {
+					/* printf ("moving along IFS face normals *NOT* CCW\n"); */
+					/* if (fabs(AC) < fabs(BC)) { pt_3++; } */
+					pt_2++;
+				}
+
 				if (fabs(AC) < fabs(BC)) { pt_2++; }
 				pt_3++;
 
 				/* skip forward to the next couple of points - if possible */
-				/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
+				/* printf ("looking at %d, cin is %d\n",tmp_a, cin);  */
 				tmp_a ++;
 				if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
 					this_face_finished = TRUE;  tmp_a +=2;
@@ -798,6 +811,7 @@ void render_polyrep(void *node) {
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
+/* printf ("render_polyrep, ntri %d\n",r->ntri); */
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
 
 	trisThisLoop += r->ntri;

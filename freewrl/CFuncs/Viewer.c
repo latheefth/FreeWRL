@@ -218,7 +218,7 @@ int use_keys() {
 void getViewpointExamineDistance(void) {
 	/* for calculating the near/far plane */
 	if (Viewer.GeoSpatialNode == NULL) {
-		/* printf ("eventLoop cnearPlane %lf, cfarPlane %lf\n",calculatedNearPlane, calculatedFarPlane); */
+		/* printf ("eventLoop cnearPlane %lf, cfarPlane %lf\n",calculatedNearPlane, calculatedFarPlane);  */
 		/* our setExtent calculations are rough - so if things are closer than the DEFAULT_FARPLANE, make
 		   the z-buffer calculations quite rigid. */
 		if (calculatedNearPlane > DEFAULT_FARPLANE) nearPlane = calculatedNearPlane; else nearPlane = DEFAULT_NEARPLANE;
@@ -234,8 +234,9 @@ void getViewpointExamineDistance(void) {
 
 		if (viewer_type == EXAMINE) {
 			if (APPROX(Viewer.Dist, 0.0)) {
-				/* printf ("Viewer is approx 0.0, getting dist \n"); */
+				/* printf ("Viewer is approx 0.0, getting dist \n");  */
 				resolve_pos(&Viewer);
+				/* printf ("dist, %lf\n",Viewer.Dist); */
 			}
 		}
 	}
