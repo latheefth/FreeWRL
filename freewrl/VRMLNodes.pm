@@ -1284,15 +1284,18 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__outOfRange =>[SFBool, 0, inputOutput],
+						__inRange =>[SFBool, 0, inputOutput],
 						__child1Node => [SFNode, NULL, inputOutput],
 						__child2Node => [SFNode, NULL, inputOutput],
 						__child3Node => [SFNode, NULL, inputOutput],
 						__child4Node => [SFNode, NULL, inputOutput],
 						__rootUrl => [SFNode, NULL, inputOutput],
 						__childloadstatus => [SFInt32,0,inputOutput],
-						#__parenturl =>[SFString,"",initializeOnly],
+						__rooturlloadstatus => [SFInt32,0,inputOutput],
 
+						# ProximitySensor copies.
+						__inRange => [SFInt32, 0, inputOutput],
+						__t1 => [SFVec3d, [10000000, 0, 0], inputOutput],
 					},"X3DGroupingNode"),
 
 

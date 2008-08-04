@@ -886,6 +886,11 @@ void startOfLoopNodeUpdates(void) {
                 		update_renderFlag(node,VF_Proximity);
 				END_NODE
 
+				/* GeoLOD needs its own flag sent up the chain */
+				BEGIN_NODE (GeoLOD)
+                		update_renderFlag(node,VF_Proximity);
+				END_NODE
+
 
 	
 			}

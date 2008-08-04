@@ -193,6 +193,8 @@ Geocentric to Geodetic:
 #define INITIALIZE_GEOSPATIAL(me) \
 	initializeGeospatial((struct X3D_GeoOrigin **) &me->geoOrigin); 
 
+int geoLodLevel = 0;
+
 static int gcToGdInit = FALSE;
 static int geoInit = FALSE;
 /*static struct SFVec3d geoViewPointCenter = {(double)0.0, (double)0.0, (double)0.0}; */
@@ -598,6 +600,13 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 
 	#ifdef VERBOSE
 	printf ("\ninitializing GeoSpatial code nodeptr %u\n",*nodeptr); 
+	#endif
+
+	/* for now, turn off occlusionculling, until we are sure that the loading of
+	   Geospatial geometry is ok */
+	#ifdef VERBOSE
+	printf ("disabling occlusion culling for Geospatial nodes\n");
+	OccFailed = TRUE;
 	#endif
 
 	if (*nodeptr != NULL) {
@@ -1601,6 +1610,69 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /* GeoLOD								*/
 /************************************************************************/
 
+void proximity_GeoLOD (struct X3D_GeoLOD *node) {
+	/* Viewer pos = t_r2 */
+	double cx,cy,cz;
+	double len;
+	struct point_XYZ dr1r2;
+	struct point_XYZ dr2r3;
+	struct point_XYZ nor1,nor2;
+	struct point_XYZ ins;
+	static const struct point_XYZ yvec = {0,0.05,0};
+	static const struct point_XYZ zvec = {0,0,-0.05};
+	static const struct point_XYZ zpvec = {0,0,0.05};
+	static const struct point_XYZ orig = {0,0,0};
+	struct point_XYZ t_zvec, t_yvec, t_orig;
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
+
+	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
+	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
+
+	/* transforms viewers coordinate space into sensors coordinate space.
+	 * this gives the orientation of the viewer relative to the sensor.
+	 */
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
+		&t_orig.x,&t_orig.y,&t_orig.z);
+	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
+		&t_zvec.x,&t_zvec.y,&t_zvec.z);
+	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
+		&t_yvec.x,&t_yvec.y,&t_yvec.z);
+
+	cx = t_orig.x - node->__movedCoords.c[0];
+	cy = t_orig.y - node->__movedCoords.c[1];
+	cz = t_orig.z - node->__movedCoords.c[2];
+
+
+	/* distance between "me" at (0,0,0) and the centre of the GeoLOD (cx,cy,cz)
+	   is sqrt (cx-0 + cy-0 + cz-0) so we can compare sqrt(cx+cy+cz) to  sqrt(node->range)
+	   but this can be simplified by comparing the squares */
+
+	#ifdef VERBOSE
+	printf ("GeoLOD %u, comparing range %lf to (%lf %lf %lf)\n",node, node->range,
+		fabs(cx), fabs(cy), fabs(cz));
+
+	printf ("   ... range as sqrt %lf, range %lf \n",sqrt(cx+cy+cz), sqrt(node->range));
+	printf ("   ... range as squares %lf, range %lf \n",fabs(cx+cy+cz), node->range);
+	#endif
+
+	#ifdef boxTesting
+        if((fabs(cx) > node->range) ||
+           (fabs(cy) > node->range) ||
+           (fabs(cz) > node->range)) {
+	#endif
+	if ((fabs(cx)+fabs(cy)+fabs(cz)) > node->range) {
+		node->__inRange = FALSE;
+		printf ("GeoLOD %u, hit set to FALSE\n",node);
+	} else {
+		node->__inRange = TRUE;
+		printf ("GeoLOD %u, hit set to TRUE\n",node);
+	}
+}
+
+
 #define LOAD_CHILD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
 		if (node->childUrl.n > 0) { \
@@ -1622,24 +1694,59 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 
 
 void GeoLODchildren (struct X3D_GeoLOD *node) {
-	int load = !(node->__outOfRange);
+	int load = node->__inRange;
         struct X3D_Inline *inl;
 	int i;
 
-
         /* lets see if we still have to load this one... */
         if (((node->__childloadstatus)==0) && (load)) {
-		/* printf ("GeoLODchildren - have to LOAD_CHILD for node %u\n",node); */
+		printf ("GeoLODchildren - have to LOAD_CHILD for node %u (level %d)\n",node,geoLodLevel); 
 		LOAD_CHILD(__child1Node,child1Url)
 		LOAD_CHILD(__child2Node,child2Url)
 		LOAD_CHILD(__child3Node,child3Url)
 		LOAD_CHILD(__child4Node,child4Url)
                 node->__childloadstatus = 1;
-        } else if (!(load) && ((node->__childloadstatus) != 0)) {
-                printf ("GeoLODloadChildren, removing children\n");
+	}
+}
+
+void GeoUnLODchildren (struct X3D_GeoLOD *node) {
+	int load = node->__inRange;
+        struct X3D_Inline *inl;
+        int i;
+
+        if (!(load) && ((node->__childloadstatus) != 0)) {
+                printf ("GeoLODloadChildren, removing children from node %u level %d\n",node,geoLodLevel);
                 node->__childloadstatus = 0;
         }
 }
+
+
+void GeoLODrootUrl (struct X3D_GeoLOD *node) {
+	int load = node->__inRange;
+        struct X3D_Inline *inl;
+	int i;
+
+        /* lets see if we still have to load this one... */
+        if (((node->__rooturlloadstatus)==0) && (load)) {
+		printf ("GeoLODrootUrl - have to LOAD_CHILD for node %u\n",node); 
+		LOAD_CHILD(__rootUrl, rootUrl)
+                node->__rooturlloadstatus = 1;
+	}
+}
+
+
+void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
+	int load = node->__inRange;
+        struct X3D_Inline *inl;
+        int i;
+
+        if (!(load) && ((node->__rooturlloadstatus) != 0)) {
+                printf ("GeoLODloadChildren, removing rootUrl\n");
+                node->__childloadstatus = 0;
+        }
+}
+
+
 
 
 void compile_GeoLOD (struct X3D_GeoLOD * node) {
@@ -1694,58 +1801,32 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
         struct point_XYZ vec;
         double dist;
         int i;
-	int oldOutOfRange = node->__outOfRange;
-
-	 /* printf ("child_GeoLOD %u, renderFlags %x render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	node,
-	node->_renderFlags,
-	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-
-        /* calculate which one to display - only do this once per eventloop. */
-        if (render_geom && (!render_blend)) {
-                fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-                /* printf ("LOD, mat %lf %lf %lf\n",mod[12],mod[13],mod[14]);  */
-                fwGetDoublev(GL_PROJECTION_MATRIX, proj);
-                gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
-
-		#ifdef VERBOSE
-		printf ("before cent move %lf %lf %lf ",vec.x, vec.y, vec.z);
-                #endif
-
-		vec.x -= (node->center).c[0];
-                vec.y -= (node->center).c[1];
-                vec.z -= (node->center).c[2];
-		
-		#ifdef VERBOSE
-		printf ("after %lf %lf %lf\n ",vec.x, vec.y, vec.z);
-		#endif
-
-                dist = sqrt(VECSQ(vec));
-
-		#ifdef VERBOSE
-		printf ("child GeoLOD, dist %lf rootNode %u rangeDif %lf \n",dist,node->rootNode.n,
-			node->range);
-
-		printf ("calculating, dist %lf, node->range %f planes %lf %lf\n",dist,node->range, nearPlane, farPlane); 
-		#endif
-
-		/* save this calculation */
-		node->__outOfRange = (dist > node->range);
-
-        }
 
 	#ifdef VERBOSE
-	if ( node->__outOfRange) {
-		printf ("GeoLOD %u farther away\n",node);
+	 printf ("child_GeoLOD %u (level %d), renderFlags %x render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	node,
+	geoLodLevel, 
+	node->_renderFlags,
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+	#endif
+
+#define VERBOSE
+	#ifdef VERBOSE
+	if ( node->__inRange) {
+		printf ("GeoLOD %u (level %d) closer\n",node,geoLodLevel);
 	} else {
-		printf ("GeoLOD %u closer\n",node);
+		printf ("GeoLOD %u (level %d) farther away\n",node,geoLodLevel);
 	}
 	#endif
+#undef VERBOSE
 
 
 	/* if we are out of range, use the rootNode or rootUrl field 	*/
 	/* else, use the child1Url through the child4Url fields 	*/
-	if (node->__outOfRange) {
+	if (!(node->__inRange)) {
+		/* do we need to unload children that are no longer needed? */
+		GeoUnLODchildren (node);
+
 		if (node->rootNode.n != 0)  {
 			for (i=0; i<node->rootNode.n; i++) {
 				#ifdef VERBOSE
@@ -1757,10 +1838,11 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 				render_node (node->rootNode.p[i]);
 			}	
 		} else if (node->rootUrl.n != 0) {
+
 			/* try and load the root from the rootUrl */
-			if (oldOutOfRange != node->__outOfRange) {
-				LOAD_CHILD(__rootUrl, rootUrl)
-			}
+			GeoLODrootUrl (node);
+
+			/* render this rootUrl */
 			if (node->__rootUrl != NULL) {
 				#ifdef VERBOSE
 				printf ("GeoLOD %u is rendering rootUrl %u",node,node->__rootUrl);
@@ -1771,13 +1853,15 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 				render_node (node->__rootUrl);
 			}	
 			
+			
 		}
 	} else {
+		geoLodLevel++;
 		/* go through 4 kids */
-		/* has the outOfRange flag changed? */
-		if (oldOutOfRange != node->__outOfRange) {
-			GeoLODchildren (node);
-		}
+		GeoLODchildren (node);
+
+		/* get rid of the rootUrl node, if it is loaded */
+		GeoUnLODrootUrl (node);
 
 		/* render these children */
 		#ifdef VERBOSE
@@ -1798,6 +1882,8 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		if (node->__child2Node != NULL) render_node (node->__child2Node);
 		if (node->__child3Node != NULL) render_node (node->__child3Node);
 		if (node->__child4Node != NULL) render_node (node->__child4Node);
+		geoLodLevel--;
+
 	}
 }
 

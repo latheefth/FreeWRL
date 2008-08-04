@@ -84,8 +84,10 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 				and subtract the "negative" z value to get the far distance */
 
 			/* printf ("so, z buffer for this shape should be: %lf, %lf\n",geomParent->_dist-minz, geomParent->_dist-maxz); */
-			tminp = -(geomParent->_dist-minz) / 1.4; /* numbers should be rotated as per parent rotation */
-			tmaxp = -(geomParent->_dist-maxz) * 1.4; /* numbers should be rotated as per parent rotation */
+
+#define FUDGEFACTOR 1.6
+			tminp = -(geomParent->_dist-minz) / FUDGEFACTOR; /* numbers should be rotated as per parent rotation */
+			tmaxp = -(geomParent->_dist-maxz) * FUDGEFACTOR; /* numbers should be rotated as per parent rotation */
 
 			/* printf ("tminp %lf, tmaxp %lf\n",tminp, tmaxp); */
 			if (tminp < calculatedNearPlane) calculatedNearPlane = tminp;

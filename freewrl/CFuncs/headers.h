@@ -1153,6 +1153,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *this_);
 void fin_GeoLocation (struct X3D_GeoLocation *this_);
 void changed_GeoLocation (struct X3D_GeoLocation *this_);
 void child_GeoLOD (struct X3D_GeoLOD *this_);
+void proximity_GeoLOD (struct X3D_GeoLOD *this_);
 void child_GeoLocation (struct X3D_GeoLocation *this_);
 void compile_GeoCoordinate (struct X3D_GeoCoordinate * this);
 void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * this);

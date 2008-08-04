@@ -265,7 +265,7 @@ void EventLoop() {
 
 	#endif
 
-	/* printf ("start of MainLoop\n"); */
+	printf ("start of MainLoop\n"); 
 
 	/* calculate the near and far planes. Do this every 4 times through the EventLoop, just
 	   so we don't get oscillations - 4 times is enough to ensure that geometry is written
