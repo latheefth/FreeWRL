@@ -606,8 +606,8 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 	   Geospatial geometry is ok */
 	#ifdef VERBOSE
 	printf ("disabling occlusion culling for Geospatial nodes\n");
-	OccFailed = TRUE;
 	#endif
+	OccFailed = TRUE;
 
 	if (*nodeptr != NULL) {
 		if (X3D_GEOORIGIN(*nodeptr)->_nodeType != NODE_GeoOrigin) {
@@ -1663,12 +1663,12 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
            (fabs(cy) > node->range) ||
            (fabs(cz) > node->range)) {
 	#endif
-	if ((fabs(cx)+fabs(cy)+fabs(cz)) > node->range) {
+	if ((fabs(cx)+fabs(cy)+fabs(cz)) > (node->range*2)) {
 		node->__inRange = FALSE;
-		printf ("GeoLOD %u, hit set to FALSE\n",node);
+		/* printf ("GeoLOD %u, hit set to FALSE\n",node); */
 	} else {
 		node->__inRange = TRUE;
-		printf ("GeoLOD %u, hit set to TRUE\n",node);
+		/* printf ("GeoLOD %u, hit set to TRUE\n",node); */
 	}
 }
 
@@ -1748,20 +1748,26 @@ void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
 
 
 
-
+#define VERBOSE
 void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	MF_SF_TEMPS
 
+printf ("cgl, 1\n");
 	#ifdef VERBOSE
 	printf ("compiling GeoLOD %u\n",node);
 	#endif
 
 	/* work out the position */
 	INITIALIZE_GEOSPATIAL(node)
+printf ("cgl, 2\n");
 	COMPILE_GEOSYSTEM(node)
+printf ("cgl, 3\n");
 	INIT_MF_FROM_SF(node, center)
+printf ("cgl, 4\n");
 	MOVE_TO_ORIGIN(node)
+printf ("cgl, 5\n");
 	COPY_MF_TO_SF(node, __movedCoords)
+printf ("cgl, 6\n");
 
 	/* work out the local orientation */
 	/* GeoOrient(&gdCoords.p[0], &node->__localOrient); */
@@ -1790,17 +1796,19 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	printf ("compiled GeoLOD\n\n");
 	#endif
 }
+#undef VERBOSE
 
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {
-	INITIALIZE_GEOSPATIAL(node)
-	COMPILE_IF_REQUIRED
 
         GLdouble mod[16];
         GLdouble proj[16];
         struct point_XYZ vec;
         double dist;
         int i;
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_IF_REQUIRED
+
 
 	#ifdef VERBOSE
 	 printf ("child_GeoLOD %u (level %d), renderFlags %x render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -1810,7 +1818,6 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 	#endif
 
-#define VERBOSE
 	#ifdef VERBOSE
 	if ( node->__inRange) {
 		printf ("GeoLOD %u (level %d) closer\n",node,geoLodLevel);
@@ -1818,12 +1825,12 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		printf ("GeoLOD %u (level %d) farther away\n",node,geoLodLevel);
 	}
 	#endif
-#undef VERBOSE
 
 
 	/* if we are out of range, use the rootNode or rootUrl field 	*/
 	/* else, use the child1Url through the child4Url fields 	*/
 	if (!(node->__inRange)) {
+		/* printf ("GeoLOD, node %u, doing rootNode, rootNode.n = %d\n",node,node->rootNode.n); */
 		/* do we need to unload children that are no longer needed? */
 		GeoUnLODchildren (node);
 
@@ -1857,11 +1864,21 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		}
 	} else {
 		geoLodLevel++;
+
 		/* go through 4 kids */
 		GeoLODchildren (node);
 
 		/* get rid of the rootUrl node, if it is loaded */
 		GeoUnLODrootUrl (node);
+
+		#ifdef VERBOSE
+		printf ("rendering children at %d, they are: ",geoLodLevel);
+		if (node->child1Url.n>0) printf (" :%s: ",node->child1Url.p[0]->strptr);
+		if (node->child2Url.n>0) printf (" :%s: ",node->child2Url.p[0]->strptr);
+		if (node->child3Url.n>0) printf (" :%s: ",node->child3Url.p[0]->strptr);
+		if (node->child4Url.n>0) printf (" :%s: ",node->child4Url.p[0]->strptr);
+		printf ("\n");
+		#endif
 
 		/* render these children */
 		#ifdef VERBOSE
@@ -1875,7 +1892,6 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 		if (node->__child4Node != NULL) printf (" (%s) ",stringNodeType(X3D_NODE(node->__child4Node)->_nodeType));
 		printf ("\n");
 		#endif
-
 
 
 		if (node->__child1Node != NULL) render_node (node->__child1Node);

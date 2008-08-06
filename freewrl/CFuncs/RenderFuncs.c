@@ -149,7 +149,10 @@ int SoundEngineStarted = FALSE;
 /* stored FreeWRL version, pointers to initialize data */
 char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
-char *cacheFileName = NULL;
+char *textureThreadCacheFileName = NULL;
+char *parsingThreadCacheFileName = NULL;
+char *loadThreadCacheFileName = NULL;
+char *shapeThreadCacheFileName = NULL;
 
 void *rootNode=NULL;	/* scene graph root node */
 void *empty_group=0;
@@ -245,6 +248,10 @@ void update_node(struct X3D_Node *node) {
  * depending on what we are doing right now.
  */
 
+#ifdef RENDERVERBOSE
+static int renderLevel = 0;
+#endif
+
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *v;
 	int srg = 0;
@@ -256,29 +263,25 @@ void render_node(struct X3D_Node *node) {
 	X3D_NODE_CHECK(node);
 
 	#ifdef RENDERVERBOSE
-		printf("\nRender_node %u\n",(unsigned int) node);
+		renderLevel ++;
 	#endif
 
-	if(!node) {return;}
-	v = *(struct X3D_Virt **)node;
+	if(!node) {
+		#ifdef RENDERVERBOSE
+		printf ("%d no node, quick return\n",renderLevel); renderLevel--;
+		#endif
+		return;
+	}
 
+	v = *(struct X3D_Virt **)node;
 	#ifdef RENDERVERBOSE 
-	    printf("=========================================NODE RENDERED===================================================\n");
-	printf ("node %d %d\n",node,v);
-	printf ("nodename %s\n",stringNodeType(node->_nodeType));
-	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   stringNodeType(node->_nodeType),
-		   v->prep,
-		   v->rend,
-		   v->children,
-		   v->fin,
-		   v->rendray,
-		   hypersensitive);
-	    printf("Render_state geom %d light %d sens %d\n",
-		   render_geom,
-		   render_light,
-		   render_sensitive);
-	    printf ("pchange %d pichange %d vchanged %d\n",node->_change, node->_ichange,v->changed);
+	    printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
+	printf ("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),v,node->_renderFlags);
+	    printf("PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v, v->prep, v->rend, v->children, v->fin,
+		   v->rendray, hypersensitive);
+            printf ("%d state: vp %d geom %d light %d sens %d blend %d prox %d col %d ", renderLevel, 
+         	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+	    printf ("change %d ichange %d changed %d\n",node->_change, node->_ichange,v->changed);
 	#endif
 
 
@@ -299,6 +302,7 @@ void render_node(struct X3D_Node *node) {
                 if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
 			#ifdef RENDERVERBOSE
                         printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
+			renderLevel--;
 			#endif
                         return; 
                 } 
@@ -309,6 +313,7 @@ void render_node(struct X3D_Node *node) {
                 if ((node->_renderFlags & VF_otherLight) != VF_otherLight) { 
 			#ifdef RENDERVERBOSE
                         printf ("doing otherLight, but this  node is not for us - just returning\n"); 
+			renderLevel--;
 			#endif
                         return; 
                 }
@@ -401,7 +406,7 @@ printf ("finished render_collision on node\n");
         }
         if(v->children) { 
 	#ifdef RENDERVERBOSE 
-		printf ("rs 8\n");
+		printf ("rs 8 - has valid child node pointer\n");
 	    #endif
 
             v->children(node);
@@ -436,7 +441,8 @@ printf ("finished render_collision on node\n");
 	    if (displayOpenGLErrors) if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
 	  }
 	#ifdef RENDERVERBOSE 
-		printf("(end render_node)\n");
+		printf("%d (end render_node)\n",renderLevel);
+		renderLevel--;
 	#endif
 
 	if (displayOpenGLErrors) if(glerror != GL_NONE)
@@ -659,7 +665,7 @@ void setShutter (void) {
 #ifdef DO_MULTI_OPENGL_THREADS
 
 /* threading variables for loading shapes in threads */
-static pthread_t shapeThread = NULL;
+pthread_t shapeThread = NULL;
 static pthread_mutex_t shapeMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t shapeCond   = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t shapeGenMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -725,7 +731,7 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	/* give textures priority over node compiling */
 	if (textures_take_priority) {
 		if (isTextureParsing()==TRUE) {
-			/* printf ("compileNode, textures parsing, returning\n"); */
+			printf ("compileNode, textures parsing, returning\n"); 
 			return;
 		}
 	}

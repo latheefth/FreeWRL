@@ -137,7 +137,7 @@ char * readInputString(char *fn, char *parent) {
 	makeAbsoluteFileName(mynewname,parent,fn);
 
 	/* check to see if this file exists */
-	FREE_IF_NZ(cacheFileName);
+	FREE_IF_NZ(parsingThreadCacheFileName);
 	if (!fileExists(mynewname,firstbytes,TRUE)) {
 		ConsoleMessage("problem reading file '%s' ('%s')",fn,mynewname);
 		strcpy (buffer,"\n");
@@ -145,7 +145,7 @@ char * readInputString(char *fn, char *parent) {
 	}
 
 	/* was this a network file that got copied to the local cache? */
-	/* printf ("readInputString, cache name %s stack name %s\n",cacheFileName, mynewname); */
+	/* printf ("readInputString, cache name %s stack name %s\n",parsingThreadCacheFileName, mynewname); */
 
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
@@ -157,7 +157,7 @@ char * readInputString(char *fn, char *parent) {
 		sprintf (tempname, "%s.gz",tempnam("/tmp","freewrl_tmp"));
 
 		/* first, move this to a .gz file */
-		localCopy(cacheFileName,tempname);
+		localCopy(parsingThreadCacheFileName,tempname);
 
 		/* now, unzip it */
 		/* remove the .gz from the file name - ".gz" is 3 characters */
@@ -170,7 +170,7 @@ char * readInputString(char *fn, char *parent) {
 	} else {
 
 		/* ok, now, really read this one. */
-		infile = fopen(cacheFileName,"r");
+		infile = fopen(parsingThreadCacheFileName,"r");
 	}
 
 	if ((buffer == 0) || (infile == NULL)){

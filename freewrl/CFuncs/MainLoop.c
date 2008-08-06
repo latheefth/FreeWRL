@@ -265,7 +265,7 @@ void EventLoop() {
 
 	#endif
 
-	printf ("start of MainLoop\n"); 
+	/* printf ("start of MainLoop\n"); */
 
 	/* calculate the near and far planes. Do this every 4 times through the EventLoop, just
 	   so we don't get oscillations - 4 times is enough to ensure that geometry is written
@@ -1120,7 +1120,7 @@ void setFullPath(const char* file) {
 
 /* handle all the displaying and event loop stuff. */
 void displayThread() {
-	/* printf ("displayThread, I am %u \n",pthread_self());  */
+	/* printf ("displayThread, I am %u \n",pthread_self()); */
 
         /* Create an OpenGL rendering context. */
 	#ifdef AQUA

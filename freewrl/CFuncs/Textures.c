@@ -23,7 +23,7 @@
 #include <QuickTime/QuickTime.h>
 #endif
 
-#undef TEXVERBOSE
+#define TEXVERBOSE
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
@@ -102,7 +102,7 @@ static struct Multi_Int32 invalidFilePixelDataNode;
 static int	invalidFilePixelData[] = {1,1,3,0x707070};
 
 /* threading variables for loading textures in threads */
-static pthread_t loadThread = 0;
+pthread_t loadThread = 0;
 static pthread_mutex_t texmutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t texcond   = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t genmutex = PTHREAD_MUTEX_INITIALIZER;
@@ -219,6 +219,7 @@ int isTextureParsing() {
 	#ifdef TEXVERBOSE 
 	printf ("call to isTextureParsing %d, returning %d\n",textureInProcess,textureInProcess > 0);
 	#endif
+	printf ("call to isTextureParsing %d, returning %d\n",textureInProcess,textureInProcess > 0);
 	return textureInProcess >0;
 }
 
@@ -1020,6 +1021,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 
 	param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
 ************************************************************************************/
+
 #ifdef TEXVERBOSE
 char *texst (int num) {
 	if (num == TEX_NOTLOADED) return "TEX_NOTLOADED";
@@ -1283,9 +1285,9 @@ int findTextureFile (int cwo, int *istemp) {
 		    (strncmp(firstBytes,firstJPG,4) != 0) &&
 		    (strncmp(firstBytes,firstMPGa,4) != 0) &&
 		    (strncmp(firstBytes,firstMPGb,4) != 0)) {
-			sysline = (char *)MALLOC(sizeof(char)*(strlen(cacheFileName)+100));
+			sysline = (char *)MALLOC(sizeof(char)*(strlen(textureThreadCacheFileName)+100));
 			sprintf(sysline,"%s %s /tmp/freewrl%d.png",
-					CONVERT,cacheFileName,getpid());
+					CONVERT,textureThreadCacheFileName,getpid());
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: running convert on %s\n",sysline);
 			#endif
@@ -1294,9 +1296,9 @@ int findTextureFile (int cwo, int *istemp) {
 			if (freewrlSystem (sysline) != TRUE) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			} else {
-				FREE_IF_NZ(cacheFileName);
+				FREE_IF_NZ(textureThreadCacheFileName);
 				sprintf (filename,"/tmp/freewrl%d.png",getpid());
-				cacheFileName = STRDUP(filename);
+				textureThreadCacheFileName = STRDUP(filename);
 				*istemp=TRUE;
 			}
 			FREE_IF_NZ (sysline);
@@ -1310,10 +1312,16 @@ int findTextureFile (int cwo, int *istemp) {
 	#endif
 
 	FREE_IF_NZ(loadThisTexture->filename);
-	if (cacheFileName != NULL)
-		loadThisTexture->filename = STRDUP(cacheFileName);
-	else if (filename != NULL)
+	if (textureThreadCacheFileName != NULL) {
+		loadThisTexture->filename = STRDUP(textureThreadCacheFileName);
+		/* printf ("textureThread, so we have CACHE filename as %s\n",loadThisTexture->filename); */
+	} else if (filename != NULL) {
 		loadThisTexture->filename = STRDUP(filename);
+		/* printf ("textureThread, so we have non-cache filename as %s\n",loadThisTexture->filename); */
+	} else {
+		ConsoleMessage ("error getting Texturefile\n");
+		return FALSE;
+	}
 	
 	FREE_IF_NZ (filename);
 	return TRUE;
@@ -1327,7 +1335,7 @@ void _textureThread(void) {
 
 	int remove;
 
-	/* printf ("textureThread is %d\n",pthread_self()); */
+	/* printf ("textureThread is %u\n",pthread_self()); */
 
 	#ifdef AQUA
 	/* To get this thread to be able to manipulate textures, first, get the 
@@ -1446,6 +1454,7 @@ void _textureThread(void) {
 		TUNLOCK
 	}
 }
+
 
 /********************************************************************************/
 /* load specific types of textures						*/

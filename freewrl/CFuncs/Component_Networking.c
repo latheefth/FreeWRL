@@ -1189,11 +1189,17 @@ void child_Inline (struct X3D_Inline *node) {
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER INLINE START %d (%d)\n",node, nc);
+	printf ("	child_Inline, %u, loadStatus %d, nc %d\n",node,node->__loadstatus, nc);
 	#endif
 
 	/* lets see if we still have to load this one... */
 	if ((node->__loadstatus)==0) loadInline(node);
 
+	#ifdef CHILDVERBOSE
+		{int i;
+			for (i=0; i<nc; i++) { printf ("ch %d %s ",i,stringNodeType(X3D_NODE(node->__children.p[i])->_nodeType));} 
+		printf ("\n");}
+	#endif
 
 	/* any children at all? */
 	if (nc==0) return; 

@@ -206,7 +206,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 
 		/* we work in absolute filenames... */
 		makeAbsoluteFileName(filename,path,thisurl);
-		/* printf ("getValidFile, filename %s\n",filename); */
+		/* printf ("getValidFile, thread %u filename %s\n",pthread_self(),filename); */
 
 		if (fileExists(filename,firstBytes,TRUE)) {
 			return TRUE;
@@ -262,8 +262,18 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	char tempname[1000];
 	char sysline[1000];
 
+	char *CFN = NULL;
+
+	/* which thread are we running in? We have to be thread safe, and we have a couple of
+	   global char pointers, so lets write to the CORRECT one */
+	#ifdef VERBOSE
+	if (pthread_self() == DispThrd) printf ("fileExists in DispThrd %u\n",pthread_self());
+	if (pthread_self() == PCthread) printf ("fileExists in PCthread %u\n",pthread_self());
+	if (pthread_self() == shapeThread) printf ("fileExists in shapeThread %u\n",pthread_self());
+	if (pthread_self() == loadThread) printf ("fileExists in loadThread %u\n",pthread_self());
+	#endif
+
 	/* printf ("fileExists: checking for filename here %s\n",fname);  */
-	FREE_IF_NZ(cacheFileName);
 
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
@@ -284,7 +294,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 			/* check for timeout; if not found, return false */
 			if (!retName) return (FALSE);
-			cacheFileName = STRDUP(retName);
+			CFN = STRDUP(retName);
 			/* printf ("requesting URL - retname is %s\n",retName); */
 		}
 	}
@@ -295,8 +305,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	 */
 	/* printf ("AFTER, now NAME is %s\n",fname); */
 
-	if (cacheFileName == NULL) {
-		cacheFileName = STRDUP(fname);
+	if (CFN == NULL) {
+		CFN = STRDUP(fname);
 		if (checkNetworkFile(fname)) {
 			/*  Is this an Anchor? if so, lets just assume we can*/
 			/*  get it*/
@@ -320,22 +330,22 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
 			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 			    freewrlSystem (sysline);
-			    FREE_IF_NZ(cacheFileName);
-			    cacheFileName = STRDUP(tempname);
+			    FREE_IF_NZ(CFN);
+			    CFN = STRDUP(tempname);
 			} else {
 			    printf ("Internal FreeWRL problem - strings too long for wget\n");
-			    cacheFileName = STRDUP("");
+			    CFN = STRDUP("");
 			}
 		}
 	}
 
-	fp= fopen (cacheFileName,"r");
+	fp= fopen (CFN,"r");
 	ok = (fp != NULL);
 
 	/* try reading the first 4 bytes into the firstBytes array */
 	if (ok) {
 		if (fread(firstBytes,1,4,fp)!=4) {
-			ConsoleMessage ("file %s exists, but has a length < 4; can not determine type from first bytes\n",cacheFileName);
+			ConsoleMessage ("file %s exists, but has a length < 4; can not determine type from first bytes\n",CFN);
 			/* a file with less than 4 bytes in it. fill in the firstBytes with "something" */
 			firstBytes[0] = 0;
 			firstBytes[1] = 0;
@@ -344,6 +354,26 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 		}
 		fclose (fp);
 	}
+
+	/* now, return the name via one of the thread cacheFileNames */
+	if (pthread_self() == PCthread) {
+		FREE_IF_NZ( parsingThreadCacheFileName);
+		parsingThreadCacheFileName = CFN;
+	} else if (pthread_self() == DispThrd) {
+		FREE_IF_NZ(textureThreadCacheFileName);
+		textureThreadCacheFileName = CFN;
+	} else if (pthread_self() == loadThread) {
+		FREE_IF_NZ(loadThreadCacheFileName);
+		loadThreadCacheFileName = CFN;
+	} else if (pthread_self() == shapeThread){
+		FREE_IF_NZ(shapeThreadCacheFileName);
+		shapeThreadCacheFileName = CFN;
+		
+	} else {
+		ConsoleMessage("fileExists - unknown thread??");
+		return FALSE;
+	}
+
 	return (ok);
 }
 

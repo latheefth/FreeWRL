@@ -171,7 +171,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 #define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
 	if (node->_ichange != node->_change) { \
-	/* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
+		/* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
 		v = *(struct X3D_Virt **)node; \
 		if (v->compile) { \
 			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
@@ -818,7 +818,7 @@ extern int isPerlinitialized(void);
 	#endif
 #endif
 
-extern char *BrowserName, *BrowserFullPath, *cacheFileName, *PluginFullPath; 
+extern char *BrowserName, *BrowserFullPath, *textureThreadCacheFileName, *parsingThreadCacheFileName, *shapeThreadCacheFileName, *loadThreadCacheFileName, *PluginFullPath; 
 extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
@@ -1364,5 +1364,11 @@ extern Boolean isBrowserPlugin;
 extern int isBrowserPlugin;
 #endif
 
+
+/* threading stuff */
+extern pthread_t DispThrd;
+extern pthread_t PCthread;
+extern pthread_t shapeThread;
+extern pthread_t loadThread;
 
 #endif /* __HEADERS_H__ */
