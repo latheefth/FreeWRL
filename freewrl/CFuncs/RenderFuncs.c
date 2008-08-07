@@ -153,6 +153,7 @@ char *textureThreadCacheFileName = NULL;
 char *parsingThreadCacheFileName = NULL;
 char *loadThreadCacheFileName = NULL;
 char *shapeThreadCacheFileName = NULL;
+pthread_t shapeThread = NULL;
 
 void *rootNode=NULL;	/* scene graph root node */
 void *empty_group=0;
@@ -665,7 +666,6 @@ void setShutter (void) {
 #ifdef DO_MULTI_OPENGL_THREADS
 
 /* threading variables for loading shapes in threads */
-pthread_t shapeThread = NULL;
 static pthread_mutex_t shapeMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t shapeCond   = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t shapeGenMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -731,7 +731,7 @@ void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *
 	/* give textures priority over node compiling */
 	if (textures_take_priority) {
 		if (isTextureParsing()==TRUE) {
-			printf ("compileNode, textures parsing, returning\n"); 
+			/* printf ("compileNode, textures parsing, returning\n"); */
 			return;
 		}
 	}

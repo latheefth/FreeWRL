@@ -45,6 +45,10 @@ int displayOpenGLErrors = FALSE;
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
 
+
+/* do we do event propagation, proximity calcs?? */
+static int doEvents = FALSE;
+
 static char debs[300];
 /* void debug_print(char *s) {printf ("debug_print:%s\n",s);} */
 
@@ -234,7 +238,6 @@ char *getLibVersion() {
 
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
-	int doEvents;
 	int counter;
 
 	#ifndef AQUA
@@ -723,7 +726,7 @@ void render_pre() {
 	}
 
 	/* 5. render hierarchy - proximity */
-	render_hier(rootNode, VF_Proximity);
+	if (doEvents) render_hier(rootNode, VF_Proximity);
 
 	glPrintError("GLBackend::render_pre");
 }

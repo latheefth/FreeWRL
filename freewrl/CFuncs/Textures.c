@@ -23,7 +23,7 @@
 #include <QuickTime/QuickTime.h>
 #endif
 
-#define TEXVERBOSE
+#undef TEXVERBOSE
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
@@ -219,7 +219,6 @@ int isTextureParsing() {
 	#ifdef TEXVERBOSE 
 	printf ("call to isTextureParsing %d, returning %d\n",textureInProcess,textureInProcess > 0);
 	#endif
-	printf ("call to isTextureParsing %d, returning %d\n",textureInProcess,textureInProcess > 0);
 	return textureInProcess >0;
 }
 

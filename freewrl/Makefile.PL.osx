@@ -200,7 +200,7 @@ sub writeMakefileInitialize() {
 	if ($ARCH eq "x86_64") {
 		print MK "FWFLAGS = -c -O2 -g -pipe -m32 -march=i386 -mtune=pentium4\n";
 	} else {
-		print MK "FWFLAGS = -c -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
+		print MK "FWFLAGS = -c -Wall -O2 -g -pipe -fno-strict-aliasing -fPIC\n";
 	}
 	print MK "MYLIBS = $MYLIBS\n";
 	print MK "MYFELIBS = $MYFELIBS\n";

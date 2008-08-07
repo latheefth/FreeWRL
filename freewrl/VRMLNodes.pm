@@ -1296,6 +1296,9 @@ package VRML::NodeType;
 						# ProximitySensor copies.
 						__inRange => [SFInt32, 0, inputOutput],
 						__t1 => [SFVec3d, [10000000, 0, 0], inputOutput],
+
+						__level => [SFInt32,-1,inputOutput], # only for debugging purposes
+
 					},"X3DGroupingNode"),
 
 
