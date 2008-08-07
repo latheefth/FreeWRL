@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.297  2008/08/07 18:59:20  crc_canada
+# be more lax on MF number parsing with the SCANTONUMBER macro.
+#
 # Revision 1.296  2008/07/30 18:08:34  crc_canada
 # GeoLOD, July 30 changes.
 #
@@ -336,8 +339,9 @@ sub gen {
 		"#include \"Eai_C.h\"\n";
 
 	my $st = "/* definitions to help scanning values in from a string */ \n".
-		"#define SCANTONUMBER(value) while ((*value==' ') || (*value==',')) value++; \n".
-		"#define SCANTOSTRING(value) while ((*value==' ') || (*value==',')) value++; \n".
+		"#define SCANTONUMBER(value) while (isspace(*value) || (*value==',')) value++; \n".
+		"#define SCANTOSTRING(value) while (isspace(*value) || (*value==',')) value++; \n".
+		"#define OLDSCANTOSTRING(value) while ((*value==' ') || (*value==',')) value++; \n".
 		"#define SCANPASTFLOATNUMBER(value) while (isdigit(*value) \\\n".
 		"		|| (*value == '.') || \\\n".
 		"		(*value == 'E') || (*value == 'e') || (*value == '+') || (*value == '-')) value++; \n".
