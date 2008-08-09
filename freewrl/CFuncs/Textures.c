@@ -927,6 +927,11 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		}
 	
 		/* do the image. */
+		/* note -for some computers with poor graphics chips, large textures will just not
+		   work, so we do PROXY textures. The old "just do it" code is here, in case the new
+		   code will not compile on some machines */
+		#define DO_PROXY_IMAGE
+		#ifdef DO_PROXY_IMAGE
 		if((me->depth) && x && y) {
 			int texOk = FALSE;
 
@@ -987,6 +992,40 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 
 			if(mytexdata != dest) FREE_IF_NZ(dest);
 		}
+
+		#else
+
+                if((me->depth) && x && y) {
+                        unsigned char *dest = mytexdata;
+                        rx = 1; sx = x;
+                        while(sx) {sx /= 2; rx *= 2;}
+                        if(rx/2 == x) {rx /= 2;}
+                        ry = 1; sy = y;
+                        while(sy) {sy /= 2; ry *= 2;}
+                        if(ry/2 == y) {ry /= 2;}
+                        if(rx != x || ry != y || rx > global_texSize || ry > global_texSize) {
+                                /* do we have texture limits??? */
+                                if (rx > global_texSize) rx = global_texSize;
+                                if (ry > global_texSize) ry = global_texSize;
+
+                                /* We have to scale */
+                                dest = (unsigned char *)MALLOC((unsigned) (me->depth) * rx * ry);
+                                gluScaleImage(format,
+                                     x, y, GL_UNSIGNED_BYTE, mytexdata, rx, ry,
+                                     GL_UNSIGNED_BYTE, dest);
+        
+                        }
+        
+                        /* again, Mipmap only if we have Pixel or ImageTextures */
+                        glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+                        if (me->frames==1) 
+                                gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
+                
+                        if((mytexdata) != dest) FREE_IF_NZ(dest);
+
+                }
+
+		#endif
 
 		/* increment, used in movietextures for frames more than 1 */
 		mytexdata += x*y*me->depth;

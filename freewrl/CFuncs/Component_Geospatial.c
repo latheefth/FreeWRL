@@ -800,7 +800,7 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
             }
         }
 
-	printf ("gccToGdc, past special cases\n");
+	/* printf ("gccToGdc, past special cases\n"); */
 
         /* END OF SPECIAL CASES */
 
@@ -852,7 +852,6 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
               /* POINT ABOVE 50 KILOMETERS OR BELOW -10 KILOMETERS  */
         else /* Do Exact Solution  ************ */
         { 
-printf ("doing exact solution\n");
             wp2=GCC_X * GCC_X + GCC_Y * GCC_Y;
             zp2=GCC_Z * GCC_Z;
             wp=sqrt(wp2);
@@ -884,7 +883,6 @@ printf ("doing exact solution\n");
             v=sqrt(arg - Eps2 * zp2);
             zo=C2DA * GCC_Z / v;
             GDC_ELE = sqrt(arg) * (1.0 - C2DA / v);
-printf ("GDC_ELE = %lf, made up of %lf * %lf\n",GDC_ELE,sqrt(arg), (1.0-C2DA/v));
             top=GCC_Z+ tem*zo;
             GDC_LAT = atan( top / wp );
             GDC_LON =atan2(GCC_Y,GCC_X);
@@ -2141,13 +2139,14 @@ float viewer_calculate_speed() {
         printf ("viewer_calculate_speed, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
         #endif
 
+#define USE_GDC_FOR_VELOCITY_CALCULATIONS
 #ifdef USE_GDC_FOR_VELOCITY_CALCULATIONS
-gdc would not give us much of a change in z dimensions...
+/*gdc would not give us much of a change in z dimensions... */
 
         /* convert from local (gc) to gd coordinates, using WGS84 ellipsoid */
         gccToGdc (&gcCoords, &gdCoords);
 
-	printf ("speed is calculated from geodetic height %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]);
+	/* printf ("speed is calculated from geodetic height %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]); */
 
 	/* speed is dependent on elevation above WGS84 ellipsoid */
 	#define speed_scale 1.0
