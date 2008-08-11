@@ -29,7 +29,7 @@ static FILE *exfly_in_file;
 
 struct point_XYZ VPvelocity;
 
-double defaultExamineDist;
+double defaultExamineDist = -DBL_MAX;
 #define DEFAULT_NEARPLANE 0.1
 #define DEFAULT_FARPLANE 21000.0
 double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
@@ -234,9 +234,9 @@ void getViewpointExamineDistance(void) {
 
 		if (viewer_type == EXAMINE) {
 			if (APPROX(Viewer.Dist, 0.0)) {
-				/* printf ("Viewer is approx 0.0, getting dist \n");  */
+				printf ("Viewer is approx 0.0, getting dist \n");  
 				resolve_pos(&Viewer);
-				/* printf ("dist, %lf\n",Viewer.Dist); */
+				printf ("dist, %lf\n",Viewer.Dist); 
 			}
 		}
 	}
@@ -280,14 +280,15 @@ void resolve_pos(X3D_Viewer *viewer) {
 			/* $d = abs($d); $this->{Dist} = $d; */
 			viewer->Dist = fabs(dist);
 		}
-		/* printf ("resolve_pos, dist %lf, calculated %lf\n",viewer->Dist, defaultExamineDist); */
+		/* printf ("resolve_pos, dist %lf, calculated %lf pos %lf %lf %lf\n",viewer->Dist, defaultExamineDist,
+			viewer->Pos.x, viewer->Pos.y, viewer->Pos.z);  */
 
 		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
 		(examine->Origin).x = (viewer->Pos).x - viewer->Dist * rot.x;
 		(examine->Origin).y = (viewer->Pos).y - viewer->Dist * rot.y;
 		(examine->Origin).z = (viewer->Pos).z - viewer->Dist * rot.z;
 
-		/* printf ("examine origin = %f %f %f\n",examine->Origin.x,examine->Origin.y,examine->Origin.z);*/
+		/* printf ("examine origin = %f %f %f\n",examine->Origin.x,examine->Origin.y,examine->Origin.z); */
 	}
 }
 
@@ -867,13 +868,11 @@ bind_viewpoint (struct X3D_Viewpoint *vp) {
 
 	/* set Viewer position and orientation */
 
-	/*printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+	/* printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
-	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView);
-	*/
-
-
+	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); */
+	
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
 	Viewer.Pos.z = vp->position.c[2];

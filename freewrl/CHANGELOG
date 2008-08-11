@@ -1,4 +1,17 @@
 For 1.20.6
+	- Binding of nodes on parse now done in display thread, instead of parsing
+	  thread, to get around infrequent bug that would give erratic results.
+
+	- Binding Viewpoints; edge case; if you have only one Viewpoint, and it exists
+	  in an Inline, it can now be bound to when changing viewpoint. (spec says
+	  automatic binding on load does not happen with inlined nodes)
+
+	- X3D Parser, PROTO invocation errors; potential crash if value on expansion
+	  not found has been fixed.
+
+	- X3D Parser, better error discovery and reporting in MF values for integer,
+	  floating point, and double values.
+
 	- threading conflict when getting files from plugin or filesystem - resolved.
 
 For 1.20.5

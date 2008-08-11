@@ -16,9 +16,7 @@ for conditions of use and redistribution.
 
 #endif
 
-
-/* mimic making newSVpv, but *not* using Perl, as this is a different thread */
-/* see Extending and Embedding Perl, Jenness, Cozens pg 75-77 */
+/* create a structure to hold a string; it has a length, and a string pointer */
 struct Uni_String *newASCIIString(char *str) {
 	struct Uni_String *retval;
 	int len;
@@ -158,6 +156,12 @@ int countFloatElements (char *instr) {
 	int count = 0;
 	SCANTONUMBER(instr);
 	while (*instr != '\0') {
+		
+		if (!ISSTARTNUMBER(instr)) {
+			ConsoleMessage ("expected a floating point number, found \"%s\"",instr);
+			return 0;
+		}
+
 		SCANPASTFLOATNUMBER(instr);
 		SCANTONUMBER(instr);
 		count ++;
@@ -170,6 +174,11 @@ int countIntElements (char *instr) {
 	int count = 0;
 	SCANTONUMBER(instr);
 	while (*instr != '\0') {
+		if (!ISSTARTNUMBER(instr)) {
+			ConsoleMessage ("expected an integer number, found \"%s\"",instr);
+			return 0;
+		}
+
 		SCANPASTINTNUMBER(instr);
 		SCANTONUMBER(instr);
 		count ++;

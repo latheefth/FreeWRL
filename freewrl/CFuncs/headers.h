@@ -1371,4 +1371,10 @@ extern pthread_t PCthread;
 extern pthread_t shapeThread;
 extern pthread_t loadThread;
 
+/* node binding */
+extern void *setViewpointBindInRender;
+extern void *setFogBindInRender;
+extern void *setBackgroundBindInRender;
+extern void *setNavigationBindInRender;
+
 #endif /* __HEADERS_H__ */

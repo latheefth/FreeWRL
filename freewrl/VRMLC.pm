@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.298  2008/08/11 22:51:53  crc_canada
+# Viewpoint binding problem (threading) and general comment cleanup
+#
 # Revision 1.297  2008/08/07 18:59:20  crc_canada
 # be more lax on MF number parsing with the SCANTONUMBER macro.
 #
@@ -342,6 +345,8 @@ sub gen {
 		"#define SCANTONUMBER(value) while (isspace(*value) || (*value==',')) value++; \n".
 		"#define SCANTOSTRING(value) while (isspace(*value) || (*value==',')) value++; \n".
 		"#define OLDSCANTOSTRING(value) while ((*value==' ') || (*value==',')) value++; \n".
+		"#define ISSTARTNUMBER(value) (isdigit(*value) \\\n".
+		"		|| (*value == '+') || (*value == '-')) \n".
 		"#define SCANPASTFLOATNUMBER(value) while (isdigit(*value) \\\n".
 		"		|| (*value == '.') || \\\n".
 		"		(*value == 'E') || (*value == 'e') || (*value == '+') || (*value == '-')) value++; \n".

@@ -529,7 +529,6 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 
 	       }
 		#endif
-
 }
 
 
@@ -734,8 +733,6 @@ void collide_Box (struct X3D_Box *node) {
 	       scale = pow(det3x3(modelMatrix),1./3.);
                if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*((node->size).c[0]),scale*((node->size).c[1]),scale*((node->size).c[2]))) return;
 
-
-
 	       /* get transformed box edges and position */
 	       transform(&ov,&ov,modelMatrix);
 	       transform3x3(&iv,&iv,modelMatrix);
@@ -749,7 +746,6 @@ void collide_Box (struct X3D_Box *node) {
 	       transform3x3(&delta,&delta,upvecmat);
 
 	       accumulate_disp(&CollisionInfo,delta);
-
 
 		#ifdef COLLISIONVERBOSE
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))

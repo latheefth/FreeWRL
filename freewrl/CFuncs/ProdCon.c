@@ -40,16 +40,24 @@ uintptr_t _fw_instance = 0;
 /* for keeping track of current url */
 char *currentWorkingUrl = NULL;
 
+/* bind nodes in display loop, NOT in parsing thread */
+void *setViewpointBindInRender = NULL;
+void *setFogBindInRender = NULL;
+void *setBackgroundBindInRender = NULL;
+void *setNavigationBindInRender = NULL;
+
+
+
 int _P_LOCK_VAR;
 
 /* thread synchronization issues */
-#define PERL_LOCKING_INIT _P_LOCK_VAR = 0
-#define SEND_TO_PERL if (_P_LOCK_VAR==0) _P_LOCK_VAR=1; else printf ("SEND_TO_PERL = flag wrong!\n");
-#define PERL_FINISHING if (_P_LOCK_VAR==1) _P_LOCK_VAR=0; else printf ("PERL_FINISHING - flag wrong!\n");
+#define PARSER_LOCKING_INIT _P_LOCK_VAR = 0
+#define SEND_TO_PARSER if (_P_LOCK_VAR==0) _P_LOCK_VAR=1; else printf ("SEND_TO_PARSER = flag wrong!\n");
+#define PARSER_FINISHING if (_P_LOCK_VAR==1) _P_LOCK_VAR=0; else printf ("PARSER_FINISHING - flag wrong!\n");
 
 #define UNLOCK pthread_cond_signal(&condition); pthread_mutex_unlock(&mutex);
 
-#define WAIT_WHILE_PERL_BUSY  pthread_mutex_lock(&mutex); \
+#define WAIT_WHILE_PARSER_BUSY  pthread_mutex_lock(&mutex); \
      while (_P_LOCK_VAR==1) { pthread_cond_wait(&condition, &mutex);}
 
 #define WAIT_WHILE_NO_DATA pthread_mutex_lock(&mutex); \
@@ -63,7 +71,7 @@ struct PSStruct {
 	char *inp;		/* data for task (eg, vrml text)	*/
 	void *ptr;		/* address (node) to put data		*/
 	unsigned ofs;		/* offset in node for data		*/
-	int zeroBind;		/* should we dispose Bindables in Perl?	*/
+	int zeroBind;		/* should we dispose Bindables?	 	*/
 	int bind;		/* should we issue a bind? 		*/
 	char *path;		/* path of parent URL			*/
 	int *comp;		/* pointer to complete flag		*/
@@ -131,7 +139,7 @@ void initializeInputParseThread(void) {
 	}
 }
 
-/* is Perl running? this is a function, because if we need to mutex lock, we
+/* is a parser running? this is a function, because if we need to mutex lock, we
    can do all locking in this file */
 int isInputThreadInitialized() {return inputParseInitialized;}
 
@@ -491,7 +499,7 @@ int ifIsVRML1(char *buffer) {
 
 /************************************************************************/
 /*									*/
-/* THE FOLLOWING ROUTINES INTERFACE TO THE PERL THREAD			*/
+/* THE FOLLOWING ROUTINES INTERFACE TO THE PARSER THREAD			*/
 /*									*/
 /************************************************************************/
 
@@ -507,11 +515,11 @@ void loadInline(struct X3D_Inline *node) {
 }
 
 
-/* interface for telling the Perl side to forget about everything...  */
+/* interface for telling the parser side to forget about everything...  */
 void EAI_killBindables (void) {
 	int complete;
 
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
 	complete=0;
 	psp.comp = &complete;
 	psp.type = ZEROBINDABLES;
@@ -524,12 +532,12 @@ void EAI_killBindables (void) {
 	psp.inp = NULL;
 	psp.fieldname = NULL;
 
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
+	/* send data to a parser */
+	SEND_TO_PARSER;
 	UNLOCK;
 
 	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
 
 	/* grab data */
 	UNLOCK;
@@ -550,7 +558,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, i
 	/* tell the SAI that this is a VRML file, in case it cares later on (check SAI spec) */
 	currentFileVersion = 3;
 
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
 
 	if (strncmp(tp,"URL",2) ==  0) {
 			psp.type= FROMURL;
@@ -578,12 +586,12 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, i
 	psp.inp = (char *)MALLOC (strlen(inputstring)+2);
 	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
 
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
+	/* send data to a parser */
+	SEND_TO_PARSER;
 	UNLOCK;
 
 	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
 
 	/* grab data */
 	retval = psp.retarrsize;
@@ -596,7 +604,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, uintptr_t *retarr, i
 void EAI_readNewWorld(char *inputstring) {
     int complete;
 
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
     complete=0;
     psp.comp = &complete;
     psp.type = FROMURL;
@@ -610,12 +618,12 @@ void EAI_readNewWorld(char *inputstring) {
     psp.inp  = (char *)MALLOC (strlen(inputstring)+2);
     memcpy (psp.inp,inputstring,strlen(inputstring)+1);
 
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
+	/* send data to a parser */
+	SEND_TO_PARSER;
 	UNLOCK;
 
 	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
 
 	UNLOCK;
 }
@@ -633,9 +641,9 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 		if (inputThreadParsing) return (FALSE);
 	}
 
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
 
-	/* printf ("inputParse, past WAIT_WHILE_PERL_BUSY in %d\n",pthread_self()); */
+	/* printf ("inputParse, past WAIT_WHILE_PARSER_BUSY in %d\n",pthread_self()); */
 
 	/* copy the data over; MALLOC and copy input string */
 	psp.comp = complete;
@@ -650,14 +658,14 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 	psp.inp = (char *)MALLOC (strlen(inp)+2);
 	memcpy (psp.inp,inp,strlen(inp)+1);
 
-	/* send data to Perl Interpreter */
-	SEND_TO_PERL;
+	/* send data to a parser */
+	SEND_TO_PARSER;
 	UNLOCK;
 
 	/* printf ("inputParse, waiting for data \n"); */
 
 	/* wait for data */
-	WAIT_WHILE_PERL_BUSY;
+	WAIT_WHILE_PARSER_BUSY;
 	/* grab data */
 
 	UNLOCK;
@@ -669,7 +677,7 @@ int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 void _inputParseThread(void) {
 	/* printf ("inputParseThread is %u\n",pthread_self()); */
 
-	PERL_LOCKING_INIT;
+	PARSER_LOCKING_INIT;
 
 	inputParseInitialized = TRUE;
 
@@ -693,7 +701,7 @@ void _inputParseThread(void) {
 			EAIGETVALUE	EAI getValue - in a string.
 			EAIROUTE	EAI add/delete route
 			ZEROBINDABLES	tell the front end to just forget about DEFS, etc 
-			SAICOMMAND	general command, with string param to perl returns an int */
+			SAICOMMAND	general command, with string param to parser returns an int */
 
 		if (psp.type == INLINE) {
 		/* is this a INLINE? If it is, try to load one of the URLs. */
@@ -743,7 +751,7 @@ void _inputParseThread(void) {
 		*psp.comp = 1;
 		URLLoaded=TRUE;
 		inputThreadParsing=FALSE;
-		PERL_FINISHING;
+		PARSER_FINISHING;
 		UNLOCK;
 	}
 }
@@ -799,16 +807,6 @@ void registerBindable (struct X3D_Node *node) {
 
 	}
 }
-
-/*****************************************************************************
- *
- * Call Perl Routines. This has to happen from the "Perl" thread, otherwise
- * a segfault happens.
- *
- * See perldoc perlapi, perlcall, perlembed, perlguts for how this all
- * works.
- *
- *****************************************************************************/
 
 /****************************************************************************
  *
@@ -974,19 +972,23 @@ void __pt_doStringUrl () {
 	if (psp.bind) {
 	        if (totfognodes != 0) { 
 		   for (i=0; i < totfognodes; ++i) send_bind_to(NODE_Fog, fognodes[i], 0); /* Initialize binding info */
-                   send_bind_to(NODE_Fog, fognodes[0], 1);
+		   setFogBindInRender = viewpointnodes[0];
+                   /* send_bind_to(NODE_Fog, fognodes[0], 1); do this in display thread */
 		}
 		if (totbacknodes != 0) {
                    for (i=0; i < totbacknodes; ++i) send_bind_to(NODE_Background, backgroundnodes[i], 0);  /* Initialize binding info */
-                   send_bind_to(NODE_Background,backgroundnodes[0], 1);
+		   setBackgroundBindInRender = viewpointnodes[0];
+                   /* send_bind_to(NODE_Background,backgroundnodes[0], 1); do this in display thread */
 		}
 		if (totnavnodes != 0) {
                    for (i=0; i < totnavnodes; ++i) send_bind_to(NODE_NavigationInfo, navnodes[i], 0);  /* Initialize binding info */
-                   send_bind_to(NODE_NavigationInfo, navnodes[0], 1);
+		   setNavigationBindInRender = viewpointnodes[0];
+                   /* send_bind_to(NODE_NavigationInfo, navnodes[0], 1); do this in display thread */
 		}
 		if (totviewpointnodes != 0) {
                    for (i=0; i < totviewpointnodes; ++i) send_bind_to(NODE_Viewpoint, viewpointnodes[i], 0);  /* Initialize binding info */
-                   send_bind_to(NODE_Viewpoint, viewpointnodes[0], 1);
+		   setViewpointBindInRender = viewpointnodes[0];
+                   /* send_bind_to(NODE_Viewpoint, viewpointnodes[0], 1); do this in display thread */
 		}
 	}
 

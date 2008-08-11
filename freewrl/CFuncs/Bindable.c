@@ -108,7 +108,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 
 
 
-/* send a set_bind event from Perl to this Bindable node */
+/* send a set_bind event from an event to this Bindable node */
 void send_bind_to(int nodetype, void *node, int value) {
 	struct X3D_Background *bg;
 	struct X3D_TextureBackground *tbg;

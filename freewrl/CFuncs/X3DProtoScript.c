@@ -1076,6 +1076,12 @@ int getFieldValueFromProtoInterface (char *fieldName, int protono, char **value)
 		if (protono == ScriptFieldNames[ctr].scriptNumber) {
                 	tmp = ScriptFieldNames[ctr].fieldName;
                 	if (strcmp(fieldName,tmp->strptr)==0) {
+				/* does the value for this one exist? */
+				if (ScriptFieldNames[ctr].value == NULL) {
+					*value = "";
+					return FALSE;
+				}
+
 				*value = ScriptFieldNames[ctr].value->strptr;
 				return TRUE;
 			}

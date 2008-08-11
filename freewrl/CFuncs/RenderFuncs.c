@@ -121,7 +121,7 @@ double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
-/* Any action for the Browser (perl code) to do? */
+/* Any action for the Browser to do? */
 int BrowserAction = FALSE;
 struct X3D_Anchor *AnchorsAnchor;
 

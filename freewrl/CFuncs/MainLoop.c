@@ -136,6 +136,11 @@ int currentFileVersion = 0;
 		max_script_found_and_initialized = max_script_found; \
 	}
 
+/* we bind bindable nodes on parse in this thread */
+#define SEND_BIND_IF_REQUIRED(node) \
+		if (node != NULL) { send_bind_to(NODE_Viewpoint, node,1); node = NULL; }
+
+
 int quitThread = FALSE;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 per loop */
@@ -270,6 +275,9 @@ void EventLoop() {
 
 	/* printf ("start of MainLoop\n"); */
 
+	/* should we do events, or maybe a parser is parsing? */
+	doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
+
 	/* calculate the near and far planes. Do this every 4 times through the EventLoop, just
 	   so we don't get oscillations - 4 times is enough to ensure that geometry is written
 	   more than once, so that we do get a good idea of where things are */
@@ -344,8 +352,6 @@ void EventLoop() {
 	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	timeAA = (double)timeAA +  (double)xxf - TickTime;
 	#endif
-	/* should we do events, or maybe Perl is parsing? */
-	doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
 
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {
@@ -553,6 +559,13 @@ void EventLoop() {
 	OcclusionCulling();
 	
 	if (doEvents) {
+		/* and just parsed nodes needing binding? */
+		SEND_BIND_IF_REQUIRED(setViewpointBindInRender)
+		SEND_BIND_IF_REQUIRED(setFogBindInRender)
+		SEND_BIND_IF_REQUIRED(setBackgroundBindInRender)
+		SEND_BIND_IF_REQUIRED(setNavigationBindInRender)
+
+
 		/* handle ROUTES - at least the ones not generated in do_first() */
 		propagate_events();
 
@@ -814,7 +827,7 @@ get_collisionoffset(double *x, double *y, double *z)
 			*x = res.x;
 			*y = res.y;
 			*z = res.z;
-			/* printf ("get_collisionoffset, %lf %lf %lf\n",*x, *y, *z); */
+			 /* printf ("get_collisionoffset, %lf %lf %lf\n",*x, *y, *z);  */
 	    }
 	}
 }
@@ -1050,31 +1063,40 @@ void glPrintError(char *str) {
 
 /* go to the first viewpoint */
 void First_ViewPoint() {
-	if (totviewpointnodes>=2) {
+	if (totviewpointnodes>=1) {
+
 		/* whew, we have other vp nodes */
+		/*
 		if (currboundvpno != 0) {
+		*/
 			/* have to do some work */
 			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
 			currboundvpno = 0;
 			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+		/*
 		}
+		*/
 	}
 }
 /* go to the first viewpoint */
 void Last_ViewPoint() {
-	if (totviewpointnodes>=2) {
+	if (totviewpointnodes>=1) {
 		/* whew, we have other vp nodes */
+		/*
 		if (currboundvpno != (totviewpointnodes-1)) {
+		*/
 			/* have to do some work */
 			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
 			currboundvpno = totviewpointnodes-1;
 			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+		/*
 		}
+		*/
 	}
 }
 /* go to the previous viewpoint */
 void Prev_ViewPoint() {
-	if (totviewpointnodes>=2) {
+	if (totviewpointnodes>=1) {
 		/* whew, we have other vp nodes */
 		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
 		currboundvpno--;
@@ -1085,7 +1107,7 @@ void Prev_ViewPoint() {
 
 /* go to the next viewpoint */
 void Next_ViewPoint() {
-	if (totviewpointnodes>=2) {
+	if (totviewpointnodes>=1) {
 		/* whew, we have other vp nodes */
 		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
 		currboundvpno++;
