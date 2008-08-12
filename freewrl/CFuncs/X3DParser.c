@@ -277,13 +277,22 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 	printf ("parseNormalX3D: for name %s, myNodeType = %d is %u parentInded %d\n",name,myNodeType,thisNode,parentIndex);
 	#endif
 
-	if (thisNode->_nodeType == NODE_Script) {
+	if (myNodeType == NODE_Script) {
 		#ifdef X3DPARSERVERBOSE
 		printf ("working through script parentIndex %d\n",parentIndex);
 		#endif
 
-		((struct X3D_Script *)thisNode)->_X3DScript = (int) nextScriptHandle();
-		JSInit(((struct X3D_Script *)thisNode)->_X3DScript);
+		X3D_SCRIPT(thisNode)->_X3DScript = (int) nextScriptHandle();
+		JSInit(X3D_SCRIPT(thisNode)->_X3DScript);
+	}
+
+	/* X3D changes the Switch node "level" to "children"  - lets do the same */
+	if (myNodeType == NODE_Switch) {
+		#ifdef X3DPARSERVERBOSE
+		printf ("switch node found, setting the __X3D flag\n");
+		#endif
+
+		X3D_SWITCH(thisNode)->__isX3D = 1;
 	}
 
 	/* go through the fields, and link them in. SFNode and MFNodes will be handled 

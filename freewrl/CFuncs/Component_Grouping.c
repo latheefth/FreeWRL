@@ -140,12 +140,21 @@ void fin_Transform (struct X3D_Transform *node) {
 } 
 
 void child_Switch (struct X3D_Switch *node) {
-                /* exceedingly simple - render only one child */
-                int wc = (node->whichChoice) /*cget*/;
-                if(wc >= 0 && wc < ((node->choice).n)) {
-                        void *p = ((node->choice).p[wc]);
-                        render_node(p);
-                }
+	/* exceedingly simple - render only one child */
+	int wc = node->whichChoice;
+
+	/* is this VRML, or X3D?? */
+	if (node->__isX3D == 0) {
+		if(wc >= 0 && wc < ((node->choice).n)) {
+			void *p = ((node->choice).p[wc]);
+			render_node(p);
+		}
+	} else {
+		if(wc >= 0 && wc < ((node->children).n)) {
+			void *p = ((node->children).p[wc]);
+			render_node(p);
+		}
+	}
 }
 
 
