@@ -1,4 +1,7 @@
 For 1.20.6
+	- Polyrep.c; normal finding, might go off end of coordindex array. Fixed.
+	  affects Extrusions, IndexedFaceSets, ElevationGrids, etc.
+
 	- X3D Switch statement was not parsing correctly.
 
 	- Binding of nodes on parse now done in display thread, instead of parsing

@@ -90,7 +90,6 @@ int IFS_face_normals (
 	float this_vl;
 	struct point_XYZ thisfaceNorms;
 
-
 	/* printf ("IFS_face_normals, faces %d\n",faces); */
 
 	/*  Assume each face is ok for now*/
@@ -210,11 +209,8 @@ int IFS_face_normals (
 					pt_2++;
 				}
 
-				if (fabs(AC) < fabs(BC)) { pt_2++; }
-				pt_3++;
-
 				/* skip forward to the next couple of points - if possible */
-				/* printf ("looking at %d, cin is %d\n",tmp_a, cin);  */
+				/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
 				tmp_a ++;
 				if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
 					this_face_finished = TRUE;  tmp_a +=2;
