@@ -16,28 +16,6 @@
 #include "installdir.h"
 #include "OpenGL_Utils.h"
 
-#ifdef CHILDVERBOSE
-static int VerboseIndent = 0;
-
-void VerboseStart (char *whoami, struct X3D_Node *me, int nc) {
-	int c;
-
-	for (c=0; c<VerboseIndent; c++) printf ("  ");
-	printf ("RENDER %s START %d nc %d \n",
-			whoami,me,nc);
-	VerboseIndent++;
-}
-
-void VerboseEnd (char *whoami) {
-	int c;
-
-	VerboseIndent--;
-	for (c=0; c<VerboseIndent; c++) printf ("  ");
-	printf ("RENDER %s END\n",whoami);
-}
-#endif
-
-
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
 void prep_Group (struct X3D_Group *node) {
 	RECORD_DISTANCE
@@ -159,22 +137,17 @@ void child_Switch (struct X3D_Switch *node) {
 
 
 void child_StaticGroup (struct X3D_StaticGroup *node) {
-	int nc = ((node->children).n);
+	CHILDREN_COUNT
 	DIRECTIONAL_LIGHT_SAVE
 	int createlist = FALSE;
-
-	/* any children at all? */
-	if (nc==0) return;
-
-	#ifdef CHILDVERBOSE
-	VerboseStart ("STATICGROUP", X3D_NODE(node), nc);
-	#endif
 
 	/* should we go down here? */
 /*	printf ("staticGroup, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); 
        printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
 */
+
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	if ((!render_geom) && (!render_light)) {
 		/* printf ("staticGroup, returning short, no light or geom\n"); */
@@ -211,9 +184,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 
 	if (render_blend == VF_Blend)
 		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			#ifdef CHILDVERBOSE
-			VerboseEnd ("STATICGROUP");
-			#endif
 			if (createlist) glEndList();
 			return;
 		}
@@ -240,26 +210,18 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	}
 
 
-	#ifdef CHILDVERBOSE
-	VerboseEnd ("STATICGROUP");
-	#endif
-
-
 			if (createlist) glEndList();
 
 	DIRECTIONAL_LIGHT_OFF
 }
 
+
 void child_Group (struct X3D_Group *node) {
-	int nc = ((node->children).n);
+	CHILDREN_COUNT
 	DIRECTIONAL_LIGHT_SAVE
 
-	/* any children at all? */
-	if (nc==0) return;
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	#ifdef CHILDVERBOSE
-	VerboseStart ("GROUP", X3D_NODE(node), nc);
-	#endif
 
 	/* {
 		int x;
@@ -274,23 +236,6 @@ void child_Group (struct X3D_Group *node) {
 
 
 		
-
-	/* should we go down here? */
-	/* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); */
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			#ifdef CHILDVERBOSE
-			VerboseEnd ("GROUP");
-			#endif
-			return;
-		}
-	if (render_proximity == VF_Proximity)
-		if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  {
-			#ifdef CHILDVERBOSE
-			VerboseEnd ("GROUP");
-			#endif
-			return;
-		}
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
 	if ((!node->FreeWRL__protoDef) && (nc > 1)  && !render_blend) sortChildren(node->children);
@@ -317,19 +262,16 @@ void child_Group (struct X3D_Group *node) {
 		BOUNDINGBOX
 	}
 
-	#ifdef CHILDVERBOSE
-	VerboseEnd ("GROUP");
-	#endif
-
 	DIRECTIONAL_LIGHT_OFF
 }
 
 
 void child_Transform (struct X3D_Transform *node) {
-	int nc = (node->children).n;
+	CHILDREN_COUNT
 	OCCLUSIONTEST
 
 	DIRECTIONAL_LIGHT_SAVE
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* any children at all? */
 	if (nc==0) return;
@@ -344,10 +286,6 @@ void child_Transform (struct X3D_Transform *node) {
 			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
 	} */
-
-	#ifdef CHILDVERBOSE
-	VerboseStart ("TRANSFORM",X3D_NODE(node), nc);
-	#endif
 
 	/* Check to see if we have to check for collisions for this transform. */
 #ifdef COLLISIONTRANSFORM
@@ -386,27 +324,6 @@ void child_Transform (struct X3D_Transform *node) {
 		}
 	}
 #endif
-
-
-	/* should we go down here? */
-	/* printf("transformChild %d render_blend %x renderFlags %x\n",
-			node, render_blend, node->_renderFlags); */
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			#ifdef CHILDVERBOSE
-			VerboseEnd ("TRANSFORM");
-			#endif
-			return;
-		}
-	if (render_proximity == VF_Proximity)
-		if ((node->_renderFlags & VF_Proximity) != VF_Proximity) {
-			#ifdef CHILDVERBOSE
-			VerboseEnd ("TRANSFORM");
-			#endif
-			return;
-		}
-
-
 
 #ifdef XXBOUNDINGBOX
 	if (node->PIV > 0) {
@@ -448,37 +365,13 @@ void child_Transform (struct X3D_Transform *node) {
 	}
 
 
-	#ifdef CHILDVERBOSE
-	VerboseEnd ("TRANSFORM");
-	#endif
-
 	DIRECTIONAL_LIGHT_OFF
 }
 
-void changed_StaticGroup (struct X3D_StaticGroup *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
+void changed_StaticGroup (struct X3D_StaticGroup *node) { INITIALIZE_EXTENT }
 
-		INITIALIZE_EXTENT
+void changed_Transform (struct X3D_Transform *node) { INITIALIZE_EXTENT }
 
-}
-void changed_Transform (struct X3D_Transform *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-
-		INITIALIZE_EXTENT
-
-}
-
-
-void changed_Group (struct X3D_Group *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-
-		INITIALIZE_EXTENT
-}
+void changed_Group (struct X3D_Group *node) { INITIALIZE_EXTENT }
 
 

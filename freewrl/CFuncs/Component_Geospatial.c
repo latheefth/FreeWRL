@@ -1468,16 +1468,13 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 }
 
 void child_GeoLocation (struct X3D_GeoLocation *node) {
-	int nc = (node->children).n;
+	CHILDREN_COUNT
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 
 	OCCLUSIONTEST
 
 	DIRECTIONAL_LIGHT_SAVE
-
-	/* any children at all? */
-	if (nc==0) return;
 
 	/* {
 		int x;
@@ -1492,18 +1489,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 
 	/* Check to see if we have to check for collisions for this transform. */
 
-	/* should we go down here? */
-	/* printf("transformChild %d render_blend %x renderFlags %x\n",
-			node, render_blend, node->_renderFlags); */
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			return;
-		}
-	if (render_proximity == VF_Proximity)
-		if ((node->_renderFlags & VF_Proximity) != VF_Proximity) {
-			return;
-		}
-
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);

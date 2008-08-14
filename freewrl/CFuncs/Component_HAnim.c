@@ -195,20 +195,8 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	nc = node->joints.n + node->segments.n + node->viewpoints.n + node->sites.n +
 		node->skeleton.n + node->skin.n;
-	if (nc==0) return;
 
-	
-
-	/* should we go down here? */
-	/* printf ("HANIMX, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom);  */
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			return;
-		}
-	if (render_proximity == VF_Proximity)
-		if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  {
-			return;
-		}
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME 
 
 	/* Lets do segments first */
 	/* do we have to sort this node? */
@@ -266,22 +254,14 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 
 void child_HAnimJoint(struct X3D_HAnimJoint *node) {
-	/* int nc = ((node->children).n); */
+	CHILDREN_COUNT
 return;
 #ifdef HANIMHANIM
 	/* any children at all? */
 	if (nc==0) return;
 
 	/* should we go down here? */
-	/* printf ("HANIMX, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom);  */
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			return;
-		}
-	if (render_proximity == VF_Proximity)
-		if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  {
-			return;
-		}
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
 	if ((nc > 1)  && !render_blend) sortChildren(node->children);
@@ -302,7 +282,7 @@ return;
 }
 
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
-	/* int nc = ((node->children).n); */
+	CHILDREN_COUNT
 return;
 #ifdef HANIMHANIM
 
@@ -313,15 +293,7 @@ note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
 	if (nc==0) return;
 
 	/* should we go down here? */
-	/* printf ("HANIMX, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom);  */
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			return;
-		}
-	if (render_proximity == VF_Proximity)
-		if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  {
-			return;
-		}
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
 	if ((nc > 1)  && !render_blend) sortChildren(node->children);
@@ -343,23 +315,11 @@ note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
 
 
 void child_HAnimSite(struct X3D_HAnimSite *node) {
-	/* int nc = ((node->children).n); */
+	CHILDREN_COUNT
 	DIRECTIONAL_LIGHT_SAVE
 return;
 #ifdef HANIMHANIM
-	/* any children at all? */
-	if (nc==0) return;
-
-	/* should we go down here? */
-	/* printf ("HANIMX, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom);  */
-	if (render_blend == VF_Blend)
-		if ((node->_renderFlags & VF_Blend) != VF_Blend) {
-			return;
-		}
-	if (render_proximity == VF_Proximity)
-		if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  {
-			return;
-		}
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
 	if ((nc > 1)  && !render_blend) sortChildren(node->children);
