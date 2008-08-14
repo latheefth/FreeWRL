@@ -205,6 +205,13 @@ void set_viewer_type(const int type) {
 		viewer_type = NONE;
 		break;
 	}
+
+	/* reset the Examine mode distance, if it is an Examine viewer */
+	if (type == EXAMINE) {
+		/* printf ("resetting examine mode distance\n"); */
+        	haveExamineDist = FALSE;
+        	defaultExamineDist = -DBL_MAX;
+	}
 }
 
 
@@ -259,7 +266,7 @@ void resolve_pos(void) {
 				if (defaultExamineDist > -(farPlane/2.0)) {
 					Viewer.Dist = -defaultExamineDist;
 					haveExamineDist = TRUE;
-					printf ("examine distance set to %f\n",Viewer.Dist); 
+					/* printf ("examine distance set to %f\n",Viewer.Dist);  */
 				} else {
 					Viewer.Dist = 10.0;
 				}
@@ -864,6 +871,7 @@ bind_viewpoint (struct X3D_Viewpoint *vp) {
 
 	/* we will determine examine distance again, if in examine mode */
 	haveExamineDist = FALSE;
+	defaultExamineDist = -DBL_MAX;
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;
