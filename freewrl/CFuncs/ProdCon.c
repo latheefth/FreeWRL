@@ -971,24 +971,20 @@ void __pt_doStringUrl () {
 	/* set bindables, if required */
 	if (psp.bind) {
 	        if (totfognodes != 0) { 
-		   for (i=0; i < totfognodes; ++i) send_bind_to(NODE_Fog, fognodes[i], 0); /* Initialize binding info */
-		   setFogBindInRender = viewpointnodes[0];
-                   /* send_bind_to(NODE_Fog, fognodes[0], 1); do this in display thread */
+		   for (i=0; i < totfognodes; ++i) send_bind_to(X3D_NODE(fognodes[i]), 0); /* Initialize binding info */
+		   setFogBindInRender = fognodes[0];
 		}
 		if (totbacknodes != 0) {
-                   for (i=0; i < totbacknodes; ++i) send_bind_to(NODE_Background, backgroundnodes[i], 0);  /* Initialize binding info */
-		   setBackgroundBindInRender = viewpointnodes[0];
-                   /* send_bind_to(NODE_Background,backgroundnodes[0], 1); do this in display thread */
+                   for (i=0; i < totbacknodes; ++i) send_bind_to(X3D_NODE(backgroundnodes[i]), 0);  /* Initialize binding info */
+		   setBackgroundBindInRender = backgroundnodes[0];
 		}
 		if (totnavnodes != 0) {
-                   for (i=0; i < totnavnodes; ++i) send_bind_to(NODE_NavigationInfo, navnodes[i], 0);  /* Initialize binding info */
-		   setNavigationBindInRender = viewpointnodes[0];
-                   /* send_bind_to(NODE_NavigationInfo, navnodes[0], 1); do this in display thread */
+                   for (i=0; i < totnavnodes; ++i) send_bind_to(X3D_NODE(navnodes[i]), 0);  /* Initialize binding info */
+		   setNavigationBindInRender = navnodes[0];
 		}
 		if (totviewpointnodes != 0) {
-                   for (i=0; i < totviewpointnodes; ++i) send_bind_to(NODE_Viewpoint, viewpointnodes[i], 0);  /* Initialize binding info */
+                   for (i=0; i < totviewpointnodes; ++i) send_bind_to(X3D_NODE(viewpointnodes[i]), 0);  /* Initialize binding info */
 		   setViewpointBindInRender = viewpointnodes[0];
-                   /* send_bind_to(NODE_Viewpoint, viewpointnodes[0], 1); do this in display thread */
 		}
 	}
 

@@ -173,7 +173,7 @@ void
 set_viewer_type(const int type);
 
 void
-resolve_pos(X3D_Viewer *viewer);
+resolve_pos(void);
 void getViewpointExamineDistance(void);
 
 void

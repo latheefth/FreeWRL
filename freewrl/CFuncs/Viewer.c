@@ -25,6 +25,8 @@ static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 static int movedPosition = FALSE;
 static int walkMotion = FALSE;
 
+static int haveExamineDist = FALSE;			/* the distance we walk around, in examine mode */
+
 static FILE *exfly_in_file;
 
 struct point_XYZ VPvelocity;
@@ -127,7 +129,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->examine = &viewer_examine;
 		viewer->fly = &viewer_fly;
 	}
-	resolve_pos(viewer);
+	resolve_pos();
 }
 
 
@@ -232,42 +234,41 @@ void getViewpointExamineDistance(void) {
 		calculatedNearPlane = 999999999999999999999999.9;
 		calculatedFarPlane = 0.0;
 
-		if (viewer_type == EXAMINE) {
-			if (APPROX(Viewer.Dist, 0.0)) {
-				printf ("Viewer is approx 0.0, getting dist \n");  
-				resolve_pos(&Viewer);
-				printf ("dist, %lf\n",Viewer.Dist); 
-			}
-		}
+		resolve_pos();
 	}
 }
 
-void resolve_pos(X3D_Viewer *viewer) {
+void resolve_pos(void) {
 	/* my($this) = @_; */
 	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
 
 	double dist = 0;
 
-	X3D_Viewer_Examine *examine = viewer->examine;
+	X3D_Viewer_Examine *examine = Viewer.examine;
 
 	if (viewer_type == EXAMINE) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
-		inverse(&q_inv, &(viewer->Quat));
+		inverse(&q_inv, &(Viewer.Quat));
 		rotation(&rot, &q_inv, &z_axis);
 
 		if (Viewer.GeoSpatialNode == NULL) {
-			/* printf ("resolve_pos, NOT a Geospatial Viewpoint\n"); */
-			if (defaultExamineDist > -(farPlane/2.0)) {
-				viewer->Dist = -defaultExamineDist;
-			} else {
-				viewer->Dist = 10.0;
+			/* do we know where we are going to rotate around? */
+			if (!haveExamineDist) {
+				/* printf ("resolve_pos, NOT a Geospatial Viewpoint\n"); */
+				if (defaultExamineDist > -(farPlane/2.0)) {
+					Viewer.Dist = -defaultExamineDist;
+					haveExamineDist = TRUE;
+					printf ("examine distance set to %f\n",Viewer.Dist); 
+				} else {
+					Viewer.Dist = 10.0;
+				}
 			}
 		} else {
 			/* printf ("resolve_pos, a Geospatial Viewpoint\n"); */
 			/* Geospatial Viewpoint - */
 			/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
-			dist = VECPT(viewer->Pos, rot);
+			dist = VECPT(Viewer.Pos, rot);
 	
 			/*
 			 * Fix the rotation point to be 10m in front of the user (dist = 10.0)
@@ -278,17 +279,17 @@ void resolve_pos(X3D_Viewer *viewer) {
 			 */
 	
 			/* $d = abs($d); $this->{Dist} = $d; */
-			viewer->Dist = fabs(dist);
+			Viewer.Dist = fabs(dist);
 		}
-		/* printf ("resolve_pos, dist %lf, calculated %lf pos %lf %lf %lf\n",viewer->Dist, defaultExamineDist,
-			viewer->Pos.x, viewer->Pos.y, viewer->Pos.z);  */
+		/* printf ("resolve_pos, dist %lf, calculated %lf pos %lf %lf %lf\n",Viewer->Dist, defaultExamineDist,
+			Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);  */
 
 		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
-		(examine->Origin).x = (viewer->Pos).x - viewer->Dist * rot.x;
-		(examine->Origin).y = (viewer->Pos).y - viewer->Dist * rot.y;
-		(examine->Origin).z = (viewer->Pos).z - viewer->Dist * rot.z;
+		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
+		(examine->Origin).y = (Viewer.Pos).y - Viewer.Dist * rot.y;
+		(examine->Origin).z = (Viewer.Pos).z - Viewer.Dist * rot.z;
 
-		/* printf ("examine origin = %f %f %f\n",examine->Origin.x,examine->Origin.y,examine->Origin.z); */
+		/* printf ("examine origin = %f %f %f\n",examine.Origin.x,examine.Origin.y,examine.Origin.z); */
 	}
 }
 
@@ -842,8 +843,6 @@ set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehal
 void increment_pos(struct point_XYZ *vec) {
 	struct point_XYZ nv;
 	Quaternion q_i;
-	double cp,np,tmp;
-
 
 	inverse(&q_i, &(Viewer.Quat));
 	rotation(&nv, &q_i, vec);
@@ -862,6 +861,9 @@ void increment_pos(struct point_XYZ *vec) {
 void
 bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
+
+	/* we will determine examine distance again, if in examine mode */
+	haveExamineDist = FALSE;
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;
@@ -887,6 +889,6 @@ bind_viewpoint (struct X3D_Viewpoint *vp) {
 		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
 	inverse(&(Viewer.AntiQuat),&q_i);
 
-	resolve_pos(&Viewer);
+	resolve_pos();
 }
 

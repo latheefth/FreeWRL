@@ -221,11 +221,9 @@ void doBrowserAction () {
 			/*  did we find a match with known Viewpoints?*/
 			if (tableIndex>=0) {
 				/* unbind current, and bind this one */
-				send_bind_to(NODE_Viewpoint,
-						(void *)viewpointnodes[currboundvpno],0);
+				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
 				currboundvpno=tableIndex;
-				send_bind_to(NODE_Viewpoint,
-						(void *)viewpointnodes[currboundvpno],1);
+				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
 			} else {
 				printf ("failed to match local Viewpoint\n");
 			}

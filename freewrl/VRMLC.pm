@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.300  2008/08/14 05:02:31  crc_canada
+# Bindable threading issues, continued; EXAMINE mode default rotation distance, continued; LOD improvements.
+#
 # Revision 1.299  2008/08/12 00:23:04  crc_canada
 # Switch mode X3D parsing changes.
 #
@@ -792,6 +795,7 @@ sub gen {
 	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
+	"#define X3D_LODNODE(node) ((struct X3D_LOD*)node)\n".
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)\n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".

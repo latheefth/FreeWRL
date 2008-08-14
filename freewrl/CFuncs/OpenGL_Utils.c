@@ -620,17 +620,17 @@ void zeroVisibilityFlag(void) {
 				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
 			} 
 
-#define CHILDREN_LOD_NODE(thistype) \
+#define CHILDREN_LOD_NODE \
 			addChildren = NULL; removeChildren = NULL; \
-			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
-				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
-				if (((struct X3D_##thistype *)node)->level.n > 0) childrenPtr = &((struct X3D_##thistype *)node)->level; \
-				else childrenPtr = &((struct X3D_##thistype *)node)->children; \
+			if (X3D_LODNODE(node)->addChildren.n > 0) { \
+				addChildren = &X3D_LODNODE(node)->addChildren; \
+				if (X3D_LODNODE(node)->__isX3D == 0) childrenPtr = &X3D_LODNODE(node)->level; \
+				else childrenPtr = &X3D_LODNODE(node)->children; \
 			} \
-			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
-				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
-				if (((struct X3D_##thistype *)node)->level.n > 0) childrenPtr = &((struct X3D_##thistype *)node)->level; \
-				else childrenPtr = &((struct X3D_##thistype *)node)->children; \
+			if (X3D_LODNODE(node)->removeChildren.n > 0) { \
+				removeChildren = &X3D_LODNODE(node)->removeChildren; \
+				if (X3D_LODNODE(node)->__isX3D == 0) childrenPtr = &X3D_LODNODE(node)->level; \
+				else childrenPtr = &X3D_LODNODE(node)->children; \
 			}
 
 #define EVIN_AND_FIELD_SAME(thisfield, thistype) \
@@ -866,7 +866,10 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(Billboard) CHILDREN_NODE(Billboard) END_NODE
 				BEGIN_NODE(Collision) CHILDREN_NODE(Collision) END_NODE
 				BEGIN_NODE(Switch) CHILDREN_SWITCH_NODE(Switch) END_NODE
-				BEGIN_NODE(LOD) CHILDREN_LOD_NODE(LOD) END_NODE
+				BEGIN_NODE(LOD) 
+					CHILDREN_LOD_NODE 
+                			update_renderFlag(node,VF_Proximity);
+				END_NODE
 
 				/* Material - transparency of materials */
 				BEGIN_NODE(Material) CHECK_MATERIAL_TRANSPARENCY END_NODE
@@ -890,9 +893,6 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE (GeoLOD)
                 		update_renderFlag(node,VF_Proximity);
 				END_NODE
-
-
-	
 			}
 		}
 

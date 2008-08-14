@@ -109,7 +109,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 
 
 /* send a set_bind event from an event to this Bindable node */
-void send_bind_to(int nodetype, void *node, int value) {
+void send_bind_to(struct X3D_Node *node, int value) {
 	struct X3D_Background *bg;
 	struct X3D_TextureBackground *tbg;
 	struct X3D_Fog *fg;
@@ -120,7 +120,9 @@ void send_bind_to(int nodetype, void *node, int value) {
 
 	/* printf ("\nsend_bind_to, nodetype %s node %d value %d\n",stringNodeType(nodetype),node,value); */
 
-	if (nodetype == NODE_Background) {
+	switch (node->_nodeType) {
+
+	case NODE_Background: 
 		bg = (struct X3D_Background *) node;
 
 		/* is this node a Background or TextureBackground node? */
@@ -136,53 +138,56 @@ void send_bind_to(int nodetype, void *node, int value) {
 			bind_node (node, &background_tos,&background_stack[0]);
 
 		}
+		break;
 
-	} else if (nodetype == NODE_Viewpoint) {
+	case NODE_Viewpoint: 
 		vp = (struct X3D_Viewpoint *) node;
 
-		if (vp->_nodeType == NODE_Viewpoint ) {
-			vp->set_bind = value;
-			nameptr = vp->description->strptr;
-			setMenuStatus (nameptr);
+		vp->set_bind = value;
+		nameptr = vp->description->strptr;
+		setMenuStatus (nameptr);
 
-			bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
+		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
 
-			/* up_vector is reset after a bind */
-			if (value==1) {
-				reset_upvector();
-				bind_viewpoint (vp);
-			}
-		} else {
-			/* must be a GeoViewpoint */
-
-			gvp = (struct X3D_GeoViewpoint *) node;
-			gvp->set_bind = value;
-			nameptr = gvp->description->strptr;
-			setMenuStatus (nameptr);
-
-			bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
-
-			/* up_vector is reset after a bind */
-			if (value==1) {
-				reset_upvector();
-				bind_geoviewpoint (gvp);
-			}
+		/* up_vector is reset after a bind */
+		if (value==1) {
+			reset_upvector();
+			bind_viewpoint (vp);
 		}
+		break;
 
-	} else if (nodetype == NODE_Fog) {
+	case NODE_GeoViewpoint: 
+		gvp = (struct X3D_GeoViewpoint *) node;
+		gvp->set_bind = value;
+		nameptr = gvp->description->strptr;
+		setMenuStatus (nameptr);
+
+		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
+
+		/* up_vector is reset after a bind */
+		if (value==1) {
+			reset_upvector();
+			bind_geoviewpoint (gvp);
+		}
+		break;
+
+
+	case NODE_Fog: 
 		fg = (struct X3D_Fog *) node;
 		fg->set_bind = value;
 		bind_node (node, &fog_tos,&fog_stack[0]);
+		break;
 
-	} else if (nodetype == NODE_NavigationInfo) {
+	case NODE_NavigationInfo: 
 		nv = (struct X3D_NavigationInfo *) node;
 		nv->set_bind = value;
 		bind_node (node, &navi_tos,&navi_stack[0]);
-
 		if (value==1) set_naviinfo(nv);
 
-	} else {
-		printf ("send_bind_to, cant send a set_bind to %d !!\n",nodetype);
+		break;
+
+	default:
+		ConsoleMessage("send_bind_to, cant send a set_bind to %s !!\n",stringNodeType(node->_nodeType));
 	}
 }
 

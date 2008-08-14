@@ -1011,6 +1011,7 @@ void changed_Billboard (struct X3D_Billboard *this_);
 void prep_Viewpoint(struct X3D_Viewpoint *node);
 void child_Billboard (struct X3D_Billboard *this_);
 void child_LOD (struct X3D_LOD *this_);
+void proximity_LOD (struct X3D_LOD *this_);
 void fin_Billboard (struct X3D_Billboard *this_);
 void child_Collision (struct X3D_Collision *this_);
 void changed_Collision (struct X3D_Collision *this_);

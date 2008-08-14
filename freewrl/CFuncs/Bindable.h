@@ -56,7 +56,7 @@ void
 set_naviinfo(struct X3D_NavigationInfo *node);
 
 void
-send_bind_to(int nodetype, void *node, int value);
+send_bind_to(struct X3D_Node *node, int value);
 
 void
 bind_node(struct X3D_Node *node, int *tos, uintptr_t *stack);

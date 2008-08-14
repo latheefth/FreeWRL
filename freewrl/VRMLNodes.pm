@@ -1096,6 +1096,7 @@ package VRML::NodeType;
 						children => [MFNode, [], inputOutput],		# for X3D spec
 						center => [SFVec3f, [0, 0, 0],  initializeOnly],
 						range => [MFFloat, [], initializeOnly],
+						__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
 						_selected =>[FreeWRLPTR,0,initializeOnly],
 					   },"X3DGroupingNode"),
 

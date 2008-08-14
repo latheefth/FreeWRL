@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.221  2008/08/14 05:02:32  crc_canada
+# Bindable threading issues, continued; EXAMINE mode default rotation distance, continued; LOD improvements.
+#
 # Revision 1.220  2008/08/04 19:14:36  crc_canada
 # August 4 GeoLOD  changes
 #
@@ -476,6 +479,7 @@
 %ProximityC = map {($_=>1)} qw/
 	ProximitySensor
 	GeoLOD
+	LOD
 /;
 
 

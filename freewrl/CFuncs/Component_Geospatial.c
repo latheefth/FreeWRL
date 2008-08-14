@@ -1676,7 +1676,6 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	#endif
 }
 
-
 #define LOAD_CHILD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
 		if (node->childUrl.n > 0) { \
@@ -2200,6 +2199,6 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 		node->__movedOrientation.r[1],node->__movedOrientation.r[2],node->__movedOrientation.r[3]);
 	inverse(&(Viewer.AntiQuat),&q_i);
 
-	resolve_pos(&Viewer);
+	resolve_pos();
 }
 

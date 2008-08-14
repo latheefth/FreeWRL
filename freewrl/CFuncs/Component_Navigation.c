@@ -212,6 +212,12 @@ void child_Collision (struct X3D_Collision *node) {
 
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */
 void child_LOD (struct X3D_LOD *node) {
+        render_node(node->_selected);
+}
+
+
+/* calculate the LOD distance */
+void proximity_LOD (struct X3D_LOD *node) {
         GLdouble mod[16];
         GLdouble proj[16];
         struct point_XYZ vec;
@@ -221,49 +227,52 @@ void child_LOD (struct X3D_LOD *node) {
         int xnod = (node->children).n;
         int i;
 
+	/* no range, display the first node, if it exists */
         if(!nran) {
-        	void *p = NULL; 
-		/* no range; choose first VRML level OR firxt X3D child to display */
-		if (nnod > 0) p = (node->level).p[0];
-		else if (xnod > 0) p = (node->children).p[0];
-                render_node(p);
+		if (node->__isX3D == 0)  {
+			if (nnod > 0) node->_selected = (node->level).p[0];
+			else node->_selected = NULL;
+		} else {
+			if (xnod > 0) node->_selected = (node->children).p[0];
+			else node->_selected = NULL;
+		}
                 return;
         }
 
-        /* calculate which one to display - only do this once per eventloop. */
-        if (render_geom && (!render_blend)) {
-                fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-                /* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
-                fwGetDoublev(GL_PROJECTION_MATRIX, proj);
-                gluUnProject(0,0,0,mod,proj,viewport,
-                        &vec.x,&vec.y,&vec.z);
-                vec.x -= (node->center).c[0];
-                vec.y -= (node->center).c[1];
-                vec.z -= (node->center).c[2];
+        /* calculate which one to display */
+        fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+        /* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
+        fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+        gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+        vec.x -= (node->center).c[0];
+        vec.y -= (node->center).c[1];
+        vec.z -= (node->center).c[2];
 
-                dist = sqrt(VECSQ(vec));
-                i = 0;
+        dist = sqrt(VECSQ(vec));
+        i = 0;
 
-                while (i<nran) {
-                        if(dist < ((node->range).p[i])) { break; }
-                        i++;
-                }
+        while (i<nran) {
+                       if(dist < ((node->range).p[i])) { break; }
+                       i++;
+        }
 
-		/* is this VRML or X3D? */
+	/* is this VRML or X3D? */
+	if (node->__isX3D== 0) {
 		if (nnod > 0) {
 			/* VRML "range" field */
-                	if(i >= nnod) i = nnod-1;
-                	node->_selected = (node->level).p[i];
+               		if(i >= nnod) i = nnod-1;
+               		node->_selected = (node->level).p[i];
 			/* printf ("selecting vrml nod\n"); */
-
-		} else if (xnod > 0) {
+		} else { node->_selected = NULL; }
+		
+	} else {
+		if (xnod > 0) {
 			/* X3D "children" field */
-                	if(i >= xnod) i = xnod-1;
-                	node->_selected = (node->children).p[i];
-			/* printf ("selecting X3D nod %d \n",i); */
+        	       	if(i >= xnod) i = xnod-1;
+        		       	node->_selected = (node->children).p[i];
+				/* printf ("selecting X3D nod %d \n",i); */
 		} else node->_selected = NULL;
-        }
-        render_node(node->_selected);
+	}
 }
 
 void  child_Billboard (struct X3D_Billboard *node) {

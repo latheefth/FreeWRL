@@ -138,7 +138,7 @@ int currentFileVersion = 0;
 
 /* we bind bindable nodes on parse in this thread */
 #define SEND_BIND_IF_REQUIRED(node) \
-		if (node != NULL) { send_bind_to(NODE_Viewpoint, node,1); node = NULL; }
+		if (node != NULL) { send_bind_to(X3D_NODE(node),1); node = NULL; }
 
 
 int quitThread = FALSE;
@@ -1070,9 +1070,9 @@ void First_ViewPoint() {
 		if (currboundvpno != 0) {
 		*/
 			/* have to do some work */
-			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
+			send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
 			currboundvpno = 0;
-			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+			send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
 		/*
 		}
 		*/
@@ -1086,9 +1086,9 @@ void Last_ViewPoint() {
 		if (currboundvpno != (totviewpointnodes-1)) {
 		*/
 			/* have to do some work */
-			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
+			send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
 			currboundvpno = totviewpointnodes-1;
-			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+			send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
 		/*
 		}
 		*/
@@ -1098,10 +1098,10 @@ void Last_ViewPoint() {
 void Prev_ViewPoint() {
 	if (totviewpointnodes>=1) {
 		/* whew, we have other vp nodes */
-		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
+		send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
 		currboundvpno--;
 		if (currboundvpno<0) currboundvpno=totviewpointnodes-1;
-		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+		send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
 	}
 }
 
@@ -1109,10 +1109,10 @@ void Prev_ViewPoint() {
 void Next_ViewPoint() {
 	if (totviewpointnodes>=1) {
 		/* whew, we have other vp nodes */
-		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
+		send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
 		currboundvpno++;
 		if (currboundvpno>=totviewpointnodes) currboundvpno=0;
-		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+		send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
 	}
 }
 
