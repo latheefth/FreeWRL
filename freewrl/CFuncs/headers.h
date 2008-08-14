@@ -39,6 +39,24 @@ void *freewrlStrdup (int line, char *file, char *str);
 	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 #endif
 
+/* children fields path optimizations */
+#define CHILDREN_COUNT int nc = node->children.n;
+#define RETURN_FROM_CHILD_IF_NOT_FOR_ME \
+        /* any children at all? */ \
+        if (nc==0) return;      \
+        /* should we go down here? */ \
+        /* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); */ \
+        if (render_blend == VF_Blend) \
+                if ((node->_renderFlags & VF_Blend) != VF_Blend) { \
+                        return; \
+                } \
+        if (render_proximity == VF_Proximity) \
+                if ((node->_renderFlags & VF_Proximity) != VF_Proximity)  { \
+                        return; \
+                } \
+
+
+
 
 #undef DEBUG_JAVASCRIPT_PROPERTY
 #ifdef DEBUG_JAVASCRIPT_PROPERTY
