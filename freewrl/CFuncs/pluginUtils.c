@@ -56,7 +56,7 @@ int freewrlSystem (const char *sysline) {
 	}
 	
 	/* initialize the paramline... */
-	memset(paramline, 0, MAXEXECPARAMS);
+	memset(paramline, 0, sizeof(paramline));
 		
 	waitForChild = TRUE;
 	haveXmessage = !strncmp(sysline,XMESSAGE,strlen(XMESSAGE));
