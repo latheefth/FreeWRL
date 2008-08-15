@@ -23,7 +23,7 @@
 #include <QuickTime/QuickTime.h>
 #endif
 
-#undef TEXVERBOSE
+//#define TEXVERBOSE 1
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
@@ -1259,6 +1259,7 @@ int findTextureFile (int cwo, int *istemp) {
 
 
 	*istemp=FALSE;	/* don't remove this file */
+	filename = NULL;
 
 	#ifdef TEXVERBOSE 
 	printf ("textureThread:start of findTextureFile for cwo %d type %d \n",cwo,loadThisTexture->nodeType);
@@ -1276,7 +1277,9 @@ int findTextureFile (int cwo, int *istemp) {
 			thisUrl = ((struct X3D_MovieTexture *)loadThisTexture->scenegraphNode)->url;
 		}
 		mypath = STRDUP(thisParent->strptr);
-		filename = (char *)MALLOC(1000);
+
+		/* Dangerous, better alloc this string in function getValidFileFromUrl ... */
+		filename = (char *)MALLOC(4096);
 
 		if (getValidFileFromUrl (filename,mypath, &thisUrl, firstBytes)) {
 			#ifdef TEXVERBOSE 
@@ -1290,6 +1293,10 @@ int findTextureFile (int cwo, int *istemp) {
 			}
 			/* So, we could not find the correct file. Make this into a blank PixelTexture, so that
 			   at least this looks ok on the screen */
+			#ifdef TEXVERBOSE
+			printf("textureThread: could not locate file from url: %s\n", thisUrl);
+			#endif
+			FREE_IF_NZ(filename);
 			loadThisTexture->nodeType = NODE_PixelTexture;
 			invalidFilePixelDataNode.n = 4;
 			invalidFilePixelDataNode.p = invalidFilePixelData;
@@ -1299,7 +1306,8 @@ int findTextureFile (int cwo, int *istemp) {
 
 	/* pixelTextures - lets just make a specific string for this one */
 	if (loadThisTexture->nodeType == NODE_PixelTexture) {
-		filename = (char *)MALLOC(100);
+		FREE_IF_NZ(filename);
+		filename = (char *)MALLOC(4096);
 		sprintf (filename,"PixelTexture_%d",loadThisTexture);
 	}
 
@@ -1323,17 +1331,26 @@ int findTextureFile (int cwo, int *istemp) {
 		    (strncmp(firstBytes,firstJPG,4) != 0) &&
 		    (strncmp(firstBytes,firstMPGa,4) != 0) &&
 		    (strncmp(firstBytes,firstMPGb,4) != 0)) {
-			sysline = (char *)MALLOC(sizeof(char)*(strlen(textureThreadCacheFileName)+100));
+
+			#ifdef TEXVERBOSE 
+				printf ("textureThread: trying to convert on %s\n", filename);
+			#endif
+				if (!filename) {
+					printf("textureThread: error: trying to load null file\n");
+					return FALSE;
+				}
+			sysline = (char *)MALLOC(sizeof(char)*(strlen(filename)+100));
 			sprintf(sysline,"%s %s /tmp/freewrl%d.png",
-					CONVERT,textureThreadCacheFileName,getpid());
+					CONVERT, filename, getpid());
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: running convert on %s\n",sysline);
 			#endif
-				printf ("textureThread: running convert on %s\n",sysline);
 
 			if (freewrlSystem (sysline) != TRUE) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			} else {
+				FREE_IF_NZ(filename);
+				filename = (char *)MALLOC(4096);
 				FREE_IF_NZ(textureThreadCacheFileName);
 				sprintf (filename,"/tmp/freewrl%d.png",getpid());
 				textureThreadCacheFileName = STRDUP(filename);
@@ -1472,11 +1489,13 @@ void _textureThread(void) {
 
 				loadThisTexture->status = TEX_NEEDSBINDING;
 				#endif
-			/* is this a temporary file? */
-			if (remove == 1) {
-				/* printf ("unlinking %s\n",loadThisTexture->filename); */
-				unlink (loadThisTexture->filename);
-			}
+
+				/* is this a temporary file? */
+/* 				if (remove) { */
+/* 					printf ("unlinking %s\n",loadThisTexture->filename); */
+/* 					unlink (loadThisTexture->filename); */
+/* 					FREE_IF_NZ(loadThisTexture->filename); */
+/* 				} */
 		} else {
 			printf ("can not find file - error!!\n");
 		}
