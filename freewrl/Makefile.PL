@@ -129,18 +129,13 @@ if ($pkgconfig eq "") {
 }
 
 ## Netscape plugin API
-
-my $pg_nspr = "";
-
-if (!($pkgconfig eq "")) {
-    $pg_nspr = `pkg-config --cflags xulrunner-nspr 2>0`;
-    chomp($pg_nspr);
-}
+my $pg_js = "mozilla-js";
+my $pg_plugin = "mozilla-plugin";
 
 ## Handle platform-specific compile options for the Javascript engine
 ## and others specific to FreeWRL.
 
-my $pg_js = "";
+my $pg_js_cflags = "";
 my $jsCFLAGS = "";
 my $jsLDFLAGS = "";
 my $jsdir = "js1.7/src";
@@ -152,34 +147,54 @@ my @libs;
 my $INCLUDED_JS = 0;
 
 if (!($pkgconfig eq "")) {
-    $pg_js = `pkg-config --cflags xulrunner-js 2>0`;
-    chomp($pg_js);
+    $pg_js_cflags = `pkg-config --cflags $pg_js 2>0`;
+    chomp($pg_js_cflags);
 }
 
-if ($pg_js eq "") {
-    if ($OS eq  "IRIX64") {
-	$jsobjdir = "$jsdir/IRIX6.5";
-    } elsif ($OS eq "SunOS") {
-	$jsobjdir = "$jsdir/SunOS5.8";
-    } else { ## linux used by default
-	$jsobjdir = "$jsdir/Linux_All";
-    }
+if ($pg_js_cflags eq "") {
 
+    if ($OS eq  "IRIX64") {
+		$jsobjdir = "$jsdir/IRIX6.5";
+    } elsif ($OS eq "SunOS") {
+		$jsobjdir = "$jsdir/SunOS5.8";
+    } else { ## linux used by default
+		$jsobjdir = "$jsdir/Linux_All";
+    }
+	
     #location of the spidermonkey js engine.
     $jsobjdir .= "_OPT.OBJ";
     $libFreeWRLjspath = "./JS/".$jsobjdir."/libFreeWRLjs.so";
     $INCLUDED_JS = 1;
+
 } else {
 
-    $jsCFLAGS = $pg_js;
-    $jsLDFLAGS = `pkg-config --libs xulrunner-js 2>0`;
+    $jsCFLAGS = $pg_js_cflags;
+    $jsLDFLAGS = `pkg-config --libs $pg_js 2>0`;
     chomp($jsLDFLAGS);
-    print "Javascript:\ncflags=$jsCFLAGS\nlibs=$jsLDFLAGS\n";
+
 }
 
+if (!($pkgconfig eq "")) {
+    $pg_plugin_cflags = `pkg-config --cflags $pg_plugin 2>0`;
+    chomp($pg_plugin_cflags);
+	$pg_plugin_libs =  `pkg-config --libs $pg_plugin 2>0`;
+    chomp($pg_plugin_libs);
+}
+
+#print "Javascript:\ncflags=$jsCFLAGS\nlibs=$jsLDFLAGS\n";
 #print "the javascript engine should be located at: $libFreeWRLjspath\n";
 
-
+print "Configured Javascript engine: ";
+if ($INCLUDED_JS eq 0) {
+	print "system\n";
+	print "\tpg_js=$pg_js\n";
+} else {
+	print "included\n";
+	print "\tdir=$jsobjdir\n";
+	print "\tlibFreeWRLjspath=$libFreeWRLjspath\n";
+}
+print "\tCFLAGS=$jsCFLAGS\n";
+print "\tLDFLAGS=$jsLDFLAGS\n";
 
 ######################
 # Stack Protector flag. Some gcc compiler environments REQUIRE this flag.
@@ -399,10 +414,12 @@ sub writeMakefileFinalTargets() {
 	# fonts shall not be installed : prefer depends on vera ttf package
 	#print MK "\tinstall -d fonts \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
 	#print MK "\tinstall -D fonts/* \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
+
+	print MK "\n.PHONY: clean distclean Plugin JavaClasses FreeWRL_Message SoundEngine CFrontEnd libFreeWRL\n";
 }
 
 sub writeVariables () {	
-	my @CFuncsSourceFiles = split (' ',`ls CFuncs/*c`);
+	my @CFuncsSourceFiles = split (' ',`ls CFuncs/*.c`);
 	print MK "\n#CFuncs Make\n";
 	print MK "LIBFWSRCS=";
 	foreach my $fullname (@CFuncsSourceFiles) { print MK "$fullname "; }
@@ -411,7 +428,7 @@ sub writeVariables () {
 	foreach my $fullname (@CFuncsSourceFiles) { $fullname =~ s/.c$/.o/; print MK "$fullname "; }
 	print MK "\n\n";
 	
-	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*c`);
+	my @CFrontEndSourceFiles = split (' ',`ls CFrontEnd/*.c`);
 	print MK "\n#CFrontEnd Make\n";
 	print MK "FESRCS=";
 	foreach my $fullname (@CFrontEndSourceFiles) { print MK "$fullname "; }
@@ -434,7 +451,7 @@ sub writeVariables () {
 	    system ("cp ReWire/GeneratedHeaders.h MIDI");
 	    system ("cp ReWire/X3DNode.h MIDI");
 	    
-	    my @CMIDISourceFiles = split (' ',`ls MIDI/*c`);
+	    my @CMIDISourceFiles = split (' ',`ls MIDI/*.c`);
 	    print MK "\n#CMIDI Make\n";
 	    print MK "MIDISRCS=";
 	    foreach my $fullname (@CMIDISourceFiles) { print MK "$fullname "; }
@@ -445,7 +462,7 @@ sub writeVariables () {
 	}
 
 	
-	my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*c`);
+	my @SoundEngineSourceFiles = split (' ',`ls SoundEngine/*.c`);
 	print MK "\n#SoundEngine Make\n";
 	print MK "SESRCS=";
 	foreach my $fullname (@SoundEngineSourceFiles) { print MK "$fullname "; }
@@ -567,12 +584,12 @@ sub write_linux_makefile_javaClasses() {
 
 sub writeMakefileBrowserPlugin() {
     if ($VRML_CONFIG{NETSCAPE_INST}) {
-	    print MK "\n# make the Unix front end\n";
+	    print MK "\n# make the Mozilla plugin\n";
 	    print MK "\$(PLOBJS): \$(PLSRCS)\n";
-	    print MK "\t\$(COMPILE) -DMOZ_X11 $pg_nspr -IPlugin/netscape/include -c \$*.c -o \$*.o\n\n";
+	    print MK "\t\$(COMPILE) $pg_plugin_cflags -DMOZ_X11 -IPlugin/netscape/include -c \$*.c -o \$*.o\n\n"; # NSPR
 	    print MK "Plugin: Plugin/npfreewrl.so\n";
 	    print MK "Plugin/npfreewrl.so: \$(PLOBJS)\n";
-	    print MK "\t\$(COMPILE) -shared -o Plugin/npfreewrl.so \$(PLOBJS)\n\n";
+	    print MK "\t\$(COMPILE) -shared $pg_plugin_libs -o Plugin/npfreewrl.so \$(PLOBJS)\n\n";
     }
 }
 
@@ -648,7 +665,12 @@ sub writeMakeDebAndRpm () {
 sub writeMakefileDistclean() {
 	#############################################################################
 	# Misc targets
-	print MK ".PHONY: clean distclean\n";
+	print MK "clean-lib:\n";
+	print MK "\trm -f libFreeWRLFunc.so CFuncs/*.o\n";
+	print MK "clean-front-end:\n";
+	print MK "\trm -f CFrontEnd/freewrl CFrontEnd/*.o\n";
+	print MK "clean-plugin:\n";
+	print MK "\techo TODO\n";
 	print MK "clean:\n";
 	print MK "\trm -f CFuncs/*o\n";
 	print MK "\trm -f libFreeWRLFunc.so\n";
@@ -724,6 +746,7 @@ sub writeMakefileDistclean() {
 	print MK "\trm -f \$(DESTDIR)\$(INSTALL_DIR)\/applications/freewrl.desktop\n";
 # 	print MK "\trm -rf \$(DESTDIR)\$(INSTALL_DIR)/freewrl/fonts\n";
 	print MK "\trm -rf \$(DESTDIR)\$(INSTALL_DIR)/freewrl/x3d\n";
+
 }
 
 ###################################################################################

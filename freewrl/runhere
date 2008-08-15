@@ -1,13 +1,46 @@
 #!/bin/sh
+#
+#
 
-if [ ! -x "CFrontEnd/freewrl" ] ; then
-	echo "make CFrontEnd before !"
+verbose=0
+debug=0
+path=$PWD
+
+while getopts "p:vd" option ; do
+	case $option in
+		d) debug=1 ;;
+		v) verbose=1 ;;
+		p)  # path
+			[ -z "$OPTARG" ] && {
+				echo "option -p requires an argument"
+				exit 1
+			}
+			path=$OPTARG
+			;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ $verbose -eq 1 ] ; then
+	set -x
 fi
 
-if [ ! -x "libFreeWRLFunc.so" ] ; then
+if [ ! -x "$path/CFrontEnd/freewrl" ] ; then
+	echo "make CFrontEnd before !"
+	exit 1
+fi
+
+if [ ! -x "$path/libFreeWRLFunc.so" ] ; then
 	echo "make libFreeWRLFunc before !"
+	exit 1
 fi
 
 export LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH
+export PATH=$path/FreeWRL_Msg:$path/SoundEngine:$path/CFrontEnd:$PATH
 
-CFrontEnd/freewrl "$@"
+if [ $debug -eq 1 ] ; then
+	ldd "$path/CFrontEnd/freewrl"
+	exit 0
+fi
+
+$path/CFrontEnd/freewrl "$@"
