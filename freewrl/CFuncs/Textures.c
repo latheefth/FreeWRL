@@ -23,7 +23,7 @@
 #include <QuickTime/QuickTime.h>
 #endif
 
-//#define TEXVERBOSE 1
+/* #define TEXVERBOSE 1 */
 
 #define DO_POSSIBLE_TEXTURE_SEQUENCE if (myTableIndex->status == TEX_NEEDSBINDING) { \
                 do_possible_textureSequence(myTableIndex); \
