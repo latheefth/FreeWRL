@@ -34,6 +34,7 @@ void killErrantChildren(void) {
 	}
 }
 
+/* FIXME: what are the possible return codes for this function ??? */
 int freewrlSystem (const char *sysline) {
 
 #define MAXEXECPARAMS 10
@@ -44,21 +45,18 @@ int freewrlSystem (const char *sysline) {
 	int count;
 	/* pid_t childProcess[lastchildProcess]; */
 	int pidStatus;
-
 	int waitForChild;
 	int haveXmessage;
 
 
 	/* make all entries in the child process list = 0 */
 	if (childProcessListInit == FALSE) {
-		for (count=0; count<MAXPROCESSLIST; count++) {
-			childProcess[count] = 0;
-		}
+		memset(childProcess, 0, MAXPROCESSLIST);
 		childProcessListInit = TRUE;
 	}
 	
 	/* initialize the paramline... */
-	for (count=0; count<MAXEXECPARAMS; count++) paramline[count]=NULL;
+	memset(paramline, 0, MAXEXECPARAMS);
 		
 	waitForChild = TRUE;
 	haveXmessage = !strncmp(sysline,XMESSAGE,strlen(XMESSAGE));
@@ -70,7 +68,6 @@ int freewrlSystem (const char *sysline) {
 	strcpy (buf,sysline);
 
 	/* printf ("freewrlSystem, have %s here\n",internbuf); */
-	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 	count = 0;
 
 	/* do we have a console message - (which is text with spaces) */
@@ -102,9 +99,6 @@ int freewrlSystem (const char *sysline) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
 	}} */
 	
-	
-
-
 	if (haveXmessage) {
 		waitForChild = FALSE;
 	} else {
@@ -118,48 +112,53 @@ int freewrlSystem (const char *sysline) {
 	if (count > 0) {
 		switch (childProcess[lastchildProcess]=fork()) {
 			case -1:
-				perror ("fork"); exit(1);
+				perror ("fork");
+				exit(1);
+				break;
 
-			case 0: {
-			int Xrv;
-
-			/* child process */
-			/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid());  */
-		 	Xrv = execl((const char *)paramline[0],
-				(const char *)paramline[0],paramline[1], paramline[2],
-				paramline[3],paramline[4],paramline[5],
-				paramline[6],paramline[7]);
-			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
-			perror("FreeWRL: "); 
-			exit (Xrv);
+			case 0: 
+			{
+				int Xrv;
+				
+				/* child process */
+				/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid());  */
+				Xrv = execl((const char *)paramline[0],
+							(const char *)paramline[0],paramline[1], paramline[2],
+							paramline[3],paramline[4],paramline[5],
+							paramline[6],paramline[7]);
+				printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
+				perror("FreeWRL: "); 
+				exit (Xrv);
 			}
-			default: {
-			/* parent process */
-			/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess[lastchildProcess]); */
+				break;
 
-			lastchildProcess++;
-			if (lastchildProcess == MAXPROCESSLIST) lastchildProcess=0;
-
-
-			/* do we have to wait around? */
-			if (!waitForChild) {
-				/* printf ("freewrlSystem - do not have to wait around\n"); */
-				return TRUE;
-			}
-			waitpid (childProcess[lastchildProcess],&pidStatus,0);
-			 /* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
-			 		pidStatus);  */
-
-			/* printf ("freewrlSystem: WIFEXITED is %d\n",WIFEXITED(pidStatus)); */
-
-			/* if (WIFEXITED(pidStatus) == TRUE) printf ("returned ok\n"); else printf ("problem with return\n"); */
+			default: 
+			{
+				/* parent process */
+				/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess[lastchildProcess]); */
+				
+				lastchildProcess++;
+				if (lastchildProcess == MAXPROCESSLIST) lastchildProcess=0;
+				
+				/* do we have to wait around? */
+				if (!waitForChild) {
+					/* printf ("freewrlSystem - do not have to wait around\n"); */
+					return TRUE;
+				}
+				waitpid (childProcess[lastchildProcess],&pidStatus,0);
+				/* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
+				   pidStatus);  */
+				
+				/* printf ("freewrlSystem: WIFEXITED is %d\n",WIFEXITED(pidStatus)); */
+				
+				/* if (WIFEXITED(pidStatus) == TRUE) printf ("returned ok\n"); else printf ("problem with return\n"); */
 			}
 		}
 		return (WIFEXITED(pidStatus) == TRUE);
 	} else {
 		printf ("System call failed :%s:\n",sysline);
 	}
-	return -1;
+	return -1; /* should we return FALSE or -1 ??? */
 }
 
 /* implement Anchor/Browser actions */
