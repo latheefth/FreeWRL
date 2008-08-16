@@ -65,18 +65,32 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	struct X3D_Node *geomParent;
 	double tminp, tmaxp;
 
+	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f nt %s\n",
+			maxx, minx, maxy, miny, maxz, minz, stringNodeType(me->_nodeType));
 	#ifdef FRUSTUMVERBOSE
-	printf ("setExtent maxz %f minz %f nt %s\n",maxz, minz, stringNodeType(me->_nodeType));
+	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f nt %s\n",
+			maxx, minx, maxy, miny, maxz, minz, stringNodeType(me->_nodeType));
 	#endif
 
 	for (c=0; c<(me->_nparents); c++) {
-		/*printf ("parent %d of %d is %d\n",c,me,me->_parents[c]);*/
 		shapeParent = X3D_NODE(me->_parents[c]);
-		/*printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents);*/
-		/*printf ("parent %d of %d is %d\n",c,shapeParent,shapeParent->_parents[c]);*/
+	
+		/* this had BETTER be a NODE_Shape node... */
+		if (shapeParent->_nodeType != NODE_Shape) {
+			printf ("setExtent, invalid shapeParent, found %s\n",stringNodeType(shapeParent->_nodeType));
+			return;
+		}
+
+		printf ("parent %u of %u is %u, type %s\n",c,me,me->_parents[c],stringNodeType(shapeParent->_nodeType)); 
+		printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents);
 
 		for (d=0; d<(shapeParent->_nparents); d++) {
 			geomParent = X3D_NODE(shapeParent->_parents[d]);
+
+		printf ("parent %u of shape %u is %u, type %s\n",c,shapeParent,geomParent,
+			stringNodeType(geomParent->_nodeType)); 
+if (!checkNode(geomParent, "rest", 10)) printf ("problem here with checkNode\n");
+
 
 			/* printf ("geomParent dist is %lf\n",geomParent->_dist); */
 			/* note, maxz is positive, minz is negative, distance should be negative, so we take a negative distance,
@@ -156,6 +170,7 @@ void propagateExtent(struct X3D_Node *me) {
 		if (miny < geomParent->EXTENT_MIN_Y) geomParent->EXTENT_MIN_Y = miny;
 		if (maxz > geomParent->EXTENT_MAX_Z) geomParent->EXTENT_MAX_Z = maxz;
 		if (minz < geomParent->EXTENT_MIN_Z) geomParent->EXTENT_MIN_Z = minz;
+
 		#ifdef FRUSTUMPRINT
 		printf ("now, propextent, me %d my parent %d is %d (%s) ext %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f\n",
 			me,i,geomParent, stringNodeType(geomParent->_nodeType),
@@ -172,6 +187,7 @@ void BoundingBox(struct X3D_Node * me) {
 
 	nt = me->_nodeType;
 
+#define FRUSTUMPRINT
 	#ifdef FRUSTUMPRINT
 	printf ("bbox for %s (%3.2f %3.2f)  (%3.2f %3.2f) (%3.2f %3.2f)\n",stringNodeType(nt),
 		me->EXTENT_MIN_X, me->EXTENT_MAX_X,
@@ -179,25 +195,27 @@ void BoundingBox(struct X3D_Node * me) {
 		me->EXTENT_MIN_Z, me->EXTENT_MAX_Z);
 	#endif
 
+#undef FRUSTUMPRINT
 	/* show a bounding box around each grouping node */
 	DISABLE_CULL_FACE
 	LIGHTING_OFF
-/*
 	if (nt == NODE_Transform) 
 		glColor3f(1.0, 0.0, 0.0);
 	else if (nt == NODE_Group)
 		glColor3f(0.0, 1.0, 0.0);
+	else if (nt == NODE_Anchor)
+		glColor3f(0.5, 0.5, 0.0);
 	else
 		glColor3f (0.0, 0.0, 1.0);
-*/
 
 	/* color if bounding box not set properly */
-
+/*
 	if (me->EXTENT_MAX_X <= -999.9) {
 		glColor3f (1.0, 1.0, 0.0);
 	} else {
 		glColor3f(1.0, 0.0, 0.0);
 	}
+*/
 	
 
 	/* top of box */

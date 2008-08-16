@@ -238,17 +238,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* Lets do viewpoints last */
 	normalChildren(node->segments);
 
-
-	/* BoundingBox/Frustum stuff */
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-	}
-
 	/* did we have that directionalLight? */
-
 	DIRECTIONAL_LIGHT_OFF
 }
 
@@ -269,15 +259,6 @@ return;
 	/* just render the non-directionalLight children */
 	normalChildren(node->children);
 
-
-	/* BoundingBox/Frustum stuff */
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-	}
 #endif
 }
 
@@ -300,16 +281,6 @@ note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
-
-
-	/* BoundingBox/Frustum stuff */
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-	}
 #endif
 }
 
@@ -329,16 +300,6 @@ return;
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
-
-
-	/* BoundingBox/Frustum stuff */
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-	}
 
 	DIRECTIONAL_LIGHT_OFF
 #endif

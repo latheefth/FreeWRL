@@ -199,18 +199,9 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
+	BOUNDINGBOX
 
-	/* BoundingBox/Frustum stuff */
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX	
-
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-	}
-
-
-			if (createlist) glEndList();
+	if (createlist) glEndList();
 
 	DIRECTIONAL_LIGHT_OFF
 }
@@ -252,16 +243,7 @@ void child_Group (struct X3D_Group *node) {
 		normalChildren(node->children);
 	}
 
-
-	/* BoundingBox/Frustum stuff */
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-	}
-
+	BOUNDINGBOX
 	DIRECTIONAL_LIGHT_OFF
 }
 
@@ -352,19 +334,7 @@ void child_Transform (struct X3D_Transform *node) {
 	}
 #endif
 
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-		node->bboxCenter.c[0] = node->translation.c[0];
-		node->bboxCenter.c[1] = node->translation.c[1];
-		node->bboxCenter.c[2] = node->translation.c[2];
-
-		/* pass the bounding box calculations on up the chain */
-		propagateExtent(X3D_NODE(node));
-		BOUNDINGBOX
-
-	}
-
-
+	BOUNDINGBOX
 	DIRECTIONAL_LIGHT_OFF
 }
 

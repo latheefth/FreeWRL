@@ -198,10 +198,7 @@ void child_Collision (struct X3D_Collision *node) {
 		/* now, just render the non-directionalLight children */
 		normalChildren(node->children);
 
-		if (render_geom && (!render_blend)) {
-			EXTENTTOBBOX
-			BOUNDINGBOX
-		}
+		BOUNDINGBOX
 
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD END %d\n",node);
@@ -213,6 +210,7 @@ void child_Collision (struct X3D_Collision *node) {
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */
 void child_LOD (struct X3D_LOD *node) {
         render_node(node->_selected);
+	BOUNDINGBOX
 }
 
 
@@ -296,14 +294,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-		BOUNDINGBOX
-	}
-
-	#ifdef CHILDVERBOSE
-	printf("RENDER BILLBOARD END %d\n",node);
-	#endif
+	BOUNDINGBOX
 
 	DIRECTIONAL_LIGHT_OFF
 }

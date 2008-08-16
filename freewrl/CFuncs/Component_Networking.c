@@ -1170,10 +1170,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-		BOUNDINGBOX
-	}
+	BOUNDINGBOX
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER ANCHOR END %d\n",node);
@@ -1212,14 +1209,6 @@ void child_Inline (struct X3D_Inline *node) {
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->__children);
-
-	if (render_geom && (!render_blend)) {
-		EXTENTTOBBOX
-                /* pass the bounding box calculations on up the chain */
-                propagateExtent(X3D_NODE(node));
-
-		BOUNDINGBOX
-	}
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER INLINE END %d\n",node);

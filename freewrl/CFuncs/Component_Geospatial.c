@@ -1512,6 +1512,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 		printf ("GeoLocation - done normalChildren\n");
 	#endif
 
+#ifdef OLDCODE
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
 		node->bboxCenter.c[0] = node->__movedCoords.c[0];
@@ -1523,6 +1524,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 		BOUNDINGBOX
 
 	}
+#endif
 
 
 	DIRECTIONAL_LIGHT_OFF

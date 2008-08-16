@@ -162,7 +162,7 @@ extern int MAXJSparamNames;
 #endif
 
 /* display the BoundingBoxen */
-#undef DISPLAYBOUNDINGBOX
+#undef  DISPLAYBOUNDINGBOX
 
 /* rendering constants used in SceneGraph, etc. */
 #define VF_Viewpoint 				0x0001
@@ -313,12 +313,7 @@ extern int QueryCount;
                                 		glEndQuery(GL_SAMPLES_PASSED);   \
 						/* printf ("ending query for %d\n",node->__OccludeNumber); */ \
 					}}} 
-
-/* bounding box calculations */
-#define EXTENTTOBBOX    node->bboxSize.c[0] = node->EXTENT_MAX_X; \
-                        node->bboxSize.c[1] = node->EXTENT_MAX_Y; \
-                        node->bboxSize.c[2] = node->EXTENT_MAX_Z;
-
+#define EXTENTTOBBOX
 #define INITIALIZE_EXTENT        node->EXTENT_MAX_X = -10000.0; \
         node->EXTENT_MAX_Y = -10000.0; \
         node->EXTENT_MAX_Z = -10000.0; \
@@ -951,7 +946,7 @@ void propagateExtent (struct X3D_Node *this_);
 
 #ifdef DISPLAYBOUNDINGBOX
 void BoundingBox(struct X3D_Node* node);
-#define BOUNDINGBOX BoundingBox ((struct X3D_Node *)node);
+#define BOUNDINGBOX if (render_geom && (!render_blend)) BoundingBox (X3D_NODE(node));
 #else
 #define BOUNDINGBOX
 #endif

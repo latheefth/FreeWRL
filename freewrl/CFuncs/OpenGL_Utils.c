@@ -392,7 +392,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 		kill_routing();
 
 		/* stop rendering */
-		((struct X3D_Group*)rootNode)->children.n = 0;
+		X3D_GROUP(rootNode)->children.n = 0;
 
 		/* tell the statusbar that it needs to reinitialize */
 		kill_status();
@@ -430,7 +430,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
 		/* just a replaceWorld from EAI or from Javascript */
 
 		/* stop rendering */
-		((struct X3D_Group*)rootNode)->children.n = 0;
+		X3D_GROUP(rootNode)->children.n = 0;
 
 	        /* tell statusbar that we have none */
 	        viewer_default();
@@ -683,6 +683,11 @@ void zeroVisibilityFlag(void) {
 	}
 
 
+#define EXTENT_TO_BBOX(thistype) \
+	((struct X3D_##thistype *)node)->bboxSize.c[0] = ((struct X3D_##thistype *)node)->EXTENT_MAX_X; \
+	((struct X3D_##thistype *)node)->bboxSize.c[1] = ((struct X3D_##thistype *)node)->EXTENT_MAX_Y; \
+	((struct X3D_##thistype *)node)->bboxSize.c[2] = ((struct X3D_##thistype *)node)->EXTENT_MAX_Z;
+
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
 	struct X3D_Node* parents;
@@ -699,6 +704,7 @@ void startOfLoopNodeUpdates(void) {
 	/* for Shape distance calculations */
 	double farDistThreshold;
 	double farDefaultDistance;
+
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
@@ -847,26 +853,82 @@ void startOfLoopNodeUpdates(void) {
 	
 				/* Anchor is Mouse Sensitive, AND has Children nodes */
 				BEGIN_NODE(Anchor)
-				ANCHOR_SENSITIVE(Anchor)
-				CHILDREN_NODE(Anchor)
+					EXTENT_TO_BBOX(Anchor)
+					propagateExtent(X3D_NODE(node));
+					ANCHOR_SENSITIVE(Anchor)
+					CHILDREN_NODE(Anchor)
 				END_NODE
 				
 				/* maybe this is the current Viewpoint? */
 				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
 				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
 	
+				BEGIN_NODE(StaticGroup)
+					propagateExtent(X3D_NODE(node));
+				END_NODE
+
 				/* does this one possibly have add/removeChildren? */
-				BEGIN_NODE(Group) CHILDREN_NODE(Group) END_NODE
-				BEGIN_NODE(Transform) CHILDREN_NODE(Transform) END_NODE
-				BEGIN_NODE(NurbsGroup) CHILDREN_NODE(NurbsGroup) END_NODE
-				BEGIN_NODE(Contour2D) CHILDREN_NODE(Contour2D) END_NODE
-				BEGIN_NODE(HAnimSite) CHILDREN_NODE(HAnimSite) END_NODE
-				BEGIN_NODE(HAnimSegment) CHILDREN_NODE(HAnimSegment) END_NODE
-				BEGIN_NODE(HAnimJoint) CHILDREN_NODE(HAnimJoint) END_NODE
-				BEGIN_NODE(Billboard) CHILDREN_NODE(Billboard) END_NODE
-				BEGIN_NODE(Collision) CHILDREN_NODE(Collision) END_NODE
-				BEGIN_NODE(Switch) CHILDREN_SWITCH_NODE(Switch) END_NODE
+				BEGIN_NODE(Group) 
+					EXTENT_TO_BBOX(Group) 
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(Group) 
+				END_NODE
+
+				BEGIN_NODE(Inline) 
+					EXTENT_TO_BBOX(Inline) 
+					propagateExtent(X3D_NODE(node));
+				END_NODE
+
+				BEGIN_NODE(Transform) 
+					EXTENT_TO_BBOX(Transform)
+			                X3D_TRANSFORM(node)->bboxCenter.c[0] = X3D_TRANSFORM(node)->translation.c[0];
+                			X3D_TRANSFORM(node)->bboxCenter.c[1] = X3D_TRANSFORM(node)->translation.c[1];
+                			X3D_TRANSFORM(node)->bboxCenter.c[2] = X3D_TRANSFORM(node)->translation.c[2];
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(Transform) 
+				END_NODE
+
+				BEGIN_NODE(NurbsGroup) 
+					CHILDREN_NODE(NurbsGroup) 
+				END_NODE
+
+				BEGIN_NODE(Contour2D) 
+					CHILDREN_NODE(Contour2D) 
+				END_NODE
+
+				BEGIN_NODE(HAnimSite) 
+					CHILDREN_NODE(HAnimSite) 
+				END_NODE
+
+				BEGIN_NODE(HAnimSegment) 
+					CHILDREN_NODE(HAnimSegment) 
+				END_NODE
+
+				BEGIN_NODE(HAnimJoint) 
+					CHILDREN_NODE(HAnimJoint) 
+				END_NODE
+
+				BEGIN_NODE(Billboard) 
+					EXTENT_TO_BBOX(Billboard)
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(Billboard) 
+				END_NODE
+
+				BEGIN_NODE(Collision) 
+					EXTENT_TO_BBOX(Collision)
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(Collision) 
+				END_NODE
+
+				BEGIN_NODE(Switch) 
+					EXTENT_TO_BBOX(Switch)
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_SWITCH_NODE(Switch) 
+				END_NODE
+
 				BEGIN_NODE(LOD) 
+					EXTENT_TO_BBOX(LOD) 
+					propagateExtent(X3D_NODE(node));
 					CHILDREN_LOD_NODE 
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
@@ -881,7 +943,9 @@ void startOfLoopNodeUpdates(void) {
 
 				/* VisibilitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (VisibilitySensor)
-                		update_renderFlag(node,VF_Blend);
+					EXTENT_TO_BBOX(VisibilitySensor) 
+					propagateExtent(X3D_NODE(node));
+                			update_renderFlag(node,VF_Blend);
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */
@@ -949,7 +1013,6 @@ void startOfLoopNodeUpdates(void) {
 	if (viewpoint_stack[viewpoint_tos] != 0) {
 		update_renderFlag(X3D_NODE(viewpoint_stack[viewpoint_tos]), VF_Viewpoint);
 	}
-
 }
 
 
