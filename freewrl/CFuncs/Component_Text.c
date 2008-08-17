@@ -31,7 +31,7 @@
 #include <stdio.h>
 
 #include <ft2build.h>
-#include <ftoutln.h>
+/* #include <ftoutln.h> */
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
