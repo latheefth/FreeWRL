@@ -16,9 +16,9 @@
 BIN_DIR =>  "/usr/bin",				# binary files
 LIB_DIR => "/usr/lib",				# shared libraries
 INSTALL_DIR =>"/usr/share",			# fonts, application pixmaps, etc
-#NETSCAPE_INST => '/usr/lib/firefox/plugins',	# plugin stuff. If not wanted, COMMENT OUT
+NETSCAPE_INST => '/usr/lib/mozilla/plugins',	# plugin stuff. If not wanted, COMMENT OUT
 #NETSCAPE_INST => '/usr/lib/mozilla/plugins-wrapped/',
-NETSCAPE_INST => '/usr/lib64/firefox/plugins/',  #Ubuntu 64 
+#NETSCAPE_INST => '/usr/lib64/firefox/plugins/',  #Ubuntu 64 
 
 
 # fontsdir - we can specify exactly where fonts files for "Text" nodes are:
@@ -29,23 +29,29 @@ NETSCAPE_INST => '/usr/lib64/firefox/plugins/',  #Ubuntu 64
 
 # Which browser to invoke for Anchors, etc:
 # find at build time: BROWSER => "/usr/bin/firefox",		
+BROWSER => "/usr/bin/mozilla",
 
 # How to get http:// files when running standalone (ie, not as a plugin)
 # find at build time: WGET => "/usr/bin/wget",
+WGET => "/usr/bin/wget",
 
 # conversion program - allows FreeWRL to handle many, many image types
 # without having to have the code itself.
 # find at build time: CONVERT => "/usr/bin/convert",
+CONVERT => "/usr/bin/convert",
 
 # some wrl/x3d files are zipped; how do we unzip them?
 # find at build time: UNZIP => "/bin/gunzip",	
+UNZIP => "/bin/gunzip",
 
 # Java Runtime. Java, Jikes, etc is ok, so long as it is not ancient.
 #if you do not have Java, comment this and the JAVA_INST line below out.
 # find at build time: JAVA => "/usr/bin/java",
+JAVA => "/usr/bin/java",
 
 # allow freewrl to play many, many types of sound files; eg, AIFF, etc.
 # find at build time: SOUNDCONV => "/usr/bin/sox",
+SOUNDCONV => "/usr/bin/sox",
 
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
