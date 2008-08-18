@@ -910,8 +910,16 @@ void startOfLoopNodeUpdates(void) {
 
 				BEGIN_NODE(Billboard) 
 					EXTENT_TO_BBOX(Billboard)
+
+/*printf ("Billboard, ext %lf, rot %lf, result ",X3D_BILLBOARD(node)->bboxSize.c[1], X3D_BILLBOARD(node)->_rotationAngle);
+        X3D_BILLBOARD(node)->bboxSize.c[1] *= ((double) 1.0 + X3D_BILLBOARD(node)->axisOfRotation.c[1]*sin(X3D_BILLBOARD(node)->_rotationAngle)); 
+printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
+*/
+					
+
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
+                			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
@@ -943,19 +951,17 @@ void startOfLoopNodeUpdates(void) {
 
 				/* VisibilitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (VisibilitySensor)
-					EXTENT_TO_BBOX(VisibilitySensor) 
-					propagateExtent(X3D_NODE(node));
                 			update_renderFlag(node,VF_Blend);
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (ProximitySensor)
-                		update_renderFlag(node,VF_Proximity);
+                			update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				/* GeoLOD needs its own flag sent up the chain */
 				BEGIN_NODE (GeoLOD)
-                		update_renderFlag(node,VF_Proximity);
+                			update_renderFlag(node,VF_Proximity);
 				END_NODE
 			}
 		}

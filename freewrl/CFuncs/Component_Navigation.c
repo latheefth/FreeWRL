@@ -58,7 +58,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
-void prep_Billboard (struct X3D_Billboard *node) {
+void proximity_Billboard (struct X3D_Billboard *node) {
 	struct point_XYZ vpos, ax, cp, cp2, arcp;
 	static const struct point_XYZ orig = {0.0, 0.0, 0.0};
 	static const struct point_XYZ zvec = {0.0, 0.0, 1.0};
@@ -66,7 +66,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	GLdouble mod[16];
 	GLdouble proj[16];
 	int align;
-	double len, len2, angle;
+	double len, len2;
 	int sign;
 
 	RECORD_DISTANCE
@@ -79,8 +79,6 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	quaternion_to_vrmlrot(&(Viewer.Quat),
 		&(viewer_orient.x), &(viewer_orient.y),
 		&(viewer_orient.z), &(viewer_orient.a));
-
-	glPushMatrix();
 
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
@@ -121,13 +119,94 @@ void prep_Billboard (struct X3D_Billboard *node) {
 
 	/* Now we need to find the sign first */
 	if (VECPT(cp, arcp) > 0) { sign = -1; } else { sign = 1; }
-	angle = atan2(len2, sign*len);
+	node->_rotationAngle = atan2(len2, sign*len);
 
-	glRotatef(angle/3.1415926536*180, ax.x, ax.y, ax.z);
-	invalidateCurMat();  /* force a glGetMatrix from the system */
+	#ifdef BILLBOARDVERBOSE
+	printf ("proximity_Billboard, rotating angle, %f\n",node->_rotationAngle);
+        printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+	#endif
+
 }
 
 
+/* do rotation, calculate the distance */
+void prep_Billboard (struct X3D_Billboard *node) {
+	/* do we have any geometry visible, and are we doing anything with geometry? */
+	#ifdef BILLBOARDVERBOSE
+	printf ("prep_Billboard");
+        printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+	#endif
+
+
+	OCCLUSIONTEST
+
+	if(!render_proximity) {
+		fwXformPush(node);
+
+		/* might we have had a change to a previously ignored value? */
+	#ifdef BILLBOARDVERBOSE
+		printf ("prep_Billboard; angle %lf\n",node->_rotationAngle);
+	#endif
+
+		glRotatef(node->_rotationAngle/3.1415926536*180, node->axisOfRotation.c[0],
+			node->axisOfRotation.c[1], node->axisOfRotation.c[2]);
+		RECORD_DISTANCE
+        }
+}
+
+
+void fin_Billboard (struct X3D_Billboard *node) {
+	OCCLUSIONTEST
+
+	#ifdef BILLBOARDVERBOSE
+	printf ("fin_Billboard");
+        printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+	#endif
+
+        if(!render_proximity) {
+            fwXformPop(node);
+        }
+} 
+void  child_Billboard (struct X3D_Billboard *node) {
+	int nc = (node->children).n;
+	DIRECTIONAL_LIGHT_SAVE
+
+	#ifdef BILLBOARDVERBOSE
+	printf ("child_Billboard\n");
+	#endif
+
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+
+	/* do we have to sort this node? */
+	if ((nc > 1 && !render_blend)) sortChildren(node->children);
+
+	/* do we have a DirectionalLight for a child? */
+	DIRLIGHTCHILDREN(node->children);
+
+	/* now, just render the non-directionalLight children */
+	normalChildren(node->children);
+
+	BOUNDINGBOX
+
+	DIRECTIONAL_LIGHT_OFF
+	glPopMatrix();
+}
+
+
+void changed_Billboard (struct X3D_Billboard *node) {
+        int i;
+        int nc = ((node->children).n);
+        struct X3D_Node *p;
+        struct X3D_Virt *v;
+
+	#ifdef BILLBOARDVERBOSE
+	printf ("changeod_Billboard\n");
+	#endif
+	INITIALIZE_EXTENT
+}
 
 void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
@@ -139,11 +218,6 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	if(!node->isBound) return;
 }
 
-void fin_Billboard (struct X3D_Billboard *node) {
-	UNUSED(node);
-	glPopMatrix();
-	invalidateCurMat();
-}
 
 
 void child_Collision (struct X3D_Collision *node) {
@@ -273,41 +347,6 @@ void proximity_LOD (struct X3D_LOD *node) {
 	}
 }
 
-void  child_Billboard (struct X3D_Billboard *node) {
-	int nc = (node->children).n;
-	DIRECTIONAL_LIGHT_SAVE
-
-
-	/* any children at all? */
-	if (nc==0) return;
-
-	#ifdef CHILDVERBOSE
-	printf("RENDER BILLBOARD START %d (%d)\n",node, nc);
-	#endif
-
-	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(node->children);
-
-	/* do we have a DirectionalLight for a child? */
-	DIRLIGHTCHILDREN(node->children);
-
-	/* now, just render the non-directionalLight children */
-	normalChildren(node->children);
-
-	BOUNDINGBOX
-
-	DIRECTIONAL_LIGHT_OFF
-}
-
-
-void changed_Billboard (struct X3D_Billboard *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-                struct X3D_Virt *v;
-
-		INITIALIZE_EXTENT
-}
 
 
 void changed_Inline (struct X3D_Inline *node) {

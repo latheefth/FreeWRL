@@ -65,8 +65,6 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	struct X3D_Node *geomParent;
 	double tminp, tmaxp;
 
-	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f nt %s\n",
-			maxx, minx, maxy, miny, maxz, minz, stringNodeType(me->_nodeType));
 	#ifdef FRUSTUMVERBOSE
 	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f nt %s\n",
 			maxx, minx, maxy, miny, maxz, minz, stringNodeType(me->_nodeType));
@@ -81,32 +79,38 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 			return;
 		}
 
+		#ifdef FRUSTUMVERBOSE
 		printf ("parent %u of %u is %u, type %s\n",c,me,me->_parents[c],stringNodeType(shapeParent->_nodeType)); 
 		printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents);
+		#endif
 
 		for (d=0; d<(shapeParent->_nparents); d++) {
 			geomParent = X3D_NODE(shapeParent->_parents[d]);
 
-		printf ("parent %u of shape %u is %u, type %s\n",c,shapeParent,geomParent,
-			stringNodeType(geomParent->_nodeType)); 
-if (!checkNode(geomParent, "rest", 10)) printf ("problem here with checkNode\n");
-
-
+			#ifdef FRUSTUMVERBOSE
+			printf ("parent %u of shape %u is %u, type %s\n",c,shapeParent,geomParent,
+				stringNodeType(geomParent->_nodeType)); 
+	
+			/* is there a problem with this geomParent? */
+			if (!checkNode(geomParent, __FILE__, __LINE__)) printf ("problem here with checkNode\n");
+			#endif
+	
+	
 			/* printf ("geomParent dist is %lf\n",geomParent->_dist); */
 			/* note, maxz is positive, minz is negative, distance should be negative, so we take a negative distance,
 				and subtract the "positive" z value to get the closest point, then take the negative distance,
 				and subtract the "negative" z value to get the far distance */
-
+	
 			/* printf ("so, z buffer for this shape should be: %lf, %lf\n",geomParent->_dist-minz, geomParent->_dist-maxz); */
-
-#define FUDGEFACTOR 1.6
+	
+			#define FUDGEFACTOR 1.6
 			tminp = -(geomParent->_dist-minz) / FUDGEFACTOR; /* numbers should be rotated as per parent rotation */
 			tmaxp = -(geomParent->_dist-maxz) * FUDGEFACTOR; /* numbers should be rotated as per parent rotation */
-
+	
 			/* printf ("tminp %lf, tmaxp %lf\n",tminp, tmaxp); */
 			if (tminp < calculatedNearPlane) calculatedNearPlane = tminp;
 			if (tmaxp > calculatedFarPlane) calculatedFarPlane = tmaxp;
- 
+	 
 			if (maxx > geomParent->EXTENT_MAX_X) geomParent->EXTENT_MAX_X = maxx;
 			if (minx < geomParent->EXTENT_MIN_X) geomParent->EXTENT_MIN_X = minx;
 			if (maxy > geomParent->EXTENT_MAX_Y) geomParent->EXTENT_MAX_Y = maxy;
@@ -187,7 +191,6 @@ void BoundingBox(struct X3D_Node * me) {
 
 	nt = me->_nodeType;
 
-#define FRUSTUMPRINT
 	#ifdef FRUSTUMPRINT
 	printf ("bbox for %s (%3.2f %3.2f)  (%3.2f %3.2f) (%3.2f %3.2f)\n",stringNodeType(nt),
 		me->EXTENT_MIN_X, me->EXTENT_MAX_X,
@@ -195,7 +198,6 @@ void BoundingBox(struct X3D_Node * me) {
 		me->EXTENT_MIN_Z, me->EXTENT_MAX_Z);
 	#endif
 
-#undef FRUSTUMPRINT
 	/* show a bounding box around each grouping node */
 	DISABLE_CULL_FACE
 	LIGHTING_OFF

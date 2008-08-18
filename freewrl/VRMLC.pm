@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.301  2008/08/18 14:45:38  crc_canada
+# Billboard node Scene Graph changes.
+#
 # Revision 1.300  2008/08/14 05:02:31  crc_canada
 # Bindable threading issues, continued; EXAMINE mode default rotation distance, continued; LOD improvements.
 #
@@ -792,6 +795,7 @@ sub gen {
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
+	"#define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)\n".
 	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".

@@ -1021,6 +1021,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *this_);
 
 /* Navigation Component */
 void prep_Billboard (struct X3D_Billboard *this_);
+void proximity_Billboard (struct X3D_Billboard *this_);
 void changed_Billboard (struct X3D_Billboard *this_);
 void prep_Viewpoint(struct X3D_Viewpoint *node);
 void child_Billboard (struct X3D_Billboard *this_);

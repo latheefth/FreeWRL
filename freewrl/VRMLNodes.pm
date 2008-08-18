@@ -1109,6 +1109,7 @@ package VRML::NodeType;
 						children => [MFNode, [], inputOutput],
 						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+						_rotationAngle =>[SFDouble, 0, initializeOnly],
 					   },"X3DGroupingNode"),
 
 	Collision => new VRML::NodeType("Collision", {
