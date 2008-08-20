@@ -377,10 +377,10 @@ sub writeMakefileFinalTargets() {
 	print MK "\n";
 
 	print MK "install:\tall	\n";
-	print MK "\tinstall -s -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
-	print MK "\tinstall -s -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
+	print MK "\tinstall -D CFrontEnd/freewrl \$(DESTDIR)\$(FRONTEND_DIR)/freewrl\n";
+	print MK "\tinstall -D FreeWRL_Msg/FreeWRL_Message \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_Message\n";
 	if ($VRML_CONFIG{MIDI_ENGINE}) {
-		print MK "\tinstall -s -D MIDI/freewrlReWireServer \$(DESTDIR)\$(FRONTEND_DIR)/freewrlReWireServer\n";
+		print MK "\tinstall -D MIDI/freewrlReWireServer \$(DESTDIR)\$(FRONTEND_DIR)/freewrlReWireServer\n";
 	}
 	if ($OS eq "Linux") {
 		print MK "\tinstall -D libFreeWRLFunc.so \$(DESTDIR)\$(LIB_DIR)/libFreeWRLFunc.so\n";
@@ -398,7 +398,7 @@ sub writeMakefileFinalTargets() {
 		}
 	}
 	if ($VRML_CONFIG{SOUND_ENGINE}) { 
-		print MK "\tinstall -s -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
+		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
 	if ($VRML_CONFIG{NETSCAPE_INST} ne "") {
 		print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
