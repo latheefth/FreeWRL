@@ -1,0 +1,3 @@
+#define PLUGIN_DESCRIPTION "<b>VRML/X3D plugin</b>, visit us at <a href=\"http://freewrl.sourceforge.net/\">http://freewrl.sourceforge.net/</a>.<br>" \
+	"Version: @PLUGIN_VERSION@<br>" \
+	"Build: @BUILD_TIMESTAMP@"

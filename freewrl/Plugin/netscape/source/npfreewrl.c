@@ -35,7 +35,7 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V4.8 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#include "pluginVersion.h" /* define PLUGIN_DESCRIPTION */
 
 #define ERRORMSG "FILE DOES NOT EXIST"
 

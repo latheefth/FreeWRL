@@ -341,6 +341,8 @@ sub writeMakefileInitialize() {
 	
 	# do the headers.
 	print MK "#Make file for FreeWRL\n";
+	print MK "VERSION=$VERSION\n";
+	print MK "PLUGIN_VERSION=$VERSION\n";
 	print MK "CC = gcc\n";
 	print MK "JAVAC = javac\n";
 	print MK "INC = $MYINC\n";
@@ -584,9 +586,13 @@ sub write_linux_makefile_javaClasses() {
 
 sub writeMakefileBrowserPlugin() {
     if ($VRML_CONFIG{NETSCAPE_INST}) {
-	    print MK "\n# make the Mozilla plugin\n";
-	    print MK "\$(PLOBJS): \$(PLSRCS)\n";
-	    print MK "\t\$(COMPILE) $pg_plugin_cflags -DMOZ_X11 -IPlugin/netscape/include -c \$*.c -o \$*.o\n\n"; # NSPR
+	    print MK "\n# Make the Mozilla plugin:\n\n";
+		print MK "Plugin/netscape/pluginVersion.h: Plugin/netscape/pluginVersion.h.in\n";
+		print MK "\tsed -e \"s/\@PLUGIN_VERSION@/\$(PLUGIN_VERSION)/\" \\\n";
+		print MK "\t\t-e \"s/\@BUILD_TIMESTAMP@/\$(shell date +%F_%T)/\" \\\n";
+		print MK "\t\t< \$^ > \$@\n\n";
+	    print MK "\$(PLOBJS): \$(PLSRCS) Plugin/netscape/pluginVersion.h\n";
+	    print MK "\t\$(COMPILE) $pg_plugin_cflags -DMOZ_X11 -IPlugin/netscape -IPlugin/netscape/include -c \$*.c -o \$*.o\n\n"; # NSPR
 	    print MK "Plugin: Plugin/npfreewrl.so\n";
 	    print MK "Plugin/npfreewrl.so: \$(PLOBJS)\n";
 	    print MK "\t\$(COMPILE) -shared $pg_plugin_libs -o Plugin/npfreewrl.so \$(PLOBJS)\n\n";
@@ -670,7 +676,7 @@ sub writeMakefileDistclean() {
 	print MK "clean-front-end:\n";
 	print MK "\trm -f CFrontEnd/freewrl CFrontEnd/*.o\n";
 	print MK "clean-plugin:\n";
-	print MK "\techo TODO\n";
+	print MK "\trm -f Plugin/npfreewrl.so \$(PLOBJS) Plugin/netscape/pluginVersion.h\n";
 	print MK "clean:\n";
 	print MK "\trm -f CFuncs/*o\n";
 	print MK "\trm -f libFreeWRLFunc.so\n";
@@ -691,6 +697,7 @@ sub writeMakefileDistclean() {
 		print MK "\trm -f Plugin/npfreewrl.so\n";
 		print MK "\trm -f Plugin/netscape/source/npfreewrl.o\n";
 		print MK "\trm -f Plugin/netscape/source/common/npunix.o\n";
+		print MK "\trm -f Plugin/netscape/pluginVersion.h\n";
 	}
 	if ($JAVAC ne "") {
 	    print MK "\trm -f java/classes/vrml/external/field/*class\n";
