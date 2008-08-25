@@ -815,6 +815,7 @@ void store_tex_info(
 		int y,
 		unsigned char *ptr,
 		int hasAlpha) {
+
 	me->frames=1;
 	me->depth=depth;
 	me->x = x;
@@ -1604,68 +1605,66 @@ estimates. */
 
 static inline double radians (double degrees) {return degrees * M_PI/180;}
 CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
-    CGContextRef    context = NULL;
-    CGColorSpaceRef colorSpace;
-    void *          bitmapData;
-    int             bitmapByteCount;
-    int             bitmapBytesPerRow;
+	CGContextRef    context = NULL;
+	CGColorSpaceRef colorSpace;
+	void *          bitmapData;
+	int             bitmapByteCount;
+	int             bitmapBytesPerRow;
 
-     // Get image width, height. Well use the entire image.
-    size_t pixelsWide = CGImageGetWidth(inImage);
-    size_t pixelsHigh = CGImageGetHeight(inImage);
+	 // Get image width, height. Well use the entire image.
+	size_t pixelsWide = CGImageGetWidth(inImage);
+	size_t pixelsHigh = CGImageGetHeight(inImage);
 
-    // Declare the number of bytes per row. Each pixel in the bitmap in this
-    // example is represented by 4 bytes; 8 bits each of red, green, blue, and
-    // alpha.
-    bitmapBytesPerRow   = (pixelsWide * 4);
-    bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
+	// Declare the number of bytes per row. Each pixel in the bitmap in this
+	// example is represented by 4 bytes; 8 bits each of red, green, blue, and
+	// alpha.
+	bitmapBytesPerRow   = (pixelsWide * 4);
+	bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
 
-    // Use the generic RGB color space.
-    colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-    if (colorSpace == NULL)
-    {
-        fprintf(stderr, "Error allocating color space\n");
-        return NULL;
-    }
+	// Use the generic RGB color space.
+	colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+	if (colorSpace == NULL)
+	{
+	    fprintf(stderr, "Error allocating color space\n");
+	    return NULL;
+	}
 
-    // Allocate memory for image data. This is the destination in memory
-    // where any drawing to the bitmap context will be rendered.
-    bitmapData = malloc( bitmapByteCount );
-    if (bitmapData == NULL)
-    {
-        fprintf (stderr, "Memory not allocated!");
-        CGColorSpaceRelease( colorSpace );
-        return NULL;
-    }
+	// Allocate memory for image data. This is the destination in memory
+	// where any drawing to the bitmap context will be rendered.
+	bitmapData = malloc( bitmapByteCount );
+	if (bitmapData == NULL)
+	{
+	    fprintf (stderr, "Memory not allocated!");
+	    CGColorSpaceRelease( colorSpace );
+	    return NULL;
+	}
 
-    // Create the bitmap context. We want pre-multiplied ARGB, 8-bits
-    // per component. Regardless of what the source image format is
-    // (CMYK, Grayscale, and so on) it will be converted over to the format
-    // specified here by CGBitmapContextCreate.
-    context = CGBitmapContextCreate (bitmapData,
-                                    pixelsWide,
-                                    pixelsHigh,
-//                                    CGImageGetBitsPerComponent(inImage),      // bits per component
-					8,
-                                    bitmapBytesPerRow,
-                                    colorSpace,
-                                    kCGImageAlphaNoneSkipLast);
-				/* kCGImageAlphaLast); */
+	// Create the bitmap context. We want pre-multiplied ARGB, 8-bits
+	// per component. Regardless of what the source image format is
+	// (CMYK, Grayscale, and so on) it will be converted over to the format
+	// specified here by CGBitmapContextCreate.
+	context = CGBitmapContextCreate (bitmapData,
+		pixelsWide,
+		pixelsHigh,
+		CGImageGetBitsPerComponent(inImage),      // bits per component
+		bitmapBytesPerRow,
+		colorSpace,
+	        kCGImageAlphaNoneSkipLast); 
 
-    if (context == NULL) {
-        free (bitmapData);
-        fprintf (stderr, "Context not created!");
-    } else {
+	if (context == NULL) {
+	    free (bitmapData);
+	    fprintf (stderr, "Context not created!");
+	} else {
 
-    	// try scaling and rotating this image to fit our ideas on life in general
-    	CGContextTranslateCTM (context, 0, pixelsHigh);
-    	CGContextScaleCTM (context,1.0, -1.0);
-    }
+		// try scaling and rotating this image to fit our ideas on life in general
+		CGContextTranslateCTM (context, 0, pixelsHigh);
+		CGContextScaleCTM (context,1.0, -1.0);
+	}
 
-    // Make sure and release colorspace before returning
-    CGColorSpaceRelease( colorSpace );
+	// Make sure and release colorspace before returning
+	CGColorSpaceRelease( colorSpace );
 
-    return context;
+	return context;
 }
 
 
@@ -1692,9 +1691,7 @@ void __reallyloadImageTexture() {
 	CGImageSourceRef 	sourceRef;
 
 
-	/*
-	printf ("loading %s\n",loadThisTexture->filename);
-	*/
+	/* printf ("loading %s\n",loadThisTexture->filename); */
 
 	path = CFStringCreateWithCString(NULL, loadThisTexture->filename, kCFStringEncodingUTF8);
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
@@ -1704,9 +1701,9 @@ void __reallyloadImageTexture() {
 		/* printf ("this is a JPEG texture, try direct loading\n"); */
 		provider = CGDataProviderCreateWithURL(url);
 		if (loadThisTexture->imageType == JPGTexture) 
-			image = CGImageCreateWithJPEGDataProvider(provider, NULL, TRUE, kCGRenderingIntentDefault);
+			image = CGImageCreateWithJPEGDataProvider(provider, NULL, FALSE, kCGRenderingIntentDefault);
 		else
-			image = CGImageCreateWithPNGDataProvider(provider, NULL, TRUE, kCGRenderingIntentDefault);
+			image = CGImageCreateWithPNGDataProvider(provider, NULL, FALSE, kCGRenderingIntentDefault);
 		CGDataProviderRelease(provider);
 	} else {
 #ifdef TRY_QUICKTIME
@@ -1738,47 +1735,54 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 
 	image_width = CGImageGetWidth(image);
 	image_height = CGImageGetHeight(image);
+	hasAlpha = CGImageGetAlphaInfo(image) != kCGImageAlphaNone;
 
-/*	printf ("ok, so we have this image of bitsperpix %d; bitspercomponent %d; bytesperrow %d; height %d width %d\n",
-		CGImageGetBitsPerPixel(image),
-		CGImageGetBitsPerComponent(image),
-		CGImageGetBytesPerRow(image),
-		image_height, image_width); 
-*/
+	/*
+i	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
+
+	printf ("raw image, AlphaInfo %x\n",CGImageGetAlphaInfo(image));
+	printf ("raw image, BitmapInfo %x\n",CGImageGetBitmapInfo(image));
+	printf ("raw image, BitsPerComponent %d\n",CGImageGetBitsPerComponent(image));
+	printf ("raw image, BitsPerPixel %d\n",CGImageGetBitsPerPixel(image));
+	printf ("raw image, BytesPerRow %d\n",CGImageGetBytesPerRow(image));
+	printf ("raw image, ImageHeight %d\n",CGImageGetHeight(image));
+	printf ("raw image, ImageWidth %d\n",CGImageGetWidth(image));
+	*/
+
+
 
 	/* now, lets "draw" this so that we get the exact bit values */
 	cgctx = CreateARGBBitmapContext(image);
 	CGRect rect = {{0,0},{image_width,image_height}};
 	CGContextDrawImage(cgctx, rect,image);
 
+	/* 
+	printf ("GetAlphaInfo %x\n",CGBitmapContextGetAlphaInfo(cgctx));
+	printf ("GetBitmapInfo %x\n",CGBitmapContextGetBitmapInfo(cgctx));
+	printf ("GetBitsPerComponent %d\n",CGBitmapContextGetBitsPerComponent(cgctx));
+	printf ("GetBitsPerPixel %d\n",CGBitmapContextGetBitsPerPixel(cgctx));
+	printf ("GetBytesPerRow %d\n",CGBitmapContextGetBytesPerRow(cgctx));
+	printf ("GetHeight %d\n",CGBitmapContextGetHeight(cgctx));
+	printf ("GetWidth %d\n",CGBitmapContextGetWidth(cgctx));
+	*/
+
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
+if (CGBitmapContextGetWidth(cgctx) < 10) {
+int i;
+
+printf ("dumping image\n");
+for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
+printf ("%2x ",data[i]);
+}
+printf ("\n");
+}
 	/* is there possibly an error here, like a file that is not a texture? */
 	if (CGImageGetBitsPerPixel(image) == 0) {
 		ConsoleMessage ("texture file invalid: %s",loadThisTexture->filename);
 	}
 
 	if (data != NULL) {
-		/* printf ("bit depth is %d / %d, if it is 4 we will look for alpha\n",
-			CGImageGetBitsPerPixel(image), CGImageGetBitsPerComponent(image));  */
-
-		if (CGImageGetBitsPerComponent(image) != 0) {
-			if ((CGImageGetBitsPerPixel(image)/CGImageGetBitsPerComponent(image)) == 4) {
-				/* printf ("checking to see if image actually has alpha \n"); */
-				/* have an image. Quartz/Quicktime will read this in as a 4 byte alligned
-				   image; RGB images will have 4 bytes, RGBx where x is 0xff; RGBA images
-				   will have something sometimes other than 0xff. Go through and look at
-				   this last byte and see what we have */
-				for (count=3; count<image_width * image_height; count+=4) {
-					/* printf ("count %d byte %x\n",count,data[count]); */
-					if (data[count] != 0xff) {
-						/* printf ("image has alpha\n");   */
-						hasAlpha = TRUE;
-						break;
-					}
-				}
-			}
-		}
 		store_tex_info (loadThisTexture, 4, image_width, image_height,  data, hasAlpha);
 	}
 
