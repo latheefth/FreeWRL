@@ -136,9 +136,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 		if(!(node->geometry)) { return; }
 
-		/* mark that this shape was "done" for OcclusionTests */
-		if (node->__OccludeNumber < QueryCount) OccNodeRendered[node->__OccludeNumber] = TRUE;
-
 		RECORD_DISTANCE
 
 		if((render_collision) || (render_sensitive)) {

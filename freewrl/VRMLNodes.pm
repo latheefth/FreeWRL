@@ -449,7 +449,8 @@ package VRML::NodeType;
 						 geometry => [SFNode, NULL, inputOutput],
 						 bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 						 bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						 __OccludeNumber =>[SFInt32,-1,initializeOnly], # for Occlusion tests.
+						 __visible =>[SFInt32,0,initializeOnly], # for Occlusion tests.
+						 __occludeCheckCount =>[SFInt32,-1,initializeOnly], # for Occlusion tests.
 						},"X3DBoundedObject"),
 
 
@@ -1076,7 +1077,8 @@ package VRML::NodeType;
 						enterTime => [SFTime, -1, outputOnly],
 						exitTime => [SFTime, -1, outputOnly],
 						isActive => [SFBool, 0, outputOnly],
-						 __OccludeNumber =>[SFInt32,-1,initializeOnly], 	# for Occlusion tests.
+						 __visible =>[SFInt32,0,initializeOnly], # for Occlusion tests.
+						 __occludeCheckCount =>[SFInt32,-1,initializeOnly], # for Occlusion tests.
 						__points  =>[FreeWRLPTR,0,initializeOnly],	# for Occlude Box.
 						__Samples =>[SFInt32,0,initializeOnly],		# Occlude samples from last pass
 					   },"X3DEnvironmentalSensorNode"),

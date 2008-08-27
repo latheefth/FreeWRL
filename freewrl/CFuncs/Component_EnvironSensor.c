@@ -166,9 +166,6 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		if (render_blend == VF_Blend) { 
                         #ifdef VISIBILITYOCCLUSION
-			#ifdef SEVERBOSE
-			printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber);
-			#endif
 
 			BEGINOCCLUSIONQUERY
 			LIGHTING_OFF
@@ -197,9 +194,6 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0) || (z < 0)) return;
-
-	/* tell the Occlusion stuff that this node has been rendered */
-	if (node->__OccludeNumber < QueryCount) OccNodeRendered[node->__OccludeNumber] = TRUE;
 
 	/* for BoundingBox calculations */
 	setExtent(cx+x, cx-x, cx+y, cx-y, cx+z, cx-z,X3D_NODE(node));
@@ -253,7 +247,6 @@ void do_VisibilitySensorTick (void *ptr) {
 	/* are we enabled? */
 	if (!node) return;
 	if (!node->enabled) return;
-	if (node->__OccludeNumber <0) return;
 
 	#ifdef SEVERBOSE
 	printf ("do_VisibilitySensorTick, samples %d\n",node->__samples);
@@ -285,5 +278,4 @@ void do_VisibilitySensorTick (void *ptr) {
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, exitTime));
 		}
 	}
-
 }

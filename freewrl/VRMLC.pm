@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.302  2008/08/27 19:24:45  crc_canada
+# Occlusion culling with DEF/USE shapes reworked.
+#
 # Revision 1.301  2008/08/18 14:45:38  crc_canada
 # Billboard node Scene Graph changes.
 #
@@ -795,6 +798,8 @@ sub gen {
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
+	"#define X3D_SHAPE(node) ((struct X3D_Shape*)node)\n".
+	"#define X3D_VISIBILITYSENSOR(node) ((struct X3D_VisibilitySensor*)node)\n".
 	"#define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)\n".
 	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".

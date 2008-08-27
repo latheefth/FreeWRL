@@ -1,4 +1,6 @@
 For 1.20.6
+	- Occlusionculling had difficulties with DEF/USE nodes; fixed.
+
 	- Moving BoundingBox calculations from scenegraph rendering step to node
 	  updating step.
 

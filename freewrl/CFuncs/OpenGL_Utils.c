@@ -550,7 +550,7 @@ void zeroVisibilityFlag(void) {
 		/* we do... lets zero the hasVisibleChildren flag */
 		for (i=0; i<nextEntry; i++){		
 			node = memoryTable[i];		
-			
+		
 			#ifdef OCCLUSIONVERBOSE
 			if (((node->_renderFlags) & VF_hasVisibleChildren) != 0) {
 			printf ("zeroVisibility - %d is a %s, flags %x\n",i,stringNodeType(node->_nodeType), (node->_renderFlags) & VF_hasVisibleChildren); 
@@ -559,17 +559,6 @@ void zeroVisibilityFlag(void) {
 
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
 	
-			/* do we have a tie in here for node-name? */
-			if (node->_nodeType == NODE_Shape) ocnum = ((struct X3D_Shape *)node)->__OccludeNumber;
-			if (node->_nodeType == NODE_VisibilitySensor) ocnum = ((struct X3D_VisibilitySensor*)node)->__OccludeNumber;
-			if ((ocnum>=0) & (ocnum < OccQuerySize)) {
-				if (OccNodes[ocnum]==0) {
-					/* printf ("zeroVis, recording occlude %d as %d was %d\n",ocnum,node,OccNodes[ocnum]); */
-					OccNodes[ocnum]=(void *)node;
-				}
-				ocnum=-1;
-			
-			}
 		}		
 	}
 	UNLOCK_MEMORYTABLE
@@ -751,6 +740,18 @@ void startOfLoopNodeUpdates(void) {
 		node = memoryTable[i];		
 		if (node != NULL) {
 			switch (node->_nodeType) {
+				BEGIN_NODE(Shape)
+					/* send along a "look at me" flag if we are visible, or we should look again */
+					if ((X3D_SHAPE(node)->__occludeCheckCount <=0) ||
+							(X3D_SHAPE(node)->__visible)) {
+						update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+						/* printf ("shape occludecounter, pushing visiblechildren flags\n"); */
+
+					}
+					X3D_SHAPE(node)->__occludeCheckCount--;
+					/* printf ("shape occludecounter %d\n",X3D_SHAPE(node)->__occludeCheckCount); */
+				END_NODE
+
 				/* Lights. DirectionalLights are "scope relative", PointLights and
 				   SpotLights are transformed */
 
@@ -951,6 +952,17 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
 
 				/* VisibilitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (VisibilitySensor)
+					/* send along a "look at me" flag if we are visible, or we should look again */
+					if ((X3D_VISIBILITYSENSOR(node)->__occludeCheckCount <=0) ||
+							(X3D_VISIBILITYSENSOR(node)->__visible)) {
+						update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+						/* printf ("vis occludecounter, pushing visiblechildren flags\n"); */
+
+					}
+					X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
+					/* printf ("vis occludecounter %d\n",X3D_VISIBILITYSENSOR(node)->__occludeCheckCount); */
+
+					/* VisibilitySensors have a transparent bounding box we have to render */
                 			update_renderFlag(node,VF_Blend);
 				END_NODE
 

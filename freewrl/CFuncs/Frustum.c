@@ -38,14 +38,14 @@
 
 /* Occlusion VisibilitySensor code */
 GLuint *OccQueries = NULL;
-void* *OccNodes = NULL;
-int *OccCheckCount = NULL;
-int *OccNodeRendered = NULL;
-int *OccVisible = NULL;
-GLint *OccSamples = NULL;
 
+/* newer occluder code */
+GLuint potentialOccluderCount = 0;
+void ** occluderNodePointer = NULL;
+
+/* older occluder code */
 int maxOccludersFound = 0;
-int OccQuerySize=0;
+GLuint OccQuerySize=0;
 int QueryCount = 0;
 GLint queryCounterBits;
 int OccInitialized = FALSE;
@@ -73,11 +73,13 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	for (c=0; c<(me->_nparents); c++) {
 		shapeParent = X3D_NODE(me->_parents[c]);
 	
-		/* this had BETTER be a NODE_Shape node... */
+#ifdef dontdothis
+		/* this had BETTER be a NODE_Shape node or I am a visibilitySensor... */
 		if (shapeParent->_nodeType != NODE_Shape) {
 			printf ("setExtent, invalid shapeParent, found %s\n",stringNodeType(shapeParent->_nodeType));
 			return;
 		}
+#endif
 
 		#ifdef FRUSTUMVERBOSE
 		printf ("parent %u of %u is %u, type %s\n",c,me,me->_parents[c],stringNodeType(shapeParent->_nodeType)); 
@@ -305,6 +307,12 @@ void recordDistance(struct X3D_Node *node) {
 void OcclusionStartofEventLoop() {
 	int i;
 
+	/* each time through the event loop, we count the occluders. Note, that if, say, a 
+	   shape was USED 100 times, that would be 100 occlude queries, BUT ONE SHAPE, thus
+	   there is not an implicit 1:1 mapping between shapes and occlude queries */
+
+	potentialOccluderCount = 0;
+
 	/* did we have a failure here ? */
 	if (OccFailed) return;
 
@@ -325,24 +333,16 @@ void OcclusionStartofEventLoop() {
 	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
 				#endif
 	
-	
 				/* we make the OccQuerySize larger than the maximum number of occluders,
 				   so we don't have to realloc too much */
 				OccQuerySize = maxOccludersFound + 1000;
+
+				occluderNodePointer = MALLOC (sizeof (void *) * OccQuerySize);
 				OccQueries = MALLOC (sizeof(int) * OccQuerySize);
-				OccNodes = MALLOC (sizeof (void *) * OccQuerySize);
-				OccCheckCount = MALLOC (sizeof (int) * OccQuerySize);
-				OccNodeRendered = MALLOC (sizeof (int) * OccQuerySize);
-				OccVisible = MALLOC (sizeof (int) * OccQuerySize);
-				OccSamples = MALLOC (sizeof (int) * OccQuerySize);
 	                	glGenQueries(OccQuerySize,OccQueries);
 				OccInitialized = TRUE;
 				for (i=0; i<OccQuerySize; i++) {
-					OccNodes[i] = 0;
-					OccSamples[i]=0;
-					OccCheckCount[i]=i&0x03; /* we test only once every 4 frames */
-					OccNodeRendered[i] = FALSE;
-					OccVisible[i]=TRUE;
+					occluderNodePointer[i] = 0;
 				}
 				QueryCount = maxOccludersFound; /* for queries - we can do this number */
 				#ifdef OCCLUSIONVERBOSE
@@ -376,19 +376,11 @@ void OcclusionStartofEventLoop() {
 			}
 
 			OccQuerySize = maxOccludersFound + 1000;
+			occluderNodePointer = REALLOC (occluderNodePointer,sizeof (void *) * OccQuerySize);
 			OccQueries = REALLOC (OccQueries,sizeof (int) * OccQuerySize);
-			OccNodes = REALLOC (OccNodes,sizeof (void *) * OccQuerySize);
-			OccCheckCount = REALLOC (OccCheckCount,sizeof (int) * OccQuerySize);
-			OccNodeRendered = REALLOC (OccNodeRendered,sizeof (int) * OccQuerySize);
-			OccVisible = REALLOC (OccVisible,sizeof (int) * OccQuerySize);
-			OccSamples = REALLOC (OccSamples,sizeof (int) * OccQuerySize);
         	        glGenQueries(OccQuerySize,OccQueries);
 			for (i=0; i<OccQuerySize; i++) {
-				OccNodes[i] = 0;
-				OccSamples[i]=0;
-				OccCheckCount[i]=i&0x03; /* we test only once every 4 frames */
-				OccNodeRendered [i]= FALSE;
-				OccVisible[i] = TRUE;
+				occluderNodePointer[i] = 0;
 			}
 		}
 		QueryCount = maxOccludersFound; /* for queries - we can do this number */
@@ -409,8 +401,12 @@ void OcclusionCulling ()  {
 #ifdef OCCLUSION
 	int i;
 	int maxcount;
-	struct X3D_Shape *xx;
+	struct X3D_Shape *shapePtr;
+	struct X3D_VisibilitySensor *visSenPtr;
+	int checkCount;
 	GLint rv;
+	GLint samples;
+
 
 #ifdef OCCLUSIONVERBOSE
 	GLint query;
@@ -429,76 +425,126 @@ void OcclusionCulling ()  {
 	 
 	/* Step 2. go through the list of "OccludeCount" nodes, and determine if they are visible. 
 	   If they are not, then, we have to, at some point, make them visible, so that we can test again. */
+	/* note that the potentialOccluderCount is only incremented if the __occludeCheckCount tells us
+	   that it should be checked again - see the interplay between the eventLoop stuff in OpenGLUtils.c
+ 	   and the OCCLUSION* defines in headers.h - we DO NOT generate a query every time through the loop */
  
-	for (i=0; i<QueryCount; i++) {
+	#ifdef OCCLUSIONVERBOSE
+	printf ("OcclusionCulling - potentialOccluderCount %d\n",potentialOccluderCount);
+	#endif
 
-		xx = (struct X3D_Shape *) OccNodes[i];
+	for (i=0; i<potentialOccluderCount; i++) {
 		#ifdef OCCLUSIONVERBOSE
-		if (xx!=NULL) printf ("for a %s (%d)\n",stringNodeType(xx->_nodeType),i);
-		else printf ("OcclusionCulling, node for %d is still NULL\n",i);
+		printf ("checking node %d of %d\n",i, potentialOccluderCount);
 		#endif
 
-		if ((OccNodeRendered[i]) && (OccCheckCount[i]<0)) {
-			/* an Occlusion test will have been run on this one */
+		checkCount = 0;
+
+		/* get the check count field for this node - see if we did a check of this */
+		shapePtr = X3D_SHAPE(occluderNodePointer[i]);
+		if (shapePtr->_nodeType == NODE_Shape) {
+			visSenPtr = NULL;
+			checkCount = shapePtr->__occludeCheckCount;
+		} else if (shapePtr->_nodeType = NODE_VisibilitySensor) {
+			visSenPtr = X3D_VISIBILITYSENSOR(occluderNodePointer[i]);
+			shapePtr = NULL;
+			checkCount = visSenPtr->__occludeCheckCount;
+		} else {
+			printf ("OcclusionCulling on node type %s not allowed\n",stringNodeType(shapePtr->_nodeType));
+			return;
+		}
+
+		#ifdef OCCLUSIONVERBOSE
+		printf ("OcclusionCulling, for a %s (index %d) checkCount %d\n",stringNodeType(shapePtr->_nodeType),i,checkCount);
+		#endif
+
+		/* an Occlusion test will have been run on this one */
+
+		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&rv);
+		glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+
+		#ifdef SLEEP_FOR_QUERY_RESULTS
+		/* for now, lets loop to see when we get results */
+		while (rv == GL_FALSE) {
+			printf ("waiting and looping for results\n");
+			usleep(100);
 			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&rv);
 			glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
+		}
+		#endif
 
-			#ifdef OCCLUSIONVERBOSE
-			if (rv == GL_FALSE) printf ("results not ready for %d\n",i);
-			#endif
 
-			if (rv != GL_FALSE) {
-			        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &OccSamples[i]);
-				glPrintError ("glGetQueryObjectiv::QUERY");
+		#ifdef OCCLUSIONVERBOSE
+		if (rv == GL_FALSE) printf ("results not ready for %d\n",i);
+		#endif
+
+
+		/* if we are NOT ready; we keep the count going, but we do NOT change the results of VisibilitySensors */
+		if (rv == GL_FALSE) samples = 10000;  
+			
+	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &samples);
+		glPrintError ("glGetQueryObjectiv::QUERY");
 				
-				#ifdef OCCLUSIONVERBOSE
-				printf ("i %d checkc %d visible %d samples %d\n",i,OccCheckCount[i],OccVisible[i],OccSamples[i]);
-				#endif
+		#ifdef OCCLUSIONVERBOSE
+		printf ("i %d checkc %d samples %d\n",i,checkCount,samples);
+		#endif
 	
-				if (OccNodes[i] != 0) {
+		if (occluderNodePointer[i] != 0) {
 		
-					/* if this is a VisibilitySensor, record the samples */
-					if (xx->_nodeType == NODE_VisibilitySensor) {
-						((struct X3D_VisibilitySensor *)xx)->__Samples =  OccSamples[i]; 
-						#ifdef OCCLUSIONVERBOSE
-						printf ("OcclusionCulling, found VisibilitySensor at %d, fragments %d active %d\n",i,OccSamples[i],OccCheckCount[i]);
-						#endif
-						if (OccSamples[i] > 0) {
-							OccVisible[i] = TRUE;
-							OccCheckCount[i] = OCCCHECKNEXTLOOP; /* look for this EVERY time through */
-						} else {
-							OccCheckCount[i] = OCCCHECKSOON; /* check again soon */
-							OccVisible[i]=FALSE;
-						}
+			/* if this is a VisibilitySensor, record the samples */
+			if (visSenPtr != NULL) {
+
+				#ifdef OCCLUSIONVERBOSE
+				printf ("OcclusionCulling, found VisibilitySensor at %d, fragments %d active %d\n",i,samples,checkCount);
+				#endif
+
+				/* if this is a DEF/USE, we might already have done this one, as we have same
+				   node pointer used in other places. */
+				if (checkCount != OCCCHECKNEXTLOOP) {
+	
+					if (samples > 0) {
+						visSenPtr->__visible  = TRUE;
+						visSenPtr->__occludeCheckCount = OCCCHECKNEXTLOOP; /* look for this EVERY time through */
+						visSenPtr->__Samples = samples;
+					} else {
+						visSenPtr->__occludeCheckCount = OCCCHECKSOON; /* check again soon */
+						visSenPtr->__visible =FALSE;
+						visSenPtr->__Samples = 0;
 					}
-		
-		
-					/* is this is Shape? */
-					else if (xx->_nodeType == NODE_Shape) {
-						#ifdef OCCLUSIONVERBOSE
-			        		printf ("OcclusionCulling, Shape found,  %d OccSamples %d OccCheckCount %d\n",i,OccSamples[i],OccCheckCount[i]);
-						#endif
-		
-						/* is this node visible? If so, tell the parents! */
-						if (OccSamples[i] > OCCSHAPESAMPLESIZE) {
-							OccVisible[i] = TRUE;
-							OccCheckCount[i] = OCCWAIT; /* wait a little while before checking again */
-						} else {
-							OccVisible[i]=FALSE;
-							OccCheckCount[i] = OCCCHECKSOON; /* check again soon */
-						}
-					}
+				 /* } else {
+					printf ("shape, already have checkCount == OCCCHECKNEXTLOOP, not changing visibility params\n");
+				*/
+				
 				}
 			}
-		} else {
-			OccCheckCount[i]--; /* get closer to < zero... */
-		}
+		
+		
+			/* is this is Shape? */
+			else if (shapePtr != NULL) {
+				#ifdef OCCLUSIONVERBOSE
+				printf ("OcclusionCulling, found Shape %d, fragments %d active %d\n",i,samples,checkCount);
+				#endif
 
-		/* is this node visible? If we are getting CLOSE to <0, should we TRY again?? */
-		if ((OccVisible[i]) || (OccCheckCount[i]<=0)) {
-			if (xx!=0) update_renderFlag (X3D_NODE(xx),VF_hasVisibleChildren);
+				/* if this is a DEF/USE, we might already have done this one, as we have same
+				   node pointer used in other places. */
+				if (checkCount != OCCWAIT) {
+	
+					/* is this node visible? If so, tell the parents! */
+					if (samples > OCCSHAPESAMPLESIZE) {
+						/* printf ("Shape is VISIBLE\n"); */
+						shapePtr->__visible = TRUE;
+						shapePtr->__occludeCheckCount= OCCWAIT; /* wait a little while before checking again */
+					} else {
+						/* printf ("Shape is NOT VISIBLE\n"); */
+						shapePtr->__visible=FALSE;
+						shapePtr->__occludeCheckCount = OCCCHECKSOON; /* check again soon */
+					}
+				/* } else {
+					printf ("shape, already have checkCount == OCCWAIT, not changing visibility params\n");
+				*/	
+				}
+			}
 		}
-
 	}
 #endif
 }
@@ -525,8 +571,5 @@ void zeroOcclusion(void) {
 	OccQuerySize=0;
 	maxOccludersFound = 0;
 	FREE_IF_NZ(OccQueries);
-	FREE_IF_NZ(OccNodes);
-	FREE_IF_NZ(OccCheckCount);
-	FREE_IF_NZ(OccSamples);
-	FREE_IF_NZ(OccVisible);
+	FREE_IF_NZ(occluderNodePointer);
 }
