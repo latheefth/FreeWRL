@@ -1610,6 +1610,8 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 	void *          bitmapData;
 	int             bitmapByteCount;
 	int             bitmapBytesPerRow;
+	CGBitmapInfo	bitmapInfo;
+	size_t		bitsPerComponent;
 
 	 // Get image width, height. Well use the entire image.
 	size_t pixelsWide = CGImageGetWidth(inImage);
@@ -1629,39 +1631,49 @@ CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
 	    return NULL;
 	}
 
-	// Allocate memory for image data. This is the destination in memory
-	// where any drawing to the bitmap context will be rendered.
-	bitmapData = malloc( bitmapByteCount );
-	if (bitmapData == NULL)
-	{
-	    fprintf (stderr, "Memory not allocated!");
-	    CGColorSpaceRelease( colorSpace );
-	    return NULL;
-	}
+	
+	/* figure out the bitmap mapping */
+	bitsPerComponent = CGImageGetBitsPerComponent(inImage);
 
-	// Create the bitmap context. We want pre-multiplied ARGB, 8-bits
-	// per component. Regardless of what the source image format is
-	// (CMYK, Grayscale, and so on) it will be converted over to the format
-	// specified here by CGBitmapContextCreate.
-	context = CGBitmapContextCreate (bitmapData,
-		pixelsWide,
-		pixelsHigh,
-		CGImageGetBitsPerComponent(inImage),      // bits per component
-		bitmapBytesPerRow,
-		colorSpace,
-	        kCGImageAlphaNoneSkipLast); 
+	if (bitsPerComponent >= 8) {
+		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
+		bitmapInfo = kCGImageAlphaNoneSkipLast;
 
-	if (context == NULL) {
-	    free (bitmapData);
-	    fprintf (stderr, "Context not created!");
+		/* Allocate memory for image data. This is the destination in memory
+		   where any drawing to the bitmap context will be rendered. */
+		bitmapData = malloc( bitmapByteCount );
+		if (bitmapData == NULL) {
+		    fprintf (stderr, "Memory not allocated!");
+		    CGColorSpaceRelease( colorSpace );
+		    return NULL;
+		}
+	
+		/* Create the bitmap context. We want pre-multiplied ARGB, 8-bits
+		  per component. Regardless of what the source image format is
+		  (CMYK, Grayscale, and so on) it will be converted over to the format
+		  specified here by CGBitmapContextCreate. */
+		context = CGBitmapContextCreate (bitmapData, pixelsWide, pixelsHigh,
+			bitsPerComponent, bitmapBytesPerRow, colorSpace, bitmapInfo); 
+	
+		if (context == NULL) {
+		    free (bitmapData);
+		    fprintf (stderr, "Context not created!");
+		} else {
+	
+			/* try scaling and rotating this image to fit our ideas on life in general */
+			CGContextTranslateCTM (context, 0, pixelsHigh);
+			CGContextScaleCTM (context,1.0, -1.0);
+		}
+		CGContextDrawImage(context, rect,inImage);
 	} else {
+		CGRect rect = {{0,0},{pixelsWide, pixelsHigh}};
+		/* this is a mask. */
 
-		// try scaling and rotating this image to fit our ideas on life in general
-		CGContextTranslateCTM (context, 0, pixelsHigh);
-		CGContextScaleCTM (context,1.0, -1.0);
+		printf ("bits per component of %d not handled\n",bitsPerComponent);
+		return NULL;
 	}
 
-	// Make sure and release colorspace before returning
+	/* Make sure and release colorspace before returning */
 	CGColorSpaceRelease( colorSpace );
 
 	return context;
@@ -1696,19 +1708,28 @@ void __reallyloadImageTexture() {
 	path = CFStringCreateWithCString(NULL, loadThisTexture->filename, kCFStringEncodingUTF8);
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
 
+	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
+
+#ifdef USE_CG_DATA_PROVIDERS
 	/* can we directly import this a a jpeg or png?? */
 	if (loadThisTexture->imageType != ID_UNDEFINED) {
 		/* printf ("this is a JPEG texture, try direct loading\n"); */
 		provider = CGDataProviderCreateWithURL(url);
-		if (loadThisTexture->imageType == JPGTexture) 
+		if (loadThisTexture->imageType == JPGTexture)  {
 			image = CGImageCreateWithJPEGDataProvider(provider, NULL, FALSE, kCGRenderingIntentDefault);
-		else
+		} else {
 			image = CGImageCreateWithPNGDataProvider(provider, NULL, FALSE, kCGRenderingIntentDefault);
+		}
 		CGDataProviderRelease(provider);
+
 	} else {
+#endif
+
+#define TRY_QUICKTIME
 #ifdef TRY_QUICKTIME
-   I dont know whether to use quicktime or not... Probably not... as the other ways using core 
+   /* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
 graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
+*/
 
 		/* lets let quicktime decide on what to do with this image */
 		err = QTNewDataReferenceFromCFURL(url,0, &dataRef, &dataRefType);
@@ -1727,8 +1748,9 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 			CFRelease (sourceRef);
 		}
 #endif
-
+#ifdef USE_CG_DATA_PROVIDERS
 	}
+#endif
 
 	CFRelease(url);
 	CFRelease(path);
@@ -1737,8 +1759,8 @@ graphics seems to be ok. Anyway, I left this code in here, as maybe it might be 
 	image_height = CGImageGetHeight(image);
 	hasAlpha = CGImageGetAlphaInfo(image) != kCGImageAlphaNone;
 
-	/*
-i	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
+	#ifdef TEXVERBOSE
+	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
 
 	printf ("raw image, AlphaInfo %x\n",CGImageGetAlphaInfo(image));
 	printf ("raw image, BitmapInfo %x\n",CGImageGetBitmapInfo(image));
@@ -1747,16 +1769,13 @@ i	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no a
 	printf ("raw image, BytesPerRow %d\n",CGImageGetBytesPerRow(image));
 	printf ("raw image, ImageHeight %d\n",CGImageGetHeight(image));
 	printf ("raw image, ImageWidth %d\n",CGImageGetWidth(image));
-	*/
-
-
-
+	#endif
+	
 	/* now, lets "draw" this so that we get the exact bit values */
 	cgctx = CreateARGBBitmapContext(image);
-	CGRect rect = {{0,0},{image_width,image_height}};
-	CGContextDrawImage(cgctx, rect,image);
 
-	/* 
+	 
+	#ifdef TEXVERBOSE
 	printf ("GetAlphaInfo %x\n",CGBitmapContextGetAlphaInfo(cgctx));
 	printf ("GetBitmapInfo %x\n",CGBitmapContextGetBitmapInfo(cgctx));
 	printf ("GetBitsPerComponent %d\n",CGBitmapContextGetBitsPerComponent(cgctx));
@@ -1764,19 +1783,25 @@ i	if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no a
 	printf ("GetBytesPerRow %d\n",CGBitmapContextGetBytesPerRow(cgctx));
 	printf ("GetHeight %d\n",CGBitmapContextGetHeight(cgctx));
 	printf ("GetWidth %d\n",CGBitmapContextGetWidth(cgctx));
-	*/
+	#endif
+	
 
 	data = (unsigned char *)CGBitmapContextGetData(cgctx);
 
-if (CGBitmapContextGetWidth(cgctx) < 10) {
-int i;
+	#ifdef TEXVERBOSE
+	if (CGBitmapContextGetWidth(cgctx) < 65) {
+		int i;
 
-printf ("dumping image\n");
-for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
-printf ("%2x ",data[i]);
-}
-printf ("\n");
-}
+		printf ("dumping image\n");
+		for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
+			printf ("%2x ",data[i]);
+		}
+		printf ("\n");
+	}
+	#endif
+
+#undef TEXVERBOSE
+
 	/* is there possibly an error here, like a file that is not a texture? */
 	if (CGImageGetBitsPerPixel(image) == 0) {
 		ConsoleMessage ("texture file invalid: %s",loadThisTexture->filename);
