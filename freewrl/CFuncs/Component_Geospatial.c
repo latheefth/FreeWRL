@@ -201,6 +201,9 @@ static int geoInit = FALSE;
 
 /* static struct X3D_GeoOrigin *geoorigin = NULL; */
 
+/* for nearPlane farPlane calculations */
+double geoHeightinZAxis = 0.0;
+
 static void compile_geoSystem (int nodeType, struct Multi_String *args, struct Multi_Int32 *srf);
 static void moveCoords(struct Multi_Int32*, struct Multi_Vec3d *, struct Multi_Vec3d *, struct Multi_Vec3d *);
 static void Gd_Gc (struct Multi_Vec3d *, struct Multi_Vec3d *, double, double, int);
@@ -2073,6 +2076,8 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
+        GLdouble modelMatrix[16];
+        GLdouble projMatrix[16];
 
 	if (!render_vp) return;
 
@@ -2093,6 +2098,17 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	glRotated(-node->__movedOrientation.r[3]/PI*180.0,node->__movedOrientation.r[0],node->__movedOrientation.r[1],
 		node->__movedOrientation.r[2]); 
 	glTranslated(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
+
+	#ifdef CALCULATE HEIGHT HERE
+	/* get the matrix, find out z distance for nearPlane/farPlane calculations */
+        fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+        fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+
+	/* printf ("modelMatrix %lf %lf %lf\n", modelMatrix[12], modelMatrix[13], modelMatrix[14]);
+	printf ("projMatrix %lf %lf %lf\n", projMatrix[12], projMatrix[13], projMatrix[14]); */
+	geoHeightinZAxis = -modelMatrix[14];
+	#endif
+
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -2138,8 +2154,10 @@ float viewer_calculate_speed() {
 	/* speed is dependent on elevation above WGS84 ellipsoid */
 	#define speed_scale 1.0
 	Viewer.speed = fabs(gdCoords.c[2]/10.0 * Viewer.GeoSpatialNode->speedFactor);
+	geoHeightinZAxis = gdCoords.c[2];
 #else
 	Viewer.speed = fabs(gcCoords.c[2]/10.0 * Viewer.GeoSpatialNode->speedFactor);
+	geoHeightinZAxis = gcCoords.c[2];
 #endif
 
 
@@ -2188,5 +2206,7 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos();
+
+	viewer_calculate_speed();
 }
 

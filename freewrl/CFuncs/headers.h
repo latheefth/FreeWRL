@@ -175,6 +175,12 @@ extern int MAXJSparamNames;
 #define VF_hasVisibleChildren 			0x0100
 #define VF_otherLight				0x0800 
 
+/* for z depth buffer calculations */
+#define DEFAULT_NEARPLANE 0.1
+#define DEFAULT_FARPLANE 21000.0
+extern double geoHeightinZAxis;
+
+
 /* compile simple nodes (eg, Cone, LineSet) into an internal format. Check out
    CompileC in VRMLRend.pm, and look for compile_* functions in code. General
    meshes are rendered using the PolyRep scheme, which also compiles into OpenGL 

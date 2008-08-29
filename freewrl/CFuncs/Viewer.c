@@ -31,9 +31,6 @@ static FILE *exfly_in_file;
 
 struct point_XYZ VPvelocity;
 
-double defaultExamineDist = -DBL_MAX;
-#define DEFAULT_NEARPLANE 0.1
-#define DEFAULT_FARPLANE 21000.0
 double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
 double screenRatio=1.5;
@@ -205,13 +202,6 @@ void set_viewer_type(const int type) {
 		viewer_type = NONE;
 		break;
 	}
-
-	/* reset the Examine mode distance, if it is an Examine viewer */
-	if (type == EXAMINE) {
-		/* printf ("resetting examine mode distance\n"); */
-        	haveExamineDist = FALSE;
-        	defaultExamineDist = -DBL_MAX;
-	}
 }
 
 
@@ -220,29 +210,6 @@ int use_keys() {
 		return TRUE;
 	}
 	return FALSE;
-}
-
-/* get the distance to the closest shape, if the Examine distance is = 0.0; this
-   can happen on startup, because there is no geometry to find distance to */
-void getViewpointExamineDistance(void) {
-	/* for calculating the near/far plane */
-	if (Viewer.GeoSpatialNode == NULL) {
-		/* printf ("eventLoop cnearPlane %lf, cfarPlane %lf\n",calculatedNearPlane, calculatedFarPlane);  */
-		/* our setExtent calculations are rough - so if things are closer than the DEFAULT_FARPLANE, make
-		   the z-buffer calculations quite rigid. */
-		if (calculatedNearPlane > DEFAULT_FARPLANE) nearPlane = calculatedNearPlane; else nearPlane = DEFAULT_NEARPLANE;
-		if (calculatedFarPlane > DEFAULT_FARPLANE) farPlane = calculatedFarPlane; else farPlane = DEFAULT_FARPLANE;
-	
-		/* and, if we do not have much in the way of geometry, we can end up with something silly, so: */
-		if (nearPlane > farPlane) { nearPlane = DEFAULT_NEARPLANE; farPlane = DEFAULT_FARPLANE;
-			/* printf ("silly numbers, so using DEFAULT_NEARPLANE and DEFAULT_FARPLANE\n"); */
-		}
-	
-		calculatedNearPlane = 999999999999999999999999.9;
-		calculatedFarPlane = 0.0;
-
-		resolve_pos();
-	}
 }
 
 void resolve_pos(void) {
@@ -262,14 +229,8 @@ void resolve_pos(void) {
 		if (Viewer.GeoSpatialNode == NULL) {
 			/* do we know where we are going to rotate around? */
 			if (!haveExamineDist) {
-				/* printf ("resolve_pos, NOT a Geospatial Viewpoint\n"); */
-				if (defaultExamineDist > -(farPlane/2.0)) {
-					Viewer.Dist = -defaultExamineDist;
-					haveExamineDist = TRUE;
-					/* printf ("examine distance set to %f\n",Viewer.Dist);  */
-				} else {
-					Viewer.Dist = 10.0;
-				}
+				Viewer.Dist = 10.0;
+				haveExamineDist = TRUE;
 			}
 		} else {
 			/* printf ("resolve_pos, a Geospatial Viewpoint\n"); */
@@ -288,8 +249,6 @@ void resolve_pos(void) {
 			/* $d = abs($d); $this->{Dist} = $d; */
 			Viewer.Dist = fabs(dist);
 		}
-		/* printf ("resolve_pos, dist %lf, calculated %lf pos %lf %lf %lf\n",Viewer->Dist, defaultExamineDist,
-			Viewer.Pos.x, Viewer.Pos.y, Viewer.Pos.z);  */
 
 		/* $this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ]; */
 		(examine->Origin).x = (Viewer.Pos).x - Viewer.Dist * rot.x;
@@ -871,7 +830,6 @@ bind_viewpoint (struct X3D_Viewpoint *vp) {
 
 	/* we will determine examine distance again, if in examine mode */
 	haveExamineDist = FALSE;
-	defaultExamineDist = -DBL_MAX;
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;

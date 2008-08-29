@@ -690,20 +690,14 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *removeChildren;
 	struct Multi_Node *childrenPtr;
 
-	/* for Shape distance calculations */
-	double farDistThreshold;
-	double farDefaultDistance;
+	/* for determining nearPlane/farPlane */
+	int haveBoundGeoViewpoint = FALSE;
+	double maxDist = DBL_MAX; double minDist = 0.0;
 
 
 	/* assume that we do not have any sensitive nodes at all... */
 	HaveSensitive = FALSE;
 	have_transparency = FALSE;
-
-	/* for sorting nodes, and for determining examine mode rotate distance */
-	farDistThreshold = -(farPlane/2.0);
-	farDefaultDistance = -(farPlane/4.0);
-	defaultExamineDist = -DBL_MAX;
-	
 
 	LOCK_MEMORYTABLE
 
@@ -711,16 +705,6 @@ void startOfLoopNodeUpdates(void) {
 	for (i=0; i<nextEntry; i++){		
 		node = memoryTable[i];	
 		if (node != NULL) {
-			/* record a value for Examine mode rotations here */
-			if (node->_nodeType == NODE_Shape) {
-				if ((node->_dist > defaultExamineDist) && (node->_dist<-2.0)) 
-					defaultExamineDist = node->_dist;
-				/* printf ("defaultExamineDist %lf\n",defaultExamineDist); */
-			}
-
-			/* reset distance, for distance calculations */
-			node->_dist=farDistThreshold;
-
 			/* turn OFF these flags */
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Viewpoint);
@@ -730,17 +714,25 @@ void startOfLoopNodeUpdates(void) {
 		}
 	}
 
+
 	/* go through the list of nodes, and "work" on any that need work */
 	nParents = 0;
 	setBindPtr = NULL;
 	childrenPtr = NULL;
 	anchorPtr = NULL;
 
+
 	for (i=0; i<nextEntry; i++){		
 		node = memoryTable[i];		
 		if (node != NULL) {
 			switch (node->_nodeType) {
 				BEGIN_NODE(Shape)
+					/* printf ("startLoop, shape, minus dist %lf\n",-node->_dist); */
+
+					/* for nearPlane farPlane calcs */
+					if (-node->_dist >   minDist) minDist = -node->_dist;
+					if (-node->_dist < maxDist) maxDist = -node->_dist;
+
 					/* send along a "look at me" flag if we are visible, or we should look again */
 					if ((X3D_SHAPE(node)->__occludeCheckCount <=0) ||
 							(X3D_SHAPE(node)->__visible)) {
@@ -1025,11 +1017,55 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
 		}
 	}
 
+
+
 	UNLOCK_MEMORYTABLE
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (viewpoint_stack[viewpoint_tos] != 0) {
 		update_renderFlag(X3D_NODE(viewpoint_stack[viewpoint_tos]), VF_Viewpoint);
+		if (X3D_NODE(viewpoint_stack[viewpoint_tos])->_nodeType == NODE_GeoViewpoint) {
+			haveBoundGeoViewpoint = TRUE;
+			/* printf ("GeoViewpoint dist %lf\n",node->_dist); */
+		}
+	}
+
+	/* do we have a GeoViewpoint as current Bound Viewpoint?? */
+	if (haveBoundGeoViewpoint) {
+		/* we have a centre of a shape (or shapes) figure out where the surfaces will be, plus
+		   fudge factor */
+		#define GEOSP_WE_A_LARGER      ((double)6378137 * 1.1)
+		/* printf ("found minDist %lf, maxDist %lf\n",minDist, maxDist); */
+		/* nearPlane = minDist - GEOSP_WE_A_LARGER; */
+		/* farPlane = geoHeightinZAxis + GEOSP_WE_A_LARGER; */
+
+		/* try doing this from the height of object: */
+
+		farPlane = minDist;
+		nearPlane = geoHeightinZAxis - GEOSP_WE_A_LARGER;
+		if (nearPlane < DEFAULT_NEARPLANE) nearPlane = DEFAULT_NEARPLANE;
+
+		#ifdef TEST_READ_NEAR_FAR
+	
+		{
+			FILE *tty;
+			char erere[1000];
+			int sl;
+	
+			printf ("calculated nearPlane %lf, farPlane %lf geoHeight %lf \n",nearPlane, farPlane, geoHeightinZAxis);
+			tty = fopen("planes", "r");
+	
+			sl=fread(erere, sizeof(char), 1000, tty);
+			erere[sl+1] = '\0';
+			fclose(tty);
+	
+			sscanf (erere, "%lf %lf", &nearPlane, &farPlane);
+		}
+		#endif
+
+	} else {
+		nearPlane = DEFAULT_NEARPLANE;
+		farPlane = DEFAULT_FARPLANE;
 	}
 }
 

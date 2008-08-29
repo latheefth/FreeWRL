@@ -278,13 +278,6 @@ void EventLoop() {
 	/* should we do events, or maybe a parser is parsing? */
 	doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
 
-	/* calculate the near and far planes. Do this every 4 times through the EventLoop, just
-	   so we don't get oscillations - 4 times is enough to ensure that geometry is written
-	   more than once, so that we do get a good idea of where things are */
-	if ((loop_count & 0x03) == 0) {
-		getViewpointExamineDistance();
-	}
-
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
