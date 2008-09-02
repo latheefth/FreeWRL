@@ -988,8 +988,11 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
 			/* again, Mipmap only if we have Pixel or ImageTextures */
+			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+/*
 			if (me->frames==1) 
 				gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
+*/
 
 			if(mytexdata != dest) FREE_IF_NZ(dest);
 		}
@@ -1019,8 +1022,11 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
         
                         /* again, Mipmap only if we have Pixel or ImageTextures */
                         glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
+/*
                         if (me->frames==1) 
                                 gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
+*/
                 
                         if((mytexdata) != dest) FREE_IF_NZ(dest);
 

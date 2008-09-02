@@ -218,7 +218,7 @@ int IFS_face_normals (
 			} while (!this_face_finished);
 
 			if (APPROX(this_vl,0.0)) {
-				printf ("face %d is degenerate\n",i); 
+				/* printf ("face %d is degenerate\n",i); */
 				faceok[i] = 0;
 			} else {
 				/* printf ("face %d is ok\n",i); */

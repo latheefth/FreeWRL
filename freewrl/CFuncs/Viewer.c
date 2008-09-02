@@ -25,8 +25,6 @@ static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 static int movedPosition = FALSE;
 static int walkMotion = FALSE;
 
-static int haveExamineDist = FALSE;			/* the distance we walk around, in examine mode */
-
 static FILE *exfly_in_file;
 
 struct point_XYZ VPvelocity;
@@ -226,13 +224,7 @@ void resolve_pos(void) {
 		inverse(&q_inv, &(Viewer.Quat));
 		rotation(&rot, &q_inv, &z_axis);
 
-		if (Viewer.GeoSpatialNode == NULL) {
-			/* do we know where we are going to rotate around? */
-			if (!haveExamineDist) {
-				Viewer.Dist = 10.0;
-				haveExamineDist = TRUE;
-			}
-		} else {
+		if (Viewer.GeoSpatialNode != NULL) {
 			/* printf ("resolve_pos, a Geospatial Viewpoint\n"); */
 			/* Geospatial Viewpoint - */
 			/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
@@ -823,13 +815,19 @@ void increment_pos(struct point_XYZ *vec) {
 }
 
 
-
-void
-bind_viewpoint (struct X3D_Viewpoint *vp) {
+/* We have a Viewpoint node being bound. (not a GeoViewpoint node) */
+void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
+	float xd, yd,zd;
+	
 
-	/* we will determine examine distance again, if in examine mode */
-	haveExamineDist = FALSE;
+	/* calculate distance between the node position and defined centerOfRotation */
+	xd = vp->position.c[0]-vp->centerOfRotation.c[0];
+	yd = vp->position.c[1]-vp->centerOfRotation.c[1];
+	zd = vp->position.c[2]-vp->centerOfRotation.c[2];
+	Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
+
+printf ("viewpoint rotate distance %f\n",Viewer.Dist);
 
 	/* since this is not a bind to a GeoViewpoint node... */
 	Viewer.GeoSpatialNode = NULL;
