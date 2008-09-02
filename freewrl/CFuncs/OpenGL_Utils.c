@@ -188,6 +188,9 @@ void glpOpenGLInitialize() {
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
 	glEnable (GL_RESCALE_NORMAL);
 
+	/* do Mipmapping on hardware */
+	/* not working all the time glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE); */
+
 	/*
      * JAS - ALPHA testing for textures - right now we just use 0/1 alpha
      * JAS   channel for textures - true alpha blending can come when we sort

@@ -988,11 +988,8 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
 			/* again, Mipmap only if we have Pixel or ImageTextures */
-			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
-/*
 			if (me->frames==1) 
 				gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
-*/
 
 			if(mytexdata != dest) FREE_IF_NZ(dest);
 		}
@@ -1021,12 +1018,8 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
                         }
         
                         /* again, Mipmap only if we have Pixel or ImageTextures */
-                        glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
-/*
                         if (me->frames==1) 
                                 gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
-*/
                 
                         if((mytexdata) != dest) FREE_IF_NZ(dest);
 
@@ -1715,7 +1708,7 @@ void __reallyloadImageTexture() {
 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, NULL);
 
 	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
-
+#define USE_CG_DATA_PROVIDERS
 #ifdef USE_CG_DATA_PROVIDERS
 	/* can we directly import this a a jpeg or png?? */
 	if (loadThisTexture->imageType != ID_UNDEFINED) {
@@ -1731,7 +1724,6 @@ void __reallyloadImageTexture() {
 	} else {
 #endif
 
-#define TRY_QUICKTIME
 #ifdef TRY_QUICKTIME
    /* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
 graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
