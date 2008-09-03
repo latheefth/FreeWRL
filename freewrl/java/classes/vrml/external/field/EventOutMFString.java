@@ -17,12 +17,12 @@ public class EventOutMFString extends EventOutMField {
 		String rep;
 		StringTokenizer tokens;
 
-		if (command != null) {
+		if (RLreturn == null) {
 			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
-			tokens = new StringTokenizer (rep,"\"");
 		} else {
-			tokens = new StringTokenizer (RLreturn,"\"");
+			rep = RLreturn;
 		}
+		tokens = new StringTokenizer (rep,"\"");
 
 		retstr = new String[(tokens.countTokens()/2)];
 		mySize = 0;

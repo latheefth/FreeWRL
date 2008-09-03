@@ -14,12 +14,12 @@ public class EventOutSFColor extends EventOut {
 		String rep;
 		StringTokenizer tokens;
 
-		if (command != null) {
+		if (RLreturn == null) {
 			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
-			tokens = new StringTokenizer (rep);
 		} else {
-			tokens = new StringTokenizer (RLreturn);
+			rep = RLreturn;
 		}
+		tokens = new StringTokenizer (rep);
 
 		fvals[0]=Float.valueOf(tokens.nextToken()).floatValue();
 		fvals[1]=Float.valueOf(tokens.nextToken()).floatValue();

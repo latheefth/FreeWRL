@@ -15,7 +15,7 @@ public class EventOutSFImage extends EventOut {
 	private void takeapart() {
 		String rep;
 
-		if (command != null) {
+		if (RLreturn == null) {
 			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
                         if (rep.length() > 2) {
                                 // remove quotes at the beginning and end

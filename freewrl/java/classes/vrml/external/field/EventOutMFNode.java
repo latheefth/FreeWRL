@@ -19,12 +19,12 @@ public class EventOutMFNode extends EventOutMField {
     StringTokenizer tokens;
     int counttokens;
 
-    if (command != null) {
-      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+	if (RLreturn == null) {
+		rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+	} else {
+		rep = RLreturn;
+	}
       tokens = new StringTokenizer (rep);
-    } else {
-      tokens = new StringTokenizer (RLreturn);
-    }
 
     counttokens = tokens.countTokens();
     retnodes = new Node[counttokens];

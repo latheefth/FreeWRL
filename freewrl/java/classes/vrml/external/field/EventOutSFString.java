@@ -9,7 +9,7 @@ public class EventOutSFString extends EventOut {
 
 	public String        getValue() {
 
-		if (command != null) {
+		if (RLreturn == null) {
 			String rep;
 			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
 			if (rep.length() > 2) {
