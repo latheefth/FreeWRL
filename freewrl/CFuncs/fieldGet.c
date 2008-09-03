@@ -987,6 +987,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	float *dp;
 	int *ip;
 	int ival;
+	unsigned int uval;
 	int row;			/* MF* counter */
 	struct Multi_String *MSptr;	/* MFString pointer */
 	struct Multi_Node *MNptr;	/* MFNode pointer */
@@ -1005,7 +1006,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	switch (type) {
 		case FIELDTYPE_SFBool: 	{
 			if (eaiverbose) { 
-			printf ("EAI_SFBOOL\n");
+			printf ("EAI_SFBOOL - value %d; TRUE %d false %d\n",*intptr,TRUE,FALSE);
 			}
 
 			if (*intptr == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
@@ -1024,10 +1025,19 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case FIELDTYPE_SFInt32:	{
 			if (eaiverbose) { 
-			printf ("EAI_SFINT32 or EAI_SFNODE\n");
+			printf ("EAI_SFINT32\n");
 			}
 			memcpy(&ival,memptr,sizeof(int));
 			sprintf (buf, "%s\n%f\n%d\n%d",reptype,TickTime,id,ival);
+			break;
+		}
+
+		case FIELDTYPE_SFNode:	{
+			if (eaiverbose) { 
+			printf ("EAI_SFNODE\n");
+			}
+			memcpy(&uval,memptr,sizeof(unsigned int));
+			sprintf (buf, "%s\n%f\n%d\n%u",reptype,TickTime,id,uval);
 			break;
 		}
 
@@ -1204,7 +1214,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 		default: {
-			printf ("EAI, type %c not handled yet\n",type);
+			printf ("EAI, type %s not handled yet\n",stringFieldtypeType (type));
 		}
 
 

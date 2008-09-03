@@ -10,7 +10,11 @@ public class EventOutSFFloat extends EventOut {
 	public float getValue() {
 		String rep;
 
-		rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+		if (RLreturn == null) {
+			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+		} else {
+			rep = RLreturn;
+		}
 		return Float.valueOf(rep).floatValue();
 	}
 }

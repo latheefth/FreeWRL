@@ -19,7 +19,6 @@ public class EventOutMFString extends EventOutMField {
 
 		if (command != null) {
 			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
-			//System.out.println("DEBUG - EventOutMFString returns " + rep);
 			tokens = new StringTokenizer (rep,"\"");
 		} else {
 			tokens = new StringTokenizer (RLreturn,"\"");

@@ -889,32 +889,19 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 		
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, me->Src);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, me->Trc);
+		glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
 		x = me->x;
 		y = me->y;
 
-		/* Mipmap PixelTextures and ImageTextures, NOT MovieTextures */
-		if (me->frames == 1) {
-			/* must be a PixelTexture or ImageTexture */
-			/* choose smaller images to be NEAREST, larger ones to be LINEAR */
-			if ((x<=256) || (y<=256)) {
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			} else {
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			}
-
+		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
+		if ((x<=256) || (y<=256)) {
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		} else {
-			/* Must be a MovieTexture */
-			/* choose smaller images to be NEAREST, larger ones to be LINEAR */
-			if ((x<=256) || (y<=256)) {
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			} else {
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			}
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		}
+
 	
 		if (me->hasAlpha) {
 			iformat = GL_RGBA; format = GL_RGBA;
@@ -986,10 +973,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 				printf ("after proxy image stuff, size %d %d\n",rx,ry);
 
 			glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-
-			/* again, Mipmap only if we have Pixel or ImageTextures */
-			if (me->frames==1) 
-				gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
+			glTexParameteri(GL_TEXTURE_2D,GL_GENERATE_MIPMAP, GL_TRUE);
 
 			if(mytexdata != dest) FREE_IF_NZ(dest);
 		}
@@ -1017,10 +1001,6 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
         
                         }
         
-                        /* again, Mipmap only if we have Pixel or ImageTextures */
-                        if (me->frames==1) 
-                                gluBuild2DMipmaps (GL_TEXTURE_2D, iformat,  rx, ry, format, GL_UNSIGNED_BYTE, dest);
-                
                         if((mytexdata) != dest) FREE_IF_NZ(dest);
 
                 }

@@ -9,7 +9,12 @@ public class EventOutSFTime extends EventOut {
 
 	public double getValue() {
                 String rep;
-                rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+	
+		if (RLreturn == null) {
+			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+		} else {
+			rep = RLreturn;
+		}
                 return Double.valueOf(rep).doubleValue();
 	}
 }

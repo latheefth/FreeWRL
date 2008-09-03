@@ -9,7 +9,11 @@ public EventOutSFInt32() {EventType = FieldTypes.SFINT32;}
 
 	public int           getValue() {
 		String rep;
-		rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+		if (RLreturn == null) {
+			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+		} else {
+			rep = RLreturn;
+		}
 		return Integer.valueOf(rep).intValue();
 	}
 }

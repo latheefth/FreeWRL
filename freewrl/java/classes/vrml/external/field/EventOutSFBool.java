@@ -8,13 +8,13 @@ public class EventOutSFBool extends EventOut {
 	public EventOutSFBool() {EventType = FieldTypes.SFBOOL;}
 
 	public boolean       getValue() {
-                String rep;
+        String rep;
 
-                rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
-System.out.println ("EventOutSFBool returns " + rep);
-
-                //return Float.valueOf(rep).floatValue();
-
-		return rep.equals("TRUE");
+	if (RLreturn == null) {
+		rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+	} else {
+		rep = RLreturn;
+	}
+	return rep.equals("TRUE");
 	}
 }
