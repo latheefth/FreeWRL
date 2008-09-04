@@ -1,3 +1,7 @@
+For 1.20.8
+	- Occlusionculling - better performance when testing heavily textured objects
+	  for draw status.
+
 For 1.20.7
 	- Examine mode - Viewpoint - does distance between 2 points in 3d to determine
 	  rotation distance, as per the spec.

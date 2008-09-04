@@ -50,6 +50,7 @@ int QueryCount = 0;
 GLint queryCounterBits;
 int OccInitialized = FALSE;
 int OccFailed = FALSE;
+GLint OccResultsAvailable = FALSE;
 
 /* take the measurements of a geometry (eg, box), and save it. Note
  * that what is given is a Shape, the values get pushed up to the
@@ -404,7 +405,6 @@ void OcclusionCulling ()  {
 	struct X3D_Shape *shapePtr;
 	struct X3D_VisibilitySensor *visSenPtr;
 	int checkCount;
-	GLint rv;
 	GLint samples;
 
 
@@ -460,27 +460,27 @@ void OcclusionCulling ()  {
 
 		/* an Occlusion test will have been run on this one */
 
-		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&rv);
+		glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 		glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
 
 		#ifdef SLEEP_FOR_QUERY_RESULTS
 		/* for now, lets loop to see when we get results */
-		while (rv == GL_FALSE) {
+		while (OccResultsAvailable == GL_FALSE) {
 			printf ("waiting and looping for results\n");
 			usleep(100);
-			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&rv);
+			glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 			glPrintError ("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
 		}
 		#endif
 
 
 		#ifdef OCCLUSIONVERBOSE
-		if (rv == GL_FALSE) printf ("results not ready for %d\n",i);
+		if (OccResultsAvailable == GL_FALSE) printf ("results not ready for %d\n",i);
 		#endif
 
 
 		/* if we are NOT ready; we keep the count going, but we do NOT change the results of VisibilitySensors */
-		if (rv == GL_FALSE) samples = 10000;  
+		if (OccResultsAvailable == GL_FALSE) samples = 10000;  
 			
 	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &samples);
 		glPrintError ("glGetQueryObjectiv::QUERY");
@@ -534,10 +534,12 @@ void OcclusionCulling ()  {
 						/* printf ("Shape is VISIBLE\n"); */
 						shapePtr->__visible = TRUE;
 						shapePtr->__occludeCheckCount= OCCWAIT; /* wait a little while before checking again */
+						shapePtr->__Samples = samples;
 					} else {
 						/* printf ("Shape is NOT VISIBLE\n"); */
 						shapePtr->__visible=FALSE;
 						shapePtr->__occludeCheckCount = OCCCHECKSOON; /* check again soon */
+						shapePtr->__Samples = 0; 
 					}
 				/* } else {
 					printf ("shape, already have checkCount == OCCWAIT, not changing visibility params\n");

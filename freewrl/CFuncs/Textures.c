@@ -1102,6 +1102,7 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 
 	/* have we already processed this one before? */
 	if (myTableIndex->status == TEX_LOADED) {
+
 		#ifdef TEXVERBOSE 
 		printf ("now binding to pre-bound mti%d tex%d\n",myTableIndex,myTableIndex->OpenGLTexture[0]);
 		#endif

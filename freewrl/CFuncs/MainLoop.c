@@ -76,7 +76,7 @@ static char debs[300];
 
 #include <pthread.h>
 pthread_t DispThrd = 0;
-int eaiverbose = TRUE;
+int eaiverbose = FALSE;
 char* threadmsg;
 char* PluginFullPath;
 

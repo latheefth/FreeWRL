@@ -277,6 +277,7 @@ extern char *GL_REN;
 #define glGetQueryObjectuiv(a,b,c) glGetQueryObjectuivARB(a,b,c)
 
 extern GLuint OccQuerySize;
+extern GLint OccResultsAvailable;
 extern int OccFailed;
 extern int *OccCheckCount;
 extern GLuint *OccQueries;

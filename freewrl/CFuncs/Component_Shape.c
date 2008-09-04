@@ -166,20 +166,36 @@ void child_Shape (struct X3D_Shape *node) {
                 LIGHTING_ON
 		COLOR_MATERIAL_OFF
 		
-		/* is there an associated appearance node? */
-       	        if(node->appearance) {
-			POSSIBLE_PROTO_EXPANSION(node->appearance,tmpN)
-                        render_node(tmpN);
-       	        } else {
-                        /* no material, so just colour the following shape */
-                       	/* Spec says to disable lighting and set coloUr to 1,1,1 */
-                       	LIGHTING_OFF
-       	                glColor3f(1.0,1.0,1.0);
+		/* if we have a very few samples, it means that:
+			- Occlusion culling is working on this system (default is -1)
+			- this node is very small in the scene;
+			- if it is 0, it means that we are trying this shape for 
+			  Occlusion Culling.
+		*/
 
-			/* tell the rendering passes that this is just "normal" */
+		if (!OccFailed && (node->__Samples <=4)) {
+			/* draw this as a subdued grey */
+       	                glColor3f(0.3,0.3,0.3);
+
+			/* dont do any textures, or anything */
 			last_texture_type = NOTEXTURE;
 			last_transparency = 1.0;
-                }
+		} else {
+		/* is there an associated appearance node? */
+       	        	if(node->appearance) {
+				POSSIBLE_PROTO_EXPANSION(node->appearance,tmpN)
+                        	render_node(tmpN);
+       	        	} else {
+                        	/* no material, so just colour the following shape */
+                       		/* Spec says to disable lighting and set coloUr to 1,1,1 */
+                       		LIGHTING_OFF
+       	                	glColor3f(1.0,1.0,1.0);
+
+				/* tell the rendering passes that this is just "normal" */
+				last_texture_type = NOTEXTURE;
+				last_transparency = 1.0;
+                	}
+		}
 
 		/* now, are we rendering blended nodes or normal nodes?*/
 		if (render_blend == (node->_renderFlags & VF_Blend)) {

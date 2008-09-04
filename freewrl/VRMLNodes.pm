@@ -451,6 +451,7 @@ package VRML::NodeType;
 						 bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 						 __visible =>[SFInt32,0,initializeOnly], # for Occlusion tests.
 						 __occludeCheckCount =>[SFInt32,-1,initializeOnly], # for Occlusion tests.
+						__Samples =>[SFInt32,-1,initializeOnly],		# Occlude samples from last pass
 						},"X3DBoundedObject"),
 
 
