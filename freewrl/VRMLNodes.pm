@@ -1332,6 +1332,34 @@ package VRML::NodeType;
 					},"X3DInterpolatorNode"),
 
 
+	GeoProximitySensor => new VRML::NodeType("ProximitySensor", {
+						enabled => [SFBool, 1, inputOutput],
+						geoCenter => [SFVec3d, [0, 0, 0], inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
+						size => [SFVec3f, [0, 0, 0], inputOutput],
+						centerOfRotation_changed =>[SFVec3f, [0,0,0], outputOnly],
+						enterTime => [SFTime, -1, outputOnly],
+						exitTime => [SFTime, -1, outputOnly],
+						geoCoord_changed => [SFVec3d,[0,0,0],outputOnly],
+						isActive => [SFBool, 0, outputOnly],
+						orientation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
+						position_changed => [SFVec3f, [0, 0, 0], outputOnly],
+						geoOrigin => [SFNode, NULL, initializeOnly],
+						geoSystem => [MFString,["GD","WE"],initializeOnly],
+
+
+						# These fields are used for the info.
+						__hit => [SFInt32, 0, inputOutput],
+						__t1 => [SFVec3f, [10000000, 0, 0], inputOutput],
+						__t2 => [SFRotation, [0, 1, 0, 0], inputOutput],
+
+						# "compiled" versions of strings above
+						__geoSystem => [MFInt32,[],initializeOnly],
+						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+						__localOrient => [DFRotation, [0, 0, 1, 0], inputOutput],
+						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
+					   },"X3DEnvironmentalSensorNode"),
+
 	GeoTouchSensor=> new VRML::NodeType("GeoTouchSensor", {
 						metadata => [SFNode, NULL, inputOutput],
 						enabled => [SFBool,1,inputOutput],

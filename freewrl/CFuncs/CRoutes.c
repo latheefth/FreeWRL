@@ -49,7 +49,7 @@
 		int i; \
 		if (!JS_GetProperty(cx, (JSObject *)JSglobal_return_val, "length", &mainElement)) { \
 			printf ("JS_GetProperty failed for \"length\" in get_valueChanged_flag\n"); \
-			return; \
+			return FALSE; \
 		} \
 		len = JSVAL_TO_INT(mainElement); \
 		/* go through each element of the main array. */ \
@@ -122,7 +122,7 @@
 	}
 
 #define RESET_ECMA_MF_TOUCHED(thistype) \
-	case FIELDTYPE_##thistype: {	int i; jsval mainElement; \
+	case FIELDTYPE_##thistype: {\
 		jsval myv = INT_TO_JSVAL(0); \
 		/* printf ("RESET_ECMA_MF_TOUCHED called on %d ",JSglobal_return_val);*/ \
         	if (!JS_SetProperty((JSContext *) ScriptControl[actualscript].cx, (JSObject *)JSglobal_return_val, "MF_ECMA_has_changed", &myv)) { \
@@ -161,6 +161,7 @@ Different nodes produce eventins/eventouts...
 		CylinderSensor
 		VisibilitySensor
 		ProximitySensor
+		GeoProximitySensor
 
 	EventIn/EventOuts:
 		ScalarInterpolator
@@ -280,7 +281,7 @@ struct CR_RegStruct {
 		int length;
 		void *intptr;
 		int scrdir;
-		int extra };
+		int extra; };
 
 struct CR_RegStruct *routesToRegister = NULL;
 int maxRTR = 0;
@@ -481,7 +482,7 @@ void AddRemoveChildren (
 		tn->n=0; 
 
 		/* go through the children, and tell them that they are no longer wanted here */
-		for (counter ==0; counter < oldlen; counter ++) remove_parent(tn->p[counter],parent);
+		for (counter=0; counter < oldlen; counter ++) remove_parent(tn->p[counter],parent);
 
 		/* now, totally free the old children array */
 		if (oldlen > 0) FREE_IF_NZ(tn->p);
@@ -538,7 +539,7 @@ void AddRemoveChildren (
 			for (counter = 0; counter < tn->n; counter ++) {
 				/* printf ("remove, comparing %d with %d\n",*remptr, *remchild);  */
 				if ((*remptr == *remchild) && (!done)) {
-					remove_parent(*remchild,parent);
+					remove_parent(X3D_NODE(*remchild),parent);
 					*remptr = 0;  /* "0" can not be a valid memory address */
 					num_removed ++;
 					done = TRUE; /* remove this child ONLY ONCE - in case it has been added
@@ -692,6 +693,7 @@ void add_first(struct X3D_Node * node) {
 	} else if (NODE_AudioClip == clocktype) { myp = do_AudioTick;
 	} else if (NODE_VisibilitySensor == clocktype) { myp = do_VisibilitySensorTick;
 	} else if (NODE_MovieTexture == clocktype) { myp = do_MovieTextureTick;
+	} else if (NODE_GeoProximitySensor == clocktype) { myp = do_GeoProximitySensorTick;
 
 	} else {
 		/* printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype)); */
@@ -832,7 +834,7 @@ void CRoutes_RegisterSimple(
  else
   interpolatorPointer=NULL;
 
- snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+ snprintf(tonode_str, 15, "%u:%d", (unsigned)to, toOfs);
 
  CRoutes_Register(1, from, fromOfs, 1, tonode_str, len, 
   interpolatorPointer, dir, extraData);
@@ -925,7 +927,7 @@ static void actually_do_CRoutes_Register(int num) {
 			/* this is just a block of memory, eg, it will hold an "SFInt32" */
 			chptr = MALLOC (sizeof (char) * RTR.length);
 		}
-		sprintf (buf,"%d:0",chptr);
+		sprintf (buf,"%u:0",(unsigned int)chptr);
 		CRoutes_Register (RTR.adrem, RTR.from, RTR.fromoffset,1,buf, RTR.length, 0, FROM_SCRIPT, RTR.extra);
 		CRoutes_Register (RTR.adrem, chptr, 0, RTR.to_count, RTR.tonode_str,RTR.length, 0, TO_SCRIPT, RTR.extra);
 		return;
@@ -991,7 +993,7 @@ static void actually_do_CRoutes_Register(int num) {
 		(CRoutes[insert_here].tonodes!=0)) {
 
 		/* possible duplicate route */
-		rv=sscanf (RTR.tonode_str, "%u:%u", &toN,&toof);
+		rv=sscanf (RTR.tonode_str, "%lu:%lu", &toN,&toof);
 		/* printf ("from tonode_str %s we have %u %u\n",tonode_str, toN, toof); */
 
 		if ((toN == ((uintptr_t)(CRoutes[insert_here].tonodes)->routeToNode)) &&
@@ -1074,7 +1076,7 @@ static void actually_do_CRoutes_Register(int num) {
 				/* printf("\t%s\n", buffer); */
 				to_ptr = &(CRoutes[insert_here].tonodes[0]);
 				if (sscanf(buffer, "%u:%u",
-						   &(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
+						   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
 					#ifdef CRVERBOSE 
 						printf("\tsscanf returned: %u, %u\n",
 						  to_ptr->routeToNode, to_ptr->foffset);
@@ -1089,7 +1091,7 @@ static void actually_do_CRoutes_Register(int num) {
 					 to_counter++) {
 					to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
 					if (sscanf(buffer, "%u:%u",
-							   &(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
+							   (unsigned int*)&(to_ptr->routeToNode), &(to_ptr->foffset)) == 2) {
 						#ifdef CRVERBOSE 
 							printf("\tsscanf returned: %u, %u\n",
 								  to_ptr->routeToNode, to_ptr->foffset);
@@ -1228,7 +1230,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	unsigned len;
  	void * tn;
 	void * fn;
-	jsval retval;
 
 	/* temp for sscanf retvals */
 
@@ -1323,7 +1324,6 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
-	jsval retval;
 
 	#ifdef CRVERBOSE
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d direction %d\n",num,
@@ -1489,7 +1489,7 @@ void propagate_events() {
 	for (counter =0; counter <= max_script_found_and_initialized; counter++) {
 		if (scr_act[counter]) {
 			scr_act[counter] = FALSE;
-			CLEANUP_JAVASCRIPT(ScriptControl[counter].cx);
+			CLEANUP_JAVASCRIPT((JSContext *)ScriptControl[counter].cx);
 		}
 	}	
 
@@ -1526,7 +1526,7 @@ void process_eventsProcessed() {
 		if (!JS_ExecuteScript((JSContext *) ScriptControl[counter].cx,
                                 (JSObject *) ScriptControl[counter].glob,
 				(JSScript *) ScriptControl[counter].eventsProcessed, &retval)) {
-			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,pthread_self());
+			printf ("can not run eventsProcessed() for script %d thread %u\n",counter,(unsigned int)pthread_self());
 		}
 
 	}
@@ -1628,10 +1628,10 @@ Stop routing, remove structure. Used for ReplaceWorld style calls.
 
 void kill_routing (void) {
         if (CRoutes_Initiated) {
+                CRoutes_Initiated = FALSE;
                 CRoutes_Count = 0;
                 CRoutes_MAX = 0;
                 FREE_IF_NZ (CRoutes);
-                CRoutes_Initiated = FALSE;
         }
 }
 

@@ -143,7 +143,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	OCCLUSIONTEST
 
 	if(!render_proximity) {
-		fwXformPush(node);
+		fwXformPush();
 
 		/* might we have had a change to a previously ignored value? */
 	#ifdef BILLBOARDVERBOSE
@@ -167,7 +167,7 @@ void fin_Billboard (struct X3D_Billboard *node) {
 	#endif
 
         if(!render_proximity) {
-            fwXformPop(node);
+            fwXformPop();
         }
 } 
 void  child_Billboard (struct X3D_Billboard *node) {

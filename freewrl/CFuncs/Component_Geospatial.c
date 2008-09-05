@@ -63,6 +63,7 @@ Geocentric to Geodetic:
 #include "Viewer.h"
 #include "Bindable.h"
 #include "Collision.h"
+#include "Polyrep.h"
 #include "Component_Geospatial.h"
 #include "OpenGL_Utils.h"
 
@@ -341,7 +342,6 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 
 /* convert UTM to GC coordinates by converting to GD as an intermediary step */
 static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double radius, double flatten, int hemisphere_north, int zone, int northing_first) {
-        double source_x, source_y,u,su,cu,su2,xlon0,temp,phi1,sp,sp2,cp,cp2,tp,tp2,eta2,top,rn,b3,b4,b5,b6,d1,d2;
 	int i;
 	int northing = 0;	/* for determining which input value is northing */
 	int easting = 1;	/* for determining which input value is easting */
@@ -350,14 +350,11 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 	int longitude = 1;	/* always return longtitude as second value */
 
 	/* create the ERM constants. */
-    	double A = radius;
 	double F = 1.0/flatten;
-	double C      = (A) * (1-F);
 	double Eccentricity   = (F) * (2.0-F);
 
 	double myEasting;
 	double myphi1rad;
-	double myphi1;
 	double myN1;
 	double myT1;
 	double myC1;
@@ -374,7 +371,6 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 	double calcConstantTerm2;
 	double calcConstantTerm3;
 	double calcConstantTerm4;
-	double calcConstantTerm5;
 
 	/* is the values specified with an "easting_first?" */
 	if (!northing_first) { northing = 1; easting = 0; }
@@ -609,7 +605,7 @@ static void initializeGeospatial (struct X3D_GeoOrigin **nodeptr)  {
 	if (*nodeptr != NULL) {
 		if (X3D_GEOORIGIN(*nodeptr)->_nodeType != NODE_GeoOrigin) {
 			printf ("expected a GeoOrigin node, but got a node of type %s\n",
-				X3D_GEOORIGIN(*nodeptr)->_nodeType);
+				stringNodeType(X3D_GEOORIGIN(*nodeptr)->_nodeType));
 			*nodeptr = NULL;
 			return;
 		} else {
@@ -716,8 +712,6 @@ static void GeoMove(struct X3D_GeoOrigin *geoOrigin, struct Multi_Int32* geoSyst
 
 /* for converting BACK to GD from GC */
 static void initializeGcToGdParams(void) {
-        double polx2b,polx3b,polx4b,polx5b;
- 
         A = GEOSP_WE_A;
         F = GEOSP_WE_F;
             
@@ -994,8 +988,6 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 			} else if (i!=this_srf_ind) ConsoleMessage ("geoSystem GC parameter %s not allowed geospatial coordinates",args->p[i]->strptr);
 		}
 	} else if (this_srf == GEOSP_GD) {
-		indexT this_p_ind;
-
 		srf->p[1] = GEOSP_WE;
 		/* possible parameters: ellipsoid, gets put into element 1.
 				if "latitude_first" TRUE, if "longitude_first", FALSE */
@@ -1039,7 +1031,7 @@ static void compile_geoSystem (int nodeType, struct Multi_String *args, struct M
 			if (i != this_srf_ind) {
 				if (strcmp ("S",args->p[i]->strptr) == 0) {
 					srf->p[3] = FALSE;
-				} else if (args->p[i]->strptr[0] = 'Z') {
+				} else if (args->p[i]->strptr[0] == 'Z') {
 					int zone = -1;
 					sscanf(args->p[i]->strptr,"Z%d",&zone);
 					/* printf ("zone found as %d\n",zone); */
@@ -1104,7 +1096,7 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
+	MARK_META_EVENT(GeoCoordinate)
 
 }
 
@@ -1127,7 +1119,6 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	struct X3D_PolyRep *rep;
 	struct X3D_GeoElevationGrid *parent; /* this ElevationGrid is the child of a GeoElevationGrid */
 	float *newpoints;
-	double newPoint[3];
 	int nquads;
 	int *cindexptr;
 	float *tcoord;
@@ -1386,7 +1377,7 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
+	MARK_META_EVENT(GeoElevationGrid)
 
 }
 
@@ -1462,7 +1453,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
+	MARK_META_EVENT(GeoLocation)
 
 
 	#ifdef VERBOSE
@@ -1534,10 +1525,6 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 }
 
 void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
-	int i;
-	int nc = ((node->children).n);
-	struct X3D_Node *p;
-
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 	INITIALIZE_EXTENT
@@ -1546,8 +1533,6 @@ void changed_GeoLocation ( struct X3D_GeoLocation *node) {
 
 /* do transforms, calculate the distance */
 void prep_GeoLocation (struct X3D_GeoLocation *node) {
-	GLfloat my_rotation;
-	GLfloat my_scaleO=0;
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 
@@ -1563,8 +1548,7 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 	if(!render_vp) {
 		double my_rotation;
 
-                /* glPushMatrix();*/
-		fwXformPush(node);
+		fwXformPush();
 
 		/* TRANSLATION */
 
@@ -1591,7 +1575,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 	OCCLUSIONTEST
 
         if(!render_vp) {
-            fwXformPop(node);
+            fwXformPop();
         } else {
         }
 }
@@ -1603,19 +1587,12 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	/* Viewer pos = t_r2 */
 	double cx,cy,cz;
-	double len;
-	struct point_XYZ dr1r2;
-	struct point_XYZ dr2r3;
-	struct point_XYZ nor1,nor2;
-	struct point_XYZ ins;
 	static const struct point_XYZ yvec = {0,0.05,0};
 	static const struct point_XYZ zvec = {0,0,-0.05};
-	static const struct point_XYZ zpvec = {0,0,0.05};
 	static const struct point_XYZ orig = {0,0,0};
 	struct point_XYZ t_zvec, t_yvec, t_orig;
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
-	int oldInRange = node->__inRange;
 
 	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -1689,7 +1666,6 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 
 void GeoLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
-        struct X3D_Inline *inl;
 	int i;
 
         /* lets see if we still have to load this one... */
@@ -1708,8 +1684,6 @@ void GeoLODchildren (struct X3D_GeoLOD *node) {
 
 void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
-        struct X3D_Inline *inl;
-        int i;
 
         if (!(load) && ((node->__childloadstatus) != 0)) {
 		#ifdef VERBOSE
@@ -1723,7 +1697,6 @@ void GeoUnLODchildren (struct X3D_GeoLOD *node) {
 
 void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
-        struct X3D_Inline *inl;
 	int i;
 
         /* lets see if we still have to load this one... */
@@ -1740,8 +1713,6 @@ void GeoLODrootUrl (struct X3D_GeoLOD *node) {
 
 void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
 	int load = node->__inRange;
-        struct X3D_Inline *inl;
-        int i;
 
         if (!(load) && ((node->__rooturlloadstatus) != 0)) {
 		#ifdef VERBOSE
@@ -1787,7 +1758,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
+	MARK_META_EVENT(GeoLOD)
 
 
 	#ifdef VERBOSE
@@ -1797,11 +1768,6 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {
-
-        GLdouble mod[16];
-        GLdouble proj[16];
-        struct point_XYZ vec;
-        double dist;
         int i;
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
@@ -1818,7 +1784,7 @@ void child_GeoLOD (struct X3D_GeoLOD *node) {
 	/* for debugging purposes... */
 	if (node->__level == -1) node->__level = geoLodLevel;
 	else if (node->__level != geoLodLevel) {
-		printf ("hmmm - GeoLOD %u was level %d, now %d\n",node->__level, geoLodLevel);
+		printf ("hmmm - GeoLOD %u was level %d, now %d\n",node,node->__level, geoLodLevel);
 	}
 
 	#ifdef VERBOSE
@@ -1949,7 +1915,6 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 
 void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node) {
 	MF_SF_TEMPS
-	int i;
 
 	#ifdef VERBOSE
 	printf ("compiling GeoPositionInterpolator\n");
@@ -1974,9 +1939,200 @@ void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node)
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
+	MARK_META_EVENT(GeoPositionInterpolator)
 
 }
+
+
+/************************************************************************/
+/* GeoProximitySensor							*/
+/************************************************************************/
+
+void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
+	MF_SF_TEMPS
+
+	#ifdef VERBOSE
+	printf ("compiling GeoProximitySensor\n");
+	#endif
+
+	/* work out the position */
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_GEOSYSTEM(node)
+	INIT_MF_FROM_SF(node, geoCenter)
+	MOVE_TO_ORIGIN(node)
+	COPY_MF_TO_SF(node, __movedCoords)
+
+	/* work out the local orientation */
+	GeoOrient(&gdCoords.p[0], &node->__localOrient);
+
+	#ifdef VERBOSE
+	printf ("compile_GeoProximitySensor, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCenter.c[0], node->geoCenter.c[1], node->geoCenter.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+	printf ("	rotation is %lf %lf %lf %lf\n",
+			node->__localOrient.r[0],
+			node->__localOrient.r[1],
+			node->__localOrient.r[2],
+			node->__localOrient.r[3]);
+	#endif
+
+	MARK_NODE_COMPILED
+	FREE_MF_SF_TEMPS
+	
+	/* events */
+	MARK_META_EVENT(GeoProximitySensor)
+
+
+	#ifdef VERBOSE
+	printf ("compiled GeoProximitySensor\n\n");
+	#endif
+}
+
+void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
+	/* Viewer pos = t_r2 */
+	double cx,cy,cz;
+	double len;
+	struct point_XYZ dr1r2;
+	struct point_XYZ dr2r3;
+	struct point_XYZ nor1,nor2;
+	struct point_XYZ ins;
+	static const struct point_XYZ yvec = {0,0.05,0};
+	static const struct point_XYZ zvec = {0,0,-0.05};
+	static const struct point_XYZ zpvec = {0,0,0.05};
+	static const struct point_XYZ orig = {0,0,0};
+	struct point_XYZ t_zvec, t_yvec, t_orig;
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
+	double my_rotation;
+
+	if(!((node->enabled))) return;
+
+	INITIALIZE_GEOSPATIAL(node)
+        COMPILE_IF_REQUIRED
+
+	/* do the translation to the moved coord position/rotation */
+	fwXformPush();
+	glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+	/*
+	printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
+	printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
+	node->__movedCoords.c[1]-geoViewPointCenter.c[1],
+	node->__movedCoords.c[2]-geoViewPointCenter.c[2]);
+	*/
+
+	my_rotation = node->__localOrient.r[3]/3.1415926536*180;
+	glRotated(my_rotation, node->__localOrient.r[0],node->__localOrient.r[1],node->__localOrient.r[2]);
+
+	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
+	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
+
+	/* transforms viewers coordinate space into sensors coordinate space.
+	 * this gives the orientation of the viewer relative to the sensor.
+	 */
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
+		&t_orig.x,&t_orig.y,&t_orig.z);
+	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
+		&t_zvec.x,&t_zvec.y,&t_zvec.z);
+	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
+		&t_yvec.x,&t_yvec.y,&t_yvec.z);
+
+	printf ("GPS, t_orig %lf %lf %lf\n",t_orig.x, t_orig.y, t_orig.z);
+	cx = t_orig.x - ((node->geoCenter).c[0]);
+	cy = t_orig.y - ((node->geoCenter).c[1]);
+	cz = t_orig.z - ((node->geoCenter).c[2]);
+
+	if(((node->size).c[0]) == 0 || ((node->size).c[1]) == 0 || ((node->size).c[2]) == 0) return;
+
+	if(fabs(cx) > ((node->size).c[0])/2 ||
+	   fabs(cy) > ((node->size).c[1])/2 ||
+	   fabs(cz) > ((node->size).c[2])/2) {
+		fwXformPop();
+		return;
+	}
+
+	/* Ok, we now have to compute... */
+	node->__hit = 1;
+
+	/* Position */
+	node->__t1.c[0] = t_orig.x;
+	node->__t1.c[1] = t_orig.y;
+	node->__t1.c[2] = t_orig.z;
+
+	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */
+	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */
+
+	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len);
+	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
+
+	#ifdef RENDERVERBOSE
+	printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",
+		t_orig.x, t_orig.y, t_orig.z,
+		t_zvec.x, t_zvec.y, t_zvec.z,
+		t_yvec.x, t_yvec.y, t_yvec.z,
+		dr1r2.x, dr1r2.y, dr1r2.z,
+		dr2r3.x, dr2r3.y, dr2r3.z
+		);
+	#endif
+
+	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) {
+		printf ("Sorry, can't handle unevenly scaled GeoProximitySensors yet :("
+		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3),
+		  	dr1r2.x,dr1r2.y,dr1r2.z,
+		  	dr2r3.x,dr2r3.y,dr2r3.z
+			);
+		fwXformPop();
+		return;
+	}
+
+
+	if(APPROX(dr1r2.z,1.0)) {
+		/* rotation */
+		((node->__t2).r[0]) = 0;
+		((node->__t2).r[1]) = 0;
+		((node->__t2).r[2]) = 1;
+		((node->__t2).r[3]) = atan2(-dr2r3.x,dr2r3.y);
+	} else if(APPROX(dr2r3.y,1.0)) {
+		/* rotation */
+		((node->__t2).r[0]) = 0;
+		((node->__t2).r[1]) = 1;
+		((node->__t2).r[2]) = 0;
+		((node->__t2).r[3]) = atan2(dr1r2.x,dr1r2.z);
+	} else {
+		/* Get the normal vectors of the possible rotation planes */
+		nor1 = dr1r2;
+		nor1.z -= 1.0;
+		nor2 = dr2r3;
+		nor2.y -= 1.0;
+
+		/* Now, the intersection of the planes, obviously cp */
+		VECCP(nor1,nor2,ins);
+
+		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len);
+
+		/* the angle */
+		VECCP(dr1r2,ins, nor1);
+		VECCP(zpvec, ins, nor2);
+		len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len);
+		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len);
+		VECCP(nor1,nor2,ins);
+
+		((node->__t2).r[3]) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2));
+
+		/* rotation  - should normalize sometime... */
+		((node->__t2).r[0]) = ins.x;
+		((node->__t2).r[1]) = ins.y;
+		((node->__t2).r[2]) = ins.z;
+	}
+	#ifdef RENDERVERBOSE
+	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",
+		nor1.x, nor1.y, nor1.z,
+		nor2.x, nor2.y, nor2.z,
+		ins.x, ins.y, ins.z
+	);
+	#endif
+	fwXformPop();
+}
+
 
 /************************************************************************/
 /* GeoTouchSensor							*/
@@ -2076,8 +2232,6 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
-        GLdouble modelMatrix[16];
-        GLdouble projMatrix[16];
 
 	if (!render_vp) return;
 
@@ -2125,7 +2279,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 
 /* GeoViewpoint speeds and avatar sizes are depenent on elevation above WGS_84. These are calculated here */
 /* this is called from the Viewer functions */
-float viewer_calculate_speed() {
+void viewer_calculate_speed() {
 	struct SFVec3d gcCoords;
 	struct SFVec3d gdCoords;
 

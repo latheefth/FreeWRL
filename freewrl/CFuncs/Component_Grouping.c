@@ -36,8 +36,7 @@ void prep_Transform (struct X3D_Transform *node) {
 	OCCLUSIONTEST
 
 	if(!render_vp) {
-                /* glPushMatrix();*/
-		fwXformPush(node);
+		fwXformPush();
 
 		/* might we have had a change to a previously ignored value? */
 		if (node->_change != node->__verify_transforms) {
@@ -95,7 +94,7 @@ void fin_Transform (struct X3D_Transform *node) {
 	OCCLUSIONTEST
 
         if(!render_vp) {
-            fwXformPop(node);
+            fwXformPop();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {

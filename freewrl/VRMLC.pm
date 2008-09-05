@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.303  2008/09/05 17:46:49  crc_canada
+# reduce warnings counts when compiled with warnings=all
+#
 # Revision 1.302  2008/08/27 19:24:45  crc_canada
 # Occlusion culling with DEF/USE shapes reworked.
 #
@@ -809,6 +812,8 @@ sub gen {
 	"#define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)\n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#define X3D_TRANSFORM(node) ((struct X3D_Transform*)node)\n".
+	"#define X3D_PROXIMITYSENSOR(node) ((struct X3D_ProximitySensor*)node)\n".
+	"#define X3D_GEOPROXIMITYSENSOR(node) ((struct X3D_GeoProximitySensor*)node)\n".
 	"#undef DEBUG_VALIDNODE\n".
 	"#ifdef DEBUG_VALIDNODE	\n".
 	"#define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)\n".

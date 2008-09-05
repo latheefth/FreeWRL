@@ -64,6 +64,7 @@ void do_CollisionTick(void *ptr);
 void do_AudioTick(void *ptr);
 void do_TimeSensorTick(void *ptr);
 void do_ProximitySensorTick(void *ptr);
+void do_GeoProximitySensorTick(void *ptr);
 void do_MovieTextureTick(void *ptr);
 void do_VisibilitySensorTick(void *ptr);
 

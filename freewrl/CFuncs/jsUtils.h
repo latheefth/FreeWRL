@@ -56,8 +56,6 @@ extern jsval JSCreate_global_return_val;
 extern jsval JSglobal_return_val;
 extern uintptr_t *JSSFpointer;
 
-static JSBool reportWarnings = JS_TRUE;
-
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
 int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, struct X3D_Node * ptr);
 

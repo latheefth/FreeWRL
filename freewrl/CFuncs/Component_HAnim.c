@@ -34,8 +34,7 @@ return;
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 	if(!render_vp) {
-                /* glPushMatrix();*/
-		fwXformPush(node);
+		fwXformPush();
 
 		/* might we have had a change to a previously ignored value? */
 		if (node->_change != node->_dlchange) {
@@ -108,8 +107,7 @@ return;
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 	if(!render_vp) {
-                /* glPushMatrix();*/
-		fwXformPush(node);
+		fwXformPush();
 
 		/* might we have had a change to a previously ignored value? */
 		if (node->_change != node->_dlchange) {
@@ -307,8 +305,7 @@ return;
 
 void fin_HAnimSite (struct X3D_HAnimSite * node) {
         if(!render_vp) {
-	/* VERIFY THIS CAST */
-            fwXformPop((struct X3D_Transform *)node);
+            fwXformPop();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
@@ -332,8 +329,7 @@ void fin_HAnimSite (struct X3D_HAnimSite * node) {
 
 void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
         if(!render_vp) {
-	/* VERIFY THIS CAST */
-            fwXformPop((struct X3D_Transform *)node);
+            fwXformPop();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {

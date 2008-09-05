@@ -955,6 +955,7 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 		case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
 		case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
 		case NODE_ProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
+		case NODE_GeoProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
 
 		/* Anchor is a special case, as it has children, so this is the "parent" node. */
 		case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
@@ -981,7 +982,7 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 }
 
 /* we have a sensor event changed, look up event and do it */
-/* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
+/* note, (Geo)ProximitySensor events are handled during tick, as they are time-sensitive only */
 void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
 	int count;
 
@@ -1166,7 +1167,6 @@ void displayThread() {
 		printf ("FREEWRL_PRINT_OPENGL_ERRORS set\n");
 		printf ("rendering on a \"%s\" chipset\n",glGetString(GL_RENDERER));
 	}
-
 
 	/* loop and loop, and loop... */
 	while (!quitThread) {

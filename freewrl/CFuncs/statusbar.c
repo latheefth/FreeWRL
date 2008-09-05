@@ -10,12 +10,12 @@
 #include "Viewer.h"
 
 /* DO NOT CHANGE THESE DEFINES WITHOUT CHECKING THE USE OF THE CODE, BELOW */
-#define PROX "ProximitySensor { size 1000 1000 1000 }"
+#define PROX "ProximitySensor { enabled FALSE size 1000 1000 1000 }"
 
 /* put the text (second translation) back behind where the clip plane will be (the z axis) and down near the bottom of the screen a bit */
 /* look at the gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); line in MainLoop.c */
 
-#define TEXT "Transform{children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
+#define TEXT "Transform{translation 0 0 9.9 children[Collision{collide FALSE children [Transform{scale 0.35 0.35 1 translation 0 -0.06 -0.11 children[Shape{geometry Text{fontStyle FontStyle{justify \"MIDDLE\" size 0.02}}}]}]}]}"
 
 
 
@@ -38,6 +38,10 @@ void kill_status (void) {
 
 /* trigger a update */
 void update_status(char* msg) {
+	#ifdef VERBOSE
+	printf ("update status, msg :%s:\n",msg);
+	#endif
+
 	if (!sb_initialized) {
 		if (rootNode == NULL) return; /* system not running yet?? */
 		statusbar_init();
@@ -51,14 +55,16 @@ void update_status(char* msg) {
 	#ifdef VERBOSE
 	printf("myline-> strptr is %s, len is %d\n", myline->strptr, myline->len);
 	#endif
+	
+	/* if this is a null string, dont bother running the ProximitySensor. */
+	proxNode->enabled = (myline->len != 1);
+
 	update_node((void*) textNode);
 }
 
 /* render the status bar. If it is required... */ 
 static void statusbar_init() {
 	int tmp;
-	uintptr_t nodarr[200];
-	int ra;
 	struct X3D_Group * myn;
 	struct X3D_Node *tempn;
 
@@ -71,10 +77,29 @@ static void statusbar_init() {
 
 	/* remove this ProximitySensor node from the temporary variable, and reset the temp. variable */
 	proxNode = myn->children.p[0];
+
+	/* turn it off for now, until a non-zero length string comes in */
+	proxNode->enabled = FALSE;
 	myn->children.n = 0;
 
 	inputParse(FROMSTRING, TEXT, FALSE, FALSE, myn, offsetof(struct X3D_Group, children), &tmp, FALSE);
 	transNode = myn->children.p[0];
+
+	/* because the routes will not act immediately, we need to place this manually first time */
+	/*
+	transNode->translation.c[0] = Viewer.Pos.x;
+	transNode->translation.c[1] = Viewer.Pos.y;
+	transNode->translation.c[2] = Viewer.Pos.z;
+	transNode->rotation.r[0] = 0.000347;
+	transNode->rotation.r[1] = 0.011514;
+	transNode->rotation.r[2] =  -0.000348;
+	transNode->rotation.r[3] = -0.011525;
+	transNode->__do_trans = TRUE;
+	transNode->__do_rotation = TRUE;
+	*/
+
+
+
 	myn->children.n = 0;
 
 	/* get the Text node, as a pointer. The TEXT definition, above, gives us the following:
@@ -99,16 +124,13 @@ static void statusbar_init() {
 	textNode->string.n = 1; 				/* we have 1 string in this X3D_Text node */
 	myline=(struct Uni_String *)textNode->string.p[0];
 
-	/* create an "easy" handle for this string;
-	myline = (struct Uni_String *) textNode->string.p[0];
-
 	/* NOW - make the Uni_String large... in the first Unistring, make the string 2000 bytes long */
 	myline->strptr  = MALLOC(STATUS_LEN);
 
 	/* set the Uni_String to zero length */
 	myline->len = 0;
-	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), &proxNode, 1, 1);
-	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), &transNode, 1, 1);
+	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&proxNode, 1, 1);
+	AddRemoveChildren(rootNode, rootNode+offsetof (struct X3D_Group, children), (uintptr_t*)&transNode, 1, 1);
 
 	CRoutes_RegisterSimple((void *)proxNode, offsetof (struct X3D_ProximitySensor, orientation_changed), 
 		(void *)transNode, offsetof (struct X3D_Transform, rotation), sizeof (struct SFRotation), 0);

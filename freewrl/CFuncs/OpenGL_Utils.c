@@ -349,12 +349,12 @@ void fwGetDoublev (int ty, double *mat) {
 	}
 }
 
-void fwXformPush(struct X3D_Transform *me) {
+inline void fwXformPush(void) {
 	glPushMatrix(); 
 	MODmatOk = FALSE;
 }
 
-void fwXformPop(struct X3D_Transform *me) {
+inline void fwXformPop(void) {
 	glPopMatrix(); 
 	MODmatOk = FALSE;
 }
@@ -960,6 +960,11 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
 
 				/* ProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (ProximitySensor)
+                			if (X3D_PROXIMITYSENSOR(node)->enabled) update_renderFlag(node,VF_Proximity);
+				END_NODE
+
+				/* GeoProximitySensor needs its own flag sent up the chain */
+				BEGIN_NODE (GeoProximitySensor)
                 			update_renderFlag(node,VF_Proximity);
 				END_NODE
 

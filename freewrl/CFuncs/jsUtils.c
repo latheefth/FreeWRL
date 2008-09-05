@@ -27,6 +27,8 @@
 
 
 static int insetSFStr = FALSE;
+static JSBool reportWarnings = JS_TRUE;
+
 JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	int num;
 	jsval pf;

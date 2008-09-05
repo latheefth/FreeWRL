@@ -955,7 +955,7 @@ extern char *myPerlInstallDir;
 #define EXTENT_MIN_Z _extent[5]
 void setExtent (float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *this_);
 
-#define RECORD_DISTANCE if (render_geom) recordDistance (X3D_GROUP(node));
+#define RECORD_DISTANCE if (render_geom) recordDistance (X3D_NODE(node));
 void recordDistance(struct X3D_Node *nod);
 
 void propagateExtent (struct X3D_Node *this_);
@@ -999,8 +999,8 @@ void getCLASSMultNumType (char *buf, int bufSize,
 
 void fwGetDoublev (int ty, double *mat);
 void fwMatrixMode (int mode);
-void fwXformPush(struct X3D_Transform *me);
-void fwXformPop(struct X3D_Transform *me);
+void fwXformPush(void);
+void fwXformPop(void);
 void fwLoadIdentity (void);
 void invalidateCurMat(void);
 void doBrowserAction (void);
@@ -1196,6 +1196,8 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * this);
 void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * this);
 void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * this);
 void compile_GeoViewpoint (struct X3D_GeoViewpoint * this);
+void compile_GeoProximitySensor (struct X3D_GeoProximitySensor *this);
+void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *this);
 
 
 /* Networking Component */

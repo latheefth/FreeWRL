@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.223  2008/09/05 17:46:49  crc_canada
+# reduce warnings counts when compiled with warnings=all
+#
 # Revision 1.222  2008/08/18 14:45:38  crc_canada
 # Billboard node Scene Graph changes.
 #
@@ -180,6 +183,7 @@
 	GeoMetadata		=>children,
 	GeoOrigin 		=>geoOrigin,
 	GeoPositionInterpolator	=>children,
+	GeoProximitySensor 	=>children,
 	GeoTouchSensor		=>children,
 	GeoViewpoint 		=>children,
 	Group 			=>children,
@@ -449,6 +453,7 @@
 	GeoPositionInterpolator
 	GeoTouchSensor
 	GeoViewpoint	
+	GeoProximitySensor
 /;
 
 
@@ -481,6 +486,7 @@
 
 %ProximityC = map {($_=>1)} qw/
 	ProximitySensor
+	GeoProximitySensor
 	GeoLOD
 	LOD
 	Billboard
