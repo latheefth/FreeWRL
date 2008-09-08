@@ -296,11 +296,16 @@ int rTr = 0;
    as soon as routing is here */
 #define POSSIBLEINITIALROUTES 1000
 static int initialEventBeforeRoutesCount = 0;
+static int preRouteTableSize = 0;
 struct initialRouteStruct {
 	struct X3D_Node *from;
 	unsigned int totalptr;
 };
 static struct initialRouteStruct *preEvents = NULL;
+pthread_mutex_t  preRouteLock = PTHREAD_MUTEX_INITIALIZER;
+#define LOCK_PREROUTETABLE                pthread_mutex_lock(&preRouteLock);
+#define UNLOCK_PREROUTETABLE              pthread_mutex_unlock(&preRouteLock);
+
 
 
 /* a Script (JavaScript or CLASS) has given us an event, tell the system of this */
@@ -1171,15 +1176,17 @@ void mark_event (struct X3D_Node *from, unsigned int totalptr) {
 
 	/* maybe this MARK_EVENT is coming in during initial node startup, before routing is registered? */
 	if (!CRoutes_Initiated) {
+		LOCK_PREROUTETABLE
 		/* printf ("routes not registered yet; lets save this one for a bit...\n"); */
-		if (preEvents == NULL) preEvents=MALLOC (sizeof (struct initialRouteStruct) * POSSIBLEINITIALROUTES);
+		if (initialEventBeforeRoutesCount >= preRouteTableSize) {
+			preRouteTableSize += POSSIBLEINITIALROUTES;
+			preEvents=REALLOC (preEvents,
+				sizeof (struct initialRouteStruct) * preRouteTableSize);
+		}
 		preEvents[initialEventBeforeRoutesCount].from = from;
 		preEvents[initialEventBeforeRoutesCount].totalptr = totalptr;
 		initialEventBeforeRoutesCount++;
-		if (initialEventBeforeRoutesCount > POSSIBLEINITIALROUTES) {
-			ConsoleMessage("size of preEvent queue too small - complain to freewrl-09@rogers.com");
-			initialEventBeforeRoutesCount --;
-		}
+		UNLOCK_PREROUTETABLE
 
 		return;  /* no routes registered yet */
 	}
@@ -1597,13 +1604,18 @@ void do_first() {
 	/* CRoutes_Inititated should be set here, as it would have been created in 
 	   actually_do_CRoutes_Register */
 	if (preEvents != NULL) {
+		if (CRoutes_Initiated) {
+		LOCK_PREROUTETABLE
+printf ("doing preEvents, we have %d events \n",initialEventBeforeRoutesCount);
 		/* printf ("do_first, preEvents != NULL)\n"); */
-		/* if (CRoutes_Initiated) printf ("routes initiated\n"); else printf ("NOT initiated\n"); */
+		if (CRoutes_Initiated) printf ("routes initiated\n"); else printf ("NOT initiated\n");
 		for (counter = 0; counter < initialEventBeforeRoutesCount; counter ++) {
 			MARK_EVENT(preEvents[counter].from, preEvents[counter].totalptr);
 		}
 		initialEventBeforeRoutesCount = 0;
 		FREE_IF_NZ(preEvents);
+		UNLOCK_PREROUTETABLE
+		}
 	}
 }
 
