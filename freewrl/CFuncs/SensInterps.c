@@ -1002,6 +1002,7 @@ void do_ProximitySensorTick( void *ptr) {
 }
 
 
+#define SEVERBOSE
 /* GeoProximitySensor code for ClockTick */
 void do_GeoProximitySensorTick( void *ptr) {
 	struct X3D_GeoProximitySensor *node = (struct X3D_GeoProximitySensor *)ptr;

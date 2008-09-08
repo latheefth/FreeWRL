@@ -55,6 +55,12 @@ void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
 	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
 		&t_yvec.x,&t_yvec.y,&t_yvec.z);
 
+/*
+printf ("\n");
+printf ("unprojected, t_orig (0,0,0) %lf %lf %lf\n",t_orig.x, t_orig.y, t_orig.z);
+printf ("unprojected, t_yvec (0,0.05,0) %lf %lf %lf\n",t_yvec.x, t_yvec.y, t_yvec.z);
+printf ("unprojected, t_zvec (0,0,-0.05) %lf %lf %lf\n",t_zvec.x, t_zvec.y, t_zvec.z);
+*/
 	cx = t_orig.x - ((node->center).c[0]);
 	cy = t_orig.y - ((node->center).c[1]);
 	cz = t_orig.z - ((node->center).c[2]);
@@ -75,9 +81,17 @@ void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
 
 	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */
 	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */
+/*
+printf ("      dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z);
+printf ("      dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z);
+*/
 
 	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len);
 	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
+/*
+printf ("scaled dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z);
+printf ("scaled dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z);
+*/
 
 	#ifdef RENDERVERBOSE
 	printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",

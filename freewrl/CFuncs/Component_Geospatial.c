@@ -1554,8 +1554,8 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 
 		glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 		/*
-		printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
-		printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
+		/* printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]); */
+		/* printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
 			node->__movedCoords.c[1]-geoViewPointCenter.c[1],
 			node->__movedCoords.c[2]-geoViewPointCenter.c[2]);
 		*/
@@ -1590,7 +1590,7 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	static const struct point_XYZ yvec = {0,0.05,0};
 	static const struct point_XYZ zvec = {0,0,-0.05};
 	static const struct point_XYZ orig = {0,0,0};
-	struct point_XYZ t_zvec, t_yvec, t_orig;
+	struct point_XYZ t_orig;
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
 
@@ -1604,10 +1604,6 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
 		&t_orig.x,&t_orig.y,&t_orig.z);
-	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
-		&t_zvec.x,&t_zvec.y,&t_zvec.z);
-	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
-		&t_yvec.x,&t_yvec.y,&t_yvec.z);
 
 	cx = t_orig.x - node->__movedCoords.c[0];
 	cy = t_orig.y - node->__movedCoords.c[1];
@@ -2003,23 +1999,23 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	GLdouble projMatrix[16];
 	double my_rotation;
 
-	if(!((node->enabled))) return;
+	if(!node->enabled) return;
 
 	INITIALIZE_GEOSPATIAL(node)
         COMPILE_IF_REQUIRED
 
 	/* do the translation to the moved coord position/rotation */
-	fwXformPush();
+	fwXformPush(); 
+	/* 
 	glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
-	/*
-	printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
-	printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
-	node->__movedCoords.c[1]-geoViewPointCenter.c[1],
-	node->__movedCoords.c[2]-geoViewPointCenter.c[2]);
 	*/
 
+	/* printf ("prep_GeoProx trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]); */
+
 	my_rotation = node->__localOrient.r[3]/3.1415926536*180;
+	/*
 	glRotated(my_rotation, node->__localOrient.r[0],node->__localOrient.r[1],node->__localOrient.r[2]);
+	*/
 
 	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -2029,26 +2025,39 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	 */
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
-		&t_orig.x,&t_orig.y,&t_orig.z);
-	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
-		&t_zvec.x,&t_zvec.y,&t_zvec.z);
-	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
-		&t_yvec.x,&t_yvec.y,&t_yvec.z);
+	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, &t_orig.x,&t_orig.y,&t_orig.z);
+	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, &t_zvec.x,&t_zvec.y,&t_zvec.z);
+	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, &t_yvec.x,&t_yvec.y,&t_yvec.z);
 
-	printf ("GPS, t_orig %lf %lf %lf\n",t_orig.x, t_orig.y, t_orig.z);
-	cx = t_orig.x - ((node->geoCenter).c[0]);
-	cy = t_orig.y - ((node->geoCenter).c[1]);
-	cz = t_orig.z - ((node->geoCenter).c[2]);
+	/* move the t_orig to where our coordinates say we should be */
+	t_orig.x -= node->__movedCoords.c[0];
+	t_orig.y -= node->__movedCoords.c[1];
+	t_orig.z -= node->__movedCoords.c[2];
+	
+	/* do the same for t_zvec, and t_yvec;
+	t_zvec.x -= node->__movedCoords.c[0];
+	t_zvec.y -= node->__movedCoords.c[1];
+	t_zvec.z -= node->__movedCoords.c[2];
+	t_yvec.x -= node->__movedCoords.c[0];
+	t_yvec.y -= node->__movedCoords.c[1];
+	t_yvec.z -= node->__movedCoords.c[2];
 
-	if(((node->size).c[0]) == 0 || ((node->size).c[1]) == 0 || ((node->size).c[2]) == 0) return;
+	/* printf ("GPS, t_orig %lf %lf %lf\n",t_orig.x, t_orig.y, t_orig.z);  */
+	cx = t_orig.x;
+	cy = t_orig.y;
+	cz = t_orig.z;
 
-	if(fabs(cx) > ((node->size).c[0])/2 ||
-	   fabs(cy) > ((node->size).c[1])/2 ||
-	   fabs(cz) > ((node->size).c[2])/2) {
+	/* printf ("cx %lf cy %lf cz %lf size %f %f %f\n",cx,cy,cz, (node->size.c[0])/2, (node->size.c[1])/2, (node->size.c[2])/2); */
+	if((node->size.c[0]) == 0 || (node->size.c[1]) == 0 || (node->size.c[2]) == 0) return;
+
+	if(fabs(cx) > (node->size.c[0])/2 ||
+	   fabs(cy) > (node->size.c[1])/2 ||
+	   fabs(cz) > (node->size.c[2])/2) {
 		fwXformPop();
 		return;
 	}
+
+printf ("GeoProximitySensor - in range\n");
 
 	/* Ok, we now have to compute... */
 	node->__hit = 1;
@@ -2057,6 +2066,8 @@ void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	node->__t1.c[0] = t_orig.x;
 	node->__t1.c[1] = t_orig.y;
 	node->__t1.c[2] = t_orig.z;
+
+printf ("GeoProximitySensor - checking range out \n");
 
 	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */
 	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */

@@ -144,7 +144,7 @@ void catch_SIGHUP() {
 
 void catch_SIGSEGV() {
 	if (!CaughtSEGV) {
-		ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-06@rogers.com with a valid subject line. Thanks.\n");
+		ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-09@rogers.com with a valid subject line. Thanks.\n");
 		CaughtSEGV = TRUE;
 	}
     exit(1);

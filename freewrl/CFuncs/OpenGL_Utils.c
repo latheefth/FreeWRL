@@ -965,7 +965,7 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
 
 				/* GeoProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (GeoProximitySensor)
-                			update_renderFlag(node,VF_Proximity);
+                			if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(node,VF_Proximity);
 				END_NODE
 
 				/* GeoLOD needs its own flag sent up the chain */

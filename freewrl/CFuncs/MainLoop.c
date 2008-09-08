@@ -1426,7 +1426,7 @@ void setSeqTemp(const char* file) {
    console. */
 void outOfMemory(const char *msg) {
 	ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
-			"and is exiting.\nPlease email this file to freewrl-06@rogers.com\n -- %s--",msg);
+			"and is exiting.\nPlease email this file to freewrl-09@rogers.com\n -- %s--",msg);
 	sleep(10);
 	exit(EXIT_FAILURE);
 }

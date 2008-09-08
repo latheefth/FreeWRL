@@ -17,6 +17,10 @@
 
 #include "SensInterps.h"
 
+
+
+
+
 /* defines for getting touched flags and exact Javascript pointers */
 
 /****************************** ECMA types ******************************************/
@@ -287,6 +291,16 @@ struct CR_RegStruct *routesToRegister = NULL;
 int maxRTR = 0;
 int rTr = 0;
 
+
+/* if we get mark_events sent, before routing is established, save them and use them
+   as soon as routing is here */
+#define POSSIBLEINITIALROUTES 1000
+static int initialEventBeforeRoutesCount = 0;
+struct initialRouteStruct {
+	struct X3D_Node *from;
+	unsigned int totalptr;
+};
+static struct initialRouteStruct *preEvents = NULL;
 
 
 /* a Script (JavaScript or CLASS) has given us an event, tell the system of this */
@@ -1155,7 +1169,20 @@ void mark_event (struct X3D_Node *from, unsigned int totalptr) {
 
 	X3D_NODE_CHECK(from);
 
-	if (!CRoutes_Initiated) return;  /* no routes registered yet */
+	/* maybe this MARK_EVENT is coming in during initial node startup, before routing is registered? */
+	if (!CRoutes_Initiated) {
+		/* printf ("routes not registered yet; lets save this one for a bit...\n"); */
+		if (preEvents == NULL) preEvents=MALLOC (sizeof (struct initialRouteStruct) * POSSIBLEINITIALROUTES);
+		preEvents[initialEventBeforeRoutesCount].from = from;
+		preEvents[initialEventBeforeRoutesCount].totalptr = totalptr;
+		initialEventBeforeRoutesCount++;
+		if (initialEventBeforeRoutesCount > POSSIBLEINITIALROUTES) {
+			ConsoleMessage("size of preEvent queue too small - complain to freewrl-09@rogers.com");
+			initialEventBeforeRoutesCount --;
+		}
+
+		return;  /* no routes registered yet */
+	}
 
 	findit = 1;
 
@@ -1565,6 +1592,19 @@ void do_first() {
 		actually_do_CRoutes_Register (counter);
 	}
 	rTr = 0;
+
+	/* any mark_events kicking around, waiting for someone to come in and tell us off?? */
+	/* CRoutes_Inititated should be set here, as it would have been created in 
+	   actually_do_CRoutes_Register */
+	if (preEvents != NULL) {
+		/* printf ("do_first, preEvents != NULL)\n"); */
+		/* if (CRoutes_Initiated) printf ("routes initiated\n"); else printf ("NOT initiated\n"); */
+		for (counter = 0; counter < initialEventBeforeRoutesCount; counter ++) {
+			MARK_EVENT(preEvents[counter].from, preEvents[counter].totalptr);
+		}
+		initialEventBeforeRoutesCount = 0;
+		FREE_IF_NZ(preEvents);
+	}
 }
 
 
