@@ -1960,7 +1960,7 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 
 	/* work out the local orientation */
 	GeoOrient(&gdCoords.p[0], &node->__localOrient);
-
+#define VERBOSE
 	#ifdef VERBOSE
 	printf ("compile_GeoProximitySensor, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCenter.c[0], node->geoCenter.c[1], node->geoCenter.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
@@ -1969,6 +1969,7 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 			node->__localOrient.r[2],
 			node->__localOrient.r[3]);
 	#endif
+#undef VERBOSE
 
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
@@ -1982,7 +1983,8 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 	#endif
 }
 
-void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
+	PROXIMITYSENSOR(GeoProximitySensor,__movedCoords,INITIALIZE_GEOSPATIAL(node),COMPILE_IF_REQUIRED)
+void oldproximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
 	/* Viewer pos = t_r2 */
 	double cx,cy,cz;
 	double len;
