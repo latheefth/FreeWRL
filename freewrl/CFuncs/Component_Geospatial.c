@@ -39,10 +39,12 @@ http://www.lsc-group.phys.uwm.edu/lal/slug/nightly/doxygen/html/TerrestrialCoord
 ------
 Code Conversions:
 
+Geodetic to UTM:
 UTM to Geodetic:
 	Geo::Coordinates::UTM - Perl extension for Latitiude Longitude conversions.
 	Copyright (c) 2000,2002,2004,2007 by Graham Crookham. All rights reserved.
 
+Geocentric to Geodetic:
 Geodetic to Geocentric:
 	Filename: Gdc_To_Gcc_Converter.java
 	Author: Dan Toms, SRI International
@@ -53,9 +55,6 @@ Geodetic to Geocentric:
 	  These were subsequently modified for this package. This package is
 	  not part of the SEDRIS project, and the Java code written for this
 	  package has not been certified or tested for correctness by NIMA.
-
-Geocentric to Geodetic:
-	same as Geodetic to Geocentric.
 
 
 *********************************************************************/
@@ -292,7 +291,6 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 		outc->p = MALLOC(sizeof (struct SFVec3d) * inc->n);
 		outc->n = inc->n;
 	}
-
 	#ifdef VERBOSE
 	printf ("Gd_Gc, have n of %d\n",inc->n);
 	#endif
@@ -374,7 +372,10 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 
 	/* is the values specified with an "easting_first?" */
 	if (!northing_first) { northing = 1; easting = 0; }
-if (!northing_first) printf ("UTM to GD, not northing first, flipping norhting and easting\n");
+
+	#ifdef VERBOSE
+	if (!northing_first) printf ("UTM to GD, not northing first, flipping norhting and easting\n");
+	#endif
 		
 	#ifdef VERBOSE
 	if (northing_first) printf ("northing first\n"); else printf ("NOT northing_first\n");
@@ -887,6 +888,61 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
 
         GDC_LAT *= DEGREES_PER_RADIAN;
         GDC_LON *= DEGREES_PER_RADIAN;
+}
+
+static int latlon_zone_number(double latitude, double long2) {
+	int zone;
+printf ("latlon latitude %lf, longituge %lf\n",latitude, long2);
+/*
+    my $zone = int( ($long2 + 180)/6) + 1;
+    if($latitude >= 56.0 && $latitude < 64.0 && $long2 >= 3.0 && $long2 < 12.0)
+    {   $zone = 32;
+    }
+    if($latitude >= 72.0 && $latitude < 84.0) {
+        $zone = ($long2 >=  0.0 && $long2 <  9.0) ? 31
+                 : ($long2 >=  9.0 && $long2 < 21.0) ? 33
+                 : ($long2 >= 21.0 && $long2 < 33.0) ? 35
+                 : ($long2 >= 33.0 && $long2 < 42.0) ? 37
+                 :                                     $zone;
+    }
+    return $zone;
+*/
+}
+
+/* convert a GDC BACK to a UTM coordinate */
+static void gdcToUTM(double latIn, double longIn, int *zone, int *north, double *latOut, double *lonOut) {
+	double long2;
+	int tmp;
+
+	#ifdef  VERBOSE
+	printf ("gdcToUTM, converting: %lf %lf\n",latIn, longIn);
+	#endif
+
+	if ((latIn < -180.0) || (latIn > 180.0)) {
+		ConsoleMessage ("gdcToUTM; latitude out of range, (-180 to 180) is %lf",latIn);
+		*zone = 1; *latOut = 0.0; *lonOut = 0.0; *north=TRUE;
+		return;
+	}
+	
+
+	/* get the longitude relative to the beginning of the zone */	
+	tmp = (int) ((double) (longIn + 180.0)/360.0);
+	long2 = tmp * 360.0;
+
+printf ("gdcToUTM, long2 %lf\n",long2);
+
+	/* find the zone number */
+	*zone = latlon_zone_number;
+
+printf ("gdcToUTM, zone %d\n",*zone);
+
+	/* do the conversion now */
+
+	
+	*latOut = 0.0; *lonOut = 0.0;
+	
+    /* _latlon_to_utm($ellips, $zone, $latitude, $long2); */
+	
 }
 
 
@@ -1960,7 +2016,6 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 
 	/* work out the local orientation */
 	GeoOrient(&gdCoords.p[0], &node->__localOrient);
-#define VERBOSE
 	#ifdef VERBOSE
 	printf ("compile_GeoProximitySensor, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCenter.c[0], node->geoCenter.c[1], node->geoCenter.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
@@ -1969,7 +2024,6 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 			node->__localOrient.r[2],
 			node->__localOrient.r[3]);
 	#endif
-#undef VERBOSE
 
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
@@ -1984,166 +2038,157 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 }
 
 	PROXIMITYSENSOR(GeoProximitySensor,__movedCoords,INITIALIZE_GEOSPATIAL(node),COMPILE_IF_REQUIRED)
-void oldproximity_GeoProximitySensor (struct X3D_GeoProximitySensor *node) {
-	/* Viewer pos = t_r2 */
-	double cx,cy,cz;
-	double len;
-	struct point_XYZ dr1r2;
-	struct point_XYZ dr2r3;
-	struct point_XYZ nor1,nor2;
-	struct point_XYZ ins;
-	static const struct point_XYZ yvec = {0,0.05,0};
-	static const struct point_XYZ zvec = {0,0,-0.05};
-	static const struct point_XYZ zpvec = {0,0,0.05};
-	static const struct point_XYZ orig = {0,0,0};
-	struct point_XYZ t_zvec, t_yvec, t_orig;
-	GLdouble modelMatrix[16];
-	GLdouble projMatrix[16];
-	double my_rotation;
-
-	if(!node->enabled) return;
-
-	INITIALIZE_GEOSPATIAL(node)
-        COMPILE_IF_REQUIRED
-
-	/* do the translation to the moved coord position/rotation */
-	fwXformPush(); 
-	/* 
-	glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
-	*/
-
-	/* printf ("prep_GeoProx trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]); */
-
-	my_rotation = node->__localOrient.r[3]/3.1415926536*180;
-	/*
-	glRotated(my_rotation, node->__localOrient.r[0],node->__localOrient.r[1],node->__localOrient.r[2]);
-	*/
-
-	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
-	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
-
-	/* transforms viewers coordinate space into sensors coordinate space.
-	 * this gives the orientation of the viewer relative to the sensor.
-	 */
-	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport, &t_orig.x,&t_orig.y,&t_orig.z);
-	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport, &t_zvec.x,&t_zvec.y,&t_zvec.z);
-	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport, &t_yvec.x,&t_yvec.y,&t_yvec.z);
-
-	/* move the t_orig to where our coordinates say we should be */
-	t_orig.x -= node->__movedCoords.c[0];
-	t_orig.y -= node->__movedCoords.c[1];
-	t_orig.z -= node->__movedCoords.c[2];
-	
-	/* do the same for t_zvec, and t_yvec;
-	t_zvec.x -= node->__movedCoords.c[0];
-	t_zvec.y -= node->__movedCoords.c[1];
-	t_zvec.z -= node->__movedCoords.c[2];
-	t_yvec.x -= node->__movedCoords.c[0];
-	t_yvec.y -= node->__movedCoords.c[1];
-	t_yvec.z -= node->__movedCoords.c[2];
-
-	/* printf ("GPS, t_orig %lf %lf %lf\n",t_orig.x, t_orig.y, t_orig.z);  */
-	cx = t_orig.x;
-	cy = t_orig.y;
-	cz = t_orig.z;
-
-	/* printf ("cx %lf cy %lf cz %lf size %f %f %f\n",cx,cy,cz, (node->size.c[0])/2, (node->size.c[1])/2, (node->size.c[2])/2); */
-	if((node->size.c[0]) == 0 || (node->size.c[1]) == 0 || (node->size.c[2]) == 0) return;
-
-	if(fabs(cx) > (node->size.c[0])/2 ||
-	   fabs(cy) > (node->size.c[1])/2 ||
-	   fabs(cz) > (node->size.c[2])/2) {
-		fwXformPop();
-		return;
-	}
-
-printf ("GeoProximitySensor - in range\n");
-
-	/* Ok, we now have to compute... */
-	node->__hit = 1;
-
-	/* Position */
-	node->__t1.c[0] = t_orig.x;
-	node->__t1.c[1] = t_orig.y;
-	node->__t1.c[2] = t_orig.z;
-
-printf ("GeoProximitySensor - checking range out \n");
-
-	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */
-	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */
-
-	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len);
-	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
-
-	#ifdef RENDERVERBOSE
-	printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",
-		t_orig.x, t_orig.y, t_orig.z,
-		t_zvec.x, t_zvec.y, t_zvec.z,
-		t_yvec.x, t_yvec.y, t_yvec.z,
-		dr1r2.x, dr1r2.y, dr1r2.z,
-		dr2r3.x, dr2r3.y, dr2r3.z
-		);
-	#endif
-
-	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) {
-		printf ("Sorry, can't handle unevenly scaled GeoProximitySensors yet :("
-		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3),
-		  	dr1r2.x,dr1r2.y,dr1r2.z,
-		  	dr2r3.x,dr2r3.y,dr2r3.z
-			);
-		fwXformPop();
-		return;
-	}
 
 
-	if(APPROX(dr1r2.z,1.0)) {
-		/* rotation */
-		((node->__t2).r[0]) = 0;
-		((node->__t2).r[1]) = 0;
-		((node->__t2).r[2]) = 1;
-		((node->__t2).r[3]) = atan2(-dr2r3.x,dr2r3.y);
-	} else if(APPROX(dr2r3.y,1.0)) {
-		/* rotation */
-		((node->__t2).r[0]) = 0;
-		((node->__t2).r[1]) = 1;
-		((node->__t2).r[2]) = 0;
-		((node->__t2).r[3]) = atan2(dr1r2.x,dr1r2.z);
+/* GeoProximitySensor code for ClockTick */
+void do_GeoProximitySensorTick( void *ptr) {
+	struct X3D_GeoProximitySensor *node = (struct X3D_GeoProximitySensor *)ptr;
+	/* are we enabled? */
+	if (!node) return;
+	if (!node->enabled) return;
+
+	/* did we get a signal? */
+	if (node->__hit) {
+		if (!node->isActive) {
+			#ifdef SEVERBOSE
+			printf ("PROX - initial defaults\n");
+			#endif
+
+			node->isActive = 1;
+			node->enterTime = TickTime;
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, isActive));
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, enterTime));
+
+		}
+
+		/* now, has anything changed? */
+		if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
+			#ifdef SEVERBOSE
+			printf ("PROX - position changed!!! \n");
+			#endif
+
+			memcpy ((void *) &node->position_changed,
+				(void *) &node->__t1,sizeof(struct SFColor));
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, position_changed));
+		
+			#ifdef VERBOSE
+			printf ("do_GeoProximitySensorTick, position changed; it now is %lf %lf %lf\n",node->position_changed.c[0],
+				node->position_changed.c[1], node->position_changed.c[2]);
+			printf ("nearPlane is %lf\n",nearPlane);
+
+			#endif
+
+			/* possibly we have to convert this from GCC to GDC, and maybe even then to UTM */
+		
+			/* prep the geoCoord changed; first, get the position. Right now, we use the
+			  Viewer position, as it is more accurate (not clipped by the nearPlane) than
+			  the position_changed field  */
+
+			node->geoCoord_changed.c[0] = Viewer.Pos.x;
+			node->geoCoord_changed.c[1] = Viewer.Pos.y;
+			node->geoCoord_changed.c[2] = Viewer.Pos.z;
+
+			/* then add in the nearPlane, as the way we get the position is via a clipped frustum */
+			/* if we get this via the position_changed field, we have to:
+				node->geoCoord_changed.c[2] += nearPlane;
+			*/
+
+printf ("geoCoord_changed as a GCC, %lf %lf %lf\n",
+			node->geoCoord_changed.c[0],
+			node->geoCoord_changed.c[1],
+			node->geoCoord_changed.c[2]);
+
+/* compileGeosystem - encode the return value such that srf->p[x] is...
+                        0:      spatial reference frame (GEOSP_UTM, GEOSP_GC, GEOSP_GD);
+                        1:      spatial coordinates (defaults to GEOSP_WE)
+                        2:      UTM zone number, 1..60. ID_UNDEFINED = not specified
+                        3:      UTM:    if "S" - value is FALSE, not S, value is TRUE
+                                GD:     if "latitude_first" TRUE, if "longitude_first", FALSE
+                                GC:     if "northing_first" TRUE, if "easting_first", FALSE */
+
+			/* do we need to change this from a GCC? */
+			if (node->__geoSystem.n != 0) { /* do we have a GeoSystem specified?? if not, dont do this! */
+				struct SFVec3d gdCoords;
+
+				if (node->__geoSystem.p[0] != GEOSP_GC) {
+					/* have to convert to GD or UTM. Go to GD first */
+
+					if (Viewer.GeoSpatialNode != NULL) {
+        					retractOrigin(Viewer.GeoSpatialNode->geoOrigin,
+							&node->geoCoord_changed);
+					}
+        
+
+					#ifdef VERBOSE
+					printf ("geoCoord_changed retracted, %lf %lf %lf\n",
+						node->geoCoord_changed.c[0],
+						node->geoCoord_changed.c[1],
+						node->geoCoord_changed.c[2]);
+					#endif
+
+					/* now, convert to a GDC */
+					gccToGdc (&node->geoCoord_changed, &gdCoords);
+					memcpy (&node->geoCoord_changed, &gdCoords, sizeof (struct SFVec3d));
+
+#define VERBOSE
+
+					#ifdef VERBOSE
+					printf ("geoCoord_changed as a GDC, %lf %lf %lf\n",
+						node->geoCoord_changed.c[0],
+						node->geoCoord_changed.c[1],
+						node->geoCoord_changed.c[2]);
+					#endif
+#undef VERBOSE
+				
+					/* is this a GD? if so, go no further */
+					if (node->__geoSystem.p[0] == GEOSP_GD) {
+						/* do we need to flip lat and lon? */
+						if (!(node->__geoSystem.p[3])) {
+							double tmp;
+							tmp = node->geoCoord_changed.c[0];
+							node->geoCoord_changed.c[0] = node->geoCoord_changed.c[1];
+							node->geoCoord_changed.c[1] = tmp;
+						}
+
+					} else {
+						/* convert this to UTM */
+						int zone;
+						double latOut;
+						double lonOut;
+						
+						/* gdcToUTM(node->geoCoord_changed.c[0],
+							node->geoCoord_changed.c[1],
+							&zone, &latOut, &lonOut);
+						*/
+
+					} 
+
+				}
+			}
+		}
+		if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
+			#ifdef SEVERBOSE
+			printf  ("PROX - orientation changed!!!\n ");
+			#endif
+
+			memcpy ((void *) &node->orientation_changed,
+				(void *) &node->__t2,sizeof(struct SFRotation));
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, orientation_changed));
+		}
 	} else {
-		/* Get the normal vectors of the possible rotation planes */
-		nor1 = dr1r2;
-		nor1.z -= 1.0;
-		nor2 = dr2r3;
-		nor2.y -= 1.0;
+		if (node->isActive) {
+			#ifdef SEVERBOSE
+			printf ("PROX - stopping\n");
+			#endif
 
-		/* Now, the intersection of the planes, obviously cp */
-		VECCP(nor1,nor2,ins);
+			node->isActive = 0;
+			node->exitTime = TickTime;
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, isActive));
 
-		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len);
-
-		/* the angle */
-		VECCP(dr1r2,ins, nor1);
-		VECCP(zpvec, ins, nor2);
-		len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len);
-		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len);
-		VECCP(nor1,nor2,ins);
-
-		((node->__t2).r[3]) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2));
-
-		/* rotation  - should normalize sometime... */
-		((node->__t2).r[0]) = ins.x;
-		((node->__t2).r[1]) = ins.y;
-		((node->__t2).r[2]) = ins.z;
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, exitTime));
+		}
 	}
-	#ifdef RENDERVERBOSE
-	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",
-		nor1.x, nor1.y, nor1.z,
-		nor2.x, nor2.y, nor2.z,
-		ins.x, ins.y, ins.z
-	);
-	#endif
-	fwXformPop();
+	node->__hit=FALSE;
 }
 
 
@@ -2242,7 +2287,6 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	#endif
 }
 
-
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 
@@ -2301,6 +2345,10 @@ void viewer_calculate_speed() {
 	gcCoords.c[1] = Viewer.Pos.y;
 	gcCoords.c[2] = Viewer.Pos.z;
 
+        #ifdef VERBOSE
+        printf ("viewer_calculate_speed, position is %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
+        #endif
+
 	if (Viewer.GeoSpatialNode != NULL) {
         	retractOrigin(Viewer.GeoSpatialNode->geoOrigin, &gcCoords);
 	}
@@ -2309,24 +2357,17 @@ void viewer_calculate_speed() {
         printf ("viewer_calculate_speed, retracted %lf %lf %lf\n", gcCoords.c[0], gcCoords.c[1], gcCoords.c[2]);
         #endif
 
-#define USE_GDC_FOR_VELOCITY_CALCULATIONS
-#ifdef USE_GDC_FOR_VELOCITY_CALCULATIONS
-/*gdc would not give us much of a change in z dimensions... */
-
         /* convert from local (gc) to gd coordinates, using WGS84 ellipsoid */
         gccToGdc (&gcCoords, &gdCoords);
 
-	/* printf ("speed is calculated from geodetic height %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]); */
+	#ifdef VERBOSE
+	printf ("speed is calculated from geodetic height %lf %lf %lf\n",gdCoords.c[0], gdCoords.c[1], gdCoords.c[2]); 
+	#endif
 
 	/* speed is dependent on elevation above WGS84 ellipsoid */
 	#define speed_scale 1.0
 	Viewer.speed = fabs(gdCoords.c[2]/10.0 * Viewer.GeoSpatialNode->speedFactor);
 	geoHeightinZAxis = gdCoords.c[2];
-#else
-	Viewer.speed = fabs(gcCoords.c[2]/10.0 * Viewer.GeoSpatialNode->speedFactor);
-	geoHeightinZAxis = gcCoords.c[2];
-#endif
-
 
 	#ifdef VERBOSE
 	printf ("speed is %lf\n",Viewer.speed); 
@@ -2336,7 +2377,6 @@ void viewer_calculate_speed() {
 	naviinfo.width = Viewer.speed*0.25;
 	naviinfo.height = Viewer.speed*1.6;
 	naviinfo.step = Viewer.speed*0.25;
-
 }
 
 
