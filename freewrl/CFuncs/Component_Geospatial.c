@@ -325,7 +325,6 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 		printf ("Rn %lf RnPh %lf\n",Rn, RnPh);
 		#endif
 
-
 		GC_X_OUT = RnPh * clat * cos(source_lon);
 		GC_Y_OUT = RnPh * clat * sin(source_lon);
 		GC_Z_OUT = ((C2 / A2) * Rn + ELEVATION_IN) * slat;
@@ -334,7 +333,6 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 		printf ("Gd_Gc, outing x %lf y %lf z %lf\n", GC_X_OUT, GC_Y_OUT, GC_Z_OUT);
 		#endif
 	}
-
 }
 
 
@@ -462,7 +460,7 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 
 
 		#ifdef VERBOSE
-		printf ("myNorthing scaled %lf\n",myNorthing);
+		/* printf ("myNorthing scaled %lf\n",myNorthing);
 		printf ("northingDRCT1 %lf\n",northingDRCT1);
 		printf ("myphi1rad %lf\n",myphi1rad);
 		printf ("myN1 %lf\n",myN1);
@@ -472,10 +470,9 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 		printf ("myD %lf\n",myD);
 		printf ("latitude %lf\n",Latitude);
 		printf ("longitude %lf\n",Longitude);
-
+		*/
 		printf ("utmtogd\tnorthing %lf easting %lf ele %lf\n\tlat %lf long %lf ele %lf\n", NORTHING_IN, EASTING_IN, ELEVATION_IN, LATITUDE_OUT, LONGITUDE_OUT, ELEVATION_IN);
 		#endif
-
         } 
 }
 
@@ -910,41 +907,56 @@ printf ("latlon latitude %lf, longituge %lf\n",latitude, long2);
 }
 
 /* convert a GDC BACK to a UTM coordinate */
-static void gdcToUTM(double latIn, double longIn, int *zone, int *north, double *latOut, double *lonOut) {
-	double long2;
-	int tmp;
+static void gdToUtm(double latitude, double longitude, int *zone, double *easting, double *northing) {
+#define DEG2RAD (PI/180.00)
+#define GEOSP_WE_INV 0.00669438
 
-	#ifdef  VERBOSE
-	printf ("gdcToUTM, converting: %lf %lf\n",latIn, longIn);
-	#endif
+	/* calculate the zone number if it is less than zero. If greater than zero, leave alone! */
+	if (*zone < 0) 
+		*zone = ((longitude + 180.0)/6.0) + 1;
 
-	if ((latIn < -180.0) || (latIn > 180.0)) {
-		ConsoleMessage ("gdcToUTM; latitude out of range, (-180 to 180) is %lf",latIn);
-		*zone = 1; *latOut = 0.0; *lonOut = 0.0; *north=TRUE;
-		return;
-	}
-	
+	double lat_radian = latitude * DEG2RAD;
+	double long_radian = longitude * DEG2RAD;
+	double myScale = 0.9996;
+	int longOrigin = (*zone - 1)*6 - 180 + 3;
+	double longOriginradian = longOrigin * DEG2RAD;
+	double eccentprime = GEOSP_WE_INV/(1-GEOSP_WE_INV);
 
-	/* get the longitude relative to the beginning of the zone */	
-	tmp = (int) ((double) (longIn + 180.0)/360.0);
-	long2 = tmp * 360.0;
 
-printf ("gdcToUTM, long2 %lf\n",long2);
+	/* 
+	printf ("lat_radian %lf long_radian %lf myScale %lf longOrigin %d longOriginradian %lf eccentprime %lf\n",
+	   lat_radian, long_radian, myScale, longOrigin, longOriginradian, eccentprime);
+	*/
 
-	/* find the zone number */
-	*zone = latlon_zone_number;
+	double NNN = GEOSP_WE_A / sqrt(1-GEOSP_WE_INV * sin(lat_radian)*sin(lat_radian));
+	double TTT = tan(lat_radian) * tan(lat_radian);
+	double CCC = eccentprime * cos(lat_radian)*cos(lat_radian);
+	double AAA = cos(lat_radian) * (long_radian - longOriginradian);
+	double MMM = GEOSP_WE_A
+            * ( ( 1 - GEOSP_WE_INV/4 - 3 * GEOSP_WE_INV * GEOSP_WE_INV/64
+                  - 5 * GEOSP_WE_INV * GEOSP_WE_INV * GEOSP_WE_INV/256
+                ) * lat_radian
+              - ( 3 * GEOSP_WE_INV/8 + 3 * GEOSP_WE_INV * GEOSP_WE_INV/32
+                  + 45 * GEOSP_WE_INV * GEOSP_WE_INV * GEOSP_WE_INV/1024
+                ) * sin(2 * lat_radian)
+              + ( 15 * GEOSP_WE_INV * GEOSP_WE_INV/256 +
+                  45 * GEOSP_WE_INV * GEOSP_WE_INV * GEOSP_WE_INV/1024
+                ) * sin(4 * lat_radian)
+              - ( 35 * GEOSP_WE_INV * GEOSP_WE_INV * GEOSP_WE_INV/3072
+                ) * sin(6 * lat_radian)
+              );
 
-printf ("gdcToUTM, zone %d\n",*zone);
+	/* printf ("N %lf T %lf C %lf A %lf M %lf\n",NNN,TTT,CCC,AAA,MMM); */
 
-	/* do the conversion now */
+	*easting = myScale*NNN*(AAA+(1-TTT+CCC)*AAA*AAA*AAA/6
+                    + (5-18*TTT+TTT*TTT+72*CCC-58*eccentprime)*AAA*AAA*AAA*AAA*AAA/120)
+                    + 500000.0;
 
-	
-	*latOut = 0.0; *lonOut = 0.0;
-	
-    /* _latlon_to_utm($ellips, $zone, $latitude, $long2); */
-	
+	*northing= myScale * ( MMM + NNN*tan(lat_radian) * 
+		( AAA*AAA/2+(5-TTT+9*CCC+4*CCC*CCC)*AAA*AAA*AAA*AAA/24 + (61-58*TTT+TTT*TTT+600*CCC-330*eccentprime) * AAA*AAA*AAA*AAA*AAA*AAA/720));
+
+	/*if (latitude < 0) *northing += 10000000.0;*/
 }
-
 
 /* calculate the rotation needed to apply to this position on the GC coordinate location */
 static void GeoOrient (struct SFVec3d *gdCoords, struct DFRotation *orient) {
@@ -2084,21 +2096,29 @@ void do_GeoProximitySensorTick( void *ptr) {
 			  Viewer position, as it is more accurate (not clipped by the nearPlane) than
 			  the position_changed field  */
 
+			/*
 			node->geoCoord_changed.c[0] = Viewer.Pos.x;
 			node->geoCoord_changed.c[1] = Viewer.Pos.y;
 			node->geoCoord_changed.c[2] = Viewer.Pos.z;
+			*/
+			node->geoCoord_changed.c[0] = node->position_changed.c[0];
+			node->geoCoord_changed.c[1] = node->position_changed.c[1];
+			node->geoCoord_changed.c[2] = node->position_changed.c[2];
 
 			/* then add in the nearPlane, as the way we get the position is via a clipped frustum */
 			/* if we get this via the position_changed field, we have to:
 				node->geoCoord_changed.c[2] += nearPlane;
 			*/
+			node->geoCoord_changed.c[2] += nearPlane;
 
-printf ("geoCoord_changed as a GCC, %lf %lf %lf\n",
-			node->geoCoord_changed.c[0],
-			node->geoCoord_changed.c[1],
-			node->geoCoord_changed.c[2]);
+			#ifdef VERBOSE
+			printf ("\ngeoCoord_changed as a GCC, %lf %lf %lf\n",
+				node->geoCoord_changed.c[0],
+				node->geoCoord_changed.c[1],
+				node->geoCoord_changed.c[2]);
+			#endif
 
-/* compileGeosystem - encode the return value such that srf->p[x] is...
+			/* compileGeosystem - encode the return value such that srf->p[x] is...
                         0:      spatial reference frame (GEOSP_UTM, GEOSP_GC, GEOSP_GD);
                         1:      spatial coordinates (defaults to GEOSP_WE)
                         2:      UTM zone number, 1..60. ID_UNDEFINED = not specified
@@ -2130,15 +2150,12 @@ printf ("geoCoord_changed as a GCC, %lf %lf %lf\n",
 					gccToGdc (&node->geoCoord_changed, &gdCoords);
 					memcpy (&node->geoCoord_changed, &gdCoords, sizeof (struct SFVec3d));
 
-#define VERBOSE
-
 					#ifdef VERBOSE
 					printf ("geoCoord_changed as a GDC, %lf %lf %lf\n",
 						node->geoCoord_changed.c[0],
 						node->geoCoord_changed.c[1],
 						node->geoCoord_changed.c[2]);
 					#endif
-#undef VERBOSE
 				
 					/* is this a GD? if so, go no further */
 					if (node->__geoSystem.p[0] == GEOSP_GD) {
@@ -2152,17 +2169,26 @@ printf ("geoCoord_changed as a GCC, %lf %lf %lf\n",
 
 					} else {
 						/* convert this to UTM */
-						int zone;
-						double latOut;
-						double lonOut;
+						int zone; 
+						double easting;
+						double northing;
 						
-						/* gdcToUTM(node->geoCoord_changed.c[0],
+						/* get the zone from the geoSystem; if undefined, we will calculate */
+						zone = node->__geoSystem.p[2];
+						gdToUtm(node->geoCoord_changed.c[0],
 							node->geoCoord_changed.c[1],
-							&zone, &latOut, &lonOut);
-						*/
+							&zone, &easting, &northing);
 
+						node->geoCoord_changed.c[0] = easting;
+						node->geoCoord_changed.c[1] = northing;
+
+					#ifdef VERBOSE
+					printf ("geoCoord_changed as a UTM, %lf %lf %lf\n",
+						node->geoCoord_changed.c[0],
+						node->geoCoord_changed.c[1],
+						node->geoCoord_changed.c[2]);
+					#endif
 					} 
-
 				}
 			}
 		}

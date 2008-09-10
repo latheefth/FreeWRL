@@ -1606,9 +1606,11 @@ void do_first() {
 	if (preEvents != NULL) {
 		if (CRoutes_Initiated) {
 		LOCK_PREROUTETABLE
-printf ("doing preEvents, we have %d events \n",initialEventBeforeRoutesCount);
-		/* printf ("do_first, preEvents != NULL)\n"); */
-		if (CRoutes_Initiated) printf ("routes initiated\n"); else printf ("NOT initiated\n");
+
+		#ifdef CRVERBOSE
+		printf ("doing preEvents, we have %d events \n",initialEventBeforeRoutesCount);
+		#endif
+
 		for (counter = 0; counter < initialEventBeforeRoutesCount; counter ++) {
 			MARK_EVENT(preEvents[counter].from, preEvents[counter].totalptr);
 		}

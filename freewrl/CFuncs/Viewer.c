@@ -269,6 +269,11 @@ void viewer_togl(double fieldofview) {
 	}
 
 	togl(&(Viewer.Quat));
+	/* printf ("viewer togl first trans %lf %lf %lf\n", -(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
+	printf ("       togl secnd trans %lf %lf %lf\n",(Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
+	*/
+
+
 	glTranslated(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
 	glTranslated((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
 	togl(&(Viewer.AntiQuat));
