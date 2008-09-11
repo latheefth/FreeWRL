@@ -2666,10 +2666,8 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);
-printf ("start of SFVec3fGetProperty... id is %s\n",_id_c);
 	_idStr = JS_ValueToString(cx, *vp);
 	_id_c = JS_GetStringBytes(_idStr);
-printf ("start of SFVec3fGetProperty... vp is %s\n",_id_c);
 
 	#endif
 
@@ -2738,6 +2736,502 @@ SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
 		printf( "JS_ConvertValue failed in SFVec3fSetProperty.\n");
+		return JS_FALSE;
+	}
+
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			(ptr->v).c[0] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 1:
+			(ptr->v).c[1] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		case 2:
+			(ptr->v).c[2] = *JSVAL_TO_DOUBLE(myv);
+			break;
+		}
+	}
+	return JS_TRUE;
+}
+
+/********************************************************************/
+
+/* Generic SFVec3d routines that return a SFVec3d */
+#define __3FADD		1
+#define __3FDIVIDE 	2
+#define __3FMULT	3
+#define __3FSUBT	4
+#define __3FDOT		5
+#define __3FLENGTH	6
+#define __3FNORMALIZE	8
+#define __3FNEGATE	7
+#define __3FCROSS	9
+
+JSBool SFVec3dGeneric( JSContext *cx, JSObject *obj,
+		   uintN argc, jsval *argv, jsval *rval, int op) {
+	JSObject *_paramObj, *_proto, *_retObj;
+	SFVec3dNative *_vec1, *_vec2, *_retNative;
+	jsdouble d=0.0;
+	jsdouble d0=0.0;
+	jsdouble d1=0.0;
+	jsdouble d2=0.0;
+	jsdouble *dp;
+	struct point_XYZ v1, v2, ret;
+
+
+	/* parameters */
+	int SFParam = FALSE;
+	int numParam = FALSE;
+
+	/* return values */
+	int retSFVec3d = FALSE;
+	int retNumeric = FALSE;
+
+	/* is the "argv" parameter a string? */
+	int param_isString;
+	char *charString;
+	jsdouble pars[3];
+	JSString *_str;
+
+	/* determine what kind of parameter to get */
+	if ((op==__3FADD)||(op==__3FDOT)||(op==__3FCROSS)||(op==__3FSUBT))SFParam=TRUE;
+	if ((op==__3FDIVIDE)||(op==__3FMULT))numParam=TRUE;
+
+	/* determine the return value, if it is NOT a SFVec3d */
+	if ((op==__3FDOT)||(op==__3FLENGTH)) retNumeric = TRUE;
+	retSFVec3d = (!retNumeric);
+
+	/* is the parameter a string, possibly gotten from the VRML/X3d
+	 * side of things? */
+	param_isString = JSVAL_IS_STRING (*argv);
+
+	/* get the parameter */
+	if ((SFParam) || (numParam)) {
+		if (numParam) {
+			if (!JSVAL_IS_NUMBER(argv[0])) {
+				printf ("SFVec3d param error - number expected\n");
+				return JS_FALSE;
+			}
+			if (!JS_ValueToNumber(cx, argv[0], &d)) {
+				printf("JS_ValueToNumber failed in SFVec3d.\n");
+				return JS_FALSE;
+			}
+		} else {
+			/* did this come in from VRML as a string, or did
+			 * it get created in javascript? */
+			if (param_isString) {
+				_str = JS_ValueToString(cx, *argv);
+				charString = JS_GetStringBytes(_str);
+
+				if (sscanf(charString, "%lf %lf %lf",
+							&(pars[0]), &(pars[1]), &(pars[2])) != 3) {
+					printf ("conversion problem in SFVec3dGeneric\n");
+					return JS_FALSE;
+				}
+				/* printf ("past scan, %f %f %f\n",pars[0], pars[1],pars[2]);*/
+			} else {
+				if (!JS_ConvertArguments(cx, argc, argv, "o", &_paramObj)) {
+					printf( "JS_ConvertArguments failed in SFVec3d.\n");
+					return JS_FALSE;
+				}
+				if (!JS_InstanceOf(cx, _paramObj, &SFVec3dClass, argv)) {
+					printf( "SFVec3d - expected a SFVec3d parameter.\n");
+					printJSNodeType (cx,_paramObj);
+
+					return JS_FALSE;
+				}
+
+				/* get the second object's data */
+				if ((_vec2 = (SFVec3dNative*)JS_GetPrivate(cx, _paramObj)) == NULL) {
+					printf( "JS_GetPrivate failed for _paramObj in SFVec3d.\n");
+					return JS_FALSE;
+				}
+				pars[0]= (_vec2->v).c[0];
+				pars[1] = (_vec2->v).c[1];
+				pars[2] = (_vec2->v).c[2];
+			}
+		}
+	}
+
+	/* get our values */
+	if ((_vec1 = (SFVec3dNative*)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed for obj in SFVec3dAdd.\n");
+		return JS_FALSE;
+	}
+
+	/* do the operation */
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("SFVec3d generic, vec2 %f %f %f\n",pars[0],pars[1],pars[2]);
+	#endif
+
+	switch (op) {
+		/* returning a SFVec3d */
+		case __3FADD:
+			d0 = (_vec1->v).c[0] + pars[0];
+			d1 = (_vec1->v).c[1] + pars[1];
+			d2 = (_vec1->v).c[2] + pars[2];
+			break;
+		case __3FDIVIDE:
+			d0 = (_vec1->v).c[0] / d;
+			d1 = (_vec1->v).c[1] / d;
+			d2 = (_vec1->v).c[2] / d;
+			break;
+		case __3FMULT:
+			d0 = (_vec1->v).c[0] * d;
+			d1 = (_vec1->v).c[1] * d;
+			d2 = (_vec1->v).c[2] * d;
+			break;
+		case __3FSUBT:
+			d0 = (_vec1->v).c[0] - pars[0];
+			d1 = (_vec1->v).c[1] - pars[1];
+			d2 = (_vec1->v).c[2] - pars[2];
+			break;
+		case __3FDOT:
+			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
+			v2.x = pars[0]; v2.y=pars[1];v2.z=pars[2];
+			d = vecdot (&v1, &v2);
+			break;
+		case __3FCROSS:
+			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
+			v2.x = pars[0]; v2.y=pars[1];v2.z=pars[2];
+			veccross(&ret, v1, v2);
+			d0 = ret.x;d1 = ret.y, d2 = ret.z;
+			break;
+		case __3FLENGTH:
+			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
+			d = veclength(v1);
+			break;
+		case __3FNORMALIZE:
+			v1.x = (_vec1->v).c[0]; v1.y=(_vec1->v).c[1];v1.z=(_vec1->v).c[2];
+			vecnormal(&v1, &v1);
+			d0 = v1.x; d1 = v1.y; d2 = v1.z;
+			break;
+		case __3FNEGATE:
+			d0 = -(_vec1->v).c[0];
+			d1 = -(_vec1->v).c[1];
+			d2 = -(_vec1->v).c[2];
+			break;
+		default:
+			printf ("woops... %d\n",op);
+		return JS_FALSE;
+	}
+
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("past calcs\n");
+	#endif
+
+	/* set the return object */
+	if (retSFVec3d) {
+		#ifdef JSVRMLCLASSESVERBOSE
+		printf ("returning SFVec3d\n");
+		#endif
+		if ((_proto = JS_GetPrototype(cx, obj)) == NULL) {
+			printf( "JS_GetPrototype failed in SFVec3d.\n");
+			return JS_FALSE;
+		}
+		if ((_retObj =
+			JS_ConstructObject(cx, &SFVec3dClass, _proto, NULL)) == NULL) {
+			printf( "JS_ConstructObject failed in SFVec3d.\n");
+			return JS_FALSE;
+		}
+		*rval = OBJECT_TO_JSVAL(_retObj);
+		if ((_retNative = (SFVec3dNative*)JS_GetPrivate(cx, _retObj)) == NULL) {
+			printf( "JS_GetPrivate failed for _retObj in SFVec3d.\n");
+			return JS_FALSE;
+		}
+		(_retNative->v).c[0] = d0;
+		(_retNative->v).c[1] = d1;
+		(_retNative->v).c[2] = d2;
+	} else if (retNumeric) {
+		if ((dp = JS_NewDouble(cx,d)) == NULL) {
+			printf( "JS_NewDouble failed for %f in SFVec3d.\n",d);
+			return JS_FALSE;
+		}
+		*rval = DOUBLE_TO_JSVAL(dp);
+	}
+	#ifdef JSVRMLCLASSESVERBOSE
+	if (retSFVec3d){
+		printf("SFVec3dgeneric: obj = %u, result = [%.9g, %.9g, %.9g]\n",
+			   VERBOSE_OBJ obj,
+			   (_retNative->v).c[0], (_retNative->v).c[1],
+			   (_retNative->v).c[2]);
+	}
+	if (retNumeric){
+		printf("SFVec2fgeneric: obj = %u, result = %.9g\n",
+			   VERBOSE_OBJ obj, d);
+	}
+	#endif
+return JS_TRUE;
+}
+
+JSBool
+SFVec3dAdd(JSContext *cx, JSObject *obj,
+		   uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FADD);
+}
+
+JSBool
+SFVec3dCross(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FCROSS);
+}
+
+JSBool
+SFVec3dDivide(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FDIVIDE);
+}
+
+JSBool
+SFVec3dDot(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FDOT);
+}
+
+JSBool
+SFVec3dLength(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FLENGTH);
+}
+
+
+JSBool
+SFVec3dMultiply(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FMULT);
+}
+
+
+JSBool
+SFVec3dNegate(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FNEGATE);
+}
+
+JSBool
+SFVec3dNormalize(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FNORMALIZE);
+}
+
+JSBool
+SFVec3dSubtract(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval) {
+	return SFVec3dGeneric(cx, obj, argc, argv, rval, __3FSUBT);
+}
+
+JSBool
+SFVec3dToString(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+    SFVec3dNative *ptr;
+    JSString *_str;
+	char buff[STRING];
+
+	UNUSED(argc);
+	UNUSED(argv);
+	if ((ptr = (SFVec3dNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec3dToString.\n");
+		return JS_FALSE;
+	}
+
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.9g %.9g %.9g",
+			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
+	_str = JS_NewStringCopyZ(cx, buff);
+    *rval = STRING_TO_JSVAL(_str);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("SFVec3dToString, string is :%s:\n",buff);
+	#endif
+
+    return JS_TRUE;
+}
+
+JSBool
+SFVec3dAssign(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+    JSObject *_from_obj;
+    SFVec3dNative *fptr, *ptr;
+    char *_id_str;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("start of SFVec3dAssign\n");
+	#endif
+
+	if ((ptr = (SFVec3dNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed for obj in SFVec3dAssign.\n");
+        return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, obj, &SFVec3dClass, argv)) {
+		printf( "JS_InstanceOf failed for obj in SFVec3dAssign.\n");
+        return JS_FALSE;
+	}
+	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+		printf( "JS_ConvertArguments failed in SFVec3dAssign.\n");
+		return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, _from_obj, &SFVec3dClass, argv)) {
+		printf( "JS_InstanceOf failed for _from_obj in SFVec3dAssign.\n");
+        return JS_FALSE;
+    }
+	if ((fptr = (SFVec3dNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
+		printf( "JS_GetPrivate failed for _from_obj in SFVec3dAssign.\n");
+        return JS_FALSE;
+	}
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec3dAssign: obj = %u, id = \"%s\", from = %u\n",
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
+	#endif
+
+    SFVec3dNativeAssign(ptr, fptr);
+    *rval = OBJECT_TO_JSVAL(obj);
+
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("end of SFVec3dAssign\n");
+	#endif
+
+    return JS_TRUE;
+}
+
+JSBool
+SFVec3dConstr(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+	SFVec3dNative *ptr;
+	jsdouble pars[3];
+	
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf ("start of SFVec3dConstr\n");
+	#endif
+
+	ADD_ROOT(cx,obj)
+
+	if ((ptr = (SFVec3dNative *) SFVec3dNativeNew()) == NULL) {
+		printf( "SFVec3dNativeNew failed in SFVec3dConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (!JS_DefineProperties(cx, obj, SFVec3dProperties)) {
+		printf( "JS_DefineProperties failed in SFVec3dConstr.\n");
+		return JS_FALSE;
+	}
+	if (!JS_SetPrivate(cx, obj, ptr)) {
+		printf( "JS_SetPrivate failed in SFVec3dConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (argc == 0) {
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
+	} else {
+		if (!JS_ConvertArguments(cx, argc, argv, "d d d",
+				 &(pars[0]), &(pars[1]), &(pars[2]))) {
+			printf( "JS_ConvertArguments failed in SFVec3dConstr.\n");
+			return JS_FALSE;
+		}
+		(ptr->v).c[0] = pars[0];
+		(ptr->v).c[1] = pars[1];
+		(ptr->v).c[2] = pars[2];
+	}
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec3dConstr: obj = %u, %u args, %f %f %f\n",
+			   VERBOSE_OBJ obj, argc,
+			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
+	#endif
+	
+	ptr->valueChanged = 1;
+
+	*rval = OBJECT_TO_JSVAL(obj);
+	return JS_TRUE;
+}
+
+JSBool
+SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFVec3dNative *ptr;
+	jsdouble d, *dp;
+
+	#ifdef JSVRMLCLASSESVERBOSE
+
+	JSString *_idStr;
+	char *_id_c;
+
+	_idStr = JS_ValueToString(cx, id);
+	_id_c = JS_GetStringBytes(_idStr);
+	_idStr = JS_ValueToString(cx, *vp);
+	_id_c = JS_GetStringBytes(_idStr);
+
+	#endif
+
+	if ((ptr = (SFVec3dNative *)JS_GetPrivate(cx,obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec3dGetProperty.\n");
+		return JS_FALSE;
+	}
+
+	if (JSVAL_IS_INT(id)) {
+		switch (JSVAL_TO_INT(id)) {
+		case 0:
+			d = (ptr->v).c[0];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec3dGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 1:
+			d = (ptr->v).c[1];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec3dGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		case 2:
+			d = (ptr->v).c[2];
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf(
+						"JS_NewDouble failed for %f in SFVec3dGetProperty.\n",
+						d);
+				return JS_FALSE;
+			}
+			*vp = DOUBLE_TO_JSVAL(dp);
+			break;
+		}
+	} else {
+		#ifdef JSVRMLCLASSESVERBOSE
+			printf ("SFVec3dGetProperty, id is NOT an int...\n");
+		#endif
+	}
+
+	return JS_TRUE;
+}
+
+JSBool
+SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	SFVec3dNative *ptr;
+	jsval myv;
+
+	if ((ptr = (SFVec3dNative *)JS_GetPrivate(cx, obj)) == NULL) {
+		printf( "JS_GetPrivate failed in SFVec3dSetProperty.\n");
+		return JS_FALSE;
+	}
+	ptr->valueChanged++;
+	#ifdef JSVRMLCLASSESVERBOSE
+		printf("SFVec3dSetProperty: obj = %u, id = %d, valueChanged = %d\n",
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->valueChanged);
+	#endif
+
+	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
+		printf( "JS_ConvertValue failed in SFVec3dSetProperty.\n");
 		return JS_FALSE;
 	}
 

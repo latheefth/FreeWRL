@@ -147,6 +147,7 @@ of garbage collection */
  * * MFTime
  * * SFVec2f, MFVec2f
  * * SFVec3f, MFVec3f
+ * * SFVec3d
  *
  * These (single value) fields have struct types defined elsewhere
  * (see Structs.h) that are stored by Javascript classes as private data.
@@ -482,101 +483,36 @@ SFVec2fSetProperty(JSContext *cx,
 
 
 
-JSBool
-SFVec3fAdd(JSContext *cx,
-		   JSObject *obj,
-		   uintN argc,
-		   jsval *argv,
-		   jsval *rval);
+JSBool SFVec3fAdd(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fCross(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fDivide(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fDot(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fLength(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fNegate(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fNormalize(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fSubtract(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 
-JSBool
-SFVec3fCross(JSContext *cx,
-			 JSObject *obj,
-			 uintN argc,
-			 jsval *argv,
-			 jsval *rval);
 
-JSBool
-SFVec3fDivide(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fDot(JSContext *cx,
-		   JSObject *obj,
-		   uintN argc,
-		   jsval *argv,
-		   jsval *rval);
-
-JSBool
-SFVec3fLength(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fMultiply(JSContext *cx,
-				JSObject *obj,
-				uintN argc,
-				jsval *argv,
-				jsval *rval);
-
-JSBool
-SFVec3fNegate(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fNormalize(JSContext *cx,
-				 JSObject *obj,
-				 uintN argc,
-				 jsval *argv,
-				 jsval *rval);
-
-JSBool
-SFVec3fSubtract(JSContext *cx,
-				JSObject *obj,
-				uintN argc,
-				jsval *argv,
-				jsval *rval);
-
-JSBool
-SFVec3fToString(JSContext *cx,
-				JSObject *obj,
-				uintN argc,
-				jsval *argv,
-				jsval *rval);
-
-JSBool
-SFVec3fAssign(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fConstr(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fGetProperty(JSContext *cx,
-				   JSObject *obj,
-				   jsval id,
-				   jsval *vp);
-
-JSBool
-SFVec3fSetProperty(JSContext *cx,
-				   JSObject *obj,
-				   jsval id,
-				   jsval *vp);
+JSBool SFVec3dAdd(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dCross(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dDivide(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dDot(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dLength(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dMultiply(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dNegate(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dNormalize(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dSubtract(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool SFVec3dGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp); 
+JSBool SFVec3dSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 
 
 
@@ -1017,6 +953,9 @@ extern JSFunctionSpec (SFVec2fFunctions)[];
 extern JSClass SFVec3fClass;
 extern JSPropertySpec (SFVec3fProperties)[];
 extern JSFunctionSpec (SFVec3fFunctions)[];
+extern JSClass SFVec3dClass;
+extern JSPropertySpec (SFVec3dProperties)[];
+extern JSFunctionSpec (SFVec3dFunctions)[];
 extern JSClass MFColorClass;
 extern JSFunctionSpec (MFColorFunctions)[];
 extern JSClass MFFloatClass;

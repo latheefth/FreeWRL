@@ -1,4 +1,11 @@
 For 1.20.8
+	- Some routes on parsing initialization were not getting set.
+
+	- Javascript - added SFVec3d support.
+
+	- XML parser - sanity check routing to ensure we route only to proper
+	  locations; eg, do not allow routing to an initializeOnly field.
+
 	- Occlusionculling - better performance when testing heavily textured objects
 	  for draw status.
 

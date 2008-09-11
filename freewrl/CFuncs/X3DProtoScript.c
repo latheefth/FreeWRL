@@ -888,10 +888,10 @@ void parseScriptProtoField(const char **atts) {
 	/* convert eventIn, eventOut, field, and exposedField to new names */
 	myAccessType = findFieldInPROTOKEYWORDS(atts[myparams[MP_ACCESSTYPE]]);
 	switch (myAccessType) {
-		case PKW_eventIn: myAccessType = PKW_inputOnly;
-		case PKW_eventOut: myAccessType = PKW_outputOnly;
-		case PKW_exposedField: myAccessType = PKW_inputOutput;
-		case PKW_field: myAccessType = PKW_initializeOnly;
+		case PKW_eventIn: myAccessType = PKW_inputOnly; break;
+		case PKW_eventOut: myAccessType = PKW_outputOnly; break;
+		case PKW_exposedField: myAccessType = PKW_inputOutput; break;
+		case PKW_field: myAccessType = PKW_initializeOnly; break;
 		default: {}
 	}
 	
@@ -1128,7 +1128,7 @@ void registerX3DScriptField(int myScriptNumber,int type,int kind, int myFieldOff
 
 
 /* look through the script fields for this field, and return the values. */
-int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type) {
+int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type, int *accessType) {
 	int ctr;
 	struct Uni_String *tmp;
 	int len;
@@ -1145,6 +1145,7 @@ int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type) {
                 	if (strcmp(fieldName,tmp->strptr)==0) {
 				*offs = ScriptFieldNames[ctr].offs;
 				*type = ScriptFieldNames[ctr].type;
+				*accessType = ScriptFieldNames[ctr].kind;
 				#ifdef X3DPARSERVERBOSE
 				printf ("getFieldFromScript - returning offset %d type %d (kind %d)\n",*offs,*type,
 					ScriptFieldNames[ctr].kind);

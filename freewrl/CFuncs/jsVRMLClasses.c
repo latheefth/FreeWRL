@@ -256,6 +256,40 @@ JSFunctionSpec (SFVec3fFunctions)[] = {
 };
 
 
+JSClass SFVec3dClass = {
+	"SFVec3d",
+	JSCLASS_HAS_PRIVATE,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	SFVec3dGetProperty,
+	SFVec3dSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_MY_Finalize
+};
+
+JSPropertySpec (SFVec3dProperties)[] = {
+	{"x", 0, JSPROP_ENUMERATE},
+	{"y", 1, JSPROP_ENUMERATE},
+	{"z", 2, JSPROP_ENUMERATE},
+	{0}
+};
+
+JSFunctionSpec (SFVec3dFunctions)[] = {
+	{"add", SFVec3dAdd, 0},
+	{"cross", SFVec3dCross, 0},
+	{"divide", SFVec3dDivide, 0},
+	{"dot", SFVec3dDot, 0},
+	{"length", SFVec3dLength, 0},
+	{"multiply", SFVec3dMultiply, 0},
+	{"negate", SFVec3dNegate, 0},
+	{"normalize", SFVec3dNormalize, 0},
+	{"subtract", SFVec3dSubtract, 0},
+	{"toString", SFVec3dToString, 0},
+	{"assign", SFVec3dAssign, 0},
+	{0}
+};
 
 JSClass MFColorClass = {
 	"MFColor",
@@ -493,6 +527,7 @@ struct JSLoadPropElement (JSLoadProps) [] = {
         { &SFVec2fClass, SFVec2fConstr, &SFVec2fFunctions, "__SFVec2f_proto"},
         { &SFColorRGBAClass, SFColorRGBAConstr, &SFColorRGBAFunctions, "__SFColorRGBA_proto"},
         { &SFVec3fClass, SFVec3fConstr, &SFVec3fFunctions, "__SFVec3f_proto"},
+        { &SFVec3dClass, SFVec3dConstr, &SFVec3dFunctions, "__SFVec3d_proto"},
         { &SFRotationClass, SFRotationConstr, &SFRotationFunctions, "__SFRotation_proto"},
         { &SFNodeClass, SFNodeConstr, &SFNodeFunctions, "__SFNode_proto"},
         { &MFFloatClass, MFFloatConstr, &MFFloatFunctions, "__MFFloat_proto"},
@@ -599,33 +634,33 @@ JSBool _standardMFAssign(JSContext *cx,
         SFImageNative *ptr;
 
 	if (!JS_InstanceOf(cx, obj, myClass, argv)) {
-		printf("JS_InstanceOf failed in %d.\n",type);
+		printf("JS_InstanceOf failed for fieldType %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
-		printf("JS_ConvertArguments failed in %d.\n",type);
+		printf("JS_ConvertArguments failed in %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 	if (!JS_InstanceOf(cx, _from_obj, myClass, argv)) {
-		printf("JS_InstanceOf failed in %d.\n",type);
+		printf("JS_InstanceOf failed for fieldType %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 
 	if (!JS_GetProperty(cx, _from_obj, "length", &val)) {
-		printf("JS_GetProperty failed for \"length\" in %d.\n",type);
+		printf("JS_GetProperty failed for \"length\" in %s.\n",stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 
 	if (!JS_SetProperty(cx, obj, "length", &val)) {
-		printf("JS_SetProperty failed for \"length\" in %d\n",type);
+		printf("JS_SetProperty failed for \"length\" in %s\n",stringFieldtypeType(type));
 		return JS_FALSE;
 	}
 
 	len = JSVAL_TO_INT(val);
 
 	#ifdef JSVRMLCLASSESVERBOSE
-		printf("StandardMFAssign %s: obj = %u, id = \"%s\", from = %u, len = %d\n",FIELDTYPES[type],
+		printf("StandardMFAssign %s: obj = %u, id = \"%s\", from = %u, len = %d\n",stringFieldtypeType(type),
 		VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj, len);
 	#endif
 

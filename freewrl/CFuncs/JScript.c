@@ -11,7 +11,6 @@ Javascript C language binding.
 
 *********************************************************************/
 
-
 #include <math.h>
 #include "headers.h"
 
@@ -513,20 +512,30 @@ SFVec2fNativeAssign(void *top, void *fromp)
 	(to->v) = (from->v);
 }
 
-void *
-SFVec3fNativeNew()
-{
+void * SFVec3fNativeNew() {
 	SFVec3fNative *ptr;
 	ptr = (SFVec3fNative *)MALLOC(sizeof(*ptr));
 	ptr->valueChanged = 0;
 	return ptr;
 }
 
-void
-SFVec3fNativeAssign(void *top, void *fromp)
-{
+void SFVec3fNativeAssign(void *top, void *fromp) {
 	SFVec3fNative *to = (SFVec3fNative *)top;
 	SFVec3fNative *from = (SFVec3fNative *)fromp;
+	to->valueChanged++;
+	(to->v) = (from->v);
+}
+
+void * SFVec3dNativeNew() {
+	SFVec3dNative *ptr;
+	ptr = (SFVec3dNative *)MALLOC(sizeof(*ptr));
+	ptr->valueChanged = 0;
+	return ptr;
+}
+
+void SFVec3dNativeAssign(void *top, void *fromp) {
+	SFVec3dNative *to = (SFVec3dNative *)top;
+	SFVec3dNative *from = (SFVec3dNative *)fromp;
 	to->valueChanged++;
 	(to->v) = (from->v);
 }
@@ -599,7 +608,7 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 	uintptr_t defaultVoid[] = {0,0};
 	float defaultFloat[] = {0.0,0.0,0.0,0.0};
 	int defaultInt[] = {0,0,0,0};
-	double defaultDouble[] = {0.0, 0.0};
+	double defaultDouble[] = {0.0, 0.0, 0.0};
 	struct Uni_String *sptr[1];
 
 	#ifdef JAVASCRIPTVERBOSE
@@ -723,6 +732,9 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 					case FIELDTYPE_SFVec3f: 
 						FloatPtr = value.sfvec3f.c; elements =1;
 						break;
+					case FIELDTYPE_SFVec3d: 
+						DoublePtr = value.sfvec3d.c; elements =1;
+						break;
 					case FIELDTYPE_MFString:
 						SVPtr = value.mfstring.p; elements = value.mfstring.n;
 						break;
@@ -792,6 +804,7 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 						break;
 
 					/* Double types */
+					case FIELDTYPE_SFVec3d:
 					case FIELDTYPE_MFTime:
 					case FIELDTYPE_SFTime:
 						DoublePtr = defaultDouble;

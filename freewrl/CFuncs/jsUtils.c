@@ -177,6 +177,7 @@ void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsv
 	int i;
         SFColorNative *Cptr;
 	SFVec3fNative *V3ptr;
+	SFVec3dNative *V3dptr;
 	SFVec2fNative *V2ptr;
 	SFRotationNative *VRptr;
 	SFNodeNative *VNptr;
@@ -200,6 +201,10 @@ void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsv
                 case FIELDTYPE_SFColor:
 			Cptr = (SFColorNative *)VPtr;
 			memcpy (Data, (void *)((Cptr->v).c), datalen);
+			break;
+                case FIELDTYPE_SFVec3d:
+			V3dptr = (SFVec3dNative *)VPtr;
+			memcpy (Data, (void *)((V3dptr->v).c), datalen);
 			break;
                 case FIELDTYPE_SFVec3f:
 			V3ptr = (SFVec3fNative *)VPtr;
@@ -292,6 +297,7 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 	int i;
         SFColorNative *Cptr;
 	SFVec3fNative *V3ptr;
+	SFVec3dNative *V3dptr;
 	SFVec2fNative *V2ptr;
 	SFRotationNative *VRptr;
 	SFNodeNative *VNptr;
@@ -308,6 +314,7 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 		/* find a script to create the correct object */
 		switch (dataType) {
         	        case FIELDTYPE_SFVec3f: script = "new SFVec3f()"; break;
+        	        case FIELDTYPE_SFVec3d: script = "new SFVec3d()"; break;
         	        case FIELDTYPE_SFColor: script = "new SFColor()"; break;
         	        case FIELDTYPE_SFNode: script = "new SFNode()"; break;
         	        case FIELDTYPE_SFVec2f: script = "new SFVec2f()"; break;
@@ -353,6 +360,11 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 			V3ptr = (SFVec3fNative *)VPtr;
 			memcpy ((void *)((V3ptr->v).c), Data, datalen);
         		V3ptr->valueChanged = 1;
+			break;
+                case FIELDTYPE_SFVec3d:
+			V3dptr = (SFVec3dNative *)VPtr;
+			memcpy ((void *)((V3dptr->v).c), Data, datalen);
+        		V3dptr->valueChanged = 1;
 			break;
                 case FIELDTYPE_SFVec2f:
 			V2ptr = (SFVec2fNative *)VPtr;
@@ -817,6 +829,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 		case FIELDTYPE_SFNode:
 		case FIELDTYPE_SFVec2f:
 		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_SFRotation:
 			X3D_SF_TO_JS(context, obj, ((void *)( ((unsigned char *) node) + *(fieldOffsetsPtr+1))),
 				returnElementLength(*(fieldOffsetsPtr+2)) * returnElementRowSize(*(fieldOffsetsPtr+2)) , *(fieldOffsetsPtr+2), vp);
@@ -907,6 +920,7 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 		case FIELDTYPE_SFNode:
 		case FIELDTYPE_SFVec2f:
 		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_SFRotation:
 			JS_SF_TO_X3D(context, ((void *)( ((unsigned char *) node) + *(fieldOffsetsPtr+1))),
 				returnElementLength(*(fieldOffsetsPtr+2)) * returnElementRowSize(*(fieldOffsetsPtr+2)) , *(fieldOffsetsPtr+2), vp);

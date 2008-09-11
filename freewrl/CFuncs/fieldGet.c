@@ -866,8 +866,8 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 
 
 /****************************************************************/
-/* sets a SFVec3f and SFColor in a script 			*/
-/* sets a SFRotation and SFVec2fin a script 			*/
+/* sets a SFVec3f and SFColor and SFVec3d 			*/
+/* and SFRotation and SFVec2fin a script 			*/
 /*								*/
 /* all *Native types have the same structure of the struct -	*/
 /* we are just looking for the pointer, thus we can handle	*/

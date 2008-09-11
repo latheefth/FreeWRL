@@ -44,6 +44,11 @@ typedef struct _SFVec3fNative {
 	struct SFColor v;
 } SFVec3fNative;
 
+typedef struct _SFVec3dNative {
+	int valueChanged;
+	struct SFVec3d v;
+} SFVec3dNative;
+
 typedef struct _SFImageNative {
 	int valueChanged;
 } SFImageNative;

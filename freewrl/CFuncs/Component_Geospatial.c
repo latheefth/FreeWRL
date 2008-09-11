@@ -335,7 +335,6 @@ static void Gd_Gc (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double rad
 	}
 }
 
-
 /* convert UTM to GC coordinates by converting to GD as an intermediary step */
 static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double radius, double flatten, int hemisphere_north, int zone, int northing_first) {
 	int i;
@@ -376,8 +375,8 @@ static void Utm_Gd (struct Multi_Vec3d *inc, struct Multi_Vec3d *outc, double ra
 	#endif
 		
 	#ifdef VERBOSE
-	if (northing_first) printf ("northing first\n"); else printf ("NOT northing_first\n");
-	if (!hemisphere_north) printf ("NOT hemisphere_north\n"); else printf ("hemisphere_north\n"); 
+	if (northing_first) printf ("Utm_Gd: northing first\n"); else printf ("Utm_Gd: NOT northing_first\n");
+	if (!hemisphere_north) printf ("Utm_Gd: NOT hemisphere_north\n"); else printf ("Utm_Gd: hemisphere_north\n"); 
 	#endif
 
 
@@ -956,6 +955,10 @@ static void gdToUtm(double latitude, double longitude, int *zone, double *eastin
 		( AAA*AAA/2+(5-TTT+9*CCC+4*CCC*CCC)*AAA*AAA*AAA*AAA/24 + (61-58*TTT+TTT*TTT+600*CCC-330*eccentprime) * AAA*AAA*AAA*AAA*AAA*AAA/720));
 
 	/*if (latitude < 0) *northing += 10000000.0;*/
+
+	#ifdef VERBOSE
+	printf ("gdToUtm: lat %lf long %lf zone %d -> easting %lf northing %lf\n",latitude, longitude, *zone,*easting, *northing);
+	#endif
 }
 
 /* calculate the rotation needed to apply to this position on the GC coordinate location */
@@ -2110,6 +2113,7 @@ void do_GeoProximitySensorTick( void *ptr) {
 				node->geoCoord_changed.c[2] += nearPlane;
 			*/
 			node->geoCoord_changed.c[2] += nearPlane;
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, geoCoord_changed));
 
 			#ifdef VERBOSE
 			printf ("\ngeoCoord_changed as a GCC, %lf %lf %lf\n",
@@ -2179,8 +2183,8 @@ void do_GeoProximitySensorTick( void *ptr) {
 							node->geoCoord_changed.c[1],
 							&zone, &easting, &northing);
 
-						node->geoCoord_changed.c[0] = easting;
-						node->geoCoord_changed.c[1] = northing;
+						node->geoCoord_changed.c[0] = northing;
+						node->geoCoord_changed.c[1] = easting;
 
 					#ifdef VERBOSE
 					printf ("geoCoord_changed as a UTM, %lf %lf %lf\n",

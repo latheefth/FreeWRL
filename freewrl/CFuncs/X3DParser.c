@@ -127,25 +127,48 @@ static struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, i
 }
 
 
-static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *name, int dir) {
+static int getRouteField (struct X3D_Node *node, int *offs, int* type, char *name, int routeTo) {
 	int error = FALSE;
 	int fieldInt;
-	int ctmp;
+	int accessType;
  
 	if (node->_nodeType == NODE_Script) {
-		error = !(getFieldFromScript (name,X3D_SCRIPT(node)->_X3DScript,offs,type));
+		error = !(getFieldFromScript (name,X3D_SCRIPT(node)->_X3DScript,offs,type,&accessType));
+		/* switch from "PKW" to "KW" types */
+        	switch (accessType) {
+                	case PKW_inputOnly: accessType = KW_inputOnly; break;
+                	case PKW_outputOnly: accessType = KW_outputOnly; break;
+                	case PKW_inputOutput: accessType = KW_inputOutput; break;
+                	case PKW_initializeOnly: accessType = KW_initializeOnly; break;
+                	default: {accessType = ID_UNDEFINED;}
+        	}
 	} else {
 
 		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
-		fieldInt = findRoutedFieldInFIELDNAMES (node, name, dir);
+		fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
 		if (fieldInt >=0) findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], 
-				fieldInt, offs, type, &ctmp);
+				fieldInt, offs, type, &accessType);
 	}
 	if (*offs <0) {
 		ConsoleMessage ("ROUTE: line %d Field %s not found in node type %s",LINE,
 			name,stringNodeType(node->_nodeType));
 		error = TRUE;
 	}
+
+	/* can we route with this direction with this field? This might be already checked, but lets
+	   make sure once and for all... */
+	if (routeTo) {
+		if ((accessType != KW_inputOnly) && (accessType != KW_inputOutput)) {
+			ConsoleMessage ("ROUTE: line %d: can not route TO a type of %s\n",LINE,stringKeywordType(accessType));
+			error = TRUE;
+		}
+	} else {
+		if ((accessType != KW_outputOnly) && (accessType != KW_inputOutput)) {
+			ConsoleMessage ("ROUTE: line %d: can not route FROM a type of %s\n",LINE,stringKeywordType(accessType));
+			error = TRUE;
+		}
+	}
+
 	return error;
 }
 
@@ -227,7 +250,7 @@ static void parseRoutes (const char **atts) {
 	if (toNode->_nodeType == NODE_Script) toNode = ((struct X3D_Node*) ((struct X3D_Script*)toNode)->_X3DScript);
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("now routing from a %s to a %s %d %d\n",FIELDTYPES[fromType], FIELDTYPES[toType],fromType,toType);
+	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
 
@@ -258,7 +281,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 	/* semantic check */
 	if ((parserMode != PARSING_NODES) && (parserMode != PARSING_PROTOBODY)) {
-		ConsoleMessage("parseNormalX3D: expected parserMode to be PARSING_NODES, got %s",
+		ConsoleMessage("parseNormalX3D: line %d: expected parserMode to be PARSING_NODES, got %s", LINE,
 					parserModeStrings[parserMode]);
 	}
 
@@ -349,7 +372,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 			/* printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",(char *)atts[i+1], stringNodeType(thisNode->_nodeType )); */
 			tmp = findFieldInFIELDNAMES((char *)atts[i+1]);
 			if (tmp == ID_UNDEFINED) {
-				ConsoleMessage ("Error setting containerField to :%s: for node of type :%s:\n",
+				ConsoleMessage ("Error line %d: setting containerField to :%s: for node of type :%s:\n", LINE,
 					(char *)atts[i+1], stringNodeType(thisNode->_nodeType ));
 			} else {
 				thisNode->_defaultContainer = tmp;
@@ -456,25 +479,25 @@ static void parseComponent(const char **atts) {
 		/* printf("components field:%s=%s\n", atts[i], atts[i + 1]);  */
 		if (strcmp("level",atts[i]) == 0) {
 			if (sscanf(atts[i+1],"%d",&myLevel) != 1) {
-				ConsoleMessage ("expected Component level for component %s, got %s",atts[i], atts[i+1]);
+				ConsoleMessage ("Line %d: Expected Component level for component %s, got %s",LINE, atts[i], atts[i+1]);
 				return;
 			}
 		} else if (strcmp("name",atts[i]) == 0) {
 			myComponent = findFieldInCOMPONENTS(atts[i+1]);
 			if (myComponent == ID_UNDEFINED) {
-				ConsoleMessage("Component statement, but component name not valid :%s:",atts[i+1]);
+				ConsoleMessage("Line %d: Component statement, but component name not valid :%s:",LINE,atts[i+1]);
 				return;
 			}
 
 		} else {
-			ConsoleMessage ("Unknown fields in Component statement :%s: :%s:",atts[i], atts[i+1]);
+			ConsoleMessage ("Line %d: Unknown fields in Component statement :%s: :%s:",LINE,atts[i], atts[i+1]);
 		}
 	}
 
 	if (myComponent == ID_UNDEFINED) {
-		ConsoleMessage("Component statement, but component name not stated");
+		ConsoleMessage("Line %d: Component statement, but component name not stated",LINE);
 	} else if (myLevel == ID_UNDEFINED) {
-		ConsoleMessage("Component statement, but component level not stated");
+		ConsoleMessage("Line %d: Component statement, but component level not stated",LINE);
 	} else {
 		handleComponent(myComponent,myLevel);
 	}
@@ -488,7 +511,7 @@ static void parseX3Dhead(const char **atts) {
 }
 static void parseIS() {
 	if (parserMode != PARSING_PROTOBODY) {
-		ConsoleMessage ("endProtoInterfaceTag: got a <IS> but not a ProtoBody at %d",LINE);
+		ConsoleMessage ("endProtoInterfaceTag: got a <IS> but not a ProtoBody at line %d",LINE);
 	}
 }
 
