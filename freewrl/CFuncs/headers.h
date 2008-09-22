@@ -651,6 +651,12 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DSoundSourceNode 			45
 #define X3DTriggerNode 				46
 #define X3DInfoNode 				47
+#define X3DShaderNode				48
+#define X3DVertexAttributeNode			49
+#define X3DProgrammableShaderObject		50
+#define X3DUrlObject				51
+
+
 
 void CRoutes_js_new (uintptr_t num,int scriptType);
 extern int max_script_found;

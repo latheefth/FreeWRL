@@ -1356,7 +1356,7 @@ package VRML::NodeType;
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__localOrient => [DFRotation, [0, 0, 1, 0], inputOutput],
+						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					   },"X3DEnvironmentalSensorNode"),
 
@@ -1434,7 +1434,7 @@ package VRML::NodeType;
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__localOrient => [DFRotation, [0, 0, 1, 0], inputOutput],
+						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
 					},"X3DGroupingNode"),
 
@@ -1715,6 +1715,71 @@ package VRML::NodeType;
 			set_boolean =>[SFBool,undef,inputOnly],
 			triggerTime => [SFTime, 0, outputOnly],
 	},"X3DTriggerNode"),
+
+
+	###################################################################################
+
+	#		EventUtilities Component
+
+	###################################################################################
+
+	ComposedShader => new VRML::NodeType("ComposedShader", {
+			activate =>[SFBool,undef,inputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			parts => [MFNode,[],inputOutput],
+			isSelected => [SFBool,0,outputOnly],
+			isValid => [SFBool,0,outputOnly],
+	},"X3DShaderNode"),
+
+	FloatVertexAttribute => new VRML::NodeType("FloatVertexAttribute", {
+			metadata => [SFNode, NULL, inputOutput],
+			value => [MFFloat,[],inputOutput],
+			name => [SFString,"",initializeOnly],
+			numComponents => [SFInt32, 4, initializeOnly], # 1...4 valid values
+	}, "X3DVertexAttributeNode"),
+
+	Matrix3VertexAttribute => new VRML::NodeType("Matrix3VertexAttribute", {
+			metadata => [SFNode, NULL, inputOutput],
+			value => [MFMatrix3f,[],inputOutput],
+			name => [SFString,"",initializeOnly],
+	}, "X3DVertexAttributeNode"),
+
+	Matrix4VertexAttribute => new VRML::NodeType("Matrix4VertexAttribute", {
+			metadata => [SFNode, NULL, inputOutput],
+			value => [MFMatrix4f,[],inputOutput],
+			name => [SFString,"",initializeOnly],
+	}, "X3DVertexAttributeNode"),
+
+	PackagedShader => new VRML::NodeType("PackagedShader", {
+			activate =>[SFBool,undef,inputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			url => [MFString, [], inputOutput],
+			isSelected => [SFBool,0,outputOnly],
+			isValid => [SFBool,0,outputOnly],
+			language => [SFString,"",initializeOnly],
+	}, "X3DProgrammableShaderObject"),
+
+	ProgramShader => new VRML::NodeType("ProgramShader", {
+			activate =>[SFBool,undef,inputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			programs => [MFNode, [], inputOutput],
+			isSelected => [SFBool,0,outputOnly],
+			isValid => [SFBool,0,outputOnly],
+			language => [SFString,"",initializeOnly],
+	}, "X3DProgrammableShaderObject"),
+
+	ShaderPart => new VRML::NodeType("ShaderPart", {
+			metadata => [SFNode, NULL, inputOutput],
+			url => [MFString, [], inputOutput],
+			type => [SFString,"",initializeOnly],
+	}, "X3DUrlObject"),
+
+	ShaderProgram => new VRML::NodeType("ShaderProgram", {
+			metadata => [SFNode, NULL, inputOutput],
+			url => [MFString, [], inputOutput],
+			type => [SFString,"",initializeOnly],
+	}, "X3DUrlObject"),
+
 
 
 	###################################################################################

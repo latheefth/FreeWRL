@@ -368,6 +368,8 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 #define DEEPCOPY_sfimage(l, v, i, h) v
 #define DEEPCOPY_sfdouble(l, v, i, h) v
 #define DEEPCOPY_dfrotation(l, v, i, h) v
+#define DEEPCOPY_mfmatrix3f(l, v, i, h) v
+#define DEEPCOPY_mfmatrix4f(l, v, i, h) v
 
 
 static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)

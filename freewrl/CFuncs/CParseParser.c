@@ -31,8 +31,8 @@
 /* NOTE! We have to keep the order of these function calls the same
    as the FIELDTYPE names, created from the @VRML::Fields = qw/ in
    VRMLFields.pm (which writes the FIELDTYPE* defines in 
-   CFuncs/Structs.h. Currently (June, 2008) this is the list:
-        SFFloat
+   CFuncs/Structs.h. Currently (September, 2008) this is the list:
+       SFFloat
         MFFloat
         SFRotation
         MFRotation
@@ -60,9 +60,25 @@
         MFVec3d
         SFDouble
         MFDouble
-        DFRotation
-
+        SFMatrix3f
+        MFMatrix3f
+        SFMatrix3d
+        MFMatrix3d
+        SFMatrix4f
+        MFMatrix4f
+        SFMatrix4d
+        MFMatrix4d
+        SFVec2d
+        MFVec2d
+        SFVec4f
+        MFVec4f
+        SFVec4d
+        MFVec4d
 */
+
+/* for those types not parsed yet, call this to print an error message */
+BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, vrmlTimeT* ret);
+
 BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sffloatValue_, &parser_mffloatValue,
  &parser_sfrotationValue, &parser_mfrotationValue,
@@ -75,10 +91,16 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sftimeValue, &parser_mftimeValue,
  &parser_sfstringValue_, &parser_mfstringValue,
  &parser_sfvec2fValue, &parser_mfvec2fValue,
- &parser_sfimageValue, NULL,
+ &parser_sfimageValue, &parser_fieldTypeNotParsedYet,
  &parser_sfvec3dValue, &parser_mfvec3dValue,
  &parser_sftimeValue, &parser_mftimeValue,
- NULL,			/* DFRotation - (rotation with doubles) no user input? */
+ &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix3f */
+ &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix3d */
+ &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix4f */
+ &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix4d */
+ &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Vec2d */
+ &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Vec4f */
+ &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Vec4d */
 
 };
 
@@ -116,6 +138,15 @@ char fw_outline[2000];
 #define ROUTE_REAL_SIZE_mfvec3d	FALSE
 #define ROUTE_REAL_SIZE_mfdouble	FALSE
 
+#define ROUTE_REAL_SIZE_sfmatrix3f TRUE
+#define ROUTE_REAL_SIZE_mfmatrix3f FALSE
+#define ROUTE_REAL_SIZE_sfmatrix3d TRUE
+#define ROUTE_REAL_SIZE_mfmatrix3d FALSE
+#define ROUTE_REAL_SIZE_sfmatrix4f TRUE
+#define ROUTE_REAL_SIZE_mfmatrix4d FALSE
+#define ROUTE_REAL_SIZE_sfmatrix4d TRUE
+#define ROUTE_REAL_SIZE_mfmatrix4f FALSE
+
 /* General processing macros */
 #define PROCESS_EVENT(constPre, destPre, node, field, type, var) \
  case constPre##_##field: \
@@ -126,16 +157,14 @@ char fw_outline[2000];
 #define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
  case NODE_##node: \
  { \
-  struct X3D_##node* node2=(struct X3D_##node*)ptr; \
   switch(fieldInd) \
   {
-#define EVENT_END_NODE(node,fieldString) \
+#define EVENT_END_NODE(myn,fieldString) \
   default: \
    	/* PARSE_ERROR("Unsupported event for node!") */ \
 	strcpy (fw_outline,"ERROR: Unsupported event ("); \
 	strcat (fw_outline,fieldString); \
-	strcat (fw_outline,") for node of type "); \
-	strcat (fw_outline,stringNodeType(node2->_nodeType)); \
+	strcat (fw_outline,")"); \
   	ConsoleMessage(fw_outline);  \
 	fprintf (stderr,"%s\n",fw_outline); \
   	PARSER_FINALLY  \
@@ -2322,7 +2351,9 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define INIT_CODE_mfvec3d(var)
  #define INIT_CODE_sfdouble(var)
  #define INIT_CODE_mfdouble(var)
- #define INIT_CODE_dfrotation(var)
+ #define INIT_CODE_sfvec4d(var)
+ #define INIT_CODE_mfmatrix3f(var)
+ #define INIT_CODE_mfmatrix4f(var)
 
  /* The field type indices */
  #define FTIND_sfnode	FIELDTYPE_SFNode
@@ -2352,7 +2383,11 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
  #define FTIND_mfvec3f	FIELDTYPE_MFVec3f
  #define FTIND_mfvec3d	FIELDTYPE_MFVec3d
  #define FTIND_mfdouble	FIELDTYPE_MFDouble
- #define FTIND_dfrotation FIELDTYPE_DFRotation
+ #define FTIND_sfvec4d FIELDTYPE_SFVec4d
+ #define FTIND_sfmatrix3f FIELDTYPE_SFMatrix3f
+ #define FTIND_mfmatrix3f FIELDTYPE_MFMatrix3f
+ #define FTIND_sfmatrix4f FIELDTYPE_SFMatrix4f
+ #define FTIND_mfmatrix4f FIELDTYPE_MFMatrix4f
  
  /* Process a field (either exposed or ordinary) generally */
  /* For a normal "field value" (i.e. position 1 0 1) statement gets the actual value of the field from the file (next token(s) to be processed) and stores it in the node
@@ -3003,4 +3038,8 @@ BOOL parser_sftimeValue(struct VRMLParser* me, vrmlTimeT* ret)
 }
 
 PARSER_FIXED_VEC(vec2f, Vec2f, 2, c)
+
+BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, vrmlTimeT* ret) {
+	ConsoleMessage ("received a request to parse a type not supported yet");
+}
 

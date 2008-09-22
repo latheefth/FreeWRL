@@ -88,9 +88,21 @@ void EAI_RW(char *bufptr);
 #define EAI_SFVec2d		'B'
 #define EAI_SFVec3d		'C'
 #define EAI_MFVec2d		'D'
-#define EAI_DFRotation		'E'
+#define EAI_SFVec4d		'E'
 #define EAI_MFDouble		'F'
 #define EAI_SFDouble		'G'
+#define EAI_SFMatrix3f		'H'
+#define EAI_MFMatrix3f		'I'
+#define EAI_SFMatrix3d		'J'
+#define EAI_MFMatrix3d		'K'
+#define EAI_SFMatrix4f		'L'
+#define EAI_MFMatrix4f		'M'
+#define EAI_SFMatrix4d		'N'
+#define EAI_MFMatrix4d		'O'
+#define EAI_SFVec4f		'P'
+#define EAI_MFVec4f		'Q'
+#define EAI_MFVec4d		'R'
+
 
 
 /* Function Prototype for plugins, Java Class Invocation */

@@ -962,7 +962,7 @@ static void gdToUtm(double latitude, double longitude, int *zone, double *eastin
 }
 
 /* calculate the rotation needed to apply to this position on the GC coordinate location */
-static void GeoOrient (struct SFVec3d *gdCoords, struct DFRotation *orient) {
+static void GeoOrient (struct SFVec3d *gdCoords, struct SFVec4d *orient) {
 	Quaternion qx;
 	Quaternion qz;
 	Quaternion qr;
@@ -988,10 +988,10 @@ static void GeoOrient (struct SFVec3d *gdCoords, struct DFRotation *orient) {
 	printf ("qr %lf %lf %lf %lf\n",qr.x, qr.y, qr.z,qr.w);
 	#endif
 
-        quaternion_to_vrmlrot(&qr, &orient->r[0], &orient->r[1], &orient->r[2], &orient->r[3]);
+        quaternion_to_vrmlrot(&qr, &orient->c[0], &orient->c[1], &orient->c[2], &orient->c[3]);
 
 	#ifdef VERBOSE
-	printf ("rotation %lf %lf %lf %lf\n",orient->r[0], orient->r[1], orient->r[2], orient->r[3]);
+	printf ("rotation %lf %lf %lf %lf\n",orient->c[0], orient->c[1], orient->c[2], orient->c[3]);
 	#endif
 
 }
@@ -1625,14 +1625,14 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 
 		glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 		/*
-		/* printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]); */
-		/* printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
+		printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
+		printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
 			node->__movedCoords.c[1]-geoViewPointCenter.c[1],
 			node->__movedCoords.c[2]-geoViewPointCenter.c[2]);
 		*/
 
-		my_rotation = node->__localOrient.r[3]/3.1415926536*180;
-		glRotated(my_rotation, node->__localOrient.r[0],node->__localOrient.r[1],node->__localOrient.r[2]);
+		my_rotation = node->__localOrient.c[3]/3.1415926536*180;
+		glRotated(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
 
 		/* did either we or the Viewpoint move since last time? */
 		RECORD_DISTANCE
@@ -1658,8 +1658,6 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	/* Viewer pos = t_r2 */
 	double cx,cy,cz;
-	static const struct point_XYZ yvec = {0,0.05,0};
-	static const struct point_XYZ zvec = {0,0,-0.05};
 	static const struct point_XYZ orig = {0,0,0};
 	struct point_XYZ t_orig;
 	GLdouble modelMatrix[16];
@@ -2255,8 +2253,8 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 /************************************************************************/
 
 void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
-	struct DFRotation localOrient;
-	struct DFRotation orient;
+	struct SFVec4d localOrient;
+	struct SFVec4d orient;
 	int i;
 	Quaternion localQuat;
 	Quaternion relQuat;
@@ -2281,7 +2279,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	GeoOrient(&gdCoords.p[0], &localOrient);
 
 	/* Quaternize the local Geospatial quaternion, and the specified rotation from the GeoViewpoint orientation field */
-	vrmlrot_to_quaternion (&localQuat, localOrient.r[0], localOrient.r[1], localOrient.r[2], localOrient.r[3]);
+	vrmlrot_to_quaternion (&localQuat, localOrient.c[0], localOrient.c[1], localOrient.c[2], localOrient.c[3]);
 	vrmlrot_to_quaternion (&relQuat, node->orientation.r[0], node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
 
 	/* add these together */
@@ -2289,8 +2287,8 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 	/* get the rotation; 2 steps to convert doubles to floats;
            should be quaternion_to_vrmlrot(&combQuat, &node->__movedOrientation.r[0]... */
-        quaternion_to_vrmlrot(&combQuat, &orient.r[0], &orient.r[1], &orient.r[2], &orient.r[3]);
-	for (i=0; i<4; i++) node->__movedOrientation.r[i] = (float) orient.r[i];
+        quaternion_to_vrmlrot(&combQuat, &orient.c[0], &orient.c[1], &orient.c[2], &orient.c[3]);
+	for (i=0; i<4; i++) node->__movedOrientation.r[i] = (float) orient.c[i];
 
         #ifdef VERBOSE
 	printf ("compile_GeoViewpoint, final position %lf %lf %lf\n",node->__movedPosition.c[0],

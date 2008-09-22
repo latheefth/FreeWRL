@@ -72,7 +72,7 @@ int returnElementLength(int type) {
 		case FIELDTYPE_SFVec3d:
 		case FIELDTYPE_MFDouble:
 		case FIELDTYPE_SFDouble:
-		case FIELDTYPE_DFRotation:
+		case FIELDTYPE_SFVec4d:
 		case FIELDTYPE_SFTime :
     		case FIELDTYPE_MFTime : return sizeof(double); break;
     		case FIELDTYPE_MFInt32: return sizeof(int)   ; break;
@@ -118,7 +118,7 @@ int returnRoutingElementLength(int type) {
 		case FIELDTYPE_MFVec3d: return -20; break;
 		case FIELDTYPE_SFDouble: return sizeof (double); break;
 		case FIELDTYPE_MFDouble: return -21; break;
-		case FIELDTYPE_DFRotation: return sizeof (struct DFRotation); break;
+		case FIELDTYPE_SFVec4d: return sizeof (struct SFVec4d); break;
 
                 default:       return type;
 	}
@@ -142,7 +142,7 @@ int returnElementRowSize (int type) {
 			return 3;
 		case FIELDTYPE_SFRotation:
 		case FIELDTYPE_MFRotation:
-		case FIELDTYPE_DFRotation:
+		case FIELDTYPE_SFVec4d:
 		case FIELDTYPE_SFColorRGBA:
 		case FIELDTYPE_MFColorRGBA:
 			return 4;
@@ -218,7 +218,7 @@ int countElements (int ctype, char *instr) {
 	switch (ctype) {
 		case FIELDTYPE_SFVec2f:	elementCount = 2; break;
 		case FIELDTYPE_SFRotation:
-		case FIELDTYPE_DFRotation:
+		case FIELDTYPE_SFVec4d:
 		case FIELDTYPE_SFColorRGBA: elementCount = 4; break;
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFVec3d:

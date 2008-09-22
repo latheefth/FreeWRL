@@ -17,6 +17,10 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.224  2008/09/22 16:06:48  crc_canada
+# all fieldtypes now defined in freewrl code; some not parsed yet, though, as there are no supported
+# nodes that use them.
+#
 # Revision 1.223  2008/09/05 17:46:49  crc_canada
 # reduce warnings counts when compiled with warnings=all
 #
@@ -260,6 +264,15 @@
 	IntegerSequencer	=>children,
 	IntegerTrigger		=>children,
 	TimeTrigger		=>children,
+
+	ComposedShader		=>children,
+	FloatVertexAttribute	=>children,
+	Matrix3VertexAttribute	=>children,
+	Matrix4VertexAttribute	=>children,
+	PackagedShader		=>children,
+	ProgramShader		=>children,
+	ShaderPart		=>children,
+	ShaderProgram		=>children,
 );
 
 #######################################################################

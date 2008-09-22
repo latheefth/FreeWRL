@@ -18,6 +18,9 @@
  */
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
+#ifdef ID_UNDEFINED
+#undef ID_UNDEFINED
+#endif
 #define ID_UNDEFINED	((indexT)-1)
 
 /* This is our lexer-object. */

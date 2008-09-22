@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.304  2008/09/22 16:06:47  crc_canada
+# all fieldtypes now defined in freewrl code; some not parsed yet, though, as there are no supported
+# nodes that use them.
+#
 # Revision 1.303  2008/09/05 17:46:49  crc_canada
 # reduce warnings counts when compiled with warnings=all
 #
@@ -982,9 +986,13 @@ sub gen {
 				} elsif ($ft eq "SFNode") {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\"); ";
                         		push @genFuncs2, "dump_scene(level+1,tmp->$field); \n";
-				} elsif (($ft eq "SFRotation") || ($ft eq "SFColorRGBA") || ($ft eq "DFRotation")) {
+				} elsif (($ft eq "SFRotation") || ($ft eq "SFColorRGBA")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<4; i++) { printf (\"%4.3f  \",tmp->$field.r[i]); }\n";
+					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
+				} elsif ($ft eq "SFVec4d") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<4; i++) { printf (\"%4.3f  \",tmp->$field.c[i]); }\n";
 					push @genFuncs2,"\t\t\tprintf (\"\\n\");\n";
 				} elsif (($ft eq "SFColor") || ($ft eq "SFVec3f") || ($ft eq "SFVec3d")) {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft): \\t\");\n";
@@ -1021,6 +1029,17 @@ sub gen {
 					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
                         		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
 						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f]\\n\",i,(tmp->$field.p[i]).r[0], (tmp->$field.p[i]).r[1],(tmp->$field.p[i]).r[2],(tmp->$field.p[i]).r[3]); }\n";
+
+
+				} elsif ($ft eq "MFMatrix4f") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
+						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2],(tmp->$field.p[i]).c[3],(tmp->$field.p[i]).c[4],(tmp->$field.p[i]).c[5],(tmp->$field.p[i]).c[6],(tmp->$field.p[i]).c[7],(tmp->$field.p[i]).c[8],(tmp->$field.p[i]).c[9],(tmp->$field.p[i]).c[10],(tmp->$field.p[i]).c[11],(tmp->$field.p[i]).c[12],(tmp->$field.p[i]).c[13],(tmp->$field.p[i]).c[14],(tmp->$field.p[i]).c[15]); }\n";
+
+				} elsif ($ft eq "MFMatrix3f") {
+					push @genFuncs2, "\t\t\tspacer printf (\"\\t$field ($ft):\\n\");\n";
+                        		push @genFuncs2, "\t\t\tfor (i=0; i<tmp->$field.n; i++) { spacer ".
+						"printf (\"\t\t\t%d: \\t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\\n\",i,(tmp->$field.p[i]).c[0], (tmp->$field.p[i]).c[1],(tmp->$field.p[i]).c[2],(tmp->$field.p[i]).c[3],(tmp->$field.p[i]).c[4],(tmp->$field.p[i]).c[5],(tmp->$field.p[i]).c[6],(tmp->$field.p[i]).c[7],(tmp->$field.p[i]).c[8]); }\n";
 				} else {
 					print "type $ft not handled yet\n";
 				}
