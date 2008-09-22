@@ -72,11 +72,9 @@ void getField_ToJavascript (int num, int fromoffset) {
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
 
 	char scriptline[100];
-	jsval retval;
 	jsval newval;
-	int intval = 0;
 	JSContext *cx;
-	JSObject *obj, *_sfvec3fObj;
+	JSObject *obj;
 
 	#ifdef SETFIELDVERBOSE
 	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
@@ -158,14 +156,11 @@ int setMFElementtype (uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 	char scriptline[20000];
-	char sline[100];
-	jsval lenval;
 	int x;
 	int elementlen;
 	char *pptr;
 	float *fp;
 	int *ip;
-	double *dp;
 	struct Multi_Node *mfp;
 
 	/* for MFStrings we have: */
@@ -180,7 +175,6 @@ int setMFElementtype (uintptr_t num) {
 	/* for PixelTextures we have: */
 	struct X3D_PixelTexture *mePix;
 	struct Multi_Int32 image;
-	int pixcount;
 
 	#ifdef SETFIELDVERBOSE 
 		printf("------------BEGIN setMFElementtype ---------------\n");
@@ -984,7 +978,6 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	float fl[4];
 	float dl[4];
 	float *fp;
-	float *dp;
 	int *ip;
 	int ival;
 	unsigned int uval;

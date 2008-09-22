@@ -331,12 +331,10 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
         int ival;
         double tval;
         float fl[4];
-        int rv;
 	JSContext *scriptContext;
 	char *memptr;
         JSString *strval; /* strings */
 	char *strp;
-	SFRotationNative *sfrotation;
 
 
 	/* set up a pointer to where to put this stuff */
@@ -641,16 +639,12 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	double *dl;
 	uintptr_t *nl;
 
-	float f[4];
 	double dtmp;
 	jsval mainElement;
 	int len;
 	int i;
-	JSString *_tmpStr;
 	char *strp;
 	int elesize;
-	int rv; /* temp for sscanf return vals */
-        SFNodeNative *sfnode;
 	SFVec2fNative *sfvec2f;
 	SFVec3fNative *sfvec3f;
 	SFRotationNative *sfrotation;
@@ -768,6 +762,8 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			}
 		} else {
 			#ifdef SETFIELDVERBOSE
+			JSString *_tmpStr;
+
 	                _tmpStr = JS_ValueToString(cx, mainElement);
 			strp = JS_GetStringBytes(_tmpStr);
 	                printf ("sub element %d is \"%s\" \n",i,strp);  
@@ -1089,12 +1085,8 @@ void SetMemory (int type, void *destptr, void *srcptr, int len) {
 /****************************************************************/
 void getEAI_ONE_MFStringtype (struct Multi_String *from, struct Multi_String *to, int len) {
 	int oldlen, newlen;
-	int i;
-	char *valStr, *OldvalStr;
 	struct Uni_String **oldsvptr;
 	struct Uni_String **newsvptr;
-	struct Uni_String **newp, **oldp;
-	int count;
 
 	newlen = len*-1 - 10;
 
@@ -1117,7 +1109,6 @@ void getEAI_ONE_MFStringtype (struct Multi_String *from, struct Multi_String *to
 void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 	int oldlen, newlen;
 	int i;
-	char *valStr, *OldvalStr;
 	struct Uni_String **oldsvptr;
 	struct Uni_String **newsvptr;
 	struct Uni_String **newp, **oldp;
@@ -1366,8 +1357,6 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 		/* is this a set1Value, or a setValue */
 		if (maxele == -1) {
-			int count;
-
 			MFStringptr->n = 1;
 			MFStringptr->p = (struct Uni_String **)MALLOC (sizeof(MFStringptr->p));
 			newp = MFStringptr->p;

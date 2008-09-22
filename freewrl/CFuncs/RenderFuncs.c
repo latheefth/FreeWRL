@@ -823,7 +823,7 @@ void *returnInterpolatorPointer (const char *x) {
 
 
 void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
-        int i; int n; void * *p;
+        int n;
 
 	int *offsetptr;
 	char *memptr;

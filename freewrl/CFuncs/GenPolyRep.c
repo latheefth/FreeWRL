@@ -242,7 +242,6 @@ int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 	int fanVertex;
 	int *newIndex;
 	int windingOrder; /*TriangleStripSet ordering */
-        struct X3D_Coordinate *xc;
 
 
 	/* printf ("checkX3DComposedGeomFields for node (%d) %s\n",
@@ -585,7 +584,6 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	int i;				/* general purpose counters */
 	int this_face, this_coord, this_normal, this_normalindex;
 
-	struct X3D_Coordinate *xc;
 	struct X3D_Color *cc;
 	struct X3D_Normal *nc;
 	struct X3D_TextureCoordinate *tc;

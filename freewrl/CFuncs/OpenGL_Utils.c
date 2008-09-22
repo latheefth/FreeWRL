@@ -371,7 +371,9 @@ void kill_rendering() {kill_X3DNodes();}
    what the user has programmed, and what nodes are (re) used in the Scene Graph */
 
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL) {
+	#ifndef AQUA
         char mystring[20];
+	#endif
 
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
@@ -679,7 +681,6 @@ void zeroVisibilityFlag(void) {
 
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
-	struct X3D_Node* parents;
 	struct X3D_Anchor* anchorPtr;
 	void **pp;
 	int nParents;

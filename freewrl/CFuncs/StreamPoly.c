@@ -367,7 +367,6 @@ void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, str
 	GLfloat Xsize = 0.0;
 	GLfloat Ysize = 0.0;
 	GLfloat Zsize = 0.0;
-	int i,j;
 
 	/* initialize variables used in other routines in this file. */
 	Sindex = 0; Tindex = 0;

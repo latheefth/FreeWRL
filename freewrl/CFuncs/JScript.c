@@ -596,14 +596,12 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 	int rowCount, eleCount;
 
 	int tlen;
-	struct Multi_Int32*     vrmlImagePtr;
 	float *FloatPtr;
 	uintptr_t  *VoidPtr;
 	int *IntPtr;
 	double *DoublePtr;
 	struct Uni_String **SVPtr;
-	int *iptr; int SFImage_depth; int SFImage_wid; int SFImage_hei;
-
+	int *iptr; 
 
 	uintptr_t defaultVoid[] = {0,0};
 	float defaultFloat[] = {0.0,0.0,0.0,0.0};
@@ -925,9 +923,7 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	JSContext *_context;
 	JSObject *_globalObj;
-
-	char buffer[STRING];
-	jsval _val, rval = INT_TO_JSVAL(0);
+	jsval rval = INT_TO_JSVAL(0);
 
 	/* get context and global object for this script */
 	_context = (JSContext *) ScriptControl[num].cx;

@@ -87,7 +87,7 @@ SFColorGetHSV(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	JSObject *result;
 	jsdouble *dp;
 	double xp[3];
-	jsval _h; jsval _s; jsval _v;
+	jsval _v;
 	SFColorNative *ptr;
 	int i;
 
@@ -663,7 +663,6 @@ SFImageAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 JSBool
 SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	JSString *_str;
 	unsigned int i;
 	jsval mv;
 	int param[3];
@@ -814,7 +813,6 @@ SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 SFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	JSString *_str;
 	SFNodeNative *ptr;
 
 	UNUSED(argc);
@@ -1145,7 +1143,6 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	char *_id_c, *_val_c;
 	SFNodeNative *ptr;
 	int val_len;
-	int retint;
 	uintptr_t ra;
 	uintptr_t tmp;
 

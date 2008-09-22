@@ -1578,7 +1578,6 @@ struct point_XYZ planar_polyrep_disp_rec(double y1, double y2, double ystep, dou
 
 
 struct point_XYZ planar_polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags, struct point_XYZ n) {
-    float* newc;
     int i;
     int maxc;
 

@@ -128,7 +128,6 @@ void freeProtoMemory () {
 
 /* record each field of each script - the type, kind, name, and associated script */
 static void registerProto(const char *name) {
-	int i;
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("registerProto for %s\n",name);
@@ -209,7 +208,6 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 }
 
 void dumpProtoBody (const char *name, const char **atts) {
-	int i;
 	int count;
 
 	#ifdef X3DPARSERVERBOSE
@@ -235,8 +233,6 @@ void dumpCDATAtoProtoBody (char *str) {
 }
 
 void endDumpProtoBody (const char *name) {
-	int i;
-
 	/* we are at the end of the ProtoBody, close our tempory file */
 	if (PROTONames[currentProtoDeclare].fileOpen) {
 		#ifndef try
@@ -319,8 +315,7 @@ static char *getProtoValue(int ProtoInvoc, char *protofield) {
 
 /* handle a <ProtoInstance> tag */
 void parseProtoInstance (const char **atts) {
-	int i,count;
-	int foundName = FALSE;
+	int count;
 	int nameIndex = ID_UNDEFINED;
 	int containerIndex = ID_UNDEFINED;
 	int containerField = ID_UNDEFINED;
@@ -413,7 +408,6 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	char *ptr_connect_nodefieldEquals;
 	char *ptr_connect_protofieldEquals;
 	char *ptr_connect_nodefieldEnd;
-	char *ptr_connect_protofieldEnd;
 	char *field_in_shape;
 	char id[MAX_ID_SIZE];
 	char *valueStr;
@@ -710,8 +704,6 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 #undef X3DPARSERVERBOSE
 
 void parseProtoBody (const char **atts) {
-	int i;
-
 	#ifdef X3DPARSERVERBOSE
 	TTY_SPACE
 	printf ("start of parseProtoBody\n");
@@ -721,8 +713,7 @@ void parseProtoBody (const char **atts) {
 }
 
 void parseProtoDeclare (const char **atts) {
-	int i,count;
-	int foundName = FALSE;
+	int count;
 	int nameIndex = ID_UNDEFINED;
 
 	/* increment the currentProtoDeclare field. Check to see how many PROTOS we (bounds check) */
@@ -802,7 +793,6 @@ void parseScriptProtoField(const char **atts) {
 	int i;
 	uintptr_t myScriptNumber;
 	int myparams[MPFIELDS];
-	int strl;
 	int which;
 	int myFieldNumber;
 	char *myValueString = NULL;
@@ -919,11 +909,8 @@ void parseScriptProtoField(const char **atts) {
 void initScriptWithScript() {
 	uintptr_t myScriptNumber;
 	char *startingIndex;
-	jsval rval;
 	struct X3D_Script * me;
 	char *myText = NULL;
-	int i;
-	struct Uni_String *myUni;
 	char *mypath;
 	char *thisurl;
 	int count;

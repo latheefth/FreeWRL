@@ -1101,7 +1101,6 @@ void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *po
         char *proto;
         int curlscount;
         int foundBracket;
-        int str1len, str2len;
 
         /* step 1. Remove comments, so that we do not locate the requested PROTO in comments. */
         cp = buffer;

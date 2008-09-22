@@ -886,25 +886,6 @@ static void gccToGdc (struct SFVec3d *gcc, struct SFVec3d *gdc) {
         GDC_LON *= DEGREES_PER_RADIAN;
 }
 
-static int latlon_zone_number(double latitude, double long2) {
-	int zone;
-printf ("latlon latitude %lf, longituge %lf\n",latitude, long2);
-/*
-    my $zone = int( ($long2 + 180)/6) + 1;
-    if($latitude >= 56.0 && $latitude < 64.0 && $long2 >= 3.0 && $long2 < 12.0)
-    {   $zone = 32;
-    }
-    if($latitude >= 72.0 && $latitude < 84.0) {
-        $zone = ($long2 >=  0.0 && $long2 <  9.0) ? 31
-                 : ($long2 >=  9.0 && $long2 < 21.0) ? 33
-                 : ($long2 >= 21.0 && $long2 < 33.0) ? 35
-                 : ($long2 >= 33.0 && $long2 < 42.0) ? 37
-                 :                                     $zone;
-    }
-    return $zone;
-*/
-}
-
 /* convert a GDC BACK to a UTM coordinate */
 static void gdToUtm(double latitude, double longitude, int *zone, double *easting, double *northing) {
 #define DEG2RAD (PI/180.00)

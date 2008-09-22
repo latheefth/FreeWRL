@@ -274,10 +274,6 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 	struct X3D_Node *thisNode;
 	struct X3D_Node *fromDEFtable;
-	int coffset;
-	int ctype;
-	int ctmp;
-	int foffset;
 
 	/* semantic check */
 	if ((parserMode != PARSING_NODES) && (parserMode != PARSING_PROTOBODY)) {
@@ -442,8 +438,6 @@ static void XMLCALL handleCDATA (void *userData, const char *string, int len) {
 /* parse a export statement, and send the results along */
 static void parseImport(const char **atts) {
 	int i;
-        char *nodeToImport = NULL;
-        char *alias = NULL;
 
         for (i = 0; atts[i]; i += 2) {
 		printf("import field:%s=%s\n", atts[i], atts[i + 1]);
@@ -652,7 +646,6 @@ void linkNodeIn() {
 }
 
 static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
-	int i;
 	int myNodeIndex;
 
 	#ifdef X3DPARSERVERBOSE
@@ -708,13 +701,6 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 }
 
 static void XMLCALL endElement(void *unused, const char *name) {
-	int i;
-
-	int coffset;
-	int ctype;
-	int ctmp;
-	uintptr_t *destnode;
-	char *memptr;
 	int myNodeIndex;
 
 	#ifdef X3DPARSERVERBOSE

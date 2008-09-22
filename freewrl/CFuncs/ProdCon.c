@@ -840,7 +840,6 @@ void setScreenDist (const char *optArg) {
 
 /* handle an INLINE - should make it into a CreateVRMLfromURL type command */
 void __pt_doInline() {
-	int count;
 	char *filename;
 	struct Multi_String *inurl;
 	struct X3D_Inline *inl;

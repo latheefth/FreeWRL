@@ -628,7 +628,7 @@ JSBool _standardMFAssign(JSContext *cx,
 	int type) {
 
 	JSObject *_from_obj;
-	jsval val, myv;
+	jsval val;
 	int32 len;
 	char *_id_str;
         SFImageNative *ptr;
@@ -998,10 +998,8 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 JSBool
 doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 {
-	JSString *_str, *_sstr;
-	char *_c, *_cc;
+	JSString *_sstr;
 	jsval myv;
-	jsint _index;
 	int i;
 	double dd;
 
@@ -1010,12 +1008,13 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 
 	JSObject *par;
 	JSObject *me;
-	SFNodeNative *ptr;
-	struct X3D_Node *node;
 	jsval pf;
 	jsval nf;
+	char * _cc;
 
 	#ifdef JSVRMLCLASSESVERBOSE
+	char *_cc;
+	JSString *_str;
 		printf ("doMFSetProperty, for object %u, vp %u\n", obj,*vp);
 		_str = JS_ValueToString(cx, id);
 		_c = JS_GetStringBytes(_str);
@@ -1363,11 +1362,9 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 	JSString *_idStr;
 	JSString *_vpStr, *_newVpStr;
 	JSBool ret = JS_TRUE;
-	jsval v;
 	char *_id_c;
 
-	char *_vp_c, *_new_vp_c, *_buff;
-	const size_t touched_len = 10;
+	char *_vp_c, *_new_vp_c;
 	size_t len = 0;
 
 	_idStr = JS_ValueToString(context, id);
@@ -1417,10 +1414,10 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 JSBool
 getAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
-	JSString *_idStr, *_vpStr;
-	char *_id_c, *_vp_c;
 
 	#ifdef JSVRMLCLASSESVERBOSE
+	JSString *_idStr, *_vpStr;
+	char *_id_c, *_vp_c;
 		_idStr = JS_ValueToString(cx, id);
 		_id_c = JS_GetStringBytes(_idStr);
 		_vpStr = JS_ValueToString(cx, *vp);

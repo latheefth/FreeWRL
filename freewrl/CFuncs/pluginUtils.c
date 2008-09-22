@@ -177,7 +177,6 @@ void doBrowserAction () {
 
 #define LINELEN 2000
 	char sysline[LINELEN];
-	char aquaPath[LINELEN];
 	int testlen;
 
 

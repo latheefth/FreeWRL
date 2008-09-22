@@ -443,16 +443,11 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 
 JSBool
 VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
-	JSObject *_obj[2];
 	JSString *_str[2];
 	JSClass *_cls[2];
 	SFNodeNative *oldPtr;
-	jsval _v;
 	char *_c,
-		*_c_args = "MFString url, SFNode node, SFString event",
-		*_costr0,
-		*_costr1,
-		*_c_format = "o o s";
+		*_costr0;
 	uintptr_t nodarr[200];
 	struct X3D_Node *myptr;
 	int ra;
@@ -783,7 +778,6 @@ VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsva
 	char *target;
 	int encodedName;
 	int currentController;
-	int ctr;
 	int i;
 	int controllerIndexInList = 0;
 	int dummyController;
@@ -951,13 +945,10 @@ JSBool VrmlBrowserGetMidiControllerMax(JSContext *cx, JSObject *obj, uintN argc,
 
 /* internal to add/remove a ROUTE */
 static JSBool doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, const char *callingFunc) {
-	jsval _v[2];
 	JSObject *fromNodeObj, *toNodeObj;
 	SFNodeNative *fromNative, *toNative;
 	JSClass *_cls[2];
-	JSString *_str[2];
 	char 
-		*_costr[2],
 		*fromFieldString, *toFieldString,
 		*_c_args =
 		"SFNode fromNode, SFString fromEventOut, SFNode toNode, SFString toEventIn",

@@ -23,7 +23,6 @@ struct VRMLParser* globalParser = NULL;
 BOOL cParse(void* ptr, unsigned ofs, const char* data)
 {
  struct VRMLParser* parser;
- struct X3D_Node* node;
 
  if (!globalParser) {
 	/* printf ("cParse, new parser\n"); */

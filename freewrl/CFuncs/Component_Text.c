@@ -412,7 +412,6 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 	int counter=0;
 	int char_count=0;
 	int est_tri=0;
-	float angletan;
 
 
 	/* fsparam has the following bitmaps:
@@ -445,6 +444,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr,char *directstri
 	/* z distance for text - only the status bar has anything other than 0.0 */
 	if (directstring) {
 #ifdef CALCAULATEANGLETAN
+	float angletan;
 		/* convert fieldofview into radians */
 		angletan = fieldofview / 360.0 * PI * 2;
 
@@ -698,7 +698,6 @@ int
 open_font() {
 	int len;
 	int err;
-	FILE *tmpfile;
 	char *flloc;
 
 	if (TextVerbose)
@@ -752,7 +751,6 @@ void collide_Text (struct X3D_Text *node) {
 	       GLdouble upvecmat[16];
 
 	       struct point_XYZ t_orig = {0,0,0};
-	       static int refnum = 0;
 
 		/*JAS - normals are always this way - helps because some
 			normal calculations failed because of very small triangles
@@ -808,7 +806,7 @@ void collide_Text (struct X3D_Text *node) {
 
 		#ifdef COLLISIONVERBOSE 
 	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
-		   fprintf(stderr,"COLLISION_TXT: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+		   fprintf(stderr,"COLLISION_TXT: (%f %f %f) (%f %f %f)\n",
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );

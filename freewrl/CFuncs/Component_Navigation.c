@@ -350,20 +350,10 @@ void proximity_LOD (struct X3D_LOD *node) {
 
 
 void changed_Inline (struct X3D_Inline *node) {
-                int i;
-                int nc = ((node->__children).n);
-                struct X3D_Node *p;
-                struct X3D_Virt *v;
-
 		INITIALIZE_EXTENT
 }
 
 
 void changed_Collision (struct X3D_Collision *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-                struct X3D_Virt *v;
-
 		INITIALIZE_EXTENT
 }

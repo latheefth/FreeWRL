@@ -442,6 +442,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
    { \
     struct X3D_##n* node2=(struct X3D_##n*)node; \
     struct X3D_##n* ret2=(struct X3D_##n*)ret; \
+	UNUSED(node2); UNUSED(ret2); 
 
   #define END_NODE(n) \
     break; \
@@ -451,7 +452,8 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
   /* Copying of fields depending on type */
 
   #define FIELD(n, field, type, var) \
-   ret2->var=DEEPCOPY_##type(lex, node2->var, new, hash);
+   ret2->var=DEEPCOPY_##type(lex, node2->var, new, hash); \
+   UNUSED(ret2);
 
   #define EVENT_IN(n, f, t, v)
   #define EVENT_OUT(n, f, t, v)
@@ -1103,7 +1105,6 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 			/* printf ("probably a number, scan along until it is done. :%s:\n",lex->nextIn); */
 			if ((*lex->nextIn == '-') || (*lex->nextIn >= '0') && (*lex->nextIn <= '9')) {
 				uintptr_t ip; uintptr_t fp; char *cur;
-				int ilen; int flen;
 				int ignore;
 
 				/* see which of float, int32 gobbles up more of the string */
@@ -1159,10 +1160,7 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
 	char *newProtoText;
-	char *isPtr;
 	int newProtoTextLen;
-	int validIs;
-	char tmp;
 	char thisID[1000];
 	indexT i;
 	indexT protoElementCount;
@@ -1347,7 +1345,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 /* this is a PROTO; go through and find the node, and fill in the correct curID so that parsing can
    continue. XXX - only works with one IS routed field; if a PROTO has more than one IS, then this will fail. */
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, struct X3D_Node **Node) {
-	indexT i,j,k;
+	indexT i,j;
 	indexT ret;
 	struct ProtoElementPointer *ele;
 	char thisID[200];

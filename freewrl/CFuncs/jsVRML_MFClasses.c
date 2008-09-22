@@ -369,12 +369,6 @@ MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool
 MFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	JSString *_str;
-	JSObject *_obj;
-	jsval _val;
-	char *_c;
-	int32 _index;
-
 	/* printf ("start of MFNODESETPROPERTY obj %d\n",obj); */
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFNode);
 }
@@ -1135,11 +1129,11 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 JSBool
 MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	JSString *_str;
 	unsigned int i;
 
 
 	#ifdef JSVRMLCLASSESVERBOSE
+	JSString *_str;
 	printf("MFStringConstr: cx %u, obj %u args %d rval %d parent %d... ", cx, obj, argc, rval, JS_GetParent(cx, obj));
 	#endif
 

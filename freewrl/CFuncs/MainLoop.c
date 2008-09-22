@@ -795,6 +795,7 @@ void render() {
 	                aglSwapBuffers(aqglobalContext);
 	        } else {
 	                CGLError err = CGLFlushDrawable(myglobalContext);
+			if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
 	                updateContext();
 	        }
 	#endif
@@ -1316,7 +1317,6 @@ void setSnapSeq() {
 void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
-	int i;
 	/* printf ("closeFreewrl called\n"); */
 
 	#ifdef AQUA
@@ -1616,14 +1616,15 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y) {
         }
 }
 void setIsPlugin() {
-	FILE* tmpfile;
-	char tmppath[512];
 
         RUNNINGASPLUGIN = TRUE;
         setUseShapeThreadIfPossible(0);
 		
 	// Save local working directory
 	/*
+	{
+	FILE* tmpfile;
+	char tmppath[512];
 	system("pwd > /tmp/freewrl_filename");
 	tmpfile = fopen("/tmp/freewrl_filename", "r");
 	
@@ -1638,6 +1639,7 @@ void setIsPlugin() {
 		fprintf(tmpfile, "%s\n", BrowserFullPath);
 	}
 	fclose(tmpfile);
+	}
 	*/
 	
 }

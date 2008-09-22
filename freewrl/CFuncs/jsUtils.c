@@ -149,7 +149,6 @@ void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 		}
 
 		case FIELDTYPE_SFString: {
-			struct Uni_String *ms;
 			struct Uni_String *oldS;
         		JSString *_idStr;
         		char *_id_c;
@@ -174,7 +173,6 @@ void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 
 /* take a Javascript  ECMA value and put it in the X3D Scenegraph. */
 void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsval *newval) {
-	int i;
         SFColorNative *Cptr;
 	SFVec3fNative *V3ptr;
 	SFVec3dNative *V3dptr;
@@ -183,8 +181,6 @@ void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataType, jsv
 	SFNodeNative *VNptr;
 
 	void *VPtr;
-	jsval rval;
-	char *script = NULL;
 
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling JS_SF_TO_X3D on type %s\n",FIELDTYPES[dataType]);
@@ -294,7 +290,6 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 /* take an ECMA value in the X3D Scenegraph, and return a jsval with it in */
 /* this is not so fast; we call a script to make a default type, then we fill it in */
 void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, int dataType, jsval *newval) {
-	int i;
         SFColorNative *Cptr;
 	SFVec3fNative *V3ptr;
 	SFVec3dNative *V3dptr;
@@ -389,11 +384,8 @@ void X3D_SF_TO_JS(JSContext *cx, JSObject *obj, void *Data, unsigned datalen, in
 /* make an MF type from the X3D node. This can be fairly slow... */
 void X3D_MF_TO_JS(JSContext *cx, JSObject *obj, void *Data, int dataType, jsval *newval, char *fieldName) {
 	int i;
-	void *VPtr;
 	jsval rval;
 	char *script = NULL;
-	int shouldRunScript = FALSE;
-
 	struct Multi_Int32 *MIptr;
 	struct Multi_Float *MFptr;
 	struct Multi_Time *MTptr;
@@ -531,7 +523,6 @@ printf ("X3D_MF_TO_JS - is this already expanded? \n");
 			struct Multi_Vec3f* MCptr;
 			char newline[100];
 			jsval xf;
-			jsval rtmp;
 
 			MCptr = (struct Multi_Vec3f *) Data;
 			for (i=0; i<MCptr->n; i++) {
@@ -860,8 +851,7 @@ JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 
 /* setter for SFNode accesses */
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
-	JSString *_idStr;
-	char *_id_c,_vp_c;
+	char *_id_c;
         SFNodeNative *ptr;
 	uintptr_t *fieldOffsetsPtr;
 	struct X3D_Node *node;
