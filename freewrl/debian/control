@@ -1,7 +1,7 @@
 Source: freewrl
 Section: graphics
 Priority: optional
-Maintainer: sarah <sarah.dumoulin@crc.ca>
+Maintainer: Michel BRIAND (Quand on veut on peut !) <michelbriand@free.fr>
 Build-Depends: debhelper (>= 4.0.0), perl, libxaw7-dev, lesstif2-dev, libexpat1-dev, libfreetype6-dev, libgl-dev, libglu-dev, libjpeg62-dev, libpng12-dev, libmozjs-dev, java-compiler
 Standards-Version: 3.6.2
 
