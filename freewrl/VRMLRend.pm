@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.225  2008/09/23 16:45:02  crc_canada
+# initial GeoTransform code added.
+#
 # Revision 1.224  2008/09/22 16:06:48  crc_canada
 # all fieldtypes now defined in freewrl code; some not parsed yet, though, as there are no supported
 # nodes that use them.
@@ -189,6 +192,7 @@
 	GeoPositionInterpolator	=>children,
 	GeoProximitySensor 	=>children,
 	GeoTouchSensor		=>children,
+	GeoTransform		=>children,
 	GeoViewpoint 		=>children,
 	Group 			=>children,
 	HAnimDisplacer		=>children,
@@ -384,6 +388,7 @@
 	SpotLight
 	GeoLocation
 	GeoViewpoint
+	GeoTransform
 /;
 
 #######################################################################
@@ -402,6 +407,7 @@
 	Billboard
 	HAnimSite
 	HAnimJoint
+	GeoTransform
 /;
 
 
@@ -426,6 +432,7 @@
 	Transform
 	Anchor
 	GeoLocation
+	GeoTransform
 	Inline
 	Switch
 	GeoLOD
@@ -486,6 +493,7 @@
 	Anchor
 	Collision
 	GeoCollision
+	GeoTransform
 	HAnimSite
 /;
 

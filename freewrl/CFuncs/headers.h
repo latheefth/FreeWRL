@@ -1204,6 +1204,10 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * this);
 void compile_GeoViewpoint (struct X3D_GeoViewpoint * this);
 void compile_GeoProximitySensor (struct X3D_GeoProximitySensor *this);
 void proximity_GeoProximitySensor (struct X3D_GeoProximitySensor *this);
+void prep_GeoTransform (struct X3D_GeoTransform *);
+void child_GeoTransform (struct X3D_GeoTransform *);
+void fin_GeoTransform (struct X3D_GeoTransform *);
+void changed_GeoTransform (struct X3D_GeoTransform *);
 
 
 /* Networking Component */

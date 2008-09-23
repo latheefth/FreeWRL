@@ -1622,8 +1622,6 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 void fin_GeoLocation (struct X3D_GeoLocation *node) {
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
-
-
 	OCCLUSIONTEST
 
         if(!render_vp) {
@@ -2426,3 +2424,247 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	viewer_calculate_speed();
 }
 
+
+/************************************************************************/
+/* GeoTransform								*/
+/************************************************************************/
+
+void compile_GeoTransform (struct X3D_GeoTransform * node) {
+	MF_SF_TEMPS
+
+	#ifdef VERBOSE
+	printf ("compiling GeoLocation\n");
+	#endif
+
+	/* work out the position */
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_GEOSYSTEM(node)
+	INIT_MF_FROM_SF(node, geoCenter)
+	MOVE_TO_ORIGIN(node)
+	COPY_MF_TO_SF(node, __movedCoords)
+
+	/* work out the local orientation */
+	GeoOrient(&gdCoords.p[0], &node->__localOrient);
+
+	#ifdef VERBOSE
+	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+	printf ("	rotation is %lf %lf %lf %lf\n",
+			node->__localOrient.r[0],
+			node->__localOrient.r[1],
+			node->__localOrient.r[2],
+			node->__localOrient.r[3]);
+	#endif
+
+	MARK_NODE_COMPILED
+	FREE_MF_SF_TEMPS
+	
+	/* events */
+	MARK_META_EVENT(GeoLocation)
+
+
+	#ifdef VERBOSE
+	printf ("compiled GeoLocation\n\n");
+	#endif
+}
+
+
+/* do transforms, calculate the distance */
+void prep_GeoTransform (struct X3D_GeoTransform *node) {
+	GLfloat my_rotation;
+	GLfloat my_scaleO=0;
+
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_IF_REQUIRED
+
+        /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
+         * so we do nothing here in that case -ncoder */
+
+	/* printf ("prep_Transform, render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+
+	/* do we have any geometry visible, and are we doing anything with geometry? */
+	OCCLUSIONTEST
+
+	if(!render_vp) {
+		fwXformPush();
+
+		/* might we have had a change to a previously ignored value? */
+		if (node->_change != node->__verify_transforms) {
+			/* printf ("re-rendering for %d\n",node);*/
+			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
+			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
+			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
+			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
+			node->__verify_transforms = node->_change;
+		}
+
+		/* TRANSLATION */
+		if (node->__do_trans)
+			glTranslatef(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
+
+                /* GeoTransform TRANSLATION */
+                glTranslated(node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+                /*
+                printf ("prep_GeoLoc trans to %lf %lf %lf\n",node->__movedCoords.c[0],node->__movedCoords.c[1],node->__movedCoords.c[2]);
+                printf ("          (really to %lf %lf %lf)\n",node->__movedCoords.c[0]-geoViewPointCenter.c[0],
+                        node->__movedCoords.c[1]-geoViewPointCenter.c[1],
+                        node->__movedCoords.c[2]-geoViewPointCenter.c[2]);
+                */
+                        
+                my_rotation = node->__localOrient.c[3]/3.1415926536*180;
+                glRotated(my_rotation, node->__localOrient.c[0],node->__localOrient.c[1],node->__localOrient.c[2]);
+                
+		/* ROTATION */
+		if (node->__do_rotation) {
+			my_rotation = node->rotation.r[3]/3.1415926536*180;
+			glRotatef(my_rotation, node->rotation.r[0],node->rotation.r[1],node->rotation.r[2]);
+		}
+
+		/* SCALEORIENTATION */
+		if (node->__do_scaleO) {
+			my_scaleO = node->scaleOrientation.r[3]/3.1415926536*180;
+			glRotatef(my_scaleO, node->scaleOrientation.r[0],
+				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+		}
+
+		/* SCALE */
+		if (node->__do_scale)
+			glScalef(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
+
+		/* REVERSE SCALE ORIENTATION */
+		if (node->__do_scaleO)
+			glRotatef(-my_scaleO, node->scaleOrientation.r[0],
+				node->scaleOrientation.r[1],node->scaleOrientation.r[2]);
+
+		/* REVERSE CENTER */
+                glTranslated(-node->__movedCoords.c[0], -node->__movedCoords.c[1], -node->__movedCoords.c[2]);
+
+		RECORD_DISTANCE
+        }
+}
+
+
+void fin_GeoTransform (struct X3D_GeoTransform *node) {
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_IF_REQUIRED
+	OCCLUSIONTEST
+
+        if(!render_vp) {
+            fwXformPop();
+        } else {
+           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+            if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
+                glTranslated(((node->__movedCoords).c[0]),((node->__movedCoords).c[1]),((node->__movedCoords).c[2])
+                );
+                glRotatef(((node->scaleOrientation).r[3])/3.1415926536*180,((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                );
+                glScalef(1.0/(((node->scale).c[0])),1.0/(((node->scale).c[1])),1.0/(((node->scale).c[2]))
+                );
+                glRotatef(-(((node->scaleOrientation).r[3])/3.1415926536*180),((node->scaleOrientation).r[0]),((node->scaleOrientation).r[1]),((node->scaleOrientation).r[2])
+                );
+                glRotatef(-(((node->rotation).r[3]))/3.1415926536*180,((node->rotation).r[0]),((node->rotation).r[1]),((node->rotation).r[2])
+                );
+                glTranslated(-(((node->__movedCoords).c[0])),-(((node->__movedCoords).c[1])),-(((node->__movedCoords).c[2]))
+                );
+                glTranslatef(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
+                );
+            }
+        }
+} 
+
+void changed_GeoTransform (struct X3D_GeoTransform *node) { 
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_IF_REQUIRED
+	INITIALIZE_EXTENT
+}
+
+void child_GeoTransform (struct X3D_GeoTransform *node) {
+	CHILDREN_COUNT
+	INITIALIZE_GEOSPATIAL(node)
+	COMPILE_IF_REQUIRED
+	OCCLUSIONTEST
+	DIRECTIONAL_LIGHT_SAVE
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+
+	/* any children at all? */
+	if (nc==0) return;
+
+	/* {
+		int x;
+		struct X3D_Node *xx;
+
+		printf ("child_Transform, this %d \n",node);
+		for (x=0; x<nc; x++) {
+			xx = X3D_NODE(node->children.p[x]);
+			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+		}
+	} */
+
+	/* Check to see if we have to check for collisions for this transform. */
+#ifdef COLLISIONTRANSFORM
+	if (render_collision) {
+		iv.x = node->EXTENT_MAX_X/2.0;
+		jv.y = node->EXTENT_MAX_Y/2.0;
+		kv.z = node->EXTENT_MAX_Z/2.0;
+		ov.x = -(node->EXTENT_MAX_X); 
+		ov.y = -(node->EXTENT_MAX_Y); 
+		ov.z = -(node->EXTENT_MAX_Z);
+
+	       /* get the transformed position of the Box, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       /* matinverse(upvecmat,upvecmat); */
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+		/* printf ("TB this %d, extent %4.3f %4.3f %4.3f pos %4.3f %4.3f %4.3f\n", 
+			node,node->EXTENT_MAX_X,node->EXTENT_MAX_Y,EXTENT_MAX_Z,
+			t_orig.x,t_orig.y,t_orig.z); */
+	       scale = pow(det3x3(modelMatrix),1./3.);
+	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,
+			scale*node->EXTENT_MAX_X*2,
+			scale*node->EXTENT_MAX_Y*2,
+			scale*node->EXTENT_MAX_Z*2)) {
+			/* printf ("TB this %d returning fast\n",node); */
+			return;
+		/* } else {
+			printf ("TB really look at %d\n",node); */
+		}
+	}
+#endif
+
+#ifdef XXBOUNDINGBOX
+	if (node->PIV > 0) {
+#endif
+	/* do we have to sort this node? */
+	if ((nc > 1 && !render_blend)) sortChildren(node->children);
+
+	/* do we have a DirectionalLight for a child? */
+	DIRLIGHTCHILDREN(node->children);
+
+	/* now, just render the non-directionalLight children */
+
+	/* printf ("Transform %d, flags %d, render_sensitive %d\n",
+			node,node->_renderFlags,render_sensitive); */
+
+	#ifdef CHILDVERBOSE
+		printf ("transform - doing normalChildren\n");
+	#endif
+
+	normalChildren(node->children);
+
+	#ifdef CHILDVERBOSE
+		printf ("transform - done normalChildren\n");
+	#endif
+#ifdef XXBOUNDINGBOX
+	}
+#endif
+
+	BOUNDINGBOX
+	DIRECTIONAL_LIGHT_OFF
+}
