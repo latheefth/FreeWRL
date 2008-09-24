@@ -924,12 +924,15 @@ struct X3D_Node* getRayHit() {
 
 		/* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
 		   if it exists */
-		
-		/* printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
+
+		/* is the sensitive node not NULL? */
+		if (rayHit.node == NULL) return NULL;
+	
+		/*
+		printf ("rayhit, we are over a node, have node %u (%s), posn %lf %lf %lf",
 			rayHit.node,stringNodeType(rayHit.node->_nodeType), x,y,z);
 		printf (" dist %f ",rayHit.node->_dist);
 		*/
-	
 
 		for (i=0; i<num_SensorEvents; i++) {
 			if (SensorEvents[i].fromnode == rayHit.node) {
@@ -986,7 +989,6 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 /* note, (Geo)ProximitySensor events are handled during tick, as they are time-sensitive only */
 void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
 	int count;
-
 
 	/* if we are not calling a valid node, dont do anything! */
 	if (COS==NULL) return;

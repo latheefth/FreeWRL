@@ -1329,7 +1329,6 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	node->normalPerVertex = parent->normalPerVertex;
 	node->solid = parent->solid;
 
-
 	/* initialize arrays used for passing values into/out of the MOVE_TO_ORIGIN(node) values */
 	mIN.n = nx * nz; 
 	mIN.p = (struct SFVec3d *)MALLOC (sizeof (struct SFVec3d) * mIN.n);
@@ -2081,9 +2080,9 @@ void do_GeoProximitySensorTick( void *ptr) {
 			node->geoCoord_changed.c[1] = Viewer.Pos.y;
 			node->geoCoord_changed.c[2] = Viewer.Pos.z;
 			*/
-			node->geoCoord_changed.c[0] = node->position_changed.c[0];
-			node->geoCoord_changed.c[1] = node->position_changed.c[1];
-			node->geoCoord_changed.c[2] = node->position_changed.c[2];
+			node->geoCoord_changed.c[0] = (double) node->position_changed.c[0];
+			node->geoCoord_changed.c[1] = (double) node->position_changed.c[1];
+			node->geoCoord_changed.c[2] = (double) node->position_changed.c[2];
 
 			/* then add in the nearPlane, as the way we get the position is via a clipped frustum */
 			/* if we get this via the position_changed field, we have to:
@@ -2218,13 +2217,194 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
 }
 
 void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
+
+
 	struct X3D_GeoTouchSensor *node = (struct X3D_GeoTouchSensor *)ptr;
+	struct point_XYZ normalval;	/* different structures for normalization calls */
 
 	COMPILE_IF_REQUIRED
-        /* remember to POSSIBLE_PROTO_EXPANSION(node->geoOrigin, tmpN) */
-	printf ("do_GeoTouchSensor\n");
+
+	#ifdef SENSVERBOSE
+	printf ("%lf: TS ",TickTime);
+	if (ev==ButtonPress) printf ("ButtonPress ");
+	else if (ev==ButtonRelease) printf ("ButtonRelease ");
+	else if (ev==KeyPress) printf ("KeyPress ");
+	else if (ev==KeyRelease) printf ("KeyRelease ");
+	else if (ev==MotionNotify) printf ("%lf MotionNotify ");
+	else printf ("ev %d ",ev);
+	
+	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
+	if (over) printf ("over TRUE "); else printf ("over FALSE ");
+	printf ("\n");
+	#endif
+
+	/* if not enabled, do nothing */
+	if (!node) return;
+	if (!node->enabled) return;
+
+	/* isOver state */
+	if ((ev == overMark) && (over != node->isOver)) {
+		#ifdef SENSVERBOSE
+		printf ("TS %u, isOver changed %d\n",node, over);
+		#endif
+		node->isOver = over;
+		MARK_EVENT (ptr, offsetof (struct X3D_GeoTouchSensor, isOver));
+	}
+
+	/* active */
+	/* button presses */
+	if (ev == ButtonPress) {
+		node->isActive=1;
+		MARK_EVENT (ptr, offsetof (struct X3D_GeoTouchSensor, isActive));
+		#ifdef SENSVERBOSE
+		printf ("touchSens %u, butPress\n",node);
+		#endif
+
+		node->touchTime = TickTime;
+		MARK_EVENT(ptr, offsetof (struct X3D_GeoTouchSensor, touchTime));
+
+	} else if (ev == ButtonRelease) {
+		#ifdef SENSVERBOSE
+		printf ("touchSens %u, butRelease\n",node);
+		#endif
+		node->isActive=0;
+		MARK_EVENT (ptr, offsetof (struct X3D_GeoTouchSensor, isActive));
+	}
+
+	/* hitPoint and hitNormal */
+	/* save the current hitPoint for determining if this changes between runs */
+	memcpy ((void *) &node->_oldhitPoint, (void *) &ray_save_posn,sizeof(struct SFColor));
+
+	/* did the hitPoint change between runs? */
+	if ((APPROX(node->_oldhitPoint.c[0],node->hitPoint_changed.c[0])!= TRUE) ||
+		(APPROX(node->_oldhitPoint.c[1],node->hitPoint_changed.c[1])!= TRUE) ||
+		(APPROX(node->_oldhitPoint.c[2],node->hitPoint_changed.c[2])!= TRUE)) {
+
+		#ifdef SENSVERBOSE
+		printf ("GeoTouchSens, hitPoint changed: %f %f %f\n",node->hitPoint_changed.c[0],
+			node->hitPoint_changed.c[1], node->hitPoint_changed.c[2]);
+		#endif
+
+		memcpy ((void *) &node->hitPoint_changed, (void *) &node->_oldhitPoint, sizeof(struct SFColor));
+		MARK_EVENT(ptr, offsetof (struct X3D_GeoTouchSensor, hitPoint_changed));
+
+		/* convert this back into the requested GeoSpatial format... */
+			node->hitGeoCoord_changed.c[0] = (double) node->hitPoint_changed.c[0];
+			node->hitGeoCoord_changed.c[1] = (double) node->hitPoint_changed.c[1];
+			node->hitGeoCoord_changed.c[2] = (double) node->hitPoint_changed.c[2];
+
+			/* then add in the nearPlane, as the way we get the position is via a clipped frustum */
+			/* if we get this via the position_changed field, we have to:
+				node->hitGeoCoord_changed.c[2] += nearPlane;
+			*/
+			node->hitGeoCoord_changed.c[2] += nearPlane;
+			MARK_EVENT (ptr, offsetof(struct X3D_GeoTouchSensor, hitGeoCoord_changed));
+
+			#ifdef SENSVERBOSE
+			printf ("\nhitGeoCoord_changed as a GCC, %lf %lf %lf\n",
+				node->hitGeoCoord_changed.c[0],
+				node->hitGeoCoord_changed.c[1],
+				node->hitGeoCoord_changed.c[2]);
+			#endif
+
+			/* compileGeosystem - encode the return value such that srf->p[x] is...
+                        0:      spatial reference frame (GEOSP_UTM, GEOSP_GC, GEOSP_GD);
+                        1:      spatial coordinates (defaults to GEOSP_WE)
+                        2:      UTM zone number, 1..60. ID_UNDEFINED = not specified
+                        3:      UTM:    if "S" - value is FALSE, not S, value is TRUE
+                                GD:     if "latitude_first" TRUE, if "longitude_first", FALSE
+                                GC:     if "northing_first" TRUE, if "easting_first", FALSE */
+
+			/* do we need to change this from a GCC? */
+			if (node->__geoSystem.n != 0) { /* do we have a GeoSystem specified?? if not, dont do this! */
+				struct SFVec3d gdCoords;
+
+				if (node->__geoSystem.p[0] != GEOSP_GC) {
+					/* have to convert to GD or UTM. Go to GD first */
+
+					if (Viewer.GeoSpatialNode != NULL) {
+        					retractOrigin(Viewer.GeoSpatialNode->geoOrigin,
+							&node->hitGeoCoord_changed);
+					}
         
-}; 
+
+					#ifdef SENSVERBOSE
+					printf ("hitGeoCoord_changed retracted, %lf %lf %lf\n",
+						node->hitGeoCoord_changed.c[0],
+						node->hitGeoCoord_changed.c[1],
+						node->hitGeoCoord_changed.c[2]);
+					#endif
+
+					/* now, convert to a GDC */
+					gccToGdc (&node->hitGeoCoord_changed, &gdCoords);
+					memcpy (&node->hitGeoCoord_changed, &gdCoords, sizeof (struct SFVec3d));
+
+					#ifdef SENSVERBOSE
+					printf ("hitGeoCoord_changed as a GDC, %lf %lf %lf\n",
+						node->hitGeoCoord_changed.c[0],
+						node->hitGeoCoord_changed.c[1],
+						node->hitGeoCoord_changed.c[2]);
+					#endif
+				
+					/* is this a GD? if so, go no further */
+					if (node->__geoSystem.p[0] == GEOSP_GD) {
+						/* do we need to flip lat and lon? */
+						if (!(node->__geoSystem.p[3])) {
+							double tmp;
+							tmp = node->hitGeoCoord_changed.c[0];
+							node->hitGeoCoord_changed.c[0] = node->hitGeoCoord_changed.c[1];
+							node->hitGeoCoord_changed.c[1] = tmp;
+						}
+
+					} else {
+						/* convert this to UTM */
+						int zone; 
+						double easting;
+						double northing;
+						
+						/* get the zone from the geoSystem; if undefined, we will calculate */
+						zone = node->__geoSystem.p[2];
+						gdToUtm(node->hitGeoCoord_changed.c[0],
+							node->hitGeoCoord_changed.c[1],
+							&zone, &easting, &northing);
+
+						node->hitGeoCoord_changed.c[0] = northing;
+						node->hitGeoCoord_changed.c[1] = easting;
+
+					#ifdef SENSVERBOSE
+					printf ("hitGeoCoord_changed as a UTM, %lf %lf %lf\n",
+						node->hitGeoCoord_changed.c[0],
+						node->hitGeoCoord_changed.c[1],
+						node->hitGeoCoord_changed.c[2]);
+					#endif
+					} 
+				}
+			}
+	}
+
+	/* have to normalize normal; change it from SFColor to struct point_XYZ. */
+	normalval.x = hyp_save_norm.c[0];
+	normalval.y = hyp_save_norm.c[1];
+	normalval.z = hyp_save_norm.c[2];
+	normalize_vector(&normalval);
+	node->_oldhitNormal.c[0] = normalval.x;
+	node->_oldhitNormal.c[1] = normalval.y;
+	node->_oldhitNormal.c[2] = normalval.z;
+
+	/* did the hitNormal change between runs? */
+	if ((APPROX(node->_oldhitNormal.c[0],node->hitNormal_changed.c[0])!= TRUE) ||
+		(APPROX(node->_oldhitNormal.c[1],node->hitNormal_changed.c[1])!= TRUE) ||
+		(APPROX(node->_oldhitNormal.c[2],node->hitNormal_changed.c[2])!= TRUE)) {
+
+		#ifdef SENSVERBOSE
+		printf ("GeoTouchSens, hitNormal changed: %f %f %f\n",normalval.x,normalval.y,normalval.z);
+		#endif
+
+		memcpy ((void *) &node->hitNormal_changed, (void *) &node->_oldhitNormal, sizeof(struct SFColor));
+		MARK_EVENT(ptr, offsetof (struct X3D_GeoTouchSensor, hitNormal_changed));
+	}
+} 
+
 
 
 /************************************************************************/

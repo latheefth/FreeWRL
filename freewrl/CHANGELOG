@@ -1,4 +1,6 @@
 For 1.20.8
+	- GeoTouchSensor code added.
+
 	- GeoTransform code added.
 
 	- Some routes on parsing initialization were not getting set.

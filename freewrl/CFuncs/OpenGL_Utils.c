@@ -1051,6 +1051,8 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
 		nearPlane = geoHeightinZAxis - GEOSP_WE_A_LARGER;
 		if (nearPlane < DEFAULT_NEARPLANE) nearPlane = DEFAULT_NEARPLANE;
 
+#undef TEST_READ_NEAR_FAR
+
 		#ifdef TEST_READ_NEAR_FAR
 	
 		{

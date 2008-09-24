@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.226  2008/09/24 19:23:01  crc_canada
+# GeoTouchSensor work.
+#
 # Revision 1.225  2008/09/23 16:45:02  crc_canada
 # initial GeoTransform code added.
 #
@@ -183,7 +186,7 @@
 	FillProperties		=>fillProperties,
 	Fog 			=>children,
 	FontStyle 		=>fontStyle,
-	GeoCoordinate 		=>children,
+	GeoCoordinate 		=>coord,
 	GeoElevationGrid 	=>geometry,
 	GeoLocation 		=>children,
 	GeoLOD 			=>children,
@@ -474,6 +477,7 @@
 	GeoTouchSensor
 	GeoViewpoint	
 	GeoProximitySensor
+	GeoTransform
 /;
 
 

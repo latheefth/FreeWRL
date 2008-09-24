@@ -189,6 +189,7 @@ float tx,float ty, char *descr)  {
 	#endif
 }
 
+
 /* Call this when modelview and projection modified */
 void upd_ray() {
 	GLdouble modelMatrix[16];
@@ -348,7 +349,6 @@ void render_node(struct X3D_Node *node) {
 
 	    v->collision(node);
 	    #ifdef RENDERVERBOSE 
-printf ("finished render_collision on node\n");
 	    #endif
 	
 	    if (displayOpenGLErrors) if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
