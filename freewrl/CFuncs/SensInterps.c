@@ -581,6 +581,16 @@ void do_GeoPositionInterpolator (void *innode) {
 	MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, value_changed)); 
 	MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, geovalue_changed)); 
 
+	/* did the key or keyValue change? */
+	if (node->__oldKeyValuePtr != node->keyValue.p) {
+		MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, keyValue)); 
+		node->__oldKeyValuePtr = node->keyValue.p;
+	}
+	if (node->__oldKeyPtr != node->key.p) {
+		MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, key)); 
+		node->__oldKeyPtr = node->key.p;
+	}
+
 
 	#ifdef SEVERBOSE
 		printf("do_GeoPos: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
@@ -949,8 +959,13 @@ void do_AudioTick(void *ptr) {
 /* ProximitySensor code for ClockTick */
 void do_ProximitySensorTick( void *ptr) {
 	struct X3D_ProximitySensor *node = (struct X3D_ProximitySensor *)ptr;
-	/* are we enabled? */
+
+	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_ProximitySensor, enabled));
+	}
 	if (!node->enabled) return;
 
 	/* did we get a signal? */
@@ -1107,8 +1122,13 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 	printf ("\n");
 	#endif
 
+
 	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_TouchSensor, enabled));
+	}
 	if (!node->enabled) return;
 
 	/* isOver state */
@@ -1184,7 +1204,14 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 
 	UNUSED(over);
 
+
+	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_PlaneSensor, enabled));
+	}
+	if (!node->enabled) return;
 
 	/* only do something when button pressed */
 	if (!but1) return;
@@ -1293,7 +1320,12 @@ void do_CylinderSensor ( void *ptr, int ev, int but1, int over) {
 
 	UNUSED(over);
 	
+	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_CylinderSensor, enabled));
+	}
 	if (!node->enabled) return;
 
 	/* only do something if the button is pressed */
@@ -1455,7 +1487,12 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 
 	UNUSED(over);
 
+	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_SphereSensor, enabled));
+	}
 	if (!node->enabled) return;
 
 	/* only do something if button1 is pressed */

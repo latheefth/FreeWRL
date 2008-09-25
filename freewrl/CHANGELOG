@@ -1,4 +1,9 @@
 For 1.20.8
+	- Event routing for "enabled" on all nodes with this field, now working.
+
+	- verify that events get sent for all Geospatial node fields that are not
+	  inputOnly fields.
+
 	- GeoTouchSensor code added.
 
 	- GeoTransform code added.

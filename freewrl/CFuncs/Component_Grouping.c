@@ -16,6 +16,16 @@
 #include "installdir.h"
 #include "OpenGL_Utils.h"
 
+void changed_Transform (struct X3D_Transform *node) { 
+	INITIALIZE_EXTENT 
+	/* printf ("changed Transform for node %u\n",node); */
+	node->__do_center = verify_translate ((GLfloat *)node->center.c);
+	node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
+	node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
+	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
+	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
+}
+
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
 void prep_Group (struct X3D_Group *node) {
 	RECORD_DISTANCE
@@ -37,17 +47,6 @@ void prep_Transform (struct X3D_Transform *node) {
 
 	if(!render_vp) {
 		fwXformPush();
-
-		/* might we have had a change to a previously ignored value? */
-		if (node->_change != node->__verify_transforms) {
-			/* printf ("re-rendering for %d\n",node);*/
-			node->__do_center = verify_translate ((GLfloat *)node->center.c);
-			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
-			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
-			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
-			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
-			node->__verify_transforms = node->_change;
-		}
 
 		/* TRANSLATION */
 		if (node->__do_trans)
@@ -339,7 +338,6 @@ void child_Transform (struct X3D_Transform *node) {
 
 void changed_StaticGroup (struct X3D_StaticGroup *node) { INITIALIZE_EXTENT }
 
-void changed_Transform (struct X3D_Transform *node) { INITIALIZE_EXTENT }
 
 void changed_Group (struct X3D_Group *node) { INITIALIZE_EXTENT }
 

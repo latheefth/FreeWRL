@@ -30,8 +30,14 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 	/*  do the sound registering first, and tell us if this is an audioclip*/
 	/*  or movietexture.*/
 
-	/*  if the attached node is not active, just return*/
-	if (node->enabled == 0) return;
+
+	/* if not enabled, do nothing */
+	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_AudioControl, enabled));
+	}
+	if (!node->enabled) return;
 
 	direction.x = node->direction.c[0];
 	direction.y = node->direction.c[1];

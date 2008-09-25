@@ -65,7 +65,8 @@ package VRML::NodeType;
 						 # time that we were initialized at
 						 __inittime => [SFTime, 0, initializeOnly],
 						# cycleTimer flag.
-						__ctflag =>[SFTime, 10, inputOutput]
+						__ctflag =>[SFTime, 10, inputOutput],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DSensorNode"),
 
 
@@ -109,6 +110,7 @@ package VRML::NodeType;
 						__loading => [SFBool,0,initializeOnly],		# current internal status
 						__finishedloading => [SFBool,0,initializeOnly],	# current internal status
 						__StartLoadTime => [SFTime,0,outputOnly], # time we started loading...
+						__oldEnabled => [SFBool, 1, inputOutput],
 					},"X3DNetworkSensorNode"),
 
 	###################################################################################
@@ -163,7 +165,6 @@ package VRML::NodeType;
 						 __do_rotation => [SFInt32, 0, initializeOnly],
 						 __do_scaleO => [SFInt32, 0, initializeOnly],
 						 __do_scale => [SFInt32, 0, initializeOnly],
-						 __verify_transforms => [SFInt32, 0, initializeOnly],
 						},"X3DGroupingNode"),
 
 	WorldInfo => new VRML::NodeType("WorldInfo", {
@@ -738,6 +739,7 @@ package VRML::NodeType;
 						# used for determing rate of change of position:
 						__oldLen =>[SFTime, 0.0, initializeOnly],
 						maxDelta => [SFFloat, 10.0, inputOutput],
+						__oldEnabled => [SFBool, 1, inputOutput],
 						
 
 					   },"X3DSoundSourceNode"),
@@ -960,7 +962,8 @@ package VRML::NodeType;
 						isActive => [SFBool, 0, outputOnly],
 						isOver => [SFBool, 0, outputOnly],
 						description => [SFString, "", initializeOnly],
-						touchTime => [SFTime, -1, outputOnly]
+						touchTime => [SFTime, -1, outputOnly],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 	PlaneSensor => new VRML::NodeType("PlaneSensor", {
@@ -978,6 +981,7 @@ package VRML::NodeType;
 						_oldtranslation => [SFVec3f, [0, 0, 0], outputOnly],
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 	SphereSensor => new VRML::NodeType("SphereSensor", {
@@ -994,6 +998,7 @@ package VRML::NodeType;
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
 						_radius => [SFFloat, 0, initializeOnly],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 	CylinderSensor => new VRML::NodeType("CylinderSensor", {
@@ -1014,6 +1019,7 @@ package VRML::NodeType;
 						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
 						_radius => [SFFloat, 0, initializeOnly],
 						_dlchange => [SFInt32, 0, initializeOnly],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 
@@ -1034,6 +1040,7 @@ package VRML::NodeType;
 						keyPress =>[SFString,"",outputOnly],
 						keyRelease =>[SFString,"",outputOnly],
 						shiftKey =>[SFBool,0,outputOnly],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DKeyDeviceSensorNode"),
 
 	# StringSensor
@@ -1044,6 +1051,7 @@ package VRML::NodeType;
 						finalText => [SFString,"",outputOnly],
 						isActive =>[SFBool,0,outputOnly],
 						_initialized =>[SFBool,0,initializeOnly],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DKeyDeviceSensorNode"),
 
 
@@ -1068,7 +1076,8 @@ package VRML::NodeType;
 						# These fields are used for the info.
 						__hit => [SFInt32, 0, inputOutput],
 						__t1 => [SFVec3f, [10000000, 0, 0], inputOutput],
-						__t2 => [SFRotation, [0, 1, 0, 0], inputOutput]
+						__t2 => [SFRotation, [0, 1, 0, 0], inputOutput],
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DEnvironmentalSensorNode"),
 
 	VisibilitySensor => new VRML::NodeType("VisibilitySensor", {
@@ -1082,6 +1091,7 @@ package VRML::NodeType;
 						 __occludeCheckCount =>[SFInt32,-1,initializeOnly], # for Occlusion tests.
 						__points  =>[FreeWRLPTR,0,initializeOnly],	# for Occlude Box.
 						__Samples =>[SFInt32,0,initializeOnly],		# Occlude samples from last pass
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DEnvironmentalSensorNode"),
 
 
@@ -1329,6 +1339,8 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedValue => [MFVec3d, [], inputOutput],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldKeyPtr => [SFNode, NULL, outputOnly],
+						__oldKeyValuePtr => [SFNode, NULL, outputOnly],
 					},"X3DInterpolatorNode"),
 
 
@@ -1358,6 +1370,7 @@ package VRML::NodeType;
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldEnabled => [SFBool, 1, inputOutput],
 					   },"X3DEnvironmentalSensorNode"),
 
 	GeoTouchSensor=> new VRML::NodeType("GeoTouchSensor", {
@@ -1378,6 +1391,7 @@ package VRML::NodeType;
 						_oldhitNormal => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
 						_oldhitPoint => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
 						_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
+						__oldEnabled => [SFBool, 1, inputOutput],
 					},"X3DPointingDeviceSensorNode"),
 
 
@@ -1402,7 +1416,6 @@ package VRML::NodeType;
 						__do_rotation => [SFInt32, 0, initializeOnly],
 						__do_scaleO => [SFInt32, 0, initializeOnly],
 						__do_scale => [SFInt32, 0, initializeOnly],
-						__verify_transforms => [SFInt32, 0, initializeOnly],
 
 						# "compiled" versions of strings above
 						__geoSystem => [MFInt32,[],initializeOnly],
@@ -1470,6 +1483,7 @@ package VRML::NodeType;
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
 						__oldmetadata => [FreeWRLPTR, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
 					},"X3DGroupingNode"),
 
 

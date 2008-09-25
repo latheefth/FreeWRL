@@ -1014,6 +1014,10 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	
 	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_LoadSensor, enabled));
+	}
 	if (!node->enabled) return;
 
 	/* we only need to look at this during the rendering pass - once per event loop */

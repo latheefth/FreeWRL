@@ -28,8 +28,11 @@ PROXIMITYSENSOR(ProximitySensor,center,,)
 
 
 void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
-		if (!node) return;
-		if (!node->enabled) return;
+		
+	/* if not enabled, do nothing */
+	if (!node) return;
+	if (!node->enabled) return;
+
 		if (!candoVisibility) return;
 
 		/* first time through, if we have a visibility sensor, but do not have the OpenGL ability to
@@ -122,9 +125,14 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 void do_VisibilitySensorTick (void *ptr) {
 	struct X3D_VisibilitySensor *node = (struct X3D_VisibilitySensor *) ptr;
 
-	/* are we enabled? */
+	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_VisibilitySensor, enabled));
+	}
 	if (!node->enabled) return;
+	/* are we enabled? */
 
 	#ifdef SEVERBOSE
 	printf ("do_VisibilitySensorTick, samples %d\n",node->__samples);

@@ -24,6 +24,10 @@ void do_TimeSensorTick ( void *ptr) {
 	/* are we not enabled */
 	if (!node) return;
 
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_TimeSensor, enabled));
+	}
 	if (!node->enabled) {
 		if (node->isActive) {
 			node->isActive=0;

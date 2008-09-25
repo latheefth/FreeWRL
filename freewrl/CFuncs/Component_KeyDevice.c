@@ -169,6 +169,12 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 	#define MYN X3D_KEYSENSOR(wsk)
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 	
+	/* if not enabled, do nothing */
+	if (!MYN) return;
+	if (MYN->__oldEnabled != MYN->enabled) {
+		MYN->__oldEnabled = MYN->enabled;
+		MARK_EVENT(X3D_NODE(MYN),offsetof (struct X3D_KeySensor, enabled));
+	}
 	if (!MYN->enabled) return;
 
 	/* is this an ACTION (tm) key  press or release? */
@@ -239,6 +245,12 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 
 	/* printf ("SS, %u enabled %d\n",wsk, MYN->enabled); */
 
+	/* if not enabled, do nothing */
+	if (!MYN) return;
+	if (MYN->__oldEnabled != MYN->enabled) {
+		MYN->__oldEnabled = MYN->enabled;
+		MARK_EVENT(X3D_NODE(MYN),offsetof (struct X3D_StringSensor, enabled));
+	}
 	if (!MYN->enabled) return;
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 

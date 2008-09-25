@@ -1149,7 +1149,6 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 	
 	/* events */
 	MARK_META_EVENT(GeoCoordinate)
-
 }
 
 
@@ -1316,9 +1315,20 @@ int checkX3DGeoElevationGridFields (struct X3D_ElevationGrid *node, float **poin
 	/* pass these common fields from the parent GeoElevationGrid to the child
 	   ElevationGrid. We must ensure that we do not free the copied SFNode
 	   pointers when this node is destroyed */
+
+	if (node->color != parent->color) 
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, color)); 
 	node->color = parent->color;
+
+	if (node->normal != parent->normal)
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, normal)); 
 	node->normal = parent->normal;
+
+	if (node->texCoord != parent->texCoord)
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoElevationGrid, texCoord)); 
 	node->texCoord = parent->texCoord;
+
+
 #ifdef OLDCODE
 	node->ccw = !parent->ccw; /* NOTE THE FLIP HERE */
 #else
@@ -1500,6 +1510,14 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 			node->__localOrient.r[3]);
 	#endif
 
+	/* did the geoCoords change?? */
+	if ((!APPROX(node->geoCoords.c[0],node->__oldgeoCoords.c[0])) ||
+	   (!APPROX(node->geoCoords.c[1],node->__oldgeoCoords.c[1])) ||
+	   (!APPROX(node->geoCoords.c[2],node->__oldgeoCoords.c[2]))) {
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLocation, geoCoords)); 
+		memcpy (&node->__oldgeoCoords, &node->geoCoords, sizeof (struct SFVec3d));
+	}
+
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
 	
@@ -1634,7 +1652,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /************************************************************************/
 
 void proximity_GeoLOD (struct X3D_GeoLOD *node) {
-	/* Viewer pos = t_r2 */
+	int oldInRange;
 	double cx,cy,cz;
 	static const struct point_XYZ orig = {0,0,0};
 	struct point_XYZ t_orig;
@@ -1670,6 +1688,7 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	#endif
 
 	/* try to see if we are closer than the range */
+	oldInRange = node->__inRange;
 	if((cx*cx+cy*cy+cz*cz) > (node->range*node->range)) {
 		node->__inRange = FALSE;
 	} else {
@@ -1677,14 +1696,27 @@ void proximity_GeoLOD (struct X3D_GeoLOD *node) {
 	}
 
 	
-	#ifdef VERBOSE
 	if (oldInRange != node->__inRange) {
-		if (node->__inRange == FALSE) 
-		printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range); 
-		else
-		printf ("GeoLOD %u level %d, inRange set to TRUE range %lf\n",node, node->__level, node->range); 
+		/* initialize the "children" field, if required */
+		if (node->children.p == NULL) node->children.p=MALLOC(sizeof(void *) * 4);
+
+		if (node->__inRange == FALSE) {
+			/* printf ("GeoLOD %u level %d, inRange set to FALSE, range %lf\n",node, node->__level, node->range);  */
+			node->level_changed = 1;
+			node->children.p[0] = node->__child1Node; 
+			node->children.p[1] = node->__child2Node; 
+			node->children.p[2] = node->__child3Node; 
+			node->children.p[3] = node->__child4Node; 
+			node->children.n = 4;
+		} else {
+			/* printf ("GeoLOD %u level %d, inRange set to TRUE range %lf\n",node, node->__level, node->range); */
+			node->level_changed = 0;
+			node->children.p[0] = node->rootNode.p[0]; node->children.n = 1;
+		}
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, level_changed));
+		MARK_EVENT(X3D_NODE(node), offsetof (struct X3D_GeoLOD, children));
+		oldInRange = node->__inRange;
 	}
-	#endif
 }
 
 #define LOAD_CHILD(childNode,childUrl) \
@@ -2034,10 +2066,16 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 /* GeoProximitySensor code for ClockTick */
 void do_GeoProximitySensorTick( void *ptr) {
 	struct X3D_GeoProximitySensor *node = (struct X3D_GeoProximitySensor *)ptr;
-	/* are we enabled? */
+
+	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_GeoProximitySensor, enabled));
+	}
 	if (!node->enabled) return;
 
+	/* isOver state */
 	/* did we get a signal? */
 	if (node->__hit) {
 		if (!node->isActive) {
@@ -2212,7 +2250,7 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
+	MARK_META_EVENT(GeoTouchSensor)
 
 }
 
@@ -2240,6 +2278,10 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 
 	/* if not enabled, do nothing */
 	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_GeoTouchSensor, enabled));
+	}
 	if (!node->enabled) return;
 
 	/* isOver state */
@@ -2466,7 +2508,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
+	MARK_META_EVENT(GeoViewpoint)
 
 
 	#ifdef VERBOSE
@@ -2627,7 +2669,7 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	GeoOrient(&gdCoords.p[0], &node->__localOrient);
 
 	#ifdef VERBOSE
-	printf ("compile_GeoLocation, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
+	printf ("compile_GeoTransform, orig coords %lf %lf %lf, moved %lf %lf %lf\n", node->geoCoords.c[0], node->geoCoords.c[1], node->geoCoords.c[2], node->__movedCoords.c[0], node->__movedCoords.c[1], node->__movedCoords.c[2]);
 	printf ("	rotation is %lf %lf %lf %lf\n",
 			node->__localOrient.r[0],
 			node->__localOrient.r[1],
@@ -2639,11 +2681,11 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoLocation)
+	MARK_META_EVENT(GeoTransform)
 
 
 	#ifdef VERBOSE
-	printf ("compiled GeoLocation\n\n");
+	printf ("compiled GeoTransform\n\n");
 	#endif
 }
 
@@ -2668,15 +2710,6 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
 	if(!render_vp) {
 		fwXformPush();
 
-		/* might we have had a change to a previously ignored value? */
-		if (node->_change != node->__verify_transforms) {
-			/* printf ("re-rendering for %d\n",node);*/
-			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
-			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
-			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
-			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
-			node->__verify_transforms = node->_change;
-		}
 
 		/* TRANSLATION */
 		if (node->__do_trans)
@@ -2755,6 +2788,15 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
 void changed_GeoTransform (struct X3D_GeoTransform *node) { 
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
+
+	/* re-figure out which modifiers are actually in use */
+	/* printf ("re-rendering for %d\n",node);*/
+	node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
+	node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
+	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
+	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
+
+
 	INITIALIZE_EXTENT
 }
 

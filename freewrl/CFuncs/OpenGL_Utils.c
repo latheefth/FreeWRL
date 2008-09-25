@@ -1132,6 +1132,12 @@ void kill_X3DNodes(void){
 			if (*fieldOffsetsPtr == FIELDNAMES__selected) 
 				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
+			if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr) 
+				break; /* used for seeing if interpolator values change */
+
+			if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
+				break; /* used for seeing if interpolator values change */
+
 			/* GeoElevationGrids pass a lot of info down to an attached ElevationGrid */
 			if (structptr->_nodeType == NODE_GeoElevationGrid) {
 				if (*fieldOffsetsPtr == FIELDNAMES_color) break;
@@ -1142,6 +1148,11 @@ void kill_X3DNodes(void){
 				if (*fieldOffsetsPtr == FIELDNAMES_creaseAngle) break;
 				if (*fieldOffsetsPtr == FIELDNAMES_normalPerVertex) break;
 				if (*fieldOffsetsPtr == FIELDNAMES_solid) break;
+			}
+
+			/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
+			if (structptr->_nodeType == NODE_GeoLOD) {
+				if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 			}
 		
 			/* nope, not a special field, lets just get rid of it as best we can */
