@@ -1180,7 +1180,6 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         struct Multi_String url;
         int i;
         char *pound;
-        char *savedCurInputURL;
         char *buffer;
         char emptyString[100];
         char *testname;
@@ -1275,7 +1274,6 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 
 /* recursively skip to the closing curly bracket - ignoring all that comes between. */
 void skipToEndOfOpenCurly(struct VRMLLexer *me, int level) {
-	char c = 33;
 	int curlyCount = 1;
 	vrmlStringT tmpstring;
 

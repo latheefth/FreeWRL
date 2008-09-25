@@ -110,9 +110,17 @@ BOOL parser_sfstringValue_(struct VRMLParser*, vrmlStringT*);
  lexer_string(me->lexer, ret)
 BOOL parser_sftimeValue(struct VRMLParser*, vrmlTimeT*);
 BOOL parser_sfvec2fValue(struct VRMLParser*, vrmlVec2fT*);
+BOOL parser_sfvec2dValue(struct VRMLParser*, vrmlVec2dT*);
 BOOL parser_sfvec3dValue(struct VRMLParser*, vrmlVec3dT*);
 #define parser_sfvec3fValue(me, ret) \
  parser_sfcolorValue(me, ret)
+BOOL parser_sfvec4fValue(struct VRMLParser*, vrmlVec4fT*);
+BOOL parser_sfvec4dValue(struct VRMLParser*, vrmlVec4dT*);
+BOOL parser_sfmatrix3fValue(struct VRMLParser *, vrmlMatrix3fT*);
+BOOL parser_sfmatrix3dValue(struct VRMLParser *, vrmlMatrix3dT*);
+BOOL parser_sfmatrix4fValue(struct VRMLParser *, vrmlMatrix4fT*);
+BOOL parser_sfmatrix4dValue(struct VRMLParser *, vrmlMatrix4dT*);
+
 
 /* Parses nodes, fields and other statements. */
 BOOL parser_routeStatement(struct VRMLParser*);

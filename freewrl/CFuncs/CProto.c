@@ -363,13 +363,22 @@ struct ProtoDefinition* protoDefinition_copy(struct VRMLLexer* lex, struct Proto
 #define DEEPCOPY_sfstring(l,v, i, h) deepcopy_sfstring(l, v)
 #define DEEPCOPY_sftime(l,v, i, h) v
 #define DEEPCOPY_sfvec2f(l,v, i, h) v
+#define DEEPCOPY_sfvec2d(l,v, i, h) v
+#define DEEPCOPY_mfvec2d(l,v, i, h) v
 #define DEEPCOPY_sfvec3f(l,v, i, h) v
 #define DEEPCOPY_sfvec3d(l,v, i, h) v
+#define DEEPCOPY_sfvec4d(l,v, i, h) v
+#define DEEPCOPY_mfvec4d(l,v, i, h) v
 #define DEEPCOPY_sfimage(l, v, i, h) v
 #define DEEPCOPY_sfdouble(l, v, i, h) v
-#define DEEPCOPY_dfrotation(l, v, i, h) v
+#define DEEPCOPY_sfmatrix3f(l, v, i, h) v
+#define DEEPCOPY_sfmatrix4f(l, v, i, h) v
 #define DEEPCOPY_mfmatrix3f(l, v, i, h) v
 #define DEEPCOPY_mfmatrix4f(l, v, i, h) v
+#define DEEPCOPY_sfmatrix3d(l, v, i, h) v
+#define DEEPCOPY_sfmatrix4d(l, v, i, h) v
+#define DEEPCOPY_mfmatrix3d(l, v, i, h) v
+#define DEEPCOPY_mfmatrix4d(l, v, i, h) v
 
 
 static vrmlStringT deepcopy_sfstring(struct VRMLLexer* lex, vrmlStringT str)
@@ -809,7 +818,6 @@ void removeProtoFieldFromThis(char *inputCopy) {
 
 /* go through a proto invocation, and get the invocation fields (if any) */
 void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thisProto) {
-	int c;
 	char *copyPointer;
 	char *initCP;
 	char tmp;

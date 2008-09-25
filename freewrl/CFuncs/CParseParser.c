@@ -91,16 +91,16 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
  &parser_sftimeValue, &parser_mftimeValue,
  &parser_sfstringValue_, &parser_mfstringValue,
  &parser_sfvec2fValue, &parser_mfvec2fValue,
- &parser_sfimageValue, &parser_fieldTypeNotParsedYet,
+ &parser_sfimageValue, &parser_fieldTypeNotParsedYet, /* SFImage, FreeWRLPTR */
  &parser_sfvec3dValue, &parser_mfvec3dValue,
  &parser_sftimeValue, &parser_mftimeValue,
- &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix3f */
- &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix3d */
- &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix4f */
- &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Matrix4d */
- &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Vec2d */
- &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Vec4f */
- &parser_fieldTypeNotParsedYet, &parser_fieldTypeNotParsedYet, /* Vec4d */
+ &parser_sfmatrix3fValue, &parser_fieldTypeNotParsedYet, /* Matrix3f */
+ &parser_sfmatrix3dValue, &parser_fieldTypeNotParsedYet, /* Matrix3d */
+ &parser_sfmatrix4fValue, &parser_fieldTypeNotParsedYet, /* Matrix4f */
+ &parser_sfmatrix4dValue, &parser_fieldTypeNotParsedYet, /* Matrix4d */
+ &parser_sfvec2dValue, &parser_fieldTypeNotParsedYet, /* Vec2d */
+ &parser_sfvec4fValue, &parser_fieldTypeNotParsedYet, /* Vec4f */
+ &parser_sfvec4dValue, &parser_fieldTypeNotParsedYet, /* Vec4d */
 
 };
 
@@ -372,7 +372,6 @@ static void parser_scopeIn_PROTO(struct VRMLParser* me)
 
 static void parser_scopeOut_DEFUSE(struct VRMLParser* me)
 {
- indexT i;
  ASSERT(!stack_empty(me->DEFedNodes));
  /* FIXME:  Can't delete individual nodes, as they might be referenced! */
  deleteVector(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes));
@@ -385,7 +384,6 @@ static void parser_scopeOut_DEFUSE(struct VRMLParser* me)
    been added since we first entered this scope. */ 
 static void parser_scopeOut_PROTO(struct VRMLParser* me)
 {
- indexT i;
  /* Do not delete the ProtoDefinitions, as they are referenced in the scene
   * graph!  TODO:  How to delete them properly? */
 
@@ -490,8 +488,7 @@ BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* 
  struct ProtoFieldDecl* pdecl=NULL;
  struct ProtoFieldDecl* pField=NULL;
  struct ScriptFieldDecl* sdecl=NULL;
- BOOL scriptISfield = FALSE;
- char *startOfField = NULL; char *endOfField = NULL;
+ char *startOfField = NULL;
 
  #ifdef CPARSERVERBOSE
  printf ("start of parser_interfaceDeclaration\n");
@@ -711,7 +708,6 @@ BOOL parser_protoStatement(struct VRMLParser* me)
  indexT name;
  struct ProtoDefinition* obj;
  char *startOfBody;
- char *startOfStringPtr;
  char *endOfBody;
  char *initCP;
  unsigned int bodyLen;
@@ -1497,7 +1493,7 @@ printf ("fromlen %d tolen %d\n",fromLen, toLen); */
     is a complex type, and, we will have a length as 0 right here. Lets really fill in the "special" lengths
     for these ones. */
  if (toLen == 0) {
-	int b,c,tmp;
+	int b,c,tmp=0;
 	if (toNode != NULL) {
 		if (toFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EXPOSED_FIELD[toFieldE],1);
 		if (toFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(toNode,EVENT_IN[toFieldO],1);
@@ -1506,7 +1502,7 @@ printf ("fromlen %d tolen %d\n",fromLen, toLen); */
 	}
  }
  if (fromLen == 0) {
-	int b,c,tmp;
+	int b,c,tmp=0;
 	if (fromNode != NULL) {
 		if (fromFieldE != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EXPOSED_FIELD[fromFieldE],1);
 		if (fromFieldO != ID_UNDEFINED) tmp = findRoutedFieldInFIELDNAMES(fromNode,EVENT_OUT[fromFieldO],1);
@@ -2233,7 +2229,6 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
 
  /* Otherwise this is not an IS statement */
  {
-int i;
   #ifdef CPARSERVERBOSE
 	printf ("parser_fieldValue, not an IS\n");
   #endif
@@ -2421,6 +2416,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
     case NODE_##type: \
     { \
      struct X3D_##type* node2=(struct X3D_##type*)node; \
+     UNUSED(node2); /* for compiler warning reductions */ \
      switch(fieldE) \
      {
 
@@ -2453,6 +2449,7 @@ BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
     case NODE_##type: \
     { \
      struct X3D_##type* node2=(struct X3D_##type*)node; \
+     UNUSED(node2); /* for compiler warning reductions */ \
      switch(fieldO) \
      {
 
@@ -2538,7 +2535,7 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
 {
  indexT pevO, pevE;
  struct ProtoFieldDecl* pfield=NULL;
- unsigned myOfs;
+ unsigned myOfs=ID_UNDEFINED;
  size_t myLen;
  BOOL pevFound=FALSE;
 
@@ -2718,10 +2715,6 @@ BOOL parser_fieldEventAfterISPart(struct VRMLParser* me, struct X3D_Node* ptr,
 /* take a USE field, and stuff it into a Multi*type field  - see parser_mf routines below */
 
 static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
-
-        int n;
-        void *p;
-
         /* printf ("stuff_it_in, got vrmlT vector successfully - it is a type of %s\n",stringNodeType(in->_nodeType));
         printf ("stuff_it_in, ret is %d\n",out); */
 
@@ -2765,10 +2758,7 @@ static void stuffDEFUSE(void *out, vrmlNodeT in, int type) {
 /* if we expect to find a MF field, but the user only puts a SF Field, we make up the MF field with
 	1 entry, and copy the data over */
 static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
-
-	int n;
-	void *p;
-	int rsz,elelen,count;
+	int rsz,elelen;
 
 	/* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]); */
 
@@ -2975,7 +2965,16 @@ BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
 
 PARSER_FIXED_VEC(color, Color, 3, c)
 PARSER_FIXED_VEC(colorrgba, ColorRGBA, 4, r)
+PARSER_FIXED_VEC(matrix3f, Matrix3f, 9, c)
+PARSER_FIXED_VEC(matrix4f, Matrix4f, 16, c)
+PARSER_FIXED_VEC(vec2f, Vec2f, 2, c)
+PARSER_FIXED_VEC(vec4f, Vec4f, 4, c)
+PARSER_FIXED_VEC(rotation, Rotation, 4, r)
+PARSER_FIXED_DOUBLE_VEC(vec2d, Vec2d, 2, c)
 PARSER_FIXED_DOUBLE_VEC(vec3d, Vec3d, 3, c)
+PARSER_FIXED_DOUBLE_VEC(vec4d, Vec4d, 4, c)
+PARSER_FIXED_DOUBLE_VEC(matrix3d, Matrix3d, 9, c)
+PARSER_FIXED_DOUBLE_VEC(matrix4d, Matrix4d, 16, c)
 
 /* JAS this code assumes that the ret points to a SFInt_32 type, and just
 fills in the values. */
@@ -3023,7 +3022,6 @@ BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
  return parser_nodeStatement(me, ret);
 }
 
-PARSER_FIXED_VEC(rotation, Rotation, 4, r)
 
 BOOL parser_sftimeValue(struct VRMLParser* me, vrmlTimeT* ret)
 {
@@ -3037,9 +3035,9 @@ BOOL parser_sftimeValue(struct VRMLParser* me, vrmlTimeT* ret)
  return TRUE;
 }
 
-PARSER_FIXED_VEC(vec2f, Vec2f, 2, c)
 
 BOOL parser_fieldTypeNotParsedYet(struct VRMLParser* me, vrmlTimeT* ret) {
 	ConsoleMessage ("received a request to parse a type not supported yet");
+	return FALSE;
 }
 
