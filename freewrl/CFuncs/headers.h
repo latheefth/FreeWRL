@@ -232,6 +232,28 @@ node for ANY node that takes something other than a Group */
 #define NODE_NEEDS_COMPILING (node->_ichange != node->_change)
 /* end of compile simple nodes code */
 
+#define MARK_META_EVENT(type) \
+        /* we store oldmetadata as a SFTime because it =64 bits, and it will not cause problems \
+           on node garbage collection as it will not then be a duplicate SFNode pointer */ \
+        if (node->__oldmetadata != node->metadata) { \
+                MARK_EVENT((void*)node, offsetof (struct X3D_##type, metadata));  \
+                node->__oldmetadata = node->metadata; \
+        }
+
+
+#define MARK_SFVEC3F_EVENT(good,save,offset) \
+        if ((!APPROX(good.c[0],save.c[0])) || (!APPROX(good.c[1],save.c[1])) || (!APPROX(good.c[2],save.c[2]))) { \
+                MARK_EVENT(X3D_NODE(node), offset);\
+                memcpy (&save.c, &good.c, sizeof (struct SFColor));\
+        }
+
+#define MARK_SFVEC3D_EVENT(good,save,offset) \
+        if ((!APPROX(good.c[0],save.c[0])) || (!APPROX(good.c[1],save.c[1])) || (!APPROX(good.c[2],save.c[2]))) { \
+                MARK_EVENT(X3D_NODE(node), offset);\
+                memcpy (&save.c, &good.c, sizeof (struct SFVec3d));\
+        }
+
+
 void startOfLoopNodeUpdates(void);
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
