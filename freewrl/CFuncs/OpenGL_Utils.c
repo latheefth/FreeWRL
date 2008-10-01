@@ -1075,6 +1075,10 @@ printf ("%lf\n",X3D_BILLBOARD(node)->bboxSize.c[1]);
 		nearPlane = DEFAULT_NEARPLANE;
 		farPlane = DEFAULT_FARPLANE;
 	}
+	#ifdef VERBOSE
+	printf ("np %lf fp %lf\n",nearPlane,farPlane);
+	#endif
+
 }
 
 

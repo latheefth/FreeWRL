@@ -1,4 +1,9 @@
 For 1.20.8
+	- Background - textures now working again, problem related to new scenegraph
+	  structure resolved.
+
+	- TextureBackground was not accepting set_bind events; fixed.
+
 	- Event routing for "enabled" on all nodes with this field, now working.
 
 	- verify that events get sent for all Geospatial node fields that are not

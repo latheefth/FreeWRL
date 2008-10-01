@@ -1172,39 +1172,6 @@ package VRML::NodeType;
 
 	###################################################################################
 
-	Fog => new VRML::NodeType("Fog", {
-						set_bind => [SFBool, undef, inputOnly],
-						color => [SFColor, [1, 1, 1], inputOutput],
-						fogType => [SFString, "LINEAR", inputOutput],
-						visibilityRange => [SFFloat, 0, inputOutput],
-						isBound => [SFBool, 0, outputOnly],
-						bindTime => [SFTime, -1, outputOnly],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
-					   },"X3DBindableNode"),
-
-	TextureBackground => new VRML::NodeType("TextureBackground", {
-						set_bind => [SFBool, undef, inputOnly],
-						groundAngle => [MFFloat, [], inputOutput],
-						groundColor => [MFColor, [], inputOutput],
-						skyAngle => [MFFloat, [], inputOutput],
-						skyColor => [MFColor, [[0,0,0]], inputOutput],
-						bindTime => [SFTime,0,outputOnly],
-						isBound => [SFBool, 0, outputOnly],
-						__parenturl =>[SFString,"",initializeOnly],
-						__points =>[FreeWRLPTR,0,initializeOnly],
-						__colours =>[FreeWRLPTR,0,initializeOnly],
-						__quadcount => [SFInt32,0,initializeOnly],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
-
-						frontTexture=>[SFNode,NULL,inputOutput],
-						backTexture=>[SFNode,NULL,inputOutput],
-						topTexture=>[SFNode,NULL,inputOutput],
-						bottomTexture=>[SFNode,NULL,inputOutput],
-						leftTexture=>[SFNode,NULL,inputOutput],
-						rightTexture=>[SFNode,NULL,inputOutput],
-						transparency=> [MFFloat,[0],inputOutput],
-					   },"X3DBackgroundNode"),
-
 	Background => new VRML::NodeType("Background", {
 						set_bind => [SFBool, undef, inputOnly],
 						groundAngle => [MFFloat, [], inputOutput],
@@ -1220,22 +1187,69 @@ package VRML::NodeType;
 						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 
 						frontUrl => [MFString, [], inputOutput],
-						__texturefront => [SFInt32, 0, inputOutput],
-
 						backUrl => [MFString, [], inputOutput],
-						__textureback => [SFInt32, 0, inputOutput],
-
 						topUrl => [MFString, [], inputOutput],
-						__texturetop => [SFInt32, 0, inputOutput],
-
 						bottomUrl => [MFString, [], inputOutput],
-						__texturebottom => [SFInt32, 0, inputOutput],
-
 						leftUrl => [MFString, [], inputOutput],
-						__textureleft => [SFInt32, 0, inputOutput],
-
 						rightUrl => [MFString, [], inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
 						__textureright => [SFInt32, 0, inputOutput],
+						__frontTexture=>[SFNode,NULL,inputOutput],
+						__backTexture=>[SFNode,NULL,inputOutput],
+						__topTexture=>[SFNode,NULL,inputOutput],
+						__bottomTexture=>[SFNode,NULL,inputOutput],
+						__leftTexture=>[SFNode,NULL,inputOutput],
+						__rightTexture=>[SFNode,NULL,inputOutput],
+					   },"X3DBackgroundNode"),
+
+
+
+	Fog => new VRML::NodeType("Fog", {
+						set_bind => [SFBool, undef, inputOnly],
+						color => [SFColor, [1, 1, 1], inputOutput],
+						fogType => [SFString, "LINEAR", inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
+						visibilityRange => [SFFloat, 0, inputOutput],
+						bindTime => [SFTime, -1, outputOnly],
+						isBound => [SFBool, 0, outputOnly],
+						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+					   },"X3DBindableNode"),
+
+	FogCoordinate => new VRML::NodeType("FogCoordinate", {
+						depth => [MFFloat, [], inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
+					   },"X3DGeometricPropertyNode"),
+
+	LocalFog => new VRML::NodeType("Fog", {
+						color => [SFColor, [1, 1, 1], inputOutput],
+						enabled => [SFBool, 1, inputOutput],
+						fogType => [SFString, "LINEAR", inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
+						visibilityRange => [SFFloat, 0, inputOutput],
+					   },"X3DChildNode"),
+
+	TextureBackground => new VRML::NodeType("TextureBackground", {
+						set_bind => [SFBool, undef, inputOnly],
+						groundAngle => [MFFloat, [], inputOutput],
+						groundColor => [MFColor, [], inputOutput],
+						skyAngle => [MFFloat, [], inputOutput],
+						skyColor => [MFColor, [[0,0,0]], inputOutput],
+						bindTime => [SFTime,0,outputOnly],
+						isBound => [SFBool, 0, outputOnly],
+						metadata => [SFNode, NULL, inputOutput],
+						__parenturl =>[SFString,"",initializeOnly],
+						__points =>[FreeWRLPTR,0,initializeOnly],
+						__colours =>[FreeWRLPTR,0,initializeOnly],
+						__quadcount => [SFInt32,0,initializeOnly],
+						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+
+						frontTexture=>[SFNode,NULL,inputOutput],
+						backTexture=>[SFNode,NULL,inputOutput],
+						topTexture=>[SFNode,NULL,inputOutput],
+						bottomTexture=>[SFNode,NULL,inputOutput],
+						leftTexture=>[SFNode,NULL,inputOutput],
+						rightTexture=>[SFNode,NULL,inputOutput],
+						transparency=> [MFFloat,[0],inputOutput],
 					   },"X3DBackgroundNode"),
 
 	###################################################################################

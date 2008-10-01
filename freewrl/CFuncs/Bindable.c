@@ -123,26 +123,21 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	switch (node->_nodeType) {
 
 	case NODE_Background: 
+		/* this is node a Background node*/
 		bg = (struct X3D_Background *) node;
+		bg->set_bind = value;
+		bind_node (node, &background_tos,&background_stack[0]);
+		break;
 
-		/* is this node a Background or TextureBackground node? */
-		if (bg->_nodeType == NODE_Background) {
-			bg->set_bind = value;
-
-			bind_node (node, &background_tos,&background_stack[0]);
-		} else {
-			/* this is a TextureBackground node */
-			tbg = (struct X3D_TextureBackground *) node;
-			tbg->set_bind = value;
-
-			bind_node (node, &background_tos,&background_stack[0]);
-
-		}
+	case NODE_TextureBackground:
+		/* this is a TextureBackground node */
+		tbg = (struct X3D_TextureBackground *) node;
+		tbg->set_bind = value;
+		bind_node (node, &background_tos,&background_stack[0]);
 		break;
 
 	case NODE_Viewpoint: 
 		vp = (struct X3D_Viewpoint *) node;
-
 		vp->set_bind = value;
 		nameptr = vp->description->strptr;
 		setMenuStatus (nameptr);

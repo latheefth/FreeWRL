@@ -457,47 +457,64 @@ void registerTexture(struct X3D_Node *tmp) {
 	}
 }
 
-
-
-/* do Background textures, if possible */
+/* do TextureBackground textures, if possible */
 void loadBackgroundTextures (struct X3D_Background *node) {
-	int *thistex = 0;
+	struct X3D_ImageTexture *thistex = 0;
 	struct Multi_String thisurl;
 	int count;
-
-#ifdef OLDCODE
-	glEnable(GL_TEXTURE_2D);
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
 		switch (count) {
-			case 0: {thistex = &node->__texturefront;  thisurl = node->frontUrl; break;}
-			case 1: {thistex = &node->__textureback;   thisurl = node->backUrl; break;}
-			case 2: {thistex = &node->__texturetop;    thisurl = node->topUrl; break;}
-			case 3: {thistex = &node->__texturebottom; thisurl = node->bottomUrl; break;}
-			case 4: {thistex = &node->__textureright;  thisurl = node->rightUrl; break;}
-			case 5: {thistex = &node->__textureleft;   thisurl = node->leftUrl; break;}
+			case 0: {thistex = node->__frontTexture;  thisurl = node->frontUrl; break;}
+			case 1: {thistex = node->__backTexture;   thisurl = node->backUrl; break;}
+			case 2: {thistex = node->__topTexture;    thisurl = node->topUrl; break;}
+			case 3: {thistex = node->__bottomTexture; thisurl = node->bottomUrl; break;}
+			case 4: {thistex = node->__rightTexture;  thisurl = node->rightUrl; break;}
+			case 5: {thistex = node->__leftTexture;   thisurl = node->leftUrl; break;}
 		}
-		if (thisurl.n != 0) {
-			/* we have an image specified for this face */
-			bind_image (NODE_ImageTexture, node->__parenturl, thisurl, (GLuint *)thistex, 0, 0,
-				NULL);
+		if (thisurl.n != 0 ) {
+			/* we might have to create a "shadow" node for the image texture */
+			if (thistex == NULL) {
+				int i;
+				thistex = createNewX3DNode(NODE_ImageTexture);
 
-			/* if we do not have an image for this Background face yet, dont draw
-			 * the quads */
+				#ifdef TEXVERBOSE
+				printf ("bg, creating shadow texture node url.n = %d\n",thisurl.n);
+				#endif
 
+				/* copy over the urls */
+				thistex->url.p = MALLOC(sizeof (struct Uni_String) * thisurl.n);
+				for (i=0; i<thisurl.n; i++) {
+					thistex->url.p[i] = newASCIIString (thisurl.p[i]->strptr);
+				}
+				thistex->url.n = thisurl.n;
 
-			if ([*thistex] == TEX_LOADED) {
-				glBindTexture(GL_TEXTURE_2D,*thistex);
-				glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-				glDrawArrays (GL_QUADS, count*4,4);
+				switch (count) {
+					case 0: {node->__frontTexture = thistex;  break;}
+					case 1: {node->__backTexture = thistex;   break;}
+					case 2: {node->__topTexture = thistex;    break;}
+					case 3: {node->__bottomTexture = thistex; break;}
+					case 4: {node->__rightTexture = thistex;  break;}
+					case 5: {node->__leftTexture = thistex;   break;}
+				}
 			}
-		};
-	}
-	glDisable(GL_TEXTURE_2D);
-#endif
-}
 
+			/* we have an image specified for this face */
+			texture_count = 0;
+			/* render the proper texture */
+			render_node((void *)thistex);
+		        glColor3d(1.0,1.0,1.0);
+
+        		textureDraw_start(NULL,Backtex);
+        		glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
+        		glNormalPointer (GL_FLOAT,0,Backnorms);
+
+        		glDrawArrays (GL_QUADS, count*4, 4);
+        		textureDraw_end();
+		}
+	}
+}
 
 /* do TextureBackground textures, if possible */
 void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
@@ -540,7 +557,6 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 		}
 	}
 }
-
 
 /* load in a texture, if possible */
 void loadTextureNode (struct X3D_Node *node, void *param) {
