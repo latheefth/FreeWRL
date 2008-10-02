@@ -20,6 +20,11 @@
 #define FSIGOK
 #endif
 
+pthread_mutex_t mylocker = PTHREAD_MUTEX_INITIALIZER;
+
+#define LOCK_PLUGIN_COMMUNICATION pthread_mutex_lock(&mylocker);
+#define UNLOCK_PLUGIN_COMMUNICATION pthread_mutex_unlock(&mylocker);
+
 fd_set rfds;
 struct timeval tv;
 
@@ -122,6 +127,8 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	char buf[2004];
 	char encodedUrl[2000];
 
+	LOCK_PLUGIN_COMMUNICATION
+
 	/* encode the url - if it has funny characters (eg, spaces) asciify them 
 	   in accordance to some HTML web standard */
         URLencod(encodedUrl,url,2000);
@@ -169,10 +176,12 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 			#ifdef PLUGINSOCKETVERBOSE
 			pluginprint ("write failed in requestUrlfromPlugin","");
 			#endif
+			UNLOCK_PLUGIN_COMMUNICATION
 			return NULL;
 		}
 
 		ConsoleMessage ("failed to find URL %s\n",url);
+		UNLOCK_PLUGIN_COMMUNICATION
 
 		return NULL;
 	}
@@ -182,6 +191,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 		pluginprint("read failed in requestUrlfromPlugin","");
 		pluginprint("Testing: error from read -- returned url is %s.\n", return_url);
 		#endif
+		UNLOCK_PLUGIN_COMMUNICATION
 		return NULL;
 	}
 
@@ -201,6 +211,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 		pluginprint ("requestUrlFromPlugin, file %s could not be opened",return_url);
 		#endif
 		/* hmmm - I think that this file should exist, why did it not open? */
+		UNLOCK_PLUGIN_COMMUNICATION
 		return NULL;
 	}
 
@@ -218,6 +229,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 			pluginprint ("found a 404 in :%s:\n",buf);
 			#endif
 			fclose (infile);
+			UNLOCK_PLUGIN_COMMUNICATION
 			return NULL;
 		}
 		linecount ++;
@@ -226,6 +238,7 @@ char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char
 	fclose (infile);
 
 
+	UNLOCK_PLUGIN_COMMUNICATION
 
 	/* we must be returning something here */
 	return return_url;

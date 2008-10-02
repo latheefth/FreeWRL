@@ -18,51 +18,7 @@
 /* which shader is running?? */
 GLuint globalCurrentShader = 0;
 
-/* returns text with shader source, or NULL, if problem reading */
-char * readShaderInputString(char *fn) {
-	#define READSIZE 1024
-	char *buffer;
-	int bufcount;
-	int bufsize;
-	FILE *infile;
-	int justread;
-
-	bufcount = 0;
-	bufsize = 5 * READSIZE; /*  initial size*/
-	buffer =(char *)MALLOC(bufsize * sizeof (char));
-
-	/* file name is known to exist, lets re-open it, and read it in */
-	infile = fopen(fn,"r");
-
-	if ((buffer == 0) || (infile == NULL)){
-		ConsoleMessage("problem Shader file '%s'",fn);
-		FREE_IF_NZ(buffer)
-		return NULL;
-	}
-
-
-	/* read in the file */
-	do {
-		justread = fread (&buffer[bufcount],1,READSIZE,infile);
-		bufcount += justread;
-		/* printf ("just read in %d bytes\n",justread);*/
-
-		if ((bufsize - bufcount-10) < READSIZE) {
-			/* printf ("HAVE TO REALLOC INPUT MEMORY\n");*/
-			bufsize <<=1; 
-
-			buffer =(char *) REALLOC (buffer, (unsigned int) bufsize);
-		}
-	} while (justread>0);
-
-	/* make sure we have a carrage return at the end - helps the parser find the end of line. */
-	buffer[bufcount] = '\n'; bufcount++;
-	buffer[bufcount] = '\0';
-	fclose (infile);
-
-	return buffer;
-}
-
+/*********************************************************************/
 
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	/* an array of text pointers, should contain shader source */
@@ -99,46 +55,18 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 					/* compile this part */
 
 					if (!((strcmp (part->type->strptr,"VERTEX")) && (strcmp(part->type->strptr,"FRAGMENT")))) {
-						char *mypath;
 						char *myText = NULL;
-						char *filename;
 						int count;
+						int isTemp;
+						char filename[1000];
+						char firstBytes[4];
+						
 
-		        			/* lets make up the path and save it, and make it the global path */
-		        			/* copy the parent path over */
-		        			mypath = STRDUP(part->__parenturl->strptr);
-		        			removeFilenameFromPath (mypath);
-						filename = MALLOC(1000);
-
-						/* try the first url, up to the last, until we find a valid one */
-						count = 0;
-						while (count < part->url.n) {
-							char *thisurl; 
-							char firstBytes[4];
-
-							thisurl = part->url.p[count]->strptr;
-	
-							/* leading whitespace removal */
-							while ((*thisurl <= ' ') && (*thisurl != '\0')) thisurl++;
-	
-							/* check to make sure we don't overflow */
-							if ((strlen(thisurl)+strlen(mypath)) > 900) { 
-								ConsoleMessage ("url is waaaay too long for me.");
-								node->isValid = FALSE;
-								return;
-							}
-#ifdef TESTING	
-							/* we work in absolute filenames... */
-							makeAbsoluteFileName(filename,mypath,thisurl);
-	
-							if (fileExists(filename,firstBytes,TRUE)) {
-								/* lets read her in! */
-								myText = readShaderInputString(filename); 
-								break;
-							}
-#endif
-myText = readShaderInputString(thisurl);
-							count ++;
+						if (getValidFileFromUrl (filename, part->__parenturl->strptr, &part->url, firstBytes) ) {
+							myText = readInputString(filename); 
+						} else {
+							ConsoleMessage ("error reading ShaderPart");
+							myText = "";
 						}
 
 						/* assign this text to VERTEX or FRAGMENT buffers */
@@ -149,9 +77,6 @@ myText = readShaderInputString(thisurl);
 							fragShaderSource[i] = myText;
 							haveFragShaderText = TRUE;
 						}
-
-						FREE_IF_NZ(mypath);
-						FREE_IF_NZ(filename);
 
 						#ifdef VERBOSE
 						printf ("Shader text %s\n",myText);

@@ -1348,9 +1348,7 @@ int findTextureFile (int cwo, int *istemp) {
 			} else {
 				FREE_IF_NZ(filename);
 				filename = (char *)MALLOC(4096);
-				FREE_IF_NZ(textureThreadCacheFileName);
 				sprintf (filename,"/tmp/freewrl%d.png",getpid());
-				textureThreadCacheFileName = STRDUP(filename);
 				*istemp=TRUE;
 			}
 			FREE_IF_NZ (sysline);
@@ -1364,8 +1362,8 @@ int findTextureFile (int cwo, int *istemp) {
 	#endif
 
 	FREE_IF_NZ(loadThisTexture->filename);
-	if (textureThreadCacheFileName != NULL) {
-		loadThisTexture->filename = STRDUP(textureThreadCacheFileName);
+	if (filename != NULL) {
+		loadThisTexture->filename = STRDUP(filename);
 		/* printf ("textureThread, so we have CACHE filename as %s\n",loadThisTexture->filename); */
 	} else if (filename != NULL) {
 		loadThisTexture->filename = STRDUP(filename);

@@ -192,6 +192,7 @@ void removeFilenameFromPath (char *path) {
 
 
 /* given a URL, find the first valid file, and return it */
+/* WARNING - MAKE SURE THE FIRST PARAMETER IS LARGE, LIKE 1000 BYTES */
 int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes) {
 	char *thisurl;
 	int count;
@@ -265,36 +266,22 @@ int checkNetworkFile(char *fn) {
 int fileExists(char *fname, char *firstBytes, int GetIt) {
 	FILE *fp;
 	int ok;
-	char *retName;
 
 	char tempname[1000];
 	char sysline[1000];
 
-	char *CFN = NULL;
-
-	/* which thread are we running in? We have to be thread safe, and we have a couple of
-	   global char pointers, so lets write to the CORRECT one */
 	#ifdef VERBOSE
-	if (pthread_self() == DispThrd) printf ("fileExists in DispThrd %u\n",pthread_self());
-	if (pthread_self() == PCthread) printf ("fileExists in PCthread %u\n",pthread_self());
-	if (pthread_self() == shapeThread) printf ("fileExists in shapeThread %u\n",pthread_self());
-	if (pthread_self() == loadThread) printf ("fileExists in loadThread %u\n",pthread_self());
+	printf ("fileExists: checking for filename here %s\n",fname);
 	#endif
 
-	/* printf ("fileExists: checking for filename here %s\n",fname);  */
+	if (checkNetworkFile(fname)) {
+		/* if we are running as a plugin, ask the HTML browser for ALL files, as it'll know proxies, etc. */
+		if (RUNNINGASPLUGIN) {
+			/* printf ("fileExists, runningasplugin\n"); */
 
-	/* are we running under netscape? if so, ask the browser, and
-	   save the name it returns (cache entry) */
-
-	/* if we are running as a plugin, ask the HTML browser for ALL files, as it'll know proxies, etc. */
-
-
-	if (RUNNINGASPLUGIN) {
-		/* printf ("fileExists, runningasplugin\n"); */
-
-		/* are we running as a plugin? If so, ask the HTML browser to get the file, and place
-		   it in the local cache for ANY file, except for the main "url" */
-		if (checkNetworkFile(fname)) {
+			/* are we running as a plugin? If so, ask the HTML browser to get the file, and place
+			   it in the local cache for ANY file, except for the main "url" */
+			char *retName;
 			/* printf ("requesting URL from plugin...\n");  */
 
 			retName = NULL;
@@ -302,20 +289,9 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 			/* check for timeout; if not found, return false */
 			if (!retName) return (FALSE);
-			CFN = STRDUP(retName);
 			/* printf ("requesting URL - retname is %s\n",retName); */
-		}
-	}
-
-	/* if not, do we need to invoke lwp to get the file, or
-	   is it just local? if we are running as a plugin, this should
-	   be a local file by now
-	 */
-	/* printf ("AFTER, now NAME is %s\n",fname); */
-
-	if (CFN == NULL) {
-		CFN = STRDUP(fname);
-		if (checkNetworkFile(fname)) {
+			strcpy (fname,retName);
+		} else {
 			/*  Is this an Anchor? if so, lets just assume we can*/
 			/*  get it*/
 			if (!GetIt) {
@@ -338,22 +314,21 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
 			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 			    freewrlSystem (sysline);
-			    FREE_IF_NZ(CFN);
-			    CFN = STRDUP(tempname);
+			    strcpy (fname,tempname);
 			} else {
 			    printf ("Internal FreeWRL problem - strings too long for wget\n");
-			    CFN = STRDUP("");
 			}
 		}
 	}
 
-	fp= fopen (CFN,"r");
+	/* printf ("fileExists, opening %s\n",fname); */
+	fp= fopen (fname,"r");
 	ok = (fp != NULL);
 
 	/* try reading the first 4 bytes into the firstBytes array */
 	if (ok) {
 		if (fread(firstBytes,1,4,fp)!=4) {
-			ConsoleMessage ("file %s exists, but has a length < 4; can not determine type from first bytes\n",CFN);
+			ConsoleMessage ("file %s exists, but has a length < 4; can not determine type from first bytes\n",fname);
 			/* a file with less than 4 bytes in it. fill in the firstBytes with "something" */
 			firstBytes[0] = 0;
 			firstBytes[1] = 0;
@@ -362,26 +337,6 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 		}
 		fclose (fp);
 	}
-
-	/* now, return the name via one of the thread cacheFileNames */
-	if (pthread_self() == PCthread) {
-		FREE_IF_NZ( parsingThreadCacheFileName);
-		parsingThreadCacheFileName = CFN;
-	} else if (pthread_self() == DispThrd) {
-		FREE_IF_NZ(textureThreadCacheFileName);
-		textureThreadCacheFileName = CFN;
-	} else if (pthread_self() == loadThread) {
-		FREE_IF_NZ(loadThreadCacheFileName);
-		loadThreadCacheFileName = CFN;
-	} else if (pthread_self() == shapeThread){
-		FREE_IF_NZ(shapeThreadCacheFileName);
-		shapeThreadCacheFileName = CFN;
-		
-	} else {
-		ConsoleMessage("fileExists - unknown thread??");
-		return FALSE;
-	}
-
 	return (ok);
 }
 
@@ -910,7 +865,7 @@ void __pt_doStringUrl () {
 
 		/* get the input */
 		pushInputURL (psp.inp);
-		buffer = readInputString(psp.inp,"");
+		buffer = readInputString(psp.inp);
 
 		/* printf ("data is %s\n",buffer); */
 

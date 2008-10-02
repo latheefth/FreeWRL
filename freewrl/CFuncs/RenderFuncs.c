@@ -149,10 +149,6 @@ int SoundEngineStarted = FALSE;
 /* stored FreeWRL version, pointers to initialize data */
 char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
-char *textureThreadCacheFileName = NULL;
-char *parsingThreadCacheFileName = NULL;
-char *loadThreadCacheFileName = NULL;
-char *shapeThreadCacheFileName = NULL;
 pthread_t shapeThread = NULL;
 
 void *rootNode=NULL;	/* scene graph root node */

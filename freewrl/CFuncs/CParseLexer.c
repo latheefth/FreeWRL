@@ -1243,7 +1243,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                 if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
 
 
-                        buffer = readInputString(testname,"");
+                        buffer = readInputString(testname);
                         FREE_IF_NZ(testname)
                         embedEXTERNPROTO(me,myName,buffer,pound);
 

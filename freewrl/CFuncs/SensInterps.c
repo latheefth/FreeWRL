@@ -1646,7 +1646,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	if (getValidFileFromUrl (filename,mypath, &(node->url), firstBytes)) {
 		/* save local file in the structure, so that it can
 		   be initialized later */
-		node->__localFileName = STRDUP(textureThreadCacheFileName);
+		node->__localFileName = STRDUP(filename);
 	} else {
 		/* well, no file found */
 		printf ("Audio: could not find audio file :%s:\n",filename);

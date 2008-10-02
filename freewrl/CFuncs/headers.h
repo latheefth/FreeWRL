@@ -149,7 +149,8 @@ extern struct CRStruct *CRoutes;
 extern int jsnameindex;
 extern int MAXJSparamNames;
 
-
+extern char *BrowserName;
+extern char *BrowserFullPath;
 
 /* To allow BOOL for boolean values */
 #define BOOL	int
@@ -924,7 +925,6 @@ extern int isPerlinitialized(void);
 	#endif
 #endif
 
-extern char *BrowserName, *BrowserFullPath, *textureThreadCacheFileName, *parsingThreadCacheFileName, *shapeThreadCacheFileName, *loadThreadCacheFileName, *PluginFullPath; 
 extern char *getInputURL(void);
 extern char *keypress_string;
 extern char *lastReadFile; 		/* name last file read in */
@@ -1044,7 +1044,7 @@ void BoundingBox(struct X3D_Node* node);
 #endif
 
 void freewrlDie (const char *format);
-char * readInputString(char *fn, char *parent);
+char * readInputString(char *fn);
 char * sanitizeInputString(char *instr);
 
 extern double nearPlane, farPlane, screenRatio, calculatedNearPlane, calculatedFarPlane;

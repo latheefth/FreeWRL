@@ -302,7 +302,7 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
 
  /* and see if it exists. If it does, try running script_initCode() on it */
  if (fileExists(filename,firstBytes,TRUE)) {
-	buffer = readInputString(filename,"");
+	buffer = readInputString(filename);
 	rv = script_initCode(me,buffer);
 	FREE_IF_NZ (filename);
 	FREE_IF_NZ (buffer);

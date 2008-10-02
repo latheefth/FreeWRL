@@ -968,7 +968,7 @@ void initScriptWithScript() {
 				makeAbsoluteFileName(filename,mypath,thisurl);
 
 				if (fileExists(filename,firstBytes,TRUE)) {
-					myText = readInputString(filename,"");
+					myText = readInputString(filename);
 					fromFile = TRUE;
 					break;
 				}

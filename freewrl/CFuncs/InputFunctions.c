@@ -72,7 +72,7 @@ char *findPathToFreeWRLFile(char *lfn) {
 /* simulate a command line cp command */
 /* we do this, rather than systeming cp, because sometimes we have filenames with spaces, etc, etc 
    and handling this with a system call is a pain */
-void localCopy(char *inFile, char *outFile) {
+static void localCopy(char *outFile, char *inFile) {
  FILE *in, *out;
   char ch;
 
@@ -104,7 +104,7 @@ void localCopy(char *inFile, char *outFile) {
   return;
 }
 /* read a file, put it into memory. */
-char * readInputString(char *fn, char *parent) {
+char * readInputString(char *fn) {
 	char *buffer;
 	int bufcount;
 	int bufsize;
@@ -121,8 +121,8 @@ char * readInputString(char *fn, char *parent) {
 	bufsize = 5 * READSIZE; /*  initial size*/
 	buffer =(char *)MALLOC(bufsize * sizeof (char));
 
-	/*printf ("start of readInputString, \n\tfile: %s\n\tparent: %s\n",
-	 		fn,parent);
+	/*printf ("start of readInputString, \n\tfile: %s\n",
+	 		fn);
 	printf ("\tBrowserFullPath: %s\n\n",BrowserFullPath); */
 
 	/* verify (possibly, once again) the file name. This
@@ -132,12 +132,10 @@ char * readInputString(char *fn, char *parent) {
 	 * and is not an EXTERNPROTO, it will already be a local file
 	 * */
 
-	/* combine parent and fn to make mynewname */
-	/* printf ("before mas, in Input, fn %s\n",fn);*/
-	makeAbsoluteFileName(mynewname,parent,fn);
+	/* printf ("before mas, in Input, fn %s\n",fn); */
+	strcpy (mynewname, fn);
 
 	/* check to see if this file exists */
-	FREE_IF_NZ(parsingThreadCacheFileName);
 	if (!fileExists(mynewname,firstbytes,TRUE)) {
 		ConsoleMessage("problem reading file '%s' ('%s')",fn,mynewname);
 		strcpy (buffer,"\n");
@@ -145,8 +143,6 @@ char * readInputString(char *fn, char *parent) {
 	}
 
 	/* was this a network file that got copied to the local cache? */
-	/* printf ("readInputString, cache name %s stack name %s\n",parsingThreadCacheFileName, mynewname); */
-
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
 			((unsigned char) firstbytes[1] == 0x8b)) {
@@ -157,7 +153,7 @@ char * readInputString(char *fn, char *parent) {
 		sprintf (tempname, "%s.gz",tempnam("/tmp","freewrl_tmp"));
 
 		/* first, move this to a .gz file */
-		localCopy(parsingThreadCacheFileName,tempname);
+		localCopy(tempname, mynewname);
 
 		/* now, unzip it */
 		/* remove the .gz from the file name - ".gz" is 3 characters */
@@ -166,11 +162,11 @@ char * readInputString(char *fn, char *parent) {
 
 		freewrlSystem (sysline);
 		strcpy(mynewname, tempname);
-		infile = fopen(tempname,"r");
+		infile = fopen(mynewname,"r");
 	} else {
 
 		/* ok, now, really read this one. */
-		infile = fopen(parsingThreadCacheFileName,"r");
+		infile = fopen(mynewname,"r");
 	}
 
 	if ((buffer == 0) || (infile == NULL)){
