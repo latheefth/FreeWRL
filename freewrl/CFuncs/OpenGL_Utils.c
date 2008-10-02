@@ -1136,11 +1136,34 @@ void kill_X3DNodes(void){
 			if (*fieldOffsetsPtr == FIELDNAMES__selected) 
 				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 
+			if (*fieldOffsetsPtr == FIELDNAMES___oldChildren) 
+				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
+
+			if (*fieldOffsetsPtr == FIELDNAMES___oldMFString) 
+				break; 
+
+			if (*fieldOffsetsPtr == FIELDNAMES___oldSFString) 
+				break; 
+
 			if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr) 
 				break; /* used for seeing if interpolator values change */
 
 			if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
 				break; /* used for seeing if interpolator values change */
+
+			if (*fieldOffsetsPtr == FIELDNAMES___shaderIDS) {
+				struct X3D_ComposedShader *cps = (struct X3D_ComposedShader *) structptr;
+				if (cps->_nodeType == NODE_ComposedShader) {
+					if (cps->__shaderIDS.p != NULL) {
+						glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
+						FREE_IF_NZ(cps->__shaderIDS.p);
+						cps->__shaderIDS.n=0;
+					}
+
+				} else {
+					ConsoleMessage ("error destroying shaderIDS on kill");
+				}
+			}
 
 			/* GeoElevationGrids pass a lot of info down to an attached ElevationGrid */
 			if (structptr->_nodeType == NODE_GeoElevationGrid) {

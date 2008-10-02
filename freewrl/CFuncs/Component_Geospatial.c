@@ -1201,7 +1201,7 @@ void compile_GeoCoordinate (struct X3D_GeoCoordinate * node) {
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_META_EVENT(GeoCoordinate)
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoCoordinate, metadata))
 }
 
 
@@ -1478,7 +1478,7 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_META_EVENT(GeoElevationGrid)
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoElevationGrid, metadata))
 
 }
 
@@ -1551,13 +1551,17 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 	#endif
 
 	/* did the geoCoords change?? */
-	MARK_SFVEC3D_EVENT(node->geoCoords, node->__oldgeoCoords, offsetof (struct X3D_GeoLocation, geoCoords))
+	MARK_SFVEC3D_INOUT_EVENT(node->geoCoords, node->__oldgeoCoords, offsetof (struct X3D_GeoLocation, geoCoords))
+
+	/* how about the children field ?? */
+	MARK_MFNODE_INOUT_EVENT(node->children, node->__oldChildren, offsetof (struct X3D_GeoLocation, children))
+
 
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoLocation)
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoLocation, metadata))
 
 
 	#ifdef VERBOSE
@@ -1865,7 +1869,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoLOD)
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoLOD, metadata))
 
 
 	#ifdef VERBOSE
@@ -2006,9 +2010,9 @@ void compile_GeoOrigin (struct X3D_GeoOrigin * node) {
 	MARK_NODE_COMPILED
 
 	/* events */
-	MARK_META_EVENT(GeoOrigin)
-
-	MARK_SFVEC3D_EVENT(node->geoCoords,node->__oldgeoCoords,offsetof (struct X3D_GeoOrigin, geoCoords))
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoOrigin, metadata))
+	MARK_SFVEC3D_INOUT_EVENT(node->geoCoords,node->__oldgeoCoords,offsetof (struct X3D_GeoOrigin, geoCoords))
+	MARK_MFSTRING_INOUT_EVENT(node->geoSystem,node->__oldMFString,offsetof (struct X3D_GeoOrigin, geoSystem))
 }
 
 /************************************************************************/
@@ -2041,8 +2045,7 @@ void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node)
 	MARK_NODE_COMPILED
 	
 	/* events */
-	MARK_META_EVENT(GeoPositionInterpolator)
-
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoPositionInterpolator, metadata))
 }
 
 
@@ -2078,11 +2081,11 @@ void compile_GeoProximitySensor (struct X3D_GeoProximitySensor * node) {
 	MARK_NODE_COMPILED
 	FREE_MF_SF_TEMPS
 
-	MARK_SFVEC3D_EVENT(node->geoCenter, node->__oldGeoCenter,offsetof (struct X3D_GeoProximitySensor, geoCenter))
-	MARK_SFVEC3F_EVENT(node->size, node->__oldSize,offsetof (struct X3D_GeoProximitySensor, size))
+	MARK_SFVEC3D_INOUT_EVENT(node->geoCenter, node->__oldGeoCenter,offsetof (struct X3D_GeoProximitySensor, geoCenter))
+	MARK_SFVEC3F_INOUT_EVENT(node->size, node->__oldSize,offsetof (struct X3D_GeoProximitySensor, size))
 	
 	/* events */
-	MARK_META_EVENT(GeoProximitySensor)
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoProximitySensor, metadata))
 
 
 	#ifdef VERBOSE
@@ -2203,7 +2206,7 @@ void compile_GeoTouchSensor (struct X3D_GeoTouchSensor * node) {
 	MARK_NODE_COMPILED
 
 	/* events */
-	MARK_META_EVENT(GeoTouchSensor)
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoTouchSensor, metadata))
 
 }
 
@@ -2315,7 +2318,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 	node->_oldhitNormal.c[2] = normalval.z;
 
 	/* did the hitNormal change between runs? */
-	MARK_SFVEC3F_EVENT(node->hitNormal_changed,node->_oldhitNormal,offsetof (struct X3D_GeoTouchSensor, hitNormal_changed))
+	MARK_SFVEC3F_INOUT_EVENT(node->hitNormal_changed,node->_oldhitNormal,offsetof (struct X3D_GeoTouchSensor, hitNormal_changed))
 } 
 
 
@@ -2379,8 +2382,12 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoViewpoint)
-
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoViewpoint, metadata))
+	MARK_SFFLOAT_INOUT_EVENT(node->fieldOfView, node->__oldFieldOfView, offsetof (struct X3D_GeoViewpoint, fieldOfView))
+	MARK_SFBOOL_INOUT_EVENT(node->headlight, node->__oldHeadlight, offsetof (struct X3D_GeoViewpoint, headlight))
+	MARK_SFBOOL_INOUT_EVENT(node->jump, node->__oldJump, offsetof (struct X3D_GeoViewpoint, jump))
+	MARK_SFSTRING_INOUT_EVENT(node->description,node->__oldSFString, offsetof(struct X3D_GeoViewpoint, description))
+	MARK_MFSTRING_INOUT_EVENT(node->navType,node->__oldMFString, offsetof(struct X3D_GeoViewpoint, navType))
 
 	#ifdef VERBOSE
 	printf ("compiled GeoViewpoint\n\n");
@@ -2539,7 +2546,9 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	/* work out the local orientation */
 	GeoOrient(&gdCoords.p[0], &node->__localOrient);
 
-	MARK_SFVEC3D_EVENT(node->geoCenter, node->__oldGeoCenter,offsetof (struct X3D_GeoTransform, geoCenter))
+	MARK_SFVEC3D_INOUT_EVENT(node->geoCenter, node->__oldGeoCenter,offsetof (struct X3D_GeoTransform, geoCenter))
+	MARK_MFNODE_INOUT_EVENT(node->children, node->__oldChildren, offsetof (struct X3D_GeoTransform, children))
+
 
 	/* re-figure out which modifiers are actually in use */
 	/* printf ("re-rendering for %d\n",node);*/
@@ -2570,7 +2579,7 @@ void compile_GeoTransform (struct X3D_GeoTransform * node) {
 	FREE_MF_SF_TEMPS
 	
 	/* events */
-	MARK_META_EVENT(GeoTransform)
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoTransform, metadata))
 
 
 	#ifdef VERBOSE

@@ -226,6 +226,9 @@ void child_Shape (struct X3D_Shape *node) {
 			glLineWidth(1.0);
 			glPointSize(1.0);
 		}
+
+		/* any shader turned on? if so, turn it off */
+		TURN_APPEARANCE_SHADER_OFF
 }
 
 
@@ -247,6 +250,16 @@ void child_Appearance (struct X3D_Appearance *node) {
                         LIGHTING_OFF
                         glColor3f(1.0,1.0,1.0);
                 }
+
+		/* shaders here/supported?? */
+		if (node->shaders.n !=0) {
+			int count;
+
+			for (count=0; count<node->shaders.n; count++) {
+				POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN)
+				render_node(tmpN);
+			}
+		}
 
                 if (node->fillProperties) {
 			POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN)

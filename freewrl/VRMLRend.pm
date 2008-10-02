@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.227  2008/10/02 15:38:42  crc_canada
+# Shader support started; Geospatial eventOut verification.
+#
 # Revision 1.226  2008/09/24 19:23:01  crc_canada
 # GeoTouchSensor work.
 #
@@ -272,12 +275,12 @@
 	IntegerTrigger		=>children,
 	TimeTrigger		=>children,
 
-	ComposedShader		=>children,
+	ComposedShader		=>material,
 	FloatVertexAttribute	=>children,
 	Matrix3VertexAttribute	=>children,
 	Matrix4VertexAttribute	=>children,
-	PackagedShader		=>children,
-	ProgramShader		=>children,
+	PackagedShader		=>material,
+	ProgramShader		=>material,
 	ShaderPart		=>children,
 	ShaderProgram		=>children,
 );
@@ -333,6 +336,9 @@
 	LineProperties 
 	FillProperties 
 	Material 
+	ProgramShader
+	PackagedShader
+	ComposedShader
 	PixelTexture 
 	ImageTexture 
 	MultiTexture 
@@ -478,6 +484,9 @@
 	GeoViewpoint	
 	GeoProximitySensor
 	GeoTransform
+	ComposedShader
+	ProgramShader
+	PackagedShader
 /;
 
 
