@@ -13,7 +13,6 @@
 
 #include "headers.h"
 #include "installdir.h"
-#include <OpenGL.h>
 
 /* which shader is running?? */
 GLuint globalCurrentShader = 0;

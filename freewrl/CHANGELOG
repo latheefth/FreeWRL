@@ -1,4 +1,7 @@
 For 1.20.8
+	- Occlusionculling - when failed, textures not displayed, due to an optimization
+	  for the texture loading scheduling algorithm.
+
 	- start of ComposedShader and ShaderPart support.
 
 	- Background - textures now working again, problem related to new scenegraph

@@ -314,6 +314,11 @@ void OcclusionStartofEventLoop() {
 
 	potentialOccluderCount = 0;
 
+	/* if the headers.h does not define OCCLUSION, skip all this */
+	#ifndef OCCLUSION
+	OccFailed = TRUE;
+	#endif
+
 	/* did we have a failure here ? */
 	if (OccFailed) return;
 
