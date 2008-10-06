@@ -226,7 +226,8 @@ void child_Collision (struct X3D_Collision *node) {
 	void *tmpN;
 
 	if(render_collision) {
-		if((node->collide) && !(node->proxy)) {
+		/* test against the collide field (vrml) enabled (x3d) and that we actually have a proxy field */
+		if((node->collide) && (node->enabled) && !(node->proxy)) {
 			struct sCollisionInfo OldCollisionInfo = CollisionInfo;
 			for(i=0; i<nc; i++) {
 				void *p = ((node->children).p[i]);

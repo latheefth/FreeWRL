@@ -1131,6 +1131,7 @@ package VRML::NodeType;
 						addChildren => [MFNode, undef, inputOnly],
 						removeChildren => [MFNode, undef, inputOnly],
 						children => [MFNode, [], inputOutput],
+						enabled => [SFBool, 1, inputOutput],
 						collide => [SFBool, 1, inputOutput],
 						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],

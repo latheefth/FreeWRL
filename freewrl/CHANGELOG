@@ -1,4 +1,5 @@
 For 1.20.8
+	- Collision, support for both "collide" (vrml) "enabled" (x3d) fields verified.
 	
 	- Occlusionculling - when failed, textures not displayed, due to an optimization
 	  for the texture loading scheduling algorithm.
