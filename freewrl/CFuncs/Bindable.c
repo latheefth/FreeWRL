@@ -494,7 +494,6 @@ void render_Fog (struct X3D_Fog *node) {
 void saveBGVert (float *colptr, float *pt,
 		int *vertexno, float *col, double dist,
 		double x, double y, double z) {
-
 		/* save the colour */
 		memcpy (&colptr[*vertexno*3], col, sizeof(float)*3);
 
@@ -558,8 +557,8 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	float *newPoints; float *newColors;
 
 	/* We draw spheres, one for the sky, one for the ground - outsideRadius and insideRadius */
-	double outsideRadius = farPlane * 0.750;
-	double insideRadius = farPlane * 0.70;
+	double outsideRadius =  DEFAULT_FARPLANE* 0.750;
+	double insideRadius = DEFAULT_FARPLANE * 0.50;
 
 	/* handle Background and TextureBackgrounds here */
 	if (node->_nodeType == NODE_Background) {
@@ -700,6 +699,7 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	}
 
 	/* Do the ground, if there is anything  to do. */
+
 	if (gndColCt>0) {
 		if(gndColCt == 1) {
 			c1 = &gndCol[0];
