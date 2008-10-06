@@ -68,11 +68,9 @@ DEF TEXT_SCRIPT Script {
   outputOnly MFString finalStrings
   url "ecmascript:
     function enteredText(val) {
-Browser.println('entered: ' + val);    
       enteredStrings = new MFString(val);
     }
     function finalText(val) {       
-Browser.println('final text: ' + val);    
       finalStrings = new MFString(val);
     }
   "
