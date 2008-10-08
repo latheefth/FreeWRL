@@ -58,7 +58,13 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
-void proximity_Billboard (struct X3D_Billboard *node) {
+
+#ifdef FIXME_SOMETIME
+
+This code should work - but it does not. Shadows in tests/47.wrl are incorrect; if the palm tree
+texture is removed, it is ok. Something dealing with node ordering.
+
+void XXproximity_Billboard (struct X3D_Billboard *node) {
 	struct point_XYZ vpos, ax, cp, cp2, arcp;
 	static const struct point_XYZ orig = {0.0, 0.0, 0.0};
 	static const struct point_XYZ zvec = {0.0, 0.0, 1.0};
@@ -131,7 +137,7 @@ void proximity_Billboard (struct X3D_Billboard *node) {
 
 
 /* do rotation, calculate the distance */
-void prep_Billboard (struct X3D_Billboard *node) {
+void XXprep_Billboard (struct X3D_Billboard *node) {
 	/* do we have any geometry visible, and are we doing anything with geometry? */
 	#ifdef BILLBOARDVERBOSE
 	printf ("prep_Billboard");
@@ -143,6 +149,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	OCCLUSIONTEST
 
 	if(!render_proximity) {
+printf ("prepBillboard, doing push\n");
 		fwXformPush();
 
 		/* might we have had a change to a previously ignored value? */
@@ -154,10 +161,11 @@ void prep_Billboard (struct X3D_Billboard *node) {
 			node->axisOfRotation.c[1], node->axisOfRotation.c[2]);
 		RECORD_DISTANCE
         }
+	RECORD_DISTANCE
 }
 
 
-void fin_Billboard (struct X3D_Billboard *node) {
+void XXfin_Billboard (struct X3D_Billboard *node) {
 	OCCLUSIONTEST
 
 	#ifdef BILLBOARDVERBOSE
@@ -167,10 +175,12 @@ void fin_Billboard (struct X3D_Billboard *node) {
 	#endif
 
         if(!render_proximity) {
+printf ("fin_Billboard, doing pop\n");
             fwXformPop();
         }
-} 
-void  child_Billboard (struct X3D_Billboard *node) {
+}
+ 
+void  XXchild_Billboard (struct X3D_Billboard *node) {
 	int nc = (node->children).n;
 	DIRECTIONAL_LIGHT_SAVE
 
@@ -178,7 +188,13 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	printf ("child_Billboard\n");
 	#endif
 
-	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+/*	RETURN_FROM_CHILD_IF_NOT_FOR_ME 
+*/
+printf ("child_billboard");
+printf (" render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+
+
 
 	/* do we have to sort this node? */
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
@@ -196,7 +212,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 }
 
 
-void changed_Billboard (struct X3D_Billboard *node) {
+void XXchanged_Billboard (struct X3D_Billboard *node) {
         int i;
         int nc = ((node->children).n);
         struct X3D_Node *p;
@@ -207,6 +223,133 @@ void changed_Billboard (struct X3D_Billboard *node) {
 	#endif
 	INITIALIZE_EXTENT
 }
+
+#endif
+/******************************************************************************************/
+
+void proximity_Billboard (struct X3D_Billboard *node) {
+	/* printf ("prox_billboard, do nothing\n"); */
+}
+
+void prep_Billboard (struct X3D_Billboard *node) {
+	struct point_XYZ vpos, ax, cp, cp2, arcp;
+	static const struct point_XYZ orig = {0.0, 0.0, 0.0};
+	static const struct point_XYZ zvec = {0.0, 0.0, 1.0};
+	struct orient viewer_orient;
+	GLdouble mod[16];
+	GLdouble proj[16];
+	int align;
+	double len, len2, angle;
+	int sign;
+
+	RECORD_DISTANCE
+
+	ax.x = node->axisOfRotation.c[0];
+	ax.y = node->axisOfRotation.c[1];
+	ax.z = node->axisOfRotation.c[2];
+	align = (APPROX(VECSQ(ax),0));
+
+	quaternion_to_vrmlrot(&(Viewer.Quat),
+		&(viewer_orient.x), &(viewer_orient.y),
+		&(viewer_orient.z), &(viewer_orient.a));
+
+	glPushMatrix();
+
+	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
+	gluUnProject(orig.x, orig.y, orig.z, mod, proj,
+		viewport, &vpos.x, &vpos.y, &vpos.z);
+
+	len = VECSQ(vpos);
+	if (APPROX(len, 0)) { return; }
+	VECSCALE(vpos, 1/sqrt(len));
+
+	if (align) {
+		ax.x = viewer_orient.x;
+		ax.y = viewer_orient.y;
+		ax.z = viewer_orient.z;
+	}
+
+	VECCP(ax, zvec, arcp);
+	len = VECSQ(arcp);
+	if (APPROX(len, 0)) { return; }
+
+	len = VECSQ(ax);
+	if (APPROX(len, 0)) { return; }
+	VECSCALE(ax, 1/sqrt(len));
+
+	VECCP(vpos, ax, cp); /* cp is now 90deg to both vector and axis */
+	len = sqrt(VECSQ(cp));
+	if (APPROX(len, 0)) {
+		glRotatef(-viewer_orient.a/3.1415926536*180, ax.x, ax.y, ax.z);
+		return;
+	}
+	VECSCALE(cp, 1/len);
+
+	/* Now, find out angle between this and z axis */
+	VECCP(cp, zvec, cp2);
+
+	len2 = VECPT(cp, zvec); /* cos(angle) */
+	len = sqrt(VECSQ(cp2)); /* this is abs(sin(angle)) */
+
+	/* Now we need to find the sign first */
+	if (VECPT(cp, arcp) > 0) { sign = -1; } else { sign = 1; }
+	angle = atan2(len2, sign*len);
+
+	glRotatef(angle/3.1415926536*180, ax.x, ax.y, ax.z);
+	invalidateCurMat();  /* force a glGetMatrix from the system */
+}
+
+void fin_Billboard (struct X3D_Billboard *node) {
+	UNUSED(node);
+	glPopMatrix();
+	invalidateCurMat();
+}
+
+
+void  child_Billboard (struct X3D_Billboard *node) {
+	int nc = (node->children).n;
+
+	DIRECTIONAL_LIGHT_SAVE
+
+
+	/* any children at all? */
+	if (nc==0) return;
+
+	#ifdef CHILDVERBOSE
+	printf("RENDER BILLBOARD START %d (%d)\n",node, nc);
+	#endif
+
+	/* do we have to sort this node? */
+	if ((nc > 1 && !render_blend)) sortChildren(node->children);
+
+	/* do we have a DirectionalLight for a child? */
+	DIRLIGHTCHILDREN(node->children);
+
+	/* now, just render the non-directionalLight children */
+	normalChildren(node->children);
+
+	if (render_geom && (!render_blend)) {
+		EXTENTTOBBOX
+		BOUNDINGBOX
+	}
+
+	#ifdef CHILDVERBOSE
+	printf("RENDER BILLBOARD END %d\n",node);
+	#endif
+
+	DIRECTIONAL_LIGHT_OFF
+}
+
+
+void changed_Billboard (struct X3D_Billboard *node) {
+                int i;
+                int nc = ((node->children).n);
+
+		INITIALIZE_EXTENT
+}
+/******************************************************************************************/
+
 
 void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */

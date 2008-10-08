@@ -1,4 +1,7 @@
 For 1.20.8
+	- Billboard had some inconsistent rendering problems introduced in 1.20.6. Reverted
+	  to older code.
+
 	- Collision, support for both "collide" (vrml) "enabled" (x3d) fields verified.
 	
 	- Occlusionculling - when failed, textures not displayed, due to an optimization
