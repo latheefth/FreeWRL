@@ -189,6 +189,7 @@ package VRML::NodeType;
 						set_coordIndex => [MFInt32, undef, inputOnly],
 						color => [SFNode, NULL, inputOutput],
 						coord => [SFNode, NULL, inputOutput],
+						fogCoord => [SFNode, NULL, inputOutput],
 						colorIndex => [MFInt32, [], initializeOnly],
 						colorPerVertex => [SFBool, 1, initializeOnly],
 						coordIndex => [MFInt32, [], initializeOnly],
@@ -219,7 +220,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 
@@ -251,7 +252,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 
@@ -283,7 +284,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 
@@ -331,7 +332,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 
@@ -363,7 +364,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 
@@ -395,7 +396,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 
@@ -510,7 +511,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 
@@ -561,7 +562,7 @@ package VRML::NodeType;
 						normalPerVertex => [SFBool, 1, initializeOnly],
 						solid => [SFBool, 1, initializeOnly],
 						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], initializeOnly],
+						index => [MFInt32, [], inputOutput],
 						fanCount => [MFInt32, [], initializeOnly],
 						stripCount => [MFInt32, [], initializeOnly],
 

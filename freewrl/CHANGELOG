@@ -1,4 +1,7 @@
 For 1.20.8
+	- VRMLNodes.pm - IndexedTriangle nodes; with increased checking, some fields were marked
+	  "inputOnly" when they should have been "inputOutput" which gave routing warnings.
+
 	- Billboard had some inconsistent rendering problems introduced in 1.20.6. Reverted
 	  to older code.
 
