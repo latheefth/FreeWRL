@@ -32,6 +32,11 @@
 
 #ifndef __APPLE__
 #include <sys/msg.h>
+
+/* from Ian Stakenvicius */
+#if defined(__linux__)
+#include <unistd.h>
+#endif
 #endif
 #if defined(__APPLE__)
 #include <unistd.h>

@@ -2327,7 +2327,6 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 /* GeoViewpoint								*/
 /************************************************************************/
 
-#define VERBOSE
 void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	struct SFVec4d localOrient;
 	struct SFVec4d orient;

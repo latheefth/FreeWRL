@@ -1,4 +1,6 @@
 For 1.21.1
+	- CFuncs/sounds.h - include unistd.h on Linux machines.
+
 	- Macros to help "set" SF fields get used, when the equivalent "non set_" field is used.
 	  eg, "set_orientation" inputOnly field in GeoViewpoint, when we have an initializeOnly "orientation" field.
 	  Should rework all other nodes to use these macros. NOTE: MF fields are handled by the macro
