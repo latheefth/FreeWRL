@@ -2327,6 +2327,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 /* GeoViewpoint								*/
 /************************************************************************/
 
+#define VERBOSE
 void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	struct SFVec4d localOrient;
 	struct SFVec4d orient;
@@ -2341,6 +2342,11 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	printf ("compileViewpoint is %u, its geoOrigin is %u \n",node, node->geoOrigin);
 	if (node->geoOrigin!=NULL) printf ("type %s\n",stringNodeType(X3D_GEOORIGIN(node->geoOrigin)->_nodeType));
 	#endif
+
+
+	/* did any of the "set_" inputOnly fields get set?  if not, just use the non-set fields */
+	USE_SET_SFVEC3D_IF_CHANGED(set_position,position)
+	USE_SET_SFROTATION_IF_CHANGED(set_orientation,orientation)  
 
 	/* work out the position */
 	INITIALIZE_GEOSPATIAL(node)
@@ -2369,8 +2375,8 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	printf ("compile_GeoViewpoint, final position %lf %lf %lf\n",node->__movedPosition.c[0],
 		node->__movedPosition.c[1], node->__movedPosition.c[2]);
 
-	printf ("compile_GeoViewpoint, getLocalOrientation %lf %lf %lf %lf\n",localOrient.r[0],
-		localOrient.r[1], localOrient.r[2], localOrient.r[3]);
+	printf ("compile_GeoViewpoint, getLocalOrientation %lf %lf %lf %lf\n",localOrient.c[0],
+		localOrient.c[1], localOrient.c[2], localOrient.c[3]);
 	printf ("compile_GeoViewpoint, initial orientation: %lf %lf %lf %lf\n",node->orientation.r[0],
 		node->orientation.r[1], node->orientation.r[2], node->orientation.r[3]);
 	printf ("compile_GeoViewpoint, final rotation %lf %lf %lf %lf\n",node->__movedOrientation.r[0], 
@@ -2524,6 +2530,7 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	viewer_calculate_speed();
 }
 
+#undef VERBOSE
 
 /************************************************************************/
 /* GeoTransform								*/

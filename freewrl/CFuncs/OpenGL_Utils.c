@@ -761,7 +761,7 @@ void startOfLoopNodeUpdates(void) {
 
 				/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,
 				   eg, "set_spine" and "spine". Here we just copy the fields over, and remove the
-				   "set_" fields. */
+				   "set_" fields. This works for MF* fields ONLY */
 				BEGIN_NODE(IndexedLineSet)
 					EVIN_AND_FIELD_SAME(colorIndex,IndexedLineSet)
 					EVIN_AND_FIELD_SAME(coordIndex,IndexedLineSet)
@@ -831,7 +831,7 @@ void startOfLoopNodeUpdates(void) {
 					EVIN_AND_FIELD_SAME(texCoordIndex,IndexedFaceSet)
 					EVIN_AND_FIELD_SAME(height,IndexedFaceSet)
 				END_NODE
-/* GeoViewpoint works differently than other nodes
+/* GeoViewpoint works differently than other nodes - see compile_GeoViewpoint for manipulation of these fields
 				BEGIN_NODE(GeoViewpoint)
 					EVIN_AND_FIELD_SAME(orientation,GeoViewpoint) 
 					EVIN_AND_FIELD_SAME(position,GeoViewpoint)

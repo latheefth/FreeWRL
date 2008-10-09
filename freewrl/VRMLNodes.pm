@@ -1448,8 +1448,8 @@ package VRML::NodeType;
 
 	GeoViewpoint => new VRML::NodeType("GeoViewpoint", {
 						set_bind => [SFBool, undef, inputOnly],
-						set_orientation => [SFRotation, [0, 0, 1, 0], inputOnly],
-						set_position => [SFVec3d, [0, 0, 0], inputOnly],
+						set_orientation => [SFRotation, [IO_FLOAT, IO_FLOAT, IO_FLOAT, IO_FLOAT], inputOnly],
+						set_position => [SFVec3d, [IO_FLOAT, IO_FLOAT, IO_FLOAT], inputOnly],
 						description => [SFString, "", inputOutput],
 						fieldOfView => [SFFloat, 0.785398, inputOutput],
 						headlight => [SFBool, 1, inputOutput],

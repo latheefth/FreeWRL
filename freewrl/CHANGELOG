@@ -1,4 +1,10 @@
-For 1.20.8
+For 1.21.1
+	- Macros to help "set" SF fields get used, when the equivalent "non set_" field is used.
+	  eg, "set_orientation" inputOnly field in GeoViewpoint, when we have an initializeOnly "orientation" field.
+	  Should rework all other nodes to use these macros. NOTE: MF fields are handled by the macro
+	  EVIN_AND_FIELD_SAME.
+
+For 1.21.0
 	- VRMLNodes.pm - IndexedTriangle nodes; with increased checking, some fields were marked
 	  "inputOnly" when they should have been "inputOutput" which gave routing warnings.
 

@@ -605,6 +605,7 @@ void do_GeoPositionInterpolator (void *innode) {
 		node->geovalue_changed.c[0] = 0.0;
 		node->geovalue_changed.c[1] = 0.0;
 		node->geovalue_changed.c[2] = 0.0;
+printf ("geovalue_changed %lf %lf %lf\n",node->geovalue_changed.c[0], node->geovalue_changed.c[1], node->geovalue_changed.c[2]);
 		return;
 	}
 
@@ -631,6 +632,7 @@ void do_GeoPositionInterpolator (void *innode) {
 	#ifdef SEVERBOSE
 	printf ("Pos/Col, new value (%f %f %f)\n",
 		node->value_changed.c[0],node->value_changed.c[1],node->value_changed.c[2]);
+printf ("geovalue_changed %lf %lf %lf\n",node->geovalue_changed.c[0], node->geovalue_changed.c[1], node->geovalue_changed.c[2]);
 	#endif
 }
 

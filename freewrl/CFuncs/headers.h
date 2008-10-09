@@ -23,6 +23,9 @@
 /* get the definitions from the command line */
 #include "vrmlconf.h"
 
+/* see if an inputOnly "set_" field has changed */
+#define IO_FLOAT -2335549.0
+
 void *freewrlMalloc(int line, char *file, size_t sz);
 void *freewrlRealloc (int line, char *file, void *ptr, size_t size);
 void *freewrlStrdup (int line, char *file, char *str);
@@ -300,6 +303,37 @@ node for ANY node that takes something other than a Group */
 		save.n = good.n; \
 		save.p = good.p; \
         }
+
+/* for deciding on using set_ SF fields, with nodes with explicit "set_" fields...  note that MF fields are handled by
+the EVIN_AND_FIELD_SAME MACRO */
+
+#define USE_SET_SFVEC3D_IF_CHANGED(setField,regField) \
+if (!APPROX (node->setField.c[0],node->regField.c[0]) || \
+        !APPROX(node->setField.c[1],node->regField.c[1]) || \
+        !APPROX(node->setField.c[2],node->regField.c[2]) ) { \
+        /* now, is the setField at our default value??  if not, we just use the regField */ \
+        if (APPROX(node->setField.c[0], IO_FLOAT) && APPROX(node->setField.c[1],IO_FLOAT) && APPROX(node->setField.c[2],IO_FLOAT)) { \
+		/* printf ("just use regField\n"); */ \
+        } else { \
+		 /* printf ("use the setField as the real poistion field\n"); */ \
+        	memcpy (node->regField.c, node->setField.c, sizeof (struct SFVec3d)); \
+	} \
+}
+
+#define USE_SET_SFROTATION_IF_CHANGED(setField,regField) \
+if (!APPROX (node->setField.r[0],node->regField.r[0]) || \
+        !APPROX(node->setField.r[1],node->regField.r[1]) || \
+        !APPROX(node->setField.r[2],node->regField.r[2]) || \
+        !APPROX(node->setField.r[3],node->regField.r[3]) ) { \
+        /* now, is the setField at our default value??  if not, we just use the regField */ \
+        if (APPROX(node->setField.r[0], IO_FLOAT) && APPROX(node->setField.r[1],IO_FLOAT) && APPROX(node->setField.r[2],IO_FLOAT) && APPROX(node->setField.r[3],IO_FLOAT)) { \
+		/* printf ("just use SFRotation regField\n"); */ \
+        } else { \
+		/* printf ("use the setField SFRotation as the real poistion field\n");  */ \
+        	memcpy (node->regField.r, node->setField.r, sizeof (struct SFRotation)); \
+	} \
+}
+
 
 
 
