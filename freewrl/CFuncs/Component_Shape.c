@@ -251,16 +251,6 @@ void child_Appearance (struct X3D_Appearance *node) {
                         glColor3f(1.0,1.0,1.0);
                 }
 
-		/* shaders here/supported?? */
-		if (node->shaders.n !=0) {
-			int count;
-
-			for (count=0; count<node->shaders.n; count++) {
-				POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN)
-				render_node(tmpN);
-			}
-		}
-
                 if (node->fillProperties) {
 			POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN)
                         render_node(tmpN);
@@ -285,4 +275,14 @@ void child_Appearance (struct X3D_Appearance *node) {
 			POSSIBLE_PROTO_EXPANSION(node->texture,tmpN)
                         render_node(tmpN);
                 }
+		/* shaders here/supported?? */
+		if (node->shaders.n !=0) {
+			int count;
+
+			for (count=0; count<node->shaders.n; count++) {
+				POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN)
+				render_node(tmpN);
+			}
+		}
+
 }
