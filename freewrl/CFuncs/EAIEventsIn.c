@@ -13,6 +13,10 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 ************************************************************************/
 
 #include "headers.h"
+#include "CParse.h"
+#include "CParseParser.h"
+#include "CProto.h"
+
 #include "Viewer.h"
 #include <sys/time.h>
 
@@ -429,6 +433,7 @@ void EAI_parse_commands () {
 				}
 
 			case GETVALUE: {
+				int getValueFromPROTOField = FALSE;
 				if (eaiverbose) {	
 					printf ("GETVALUE %s \n",&EAI_BUFFER_CUR);
 				}	
@@ -437,8 +442,25 @@ void EAI_parse_commands () {
 				/* format: ptr, offset, type, length (bytes)*/
 				retint=sscanf (&EAI_BUFFER_CUR, "%d %d %c %d", &ra,&rb,ctmp,&rc);
 
-				ra = ra + rb;   /* get absolute pointer offset*/
-				EAI_Convert_mem_to_ASCII (count,"RE",mapEAItypeToFieldType(ctmp[0]),(char *)ra, buf);
+
+				/* is the pointer a pointer to a PROTO?? If so, then the getType did not find
+				   an actual field (an IS'd field??) in a proto expansion for us.  We have to 
+				   go through, as the offset will be the index in the PROTO field for us to get
+				   the value for */
+				if (X3D_NODE(ra)->_nodeType == NODE_Group) {
+					if (X3D_GROUP(ra)->FreeWRL__protoDef != 0) {
+						/* printf ("have a pointer to a PROTO... \n"); */
+						getValueFromPROTOField = TRUE;
+					}
+				}
+
+				if (getValueFromPROTOField) {
+					extern char * myProtoFields[];
+					sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,myProtoFields[rb]);	
+				} else {
+					ra = ra + rb;   /* get absolute pointer offset*/
+					EAI_Convert_mem_to_ASCII (count,"RE",mapEAItypeToFieldType(ctmp[0]),(char *)ra, buf);
+				}
 				break;
 				}
 			case REPLACEWORLD:  {

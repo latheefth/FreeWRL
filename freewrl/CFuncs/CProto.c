@@ -559,10 +559,9 @@ void protoFieldDecl_setValue(struct VRMLLexer* lex, struct ProtoFieldDecl* me, u
  }
 
  /* Otherwise, assign first target to val */
-/* 
-    printf("got myptr %p\n", myptr); \ 
+    /* printf("protoFieldDecl_setValue - got myptr %p\n", myptr); \ 
     printf("setting node %p offset %u\n", myptr->node, myptr->ofs); \
-*/
+	*/
  if (!vector_empty(me->dests)) {
  switch(me->type)
  {
@@ -632,7 +631,7 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
  ret->alreadySet=FALSE;
 
  /* copy over the fieldString */
- /* printf ("protoFieldDecl_copy: copying field string for field... %s\n",me->fieldString); */
+  /* printf ("protoFieldDecl_copy: copying field string for field... %s\n",me->fieldString);  */
  if (me->fieldString != NULL) ret->fieldString = STRDUP(me->fieldString);
 
  ret->mode=me->mode;
@@ -1284,7 +1283,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 					/* printf ("ok, so IS of :%s: is :%s:\n",ele->stringToken, tempEle->stringToken); */
 
 					replaceProtoField(me->lexer, *thisProto, tempEle->stringToken,&newTl,&tl);
-					/* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl); */
+					 /* printf ("IS replacement is len %d, str :%s:\n",strlen(newTl), newTl);  */
 
 					/* is there actually a value for this field?? */
 					if SOMETHING_IN_ISVALUE {

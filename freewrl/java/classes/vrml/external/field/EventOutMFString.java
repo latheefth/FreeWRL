@@ -10,38 +10,54 @@ public class EventOutMFString extends EventOutMField {
 
 	String[] retstr;
 	int mySize = 0;
+	String[] spl;
 
 	public EventOutMFString() {EventType = FieldTypes.MFSTRING;}
 
 	public String[] getValue() {
 		String rep;
-		StringTokenizer tokens;
 
-		if (RLreturn == null) {
+		if (command != null) {
 			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+			// System.out.println ("rep is " + rep);
+			spl = rep.split("\"",0);
 		} else {
-			rep = RLreturn;
+			spl = RLreturn.split("\"",0);
 		}
-		tokens = new StringTokenizer (rep,"\"");
 
-		retstr = new String[(tokens.countTokens()/2)];
-		mySize = 0;
+		/* 
+		System.out.println ("token count is " +
+			(tokens.countTokens()/2));
 
-		rep = "";
-		while (tokens.hasMoreTokens()) {
-			retstr[mySize] = tokens.nextToken();
+		System.out.println ("split len is " + spl.length);
 
-			if (retstr[mySize].equals("XyZZtitndi")) {
-				//System.out.println ("found the gibberish line");
-				retstr[mySize] = "";
-			}
-
-			if (tokens.hasMoreTokens()) rep = tokens.nextToken();
-			mySize ++;
+		for (int i = 0; i < spl.length; i++) {
+			System.out.println ("element " + i + " is " + spl[i]);
 		}
-		// for getSize call
-		sizeof = mySize;
+		*/
+		/*
+		rep is "kiwano.wrl" "TinMan.wrl" "Angel.wrl" "halfmoon.wrl" ""  
+		token count is 4
+		split len is 11
+		element 0 is 
+		element 1 is kiwano.wrl
+		element 2 is  
+		element 3 is TinMan.wrl
+		element 4 is  
+		element 5 is Angel.wrl
+		element 6 is  
+		element 7 is halfmoon.wrl
+		element 8 is  
+		element 9 is 
+		*/
 
+		mySize = spl.length/2;
+		retstr = new String[mySize];
+		//System.out.println ("sizeof is " + mySize);
+		for (int i=1; i<spl.length; i+=2) {
+			retstr[i/2] = spl[i];
+			//System.out.println ("string " + i/2 + " value: " + retstr[i/2]);
+		}
 		return retstr;
 	}
 

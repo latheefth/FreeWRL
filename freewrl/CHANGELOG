@@ -1,4 +1,6 @@
 For 1.21.1
+	- EAI/SAI - PROTO expansion getField calls now work as expected.
+
 	- XML-formatted X3D - PROTO and EXTERNPROTO field expansion work.
 
 	- Shaders - only compile if OpenGL 2.0 or above is installed. Will work on OpenGL versions with

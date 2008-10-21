@@ -1116,7 +1116,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			for (row=0; row<(*MSptr).n; row++) {
         	        	/* printf ("String %d is %s\n",row,(*MSptr).p[row]->strptr);*/
 				if (strlen ((*MSptr).p[row]->strptr) == 0) {
-					sprintf (ptr, "\"XyZZtitndi\" "); /* encode junk for Java side.*/
+					sprintf (ptr, "\"\" "); /* encode junk for Java side.*/
 				} else {
 					sprintf (ptr, "\"%s\" ",(*MSptr).p[row]->strptr);
 				}

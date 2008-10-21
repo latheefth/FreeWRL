@@ -44,6 +44,7 @@ This struct contains both a node and an ofs field.
 #include "CParseParser.h"
 #include "Viewer.h"
 #include <sys/time.h>
+#include <string.h>
 
 /* include socket.h for irix and apple */
 #ifndef LINUX
@@ -141,19 +142,19 @@ parameters:
 	int *accessType 	returns one of KW_exposedField, KW_eventIn, KW_eventOut, KW_field, or 0 
 				if field not found.
 
-	int *myProtoIndex	index into the proto field definition tables for this field. returns
-				-1 if this field is not found.
-
-	char *retstr		char buffer for "EAI" style ascii value. If not NULL, assumes
-				the buffer will hold enough for call to EAI_Convert_mem_to_ASCII.
+	int *myProtoIndex	index into the proto field value tables for this field. returns
+				-1 if this field is not found or table overflow.
 
 *********************************************************************************/
 
 
+/* for keeping track of PROTO field values - hold on to last 10 values from a getType call */
+char * myProtoFields[] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+int myProtoFieldIndex = 0;
 
 void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t *myNodeP,
 					int *myOfs, int *myType, int *accessType, 
-					int *myProtoIndex, char *retstr) {
+					int *myProtoIndex) {
 
 	struct X3D_Group *group;
 	struct ProtoDefinition *myProtoDecl;
@@ -166,9 +167,9 @@ void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t 
 
 	/* set these values, so that we KNOW if we have found the correct field */
 	*myType = 0;
-	*myNodeP = 0;
 	*myOfs = 0;
 	*myProtoIndex = -1;
+	*myNodeP = 0;
 
 	#ifdef FF_PROTO_PRINT
 	printf ("setField_method1, trouble finding field %s in node %s\n",myField,stringNodeType(myNode->_nodeType));
@@ -182,86 +183,68 @@ void findFieldInPROTOOFFSETS (struct X3D_Node *myNode, char *myField, uintptr_t 
 		#endif
 
 		if (group->FreeWRL__protoDef) {
+			int tl = 1000;
+
 			#ifdef FF_PROTO_PRINT
 			printf ("and, this is a PROTO...have to go through PROTO defs to get to it\n");
 			#endif
 
 			myProtoDecl = (struct ProtoDefinition *) group->FreeWRL__protoDef;
+			thisIndex = getProtoFieldDeclaration( globalParser->lexer, myProtoDecl, myField);
 
-			#ifdef FF_PROTO_PRINT
-			printf ("proto has %d fields...\n",protoDefinition_getFieldCount(myProtoDecl)); 
-			#endif
+			/*
+			printf ("	field name is %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
+			printf ("	type is %d which is %s\n",protoFieldDecl_getType(thisIndex),
+				stringFieldtypeType(protoFieldDecl_getType(thisIndex)));
+			printf ("	Accesstype is %d as string %s\n",protoFieldDecl_getAccessType(thisIndex),
+				stringPROTOKeywordType(protoFieldDecl_getAccessType(thisIndex)));
+			printf ("	indexnameString %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
+			*/
 
-			for (fc = 0; fc <protoDefinition_getFieldCount(myProtoDecl); fc++) {
-				thisIndex = protoDefinition_getFieldByNum(myProtoDecl, fc);
+			char *newTl = MALLOC(1000);
+     			newTl[0] = '\0';
 
-				#ifdef FF_PROTO_PRINT
-				printf ("working through index %d\n",fc); 
-				printf ("	field name is %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
-				printf ("	type is %d which is %s\n",protoFieldDecl_getType(thisIndex),
-					FIELDTYPES[protoFieldDecl_getType(thisIndex)]);
-				printf ("	Accesstype is %d as string %s\n",protoFieldDecl_getAccessType(thisIndex),
-					PROTOKEYWORDS[protoFieldDecl_getAccessType(thisIndex)]);
-				printf ("	indexnameString %s\n",protoFieldDecl_getStringName(globalParser->lexer, thisIndex));
+                        /* printf ("next element is an IS \n"); */
+                        /* tempEle = vector_get(struct ProtoElementPointer*, (*thisProto)->deconstructedProtoBody, i+2); */
+                        /* printf ("ok, so IS of :%s: is :%s:\n",ele->stringToken, tempEle->stringToken); */
 
-
-
-				#endif
-
-				/* do we want the output value?? */
-				if (retstr != NULL) {
-					myDefaultValue = protoFieldDecl_getDefaultValue(thisIndex);		
-					EAI_Convert_mem_to_ASCII (0, "", mapFieldTypeToEAItype(protoFieldDecl_getType(thisIndex)), 
-						&myDefaultValue, retstr);
-				
-					/* EAI_Convert_mem_to_ASCII gives us timestamps, etc, lets just get the last part */
-				
-					cp = rindex(retstr,'\n');
-					if (cp != NULL) {
-						cp ++; /* skip past the \n */
-						/* copy the memory over. */
-						memmove (retstr,cp,strlen(cp));
-						#ifdef FF_PROTO_PRINT
-						printf ("	value now %s\n",cp);
-						#endif
-					}
-				}
-
-				#ifdef FF_PROTO_PRINT
-				printf ("		dest pointer is %d\n",protoFieldDecl_getDestinationCount(thisIndex));
-				#endif
-
-				/* is this the node we are looking for? */
-				if (strlen(protoFieldDecl_getStringName(globalParser->lexer, thisIndex)) == strlen(myField)) {
-					if (strcmp(protoFieldDecl_getStringName(globalParser->lexer, thisIndex),myField) == 0) {
-			
-						#ifdef FF_PROTO_PRINT
-						printf ("		found the field in the PROTO\n");
-						#endif
-
-						*myProtoIndex = fc;
-						*myType = mapFieldTypeToEAItype(protoFieldDecl_getType(thisIndex));
-						*accessType = mapToKEYWORDindex(protoFieldDecl_getAccessType(thisIndex));
-
-						for (fc2 = 0; fc2 < protoFieldDecl_getDestinationCount(thisIndex); fc2 ++) {
-							myP = protoFieldDecl_getDestination(thisIndex,fc2); 
-							#ifdef FF_PROTO_PRINT
-							printf ("		points to %x, type %s ofs %d\n",
-								myP->node, stringNodeType(myP->node->_nodeType),myP->ofs);
-							#endif
-
-							/* these values most likely changed - if more than 1, just use the last for now 
-							   as EAI/SAI can only handle 1 */
-							*myNodeP = (uintptr_t *)myP->node;	
-							*myOfs = myP->ofs;
-						}
-					}
-				}
+                        replaceProtoField(globalParser->lexer, myProtoDecl, myField,&newTl,&tl);
+		
+			/* possibly, if this is an MF* field, we will have brackets on the ends. Remove them */
+			if (convertToSFType(protoFieldDecl_getType(thisIndex)) != protoFieldDecl_getType(thisIndex)) {
+				char *charptr; 
+				/* printf ("have to remove brackets from :%s:\n",newTl); */
+				charptr = strchr(newTl,'['); if (charptr != NULL) *charptr = ' ';
+				charptr = strrchr(newTl,']'); if (charptr != NULL) *charptr = ' ';
+				/* printf ("now :%s:\n",newTl); */
 			}
+
+			/* slide things to right */
+			if (strlen(newTl) >0) {
+				while ((newTl[0] <=' ') && (newTl[0] != '\0')) {
+					/* printf ("sliding to right\n"); */
+					memmove (newTl, &newTl[1],strlen(newTl));
+				}
+
+			}
+			/* printf ("TESTING - got replace as %s\n",newTl); */
+
+			FREE_IF_NZ(myProtoFields[myProtoFieldIndex]);
+			myProtoFields[myProtoFieldIndex] = newTl;
+			*myProtoIndex = myProtoFieldIndex;
+			myProtoFieldIndex++; 
+			if (myProtoFieldIndex >= 10) {
+				printf ("EAI - re-using the protoFieldIndex values\n");
+				myProtoFieldIndex = 0;
+			}
+
+			*myType = mapFieldTypeToEAItype(protoFieldDecl_getType(thisIndex));
+			*accessType = mapToKEYWORDindex(protoFieldDecl_getAccessType(thisIndex));
 
 		}
 	}
 }
+
 
 void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr, uintptr_t *fieldOffset,
 			uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType) {
@@ -283,14 +266,12 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 */
 
 	int myProtoIndex;
-	char myCharBuffer[300];
 	int myFieldOffs;
 
 	nodePtr = X3D_NODE(cNode);
 	
 	if (eaiverbose) {
-		printf ("start of EAI_GetType, this is a valid C node %d (%x)\n",nodePtr,nodePtr);
-		printf ("	of type %d\n",nodePtr->_nodeType);
+		printf ("start of EAI_GetType, this is a valid C node %d\n",nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
@@ -315,8 +296,18 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 		if (eaiverbose) {
 			printf ("EAI_GetType, myFieldOffs %d, try findFieldInPROTOOFFSETS\n",myFieldOffs);
 		}	
-		findFieldInPROTOOFFSETS (nodePtr, ctmp, cNodePtr, &myFieldOffs, &ctype, accessType ,&myProtoIndex,
-			myCharBuffer);
+		findFieldInPROTOOFFSETS (nodePtr, ctmp, cNodePtr, &myFieldOffs, &ctype, accessType ,&myProtoIndex);
+
+		/* did we find an actual proto expansion field? If not, just return the original node
+		   (the one we pointed to in the first case) and the protoIndex as an offset, as the
+		   user probably wanted an info field */
+
+		if (*cNodePtr == 0) {
+			/* printf ("got node pointer as zero, lets just return more info for this \n"); */
+			*cNodePtr = cNode;
+			myFieldOffs = myProtoIndex;
+			/* printf ("hmmm o fieldOffs %d, myProtoIndex %d\n",myFieldOffs, myProtoIndex); */
+		}
 	} else {
 		*cNodePtr = cNode; 	/* node pointer */
 		ctype = mapFieldTypeToEAItype(ctype); /* change to EAI type */
@@ -334,7 +325,8 @@ void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr,
 	if (strncmp (ctmp,"removeChildren",strlen("removeChildren")) == 0) *accessType = KW_eventOut;
 					
 	if (eaiverbose) {
-		printf ("EAI_GetType, so we have coffset %d, ctype %x, ctmp %s\n",*fieldOffset,ctype, KEYWORDS[*accessType]);
+		printf ("EAI_GetType, returning cNodePtr %u, coffset %d, ctype %x, ctmp %s\n",
+			*cNodePtr,*fieldOffset,ctype, stringKeywordType(*accessType));
 	}
 }
 
