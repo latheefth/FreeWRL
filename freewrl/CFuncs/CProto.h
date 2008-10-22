@@ -80,8 +80,11 @@ struct ProtoFieldDecl
  indexT type; /* field type */
  indexT name; /* field "name" (its lexer-index) */
  char *fieldString; /* the field, in ascii form */
- /* This is the list of desination pointers for this field */
- struct Vector* dests;
+ #ifdef OLDDEST
+/* This is the list of desination pointers for this field */
+ struct Vector* dests; 
+#endif
+
  /* Only for exposedField or field */
  BOOL alreadySet; /* Has the value already been set? */
  union anyVrml defaultVal; /* Default value */
@@ -106,19 +109,28 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldD
 #define protoFieldDecl_getStringName(lex, me) \
  lexer_stringUser_fieldName(lex, protoFieldDecl_getIndexName(me), \
   protoFieldDecl_getAccessType(me))
+ 
+#ifdef OLDDEST
 #define protoFieldDecl_getDestinationCount(me) \
  vector_size((me)->dests)
 #define protoFieldDecl_getDestination(me, i) \
  vector_get(struct OffsetPointer*, (me)->dests, i)
+#endif
+
+
 #define protoFieldDecl_getDefaultValue(me) \
  ((me)->defaultVal)
 
 
 /* Add a destination this field's value must be assigned to */
+#ifdef OLDDEST
+
 #define protoFieldDecl_addDestinationOptr(me, optr) \
  vector_pushBack(struct OffsetPointer*, me->dests, optr)
 #define protoFieldDecl_addDestination(me, n, o) \
  protoFieldDecl_addDestinationOptr(me, newOffsetPointer(n, o))
+#endif
+
 
 /* Sets this field's value (copy to destinations) */
 void protoFieldDecl_setValue(struct VRMLLexer*, struct ProtoFieldDecl*, union anyVrml*);

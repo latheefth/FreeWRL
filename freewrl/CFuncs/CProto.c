@@ -139,8 +139,7 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
  ret->name=name;
  ret->alreadySet=FALSE;
  ret->fieldString = NULL;
- ret->dests=newVector(struct OffsetPointer*, 4);
- ASSERT(ret->dests);
+
  ret->scriptDests=newVector(struct ScriptFieldInstanceInfo*, 4);
  ASSERT(ret->scriptDests);
  return ret;
@@ -148,10 +147,6 @@ struct ProtoFieldDecl* newProtoFieldDecl(indexT mode, indexT type, indexT name)
 
 void deleteProtoFieldDecl(struct ProtoFieldDecl* me)
 {
- size_t i;
- for(i=0; i!=vector_size(me->dests); ++i)
-  deleteOffsetPointer(vector_get(struct OffsetPointer*, me->dests, i));
- deleteVector(struct OffsetPointer*, me->dests);
  FREE_IF_NZ(me);
 }
 
@@ -165,14 +160,6 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  int i;
  size_t len=returnRoutingElementLength(me->type);
  ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
-
- /* For each destination mapped to this proto field, add a route */
- for(i=0; i!=vector_size(me->dests); ++i)
- {
-  struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
-  /* printf("protoFieldDecl_routeTo: registering route from %p %u to dest %p %u dir is %d\n", node, ofs, optr->node, optr->ofs, dir); */
-  parser_registerRoute(p, node, ofs, optr->node, optr->ofs, len, dir);
- }
 
  /* For each script field mapped to this proto field, add a route */
  for (i=0; i!=vector_size(me->scriptDests); ++i) {
@@ -197,14 +184,6 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
  size_t len=returnRoutingElementLength(me->type);
 
  ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_outputOnly);
-
- /* For each destination mapped to this proto field, add a route */
- for(i=0; i!=vector_size(me->dests); ++i)
- {
-  struct OffsetPointer* optr=vector_get(struct OffsetPointer*, me->dests, i);
-  parser_registerRoute(p, optr->node, optr->ofs, node, ofs, len, dir);
-  /* printf("protoFieldDecl_routeFrom: registering route from dest %p %u to %p %u dir is %d\n", optr->node, optr->ofs, node, ofs, dir); */
- }
 
  /* For each script field mapped to this proto field, add a route */
  for (i=0; i!=vector_size(me->scriptDests); ++i) {
@@ -551,66 +530,6 @@ void protoFieldDecl_setValue(struct VRMLLexer* lex, struct ProtoFieldDecl* me, u
  ASSERT(!me->alreadySet);
  me->alreadySet=TRUE;
 
- /* If there are no targets, destroy the value */
- if(vector_empty(me->dests) && vector_empty(me->scriptDests))
- {
-  /* FIXME:  Free (destroy) value!!! */
-  return;
- }
-
- /* Otherwise, assign first target to val */
-    /* printf("protoFieldDecl_setValue - got myptr %p\n", myptr); \ 
-    printf("setting node %p offset %u\n", myptr->node, myptr->ofs); \
-	*/
- if (!vector_empty(me->dests)) {
- switch(me->type)
- {
-  #define SF_TYPE(fttype, type, ttype) \
-   case FIELDTYPE_##fttype: \
-    myptr = vector_get(struct OffsetPointer*, me->dests, 0); \
-    *offsetPointer_deref(vrml##ttype##T*, \
-     vector_get(struct OffsetPointer*, me->dests, 0))=val->type; \
-    break;
-  #define MF_TYPE(fttype, type, ttype) \
-   case FIELDTYPE_##fttype: \
-    *offsetPointer_deref(struct Multi_##ttype*, \
-     vector_get(struct OffsetPointer*, me->dests, 0))=val->type; \
-    break;
-  #include "VrmlTypeList.h"
-  #undef SF_TYPE
-  #undef MF_TYPE
-
-  default:
-   parseError("Error: Unsupported type for PROTO field!");
- }
-
- /* copy it to the others */
- for(i=0; i!=vector_size(me->dests); ++i)
- {
-  switch(me->type)
-  {
-   #define SF_TYPE(fttype, type, ttype) \
-    case FIELDTYPE_##fttype: \
-    myptr = vector_get(struct OffsetPointer*, me->dests, i); \
-     *offsetPointer_deref(vrml##ttype##T*, \
-      vector_get(struct OffsetPointer*, me->dests, i))= \
-      DEEPCOPY_##type(lex, val->type, NULL, NULL); \
-     break;
-   #define MF_TYPE(fttype, type, ttype) \
-    case FIELDTYPE_##fttype: \
-     *offsetPointer_deref(struct Multi_##ttype*, \
-      vector_get(struct OffsetPointer*, me->dests, i))= \
-      DEEPCOPY_##type(lex, val->type, NULL, NULL); \
-     break;
-   #include "VrmlTypeList.h"
-   #undef SF_TYPE
-   #undef MF_TYPE
-
-   default:
-    parseError("Error: Unsupported type for PROTO field!!!");
-  }
-  }
- }
 if (!vector_empty(me->scriptDests)) {
 
  /* and copy it to the others */
@@ -640,13 +559,9 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer* lex, struct ProtoFi
  /* printf ("copied mode %s type %s and name %d\n",stringPROTOKeywordType(ret->mode)
 	, stringFieldtypeType(ret->type), ret->name);
 
- printf ("protoFieldDecl_copy, copied fieldString for proto field\n"); */
 
- /* Copy destination pointers */
- for(i=0; i!=vector_size(me->dests); ++i) {
-  vector_pushBack(struct OffsetPointer*, ret->dests,
-   offsetPointer_copy(vector_get(struct OffsetPointer*, me->dests, i)));
-  }
+
+ printf ("protoFieldDecl_copy, copied fieldString for proto field\n"); */
 
   /* Copy scriptfield dests */
   for (i=0; i!=vector_size(me->scriptDests); ++i) {
