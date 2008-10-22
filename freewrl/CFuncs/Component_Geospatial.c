@@ -2048,6 +2048,85 @@ void compile_GeoPositionInterpolator (struct X3D_GeoPositionInterpolator * node)
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_GeoPositionInterpolator, metadata))
 }
 
+/* PositionInterpolator, ColorInterpolator, GeoPositionInterpolator	*/
+/* Called during the "events_processed" section of the event loop,	*/
+/* so this is called ONLY when there is something required to do, thus	*/
+/* there is no need to look at whether it is active or not		*/
+
+/* GeoPositionInterpolator == PositionIterpolator but with geovalue_changed and coordinate conversions */
+void do_GeoPositionInterpolator (void *innode) {
+	struct X3D_GeoPositionInterpolator *node;
+	int kin, kvin, counter, tmp;
+	struct SFVec3d *kVs;
+	/* struct SFColor *kVs */
+
+	if (!innode) return;
+	node = (struct X3D_GeoPositionInterpolator *) innode;
+
+	if (NODE_NEEDS_COMPILING) compile_GeoPositionInterpolator(node);
+	kvin = node->__movedValue.n;
+	kVs = node->__movedValue.p;
+	kin = node->key.n;
+	MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, value_changed)); 
+	MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, geovalue_changed)); 
+
+	/* did the key or keyValue change? */
+	if (node->__oldKeyValuePtr != node->keyValue.p) {
+		MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, keyValue)); 
+		node->__oldKeyValuePtr = node->keyValue.p;
+	}
+	if (node->__oldKeyPtr != node->key.p) {
+		MARK_EVENT (innode, offsetof (struct X3D_GeoPositionInterpolator, key)); 
+		node->__oldKeyPtr = node->key.p;
+	}
+
+
+	#ifdef SEVERBOSE
+		printf("do_GeoPos: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, node->set_fraction);
+	#endif
+
+	/* make sure we have the keys and keyValues */
+	if ((kvin == 0) || (kin == 0)) {
+		node->value_changed.c[0] = 0.0;
+		node->value_changed.c[1] = 0.0;
+		node->value_changed.c[2] = 0.0;
+		node->geovalue_changed.c[0] = 0.0;
+		node->geovalue_changed.c[1] = 0.0;
+		node->geovalue_changed.c[2] = 0.0;
+		return;
+	}
+
+	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+
+	/* set_fraction less than or greater than keys */
+	if (node->set_fraction <= ((node->key).p[0])) {
+		memcpy ((void *)&node->geovalue_changed, (void *)&kVs[0], sizeof (struct SFVec3d));
+	} else if (node->set_fraction >= node->key.p[kin-1]) {
+		memcpy ((void *)&node->geovalue_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3d));
+	} else {
+		/* have to go through and find the key before */
+		counter = find_key(kin,((float)(node->set_fraction)),node->key.p);
+		for (tmp=0; tmp<3; tmp++) {
+			node->geovalue_changed.c[tmp] =
+				(node->set_fraction - node->key.p[counter-1]) /
+				(node->key.p[counter] - node->key.p[counter-1]) *
+				(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
+		}
+	}
+
+	/* convert this back into the requested spatial format */
+	CONVERT_BACK_TO_GD_OR_UTM(node->geovalue_changed)
+
+	/* set the (float) value_changed, as well */
+	for (tmp=0;tmp<3;tmp++) node->value_changed.c[tmp] = (float)node->geovalue_changed.c[tmp];
+
+	#ifdef SEVERBOSE
+	printf ("Pos/Col, new value (%f %f %f)\n",
+		node->value_changed.c[0],node->value_changed.c[1],node->value_changed.c[2]);
+printf ("geovalue_changed %lf %lf %lf\n",node->geovalue_changed.c[0], node->geovalue_changed.c[1], node->geovalue_changed.c[2]);
+	#endif
+}
 
 /************************************************************************/
 /* GeoProximitySensor							*/

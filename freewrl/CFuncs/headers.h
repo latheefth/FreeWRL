@@ -337,6 +337,7 @@ if (!APPROX (node->setField.r[0],node->regField.r[0]) || \
 
 
 
+int find_key (int kin, float frac, float *keys);
 void startOfLoopNodeUpdates(void);
 void OcclusionCulling (void);
 void OcclusionStartofEventLoop(void);
