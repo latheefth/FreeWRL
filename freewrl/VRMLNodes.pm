@@ -877,6 +877,37 @@ package VRML::NodeType;
 						 translation => [SFVec2f, [0, 0], inputOutput]
 						},"X3DTextureTransformNode"),
 
+	###################################################################################
+
+	#		Cubemap Texturing Component
+
+	###################################################################################
+
+
+	ComposedCubeMapTexture => new VRML::NodeType("ComposedCubeMapTexture", {
+		metadata => [SFNode, NULL, inputOutput],
+		back =>[SFNode,NULL,inputOutput],
+		bottom =>[SFNode,NULL,inputOutput],
+		front =>[SFNode,NULL,inputOutput],
+		left =>[SFNode,NULL,inputOutput],
+		top =>[SFNode,NULL,inputOutput],
+		right =>[SFNode,NULL,inputOutput],
+	},"X3DEnvironmentTextureNode"),
+
+	GeneratedCubeMapTexture => new VRML::NodeType("GeneratedCubeMapTexture", {
+		metadata => [SFNode, NULL, inputOutput],
+		update => [SFString,"NONE",inputOutput],
+		size => [SFInt32,128,initializeOnly],
+		textureProperties => [SFNode, NULL, initializeOnly],
+	},"X3DEnvironmentTextureNode"),
+
+	ImageCubeMapTexture => new VRML::NodeType("ImageCubeMapTexture", {
+		metadata => [SFNode, NULL, inputOutput],
+		url => [MFString,[],inputOutput],
+		textureProperties => [SFNode, NULL, initializeOnly],
+		__parenturl =>[SFString,"",initializeOnly],
+	},"X3DEnvironmentTextureNode"),
+
 
 	###################################################################################
 
