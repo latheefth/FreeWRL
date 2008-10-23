@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.305  2008/10/23 16:19:29  crc_canada
+# More shader work.
+#
 # Revision 1.304  2008/09/22 16:06:47  crc_canada
 # all fieldtypes now defined in freewrl code; some not parsed yet, though, as there are no supported
 # nodes that use them.
@@ -805,6 +808,9 @@ sub gen {
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
+	"#define X3D_COMPOSEDSHADER(node) ((struct X3D_ComposedShader*)node)\n".
+	"#define X3D_PACKAGEDSHADER(node) ((struct X3D_PackagedShader*)node)\n".
+	"#define X3D_PROGRAMSHADER(node) ((struct X3D_ProgramShader*)node)\n".
 	"#define X3D_SHAPE(node) ((struct X3D_Shape*)node)\n".
 	"#define X3D_VISIBILITYSENSOR(node) ((struct X3D_VisibilitySensor*)node)\n".
 	"#define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)\n".

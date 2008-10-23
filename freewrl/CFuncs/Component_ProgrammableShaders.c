@@ -35,7 +35,6 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		/* set this up... set it to FALSE if there are problems */
 		node->isValid = TRUE;
 	
-	
 		/* we support only GLSL here */
 		if (strcmp(node->language->strptr,"GLSL")) {
 			ConsoleMessage ("Shaders: support only GLSL shading language, got :%s:",node->language->strptr);
@@ -56,8 +55,6 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	
 						if (!((strcmp (part->type->strptr,"VERTEX")) && (strcmp(part->type->strptr,"FRAGMENT")))) {
 							char *myText = NULL;
-							int count;
-							int isTemp;
 							char filename[1000];
 							char firstBytes[4];
 							
@@ -162,6 +159,7 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 				node->__shaderIDS.p[0] = (void *)myProgram;
 			}
 		}
+
 		MARK_NODE_COMPILED
 	#endif	
 }
@@ -183,9 +181,11 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 void render_ComposedShader (struct X3D_ComposedShader *node) {
 	#ifdef GL_VERSION_2_0
 		COMPILE_IF_REQUIRED
-		if (node->__shaderIDS.n != 0) {
-			globalCurrentShader = (GLuint) node->__shaderIDS.p[0];
-			glUseProgram(globalCurrentShader);
+		if (node->isValid) {
+			if (node->__shaderIDS.n != 0) {
+				globalCurrentShader = (GLuint) node->__shaderIDS.p[0];
+				glUseProgram(globalCurrentShader);
+			}
 		}
 	#endif
 }
