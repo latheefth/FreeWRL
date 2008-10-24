@@ -761,6 +761,8 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DVertexAttributeNode			49
 #define X3DProgrammableShaderObject		50
 #define X3DUrlObject				51
+#define X3DEnvironmentTextureNode 52
+
 
 
 
