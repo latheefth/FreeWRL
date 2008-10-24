@@ -4,7 +4,7 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
-#include "../CFuncs/headers.h"
+#include "headers.h"
 #include <unistd.h>
 #include <getopt.h>
 #include <Snapshot.h>
