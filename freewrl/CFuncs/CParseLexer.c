@@ -1232,6 +1232,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         }
 
         for (i=0; i< url.n; i++) {
+		int removeIt = FALSE;
                 /* printf ("trying url %s\n",(url.p[i])->strptr); */
                 pound = strchr((url.p[i])->strptr,'#');
                 if (pound != NULL) {
@@ -1240,10 +1241,11 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
                 }
 
 
-                if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString)) {
+                if (getValidFileFromUrl (testname ,getInputURL(), &url, emptyString, &removeIt)) {
 
 
                         buffer = readInputString(testname);
+			if (removeIt) UNLINK (testname);
                         FREE_IF_NZ(testname)
                         embedEXTERNPROTO(me,myName,buffer,pound);
 

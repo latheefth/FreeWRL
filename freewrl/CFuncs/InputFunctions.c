@@ -114,9 +114,9 @@ char * readInputString(char *fn) {
 	char tempname[1000];
 	char sysline[1000];
 	char firstbytes[20];
-	int isTemp;
+	int isTemp = FALSE;
+	int removeIt = FALSE;
 
-	isTemp = FALSE;
 	bufcount = 0;
 	bufsize = 5 * READSIZE; /*  initial size*/
 	buffer =(char *)MALLOC(bufsize * sizeof (char));
@@ -136,7 +136,7 @@ char * readInputString(char *fn) {
 	strcpy (mynewname, fn);
 
 	/* check to see if this file exists */
-	if (!fileExists(mynewname,firstbytes,TRUE)) {
+	if (!fileExists(mynewname,firstbytes,TRUE,&removeIt)) {
 		ConsoleMessage("problem reading file '%s' ('%s')",fn,mynewname);
 		strcpy (buffer,"\n");
 		return buffer;
@@ -161,8 +161,7 @@ char * readInputString(char *fn) {
 		sprintf (sysline,"%s %s",UNZIP,tempname);
 
 		freewrlSystem (sysline);
-		strcpy(mynewname, tempname);
-		infile = fopen(mynewname,"r");
+		infile = fopen(tempname,"r");
 	} else {
 
 		/* ok, now, really read this one. */
@@ -196,7 +195,8 @@ char * readInputString(char *fn) {
 	/* printf ("finished read, buffcount %d\n string %s",bufcount,buffer); */
 	fclose (infile);
 
-	if (isTemp) unlink(mynewname);
+	if (isTemp) UNLINK(tempname);
+	if (removeIt) UNLINK (mynewname);
 
 	return (buffer);
 }

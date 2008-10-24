@@ -42,6 +42,8 @@ void *freewrlStrdup (int line, char *file, char *str);
 	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 #endif
 
+#define UNLINK(fdd) {printf ("unlinking %s at %s:%d\n",fdd,__FILE__,__LINE__); unlink (fdd); }
+
 /* children fields path optimizations */
 #define CHILDREN_COUNT int nc = node->children.n;
 #define RETURN_FROM_CHILD_IF_NOT_FOR_ME \
@@ -983,14 +985,14 @@ extern void xs_init(void);
 extern int navi_tos;
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
-extern int fileExists(char *fname, char *firstBytes, int GetIt);
+extern int fileExists(char *fname, char *firstBytes, int GetIt, int *isTemp);
 extern int checkNetworkFile(char *fn);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
-int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes);
+int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes, int* removeIt);
 void removeFilenameFromPath (char *path);
 
 

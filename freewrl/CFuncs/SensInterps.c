@@ -1563,7 +1563,7 @@ void do_SphereSensor ( void *ptr, int ev, int but1, int over) {
 void locateAudioSource (struct X3D_AudioClip *node) {
 	char *filename;
 	char *mypath;
-	char firstBytes[4]; /* not used here, but required for function call */
+	int removeIt = FALSE;
 
 	node->__sourceNumber = SoundSourceNumber;
 	SoundSourceNumber++;
@@ -1575,7 +1575,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 	/* copy the parent path over */
 	mypath = STRDUP(node->__parenturl->strptr);
 
-	if (getValidFileFromUrl (filename,mypath, &(node->url), firstBytes)) {
+	if (getValidFileFromUrl (filename,mypath, &(node->url), NULL, &removeIt)) {
 		/* save local file in the structure, so that it can
 		   be initialized later */
 		node->__localFileName = STRDUP(filename);

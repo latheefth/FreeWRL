@@ -1,4 +1,7 @@
 For 1.21.1
+	- removal of temporary files - code has been reworked, as some temporary files (specific:
+	  files retrieved by wget or curl) were not removed.
+
 	- initial work on CubeMapTextures.
 
 	- GeoPositionInterpolator - output value not translated to local spatial units. (fixed)

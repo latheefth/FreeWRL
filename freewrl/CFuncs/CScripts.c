@@ -259,8 +259,8 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  char *filename = NULL;
  char *buffer = NULL;
  char *mypath = NULL;
- char firstBytes[4]; /* not used here, but required for function call */
  int rv;
+ int removeIt = FALSE;
 
  /* strip off whitespace at the beginning JAS */
  while ((*uri<= ' ') && (*uri>0)) uri++;
@@ -301,21 +301,18 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  makeAbsoluteFileName(filename,mypath,(char *)uri);
 
  /* and see if it exists. If it does, try running script_initCode() on it */
- if (fileExists(filename,firstBytes,TRUE)) {
+ rv = FALSE;
+ if (fileExists(filename,NULL,TRUE,&removeIt)) {
 	buffer = readInputString(filename);
+ 	if (removeIt) UNLINK (filename);
 	rv = script_initCode(me,buffer);
-	FREE_IF_NZ (filename);
-	FREE_IF_NZ (buffer);
-	FREE_IF_NZ (mypath);
-	return rv;
  }
+
  FREE_IF_NZ (filename);
  FREE_IF_NZ (buffer);
  FREE_IF_NZ (mypath);
 
-
- /* Other protocols not supported */
- return FALSE;
+ return rv;
 }
 
 BOOL script_initCodeFromMFUri(struct Script* me, const struct Multi_String* s)

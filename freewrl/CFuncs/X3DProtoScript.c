@@ -94,7 +94,7 @@ void freeProtoMemory () {
 			if (PROTONames[i].fileOpen) fclose(PROTONames[i].fileDescriptor); /* should never happen... */
 
 			FREE_IF_NZ (PROTONames[i].name);
-			if (PROTONames[i].fileName != NULL) unlink (PROTONames[i].fileName);
+			if (PROTONames[i].fileName != NULL) UNLINK (PROTONames[i].fileName);
 			free (PROTONames[i].fileName); /* can not FREE_IF_NZ this one as it's memory is not kept track of by MALLOC */
 
 		}
@@ -825,8 +825,8 @@ void initScriptWithScript() {
 	char *thisurl;
 	int count;
 	char filename[1000];
-	char firstBytes[4];
 	int fromFile = FALSE;
+	int removeIt = FALSE;
 
 	/* semantic checking... */
 	me = (struct X3D_Script *)parentStack[parentIndex];
@@ -877,9 +877,10 @@ void initScriptWithScript() {
 				/* we work in absolute filenames... */
 				makeAbsoluteFileName(filename,mypath,thisurl);
 
-				if (fileExists(filename,firstBytes,TRUE)) {
+				if (fileExists(filename,NULL,TRUE,&removeIt)) {
 					myText = readInputString(filename);
 					fromFile = TRUE;
+					if (removeIt) UNLINK(filename);
 					break;
 				}
 			}

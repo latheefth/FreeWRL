@@ -173,7 +173,7 @@ void doBrowserAction () {
 	char *mypath;
 	char *thisurl;
 	int flen;
-	char firstBytes[4];
+	int removeIt = FALSE;
 
 #define LINELEN 2000
 	char sysline[LINELEN];
@@ -245,7 +245,7 @@ void doBrowserAction () {
 		if (!checkIfX3DVRMLFile(filename)) { break; }
 
 		/* ok, it might be a file we load into our world. */
-		if (fileExists(filename,firstBytes,FALSE)) { break; }
+		if (fileExists(filename,NULL,FALSE,&removeIt)) { break; }
 		count ++;
 	}
 
@@ -322,10 +322,6 @@ void doBrowserAction () {
  * Check to see if the file name is a geometry file.
  * return TRUE if it looks like it is, false otherwise
  *
- * We cant use the firstbytes of fileExists, because, we may be
- * trying to get a whole web-page for reload, and lets let the
- * browser adequately resolve that one.
- *
  * This should be kept in line with the plugin register code in
  * Plugin/netscape/source/npfreewrl.c
  */
@@ -352,7 +348,7 @@ void Anchor_ReplaceWorld (char *name) {
 	int tmp;
 	void *tt;
 	char filename[1000];
-	char firstBytes[4];
+	int removeIt = FALSE;
 
 	/* sanity check - are we actually going to do something with a name? */
 	if (name != NULL)
@@ -363,7 +359,7 @@ void Anchor_ReplaceWorld (char *name) {
 			   network. BUT - plugin code might pass us a networked file name for loading,
 			   (eg, check out current OSX plugin; hopefully still valid) */
 
-	                if (fileExists(filename,firstBytes,TRUE)) {
+	                if (fileExists(filename,NULL,TRUE,&removeIt)) {
 				/* kill off the old world, but keep EAI open, if it is... */
 				kill_oldWorld(FALSE,TRUE,TRUE);
 
@@ -374,6 +370,7 @@ void Anchor_ReplaceWorld (char *name) {
 				tt = BrowserFullPath;
 				BrowserFullPath = STRDUP(filename);
 				FREE_IF_NZ(tt);
+				if (removeIt) UNLINK (filename);
 				EAI_Anchor_Response (TRUE);
 				return;
 			} else {

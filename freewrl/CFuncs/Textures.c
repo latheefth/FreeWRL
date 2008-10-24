@@ -70,6 +70,7 @@ struct textureTableIndexStruct {
 	GLuint	*OpenGLTexture;
 	int	frames;
 	char    *filename;
+	int 	removeWhenFinished; /* it is a temp file created by wget or something... */
 
 
         GLint repeatS;
@@ -411,6 +412,7 @@ void registerTexture(struct X3D_Node *tmp) {
 				newStruct->entry[count].scenegraphNode = NULL;
 				newStruct->entry[count].filename = NULL;
 				newStruct->entry[count].nodeType = 0;
+				newStruct->entry[count].removeWhenFinished = FALSE;
 			}
 			
 			newStruct->next = NULL;
@@ -1247,6 +1249,7 @@ int findTextureFile (int cwo, int *istemp) {
 
         struct Uni_String *thisParent;
         struct Multi_String thisUrl;
+	int removeIt = FALSE;
 
 	/* pattern matching, for finding internally handled types */
 	char firstPNG[] = {0x89,0x50,0x4e,0x47};
@@ -1255,7 +1258,7 @@ int findTextureFile (int cwo, int *istemp) {
 	char firstMPGb[] = {0x00, 0x00, 0x01, 0xb3};
 
 
-	*istemp=FALSE;	/* don't remove this file */
+	*istemp=loadThisTexture->removeWhenFinished;	/* don't remove this file unless told to do so */
 	filename = NULL;
 
 	#ifdef TEXVERBOSE 
@@ -1264,6 +1267,7 @@ int findTextureFile (int cwo, int *istemp) {
 	/* try to find this file. */
 
 	if (loadThisTexture->nodeType !=NODE_PixelTexture) {
+
 		/* lets make up the path and save it, and make it the global path */
 
 		if (loadThisTexture->nodeType == NODE_ImageTexture) {
@@ -1278,7 +1282,7 @@ int findTextureFile (int cwo, int *istemp) {
 		/* Dangerous, better alloc this string in function getValidFileFromUrl ... */
 		filename = (char *)MALLOC(4096);
 
-		if (getValidFileFromUrl (filename,mypath, &thisUrl, firstBytes)) {
+		if (getValidFileFromUrl (filename,mypath, &thisUrl, firstBytes, &removeIt)) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: we were successful at locating %s\n",filename); 
 			#endif
@@ -1362,12 +1366,10 @@ int findTextureFile (int cwo, int *istemp) {
 	#endif
 
 	FREE_IF_NZ(loadThisTexture->filename);
+	loadThisTexture->removeWhenFinished = removeIt;
 	if (filename != NULL) {
 		loadThisTexture->filename = STRDUP(filename);
 		/* printf ("textureThread, so we have CACHE filename as %s\n",loadThisTexture->filename); */
-	} else if (filename != NULL) {
-		loadThisTexture->filename = STRDUP(filename);
-		/* printf ("textureThread, so we have non-cache filename as %s\n",loadThisTexture->filename); */
 	} else {
 		ConsoleMessage ("error getting Texturefile\n");
 		return FALSE;
@@ -1486,11 +1488,10 @@ void _textureThread(void) {
 				#endif
 
 				/* is this a temporary file? */
-/* 				if (remove) { */
-/* 					printf ("unlinking %s\n",loadThisTexture->filename); */
-/* 					unlink (loadThisTexture->filename); */
-/* 					FREE_IF_NZ(loadThisTexture->filename); */
-/* 				} */
+ 				if (remove) { 
+ 					UNLINK (loadThisTexture->filename); 
+ 					FREE_IF_NZ(loadThisTexture->filename); 
+ 				} 
 		} else {
 			printf ("can not find file - error!!\n");
 		}

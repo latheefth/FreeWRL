@@ -100,7 +100,7 @@ void saveSnapSequence() {
 		/* remove temporary files */
 		for (xx=1; xx <= snapRawCount; xx++) {
 			sprintf (thisRawFile, "%s/%s.%04d.rgb",mytmp,myseqb,xx);
-			unlink (thisRawFile);
+			UNLINK (thisRawFile);
 		}
 		snapRawCount=0;
 }
@@ -316,7 +316,7 @@ void Snapshot () {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			}
 			printf ("snapshot is :%s\n",thisGoodFile);
-			unlink (thisRawFile);
+			UNLINK (thisRawFile);
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 

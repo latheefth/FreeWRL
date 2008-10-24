@@ -193,7 +193,7 @@ void removeFilenameFromPath (char *path) {
 
 /* given a URL, find the first valid file, and return it */
 /* WARNING - MAKE SURE THE FIRST PARAMETER IS LARGE, LIKE 1000 BYTES */
-int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes) {
+int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl, char *firstBytes, int *removeIt) {
 	char *thisurl;
 	int count;
 
@@ -217,7 +217,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
 		makeAbsoluteFileName(filename,path,thisurl);
 		/* printf ("getValidFile, thread %u filename %s\n",pthread_self(),filename); */
 
-		if (fileExists(filename,firstBytes,TRUE)) {
+		if (fileExists(filename,firstBytes,TRUE,removeIt)) {
 			return TRUE;
 		}
 		count ++;
@@ -263,7 +263,7 @@ int checkNetworkFile(char *fn) {
 #define outputDirector "-O"
 #endif
 
-int fileExists(char *fname, char *firstBytes, int GetIt) {
+int fileExists(char *fname, char *firstBytes, int GetIt, int *removeIt) {
 	FILE *fp;
 	int ok;
 
@@ -273,6 +273,9 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	#ifdef VERBOSE
 	printf ("fileExists: checking for filename here %s\n",fname);
 	#endif
+
+	/* assume that this file stays around, unless we know that it is a temp file */
+	*removeIt = FALSE;
 
 	if (checkNetworkFile(fname)) {
 		/* if we are running as a plugin, ask the HTML browser for ALL files, as it'll know proxies, etc. */
@@ -315,6 +318,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 			    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 			    freewrlSystem (sysline);
 			    strcpy (fname,tempname);
+			    *removeIt = TRUE;
 			} else {
 			    printf ("Internal FreeWRL problem - strings too long for wget\n");
 			}
@@ -327,13 +331,15 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 	/* try reading the first 4 bytes into the firstBytes array */
 	if (ok) {
-		if (fread(firstBytes,1,4,fp)!=4) {
+		if (firstBytes != NULL) {
+		  if (fread(firstBytes,1,4,fp)!=4) {
 			ConsoleMessage ("file %s exists, but has a length < 4; can not determine type from first bytes\n",fname);
 			/* a file with less than 4 bytes in it. fill in the firstBytes with "something" */
 			firstBytes[0] = 0;
 			firstBytes[1] = 0;
 			firstBytes[2] = 0;
 			firstBytes[3] = 0;
+		  }  
 		}
 		fclose (fp);
 	}
@@ -798,18 +804,18 @@ void __pt_doInline() {
 	char *filename;
 	struct Multi_String *inurl;
 	struct X3D_Inline *inl;
-	char firstBytes[4];
 	inl = (struct X3D_Inline *)psp.ptr;
 	inurl = &(inl->url);
 	filename = (char *)MALLOC(1000);
 	filename[0] = '\0';
+	int removeIt = FALSE;
 
 	/* lets make up the path and save it, and make it the global path */
 	psp.path = STRDUP(inl->__parenturl->strptr);
 
 	/* printf ("doInline, checking for file from path %s\n",psp.path); */
 
-	if (getValidFileFromUrl (filename, psp.path, inurl, firstBytes)) {
+	if (getValidFileFromUrl (filename, psp.path, inurl,NULL,&removeIt)) {
 		/* were we successful at locating one of these? if so, make it into a FROMURL */
 		/* printf ("doInline, we were successful at locating %s\n",filename);  */
 		psp.type=FROMURL;

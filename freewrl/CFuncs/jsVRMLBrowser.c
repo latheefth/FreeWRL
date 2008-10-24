@@ -456,10 +456,10 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	char tfilename [myFileSizeLimit];
 	char *tfptr; 
 	char *coptr;
-	char firstBytes[4];
 	char *bfp;
 	int found;
 	int count;
+	int removeIt = FALSE;
 
 	/* rval is always zero, so lets just set it */
 	*rval = INT_TO_JSVAL(0);
@@ -574,7 +574,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
         	        /* we work in absolute filenames... */
                 	makeAbsoluteFileName(filename,bfp,tfilename);
 
-                	if (fileExists(filename,firstBytes,TRUE)) {
+                	if (fileExists(filename,NULL,TRUE, &removeIt)) {
 			/* printf ("file exists, break\n"); */
 			found = TRUE;
         	        } 
@@ -596,6 +596,8 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	globalParser = NULL;
 	ra = EAI_CreateVrml("URL",filename,nodarr,200);
 	globalParser = savedParser;
+
+	if (removeIt) UNLINK (filename);
 
 	/* now, we make up a string of nodes, pass it to setField_fromJavascript that
 	takes this string apart. oh well... */

@@ -31,6 +31,8 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		/* do we have anything to compile? */
 		int haveVertShaderText = FALSE; 
 		int haveFragShaderText = FALSE; 
+
+		int removeIt = FALSE;
 	
 		/* set this up... set it to FALSE if there are problems */
 		node->isValid = TRUE;
@@ -56,11 +58,11 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 						if (!((strcmp (part->type->strptr,"VERTEX")) && (strcmp(part->type->strptr,"FRAGMENT")))) {
 							char *myText = NULL;
 							char filename[1000];
-							char firstBytes[4];
 							
 	
-							if (getValidFileFromUrl (filename, part->__parenturl->strptr, &part->url, firstBytes) ) {
-								myText = readInputString(filename); 
+							if (getValidFileFromUrl (filename, part->__parenturl->strptr, &part->url, NULL, &removeIt) ) {
+								myText = readInputString(filename);
+								if (removeIt) UNLINK(filename);
 							} else {
 								ConsoleMessage ("error reading ShaderPart");
 								myText = "";
