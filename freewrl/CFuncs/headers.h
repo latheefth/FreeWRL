@@ -1680,5 +1680,7 @@ void proximity_##type (struct X3D_##type *node) { \
 	*/ \
 } 
 
+/* Cube map component */
+#include "Component_CubeMapTexturing.h"
 
 #endif /* __HEADERS_H__ */
