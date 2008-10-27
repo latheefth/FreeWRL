@@ -43,14 +43,14 @@ struct ScriptFieldDecl
 /* Structure that holds information regarding script fields that are targets in PROTO IS statements */
 struct ScriptFieldInstanceInfo {
 	struct ScriptFieldDecl* decl;
-	struct Script* script;
+	struct Shader_Script* script;
 };
 
 /* Constructor and destructor */
 /* ************************** */
 
 struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer*, indexT, indexT, indexT);
-struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl*, struct Script*);
+struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl*, struct Shader_Script*);
 struct ScriptFieldDecl* scriptFieldDecl_copy(struct VRMLLexer*, struct ScriptFieldDecl*);
 void deleteScriptFieldDecl(struct ScriptFieldDecl*);
 
@@ -77,9 +77,10 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl*, uintptr_t);
 /* Struct */
 /* ****** */
 
-struct Script
+struct Shader_Script
 {
- uintptr_t num;	/* The script handle */
+ struct X3D_Node *ShaderScriptNode; /* NODE_Script, NODE_ComposedShader, etc */
+ uintptr_t num;	/* The script handle  if a script, -1 if a shader */
  BOOL loaded;	/* Has the code been loaded into this script? */
  struct Vector* fields;
 };
@@ -87,22 +88,22 @@ struct Script
 /* Constructor and destructor */
 /* ************************** */
 
-struct Script* newScript();
+struct Shader_Script* new_Shader_Script(struct X3D_Node *);
 void deleteScript();
 
 /* Other members */
 /* ************* */
 
 /* Initializes the script with its code */
-BOOL script_initCode(struct Script*, const char*);
-BOOL script_initCodeFromUri(struct Script*, const char*);
-BOOL script_initCodeFromMFUri(struct Script*, const struct Multi_String*);
+BOOL script_initCode(struct Shader_Script*, const char*);
+BOOL script_initCodeFromUri(struct Shader_Script*, const char*);
+BOOL script_initCodeFromMFUri(struct Shader_Script*, const struct Multi_String*);
 
 /* Add a new field */
-void script_addField(struct Script*, struct ScriptFieldDecl*);
+void script_addField(struct Shader_Script*, struct ScriptFieldDecl*);
 
 /* Get a field by name */
-struct ScriptFieldDecl* script_getField(struct Script*, indexT ind, indexT mod);
+struct ScriptFieldDecl* script_getField(struct Shader_Script*, indexT ind, indexT mod);
 
 
 void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value);

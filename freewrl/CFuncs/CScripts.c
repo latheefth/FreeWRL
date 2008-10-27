@@ -60,7 +60,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 }
 
 /* Create a new ScriptFieldInstanceInfo structure to hold information about script fields that are destinations for IS statements in PROTOs */
-struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl* dec, struct Script* script) {
+struct ScriptFieldInstanceInfo* newScriptFieldInstanceInfo(struct ScriptFieldDecl* dec, struct Shader_Script* script) {
 	struct ScriptFieldInstanceInfo* ret = MALLOC(sizeof(struct ScriptFieldInstanceInfo));
 	
 	ASSERT(ret);
@@ -183,25 +183,31 @@ struct X3D_Script * protoScript_copy (struct X3D_Script *me) {
 /* on a reload, zero script counts */
 void zeroScriptHandles (void) {handleCnt = 0;}
 
-struct Script* newScript(void)
-{
- struct Script* ret=MALLOC(sizeof(struct Script));
- ASSERT(ret);
+/* this can be a script, or a shader, take your pick */
+struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
+ 	struct Shader_Script* ret=MALLOC(sizeof(struct Shader_Script));
 
- ret->num=nextScriptHandle();
- 	#ifdef CPARSERVERBOSE
-	printf("newScript: created new script with num %d\n", ret->num);
-	#endif
- ret->loaded=FALSE;
+ 	ASSERT(ret);
 
- ret->fields=newVector(struct ScriptFieldDecl*, 4);
+	ret->loaded=FALSE;
+	ret->fields=newVector(struct ScriptFieldDecl*, 4);
+	ret->ShaderScriptNode = node; 	/* pointer back to the node that this is associated with */
 
- JSInit(ret->num);
+	if (node->_nodeType == NODE_Script) {
+	 	ret->num=nextScriptHandle();
+ 		#ifdef CPARSERVERBOSE
+			printf("newScript: created new script with num %d\n", ret->num);
+		#endif
 
- return ret;
+		JSInit(ret->num);
+	} else {
+		ret->num = -1;
+	}
+
+	return ret;
 }
 
-void deleteScript(struct Script* me)
+void deleteScript(struct Shader_Script* me)
 {
  size_t i;
  for(i=0; i!=vector_size(me->fields); ++i)
@@ -215,7 +221,7 @@ void deleteScript(struct Script* me)
 /* Other members */
 /* ************* */
 
-struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
+struct ScriptFieldDecl* script_getField(struct Shader_Script* me, indexT n, indexT mod)
 {
  size_t i;
  for(i=0; i!=vector_size(me->fields); ++i)
@@ -229,7 +235,7 @@ struct ScriptFieldDecl* script_getField(struct Script* me, indexT n, indexT mod)
  return NULL;
 }
 
-void script_addField(struct Script* me, struct ScriptFieldDecl* field)
+void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
 {
  #ifdef CPARSERVERBOSE
  printf ("script_addField: adding field %p to script %d (pointer %p)\n",field,me->num,me); 
@@ -240,7 +246,7 @@ void script_addField(struct Script* me, struct ScriptFieldDecl* field)
 }
 
 /* save the script code, as found in the VRML/X3D URL for this script */
-BOOL script_initCode(struct Script* me, const char* code)
+BOOL script_initCode(struct Shader_Script* me, const char* code)
 {
  	ASSERT(!me->loaded);
 
@@ -253,7 +259,7 @@ BOOL script_initCode(struct Script* me, const char* code)
    contains the script; if not, it goes and tries to see if the SFString 
    contains a file that (hopefully) contains the script */
 
-BOOL script_initCodeFromUri(struct Script* me, const char* uri)
+BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 {
  size_t i;
  char *filename = NULL;
@@ -315,7 +321,7 @@ BOOL script_initCodeFromUri(struct Script* me, const char* uri)
  return rv;
 }
 
-BOOL script_initCodeFromMFUri(struct Script* me, const struct Multi_String* s)
+BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s)
 {
  size_t i;
  for(i=0; i!=s->n; ++i)

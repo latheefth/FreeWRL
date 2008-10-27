@@ -164,7 +164,7 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  /* For each script field mapped to this proto field, add a route */
  for (i=0; i!=vector_size(me->scriptDests); ++i) {
 	struct ScriptFieldInstanceInfo* sfield = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
-	struct Script* toscript = sfield->script;
+	struct Shader_Script* toscript = sfield->script;
 	struct ScriptFieldDecl* tosfield = sfield->decl;
 	if (dir == FROM_SCRIPT) {
 		dir = SCRIPT_TO_SCRIPT;
@@ -188,7 +188,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
  /* For each script field mapped to this proto field, add a route */
  for (i=0; i!=vector_size(me->scriptDests); ++i) {
 	struct ScriptFieldInstanceInfo* sfield = vector_get(struct ScriptFieldInstanceInfo*, me->scriptDests, i);
-	struct Script* fromscript = sfield->script;
+	struct Shader_Script* fromscript = sfield->script;
 	struct ScriptFieldDecl* fromsfield = sfield->decl;
 	if (dir == TO_SCRIPT) {
 		dir = SCRIPT_TO_SCRIPT;
@@ -465,14 +465,14 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
  }
  if (node->_nodeType == NODE_Script) {
   /* If this is a script node, create a new context for the script */
-	struct Script* old_script;
-	struct Script* new_script;
+	struct Shader_Script* old_script;
+	struct Shader_Script* new_script;
 	struct X3D_Script* ret2 = (struct X3D_Script*) ret;
 	struct X3D_Script* node2 = (struct X3D_Script*) node;
 	int i, j, k;
 
  	old_script = node2->__scriptObj; 
-	ret2->__scriptObj = newScript();
+	ret2->__scriptObj = new_Shader_Script(node);
 
 	new_script = ret2->__scriptObj;
 

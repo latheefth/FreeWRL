@@ -480,7 +480,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
    Creates a protoFieldDecl or scriptFieldDecl structure to hold field data.
    Parses and stores the default value of fields and inputOutputs.
    Adds the protoFieldDecl or scriptFieldDecl to the list of fields in the ProtoDefinition or Script structure. */ 
-BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* proto, struct Script* script) {
+BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script) {
  indexT mode;
  indexT type;
  indexT name;
@@ -1061,7 +1061,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT fromNodeIndex;
  struct X3D_Node* fromNode;
  struct ProtoDefinition* fromProto=NULL;
- struct Script* fromScript=NULL;
+ struct Shader_Script* fromScript=NULL;
  indexT fromFieldO;
  indexT fromFieldE;
  indexT fromUFieldO;
@@ -1073,7 +1073,7 @@ BOOL parser_routeStatement(struct VRMLParser* me)
  indexT toNodeIndex;
  struct X3D_Node* toNode;
  struct ProtoDefinition* toProto=NULL;
- struct Script* toScript=NULL;
+ struct Shader_Script* toScript=NULL;
  indexT toFieldO;
  indexT toFieldE;
  indexT toUFieldO;
@@ -1835,7 +1835,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 		#ifdef CPARSERVERBOSE
 		printf("parser_node: parsing builtin node\n");
 		#endif
-		struct Script* script=NULL;
+		struct Shader_Script* script=NULL;
 		 
 		/* Get malloced struct of appropriate X3D_Node type with default values filled in */
 		node=X3D_NODE(createNewX3DNode(nodeTypeB));
@@ -1852,7 +1852,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 		}
 		
 		/* Node specific initialization */
-		/* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to newScript() */
+		/* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to new_Shader_Script() */
 		parser_specificInitNode(node, me);
 		
 		/* Set curScript for Script-nodes */
@@ -2180,7 +2180,7 @@ void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
 
   /* Scripts get a script object associated to them */
   NODE_SPECIFIC_INIT(Script,
-   node->__scriptObj=newScript();
+   node->__scriptObj=new_Shader_Script(node);
    )
 
  }

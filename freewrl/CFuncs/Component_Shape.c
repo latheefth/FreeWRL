@@ -325,7 +325,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 				SET_SHADER_SELECTED_FALSE
 			} else {
 				/* render this node; if it is valid, then we call this one the selected one */
-				printf ("running shader (%s) %d of %d\n",stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n); 
+				/* printf ("running shader (%s) %d of %d\n",stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);  */
 				render_node(tmpN);
 				SET_FOUND_GOOD_SHADER
 			}
