@@ -14,6 +14,8 @@
 #include <math.h>
 #include "headers.h"
 #include "installdir.h"
+
+float global_transparency;
  
 #define SET_SHADER_SELECTED_FALSE \
 	switch (X3D_NODE(tmpN)->_nodeType) { \
@@ -132,11 +134,10 @@ void render_Material (struct X3D_Material *node) {
 
 	/* set the transparency here for the material */
 	trans = 1.0 - node->transparency;
+	global_transparency = node->transparency;
+
 	if (trans<0.0) trans = 0.0;
 	if (trans>=0.99) trans = 0.99;
-
-	/* record this for possible texture filtering later */
-	last_transparency = trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
@@ -184,6 +185,7 @@ void child_Shape (struct X3D_Shape *node) {
 	this_textureTransform = 0;
 	global_lineProperties=FALSE;
 	global_fillProperties=FALSE;
+	global_transparency = 0.0;
 
 
 
@@ -199,6 +201,7 @@ void child_Shape (struct X3D_Shape *node) {
 	   node will turn lighting off; in this case, at the end of Shape, we
 	   have to turn lighting back on again. */
 	LIGHTING_ON
+
 	COLOR_MATERIAL_OFF
 	
 	/* if we have a very few samples, it means that:
@@ -214,22 +217,9 @@ void child_Shape (struct X3D_Shape *node) {
 
 		/* dont do any textures, or anything */
 		last_texture_type = NOTEXTURE;
-		last_transparency = 1.0;
 	} else {
-	/* is there an associated appearance node? */
-       			if(node->appearance) {
-			POSSIBLE_PROTO_EXPANSION(node->appearance,tmpN)
-			render_node(tmpN);
-       			} else {
-			/* no material, so just colour the following shape */
-	       		/* Spec says to disable lighting and set coloUr to 1,1,1 */
-	       		LIGHTING_OFF
-       				glColor3f(1.0,1.0,1.0);
-
-			/* tell the rendering passes that this is just "normal" */
-			last_texture_type = NOTEXTURE;
-			last_transparency = 1.0;
-		}
+		/* is there an associated appearance node? */
+		RENDER_MATERIAL_SUBNODES(node->appearance)
 	}
 
 	/* now, are we rendering blended nodes or normal nodes?*/
@@ -269,22 +259,13 @@ void child_Shape (struct X3D_Shape *node) {
 
 void child_Appearance (struct X3D_Appearance *node) {
 	last_texture_type = NOTEXTURE;
-	last_transparency = 1.0;
 	void *tmpN;
 
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	 printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-	if(node->material) {
-		POSSIBLE_PROTO_EXPANSION(node->material,tmpN)
-		render_node(tmpN);
-	} else {
-		/* no material, so just colour the following shape */
-		/* Spec says to disable lighting and set coloUr to 1,1,1 */
-		LIGHTING_OFF
-		glColor3f(1.0,1.0,1.0);
-	}
+	RENDER_MATERIAL_SUBNODES(node->material)
 
 	if (node->fillProperties) {
 		POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN)

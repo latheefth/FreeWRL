@@ -56,7 +56,7 @@ void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
    background coloUr??? Larry the Cucumber, help! */
 
-int setActiveTexture (int c) {
+int setActiveTexture (int c, GLfloat thisTransparency) {
         struct multiTexParams *paramPtr;
 	float allones[] = {1.0, 1.0, 1.0, 1.0};
 
@@ -87,7 +87,7 @@ int setActiveTexture (int c) {
 			#endif
 
 			/* flit in the Material transparency here */
-			allones[3] = last_transparency;
+			allones[3] = thisTransparency;
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
                 }
 
@@ -215,7 +215,7 @@ void passedInGenTex(GLfloat *genTex) {
 	for (c=0; c<texture_count; c++) {
 		/* are we ok with this texture yet? */
 		if (bound_textures[c]!=0) {
-			if (setActiveTexture(c)) {
+			if (setActiveTexture(c,1.0)) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 				glTexCoordPointer (2,GL_FLOAT,0,genTex);
@@ -241,7 +241,7 @@ void haveTexCoord(struct X3D_IndexedFaceSet *texC, struct X3D_TextureCoordinate 
 		/* are we ok with this texture yet? */
 		/* printf ("haveTexCoord, bound_textures[c] = %d\n",bound_textures[c]); */
 		if (bound_textures[c] !=0) {
-			if (setActiveTexture(c)) {
+			if (setActiveTexture(c,1.0)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 				glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
@@ -277,7 +277,7 @@ void haveMultiTexCoord(struct X3D_IndexedFaceSet *texC) {
 				render_node (X3D_NODE(myTCnode));
 				/* are we ok with this texture yet? */
 				if (bound_textures[c] != 0) {
-					if (setActiveTexture(c)) {
+					if (setActiveTexture(c,1.0)) {
         					if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 						glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 						glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
@@ -296,7 +296,7 @@ void haveMultiTexCoord(struct X3D_IndexedFaceSet *texC) {
 		}
 		/* are we ok with this texture yet? */
 		if (bound_textures[c] != 0) {
-			if (setActiveTexture(c)) {
+			if (setActiveTexture(c,1.0)) {
         			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
@@ -324,7 +324,7 @@ void haveTexCoordGenerator (struct X3D_IndexedFaceSet *texC, struct X3D_TextureC
 		render_node (texC->texCoord);
 		/* are we ok with this texture yet? */
 		if (bound_textures[c] != 0) {
-			if (setActiveTexture(c)) {
+			if (setActiveTexture(c,1.0)) {
 	       			if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 

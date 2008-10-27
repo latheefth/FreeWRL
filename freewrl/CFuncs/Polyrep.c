@@ -9,16 +9,34 @@
 #include "Polyrep.h"
 
 /* reset colors to defaults, if we have to */
-GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
-GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
-GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
-GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
-
-GLfloat last_color[] = {0.0,0.0,0.0};
+static GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
+static GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
+static GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
+static GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
 
 
-/* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
+/* Polyrep rendering, node has a color field, which is an RGB field (not RGBA) and transparency is changing */
+static void recalculateColorField(struct X3D_PolyRep *r) {
+	int n;
+	struct SFColorRGBA *newcolors;
+	float *op, *np;
 
+	/* first, make sure we do not do this over and over... */
+	r->transparency = global_transparency;
+
+	newcolors = (struct SFColorRGBA*)MALLOC (sizeof (struct SFColorRGBA)*r->ntri*3);
+	op = r->color;
+	np = (float *)newcolors;
+
+	for (n=0; n<r->ntri*3; n++) {
+		*np = *op; np++; op++;  		/* R */
+		*np = *op; np++; op++;  		/* G */
+		*np = *op; np++; op++;  		/* B */
+		*np = global_transparency; np++; op++;	/* A */
+	}
+	FREE_IF_NZ(r->color);
+	r->color = (float *)newcolors;
+}
 
 /* How many faces are in this IndexedFaceSet?			*/
 
@@ -691,7 +709,7 @@ void Extru_ST_map(
    Used for copying color X3DColorNode values over for streaming the
    structure. */
 
-void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA) {
+void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, GLfloat thisTransparency) {
 	int i;
 	int pc;
 
@@ -711,7 +729,7 @@ void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA) {
 	if (isRGBA) {
 		dest->r[3] = param[3];
 	} else {
-		dest->r[3] = last_transparency;
+		dest->r[3] = thisTransparency;
 	}
 }
 
@@ -776,6 +794,11 @@ void render_polyrep(void *node) {
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
+		if (!r->isRGBAcolorNode) 
+			if (!APPROX(r->transparency,global_transparency)) {
+				recalculateColorField(r);
+			}
+	
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
@@ -807,7 +830,6 @@ void render_polyrep(void *node) {
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->actualCoord);
-/* printf ("render_polyrep, ntri %d\n",r->ntri); */
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
 
 	trisThisLoop += r->ntri;
@@ -1019,6 +1041,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 
 	v = *(struct X3D_Virt **)node;
 	p = X3D_NODE(node);
+
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
 

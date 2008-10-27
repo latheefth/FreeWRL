@@ -58,6 +58,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	struct X3D_PolyRep *r;
 	int i, j;
 	int hasc;
+	GLfloat thisTrans;
 
 	struct SFColor *points=0; int npoints;
 	struct SFColor *colors=0; int ncolors=0;
@@ -83,7 +84,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	p = (struct X3D_IndexedFaceSet *)node;
 	r = (struct X3D_PolyRep *)p->_intern;
 
-	/* printf ("stream_polyrep, at start, we have %d triangles texCoord %u\n",r->ntri,texCoord); */
+	/* printf ("stream_polyrep, at start, we have %d triangles texCoord %u\n",r->ntri,texCoord);  */
 
 	/* does this one have any triangles here? (eg, an IFS without coordIndex) */
 	if (r->ntri==0) {
@@ -106,7 +107,11 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
 			printf ("stream_polyrep, expected %d got %d\n", NODE_Color, cc->_nodeType);
 			r->ntri=0; return;
-		} else { colors = cc->color.p; ncolors = cc->color.n; isRGBA = (cc->_nodeType == NODE_ColorRGBA); }
+		} else { 
+			colors = cc->color.p; 
+			ncolors = cc->color.n; 
+			isRGBA = (cc->_nodeType == NODE_ColorRGBA); 
+		}
 	}
 	
 	if(normal) {
@@ -201,6 +206,39 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	/* do we need to generate default texture mapping? */
 	if (MUST_GENERATE_TEXTURES) defaultTextureMap(p, r, points, npoints);
 
+	/* figure out transparency for this node. Go through scene graph, and looksie for it. */
+	thisTrans = 0.0;
+	/* 
+	printf ("figuring out what the transparency of this node is \n");
+	printf ("nt %s\n",stringNodeType(X3D_NODE(node)->_nodeType));
+	*/
+	/* parent[0] should be a NODE_Shape */
+	{ 
+		struct X3D_Shape *parent;
+		if (X3D_NODE(node)->_nparents != 0) {
+			parent = X3D_SHAPE(X3D_NODE(node)->_parents[0]);
+			/* printf ("nt, parent is of type %s\n",stringNodeType(parent->_nodeType)); */
+			if (parent->_nodeType == NODE_Shape) {
+				struct X3D_Appearance *app;
+                		POSSIBLE_PROTO_EXPANSION(parent->appearance,(void *)app)
+				/* printf ("appearance is of type %s\n",stringNodeType(app->_nodeType)); */
+				if (app != NULL)  {
+					if (app->_nodeType == NODE_Appearance) {
+						struct X3D_Material *mat;
+                				POSSIBLE_PROTO_EXPANSION(app->material,(void *)mat)
+						/* printf ("material is of type %s\n",stringNodeType(mat->_nodeType)); */
+
+						if (mat != NULL) {
+							if (mat->_nodeType == NODE_Material) {
+								thisTrans = mat->transparency;
+								/* printf ("Set transparency to %f\n",thisTrans); */
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	/* now, lets go through the old, non-linear polyrep structure, and
 	   put it in a stream format */
@@ -271,9 +309,9 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 					printf ("\n");
 				#endif
 				if (isRGBA)
-					do_glColor4fv(&newcolors[i],oldColorsRGBA[coli].r,isRGBA);
+					do_glColor4fv(&newcolors[i],oldColorsRGBA[coli].r,isRGBA,thisTrans);
 				else
-					do_glColor4fv(&newcolors[i],colors[coli].c,isRGBA);
+					do_glColor4fv(&newcolors[i],colors[coli].c,isRGBA,thisTrans);
 			} else if(r->color) {
 				#ifdef STREAM_POLY_VERBOSE
 					printf ("coloUr");
@@ -281,9 +319,9 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 					printf ("\n");
 				#endif
 				if (isRGBA)
-					do_glColor4fv(&newcolors[i],r->color+4*coli,isRGBA);
+					do_glColor4fv(&newcolors[i],r->color+4*coli,isRGBA,thisTrans);
 				else
-					do_glColor4fv(&newcolors[i],r->color+3*coli,isRGBA);
+					do_glColor4fv(&newcolors[i],r->color+3*coli,isRGBA,thisTrans);
 			}
 		}
 
@@ -356,6 +394,10 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	/* finished streaming, tell the rendering thread that we can now display this one */
 	r->streamed=TRUE;
+
+	/* record the transparency, in case we need to re-do this field */
+	r->transparency = thisTrans;
+	r->isRGBAcolorNode = isRGBA;
 }
 
 

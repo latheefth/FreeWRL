@@ -43,7 +43,6 @@ int nextlight() {
    and diffusecolor with texture, else, we dont bother with material colors */
 
 int last_texture_type = NOTEXTURE;
-float last_transparency = 0.0;
 
 /* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
    structures on these */
