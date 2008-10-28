@@ -1,4 +1,7 @@
 For 1.21.1
+	- Javascript, direct writing to scenegraph, boolean values were not correctly translated from
+	  javascript to freewrl internal values.
+
 	- FaceSets with Color node, not taking material properties correctly (especially transparency)
 
 	- FaceSets, with RGB Color node, keep track of associated material transparency, and work through

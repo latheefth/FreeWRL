@@ -1013,8 +1013,8 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, int type)
 	char * _cc;
 
 	#ifdef JSVRMLCLASSESVERBOSE
-	char *_cc;
 	JSString *_str;
+	char * _c;
 		printf ("doMFSetProperty, for object %u, vp %u\n", obj,*vp);
 		_str = JS_ValueToString(cx, id);
 		_c = JS_GetStringBytes(_str);
