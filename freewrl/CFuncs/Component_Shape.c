@@ -15,7 +15,7 @@
 #include "headers.h"
 #include "installdir.h"
 
-float global_transparency;
+float global_transparency = 1.0;
  
 #define SET_SHADER_SELECTED_FALSE \
 	switch (X3D_NODE(tmpN)->_nodeType) { \
@@ -134,10 +134,10 @@ void render_Material (struct X3D_Material *node) {
 
 	/* set the transparency here for the material */
 	trans = 1.0 - node->transparency;
-	global_transparency = node->transparency;
 
 	if (trans<0.0) trans = 0.0;
-	if (trans>=0.99) trans = 0.99;
+	if (trans>=0.999999) trans = 0.9999999;
+	global_transparency = trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;

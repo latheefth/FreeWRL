@@ -754,6 +754,10 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	cindex = rep_->cindex = (int*)MALLOC(sizeof(*(rep_->cindex))*3*(ntri));
 	colindex = rep_->colindex = (int*)MALLOC(sizeof(*(rep_->colindex))*3*(ntri));
 	norindex = rep_->norindex = (int*)MALLOC(sizeof(*(rep_->norindex))*3*ntri);
+	
+	/* zero the indexes */
+	bzero (colindex,sizeof(*(rep_->colindex))*3*(ntri));
+	bzero (norindex,sizeof(*(rep_->colindex))*3*(ntri));
 
 	/* if we calculate normals, we use a normal per point, NOT per triangle */
 	if (!nnormals) {  		/* 3 vertexes per triangle, and 3 points per tri */
@@ -905,22 +909,27 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 				/* Vertex Colours */
 				if(ncolors) {
 					if (colin) {
+						int tmpI;
 						/* we have a colorIndex */
-						if (cpv) {
-							colindex[vert_ind] = ((this_->colorIndex).p[this_coord+global_IFS_Coords[i]]);
-							/* printf ("col1, index %d\n",colindex[vert_ind]);*/
+						if (cpv) tmpI = this_coord+global_IFS_Coords[i];
+						else tmpI = this_face;
+						
+						if (tmpI >= this_->colorIndex.n) {
+							printf ("faceSet, colorIndex problem, %d >= %d\n", tmpI, this_->colorIndex.n);
+							colindex[vert_ind] = 0;
 						} else {
-							colindex[vert_ind] = ((this_->colorIndex).p[this_face]);
-							/*  printf ("col2, index %d\n",colindex[vert_ind]);*/
+							colindex[vert_ind] = this_->colorIndex.p[tmpI];
 						}
+						/* printf ("col2, index %d\n",colindex[vert_ind]); */
+						
 					} else {
 						/* no colorIndex  - use the coordIndex */
 						if (cpv) {
 							colindex[vert_ind] = ((this_->coordIndex).p[this_coord+global_IFS_Coords[i]]);
-							/*  printf ("col3, index %d\n",colindex[vert_ind]);*/
+							  /* printf ("col3, index %d\n",colindex[vert_ind]); */
 						} else {
 							colindex[vert_ind] = this_face;
-							/*  printf ("col4, index %d\n",colindex[vert_ind]);*/
+							  /* printf ("col4, index %d\n",colindex[vert_ind]); */
 						}
 					}
 				}

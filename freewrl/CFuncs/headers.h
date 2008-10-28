@@ -243,11 +243,13 @@ node for ANY node that takes something other than a Group */
        		} else { \
 			/* no material, so just colour the following shape */ \
 	       		/* Spec says to disable lighting and set coloUr to 1,1,1 */ \
-	       		LIGHTING_OFF \
-       			glColor3f(1.0,1.0,1.0); \
+	       		LIGHTING_OFF  \
+       			glColor3f(0.5,0.5,0.5); \
  \
 			/* tell the rendering passes that this is just "normal" */ \
 			last_texture_type = NOTEXTURE; \
+			/* same with global_transparency */ \
+			global_transparency=0.99999; \
 		} \
 	}
 

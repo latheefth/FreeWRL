@@ -9,7 +9,7 @@
 #include "Polyrep.h"
 
 /* reset colors to defaults, if we have to */
-static GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
+static GLfloat diffuseColor[] = {0.3, 0.3, 0.8,1.0};
 static GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
 static GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
 static GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
@@ -705,35 +705,6 @@ void Extru_ST_map(
 }
 
 
-/* take 3 or 4 floats, bounds check them, and put them in a destination. 
-   Used for copying color X3DColorNode values over for streaming the
-   structure. */
-
-void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, GLfloat thisTransparency) {
-	int i;
-	int pc;
-
-	if (isRGBA) pc = 4; else pc = 3;
-
-	/* parameter checks */
-	for (i=0; i<pc; i++) {
-		if ((param[i] < 0.0) || (param[i] >1.0)) {
-			param[i] = 0.5;
-		}
-	}
-	dest->r[0] = param[0];
-	dest->r[1] = param[1];
-	dest->r[2] = param[2];
-
-	/* does this color have an alpha channel? */
-	if (isRGBA) {
-		dest->r[3] = param[3];
-	} else {
-		dest->r[3] = thisTransparency;
-	}
-}
-
-
 void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 	struct point_XYZ myp;
 
@@ -799,12 +770,13 @@ void render_polyrep(void *node) {
 				recalculateColorField(r);
 			}
 	
+		LIGHTING_ON
+		COLOR_MATERIAL_ON
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
-		COLOR_MATERIAL_ON
 	}
 
 	/*  clockwise or not?*/

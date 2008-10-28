@@ -1,4 +1,9 @@
 For 1.21.1
+	- FaceSets with Color node, not taking material properties correctly (especially transparency)
+
+	- FaceSets, with RGB Color node, keep track of associated material transparency, and work through
+	  color node changes.
+
 	- removal of temporary files - code has been reworked, as some temporary files (specific:
 	  files retrieved by wget or curl) were not removed.
 

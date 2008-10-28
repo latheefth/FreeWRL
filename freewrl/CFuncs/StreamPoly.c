@@ -52,6 +52,34 @@ static GLfloat Ysize = 0.0;
 static GLfloat Zsize = 0.0;
 */
 
+/* take 3 or 4 floats, bounds check them, and put them in a destination. 
+   Used for copying color X3DColorNode values over for streaming the
+   structure. */
+
+static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, GLfloat thisTransparency) {
+	int i;
+	int pc;
+
+	if (isRGBA) pc = 4; else pc = 3;
+
+	/* parameter checks */
+	for (i=0; i<pc; i++) {
+		if ((param[i] < 0.0) || (param[i] >1.0)) {
+			param[i] = 0.5;
+		}
+	}
+	dest->r[0] = param[0];
+	dest->r[1] = param[1];
+	dest->r[2] = param[2];
+
+	/* does this color have an alpha channel? */
+	if (isRGBA) {
+		dest->r[3] = param[3];
+	} else {
+		dest->r[3] = thisTransparency;
+	}
+}
+
 void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
 
 	struct X3D_IndexedFaceSet *p;
