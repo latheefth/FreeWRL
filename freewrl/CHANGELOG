@@ -1,4 +1,12 @@
 For 1.21.1
+	- Add code to verify Profiles and Components. Verifying components; unverified components
+	  are assumed "good". See code in CFuncs/capabilitiesHandler.c for current status of verified
+	  components.
+        	- Grouping,           3,      /* October 29, 2008 */
+        	- Core,               1,      /* October 29, 2008 */
+        	- Time,               2,      /* October 29, 2008 */
+
+
 	- Javascript, direct writing to scenegraph, boolean values were not correctly translated from
 	  javascript to freewrl internal values.
 

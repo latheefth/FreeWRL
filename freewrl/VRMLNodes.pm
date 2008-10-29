@@ -50,24 +50,27 @@ package VRML::NodeType;
 	###################################################################################
 
 	TimeSensor => new VRML::NodeType("TimeSensor", {
-						cycleInterval => [SFTime, 1, inputOutput],
-						enabled => [SFBool, 1, inputOutput],
-						loop => [SFBool, 0, inputOutput],
-						startTime => [SFTime, 0, inputOutput],
-						stopTime => [SFTime, 0, inputOutput],
-						cycleTime => [SFTime, -1, outputOnly],
-						fraction_changed => [SFFloat, 0.0, outputOnly],
-						isActive => [SFBool, 0, outputOnly],
-						time => [SFTime, -1, outputOnly],
-						resumeTime => [SFTime,0,inputOutput],
-						pauseTime => [SFTime,0,inputOutput],
-						isPaused => [SFTime,0,outputOnly],
-						 # time that we were initialized at
-						 __inittime => [SFTime, 0, initializeOnly],
-						# cycleTimer flag.
-						__ctflag =>[SFTime, 10, inputOutput],
-						__oldEnabled => [SFBool, 1, inputOutput],
-					   },"X3DSensorNode"),
+		cycleInterval => [SFTime, 1, inputOutput],
+		enabled => [SFBool, 1, inputOutput],
+		loop => [SFBool, 0, inputOutput],
+		startTime => [SFTime, 0, inputOutput],
+		stopTime => [SFTime, 0, inputOutput],
+		cycleTime => [SFTime, -1, outputOnly],
+		fraction_changed => [SFFloat, 0.0, outputOnly],
+		isActive => [SFBool, 0, outputOnly],
+		time => [SFTime, -1, outputOnly],
+		resumeTime => [SFTime,0,inputOutput],
+		pauseTime => [SFTime,0,inputOutput],
+		isPaused => [SFTime,0,outputOnly],
+		metadata => [SFNode, NULL, inputOutput],
+
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		# time that we were initialized at
+		__inittime => [SFTime, 0, initializeOnly],
+		# cycleTimer flag.
+		__ctflag =>[SFTime, 10, inputOutput],
+		__oldEnabled => [SFBool, 1, inputOutput],
+	},"X3DSensorNode"),
 
 
 	###################################################################################
@@ -120,57 +123,75 @@ package VRML::NodeType;
 	###################################################################################
 
 	Group => new VRML::NodeType("Group", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						 FreeWRL__protoDef => [SFInt32, 0, initializeOnly], # tell renderer that this is a proto...
-					   },"X3DGroupingNode"),
+		addChildren => [MFNode, undef, inputOnly],
+		removeChildren => [MFNode, undef, inputOnly],
+		children => [MFNode, [], inputOutput],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		FreeWRL__protoDef => [SFInt32, 0, initializeOnly], # tell renderer that this is a proto...
+	},"X3DGroupingNode"),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {
-						children => [MFNode, [], inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						 __transparency => [SFInt32, -1, initializeOnly], # display list for transparencies
-						 __solid => [SFInt32, -1, initializeOnly],	 # display list for solid geoms.
-					   },"X3DGroupingNode"),
+		children => [MFNode, [], inputOutput],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__transparency => [SFInt32, -1, initializeOnly], # display list for transparencies
+		__solid => [SFInt32, -1, initializeOnly],	 # display list for solid geoms.
+	},"X3DGroupingNode"),
 
 	Switch => new VRML::NodeType("Switch", {
-					 	addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						choice => [MFNode, [], inputOutput],		# VRML nodes....
-						children => [MFNode, [], inputOutput],		# X3D nodes....
-						whichChoice => [SFInt32, -1, inputOutput],
-						 bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						 bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
-					   },"X3DGroupingNode"),
+		addChildren => [MFNode, undef, inputOnly],
+		removeChildren => [MFNode, undef, inputOnly],
+		choice => [MFNode, [], inputOutput],		# VRML nodes....
+		children => [MFNode, [], inputOutput],		# X3D nodes....
+		whichChoice => [SFInt32, -1, inputOutput],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
+	},"X3DGroupingNode"),
 
 	Transform => new VRML::NodeType ("Transform", {
-						 addChildren => [MFNode, undef, inputOnly],
-						 removeChildren => [MFNode, undef, inputOnly],
-						 center => [SFVec3f, [0, 0, 0], inputOutput],
-						 children => [MFNode, [], inputOutput],
-						 rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						 scale => [SFVec3f, [1, 1, 1], inputOutput],
-						 scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						 translation => [SFVec3f, [0, 0, 0], inputOutput],
-						 bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						 bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+		addChildren => [MFNode, undef, inputOnly],
+		removeChildren => [MFNode, undef, inputOnly],
+		center => [SFVec3f, [0, 0, 0], inputOutput],
+		children => [MFNode, [], inputOutput],
+		rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
+		scale => [SFVec3f, [1, 1, 1], inputOutput],
+		scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+		translation => [SFVec3f, [0, 0, 0], inputOutput],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
-						 # fields for reducing redundant calls
-						 __do_center => [SFInt32, 0, initializeOnly],
-						 __do_trans => [SFInt32, 0, initializeOnly],
-						 __do_rotation => [SFInt32, 0, initializeOnly],
-						 __do_scaleO => [SFInt32, 0, initializeOnly],
-						 __do_scale => [SFInt32, 0, initializeOnly],
-						},"X3DGroupingNode"),
+		# fields for reducing redundant calls
+		__do_center => [SFInt32, 0, initializeOnly],
+		__do_trans => [SFInt32, 0, initializeOnly],
+		__do_rotation => [SFInt32, 0, initializeOnly],
+		__do_scaleO => [SFInt32, 0, initializeOnly],
+		__do_scale => [SFInt32, 0, initializeOnly],
+	},"X3DGroupingNode"),
+	
+
+	###################################################################################
+
+	#		Core Component
+
+	###################################################################################
+
 
 	WorldInfo => new VRML::NodeType("WorldInfo", {
-						info => [MFString, [], initializeOnly],
-						title => [SFString, "", initializeOnly]
-					   },"X3DChildNode"),
+		info => [MFString, [], initializeOnly],
+		title => [SFString, "", initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DChildNode"),
 
 	###################################################################################
 
@@ -1301,7 +1322,7 @@ package VRML::NodeType;
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [MFVec3f, [], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DCoordinateNode"),
 
 	GeoElevationGrid => new VRML::NodeType("GeoElevationGrid", {
@@ -1326,7 +1347,7 @@ package VRML::NodeType;
 						zSpacing => [SFDouble, 1.0, initializeOnly],
 
 						__geoSystem => [MFInt32,[],initializeOnly],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						__realElevationGrid => [SFNode, NULL, initializeOnly],
 		
 					},"X3DGeometryNode"),
@@ -1350,7 +1371,7 @@ package VRML::NodeType;
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 
 						__geoSystem => [MFInt32,[],initializeOnly],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__inRange =>[SFBool, 0, inputOutput],
 						__child1Node => [SFNode, NULL, inputOutput],
@@ -1387,7 +1408,7 @@ package VRML::NodeType;
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedValue => [MFVec3d, [], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						__oldKeyPtr => [SFNode, NULL, outputOnly],
 						__oldKeyValuePtr => [SFNode, NULL, outputOnly],
 					},"X3DInterpolatorNode"),
@@ -1418,7 +1439,7 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						__oldEnabled => [SFBool, 1, inputOutput],
 						__oldGeoCenter => [SFVec3d, [0, 0, 0], inputOutput],
 						__oldSize => [SFVec3f, [0, 0, 0], inputOutput],
@@ -1438,7 +1459,7 @@ package VRML::NodeType;
 						geoOrigin => [SFNode, NULL, initializeOnly],
 						geoSystem => [MFString,["GD","WE"],initializeOnly],
 						__geoSystem => [MFInt32,[],initializeOnly],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						_oldhitNormal => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
 						_oldhitPoint => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
 						_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
@@ -1472,7 +1493,7 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						__oldGeoCenter => [SFVec3d, [0, 0, 0], inputOutput],
 						__oldChildren => [MFNode, [], inputOutput],
 					},"X3DGroupingNode"),
@@ -1507,7 +1528,7 @@ package VRML::NodeType;
 						__oldHeadlight => [SFBool, 1, inputOutput],
 						__oldJump => [SFBool, 1, inputOutput],
 						__oldMFString => [MFString, [],inputOutput], # the navType
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
 					
 					   },"X3DBindableNode"),
@@ -1524,7 +1545,7 @@ package VRML::NodeType;
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__oldMFString => [MFString, [],inputOutput], # the navType
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						
 					},"X3DChildNode"),
 
@@ -1543,7 +1564,7 @@ package VRML::NodeType;
 						__geoSystem => [MFInt32,[],initializeOnly],
 						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see MARK_META_EVENT macro
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
 						__oldChildren => [MFNode, [], inputOutput],
 					},"X3DGroupingNode"),

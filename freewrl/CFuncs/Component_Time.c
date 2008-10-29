@@ -67,6 +67,7 @@ void do_TimeSensorTick ( void *ptr) {
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,myDuration, 1.0);
 
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_TimeSensor, metadata))
 
 	/* now process if we have changed states */
 	if (oldstatus != node->isActive) {

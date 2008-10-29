@@ -1207,7 +1207,6 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	return JS_TRUE;
 }
 
-
 /********************************************************************/
 
 JSBool

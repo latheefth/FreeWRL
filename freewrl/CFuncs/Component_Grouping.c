@@ -18,6 +18,7 @@
 
 void changed_Transform (struct X3D_Transform *node) { 
 	INITIALIZE_EXTENT 
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Transform, metadata))
 	/* printf ("changed Transform for node %u\n",node); */
 	node->__do_center = verify_translate ((GLfloat *)node->center.c);
 	node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
@@ -139,18 +140,39 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	DIRECTIONAL_LIGHT_SAVE
 	int createlist = FALSE;
 
-	/* should we go down here? */
-/*	printf ("staticGroup, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); 
-       printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
-*/
-
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	if ((!render_geom) && (!render_light)) {
-		/* printf ("staticGroup, returning short, no light or geom\n"); */
-		return;
+	/* did this change? */
+	if NODE_NEEDS_COMPILING {
+		ConsoleMessage ("StaticGroup changed");
+		MARK_NODE_COMPILED;
 	}
+
+	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
+	if ((nc > 1)  && !render_blend) sortChildren(node->children);
+
+	/* do we have a DirectionalLight for a child? */
+	DIRLIGHTCHILDREN(node->children);
+
+	/* now, just render the non-directionalLight children */
+	normalChildren(node->children);
+
+	BOUNDINGBOX
+	DIRECTIONAL_LIGHT_OFF
+}
+
+#ifdef NONWORKINGCODE
+
+it is hard to sort lights, transparency, etc for a static group when using display lists.
+
+So, we just render as a normal group.
+
+void Old child_StaticGroup (struct X3D_StaticGroup *node) {
+	CHILDREN_COUNT
+	DIRECTIONAL_LIGHT_SAVE
+	int createlist = FALSE;
+
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	if (render_geom) {
 		if (render_blend==VF_Blend) {
@@ -186,8 +208,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 			return;
 		}
 
-
-
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
 	if ((nc > 1)  && !render_blend) sortChildren(node->children);
 
@@ -198,11 +218,11 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	normalChildren(node->children);
 
 	BOUNDINGBOX
-
 	if (createlist) glEndList();
-
 	DIRECTIONAL_LIGHT_OFF
 }
+
+#endif
 
 
 void child_Group (struct X3D_Group *node) {
@@ -336,9 +356,20 @@ void child_Transform (struct X3D_Transform *node) {
 	DIRECTIONAL_LIGHT_OFF
 }
 
-void changed_StaticGroup (struct X3D_StaticGroup *node) { INITIALIZE_EXTENT }
+void changed_StaticGroup (struct X3D_StaticGroup *node) { 
+	INITIALIZE_EXTENT 
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_StaticGroup, metadata))
+}
 
 
-void changed_Group (struct X3D_Group *node) { INITIALIZE_EXTENT }
+void changed_Group (struct X3D_Group *node) { 
+	INITIALIZE_EXTENT 
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Group, metadata))
+}
+
+void changed_Switch (struct X3D_Switch *node) { 
+	INITIALIZE_EXTENT 
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Switch, metadata))
+}
 
 

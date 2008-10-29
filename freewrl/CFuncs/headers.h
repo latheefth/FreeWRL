@@ -1161,6 +1161,7 @@ void child_StaticGroup (struct X3D_StaticGroup *this_);
 void child_Switch (struct X3D_Switch *this_);
 
 void changed_Group (struct X3D_Group *this_);
+void changed_Switch (struct X3D_Switch *this_);
 void changed_StaticGroup (struct X3D_StaticGroup *this_);
 void changed_Transform (struct X3D_Transform *this_);
 
@@ -1512,6 +1513,7 @@ void handleProfile(int myp);
 void handleComponent(int com, int lev);
 void handleExport (char *node, char *as);
 void handleImport (char *nodeName,char *nodeImport, char *as);
+void handleVersion (float lev);
 
 
 /* free memory */

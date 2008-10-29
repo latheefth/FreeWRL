@@ -497,11 +497,53 @@ static void parseComponent(const char **atts) {
 	}
 }
 
-static void parseMeta(const char **atts) {}
-static void parseHeader(const char **atts) {}
-static void parseScene(const char **atts) {
-}
+/* parse the <X3D profile='Immersive' version='3.0' xm... line */
 static void parseX3Dhead(const char **atts) {
+	int i;
+	int myProfile = -10000; /* something negative, not ID_UNDEFINED... */
+	float myVersion = 0.0;
+
+        for (i = 0; atts[i]; i += 2) {
+		/* printf("parseX3Dhead: field:%s=%s\n", atts[i], atts[i + 1]); */
+		if (strcmp("profile",atts[i]) == 0) {
+			myProfile = findFieldInPROFILES(atts[i+1]);
+		} else if (strcmp("version",atts[i]) == 0) {
+			if (sscanf (atts[i+1],"%f",&myVersion) != 1)
+				ConsoleMessage ("expected version number, got :%s:",atts[i+1]);
+		} else {
+			/* printf ("just skipping this data\n"); */
+		}
+	}
+
+	/* now, handle all the found variables */
+	if (myProfile == ID_UNDEFINED) {
+		ConsoleMessage ("expected valid profile in X3D header");
+	} else {
+		if (myProfile >= 0) handleProfile (myProfile);
+	}
+
+	if (!APPROX(myVersion, 0.0)) {
+		handleVersion (myVersion);
+	}
+}
+
+static void parseHeader(const char **atts) {
+	int i;
+        for (i = 0; atts[i]; i += 2) {
+		/* printf("parseHeader: field:%s=%s\n", atts[i], atts[i + 1]); */
+	}
+}
+static void parseScene(const char **atts) {
+	int i;
+        for (i = 0; atts[i]; i += 2) {
+		/* printf("parseScene: field:%s=%s\n", atts[i], atts[i + 1]); */
+	}
+}
+static void parseMeta(const char **atts) {
+	int i;
+        for (i = 0; atts[i]; i += 2) {
+		/* printf("parseMeta field:%s=%s\n", atts[i], atts[i + 1]); */
+	}
 }
 static void parseIS() {
 	if (parserMode != PARSING_PROTOBODY) {

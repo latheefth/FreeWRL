@@ -836,13 +836,29 @@ CRoutes_Register.  Currently a wrapper around that other function.
 void CRoutes_RegisterSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
-	int len, int dir)
-{
- /* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
- char tonode_str[15];
- void* interpolatorPointer;
- int extraData = 0;
+	int len, int dir) {
 
+ 	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
+ 	char tonode_str[15];
+ 	void* interpolatorPointer;
+ 	int extraData = 0;
+
+	/* check to ensure that we are not doing with a StaticGroup here */
+	if (dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT) {
+		/* printf ("we are NOT sending to a script, checking for StaticGroup\n"); */
+		if (to->_nodeType == NODE_StaticGroup) {
+			ConsoleMessage ("ROUTE to a StaticGroup not allowed");
+			return;
+		}
+	}
+	/* check to ensure that we are not doing with a StaticGroup here */
+	if (dir!=SCRIPT_TO_SCRIPT && dir!=FROM_SCRIPT) {
+		/* printf ("we are NOT sending from a script, checking for StaticGroup\n"); */
+		if (from->_nodeType == NODE_StaticGroup) {
+			ConsoleMessage ("ROUTE from a StaticGroup not allowed");
+			return;
+		}
+	}
 
  /* printf ("CRoutes_RegisterSimple, from %u fromOfs %u, to %u toOfs %u, len %d dir %d\n",from, fromOfs, to, toOfs, len, dir); */
 
