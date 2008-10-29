@@ -32,7 +32,7 @@ static const int capabilities[] = {
 	COM_PointDeviceSensor,	10, 	/* unverified */
 	COM_HAnim,	10, 		/* unverified */
 	COM_RigidBodyPhysics,	10, 	/* unverified */
-	COM_Core,		1,	/* October 29, 2008 */
+	COM_Core,		2,	/* October 29, 2008 */
 	COM_Layout,	10, 		/* unverified */
 	COM_Time,		2, 	/* October 29, 2008 */
 	COM_Geometry3D,	10, 		/* unverified */

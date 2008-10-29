@@ -27,7 +27,7 @@ GLfloat default_emission[] = {0.0,0.0,0.0,1.0};
 
 GLfloat last_emission[4];
 
-void do_shininess (float shininess) {
+void do_shininess (GLenum face, float shininess) {
 	if ((shininess > 128.0) || (shininess < 0.0)) {
 		/* JAS printf ("Shininess %f outside of bounds\n",shininess/128.0); */
 		/* JAS return;   bounds check */
@@ -35,12 +35,11 @@ void do_shininess (float shininess) {
 	}
 
 	if (fabs(default_shininess - shininess) > 1.0) {
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, (float)default_shininess);
+		glMaterialf(face, GL_SHININESS, (float)default_shininess);
 	}
 }
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
-	GLfloat *myfloats;
 	int i;
 
 	for (i=0; i<4; i++) {
@@ -52,34 +51,13 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 		}
 	}
 
-	switch (pname) {
-		case GL_DIFFUSE:	myfloats = default_diffuse; break;
-		case GL_AMBIENT:	myfloats = default_ambient; break;
-		case GL_SPECULAR:	myfloats = default_specular; break;
-		case GL_EMISSION:	myfloats = default_emission; break;
-		default:		printf ("do_glMaterialfv - unknown pname\n"); return;
-	}
-
 	/* for IndexedLineSet, etc, we keep the last emissiveColor around */
 	if (pname == GL_EMISSION)
 		for (i=0; i<4; i++) {
 			last_emission[i] = param[i];
 		}
 			
-
-	/* compare default values with new */
-/* creates material bugs, just always do material 
-	diff = FALSE;
-	for (i=0; i<4; i++) {
-		if (fabs(myfloats[i]-param[i]) > 0.1) {
-			diff = TRUE;
-			break;
-		}
-	}
-	if (diff==TRUE) 
-	*/
 	glMaterialfv (face,pname,param);
-
 }
 
 

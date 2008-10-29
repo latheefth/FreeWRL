@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.230  2008/10/29 21:07:05  crc_canada
+# Work on fillProperties and TwoSidedMaterial.
+#
 # Revision 1.229  2008/10/29 18:32:07  crc_canada
 # Add code to confirm Profiles and Components.
 #
@@ -228,6 +231,7 @@
 	LoadSensor		=>children,
 	LOD 			=>children,
 	Material 		=>material,
+	TwoSidedMaterial	=>material,
 	MultiTexture		=>texture,
 	MultiTextureCoordinate  =>texCoord,
 	MultiTextureTransform	=>textureTransform,
@@ -345,6 +349,7 @@
 	LineProperties 
 	FillProperties 
 	Material 
+	TwoSidedMaterial 
 	ProgramShader
 	PackagedShader
 	ComposedShader

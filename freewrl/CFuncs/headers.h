@@ -684,7 +684,7 @@ extern float AC_LastDuration[];
 extern int SoundEngineStarted;
 
 /* Material optimizations */
-void do_shininess (float shininess);
+void do_shininess (GLenum face, float shininess);
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
 
 /* used to determine whether we have transparent materials. */
@@ -1217,6 +1217,7 @@ void render_Appearance (struct X3D_Appearance *this_);
 void render_FillProperties (struct X3D_FillProperties *this_);
 void render_LineProperties (struct X3D_LineProperties *this_);
 void render_Material (struct X3D_Material *this_);
+void render_TwoSidedMaterial (struct X3D_TwoSidedMaterial *this_);
 void render_Shape (struct X3D_Shape *this_);
 void child_Shape (struct X3D_Shape *this_);
 void child_Appearance (struct X3D_Appearance *this_);
