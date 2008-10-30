@@ -7,7 +7,6 @@
 
 #include "headers.h"
 
-#define CAPABILITIESVERBOSE
 /* table showing which levels are supported by which component */
 static const int capabilities[] = {
 	COM_Geometry2D,	10, 		/* unverified */

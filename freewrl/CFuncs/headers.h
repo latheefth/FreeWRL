@@ -183,7 +183,8 @@ extern char *BrowserFullPath;
 
 /* for z depth buffer calculations */
 #define DEFAULT_NEARPLANE 0.1
-#define DEFAULT_FARPLANE 21000.0
+#define xxDEFAULT_FARPLANE 21000.0
+#define DEFAULT_FARPLANE 210.0
 extern double geoHeightinZAxis;
 
 
@@ -244,7 +245,7 @@ node for ANY node that takes something other than a Group */
 			/* no material, so just colour the following shape */ \
 	       		/* Spec says to disable lighting and set coloUr to 1,1,1 */ \
 	       		LIGHTING_OFF  \
-       			glColor3f(0.5,0.5,0.5); \
+       			glColor3f(1,1,1); \
  \
 			/* tell the rendering passes that this is just "normal" */ \
 			last_texture_type = NOTEXTURE; \
