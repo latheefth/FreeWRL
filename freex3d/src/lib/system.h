@@ -2,9 +2,11 @@
  *
  * FreeX3D support library
  *
- * libFreeX3D_system.h
+ * internal header - system.h
  *
  * Library system dependencies.
+ *
+ * $Id$
  *
  *******************************************************************/
 

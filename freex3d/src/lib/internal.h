@@ -2,9 +2,11 @@
  *
  * FreeX3D support library
  *
- * libFreeX3D_decl.h
+ * internal header - internal.h
  *
  * Library internal declarations.
+ *
+ * $Id$
  *
  *******************************************************************/
 
@@ -12,8 +14,8 @@
 #define __LIBFREEX3D_DECL_H__
 
 
-/*
- * all old stuff from headers.h goes here
+/**
+ * internal stuff needed by multiple C files in the library
  */
 
 
