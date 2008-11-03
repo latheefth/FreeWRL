@@ -4,7 +4,7 @@
  *
  * internal header - display.h
  *
- * Library display declarations: X11/Motif or OSX/Aqua
+ * Library internal display declarations: X11/Motif or OSX/Aqua
  *
  * $Id$
  *
@@ -13,6 +13,9 @@
 #ifndef __LIBFREEX3D_DISPLAY_H__
 #define __LIBFREEX3D_DISPLAY_H__
 
+/**
+ * All declarations here are internal to the library.
+ */
 
 #ifdef AQUA /* Mac stuff */
 
@@ -56,8 +59,6 @@ Window Xwin;
 Window GLwin;
 
 #endif
-
-int fullscreen;
 
 /**
  * OpenGL / Window initialization

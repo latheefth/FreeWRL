@@ -2,7 +2,7 @@
  *
  * FreeX3D support library
  *
- * display_x11.c
+ * display_aqua.c
  *
  * $Id$
  *
@@ -13,5 +13,5 @@
 #include "display.h"
 #include "internal.h"
 
-/* display part specific to bare X11 */
+/* display part specific to Mac */
 
