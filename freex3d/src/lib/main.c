@@ -13,19 +13,23 @@
 #include "display.h"
 #include "internal.h"
 
+#ifndef _init
 /**
  * library initialization
  */
-void __attribute__ ((constructor)) _init(void)
+void __attribute__ ((constructor)) libFreeX3D_init(void)
 {
 }
+#endif
 
+#ifndef _fini
 /**
  * library exit routine
  */
-void __attribute__ ((destructor)) _fini(void)
+void __attribute__ ((destructor)) libFreeX3D_fini(void)
 {
 }
+#endif
 
 /**
  * Explicit initialization
