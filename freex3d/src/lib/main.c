@@ -19,14 +19,6 @@
 /**
  * General variables
  */
-int be_collision = FALSE;
-char *keypress_string = NULL;
-
-/**
- * Variables that should go into their respective component file
- */
-int EAIverbose = FALSE;
-
 
 /**
  * library initialization
@@ -45,31 +37,18 @@ void __attribute__ ((destructor)) libFreeX3D_fini(void)
 /**
  * Explicit initialization
  */
-void initFreewrl()
+int initFreeX3D()
 {
+    if (!display_initialize()) {
+	//ERROR
+	return FALSE;
+    }
+    return TRUE;
 }
 
 /**
  * Explicit exit routine
  */
-void closeFreewrl()
+void closeFreeX3D()
 {
-}
-
-/**
- *
- */
-void setFullPath(const char* file)
-{
-}
-
-/**
- *
- */
-void setEaiVerbose() {
-	EAIverbose = FALSE;
-}
-
-void setLineWidth(float lwidth) {
-        gl_linewidth = lwidth;
 }

@@ -17,6 +17,7 @@
 /**
  * internal stuff needed by multiple C files in the library
  */
+#define ERROR _error
 
 
 #endif /* __LIBFREEX3D_DECL_H__ */

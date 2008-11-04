@@ -46,7 +46,6 @@ typedef unsigned char _Bool;
 # define __bool_true_false_are_defined 1
 #endif
 
-#define BOOL _Bool
 #define TRUE 1
 #define FALSE 0
 
@@ -68,6 +67,19 @@ typedef unsigned char _Bool;
 #if HAVE_PTHREAD
 # include <pthread.h>
 #endif
+
+/**
+ * TODO:
+ * finish the armor job...
+ */
+#include <math.h>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+
+#include <syslog.h>
+#include <stdarg.h>
 
 
 #endif /* __LIBFREEX3D_SYSTEM_H__ */

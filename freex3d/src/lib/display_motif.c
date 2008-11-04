@@ -15,5 +15,19 @@
 
 /* display part specific to X11/Motif */
 
-XtAppContext freewrlXtAppContext;
+XtAppContext Xtcx;
 
+int open_display()
+{
+    return FALSE;
+}
+
+int create_main_window()
+{
+    return FALSE;
+}
+
+int create_GL_context()
+{
+    return FALSE;
+}

@@ -46,7 +46,6 @@ typedef unsigned char _Bool;
 # define __bool_true_false_are_defined 1
 #endif
 
-#define BOOL _Bool
 #define TRUE 1
 #define FALSE 0
 
