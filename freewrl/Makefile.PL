@@ -4,7 +4,7 @@
 # for conditions of use and redistribution.
 
 # Version of FreeWRL
-my $VERSION = "V1.21.0";
+my $VERSION = "V1.21.1";
 
 # what OS are we running under?
 my $OS = `uname`;
@@ -102,7 +102,7 @@ if (-e "/usr/share/applications") {
 # Default Mozilla / Firefox plugins directory
 if ($issue =~ /Debian/) {
     print "Linux flavour: Debian\n";
-    $VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla-firefox/plugins";
+    $VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla/plugins";
     $NEED_LDCONFIG = 0;
 } elsif ($issue =~ /Ubuntu/) {
     print "Linux flavour: Ubuntu\n";
@@ -369,9 +369,8 @@ sub writeMakefileInitialize() {
 	print MK "JAVAC = $JAVAC\n";
 	print MK "JAR = $JAR\n";
 	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
-
+	print MK "PLUGIN_INSTALL_DIR = $VRML_CONFIG{NETSCAPE_INST}\n";
 	print MK "CFLAGS = \$(FWFLAGS) \$(INC) \$(DEFINE)\n"; # -IPlugin/netscape/include
-
 	print MK "COMPILE := \$(CC) \$(CFLAGS)\n";
 }
 	
@@ -403,13 +402,13 @@ sub writeMakefileFinalTargets() {
 		print MK "\tinstall -D SoundEngine/FreeWRL_SoundServer \$(DESTDIR)\$(FRONTEND_DIR)/FreeWRL_SoundServer\n";
 	}
 	if ($VRML_CONFIG{NETSCAPE_INST} ne "") {
-		print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+		print MK "\tinstall -D Plugin/npfreewrl.so \$(DESTDIR)\$(PLUGIN_INSTALL_DIR)/npfreewrl.so\n";
 		if ($CHCON ne "") {
-		    print MK "\t-$CHCON -t texrel_shlib_t \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/npfreewrl.so\n";
+		    print MK "\t-$CHCON -t texrel_shlib_t \$(DESTDIR)\$(PLUGIN_INSTALL_DIR)/npfreewrl.so\n";
 		}
 	}
 	if ($JAVAC ne "") {
-		print MK "\tinstall -D java/classes/vrml.jar \$(DESTDIR)$VRML_CONFIG{NETSCAPE_INST}/vrml.jar\n";
+		print MK "\tinstall -D java/classes/vrml.jar \$(DESTDIR)\$(PLUGIN_INSTALL_DIR)/vrml.jar\n";
 	}
 	print MK "\tinstall -D Desktop/freewrl.png \$(DESTDIR)\$(INSTALL_DIR)\/pixmaps/freewrl.png\n";
 	print MK "\tinstall -D Desktop/freewrl.desktop \$(DESTDIR)\$(INSTALL_DIR)\/applications/freewrl.desktop\n";

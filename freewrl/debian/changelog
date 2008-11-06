@@ -1,6 +1,25 @@
+freewrl (1.21.1-2) unstable; urgency=low
+
+  * Plugin install directory reworked.
+  * Menu integration.
+
+ -- Michel Briand <michelbriand@free.fr>  Thu, 06 Nov 2008 12:36:30 +0100
+
+freewrl (1.21.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michel Briand <michelbriand@free.fr>  Mon, 03 Nov 2008 23:09:05 +0100
+
+freewrl (1.20.7-1.1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Michel Briand <michelbriand@free.fr>  Mon, 03 Nov 2008 23:08:30 +0100
+
 freewrl (1.20.7-1) unstable; urgency=low
 
-  * New upstream release
+  * New upstream release.
 
  -- Michel BRIAND (Quand on veut on peut !) <michelbriand@free.fr>  Tue, 23 Sep 2008 16:42:14 +0200
 

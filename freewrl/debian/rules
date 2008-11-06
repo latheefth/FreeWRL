@@ -9,9 +9,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-
-
-
 CFLAGS = -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -23,50 +20,44 @@ endif
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	# Add here commands to configure the package.
 	perl Makefile.PL DESTDIR="$(CURDIR)/debian/freewrl"
-
 	touch configure-stamp
-
 
 build: build-stamp
 
 build-stamp: configure-stamp 
 	dh_testdir
-
-	# Add here commands to compile the package.
 	$(MAKE)
 	#docbook-to-man debian/freewrl.sgml > freewrl.1
-
 	touch build-stamp
 
-clean:
-	dh_testdir
-	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
+clean-source:
 	-$(MAKE) distclean
 
-	dh_clean 
+clean-debian:
+	dh_testdir
+	rm -f build-stamp configure-stamp
+	dh_clean
+
+clean: clean-source clean-debian
 
 install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k 
 	dh_installdirs
-
-	# Add here commands to install the package into debian/freewrl.
+	# Install through Make target
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/freewrl
-	# Plugin is installed in /usr/lib/mozilla-firefox/plugins
-	# but we create symlink in other directories
-	for i in firefox iceape iceweasel mozilla; do \
+	# Plugin is installed in /usr/lib/mozilla/plugins (default on Debian)
+	# but if other directory exists (Ubuntu) we create symlink 
+	# for the plugin in other directories
+	for i in firefox firefox-plugins xulrunner-addons iceape iceweasel mozilla-firefox; do \
 	mkdir -p $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
 	cd $(CURDIR)/debian/freewrl/usr/lib/$$i/plugins; \
 	pwd; echo $$i; \
-	ln -s ../../mozilla-firefox/plugins/npfreewrl.so npfreewrl.so; \
-	ln -s ../../mozilla-firefox/plugins/vrml.jar vrml.jar; \
+	ln -s ../../mozilla/plugins/npfreewrl.so npfreewrl.so; \
+	ln -s ../../mozilla/plugins/vrml.jar vrml.jar; \
 	done
-
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -80,7 +71,7 @@ binary-arch: build install
 	dh_installdocs
 	dh_installexamples
 #	dh_install
-#	dh_installmenu
+	dh_installmenu
 #	dh_installdebconf	
 #	dh_installlogrotate
 #	dh_installemacsen
