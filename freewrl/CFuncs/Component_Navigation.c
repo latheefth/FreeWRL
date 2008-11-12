@@ -27,18 +27,19 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 
 	if (!render_vp) return;
 
-	 /* printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
-	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]);
-	 */
+	/*  printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]); */
+
+	 
 
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	/* code to perform binding is now in set_viewpoint. */
 
 	if(!node->isBound) return;
 
-	/*
-	printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr);
-	*/
+	
+	/* printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr); */
+	
 
 	/* perform Viewpoint translations */
 	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
@@ -175,7 +176,6 @@ void XXfin_Billboard (struct X3D_Billboard *node) {
 	#endif
 
         if(!render_proximity) {
-printf ("fin_Billboard, doing pop\n");
             fwXformPop();
         }
 }
@@ -190,11 +190,6 @@ void  XXchild_Billboard (struct X3D_Billboard *node) {
 
 /*	RETURN_FROM_CHILD_IF_NOT_FOR_ME 
 */
-printf ("child_billboard");
-printf (" render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
-
-
 
 	/* do we have to sort this node? */
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);

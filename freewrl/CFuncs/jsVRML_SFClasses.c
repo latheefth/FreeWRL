@@ -1111,7 +1111,6 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (strcmp ("toString",_id_c) == 0) return JS_TRUE;
 	if (strcmp ("assign",_id_c) == 0) return JS_TRUE;
 
-
 	/* get the private pointer for this node */
         if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) != NULL) {
 		#ifdef JSVRMLCLASSESVERBOSE
@@ -1119,6 +1118,12 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		#endif
 
 		JS_DefineSFNodeSpecificProperties (cx, obj, (struct X3D_Node *) ptr->handle);
+
+/* can maybe try this to see if the property exists? 
+                if (JS_LookupProperty (cx, obj, _id_c, &rval)) {
+printf ("lookup property returns TRUE\n"); } else {printf ("lookup prop returns FALSE\n");}
+*/
+
 
                 if (JS_GetProperty (cx, obj, _id_c, &rval)) {
 			#ifdef JSVRMLCLASSESVERBOSE
@@ -1130,6 +1135,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("SFNodeGetProperty, did not find field \"%s\" in node.\n",_id_c);
 			#endif
+			return JS_FALSE;
 		}
 	}
 

@@ -1,4 +1,10 @@
 For 1.21.1
+	- OpenGL Shaders code should compile on OpenGL 1.5 and above now (was 2.0 and above)
+
+	- XML encoded X3D - increased field attribute parsing speed.
+
+	- PROTOS and VRML/X3D Classic - dramatic increase in PROTO expansion; visible in large protos.
+
 	- Add code to verify Profiles and Components. Verifying components; unverified components
 	  are assumed "good". See code in CFuncs/capabilitiesHandler.c for current status of verified
 	  components.

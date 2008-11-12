@@ -14,7 +14,28 @@ for conditions of use and redistribution.
 #else
 	#include "headers.h"
 
+
 #endif
+
+#include "CParse.h"
+#include "CParseParser.h"
+
+#define PST_MF_STRUCT_ELEMENT(type1,type2) \
+	case FIELDTYPE_MF##type1: { \
+		struct Multi_##type1 *myv; \
+		myv = (struct Multi_type1 *) nst; \
+		/* printf ("old val p= %u, n = %d\n",myv->p, myv->n); */\
+		myv->p = myVal.mf##type2.p; \
+		myv->n = myVal.mf##type2.n; \
+		/* printf ("now, element count %d\n",myv->n); */ \
+		break; }
+
+
+#define PST_SF_SIMPLE_ELEMENT(type1,type2,size3) \
+	case FIELDTYPE_SF##type1: { \
+		memcpy((void*)nst, &myVal.sf##type2, size3); \
+		break; }
+
 
 /* create a structure to hold a string; it has a length, and a string pointer */
 struct Uni_String *newASCIIString(char *str) {
@@ -33,7 +54,6 @@ struct Uni_String *newASCIIString(char *str) {
 	strncpy(retval->strptr,str,len+1);
 	retval->len = len+1;
 	retval->touched = 1; /* make it 1, to signal that this is a NEW string. */
-
 	return retval;
 }
 
@@ -151,343 +171,172 @@ int returnElementRowSize (int type) {
 
 }
 
-
-int countFloatElements (char *instr) {
-	int count = 0;
-	SCANTONUMBER(instr);
-	while (*instr != '\0') {
-		
-		if (!ISSTARTNUMBER(instr)) {
-			ConsoleMessage ("expected a floating point number, found \"%s\"",instr);
-			return 0;
-		}
-
-		SCANPASTFLOATNUMBER(instr);
-		SCANTONUMBER(instr);
-		count ++;
-		/* printf ("string now is :%s:, count %d\n",instr,count); */
-	}
-	return count;
-}
-	
-int countIntElements (char *instr) {
-	int count = 0;
-	SCANTONUMBER(instr);
-	while (*instr != '\0') {
-		if (!ISSTARTNUMBER(instr)) {
-			ConsoleMessage ("expected an integer number, found \"%s\"",instr);
-			return 0;
-		}
-
-		SCANPASTINTNUMBER(instr);
-		SCANTONUMBER(instr);
-		count ++;
-		/* printf ("countIntElements:string now is :%s:, count %d\n",instr,count); */
-	}
-	return count;
-}
-
-int countStringElements (char *instr) {
-	int count = 0;
-	char *ptr;
-
-	char startsWithQuote;
-	SCANTOSTRING(instr);
-
-	/* is this a complex string like: "images/256x256.jpg" or just MODULATE4X. */
-	/* if it is just a word, return that we have 1 string */
-	if ((*instr == '"') || (*instr == '\'')) startsWithQuote = *instr;
-	else return 1;
-
-	count = 0;
-	ptr = instr;
-	while (ptr != NULL) { ptr++; ptr = strchr(ptr,startsWithQuote); count++; }
-	return count /2;
-}
-
-int countBoolElements (char *instr) {
-printf ("CAN NOT COUNT BOOL ELEMENTS YET\n");
-printf ("string %s\n",instr);
-return 0;
-}
-	
-
-int countElements (int ctype, char *instr) {
-	int elementCount;
-	
-	switch (ctype) {
-		case FIELDTYPE_SFVec2f:	elementCount = 2; break;
-		case FIELDTYPE_SFRotation:
-		case FIELDTYPE_SFVec4d:
-		case FIELDTYPE_SFColorRGBA: elementCount = 4; break;
-		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_SFVec3d:
-		case FIELDTYPE_SFColor: elementCount = 3; break;
-		case FIELDTYPE_MFRotation:
-		case FIELDTYPE_MFColor:
-		case FIELDTYPE_MFFloat:
-		case FIELDTYPE_MFDouble:
-		case FIELDTYPE_MFTime:
-		case FIELDTYPE_MFVec2f:
-		case FIELDTYPE_MFVec3f:
-		case FIELDTYPE_MFVec3d:
-		case FIELDTYPE_MFColorRGBA: 
-		case FIELDTYPE_MFNode: elementCount = countFloatElements(instr); break;
-		case FIELDTYPE_MFBool: elementCount = countBoolElements(instr); break;
-		case FIELDTYPE_MFString: elementCount = countStringElements(instr); break;
-		case FIELDTYPE_SFImage:
-		case FIELDTYPE_MFInt32: elementCount = countIntElements(instr); break;
-		default: elementCount = 1;
-	}
-	
-	return elementCount;
-}
-
-/* called effectively by VRMLCU.pm */
+static struct VRMLParser *parser = NULL;
 void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value) {
-	int datasize;
-	int rowsize;
-	int elementCount;
-
 	char *nst;                      /* used for pointer maths */
-	void *mdata;
-	int *iptr;
-	float *fptr;
-	double *dptr;
-	struct Uni_String **svptr;
-	struct Uni_String *mysv;
-	int tmp;
-	char *Cptr;
-	char startsWithQuote;
+	union anyVrml myVal;
+	char *mfstringtmp = NULL;
 	
-
-	/* temporary for sscanfing */
-	float fl[4];
-	double dl[4];
-	intptr_t in[4];
-	uintptr_t inNode[4];
-	double dv;
-
 	#ifdef SETFIELDVERBOSE
-	printf ("PST, for %s we have %s strlen %d\n",FIELDTYPES[ctype], value, strlen(value));
+	printf ("\nPST, for %s we have %s strlen %d\n",stringFieldtypeType(ctype), value, strlen(value));
 	#endif
 
-	nst = (char *) node; /* should be 64 bit compatible */
-	nst += coffset;
+	/* if this is the first time through, create a new parser, and tell it:
+	      - that we are using X3D formatted field strings, NOT "VRML" ones;
+	      - that the destination node is not important (the NULL, offset 0) */
 
-	/* go to the start of the string - javascript will return this with open/close brackets */
-	while (*value == ' ') value ++;
-	if (*value == '[') {
-		value ++;
-		Cptr = strrchr(value,']');
-		if (Cptr!=NULL) *Cptr = '\0';
-		#ifdef SETFIELDVERBOSE
-		printf ("PST, string was from Javascript, now is %s\n",value);
-		#endif
-	}
+	if (parser == NULL) parser=newParser(NULL, 0, TRUE);
 
-	datasize = returnElementLength(ctype);
-	elementCount = countElements(ctype,value);
-
-	switch (ctype) {
-
-		case FIELDTYPE_SFBool: {
-				if (strstr(value,"true") != NULL) *in = TRUE;
-				else if (strstr (value,"TRUE") != NULL) *in = TRUE;
-				else *in = FALSE;
-				memcpy(nst,in,datasize); 
-				break;
-			}
-		case FIELDTYPE_SFInt32:
-			{ sscanf (value,"%d",in); 
-				memcpy(nst,in,datasize); 
-				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
-				if (ctype == FIELDTYPE_SFNode) {
-					ADD_PARENT(X3D_NODE(in[0]), node); 
-				}
-				
-			break;}
-		case FIELDTYPE_FreeWRLPTR:
-		case FIELDTYPE_SFNode: { 
-				/* JAS - changed %d to %ld for 1.18.15 */
-				sscanf (value,"%ld",inNode); 
-				/*
-				if (inNode[0] != 0) {
-					printf (" andof type %s\n",stringNodeType(X3D_NODE(inNode[0])->_nodeType));
-				} */
-				memcpy(nst,inNode,datasize); 
-				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
-				if (ctype == FIELDTYPE_SFNode) {
-					ADD_PARENT(X3D_NODE(inNode[0]), node); 
-				}
-				
-			break;}
-
-		
-		case FIELDTYPE_SFFloat:
-		case FIELDTYPE_SFVec2f:
-		case FIELDTYPE_SFRotation:
-		case FIELDTYPE_SFColorRGBA:
-		case FIELDTYPE_SFVec3f:
-		case FIELDTYPE_SFColor: {
-			for (tmp = 0; tmp < elementCount; tmp++) {
-				SCANTONUMBER(value);
-				sscanf (value, "%f",&fl[tmp]);
-				SCANPASTFLOATNUMBER(value);
-			}
-			memcpy (nst,fl,datasize*elementCount); break;}
-
-		case FIELDTYPE_SFVec3d: {
-			for (tmp = 0; tmp < elementCount; tmp++) {
-				SCANTONUMBER(value);
-				sscanf (value, "%lf",&dl[tmp]);
-				SCANPASTFLOATNUMBER(value);
-			}
-			memcpy (nst,dl,datasize*elementCount); break;}
-
-		case FIELDTYPE_MFBool:
-		case FIELDTYPE_SFImage: 
-		case FIELDTYPE_MFInt32: {
-			mdata = MALLOC (elementCount * datasize);
-			iptr = (int *)mdata;
-			for (tmp = 0; tmp < elementCount; tmp++) {
-				SCANTONUMBER(value);
-				/* is this a HEX number? the %i should handle it */
-				sscanf(value, "%i",iptr);
-				iptr ++;
-				SCANPASTINTNUMBER(value);
-			}
-			((struct Multi_Int32 *)nst)->p=mdata;
-			((struct Multi_Int32 *)nst)->n = elementCount;
-			break;
-			}
-
-		case FIELDTYPE_MFNode: {
-			for (tmp = 0; tmp < elementCount; tmp++) {
-				/* JAS changed %d to %ld for 1.18.15 */
-				sscanf(value, "%ld",inNode);
-				AddRemoveChildren(node,(struct Multi_Node *) nst, inNode, 1, 1);
-				/* skip past the number and trailing comma, if there is one */
-				if (*value == '-') value++;
-				while (*value>='0') value++;
-				if ((*value == ' ') || (*value == ',')) value++;
-			}
-			break;
-			}
-		case FIELDTYPE_SFDouble:
-		case FIELDTYPE_SFTime: { sscanf (value, "%lf", &dv); 
-				/* printf ("SFtime, for value %s has %lf datasize %d\n",value,dv,datasize); */
-				memcpy (nst,&dv,datasize);
-			break; }
-
-		case FIELDTYPE_MFRotation:
-		case FIELDTYPE_MFColor:
-		case FIELDTYPE_MFFloat:
-		case FIELDTYPE_MFVec2f:
-		case FIELDTYPE_MFVec3f:
-		case FIELDTYPE_MFColorRGBA: {
-			/* skip past any brackets, etc, that might come via Javascript.
-			   see tests/8.wrl for one of these */
-
-			/* get the row size */
-			rowsize = returnElementRowSize(ctype);
-
-			#ifdef SETFIELDVERBOSE
-			printf ("MF* data size is %d elerow %d elementCount %d str %s\n",datasize, returnElementRowSize(ctype),elementCount,value);
-			#endif
-
-			mdata = MALLOC (elementCount * datasize);
-			fptr = (float *)mdata;
-			for (tmp = 0; tmp < elementCount; tmp++) {
-				SCANTONUMBER(value);
-				sscanf(value, "%f",fptr);
-				fptr ++;
-				SCANPASTFLOATNUMBER(value);
-			}
-			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = elementCount/rowsize;
-			break;
-			}
-		case FIELDTYPE_MFDouble:
-		case FIELDTYPE_MFTime:
-		case FIELDTYPE_MFVec3d: {
-			/* skip past any brackets, etc, that might come via Javascript.
-			   see tests/8.wrl for one of these */
-
-			/* get the row size */
-			rowsize = returnElementRowSize(ctype);
-
-			#ifdef SETFIELDVERBOSE
-			printf ("MF* data size is %d elerow %d elementCount %d str %s\n",datasize, returnElementRowSize(ctype),elementCount,value);
-			#endif
-
-			mdata = MALLOC (elementCount * datasize);
-			dptr = (double *)mdata;
-			for (tmp = 0; tmp < elementCount; tmp++) {
-				SCANTONUMBER(value);
-				sscanf(value, "%lf",dptr);
-				dptr ++;
-				SCANPASTFLOATNUMBER(value);
-			}
-			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = elementCount/rowsize;
-			break;
-			}
-
-
-		case FIELDTYPE_SFString: 
-			{
-			/* first, can we destroy the old value?? */
-			memcpy (&mysv,nst,datasize);
-			mysv->len=0;
-			FREE_IF_NZ(mysv->strptr);
-
-			/* create new value, and copy its pointer over. */
-			mysv  = newASCIIString(value); 
-			memcpy (nst, &mysv, datasize);
-			break; }
+	/* we NEED MFStrings to have quotes on; so if this is a MFString, ensure quotes are ok */
+	if (ctype == FIELDTYPE_MFString) {
+		/* printf ("parsing type %s, string :%s:\n",stringFieldtypeType(ctype),value); */
+		if ((value[0] != '"') && (value[0] != '\'')) {
+			int len;
+			/* printf ("have to quote this string\n"); */
+			len = strlen(value);
+			mfstringtmp = MALLOC (sizeof (char *) * len + 10);
+			memcpy (&mfstringtmp[1],value,len);
+			mfstringtmp[0] = '"';
+			mfstringtmp[len+1] = '"';
+			mfstringtmp[len+2] = '\0';
+			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */
 			
-		case FIELDTYPE_MFString: {
-			/* printf ("start of FIELDTYPE_MFString :%s:\n",value); */
-			mdata = MALLOC (elementCount * datasize);
-			svptr = (struct Uni_String **)mdata;
-
-			SCANTOSTRING(value);
-			if ((*value == '"') || (*value == '\'')) startsWithQuote = *value;
-			else startsWithQuote = '\0';
-
-			for (tmp = 0; tmp < elementCount; tmp++) {
-				if (startsWithQuote != '\0') value++;
-				Cptr = strchr (value,startsWithQuote);
-				*Cptr = '\0';
-
-				/* scan in the new ascii string */
-				/* printf ("MFSTRING, sitting at string :%s: for %d of %d\n",value,tmp,elementCount); */
-				*svptr = newASCIIString(value);
-				svptr ++;
-
-				/* replace that character, and continue on */
-				*Cptr = startsWithQuote;
-				value = Cptr;
-				if (startsWithQuote != '\0') value++;
-				SCANTOSTRING(value);
-				/* printf ("MFSTRING string now is :%s:\n",value); */
-				
-			}
-			((struct Multi_Node *)nst)->p=mdata;
-			((struct Multi_Node *)nst)->n = elementCount;
-			break;
-			}
-
-		default: {
-			#ifdef REWIRE 
-			printf ("unhandled PST type, check code in EAI_C_CommonFunctions\n");
-			#else
-			printf ("Unhandled PST, %s: value %s, ptrnode %s nst %d offset %d numelements %d\n",
-			stringFieldtypeType(ctype), value,stringNodeType(node->_nodeType),nst,coffset,elementCount+1);
-			#endif
-			break;
-			};
+			parser_fromString(parser,mfstringtmp);
+		} else {
+			parser_fromString(parser,value);
+		}
+	} else {
+		parser_fromString(parser, value);
 	}
+
+	ASSERT(parser->lexer);
+	FREE_IF_NZ(parser->lexer->curID);
+
+	if (parseType(parser, ctype, &myVal)) {
+		/* printf ("parsed successfully\n");  */
+
+		nst = (char *) node; /* should be 64 bit compatible */
+		nst += coffset; 
+
+
+/*
+SF_TYPE(SFNode, sfnode, Node)
+MF_TYPE(MFNode, mfnode, Node)
+*/
+		switch (ctype) {
+
+			PST_MF_STRUCT_ELEMENT(Vec2f,vec2f)
+			PST_MF_STRUCT_ELEMENT(Vec3f,vec3f)
+			PST_MF_STRUCT_ELEMENT(Vec3d,vec3d)
+			PST_MF_STRUCT_ELEMENT(Vec4d,vec4d)
+			PST_MF_STRUCT_ELEMENT(Vec2d,vec2d)
+			PST_MF_STRUCT_ELEMENT(Color,color)
+			PST_MF_STRUCT_ELEMENT(ColorRGBA,colorrgba)
+			PST_MF_STRUCT_ELEMENT(Int32,int32)
+			PST_MF_STRUCT_ELEMENT(Float,float)
+			PST_MF_STRUCT_ELEMENT(Double,double)
+			PST_MF_STRUCT_ELEMENT(Bool,bool)
+			PST_MF_STRUCT_ELEMENT(Time,time)
+			PST_MF_STRUCT_ELEMENT(Rotation,rotation)
+			PST_MF_STRUCT_ELEMENT(Matrix3f,matrix3f)
+			PST_MF_STRUCT_ELEMENT(Matrix3d,matrix3d)
+			PST_MF_STRUCT_ELEMENT(Matrix4f,matrix4f)
+			PST_MF_STRUCT_ELEMENT(Matrix4d,matrix4d)
+			PST_MF_STRUCT_ELEMENT(String,string)
+
+			PST_SF_SIMPLE_ELEMENT(Float,float,sizeof(float))
+			PST_SF_SIMPLE_ELEMENT(Time,time,sizeof(double))
+			PST_SF_SIMPLE_ELEMENT(Double,double,sizeof(double))
+			PST_SF_SIMPLE_ELEMENT(Int32,int32,sizeof(int))
+			PST_SF_SIMPLE_ELEMENT(Bool,bool,sizeof(int))
+			PST_SF_SIMPLE_ELEMENT(Node,node,sizeof(void *))
+			PST_SF_SIMPLE_ELEMENT(Vec2f,vec2f,sizeof(struct SFVec2f))
+			PST_SF_SIMPLE_ELEMENT(Vec2d,vec2d,sizeof(struct SFVec2d))
+			PST_SF_SIMPLE_ELEMENT(Vec3f,vec3f,sizeof(struct SFColor))
+			PST_SF_SIMPLE_ELEMENT(Vec3d,vec3d,sizeof(struct SFVec3d))
+			PST_SF_SIMPLE_ELEMENT(Vec4d,vec4d,sizeof(struct SFVec4d))
+			PST_SF_SIMPLE_ELEMENT(Rotation,rotation,sizeof(struct SFRotation))
+			PST_SF_SIMPLE_ELEMENT(Color,color,sizeof(struct SFColor))
+			PST_SF_SIMPLE_ELEMENT(ColorRGBA,colorrgba,sizeof(struct SFColorRGBA))
+			PST_SF_SIMPLE_ELEMENT(Matrix3f,matrix3f,sizeof(struct SFMatrix3f))
+			PST_SF_SIMPLE_ELEMENT(Matrix4f,matrix4f,sizeof(struct SFMatrix4f))
+			PST_SF_SIMPLE_ELEMENT(Matrix3d,matrix3d,sizeof(struct SFMatrix3d))
+			PST_SF_SIMPLE_ELEMENT(Matrix4d,matrix4d,sizeof(struct SFMatrix4d))
+			PST_SF_SIMPLE_ELEMENT(Image,image,sizeof(struct Multi_Int32))
+
+			case FIELDTYPE_SFString: {
+					struct Uni_String *mptr;
+					mptr = * (struct Uni_String **)nst;
+					FREE_IF_NZ(mptr->strptr);
+					mptr->strptr = myVal.sfstring->strptr;
+					mptr->len = myVal.sfstring->len;
+					mptr->touched = myVal.sfstring->touched;
+				break; }
+
+			default: {
+				printf ("unhandled type, in EAIParse  %s\n",stringFieldtypeType(ctype));
+				return;
+			}
+		}
+
+	} else {
+		if (strlen (value) > 50) {
+			value[45] = '.';
+			value[46] = '.';
+			value[47] = '.';
+			value[48] = '\0';
+		}
+		ConsoleMessage ("parser problem on parsing fieldType %s, string :%s:", stringFieldtypeType(ctype),value);
+	}
+
+	/* we tell our little lexer here that it has no input; otherwise next time through, the 
+	   parser_fromString call will cause malloc problems */
+	parser->lexer->startOfStringPtr = NULL;
+
+	/* did we have to do any mfstring quoting stuff? */
+	FREE_IF_NZ(mfstringtmp);
 }
+
+#ifdef OLDCODE
+OLDCODE		case FIELDTYPE_FreeWRLPTR:
+OLDCODE		case FIELDTYPE_SFNode: { 
+OLDCODE				/* JAS - changed %d to %ld for 1.18.15 */
+OLDCODE				sscanf (value,"%ld",inNode); 
+OLDCODE				/*
+OLDCODE				if (inNode[0] != 0) {
+OLDCODE					printf (" andof type %s\n",stringNodeType(X3D_NODE(inNode[0])->_nodeType));
+OLDCODE				} */
+OLDCODE				memcpy(nst,inNode,datasize); 
+OLDCODE				/* FIELDTYPE_SFNodeS need to have the parent field linked in */
+OLDCODE				if (ctype == FIELDTYPE_SFNode) {
+OLDCODE					ADD_PARENT(X3D_NODE(inNode[0]), node); 
+OLDCODE				}
+OLDCODE				
+OLDCODE			break;}
+OLDCODE
+OLDCODE		case FIELDTYPE_MFNode: {
+OLDCODE			for (tmp = 0; tmp < elementCount; tmp++) {
+OLDCODE				/* JAS changed %d to %ld for 1.18.15 */
+OLDCODE				sscanf(value, "%ld",inNode);
+OLDCODE				AddRemoveChildren(node,(struct Multi_Node *) nst, inNode, 1, 1);
+OLDCODE				/* skip past the number and trailing comma, if there is one */
+OLDCODE				if (*value == '-') value++;
+OLDCODE				while (*value>='0') value++;
+OLDCODE				if ((*value == ' ') || (*value == ',')) value++;
+OLDCODE			}
+OLDCODE			break;
+OLDCODE			}
+OLDCODE		case FIELDTYPE_SFString: 
+OLDCODE			{
+OLDCODE			/* first, can we destroy the old value?? */
+OLDCODE			memcpy (&mysv,nst,datasize);
+OLDCODE			mysv->len=0;
+OLDCODE			FREE_IF_NZ(mysv->strptr);
+OLDCODE
+OLDCODE			/* create new value, and copy its pointer over. */
+OLDCODE			mysv  = newASCIIString(value); 
+OLDCODE			memcpy (nst, &mysv, datasize);
+OLDCODE			break; }
+OLDCODE			
+#endif
 

@@ -60,6 +60,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 	#ifdef SETFIELDVERBOSE
 	printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
 	#endif
+
 	findFieldInOFFSETS(NODE_OFFSETS[node->_nodeType], foffset, &coffset, &ctype, &ctmp);
 
 	#ifdef SETFIELDVERBOSE
@@ -78,8 +79,9 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 		}
 	}
 
-	if (strlen(value)>0) 
+	if (strlen(value)>0) {
 		Parser_scanStringValueToMem(node, coffset, ctype, value);
+	}
 }
 
 

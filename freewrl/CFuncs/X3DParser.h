@@ -34,8 +34,8 @@ extern int parserMode;
 #define PARENTSTACKSIZE 256
 extern int parentIndex;
 extern struct X3D_Node *parentStack[PARENTSTACKSIZE];
-extern char *scriptText;
-extern int scriptTextMallocSize;
+extern char *CDATA_Text;
+extern int CDATA_Text_curlen;
 
 
 /* function protos */

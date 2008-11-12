@@ -10,7 +10,6 @@
  *
  */
 
-
 #include "jsapi.h"
 #include "jsUtils.h"
 #include "headers.h"
@@ -22,8 +21,14 @@
 #endif /* XMLCALL */
 
 static int inCDATA = FALSE;
-char *scriptText = NULL;
-int scriptTextMallocSize = 0;
+
+char *CDATA_Text = NULL;
+static int CDATA_TextMallocSize = 0;
+int CDATA_Text_curlen = 0;
+
+/* for testing Johannes Behrs fieldValue hack for getting data in */
+static int in3_3_fieldValue = FALSE;
+static int in3_3_fieldIndex = ID_UNDEFINED;
 
 
 /* this ifdef sequence is kept around, for a possible Microsoft Vista port */
@@ -75,6 +80,88 @@ int freewrl_XML_GetCurrentLineNumber(void) {
 		return XML_GetCurrentLineNumber(currentX3DParser);
 	return ID_UNDEFINED;
 }
+
+
+/*
+2b) Allow <fieldValue> + extension for all node-types
+-------------------------------------------------------------
+There is already a fieldValue element in current X3D-XML
+spec to specify the value of a ProtoInstance-field.
+To specify a value of a ProtoInstance field looks like this:
+
+<ProtoInstance name='bar' >
+  <fieldValue name='foo' value='TRUE' />
+</ProtoInstance>
+
+We could change the wording in the spec to allow
+<fieldValue>- elements not just for ProtoInstance-nodes
+but for all instances of nodes. In addition we would
+allow element data in fieldValues which will
+be read to the single specified field. This solution
+is not limited to a single field per node but could
+easily handle any number of fields
+
+The 'count' attribute is optional and an idea
+borrowed form the COLLADA specification. The count-value
+could be used to further improve the parser-speed because
+the parser could already reserve the amount of data needed.
+
+<Coordinate3d>
+  <fieldValue name='point' count='4' >
+   0.5 1.0 1.0
+   2.0 2.0 2.0
+   3.0 0.5 1.5
+   4.0 1.4 2.0
+  </fieldValue>
+</Coordinate3d>
+
+pro:
++ Dynamic solution; we do not have to tag fields
++ Long term solution, no one-field-per-node limitation
++ Uses an existing element/concept. No additional complexity
++ Works with protos
+
+con:
+- Introduces one additional element in the code; data looks not as compact as 2a
+- Allowing attribute and element-data for a single field is redundant; Need to specify how to handle ambiguities
+
+*/
+
+/* add this data to the end of the current CData array for later use */
+void appendDataToFieldValue(data,len) {
+	if ((CDATA_Text_curlen+len) > CDATA_TextMallocSize-100) {
+		CDATA_TextMallocSize+=len;
+		CDATA_Text = REALLOC (CDATA_Text,CDATA_TextMallocSize);
+	}
+
+	memcpy(&CDATA_Text[CDATA_Text_curlen],data,len);
+	CDATA_Text_curlen+=len;
+	CDATA_Text[CDATA_Text_curlen+1]='\0';
+}
+
+/* we are finished with a 3.3 fieldValue, tie it in */
+void setFieldValueDataActive(void) {
+	if (!in3_3_fieldValue) printf ("expected this to be in a fieldValue\n");
+
+	/* if we had a valid field for this node... */
+	if (in3_3_fieldIndex != ID_UNDEFINED) {
+
+		/* printf ("setFieldValueDataActive field %s, parent is a %s\n",
+			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); */
+
+		setField_fromJavascript (parentStack[parentIndex], stringFieldType(in3_3_fieldIndex),
+			CDATA_Text);
+	}
+
+	/* free data */
+	in3_3_fieldValue = FALSE;
+	CDATA_Text_curlen = 0;
+	in3_3_fieldIndex = ID_UNDEFINED;
+}
+
+/**************************************************************************************/
+
+
 
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
@@ -381,6 +468,11 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 
 
 static void XMLCALL startCDATA (void *userData) {
+	if (CDATA_Text_curlen != 0) {
+		ConsoleMessage ("X3DParser - hmmm, expected CDATA_Text_curlen to be 0, is not");
+		CDATA_Text_curlen = 0;
+	}
+
 	#ifdef X3DPARSERVERBOSE
 	printf ("startCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[parserMode]);
 	#endif
@@ -389,19 +481,21 @@ static void XMLCALL startCDATA (void *userData) {
 
 static void XMLCALL endCDATA (void *userData) {
 	#ifdef X3DPARSERVERBOSE
+	printf ("endCDATA, cur index %d\n",CDATA_Text_curlen);
 	printf ("endCDATA -parentIndex %d parserMode %s\n",parentIndex,parserModeStrings[parserMode]);
 	#endif
 	inCDATA = FALSE;
 
-
 	if (parserMode == PARSING_PROTOBODY) {
-		dumpCDATAtoProtoBody (scriptText);
+		dumpCDATAtoProtoBody (CDATA_Text);
 	} else {
+#ifdef sanityCheck
 		/* check sanity for top of stack This should be a Script node */
 		if (parentStack[parentIndex]->_nodeType != NODE_Script) {
 			ConsoleMessage ("endCDATA, line %d, expected the parent to be a Script node",LINE);
 			return;
 		}
+#endif
 	}
 	
 	#ifdef X3DPARSERVERBOSE
@@ -411,28 +505,18 @@ static void XMLCALL endCDATA (void *userData) {
 }
 
 static void XMLCALL handleCDATA (void *userData, const char *string, int len) {
-	char mydata[4096];
-	char firstTime;
-	if (inCDATA) {
-		/* do we need to set this string larger? */
-		if (len > scriptTextMallocSize-10) {
-			firstTime = (scriptTextMallocSize == 0);
-			scriptTextMallocSize +=4096;
-			if (firstTime) {
-				scriptText = MALLOC (scriptTextMallocSize);
-				scriptText[0] = '\0';
-			} else {
-				scriptText = REALLOC (scriptText,scriptTextMallocSize);
-			}
-		}
-		memcpy (mydata, string,len);
-		mydata[len] = '\0';
-		strcat (scriptText,mydata);
 /*
-		printf ("CDATA full text %s\n",scriptText);
+	printf ("handleCDATA...(%d)...",len);
+if (inCDATA) printf ("inCDATA..."); else printf ("not inCDATA...");
+if (in3_3_fieldValue) printf ("in3_3_fieldValue..."); else printf ("not in3_3_fieldValue...");
+printf ("\n");
 */
-	
+	/* are we in a fieldValue "dump" mode? (x3d v3.3 and above?) */
+	if ((in3_3_fieldValue) || (inCDATA)) {
+		appendDataToFieldValue(string,len);
 	}
+
+	/* else, ignore this data */
 }
 
 /* parse a export statement, and send the results along */
@@ -545,6 +629,35 @@ static void parseMeta(const char **atts) {
 		/* printf("parseMeta field:%s=%s\n", atts[i], atts[i + 1]); */
 	}
 }
+
+/* we have a fieldValue, but not in a PROTO expansion */
+static void parseFieldValue(const char *name, const char **atts) {
+	int i;
+	int nameIndex = ID_UNDEFINED;
+
+	/* printf ("parseFieldValue, mode %s\n",parserModeStrings[parserMode]); */
+        for (i = 0; atts[i]; i += 2) {
+		/* printf("parseFieldValue field:%s=%s\n", atts[i], atts[i + 1]); */
+		if (strcmp(atts[i],"name") == 0) nameIndex= i+1;
+	}
+
+	if (parserMode == PARSING_PROTOINSTANCE) {
+		parseProtoInstanceFields(name,atts);
+	} else {
+		if (in3_3_fieldValue) printf ("parseFieldValue - did not expect in3_3_fieldValue to be set\n");
+		in3_3_fieldValue = TRUE;
+
+		if (nameIndex == ID_UNDEFINED) {
+			printf ("did not find name field for this 3.3 fieldType test\n");
+			in3_3_fieldIndex = ID_UNDEFINED;
+		} else {
+		/* printf ("parseFieldValue field %s, parent is a %s\n",atts[nameIndex],stringNodeType(parentStack[parentIndex]->_nodeType)); */
+
+			in3_3_fieldIndex = findFieldInFIELDNAMES(atts[nameIndex]);
+		}
+	}
+}
+
 static void parseIS() {
 	if (parserMode != PARSING_PROTOBODY) {
 		ConsoleMessage ("endProtoInterfaceTag: got a <IS> but not a ProtoBody at line %d",LINE);
@@ -692,9 +805,10 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("startElement: %s : level %d\n",name,parentIndex);
+	{int i;
         for (i = 0; atts[i]; i += 2) {
 		printf("	field:%s=%s\n", atts[i], atts[i + 1]);
-	}
+	}}
 	#endif
 
 	/* are we storing a PROTO body?? */
@@ -726,7 +840,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 			case X3DSP_head:
 			case X3DSP_Header: parseHeader(atts); break;
 			case X3DSP_X3D: parseX3Dhead(atts); break;
-			case X3DSP_fieldValue: parseProtoInstanceFields (name, atts); break;
+			case X3DSP_fieldValue:  parseFieldValue(name,atts); break;
 			case X3DSP_field: parseScriptProtoField (atts); break;
 			case X3DSP_IS: parseIS(); break;
 			case X3DSP_component: parseComponent(atts); break;
@@ -785,9 +899,11 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			case X3DSP_head:
 			case X3DSP_Header:
 			case X3DSP_field:
-			case X3DSP_fieldValue:
 			case X3DSP_component:
 			case X3DSP_X3D: break;
+			case X3DSP_fieldValue:
+				setFieldValueDataActive();
+				break;
 			
 			/* should never do this: */
 			default: 
@@ -838,12 +954,24 @@ static void shutdownX3DParser () {
 		ConsoleMessage ("XML_PARSER close underflow");
 		X3DParserRecurseLevel = ID_UNDEFINED;
 	}
+
+	/* CDATA text space, free it up */
+        FREE_IF_NZ(CDATA_Text);
+        CDATA_TextMallocSize = 0; 
 }
 
 int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 	currentX3DParser = initializeX3DParser();
 
-	/* printf ("x3dparse ,parent %u\n",myParent); */
+	#ifdef TIMING
+	double startt, endt;
+        struct timeval mytime;
+        struct timezone tz; /* unused see man gettimeofday */
+
+        gettimeofday (&mytime,&tz);
+       startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	#endif
+
 	INCREMENT_PARENTINDEX
 	parentStack[parentIndex] = X3D_NODE(myParent);
 	
@@ -856,6 +984,13 @@ int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 		return FALSE;
 	}
 	shutdownX3DParser();
+
+	#ifdef TIMING
+        gettimeofday (&mytime,&tz);
+       	endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	printf ("X3DParser time taken %lf\n",endt-startt);
+	#endif
+
 	return TRUE;
 }
 

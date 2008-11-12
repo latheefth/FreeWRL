@@ -838,13 +838,13 @@ void initScriptWithScript() {
 	}
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("endElement: scriptText is %s\n",scriptText);
+	printf ("endElement: CDATA_Text is %s\n",CDATA_Text);
 	#endif
 
 	myScriptNumber = me->_X3DScript;
 
 	/* did the script text come from a CDATA node?? */
-	if (scriptText != NULL) if (scriptText[0] != '\0') myText = scriptText;
+	if (CDATA_Text != NULL) if (CDATA_Text[0] != '\0') myText = CDATA_Text;
 
 	/* do we still have nothing? Look in the url node for a file or a script. */
 	if (myText == NULL) {
@@ -892,7 +892,7 @@ void initScriptWithScript() {
 	/* still have a problem here? */
 	if (myText == NULL) {
 		ConsoleMessage ("could not find Script text in url or CDATA");
-		FREE_IF_NZ(scriptText);
+		CDATA_Text_curlen=0;
 		return;
 	}
 
@@ -916,14 +916,13 @@ void initScriptWithScript() {
 
 	if (startingIndex == NULL) {
 		ConsoleMessage ("X3DParser, line %d have Script node, but no valid script",LINE);
-		FREE_IF_NZ(scriptText);
+		CDATA_Text_curlen=0;
 		return;
 	}
 
 	SaveScriptText (myScriptNumber, startingIndex);
 
-	FREE_IF_NZ(scriptText);
-	scriptTextMallocSize = 0;
+	CDATA_Text_curlen=0;
 	parserMode = PARSING_NODES;
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement: got END of script - script should be registered\n");

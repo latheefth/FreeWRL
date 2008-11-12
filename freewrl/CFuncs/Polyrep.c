@@ -771,12 +771,10 @@ void render_polyrep(void *node) {
 			}
 	
 		LIGHTING_ON
-		COLOR_MATERIAL_ON
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 	}
 
 	/*  clockwise or not?*/

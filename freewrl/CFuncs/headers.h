@@ -989,7 +989,6 @@ extern char *lastReadFile; 		/* name last file read in */
 extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */
 extern int  lightingOn;			/* state of GL_LIGHTING */
 extern int cullFace;			/* state of GL_CULL_FACE */
-extern int colorMaterialEnabled;	/* state of GL_COLOR_MATERIAL */
 extern double hpdist;			/* in VRMLC.pm */
 extern struct point_XYZ hp;			/* in VRMLC.pm */
 extern void *hypersensitive; 		/* in VRMLC.pm */
@@ -1360,7 +1359,17 @@ void render_ProgramShader (struct X3D_ProgramShader *);
 void compile_ComposedShader (struct X3D_ComposedShader *);
 void compile_PackagedShader (struct X3D_PackagedShader *);
 void compile_ProgramShader (struct X3D_ProgramShader *);
-#define TURN_APPEARANCE_SHADER_OFF {extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}
+#ifdef GL_VERSION_2_0
+	#define TURN_APPEARANCE_SHADER_OFF \
+		{extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}
+#else
+	#ifdef GL_VERSION_1_5
+		#define TURN_APPEARANCE_SHADER_OFF \
+			{extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgramObjectARB(0);}}
+	#else
+		#define TURN_APPEARANCE_SHADER_OFF
+	#endif
+#endif
 
 void prep_MidiControl (struct X3D_MidiControl *node);
 void do_MidiControl (void *node);
@@ -1421,10 +1430,6 @@ void do_TimeTrigger (void *node);
 #define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;glEnable(GL_LIGHTING);}
 #define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;glDisable(GL_LIGHTING);}
 #define LIGHTING_INITIALIZE lightingOn=TRUE; glEnable(GL_LIGHTING);
-
-#define COLOR_MATERIAL_ON if (colorMaterialEnabled == GL_FALSE) {colorMaterialEnabled=GL_TRUE;glEnable(GL_COLOR_MATERIAL);}
-#define COLOR_MATERIAL_OFF if (colorMaterialEnabled == GL_TRUE) {colorMaterialEnabled=GL_FALSE;glDisable(GL_COLOR_MATERIAL);}
-#define COLOR_MATERIAL_INITIALIZE colorMaterialEnabled = GL_FALSE; glDisable(GL_COLOR_MATERIAL);
 
 void zeroAllBindables(void);
 void Next_ViewPoint(void);

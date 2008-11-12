@@ -57,7 +57,18 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 			last_emission[i] = param[i];
 		}
 			
+
+	/* compare default values with new */
+if (pname != GL_DIFFUSE)
 	glMaterialfv (face,pname,param);
+else {
+	glMaterialfv (face,pname,param);
+
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial (face,pname);
+	glColor4fv(param);
+}
+
 }
 
 

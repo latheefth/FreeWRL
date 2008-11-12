@@ -19,33 +19,50 @@ Sourcecode for CParse.h
  
 /* Keep a pointer to the parser for the main URL */
 struct VRMLParser* globalParser = NULL;
+int inWhichParser = 0;
 
-BOOL cParse(void* ptr, unsigned ofs, const char* data)
-{
- struct VRMLParser* parser;
+#undef TIMING
+BOOL cParse(void* ptr, unsigned ofs, const char* data) {
+	struct VRMLParser* parser;
 
- if (!globalParser) {
-	/* printf ("cParse, new parser\n"); */
- 	parser=newParser(ptr, ofs);
-	globalParser = parser;
- } else {
-	/* printf ("cParse, using old parser\n"); */
-	parser=reuseParser(ptr,ofs);
- }
+	#ifdef TIMING
+	double startt, endt;
+	struct timeval mytime;
+	struct timezone tz; /* unused see man gettimeofday */
 
- parser_fromString(parser, data);
- ASSERT(parser->lexer);
+	gettimeofday (&mytime,&tz);
+	startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	#endif
 
- if(!parser_vrmlScene(parser))
-  fprintf(stderr, "Parser failed!\n");
+ 	if (!globalParser) {
+		/* printf ("cParse, new parser\n"); */
+		/* the FALSE in the newParser call signifies that we are using "VRML" formatted strings */
+ 		parser=newParser(ptr, ofs, FALSE);
+		globalParser = parser;
+ 	} else {
+		/* printf ("cParse, using old parser\n"); */
+		parser=reuseParser(ptr,ofs);
+ 	}
 
- /* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */
- /* deleteParser(parser); */
+ 	parser_fromString(parser, data);
+ 	ASSERT(parser->lexer);
 
-  /* this data is a copy, so we can delete it here */
-  FREE_IF_NZ (parser->lexer->startOfStringPtr);
+ 	if(!parser_vrmlScene(parser))
+  		fprintf(stderr, "Parser failed!\n");
 
- return TRUE;
+ 	/* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */
+ 	/* deleteParser(parser); */
+
+  	/* this data is a copy, so we can delete it here */
+  	FREE_IF_NZ (parser->lexer->startOfStringPtr);
+
+	#ifdef TIMING
+	gettimeofday (&mytime,&tz);
+	endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+	printf ("time taken %lf\n",endt-startt);
+	#endif
+
+ 	return TRUE;
 }
 
 /* ************************************************************************** */

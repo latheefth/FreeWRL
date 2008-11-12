@@ -1930,6 +1930,7 @@ package VRML::NodeType;
 			isSelected => [SFBool, TRUE,outputOnly],
 			isValid => [SFBool, TRUE,outputOnly],
 			language => [SFString,"",initializeOnly],
+			__shaderIDS => [MFNode, [], initializeOnly], 
 	}, "X3DProgrammableShaderObject"),
 
 	ShaderPart => new VRML::NodeType("ShaderPart", {
@@ -1943,6 +1944,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput],
 			url => [MFString, [], inputOutput],
 			type => [SFString,"",initializeOnly],
+			__parenturl =>[SFString,"",initializeOnly],
 	}, "X3DUrlObject"),
 
 

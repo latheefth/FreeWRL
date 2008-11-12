@@ -79,7 +79,6 @@ int	have_texture;		/* do we have a texture (And thus a push?) */
 int	global_lineProperties;	/* line properties -width, etc			*/
 int	global_fillProperties;	/* polygon fill properties - hatching, etc	*/
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
-int 	colorMaterialEnabled;	/* state of GL_COLOR_MATERIAL			*/
 
 int     shutterGlasses = 0; 	/* stereo shutter glasses */
 

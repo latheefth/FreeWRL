@@ -57,13 +57,16 @@ struct VRMLParser
 
  /* This is for PROTOs -- not stacked, as explained in CParseLexer.h */
  struct Vector* PROTOs;
+
+	/* which format some field strings will be in - XML and "classic" VRML are different */
+	int parsingX3DfromXML;
 };
 
 /* Functions parsing a type by its index */
 extern BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*);
 
 /* Constructor and destructor */
-struct VRMLParser* newParser(void*, unsigned);
+struct VRMLParser* newParser(void*, unsigned, int isX3DFormat);
 struct VRMLParser* reuseParser(void*, unsigned);
 void deleteParser(struct VRMLParser*);
 

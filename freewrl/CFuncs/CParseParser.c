@@ -265,7 +265,7 @@ void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, 
 /* ************************************************************************** */
 /* Constructor and destructor */
 
-struct VRMLParser* newParser(void* ptr, unsigned ofs) {
+struct VRMLParser* newParser(void* ptr, unsigned ofs, int parsingX3DfromXML) {
  struct VRMLParser* ret=MALLOC(sizeof(struct VRMLParser));
  ret->lexer=newLexer();
  ASSERT(ret->lexer);
@@ -274,7 +274,7 @@ struct VRMLParser* newParser(void* ptr, unsigned ofs) {
  ret->curPROTO=NULL;
  ret->DEFedNodes = NULL;
  ret->PROTOs = NULL;
-
+ ret->parsingX3DfromXML = parsingX3DfromXML;
  return ret;
 }
 
@@ -2510,33 +2510,38 @@ static void stuffSFintoMF(void *out, uintptr_t *in, int type) {
   struct Vector* vec=NULL; \
   vrmlNodeT RCX; \
   \
-  /* printf ("start of a mfield parse for type %d\n",FIELDTYPE_MF##type); */ \
+  /* printf ("start of a mfield parse for type %d curID :%s: me %u lexer %u\n",FIELDTYPE_MF##type, me->lexer->curID,me,me->lexer); \
+printf ("      str :%s:\n",me->lexer->startOfStringPtr); */ \
   /* if (me->lexer->curID != NULL) printf ("parser_MF, have %s\n",me->lexer->curID); else printf("parser_MF, NULL\n"); */ \
-  /* is this a USE statement? */ \
- if(lexer_keyword(me->lexer, KW_USE)) { \
-	/* printf ("parser_MF, got a USE!\n"); */ \
-	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
-	RCX=parse_KW_USE(me); \
-	if (RCX == NULL) return FALSE; \
-	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-	stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
-	return TRUE; \
- } \
- \
- else if (lexer_keyword(me->lexer, KW_DEF)) { \
-	/* printf ("parser_MF, got the DEF!\n"); */ \
-	/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
-	RCX=parse_KW_DEF(me); \
-	if (RCX == NULL) return FALSE; \
-	\
-	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
-	stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
-	return TRUE; \
-} \
 \
+ if (!(me->parsingX3DfromXML)) { \
+	  /* is this a USE statement? */ \
+	 if(lexer_keyword(me->lexer, KW_USE)) { \
+		/* printf ("parser_MF, got a USE!\n"); */ \
+		/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
+		RCX=parse_KW_USE(me); \
+		if (RCX == NULL) return FALSE; \
+		/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
+		stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
+		return TRUE; \
+	 } \
+	 \
+	 else if (lexer_keyword(me->lexer, KW_DEF)) { \
+		/* printf ("parser_MF, got the DEF!\n"); */ \
+		/* Get a pointer to the X3D_Node structure for this DEFed node and return it in ret */ \
+		RCX=parse_KW_DEF(me); \
+		if (RCX == NULL) return FALSE; \
+		\
+		/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
+		stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
+		return TRUE; \
+	} \
+ }\
+\
+/* printf ("step 2... curID :%s:\n", me->lexer->curID); */ \
 /* possibly a SFNodeish type value?? */ \
 if (me->lexer->curID != NULL) { \
-	/* printf ("parser_MF, curID was not null (it is %s)... lets just parse node\n",me->lexer->curID); */ \
+	/* printf ("parser_MF, curID was not null (it is %s) me %u lexer %u... lets just parse node\n",me->lexer->curID,me,me->lexer); */ \
 	if (!parser_node(me, &RCX, ID_UNDEFINED)) { \
 	/* if(!parser_sf##name##Value(me, RCX)) ... */ \
 		return FALSE; \
@@ -2545,9 +2550,10 @@ if (me->lexer->curID != NULL) { \
 	/* so, we have a Multi_XX return val. (see Structs.h), have to get the info into a vrmlNodeT */ \
 	stuffDEFUSE(ret, RCX, FIELDTYPE_MF##type); \
 	return TRUE; \
-} \
+ } \
 /* Just a single value? */ \
-if(!lexer_openSquare(me->lexer)) { \
+/* NOTE: the XML parser will ALWAYS give this without the brackets */ \
+if((!lexer_openSquare(me->lexer)) && (!(me->parsingX3DfromXML))) { \
 	vrml##type##T RCXRet; \
 	/* printf ("parser_MF, not an opensquare, lets just parse node\n"); */ \
 	/* if (!parser_node(me, RCXRet, ID_UNDEFINED)) ... */ \
@@ -2563,20 +2569,29 @@ if(!lexer_openSquare(me->lexer)) { \
 } \
 \
   /* Otherwise, a real vector */ \
-  /* printf ("parser_MF, this is a real vector\n"); */ \
+  /* printf ("parser_MF, this is a real vector:%s:\n",me->lexer->nextIn); */ \
   vec=newVector(vrml##type##T, 128); \
-  while(!lexer_closeSquare(me->lexer)) \
-  { \
-   vrml##type##T val; \
-   \
-   if(!parser_sf##name##Value(me, &val)) \
-   { \
-	CPARSE_ERROR_CURID("ERROR:Expected \"]\" before end of MF-Value") \
-    break; \
-   } \
-   vector_pushBack(vrml##type##T, vec, val); \
-  } \
-  \
+  if (!me->parsingX3DfromXML) { \
+	while(!lexer_closeSquare(me->lexer)) { \
+   		vrml##type##T val; \
+   		if(!parser_sf##name##Value(me, &val)) { \
+        		CPARSE_ERROR_CURID("ERROR:Expected \"]\" before end of MF-Value") \
+   			 break; \
+   		} \
+   		vector_pushBack(vrml##type##T, vec, val); \
+  	} \
+  } else { \
+	lexer_skip(me->lexer); \
+  	while(*me->lexer->nextIn != '\0') { \
+   		vrml##type##T val; \
+   		if(!parser_sf##name##Value(me, &val)) { \
+        		CPARSE_ERROR_CURID("ERROR:Expected \"]\" before end of MF-Value") \
+   			 break; \
+   		} \
+   		vector_pushBack(vrml##type##T, vec, val); \
+		lexer_skip(me->lexer); \
+  	} \
+  }\
   ret->n=vector_size(vec); \
   ret->p=vector_releaseData(vrml##type##T, vec); \
   \
@@ -2638,25 +2653,52 @@ BOOL parser_sfint32Value_(struct VRMLParser* me, vrmlInt32T* ret)
 {
  return lexer_int32(me->lexer, ret);
 }
-BOOL parser_sfstringValue_(struct VRMLParser* me, vrmlStringT* ret)
-{
- return lexer_string(me->lexer, ret);
+
+
+
+static BOOL set_X3Dstring(struct VRMLLexer* me, vrmlStringT* ret) {
+	/* printf ("lexer_X3DString, setting string to be :%s:\n",me->startOfStringPtr); */
+	*ret=newASCIIString(me->startOfStringPtr);
+	return TRUE;
 }
 
-BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret)
-{
- if(lexer_keyword(me->lexer, KW_TRUE))
- {
-  *ret=TRUE;
-  return TRUE;
- }
- if(lexer_keyword(me->lexer, KW_FALSE))
- {
-  *ret=FALSE;
-  return TRUE;
- }
+BOOL parser_sfstringValue_(struct VRMLParser* me, vrmlStringT* ret) {
+	/* are we parsing the "classic VRML" formatted string? Ie, one with
+	   starting and finishing quotes? */
+ 	if (!me->parsingX3DfromXML) return lexer_string(me->lexer, ret);
 
- return FALSE;
+	else return set_X3Dstring(me->lexer, ret);
+	
+	return TRUE;
+}
+
+BOOL parser_sfboolValue(struct VRMLParser* me, vrmlBoolT* ret) {
+	/* are we in the VRML (x3dv) parser? */
+	if (!me->parsingX3DfromXML) {
+ 		if(lexer_keyword(me->lexer, KW_TRUE)) {
+  			*ret=TRUE;
+  			return TRUE;
+ 		}
+ 		if(lexer_keyword(me->lexer, KW_FALSE)) {
+			*ret=FALSE;
+			return TRUE;
+		}
+		return FALSE;
+	}
+
+ 	/* possibly, this is from the X3D Parser */
+	if (!strcmp(me->lexer->startOfStringPtr,"true")) {
+		*ret = TRUE;
+		return TRUE;
+	}
+	if (!strcmp(me->lexer->startOfStringPtr,"false")) {
+		*ret = FALSE;
+		return TRUE;
+	}
+	
+	/* Noperooni - this was from X3D, but did not parse */
+	*ret = FALSE;
+ 	return FALSE;
 }
 
 PARSER_FIXED_VEC(color, Color, 3, c)

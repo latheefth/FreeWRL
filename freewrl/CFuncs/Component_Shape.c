@@ -17,16 +17,16 @@
 
 float global_transparency = 1.0;
  
-#define SET_SHADER_SELECTED_FALSE \
-	switch (X3D_NODE(tmpN)->_nodeType) { \
+#define SET_SHADER_SELECTED_FALSE(x3dNode) \
+	switch (X3D_NODE(x3dNode)->_nodeType) { \
 		case NODE_ComposedShader: \
-			X3D_COMPOSEDSHADER(tmpN)->isSelected = FALSE; \
+			X3D_COMPOSEDSHADER(x3dNode)->isSelected = FALSE; \
 			break; \
 		case NODE_ProgramShader: \
-			X3D_PROGRAMSHADER(tmpN)->isSelected = FALSE; \
+			X3D_PROGRAMSHADER(x3dNode)->isSelected = FALSE; \
 			break; \
 		case NODE_PackagedShader: \
-			X3D_PROGRAMSHADER(tmpN)->isSelected = FALSE; \
+			X3D_PROGRAMSHADER(x3dNode)->isSelected = FALSE; \
 			break; \
 		default: { \
 			/* this is NOT a shader; should we say something, or just \
@@ -34,19 +34,19 @@ float global_transparency = 1.0;
 		} \
 	}
 
-#define SET_FOUND_GOOD_SHADER \
-	switch (X3D_NODE(tmpN)->_nodeType) { \
+#define SET_FOUND_GOOD_SHADER(x3dNode) \
+	switch (X3D_NODE(x3dNode)->_nodeType) { \
 		case NODE_ComposedShader: \
-			foundGoodShader = X3D_COMPOSEDSHADER(tmpN)->isValid; \
-			X3D_COMPOSEDSHADER(tmpN)->isSelected = foundGoodShader; \
+			foundGoodShader = X3D_COMPOSEDSHADER(x3dNode)->isValid; \
+			X3D_COMPOSEDSHADER(x3dNode)->isSelected = foundGoodShader; \
 			break; \
 		case NODE_ProgramShader: \
-			foundGoodShader = X3D_PROGRAMSHADER(tmpN)->isValid; \
-			X3D_PROGRAMSHADER(tmpN)->isSelected = foundGoodShader; \
+			foundGoodShader = X3D_PROGRAMSHADER(x3dNode)->isValid; \
+			X3D_PROGRAMSHADER(x3dNode)->isSelected = foundGoodShader; \
 			break; \
 		case NODE_PackagedShader: \
-			foundGoodShader = X3D_PROGRAMSHADER(tmpN)->isValid; \
-			X3D_PACKAGEDSHADER(tmpN)->isSelected = foundGoodShader; \
+			foundGoodShader = X3D_PROGRAMSHADER(x3dNode)->isValid; \
+			X3D_PACKAGEDSHADER(x3dNode)->isSelected = foundGoodShader; \
 			break; \
 		default: { \
 			/* this is NOT a shader; should we say something, or just \
@@ -278,7 +278,6 @@ static GLubyte negSlope[] = {
 		\
 	for (i=0; i<3;i++){ ecol[i] = node->emissc.c[i]; }		\
 	do_glMaterialfv(whichFace, GL_EMISSION, ecol);		\
-	glColor3f(ecol[0],ecol[1],ecol[2]);		\
 		\
 	shin = 128.0* node->shinc;		\
 	do_shininess(whichFace,shin);
@@ -351,7 +350,6 @@ void child_Shape (struct X3D_Shape *node) {
 	global_transparency = 0.0;
 
 
-
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
 	/* printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -365,8 +363,6 @@ void child_Shape (struct X3D_Shape *node) {
 	   have to turn lighting back on again. */
 	LIGHTING_ON
 
-	COLOR_MATERIAL_OFF
-	
 	/* if we have a very few samples, it means that:
 		- Occlusion culling is working on this system (default is -1)
 		- this node is very small in the scene;
@@ -393,6 +389,8 @@ void child_Shape (struct X3D_Shape *node) {
 		#endif
 
 		POSSIBLE_PROTO_EXPANSION(node->geometry,tmpN)
+
+
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION
@@ -416,6 +414,7 @@ void child_Shape (struct X3D_Shape *node) {
 	}
 
 	/* any shader turned on? if so, turn it off */
+	extern GLuint globalCurrentShader;
 	TURN_APPEARANCE_SHADER_OFF
 }
 
@@ -423,12 +422,39 @@ void child_Shape (struct X3D_Shape *node) {
 void child_Appearance (struct X3D_Appearance *node) {
 	last_texture_type = NOTEXTURE;
 	void *tmpN;
+	struct X3D_Node *localShaderNode = NULL;
 
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	 printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-	RENDER_MATERIAL_SUBNODES(node->material)
+	/* shaders here/supported?? */
+	if (node->shaders.n !=0) {
+		int count;
+		int foundGoodShader = FALSE;
+
+		for (count=0; count<node->shaders.n; count++) {
+			POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN)
+
+			/* have we found a valid shader yet? */
+			if (foundGoodShader) {
+				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
+				/* yes, just tell other shaders that they are not selected */
+				SET_SHADER_SELECTED_FALSE(tmpN)
+			} else {
+				/* render this node; if it is valid, then we call this one the selected one */
+				localShaderNode = tmpN;
+				SET_FOUND_GOOD_SHADER(localShaderNode)
+			}
+		}
+	}
+
+	/* do NOT do material, if a shader has been found */
+	if (localShaderNode == NULL) 
+		RENDER_MATERIAL_SUBNODES(node->material)
+	else {
+             glColor3f(1,1,1); 
+	}
 
 	if (node->fillProperties) {
 		POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN)
@@ -455,24 +481,8 @@ void child_Appearance (struct X3D_Appearance *node) {
 		render_node(tmpN);
 	}
 	/* shaders here/supported?? */
-	if (node->shaders.n !=0) {
-		int count;
-		int foundGoodShader = FALSE;
-
-		for (count=0; count<node->shaders.n; count++) {
-			POSSIBLE_PROTO_EXPANSION(node->shaders.p[count], tmpN)
-
-			/* have we found a valid shader yet? */
-			if (foundGoodShader) {
-				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
-				/* yes, just tell other shaders that they are not selected */
-				SET_SHADER_SELECTED_FALSE
-			} else {
-				/* render this node; if it is valid, then we call this one the selected one */
-				/* printf ("running shader (%s) %d of %d\n",stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);  */
-				render_node(tmpN);
-				SET_FOUND_GOOD_SHADER
-			}
-		}
+	if (localShaderNode != NULL) {
+		/* printf ("running shader (%s) %d of %d\n",stringNodeType(X3D_NODE(localShaderNode)->_nodeType),count, node->shaders.n); */
+		render_node(localShaderNode);
 	}
 }

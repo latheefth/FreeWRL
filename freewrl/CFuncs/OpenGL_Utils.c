@@ -201,7 +201,9 @@ void glpOpenGLInitialize() {
 	/* end of ALPHA test */
 	glEnable(GL_NORMALIZE);
 	LIGHTING_INITIALIZE
-	COLOR_MATERIAL_INITIALIZE
+
+	glEnable (GL_COLOR_MATERIAL);
+	glColorMaterial (GL_FRONT_AND_BACK, GL_DIFFUSE);
 
 	/* keep track of light states; initial turn all lights off except for headlight */
 	for (i=0; i<8; i++) {
@@ -225,7 +227,7 @@ void glpOpenGLInitialize() {
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, (float) (0.2 * 128));
+	do_shininess(GL_FRONT_AND_BACK, (float) (0.2 * 128));
 }
 
 void BackEndClearBuffer() {
@@ -1153,7 +1155,7 @@ void kill_X3DNodes(void){
 
 			if (*fieldOffsetsPtr == FIELDNAMES___shaderIDS) {
 				struct X3D_ComposedShader *cps = (struct X3D_ComposedShader *) structptr;
-				if (cps->_nodeType == NODE_ComposedShader) {
+				if ((cps->_nodeType == NODE_ComposedShader) || (cps->_nodeType == NODE_ProgramShader)) {
 					if (cps->__shaderIDS.p != NULL) {
 						glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
 						FREE_IF_NZ(cps->__shaderIDS.p);

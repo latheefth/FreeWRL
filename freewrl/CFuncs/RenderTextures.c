@@ -88,7 +88,7 @@ int setActiveTexture (int c, GLfloat thisTransparency) {
 
 			/* flit in the Material transparency here */
 			allones[3] = thisTransparency;
-			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
+			do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
                 }
 
 		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
