@@ -128,9 +128,13 @@ con:
 */
 
 /* add this data to the end of the current CData array for later use */
-void appendDataToFieldValue(data,len) {
+void appendDataToFieldValue(char *data, int len) {
 	if ((CDATA_Text_curlen+len) > CDATA_TextMallocSize-100) {
-		CDATA_TextMallocSize+=len;
+		while ((CDATA_Text_curlen+len) > CDATA_TextMallocSize-100) {
+			if (CDATA_TextMallocSize == 0) CDATA_TextMallocSize = 2048;
+			else CDATA_TextMallocSize *= 2;
+		}
+printf ("realloced CDATA_Text to %d\n",CDATA_TextMallocSize);
 		CDATA_Text = REALLOC (CDATA_Text,CDATA_TextMallocSize);
 	}
 

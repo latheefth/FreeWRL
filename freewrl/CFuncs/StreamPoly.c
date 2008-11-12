@@ -248,12 +248,12 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 			/* printf ("nt, parent is of type %s\n",stringNodeType(parent->_nodeType)); */
 			if (parent->_nodeType == NODE_Shape) {
 				struct X3D_Appearance *app;
-                		POSSIBLE_PROTO_EXPANSION(parent->appearance,(void *)app)
+                		POSSIBLE_PROTO_EXPANSION(parent->appearance,app)
 				/* printf ("appearance is of type %s\n",stringNodeType(app->_nodeType)); */
 				if (app != NULL)  {
 					if (app->_nodeType == NODE_Appearance) {
 						struct X3D_Material *mat;
-                				POSSIBLE_PROTO_EXPANSION(app->material,(void *)mat)
+                				POSSIBLE_PROTO_EXPANSION(app->material,mat)
 						/* printf ("material is of type %s\n",stringNodeType(mat->_nodeType)); */
 
 						if (mat != NULL) {
