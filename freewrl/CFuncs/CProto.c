@@ -1,5 +1,5 @@
 /*******************************************************************
-  Copyright (C) 2007 Daniel Kraft,  John Stewart, CRC Canada.
+  Copyright (C) 2007, 2008 Daniel Kraft,  John Stewart, CRC Canada.
   DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
   See the GNU Library General Public License (file COPYING in the distribution)
   for conditions of use and redistribution.
@@ -27,8 +27,12 @@
 #define PROTOGROUPNUMBER "%s %d children[ #PROTOGROUP\n"
 #define ENDPROTOGROUP "]}#END PROTOGROUP\n"
 #define VERIFY_OUTPUT_LEN(extra) \
-		if (newProtoTextIndex > (newProtoTextMallocLen - extra)) { \
+		/* printf ("verify, cur textInd %d, malloclen %d, extra %d\n",newProtoTextIndex, newProtoTextMallocLen, extra); */ \
+		if ((newProtoTextIndex + extra + 1024) > newProtoTextMallocLen) { \
+		while ((newProtoTextIndex + extra + 1024) > newProtoTextMallocLen) { \
 			newProtoTextMallocLen *=2 ; \
+		} \
+			/* printf ("verify, made REALLOC to %d\n",newProtoTextMallocLen); */ \
 			newProtoText = REALLOC(newProtoText, newProtoTextMallocLen); \
 		}
 
@@ -1088,6 +1092,9 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 	deleteLexer(lex);
 }
 
+
+#define CPROTOVERBOSE
+
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
 	char *newProtoText;
 	int newProtoTextMallocLen;
@@ -1224,6 +1231,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 						APPEND_STRINGTOKEN
 						APPEND_SPACE
 						APPEND_ISVALUE
+
 					} else if (lastNode->isNODE == NODE_Script) {
 						#ifdef XXX
 						PROTO_CAT ( "# at G\n");
@@ -1272,6 +1280,8 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText %s\n",newProtoText);
 	#endif
+
+#undef CPROTOVERBOSE
 
 	return newProtoText;
 }
