@@ -1024,6 +1024,7 @@ static void shutdownX3DParser () {
 
 int X3DParse (struct X3D_Group* myParent, char *inputstring) {
 	currentX3DParser = initializeX3DParser();
+#undef TIMING
 
 	#ifdef TIMING
 	double startt, endt;

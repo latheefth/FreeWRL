@@ -1093,7 +1093,6 @@ void tokenizeProtoBody(struct ProtoDefinition *me, char *pb) {
 }
 
 
-#define CPROTOVERBOSE
 
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto) {
 	char *newProtoText;
@@ -1280,8 +1279,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText %s\n",newProtoText);
 	#endif
-
-#undef CPROTOVERBOSE
 
 	return newProtoText;
 }

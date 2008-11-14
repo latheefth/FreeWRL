@@ -2657,7 +2657,7 @@ BOOL parser_sfint32Value_(struct VRMLParser* me, vrmlInt32T* ret)
 
 
 static BOOL set_X3Dstring(struct VRMLLexer* me, vrmlStringT* ret) {
-	printf ("lexer_X3DString, setting string to be :%s:\n",me->startOfStringPtr);
+	/* printf ("lexer_X3DString, setting string to be :%s:\n",me->startOfStringPtr); */
 	*ret=newASCIIString(me->startOfStringPtr);
 	return TRUE;
 }

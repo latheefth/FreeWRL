@@ -1,6 +1,8 @@
 For 1.21.1
 	- PROTO expansion in Classic - malloc error when IS'd fields are large. Fixed realloc algorithm.
 
+	- PROTO expansion in XML parsing; revamped <IS> handling.
+
 	- OpenGL Shaders code should compile on OpenGL 1.5 and above now (was 2.0 and above)
 
 	- XML encoded X3D - increased field attribute parsing speed.
