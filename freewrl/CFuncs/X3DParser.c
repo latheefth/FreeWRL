@@ -134,13 +134,12 @@ void appendDataToFieldValue(char *data, int len) {
 			if (CDATA_TextMallocSize == 0) CDATA_TextMallocSize = 2048;
 			else CDATA_TextMallocSize *= 2;
 		}
-printf ("realloced CDATA_Text to %d\n",CDATA_TextMallocSize);
 		CDATA_Text = REALLOC (CDATA_Text,CDATA_TextMallocSize);
 	}
 
 	memcpy(&CDATA_Text[CDATA_Text_curlen],data,len);
 	CDATA_Text_curlen+=len;
-	CDATA_Text[CDATA_Text_curlen+1]='\0';
+	CDATA_Text[CDATA_Text_curlen]='\0';
 }
 
 /* we are finished with a 3.3 fieldValue, tie it in */
@@ -175,7 +174,7 @@ void kill_X3DDefs(void) {
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
 the new node */
-static struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) {
+struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) {
 	unsigned len;
 	int ctr;
 	struct Uni_String *tmp;
@@ -634,7 +633,7 @@ static void parseMeta(const char **atts) {
 	}
 }
 
-/* we have a fieldValue, but not in a PROTO expansion */
+/* we have a fieldValue, should be in a PROTO expansion */
 static void parseFieldValue(const char *name, const char **atts) {
 	int i;
 	int nameIndex = ID_UNDEFINED;
@@ -723,6 +722,53 @@ static void endProtoInstanceTag() {
 
 	expandProtoInstance(protoExpGroup);
 }
+
+
+/* did we get a USE in a proto instance, like:
+               <ProtoInstance name='CamLoader' DEF='Camera1_Bgpic'>
+                    <fieldValue name='imageName' value='Default.jpg'/>
+                    <fieldValue name='relay'>
+                        <Script USE='CameraRelay'/>
+                    </fieldValue>
+                    <fieldValue name='yscale' value='3.0'/>
+                </ProtoInstance>
+
+if so, we will be here for the USE fields.
+
+
+*/
+static void dumpProtoInstanceField (const char *name, const char **atts) {
+	int i;
+
+	#ifdef X3DPARSERVERBOSE
+		printf ("dumpProtoInstanceField, have node :%s:\n",name);
+	#endif
+
+	if (strcmp(name,"fieldValue") == 0) {
+		parseFieldValue(name,atts);
+	} else {
+		printf ("dumpProtoInstanceField - dont know what to do with %s\n",name);
+	}
+	#ifdef X3DPARSERVERBOSE
+		printf ("dumpProtoInstanceField END\n");
+	#endif
+}
+
+static void endProtoInstanceField(const char *name) {
+
+	#ifdef X3DPARSERVERBOSE
+		printf ("endProtoInstanceField, name :%s:\n",name);
+	#endif
+	if (strcmp(name,"ProtoInstance")==0) {
+		endProtoInstanceTag();
+	} else if (strcmp(name,"fieldValue") != 0) {
+		printf ("endProtoInstanceField, dont know what to do with :%s:\n",name);
+	}
+}
+
+
+
+
 
 static void endFieldTag() {
 	/* is this possibly a field name, that we do not expect? */
@@ -821,6 +867,12 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 		return;
 	}
 
+	/* maybe we are doing a Proto Instance?? */
+	if (parserMode == PARSING_PROTOINSTANCE) {
+		dumpProtoInstanceField(name,atts);
+		return;
+	}
+
 	myNodeIndex = findFieldInNODES(name);
 
 	/* is this a "normal" node that can be found in x3d, x3dv and wrl files? */
@@ -877,6 +929,14 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			return;
 		}
 	}
+
+	/* are we parsing a PROTO Instance still? */
+	if (parserMode == PARSING_PROTOINSTANCE) {
+		endProtoInstanceField(name);
+		return;
+	}
+
+
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != ID_UNDEFINED) {
 		switch (myNodeIndex) {
@@ -895,7 +955,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			case X3DSP_ProtoInterface: endProtoInterfaceTag(); break;
 			case X3DSP_ProtoBody: endProtoBodyTag(name); break;
 			case X3DSP_ProtoDeclare: endProtoDeclareTag(); break;
-			case X3DSP_ProtoInstance: endProtoInstanceTag(); break;
+			/* case X3DSP_ProtoInstance: endProtoInstanceTag(); break; */
 			case X3DSP_ROUTE: 
 			case X3DSP_IS:
 			case X3DSP_meta:
@@ -913,12 +973,10 @@ static void XMLCALL endElement(void *unused, const char *name) {
 			default: 
 			printf ("endElement: huh? X3DSPECIAL, but not handled?? %s\n",X3DSPECIAL[myNodeIndex]);
 		}
-		/* DECREMENT_PARENTINDEX */
 		return;
 	}
 
 	printf ("unhandled endElement name %s index %d\n",name,myNodeIndex); 
-	/* DECREMENT_PARENTINDEX */
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement %s\n",name);
 	#endif

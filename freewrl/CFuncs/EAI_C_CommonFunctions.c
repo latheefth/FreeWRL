@@ -189,7 +189,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 
 	/* we NEED MFStrings to have quotes on; so if this is a MFString, ensure quotes are ok */
 	if (ctype == FIELDTYPE_MFString) {
-		/* printf ("parsing type %s, string :%s:\n",stringFieldtypeType(ctype),value); */
+		/* printf ("parsing type %s, string :%s:\n",stringFieldtypeType(ctype),value);  */
 		if ((value[0] != '"') && (value[0] != '\'')) {
 			int len;
 			/* printf ("have to quote this string\n"); */

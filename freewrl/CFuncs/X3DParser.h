@@ -39,6 +39,8 @@ extern int CDATA_Text_curlen;
 
 
 /* function protos */
+struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force);
+
 void parseProtoDeclare (const char **atts);
 void parseProtoInterface (const char **atts);
 void parseProtoBody (const char **atts);

@@ -1,5 +1,5 @@
 /*******************************************************************
- Copyright (C) 2006 John Stewart, CRC Canada
+ Copyright (C) 2006,2008 John Stewart, CRC Canada
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
@@ -45,6 +45,7 @@ static int curProtoInsStackInd = -1;
 struct PROTOInstanceEntry {
 	char *name[PROTOINSTANCE_MAX_PARAMS];
 	char *value[PROTOINSTANCE_MAX_PARAMS];
+	char *defName;
 	int container;
 	int paircount;
 };
@@ -159,7 +160,6 @@ static void registerProto(const char *name) {
 	#endif
 }
 
-
 void parseProtoInstanceFields(const char *name, const char **atts) {
 	int count;
 
@@ -204,6 +204,11 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 	}
 	#undef INDEX
 }
+
+
+
+/***********************************************************************************/
+
 
 void dumpProtoBody (const char *name, const char **atts) {
 	int count;
@@ -306,6 +311,7 @@ void parseProtoInstance (const char **atts) {
 	int nameIndex = ID_UNDEFINED;
 	int containerIndex = ID_UNDEFINED;
 	int containerField = ID_UNDEFINED;
+	int defNameIndex = ID_UNDEFINED;
 	int protoTableIndex = 0;
 
 	parserMode = PARSING_PROTOINSTANCE;
@@ -328,10 +334,11 @@ void parseProtoInstance (const char **atts) {
 			nameIndex=count+1;
 		} else if (strcmp("containerField",atts[count]) == 0) {
 			containerIndex = count+1;
+		} else if (strcmp("DEF",atts[count]) == 0) {
+			defNameIndex = count+1;
+
 		} else if (strcmp("class",atts[count]) == 0) {
 			ConsoleMessage ("field \"class\" not currently used in a ProtoInstance parse... sorry");
-		} else if (strcmp("DEF",atts[count]) == 0) {
-			ConsoleMessage ("field \"DEF\" not currently used in a ProtoInstance parse... sorry");
 		} else if (strcmp("USE",atts[count]) == 0) {
 			ConsoleMessage ("field \"USE\" not currently used in a ProtoInstance parse... sorry");
 		}
@@ -349,6 +356,10 @@ void parseProtoInstance (const char **atts) {
 
 	/* so, the container will either be -1, or will have a valid FIELDNAMES index */
 	ProtoInstanceTable[curProtoInsStackInd].container = containerField;
+
+	/* did we have a DEF in the instance? */
+	if (defNameIndex == ID_UNDEFINED) ProtoInstanceTable[curProtoInsStackInd].defName = NULL;
+	else ProtoInstanceTable[curProtoInsStackInd].defName = STRDUP(atts[defNameIndex]);
 
 	/* did we find the name? */
 	if (nameIndex != ID_UNDEFINED) {
@@ -376,77 +387,24 @@ void parseProtoInstance (const char **atts) {
 
 	ProtoInstanceTable[curProtoInsStackInd].paircount = 0;
 	#ifdef X3DPARSERVERBOSE
-	printf("end or parseProtoInstance\n");
+	printf("unsuccessful end parseProtoInstance\n");
 	#endif
 }
 
+/*******************************************************************************************/
 
-/* have a </ProtoInstance> so should have valid name and fieldValues */
-void expandProtoInstance(struct X3D_Group *myGroup) {
-	int i;
-	char *protoInString;
-	char *origString;
-	int psSize;
-	int rs;
-	char *IS = NULL;
-	char *endIS = NULL;
-	char *connect = NULL;
-	char *strptr;
-	int pf;
-
-	/* temps for string manipulation */
-	char *valueStr;
-
-	#define OPEN_AND_READ_PROTO \
-		PROTONames[currentProtoInstance].fileDescriptor = fopen (PROTONames[currentProtoInstance].fileName,"r"); \
-		rs = fread(origString, 1, PROTONames[currentProtoInstance].charLen, PROTONames[currentProtoInstance].fileDescriptor); \
-		origString[rs] = '\0'; /* ensure termination */ \
-		fclose (PROTONames[currentProtoInstance].fileDescriptor); \
-		/* printf ("OPEN AND READ %s returns:%s\n:\n",PROTONames[currentProtoInstance].fileName, origString); */ \
-		if (rs != PROTONames[currentProtoInstance].charLen) { \
-			ConsoleMessage ("protoInstance :%s:, expected to read %d, actually read %d\n",PROTONames[currentProtoInstance].name,  \
-				PROTONames[currentProtoInstance].charLen,rs); \
-		} 
-
-
-	#define FIND_THE_CONNECT(mystr)  \
-		connect = strstr(mystr,strCONNECT);  \
-		/* printf ("	FIND_THE_CONNECT: connect string is:%s:\n",connect); */ \
-		/* ok, we have a valid <IS> and </IS> lets process what is between them. */  \
-		if (connect != NULL) {  \
-		 mystr = connect + strlen (strCONNECT); }
-
-	#define FIND_THE_END_OF_IS(mystr) \
-		/* printf ("FIND_THE_END_OF_IS, input str :%s:\n",mystr); */ \
-		endIS = strstr(mystr,strNOTIS); \
-		/* printf ("	FIND_THE_END_OF_IS: endIS string is :%s:\n",endIS); */ \ 
-		if (endIS == NULL) { \
-			ConsoleMessage ("did not find an </IS> for ProtoInstance %s\n",PROTONames[currentProtoInstance].name); \
-			FREE_IF_NZ(protoInString); FREE_IF_NZ(origString); \
-			return; \
-		} \
-		*endIS = '\0';  \
-
-	#define FIND_THE_IS \
-		 IS = strstr(strptr,strIS); \
-		/* printf ("	FIND_THE_IS: IS string is :%s:\n",IS); */
-
-#define COPY_UP_TO_HERE(final) \
-	if (final!=NULL) { \
-		char xx; xx = *final; *final = '\0'; \
-		/* printf ("COPY_UP_TO_HERE:%s:\n",strptr); */ \
-		strcat (protoInString,strptr); \
-		*final = xx; \
-	}
-
-		
-#define SET_STRPTR(posn) \
-	strptr = posn; \
-	/* printf ("SET_STRPTR:%s:\n",strptr); */
+#define FIND_THE_CONNECT(mystr)  \
+	connect = strstr(mystr,strCONNECT);  \
+	/* printf ("	FIND_THE_CONNECT: connect string is:%s:\n",connect); */ \
+	/* ok, we have a valid <IS> and </IS> lets process what is between them. */  \
+	if (connect != NULL) {  \
+	 mystr = connect + strlen (strCONNECT); }
 
 #define FIND_NODE_PROTO_FIELD(mystr,ns,ps) \
 	ns = strstr(mystr, NODEFIELD_EQUALS); \
-	ps = strstr(mystr, PROTOFIELD_EQUALS); 
+	ps = strstr(mystr, PROTOFIELD_EQUALS); \
+	if (ns!=NULL) ns += strlen(NODEFIELD_EQUALS); \
+	if (ps!=NULL) ps += strlen(PROTOFIELD_EQUALS);
 
 #define FILL_ID(mystr,myid) \
 	{ char *dq;   \
@@ -462,6 +420,154 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	}
 
 
+/* substitute the IS connects in the protoInString with the values from the IS, and return the string */
+/* protoInString = original string, with the <IS> copied, and spaced out */
+/* IS - just a pointer into protoInString of where the IS was, before it was spaced out */
+/* isString - the IS string that we have to substitute for */
+
+static char* doISsubs(char *protoInString, char *IS, char *isString) {
+	char *connect = NULL;
+	char *ns = NULL;
+	char *ps = NULL;
+	char nodeFieldID[200];
+	char protoFieldID[200];
+	char tmp[200];
+	char *newProtoInString;
+	char *doobie = NULL;
+
+	#ifdef X3DPARSERVERBOSE
+		printf ("\nstart of doISsubs\n");
+
+		printf ("doISsubs, orig :%s:\n",protoInString);
+		printf ("IS pointer is at:%s:\n",IS);
+		printf ("and the isString is :%s:\n",isString);
+	#endif
+
+	FIND_THE_CONNECT(isString)
+	while (connect != NULL) {
+		char *foundNameEquals = NULL;
+
+		#ifdef X3DPARSERVERBOSE
+			printf ("doISsubs loop, find the connect:%s:\n",connect);
+		#endif
+
+		FIND_NODE_PROTO_FIELD(connect,ns,ps)
+		FILL_ID(ns,nodeFieldID)
+		FILL_ID(ps,protoFieldID)
+
+		#ifdef X3DPARSERVERBOSE
+			printf ("nodeFieldID :%s:  protoFieldID :%s:\n",nodeFieldID, protoFieldID);
+		#endif
+
+		/* What do we attach the nodeFieldID to?? lets go back and see what we can find */
+		/* could this be a Script field, like:
+			<field accessType="initializeOnly" name="imageName"> </field> ? */
+		strcpy (tmp,"name=\"");
+		strcat (tmp,nodeFieldID);
+		strcat (tmp,"\"");
+
+		#ifdef X3DPARSERVERBOSE
+			printf ("trying to find the following :%s:\n",tmp);
+		#endif
+
+		foundNameEquals = strstr(protoInString,tmp);
+		
+		if (foundNameEquals != NULL) {
+			printf ("found this, probably script field\n");
+		} else {
+
+			*IS='\0';
+			doobie = strrchr(protoInString,'>');
+			*IS = ' ';
+			
+			printf ("did not find it, lets go back and find node to attach to\n");
+			if (doobie != NULL) {
+				char *valueStr = NULL;
+				valueStr = getProtoValue(currentProtoInstance,protoFieldID);
+
+				newProtoInString = MALLOC(strlen(valueStr) + strlen(protoInString) + 20);
+
+
+
+				*doobie = '\0';
+				strcpy (newProtoInString,protoInString);
+				strcat (newProtoInString, " ");
+				strcat (newProtoInString,nodeFieldID);
+				strcat (newProtoInString,"='");
+
+				/* now, is this possibly an MFString? */
+				strcat (newProtoInString,valueStr); /* value from proto inv */
+
+				strcat (newProtoInString,"'> ");
+				/* any more additions go in here, so... */
+				IS = newProtoInString + strlen(newProtoInString);
+
+				*doobie=' ';
+				strcat (newProtoInString, doobie);
+				FREE_IF_NZ(protoInString);
+				protoInString = newProtoInString;
+			}
+				
+		}
+		
+
+		/* lets loop and do the next <connect> */
+		connect += strlen (strCONNECT);
+		FIND_THE_CONNECT(connect)
+
+	}
+
+
+	#ifdef X3DPARSERVERBOSE
+		printf ("RETURNING :%s:\n",protoInString);
+	#endif
+
+	return protoInString;
+}
+
+/* have a </ProtoInstance> so should have valid name and fieldValues */
+void expandProtoInstance(struct X3D_Group *myGroup) {
+	int i;
+	char *protoInString;
+	int psSize;
+	int rs;
+	char *IS = NULL;
+	char *endIS = NULL;
+	int pf;
+
+	#define OPEN_AND_READ_PROTO \
+		PROTONames[currentProtoInstance].fileDescriptor = fopen (PROTONames[currentProtoInstance].fileName,"r"); \
+		rs = fread(protoInString, 1, PROTONames[currentProtoInstance].charLen, PROTONames[currentProtoInstance].fileDescriptor); \
+		protoInString[rs] = '\0'; /* ensure termination */ \
+		fclose (PROTONames[currentProtoInstance].fileDescriptor); \
+		/* printf ("OPEN AND READ %s returns:%s\n:\n",PROTONames[currentProtoInstance].fileName, protoInString); */ \
+		if (rs != PROTONames[currentProtoInstance].charLen) { \
+			ConsoleMessage ("protoInstance :%s:, expected to read %d, actually read %d\n",PROTONames[currentProtoInstance].name,  \
+				PROTONames[currentProtoInstance].charLen,rs); \
+		} 
+
+
+
+	#define FIND_THE_END_OF_IS(mystr) \
+		/* printf ("FIND_THE_END_OF_IS, input str :%s:\n",mystr); */ \
+		endIS = strstr(mystr,strNOTIS); \
+		/* printf ("	FIND_THE_END_OF_IS: endIS string is :%s:\n",endIS); */ \ 
+		if (endIS == NULL) { \
+			ConsoleMessage ("did not find an </IS> for ProtoInstance %s\n",PROTONames[currentProtoInstance].name); \
+			FREE_IF_NZ(protoInString); FREE_IF_NZ(protoInString); \
+			return; \
+		} \
+		endIS += strlen(strNOTIS); 
+
+	#define FIND_THE_IS \
+		 IS = strstr(protoInString,strIS); \
+		/* printf ("	FIND_THE_IS: IS string is :%s:\n",IS); */ 
+
+	#define ZERO_IS_TEXT_IN_ORIG \ 
+		{ char *is = IS; \
+		while ((is != endIS) && (*is != '\0')) { *is = ' '; is++; }}
+
+
 	/* first, do we actually have a valid proto here? */
 	if (currentProtoInstance == ID_UNDEFINED) 
 		return;
@@ -470,9 +576,19 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	printf ("ok, expandProtoInstance, have a valid protoInstance of %d\n",currentProtoInstance);
 	#endif
 
-	/* step 1. read in the PROTO text. */
-	
+	/* step 0. Does this one contain a DEF? */
+	if (ProtoInstanceTable[curProtoInsStackInd].defName != NULL) {
+		struct X3D_Node * me; 
+		#ifdef X3DPARSERVERBOSE
+			printf ("ProtoInstance, have a DEF, defining :%s: for node %u\n",
+			ProtoInstanceTable[curProtoInsStackInd].defName,myGroup);
+		#endif
 
+		me = DEFNameIndex(ProtoInstanceTable[curProtoInsStackInd].defName,myGroup,FALSE);
+		FREE_IF_NZ(ProtoInstanceTable[curProtoInsStackInd].defName);
+	}
+
+	/* step 1. read in the PROTO text. */
 	psSize = PROTONames[currentProtoInstance].charLen * 10;
 
 	if (psSize < 0) {
@@ -481,90 +597,50 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	}
 
 	protoInString = MALLOC (psSize);
-	origString = MALLOC(PROTONames[currentProtoInstance].charLen+1);
+	protoInString = MALLOC(PROTONames[currentProtoInstance].charLen+1);
 	protoInString[0] = '\0';
 
-	/* read in the PROTO into the "origString" */
+	/* read in the PROTO into the "protoInString" */
 	OPEN_AND_READ_PROTO
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("now, we have in memory:\n%s:\n", origString);
+	printf ("expandProtoInstance, now, we have in memory:\n%s:\n", protoInString);
 	#endif
 
 
 	/* loop through, and replace any IS'd fields with our PROTO expansion stuff... */
-	strptr = origString;
 	FIND_THE_IS
 
 	while (IS != NULL) {
-		char * nodeF;
-		char *protoF;
+		char *isString;
+		unsigned int islen;
 
-		COPY_UP_TO_HERE(IS)
-		SET_STRPTR(IS+strlen(strIS))
+		FIND_THE_END_OF_IS(IS)
 
-		/* find the </IS> and store it in the variable endIS */
-		FIND_THE_END_OF_IS(strptr)
-		
-		/* find the connect... */
-		FIND_THE_CONNECT(strptr)
-
-		while (connect != NULL) {
-			FIND_NODE_PROTO_FIELD(strptr,nodeF, protoF)
-	
-			/* did we find a nodeField and protoField? */
-			if ((nodeF != NULL) && (protoF != NULL)) {
-				char nodeID[256], protoID[256];
-	
-				/* increment the nodeField and protoField pointers to start of ID */
-				nodeF += strlen (NODEFIELD_EQUALS);
-				protoF += strlen(PROTOFIELD_EQUALS);
-	
-				#ifdef X3DPARSERVERBOSE
-				printf ("nodeField :%s:\n",nodeF);
-				printf ("protoField :%s:\n",protoF);
-				#endif
-	
-				FILL_ID(nodeF,nodeID)
-				FILL_ID(protoF,protoID)
-	
-				#ifdef X3DPARSERVERBOSE
-				printf ("nodeID :%s: protoID :%s:\n",nodeID, protoID);
-				#endif
-	
-				/* do the substitution if we can. */
-				valueStr = getProtoValue(currentProtoInstance,protoID);
-	
-				/* check sizes */
-				if ((strlen(protoInString) + strlen (valueStr)) > (psSize/2)) {
-					psSize *= ((strlen(protoInString) + strlen (valueStr)) *2);
-					protoInString = REALLOC(protoInString,psSize);
-				}
-	
-				/* do the parameter substitution */
-				strcat (protoInString,nodeID);
-				strcat (protoInString,"=\"");
-				strcat (protoInString,valueStr);
-				strcat (protoInString,"\" ");
-			}
-	
-			/* go past this connect, and continue */
-			strptr = connect + strlen(strCONNECT);
-			FIND_THE_CONNECT(strptr)
-			#ifdef X3DVERBOSE
-			printf ("\nend of connect loop, strptr is :%s:\n",strptr);
-			#endif
+		if (endIS == NULL) {
+			ConsoleMessage ("did not find </IS> in PROTO expansion");
+			return;
 		}
 
-		/* skip to the end of this IS. */
-		strptr = endIS + strlen(strNOTIS);
-		/* printf ("end of protoInString, we now have strptr as :%s:\n",strptr); */
-		IS = strstr(strptr,strIS);
-	}
+		/* copy the IS text over */
+		islen =  (endIS - IS);
+		isString = MALLOC(islen + 10);
+		memcpy (isString,IS,islen);
+		isString[islen] = '\0';
+		
+		#ifdef X3DPARSERVERBOSE
+			printf ("is text is :%s:\n",isString);
+		#endif
 
-	/* printf ("and, parse this...\n:%s:\n",protoInString);
-	   printf ("remainder :%s:\n",strptr);  */
-	strcat (protoInString, strptr);
+		/* zero the original data between the IS and the ENDIS */
+		ZERO_IS_TEXT_IN_ORIG
+
+		/* do IS substitutions */
+		protoInString = doISsubs(protoInString,IS,isString);
+
+		/* and keep doing this, until we have not more <IS> fields */
+		FIND_THE_IS		
+	}
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("PROTO EXPANSION IS:\n%s\n:\n",protoInString);
@@ -607,8 +683,7 @@ void expandProtoInstance(struct X3D_Group *myGroup) {
 	linkNodeIn();
 	DECREMENT_PARENTINDEX
 	curProtoInsStackInd--;
-	FREE_IF_NZ(protoInString);
-        FREE_IF_NZ(origString);
+        FREE_IF_NZ(protoInString);
 }
 
 

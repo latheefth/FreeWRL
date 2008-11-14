@@ -79,9 +79,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value) {
 		}
 	}
 
-	if (strlen(value)>0) {
-		Parser_scanStringValueToMem(node, coffset, ctype, value);
-	}
+	Parser_scanStringValueToMem(node, coffset, ctype, value);
 }
 
 

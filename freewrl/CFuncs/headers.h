@@ -42,7 +42,7 @@ void *freewrlStrdup (int line, char *file, char *str);
 	#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 #endif
 
-#define UNLINK(fdd) {printf ("unlinking %s at %s:%d\n",fdd,__FILE__,__LINE__); unlink (fdd); }
+#define UNLINK(fdd) {/* printf ("unlinking %s at %s:%d\n",fdd,__FILE__,__LINE__); */ unlink (fdd); }
 
 /* children fields path optimizations */
 #define CHILDREN_COUNT int nc = node->children.n;
