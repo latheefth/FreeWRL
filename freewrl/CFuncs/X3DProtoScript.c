@@ -162,18 +162,42 @@ static void registerProto(const char *name) {
 
 void parseProtoInstanceFields(const char *name, const char **atts) {
 	int count;
+	int picatindex = 0;
+	int picatmalloc = 0;
 
 	#define INDEX ProtoInstanceTable[curProtoInsStackInd].paircount	
+	#define ZERO_NAME_VALUE_PAIR \
+		ProtoInstanceTable[curProtoInsStackInd].name[INDEX] = NULL; \
+		ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = NULL;
 
-	ProtoInstanceTable[curProtoInsStackInd].name[INDEX] = NULL;
-	ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = NULL;
+	#define VERIFY_PCAT_LEN(myLen) \
+		if ((myLen + 10) >= picatmalloc) { \
+			if (picatmalloc == 0) { \
+				picatmalloc = 1024; \
+				picatindex = 0; \
+			} \
+			while ((picatmalloc + 20) < myLen) picatmalloc *= 2; \
+			ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = REALLOC(ProtoInstanceTable[curProtoInsStackInd].value[INDEX], picatmalloc); \
+		} \
+
+	#define PICAT_CAT(myStr,myLen) \
+		memcpy(&ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex], myStr,myLen); \
+		picatindex += myLen; \
+		ProtoInstanceTable[curProtoInsStackInd].value[INDEX][picatindex+1] = '\0'; 
+		
+	#define PICAT(myStr,myLen) \
+		VERIFY_PCAT_LEN(myLen) \
+		PICAT_CAT(myStr,myLen)
+
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("parsing PRotoInstanceFields for %s at level %d\n",name,curProtoInsStackInd);
 	#endif
 
 	/* this should be a <fieldValue...> tag here */
+	/* eg: <fieldValue name='imageName' value="helpers/brick.png"/> */
 	if (strcmp(name,"fieldValue") == 0) {
+		ZERO_NAME_VALUE_PAIR
 		for (count = 0; atts[count]; count += 2) {
 			#ifdef X3DPARSERVERBOSE
 			printf ("ProtoInstanceFields: %s=\"%s\"\n",atts[count], atts[count+1]);
@@ -190,8 +214,7 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 			if ((ProtoInstanceTable[curProtoInsStackInd].name[INDEX] != NULL) &&
 			    (ProtoInstanceTable[curProtoInsStackInd].value[INDEX] != NULL)) {
 				INDEX++;
-				ProtoInstanceTable[curProtoInsStackInd].name[INDEX] = NULL;
-				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = NULL;
+				ZERO_NAME_VALUE_PAIR
 			}
 
 			if (INDEX>=PROTOINSTANCE_MAX_PARAMS) {
@@ -200,11 +223,49 @@ void parseProtoInstanceFields(const char *name, const char **atts) {
 			}
 		}
 	} else if (strcmp(name,"ProtoInstance") != 0) {
-		ConsoleMessage ("<ProtoInstance> expects <fieldValues> or </ProtoInstance>, got %s at line %d",name,LINE);
+		/* maybe this is a SFNode value, as in: 
+                    <fieldValue name='relay'> <Script USE='CameraRelay'/> </fieldValue>
+
+		  if this IS the case, we will be down here where the atts parameter will be the "USE=CameraRelay" pair
+		*/
+		
+		/* printf ("ProtoInstance, looking for fieldValue, found string:%s: current name=%s value=%s, index %d\n",name,
+			ProtoInstanceTable[curProtoInsStackInd].name[INDEX], ProtoInstanceTable[curProtoInsStackInd].value[INDEX],INDEX); */
+
+		/* allow ONLY USEs here, at least for now? */
+		if (atts != NULL) {
+			if (strcmp("USE",atts[0]) == 0) {
+				struct X3D_Node *rv;
+				char *val = MALLOC(20);
+
+				rv = DEFNameIndex(atts[1],NULL,FALSE);
+				/* X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) */
+				/* printf ("found USE in proto expansion for SFNode, is %u\n",rv); */
+				sprintf (val, "%u",rv);
+				ProtoInstanceTable[curProtoInsStackInd].value[INDEX] = val;
+			} else {
+				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
+				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
+				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
+				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
+				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
+				/* NOT SURE THE FOLLOWING IS A GOOD IDEA */ 
+
+				/* just append this, and hope for the best */
+				for (count = 0; atts[count]; count += 2) {
+					PICAT(atts[count],strlen(atts[count]))
+					PICAT("=",1)
+					PICAT(atts[count+1],strlen(atts[count+1]))
+				}
+			}
+		}
+		/* printf ("NOW ProtoInstance, looking for fieldValue, found string:%s: current name=%s value=%s, index %d\n",name,
+			ProtoInstanceTable[curProtoInsStackInd].name[INDEX], ProtoInstanceTable[curProtoInsStackInd].value[INDEX],INDEX); */
+		INDEX++;
+		ZERO_NAME_VALUE_PAIR
 	}
 	#undef INDEX
 }
-
 
 
 /***********************************************************************************/
@@ -268,7 +329,7 @@ static char *getProtoValue(int ProtoInvoc, char *id) {
 	int i;
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("getProtoValue for proto %d, char :%s:\n",ProtoInvoc, id, curProtoInsStackInd);
+	printf ("getProtoValue for proto %d, char :%s:\n",ProtoInvoc, id);
 	#endif
 
 	/* get the start/end value pairs, and copy them into the id field. */
@@ -434,15 +495,16 @@ static char* doISsubs(char *protoInString, char *IS, char *isString) {
 	char tmp[200];
 	char *newProtoInString;
 	char *doobie = NULL;
+	char ctmp;
 
 	#ifdef X3DPARSERVERBOSE
 		printf ("\nstart of doISsubs\n");
-
 		printf ("doISsubs, orig :%s:\n",protoInString);
 		printf ("IS pointer is at:%s:\n",IS);
 		printf ("and the isString is :%s:\n",isString);
 	#endif
 
+	/* find a <connect>, and go through all <connect> strings until we have finished with this IS */
 	FIND_THE_CONNECT(isString)
 	while (connect != NULL) {
 		char *foundNameEquals = NULL;
@@ -475,19 +537,42 @@ static char* doISsubs(char *protoInString, char *IS, char *isString) {
 		if (foundNameEquals != NULL) {
 			printf ("found this, probably script field\n");
 		} else {
+			#ifdef X3DPARSERVERBOSE	
+			printf ("did not find it, lets go back and find node to attach to\n"); 
+			#endif
 
+
+			/* we probably have something like this: 
+			<ImageTexture>
+                        	<IS>
+                        		<connect nodeField='url' protoField='imageName'/>
+					<connect nodeField='repeatS' protoField='yes'/>
+                        	</IS>
+                	</ImageTexture>
+
+			which we want to turn into something like:
+			<ImageTexture url=(substituted string) repeatS=(substituted string) />
+
+			*/
+
+			/* so, to do that, we have to take off the trailing ">" from the node name */
+			ctmp = *IS;
 			*IS='\0';
 			doobie = strrchr(protoInString,'>');
-			*IS = ' ';
-			
-			printf ("did not find it, lets go back and find node to attach to\n");
+			*IS = ctmp;
+		
 			if (doobie != NULL) {
 				char *valueStr = NULL;
+
+				/* ok, we know the location of the last ">", lets go and make a string with all
+				   of this in it together */
+
+
+				/* the value of the PROTO substitution field: */
 				valueStr = getProtoValue(currentProtoInstance,protoFieldID);
 
+				/* lets make up a new string long enough for the proto substitution */
 				newProtoInString = MALLOC(strlen(valueStr) + strlen(protoInString) + 20);
-
-
 
 				*doobie = '\0';
 				strcpy (newProtoInString,protoInString);

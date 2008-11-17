@@ -220,7 +220,6 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 
 
 /*
-SF_TYPE(SFNode, sfnode, Node)
 MF_TYPE(MFNode, mfnode, Node)
 */
 		switch (ctype) {
@@ -326,17 +325,5 @@ OLDCODE				if ((*value == ' ') || (*value == ',')) value++;
 OLDCODE			}
 OLDCODE			break;
 OLDCODE			}
-OLDCODE		case FIELDTYPE_SFString: 
-OLDCODE			{
-OLDCODE			/* first, can we destroy the old value?? */
-OLDCODE			memcpy (&mysv,nst,datasize);
-OLDCODE			mysv->len=0;
-OLDCODE			FREE_IF_NZ(mysv->strptr);
-OLDCODE
-OLDCODE			/* create new value, and copy its pointer over. */
-OLDCODE			mysv  = newASCIIString(value); 
-OLDCODE			memcpy (nst, &mysv, datasize);
-OLDCODE			break; }
-OLDCODE			
 #endif
 

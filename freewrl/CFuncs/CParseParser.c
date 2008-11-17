@@ -2395,12 +2395,10 @@ BOOL parser_fieldEvent(struct VRMLParser* me, struct X3D_Node* ptr)
  BOOL isIn=FALSE, isOut=FALSE;
  indexT evO, evE;
 
-/* JAS printf ("parser fieldEvent start..\n"); */
  /* We should be in a PROTO */
  if(!me->curPROTO)
   return FALSE;
-/* JAS printf ("parser fieldEvent, past proto test\n"); */
-
+ return TRUE;
 }
 
 
@@ -2748,16 +2746,28 @@ BOOL parser_sfimageValue(struct VRMLParser* me, vrmlImageT* ret)
 }
 
 
-BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret)
-{
- ASSERT(me->lexer);
- if(lexer_keyword(me->lexer, KW_NULL))
- {
-  *ret=NULL;
-  return TRUE;
- }
+BOOL parser_sfnodeValue(struct VRMLParser* me, vrmlNodeT* ret) {
+	unsigned tmp;
 
- return parser_nodeStatement(me, ret);
+	ASSERT(me->lexer);
+	if(lexer_keyword(me->lexer, KW_NULL)) {
+		*ret=NULL;
+		return TRUE;
+	}
+
+	/* are we parsing from a proto expansion? */
+	if (!me->parsingX3DfromXML) {
+ 		return parser_nodeStatement(me, ret);
+	} else {
+		/* expect something like a number (memory pointer) to be here */
+		if (sscanf(me->lexer->startOfStringPtr, "%u",  &tmp) != 1) {
+			ConsoleMessage ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr);
+			*ret=NULL;
+			return FALSE;
+		}
+		*ret = (vrmlNodeT*)tmp;
+	}
+	return TRUE;
 }
 
 

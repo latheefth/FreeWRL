@@ -737,20 +737,21 @@ if so, we will be here for the USE fields.
 
 
 */
-static void dumpProtoInstanceField (const char *name, const char **atts) {
+static void saveProtoInstanceFields (const char *name, const char **atts) {
 	int i;
 
 	#ifdef X3DPARSERVERBOSE
-		printf ("dumpProtoInstanceField, have node :%s:\n",name);
+		printf ("saveProtoInstanceFields, have node :%s:\n",name);
 	#endif
 
 	if (strcmp(name,"fieldValue") == 0) {
 		parseFieldValue(name,atts);
 	} else {
-		printf ("dumpProtoInstanceField - dont know what to do with %s\n",name);
+		/* printf ("warning - saveProtoInstanceFields - dont know what to do with %s\n",name); */
+		parseFieldValue(name,atts);
 	}
 	#ifdef X3DPARSERVERBOSE
-		printf ("dumpProtoInstanceField END\n");
+		printf ("saveProtoInstanceFields END\n");
 	#endif
 }
 
@@ -762,7 +763,7 @@ static void endProtoInstanceField(const char *name) {
 	if (strcmp(name,"ProtoInstance")==0) {
 		endProtoInstanceTag();
 	} else if (strcmp(name,"fieldValue") != 0) {
-		printf ("endProtoInstanceField, dont know what to do with :%s:\n",name);
+		/* printf ("warning - endProtoInstanceField, dont know what to do with :%s:\n",name); */
 	}
 }
 
@@ -854,7 +855,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 	int myNodeIndex;
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("startElement: %s : level %d\n",name,parentIndex);
+	printf ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[parserMode]);
 	{int i;
         for (i = 0; atts[i]; i += 2) {
 		printf("	field:%s=%s\n", atts[i], atts[i + 1]);
@@ -869,7 +870,7 @@ static void XMLCALL startElement(void *unused, const char *name, const char **at
 
 	/* maybe we are doing a Proto Instance?? */
 	if (parserMode == PARSING_PROTOINSTANCE) {
-		dumpProtoInstanceField(name,atts);
+		saveProtoInstanceFields(name,atts);
 		return;
 	}
 
@@ -916,7 +917,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	int myNodeIndex;
 
 	#ifdef X3DPARSERVERBOSE
-	printf ("endElement: %s : parentIndex %d\n",name,parentIndex);
+	printf ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[parserMode]);
 	#endif
 
 	/* are we storing a PROTO body?? */
@@ -980,9 +981,8 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	#ifdef X3DPARSERVERBOSE
 	printf ("endElement %s\n",name);
 	#endif
-
-	
 }
+
 
 static XML_Parser initializeX3DParser () {
 	X3DParserRecurseLevel++;
