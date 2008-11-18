@@ -1,7 +1,9 @@
-For 1.21.1
+For 1.21.1 and  1.21.2
+	- Linux - verify html browser plugin mime types, added model/x3d.
+
 	- PROTO expansion in Classic - malloc error when IS'd fields are large. Fixed realloc algorithm.
 
-	- PROTO expansion in XML parsing; revamped <IS> handling.
+	- PROTO expansion in XML parsing; revamping <IS> handling. (in process)
 
 	- OpenGL Shaders code should compile on OpenGL 1.5 and above now (was 2.0 and above)
 
