@@ -40,7 +40,7 @@ void __attribute__ ((destructor)) libFreeX3D_fini(void)
 int initFreeX3D()
 {
     if (!display_initialize()) {
-	//ERROR
+	ERROR("error in initialization.\n");
 	return FALSE;
     }
     return TRUE;

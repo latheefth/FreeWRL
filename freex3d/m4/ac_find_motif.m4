@@ -186,7 +186,7 @@ if test "$with_motif" != "no"; then
                 include_motif="-I$motif_includes"
                 MOTIF_CFLAGS="-I$motif_includes"
         fi
-		AC_DEFINE([HAVE_MOTIF], [1], [Define to 1 of Motif is available.])
+	AC_DEFINE([HAVE_MOTIF], [1], [Define to 1 if you have Motif.])
 else
         with_motif="no"
 fi
@@ -245,13 +245,14 @@ exit(0);
 	lt_cv_libxp=no)
 	])
 	if test "$lt_cv_libxp" = "yes"; then
-		AC_DEFINE([HAVE_LIB_XP],[1],[Define to 1 of X11/extensions/Print.h is available.])
-		LT_HAVE_XP="yes"
+		AC_DEFINE([HAVE_LIB_XP],[1],[Define to 1 if you have the <X11/extensions/Print.h> header file.])
+dnl		LT_HAVE_XP="yes"
 	else
-		LT_HAVE_XP="no"
+		:
+dnl		LT_HAVE_XP="no"
 	fi
-	AM_CONDITIONAL(Have_Libxp, test "$lt_cv_libxp" = "yes")
-	AC_SUBST(LT_HAVE_XP)
+dnl	AM_CONDITIONAL(Have_Libxp, test "$lt_cv_libxp" = "yes")
+dnl	AC_SUBST(LT_HAVE_XP)
 	CFLAGS="$lt_save_CFLAGS"
 	CPPFLAGS="$lt_save_CPPFLAGS"
 	LIBS="$lt_save_LIBS"
