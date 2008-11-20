@@ -1,3 +1,9 @@
+freewrl (1.21.2-2) unstable; urgency=low
+
+  * Linux: font directory fixed. 
+
+ -- Michel Briand (Quand on veut on peut !) <michelbriand@free.fr>  Fri, 21 Nov 2008 00:31:34 +0100
+
 freewrl (1.21.2-1) unstable; urgency=low
 
   * New upstream release. 
