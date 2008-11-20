@@ -23,6 +23,14 @@
 /* get the definitions from the command line */
 #include "vrmlconf.h"
 
+/**
+ * in InputFunctions.c
+ */
+int dirExists(const char *dir);
+char* makeFontDirectory();
+char *readInputString(char *fn);
+
+
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
 
@@ -1100,9 +1108,7 @@ void BoundingBox(struct X3D_Node* node);
 #define BOUNDINGBOX
 #endif
 
-void freewrlDie (const char *format);
-char * readInputString(char *fn);
-char * sanitizeInputString(char *instr);
+void freewrlDie(const char *format);
 
 extern double nearPlane, farPlane, screenRatio, calculatedNearPlane, calculatedFarPlane;
 
@@ -1502,8 +1508,6 @@ void setglClearColor (float *val);
 void doglClearColor(void);
 extern int cc_changed;
 extern int forceBackgroundRecompile;
-
-char *findPathToFreeWRLFile(char *lfn);
 
 int mapFieldTypeToInernaltype (indexT kwIndex);
 void finishEventLoop();
