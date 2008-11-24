@@ -749,7 +749,7 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 	char tmp;
 	char *inputCopy = NULL;
 
-	struct ProtoFieldDecl* pdecl;
+	struct ProtoFieldDecl* pdecl = NULL;
 	union anyVrml thisVal;
 
 	#ifdef CPROTOVERBOSE
@@ -896,8 +896,8 @@ void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefinition *thi
 		#endif
 
 		lexer_skip (me);
+		FREE_IF_NZ (inputCopy);
 	}
-	FREE_IF_NZ (inputCopy);
 
 	#ifdef CPROTOVERBOSE
 	printf ("end of getProtoInvocationFields\n");

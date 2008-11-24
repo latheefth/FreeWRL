@@ -1782,7 +1782,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 		/* The node name was located in userNodeTypesVec (list of defined PROTOs), therefore this is an attempt to instantiate a PROTO */
 		/* expand this PROTO, put the code right in line, and let the parser go over it as if there was never a proto here... */
 	
-		char *newProtoText;
+		char *newProtoText = NULL;
 	
 		#ifdef CPARSERVERBOSE
 		printf ("nodeTypeB = ID_UNDEFINED, but nodeTypeU is %d\n",nodeTypeU);
@@ -1807,6 +1807,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 			/* and, now, lets get the id for the lexer */
 			if(!lexer_node(me->lexer, &nodeTypeB, &nodeTypeU)) {
 				printf ("after protoexpand lexer_node, is this one of those special ones? \n");
+				FREE_IF_NZ(newProtoText);
 				return FALSE;
 			}
 		
@@ -1827,6 +1828,7 @@ BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
 				/* printf ("after skipToEndOfOpenCurly, we have :%s:\n",me->lexer->nextIn); */
 			}
 		}
+		FREE_IF_NZ(newProtoText);
 	}
 	
 	/* Built-in node */
