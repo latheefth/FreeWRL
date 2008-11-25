@@ -67,8 +67,11 @@ Window Xroot_window;
 XVisualInfo *Xvi;
 Window Xwin;
 Window GLwin;
+XSetWindowAttributes attr;
+unsigned long mask;
+Atom WM_DELETE_WINDOW;
 
-# if defined TARGET_MOTIF
+# if defined(TARGET_MOTIF)
 
 # include <X11/Intrinsic.h>
 # include <Xm/Xm.h>
@@ -79,7 +82,7 @@ extern int create_main_window_motif();
 
 extern int create_main_window_x11();
 
-# endif /* defined TARGET_MOTIF */
+# endif /* defined(TARGET_MOTIF) */
 
 # include <GL/gl.h>
 # include <GL/glu.h>

@@ -20,6 +20,12 @@ XtAppContext Xtcx;
 
 int create_main_window_motif()
 {
+    Window root_ret;
+    Window child_ret;
+    int root_x_ret;
+    int root_y_ret;
+    unsigned int mask_ret;
+
     attr.background_pixel = 0;
     attr.border_pixel = 0;
     attr.colormap = XCreateColormap(Xdpy, Xroot_window, Xvi->visual, AllocNone);
