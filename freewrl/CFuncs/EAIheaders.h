@@ -15,7 +15,6 @@ void EAI_RW(char *bufptr);
 
 /* these are commands accepted from the EAI client */
 #define GETNODE		'A'
-#define UPDATEROUTING 	'B'
 #define SENDCHILD 	'C'
 #define SENDEVENT	'D'
 #define GETVALUE	'E'

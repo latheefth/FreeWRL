@@ -40,7 +40,14 @@ char* makeFontDirectory()
     
     /* Get dir from configuration */
     if (!tmp) {
-        tmp = FONTSDIR;
+	/* If we are running on OSX, 99.999999% of people use the dmg install */
+	/* Linux is different; so it is possible that a user can have fonts probs */
+
+	#ifdef AQUA
+		tmp = INSTALLDIR;
+	#else
+        	tmp = FONTSDIR;
+	#endif
     }
     
     /* Check if dir exists */

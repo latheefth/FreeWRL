@@ -370,17 +370,6 @@ void EAI_parse_commands () {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
-			case UPDATEROUTING :  {
-				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
-
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %d",&ra,&rb,ctmp,&rc);
-				if (eaiverbose) {	
-					printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
-				}	
-
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-				}
 			case REGLISTENER: {
 				if (eaiverbose) {	
 					printf ("REGISTERLISTENER %s \n",&EAI_BUFFER_CUR);
@@ -735,7 +724,7 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	/* get ready for the reply */
 	sprintf (buf,"RE\n%f\n%d\n",TickTime,repno);
 
-	/* printf ("handleRoute, string %s\n",bufptr);  */
+	/* printf ("handleRoute, string %s\n",bufptr); */
 	
 	/* ------- worry about the route from section -------- */
 
@@ -747,7 +736,8 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
 	while (*bufptr != ' ') bufptr++; while (*bufptr == ' ') bufptr++;
 
-	/* printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType)); */
+	/* printf ("handleRoute, to string %s\n",bufptr);
+	printf ("fromNode is of type %s\n",stringNodeType(fromNode->_nodeType)); */
 
 	/* ------- now, the route to section -------- */
 
@@ -761,10 +751,12 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 
 		/* go through and find the entry for this field, looks like:
 		const int OFFSETS_TimeSensor[] = {
-        		FIELDNAMES_isActive, offsetof (struct X3D_TimeSensor, isActive),  FIELDTYPE_SFBool, KW_eventOut,
+		        FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  FIELDTYPE_SFTime, KW_outputOnly,
+		        FIELDNAMES___inittime, offsetof (struct X3D_TimeSensor, __inittime),  FIELDTYPE_SFTime, KW_initializeOnly,
+		        FIELDNAMES_fraction_changed, offsetof (struct X3D_TimeSensor, fraction_changed),  FIELDTYPE_SFFloat, KW_outputOnly,
+		        FIELDNAMES_loop, offsetof (struct X3D_TimeSensor, loop),  FIELDTYPE_SFBool, KW_inputOutput,
+		        FIELDNAMES_resumeTime, offsetof (struct X3D_TimeSensor, resumeTime),  FIELDTYPE_SFTime, KW_inputOutput,
         		...
-			FIELDNAMES_time, offsetof (struct X3D_TimeSensor, time),  FIELDTYPE_SFTime, KW_eventOut,
-        		FIELDNAMES___ctflag, offsetof (struct X3D_TimeSensor, __ctflag),  FIELDTYPE_SFTime, KW_exposedField,
         		-1, -1, -1, -1};
 		*/
 
@@ -773,9 +765,9 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		np++; fromOffset = *np; np++; fromVRMLtype = *np; np++;
 
 		/* is this a valid type? */
-		if ((*np != KW_eventOut) && (*np != KW_exposedField)) {
-			printf ("expected an eventOut for field %s of %s\n",
-                                fieldTemp, stringNodeType(toNode->_nodeType));
+		if ((*np != KW_outputOnly) && (*np != KW_inputOutput)) {
+			printf ("expected an output type for field %s of %s\n",
+                                fieldTemp, stringNodeType(fromNode->_nodeType));
               	  	rv = FALSE;
 		}
 
@@ -786,8 +778,8 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		np++; toOffset = *np; np++; toVRMLtype = *np; np++;
 
 		/* is this a valid type? */
-		if ((*np != KW_eventIn) && (*np != KW_exposedField)) {
-			printf ("expected an eventIn for field %s of %s\n",
+		if ((*np != KW_inputOnly) && (*np != KW_inputOutput)) {
+			printf ("expected an input type for field %s of %s\n",
                                 fieldTemp, stringNodeType(toNode->_nodeType));
               	  	rv = FALSE;
 		}
