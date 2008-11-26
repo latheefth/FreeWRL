@@ -1,4 +1,7 @@
 For 1.21.2-2
+	- XML parsing MFStrings - MFString attributes, where the initial quote was not at the left most
+	  position in the attribute caused parsing problems. Fixed.
+
 	- Linux: font directory fixed. OSX uses "INSTALLDIR" unless override by FREEWRL_FONTSDIR 
 	  environment variable.
 
