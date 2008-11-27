@@ -14,6 +14,10 @@
 #define __FREEX3D_SYSTEM_H__
 
 
+#if HAVE_STDINT_H
+# include <stdint.h>
+#endif
+
 #if STDC_HEADERS
 # include <stdio.h>
 # include <stdlib.h>

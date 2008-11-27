@@ -208,14 +208,7 @@ struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
 Boolean pluginRunning;
-/*
-Boolean inLoop;
-*/
-#ifdef AQUA
-Boolean isBrowserPlugin = FALSE;
-#else
 int isBrowserPlugin = FALSE;
-#endif
 
 /******************************************************************************/
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not

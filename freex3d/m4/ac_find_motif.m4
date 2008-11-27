@@ -246,13 +246,12 @@ exit(0);
 	])
 	if test "$lt_cv_libxp" = "yes"; then
 		AC_DEFINE([HAVE_LIB_XP],[1],[Define to 1 if you have the <X11/extensions/Print.h> header file.])
-dnl		LT_HAVE_XP="yes"
+		LT_HAVE_XP="yes"
 	else
-		:
-dnl		LT_HAVE_XP="no"
+		LT_HAVE_XP="no"
 	fi
 dnl	AM_CONDITIONAL(Have_Libxp, test "$lt_cv_libxp" = "yes")
-dnl	AC_SUBST(LT_HAVE_XP)
+	AC_SUBST(LT_HAVE_XP)
 	CFLAGS="$lt_save_CFLAGS"
 	CPPFLAGS="$lt_save_CPPFLAGS"
 	LIBS="$lt_save_LIBS"

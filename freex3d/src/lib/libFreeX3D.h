@@ -42,6 +42,12 @@ int win_width;
 int fullscreen;
 char *BrowserFullPath;
 pthread_t DispThrd;
+int _fw_pipe, _fw_FD;
+int _fw_browser_plugin;
+int isBrowserPlugin;
+uintptr_t _fw_instance;
+int be_collision;
+char *keypress_string;
 
 
 #endif /* __LIBFREEX3D_MAIN_H__ */
