@@ -13,5 +13,3 @@
 #include "internal.h"
 
 /* threads */
-
-pthread_t DispThrd;

@@ -1,37 +1,15 @@
-/*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
-*********************************************************************/
-
-#ifndef __OPENGL_UTILS_H_
-#define __OPENGL_UTILS_H_
-
 /*
- * $Id$
- *
- */
+=INSERT_TEMPLATE_HERE=
 
-#ifdef AQUA
+$Id$
 
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
+Screen snapshot.
 
-#else
+*/
 
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#endif
+#ifndef __FREEX3D_OPENGL_UTILS_H__
+#define __FREEX3D_OPENGL_UTILS_H__
 
-#ifdef LINUX
-#include <GL/glext.h>
-#endif
-
-
-#include "headers.h"
 
 void start_textureTransform (void *textureNode, int ttnum);
 void end_textureTransform (void *textureNode, int ttnum);
@@ -59,4 +37,5 @@ extern void resetGeometry();
 #endif
 extern void glpOpenGLInitialize(void);
 
-#endif /* __OPENGL_UTILS_H_ */
+
+#endif /* __FREEX3D_OPENGL_UTILS_H__ */

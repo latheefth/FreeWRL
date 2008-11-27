@@ -1,26 +1,15 @@
-/* $Id$
- *
- * Copyright (C) 2002 Nicolas Coderre CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License (file COPYING in the distribution)
- * for conditions of use and redistribution.
- */
-#ifndef COLLISIONH
-#define COLLISIONH
+/*
+=INSERT_TEMPLATE_HERE=
 
+$Id$
 
-#include <stdio.h>
-#include <math.h>
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
-#if defined(__APPLE__)
-#include <sys/malloc.h>
-#endif
+Collision ???
 
-#include "headers.h"
-#include "LinearAlgebra.h"
-#include "Structs.h"
+*/
+
+#ifndef __FREEX3D_COLLISION_H__
+#define __FREEX3D_COLLISION_H__
+
 
 /* Collision detection results structure*/
 struct sCollisionInfo {
@@ -240,8 +229,5 @@ void printpolyrep(struct X3D_PolyRep pr, int npoints);
 void printmatrix(GLdouble* mat);
 #endif
 
-#endif
 
-
-
-
+#endif /* __FREEX3D_COLLISION_H__ */

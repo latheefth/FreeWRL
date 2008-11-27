@@ -13,6 +13,9 @@
 #ifndef __LIBFREEX3D_SYSTEM_H__
 #define __LIBFREEX3D_SYSTEM_H__
 
+#if HAVE_STDINT_H
+# include <stdint.h>
+#endif
 
 #if STDC_HEADERS
 # include <stdio.h>
@@ -28,6 +31,10 @@ char *strchr (), *strrchr ();
 #  define memcpy(d, s, n) bcopy ((s), (d), (n))
 #  define memmove(d, s, n) bcopy ((s), (d), (n))
 # endif
+#endif
+
+#if HAVE_ERRNO_H
+# include <errno.h>
 #endif
 
 #if HAVE_STDBOOL_H
@@ -80,6 +87,26 @@ typedef unsigned char _Bool;
 
 #include <syslog.h>
 #include <stdarg.h>
+
+#if HAVE_SYS_STAT_H
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
+#include <sys/time.h>
+#include <time.h>
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+#include <syslog.h>
+
+#include <fcntl.h>
+
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 
 #endif /* __LIBFREEX3D_SYSTEM_H__ */

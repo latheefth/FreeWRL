@@ -1,12 +1,26 @@
-/******************************************************************************
- Copyright (C) 1998 Tuomas J. Lukka, 2003 John Stewart, Ayla Khan, CRC Canada.
- DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- See the GNU Library General Public License (file COPYING in the distribution)
- for conditions of use and redistribution.
- ******************************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id$
+
+???
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
 
 #include "quaternion.h"
-#include "LinearAlgebra.h"
+
+/* #include "LinearAlgebra.h" */
+
 /*
  * $Id$
  *
@@ -347,7 +361,7 @@ togl(Quaternion *quat)
 
 	/* get the angle, but turn us around 180 degrees */
 	/* printf ("togl: setting rotation %f %f %f %f\n",quat->w,quat->x,quat->y,quat->z);*/
-	glRotated((2 * (acos(quat->w) / PI * 180)), quat->x, quat->y, quat->z);
+	glRotated((2 * (acos(quat->w) / M_PI * 180)), quat->x, quat->y, quat->z);
 }
 
 void

@@ -1,24 +1,17 @@
 /*
- * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
- * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
- * See the GNU Library General Public License
- * (file COPYING in the distribution) for conditions of use and
- * redistribution, EXCEPT on the files which belong under the
- * Mozilla public license.
- *
- * $Id$
- *
- */
+=INSERT_TEMPLATE_HERE=
+
+$Id$
+
+*/
+
+#ifndef __FREEX3D_JS_VRML_BROWSER_H__
+#define __FREEX3D_JS_VRML_BROWSER_H__
 
 
-#ifndef __jsVRMLBrowser_h__
-#define __jsVRMLBrowser_h__
 #ifndef UNUSED
 #define UNUSED(v) ((void) v)
 #endif
-
-#include "jsUtils.h"
-#include "jsNative.h"
 
 extern char *BrowserName; /* defined in VRMLC.pm */
 extern double BrowserFPS;				/* defined in VRMLC.pm */
@@ -161,4 +154,4 @@ static JSClass Browser = {
 
 
 
-#endif /* __jsVRMLBrowser_h__ */
+#endif /* __FREEX3D_JS_VRML_BROWSER_H__ */

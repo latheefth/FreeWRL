@@ -8,12 +8,12 @@
  *
  *******************************************************************/
 
-#include "config.h"
-#include "system.h"
-#include "display.h"
-#include "internal.h"
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
 
-#include "libFreeX3D.h"
+#include <libFreeX3D.h>
 
 
 /**

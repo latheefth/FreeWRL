@@ -1,9 +1,15 @@
-/* VRML-parsing routines in C. */
+/*
+=INSERT_TEMPLATE_HERE=
 
-#ifndef CPARSE_H
-#define CPARSE_H
+$Id$
 
-#include "headers.h"
+VRML-parsing routines in C.
+
+*/
+
+#ifndef __FREEX3D_CPARSE_H__
+#define __FREEX3D_CPARSE_H__
+
 
 /* for scanning and determining whether a character is part of a valid X3D name */
 #define IS_ID_REST(c) \
@@ -26,4 +32,5 @@ extern struct VRMLParser* globalParser;
 #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
 void fw_assert(char *,int);
 
-#endif /* Once-check */
+
+#endif /* __FREEX3D_CPARSE_H__ */
