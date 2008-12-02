@@ -19,7 +19,7 @@ FreeX3D main program.
  * Local variables
  */
 static int CaughtSEGV = FALSE;
-static int wantEAI = FALSE;
+int wantEAI = FALSE;
 
 /**
  * Signal handlers 
