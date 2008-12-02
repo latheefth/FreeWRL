@@ -29,6 +29,7 @@ $Id$
 #ifdef REWIRE
 # include "Eai_C.h"
 # define ADD_PARENT(a,b)
+/* FIXME: is there a problem with MALLOC when building with REWIRE ? */
 # define MALLOC(a) malloc(a)
 #endif
 

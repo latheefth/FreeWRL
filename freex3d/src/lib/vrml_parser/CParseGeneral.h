@@ -59,8 +59,8 @@ union anyVrml
 		fprintf (stderr,"%s\n",fw_outline);
 
 /* tie assert in here to give better failure methodology */
-#define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);}
-void fw_assert(char *,int);
+/* #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);} */
+/* void fw_assert(char *,int); */
 
 
 #endif /* __FREEX3D_CPARSE_GENERAL_H__ */

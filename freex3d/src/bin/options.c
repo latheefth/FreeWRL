@@ -98,7 +98,7 @@ int parseCommandLine (int argc, char **argv)
 
 	case 'c':
 	    fullscreen = 1;
-#ifndef XF86V4
+#if HAVE_XF86_VMODE
 	    printf("\nFullscreen mode is only available for XFree86 version 4.\n");
 	    printf("If you are running version 4, please add -DXF86V4 to your vrml.conf file\n");
 	    printf("in the FREEWRL_DEFINES section, and add -lXxf86vm to the FREEWRL_LIBS section.\n");

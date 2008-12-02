@@ -130,8 +130,8 @@ void kill_javascript(void) {
 	JSMaxScript = 0;
 	max_script_found = -1;
 	max_script_found_and_initialized = -1;
-	FREE_IF_NZ (ScriptControl)
-	FREE_IF_NZ(scr_act)
+	FREE_IF_NZ (ScriptControl);
+	FREE_IF_NZ(scr_act);
 
 	/* Script name/type table */
 	FREE_IF_NZ(JSparamnames);
