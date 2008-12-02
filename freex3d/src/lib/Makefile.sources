@@ -8,6 +8,9 @@
 libFreeX3D_la_SOURCES = \
 			internal.h \
 			system.h \
+			system_net.h \
+			system_threads.h \
+			system_fonts.h \
 			display.h \
 			libFreeX3D.h \
 			main.c \
@@ -136,6 +139,7 @@ opengl/OpenGL_Utils.c \
 opengl/OpenGL_Utils.h \
 opengl/Material.c \
  \
+ui/ui.h \
 ui/statusbar.c \
 ui/aquaInt.h \
 ui/fwMotifWindow.c \
