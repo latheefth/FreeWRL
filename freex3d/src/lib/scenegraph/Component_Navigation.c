@@ -18,6 +18,7 @@ X3D Navigation Component
 #include "../main/headers.h"
 
 #include "../x3d_parser/Bindable.h"
+#include "LinearAlgebra.h"
 #include "Collision.h"
 #include "quaternion.h"
 #include "Viewer.h"

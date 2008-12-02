@@ -17,6 +17,7 @@ $Id$
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
+#include "LinearAlgebra.h"
 #include "Polyrep.h"
 
 /*****************************************

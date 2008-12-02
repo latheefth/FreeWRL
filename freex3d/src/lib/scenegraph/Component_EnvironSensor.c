@@ -17,6 +17,9 @@ X3D Environmental Sensors Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
+#include "LinearAlgebra.h"
+#include "Component_Geospatial.h"
+
 
 /* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */
 int candoVisibility = TRUE;
