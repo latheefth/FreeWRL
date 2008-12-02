@@ -1,21 +1,31 @@
-/*******************************************************************
- *
- * FreeX3D support library
- *
- * internal header - system.h
- *
- * Library system dependencies.
- *
- * $Id$
- *
- *******************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
+
+$Id$
+
+FreeX3D support library.
+Internal header: system dependencies.
+
+*/
 
 #ifndef __LIBFREEX3D_SYSTEM_H__
 #define __LIBFREEX3D_SYSTEM_H__
 
+/**
+ * Strict necessary common system header files:
+ *
+ * try to remove as much include as possible from here...
+ *
+ * for modularity some headers are defined for special needs:
+ *
+ * system_net.h all network related headers
+ * display.h    all Aqua/X11 related headers
+ */
+
 #if HAVE_STDINT_H
 # include <stdint.h>
 #endif
+
 
 #if STDC_HEADERS
 # include <stdio.h>
@@ -107,6 +117,7 @@ typedef unsigned char _Bool;
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+
 
 
 #endif /* __LIBFREEX3D_SYSTEM_H__ */
