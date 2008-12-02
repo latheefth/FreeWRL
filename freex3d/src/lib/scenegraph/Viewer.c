@@ -17,6 +17,7 @@ CProto ???
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
+#include "LinearAlgebra.h"
 #include "quaternion.h"
 #include "Viewer.h"
 

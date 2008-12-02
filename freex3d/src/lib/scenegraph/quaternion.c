@@ -17,13 +17,11 @@ $Id$
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
+#include "LinearAlgebra.h"
 #include "quaternion.h"
 
-/* #include "LinearAlgebra.h" */
 
 /*
- * $Id$
- *
  * Quaternion math ported from Perl to C
  * (originally in Quaternion.pm)
  *

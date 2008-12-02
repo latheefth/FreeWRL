@@ -17,6 +17,8 @@ X3D Sound Component
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
+#include "LinearAlgebra.h"
+
 
 void render_AudioControl (struct X3D_AudioControl *node) {
 	GLdouble mod[16];
