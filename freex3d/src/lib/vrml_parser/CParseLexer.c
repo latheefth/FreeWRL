@@ -22,6 +22,7 @@ $Id$
 #include "../world_script/CScripts.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
+#include "CParse.h"
 
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
