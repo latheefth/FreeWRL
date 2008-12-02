@@ -15,6 +15,7 @@ Render the children of nodes.
 #include <libFreeX3D.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../main/headers.h"
 
 #include "LinearAlgebra.h"
 #include "Collision.h"
