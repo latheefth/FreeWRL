@@ -9,6 +9,7 @@ $Id$
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 

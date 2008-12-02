@@ -11,8 +11,10 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #include <config.h>
 #include <system.h>
-#include <display.h>
+#include <system_net.h>
 #include <internal.h>
+
+#include <errno.h>
 
 #include <libFreeX3D.h>
 

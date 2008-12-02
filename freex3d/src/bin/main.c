@@ -83,7 +83,7 @@ int main (int argc, char **argv)
     }
 
     /* start threads, parse initial scene, etc */
-    initFreeX3D();
+    initFreewrl();
 
     /* do we require EAI? */
     if (wantEAI) {

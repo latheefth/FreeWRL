@@ -9,6 +9,7 @@ General Texture objects.
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
@@ -26,6 +27,7 @@ General Texture objects.
 #else
 # if HAVE_JPEGLIB_H
 #  include <jpeglib.h>
+#  include <setjmp.h>
 # endif
 #endif
 

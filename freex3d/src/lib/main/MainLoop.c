@@ -76,7 +76,7 @@ static char debs[300];
         void handle_Xevents(XEvent event);
 #endif
 
-pthread_t DispThrd = -1;
+pthread_t DispThrd = 0;
 char* threadmsg;
 char* PluginFullPath;
 
@@ -1260,7 +1260,7 @@ void initFreewrl() {
 
         /* printf ("initFreewrl, hows the DispThrd? %u\n",DispThrd); */
 
-        if (DispThrd == NULL) {
+        if (DispThrd == 0) {
                 pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
 
                 #ifndef AQUA

@@ -9,6 +9,7 @@ Implement EAI server functionality for FreeWRL.
 
 #include <config.h>
 #include <system.h>
+#include <system_net.h>
 #include <display.h>
 #include <internal.h>
 

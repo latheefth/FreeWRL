@@ -23,6 +23,9 @@ for loosing the reference. Also, most if it is found in
 #include <display.h>
 #include <internal.h>
 
+#include <syslog.h> //TODO: configure check
+#include <stdarg.h> //TODO: configure check
+
 #include <libFreeX3D.h>
 
 #include "../vrml_parser/Structs.h"

@@ -9,6 +9,7 @@ Common functions used by Mozilla and Netscape plugins...(maybe PluginGlue too?)
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
