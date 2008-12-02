@@ -16,6 +16,7 @@ Render the children of nodes.
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 
+#include "LinearAlgebra.h"
 #include "Collision.h"
 
 

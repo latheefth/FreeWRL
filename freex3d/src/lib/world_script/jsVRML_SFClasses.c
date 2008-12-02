@@ -21,6 +21,7 @@ which is the sample application included with the javascript engine.
 #include "../world_script/jsUtils.h"
 #include "../world_script/CScripts.h"
 #include "../main/Snapshot.h"
+#include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"

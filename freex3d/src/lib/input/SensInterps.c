@@ -20,6 +20,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "../main/headers.h"
 
 #include "../x3d_parser/Bindable.h"
+#include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 
