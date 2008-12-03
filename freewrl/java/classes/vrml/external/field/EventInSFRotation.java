@@ -10,11 +10,6 @@ public class EventInSFRotation extends EventIn {
 	if (value.length < 4) {
 		throw new IllegalArgumentException();
 	}
-	for (count = 0; count < value.length; count++) {
-		if (value[count] < 0) {
-			throw new IllegalArgumentException();
-		}
-	}
     Browser.newSendEvent (this, "" + value[0] + " " + value[1] +
                   " " + value[2] + " " + value[3]);
     return;
