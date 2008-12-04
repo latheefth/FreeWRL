@@ -41,7 +41,7 @@ const char* freex3d_get_browser_program()
  * This code get compiled only when debugging is enabled
  */
 
-#if defined(_DEBUG) & defined(DEBUG_MALLOC)
+#if defined(_DEBUG)
 
 #define FREETABLE(a,file,line) mcount=0; \
 	while ((mcount<(MAXMALLOCSTOKEEP-1)) && (mcheck[mcount]!=a)) mcount++; \
