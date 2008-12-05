@@ -36,11 +36,18 @@ public class Node {
   //}
 
   public String        getType() {
-    // If we actually do this thingie, it means that we have not
-    // been overriden.  So far, only EventMFNodes reach here.
-    // Things like VSFRotations get their getTypes from VSFrotation.java.
+	// spec says:
+	// Get a string specifying the type of this node. May return the
+	// name of a PROTO, or the class name
+	// this will return 2 strings, first X3D node, second DEF name, or __UNDEFINED
 
-    return "Transform";
+	String NT = Browser.SendNodeEAIType(nodeptr);
+	//System.out.println ("in Java, getType returns " + NT);
+	String[] spl = NT.split(" ",0);
+
+	//System.out.println ("string split is " + spl[0] + " and " + spl[1]);
+	if (spl[1].equals("__UNDEFINED")) return spl[0];
+	return spl[1];
   }
 
 

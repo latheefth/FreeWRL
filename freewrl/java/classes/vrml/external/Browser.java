@@ -787,6 +787,19 @@ public class Browser implements BrowserInterface, IBrowser
 	}
 
 
+  protected static String SendNodeEAIType (int nodeptr) {
+
+      // get a type from a particular node.
+
+      String retval;
+
+      synchronized (FreeWRLToken) {
+        EAIoutSender.send ("" + queryno + "B " + nodeptr + "\n");
+        retval = getVRMLreply(queryno);
+        queryno += 1;
+      }
+      return retval;
+}
   protected static String SendEventType (int perlNumber, int nodeptr, String FieldName, String direction) {
 
       // get a type from a particular node.
