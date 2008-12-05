@@ -142,7 +142,6 @@ opengl/Material.c \
 ui/ui.h \
 ui/statusbar.c \
 ui/aquaInt.h \
-ui/fwMotifWindow.c \
 ui/fwWindow.c \
 ui/GLwDrawA.c \
 ui/GLwDrawA.h \

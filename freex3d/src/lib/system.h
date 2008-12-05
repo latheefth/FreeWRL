@@ -42,10 +42,6 @@ char *strchr (), *strrchr ();
 # endif
 #endif
 
-/* #if HAVE_ERRNO_H */
-/* # include <errno.h> */
-/* #endif */
-
 #if HAVE_STDBOOL_H
 # include <stdbool.h>
 #else

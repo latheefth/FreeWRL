@@ -72,7 +72,7 @@ static int mcount;
 
 void freewrlFree(int line, char *file, void *a)
 {
-    printf ("%x xfree at %s:%d\n",a,file,line); 
+/*     printf ("%x xfree at %s:%d\n",a,file,line);  */
     FREETABLE(a,file,line);
     free(a);
 }

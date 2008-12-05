@@ -1,19 +1,24 @@
-/*******************************************************************
- *
- * FreeX3D support library
- *
- * display_x11.c
- *
- * $Id$
- *
- *******************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#include "config.h"
-#include "system.h"
-#include "display.h"
-#include "internal.h"
+$Id$
 
-/* display part specific to bare X11 */
+FreeX3D support library.
+Display (X11) initialization.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
+
+/**
+ * X11 initialization functions. Available to Motif as well.
+ */
 
 /**
  * public variables

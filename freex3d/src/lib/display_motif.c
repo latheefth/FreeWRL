@@ -1,17 +1,20 @@
-/*******************************************************************
- *
- * FreeX3D support library
- *
- * display_motif.c
- *
- * $Id$
- *
- *******************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#include "config.h"
-#include "system.h"
-#include "display.h"
-#include "internal.h"
+$Id$
+
+FreeX3D support library.
+Display (Motif specific) initialization.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
 
 /* display part specific to X11/Motif */
 

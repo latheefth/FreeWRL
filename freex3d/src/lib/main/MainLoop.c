@@ -211,7 +211,7 @@ void EventLoop(void);
 struct X3D_Node*  getRayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(struct X3D_Node *COS,int ev, int butStatus, int status);
-Boolean pluginRunning;
+bool pluginRunning;
 int isBrowserPlugin = FALSE;
 
 /******************************************************************************/

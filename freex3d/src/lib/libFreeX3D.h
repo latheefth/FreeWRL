@@ -37,6 +37,9 @@ void Anchor_ReplaceWorld(char *name);
 /**
  * General variables
  */
+
+#define RUNNINGASPLUGIN (isBrowserPlugin)
+
 int win_height;
 int win_width;
 int fullscreen;

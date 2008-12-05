@@ -1,17 +1,20 @@
-/*******************************************************************
- *
- * FreeX3D support library
- *
- * display.c
- *
- * $Id$
- *
- *******************************************************************/
+/*
+=INSERT_TEMPLATE_HERE=
 
-#include "config.h"
-#include "system.h"
-#include "display.h"
-#include "internal.h"
+$Id$
+
+FreeX3D support library.
+Display (X11/Motif or OSX/Aqua) initialization.
+
+*/
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+#include <internal.h>
+
+#include <libFreeX3D.h>
+
 
 /* common function between display_x11, display_motif and display_aqua */
 
@@ -77,4 +80,5 @@ int create_main_window()
 int initialize_viewport()
 {
     glViewport(0, 0, win_width, win_height);
+    return TRUE;
 }
