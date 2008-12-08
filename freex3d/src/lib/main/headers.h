@@ -1394,7 +1394,7 @@ void killErrantChildren(void);
 void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
-void kill_oldWorld(int a, int b, int c);
+void kill_oldWorld(int, int, int, char *, int);
 void kill_clockEvents(void);
 void kill_openGLTextures(void);
 void kill_X3DDefs(void);
