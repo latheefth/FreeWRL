@@ -26,6 +26,7 @@ BOOL cParse(void*, unsigned, const char*);
 
 /* Some accessor-methods */
 struct X3D_Node* parser_getNodeFromName(const char*);
+char* parser_getNameFromNode(struct X3D_Node*);
 extern struct VRMLParser* globalParser;
 
 /* tie assert in here to give better failure methodology */

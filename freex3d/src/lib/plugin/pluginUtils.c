@@ -386,7 +386,7 @@ void Anchor_ReplaceWorld (char *name)
 
 	                if (fileExists(filename,NULL,TRUE,&removeIt)) {
 				/* kill off the old world, but keep EAI open, if it is... */
-				kill_oldWorld(FALSE,TRUE,TRUE);
+				kill_oldWorld(FALSE,TRUE,TRUE,__FILE__,__LINE__);
 
 				inputParse(FROMURL, filename,TRUE,FALSE, 
 					rootNode, offsetof (struct X3D_Group, children),&tmp,

@@ -1639,6 +1639,7 @@ void do_first() {
 			MARK_EVENT(preEvents[counter].from, preEvents[counter].totalptr);
 		}
 		initialEventBeforeRoutesCount = 0;
+		preRouteTableSize = 0;
 		FREE_IF_NZ(preEvents);
 		UNLOCK_PREROUTETABLE
 		}
