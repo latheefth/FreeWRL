@@ -35,6 +35,10 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/CParse.h"
 #include "../vrml_parser/CProto.h"
 
+#include "../x3d_parser/X3DParser.h"
+
+#include "EAIHelpers.h"
+
 
 /*
 
@@ -134,7 +138,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 	int ctr;
 	int mynindex = 0;
 
-	printf ("registerEAINodeForAccess, remember to MALLOC this stuff... passed in %u\n",myn);
+	printf ("registerEAINodeForAccess, remember to MALLOC this stuff... passed in %p\n", myn);
 	for (ctr=1; ctr<lastNodeRequested; ctr++) {
 		if (EAINodeIndex[ctr].actualNodePtr == myn) {
 			if (eaiverbose) printf ("registerEAINodeForAccess - already got node\n");

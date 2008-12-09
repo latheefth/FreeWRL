@@ -14,7 +14,7 @@
 /**
  * Version embedded
  */
-extern const char *libFreeX3D_get_version();
+const char *libFreeX3D_get_version();
 
 
 /**

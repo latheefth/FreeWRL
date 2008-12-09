@@ -14,7 +14,6 @@ $Id$
 
 #include <libFreeX3D.h>
 
-
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
@@ -27,6 +26,10 @@ $Id$
 #include "../vrml_parser/CParse.h"
 
 #include "X3DParser.h"
+
+#if HAVE_EXPAT_H
+# include <expat.h>
+#endif
 
 
 /* If XMLCALL isn't defined, use empty one */
@@ -190,7 +193,7 @@ char *X3DParser_getNameFromNode(struct X3D_Node* myNode) {
 }
 
 /* for EAI/SAI - if we have a DEF name, look up the node pointer */
-struct X3D_Node *X3DParser_getNodeFromName(char *name) {
+struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 	int ctr;
 	struct Uni_String* tmp;
 	for (ctr = 0; ctr <= DEFtableSize; ctr++) {

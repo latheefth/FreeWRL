@@ -399,7 +399,7 @@ extern GLuint *OccQueries;
 extern void * *OccNodes;
 int newOcclude(void);
 void zeroOcclusion(void);
-extern int QueryCount;
+/* extern int QueryCount; */
 extern GLuint potentialOccluderCount;
 extern void* *occluderNodePointer;
 
@@ -789,12 +789,6 @@ struct currayhit {
 
 void JSMaxAlloc(void);
 void cleanupDie(uintptr_t num, const char *msg);
-void shutdown_EAI(void);
-uintptr_t EAI_GetNode(const char *str);
-unsigned int EAI_GetViewpoint(const char *str);
-void EAI_killBindables (void);
-void EAI_GetType (uintptr_t cNode,  char *ctmp, char *dtmp, uintptr_t *cNodePtr, uintptr_t *fieldOffset,
-                        uintptr_t *dataLen, uintptr_t *typeString,  unsigned int *scripttype, int *accessType);
 
 
 void setScriptECMAtype(uintptr_t);
@@ -1419,7 +1413,7 @@ int findRoutedFieldInEVENT_IN(struct X3D_Node*, const char*, int);
 int findRoutedFieldInEVENT_OUT(struct X3D_Node*, const char*, int);
 int findFieldInNODES(const char *node);
 int findFieldInCOMPONENTS(const char *node);
-int findFieldInPROFILESS(const char *node);
+int findFieldInPROFILES(const char *node);
 int findFieldInALLFIELDNAMES(const char *field);
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset);

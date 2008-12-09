@@ -13,6 +13,11 @@ EAI and java CLASS invocation
 
 int eaiverbose;
 
+void shutdown_EAI(void);
+int EAI_GetNode(const char *str);
+unsigned int EAI_GetViewpoint(const char *str);
+void EAI_killBindables (void);
+
 /* function prototypes */
 void handle_Listener (void);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
