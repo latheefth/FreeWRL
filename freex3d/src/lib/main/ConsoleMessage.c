@@ -215,7 +215,7 @@ int ConsoleMessage(const char *fmt, ...) {
 		}
 
 		/* and call freewrlSystem to speak to the user */
-                sprintf(systemBuffer, "%s \"%s\"", XMESSAGE, FWbuffer);
+                sprintf(systemBuffer, "%s \"%s\"", FREEX3D_MESSAGE_WRAPPER, FWbuffer);
                 freewrlSystem(systemBuffer); 
 	}
 #else

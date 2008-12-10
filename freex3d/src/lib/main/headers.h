@@ -14,7 +14,7 @@ Global includes.
 /**
  * in utils.c
  */
-char *BrowserName;
+extern char *BrowserName;
 const char* freex3d_get_browser_program();
 
 /**

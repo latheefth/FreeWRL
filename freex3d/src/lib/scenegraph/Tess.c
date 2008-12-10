@@ -18,6 +18,13 @@ $Id$
 #include "../main/headers.h"
 
 
+/* JAS */
+#ifdef AQUA
+typedef GLvoid (*_GLUfuncptr)(GLvoid);
+#endif
+
+
+
 /*********************************************************************
  * General tessellation functions
  *

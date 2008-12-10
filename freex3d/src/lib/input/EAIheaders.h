@@ -11,7 +11,7 @@ EAI and java CLASS invocation
 #define __FREEX3D_EAI_H__
 
 
-int eaiverbose;
+extern int eaiverbose;
 
 void shutdown_EAI(void);
 int EAI_GetNode(const char *str);
