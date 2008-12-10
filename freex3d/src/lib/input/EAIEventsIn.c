@@ -18,6 +18,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../main/headers.h"
 
 #include "../input/EAIheaders.h"
+#include "../world_script/fieldSet.h"
 
 #include <ctype.h> /* FIXME: config armor */
 

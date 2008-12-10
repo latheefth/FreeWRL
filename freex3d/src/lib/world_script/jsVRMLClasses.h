@@ -913,6 +913,9 @@ VrmlMatrixSetProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
+JSBool _standardMFAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval, JSClass *myClass, int type);
+JSBool _standardMFGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *makeNewElement, int type);
+void printJSNodeType (JSContext *context, JSObject *myobj);
 
 extern JSClass SFColorClass;
 extern JSPropertySpec (SFColorProperties)[];

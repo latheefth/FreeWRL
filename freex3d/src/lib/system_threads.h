@@ -4,7 +4,7 @@
 $Id$
 
 FreeX3D support library.
-Internal header: threads dependencies.
+Internal header: threading library, and processor control (sched).
 
 */
 
@@ -14,6 +14,10 @@ Internal header: threads dependencies.
 
 #if HAVE_PTHREAD
 # include <pthread.h>
+#endif
+
+#if HAVE_SCHED_H
+#include <sched.h>
 #endif
 
 

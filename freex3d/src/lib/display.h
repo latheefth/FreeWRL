@@ -115,7 +115,7 @@ int create_main_window_x11(); /* mb */
 
 # define HAVE_NOTOOLKIT
 # define ISDISPLAYINITIALIZED TRUE
-# define GET_GLWIN getBareWindowedGLwin (&GLwin);
+# define GET_GLWIN getBareWindowedGLwin(&GLwin)
 # define OPEN_TOOLKIT_MAINWINDOW openBareMainWindow (argc, argv);
 # define CREATE_TOOLKIT_MAIN_WINDOW createBareMainWindow();
 

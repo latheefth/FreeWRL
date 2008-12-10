@@ -30,6 +30,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldSet.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CParse.h"

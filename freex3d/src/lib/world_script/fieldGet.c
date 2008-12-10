@@ -30,6 +30,7 @@ Javascript C language binding.
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
+#include "fieldSet.h"
 
 
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);

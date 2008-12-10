@@ -14,7 +14,6 @@ $Id$
 
 #include <libFreeX3D.h>
 
-
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
@@ -26,21 +25,12 @@ $Id$
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-/* #include "../input/EAIheaders.h" */
 
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
-
-/* #include "EAIheaders.h" */
-
-
-extern uintptr_t Multi_Struct_memptr (int type, void *memptr);
-void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to);
-void SetMemory (int type, void *destptr, void *srcptr, int len);
-void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
-int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz);
-void getEAI_ONE_MFStringtype (struct Multi_String *from, struct Multi_String *to, int len);
+#include "fieldSet.h"
+#include "world_script.h"
 
 
 /*******************************************************************

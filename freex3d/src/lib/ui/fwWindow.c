@@ -154,7 +154,7 @@ void createGLContext(void) {
 	}
 
 	/* get window id for later calls - we use more window refs than widget refs */
-	GET_GLWIN
+	GET_GLWIN;
 
 	/* tell the X window system that we desire the following
 	   attributes for this window */

@@ -17,6 +17,7 @@ X3D Geospatial Component
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
+#include "../world_script/fieldSet.h"
 #include "../x3d_parser/Bindable.h"
 #include "Collision.h"
 #include "quaternion.h"

@@ -30,7 +30,7 @@ $Id$
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
-
+#include "JScript.h"
 
 
 /********************************************************/

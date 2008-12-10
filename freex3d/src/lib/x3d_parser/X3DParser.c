@@ -20,6 +20,7 @@ $Id$
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldSet.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
