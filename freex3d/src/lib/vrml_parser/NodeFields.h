@@ -17,9 +17,10 @@ END_NODE(NodeName)
 
 */
 
+/* JAS we can not do this, as this file is expanded multiple times...
 #ifndef __FREEX3D_NODE_FIELDS_H__
 #define __FREEX3D_NODE_FIELDS_H__
-
+*/
 
 /* Anchor node */
 BEGIN_NODE(Anchor)
@@ -1531,4 +1532,4 @@ EXPOSED_FIELD(WorldInfo,metadata,sfnode,metadata)
 END_NODE(WorldInfo)
 
 
-#endif /* __FREEX3D_NODE_FIELDS_H__ */
+/* JAS #endif */  /* __FREEX3D_NODE_FIELDS_H__ */

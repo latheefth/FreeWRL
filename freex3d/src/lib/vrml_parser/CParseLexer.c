@@ -25,8 +25,6 @@ $Id$
 #include "CParseLexer.h"
 #include "CParse.h"
 
-#define CPARSERVERBOSE 1
-
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
 char *externProtoPointer = NULL;
 
