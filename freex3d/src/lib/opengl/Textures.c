@@ -1308,14 +1308,14 @@ int findTextureFile (int cwo, int *istemp) {
 	/* on AQUA/OSX, let QuickTime do the conversion for us, but maybe we can help it out
 	   by keeping a tab on what kind of image this is  */
 	if (loadThisTexture->nodeType == NODE_ImageTexture) {
-		loadThisTexture->imageType = ID_UNDEFINED;
+		loadThisTexture->imageType = INT_ID_UNDEFINED;
 		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
 		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
 	}
 
 #else /* AQUA */
 	if (loadThisTexture->nodeType == NODE_ImageTexture) {
-		loadThisTexture->imageType = ID_UNDEFINED;
+		loadThisTexture->imageType = INT_ID_UNDEFINED;
 		if (strncmp(firstBytes,firstPNG,4) == 0) loadThisTexture->imageType = PNGTexture;
 		if (strncmp(firstBytes,firstJPG,4) == 0) loadThisTexture->imageType = JPGTexture;
 
@@ -1703,7 +1703,7 @@ void __reallyloadImageTexture() {
 #define USE_CG_DATA_PROVIDERS
 #ifdef USE_CG_DATA_PROVIDERS
 	/* can we directly import this a a jpeg or png?? */
-	if (loadThisTexture->imageType != ID_UNDEFINED) {
+	if (loadThisTexture->imageType != INT_ID_UNDEFINED) {
 		/* printf ("this is a JPEG texture, try direct loading\n"); */
 		provider = CGDataProviderCreateWithURL(url);
 		if (loadThisTexture->imageType == JPGTexture)  {

@@ -85,7 +85,7 @@ char *readInputString(char *fn);
 #define JS_SET_PROPERTY_STUB7 JS_PropertyStub
 #endif
 
-#define ID_UNDEFINED -1
+#define INT_ID_UNDEFINED -1
 
 /* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
 most things around, just stops display thread, when the user exits a world. */

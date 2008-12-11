@@ -508,10 +508,10 @@ void EAI_killBindables (void) {
 	UNLOCK;
 
 	/* and, reset our stack pointers */
-	background_tos = ID_UNDEFINED;
-	fog_tos = ID_UNDEFINED;
-	navi_tos = ID_UNDEFINED;
-	viewpoint_tos = ID_UNDEFINED;
+	background_tos = INT_ID_UNDEFINED;
+	fog_tos = INT_ID_UNDEFINED;
+	navi_tos = INT_ID_UNDEFINED;
+	viewpoint_tos = INT_ID_UNDEFINED;
 }
 
 /* interface for creating VRML for EAI */
