@@ -954,12 +954,19 @@ void __pt_doStringUrl () {
 
 	/* did the caller want these values returned? */
 	if (psp.retarr != NULL) {
+		int totret = 0;
+
 		for (count=0; count < nRn->children.n; count++) {
-			psp.retarr[count*2] = 0; /* the "perl" node number */
-			psp.retarr[count*2+1] = ((uintptr_t) 
-				nRn->children.p[count]); /* the Node Pointer */
+			/* only return the non-null children */
+			if (nRn->children.p[count] != NULL) {
+				psp.retarr[totret] = 0; /* the "perl" node number */
+				totret++;
+				psp.retarr[totret] = ((uintptr_t) 
+					nRn->children.p[count]); /* the Node Pointer */
+				totret++;
+			}
 		}
-		psp.retarrsize = nRn->children.n * 2; /* remember, the old "perl node number" */
+		psp.retarrsize = totret; /* remember, the old "perl node number" */
 	}
 
       	/* now that we have the VRML/X3D file, load it into the scene. */

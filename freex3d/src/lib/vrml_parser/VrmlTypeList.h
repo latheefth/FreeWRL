@@ -7,10 +7,6 @@ A header simply containing all VRML types; this is needed sometimes.
 
 */
 
-#ifndef __FREEX3D_VRML_TYPE_LIST_H__
-#define __FREEX3D_VRML_TYPE_LIST_H__
-
-
 SF_TYPE(SFBool, sfbool, Bool)
 MF_TYPE(MFBool, mfbool, Bool)
 SF_TYPE(SFColor, sfcolor, Color)
@@ -51,6 +47,3 @@ SF_TYPE(SFMatrix4f, sfmatrix4f, Matrix4f)
 MF_TYPE(MFMatrix4f, mfmatrix4f, Matrix4f)
 SF_TYPE(SFMatrix4d, sfmatrix4d, Matrix4d)
 MF_TYPE(MFMatrix4d, mfmatrix4d, Matrix4d)
-
-
-#endif /* __FREEX3D_VRML_TYPE_LIST_H__ */

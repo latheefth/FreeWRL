@@ -89,6 +89,33 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
 }
 
 
+/* Return PROTO name from its node, or NULL if not found */
+char* parser_getPROTONameFromNode(struct X3D_Node *node)
+{
+
+struct ProtoDefinition
+{
+ indexT protoDefNumber; /* unique sequence number */
+ struct Vector* iface; /* The ProtoFieldDecls making up the interface */
+ struct Vector* deconstructedProtoBody; /* PROTO body tokenized */
+ int estimatedBodyLen; /* an estimate of the expanded proto body size, to give us an output string len */
+};
+
+	indexT ind;
+	struct ProtoDefinition* cpd;
+
+printf ("start of parser_getPROTONameFromNode, have node of type %s\n",stringNodeType(node->_nodeType));
+	for (ind=0; ind < vector_size(globalParser->PROTOs); ind ++) {
+		cpd = vector_get (struct ProtoDefinition*,globalParser->PROTOs, ind);
+		printf ("DEBUG: proto ind %d, comparing %u to %u\n",
+		ind, cpd,X3D_GROUP(node)->FreeWRL__protoDef);
+		printf ("and, protodefnum is %d\n",cpd->protoDefNumber);
+		printf ("and, estimatedbodylen %d\n",cpd->estimatedBodyLen);
+	}
+
+	return NULL;
+}
+
 /* Return DEFed name from its node, or NULL if not found */
 char* parser_getNameFromNode(struct X3D_Node *node)
 {
