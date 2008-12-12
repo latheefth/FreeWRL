@@ -199,6 +199,7 @@ struct ProtoDefinition
  struct Vector* iface; /* The ProtoFieldDecls making up the interface */
  struct Vector* deconstructedProtoBody; /* PROTO body tokenized */
  int estimatedBodyLen; /* an estimate of the expanded proto body size, to give us an output string len */
+ char *protoName;      /* proto name as a string - used in EAI calls */
 };
 
 /* Constructor and destructor */
