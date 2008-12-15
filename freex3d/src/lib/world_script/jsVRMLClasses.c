@@ -18,8 +18,6 @@ $Id$
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-#include "../world_script/jsUtils.h"
-#include "../world_script/CScripts.h"
 #include "../main/Snapshot.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
@@ -28,6 +26,7 @@ $Id$
 #include "../x3d_parser/Bindable.h"
 /* #include "../input/EAIheaders.h" */
 
+#include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
