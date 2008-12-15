@@ -72,5 +72,12 @@ typedef unsigned char _Bool;
 # include <pthread.h>
 #endif
 
+#if HAVE_SYS_IPC_H
+# include <sys/ipc.h>
+#endif
+
+#if HAVE_SYS_MSG_H
+# include <sys/msg.h>
+#endif
 
 #endif /* __FREEX3D_SYSTEM_H__ */
