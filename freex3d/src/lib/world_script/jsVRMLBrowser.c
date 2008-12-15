@@ -36,7 +36,6 @@ Javascript C language binding.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "jsVRMLBrowser.h"
-#include "world_script.h"
 
 
 static JSClass Browser = {
