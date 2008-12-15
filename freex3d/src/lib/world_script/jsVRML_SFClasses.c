@@ -10,6 +10,7 @@ which is the sample application included with the javascript engine.
 
 #include <config.h>
 #include <system.h>
+#include <system_threads.h>
 #include <display.h>
 #include <internal.h>
 
