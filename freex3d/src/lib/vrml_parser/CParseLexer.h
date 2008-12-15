@@ -17,6 +17,8 @@ fields are not scoped and therefore stored in a simple vector.
 #ifndef __FREEX3D_CPARSE_LEXER_H__
 #define __FREEX3D_CPARSE_LEXER_H__
 
+/* for Stack typedef */
+#include "../scenegraph/Vector.h"
 
 /* Undefined ID (for special "class", like builtIn and exposed) */
 #ifdef ID_UNDEFINED
