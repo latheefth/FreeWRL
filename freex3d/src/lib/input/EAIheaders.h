@@ -25,6 +25,11 @@ unsigned int EAI_SendEvent (char *ptr);
 void EAI_RNewW(char *bufptr);
 void EAI_RW(char *bufptr);
 
+/* debugging */
+char *eaiPrintCommand (char command);
+
+
+
 
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */
 #define EAIREADSIZE	8192		/* maximum we are allowed to read in from socket */

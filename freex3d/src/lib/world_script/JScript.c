@@ -194,7 +194,6 @@ void SaveScriptText(uintptr_t num, char *text) {
 }
 
 void JSInitializeScriptAndFields (uintptr_t num) {
-        struct ScriptParamList **nextInsert;
         struct ScriptParamList *thisEntry;
         struct ScriptParamList *nextEntry;
 	jsval rval;

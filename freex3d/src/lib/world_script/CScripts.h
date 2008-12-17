@@ -34,7 +34,6 @@ struct ScriptFieldDecl
  /* Stringified */
  const char* name;
  const char* type;
- const char* ISname;
 
  /* For fields */
  union anyVrml value;

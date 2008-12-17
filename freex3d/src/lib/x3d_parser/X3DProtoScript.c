@@ -1219,7 +1219,17 @@ int getFieldFromScript (char *fieldName, int scriptno, int *offs, int *type, int
                 	if (strcmp(fieldName,tmp->strptr)==0) {
 				*offs = ScriptFieldNames[ctr].offs;
 				*type = ScriptFieldNames[ctr].type;
-				*accessType = ScriptFieldNames[ctr].kind;
+                		/* switch from "PKW" to "KW" types */
+                		switch (ScriptFieldNames[ctr].kind) {
+                		        case PKW_inputOnly: *accessType = KW_inputOnly; break;
+                		        case PKW_outputOnly: *accessType = KW_outputOnly; break;
+                		        case PKW_inputOutput: *accessType = KW_inputOutput; break;
+                		        case PKW_initializeOnly: *accessType = KW_initializeOnly; break;
+                		        default: {*accessType = INT_ID_UNDEFINED;}
+				}
+
+
+
 				#ifdef X3DPARSERVERBOSE
 				printf ("getFieldFromScript - returning offset %d type %d (kind %d)\n",*offs,*type,
 					ScriptFieldNames[ctr].kind);
