@@ -207,22 +207,6 @@ Different nodes produce eventins/eventouts...
 
 
 
-	So, in the event loop, (Events.pm, right now), the call to
-
-		push @e, $_->get_firstevent($timestamp);
-
-	Does all the nodes with clock ticks - ie, it starts off
-	generating a series of events.
-
-		push @ne,$_->events_processed($timestamp,$be);
-
-	goes through the list of routes, copies the source event to
-	the destination, and if the node is one of the EventIn/EventOut
-	style, it then re-tells the routing table to do another route.
-	The table is gone through until all events are done with.
-
-
-
 	--------------------------------------------------------------------------
 	C Routes are stored in a table with the following entries:
 		Fromnode 	- the node that created an event address
@@ -791,7 +775,7 @@ int JSparamIndex (char *name, char *type) {
 	ty = findFieldInFIELDTYPES(type);
 
 	#ifdef CRVERBOSE
-	printf ("JSParamIndex, type %d, %s\n",ty,type); 
+	printf ("JSparamIndex, type %d, %s\n",ty,type); 
 	#endif
 
 	len = strlen(name);
@@ -804,7 +788,7 @@ int JSparamIndex (char *name, char *type) {
 			if ((strlen(JSparamnames[ctr].name) == len) &&
 				(strncmp(name,JSparamnames[ctr].name,len)==0)) {
 				#ifdef CRVERBOSE
-				printf ("JSparamnames, duplicate, returning %d\n",ctr);
+				printf ("JSparamIndex, duplicate, returning %d\n",ctr);
 				#endif
 
 				return ctr;
@@ -829,7 +813,7 @@ int JSparamIndex (char *name, char *type) {
 	JSparamnames[jsnameindex].type = ty;
 	JSparamnames[jsnameindex].eventInFunction = 0;
 	#ifdef CRVERBOSE
-	printf ("JSparamNameIndex, returning %d\n",jsnameindex); 
+	printf ("JSparamIndex, returning %d\n",jsnameindex); 
 	#endif
 
 	return jsnameindex;

@@ -109,7 +109,6 @@ void EAI_parse_commands () {
 		if (eaiverbose) {
 			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,strlen(&EAI_BUFFER_CUR));
 		}
-			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,strlen(&EAI_BUFFER_CUR));
 		bufPtr++;
 
 		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
@@ -198,8 +197,6 @@ void EAI_parse_commands () {
 
 				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 
-				printf ("EAI_GetType, responding with RE\n%f\n%d\n%d %d %d %c %d %s\n",TickTime,count,ra,rb,rc,rd,
-						scripttype,stringKeywordType(xxx));
 				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d %s",TickTime,count,ra,rb,rc,rd,
 						scripttype,stringKeywordType(xxx));
 				break;

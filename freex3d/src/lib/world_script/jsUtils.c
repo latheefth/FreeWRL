@@ -33,6 +33,8 @@ which is the sample application included with the javascript engine.
 #include "fieldSet.h"
 
 
+#define JSVRMLCLASSESVERBOSE
+
 /********************** Javascript to X3D Scenegraph ****************************/
 
 /* a SF value has changed in an MF; eg, xx[10] = new SFVec3f(...); */
