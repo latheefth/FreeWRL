@@ -561,6 +561,7 @@ void EventLoop() {
 
                 /* EAI */
                 handle_EAI();
+		handle_MIDIEAI();
         }
 
         /* record the TickTime here, for rate setting. We don't do this earlier, as some

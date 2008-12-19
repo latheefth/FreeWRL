@@ -952,6 +952,7 @@ void EAI_replaceWorld(const char *inputstring);
 
 void render_hier(struct X3D_Node *p, int rwhat);
 void handle_EAI(void);
+void handle_MIDIEAI(void);
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 
