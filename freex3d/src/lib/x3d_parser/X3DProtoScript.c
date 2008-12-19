@@ -979,7 +979,7 @@ void parseScriptProtoField(const char **atts) {
 	if (parserMode == PARSING_SCRIPT) {
 		/* parse this string value into a anyVrml union representation */
 		if (myValueString != NULL)
-			Parser_scanStringValueToMem(X3D_NODE(&value), 0, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), myValueString);
+			Parser_scanStringValueToMem(X3D_NODE(&value), 0, findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), myValueString, TRUE);
 		else
 			parseScriptFieldDefaultValue(findFieldInFIELDTYPES(atts[myparams[MP_TYPE]]), &value);
 		

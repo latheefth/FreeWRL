@@ -171,7 +171,7 @@ void setFieldValueDataActive(void) {
 			stringFieldType(in3_3_fieldIndex),stringNodeType(parentStack[parentIndex]->_nodeType)); */
 
 		setField_fromJavascript (parentStack[parentIndex], stringFieldType(in3_3_fieldIndex),
-			CDATA_Text);
+			CDATA_Text, TRUE);
 	}
 
 	/* free data */
@@ -499,7 +499,7 @@ static void parseNormalX3D(int myNodeType, const char *name, const char** atts) 
 				thisNode->_defaultContainer = tmp;
 			}
 		} else {
-			setField_fromJavascript (thisNode, (char *)atts[i],(char *)atts[i+1]);
+			setField_fromJavascript (thisNode, (char *)atts[i],(char *)atts[i+1], TRUE);
 		}
 	}
 }

@@ -1228,7 +1228,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			printf ("node is of type %s\n",stringNodeType(ptx->_nodeType));
 		}
 		#endif
-		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c);
+		setField_fromJavascript (X3D_NODE(ptr->handle), _id_c, _val_c, FALSE);
 	}
 
 	return JS_TRUE;
