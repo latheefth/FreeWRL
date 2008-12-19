@@ -14,11 +14,12 @@ public class EventInMFInt32 extends EventIn {
 	if (value == null) {
 		throw new IllegalArgumentException();
 	}
-	val = " " + value.length;
-	
+	val = "[";
+
 	for (count = 0; count < value.length; count++) {
-		val = val + " " + value[count];
+		val = val + " " + value[count] + ",";
 	}
+	val = val + "]";
 	Browser.newSendEvent(this,val);
     return;
   }

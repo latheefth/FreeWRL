@@ -14,13 +14,15 @@ public class EventInMFRotation extends EventIn {
         if (value == null) {
                 throw new IllegalArgumentException();
         }
-        val = " " + value.length;
+	val = "[";
+
         for (count = 0; count < value.length; count++) {
                 if (value[count].length < 4) {
                         throw new IllegalArgumentException();
                 }
-                val = val + " " + value[count][0] + " " + value[count][1] + " " + value[count][2] + " " + value[count][3];
+                val = val + " " + value[count][0] + " " + value[count][1] + " " + value[count][2] + " " + value[count][3] + ",";
         }
+	val = val + "]";
 	Browser.newSendEvent(this,val);
 
 

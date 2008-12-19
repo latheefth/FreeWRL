@@ -14,14 +14,15 @@ public class EventInMFVec3f extends EventIn {
         if (value == null) {
                 throw new IllegalArgumentException();
         }
-	val = " " + value.length;
+	val = "[";
 
         for (count = 0; count < value.length; count++) {
                 if (value[count].length < 3) {
                         throw new IllegalArgumentException();
                 }
-                val = val + " " + value[count][0] + " " + value[count][1] + " " + value[count][2];
+                val = val + " " + value[count][0] + " " + value[count][1] + " " + value[count][2] + ",";
         }
+	val = val + "]";
 	Browser.newSendEvent(this,val);
 
     return;

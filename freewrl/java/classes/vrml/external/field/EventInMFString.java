@@ -10,14 +10,14 @@ public class EventInMFString extends EventIn {
 		String sestr;
 		
 		// start off the return value with the number of elements:
-		sestr = ""+value.length+" ";
+		sestr = "[";
 		for (count = 0; count < value.length; count++) {
 			if (value[count] == null) {
 				throw new IllegalArgumentException();
 			}
-			sestr = sestr+" "+count+";" + value[count].length()+
-					":" + value[count] + " ";
+			sestr = sestr+"\"" + value[count] + "\" ";
 		}
+		sestr = sestr + "]";
 		Browser.newSendEvent (this, sestr);
 	}
 
