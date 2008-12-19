@@ -517,7 +517,10 @@ void EAI_parse_commands () {
 		/* and, Anchors send a different reply (loadURLS) */
 		if ((command != SENDEVENT) && (command != MIDICONTROL)) {
 			if (command != LOADURL) strcat (buf,"\nRE_EOT");
-			EAI_send_string (buf,EAIlistenfd);
+			if (command != MIDIINFO)
+				EAI_send_string (buf,EAIlistenfd);
+			else
+				EAI_send_string(buf, EAIMIDIlistenfd);
 		}
 
 		/* printf ("end of command, remainder %d ",strlen(&EAI_BUFFER_CUR)); */

@@ -124,7 +124,7 @@ sendNodeToReWire(struct X3D_MidiControl *node) {
 		printf ("sendNodeToReWire: sending string:%s:\n",buf);
 		#endif
 
-		EAI_send_string(buf,EAIlistenfd);
+		EAI_send_string(buf,EAIMIDIlistenfd);
 	}	
 }
 
@@ -354,7 +354,7 @@ void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 			node->highResolution,node->controllerType->strptr);
 
 	printf (outline); printf ("\n");
-	EAI_send_string(outline,EAIlistenfd);
+	EAI_send_string(outline,EAIMIDIlistenfd);
 }
 
 /* make sure the EAI port is turned on... */
@@ -370,7 +370,7 @@ static void midiStartEAI() {
 		printf ("MidiControl - turning EAI on\n");
 		sprintf (myline,"%s %u &",REWIRE_SERVER,getpid());
 printf ("midiStartEAI, line %s\n",myline);
-		create_EAI();
+		create_MIDIEAI();
 		if (system (myline)==127) {
 			strcpy (myline,"could not start ");
 			strncat (myline, REWIRE_SERVER,1000);

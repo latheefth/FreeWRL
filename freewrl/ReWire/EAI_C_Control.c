@@ -39,7 +39,7 @@ void X3D_initialize(char *hostname) {
 	bcopy((char *)server->h_addr, 
 		 (char *)&serv_addr.sin_addr.s_addr,
 		 server->h_length);
-	serv_addr.sin_port = htons(EAIBASESOCKET);
+	serv_addr.sin_port = htons(EAIBASESOCKET+MIDIPORTOFFSET);
 
 	loopCount = 0;
 	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {

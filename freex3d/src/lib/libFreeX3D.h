@@ -31,6 +31,7 @@ int checkNetworkFile(char *fn);
 void setFullPath(const char* file);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 void create_EAI();
+void create_MIDIEAI();
 void doQuit();
 void Anchor_ReplaceWorld(char *name);
 
