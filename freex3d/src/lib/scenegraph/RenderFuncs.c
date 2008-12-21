@@ -649,6 +649,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 	}
 }
 
+/* shutter glasses, stereo view  from Mufti@rus */
 /* handle setting shutter from parameters */
 void setShutter (void) {
         shutterGlasses = 1;

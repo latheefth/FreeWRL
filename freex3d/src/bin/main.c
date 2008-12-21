@@ -92,6 +92,8 @@ int main (int argc, char **argv)
 
     /* now wait around until something kills this thread. */
     pthread_join(DispThrd, NULL);
+
+    return 0;
 }
 
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */

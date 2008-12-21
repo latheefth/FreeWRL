@@ -96,7 +96,7 @@ void viewer_default() {
 
 #ifndef AQUA
 	if (shutterGlasses)
-		XEventStereo();
+	    setXEventStereo();
 #endif
 }
 

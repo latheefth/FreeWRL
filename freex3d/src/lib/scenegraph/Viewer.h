@@ -230,8 +230,6 @@ void viewer_default(void);
 extern float eyedist;
 extern float screendist;
 
-void XEventStereo(void);
-
 void getCurrentSpeed();
 
 
