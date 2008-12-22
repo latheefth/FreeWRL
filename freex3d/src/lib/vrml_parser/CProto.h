@@ -32,6 +32,7 @@ struct OffsetPointer
  unsigned ofs;
 };
 
+
 /* Constructor/destructor */
 struct OffsetPointer* newOffsetPointer(struct X3D_Node*, unsigned);
 #define offsetPointer_copy(me) \
@@ -58,12 +59,8 @@ struct ProtoElementPointer
 };
 
 /* Constructor/destructor */
-struct ProtoElementPointer* newProtoElementPointer(void);
-
 #define deleteProtoElementPointer(me) \
  {FREE_IF_NZ(me->stringToken); FREE_IF_NZ(me);}
-
-struct ProtoElementPointer *copyProtoElementPointer(struct ProtoElementPointer *);
 
 #define ASSIGN_UNIQUE_ID(me) \
 	{me->fabricatedDef = nextFabricatedDef; nextFabricatedDef ++; }

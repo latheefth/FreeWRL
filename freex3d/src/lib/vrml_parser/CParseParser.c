@@ -195,6 +195,7 @@ BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal) 
 }
 
 
+#define CPARSERVERBOSE
 void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText) {
     char *insertedPROTOcode;
 
@@ -225,6 +226,7 @@ void insertProtoExpansionIntoStream(struct VRMLParser *me,char *newProtoText) {
 #endif
 
 }
+#undef CPARSERVERBOSE
 
 
 
@@ -2141,6 +2143,9 @@ void mfnode_add_parent(struct Multi_Node* node, struct X3D_Node* parent)
     }
 }
 
+
+#define CPARSERVERBOSE
+
 /* Parses a field value (literally or IS) */
 /* Gets the actual value of a field and stores it in a node, or, for an IS statement, adds this node and field as a destination to the appropriate protoFieldDecl */
 /* Passed pointer to the parser, an offsetPointer structure pointing to the current node and an offset to the field being parsed, type of the event value (i.e. MFString) index in FIELDTYPES, */
@@ -2177,6 +2182,7 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
         */
 
         PARSER_FINALLY;
+printf ("parser_fieldValue, ret %u, directRet %u\n",ret,directRet);
  
             /* Get the actual value from the file (next token from lexer) and store it as the appropriate type in the node */
             return PARSE_TYPE[type](me, directRet);
@@ -2185,6 +2191,8 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct OffsetPointer* ret,
 #undef PARSER_FINALLY
 #define PARSER_FINALLY
 }
+
+#undef CPARSERVERBOSE
 
 /* Specific initialization of node fields */
 void parser_specificInitNode(struct X3D_Node* n, struct VRMLParser* me)
