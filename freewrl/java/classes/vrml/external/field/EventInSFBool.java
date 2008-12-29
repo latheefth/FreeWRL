@@ -7,7 +7,6 @@ public class EventInSFBool extends EventIn {
 
   public void          setValue(boolean value) {
   if (value) {
-	System.out.println("sending TRUE");
     Browser.newSendEvent (this, "TRUE");
   } else {
     Browser.newSendEvent (this, "FALSE");

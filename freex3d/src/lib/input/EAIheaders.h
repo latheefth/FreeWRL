@@ -29,6 +29,10 @@ void EAI_RW(char *bufptr);
 char *eaiPrintCommand (char command);
 
 
+#define EAI_NODETYPE_STANDARD   93435
+#define EAI_NODETYPE_PROTO      43534
+#define EAI_NODETYPE_SCRIPT     234425
+
 
 
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */

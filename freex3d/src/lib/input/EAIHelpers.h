@@ -11,7 +11,7 @@ EAI Helpers functions
 #define __FREEX3D_EAI_HELPERS_H__
 
 
-struct X3D_Node *getEAINodeFromTable(int index);
+struct X3D_Node *getEAINodeFromTable(int index, int field);
 int returnElementRowSize (int type);
 int returnElementLength(int type);
 int getEAIActualOffset(int node, int field);

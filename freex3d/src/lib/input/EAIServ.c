@@ -21,6 +21,7 @@ Implement EAI server functionality for FreeWRL.
 #include "../input/EAIheaders.h"
 
 
+/************************************************************************/
 /*									*/
 /* Design notes:							*/
 /*	FreeWRL is a server, the Java (or whatever) program is a client	*/
