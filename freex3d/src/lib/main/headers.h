@@ -780,6 +780,8 @@ void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setScriptMultiElementtype(uintptr_t);
 void Parser_scanStringValueToMem(struct X3D_Node *ptr, int coffset, int ctype, char *value, int isXML);
 void Multimemcpy(void *tn, void *fn, int len);
+void CRoutes_RemoveSimple(struct X3D_Node* from, int fromOfs,
+ struct X3D_Node* to, int toOfs, int len, int dir);
 void CRoutes_RegisterSimple(struct X3D_Node* from, int fromOfs,
  struct X3D_Node* to, int toOfs, int len, int dir);
 void CRoutes_Register(int adrem,        struct X3D_Node *from,
