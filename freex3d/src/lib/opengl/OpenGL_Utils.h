@@ -27,14 +27,6 @@ BackEndLightsOff(void);
 void lightState (GLint light, int state);
 
 
-#ifndef AQUA
-extern Display *Xdpy;
-extern GLXContext GLcx;
-extern XVisualInfo *Xvi;
-extern Window Xwin;
-extern Window GLwin;
-extern void resetGeometry();
-#endif
 extern void glpOpenGLInitialize(void);
 
 

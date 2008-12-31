@@ -39,7 +39,6 @@ struct point_XYZ VPvelocity;
 
 double nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 double farPlane=DEFAULT_FARPLANE;                       /* a good default value */
-double screenRatio=1.5;
 double fieldofview=45.0;
 double calculatedNearPlane = 0.0;
 double calculatedFarPlane = 0.0;

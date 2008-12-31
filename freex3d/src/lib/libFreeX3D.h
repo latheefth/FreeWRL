@@ -16,7 +16,6 @@
  */
 const char *libFreeX3D_get_version();
 
-
 /**
  * Initialization
  */
@@ -37,7 +36,7 @@ void create_MIDIEAI();
 void doQuit();
 void Anchor_ReplaceWorld(char *name);
 void setTexSize(int requestedsize);
-void setGeometry(const char *gstring);
+void setGeometry_from_cmdline(const char *gstring);
 void setSnapFile(const char* file);
 void setSeqTemp(const char* file);
 void setEaiVerbose();

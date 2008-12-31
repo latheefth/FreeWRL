@@ -147,8 +147,8 @@ void 	*global_tcin_lastParent;
 
 #ifdef AQUA /* for AQUA OS X sharing of OpenGL Contexts */
 
-# include "CGDirectDisplay.h"
-extern CGLContextObj myglobalContext;
+/* # include "CGDirectDisplay.h" */
+
 CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
                                       kCGLPFAFullScreen,
                                       kCGLPFADoubleBuffer,

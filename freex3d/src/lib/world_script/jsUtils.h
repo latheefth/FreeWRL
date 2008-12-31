@@ -18,8 +18,7 @@ pointers there updated.
 #define __FREEX3D_JS_UTILS_H__
 
 
-#include <jsapi.h> /* JS compiler */
-#include <jsdbgapi.h> /* JS debugger */
+#include <system_js.h>
 
 #ifndef FALSE
 #define FALSE 0

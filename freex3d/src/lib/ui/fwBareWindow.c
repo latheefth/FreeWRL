@@ -19,10 +19,6 @@
 #include <X11/cursorfont.h>
 
 
-extern long event_mask;
-extern int xPos;
-extern int yPos;
-
 char    *wintitle =  "FreeWRL VRML/X3D Browser";
 XTextProperty windowName;
 Window Pwin;

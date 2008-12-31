@@ -152,11 +152,11 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'g': /* --geometry */
-	    setGeometry(optarg);
+	    setGeometry_from_cmdline(optarg);
 	    break;
 
 	case 'c': /* --fullscreen */
-#if HAVE_XF86_VMODE
+#if defined(HAVE_XF86_VMODE)
 	    fullscreen = 1;
 #else
 	    printf("\nFullscreen mode is only available when xf86vmode extension is\n"
@@ -224,7 +224,7 @@ int parseCommandLine (int argc, char **argv)
 
 	case 'b': /* --big */
 	    /* Alberto Dubuc - bigger window */
-	    setGeometry("800x600");
+	    setGeometry_from_cmdline("800x600");
 	    break;
 
 	case 'r': /* --screendist */

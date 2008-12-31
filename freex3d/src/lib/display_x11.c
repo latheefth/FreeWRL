@@ -23,6 +23,7 @@ Display (X11) initialization.
 /**
  * public variables
  */
+XEvent event;
 Display *Xdpy;
 int Xscreen;
 Window Xroot_window;
@@ -32,6 +33,15 @@ Window GLwin;
 XSetWindowAttributes attr;
 unsigned long mask = 0;
 Atom WM_DELETE_WINDOW;
+
+Cursor arrowc;
+Cursor sensorc;
+Cursor curcursor;
+
+long event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
+                    ButtonMotionMask | ButtonReleaseMask |
+                    ExposureMask | StructureNotifyMask |
+                    PointerMotionMask;
 
 /**
  * local variables

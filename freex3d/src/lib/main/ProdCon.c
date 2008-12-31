@@ -33,6 +33,9 @@ CProto ???
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIheaders.h"
 
+#include "../plugin/pluginUtils.h"
+#include "../plugin/PluginSocket.h"
+
 
 #define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"
 

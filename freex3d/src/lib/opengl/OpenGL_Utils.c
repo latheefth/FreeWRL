@@ -29,20 +29,6 @@ $Id$
 
 #include "../x3d_parser/Bindable.h"
 
-/* #include "OpenGL_Utils.h" */
-
-
-#ifdef AQUA
-#include <OpenGL.h>
-extern CGLContextObj myglobalContext;
-extern AGLContext aqglobalContext;
-#else 
-Display *Xdpy;
-Window Xwin;
-Window GLwin;
-GLXContext GLcx;
-XVisualInfo *Xvi;
-#endif
 
 void kill_rendering(void);
 
