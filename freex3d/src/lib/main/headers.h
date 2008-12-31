@@ -598,7 +598,6 @@ extern void * this_textureTransform;  /* do we have some kind of textureTransfor
 
 extern int isTextureLoaded(int texno);
 extern int isTextureAlpha(int n);
-extern int displayDepth;
 extern int display_status;
 
 #define RUNNINGONAMD64 (sizeof(void *) == 8)

@@ -23,6 +23,8 @@ Display (X11) initialization.
 /**
  * public variables
  */
+GLXContext GLcx;
+
 XEvent event;
 Display *Xdpy;
 int Xscreen;

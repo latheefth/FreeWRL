@@ -80,4 +80,9 @@ typedef unsigned char _Bool;
 # include <sys/msg.h>
 #endif
 
+#if !defined(assert)
+# include <assert.h>
+#endif
+
+
 #endif /* __FREEX3D_SYSTEM_H__ */

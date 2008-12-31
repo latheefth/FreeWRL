@@ -32,6 +32,11 @@ extern int mouse_y;
 
 extern int show_mouse;
 
+extern int xPos;
+extern int yPos;
+
+extern int displayDepth;
+
 /**
  * Specific platform : Mac
  */
@@ -103,6 +108,7 @@ extern GLXContext GLcx;
 # include <X11/keysym.h>
 
 extern XEvent event;
+extern long event_mask;
 extern Display *Xdpy;
 extern int Xscreen;
 extern Window Xroot_window;

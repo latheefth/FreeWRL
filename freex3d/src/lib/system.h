@@ -101,5 +101,9 @@ typedef unsigned char _Bool;
 # include <fcntl.h>
 #endif
 
+#if !defined(assert)
+# include <assert.h>
+#endif
+
 
 #endif /* __LIBFREEX3D_SYSTEM_H__ */
