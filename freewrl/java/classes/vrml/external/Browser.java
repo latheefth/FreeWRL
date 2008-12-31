@@ -748,8 +748,8 @@ public class Browser implements BrowserInterface, IBrowser
         temp.nodeptr = Integer.parseInt(tokens.nextToken());
         queryno += 1;
      
-      if (temp.perlNumber== -1)
-	throw new InvalidNodeException(getName + "undefined");
+      if (temp.nodeptr == 0)
+	throw new InvalidNodeException(getName + " undefined");
 
       return temp;
       }
