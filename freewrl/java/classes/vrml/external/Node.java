@@ -51,7 +51,7 @@ public class Node {
   }
 
 
-  public EventIn       getEventIn(String name) throws InvalidEventOutException {
+  public EventIn       getEventIn(String name) throws InvalidEventInException {
 
 	EventIn ret;
 
@@ -69,8 +69,8 @@ public class Node {
     String NDS = tokens.nextToken();
     String NewDT = tokens.nextToken();
     String ScrT = tokens.nextToken();
-    System.out.println ("EventIn: NNPR " + NNPR + " NOFF " + NOFF +
-    	" NDS " + NDS + " NewDT " + NewDT + " ScrTyp" + ScrT);
+    //System.out.println ("EventIn: NNPR " + NNPR + " NOFF " + NOFF +
+    //	" NDS " + NDS + " NewDT " + NewDT + " ScrTyp" + ScrT);
 
     // check out the return values specified in CFuncs/EAIServ.c
     if(NewDT.equals("p")) { ret = new EventInMFString();
@@ -93,7 +93,7 @@ public class Node {
     } else if(NewDT.equals("f")) { ret = new EventInSFInt32();
     } else if(NewDT.equals("u")) { ret = new EventInSFVec3f();
     } else {
-	throw new InvalidEventOutException("getEventIn - node field error for \"" + name + "\"");
+	throw new InvalidEventInException("getEventIn - node field error for \"" + name + "\"");
     }
 
     ret.command = name; ret.inNode = NNN; ret.datatype=NewDT; 
