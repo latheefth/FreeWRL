@@ -20,7 +20,6 @@ libFreeX3D_la_SOURCES = \
 			plugin.c \
  \
 main/headers.h \
-main/vrmlconf.h \
 main/MainLoop.c \
 main/SoundEngineClient.c \
 main/ProdCon.c \
