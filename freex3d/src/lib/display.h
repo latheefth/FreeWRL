@@ -99,13 +99,14 @@ int create_main_window_aqua(); /* mb */
 
 # include <GL/gl.h>
 # include <GL/glu.h>
-# include <GL/glx.h>
-
-extern GLXContext GLcx;
 
 # include <X11/Xlib.h>
 # include <X11/Xutil.h>
 # include <X11/keysym.h>
+
+# include <GL/glx.h>
+
+extern GLXContext GLcx;
 
 extern XEvent event;
 extern long event_mask;

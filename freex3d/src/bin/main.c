@@ -8,8 +8,8 @@ FreeX3D main program.
 */
 
 #include <config.h>
-#include "system.h"
-#include "internal.h"
+#include <system.h>
+#include <internal.h>
 
 #include <libFreeX3D.h>
 
