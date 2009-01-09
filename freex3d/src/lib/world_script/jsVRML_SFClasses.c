@@ -1561,7 +1561,7 @@ SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 							  (_dest->v).r[2],
 							  (_dest->v).r[3]);
 
-		slerp(&_quat_ret, &_quat, &_quat_dest, t);
+		quaternion_slerp(&_quat_ret, &_quat, &_quat_dest, t);
 		quaternion_to_vrmlrot(&_quat_ret,
 							  (double *) &(_ret->v).r[0],
 							  (double *) &(_ret->v).r[1],
