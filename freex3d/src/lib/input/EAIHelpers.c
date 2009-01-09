@@ -483,6 +483,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 }
 
 
+
 /* get the type of a node; node must exist in table 
  	input:	
 	cNode = handle for node pointer into memory - if not valid, this routine returns everything as zeroes
@@ -640,13 +641,14 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 			int i;
 			struct ProtoElementPointer *ele;
 
-
-			
+			/* if we are here, we have a proto with a field that is not "there" in the scene graph,
+			   so we can not route to it, nor set a value to it */
+			*accessType = KW_outputOnly;
 
 			if (thisIndex != NULL) {
 				char *tp;
 				if (eaiverbose)
-					printf ("nin-instanced proto field, mode %d type %d name %d fieldString :%s:\n",
+					printf ("non-instanced proto field, mode %d type %d name %d fieldString :%s:\n",
 						thisIndex->mode, thisIndex->type, thisIndex->name, thisIndex->fieldString);
 				ctype = thisIndex->type;
 				tp = thisIndex->fieldString;
@@ -656,8 +658,6 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 				
 				myScriptType = EAI_NODETYPE_PROTO;
 			}
-
-
 		} else {
 			printf ("EAI_GetType, not not found, just keep it at -1\n");
 		}
