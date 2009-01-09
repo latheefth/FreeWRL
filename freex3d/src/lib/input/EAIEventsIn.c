@@ -316,12 +316,10 @@ void EAI_parse_commands () {
 					printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
 				}	
 
-				/* add (1), remove (2) or replace (0) for the add/remove/set flag. But,
-				   we only have addChildren or removeChildren, so flag can be 1 or 2 only */
-				if (strcmp(ctmp,"removeChildren")==0) { flag = 2;} else {flag = 1;}
-
-
-				getMFNodetype (dtmp,(struct Multi_Node *)address, node, flag);
+				/* we actually let the end of eventloop code determine whether this is an add or
+				   remove, or whatever - it will handle the addChildren and removeChildren well
+				   so the add/remove/replace parameter of getMFNodetype is always 1 here */
+				getMFNodetype (dtmp,(struct Multi_Node *)address, node, 1);
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
 				MARK_EVENT(node,getEAIActualOffset(ra,rb));
