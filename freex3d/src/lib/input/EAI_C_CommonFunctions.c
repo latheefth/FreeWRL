@@ -221,7 +221,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 		while ((*value == ' ') && (*value != '\0')) value ++;
 
 		/* now, does the value string need quoting? */
-		if ((*value != '"') && (*value != '\'')) {
+		if ((*value != '"') && (*value != '\'') && (*value != "[")) {
 			int len;
 			/* printf ("have to quote this string\n"); */
 			len = strlen(value);
