@@ -975,14 +975,14 @@ void propagateExtent (struct X3D_Node *this_);
 
 #ifdef DISPLAYBOUNDINGBOX
 void BoundingBox(struct X3D_Node* node);
-#define BOUNDINGBOX if (render_geom && (!render_blend)) BoundingBox (X3D_NODE(node));
+#define BOUNDINGBOX BoundingBox (X3D_NODE(node));
 #else
 #define BOUNDINGBOX
 #endif
 
 void freewrlDie(const char *format);
 
-extern double nearPlane, farPlane, calculatedNearPlane, calculatedFarPlane;
+extern double nearPlane, farPlane, screenRatio, calculatedNearPlane, calculatedFarPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 
@@ -1051,6 +1051,7 @@ void changed_Billboard (struct X3D_Billboard *this_);
 void prep_Viewpoint(struct X3D_Viewpoint *node);
 void child_Billboard (struct X3D_Billboard *this_);
 void child_LOD (struct X3D_LOD *this_);
+void changed_LOD (struct X3D_LOD *this_);
 void proximity_LOD (struct X3D_LOD *this_);
 void fin_Billboard (struct X3D_Billboard *this_);
 void child_Collision (struct X3D_Collision *this_);
@@ -1195,6 +1196,7 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *this_);
 void fin_GeoLocation (struct X3D_GeoLocation *this_);
 void changed_GeoLocation (struct X3D_GeoLocation *this_);
 void child_GeoLOD (struct X3D_GeoLOD *this_);
+void changed_GeoLOD (struct X3D_GeoLOD *this_);
 void proximity_GeoLOD (struct X3D_GeoLOD *this_);
 void child_GeoLocation (struct X3D_GeoLocation *this_);
 void compile_GeoCoordinate (struct X3D_GeoCoordinate * this);

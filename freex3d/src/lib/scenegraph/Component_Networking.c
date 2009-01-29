@@ -1226,10 +1226,6 @@ void child_Inline (struct X3D_Inline *node) {
 }
 
 void changed_Anchor (struct X3D_Anchor *node) {
-                int i;
-                int nc = ((node->children).n);
-                struct X3D_Node *p;
-                struct X3D_Virt *v;
-
-		INITIALIZE_EXTENT
+	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Anchor, metadata));
+	INITIALIZE_EXTENT;
 }

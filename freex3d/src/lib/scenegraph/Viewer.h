@@ -112,8 +112,10 @@ typedef struct viewer_fly {
 typedef struct viewer {
 	struct point_XYZ Pos;
 	struct point_XYZ AntiPos;
+	struct point_XYZ currentPosInModel;
 	Quaternion Quat;
 	Quaternion AntiQuat;
+	Quaternion bindTimeQuat;
 	int headlight;
 	double speed;
 	double Dist;
@@ -232,5 +234,6 @@ extern float screendist;
 
 void getCurrentSpeed();
 
+void viewer_getPosInModel(struct point_XYZ *rp);
 
 #endif /* __FREEX3D_VIEWER_H__ */

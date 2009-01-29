@@ -231,7 +231,7 @@ int bindTimeoffst (struct X3D_Node  *node) {
 		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, bindTime);
 		case NODE_Fog: return offsetof(struct X3D_Fog, bindTime);
 		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, bindTime);
-		default: {printf ("isBoundoffst - huh? node type %d\n",node->_nodeType); }
+		default: {printf ("bindTimeoffst  - huh? node type %s\n",stringNodeType(node->_nodeType)); }
 	}
 	return 0;
 }
@@ -250,7 +250,7 @@ int isboundofst(void *node) {
 		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, isBound);
 		case NODE_Fog: return offsetof(struct X3D_Fog, isBound);
 		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, isBound);
-		default: {printf ("isBoundoffst - huh? node type %d\n",tn->_nodeType); }
+		default: {printf ("isBoundoffst - huh? node type %s\n",stringNodeType(tn->_nodeType)); }
 	}
 	return 0;
 }
