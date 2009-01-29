@@ -346,7 +346,7 @@ quaternion_rotation(struct point_XYZ *ret, const Quaternion *quat, const struct 
 	ret->x = q_r2.x;
 	ret->y = q_r2.y;
 	ret->z = q_r2.z;
- 	printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z);
+ 	/* printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z); */
 }
 
 

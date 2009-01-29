@@ -48,18 +48,26 @@ int display_initialize()
     if (!win_height)
 	win_height = 600;
 
+    #ifndef TARGET_AQUA
     if (!open_display())
 	return FALSE;
+    #endif
 
+    #ifndef TARGET_AQUA
     if (!create_GL_context())
 	return FALSE;
+    #else
+    printf ("SKIPPING CREATE_GL_CONTEXT\n");
+    #endif
 
     if (!create_main_window())
 	return FALSE;
 
+    #ifndef TARGET_AQUA
     if (!initialize_gl_context()) {
 	return FALSE;
     }
+    #endif
 
     if (!initialize_viewport()) {
 	return FALSE;
