@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.231  2009/01/29 16:01:21  crc_canada
+# more node definitions.
+#
 # Revision 1.230  2008/10/29 21:07:05  crc_canada
 # Work on fillProperties and TwoSidedMaterial.
 #
@@ -515,6 +518,8 @@
 #
 
 %ChangedC = map {($_=>1)} qw/
+	GeoLOD
+	LOD
 	Group
         Inline
 	Transform
@@ -522,8 +527,8 @@
 	Billboard
 	Anchor
 	Collision
-	GeoCollision
 	GeoTransform
+	GeoLocation
 	HAnimSite
 	Switch
 /;

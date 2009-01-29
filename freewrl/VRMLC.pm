@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.308  2009/01/29 16:01:21  crc_canada
+# more node definitions.
+#
 # Revision 1.307  2008/12/12 20:29:12  crc_canada
 # change generated file contents (BUT NOT location) for freex3d compile
 # (files need copying over to final location by hand)
@@ -841,12 +844,14 @@ sub gen {
 	"#define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)\n".
 	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".
+	"#define X3D_GEOLOCATION(node) ((struct X3D_GeoLocation*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
 	"#define X3D_LODNODE(node) ((struct X3D_LOD*)node)\n".
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)\n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#define X3D_TRANSFORM(node) ((struct X3D_Transform*)node)\n".
+	"#define X3D_GEOTRANSFORM(node) ((struct X3D_GeoTransform*)node)\n".
 	"#define X3D_PROXIMITYSENSOR(node) ((struct X3D_ProximitySensor*)node)\n".
 	"#define X3D_GEOPROXIMITYSENSOR(node) ((struct X3D_GeoProximitySensor*)node)\n".
 	"#undef DEBUG_VALIDNODE\n".

@@ -80,41 +80,47 @@ package VRML::NodeType;
 	###################################################################################
 
 	Anchor => new VRML::NodeType("Anchor", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						description => [SFString, "", inputOutput],
-						parameter => [MFString, [], inputOutput],
-						url => [MFString, [], inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						__parenturl =>[SFString,"",initializeOnly],
-					   },"X3DGroupingNode"),
+		addChildren => [MFNode, undef, inputOnly],
+		removeChildren => [MFNode, undef, inputOnly],
+		children => [MFNode, [], inputOutput],
+		description => [SFString, "", inputOutput],
+		parameter => [MFString, [], inputOutput],
+		url => [MFString, [], inputOutput],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+		__parenturl =>[SFString,"",initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DGroupingNode"),
 
 
 	Inline => new VRML::NodeType("Inline", {
-						url => [MFString, [], inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						load => [SFBool, TRUE,initializeOnly],
-                                                __children => [MFNode, [], inputOutput],
-						__loadstatus =>[SFInt32,0,initializeOnly],
-						__parenturl =>[SFString,"",initializeOnly],
-					   },"X3DNetworkSensorNode"),
+		url => [MFString, [], inputOutput],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+		load => [SFBool, TRUE,initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+                __children => [MFNode, [], inputOutput],
+		__loadstatus =>[SFInt32,0,initializeOnly],
+		__parenturl =>[SFString,"",initializeOnly],
+	},"X3DNetworkSensorNode"),
 
 	LoadSensor => new VRML::NodeType("LoadSensor", {
-						enabled => [SFBool, FALSE,inputOutput],
-						timeOut  => [SFTime,0,inputOutput],
-						watchList => [MFNode, [], inputOutput],
-						isActive  => [SFBool, TRUE,outputOnly],
-						isLoaded  => [SFBool, TRUE,outputOnly],
-						loadTime  => [SFTime,0,outputOnly],
-						progress  => [SFFloat,0,outputOnly],
-						__loading => [SFBool, TRUE,initializeOnly],		# current internal status
-						__finishedloading => [SFBool, TRUE,initializeOnly],	# current internal status
-						__StartLoadTime => [SFTime,0,outputOnly], # time we started loading...
-						__oldEnabled => [SFBool, TRUE, inputOutput],
-					},"X3DNetworkSensorNode"),
+		enabled => [SFBool, FALSE,inputOutput],
+		timeOut  => [SFTime,0,inputOutput],
+		watchList => [MFNode, [], inputOutput],
+		isActive  => [SFBool, TRUE,outputOnly],
+		isLoaded  => [SFBool, TRUE,outputOnly],
+		loadTime  => [SFTime,0,outputOnly],
+		progress  => [SFFloat,0,outputOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__loading => [SFBool, TRUE,initializeOnly],		# current internal status
+		__finishedloading => [SFBool, TRUE,initializeOnly],	# current internal status
+		__StartLoadTime => [SFTime,0,outputOnly], # time we started loading...
+		__oldEnabled => [SFBool, TRUE, inputOutput],
+	},"X3DNetworkSensorNode"),
 
 	###################################################################################
 
@@ -1208,6 +1214,8 @@ package VRML::NodeType;
 						children => [MFNode, [], inputOutput],
 						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+						metadata => [SFNode, NULL, inputOutput],
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						_rotationAngle =>[SFDouble, 0, initializeOnly],
 					   },"X3DGroupingNode"),
 
@@ -1221,6 +1229,8 @@ package VRML::NodeType;
 						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 						proxy => [SFNode, NULL, initializeOnly],
 						collideTime => [SFTime, -1, outputOnly],
+						metadata => [SFNode, NULL, inputOutput],
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 						# return info for collisions
 						# bit 0 : collision or not
 						# bit 1: changed from previous of not
@@ -1694,6 +1704,8 @@ package VRML::NodeType;
 						scale => [SFVec3f, [1, 1, 1], inputOutput],
 						scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
 						translation => [SFVec3f, [0, 0, 0], inputOutput],
+						metadata => [SFNode, NULL, inputOutput],
+						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
 						 # fields for reducing redundant calls
 						 __do_center => [SFInt32, 0, initializeOnly],
