@@ -776,7 +776,7 @@ void render_collisions() {
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
         increment_pos(&v);
 }
-#undef GOODCODE
+#define GOODCODE
 #ifdef GOODCODE
 void setup_viewpoint() {
         GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
