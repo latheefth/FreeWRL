@@ -880,6 +880,10 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 		/* recalculateBackgroundVectors will determine exact node type */
 		recalculateBackgroundVectors((struct X3D_Background *)node);	
 
+	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
+	   all geometry fits within the spheres */
+	GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+
 
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
