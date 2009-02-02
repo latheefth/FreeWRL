@@ -1337,6 +1337,7 @@ struct X3D_Node {
 #define X3D_GEOLOCATION(node) ((struct X3D_GeoLocation*)node)
 #define X3D_SCRIPT(node) ((struct X3D_Script*)node)
 #define X3D_LODNODE(node) ((struct X3D_LOD*)node)
+#define X3D_GEOLOD(node) ((struct X3D_GeoLOD*)node)
 #define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)
 #define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)
 #define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)

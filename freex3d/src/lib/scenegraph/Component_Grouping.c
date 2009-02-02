@@ -162,7 +162,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	BOUNDINGBOX
 	DIRECTIONAL_LIGHT_OFF
 }
 
@@ -222,7 +221,6 @@ void Old child_StaticGroup (struct X3D_StaticGroup *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	BOUNDINGBOX
 	if (createlist) glEndList();
 	DIRECTIONAL_LIGHT_OFF
 }
@@ -266,7 +264,6 @@ void child_Group (struct X3D_Group *node) {
 		normalChildren(node->children);
 	}
 
-	BOUNDINGBOX
 	DIRECTIONAL_LIGHT_OFF
 }
 
@@ -330,9 +327,6 @@ void child_Transform (struct X3D_Transform *node) {
 	}
 #endif
 
-#ifdef XXBOUNDINGBOX
-	if (node->PIV > 0) {
-#endif
 	/* do we have to sort this node? */
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
@@ -353,11 +347,7 @@ void child_Transform (struct X3D_Transform *node) {
 	#ifdef CHILDVERBOSE
 		printf ("transform - done normalChildren\n");
 	#endif
-#ifdef XXBOUNDINGBOX
-	}
-#endif
 
-	BOUNDINGBOX
 	DIRECTIONAL_LIGHT_OFF
 }
 

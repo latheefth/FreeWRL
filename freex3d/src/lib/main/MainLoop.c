@@ -208,7 +208,7 @@ void EventLoop() {
         }
 #endif
 
-        /* printf ("start of MainLoop\n");  */
+        /* printf ("start of MainLoop\n"); */
 
         /* should we do events, or maybe a parser is parsing? */
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();

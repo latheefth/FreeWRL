@@ -2845,9 +2845,6 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 	}
 #endif
 
-#ifdef XXBOUNDINGBOX
-	if (node->PIV > 0) {
-#endif
 	/* do we have to sort this node? */
 	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
@@ -2868,10 +2865,6 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 	#ifdef CHILDVERBOSE
 		printf ("transform - done normalChildren\n");
 	#endif
-#ifdef XXBOUNDINGBOX
-	}
-#endif
 
-	BOUNDINGBOX
 	DIRECTIONAL_LIGHT_OFF
 }

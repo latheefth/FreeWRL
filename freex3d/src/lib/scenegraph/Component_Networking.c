@@ -1178,8 +1178,6 @@ void child_Anchor (struct X3D_Anchor *node) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	BOUNDINGBOX
-
 	#ifdef CHILDVERBOSE
 	printf("RENDER ANCHOR END %d\n",node);
 	#endif
