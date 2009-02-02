@@ -30,6 +30,7 @@ extern int fog_tos;
 extern int navi_tos;
 
 extern uintptr_t viewpoint_stack[];
+extern uintptr_t background_stack[];
 extern uintptr_t navi_stack[];
 
 void

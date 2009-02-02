@@ -573,6 +573,10 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 	double outsideRadius =  DEFAULT_FARPLANE* 0.750;
 	double insideRadius = DEFAULT_FARPLANE * 0.50;
 
+	/* lets try these values - we will scale when we draw this */
+	outsideRadius = 1.0;
+	insideRadius = 0.5;
+
 	/* handle Background and TextureBackgrounds here */
 	if (node->_nodeType == NODE_Background) {
 		skyCol = node->skyColor.p;
@@ -809,6 +813,9 @@ void render_Background (struct X3D_Background *node) {
 		forceBackgroundRecompile = FALSE;
 	}
 
+	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
+	   all geometry fits within the spheres */
+	GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
 
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);

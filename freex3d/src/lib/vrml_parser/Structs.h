@@ -1342,6 +1342,8 @@ struct X3D_Node {
 #define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)
 #define X3D_TRANSFORM(node) ((struct X3D_Transform*)node)
 #define X3D_GEOTRANSFORM(node) ((struct X3D_GeoTransform*)node)
+#define X3D_GEOVIEWPOINT(node) ((struct X3D_GeoViewpoint*)node)
+#define X3D_VIEWPOINT(node) ((struct X3D_Viewpoint*)node)
 #define X3D_PROXIMITYSENSOR(node) ((struct X3D_ProximitySensor*)node)
 #define X3D_GEOPROXIMITYSENSOR(node) ((struct X3D_GeoProximitySensor*)node)
 #undef DEBUG_VALIDNODE
