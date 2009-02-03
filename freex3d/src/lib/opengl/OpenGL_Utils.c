@@ -183,6 +183,9 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	}
 
 	/* lets bound check here, both must be positive, and farPlane more than DEFAULT_NEARPLANE */
+	/* because we may be navigating towards the shapes, we give the nearPlane a bit of room, otherwise
+	   we might miss part of the geometry that comes closest to us */
+	cnp = cnp/2.0;
 	if (cnp<DEFAULT_NEARPLANE) cnp = DEFAULT_NEARPLANE;
 	if (cfp<1.0) cfp = 1.0;	
 
