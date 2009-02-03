@@ -363,7 +363,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		nodeptr = actual memory pointer of X3D_Node* */
 
 	/* first, parse the value into the local variable */
-	Parser_scanStringValueToMem(memptr,0,datatype,ptr,FALSE);
+	Parser_scanStringValueToMem(nodeptr,offset,datatype,ptr,FALSE);
 
 	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		struct Shader_Script * sp;
