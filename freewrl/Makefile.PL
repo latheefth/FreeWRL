@@ -91,6 +91,11 @@ if (($issue =~ /Fedora/) || ($issue =~ /RedHat/)) {
     
 }
 
+if ($issue =~ /Debian/) {
+    $VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla/plugins";
+    $VRML_CONFIG{FONTSDIR} = "/usr/share/fonts/truetype/ttf-bitstream-vera";
+}
+
 # Can we add FreeWRL to the desktop?
 $VRML_CONFIG{DESKTOP} = "NO";	# default value.
 if (-e "/usr/share/applications") {
@@ -102,7 +107,6 @@ if (-e "/usr/share/applications") {
 # Default Mozilla / Firefox plugins directory
 if ($issue =~ /Debian/) {
     print "Linux flavour: Debian\n";
-    $VRML_CONFIG{NETSCAPE_INST} = "/usr/lib/mozilla/plugins";
     $NEED_LDCONFIG = 0;
 } elsif ($issue =~ /Ubuntu/) {
     print "Linux flavour: Ubuntu\n";
@@ -370,6 +374,7 @@ sub writeMakefileInitialize() {
 	print MK "JAR = $JAR\n";
 	print MK "INSTALL_DIR = $VRML_CONFIG{INSTALL_DIR}\n";
 	print MK "PLUGIN_INSTALL_DIR = $VRML_CONFIG{NETSCAPE_INST}\n";
+	print MK "FONTSDIR = $VRML_CONFIG{FONTSDIR}\n";
 	print MK "CFLAGS = \$(FWFLAGS) \$(INC) \$(DEFINE)\n"; # -IPlugin/netscape/include
 	print MK "COMPILE := \$(CC) \$(CFLAGS)\n";
 }
