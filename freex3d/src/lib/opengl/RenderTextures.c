@@ -200,7 +200,7 @@ void textureDraw_end(void) {
 	}
 	/* DISABLE_TEXTURES */
 
-        GL_MATRIX_MODE(GL_MODELVIEW);
+        FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
 /***********************************************************************************/

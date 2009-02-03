@@ -359,7 +359,7 @@ quaternion_togl(Quaternion *quat)
 
 	/* get the angle, but turn us around 180 degrees */
 	/* printf ("togl: setting rotation %f %f %f %f\n",quat->w,quat->x,quat->y,quat->z);*/
-	GL_ROTATE_D((2 * (acos(quat->w) / M_PI * 180)), quat->x, quat->y, quat->z);
+	FW_GL_ROTATE_D((2 * (acos(quat->w) / M_PI * 180)), quat->x, quat->y, quat->z);
 }
 
 void

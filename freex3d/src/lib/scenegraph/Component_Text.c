@@ -592,7 +592,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 
     /* leftToRight */
     if (LEFTTORIGHT) {
-        GL_ROTATE_D(180.0,0.0,1.0,0.0);
+        FW_GL_ROTATE_D(180.0,0.0,1.0,0.0);
     }
 
     for(row = 0; row < numrows; row++) {
@@ -607,8 +607,8 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         if((row < nl) && (APPROX(length[row],0.0))) {
             rshrink = length[row] / OUT2GL(rowlen);
         }
-        if(shrink>0.0001) { GL_SCALE_D(shrink,1.0,1.0); }
-        if(rshrink>0.0001) { GL_SCALE_D(rshrink,1.0,1.0); }
+        if(shrink>0.0001) { FW_GL_SCALE_D(shrink,1.0,1.0); }
+        if(rshrink>0.0001) { FW_GL_SCALE_D(rshrink,1.0,1.0); }
 
         /* Justify, FIRST, BEGIN, MIDDLE and END */
 
