@@ -230,7 +230,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
-			printf ("so, mfstring is :%s:\n",mfstringtmp);
+			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */
 			
 			parser_fromString(parser,mfstringtmp);
 		} else {
