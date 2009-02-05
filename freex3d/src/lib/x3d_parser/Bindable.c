@@ -131,7 +131,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 	struct X3D_GeoViewpoint *gvp;
 	char * nameptr;
 
-	/* printf ("\nsend_bind_to, nodetype %s node %d value %d\n",stringNodeType(nodetype),node,value); */
+	/* printf ("\n%lf: send_bind_to, nodetype %s node %u value %d\n",TickTime,stringNodeType(node->_nodeType),node,value);  */
 
 	switch (node->_nodeType) {
 

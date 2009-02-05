@@ -39,8 +39,10 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	/* code to perform binding is now in set_viewpoint. */
 
-	if(!node->isBound) return;
-
+	/* we will never get here unless we are told that we are active by the scene graph; actually
+	   doing this test can screw us up, so DO NOT do this test!
+			if(!node->isBound) return;
+	*/
 	
 	/* printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr); */
 	
