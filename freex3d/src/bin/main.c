@@ -13,6 +13,7 @@ FreeX3D main program.
 
 #include <libFreeX3D.h>
 
+#include "main.h"
 #include "options.h"
 
 /**
