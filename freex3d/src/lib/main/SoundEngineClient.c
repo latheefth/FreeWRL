@@ -11,7 +11,19 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #include <config.h>
 #include <system.h>
-#include <system_net.h>
+
+/*JAS  - get this compiling on osx 10.4 ppc */
+#ifdef TARGET_AQUA
+	#ifdef ARCH_PPC
+		#include <sys/socket.h>
+		#include <netinet/in.h>
+	#else
+		#include <system_net.h>
+	#endif
+#else
+	#include <system_net.h>
+#endif
+
 #include <internal.h>
 
 #include <errno.h>
