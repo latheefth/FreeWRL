@@ -177,8 +177,13 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 
 	/* do we assume that this is a globe? If we have a GeoViewpoint, and we have GD or UTM
 	   coordinates, lets assume so. */
-	
-	performGlobeClipping = TRUE;
+	if (vpnode->_nodeType == NODE_GeoViewpoint) {
+       		if ((X3D_GEOVIEWPOINT(vpnode)->__geoSystem.n) > 0) {
+                	if (X3D_GEOVIEWPOINT(vpnode)->__geoSystem.p[0] != GEOSP_GC) {
+				performGlobeClipping = TRUE;
+			}
+		}
+	}
 
 	/* for GeoViewpoint, assume we have the earth within our Axis Aligned Bounding Box */
 	if (performGlobeClipping) {
@@ -210,8 +215,6 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		cnp = cfp-closestPoint;
 		/* printf ("test cnp is %f\n",cnp); */
 	} else {
-	
-		
 		#ifdef VERBOSE
 		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
 				X3D_GROUP(rootNode)->EXTENT_MAX_X, X3D_GROUP(rootNode)->EXTENT_MIN_X,
@@ -272,10 +275,6 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 		backgroundPlane = cfp; /* just set it to something */
 	}
 }
-
-
-
-
 
 void doglClearColor() {
 	glClearColor(cc_red, cc_green, cc_blue, cc_alpha);
