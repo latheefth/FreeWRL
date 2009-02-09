@@ -8,7 +8,7 @@ Polyrep ???
 */
 
 #include <config.h>
-#include <system.h>
+/* JAS #include <system.h> */
 #include <display.h>
 #include <internal.h>
 

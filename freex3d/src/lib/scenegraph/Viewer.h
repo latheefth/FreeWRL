@@ -188,18 +188,6 @@ viewer_togl( double fieldofview);
 void handle(const int mev, const unsigned int button, const float x, const float y);
 
 void
-handle_walk( const int mev,
-			const unsigned int button,
-			const float x,
-			const float y);
-
-void
-handle_examine(const int mev,
-			   const unsigned int button,
-			   const float x,
-			   const float y);
-
-void
 handle_key(const char key);
 
 void
@@ -207,15 +195,6 @@ handle_keyrelease (const char key);
 
 void
 handle_tick();
-
-void
-handle_tick_walk();
-
-void
-handle_tick_exfly();
-
-void
-handle_tick_fly();
 
 void
 set_action(char *key);
