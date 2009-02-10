@@ -258,7 +258,10 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	   we might miss part of the geometry that comes closest to us */
 	cnp = cnp/2.0;
 	if (cnp<DEFAULT_NEARPLANE) cnp = DEFAULT_NEARPLANE;
-	if (cfp<1.0) cfp = 1.0;	
+
+	/* we could (probably should) keep the farPlane at 1.0 and above, but because of an Examine mode 
+	   rotation problem, we will just keep it at 2100 for now. */
+	if (cfp<2100.0) cfp = 2100.0;	
 
 	#ifdef VERBOSE
 	printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
