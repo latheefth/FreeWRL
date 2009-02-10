@@ -1296,8 +1296,8 @@ void kill_X3DNodes(void){
 						glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
 						FREE_IF_NZ(cps->__shaderIDS.p);
 						cps->__shaderIDS.n=0;
-#endif
 					}
+#endif
 
 				} else {
 					ConsoleMessage ("error destroying shaderIDS on kill");
