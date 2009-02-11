@@ -3,13 +3,13 @@
 
 $Id$
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: threading library, and processor control (sched).
 
 */
 
-#ifndef __LIBFREEX3D_SYSTEM_THREADS_H__
-#define __LIBFREEX3D_SYSTEM_THREADS_H__
+#ifndef __LIBFREEWRL_SYSTEM_THREADS_H__
+#define __LIBFREEWRL_SYSTEM_THREADS_H__
 
 
 #if HAVE_PTHREAD
@@ -21,4 +21,4 @@ Internal header: threading library, and processor control (sched).
 #endif
 
 
-#endif /* __LIBFREEX3D_SYSTEM_THREADS_H__ */
+#endif /* __LIBFREEWRL_SYSTEM_THREADS_H__ */

@@ -7,8 +7,8 @@ Collision ???
 
 */
 
-#ifndef __FREEX3D_COLLISION_H__
-#define __FREEX3D_COLLISION_H__
+#ifndef __FREEWRL_COLLISION_H__
+#define __FREEWRL_COLLISION_H__
 
 
 /* Collision detection results structure*/
@@ -230,4 +230,4 @@ void printmatrix(GLdouble* mat);
 #endif
 
 
-#endif /* __FREEX3D_COLLISION_H__ */
+#endif /* __FREEWRL_COLLISION_H__ */

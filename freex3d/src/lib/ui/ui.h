@@ -7,11 +7,11 @@ UI declarations.
 
 */
 
-#ifndef __FREEX3D_UI_H__
-#define __FREEX3D_UI_H__
+#ifndef __FREEWRL_UI_H__
+#define __FREEWRL_UI_H__
 
 
 void openMainWindow (int argc, char **argv);
 
 
-#endif /* __FREEX3D_UI_H__ */
+#endif /* __FREEWRL_UI_H__ */

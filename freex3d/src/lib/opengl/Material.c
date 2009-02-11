@@ -12,7 +12,7 @@ Only do material settings that "matter" and bounds check all values.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 /* #include "LinearAlgebra.h" */
 

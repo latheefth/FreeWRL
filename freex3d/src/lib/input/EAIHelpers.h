@@ -7,8 +7,8 @@ EAI Helpers functions
 
 */
 
-#ifndef __FREEX3D_EAI_HELPERS_H__
-#define __FREEX3D_EAI_HELPERS_H__
+#ifndef __FREEWRL_EAI_HELPERS_H__
+#define __FREEWRL_EAI_HELPERS_H__
 
 
 struct X3D_Node *getEAINodeFromTable(int index, int field);
@@ -22,5 +22,5 @@ void EAI_GetType(int cNode, char *ctmp, char *dtmp,
 		 uintptr_t *cNodePtr, uintptr_t *fieldOffset,
 		 uintptr_t *dataLen, uintptr_t *typeString, unsigned int *scripttype, int *accessType);
 
-#endif /* __FREEX3D_EAI_HELPERS_H__ */
+#endif /* __FREEWRL_EAI_HELPERS_H__ */
 

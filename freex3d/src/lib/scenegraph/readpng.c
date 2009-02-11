@@ -16,7 +16,7 @@ FreeWRL now only uses this on Linux machines.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "readpng.h"    /* typedefs, common macros, public prototypes */
 

@@ -14,7 +14,7 @@ which is the sample application included with the javascript engine.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

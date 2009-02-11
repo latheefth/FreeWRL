@@ -1,6 +1,6 @@
 /*******************************************************************
  *
- * FreeX3D main program
+ * FreeWRL main program
  *
  * internal header - system.h
  *
@@ -10,8 +10,8 @@
  *
  *******************************************************************/
 
-#ifndef __FREEX3D_SYSTEM_H__
-#define __FREEX3D_SYSTEM_H__
+#ifndef __FREEWRL_SYSTEM_H__
+#define __FREEWRL_SYSTEM_H__
 
 
 #if HAVE_STDINT_H
@@ -85,4 +85,4 @@ typedef unsigned char _Bool;
 #endif
 
 
-#endif /* __FREEX3D_SYSTEM_H__ */
+#endif /* __FREEWRL_SYSTEM_H__ */

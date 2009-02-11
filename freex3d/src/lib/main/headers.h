@@ -7,15 +7,15 @@ Global includes.
 
 */
 
-#ifndef __FREEX3D_HEADERS_H__
-#define __FREEX3D_HEADERS_H__
+#ifndef __FREEWRL_HEADERS_H__
+#define __FREEWRL_HEADERS_H__
 
 
 /**
  * in utils.c
  */
 extern char *BrowserName;
-const char* freex3d_get_browser_program();
+const char* freewrl_get_browser_program();
 
 /**
  * in InputFunctions.c
@@ -1377,4 +1377,4 @@ extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
 
-#endif /* __FREEX3D_HEADERS_H__ */
+#endif /* __FREEWRL_HEADERS_H__ */

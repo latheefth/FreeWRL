@@ -7,8 +7,8 @@ $Id$
 
 */
 
-#ifndef __FREEX3D_JS_JSCRIPT_H__
-#define __FREEX3D_JS_JSCRIPT_H__
+#ifndef __FREEWRL_JS_JSCRIPT_H__
+#define __FREEWRL_JS_JSCRIPT_H__
 
 
 void kill_javascript(void);
@@ -48,4 +48,4 @@ int JSaddGlobalECMANativeProperty(uintptr_t num, char *name);
 int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str);
 
 
-#endif /* __FREEX3D_JS_JSCRIPT_H__ */
+#endif /* __FREEWRL_JS_JSCRIPT_H__ */

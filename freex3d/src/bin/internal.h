@@ -1,6 +1,6 @@
 /*******************************************************************
  *
- * FreeX3D main program
+ * FreeWRL main program
  *
  * internal header - internal.h
  *
@@ -10,11 +10,11 @@
  *
  *******************************************************************/
 
-#ifndef __FREEX3D_INTERNAL_H__
-#define __FREEX3D_INTERNAL_H__
+#ifndef __FREEWRL_INTERNAL_H__
+#define __FREEWRL_INTERNAL_H__
 
 
-extern const char *freex3d_get_version();
+extern const char *freewrl_get_version();
 
 
-#endif /* __FREEX3D_INTERNAL_H__ */
+#endif /* __FREEWRL_INTERNAL_H__ */

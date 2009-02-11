@@ -13,7 +13,7 @@ Scenegraph rendering.
 #include <internal.h>
 
 #include <pthread.h> /* this is needed here, for some reason JAS */
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

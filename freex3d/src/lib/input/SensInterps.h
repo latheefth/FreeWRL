@@ -7,8 +7,8 @@ SensInterps ???
 
 */
 
-#ifndef __FREEX3D_SENS_INTERPS_H__
-#define __FREEX3D_SENS_INTERPS_H__
+#ifndef __FREEWRL_SENS_INTERPS_H__
+#define __FREEWRL_SENS_INTERPS_H__
 
 
 #define ASLEN 500
@@ -59,4 +59,4 @@ void do_CylinderSensor(void *ptr, int typ, int but1, int over);
 void do_SphereSensor(void *ptr, int typ, int but1, int over);
 
 
-#endif /* __FREEX3D_SENS_INTERPS_H__ */
+#endif /* __FREEWRL_SENS_INTERPS_H__ */

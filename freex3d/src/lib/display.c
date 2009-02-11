@@ -3,7 +3,7 @@
 
 $Id$
 
-FreeX3D support library.
+FreeWRL support library.
 Display (X11/Motif or OSX/Aqua) initialization.
 
 */
@@ -13,7 +13,7 @@ Display (X11/Motif or OSX/Aqua) initialization.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 /* common function between display_x11, display_motif and display_aqua */

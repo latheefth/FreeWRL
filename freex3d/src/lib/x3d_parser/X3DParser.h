@@ -7,8 +7,8 @@ X3D parser functions.
 
 */
 
-#ifndef __FREEX3D_X3D_PARSER_H__
-#define __FREEX3D_X3D_PARSER_H__
+#ifndef __FREEWRL_X3D_PARSER_H__
+#define __FREEWRL_X3D_PARSER_H__
 
 
 /* header file for the X3D parser, only items common between the X3DParser files should be here. */
@@ -73,4 +73,4 @@ void kill_X3DProtoScripts(void);
 
 struct X3D_Node *X3DParser_getNodeFromName(const char *name);
 
-#endif /*  __FREEX3D_X3D_PARSER_H__ */
+#endif /*  __FREEWRL_X3D_PARSER_H__ */

@@ -12,7 +12,7 @@ General utility functions.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "headers.h"
@@ -21,7 +21,7 @@ General utility functions.
 char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 
-const char* freex3d_get_browser_program()
+const char* freewrl_get_browser_program()
 {
     char *tmp;
 

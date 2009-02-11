@@ -7,8 +7,8 @@ EAI and java CLASS invocation
 
 */
 
-#ifndef __FREEX3D_EAI_H__
-#define __FREEX3D_EAI_H__
+#ifndef __FREEWRL_EAI_H__
+#define __FREEWRL_EAI_H__
 
 
 extern int eaiverbose;
@@ -157,4 +157,4 @@ extern char EAIListenerArea[40];
 #define MIDI_CONTROLLER_UNKNOWN 999
 
 
-#endif /* __FREEX3D_EAI_H__ */
+#endif /* __FREEWRL_EAI_H__ */

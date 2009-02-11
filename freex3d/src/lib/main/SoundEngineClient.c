@@ -28,7 +28,7 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #include <errno.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 /* #include "../vrml_parser/Structs.h" */
 /* #include "headers.h" */
@@ -52,7 +52,7 @@ int my_ipc_key;
 FWSNDMSG msg;		/* message buffer */
 
 /* TODO: integrate this variable into configure */
-char sspath[] = "freex3d_snd" /*SOUNDSERVERBINARY*/; /* compile line flag */
+char sspath[] = "freewrl_snd" /*SOUNDSERVERBINARY*/; /* compile line flag */
 
 static int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
 

@@ -7,8 +7,8 @@ Javascript C language binding.
 
 */
 
-#ifndef __FREEX3D_FIELDGET_H__
-#define __FREEX3D_FIELDGET_H__ 1
+#ifndef __FREEWRL_FIELDGET_H__
+#define __FREEWRL_FIELDGET_H__ 1
 
 void getField_ToJavascript (int num, int fromoffset);
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
@@ -19,4 +19,4 @@ void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, 
 void setScriptMultiElementtype (uintptr_t num);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 
-#endif /* __FREEX3D_FIELDGET_H__ */
+#endif /* __FREEWRL_FIELDGET_H__ */

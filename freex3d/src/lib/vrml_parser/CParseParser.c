@@ -12,7 +12,7 @@
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 
 #include "../vrml_parser/Structs.h"

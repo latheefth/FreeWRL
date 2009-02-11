@@ -3,13 +3,13 @@
 
 $Id$
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: Javascript engine dependencies.
 
 */
 
-#ifndef __LIBFREEX3D_SYSTEM_JS_H__
-#define __LIBFREEX3D_SYSTEM_JS_H__
+#ifndef __LIBFREEWRL_SYSTEM_JS_H__
+#define __LIBFREEWRL_SYSTEM_JS_H__
 
 
 /* 
@@ -23,4 +23,4 @@ Internal header: Javascript engine dependencies.
 #include <jsdbgapi.h> /* JS debugger */
 
 
-#endif /* __LIBFREEX3D_SYSTEM_JS_H__ */
+#endif /* __LIBFREEWRL_SYSTEM_JS_H__ */

@@ -7,8 +7,8 @@ General header for VRML-parser (lexer/parser)
 
 */
 
-#ifndef __FREEX3D_CPARSE_GENERAL_H__
-#define __FREEX3D_CPARSE_GENERAL_H__
+#ifndef __FREEWRL_CPARSE_GENERAL_H__
+#define __FREEWRL_CPARSE_GENERAL_H__
 
 
 /* Typedefs for VRML-types. */
@@ -63,4 +63,4 @@ union anyVrml
 /* void fw_assert(char *,int); */
 
 
-#endif /* __FREEX3D_CPARSE_GENERAL_H__ */
+#endif /* __FREEWRL_CPARSE_GENERAL_H__ */

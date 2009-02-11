@@ -7,8 +7,8 @@ Linear algebra.
 
 */
 
-#ifndef __FREEX3D_LINEAR_ALGEBRA_H__
-#define __FREEX3D_LINEAR_ALGEBRA_H__
+#ifndef __FREEWRL_LINEAR_ALGEBRA_H__
+#define __FREEWRL_LINEAR_ALGEBRA_H__
 
 
 #define VECSQ(a) VECPT(a,a)
@@ -184,4 +184,4 @@ GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
 GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
 
 
-#endif /* __FREEX3D_LINEAR_ALGEBRA_H__ */
+#endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */

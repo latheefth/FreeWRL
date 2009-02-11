@@ -7,8 +7,8 @@ Class to wrap a java script for CParser
 
 */
 
-#ifndef __FREEX3D_CSCRIPTS_H__
-#define __FREEX3D_CSCRIPTS_H__
+#ifndef __FREEWRL_CSCRIPTS_H__
+#define __FREEWRL_CSCRIPTS_H__
 
 
 /* ************************************************************************** */
@@ -130,4 +130,4 @@ struct CRscriptStruct {
 };
 
 
-#endif /* __FREEX3D_CSCRIPTS_H__ */
+#endif /* __FREEWRL_CSCRIPTS_H__ */

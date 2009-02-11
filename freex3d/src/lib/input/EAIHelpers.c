@@ -12,7 +12,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../world_script/jsUtils.h"

@@ -7,8 +7,8 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
 */
 
-#ifndef __FREEX3D_BINDABLE_H__
-#define __FREEX3D_BINDABLE_H__
+#ifndef __FREEWRL_BINDABLE_H__
+#define __FREEWRL_BINDABLE_H__
 
 
 /* Bind stack */
@@ -55,4 +55,4 @@ void render_Background(struct X3D_Background *node);
 void render_TextureBackground(struct X3D_TextureBackground *node);
 
 
-#endif /* __FREEX3D_BINDABLE_H__ */
+#endif /* __FREEWRL_BINDABLE_H__ */

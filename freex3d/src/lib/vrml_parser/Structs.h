@@ -10,8 +10,8 @@ Code here comes almost verbatim from VRMLC.pm
 
 */
 
-#ifndef __FREEX3D_STRUCTS_H__
-#define __FREEX3D_STRUCTS_H__
+#ifndef __FREEWRL_STRUCTS_H__
+#define __FREEWRL_STRUCTS_H__
 
 
 struct point_XYZ {GLdouble x,y,z;};
@@ -5100,4 +5100,4 @@ extern const int *NODE_OFFSETS[];
 
 int getSAI_X3DNodeType (int FreeWRLNodeType);
 
-#endif /* __FREEX3D_STRUCTS_H__ */
+#endif /* __FREEWRL_STRUCTS_H__ */

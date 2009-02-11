@@ -7,8 +7,8 @@ Screen snapshot.
 
 */
 
-#ifndef __FREEX3D_SNAPSHOT_H__
-#define __FREEX3D_SNAPSHOT_H__
+#ifndef __FREEWRL_SNAPSHOT_H__
+#define __FREEWRL_SNAPSHOT_H__
 
 
 extern int snapCount;
@@ -24,4 +24,4 @@ void Snapshot();
 extern void abort();
 
 
-#endif /* __FREEX3D_SNAPSHOT_H__ */
+#endif /* __FREEWRL_SNAPSHOT_H__ */

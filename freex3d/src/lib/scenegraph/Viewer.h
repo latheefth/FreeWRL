@@ -7,8 +7,8 @@ Viewer ???
 
 */
 
-#ifndef __FREEX3D_VIEWER_H__
-#define __FREEX3D_VIEWER_H__
+#ifndef __FREEWRL_VIEWER_H__
+#define __FREEWRL_VIEWER_H__
 
 
 #define NONE 0
@@ -227,4 +227,4 @@ void getCurrentSpeed();
 
 void viewer_getPosInModel(struct point_XYZ *rp);
 
-#endif /* __FREEX3D_VIEWER_H__ */
+#endif /* __FREEWRL_VIEWER_H__ */

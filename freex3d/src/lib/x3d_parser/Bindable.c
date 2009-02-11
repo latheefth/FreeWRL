@@ -12,7 +12,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

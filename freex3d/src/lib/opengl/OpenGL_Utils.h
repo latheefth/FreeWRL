@@ -7,8 +7,8 @@ Screen snapshot.
 
 */
 
-#ifndef __FREEX3D_OPENGL_UTILS_H__
-#define __FREEX3D_OPENGL_UTILS_H__
+#ifndef __FREEWRL_OPENGL_UTILS_H__
+#define __FREEWRL_OPENGL_UTILS_H__
 
 
 void start_textureTransform (void *textureNode, int ttnum);
@@ -30,4 +30,4 @@ void lightState (GLint light, int state);
 extern void glpOpenGLInitialize(void);
 
 
-#endif /* __FREEX3D_OPENGL_UTILS_H__ */
+#endif /* __FREEWRL_OPENGL_UTILS_H__ */

@@ -7,8 +7,8 @@ Sound engine client code
 
 */
 
-#ifndef __FREEX3D_SOUND_CLIENT_H__
-#define __FREEX3D_SOUND_CLIENT_H__
+#ifndef __FREEWRL_SOUND_CLIENT_H__
+#define __FREEWRL_SOUND_CLIENT_H__
 
 
 #define SNDMAXMSGSIZE 256
@@ -53,4 +53,4 @@ void
 SetAudioActive(int num, int stat);
 
 
-#endif /* __FREEX3D_SOUND_CLIENT_H__ */
+#endif /* __FREEWRL_SOUND_CLIENT_H__ */

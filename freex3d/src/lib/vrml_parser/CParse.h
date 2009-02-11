@@ -7,8 +7,8 @@ VRML-parsing routines in C.
 
 */
 
-#ifndef __FREEX3D_CPARSE_H__
-#define __FREEX3D_CPARSE_H__
+#ifndef __FREEWRL_CPARSE_H__
+#define __FREEWRL_CPARSE_H__
 
 
 /* for scanning and determining whether a character is part of a valid X3D name */
@@ -35,4 +35,4 @@ extern struct VRMLParser* globalParser;
 /* void fw_assert(char *,int); */
 
 
-#endif /* __FREEX3D_CPARSE_H__ */
+#endif /* __FREEWRL_CPARSE_H__ */

@@ -12,7 +12,7 @@ large constant strings; used for rendering.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"

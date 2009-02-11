@@ -7,8 +7,8 @@ Quaternion ???
 
 */
 
-#ifndef __FREEX3D_QUATERNION_H__
-#define __FREEX3D_QUATERNION_H__
+#ifndef __FREEWRL_QUATERNION_H__
+#define __FREEWRL_QUATERNION_H__
 
 
 #define DELTA 0.0001
@@ -103,4 +103,4 @@ quaternion_slerp(Quaternion *ret,
 	  const double t);
 
 
-#endif /* __FREEX3D_QUATERNION_H__ */
+#endif /* __FREEWRL_QUATERNION_H__ */

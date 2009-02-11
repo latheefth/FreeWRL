@@ -1,6 +1,6 @@
 /*******************************************************************
  *
- * FreeX3D support library
+ * FreeWRL support library
  *
  * threads.c
  *

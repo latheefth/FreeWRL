@@ -7,8 +7,8 @@ Read PNG images.
 
 */
 
-#ifndef __FREEX3D_READ_PNG_H__
-#define __FREEX3D_READ_PNG_H__
+#ifndef __FREEWRL_READ_PNG_H__
+#define __FREEWRL_READ_PNG_H__
 
 /*---------------------------------------------------------------------------
 
@@ -76,4 +76,4 @@ uch *readpng_get_image(double display_exponent, int *pChannels,
 void readpng_cleanup(int free_image_data);
 
 
-#endif /* __FREEX3D_READ_PNG_H__ */
+#endif /* __FREEWRL_READ_PNG_H__ */

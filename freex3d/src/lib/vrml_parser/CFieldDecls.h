@@ -7,8 +7,8 @@ This is a common base class for FieldDeclarations on PROTOs and Scripts
 
 */
 
-#ifndef __FREEX3D_FIELD_DECLS_H__
-#define __FREEX3D_FIELD_DECLS_H__
+#ifndef __FREEWRL_FIELD_DECLS_H__
+#define __FREEWRL_FIELD_DECLS_H__
 
 
 struct FieldDecl
@@ -50,4 +50,4 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT);
  ((me)->name==(nam) && (me)->mode==(mod))
 
 
-#endif /* __FREEX3D_FIELD_DECLS_H__ */
+#endif /* __FREEWRL_FIELD_DECLS_H__ */

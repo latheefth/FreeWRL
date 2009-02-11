@@ -14,8 +14,8 @@ pointers there updated.
 
 */
 
-#ifndef __FREEX3D_JS_NATIVE_H__
-#define __FREEX3D_JS_NATIVE_H__
+#ifndef __FREEWRL_JS_NATIVE_H__
+#define __FREEWRL_JS_NATIVE_H__
 
 
 typedef struct _BrowserNative {
@@ -140,4 +140,4 @@ extern void
 SFColorNativeSet(void *p, struct Uni_String *sv);
 
 
-#endif /* __FREEX3D_JS_NATIVE_H__ */
+#endif /* __FREEWRL_JS_NATIVE_H__ */

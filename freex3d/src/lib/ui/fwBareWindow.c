@@ -12,7 +12,7 @@
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include <X11/keysym.h>
 #include <X11/Intrinsic.h>

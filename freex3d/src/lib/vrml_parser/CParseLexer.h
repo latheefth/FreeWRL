@@ -14,8 +14,8 @@ fields are not scoped and therefore stored in a simple vector.
 
 */
 
-#ifndef __FREEX3D_CPARSE_LEXER_H__
-#define __FREEX3D_CPARSE_LEXER_H__
+#ifndef __FREEWRL_CPARSE_LEXER_H__
+#define __FREEWRL_CPARSE_LEXER_H__
 
 /* for Stack typedef */
 #include "../scenegraph/Vector.h"
@@ -152,4 +152,4 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
 
 
-#endif /* __FREEX3D_CPARSE_LEXER_H__ */
+#endif /* __FREEWRL_CPARSE_LEXER_H__ */

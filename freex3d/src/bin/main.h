@@ -8,8 +8,8 @@ Internal header: helper macros.
 
 */
 
-#ifndef __FREEX3D_MAIN_H__
-#define __FREEX3D_MAIN_H__
+#ifndef __FREEWRL_MAIN_H__
+#define __FREEWRL_MAIN_H__
 
 
 /* LOG, WARNING, ERROR macros */
@@ -26,4 +26,4 @@ Internal header: helper macros.
 #define FW_ERROR(_formargs...)   fprintf(stderr, ##_formargs)
  
 
-#endif /* __FREEX3D_MAIN_H__ */
+#endif /* __FREEWRL_MAIN_H__ */

@@ -7,8 +7,8 @@ Proximity sensor macro.
 
 */
 
-#ifndef __FREEX3D_SCENEGRAPH_GEOSPATIAL_H__
-#define __FREEX3D_SCENEGRAPH_GEOSPATIAL_H__
+#ifndef __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__
+#define __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__
 
 
 /* ProximitySensor and GeoProximitySensor are same "code" at this stage of the game */
@@ -155,4 +155,4 @@ void proximity_##type (struct X3D_##type *node) { \
 } 
 
 
-#endif /* __FREEX3D_SCENEGRAPH_GEOSPATIAL_H__ */
+#endif /* __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__ */

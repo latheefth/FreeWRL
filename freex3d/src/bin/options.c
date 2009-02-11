@@ -3,7 +3,7 @@
 
   $Id$
 
-  FreeX3D command line arguments.
+  FreeWRL command line arguments.
 
 */
 
@@ -11,7 +11,7 @@
 #include <system.h>
 #include <internal.h>
 
-#include <libFreeX3D.h>
+#include <libFreeWRL.h>
 
 #include "main.h"
 #include "options.h"
@@ -26,8 +26,8 @@ void print_version()
 {
     const char *libver, *progver;
 
-    libver = libFreeX3D_get_version();
-    progver = freex3d_get_version();
+    libver = libFreeWRL_get_version();
+    progver = freewrl_get_version();
     
     printf("Program version: %s\nLibrary version: %s\n", progver, libver);
     printf("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
@@ -36,7 +36,7 @@ void print_version()
 
 void usage()
 {
-    printf( "usage: freex3d [options] <VRML or X3D file|URL>\n\n"
+    printf( "usage: freewrl [options] <VRML or X3D file|URL>\n\n"
 	    "\t-h|--help        This help.\n"
 	    "\t-v|--version     Print version.\n"
 	    "\nWindow options:\n"

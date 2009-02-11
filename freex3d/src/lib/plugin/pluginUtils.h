@@ -7,8 +7,8 @@ FreeWRL plugin utilities header file.
 
 */
 
-#ifndef __FREEX3D_PLUGIN_UTILS_H__
-#define __FREEX3D_PLUGIN_UTILS_H__
+#ifndef __FREEWRL_PLUGIN_UTILS_H__
+#define __FREEWRL_PLUGIN_UTILS_H__
 
 
 #ifdef __cplusplus
@@ -51,4 +51,4 @@ void URLencod (char *dest, const char *src, int maxlen);
 #endif
 
 
-#endif /* __FREEX3D_PLUGIN_UTILS_H__ */
+#endif /* __FREEWRL_PLUGIN_UTILS_H__ */

@@ -7,8 +7,8 @@ Parser (input of non-terminal symbols) for CParse
 
 */
 
-#ifndef __FREEX3D_CPARSE_PARSER_H__
-#define __FREEX3D_CPARSE_PARSER_H__
+#ifndef __FREEWRL_CPARSE_PARSER_H__
+#define __FREEWRL_CPARSE_PARSER_H__
 
 
 struct ProtoDefinition;
@@ -169,4 +169,4 @@ void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* re
 */
 
 
-#endif /* __FREEX3D_CPARSE_PARSER_H__ */
+#endif /* __FREEWRL_CPARSE_PARSER_H__ */

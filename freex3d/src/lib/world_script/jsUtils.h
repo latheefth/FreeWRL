@@ -14,8 +14,8 @@ pointers there updated.
 
 */
 
-#ifndef __FREEX3D_JS_UTILS_H__
-#define __FREEX3D_JS_UTILS_H__
+#ifndef __FREEWRL_JS_UTILS_H__
+#define __FREEWRL_JS_UTILS_H__
 
 
 #include <system_js.h>
@@ -105,4 +105,4 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, unsigned datalen, int dataType, j
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
 
-#endif /* __FREEX3D_JS_UTILS_H__ */
+#endif /* __FREEWRL_JS_UTILS_H__ */

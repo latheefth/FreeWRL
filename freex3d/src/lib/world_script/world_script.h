@@ -7,8 +7,8 @@ Local include for world_script directory.
 
 */
 
-#ifndef __FREEX3D_WORLD_SCRIPT_LOCAL_H__
-#define __FREEX3D_WORLD_SCRIPT_LOCAL_H__
+#ifndef __FREEWRL_WORLD_SCRIPT_LOCAL_H__
+#define __FREEWRL_WORLD_SCRIPT_LOCAL_H__
 
 
 void findFieldInOFFSETS(const int *nodeOffsetPtr, const int field, int *coffset, int *ctype, int *ckind);
@@ -22,4 +22,4 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz);
 int findIndexInFIELDNAMES(int index, const char** arr, size_t arrCnt);
 
 
-#endif /* __FREEX3D_WORLD_SCRIPT_LOCAL_H__ */
+#endif /* __FREEWRL_WORLD_SCRIPT_LOCAL_H__ */

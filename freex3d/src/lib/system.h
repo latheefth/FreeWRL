@@ -3,13 +3,13 @@
 
 $Id$
 
-FreeX3D support library.
+FreeWRL support library.
 Internal header: system dependencies.
 
 */
 
-#ifndef __LIBFREEX3D_SYSTEM_H__
-#define __LIBFREEX3D_SYSTEM_H__
+#ifndef __LIBFREEWRL_SYSTEM_H__
+#define __LIBFREEWRL_SYSTEM_H__
 
 /**
  * Strict necessary common system header files:
@@ -108,4 +108,4 @@ typedef unsigned char _Bool;
 #endif
 
 
-#endif /* __LIBFREEX3D_SYSTEM_H__ */
+#endif /* __LIBFREEWRL_SYSTEM_H__ */

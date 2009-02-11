@@ -5,8 +5,8 @@
 
 */
 
-#ifndef __FREEX3D_JS_VRML_BROWSER_H__
-#define __FREEX3D_JS_VRML_BROWSER_H__
+#ifndef __FREEWRL_JS_VRML_BROWSER_H__
+#define __FREEWRL_JS_VRML_BROWSER_H__
 
 
 #ifndef UNUSED
@@ -123,4 +123,4 @@ JSBool VrmlBrowserGetMidiDeviceInfo(JSContext *cx,
                                     jsval *rval);
 
 
-#endif /* __FREEX3D_JS_VRML_BROWSER_H__ */
+#endif /* __FREEWRL_JS_VRML_BROWSER_H__ */

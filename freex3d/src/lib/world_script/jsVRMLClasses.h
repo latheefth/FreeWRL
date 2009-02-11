@@ -7,8 +7,8 @@ Complex VRML nodes as Javascript classes.
 
 */
 
-#ifndef __FREEX3D_JS_VRML_CLASSES_H__
-#define __FREEX3D_JS_VRML_CLASSES_H__
+#ifndef __FREEWRL_JS_VRML_CLASSES_H__
+#define __FREEWRL_JS_VRML_CLASSES_H__
 
 
 #ifndef UNUSED
