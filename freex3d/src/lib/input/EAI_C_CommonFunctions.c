@@ -33,7 +33,7 @@ $Id$
 # define MALLOC(a) malloc(a)
 #endif
 
-int eaiverbose = FALSE;
+int eaiverbose = TRUE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \
@@ -192,6 +192,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, 
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;
 	int oldXMLflag;
+	struct X3D_Node *np;
 	
 	#ifdef SETFIELDVERBOSE
 	printf ("\nPST, for %s we have %s strlen %d\n",stringFieldtypeType(ctype), value, strlen(value));
