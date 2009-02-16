@@ -191,7 +191,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 
 	if (EAINodeIndex == NULL) EAINodeIndex = MALLOC(sizeof (struct EAINodeIndexStruct) * MAX_EAI_SAVED_NODES);
 
-	for (ctr=1; ctr<lastNodeRequested; ctr++) {
+	for (ctr=1; ctr<=lastNodeRequested; ctr++) {
 		if (EAINodeIndex[ctr].actualNodePtr == myn) {
 			if (eaiverbose) printf ("registerEAINodeForAccess - already got node\n");
 			mynindex = ctr;
