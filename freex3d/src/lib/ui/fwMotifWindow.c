@@ -12,10 +12,15 @@
 #include <display.h>
 #include <internal.h>
 
+#include <Xm/SelectioB.h>
+#include <Xm/MessageB.h>
+
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../main/MainLoop.h"
+#include "../main/ProdCon.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
@@ -31,6 +36,7 @@
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 
+#include "fwMotifWindow.h"
 
 #define ABOUT_FREEWRL "FreeWRL Version %s\n \
 %s %s.\n \n \

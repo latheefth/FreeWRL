@@ -18,6 +18,7 @@
 #include <X11/Intrinsic.h>
 #include <X11/cursorfont.h>
 
+#include "fwBareWindow.h"
 
 char    *wintitle =  "FreeWRL VRML/X3D Browser";
 XTextProperty windowName;
@@ -39,7 +40,7 @@ void getBareWindowedGLwin (Window *win)
     GLwin = Xwin;
 }
 
-void openBareMainWindow (argc, argv)
+void openBareMainWindow (int argc, char **argv)
 {
     /* get a connection */
     Xdpy = XOpenDisplay(0);

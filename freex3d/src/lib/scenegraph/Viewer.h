@@ -10,6 +10,7 @@ Viewer ???
 #ifndef __FREEWRL_VIEWER_H__
 #define __FREEWRL_VIEWER_H__
 
+#include "quaternion.h"
 
 #define NONE 0
 #define EXAMINE 1

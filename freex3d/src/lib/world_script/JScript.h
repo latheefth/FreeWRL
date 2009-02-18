@@ -10,6 +10,7 @@ $Id$
 #ifndef __FREEWRL_JS_JSCRIPT_H__
 #define __FREEWRL_JS_JSCRIPT_H__
 
+#include <system_js.h>
 
 void kill_javascript(void);
 void cleanupDie(uintptr_t num, const char *msg);

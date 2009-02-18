@@ -151,5 +151,8 @@ void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 
 void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
 
+/* other function protos */
+BOOL lexer_field(struct VRMLLexer* me,indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE);
+
 
 #endif /* __FREEWRL_CPARSE_LEXER_H__ */

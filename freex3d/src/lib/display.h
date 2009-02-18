@@ -105,6 +105,7 @@ int create_main_window_aqua(); /* mb */
 # include <X11/keysym.h>
 
 # include <GL/glx.h>
+# include <GL/glext.h>
 
 extern GLXContext GLcx;
 

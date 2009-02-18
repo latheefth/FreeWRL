@@ -29,6 +29,7 @@ $Id$
 #include "../world_script/jsNative.h"
 #include "../input/SensInterps.h"
 
+#include "CRoutes.h"
 
 /* defines for getting touched flags and exact Javascript pointers */
 

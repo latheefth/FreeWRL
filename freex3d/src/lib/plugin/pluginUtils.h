@@ -46,6 +46,9 @@ const char* XErrorToString(int error);
 
 void URLencod (char *dest, const char *src, int maxlen);
 
+/* used by fw/fwWindow.c */
+void sendXwinToPlugin(void);
+
 #ifdef __cplusplus
 }
 #endif

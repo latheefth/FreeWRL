@@ -36,6 +36,7 @@ CProto ???
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
 
+#include "ProdCon.h"
 
 #define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"
 
@@ -102,7 +103,6 @@ struct PSStruct {
 
 void _inputParseThread (void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, uintptr_t *retarr);
-int isInputThreadInitialized(void);
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
 			void *ptr, unsigned ofs, int *complete,
 			int zeroBind);

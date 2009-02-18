@@ -31,7 +31,7 @@ Implement EAI server functionality for FreeWRL.
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
 
-#include "../input/EAIheaders.h"
+#include "EAIheaders.h"
 
 
 /************************************************************************/

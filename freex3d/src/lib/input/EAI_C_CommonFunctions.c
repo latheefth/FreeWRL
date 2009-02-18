@@ -23,7 +23,7 @@ $Id$
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "EAIheaders.h"
-
+#include "EAIHelpers.h"
 
 /* TODO: clean-up Rewire */
 #ifdef REWIRE

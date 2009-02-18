@@ -21,12 +21,15 @@ $Id$
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
+#include "../world_script/JScript.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../input/EAIheaders.h"
 
 #include "X3DParser.h"
+#include "X3DProtoScript.h"
 
 #if HAVE_EXPAT_H
 # include <expat.h>

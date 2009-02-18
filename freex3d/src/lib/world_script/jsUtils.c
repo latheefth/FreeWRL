@@ -22,6 +22,7 @@ which is the sample application included with the javascript engine.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
+#include "../input/EAIHelpers.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 /* #include "../input/EAIheaders.h" */

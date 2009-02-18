@@ -18,6 +18,15 @@ FreeWRL main window.
 
 #include <X11/cursorfont.h>
 
+#include "ui.h"
+#include "../plugin/pluginUtils.h"
+
+#if defined(TARGET_MOTIF)
+# include "fwMotifWindow.h"
+#else
+# include "fwBareWindow.h"
+#endif
+
 static int oldx = 0, oldy = 0;
 
 /* #undef XTDEBUG */

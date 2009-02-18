@@ -18,6 +18,7 @@ texture enabling - works for single texture, for multitexture.
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
+#include "OpenGL_Utils.h"
 #include "Textures.h"
 /* #include "readpng.h" */
 

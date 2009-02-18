@@ -130,4 +130,9 @@ struct CRscriptStruct {
 };
 
 
+/* function protos */
+
+struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo*);
+
+
 #endif /* __FREEWRL_CSCRIPTS_H__ */

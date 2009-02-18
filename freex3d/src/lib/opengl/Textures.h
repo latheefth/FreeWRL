@@ -82,5 +82,8 @@ void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				int repeatT,
 				void  *param);
 
+/* other function protos */
+void init_multitexture_handling(void);
+
 
 #endif /* __FREEWRL_TEXTURES_H__ */

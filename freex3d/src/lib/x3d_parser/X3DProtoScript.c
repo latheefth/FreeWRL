@@ -28,6 +28,7 @@ $Id$
 #include "../vrml_parser/CParse.h"
 
 #include "X3DParser.h"
+#include "X3DProtoScript.h"
 
 
 static int currentProtoDeclare  = INT_ID_UNDEFINED;

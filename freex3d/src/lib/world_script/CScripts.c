@@ -30,6 +30,7 @@ $Id$
 /* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
+#include "JScript.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"

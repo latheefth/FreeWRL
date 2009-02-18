@@ -22,6 +22,8 @@
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
+#include "../input/EAIheaders.h"
+#include "../input/EAIHelpers.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CProto.h"

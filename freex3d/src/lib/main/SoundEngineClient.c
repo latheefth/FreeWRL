@@ -25,23 +25,10 @@ Some of this stuff came from files from "wavplay"  - see information below
 #endif
 
 #include <internal.h>
-
 #include <errno.h>
 
 #include <libFreeWRL.h>
 
-/* #include "../vrml_parser/Structs.h" */
-/* #include "headers.h" */
-/* #include "../vrml_parser/CParseGeneral.h" */
-/* #include "../world_script/jsUtils.h" */
-/* #include "../world_script/CScripts.h" */
-/* #include "Snapshot.h" */
-/* #include "../scenegraph/Collision.h" */
-/* #include "../scenegraph/quaternion.h" */
-/* #include "../scenegraph/Viewer.h" */
-/* #include "../input/SensInterps.h" */
-/* #include "../x3d_parser/Bindable.h" */
-/* #include "../input/EAIheaders.h" */
 #include "../scenegraph/sounds.h"
 
 
