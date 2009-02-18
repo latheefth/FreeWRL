@@ -25,6 +25,7 @@ Scenegraph rendering.
 #include "LinearAlgebra.h"
 #include "../input/SensInterps.h"
 
+#include "RenderFuncs.h"
 
 /* Rearrange to take advantage of headlight when off */
 int curlight = 0;

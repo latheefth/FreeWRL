@@ -18,6 +18,7 @@ Render the children of nodes.
 #include "quaternion.h"
 
 #include "Collision.h"
+#include "RenderFuncs.h"
 
 
 /* sort children - use bubble sort with early exit flag */

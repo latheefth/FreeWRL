@@ -18,7 +18,7 @@ X3D Sound Component
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"
-
+#include "sounds.h"
 
 void render_AudioControl (struct X3D_AudioControl *node) {
 	GLdouble mod[16];

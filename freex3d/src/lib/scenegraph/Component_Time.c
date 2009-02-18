@@ -16,7 +16,7 @@ X3D Time Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-
+#include "../input/SensInterps.h"
 
 /* void do_TimeSensorTick (struct X3D_TimeSensor *node) {*/
 void do_TimeSensorTick ( void *ptr) {

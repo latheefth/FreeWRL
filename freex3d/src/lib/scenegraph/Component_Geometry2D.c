@@ -18,7 +18,7 @@ X3D Geometry2D  Component
 #include "../main/headers.h"
 
 #include "Collision.h"
-
+#include "LinearAlgebra.h"
 
 #define SEGMENTS_PER_CIRCLE 36
 #define PIE 10

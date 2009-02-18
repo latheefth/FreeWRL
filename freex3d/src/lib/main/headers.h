@@ -11,6 +11,9 @@ Global includes.
 #define __FREEWRL_HEADERS_H__
 
 
+/* for lightState() */
+#include "../opengl/OpenGL_Utils.h"
+
 /**
  * in utils.c
  */

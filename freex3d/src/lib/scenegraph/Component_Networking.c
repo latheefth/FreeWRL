@@ -19,6 +19,7 @@ X3D Networking Component
 
 #include "../input/EAIheaders.h"
 
+#include "Component_Networking.h"
 
 /* keep track of the Midi nodes. */
 static uintptr_t *MidiNodes = NULL;

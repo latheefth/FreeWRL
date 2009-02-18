@@ -16,7 +16,8 @@ X3D Lighting Component
 
 #include "../vrml_parser/Structs.h" /* point_XYZ */
 #include "../main/headers.h"
-
+#include "RenderFuncs.h"
+#include "../opengl/OpenGL_Utils.h"
 
 void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 	/* NOTE: This is called by the Group Children code
