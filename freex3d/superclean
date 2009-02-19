@@ -16,3 +16,6 @@ find . -name Makefile -delete
 find . -name "*~" -delete
 
 rm -f vtempl
+
+rm -f build-stamp configure-stamp debian/files debian/freewrl.debhelper.log
+rm -rf debian/freewrl
