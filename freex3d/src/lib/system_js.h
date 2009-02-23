@@ -13,14 +13,18 @@ Internal header: Javascript engine dependencies.
 
 
 /* 
-   spidermonkey is built with the following flags:
+   spidermonkey is built with the following flags on Mac:
 
 -Wall -Wno-format -no-cpp-precomp -fno-common -DJS_THREADSAFE -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN  -UDEBUG -DNDEBUG -UDEBUG_root -DJS_THREADSAFE -DEDITLINE
 
 */
 
-#include <jsapi.h> /* JS compiler */
-#include <jsdbgapi.h> /* JS debugger */
-
+#ifdef MOZILLA_JS_UNSTABLE_INCLUDES
+# include "../unstable/jsapi.h" /* JS compiler */
+# include "../unstable/jsdbgapi.h" /* JS debugger */
+#else
+# include <jsapi.h> /* JS compiler */
+# include <jsdbgapi.h> /* JS debugger */
+#endif
 
 #endif /* __LIBFREEWRL_SYSTEM_JS_H__ */
