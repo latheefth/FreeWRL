@@ -33,7 +33,8 @@ $Id$
 # define MALLOC(a) malloc(a)
 #endif
 
-int eaiverbose = TRUE;
+/* assume eaiverbose is false, unless told otherwise */
+int eaiverbose = FALSE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \

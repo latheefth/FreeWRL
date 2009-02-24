@@ -1700,7 +1700,7 @@ void setDisplayed (int state) {
 }
 
 void setEaiVerbose() {
-        eaiverbose = FALSE;
+        eaiverbose = TRUE;
 }
         
 /* called from the standalone OSX front end */
