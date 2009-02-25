@@ -1142,7 +1142,7 @@ package VRML::NodeType;
 						enteredText => [SFString,"",outputOnly],
 						finalText => [SFString,"",outputOnly],
 						isActive =>[SFBool, TRUE,outputOnly],
-						_initialized =>[SFBool, TRUE,initializeOnly],
+						_initialized =>[SFBool, FALSE,initializeOnly],
 						__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DKeyDeviceSensorNode"),
 
