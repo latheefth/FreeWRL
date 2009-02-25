@@ -25,7 +25,7 @@ X3D parser functions.
 #define PARSING_CONNECT		8
 
 /* for our internal PROTO tables, and, for initializing the XML parser */
-#define PROTOINSTANCE_MAX_LEVELS 30
+#define PROTOINSTANCE_MAX_LEVELS 50
 #define PROTOINSTANCE_MAX_PARAMS 20
 
 #define DECREMENT_PARENTINDEX \
