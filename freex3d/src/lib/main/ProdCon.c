@@ -242,7 +242,7 @@ int getValidFileFromUrl (char *filename, char *path, struct Multi_String *inurl,
  */
 int checkNetworkFile(char *fn) 
 {
-printf ("checkNetworkFile, fn :%s:\n",fn);
+	/* printf ("checkNetworkFile, fn :%s:\n",fn); */
     if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
 	(strncmp(fn,"FTP://", strlen("FTP://"))) &&
 	(strncmp(fn,"http://", strlen("http://"))) &&
