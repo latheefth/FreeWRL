@@ -37,6 +37,10 @@ void sortChildren (struct Multi_Node ch) {
 
 	nc = ch.n;
 
+	#ifdef VERBOSE
+	printf ("sc start, %d, node %u\n",nc,ch);
+	#endif
+
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
@@ -69,7 +73,6 @@ void sortChildren (struct Multi_Node ch) {
 		printf ("child %d %d %f %s\n",i,b,b->_dist,stringNodeType(b->_nodeType));
 	}
 	#endif
-	
 }
 
 /* this grouping node has a DirectionalLight for a child, render this first */
