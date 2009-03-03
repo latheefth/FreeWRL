@@ -248,6 +248,7 @@ unsigned int setField_FromEAI (char *ptr) {
 	char *eol;
 
 	uintptr_t memptr = 0;
+	uintptr_t myptr = 0;
 
 	int valIndex;
 	struct Multi_Color *tcol;
@@ -314,6 +315,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 	offset = getEAIActualOffset(nodeIndex, fieldIndex);
 	nodeptr = (uintptr_t) getEAINodeFromTable(nodeIndex,fieldIndex);
+	myptr = nodeptr;
 
 	/* now, we are at start of data. */
 	/* lets go to the first non-blank character in the string */
@@ -352,6 +354,9 @@ unsigned int setField_FromEAI (char *ptr) {
 
 		/* and change the nodetype to reflect this change */
 		datatype = convertToSFType(datatype);
+
+		/* For ONEVAL need to pass memptr, not nodeptr */
+		myptr = memptr;
 	}
 
 	/* lets replace the end of the string with a NULL, for parsing purposes */
@@ -363,7 +368,7 @@ unsigned int setField_FromEAI (char *ptr) {
 		nodeptr = actual memory pointer of X3D_Node* */
 
 	/* first, parse the value into the local variable */
-	Parser_scanStringValueToMem(nodeptr,offset,datatype,ptr,FALSE);
+	Parser_scanStringValueToMem(myptr,offset,datatype,ptr,FALSE);
 
 	if (scripttype == EAI_NODETYPE_SCRIPT) {
 		struct Shader_Script * sp;
