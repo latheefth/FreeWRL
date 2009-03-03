@@ -205,236 +205,269 @@ package VRML::NodeType;
 
 	###################################################################################
 
-	Color => new VRML::NodeType("Color", { color => [MFColor, [], inputOutput], },"X3DColorNode"),
+	Color => new VRML::NodeType("Color", { 
+		color => [MFColor, [], inputOutput], 
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DColorNode"),
 
-	ColorRGBA => new VRML::NodeType("ColorRGBA", { color => [MFColorRGBA, [], inputOutput], },"X3DColorNode"),
+	ColorRGBA => new VRML::NodeType("ColorRGBA", { 
+		color => [MFColorRGBA, [], inputOutput], 
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DColorNode"),
 
-	Coordinate => new VRML::NodeType("Coordinate", { point => [MFVec3f, [], inputOutput] },"X3DCoordinateNode"),
+	Coordinate => new VRML::NodeType("Coordinate", { 
+		point => [MFVec3f, [], inputOutput],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DCoordinateNode"),
 
 	IndexedLineSet => new VRML::NodeType("IndexedLineSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						fogCoord => [SFNode, NULL, inputOutput],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						__vertArr  =>[FreeWRLPTR,0,initializeOnly],
-						__vertIndx  =>[FreeWRLPTR,0,initializeOnly],
-						__colours  =>[FreeWRLPTR,0,initializeOnly],
-						__vertices  =>[FreeWRLPTR,0,initializeOnly],
-						__vertexCount =>[FreeWRLPTR,0,initializeOnly],
-						__segCount =>[SFInt32,0,initializeOnly],
-					   },"X3DGeometryNode"),
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		fogCoord => [SFNode, NULL, inputOutput],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__vertArr  =>[FreeWRLPTR,0,initializeOnly],
+		__vertIndx  =>[FreeWRLPTR,0,initializeOnly],
+		__colours  =>[FreeWRLPTR,0,initializeOnly],
+		__vertices  =>[FreeWRLPTR,0,initializeOnly],
+		__vertexCount =>[FreeWRLPTR,0,initializeOnly],
+		__segCount =>[SFInt32,0,initializeOnly],
+	},"X3DGeometryNode"),
 
 	IndexedTriangleFanSet => new VRML::NodeType("IndexedTriangleFanSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
-
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-						},"X3DGeometryNode"),
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
 	IndexedTriangleSet => new VRML::NodeType("IndexedTriangleSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
 
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-						},"X3DGeometryNode"),
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
 	IndexedTriangleStripSet => new VRML::NodeType("IndexedTriangleStripSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
 
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-						},"X3DGeometryNode"),
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
 	LineSet => new VRML::NodeType("LineSet", {
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						vertexCount => [MFInt32,[],inputOutput],
-						__vertArr  =>[FreeWRLPTR,0,initializeOnly],
-						__vertIndx  =>[FreeWRLPTR,0,initializeOnly],
-						__segCount =>[SFInt32,0,initializeOnly],
-					   },"X3DGeometryNode"),
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		vertexCount => [MFInt32,[],inputOutput],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__vertArr  =>[FreeWRLPTR,0,initializeOnly],
+		__vertIndx  =>[FreeWRLPTR,0,initializeOnly],
+		__segCount =>[SFInt32,0,initializeOnly],
+	},"X3DGeometryNode"),
 
-	Normal => new VRML::NodeType("Normal", { vector => [MFVec3f, [], inputOutput] },"X3DNormalNode"),
+	Normal => new VRML::NodeType("Normal", { 
+		vector => [MFVec3f, [], inputOutput] ,
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DNormalNode"),
 
 	PointSet => new VRML::NodeType("PointSet", {
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput]
-					   },"X3DGeometryNode"),
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DGeometryNode"),
 
 	TriangleFanSet => new VRML::NodeType("TriangleFanSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
 
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-						},"X3DGeometryNode"),
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
 	TriangleStripSet => new VRML::NodeType("TriangleStripSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
 
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-						},"X3DGeometryNode"),
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
 	TriangleSet => new VRML::NodeType("TriangleSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
 
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-						},"X3DGeometryNode"),
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+		metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
 
 	###################################################################################
@@ -523,121 +556,136 @@ package VRML::NodeType;
 
 	###################################################################################
 
-	Box => new VRML::NodeType("Box", { 	size => [SFVec3f, [2, 2, 2], initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						__points  =>[FreeWRLPTR,0,initializeOnly],
-					   },"X3DGeometryNode"),
+	Box => new VRML::NodeType("Box", { 	
+		size => [SFVec3f, [2, 2, 2], initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+                __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__points  =>[FreeWRLPTR,0,initializeOnly],
+	},"X3DGeometryNode"),
 
 	Cone => new VRML::NodeType ("Cone", {
-						 bottomRadius => [SFFloat, 1.0, initializeOnly],
-						 height => [SFFloat, 2.0, initializeOnly],
-						 side => [SFBool, TRUE, initializeOnly],
-						 bottom => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						 __sidepoints =>[FreeWRLPTR,0,initializeOnly],
-						 __botpoints =>[FreeWRLPTR,0,initializeOnly],
-						 __normals =>[FreeWRLPTR,0,initializeOnly],
-						},"X3DGeometryNode"),
+		 bottomRadius => [SFFloat, 1.0, initializeOnly],
+		 height => [SFFloat, 2.0, initializeOnly],
+		 side => [SFBool, TRUE, initializeOnly],
+		 bottom => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+                __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		 __sidepoints =>[FreeWRLPTR,0,initializeOnly],
+		 __botpoints =>[FreeWRLPTR,0,initializeOnly],
+		 __normals =>[FreeWRLPTR,0,initializeOnly],
+	},"X3DGeometryNode"),
 
 	Cylinder => new VRML::NodeType ("Cylinder", {
-						 bottom => [SFBool, TRUE, initializeOnly],
-						 height => [SFFloat, 2.0, initializeOnly],
-						 radius => [SFFloat, 1.0, initializeOnly],
-						 side => [SFBool, TRUE, initializeOnly],
-						 top => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						 __points =>[FreeWRLPTR,0,initializeOnly],
-						 __normals =>[FreeWRLPTR,0,initializeOnly],
-						},"X3DGeometryNode"),
+		 bottom => [SFBool, TRUE, initializeOnly],
+		 height => [SFFloat, 2.0, initializeOnly],
+		 radius => [SFFloat, 1.0, initializeOnly],
+		 side => [SFBool, TRUE, initializeOnly],
+		 top => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+                __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		 __points =>[FreeWRLPTR,0,initializeOnly],
+		 __normals =>[FreeWRLPTR,0,initializeOnly],
+	},"X3DGeometryNode"),
 
 	ElevationGrid => new VRML::NodeType("ElevationGrid", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
 
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-					   },"X3DGeometryNode"),
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+                __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
 	Extrusion => new VRML::NodeType("Extrusion", {
-						set_crossSection => [MFVec2f, undef, inputOnly],
-						set_orientation => [MFRotation, undef, inputOnly],
-						set_scale => [MFVec2f, undef, inputOnly],
-						set_spine => [MFVec3f, undef, inputOnly],
-						beginCap => [SFBool, TRUE, initializeOnly],
-						ccw => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						crossSection => [MFVec2f, [[1, 1],[1, -1],[-1, -1],
-									   [-1, 1],[1, 1]], initializeOnly],
-						endCap => [SFBool, TRUE, initializeOnly],
-						orientation => [MFRotation, [[0, 0, 1, 0]],initializeOnly],
+		set_crossSection => [MFVec2f, undef, inputOnly],
+		set_orientation => [MFRotation, undef, inputOnly],
+		set_scale => [MFVec2f, undef, inputOnly],
+		set_spine => [MFVec3f, undef, inputOnly],
+		beginCap => [SFBool, TRUE, initializeOnly],
+		ccw => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		crossSection => [MFVec2f, [[1, 1],[1, -1],[-1, -1],
+						   [-1, 1],[1, 1]], initializeOnly],
+		endCap => [SFBool, TRUE, initializeOnly],
+		orientation => [MFRotation, [[0, 0, 1, 0]],initializeOnly],
 
-						scale => [MFVec2f, [[1, 1]], initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						spine => [MFVec3f, [[0, 0, 0],[0, 1, 0]], initializeOnly]
-					   },"X3DGeometryNode"),
+		scale => [MFVec2f, [[1, 1]], initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		spine => [MFVec3f, [[0, 0, 0],[0, 1, 0]], initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+                __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	},"X3DGeometryNode"),
 
 	IndexedFaceSet => new VRML::NodeType("IndexedFaceSet", {
-						set_colorIndex => [MFInt32, undef, inputOnly],
-						set_coordIndex => [MFInt32, undef, inputOnly],
-						set_normalIndex => [MFInt32, undef, inputOnly],
-						set_texCoordIndex => [MFInt32, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						ccw => [SFBool, TRUE, initializeOnly],
-						colorIndex => [MFInt32, [], initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						convex => [SFBool, TRUE, initializeOnly],
-						coordIndex => [MFInt32, [], initializeOnly],
-						creaseAngle => [SFFloat, 0, initializeOnly],
-						normalIndex => [MFInt32, [], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						texCoordIndex => [MFInt32, [], initializeOnly],
-						index => [MFInt32, [], inputOutput],
-						fanCount => [MFInt32, [], initializeOnly],
-						stripCount => [MFInt32, [], initializeOnly],
+		set_colorIndex => [MFInt32, undef, inputOnly],
+		set_coordIndex => [MFInt32, undef, inputOnly],
+		set_normalIndex => [MFInt32, undef, inputOnly],
+		set_texCoordIndex => [MFInt32, undef, inputOnly],
+		color => [SFNode, NULL, inputOutput],
+		coord => [SFNode, NULL, inputOutput],
+		normal => [SFNode, NULL, inputOutput],
+		texCoord => [SFNode, NULL, inputOutput],
+		ccw => [SFBool, TRUE, initializeOnly],
+		colorIndex => [MFInt32, [], initializeOnly],
+		colorPerVertex => [SFBool, TRUE, initializeOnly],
+		convex => [SFBool, TRUE, initializeOnly],
+		coordIndex => [MFInt32, [], initializeOnly],
+		creaseAngle => [SFFloat, 0, initializeOnly],
+		normalIndex => [MFInt32, [], initializeOnly],
+		normalPerVertex => [SFBool, TRUE, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+		texCoordIndex => [MFInt32, [], initializeOnly],
+		index => [MFInt32, [], inputOutput],
+		fanCount => [MFInt32, [], initializeOnly],
+		stripCount => [MFInt32, [], initializeOnly],
 
-						set_height => [MFFloat, undef, inputOnly],
-						height => [MFFloat, [], initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFFloat, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFFloat, 1.0, initializeOnly],
-						__PolyStreamed => [SFBool, FALSE, initializeOnly],
-					   },"X3DGeometryNode"),
+		set_height => [MFFloat, undef, inputOnly],
+		height => [MFFloat, [], initializeOnly],
+		xDimension => [SFInt32, 0, initializeOnly],
+		xSpacing => [SFFloat, 1.0, initializeOnly],
+		zDimension => [SFInt32, 0, initializeOnly],
+		zSpacing => [SFFloat, 1.0, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+                __oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__PolyStreamed => [SFBool, FALSE, initializeOnly],
+	},"X3DGeometryNode"),
 
-	Sphere => new VRML::NodeType("Sphere",
-					   { 	radius => [SFFloat, 1.0, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						 __points =>[FreeWRLPTR,0,initializeOnly],
- 					   },"X3DGeometryNode"),
+	Sphere => new VRML::NodeType("Sphere", { 	
+		radius => [SFFloat, 1.0, initializeOnly],
+		solid => [SFBool, TRUE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__points =>[FreeWRLPTR,0,initializeOnly],
+ 	},"X3DGeometryNode"),
 
 
 	###################################################################################
@@ -647,60 +695,76 @@ package VRML::NodeType;
 	###################################################################################
 
 	Arc2D => new VRML::NodeType("Arc2D", {
-					    	endAngle => [SFFloat, 1.5707, initializeOnly],
-					    	radius => [SFFloat, 1.0, initializeOnly],
-					    	startAngle => [SFFloat, 0.0, initializeOnly],
-						__points  =>[FreeWRLPTR,0,initializeOnly],
-						__numPoints =>[SFInt32,0,initializeOnly],
- 					   },"X3DGeometryNode"),
+		endAngle => [SFFloat, 1.5707, initializeOnly],
+		radius => [SFFloat, 1.0, initializeOnly],
+		startAngle => [SFFloat, 0.0, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+		__points  =>[FreeWRLPTR,0,initializeOnly],
+		__numPoints =>[SFInt32,0,initializeOnly],
+ 	},"X3DGeometryNode"),
 
 	ArcClose2D => new VRML::NodeType("ArcClose2D", {
-						closureType => [SFString,"PIE",initializeOnly],
+			closureType => [SFString,"PIE",initializeOnly],
 					    	endAngle => [SFFloat, 1.5707, initializeOnly],
 					    	radius => [SFFloat, 1.0, initializeOnly],
-						solid => [SFBool, FALSE, initializeOnly],
+			solid => [SFBool, FALSE, initializeOnly],
 					    	startAngle => [SFFloat, 0.0, initializeOnly],
-						__points  =>[FreeWRLPTR,0,initializeOnly],
-						__numPoints =>[SFInt32,0,initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__points  =>[FreeWRLPTR,0,initializeOnly],
+			__numPoints =>[SFInt32,0,initializeOnly],
  					   },"X3DGeometryNode"),
 
 
 	Circle2D => new VRML::NodeType("Circle2D", {
 					    	radius => [SFFloat, 1.0, initializeOnly],
-						__points  =>[FreeWRLPTR,0,initializeOnly],
-						__numPoints =>[SFInt32,0,initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__points  =>[FreeWRLPTR,0,initializeOnly],
+			__numPoints =>[SFInt32,0,initializeOnly],
  					   },"X3DGeometryNode"),
 
 	Disk2D => new VRML::NodeType("Disk2D", {
 					    	innerRadius => [SFFloat, 0.0, initializeOnly],
 					    	outerRadius => [SFFloat, 1.0, initializeOnly],
-						solid => [SFBool, FALSE, initializeOnly],
-						__points  =>[FreeWRLPTR,0,initializeOnly],
-						__texCoords  =>[FreeWRLPTR,0,initializeOnly],
-						__numPoints =>[SFInt32,0,initializeOnly],
-						__simpleDisk => [SFBool, TRUE,initializeOnly],
+			solid => [SFBool, FALSE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__points  =>[FreeWRLPTR,0,initializeOnly],
+			__texCoords  =>[FreeWRLPTR,0,initializeOnly],
+			__numPoints =>[SFInt32,0,initializeOnly],
+			__simpleDisk => [SFBool, TRUE,initializeOnly],
  					   },"X3DGeometryNode"),
 
 	Polyline2D => new VRML::NodeType("Polyline2D", {
 					    	lineSegments => [MFVec2f, [], initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
  					   },"X3DGeometryNode"),
 
 	Polypoint2D => new VRML::NodeType("Polypoint2D", {
 					    	point => [MFVec2f, [], inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
  					   },"X3DGeometryNode"),
 
 	Rectangle2D => new VRML::NodeType("Rectangle2D", {
 					    	size => [SFVec2f, [2.0, 2.0], initializeOnly],
-						solid => [SFBool, FALSE, initializeOnly],
-						__points  =>[FreeWRLPTR,0,initializeOnly],
-						__numPoints =>[SFInt32,0,initializeOnly],
+			solid => [SFBool, FALSE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__points  =>[FreeWRLPTR,0,initializeOnly],
+			__numPoints =>[SFInt32,0,initializeOnly],
  					   },"X3DGeometryNode"),
 
 
 	TriangleSet2D => new VRML::NodeType("TriangleSet2D", {
 					    	vertices => [MFVec2f, [], inputOutput],
-						solid => [SFBool, FALSE, initializeOnly],
-						__texCoords  =>[FreeWRLPTR,0,initializeOnly],
+			solid => [SFBool, FALSE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__texCoords  =>[FreeWRLPTR,0,initializeOnly],
  					   },"X3DGeometryNode"),
 
 	###################################################################################
@@ -710,24 +774,28 @@ package VRML::NodeType;
 	###################################################################################
 
 	Text => new VRML::NodeType ("Text", {
-						 string => [MFString, [], inputOutput],
-						 fontStyle => [SFNode, NULL, inputOutput],
-						 length => [MFFloat, [], inputOutput],
-						solid => [SFBool, TRUE, initializeOnly],
-						 maxExtent => [SFFloat, 0, inputOutput],
-						 __rendersub => [SFInt32, 0, inputOutput] # Function ptr hack
-						},"X3DTextNode"),
+			 string => [MFString, [], inputOutput],
+			 fontStyle => [SFNode, NULL, inputOutput],
+			 length => [MFFloat, [], inputOutput],
+			solid => [SFBool, TRUE, initializeOnly],
+			 maxExtent => [SFFloat, 0, inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			 __rendersub => [SFInt32, 0, inputOutput] # Function ptr hack
+			},"X3DTextNode"),
 
 	FontStyle => new VRML::NodeType("FontStyle", {
-						family => [MFString, ["SERIF"], initializeOnly],
-						horizontal => [SFBool, TRUE, initializeOnly],
-						justify => [MFString, ["BEGIN"], initializeOnly],
-						language => [SFString, "", initializeOnly],
-						leftToRight => [SFBool, TRUE, initializeOnly],
-						size => [SFFloat, 1.0, initializeOnly],
-						spacing => [SFFloat, 1.0, initializeOnly],
-						style => [SFString, "PLAIN", initializeOnly],
-						topToBottom => [SFBool, TRUE, initializeOnly]
+			family => [MFString, ["SERIF"], initializeOnly],
+			horizontal => [SFBool, TRUE, initializeOnly],
+			justify => [MFString, ["BEGIN"], initializeOnly],
+			language => [SFString, "", initializeOnly],
+			leftToRight => [SFBool, TRUE, initializeOnly],
+			size => [SFFloat, 1.0, initializeOnly],
+			spacing => [SFFloat, 1.0, initializeOnly],
+			style => [SFString, "PLAIN", initializeOnly],
+			topToBottom => [SFBool, TRUE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DFontStyleNode"), 
 
 	###################################################################################
@@ -737,71 +805,77 @@ package VRML::NodeType;
 	###################################################################################
 
 	AudioClip => new VRML::NodeType("AudioClip", {
-						description => [SFString, "", inputOutput],
-						loop =>	[SFBool, FALSE, inputOutput],
-						pitch => [SFFloat, 1.0, inputOutput],
-						startTime => [SFTime, 0, inputOutput],
-						stopTime => [SFTime, 0, inputOutput],
-						url => [MFString, [], inputOutput],
-						duration_changed => [SFTime, -1, outputOnly],
-						isActive => [SFBool, FALSE, outputOnly],
+			description => [SFString, "", inputOutput],
+			loop =>	[SFBool, FALSE, inputOutput],
+			pitch => [SFFloat, 1.0, inputOutput],
+			startTime => [SFTime, 0, inputOutput],
+			stopTime => [SFTime, 0, inputOutput],
+			url => [MFString, [], inputOutput],
+			duration_changed => [SFTime, -1, outputOnly],
+			isActive => [SFBool, FALSE, outputOnly],
 
-						pauseTime => [SFTime,0,inputOutput],
-						resumeTime => [SFTime,0,inputOutput],
-						elapsedTime => [SFTime,0,outputOnly],
-						isPaused => [SFBool, TRUE,outputOnly],
+			pauseTime => [SFTime,0,inputOutput],
+			resumeTime => [SFTime,0,inputOutput],
+			elapsedTime => [SFTime,0,outputOnly],
+			isPaused => [SFBool, TRUE,outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
-						# parent url, gets replaced at node build time
-						__parenturl =>[SFString,"",initializeOnly],
+			# parent url, gets replaced at node build time
+			__parenturl =>[SFString,"",initializeOnly],
 
-						# internal sequence number
-						__sourceNumber => [SFInt32, -1, initializeOnly],
-						# local name, as received on system
-						__localFileName => [FreeWRLPTR, 0,initializeOnly],
-						# time that we were initialized at
-						__inittime => [SFTime, 0, initializeOnly],
+			# internal sequence number
+			__sourceNumber => [SFInt32, -1, initializeOnly],
+			# local name, as received on system
+			__localFileName => [FreeWRLPTR, 0,initializeOnly],
+			# time that we were initialized at
+			__inittime => [SFTime, 0, initializeOnly],
 					   },"X3DSoundSourceNode"),
 
 	Sound => new VRML::NodeType("Sound", {
-						direction => [SFVec3f, [0, 0, 1], inputOutput],
-						intensity => [SFFloat, 1.0, inputOutput],
-						location => [SFVec3f, [0, 0, 0], inputOutput],
-						maxBack => [SFFloat, 10.0, inputOutput],
-						maxFront => [SFFloat, 10.0, inputOutput],
-						minBack => [SFFloat, 1.0, inputOutput],
-						minFront => [SFFloat, 1.0, inputOutput],
-						priority => [SFFloat, 0, inputOutput],
-						source => [SFNode, NULL, inputOutput],
-						spatialize => [SFBool, FALSE, initializeOnly]
+			direction => [SFVec3f, [0, 0, 1], inputOutput],
+			intensity => [SFFloat, 1.0, inputOutput],
+			location => [SFVec3f, [0, 0, 0], inputOutput],
+			maxBack => [SFFloat, 10.0, inputOutput],
+			maxFront => [SFFloat, 10.0, inputOutput],
+			minBack => [SFFloat, 1.0, inputOutput],
+			minFront => [SFFloat, 1.0, inputOutput],
+			priority => [SFFloat, 0, inputOutput],
+			source => [SFNode, NULL, inputOutput],
+			spatialize => [SFBool, FALSE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DSoundSourceNode"),
 	
 	# for testing MIDI sounds
 	AudioControl => new VRML::NodeType("AudioControl", {
-						direction => [SFVec3f, [0, 0, 1], inputOutput],
-						intensity => [SFFloat, 1.0, inputOutput],
-						location => [SFVec3f, [0, 0, 0], inputOutput],
-						maxBack => [SFFloat, 10.0, inputOutput],
-						maxFront => [SFFloat, 10.0, inputOutput],
-						minBack => [SFFloat, 1.0, inputOutput],
-						minFront => [SFFloat, 1.0, inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						source => [SFString, "", inputOutput],
+			direction => [SFVec3f, [0, 0, 1], inputOutput],
+			intensity => [SFFloat, 1.0, inputOutput],
+			location => [SFVec3f, [0, 0, 0], inputOutput],
+			maxBack => [SFFloat, 10.0, inputOutput],
+			maxFront => [SFFloat, 10.0, inputOutput],
+			minBack => [SFFloat, 1.0, inputOutput],
+			minFront => [SFFloat, 1.0, inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			source => [SFString, "", inputOutput],
 
-						isActive => [SFBool, FALSE, outputOnly],
-						# need distance, pan position as ints and floats
-						volumeInt32Val => [SFInt32, 0, outputOnly],
-						volumeFloatVal => [SFFloat, 0.0, outputOnly],
-						panInt32Val => [SFInt32, 0, outputOnly],
-						panFloatVal => [SFFloat, 0.0, outputOnly],
-						deltaInt32Val => [SFInt32, 0, outputOnly],
-						deltaFloatVal => [SFFloat, 0.0, outputOnly],
+			isActive => [SFBool, FALSE, outputOnly],
+			# need distance, pan position as ints and floats
+			volumeInt32Val => [SFInt32, 0, outputOnly],
+			volumeFloatVal => [SFFloat, 0.0, outputOnly],
+			panInt32Val => [SFInt32, 0, outputOnly],
+			panFloatVal => [SFFloat, 0.0, outputOnly],
+			deltaInt32Val => [SFInt32, 0, outputOnly],
+			deltaFloatVal => [SFFloat, 0.0, outputOnly],
 
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
-						# used for determing rate of change of position:
-						__oldLen =>[SFTime, 0.0, initializeOnly],
-						maxDelta => [SFFloat, 10.0, inputOutput],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
-						
+			# used for determing rate of change of position:
+			__oldLen =>[SFTime, 0.0, initializeOnly],
+			maxDelta => [SFFloat, 10.0, inputOutput],
+			__oldEnabled => [SFBool, TRUE, inputOutput],
+			
 
 					   },"X3DSoundSourceNode"),
 
@@ -812,36 +886,42 @@ package VRML::NodeType;
 	###################################################################################
 
 	DirectionalLight => new VRML::NodeType("DirectionalLight", {
-						ambientIntensity => [SFFloat, 0, inputOutput],
-						color => [SFColor, [1, 1, 1], inputOutput],
-						direction => [SFVec3f, [0, 0, -1], inputOutput],
-						intensity => [SFFloat, 1.0, inputOutput],
-						on => [SFBool, TRUE, inputOutput]
+			ambientIntensity => [SFFloat, 0, inputOutput],
+			color => [SFColor, [1, 1, 1], inputOutput],
+			direction => [SFVec3f, [0, 0, -1], inputOutput],
+			intensity => [SFFloat, 1.0, inputOutput],
+			on => [SFBool, TRUE, inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DLightNode"),
 
 	PointLight => new VRML::NodeType("PointLight", {
-						ambientIntensity => [SFFloat, 0, inputOutput],
-						attenuation => [SFVec3f, [1, 0, 0], inputOutput],
-						color => [SFColor, [1, 1, 1], inputOutput],
-						intensity => [SFFloat, 1.0, inputOutput],
-						location => [SFVec3f, [0, 0, 0], inputOutput],
-						on => [SFBool, TRUE, inputOutput],
-						radius => [SFFloat, 100.0, inputOutput],
-						##not in the spec
-						direction => [SFVec3f, [0, 0, -1.0], inputOutput]
+			ambientIntensity => [SFFloat, 0, inputOutput],
+			attenuation => [SFVec3f, [1, 0, 0], inputOutput],
+			color => [SFColor, [1, 1, 1], inputOutput],
+			intensity => [SFFloat, 1.0, inputOutput],
+			location => [SFVec3f, [0, 0, 0], inputOutput],
+			on => [SFBool, TRUE, inputOutput],
+			radius => [SFFloat, 100.0, inputOutput],
+			##not in the spec
+			direction => [SFVec3f, [0, 0, -1.0], inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DLightNode"),
 
 	SpotLight => new VRML::NodeType("SpotLight", {
-						ambientIntensity => [SFFloat, 0, inputOutput],
-						attenuation => [SFVec3f, [1, 0, 0], inputOutput],
-						beamWidth => [SFFloat, 1.570796, inputOutput],
-						color => [SFColor, [1, 1, 1], inputOutput],
-						cutOffAngle => [SFFloat, 0.785398, inputOutput],
-						direction => [SFVec3f, [0, 0, -1], inputOutput],
-						intensity => [SFFloat, 1.0, inputOutput],
-						location => [SFVec3f, [0, 0, 0], inputOutput],
-						on => [SFBool, TRUE, inputOutput],
-						radius => [SFFloat, 100.0, inputOutput]
+			ambientIntensity => [SFFloat, 0, inputOutput],
+			attenuation => [SFVec3f, [1, 0, 0], inputOutput],
+			beamWidth => [SFFloat, 1.570796, inputOutput],
+			color => [SFColor, [1, 1, 1], inputOutput],
+			cutOffAngle => [SFFloat, 0.785398, inputOutput],
+			direction => [SFVec3f, [0, 0, -1], inputOutput],
+			intensity => [SFFloat, 1.0, inputOutput],
+			location => [SFVec3f, [0, 0, 0], inputOutput],
+			on => [SFBool, TRUE, inputOutput],
+			radius => [SFFloat, 100.0, inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DLightNode"),
 
 	###################################################################################
@@ -851,89 +931,107 @@ package VRML::NodeType;
 	###################################################################################
 
 	ImageTexture => new VRML::NodeType("ImageTexture", {
-						url => [MFString, [], inputOutput],
-						repeatS => [SFBool, TRUE, initializeOnly],
-						repeatT => [SFBool, TRUE, initializeOnly],
-						__textureTableIndex => [SFInt32, 0, initializeOnly],
-						__parenturl =>[SFString,"",initializeOnly],
+			url => [MFString, [], inputOutput],
+			repeatS => [SFBool, TRUE, initializeOnly],
+			repeatT => [SFBool, TRUE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__textureTableIndex => [SFInt32, 0, initializeOnly],
+			__parenturl =>[SFString,"",initializeOnly],
 					   },"X3DTextureNode"),
 
 	MovieTexture => new VRML::NodeType ("MovieTexture", {
-						 loop => [SFBool, FALSE, inputOutput],
-						 speed => [SFFloat, 1.0, inputOutput],
-						 startTime => [SFTime, 0, inputOutput],
-						 stopTime => [SFTime, 0, inputOutput],
-						 url => [MFString, [""], inputOutput],
-						 repeatS => [SFBool, TRUE, initializeOnly],
-						 repeatT => [SFBool, TRUE, initializeOnly],
-						 duration_changed => [SFTime, -1, outputOnly],
-						 isActive => [SFBool, FALSE, outputOnly],
-						resumeTime => [SFTime,0,inputOutput],
-						pauseTime => [SFTime,0,inputOutput],
-						elapsedTime => [SFTime,0,outputOnly],
-						isPaused => [SFTime,0,outputOnly],
-						__textureTableIndex => [SFInt32, 0, initializeOnly],
-						 # has the URL changed???
-						 __oldurl => [MFString, [""], initializeOnly],
-						 # initial texture number
-						 __texture0_ => [SFInt32, 0, initializeOnly],
-						 # last texture number
-						 __texture1_ => [SFInt32, 0, initializeOnly],
-						 # which texture number is used
-						 __ctex => [SFInt32, 0, initializeOnly],
-						 # time that we were initialized at
-						 __inittime => [SFTime, 0, initializeOnly],
-						 # internal sequence number
-						 __sourceNumber => [SFInt32, -1, initializeOnly],
-						# parent url, gets replaced at node build time
-						__parenturl =>[SFString,"",initializeOnly],
-						},"X3DTextureNode"),
+			 loop => [SFBool, FALSE, inputOutput],
+			 speed => [SFFloat, 1.0, inputOutput],
+			 startTime => [SFTime, 0, inputOutput],
+			 stopTime => [SFTime, 0, inputOutput],
+			 url => [MFString, [""], inputOutput],
+			 repeatS => [SFBool, TRUE, initializeOnly],
+			 repeatT => [SFBool, TRUE, initializeOnly],
+			 duration_changed => [SFTime, -1, outputOnly],
+			 isActive => [SFBool, FALSE, outputOnly],
+			resumeTime => [SFTime,0,inputOutput],
+			pauseTime => [SFTime,0,inputOutput],
+			elapsedTime => [SFTime,0,outputOnly],
+			isPaused => [SFTime,0,outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__textureTableIndex => [SFInt32, 0, initializeOnly],
+			 # has the URL changed???
+			 __oldurl => [MFString, [""], initializeOnly],
+			 # initial texture number
+			 __texture0_ => [SFInt32, 0, initializeOnly],
+			 # last texture number
+			 __texture1_ => [SFInt32, 0, initializeOnly],
+			 # which texture number is used
+			 __ctex => [SFInt32, 0, initializeOnly],
+			 # time that we were initialized at
+			 __inittime => [SFTime, 0, initializeOnly],
+			 # internal sequence number
+			 __sourceNumber => [SFInt32, -1, initializeOnly],
+			# parent url, gets replaced at node build time
+			__parenturl =>[SFString,"",initializeOnly],
+			},"X3DTextureNode"),
 
 
 	MultiTexture => new VRML::NodeType("MultiTexture", {
-						alpha =>[SFFloat, 1, inputOutput],
-						color =>[SFColor,[1,1,1],inputOutput],
-						function =>[MFString,[],inputOutput],
-						mode =>[MFString,[],inputOutput],
-						source =>[MFString,[],inputOutput],
-						texture=>[MFNode,undef,inputOutput],
-						__params => [FreeWRLPTR, 0, initializeOnly],
+			alpha =>[SFFloat, 1, inputOutput],
+			color =>[SFColor,[1,1,1],inputOutput],
+			function =>[MFString,[],inputOutput],
+			mode =>[MFString,[],inputOutput],
+			source =>[MFString,[],inputOutput],
+			texture=>[MFNode,undef,inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__params => [FreeWRLPTR, 0, initializeOnly],
 					   },"X3DTextureNode"),
 
 	MultiTextureCoordinate => new VRML::NodeType("MultiTextureCoordinate", {
-						texCoord =>[MFNode,undef,inputOutput],
+			texCoord =>[MFNode,undef,inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DTextureCoordinateNode"),
 
 	MultiTextureTransform => new VRML::NodeType("MultiTextureTransform", {
-						textureTransform=>[MFNode,undef,inputOutput],
+			textureTransform=>[MFNode,undef,inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DTextureTransformNode"),
 
 	PixelTexture => new VRML::NodeType("PixelTexture", {
-						image => [SFImage, "0, 0, 0", inputOutput],
-						repeatS => [SFBool, TRUE, initializeOnly],
-						repeatT => [SFBool, TRUE, initializeOnly],
-						__parenturl =>[SFString,"",initializeOnly],
-						__textureTableIndex => [SFInt32, 0, initializeOnly],
+			image => [SFImage, "0, 0, 0", inputOutput],
+			repeatS => [SFBool, TRUE, initializeOnly],
+			repeatT => [SFBool, TRUE, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__parenturl =>[SFString,"",initializeOnly],
+			__textureTableIndex => [SFInt32, 0, initializeOnly],
 					   },"X3DTextureNode"),
 
 	TextureCoordinate => new VRML::NodeType("TextureCoordinate", { 
-						point => [MFVec2f, [], inputOutput],
-						__compiledpoint => [MFVec2f, [], initializeOnly],
-						__lastParent => [FreeWRLPTR, 0, initializeOnly],
+			point => [MFVec2f, [], inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__compiledpoint => [MFVec2f, [], initializeOnly],
+			__lastParent => [FreeWRLPTR, 0, initializeOnly],
 					 },"X3DTextureCoordinateNode"),
 
 	TextureCoordinateGenerator => new VRML::NodeType("TextureCoordinateGenerator", { 
-						parameter => [MFFloat, [], inputOutput],
-						mode => [SFString,"SPHERE",inputOutput],
-						__compiledmode => [SFInt32,0,initializeOnly],
+			parameter => [MFFloat, [], inputOutput],
+			mode => [SFString,"SPHERE",inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__compiledmode => [SFInt32,0,initializeOnly],
 					 },"X3DTextureCoordinateNode"),
 
 	TextureTransform => new VRML::NodeType ("TextureTransform", {
-						 center => [SFVec2f, [0, 0], inputOutput],
-						 rotation => [SFFloat, 0, inputOutput],
-						 scale => [SFVec2f, [1, 1], inputOutput],
-						 translation => [SFVec2f, [0, 0], inputOutput]
-						},"X3DTextureTransformNode"),
+			 center => [SFVec2f, [0, 0], inputOutput],
+			 rotation => [SFFloat, 0, inputOutput],
+			 scale => [SFVec2f, [1, 1], inputOutput],
+			 translation => [SFVec2f, [0, 0], inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			},"X3DTextureTransformNode"),
 
 	###################################################################################
 
@@ -950,6 +1048,8 @@ package VRML::NodeType;
 		left =>[SFNode,NULL,inputOutput],
 		top =>[SFNode,NULL,inputOutput],
 		right =>[SFNode,NULL,inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DEnvironmentTextureNode"),
 
 	GeneratedCubeMapTexture => new VRML::NodeType("GeneratedCubeMapTexture", {
@@ -957,12 +1057,16 @@ package VRML::NodeType;
 		update => [SFString,"NONE",inputOutput],
 		size => [SFInt32,128,initializeOnly],
 		textureProperties => [SFNode, NULL, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DEnvironmentTextureNode"),
 
 	ImageCubeMapTexture => new VRML::NodeType("ImageCubeMapTexture", {
 		metadata => [SFNode, NULL, inputOutput],
 		url => [MFString,[],inputOutput],
 		textureProperties => [SFNode, NULL, initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		__parenturl =>[SFString,"",initializeOnly],
 	},"X3DEnvironmentTextureNode"),
 
@@ -978,6 +1082,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFColor, [], inputOutput],
 			value_changed => [SFColor, [0, 0, 0], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		   },"X3DInterpolatorNode"),
 
 	############################################################################33
@@ -989,6 +1095,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFVec3f, [], inputOutput],
 			value_changed => [MFVec3f, [], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			_type => [SFInt32, 0, inputOutput], #1 means dont normalize
 		},"X3DInterpolatorNode"),
 
@@ -997,6 +1105,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFVec3f, [], inputOutput],
 			value_changed => [MFVec3f, [], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			_type => [SFInt32, 1, inputOutput], #1 means normalize
 		},"X3DInterpolatorNode"),
 
@@ -1004,7 +1114,9 @@ package VRML::NodeType;
 			set_fraction => [SFFloat, undef, inputOnly],
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFRotation, [], inputOutput],
-			value_changed => [SFRotation, [0, 0, 1, 0], outputOnly]
+			value_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		   },"X3DInterpolatorNode"),
 
 	PositionInterpolator => new VRML::NodeType("PositionInterpolator", {
@@ -1012,6 +1124,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFVec3f, [], inputOutput],
 			value_changed => [SFVec3f, [0, 0, 0], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		   },"X3DInterpolatorNode"),
 
 
@@ -1019,7 +1133,9 @@ package VRML::NodeType;
 			set_fraction => [SFFloat, undef, inputOnly],
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFFloat, [], inputOutput],
-			value_changed => [SFFloat, 0.0, outputOnly]
+			value_changed => [SFFloat, 0.0, outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		   },"X3DInterpolatorNode"),
 
 	CoordinateInterpolator2D => new VRML::NodeType("CoordinateInterpolator2D", {
@@ -1027,6 +1143,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFVec2f, [], inputOutput],
 			value_changed => [MFVec2f, [[0,0]], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		},"X3DInterpolatorNode"),
 
 	PositionInterpolator2D => new VRML::NodeType("PositionInterpolator2D", {
@@ -1034,6 +1152,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFVec2f, [], inputOutput],
 			value_changed => [SFVec2f, [0, 0, 0], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		},"X3DInterpolatorNode"),
 
 
@@ -1044,74 +1164,82 @@ package VRML::NodeType;
 	###################################################################################
 
 	TouchSensor => new VRML::NodeType("TouchSensor", {
-						enabled => [SFBool, TRUE, inputOutput],
-						hitNormal_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						hitPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						hitTexCoord_changed => [SFVec2f, [0, 0], outputOnly],
-						_oldhitNormal => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
-						_oldhitPoint => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
-						_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
-						isActive => [SFBool, FALSE, outputOnly],
-						isOver => [SFBool, FALSE, outputOnly],
-						description => [SFString, "", initializeOnly],
-						touchTime => [SFTime, -1, outputOnly],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			hitNormal_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			hitPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			hitTexCoord_changed => [SFVec2f, [0, 0], outputOnly],
+			_oldhitNormal => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
+			_oldhitPoint => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
+			_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
+			isActive => [SFBool, FALSE, outputOnly],
+			isOver => [SFBool, FALSE, outputOnly],
+			description => [SFString, "", initializeOnly],
+			touchTime => [SFTime, -1, outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 	PlaneSensor => new VRML::NodeType("PlaneSensor", {
-						autoOffset => [SFBool, TRUE, inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						maxPosition => [SFVec2f, [-1, -1], inputOutput],
-						minPosition => [SFVec2f, [0, 0], inputOutput],
-						offset => [SFVec3f, [0, 0, 0], inputOutput],
-						isActive => [SFBool, FALSE, outputOnly],
-						isOver => [SFBool, FALSE, outputOnly],
-						description => [SFString, "", initializeOnly],
-						trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						translation_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
-						_oldtranslation => [SFVec3f, [0, 0, 0], outputOnly],
-						# where we are at a press...
-						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			autoOffset => [SFBool, TRUE, inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			maxPosition => [SFVec2f, [-1, -1], inputOutput],
+			minPosition => [SFVec2f, [0, 0], inputOutput],
+			offset => [SFVec3f, [0, 0, 0], inputOutput],
+			isActive => [SFBool, FALSE, outputOnly],
+			isOver => [SFBool, FALSE, outputOnly],
+			description => [SFString, "", initializeOnly],
+			trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			translation_changed => [SFVec3f, [0, 0, 0], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
+			_oldtranslation => [SFVec3f, [0, 0, 0], outputOnly],
+			# where we are at a press...
+			_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 	SphereSensor => new VRML::NodeType("SphereSensor", {
-						autoOffset => [SFBool, TRUE, inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						offset => [SFRotation, [0, 1, 0, 0], inputOutput],
-						isActive => [SFBool, FALSE, outputOnly],
-						rotation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
-						trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
-						_oldrotation => [SFRotation, [0, 0, 1, 0], outputOnly],
-						isOver => [SFBool, FALSE, outputOnly],
-						description => [SFString, "", initializeOnly],
-						# where we are at a press...
-						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
-						_radius => [SFFloat, 0, initializeOnly],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			autoOffset => [SFBool, TRUE, inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			offset => [SFRotation, [0, 1, 0, 0], inputOutput],
+			isActive => [SFBool, FALSE, outputOnly],
+			rotation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
+			trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
+			_oldrotation => [SFRotation, [0, 0, 1, 0], outputOnly],
+			isOver => [SFBool, FALSE, outputOnly],
+			description => [SFString, "", initializeOnly],
+			# where we are at a press...
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
+			_radius => [SFFloat, 0, initializeOnly],
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 	CylinderSensor => new VRML::NodeType("CylinderSensor", {
-						autoOffset => [SFBool, TRUE, inputOutput],
-						diskAngle => [SFFloat, 0.262, inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						maxAngle => [SFFloat, -1.0, inputOutput],
-						minAngle => [SFFloat, 0, inputOutput],
-						offset => [SFFloat, 0, inputOutput],
-						isActive => [SFBool, FALSE, outputOnly],
-						isOver => [SFBool, FALSE, outputOnly],
-						description => [SFString, "", initializeOnly],
-						rotation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
-						trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
-						_oldrotation => [SFRotation, [0, 0, 1, 0], outputOnly],
-						# where we are at a press...
-						_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
-						_radius => [SFFloat, 0, initializeOnly],
-						_dlchange => [SFInt32, 0, initializeOnly],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			autoOffset => [SFBool, TRUE, inputOutput],
+			diskAngle => [SFFloat, 0.262, inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			maxAngle => [SFFloat, -1.0, inputOutput],
+			minAngle => [SFFloat, 0, inputOutput],
+			offset => [SFFloat, 0, inputOutput],
+			isActive => [SFBool, FALSE, outputOnly],
+			isOver => [SFBool, FALSE, outputOnly],
+			description => [SFString, "", initializeOnly],
+			rotation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
+			trackPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			_oldtrackPoint => [SFVec3f, [0, 0, 0], outputOnly],
+			_oldrotation => [SFRotation, [0, 0, 1, 0], outputOnly],
+			# where we are at a press...
+			_origPoint => [SFVec3f, [0, 0, 0], initializeOnly],
+			_radius => [SFFloat, 0, initializeOnly],
+			_dlchange => [SFInt32, 0, initializeOnly],
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DPointingDeviceSensorNode"),
 
 
@@ -1123,27 +1251,31 @@ package VRML::NodeType;
 
 	# KeySensor
 	KeySensor => new VRML::NodeType("KeySensor", {
-						enabled => [SFBool, TRUE, inputOutput],
-						actionKeyPress =>[SFInt32,0,outputOnly],
-						actionKeyRelease =>[SFInt32,0,outputOnly],
-						altKey =>[SFBool, TRUE,outputOnly],
-						controlKey =>[SFBool, TRUE,outputOnly],
-						isActive =>[SFBool, TRUE,outputOnly],
-						keyPress =>[SFString,"",outputOnly],
-						keyRelease =>[SFString,"",outputOnly],
-						shiftKey =>[SFBool, TRUE,outputOnly],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			actionKeyPress =>[SFInt32,0,outputOnly],
+			actionKeyRelease =>[SFInt32,0,outputOnly],
+			altKey =>[SFBool, TRUE,outputOnly],
+			controlKey =>[SFBool, TRUE,outputOnly],
+			isActive =>[SFBool, TRUE,outputOnly],
+			keyPress =>[SFString,"",outputOnly],
+			keyRelease =>[SFString,"",outputOnly],
+			shiftKey =>[SFBool, TRUE,outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DKeyDeviceSensorNode"),
 
 	# StringSensor
 	StringSensor => new VRML::NodeType("StringSensor", {
-						deletionAllowed => [SFBool, TRUE, inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						enteredText => [SFString,"",outputOnly],
-						finalText => [SFString,"",outputOnly],
-						isActive =>[SFBool, TRUE,outputOnly],
-						_initialized =>[SFBool, FALSE,initializeOnly],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			deletionAllowed => [SFBool, TRUE, inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			enteredText => [SFString,"",outputOnly],
+			finalText => [SFString,"",outputOnly],
+			isActive =>[SFBool, TRUE,outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			_initialized =>[SFBool, FALSE,initializeOnly],
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DKeyDeviceSensorNode"),
 
 
@@ -1155,35 +1287,39 @@ package VRML::NodeType;
 
 
 	ProximitySensor => new VRML::NodeType("ProximitySensor", {
-						center => [SFVec3f, [0, 0, 0], inputOutput],
-						size => [SFVec3f, [0, 0, 0], inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						isActive => [SFBool, FALSE, outputOnly],
-						position_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						orientation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
-						enterTime => [SFTime, -1, outputOnly],
-						exitTime => [SFTime, -1, outputOnly],
-						centerOfRotation_changed =>[SFVec3f, [0,0,0], outputOnly],
+			center => [SFVec3f, [0, 0, 0], inputOutput],
+			size => [SFVec3f, [0, 0, 0], inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			isActive => [SFBool, FALSE, outputOnly],
+			position_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			orientation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
+			enterTime => [SFTime, -1, outputOnly],
+			exitTime => [SFTime, -1, outputOnly],
+			centerOfRotation_changed =>[SFVec3f, [0,0,0], outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
-						# These fields are used for the info.
-						__hit => [SFInt32, 0, inputOutput],
-						__t1 => [SFVec3f, [10000000, 0, 0], inputOutput],
-						__t2 => [SFRotation, [0, 1, 0, 0], inputOutput],
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			# These fields are used for the info.
+			__hit => [SFInt32, 0, inputOutput],
+			__t1 => [SFVec3f, [10000000, 0, 0], inputOutput],
+			__t2 => [SFRotation, [0, 1, 0, 0], inputOutput],
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DEnvironmentalSensorNode"),
 
 	VisibilitySensor => new VRML::NodeType("VisibilitySensor", {
-						center => [SFVec3f, [0, 0, 0], inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						size => [SFVec3f, [0, 0, 0], inputOutput],
-						enterTime => [SFTime, -1, outputOnly],
-						exitTime => [SFTime, -1, outputOnly],
-						isActive => [SFBool, FALSE, outputOnly],
-						 __visible =>[SFInt32,0,initializeOnly], # for Occlusion tests.
-						 __occludeCheckCount =>[SFInt32,-1,initializeOnly], # for Occlusion tests.
-						__points  =>[FreeWRLPTR,0,initializeOnly],	# for Occlude Box.
-						__Samples =>[SFInt32,0,initializeOnly],		# Occlude samples from last pass
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			center => [SFVec3f, [0, 0, 0], inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			size => [SFVec3f, [0, 0, 0], inputOutput],
+			enterTime => [SFTime, -1, outputOnly],
+			exitTime => [SFTime, -1, outputOnly],
+			isActive => [SFBool, FALSE, outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			 __visible =>[SFInt32,0,initializeOnly], # for Occlusion tests.
+			 __occludeCheckCount =>[SFInt32,-1,initializeOnly], # for Occlusion tests.
+			__points  =>[FreeWRLPTR,0,initializeOnly],	# for Occlude Box.
+			__Samples =>[SFInt32,0,initializeOnly],		# Occlude samples from last pass
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					   },"X3DEnvironmentalSensorNode"),
 
 
@@ -1195,72 +1331,78 @@ package VRML::NodeType;
 	###################################################################################
 
 	LOD => new VRML::NodeType("LOD", {
-						 addChildren => [MFNode, undef, inputOnly],
-						 removeChildren => [MFNode, undef, inputOnly],
-						level => [MFNode, [], inputOutput], 		# for VRML spec
-						children => [MFNode, [], inputOutput],		# for X3D spec
-						center => [SFVec3f, [0, 0, 0],  initializeOnly],
-						range => [MFFloat, [], initializeOnly],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
-						_selected =>[FreeWRLPTR,0,initializeOnly],
+			 addChildren => [MFNode, undef, inputOnly],
+			 removeChildren => [MFNode, undef, inputOnly],
+			level => [MFNode, [], inputOutput], 		# for VRML spec
+			children => [MFNode, [], inputOutput],		# for X3D spec
+			center => [SFVec3f, [0, 0, 0],  initializeOnly],
+			range => [MFFloat, [], initializeOnly],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
+			_selected =>[FreeWRLPTR,0,initializeOnly],
 					   },"X3DGroupingNode"),
 
 	Billboard => new VRML::NodeType("Billboard", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						axisOfRotation => [SFVec3f, [0, 1, 0], inputOutput],
-						children => [MFNode, [], inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						metadata => [SFNode, NULL, inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						_rotationAngle =>[SFDouble, 0, initializeOnly],
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			axisOfRotation => [SFVec3f, [0, 1, 0], inputOutput],
+			children => [MFNode, [], inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			_rotationAngle =>[SFDouble, 0, initializeOnly],
 					   },"X3DGroupingNode"),
 
 	Collision => new VRML::NodeType("Collision", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						collide => [SFBool, TRUE, inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						proxy => [SFNode, NULL, initializeOnly],
-						collideTime => [SFTime, -1, outputOnly],
-						metadata => [SFNode, NULL, inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						# return info for collisions
-						# bit 0 : collision or not
-						# bit 1: changed from previous of not
-						__hit => [SFInt32, 0, inputOutput]
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			collide => [SFBool, TRUE, inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			proxy => [SFNode, NULL, initializeOnly],
+			collideTime => [SFTime, -1, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			# return info for collisions
+			# bit 0 : collision or not
+			# bit 1: changed from previous of not
+			__hit => [SFInt32, 0, inputOutput]
 					   },"X3DEnvironmentalSensorNode"),
 
 	Viewpoint => new VRML::NodeType("Viewpoint", {
-						set_bind => [SFBool, undef, inputOnly],
-						fieldOfView => [SFFloat, 0.785398, inputOutput],
-						jump => [SFBool, TRUE, inputOutput],
-						orientation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						position => [SFVec3f,[0, 0, 10], inputOutput],
-						description => [SFString, "", initializeOnly],
-						bindTime => [SFTime, -1, outputOnly],
-						isBound => [SFBool, FALSE, outputOnly],
-						centerOfRotation =>[SFVec3f, [0,0,0], inputOutput],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+			set_bind => [SFBool, undef, inputOnly],
+			fieldOfView => [SFFloat, 0.785398, inputOutput],
+			jump => [SFBool, TRUE, inputOutput],
+			orientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			position => [SFVec3f,[0, 0, 10], inputOutput],
+			description => [SFString, "", initializeOnly],
+			bindTime => [SFTime, -1, outputOnly],
+			isBound => [SFBool, FALSE, outputOnly],
+			centerOfRotation =>[SFVec3f, [0,0,0], inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 					   },"X3DBindableNode"),
 
 	NavigationInfo => new VRML::NodeType("NavigationInfo", {
-						set_bind => [SFBool, undef, inputOnly],
-						avatarSize => [MFFloat, [0.25, 1.6, 0.75], inputOutput],
-						headlight => [SFBool, TRUE, inputOutput],
-						speed => [SFFloat, 1.0, inputOutput],
-						type => [MFString, ["WALK", "ANY"], inputOutput],
-						visibilityLimit => [SFFloat, 0, inputOutput],
-						isBound => [SFBool, FALSE, outputOnly],
-						transitionType => [MFString, [],inputOutput],
-						bindTime => [SFTime, -1, outputOnly],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+			set_bind => [SFBool, undef, inputOnly],
+			avatarSize => [MFFloat, [0.25, 1.6, 0.75], inputOutput],
+			headlight => [SFBool, TRUE, inputOutput],
+			speed => [SFFloat, 1.0, inputOutput],
+			type => [MFString, ["WALK", "ANY"], inputOutput],
+			visibilityLimit => [SFFloat, 0, inputOutput],
+			isBound => [SFBool, FALSE, outputOnly],
+			transitionType => [MFString, [],inputOutput],
+			bindTime => [SFTime, -1, outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 					   },"X3DBindableNode"),
 
 	###################################################################################
@@ -1270,83 +1412,90 @@ package VRML::NodeType;
 	###################################################################################
 
 	Background => new VRML::NodeType("Background", {
-						set_bind => [SFBool, undef, inputOnly],
-						groundAngle => [MFFloat, [], inputOutput],
-						groundColor => [MFColor, [], inputOutput],
-						skyAngle => [MFFloat, [], inputOutput],
-						skyColor => [MFColor, [[0, 0, 0]], inputOutput],
-						bindTime => [SFTime,0,outputOnly],
-						isBound => [SFBool, FALSE, outputOnly],
-						__parenturl =>[SFString,"",initializeOnly],
-						__points =>[FreeWRLPTR,0,initializeOnly],
-						__colours =>[FreeWRLPTR,0,initializeOnly],
-						__quadcount => [SFInt32,0,initializeOnly],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+			set_bind => [SFBool, undef, inputOnly],
+			groundAngle => [MFFloat, [], inputOutput],
+			groundColor => [MFColor, [], inputOutput],
+			skyAngle => [MFFloat, [], inputOutput],
+			skyColor => [MFColor, [[0, 0, 0]], inputOutput],
+			bindTime => [SFTime,0,outputOnly],
+			isBound => [SFBool, FALSE, outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__parenturl =>[SFString,"",initializeOnly],
+			__points =>[FreeWRLPTR,0,initializeOnly],
+			__colours =>[FreeWRLPTR,0,initializeOnly],
+			__quadcount => [SFInt32,0,initializeOnly],
+			__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 
-						frontUrl => [MFString, [], inputOutput],
-						backUrl => [MFString, [], inputOutput],
-						topUrl => [MFString, [], inputOutput],
-						bottomUrl => [MFString, [], inputOutput],
-						leftUrl => [MFString, [], inputOutput],
-						rightUrl => [MFString, [], inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						__textureright => [SFInt32, 0, inputOutput],
-						__frontTexture=>[SFNode,NULL,inputOutput],
-						__backTexture=>[SFNode,NULL,inputOutput],
-						__topTexture=>[SFNode,NULL,inputOutput],
-						__bottomTexture=>[SFNode,NULL,inputOutput],
-						__leftTexture=>[SFNode,NULL,inputOutput],
-						__rightTexture=>[SFNode,NULL,inputOutput],
+			frontUrl => [MFString, [], inputOutput],
+			backUrl => [MFString, [], inputOutput],
+			topUrl => [MFString, [], inputOutput],
+			bottomUrl => [MFString, [], inputOutput],
+			leftUrl => [MFString, [], inputOutput],
+			rightUrl => [MFString, [], inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__textureright => [SFInt32, 0, inputOutput],
+			__frontTexture=>[SFNode,NULL,inputOutput],
+			__backTexture=>[SFNode,NULL,inputOutput],
+			__topTexture=>[SFNode,NULL,inputOutput],
+			__bottomTexture=>[SFNode,NULL,inputOutput],
+			__leftTexture=>[SFNode,NULL,inputOutput],
+			__rightTexture=>[SFNode,NULL,inputOutput],
 					   },"X3DBackgroundNode"),
 
 
 
 	Fog => new VRML::NodeType("Fog", {
-						set_bind => [SFBool, undef, inputOnly],
-						color => [SFColor, [1, 1, 1], inputOutput],
-						fogType => [SFString, "LINEAR", inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						visibilityRange => [SFFloat, 0, inputOutput],
-						bindTime => [SFTime, -1, outputOnly],
-						isBound => [SFBool, FALSE, outputOnly],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+			set_bind => [SFBool, undef, inputOnly],
+			color => [SFColor, [1, 1, 1], inputOutput],
+			fogType => [SFString, "LINEAR", inputOutput],
+			visibilityRange => [SFFloat, 0, inputOutput],
+			bindTime => [SFTime, -1, outputOnly],
+			isBound => [SFBool, FALSE, outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 					   },"X3DBindableNode"),
 
 	FogCoordinate => new VRML::NodeType("FogCoordinate", {
-						depth => [MFFloat, [], inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
+			depth => [MFFloat, [], inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DGeometricPropertyNode"),
 
 	LocalFog => new VRML::NodeType("Fog", {
-						color => [SFColor, [1, 1, 1], inputOutput],
-						enabled => [SFBool, TRUE, inputOutput],
-						fogType => [SFString, "LINEAR", inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						visibilityRange => [SFFloat, 0, inputOutput],
+			color => [SFColor, [1, 1, 1], inputOutput],
+			enabled => [SFBool, TRUE, inputOutput],
+			fogType => [SFString, "LINEAR", inputOutput],
+			visibilityRange => [SFFloat, 0, inputOutput],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					   },"X3DChildNode"),
 
 	TextureBackground => new VRML::NodeType("TextureBackground", {
-						set_bind => [SFBool, undef, inputOnly],
-						groundAngle => [MFFloat, [], inputOutput],
-						groundColor => [MFColor, [], inputOutput],
-						skyAngle => [MFFloat, [], inputOutput],
-						skyColor => [MFColor, [[0,0,0]], inputOutput],
-						bindTime => [SFTime,0,outputOnly],
-						isBound => [SFBool, FALSE, outputOnly],
-						metadata => [SFNode, NULL, inputOutput],
-						__parenturl =>[SFString,"",initializeOnly],
-						__points =>[FreeWRLPTR,0,initializeOnly],
-						__colours =>[FreeWRLPTR,0,initializeOnly],
-						__quadcount => [SFInt32,0,initializeOnly],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+			set_bind => [SFBool, undef, inputOnly],
+			groundAngle => [MFFloat, [], inputOutput],
+			groundColor => [MFColor, [], inputOutput],
+			skyAngle => [MFFloat, [], inputOutput],
+			skyColor => [MFColor, [[0,0,0]], inputOutput],
+			bindTime => [SFTime,0,outputOnly],
+			isBound => [SFBool, FALSE, outputOnly],
+                metadata => [SFNode, NULL, inputOutput],
+		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__parenturl =>[SFString,"",initializeOnly],
+			__points =>[FreeWRLPTR,0,initializeOnly],
+			__colours =>[FreeWRLPTR,0,initializeOnly],
+			__quadcount => [SFInt32,0,initializeOnly],
+			__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 
-						frontTexture=>[SFNode,NULL,inputOutput],
-						backTexture=>[SFNode,NULL,inputOutput],
-						topTexture=>[SFNode,NULL,inputOutput],
-						bottomTexture=>[SFNode,NULL,inputOutput],
-						leftTexture=>[SFNode,NULL,inputOutput],
-						rightTexture=>[SFNode,NULL,inputOutput],
-						transparency=> [MFFloat,[0],inputOutput],
+			frontTexture=>[SFNode,NULL,inputOutput],
+			backTexture=>[SFNode,NULL,inputOutput],
+			topTexture=>[SFNode,NULL,inputOutput],
+			bottomTexture=>[SFNode,NULL,inputOutput],
+			leftTexture=>[SFNode,NULL,inputOutput],
+			rightTexture=>[SFNode,NULL,inputOutput],
+			transparency=> [MFFloat,[0],inputOutput],
 					   },"X3DBackgroundNode"),
 
 	###################################################################################
@@ -1357,257 +1506,259 @@ package VRML::NodeType;
 
 
 	GeoCoordinate => new VRML::NodeType("GeoCoordinate", {
-						metadata => [SFNode, NULL, inputOutput],
-						point => [MFVec3d,[],initializeOnly],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedCoords => [MFVec3f, [], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			metadata => [SFNode, NULL, inputOutput],
+			point => [MFVec3d,[],initializeOnly],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__movedCoords => [MFVec3f, [], inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DCoordinateNode"),
 
 	GeoElevationGrid => new VRML::NodeType("GeoElevationGrid", {
-						set_height => [MFDouble, undef, inputOnly],
-						color => [SFNode, NULL, inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						normal => [SFNode, NULL, inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						yScale => [SFFloat, 1.0, initializeOnly],
-						ccw => [SFBool, FALSE,initializeOnly],
-						colorPerVertex => [SFBool, TRUE, initializeOnly],
-						creaseAngle => [SFDouble, 0, initializeOnly],
-						geoGridOrigin => [SFVec3d,[0,0,0],initializeOnly],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						height => [MFDouble, [0,0], initializeOnly],
-						normalPerVertex => [SFBool, TRUE, initializeOnly],
-						solid => [SFBool, TRUE, initializeOnly],
-						xDimension => [SFInt32, 0, initializeOnly],
-						xSpacing => [SFDouble, 1.0, initializeOnly],
-						zDimension => [SFInt32, 0, initializeOnly],
-						zSpacing => [SFDouble, 1.0, initializeOnly],
+			set_height => [MFDouble, undef, inputOnly],
+			color => [SFNode, NULL, inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			normal => [SFNode, NULL, inputOutput],
+			texCoord => [SFNode, NULL, inputOutput],
+			yScale => [SFFloat, 1.0, initializeOnly],
+			ccw => [SFBool, FALSE,initializeOnly],
+			colorPerVertex => [SFBool, TRUE, initializeOnly],
+			creaseAngle => [SFDouble, 0, initializeOnly],
+			geoGridOrigin => [SFVec3d,[0,0,0],initializeOnly],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
+			height => [MFDouble, [0,0], initializeOnly],
+			normalPerVertex => [SFBool, TRUE, initializeOnly],
+			solid => [SFBool, TRUE, initializeOnly],
+			xDimension => [SFInt32, 0, initializeOnly],
+			xSpacing => [SFDouble, 1.0, initializeOnly],
+			zDimension => [SFInt32, 0, initializeOnly],
+			zSpacing => [SFDouble, 1.0, initializeOnly],
 
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						__realElevationGrid => [SFNode, NULL, initializeOnly],
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__realElevationGrid => [SFNode, NULL, initializeOnly],
 		
 					},"X3DGeometryNode"),
 
 	GeoLOD => new VRML::NodeType("GeoLOD", {
-						metadata => [SFNode, NULL, inputOutput],
-						children => [MFNode,[],outputOnly],
-						level_changed =>[SFInt32,0,outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			children => [MFNode,[],outputOnly],
+			level_changed =>[SFInt32,0,outputOnly],
 
-						center => [SFVec3d,[0,0,0],initializeOnly],
-						child1Url =>[MFString,[],initializeOnly],
-						child2Url =>[MFString,[],initializeOnly],
-						child3Url =>[MFString,[],initializeOnly],
-						child4Url =>[MFString,[],initializeOnly],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						range => [SFFloat,10.0,initializeOnly],
-						rootUrl => [MFString,[],initializeOnly],
-						rootNode => [MFNode,[],initializeOnly],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			center => [SFVec3d,[0,0,0],initializeOnly],
+			child1Url =>[MFString,[],initializeOnly],
+			child2Url =>[MFString,[],initializeOnly],
+			child3Url =>[MFString,[],initializeOnly],
+			child4Url =>[MFString,[],initializeOnly],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
+			range => [SFFloat,10.0,initializeOnly],
+			rootUrl => [MFString,[],initializeOnly],
+			rootNode => [MFNode,[],initializeOnly],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__inRange =>[SFBool, FALSE, inputOutput],
-						__child1Node => [SFNode, NULL, inputOutput],
-						__child2Node => [SFNode, NULL, inputOutput],
-						__child3Node => [SFNode, NULL, inputOutput],
-						__child4Node => [SFNode, NULL, inputOutput],
-						__rootUrl => [SFNode, NULL, inputOutput],
-						__childloadstatus => [SFInt32,0,inputOutput],
-						__rooturlloadstatus => [SFInt32,0,inputOutput],
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			__inRange =>[SFBool, FALSE, inputOutput],
+			__child1Node => [SFNode, NULL, inputOutput],
+			__child2Node => [SFNode, NULL, inputOutput],
+			__child3Node => [SFNode, NULL, inputOutput],
+			__child4Node => [SFNode, NULL, inputOutput],
+			__rootUrl => [SFNode, NULL, inputOutput],
+			__childloadstatus => [SFInt32,0,inputOutput],
+			__rooturlloadstatus => [SFInt32,0,inputOutput],
 
-						# ProximitySensor copies.
-						__inRange => [SFInt32, 0, inputOutput],
-						__t1 => [SFVec3d, [10000000, 0, 0], inputOutput],
+			# ProximitySensor copies.
+			__inRange => [SFInt32, 0, inputOutput],
+			__t1 => [SFVec3d, [10000000, 0, 0], inputOutput],
 
-						__level => [SFInt32,-1,inputOutput], # only for debugging purposes
+			__level => [SFInt32,-1,inputOutput], # only for debugging purposes
 
 					},"X3DGroupingNode"),
 
 
 	GeoMetadata=> new VRML::NodeType("GeoMetadata", {
-						data => [MFNode,[],inputOutput],
-						summary => [MFString,[],inputOutput],
-						url => [MFString,[],inputOutput],
+			data => [MFNode,[],inputOutput],
+			summary => [MFString,[],inputOutput],
+			url => [MFString,[],inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DChildNode"),
 
 	GeoPositionInterpolator=> new VRML::NodeType("GeoPositionInterpolator", {
-						set_fraction => [SFFloat,undef,inputOnly],
-						key => [MFFloat,[],inputOutput],
-						keyValue => [MFVec3d,[],inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						geovalue_changed => [SFVec3d,[0,0,0],outputOnly],
-						value_changed => [SFVec3f,[0,0,0],outputOnly],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedValue => [MFVec3d, [], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						__oldKeyPtr => [SFNode, NULL, outputOnly],
-						__oldKeyValuePtr => [SFNode, NULL, outputOnly],
+			set_fraction => [SFFloat,undef,inputOnly],
+			key => [MFFloat,[],inputOutput],
+			keyValue => [MFVec3d,[],inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			geovalue_changed => [SFVec3d,[0,0,0],outputOnly],
+			value_changed => [SFVec3f,[0,0,0],outputOnly],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__movedValue => [MFVec3d, [], inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__oldKeyPtr => [SFNode, NULL, outputOnly],
+			__oldKeyValuePtr => [SFNode, NULL, outputOnly],
 					},"X3DInterpolatorNode"),
 
 
 	GeoProximitySensor => new VRML::NodeType("ProximitySensor", {
-						enabled => [SFBool, TRUE, inputOutput],
-						geoCenter => [SFVec3d, [0, 0, 0], inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						size => [SFVec3f, [0, 0, 0], inputOutput],
-						centerOfRotation_changed =>[SFVec3f, [0,0,0], outputOnly],
-						enterTime => [SFTime, -1, outputOnly],
-						exitTime => [SFTime, -1, outputOnly],
-						geoCoord_changed => [SFVec3d,[0,0,0],outputOnly],
-						isActive => [SFBool, FALSE, outputOnly],
-						orientation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
-						position_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
+			enabled => [SFBool, TRUE, inputOutput],
+			geoCenter => [SFVec3d, [0, 0, 0], inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			size => [SFVec3f, [0, 0, 0], inputOutput],
+			centerOfRotation_changed =>[SFVec3f, [0,0,0], outputOnly],
+			enterTime => [SFTime, -1, outputOnly],
+			exitTime => [SFTime, -1, outputOnly],
+			geoCoord_changed => [SFVec3d,[0,0,0],outputOnly],
+			isActive => [SFBool, FALSE, outputOnly],
+			orientation_changed => [SFRotation, [0, 0, 1, 0], outputOnly],
+			position_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
 
 
-						# These fields are used for the info.
-						__hit => [SFInt32, 0, inputOutput],
-						__t1 => [SFVec3f, [10000000, 0, 0], inputOutput],
-						__t2 => [SFRotation, [0, 1, 0, 0], inputOutput],
+			# These fields are used for the info.
+			__hit => [SFInt32, 0, inputOutput],
+			__t1 => [SFVec3f, [10000000, 0, 0], inputOutput],
+			__t2 => [SFRotation, [0, 1, 0, 0], inputOutput],
 
-						# "compiled" versions of strings above
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						__oldEnabled => [SFBool, TRUE, inputOutput],
-						__oldGeoCenter => [SFVec3d, [0, 0, 0], inputOutput],
-						__oldSize => [SFVec3f, [0, 0, 0], inputOutput],
+			# "compiled" versions of strings above
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__oldEnabled => [SFBool, TRUE, inputOutput],
+			__oldGeoCenter => [SFVec3d, [0, 0, 0], inputOutput],
+			__oldSize => [SFVec3f, [0, 0, 0], inputOutput],
 					   },"X3DEnvironmentalSensorNode"),
 
 	GeoTouchSensor=> new VRML::NodeType("GeoTouchSensor", {
-						description => [SFString, "", initializeOnly],
-						enabled => [SFBool, FALSE,inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						hitNormal_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						hitPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
-						hitTexCoord_changed => [SFVec2f, [0, 0], outputOnly],
-						hitGeoCoord_changed => [SFVec3d, [0, 0, 0] ,outputOnly],
-						isActive => [SFBool, FALSE, outputOnly],
-						isOver => [SFBool, FALSE, outputOnly],
-						touchTime => [SFTime, -1, outputOnly],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						_oldhitNormal => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
-						_oldhitPoint => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
-						_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
-						__oldEnabled => [SFBool, TRUE, inputOutput],
+			description => [SFString, "", initializeOnly],
+			enabled => [SFBool, FALSE,inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			hitNormal_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			hitPoint_changed => [SFVec3f, [0, 0, 0], outputOnly],
+			hitTexCoord_changed => [SFVec2f, [0, 0], outputOnly],
+			hitGeoCoord_changed => [SFVec3d, [0, 0, 0] ,outputOnly],
+			isActive => [SFBool, FALSE, outputOnly],
+			isOver => [SFBool, FALSE, outputOnly],
+			touchTime => [SFTime, -1, outputOnly],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			_oldhitNormal => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
+			_oldhitPoint => [SFVec3f, [0, 0, 0], outputOnly], 	# send event only if changed
+			_oldhitTexCoord => [SFVec2f, [0, 0], outputOnly], 	# send event only if changed
+			__oldEnabled => [SFBool, TRUE, inputOutput],
 					},"X3DPointingDeviceSensorNode"),
 
 
 	GeoTransform => new VRML::NodeType ("GeoTransform", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						geoCenter => [SFVec3d, [0, 0, 0], inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						scale => [SFVec3f, [1, 1, 1], inputOutput],
-						scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						translation => [SFVec3f, [0, 0, 0], inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			geoCenter => [SFVec3d, [0, 0, 0], inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			scale => [SFVec3f, [1, 1, 1], inputOutput],
+			scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			translation => [SFVec3f, [0, 0, 0], inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
 
-						# fields for reducing redundant calls
-						__do_center => [SFInt32, 0, initializeOnly],
-						__do_trans => [SFInt32, 0, initializeOnly],
-						__do_rotation => [SFInt32, 0, initializeOnly],
-						__do_scaleO => [SFInt32, 0, initializeOnly],
-						__do_scale => [SFInt32, 0, initializeOnly],
+			# fields for reducing redundant calls
+			__do_center => [SFInt32, 0, initializeOnly],
+			__do_trans => [SFInt32, 0, initializeOnly],
+			__do_rotation => [SFInt32, 0, initializeOnly],
+			__do_scaleO => [SFInt32, 0, initializeOnly],
+			__do_scale => [SFInt32, 0, initializeOnly],
 
-						# "compiled" versions of strings above
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						__oldGeoCenter => [SFVec3d, [0, 0, 0], inputOutput],
-						__oldChildren => [MFNode, [], inputOutput],
+			# "compiled" versions of strings above
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__oldGeoCenter => [SFVec3d, [0, 0, 0], inputOutput],
+			__oldChildren => [MFNode, [], inputOutput],
 					},"X3DGroupingNode"),
 
 	GeoViewpoint => new VRML::NodeType("GeoViewpoint", {
-						set_bind => [SFBool, undef, inputOnly],
-						set_orientation => [SFRotation, [IO_FLOAT, IO_FLOAT, IO_FLOAT, IO_FLOAT], inputOnly],
-						set_position => [SFVec3d, [IO_FLOAT, IO_FLOAT, IO_FLOAT], inputOnly],
-						description => [SFString, "", inputOutput],
-						fieldOfView => [SFFloat, 0.785398, inputOutput],
-						headlight => [SFBool, TRUE, inputOutput],
-						jump => [SFBool, TRUE, inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						navType => [MFString, ["EXAMINE","ANY"],inputOutput],
-						bindTime => [SFTime, -1, outputOnly],
-						isBound => [SFBool, FALSE, outputOnly],
+			set_bind => [SFBool, undef, inputOnly],
+			set_orientation => [SFRotation, [IO_FLOAT, IO_FLOAT, IO_FLOAT, IO_FLOAT], inputOnly],
+			set_position => [SFVec3d, [IO_FLOAT, IO_FLOAT, IO_FLOAT], inputOnly],
+			description => [SFString, "", inputOutput],
+			fieldOfView => [SFFloat, 0.785398, inputOutput],
+			headlight => [SFBool, TRUE, inputOutput],
+			jump => [SFBool, TRUE, inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			navType => [MFString, ["EXAMINE","ANY"],inputOutput],
+			bindTime => [SFTime, -1, outputOnly],
+			isBound => [SFBool, FALSE, outputOnly],
 
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						orientation => [SFRotation, [0, 0, 1, 0], initializeOnly],
-						position => [SFVec3d,[0, 0, 100000], initializeOnly],
-						speedFactor => [SFFloat,1.0,initializeOnly],
-						__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
+			orientation => [SFRotation, [0, 0, 1, 0], initializeOnly],
+			position => [SFVec3d,[0, 0, 100000], initializeOnly],
+			speedFactor => [SFFloat,1.0,initializeOnly],
+			__BGNumber => [SFInt32,-1,initializeOnly], # for ordering backgrounds for binding
 
-						# "compiled" versions of strings above
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedPosition => [SFVec3d, [0, 0, 0], inputOutput],
-						__movedOrientation => [SFRotation, [0, 0, 1, 0], initializeOnly],
+			# "compiled" versions of strings above
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__movedPosition => [SFVec3d, [0, 0, 0], inputOutput],
+			__movedOrientation => [SFRotation, [0, 0, 1, 0], initializeOnly],
 
-						__oldSFString => [SFString, "", inputOutput], #the description field
-						__oldFieldOfView => [SFFloat, 0.785398, inputOutput],
-						__oldHeadlight => [SFBool, TRUE, inputOutput],
-						__oldJump => [SFBool, TRUE, inputOutput],
-						__oldMFString => [MFString, [],inputOutput], # the navType
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__oldSFString => [SFString, "", inputOutput], #the description field
+			__oldFieldOfView => [SFFloat, 0.785398, inputOutput],
+			__oldHeadlight => [SFBool, TRUE, inputOutput],
+			__oldJump => [SFBool, TRUE, inputOutput],
+			__oldMFString => [MFString, [],inputOutput], # the navType
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
 					
 					   },"X3DBindableNode"),
 
 	GeoOrigin => new VRML::NodeType("GeoOrigin", {
-						geoCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						geoSystem => [MFString,["GD","WE"],inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						rotateYUp => [SFBool, TRUE,initializeOnly],
+			geoCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			geoSystem => [MFString,["GD","WE"],inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			rotateYUp => [SFBool, TRUE,initializeOnly],
 
-						# these are now static in CFuncs/GeoVRML.c
-						# "compiled" versions of strings above
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__oldMFString => [MFString, [],inputOutput], # the navType
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						
+			# these are now static in CFuncs/GeoVRML.c
+			# "compiled" versions of strings above
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			__oldMFString => [MFString, [],inputOutput], # the navType
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			
 					},"X3DChildNode"),
 
 	GeoLocation => new VRML::NodeType("GeoLocation", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						geoCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						geoOrigin => [SFNode, NULL, initializeOnly],
-						geoSystem => [MFString,["GD","WE"],initializeOnly],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			geoCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			geoOrigin => [SFNode, NULL, initializeOnly],
+			geoSystem => [MFString,["GD","WE"],initializeOnly],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 
-						# "compiled" versions of strings above
-						__geoSystem => [MFInt32,[],initializeOnly],
-						__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-						__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
-						__oldChildren => [MFNode, [], inputOutput],
+			# "compiled" versions of strings above
+			__geoSystem => [MFInt32,[],initializeOnly],
+			__movedCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			__localOrient => [SFVec4d, [0, 0, 1, 0], inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput],
+			__oldChildren => [MFNode, [], inputOutput],
 					},"X3DGroupingNode"),
 
 
@@ -1618,101 +1769,109 @@ package VRML::NodeType;
 	###################################################################################
 
 	HAnimDisplacer => new VRML::NodeType("HAnimDisplacer", {
-						coordIndex => [MFInt32, [], inputOutput],
-						displacements => [MFVec3f, [], inputOutput],
-						name => [SFString, "", inputOutput],
-						weight => [SFFloat, 0.0, inputOutput],
+			coordIndex => [MFInt32, [], inputOutput],
+			displacements => [MFVec3f, [], inputOutput],
+			name => [SFString, "", inputOutput],
+			weight => [SFFloat, 0.0, inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DGeometricPropertyNode"),
 
 	HAnimHumanoid => new VRML::NodeType("HAnimHumanoid", {
-						center => [SFVec3f, [0, 0, 0], inputOutput],
-						info => [MFString, [],inputOutput],
-						joints => [MFNode,[],inputOutput],
-						name => [SFString, "", inputOutput],
-						rotation => [SFRotation,[0,0,1,0], inputOutput],
-						scale => [SFVec3f,[1,1,1],inputOutput],
-						scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						segments => [MFNode,[],inputOutput],
-						sites => [MFNode,[],inputOutput],
-						skeleton => [MFNode,[],inputOutput],
-						skin => [MFNode,[],inputOutput],
-						skinCoord => [SFNode, NULL, inputOutput],
-						skinNormal => [SFNode, NULL, inputOutput],
-						translation => [SFVec3f, [0, 0, 0], inputOutput],
-						version => [SFString,"",inputOutput],
-						viewpoints => [MFNode,[],inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			center => [SFVec3f, [0, 0, 0], inputOutput],
+			info => [MFString, [],inputOutput],
+			joints => [MFNode,[],inputOutput],
+			name => [SFString, "", inputOutput],
+			rotation => [SFRotation,[0,0,1,0], inputOutput],
+			scale => [SFVec3f,[1,1,1],inputOutput],
+			scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			segments => [MFNode,[],inputOutput],
+			sites => [MFNode,[],inputOutput],
+			skeleton => [MFNode,[],inputOutput],
+			skin => [MFNode,[],inputOutput],
+			skinCoord => [SFNode, NULL, inputOutput],
+			skinNormal => [SFNode, NULL, inputOutput],
+			translation => [SFVec3f, [0, 0, 0], inputOutput],
+			version => [SFString,"",inputOutput],
+			viewpoints => [MFNode,[],inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DChildNode"),
 
 	HAnimJoint => new VRML::NodeType("HAnimJoint", {
 
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						center => [SFVec3f, [0, 0, 0], inputOutput],
-						children => [MFNode, [], inputOutput],
-						rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						scale => [SFVec3f, [1, 1, 1], inputOutput],
-						scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						translation => [SFVec3f, [0, 0, 0], inputOutput],
-						displacers => [MFNode, [], inputOutput],
-						limitOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						llimit => [MFFloat,[],inputOutput],
-						name => [SFString, "", inputOutput],
-						skinCoordIndex => [MFInt32,[],inputOutput],
-						skinCoordWeight => [MFFloat,[],inputOutput],
-						stiffness => [MFFloat,[0,0,0],inputOutput],
-						ulimit => [MFFloat,[],inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			center => [SFVec3f, [0, 0, 0], inputOutput],
+			children => [MFNode, [], inputOutput],
+			rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			scale => [SFVec3f, [1, 1, 1], inputOutput],
+			scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			translation => [SFVec3f, [0, 0, 0], inputOutput],
+			displacers => [MFNode, [], inputOutput],
+			limitOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			llimit => [MFFloat,[],inputOutput],
+			name => [SFString, "", inputOutput],
+			skinCoordIndex => [MFInt32,[],inputOutput],
+			skinCoordWeight => [MFFloat,[],inputOutput],
+			stiffness => [MFFloat,[0,0,0],inputOutput],
+			ulimit => [MFFloat,[],inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
-						 # fields for reducing redundant calls
-						 __do_center => [SFInt32, 0, initializeOnly],
-						 __do_trans => [SFInt32, 0, initializeOnly],
-						 __do_rotation => [SFInt32, 0, initializeOnly],
-						 __do_scaleO => [SFInt32, 0, initializeOnly],
-						 __do_scale => [SFInt32, 0, initializeOnly],
+			 # fields for reducing redundant calls
+			 __do_center => [SFInt32, 0, initializeOnly],
+			 __do_trans => [SFInt32, 0, initializeOnly],
+			 __do_rotation => [SFInt32, 0, initializeOnly],
+			 __do_scaleO => [SFInt32, 0, initializeOnly],
+			 __do_scale => [SFInt32, 0, initializeOnly],
 					},"X3DChildNode"),
 
 	HAnimSegment => new VRML::NodeType("HAnimSegment", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						name => [SFString, "", inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						centerOfMass => [SFVec3f, [0, 0, 0], inputOutput],
-						coord => [SFNode, NULL, inputOutput],
-						displacers => [MFNode,[],inputOutput],
-						mass => [SFFloat, 0, inputOutput],
-						momentsOfInertia =>[MFFloat, [0, 0, 0, 0, 0, 0, 0, 0, 0],inputOutput],
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			name => [SFString, "", inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			centerOfMass => [SFVec3f, [0, 0, 0], inputOutput],
+			coord => [SFNode, NULL, inputOutput],
+			displacers => [MFNode,[],inputOutput],
+			mass => [SFFloat, 0, inputOutput],
+			momentsOfInertia =>[MFFloat, [0, 0, 0, 0, 0, 0, 0, 0, 0],inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DChildNode"),
 
 
 
 	HAnimSite => new VRML::NodeType("HAnimSite", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						name => [SFString, "", inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
-						center => [SFVec3f, [0, 0, 0], inputOutput],
-						children => [MFNode, [], inputOutput],
-						rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						scale => [SFVec3f, [1, 1, 1], inputOutput],
-						scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
-						translation => [SFVec3f, [0, 0, 0], inputOutput],
-						metadata => [SFNode, NULL, inputOutput],
-						__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			name => [SFString, "", inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			center => [SFVec3f, [0, 0, 0], inputOutput],
+			children => [MFNode, [], inputOutput],
+			rotation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			scale => [SFVec3f, [1, 1, 1], inputOutput],
+			scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput],
+			translation => [SFVec3f, [0, 0, 0], inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
-						 # fields for reducing redundant calls
-						 __do_center => [SFInt32, 0, initializeOnly],
-						 __do_trans => [SFInt32, 0, initializeOnly],
-						 __do_rotation => [SFInt32, 0, initializeOnly],
-						 __do_scaleO => [SFInt32, 0, initializeOnly],
-						 __do_scale => [SFInt32, 0, initializeOnly],
+			 # fields for reducing redundant calls
+			 __do_center => [SFInt32, 0, initializeOnly],
+			 __do_trans => [SFInt32, 0, initializeOnly],
+			 __do_rotation => [SFInt32, 0, initializeOnly],
+			 __do_scaleO => [SFInt32, 0, initializeOnly],
+			 __do_scale => [SFInt32, 0, initializeOnly],
 					},"X3DGroupingNode"),
 
 
@@ -1723,49 +1882,59 @@ package VRML::NodeType;
 	###################################################################################
 
 	Contour2D => new VRML::NodeType("Contour2D", {
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"),
 
 
 	ContourPolyLine2D =>
 	new VRML::NodeType("ContourPolyline2D",
 					{
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
 					),
 
 	NurbsCurve =>
 	new VRML::NodeType("NurbsCurve",
 					{
-						controlPoint =>[MFVec3f,[],inputOutput],
-						weight => [MFFloat,[],inputOutput],
-						tessellation => [SFInt32,0,inputOutput],
-						knot => [MFFloat,[],initializeOnly],
-						order => [SFInt32,3,initializeOnly],
+			controlPoint =>[MFVec3f,[],inputOutput],
+			weight => [MFFloat,[],inputOutput],
+			tessellation => [SFInt32,0,inputOutput],
+			knot => [MFFloat,[],initializeOnly],
+			order => [SFInt32,3,initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
 					),
 
 	NurbsCurve2D =>
 	new VRML::NodeType("NurbsCurve2D",
 					{
-						controlPoint =>[MFVec2f,[],inputOutput],
-						weight => [MFFloat,[],inputOutput],
-						tessellation => [SFInt32,0,inputOutput],
-						knot => [MFFloat,[],initializeOnly],
-						order => [SFInt32,3,initializeOnly],
+			controlPoint =>[MFVec2f,[],inputOutput],
+			weight => [MFFloat,[],inputOutput],
+			tessellation => [SFInt32,0,inputOutput],
+			knot => [MFFloat,[],initializeOnly],
+			order => [SFInt32,3,initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
 					),
 
 	NurbsGroup =>
 	new VRML::NodeType("NurbsGroup",
 					{
-						addChildren => [MFNode, undef, inputOnly],
-						removeChildren => [MFNode, undef, inputOnly],
-						children => [MFNode, [], inputOutput],
-						tessellationScale => [SFFloat,1.0,inputOutput],
-						bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
-						bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			addChildren => [MFNode, undef, inputOnly],
+			removeChildren => [MFNode, undef, inputOnly],
+			children => [MFNode, [], inputOutput],
+			tessellationScale => [SFFloat,1.0,inputOutput],
+			bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly],
+			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DGroupingNode"
 					),
 
@@ -1773,39 +1942,47 @@ package VRML::NodeType;
 	new VRML::NodeType("NurbsPositionInterpolator",
 					{
 
-						set_fraction => [SFFloat,undef,inputOnly],
-						dimension => [SFInt32,0,inputOutput],
-						keyValue => [MFVec3f,[],inputOutput],
-						keyWeight => [MFFloat,[],inputOutput],
-						knot => [MFFloat,[],inputOutput],
-						order => [SFInt32,0,inputOutput],
-						value_changed => [SFVec3f,[0,0,0],outputOnly],
+			set_fraction => [SFFloat,undef,inputOnly],
+			dimension => [SFInt32,0,inputOutput],
+			keyValue => [MFVec3f,[],inputOutput],
+			keyWeight => [MFFloat,[],inputOutput],
+			knot => [MFFloat,[],inputOutput],
+			order => [SFInt32,0,inputOutput],
+			value_changed => [SFVec3f,[0,0,0],outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DInterpolatorNode"
 					),
 
 	NurbsSurface =>
 	new VRML::NodeType("NurbsSurface",
 					{
-						controlPoint =>[MFVec3f,[],inputOutput],
-						texCoord => [SFNode, NULL, inputOutput],
-						uTessellation => [SFInt32,0,inputOutput],
-						vTessellation => [SFInt32,0,inputOutput],
-						weight => [MFFloat,[],inputOutput],
-						ccw => [SFBool, FALSE,initializeOnly],
+			controlPoint =>[MFVec3f,[],inputOutput],
+			texCoord => [SFNode, NULL, inputOutput],
+			uTessellation => [SFInt32,0,inputOutput],
+			vTessellation => [SFInt32,0,inputOutput],
+			weight => [MFFloat,[],inputOutput],
+			ccw => [SFBool, FALSE,initializeOnly],
 
-						knot => [MFFloat,[],initializeOnly],
-						order => [SFInt32,3,initializeOnly],
+			knot => [MFFloat,[],initializeOnly],
+			order => [SFInt32,3,initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
 					),
 	NurbsTextureSurface =>
 	new VRML::NodeType("NurbsTextureSurface",
 					{
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
 					),
 
 	NurbsTrimmedSurface =>
 	new VRML::NodeType("NurbsTrimmedSurface",
 					{
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 					},"X3DParametricGeometryNode"
 					),
 
@@ -1818,12 +1995,14 @@ package VRML::NodeType;
 	Script =>
 	new VRML::NodeType("Script",
 					   {
-						url => [MFString, [], inputOutput],
-						directOutput => [SFBool, FALSE, initializeOnly],
-						mustEvaluate => [SFBool, FALSE, initializeOnly],
-						 __scriptObj => [FreeWRLPTR, 0, initializeOnly],
-						 _X3DScript => [SFInt32, -1, initializeOnly],
-						__parenturl =>[SFString,"",initializeOnly],
+			url => [MFString, [], inputOutput],
+			directOutput => [SFBool, FALSE, initializeOnly],
+			mustEvaluate => [SFBool, FALSE, initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+			 __scriptObj => [FreeWRLPTR, 0, initializeOnly],
+			 _X3DScript => [SFInt32, -1, initializeOnly],
+			__parenturl =>[SFString,"",initializeOnly],
 					   },"X3DScriptNode"
 					  ),
 
@@ -1839,6 +2018,8 @@ package VRML::NodeType;
 			inputFalse => [SFBool, FALSE, outputOnly],
 			inputNegate => [SFBool, FALSE, outputOnly],
 			inputTrue => [SFBool, TRUE, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DChildNode"),
 
 
@@ -1850,6 +2031,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFBool, [], inputOutput],
 			value_changed => [SFBool, FALSE, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DSequencerNode"),
 
 
@@ -1857,6 +2040,8 @@ package VRML::NodeType;
 	new VRML::NodeType("BooleanToggle", {
 			set_boolean =>[SFBool,undef,inputOnly],
 			toggle => [SFBool, FALSE, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DChildNode"),
 
 
@@ -1864,6 +2049,8 @@ package VRML::NodeType;
 	new VRML::NodeType("BooleanTrigger", {
 			set_triggerTime => [SFTime,undef ,inputOnly],
 			triggerTrue => [SFBool, FALSE, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DTriggerNode"),
 
 
@@ -1875,6 +2062,8 @@ package VRML::NodeType;
 			key => [MFFloat, [], inputOutput],
 			keyValue => [MFInt32, [], inputOutput],
 			value_changed => [SFInt32, 0, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DSequencerNode"),
 
 	IntegerTrigger => 
@@ -1882,12 +2071,16 @@ package VRML::NodeType;
 			set_triggerTime => [SFTime,undef ,inputOnly],
 			integerKey => [SFInt32, 0, inputOutput],
 			triggerValue => [SFInt32, 0, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DTriggerNode"),
 
 	TimeTrigger => 
 	new VRML::NodeType("TimeTrigger", {
 			set_boolean =>[SFBool,undef,inputOnly],
 			triggerTime => [SFTime, 0, outputOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DTriggerNode"),
 
 
@@ -1899,31 +2092,35 @@ package VRML::NodeType;
 
 	ComposedShader => new VRML::NodeType("ComposedShader", {
 			activate =>[SFBool,undef,inputOnly],
-			metadata => [SFNode, NULL, inputOutput],
 			parts => [MFNode,[],inputOutput],
 			isSelected => [SFBool, TRUE,outputOnly],
 			isValid => [SFBool, TRUE,outputOnly],
 			language => [SFString, "", initializeOnly],
 			__shaderIDS => [MFNode, [], initializeOnly], 
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	},"X3DShaderNode"),
 
 	FloatVertexAttribute => new VRML::NodeType("FloatVertexAttribute", {
-			metadata => [SFNode, NULL, inputOutput],
 			value => [MFFloat,[],inputOutput],
 			name => [SFString,"",initializeOnly],
 			numComponents => [SFInt32, 4, initializeOnly], # 1...4 valid values
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DVertexAttributeNode"),
 
 	Matrix3VertexAttribute => new VRML::NodeType("Matrix3VertexAttribute", {
-			metadata => [SFNode, NULL, inputOutput],
 			value => [MFMatrix3f,[],inputOutput],
 			name => [SFString,"",initializeOnly],
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DVertexAttributeNode"),
 
 	Matrix4VertexAttribute => new VRML::NodeType("Matrix4VertexAttribute", {
 			metadata => [SFNode, NULL, inputOutput],
 			value => [MFMatrix4f,[],inputOutput],
 			name => [SFString,"",initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DVertexAttributeNode"),
 
 	PackagedShader => new VRML::NodeType("PackagedShader", {
@@ -1933,6 +2130,7 @@ package VRML::NodeType;
 			isSelected => [SFBool, TRUE,outputOnly],
 			isValid => [SFBool, TRUE,outputOnly],
 			language => [SFString,"",initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 	}, "X3DProgrammableShaderObject"),
 
 	ProgramShader => new VRML::NodeType("ProgramShader", {
@@ -1942,6 +2140,7 @@ package VRML::NodeType;
 			isSelected => [SFBool, TRUE,outputOnly],
 			isValid => [SFBool, TRUE,outputOnly],
 			language => [SFString,"",initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			__shaderIDS => [MFNode, [], initializeOnly], 
 	}, "X3DProgrammableShaderObject"),
 
@@ -1949,6 +2148,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput],
 			url => [MFString, [], inputOutput],
 			type => [SFString,"VERTEX",initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			__parenturl =>[SFString,"",initializeOnly],
 	}, "X3DUrlObject"),
 
@@ -1956,10 +2156,57 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput],
 			url => [MFString, [], inputOutput],
 			type => [SFString,"",initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 			__parenturl =>[SFString,"",initializeOnly],
 	}, "X3DUrlObject"),
 
 
+	###################################################################################
+
+	# Metadata nodes ...
+
+	###################################################################################
+
+	MetadataInteger => new VRML::NodeType("MetadataInteger", {
+			metadata => [SFNode, NULL, inputOutput],
+			name => [SFString,"",initializeOnly],
+			reference => [SFString,"",initializeOnly],
+			value => [MFInt32,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+	
+	MetadataDouble => new VRML::NodeType("MetadataDouble", {
+			metadata => [SFNode, NULL, inputOutput],
+			name => [SFString,"",initializeOnly],
+			reference => [SFString,"",initializeOnly],
+			value => [MFDouble,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+	
+	MetadataFloat => new VRML::NodeType("MetadataFloat", {
+			metadata => [SFNode, NULL, inputOutput],
+			name => [SFString,"",initializeOnly],
+			reference => [SFString,"",initializeOnly],
+			value => [MFFloat,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+	
+	MetadataString => new VRML::NodeType("MetadataString", {
+			metadata => [SFNode, NULL, inputOutput],
+			name => [SFString,"",initializeOnly],
+			reference => [SFString,"",initializeOnly],
+			value => [MFString,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+	
+	MetadataSet => new VRML::NodeType("MetadataSet", {
+			metadata => [SFNode, NULL, inputOutput],
+			name => [SFString,"",initializeOnly],
+			reference => [SFString,"",initializeOnly],
+			value => [MFNode,[],initializeOnly],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
+	}, "X3DChildNode"),
+	
 
 	###################################################################################
 
@@ -1970,50 +2217,52 @@ package VRML::NodeType;
 	MidiControl =>
 	new VRML::NodeType("MidiControl",
 					{
-						deviceName => [SFString,"",inputOutput],	# "Subtractor 1"
-						channel => [SFInt32,-1,inputOutput],		# channel in range 0-16, on MIDI bus
-						controller => [SFString,"",inputOutput],	# "Osc1 Wave"
-						_deviceNameIndex => [SFInt32, -99, initializeOnly],	#  name in name table index
-						_controllerIndex => [SFInt32, -99, initializeOnly],		#  name in name table index
+			deviceName => [SFString,"",inputOutput],	# "Subtractor 1"
+			channel => [SFInt32,-1,inputOutput],		# channel in range 0-16, on MIDI bus
+			controller => [SFString,"",inputOutput],	# "Osc1 Wave"
+			_deviceNameIndex => [SFInt32, -99, initializeOnly],	#  name in name table index
+			_controllerIndex => [SFInt32, -99, initializeOnly],		#  name in name table index
 
 
-						# encoded bus,channel,controller
-						_bus => [SFInt32,-99,initializeOnly],			# internal for efficiency
-						_channel => [SFInt32,-99,initializeOnly],			# internal for efficiency
-						_controller => [SFInt32,-99,initializeOnly],		# internal for efficiency
+			# encoded bus,channel,controller
+			_bus => [SFInt32,-99,initializeOnly],			# internal for efficiency
+			_channel => [SFInt32,-99,initializeOnly],			# internal for efficiency
+			_controller => [SFInt32,-99,initializeOnly],		# internal for efficiency
 
-						deviceMinVal => [SFInt32, 0, initializeOnly],		# what the device sets
-						deviceMaxVal => [SFInt32, 0, initializeOnly],		# what the device sets
+			deviceMinVal => [SFInt32, 0, initializeOnly],		# what the device sets
+			deviceMaxVal => [SFInt32, 0, initializeOnly],		# what the device sets
 
-						velocity => [SFInt32, 100, inputOutput],	# velocity field for buttonPress
-												# controller types.
-						_vel => [SFInt32, 100, initializeOnly],			# internal copy of velocity
-						_sentVel => [SFInt32, 100, initializeOnly],		# send this velocity - if <0, noteOff
+			velocity => [SFInt32, 100, inputOutput],	# velocity field for buttonPress
+									# controller types.
+			_vel => [SFInt32, 100, initializeOnly],			# internal copy of velocity
+			_sentVel => [SFInt32, 100, initializeOnly],		# send this velocity - if <0, noteOff
 
-						minVal => [SFInt32, 0, inputOutput],		# used to scale floats, and 
-						maxVal => [SFInt32, 10000, inputOutput],	# bounds check ints. The resulting
-												# value will be <= maxVal <= deviceMaxVal
-												# and >=minVal >= deviceMinVal
+			minVal => [SFInt32, 0, inputOutput],		# used to scale floats, and 
+			maxVal => [SFInt32, 10000, inputOutput],	# bounds check ints. The resulting
+									# value will be <= maxVal <= deviceMaxVal
+									# and >=minVal >= deviceMinVal
 
-						intValue => [SFInt32, 0, inputOutput],		# integer value for i/o
-						_oldintValue => [SFInt32, 0, initializeOnly],		# old integer value for i/o
-						floatValue => [SFFloat, 0, inputOutput],	# float value for i/o
-						useIntValue => [SFBool, TRUE, inputOutput],	# which value to use for input
+			intValue => [SFInt32, 0, inputOutput],		# integer value for i/o
+			_oldintValue => [SFInt32, 0, initializeOnly],		# old integer value for i/o
+			floatValue => [SFFloat, 0, inputOutput],	# float value for i/o
+			useIntValue => [SFBool, TRUE, inputOutput],	# which value to use for input
 
-						highResolution => [SFBool, TRUE, inputOutput],	# high resolution controller
-						controllerType => [SFString, "Slider", inputOutput],	# "Slider" "ButtonPress"
-						_intControllerType => [SFInt32,999, initializeOnly], 	# use ReWire definitions
-						controllerPresent => [SFBool, FALSE, inputOutput],	# TRUE when ReWire is working
+			highResolution => [SFBool, TRUE, inputOutput],	# high resolution controller
+			controllerType => [SFString, "Slider", inputOutput],	# "Slider" "ButtonPress"
+			_intControllerType => [SFInt32,999, initializeOnly], 	# use ReWire definitions
+			controllerPresent => [SFBool, FALSE, inputOutput],	# TRUE when ReWire is working
 
-						buttonPress => [SFBool,FALSE,inputOutput],	# is the key pressed when in "ButtonPress" mode?"
-						_butPr => [SFBool,FALSE,inputOutput],		# used to determine toggle state for buttonPress
+			buttonPress => [SFBool,FALSE,inputOutput],	# is the key pressed when in "ButtonPress" mode?"
+			_butPr => [SFBool,FALSE,inputOutput],		# used to determine toggle state for buttonPress
 
-						autoButtonPress => [SFBool,TRUE,inputOutput],# send a NoteOn when the int/float 
-												# value changes. if False, send only
-												# when buttonPressed happens.
-						pressLength => [SFFloat, 0.05, inputOutput],	# time before noteOff in AutoButtonPress mode.
-						pressTime => [SFTime, 0, inputOutput],		# when the press went in
+			autoButtonPress => [SFBool,TRUE,inputOutput],# send a NoteOn when the int/float 
+									# value changes. if False, send only
+									# when buttonPressed happens.
+			pressLength => [SFFloat, 0.05, inputOutput],	# time before noteOff in AutoButtonPress mode.
+			pressTime => [SFTime, 0, inputOutput],		# when the press went in
 
+			metadata => [SFNode, NULL, inputOutput],
+			__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
 					}, "X3DNetworkSensorNode"
 					),

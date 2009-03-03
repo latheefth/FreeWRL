@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.232  2009/03/03 16:59:14  crc_canada
+# Metadata fields now verified to be in every X3D node.
+#
 # Revision 1.231  2009/01/29 16:01:21  crc_canada
 # more node definitions.
 #
@@ -299,6 +302,12 @@
 	ProgramShader		=>material,
 	ShaderPart		=>children,
 	ShaderProgram		=>children,
+
+	MetadataSet		=>metadata,
+	MetadataInteger		=>value,
+	MetadataDouble		=>value,
+	MetadataFloat		=>value,
+	MetadataString		=>value,
 );
 
 #######################################################################

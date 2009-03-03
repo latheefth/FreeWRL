@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.310  2009/03/03 16:59:14  crc_canada
+# Metadata fields now verified to be in every X3D node.
+#
 # Revision 1.309  2009/02/02 16:25:55  crc_canada
 # add mode defines
 #
@@ -436,10 +439,19 @@ sub gen {
  		#foreach my $field (keys %{$VRML::Nodes{$_}{FieldKinds}}) {print "field2 $field ". $VRML::Nodes{$_}{Fields}."\n";}
 
 		# capture all fields.
+		# also check for metadata here
+		my $mdf = 0;
+		my $omdf = 0;
  		foreach my $field (keys %{$VRML::Nodes{$_}{FieldTypes}}) {
 			$totalfields{$field} = "recorded";
+			if ($field eq "metadata") {$mdf = $mdf + 1;}
+			if ($field eq "__oldmetadata") {$omdf = $omdf + 1;}
 			#print "field2 $field\n"
 		};
+
+		# do we have a metadata here?
+		if ($mdf ne 1 ) {print "node $_ metadata $mdf\n"; }
+		if ($omdf ne 1 ) {print "node $_ __metadata $omdf\n"; }
 
 		# now, tell what kind of field it is. Hopefully, all fields will
 		# have  a valid fieldtype, if not, there is an error somewhere.
@@ -855,6 +867,7 @@ sub gen {
 	"#define X3D_PROXIMITYSENSOR(node) ((struct X3D_ProximitySensor*)node)\n".
 
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
+	"#define X3D_GEOLOD(node) ((struct X3D_GeoLOD*)node)\n".
 	"#define X3D_GEOCOORD(node) ((struct X3D_GeoCoordinate*)node)\n".
 	"#define X3D_GEOVIEWPOINT(node) ((struct X3D_GeoViewpoint*)node)\n".
 	"#define X3D_GEOELEVATIONGRID(node) ((struct X3D_GeoElevationGrid*)node)\n".
