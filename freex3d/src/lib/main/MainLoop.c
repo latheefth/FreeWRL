@@ -40,6 +40,9 @@ CProto ???
 /* do we want OpenGL errors to be printed to the console?? */
 int displayOpenGLErrors = FALSE;
 
+/* are we doing "strict" parsing, as per FreeX3D, or "loose" parsing, as per FreeWRL? */
+int global_strictParsing = FALSE;
+
 /* are we displayed, or iconic? */
 static int onScreen = TRUE;
 

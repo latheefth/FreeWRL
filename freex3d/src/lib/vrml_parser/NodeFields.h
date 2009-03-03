@@ -921,6 +921,46 @@ FIELD(Matrix4VertexAttribute,name,sfstring,name)
 EXPOSED_FIELD(Matrix4VertexAttribute,metadata,sfnode,metadata)
 END_NODE(Matrix4VertexAttribute)
 
+/* MetadataDouble node */
+BEGIN_NODE(MetadataDouble)
+FIELD(MetadataDouble,reference,sfstring,reference)
+FIELD(MetadataDouble,value,mfdouble,value)
+FIELD(MetadataDouble,name,sfstring,name)
+EXPOSED_FIELD(MetadataDouble,metadata,sfnode,metadata)
+END_NODE(MetadataDouble)
+
+/* MetadataFloat node */
+BEGIN_NODE(MetadataFloat)
+FIELD(MetadataFloat,reference,sfstring,reference)
+FIELD(MetadataFloat,value,mffloat,value)
+FIELD(MetadataFloat,name,sfstring,name)
+EXPOSED_FIELD(MetadataFloat,metadata,sfnode,metadata)
+END_NODE(MetadataFloat)
+
+/* MetadataInteger node */
+BEGIN_NODE(MetadataInteger)
+FIELD(MetadataInteger,reference,sfstring,reference)
+FIELD(MetadataInteger,value,mfint32,value)
+FIELD(MetadataInteger,name,sfstring,name)
+EXPOSED_FIELD(MetadataInteger,metadata,sfnode,metadata)
+END_NODE(MetadataInteger)
+
+/* MetadataSet node */
+BEGIN_NODE(MetadataSet)
+FIELD(MetadataSet,reference,sfstring,reference)
+FIELD(MetadataSet,value,mfnode,value)
+FIELD(MetadataSet,name,sfstring,name)
+EXPOSED_FIELD(MetadataSet,metadata,sfnode,metadata)
+END_NODE(MetadataSet)
+
+/* MetadataString node */
+BEGIN_NODE(MetadataString)
+FIELD(MetadataString,reference,sfstring,reference)
+FIELD(MetadataString,value,mfstring,value)
+FIELD(MetadataString,name,sfstring,name)
+EXPOSED_FIELD(MetadataString,metadata,sfnode,metadata)
+END_NODE(MetadataString)
+
 /* MidiControl node */
 BEGIN_NODE(MidiControl)
 EXPOSED_FIELD(MidiControl,channel,sfint32,channel)

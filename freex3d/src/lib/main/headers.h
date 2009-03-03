@@ -614,6 +614,10 @@ extern float global_transparency;
 extern GLint global_texSize;
 
 
+/* are we doing strict parsing, or letting warnings go? */
+extern int global_strictParsing;
+
+
 /* Text node system fonts. On startup, freewrl checks to see where the fonts
  * are stored
  */
@@ -1222,12 +1226,17 @@ void compile_ProgramShader (struct X3D_ProgramShader *);
 #ifdef GL_VERSION_2_0
 	#define TURN_APPEARANCE_SHADER_OFF \
 		{extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}
+	#define TURN_FILLPROPERTIES_SHADER_OFF \
+		{if (fillpropCurrentShader!=0) { glUseProgram(0);}}
 #else
 	#ifdef GL_VERSION_1_5
 		#define TURN_APPEARANCE_SHADER_OFF \
 			{extern GLuint globalCurrentShader; if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgramObjectARB(0);}}
+		#define TURN_FILLPROPERTIES_SHADER_OFF \
+			{if (fillpropCurrentShader!=0) { fillpropCurrentShader = 0; glUseProgramObjectARB(0);}}
 	#else
 		#define TURN_APPEARANCE_SHADER_OFF
+		#define TURN_FILLPROPERTIES_SHADER_OFF
 	#endif
 #endif
 
