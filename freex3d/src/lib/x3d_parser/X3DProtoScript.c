@@ -887,6 +887,9 @@ void parseScriptProtoField(const char **atts) {
 	union anyVrml value;
 	int myAccessType;
 
+	#ifdef X3DPARSERVERBOSE
+	printf ("start of parseScriptProtoField\n");
+	#endif
 
 	/* configure internal variables, and check sanity for top of stack This should be a Script node */
 	if (parserMode == PARSING_SCRIPT) {
@@ -915,7 +918,7 @@ void parseScriptProtoField(const char **atts) {
 	for (i = 0; atts[i]; i += 2) {
 		#ifdef X3DPARSERVERBOSE
 		TTY_SPACE
-		printf ("parseScriptProtoField, looking at %s=\"%s\"\n",atts[i],atts[i+1]);
+		printf ("parseScriptProtoField, field %d, looking at %s=\"%s\"\n",i,atts[i],atts[i+1]);
 		#endif
 
 		/* skip any "appinfo" field here */
@@ -939,6 +942,7 @@ void parseScriptProtoField(const char **atts) {
 	}
 
 	#ifdef X3DPARSERVERBOSE
+	printf ("ok, fields copied over\n");
 	printf ("myparams:\n	%d\n	%d\n	%d	%d\n",myparams[MP_NAME],myparams[MP_ACCESSTYPE],myparams[MP_TYPE], myparams[MP_VALUE]);
 	#endif
 

@@ -65,6 +65,8 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"setDescription", VrmlBrowserSetDescription, 0},
 	{"createVrmlFromString", VrmlBrowserCreateVrmlFromString, 0},
 	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL, 0},
+	{"createX3DFromString", VrmlBrowserCreateVrmlFromString, 0},
+	{"createX3DFromURL", VrmlBrowserCreateVrmlFromURL, 0},
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
 	{"print", VrmlBrowserPrint, 0},
