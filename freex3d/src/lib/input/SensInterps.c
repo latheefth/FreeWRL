@@ -23,6 +23,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "../scenegraph/LinearAlgebra.h"
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
+#include "../scenegraph/sounds.h"
 
 #include "SensInterps.h"
 
