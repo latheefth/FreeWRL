@@ -597,10 +597,11 @@ BEGIN_NODE(Group)
 EXPOSED_FIELD(Group,children,mfnode,children)
 FIELD(Group,FreeWRL__protoDef,sfint32,FreeWRL__protoDef)
 EVENT_IN(Group,addChildren,mfnode,addChildren)
+EXPOSED_FIELD(Group,FreeWRL_PROTOInterfaceNodes,mfnode,FreeWRL_PROTOInterfaceNodes)
 FIELD(Group,bboxCenter,sfvec3f,bboxCenter)
 EXPOSED_FIELD(Group,metadata,sfnode,metadata)
-EVENT_IN(Group,removeChildren,mfnode,removeChildren)
 FIELD(Group,bboxSize,sfvec3f,bboxSize)
+EVENT_IN(Group,removeChildren,mfnode,removeChildren)
 END_NODE(Group)
 
 /* HAnimDisplacer node */

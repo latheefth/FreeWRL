@@ -137,6 +137,7 @@ package VRML::NodeType;
 		metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 		FreeWRL__protoDef => [SFInt32, 0, initializeOnly], # tell renderer that this is a proto...
+		FreeWRL_PROTOInterfaceNodes =>[MFNode, [], inputOutput],
 	},"X3DGroupingNode"),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {
