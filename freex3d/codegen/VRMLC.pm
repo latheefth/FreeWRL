@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.4  2009/03/13 20:07:16  crc_canada
+# More PROTO work in classic parser.
+#
 # Revision 1.3  2009/03/10 21:00:34  crc_canada
 # checking in some ongoing PROTO support work in the Classic parser.
 #
@@ -459,10 +462,6 @@ sub gen {
 			if ($field eq "__oldmetadata") {$omdf = $omdf + 1;}
 			#print "field2 $field\n"
 		};
-
-		# do we have a metadata here?
-		if ($mdf ne 1 ) {print "node $_ metadata $mdf\n"; }
-		if ($omdf ne 1 ) {print "node $_ __metadata $omdf\n"; }
 
 		# now, tell what kind of field it is. Hopefully, all fields will
 		# have  a valid fieldtype, if not, there is an error somewhere.
