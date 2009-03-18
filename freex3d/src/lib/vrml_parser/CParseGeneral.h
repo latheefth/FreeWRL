@@ -47,16 +47,7 @@ union anyVrml
 };
 
 #define parseError(msg) \
- (ConsoleMessage("Parse error:  " msg "\n"), fprintf(stderr, msg "\n")) \
-
-#define CPARSE_ERROR_CURID(str) \
-		strcpy (fw_outline,str); \
-		strcat (fw_outline,"expected colon in COMPONENT statement, found \""); \
-		if (me->lexer->curID != ((void *)0)) strcat (fw_outline, me->lexer->curID); \
-		else strcat (fw_outline, "(EOF)"); \
-		strcat (fw_outline,"\" "); \
-		ConsoleMessage(fw_outline); \
-		fprintf (stderr,"%s\n",fw_outline);
+ (ConsoleMessage("Parse error:  " msg "\n")) \
 
 /* tie assert in here to give better failure methodology */
 /* #define ASSERT(cond) if(!(cond)){fw_assert(__FILE__,__LINE__);} */

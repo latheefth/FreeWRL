@@ -169,4 +169,12 @@ void getEquivPointer(struct OffsetPointer* origPointer, struct OffsetPointer* re
 */
 
 
+void cParseErrorCurID(struct VRMLParser *me, char *str);
+void cParseErrorFieldString(struct VRMLParser *me, char *str1, const char *str2);
+
+#define CPARSE_ERROR_CURID(str) cParseErrorCurID(me, str);
+#define CPARSE_ERROR_FIELDSTRING(str1,str2) cParseErrorFieldString(me, str1, str2);
+
+
+
 #endif /* __FREEWRL_CPARSE_PARSER_H__ */
