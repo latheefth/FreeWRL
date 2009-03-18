@@ -31,13 +31,13 @@ Scenegraph rendering.
 int curlight = 0;
 int nlightcodes = 7;
 int lightcode[7] = {
+	GL_LIGHT0,
 	GL_LIGHT1,
 	GL_LIGHT2,
 	GL_LIGHT3,
 	GL_LIGHT4,
 	GL_LIGHT5,
 	GL_LIGHT6,
-	GL_LIGHT7,
 };
 int nextlight() {
 	if(curlight == nlightcodes) { return -1; }

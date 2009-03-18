@@ -47,7 +47,8 @@ char *readInputString(char *fn);
                         return; \
                 } \
 
-
+/* which GL_LIGHT is the headlight? */
+#define HEADLIGHT_LIGHT 7
 
 
 #undef DEBUG_JAVASCRIPT_PROPERTY
