@@ -647,7 +647,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	if (fromTo != 0) {
 		strcpy (mychar,"set_");
 		strncat (mychar, field,100);
-		retval=findFieldInARR(mychar+strlen("set_"), arr, cnt);
+		retval=findFieldInARR(mychar, arr, cnt);
 	} else {
 		strncpy (mychar, field, 100);
 		strcat (mychar,"_changed");
