@@ -979,7 +979,8 @@ static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *lex, struct ProtoDef
 			thisProto,
 			protoFieldDecl_getStringName(lex,pdecl),
 			stringFieldtypeType(pdecl->type)); \
-		writtenlen += fprintf (pexfile, "\t\tvalue %s\n",pdecl->fieldString); \
+		if (pdecl->fieldString != NULL) \
+			writtenlen += fprintf (pexfile, "\t\tvalue %s\n",pdecl->fieldString); \
 		writtenlen += fprintf (pexfile, "\t}\n"); \
 	}
 	return writtenlen;
@@ -1286,6 +1287,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#define	CLOSE_PROTO_EXPAND_FILE {fclose (pexfile); fclose (routefile);}
 
 	#define UNLINK_PROTO_EXPAND_FILE {unlink (tempname); unlink (tempRoutename);}
+#define CPROTOVERBOSE
 
 	#ifdef CPROTOVERBOSE
 	printf ("start of protoExpand me %u me->lexer %u\n",me, me->lexer);
@@ -1507,7 +1509,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	#ifdef CPROTOVERBOSE
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
-	printf ("so, newProtoText \n%s\n",newProtoText);
+#undef CPROTOVERBOSE
 
 	return newProtoText;
 }
