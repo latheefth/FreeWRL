@@ -1560,6 +1560,7 @@ printf ("mallocing newProtoText, size %d\n",curstringlen + routeSize + strlen(EN
 	printf ("so, newProtoText \n%s\n",newProtoText);
 	#endif
 
+	printf ("so, newProtoText \n%s\n",newProtoText);
 	return newProtoText;
 }
 

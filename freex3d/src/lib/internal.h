@@ -38,7 +38,7 @@
 # define REALLOC(_a,_b) freewrlRealloc(__LINE__,__FILE__,_a,_b) 
 # define FREE(_ptr) freewrlFree(__LINE__,__FILE__,_ptr)
 # define STRDUP(_a) freewrlStrdup(__LINE__,__FILE__,_a)
-
+#include <stdlib.h>
 void *freewrlMalloc(int line, char *file, size_t sz);
 void *freewrlRealloc(int line, char *file, void *ptr, size_t size);
 void freewrlFree(int line, char *file, void *a);
