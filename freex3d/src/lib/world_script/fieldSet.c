@@ -63,6 +63,7 @@ static uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 		case FIELDTYPE_MFVec3f:
 		case FIELDTYPE_MFColorRGBA:
 		case FIELDTYPE_MFColor:
+		case FIELDTYPE_MFString:
 		case FIELDTYPE_MFVec2f:
 			mp = (struct Multi_Vec3f*) memptr;
 			/* printf ("Multi_Struct_memptr, have multi thing, have %d elements, pointer %u\n",mp->n, mp->p); */
