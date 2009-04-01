@@ -245,8 +245,8 @@ quaternion_inverse(Quaternion *ret, const Quaternion *quat)
 
 	/* unit quaternion, so take conjugate */
 	quaternion_normalize(ret);
- 	/* printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n",*/
- 	/* 	   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z);*/
+ 	/* printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n",
+ 	 	   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z); */
 }
 
 double

@@ -99,12 +99,23 @@ typedef struct viewer_walk {
 
 
 typedef struct viewer_examine {
+        struct point_XYZ Origin;
+	struct point_XYZ bindPoint;
+        Quaternion OQuat;
+        Quaternion SQuat;
+        double ODist;
+        double SY;
+} X3D_Viewer_Examine;
+
+#ifdef OLDCODE
+typedef struct viewer_examine {
 	struct point_XYZ Origin;
 	Quaternion OQuat;
 	Quaternion SQuat;
 	double ODist;
 	double SY;
 } X3D_Viewer_Examine;
+#endif
 
 typedef struct key {
 	char key;
