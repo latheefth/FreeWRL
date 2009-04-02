@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.5  2009/04/02 18:48:28  crc_canada
+# PROTO Routing for MFNodes.
+#
 # Revision 1.4  2009/03/13 20:07:16  crc_canada
 # More PROTO work in classic parser.
 #
@@ -934,7 +937,7 @@ sub gen {
 	"	node = (struct X3D_Box *) tmp;\n".
 	"	node->_renderFlags = 0; /*sensitive, etc */\n".
 	"	node->_hit = 0;\n".
-	"	node->_change = 153; \n".
+	"	node->_change = NODE_CHANGE_INIT_VAL; \n".
 	"	node->_dlist = 0;\n".
 	"	node->_parents = 0;\n".
 	"	node->_nparents = 0;\n".
