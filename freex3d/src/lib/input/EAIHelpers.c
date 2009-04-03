@@ -541,7 +541,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	if (eaiverbose) printf ("EAI_GetType, for field %s, myField is %d\n",fieldString,myField);
 
 	/* find offsets, etc */
-       	findFieldInOFFSETS((int *)NODE_OFFSETS[nodePtr->_nodeType], myField, &myFieldOffs, &ctype, accessType);
+       	findFieldInOFFSETS(nodePtr->_nodeType, myField, &myFieldOffs, &ctype, accessType);
 
 	if (eaiverbose) {
 		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %d\n",nodePtr);

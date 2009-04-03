@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.6  2009/04/03 18:21:57  crc_canada
+# PROTO handling of Multi_ types
+#
 # Revision 1.5  2009/04/02 18:48:28  crc_canada
 # PROTO Routing for MFNodes.
 #
@@ -248,7 +251,6 @@ my $interalNodeCommonFields =
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _hit; \n"                   	.
                "       int _change; \n"                	.
-               "       GLuint _dlist; \n"              	.
 	       "       void **_parents; \n"	  	.
 	       "       int _nparents; \n"		.
 	       "       int _nparalloc; \n"		.
@@ -938,7 +940,6 @@ sub gen {
 	"	node->_renderFlags = 0; /*sensitive, etc */\n".
 	"	node->_hit = 0;\n".
 	"	node->_change = NODE_CHANGE_INIT_VAL; \n".
-	"	node->_dlist = 0;\n".
 	"	node->_parents = 0;\n".
 	"	node->_nparents = 0;\n".
 	"	node->_nparalloc = 0;\n".

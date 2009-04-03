@@ -326,6 +326,7 @@ void EAI_parse_commands () {
 				/* we actually let the end of eventloop code determine whether this is an add or
 				   remove, or whatever - it will handle the addChildren and removeChildren well
 				   so the add/remove/replace parameter of getMFNodetype is always 1 here */
+
 				getMFNodetype (dtmp,(struct Multi_Node *)address, node, 1);
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
@@ -891,7 +892,10 @@ void EAI_RW(char *str) {
 	while (isspace(*str)) str++;
 	while (strlen(str) > 0) {
 		i = sscanf (str, "%u",&newNode);
-		if (i>0) AddRemoveChildren (rootNode,rootNode + offsetof (struct X3D_Group, children),&newNode,1,1);
+
+		if (i>0) {
+			AddRemoveChildren (rootNode,rootNode + offsetof (struct X3D_Group, children),&newNode,1,1);
+		}
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;
 	}
