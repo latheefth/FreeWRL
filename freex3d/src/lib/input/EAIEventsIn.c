@@ -894,7 +894,7 @@ void EAI_RW(char *str) {
 		i = sscanf (str, "%u",&newNode);
 
 		if (i>0) {
-			AddRemoveChildren (rootNode,rootNode + offsetof (struct X3D_Group, children),&newNode,1,1);
+			AddRemoveChildren (rootNode,rootNode + offsetof (struct X3D_Group, children),&newNode,1,1,__FILE__,__LINE__);
 		}
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;

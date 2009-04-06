@@ -911,7 +911,7 @@ void linkNodeIn() {
 			parentStack[parentIndex-1], /* parent */
 			(struct Multi_Node *) memptr,			/* where the children field is */
 			((uintptr_t *) &(parentStack[parentIndex])),	/* this child, 1 node */
-                1, 1);
+                1, 1,__FILE__,__LINE__);
 
 	}
 }

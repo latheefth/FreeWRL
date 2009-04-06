@@ -444,7 +444,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
             if(parser_nodeStatement(me, &node))
             {
                 /* Add the node just parsed to the ROOT node for this scene */
-                AddRemoveChildren(me->ptr, me->ptr+me->ofs, &node, 1, 1);
+                AddRemoveChildren(me->ptr, me->ptr+me->ofs, &node, 1, 1,__FILE__,__LINE__);
 #ifdef CPARSERVERBOSE
                 printf("parser_vrmlScene: node parsed\n");
 #endif
