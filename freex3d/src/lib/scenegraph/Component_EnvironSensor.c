@@ -123,7 +123,7 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	glNormalPointer (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	glDrawArrays (GL_QUADS, 0, 24);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
 }
 
 

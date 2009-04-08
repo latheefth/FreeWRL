@@ -397,7 +397,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	glDisableClientState (GL_NORMAL_ARRAY);
 
 	glVertexPointer (3,GL_FLOAT,0,points);
-	glDrawArrays(GL_POINTS,0,npoints);
+	FW_GL_DRAWARRAYS(GL_POINTS,0,npoints);
 
 	/* put things back to normal */
 	glEnableClientState(GL_NORMAL_ARRAY);

@@ -823,7 +823,7 @@ void render_Background (struct X3D_Background *node) {
 	glEnableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
-	glDrawArrays (GL_QUADS, 0, node->__quadcount);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -891,7 +891,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	glEnableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 
-	glDrawArrays (GL_QUADS, 0, node->__quadcount);
+	FW_GL_DRAWARRAYS (GL_QUADS, 0, node->__quadcount);
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);

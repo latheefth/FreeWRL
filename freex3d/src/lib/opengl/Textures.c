@@ -521,7 +521,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
         		glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
         		glNormalPointer (GL_FLOAT,0,Backnorms);
 
-        		glDrawArrays (GL_QUADS, count*4, 4);
+        		FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
         		textureDraw_end();
 		}
 	}
@@ -559,7 +559,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
         			glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
         			glNormalPointer (GL_FLOAT,0,Backnorms);
 
-        			glDrawArrays (GL_QUADS, count*4, 4);
+        			FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
         			textureDraw_end();
 			} 
 		}
