@@ -1277,10 +1277,10 @@ static int addProtoUpdateRoute (struct VRMLLexer *me, FILE *routefile, char *fie
 
 
 	myPF = getProtoFieldDeclaration (me, thisProto, protoNameInHeader);
-	if (myPF == NULL) return;
+	if (myPF == NULL) return 0;
 
 	/* is this an initializeOnly field, so no possible routing updates? */
-	if (myPF->mode == PKW_initializeOnly) return;
+	if (myPF->mode == PKW_initializeOnly) return 0;
 
 	/* is this one accepting routes into the PROTO? */
 	if ((myPF->mode == PKW_inputOutput) || (myPF->mode == PKW_inputOnly)) {
