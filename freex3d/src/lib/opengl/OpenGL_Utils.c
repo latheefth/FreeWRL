@@ -27,6 +27,7 @@ $Id$
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/sounds.h"
+#include "../scenegraph/LinearAlgebra.h"
 #include "../input/EAIheaders.h"
 
 #include <float.h>
