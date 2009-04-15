@@ -70,10 +70,6 @@ Default value:
 union anyVrml protoFieldDecl_getDefaultValue(fdecl)
 this union contains fields for every specific type, see CParseGeneral.h for exact structure.
 
-Desination pointers:
-size_t protoFieldDecl_getDestinationCount(fdecl)
-struct OffsetPointer* protoFieldDecl_getDestination(fdecl, index)
-
 This struct contains both a node and an ofs field.
 
 ************************************************************************/
@@ -276,9 +272,6 @@ Default value:
 union anyVrml protoFieldDecl_getDefaultValue(fdecl)
 this union contains fields for every specific type, see CParseGeneral.h for exact structure.
 
-Desination pointers:
-size_t protoFieldDecl_getDestinationCount(fdecl)
-struct OffsetPointer* protoFieldDecl_getDestination(fdecl, index)
 */
 
 /*********************************************************************************

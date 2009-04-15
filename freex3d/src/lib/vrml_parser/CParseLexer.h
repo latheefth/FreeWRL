@@ -33,6 +33,9 @@ struct VRMLLexer
  const char* startOfStringPtr; /* beginning address of string, for FREE calls */
  char* curID;	/* Currently input but not lexed id. */
  BOOL isEof;	/* Error because of EOF? */
+
+ int lexerInputLevel; /* which level are we at? used for putting PROTO expansions into the input stream, etc */
+
  Stack* userNodeNames;
  struct Vector* userNodeTypesVec;
  Stack* userNodeTypesStack;
@@ -57,7 +60,7 @@ void lexer_destroyIdStack(Stack*);
 /* Set input */
 #define lexer_fromString(me, str) \
  { /* printf ("lexer_fromString, new string :%s:\n",str); */ \
-	 (me)->isEof=(strlen(str)<=1); FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
+	 if (str!= NULL) (me)->isEof=(str[0]=='\0'); else (me)->isEof=TRUE; FREE_IF_NZ((me)->startOfStringPtr); (me)->startOfStringPtr=str; (me)->nextIn=str;}
 
 /* Is EOF? */
 #define lexer_eof(me) \

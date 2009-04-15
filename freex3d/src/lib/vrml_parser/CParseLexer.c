@@ -63,14 +63,23 @@ const char* EXPOSED_EVENT_OUT_SUF="_changed";
 
 /* Constructor and destructor */
 
+ int lexerInputLevel; /* which level are we at? used for putting PROTO expansions into the input stream, etc */
+
+
 struct VRMLLexer* newLexer()
 {
+ int i;
+
  struct VRMLLexer* ret=MALLOC(sizeof(struct VRMLLexer));
 
  ret->nextIn=NULL;
+/*
+ for (i=0; i<LEXER_INPUT_STACK_MAX; i++) ret->startOfStringPtr[i] = NULL;
+*/
  ret->startOfStringPtr = NULL;
  ret->curID=NULL;
  ret->isEof=TRUE;
+ ret->lexerInputLevel = -1;
  
  /* Init id tables */
  ret->userNodeNames=newStack(struct Vector*);

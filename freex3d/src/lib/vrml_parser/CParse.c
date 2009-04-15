@@ -31,6 +31,10 @@ struct VRMLParser* globalParser = NULL;
 int inWhichParser = 0;
 
 #undef TIMING
+extern double expandTime ;
+extern double insertTime ;
+
+
 BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	struct VRMLParser* parser;
 
@@ -69,6 +73,9 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	gettimeofday (&mytime,&tz);
 	endt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	printf ("time taken %lf\n",endt-startt);
+	printf ("expandTiem %lf\n",expandTime);
+	printf ("insertTiem %lf\n",insertTime);
+
 	#endif
 
  	return TRUE;
