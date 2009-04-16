@@ -66,8 +66,8 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
  	/* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */
  	/* deleteParser(parser); */
 
-  	/* this data is a copy, so we can delete it here */
-  	FREE_IF_NZ (parser->lexer->startOfStringPtr);
+	/* force any remaining strings to be removed */
+	lexer_forceStringCleanup(parser->lexer);
 
 	#ifdef TIMING
 	gettimeofday (&mytime,&tz);
