@@ -1258,7 +1258,8 @@ void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *po
         strcat (externProtoPointer," ");
         strcat (externProtoPointer,proto);
 
-	concatAndGiveToLexer(me, externProtoPointer, me->nextIn);
+	/* push it on to the lexer input string stack */
+	lexer_fromString(me,externProtoPointer);
 }
 
 /* the curID is EXTERNPROTO. Replace the EXTERNPROTO with the actual PROTO string read in from
