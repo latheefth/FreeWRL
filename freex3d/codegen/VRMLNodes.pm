@@ -185,11 +185,12 @@ package VRML::NodeType;
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
 
 		# fields for reducing redundant calls
-		__do_center => [SFInt32, 0, initializeOnly],
-		__do_trans => [SFInt32, 0, initializeOnly],
-		__do_rotation => [SFInt32, 0, initializeOnly],
-		__do_scaleO => [SFInt32, 0, initializeOnly],
-		__do_scale => [SFInt32, 0, initializeOnly],
+		__do_center => [SFInt32, FALSE, initializeOnly],
+		__do_trans => [SFInt32, FALSE, initializeOnly],
+		__do_rotation => [SFInt32, FALSE, initializeOnly],
+		__do_scaleO => [SFInt32, FALSE, initializeOnly],
+		__do_scale => [SFInt32, FALSE, initializeOnly],
+		__do_anything => [SFInt32, FALSE, initializeOnly],
 	},"X3DGroupingNode"),
 	
 

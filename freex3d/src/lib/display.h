@@ -226,6 +226,9 @@ void setScreenDim(int wi, int he);
 		else if (aaa==GL_MODELVIEW) printf ("GL_MODELVIEW"); \
 		else if (aaa==GL_PROJECTION) printf ("GL_PROJECTION"); \
 		else printf ("unknown mode"); printf (")\tat %s:%d\n",__FILE__,__LINE__); }
+	#define FW_GL_GETDOUBLEV(aaa,bbb) \
+		{ fwGetDoublev(aaa,bbb); \
+		printf ("fwGetDoublev at %s:%d\n",__FILE__,__LINE__);}
 
 
 #else
@@ -240,5 +243,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
 	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
 	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
+	#define FW_GL_GETDOUBLEV(aaa,bbb) fwGetDoublev(aaa,bbb); 
 #endif
 #endif /* __LIBFREEWRL_DISPLAY_H__ */

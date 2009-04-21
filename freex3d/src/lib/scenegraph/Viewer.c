@@ -351,7 +351,7 @@ printf ("finquat   %lf %lf %lf %lf\n",qq.x, qq.y, qq.z, qq.w);
    	with your own code." */
 
 
-       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 /*
 printf ("togl, before inverse, %lf %lf %lf\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
