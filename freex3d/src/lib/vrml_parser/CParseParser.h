@@ -11,6 +11,11 @@ Parser (input of non-terminal symbols) for CParse
 #define __FREEWRL_CPARSE_PARSER_H__
 
 
+#ifdef REWIRE
+#define BOOL int
+#include "../../libeai/EAI_C.h"
+#endif
+
 struct ProtoDefinition;
 struct ProtoFieldDecl;
 struct Shader_Script;
