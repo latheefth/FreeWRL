@@ -167,7 +167,7 @@ package VRML::NodeType;
 		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
 		metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-		__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
+		__isX3D => [SFBool, "(inputFileVersion[0]==3)" , initializeOnly], # TRUE for X3D V3.x files
 	},"X3DGroupingNode"),
 
 	Transform => new VRML::NodeType ("Transform", {
@@ -1350,7 +1350,7 @@ package VRML::NodeType;
 			bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly],
                 metadata => [SFNode, NULL, inputOutput],
 		__oldmetadata => [SFNode, 0, inputOutput], # see code for event macro
-			__isX3D => [SFInt32, 0, initializeOnly], # 0 = VRML,  1 = X3D
+		__isX3D => [SFBool, "(inputFileVersion[0]==3)" , initializeOnly], # TRUE for X3D V3.x files
 			_selected =>[FreeWRLPTR,0,initializeOnly],
 					   },"X3DGroupingNode"),
 

@@ -263,7 +263,6 @@ void child_Collision (struct X3D_Collision *node) {
 }
 
 void changed_LOD (struct X3D_LOD *node) {
-	node->__isX3D = (inputFileVersion[0] == 3);
 }
 
 /* LOD changes between X3D and VRML - level and children fields are "equivalent" */

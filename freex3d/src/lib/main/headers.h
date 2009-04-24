@@ -1467,7 +1467,7 @@ void handleProfile(int myp);
 void handleComponent(int com, int lev);
 void handleExport (char *node, char *as);
 void handleImport (char *nodeName,char *nodeImport, char *as);
-void handleVersion (float lev);
+void handleVersion (const char *versionString);
 
 
 /* free memory */

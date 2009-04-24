@@ -218,20 +218,26 @@ static struct proftablestruct profTable[] = {
 };
 
 
+void handleVersion(const char *versionString) {
+	int xa=0;
+	int xb=0;
+	int xc=0;
+	int rt;
+	
+	/* printf ("handleVersion - x3d version :%s:\n", versionString); */
+	rt = sscanf (versionString,"%d.%d.%d",&xa, &xb,&xc);
+	/* printf ("rt %d xa %d xb %d xc %d\n",rt,xa,xb,xc); */
+
+	/* we could (should?) do some more checking here, but for now... */
+	inputFileVersion[0] = xa, inputFileVersion[1] = xb; inputFileVersion[2] = xc;
+}
+
+
+
 void handleMetaDataStringString(struct Uni_String *val1, struct Uni_String *val2) {
 	#ifdef CAPABILITIESVERBOSE
 	printf ("handleMetaDataStringString, :%s:, :%s:\n",val1->strptr, val2->strptr);
 	#endif
-}
-
-void handleVersion (float myVersion) {
-	#ifdef CAPABILITIESVERBOSE
-	printf ("handleVersion, my level is %f\n",myVersion);
-	#endif
-
-	if ((myVersion < 2.999) || (myVersion > 3.201)) {
-		ConsoleMessage ("expected X3D Version of between 3.0 and 3.2, got %f",myVersion);
-	}
 }
 
 void handleProfile (int myProfile) {

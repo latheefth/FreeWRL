@@ -81,7 +81,7 @@ void scanMallocTableOnQuit()
 {
     for (mcount=0; mcount<MAXMALLOCSTOKEEP;mcount++) {
 	if (mcheck[mcount]!=NULL) {
-	    printf ("unfreed memory created at %s:%d \n",mplace[mcount],mlineno[mcount]);
+	    printf ("unfreed memory %x created at %s:%d \n",mcheck[mcount], mplace[mcount],mlineno[mcount]);
 	}
     }
 }
