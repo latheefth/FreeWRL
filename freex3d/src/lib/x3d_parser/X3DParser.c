@@ -437,15 +437,6 @@ printf ("hey, we have maybe a Node in a Script list... line %d: expected parserM
 		JSInit(X3D_SCRIPT(thisNode)->_X3DScript);
 	}
 
-	/* X3D changes the Switch node "level" to "children"  - lets do the same */
-	if (myNodeType == NODE_Switch) {
-		#ifdef X3DPARSERVERBOSE
-		printf ("switch node found, setting the __X3D flag\n");
-		#endif
-
-		X3D_SWITCH(thisNode)->__isX3D = 1;
-	}
-
 	/* go through the fields, and link them in. SFNode and MFNodes will be handled 
 	 differently - these are usually the result of a different level of parsing,
 	 and the "containerField" value */

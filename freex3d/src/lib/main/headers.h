@@ -1494,4 +1494,16 @@ extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
 
+/* VRML/X3D version */
+#define IS_TYPE_XML_X3D	100
+#define IS_TYPE_VRML 	101
+#define IS_TYPE_VRML1	102
+#define IS_TYPE_SKETCHUP	103
+#define IS_TYPE_KML		104
+#define IS_TYPE_COLLADA		105
+#define IS_TYPE_UNKNOWN	200
+
+extern int inputFileType;
+extern int inputFileVersion[];
+
 #endif /* __FREEWRL_HEADERS_H__ */
