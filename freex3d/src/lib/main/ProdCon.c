@@ -103,6 +103,13 @@ int inputFileVersion[3] = {0,0,0};
 	case IS_TYPE_KML: \
 			ConsoleMessage ("KML-KMZ  format not supported yet"); \
 			break; \
+	default: { \
+			printf ("assuming we are parsing a VRML snippet\n"); \
+			inputFileType = IS_TYPE_VRML; \
+			inputFileVersion[0] = 2; /* try VRML V2 */ \
+			cParse (nRn,offsetof (struct X3D_Group, children), input); \
+			haveParsedCParsed = TRUE; \
+		} \
 	} \
 	}
 
