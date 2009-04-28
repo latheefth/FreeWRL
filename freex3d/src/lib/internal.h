@@ -18,6 +18,11 @@
  * Internal stuff needed by multiple C files in the library
  */
 
+#if !defined(HAVE_STRNDUP)
+char *fw_strndup(const char *str, int len);
+#define strndup fw_strndup
+#endif
+
 /* Useful to suppress things from non-debug builds */
 #ifdef _DEBUG
 #  define DEBUG_(_expr) _expr

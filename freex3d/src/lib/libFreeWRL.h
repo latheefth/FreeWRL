@@ -38,7 +38,7 @@ void Anchor_ReplaceWorld(char *name);
 void setTexSize(int requestedsize);
 void setGeometry_from_cmdline(const char *gstring);
 void setSnapFile(const char* file);
-void setSeqTemp(const char* file);
+void setSnapTmp(const char* file);
 void setEaiVerbose();
 void setScreenDist(const char *optArg);
 void setStereoParameter(const char *optArg);

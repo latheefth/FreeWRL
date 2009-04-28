@@ -18,6 +18,7 @@ libFreeWRL_la_SOURCES = \
 			display.c \
 			threads.c \
 			plugin.c \
+			internal.c \
  \
 main/headers.h \
 main/MainLoop.c \
