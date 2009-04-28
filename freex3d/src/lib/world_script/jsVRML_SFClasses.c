@@ -725,7 +725,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			if (i==3) {
 				MFInt32Constr(cx, obj, 0, NULL, &mv);
 			}
-			if (!JS_DefineElement(cx, obj, (jsint) i, mv, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_ENUMERATE)) {
+			if (!JS_DefineElement(cx, obj, (jsint) i, mv, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB6, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
 				return JS_FALSE;
 			}
@@ -802,7 +802,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	/* parameters are ok - just save them now in the new object. */
 	for (i=0; i<argc; i++) {
-		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_ENUMERATE)) {
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i], JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB6, JSPROP_ENUMERATE)) {
 			printf( "JS_DefineElement failed for arg %d in SFImageConstr.\n", i);
 			return JS_FALSE;
 		}

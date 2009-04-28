@@ -846,7 +846,7 @@ VrmlBrowserGetMidiDeviceList(JSContext *context, JSObject *obj, uintN argc, jsva
 
         		_str = JS_NewStringCopyZ(context,ReWireNamenames[currentDevice].name);
                 	if (!JS_DefineElement(context, myObj, (jsint) deviceIndexInList, STRING_TO_JSVAL(_str),
-				JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_ENUMERATE)) {
+				JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB7, JSPROP_ENUMERATE)) {
                 	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
                 	        return JS_FALSE;
 			}
@@ -932,7 +932,7 @@ VrmlBrowserGetMidiDeviceInfo(JSContext *context, JSObject *obj, uintN argc, jsva
 	
 	        		_str = JS_NewStringCopyZ(context,ReWireNamenames[currentController].name);
 	                	if (!JS_DefineElement(context, myObj, (jsint) controllerIndexInList, STRING_TO_JSVAL(_str),
-					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB5, JSPROP_ENUMERATE)) {
+					JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB7, JSPROP_ENUMERATE)) {
 	                	        printf( "JS_DefineElement failed for arg %d in getMidiDeviceList.\n", i);
 	                	        return JS_FALSE;
 				}
