@@ -855,7 +855,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 			myc ++; 
 		}
 
-		np +=4;
+		np +=5;
 
 	}
 
@@ -872,7 +872,7 @@ void makeFIELDDEFret(uintptr_t myptr, char *buf, int repno) {
 				stringKeywordType(np[3]));
 			strcat (buf, myline);
 		}
-		np += 4;
+		np += 5;
 	}
 }
 

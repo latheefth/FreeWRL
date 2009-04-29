@@ -779,7 +779,7 @@ uintptr_t *getFOP (uintptr_t *handle, const char *str) {
 				return fieldOffsetsPtr;
 			}
 
-			fieldOffsetsPtr += 4;
+			fieldOffsetsPtr += 5;
 		}
 
 		/* failed to find field?? */
@@ -1037,7 +1037,7 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
         			        return JS_FALSE;
         			}
 			}
-			fieldOffsetsPtr += 4;
+			fieldOffsetsPtr += 5;
 		}
 
 		/* set a flag indicating that we have been here already */

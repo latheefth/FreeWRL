@@ -31,6 +31,17 @@ char *readInputString(char *fn);
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
 
+/* specification versions, for close adherence to requested spec levels */
+#define SPEC_VRML 0x01
+#define SPEC_X3D30 0x02
+#define SPEC_X3D31 0x04
+#define SPEC_X3D32 0x08
+#define SPEC_X3D33 0x10
+#define SPEC_X3D34 0x20
+
+
+
+
 /* children fields path optimizations */
 #define CHILDREN_COUNT int nc = node->children.n;
 #define RETURN_FROM_CHILD_IF_NOT_FOR_ME \

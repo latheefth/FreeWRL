@@ -1410,7 +1410,7 @@ void kill_X3DNodes(void){
 					
 				default:; /* do nothing - field not malloc'd */
 			}
-			fieldOffsetsPtr+=4;	
+			fieldOffsetsPtr+=5;	
 		}
 		FREE_IF_NZ(memoryTable[i]);
 		memoryTable[i]=NULL;

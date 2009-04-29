@@ -1186,6 +1186,10 @@ void initFreewrl() {
 
         /* printf ("initFreewrl called\n"); */
 
+	/* do we want to really look at the details?? */
+	global_strictParsing = (getenv("FREEWRL_STRICT_PARSING") != NULL);
+if (global_strictParsing) printf ("STRICT PARSING SET\n");
+
         #ifdef AQUA
         if (pluginRunning) {
         /* printf ("initFreeWRL, setting aglSetCurrentContext %u\n", aqglobalContext); */

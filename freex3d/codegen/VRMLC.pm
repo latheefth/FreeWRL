@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.7  2009/04/29 20:20:25  crc_canada
+# Check X3D version and node fields, if running in strict_parsing mode.
+#
 # Revision 1.6  2009/04/03 18:21:57  crc_canada
 # PROTO handling of Multi_ types
 #
@@ -1171,13 +1174,41 @@ sub gen {
 				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
 				#$ft =~ tr/a-z/A-Z/; # convert to uppercase
 				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
+				my $specVersion = $VRML::Nodes{$node}{SpecLevel}{$field};
 				push @genFuncs1, "	FIELDNAMES_$field, offsetof (struct X3D_$node, $field), ".
-					" FIELDTYPE_$ft, KW_$fk,\n";
+					" FIELDTYPE_$ft, KW_$fk,$specVersion,\n";
 			#}
 		};
-		push @genFuncs1, "	-1, -1, -1, -1};\n";
+		push @genFuncs1, "	-1, -1, -1, -1, -1};\n";
 	}
-
+	#####################
+	# create an array for each node. The array contains the following:
+	# const int OFFSETS_Text[
+	# 	FIELDNAMES_string, offsetof (struct X3D_Text, string), MFSTRING, KW_inputOutput,
+	#	FIELDNAMES_fontStype, offsetof (struct X3D_Text, fontStyle, SFNODE, KW_inputOutput,
+	# ....
+	# 	-1, -1, -1, -1];
+	# NOTES:
+	# 1) we skip any field starting with an "_" (underscore)
+#JAS	# 
+#JAS	for my $node (@sortedNodeList) {
+#JAS		#print "node $_ is tagged as $nodeIntegerType\n";
+#JAS		# tag each node type with a integer key.
+#JAS
+#JAS		push @genFuncs1, "\nconst int OFFSETS_".$node."[] = {\n";
+#JAS
+#JAS 		foreach my $field (keys %{$VRML::Nodes{$node}{Defaults}}) {
+#JAS			#if (index($field,"_") !=0) {
+#JAS				my $ft = $VRML::Nodes{$node}{FieldTypes}{$field};
+#JAS				#$ft =~ tr/a-z/A-Z/; # convert to uppercase
+#JAS				my $fk = $VRML::Nodes{$node}{FieldKinds}{$field};
+#JAS				push @genFuncs1, "	FIELDNAMES_$field, offsetof (struct X3D_$node, $field), ".
+#JAS					" FIELDTYPE_$ft, KW_$fk,\n";
+#JAS			#}
+#JAS		};
+#JAS		push @genFuncs1, "	-1, -1, -1, -1};\n";
+#JAS	}
+#JAS
 	#####################
 	# make an array that contains all of the OFFSETS created above.
 	push @str, "\nextern const int *NODE_OFFSETS[];\n";

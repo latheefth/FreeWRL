@@ -863,7 +863,7 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 			}
 
 		}
-		offsetptr+=4;
+		offsetptr+=5;
 	}
 }
 
