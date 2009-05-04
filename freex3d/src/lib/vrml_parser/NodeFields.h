@@ -1657,15 +1657,15 @@ END_NODE(Sphere)
 
 /* SphereSensor node */
 BEGIN_NODE(SphereSensor)
-EVENT_OUT(SphereSensor,trackPoint_changed,sfvec3f,trackPoint_changed)
-EVENT_OUT(SphereSensor,isOver,sfbool,isOver)
-EVENT_OUT(SphereSensor,isActive,sfbool,isActive)
-EXPOSED_FIELD(SphereSensor,description,sfstring,description)
 EXPOSED_FIELD(SphereSensor,autoOffset,sfbool,autoOffset)
 EVENT_OUT(SphereSensor,rotation_changed,sfrotation,rotation_changed)
 EXPOSED_FIELD(SphereSensor,metadata,sfnode,metadata)
 EXPOSED_FIELD(SphereSensor,offset,sfrotation,offset)
 EXPOSED_FIELD(SphereSensor,enabled,sfbool,enabled)
+EVENT_OUT(SphereSensor,isOver,sfbool,isOver)
+EVENT_OUT(SphereSensor,trackPoint_changed,sfvec3f,trackPoint_changed)
+EVENT_OUT(SphereSensor,isActive,sfbool,isActive)
+EXPOSED_FIELD(SphereSensor,description,sfstring,description)
 END_NODE(SphereSensor)
 
 /* SpotLight node */

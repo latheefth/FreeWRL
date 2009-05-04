@@ -1260,6 +1260,7 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			_origPoint => [SFVec3f, [0, 0, 0], initializeOnly, 0],
+			_origNormalizedPoint => [SFVec3f, [0, 0, 0], initializeOnly, 0],
 			_radius => [SFFloat, 0, initializeOnly, 0],
 			__oldEnabled => [SFBool, TRUE, inputOutput, 0],
 					   },"X3DPointingDeviceSensorNode"),

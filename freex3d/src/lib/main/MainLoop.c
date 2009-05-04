@@ -905,7 +905,7 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
                 default: return;
         }
         /* printf ("set_sensitive ,parentNode %d  type %s data %d type %s\n",parentNode,
-                        stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType)); */
+                        stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType));  */
 
         /* record this sensor event for clicking purposes */
         SensorEvents = REALLOC(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
