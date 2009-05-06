@@ -48,8 +48,8 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	
 
 	/* perform Viewpoint translations */
-	FW_GL_ROTATE_D(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
-		node->orientation.r[2]);
+	FW_GL_ROTATE_D(-node->orientation.c[3]/PI*180.0,node->orientation.c[0],node->orientation.c[1],
+		node->orientation.c[2]);
 	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the Viewpoint fieldOfView */

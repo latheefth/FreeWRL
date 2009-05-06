@@ -847,7 +847,7 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 	switch (type) {
 		case FIELDTYPE_SFFloat: value->sffloat = 0.0; break;
 		case FIELDTYPE_MFFloat: value->mffloat.n=0; break;
-		case FIELDTYPE_SFRotation: value->sfrotation.r[0] =0.0; value->sfrotation.r[1]=0.0; value->sfrotation.r[2] = 0.0; value->sfrotation.r[3] = 1.0; break;
+		case FIELDTYPE_SFRotation: value->sfrotation.c[0] =0.0; value->sfrotation.c[1]=0.0; value->sfrotation.c[2] = 0.0; value->sfrotation.c[3] = 1.0; break;
 		case FIELDTYPE_MFRotation: value->mfrotation.n=0; break;
 		case FIELDTYPE_SFVec3f: value->sfvec3f.c[0] =0.0; value->sfvec3f.c[1]=0.0; value->sfvec3f.c[2] = 0.0; break;
 		case FIELDTYPE_MFVec3f: value->mfvec3f.n=0; break;
@@ -861,7 +861,7 @@ void parseScriptFieldDefaultValue(int type, union anyVrml *value) {
 		case FIELDTYPE_MFNode: value->mfnode.n = 0; break;
 		case FIELDTYPE_SFColor: value->sfcolor.c[0] =0.0; value->sfcolor.c[1]=0.0; value->sfcolor.c[2] = 0.0; break;
 		case FIELDTYPE_MFColor: value->mfcolor.n=0; break;
-		case FIELDTYPE_SFColorRGBA: value->sfcolorrgba.r[0] =0.0; value->sfcolorrgba.r[1]=0.0; value->sfcolorrgba.r[2] = 0.0; value->sfcolorrgba.r[3] = 1.0; break;
+		case FIELDTYPE_SFColorRGBA: value->sfcolorrgba.c[0] =0.0; value->sfcolorrgba.c[1]=0.0; value->sfcolorrgba.c[2] = 0.0; value->sfcolorrgba.c[3] = 1.0; break;
 		case FIELDTYPE_MFColorRGBA: value->mfcolorrgba.n = 0; break;
 		case FIELDTYPE_SFTime: value->sftime = 0.0; break;
 		case FIELDTYPE_MFTime: value->mftime.n=0; break;

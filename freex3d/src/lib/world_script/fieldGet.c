@@ -209,10 +209,10 @@ int set_one_MFElementType(uintptr_t tonode, int toname, int dataType, void *Data
 				}
 
 				/* fill the private pointer area */
-				fp = (float *)Data; SFRPptr->v.r[0] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.r[1] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.r[2] = *fp; Data += elementlen;
-				fp = (float *)Data; SFRPptr->v.r[3] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[0] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[1] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[2] = *fp; Data += elementlen;
+				fp = (float *)Data; SFRPptr->v.c[3] = *fp; Data += elementlen;
 
 				/* put this object into the MF class */
 				if (!JS_DefineElement(cx, newMFObject, (jsint) x, OBJECT_TO_JSVAL(newSFObject),

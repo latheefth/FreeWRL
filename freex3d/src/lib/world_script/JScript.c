@@ -707,10 +707,10 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 						FloatPtr = value.sfcolor.c; elements = 1;
 						break;
 					case FIELDTYPE_SFColorRGBA:
-						FloatPtr = value.sfcolorrgba.r; elements = 1;
+						FloatPtr = value.sfcolorrgba.c; elements = 1;
 						break;
 					case FIELDTYPE_SFRotation:
-						FloatPtr = value.sfrotation.r; elements = 1;
+						FloatPtr = value.sfrotation.c; elements = 1;
 						break;
 					case FIELDTYPE_SFVec3f: 
 						FloatPtr = value.sfvec3f.c; elements =1;
