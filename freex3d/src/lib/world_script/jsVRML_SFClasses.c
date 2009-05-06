@@ -34,7 +34,6 @@ which is the sample application included with the javascript engine.
 #include "jsVRMLClasses.h"
 #include "JScript.h"
 
-
 /********************************************************/
 /*							*/
 /* Second part - SF classes				*/
@@ -1234,6 +1233,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	return JS_TRUE;
 }
 
+
 /********************************************************************/
 
 JSBool
@@ -2354,6 +2354,10 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 	jsdouble pars[3];
 	JSString *_str;
 
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("SFVec3fGeneric\n");
+	#endif
+
 	/* determine what kind of parameter to get */
 	if ((op==__3FADD)||(op==__3FDOT)||(op==__3FCROSS)||(op==__3FSUBT))SFParam=TRUE;
 	if ((op==__3FDIVIDE)||(op==__3FMULT))numParam=TRUE;
@@ -2608,6 +2612,7 @@ SFVec3fToString(JSContext *cx, JSObject *obj,
 
     return JS_TRUE;
 }
+
 
 JSBool
 SFVec3fAssign(JSContext *cx, JSObject *obj,

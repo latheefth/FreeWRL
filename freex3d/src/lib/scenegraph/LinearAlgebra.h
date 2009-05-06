@@ -169,6 +169,7 @@ struct point_XYZ* vecdiff(struct point_XYZ* r, struct point_XYZ* v, struct point
 void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, struct point_XYZ n);
 
 GLdouble* matinverse(GLdouble* res, GLdouble* m);
+GLdouble* mattranspose(GLdouble* res, GLdouble* m);
 
 struct point_XYZ* polynormal(struct point_XYZ* r, struct point_XYZ* p1, struct point_XYZ* p2, struct point_XYZ* p3);
 /*simple wrapper for now. optimize later */
@@ -183,5 +184,7 @@ GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
 
 GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
 
+void scale_to_matrix (double *mat, struct point_XYZ *scale);
+void loadIdentityMatrix (double *mat);
 
 #endif /* __FREEWRL_LINEAR_ALGEBRA_H__ */

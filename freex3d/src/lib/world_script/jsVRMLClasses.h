@@ -47,7 +47,7 @@ of garbage collection */
 
 #define DEFINE_MF_ECMA_HAS_CHANGED \
 	{jsval zimbo = INT_TO_JSVAL(0); \
-	/* printf ("defining property for MF_ECMA_HAS_CHANGED... %d %d ",cx,obj); */ \
+	printf ("defining property for MF_ECMA_HAS_CHANGED... %d %d ",cx,obj);  \
 	if (!JS_DefineProperty(cx, obj, "MF_ECMA_has_changed", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) { \
 		printf( "JS_DefineProperty failed for \"MF_ECMA_has_changed\" at %s:%d.\n",__FILE__,__LINE__); \
 		printf ("myThread is %u\n",pthread_self()); \
@@ -56,7 +56,7 @@ of garbage collection */
 
 #define SET_MF_ECMA_HAS_CHANGED { jsval myv; \
                         myv = INT_TO_JSVAL(1); \
-			/* printf ("setting property for MF_ECMA_has_changed %d %d\n",cx,obj); */ \
+			 printf ("setting property for MF_ECMA_has_changed %d %d\n",cx,obj);  \
                         if (!JS_SetProperty(cx, obj, "MF_ECMA_has_changed", &myv)) { \
                                 printf( "JS_SetProperty failed for \"MF_ECMA_has_changed\" in doMFSetProperty.\n"); \
                                 return JS_FALSE; \
@@ -968,7 +968,6 @@ extern JSClass VrmlMatrixClass;
 extern JSFunctionSpec (VrmlMatrixFunctions)[];
 
 JSBool js_SetPropertyCheck (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-#ifdef DEBUG_JAVASCRIPT_PROPERTY
 JSBool js_GetPropertyDebug (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 JSBool js_SetPropertyDebug1 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 JSBool js_SetPropertyDebug2 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
@@ -979,7 +978,6 @@ JSBool js_SetPropertyDebug6 (JSContext *context, JSObject *obj, jsval id, jsval 
 JSBool js_SetPropertyDebug7 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 JSBool js_SetPropertyDebug8 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-#endif
 
 
 #endif /*  JS_VRML_CLASSES */
