@@ -1443,7 +1443,6 @@ void kill_X3DDefs(void);
 extern int currentFileVersion;
 
 int countCommas (char *instr);
-void sortChildren (struct Multi_Node ch);
 void dirlightChildren(struct Multi_Node ch);
 void normalChildren(struct Multi_Node ch);
 void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent);

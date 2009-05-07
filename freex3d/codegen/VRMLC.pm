@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.11  2009/05/07 20:03:20  crc_canada
+# Move node sorting out of scene graph traversal
+#
 # Revision 1.10  2009/05/07 17:01:24  crc_canada
 # compile cleanup - verifying and removing warnings.
 #
@@ -877,6 +880,9 @@ sub gen {
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
+	"#define X3D_STATICGROUP(node) ((struct X3D_StaticGroup*)node)\n".
+	"#define X3D_ANCHOR(node) ((struct X3D_Anchor*)node)\n".
+	"#define X3D_COLLISION(node) ((struct X3D_Collision*)node)\n".
 	"#define X3D_COMPOSEDSHADER(node) ((struct X3D_ComposedShader*)node)\n".
 	"#define X3D_PACKAGEDSHADER(node) ((struct X3D_PackagedShader*)node)\n".
 	"#define X3D_PROGRAMSHADER(node) ((struct X3D_ProgramShader*)node)\n".
