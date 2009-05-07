@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.10  2009/05/07 17:01:24  crc_canada
+# compile cleanup - verifying and removing warnings.
+#
 # Revision 1.9  2009/05/06 20:35:46  crc_canada
 # Modify SFColorRGBA and SFRotation to have array named c, not r for ease of code generation
 #
@@ -395,7 +398,7 @@ sub gen {
 		" \n".
 		"#include <libFreeWRL.h> \n".
 		" \n".
-		"#include \"../vrml_parser/Structs.h\" /* point_XYZ */ \n".
+		"#include \"../vrml_parser/Structs.h\" \n".
 		"#include \"../main/headers.h\" \n".
 		"#include \"../main/ProdCon.h\" \n".
 		"#include \"Component_Networking.h\" \n".
@@ -905,6 +908,9 @@ sub gen {
 	"#define X3D_NODE_CHECK(node)\n".
 	"#define MARK_EVENT(node,offset)	mark_event(node,offset)\n".
 	"#endif\n".
+	"#define COPY_SFVEC3F_TO_POINT_XYZ(too,from) { too.x = from[0]; too.y = from[1]; too.z = from[2];}\n".
+	"#define COPY_POINT_XYZ_TO_SFVEC3F(too,from) { too[0] = from.x; too[1] = from.y; too[2] = from.z;}\n".
+
 	"\n/* now, generated structures for each VRML/X3D Node*/\n";
 
 
@@ -1340,7 +1346,7 @@ Code here comes almost verbatim from VRMLC.pm
 
 
 struct point_XYZ {GLdouble x,y,z;};
-struct orient {GLdouble x,y,z,a;};
+struct orient_XYZA {GLdouble x,y,z,a;};
 
 struct X3D_Virt {
 	void (*prep)(void *);

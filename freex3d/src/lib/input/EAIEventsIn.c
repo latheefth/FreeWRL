@@ -14,7 +14,7 @@ Handle incoming EAI (and java class) events with panache.
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../vrml_parser/CProto.h"

@@ -14,7 +14,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
 #include "../input/EAIheaders.h"

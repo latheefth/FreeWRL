@@ -254,10 +254,7 @@ unsigned int setField_FromEAI (char *ptr) {
 
 	int valIndex;
 	struct Multi_Color *tcol;
-
-	int len, elemCount;
 	int retint; 			/* used to get return value of sscanf */
-	char myBuffer[6000];
 
 	union anyVrml myAnyValue;
 

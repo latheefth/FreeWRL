@@ -135,7 +135,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 void
 print_viewer()
 {
-	struct orient ori;
+	struct orient_XYZA ori;
 	quaternion_to_vrmlrot(&(Viewer.Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
 	printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (Viewer.Pos).x, (Viewer.Pos).y, (Viewer.Pos).z, (Viewer.Quat).w, (Viewer.Quat).x, (Viewer.Quat).y, (Viewer.Quat).z, ori.x, ori.y, ori.z, ori.a);
 

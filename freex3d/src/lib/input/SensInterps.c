@@ -16,7 +16,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 #include <libFreeWRL.h>
 
-#include "../vrml_parser/Structs.h" /* point_XYZ */
+#include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 
 #include "../x3d_parser/Bindable.h"
