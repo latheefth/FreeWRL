@@ -126,7 +126,6 @@ void
 quaternion_to_matrix (double *mat, Quaternion *q) {
 	double sqw, sqx, sqy, sqz, tmp1, tmp2;
 	double invs;
-	int i;
 
 	/* assumes matrix is identity, or identity + transform */
 	/* assumes matrix in OpenGL format */

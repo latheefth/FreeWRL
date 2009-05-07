@@ -774,8 +774,6 @@ if so, we will be here for the USE fields.
 
 */
 static void saveProtoInstanceFields (const char *name, const char **atts) {
-	int i;
-
 	#ifdef X3DPARSERVERBOSE
 		printf ("saveProtoInstanceFields, have node :%s:\n",name);
 	#endif

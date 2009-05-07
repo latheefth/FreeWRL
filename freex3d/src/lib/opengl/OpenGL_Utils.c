@@ -221,6 +221,16 @@ void doglClearColor() {
 }
 
 
+/* if we had an opengl error... */
+void glPrintError(char *str) {
+        if (displayOpenGLErrors) {
+                int err;
+                while((err = glGetError()) != GL_NO_ERROR)
+                        printf("OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
+        }
+}
+
+
 /* did we have a TextureTransform in the Appearance node? */
 void start_textureTransform (void *textureNode, int ttnum) {
 	struct X3D_TextureTransform  *ttt;
@@ -834,7 +844,6 @@ void startOfLoopNodeUpdates(void) {
 	struct Multi_Node *childrenPtr;
 
 	/* for determining nearPlane/farPlane */
-	int haveBoundGeoViewpoint = FALSE;
 	double maxDist = DBL_MAX; double minDist = 0.0;
 
 

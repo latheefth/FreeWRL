@@ -259,10 +259,8 @@ void make_orthogonal_vector_space(struct point_XYZ* i, struct point_XYZ* j, stru
 
 GLdouble* mattranspose(GLdouble* res, GLdouble* m)
 {
-	double Deta;
 	GLdouble mcpy[16];
 	int i, j;
-
 
 	if(res == m) {
 		memcpy(mcpy,m,sizeof(GLdouble)*16);

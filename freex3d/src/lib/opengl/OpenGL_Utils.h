@@ -29,5 +29,6 @@ void lightState (GLint light, int state);
 
 extern void glpOpenGLInitialize(void);
 
+extern void glPrintError(char *);
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

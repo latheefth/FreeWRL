@@ -95,8 +95,6 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
 /* Return PROTO name from its node, or NULL if not found */
 char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
-
-	indexT ind;
 	struct ProtoDefinition* cpd;
 
 	cpd = (struct ProtoDefinition *) X3D_GROUP(node)->FreeWRL__protoDef;

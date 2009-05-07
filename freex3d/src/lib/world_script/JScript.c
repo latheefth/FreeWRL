@@ -586,7 +586,6 @@ void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVr
 	int *IntPtr;
 	double *DoublePtr;
 	struct Uni_String **SVPtr;
-	int *iptr; 
 
 	uintptr_t defaultVoid[] = {0,0};
 	float defaultFloat[] = {0.0,0.0,0.0,0.0};

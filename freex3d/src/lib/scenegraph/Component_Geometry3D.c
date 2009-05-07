@@ -456,8 +456,6 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 	       prflags flags = 0;
 	       int change = 0;
 
-	        struct X3D_Coordinate *xc;
-
 		/* JAS - first pass, intern is probably zero */
 		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
 
