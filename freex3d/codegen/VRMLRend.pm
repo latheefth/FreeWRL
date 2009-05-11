@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.6  2009/05/11 21:11:58  crc_canada
+# local/global lighting rules applied to SpotLight, DirectionalLight and PointLight.
+#
 # Revision 1.5  2009/04/02 18:48:28  crc_canada
 # PROTO Routing for MFNodes.
 #
@@ -437,6 +440,8 @@
 	AudioControl
 	AudioClip 
 	DirectionalLight 
+	SpotLight
+	PointLight
 	HAnimHumanoid
 	HAnimJoint
 /;
@@ -485,6 +490,7 @@
 	MidiKey
 	PointLight
 	SpotLight
+	DirectionalLight
 	GeoLocation
 	GeoViewpoint
 	GeoTransform

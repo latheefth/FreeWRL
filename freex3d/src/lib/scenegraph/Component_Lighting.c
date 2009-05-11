@@ -19,6 +19,14 @@ X3D Lighting Component
 #include "RenderFuncs.h"
 #include "../opengl/OpenGL_Utils.h"
 
+/* pointLights are done before the rendering of geometry */
+void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
+
+	if (!render_light) return;
+	/* this will be a global light here... */
+	render_DirectionalLight(node);
+}
+
 void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 	/* NOTE: This is called by the Group Children code
 	 * at the correct point (in the beginning of the rendering
@@ -59,7 +67,11 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 void prep_PointLight (struct X3D_PointLight *node) {
 
 	if (!render_light) return;
+	/* this will be a global light here... */
+	render_PointLight(node);
+}
 
+void render_PointLight (struct X3D_PointLight *node) {
                 if(node->on) {
                         int light = nextlight();
                         if(light >= 0) {
@@ -108,7 +120,12 @@ void prep_PointLight (struct X3D_PointLight *node) {
 void prep_SpotLight (struct X3D_SpotLight *node) {
 	float ft;
 	if (!render_light) return;
-                if(((node->on))) {
+	render_SpotLight(node);
+}
+
+void render_SpotLight(struct X3D_SpotLight *node) {
+	float ft;
+                if(node->on) {
                         int light = nextlight();
                         if(light >= 0) {
                                 float vec[4];

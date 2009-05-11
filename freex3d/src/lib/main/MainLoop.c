@@ -698,8 +698,8 @@ void render() {
                 /*  Other lights*/
                 glPrintError("XEvents::render, before render_hier");
 
-                render_hier(rootNode, VF_otherLight);
-                glPrintError("XEvents::render, render_hier(VF_VF_otherLight)");
+                render_hier(rootNode, VF_globalLight);
+                glPrintError("XEvents::render, render_hier(VF_globalLight)");
 
                 /*  4. Nodes (not the blended ones)*/
                 render_hier(rootNode, VF_Geom);

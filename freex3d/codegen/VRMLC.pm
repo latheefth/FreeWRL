@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.12  2009/05/11 21:11:58  crc_canada
+# local/global lighting rules applied to SpotLight, DirectionalLight and PointLight.
+#
 # Revision 1.11  2009/05/07 20:03:20  crc_canada
 # Move node sorting out of scene graph traversal
 #
@@ -897,6 +900,9 @@ sub gen {
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#define X3D_TRANSFORM(node) ((struct X3D_Transform*)node)\n".
 	"#define X3D_PROXIMITYSENSOR(node) ((struct X3D_ProximitySensor*)node)\n".
+	"#define X3D_POINTLIGHT(node) ((struct X3D_PointLight*)node)\n".
+	"#define X3D_SPOTLIGHT(node) ((struct X3D_SpotLight*)node)\n".
+	"#define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)\n".
 
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#define X3D_GEOLOD(node) ((struct X3D_GeoLOD*)node)\n".
