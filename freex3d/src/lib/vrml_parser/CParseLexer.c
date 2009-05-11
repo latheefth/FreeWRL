@@ -495,10 +495,12 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 
 	#ifdef CPARSERVERBOSE
 	printf ("lexer_defineID, VRMLLexer %u Vector %u\n",me,vec); 
+	if (multi) printf ("Multi SET\n"); else printf ("no Mlti set\n");
 	#endif
 
 	/* User list should be created */
 	ASSERT(vec);
+
 
 	/* If multiple definition possible? Look if the ID's already there */
 	if(multi) {
@@ -515,6 +517,17 @@ BOOL lexer_defineID(struct VRMLLexer* me, indexT* ret, struct Vector* vec, BOOL 
 			return TRUE;
 		}
 		}
+	} else {
+		/* is this already defined? */
+		if (global_strictParsing) {
+			size_t i;
+			for(i=0; i!=vector_size(vec); ++i) {
+				if(!strcmp(me->curID, vector_get(const char*, vec, i))) {
+					ConsoleMessage ("warning, duplicate ID (%s at %u), using last DEF",me->curID,i);
+				}	
+			}
+		}
+
 	}
 
 	/* Define the id */
