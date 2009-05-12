@@ -1761,6 +1761,22 @@ EXPOSED_FIELD(TextureCoordinateGenerator,mode,sfstring,mode)
 EXPOSED_FIELD(TextureCoordinateGenerator,metadata,sfnode,metadata)
 END_NODE(TextureCoordinateGenerator)
 
+/* TextureProperties node */
+BEGIN_NODE(TextureProperties)
+EXPOSED_FIELD(TextureProperties,borderColor,sfcolorrgba,borderColor)
+EXPOSED_FIELD(TextureProperties,boundaryModeS,sfstring,boundaryModeS)
+EXPOSED_FIELD(TextureProperties,magnificationFilter,sfstring,magnificationFilter)
+EXPOSED_FIELD(TextureProperties,texturePriority,sfint32,texturePriority)
+EXPOSED_FIELD(TextureProperties,boundaryModeT,sfstring,boundaryModeT)
+EXPOSED_FIELD(TextureProperties,boundaryModeR,sfstring,boundaryModeR)
+EXPOSED_FIELD(TextureProperties,anisotropicDegree,sffloat,anisotropicDegree)
+EXPOSED_FIELD(TextureProperties,borderWidth,sfint32,borderWidth)
+EXPOSED_FIELD(TextureProperties,minificationFilter,sfstring,minificationFilter)
+EXPOSED_FIELD(TextureProperties,textureCompression,sfstring,textureCompression)
+FIELD(TextureProperties,generateMipMaps,sfbool,generateMipMaps)
+EXPOSED_FIELD(TextureProperties,metadata,sfnode,metadata)
+END_NODE(TextureProperties)
+
 /* TextureTransform node */
 BEGIN_NODE(TextureTransform)
 EXPOSED_FIELD(TextureTransform,rotation,sffloat,rotation)

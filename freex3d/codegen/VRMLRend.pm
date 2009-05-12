@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.7  2009/05/12 19:53:14  crc_canada
+# Confirm current support levels, and verify that Components and Profiles are checked properly.
+#
 # Revision 1.6  2009/05/11 21:11:58  crc_canada
 # local/global lighting rules applied to SpotLight, DirectionalLight and PointLight.
 #
@@ -295,6 +298,7 @@
 	TextureCoordinate 	=>texCoord,
 	TextureCoordinateGenerator  =>texCoord,
 	TextureTransform 	=>textureTransform,
+	TextureProperties	=>children,
 	TimeSensor 		=>children,
 	TouchSensor 		=>children,
 	Transform 		=>children,

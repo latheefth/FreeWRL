@@ -1080,6 +1080,23 @@ package VRML::NodeType;
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			},"X3DTextureTransformNode"),
 
+	TextureProperties => new VRML::NodeType("TextureProperties", {
+		anisotropicDegree => [SFFloat, 1.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		borderColor=>[SFColorRGBA,[0,0,0,0],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
+		borderWidth => [SFInt32, 0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		boundaryModeS => [SFString, "REPEAT", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		boundaryModeT => [SFString, "REPEAT", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		boundaryModeR => [SFString, "REPEAT", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		magnificationFilter => [SFString, "FASTEST", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		minificationFilter => [SFString, "FASTEST", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		textureCompression => [SFString, "FASTEST", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		texturePriority => [SFInt32, 0.0, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		generateMipMaps => [SFBool, FALSE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		
+                metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+	}, "X3DSFNode"),
+
 	###################################################################################
 
 	#		Cubemap Texturing Component
