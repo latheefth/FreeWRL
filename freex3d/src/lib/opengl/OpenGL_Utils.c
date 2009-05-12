@@ -297,6 +297,22 @@ void lightState(GLint light, int status) {
 	}
 }
 
+/* for local lights, we keep track of what is on and off */
+void saveLightState(int *ls) {
+	int i;
+	for (i=0; i<7; i++) ls[i] = lights[i];
+} 
+
+void restoreLightState(int *ls) {
+	int i;
+	for (i=0; i<7; i++) {
+		if (ls[i] != lights[i]) {
+			lightState(i,ls[i]);
+		}
+	}
+}
+
+
 void glpOpenGLInitialize() {
 	int i;
         /* JAS float pos[] = { 0.0, 0.0, 0.0, 1.0 }; */
@@ -853,6 +869,7 @@ void zeroVisibilityFlag(void) {
 			} 
 
 /* just tell the parent (a grouping node) that there is a locally scoped light as a child */
+/* do NOT send this up the scenegraph! */
 #define LOCAL_LIGHT_PARENT_FLAG \
 { int i; \
 	for (i = 0; i < node->_nparents; i++) { \
@@ -959,22 +976,28 @@ void startOfLoopNodeUpdates(void) {
 				   SpotLights are transformed */
 
 				BEGIN_NODE(DirectionalLight)
-					if (X3D_DIRECTIONALLIGHT(node)->global) 
-						update_renderFlag(node,VF_globalLight);
-					else
-						LOCAL_LIGHT_PARENT_FLAG
+					if (X3D_DIRECTIONALLIGHT(node)->on) {
+						if (X3D_DIRECTIONALLIGHT(node)->global) 
+							update_renderFlag(node,VF_globalLight);
+						else
+							LOCAL_LIGHT_PARENT_FLAG
+					}
 				END_NODE
 				BEGIN_NODE(SpotLight)
-					if (X3D_SPOTLIGHT(node)->global) 
-						update_renderFlag(node,VF_globalLight);
-					else
-						LOCAL_LIGHT_PARENT_FLAG
+					if (X3D_SPOTLIGHT(node)->on) {
+						if (X3D_SPOTLIGHT(node)->global) 
+							update_renderFlag(node,VF_globalLight);
+						else
+							LOCAL_LIGHT_PARENT_FLAG
+					}
 				END_NODE
 				BEGIN_NODE(PointLight)
-					if (X3D_POINTLIGHT(node)->global) 
-						update_renderFlag(node,VF_globalLight);
-					else
-						LOCAL_LIGHT_PARENT_FLAG
+					if (X3D_POINTLIGHT(node)->on) {
+						if (X3D_POINTLIGHT(node)->global) 
+							update_renderFlag(node,VF_globalLight);
+						else
+							LOCAL_LIGHT_PARENT_FLAG
+					}
 				END_NODE
 
 

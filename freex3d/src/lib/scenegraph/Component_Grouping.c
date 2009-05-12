@@ -290,7 +290,6 @@ void child_Group (struct X3D_Group *node) {
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-
 	 /* {
 		int x;
 		struct X3D_Node *xx;
