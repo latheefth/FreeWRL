@@ -1644,7 +1644,8 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
     /* Look for the nodename in list of user-defined node names (userNodeNames) and return the index in ret */
     if(!lexer_nodeName(me->lexer, &ind)) {
         CPARSE_ERROR_CURID("ERROR:Expected valid DEF name after USE; found: ");
-	return NULL; /* JAS */
+	FREE_IF_NZ(me->lexer->curID);
+	return NULL;
     }
 #ifdef CPARSERVERBOSE
     printf("parser_KW_USE: parsing USE\n");
