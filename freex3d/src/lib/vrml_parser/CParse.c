@@ -54,11 +54,13 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 		parser=reuseParser(ptr,ofs);
  	}
 
+	resetParseSuccessfullyFlag();
+
  	parser_fromString(parser, data);
  	ASSERT(parser->lexer);
 
  	if(!parser_vrmlScene(parser))
-  		fprintf(stderr, "Parser failed!\n");
+  		fprintf(stderr, "Parser found errors.\n");
 
  	/* printf ("after parsing in cParse, VRMLParser->DEFinedNodes %u\n",parser->DEFedNodes); */
  	/* deleteParser(parser); */
@@ -72,7 +74,7 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	printf ("time taken %lf\n",endt-startt);
 	#endif
 
- 	return TRUE;
+ 	return parsedSuccessfully();
 }
 
 /* ************************************************************************** */

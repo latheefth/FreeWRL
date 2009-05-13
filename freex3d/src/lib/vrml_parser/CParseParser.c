@@ -32,12 +32,17 @@
 #define PARSE_ERROR(msg) \
  { \
   CPARSE_ERROR_CURID(msg); \
+  FREE_IF_NZ(me->lexer->curID); \
   PARSER_FINALLY; \
  }
 #define PARSER_FINALLY
 
 #define DEFMEM_INIT_SIZE        16
 
+
+static int foundInputErrors = 0;
+void resetParseSuccessfullyFlag(void) { foundInputErrors = 0;}
+int parsedSuccessfully(void) {return foundInputErrors == 0;}
 
 /* Parsing a specific type */
 /* NOTE! We have to keep the order of these function calls the same
@@ -1638,9 +1643,8 @@ static vrmlNodeT* parse_KW_USE(struct VRMLParser *me) {
     /* lexer_nodeName is #defined as lexer_specialID(me, NULL, ret, NULL, 0, stack_top(struct Vector*, userNodeNames)) */
     /* Look for the nodename in list of user-defined node names (userNodeNames) and return the index in ret */
     if(!lexer_nodeName(me->lexer, &ind)) {
-        /* PARSE_ERROR("Expected valid DEF name after USE!\n") */
-        /* try to make a better error message. */
-        CPARSE_ERROR_CURID("ERROR:Expected valid DEF name after USE keyword");
+        CPARSE_ERROR_CURID("ERROR:Expected valid DEF name after USE; found: ");
+	return NULL; /* JAS */
     }
 #ifdef CPARSERVERBOSE
     printf("parser_KW_USE: parsing USE\n");
@@ -2695,6 +2699,7 @@ void cParseErrorCurID(struct VRMLParser *me, char *str) {
 		strcat (fw_outline,"\"");
 	}
 
+	foundInputErrors++;
 	ConsoleMessage(fw_outline); 
 }
 
@@ -2717,6 +2722,7 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 		strcat (fw_outline,"\"");
 	}
 
+	foundInputErrors++;
 	ConsoleMessage(fw_outline); 
 }
 

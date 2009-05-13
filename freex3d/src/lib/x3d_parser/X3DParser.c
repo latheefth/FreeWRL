@@ -642,6 +642,7 @@ static void parseX3Dhead(const char **atts) {
 	if (myProfile == INT_ID_UNDEFINED) {
 		ConsoleMessage ("expected valid profile in X3D header");
 	} else {
+printf ("X3DParsehead, myProfile %d\n",myProfile);
 		if (myProfile >= 0) handleProfile (myProfile);
 	}
 

@@ -158,7 +158,7 @@ void lexer_fromString (struct VRMLLexer *me, char *str) {
 
 void lexer_forceStringCleanup (struct VRMLLexer *me) {
 	int i;
-	for (i=0; i<me->lexerInputLevel; i++) {
+	for (i=1; i<me->lexerInputLevel; i++) {
 		FREE_IF_NZ(me->startOfStringPtr[i]);
 		me->startOfStringPtr[i] = NULL;
 	}

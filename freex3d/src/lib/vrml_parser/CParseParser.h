@@ -10,6 +10,8 @@ Parser (input of non-terminal symbols) for CParse
 #ifndef __FREEWRL_CPARSE_PARSER_H__
 #define __FREEWRL_CPARSE_PARSER_H__
 
+void resetParseSuccessfullyFlag(void);
+int parsedSuccessfully(void);
 
 #ifdef REWIRE
 #define BOOL int

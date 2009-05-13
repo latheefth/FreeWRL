@@ -973,7 +973,7 @@ void __pt_doStringUrl () {
 		/* get the data from wherever we were originally told to find it */
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 		PARSE_STRING(buffer);
-		FREE_IF_NZ(buffer);
+		FREE_IF_NZ(buffer); 
 		FREE_IF_NZ(ctmp);
 	} else if (psp.type==FROMCREATENODE) {
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
