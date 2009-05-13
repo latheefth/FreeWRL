@@ -36,6 +36,7 @@ SF_TYPE(SFVec3f, sfvec3f, Vec3f)
 MF_TYPE(MFVec3f, mfvec3f, Vec3f)
 SF_TYPE(SFVec3d, sfvec3d, Vec3d)
 MF_TYPE(MFVec3d, mfvec3d, Vec3d)
+SF_TYPE(SFVec4f, sfvec4f, Vec4f)
 
 SF_TYPE(SFMatrix3f, sfmatrix3f, Matrix3f)
 MF_TYPE(MFMatrix3f, mfmatrix3f, Matrix3f)

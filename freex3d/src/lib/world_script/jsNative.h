@@ -65,6 +65,15 @@ typedef struct _SFColorRGBANative {
 	struct SFColorRGBA v;
 } SFColorRGBANative;
 
+typedef struct _SFVec4fNative {
+	int valueChanged;
+	struct SFVec4f v;
+} SFVec4fNative;
+
+typedef struct _SFVec4dNative {
+	int valueChanged;
+	struct SFVec4d v;
+} SFVec4dNative;
 
 /*
  * Adds additional (touchable) property to instance of a native

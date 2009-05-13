@@ -210,6 +210,7 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 	ret->fields=newVector(struct ScriptFieldDecl*, 4);
 	ret->ShaderScriptNode = node; 	/* pointer back to the node that this is associated with */
 
+	/* printf ("new_Shader_Script, node %s\n",stringNodeType(node->_nodeType)); */
 	if (node->_nodeType == NODE_Script) {
 	 	ret->num=nextScriptHandle();
  		#ifdef CPARSERVERBOSE
@@ -220,6 +221,8 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 	} else {
 		ret->num = -1;
 	}
+
+	/* printf ("new_Shader_Script - num %d\n",ret->num); */
 
 	return ret;
 }
@@ -259,7 +262,8 @@ void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
  #endif 
 
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
- scriptFieldDecl_jsFieldInit(field, me->num);
+ /* only do this for scripts */
+ if (me->ShaderScriptNode->_nodeType==NODE_Script) scriptFieldDecl_jsFieldInit(field, me->num);
 }
 
 /* save the script code, as found in the VRML/X3D URL for this script */

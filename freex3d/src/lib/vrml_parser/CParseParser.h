@@ -143,8 +143,6 @@ BOOL parser_metaStatement(struct VRMLParser*);
 BOOL parser_profileStatement(struct VRMLParser*);
 
 BOOL parser_protoStatement(struct VRMLParser*);
-BOOL parser_interfaceDeclaration(struct VRMLParser*,
- struct ProtoDefinition*, struct Shader_Script*);
 BOOL parser_nodeStatement(struct VRMLParser*, vrmlNodeT*);
 BOOL parser_node(struct VRMLParser*, vrmlNodeT*, indexT);
 BOOL parser_field(struct VRMLParser*, struct X3D_Node*);

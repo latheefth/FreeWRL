@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.13  2009/05/13 20:30:49  crc_canada
+# Shader fields in classic parser worked on, and javascript sfvec4f and sfvec4d support.
+#
 # Revision 1.12  2009/05/11 21:11:58  crc_canada
 # local/global lighting rules applied to SpotLight, DirectionalLight and PointLight.
 #
@@ -889,6 +892,7 @@ sub gen {
 	"#define X3D_COMPOSEDSHADER(node) ((struct X3D_ComposedShader*)node)\n".
 	"#define X3D_PACKAGEDSHADER(node) ((struct X3D_PackagedShader*)node)\n".
 	"#define X3D_PROGRAMSHADER(node) ((struct X3D_ProgramShader*)node)\n".
+	"#define X3D_SHADERPROGRAM(node) ((struct X3D_ShaderProgram*)node)\n".
 	"#define X3D_SHAPE(node) ((struct X3D_Shape*)node)\n".
 	"#define X3D_VISIBILITYSENSOR(node) ((struct X3D_VisibilitySensor*)node)\n".
 	"#define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)\n".
