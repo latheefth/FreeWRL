@@ -1352,6 +1352,7 @@ void kill_X3DNodes(void){
 	/*go thru all node until table is empty*/
 	for (i=0; i<nextEntry; i++){		
 		structptr = memoryTable[i];		
+
 		#ifdef VERBOSE
 		printf("Node pointer	= %u entry %d of %d ",structptr,i,nextEntry);
 		printf (" number of parents %d ", structptr->_nparents);

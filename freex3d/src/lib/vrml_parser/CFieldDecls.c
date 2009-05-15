@@ -28,12 +28,14 @@ $Id$
 /* Constructor and destructor */
 /* ************************** */
 
-struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name)
+struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int shv, int shvuni)
 {
  struct FieldDecl* ret=MALLOC(sizeof(struct FieldDecl));
  ret->mode=mode;
  ret->type=type;
  ret->name=name;
+ ret->shaderVariableID=shv;
+ ret->shaderVariableIsUniform=shvuni;
 
  return ret;
 }

@@ -60,7 +60,8 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
 
  ASSERT(mod!=PKW_inputOutput);
 
- ret->fieldDecl=newFieldDecl(mod, type, name);
+	/* shaderID will get set when shader is activiated */
+ ret->fieldDecl=newFieldDecl(mod, type, name, -1, FALSE);
  ASSERT(ret->fieldDecl);
 
  /* Stringify */

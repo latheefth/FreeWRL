@@ -1566,12 +1566,12 @@ END_NODE(PositionInterpolator2D)
 
 /* ProgramShader node */
 BEGIN_NODE(ProgramShader)
-EVENT_OUT(ProgramShader,isSelected,sfbool,isSelected)
 FIELD(ProgramShader,language,sfstring,language)
-EXPOSED_FIELD(ProgramShader,programs,mfnode,programs)
 EVENT_OUT(ProgramShader,isValid,sfbool,isValid)
-EXPOSED_FIELD(ProgramShader,metadata,sfnode,metadata)
 EVENT_IN(ProgramShader,activate,sfbool,activate)
+EVENT_OUT(ProgramShader,isSelected,sfbool,isSelected)
+EXPOSED_FIELD(ProgramShader,programs,mfnode,programs)
+EXPOSED_FIELD(ProgramShader,metadata,sfnode,metadata)
 END_NODE(ProgramShader)
 
 /* ProximitySensor node */
