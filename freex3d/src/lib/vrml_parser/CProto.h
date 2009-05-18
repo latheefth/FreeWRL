@@ -93,11 +93,13 @@ struct ProtoFieldDecl* protoFieldDecl_copy(struct VRMLLexer*, struct ProtoFieldD
 /* Sets this field's value (copy to destinations) */
 void protoFieldDecl_setValue(struct VRMLLexer*, struct ProtoFieldDecl*, union anyVrml*);
 
+#ifdef OLDCODE
 /* Build a ROUTE from/to this field */
 void protoFieldDecl_routeTo(struct ProtoFieldDecl*,
  struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
 void protoFieldDecl_routeFrom(struct ProtoFieldDecl*,
  struct X3D_Node*, unsigned, int dir, struct VRMLParser*);
+#endif
 
 /* Finish this field - if value is not yet set, use default. */
 #define protoFieldDecl_finish(lex, me) \

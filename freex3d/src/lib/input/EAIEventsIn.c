@@ -782,35 +782,9 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
 		fromOffset = getEAIActualOffset(fromretNode,fromretField);
 		toOffset = getEAIActualOffset(toretNode,toretField);
 
-		/* are one of these a script? */
-		if (fromscripttype == EAI_NODETYPE_SCRIPT) {
-			/* this had BETTER be a script node! */
-			if (fromNode->_nodeType != NODE_Script) {
-				printf ("internal error, expected Script node type, got something else\n");
-				return;
-			}
-
-			/* scripts route via numbers, not memory pointers */
-			sp = (struct Shader_Script *) (X3D_SCRIPT(fromNode)->__scriptObj);
-			fromNode = (struct X3D_Node *) (sp->num);
-			scriptFlags += FROM_SCRIPT;
-		}
-		if (toscripttype == EAI_NODETYPE_SCRIPT) {
-			/* this had BETTER be a script node! */
-			if (toNode->_nodeType != NODE_Script) {
-				printf ("internal error, expected Script node type, got something else\n");
-				return;
-			}
-
-			/* scripts route via numbers, not memory pointers */
-			sp = (struct Shader_Script *) (X3D_SCRIPT(toNode)->__scriptObj);
-			toNode = (struct X3D_Node *) (sp->num);
-			scriptFlags += TO_SCRIPT;
-		}
-
 		/* is this an add or delete route? */
-		if (command == ADDROUTE) CRoutes_RegisterSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen,scriptFlags);
-		else CRoutes_RemoveSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen,scriptFlags);
+		if (command == ADDROUTE) CRoutes_RegisterSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen);
+		else CRoutes_RemoveSimple(fromNode,fromOffset,toNode,toOffset,fromdataLen);
 
 		strcat (buf, "0");
 	} else {
