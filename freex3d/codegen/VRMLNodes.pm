@@ -2078,7 +2078,6 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 			 __scriptObj => [FreeWRLPTR, 0, initializeOnly, 0],
-			 _X3DScript => [SFInt32, -1, initializeOnly, 0],
 			__parenturl =>[SFString,"",initializeOnly, 0],
 					   },"X3DScriptNode"
 					  ),

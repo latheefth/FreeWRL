@@ -1606,10 +1606,10 @@ END_NODE(ScalarInterpolator)
 
 /* Script node */
 BEGIN_NODE(Script)
-FIELD(Script,mustEvaluate,sfbool,mustEvaluate)
-FIELD(Script,directOutput,sfbool,directOutput)
 EXPOSED_FIELD(Script,url,mfstring,url)
+FIELD(Script,mustEvaluate,sfbool,mustEvaluate)
 EXPOSED_FIELD(Script,metadata,sfnode,metadata)
+FIELD(Script,directOutput,sfbool,directOutput)
 END_NODE(Script)
 
 /* ShaderPart node */
