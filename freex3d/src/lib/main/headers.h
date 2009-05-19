@@ -69,7 +69,10 @@ char *readInputString(char *fn);
 /* #define JS_GET_PROPERTY_STUB js_GetPropertyDebug */
 
 #define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
-#define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2 
+
+/* #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2  */
+#define JS_SET_PROPERTY_STUB2 JS_PropertyStub
+
 #define JS_SET_PROPERTY_STUB3 js_SetPropertyDebug3 
 #define JS_SET_PROPERTY_STUB4 js_SetPropertyDebug4 
 #define JS_SET_PROPERTY_STUB5 js_SetPropertyDebug5 
