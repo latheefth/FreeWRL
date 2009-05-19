@@ -212,9 +212,8 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 	if (node->_nodeType == NODE_Script) {
 	 	ret->num=nextScriptHandle();
  		#ifdef CPARSERVERBOSE
-			printf("newScript: created new script with num %d\n", ret->num);
-		#endif
 			printf("newScript: created new script nodePtr %u with num %d\n", node, ret->num);
+		#endif
 
 		JSInit(ret->num);
 	} else {

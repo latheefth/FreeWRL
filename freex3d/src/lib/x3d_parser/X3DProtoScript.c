@@ -1109,7 +1109,7 @@ void initScriptWithScript() {
 		return;
 	}
 
-	SaveScriptText (myScriptNumber, startingIndex);
+	/* JAS SaveScriptText (myScriptNumber, startingIndex); */
 
 	CDATA_Text_curlen=0;
 	parserMode = PARSING_NODES;
