@@ -155,7 +155,7 @@ void setScriptECMAtype (uintptr_t num) {
 
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
                 myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
-		printf ("setScriptECMAtype, myScriptNumber is %d\n",myObj->num);
+		/* printf ("setScriptECMAtype, myScriptNumber is %d\n",myObj->num); */
 		tn = (uintptr_t) to_ptr->routeToNode;
 		tptr = to_ptr->foffset;
 		set_one_ECMAtype (myObj->num, tptr, JSparamnames[tptr].type, (void *)fn,len);
@@ -693,6 +693,7 @@ int setMFElementtype (uintptr_t num) {
 
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
                 myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+printf ("CParsePArser, MF script here is %u\n",myObj->num);
 
 		#ifdef SETFIELDVERBOSE 
 			printf ("got a script event! index %d type %d\n",
@@ -984,6 +985,8 @@ void setScriptMultiElementtype (uintptr_t num) {
 
                 to_ptr = &(CRoutes[num].tonodes[to_counter]);
                 myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
+
+printf ("setScriptMultiElementtype, my scriptnumber is %d\n", myObj->num);
 
 		/* the to_node should be a script number; it will be a small integer */
 		tptr = to_ptr->foffset;

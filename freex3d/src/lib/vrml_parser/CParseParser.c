@@ -502,8 +502,10 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
     }
 
     /* Script can not take inputOutputs */
-    if(script->ShaderScriptNode->_nodeType==NODE_Script && mode==PKW_inputOutput)
-        PARSE_ERROR("Scripts must not have inputOutputs!")
+    if (script != NULL) {
+    	if(script->ShaderScriptNode->_nodeType==NODE_Script && mode==PKW_inputOutput)
+        	PARSE_ERROR("Scripts must not have inputOutputs!")
+    }
   
             /* lexer_fieldType is #defined as lexer_specialID(me, r, NULL, FIELDTYPES, FIELDTYPES_COUNT, NULL) */
             /* Looks for the next token in the array FIELDTYPES and returns the index in type */
@@ -1523,9 +1525,8 @@ BOOL parser_routeStatement(struct VRMLParser* me)
         /* **************************** */
 
         /* Calculate dir parameter */
-printf ("before routing, we have fromNode %u toNode %u\n",fromNode, toNode);
-#define fromScript (fromNode->_nodeType==NODE_Script)
-#define toScript (toNode->_nodeType==NODE_Script)
+	#define fromScript (fromNode->_nodeType==NODE_Script)
+	#define toScript (toNode->_nodeType==NODE_Script)
 
         if(fromScript && toScript) {
         }

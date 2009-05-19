@@ -829,7 +829,6 @@ void CRoutes_RegisterSimple(
 	if (to->_nodeType == NODE_Script) dir  = dir | TO_SCRIPT;
 
 
-printf ("CRoutes_RegisterSimple, dir %d, from %u:%d to %u:%d\n",dir, from, fromOfs, to, toOfs);
 	/* check to ensure that we are not doing with a StaticGroup here */
 	if (dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT) {
 		/* printf ("we are NOT sending to a script, checking for StaticGroup\n"); */
