@@ -999,7 +999,14 @@ void setScriptMultiElementtype (uintptr_t num) {
 		/* get context and global object for this script */
 		cx = (JSContext *) ScriptControl[myObj->num].cx;
 		obj = (JSObject *)ScriptControl[myObj->num].glob;
+
+		/* thanks to Doug Sanden for this one */
+		#ifdef WIN32
+		fnptr = (void *)( (uintptr_t)(fn) + fptr ); /*force byte arithmetic */
+		#else
 		fn += fptr;
+		#endif
+
 		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}
 }
