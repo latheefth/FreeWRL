@@ -575,7 +575,6 @@ void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyV
 		ConsoleMessage ("JSSaveScriptText: warning, script %d initialization out of order",num);
 		return;
 	}
-	/* printf ("SaveScriptField, num %d, kind %s type %s field %s value %d\n", num,PROTOKEYWORDS[kind],FIELDTYPES[type],field,value); */
 
 	/* generate a new ScriptParamList entry */
 	/* note that this is a linked list, and we put things on at the end. The END MUST

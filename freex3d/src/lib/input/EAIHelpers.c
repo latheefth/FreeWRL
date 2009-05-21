@@ -435,8 +435,8 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 				if (eaiverbose)
 				printf ("   field %d,  name %s type %s (type %s accessType %d (%s), indexName %d, stringType %s)\n",
 						i,
-						sfield->name, 
-						sfield->type, 
+						sfield->ASCIIname, 
+						sfield->ASCIItype, 
 						stringFieldtypeType(fieldDecl_getType(sfield->fieldDecl)),
 						fieldDecl_getAccessType(sfield->fieldDecl),
 						stringPROTOKeywordType(fieldDecl_getAccessType(sfield->fieldDecl)),
@@ -445,16 +445,16 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 				);
 				
 				
-				if (strcmp(fieldString,sfield->name) == 0) {
+				if (strcmp(fieldString,sfield->ASCIIname) == 0) {
 					/* call JSparamIndex to get a unique index for this name - this is used for ALL
 					   script access, whether from EAI or not */
 					if(eaiverbose)
-					printf ("found it at index, %d but returning JSparamIndex %d\n",i,JSparamIndex(sfield->name, sfield->type)); 
+					printf ("found it at index, %d but returning JSparamIndex %d\n",i,JSparamIndex(sfield->ASCIIname, sfield->ASCIItype)); 
 
-					myFieldOffs = JSparamIndex(sfield->name, sfield->type);
+					myFieldOffs = JSparamIndex(sfield->ASCIIname, sfield->ASCIItype);
 					/* switch from "PKW" to "KW" types */
 					*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(sfield->fieldDecl));
-					ctype = findFieldInFIELDTYPES(sfield->type);
+					ctype = findFieldInFIELDTYPES(sfield->ASCIItype);
 					break;
 				}
 			}

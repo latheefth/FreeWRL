@@ -45,6 +45,7 @@ this sends events to scripts that have eventIns defined.
 ********************************************************************/
 void getField_ToJavascript (int num, int fromoffset) {
 	int ignored;
+
 	#ifdef SETFIELDVERBOSE 
 		printf ("CRoutes, sending ScriptEventIn to from offset %d type %d\n",
 			fromoffset,JSparamnames[fromoffset].type);  
@@ -697,8 +698,10 @@ int setMFElementtype (uintptr_t num) {
 		#ifdef SETFIELDVERBOSE 
 			printf ("got a script event! index %d type %d\n",
 					num, CRoutes[num].direction_flag);
+/*
 			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,to_ptr->foffset);
 			printf ("\tfrom %d from ptr %d\n\tto %d toptr %d\n",fn,fptr,tn,to_ptr->foffset);
+*/
 			printf ("\tdata length %d\n",len);
 			printf ("and, sending it to %s as type %d\n",JSparamnames[to_ptr->foffset].name,
 					JSparamnames[to_ptr->foffset].type);
