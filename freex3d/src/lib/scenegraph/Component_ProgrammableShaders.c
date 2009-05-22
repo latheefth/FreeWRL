@@ -260,7 +260,7 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 	int isUniform = fieldDecl_isshaderVariableUniform(myField->fieldDecl);
 
 	#ifdef SHADERVERBOSE
-	printf ("sendValueToShader...");
+	printf ("sendValueToShader... ft %s\n",stringFieldtypeType(fieldDecl_getType(myField->fieldDecl)));
 	printf ("shaderVariableID is %d\n",shaderVariable);
 	#endif
 

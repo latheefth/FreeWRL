@@ -287,7 +287,6 @@ void Old child_StaticGroup (struct X3D_StaticGroup *node) {
 void child_Group (struct X3D_Group *node) {
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
-
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	 /* {
