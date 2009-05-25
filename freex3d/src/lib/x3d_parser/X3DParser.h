@@ -42,7 +42,9 @@ X3D parser functions.
 int freewrl_XML_GetCurrentLineNumber();
 #define LINE freewrl_XML_GetCurrentLineNumber()
 #define TTY_SPACE {int tty; printf ("%3d ",parentIndex); for (tty = 0; tty < parentIndex; tty++) printf ("  ");}
-extern int parserMode;
+extern int getParserMode(void);
+extern void debugsetParserMode(int,char*, int);
+#define setParserMode(xxx) debugsetParserMode(xxx,__FILE__,__LINE__)
 
 #define PARENTSTACKSIZE 256
 extern int parentIndex;
