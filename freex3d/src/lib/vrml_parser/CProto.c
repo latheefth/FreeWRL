@@ -1563,7 +1563,6 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	*protoSize = curstringlen + routeSize + strlen(ENDPROTOGROUP);
 	newProtoText[*protoSize] = '\0';
 
-	printf ("so, newProtoText \n%s\n",newProtoText);
 	return newProtoText;
 }
 
