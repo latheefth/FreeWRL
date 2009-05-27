@@ -204,7 +204,8 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
-printf ("kill_X3DDefs - nothing here\n");
+/* printf ("kill_X3DDefs - nothing here\n"); */
+/* XXX fill this in */
 }
 
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
@@ -636,7 +637,7 @@ static void parseX3Dhead(const char **atts) {
 	if (myProfile == INT_ID_UNDEFINED) {
 		ConsoleMessage ("expected valid profile in X3D header");
 	} else {
-printf ("X3DParsehead, myProfile %d\n",myProfile);
+		/* printf ("X3DParsehead, myProfile %d\n",myProfile); */
 		if (myProfile >= 0) handleProfile (myProfile);
 	}
 
