@@ -43,7 +43,8 @@ const char* JS_PROTOCOLS[]={
  "shader",
  "javascript",
  "ecmascript",
- "vrmlscript"};
+ "vrmlscript",
+ "data:text/plain"};
 
 /* ************************************************************************** */
 /* ****************************** ScriptFieldDecl *************************** */
@@ -325,8 +326,8 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
    ++v;
   }
 
-  /* Is this a simple "javascript:" "ecmascript:" or "vrmlscript:" uri? JAS*/
-  if(!*v && *u==':') {
+  /* Is this a "data:text/plain," uri? JAS*/
+  if((!*v && *u==',') || (!*v && *u==':')) {
    	if (me != NULL) {
 		return script_initCode(me, u+1); /* a script */
 	} else {
