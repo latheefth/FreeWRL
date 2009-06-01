@@ -81,7 +81,7 @@ Viewer ???
 	        yd = Viewer.currentPosInModel.y; \
 	        zd = Viewer.currentPosInModel.z; \
 	        test = sqrt (xd*xd+yd*yd+zd*zd); \
-		/* printf ("htw; cur Dist %4.2f, calculated %4.2f at %lf\n", Viewer.Dist, test,TickTime);  */ \
+		/* printf ("htw; cur Dist %4.2f, calculated %4.2f at %lf\n", Viewer.Dist, test,TickTime);  */\
 		Viewer.Dist = test; \
 	}
 /* extern struct point_XYZ ViewerPosition; */

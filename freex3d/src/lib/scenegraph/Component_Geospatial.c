@@ -2620,6 +2620,14 @@ void viewer_calculate_speed() {
 }
 
 
+static calculateExamineModeDistance(void) {
+extern int doExamineModeDistanceCalculations;
+/*
+	printf ("bind_geoviewpoint - calculateExamineModeDistance\n");
+*/
+doExamineModeDistanceCalculations = TRUE;
+
+}
 
 void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	Quaternion q_i;
@@ -2657,6 +2665,9 @@ void bind_geoviewpoint (struct X3D_GeoViewpoint *node) {
 	resolve_pos();
 
 	viewer_calculate_speed();
+
+	calculateExamineModeDistance();
+
 }
 
 
