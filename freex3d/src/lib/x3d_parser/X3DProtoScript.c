@@ -26,6 +26,7 @@ $Id$
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../input/EAIHelpers.h"
 
 #include "X3DParser.h"
 #include "X3DProtoScript.h"

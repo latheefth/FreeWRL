@@ -132,6 +132,7 @@ struct CRscriptStruct {
 /* function protos */
 
 struct ScriptFieldInstanceInfo* scriptFieldInstanceInfo_copy(struct ScriptFieldInstanceInfo*);
+void scriptFieldDecl_setFieldASCIIValue(struct ScriptFieldDecl *me, const char *val);
 
 
 #endif /* __FREEWRL_CSCRIPTS_H__ */

@@ -17,6 +17,7 @@ Render the children of nodes.
 #include "../vrml_parser/Structs.h" 
 #include "quaternion.h"
 
+#include "Children.h"
 #include "Collision.h"
 #include "RenderFuncs.h"
 

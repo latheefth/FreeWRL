@@ -13,6 +13,9 @@ Global includes.
 /* for lightState() */
 #include "../opengl/OpenGL_Utils.h"
 
+/* for localLightChildren */
+#include "../scenegraph/Children.h"
+
 /**
  * in utils.c
  */
