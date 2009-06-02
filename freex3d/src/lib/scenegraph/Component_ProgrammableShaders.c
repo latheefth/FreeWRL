@@ -213,7 +213,7 @@ static void shaderErrorLog(GLuint myShader) {
 			} \
 		} 
 
-#ifdef GL_VERSION_2_0
+#ifdef OPENGL_VERSION_2_0
 	#define LINK_IF_VALID \
 		if (node->isValid) { \
 			/* link the shader programs together */ \
