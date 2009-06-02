@@ -725,7 +725,11 @@ int open_font()
 
     /* were fonts not found? */
     if (font_directory == NULL) {
-        ConsoleMessage ("Problem - can not find font files!\n");
+#ifdef AQUA
+        ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
+#else
+        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONT_PATH environment variable\n");
+#endif
         return FALSE;
     }
 
