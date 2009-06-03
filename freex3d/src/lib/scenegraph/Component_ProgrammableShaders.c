@@ -191,7 +191,6 @@ static void shaderErrorLog(GLuint myShader) {
 							ConsoleMessage ("error reading url for :%s:",stringNodeType(NODE_##myNodeType)); \
 							myText = ""; \
 						  } else { myText = *cptr; \
-						FREE_IF_NZ(*cptr); }\
 \
 						/* assign this text to VERTEX or FRAGMENT buffers */ \
 						if (!strcmp(prog->type->strptr,"VERTEX")) { \
@@ -202,6 +201,7 @@ static void shaderErrorLog(GLuint myShader) {
 							haveFragShaderText = TRUE; \
 						} \
 						/* printf ("Shader text for type %s is  %s\n",prog->type->strptr,myText); */ \
+						FREE_IF_NZ(*cptr); }\
 					} else { \
 						ConsoleMessage ("%s, invalid Type, got \"%s\"",stringNodeType(NODE_##myNodeType), prog->type->strptr); \
 						node->isValid = FALSE; \
