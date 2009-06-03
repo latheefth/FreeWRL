@@ -1982,7 +1982,7 @@ struct X3D_ComposedShader {
  	/*** node specific data: *****/
 	int __initialized;
 	void *__oldmetadata;
-	struct Multi_Node __shaderIDS;
+	struct Multi_Int32 __shaderIDS;
 	void * __shaderObj;
 	int activate;
 	int isSelected;
@@ -5319,7 +5319,7 @@ struct X3D_ProgramShader {
  	/*** node specific data: *****/
 	int __initialized;
 	void *__oldmetadata;
-	struct Multi_Node __shaderIDS;
+	struct Multi_Int32 __shaderIDS;
 	int activate;
 	int isSelected;
 	int isValid;
