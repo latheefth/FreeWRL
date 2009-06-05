@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.10  2009/06/05 20:29:32  crc_canada
+# verifying fields of nodes against spec.
+#
 # Revision 1.9  2009/05/22 16:18:40  crc_canada
 # more XML formatted code script/shader programming.
 #
@@ -213,6 +216,7 @@
 	Background 		=>children,
 	Billboard 		=>children,
 	Box 			=>geometry,
+	ClipPlane 		=>children,
 	Collision 		=>children,
 	Color 			=>color,
 	ColorInterpolator 	=>children,
