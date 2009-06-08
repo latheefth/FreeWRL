@@ -123,6 +123,7 @@ scenegraph/Component_Shape.c \
 scenegraph/Component_Navigation.c \
 scenegraph/readpng.h \
 scenegraph/Children.c \
+scenegraph/Children.h \
 scenegraph/Component_Sound.c \
 scenegraph/Component_Geometry3D.c \
 scenegraph/Polyrep.h \

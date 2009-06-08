@@ -20,6 +20,8 @@ NEWS \
 vtempl.in \
 Makefile.globals \
 spidermonkey.pc \
+data/freewrl.desktop \
+data/freewrl.png \
 doc/AUTOCONF \
 doc/AUTOMAKE \
 doc/DEPENDENCY \
@@ -33,6 +35,15 @@ versions/MESSAGEMGR \
 versions/PLUGIN \
 versions/SOUNDMGR \
 versions/template/version.c.in
+
+pixmapdir = $(datadir)/pixmaps
+pixmap_DATA = data/freewrl.png
+
+dist_man_MANS = doc/freewrl.1
+
+install-data-local: data/freewrl.desktop data/freewrl.png
+	mkdir -p $(DESTDIR)$(datadir)/applications
+	install data/freewrl.desktop $(DESTDIR)$(datadir)/applications
 
 dist-minimal: clean distclean
 	if test -f freewrl-$(PACKAGE_VERSION).tar.gz; then \

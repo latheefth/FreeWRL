@@ -32,6 +32,8 @@ display_aqua.c
 ui/fwBareWindow.c
 ui/fwMotifWindow.c"
 	;;
+	"src/libeai") cdi=""
+	;;
     "src/bin") cdi=""
 	;;
     "src/message") cdi=""
@@ -64,6 +66,9 @@ find . -type f -name "*.[hc]" -printf "%P \n" | \
 
 # Output the diff
 diff -EbB -e $s1 $s2
+
+# Search for required files not added to CVS
+# TODO !
 
 # Explanations
 echo
