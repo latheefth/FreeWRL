@@ -202,7 +202,7 @@ void openMainWindow (int argc, char **argv)
     arrowc = XCreateFontCursor(Xdpy, XC_left_ptr);
     sensorc = XCreateFontCursor(Xdpy, XC_diamond_cross);
     
-#if HAVE_XF86_VMODE
+#ifdef HAVE_XF86_VMODE
     XF86VidModeGetAllModeLines(Xdpy, Xscreen, &vmode_nb_modes, &vmode_modes);
     
     bestMode = 0;
@@ -299,7 +299,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 
 void resetGeometry()
 {
-#if HAVE_XF86_VMODE
+#ifdef HAVE_XF86_VMODE
     int oldMode, i;
 
     if (fullscreen) {

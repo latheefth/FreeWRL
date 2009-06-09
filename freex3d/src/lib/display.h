@@ -131,7 +131,7 @@ extern Cursor curcursor;
 
 void handle_Xevents(XEvent event);
 
-# if HAVE_XF86_VMODE
+# ifdef HAVE_XF86_VMODE
 #  include <X11/extensions/xf86vmode.h>
 extern int vmode_nb_modes;
 extern XF86VidModeModeInfo **vmode_modes;

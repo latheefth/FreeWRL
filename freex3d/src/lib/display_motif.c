@@ -52,7 +52,9 @@ int create_main_window_motif()
 	XMoveWindow(Xdpy, Xwin, 0, 0);
 	XRaiseWindow(Xdpy, Xwin);
 	XFlush(Xdpy);
+#ifdef HAVE_XF86_VMODE
 	XF86VidModeSetViewPort(Xdpy, Xscreen, 0, 0);
+#endif
 	XGrabPointer(Xdpy, Xwin, TRUE, 0, GrabModeAsync, GrabModeAsync, Xwin, None, CurrentTime);
 	XGrabKeyboard(Xdpy, Xwin, TRUE, GrabModeAsync, GrabModeAsync, CurrentTime);
     } else {
