@@ -20,8 +20,7 @@ NEWS \
 vtempl.in \
 Makefile.globals \
 spidermonkey.pc \
-data/freewrl.desktop \
-data/freewrl.png \
+data \
 doc/AUTOCONF \
 doc/AUTOMAKE \
 doc/DEPENDENCY \
@@ -41,9 +40,14 @@ pixmap_DATA = data/freewrl.png
 
 dist_man_MANS = doc/freewrl.1
 
-install-data-local: data/freewrl.desktop data/freewrl.png
+# Since data is included in EXTRA_DIR, all this subdir
+# will be copied into the dist, so we must clean up the CVS files...
+dist-hook:
+	-rm -rf $(distdir)/data/CVS
+
+install-data-local: $(top_srcdir)/data/freewrl.desktop
 	mkdir -p $(DESTDIR)$(datadir)/applications
-	install data/freewrl.desktop $(DESTDIR)$(datadir)/applications
+	install $(top_srcdir)/data/freewrl.desktop $(DESTDIR)$(datadir)/applications
 
 dist-minimal: clean distclean
 	if test -f freewrl-$(PACKAGE_VERSION).tar.gz; then \
