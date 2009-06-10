@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# $Id$
+#
 
 # Font directory
 # default:
