@@ -16,7 +16,7 @@ if [ -f /etc/debian_version ] ; then
     fi
 else
     echo "Default fonts dir: $fontsdir"
-esac
+fi
 
 # Target
 target=motif
