@@ -35,6 +35,7 @@ $Id$
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
+#include <limits.h>
 
 #undef CPARSERVERBOSE
 
@@ -344,7 +345,12 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  printf ("script_initCodeFromUri, uri is %s\n",uri); 
  #endif
 
- filename = (char *)MALLOC(1000);
+ // Test if this could be a path name
+ if (strlen(getInputURL) >= PATH_MAX) {
+     return FALSE;
+ }
+
+ filename = (char *)MALLOC(PATH_MAX);
 
  /* get the current parent */
  mypath = STRDUP(getInputURL());
