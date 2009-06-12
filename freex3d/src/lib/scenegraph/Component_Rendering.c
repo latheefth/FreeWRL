@@ -30,6 +30,7 @@ void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *node) {
                 COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
+
 }
 
 void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *node) {

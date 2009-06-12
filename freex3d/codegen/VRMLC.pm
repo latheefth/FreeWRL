@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.14  2009/06/12 20:13:00  crc_canada
+# Verifying Triangle nodes.
+#
 # Revision 1.13  2009/05/13 20:30:49  crc_canada
 # Shader fields in classic parser worked on, and javascript sfvec4f and sfvec4d support.
 #
@@ -901,12 +904,20 @@ sub gen {
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
 	"#define X3D_VIEWPOINT(node) ((struct X3D_Viewpoint*)node)\n".
 	"#define X3D_LODNODE(node) ((struct X3D_LOD*)node)\n".
-	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#define X3D_TRANSFORM(node) ((struct X3D_Transform*)node)\n".
 	"#define X3D_PROXIMITYSENSOR(node) ((struct X3D_ProximitySensor*)node)\n".
 	"#define X3D_POINTLIGHT(node) ((struct X3D_PointLight*)node)\n".
 	"#define X3D_SPOTLIGHT(node) ((struct X3D_SpotLight*)node)\n".
 	"#define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)\n".
+	"#define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)\n".
+	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
+	"#define X3D_INDEXEDTRIANGLEFANSET(node) ((struct X3D_IndexedTriangleFanSet*)node)\n". 
+	"#define X3D_INDEXEDTRIANGLESET(node) ((struct X3D_IndexedTriangleSet*)node)\n". 
+	"#define X3D_INDEXEDTRIANGLESTRIPSET(node) ((struct X3D_IndexedTriangleStripSet*)node)\n". 
+	"#define X3D_TRIANGLEFANSET(node) ((struct X3D_TriangleFanSet*)node)\n". 
+	"#define X3D_TRIANGLESET(node) ((struct X3D_TriangleSet*)node)\n". 
+	"#define X3D_TRIANGLESTRIPSET(node) ((struct X3D_TriangleStripSet*)node)\n". 
+
 
 	"#define X3D_GEOORIGIN(node) ((struct X3D_GeoOrigin*)node)\n".
 	"#define X3D_GEOLOD(node) ((struct X3D_GeoLOD*)node)\n".

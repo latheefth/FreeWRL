@@ -50,8 +50,8 @@ void normalize_ifs_face (float *point_normal,
 
 	point_normal[0] = 0.0; point_normal[1] = 0.0; point_normal[2] = 0.0;
 
-	/* printf ("my normal is %f %f %f\n", facenormals[curpoly].x,*/
-	/* 	facenormals[curpoly].y,facenormals[curpoly].z);*/
+	/* printf ("my normal is %f %f %f\n", facenormals[curpoly].x,
+	 	facenormals[curpoly].y,facenormals[curpoly].z); */
 
 	/* short cut for a point in only 1 face */
 	if (pointfaces[mypoint*POINT_FACES] == 1) {
@@ -65,7 +65,7 @@ void normalize_ifs_face (float *point_normal,
 	facecount = 0;
 	for (tmp_b=0; tmp_b<pointfaces[mypoint*POINT_FACES]; tmp_b++) {
 		tmp_a = pointfaces[mypoint*POINT_FACES+tmp_b+1];
-		/* printf ("comparing myface %d to %d\n",curpoly,tmp_a);*/
+		/* printf ("comparing myface %d to %d\n",curpoly,tmp_a); */
 
 		if (curpoly == tmp_a) {
 			zz = 0.0;
@@ -86,5 +86,5 @@ void normalize_ifs_face (float *point_normal,
 	normalize_vector(&temp);
 	point_normal[0]=temp.x; point_normal[1]=temp.y; point_normal[2]=temp.z;
 
-	/* printf ("normalized vector is %f %f %f\n",point_normal[0], point_normal[1], point_normal[2]);*/
+	/* printf ("normalized vector is %f %f %f\n",point_normal[0], point_normal[1], point_normal[2]); */
 }

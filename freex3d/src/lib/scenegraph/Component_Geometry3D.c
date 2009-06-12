@@ -438,7 +438,7 @@ void render_Extrusion (struct X3D_Extrusion *node) {
 }
 
 
-void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
+void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/

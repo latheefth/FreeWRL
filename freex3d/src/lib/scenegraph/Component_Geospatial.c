@@ -1540,7 +1540,7 @@ void make_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
 /* deref real ElevationGrid pointer */
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *innode) {
 	struct X3D_ElevationGrid *node = innode->__realElevationGrid;
-	if (node != NULL) collide_IndexedFaceSet ((struct X3D_IndexedFaceSet *)node);
+	if (node != NULL) collide_genericfaceset ((struct X3D_IndexedFaceSet *)node);
 }
 
 /* deref real ElevationGrid pointer */
