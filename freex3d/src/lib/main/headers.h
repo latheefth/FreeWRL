@@ -40,6 +40,7 @@ char *readInputString(char *fn);
 #define SPEC_X3D32 0x08
 #define SPEC_X3D33 0x10
 #define SPEC_X3D34 0x20
+#define SPEC_VRML1 0x01 /* same as SPEC_VRML */
 
 
 
@@ -1523,4 +1524,5 @@ extern void *setNavigationBindInRender;
 extern int inputFileType;
 extern int inputFileVersion[];
 
+char * convert1To2(char *);
 #endif /* __FREEWRL_HEADERS_H__ */

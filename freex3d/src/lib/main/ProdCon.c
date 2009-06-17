@@ -92,8 +92,10 @@ int inputFileVersion[3] = {0,0,0};
 			haveParsedCParsed = TRUE; \
 			break; \
 	case IS_TYPE_VRML1: \
-			ConsoleMessage (VRML1ERRORMSG); \
-			break; \
+			{ char *newData = convert1To2(input); \
+			cParse (nRn,offsetof (struct X3D_Group, children), newData); \
+			/* ConsoleMessage (VRML1ERRORMSG); */\
+			break; }\
 	case IS_TYPE_COLLADA: \
 			ConsoleMessage ("Collada not supported yet"); \
 			break; \
