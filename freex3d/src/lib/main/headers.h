@@ -1046,6 +1046,25 @@ void collide_Text (struct X3D_Text * this_);
 void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *this);
 void render_TextureCoordinate(struct X3D_TextureCoordinate *this);
 
+/* VRML1 nodes */
+void prep_VRML1_Separator (struct X3D_VRML1_Separator *this_);
+void fin_VRML1_Separator (struct X3D_VRML1_Separator *this_);
+void child_VRML1_Separator (struct X3D_VRML1_Separator *this_);
+void render_VRML1_Cone (struct X3D_VRML1_Cone *this);
+void render_VRML1_Cube (struct X3D_VRML1_Cube *this);
+void render_VRML1_Sphere (struct X3D_VRML1_Sphere *this);
+void render_VRML1_AsciiText (struct X3D_VRML1_AsciiText *this);
+void render_VRML1_Cylinder (struct X3D_VRML1_Cylinder *this);
+void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *this);
+void render_VRML1_IndexedLineSet (struct X3D_VRML1_IndexedLineSet *this);
+void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this);
+void render_VRML1_Scale (struct X3D_VRML1_Scale *this);
+void render_VRML1_Transform (struct X3D_VRML1_Transform *this);
+void render_VRML1_Translation (struct X3D_VRML1_Translation *this);
+void render_VRML1_Rotation (struct X3D_VRML1_Rotation *this);
+void render_VRML1_Material (struct X3D_VRML1_Material *this);
+
+
 /* Component Grouping */
 void prep_Transform (struct X3D_Transform *this_);
 void fin_Transform (struct X3D_Transform *this_);

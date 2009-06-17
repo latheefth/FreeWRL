@@ -1229,6 +1229,13 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(MetadataMFVec4f) CMD(MFVec4f,node); END_NODE
 				BEGIN_NODE(MetadataSFVec4d) CMD(SFVec4d,node); END_NODE
 				BEGIN_NODE(MetadataMFVec4d) CMD(MFVec4d,node); END_NODE
+
+				/* VRML1 Separator node; we do a bare bones implementation; always assume there are 
+					lights, geometry, and viewpoints here. */
+				BEGIN_NODE(VRML1_Separator) 
+					propagateExtent(X3D_NODE(node));
+					update_renderFlag(X3D_NODE(node),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
+				END_NODE
 			}
 		}
 
