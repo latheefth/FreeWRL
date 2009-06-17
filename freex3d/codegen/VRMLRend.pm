@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.13  2009/06/17 21:11:00  crc_canada
+# more VRML1 code.
+#
 # Revision 1.12  2009/06/17 18:50:42  crc_canada
 # More VRML1 code entered.
 #
@@ -515,6 +518,9 @@
 	VRML1_Transform
 	VRML1_Material
 	VRML1_Rotation
+	VRML1_DirectionalLight
+	VRML1_SpotLight
+	VRML1_PointLight
 /;
 
 #######################################################################

@@ -2688,7 +2688,7 @@ package VRML::NodeType;
 		location=>[SFVec3f,[0,0,1],inputOutput,"SPEC_VRML1"],
 		direction=>[SFVec3f,[0,0,-1],inputOutput,"SPEC_VRML1"],
 		dropOffRate=>[SFFloat,0,inputOutput,"SPEC_VRML1"],
-		curOffAngle=>[SFFloat,0.785398,inputOutput,"SPEC_VRML1"],
+		cutOffAngle=>[SFFloat,0.785398,inputOutput,"SPEC_VRML1"],
 	}, "X3DChildNode"),
 
 	VRML1_WWWInline => new VRML::NodeType("VRML1_WWWInline", {

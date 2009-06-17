@@ -1063,6 +1063,9 @@ void render_VRML1_Transform (struct X3D_VRML1_Transform *this);
 void render_VRML1_Translation (struct X3D_VRML1_Translation *this);
 void render_VRML1_Rotation (struct X3D_VRML1_Rotation *this);
 void render_VRML1_Material (struct X3D_VRML1_Material *this);
+void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *this);
+void render_VRML1_PointLight (struct X3D_VRML1_PointLight *this);
+void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *this);
 
 
 /* Component Grouping */
