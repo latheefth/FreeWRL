@@ -1067,6 +1067,24 @@ void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *this);
 void render_VRML1_PointLight (struct X3D_VRML1_PointLight *this);
 void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *this);
 
+void render_VRML1_Coordinate3 (struct X3D_VRML1_Coordinate3  *node) ;
+void render_VRML1_FontStyle (struct X3D_VRML1_FontStyle  *node) ;
+void render_VRML1_MaterialBinding (struct X3D_VRML1_MaterialBinding  *node) ;
+void render_VRML1_Normal (struct X3D_VRML1_Normal  *node) ;
+void render_VRML1_NormalBinding (struct X3D_VRML1_NormalBinding  *node) ;
+void render_VRML1_Texture2 (struct X3D_VRML1_Texture2  *node) ;
+void render_VRML1_Texture2Transform (struct X3D_VRML1_Texture2Transform  *node) ;
+void render_VRML1_TextureCoordinate2 (struct X3D_VRML1_TextureCoordinate2  *node) ;
+void render_VRML1_ShapeHints (struct X3D_VRML1_ShapeHints  *node) ;
+void render_VRML1_MatrixTransform (struct X3D_VRML1_MatrixTransform  *node) ;
+void render_VRML1_Switch (struct X3D_VRML1_Switch  *node) ;
+void render_VRML1_WWWAnchor (struct X3D_VRML1_WWWAnchor  *node) ;
+void render_VRML1_LOD (struct X3D_VRML1_LOD  *node) ;
+void render_VRML1_OrthographicCamera (struct X3D_VRML1_OrthographicCamera  *node) ;
+void render_VRML1_PerspectiveCamera (struct X3D_VRML1_PerspectiveCamera  *node) ;
+void render_VRML1_WWWInline (struct X3D_VRML1_WWWInline  *node) ;
+
+
 
 /* Component Grouping */
 void prep_Transform (struct X3D_Transform *this_);

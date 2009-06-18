@@ -2542,7 +2542,7 @@ package VRML::NodeType;
 
 	VRML1_PointSet => new VRML::NodeType("VRML1_PointSet", {
 		startIndex => [SFInt32, 0,inputOutput,"SPEC_VRML1"],
-		numPoints => [MFInt32,-1,inputOutput,"SPEC_VRML1"],
+		numPoints => [SFInt32,-1,inputOutput,"SPEC_VRML1"],
 	}, "X3DChildNode"),
 
 

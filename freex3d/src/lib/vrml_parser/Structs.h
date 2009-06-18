@@ -6669,7 +6669,7 @@ struct X3D_VRML1_PointSet {
        int _nodeType; /* unique integer for each type */ 
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
-	struct Multi_Int32 numPoints;
+	int numPoints;
 	int startIndex;
 };
 extern struct X3D_Virt virt_VRML1_PointSet;

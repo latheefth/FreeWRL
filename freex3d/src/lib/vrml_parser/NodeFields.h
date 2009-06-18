@@ -2000,7 +2000,7 @@ END_NODE(VRML1_PointLight)
 /* VRML1_PointSet node */
 BEGIN_NODE(VRML1_PointSet)
 EXPOSED_FIELD(VRML1_PointSet,startIndex,sfint32,startIndex)
-EXPOSED_FIELD(VRML1_PointSet,numPoints,mfint32,numPoints)
+EXPOSED_FIELD(VRML1_PointSet,numPoints,sfint32,numPoints)
 END_NODE(VRML1_PointSet)
 
 /* VRML1_Rotation node */
