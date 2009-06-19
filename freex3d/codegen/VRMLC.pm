@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.16  2009/06/19 16:21:44  crc_canada
+# VRML1 work.
+#
 # Revision 1.15  2009/06/17 15:05:24  crc_canada
 # VRML1 nodes added to build process.
 #
@@ -742,6 +745,32 @@ sub gen {
 		"	if ((st < 0) || (st >= X3DSPECIAL_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
 		"	return X3DSPECIAL[st];\n}\n\n";
 	push @str, "const char *stringX3DSPECIALType(int st);\n";
+
+	#####################
+	# process VRML1Modifier keywords 
+	push @str, "\n/* Table of built-in VRML1Modifier keywords */\nextern const char *VRML1Modifier[];\n";
+	push @str, "extern const indexT VRML1Modifier_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of VRML1Modifier keywords */\n       const char *VRML1Modifier[] = {\n";
+
+        my @sf = keys %VRML1ModifierC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		push @str, "#define VRML1MOD_".$_."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst indexT VRML1Modifier_COUNT = ARR_SIZE(VRML1Modifier);\n\n";
+
+	# make a function to print Keyword name from an integer type.
+	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1Modifier keyword type */\n". 
+		"const char *stringVRML1ModifierType (int st) {\n".
+		"	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return \"KEYWORD OUT OF RANGE\"; \n".
+		"	return VRML1Modifier[st];\n}\n\n";
+	push @str, "const char *stringVRML1ModifierType(int st);\n";
 
 	#####################
 	# process GEOSPATIAL keywords 
