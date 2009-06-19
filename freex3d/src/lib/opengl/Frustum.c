@@ -753,16 +753,18 @@ void OcclusionCulling ()  {
 
 		/* get the check count field for this node - see if we did a check of this */
 		shapePtr = X3D_SHAPE(occluderNodePointer[i]);
-		if (shapePtr->_nodeType == NODE_Shape) {
-			visSenPtr = NULL;
-			checkCount = shapePtr->__occludeCheckCount;
-		} else if (shapePtr->_nodeType == NODE_VisibilitySensor) {
-			visSenPtr = X3D_VISIBILITYSENSOR(occluderNodePointer[i]);
-			shapePtr = NULL;
-			checkCount = visSenPtr->__occludeCheckCount;
-		} else {
-			printf ("OcclusionCulling on node type %s not allowed\n",stringNodeType(shapePtr->_nodeType));
-			return;
+		if (shapePtr != NULL) {
+			if (shapePtr->_nodeType == NODE_Shape) {
+				visSenPtr = NULL;
+				checkCount = shapePtr->__occludeCheckCount;
+			} else if (shapePtr->_nodeType == NODE_VisibilitySensor) {
+				visSenPtr = X3D_VISIBILITYSENSOR(occluderNodePointer[i]);
+				shapePtr = NULL;
+				checkCount = visSenPtr->__occludeCheckCount;
+			} else {
+				printf ("OcclusionCulling on node type %s not allowed\n",stringNodeType(shapePtr->_nodeType));
+				return;
+			}
 		}
 
 		#ifdef OCCLUSIONVERBOSE
