@@ -28,10 +28,21 @@ case $(uname -s) in
 	echo "--with-target=x11"
 	echo
 	target=x11
+
+	port=$(port version)
+	if [ $? -eq 0 ] ; then
+	    # we have Mac Ports installed
+	    add_path=/opt/local
+	fi
 	;;
 esac
 
-my_options="--with-fontsdir=$fontsdir --with-target=$target $*"
+if [ ! -z "$add_path" ] ; then
+    cflags="CPPFLAGS=-I$add_path/include"
+    lflags="LDFLAGS=-L$add_path/lib"
+fi
+
+my_options="--with-fontsdir=$fontsdir --with-target=$target $cflags $lflags $*"
 
 echo
 echo "configure options: $my_options"

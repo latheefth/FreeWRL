@@ -76,7 +76,7 @@ void usage()
 
 const char * validate_string_arg(const char *optarg)
 {
-    
+    return NULL; /* TODO: implement validate_* functions */
 }
 
 int parseCommandLine (int argc, char **argv)
@@ -316,7 +316,7 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'k': /* --instance, required argument: number */
-	    sscanf(optarg,"%u",&_fw_instance);
+	    sscanf(optarg,"%u",(unsigned int *)&_fw_instance);
 	    break;
 
 
