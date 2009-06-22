@@ -19,7 +19,6 @@ $Id$
 
 #include "Polyrep.h"
 
-
 #define NO_TCOORD_GEN_IN_SHAPE (r->GeneratedTexCoords == 0)
 #define NO_TEXCOORD_NODE (r->tcoordtype==0)
 #define MUST_GENERATE_TEXTURES (NO_TCOORD_GEN_IN_SHAPE && NO_TEXCOORD_NODE)

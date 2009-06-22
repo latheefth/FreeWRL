@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.17  2009/06/22 19:40:41  crc_canada
+# more VRML1 work.
+#
 # Revision 1.16  2009/06/19 16:21:44  crc_canada
 # VRML1 work.
 #
@@ -968,6 +971,7 @@ sub gen {
 	"#define X3D_SPOTLIGHT(node) ((struct X3D_SpotLight*)node)\n".
 	"#define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)\n".
 	"#define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)\n".
+	"#define VRML1_INDEXEDFACESET(node) ((struct X3D_VRML1_IndexedFaceSet*)node)\n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#define X3D_INDEXEDTRIANGLEFANSET(node) ((struct X3D_IndexedTriangleFanSet*)node)\n". 
 	"#define X3D_INDEXEDTRIANGLESET(node) ((struct X3D_IndexedTriangleSet*)node)\n". 

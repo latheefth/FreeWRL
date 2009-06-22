@@ -1919,8 +1919,8 @@ END_NODE(VRML1_FontStyle)
 /* VRML1_IndexedFaceSet node */
 BEGIN_NODE(VRML1_IndexedFaceSet)
 EXPOSED_FIELD(VRML1_IndexedFaceSet,normalIndex,mfint32,normalIndex)
-EXPOSED_FIELD(VRML1_IndexedFaceSet,coordIndex,mfint32,coordIndex)
 EXPOSED_FIELD(VRML1_IndexedFaceSet,materialIndex,mfint32,materialIndex)
+EXPOSED_FIELD(VRML1_IndexedFaceSet,coordIndex,mfint32,coordIndex)
 EXPOSED_FIELD(VRML1_IndexedFaceSet,textureCoordIndex,mfint32,textureCoordIndex)
 END_NODE(VRML1_IndexedFaceSet)
 
@@ -2021,6 +2021,8 @@ END_NODE(VRML1_Separator)
 
 /* VRML1_ShapeHints node */
 BEGIN_NODE(VRML1_ShapeHints)
+EXPOSED_FIELD(VRML1_ShapeHints,faceType,sfstring,faceType)
+FIELD(VRML1_ShapeHints,creaseAngle,sfdouble,creaseAngle)
 EXPOSED_FIELD(VRML1_ShapeHints,vertexOrdering,sfstring,vertexOrdering)
 EXPOSED_FIELD(VRML1_ShapeHints,shapeType,sfstring,shapeType)
 END_NODE(VRML1_ShapeHints)
