@@ -119,7 +119,7 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 #define CHECK_SHADERS \
 	if (!shadersChecked) checkShaders(); \
 	if (!haveShaders) { \
-		ConsoleMessage ("have an X3D program with shaders, but no shader support on this computer"); \
+		if (node->isValid) ConsoleMessage ("have an X3D program with shaders, but no shader support on this computer"); \
 		node->isValid = FALSE; \
 		return; \
 	}
