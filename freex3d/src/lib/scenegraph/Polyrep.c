@@ -835,7 +835,6 @@ void render_polyrep(void *node) {
 
 	trisThisLoop += r->ntri;
 
-
 	#ifdef TEXVERBOSE
 	{
 		int i;
@@ -861,7 +860,6 @@ void render_polyrep(void *node) {
 		}
 	}
 	#endif
-
 
 	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);

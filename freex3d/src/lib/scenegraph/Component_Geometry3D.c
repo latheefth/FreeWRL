@@ -462,7 +462,6 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 		/* JAS - no triangles in this text structure */
 		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
 
-
 	       /*save changed state.*/
 	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->irep_change;
 		COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)

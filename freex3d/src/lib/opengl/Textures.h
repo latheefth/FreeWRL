@@ -21,6 +21,9 @@ Screen snapshot.
                         } else if (thisTextureType==NODE_MovieTexture){ \
                                 mt = (struct X3D_MovieTexture*) node; \
                                 thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_VRML1_Texture2){ \
+                                v1t = (struct X3D_VRML1_Texture2*) node; \
+                                thisTexture = v1t->__textureTableIndex; \
                         } else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
 
 /* for texIsloaded structure */

@@ -539,7 +539,6 @@ extern void* *occluderNodePointer;
 /* from VRMLC.pm */
 extern int displayOpenGLErrors;
 extern int sound_from_audioclip;
-extern int have_texture;
 extern int global_lineProperties;
 extern int global_fillProperties;
 extern float gl_linewidth;

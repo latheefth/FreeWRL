@@ -2052,7 +2052,7 @@ END_NODE(VRML1_Switch)
 BEGIN_NODE(VRML1_Texture2)
 EXPOSED_FIELD(VRML1_Texture2,wrapS,sfstring,wrapS)
 EXPOSED_FIELD(VRML1_Texture2,wrapT,sfstring,wrapT)
-EXPOSED_FIELD(VRML1_Texture2,filename,sfstring,filename)
+EXPOSED_FIELD(VRML1_Texture2,filename,mfstring,filename)
 EXPOSED_FIELD(VRML1_Texture2,image,sfimage,image)
 END_NODE(VRML1_Texture2)
 

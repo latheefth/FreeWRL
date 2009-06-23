@@ -283,7 +283,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 
 	/* is there an emissiveColor here??? */
 	if (lightingOn) {
-		/* printf ("ILS - have lightingOn!\n"); */
+		/* printf ("ILS - have lightingOn!\n");   */
 		thisColor = last_emission;
 	} else {
 		thisColor = defColor;
