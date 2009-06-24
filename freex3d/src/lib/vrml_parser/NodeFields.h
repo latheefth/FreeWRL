@@ -2051,9 +2051,9 @@ END_NODE(VRML1_Switch)
 /* VRML1_Texture2 node */
 BEGIN_NODE(VRML1_Texture2)
 EXPOSED_FIELD(VRML1_Texture2,wrapS,sfstring,wrapS)
+EXPOSED_FIELD(VRML1_Texture2,image,sfimage,image)
 EXPOSED_FIELD(VRML1_Texture2,wrapT,sfstring,wrapT)
 EXPOSED_FIELD(VRML1_Texture2,filename,mfstring,filename)
-EXPOSED_FIELD(VRML1_Texture2,image,sfimage,image)
 END_NODE(VRML1_Texture2)
 
 /* VRML1_Texture2Transform node */

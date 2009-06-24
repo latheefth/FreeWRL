@@ -11,8 +11,8 @@ Screen snapshot.
 #define __FREEWRL_OPENGL_UTILS_H__
 
 
-void start_textureTransform (void *textureNode, int ttnum);
-void end_textureTransform (void *textureNode, int ttnum);
+void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
+void end_textureTransform (void);
 
 void
 glpOpenGLInitialize(void);

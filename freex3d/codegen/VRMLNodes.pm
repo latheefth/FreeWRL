@@ -2613,6 +2613,9 @@ package VRML::NodeType;
 		wrapT => [SFString,"REPEAT",inputOutput,"SPEC_VRML1"],
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__parenturl =>[SFString,"",initializeOnly, 0],
+		_initialized => [SFInt32,FALSE,inputOutput, 0],
+		_wrapS =>[SFInt32,-1,inputOutput,0],
+		_wrapT =>[SFInt32,-1,inputOutput,0],
 	}, "X3DChildNode"),
 
 	VRML1_Texture2Transform => new VRML::NodeType("VRML1_Texture2Transform", {

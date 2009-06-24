@@ -890,8 +890,8 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 			Src = mt->repeatS; Trc = mt->repeatT;
 		} else if (me->nodeType == NODE_VRML1_Texture2) {
 			v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
-			Src = strcmp("REPEAT",v1t->wrapS) == NULL;
-			Trc = strcmp("REPEAT",v1t->wrapT) == NULL;
+			Src = v1t->_wrapS==VRML1MOD_REPEAT;
+			Trc = v1t->_wrapT==VRML1MOD_REPEAT;
 		}
 		/* save texture params */
 		me->Src = Src ? GL_REPEAT : GL_CLAMP;

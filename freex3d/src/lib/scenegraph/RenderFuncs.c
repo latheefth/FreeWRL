@@ -81,7 +81,6 @@ int bound_texture_alphas[MAX_MULTITEXTURE];
 int texture_count;
 
 int	have_transparency=FALSE;/* did any Shape have transparent material? */
-void *	this_textureTransform;  /* do we have some kind of textureTransform? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
 

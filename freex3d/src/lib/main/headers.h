@@ -635,7 +635,7 @@ extern void 	*global_tcin_lastParent;
 extern void textureDraw_start(struct X3D_Node *texC, GLfloat *tex);
 extern void textureDraw_end(void);
 
-extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
+extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
 
 extern int isTextureLoaded(int texno);
 extern int isTextureAlpha(int n);

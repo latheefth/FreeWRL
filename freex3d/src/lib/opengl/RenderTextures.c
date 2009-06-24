@@ -204,7 +204,7 @@ void textureDraw_end(void) {
 			currentTextureUnit = c;
 		}
 
-	        if (this_textureTransform) end_textureTransform(this_textureTransform,c);
+	        if (this_textureTransform) end_textureTransform();
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
                 /*glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
                 glTexGeni(GL_T, GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);*/
