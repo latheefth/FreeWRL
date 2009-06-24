@@ -7,12 +7,14 @@ $Id$
 
 */
 
+#ifndef REWIRE
 #include <config.h>
 #include <system.h>
+#include <libFreeWRL.h>
+#endif
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
