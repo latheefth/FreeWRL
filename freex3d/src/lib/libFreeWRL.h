@@ -66,5 +66,9 @@ extern uintptr_t _fw_instance;
 extern int be_collision;
 extern char *keypress_string;
 
+#if HAVE_LIBCURL
+extern int with_libcurl;
+#endif
+
 
 #endif /* __LIBFREEWRL_MAIN_H__ */
