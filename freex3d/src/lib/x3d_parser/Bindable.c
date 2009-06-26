@@ -72,6 +72,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	}
         Viewer.speed = (double) node->speed;
 
+printf ("set_naviinfo - width %lf height %lf step %lf speed %lf\n");
 
 	/* keep track of valid Navigation types. */
 	svptr = node->type.p;
