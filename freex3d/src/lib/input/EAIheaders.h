@@ -7,6 +7,13 @@ EAI and java CLASS invocation
 
 */
 
+/**********************************************************************************************/
+/*                                                                                            */
+/* This file is part of the FreeWRL/FreeX3D Distribution, from http://freewrl.sourceforge.net */
+/*                                                                                            */
+/**********************************************************************************************/
+
+
 #ifndef __FREEWRL_EAI_H__
 #define __FREEWRL_EAI_H__
 
