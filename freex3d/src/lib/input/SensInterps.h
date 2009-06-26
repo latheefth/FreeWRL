@@ -33,6 +33,7 @@ do_OintScalar(void *node);
 
 void
 do_OintCoord(void *node);
+void do_OintNormal(void *node);
 
 void do_OintCoord2D(void *node);
 void do_OintPos2D(void *node);

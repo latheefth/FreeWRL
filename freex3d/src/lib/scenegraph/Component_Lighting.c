@@ -87,10 +87,8 @@ void render_PointLight (struct X3D_PointLight *node) {
 		if(light >= 0) {
 			float vec[4];
 			lightState(light-GL_LIGHT0,TRUE);
-			vec[0] = ((node->direction).c[0]);
-			vec[1] = ((node->direction).c[1]);
-			vec[2] = ((node->direction).c[2]);
-			vec[3] = 1;
+			vec[0] = 0.0; vec[1] = 0.0; vec[2] = -1.0; vec[3] = 1;
+
 			glLightfv(light, GL_SPOT_DIRECTION, vec);
 			vec[0] = ((node->location).c[0]);
 			vec[1] = ((node->location).c[1]);

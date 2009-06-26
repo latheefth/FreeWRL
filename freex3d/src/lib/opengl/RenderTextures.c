@@ -158,6 +158,7 @@ void textureDraw_start(struct X3D_Node *texC, GLfloat *genTex) {
 		switch (texC->_nodeType) {
 		case NODE_IndexedFaceSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_INDEXEDFACESET(texC)->texCoord; break;
 		case NODE_ElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(texC)->texCoord; break;
+		case NODE_GeoElevationGrid: myTCnode = (struct X3D_TextureCoordinate *) X3D_GEOELEVATIONGRID(texC)->texCoord; break;
 		case NODE_TriangleSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESET(texC)->texCoord; break;
 		case NODE_TriangleFanSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(texC)->texCoord; break;
 		case NODE_TriangleStripSet: myTCnode = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(texC)->texCoord; break;
