@@ -880,7 +880,7 @@ struct Multi_Vec3f *getCoordinate (void *innode, char *str) {
 	POSSIBLE_PROTO_EXPANSION (innode,node)
 
 	xc = X3D_COORD(node);
-	printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType));
+	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
 
 	if (xc->_nodeType == NODE_Coordinate) {
 		return &(xc->point);

@@ -39,6 +39,8 @@ reset_upvector(void);
 void
 set_naviinfo(struct X3D_NavigationInfo *node);
 
+void set_naviWidthHeightStep(double, double, double);
+
 void
 send_bind_to(struct X3D_Node *node, int value);
 

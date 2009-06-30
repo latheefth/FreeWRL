@@ -1416,7 +1416,6 @@ struct ReWireNamenameStruct {
 
 extern struct ReWireNamenameStruct *ReWireNamenames;
 extern int ReWireNametableSize;
-extern int MAXReWireNameNames;
 extern struct ReWireDeviceStruct *ReWireDevices;
 extern int ReWireDevicetableSize;
 extern int MAXReWireDevices;
