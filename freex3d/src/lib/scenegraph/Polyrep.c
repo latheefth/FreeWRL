@@ -772,7 +772,7 @@ void render_polyrep(void *node) {
 	global_tcin_count = r->ntri*3;
 	global_tcin_lastParent = node;
 
-	/* we take the geometry here, and push it up the stream. /*
+	/* we take the geometry here, and push it up the stream. */
         setExtent( renderedNodePtr->EXTENT_MAX_X, renderedNodePtr->EXTENT_MIN_X, renderedNodePtr->EXTENT_MAX_Y,
                 renderedNodePtr->EXTENT_MIN_Y, renderedNodePtr->EXTENT_MAX_Z, renderedNodePtr->EXTENT_MIN_Z,
                 renderedNodePtr);

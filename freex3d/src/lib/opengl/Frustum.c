@@ -398,6 +398,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	printf ("setExtent maxx %f minx %f maxy %f miny %f maxz %f minz %f me %u nt %s\n",
 			maxx, minx, maxy, miny, maxz, minz, me, stringNodeType(me->_nodeType));
 	#endif
+
 	/* record this for ME for sorting purposes for sorting children fields */
 	me->EXTENT_MAX_X = maxx; me->EXTENT_MIN_X = minx;
 	me->EXTENT_MAX_Y = maxx; me->EXTENT_MIN_Y = miny;
