@@ -243,7 +243,7 @@ void EventLoop() {
                 setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
 
-		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane);  */
+		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane); */
 
                 #ifdef PROFILE
                 oxf = timeAA + timeA + timeB + timeC + timeD + timeE + timeF;

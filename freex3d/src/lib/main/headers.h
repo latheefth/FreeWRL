@@ -1226,6 +1226,7 @@ void render_PointSet (struct X3D_PointSet *this_);
 #define make_TriangleFanSet  make_genericfaceset
 #define make_TriangleSet  make_genericfaceset
 #define make_TriangleStripSet  make_genericfaceset
+void compile_PointSet (struct X3D_PointSet *this_); 
 void compile_LineSet (struct X3D_LineSet *this_); 
 void compile_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
 
