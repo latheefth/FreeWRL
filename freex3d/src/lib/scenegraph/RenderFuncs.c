@@ -77,7 +77,6 @@ int be_collision = 0;	/* do collision detection? */
 
 /* texture stuff - see code. Need array because of MultiTextures */
 GLuint bound_textures[MAX_MULTITEXTURE];
-int bound_texture_alphas[MAX_MULTITEXTURE];
 int texture_count;
 
 int	have_transparency=FALSE;/* did any Shape have transparent material? */

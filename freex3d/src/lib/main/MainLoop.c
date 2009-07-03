@@ -707,7 +707,6 @@ void render() {
 
                 /*  5. Blended Nodes*/
                 if (have_transparency) {
-
                         /*  turn off writing to the depth buffer*/
                         glDepthMask(FALSE);
 
@@ -718,7 +717,6 @@ void render() {
                         glDepthMask(TRUE);
                         glPrintError("XEvents::render, render_hier(VF_Geom)");
                 }
-
         }
         #ifndef AQUA
                 glXSwapBuffers(Xdpy,GLwin);
