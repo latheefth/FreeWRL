@@ -1253,6 +1253,7 @@ void closeFreewrl() {
         kill_status();
         kill_openGLTextures();
         kill_javascript();
+	kill_shadowFileTable();
 
         #endif
         /* kill any remaining children */

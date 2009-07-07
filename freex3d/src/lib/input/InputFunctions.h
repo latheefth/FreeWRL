@@ -20,6 +20,7 @@ FILE *openLocalFile (char *fn, char* access);
 void unlinkShadowFile(char *fn);
 void addShadowFile(char *x3dname, char *myshadowname);
 char *getShadowFileNamePtr (char *fn);
+void kill_shadowFileTable (void);
 
 
 #endif /* __FREEWRL_INPUTFUNCTIONS_H__ */
