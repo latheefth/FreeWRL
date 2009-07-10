@@ -34,32 +34,6 @@ Screen snapshot.
 #define TEX_UNSQUASHED      4
 
 
-/* older stuff - check if needed */
-
-/* bind_texture stores the param table pointer for the texture here */
-
-struct loadTexParams {
-	/* data sent in to texture parsing thread */
-	GLuint *texture_num;
-	GLuint genned_texture;
-	unsigned repeatS;
-	unsigned repeatT;
-	struct Uni_String *parenturl;
-	unsigned type;
-	struct Multi_String url;
-
-	/* data returned from texture parsing thread */
-	char *filename;
-	int depth;
-	int x;
-	int y;
-	int frames;		/* 1 unless video stream */
-	unsigned char *texdata;
-	GLint Src;
-	GLint Trc;
-	GLint Image;
-};
-
 struct multiTexParams {
 	GLint texture_env_mode;
 	GLint combine_rgb;
