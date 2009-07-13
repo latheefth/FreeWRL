@@ -39,8 +39,6 @@ reset_upvector(void);
 void
 set_naviinfo(struct X3D_NavigationInfo *node);
 
-void set_naviWidthHeightStep(double, double, double);
-
 void
 send_bind_to(struct X3D_Node *node, int value);
 
@@ -56,5 +54,6 @@ render_NavigationInfo(struct X3D_NavigationInfo *node);
 void render_Background(struct X3D_Background *node);
 void render_TextureBackground(struct X3D_TextureBackground *node);
 
+void set_naviWidthHeightStep(double wid, double hei, double step) ;
 
 #endif /* __FREEWRL_BINDABLE_H__ */

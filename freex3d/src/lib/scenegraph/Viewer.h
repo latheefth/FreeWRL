@@ -225,8 +225,6 @@ bind_viewpoint(struct X3D_Viewpoint *node);
 void
 bind_geoviewpoint(struct X3D_GeoViewpoint *node);
 
-void viewer_calculate_speed(void);
-
 extern X3D_Viewer Viewer; /* in VRMLC.pm */
 
 void viewer_default(void);
@@ -234,6 +232,6 @@ void viewer_default(void);
 extern float eyedist;
 extern float screendist;
 
-void getCurrentSpeed();
+void getCurrentSpeed(void);
 
 #endif /* __FREEWRL_VIEWER_H__ */

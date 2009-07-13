@@ -106,12 +106,21 @@ void setGeometry_from_cmdline(const char *gstring)
     /* tell OpenGL what the screen dims are */
     setScreenDim(win_width,win_height);
 }
+FILE *theFile = NULL;
 
 /* set internal variables for screen sizes, and calculate frustum */
 void setScreenDim(int wi, int he)
 {
     screenWidth = wi;
     screenHeight = he;
+
+
+	if (theFile == NULL) {
+		theFile = fopen("/tmp/freewrl_log", "w");
+		if (theFile == NULL) abort();
+	}
+fprintf (theFile, "setScreenDim, %d:%d\n",wi,he);
+	fflush(theFile);
     
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;

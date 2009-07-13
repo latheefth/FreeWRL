@@ -31,6 +31,10 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 
 	if (!render_vp) return;
 
+        printf ("prep_Viewpoint: vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+
+
 	/*  printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]); */
 

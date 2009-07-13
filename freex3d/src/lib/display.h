@@ -83,7 +83,7 @@ int create_main_window_aqua(); /* mb */
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
    not working that well... */
-#  define DO_MULTI_OPENGL_THREADS
+#undef DO_MULTI_OPENGL_THREADS
 # endif
 
 #endif /* defined TARGET_AQUA */

@@ -74,6 +74,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	int i;
 	char *typeptr;
 
+        Viewer.speed = (double) node->speed;
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");
 	} else {
@@ -81,7 +82,6 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			(double)(node->avatarSize.p[1]),
 			(double)((node->avatarSize.p[2] * node->speed) * 2));
 	}
-        Viewer.speed = (double) node->speed;
 
 	/* keep track of valid Navigation types. */
 	svptr = node->type.p;
