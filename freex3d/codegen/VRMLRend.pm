@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.19  2009/07/14 15:36:01  uid31638
+# More Geospatial code changes; GeoLOD in particular has been worked on.
+#
 # Revision 1.18  2009/07/02 15:45:36  crc_canada
 # setExtent for PointSet, LineSet and IndexedLineSet
 #
@@ -774,8 +777,6 @@
 
 %ProximityC = map {($_=>1)} qw/
 	ProximitySensor
-	GeoProximitySensor
-	GeoLOD
 	LOD
 	Billboard
 /;

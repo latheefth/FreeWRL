@@ -2816,7 +2816,6 @@ struct X3D_GeoLOD {
 	void *__oldmetadata;
 	void *__rootUrl;
 	int __rooturlloadstatus;
-	struct SFVec3d __t1;
 	struct SFColor bboxCenter;
 	struct SFColor bboxSize;
 	struct SFVec3d center;

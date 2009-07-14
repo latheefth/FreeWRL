@@ -233,5 +233,6 @@ extern float eyedist;
 extern float screendist;
 
 void getCurrentSpeed(void);
+void getCurrentPosInModel (int addInAntiPos);
 
 #endif /* __FREEWRL_VIEWER_H__ */

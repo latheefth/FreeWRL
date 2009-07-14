@@ -30,5 +30,5 @@ void lightState (GLint light, int state);
 extern void glpOpenGLInitialize(void);
 
 extern void glPrintError(char *);
-
+void drawBBOX(struct X3D_Node *node);
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */
