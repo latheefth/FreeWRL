@@ -114,14 +114,6 @@ void setScreenDim(int wi, int he)
     screenWidth = wi;
     screenHeight = he;
 
-
-	if (theFile == NULL) {
-		theFile = fopen("/tmp/freewrl_log", "w");
-		if (theFile == NULL) abort();
-	}
-fprintf (theFile, "setScreenDim, %d:%d\n",wi,he);
-	fflush(theFile);
-    
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
 }
