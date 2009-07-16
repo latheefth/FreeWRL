@@ -1376,7 +1376,6 @@ static int findTextureFile (int cwo) {
 			FREE_IF_NZ(filename);
 			filename = (char *)MALLOC(4096);
 			sprintf (filename,"/tmp/freewrl%d.png",getpid());
-			*istemp=TRUE;
 		    }
 		    FREE_IF_NZ (sysline);
 		}

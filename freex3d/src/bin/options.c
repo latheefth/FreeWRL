@@ -70,7 +70,7 @@ void usage()
 	    "  -i|--plugin <string>    Called from plugin.\n"
 	    "  -j|--fd <number>        Pipe to command the program.\n"
 	    "  -k|--instance <number>  Instance of plugin.\n"
-#if HAVE_LIBCURL
+#ifdef HAVE_LIBCURL
 	    "  -C|--curl               Use libcurl instead of wget.\n"
 #endif
 	    ""
@@ -324,9 +324,11 @@ int parseCommandLine (int argc, char **argv)
 	    sscanf(optarg,"%u",(unsigned int *)&_fw_instance);
 	    break;
 
+#ifdef HAVE_LIBCURL
 	case 'C': /* --curl, no argument */
 	    with_libcurl = TRUE;
 	    break;
+#endif
 
 	default:
 	    FW_ERROR("ERROR: getopt returned character code 0%o, unknown error.\n", c);
