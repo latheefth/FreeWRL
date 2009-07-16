@@ -16,6 +16,7 @@ X3D Text Component
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../input/InputFunctions.h"
 #include "../main/headers.h"
 
 #include "Collision.h"

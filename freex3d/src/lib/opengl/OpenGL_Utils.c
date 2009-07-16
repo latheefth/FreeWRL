@@ -29,6 +29,7 @@ $Id$
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/sounds.h"
 #include "../scenegraph/LinearAlgebra.h"
+#include "../input/InputFunctions.h"
 #include "../input/EAIheaders.h"
 
 #include <float.h>
