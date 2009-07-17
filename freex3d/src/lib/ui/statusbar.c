@@ -111,9 +111,6 @@ static void statusbar_init() {
 
 	/* remove this ProximitySensor node from the temporary variable, and reset the temp. variable */
 
-printf ("myn %u, type %s\n",myn, stringNodeType (myn->_nodeType));
-printf ("myn has %d children\n",myn->children.n);
-
 	proxNode = myn->children.p[0];
 
 	/* turn it off for now, until a non-zero length string comes in */
