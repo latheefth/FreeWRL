@@ -103,7 +103,7 @@ DEF SCR Script {
 		}
 	url [
 	"javascript:
-		function busy(val,time) { isBusy = busy }
+		function busy(val,time) { isBusy = val; }
 		function startTimeLeft(val,time) {
 			// if(!isBusy && left) {
 			if(left) {
