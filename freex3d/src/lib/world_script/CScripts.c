@@ -38,7 +38,6 @@ $Id$
 
 #include <limits.h>
 
-#undef CPARSERVERBOSE
 
 /* JavaScript-"protocols" */
 const char* JS_PROTOCOLS[]={
@@ -77,7 +76,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  /* value is set later on */
 
  #ifdef CPARSERVERBOSE
- printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->name, ret->type,PROTOKEYWORDS[ret->fieldDecl->mode]); 
+ printf ("newScriptFieldDecl, returning name %s, type %s, mode %s\n",ret->ASCIIname, ret->ASCIItype,PROTOKEYWORDS[ret->fieldDecl->mode]); 
  #endif
 
  return ret;

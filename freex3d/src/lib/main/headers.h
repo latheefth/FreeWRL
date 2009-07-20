@@ -457,6 +457,11 @@ extern void* *occluderNodePointer;
 /********************************
 	Verbosity
 *********************************/
+#ifdef DEBUG
+	/* define verbosity that should be forced-on when debug is set */
+
+
+#else
 /* Parsing & Lexing */
 #undef CPARSERVERBOSE 
 
@@ -489,6 +494,8 @@ extern void* *occluderNodePointer;
 
 /* Capabilities of x3dv and x3d */
 #undef CAPABILITIESVERBOSE
+
+#endif /* end of ifdef DEBUG */
 
 /* number of tesselated coordinates allowed */
 #define TESS_MAX_COORDS  500

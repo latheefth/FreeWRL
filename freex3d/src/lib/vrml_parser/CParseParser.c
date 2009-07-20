@@ -2010,7 +2010,7 @@ BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int offs,
 
         PARSER_FINALLY;
 	#ifdef CPARSERVERBOSE
-	printf ("parser_fieldValue, ret %u, directRet %u\n",ret,directRet);
+	printf ("parser_fieldValue, me %u, directRet %u\n",me,directRet);
 	#endif
  
             /* Get the actual value from the file (next token from lexer) and store it as the appropriate type in the node */
