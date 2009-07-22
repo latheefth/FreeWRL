@@ -16,6 +16,7 @@ $Id$
 
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"

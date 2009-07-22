@@ -717,6 +717,7 @@ static void render() {
                         glDepthMask(TRUE);
                         glPrintError("XEvents::render, render_hier(VF_Geom)");
                 }
+
         }
 
 	/* enable this if we want to see the overall bounding box */

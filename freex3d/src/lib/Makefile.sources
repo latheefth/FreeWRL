@@ -151,6 +151,7 @@ opengl/RenderTextures.c \
 opengl/Textures.h \
 opengl/Textures.c \
 opengl/Frustum.c \
+opengl/Frustum.h \
 opengl/OpenGL_Utils.c \
 opengl/OpenGL_Utils.h \
 opengl/Material.c \

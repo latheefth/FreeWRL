@@ -18,6 +18,7 @@ X3D Grouping Component
 #include "../main/headers.h"
 
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Frustum.h"
 
 #include "LinearAlgebra.h"
 

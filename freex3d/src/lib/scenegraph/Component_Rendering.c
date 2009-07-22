@@ -16,6 +16,7 @@ X3D Rendering Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 
 extern GLfloat last_emission[];

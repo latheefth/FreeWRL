@@ -16,6 +16,7 @@ X3D Geometry 3D Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 #include "Collision.h"
 #include "Polyrep.h"

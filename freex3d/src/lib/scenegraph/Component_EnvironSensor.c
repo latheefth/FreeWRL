@@ -19,6 +19,7 @@ X3D Environmental Sensors Component
 
 #include "LinearAlgebra.h"
 #include "Component_Geospatial.h"
+#include "../opengl/Frustum.h"
 
 
 /* can we do a VisibiltySensor? Only if we have OpenGL support for OcclusionCulling */

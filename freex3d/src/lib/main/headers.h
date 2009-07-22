@@ -350,8 +350,6 @@ if (!APPROX (node->setField.c[0],node->regField.c[0]) || \
 
 int find_key (int kin, float frac, float *keys);
 void startOfLoopNodeUpdates(void);
-void OcclusionCulling (void);
-void OcclusionStartofEventLoop(void);
 extern int HaveSensitive;
 void zeroVisibilityFlag(void);
 void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value, int isXML);
@@ -400,7 +398,6 @@ extern int *OccCheckCount;
 extern GLuint *OccQueries;
 extern void * *OccNodes;
 int newOcclude(void);
-void zeroOcclusion(void);
 extern GLuint potentialOccluderCount;
 extern void* *occluderNodePointer;
 
@@ -990,12 +987,6 @@ extern char *myPerlInstallDir;
 #define EXTENT_MIN_Y _extent[3]
 #define EXTENT_MAX_Z _extent[4]
 #define EXTENT_MIN_Z _extent[5]
-void setExtent (float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Node *this_);
-
-#define RECORD_DISTANCE if (render_geom) {record_ZBufferDistance (X3D_NODE(node)); }
-void record_ZBufferDistance(struct X3D_Node *nod);
-
-void propagateExtent (struct X3D_Node *this_);
 
 void freewrlDie(const char *format);
 

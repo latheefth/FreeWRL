@@ -19,6 +19,7 @@ X3D Geometry2D  Component
 
 #include "Collision.h"
 #include "LinearAlgebra.h"
+#include "../opengl/Frustum.h"
 
 #define SEGMENTS_PER_CIRCLE 36
 #define PIE 10

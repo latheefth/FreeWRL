@@ -16,6 +16,7 @@ X3D Shape Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Frustum.h"
 
 
 static int     linePropertySet;  /* line properties -width, etc                  */

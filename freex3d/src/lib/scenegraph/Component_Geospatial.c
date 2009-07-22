@@ -22,6 +22,7 @@ X3D Geospatial Component
 #include "Collision.h"
 #include "quaternion.h"
 #include "Viewer.h"
+#include "../opengl/Frustum.h"
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
