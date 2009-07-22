@@ -501,12 +501,12 @@ BEGIN_NODE(GeoLocation)
 FIELD(GeoLocation,geoSystem,mfstring,geoSystem)
 EXPOSED_FIELD(GeoLocation,children,mfnode,children)
 EVENT_IN(GeoLocation,addChildren,mfnode,addChildren)
-FIELD(GeoLocation,bboxCenter,sfvec3f,bboxCenter)
-FIELD(GeoLocation,geoOrigin,sfnode,geoOrigin)
 EXPOSED_FIELD(GeoLocation,metadata,sfnode,metadata)
+FIELD(GeoLocation,geoOrigin,sfnode,geoOrigin)
 EXPOSED_FIELD(GeoLocation,geoCoords,sfvec3d,geoCoords)
 FIELD(GeoLocation,bboxSize,sfvec3f,bboxSize)
 EVENT_IN(GeoLocation,removeChildren,mfnode,removeChildren)
+FIELD(GeoLocation,bboxCenter,sfvec3f,bboxCenter)
 END_NODE(GeoLocation)
 
 /* GeoMetadata node */
@@ -1688,9 +1688,9 @@ END_NODE(SquadOrientationInterpolator)
 
 /* StaticGroup node */
 BEGIN_NODE(StaticGroup)
+EXPOSED_FIELD(StaticGroup,children,mfnode,children)
 FIELD(StaticGroup,bboxCenter,sfvec3f,bboxCenter)
 EXPOSED_FIELD(StaticGroup,metadata,sfnode,metadata)
-EXPOSED_FIELD(StaticGroup,children,mfnode,children)
 FIELD(StaticGroup,bboxSize,sfvec3f,bboxSize)
 END_NODE(StaticGroup)
 

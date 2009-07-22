@@ -514,6 +514,7 @@ void AddRemoveChildren (
 	uintptr_t *remptr;
 	uintptr_t *tmpptr;
 	int done;
+	struct Multi_Node *sortedChildrenPtr;
 
 	int counter, c2;
 
@@ -663,6 +664,7 @@ void AddRemoveChildren (
 			tn->n = oldlen - num_removed;
 		}
 	}
+
 	update_node(parent);
 }
 

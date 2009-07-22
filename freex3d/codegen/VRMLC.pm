@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.19  2009/07/22 14:36:19  crc_canada
+# make shadow copy of children fields in nodes that need to sort nodes; this keeps the node list in original order entry.
+#
 # Revision 1.18  2009/06/26 16:44:34  crc_canada
 # put text in libFreeWRLEAI header files to indicate that they are part of the FreeWRL project.
 #
@@ -981,6 +984,7 @@ sub gen {
 	"#define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)\n".
 	"#define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)\n".
 	"#define VRML1_INDEXEDFACESET(node) ((struct X3D_VRML1_IndexedFaceSet*)node)\n".
+	"#define VRML1_SEPARATOR(node) ((struct X3D_VRML1_Separator*)node)\n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#define X3D_INDEXEDTRIANGLEFANSET(node) ((struct X3D_IndexedTriangleFanSet*)node)\n". 
 	"#define X3D_INDEXEDTRIANGLESET(node) ((struct X3D_IndexedTriangleSet*)node)\n". 
