@@ -21,6 +21,7 @@ void unlinkShadowFile(char *fn);
 void addShadowFile(char *x3dname, char *myshadowname);
 char *getShadowFileNamePtr (char *fn);
 void kill_shadowFileTable (void);
+char * stripLocalFileName (char * origName);
 
 
 #endif /* __FREEWRL_INPUTFUNCTIONS_H__ */

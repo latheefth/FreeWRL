@@ -1072,9 +1072,12 @@ void setFullPath(const char* file)
         char ks = 'c';
         do_keyPress(ks, KeyPress);
     }
+
+    /* remove a FILE:// or file:// off of the front */
+    file = stripLocalFileName (file);
     FREE_IF_NZ (BrowserFullPath);
     BrowserFullPath = STRDUP((char *) file);
-    /* printf ("setBrowserFullPath is %s (%d)\n",BrowserFullPath,strlen(BrowserFullPath));  */
+    /* ConsoleMessage ("setBrowserFullPath is %s (%d)",BrowserFullPath,strlen(BrowserFullPath));  */
 }
 
 
@@ -1468,6 +1471,7 @@ void setIsPlugin() {
                 fgets(tmppath, 512, tmpfile);
         }
         BrowserFullPath = STRDUP(tmppath);      
+ConsoleMessage ("setIsPlugin, BrowserFullPath :%s:");
         fclose(tmpfile);
         //system("rm /tmp/freewrl_filename");   
         tmpfile = fopen("/tmp/after", "w");
