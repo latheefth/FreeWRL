@@ -195,7 +195,9 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		/* allocate memory for input buffer */
 		EAIbufcount = 0;
 		EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
+		EBUFFLOCK
 		EAIbuffer = (char *)MALLOC(EAIbufsize * sizeof (char));
+		EBUFFUNLOCK
 
 		/* zero out the EAIListenerData here, and after every use */
 		bzero(&EAIListenerData, sizeof(EAIListenerData));
@@ -281,6 +283,7 @@ void handle_EAI () {
 
 	EAIbufcount = 0;
 
+	EBUFFLOCK
 	EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
 	/* printf ("read, EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
 
@@ -293,6 +296,7 @@ void handle_EAI () {
 	/* any command read in? */
 	if (EAIbufcount > 1)
 		EAI_parse_commands ();
+	EBUFFUNLOCK
 }
 
 void handle_MIDIEAI() {
@@ -306,6 +310,7 @@ void handle_MIDIEAI() {
 
         EAIbufcount = 0;
 
+	EBUFFLOCK
         EAIbuffer = read_EAI_socket(EAIbuffer, &EAIbufcount, &EAIbufsize, &EAIMIDIlistenfd);
         /* printf ("read, MIDI EAIbufcount %d EAIbufsize %d\n",EAIbufcount, EAIbufsize); */
 
@@ -316,6 +321,7 @@ void handle_MIDIEAI() {
         /* any command read in? */
         if (EAIbufcount > 1)
                 EAI_parse_commands ();
+	EBUFFUNLOCK
 }
 
 
