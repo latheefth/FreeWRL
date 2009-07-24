@@ -653,10 +653,6 @@ extern float AC_LastDuration[];
 
 extern int SoundEngineStarted;
 
-/* Material optimizations */
-void do_shininess (GLenum face, float shininess);
-void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
-
 /* used to determine whether we have transparent materials. */
 extern int have_transparency;
 
@@ -667,12 +663,6 @@ extern double lastTime;
 
 /* number of triangles this rendering loop */
 extern int trisThisLoop;
-
-
-/* Transform node optimizations */
-int verify_rotate(GLfloat *params);
-int verify_translate(GLfloat *params);
-int verify_scale(GLfloat *params);
 
 void mark_event (struct X3D_Node *from, unsigned int fromoffset);
 void mark_event_check (struct X3D_Node *from, unsigned int fromoffset,char *fn, int line);

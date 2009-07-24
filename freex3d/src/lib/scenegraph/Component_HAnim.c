@@ -16,6 +16,7 @@ X3D H-Anim Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Material.h"
 
 /* #include "OpenFW_GL_Utils.h" */
 

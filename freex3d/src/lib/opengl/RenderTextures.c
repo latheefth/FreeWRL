@@ -20,6 +20,7 @@ texture enabling - works for single texture, for multitexture.
 
 #include "OpenGL_Utils.h"
 #include "Textures.h"
+#include "../opengl/Material.h"
 /* #include "readpng.h" */
 
 #undef TEXVERBOSE

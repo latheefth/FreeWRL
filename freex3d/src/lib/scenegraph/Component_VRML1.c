@@ -48,6 +48,7 @@ Have fun! John A. Stewart, June 2009
 #include "../main/headers.h"
 
 #include "../opengl/OpenGL_Utils.h"
+#include "../opengl/Material.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Vector.h"
 

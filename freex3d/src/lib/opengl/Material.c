@@ -11,6 +11,7 @@ Only do material settings that "matter" and bounds check all values.
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+#include "Material.h"
 
 #include <libFreeWRL.h>
 

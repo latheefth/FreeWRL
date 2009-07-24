@@ -21,6 +21,7 @@ General Texture objects.
 #include "../scenegraph/readpng.h"
 #include "../input/InputFunctions.h"
 #include "Textures.h"
+#include "../opengl/Material.h"
 
 
 #ifdef AQUA

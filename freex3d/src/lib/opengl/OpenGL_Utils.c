@@ -32,6 +32,7 @@ $Id$
 #include "../input/InputFunctions.h"
 #include "../input/EAIheaders.h"
 #include "Frustum.h"
+#include "../opengl/Material.h"
 
 #include <float.h>
 
