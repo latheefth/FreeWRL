@@ -973,7 +973,9 @@ int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, str
 	jsval rval = INT_TO_JSVAL(0);
 	uintN attrs = JSPROP_PERMANENT 
 		| JSPROP_ENUMERATE 
+#ifdef JSPROP_EXPORTED
 		| JSPROP_EXPORTED 
+#endif
 	/*	| JSPROP_INDEX */
 		;
 	char *name;

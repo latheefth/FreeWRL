@@ -1224,6 +1224,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	int32 _length, _index;
     jsval _length_val;
+	jsdouble zerojsdouble = 0.0;
 
     if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
 		printf( "JS_GetProperty failed for \"length\" in VrmlMatrixGetProperty.\n");
@@ -1253,7 +1254,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		_index = JSVAL_TO_INT(id);
 
 		if (_index >= _length) {
-			*vp = DOUBLE_TO_JSVAL(0.0);
+			*vp = DOUBLE_TO_JSVAL(&zerojsdouble);
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_CHECK, JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed in VrmlMatrixGetProperty.\n");
 				return JS_FALSE;
