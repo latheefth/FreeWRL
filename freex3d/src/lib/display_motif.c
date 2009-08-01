@@ -13,8 +13,6 @@ Display (Motif specific) initialization.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeWRL.h>
-
 
 /* display part specific to X11/Motif */
 

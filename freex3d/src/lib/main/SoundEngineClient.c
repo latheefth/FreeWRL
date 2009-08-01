@@ -9,6 +9,8 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 */
 
+
+
 #include <config.h>
 #include <system.h>
 
@@ -22,6 +24,7 @@ Some of this stuff came from files from "wavplay"  - see information below
 	#else
 		#include <system_net.h>
 	#endif
+#elif WIN32
 #else
 	#include <system_net.h>
 #endif
@@ -32,6 +35,42 @@ Some of this stuff came from files from "wavplay"  - see information below
 #include <libFreeWRL.h>
 
 #include "../scenegraph/sounds.h"
+
+#ifdef WIN32
+void
+Sound_toserver(char *message)
+{}
+
+void
+SoundEngineInit(void)
+{}
+
+void
+waitformessage(void)
+{}
+
+void
+SoundEngineDestroy(void)
+{}
+
+int
+SoundSourceRegistered(int num)
+{ return FALSE;}
+
+float
+SoundSourceInit(int num,
+				int loop,
+				double pitch,
+				double start_time,
+				double stop_time,
+				char *url)
+{return 0.0f;}
+
+void
+SetAudioActive(int num, int stat)
+{}
+
+#else /*ifdef win32 */
 
 
 int SReg[MAXSOUNDS];
@@ -363,3 +402,4 @@ void SetAudioActive (int num, int stat) {
 	sprintf (mystring,"ACTV %2d %2d",num,stat);
 	Sound_toserver(mystring);
 }
+#endif  /*ifdef win32 */

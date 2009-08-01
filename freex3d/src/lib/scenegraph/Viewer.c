@@ -156,7 +156,7 @@ set_buffer(const unsigned int buffer)
 	Viewer.buffer = buffer;
 }
 
-int get_headlight() {
+int get_headlight() { 
 	return(Viewer.headlight);
 }
 

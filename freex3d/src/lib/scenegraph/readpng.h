@@ -51,7 +51,7 @@ Read PNG images.
 #  define MIN(a,b)  ((a) < (b)? (a) : (b))
 #endif
 
-#ifdef DEBUG
+#if defined(FW_PNG_DEBUG)
 #  define Trace(x)  {fprintf x ; fflush(stderr); fflush(stdout);}
 #else
 #  define Trace(x)  ;

@@ -1649,7 +1649,7 @@ struct X3D_Node {
 #undef DEBUG_VALIDNODE
 #ifdef DEBUG_VALIDNODE	
 #define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)
-#define MARK_EVENT(node,offset) mark_event_check(node,offset,__FILE__,__LINE__)
+#define MARK_EVENT((node),(offset)) mark_event_check((node),(offset),__FILE__,__LINE__)
 #else
 #define X3D_NODE_CHECK(node)
 #define MARK_EVENT(node,offset)	mark_event(node,offset)

@@ -13,8 +13,6 @@ Display (X11/Motif or OSX/Aqua) initialization.
 #include <display.h>
 #include <internal.h>
 
-#include <libFreeWRL.h>
-
 
 /* common function between display_x11, display_motif and display_aqua */
 
@@ -91,6 +89,11 @@ int create_main_window()
 #if (defined TARGET_AQUA)
     return create_main_window_aqua();
 #endif
+
+#if (defined TARGET_WIN32)
+    return create_main_window_win32();
+#endif
+
 }
 
 int initialize_viewport()

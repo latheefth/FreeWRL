@@ -54,6 +54,16 @@ int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
 void saveSnapSequence();
 #endif
 
+#ifdef WIN32
+/* stubbs for now */
+void setSnapshot() {}
+void Snapshot () {}
+void setSnapGif(){}
+void saveSnapSequence() {}
+
+
+#else /*ifdef win32*/
+
 void setSnapGif()
 {
     snapGif = TRUE;
@@ -340,3 +350,4 @@ void Snapshot () {
 #endif
 	#endif
 }
+#endif /*ifdef win32*/

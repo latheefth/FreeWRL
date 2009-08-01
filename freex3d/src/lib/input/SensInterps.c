@@ -1273,12 +1273,14 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		node->_oldtrackPoint.c[0] = nx;
 		node->_oldtrackPoint.c[1] = ny;
 		node->_oldtrackPoint.c[2] = node->_origPoint.c[2];
+		/*printf(">%f %f %f\n",nx,ny,node->_oldtrackPoint.c[2]); */
 		if ((APPROX(node->_oldtrackPoint.c[0],node->trackPoint_changed.c[0])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[1],node->trackPoint_changed.c[1])!= TRUE) ||
 			(APPROX(node->_oldtrackPoint.c[2],node->trackPoint_changed.c[2])!= TRUE)) {
-
+			
 			memcpy ((void *) &node->trackPoint_changed, (void *) &node->_oldtrackPoint, sizeof(struct SFColor));
 			MARK_EVENT(ptr, offsetof (struct X3D_PlaneSensor, trackPoint_changed));
+
 		}
 
 		/* clamp translation to max/min position */

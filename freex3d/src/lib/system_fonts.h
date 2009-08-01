@@ -12,11 +12,10 @@ Internal header: fonts dependencies.
 #define __LIBFREEWRL_SYSTEM_FONTS_H__
 
 
-// TODO: in configure check: FreeType or anything else (Aqua?)
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_OUTLINE_H
+
 
 #endif /* __LIBFREEWRL_SYSTEM_FONTS_H__ */

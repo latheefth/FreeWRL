@@ -122,6 +122,8 @@ void getVisual(void) {
 }
 
 void createGLContext(void) {
+    GLenum err;
+
 	/* create a GLX context */
 	#ifdef DO_MULTI_OPENGL_THREADS
 	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_FALSE);
@@ -149,12 +151,20 @@ void createGLContext(void) {
 
 	/* lets make sure everything is sync'd up */
 	XFlush(Xdpy);
-	glXMakeCurrent (Xdpy, GLwin,  GLcx);
+~	glXMakeCurrent (Xdpy, GLwin,  GLcx);
 
 	/* save this info for later use */
         GL_REN = (char *)glGetString(GL_RENDERER);
         GL_VER = (char *)glGetString(GL_VERSION);
         GL_VEN = (char *)glGetString(GL_VENDOR);
+
+	err = glewInit();
+	if (GLEW_OK != err)
+	{
+	    /* Problem: glewInit failed, something is seriously wrong. */
+	    printf("Error: %s\n", glewGetErrorString(err));
+	}
+	printf( "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	glClearDepth (1.0);

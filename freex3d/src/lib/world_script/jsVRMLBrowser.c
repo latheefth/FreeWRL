@@ -92,8 +92,9 @@ void jsRegisterRoute(
 	struct X3D_Node* to, int toOfs,
 	int len, const char *adrem) {
  	char tonode_str[15];
- 	snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
 	int ad;
+
+ 	snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
 
 	if (strcmp("addRoute",adrem) == 0) 
 		ad = 1;
@@ -364,14 +365,16 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 		_costr[1] = JS_GetStringBytes(_str[1]);
 
 		/* we use the EAI code for this - so reformat this for the EAI format */
-		extern struct X3D_Anchor EAI_AnchorNode;
+		{
+			extern struct X3D_Anchor EAI_AnchorNode;  /* win32 C doesnt like new declarations in the middle of executables - start a new scope {} and put dec at top */
 
-		/* make up the URL from what we currently know */
-		createLoadUrlString(myBuf,myBufSize,_costr[0], _costr[1]);
-		createLoadURL(myBuf);
+			/* make up the URL from what we currently know */
+			createLoadUrlString(myBuf,myBufSize,_costr[0], _costr[1]);
+			createLoadURL(myBuf);
 
-		/* now tell the EventLoop that BrowserAction is requested... */
-		AnchorsAnchor = &EAI_AnchorNode;
+			/* now tell the EventLoop that BrowserAction is requested... */
+			AnchorsAnchor = &EAI_AnchorNode;
+		}
 		BrowserAction = TRUE;
 
 

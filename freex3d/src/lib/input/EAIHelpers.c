@@ -424,9 +424,10 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 
 		/* is this a Script node? */
 		if (nodePtr->_nodeType == NODE_Script) {
+			struct Shader_Script* myScript;
 			if (eaiverbose)
 				printf ("EAI_GetType, node is a Script node...\n");
-			struct Shader_Script* myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
+			myScript = X3D_SCRIPT(nodePtr)->__scriptObj;
 			myScriptType = EAI_NODETYPE_SCRIPT;
 
         		for (i = 0; i !=  vector_size(myScript->fields); ++i) {

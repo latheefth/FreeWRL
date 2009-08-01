@@ -3,6 +3,8 @@
 # $Id$
 #
 
+platform=$(uname -s)
+
 # Font directory
 # default:
 fontsdir=/usr/X11/lib/X11/fonts/TTF
@@ -20,7 +22,8 @@ fi
 
 # Target
 target=motif
-case $(uname -s) in
+
+case $platform in
     Darwin) 
 	echo "Mac system: default target is x11"
 	echo "(Carbon is not yet supported by this build system)"
@@ -35,6 +38,10 @@ case $(uname -s) in
 	    add_path=/opt/local
 	fi
 	;;
+    win32|CYGWIN*|cygwin*)
+	echo "Windows platform detected : $platform"
+	target=win32
+	;;
 esac
 
 if [ ! -z "$add_path" ] ; then
@@ -48,5 +55,7 @@ echo
 echo "configure options: $my_options"
 echo
 
-autoreconf --force --install && \
+[ ! -e configure ] && autoreconf --force --install
+
 ./configure $my_options
+

@@ -567,6 +567,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
         if (script && lexer_keyword(me->lexer, KW_IS)) {
             indexT fieldE;
             indexT fieldO;
+            struct ScriptFieldInstanceInfo* sfield;
 
             /* Find the proto field that this field is mapped to */
             if(!lexer_field(me->lexer, NULL, NULL, &fieldO, &fieldE))
@@ -590,7 +591,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
                     }
         
             /* Add this scriptfielddecl to the list of script fields mapped to this proto field */
-            struct ScriptFieldInstanceInfo* sfield = newScriptFieldInstanceInfo(sdecl, script);
+            sfield = newScriptFieldInstanceInfo(sdecl, script);
             vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
             defaultVal = pField->defaultVal;
 
@@ -622,6 +623,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
         /* If this is a Script inputOnly/outputOnly IS statement */
         if (script && lexer_keyword(me->lexer, KW_IS)) {
             indexT evE, evO;
+            struct ScriptFieldInstanceInfo* sfield;
             BOOL isIn = FALSE, isOut = FALSE;
 
 #ifdef CPARSERVERBOSE
@@ -656,7 +658,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
             ASSERT(pField);
 
             /* Add this script as a destination for this proto field */
-            struct ScriptFieldInstanceInfo* sfield = newScriptFieldInstanceInfo(sdecl, script);
+            sfield = newScriptFieldInstanceInfo(sdecl, script);
             vector_pushBack(struct ScriptFieldInstanceInfo*, pField->scriptDests, sfield);
         }
     }

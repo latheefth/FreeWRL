@@ -23,7 +23,11 @@ for loosing the reference. Also, most if it is found in
 #include <display.h>
 #include <internal.h>
 
+#ifdef WIN32
+#include <stdio.h>
+#else
 #include <syslog.h> //TODO: configure check
+#endif
 #include <stdarg.h> //TODO: configure check
 
 #include <libFreeWRL.h>
@@ -47,10 +51,16 @@ extern int _fw_browser_plugin;
 
 void closeConsoleMessage() {
 	consMsgCount = 0;
+#ifdef WIN32
+	if (logFileOpened) printf("FreeWRL loading a new file\n");
+#else
 	if (logFileOpened) syslog (LOG_ALERT, "FreeWRL loading a new file");
+#endif
 	logFileOpened = FALSE;
 }
 
+/* for win32 I #define ConsoleMessage printf in headers.h libfreewrl.h and assume console + window not plugin */
+#ifndef WIN32
 int ConsoleMessage(const char *fmt, ...) {
 	va_list ap;
 	char tempbuf[STRING_LENGTH];
@@ -232,5 +242,5 @@ int ConsoleMessage(const char *fmt, ...) {
 #endif
 	return count;
 }
-
+#endif /*ifndef WIN32 */
 

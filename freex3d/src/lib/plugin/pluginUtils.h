@@ -27,8 +27,10 @@ extern "C" {
 #define PLUGIN_RETRY 2
 #define SLEEP_TIME 5
 
+#ifndef WIN32
 #define NO_ERROR 0
 #define SOCKET_ERROR -1000
+#endif
 #define SIGNAL_ERROR -1001
 
 #define UNUSED(v) ((void) v)

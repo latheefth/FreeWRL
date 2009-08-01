@@ -22,6 +22,8 @@ X3D Geometry2D  Component
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
 
+#include <float.h>
+
 #define SEGMENTS_PER_CIRCLE 36
 #define PIE 10
 #define CHORD 20
