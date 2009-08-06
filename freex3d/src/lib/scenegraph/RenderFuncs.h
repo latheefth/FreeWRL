@@ -16,5 +16,6 @@ Proximity sensor macro.
 /* function protos */
 int nextlight(void);
 void render_node(struct X3D_Node *node);
+void initializeShapeCompileThread(void);
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

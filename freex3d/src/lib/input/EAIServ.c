@@ -59,6 +59,8 @@ Implement EAI server functionality for FreeWRL.
 /*									*/
 /************************************************************************/
 
+static pthread_mutex_t eaibufferlock = PTHREAD_MUTEX_INITIALIZER;
+
 
 int EAIport = 9877;				/* port we are connecting to*/
 int EAIMIDIInitialized = FALSE; 	/* is MIDI eai running? */
@@ -100,7 +102,9 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	int len;
 	const int on=1;
 	int flags;
+#ifdef WIN32
 	int err;
+#endif
 
         struct sockaddr_in      servaddr;
 

@@ -19,6 +19,8 @@ $Id$
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "Frustum.h"
+#include "../opengl/Opengl_Utils.h"
+#include "../scenegraph/LinearAlgebra.h"
 
 
 #include "Textures.h"
@@ -711,8 +713,7 @@ void OcclusionStartofEventLoop() {
 			printf ("FreeWRL: FREEWRL_NO_GL_ARB_OCCLUSION_QUERY set, turning off hardware Occlusion Culling\n");
 			OccFailed = TRUE;
 		} else {
-	        	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS));  */
-	        	if (strstr((const char *)glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
+	        	if (opengl_has_occlusionQuery) {
 				#ifdef OCCLUSIONVERBOSE
 	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
 				#endif

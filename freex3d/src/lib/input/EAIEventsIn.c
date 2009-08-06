@@ -25,6 +25,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../world_script/fieldSet.h"
 #include "../scenegraph/Viewer.h"
 #include "../opengl/Textures.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../x3d_parser/X3DParser.h"
 
 #include "EAIHelpers.h"
@@ -127,13 +128,10 @@ void EAI_parse_commands () {
 
 		switch (command) {
 			case GETRENDPROP: {
-				/* is MultiTexture initialized yet? */
-				if (maxTexelUnits < 0) init_multitexture_handling();
-
 				sprintf (buf,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime,count,
 					"SMOOTH",				/* Shading */
-					global_texSize, global_texSize, 	/* Texture size */	
-					maxTexelUnits,				/* texture units */
+					opengl_has_textureSize, opengl_has_textureSize, 	/* Texture size */	
+					opengl_has_numTextureUnits,				/* texture units */
 					"FALSE",				/* antialiased? */
 					displayDepth,				/* bit depth of display */
 					256.0					/* amount of memory left on card -

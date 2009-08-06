@@ -31,4 +31,11 @@ extern void glpOpenGLInitialize(void);
 
 extern void glPrintError(char *);
 void drawBBOX(struct X3D_Node *node);
+
+extern int opengl_has_shaders;
+extern int opengl_has_multitexture;
+extern int opengl_has_occlusionQuery;
+extern int opengl_has_numTextureUnits;
+extern GLint opengl_has_textureSize;
+
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

@@ -18,7 +18,6 @@ EAI and java CLASS invocation
 #define __FREEWRL_EAI_H__
 
 #include <pthread.h>
-static pthread_mutex_t eaibufferlock = PTHREAD_MUTEX_INITIALIZER;
 #define EBUFFLOCK pthread_mutex_lock(&eaibufferlock);
 #define EBUFFUNLOCK pthread_mutex_unlock(&eaibufferlock);
 extern int eaiverbose;
