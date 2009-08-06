@@ -70,6 +70,12 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 	   we are currently running ...
 
 	*/
+
+#ifdef AQUA
+/* Aqua - we always seem to have multitexture support */
+#define GLEW_ARB_multitexture 1==1
+#endif
+
 	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
 	    
 	    if (c != currentTextureUnit) {
