@@ -22,7 +22,7 @@ General Texture objects.
 #include "../input/InputFunctions.h"
 #include "Textures.h"
 #include "../opengl/Material.h"
-#include "../opengl/Opengl_Utils.h"
+#include "../opengl/OpenGL_Utils.h"
 
 
 #ifdef AQUA

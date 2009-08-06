@@ -75,7 +75,7 @@ FIELDTYPE_MFVec4d
 
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../opengl/Opengl_Utils.h"
+#include "../opengl/OpenGL_Utils.h"
 
 
 /* which shader is running?? */

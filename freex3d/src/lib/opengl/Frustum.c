@@ -19,7 +19,7 @@ $Id$
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "Frustum.h"
-#include "../opengl/Opengl_Utils.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/LinearAlgebra.h"
 
 
