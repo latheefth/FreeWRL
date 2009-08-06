@@ -19,6 +19,8 @@ Internal header: Javascript engine dependencies.
 
 */
 
+#define JS_HAS_FILE_OBJECT 1 /* workaround warning=>error */
+
 #ifdef MOZILLA_JS_UNSTABLE_INCLUDES
 # include "../unstable/jsapi.h" /* JS compiler */
 # include "../unstable/jsdbgapi.h" /* JS debugger */

@@ -30,9 +30,10 @@ char *fw_strndup(const char *str, int len);
 #  define DEBUG_(_expr)
 #endif
 
-#define TRACE_MSG(_formargs...) DEBUG_(fprintf(stdout, ##_formargs))
-#define WARN_MSG(_formargs...)  DEBUG_(fprintf(stdout, ##_formargs))
-#define ERROR_MSG(_formargs...) DEBUG_(fprintf(stderr, ##_formargs))
+/* To conform C99 ISO C : */
+#define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 
 /**
  * Those macro get defined only when debugging is enabled
