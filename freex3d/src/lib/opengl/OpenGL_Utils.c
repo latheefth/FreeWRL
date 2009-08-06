@@ -1723,6 +1723,7 @@ void kill_X3DNodes(void){
 					break;
 				case FIELDTYPE_FreeWRLPTR:
 					VPtr = (uintptr_t *) fieldPtr;
+					VPtr = (uintptr_t *) (*VPtr);
 					FREE_IF_NZ(VPtr);
 					break;
 				case FIELDTYPE_SFString:

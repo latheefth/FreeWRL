@@ -322,6 +322,7 @@ static int shader_checkType(struct FieldDecl * myField,
 	GLchar ch[100];		
 
 	retval = FALSE;
+	ch[0] = '\0';
 	
 	if (isUniform)	glGetActiveUniform (myShader,myVar,90,&len,&size,&type,ch);
 	else glGetActiveAttrib (myShader,myVar,90,&len,&size,&type,ch);
