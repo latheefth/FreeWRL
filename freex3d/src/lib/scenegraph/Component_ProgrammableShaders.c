@@ -549,12 +549,17 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	for(i=0; i!=vector_size(me->fields); ++i) {
 		int isUniform; 
 		GLint myVar;
+		myVar;
+		isUniform;
+		
+		struct ScriptFieldDecl* curField;
+		struct FieldDecl * myf;
+
+		/* initialization */
 		myVar = -1;
 		isUniform = TRUE;
-		
-
-		struct ScriptFieldDecl* curField=vector_get(struct ScriptFieldDecl*, me->fields, i);
-		struct FieldDecl * myf = curField->fieldDecl;
+		curField = vector_get(struct ScriptFieldDecl*, me->fields, i);
+		myf = curField->fieldDecl;
 
 		#ifdef SHADERVERBOSE
 		printf ("curField %d name %s type %s ",i,curField->name,curField->type);
@@ -675,10 +680,15 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		GLchar **vertShaderSource;
 		GLchar **fragShaderSource;
 		int i;
-		GLuint myProgram = CREATE_PROGRAM;
+		GLuint myProgram;
 		/* do we have anything to compile? */
-		int haveVertShaderText = FALSE; 
-		int haveFragShaderText = FALSE; 
+		int haveVertShaderText; 
+		int haveFragShaderText; 
+
+		/* initialization */
+		haveVertShaderText = FALSE;
+		haveFragShaderText = FALSE;
+		myProgram = CREATE_PROGRAM;
 
 		/* can we do shaders at runtime? */
 		CHECK_SHADERS
@@ -707,10 +717,15 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		GLchar **vertShaderSource;
 		GLchar **fragShaderSource;
 		int i;
-		GLuint myProgram = CREATE_PROGRAM;
+		GLuint myProgram;
 		/* do we have anything to compile? */
-		int haveVertShaderText = FALSE; 
-		int haveFragShaderText = FALSE; 
+		int haveVertShaderText; 
+		int haveFragShaderText; 
+
+		/* initialization */
+		haveVertShaderText = FALSE;
+		haveFragShaderText = FALSE;
+		myProgram = CREATE_PROGRAM;
 	
 		CHECK_SHADERS
 		vertShaderSource = MALLOC(sizeof(GLchar*) * node->programs.n); 
