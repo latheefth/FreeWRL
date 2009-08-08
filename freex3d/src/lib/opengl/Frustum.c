@@ -97,10 +97,10 @@ GLint OccResultsAvailable = FALSE;
  \
 		if (!APPROX(me->EXTENT_MAX_X,-10000.0)) { \
 			struct X3D_##myNodeType *node; \
-			node = (struct X3D_##myNodeType *)me; \
 			float my_scaleO; \
 			Quaternion rq; \
 			struct point_XYZ inxyz[8]; struct point_XYZ outxyz[8]; \
+			node = (struct X3D_##myNodeType *)me; \
 	 \
 			/* make up a "cube" with vertexes being our bounding box */ \
 			BBV(0,MAX_X,MAX_Y,MAX_Z); \

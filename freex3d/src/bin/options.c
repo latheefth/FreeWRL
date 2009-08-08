@@ -139,9 +139,13 @@ int parseCommandLine (int argc, char **argv)
     };
 
     int find_opt_for_optopt(char c) {
-	int i = 0;
+	int i;
 	struct option *p;
+
+	/* initialization */
+	i = 0;
 	p = &(long_options[i]);
+
 	while (p->name) {
 	    if (!p->flag) {
 		if (p->val == c) {

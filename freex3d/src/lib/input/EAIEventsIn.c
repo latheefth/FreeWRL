@@ -80,7 +80,7 @@ void EAI_parse_commands () {
 	int count;
 	char command;
 	int perlNode; uintptr_t cNode;
-	int bufPtr = 0;		/* where we are in the EAI input buffer */
+	int bufPtr;		/* where we are in the EAI input buffer */
 	
 	uintptr_t ra,rb,rc,rd;	/* temps*/
 	int tmp_a, tmp_b, tmp_c;
@@ -92,6 +92,9 @@ void EAI_parse_commands () {
 	struct X3D_Node *boxptr;
         int ctype;
 	int xxx;
+
+	/* initialization */
+	bufPtr = 0;
 
 	while (EAI_BUFFER_CUR> 0) {
 		if (eaiverbose) {
@@ -767,12 +770,6 @@ void handleRoute (char command, char *bufptr, char *buf, int repno) {
         *x = '\0';
 
 	/* and, get the info for this one */
-
-void EAI_GetType(int cNode, char *ctmp, char *dtmp,
-                 uintptr_t *cNodePtr, uintptr_t *fieldOffset,
-                 uintptr_t *dataLen, uintptr_t *typeString, unsigned int *scripttype, int *accessType);
-
-
 	EAI_GetType (tofieldNode, fieldTemp, "inputOnly", &toretNode, &toretField, &todataLen, &tofieldType, &toscripttype, &toxxx);
 
 	if (eaiverbose) printf ("so, we are routing from %u:%u to %u:%u, fieldtypes %u:%u, datalen %u:%u\n",
