@@ -86,6 +86,7 @@ scenegraph/readpng.c \
 scenegraph/Component_NURBS.c \
 scenegraph/quaternion.h \
 scenegraph/Component_EventUtils.c \
+scenegraph/Component_ProgrammableShaders.h \
 scenegraph/Component_ProgrammableShaders.c \
 scenegraph/NormalCalcs.c \
 scenegraph/Component_Geospatial.h \
