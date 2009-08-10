@@ -442,10 +442,7 @@ void restoreLightState(int *ls) {
 
 void glpOpenGLInitialize() {
 	int i;
-        /* JAS float pos[] = { 0.0, 0.0, 0.0, 1.0 }; */
-	/* put the headlight far behind us, so that lighting on close
-	   surfaces (eg, just above the surface of a box) is evenly lit */
-        float pos[] = { 0.0, 0.0, 100.0, 1.0 };
+        float pos[] = { 0.0, 0.0, 1.0, 0.0 }; 
         float dif[] = { 1.0, 1.0, 1.0, 1.0 };
         float shin[] = { 0.6, 0.6, 0.6, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
