@@ -527,16 +527,8 @@ void child_Appearance (struct X3D_Appearance *node) {
 		}
 	}
 
-#ifdef NOMATERIAL_IF_SHADER
-	/* do NOT do material, if a shader has been found */
-	if (localShaderNode == NULL) 
-		RENDER_MATERIAL_SUBNODES(node->material)
-	else {
-             glColor3f(1,1,1); 
-	}
-#else
-		RENDER_MATERIAL_SUBNODES(node->material)
-#endif
+	/* Render the material node... */
+	RENDER_MATERIAL_SUBNODES(node->material)
 
 	if (node->fillProperties) {
 		POSSIBLE_PROTO_EXPANSION(node->fillProperties,tmpN)
