@@ -1649,13 +1649,14 @@ struct X3D_Node {
 #undef DEBUG_VALIDNODE
 #ifdef DEBUG_VALIDNODE	
 #define X3D_NODE_CHECK(node) checkNode(node,__FILE__,__LINE__)
-#define MARK_EVENT((node),(offset)) mark_event_check((node),(offset),__FILE__,__LINE__)
+#define MARK_EVENT(node,offset) mark_event_check(node,offset,__FILE__,__LINE__)
 #else
 #define X3D_NODE_CHECK(node)
 #define MARK_EVENT(node,offset)	mark_event(node,offset)
 #endif
 #define COPY_SFVEC3F_TO_POINT_XYZ(too,from) { too.x = from[0]; too.y = from[1]; too.z = from[2];}
 #define COPY_POINT_XYZ_TO_SFVEC3F(too,from) { too[0] = from.x; too[1] = from.y; too[2] = from.z;}
+#define offsetPointer_deref(t, me, offs) ((t)(((char*)(me))+offs))
 
 /* now, generated structures for each VRML/X3D Node*/
 /***********************/
