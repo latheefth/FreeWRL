@@ -30,7 +30,8 @@ char *fw_strndup(const char *str, int len);
 #  define DEBUG_(_expr)
 #endif
 
-/* To conform C99 ISO C : */
+/* To conform C99 ISO C (do not use GCC extension) */
+#define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))

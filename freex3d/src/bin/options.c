@@ -181,8 +181,8 @@ int parseCommandLine (int argc, char **argv)
 	} else {
 	    real_option_name = long_options[real_option_index].name;
 	}
-/* 	FW_DEBUG("option_index=%d optopt=%c option=%s\n", real_option_index, c, */
-/* 		 real_option_name); */
+	DEBUG_MSG("option_index=%d optopt=%c option=%s\n", real_option_index, c,
+		  real_option_name);
 
 	switch (c) {
 

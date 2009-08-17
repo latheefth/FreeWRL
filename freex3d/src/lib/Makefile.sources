@@ -157,6 +157,8 @@ opengl/OpenGL_Utils.h \
 opengl/OpenGL_Utils.c \
 opengl/Material.h \
 opengl/Material.c \
+opengl/LoadTextures.h \
+opengl/LoadTextures.c \
  \
 ui/ui.h \
 ui/statusbar.c \

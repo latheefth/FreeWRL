@@ -11,6 +11,34 @@ Screen snapshot.
 #define __FREEWRL_TEXTURES_H__
 
 
+/* Texture loading table :
+   newer Texture handling procedures
+   each texture has this kind of structure
+*/
+struct textureTableIndexStruct {
+	struct	X3D_Node*	scenegraphNode;
+	int			nodeType;
+	int	imageType;
+	int 	status;
+	int	depth;
+	int 	hasAlpha;
+	GLuint	*OpenGLTexture;
+	int	frames;
+	char    *filename;
+        int x;
+        int y;
+        unsigned char *texdata;
+	struct Multi_Int32 *pixelData;
+        GLint Src;
+        GLint Trc;
+};
+
+extern struct textureTableIndexStruct* loadThisTexture;
+
+/* imageType */
+#define PNGTexture 200
+#define JPGTexture 300
+
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
                                 if (thisTextureType==NODE_ImageTexture){ \
                                 it = (struct X3D_ImageTexture*) node; \

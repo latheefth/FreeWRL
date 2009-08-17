@@ -19,9 +19,11 @@ Internal header: helper macros.
 # define DEBUG_(...)
 #endif
 
-#define TRACE_MSG(_formargs...) DEBUG_(fprintf(stdout, ##_formargs))
-#define WARN_MSG(_formargs...)  DEBUG_(fprintf(stdout, ##_formargs))
-#define ERROR_MSG(_formargs...) DEBUG_(fprintf(stderr, ##_formargs))
+/* To conform C99 ISO C (do not use GCC extension) */
+#define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
+#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 
 
 #endif /* __FREEWRL_MAIN_H__ */

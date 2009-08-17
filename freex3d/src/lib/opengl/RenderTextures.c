@@ -385,3 +385,15 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
 		}
 	}
 }
+
+/*
+  Some functions in Textures.c should be moved here
+  and possibly renamed to textureDraw_###### :
+
+  loadBackgroundTextures
+  loadTextureBackgroundTextures
+
+  Reason: it seems those function do a render job
+  whereas other load functions do a fetch & load job.
+*/
+
