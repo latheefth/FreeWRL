@@ -249,8 +249,13 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_SCALE_D(xxx,yyy,zzz) glScaled(xxx,yyy,zzz)
 	#define FW_GL_LOAD_IDENTITY glLoadIdentity
 	#define FW_GL_MATRIX_MODE(aaa) glMatrixMode(aaa)
+#if defined(_MSC_VER)
+	#define FW_GL_PUSH_MATRIX(...) glPushMatrix()
+	#define FW_GL_POP_MATRIX(...) glPopMatrix()
+#else
 	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
 	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
+#endif
 	#define FW_GL_GETDOUBLEV(aaa,bbb) fwGetDoublev(aaa,bbb); 
 #endif
 
