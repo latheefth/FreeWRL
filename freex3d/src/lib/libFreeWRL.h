@@ -56,12 +56,13 @@ __inline double Time1970sec()
 }
 
 #else
-inline double Time1970sec()
+/* JAS inline double Time1970sec() 
 {
   struct timeval tv;
   (void) gettimeofday(&tv, (struct timezone *)NULL);
   return (tv.tv_sec + tv.tv_usec / 1000000.0);
 }
+*/
 #endif
 
 int checkNetworkFile(char *fn);

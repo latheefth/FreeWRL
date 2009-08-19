@@ -52,22 +52,24 @@ struct timeval tv;
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 extern double TickTime;
 
+/* Doug Sandens windows function; lets make it static here for non-windows */
+#if defined(_MSC_VER)
+#else
+static struct timeval mytime;
+
+static double Time1970sec(void) {
+        gettimeofday(&mytime, NULL);
+        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+}
+#endif
 
 /* prints to a log file if we are running as a plugin */
-void pluginprint (const char *m, const char *p) {
+static void pluginprint (const char *m, const char *p) {
 	double myt;
-/* #ifndef WIN32 */
-        struct timeval mytime;
-/* #endif */
 	if (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL) {
 
         	/* Set the timestamp */
-#if defined(_MSC_VER)
 		myt = Time1970sec();
-#else
-        	gettimeofday(&mytime, NULL);
-		myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-#endif
         	printf ("%f: freewrl: ",myt);
 		printf(m,p);
 	}

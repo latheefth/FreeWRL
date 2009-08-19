@@ -199,6 +199,22 @@ static void stopDisplayThread()
 }
 
 
+/* Doug Sandens windows function; lets make it static here for non-windows */
+#if defined(_MSC_VER)
+		double waitsec;
+#else
+static struct timeval waittime;
+static struct timeval mytime;
+
+static double Time1970sec(void) {
+        gettimeofday(&mytime, NULL);
+        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+}
+#endif
+
+
+
+
 const char *getLibVersion() {
         return libFreeWRL_get_version();
 }
@@ -211,12 +227,6 @@ void EventLoop() {
 #endif
 
         static int loop_count = 0;
-#if defined(_MSC_VER)
-		double waitsec;
-#else
-        struct timeval waittime;
-        struct timeval mytime;
-#endif
 
 #ifdef AQUA
         if (RUNNINGASPLUGIN) {
@@ -241,12 +251,7 @@ void EventLoop() {
         doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
 
         /* Set the timestamp */
-#if defined(_MSC_VER)
-		TickTime = Time1970sec();
-#else
-        gettimeofday(&mytime, NULL);
-        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-#endif
+	TickTime = Time1970sec();
         
         /* any scripts to do?? */
         INITIALIZE_ANY_SCRIPTS;
