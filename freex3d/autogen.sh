@@ -3,6 +3,29 @@
 # $Id$
 #
 
+# options
+eai=1
+curl=0
+debug=0
+trace=0
+
+# Pick up autogen options and leave other arguments to configure
+while getopts "cdet" option
+do
+  case $option in
+      c ) curl=1
+	  ;;
+      d ) debug=1
+	  ;;
+      e ) eai=0
+	  ;;
+      t ) trace=1
+	  ;;
+  esac
+done
+shift $(($OPTIND - 1))
+
+
 platform=$(uname -s)
 
 # Font directory
@@ -49,13 +72,34 @@ if [ ! -z "$add_path" ] ; then
     lflags="LDFLAGS=-L$add_path/lib"
 fi
 
-my_options="--with-fontsdir=$fontsdir --with-target=$target $cflags $lflags $*"
+my_options="--with-fontsdir=$fontsdir --with-target=$target"
 
 echo
 echo "configure options: $my_options"
 echo
 
+if [ $curl -eq 1 ] ; then
+    my_options="$my_options --enable-libcurl"
+else
+    my_options="$my_options --disable-libcurl"
+fi
+
+if [ $debug -eq 1 ] ; then
+    my_options="$my_options --enable-debug"
+else
+    my_options="$my_options --disable-debug"
+fi
+
+if [ $eai -eq 1 ] ; then
+    my_options="$my_options --enable-libeai"
+else
+    my_options="$my_options --disable-libeai"
+fi
+
+if [ $trace -eq 1 ] ; then
+    cflags="$cflags -DTEXVERBOSE"
+fi
+
 [ ! -e configure ] && autoreconf --force --install
 
-./configure $my_options
-
+./configure $my_options $cflags $lflags "$@"
