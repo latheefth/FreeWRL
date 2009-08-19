@@ -208,7 +208,7 @@ static struct timeval mytime;
 
 static double Time1970sec(void) {
         gettimeofday(&mytime, NULL);
-        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
 #endif
 
@@ -252,7 +252,7 @@ void EventLoop() {
 
         /* Set the timestamp */
 	TickTime = Time1970sec();
-        
+
         /* any scripts to do?? */
         INITIALIZE_ANY_SCRIPTS;
 
@@ -284,7 +284,7 @@ void EventLoop() {
                 waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
                 if (waittime.tv_usec < 0.0) {
                         waittime.tv_usec = -waittime.tv_usec;
-                        /* printf ("waiting %d\n",(int)waittime.tv_usec);*/
+                        /* printf ("waiting %d\n",(int)waittime.tv_usec); */
                         usleep((unsigned)waittime.tv_usec);
                 }
 #endif

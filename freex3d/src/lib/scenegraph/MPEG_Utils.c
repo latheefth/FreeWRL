@@ -427,7 +427,7 @@ static struct timeval mytime;
 
 static double Time1970sec(void) {
         gettimeofday(&mytime, NULL);
-        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+        return (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 }
 #endif
 
