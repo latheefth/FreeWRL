@@ -93,8 +93,11 @@ void jsRegisterRoute(
 	int len, const char *adrem) {
  	char tonode_str[15];
 	int ad;
-
+#if defined(_MSC_VER)
+ 	sprintf_s(tonode_str, 15, "%lu:%d", to, toOfs);
+#else
  	snprintf(tonode_str, 15, "%lu:%d", to, toOfs);
+#endif
 
 	if (strcmp("addRoute",adrem) == 0) 
 		ad = 1;

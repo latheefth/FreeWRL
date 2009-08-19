@@ -600,8 +600,11 @@ void glpOpenGLInitialize() {
 
 }
 
-void BackEndClearBuffer() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void BackEndClearBuffer(int which) {
+	if(which == 2)
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	else if(which==1)
+		glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 /* turn off all non-headlight lights; will turn them on if required. */

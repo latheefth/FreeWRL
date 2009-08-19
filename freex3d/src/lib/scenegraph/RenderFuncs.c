@@ -82,7 +82,7 @@ int	have_transparency=FALSE;/* did any Shape have transparent material? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
 
-int     shutterGlasses = 0; 	/* stereo shutter glasses */
+/*int     shutterGlasses = 0; 	/* stereo shutter glasses */
 
 
 GLint smooth_normals = TRUE; /* do normal generation? */
@@ -641,11 +641,6 @@ render_hier(struct X3D_Node *p, int rwhat) {
 	}
 }
 
-/* shutter glasses, stereo view  from Mufti@rus */
-/* handle setting shutter from parameters */
-void setShutter (void) {
-        shutterGlasses = 1;
-}
 
 /******************************************************************************
  *

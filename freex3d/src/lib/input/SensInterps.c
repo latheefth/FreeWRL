@@ -1215,13 +1215,13 @@ void do_TouchSensor ( void *ptr, int ev, int but1, int over) {
 
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
-	struct X3D_PlaneSensor *node = (struct X3D_PlaneSensor *)ptr;
+	struct X3D_PlaneSensor *node;
 	float mult, nx, ny;
 	struct SFColor tr;
 	int tmp;
 
 	UNUSED(over);
-
+	node = (struct X3D_PlaneSensor *)ptr;
 	#ifdef SENSVERBOSE
 	printf ("%lf: TS ",TickTime);
 	if (ev==ButtonPress) printf ("ButtonPress ");

@@ -22,18 +22,13 @@ $Id$
 #ifdef AQUA
 typedef GLvoid (*_GLUfuncptr)(GLvoid);
 #endif
-/* #ifdef WIN32 */
-/* typedef  void (__stdcall *_GLUfuncptr)(); */
-/* #endif */
+#if defined(_MSC_VER)
+typedef  void (__stdcall *_GLUfuncptr)();
+#endif
 
 /* WIN32 p.411 openGL programmers guide - windows needs CALLBACK, unix not */
 #ifndef CALLBACK 
 #define CALLBACK
-#endif
-
-/* from Doug Sanden - highaspirations - at - hotmail.com */
-#ifndef CALLBACK
-#define CALLBACK /* this is a null on POSIX, but wgl defines it */
 #endif
 
 

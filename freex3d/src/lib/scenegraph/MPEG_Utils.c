@@ -2233,13 +2233,13 @@ static unsigned char cropTbl[NUM_CROP_ENTRIES];
 double
 ReadSysClock()
 {
-/* #ifdef WIN32 */
-/*   return Time1970sec(); */
-/* #else */
+#if defined(_MSC_VER)
+  return Time1970sec();
+#else
   struct timeval tv;
   (void) gettimeofday(&tv, (struct timezone *)NULL);
   return (tv.tv_sec + tv.tv_usec / 1000000.0);
-/* #endif */
+#endif
 }
 
 

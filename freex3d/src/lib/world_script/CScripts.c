@@ -348,6 +348,9 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  printf ("script_initCodeFromUri, uri is %s\n",uri); 
  #endif
 
+#if defined(_MSC_VER)
+#define PATH_MAX _MAX_PATH  /*32kb*/
+#endif
  // Test if this could be a path name
  if (strlen(getInputURL) >= PATH_MAX) {
      return FALSE;

@@ -62,12 +62,12 @@ void pluginprint (const char *m, const char *p) {
 	if (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL) {
 
         	/* Set the timestamp */
-/* #ifdef WIN32 */
-/* 		myt = Time1970sec(); */
-/* #else */
+#if defined(_MSC_VER)
+		myt = Time1970sec();
+#else
         	gettimeofday(&mytime, NULL);
 		myt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-/* #endif */
+#endif
         	printf ("%f: freewrl: ",myt);
 		printf(m,p);
 	}

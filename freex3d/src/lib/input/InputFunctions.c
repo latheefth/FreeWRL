@@ -35,6 +35,30 @@ char * stripLocalFileName (char * origName) {
 }
 
 
+#if defined(_MSC_VER)
+#include <io.h>
+int dirExists(const char *dir)
+{
+	/*   http://msdn.microsoft.com/en-us/library/kda16keh(VS.80).aspx */
+	struct _finddata_t c_file;
+	intptr_t hFile;
+
+	hFile = _findfirst(dir,&c_file);
+	_findclose(hFile);
+	if( hFile == -1L)
+	{
+		printf("Internal error: directory does not exist: %s\n", dir);
+	}
+	else
+	{
+		if(c_file.attrib == _A_SUBDIR )
+			return TRUE;
+		else
+			printf("Internal error: not a directory: %s\n", dir);
+	}
+	return FALSE;
+}
+#else
 int dirExists(const char *dir)
 {
 	static struct stat ss;
@@ -50,6 +74,7 @@ int dirExists(const char *dir)
 	}
 	return FALSE;
 }
+#endif
 
 char* makeFontDirectory()
 {

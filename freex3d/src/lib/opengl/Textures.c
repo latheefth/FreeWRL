@@ -1832,7 +1832,11 @@ static void __reallyloadImageTexture() {
 
 
 	filename = loadThisTexture->filename;
+#if defined(_MSC_VER)
+	infile = openLocalFile(filename,"rb");
+#else
 	infile = openLocalFile(filename,"r");
+#endif
 
 
 	/* printf ("reallyLoad on linux, texture type %d\n",loadThisTexture->imageType); */

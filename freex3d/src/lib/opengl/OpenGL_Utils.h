@@ -19,7 +19,7 @@ glpOpenGLInitialize(void);
 
 
 void
-BackEndClearBuffer(void);
+BackEndClearBuffer(int);
 
 void
 BackEndLightsOff(void);

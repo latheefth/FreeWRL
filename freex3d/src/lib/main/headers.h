@@ -1132,6 +1132,11 @@ void destroyCParserData();
 
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex);
 
+#if defined(_MSC_VER)
+#define ConsoleMessage printf
+#else
+int ConsoleMessage(const char *fmt, ...);
+#endif
 void closeConsoleMessage(void);
 extern int consMsgCount;
 
