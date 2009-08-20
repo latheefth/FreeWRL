@@ -113,6 +113,7 @@ scenegraph/Component_Lighting.c \
 scenegraph/LinearAlgebra.h \
 scenegraph/Component_Geospatial.c \
 scenegraph/Component_Scripting.c \
+scenegraph/Component_KeyDevice.h \
 scenegraph/Component_KeyDevice.c \
 scenegraph/StreamPoly.c \
 scenegraph/Viewer.h \

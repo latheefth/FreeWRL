@@ -17,8 +17,7 @@ extern "C" {
 void endProtoDeclare(void);
 void addToProtoCode(const char *name);
 void initScriptWithScript(void);
-static int getFieldValueFromProtoInterface(struct VRMLLexer*, char *, int, char **);
-
+void endDumpProtoBody (const char *name);
 #ifdef __cplusplus
 }
 #endif

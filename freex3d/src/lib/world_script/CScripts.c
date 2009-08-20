@@ -166,7 +166,7 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 	ConsoleMessage ("call to scriptFieldDecl_getRoutingOffset made with NULL input");
 	return INT_ID_UNDEFINED;
  }
- return JSparamIndex((char *)me->ASCIIname, (char *)me->ASCIItype);
+ return JSparamIndex(me->ASCIIname, me->ASCIItype);
 }
 
 /* Initialize JSField */

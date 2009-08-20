@@ -73,19 +73,10 @@ JSrunScript(uintptr_t num,
 			struct Uni_String *rnum);
 
 int
-JSaddGlobalAssignProperty(uintptr_t num,
-						  char *name,
-						  char *str);
-
-int
 JSaddSFNodeProperty(uintptr_t num,
 					char *nodeName,
 					char *name,
 					char *str);
-
-int
-JSaddGlobalECMANativeProperty(uintptr_t num,
-							  char *name);
 
 void
 reportWarningsOn(void);

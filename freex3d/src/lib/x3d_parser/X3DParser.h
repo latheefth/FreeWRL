@@ -63,7 +63,6 @@ void parseProtoInstance (const char **atts);
 void parseProtoInstanceFields(const char *name, const char **atts);
 void dumpProtoBody (const char *name, const char **atts);
 void dumpCDATAtoProtoBody (char *str);
-void endDumpProtoBody (const char *name);
 void parseScriptProtoField(struct VRMLLexer *, const char **atts);
 int getFieldFromScript (struct VRMLLexer* myLexer, char *fieldName, struct Shader_Script *, int *offs, int *type, int *accessType);
 void expandProtoInstance(struct VRMLLexer *, struct X3D_Group * myGroup);

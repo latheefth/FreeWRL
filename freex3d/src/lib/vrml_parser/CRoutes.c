@@ -747,7 +747,7 @@ stores ascii names with types (see code for type equivalences).
 
 ********************************************************************/
 
-int JSparamIndex (char *name, char *type) {
+int JSparamIndex (const char *name, const char *type) {
 	unsigned len;
 	int ty;
 	int ctr;

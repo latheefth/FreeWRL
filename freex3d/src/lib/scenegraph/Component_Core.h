@@ -7,6 +7,10 @@ X3D Core Component
 
 */
 
+#ifndef __FREEWRL_SCENEGRAPH_CORE_H__
+#define __FREEWRL_SCENEGRAPH_CORE_H__
+
+
 /*******************************************************************
  Copyright (C) 2009 John Stewart CRC Canada for all opensource contributors.
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -55,3 +59,5 @@ void compile_MetadataSFVec4f (struct X3D_MetadataSFVec4f *node);
 void compile_MetadataMFVec4f (struct X3D_MetadataMFVec4f *node);
 void compile_MetadataSFVec4d (struct X3D_MetadataSFVec4d *node);
 void compile_MetadataMFVec4d (struct X3D_MetadataMFVec4d *node);
+
+#endif  /* __FREEWRL_SCENEGRAPH_CORE_H__ */

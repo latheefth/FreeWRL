@@ -105,8 +105,7 @@ struct ScriptFieldDecl* script_getField(struct Shader_Script*, indexT ind, index
 struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, const char *name);
 
 
-void InitScriptField(int num, indexT kind, indexT type, char* field, union anyVrml value);
-void SaveScriptField (int num, indexT kind, indexT type, char* field, union anyVrml value);
+void InitScriptField(int num, indexT kind, indexT type, const char* field, union anyVrml value);
 struct ScriptParamList {
         struct ScriptParamList *next;
         indexT kind;
