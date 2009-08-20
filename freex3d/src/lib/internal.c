@@ -43,7 +43,9 @@ char *fw_strndup(const char *s, size_t n)
 	return NULL;
     
     new[len] = '\0';
-    return memcpy(new, s, len);
+    memcpy(new, s, len);
+    /* although we could return the output of memcpy, OSX cacks on it, so return mallocd area */
+    return new;
 }
 
 #endif
