@@ -76,7 +76,7 @@ typedef unsigned char _Bool;
 
 #if !defined(HAVE_STRNLEN)
 #define strnlen __fw_strnlen
-size_t __fw_strnlen(const char *s, size_t maxlen)
+size_t __fw_strnlen(const char *s, size_t maxlen);
 #endif
 
 #if !defined(HAVE_STRNDUP)
