@@ -134,12 +134,8 @@ void fw_assert (char *file, int line) {
 	ConsoleMessage ("FreeWRL Internal Error at line %d in %s",line,file);
 	
 	for (looper=1; looper<60; looper++) {
-#ifdef WIN32
-		Sleep(1000);
-#else
-		sleep(1);
-#endif
-		sched_yield();
+	    usleep(1000);
+	    sched_yield();
 	}
 	printf ("FreeWRL exiting...\n");
 	exit(1);

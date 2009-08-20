@@ -1124,24 +1124,29 @@ void setAnaglyphParameter(const char *optArg) {
 }
 /* shutter glasses, stereo view  from Mufti@rus */
 /* handle setting shutter from parameters */
-void setShutter (void) {
-	GLboolean quadbuffer;
+void setShutter (void)
+{
+    GLboolean quadbuffer;
 
-	if(Viewer.isStereo == 0)
-		initStereoDefaults();
+    shutterGlasses = 1; /* initialization of visual needs this */
 
-   Viewer.shutterGlasses = 1;
-   /* does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
-   WhiteDune > swt.c L1306
-   */
-	quadbuffer = '\0';
-	glGetBooleanv(GL_STEREO,&quadbuffer);
+    if(Viewer.isStereo == 0)
+	initStereoDefaults();
+
+    Viewer.shutterGlasses = 1;
+
+    /* does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and
+       WhiteDune > swt.c L1306
+    */
+    quadbuffer = '\0';
+    glGetBooleanv(GL_STEREO,&quadbuffer);
     if (quadbuffer == GL_FALSE) {
         ConsoleMessage("Unable to get quadbuffer stereo visual \n");
-		Viewer.shutterGlasses = 2; /*go ahead and render anyway to GL_BACK, but manually swap every 2 seconds in flutter mode*/
+	Viewer.shutterGlasses = 2; /*go ahead and render anyway to GL_BACK, but manually swap every 2 seconds in flutter mode*/
     }
-   setStereoBufferStyle(0); 
+    setStereoBufferStyle(0); 
 }
+
 void setSideBySide()
 {
 	if(Viewer.isStereo == 0)

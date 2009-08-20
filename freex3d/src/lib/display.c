@@ -37,6 +37,7 @@ int show_mouse;
 int xPos = 0;
 int yPos = 0;
 
+int shutterGlasses = 0; /* stereo shutter glasses */
 
 int display_initialize()
 {

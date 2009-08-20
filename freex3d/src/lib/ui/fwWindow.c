@@ -85,9 +85,6 @@ static int  default_attributes3[] =
    0
    };
 
-
-extern int	shutterGlasses; /* stereo shutter glasses */
-
 #define MAXSTAT 200
 float myFps = 0.0;
 char myMenuStatus[MAXSTAT];

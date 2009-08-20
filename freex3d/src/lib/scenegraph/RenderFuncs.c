@@ -82,9 +82,6 @@ int	have_transparency=FALSE;/* did any Shape have transparent material? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
 
-/*int     shutterGlasses = 0; 	/* stereo shutter glasses */
-
-
 GLint smooth_normals = TRUE; /* do normal generation? */
 
 int cur_hits=0;
@@ -581,11 +578,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 
 	if (!p) {
 		/* we have no geometry yet, sleep for a tiny bit */
-#ifdef WIN32
-		Sleep(1);
-#else
 		usleep(1000);
-#endif
 		return;
 	}
 

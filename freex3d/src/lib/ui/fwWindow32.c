@@ -82,8 +82,6 @@ int mouseX, mouseY;
 
 static short gcWheelDelta = 0;
 
-/*extern int	shutterGlasses; /* stereo shutter glasses */
-
 float myFps = 0.0;
 
 void setMenuButton_collision(int val){}

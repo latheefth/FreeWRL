@@ -898,10 +898,6 @@ extern void setPluginPipe(const char *optarg);
 extern void setPluginFD(const char *optarg);
 extern void setPluginInstance(const char *optarg);
 
-#ifndef AQUA
-extern int shutterGlasses;
-#endif
-
 extern int isPerlinitialized(void);
 
 extern char *getInputURL(void);

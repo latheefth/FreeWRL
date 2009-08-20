@@ -15,22 +15,35 @@ present (example: strndup, ...).
 #include <internal.h>
 
 
+#if !defined(HAVE_STRNLEN)
+
+/* Find the length of STRING, but scan at most MAXLEN characters.
+   If no '\0' terminator is found in that many characters, return MAXLEN.  */
+
+size_t __fw_strnlen(const char *s, size_t maxlen)
+{
+  const char *end = memchr(s, '\0', maxlen);
+  return end ? (size_t) (end - s) : maxlen;
+}
+
+#endif
+
 #if !defined(HAVE_STRNDUP)
 
 /******************************************************************************/
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not
    always exist... */
-char *fw_strndup(const char *str, int len)
+
+char *fw_strndup(const char *s, size_t n)
 {
-        char *retval;
-        int ml;
-        ml = strlen(str);
-        if (ml > len) ml = len;
-        retval = (char *) MALLOC (sizeof (char) * (ml+1));
-        strncpy (retval,str,ml);
-        /* ensure termination */
-        retval[ml] = '\0';
-        return retval;
+    size_t len = strnlen(s, n);
+    char *new = MALLOC(len + 1);
+    
+    if (!new)
+	return NULL;
+    
+    new[len] = '\0';
+    return memcpy(new, s, len);
 }
 
 #endif

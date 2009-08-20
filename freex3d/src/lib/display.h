@@ -37,6 +37,8 @@ extern int yPos;
 
 extern int displayDepth;
 
+extern int shutterGlasses; /* stereo shutter glasses */
+
 /**
  * Specific platform : Mac
  */

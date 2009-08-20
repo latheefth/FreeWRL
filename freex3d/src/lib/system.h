@@ -74,6 +74,20 @@ typedef unsigned char _Bool;
 # include <unistd.h>
 #endif
 
+#if !defined(HAVE_STRNLEN)
+#define strnlen __fw_strnlen
+size_t __fw_strnlen(const char *s, size_t maxlen)
+#endif
+
+#if !defined(HAVE_STRNDUP)
+#define strndup __fw_strndup
+char *__fw_strndup(const char *s, size_t n);
+#endif
+
+#if !defined(HAVE_USLEEP) && defined(WIN32)
+#define usleep(us) Sleep((us)/1000)
+#endif
+
 #if defined(HAVE_SYS_WAIT_H)
 # include <sys/wait.h>
 #endif
