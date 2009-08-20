@@ -33,6 +33,7 @@ $Id$
 #include "../input/EAIheaders.h"
 #include "Frustum.h"
 #include "../opengl/Material.h"
+#include "../scenegraph/Component_Core.h"
 
 #include <float.h>
 

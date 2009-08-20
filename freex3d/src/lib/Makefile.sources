@@ -96,6 +96,7 @@ scenegraph/Tess.c \
 scenegraph/Component_DIS.c \
 scenegraph/Component_Rendering.c \
 scenegraph/Component_Interpolation.c \
+scenegraph/Component_Core.h \
 scenegraph/Component_Core.c \
 scenegraph/Component_EnvironEffects.c \
 scenegraph/Component_Grouping.c \
