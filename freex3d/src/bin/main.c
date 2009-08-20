@@ -33,6 +33,13 @@ void catch_SIGALRM(int);
 void catch_SIGHUP();
 #endif
 
+#if defined(_MSC_VER)
+const char *freewrl_get_version()
+{
+	return "version 1.22.4";
+}
+#endif
+
 /**
  * Main
  */
@@ -135,9 +142,6 @@ void catch_SIGHUP()
     Anchor_ReplaceWorld(BrowserFullPath);
 }
 
-#if defined(_MSC_VER)
-#define alarm(0) printf("\a")
-#endif
 void catch_SIGALRM(int sig)
 {
     signal(SIGALRM, SIG_IGN);
@@ -146,7 +150,11 @@ void catch_SIGALRM(int sig)
     /* fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n"); */
     /* end of alarm actions */
 
-    alarm(0);
+#if defined(_MSC_VER)
+	printf("\a");
+#else
+	alarm(0);
+#endif
     signal(SIGALRM, catch_SIGALRM);
 }
 

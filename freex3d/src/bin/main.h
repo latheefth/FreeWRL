@@ -25,5 +25,9 @@ Internal header: helper macros.
 #define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 
+#if defined(_MSC_VER)
+extern int optind;
+#endif
+
 
 #endif /* __FREEWRL_MAIN_H__ */
