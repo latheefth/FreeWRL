@@ -1128,7 +1128,11 @@ void setShutter (void)
 {
     GLboolean quadbuffer;
 
-    /* shutterGlasses = 1; */ /* initialization of visual needs this NOT > I moved it to Viewer.shutterGlasses=1, wont that work for you? dug9  */
+    /* initialization of visual needs this 
+       NOT > I moved it to Viewer.shutterGlasses=1, wont that work for you? dug9  
+       YES > I think this is needed during window creation, so keep this variable (Michel).
+    */
+    shutterGlasses = 1;
 
     if(Viewer.isStereo == 0)
 	initStereoDefaults();

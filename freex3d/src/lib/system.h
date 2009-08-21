@@ -113,6 +113,11 @@ char *__fw_strndup(const char *s, size_t n);
 # include <time.h>
 #endif
 
+#if !defined(HAVE_GETTIMEOFDAY) && defined(WIN32)
+#define gettimeofday __fw_gettimeofday
+int __fw_gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
+
 #if HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
