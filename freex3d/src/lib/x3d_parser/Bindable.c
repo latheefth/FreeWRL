@@ -578,14 +578,15 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 	float  *skyAng; int skyAngCt;
 	float  *gndAng; int gndAngCt;
 	float *newPoints; float *newColors;
+	double outsideRadius, insideRadius;
 
 	/* initialization */
 	tbnode = NULL;
 	hdiv = 20;
 
 	/* We draw spheres, one for the sky, one for the ground - outsideRadius and insideRadius */
-	double outsideRadius =  DEFAULT_FARPLANE* 0.750;
-	double insideRadius = DEFAULT_FARPLANE * 0.50;
+	outsideRadius =  DEFAULT_FARPLANE* 0.750;
+	insideRadius = DEFAULT_FARPLANE * 0.50;
 
 	/* lets try these values - we will scale when we draw this */
 	outsideRadius = 1.0;
