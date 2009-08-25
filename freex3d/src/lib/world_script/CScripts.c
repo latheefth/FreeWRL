@@ -282,11 +282,27 @@ struct ScriptFieldDecl* script_getField(struct Shader_Script* me, indexT n, inde
 
 void script_addField(struct Shader_Script* me, struct ScriptFieldDecl* field)
 {
+
  #ifdef CPARSERVERBOSE
- printf ("script_addField: adding field %p to script %d (pointer %p)\n",field,me->num,me); 
+ printf ("script_addField: adding field %u to script %d (pointer %u)\n",field,me->num,me); 
  #endif 
 
  vector_pushBack(struct ScriptFieldDecl*, me->fields, field);
+
+#ifdef CPARSERVERBOSE
+	{
+		size_t i;
+		for(i=0; i!=vector_size(me->fields); ++i) {
+			struct ScriptFieldDecl* curField=
+				vector_get(struct ScriptFieldDecl*, me->fields, i);
+			printf ("script_addField, now have field %d of %d, ASCIIname %s:",i,vector_size(me->fields),curField->ASCIIname);
+			printf ("\n");
+		}
+
+	}
+#endif
+
+
  /* only do this for scripts */
  if (me->ShaderScriptNode != NULL) {
    if (me->ShaderScriptNode->_nodeType==NODE_Script) scriptFieldDecl_jsFieldInit(field, me->num);
