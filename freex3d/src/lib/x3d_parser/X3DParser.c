@@ -772,11 +772,13 @@ static void endProtoInstanceTag() {
 	setParserMode(PARSING_NODES);
 
 	protoExpGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
+#define X3DPARSERVERBOSE
 		#ifdef X3DPARSERVERBOSE
 		if (protoExpGroup != NULL) {
 			printf ("\nOK, linking in this proto. I'm %d, ps-1 is %d, and p %d\n",protoExpGroup,parentStack[parentIndex-1], parentStack[parentIndex]);
 		}
 		#endif
+#undef X3DPARSERVERBOSE
 
 	expandProtoInstance(myLexer, protoExpGroup);
 }

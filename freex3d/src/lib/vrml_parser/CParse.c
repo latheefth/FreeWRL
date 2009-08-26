@@ -99,7 +99,7 @@ char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
 	struct ProtoDefinition* cpd;
 
-	cpd = (struct ProtoDefinition *) X3D_GROUP(node)->FreeWRL__protoDef;
+	cpd = getProtoDefinition(X3D_GROUP(node));
 	if (cpd != NULL) return cpd->protoName;
 	return NULL;
 }

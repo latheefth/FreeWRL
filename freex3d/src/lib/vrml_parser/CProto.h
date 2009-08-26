@@ -254,5 +254,8 @@ void tokenizeProtoBody(struct ProtoDefinition *, char *);
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto, int *protoSize);
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, char * thisField, struct X3D_Node **Node);
 
+int newProtoDefinitionPointer (struct ProtoDefinition *npd); 
+struct ProtoDefinition *getProtoDefinition (struct X3D_Group *me);
+void kill_ProtoDefinitionTable (void);
 
 #endif /* __FREEWRL_CPROTO_H__ */

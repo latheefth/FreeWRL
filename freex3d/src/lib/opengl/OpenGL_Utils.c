@@ -1597,9 +1597,6 @@ void kill_X3DNodes(void){
 			if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
 				break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
 		
-			if (*fieldOffsetsPtr == FIELDNAMES_FreeWRL__protoDef) 
-				break; /* can be a duplicate SFNode pointer - field only in NODE_Group */
-		
 			if (*fieldOffsetsPtr == FIELDNAMES__selected) 
 				break; /* can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD */
 

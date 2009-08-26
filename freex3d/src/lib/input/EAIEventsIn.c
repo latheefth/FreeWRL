@@ -671,7 +671,7 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno) {
 		
 	/* so, this is a valid node, lets find out if it is DEFined or whatever... */
 	/* Get the Node type. If it is a PROTO, get the proto def name, if not, just get the X3D node name */
-	if ((myNode->_nodeType == NODE_Group) &&  (X3D_GROUP(myNode)->FreeWRL__protoDef != 0)) {
+	if ((myNode->_nodeType == NODE_Group) &&  (X3D_GROUP(myNode)->FreeWRL__protoDef != INT_ID_UNDEFINED)) {
 		myNT = parser_getPROTONameFromNode(myNode);
 		if (myNT == NULL) {
 			myNT = "XML_PROTO"; /* add this if we need to parse XML proto getTypes */
