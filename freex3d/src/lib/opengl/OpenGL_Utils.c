@@ -1673,6 +1673,7 @@ void kill_X3DNodes(void){
 						for (i=0; i<MNode->n; i++) {
 							tp = MNode->p[i];
 							printf ("	MNode field has child %u\n",tp);
+							if (tp!=NULL)
 							printf ("	ct %s\n",stringNodeType(tp->_nodeType));
 						}
 					}	

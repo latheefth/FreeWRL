@@ -191,7 +191,7 @@ const char *libFreeWRL_get_version()
 most things around, just stops display thread, when the user exits a world. */
 static void stopDisplayThread()
 {
-    if (TEST_NULL_THREAD(DispThrd)) {
+    if (!TEST_NULL_THREAD(DispThrd)) {
 	quitThread = TRUE;
 	pthread_join(DispThrd,NULL);
 	ZERO_THREAD(DispThrd);
@@ -1411,7 +1411,7 @@ void setSnapSeq() {
 void closeFreewrl() {
         struct Multi_Node* tn;
         struct X3D_Group* rn;
-        /* printf ("closeFreewrl called\n"); */
+        printf ("closeFreewrl called\n"); 
 
         #ifdef AQUA
         pluginRunning = FALSE;
