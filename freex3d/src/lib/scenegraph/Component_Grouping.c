@@ -250,6 +250,8 @@ void child_Group (struct X3D_Group *node) {
 	/* do we have a DirectionalLight for a child? */
 	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
+	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
+		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
 	if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && render_geom) {
 		(node->children).n = 1;

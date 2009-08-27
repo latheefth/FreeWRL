@@ -271,7 +271,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 		printf ("changeExpanded - looking for field %s in node...\n",*fp); 
 	}
 
-	myProtoDecl = getProtoDefinition(X3D_GROUP(*np));
+	myProtoDecl = getVRMLprotoDefinition(X3D_GROUP(*np));
 	if (eaiverbose) {
 		printf ("and, the proto name is %s\n",myProtoDecl->protoName);
 	}
