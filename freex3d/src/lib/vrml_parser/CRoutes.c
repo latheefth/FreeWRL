@@ -844,7 +844,7 @@ void CRoutes_RegisterSimple(
 			return;
 		}
 	}
-
+#define CRVERBOSE
 	#ifdef CRVERBOSE
  	printf ("CRoutes_RegisterSimple, from (%s) %u fromOfs %u, to (%s) %u toOfs %u, len %d dir %d\n",
 			stringNodeType(from->_nodeType),
@@ -867,7 +867,7 @@ void CRoutes_RegisterSimple(
 	}
 
 	#endif
-
+#undef CRVERBOSE
 
 	/* When routing to a script, to is not a node pointer! */
 	if(dir!=SCRIPT_TO_SCRIPT && dir!=TO_SCRIPT)
