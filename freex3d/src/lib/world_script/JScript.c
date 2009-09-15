@@ -236,7 +236,6 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 	}
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num]._initialized = TRUE;
-	printf ("finished JSInitializeScriptAndFields\n");
 }
 
 /* create the script context for this script. This is called from the thread
