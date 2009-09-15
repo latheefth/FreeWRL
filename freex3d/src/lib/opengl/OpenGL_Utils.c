@@ -1606,6 +1606,9 @@ void kill_X3DNodes(void){
 			if (*fieldOffsetsPtr == FIELDNAMES___oldMFString) 
 				break; 
 
+			if (*fieldOffsetsPtr == FIELDNAMES___scriptObj) 
+				break; 
+
 			if (*fieldOffsetsPtr == FIELDNAMES___oldSFString) 
 				break; 
 

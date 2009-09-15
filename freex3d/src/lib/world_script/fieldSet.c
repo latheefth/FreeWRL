@@ -588,7 +588,6 @@ int findFieldInARR(const char* field, const char** arr, size_t cnt)
 	#endif
 	
 	mystrlen = strlen(field);
-	/* printf ("findFieldInFIELDNAMES, string :%s: is %d long\n",field,mystrlen);  */
 	for (x=0; x!=cnt; ++x) {
 		if (strlen(arr[x]) == mystrlen) {
 			if (strcmp(field, arr[x])==0) return x;

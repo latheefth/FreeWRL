@@ -207,7 +207,7 @@ void JSInitializeScriptAndFields (uintptr_t num) {
         struct ScriptParamList *nextEntry;
 	jsval rval;
 
-	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self()); */
+	/* printf ("JSInitializeScriptAndFields script %d, thread %u\n",num,pthread_self());   */
 	/* run through paramList, and run the script */
 	/* printf ("JSInitializeScriptAndFields, running through params and main script\n"); */
 	if (num >= JSMaxScript)  {
@@ -217,7 +217,7 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 	/* run through fields in order of entry in the X3D file */
         thisEntry = ScriptControl[num].paramList;
         while (thisEntry != NULL) {
-		/* printf ("script field is %s\n",thisEntry->field); */
+		/* printf ("script field is %s\n",thisEntry->field);  */
 		InitScriptField(num, thisEntry->kind, thisEntry->type, thisEntry->field, thisEntry->value);
 
 		/* get the next block; free the current name, current block, and make current = next */
@@ -236,6 +236,7 @@ void JSInitializeScriptAndFields (uintptr_t num) {
 	}
 	FREE_IF_NZ(ScriptControl[num].scriptText);
 	ScriptControl[num]._initialized = TRUE;
+	printf ("finished JSInitializeScriptAndFields\n");
 }
 
 /* create the script context for this script. This is called from the thread

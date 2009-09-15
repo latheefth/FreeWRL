@@ -257,8 +257,7 @@ struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, 
  size_t i;
  for(i=0; i!=vector_size(me->fields); ++i)
  {
-  struct ScriptFieldDecl* curField=
-   vector_get(struct ScriptFieldDecl*, me->fields, i);
+  struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
   if(strcmp(name,curField->ASCIIname) == NULL)
    return curField;
  }
@@ -271,8 +270,7 @@ struct ScriptFieldDecl* script_getField(struct Shader_Script* me, indexT n, inde
  size_t i;
  for(i=0; i!=vector_size(me->fields); ++i)
  {
-  struct ScriptFieldDecl* curField=
-   vector_get(struct ScriptFieldDecl*, me->fields, i);
+  struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
   if(scriptFieldDecl_isField(curField, n, mod))
    return curField;
  }
