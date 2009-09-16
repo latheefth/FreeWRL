@@ -141,7 +141,7 @@ scenegraph/Component_VRML1.c \
 input/EAI_C_CommonFunctions.c \
 input/EAIEventsIn.c \
 input/EAIEventsOut.c \
-input/EAIheaders.h \
+input/EAIHeaders.h \
 input/EAIHelpers.c \
 input/EAIHelpers.h \
 input/EAIServ.c \

@@ -17,7 +17,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 
 
 /*****************************************************************

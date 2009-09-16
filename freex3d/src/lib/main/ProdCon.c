@@ -31,7 +31,6 @@ CProto ???
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-#include "../input/EAIheaders.h"
 #include "../input/InputFunctions.h"
 
 #include "../plugin/pluginUtils.h"

@@ -26,7 +26,6 @@ which is the sample application included with the javascript engine.
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-/* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
 #include "jsUtils.h"

@@ -26,7 +26,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../vrml_parser/CParse.h"
 #include "../world_script/CScripts.h"
 
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 #include "../world_script/fieldSet.h"
 #include "../scenegraph/Viewer.h"
 #include "../opengl/Textures.h"

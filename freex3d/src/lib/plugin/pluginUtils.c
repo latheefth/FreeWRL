@@ -16,10 +16,6 @@ $Id$
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "../input/EAIheaders.h"
-#include "../input/InputFunctions.h"
-
-/* #include <float.h> */
 
 #include "../x3d_parser/Bindable.h"
 

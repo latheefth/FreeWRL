@@ -29,7 +29,7 @@ Main loop
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../opengl/Frustum.h"
 #include "../input/InputFunctions.h"

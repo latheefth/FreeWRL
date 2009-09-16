@@ -28,7 +28,6 @@ $Id$
 #include "../input/SensInterps.h"
 #include "../input/InputFunctions.h"
 #include "../x3d_parser/Bindable.h"
-/* #include "../input/EAIheaders.h" */
 
 #include "CScripts.h"
 #include "JScript.h"

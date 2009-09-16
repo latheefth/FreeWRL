@@ -27,8 +27,6 @@ Javascript C language binding.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
-#include "../input/EAIheaders.h"
-#include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
 #include "CScripts.h"

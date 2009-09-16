@@ -27,7 +27,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../scenegraph/Collision.h"
 #include "../scenegraph/quaternion.h"
 
-#include "EAIheaders.h"
+#include "EAIHeaders.h"
 #include "SensInterps.h"
 
 #include "../vrml_parser/Structs.h"

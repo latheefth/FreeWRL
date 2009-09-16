@@ -24,7 +24,7 @@ $Id$
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
-#include "EAIheaders.h"
+#include "EAIHeaders.h"
 #include "EAIHelpers.h"
 
 /* TODO: clean-up Rewire */

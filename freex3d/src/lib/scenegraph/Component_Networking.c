@@ -17,7 +17,7 @@ X3D Networking Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 #include "../opengl/Frustum.h"
 
 #include "Component_Networking.h"

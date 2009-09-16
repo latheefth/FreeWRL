@@ -22,8 +22,6 @@ $Id$
 #include "../world_script/CScripts.h"
 #include "../world_script/JScript.h"
 #include "../world_script/fieldSet.h"
-#include "../input/EAIheaders.h"
-#include "../input/EAIHelpers.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"

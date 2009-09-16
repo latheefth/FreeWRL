@@ -30,7 +30,6 @@ $Id$
 #include "../scenegraph/sounds.h"
 #include "../scenegraph/LinearAlgebra.h"
 #include "../input/InputFunctions.h"
-#include "../input/EAIheaders.h"
 #include "Frustum.h"
 #include "../opengl/Material.h"
 #include "../scenegraph/Component_Core.h"

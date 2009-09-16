@@ -25,7 +25,6 @@ CProto ???
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
-#include "../input/EAIheaders.h"
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
