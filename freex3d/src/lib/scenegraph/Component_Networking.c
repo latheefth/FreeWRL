@@ -18,6 +18,7 @@ X3D Networking Component
 #include "../main/headers.h"
 
 #include "../input/EAIheaders.h"
+#include "../opengl/Frustum.h"
 
 #include "Component_Networking.h"
 

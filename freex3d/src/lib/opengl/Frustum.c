@@ -715,7 +715,7 @@ void OcclusionStartofEventLoop() {
 			printf ("FreeWRL: FREEWRL_NO_GL_ARB_OCCLUSION_QUERY set, turning off hardware Occlusion Culling\n");
 			OccFailed = TRUE;
 		} else {
-	        	if (opengl_has_occlusionQuery) {
+	        	if (GLEW_ARB_occlusion_query) {
 				#ifdef OCCLUSIONVERBOSE
 	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
 				#endif
@@ -785,7 +785,6 @@ void OcclusionStartofEventLoop() {
 }
 
 void OcclusionCulling ()  {
-#ifdef OCCLUSION
 	int i;
 	struct X3D_Shape *shapePtr;
 	struct X3D_VisibilitySensor *visSenPtr;
@@ -937,7 +936,6 @@ void OcclusionCulling ()  {
 			}
 		}
 	}
-#endif
 }
 
 /* shut down the occlusion stuff */
