@@ -266,10 +266,10 @@ void child_Group (struct X3D_Group *node) {
 
 
 void child_Transform (struct X3D_Transform *node) {
+	LOCAL_LIGHT_SAVE
 	CHILDREN_COUNT
 	OCCLUSIONTEST
 
-	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* any children at all? */
