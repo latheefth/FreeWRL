@@ -88,6 +88,8 @@ void setMenuFps(float fps);
 void setMenuButton_navModes(int type);
 int getEventsWin32(int*,int,int*,int*); 
 int doEventsWin32A();
+#define SENSOR_CURSOR sensor_cursor32();
+#define ARROW_CURSOR arrow_cursor32();
 
 
 #endif /* __LIBFREEWRL_DISPLAY_WIN32_H__ */

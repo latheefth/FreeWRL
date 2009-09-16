@@ -181,9 +181,10 @@ int create_main_window_x11(); /* mb */
 #include <display_win32.h>
 
 /* i dont know why cursors are showing up in the pan-platform section of mainloop.c */
+/* moved to display_win32.h and fwWindow32.c
 #define SENSOR_CURSOR {}
 #define ARROW_CURSOR {}
-
+*/
 int create_main_window_win32();
 
 #endif /* TARGET_WIN32 */

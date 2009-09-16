@@ -500,7 +500,8 @@ void createGLContext(void)
     glFrustum (-1.0, 1.0, -1.0, 1.0, 1.0, 20);
     FW_GL_MATRIX_MODE (GL_MODELVIEW);
 }
-
+static int sensor_cursor = 0;
+static HCURSOR hSensor, hArrow;
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
     UINT msg, 
@@ -592,7 +593,17 @@ LRESULT CALLBACK PopupWndProc(
 	doQuit();
 	break; 
 
-
+	case WM_SETCURSOR: 
+ 
+    // If the window is minimized, draw the hCurs3 cursor. 
+    // If the window is not minimized, draw the default 
+    // cursor (class cursor). 
+ 
+    if(sensor_cursor) 
+        SetCursor(hSensor); 
+    else
+		SetCursor(hArrow);
+    break; 
 
 /**************************************************************\
  *     WM_PAINT:                                                *
@@ -771,12 +782,14 @@ int createWindow32()
     success = GHOST_kFailure;
     }
 */
+	hSensor = LoadCursor(NULL,IDC_HAND); /* prepare sensor_cursor */
+	hArrow = LoadCursor( NULL, IDC_ARROW );
     wc.lpszClassName = "FreeWrlAppClass";
     wc.lpfnWndProc = PopupWndProc; //MainWndProc;
     wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
     wc.hInstance = hInstance;
     wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
-    wc.hCursor = LoadCursor( NULL, IDC_ARROW );
+    wc.hCursor = hArrow;
     wc.hbrBackground = (HBRUSH)( COLOR_WINDOW+1 );
     wc.lpszMenuName = 0; /* "GenericAppMenu"; */
     wc.cbClsExtra = 0;
@@ -883,4 +896,18 @@ int startMessageLoop()
 
 void resetGeometry()
 {
+}
+
+void arrow_cursor32()
+{
+	/*
+http://msdn.microsoft.com/en-us/library/ms648380(VS.85).aspx 
+http://msdn.microsoft.com/en-us/library/ms648393(VS.85).aspx
+http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx 
+	*/
+	sensor_cursor = 0;
+}
+void sensor_cursor32()
+{
+	sensor_cursor = 1;
 }
