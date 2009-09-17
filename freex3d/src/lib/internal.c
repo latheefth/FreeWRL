@@ -34,7 +34,7 @@ size_t __fw_strnlen(const char *s, size_t maxlen)
 /* Jens Rieks sent in some changes - some of which uses strndup, which does not
    always exist... */
 
-char *fw_strndup(const char *s, size_t n)
+char *__fw_strndup(const char *s, size_t n)
 {
     size_t len = strnlen(s, n);
     char *new = MALLOC(len + 1);
