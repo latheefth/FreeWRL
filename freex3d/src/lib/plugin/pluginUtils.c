@@ -27,10 +27,12 @@ $Id$
  * people (or, to try to stop) from typing malicious code. */
 
 /* keep a list of children; if one hangs, doQuit will hang, also. */
+#ifndef WIN32
 #define MAXPROCESSLIST 128
 pid_t childProcess[MAXPROCESSLIST];
 int lastchildProcess = 0;
 int childProcessListInit = FALSE;
+#endif
 
 void killErrantChildren(void) {
 #ifndef WIN32
