@@ -1284,6 +1284,10 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
                 						} else {
 									printf ("have to parse fieldValue :%s: and place it into my value\n",nvp->fieldValue); 
 									Parser_scanStringValueToMem(X3D_NODE(&(thisEntry->value)), 0, FIELDTYPE_SFFloat, nvp->fieldValue, TRUE);
+/*         if (myValueString != NULL) {
+                Parser_scanStringValueToMem(X3D_NODE(&defaultVal), 0, sdecl->fieldDecl->type, (char *)myValueString, TRUE);
+        }
+*/
 								}
 							}
 
