@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.22  2009/09/18 20:20:29  crc_canada
+# Starting ExternProtoDeclare for XML parsing.
+#
 # Revision 1.21  2009/08/27 18:34:32  crc_canada
 # More XML coded PROTO routing.
 #
@@ -1210,6 +1213,7 @@
 	Header
 	head
 	meta
+	ExternProtoDeclare
 	ProtoDeclare
 	ProtoInterface
 	ProtoInstance
