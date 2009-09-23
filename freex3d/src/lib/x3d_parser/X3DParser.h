@@ -38,7 +38,7 @@ struct nameValuePairs {
 #define FREEWRL_SPECIFIC "FrEEWrL_pRotto"
 
 #define DECREMENT_PARENTINDEX \
-        if (parentIndex > 0) parentIndex--; else ConsoleMessage ("X3DParser, line %d stack underflow",LINE);
+        if (parentIndex > 0) parentIndex--; else ConsoleMessage ("X3DParser, line %d stack underflow (source code %s:%d)",LINE,__FILE__,__LINE__);
 
 #define INCREMENT_PARENTINDEX \
         if (parentIndex < (PARENTSTACKSIZE-2))  { \
