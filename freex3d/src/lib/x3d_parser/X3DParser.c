@@ -1312,8 +1312,7 @@ nvp->fieldName, nvp->fieldValue,offs,type,accessType, rv);  */
 static void XMLCALL startElement(void *unused, const char *name, const char **atts) {
 	int myNodeIndex;
 
-	DEBUG_X3DPARSER ("startElement: %s : level %d parserMode: %s currentParser %u \n",name,parentIndex,parserModeStrings[getParserMode()],
-			currentX3DParser);
+	DEBUG_X3DPARSER ("startElement: %s : level %d parserMode: %s \n",name,parentIndex,parserModeStrings[getParserMode()]);
 
 
 	/* are we storing a PROTO body?? */
@@ -1376,7 +1375,7 @@ static void XMLCALL endElement(void *unused, const char *name) {
 	int myNodeIndex;
 
 
-	DEBUG_X3DPARSER("endElement: %s : parentIndex %d mode %s currentX3DParser %u\n",name,parentIndex,parserModeStrings[getParserMode()],currentX3DParser); 
+	DEBUG_X3DPARSER ("endElement: %s : parentIndex %d mode %s\n",name,parentIndex,parserModeStrings[getParserMode()]); 
 
 	/* are we storing a PROTO body?? */
 	if (getParserMode() == PARSING_PROTOBODY) {
