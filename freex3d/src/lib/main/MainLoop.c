@@ -31,6 +31,7 @@ Main loop
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIHeaders.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/Component_KeyDevice.h"	/* resolving implicit declarations */
 #include "../opengl/Frustum.h"
 #include "../input/InputFunctions.h"
 

@@ -17,6 +17,7 @@ X3D Key Device Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
+#include "Component_KeyDevice.h"
 
 /*
 I'll leave off comments about the validity of this part of the spec - it does
@@ -35,11 +36,6 @@ death!
 Anyway, with that, lets blindly forge along...
 
 *********************************************************************/
-
-#define X3D_KEYSENSOR(node) ((struct X3D_KeySensor*)node)
-#define X3D_STRINGSENSOR(node) ((struct X3D_StringSensor*)node)
-static void sendToKS(struct X3D_Node * wsk, int key, int upDown);
-static void sendToSS(struct X3D_Node * wsk, int key, int upDown);
 
 #ifndef AQUA
 int shiftPressed = 0;

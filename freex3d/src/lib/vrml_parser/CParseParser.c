@@ -22,6 +22,8 @@
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
+#include "../input/EAIHeaders.h"	/* resolving implicit declarations */
+#include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CProto.h"

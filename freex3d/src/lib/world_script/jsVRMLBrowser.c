@@ -28,6 +28,7 @@ Javascript C language binding.
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../x3d_parser/Bindable.h"
+#include "../input/EAIHeaders.h"	/* for implicit declarations */
 
 #include "CScripts.h"
 #include "fieldSet.h"

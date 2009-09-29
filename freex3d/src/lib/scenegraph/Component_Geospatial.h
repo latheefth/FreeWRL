@@ -154,5 +154,6 @@ void proximity_##type (struct X3D_##type *node) { \
 	*/ \
 } 
 
+int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **points, int *npoints);
 
 #endif /* __FREEWRL_SCENEGRAPH_GEOSPATIAL_H__ */

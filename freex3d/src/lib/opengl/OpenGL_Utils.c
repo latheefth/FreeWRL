@@ -29,6 +29,8 @@ $Id$
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/sounds.h"
 #include "../scenegraph/LinearAlgebra.h"
+#include "../scenegraph/Component_KeyDevice.h"	/* resolving implicit declarations */
+#include "../input/EAIHeaders.h"		/* resolving implicit declarations */
 #include "../input/InputFunctions.h"
 #include "Frustum.h"
 #include "../opengl/Material.h"

@@ -23,6 +23,7 @@ $Id$
 #include "../scenegraph/Viewer.h"
 #include "../input/SensInterps.h"
 #include "../input/EAIHeaders.h"
+#include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 #include "../x3d_parser/Bindable.h"
 
 #include "CScripts.h"

@@ -16,6 +16,7 @@ $Id$
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../input/EAIHeaders.h"	/* for implicit declarations */
 
 #include "../x3d_parser/Bindable.h"
 
