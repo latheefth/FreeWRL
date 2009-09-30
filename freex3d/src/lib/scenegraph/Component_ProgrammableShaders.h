@@ -11,5 +11,6 @@ Proximity sensor macro.
 #define __FREEWRL_SCENEGRAPH_PROGRAMMABLESHADERS_H__
 
 extern GLuint globalCurrentShader;
+void getField_ToShader(int me);
 
 #endif /* __FREEWRL_SCENEGRAPH_PROGRAMMABLESHADERS_H__ */
