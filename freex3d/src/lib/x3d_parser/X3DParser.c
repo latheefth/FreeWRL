@@ -232,7 +232,7 @@ struct X3D_Node *X3DParser_getNodeFromName(const char *name) {
 
 /* "forget" the DEFs. Keep the table around, though, as the entries will simply be used again. */
 void kill_X3DDefs(void) {
-printf ("kill_X3DDefs - nothing here - have to get rid of the DEFedNodes Stack\n");
+/* printf ("kill_X3DDefs - nothing here - have to get rid of the DEFedNodes Stack\n"); */
 /* XXX fill this in */
 }
 
