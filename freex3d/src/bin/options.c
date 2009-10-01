@@ -346,7 +346,7 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'k': /* --instance, required argument: number */
-	    sscanf(optarg,"%u",(unsigned int *)&_fw_instance);
+	    sscanf(optarg,"%u",(unsigned int *)(void *)(&_fw_instance));
 	    break;
 
 #ifdef HAVE_LIBCURL
