@@ -35,8 +35,11 @@ Internal header: network dependencies.
 
 /* Try to fix problem in EAIServ.c */
 #if !(defined(OS_MAC) && defined(ARCH_PPC))
+/* JAS - no longer required 
 # include <sys/ipc.h>
 # include <sys/msg.h> 
+*/
+
 #endif
 
 #include <netinet/in.h> 
