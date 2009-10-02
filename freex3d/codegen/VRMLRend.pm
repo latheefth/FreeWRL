@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.23  2009/10/02 21:34:52  crc_canada
+# start gathering appearance properties together for eventual movement to OpenGL-ES and OpenGL-3.0
+#
 # Revision 1.22  2009/09/18 20:20:29  crc_canada
 # Starting ExternProtoDeclare for XML parsing.
 #
@@ -681,6 +684,7 @@
 # Compile --
 #
 %CompileC = map {($_=>1)} qw/
+	Material
 	IndexedLineSet
 	LineSet
 	PointSet

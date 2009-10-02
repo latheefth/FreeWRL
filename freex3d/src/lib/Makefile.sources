@@ -123,6 +123,7 @@ scenegraph/Component_CubeMapTexturing.c \
 scenegraph/Component_CubeMapTexturing.h \
 scenegraph/Component_HAnim.c \
 scenegraph/Vector.c \
+scenegraph/Component_Shape.h \
 scenegraph/Component_Shape.c \
 scenegraph/Component_Navigation.c \
 scenegraph/readpng.h \

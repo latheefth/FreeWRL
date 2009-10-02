@@ -511,6 +511,12 @@ package VRML::NodeType;
 		shininess => [SFFloat, 0.2, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		specularColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		transparency => [SFFloat, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__ambientIntensity => [SFFloat, 0.2, inputOutput, 0],
+		__diffuseColor => [SFColor, [0.8, 0.8, 0.8], inputOutput, 0],
+		__emissiveColor => [SFColor, [0, 0, 0], inputOutput, 0],
+		__shininess => [SFFloat, 0.2, inputOutput, 0],
+		__specularColor => [SFColor, [0, 0, 0], inputOutput, 0],
+		__transparency => [SFFloat, 0, inputOutput, 0],
                 __oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 	},"X3DMaterialNode"),
 

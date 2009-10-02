@@ -245,24 +245,6 @@ node for ANY node that takes something other than a Group */
 	} else outNode = inNode; };
 
 
-#define RENDER_MATERIAL_SUBNODES(which) \
-	{ void *tmpN;   \
-		POSSIBLE_PROTO_EXPANSION(which,tmpN) \
-       		if(tmpN) { \
-			render_node(tmpN); \
-       		} else { \
-			/* no material, so just colour the following shape */ \
-	       		/* Spec says to disable lighting and set coloUr to 1,1,1 */ \
-	       		LIGHTING_OFF  \
-       			glColor3f(1,1,1); \
- \
-			/* tell the rendering passes that this is just "normal" */ \
-			last_texture_type = NOTEXTURE; \
-			/* same with global_transparency */ \
-			global_transparency=0.99999; \
-		} \
-	}
-
 #define MARK_NODE_COMPILED node->_ichange = node->_change;
 #define NODE_NEEDS_COMPILING (node->_ichange != node->_change)
 /* end of compile simple nodes code */
@@ -568,7 +550,6 @@ extern int display_status;
 #define TEXTURE_ALPHA 2
 
 extern int last_texture_type;
-extern float global_transparency;
 
 /* are we doing strict parsing, or letting warnings go? */
 extern int global_strictParsing;

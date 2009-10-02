@@ -73,6 +73,7 @@ Have fun! John A. Stewart, June 2009
 #include "../opengl/Material.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Vector.h"
+#include "../scenegraph/Component_Shape.h"
 
 
 #include "LinearAlgebra.h"
@@ -153,7 +154,7 @@ static void renderSpecificMaterial (int ind) {
 
 	if (trans<0.0) trans = 0.0;
 	if (trans>=0.999999) trans = 0.9999999;
-	global_transparency = trans;
+	appearanceProperties.transparency = trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
@@ -235,7 +236,7 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 
 	if (trans<0.0) trans = 0.0;
 	if (trans>=0.999999) trans = 0.9999999;
-	global_transparency = trans;
+	appearanceProperties.transparency = trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
