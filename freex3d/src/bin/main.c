@@ -114,7 +114,11 @@ int main (int argc, char **argv)
 	if (checkNetworkFile(argv[optind])) {
 	    setFullPath(argv[optind]);
 	} else {
+#ifdef _MSC_VER
+		strcpy(initialFilename,argv[optind]);
+#else
 	    makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
+#endif
 	    setFullPath(initialFilename);
 	}
 	free(initialFilename);
