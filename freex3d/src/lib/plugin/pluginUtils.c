@@ -55,6 +55,8 @@ $Id$
 pid_t childProcess[MAXPROCESSLIST];
 int lastchildProcess = 0;
 int childProcessListInit = FALSE;
+#else
+#include <process.h>
 #endif
 
 void killErrantChildren(void) {
@@ -74,7 +76,7 @@ void killErrantChildren(void) {
 /* FIXME: what are the possible return codes for this function ??? */
 int freewrlSystem (const char *sysline) {
 #ifdef WIN32
-	return 0;
+	return system(sysline);
 #else
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
