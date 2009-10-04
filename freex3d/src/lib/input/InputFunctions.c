@@ -75,6 +75,8 @@ int dirExists(const char *dir)
 	{
 		if(c_file.attrib == _A_SUBDIR )
 			return TRUE;
+		else if(c_file.attrib == _A_ARCH | _A_RDONLY )
+			return TRUE; /* ie c:/windows/Fonts is 20 + 1 */
 		else
 			printf("Internal error: not a directory: %s\n", dir);
 	}
