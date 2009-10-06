@@ -1,6 +1,4 @@
 /*
-  =INSERT_TEMPLATE_HERE=
-
   $Id$
 
   FreeWRL command line arguments.
@@ -27,13 +25,13 @@
 ****************************************************************************/
 
 
-
-
 #include <config.h>
 #include <system.h>
 #include <internal.h>
 
 #include <libFreeWRL.h>
+
+#include "fwdebug.h"
 
 #include "main.h"
 #include "options.h"
@@ -42,12 +40,11 @@
 #include <getopt.h>
 #endif
 
-extern int wantEAI;
 
 void print_version()
 {
     const char *libver, *progver;
-
+    
     libver = libFreeWRL_get_version();
     progver = freewrl_get_version();
     
@@ -217,7 +214,7 @@ int parseCommandLine (int argc, char **argv)
 	} else {
 	    real_option_name = long_options[real_option_index].name;
 	}
-	DEBUG_MSG("option_index=%d optopt=%c option=%s\n", real_option_index, c,
+	DEBUG_ARGS("option_index=%d optopt=%c option=%s\n", real_option_index, c,
 		  real_option_name);
 
 	switch (c) {

@@ -28,7 +28,6 @@ Internal header: debug definitions.
 ****************************************************************************/
 
 
-
 #ifndef __LIBFREEWRL_DEBUG_H__
 #define __LIBFREEWRL_DEBUG_H__
 
@@ -199,6 +198,12 @@ Internal header: debug definitions.
 #define DEBUG_TEXT(...) DEBUG_(printf("TEXT: " __VA_ARGS__))
 #else
 #define DEBUG_TEXT(...)
+#endif
+
+#ifdef ARGSVERBOSE
+#define DEBUG_ARGS(...) DEBUG_(printf("TEXT: " __VA_ARGS__))
+#else
+#define DEBUG_ARGS(...)
 #endif
 
 /**

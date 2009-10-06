@@ -33,23 +33,12 @@ Internal header: helper macros.
 #ifndef __FREEWRL_MAIN_H__
 #define __FREEWRL_MAIN_H__
 
-/* LOG, WARNING, ERROR macros */
-
-#if defined(FW_DEBUG)
-# define DEBUG_(_expr) _expr
-#else
-# define DEBUG_(...)
-#endif
-
-/* To conform C99 ISO C (do not use GCC extension) */
-#define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
-#define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
-#define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
-#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 
 #if defined(_MSC_VER)
 extern int optind;
 #endif
+
+extern int wantEAI;
 
 
 #endif /* __FREEWRL_MAIN_H__ */

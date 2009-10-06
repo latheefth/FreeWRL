@@ -1,12 +1,9 @@
-/*******************************************************************
- *
- * FreeWRL support library
- *
- * public API - libFreeWRL.h
- *
- * $Id$
- *
- *******************************************************************/
+/*
+  $Id$
+
+  FreeWRL library API (public)
+
+*/
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -28,8 +25,8 @@
 ****************************************************************************/
 
 
-#ifndef __LIBFREEWRL_MAIN_H__
-#define __LIBFREEWRL_MAIN_H__
+#ifndef __LIBFREEWRL_API_H__
+#define __LIBFREEWRL_API_H__
 
 /**
  * Version embedded
@@ -132,8 +129,5 @@ extern char *keypress_string;
 extern int with_libcurl;
 #endif
 
-#if defined(_MSC_VER)
-#define FALSE 0
-#define TRUE 1
-#endif
-#endif /* __LIBFREEWRL_MAIN_H__ */
+
+#endif /* __LIBFREEWRL_API_H__ */

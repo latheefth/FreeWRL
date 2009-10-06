@@ -1,10 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id$
 
-$Id$
-
-FreeWRL support library.
-Library internal declarations.
+  FreeWRL support library.
+  Library internal declarations.
 
 */
 
@@ -32,11 +30,11 @@ Library internal declarations.
 #define __LIBFREEWRL_DECL_H__
 
 
-#include <fwdebug.h>
-
 /**
  * Internal stuff needed by multiple C files in the library
  */
+
+#include "fwdebug.h"
 
 #if defined(_MSC_VER)
 /* FIXME: investigate on this... (michel) */
