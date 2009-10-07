@@ -130,5 +130,10 @@ GLenum glewInit(void) {
 
 	return GLEW_OK;
 }
+
+char *glewGetErrorString(GLenum err){
+
+	return "OpenGL Error";
+}
 #endif
 
