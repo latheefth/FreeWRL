@@ -1103,6 +1103,9 @@ extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
 
+extern int displayOpenGLErrors;
+
+
 /* VRML/X3D version */
 #define IS_TYPE_XML_X3D	100
 #define IS_TYPE_VRML 	101
