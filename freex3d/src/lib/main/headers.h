@@ -440,7 +440,6 @@ extern char *GL_REN;
 )
 
 /* from VRMLC.pm */
-extern int displayOpenGLErrors;
 extern int sound_from_audioclip;
 extern int global_lineProperties;
 extern int global_fillProperties;
