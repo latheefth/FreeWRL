@@ -1004,10 +1004,12 @@ static void sortChildren (struct Multi_Node *ch, struct Multi_Node *sortedCh) {
 	printf ("sortChild returning.\n");
 	for(i=0; i<nc; i++) {
 		b = sortedCh->p[i];
-		printf ("child %d %u %f %s",i,b,b->_dist,stringNodeType(b->_nodeType));
+		if (b)
+			printf ("child %d %u %f %s",i,b,b->_dist,stringNodeType(b->_nodeType));
+		else
+			printf ("no child %d", i);
 		b = ch->p[i];
 		printf (" unsorted %u\n",b);
-
 	}
 	#endif
 }
