@@ -110,8 +110,6 @@ GLenum glewInit(void) {
 		} 
 	}
 
-#define VERBOSE
-
 	#ifdef VERBOSE
 	{
 		char *p = glExtensions;
