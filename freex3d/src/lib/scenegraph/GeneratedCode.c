@@ -36,7 +36,9 @@
 #include <internal.h> 
  
 #include <libFreeWRL.h> 
+#ifndef TARGET_AQUA
 #include <io_files.h> 
+#endif
  
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h" 
