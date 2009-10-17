@@ -789,7 +789,10 @@ int createWindow32()
     wc.lpfnWndProc = PopupWndProc; //MainWndProc;
     wc.style = CS_VREDRAW | CS_HREDRAW; /* 0 CS_OWNDC |  */
     wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
+    wc.hIcon = LoadIcon(wc.hInstance, "APPICON");
+    if (!wc.hIcon) {
+		wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
+	}
     wc.hCursor = hArrow;
     wc.hbrBackground = (HBRUSH)( COLOR_WINDOW+1 );
     wc.lpszMenuName = 0; /* "GenericAppMenu"; */
