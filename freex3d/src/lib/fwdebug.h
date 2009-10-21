@@ -230,6 +230,13 @@ void *freewrlStrdup(int line, char *file, char *str);
                            ERROR_MSG("ERROR: assert failed: %s (%s:%d)\n", #_ptr, __FILE__, __LINE__); } \
                       } while (0)
 
+/* JAS */
+#if defined(_MSC_VER)
+# define TEMPNAM _tempnam
+#else
+# define TEMPNAM tempnam
+#endif
+
 #else /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
 
 # define MALLOC malloc
