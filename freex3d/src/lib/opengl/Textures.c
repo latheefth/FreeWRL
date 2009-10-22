@@ -1385,7 +1385,7 @@ void _textureThread(void)
     /* set up some common storage info */
 #ifdef DO_MULTI_OPENGL_THREADS
     if (!RUNNINGASPLUGIN) {
-	glEnable(GL_TEXTURE_2D);
+	FW_GL_ENABLE(GL_TEXTURE_2D);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
     }

@@ -87,7 +87,7 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 				default: {}
 			}
 			glLineStipple (factor,pat);
-			glEnable(GL_LINE_STIPPLE);
+			FW_GL_ENABLE(GL_LINE_STIPPLE);
 		}
 	}
 }
@@ -529,7 +529,7 @@ void child_Shape (struct X3D_Shape *node) {
 	TURN_FILLPROPERTIES_SHADER_OFF;
 
 	if (linePropertySet) {
-		glDisable (GL_LINE_STIPPLE);
+		FW_GL_DISABLE (GL_LINE_STIPPLE);
 		glLineWidth(1.0);
 		glPointSize(1.0);
 	}

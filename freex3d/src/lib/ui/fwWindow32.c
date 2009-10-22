@@ -158,7 +158,7 @@ GLvoid initializeGL(GLsizei width, GLsizei height)
     glClearIndex( (GLfloat)BLACK_INDEX); 
     glClearDepth( 1.0 ); 
  
-    glEnable(GL_DEPTH_TEST); 
+    FW_GL_ENABLE(GL_DEPTH_TEST); 
  
     glMatrixMode( GL_PROJECTION ); 
     glLoadIdentity(); /*inserted by doug*/

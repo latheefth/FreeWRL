@@ -94,7 +94,7 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	glMaterialfv (face,pname,param);
 	if (pname == GL_DIFFUSE)
 	{
-		glEnable(GL_COLOR_MATERIAL);
+		FW_GL_ENABLE(GL_COLOR_MATERIAL);
 		glColorMaterial (face,pname);
 		glColor4fv(param);
 	}

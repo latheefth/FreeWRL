@@ -298,7 +298,7 @@ void fin_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	/* did we have a textureTransform? */
 	if (cSLD->t2tNode!=NULL) end_textureTransform();
 
-	if (cSLD->t2tNode) glDisable(GL_TEXTURE_2D);
+	if (cSLD->t2tNode) FW_GL_DISABLE(GL_TEXTURE_2D);
 } 
 
 void child_VRML1_Separator (struct X3D_VRML1_Separator *node) { 
@@ -446,7 +446,6 @@ void render_VRML1_DirectionalLight (struct X3D_VRML1_DirectionalLight *node) {
 		int light = nextlight();
 		if(light >= 0) {
 			float vec[4];
-			/* glEnable(light); */
 			lightState(light-GL_LIGHT0,TRUE);
 			vec[0] = -((node->direction).c[0]);
 			vec[1] = -((node->direction).c[1]);
