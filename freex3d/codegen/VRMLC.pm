@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.26  2009/10/22 20:47:51  sdumoulin
+# Fix for adding EAI_C.h
+#
 # Revision 1.25  2009/10/12 12:57:06  couannette
 # Small improvements:
 # - created a sub for the license block, together with a file in "templates"
@@ -958,7 +961,7 @@ sub gen {
 	##############################################################
 
 	# Convert TO/FROM EAI to Internal field types. (EAI types are ascii).
-		my $st = "/* convert an internal type to EAI type */\n". 
+		my $st = "#include "EAI_C.h\n/* convert an internal type to EAI type */\n". 
 		"char mapFieldTypeToEAItype (int st) {\n".
 		"	switch (st) { \n";
 	push @genFuncs2, $st; push @EAICommon, $st;
