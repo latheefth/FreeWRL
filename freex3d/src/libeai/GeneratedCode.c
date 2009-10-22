@@ -24,7 +24,7 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#include "EAI_C.h"
 /* convert an internal type to EAI type */
 char mapFieldTypeToEAItype (int st) {
 	switch (st) { 
