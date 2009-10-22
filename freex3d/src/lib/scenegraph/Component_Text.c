@@ -754,7 +754,7 @@ int open_font()
 #ifdef AQUA
         ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
 #else
-        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONT_PATH environment variable\n");
+        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTSDIR environment variable\n");
 #endif
         return FALSE;
     }
