@@ -50,7 +50,7 @@ $Id$
 #include "../world_script/jsNative.h"
 #include "../input/SensInterps.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
-#include "../input/EAIheaders.h"
+#include "../input/EAIHeaders.h"
 
 #include "CRoutes.h"
 
