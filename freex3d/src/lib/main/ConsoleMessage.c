@@ -206,7 +206,7 @@ int ConsoleMessage(const char *fmt, ...) {
 					count += sprintf(tempbuf, "%%");
 					break;
 				default:
-					printf("Invalid format specifier in ConsoleMessage().\n");
+					ERROR_MSG("ConsoleMessage: invalid format specifier: %c\n", format[j]);
 				}
 			}
 		if ((strlen(tempbuf) + strlen(FWbuffer)) <
