@@ -94,7 +94,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency)
 
 	*/
 
-	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
+	if (rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
 	    
 	    if (c != currentTextureUnit) {
 		glActiveTexture(GL_TEXTURE0+c);
@@ -240,7 +240,7 @@ void textureDraw_end(void) {
 	printf ("start of textureDraw_end\n");
 #endif
 
-	if (GLEW_ARB_multitexture) { // test the availability at runtime of multi textures
+	if (rdr_caps.av_multitexture) { // test the availability at runtime of multi textures
 
 	    for (c=0; c<texture_count; c++) {
 

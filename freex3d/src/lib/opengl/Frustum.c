@@ -736,7 +736,7 @@ void OcclusionStartofEventLoop() {
 		if (global_occlusion_disable) {
 			OccFailed = TRUE;
 		} else {
-	        	if (GLEW_ARB_occlusion_query) {
+	        	if (rdr_caps.av_occlusion_q) {
 				#ifdef OCCLUSIONVERBOSE
 	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
 				#endif

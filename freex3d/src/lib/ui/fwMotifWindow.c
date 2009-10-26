@@ -76,8 +76,6 @@ void setDefaultBackground(int colour);
 #define colourOrange    8
 #define colourWhite     9
 
-extern Colormap colormap;
-
 /* because of threading issues in Linux, if we can only use 1 thread, we
    delay setting of info until this time. */
 int colbut; int colbutChanged = FALSE;

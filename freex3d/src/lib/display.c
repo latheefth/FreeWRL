@@ -92,19 +92,6 @@ int display_initialize()
 
 	bind_GLcontext();
 
-#if HAVE_LIBGLEW
-	/* Initialize GLEW */
-	GLenum err = glewInit();
-	if (GLEW_OK != err) {
-		/* Problem: glewInit failed, something is seriously wrong. */
-		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
-		return FALSE;
-	}
-	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
-#else
-	/* Initialize renderer capabilities without GLEW */
-#endif
-
 	if (!initialize_GL()) {
 		return FALSE;
 	}
