@@ -53,7 +53,7 @@ int inWhichParser = 0;
 
 #undef TIMING
 
-BOOL cParse(void* ptr, unsigned ofs, const char* data) {
+bool cParse(void* ptr, unsigned ofs, const char* data) {
 	struct VRMLParser* parser;
 
 	#ifdef TIMING
