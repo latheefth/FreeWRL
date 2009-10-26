@@ -1,3 +1,9 @@
+/*
+  $Id$
+
+  FreeWRL command line arguments.
+
+*/
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -18,4 +24,13 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+
+
+#ifndef __FREEWRL_MAIN_OPTIONS_H__
+#define __FREEWRL_MAIN_OPTIONS_H__
+
+
 extern int parseCommandLine (int argc, char **argv);
+
+
+#endif /* __FREEWRL_MAIN_OPTIONS_H__ */

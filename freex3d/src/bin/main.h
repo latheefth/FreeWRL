@@ -1,10 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id$
 
-$Id$
-
-FreeWRL/X3D main program.
-Internal header: helper macros.
+  FreeWRL/X3D main program.
+  Internal header: helper macros.
 
 */
 
@@ -38,7 +36,7 @@ Internal header: helper macros.
 extern int optind;
 #endif
 
-extern int wantEAI;
+extern freewrl_params_t *params;
 
 
 #endif /* __FREEWRL_MAIN_H__ */

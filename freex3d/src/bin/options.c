@@ -243,14 +243,14 @@ int parseCommandLine (int argc, char **argv)
 
 	case 'c': /* --fullscreen, no argument */
 #if defined(HAVE_XF86_VMODE)
-	    fullscreen = 1;
+	    params->fullscreen = TRUE;
 #else
 	    printf("\nFullscreen mode is only available when xf86vmode extension is\n"
 		  "supported by your X11 server: i.e. XFree86 version 4 or later,\n"
 		   "Xorg version 1.0 or later.\n"
 		   "Configure should autodetect it for you. If not please report"
 		   "this problem to\n\t " PACKAGE_BUGREPORT "\n");
-	    fullscreen = 0;
+	    params->fullscreen = FALSE;
 #endif
 	    break;
 
@@ -270,7 +270,7 @@ int parseCommandLine (int argc, char **argv)
 /* General options */
 
 	case 'e': /* --eai, no argument */
-	    wantEAI = TRUE;
+	    params->eai = TRUE;
 	    break;
 
 	case 'f': /* --fast, no argument */
@@ -284,7 +284,7 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'Q': /* --nocollision, no argument */
-	    be_collision = FALSE;
+	    params->collision = FALSE;
 	    break;
 
 /* Snapshot options */
