@@ -35,7 +35,6 @@ UI declarations.
 extern "C" {
 #endif
 
-void setMessageBar(void);
 void getBareWindowedGLwin(Window *);
 void openBareMainWindow(int, char **);
 void createBareMainWindow();

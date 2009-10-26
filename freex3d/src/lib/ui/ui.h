@@ -35,9 +35,6 @@ UI declarations.
 extern "C" {
 #endif
 
-void openMainWindow (int argc, char **argv);
-void createGLContext(void);
-
 #ifdef __cplusplus
 }
 #endif
