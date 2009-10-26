@@ -1,17 +1,17 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id$
 
-$Id$
+  FreeWRL support library.
 
-New implementation of the texture thread.
- - Setup renderer capabilities
- - Setup default texture & default shader
- - Routines to load textures from file/URL/inline.
- - ...
+  New implementation of the texture thread.
+  - Setup renderer capabilities
+  - Setup default texture & default shader
+  - Routines to load textures from file/URL/inline.
+  - ...
 
-NOTE: a lot of work have to be done here ;*).
+  NOTE: a lot of work have to be done here ;*).
+
 */
-
 
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
@@ -39,6 +39,9 @@ NOTE: a lot of work have to be done here ;*).
 #include <system_threads.h>
 #include <display.h>
 #include <internal.h>
+
+#include <io_files.h>
+#include <io_http.h>
 
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
@@ -95,7 +98,7 @@ void texture_loader_initialize()
     if (GLEW_ARB_multitexture) {
 	rdr_caps.av_multitexture = TRUE;
 	glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &rdr_caps.texture_units);
-	glPrintError("query texture units");
+	PRINT_GL_ERROR_IF_ANY("query texture units");
     }
 
     /* load default material */
@@ -211,7 +214,7 @@ bool findTextureFile_MB(int cwo)
 	/* this could be an absolute url */
 	if (is_url(tmp)) {
 	    DEBUG_MSG("findTextureFile_MB: trying URL: %s\n", tmp);
-	    filename = do_get_url(tmp);
+/* 	    filename = download_resource(tmp); */
 	    if (filename) {
 		DEBUG_MSG("findTextureFile_MB: downloaded file: %s\n", filename);
 		break;
@@ -228,7 +231,7 @@ bool findTextureFile_MB(int cwo)
 	    /* relative url */
 	    if (is_url(tmp2)) {
 		DEBUG_MSG("findTextureFile_MB: trying URL: %s\n", tmp2);
-		filename = do_get_url(tmp2);
+/* 		filename = download_resource(tmp2); */
 	    }
 	} else {
 	    /* relative path, concat to parent path */

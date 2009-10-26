@@ -29,23 +29,6 @@ $Id$
 #define __FREEWRL_LOAD_TEXTURES_H__
 
 
-/* Definitions for renderer capabilities */
-typedef struct {
-
-    bool av_multitexture; /* Multi textures available */
-    bool av_glsl_shaders; /* GLSL shaders available   */ 
-    bool av_npot_texture; /* Non power of 2 textures  */
-    bool av_texture_rect; /* Rectangle textures */
-
-    int texture_units;
-    unsigned max_texture_size[2];
-
-} s_renderer_capabilities_t;
-
-extern s_renderer_capabilities_t rdr_caps;
-
-#define BOOL_STR(_bool) ((_bool) ? "true" : "false")
-
 /* Loading functions */
 
 /* transition function */
