@@ -5,6 +5,9 @@
 # Defines build subdirectories.
 # Defines all files distributed by this package.
 
+# Get global variables for Makefile defined by toplevel Makefile.globals
+include $(top_srcdir)/Makefile.globals
+
 # See configure.ac
 ACLOCAL_AMFLAGS = -I m4
 

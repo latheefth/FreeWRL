@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.27  2009/10/26 08:03:34  couannette
+# First set of modifications (configure build, main program).
+#
 # Revision 1.26  2009/10/22 20:47:51  sdumoulin
 # Fix for adding EAI_C.h
 #
@@ -595,6 +598,16 @@ sub gen {
 		"		((*value >='A') && (*value <='F')) || \\\n".
 		"		(*value == '-') || (*value == '+')) value++; \n";
 	push @str, $st; 
+
+	push @EAICommon,
+		"#include <config.h>\n".
+		"#include <system.h>\n".
+		"#include <display.h>\n".
+		"\n".
+		"#include <vrml_parser/Structs.h>\n".
+		"#include <main/headers.h>\n".
+		"#include <input/EAIHeaders.h>\n".
+		"\n";
 
 	#####################
 	
