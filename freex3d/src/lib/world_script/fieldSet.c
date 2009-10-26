@@ -1,9 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id$
 
-$Id$
-
-???
+  FreeWRL support library.
+  VRML/X3D fields manipulation.
 
 */
 
@@ -34,6 +33,8 @@ $Id$
 #include <internal.h>
 
 #include <libFreeWRL.h>
+
+#include <io_files.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"

@@ -33,7 +33,6 @@ Global includes.
 /**
  * in InputFunctions.c
  */
-int dirExists(const char *dir);
 char* makeFontDirectory();
 char *readInputString(char *fn);
 FILE *openLocalFile (char *fn, char* access);

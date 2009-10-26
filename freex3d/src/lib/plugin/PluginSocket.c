@@ -86,10 +86,10 @@ static double Time1970sec(void) {
 #endif
 
 /* prints to a log file if we are running as a plugin */
-static void pluginprint (const char *m, const char *p) {
+static void pluginprint (const char *m, const char *p)
+{
 	double myt;
-	if (getenv("FREEWRL_DO_PLUGIN_PRINT") != NULL) {
-
+	if (global_plugin_print) {
         	/* Set the timestamp */
 		myt = Time1970sec();
         	printf ("%f: freewrl: ",myt);

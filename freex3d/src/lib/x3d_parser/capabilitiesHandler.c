@@ -1,9 +1,8 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id$
 
-$Id$
-
-???
+  FreeWRL support library.
+  X3D capabilities.
 
 */
 
@@ -28,8 +27,6 @@ $Id$
 
 
 
-
-
 #include <config.h>
 #include <system.h>
 #include <display.h>
@@ -37,9 +34,11 @@ $Id$
 
 #include <libFreeWRL.h>
 
+#include <io_files.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+
 
 /* table showing which levels are supported by which component */
 static const int capabilities[] = {

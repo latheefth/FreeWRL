@@ -1563,7 +1563,7 @@ static void shutdownX3DParser () {
 	/* printf ("shutdownX3DParser, current X3DParser %u\n",currentX3DParser); */
 }
 
-int X3DParse (struct X3D_Group* myParent, char *inputstring) {
+int X3DParse (struct X3D_Group* myParent, const char *inputstring) {
 	currentX3DParser = initializeX3DParser();
 
 	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
