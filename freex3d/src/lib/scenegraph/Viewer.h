@@ -32,12 +32,6 @@ Viewer ???
 
 #include "quaternion.h"
 
-#define NONE 0
-#define EXAMINE 1
-#define WALK 2
-#define EXFLY 3
-#define FLY 4
-
 #define VIEWER_STRING(type) ( \
 	type == NONE ? "NONE" : ( \
 	type == EXAMINE ? "EXAMINE" : ( \
@@ -223,9 +217,6 @@ use_keys(void);
 void
 set_eyehalf( const double eyehalf,
 			const double eyehalfangle);
-
-void
-set_viewer_type(const int type);
 
 void
 resolve_pos(void);

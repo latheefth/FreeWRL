@@ -36,9 +36,7 @@
 #include <internal.h> 
  
 #include <libFreeWRL.h> 
-#ifndef TARGET_AQUA
 #include <io_files.h> 
-#endif
  
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h" 
@@ -2074,7 +2072,8 @@ void render_TriangleStripSet(struct X3D_TriangleStripSet *);
 struct X3D_Virt virt_TriangleStripSet = { NULL,(void *)render_TriangleStripSet,NULL,NULL,(void *)rendray_TriangleStripSet,(void *)make_TriangleStripSet,NULL,NULL,(void *)collide_TriangleStripSet,NULL};
 
 void render_TwoSidedMaterial(struct X3D_TwoSidedMaterial *);
-struct X3D_Virt virt_TwoSidedMaterial = { NULL,(void *)render_TwoSidedMaterial,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_TwoSidedMaterial(struct X3D_TwoSidedMaterial *);
+struct X3D_Virt virt_TwoSidedMaterial = { NULL,(void *)render_TwoSidedMaterial,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_TwoSidedMaterial};
 
 void render_VRML1_AsciiText(struct X3D_VRML1_AsciiText *);
 struct X3D_Virt virt_VRML1_AsciiText = { NULL,(void *)render_VRML1_AsciiText,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -4797,7 +4796,6 @@ const char *stringVRML1_Type (int st) {
 	return VRML1_[st];
 }
 
-/* convert an internal type to EAI type */
 char mapFieldTypeToEAItype (int st) {
 	switch (st) { 
 		case FIELDTYPE_SFFloat:	return EAI_SFFloat;

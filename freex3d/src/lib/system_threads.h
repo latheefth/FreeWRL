@@ -45,10 +45,10 @@ Internal header: threading library, and processor control (sched).
  */
 #if !defined(WIN32)
 
-#define DEF_THREAD(_t) pthread_t _t = NULL
-#define TEST_NULL_THREAD(_t) (_t == NULL)
+#define DEF_THREAD(_t) pthread_t _t = (pthread_t)0
+#define TEST_NULL_THREAD(_t) (_t == (pthread_t)0)
 #define ID_THREAD(_t) ((unsigned int) _t)
-#define ZERO_THREAD(_t) (_t = NULL)
+#define ZERO_THREAD(_t) (_t = (pthread_t)0)
 
 #else /* !defined(WIN32) */
 
