@@ -24,8 +24,15 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#include "EAI_C.h"
-/* convert an internal type to EAI type */
+
+#include <config.h>
+#include <system.h>
+#include <display.h>
+
+#include <vrml_parser/Structs.h>
+#include <main/headers.h>
+#include <input/EAIHeaders.h>
+
 char mapFieldTypeToEAItype (int st) {
 	switch (st) { 
 		case FIELDTYPE_SFFloat:	return EAI_SFFloat;

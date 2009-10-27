@@ -48,7 +48,12 @@ int open_display();
 int create_main_window(int argc, char *argv[]);
 bool create_GLcontext();
 bool bind_GLcontext();
+/* end of "virtual" functions */
+
 bool initialize_GL();
+bool initialize_rdr_caps();
+void initialize_rdr_functions();
+void rdr_caps_dump();
 
 void setMessageBar(void);
 void setMenuStatus(char *stat);
@@ -115,7 +120,6 @@ extern s_renderer_capabilities_t rdr_caps;
 # include <OpenGL/OpenGL.h>
 # include <OpenGL/CGLTypes.h>
 # include <AGL/AGL.h>
-# include "./opengl/OSX_miniglew.h" /* will include GL/gl.h, GL/glu.h and GL/glext.h */
 
 extern CGLContextObj myglobalContext;
 extern AGLContext aqglobalContext;

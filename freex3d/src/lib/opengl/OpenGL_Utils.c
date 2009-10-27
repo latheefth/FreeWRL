@@ -464,7 +464,9 @@ bool initialize_GL()
 	initialize_rdr_functions();
 
 	/* lets make sure everything is sync'd up */
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
 	XFlush(Xdpy);
+#endif
 
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	glClearDepth (1.0);
