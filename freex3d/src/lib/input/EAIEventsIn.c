@@ -38,9 +38,6 @@ Handle incoming EAI (and java class) events with panache.
 #include "../vrml_parser/Structs.h" 
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
-/*
-#include "../vrml_parser/CParseParser.h"
-*/
 #include "../vrml_parser/CParseLexer.h"
 
 #include "../vrml_parser/CProto.h"

@@ -54,7 +54,6 @@ bool initialize_GL();
 bool initialize_rdr_caps();
 void initialize_rdr_functions();
 void rdr_caps_dump();
-
 void setMessageBar(void);
 void setMenuStatus(char *stat);
 #define MAXSTAT 200

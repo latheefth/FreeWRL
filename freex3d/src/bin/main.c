@@ -133,11 +133,14 @@ int main (int argc, char **argv)
     params->eai = FALSE;
     params->fullscreen = FALSE;
 
+#if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */
     /* parse command line arguments */
     if (parseCommandLine(argc, argv)) {
 
 	    start_url = argv[optind];
     }
+#endif
+
 
     /* doug- redirect stdout to a file - works, useful for sending bug reports */
     /*freopen("freopen.txt", "w", stdout ); */

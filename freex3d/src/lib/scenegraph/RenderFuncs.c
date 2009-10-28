@@ -43,6 +43,8 @@
 #include "Viewer.h"
 #include "LinearAlgebra.h"
 #include "../input/SensInterps.h"
+#include "system_threads.h"
+#include "threads.h"
 
 #include "RenderFuncs.h"
 

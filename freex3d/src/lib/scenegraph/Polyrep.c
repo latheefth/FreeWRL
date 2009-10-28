@@ -43,6 +43,7 @@ $Id$
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
+#include "Tess.h"
 
 
 /* reset colors to defaults, if we have to */

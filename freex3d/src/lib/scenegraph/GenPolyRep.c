@@ -41,6 +41,7 @@ $Id$
 
 #include "LinearAlgebra.h"
 #include "Polyrep.h"
+#include "Tess.h"
 #include "Component_Geospatial.h"	/* resolving implicit declarations */
 
 /*****************************************

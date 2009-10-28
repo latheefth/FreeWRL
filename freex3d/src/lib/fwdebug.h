@@ -31,7 +31,6 @@ Internal header: debug definitions.
 #ifndef __LIBFREEWRL_DEBUG_H__
 #define __LIBFREEWRL_DEBUG_H__
 
-
 #define BOOL_STR(b) (b ? "TRUE" : "FALSE")
 
 /* Useful to suppress things from non-debug builds */
@@ -40,6 +39,8 @@ Internal header: debug definitions.
 #else
 #  define DEBUG_(_expr)
 #endif
+
+#include <stdio.h>
 
 void fw_perror(FILE *f, const char *format, ...);
 

@@ -43,6 +43,7 @@ X3D Text Component
 
 #include "Collision.h"
 #include "LinearAlgebra.h"
+#include "Tess.h"
 
 #define XRES 96
 #define YRES 96

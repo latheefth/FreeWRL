@@ -510,13 +510,6 @@ void normalize_ifs_face (float *point_normal,
 /*                 double maxext, double spacing, double mysize, unsigned int fsparam, */
 /*                 struct X3D_PolyRep *rp); */
 
-
-/* Triangulator extern defs - look in CFuncs/Tess.c */
-extern struct X3D_PolyRep *global_tess_polyrep;
-extern GLUtriangulatorObj *global_tessobj;
-extern int global_IFS_Coords[];
-extern int global_IFS_Coord_count;
-
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES (texture_count != 0)
 

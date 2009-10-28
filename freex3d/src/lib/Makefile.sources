@@ -101,6 +101,7 @@ scenegraph/NormalCalcs.c \
 scenegraph/Component_Geospatial.h \
 scenegraph/MPEG_Utils.c \
 scenegraph/sounds.h \
+scenegraph/Tess.h \
 scenegraph/Tess.c \
 scenegraph/Component_DIS.c \
 scenegraph/Component_Rendering.c \

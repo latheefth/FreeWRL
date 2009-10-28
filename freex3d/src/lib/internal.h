@@ -29,7 +29,7 @@
 #ifndef __LIBFREEWRL_DECL_H__
 #define __LIBFREEWRL_DECL_H__
 
-
+#include <config.h>
 #include "fwdebug.h"
 
 
