@@ -16,9 +16,6 @@
 
 #include <main/headers.h>
 
-#include "ui.h"
-/* #include "../plugin/pluginUtils.h" */
-
 #include <winuser.h>
 #include <wingdi.h>
 
