@@ -173,7 +173,6 @@ opengl/Material.c \
 opengl/LoadTextures.h \
 opengl/LoadTextures.c \
  \
-ui/ui.h \
 ui/statusbar.c \
 ui/aquaInt.h \
  \
