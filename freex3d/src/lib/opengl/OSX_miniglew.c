@@ -6,6 +6,8 @@
 
 */
 
+#ifdef OLDCODE
+
 /****************************************************************************
     This file is part of the FreeWRL/FreeX3D Distribution.
 
@@ -45,4 +47,4 @@
 # include "OSX_miniglew.h"
 # include "../ui/aquaInt.h"
 #endif //TARGET_AQUA
-
+#endif /* OLDCODE */

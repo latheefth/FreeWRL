@@ -157,6 +157,8 @@ void eventLoopsetPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int 
 #undef DO_MULTI_OPENGL_THREADS
 # endif
 
+#include "OpenGL/glu.h"
+
 #endif /* defined TARGET_AQUA */
 
 /**
