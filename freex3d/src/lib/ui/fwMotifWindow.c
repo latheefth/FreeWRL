@@ -396,17 +396,17 @@ void toggleConsolebar (Widget w, XtPointer data, XtPointer callData)
 
 void WalkMode (Widget w, XtPointer data, XtPointer callData)
 {
-    set_viewer_type (WALK);
+    set_viewer_type (VIEWER_WALK);
 }
 
 void ExamineMode (Widget w, XtPointer data, XtPointer callData)
 {
-    set_viewer_type (EXAMINE);
+    set_viewer_type (VIEWER_EXAMINE);
 }
 
 void FlyMode (Widget w, XtPointer data, XtPointer callData)
 {
-    set_viewer_type (FLY);
+    set_viewer_type (VIEWER_FLY);
 }
 
 void Headlight (Widget w, XtPointer data, XtPointer callData)
@@ -970,10 +970,10 @@ void setMenuButton_navModes (int type)
 {
     fl = FALSE; ex = FALSE; wa = FALSE;
     switch(type) {
-    case NONE: break;
-    case EXAMINE: ex = TRUE; break;
-    case WALK: wa = TRUE; break;
-    case FLY: fl = TRUE; break;
+    case VIEWER_NONE: break;
+    case VIEWER_EXAMINE: ex = TRUE; break;
+    case VIEWER_WALK: wa = TRUE; break;
+    case VIEWER_FLY: fl = TRUE; break;
     default: break;
     }
 #ifdef DO_MULTI_OPENGL_THREADS

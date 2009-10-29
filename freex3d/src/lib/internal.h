@@ -319,7 +319,4 @@ extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
 extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
 
 
-extern freewrl_params_t fw_params; /* will move to internal.h as soon as I've the time to include this last one everywhere ... */
-
-
 #endif /* __LIBFREEWRL_DECL_H__ */

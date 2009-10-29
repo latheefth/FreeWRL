@@ -31,6 +31,8 @@
 #include <system.h>
 #include <internal.h>
 
+#include <libFreeWRL.h>
+
 #include <stdarg.h>
 #include <errno.h>
 

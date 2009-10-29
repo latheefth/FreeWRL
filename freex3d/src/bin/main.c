@@ -29,7 +29,7 @@
 #include <config.h>
 #include <system.h>
 #include <internal.h>
-#include <fwdebug.h>
+
 #include <libFreeWRL.h>
 
 #include "main.h"

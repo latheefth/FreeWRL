@@ -449,7 +449,7 @@ bool resource_load(resource_item_t *res)
  */
 void resource_identify_type(resource_item_t *res)
 {
-	char *test_it;
+	char *test_it = NULL;
 	s_list_t *l;
 	openned_file_t *of;
 	int t;

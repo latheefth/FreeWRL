@@ -1260,7 +1260,7 @@ int lexer_EXTERNPROTO_mfstringValue(struct VRMLLexer* me, struct Multi_String* r
 }
 
 /* isolate the PROTO that we want from the just read in EXTERNPROTO string */
-void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound) {
+void embedEXTERNPROTO(struct VRMLLexer *me, const char *myName, char *buffer, char *pound) {
         char *cp;
         char *externProtoPointer;
         char *proto;

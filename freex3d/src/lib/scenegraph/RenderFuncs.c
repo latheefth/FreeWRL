@@ -283,8 +283,6 @@ void render_node(struct X3D_Node *node) {
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
-	GLint glerror = GL_NONE;
-	char* stage = "";
 
 	X3D_NODE_CHECK(node);
 

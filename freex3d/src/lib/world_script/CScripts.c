@@ -279,7 +279,7 @@ struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, 
  for(i=0; i!=vector_size(me->fields); ++i)
  {
   struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
-  if(strcmp(name,curField->ASCIIname) == NULL)
+  if(strcmp(name,curField->ASCIIname) == 0)
    return curField;
  }
 

@@ -28,8 +28,6 @@ $Id$
 #ifndef __FREEWRL_TESS_H__
 #define __FREEWRL_TESS_H__
 
-#include <gl.h>
-#include <glu.h>
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
 extern struct X3D_PolyRep *global_tess_polyrep;

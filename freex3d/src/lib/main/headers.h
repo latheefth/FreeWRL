@@ -1073,8 +1073,6 @@ extern void *setFogBindInRender;
 extern void *setBackgroundBindInRender;
 extern void *setNavigationBindInRender;
 
-extern int displayOpenGLErrors;
-
 char* convert1To2(const char *inp);
 
 
