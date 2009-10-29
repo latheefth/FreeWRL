@@ -57,6 +57,16 @@ void __attribute__ ((destructor)) libFreeWRL_fini(void)
 /**
  * Explicit initialization
  */
+
+/* OLDCODE for the OSX front end - change the calls from the front end once JohnS has the source from work */
+void initFreewrl () {
+printf ("calling OLD initFreeWRL... change this\n");
+
+	initFreeWRL(NULL);
+printf ("initFreewrl returning\n");
+}
+
+
 bool initFreeWRL(freewrl_params_t *params)
 {
 	char *env_texture_size;
@@ -130,7 +140,7 @@ bool initFreeWRL(freewrl_params_t *params)
 	while (!isInputThreadInitialized()) {
 		usleep(50);
 	}
-	
+
 	initializeTextureThread();
 	while (!isTextureinitialized()) {
 		usleep(50);
