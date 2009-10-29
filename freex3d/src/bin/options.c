@@ -31,8 +31,6 @@
 
 #include <libFreeWRL.h>
 
-#include "fwdebug.h"
-
 #include "main.h"
 #include "options.h"
 
