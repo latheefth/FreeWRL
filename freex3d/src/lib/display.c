@@ -34,6 +34,8 @@
 #include <threads.h>
 #include <libFreeWRL.h>
 
+#include <libFreeWRL.h>
+
 
 bool display_initialized = FALSE;
 
@@ -104,6 +106,11 @@ int PaneClipChanged = FALSE;
 int display_initialize()
 {
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
+
+	/* FreeWRL parameters */
+	fullscreen = fw_params.fullscreen;
+	win_width = fw_params.width;
+	win_height = fw_params.height;
 
 #if !defined (TARGET_AQUA)
 	/* make the window, get the OpenGL context */

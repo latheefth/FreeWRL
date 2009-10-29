@@ -7,7 +7,6 @@
 
 libFreeWRL_la_SOURCES = \
 			internal.h \
-			fwdebug.h \
 			system.h \
 			system_net.h \
 			system_threads.h \
