@@ -291,7 +291,7 @@ void EventLoop() {
 #endif
 
         /* should we do events, or maybe a parser is parsing? */
-        doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && (!isShapeCompilerParsing()) && isInputThreadInitialized();
+        doEvents = (!isinputThreadParsing()) && (!isTextureParsing()) && isInputThreadInitialized();
 
         /* Set the timestamp */
 	TickTime = Time1970sec();

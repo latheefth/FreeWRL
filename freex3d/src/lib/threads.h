@@ -62,12 +62,6 @@ extern pthread_t loadThread;
 void initializeDisplayThread();
 void _displayThread();
 
-#ifdef DO_MULTI_OPENGL_THREADS
-/* SHAPE COMPILER THREAD */
-void initializeShapeCompileThread();
-void _shapeCompileThread();
-#endif
-
 /* PARSER THREAD */
 void initializeInputParseThread();
 void _inputParseThread ();

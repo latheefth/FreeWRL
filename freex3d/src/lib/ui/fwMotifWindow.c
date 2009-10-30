@@ -1007,7 +1007,7 @@ void setMessageBar()
         if (strlen(myMenuStatus) == 0) {
             strcat (myMenuStatus, "NONE");
         }
-        if (isShapeCompilerParsing() || 
+        if ( 
 	    isinputThreadParsing() || 
 	    isTextureParsing() || 
 	    (!isInputThreadInitialized())) {

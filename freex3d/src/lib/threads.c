@@ -41,10 +41,6 @@ pthread_t mainThread;
 
 DEF_THREAD(DispThrd);
 
-#ifdef DO_MULTI_OPENGL_THREADS
-DEF_THREAD(shapeThread);
-#endif
-
 DEF_THREAD(PCthread);
 
 DEF_THREAD(loadThread);
@@ -83,27 +79,6 @@ void initializeDisplayThread()
 	}
 #endif
 }
-
-#ifdef DO_MULTI_OPENGL_THREADS
-void initializeShapeCompileThread()
-{
-	int ret;
-
-	/* Synchronize trace/error log... */
-	fflush(stdout);
-	fflush(stderr);
-
-	ASSERT(TEST_NULL_THREAD(shapeThread));
-	ret = pthread_create(&shapeThread, NULL, (void *(*)(void *))&_shapeCompileThread, NULL);
-	switch (ret) {
-	case 0: 
-		break;
-	case EAGAIN: 
-		ERROR_MSG("initializeShapeCompileThread: not enough system resources to create a process for the new thread.");
-		return;
-	}
-}
-#endif
 
 /* create consumer thread and set the "read only" flag indicating this */
 void initializeInputParseThread()

@@ -43,7 +43,6 @@ void toggle_headlight();
 /* should be in OpenGL_Utils.h but this would grab all X3D defs.... */
 void setglClearColor(float *val);
 int isTextureParsing();
-int isShapeCompilerParsing();
 
 /* where this should be ? */
 const char* freewrl_get_browser_program();
