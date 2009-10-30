@@ -20,7 +20,7 @@ default_fontsdir=/usr/X11/lib/X11/fonts/TTF
 default_target=motif
 
 # Pick up autogen options and leave other arguments to configure
-while getopts ":cdetpm" option
+while getopts ":cdetpmh" option
 do
   case $option in
       c ) curl=1
@@ -40,6 +40,25 @@ do
 	  ;;
 	  m ) motif=0
 	  echo "Disabling Motif."
+	  ;;
+      h ) # Help
+	  cat <<EOF 
+Example invocation of autogen.sh on Mac
+
+ $ ./autogen.sh -edpm -- --without-glew
+
+Disabling libeai.
+Enabling debug mode.
+Disabling plugin.
+Disabling Motif.
+Remaining args: --without-glew
+Platform: Mac
+Mac system: default target is x11 (maybe motif)
+(Carbon is not yet supported by this build system)
+Regenerating configure files...
+
+EOF
+	  exit 0
 	  ;;
   esac
 done
