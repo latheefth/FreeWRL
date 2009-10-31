@@ -54,6 +54,17 @@ int inputFileVersion[3] = {0,0,0};
 
 
 /**
+ *   concat_path: concat two string with a / in between
+ */
+char* concat_path(const char *a, const char *b)
+{
+    char *tmp;
+    tmp = MALLOC(strlen(a) + strlen(b) + 1);
+    sprintf(tmp, "%s/%s", a, b);
+    return tmp;
+}
+
+/**
  *   remove_filename_from_path: this works also with url.
  */
 char* remove_filename_from_path(const char *path)

@@ -71,15 +71,6 @@ void texture_loader_initialize()
 
 /* thread safe functions */
 
-/* concat two string with a / in between */
-char* concat_path(const char *a, const char *b)
-{
-    char *tmp;
-    tmp = MALLOC(strlen(a) + strlen(b) + 1);
-    sprintf(tmp, "%s/%s", a, b);
-    return tmp;
-}
-
 bool is_url(const char *url)
 {
 #define MAX_PROTOS 3

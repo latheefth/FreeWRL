@@ -30,6 +30,7 @@
 
 
 /* Path manipulation */
+char* concat_path(const char *a, const char *b);
 char* remove_filename_from_path(const char *path);
 
 /* Simple functions for file/dir access */
