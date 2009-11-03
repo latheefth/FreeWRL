@@ -158,7 +158,9 @@ extern char *BrowserFullPath;
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
    not working that well... */
 #ifdef AQUA
+#ifdef OLDCODE /* JAS  testing things out */
 	#define DO_MULTI_OPENGL_THREADS
+#endif
 #endif
 
 /* rendering constants used in SceneGraph, etc. */

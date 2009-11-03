@@ -85,7 +85,7 @@ struct ScriptFieldDecl* newScriptFieldDecl(struct VRMLLexer* me, indexT mod, ind
  ASSERT(mod!=PKW_inputOutput);
 
 	/* shaderID will get set when shader is activiated */
- 	ret->fieldDecl=newFieldDecl(mod, type, name, -1, FALSE);
+ 	ret->fieldDecl=newFieldDecl(mod, type, name, -1);
  ASSERT(ret->fieldDecl);
 
  /* Stringify */
@@ -400,8 +400,8 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 			/* ok - Scripts get initialized; shaders get the buffer returned */
 			if (me==NULL) { /* a Shader */
 			 	buffer = STRDUP(of->text);
-			 	printf("**** Shader:\n%s\n", buffer); 
-				printf ("*** Shader: doing the quick return here\n");
+			 	/* JAS printf("**** Shader:\n%s\n", buffer); 
+				printf ("*** Shader: doing the quick return here\n"); */
 				return TRUE;
 			} else {
 				/* a Script */
@@ -494,7 +494,6 @@ char **shader_initCodeFromMFUri(const struct Multi_String* s) {
 	for(i=0; i!=s->n; ++i) {
 		FREE_IF_NZ(buffer);
 		if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
-printf ("shader_initCodeFromMFUri - got %s\n",buffer);
    			return &buffer;
 		}
 	}
