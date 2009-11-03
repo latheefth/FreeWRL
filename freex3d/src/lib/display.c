@@ -129,9 +129,11 @@ int display_initialize()
 
 	bind_GLcontext();
 #else
-	if (RUNNINGASPLUGIN) { 
+#ifdef OLDCODE
+	if (RUNNINGASPLUGIN) {  // commented out
          	aglSetCurrentContext(aqglobalContext); 
 	}
+#endif
 #endif /* TARGET_AQUA */
 
 	if (!initialize_GL()) {
