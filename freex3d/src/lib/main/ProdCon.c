@@ -829,6 +829,9 @@ void parser_process_res(s_list_t *item)
 			break;
 		case resm_image:
 		case resm_movie:
+			/* Texture file has been loaded into memory
+			   the node could be updated ... i.e. texture created */
+			res->complete = TRUE; /* small hack */
 			break;
 		}
 		/* Parse only once ! */
