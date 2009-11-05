@@ -91,6 +91,7 @@ FIELDTYPE_MFVec4d
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../lib/scenegraph/Vector.h"

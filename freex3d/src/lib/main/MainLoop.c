@@ -977,6 +977,7 @@ static void render() {
 	    aglSwapBuffers(aqglobalContext);
 	} else {
 	    CGLError err = CGLFlushDrawable(myglobalContext);
+	    
 	    if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
 	    updateContext();
 	}
