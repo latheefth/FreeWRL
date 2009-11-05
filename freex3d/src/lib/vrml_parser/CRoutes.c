@@ -1325,7 +1325,6 @@ void mark_event (struct X3D_Node *from, unsigned int totalptr) {
 		#ifdef CRVERBOSE
 			printf ("found event at %d\n",findit);
 		#endif
-printf ("MARK EVENT - route timestamp %d, TickTime %d\n",CRoutes[findit].intTimeStamp,thisIntTimeStamp);
 		if (CRoutes[findit].intTimeStamp!=thisIntTimeStamp) {
 			CRoutes[findit].isActive=TRUE;
 			CRoutes[findit].intTimeStamp=thisIntTimeStamp;
