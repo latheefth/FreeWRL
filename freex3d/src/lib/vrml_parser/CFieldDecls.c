@@ -52,9 +52,9 @@ $Id$
 struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int shv)
 {
  struct FieldDecl* ret=MALLOC(sizeof(struct FieldDecl));
- ret->mode=mode;
- ret->type=type;
- ret->name=name;
+ ret->PKWmode=mode;
+ ret->fieldType=type;
+ ret->lexerNameIndex=name;
  ret->shaderVariableID=shv;
  return ret;
 }

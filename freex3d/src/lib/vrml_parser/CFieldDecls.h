@@ -33,9 +33,9 @@ This is a common base class for FieldDeclarations on PROTOs and Scripts
 
 struct FieldDecl
 {
- indexT mode; /* PKW_initializeOnly PKW_inputOutput, PKW_inputOnly, PKW_outputOnly */
- indexT type; /* field type ,eg FIELDTYPE_MFInt32 */
- indexT name; /* field "name" (its lexer-index) */
+ indexT PKWmode; /* PKW_initializeOnly PKW_inputOutput, PKW_inputOnly, PKW_outputOnly */
+ indexT fieldType; /* field type ,eg FIELDTYPE_MFInt32 */
+ indexT lexerNameIndex; /* field "name" (its lexer-index) */
  int shaderVariableID; 	/* glGetUniformLocation() cast to int */
 };
 
@@ -48,17 +48,17 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int);
 
 /* Copies */
 #define fieldDecl_copy(me) \
- newFieldDecl((me)->mode, (me)->type, (me)->name, (me)->shaderVariableID)
+ newFieldDecl((me)->PKWmode, (me)->fieldType, (me)->lexerNameIndex, (me)->shaderVariableID)
 
 /* Accessors */
 /* ********* */
 
 #define fieldDecl_getType(me) \
- ((me)->type)
+ ((me)->fieldType)
 #define fieldDecl_getAccessType(me) \
- ((me)->mode)
+ ((me)->PKWmode)
 #define fieldDecl_getIndexName(me) \
- ((me)->name)
+ ((me)->lexerNameIndex)
 
 #define fieldDecl_getshaderVariableID(me) \
 	(GLint) ((me)->shaderVariableID)
@@ -75,7 +75,7 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int);
 
 /* Check if this is a given field */
 #define fieldDecl_isField(me, nam, mod) \
- ((me)->name==(nam) && (me)->mode==(mod))
+ ((me)->lexerNameIndex==(nam) && (me)->PKWmode==(mod))
 
 
 #endif /* __FREEWRL_FIELD_DECLS_H__ */

@@ -1554,8 +1554,8 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
 #undef END_NODE
 
         /* set the toLen and fromLen from the PROTO/Script info, if appropriate */
-        if(fromScriptField) fromLen=returnRoutingElementLength(fromScriptField->fieldDecl->type);
-        if(toScriptField) toLen=returnRoutingElementLength(toScriptField->fieldDecl->type);
+        if(fromScriptField) fromLen=returnRoutingElementLength(fieldDecl_getType(fromScriptField->fieldDecl));
+        if(toScriptField) toLen=returnRoutingElementLength(fieldDecl_getType(toScriptField->fieldDecl));
 
    /* printf ("fromScriptField %d, toScriptField %d\n",fromScriptField, toScriptField);
    printf ("fromlen %d tolen %d\n",fromLen, toLen);  */

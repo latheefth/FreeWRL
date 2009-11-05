@@ -360,17 +360,18 @@ static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struc
 		   the scripting name index. */
 		if (me->ShaderScriptNode->_nodeType == NODE_Script) {
 			/* wow - have to get the Javascript text string index from this one */
-			myFieldNumber = JSparamIndex(fieldName,stringFieldtypeType(myField->fieldDecl->type)); 
+			myFieldNumber = JSparamIndex(fieldName,stringFieldtypeType(
+				fieldDecl_getType(myField->fieldDecl))); 
 
 			*offs=myFieldNumber;
 
 
 		} else {
-			*offs = myField->fieldDecl->name;
+			*offs = fieldDecl_getIndexName(myField->fieldDecl);
 		}
-		*type = myField->fieldDecl->type;
+		*type = fieldDecl_getType(myField->fieldDecl);
 		/* go from PKW_xxx to KW_xxx  .... sigh ... */
-		*accessType = mapToKEYWORDindex(myField->fieldDecl->mode);
+		*accessType = mapToKEYWORDindex(fieldDecl_getAccessType(myField->fieldDecl));
 		return TRUE;
 	}
 

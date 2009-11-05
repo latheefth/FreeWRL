@@ -515,7 +515,7 @@ struct X3D_Node* protoDefinition_deepCopy(struct VRMLLexer* lex, struct X3D_Node
 	for (i = 0; i !=  vector_size(old_script->fields); ++i) {
 		struct ScriptFieldDecl* sfield = vector_get(struct ScriptFieldDecl*, old_script->fields, i);
 		struct ScriptFieldDecl* newfield = scriptFieldDecl_copy(lex, sfield);
-		if (sfield->fieldDecl->mode == PKW_initializeOnly) {
+		if (fieldDecl_getAccessType(sfield->fieldDecl) == PKW_initializeOnly) {
 			scriptFieldDecl_setFieldValue(newfield, sfield->value);
 		}
 		script_addField(new_script, newfield);
