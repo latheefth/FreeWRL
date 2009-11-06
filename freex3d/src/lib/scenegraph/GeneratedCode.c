@@ -1773,11 +1773,14 @@ struct X3D_Virt virt_Matrix3VertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_Matrix4VertexAttribute = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_MetadataDouble = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_MetadataDouble(struct X3D_MetadataDouble *);
+struct X3D_Virt virt_MetadataDouble = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataDouble};
 
-struct X3D_Virt virt_MetadataFloat = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_MetadataFloat(struct X3D_MetadataFloat *);
+struct X3D_Virt virt_MetadataFloat = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataFloat};
 
-struct X3D_Virt virt_MetadataInteger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_MetadataInteger(struct X3D_MetadataInteger *);
+struct X3D_Virt virt_MetadataInteger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataInteger};
 
 void compile_MetadataMFBool(struct X3D_MetadataMFBool *);
 struct X3D_Virt virt_MetadataMFBool = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataMFBool};
@@ -1902,9 +1905,11 @@ struct X3D_Virt virt_MetadataSFVec4d = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL
 void compile_MetadataSFVec4f(struct X3D_MetadataSFVec4f *);
 struct X3D_Virt virt_MetadataSFVec4f = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSFVec4f};
 
-struct X3D_Virt virt_MetadataSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_MetadataSet(struct X3D_MetadataSet *);
+struct X3D_Virt virt_MetadataSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataSet};
 
-struct X3D_Virt virt_MetadataString = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_MetadataString(struct X3D_MetadataString *);
+struct X3D_Virt virt_MetadataString = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_MetadataString};
 
 void prep_MidiControl(struct X3D_MidiControl *);
 struct X3D_Virt virt_MidiControl = { (void *)prep_MidiControl,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
