@@ -778,7 +778,6 @@ int JSparamIndex (const char *name, const char *type) {
 	unsigned len;
 	int ty;
 	int ctr;
-#define CRVERBOSE
 
 	#ifdef CRVERBOSE
 	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
@@ -832,7 +831,6 @@ int JSparamIndex (const char *name, const char *type) {
 
 	return jsnameindex;
 }
-#undef CRVERBOSE
 
 /********************************************************************
 

@@ -53,7 +53,6 @@ struct ScriptFieldDecl
 
  /* Stringified */
  const char* ASCIIname;
- const char* ASCIItype;
  const char* ASCIIvalue; 
 
  /* For fields */

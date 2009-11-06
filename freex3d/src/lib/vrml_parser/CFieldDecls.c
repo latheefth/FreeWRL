@@ -49,12 +49,13 @@ $Id$
 /* Constructor and destructor */
 /* ************************** */
 
-struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int shv)
+struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int JSname, int shv)
 {
  struct FieldDecl* ret=MALLOC(sizeof(struct FieldDecl));
  ret->PKWmode=mode;
  ret->fieldType=type;
  ret->lexerNameIndex=name;
+ ret->JSparamNameIndex=JSname;
  ret->shaderVariableID=shv;
  return ret;
 }
