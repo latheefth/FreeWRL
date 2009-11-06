@@ -69,6 +69,9 @@ struct FieldDecl* newFieldDecl(indexT, indexT, indexT, int, int);
 #define fieldDecl_setshaderVariableID(me,varid) \
 	((me)->shaderVariableID) = (GLint) (varid)
 
+#define fieldDecl_getShaderScriptName(me) \
+	(JSparamnames[fieldDecl_getShaderScriptIndex(me)].name)
+
 #define fieldDecl_getStringName(lex, me) \
  lexer_stringUser_fieldName(lex, fieldDecl_getIndexName(me), \
   fieldDecl_getAccessType(me))
