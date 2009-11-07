@@ -287,7 +287,7 @@ void deleteScript(struct Shader_Script* me)
 /* ************* */
 
 /* look for the field, via the ASCII name. Slower than script_getField, though... */
-struct ScriptFieldDecl* script_getField_viaASCIIname (struct Shader_Script* me, const char *name)
+struct ScriptFieldDecl* script_getField_viaCharName (struct Shader_Script* me, const char *name)
 {
  size_t i;
  for(i=0; i!=vector_size(me->fields); ++i)

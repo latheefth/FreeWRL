@@ -350,7 +350,7 @@ static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struc
 
 	/* go through the user arrays in this lexer, and see if we have a match */
 
-	myField = script_getField_viaASCIIname (me, fieldName);
+	myField = script_getField_viaCharName (me, fieldName);
 	printf ("try2: getFieldFromScript, field %s is %d\n",fieldName,myField); 
 
 	if (myField != NULL) {
