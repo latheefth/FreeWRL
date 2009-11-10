@@ -31,6 +31,8 @@ Screen snapshot.
 #define __FREEWRL_TEXTURES_H__
 
 
+#define TEXTURE_INVALID 0
+
 /* Texture loading table :
    newer Texture handling procedures
    each texture has this kind of structure
@@ -42,7 +44,7 @@ struct textureTableIndexStruct {
 	int 	status;
 	int	depth;
 	int 	hasAlpha;
-	GLuint	*OpenGLTexture;
+	GLuint	OpenGLTexture;
 	int	frames;
 	char    *filename;
         int x;

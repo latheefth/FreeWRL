@@ -170,6 +170,27 @@ void ml_delete(s_list_t *list, s_list_t *item)
     }
 }
 
+
+/**
+ * ml_delete_self: destroy 'item' from 'list', even if item is the first
+ * when 'item' holds a single value not to be freed
+ * return the new list, in case we delete the first item: this is a "new" list
+ *
+ * could also be implemented as a macro....
+ */
+s_list_t* ml_delete_self(s_list_t *list, s_list_t *item)
+{
+    s_list_t *it;
+    if (list == item) {
+	/* first element */
+	it = item->next;
+	XFREE(item);
+	return it;
+    }
+    ml_delete(list, item);
+    return list;
+}
+
 /**
  * ml_delete2: destroy element 'item' from list 'list'
  * when 'item' holds a pointer to be freed with f

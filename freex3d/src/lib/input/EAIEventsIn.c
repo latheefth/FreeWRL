@@ -156,8 +156,8 @@ void EAI_parse_commands () {
 			case GETRENDPROP: {
 				sprintf (buf,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime,count,
 					"SMOOTH",				/* Shading */
-					opengl_has_textureSize, opengl_has_textureSize, 	/* Texture size */	
-					opengl_has_numTextureUnits,				/* texture units */
+					rdr_caps.max_texture_size, rdr_caps.max_texture_size, 	/* Texture size */	
+					rdr_caps.texture_units,				/* texture units */
 					"FALSE",				/* antialiased? */
 					displayDepth,				/* bit depth of display */
 					256.0					/* amount of memory left on card -

@@ -78,12 +78,6 @@ static int lights[8];
 /* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 int displayDepth = 24;
 
-/*
- * SEE renderer capabilities...
- */
-int opengl_has_numTextureUnits = 0;
-GLint opengl_has_textureSize = 0;
-
 static float cc_red = 0.0f, cc_green = 0.0f, cc_blue = 0.0f, cc_alpha = 1.0f;
 int cc_changed = FALSE;
 
