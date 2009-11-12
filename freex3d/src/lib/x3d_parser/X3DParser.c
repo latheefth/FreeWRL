@@ -603,7 +603,7 @@ static void parseRoutes (const char **atts) {
 
 
 	/* can we register the route? */
-	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, returnRoutingElementLength(fromType));
+	CRoutes_RegisterSimple(fromNode, fromOffset, toNode, toOffset, fromType);
 }
 
 #ifdef OLDCODE

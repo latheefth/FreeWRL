@@ -123,7 +123,7 @@ void parser_specificInitNode(struct X3D_Node*, struct VRMLParser*);
 
 /* Registers a ROUTE, in current PROTO or scene */
 void parser_registerRoute(struct VRMLParser*,
- struct X3D_Node*, int, struct X3D_Node*, int, size_t);
+ struct X3D_Node*, int, struct X3D_Node*, int, int);
 
 BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal);
 
