@@ -71,8 +71,6 @@ static Stack* DEFedNodes = NULL;
 #define MAX_CHILD_ATTRIBUTE_DEPTH 32
 static struct Vector** childAttributes= NULL;
 
-
-
 char *CDATA_Text = NULL;
 static int CDATA_TextMallocSize = 0;
 int CDATA_Text_curlen = 0;
