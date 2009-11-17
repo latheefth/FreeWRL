@@ -29,11 +29,9 @@ $Id$
 #define __FREEWRL_LOAD_TEXTURES_H__
 
 
-/* new functions */
-void texture_loader_initialize();
-bool is_url(const char *url);
-bool load_texture_from_file(struct textureTableIndexStruct* this_tex, char *filename);
-bool bind_texture(struct X3D_ImageTexture *node);
+extern int TextureParsing;
+extern int TextureThreadInitialized;
+void send_texture_to_loader(struct textureTableIndexStruct *entry);
 
 
 #endif /* __FREEWRL_LOAD_TEXTURES_H__ */

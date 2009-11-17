@@ -167,5 +167,7 @@ void resource_push_single_request(const char *request);
 void resource_push_multi_request(struct Multi_String *request);
 void resource_wait(resource_item_t *res);
 
+void resource_tree_dump(int level, resource_item_t *root);
+
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

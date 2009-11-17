@@ -47,6 +47,8 @@ Global includes.
 extern char *BrowserName;
 const char* freewrl_get_browser_program();
 
+void Multi_String_print(struct Multi_String *url);
+
 /* see if an inputOnly "set_" field has changed */
 #define IO_FLOAT -2335549.0
 

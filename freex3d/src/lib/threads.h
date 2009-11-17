@@ -82,6 +82,7 @@ void trace_enter_thread(const char *str);
 
 extern pthread_mutex_t mutex_resource_tree;
 extern pthread_mutex_t mutex_resource_list;
+extern pthread_mutex_t mutex_texture_list;
 
 
 

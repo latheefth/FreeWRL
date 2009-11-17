@@ -1,9 +1,7 @@
 /*
-=INSERT_TEMPLATE_HERE=
+  $Id$
 
-$Id$
-
-General utility functions.
+  General utility functions.
 
 */
 
@@ -174,3 +172,21 @@ void *freewrlStrdup (int line, char *file, char *str)
 }
 
 #endif /* defined(DEBUG_MALLOC) */
+
+/**
+ * function to debug multi strings
+ * we need to find where to put it....
+ */
+void Multi_String_print(struct Multi_String *url)
+{
+	if (url && url->p) {
+		int i;
+
+		printf("multi url: ");
+		for (i = 0; i < url->n; i++) {
+			struct Uni_String *s = url->p[i];
+			printf("[%d] %s", i, s->strptr);
+		}
+	}
+	printf("\n");
+}
