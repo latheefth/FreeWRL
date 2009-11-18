@@ -762,7 +762,11 @@ void resource_tree_dump(int level, resource_item_t *root)
 	spacer printf("parsed_request:\t %s\n", root->parsed_request);
 	spacer printf("actual_file:\t %s\n", root->actual_file);
 	spacer printf("cached_files:\t %p\n", root->cached_files);
-	spacer printf("openned_files:\t %p\n", root->openned_files);
+	if (root->openned_files) {
+		spacer printf("openned_files:\t "); ml_foreach(root->openned_files, of_dump((openned_file_t *)ml_elem(__l)));
+	} else {
+		spacer printf("openned_files:\t <empty>\n");
+	}
 	spacer printf("four_first_bytes:\t %c %c %c %c\n", root->four_first_bytes[0], root->four_first_bytes[1], root->four_first_bytes[2], root->four_first_bytes[3]);
 	spacer printf("media_type:\t %u\n", root->media_type);
 

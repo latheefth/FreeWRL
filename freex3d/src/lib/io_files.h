@@ -45,6 +45,7 @@ typedef struct openned_file {
 	char *text;
 } openned_file_t;
 
+void of_dump(openned_file_t *of);
 openned_file_t* load_file(const char *filename);
 
 /**

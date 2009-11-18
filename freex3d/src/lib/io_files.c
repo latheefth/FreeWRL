@@ -167,6 +167,18 @@ bool do_dir_exists(const char *dir)
 }
 
 /**
+ *   of_dump: print the structure.
+ */
+void of_dump(openned_file_t *of)
+{
+	static char first_ten[11];
+	if (of->text) {
+		strncpy(first_ten, of->text, 10);
+	}
+	printf("{%s, %d, %s%s}\n", of->filename, of->fd, (of->text ? &first_ten : "(null)"), (of->text ? "..." : ""));
+}
+
+/**
  *   create_openned_file: store the triplet {filename, file descriptor,
  *                        and data buffer} into an openned file object.
  *                        Purpose: to be able to close and free all that stuff.
