@@ -247,6 +247,10 @@ void getMotifWindowedGLwin(Window *win);
 #ifdef TARGET_WIN32
 
 /* Nothing special :P ... */
+#include <GL/glew.h>
+#define SENSOR_CURSOR sensor_cursor32();
+#define ARROW_CURSOR arrow_cursor32();
+#define ERROR 0
 
 #endif /* TARGET_WIN32 */
 

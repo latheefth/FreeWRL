@@ -731,7 +731,7 @@ void OcclusionStartofEventLoop() {
 		#ifdef OCCLUSIONVERBOSE
 		printf ("initializing OcclusionCulling...\n");
 		#endif
-
+		global_occlusion_disable = 1;
 		/* do we have an environment variable for this? */
 		if (global_occlusion_disable) {
 			OccFailed = TRUE;

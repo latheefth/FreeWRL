@@ -54,10 +54,6 @@ void catch_SIGHUP();
 
 #if defined(_MSC_VER)
 #include <shlwapi.h>
-const char *freewrl_get_version()
-{
-	return "version 1.22.5";
-}
 #endif
 
 /**

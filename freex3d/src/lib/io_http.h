@@ -40,6 +40,9 @@ char *getInputURL();
 
 /* URL manipulation */
 bool checkNetworkFile(const char *fn);
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#endif
 
 
 #endif /* __LIBFREEWRL_IO_HTTP_H__ */

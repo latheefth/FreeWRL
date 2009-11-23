@@ -1020,7 +1020,8 @@ void setglClearColor (float *val);
 void doglClearColor(void);
 extern int cc_changed;
 
-int mapFieldTypeToInernaltype (indexT kwIndex);
+/* int mapFieldTypeToInernaltype (indexT kwIndex); msvc has problem perhaps with typedef typdef unsigned int indexT*/
+int mapFieldTypeToInernaltype (unsigned int kwIndex);
 void finishEventLoop();
 void resetEventLoop();
 

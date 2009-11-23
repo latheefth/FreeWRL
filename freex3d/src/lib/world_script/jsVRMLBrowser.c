@@ -529,7 +529,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	int xxx;
 	int myField;
 	char *address;
-
+	struct X3D_Group *subtree;
 	resource_item_t *res = NULL;
 
 	#ifdef JSVERBOSE
@@ -726,7 +726,8 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 	/* did we find the field? */
 	address = ((char *) myptr) + offset;
 	
-	struct X3D_Group *subtree = (struct X3D_Group *) myptr;
+	/*struct X3D_Group *subtree = (struct X3D_Group *) myptr;*/
+	subtree = (struct X3D_Group *) myptr;
 	
 	/* MBFILES: process the children of myptr loaded by parser */
 	for (count = 1; count < subtree->children.n; count++) {

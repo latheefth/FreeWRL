@@ -43,14 +43,22 @@
 /**
  * library initialization
  */
+#ifdef _MSC_VER
+void libFreeWRL_init(void)
+#else
 void __attribute__ ((constructor)) libFreeWRL_init(void)
+#endif
 {
 }
 
 /**
  * library exit routine
  */
+#ifdef _MSC_VER
+void libFreeWRL_fini(void)
+#else
 void __attribute__ ((destructor)) libFreeWRL_fini(void)
+#endif
 {
 }
 
