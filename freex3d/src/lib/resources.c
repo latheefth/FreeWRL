@@ -776,3 +776,18 @@ void resource_tree_dump(int level, resource_item_t *root)
 
 	printf("\n");
 }
+
+char *resourceStatusToString(int status) {
+	switch (status) {
+		case ress_none: return "ress_none";
+		case ress_starts_good: return "ress_starts_good";
+		case ress_invalid: return "ress_invalid";
+		case ress_downloaded: return "ress_downloaded";
+		case ress_failed: return "ress_failed";
+		case ress_loaded: return "ress_loaded";
+		case ress_not_loaded: return "ress_not_loaded";
+		case ress_parsed: return "ress_parsed";
+		case ress_not_parsed: return "ress_not_parsed";
+		default: return "resource OUT OF RANGE";
+	}
+}

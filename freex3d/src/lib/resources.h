@@ -169,5 +169,6 @@ void resource_wait(resource_item_t *res);
 
 void resource_tree_dump(int level, resource_item_t *root);
 
+char *resourceStatusToString(int status);
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

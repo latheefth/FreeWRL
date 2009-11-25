@@ -168,7 +168,6 @@ void setScreenDim(int wi, int he)
 {
     screenWidth = wi;
     screenHeight = he;
-printf ("setScreenDim, wid %d hei %d\n",wi,he);
 
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
