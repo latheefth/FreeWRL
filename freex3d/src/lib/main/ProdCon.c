@@ -86,21 +86,6 @@ void *setFogBindInRender = NULL;
 void *setBackgroundBindInRender = NULL;
 void *setNavigationBindInRender = NULL;
 
-/* thread synchronization issues */
-
-#if 0 //MBFILE try another approach for thread synchronization
-int _P_LOCK_VAR;
-#define PARSER_LOCKING_INIT _P_LOCK_VAR = 0
-#define SEND_TO_PARSER if (_P_LOCK_VAR==0) _P_LOCK_VAR=1; else printf ("SEND_TO_PARSER = flag wrong!\n");
-#define PARSER_FINISHING if (_P_LOCK_VAR==1) _P_LOCK_VAR=0; else printf ("PARSER_FINISHING - flag wrong!\n");
-#define UNLOCK pthread_cond_signal(&condition); pthread_mutex_unlock(&mutex);
-#define WAIT_WHILE_PARSER_BUSY  pthread_mutex_lock(&mutex); \
-     while (_P_LOCK_VAR==1) { pthread_cond_wait(&condition, &mutex);}
-
-#define WAIT_WHILE_NO_DATA pthread_mutex_lock(&mutex); \
-     while (_P_LOCK_VAR==0) { pthread_cond_wait(&condition, &mutex);}
-#endif //MBFILE
-
 /*
    ==============================================
    Explanations for this horrible modification :P

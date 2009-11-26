@@ -457,7 +457,7 @@ bool initialize_GL()
         /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
            we make it the current Context. */
 
-        printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext);
+        /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
         if (RUNNINGASPLUGIN) {
                 aglSetCurrentContext(aqglobalContext);
         } else {

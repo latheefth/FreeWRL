@@ -1344,7 +1344,7 @@ void _displayThread()
 
 #ifdef AQUA
 void initGL() {
-        printf ("OSX initGL called\n"); 
+        /* printf ("OSX initGL called\n");  */
         if (RUNNINGASPLUGIN) {
                 //aqglobalContext = aglGetCurrentContext();
                 pluginRunning = TRUE;
@@ -1352,7 +1352,7 @@ void initGL() {
         } else {
                 myglobalContext = CGLGetCurrentContext();
         }
-        printf ("initGL call finished - aqglobalContext %u, myglobalContext %u\n",aqglobalContext,myglobalContext);
+        /* printf ("initGL call finished - aqglobalContext %u, myglobalContext %u\n",aqglobalContext,myglobalContext); */
 }
 
 int getOffset() {
@@ -1366,7 +1366,7 @@ void setCurXY(int cx, int cy) {
 }
 
 void setButDown(int button, int value) {
-	printf ("old qua code, setButDown...\n");
+	/* printf ("old qua code, setButDown...\n"); */
         ButDown[button] = value;
 }
 
