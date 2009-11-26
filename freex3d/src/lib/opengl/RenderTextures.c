@@ -270,7 +270,7 @@ static void passedInGenTex(GLfloat *genTex) {
 	int c;
 
 	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, using passed in genTex\n");
+	printf ("passedInGenTex, using passed in genTex\n");
 	#endif 
  
 	for (c=0; c<texture_count; c++) {

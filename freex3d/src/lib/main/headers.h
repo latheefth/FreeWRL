@@ -142,7 +142,8 @@ extern char *BrowserFullPath;
    not working that well... */
 #ifdef AQUA
 #ifdef OLDCODE /* JAS  testing things out */
-	#define DO_MULTI_OPENGL_THREADS
+	#define DO_MULTI_OPENGL_THREADS //JAS - commented out
+#undef DO_MULTI_OPENGL_THREADS
 #endif
 #endif
 

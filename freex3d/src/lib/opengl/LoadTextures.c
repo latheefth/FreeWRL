@@ -111,14 +111,17 @@ static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, cha
     this_tex->status = TEX_NEEDSBINDING;
     this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
     this_tex->imageType = 100; /* not -1, but not PNGTexture neither JPGTexture ... */
-    /* FIXME: query depth with imlib2 ??? */
-    this_tex->depth = (this_tex->hasAlpha ? 4 : 3);
+
+    /* imlib returns textures as DATA32 - 4 bytes/texture - RGBA when viewed as a byte stream */
+    /* this_tex->depth = (this_tex->hasAlpha ? 4 : 3); */
+    this_tex->depth = 4; /* textures are returned as RGBA */
+
     this_tex->frames = 1;
     this_tex->x = imlib_image_get_width();
     this_tex->y = imlib_image_get_height();
 
-    this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only();
-    /* FIXME: imlib image is not freed - do we need to save memory ? copy this data, then free it ? */
+    this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
+
 #endif
     return TRUE;
 }
