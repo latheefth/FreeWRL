@@ -64,6 +64,8 @@ int TextureParsing = FALSE;
 /* list of texture table entries to load */
 s_list_t *texture_list = NULL;
 
+/* defaultBlankTexture... */
+GLuint defaultBlankTexture;
 
 /* All functions here works with the array of 'textureTableIndexStruct'.
  * In the future we may want to refactor this struct.

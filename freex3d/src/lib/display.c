@@ -34,7 +34,7 @@
 #include <threads.h>
 #include <libFreeWRL.h>
 
-#include <libFreeWRL.h>
+#include "opengl/Textures.h"
 
 
 bool display_initialized = FALSE;
@@ -97,6 +97,8 @@ int PaneClipheight;
 int PaneClipChanged = FALSE;
 #endif
 
+static char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
+
 
 /**
  *  display_initialize: takes care of all the initialization process, 
@@ -142,6 +144,14 @@ int display_initialize()
 	if (!initialize_GL()) {
 		return FALSE;
 	}
+
+
+	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
+	glGenTextures(1,&defaultBlankTexture);
+	glBindTexture (GL_TEXTURE_2D, defaultBlankTexture);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
 
 	/* Display full initialized :P cool ! */
 	display_initialized = TRUE;

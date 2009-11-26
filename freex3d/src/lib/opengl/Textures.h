@@ -56,6 +56,7 @@ struct textureTableIndexStruct {
 };
 
 extern struct textureTableIndexStruct* loadThisTexture;
+extern GLuint defaultBlankTexture;
 
 /* imageType */
 #define PNGTexture 200

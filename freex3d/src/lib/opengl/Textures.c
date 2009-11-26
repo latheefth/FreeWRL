@@ -1075,6 +1075,9 @@ void new_bind_image(struct X3D_Node *node, void *param) {
 	/* printf ("new_bind_image, I am %u, texture_count %d, thisTexture is %u status %s\n",
 		node,texture_count,thisTexture,texst(myTableIndex->status));  */
 
+	/* default here; this is just a blank texture */
+	bound_textures[texture_count] = defaultBlankTexture;
+
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
 			send_texture_to_loader(myTableIndex);
