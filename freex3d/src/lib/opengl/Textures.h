@@ -42,7 +42,6 @@ struct textureTableIndexStruct {
 	int			nodeType;
 	int	imageType;
 	int 	status;
-	int	depth;
 	int 	hasAlpha;
 	GLuint	OpenGLTexture;
 	int	frames;
@@ -50,7 +49,6 @@ struct textureTableIndexStruct {
         int x;
         int y;
         unsigned char *texdata;
-	struct Multi_Int32 *pixelData;
         GLint Src;
         GLint Trc;
 };
