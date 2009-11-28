@@ -82,9 +82,10 @@ int determineFileType(const char *buffer);
 #ifdef _MSC_VER
 #include <io.h>
 #include <fcntl.h>
+#include <stdio.h>
 #define R_OK 4
 #define X_OK 4
 #define O_NONBLOCK 0
-#define SSIZE_MAX 1000000000
+#define SSIZE_MAX 100000000L
 #endif
 #endif /* __LIBFREEWRL_IO_FILES_H__ */
