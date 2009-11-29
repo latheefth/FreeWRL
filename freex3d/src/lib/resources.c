@@ -298,9 +298,9 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 						/* Make full path from current dir and relative filename */
 
 						char *fullpath;
-						fullpath = malloc(strlen(cwd)+strlen(cleanedURL) + 1);
-						sprintf(fullpath, "%s/%s", cwd, cleanedURL);
-
+						fullpath = malloc(strlen(cwd)+strlen(res->request) + 1);
+						printf("about to join %s and %s resource.c L299\n",cwd,res->request);
+						sprintf(fullpath, "%s/%s", cwd, res->request);
 						/* resource_fetch will test that filename */
 						res->type = rest_file;
 						res->status = ress_starts_good;
