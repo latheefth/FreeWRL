@@ -49,6 +49,9 @@
 
 
 char * stripLocalFileName (char * origName) {
+	/* remove whitespace, etc */
+	while ((*origName != '\0') && (*origName <= ' ')) origName++;
+
         if ((strncmp(origName,"file://", strlen("file://"))== 0) || 
         (strncmp(origName,"FILE://", strlen("FILE://"))== 0)) {
 		origName += strlen ("FILE://");

@@ -58,10 +58,14 @@ bool checkNetworkFile(const char *fn)
 	    (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
 	    (strncmp(fn,"https://", strlen("https://"))) &&
 	    (strncmp(fn,"HTTPS://", strlen("HTTPS://"))) &&
+/* JAS - these really are local files 
 	    (strncmp(fn,"file://", strlen("file://"))) &&
 	    (strncmp(fn,"FILE://", strlen("FILE://"))) &&
+*/
 	    (strncmp(fn,"urn://", strlen("urn://"))) &&
-	    (strncmp(fn,"URN://", strlen("URN://")))) {
+	    (strncmp(fn,"URN://", strlen("URN://")))
+
+	) {
 		return FALSE;
 	}
 	return TRUE;
