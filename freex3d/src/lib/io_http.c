@@ -241,7 +241,7 @@ char* download_url_wget(const char *url, const char *tmp)
     wgetcmd = malloc( strlen(WGET) +
 	                    strlen(WGET_OPTIONS) + 
 	                    strlen(url) +
-                            strlen(temp) + 6);
+                            strlen(temp) + 6 +1);
     sprintf(wgetcmd, "%s %s %s -O %s",
 	    WGET, WGET_OPTIONS, url, temp);
 
