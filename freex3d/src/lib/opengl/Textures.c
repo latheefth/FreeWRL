@@ -216,6 +216,8 @@ void releaseTexture(struct X3D_Node *node) {
 			tableIndex  = ((struct X3D_PixelTexture *)node)->__textureTableIndex;
 		} else if (node->_nodeType == NODE_MovieTexture) {
 			tableIndex  = ((struct X3D_MovieTexture *)node)->__textureTableIndex;
+		} else if (node->_nodeType == NODE_VRML1_Texture2) {
+			tableIndex  = ((struct X3D_VRML1_Texture2 *)node)->__textureTableIndex;
 		} else return;
 
 #ifdef TEXVERBOSE
