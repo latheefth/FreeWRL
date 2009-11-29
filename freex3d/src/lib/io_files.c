@@ -87,6 +87,14 @@ char *get_current_dir()
 	char *cwd;
 	cwd = MALLOC(PATH_MAX);
 	getcwd(cwd, PATH_MAX);
+#ifdef _MSC_VER
+	{
+			int jj;
+			for( jj=0;jj<strlen(cwd);jj++)
+				if(cwd[jj] == '\\' ) cwd[jj] = '/';
+	}
+	printf("\n\n cwd from get_current_dir io_files.c L90 =%s\n\n",cwd);
+#endif
 	return cwd;
 #endif
 }

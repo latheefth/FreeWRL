@@ -202,6 +202,10 @@ void trace_enter_thread(const char *str)
 		fflush(stdout);
 		fflush(stderr);
 		sync();
+#ifdef _MSC_VER
+		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) pthread_self().p);
+#else
 		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) pthread_self());
+#endif
 	}
 }

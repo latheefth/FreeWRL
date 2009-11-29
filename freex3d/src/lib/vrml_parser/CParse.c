@@ -64,7 +64,6 @@ bool cParse(void* ptr, unsigned ofs, const char* data) {
 	gettimeofday (&mytime,&tz);
 	startt = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 	#endif
-
  	if (!globalParser) {
 		/* printf ("cParse, new parser\n"); */
 		/* the FALSE in the newParser call signifies that we are using "VRML" formatted strings */
