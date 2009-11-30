@@ -41,7 +41,7 @@
 
 CC = cc
 CCC = g++
-CFLAGS +=  -Wall -Wno-format -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk
+CFLAGS +=  -Wall -Wno-format -arch i386 -arch ppc -isysroot /Developer/SDKs/MacOSX10.4u.sdk -I /Developer/SDKs/MacOSX10.4u.sdk/usr/include/gcc/darwin/3.3
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN
 
 RANLIB = ranlib

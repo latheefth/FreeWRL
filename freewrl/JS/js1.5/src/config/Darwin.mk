@@ -46,8 +46,8 @@ CCC = g++
 # http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
 # make sure you change the vrml.conf.i386 also!
 
-CFLAGS +=  -Wall -Wno-format -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DAQUA
-#XLDFLAGS = -arch i386 -mmacosx-version-min=10.4
+CFLAGS +=  -Wall -Wno-format -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -DAQUA -I /Developer/SDKs/MacOSX10.4u.sdk/usr/include/gcc/darwin/3.3
+
 XLDFLAGS = -arch i386 
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN
 
