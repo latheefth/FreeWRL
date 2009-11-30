@@ -61,7 +61,7 @@ int inputFileVersion[3] = {0,0,0};
 char* concat_path(const char *a, const char *b)
 {
     char *tmp;
-    tmp = MALLOC(strlen(a) + strlen(b) + 1);
+    tmp = MALLOC(strlen(a) + strlen(b) + 2); /* why 2? room for the slash and the trailing NULL */
     sprintf(tmp, "%s/%s", a, b);
     return tmp;
 }
