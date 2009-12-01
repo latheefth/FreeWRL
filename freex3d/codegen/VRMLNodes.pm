@@ -183,6 +183,7 @@ package VRML::NodeType;
 		__loadstatus =>[SFInt32,0,initializeOnly, 0],
 		__parenturl =>[SFString,"",initializeOnly, 0],
 		_sortedChildren => [MFNode, [], inputOutput, 0],
+		 __loadResource => [FreeWRLPTR, 0, initializeOnly, 0],
 	},"X3DNetworkSensorNode"),
 
 	LoadSensor => new VRML::NodeType("LoadSensor", {

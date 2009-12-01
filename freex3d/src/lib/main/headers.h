@@ -750,7 +750,6 @@ extern void *rootNode;
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */
 extern int isTextureParsing(void);
-extern void loadInline(struct X3D_Inline *node);
 extern void loadTextureNode(struct X3D_Node *node,  void *param);
 extern void loadMovieTexture(struct X3D_MovieTexture *node,  void *param);
 extern void loadMultiTexture(struct X3D_MultiTexture *node);

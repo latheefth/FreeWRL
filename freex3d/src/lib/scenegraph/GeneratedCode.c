@@ -358,6 +358,7 @@ void render_ray_polyrep(void *node);
 	"controllerPresent",
 	"__movedValue",
 	"version",
+	"__loadResource",
 	"image",
 	"__botpoints",
 	"set_crossSection",
@@ -3110,6 +3111,7 @@ const int OFFSETS_IndexedTriangleStripSet[] = {
 
 const int OFFSETS_Inline[] = {
 	FIELDNAMES___parenturl, offsetof (struct X3D_Inline, __parenturl),  FIELDTYPE_SFString, KW_initializeOnly,0,
+	FIELDNAMES___loadResource, offsetof (struct X3D_Inline, __loadResource),  FIELDTYPE_FreeWRLPTR, KW_initializeOnly,0,
 	FIELDNAMES__sortedChildren, offsetof (struct X3D_Inline, _sortedChildren),  FIELDTYPE_MFNode, KW_inputOutput,0,
 	FIELDNAMES_bboxCenter, offsetof (struct X3D_Inline, bboxCenter),  FIELDTYPE_SFVec3f, KW_initializeOnly,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	FIELDNAMES_url, offsetof (struct X3D_Inline, url),  FIELDTYPE_MFString, KW_inputOutput,(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6440,6 +6442,7 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_Inline *) tmp;
 			tmp2->v = &virt_Inline;
 			tmp2->__parenturl = newASCIIString(getInputURL());
+			tmp2->__loadResource = 0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0;tmp2->bboxCenter.c[1] = 0;tmp2->bboxCenter.c[2] = 0;;
 			tmp2->url.n=0; tmp2->url.p=0;

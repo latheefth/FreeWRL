@@ -792,6 +792,7 @@ void do_possible_textureSequence(struct textureTableIndexStruct* me) {
 	Src = 0; Trc = 0;
 	tpNode = NULL;
 
+printf ("do_possible_textureSequence me %u\n",me);
 	/* do we need to convert this to an OpenGL texture stream?*/
 
 	/* we need to get parameters. */	

@@ -55,6 +55,7 @@
 #include "Frustum.h"
 #include "../opengl/Material.h"
 #include "../scenegraph/Component_Core.h"
+#include "../scenegraph/Component_Networking.h"
 
 #include <float.h>
 
@@ -1271,6 +1272,8 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				BEGIN_NODE(Inline) 
+					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE)
+						load_Inline (X3D_INLINE(node));
 					sortChildren (&X3D_INLINE(node)->__children,&X3D_INLINE(node)->_sortedChildren);
 					propagateExtent(X3D_NODE(node));
 				END_NODE

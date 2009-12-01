@@ -358,9 +358,12 @@ void proximity_LOD (struct X3D_LOD *node) {
 
 
 
+#ifdef OLDCODE
 void changed_Inline (struct X3D_Inline *node) {
+printf ("changed_Inline\n");
 		INITIALIZE_EXTENT
 }
+#endif
 
 
 void changed_Collision (struct X3D_Collision *node) {

@@ -125,6 +125,7 @@ static void statusbar_init() {
 
 	res = resource_create_from_string(STATUS_BAR_NODE_PROX);
 	res->where = myn;
+	res->offsetFromWhere = offsetof (struct X3D_Group, children);
 	send_resource_to_parser(res);
 	resource_wait(res);
 
@@ -148,6 +149,7 @@ static void statusbar_init() {
 
 	res = resource_create_from_string(STATUS_BAR_NODE_TEXT);
 	res->where = myn;
+	res->offsetFromWhere = offsetof (struct X3D_Group, children);
 	send_resource_to_parser(res);
 	resource_wait(res);
 

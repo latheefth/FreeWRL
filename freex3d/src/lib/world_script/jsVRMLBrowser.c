@@ -640,6 +640,14 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj, uintN argc, jsva
 
 	res = resource_create_single(_costr0);
 	res->where = myptr;
+	if (myptr->_nodeType == NODE_Group)
+		res->offsetFromWhere = offsetof (struct X3D_Group, children);
+	else {
+		ConsoleMessage ("Can not determine where to plug values in node of type %s",stringNodeType(myptr->_nodeType));
+		return JS_FALSE;
+	}
+
+
 	send_resource_to_parser(res);
 	resource_wait(res);
 	

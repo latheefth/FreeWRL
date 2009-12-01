@@ -1011,6 +1011,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 				res = resource_create_from_string(cString);
 				res->where = myGroup;
+				res->offsetFromWhere = offsetof (struct X3D_Group, children);
 				send_resource_to_parser(res);
 				resource_wait(res);
 

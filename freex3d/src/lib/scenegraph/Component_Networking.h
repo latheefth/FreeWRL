@@ -30,8 +30,15 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_NETWORKING_H__
 #define __FREEWRL_SCENEGRAPH_NETWORKING_H__
 
+/* Inline status */
+#define INLINE_INITIAL_STATE 0
+#define INLINE_FETCHING_RESOURCE 1
+#define INLINE_PARSING 2
+#define INLINE_STABLE 10
+
 /* function protos */
 void registerReWireNode(struct X3D_Node *node);
+void load_Inline (struct X3D_Inline *node);
 
 
 #endif /* __FREEWRL_SCENEGRAPH_NETWORKING_H__ */
