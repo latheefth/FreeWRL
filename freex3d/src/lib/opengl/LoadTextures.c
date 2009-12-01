@@ -374,7 +374,11 @@ void _textureThread()
 		
 		/* Process all resource list items, whatever status they may have */
 		while (texture_list != NULL) {
-			/* ml_foreach(texture_list, texture_process_list(__l)); */
+			ml_foreach(texture_list, texture_process_list(__l));
+#ifdef OLDCODE
+Doug Sanden had problems with the original ml_foreach macro; macro changed, to reflect problem. Doug's fixed
+code is shown here for reference:
+
 			
 					s_list_t *__l;
 					s_list_t *next;
@@ -385,6 +389,8 @@ void _textureThread()
 						texture_process_list(__l);
 						__l = next;
 					}
+#endif
+
 		}
 		
 		TextureParsing = FALSE;

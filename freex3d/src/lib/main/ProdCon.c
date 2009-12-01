@@ -904,7 +904,10 @@ void _inputParseThread(void)
 
 		/* go through the resource list until it is empty */
 		while (resource_list_to_parse != NULL) {
-			//ml_foreach(resource_list_to_parse, parser_process_res(__l));
+			ml_foreach(resource_list_to_parse, parser_process_res(__l));
+#ifdef OLDCODE
+Doug Sanden had problems with the original ml_foreach macro; macro changed, to reflect problem. Doug's fixed
+code is shown here for reference:
 					s_list_t *__l;
 					s_list_t *next;
 					s_list_t *_list = resource_list_to_parse;
@@ -914,6 +917,7 @@ void _inputParseThread(void)
 						parser_process_res(__l);
 						__l = next;
 					}
+#endif
 		}
 
 		inputThreadParsing = FALSE;
