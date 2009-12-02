@@ -111,8 +111,7 @@ int currentFileVersion = 0;
                         /* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ \
                         JSCreateScriptContext(i); \
                         JSInitializeScriptAndFields(i); \
-                        ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
-                        ScriptControl[i]._initialized=TRUE; \
+			if (ScriptControl[i].scriptOK) ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
                         /* printf ("initialized script %d\n",i);*/  \
                 } \
                 max_script_found_and_initialized = max_script_found; \

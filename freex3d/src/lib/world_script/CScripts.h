@@ -143,6 +143,7 @@ struct CRscriptStruct {
 	uintptr_t	eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
 	char *scriptText;
 	struct ScriptParamList *paramList;
+	int 		scriptOK;		/* set to TRUE if the script loads ok */
 };
 
 
