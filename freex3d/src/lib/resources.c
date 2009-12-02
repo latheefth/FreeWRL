@@ -178,7 +178,6 @@ void resource_identify(resource_item_t *base, resource_item_t *res)
 	int len;
 
 	DEBUG_RES("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
-printf("identifying resource: %s, %s\n", resourceTypeToString(res->type), resourceStatusToString(res->status));
 
 	ASSERT(res);
 
