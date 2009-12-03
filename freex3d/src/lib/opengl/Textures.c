@@ -884,7 +884,7 @@ if (generateMipMaps) printf ("generateMipMaps\n"); else printf ("NOT generateMip
 			unsigned char *dest = mytexdata;
 
 			/* do we have to do power of two textures? */
-			if (GL_ARB_texture_non_power_of_two) {
+			if (rdr_caps.av_npot_texture) {
 				rx = x; ry = y;
 			} else {
 				/* find a power of two that fits */
