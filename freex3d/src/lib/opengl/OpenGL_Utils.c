@@ -764,9 +764,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int loadedFromURL, char *f
 	/* free memory */
 	kill_X3DNodes();
 
-	/* kill the shadowFileTable, if it exists */
-	kill_shadowFileTable();
-
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");
 		Sound_toserver(mystring);

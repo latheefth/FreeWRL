@@ -36,10 +36,6 @@ Global includes.
 char* makeFontDirectory();
 char *readInputString(char *fn);
 FILE *openLocalFile (char *fn, char* access);
-void unlinkShadowFile(char *fn);
-void addShadowFile(char *x3dname, char *myshadowname);
-char *getShadowFileNamePtr (char *fn);
-void kill_shadowFileTable (void);
 char * stripLocalFileName (char * origName);
 
 
