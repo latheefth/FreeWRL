@@ -1087,6 +1087,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 			break;
 
 		case NODE_MovieTexture:
+#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			mnode = (struct X3D_MovieTexture *) tnode; /* change type to MovieTexture */
 			/* printf ("opengl tex is %d\n",mnode->__texture0_); */
 			/* is this texture thought of yet? */
@@ -1095,6 +1096,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 				/* is it finished loading? */
 				if (isTextureLoaded(mnode->__texture0_)) nowFinished ++;
 			}
+#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 				
 			break;
 

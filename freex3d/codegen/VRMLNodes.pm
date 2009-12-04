@@ -935,18 +935,12 @@ package VRML::NodeType;
 		textureProperties => [SFNode, 0, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
-		 # has the URL changed???
-		 __oldurl => [MFString, [""], initializeOnly, 0],
-		 # initial texture number
-		 __texture0_ => [SFInt32, 0, initializeOnly, 0],
-		 # last texture number
-		 __texture1_ => [SFInt32, 0, initializeOnly, 0],
 		 # which texture number is used
-		 __ctex => [SFInt32, 0, initializeOnly, 0],
+		 #__ctex => [SFInt32, 0, initializeOnly, 0],
 		 # time that we were initialized at
-		 __inittime => [SFTime, 0, initializeOnly, 0],
+		 #__inittime => [SFTime, 0, initializeOnly, 0],
 		 # internal sequence number
-		 __sourceNumber => [SFInt32, -1, initializeOnly, 0],
+		 #__sourceNumber => [SFInt32, -1, initializeOnly, 0],
 		# parent url, gets replaced at node build time
 		__parenturl =>[SFString,"",initializeOnly, 0],
 	},"X3DTextureNode"),

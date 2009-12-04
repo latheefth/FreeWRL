@@ -1680,9 +1680,11 @@ void kill_X3DNodes(void){
 					struct Uni_String* ustr;
 					for (j=0; j<MString->n; j++) {
 						ustr=MString->p[j];
+						if (ustr != NULL) {
 						ustr->len=0;
 						ustr->touched=0;
 						FREE_IF_NZ(ustr->strptr);
+						}
 					}
 					MString->n=0;
 					FREE_IF_NZ(MString->p);
