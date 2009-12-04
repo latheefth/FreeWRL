@@ -788,7 +788,6 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 	GLint Src, Trc;
 	unsigned char *mytexdata;
 
-printf ("move_texture_to_opengl\n");
 	/* initialization */
 	Src = 0; Trc = 0;
 	tpNode = NULL;

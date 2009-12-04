@@ -1060,5 +1060,6 @@ extern void *setNavigationBindInRender;
 
 char* convert1To2(const char *inp);
 
+updateStatusBar(void);
 
 #endif /* __FREEWRL_HEADERS_H__ */
