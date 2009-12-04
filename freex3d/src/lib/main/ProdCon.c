@@ -841,6 +841,8 @@ void _inputParseThread(void)
 
 	inputParseInitialized = TRUE;
 
+	viewer_default();
+
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
 		
