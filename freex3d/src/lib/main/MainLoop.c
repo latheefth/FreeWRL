@@ -417,8 +417,10 @@ void EventLoop() {
 	doEventsWin32A(); 
 #endif
 
+#ifdef OLDCODE
 	/* status bar, if we have one */
 	drawStatusBar();
+#endif
 
         /* Viewer move viewpoint */
         handle_tick();
@@ -886,6 +888,9 @@ static void render()
 	}
 
 #endif
+
+	/* Dougs statusbar drawn here */
+	drawStatusBar();
 
 #if defined( AQUA )
 	if (RUNNINGASPLUGIN) {
