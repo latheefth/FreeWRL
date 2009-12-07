@@ -35,6 +35,7 @@
 #include <libFreeWRL.h>
 
 #include "opengl/Textures.h"
+#include "opengl/RasterFont.h"
 
 
 bool display_initialized = FALSE;
@@ -145,6 +146,14 @@ int display_initialize()
 		return FALSE;
 	}
 
+	/* initialize raster font 
+	   font is just an example picked up with xfontsel...
+	   we handle only XFont here... we'll come with a cross
+	   platform soon :)...
+	 */
+	if (!rf_xfont_init("-*-bitstream vera sans mono-medium-r-*-*-*-120-*-*-*-*-*-*")) {
+		ERROR_MSG("could not initialize raster font\n");
+	}
 
 	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
 	glGenTextures(1,&defaultBlankTexture);
