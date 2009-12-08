@@ -571,8 +571,6 @@ extern struct X3D_Anchor *AnchorsAnchor;
 int checkIfX3DVRMLFile(char *fn);
 void EAI_Anchor_Response (int resp);
 extern int wantEAI;
-struct Uni_String *newASCIIString(char *str);
-void verify_Uni_String(struct  Uni_String *unis, char *str);
 
 void *returnInterpolatorPointer (const char *x);
 

@@ -32,6 +32,8 @@ EAI Helpers functions
 
 #include "../vrml_parser/Structs.h"
 
+struct Uni_String *newASCIIString(char *str);
+void verify_Uni_String(struct  Uni_String *unis, char *str);
 struct X3D_Node *getEAINodeFromTable(int index, int field);
 int returnElementRowSize (int type);					/* from EAI_C_CommonFunctions.c */
 int returnElementLength(int type);					/* from EAI_C_CommonFunctions.c */

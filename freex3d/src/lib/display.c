@@ -146,6 +146,7 @@ int display_initialize()
 		return FALSE;
 	}
 
+#ifdef OLDCODE
 	/* initialize raster font 
 	   font is just an example picked up with xfontsel...
 	   we handle only XFont here... we'll come with a cross
@@ -154,6 +155,7 @@ int display_initialize()
 	if (!rf_xfont_init("-*-bitstream vera sans mono-medium-r-*-*-*-120-*-*-*-*-*-*")) {
 		ERROR_MSG("could not initialize raster font\n");
 	}
+#endif
 
 	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
 	glGenTextures(1,&defaultBlankTexture);
