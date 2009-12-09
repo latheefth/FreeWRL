@@ -91,18 +91,19 @@ void setSnapGif()
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
 void setSnapshot() {
-	if (!doSnapshot) {
-		doSnapshot = TRUE;
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
-
+	if (!doSnapshot) {
+		doSnapshot = TRUE;
 	} else {
 		if (snapsequence) {
 			doSnapshot = FALSE;
 			saveSnapSequence();
 		}
-#endif
 	}
+#else
+	doSnapshot = ! doSnapshot;
+#endif
 }
 
 #ifdef DOSNAPSEQUENCE
