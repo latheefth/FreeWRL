@@ -1367,6 +1367,7 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 		if (node->url.n < 1) return;
 		AnchorsAnchor = node;
 		BrowserAction = TRUE;
+printf ("got do_Anchor, AnchorsAnchor is set now, BrowserAction is also set\n");
 	}
 }
 

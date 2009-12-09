@@ -81,7 +81,6 @@ static char debs[300];
 
 char* PluginFullPath;
 
-static int replaceWorld = FALSE;
 static char  replace_name[FILENAME_MAX];
 
 /* linewidth for lines and points - passed in on command line */
@@ -325,12 +324,6 @@ void EventLoop() {
         if (BrowserAction) {
                 doBrowserAction ();
                 BrowserAction = FALSE;  /* action complete */
-        }
-
-        if (replaceWorld) {
-/*MBFILES          Anchor_ReplaceWorld(replace_name); */
-		/* FIXME: implement reload fw_main_try_reload(); */
-                replaceWorld= FALSE;
         }
 
         /* handle any events provided on the command line - Robert Sim */
@@ -1770,8 +1763,8 @@ void setEaiVerbose() {
 /* called from the standalone OSX front end */
 void replaceWorldNeeded(char* str)
 {
-    strncpy(replace_name, str, FILENAME_MAX);
-    replaceWorld = TRUE; 
+printf ("replaceWorldneeded called\n");
+
 }
 
 

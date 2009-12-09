@@ -47,7 +47,7 @@ extern int eaiverbose;
 
 void shutdown_EAI(void);
 int EAI_GetNode(const char *str);
-unsigned int EAI_GetViewpoint(const char *str);
+struct X3D_Node *EAI_GetViewpoint(const char *str);
 void EAI_killBindables (void);
 
 /* function prototypes */
