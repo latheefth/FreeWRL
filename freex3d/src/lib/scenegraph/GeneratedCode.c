@@ -5193,6 +5193,7 @@ void *createNewX3DNode (int nt) {
 	INITIALIZE_EXTENT
 	node->_intern = 0;
 	node->_nodeType = nt; /* unique integer for each type */
+	node->referenceCount = 1; /* we have requested this, we want it! */
 	
 	/* now, fill in the node specific stuff here. the defaults are in VRMLNodes.pm */
 	switch (nt) {

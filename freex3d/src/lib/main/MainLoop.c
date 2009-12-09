@@ -322,8 +322,7 @@ void EventLoop() {
 
         /* BrowserAction required? eg, anchors, etc */
         if (BrowserAction) {
-                doBrowserAction ();
-                BrowserAction = FALSE;  /* action complete */
+                BrowserAction = doBrowserAction ();
         }
 
         /* handle any events provided on the command line - Robert Sim */
@@ -1426,7 +1425,7 @@ void doQuit()
 {
     stopDisplayThread();
 
-    kill_oldWorld(TRUE,TRUE,TRUE,__FILE__,__LINE__);
+    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
     /* set geometry to normal size from fullscreen */
 #ifndef AQUA
