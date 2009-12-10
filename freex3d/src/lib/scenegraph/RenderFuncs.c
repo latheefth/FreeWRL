@@ -137,7 +137,8 @@ struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser to do? */
 int BrowserAction = FALSE;
-struct X3D_Anchor *AnchorsAnchor;
+struct X3D_Anchor *AnchorsAnchor = NULL;
+char *OSX_replace_world_from_console = NULL;
 
 
 struct currayhit rayHit,rayph,rayHitHyper;

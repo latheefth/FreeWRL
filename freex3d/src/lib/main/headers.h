@@ -566,9 +566,6 @@ extern double defaultExamineDist;
 
 
 /* Sending events back to Browser (eg, Anchor) */
-extern int BrowserAction;
-extern struct X3D_Anchor *AnchorsAnchor;
-void EAI_Anchor_Response (int resp);
 extern int wantEAI;
 
 void *returnInterpolatorPointer (const char *x);

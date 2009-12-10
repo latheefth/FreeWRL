@@ -37,5 +37,10 @@ Proximity sensor macro.
 int nextlight(void);
 void render_node(struct X3D_Node *node);
 
+extern int BrowserAction;
+extern struct X3D_Anchor *AnchorsAnchor;
+extern char *OSX_replace_world_from_console;
+
+
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */
