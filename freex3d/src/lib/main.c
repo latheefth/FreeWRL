@@ -118,8 +118,6 @@ void OSX_initializeParameters(const char* initialURL) {
     }
 }
 
-int isShapeCompilerParsing() {return TRUE;} /* remove this when we re-do the OSX front end */
-
 /* OSX plugin is telling us the id to refer to */
 void setInstance (uintptr_t instance) {
         /* printf ("setInstance, setting to %u\n",instance); */
