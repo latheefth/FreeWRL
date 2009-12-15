@@ -297,11 +297,19 @@ void EventLoop() {
         } else {
 		/* calculate how much to wait so that we are running around 100fps. Adjust the constant
 		   in the line below to raise/lower this frame rate */
+
+		/* NOTE: OSX front end now syncs with the monitor, meaning, this sleep is no longer needed */
+#ifdef TARGET_AQUA
+		if (RUNNINGASPLUGIN) {
+#endif
                waitsec = 7000.0 + TickTime - lastTime;
                if (waitsec > 0.0) {
                        /* printf ("waiting %lf\n",waitsec); */
                        usleep((unsigned)waitsec);
 		}
+#ifdef TARGET_AQUA
+		}
+#endif
 
         }
 
@@ -887,9 +895,7 @@ static void render()
 	    aglSwapBuffers(aqglobalContext);
 	} else {
 	    CGLError err = CGLFlushDrawable(myglobalContext);
-	    
 	    if (err != kCGLNoError) printf ("CGLFlushDrawable error %d\n",err);
-	    updateContext();
 	}
 
 #else
