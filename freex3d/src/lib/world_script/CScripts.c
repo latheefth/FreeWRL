@@ -176,7 +176,7 @@ void deleteScriptFieldDecl(struct ScriptFieldDecl* me)
 /* Sets script field value */
 void scriptFieldDecl_setFieldValue(struct ScriptFieldDecl* me, union anyVrml v)
 {
- ASSERT(me->fieldDecl->mode==PKW_initializeOnly); 
+ ASSERT(me->fieldDecl->PKWmode==PKW_initializeOnly); 
  me->value=v;
  me->valueSet=TRUE;
 }
