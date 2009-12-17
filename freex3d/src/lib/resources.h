@@ -151,7 +151,7 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request);
 resource_item_t* resource_create_from_string(const char *string);
 
 void push_resource_request(const char *request);
-void resource_identify(resource_item_t *base, resource_item_t *res);
+void resource_identify(resource_item_t *base, resource_item_t *res, char *parentUrl);
 bool resource_fetch(resource_item_t *res);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);

@@ -509,6 +509,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 {
 	resource_item_t *res;
 	struct Multi_String *url;
+	char *parentPath = NULL;
 
 	DEBUG_TEX("textureThread - working on %p (%s)\n"
 		  "which is node %p, nodeType %d status %s, opengltex %u, and frames %d\n",
@@ -526,6 +527,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 
 	case NODE_ImageTexture:
 		url = & (((struct X3D_ImageTexture *)entry->scenegraphNode)->url);
+		parentPath = ((struct X3D_ImageTexture *)entry->scenegraphNode)->__parenturl->strptr;
 		break;
 
 	case NODE_MovieTexture:
@@ -533,11 +535,13 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		return TRUE;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
+		parentPath = ((struct X3D_ImageTexture *)entry->scenegraphNode)->__parenturl->strptr;
 		break;
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 
 	case NODE_VRML1_Texture2:
 		url = & (((struct X3D_VRML1_Texture2 *)entry->scenegraphNode)->filename);
+		parentPath = ((struct X3D_ImageTexture *)entry->scenegraphNode)->__parenturl->strptr;
 		break;
 
 	}
@@ -548,7 +552,8 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
-		resource_identify(root_res, res);
+		resource_identify(NULL, res, parentPath);
+
 		if (resource_fetch(res)) {
 			if (texture_load_from_file(entry, res->actual_file)) {
 				res->status = ress_loaded;

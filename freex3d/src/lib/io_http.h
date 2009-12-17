@@ -36,6 +36,8 @@ char* download_url(const char *url, const char *tmp);
 extern char *currentWorkingUrl;
 
 void pushInputURL(char *url);
+void popInputURL();
+
 char *getInputURL();
 
 /* URL manipulation */

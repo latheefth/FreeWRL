@@ -39,6 +39,8 @@
 #include <io_http.h>
 #include <resources.h>
 #include <threads.h>
+#include "scenegraph/Vector.h"
+
 
 
 /*
@@ -273,15 +275,34 @@ char* download_url(const char *url, const char *tmp)
 /**
  *   For keeping track of current url (for parsing / textures).
  *
- *   FIXME: to be removed soon....
+ * this is a Vector; we keep track of n depths.
  */
 char *currentWorkingUrl = NULL;
+static struct Stack *urlStack = NULL;
 
 void pushInputURL(char *url) 
 {
+	char *stackEntry;
+
 	FREE_IF_NZ(currentWorkingUrl);
 	currentWorkingUrl = STRDUP(url);
 	DEBUG_MSG("current URL is %s\n", currentWorkingUrl);
+
+	/* push this one */
+	if (urlStack==NULL) {
+		urlStack = newVector (char *, 8);
+	}
+
+	stackEntry = STRDUP(url);
+	stack_push (char *, urlStack, stackEntry);
+
+	
+}
+
+void popInputURL() {
+	FREE_IF_NZ(currentWorkingUrl);
+	stack_pop((char *), urlStack);
+	currentWorkingUrl = vector_get (char *, urlStack,((struct Vector*)urlStack)->n);
 }
 
 char *getInputURL()
