@@ -46,6 +46,7 @@ $Id$
 #include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "../input/InputFunctions.h"
+#include "../input/EAIHelpers.h"	/* for newASCIIString() */
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CParse.h"
