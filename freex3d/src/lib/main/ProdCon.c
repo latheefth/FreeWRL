@@ -71,8 +71,6 @@
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
 
 
-#define VRML1ERRORMSG "FreeWRL does not parse VRML Version 1; please convert to VRML 2 or later"
-
 char* PluginPath = "/private/tmp";
 int PluginLength = 12;
 
@@ -230,6 +228,9 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 	inputFileType = determineFileType(input);
 	DEBUG_MSG("PARSE STRING, ft %d, fv %d.%d.%d\n",
 		  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
+printf ("PARSE STRING, ft %d, fv %d.%d.%d\n",
+                  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
+
 
 	switch (inputFileType) {
 	case IS_TYPE_XML_X3D:
@@ -242,7 +243,6 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 	case IS_TYPE_VRML1: {
 		char *newData = convert1To2(input);
 		ret = cParse (nRn,offsetof (struct X3D_Group, children), newData);
-		/* ConsoleMessage (VRML1ERRORMSG); */
 	}
 		break;
 	case IS_TYPE_COLLADA:
