@@ -38,6 +38,7 @@ X3D Key Device Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../input/EAIHelpers.h"	/* for newASCIIString() */
 
 #include "Component_KeyDevice.h"
 

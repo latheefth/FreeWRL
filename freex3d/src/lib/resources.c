@@ -40,7 +40,8 @@
 #include <resources.h>
 #include <threads.h>
 
-#include <vrml_parser/Structs.h>
+#include "vrml_parser/Structs.h"
+#include "input/InputFunctions.h"
 
 static void removeFilenameFromPath (char *path);
 

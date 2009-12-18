@@ -58,11 +58,13 @@ void EAI_RNewW(char *bufptr);
 void EAI_RW(char *bufptr);
 
 /* more function prototypes to avoid implicit declarations */
+void Parser_deleteParserForScanStringValueToMem(void);			/* from EAI_C_CommonFunctions.c */
 void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value, int isXML);
 									/* from EAI_C_CommonFunctions.c */
 int returnRoutingElementLength(int);					/* from EAI_C_CommonFunctions.c */
 void createLoadURL(char *);						/* from EAIEventsIn.c */
 void EAI_parse_commands(void);						/* from EAIEventsIn.c */
+void EAI_Anchor_Response(int);						/* from EAIEventsIn.c */
 
 /* debugging */
 char *eaiPrintCommand (char command);

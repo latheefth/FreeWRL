@@ -46,10 +46,12 @@ X3D Geospatial Component
 #include "Viewer.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../input/EAIHelpers.h"	/* for newASCIIString() */
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
 #include "Component_Geospatial.h"
+#include "Children.h"
 
 /*
 Coordinate Conversion algorithms were taken from 2 locations after

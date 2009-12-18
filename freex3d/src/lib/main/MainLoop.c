@@ -59,6 +59,7 @@
 #include "../input/InputFunctions.h"
 
 #include "../opengl/OpenGL_Utils.h"
+#include "../ui/statusbar.h"
 
 #ifdef AQUA
 #include "../ui/aquaInt.h"

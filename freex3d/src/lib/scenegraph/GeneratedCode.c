@@ -51,6 +51,7 @@
 /**********************************************************************************************/ 
  
 #include "../input/EAIHeaders.h" 
+#include "../input/EAIHelpers.h"
 #include "../x3d_parser/Bindable.h" 
  
 #include "Component_CubeMapTexturing.h" 

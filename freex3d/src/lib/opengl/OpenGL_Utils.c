@@ -30,6 +30,7 @@
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
+#include "../threads.h"		/* for isinputThreadParsing() */
 #include <display.h>
 #include <internal.h>
 

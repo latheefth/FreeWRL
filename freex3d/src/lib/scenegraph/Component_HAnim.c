@@ -40,6 +40,8 @@ X3D H-Anim Component
 #include "../main/headers.h"
 #include "../opengl/Material.h"
 
+#include "Children.h"
+
 /* #include "OpenFW_GL_Utils.h" */
 
 

@@ -51,7 +51,7 @@
 #include "../scenegraph/Viewer.h"
 
 #include "../opengl/RasterFont.h"
-
+#include "statusbar.h"
 
 static struct Uni_String *myline;
 

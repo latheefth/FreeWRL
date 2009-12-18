@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.32  2009/12/18 17:30:07  istakenv
+# fixed implicit declarations
+#
 # Revision 1.31  2009/12/09 22:19:11  crc_canada
 # Anchor - load URLs, add reference count for nodes, start worrying about disposing of nodes
 #
@@ -585,6 +588,7 @@ sub gen {
 		"/**********************************************************************************************/ \n".
 		" \n".
 		"#include \"../input/EAIHeaders.h\" \n".
+		"#include \"../input/EAIHelpers.h\" \n".
 		"#include \"../x3d_parser/Bindable.h\" \n".
 		" \n".
 		"#include \"Component_CubeMapTexturing.h\" \n".

@@ -77,6 +77,7 @@ Have fun! John A. Stewart, June 2009
 
 
 #include "LinearAlgebra.h"
+#include "Children.h"
 
 #define VRML1CHILDREN_COUNT int nc = node->VRML1children.n;
 

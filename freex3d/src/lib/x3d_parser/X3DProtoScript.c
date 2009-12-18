@@ -51,6 +51,7 @@ $Id$
 #include "../vrml_parser/CParse.h"
 #include "../input/InputFunctions.h"	/* resolving implicit declarations */
 #include "../input/EAIHeaders.h"	/* resolving implicit declarations */
+#include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 
 #include "X3DParser.h"
 #include "X3DProtoScript.h"

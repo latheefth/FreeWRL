@@ -51,6 +51,7 @@ $Id$
 #include "../input/SensInterps.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
 #include "../input/EAIHeaders.h"
+#include "../input/EAIHelpers.h"		/* for verify_Uni_String */
 
 #include "CRoutes.h"
 

@@ -42,9 +42,11 @@ X3D Networking Component
 #include <resources.h>
 
 #include "../input/EAIHeaders.h"
+#include "../input/EAIHelpers.h"
 #include "../opengl/Frustum.h"
 
 #include "Component_Networking.h"
+#include "Children.h"
 
 /* keep track of the Midi nodes. */
 static uintptr_t *MidiNodes = NULL;

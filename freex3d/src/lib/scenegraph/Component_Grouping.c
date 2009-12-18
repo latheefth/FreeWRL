@@ -44,6 +44,7 @@ X3D Grouping Component
 #include "../opengl/Material.h"
 
 #include "LinearAlgebra.h"
+#include "Children.h"
 
 void changed_Transform (struct X3D_Transform *node) { 
 	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Transform, metadata))

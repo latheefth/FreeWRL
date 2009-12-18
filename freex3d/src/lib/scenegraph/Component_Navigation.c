@@ -45,6 +45,7 @@ X3D Navigation Component
 #include "quaternion.h"
 #include "Viewer.h"
 #include "../opengl/Frustum.h"
+#include "Children.h"
 
 
 extern struct sCollisionInfo OldCollisionInfo;

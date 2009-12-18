@@ -30,6 +30,7 @@
 #include <system.h>
 #include <display.h>
 #include <internal.h>
+#include "../threads.h"
 
 #include <libFreeWRL.h>
 #include <list.h>
