@@ -290,7 +290,6 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 					char *cwd;
 					
 					if (parentUrl==NULL)  {
-printf ("resources, parentUrl is null, lets strdup the currentWorkingUrl, %u\n",currentWorkingUrl);
 						if (currentWorkingUrl==NULL) {
 							cwd = get_current_dir();
 						} else {
@@ -299,7 +298,6 @@ printf ("resources, parentUrl is null, lets strdup the currentWorkingUrl, %u\n",
 					} else { 
 						cwd = STRDUP(parentUrl);
 					}
-					printf("cwd=%s\n",cwd);
 						
 					removeFilenameFromPath(cwd);
 
