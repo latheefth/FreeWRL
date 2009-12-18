@@ -92,25 +92,20 @@ printf ("remove_filename_from_path, returning :%s:\n",rv);
 
 char *get_current_dir()
 {
-#ifdef _GNU_SOURCE
-	return getcwd(NULL, 0);
-#else
 	char *cwd;
 	cwd = MALLOC(PATH_MAX);
 	getcwd(cwd, PATH_MAX);
-#ifdef _MSC_VER
 	{
 			int jj,ll;
 			ll = strlen(cwd);
+#ifdef _MSC_VER
 			for( jj=0;jj<ll;jj++)
 				if(cwd[jj] == '\\' ) cwd[jj] = '/';
+#endif
 			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
 			cwd[ll+1] = '\0';
 	}
-	printf("cwd from get_current_dir io_files.c L90 =[%s]\n",cwd);
-#endif
 	return cwd;
-#endif
 }
 
 /*
