@@ -244,6 +244,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 		break;
 	case IS_TYPE_COLLADA:
 		ConsoleMessage ("Collada not supported yet");
+		ret = ColladaParse (nRn, input);
 		break;
 	case IS_TYPE_SKETCHUP:
 		ConsoleMessage ("Google Sketchup format not supported yet");
