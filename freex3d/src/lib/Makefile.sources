@@ -65,6 +65,9 @@ x3d_parser/X3DProtoScript.c \
 x3d_parser/X3DProtoScript.h \
 x3d_parser/capabilitiesHandler.c \
  \
+non_web3d_formats/ColladaParser.h \
+non_web3d_formats/ColladaParser.c \
+ \
 world_script/CScripts.h \
 world_script/CScripts.c \
 world_script/fieldGet.h \
