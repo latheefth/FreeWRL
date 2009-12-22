@@ -552,7 +552,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
-		resource_identify(NULL, res, parentPath);
+		resource_identify(root_res, res, parentPath);
 
 		if (resource_fetch(res)) {
 			if (texture_load_from_file(entry, res->actual_file)) {

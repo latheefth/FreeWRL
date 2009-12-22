@@ -48,12 +48,16 @@
 #define READSIZE 2048
 
 
-char * stripLocalFileName (char * origName) {
+char * stripLocalFileName (char * origName) 
+{
+	if (!origName)
+		return NULL;
+
 	/* remove whitespace, etc */
 	while ((*origName != '\0') && (*origName <= ' ')) origName++;
 
         if ((strncmp(origName,"file://", strlen("file://"))== 0) || 
-        (strncmp(origName,"FILE://", strlen("FILE://"))== 0)) {
+	    (strncmp(origName,"FILE://", strlen("FILE://"))== 0)) {
 		origName += strlen ("FILE://");
 		return origName;
 	}

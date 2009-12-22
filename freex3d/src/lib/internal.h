@@ -259,7 +259,9 @@ void *freewrlStrdup(int line, char *file, char *str);
 # define TEMPNAM tempnam
 #endif
 
+
 #else /* defined(FW_DEBUG) && defined(DEBUG_MALLOC) */
+
 
 # define MALLOC malloc
 # define REALLOC realloc
@@ -284,6 +286,38 @@ void *freewrlStrdup(int line, char *file, char *str);
                          else { \
                              DEBUG_MEM("double free: %s:%d\n", __FILE__, __LINE__); \
                          }
+
+
+/* New ptr/string guarded code:
+   this macro free the original pointed ptr (void* or char*)
+*/
+#define PTR_REPLACE(_ptr,_newptr) do {					\
+	if (_ptr != _newptr) {						\
+	if (_ptr) {							\
+		DEBUG_MSG("replacing ptr %p with %p\n", _ptr, _newptr); \
+		FREE(_ptr);						\
+		_ptr = _newptr;						\
+	} else {							\
+	DEBUG_MSG("ptr newly assigned value %p\n", _newptr);		\
+	_ptr = _newptr;							\
+	}								\
+	} else {							\
+		DEBUG_MSG("replacing ptr with the same value (warning)\n"); \
+	} } while (0)
+
+#define PTR_REPLACE_DUP(_ptr,_newptr) do {				\
+	if (_ptr != _newptr) {						\
+	if (_ptr) {							\
+		DEBUG_MSG("replacing ptr %p with %p\n", _ptr, _newptr); \
+		FREE(_ptr);						\
+		_ptr = STRDUP(_newptr);					\
+	} else {							\
+	DEBUG_MSG("ptr newly assigned value %p\n", _newptr);		\
+	_ptr = STRDUP(_newptr);						\
+	}								\
+	} else {							\
+		DEBUG_MSG("replacing ptr with the same value (warning)\n"); \
+	} } while (0)
 
 
 /* THIS HAS TO BE FIXED TOO :) */
