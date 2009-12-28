@@ -1376,6 +1376,55 @@ extern const indexT X3DSPECIAL_COUNT;
 
 const char *stringX3DSPECIALType(int st);
 
+/* Table of built-in TEXTUREBOUNDARY keywords */
+extern const char *TEXTUREBOUNDARYKEYWORDS[];
+extern const indexT TEXTUREBOUNDARYKEYWORDS_COUNT;
+#define TB_CLAMP_TO_BOUNDARY	0
+#define TB_REPEAT	1
+#define TB_MIRRORED_REPEAT	2
+#define TB_CLAMP	3
+#define TB_CLAMP_TO_EDGE	4
+
+const char *stringTEXTUREBOUNDARYKeywordType(int st);
+
+/* Table of built-in TEXTUREMAGNIFICATION keywords */
+extern const char *TEXTUREMAGNIFICATIONKEYWORDS[];
+extern const indexT TEXTUREMAGNIFICATIONKEYWORDS_COUNT;
+#define TMAG_NICEST	0
+#define TMAG_NEAREST_PIXEL	1
+#define TMAG_FASTEST	2
+#define TMAG_DEFAULT	3
+#define TMAG_AVG_PIXEL	4
+
+const char *stringTEXTUREMAGNIFICATIONKeywordType(int st);
+
+/* Table of built-in TEXTUREMINIFICATION keywords */
+extern const char *TEXTUREMINIFICATIONKEYWORDS[];
+extern const indexT TEXTUREMINIFICATIONKEYWORDS_COUNT;
+#define TMIN_NEAREST_PIXEL_AVG_MIPMAP	0
+#define TMIN_DEFAULT	1
+#define TMIN_NEAREST_PIXEL	2
+#define TMIN_NICEST	3
+#define TMIN_AVG_PIXEL_AVG_MIPMAP	4
+#define TMIN_FASTEST	5
+#define TMIN_AVG_PIXEL	6
+#define TMIN_AVG_PIXEL_NEAREST_MIPMAP	7
+#define TMIN_NEAREST_PIXEL_NEAREST_MIPMAP	8
+
+const char *stringTEXTUREMINIFICATIONKeywordType(int st);
+
+/* Table of built-in TEXTURECOMPRESSION keywords */
+extern const char *TEXTURECOMPRESSIONKEYWORDS[];
+extern const indexT TEXTURECOMPRESSIONKEYWORDS_COUNT;
+#define TC_NICEST	0
+#define TC_LOW	1
+#define TC_FASTEST	2
+#define TC_DEFAULT	3
+#define TC_HIGH	4
+#define TC_MEDIUM	5
+
+const char *stringTEXTURECOMPRESSIONKeywordType(int st);
+
 /* Table of built-in VRML1Modifier keywords */
 extern const char *VRML1Modifier[];
 extern const indexT VRML1Modifier_COUNT;
