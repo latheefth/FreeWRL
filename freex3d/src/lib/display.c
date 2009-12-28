@@ -167,6 +167,14 @@ int display_initialize()
 	/* Display full initialized :P cool ! */
 	display_initialized = TRUE;
 
+	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
+
+#if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
+	if (RUNNINGASPLUGIN) {
+		sendXwinToPlugin();
+	}
+#endif
+
 	return TRUE;
 }
 
