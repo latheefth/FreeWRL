@@ -219,13 +219,15 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 	}
 #endif
 
+	network = FALSE;
 	if (base) {
-		network = TRUE;
+		network = base->network;
 		PTR_REPLACE(res->parent, base);
 	}
 
 	/* URI specifier at the beginning ? */
 	res->network = checkNetworkFile(res->request);
+	DEBUG_RES("resource_identify: check network resource: %s\n", BOOL_STR(res->network));
 
 	/* Parse request as url or local file ? */
 	if (res->network || network) {
