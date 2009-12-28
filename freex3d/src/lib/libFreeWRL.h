@@ -66,11 +66,8 @@ void terminateFreeWRL();
 /**
  * General functions
  */
-#if defined(WIN32)
-# define ConsoleMessage printf
-#else
 int ConsoleMessage(const char *fmt, ...);
-#endif
+//#endif
 
 void create_EAI();
 void create_MIDIEAI();

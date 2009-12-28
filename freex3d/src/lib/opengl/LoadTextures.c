@@ -292,7 +292,7 @@ bitmapInfo = kCGImageAlphaPremultipliedFirst |
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
-static bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
+bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename)
 {
 
 /* WINDOWS */
