@@ -261,15 +261,25 @@ int ConsoleMessage(const char *fmt, ...) {
 		FWbuffer[0] = '\0';
 	}
 #else
+
+	/* I want all output to be printed (debugging plugin */
+	printf (FWbuffer); 
+	if (FWbuffer[strlen(FWbuffer-1)] != '\n') {
+		printf ("\n");
+	}
+
 	/* are we running under Motif or Gtk? */
+
 #if defined(TARGET_MOTIF)
 		setConsoleMessage (FWbuffer);
 # else
 		if (RUNNINGASPLUGIN) {
 			freewrlSystem (FWbuffer);
-		} else {
-			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n");
 		}
+/* 		else { */
+/* 			printf (FWbuffer); if (FWbuffer[strlen(FWbuffer-1)] != '\n') printf ("\n"); */
+/* 		} */
+
 #endif //TARGET_MOTIF
 
 #endif
