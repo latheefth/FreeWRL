@@ -106,6 +106,7 @@ typedef struct {
 	
 	int texture_units;
 	int max_texture_size;
+	float anisotropicDegree;
 	
 } s_renderer_capabilities_t;
 
