@@ -457,15 +457,19 @@ bool initialize_GL()
 
 
 #if defined (TARGET_AQUA)
-        /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
-           we make it the current Context. */
-
-        /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
-        if (RUNNINGASPLUGIN) {
-                aglSetCurrentContext(aqglobalContext);
-        } else {
+#ifdef OLDCODE
+OLDCODE        /* aqglobalContext is found at the initGL routine in MainLoop.c. Here
+OLDCODE           we make it the current Context. */
+OLDCODE
+OLDCODE        /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
+OLDCODE        if (RUNNINGASPLUGIN) {
+OLDCODE                aglSetCurrentContext(aqglobalContext);
+OLDCODE        } else {
+#endif
                 CGLSetCurrentContext(myglobalContext);
-        }
+#ifdef OLDCODE
+OLDCODE        }
+#endif
 #endif
 
 	initialize_rdr_caps();
