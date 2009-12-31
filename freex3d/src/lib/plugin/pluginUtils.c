@@ -397,7 +397,7 @@ void sendXwinToPlugin()
 	XWindowAttributes mywin;
 
 	/* send the window id back to the plugin parent */
-	printf("sendXwinToPlugin...\n");
+	DEBUG_MSG("Executing sendXwinToPlugin...\n");
 
         XGetWindowAttributes(Xdpy,Xwin, &mywin);
         DEBUG_MSG("sendXwinToPlugin: sendXwin starting, mapped_state %d, IsUnmapped %d, isUnviewable %d isViewable %d\n",mywin.map_state, IsUnmapped, IsUnviewable, IsViewable);
