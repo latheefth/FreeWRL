@@ -132,6 +132,20 @@ char *__fw_strndup(const char *s, size_t n);
 # include <math.h>
 #endif
 
+/* Those macro may not be declared everywhere */
+#if !defined(min)
+# define min(X, Y)                     \
+     ({ typeof (X) __x = (X), __y = (Y);   \
+        (__x < __y) ? __x : __y; })
+#endif
+
+#if !defined(max)
+# define max(X, Y)                     \
+     ({ typeof (X) __x = (X), __y = (Y);   \
+        (__x > __y) ? __x : __y; })
+#endif
+
+
 #if HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
