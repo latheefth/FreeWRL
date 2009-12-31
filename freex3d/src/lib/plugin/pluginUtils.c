@@ -186,11 +186,13 @@ int doBrowserAction()
 	if (waitingForURLtoLoad) return urlLoadingStatus();
 
 	/* is this an Anchor (thus Multi-URL call) or a single url call? */
-#ifdef wrwe
-       AnchorsAnchor = NULL;
-        FREE_IF_NZ(OSX_replace_world_from_console);
-        OSX_replace_world_from_console = STRDUP(str);
-#endif
+	/* OSX frontend and now plugin for loading up a new url does:
+	#ifdef wrwe
+	       AnchorsAnchor = NULL;
+	        FREE_IF_NZ(OSX_replace_world_from_console);
+	        OSX_replace_world_from_console = STRDUP(str);
+	#endif
+	*/
 
 	if (AnchorsAnchor != NULL) {
 		Anchor_url = AnchorsAnchor->url;
@@ -227,7 +229,7 @@ int doBrowserAction()
 			}
 		}
 	} else {
-		printf ("we have a single replacement here\n");
+		/* printf ("\nwe have a single replacement here\n"); */
 		res = resource_create_single (OSX_replace_world_from_console);
 		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
