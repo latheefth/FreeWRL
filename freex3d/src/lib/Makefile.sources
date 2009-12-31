@@ -177,7 +177,6 @@ opengl/LoadTextures.c \
 opengl/RasterFont.h \
 opengl/RasterFont.c \
  \
-ui/statusbar.c \
 ui/aquaInt.h \
  \
 plugin/pluginUtils.c \
