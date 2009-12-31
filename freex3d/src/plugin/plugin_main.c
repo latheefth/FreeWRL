@@ -169,10 +169,14 @@ static void print_here2(FW_PluginInstance *me, char * xx)
 
 			hostname = MALLOC(10);
 			if (gethostname(hostname, 10) < 0) {
+				int err = errno;
+				fprintf(stderr, "system error: %s\n", strerror(err));
 				sprintf(hostname, "(unknown)");
 			}
 			username = getlogin();
 			if (!username) {
+				int err = errno;
+				fprintf(stderr, "system error: %s\n", strerror(err));
 				username = "[unknown]";
 			}
 
