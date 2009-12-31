@@ -168,17 +168,17 @@ int create_colormap()
 	return TRUE;
 }
 
-void setMenuStatus(char *stat)
-{
-	strncpy(myMenuStatus, stat, MAXSTAT);
-	setMessageBar();
-}
+/* void setMenuStatus(char *stat) */
+/* { */
+/* 	strncpy(myMenuStatus, stat, MAXSTAT); */
+/* 	setMessageBar(); */
+/* } */
 
-void setMenuFps(float fps)
-{
-	myFps = fps;
-	setMessageBar();
-}
+/* void setMenuFps(float fps) */
+/* { */
+/* 	myFps = fps; */
+/* 	setMessageBar(); */
+/* } */
 
 void resetGeometry()
 {

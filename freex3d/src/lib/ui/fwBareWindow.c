@@ -45,10 +45,10 @@ static XSetWindowAttributes Swa;
 
 /* we have no buttons; just make these functions do nothing */
 void frontendUpdateButtons() {}
-void setMenuButton_collision (int val) {}
-void setMenuButton_headlight (int val) {}
-void setMenuButton_navModes (int type) {}
-void setMenuButton_texSize (int size) {}
+/* void setMenuButton_collision (int val) {} */
+/* void setMenuButton_headlight (int val) {} */
+/* void setMenuButton_navModes (int type) {} */
+/* void setMenuButton_texSize (int size) {} */
 void setMessageBar() {}
 
 
