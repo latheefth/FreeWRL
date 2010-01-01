@@ -167,17 +167,17 @@ static void print_here2(FW_PluginInstance *me, char * xx)
 
 			char *logfilename, *hostname, *username;
 
-			hostname = MALLOC(10);
-			if (gethostname(hostname, 10) < 0) {
+			hostname = MALLOC(4096);
+			if (gethostname(hostname, 4096) < 0) {
 				int err = errno;
 				fprintf(stderr, "system error: %s\n", strerror(err));
-				sprintf(hostname, "(unknown)");
+				sprintf(hostname, "unknown");
 			}
 			username = getlogin();
 			if (!username) {
 				int err = errno;
 				fprintf(stderr, "system error: %s\n", strerror(err));
-				username = "[unknown]";
+				username = "unknown";
 			}
 
 			logfilename = MALLOC(strlen("/tmp/npfreewrl_%s-%s.log")
@@ -187,6 +187,8 @@ static void print_here2(FW_PluginInstance *me, char * xx)
 				hostname, username);
 
 			tty = fopen(logfilename, "a");
+
+			FREE(hostname);
 			
 			if (tty == NULL) {
 				PluginVerbose = FALSE;
