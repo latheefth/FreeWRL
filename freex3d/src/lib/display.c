@@ -213,7 +213,7 @@ void setScreenDim(int wi, int he)
  */
 GLvoid resize_GL(GLsizei width, GLsizei height)
 { 
-    glViewport( 0, 0, width, height ); 
+    FW_GL_VIEWPORT( 0, 0, width, height ); 
 }
 
 /**
