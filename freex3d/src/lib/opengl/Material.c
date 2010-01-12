@@ -91,12 +91,12 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 			
 
 	/* compare default values with new */
-	FW_GL_MATERIALF(face,pname,param);
+	FW_GL_MATERIALFV(face,pname,param);
 	if (pname == GL_DIFFUSE)
 	{
 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
 		FW_GL_COLOR_MATERIAL(face,pname);
-		FW_GL_COLOR_4FV(param);
+		FW_GL_COLOR4FV(param);
 	}
 }
 

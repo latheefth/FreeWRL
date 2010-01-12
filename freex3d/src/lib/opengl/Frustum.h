@@ -82,7 +82,7 @@ extern void* *occluderNodePointer;
 /* printf ("beginOcclusionQuery, potoc %d occQ %d\n",potentialOccluderCount, OccQuerySize, node->__occludeCheckCount); */ \
 			if (node->__occludeCheckCount < 0) { \
 				/* printf ("beginOcclusionQuery, query %u, node %s\n",potentialOccluderCount, stringNodeType(node->_nodeType)); */ \
-				FW_GL_BEGIN_QEURY(GL_SAMPLES_PASSED, OccQueries[potentialOccluderCount]); \
+				FW_GL_BEGIN_QUERY(GL_SAMPLES_PASSED, OccQueries[potentialOccluderCount]); \
 				occluderNodePointer[potentialOccluderCount] = (void *)node; \
 			} \
 		} \
