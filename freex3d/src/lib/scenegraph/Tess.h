@@ -31,7 +31,9 @@ $Id$
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
 extern struct X3D_PolyRep *global_tess_polyrep;
+#ifndef IPHONE
 extern GLUtriangulatorObj *global_tessobj;
+#endif
 extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
 

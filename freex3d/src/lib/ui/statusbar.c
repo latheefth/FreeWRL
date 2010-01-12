@@ -93,7 +93,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 void setup_projection(int pick, int x, int y) 
 {
 	GLsizei screenwidth2 = screenWidth;
-	GLdouble aspect2 = screenRatio;
+	GLDOUBLE aspect2 = screenRatio;
 	GLint xvp = 0;
 	if(Viewer.sidebyside) 
 	{

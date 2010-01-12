@@ -32,8 +32,8 @@
 #define __FREEWRL_STRUCTS_H__
 
 
-struct point_XYZ {GLdouble x,y,z;};
-struct orient_XYZA {GLdouble x,y,z,a;};
+struct point_XYZ {GLDOUBLE x,y,z;};
+struct orient_XYZA {GLDOUBLE x,y,z,a;};
 
 struct X3D_Virt {
 	void (*prep)(void *);

@@ -832,10 +832,10 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 
 #undef TESTING
 #ifdef TESTING
-	GLdouble xxmat[16];
+	GLDOUBLE xxmat[16];
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glLoadIdentity();
+	FW_GL_LOAD_IDENTITY();
 #endif
 
 

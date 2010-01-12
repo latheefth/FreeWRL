@@ -2742,7 +2742,7 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 		ov.z = -(node->EXTENT_MAX_Z);
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);

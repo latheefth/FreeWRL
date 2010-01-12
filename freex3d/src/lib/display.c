@@ -75,6 +75,7 @@ GLenum _global_gl_err;
 #if defined (TARGET_AQUA)
 /* display part specific to Mac */
 
+#ifndef IPHONE
 CGLContextObj myglobalContext;
 #ifdef OLDCODE
 AGLContext aqglobalContext; 
@@ -101,6 +102,7 @@ int PaneClipcl;
 int PaneClipwidth;
 int PaneClipheight;
 int PaneClipChanged = FALSE;
+#endif
 #endif
 
 static char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};

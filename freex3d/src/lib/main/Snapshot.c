@@ -74,7 +74,7 @@ int doSnapshot = FALSE;		/* are we doing a snapshot?			*/
 void saveSnapSequence();
 #endif
 
-#ifdef WIN32
+#if defined( WIN32) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
 void Snapshot () {}

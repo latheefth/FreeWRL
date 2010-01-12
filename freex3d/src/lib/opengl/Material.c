@@ -65,7 +65,7 @@ void do_shininess (GLenum face, float shininess) {
 		if (shininess>MAX_SHIN){shininess = MAX_SHIN;}else{shininess=MIN_SHIN;}
 	}
 
-	glMaterialf (face, GL_SHININESS, (float)shininess);
+	FW_GL_MATERIALF(face, GL_SHININESS, (float)shininess);
 }
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
@@ -91,12 +91,12 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 			
 
 	/* compare default values with new */
-	glMaterialfv (face,pname,param);
+	FW_GL_MATERIALF(face,pname,param);
 	if (pname == GL_DIFFUSE)
 	{
 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
-		glColorMaterial (face,pname);
-		glColor4fv(param);
+		FW_GL_COLOR_MATERIAL(face,pname);
+		FW_GL_COLOR_4FV(param);
 	}
 }
 

@@ -202,7 +202,7 @@ static bool texture_load_from_MovieTexture (struct textureTableIndexStruct* this
 }
 
 
-#if defined (TARGET_AQUA)
+#if defined (TARGET_AQUA) && !defined(IPHONE)
 /* render from aCGImageRef into a buffer, to get EXACT bits, as a CGImageRef contains only
 estimates. */
 /* from http://developer.apple.com/qa/qa2007/qa1509.html */
@@ -336,7 +336,7 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 #endif
 
 /* OSX */
-#if defined (TARGET_AQUA)
+#if defined (TARGET_AQUA) && !defined(IPHONE)
 
 #include <Carbon/Carbon.h>
 #include <QuickTime/QuickTime.h>

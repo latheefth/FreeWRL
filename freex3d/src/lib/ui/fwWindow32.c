@@ -113,7 +113,7 @@ void setMenuFps (float fps) {
 */
 
 GLfloat latitude, longitude, latinc, longinc; 
-GLdouble radius; 
+GLDOUBLE radius; 
  
 
 #define GLOBE    1 
@@ -159,7 +159,7 @@ GLvoid createObjects()
 GLvoid initializeGL(GLsizei width, GLsizei height) 
 { 
     GLfloat     maxObjectSize, aspect; 
-    GLdouble    near_plane, far_plane; 
+    GLDOUBLE    near_plane, far_plane; 
  
     glClearIndex( (GLfloat)BLACK_INDEX); 
     glClearDepth( 1.0 ); 
@@ -186,8 +186,8 @@ GLvoid initializeGL(GLsizei width, GLsizei height)
     createObjects(); 
 } 
  
-void polarView(GLdouble radius, GLdouble twist, GLdouble latitude, 
-	       GLdouble longitude) 
+void polarView(GLDOUBLE radius, GLDOUBLE twist, GLDOUBLE latitude, 
+	       GLDOUBLE longitude) 
 { 
     glTranslated(0.0, 0.0, -radius); 
     glRotated(-twist, 0.0, 0.0, 1.0); 

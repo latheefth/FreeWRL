@@ -330,6 +330,12 @@ void *freewrlStrdup(int line, char *file, char *str);
 #define M_PI acos(-1.0)
 #endif
 
+#ifdef IPHONE
+#include <stddef.h>
+#define HAVE_BOOLEAN 1    
+#define M_PI acos(-1.0)
+#endif
+
 /* Move those to a better place: */
 void initialize_parser();
 
