@@ -455,9 +455,6 @@ bool initialize_GL()
         float dif[] = { 1.0, 1.0, 1.0, 1.0 };
         float shin[] = { 0.6, 0.6, 0.6, 1.0 };
         float As[] = { 0.0, 0.0, 0.0, 1.0 };
-	int checktexsize;
-	GLenum err;
-
 
 #if defined (TARGET_AQUA)
 #ifdef OLDCODE
@@ -828,8 +825,9 @@ printf ("kill 12\n");
 	setMenuStatus("NONE");
 
 printf ("kill 13\n");
+#ifdef TARGET_AQUA
 	myglobalContext = NULL; 
-
+#endif
 
 }
 
