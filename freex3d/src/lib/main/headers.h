@@ -957,7 +957,7 @@ void do_TimeTrigger (void *node);
 		if (v != cullFace) {	\
 			cullFace = v; \
 			if (cullFace == 1) {FW_GL_ENABLE(GL_CULL_FACE);}\
-			else { FW_GL_DISABLE(GL_CULL_FACE);}\
+			else { FW_GL_DISABLE(GL_CULL_FACE);} \
 		}
 #define DISABLE_CULL_FACE CULL_FACE(0)
 #define ENABLE_CULL_FACE CULL_FACE(1)
