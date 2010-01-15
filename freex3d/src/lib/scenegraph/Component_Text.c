@@ -40,6 +40,7 @@ X3D Text Component
 #include "../vrml_parser/Structs.h"
 #include "../input/InputFunctions.h"
 #include "../main/headers.h"
+#include "../opengl/Textures.h"
 
 #include "Collision.h"
 #include "LinearAlgebra.h"

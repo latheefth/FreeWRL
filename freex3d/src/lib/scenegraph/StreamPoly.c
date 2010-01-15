@@ -37,6 +37,7 @@ $Id$
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Textures.h"
 
 #include "Polyrep.h"
 

@@ -36,6 +36,7 @@
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/Textures.h"
 
 #include "Polyrep.h"
 #include "Collision.h"
@@ -92,8 +93,8 @@ int render_proximity;
 int render_collision;
 
 /* texture stuff - see code. Need array because of MultiTextures */
-GLuint bound_textures[MAX_MULTITEXTURE];
-int texture_count;
+GLuint boundTextureStack[MAX_MULTITEXTURE];
+int textureStackTop;
 
 int	have_transparency=FALSE;/* did any Shape have transparent material? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */

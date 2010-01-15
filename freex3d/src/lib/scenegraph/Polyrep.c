@@ -39,6 +39,7 @@ $Id$
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
+#include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
 
 #include "Polyrep.h"
