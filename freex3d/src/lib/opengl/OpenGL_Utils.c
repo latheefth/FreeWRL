@@ -742,7 +742,11 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#endif
 
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), DispThrd);
+#ifdef _MSC_VER
+	if (pthread_self().p != DispThrd.p ) {
+#else
 	if (pthread_self() != DispThrd) {
+#endif
 		ConsoleMessage ("kill_oldWorld must run in the displayThread called at %s:%d\n",file,line);
 		return;
 	}
@@ -1532,7 +1536,7 @@ void startOfLoopNodeUpdates(void) {
 			if (*setBindPtr < 100) {
 				/* printf ("Found a vp to modify %d\n",node); */
 				/* up_vector is reset after a bind */
-				if (*setBindPtr==1) reset_upvector();
+				//if (*setBindPtr==1) reset_upvector();
 				bind_node ((void *)node, &viewpoint_tos,&viewpoint_stack[0]);
 			}
 			setBindPtr = NULL;

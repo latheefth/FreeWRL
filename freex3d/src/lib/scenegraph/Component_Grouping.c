@@ -324,10 +324,11 @@ void child_Transform (struct X3D_Transform *node) {
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	      // transform3x3(&tupv,&tupv,modelMatrix);
+	      // matrotate2v(upvecmat,ViewerUpvector,tupv);
+	      // matmultiply(modelMatrix,upvecmat,modelMatrix);
 	       /* matinverse(upvecmat,upvecmat); */
+			matmultiply(modelMatrix,FallInfo.avatar2collision,modelMatrix); 
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];

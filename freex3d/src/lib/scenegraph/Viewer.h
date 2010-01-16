@@ -74,7 +74,7 @@ Viewer ???
 #define STRING_SIZE 256
 
 #ifdef WIN32
-#define IN_FILE "C:/tmp/inpdev"
+#define IN_FILE "C:/tmp/inpdev.txt"
 #else
 #define IN_FILE "/tmp/inpdev"
 #endif
