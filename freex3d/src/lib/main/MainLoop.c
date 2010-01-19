@@ -1059,10 +1059,10 @@ static void setup_viewpoint() {
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 
 	/*
-	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	fw_glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	printf ("\n");
 	printf ("setup_viewpoint, proj  %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
-	fwGetDoublev(GL_MODELVIEW_MATRIX, projMatrix);
+	fw_glGetDoublev(GL_MODELVIEW_MATRIX, projMatrix);
 	printf ("setup_viewpoint, model %lf %lf %lf\n",projMatrix[12],projMatrix[13],projMatrix[14]);
 	printf ("setup_viewpoint, currentPos %lf %lf %lf\n",        Viewer.currentPosInModel.x, 
 	        Viewer.currentPosInModel.y ,

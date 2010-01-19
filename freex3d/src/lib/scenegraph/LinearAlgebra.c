@@ -515,12 +515,8 @@ void scale_to_matrix (double *mat, struct point_XYZ *scale) {
 	MAT22 *=scale->z;
 }
 
+static double identity[] = { 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
+
 void loadIdentityMatrix (double *mat) {
-	int i;
-        for (i=0; i<16; i++) {
-                double d;
-                if ((i==0) || (i==5) || (i==10) || (i==15)) { d = 1.0;
-                } else { d = 0.0; }
-                mat[i] = d;
-        }
+        memcpy((void *)mat, (void *)identity, sizeof(double)*16);
 }

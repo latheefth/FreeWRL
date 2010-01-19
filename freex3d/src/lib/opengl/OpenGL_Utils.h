@@ -46,4 +46,17 @@ void lightState (GLint light, int state);
 void drawBBOX(struct X3D_Node *node);
 
 
+void fw_glMatrixMode(GLint mode);
+void fw_glLoadIdentity(void);
+void fw_glPushMatrix(void);
+void fw_glPopMatrix(void);
+void fw_glTranslated(double a, double b, double c);
+void fw_glTranslatef(float a, float b, float c);
+void fw_glRotated (double a, double b, double c, double d);
+void fw_glRotatef (float a, float b, float c, float d);
+void fw_glScaled (double a, double b, double c);
+void fw_glScalef (float a, float b, float c);
+void fw_glGetDoublev (int ty, double *mat);
+
+
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */
