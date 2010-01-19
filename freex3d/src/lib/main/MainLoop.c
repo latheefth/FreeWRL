@@ -1322,7 +1322,6 @@ void _displayThread()
 {
 	ENTER_THREAD("display");
 
-printf ("displayThread is %u\n",pthread_self());
 	/* Initialize display */
 	if (!display_initialize()) {
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
