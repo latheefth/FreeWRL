@@ -143,6 +143,7 @@ typedef struct viewer_fly {
 
 typedef struct viewer {
 	struct point_XYZ Pos;
+	struct point_XYZ LastPos; /* dug9 added for walking>wall penetration detection&correction jan192010 */
 	struct point_XYZ AntiPos;
 	struct point_XYZ currentPosInModel;
 	Quaternion Quat;

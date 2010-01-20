@@ -953,6 +953,9 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 
 	/* a pointer to the tex data. We increment the pointer for movie texures */
 	mytexdata = me->texdata;
+#ifdef _MSC_VER
+	if(!mytexdata) return; /*dug9 -not sure how it gets in here with no image data, but then it bombs in glTexImage2D below. In a big scene all the textures eventually shows up */
+#endif
 
 	glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
 	

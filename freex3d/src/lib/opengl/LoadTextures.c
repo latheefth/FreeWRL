@@ -302,6 +302,7 @@ bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *file
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
 		return FALSE;
     }
+	return TRUE;
 
 
 #endif
@@ -608,7 +609,7 @@ static void texture_process_list(s_list_t *item)
 		break;
 		
 	default:
-		DEBUG_MSG("Could not process texture entry: %s\n", entry->filename);
+		//DEBUG_MSG("Could not process texture entry: %s\n", entry->filename);
 		remove_it = TRUE;
 		break;
 	}
