@@ -1040,7 +1040,8 @@ static void render_collisions() {
 		{
 			/* set up last - current vector */
 			double plen = 0.0;
-			struct point_XYZ lastpos = viewer_get_lastpos();
+			struct point_XYZ lastpos = viewer_get_lastpos(); /* in viewer/avatar space */
+			transform(&lastpos,&lastpos,FallInfo.avatar2collision); /* in collision space */
 			/* if vector length == 0 can't penetrate - don't bother to check */
 			plen = sqrt(vecdot(&lastpos,&lastpos));
 			if(APPROX(plen,0.0))
