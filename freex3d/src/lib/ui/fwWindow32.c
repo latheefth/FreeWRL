@@ -214,7 +214,7 @@ GLvoid drawScene(GLvoid)
     glCallList(GLOBE); 
  
     glIndexi(GREEN_INDEX); 
-    FW_GL_PUSHMATRIX(); 
+    FW_GL_PUSH_MATRIX(); 
     FW_GL_TRANSLATE_F(0.8F, -0.65F, 0.0F); 
     FW_GL_ROTATE_F(30.0F, 1.0F, 0.5F, 1.0F); 
     glCallList(CYLINDER); 
