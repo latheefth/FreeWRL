@@ -431,6 +431,9 @@ OLDCODE        }
         /* first events (clock ticks, etc) if we have other things to do, yield */
         if (doEvents) do_first (); else sched_yield();
 
+	/* ensure depth mask turned on here */
+	FW_GL_DEPTHMASK(GL_TRUE);
+
         /* actual rendering */
         if (onScreen)
 			render();
@@ -855,14 +858,8 @@ static void render()
 	
 	/*  5. Blended Nodes*/
 	if (have_transparency) {
-		/*  turn off writing to the depth buffer*/
-		FW_GL_DEPTHMASK(FALSE);
-		
 		/*  render the blended nodes*/
 		render_hier(rootNode, VF_Geom | VF_Blend);
-		
-		/*  and turn writing to the depth buffer back on*/
-		FW_GL_DEPTHMASK(TRUE);
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	}
 	

@@ -230,8 +230,14 @@ int ConsoleMessage0(const char *fmt, va_list args)
 	retval = 0;
 	//Console_writeToCRT = 0; //test
 	//Console_writeToFile = 1; //test
-	if(Console_writeToCRT)
+	if(Console_writeToCRT) {
 		retval = vfprintf(stdout,fmt,args); //printf(buffer);
+#ifdef TARGET_AQUA
+	/* JohnS - we need a carrage return here */
+	printf ("\n");
+#endif
+	}
+
 	if(Console_writeToFile)
 	{
 		if(!consolefileOpened)
@@ -486,23 +492,12 @@ int ConsoleMessage(const char *fmt, ...) {
 	syslog (LOG_ALERT, FWbuffer);
 
 	/* print this to the application console log if running standalone, or speak it if running as a plug in */
+printf ("Console message, might be able to print\n"); if (!RUNNINGASPLUGIN) printf ("not running as plugin\n"); else printf ("runasp\n");
+
 	if (!RUNNINGASPLUGIN) {
 		if (strcmp(FWbuffer, "\n") && strcmp(FWbuffer, "\n\n")) {
 			aquaSetConsoleMessage(FWbuffer);
 		}
-	} else {
-                char systemBuffer[STRING_LENGTH + 10];
-		int i;
-
-		/* remove any newlines; this may have been giving us problems */
-		for (i=0; i<strlen(FWbuffer); i++) {
-			if (FWbuffer[i] == '\n') { FWbuffer[i] = ' '; }
-		}
-
-		/* and call freewrlSystem to speak to the user */
-                sprintf(systemBuffer, "%s \"%s\"", FREEWRL_MESSAGE_WRAPPER, FWbuffer);
-                freewrlSystem(systemBuffer);
-		FWbuffer[0] = '\0';
 	}
 #else
 	/* are we running under Motif or Gtk? */

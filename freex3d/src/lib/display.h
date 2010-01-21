@@ -363,6 +363,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_LOAD_IDENTITY(aaa) {fw_glLoadIdentity();printf ("fw_glLoadIdentity\t at%s:%d\n",__FILE__,__LINE__);}
 	#define FW_GL_PUSH_MATRIX(aaa) {fw_glPushMatrix();printf ("fw_glPushMatrix\t at%s:%d\n",__FILE__,__LINE__);}
 	#define FW_GL_POP_MATRIX(aaa) {fw_glPopMatrix();printf ("fw_glPopMatrix\t at%s:%d\n",__FILE__,__LINE__);}
+	#define FW_GL_ALPHAFUNC(aaa,bbb){glAlphaFunc(aaa,bbb); printf ("glAlphaFunc at %s:%d\n",__FILE__,__LINE__);}
 	#define FW_GL_MATRIX_MODE(aaa) {fw_glMatrixMode(aaa); \
 		printf ("fw_glMatrixMode("); \
 		if (aaa==GL_TEXTURE) printf ("GL_TEXTURE"); \
@@ -481,6 +482,7 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
 
 #endif /* _MSC_VER */
+	#define FW_GL_ALPHAFUNC(aaa,bbb) glAlphaFunc(aaa,bbb); 
         #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) glScissor(aaa,bbb,ccc,ddd); 
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
         #define FW_GL_POP_ATTRIB(aaa) glPopAttrib(aaa); 
@@ -630,6 +632,7 @@ void setScreenDim(int wi, int he);
 #define FW_GL_PIXELZOOM(aaa,bbb)
 #define FW_GL_COLOR3F(aaa,bbb,ccc)
 #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd)
+#define FW_GL_ALPHAFUNC(aaa,bbb)
 #define FW_GL_ENABLE(aaa)
 #define FW_GL_DISABLE(aaa)
 #define FW_GL_ENABLECLIENTSTATE(aaa)

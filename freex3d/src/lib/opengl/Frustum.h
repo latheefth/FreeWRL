@@ -38,7 +38,7 @@ Global includes.
 #define EXTENT_MAX_Z _extent[4]
 #define EXTENT_MIN_Z _extent[5]
 
-#define RECORD_DISTANCE if (render_geom) {record_ZBufferDistance (X3D_NODE(node)); }
+#define RECORD_DISTANCE if (render_geom && (!render_blend)) {record_ZBufferDistance (X3D_NODE(node)); }
 
 #define OCCLUSION
 #define VISIBILITYOCCLUSION

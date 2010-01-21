@@ -946,7 +946,7 @@ static void move_texture_to_opengl(struct textureTableIndexStruct* me) {
 			minFilter = GL_NEAREST_MIPMAP_NEAREST;
 			magFilter = GL_NEAREST;
 		} else {
-			minFilter = GL_NEAREST_MIPMAP_LINEAR;
+			minFilter = GL_LINEAR_MIPMAP_NEAREST;
 			magFilter = GL_LINEAR;
 		}
 	}
