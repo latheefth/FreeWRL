@@ -1,0 +1,83 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {chooseFile = id; dismiss = id; start = id; }; 
+            CLASS = FreeWRLController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                ConsoleMessage = NSTextField; 
+                ConsoleWindow = NSWindow; 
+                allowScripts = NSButton; 
+                eaiPort = NSButton; 
+                eyeDistance = NSTextField; 
+                fileName = NSTextField; 
+                fullScreen = NSButton; 
+                geometry = NSTextField; 
+                geometryh = NSTextField; 
+                logFile = NSTextField; 
+                maxImages = NSTextField; 
+                saveDir = NSTextField; 
+                screenDistance = NSTextField; 
+                seqFile = NSTextField; 
+                seqImages = NSButton; 
+                seqTempFile = NSTextField; 
+                shutterMode = NSButton; 
+                snapFile = NSTextField; 
+                zbuffer = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = FreeWRLView; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {theController = FreeWRLController; theView = id; }; 
+            SUPERCLASS = NSView; 
+        }, 
+        {
+            ACTIONS = {
+                Coll = id; 
+                ConDisp = id; 
+                ExMd = id; 
+                FlyMd = id; 
+                HeadL = id; 
+                MesgDisp = id; 
+                NextView = id; 
+                PrevView = id; 
+                WalkMd = id; 
+                closeFile = id; 
+                dismiss = id; 
+                openFile = id; 
+                setScreen = id; 
+                showAbout = id; 
+            }; 
+            CLASS = MyApp; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                Collision = id; 
+                ConsoleDisp = id; 
+                ConsoleDrawer = id; 
+                ConsoleWindow = NSTextView; 
+                ExamineMode = id; 
+                FlyMode = id; 
+                Headlight = id; 
+                MessageDisp = id; 
+                MessageDrawer = id; 
+                MessageLine = NSTextField; 
+                WalkMode = id; 
+                freewrl = id; 
+                wc = id; 
+            }; 
+            SUPERCLASS = NSDocumentController; 
+        }, 
+        {CLASS = MyOpenGLView; LANGUAGE = ObjC; SUPERCLASS = NSOpenGLView; }, 
+        {CLASS = MyView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
+        {
+            CLASS = MyWindowController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {theController = id; theView = id; }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}

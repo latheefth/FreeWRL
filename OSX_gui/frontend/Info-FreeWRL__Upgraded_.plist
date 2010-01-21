@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>wrl</string>
+				<string>wrz</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>VRMLFreeWRLIcon.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>model/vrml</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>X3D/VRML 3D World</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.vrml</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>x3dv</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>X3DFreeWRLIcon.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>model/x3d+vrml</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>X3D/VRML 3D World, VRML classic encoding</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.x3d.vrml</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>x3d</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>X3DFreeWRLIcon.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>model/x3d+xml</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>X3D/VRML 3D World, X3D encoding</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.x3d.xml</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>x3db</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>X3DFreeWRLIcon.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>model/x3d+binary</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>X3D/VRML 3D World, binary encoding</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.x3d.binary</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>FreeWRL</string>
+	<key>CFBundleGetInfoString</key>
+	<string>FreeWRL X3D/VRML Browser maintained by CRC Canada: freewrl.sf.net</string>
+	<key>CFBundleHelpBookFolder</key>
+	<string>HelpFolder</string>
+	<key>CFBundleHelpBookName</key>
+	<string>FreeWRLHelp</string>
+	<key>CFBundleIconFile</key>
+	<string>X3DFreeWRLIcon.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>net.sourceforge.freewrl</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>FreeWRL</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.22.5</string>
+	<key>CFBundleSignature</key>
+	<string>VRML</string>
+	<key>CFBundleVersion</key>
+	<string>1.22.5</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>FreeWRL X3D/VRML Browser maintained by CRC Canada: freewrl.sf.net</string>
+	<key>NSMainNibFile</key>
+	<string>MainMenu</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+</dict>
+</plist>
