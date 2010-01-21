@@ -100,6 +100,7 @@ void setStereoBufferStyle(int);
 
 void setLineWidth(float lwidth);
 void setSnapGif();
+void setPrintShot();
 
 /**
  * General variables
