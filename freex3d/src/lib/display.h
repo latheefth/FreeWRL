@@ -463,10 +463,10 @@ void setScreenDim(int wi, int he);
 
 	#define FW_GL_ROTATE_F(aaa,xxx,yyy,zzz) \
 		{fw_glRotatef(aaa,xxx,yyy,zzz); \
-		printf ("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+		DEBUG_MSG("fw_glRotatef\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) \
 		{fw_glRotated(aaa,xxx,yyy,zzz); \
-		printf ("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
+		DEBUG_MSG("fw_glRotated\t%6.2f %6.2f %6.2f %6.2f\tat %s:%d\n",aaa,xxx,yyy,zzz,__FILE__,__LINE__);}
 	#define FW_GL_ROTATE_RADIANS(aaa,xxx,yyy,zzz) fw_glRotateRad(aaa,xxx,yyy,zzz)
 /*
 	#define FW_GL_ROTATE_D(aaa,xxx,yyy,zzz) fw_glRotated(aaa,xxx,yyy,zzz)
