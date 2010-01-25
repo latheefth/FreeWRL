@@ -521,8 +521,10 @@ OLDCODE        }
 	FW_GL_ENABLE(GL_NORMALIZE);
 	LIGHTING_INITIALIZE;
 
+#ifdef TRACK_GL_COLORMATERIAL
 	FW_GL_ENABLE (GL_COLOR_MATERIAL);
 	glColorMaterial (GL_FRONT_AND_BACK, GL_DIFFUSE);
+#endif
 
 	/* for textured appearance add specular highlights as a separate secondary color
 	   redbook p.270, p.455 and http://www.gamedev.net/reference/programming/features/oglch9excerpt/
