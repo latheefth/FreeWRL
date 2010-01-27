@@ -191,6 +191,15 @@ bool initFreeWRL(freewrl_params_t *params)
 		TRACE_MSG("Env: TRACE THREADS enabled.\n");
 	}
 
+#ifdef IPHONE
+	global_use_shaders_when_possible = TRUE; /* OpenGL-ES 2.0 requires this */
+#else
+	global_use_shaders_when_possible = (getenv("FREEWRL_USE_SHADERS_WHEN_POSSIBLE") != NULL);
+#endif
+	if (global_use_shaders_when_possible) {
+		TRACE_MSG("Env: USE_SHADERS_WHEN_POSSIBLE  enabled.\n");
+	}
+
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");

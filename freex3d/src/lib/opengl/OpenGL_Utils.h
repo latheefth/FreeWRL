@@ -41,8 +41,6 @@ BackEndClearBuffer(int);
 void
 BackEndLightsOff(void);
 
-void lightState (GLint light, int state);
-
 void drawBBOX(struct X3D_Node *node);
 
 

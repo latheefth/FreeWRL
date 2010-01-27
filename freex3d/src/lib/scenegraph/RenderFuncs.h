@@ -42,5 +42,13 @@ extern struct X3D_Anchor *AnchorsAnchor;
 extern char *OSX_replace_world_from_console;
 
 
+void lightState(GLint light, int status);
+void saveLightState(int *ls);
+void restoreLightState(int *ls);
+void fwglLightfv (int light, int pname, GLfloat *params);
+void fwglLightf (int light, int pname, GLfloat param);
+void initializeLightTables(void);
+void propagateLightingInfo(void);
+
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

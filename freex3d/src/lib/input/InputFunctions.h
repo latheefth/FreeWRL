@@ -34,7 +34,6 @@ Global includes.
  * in InputFunctions.c
  */
 char* makeFontDirectory();
-char *readInputString(char *fn);
 FILE *openLocalFile (char *fn, char* access);
 char * stripLocalFileName (char * origName);
 
