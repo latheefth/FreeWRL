@@ -48,7 +48,6 @@ void restoreLightState(int *ls);
 void fwglLightfv (int light, int pname, GLfloat *params);
 void fwglLightf (int light, int pname, GLfloat param);
 void initializeLightTables(void);
-void chooseAppearanceShader(void);
-
+void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided);
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

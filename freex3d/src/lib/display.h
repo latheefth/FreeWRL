@@ -151,12 +151,18 @@ typedef struct {
 
 	/* for general Appearance Shaders */
 	bool haveGenericAppearanceShader;  /* do immediate mode or shader? */
-	s_shader_capabilities_t genericHeadlightNoTextureAppearanceShader;	
-	s_shader_capabilities_t multiLightNoTextureAppearanceShader;	
-	s_shader_capabilities_t headlightOneTextureAppearanceShader;	
-	s_shader_capabilities_t headlightMultiTextureAppearanceShader;
-	s_shader_capabilities_t multiLightMultiTextureAppearanceShader;
+	s_shader_capabilities_t shaderArrays[10]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
+
+typedef enum shader_type {
+	noLightNoTextureAppearanceShader,
+	genericHeadlightNoTextureAppearanceShader,
+	multiLightNoTextureAppearanceShader,
+	headlightOneTextureAppearanceShader,
+	headlightMultiTextureAppearanceShader,
+	multiLightMultiTextureAppearanceShader
+} shader_type_t;
+
 
 extern s_renderer_capabilities_t rdr_caps;
 

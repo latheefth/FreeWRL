@@ -513,6 +513,11 @@ package VRML::NodeType;
 		specularColor => [SFColor, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		transparency => [SFFloat, 0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 __oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
+		_dcol => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_scol => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_ecol => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_amb => [SFVec4f, [0,0,0,0], inputOutput, 0],
+		_shin => [SFFloat, 0.2, inputOutput, 0],
 	},"X3DMaterialNode"),
 
 	Shape => new VRML::NodeType ("Shape", {
