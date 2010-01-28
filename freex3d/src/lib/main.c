@@ -198,6 +198,7 @@ bool initFreeWRL(freewrl_params_t *params)
 #endif
 	if (global_use_shaders_when_possible) {
 		TRACE_MSG("Env: USE_SHADERS_WHEN_POSSIBLE  enabled.\n");
+		rdr_caps.haveGenericAppearanceShader = TRUE;
 	}
 
 	/* Check parameters */

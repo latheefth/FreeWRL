@@ -48,7 +48,7 @@ void restoreLightState(int *ls);
 void fwglLightfv (int light, int pname, GLfloat *params);
 void fwglLightf (int light, int pname, GLfloat param);
 void initializeLightTables(void);
-void propagateLightingInfo(void);
+void chooseAppearanceShader(void);
 
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

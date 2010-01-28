@@ -118,6 +118,19 @@ extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
 extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
 
 /* OpenGL renderer capabilities */
+typedef struct {
+	GLuint myShaderProgram;
+	GLint myMaterialAmbient;
+	GLint myMaterialDiffuse;
+	GLint myMaterialSpecular;
+	GLint myMaterialShininess;
+	GLint myMaterialEmission;
+	GLint lightState;
+	GLint lightAmbient;
+	GLint lightDiffuse;
+	GLint lightSpecular;
+	GLint lightPosition;
+} s_shader_capabilities_t;
 
 typedef struct {
 
@@ -137,18 +150,12 @@ typedef struct {
 	float anisotropicDegree;
 
 	/* for general Appearance Shaders */
-	GLuint genericAppearanceShader;	
-	GLint myMaterialAmbient;
-	GLint myMaterialDiffuse;
-	GLint myMaterialSpecular;
-	GLint myMaterialShininess;
-	GLint myMaterialEmission;
-	GLint lightState;
-	GLint lightAmbient;
-	GLint lightDiffuse;
-	GLint lightSpecular;
-	GLint lightPosition;
-	
+	bool haveGenericAppearanceShader;  /* do immediate mode or shader? */
+	s_shader_capabilities_t genericHeadlightNoTextureAppearanceShader;	
+	s_shader_capabilities_t multiLightNoTextureAppearanceShader;	
+	s_shader_capabilities_t headlightOneTextureAppearanceShader;	
+	s_shader_capabilities_t headlightMultiTextureAppearanceShader;
+	s_shader_capabilities_t multiLightMultiTextureAppearanceShader;
 } s_renderer_capabilities_t;
 
 extern s_renderer_capabilities_t rdr_caps;

@@ -255,6 +255,7 @@ bool initialize_rdr_caps()
 	/* Initialize renderer capabilities without GLEW */
 
 	/* Shaders */
+	rdr_caps.haveGenericAppearanceShader = FALSE;
         rdr_caps.av_glsl_shaders = (strstr (rdr_caps.extensions, "GL_ARB_fragment_shader")!=0);
 	
 	/* Multitexturing */

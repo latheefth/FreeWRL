@@ -468,13 +468,9 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* if we do NOT have a shader node, do the appearance nodes */
         if (globalCurrentShader == 0) {
-
 		/* get the generic Appearance Shader up to current state */
-		if (rdr_caps.genericAppearanceShader != 0) {
-			globalCurrentShader = rdr_caps.genericAppearanceShader;
-			USE_SHADER(globalCurrentShader);
-
-			propagateLightingInfo();
+		if (rdr_caps.haveGenericAppearanceShader) {
+			chooseAppearanceShader();
 		}
 
 		if (material_oneSided != NULL) {
