@@ -155,6 +155,7 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
+	noAppearanceNoMaterialShader,
 	noLightNoTextureAppearanceShader,
 	genericHeadlightNoTextureAppearanceShader,
 	multiLightNoTextureAppearanceShader,

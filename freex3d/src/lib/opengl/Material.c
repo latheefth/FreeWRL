@@ -71,18 +71,6 @@ void do_shininess (GLenum face, float shininess) {
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	int i;
 
-	/* checking should now be done in the compile_ functions */
-#ifdef OLDCODE
-	for (i=0; i<4; i++) {
-		if ((param[i] < 0.0) || (param[i] >1.0)) {
-			/* printf ("do_glMaterialfv, pname %d idx %d val %f out of range\n",
-					pname,i,param[i]); */
-			if (param[i]>1.0) {param[i]=1.0;} else {param[i]=0.0;}
-			/* JAS return; bounds check error found, break out */
-		}
-	}
-#endif
-
 	/* for IndexedLineSet, etc, we keep the last emissiveColor around */
 	if (pname == GL_EMISSION)
 		for (i=0; i<4; i++) {
