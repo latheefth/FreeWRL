@@ -13,8 +13,6 @@ public class Node {
   // name of a PROTO, or the class name
 
 
-  public int perlNumber  = -1;
-
 // the following fields are for treating this node as an eventIn or eventOut.
  public int EventType = FieldTypes.UnknownType;
  public String outNode;	// Node to send the command to... NULL if not
@@ -30,10 +28,6 @@ public class Node {
  public int ScriptType = 0; // non zero indicates sending to a javascript
 
 
-
-//  public String toString() {
- //   return "NODE"+perlNumber;
-  //}
 
   public String        getType() {
 	// spec says:
@@ -61,7 +55,7 @@ public class Node {
   // Return the type that is asked for. To determine the
   // subclass, look at the string.
 
-    String st = Browser.SendEventType(perlNumber, nodeptr, name, "eventIn");
+    String st = Browser.SendEventType(nodeptr, name, "eventIn");
 
     tokens = new StringTokenizer (st);
     String NNPR = tokens.nextToken();
@@ -110,7 +104,7 @@ public class Node {
       StringTokenizer tokens;
 	String NNN = "nodeFrom_getEventOut";
 
-    String st = Browser.SendEventType(perlNumber, nodeptr, name, "eventOut");
+    String st = Browser.SendEventType(nodeptr, name, "eventOut");
 
     tokens = new StringTokenizer (st);
     String NNPR = tokens.nextToken();

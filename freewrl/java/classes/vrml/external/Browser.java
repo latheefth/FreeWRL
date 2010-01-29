@@ -448,30 +448,29 @@ public class Browser implements BrowserInterface, IBrowser
       int count;
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" +queryno + "S "+vrmlSyntax+"\nEOT\n");
+        EAIoutSender.send ("" +queryno + "S #VRML V2.0 utf8\n"+vrmlSyntax+"\nEOT\n");
         retval = getVRMLreply(queryno);
 
-	// System.out.println ("Browser.java - got " + retval);
+	//System.out.println ("Browser.java - got " + retval);
 
         tokens = new StringTokenizer (retval);
 
 	// We return a (node-index C-pointer) pair, so we have to divide by two
-	x = new Node[tokens.countTokens()/2];
+	x = new Node[tokens.countTokens()];
         count = 0;
 
 	// Lets go through the output, and temporarily store it
 	// XXX - is there a better way? ie, using a vector?
         while (tokens.hasMoreTokens()) {
           x[count] = new Node();
-          x[count].perlNumber = Integer.parseInt(tokens.nextToken());
           x[count].nodeptr = Integer.parseInt(tokens.nextToken());
           x[count].offset = 0;
           x[count].datasize = 4;
           x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
 
-	  //System.out.println ("CVS - for this one, we have NODE" + x[count].perlNumber +
-	//	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
-	//	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
+	  //System.out.println ("CVS - for this one, we have NODE" +
+	  //	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
+	  //	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
 
           count ++;
 	  if (count == 100) {
@@ -630,16 +629,15 @@ public class Browser implements BrowserInterface, IBrowser
 
          tokens = new StringTokenizer (retval);
          count = 0;
- 	 x = new Node[tokens.countTokens()/2];
+ 	 x = new Node[tokens.countTokens()];
 
          while (tokens.hasMoreTokens()) {
            x[count] = new Node();
-           x[count].perlNumber = Integer.parseInt(tokens.nextToken());
            x[count].nodeptr = Integer.parseInt(tokens.nextToken());
            x[count].offset = 0;
            x[count].datasize = 4;
            x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
-	   //System.out.println ("CVU - for this one, we have NODE" + x[count].perlNumber +
+	   //System.out.println ("CVU - for this one, we have NODE" +
 		//	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
 		//	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
 
@@ -744,7 +742,6 @@ public class Browser implements BrowserInterface, IBrowser
 
         tokens = new StringTokenizer (retval);
 
-        temp.perlNumber = Integer.parseInt(tokens.nextToken());
         temp.nodeptr = Integer.parseInt(tokens.nextToken());
         queryno += 1;
      
@@ -800,14 +797,14 @@ public class Browser implements BrowserInterface, IBrowser
       }
       return retval;
 }
-  protected static String SendEventType (int perlNumber, int nodeptr, String FieldName, String direction) {
+  protected static String SendEventType (int nodeptr, String FieldName, String direction) {
 
       // get a type from a particular node.
 
       String retval;
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "F " + perlNumber + " " + nodeptr + " " +
+        EAIoutSender.send ("" + queryno + "F " + "0"+ " " + nodeptr + " " +
            FieldName + " " + direction + "\n");
         retval = getVRMLreply(queryno);
         queryno += 1;

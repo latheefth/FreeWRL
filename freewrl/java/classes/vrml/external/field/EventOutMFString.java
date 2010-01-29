@@ -27,7 +27,7 @@ public class EventOutMFString extends EventOutMField {
 
 		/* 
 		System.out.println ("token count is " +
-			(tokens.countTokens()/2));
+			(tokens.countTokens());
 
 		System.out.println ("split len is " + spl.length);
 
@@ -51,12 +51,12 @@ public class EventOutMFString extends EventOutMField {
 		element 9 is 
 		*/
 
-		mySize = spl.length/2;
+		mySize = spl.length;
 		retstr = new String[mySize];
 		//System.out.println ("sizeof is " + mySize);
-		for (int i=1; i<spl.length; i+=2) {
-			retstr[i/2] = spl[i];
-			//System.out.println ("string " + i/2 + " value: " + retstr[i/2]);
+		for (int i=1; i<spl.length; i++) {
+			retstr[i] = spl[i];
+			//System.out.println ("string " + i + " value: " + retstr[i]);
 		}
 		return retstr;
 	}
