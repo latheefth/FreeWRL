@@ -949,7 +949,7 @@ void createLoadURL(char *bufptr) {
 
 		if (spbrk!=NULL) bufptr = spbrk;
 	}
-	EAI_AnchorNode.__parenturl = newASCIIString("./");
+	/* EAI_AnchorNode.__parenturl = newASCIIString("./"); */
 }
 
 

@@ -35,9 +35,9 @@
 #include <libFreeWRL.h>
 
 #include <list.h>
+#include <resources.h>
 #include <io_files.h>
 #include <io_http.h>
-#include <resources.h>
 #include <threads.h>
 
 #include "vrml_parser/Structs.h"
@@ -176,7 +176,7 @@ resource_item_t* resource_create_from_string(const char *string)
  *   try to be idempotent
  *   parse status: res->type
  */
-void resource_identify(resource_item_t *base, resource_item_t *res, char *parentUrl)
+void resource_identify(resource_item_t *base, resource_item_t *res)
 {
 	bool network;
 	char *url = NULL;
@@ -322,15 +322,17 @@ void resource_identify(resource_item_t *base, resource_item_t *res, char *parent
 					/* Relative to current dir (we are loading main file/world) */
 					char *cwd;
 					
+#ifdef OLDCODE
 					if (parentUrl==NULL)  {
-						if (currentWorkingUrl==NULL) {
+						if (getInputURL()==NULL) {
 							cwd = get_current_dir();
 						} else {
-							cwd = STRDUP(currentWorkingUrl);
+							cwd = STRDUP(getInputURL());
 						}
 					} else { 
 						cwd = STRDUP(parentUrl);
 					}
+#endif
 					removeFilenameFromPath(cwd);
 
 					if (!cwd) {

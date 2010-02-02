@@ -1401,7 +1401,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         }
 
 	res = resource_create_multi(&url);
-	resource_identify(root_res, res, NULL);
+	resource_identify(root_res, res);
 	if (res->type != rest_invalid) {
 		if (resource_fetch(res)) {
 			if (resource_load(res)) {

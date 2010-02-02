@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.5  2010/02/02 20:53:18  crc_canada
+# removed JAS char string hack for resource_identify; changed nodes __parenturl field to _parentResource
+#
 # Revision 1.4  2009/06/12 20:13:00  crc_canada
 # Verifying Triangle nodes.
 #
@@ -706,11 +709,7 @@ sub cInitialize {
 	my ($this,$field,$val) = @_;
 
 	if (!defined $val) {$val = "";} # inputOnlys, set it to any value
-	if ($field eq "tmp2->__parenturl") {
-		return "$field = newASCIIString(getInputURL())";
-	} else {
-		return "$field = newASCIIString(\"$val\")";
-	}
+	return "$field = newASCIIString(\"$val\")";
 }
 
 package VRML::Field::MFString;
@@ -1055,6 +1054,11 @@ sub cInitialize {
 	if (!defined $val) {$val = 0} # inputOnlys, set it to any value
 	return "$field = $val";
 }
+	if ($field eq "tmp2->_parentResource") {
+		return "$field = getInputResource()";
+	} else {
+		return "$field = $val";
+	}
 
 ###########################################################
 ###########################################################

@@ -1745,7 +1745,7 @@ void endExternProtoDeclare(void) {
 		/* printf ("just scanned %d strings...\n",url.n); */
 
 		res = resource_create_multi(&url);
-		resource_identify(root_res, res, NULL);
+		resource_identify(root_res, res);
 		if (res->type != rest_invalid) {
 			if (resource_fetch(res)) {
 				if (resource_load(res)) {

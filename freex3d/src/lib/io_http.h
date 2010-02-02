@@ -33,12 +33,9 @@
 
 char* download_url(const char *url, const char *tmp);
 
-extern char *currentWorkingUrl;
-
-void pushInputURL(char *url);
-void popInputURL();
-
-char *getInputURL();
+void popInputResource();
+void pushInputResource(resource_item_t *url);
+resource_item_t *getInputResource();
 
 /* URL manipulation */
 bool checkNetworkFile(const char *fn);

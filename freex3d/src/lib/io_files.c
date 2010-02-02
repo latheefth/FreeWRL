@@ -31,10 +31,11 @@
 #include <internal.h>
 #include <libFreeWRL.h>
 
+#include <list.h> /* internal use only */
+#include <resources.h>
 #include <io_files.h>
 #include <io_http.h>
 
-#include <list.h> /* internal use only */
 
 #include <threads.h> /* for freewrlSystem */
 
