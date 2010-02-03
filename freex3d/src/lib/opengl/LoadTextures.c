@@ -545,9 +545,7 @@ static bool texture_process_entry(struct textureTableIndexStruct *entry)
 
 	}
 
-	/* FIXME: very straitforward use of resource API... need rewrite ... */
 	if (url != NULL) {
-
 		res = resource_create_multi(url);
 		res->media_type = resm_image; /* quick hack */
 
