@@ -98,7 +98,7 @@ void EAI_parse_commands () {
 
 	int count;
 	char command;
-	int perlNode; uintptr_t cNode;
+	uintptr_t cNode;
 	int bufPtr;		/* where we are in the EAI input buffer */
 	
 	uintptr_t ra,rb,rc,rd;	/* temps*/
@@ -224,7 +224,7 @@ void EAI_parse_commands () {
 			case GETFIELDTYPE:  {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %s %s",(int *)&perlNode, (int *)&cNode, ctmp,dtmp);
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %s %s",(int *)&cNode, ctmp,dtmp);
 				if (eaiverbose) {	
 					printf ("GETFIELDTYPE cptr %d %s %s\n",(int)cNode, ctmp, dtmp);
 				}	

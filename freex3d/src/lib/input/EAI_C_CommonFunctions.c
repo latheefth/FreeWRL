@@ -56,7 +56,7 @@ $Id$
 #endif
 
 /* assume eaiverbose is false, unless told otherwise */
-int eaiverbose = FALSE;
+int eaiverbose = TRUE;
 
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \
