@@ -29,6 +29,20 @@
 #define __LIBFREEWRL_RESOURCES_H__
 
 
+/* is this file name relative to another path, or is it really, really, a direct file name? */
+#if defined(_MSC_VER)
+#define IF_cleanedURL_IS_ABSOLUTE \
+	DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL); \
+	if ((cleanedURL[0] != '\0') &&
+		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  &&
+		(cleanedURL[1]== ':'))
+#else
+
+#define IF_cleanedURL_IS_ABSOLUTE \
+	DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL); \
+	if (cleanedURL[0] == '/')
+#endif
+
 typedef enum resource_type {
 	rest_invalid,
 	rest_url,
