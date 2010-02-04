@@ -804,7 +804,7 @@ public class Browser implements BrowserInterface, IBrowser
       String retval;
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "F " + "0"+ " " + nodeptr + " " +
+        EAIoutSender.send ("" + queryno + "F " + nodeptr + " " +
            FieldName + " " + direction + "\n");
         retval = getVRMLreply(queryno);
         queryno += 1;
