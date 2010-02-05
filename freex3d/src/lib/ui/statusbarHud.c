@@ -34,6 +34,7 @@
 #include "scenegraph/Viewer.h"
 #include "opengl/Textures.h"
 #include "opengl/LoadTextures.h"
+#include "main/MainLoop.h"
 
 
 /* the following are bitmap icons for the toolbar, 
@@ -875,7 +876,6 @@ void update_status(char* msg) {
 }
 
 
-extern int currentX, currentY;
 /* start cheapskate widgets >>>> */
 int lenOptions = 15;
 char * optionsText[15] = {

@@ -100,21 +100,22 @@ void compile_MetadataString (struct X3D_MetadataString *node) {
 /* anything changed for this PROTO interface datatype? */
 #define CMD_I32(type) void compile_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
 	if META_IS_INITIALIZED { \
-	if (node->value != node->setValue) { \
+		if (node->tickTime != TickTime) { \
 		node->value = node->setValue; \
 		node->valueChanged = node->setValue; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
-	} \
+		} \
 	} else { \
 		/* initialize fields */ \
 		node->valueChanged = node->value; node->setValue = node->value; \
 	} \
+	node->tickTime = TickTime;  \
 	MARK_NODE_COMPILED \
 }
 
 #define CMD_FL(type) void compile_MetadataSF##type (struct X3D_MetadataSF##type *node) { \
 	if META_IS_INITIALIZED { \
-	if (!APPROX(node->value,node->setValue)) { \
+		if (node->tickTime != TickTime) { \
 		node->value = node->setValue; \
 		node->valueChanged = node->setValue; \
 		MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_MetadataSF##type, valueChanged)); \
@@ -123,6 +124,7 @@ void compile_MetadataString (struct X3D_MetadataString *node) {
 		/* initialize fields */ \
 		node->valueChanged = node->value; node->setValue = node->value; \
 	} \
+	node->tickTime = TickTime;  \
 	MARK_NODE_COMPILED \
 }
 

@@ -106,6 +106,9 @@ void OSX_initializeParameters(const char* initialURL) {
 	printf ("OSX_initializeParameters - just creating new resource\n");
     }
 
+    /* enable collisions by default */
+    fw_params.collision = 1;
+
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
     send_resource_to_parser(res);

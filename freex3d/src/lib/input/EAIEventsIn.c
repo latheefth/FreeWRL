@@ -151,7 +151,7 @@ void EAI_parse_commands () {
 		/* step 3, get the command */
 
 		command = EAI_BUFFER_CUR;
-		if (eaiverbose) 
+		//if (eaiverbose) 
 			printf ("EAI command %s (%c) strlen %d\n",eaiPrintCommand(command), command,(int)strlen(&EAI_BUFFER_CUR));
 
 		bufPtr++;

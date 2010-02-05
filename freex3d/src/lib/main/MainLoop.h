@@ -30,6 +30,7 @@
 #ifndef __FREEWRL_MAINLOOP_MAIN_H__
 #define __FREEWRL_MAINLOOP_MAIN_H__
 
+extern int currentX, currentY;
 
 void setDisplayed(int);
 void First_ViewPoint();

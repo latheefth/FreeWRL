@@ -1163,10 +1163,11 @@ static BOOL parser_routeStatement(struct VRMLParser* me)
   /* We got the node structure for the DEFed node. If this is a Group or a Script node do some more processing */ \
         switch(pre##Node->_nodeType) \
         { \
-         case NODE_Group: \
+         case NODE_Group: { \
           /* Get a pointer to the protoDefinition for this group node */ \
-          pre##Proto=X3D_GROUP(pre##Node)->FreeWRL__protoDef; \
+          pre##Proto=getVRMLprotoDefinition(X3D_GROUP(pre##Node)); \
           /* printf ("routing found protoGroup of %u\n",pre##Proto); */ \
+	  } \
           break; \
         } \
   \
@@ -1950,25 +1951,6 @@ static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* ret, indexT ind) {
         
     /* Return the parsed node */
 
-    if (thisProto != NULL) {
-	#ifdef CPARSERVERBOSE
-        printf ("parser_node, have a proto somewhere here\n");
-	#endif
-
-        if (node != NULL) {
-	    #ifdef CPARSERVERBOSE
-            printf ("parser_node, and the node is made...\n");
-	    #endif
-
-            if (node->_nodeType == NODE_Group) {
-		#ifdef CPARSERVERBOSE
-                printf ("and, it is a GROUP node...\n");
-		#endif
-
-                X3D_GROUP(node)->FreeWRL__protoDef = thisProto;
-            }
-        }
-    }
     #ifdef CPARSERVERBOSE
     printf ("returning at end of parser_node, ret %u\n",node);
     if (node != NULL) printf ("and, node type is %s\n",stringNodeType(node->_nodeType));
