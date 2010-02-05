@@ -90,6 +90,8 @@ void handleGETEAINODETYPE (char *bufptr, char *buf, int repno);
 *********************************************************************************/
 
 
+static int oldCount=0;
+
 void EAI_parse_commands () {
 	char buf[EAIREADSIZE];	/* return value place*/
 	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
@@ -128,6 +130,12 @@ void EAI_parse_commands () {
 		if (eaiverbose) {
 			printf ("EAI - seq number %d\n",count);
 		}
+
+		if (count != (oldCount+1)) {
+			printf ("COUNT MISMATCH, expected %d got %d\n",oldCount+1,count);
+		}
+		oldCount = count;
+
 
 		/* step 2, skip past the sequence number */
 		while (isdigit(EAI_BUFFER_CUR)) bufPtr++;

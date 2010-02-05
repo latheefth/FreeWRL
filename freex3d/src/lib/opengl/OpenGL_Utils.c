@@ -710,7 +710,7 @@ void fw_glMatrixMode(GLint mode) {
 		case GL_PROJECTION: currentMatrix = (double *)FW_ProjectionView[projectionviewTOS]; break;
 		case GL_MODELVIEW: currentMatrix = (double *)FW_ModelView[modelviewTOS]; break;
 		case GL_TEXTURE: currentMatrix = (double *)FW_TextureView[textureviewTOS]; break;
-		default: printf ("invalid mode sent in\n");
+		default: printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",whichMode, GL_PROJECTION,GL_MODELVIEW,GL_TEXTURE);
 	}
 	/* set the matrix element */
 	glMatrixMode(mode); 
@@ -876,10 +876,13 @@ void fw_glGetDoublev (int ty, double *mat) {
 	double *dp;
 
 	switch (ty) {
-		case GL_PROJECTION: dp = FW_ProjectionView[projectionviewTOS]; break;
-		case GL_MODELVIEW: dp = FW_ModelView[modelviewTOS]; break;
-		case GL_TEXTURE: dp = FW_TextureView[textureviewTOS]; break;
-		default: {printf ("invalid mode sent in\n"); loadIdentityMatrix(mat); return;}
+		case GL_PROJECTION_MATRIX: dp = FW_ProjectionView[projectionviewTOS]; break;
+		case GL_MODELVIEW_MATRIX: dp = FW_ModelView[modelviewTOS]; break;
+		case GL_TEXTURE_MATRIX: dp = FW_TextureView[textureviewTOS]; break;
+		default: { 
+			loadIdentityMatrix(mat); 
+		printf ("invalid mode sent in it is %d, expected one of %d %d %d\n",ty,GL_PROJECTION_MATRIX,GL_MODELVIEW_MATRIX,GL_TEXTURE_MATRIX);
+			return;}
 	}
 	memcpy((void *)mat, (void *) dp, sizeof (double) * MATRIX_SIZE);
 }
