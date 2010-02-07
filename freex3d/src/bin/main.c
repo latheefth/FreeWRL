@@ -139,7 +139,8 @@ int main (int argc, char **argv)
 
 	    start_url = argv[optind];
 #ifdef _MSC_VER
-		if( start_url )
+		//if( start_url )
+		if(0) //deprecated feb7,2010 - need to test in win32-installer-installed version before deleting
 		{
 			/* goal - split the url into path and file, then set 
 				set current working directy = path
