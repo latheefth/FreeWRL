@@ -33,9 +33,9 @@
 #if defined(_MSC_VER)
 #define IF_cleanedURL_IS_ABSOLUTE \
 	DEBUG_RES("resource_identify = we have base cleanedurl = %s\n", cleanedURL); \
-	if ((cleanedURL[0] != '\0') &&
-		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  &&
-		(cleanedURL[1]== ':'))
+	if ((cleanedURL[0] != '\0') && \
+		((islower(cleanedURL[0])) != 0 || (isupper(cleanedURL[0] != 0)))  && \
+		(cleanedURL[1]== ':')) \
 #else
 
 #define IF_cleanedURL_IS_ABSOLUTE \

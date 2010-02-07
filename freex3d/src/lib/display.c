@@ -343,6 +343,8 @@ void rdr_caps_dump()
 	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps.av_occlusion_q));
 	DEBUG_MSG ("Max texture size      %d\n", rdr_caps.max_texture_size);
 	DEBUG_MSG ("Texture units         %d\n", rdr_caps.texture_units);
+#ifndef _MSC_VER
 	DEBUG_MSG ("Shaders for Appear:   %d %d %d\n",rdr_caps.appearanceNoTextureShader, rdr_caps.appearanceOneTextureShader,
 						rdr_caps.appearanceMultiTextureShader);
+#endif
 }
