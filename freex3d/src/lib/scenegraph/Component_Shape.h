@@ -37,6 +37,10 @@ struct matpropstruct {
 
 extern struct matpropstruct appearanceProperties;
 
+#define MIN_NODE_TRANSPARENCY 0.0
+#define MAX_NODE_TRANSPARENCY 0.99  /* if 1.0, then occlusion culling will cause flashing */
+
+
 
 #define DO_MAT(myNode, diffusec,emissc,shinc,ambc,specc,transc) \
 		\

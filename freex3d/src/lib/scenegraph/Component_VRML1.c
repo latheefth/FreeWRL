@@ -154,9 +154,9 @@ static void renderSpecificMaterial (int ind) {
 	if(node->transparency.n>ind)
 	trans = 1.0 - node->transparency.p[ind];
 
-	if (trans<0.0) trans = 0.0;
-	if (trans>=0.999999) trans = 0.9999999;
-	appearanceProperties.transparency = trans;
+	if (trans<0.0) trans = MIN_NODE_TRANSPARENCY;
+	if (trans>=0.999999) trans = MAX_NODE_TRANSPARENCY;
+	appearanceProperties.transparency = 1.0 - trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;
@@ -200,7 +200,7 @@ void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	/* printf ("prepSep %u\n",node); */
 
 	/* lets set the transparency param to 1.0 here, it can be overridden later */
-	appearanceProperties.transparency = 1.0;
+	appearanceProperties.transparency = MAX_NODE_TRANSPARENCY;
 
 	/* lets push on to the stack... */
 	separatorLevel++;
@@ -239,9 +239,9 @@ void render_VRML1_Material (struct X3D_VRML1_Material *node) {
 	if(node->transparency.n>0)
 	trans = 1.0 - node->transparency.p[0];
 
-	if (trans<0.0) trans = 0.0;
-	if (trans>=0.999999) trans = 0.9999999;
-	appearanceProperties.transparency = trans;
+	if (trans<0.0) trans = MIN_NODE_TRANSPARENCY;
+	if (trans>=0.999999) trans = MAX_NODE_TRANSPARENCY;
+	appearanceProperties.transparency = 1.0 - trans;
 
 	dcol[3] = trans;
 	scol[3] = trans;

@@ -109,6 +109,9 @@ void OcclusionStartofEventLoop(void);
 void OcclusionCulling (void);
 void zeroOcclusion(void);
 
+int is_Switchchild_inrange(struct X3D_Switch *node, struct X3D_Node *me);
+int is_GeoLODchild_inrange (struct X3D_GeoLOD* gpnode, struct X3D_Node *me);
+
 
 
 #endif /* __FREEWRL_FRUSTUM_H__ */

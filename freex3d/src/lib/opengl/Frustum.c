@@ -366,7 +366,7 @@ GLint OccResultsAvailable = FALSE;
 
 
 /* does this current node actually fit in the Switch rendering scheme? */
-static int is_Switchchild_inrange(struct X3D_Switch *node, struct X3D_Node *me) {
+int is_Switchchild_inrange(struct X3D_Switch *node, struct X3D_Node *me) {
         int wc = node->whichChoice;
 
         /* is this VRML, or X3D?? */
@@ -385,7 +385,7 @@ static int is_Switchchild_inrange(struct X3D_Switch *node, struct X3D_Node *me) 
 }
 
 /* does this current node actually fit in the GeoLOD rendering scheme? */
-static int is_GeoLODchild_inrange (struct X3D_GeoLOD* gpnode, struct X3D_Node *me) {
+int is_GeoLODchild_inrange (struct X3D_GeoLOD* gpnode, struct X3D_Node *me) {
 	/* is this node part of the active path for rendering? */
 	int x,y;
 	y = FALSE;
