@@ -211,7 +211,10 @@ int doBrowserAction()
 			printf ("this IS an X3D file...\n");
 			res = resource_create_multi(&Anchor_url);
 
+			printf("HERE1\n");
+			#ifndef AQUA
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+			#endif
 
 
 			send_resource_to_parser(res);
@@ -233,13 +236,19 @@ int doBrowserAction()
 		/* printf ("\nwe have a single replacement here\n"); */
 		if (OSX_replace_world_from_console == NULL) {
 			/* this is just a simple "clean out the old world" */
+			printf("HERE2\n");
+			#ifndef AQUA
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+			#endif
 			return FALSE;
 		} else {
 			
 			/* we want to clean out the old world AND load a new one in */
 			res = resource_create_single (OSX_replace_world_from_console);
+			printf("HERE3\n");
+			#ifndef AQUA
 			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+			#endif
 
 			send_resource_to_parser(res);
 			waitingForURLtoLoad = TRUE;

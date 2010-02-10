@@ -207,6 +207,7 @@ void setScreenDim(int wi, int he)
 
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
+    printf("screenwidth %d screenheight %d screenRation %f\n", screenWidth, screenHeight, screenRatio);
 }
 
 
@@ -216,6 +217,7 @@ void setScreenDim(int wi, int he)
 GLvoid resize_GL(GLsizei width, GLsizei height)
 { 
     FW_GL_VIEWPORT( 0, 0, width, height ); 
+	printf("resize_GL\n");
 }
 
 /**

@@ -889,6 +889,7 @@ void EAI_RW(char *str) {
 	int i;
 
 	/* clean the slate! keep EAI running, though */
+	printf("EAI replace world, calling kill_oldWorld\n");
 	kill_oldWorld(FALSE,TRUE,__FILE__,__LINE__);
 
 	/* go through the string, and send the nodes into the rootnode */

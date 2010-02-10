@@ -556,6 +556,7 @@ OLDCODE        if (RUNNINGASPLUGIN) {
 OLDCODE                aglSetCurrentContext(aqglobalContext);
 OLDCODE        } else {
 #endif
+		printf("initialize gl, myglobalcontext is %u", myglobalContext);
                 CGLSetCurrentContext(myglobalContext);
 #ifdef OLDCODE
 OLDCODE        }
