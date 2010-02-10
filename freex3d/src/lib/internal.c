@@ -130,6 +130,7 @@ void fw_perror(FILE *f, const char *format, ...)
     //fprintf(f, "[System error: %s]\n", strerror(e));
 #else
     fprintf(f, "[System error: %d]\n", e);
+#endif
     fflush(f);
 }
 
