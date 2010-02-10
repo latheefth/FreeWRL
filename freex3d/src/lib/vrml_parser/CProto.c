@@ -313,7 +313,8 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition* me,
 {
  /* TODO:  O(log(n)) by sorting */
  size_t i;
-/* printf ("protoDefinition_getField; sizeof iface %d\n",vector_size(me->iface)); */
+ /* printf ("protoDefinition_getField; sizeof iface %d\n",vector_size(me->iface));  */
+ if (!me) return NULL; /* error here, can not go through fields */
  for(i=0; i!=vector_size(me->iface); ++i)
  {
   struct ProtoFieldDecl* f=vector_get(struct ProtoFieldDecl*, me->iface, i);

@@ -864,7 +864,6 @@ Note the differing location of the fields...
 static void sendInitialFieldsToShader(struct X3D_Node * node) {
 	int i;
 	GLuint myShader;
-printf ("sendInitialFieldsToShader...\n");
 
 	switch (node->_nodeType) {
 		case NODE_ProgramShader: {
