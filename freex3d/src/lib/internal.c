@@ -126,7 +126,10 @@ void fw_perror(FILE *f, const char *format, ...)
     vfprintf(f, format, ap);
     va_end(ap);
 
+#ifndef AQUA
     //fprintf(f, "[System error: %s]\n", strerror(e));
+#else
+    fprintf(f, "[System error: %d]\n", e);
     fflush(f);
 }
 
