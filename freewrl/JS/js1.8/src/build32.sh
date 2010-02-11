@@ -7,9 +7,9 @@ rm -f Darwin_DBG.OBJ/jscpucfg
 rm -f editline/Darwin_DBG.OBJ/libedit.a
 rm -f editline/Darwin_DBG.OBJ/*.o
 
-cp Makefile.i386.ref Makefile.ref
-cp rules.i386.mk rules.mk
-cp config/Darwin.i386.mk config/Darwin.mk
+cp Makefile.ppc.ref Makefile.ref
+cp rules.ppc.mk rules.mk
+cp config/Darwin.ppc.mk config/Darwin.mk
 make -f Makefile.ref clean
 make -f Makefile.ref
 
