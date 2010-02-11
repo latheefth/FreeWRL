@@ -71,10 +71,9 @@
 - (IBAction) smallTextures: (id) sender;
 - (IBAction) mediumTextures: (id) sender;
 - (IBAction) bigTextures: (id) sender;
-- (IBAction) shapeThread: (id) sender;
-//- (IBAction) expParser: (id) sender;
 - (IBAction) prioritizeTextures: (id) sender;
-//- (void) showMessage: (NSString*) message;
+- (IBAction) setStereo: (id) sender;
+
 - (void) toggleHLButton: (int) val;
 - (void) toggleCollButton: (int) val;
 - (void) toggleNavButton: (int) type;

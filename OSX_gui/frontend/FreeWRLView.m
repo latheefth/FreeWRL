@@ -51,46 +51,6 @@
     [printOp setShowsPrintPanel:YES];
     [printOp runOperation]; 
 }
-- (NSImage *)imageFromView {
-	NSLog(@"got to imagefrom view");
-	//int height=NSHeight([self visibleRect]);
-	//int width=NSWidth([self visibleRect]);
-	int height = [self bounds].size.height;
-	int width = [self bounds].size.width;
-	NSLog(@"width is %d height is %d\n", width, height);
-	NSBitmapImageRep *imageRep;
-	NSImage *image;
-	
-	
-	imageRep=[[[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
-													  pixelsWide:width
-													  pixelsHigh:height
-												   bitsPerSample:8
-												 samplesPerPixel:4
-														hasAlpha:YES
-														isPlanar:NO
-												  colorSpaceName:NSCalibratedRGBColorSpace
-													 bytesPerRow:0
-													bitsPerPixel:0] autorelease];
-	//context = [NSOpenGLContext currentContext];
-	[context makeCurrentContext];	
-	glReadPixels(0,0,width,height,GL_RGBA,GL_UNSIGNED_BYTE,[imageRep bitmapData]);
-
-	image = [[[NSImage alloc] init] autorelease];
-	[image addRepresentation:imageRep];
-	[image setFlipped:YES];
-	[image lockFocusOnRepresentation:imageRep]; // This will flip the rep.
-	[image unlockFocus];
-	
-	
-	NSData *TIFFData;
-	
-	TIFFData = [imageRep TIFFRepresentation];
-	[TIFFData writeToFile:@"/Users/sarah/theImage.tiff" atomically:YES];
-	
-	//[image setFlipped:YES];
-	return image; 
-}	
 
 - (void) createReleasePool
 {
@@ -489,6 +449,36 @@
 				else if ([[args objectAtIndex:mi] hasSuffix: @"fullscreen"]) {
 					fullscreen = TRUE;
 				}
+				else if ([[args objectAtIndex:mi] hasSuffix: @"shutter"]) {
+					setShutter();
+				}
+				else if ([[args objectAtIndex:mi] hasSuffix: @"anaglyph"]) {
+					char anaglyph[256];
+					NSString* anaString = [args objectAtIndex:(mi+1)];
+					[anaString getCString: anaglyph];
+					setAnaglyphParameter(anaglyph);
+				}
+				else if ([[args objectAtIndex:mi] hasSuffix: @"sidebyside"]) {
+					setSideBySide();
+				}
+				else if ([[args objectAtIndex:mi] hasSuffix: @"eyedist"]) {
+					char eyeDist[256];
+					NSString* eyeString = [args objectAtIndex:(mi+1)];
+					[eyeString getCString: eyeDist];
+					setEyeDist(eyeDist);
+				}
+				else if ([[args objectAtIndex:mi] hasSuffix: @"screendist"]) {
+					char screenDist[256];
+					NSString* screenString = [args objectAtIndex:(mi+1)];
+					[screenString getCString: screenDist];
+					setScreenDist(screenDist);
+				}
+				else if ([[args objectAtIndex:mi] hasSuffix: @"stereo"]) {
+					char stereo[256];
+					NSString* stereoString = [args objectAtIndex:(mi+1)];
+					[stereoString getCString: stereo];
+					setStereoParameter(stereo);
+				}
 			}
         }
     }
@@ -518,7 +508,7 @@
 			OSX_initializeParameters([fileToOpen cString]);
 	else 
 		//OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
-		OSX_initializeParameters("/FreeWRL/freewrl/freewrl/tests/16.wrl");
+		OSX_initializeParameters("/FreeWRL/freewrl/freewrl/tests/1.wrl");
 	
 	/* do we require EAI? */
 	if (wantEAI) {
@@ -556,8 +546,13 @@
 }
 
 - (void) doResize
-{
+{	
+	NSOpenGLContext* currentContext;
+	currentContext = [NSOpenGLContext currentContext];
+	[currentContext setView:self];
+	[currentContext update];
 	NSSize mySize = [self frame].size;
+	
 	setScreenDim((int) mySize.width, (int) mySize.height);
 }
 

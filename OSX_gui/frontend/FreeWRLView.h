@@ -12,6 +12,8 @@
 #include <tcpd.h>
 
 #include <main.h>
+#include <list.h>
+#include <resources.h>
 #include <io_http.h>
 
 #define DEFAULT_TIME_INTERVAL 	0.0001

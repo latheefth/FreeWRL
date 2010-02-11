@@ -326,10 +326,6 @@
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
 										<string>FreeWRLView.m</string>
-										<key>_historyCapacity</key>
-										<integer>0</integer>
-										<key>bookmark</key>
-										<string>2689F1991108BB9200F0428C</string>
 										<key>history</key>
 										<array>
 											<string>26D10E090E3E2A3700213972</string>
@@ -338,16 +334,9 @@
 											<string>261F7B5E0F407BBE006D3966</string>
 											<string>26637E7D110641700022CD8E</string>
 											<string>26637E7F110641700022CD8E</string>
-											<string>26637E81110641700022CD8E</string>
-											<string>26637E82110641700022CD8E</string>
 											<string>26637EB0110644E70022CD8E</string>
-											<string>26637EB1110644E70022CD8E</string>
 											<string>26637EB2110644E70022CD8E</string>
-											<string>26C8410111078C2A0028FCD3</string>
-											<string>26C8410211078C2A0028FCD3</string>
 											<string>267A773D1107A39D000D45C8</string>
-											<string>26CE9C861107A48300C1FCDB</string>
-											<string>26E0F46F1108BAAA00F8837C</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -359,14 +348,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {942, 456}}</string>
+								<string>{{0, 0}, {942, 435}}</string>
 								<key>RubberWindowFrame</key>
 								<string>62 148 1348 720 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>456pt</string>
+							<string>435pt</string>
 						</dict>
 						<dict>
 							<key>ContentConfiguration</key>
@@ -379,14 +368,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 461}, {942, 218}}</string>
+								<string>{{0, 440}, {942, 239}}</string>
 								<key>RubberWindowFrame</key>
 								<string>62 148 1348 720 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
 							<key>Proportion</key>
-							<string>218pt</string>
+							<string>239pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -405,9 +394,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>2689F1781108BAF200F0428C</string>
+				<string>269528191124A129004B878C</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>2689F1791108BAF200F0428C</string>
+				<string>2695281A1124A129004B878C</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -541,9 +530,6 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>2689F1831108BAF200F0428C</string>
-		<string>2689F1841108BAF200F0428C</string>
-		<string>1C78EAAD065D492600B07095</string>
 		<string>1CD10A99069EF8BA00B06720</string>
 		<string>262F9B301003D3E100E3ABD0</string>
 		<string>/FreeWRL/freewrl/OSX_gui/frontend/FreeWRL.xcodeproj</string>
@@ -626,7 +612,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>262F9B301003D3E100E3ABD0</string>
-				<string>2689F17A1108BAF200F0428C</string>
+				<string>2695281B1124A129004B878C</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
@@ -746,13 +732,13 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>1CD10A99069EF8BA00B06720</string>
-				<string>2689F17B1108BAF200F0428C</string>
+				<string>2695281C1124A129004B878C</string>
 				<string>1C162984064C10D400B95A72</string>
-				<string>2689F17C1108BAF200F0428C</string>
-				<string>2689F17D1108BAF200F0428C</string>
-				<string>2689F17E1108BAF200F0428C</string>
-				<string>2689F17F1108BAF200F0428C</string>
-				<string>2689F1801108BAF200F0428C</string>
+				<string>2695281D1124A129004B878C</string>
+				<string>2695281E1124A129004B878C</string>
+				<string>2695281F1124A129004B878C</string>
+				<string>269528201124A129004B878C</string>
+				<string>269528211124A129004B878C</string>
 			</array>
 			<key>ToolbarConfiguration</key>
 			<string>xcode.toolbar.config.debugV3</string>

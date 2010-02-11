@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -232,7 +232,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 2676A368091C0C3E00F127AA /* Build configuration list for PBXProject "FreeWRL" */;
-			compatibilityVersion = "Xcode 2.4";
+			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
 			mainGroup = 29B97314FDCFA39411CA2CEA /* FreeWRL */;
 			projectDirPath = "";
@@ -296,7 +296,7 @@
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = macosx10.4;
 				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/**";
 			};
 			name = Development;
@@ -304,14 +304,26 @@
 		2676A36A091C0C3E00F127AA /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = i386;
-				GCC_VERSION = 4.0;
-				HEADER_SEARCH_PATHS = "";
+				ARCHS = (
+					ppc,
+					i386,
+					x86_64,
+				);
+				GCC_VERSION = "";
+				"GCC_VERSION[arch=i386]" = 4.0;
+				"GCC_VERSION[arch=ppc]" = 4.0;
+				HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/OSX/XXX/**";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				"MACOSX_DEPLOYMENT_TARGET[arch=i386]" = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.4;
+				ONLY_ACTIVE_ARCH = NO;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
-				USER_HEADER_SEARCH_PATHS = "../../freex3d/**";
+				SDKROOT = "";
+				"SDKROOT[arch=i386]" = macosx10.4;
+				"SDKROOT[arch=ppc]" = macosx10.4;
+				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/**";
+				VALID_ARCHS = "ppc i386 x86_64";
 			};
 			name = Deployment;
 		};
@@ -322,7 +334,7 @@
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = macosx10.4;
 				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/**";
 			};
 			name = Default;
@@ -376,7 +388,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
-				DEFINE = "-DAQUA";
+				DEFINE = "-DAQUA -DTARGET_AQUA";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = (

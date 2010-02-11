@@ -12,12 +12,12 @@
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="81"/>
-			<integer value="713"/>
-			<integer value="393"/>
-			<integer value="398"/>
+			<integer value="24"/>
 			<integer value="399"/>
 			<integer value="446"/>
+			<integer value="393"/>
+			<integer value="713"/>
+			<integer value="398"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -496,15 +496,6 @@
 									<reference key="NSOnImage" ref="884833688"/>
 									<reference key="NSMixedImage" ref="40467712"/>
 								</object>
-								<object class="NSMenuItem" id="13196685">
-									<reference key="NSMenu" ref="515620284"/>
-									<string key="NSTitle">Shapes uses separate thread</string>
-									<string key="NSKeyEquiv"/>
-									<int key="NSKeyEquivModMask">1048576</int>
-									<int key="NSMnemonicLoc">2147483647</int>
-									<reference key="NSOnImage" ref="884833688"/>
-									<reference key="NSMixedImage" ref="40467712"/>
-								</object>
 							</object>
 						</object>
 					</object>
@@ -621,10 +612,9 @@
 					<characters key="NS.bytes">View</characters>
 				</object>
 				<string key="NSWindowContentMaxSize">{1.79769e+308, 1.79769e+308}</string>
-				<string key="NSWindowContentMinSize">{213, 107}</string>
 				<object class="NSView" key="NSWindowView" id="68220848">
 					<reference key="NSNextResponder"/>
-					<int key="NSvFlags">256</int>
+					<int key="NSvFlags">274</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSCustomView" id="725686152">
@@ -640,7 +630,6 @@
 					<reference key="NSSuperview"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
-				<string key="NSMinSize">{213, 129}</string>
 				<string key="NSMaxSize">{1.79769e+308, 1.79769e+308}</string>
 				<string key="NSFrameAutosaveName">FreeWRL</string>
 			</object>
@@ -773,7 +762,7 @@
 								<reference key="NSDocView" ref="670749127"/>
 								<reference key="NSBGColor" ref="518997992"/>
 								<object class="NSCursor" key="NSCursor">
-									<string key="NSHotSpot">{1, -1}</string>
+									<string key="NSHotSpot">{4, 4}</string>
 									<int key="NSCursorType">0</int>
 								</object>
 								<int key="NScvFlags">4</int>
@@ -1439,22 +1428,6 @@
 					<int key="connectionID">434</int>
 				</object>
 				<object class="IBConnectionRecord">
-					<object class="IBOutletConnection" key="connection">
-						<string key="label">shapeThreadb</string>
-						<reference key="source" ref="12850849"/>
-						<reference key="destination" ref="13196685"/>
-					</object>
-					<int key="connectionID">441</int>
-				</object>
-				<object class="IBConnectionRecord">
-					<object class="IBActionConnection" key="connection">
-						<string key="label">shapeThread:</string>
-						<reference key="source" ref="12850849"/>
-						<reference key="destination" ref="13196685"/>
-					</object>
-					<int key="connectionID">443</int>
-				</object>
-				<object class="IBConnectionRecord">
 					<object class="IBActionConnection" key="connection">
 						<string key="label">orderFrontColorPanel:</string>
 						<reference key="source" ref="388428131"/>
@@ -1884,7 +1857,6 @@
 							<reference ref="239347453"/>
 							<reference ref="211911517"/>
 							<reference ref="864184200"/>
-							<reference ref="13196685"/>
 							<reference ref="457646724"/>
 						</object>
 						<reference key="parent" ref="176372591"/>
@@ -1912,11 +1884,6 @@
 					<object class="IBObjectRecord">
 						<int key="objectID">426</int>
 						<reference key="object" ref="864184200"/>
-						<reference key="parent" ref="515620284"/>
-					</object>
-					<object class="IBObjectRecord">
-						<int key="objectID">435</int>
-						<reference key="object" ref="13196685"/>
 						<reference key="parent" ref="515620284"/>
 					</object>
 					<object class="IBObjectRecord">
@@ -2139,10 +2106,12 @@
 					<string>19.ImportedFromIB2</string>
 					<string>23.IBPluginDependency</string>
 					<string>23.ImportedFromIB2</string>
+					<string>24.IBEditorWindowLastContentRect</string>
 					<string>24.IBPluginDependency</string>
 					<string>24.ImportedFromIB2</string>
 					<string>259.IBPluginDependency</string>
 					<string>259.ImportedFromIB2</string>
+					<string>260.IBEditorWindowLastContentRect</string>
 					<string>260.IBPluginDependency</string>
 					<string>260.ImportedFromIB2</string>
 					<string>29.IBEditorWindowLastContentRect</string>
@@ -2211,6 +2180,7 @@
 					<string>417.ImportedFromIB2</string>
 					<string>420.IBPluginDependency</string>
 					<string>420.ImportedFromIB2</string>
+					<string>421.IBEditorWindowLastContentRect</string>
 					<string>421.IBPluginDependency</string>
 					<string>421.ImportedFromIB2</string>
 					<string>422.IBPluginDependency</string>
@@ -2223,8 +2193,6 @@
 					<string>425.ImportedFromIB2</string>
 					<string>426.IBPluginDependency</string>
 					<string>426.ImportedFromIB2</string>
-					<string>435.IBPluginDependency</string>
-					<string>435.ImportedFromIB2</string>
 					<string>445.IBPluginDependency</string>
 					<string>445.ImportedFromIB2</string>
 					<string>446.IBEditorWindowLastContentRect</string>
@@ -2323,10 +2291,12 @@
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
+					<string>{{633, 399}, {194, 53}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
+					<string>{{459, 219}, {179, 233}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>{{325, 452}, {440, 20}}</string>
@@ -2362,12 +2332,12 @@
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>{{84, 342}, {600, 400}}</string>
+					<string>{{160, 392}, {600, 400}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>{{84, 342}, {600, 400}}</string>
+					<string>{{160, 392}, {600, 400}}</string>
 					<boolean value="YES"/>
 					<boolean value="YES"/>
-					<boolean value="YES"/>
+					<boolean value="NO"/>
 					<string>{213, 107}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
@@ -2395,8 +2365,7 @@
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
-					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<boolean value="YES"/>
+					<string>{{536, 339}, {306, 113}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<boolean value="YES"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -2501,6 +2470,10 @@
 				<object class="IBPartialClassDescription">
 					<string key="className">FreeWRLView</string>
 					<string key="superclassName">NSView</string>
+					<object class="NSMutableDictionary" key="actions">
+						<string key="NS.key.0">print:</string>
+						<string key="NS.object.0">id</string>
+					</object>
 					<object class="NSMutableDictionary" key="outlets">
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSArray" key="dict.sortedKeys">
@@ -3168,10 +3141,6 @@
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencies">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.macosx</string>
 			<integer value="1060" key="NS.object.0"/>
-		</object>
-		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencyDefaults">
-			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.macosx</string>
-			<integer value="1040" key="NS.object.0"/>
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDevelopmentDependencies">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaPlugin.InterfaceBuilder3</string>
