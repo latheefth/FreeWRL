@@ -43,7 +43,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 
 /*****************************************************************
 *
-*	handle_Listener is called when a requested value changes.
+*	EAIListener is called when a requested value changes.
 *
 *	What happens is that the "normal" freewrl routing code finds
 *	an EventOut changed, copies the data to the buffer EAIListenerData,
@@ -57,7 +57,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 *
 ********************************************************************/
 
-void handle_Listener () {
+void EAIListener () {
 	int id, tp;
 	char buf[EAIREADSIZE];
 	struct Multi_Node *mfptr;	/* used for freeing memory*/

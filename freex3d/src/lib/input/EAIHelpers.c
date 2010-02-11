@@ -501,7 +501,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		printf ("recompile with MAXFIELDSPERNODE increased in value\n");
 	}
 	EAINodeIndex[cNode].params[maxparamindex].fieldOffset = myFieldOffs;
-	EAINodeIndex[cNode].params[maxparamindex].datalen = returnRoutingElementLength(ctype);
+	EAINodeIndex[cNode].params[maxparamindex].datalen = ctype;
 	EAINodeIndex[cNode].params[maxparamindex].typeString = mapFieldTypeToEAItype(ctype);
 	EAINodeIndex[cNode].params[maxparamindex].scripttype = myScriptType;
 	EAINodeIndex[cNode].params[maxparamindex].invokedPROTOValue = invokedValPtr;

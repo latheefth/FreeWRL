@@ -51,7 +51,7 @@ struct X3D_Node *EAI_GetViewpoint(const char *str);
 void EAI_killBindables (void);
 
 /* function prototypes */
-void handle_Listener (void);
+void EAIListener (void);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 unsigned int EAI_SendEvent (char *ptr);
 void EAI_RNewW(char *bufptr);
