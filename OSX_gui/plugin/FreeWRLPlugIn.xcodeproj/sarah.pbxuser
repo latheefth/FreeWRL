@@ -1,0 +1,224 @@
+// !$*UTF8*$!
+{
+	089C1669FE841209C02AAC07 /* Project object */ = {
+		activeBuildConfigurationName = Release;
+		activeTarget = 8D5B49AC048680CD000E48DA /* FreeWRLPlugin */;
+		addToTargets = (
+			8D5B49AC048680CD000E48DA /* FreeWRLPlugin */,
+		);
+		codeSenseManager = 26637CB510F526280022CD8E /* Code sense */;
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXExecutablesDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					22,
+					300,
+					614,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXExecutablesDataSource_ActiveFlagID,
+					PBXExecutablesDataSource_NameID,
+					PBXExecutablesDataSource_CommentsID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					726,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					686,
+					60,
+					20,
+					48,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 287676297;
+			PBXWorkspaceStateSaveDate = 287676297;
+		};
+		perUserProjectItems = {
+			264C15F611259821009B15CA /* PBXTextBookmark */ = 264C15F611259821009B15CA /* PBXTextBookmark */;
+			26637F1F11064D010022CD8E /* PBXTextBookmark */ = 26637F1F11064D010022CD8E /* PBXTextBookmark */;
+			2695283F11259686004B878C /* PBXTextBookmark */ = 2695283F11259686004B878C /* PBXTextBookmark */;
+			26A007201111E557002488DA /* PlistBookmark */ = 26A007201111E557002488DA /* PlistBookmark */;
+			26A0077C1112026A002488DA /* PBXTextBookmark */ = 26A0077C1112026A002488DA /* PBXTextBookmark */;
+			26A0077F1112026A002488DA /* PBXBookmark */ = 26A0077F1112026A002488DA /* PBXBookmark */;
+			26A009B61121EF8C002488DA /* PlistBookmark */ = 26A009B61121EF8C002488DA /* PlistBookmark */;
+		};
+		sourceControlManager = 26637CB410F526280022CD8E /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	264C15F611259821009B15CA /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 83D31E92067EB326000A00EB /* X3DView.m */;
+		name = "X3DView.m: 199";
+		rLen = 0;
+		rLoc = 4439;
+		rType = 0;
+		vrLen = 774;
+		vrLoc = 4076;
+	};
+	26637CB410F526280022CD8E /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+			repositoryNamesForRoots = {
+				"" = "";
+			};
+		};
+	};
+	26637CB510F526280022CD8E /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	26637DC210FCCC9A0022CD8E /* _types.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = _types.h;
+		path = /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.sdk/usr/include/machine/_types.h;
+		sourceTree = "<absolute>";
+	};
+	26637F1F11064D010022CD8E /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 26637DC210FCCC9A0022CD8E /* _types.h */;
+		name = "_types.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1564;
+		vrLoc = 65;
+	};
+	2695283F11259686004B878C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 83D31E92067EB326000A00EB /* X3DView.m */;
+		name = "X3DView.m: 199";
+		rLen = 0;
+		rLoc = 4439;
+		rType = 0;
+		vrLen = 774;
+		vrLoc = 4076;
+	};
+	26A007201111E557002488DA /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = 26A007211111E557002488DA /* Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/sarah/Desktop/WebKitMoviePlugIn-modified/build/Debug/FreeWRLPlugin.plugin/Contents/Info.plist";
+		rLen = 0;
+		rLoc = 9223372036854775808;
+	};
+	26A007211111E557002488DA /* Info.plist */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = text.plist.xml;
+		name = Info.plist;
+		path = "/Users/sarah/Desktop/WebKitMoviePlugIn-modified/build/Debug/FreeWRLPlugin.plugin/Contents/Info.plist";
+		sourceTree = "<absolute>";
+	};
+	26A0077C1112026A002488DA /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 83725A7E0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch */;
+		name = "FreeWRLPlugIn_Prefix.pch: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 194;
+		vrLoc = 0;
+	};
+	26A0077F1112026A002488DA /* PBXBookmark */ = {
+		isa = PBXBookmark;
+		fRef = 26A007801112026A002488DA /* OneAtATime.jpg */;
+	};
+	26A007801112026A002488DA /* OneAtATime.jpg */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = image.jpeg;
+		name = OneAtATime.jpg;
+		path = "/Users/sarah/Desktop/WebKitMoviePlugIn-modified/build/Debug/FreeWRLPlugin.plugin/Contents/Resources/OneAtATime.jpg";
+		sourceTree = "<absolute>";
+	};
+	26A009B61121EF8C002488DA /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = 8D5B49B7048680CD000E48DA /* Info.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/sarah/Desktop/WebKitMoviePlugIn-modified/Info.plist";
+		rLen = 0;
+		rLoc = 9223372036854775808;
+	};
+	26AA51411110D48400D10579 /* Plugin.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {904, 406}}";
+			sepNavSelRange = "{300, 0}";
+			sepNavVisRange = "{0, 737}";
+		};
+	};
+	26AA51421110D48400D10579 /* Plugin.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {904, 663}}";
+			sepNavSelRange = "{1079, 0}";
+			sepNavVisRange = "{369, 725}";
+		};
+	};
+	83725A7E0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {904, 406}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 194}";
+		};
+	};
+	83D31E91067EB326000A00EB /* X3DView.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {992, 689}}";
+			sepNavSelRange = "{73, 0}";
+			sepNavVisRange = "{0, 487}";
+		};
+	};
+	83D31E92067EB326000A00EB /* X3DView.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {904, 4901}}";
+			sepNavSelRange = "{4439, 0}";
+			sepNavVisRange = "{4076, 774}";
+		};
+	};
+	8D5B49AC048680CD000E48DA /* FreeWRLPlugin */ = {
+		activeExec = 0;
+	};
+}

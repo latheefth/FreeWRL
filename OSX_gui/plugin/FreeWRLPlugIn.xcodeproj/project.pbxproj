@@ -1,0 +1,346 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		26A0076E1111EA3D002488DA /* simple.png in Resources */ = {isa = PBXBuildFile; fileRef = 26A0076D1111EA3D002488DA /* simple.png */; };
+		26A0090A111347C0002488DA /* libFreeWRLFunc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 26A00909111347C0002488DA /* libFreeWRLFunc.dylib */; };
+		26AA51431110D48400D10579 /* Plugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 26AA51411110D48400D10579 /* Plugin.h */; };
+		26AA51441110D48400D10579 /* Plugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 26AA51421110D48400D10579 /* Plugin.m */; };
+		5221118510E019A400B11726 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5221118410E019A400B11726 /* OpenGL.framework */; };
+		83725A7F0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch in Resources */ = {isa = PBXBuildFile; fileRef = 83725A7E0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch */; };
+		83D31E93067EB326000A00EB /* X3DView.h in Headers */ = {isa = PBXBuildFile; fileRef = 83D31E91067EB326000A00EB /* X3DView.h */; };
+		83D31E94067EB326000A00EB /* X3DView.m in Sources */ = {isa = PBXBuildFile; fileRef = 83D31E92067EB326000A00EB /* X3DView.m */; };
+		83D320AD067EB979000A00EB /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83D320AC067EB979000A00EB /* WebKit.framework */; };
+		8D5B49B0048680CD000E48DA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
+		8D5B49B4048680CD000E48DA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		089C1672FE841209C02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		089C167EFE841241C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		089C167FFE841241C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		26A0076D1111EA3D002488DA /* simple.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = simple.png; sourceTree = "<group>"; };
+		26A00909111347C0002488DA /* libFreeWRLFunc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libFreeWRLFunc.dylib; path = /FreeWRL/freewrl/freex3d/appleOSX/libFreeWRLFunc.dylib; sourceTree = "<absolute>"; };
+		26AA51411110D48400D10579 /* Plugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Plugin.h; sourceTree = "<group>"; };
+		26AA51421110D48400D10579 /* Plugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Plugin.m; sourceTree = "<group>"; };
+		5221118410E019A400B11726 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
+		83725A7E0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FreeWRLPlugIn_Prefix.pch; sourceTree = "<group>"; };
+		83D31E91067EB326000A00EB /* X3DView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = X3DView.h; sourceTree = "<group>"; };
+		83D31E92067EB326000A00EB /* X3DView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = X3DView.m; sourceTree = "<group>"; };
+		83D320AC067EB979000A00EB /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = /System/Library/Frameworks/WebKit.framework; sourceTree = "<absolute>"; };
+		8D5B49B6048680CD000E48DA /* FreeWRLPlugin.plugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FreeWRLPlugin.plugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D5B49B7048680CD000E48DA /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D5B49B3048680CD000E48DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D5B49B4048680CD000E48DA /* Cocoa.framework in Frameworks */,
+				83D320AD067EB979000A00EB /* WebKit.framework in Frameworks */,
+				5221118510E019A400B11726 /* OpenGL.framework in Frameworks */,
+				26A0090A111347C0002488DA /* libFreeWRLFunc.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		089C166AFE841209C02AAC07 /* MoviePlugIn */ = {
+			isa = PBXGroup;
+			children = (
+				08FB77AFFE84173DC02AAC07 /* Classes */,
+				32C88E010371C26100C91783 /* Other Sources */,
+				089C167CFE841241C02AAC07 /* Resources */,
+				089C1671FE841209C02AAC07 /* Frameworks and Libraries */,
+				19C28FB8FE9D52D311CA2CBB /* Products */,
+			);
+			name = MoviePlugIn;
+			sourceTree = "<group>";
+		};
+		089C1671FE841209C02AAC07 /* Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7ACFEA557BF11CA2CBB /* Linked Frameworks */,
+				1058C7AEFEA557BF11CA2CBB /* Other Frameworks */,
+			);
+			name = "Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		089C167CFE841241C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				26A0076D1111EA3D002488DA /* simple.png */,
+				8D5B49B7048680CD000E48DA /* Info.plist */,
+				089C167DFE841241C02AAC07 /* InfoPlist.strings */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		08FB77AFFE84173DC02AAC07 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				26AA51411110D48400D10579 /* Plugin.h */,
+				26A00909111347C0002488DA /* libFreeWRLFunc.dylib */,
+				26AA51421110D48400D10579 /* Plugin.m */,
+				83D31E91067EB326000A00EB /* X3DView.h */,
+				83D31E92067EB326000A00EB /* X3DView.m */,
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		1058C7ACFEA557BF11CA2CBB /* Linked Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5221118410E019A400B11726 /* OpenGL.framework */,
+				83D320AC067EB979000A00EB /* WebKit.framework */,
+				1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */,
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7AEFEA557BF11CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				089C1672FE841209C02AAC07 /* Foundation.framework */,
+				089C167FFE841241C02AAC07 /* AppKit.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		19C28FB8FE9D52D311CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D5B49B6048680CD000E48DA /* FreeWRLPlugin.plugin */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		32C88E010371C26100C91783 /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				83725A7E0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		8D5B49AD048680CD000E48DA /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				83D31E93067EB326000A00EB /* X3DView.h in Headers */,
+				26AA51431110D48400D10579 /* Plugin.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		8D5B49AC048680CD000E48DA /* FreeWRLPlugin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 149C29AB08902C62008A9EFC /* Build configuration list for PBXNativeTarget "FreeWRLPlugin" */;
+			buildPhases = (
+				8D5B49AD048680CD000E48DA /* Headers */,
+				8D5B49AF048680CD000E48DA /* Resources */,
+				8D5B49B1048680CD000E48DA /* Sources */,
+				8D5B49B3048680CD000E48DA /* Frameworks */,
+				8D5B49B5048680CD000E48DA /* Rez */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FreeWRLPlugin;
+			productInstallPath = "$(HOME)/Library/Bundles";
+			productName = MoviePlugIn;
+			productReference = 8D5B49B6048680CD000E48DA /* FreeWRLPlugin.plugin */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		089C1669FE841209C02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 149C29AF08902C62008A9EFC /* Build configuration list for PBXProject "FreeWRLPlugIn" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 089C166AFE841209C02AAC07 /* MoviePlugIn */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8D5B49AC048680CD000E48DA /* FreeWRLPlugin */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D5B49AF048680CD000E48DA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D5B49B0048680CD000E48DA /* InfoPlist.strings in Resources */,
+				83725A7F0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch in Resources */,
+				26A0076E1111EA3D002488DA /* simple.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXRezBuildPhase section */
+		8D5B49B5048680CD000E48DA /* Rez */ = {
+			isa = PBXRezBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXRezBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D5B49B1048680CD000E48DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				83D31E94067EB326000A00EB /* X3DView.m in Sources */,
+				26AA51441110D48400D10579 /* Plugin.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		089C167DFE841241C02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C167EFE841241C02AAC07 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		149C29AC08902C62008A9EFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = FreeWRLPlugIn_Prefix.pch;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				LIBRARY_SEARCH_PATHS = (
+					"/usr/local/lib/**",
+					/FreeWRL/freewrl/freex3d/appleOSX,
+				);
+				LIBRARY_STYLE = Bundle;
+				OTHER_LDFLAGS = (
+					"-lFreeWRLFunc",
+					"-lAquaIntLib",
+				);
+				PRODUCT_NAME = FreeWRLPlugin;
+				WARNING_CFLAGS = "-Wmost";
+				WRAPPER_EXTENSION = plugin;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		149C29AD08902C62008A9EFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = FreeWRLPlugIn_Prefix.pch;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/FreeWRL/freewrl/freex3d/appleOSX,
+				);
+				LIBRARY_STYLE = Bundle;
+				ONLY_ACTIVE_ARCH = NO;
+				PRODUCT_NAME = FreeWRLPlugin;
+				"SDKROOT[arch=ppc64]" = macosx10.6;
+				"SDKROOT[arch=ppc]" = macosx10.4;
+				WARNING_CFLAGS = "-Wmost";
+				WRAPPER_EXTENSION = plugin;
+			};
+			name = Release;
+		};
+		149C29B008902C62008A9EFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/** /FreeWRL/freewrl/freex3d/appleOSX";
+				VALID_ARCHS = i386;
+			};
+			name = Debug;
+		};
+		149C29B108902C62008A9EFC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				"GCC_VERSION[arch=i386]" = 4.0;
+				"GCC_VERSION[arch=x86_64]" = 4.2;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				"MACOSX_DEPLOYMENT_TARGET[arch=i386]" = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.6;
+				ONLY_ACTIVE_ARCH = NO;
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+				"SDKROOT[arch=i386]" = macosx10.4;
+				"SDKROOT[arch=x86_64]" = macosx10.6;
+				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/appleOSX /FreeWRL/freewrl/freex3d/**";
+				VALID_ARCHS = "i386 x86_64";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		149C29AB08902C62008A9EFC /* Build configuration list for PBXNativeTarget "FreeWRLPlugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				149C29AC08902C62008A9EFC /* Debug */,
+				149C29AD08902C62008A9EFC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		149C29AF08902C62008A9EFC /* Build configuration list for PBXProject "FreeWRLPlugIn" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				149C29B008902C62008A9EFC /* Debug */,
+				149C29B108902C62008A9EFC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 089C1669FE841209C02AAC07 /* Project object */;
+}
