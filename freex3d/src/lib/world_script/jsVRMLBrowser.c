@@ -114,19 +114,13 @@ void jsRegisterRoute(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
 	int len, const char *adrem) {
- 	char tonode_str[15];
 	int ad;
-#if defined(_MSC_VER)
- 	sprintf_s(tonode_str, 15, "%p:%d", to, toOfs);
-#else
- 	snprintf(tonode_str, 15, "%p:%d", to, toOfs);
-#endif
 
 	if (strcmp("addRoute",adrem) == 0) 
 		ad = 1;
 	else ad = 0;
 
- 	CRoutes_Register(ad, from, fromOfs, 1, tonode_str, len, 
+ 	CRoutes_Register(ad, from, fromOfs, to, toOfs , len, 
  		 returnInterpolatorPointer(stringNodeType(to->_nodeType)), 0, 0);
 }
  
