@@ -183,12 +183,13 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 {
 	bool network;
 	char *url = NULL;
-	int len;
+	size_t len;
 	resource_item_t *defaults = NULL;
 
 	ASSERT(res);
+#define DEBUG_RES printf
 
-	DEBUG_RES("resource_identify, we have resource %s ptrs %u and %u\n",res->request,baseResource,res);
+	DEBUG_RES("resource_identify, we have resource %s ptrs %lu and %lx\n",res->request,baseResource,baseResource);
 
 	if (baseResource) {
 		DEBUG_RES(" base specified, taking base's values.\n");
@@ -204,7 +205,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	}
 
 	if (defaults) {
-		/* printf ("resource_identify, have defaults, base %s, parsed_request %s\n",defaults->base, defaults->parsed_request); */
+		printf ("resource_identify, have defaults, base %s, parsed_request %s\n",defaults->base, defaults->parsed_request);
 		DEBUG_RES(" default values: network=%s type=%s status=%s"
 			  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n",
 			  BOOL_STR(defaults->network), resourceTypeToString(defaults->type), 

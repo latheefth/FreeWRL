@@ -55,5 +55,7 @@ extern struct CRStruct *CRoutes;
 /* function protos */
 int get_valueChanged_flag (uintptr_t, uintptr_t);
 
+void mark_event (struct X3D_Node *from, size_t fromoffset);
+void mark_event_check (struct X3D_Node *from, size_t fromoffset,char *fn, int line);
 
 #endif /* __FREEWRL_CROUTES_H__ */

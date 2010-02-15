@@ -1272,11 +1272,13 @@ void deleteAnaglyphShaders()
 		glDeleteProgram(Viewer.programs[i]);
 	}
 }
-//char * RGBACM = "RGBACM";
-//int indexRGBACM(int a)
-//{
-//	return strchr(RGBACM,a)-RGBACM;
-//}
+
+static char * RGBACM = "RGBACM";
+static int indexRGBACM(int a)
+{
+	return strchr(RGBACM,a)-RGBACM;
+}
+
 
 void setAnaglyphSideColor(char val, int iside)
 {

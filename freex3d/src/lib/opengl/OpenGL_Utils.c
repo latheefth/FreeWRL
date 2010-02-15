@@ -145,7 +145,7 @@ near plane is thus farPlane - highestPeak.
 static char * readInputString(char *fn) {
         char *buffer;
         FILE *infile;
-        int justread;
+        size_t justread;
 
 	#define MAXREADSIZE 4000
 

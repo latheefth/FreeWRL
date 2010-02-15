@@ -51,6 +51,7 @@ Handle incoming EAI (and java class) events with panache.
 #include "../opengl/Textures.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "../x3d_parser/X3DParser.h"
+#include "../vrml_parser/CRoutes.h"
 
 #include "EAIHelpers.h"
 

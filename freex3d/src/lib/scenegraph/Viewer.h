@@ -189,13 +189,6 @@ typedef struct viewer {
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
 
-static char * RGBACM = "RGBACM";
-static int indexRGBACM(int a)
-{
-	return strchr(RGBACM,a)-RGBACM;
-}
-
-
 void viewer_postGLinit_init(void);
 
 void

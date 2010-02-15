@@ -108,7 +108,7 @@ char *get_current_dir()
 	cwd = MALLOC(PATH_MAX);
 	getcwd(cwd, PATH_MAX);
 	{
-			int jj,ll;
+			size_t jj,ll;
 			ll = strlen(cwd);
 #ifdef _MSC_VER
 			for( jj=0;jj<ll;jj++)

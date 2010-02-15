@@ -1205,7 +1205,7 @@ in the routing table that this node/offset triggered an event.
 
 ********************************************************************/
 
-void mark_event (struct X3D_Node *from, unsigned int totalptr) {
+void mark_event (struct X3D_Node *from, size_t totalptr) {
 	int findit;
 
 #ifdef WIN32

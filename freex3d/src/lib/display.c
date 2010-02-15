@@ -66,7 +66,7 @@ int quadbuff_stereo_mode = 0;
 
 s_renderer_capabilities_t rdr_caps;
 
-float myFps = 0.0;
+float myFps = (float) 0.0;
 char myMenuStatus[MAXSTAT];
 
 GLenum _global_gl_err;
