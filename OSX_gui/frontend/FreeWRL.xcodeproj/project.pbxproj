@@ -311,6 +311,7 @@
 				);
 				GCC_VERSION = "";
 				"GCC_VERSION[arch=i386]" = 4.0;
+				"GCC_VERSION[arch=ppc64]" = 4.0;
 				"GCC_VERSION[arch=ppc]" = 4.0;
 				HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/OSX/XXX/**";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
@@ -318,6 +319,9 @@
 				"MACOSX_DEPLOYMENT_TARGET[arch=i386]" = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.4;
 				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "-DUSE_DOUBLE";
+				"OTHER_CFLAGS[arch=i386]" = "-DUSE_FLOAT";
+				"OTHER_CFLAGS[arch=ppc]" = "-DUSE_FLOAT";
 				OTHER_LDFLAGS = "-lAquaIntLib";
 				PREBINDING = NO;
 				SDKROOT = "";
@@ -390,6 +394,8 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
 				DEFINE = "-DAQUA -DTARGET_AQUA";
+				"DEFINE[sdk=macosx10.4][arch=*]" = "-DAQUA -DTARGET_AQUA -DUSE_FLOAT";
+				"DEFINE[sdk=macosx10.6][arch=*]" = "-DAQUA -DTARGET_AQUA -DUSE_DOUBLE";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = (

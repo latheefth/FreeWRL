@@ -7,8 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <ApplicationServices/ApplicationServices.h>
 #import "MyWindowController.h"
-
 
 @interface MyApp : NSDocumentController {
 	FILE* theFile;

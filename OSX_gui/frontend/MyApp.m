@@ -411,14 +411,19 @@
 } */
 
 - (void) changeColor: (id) sender {
+	NSColor* theColour = NULL;
+#ifdef USE_DOUBLE
+	CGFloat myred, mygreen, myblue, myalpha;
+#else
 	float myred, mygreen, myblue, myalpha;
-	//NSLog(@"got a change colour");
-	NSColor* theColour = [colourPanel color];
+#endif
+	
+	theColour = [sender color];
 	[theColour getRed: &myred green: &mygreen blue: &myblue alpha: &myalpha];
-	mycolour[0] = myred;
-	mycolour[1] = mygreen;
-	mycolour[2] = myblue;
-	mycolour[3] = myalpha;
+	mycolour[0] = (float) myred;
+	mycolour[1] = (float) mygreen;
+	mycolour[2] = (float) myblue;
+	mycolour[3] = (float) myalpha;
 	setglClearColor(mycolour);
 }
 
