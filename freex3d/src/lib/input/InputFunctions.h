@@ -36,7 +36,7 @@ Global includes.
 char* makeFontDirectory();
 FILE *openLocalFile (char *fn, char* access);
 char * stripLocalFileName (char * origName);
-
+void scanUnsignedIntoValue(char *sp, size_t *rv);
 
 #endif /* __FREEWRL_INPUTFUNCTIONS_H__ */
 

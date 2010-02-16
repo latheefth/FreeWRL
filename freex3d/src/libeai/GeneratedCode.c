@@ -33,7 +33,7 @@
 #include <main/headers.h>
 #include <input/EAIHeaders.h>
 
-char mapFieldTypeToEAItype (int st) {
+char mapFieldTypeToEAItype (indexT st) {
 	switch (st) { 
 		case FIELDTYPE_SFFloat:	return EAI_SFFloat;
 		case FIELDTYPE_MFFloat:	return EAI_MFFloat;

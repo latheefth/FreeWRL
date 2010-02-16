@@ -137,3 +137,15 @@ static void localCopy(char *outFile, char *inFile) {
 	return;
 }
 
+
+/* sscanf replacements */
+void scanUnsignedIntoValue(char *sp, size_t *rv) {
+        *rv = 0;
+
+        /* skip leading spaces, if there are any */
+        while ((*sp <= ' ') && (*sp != '\0')) sp++;
+        while ((*sp >='0') && (*sp <= '9')) {
+                *rv *= 10; *rv += (int) (*sp - '0'); sp++;
+        }
+}
+

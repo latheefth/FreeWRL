@@ -61,7 +61,7 @@ int eaiverbose = FALSE;
 #define PST_MF_STRUCT_ELEMENT(type1,type2) \
 	case FIELDTYPE_MF##type1: { \
 		struct Multi_##type1 *myv; \
-		myv = (struct Multi_type1 *) nst; \
+		myv = (struct Multi_##type1 *) nst; \
 		/* printf ("old val p= %u, n = %d\n",myv->p, myv->n); */\
 		myv->p = myVal.mf##type2.p; \
 		myv->n = myVal.mf##type2.n; \
@@ -267,7 +267,7 @@ void Parser_deleteParserForScanStringValueToMem(void) {
 }
 
 
-void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctype, char *value, int isXML) {
+void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT ctype, char *value, int isXML) {
 	void *nst;                      /* used for pointer maths */
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;
@@ -317,7 +317,7 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctyp
 
 		/* now, does the value string need quoting? */
 		if ((*value != '"') && (*value != '\'') && (*value != '[')) {
-			int len;
+			size_t len;
 			/* printf ("have to quote this string\n"); */
 			len = strlen(value);
 			mfstringtmp = MALLOC (sizeof (char *) * len + 10);
