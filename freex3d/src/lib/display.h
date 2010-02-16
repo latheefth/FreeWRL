@@ -81,7 +81,9 @@ extern bool display_initialized;
 #undef TARGET_WIN32
 #undef TARGET_MOTIF
 #undef TARGET_X11
-#define TARGET_AQUA
+/* defined on command line - this gives warnings when compiling for OSX JAS. #define TARGET_AQUA */
+
+
 int open_display();
 int create_main_window(int argc, char *argv[]);
 bool create_GLcontext();

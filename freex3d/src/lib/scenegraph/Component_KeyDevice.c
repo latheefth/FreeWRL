@@ -39,6 +39,7 @@ X3D Key Device Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../input/EAIHelpers.h"	/* for newASCIIString() */
+#include "../vrml_parser/CRoutes.h"
 
 #include "Component_KeyDevice.h"
 
@@ -131,6 +132,9 @@ required by the spec. From what I can see, the spec is silent on this regard */
 static struct X3D_Node **keySink = NULL;
 static int keySyncMallocLen = 0;
 static int keySinkCurMax = 0;
+
+static void sendToSS(struct X3D_Node *wsk, int key, int upDown);
+static void sendToKS(struct X3D_Node* wsk, int key, int upDown);
 
 static void incrementKeySinkList() {
 	if (keySinkCurMax >= keySyncMallocLen) {

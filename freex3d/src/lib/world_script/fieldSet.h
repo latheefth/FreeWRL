@@ -53,7 +53,7 @@ DEF_FINDFIELDFP(GEOSPATIAL);
 
 int findRoutedFieldInARR (struct X3D_Node *, const char *, int, const char**, size_t, BOOL);
 int findFieldInARR(const char*, const char**, size_t);
-void findFieldInOFFSETS(int, const int, int *, int *, int *);
+void findFieldInOFFSETS(int, const size_t, int *, int *, int *);
 void getJSMultiNumType(JSContext *, struct Multi_Vec3f *, int);
 void getMFStringtype(JSContext *, jsval *, struct Multi_String *);
 int findIndexInFIELDNAMES(int, const char**, size_t);

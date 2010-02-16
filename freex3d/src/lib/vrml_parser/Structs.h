@@ -7603,7 +7603,7 @@ struct X3D_WorldInfo {
 };
 extern struct X3D_Virt virt_WorldInfo;
 
-extern const int *NODE_OFFSETS[];
+extern const size_t *NODE_OFFSETS[];
 
 int getSAI_X3DNodeType (int FreeWRLNodeType);
 

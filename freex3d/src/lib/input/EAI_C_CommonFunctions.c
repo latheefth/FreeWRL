@@ -267,7 +267,7 @@ void Parser_deleteParserForScanStringValueToMem(void) {
 }
 
 
-void Parser_scanStringValueToMem(struct X3D_Node *node, int coffset, int ctype, char *value, int isXML) {
+void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctype, char *value, int isXML) {
 	void *nst;                      /* used for pointer maths */
 	union anyVrml myVal;
 	char *mfstringtmp = NULL;

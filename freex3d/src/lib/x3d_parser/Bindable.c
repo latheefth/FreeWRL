@@ -43,7 +43,8 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CParseParser.h"
 #include "../vrml_parser/CParseLexer.h"
-
+#include "../vrml_parser/CRoutes.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "Bindable.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
@@ -484,7 +485,7 @@ void render_Fog (struct X3D_Fog *node) {
 	fog_colour[0] = node->color.c[0];
 	fog_colour[1] = node->color.c[1];
 	fog_colour[2] = node->color.c[2];
-	fog_colour[3] = 1.0;
+	fog_colour[3] = (float) 1.0;
 
 	fogptr = node->fogType->strptr;
 	foglen = node->fogType->len;
@@ -518,7 +519,7 @@ void render_Fog (struct X3D_Fog *node) {
 		FW_GL_FOGI(GL_FOG_MODE, GL_EXP);
 	} else {
 		/* Linear */
-		FW_GL_FOGF(GL_FOG_START, 1.0);
+		FW_GL_FOGF(GL_FOG_START, (float) 1.0);
 		FW_GL_FOGF(GL_FOG_END, (float) (node->visibilityRange));
 		FW_GL_FOGI(GL_FOG_MODE, GL_LINEAR);
 	}
@@ -543,9 +544,9 @@ static void saveBGVert (float *colptr, float *pt,
 		memcpy (&colptr[*vertexno*3], col, sizeof(float)*3);
 
 		/* and, save the vertex info */
-		pt[*vertexno*3+0] = (float)x*dist;
-		pt[*vertexno*3+1] = (float)y*dist;
-		pt[*vertexno*3+2] = (float)z*dist;
+		pt[*vertexno*3+0] = (float)(x*dist);
+		pt[*vertexno*3+1] = (float)(y*dist);
+		pt[*vertexno*3+2] = (float)(z*dist);
 
 		(*vertexno)++;
 }

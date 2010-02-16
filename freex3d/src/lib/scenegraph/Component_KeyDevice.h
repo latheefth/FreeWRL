@@ -40,12 +40,9 @@ Proximity sensor macro.
 
 
 /* function protos */
-static void incrementKeySinkList();
 int KeySensorNodePresent();
 void addNodeToKeySensorList(struct X3D_Node* node);
 void killKeySensorNodeList();
 void sendKeyToKeySensor(const char key, int upDown);
-static void sendToKS(struct X3D_Node* wsk, int key, int upDown);
-static void sendToSS(struct X3D_Node *wsk, int key, int upDown);
 
 #endif /* __FREEWRL_SCENEGRAPH_KEYDEVICE_H__ */
