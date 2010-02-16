@@ -207,9 +207,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		26A96F2710066C02005CE65C /* FreeWRL */ = {
+		26A96F2710066C02005CE65C /* library */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 26A96F4510066C02005CE65C /* Build configuration list for PBXNativeTarget "FreeWRL" */;
+			buildConfigurationList = 26A96F4510066C02005CE65C /* Build configuration list for PBXNativeTarget "library" */;
 			buildPhases = (
 				26A96F2810066C02005CE65C /* Headers */,
 				26A96F2F10066C02005CE65C /* Resources */,
@@ -220,7 +220,7 @@
 			);
 			dependencies = (
 			);
-			name = FreeWRL;
+			name = library;
 			productInstallPath = "$(HOME)/Applications";
 			productName = FreeWRL;
 			productReference = 26E17A85100692870074D2FB /* FreeWRL.app */;
@@ -238,7 +238,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				26A96F2710066C02005CE65C /* FreeWRL */,
+				26A96F2710066C02005CE65C /* library */,
 			);
 		};
 /* End PBXProject section */
@@ -318,6 +318,7 @@
 				"MACOSX_DEPLOYMENT_TARGET[arch=i386]" = 10.4;
 				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.4;
 				ONLY_ACTIVE_ARCH = NO;
+				OTHER_LDFLAGS = "-lAquaIntLib";
 				PREBINDING = NO;
 				SDKROOT = "";
 				"SDKROOT[arch=i386]" = macosx10.4;
@@ -478,7 +479,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
 		};
-		26A96F4510066C02005CE65C /* Build configuration list for PBXNativeTarget "FreeWRL" */ = {
+		26A96F4510066C02005CE65C /* Build configuration list for PBXNativeTarget "library" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				26A96F4610066C02005CE65C /* Development */,

@@ -219,6 +219,11 @@ static X3DView* firstView = NULL;
 
 - (void) doResize
 {
+	NSOpenGLContext* currentContext;
+	currentContext = [NSOpenGLContext currentContext];
+	[currentContext setView:self];
+	[currentContext update];
+	
 	NSSize mySize = [self frame].size;
 	setScreenDim((int) mySize.width, (int) mySize.height);
 }

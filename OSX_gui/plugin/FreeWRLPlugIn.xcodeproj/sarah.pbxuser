@@ -66,17 +66,17 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 287676297;
-			PBXWorkspaceStateSaveDate = 287676297;
+			PBXPerProjectTemplateStateSaveDate = 287697200;
+			PBXWorkspaceStateSaveDate = 287697200;
 		};
 		perUserProjectItems = {
 			264C15F611259821009B15CA /* PBXTextBookmark */ = 264C15F611259821009B15CA /* PBXTextBookmark */;
 			26637F1F11064D010022CD8E /* PBXTextBookmark */ = 26637F1F11064D010022CD8E /* PBXTextBookmark */;
-			2695283F11259686004B878C /* PBXTextBookmark */ = 2695283F11259686004B878C /* PBXTextBookmark */;
 			26A007201111E557002488DA /* PlistBookmark */ = 26A007201111E557002488DA /* PlistBookmark */;
 			26A0077C1112026A002488DA /* PBXTextBookmark */ = 26A0077C1112026A002488DA /* PBXTextBookmark */;
 			26A0077F1112026A002488DA /* PBXBookmark */ = 26A0077F1112026A002488DA /* PBXBookmark */;
 			26A009B61121EF8C002488DA /* PlistBookmark */ = 26A009B61121EF8C002488DA /* PlistBookmark */;
+			26AC265F1128D21C001981C1 /* PBXTextBookmark */ = 26AC265F1128D21C001981C1 /* PBXTextBookmark */;
 		};
 		sourceControlManager = 26637CB410F526280022CD8E /* Source Control */;
 		userBuildSettings = {
@@ -122,16 +122,6 @@
 		rType = 0;
 		vrLen = 1564;
 		vrLoc = 65;
-	};
-	2695283F11259686004B878C /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 83D31E92067EB326000A00EB /* X3DView.m */;
-		name = "X3DView.m: 199";
-		rLen = 0;
-		rLoc = 4439;
-		rType = 0;
-		vrLen = 774;
-		vrLoc = 4076;
 	};
 	26A007201111E557002488DA /* PlistBookmark */ = {
 		isa = PlistBookmark;
@@ -197,6 +187,16 @@
 			sepNavVisRange = "{369, 725}";
 		};
 	};
+	26AC265F1128D21C001981C1 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 83D31E92067EB326000A00EB /* X3DView.m */;
+		name = "X3DView.m: 226";
+		rLen = 0;
+		rLoc = 5091;
+		rType = 0;
+		vrLen = 1131;
+		vrLoc = 6178;
+	};
 	83725A7E0680E35300A6729F /* FreeWRLPlugIn_Prefix.pch */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {904, 406}}";
@@ -213,9 +213,9 @@
 	};
 	83D31E92067EB326000A00EB /* X3DView.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {904, 4901}}";
-			sepNavSelRange = "{4439, 0}";
-			sepNavVisRange = "{4076, 774}";
+			sepNavIntBoundsRect = "{{0, 0}, {904, 4602}}";
+			sepNavSelRange = "{5091, 0}";
+			sepNavVisRange = "{6178, 1131}";
 		};
 	};
 	8D5B49AC048680CD000E48DA /* FreeWRLPlugin */ = {
