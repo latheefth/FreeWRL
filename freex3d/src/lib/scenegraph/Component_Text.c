@@ -41,6 +41,7 @@ X3D Text Component
 #include "../input/InputFunctions.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../opengl/OpenGL_Utils.h"
 
 #include "Collision.h"
 #include "LinearAlgebra.h"

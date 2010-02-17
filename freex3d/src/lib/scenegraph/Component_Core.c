@@ -44,6 +44,7 @@ X3D Core Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../vrml_parser/CRoutes.h"
 
 
 /************************************************************************************************/

@@ -35,6 +35,7 @@ $Id$
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../main/headers.h"
 
 #include "LinearAlgebra.h"

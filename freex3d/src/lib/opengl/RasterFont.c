@@ -28,7 +28,9 @@
 #include <display.h>
 #include <internal.h>
 
+#include "../vrml_parser/Structs.h"
 #include "opengl/RasterFont.h"
+#include "opengl/OpenGL_Utils.h"
 
 #include <stdarg.h>
 

@@ -37,6 +37,7 @@ X3D Event Utilities Component
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
 
 
@@ -87,7 +88,7 @@ void do_BooleanSequencer (void *node){
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed = 0.0;
+		px->value_changed = (float) 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
@@ -165,7 +166,7 @@ void do_IntegerSequencer (void *node){
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed = 0.0;
+		px->value_changed = (float) 0.0;
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */

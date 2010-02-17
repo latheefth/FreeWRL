@@ -3,8 +3,6 @@
 
 $Id$
 
-Collada parser functions.
-
 */
 
 /****************************************************************************
@@ -27,35 +25,10 @@ Collada parser functions.
 ****************************************************************************/
 
 
-#ifndef __FREEWRL_COLLADA_PARSER_H__
-#define __FREEWRL_COLLADA_PARSER_H__
+#ifndef __FREEWRL_SCENEGRAPH_COMPONENT3D_H__
+#define __FREEWRL_SCENEGRAPH_COMPONENT3D_H__
 
-int freewrl_XML_GetCurrentLineNumber();
+int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, double* prmaxvals);
+int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, float *maxVals);
 
-#define PARENTSTACKSIZE 256
-#define LINE freewrl_XML_GetCurrentLineNumber()
-/* this ifdef sequence is kept around, for a possible Microsoft Vista port */
-#ifdef XML_LARGE_SIZE
-#if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
-#define XML_FMT_INT_MOD "I64"
-#else
-#define XML_FMT_INT_MOD "ll"
-#endif
-#else
-#define XML_FMT_INT_MOD "l"
-#endif
-
-
-extern int CDATA_Text_curlen;
-extern char *CDATA_Text;
-
-extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
-
-#define INCREMENT_PARENTINDEX \
-        if (parentIndex < (PARENTSTACKSIZE-2))  { \
-                parentIndex++; \
-                colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
-        } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
-
-
-#endif /*  __FREEWRL_COLLADA_PARSER_H__ */
+#endif /* __FREEWRL_SCENEGRAPH_COMPONENT3D_H__ */

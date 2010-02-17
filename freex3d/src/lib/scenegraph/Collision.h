@@ -283,6 +283,13 @@ struct sFallInfo
 	double pendisp; /* set to zero once per frame, used to sort (pick) penetration intersection closest to last position */
 };
 
+int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ pcenter, double xs, double ys, double zs);
+int fast_sphere_MBB_intersect_shapeSpace(double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
+int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
+int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
+int fast_sphere_MBB_intersect_collisionSpace(double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
+int overlapMBBs(GLdouble *MBBmin1, GLdouble *MBBmax1, GLdouble *MBBmin2, GLdouble* MBBmax2);
+int fast_ycylinder_polyrep_intersect2(double y1, double y2, double AVr,struct point_XYZ pcenter, double scale, double *minVals, double *maxVals);
 
 
 #endif /* __FREEWRL_COLLISION_H__ */

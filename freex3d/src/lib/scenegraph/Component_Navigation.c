@@ -46,6 +46,7 @@ X3D Navigation Component
 #include "Viewer.h"
 #include "../opengl/Frustum.h"
 #include "Children.h"
+#include "../opengl/OpenGL_Utils.h"
 
 
 extern struct sCollisionInfo OldCollisionInfo;
@@ -205,7 +206,6 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 void changed_Billboard (struct X3D_Billboard *node) {
 		CHILDREN_COUNT
-                int i;
 
 		INITIALIZE_EXTENT
 }
