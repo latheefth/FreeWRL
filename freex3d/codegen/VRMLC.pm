@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.36  2010/02/17 14:31:08  crc_canada
+# More 64/32 bit compile changes. Major one - getInputResource fixed.
+#
 # Revision 1.35  2010/02/16 21:21:47  crc_canada
 # more changes for 64 bit computing warning errors.
 #
@@ -589,6 +592,9 @@ sub gen {
 		"#include \"../main/headers.h\" \n".
 		"#include \"../main/ProdCon.h\" \n".
 		"#include \"Component_Networking.h\" \n".
+		"#include \"../list.h\" \n".
+		"#include \"../resources.h\" \n".
+		"#include \"../io_http.h\" \n".
 		" \n".
 		" \n".
 		"/**********************************************************************************************/ \n".

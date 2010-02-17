@@ -327,8 +327,5 @@ resource_item_t *getInputResource()
 	}
 	cwu = stack_top(resource_item_t *, resStack);
 	DEBUG_MSG("getInputResource current Resource is %u %x %s\n", cwu,cwu,cwu->parsed_request);
-
-printf ("returning resource %lu %lx\n",stack_top(resource_item_t *, resStack),stack_top(resource_item_t *, resStack));
 	return stack_top(resource_item_t *, resStack);
-
 }

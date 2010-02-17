@@ -42,6 +42,9 @@
 #include "../main/headers.h" 
 #include "../main/ProdCon.h" 
 #include "Component_Networking.h" 
+#include "../list.h" 
+#include "../resources.h" 
+#include "../io_http.h" 
  
  
 /**********************************************************************************************/ 
