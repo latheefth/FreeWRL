@@ -57,7 +57,6 @@ void fw_perror(FILE *f, const char *format, ...);
 #else
 #define DEBUG_FW(...)
 #endif
-
 #ifdef RESVERBOSE 
 #define DEBUG_RES(...) DEBUG_(printf("RES: " __VA_ARGS__))
 #else

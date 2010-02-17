@@ -963,7 +963,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 #ifdef TARGET_AQUA
 #ifndef IPHONE
+/* SJD taking this out as it prevents loading of a new world.  Not sure why it was here originally?
 	myglobalContext = NULL; 
+*/
 #endif
 #endif
 
