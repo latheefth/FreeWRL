@@ -7,7 +7,6 @@
 			D2AAC0C605546C1D00DB518D /* AquaIntLib */,
 		);
 		breakpoints = (
-			261EDE040B7A53A100CBB488 /* main.m:104 */,
 		);
 		codeSenseManager = 2625669805DBD339004395C9 /* Code sense */;
 		perUserDictionary = {
@@ -92,7 +91,7 @@
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					567,
+					700,
 					60,
 					20,
 					70,
@@ -109,7 +108,7 @@
 					PBXFileDataSource_Warnings_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 285791761;
+			PBXPerProjectTemplateStateSaveDate = 288121657;
 			PBXPrepackagedSmartGroups_v2 = (
 				{
 					PBXTransientLocationAtTop = bottom;
@@ -495,14 +494,11 @@
 				};
 				RubberWindowFrame = "321 267 801 542 0 0 1280 832 ";
 			};
-			PBXWorkspaceStateSaveDate = 285791761;
+			PBXWorkspaceStateSaveDate = 288121657;
 		};
 		perUserProjectItems = {
-			2689F1B81108BCDA00F0428C = 2689F1B81108BCDA00F0428C /* PBXTextBookmark */;
-			2689F1B91108BCDA00F0428C = 2689F1B91108BCDA00F0428C /* PBXTextBookmark */;
-			2689F1BD1108C80100F0428C = 2689F1BD1108C80100F0428C /* PBXTextBookmark */;
-			2689F1E41108D62500F0428C /* PBXTextBookmark */ = 2689F1E41108D62500F0428C /* PBXTextBookmark */;
-			2689F1E51108D62500F0428C /* PBXTextBookmark */ = 2689F1E51108D62500F0428C /* PBXTextBookmark */;
+			265DEADC112C6344000C0909 /* PBXBookmark */ = 265DEADC112C6344000C0909 /* PBXBookmark */;
+			265DEADD112C6344000C0909 /* PBXTextBookmark */ = 265DEADD112C6344000C0909 /* PBXTextBookmark */;
 		};
 		sourceControlManager = 2625669705DBD339004395C9 /* Source Control */;
 		userBuildSettings = {
@@ -510,30 +506,12 @@
 	};
 	08FB77B4FE84181DC02AAC07 /* main.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {807, 1742}}";
-			sepNavSelRange = "{2779, 0}";
-			sepNavVisRange = "{448, 701}";
+			sepNavIntBoundsRect = "{{0, 0}, {807, 1859}}";
+			sepNavSelRange = "{2788, 0}";
+			sepNavVisRange = "{2479, 448}";
 			sepNavVisRect = "{{0, 1333}, {711, 429}}";
 			sepNavWindowFrame = "{{704, 271}, {750, 558}}";
 		};
-	};
-	261EDE040B7A53A100CBB488 /* main.m:104 */ = {
-		isa = PBXFileBreakpoint;
-		actions = (
-		);
-		breakpointStyle = 0;
-		continueAfterActions = 0;
-		countType = 0;
-		delayBeforeContinue = 0;
-		fileReference = 08FB77B4FE84181DC02AAC07 /* main.m */;
-		functionName = "createAutoReleasePool()";
-		hitCount = 0;
-		ignoreCount = 0;
-		lineNumber = 104;
-		location = AquaIntLib.dylib;
-		modificationTime = 268769874.026156;
-		originalNumberOfMultipleMatches = 0;
-		state = 1;
 	};
 	2625669705DBD339004395C9 /* Source Control */ = {
 		isa = PBXSourceControlManager;
@@ -550,60 +528,19 @@
 		isa = PBXCodeSenseManager;
 		indexTemplatePath = "";
 	};
-	2689F1B21108BC5800F0428C /* MyWindowController.h */ = {
-		isa = PBXFileReference;
-		lastKnownFileType = sourcecode.c.h;
-		name = MyWindowController.h;
-		path = /FreeWRL/freewrl/OSX_gui/libAqua/../frontend/MyWindowController.h;
-		sourceTree = "<absolute>";
-	};
-	2689F1B81108BCDA00F0428C /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 2689F1B21108BC5800F0428C /* MyWindowController.h */;
-		name = "MyWindowController.h: 11";
-		rLen = 0;
-		rLoc = 230;
-		rType = 0;
-		vrLen = 579;
-		vrLoc = 0;
-	};
-	2689F1B91108BCDA00F0428C /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		comments = "'FreeWRLView' may not respond to '-setTexSize:'";
+	265DEADC112C6344000C0909 /* PBXBookmark */ = {
+		isa = PBXBookmark;
 		fRef = 08FB77B4FE84181DC02AAC07 /* main.m */;
-		rLen = 1;
-		rLoc = 127;
-		rType = 1;
 	};
-	2689F1BD1108C80100F0428C /* PBXTextBookmark */ = {
+	265DEADD112C6344000C0909 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 08FB77B4FE84181DC02AAC07 /* main.m */;
 		name = "main.m: 128";
 		rLen = 0;
-		rLoc = 2779;
+		rLoc = 2788;
 		rType = 0;
-		vrLen = 479;
-		vrLoc = 2331;
-	};
-	2689F1E41108D62500F0428C /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 08FB77B4FE84181DC02AAC07 /* main.m */;
-		name = "main.m: 128";
-		rLen = 0;
-		rLoc = 2779;
-		rType = 0;
-		vrLen = 479;
-		vrLoc = 2331;
-	};
-	2689F1E51108D62500F0428C /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 08FB77B4FE84181DC02AAC07 /* main.m */;
-		name = "main.m: 128";
-		rLen = 0;
-		rLoc = 2779;
-		rType = 0;
-		vrLen = 701;
-		vrLoc = 448;
+		vrLen = 448;
+		vrLoc = 2479;
 	};
 	D2AAC0C605546C1D00DB518D /* AquaIntLib */ = {
 		activeExec = 0;

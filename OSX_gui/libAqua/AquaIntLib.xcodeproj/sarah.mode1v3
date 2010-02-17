@@ -300,7 +300,7 @@
 							<real>319</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>13 180 1209 698 0 0 1440 878 </string>
+						<string>121 154 1209 698 0 0 1440 878 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -328,11 +328,10 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>2689F1E51108D62500F0428C</string>
+										<string>265DEADD112C6344000C0909</string>
 										<key>history</key>
 										<array>
-											<string>2689F1B81108BCDA00F0428C</string>
-											<string>2689F1E41108D62500F0428C</string>
+											<string>265DEADC112C6344000C0909</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -344,14 +343,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {868, 373}}</string>
+								<string>{{0, 0}, {868, 345}}</string>
 								<key>RubberWindowFrame</key>
-								<string>13 180 1209 698 0 0 1440 878 </string>
+								<string>121 154 1209 698 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>373pt</string>
+							<string>345pt</string>
 						</dict>
 						<dict>
 							<key>ContentConfiguration</key>
@@ -364,14 +363,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 378}, {868, 279}}</string>
+								<string>{{0, 350}, {868, 307}}</string>
 								<key>RubberWindowFrame</key>
-								<string>13 180 1209 698 0 0 1440 878 </string>
+								<string>121 154 1209 698 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
 							<key>Proportion</key>
-							<string>279pt</string>
+							<string>307pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -390,9 +389,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>2689F1E61108D62500F0428C</string>
+				<string>265DEADE112C6344000C0909</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>2689F1E71108D62500F0428C</string>
+				<string>265DEADF112C6344000C0909</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -530,7 +529,7 @@
 		<string>/FreeWRL/freewrl/OSX_gui/libAqua/AquaIntLib.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>13 180 1209 698 0 0 1440 878 </string>
+	<string>121 154 1209 698 0 0 1440 878 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
@@ -607,7 +606,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>26BFB42210EBE9D00048606E</string>
-				<string>2689F1E81108D62500F0428C</string>
+				<string>265DEAE0112C6344000C0909</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
