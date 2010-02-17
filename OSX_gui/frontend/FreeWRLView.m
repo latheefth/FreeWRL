@@ -507,8 +507,8 @@
 	if (haveFileOnCommandLine)
 			OSX_initializeParameters([fileToOpen cString]);
 	else 
-		//OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
-		OSX_initializeParameters("/FreeWRL/freewrl/freewrl/tests/1.wrl");
+		OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
+		//OSX_initializeParameters("/FreeWRL/freewrl/freewrl/tests/1.wrl");
 	
 	/* do we require EAI? */
 	if (wantEAI) {

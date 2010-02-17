@@ -301,7 +301,7 @@
 							<real>376</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>58 135 1363 723 0 0 1440 878 </string>
+						<string>68 72 1363 723 0 0 1440 878 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -329,7 +329,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>26AC265F1128D21C001981C1</string>
+										<string>265DEA97112B5553000C0909</string>
 										<key>history</key>
 										<array>
 											<string>26637F1F11064D010022CD8E</string>
@@ -337,7 +337,7 @@
 											<string>26A0077C1112026A002488DA</string>
 											<string>26A0077F1112026A002488DA</string>
 											<string>26A009B61121EF8C002488DA</string>
-											<string>264C15F611259821009B15CA</string>
+											<string>26AC265F1128D21C001981C1</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -349,14 +349,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {965, 390}}</string>
+								<string>{{0, 0}, {965, 381}}</string>
 								<key>RubberWindowFrame</key>
-								<string>58 135 1363 723 0 0 1440 878 </string>
+								<string>68 72 1363 723 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>390pt</string>
+							<string>381pt</string>
 						</dict>
 						<dict>
 							<key>ContentConfiguration</key>
@@ -369,14 +369,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 395}, {965, 287}}</string>
+								<string>{{0, 386}, {965, 296}}</string>
 								<key>RubberWindowFrame</key>
-								<string>58 135 1363 723 0 0 1440 878 </string>
+								<string>68 72 1363 723 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
 							<key>Proportion</key>
-							<string>287pt</string>
+							<string>296pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -395,9 +395,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>26AC26601128D21C001981C1</string>
+				<string>265DEA92112B525B000C0909</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>26AC26611128D21C001981C1</string>
+				<string>265DEA93112B525B000C0909</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -539,7 +539,7 @@
 		<string>/FreeWRL/freewrl/OSX_gui/plugin/FreeWRLPlugIn.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>58 135 1363 723 0 0 1440 878 </string>
+	<string>68 72 1363 723 0 0 1440 878 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
@@ -616,7 +616,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>26DB2EFB10F508980032930D</string>
-				<string>26AC26621128D21C001981C1</string>
+				<string>265DEA94112B525B000C0909</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>

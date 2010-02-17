@@ -228,8 +228,6 @@
 			<key>Layout</key>
 			<array>
 				<dict>
-					<key>BecomeActive</key>
-					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -282,6 +280,8 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
+									<integer>2</integer>
+									<integer>1</integer>
 									<integer>0</integer>
 								</array>
 							</array>
@@ -305,7 +305,7 @@
 							<real>384</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>21 94 1348 720 0 0 1440 878 </string>
+						<string>11 158 1348 720 0 0 1440 878 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -316,12 +316,14 @@
 					<key>Dock</key>
 					<array>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>MyApp.m</string>
+								<string>FreeWRLView.m</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -329,11 +331,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>MyApp.m</string>
+										<string>FreeWRLView.m</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>265DEA7D112B5072000C0909</string>
+										<string>265DEAA8112C6189000C0909</string>
 										<key>history</key>
 										<array>
 											<string>261F7AF30F3CD5BC006D3966</string>
@@ -346,13 +348,13 @@
 											<string>265DE8B5112B2262000C0909</string>
 											<string>265DE91C112B354A000C0909</string>
 											<string>265DE91F112B354A000C0909</string>
-											<string>265DE941112B3779000C0909</string>
 											<string>265DE982112B3A07000C0909</string>
 											<string>265DE983112B3A07000C0909</string>
 											<string>265DE984112B3A07000C0909</string>
-											<string>265DE99D112B3A81000C0909</string>
 											<string>265DE99E112B3A81000C0909</string>
-											<string>265DEA67112B4FDE000C0909</string>
+											<string>265DEAA5112C6189000C0909</string>
+											<string>265DEAA6112C6189000C0909</string>
+											<string>265DEAA7112C6189000C0909</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -366,7 +368,7 @@
 								<key>Frame</key>
 								<string>{{0, 0}, {942, 428}}</string>
 								<key>RubberWindowFrame</key>
-								<string>21 94 1348 720 0 0 1440 878 </string>
+								<string>11 158 1348 720 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
@@ -386,7 +388,7 @@
 								<key>Frame</key>
 								<string>{{0, 433}, {942, 246}}</string>
 								<key>RubberWindowFrame</key>
-								<string>21 94 1348 720 0 0 1440 878 </string>
+								<string>11 158 1348 720 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
@@ -546,7 +548,7 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>265DEA7E112B5072000C0909</string>
+		<string>265DEAA9112C6189000C0909</string>
 		<string>265DE9F2112B4999000C0909</string>
 		<string>265DE8DA112B30F5000C0909</string>
 		<string>265DE8DB112B30F5000C0909</string>
@@ -556,7 +558,7 @@
 		<string>/FreeWRL/freewrl/OSX_gui/frontend/FreeWRL.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>21 94 1348 720 0 0 1440 878 </string>
+	<string>11 158 1348 720 0 0 1440 878 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
