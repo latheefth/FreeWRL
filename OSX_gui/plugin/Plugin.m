@@ -11,6 +11,7 @@
 
 /* initializer for our plug-in */
 -(id) initWithArguments:(NSDictionary *)arguments {
+	//NSLog(@"init with arguments %@", arguments);
 	if ((self = [super init]) != nil) {
 		[self setPluginArguments: arguments];
 	}
@@ -20,7 +21,7 @@
 
 /* deallocation for our plug-in */
 - (void) dealloc {
-	[self setPluginArguments: nil];
+	//[self setPluginArguments: nil];
 	[super dealloc];
 }
 
@@ -39,6 +40,7 @@
 }
 
 - (void)setPluginArguments:(NSDictionary *)value {
+	//NSLog(@"setPluginArguments");
     if (pluginArguments != value) {
         [pluginArguments release];
         pluginArguments = [value copy];

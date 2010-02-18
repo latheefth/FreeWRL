@@ -886,6 +886,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#ifndef AQUA
         char mystring[20];
 	#endif
+	printf("kill old world begin\n");
 
 #ifdef VERBOSE
 	printf ("kill 1 myThread %u displayThread %u\n",pthread_self(), DispThrd);
@@ -960,6 +961,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	/* tell statusbar that we have none */
 	viewer_default();
 	setMenuStatus("NONE");
+	printf("kill old world end\n");
 }
 
 /* for verifying that a memory pointer exists */

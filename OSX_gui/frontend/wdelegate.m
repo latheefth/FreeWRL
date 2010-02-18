@@ -21,6 +21,12 @@
 	freewrl = view;
 }
 
+- (void) setFrame: (NSRect) frameRect {
+	NSLog("In set frame");
+	[super setFrame: frameRect];
+	[self doResize];
+}
+
 - (void) windowDidResize: (NSNotification *) aNotification
 {
 	[freewrl doResize];

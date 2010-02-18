@@ -79,7 +79,7 @@ $(OBJDIR)/%.o: %.c %.h
 
 $(OBJDIR)/jsinterp.o: jsinterp.c jsinterp.h
 	@$(MAKE_OBJDIR)
-	$(CC) -o $@ -arch x86_64  -c $(INTERP_CFLAGS) jsinterp.c
+	$(CC) -o $@ -arch x86_64 -mmacosx-version-min=10.5  -c $(INTERP_CFLAGS) jsinterp.c
 
 $(OBJDIR)/%.o: %.c
 	@$(MAKE_OBJDIR)

@@ -168,6 +168,7 @@ static X3DView* firstView = NULL;
 
 - (void)setArguments:(NSDictionary *)arguments
 {
+	//NSLog(@"Called set arguments with %@", arguments);
     if (arguments != _arguments) {
 		[_arguments release];
 		_arguments = [arguments copy];
@@ -219,21 +220,30 @@ static X3DView* firstView = NULL;
 
 - (void) doResize
 {
+	//NSLog(@"do resize");
 	NSOpenGLContext* currentContext;
+	NSSize mySize = [self frame].size;
+	setScreenDim((int) mySize.width, (int) mySize.height);
+
 	currentContext = [NSOpenGLContext currentContext];
 	[currentContext setView:self];
 	[currentContext update];
 	
-	NSSize mySize = [self frame].size;
-	setScreenDim((int) mySize.width, (int) mySize.height);
 }
 
+- (void) setFrame: (NSRect) frameRect {
+	//NSLog(@"In set frame");
+	[super setFrame: frameRect];
+	[self doResize];
+}
 
 - (void)lockFocus {
+	BOOL widthIsPercent = FALSE;
+	BOOL heightIsPercent = FALSE;
 	CGLContextObj cglContext;
 	if (!freewrlInitialized && !freewrlCurrentlyRunning && !isNotFirst) {
 		
-		NSLog(@"not init, not running");
+		//NSLog(@"not init, not running");
 		long newSwapInterval;
 		
 		freewrlInitialized = TRUE;
@@ -253,17 +263,17 @@ static X3DView* firstView = NULL;
 	}
 
 	if (!freewrlCurrentlyRunning &&  !isNotFirst) {
-				NSLog(@"not running");
+				//NSLog(@"not running");
 	    freewrlCurrentlyRunning = TRUE;		
 		
 		NSEnumerator *enumerator = [_arguments keyEnumerator];
 		id key;
 		
-		while ( key = [enumerator nextObject] ) {
+		/* while ( key = [enumerator nextObject] ) {
 			printf( "%s => %s\n",
 				   [[key description] UTF8String],
 				   [[[_arguments objectForKey: key] description] UTF8String] );
-		}
+		} */
 		
 		// lets get the URL out of here.
 		NSDictionary *webPluginAttributesObj = [_arguments objectForKey:WebPlugInAttributesKey];
@@ -275,22 +285,36 @@ static X3DView* firstView = NULL;
 			NSURL *baseURL = [_arguments objectForKey:WebPlugInBaseURLKey];
 			NSURL *URL = [NSURL URLWithString:URLString relativeToURL:baseURL];
 			
-			printf ("URL is %s\n",[[URL absoluteString] UTF8String]);
+			//printf ("URL is %s\n",[[URL absoluteString] UTF8String]);
 			OSX_initializeParameters([[URL absoluteString] UTF8String]);
 		} else {
 			// woah nelly! the url does not exist in the embed tag! lets just start something
+			//printf("Oops ... no URL passed?");
 			OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
 		}
 		
 		// set the width/height of the window
 		int hei = 200; int wid = 200;
 		NSString *heightString = [webPluginAttributesObj objectForKey:@"height"];
+		if ([heightString hasSuffix: @"%"]) {
+			heightIsPercent = TRUE;
+		} 
 		if (heightString != nil) {
 			sscanf ([heightString UTF8String], "%d",&hei);
 		}
 		NSString *widthString = [webPluginAttributesObj objectForKey:@"width"];
+		if ([widthString hasSuffix: @"%"]) {
+			widthIsPercent = TRUE;
+		} 
 		if (widthString != nil) {
 			sscanf ([widthString UTF8String], "%d",&wid);
+		}
+		NSSize mySize = [self frame].size;
+		if (heightIsPercent) {
+			hei = hei/100 * mySize.height;
+		}
+		if (widthIsPercent) {
+			wid = wid/100 * mySize.width;
 		}
 		setScreenDim(wid,hei);
 		
@@ -306,7 +330,7 @@ static X3DView* firstView = NULL;
 	//printf ("webPlugInInitialize\n");
 	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 	NSString* imageName = [bundle pathForResource:@"simple" ofType:@"png"];
-	NSLog(@"imageName is %@\n", imageName);
+	//NSLog(@"imageName is %@\n", imageName);
 	stopImage = [[NSImage alloc] initWithContentsOfFile:imageName];
 	isNotFirst = FALSE;
 	if (stopImage == nil) {
@@ -318,11 +342,11 @@ static X3DView* firstView = NULL;
 {
 	//printf ("webPlugInStart, I am %u\n", self);
 	if (freewrlCurrentlyRunning && (self != firstView) && (firstView != NULL)) {
-		printf("already RUNNING\n");
+		//printf("already RUNNING\n");
 		isNotFirst = TRUE;
 		NSRect myFrame = [self frame];
 		
-		NSLog(@"Frame is %d %d %f %f\n", myFrame.origin.x, myFrame.origin.y, myFrame.size.width, myFrame.size.height);
+		//NSLog(@"Frame is %d %d %f %f\n", myFrame.origin.x, myFrame.origin.y, myFrame.size.width, myFrame.size.height);
 		myFrame.origin.x = 0;
 		myFrame.origin.y = 0;
 		myFrame.size.width = 500;
@@ -340,13 +364,13 @@ static X3DView* firstView = NULL;
 
 - (void)webPlugInStop
 {
-	printf("webPluginStop\n");
+	//printf("webPluginStop\n");
 
 }
 
 - (void)webPlugInDestroy
 {
-	printf("webplugin destroy\n");
+	//printf("webplugin destroy\n");
 	if (!isNotFirst) {
 		freewrlCurrentlyRunning = FALSE;
 		freewrlInitialized = FALSE;
