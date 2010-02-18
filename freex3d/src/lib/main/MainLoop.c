@@ -1372,7 +1372,6 @@ void _displayThread()
 	while (!quitThread) {
 		EventLoop();
 	} 
-	printf("end of display thread, call kill_oldWorld\n");
     	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 }
 
