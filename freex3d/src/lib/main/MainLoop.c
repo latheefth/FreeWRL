@@ -1484,7 +1484,6 @@ void doQuit()
 {
     stopDisplayThread();
 
-	printf("doQuit, calling kill_oldWorld\n");
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
     /* set geometry to normal size from fullscreen */
