@@ -1146,16 +1146,8 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /************************************************************************/
 
 void getMFNodetype (struct X3D_Node *strp, struct Multi_Node *tn, struct X3D_Node *parent, int ar) {
-	/* is this 64 bit compatible? - unsure right now. */
-	if (sizeof(void *) != sizeof (unsigned int))
-		printf ("getMFNodetype - unverified that this works on 64 bit machines\n");
-
-
 	/* now, perform the add/remove */
-printf ("getMFNodetype, going to AddRemove children...\n");
-
 	AddRemoveChildren (parent, tn,  &(strp), 1, ar,__FILE__,__LINE__);
-printf ("done AddRemoveChildren in getMFNodetype\n");
 }
 
 

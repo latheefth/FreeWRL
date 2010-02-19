@@ -408,6 +408,9 @@ printf ("registerListener, we have a route coming from %p, nodetype %s\n",node,s
 /*
 CRoutes_Register(1, from, fromOfs, to,toOfs, type, interpolatorPointer, dir, extraData);
 */
+
+printf ("going to register route for RegisterListener, have type %d\n",tmp_c);
+
 				CRoutes_Register  (1,node, offset, X3D_NODE(EAIListenerData), 0, (int) tmp_c,(void *) 
 					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 

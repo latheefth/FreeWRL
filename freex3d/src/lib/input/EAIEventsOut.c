@@ -70,8 +70,12 @@ void EAIListener () {
 		printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
 	}	
 
+		printf ("Handle listener, id %x type %s extradata %x\n",id,stringFieldtypeType(tp),CRoutesExtra);
 	/* convert the data to string form, for sending to the EAI java client */
 	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
+
+printf ("done EAI_Convert_mem_to_ASCII here...\n");
+
 
 	/* if this is a MF type, there most likely will be MALLOC'd memory to free... */
 	switch (tp) {
