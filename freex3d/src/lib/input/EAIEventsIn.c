@@ -613,8 +613,8 @@ void EAI_parse_commands () {
 void handleGETROUTES (char *bufptr, char *buf, int repno) {
 	int numRoutes;
 	int count;
-	uintptr_t fromNode;
-	uintptr_t toNode;
+	struct X3D_Node *fromNode;
+	struct X3D_Node *toNode;
 	int fromOffset;
 	int toOffset;
 	char  ctmp[200];
@@ -637,9 +637,9 @@ void handleGETROUTES (char *bufptr, char *buf, int repno) {
 		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
 
 		sprintf (ctmp, "%u %s %u %s ",(unsigned int) fromNode,
-			findFIELDNAMESfromNodeOffset(X3D_NODE(fromNode),fromOffset),
+			findFIELDNAMESfromNodeOffset(fromNode,fromOffset),
 			(unsigned int) toNode,
-			findFIELDNAMESfromNodeOffset(X3D_NODE(toNode),toOffset)
+			findFIELDNAMESfromNodeOffset(toNode,toOffset)
 			);
 		strcat (buf,ctmp);
 		/* printf ("route %d is:%s:\n",count,ctmp); */
