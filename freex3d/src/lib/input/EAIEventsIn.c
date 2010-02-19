@@ -231,12 +231,17 @@ void EAI_parse_commands () {
 				break;
 				}
 			case GETFIELDTYPE:  {
+				int xtmp;
+
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
-				retint=sscanf (&EAI_BUFFER_CUR,"%d %s %s",(int *)&cNode, ctmp,dtmp);
+				retint=sscanf (&EAI_BUFFER_CUR,"%d %s %s",&xtmp, ctmp,dtmp);
 				if (eaiverbose) {	
-					printf ("GETFIELDTYPE cptr %d %s %s\n",(int)cNode, ctmp, dtmp);
+					printf ("GETFIELDTYPE cptr %d %s %s\n",xtmp, ctmp, dtmp);
 				}	
+
+				/* convert this to 64 bit, if required */
+				cNode = (uintptr_t) xtmp;
 
 				EAI_GetType (cNode, ctmp, dtmp, &ra, &rb, &rc, &rd, &scripttype, &xxx);
 
