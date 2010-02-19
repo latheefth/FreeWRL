@@ -88,7 +88,6 @@ int EAIinitialized = FALSE;		/* are we running?*/
 int EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
 int EAIMIDIfailed = FALSE;		/* did we not succeed in opening the MIDI interface? */
 char EAIListenerData[EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
-char EAIListenerArea[40];
 
 /* socket stuff */
 int 	EAIsockfd = -1;			/* main TCP socket fd*/

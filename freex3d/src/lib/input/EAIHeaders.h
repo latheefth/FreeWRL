@@ -190,7 +190,6 @@ extern int EAIMIDIwanted;
 extern char *EAIbuffer;
 extern int EAIbufcount;
 extern char EAIListenerData[EAIREADSIZE];
-extern char EAIListenerArea[40];
 
 #define MIDI_CONTROLLER_UNUSED 4
 #define MIDI_CONTROLLER_FADER 1

@@ -615,7 +615,6 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 
 	if(!node) return;
 
-#define CHILDVERBOSE
 #ifdef CHILDVERBOSE
 	printf ("add_parent; adding node %u ,to parent %u at %s:%d\n",node,  parent,file,line);
 	printf ("add_parent; adding node %x ,to parent %x (hex) at %s:%d\n",node,  parent,file,line);
@@ -625,7 +624,6 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 	printf ("add_parent; adding node %u (%s) to parent %u (%s) at %s:%d\n",node, stringNodeType(node->_nodeType), 
 		parent, stringNodeType(parent->_nodeType),file,line);
 #endif
-#undef CHILDVERBOSE
 
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 

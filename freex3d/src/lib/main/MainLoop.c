@@ -39,6 +39,7 @@
 #include <resources.h>
 
 #include "../vrml_parser/Structs.h"
+#include "../vrml_parser/CRoutes.h"
 #include "headers.h"
 #include "../vrml_parser/CParseGeneral.h"
 #include "../world_script/jsUtils.h"

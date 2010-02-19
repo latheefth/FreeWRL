@@ -169,6 +169,8 @@ void setScriptECMAtype (uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
+printf ("setScriptECMAtype, num %d\n",num);
+
 	fn = (uintptr_t)(CRoutes[num].routeFromNode) + (uintptr_t)(CRoutes[num].fnptr);
 	len = CRoutes[num].len;
 
