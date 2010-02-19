@@ -38,7 +38,7 @@ typedef int	vrmlBoolT;
 typedef struct SFColor	vrmlColorT;
 typedef struct SFColorRGBA	vrmlColorRGBAT;
 typedef float	vrmlFloatT;
-typedef int32_t	vrmlInt32T;
+typedef int 	vrmlInt32T;
 typedef struct Multi_Int32	vrmlImageT;
 typedef struct X3D_Node*	vrmlNodeT;
 typedef struct SFRotation	vrmlRotationT;

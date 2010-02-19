@@ -277,7 +277,8 @@ void handleProfile (int myProfile) {
 		ConsoleMessage ("Something wrong in handleProfile for profile %s\n",
 			stringProfileType(myProfile));
 	} else {
-		int comp, lev;
+		int comp; 
+		int lev;
 
 		myTable = (int *)profTable[i].profileTable;
 		/* go through the selected table, and see if each component is within range */

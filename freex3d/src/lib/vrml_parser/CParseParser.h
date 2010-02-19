@@ -123,12 +123,12 @@ void parser_specificInitNode(struct X3D_Node*, struct VRMLParser*);
 
 /* Registers a ROUTE, in current PROTO or scene */
 void parser_registerRoute(struct VRMLParser*,
- struct X3D_Node*, int, struct X3D_Node*, int, int);
+ struct X3D_Node*, uintptr_t, struct X3D_Node*, uintptr_t, int_t);
 
 BOOL parseType(struct VRMLParser* me, indexT type,   union anyVrml *defaultVal);
 
 
-void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize);
+void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, size_t *outSize);
 
 void cParseErrorCurID(struct VRMLParser *me, char *str);
 void cParseErrorFieldString(struct VRMLParser *me, char *str1, const char *str2);
