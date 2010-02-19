@@ -363,6 +363,7 @@ void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fie
 
 
 #else
+#define SETFIELDVERBOSE
 /* Parsing & Lexing */
 #undef CPARSERVERBOSE 
 

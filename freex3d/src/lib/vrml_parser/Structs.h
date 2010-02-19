@@ -51,7 +51,7 @@ struct X3D_Virt {
 
 /* a string is stored as a pointer, and a length of that mallocd pointer */
 struct Uni_String {
-	int len;
+	size_t len;
 	char * strptr;
 	int touched;
 };
