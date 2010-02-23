@@ -55,7 +55,6 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
 #include "fieldGet.h"
-#define offsetPointer_deref(t, me, offs) ((t)(((char*)(me))+offs))
 void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
 
 

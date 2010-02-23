@@ -318,14 +318,14 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 		/* now, does the value string need quoting? */
 		if ((*value != '"') && (*value != '\'') && (*value != '[')) {
 			size_t len;
-			 printf ("have to quote this string\n"); 
+			 /* printf ("have to quote this string\n"); */
 			len = strlen(value);
 			mfstringtmp = MALLOC (sizeof (char *) * len + 10);
 			memcpy (&mfstringtmp[1],value,len);
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
-			printf ("so, mfstring is :%s:\n",mfstringtmp); 
+			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */ 
 			
 		} else {
 			mfstringtmp = STRDUP(value);

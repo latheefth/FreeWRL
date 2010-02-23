@@ -171,7 +171,6 @@ void lexer_fromString (struct VRMLLexer *me, char *str) {
 	me->startOfStringPtr[me->lexerInputLevel]=str; 
 	me->oldNextIn[me->lexerInputLevel] = me->nextIn; /* save the old "nextIn" for popping back */
 	me->nextIn=str;
-#define CPARSERVERBOSE
 	#ifdef CPARSERVERBOSE
 	printf ("lexer_fromString, me %x %u\n",me,me);
 	printf ("lexer_fromString, working on level %d\n",me->lexerInputLevel);

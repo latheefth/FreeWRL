@@ -593,9 +593,6 @@ static void parseRoutes (const char **atts) {
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
 
-	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
-	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
-
 	/* are the types the same? */
 	if (fromType != toType) {
 		ConsoleMessage ("Routing type mismatch line %d %s != %s",LINE,stringFieldtypeType(fromType), stringFieldtypeType(toType));
