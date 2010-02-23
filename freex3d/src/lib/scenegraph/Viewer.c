@@ -1195,6 +1195,7 @@ int initAnaglyphShaders()
 	};
 
 	const GLchar **src[6];
+	if(!rdr_caps.have_GL_VERSION_2_0) return 0;
 	src[0] = shaderSrc_R;
 	src[1] = shaderSrc_G;
 	src[2] = shaderSrc_B;
