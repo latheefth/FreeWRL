@@ -575,10 +575,8 @@ LRESULT CALLBACK PopupWndProc(
 	bind_GLcontext();
 
 	/* GLEW init : done in initialize_rdr_caps */
-
-	initialize_rdr_caps();
-	initialize_rdr_functions();
-
+	//initialize_rdr_caps(); done elsewhere
+	//initialize_rdr_functions();
 	//screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 	//screenHeight = rect.bottom;
 	///* should it be r-l,b-t for w,h? No - getClientRect() returns 0,0,width,height in rect*/
@@ -596,7 +594,9 @@ LRESULT CALLBACK PopupWndProc(
 	break; 
 
     case WM_DISPLAYCHANGE:
-	/*triggred when the display mode is changed ie changedisplaysettings window <> fullscreen */
+	/*triggred when the display mode is changed ie changedisplaysettings window <> fullscreen 
+	  or how about if you drag a window onto a second monitor?
+	*/
 	ghDC = GetDC(hWnd); 
 	if (!bSetupPixelFormat(ghDC)) 
 	    PostQuitMessage (0); 
