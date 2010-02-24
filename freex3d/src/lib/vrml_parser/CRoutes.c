@@ -904,8 +904,8 @@ CRoutes_Register.  Currently a wrapper around that other function.
 ********************************************************************/
 
 void CRoutes_RemoveSimple(
-	struct X3D_Node* from, int fromOfs,
-	struct X3D_Node* to, int toOfs,
+	struct X3D_Node* from, uintptr_t fromOfs,
+	struct X3D_Node* to, uintptr_t toOfs,
 	int type) {
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */

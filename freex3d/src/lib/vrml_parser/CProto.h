@@ -140,8 +140,8 @@ struct ProtoRoute
 {
  struct X3D_Node* from;
  struct X3D_Node* to;
- int fromOfs;
- int toOfs;
+ uintptr_t fromOfs;
+ uintptr_t toOfs;
  size_t len;
  int dir;
 };

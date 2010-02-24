@@ -39,7 +39,6 @@ END_NODE(NodeName)
 
 */
 
-
 /* Anchor node */
 BEGIN_NODE(Anchor)
 EXPOSED_FIELD(Anchor,children,mfnode,children,FIELDTYPE_MFNode)
