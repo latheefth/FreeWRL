@@ -590,6 +590,39 @@ int open_display()
 	return TRUE;
 }
 
+static char *wgetpath = NULL;
+TCHAR szPath[MAX_PATH];
+static int wgetpathLoaded = 0;
+char *getWgetPath()
+{
+	if(!wgetpathLoaded)
+	{
+		if( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
+		{
+			printf("Cannot install service (%d)\n", GetLastError());
+			return 0;
+		}
+		else
+		{
+			int jj;
+			char *slash;
+			char *path;
+			for( jj=0;jj<strlen(szPath);jj++)
+				if(szPath[jj] == '\\' ) szPath[jj] = '/';
+			slash = strrchr(szPath, '/');
+			wgetpath = NULL;
+			if(slash)
+			{
+				wgetpath = szPath;
+				slash[0] = '\0';
+				wgetpath = strcat(wgetpath,"/wget.exe");
+			}
+		}
+	}
+	wgetpathLoaded = 1;
+	return wgetpath;
+}
+
 /**
  *   create_main_window: setup up Win32 main window and TODO query fullscreen capabilities.
  */

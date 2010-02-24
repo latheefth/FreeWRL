@@ -1268,6 +1268,7 @@ void initStereoDefaults()
 void deleteAnaglyphShaders()
 {
 	int i;
+	if(!rdr_caps.have_GL_VERSION_2_0) return;
 	for(i=0;i<6;i++)
 	{
 		glDeleteShader(Viewer.shaders[i]);
