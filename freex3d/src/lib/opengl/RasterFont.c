@@ -34,6 +34,7 @@
 
 #include <stdarg.h>
 
+#include "../main/headers.h"
 #include "../input/EAIHelpers.h"
 #include "../scenegraph/Component_Text.h"
 static struct X3D_Text myText;
