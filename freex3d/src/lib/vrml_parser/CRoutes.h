@@ -33,7 +33,7 @@ VRML-parsing routines in C.
 /* C routes */
 typedef struct _CRnodeStruct {
         struct X3D_Node *routeToNode;
-        unsigned int foffset;
+        int foffset;
 } CRnodeStruct;
 
 
