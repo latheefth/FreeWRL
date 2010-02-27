@@ -130,8 +130,8 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 				#ifdef TEXVERBOSE
 				printf ("renderTextureCoord - op %d npoints %d\n",op,node->point.n);
 				#endif
-				*fptr = 0.0; fptr++; 
-				*fptr = 0.0; fptr++; 
+				*fptr = 0.0f; fptr++; 
+				*fptr = 0.0f; fptr++; 
 			} else {
 				oFp = node->point.p[op];
 	

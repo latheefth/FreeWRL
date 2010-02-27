@@ -32,7 +32,7 @@ Global includes.
 
 
 #define DEFAULT_COLOUR_POINTER  \
-        GLfloat defColor[] = {1.0, 1.0, 1.0};\
+        GLfloat defColor[] = {1.0f, 1.0f, 1.0f};\
         GLfloat *thisColor;
 
 #define GET_COLOUR_POINTER \

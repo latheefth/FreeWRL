@@ -273,4 +273,9 @@ extern float screendist;
 void getCurrentSpeed(void);
 void getCurrentPosInModel (int addInAntiPos);
 
+void toggle_collision(void);
+void viewer_lastP_clear();
+int getViewerType();
+void avatar2BoundViewpointVerticalAvatar(GLdouble *matA2BVVA, GLdouble *matBVVA2A);
+
 #endif /* __FREEWRL_VIEWER_H__ */

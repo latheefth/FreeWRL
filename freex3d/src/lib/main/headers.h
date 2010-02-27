@@ -413,7 +413,7 @@ void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fie
 #ifdef M_PI
 #define PI M_PI
 #else
-#define PI 3.141592653589793
+#define PI 3.141592653589793f
 #endif
 /* return TRUE if numbers are very close */
 #define APPROX(a,b) (fabs((a)-(b))<0.00000001)

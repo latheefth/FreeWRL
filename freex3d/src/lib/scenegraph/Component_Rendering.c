@@ -123,7 +123,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	int * colorInd;			/* used for streaming colors			*/
 
 	/* believe it or not - material emissiveColor can affect us... */
-	GLfloat defcolorRGBA[] = {1.0, 1.0, 1.0,1.0};
+	GLfloat defcolorRGBA[] = {1.0f, 1.0f, 1.0f,1.0f};
 
 	MARK_NODE_COMPILED
 	nSegments = 0;

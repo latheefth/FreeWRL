@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.8  2010/02/27 21:02:21  crc_canada
+# more 64 bit implicit conversion errors resolved.
+#
 # Revision 1.7  2010/02/19 21:23:21  crc_canada
 # more 64 bit changes....
 #
@@ -1085,7 +1088,7 @@ sub cstruct {
 	$r =~ s/VRML::Field::MF//;
 	$t =~ s/::MF/::SF/;
 	my $ct = $t->ctype;
-	return "struct Multi_$r { size_t n; $ct *p; };"
+	return "struct Multi_$r { int n; $ct *p; };"
 }
 
 

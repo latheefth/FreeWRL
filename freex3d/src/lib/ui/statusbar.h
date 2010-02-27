@@ -36,6 +36,7 @@ extern "C" {
 #endif
 
 void drawStatusBar();
+int handleStatusbarHud(int mev, int* clipplane);
 
 #ifdef __cplusplus
 }
