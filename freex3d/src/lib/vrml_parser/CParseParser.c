@@ -2167,7 +2167,7 @@ static BOOL parser_field(struct VRMLParser* me, struct X3D_Node* node)
 #define PROCESS_FIELD(exposed, node, field, fieldType, var, fe) \
   case exposed##FIELD_##field: \
    if(!parser_fieldValue(me, \
-    X3D_NODE(node2), offsetof(struct X3D_##node, var), \
+    X3D_NODE(node2), (int) offsetof(struct X3D_##node, var), \
     FTIND_##fieldType, fe, FALSE, NULL, NULL)) {\
     printf ("error in parser_fieldValue by call 2\n"); \
         PARSE_ERROR("Expected " #fieldType " Value for a fieldtype!") }\
