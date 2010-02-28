@@ -34,6 +34,7 @@
 #include <threads.h>
 #include <libFreeWRL.h>
 
+#include "vrml_parser/Structs.h"
 #include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
 
@@ -232,7 +233,7 @@ bool initialize_rdr_caps()
         rdr_caps.vendor     = (char *) glGetString(GL_VENDOR);
 	rdr_caps.extensions = (char *) glGetString(GL_EXTENSIONS);
 	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
-    rdr_caps.versionf = atof(rdr_caps.version); 
+    rdr_caps.versionf = (float) atof(rdr_caps.version); 
 	/* atof technique: http://www.opengl.org/resources/faq/technical/extensions.htm */
     rdr_caps.have_GL_VERSION_1_1 = rdr_caps.versionf >= 1.1f;
     rdr_caps.have_GL_VERSION_1_2 = rdr_caps.versionf >= 1.2f;

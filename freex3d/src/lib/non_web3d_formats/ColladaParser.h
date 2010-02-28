@@ -57,5 +57,6 @@ extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
                 colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
         } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
 
+int ColladaParse (struct X3D_Group* myParent, const char *inputstring);
 
 #endif /*  __FREEWRL_COLLADA_PARSER_H__ */
