@@ -46,9 +46,9 @@ static bool rf_initialized = FALSE;
 
 static int xf_color = xf_white;
 static vec4f_t xf_colors[3] = { 
-    { 1.0, 1.0, 1.0, 1.0 }, 
-    { 0.0, 0.0, 0.0, 1.0 }, 
-    { 0.5, 0.5, 0.5, 1.0 } 
+    { 1.0f, 1.0f, 1.0f, 1.0f }, 
+    { 0.0f, 0.0f, 0.0f, 1.0f }, 
+    { 0.5f, 0.5f, 0.5f, 1.0f } 
 };
 
 
@@ -108,7 +108,7 @@ void rf_layer2D()
     FW_GL_MATRIX_MODE(GL_MODELVIEW);
     FW_GL_PUSH_MATRIX();
     FW_GL_LOAD_IDENTITY();
-    FW_GL_TRANSLATE_F(0.375, 0.375, 0.);
+    FW_GL_TRANSLATE_F(0.375f, 0.375f, 0.0f);
 }
 
 void rf_leave_layer2D()
@@ -156,7 +156,7 @@ int rf_xfont_init(const char *fontname)
 	myFont.leftToRight = TRUE;
 	myFont.topToBottom = TRUE;
 	myFont.style = newASCIIString("PLAIN");
-	myFont.size = 20.0;
+	myFont.size = 20.0f;
 	myFont.justify.p = MALLOC (sizeof(struct Uni_String)*1);myFont.justify.p[0] = newASCIIString("BEGIN");myFont.justify.n=1; ;
 	myFont.metadata = NULL;
 	myFont.spacing = 1;

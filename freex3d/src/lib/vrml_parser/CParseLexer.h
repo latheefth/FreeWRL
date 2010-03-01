@@ -174,7 +174,7 @@ BOOL lexer_operator(struct VRMLLexer*, char);
 /* recursively skip to the closing curly bracket */
 void skipToEndOfOpenCurly(struct VRMLLexer *me, int level);
 
-void concatAndGiveToLexer(struct VRMLLexer *me, char *str_a, char *str_b);
+void concatAndGiveToLexer(struct VRMLLexer *me, const char *str_a, const char *str_b);
 
 /* other function protos */
 BOOL lexer_field(struct VRMLLexer* me,indexT* retBO, indexT* retBE, indexT* retUO, indexT* retUE);

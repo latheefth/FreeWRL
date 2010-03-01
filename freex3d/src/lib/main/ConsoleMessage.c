@@ -172,7 +172,7 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 				if ((strlen(s) + count) > buffer_length) {
 					char tmpstr[100];
 					int ltc;
-					ltc = strlen(s);
+					ltc = (int) strlen(s);
 					if (ltc>80) ltc=80;
 					strncpy (tmpstr, s, ltc);
 					tmpstr[ltc] = '.'; ltc++;
