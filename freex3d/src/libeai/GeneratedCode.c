@@ -33,7 +33,7 @@
 #include <main/headers.h>
 #include <input/EAIHeaders.h>
 
-char mapFieldTypeToEAItype (indexT st) {
+char mapFieldTypeToEAItype (int st) {
 	switch (st) { 
 		case FIELDTYPE_SFFloat:	return EAI_SFFloat;
 		case FIELDTYPE_MFFloat:	return EAI_MFFloat;
@@ -176,5 +176,5 @@ int mapEAItypeToFieldType (char st) {
 	"SFVec4d",
 	"MFVec4d",
 };
-const indexT FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
+const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 

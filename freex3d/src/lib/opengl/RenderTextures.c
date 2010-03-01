@@ -81,7 +81,7 @@ static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 static int setActiveTexture (int c, GLfloat thisTransparency) 
 {
         struct multiTexParams *paramPtr;
-	float allones[] = {1.0, 1.0, 1.0, 1.0};
+	float allones[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 	if (rdr_caps.av_multitexture) {
 	    

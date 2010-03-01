@@ -1042,7 +1042,7 @@ _standardMFGetProperty(JSContext *cx,
 			/*  segfault; so, now, we run a script to do it.*/
 
 
-			newElemenLen = strlen(makeNewElement);
+			newElemenLen = (int)strlen(makeNewElement);
 
 			if (!JS_EvaluateScript(cx, obj, makeNewElement, newElemenLen,
 				FNAME_STUB, LINENO_STUB, &newEle)) {

@@ -185,7 +185,7 @@ void protoFieldDecl_routeTo(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- size_t len=returnRoutingElementLength(me->type);
+ int len=returnRoutingElementLength(me->type);
  ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_inputOnly);
 
  /* For each script field mapped to this proto field, add a route */
@@ -203,7 +203,7 @@ void protoFieldDecl_routeFrom(struct ProtoFieldDecl* me,
  struct X3D_Node* node, unsigned ofs, int dir, struct VRMLParser* p)
 {
  int i;
- size_t len=returnRoutingElementLength(me->type);
+ int len=returnRoutingElementLength(me->type);
 
  ASSERT(me->mode==PKW_inputOutput || me->mode==PKW_outputOnly);
 

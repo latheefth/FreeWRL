@@ -91,10 +91,10 @@ of garbage collection */
         }}
 
 #define COMPILE_FUNCTION_IF_NEEDED(tnfield) \
-	if (JSparamnames[tnfield].eventInFunction == 0) { \
+	if (JSparamnames[tnfield].eventInFunction == NULL) { \
 		sprintf (scriptline,"%s(__eventIn_Value_%s,__eventInTickTime)", JSparamnames[tnfield].name,JSparamnames[tnfield].name); \
 		/* printf ("compiling function %s\n",scriptline); */ \
-		JSparamnames[tnfield].eventInFunction = (uintptr_t) JS_CompileScript( \
+		JSparamnames[tnfield].eventInFunction = (void *) JS_CompileScript( \
 			cx, obj, scriptline, strlen(scriptline), "compile eventIn",1); \
 	}
 #define RUN_FUNCTION(tnfield) \
