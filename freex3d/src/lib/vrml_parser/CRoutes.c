@@ -1328,7 +1328,7 @@ static void gatherScriptEventOuts(void) {
 	if (X3D_NODE(CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
 		struct X3D_Script *mys = X3D_SCRIPT(CRoutes[route].routeFromNode);
 		struct Shader_Script *sp = (struct Shader_Script *) mys->__scriptObj;
-		size_t actualscript = sp->num;
+		int actualscript = sp->num;
 
 		/* printf ("gatherEvents, found a script at element %d, it is script number %d and node %u\n",
 			route, actualscript,mys);  */

@@ -190,7 +190,7 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	INCREMENT_PARENTINDEX
 	colladaParentStack[parentIndex] = X3D_NODE(myParent);
 
-	if (XML_Parse(currentColladaParser, inputstring, strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
+	if (XML_Parse(currentColladaParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {
 		fprintf(stderr,
 			"%s at line %" XML_FMT_INT_MOD "u\n",
 			XML_ErrorString(XML_GetErrorCode(currentColladaParser)),
