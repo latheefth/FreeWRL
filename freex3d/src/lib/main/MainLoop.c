@@ -1620,7 +1620,6 @@ void setDisplayed (int state) {
 
 void setEaiVerbose() {
         eaiverbose = TRUE;
-printf ("set EAIVerbose to true\n");
 }
 
 /* called from the standalone OSX front end and the OSX plugin */

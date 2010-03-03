@@ -812,6 +812,11 @@ void render_polyrep(void *node) {
 	
 		LIGHTING_ON
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
+
+                FW_GL_ENABLE(GL_COLOR_MATERIAL);
+                FW_GL_COLOR_MATERIAL(GL_FRONT_AND_BACK, GL_DIFFUSE);
+                FW_GL_COLOR4FV(diffuseColor);
+
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
@@ -873,6 +878,8 @@ void render_polyrep(void *node) {
 	if (!r->normal) FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
 	if (r->color) {
 		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
+		FW_GL_DISABLE(GL_COLOR_MATERIAL);
+		
 	}
 	if (r->GeneratedTexCoords) {
 			textureDraw_end();

@@ -441,7 +441,6 @@ void child_Shape (struct X3D_Shape *node) {
 	material_twoSided = NULL;
 	material_oneSided = NULL;
 
-
 	/* a texture and a transparency flag... */
 	textureStackTop = 0; /* will be >=1 if textures found */
 
@@ -578,7 +577,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
-	/* printf ("end of render_Shape\n");  */
 }
 
 
