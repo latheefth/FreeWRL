@@ -51,7 +51,6 @@ void fw_perror(FILE *f, const char *format, ...);
 #define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
 #define PERROR_MSG(...) DEBUG_(fw_perror(stderr, __VA_ARGS__))
-
 #ifdef VERBOSE
 #define DEBUG_FW(...) DEBUG_(printf("FW: " __VA_ARGS__))
 #else
