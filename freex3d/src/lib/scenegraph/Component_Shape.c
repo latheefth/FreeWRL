@@ -434,6 +434,11 @@ void child_Shape (struct X3D_Shape *node) {
 		return;
 	}
 
+	/*
+	if we want to see the bounding box of this shape:
+	drawBBOX(X3D_NODE(node));
+	*/
+
 	/* set up Appearance Properties here */
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;

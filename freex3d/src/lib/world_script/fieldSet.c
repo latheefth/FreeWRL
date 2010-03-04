@@ -690,7 +690,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 		strcat (mychar,"_changed");
 		retval = findFieldInARR(mychar, arr, cnt);
 	}
-	printf ("findRoutedField, mychar %s retval %d\n",mychar,retval);
+	/* printf ("findRoutedField, mychar %s retval %d\n",mychar,retval); */
 	FIELDCHECK (mychar)
 
 

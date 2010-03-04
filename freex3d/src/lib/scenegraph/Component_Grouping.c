@@ -256,7 +256,8 @@ void child_Group (struct X3D_Group *node) {
 			xx = X3D_NODE(node->_sortedChildren.p[x]);
 			printf ("	ch %u type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
-	}*/
+	}
+*/
 
 
 		
@@ -299,7 +300,8 @@ void child_Transform (struct X3D_Transform *node) {
 			xx = X3D_NODE(node->_sortedChildren.p[x]);
 			printf ("	ch %u type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
-	} */
+	} 
+*/
 
 	/* Check to see if we have to check for collisions for this transform. */
 #ifdef COLLISIONTRANSFORM
