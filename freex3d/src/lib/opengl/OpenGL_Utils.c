@@ -596,7 +596,7 @@ bool initialize_GL()
 	FW_GL_CLEAR_COLOR(cc_red, cc_green, cc_blue, cc_alpha);
 	FW_GL_SHADEMODEL(GL_SMOOTH);
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
-	FW_GL_DEPTHFUNC(GL_LESS);
+	//FW_GL_DEPTHFUNC(GL_LESS);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
 	FW_GL_LINEWIDTH(gl_linewidth);
 	FW_GL_POINTSIZE(gl_linewidth);
