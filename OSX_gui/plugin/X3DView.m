@@ -13,8 +13,10 @@ static X3DView* firstView = NULL;
 - (void) mouseMoved: (NSEvent *) theEvent
 {
 	place = [theEvent locationInWindow];
-	xcoor = place.x;		
-    ycoor = place.y;
+	place = [self convertPoint: place fromView: nil];
+	
+	xcoor = (float) place.x;		
+    ycoor = (float) place.y;
 	button = 0;
 	myrect = [self frame];
 	curHeight = myrect.size.height;
@@ -26,6 +28,7 @@ static X3DView* firstView = NULL;
 - (void) mouseDown: (NSEvent *) theEvent
 {
 	place = [theEvent locationInWindow];
+	place = [self convertPoint: place fromView: nil];
 	xcoor = place.x;
 	ycoor = place.y;
 		
@@ -50,6 +53,7 @@ static X3DView* firstView = NULL;
 {
 	
     place = [theEvent locationInWindow];
+	place = [self convertPoint: place fromView: nil];
     if ([theEvent modifierFlags] & NSControlKeyMask)
     {
         button = 3;
@@ -58,8 +62,10 @@ static X3DView* firstView = NULL;
     {
         button = 1;
     }
-    xcoor = place.x;
-    ycoor = place.y;
+	//NSLog(@"Event is %@", theEvent);
+	
+    xcoor = (float) place.x;
+    ycoor = (float) place.y;
 	
 	
     myrect = [self frame];
@@ -73,6 +79,7 @@ static X3DView* firstView = NULL;
 - (void) mouseUp: (NSEvent *) theEvent
 {
 	place = [theEvent locationInWindow];
+	place = [self convertPoint: place fromView: nil];
     if ([theEvent modifierFlags] & NSControlKeyMask)
     {
         button = 3;
@@ -96,6 +103,7 @@ static X3DView* firstView = NULL;
 - (void) rightMouseDown: (NSEvent *) theEvent
 {
     place = [theEvent locationInWindow];
+	place = [self convertPoint: place fromView: nil];
     button = 3;
     xcoor = place.x;
     ycoor = place.y;
@@ -110,6 +118,7 @@ static X3DView* firstView = NULL;
 - (void) rightMouseUp: (NSEvent *) theEvent
 {
     place = [theEvent locationInWindow];
+	place = [self convertPoint: place fromView: nil];
     button = 3;
     xcoor = place.x;
     ycoor = place.y;
@@ -124,6 +133,7 @@ static X3DView* firstView = NULL;
 - (void) rightMouseDragged: (NSEvent *) theEvent
 {
     place = [theEvent locationInWindow];
+	place = [self convertPoint: place fromView: nil];
     button = 3;
     xcoor = place.x;
     ycoor = place.y;

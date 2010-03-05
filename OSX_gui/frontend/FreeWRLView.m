@@ -82,6 +82,7 @@
 	curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
 	setCurXY((int)xcoor,(int)ycoor);
+	NSLog(@"sending motion notify with %f %f\n", xcoor, ycoor);
 	handle_aqua(MotionNotify, button, xcoor, ycoor);
 	
 }
@@ -136,6 +137,7 @@
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
 //	NSLog(@"xcoor %f ycoor %f\n", xcoor, ycoor);
+	NSLog(@"sending motion notify with %f %f\n", xcoor, ycoor);
 	setCurXY((int)xcoor,(int)ycoor);
 	setLastMouseEvent(MotionNotify);
 	handle_aqua(MotionNotify, button, xcoor, ycoor);
