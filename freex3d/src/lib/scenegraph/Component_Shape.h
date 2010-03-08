@@ -32,7 +32,8 @@ Proximity sensor macro.
 #define __FREEWRL_SCENEGRAPH_SHAPE_H__
 
 struct matpropstruct {
-	float transparency;
+	float	transparency;
+	GLfloat	emissionColour[3];
 };
 
 extern struct matpropstruct appearanceProperties;
