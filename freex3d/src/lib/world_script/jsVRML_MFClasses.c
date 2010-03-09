@@ -53,7 +53,6 @@ $Id$
 #include "jsVRMLClasses.h"
 #include "JScript.h"
 
-
 /********************************************************/
 /*							*/
 /* Third part - MF classes				*/

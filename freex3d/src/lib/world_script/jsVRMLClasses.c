@@ -52,7 +52,6 @@ $Id$
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
-
 /********************************************************/
 /*							*/
 /* first part - standard helper functions		*/
@@ -1098,6 +1097,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 	JSBool isString = JS_FALSE;
 	JSBool isImage = JS_FALSE;
 
+
     if (!JS_GetProperty(cx, obj, "length", &_v)) {
 		printf( "JS_GetProperty failed for \"length\" in doMFToString for %s.\n",
 				className);
@@ -1156,7 +1156,7 @@ JSBool doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *
 		}
 
 		#ifdef JSVRMLCLASSESVERBOSE
-		printf ("doMFToString, element %d is %d, string %s\n",i,_v,_tmp_valStr);
+		printf ("doMFToString, element %d is %p, string %s\n",i,_v,_tmp_valStr);
 	
 		#endif
 		tmp_valStr_len = strlen(_tmp_valStr) + 1;
