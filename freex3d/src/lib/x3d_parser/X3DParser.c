@@ -1415,6 +1415,7 @@ static void parseAttributes(void) {
 
 	thisNode = parentStack[parentIndex];
 	/* printf  ("parseAttributes..level %d for node type %s\n",parentIndex,stringNodeType(thisNode->_nodeType));  */
+	if(childAttributes[parentIndex])
 	for (ind=0; ind<vector_size(childAttributes[parentIndex]); ind++) {
 		nvp = vector_get(struct nameValuePairs*, childAttributes[parentIndex],ind);
 		/* printf ("	nvp %d, fieldName:%s fieldValue:%s\n",ind,nvp->fieldName,nvp->fieldValue);  */
