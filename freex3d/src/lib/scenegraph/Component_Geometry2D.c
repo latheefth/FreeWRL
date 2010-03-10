@@ -674,7 +674,7 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 
 		   {
 			   /*  minimum bounding box MBB test in avatar/collision space */
-				GLdouble shapeMBBmin[3], shapeMBBmax[3];
+				GLDOUBLE shapeMBBmin[3], shapeMBBmax[3];
 				int i;
 				for(i=0;i<3;i++)
 				{

@@ -284,11 +284,11 @@ struct sFallInfo
 };
 
 int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ pcenter, double xs, double ys, double zs);
-int fast_sphere_MBB_intersect_shapeSpace(double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
-int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLdouble *collision2shape, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
-int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
-int fast_sphere_MBB_intersect_collisionSpace(double r, GLdouble *shape2collision, GLdouble *shapeMBBmin, GLdouble *shapeMBBmax );
-int overlapMBBs(GLdouble *MBBmin1, GLdouble *MBBmax1, GLdouble *MBBmin2, GLdouble* MBBmax2);
+int fast_sphere_MBB_intersect_shapeSpace(double r, GLDOUBLE *collision2shape, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax );
+int fast_ycylinder_MBB_intersect_shapeSpace(double y1, double y2, double r, GLDOUBLE *collision2shape, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax );
+int fast_ycylinder_MBB_intersect_collisionSpace(double y1, double y2, double r, GLDOUBLE *shape2collision, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax );
+int fast_sphere_MBB_intersect_collisionSpace(double r, GLDOUBLE *shape2collision, GLDOUBLE *shapeMBBmin, GLDOUBLE *shapeMBBmax );
+int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBLE* MBBmax2);
 int fast_ycylinder_polyrep_intersect2(double y1, double y2, double AVr,struct point_XYZ pcenter, double scale, double *minVals, double *maxVals);
 
 
