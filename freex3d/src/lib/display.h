@@ -88,10 +88,6 @@ extern bool display_initialized;
  * TARGET_MOTIF  : ui/fwMotifWindow.c
  * TARGET_WIN32  : ui/fwWindow32.c
  */
-#undef TARGET_WIN32
-#undef TARGET_MOTIF
-#undef TARGET_X11
-/* defined on command line - this gives warnings when compiling for OSX JAS. #define TARGET_AQUA */
 
 
 int open_display();
