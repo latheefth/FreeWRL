@@ -97,6 +97,7 @@ void setEyeDist(const char *optArg);
 void setAnaglyphParameter(const char *optArg);
 void setSideBySide(void);
 void setStereoBufferStyle(int);
+voud initStereoDefaults(void);
 
 void setLineWidth(float lwidth);
 void setSnapGif();

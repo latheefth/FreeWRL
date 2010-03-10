@@ -38,6 +38,9 @@
 #include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
 
+#if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
+#include "plugin/pluginUtils.h"
+#endif
 
 bool display_initialized = FALSE;
 

@@ -189,6 +189,8 @@ typedef struct viewer {
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
 } X3D_Viewer;
 
+void initStereoDefaults(void);
+
 void viewer_postGLinit_init(void);
 
 void
