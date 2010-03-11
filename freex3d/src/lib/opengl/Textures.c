@@ -430,7 +430,9 @@ void loadBackgroundTextures (struct X3D_Background *node) {
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
+#ifndef IPHONE
         		FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
+#endif
         		textureDraw_end();
 		}
 	}
@@ -468,7 +470,9 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
         			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
+#ifndef IPHONE
         			FW_GL_DRAWARRAYS (GL_QUADS, count*4, 4);
+#endif
         			textureDraw_end();
 			} 
 		}

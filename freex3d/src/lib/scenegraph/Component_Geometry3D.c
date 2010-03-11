@@ -112,7 +112,9 @@ void render_Box (struct X3D_Box *node) {
 	glNormalPointer (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
+#ifndef IPHONE
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, 24);
+#endif
 	textureDraw_end();
 	trisThisLoop += 24;
 }
@@ -1406,10 +1408,12 @@ int collisionCylinder_render(double r, double h)
 		pts[1] = collisionCylinder.pts[collisionCylinder.quads[i][1]];
 		pts[2] = collisionCylinder.pts[collisionCylinder.quads[i][2]];
 		pts[3] = collisionCylinder.pts[collisionCylinder.quads[i][3]];
+#ifndef IPHONE
 		glBegin(GL_QUADS);
 		for(j=0;j<4;j++)
 			glVertex3d(pts[j].x*r,pts[j].y*h,pts[j].z*r);
 		glEnd();
+#endif
 	}
 	return 0;
 }

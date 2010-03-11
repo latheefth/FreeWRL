@@ -519,7 +519,9 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	glNormal3f (0.0f, 0.0f, 1.0f);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
+#ifndef IPHONE
 	FW_GL_DRAWARRAYS (GL_QUADS, 0, 4);
+#endif
 	textureDraw_end();
 	FW_GL_ENABLECLIENTSTATE (GL_NORMAL_ARRAY);
 	trisThisLoop += 2;
