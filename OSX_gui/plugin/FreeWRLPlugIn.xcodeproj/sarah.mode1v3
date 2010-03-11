@@ -230,6 +230,8 @@
 			<key>Layout</key>
 			<array>
 				<dict>
+					<key>BecomeActive</key>
+					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -284,7 +286,7 @@
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
-							<string>{{0, 0}, {376, 664}}</string>
+							<string>{{0, 0}, {376, 665}}</string>
 						</dict>
 						<key>PBXTopSmartGroupGIDs</key>
 						<array/>
@@ -296,14 +298,14 @@
 					<key>GeometryConfiguration</key>
 					<dict>
 						<key>Frame</key>
-						<string>{{0, 0}, {393, 682}}</string>
+						<string>{{0, 0}, {393, 683}}</string>
 						<key>GroupTreeTableConfiguration</key>
 						<array>
 							<string>MainColumn</string>
 							<real>376</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>41 120 1363 723 0 0 1440 878 </string>
+						<string>-8 153 1396 724 0 0 1440 878 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -314,8 +316,6 @@
 					<key>Dock</key>
 					<array>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
@@ -333,7 +333,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>2679AA7711417B0600DE7F0A</string>
+										<string>2679AAC21149792A00DE7F0A</string>
 										<key>history</key>
 										<array>
 											<string>26637F1F11064D010022CD8E</string>
@@ -343,7 +343,7 @@
 											<string>26A009B61121EF8C002488DA</string>
 											<string>265DEB57112DBC33000C0909</string>
 											<string>2679AA3F11415DDC00DE7F0A</string>
-											<string>2679AA4011415DDC00DE7F0A</string>
+											<string>2679AAC11149792A00DE7F0A</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -355,14 +355,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {965, 353}}</string>
+								<string>{{0, 0}, {998, 354}}</string>
 								<key>RubberWindowFrame</key>
-								<string>41 120 1363 723 0 0 1440 878 </string>
+								<string>-8 153 1396 724 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>353pt</string>
+							<string>354pt</string>
 						</dict>
 						<dict>
 							<key>ContentConfiguration</key>
@@ -375,9 +375,9 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 358}, {965, 324}}</string>
+								<string>{{0, 359}, {998, 324}}</string>
 								<key>RubberWindowFrame</key>
-								<string>41 120 1363 723 0 0 1440 878 </string>
+								<string>-8 153 1396 724 0 0 1440 878 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
@@ -386,7 +386,7 @@
 						</dict>
 					</array>
 					<key>Proportion</key>
-					<string>965pt</string>
+					<string>998pt</string>
 				</dict>
 			</array>
 			<key>Name</key>
@@ -545,7 +545,7 @@
 		<string>/FreeWRL/freewrl/OSX_gui/plugin/FreeWRLPlugIn.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>41 120 1363 723 0 0 1440 878 </string>
+	<string>-8 153 1396 724 0 0 1440 878 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>

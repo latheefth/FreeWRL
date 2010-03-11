@@ -220,12 +220,13 @@ static X3DView* firstView = NULL;
 
 - (void) drawRect: (NSRect) bounds
 {
-	//if (isNotFirst) {
+	if (isNotFirst) {
 		//NSLog(@"is not first drawRect");
 		//[stopImage drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1];
-	//}
-	//CGLContextObj cglContext;
-	//cglContext = CGLGetCurrentContext();
+	} else  {
+		CGLContextObj cglContext;
+		cglContext = CGLGetCurrentContext();
+	}
 }
 
 - (void) doResize
@@ -244,7 +245,8 @@ static X3DView* firstView = NULL;
 - (void) setFrame: (NSRect) frameRect {
 	//NSLog(@"In set frame");
 	[super setFrame: frameRect];
-	[self doResize];
+	if (!isNotFirst)
+		[self doResize];
 }
 
 - (void)lockFocus {
