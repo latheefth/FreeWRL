@@ -31,6 +31,7 @@ $Id$
 #include <config.h>
 #include <system.h>
 #include <display.h>
+#include "../display.h"
 #include <internal.h>
 
 #include <libFreeWRL.h>
