@@ -642,7 +642,7 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         int i;
         struct SFColor *points=NULL; int npoints=0;
 	int renderMatOver = FALSE;
-	glPointSize (2);
+	FW_GL_POINTSIZE (2);
 
         if(cSLD->c3Node) {
 		points =  cSLD->c3Node->point.p;

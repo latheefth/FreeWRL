@@ -749,7 +749,7 @@ void setup_projection(int pick, int x, int y)
 		CGLSetCurrentContext(myglobalContext);
 #endif
 #endif
-		glViewport(xvp, clipPlane, screenwidth2, screenHeight);
+		FW_GL_VIEWPORT(xvp, clipPlane, screenwidth2, screenHeight);
         FW_GL_LOAD_IDENTITY();
         if(pick) {
                 /* picking for mouse events */
@@ -808,7 +808,7 @@ static void render()
 				if(count != shutterside) continue;
 			}
 			if(Viewer.anaglyph) //haveAnaglyphShader)
-				glUseProgram(Viewer.programs[Viewer.iprog[count]]);
+				USE_SHADER(Viewer.programs[Viewer.iprog[count]]);
 			setup_projection(0, 0, 0);
 			if(Viewer.sidebyside && count >0)
 				BackEndClearBuffer(1);
@@ -854,11 +854,11 @@ static void render()
 			if (Viewer.anaglyph) //haveAnaglyphShader) 
 			{
 				if (count==0) {
-					glUseProgram(0);
+					USE_SHADER(0);
 					FW_GL_ACCUM(GL_LOAD,1.0); 
 				}
 				else if(count==1) {
-					glUseProgram(0);
+					USE_SHADER(0);
 					FW_GL_ACCUM(GL_ACCUM,1.0); 
 					FW_GL_ACCUM(GL_RETURN,1.0);
 				}

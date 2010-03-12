@@ -143,11 +143,11 @@ int display_initialize()
 	}
 
 	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
-	glGenTextures(1,&defaultBlankTexture);
+	FW_GL_GENTEXTURES (1,&defaultBlankTexture);
 	FW_GL_BINDTEXTURE (GL_TEXTURE_2D, defaultBlankTexture);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
 
 	/* Display full initialized :P cool ! */
 	display_initialized = TRUE;

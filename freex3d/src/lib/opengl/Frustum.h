@@ -43,10 +43,6 @@ Global includes.
 #define OCCLUSION
 #define VISIBILITYOCCLUSION
 #define SHAPEOCCLUSION
-/*
-#define glGenQueries(a,b) glGenQueriesARB(a,b)
-#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
-*/
 
 extern GLuint OccQuerySize;
 extern GLint OccResultsAvailable;

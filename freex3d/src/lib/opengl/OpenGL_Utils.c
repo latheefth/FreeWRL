@@ -203,7 +203,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
 	
-	(*myShader).myShaderProgram = CREATE_PROGRAM;
+	(*myShader).myShaderProgram = CREATE_SHADER;
 	myProg = (*myShader).myShaderProgram;
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
@@ -1906,7 +1906,7 @@ static void killNode (int index) {
 			if ((cps->_nodeType == NODE_ComposedShader) || (cps->_nodeType == NODE_ProgramShader)) {
 #ifdef GL_VERSION_2_0
 				if (cps->__shaderIDS.p != NULL) {
-					glDeleteProgram((GLuint) cps->__shaderIDS.p[0]);
+					DELETE_PROGRAM((GLuint) cps->__shaderIDS.p[0]);
 					FREE_IF_NZ(cps->__shaderIDS.p);
 					cps->__shaderIDS.n=0;
 				}
