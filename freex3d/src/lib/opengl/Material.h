@@ -43,7 +43,7 @@ Global includes.
 			thisColor = defColor; \
 		}
 
-#define DO_COLOUR_POINTER                glColor3fv (thisColor);
+#define DO_COLOUR_POINTER                FW_GL_COLOR3FV (thisColor);
 
 
 extern GLfloat last_emission[4];

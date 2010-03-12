@@ -1012,8 +1012,10 @@ void zeroOcclusion(void) {
 
                 /* for now, lets loop to see when we get results */
                 while (OccResultsAvailable == GL_FALSE) {
+#ifdef OCCLUSIONVERBOSE
                         printf ("zero - waiting and looping for results\n"); 
-                        usleep(10000);
+#endif
+                        usleep(1000);
                         glGetQueryObjectiv(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
                         PRINT_GL_ERROR_IF_ANY("glGetQueryObjectiv::QUERY_RESULTS_AVAIL");
                 }

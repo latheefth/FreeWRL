@@ -145,11 +145,11 @@ static void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 
 	FW_GL_DEPTHMASK(FALSE);
 	/* note the ALPHA of zero - totally transparent */
-	glColor4f(0.0f, 1.0f, 0.0f, 0.0f);
+	FW_GL_COLOR4F(0.0f, 1.0f, 0.0f, 0.0f);
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
-	glNormalPointer (GL_FLOAT,0,boxnorms);
+	FW_GL_NORMAL_POINTER(GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 #ifndef IPHONE
