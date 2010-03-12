@@ -203,7 +203,7 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	inTextPointer = readInputString(inTextFile);
 	if (inTextPointer==NULL) return;
 	
-	(*myShader).myShaderProgram = CREATE_SHADER;
+	(*myShader).myShaderProgram = CREATE_PROGRAM;
 	myProg = (*myShader).myShaderProgram;
 
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);

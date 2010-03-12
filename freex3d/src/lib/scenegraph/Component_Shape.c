@@ -245,7 +245,7 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 			printf ("creating program and attaching\n");
 		#endif
 
-		fillpropCurrentShader = CREATE_SHADER;
+		fillpropCurrentShader = CREATE_PROGRAM;
 		
 		ATTACH_SHADER(fillpropCurrentShader,v);
 		ATTACH_SHADER(fillpropCurrentShader,f);

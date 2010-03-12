@@ -1219,7 +1219,7 @@ int initAnaglyphShaders()
 			retval = 0;
 			break;
 		}
-		program = CREATE_SHADER;
+		program = CREATE_PROGRAM;
 		ATTACH_SHADER(program,shader);
 		LINK_SHADER(program);
 
