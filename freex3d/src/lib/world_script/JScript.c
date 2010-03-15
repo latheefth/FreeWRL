@@ -26,8 +26,6 @@ Javascript C language binding.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
 #include <system.h>
 #include <display.h>
@@ -356,6 +354,7 @@ void JSCreateScriptContext(int num) {
 	printf("\tVRML browser initialized, thread %u\n",pthread_self());
 	#endif
 }
+
 
 /* run the script from within C */
 #ifdef JAVASCRIPTVERBOSE
@@ -929,7 +928,10 @@ void InitScriptField(int num, indexT kind, indexT type, const char* field, union
 						sptr[0] = *SVPtr; SVPtr++;
 						sprintf (thisValue,"\"%s\"",sptr[0]->strptr);
 					} else { /* must be a Void */
-						sprintf (thisValue,"%p", VoidPtr[0]); VoidPtr++;
+						/* printf ("sending in a VoidPtr, it is %p\n",VoidPtr[0]);
+						if (VoidPtr[0] != NULL) {printf ("it is a %s type\n",stringNodeType(X3D_NODE(VoidPtr[0])->_nodeType));} */
+ 
+						sprintf (thisValue,"\"%p\"", VoidPtr[0]); VoidPtr++;
 					}
 					strcat (smallfield, thisValue);
 					if (rowCount < (rows-1)) strcat (smallfield,",");

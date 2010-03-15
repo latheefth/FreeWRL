@@ -629,7 +629,6 @@ printf ("VrmlBrowserCreateVrmlFromURL - unknown if this works with new resource 
 		return JS_FALSE;
 	}
 
-
 	send_resource_to_parser(res);
 	resource_wait(res);
 	

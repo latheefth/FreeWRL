@@ -56,9 +56,6 @@ Javascript C language binding.
 #include "fieldSet.h"
 #include "fieldGet.h"
 
-
-
-
 /********************************************************************
 
 getField_ToJavascript.
