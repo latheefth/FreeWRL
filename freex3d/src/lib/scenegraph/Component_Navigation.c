@@ -126,7 +126,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
-	FW_GLU_UNPROJECT(orig.x, orig.y, orig.z, mod, proj, viewpoirt, &vpos.x, &vpos.y, &vpos.z);
+	FW_GLU_UNPROJECT(orig.x, orig.y, orig.z, mod, proj, viewport, &vpos.x, &vpos.y, &vpos.z);
 
 	len = VECSQ(vpos);
 	if (APPROX(len, 0)) { return; }
