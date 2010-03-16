@@ -969,6 +969,7 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	return JS_TRUE;
 }
 
+
 JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	SFNodeNative *newPtr;
 	SFNodeNative *oldPtr;
@@ -1111,8 +1112,6 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 
 	return JS_TRUE;
 }
-
-#undef JSVRMLCLASSESVERBOSE
 
 
 void
