@@ -41,7 +41,7 @@ rm -f editline/Darwin_DBG.OBJ/*.o
 make -f Makefile.ref
 cp Darwin_DBG.OBJ/libjs.dylib Darwin_DBG.OBJ/libjs_x86_64.dylib
 
-lipo -create Darwin_DBG.OBJ/libjs_i386.dylib Darwin_DBG.OBJ/libjs_x86_64.dylib Darwin_DBG.OBJ/libjs_ppc.dylib -output Darwin_DBG.OBJ/libjs.dylib
+lipo -create Darwin_DBG.OBJ/libjs_i386.dylib Darwin_DBG.OBJ/libjs_x86_64.dylib Darwin_DBG.OBJ/libjs_ppc.dylib -output Darwin_DBG.OBJ/libFreeWRLjs.dylib
 rm -f Darwin_DBG.OBJ/libjs_i386.dylib
 rm -f Darwin_DBG.OBJ/libjs_x86_64.dylib
 rm -f Darwin_DBG.OBJ/libjs_ppc.dylib
