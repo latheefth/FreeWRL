@@ -528,6 +528,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 /*								*/
 /****************************************************************/
 
+
 void AddRemoveChildren (
 		struct X3D_Node *parent,
 		struct Multi_Node *tn,
@@ -687,10 +688,12 @@ void AddRemoveChildren (
 			tn->p = newmal;
 			tn->n = oldlen - num_removed;
 		}
+
 	}
 
 	update_node(parent);
 }
+
 
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */

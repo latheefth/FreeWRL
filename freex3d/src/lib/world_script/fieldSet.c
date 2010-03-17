@@ -455,7 +455,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
 	scriptContext = (JSContext *) cx;
 
-#define SETFIELDVERBOSE
 	#ifdef SETFIELDVERBOSE
 	strval = JS_ValueToString(scriptContext, JSglobal_return_val);
        	strp = JS_GetStringBytes(strval);
@@ -592,7 +591,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	
 	#endif
 }
-#undef SETFIELDVERBOSE
 
 /* find the ASCII string name of this field of this node */
 char *findFIELDNAMESfromNodeOffset(struct X3D_Node *node, int offset) {
@@ -787,7 +785,6 @@ void findFieldInOFFSETS(int nodeType, const int field, int *coffset, int *ctype,
 		return;
 	}
 }
-
 
 /****************************************************************/
 /* a Jscript is returning a Multi-number type; copy this from 	*/

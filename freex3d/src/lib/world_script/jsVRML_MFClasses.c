@@ -327,7 +327,10 @@ JSBool
 MFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
-	/* printf ("start of MFNODETOSTRING, obj %d\n",obj);*/
+	
+	#ifdef JSVRMLCLASSESVERBOSE
+	printf ("start of MFNODETOSTRING, obj %d\n",obj);
+	#endif
 	return doMFToString(cx, obj, "MFNode", rval);
 }
 
@@ -399,7 +402,7 @@ MFNodeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	#ifdef JSVRMLCLASSESVERBOSE
-	printf ("startof MFNODEGETPROPERTY obj %d\n");
+	printf ("start of MFNODEGETPROPERTY obj %d\n");
 	#endif
 	return _standardMFGetProperty(cx, obj, id, vp,
 			"_FreeWRL_Internal = 0",
@@ -411,7 +414,6 @@ MFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	/* printf ("start of MFNODESETPROPERTY obj %d\n",obj); */
 	return doMFSetProperty(cx, obj, id, vp,FIELDTYPE_MFNode);
 }
-
 
 
 JSBool
