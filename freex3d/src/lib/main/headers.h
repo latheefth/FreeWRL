@@ -588,7 +588,7 @@ void *returnInterpolatorPointer (const char *x);
 
 
 
-void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar, char * where, int lin);
+void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, struct X3D_Node * *nodelist, int len, int ar, char * where, int lin);
 
 void update_node(struct X3D_Node *ptr);
 void update_renderFlag(struct X3D_Node *ptr, int flag);

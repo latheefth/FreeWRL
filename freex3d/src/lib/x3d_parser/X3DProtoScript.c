@@ -1199,7 +1199,7 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 			/* unlink the child node */
 			AddRemoveChildren(X3D_NODE(par), 
 				offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,children)),
-					(uintptr_t*) &chi,
+					(struct X3D_Node * *)&chi,
 					1,2,__FILE__,__LINE__);
 
 
@@ -1215,10 +1215,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 				/* printf ("offspring %d is %u, type %s\n",ind,offspring,stringNodeType(offspring->_nodeType)); */
 
 				AddRemoveChildren(X3D_NODE(chi),offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,children)),
-					(uintptr_t*) &offspring, 1, 2, __FILE__, __LINE__);
+					&offspring, 1, 2, __FILE__, __LINE__);
 
 				AddRemoveChildren(X3D_NODE(par),offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,children)),
-					(uintptr_t*) &offspring, 1, 1, __FILE__, __LINE__);
+					&offspring, 1, 1, __FILE__, __LINE__);
 
 				/* 
 				printf ("offspring type is still %s\n",stringNodeType(offspring->_nodeType));
@@ -1240,10 +1240,10 @@ void expandProtoInstance(struct VRMLLexer *myLexer, struct X3D_Group *myGroup) {
 				offspring = X3D_NODE(chi->FreeWRL_PROTOInterfaceNodes.p[0]);
 
 				AddRemoveChildren(X3D_NODE(chi),offsetPointer_deref(struct Multi_Node *,chi,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
-					(uintptr_t*) &offspring, 1, 2, __FILE__, __LINE__);
+					&offspring, 1, 2, __FILE__, __LINE__);
 
 				AddRemoveChildren(X3D_NODE(par),offsetPointer_deref(struct Multi_Node *,par,offsetof(struct X3D_Group,FreeWRL_PROTOInterfaceNodes)),
-					(uintptr_t*) &offspring, 1, 1, __FILE__, __LINE__);
+					&offspring, 1, 1, __FILE__, __LINE__);
 			}
 
 		

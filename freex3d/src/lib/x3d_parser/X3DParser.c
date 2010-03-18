@@ -955,7 +955,7 @@ void linkNodeIn(char *where, int lineno) {
 		AddRemoveChildren (
 			parentStack[parentIndex-1], /* parent */
 			(struct Multi_Node *) memptr,			/* where the children field is */
-			((uintptr_t *) &(parentStack[parentIndex])),	/* this child, 1 node */
+			&(parentStack[parentIndex]),	/* this child, 1 node */
                 1, 1,__FILE__,__LINE__);
 	}
 }
