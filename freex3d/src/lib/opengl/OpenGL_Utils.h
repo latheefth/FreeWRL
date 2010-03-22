@@ -57,5 +57,12 @@ void fw_glScaled (double a, double b, double c);
 void fw_glScalef (float a, float b, float c);
 void fw_glGetDoublev (int ty, double *mat);
 
+/* OpenGL-ES specifics for Materials and Vertices */
+void fw_iphone_enableClientState(GLenum aaa);
+void fw_iphone_disableClientState(GLenum aaa);
+void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd);
+void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc);
+void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd);
+void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd);
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */

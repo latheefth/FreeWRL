@@ -2023,3 +2023,25 @@ static void killNode (int index) {
 	FREE_IF_NZ(memoryTable[index]);
 	memoryTable[index]=NULL;
 }
+
+
+#ifdef IPHONE
+/* OpenGL-ES specifics for Materials and Vertices */
+void fw_iphone_enableClientState(GLenum aaa)
+{ printf  ("called fw_iphone_enableClientState\n");}
+
+void fw_iphone_disableClientState(GLenum aaa)
+{ printf  ("called fw_iphone_disableClientState\n");}
+
+void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+
+void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+
+void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+
+void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
+{ printf  ("called fw_iphone_somethingPointer\n");}
+#endif
