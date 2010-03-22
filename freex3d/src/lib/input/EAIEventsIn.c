@@ -42,6 +42,7 @@ Handle incoming EAI (and java class) events with panache.
 
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 
 #include "../input/EAIHeaders.h"

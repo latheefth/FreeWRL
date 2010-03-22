@@ -49,6 +49,7 @@
 #include "../input/EAIHelpers.h"	/* resolving implicit declarations */
 #include "../x3d_parser/Bindable.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
@@ -449,11 +450,14 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 
 
 	/* set up a pointer to where to put this stuff */
+/* JAS - was 
 	memptr = (char *)tn;
 	memptr += tptr;
+*/
+	memptr = offsetPointer_deref(char *, tn, tptr);
 
 	/* not all files know what a JSContext is, so we just pass it around as a uintptr_t type */
-	scriptContext = (JSContext *) cx;
+	scriptContext = cx;
 
 	#ifdef SETFIELDVERBOSE
 	strval = JS_ValueToString(scriptContext, JSglobal_return_val);

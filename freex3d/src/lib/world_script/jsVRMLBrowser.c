@@ -56,6 +56,8 @@ Javascript C language binding.
 #include "../x3d_parser/Bindable.h"
 #include "../input/EAIHeaders.h"	/* for implicit declarations */
 
+
+#include "JScript.h"
 #include "CScripts.h"
 #include "fieldSet.h"
 #include "jsUtils.h"

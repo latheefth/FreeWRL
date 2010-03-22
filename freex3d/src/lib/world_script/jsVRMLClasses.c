@@ -47,6 +47,7 @@ $Id$
 #include "../input/SensInterps.h"
 #include "../x3d_parser/Bindable.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"

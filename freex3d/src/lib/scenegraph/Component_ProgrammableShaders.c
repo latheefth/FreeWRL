@@ -95,6 +95,7 @@ FIELDTYPE_MFVec4d
 #include "../vrml_parser/CParseGeneral.h"
 #include "../lib/scenegraph/Vector.h"
 
+#include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
 #include "../vrml_parser/CFieldDecls.h"
 #include "../opengl/OpenGL_Utils.h"

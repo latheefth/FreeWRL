@@ -47,6 +47,7 @@ $Id$
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/LinearAlgebra.h"
 
+#include "JScript.h"
 #include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"

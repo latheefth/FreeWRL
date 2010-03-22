@@ -52,8 +52,8 @@ $Id$
 #include "../input/InputFunctions.h"
 #include "../x3d_parser/Bindable.h"
 
-#include "CScripts.h"
 #include "JScript.h"
+#include "CScripts.h"
 #include "jsUtils.h"
 #include "jsNative.h"
 #include "jsVRMLClasses.h"

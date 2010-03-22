@@ -43,7 +43,6 @@ $Id$
 #include "CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
 #include "../world_script/fieldSet.h"
 #include "../input/InputFunctions.h"
 #include "../input/EAIHelpers.h"	/* for newASCIIString() */

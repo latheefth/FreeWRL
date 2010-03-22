@@ -41,7 +41,6 @@ $Id$
 #include "CParseGeneral.h"
 #include "../scenegraph/Vector.h"
 #include "../vrml_parser/CFieldDecls.h"
-#include "../world_script/CScripts.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"
 #include "CProto.h"
