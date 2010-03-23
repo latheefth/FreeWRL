@@ -24,7 +24,7 @@ public class EventInMFNode extends EventIn {
 		throw new IllegalArgumentException();
 	}
 
-      Browser.SendChildEvent (nodeptr,offset, command, node.nodeptr);
+	Browser.newSendEvent(this, " ONEVAL " + index + " " + node.nodeptr);
 
   return;
   }

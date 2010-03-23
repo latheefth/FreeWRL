@@ -27,7 +27,8 @@ public class EventInMFString extends EventIn {
 		if ((value == null) || (index < 0)) {
 			throw new IllegalArgumentException();
 		}
-		Browser.newSendEvent (this, "-1 "+
-				+index+";" + value.length() + ":" + value + " ");
+
+		Browser.newSendEvent(this,  " ONEVAL " + index + " \"" + value + "\"");
+
 	}
 }
