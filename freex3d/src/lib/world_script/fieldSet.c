@@ -358,6 +358,8 @@ unsigned int setField_FromEAI (char *ptr) {
 	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
 	#endif
 
+	printf ("setField_FromEAI EAI_SendEvent, event string now is :%s:\n",ptr);
+
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
 	/* check out the java external/field/MF*java files for the string "ONEVAL "		*/
 	if (strncmp("ONEVAL ",ptr, strlen("ONEVAL ")) == 0) {

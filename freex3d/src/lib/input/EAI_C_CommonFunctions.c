@@ -146,6 +146,8 @@ int  returnElementLength(int type) {
     		case FIELDTYPE_MFTime : return (int) sizeof(double); break;
     		case FIELDTYPE_MFInt32: return (int) sizeof(int)   ; break;
 		case FIELDTYPE_FreeWRLPTR:
+		case FIELDTYPE_MFString:
+		case FIELDTYPE_SFString:
     		case FIELDTYPE_SFNode :
     		case FIELDTYPE_MFNode : return (int) sizeof(void *); break;
 	  	default     : {}
