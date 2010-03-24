@@ -177,6 +177,8 @@ void send_resource_to_parser(resource_item_t *res);
 void resource_push_single_request(const char *request);
 void resource_push_multi_request(struct Multi_String *request);
 void resource_wait(resource_item_t *res);
+void resource_get_valid_texture_from_multi(struct textureTableIndexStruct *entry, resource_item_t*parentPath, resource_item_t *res);
+void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_item_t *res);
 
 void resource_tree_dump(int level, resource_item_t *root);
 
