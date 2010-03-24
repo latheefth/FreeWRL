@@ -310,8 +310,6 @@ void EventLoop() {
                        usleep((unsigned)waitsec);
 		}
 #endif
-/* #endif */
-
         }
 
         if (loop_count == 25) {

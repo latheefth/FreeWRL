@@ -949,10 +949,11 @@ void OcclusionCulling ()  {
 						visSenPtr->__visible =FALSE;
 						visSenPtr->__Samples = 0;
 					}
-				  } else {
+
+				 /* } else {
 					printf ("shape, already have checkCount == OCCCHECKNEXTLOOP, not changing visibility params\n");
 				
-				
+			          */	
 				}
 			}
 		
