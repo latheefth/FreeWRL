@@ -636,7 +636,7 @@ extern void loadMultiTexture(struct X3D_MultiTexture *node);
 extern void loadBackgroundTextures (struct X3D_Background *node);
 extern void loadTextureBackgroundTextures (struct X3D_TextureBackground *node);
 extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
-extern GLfloat Backtex[], Backnorms[];
+extern GLfloat Backnorms[];
 
 extern void new_tessellation(void);
 extern void initializePerlThread(void);
