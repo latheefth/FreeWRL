@@ -195,6 +195,7 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 	case IS_TYPE_VRML1: {
 		char *newData = convert1To2(input);
 		ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+		FREE_IF_NZ(newData);
 	}
 		break;
 	case IS_TYPE_COLLADA:
