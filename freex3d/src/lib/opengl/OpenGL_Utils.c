@@ -2108,3 +2108,16 @@ for (i=0; i<16;i++) {
 	//glUniformMatrix4fv(PM,1,GL_FALSE,spval);
 	glUniformMatrix4fv(PM,1,GL_FALSE,pvm);
 }
+
+void fw_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar)
+{
+   GLdouble xmin, xmax, ymin, ymax;
+
+   ymax = zNear * tan(fovy * M_PI / 360.0);
+   ymin = -ymax;
+   xmin = ymin * aspect;
+   xmax = ymax * aspect;
+
+
+   glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+}
