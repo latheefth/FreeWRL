@@ -180,13 +180,17 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 		}
 	} else if (material_twoSided != NULL) {
 	}
-	
 	/* are we no headlight, noAppearanceNoMaterialShader? */
 
 
 	currentShaderStruct = &(rdr_caps.shaderArrays[whichShader]);
 	globalCurrentShader = currentShaderStruct->myShaderProgram;
 	USE_SHADER(globalCurrentShader);
+
+
+	/* send in the current position and modelview matricies */
+	sendMatriciesToShader(currentShaderStruct->ModelViewMatrix,currentShaderStruct->ProjectionMatrix);
+
 
 	switch (whichShader) {
 		case noAppearanceNoMaterialShader:

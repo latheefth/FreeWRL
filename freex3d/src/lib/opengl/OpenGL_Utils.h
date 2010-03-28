@@ -64,5 +64,6 @@ void fw_iphone_vertexPointer(GLint aaa,GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc);
 void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd);
 void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd);
+void sendMatriciesToShader(GLint MM,GLint PM);
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */
