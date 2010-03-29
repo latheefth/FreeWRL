@@ -334,6 +334,7 @@ extern GLenum _global_gl_err;
                                               } \
                                            } 
 #endif
+#define GL_ERROR_MSG  ((char*) gluErrorString(glGetError()))
 
 void resetGeometry();
 void setScreenDim(int wi, int he);
@@ -743,7 +744,6 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GETDOUBLEV(aaa,bbb)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_LOAD_IDENTITY(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_MATRIX_MODE(aaa)  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
-	#define GL_ERROR_MSG  printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define PRINT_GL_ERROR_IF_ANY(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_PIXELSTOREI(aaa,bbb) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
 	#define FW_GL_SHADEMODEL(aaa) printf ("subbed openglES call at %s:%d \n",__FILE__,__LINE__)
