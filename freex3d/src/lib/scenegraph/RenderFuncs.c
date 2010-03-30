@@ -168,6 +168,7 @@ void fwglLightf (int light, int pname, GLfloat param) {
 void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided) {
 	shader_type_t whichShader;
 
+#ifdef DO_MANY_DIFFERENT_SHADERS
 	/* no appearance - just grey lighting */
 	whichShader = noAppearanceNoMaterialShader;
 
@@ -181,6 +182,11 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 	} else if (material_twoSided != NULL) {
 	}
 	/* are we no headlight, noAppearanceNoMaterialShader? */
+#else
+
+	/* just use this shader for now */
+	whichShader = genericHeadlightNoTextureAppearanceShader;
+#endif
 
 
 	currentShaderStruct = &(rdr_caps.shaderArrays[whichShader]);
