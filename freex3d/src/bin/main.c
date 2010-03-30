@@ -68,10 +68,12 @@ int main (int argc, char **argv)
 
     /* first, get the FreeWRL shared lib, and verify the version. */
     libver = libFreeWRL_get_version();
+#ifndef AQUA
     progver = freewrl_get_version();
     if (strcmp(progver, libver)) {
 	ConsoleMessage("FreeWRL expected library version %s, got %s...\n",progver, libver);
     }
+#endif
 #ifdef _MSC_VER
 	/*
 	Set fonts directory

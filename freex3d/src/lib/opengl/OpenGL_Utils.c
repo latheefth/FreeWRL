@@ -2200,8 +2200,8 @@ void fw_Frustum (double left, double right, double bottom, double top, double ne
 }
 
 
-void fw_gluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar) {
-	GLdouble xmin, xmax, ymin, ymax;
+void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar) {
+	GLDOUBLE xmin, xmax, ymin, ymax;
 	double *dp;
 
 	ymax = zNear * tan(fovy * M_PI / 360.0);

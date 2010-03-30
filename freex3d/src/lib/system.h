@@ -133,6 +133,7 @@ char *__fw_strndup(const char *s, size_t n);
 #endif
 
 /* Those macro may not be declared everywhere */
+#ifndef IPHONE
 #if !defined(min)
 # define min(X, Y)                     \
      ({ typeof (X) __x = (X), __y = (Y);   \
@@ -143,6 +144,10 @@ char *__fw_strndup(const char *s, size_t n);
 # define max(X, Y)                     \
      ({ typeof (X) __x = (X), __y = (Y);   \
         (__x > __y) ? __x : __y; })
+#endif
+#else
+#define min MIN
+#define max MAX
 #endif
 
 
