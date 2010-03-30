@@ -138,6 +138,7 @@ void fw_perror(FILE *f, const char *format, ...)
 freewrl_params_t fw_params = {
 	/* width */          800,
 	/* height */         600,
+	/* winToEmbedInto */ -1,
 	/* fullscreen */     FALSE,
 	/* multithreading */ TRUE,
 	/* eai */            TRUE,

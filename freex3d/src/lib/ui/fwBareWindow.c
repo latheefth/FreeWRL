@@ -89,7 +89,21 @@ int create_main_window(int argc, char *argv[])
 		
     Xwin = XCreateWindow(Xdpy, Xroot_window, 0, 0, win_width, win_height,
 			 0, Xvi->depth, InputOutput, Xvi->visual, mask, &attr);
+
+    /* Roberto Gerson */
+    /* If -d is setted, so reparent the window */
+    if(winToEmbedInto != -1){
+		printf("fwBareWindow::Trying to reparent window: %ld, to new parent: %ld\n",
+			Xwin,
+			winToEmbedInto);
+
+	XReparentWindow(Xdpy, Xwin, (Window) winToEmbedInto, 0, 0);
+    }
+
+
+
     XMapWindow(Xdpy, Xwin);
+    XFlush(Xdpy);
 		
     if (fullscreen) {
 	XMoveWindow(Xdpy, Xwin, 0, 0);

@@ -114,6 +114,7 @@ extern float myFps;
  */
 extern int win_height; /* window */
 extern int win_width;
+extern long int winToEmbedInto;
 extern int fullscreen;
 extern int view_height; /* viewport */
 extern int view_width;

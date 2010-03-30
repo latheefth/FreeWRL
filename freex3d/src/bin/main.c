@@ -131,6 +131,7 @@ int main (int argc, char **argv)
     params->height = 400;
     params->eai = FALSE;
     params->fullscreen = FALSE;
+    params->winToEmbedInto = -1;
 	initStereoDefaults();
 
 #if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */

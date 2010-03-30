@@ -215,6 +215,23 @@ int create_main_window(int argc, char *argv[])
 	
 	
 	XtRealizeWidget (freewrlTopWidget);
+
+	/* Roberto Gerson */
+	/* If -d is setted, so reparent the window */
+	if(winToEmbedInto != -1){
+		printf("fwMotifWindow::Trying to reparent window: %ld, to new parent: %ld\n",
+			XtWindow(freewrlTopWidget),
+			winToEmbedInto);
+
+		XReparentWindow(XtDisplay(freewrlTopWidget),
+		XtWindow(freewrlTopWidget),
+		winToEmbedInto, 0, 0);
+
+		XMapWindow(XtDisplay(freewrlTopWidget), XtWindow(freewrlTopWidget));
+	}
+
+	XFlush(XtDisplay(freewrlTopWidget));
+
 	MainWidgetRealized = XtIsRealized(freewrlTopWidget); /*TRUE;*/
 	TRACE_MSG("create_main_window: top widget realized: %s\n", BOOL_STR(MainWidgetRealized));
 	
