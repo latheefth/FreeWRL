@@ -43,6 +43,7 @@ typedef struct freewrl_params {
 	*/
 	int width;
 	int height;
+	long int winToEmbedInto;
 	bool fullscreen;
 	bool multithreading;
 	bool eai;
