@@ -98,11 +98,13 @@ void OSX_initializeParameters(const char* initialURL) {
     	OSXparams->eai = FALSE;
     	OSXparams->fullscreen = FALSE;
     } 
+	//printf("in OSX init\n");
     /* start threads, parse initial scene, etc */
    if (!initFreeWRL(OSXparams)) {
 	ERROR_MSG("main: aborting during initialization.\n");
 	exit(1);
    }
+	//printf("after init osx params\n");
 
     fw_params.collision = 1;
 
