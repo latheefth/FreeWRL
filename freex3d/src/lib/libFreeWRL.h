@@ -53,7 +53,6 @@ typedef struct freewrl_params {
 	bool multithreading;
 	bool eai;
 	bool verbose;
-	long int winToEmbedInto;
 	int collision;	/* do collision detection? */
 
 } freewrl_params_t;
