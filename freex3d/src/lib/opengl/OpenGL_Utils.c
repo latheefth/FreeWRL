@@ -2132,8 +2132,7 @@ void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd)
 
 static void fw_glLoadMatrixd(double *val) {
 	/* printf ("loading matrix...\n"); */
-	FW_GL_LOADMATRIXD(val);
-	//glLoadMatrixd(val);
+	glLoadMatrixd(val);
 }
 
 void sendMatriciesToShader(GLint MM,GLint PM) {
