@@ -52,7 +52,7 @@ void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_T
 void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int stride, float *pointer);
 void sendClientStateToGPU(int enable, int cap);
 void sendArraysToGPU (int mode, int first, int count);
-void sendElementsToGPU (int mode, int count, int type, int *indices);
+void sendElementsToGPU (int mode, int count, int type, short int *indices);
 
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */
