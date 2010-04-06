@@ -563,9 +563,17 @@ void setScreenDim(int wi, int he);
 	#define FW_GL_GENQUERIES(aaa,bbb) glGenQueries(aaa,bbb)
 	#define FW_GL_DELETE_QUERIES(aaa,bbb) glDeleteQueries(aaa,bbb)
 	
-
-
-
+	/*apr 6 2010 checkout win32 was missing the following macros */
+	#define FW_GL_ACCUM(aaa,bbb) glAccum(aaa,bbb)
+	#define FW_GL_DRAWBUFFER(aaa) glDrawBuffer(aaa)
+	#define FW_GL_ENDLIST() glEndList()
+	#define FW_GL_BITMAP(aaa,bbb,ccc,ddd,eee,fff,ggg) glBitmap(aaa,bbb,ccc,ddd,eee,fff,ggg)
+	#define FW_GL_POPATTRIB() glPopAttrib()  /*FW_GL_POP_ATTRIB is defined above wrongly with 1 parameter*/
+	#define FW_GL_CALLLISTS(aaa,bbb,ccc) glCallLists(aaa,bbb,ccc)
+	#define FW_GL_LISTBASE(aaa) glListBase(aaa)
+	#define FW_GL_PUSHATTRIB(aaa) glPushAttrib(aaa)
+	#define FW_GL_DRAWPIXELS(aaa,bbb,ccc,ddd,eee) glDrawPixels(aaa,bbb,ccc,ddd,eee)
+	
 
 #endif /* NDEF IPHONE */
 
