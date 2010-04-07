@@ -781,7 +781,7 @@ void resource_wait(resource_item_t *res)
 	TRACE_MSG("resource_wait: starts waiting for res to complete: %s\n", res->request);
 	/* Wait while parser is working */
 	while (!res->complete) {
-		sleep(1);
+		usleep(50); /* thanks dave */
 	}
 }
 
