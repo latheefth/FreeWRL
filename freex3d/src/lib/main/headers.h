@@ -478,6 +478,7 @@ void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 /* bindable nodes */
 extern GLint viewport[];
 extern GLDOUBLE fieldofview;
+extern GLDOUBLE fovZoom;
 //extern struct point_XYZ ViewerUpvector;
 extern struct sNaviInfo naviinfo;
 extern double defaultExamineDist;
