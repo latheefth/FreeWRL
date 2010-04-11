@@ -72,7 +72,6 @@ extern int MAXJSparamNames;
 /* ************************************************************************** */
 /* ************************ Methods used by X3D Parser  ********************* */
 /* ************************************************************************** */
-uintptr_t nextScriptHandle (void);
 void zeroScriptHandles (void);
 struct X3D_Script * protoScript_copy (struct X3D_Script *me);
 
