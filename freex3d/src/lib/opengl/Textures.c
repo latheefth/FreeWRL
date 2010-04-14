@@ -86,7 +86,7 @@ int currentlyWorkingOn = -1;
 int textureInProcess = -1;
 
 /* for texture remapping in TextureCoordinate nodes */
-short int	*global_tcin;
+int	*global_tcin;
 int	global_tcin_count;
 void 	*global_tcin_lastParent;
 

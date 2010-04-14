@@ -66,13 +66,13 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int ntri; /* number of triangles */
 	int streamed;	/* is this done the streaming pass? */
 	int alloc_tri; /* number of allocated triangles */
-	short int *cindex;   /* triples (per triangle) */
+	int *cindex;   /* triples (per triangle) */
 	float *actualCoord; /* triples (per point) */
-	short int *colindex;   /* triples (per triangle) */
+	int *colindex;   /* triples (per triangle) */
 	float *color; /* triples or null */
-	short int *norindex;
+	int *norindex;
 	float *normal; /* triples or null */
-        short int *tcindex; /* triples or null */
+        int *tcindex; /* triples or null */
         float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */

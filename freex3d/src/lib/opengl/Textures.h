@@ -116,7 +116,7 @@ extern int textureStackTop;
 extern struct multiTexParams *textureParameterStack[];
 extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
 
-extern short int     *global_tcin;
+extern int     *global_tcin;
 extern int     global_tcin_count; 
 extern void 	*global_tcin_lastParent;
 

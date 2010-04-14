@@ -594,7 +594,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     est_tri = char_count*TESS_MAX_COORDS;
     coordmaxsize=est_tri;
     cindexmaxsize=est_tri;
-    FW_rep_->cindex=(short int*)MALLOC(sizeof(*(FW_rep_->cindex))*est_tri);
+    FW_rep_->cindex=(int*)MALLOC(sizeof(*(FW_rep_->cindex))*est_tri);
     FW_rep_->actualCoord = (float*)MALLOC(sizeof(*(FW_rep_->actualCoord))*est_tri*3);
 
     if(maxext > 0) {
@@ -692,7 +692,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 
             if (indx_count > (cindexmaxsize-400)) {
                 cindexmaxsize +=TESS_MAX_COORDS;
-                FW_rep_->cindex=(short int *)REALLOC(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
+                FW_rep_->cindex=(int *)REALLOC(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
             }
         }
         counter += (int) strlen((const char *)str);
