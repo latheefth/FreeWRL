@@ -91,6 +91,8 @@ struct ProtoFieldDecl
 struct ProtoFieldDecl* newProtoFieldDecl(indexT, indexT, indexT);
 void deleteProtoFieldDecl(struct ProtoFieldDecl*);
 int newProtoDefinitionPointer (struct ProtoDefinition *vrmlpd, int xmlpd);
+struct ProtoDefinition* newProtoDefinition();
+
 
 /* Accessors */
 #define protoFieldDecl_getType(me) \
