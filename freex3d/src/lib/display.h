@@ -71,10 +71,12 @@ extern int ocurse;
 #ifdef HAVE_GLEW_H
 #include <GL/glew.h>
 #else
+#ifndef AQUA
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glext.h>
 #include <GL/glx.h>
+#endif
 #endif
 #endif
 

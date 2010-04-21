@@ -552,7 +552,12 @@
 	NSOpenGLContext* currentContext;
 	currentContext = [NSOpenGLContext currentContext];
 	[currentContext setView:self];
+	askForRefreshOK();
+	while (!checkRefresh()) {
+		usleep(10);
+	}
 	[currentContext update];
+	resetRefresh();
 	NSSize mySize = [self frame].size;
 	
 	setScreenDim((int) mySize.width, (int) mySize.height);

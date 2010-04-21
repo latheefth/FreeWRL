@@ -128,5 +128,8 @@ extern char *keypress_string;
 extern int with_libcurl;
 #endif
 
+void askForRefreshOK();
+int checkRefresh();
+void resetRefresh();
 
 #endif /* __LIBFREEWRL_API_H__ */
