@@ -119,7 +119,6 @@ void OSX_initializeParameters(const char* initialURL) {
     /* did this load correctly? */
     if (res->status == ress_not_loaded) {
 	ConsoleMessage ("FreeWRL: Problem loading file \"%s\"", res->request);
-	printf("could not load %s\n", initialURL);
     }
     if (res->status == ress_failed) {
 	printf("load failed %s\n", initialURL);
@@ -217,6 +216,7 @@ bool initFreeWRL(freewrl_params_t *params)
 	if (fw_params.eai) {
 		create_EAI();
 	}
+
 
 	/* Initialize parser */
 	initialize_parser();

@@ -1812,7 +1812,7 @@ void resetRefresh() {
 /* called from the standalone OSX front end and the OSX plugin */
 void replaceWorldNeeded(char* str)
 {
-	/* printf ("replaceWorldneeded called - file %s\n",str); */
+	//printf ("replaceWorldneeded called - file %s\n",str); 
         AnchorsAnchor = NULL;
         FREE_IF_NZ(OSX_replace_world_from_console);
 	OSX_replace_world_from_console = STRDUP(str);
