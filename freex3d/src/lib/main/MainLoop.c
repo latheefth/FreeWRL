@@ -337,7 +337,7 @@ void EventLoop() {
 
                 BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
                 setMenuFps((float)BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
-                /* printf ("fps %f tris %d\n",BrowserFPS,trisThisLoop);  */
+                /* printf ("fps %f tris %d, rootnode children %d \n",BrowserFPS,trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
                 /* ConsoleMessage("fps %f tris %d\n",BrowserFPS,trisThisLoop);   */
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",nearPlane, farPlane);  */

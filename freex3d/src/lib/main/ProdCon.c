@@ -358,8 +358,9 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int offsetInNode;
 	int shouldBind;
 
-	/* printf("processing VRML/X3D resource: %s\n", res->request); */
+	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	shouldBind = FALSE;
+
 
 
 	/* save the current URL so that any local-url gets are relative to this */
@@ -398,7 +399,10 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 			return FALSE;
 		}
 
-		/* printf ("res %p root_res %p\n",res,root_res); */
+		/* 
+		printf ("res %p root_res %p\n",res,root_res); 
+		*/
+
 		/* bind ONLY in main - do not bind for Inlines, etc */
 		if (res == root_res) {
 			kill_bindables();

@@ -721,7 +721,7 @@ void resource_dump(resource_item_t *res)
 	s_list_t *cf;
 	s_list_t *of;
 
-	TRACE_MSG("resource_dump: %p\n"
+	printf ("resource_dump: %p\n"
 		  "request: %s\n"
 		  "parsed request: %s\n"
 		  "actual file: %s\n"

@@ -807,7 +807,6 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 		FREE_IF_NZ (node->__colours);
 		node->__points = newPoints;
 		node->__colours = newColors;
-printf ("background, quadcount %d\n",actq);
 		node->__quadcount = actq;
 
 	} else {
