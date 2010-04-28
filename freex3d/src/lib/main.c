@@ -125,7 +125,8 @@ void OSX_initializeParameters(const char* initialURL) {
 	printf("load failed %s\n", initialURL);
 	ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
     } else {
-	printf("loaded %s\n", initialURL);
+	/* Success! 
+	printf("loaded %s\n", initialURL); */
 	}
 }
 
