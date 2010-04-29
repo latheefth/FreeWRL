@@ -10,10 +10,8 @@
 
 
 @implementation FreeWRLView
-
 - (void) debugPrint: (char *) theString
 {
-	
 //	if (theFile == NULL) {
 //		theFile = fopen("/tmp/aqua_log", "w");
 //		if (theFile == NULL) abort();
@@ -248,6 +246,7 @@
 	switchSeq = FALSE;
 	switchEAI = FALSE;
 	open_opt = FALSE;
+	initFinished = FALSE;
 	haveFileOnCommandLine = FALSE;
 	fps = 0.0;
 	statString = @"NONE";
@@ -505,13 +504,13 @@
 		
 	/* create the display thread. */
 	[self debugPrint: [fileToOpen cString]];
+	usleep(100);
 
 	if (haveFileOnCommandLine)
 			OSX_initializeParameters([fileToOpen cString]);
 	else 
-		OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
-		//OSX_initializeParameters("/FreeWRL/freewrl/freewrl/tests/1.wrl");
-	
+			OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
+	initFinished = TRUE;
 	/* do we require EAI? */
 	if (wantEAI) {
 		create_EAI();
@@ -536,6 +535,9 @@
 
 - (bool) getOptions {
 	return options;
+}
+- (BOOL) hasDoneInit {
+	return initFinished;
 }
 
 - (void) set_fast
@@ -566,8 +568,10 @@
 
 - (void) setFile: (NSString*) filePassed
 {
+	[self debugPrint:"in set file"];
     if (!options)
     {
+		haveFileOnCommandLine = TRUE;
         fileToOpen = filePassed;
 		[fileToOpen retain];
     }

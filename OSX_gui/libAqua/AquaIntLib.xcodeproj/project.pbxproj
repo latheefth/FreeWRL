@@ -19,7 +19,7 @@
 		1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		2695F1AE0AB09F1000CE88D5 /* AGL */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = AGL; path = /System/Library/Frameworks/AGL.framework/AGL; sourceTree = "<absolute>"; };
 		32DBCF5E0370ADEE00C91783 /* AquaIntLib_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AquaIntLib_Prefix.pch; sourceTree = "<group>"; };
-		D2AAC0C705546C1D00DB518D /* libAquaIntLib.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libAquaIntLib.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2AAC0C705546C1D00DB518D /* AquaIntLib.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = AquaIntLib.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,7 +38,7 @@
 		034768DFFF38A50411DB9C8B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D2AAC0C705546C1D00DB518D /* libAquaIntLib.dylib */,
+				D2AAC0C705546C1D00DB518D /* AquaIntLib.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -124,7 +124,7 @@
 			);
 			name = AquaIntLib;
 			productName = AquaIntLib;
-			productReference = D2AAC0C705546C1D00DB518D /* libAquaIntLib.dylib */;
+			productReference = D2AAC0C705546C1D00DB518D /* AquaIntLib.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -245,6 +245,8 @@
 					ppc,
 					i386,
 				);
+				GCC_VERSION = 4.0;
+				HEADER_SEARCH_PATHS = /FreeWRL/freewrl/freex3d/src/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				SDKROOT = macosx10.4;
 			};

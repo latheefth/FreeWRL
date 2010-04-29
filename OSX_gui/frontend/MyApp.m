@@ -26,8 +26,7 @@
 {
 	
 //	if (theFile == NULL) {
-	//	NSLog(@"REOPENING");
-//		theFile = fopen("/Users/sarah/app2_log", "w");
+//		theFile = fopen("/tmp/aqua_log2", "w");
 //		if (theFile == NULL)
 //			abort();
 //		fileIsOpen = TRUE;
@@ -288,26 +287,31 @@
 			NSArray *filesToOpen = [oPanel filenames];
 			NSString *aFile = [filesToOpen objectAtIndex:0];
 			[[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL: [NSURL fileURLWithPath: aFile]];
+			[self debugPrint: "setFile 2"];
 			[freewrl setFile: aFile];
 			[aFile getCString: buff];
 			//NSLog(@"Calling anchor_replaceworld1 ... ");
-			replaceWorldNeeded(buff);
+		if ([freewrl hasDoneInit]) {
+				replaceWorldNeeded(buff);
+		}
 			[wc showWindow];
     }
 }
 
 - (IBAction) printFile: (id) sender
 {
-	NSLog(@"Got to print file");
+	//NSLog(@"Got to print file");
 }
 - (BOOL) application: (NSApplication*) app openFile: (NSString *) fileName
 {
 	[self debugPrint: "in app open file"];
 	if (![freewrl getOptions]) {
 		[[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL: [NSURL fileURLWithPath: fileName]];
+		[self debugPrint: "setFile1"];
 		[freewrl setFile: fileName];
 		[fileName getCString: buff];
-		replaceWorldNeeded(buff);
+		if([freewrl hasDoneInit])
+			replaceWorldNeeded(buff);
 		[wc showWindow];
 	}
 	return TRUE;

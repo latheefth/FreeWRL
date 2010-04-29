@@ -4,10 +4,23 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>wrz</string>
+				<string>wrl</string>
+				<string>x3d</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>FreeWRL</string>
 	<key>CFBundleGetInfoString</key>
-	<string>FreeWRL VRML Browser maintained by CRC Canada freewrl.sf.net</string>
+	<string>FreeWRL VRML Browser freewrl.sf.net</string>
 	<key>CFBundleHelpBookFolder</key>
 	<string>HelpFolder</string>
 	<key>CFBundleHelpBookName</key>
@@ -15,11 +28,11 @@
 	<key>CFBundleIconFile</key>
 	<string>freewrl</string>
 	<key>CFBundleIdentifier</key>
-	<string>FreeWRL VRML Browser maintained by CRC Canada freewrl.sf.net</string>
+	<string>FreeWRL VRML Browser freewrl.sf.net</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>FreeWRL VRML Browser maintained by CRC Canada freewrl.sf.net</string>
+	<string>FreeWRL</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

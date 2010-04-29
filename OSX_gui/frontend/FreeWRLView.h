@@ -58,6 +58,7 @@ void setWantEAI(int flag);
 void setSeqFile(const char* file);
 int isInputThreadInitialized(void);
 
+
 #include "/FreeWRL/freewrl/freex3d/src/lib/libFreeWRL.h"
 //some from #include "display.h"
 void setScreenDim(int wi, int he);
@@ -107,7 +108,9 @@ void setScreenDim(int wi, int he);
 	bool messageFlag;
 	id theApp;
 	int haveFileOnCommandLine;
+	int initFinished;
 }
+
 - (void) setApp: (id) app;
 - (void) doResize;
 - (void) debugPrint: (char *) theString;
@@ -136,6 +139,7 @@ void setScreenDim(int wi, int he);
 - (void) startEai;
 - (void) initBrowser;
 - (BOOL) getOpenOpt;
+- (BOOL) hasDoneInit;
 - (bool) getOptions;
 - (Boolean) getFullscreen;
 - (void) setController:(id) passedController;

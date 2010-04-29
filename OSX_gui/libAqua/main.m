@@ -4,7 +4,7 @@
 #include <OpenGL/OpenGL.h>
 #include <AGL/AGL.h>
 #include <AppKit/AppKit.h>
-#include </Users/sarah/FreeWRL/FreeWRLView.h>
+#include </FreeWRL/freewrl/OSX_gui/frontend/FreeWRLView.h>
 
 FreeWRLView* fwview;
 NSOpenGLContext* fwcontext;

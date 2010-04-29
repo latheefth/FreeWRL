@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
-#include <libFreeWRL.h>
+#include </FreeWRL/freewrl/freex3d/src/lib/libFreeWRL.h>
 #import "FreeWRLView.h"
 
 

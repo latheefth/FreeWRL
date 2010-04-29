@@ -292,6 +292,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = i386;
+				GCC_VERSION = 4.0;
 				HEADER_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
@@ -309,7 +310,7 @@
 					i386,
 					x86_64,
 				);
-				GCC_VERSION = "";
+				GCC_VERSION = 4.0;
 				"GCC_VERSION[arch=i386]" = 4.0;
 				"GCC_VERSION[arch=ppc64]" = 4.0;
 				"GCC_VERSION[arch=ppc]" = 4.0;
