@@ -280,6 +280,7 @@ __inline double Time1970sec()
 /* Main eventloop for FreeWRL!!! */
 #ifndef IPHONE
 void EventLoop() {
+        static int loop_count = 0;
 
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         Cursor cursor;
@@ -288,7 +289,6 @@ void EventLoop() {
 		usleep(10);
 	}
 
-        static int loop_count = 0;
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 
 		     BOOL_STR(isinputThreadParsing()), BOOL_STR(IS_WORLD_LOADED));
