@@ -413,6 +413,8 @@ void EventLoop() {
 		break;
 	    }
 #endif //XEVENT_VERBOSE
+
+#if 0 // no need for this hack now that events are correctly propagated through Motif
 	    /**
 	     *   Quick hack to make events propagate
 	     *   to the drawing area.... :)
@@ -422,7 +424,11 @@ void EventLoop() {
 	    } else {
 		XtDispatchEvent (&event);
 	    }
+#else // clean implementation
+	    XtDispatchEvent (&event);
+#endif
 	}
+
 #endif //defined(TARGET_MOTIF)
 
 #if defined(_MSC_VER) //TARGET_WIN32)
