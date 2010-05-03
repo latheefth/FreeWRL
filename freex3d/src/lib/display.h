@@ -414,8 +414,6 @@ void setScreenDim(int wi, int he);
 	/****************************************************************/
 
 	#if defined(_MSC_VER)
-		#define FW_GL_PUSH_MATRIX(...) glPushMatrix()
-		#define FW_GL_POP_MATRIX(...) glPopMatrix()
 		#define FW_GL_SWAPBUFFERS SwapBuffers(wglGetCurrentDC());
 	#endif
 
@@ -435,11 +433,7 @@ void setScreenDim(int wi, int he);
 	/* Second - things that might be specific to one platform;	*/
 	/*	this is the "catch for other OS" here 			*/
 	/****************************************************************/
-
-	#if !defined (FW_GL_PUSH_MATRIX) 
-		#define FW_GL_PUSH_MATRIX(aaa) fw_glPushMatrix()
-		#define FW_GL_POP_MATRIX(aaa) fw_glPopMatrix()
-	#endif 
+        /* nothing here */
 
 	/****************************************************************/
 	/* Third - common across all platforms				*/
@@ -450,10 +444,9 @@ void setScreenDim(int wi, int he);
 #define USE_OLD_OPENGL
 #ifdef USE_OLD_OPENGL
 
-#ifndef _MSC_VER
-	#define FW_GL_PUSH_MATRIX(aaa) glPushMatrix()
-	#define FW_GL_POP_MATRIX(aaa) glPopMatrix()
-#endif
+	#define FW_GL_PUSH_MATRIX() glPushMatrix()
+	#define FW_GL_POP_MATRIX() glPopMatrix()
+
 	#define FW_GL_GETDOUBLEV(aaa,bbb) glGetDoublev(aaa,bbb);
 	#define FW_GL_LOAD_IDENTITY glLoadIdentity
 	#define FW_GL_TRANSLATE_F(xxx,yyy,zzz) glTranslatef(xxx,yyy,zzz)
