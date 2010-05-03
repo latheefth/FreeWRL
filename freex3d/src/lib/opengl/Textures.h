@@ -52,8 +52,9 @@ struct textureTableIndexStruct {
         GLint Src;
         GLint Trc;
 };
+typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 
-extern struct textureTableIndexStruct* loadThisTexture;
+extern textureTableIndexStruct_s* loadThisTexture;
 extern GLuint defaultBlankTexture;
 
 /* imageType */

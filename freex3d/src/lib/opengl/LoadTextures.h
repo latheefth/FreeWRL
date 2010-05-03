@@ -31,8 +31,8 @@ $Id$
 
 extern int TextureParsing;
 extern int TextureThreadInitialized;
-void send_texture_to_loader(struct textureTableIndexStruct *entry);
-bool texture_load_from_file(struct textureTableIndexStruct* this_tex, char *filename);
+void send_texture_to_loader(textureTableIndexStruct_s *entry);
+bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
 
 
 #endif /* __FREEWRL_LOAD_TEXTURES_H__ */
