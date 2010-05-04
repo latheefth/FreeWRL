@@ -309,7 +309,7 @@ void registerTexture(struct X3D_Node *tmp) {
 
 		DEBUG_TEX("CREATING TEXTURE NODE: type %d url ", it->_nodeType);
 		/* Multi_String_print(&it->url); */
-		DEBUG_TEX("parent url: %s\n", it->__parenturl->strptr);
+		DEBUG_TEX("parent url: %s\n", it->_parentResource);
 
 		if ((nextFreeTexture & 0x1f) == 0) {
 
@@ -1109,6 +1109,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			break;
 
 		case TEX_NEEDSBINDING:
+			DEBUG_TEX("texture loaded into memory... now lets load it into OpenGL...\n");
                 	move_texture_to_opengl(myTableIndex); 
 			break;
 

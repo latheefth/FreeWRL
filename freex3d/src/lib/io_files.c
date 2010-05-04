@@ -343,6 +343,7 @@ openned_file_t* load_file(const char *filename)
 {
 	openned_file_t *of = NULL;
 
+	DEBUG_RES("loading file: %s\n", filename);
 #if defined(FW_USE_MMAP)
 #if !defined(_WIN32)
 	/* UNIX mmap */
@@ -355,6 +356,7 @@ openned_file_t* load_file(const char *filename)
 	/* Standard read */
 	of = load_file_read(filename);
 #endif
+	DEBUG_RES("%s loading status: %s\n", filename, BOOL_STR((of!=NULL)));
 	return of;
 }
 
