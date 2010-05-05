@@ -785,6 +785,7 @@ void handle_Xevents(XEvent event) {
 //#ifdef HAVE_NOTOOLKIT
                 /* Motif, etc, usually handles this. */
                 case ConfigureNotify:
+			/*  printf("%s,%d ConfigureNotify  %d %d\n",__FILE__,__LINE__,event.xconfigure.width,event.xconfigure.height); */
                         setScreenDim (event.xconfigure.width,event.xconfigure.height);
                         break;
 //#endif

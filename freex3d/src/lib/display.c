@@ -184,6 +184,7 @@ void setScreenDim(int wi, int he)
 {
     screenWidth = wi;
     screenHeight = he;
+    /* printf("%s,%d setScreenDim(int %d, int %d)\n",__FILE__,__LINE__,wi,he); */
 
     if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
     else screenRatio =  screenWidth;
