@@ -67,7 +67,7 @@ void do_shininess (GLenum face, float shininess) {
 }
 
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
-	int i;
+	/* unused int i; */
 
 	/* for IndexedLineSet, etc, we keep the last emissiveColor around */
 	FW_GL_MATERIALFV(face,pname,param);

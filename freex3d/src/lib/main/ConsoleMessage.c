@@ -73,7 +73,9 @@ static char FWbuffer [STRING_LENGTH];
 
 int consMsgCount = 0;
 extern int _fw_browser_plugin;
+#ifndef HAVE_MOTIF
 #define MAXMESSAGES 5 
+#endif
 void closeConsoleMessage() {
 	consMsgCount = 0;
 #ifdef AQUA
@@ -114,7 +116,7 @@ void writeToLogFile(char *buffer)
 
 int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 {
-	int i,j,count,stat;
+	int i,j,count;
 	//char tempbuf[STRING_LENGTH];
 	//char format[STRING_LENGTH];
 	char *tempbuf;
@@ -249,12 +251,12 @@ int ConsoleMessage0(const char *fmt, va_list args)
 	}
 	if(Console_writeToLog || Console_writeToHud)
 	{
-		int len;
 		char * buffer;
 		int doFree = 0;
 
 #ifdef HAVE_VSCPRINTF
 		/* msvc can do this  http://msdn.microsoft.com/en-ca/library/xa1a1a6z(VS.80).aspx  */
+		int len;
 		len = _vscprintf( fmt, args ) +1; /* counts only */
 		buffer = malloc( len * sizeof(char) );
 		retval = vsprintf_s( buffer, len, fmt, args ); /*allocates the len you pass in*/
@@ -304,7 +306,7 @@ int BrowserPrintConsoleMessage(const char *fmt, ...)
 		Dec 23 2009 status: tested ndef-motif-ndef-aqua branch calling BrowserPrintConsoleMessage from mainloop as a test but 
 		not from VRMLBrowserPrint - is there  a test .wrl for it?
 	*/
-	int retval;
+	/* unused int retval; */
 	va_list args;
 
 #ifndef HAVE_MOTIF

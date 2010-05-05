@@ -1520,7 +1520,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 	if (circular && tubular) {
 		beginCap = FALSE; 
 		endCap = FALSE;
-		#if VERBOSE
+		#ifdef VERBOSE
 		printf ("Extrusion, turning off caps \n");
 		#endif
 	}

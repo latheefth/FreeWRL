@@ -979,7 +979,7 @@ JSBool SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 	JSString *myStr;
 	char *cString;
 
-	struct X3D_Group *myGroup;
+	/* unused struct X3D_Group *myGroup; */
 
 	ADD_ROOT(cx,obj)
 	newHandle = NULL;

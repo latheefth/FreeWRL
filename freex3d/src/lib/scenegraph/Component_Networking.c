@@ -388,8 +388,11 @@ static void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
 #endif
 
 
+#if defined(REWIRE_SERVER)
 /* make sure the EAI port is turned on... */
 static int requestToStartEAIdone = FALSE;
+#endif
+
 static void midiStartEAI() {
 #if !defined(REWIRE_SERVER)
     ConsoleMessage("MIDI disabled at compile time.\n");
@@ -1040,7 +1043,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	struct X3D_ImageTexture *tnode;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *mnode;
-#endif HAVE_TO_REIMPLEMENT_MOVIETEXTURES
+#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 	struct X3D_AudioClip *anode;
 	struct X3D_Inline *inode;
 	

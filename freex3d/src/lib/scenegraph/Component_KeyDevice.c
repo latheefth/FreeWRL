@@ -94,7 +94,10 @@ int ctrlPressed = 0;
 #define DEL_KEY 0x08
 #define RTN_KEY 13
 #define KEYDOWN 2
-#define KEYUP	3
+/* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
+	#if 0
+	#define KEYUP	3
+	#endif
 #else
 #define HOME_KEY 0x29
 #define PGDN_KEY 0x2d
@@ -122,7 +125,10 @@ int ctrlPressed = 0;
 #define DEL_KEY 0x7F
 #define RTN_KEY 13
 #define KEYDOWN 2
-#define KEYUP	3
+/* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
+	#if 0
+	#define KEYUP	3
+	#endif
 #endif
 
 
