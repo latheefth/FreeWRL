@@ -70,6 +70,8 @@
 
 #include "ProdCon.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
+
 /* used by the paser to call back the lexer for EXTERNPROTO */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
 
@@ -103,12 +105,14 @@ void *setNavigationBindInRender = NULL;
 
 */
 
+#if DJ_KEEP_COMPILER_WARNING
 #define PARSER_LOCKING_INIT 
-#define SEND_TO_PARSER pthread_mutex_lock(&mutex);
 #define PARSER_FINISHING 
+#define WAIT_WHILE_NO_DATA
+#endif
+#define SEND_TO_PARSER pthread_mutex_lock(&mutex);
 #define UNLOCK pthread_mutex_unlock(&mutex)
 #define WAIT_WHILE_PARSER_BUSY  
-#define WAIT_WHILE_NO_DATA
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condition = PTHREAD_COND_INITIALIZER;

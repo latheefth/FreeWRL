@@ -44,8 +44,11 @@ Render the children of nodes.
 #include "RenderFuncs.h"
 #include "../opengl/Frustum.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
 
+#if DJ_KEEP_COMPILER_WARNING
 #define VF_localLight				0x0004
+#endif
 
 /* this grouping node has a local light for a child, render this first */
 void localLightChildren(struct Multi_Node ch) {

@@ -62,6 +62,8 @@ Thanks to the Open Source community for all the help received.\n \
 Communications Research Centre\n \
 Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
 
+#define DJ_KEEP_COMPILER_WARNING 0
+
 void setDefaultBackground(int colour);
 
 /* background colours - must be sequential range */
@@ -562,7 +564,9 @@ void removeWidgetFromSelect (Widget parent,
 /* start up the browser, and point it to www.crc.ca/FreeWRL */
 void freewrlHomePopup (Widget w, XtPointer data, XtPointer callData)
 { 
-#define MAXLINE 2000
+#if DJ_KEEP_COMPILER_WARNING
+	#define MAXLINE 2000
+#endif
 	const char *browser;
 	char *sysline;
 	const char pattern[] = "%s http://www.crc.ca/FreeWRL &";

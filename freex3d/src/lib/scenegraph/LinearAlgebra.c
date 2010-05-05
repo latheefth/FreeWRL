@@ -40,6 +40,7 @@ $Id$
 
 #include "LinearAlgebra.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
 
 /* Altenate implemetations available, should merge them eventually */
 
@@ -491,19 +492,25 @@ void scale_to_matrix (double *mat, struct point_XYZ *scale) {
 #define MAT00 mat[0]
 #define MAT01 mat[1]
 #define MAT02 mat[2]
+#if DJ_KEEP_COMPILER_WARNING
 #define MAT03 mat[3]
+#endif
 #define MAT10 mat[4]
 #define MAT11 mat[5]
 #define MAT12 mat[6]
+#if DJ_KEEP_COMPILER_WARNING
 #define MAT13 mat[7]
+#endif
 #define MAT20 mat[8]
 #define MAT21 mat[9]
 #define MAT22 mat[10]
+#if DJ_KEEP_COMPILER_WARNING
 #define MAT23 mat[11]
 #define MAT30 mat[12]
 #define MAT31 mat[13]
 #define MAT32 mat[14]
 #define MAT33 mat[15]
+#endif
 
 	MAT00 *=scale->x;
 	MAT01 *=scale->x;

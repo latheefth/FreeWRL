@@ -40,6 +40,8 @@ Render the children of nodes.
 #include "LinearAlgebra.h"
 #include "Collision.h"
 
+#define DJ_KEEP_COMPILER_WARNING 0
+
 //static int dug9debug = 0;
 //int	setdug9debug()
 //{ dug9debug = 1; return 0;}
@@ -48,7 +50,9 @@ Render the children of nodes.
 
 #define swap(x,y) {double k = x; x = y; y = k; }
 #define FLOAT_TOLERANCE 0.00000001
+#if DJ_KEEP_COMPILER_WARNING
 #define MAX_POLYREP_DISP_RECURSION_COUNT 10
+#endif
 #define STEPUP_MAXINCLINE 0.9
 
 #ifdef DEBUGPTS
