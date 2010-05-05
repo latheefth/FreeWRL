@@ -30,6 +30,7 @@
 #include <display.h>
 #include <internal.h>
 #include <libFreeWRL.h>
+#include <errno.h>
 
 #include <list.h> /* internal use only */
 #include <resources.h>
@@ -104,18 +105,22 @@ printf ("remove_filename_from_path, returning :%s:\n",rv);
 
 char *get_current_dir()
 {
-	char *cwd;
+	char *cwd , *retvar;
 	cwd = MALLOC(PATH_MAX);
-	getcwd(cwd, PATH_MAX);
-	{
-			size_t jj,ll;
+	retvar = getcwd(cwd, PATH_MAX);
+	if (NULL != retvar) {
+			size_t ll;
 			ll = strlen(cwd);
 #ifdef _MSC_VER
+			size_t jj;
 			for( jj=0;jj<ll;jj++)
 				if(cwd[jj] == '\\' ) cwd[jj] = '/';
 #endif
 			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
 			cwd[ll+1] = '\0';
+	} else {
+		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
+		cwd = "/tmp/" ;
 	}
 	return cwd;
 }
