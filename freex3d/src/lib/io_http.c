@@ -350,6 +350,6 @@ resource_item_t *getInputResource()
 
 
 	cwu = stack_top(resource_item_t *, resStack);
-	DEBUG_MSG("getInputResource current Resource is %u %x %s\n", cwu,cwu,cwu->parsed_request);
+	DEBUG_MSG("getInputResource current Resource is %lu %lx %s\n", (unsigned long int) cwu, (unsigned long int) cwu, cwu->parsed_request);
 	return stack_top(resource_item_t *, resStack);
 }
