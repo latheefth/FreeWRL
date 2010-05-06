@@ -182,14 +182,18 @@ printf ("freewrlStrdup, before reservetable\n");
  */
 void Multi_String_print(struct Multi_String *url)
 {
-	if (url && url->p) {
-		int i;
+	if (url) {
+		if (!url->p) {
+			printf("multi url: <empty>");
+		} else {
+			int i;
 
-		printf("multi url: ");
-		for (i = 0; i < url->n; i++) {
-			struct Uni_String *s = url->p[i];
-			printf("[%d] %s", i, s->strptr);
+			printf("multi url: ");
+			for (i = 0; i < url->n; i++) {
+				struct Uni_String *s = url->p[i];
+				printf("[%d] %s", i, s->strptr);
+			}
 		}
+		printf("\n");
 	}
-	printf("\n");
 }
