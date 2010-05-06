@@ -131,6 +131,8 @@ int display_initialize()
 
 #endif
 
+	if (0 != screenWidth)  win_width  = screenWidth;
+	if (0 != screenHeight) win_height = screenHeight;
 	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
