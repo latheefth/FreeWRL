@@ -52,16 +52,7 @@ int viewer_initialized = FALSE;
 static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
 static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, {0, 0, 0}, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
-
-/* ./src/lib/scenegraph/Viewer.h:134
-typedef struct viewer_ypz {
-        struct point_XYZ bindPoint;
-        double ypz0[3];
-        double ypz[3];
-        float x,y;
-} X3D_Viewer_YawPitchZoom;
-*/
-static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 }, 0.0, 0.0,0.0 };
+static X3D_Viewer_YawPitchZoom viewer_ypz = { { 0, 0, 0 },  {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, 0.0, 0.0 };
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
