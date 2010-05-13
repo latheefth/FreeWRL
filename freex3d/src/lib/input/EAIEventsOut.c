@@ -39,6 +39,7 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../main/headers.h"
 
 #include "../input/EAIHeaders.h"
+#include "../world_script/fieldGet.h"
 
 
 /*****************************************************************
