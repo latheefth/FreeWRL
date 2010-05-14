@@ -112,9 +112,11 @@ char *get_current_dir()
 			size_t ll;
 			ll = strlen(cwd);
 #ifdef _MSC_VER
-			size_t jj;
-			for( jj=0;jj<ll;jj++)
-				if(cwd[jj] == '\\' ) cwd[jj] = '/';
+			{
+				size_t jj;
+				for( jj=0;jj<ll;jj++)
+					if(cwd[jj] == '\\' ) cwd[jj] = '/';
+			}
 #endif
 			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
 			cwd[ll+1] = '\0';
