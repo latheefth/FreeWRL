@@ -181,6 +181,7 @@ void DrawArea_events (Widget w, XtPointer unused, XEvent *event, Boolean *cont)
 #endif
 
     /* This event should be passed to FreeWRL (MainLoop) control */
+    DEBUG_XEV("EVENT through MOTIF\n");
     handle_Xevents(*event);
 }
 
@@ -931,7 +932,6 @@ void createDrawingFrame(void)
 #endif
 
     XtAddCallback (freewrlDrawArea, XmNresizeCallback, GLArearesize, NULL);
-    XtAddCallback (freewrlDrawArea, XmNinputCallback, GLAreainput, NULL);
 
     myXtManageChild(27,freewrlDrawArea);
 
