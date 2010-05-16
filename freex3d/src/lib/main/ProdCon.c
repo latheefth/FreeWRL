@@ -155,9 +155,6 @@ static int inputParseInitialized=FALSE;
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 int inputThreadParsing=FALSE;
 
-/* Initial URL loaded -- MB res API */
-#define IS_WORLD_LOADED ((root_res != NULL) && (root_res->status == ress_parsed))
-
 /* /\* Is the initial URL loaded ? Robert Sim *\/ */
 /* int URLLoaded = FALSE; */
 /* int isURLLoaded() { return (URLLoaded && !inputThreadParsing); } */

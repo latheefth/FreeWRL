@@ -191,5 +191,8 @@ char *resourceStatusToString(int status);
 char *resourceTypeToString(int type);
 char *resourceMediaTypeToString(int type);
 
+/* Initial URL loaded : replace IS_WORLD_LOADED */
+extern bool resource_is_root_loaded();
+
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

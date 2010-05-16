@@ -1031,3 +1031,8 @@ static void possiblyUnzip (openned_file_t *of) {
 	}
 #endif
 }
+
+bool resource_is_root_loaded()
+{
+	return ((root_res != NULL) && (root_res->status == ress_parsed));
+}
