@@ -213,7 +213,7 @@ void of_dump(openned_file_t *of)
 	if (of->text) {
 		strncpy(first_ten, of->text, 10);
 	}
-	printf("{%s, %d, %s%s}\n", of->filename, of->fd, (of->text ? &first_ten : "(null)"), (of->text ? "..." : ""));
+	printf("{%s, %d, %s%s}\n", of->filename, of->fd, (of->text ? first_ten : "(null)"), (of->text ? "..." : ""));
 }
 
 /**
