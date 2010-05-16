@@ -230,6 +230,12 @@ void fw_perror(FILE *f, const char *format, ...);
 #define DEBUG_ARGS(...)
 #endif
 
+#ifdef XEVENT_VERBOSE
+#define DEBUG_XEV(...) DEBUG_(PRINTF("XEV: " __VA_ARGS__))
+#else
+#define DEBUG_XEV(...)
+#endif
+
 /**
  * Those macro get defined only when debugging is enabled
  */
