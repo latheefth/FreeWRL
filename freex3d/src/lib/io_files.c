@@ -65,14 +65,31 @@ char* concat_path(const char *a, const char *b)
 	size_t la, lb;
 	char *tmp;
 
+	if (!a) {
+		if (!b) return NULL;
+		// returns "/b"
+		lb = strlen(b);
+		tmp = MALLOC(1+lb);
+		sprintf(tmp, "/%s", b);
+		return tmp;
+	} else {
+		if (!b) {
+			// returns "a/"
+			la = strlen(a);
+			tmp = MALLOC(la+1);
+			sprintf(tmp, "%s/", a);
+			return tmp;
+		}
+	}
+
 	la = strlen(a);
 	lb = strlen(b);
 
 	if (a[la-1] == '/') {
-		tmp = MALLOC(la + la + 1); /* why 2? room for the slash and the trailing NULL */
+		tmp = MALLOC(la + lb + 1); /* why 2? room for the slash and the trailing NULL */
 		sprintf(tmp, "%s%s", a, b);
 	} else {
-		tmp = MALLOC(la + la + 2); /* why 2? room for the slash and the trailing NULL */
+		tmp = MALLOC(la + lb + 2); /* why 2? room for the slash and the trailing NULL */
 		sprintf(tmp, "%s/%s", a, b);
 	}
 
