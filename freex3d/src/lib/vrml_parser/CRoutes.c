@@ -56,7 +56,7 @@ $Id$
 
 #include "CRoutes.h"
 
-static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
+/* static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype); */
 static void sendScriptEventIn(int num);
 static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged);
 
@@ -1774,7 +1774,7 @@ void kill_routing (void) {
 
 
 /* internal variable to copy a C structure's Multi* field */
-static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype) {
+void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype) {
 	size_t structlen;
 	int fromcount, tocount;
 	void *fromptr, *toptr;

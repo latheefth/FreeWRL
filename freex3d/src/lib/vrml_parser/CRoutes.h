@@ -59,6 +59,7 @@ void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset,
 void mark_event (struct X3D_Node *from, int fromoffset);
 void mark_event_check (struct X3D_Node *from, int fromoffset,char *fn, int line);
 void resetScriptTouchedFlag(int actualscript, int fptr);
+void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
 
 void CRoutes_js_new (int num,int scriptType);
 extern int max_script_found;
