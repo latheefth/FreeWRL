@@ -284,6 +284,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 	 */
 	struct X3D_Node *boxptr;
 	int *np;
+	int f_indx;
 	int myc = 0;
 	int scanning = TRUE;
 	int foundSet = 0; /* Did we find set_ABC ? */
@@ -359,7 +360,7 @@ void fudgeIfNeeded(int myptr,int myoffset){
 	 * find out what we need to know about the source
 	*/
 
-	int f_indx = findFieldInFIELDNAMES(altnameIs);
+	f_indx = findFieldInFIELDNAMES(altnameIs);
 	/* Mind, is findFieldInFIELDNAMES any quicker ?
 	 * If hashing is not used, then using strcmp below might be faster
 	 * because we are only comparing a subset, not all the names...
