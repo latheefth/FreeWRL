@@ -101,4 +101,13 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval 
 JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
 
+const char *classToString(JSClass *myClass);
+#define CHECK_CLASS(cx,obj,argv,fnString,expClass) \
+printf ("CHECK_CLASS, obj %u, argv %u\n",obj,argv); \
+    	if (!JS_InstanceOf(cx, obj, &expClass, argv)) { \
+		printf ("Javascript Instance problem in '%s' - expected a '%s', got a ", fnString, classToString(&expClass)); \
+		printJSNodeType (cx,obj); \
+		return JS_FALSE; \
+	} 
+
 #endif /* __FREEWRL_JS_UTILS_H__ */

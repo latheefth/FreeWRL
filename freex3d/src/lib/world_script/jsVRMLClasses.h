@@ -988,6 +988,8 @@ extern JSClass MFColorClass;
 extern JSFunctionSpec (MFColorFunctions)[];
 extern JSClass MFFloatClass;
 extern JSFunctionSpec (MFFloatFunctions)[];
+extern JSClass MFBoolClass;
+extern JSFunctionSpec (MFBoolFunctions)[];
 extern JSClass MFInt32Class;
 extern JSFunctionSpec (MFInt32Functions)[];
 extern JSClass MFNodeClass;
