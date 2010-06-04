@@ -660,7 +660,9 @@ void _textureThread()
 		while (texture_list != NULL) {
 			ml_foreach(texture_list, texture_process_list(__l));
 		}
-		
+#ifdef _MSC_VER
+		sleep(500);
+#endif
 		TextureParsing = FALSE;
 	}
 }

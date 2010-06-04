@@ -300,6 +300,9 @@ void EventLoop() {
 	TickTime = Time1970sec();
 
         /* any scripts to do?? */
+#ifdef _MSC_VER
+		if(doEvents)
+#endif
         INITIALIZE_ANY_SCRIPTS;
 
 
