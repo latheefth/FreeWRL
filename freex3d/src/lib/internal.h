@@ -236,6 +236,8 @@ void fw_perror(FILE *f, const char *format, ...);
 #define DEBUG_XEV(...)
 #endif
 
+#define DJTRACK_PICKSENSORS 1
+
 /**
  * Those macro get defined only when debugging is enabled
  */

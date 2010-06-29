@@ -1614,6 +1614,20 @@ EXPOSED_FIELD(PackagedShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(PackagedShader,activate,sfbool,activate,FIELDTYPE_SFBool)
 END_NODE(PackagedShader)
 
+/* PickableGroup node */
+BEGIN_NODE(PickableGroup)
+EXPOSED_FIELD(PickableGroup,children,mfnode,children,FIELDTYPE_MFNode)
+FIELD(PickableGroup,FreeWRL__protoDef,sfint32,FreeWRL__protoDef,FIELDTYPE_SFInt32)
+EVENT_IN(PickableGroup,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(PickableGroup,pickable,sfbool,pickable,FIELDTYPE_SFBool)
+EXPOSED_FIELD(PickableGroup,FreeWRL_PROTOInterfaceNodes,mfnode,FreeWRL_PROTOInterfaceNodes,FIELDTYPE_MFNode)
+EXPOSED_FIELD(PickableGroup,objectType,mfstring,objectType,FIELDTYPE_MFString)
+FIELD(PickableGroup,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(PickableGroup,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(PickableGroup,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EVENT_IN(PickableGroup,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+END_NODE(PickableGroup)
+
 /* PixelTexture node */
 BEGIN_NODE(PixelTexture)
 EXPOSED_FIELD(PixelTexture,image,sfimage,image,FIELDTYPE_SFImage)

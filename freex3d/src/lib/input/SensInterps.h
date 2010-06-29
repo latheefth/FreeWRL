@@ -71,6 +71,8 @@ void do_ProximitySensorTick(void *ptr);
 void do_GeoProximitySensorTick(void *ptr);
 void do_MovieTextureTick(void *ptr);
 void do_VisibilitySensorTick(void *ptr);
+/* DJTRACK_PICKSENSORS */
+void do_PickSensorTickDUMMY(void *ptr);
 
 void do_Anchor( void *ptr, int typ, int but1, int over);
 void do_TouchSensor( void *ptr, int typ, int but1, int over);
