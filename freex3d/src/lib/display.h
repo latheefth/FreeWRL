@@ -94,6 +94,14 @@ extern bool display_initialized;
  * TARGET_WIN32  : ui/fwWindow32.c
  */
 
+/* are we doing Vertex Buffer Objects? (VBOs) for OpenGL? */
+#define VERTEX_VBO 0
+#define NORMAL_VBO 1
+#define TEXTURE_VBO 2
+#define INDEX_VBO 3
+#define COLOR_VBO 4
+#define VBO_COUNT 5
+
 
 int open_display();
 int create_main_window(int argc, char *argv[]);

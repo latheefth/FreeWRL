@@ -668,10 +668,16 @@ static void parser_process_res(s_list_t *item)
 	}
 
 	if (remove_it) {
-		dump_parser_wait_queue();
 		/* Remove the parsed resource from the list */
+		pthread_mutex_lock( &mutex_resource_list );
 		resource_list_to_parse = ml_delete_self(resource_list_to_parse, item);
+		pthread_mutex_unlock( &mutex_resource_list );
+
+		/* What next ? */
+//		dump_parser_wait_queue();
 	}
+
+	dump_parser_wait_queue();
 }
 
 /**
@@ -688,7 +694,8 @@ void _inputParseThread(void)
 
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
-		
+		PRINTF("parser thread waiting...\n");
+
 		/* Process all resource list items, whatever status they may have */
 
 		/* Lock access to the resource list */
@@ -696,7 +703,9 @@ void _inputParseThread(void)
 
 		/* wait around until we have been signalled */
 		pthread_cond_wait (&resource_list_condition, &mutex_resource_list);
+		pthread_mutex_unlock( &mutex_resource_list );
 
+		PRINTF("parser thread active :)\n");
 		inputThreadParsing = TRUE;
 
 		/* go through the resource list until it is empty */

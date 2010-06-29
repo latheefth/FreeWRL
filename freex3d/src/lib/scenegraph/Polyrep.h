@@ -28,7 +28,6 @@ Polyrep ???
 
 
 #include <config.h>
-/* JAS #include <system.h> */
 #include <display.h>
 #include <internal.h>
 

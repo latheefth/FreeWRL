@@ -79,6 +79,10 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	GLfloat maxVals[3];		/* for collision and default texture coord generation */
 	GLfloat transparency;		/* what the transparency value was during compile, put in color array if RGBA colors */
 	int isRGBAcolorNode;		/* color was originally an RGBA, DO NOT re-write if transparency changes */
+	#ifdef DO_VBO
+	GLuint VBO_buffers[VBO_COUNT];		/* VBO indexen */
+
+	#endif
 };
 
 /* viewer dimentions (for collision detection) */

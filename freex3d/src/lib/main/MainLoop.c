@@ -1549,6 +1549,7 @@ void _displayThread()
     
 	/* loop and loop, and loop... */
 	while (!quitThread) {
+		//PRINTF("event loop\n");
 		EventLoop();
 	} 
     	kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);

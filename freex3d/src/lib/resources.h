@@ -184,7 +184,7 @@ void resource_get_valid_url_from_multi(resource_item_t *parentPath, resource_ite
 void resource_get_valid_texture_from_multi(textureTableIndexStruct_s *entry, resource_item_t*parentPath, resource_item_t *res);
 #endif // no texture struct here !
 
-
+void resource_dump(resource_item_t *res);
 void resource_tree_dump(int level, resource_item_t *root);
 
 char *resourceStatusToString(int status);
