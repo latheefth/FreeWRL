@@ -373,7 +373,6 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
 }
 
 void changed_HAnimSite (struct X3D_HAnimSite *node) {
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_HAnimSite, metadata))
 	INITIALIZE_EXTENT
 }
 
