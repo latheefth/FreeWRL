@@ -232,6 +232,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 
 /*******************************************************************************/
+extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
 
 void compile_Cone (struct X3D_Cone *node) {
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
@@ -349,7 +350,6 @@ printf ("initialized conevert 0 to %d\n",(CONEDIV+1) * 2);
 		
 		
 
-		extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, node->__coneVBO.p[BOTPOT]);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB, 3*sizeof(struct MyVertex)*(CONEDIV+2)*2, coneVert, GL_STATIC_DRAW_ARB);
 
