@@ -1649,6 +1649,14 @@ void startOfLoopNodeUpdates(void) {
 					CHILDREN_NODE(Group) 
 				END_NODE
 
+				/* DJTRACK_PICKSENSORS */
+				BEGIN_NODE(PickableGroup) 
+					sortChildren(&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren);
+
+					propagateExtent(X3D_NODE(node));
+					CHILDREN_NODE(PickableGroup) 
+				END_NODE
+
 				BEGIN_NODE(Inline) 
 					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE) {
 						/* schedule this after we have unlocked the memory table */
