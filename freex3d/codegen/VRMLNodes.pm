@@ -577,7 +577,8 @@ package VRML::NodeType;
 		 __sidepoints =>[FreeWRLPTR,0,initializeOnly, 0],
 		 __botpoints =>[FreeWRLPTR,0,initializeOnly, 0],
 		 __normals =>[FreeWRLPTR,0,initializeOnly, 0],
-		__coneVBO =>[MFInt32,[0,0,0,0],initializeOnly,0],
+		__coneVBO =>[SFInt32,0,initializeOnly,0],
+		__coneTriangles =>[SFInt32,0,initializeOnly,0],
 	},"X3DGeometryNode"),
 
 	Cylinder => new VRML::NodeType ("Cylinder", {
