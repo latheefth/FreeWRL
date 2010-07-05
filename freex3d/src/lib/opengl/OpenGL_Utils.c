@@ -1727,6 +1727,21 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(MovieTexture) CHECK_MOVIETEXTURE_TRANSPARENCY END_NODE
 
+
+				/* Backgrounds, Fog */
+				BEGIN_NODE(Background)
+					if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+				END_NODE
+
+				BEGIN_NODE(TextureBackground)
+					if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+				END_NODE
+
+				BEGIN_NODE(Fog)
+					if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+				END_NODE
+
+
 				/* VisibilitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (VisibilitySensor)
 					/* send along a "look at me" flag if we are visible, or we should look again */
