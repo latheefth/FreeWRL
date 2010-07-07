@@ -379,9 +379,9 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	int count;
 
 	/* initialization */
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 	thisurl.n = 0; thisurl.p = NULL;
 	thistex = NULL;
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */

@@ -131,7 +131,7 @@ const char * validate_string_arg(const char *optarg)
 	{"screendist", required_argument, 0, 'r'},
 	{"eyedist", required_argument, 0, 'y'},
 	{"shutter", no_argument, 0, 'u'},
-	{"stereo", no_argument, 0, 't'},
+	{"stereo", required_argument, 0, 't'},
 	{"anaglyph", required_argument, 0, 'A'},
 	{"sidebyside", no_argument, 0, 'B'},
 	{"keypress", required_argument, 0, 'K'},
