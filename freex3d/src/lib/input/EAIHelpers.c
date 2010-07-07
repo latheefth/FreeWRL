@@ -302,7 +302,7 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	/* make up the name of the Metadata field associated with this one */
 	if (strlen(*fp)>1000) return FALSE;
 
-	sprintf (thisID,"PROTO_%lu_%s",(unsigned long int) myProtoDecl,*fp);
+	sprintf (thisID,"PROTO_%p_%s",myProtoDecl,*fp);
 
 	if (eaiverbose) printf ("looking for name :%s:\n",thisID);
 
