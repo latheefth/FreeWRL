@@ -370,13 +370,14 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 void render_Disk2D (struct X3D_Disk2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
+		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords,2,GL_FLOAT,0,NULL};
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		CULL_FACE(node->solid)
 
-		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
+		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
@@ -451,13 +452,14 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->vertices.n>0) {	
+		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords,2,GL_FLOAT,0,NULL};
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
 
 		CULL_FACE(node->solid)
 
-		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
+		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 		FW_GL_NORMAL3F (0.0f, 0.0f, 1.0f);
@@ -508,6 +510,7 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 	
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
@@ -524,7 +527,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	textureDraw_start(NULL,boxtex);
+	textureDraw_start(NULL,&mtf);
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 

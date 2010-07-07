@@ -592,6 +592,8 @@ package VRML::NodeType;
                 __oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		 __points =>[FreeWRLPTR,0,initializeOnly, 0],
 		 __normals =>[FreeWRLPTR,0,initializeOnly, 0],
+		__cylinderVBO =>[SFInt32,0,initializeOnly,0],
+		__cylinderTriangles =>[SFInt32,0,initializeOnly,0],
 	},"X3DGeometryNode"),
 
 	ElevationGrid => new VRML::NodeType("ElevationGrid", {
