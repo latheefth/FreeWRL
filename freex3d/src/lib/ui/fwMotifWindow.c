@@ -980,7 +980,7 @@ void frontendUpdateButtons()
         colbutChanged = FALSE;
     }
     if (headbutChanged) {
-        XmToggleButtonSetState (collisionButton,headbut,FALSE);
+        XmToggleButtonSetState (headlightButton,headbut,FALSE);
         headbutChanged = FALSE;
     }
     if (navbutChanged) {
