@@ -33,6 +33,13 @@ Internal header: network dependencies.
 
 #if !defined(WIN32)
 
+#if HAVE_SYS_SOCKET_H
+# if HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
+# include <sys/socket.h>
+#endif
+
 #include <netinet/in.h> 
 #include <sys/msg.h> 
 
