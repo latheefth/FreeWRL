@@ -883,8 +883,8 @@ void render_polyrep(void *node) {
 		}
 		/*  textures?*/
 		if (r->VBO_buffers[TEXTURE_VBO] != 0) {
-				glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[TEXTURE_VBO]);
 				struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
+				glBindBufferARB(GL_ARRAY_BUFFER_ARB,r->VBO_buffers[TEXTURE_VBO]);
 				textureDraw_start(NULL,&mtf);
 		} else {
 			textureDraw_start(X3D_NODE(node), NULL);
