@@ -284,10 +284,17 @@ bool initialize_rdr_caps()
 
 	if (strncmp(rdr_caps.renderer, "Intel GMA 9", 11) == 0) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
+		global_use_VBOs = false;
 	}
 
 	if (strncmp(rdr_caps.renderer, "NVIDIA GeForce2", 15) == 0) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024; 
+		global_use_VBOs = false;
+	}
+
+	/* JAS - temporary warning message */
+	if (global_use_VBOs) {
+		printf ("NOTE: Trying to use Vertex Buffer Objects - turn off with the environment var if desired\n");
 	}
 
 	/* Shaders for OpenGL-ES and OpenGL-3.2ish */

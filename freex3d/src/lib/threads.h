@@ -29,10 +29,17 @@
 #ifndef __LIBFREEWRL_THREADS_H__
 #define __LIBFREEWRL_THREADS_H__
 
+/* for some reason, OSX now needs this one, too (July 2010) */
+#ifdef AQUA
+#include <system_threads.h>
+#endif
 
 #ifdef _MSC_VER
 #include <system_threads.h>
 #endif
+
+
+
 int freewrlSystem(const char *string);
 
 /**
