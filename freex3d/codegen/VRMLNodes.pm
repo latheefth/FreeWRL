@@ -995,6 +995,7 @@ package VRML::NodeType;
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		__compiledpoint => [MFVec2f, [], initializeOnly, 0],
 		__lastParent => [FreeWRLPTR, 0, initializeOnly, 0],
+		__VBO =>[SFInt32,0,initializeOnly,0],
 	},"X3DTextureCoordinateNode"),
 
 	TextureCoordinateGenerator => new VRML::NodeType("TextureCoordinateGenerator", { 
