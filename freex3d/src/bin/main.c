@@ -111,6 +111,8 @@ int main (int argc, char **argv)
 		_putenv( fdir );
 	}
 	get_current_dir();
+	/* VBO preference - comment out for vbos (vertex buffer objects - a rendering optimization) */
+	/* _putenv("FREEWRL_NO_VBOS=1"); */
 
 #endif
 
