@@ -198,11 +198,10 @@ bool initFreeWRL(freewrl_params_t *params)
 	}
 
 	global_use_VBOs = (getenv("FREEWRL_NO_VBOS") == NULL);
+	global_use_VBOs = (getenv("FREEWRL_USE_VBOS") != NULL);
 	if (global_use_VBOs) {
 		TRACE_MSG("Env: trying VBOs enabled.\n");
-printf ("Env: trying VBOs enabled.\n");
 	}
-else {printf ("Env: no VBOS\n");}
 
 	
 #ifdef IPHONE
