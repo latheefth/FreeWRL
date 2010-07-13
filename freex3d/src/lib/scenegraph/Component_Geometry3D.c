@@ -958,7 +958,9 @@ void render_Sphere (struct X3D_Sphere *node) {
 		
 		glDrawElements(GL_TRIANGLES, TRISINSPHERE, GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));   //The starting point of the IBO
 
+		/* turn off */
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	} else {
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points);
