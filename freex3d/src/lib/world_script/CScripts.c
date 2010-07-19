@@ -205,7 +205,7 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 
 
 /* Initialize JSField */
-static void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
+void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 	#ifdef CPARSERVERBOSE
 	printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode);
 	#endif

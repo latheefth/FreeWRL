@@ -103,7 +103,7 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
 
 const char *classToString(JSClass *myClass);
 #define CHECK_CLASS(cx,obj,argv,fnString,expClass) \
-printf ("CHECK_CLASS, obj %u, argv %u\n",obj,argv); \
+/* printf ("CHECK_CLASS, obj %u, argv %u\n",obj,argv);*/ \
     	if (!JS_InstanceOf(cx, obj, &expClass, argv)) { \
 		printf ("Javascript Instance problem in '%s' - expected a '%s', got a ", fnString, classToString(&expClass)); \
 		printJSNodeType (cx,obj); \
