@@ -222,7 +222,7 @@ static void appendDataToFieldValue(char *data, int len) {
 }
 
 void endProtoInstanceFieldTypeNode(const char *name);
-void endProtoInstanceField(const char *name);
+static void endProtoInstanceField(const char *name);
 /* we are finished with a 3.3 fieldValue, tie it in */
 static void setFieldValueDataActive(const char* name) {
 	if (!in3_3_fieldValue) 
