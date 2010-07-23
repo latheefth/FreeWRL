@@ -132,16 +132,16 @@ static int currentParserModeIndex = 0; //INT_ID_UNDEFINED;
 void debugpushParserMode(int newmode, char *fle, int line) {
 	currentParserModeIndex++;
 	currentParserMode[currentParserModeIndex] = newmode; //Q. need 2D [currentParserModeIndex][X3DParserRecurseLevel] or keep using same stack for nested expansions? Same stack for now
-	#ifdef X3DPARSERVERBOSE
+#ifdef X3DPARSERVERBOSE
 	printf("pushParserMode index=%d ",currentParserModeIndex);
 	printf (" mode %s at %s:%d\n",parserModeStrings[newmode],fle,line);
-	#endif
+#endif
 }
 void debugpopParserMode(char *fle, int line)
 {
-	#ifdef X3DPARSERVERBOSE
+#ifdef X3DPARSERVERBOSE
 	printf("popParserMode index=%d mode %s at %s:%d\n",currentParserModeIndex,parserModeStrings[currentParserMode[currentParserModeIndex]],fle,line);
-	#endif
+#endif
 	currentParserMode[currentParserModeIndex] = 0;
 	currentParserModeIndex--;
 	if(currentParserModeIndex < 0) 
