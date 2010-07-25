@@ -1105,7 +1105,7 @@ static void actually_do_CRoutes_Register() {
 					#ifdef CRVERBOSE
 						printf ("definite duplicate, returning\n");
 					#endif
-					return;
+					continue; //return;
 				} else {
 					/* this is a remove */
 	
