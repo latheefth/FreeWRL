@@ -123,7 +123,8 @@ void CALLBACK FW_IFS_tess_vertex(void *p) {
 void CALLBACK FW_tess_error(GLenum e) {
 	/* Prints out tesselation errors. Older versions of at least MESA would
 	 give errors, so for now at least, lets just ignore them.
-	 printf("FW_tess_error %d: >%s<\n",e,GL_ERROR_MSG); */
+	*/
+	 printf("FW_tess_error %d: >%s<\n",e,GL_ERROR_MSG); 
 }
 
 
