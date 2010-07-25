@@ -691,7 +691,7 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 		if (JSVAL_IS_STRING(argv[count])) {
 			_str = JSVAL_TO_STRING(argv[count]);
 			_id_c = JS_GetStringBytes(_str);
-			#ifdef AQUA
+			#if defined(AQUA) || defined(_MSC_VER)
 			BrowserPrintConsoleMessage(_id_c); /* statusbar hud */
 			consMsgCount = 0; /* reset the "Maximum" count */
 			#else
@@ -707,7 +707,7 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 	/*		printf ("unknown arg type %d\n",count); */
 		}
 	}
-	#ifdef AQUA
+	#if defined(AQUA) || defined(_MSC_VER)
 	BrowserPrintConsoleMessage("\n"); /* statusbar hud */
 	consMsgCount = 0; /* reset the "Maximum" count */
 	#else
