@@ -1575,6 +1575,9 @@ void bind_viewpoint (struct X3D_Viewpoint *vp) {
 	zd = vp->position.c[2]-vp->centerOfRotation.c[2];
 	Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
 
+	/* assume Perspective, unless Otrho set */
+	Viewer.ortho=FALSE;
+
 	/* printf ("viewpoint binding distance %f\n",Viewer.Dist);  */
 
 	/* since this is not a bind to a GeoViewpoint node... */

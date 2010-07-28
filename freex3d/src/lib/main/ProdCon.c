@@ -739,6 +739,7 @@ void registerBindable (struct X3D_Node *node) {
 	/* printf ("registerBindable, on node %d %s\n",node,stringNodeType(node->_nodeType));  */
 	switch (node->_nodeType) {
 		case NODE_Viewpoint:
+		case NODE_OrthoViewpoint:
 		case NODE_GeoViewpoint:
 			viewpointnodes = REALLOC (viewpointnodes, (sizeof(void *)*(totviewpointnodes+1)));
 			viewpointnodes[totviewpointnodes] = node;

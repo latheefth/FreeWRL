@@ -196,6 +196,9 @@ typedef struct viewer {
 	Quaternion startSLERPbindTimeQuat;
 
 	struct X3D_GeoViewpoint *GeoSpatialNode; /* NULL, unless we are a GeoViewpoint */
+
+	/* are we perspective or ortho? */
+	int ortho;
 } X3D_Viewer;
 
 void initStereoDefaults(void);
