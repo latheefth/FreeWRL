@@ -163,7 +163,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		v = *(struct X3D_Virt **)node; \
 		if (v->compile) { \
 			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
-		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
+		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
 		} \
 		if (node->_ichange == 0) return; \
 	}
@@ -173,7 +173,7 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		v = *(struct X3D_Virt **)node; \
 		if (v->compile) { \
 			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
-		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s\n",stringNodeType(node->_nodeType));} \
+		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
 		} \
 		if (node->_ichange == 0) return NULL; \
 	}

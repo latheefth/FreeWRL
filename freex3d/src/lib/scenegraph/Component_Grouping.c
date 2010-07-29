@@ -249,20 +249,21 @@ void child_Group (struct X3D_Group *node) {
 	LOCAL_LIGHT_SAVE
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	 /*{
+/*
+	 {
 		int x;
 		struct X3D_Node *xx;
 
 		printf ("child_Group, this %u rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
         printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
          render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
-
 		for (x=0; x<nc; x++) {
 			xx = X3D_NODE(node->_sortedChildren.p[x]);
 			printf ("	ch %u type %s dist %f\n",node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
 		}
 	}
 */
+
 
 
 		

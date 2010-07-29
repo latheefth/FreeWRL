@@ -2472,6 +2472,17 @@ EXPOSED_FIELD(Viewpoint,fieldOfView,sffloat,fieldOfView,FIELDTYPE_SFFloat)
 EXPOSED_FIELD(Viewpoint,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(Viewpoint)
 
+/* ViewpointGroup node */
+BEGIN_NODE(ViewpointGroup)
+EXPOSED_FIELD(ViewpointGroup,displayed,sfbool,displayed,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ViewpointGroup,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(ViewpointGroup,retainUserOffsets,sfbool,retainUserOffsets,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ViewpointGroup,description,sfstring,description,FIELDTYPE_SFString)
+EXPOSED_FIELD(ViewpointGroup,center,sfvec3f,center,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(ViewpointGroup,size,sfvec3f,size,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(ViewpointGroup,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+END_NODE(ViewpointGroup)
+
 /* VisibilitySensor node */
 BEGIN_NODE(VisibilitySensor)
 EVENT_OUT(VisibilitySensor,enterTime,sftime,enterTime,FIELDTYPE_SFTime)
