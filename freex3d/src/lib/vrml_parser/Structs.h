@@ -2554,6 +2554,8 @@ struct X3D_ComposedCubeMapTexture {
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
 	void *__oldmetadata;
+	int __textureTableIndex;
+	void * _parentResource;
 	void *back;
 	void *bottom;
 	void *front;
@@ -3272,6 +3274,7 @@ struct X3D_GeneratedCubeMapTexture {
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
 	void *__oldmetadata;
+	int __textureTableIndex;
 	void *metadata;
 	int size;
 	void *textureProperties;
@@ -3902,6 +3905,7 @@ struct X3D_ImageCubeMapTexture {
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
 	void *__oldmetadata;
+	int __textureTableIndex;
 	void * _parentResource;
 	void *metadata;
 	void *textureProperties;

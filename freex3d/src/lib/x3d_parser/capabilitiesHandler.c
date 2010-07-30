@@ -53,7 +53,7 @@ static const int capabilities[] = {
 	COM_EventUtilities,	1, 	/* May 12, 2009 */
 	COM_Interpolation,	3, 	/* May 12, 2009 */
 	COM_Shaders,	1, 		/* May 12, 2009 */
-	COM_Navigation,	2, 		/* May 12, 2009  */
+	COM_Navigation,	3, 		/* July 29 2010 */
 	COM_Grouping,		3,	/* October 29, 2008 */
 	COM_Texturing,	3, 		/* May 12, 2009 */
 	COM_Geospatial,	2, 		/* May 12, 2009 */

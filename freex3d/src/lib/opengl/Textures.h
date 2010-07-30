@@ -83,6 +83,15 @@ struct textureVertexInfo {
                         } else if (thisTextureType==NODE_MovieTexture){ \
                                 mt = (struct X3D_MovieTexture*) node; \
                                 thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_ImageCubeMapTexture){ \
+                                ict = (struct X3D_ImageCubeMapTexture*) node; \
+                                thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_GeneratedCubeMapTexture){ \
+                                gct = (struct X3D_GeneratedCubeMapTexture*) node; \
+                                thisTexture = mt->__textureTableIndex; \
+                        } else if (thisTextureType==NODE_ComposedCubeMapTexture){ \
+                                cct = (struct X3D_ComposedCubeMapTexture*) node; \
+                                thisTexture = mt->__textureTableIndex; \
                         } else if (thisTextureType==NODE_VRML1_Texture2){ \
                                 v1t = (struct X3D_VRML1_Texture2*) node; \
                                 thisTexture = v1t->__textureTableIndex; \
