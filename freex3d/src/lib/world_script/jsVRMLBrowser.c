@@ -97,7 +97,7 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
 	{"print", VrmlBrowserPrint, 0},
-	{"println", VrmlBrowserPrint, 0},
+	{"println", VrmlBrowserPrintln, 0},
 	{"getMidiDeviceList", VrmlBrowserGetMidiDeviceList, 0},
 	{"getMidiDeviceInfo", VrmlBrowserGetMidiDeviceInfo, 0},
 	{0}
@@ -707,15 +707,30 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 	/*		printf ("unknown arg type %d\n",count); */
 		}
 	}
-	#if defined(AQUA) || defined(_MSC_VER)
+	/* the \n should be done with println below, or in javascript print("\n"); */
+	#if defined(AQUA) 
 	BrowserPrintConsoleMessage("\n"); /* statusbar hud */
 	consMsgCount = 0; /* reset the "Maximum" count */
-	#else
+	#elif !defined(_MSC_VER)
 		#ifdef HAVE_NOTOOLKIT
 			printf ("\n");
 		#endif
 	#endif
 	*rval = _rval;
+	return JS_TRUE;
+}
+JSBool
+VrmlBrowserPrintln(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{	
+    VrmlBrowserPrint(context,obj,argc,argv,rval);
+	#if defined(AQUA) || defined(_MSC_VER)
+		BrowserPrintConsoleMessage("\n"); /* statusbar hud */
+		consMsgCount = 0; /* reset the "Maximum" count */
+	#else
+		#ifdef HAVE_NOTOOLKIT
+			printf ("\n");
+		#endif
+	#endif
 	return JS_TRUE;
 }
 JSBool

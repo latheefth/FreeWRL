@@ -124,6 +124,12 @@ JSBool VrmlBrowserPrint(JSContext *cx,
                         jsval *argv,
                         jsval *rval);
 
+JSBool VrmlBrowserPrintln(JSContext *cx,
+                        JSObject *obj,
+                        uintN argc,
+                        jsval *argv,
+                        jsval *rval);
+
 JSBool VrmlBrowserDeleteRoute(JSContext *cx,
                               JSObject *obj,
                               uintN argc,
