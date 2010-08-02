@@ -142,5 +142,7 @@ quaternion_slerp(Quaternion *ret,
 	  const double t);
 
 void loadIdentityMatrix (double *);
+void vrmlrot_multiply(float* ret, float *a, float *b);
+void vrmlrot_normalize(float *ret);
 
 #endif /* __FREEWRL_QUATERNION_H__ */

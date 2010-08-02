@@ -1414,12 +1414,14 @@ void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
 /* note, (Geo)ProximitySensor events are handled during tick, as they are time-sensitive only */
 static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
         int count;
+		int butStatus2;
 
         /* if we are not calling a valid node, dont do anything! */
         if (COS==NULL) return;
 
         for (count = 0; count < num_SensorEvents; count++) {
                 if (SensorEvents[count].fromnode == COS) {
+						butStatus2 = butStatus;
                         /* should we set/use hypersensitive mode? */
                         if (ev==ButtonPress) {
                                 hypersensitive = SensorEvents[count].fromnode;
@@ -1427,12 +1429,13 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
                         } else if (ev==ButtonRelease) {
                                 hypersensitive = 0;
                                 hyperhit = 0;
+								butStatus2 = 1;
                         } else if (ev==MotionNotify) {
                                 get_hyperhit();
                         }
 
 
-                        SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,butStatus, status);
+                        SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,butStatus2, status);
                         /* return; do not do this, incase more than 1 node uses this, eg,
                                 an Anchor with a child of TouchSensor */
                 }
