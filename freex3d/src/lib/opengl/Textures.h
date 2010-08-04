@@ -48,7 +48,7 @@ struct textureTableIndexStruct {
 	char    *filename;
         int x;
         int y;
-        unsigned char *texdata[6];
+        unsigned char *texdata;
         GLint Src;
         GLint Trc;
 };
@@ -73,6 +73,20 @@ struct textureVertexInfo {
 #define PNGTexture 200
 #define JPGTexture 300
 
+/* removed from GET_THIS_TEXTURE 
+                        } else if (thisTextureType==NODE_ImageCubeMapTexture){ 
+                                ict = (struct X3D_ImageCubeMapTexture*) node; 
+                                thisTexture = mt->__textureTableIndex; 
+                        } else if (thisTextureType==NODE_GeneratedCubeMapTexture){ 
+                                gct = (struct X3D_GeneratedCubeMapTexture*) node; 
+                                thisTexture = mt->__textureTableIndex; 
+                        } else if (thisTextureType==NODE_ComposedCubeMapTexture){ 
+                                cct = (struct X3D_ComposedCubeMapTexture*) node; 
+                                thisTexture = mt->__textureTableIndex; 
+
+*/
+
+
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
                                 if (thisTextureType==NODE_ImageTexture){ \
                                 it = (struct X3D_ImageTexture*) node; \
@@ -82,15 +96,6 @@ struct textureVertexInfo {
                                 thisTexture = pt->__textureTableIndex; \
                         } else if (thisTextureType==NODE_MovieTexture){ \
                                 mt = (struct X3D_MovieTexture*) node; \
-                                thisTexture = mt->__textureTableIndex; \
-                        } else if (thisTextureType==NODE_ImageCubeMapTexture){ \
-                                ict = (struct X3D_ImageCubeMapTexture*) node; \
-                                thisTexture = mt->__textureTableIndex; \
-                        } else if (thisTextureType==NODE_GeneratedCubeMapTexture){ \
-                                gct = (struct X3D_GeneratedCubeMapTexture*) node; \
-                                thisTexture = mt->__textureTableIndex; \
-                        } else if (thisTextureType==NODE_ComposedCubeMapTexture){ \
-                                cct = (struct X3D_ComposedCubeMapTexture*) node; \
                                 thisTexture = mt->__textureTableIndex; \
                         } else if (thisTextureType==NODE_VRML1_Texture2){ \
                                 v1t = (struct X3D_VRML1_Texture2*) node; \

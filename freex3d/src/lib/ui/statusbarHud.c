@@ -1302,7 +1302,7 @@ void initButtons()
 	{
 		/* png icon files (can have transparency) problem: you need to put them in the current working directory*/
 		for(i=0;i<nbuts;i++)
-		  texture_load_from_file(&butts[i][0], butFnames[i],0);
+		  texture_load_from_file(&butts[i][0], butFnames[i]);
 		//bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
 		for(i=0;i<nbuts;i++)
 		{

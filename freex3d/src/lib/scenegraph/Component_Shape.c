@@ -442,6 +442,7 @@ void child_Shape (struct X3D_Shape *node) {
 	this_textureTransform = NULL;
 	linePropertySet=FALSE;
 	appearanceProperties.transparency = MAX_NODE_TRANSPARENCY;  /* 1 == totally solid, 0 = totally transparent */  
+	appearanceProperties.cubeFace = 0; /* assume no CubeMapTexture */
 	material_twoSided = NULL;
 	material_oneSided = NULL;
 

@@ -34,6 +34,7 @@ Proximity sensor macro.
 struct matpropstruct {
 	float	transparency;
 	GLfloat	emissionColour[3];
+	GLint   cubeFace;		/* for cubemapping, if 0, not cube mapping */
 };
 
 extern struct matpropstruct appearanceProperties;
