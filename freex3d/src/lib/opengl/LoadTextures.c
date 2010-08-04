@@ -292,7 +292,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename,
 /* WINDOWS */
 #if defined (_MSC_VER)
 	/* return FALSE; // to see the default grey image working first */
-    if (!loadImage(this_tex, filename)) {
+    if (!loadImage(this_tex, filename,imageCount)) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
 		return FALSE;
     }
