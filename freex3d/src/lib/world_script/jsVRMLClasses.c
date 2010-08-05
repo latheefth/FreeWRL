@@ -321,8 +321,8 @@ JSPropertySpec (SFVec4fProperties)[] = {
 
 JSFunctionSpec (SFVec4fFunctions)[] = {
 	/* do not know what functions to use here */
-	{"toString", SFVec4dToString, 0},
-	{"assign", SFVec4dAssign, 0},
+	{"toString", SFVec4fToString, 0},
+	{"assign", SFVec4fAssign, 0},
 	{0}
 };
 

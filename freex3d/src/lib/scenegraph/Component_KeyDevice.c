@@ -208,7 +208,7 @@ void sendKeyToKeySensor(const char key, int upDown) {
 
 static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 	#define MYN X3D_KEYSENSOR(wsk)
-	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
+	/* printf ("sending key %x %u upDown %d (down %d) to keySenors\n",key,key,upDown,KEYDOWN);  */
 	
 	/* if not enabled, do nothing */
 	if (!MYN) return;

@@ -573,6 +573,17 @@ void child_Shape (struct X3D_Shape *node) {
 		FW_GL_POINTSIZE(1.0f);
 	}
 
+	/* were we cubemapping? */
+	if (appearanceProperties.cubeFace !=0) {
+		FW_GL_DISABLE(GL_TEXTURE_CUBE_MAP);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_S);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_T);
+		FW_GL_DISABLE(GL_TEXTURE_GEN_R);
+		appearanceProperties.cubeFace=0;
+	}
+
+
+
 	/* any shader turned on? if so, turn it off */
 	TURN_APPEARANCE_SHADER_OFF;
 

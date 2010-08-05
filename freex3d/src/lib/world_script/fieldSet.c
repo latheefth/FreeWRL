@@ -774,14 +774,22 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	switch (fieldType) {
                         GETJSVAL_TYPE_A(SFRotation,v)
                         /* GETJSVAL_TYPE_A(SFNode,handle) */
+                        /* not implemented yet? GETJSVAL_TYPE_A(SFVec2d,v) */
+                        GETJSVAL_TYPE_A(SFVec3d,v)
+                        GETJSVAL_TYPE_A(SFVec4d,v)
                         GETJSVAL_TYPE_A(SFVec2f,v)
                         GETJSVAL_TYPE_A(SFVec3f,v)
+                        GETJSVAL_TYPE_A(SFVec4f,v)
                         GETJSVAL_TYPE_A(SFColor,v)
                         GETJSVAL_TYPE_A(SFColorRGBA,v)
 
                         GETJSVAL_TYPE_MF_A(MFRotation,SFRotation)
+                        GETJSVAL_TYPE_MF_A(MFVec2d,SFVec2d)
+                        GETJSVAL_TYPE_MF_A(MFVec3d,SFVec3d)
+                        GETJSVAL_TYPE_MF_A(MFVec4d,SFVec4d)
                         GETJSVAL_TYPE_MF_A(MFVec2f,SFVec2f)
                         GETJSVAL_TYPE_MF_A(MFVec3f,SFVec3f)
+                        GETJSVAL_TYPE_MF_A(MFVec4f,SFVec4f)
                         GETJSVAL_TYPE_MF_A(MFColor,SFColor)
                         GETJSVAL_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
 

@@ -281,6 +281,7 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		if (len > PATH_MAX) {
 
 			res->type = rest_invalid;
+			url="invalid URL";
 			ERROR_MSG("resource_identify: path too long: %s\n", res->request);
 
 		} else {
@@ -299,12 +300,6 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 					res->type = rest_file;
 					res->status = ress_starts_good;
 					url = STRDUP(cleanedURL);
-
-					/* Michel had the following: 
-					res->status = ress_invalid;
-					ERROR_MSG("resource_identify: could not load an absolute filename relatively to base: %s\n", base->parsed_request);
-					*/
-
 				} else {
 					char *cwd;
 					cwd = STRDUP(defaults->base);

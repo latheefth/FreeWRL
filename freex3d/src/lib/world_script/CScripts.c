@@ -397,6 +397,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
     is this a possible file that we have to get? */
 
  DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
+ printf ("script_initCodeFromUri, uri is %s\n", uri); 
 
  res = resource_create_single(uri);
  resource_identify(root_res, res);
@@ -468,7 +469,6 @@ char **shader_initCodeFromMFUri(const struct Multi_String* s) {
 		}
 	}
 
-printf ("shader - initCodeFromMFUri, failure...\n");
 	/* failure... */
 	FREE_IF_NZ(buffer);
  	return NULL;
