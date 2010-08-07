@@ -211,12 +211,14 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 	/* printf ("sending key %x %u upDown %d (down %d) to keySenors\n",key,key,upDown,KEYDOWN);  */
 	
 	/* if not enabled, do nothing */
-	if (!MYN) return;
+	if (!MYN) 
+		return;
 	if (MYN->__oldEnabled != MYN->enabled) {
 		MYN->__oldEnabled = MYN->enabled;
 		MARK_EVENT(X3D_NODE(MYN),offsetof (struct X3D_KeySensor, enabled));
 	}
-	if (!MYN->enabled) return;
+	if (!MYN->enabled) 
+		return;
 
 	/* is this an ACTION (tm) key  press or release? */
 	switch (key) {
@@ -241,10 +243,10 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 		case F11_KEY:
 		case F12_KEY:
 			if (upDown == KEYDOWN)  {
-				MYN->actionKeyPress = TRUE; 
+				MYN->actionKeyPress = key; //TRUE; 
 				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyPress));
 			} else {
-				MYN->actionKeyRelease = TRUE;
+				MYN->actionKeyRelease = key; //TRUE;
 				MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_KeySensor, actionKeyRelease));
 			}
 			break;
@@ -313,7 +315,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	#endif
 
 	/* we only care about key presses here */
-	if (upDown != KEYDOWN) return;
+	/* if (upDown != KEYDOWN) return;  now we care, there are keyRelease events */
 
 
 	/* is this initialized? */
