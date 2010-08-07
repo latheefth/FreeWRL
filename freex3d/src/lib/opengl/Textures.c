@@ -994,7 +994,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 
 	/* is this a CubeMap? If so, lets try this... */
-
+	mytexdata = me->texdata;
 	if (appearanceProperties.cubeFace != 0) {
 		unsigned char *dest = mytexdata;
 		uint32 *sp, *dp;
