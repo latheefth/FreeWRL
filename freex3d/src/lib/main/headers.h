@@ -684,6 +684,7 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 #define overMark        23425
 
 /* mimic X11 events in AQUA and/or WIN32 ; FIXME: establish a cleaner interface for this */
+#define KeyChar         1
 #if defined(AQUA) || defined(WIN32)
 #define KeyPress        2
 #define KeyRelease      3

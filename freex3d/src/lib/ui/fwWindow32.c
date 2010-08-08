@@ -450,6 +450,7 @@ static int shiftState = 0;
 	//printf("      wParam %d %x\n",wParam, wParam);
 	//x3d specs http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
 	//section 21.4.1 has a table of KeySensor ActionKey values which we must map to at some point
+	// http://msdn.microsoft.com/en-us/library/ms646268(VS.85).aspx windows keyboard messages
 	switch (wParam) 
 	{ 
 		//case VK_LEFT: 
@@ -482,9 +483,30 @@ static int shiftState = 0;
 			printf("]");
 			DisableFullscreen();
 			break;
+		default:
+			///* we aren't using WCHAR so we will translate things like shift-/ to ? */
+			//{ 
+			//	/* http://msdn.microsoft.com/en-us/library/ms646267(VS.85).aspx  shows where to get the scan code */
+			//	int k2; int i2; unsigned short k3;
+			//	UINT scancode;
+			//	//scancode = ((lParam << 8)>>8)>>16;
+			//	scancode = lParam >>16;
+			//	k2 = MapVirtualKeyEx(scancode,MAPVK_VSC_TO_VK,GetKeyboardLayout(0));
+			//	k2 = MapVirtualKeyEx(k2,MAPVK_VK_TO_CHAR,NULL);
+			//	if(k2) kp = k2;
+			//	k3 = 0;
+			//	i2 = ToAsciiEx(wParam,scancode,NULL,&k3,0,GetKeyboardLayout(0));
+			//	if(i2>0)
+			//		kp = k3;
+			//}
+			break;
 	} 
 	do_keyPress(kp, updown); 
 	break; 
+
+	case WM_CHAR:
+		kp = (char)wParam;
+		do_keyPress(kp,KeyChar);
 
 	/* Mouse events, processed */
     case WM_LBUTTONDOWN:
