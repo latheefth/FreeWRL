@@ -433,6 +433,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	#define MAXSTRINGLEN 512
 
 	/* printf ("SS, %u enabled %d\n",wsk, MYN->enabled); */
+	/* printf ("sendToSS, key %x, upDown %d\n",key,upDown); */
 
 	/* if not enabled, do nothing */
 	if (!MYN) return;
@@ -452,17 +453,18 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 		return;
 	}
 
+	/* do the shift of the A-Z keys if shift pressed */
+	if ((key >= 'a') && (key<='z'))
+		if (shiftPressed)
+			key=key-'a'+'A';
+	#endif
+
 	/* ignore the control key here. OSX will not event let one come this far... */
 	if (actionKey == CTL_KEY) return;
 
 	/* we only care about key presses here */
 	if (upDown != KEYDOWN) return;
 
-	/* do the shift of the A-Z keys if shift pressed */
-	if ((key >= 'a') && (key<='z'))
-		if (shiftPressed)
-			key=key-'a'+'A';
-	#endif
 
 	/* is this initialized? */
 	if (!MYN->_initialized) {
