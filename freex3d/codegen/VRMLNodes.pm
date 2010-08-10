@@ -1185,7 +1185,6 @@ package VRML::NodeType;
 		right =>[SFNode,NULL,inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
-		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 	},"X3DEnvironmentTextureNode"),
 
@@ -1207,6 +1206,8 @@ package VRML::NodeType;
 		__textureTableIndex => [SFInt32, 0, initializeOnly, 0],
 		__oldmetadata => [SFNode, 0, inputOutput, 0], # see code for event macro
 		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
+		__subTextures => [MFNode,[],initializeOnly,0],
+		__regenSubTextures => [SFBool,FALSE,initializeOnly,0],
 	},"X3DEnvironmentTextureNode"),
 
 

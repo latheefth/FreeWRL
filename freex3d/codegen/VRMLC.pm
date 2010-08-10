@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.45  2010/08/10 21:15:59  crc_canada
+# ImageCubeMapTexture - now works - loads png, jpg, etc, NOT DDS yet.
+#
 # Revision 1.44  2010/07/05 15:07:08  crc_canada
 # add code to ensure that bound Backgrounds, Fog gets rendered when OcclusionCulling enabled, and nodes are within Transforms.
 #
@@ -638,6 +641,7 @@ sub gen {
 		"#include \"../input/EAIHelpers.h\" \n".
 		"#include \"../x3d_parser/Bindable.h\" \n".
 		" \n".
+		"#include \"../opengl/Textures.h\" \n".
 		"#include \"Component_CubeMapTexturing.h\" \n".
 		"#include \"Polyrep.h\" \n".
 		"void addNodeToKeySensorList(struct X3D_Node* node);\n".

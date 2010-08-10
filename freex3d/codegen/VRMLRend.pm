@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.31  2010/08/10 21:15:59  crc_canada
+# ImageCubeMapTexture - now works - loads png, jpg, etc, NOT DDS yet.
+#
 # Revision 1.30  2010/07/29 14:32:27  crc_canada
 # OrthoViewpoint and ViewpointGroup now working
 #
@@ -832,6 +835,7 @@
 	GeoLocation
 	HAnimSite
 	Switch
+	ImageCubeMapTexture
 /;
 
 #######################################################################
