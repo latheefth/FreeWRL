@@ -482,8 +482,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 		return TRUE;
 	} else {
 		/* is this, possibly, a dds file for an ImageCubeMap? */
-		printf ("possibly a DDS...\n");
-
+		return textureIsDDS(this_tex, filename);
 	}
 #endif
 
