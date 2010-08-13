@@ -33,7 +33,6 @@ X3D Cubemap Texturing Component
 #include <internal.h>
 
 #include <libFreeWRL.h>
-
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
@@ -41,6 +40,7 @@ X3D Cubemap Texturing Component
 #include "../scenegraph/Component_CubeMapTexturing.h"
 #include "../input/EAIHelpers.h"
 #include <GL/glext.h>
+#include "../world_script/JScript.h" /* for uint32 typedef */
 
 
 /* testing */
