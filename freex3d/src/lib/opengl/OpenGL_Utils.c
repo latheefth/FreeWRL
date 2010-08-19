@@ -1071,6 +1071,10 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	}
 #endif
 
+	/* get rid of sensor events */
+	resetSensorEvents();
+
+
 	/* make the root_res equal NULL - this throws away all old resource info */
 	/*
 		if (root_res != NULL) {

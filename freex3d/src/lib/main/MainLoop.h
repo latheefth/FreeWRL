@@ -49,5 +49,6 @@ int isTextureParsing();
 /* where this should be ? */
 const char* freewrl_get_browser_program();
 
+void resetSensorEvents(void);
 
 #endif /* __FREEWRL_MAINLOOP_MAIN_H__ */

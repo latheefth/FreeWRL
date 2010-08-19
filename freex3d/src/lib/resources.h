@@ -117,6 +117,11 @@ typedef struct resource_item {
 	*/
 	char *temp_dir; 
 
+	/* if we have a # character in it (eg, proto, Anchor) we'll have a mallocd bit of 
+	   memory here */
+	char *afterPoundCharacters;
+
+
 /*
  *   Note on temp dir: to improve user experience, each time a temporary
  *                     file is created to mirror a network resource, we
