@@ -171,10 +171,6 @@ static void shutdownColladaParser () {
 
 	/* CDATA text space, free it up */
         FREE_IF_NZ(CDATA_Text);
-#ifdef OLDCODE
-
-        CDATA_TextMallocSize = 0; 
-#endif
 	if (ColladaParserRecurseLevel > INT_ID_UNDEFINED)
 		currentColladaParser = colladaParser[ColladaParserRecurseLevel];
 

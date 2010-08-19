@@ -2429,19 +2429,6 @@ static void calculateViewingSpeed() {
         INITIALIZE_GEOSPATIAL(Viewer.GeoSpatialNode)
 
 
-#ifdef OLDCODE
-#define COMPILE_IF_REQUIRED { struct X3D_Virt *v; \
-        if (node->_ichange != node->_change) { \
-                /* printf ("COMP %d %d\n",node->_ichange, node->_change); */ \
-                v = *(struct X3D_Virt **)node; \
-                if (v->compile) { \
-                        compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
-		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
-                } \
-                if (node->_ichange == 0) return; \
-        }
-#endif
-
 /*
         COMPILE_IF_REQUIRED
 

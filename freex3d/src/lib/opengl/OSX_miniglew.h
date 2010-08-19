@@ -32,18 +32,4 @@ Internal header: GLEW-style defines for OSX i386, PPC and iPhone dev.
 #ifndef __LIBFREEWRL_OSX_GLEW_H__
 #define __LIBFREEWRL_OSX_GLEW_H__
 
-#ifdef OLDCODE
-#ifdef TARGET_AQUA
-
-#include "OpenGL/glu.h"
-#define GLEW_OK TRUE
-
-GLenum glewInit(void);
-extern int GLEW_ARB_occlusion_query;
-extern int GLEW_ARB_multitexture;
-extern int GLEW_ARB_fragment_shader;
-char *glewGetErrorString(GLenum err);
-#endif TARGET_AQUA
-#endif /* OLDCODE */
-
 #endif /* __LIBFREEWRL_OSX_GLEW_H__ */

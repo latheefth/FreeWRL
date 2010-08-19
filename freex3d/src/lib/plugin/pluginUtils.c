@@ -292,33 +292,6 @@ int doBrowserAction()
 /*********************************************************/
 
 
-#ifdef OLDCODE
-
-		/* printf ("ok, Anchor first url is :%s:\n",Anchor_url.p[0]->strptr); */
-		if (checkIfX3DVRMLFile(Anchor_url.p[0]->strptr)) {
-			printf ("this IS an X3D file...\n");
-			res = resource_create_multi(&Anchor_url);
-
-			#ifndef AQUA
-			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-			#endif
-
-
-			send_resource_to_parser(res);
-			waitingForURLtoLoad = TRUE;
-			return TRUE; /* keep the browser ticking along here */
-
-		} else {
-
-			/* ok, not a new world to load, lets see if it is a Viewpoint in current world: */
-			if (Anchor_url.p[0]->strptr[0] == '#') {
-				goToViewpoint (&(Anchor_url.p[0]->strptr[1]));
-			} else {
-				startNewHTMLWindow(Anchor_url.p[0]->strptr);
-			}
-		}
-#endif
-
 	} else {
 		/* printf ("\nwe have a single replacement here\n"); */
 		if (OSX_replace_world_from_console == NULL) {

@@ -212,26 +212,6 @@ struct ProtoDefinition* newProtoDefinition()
  return ret;
 }
 
-#ifdef OLDCODE
-static void deleteProtoDefinition(struct ProtoDefinition* me) {
-	size_t i;
-
-	for(i=0; i!=vector_size(me->iface); ++i)
-		deleteProtoFieldDecl(vector_get(struct ProtoFieldDecl*, me->iface, i));
-	deleteVector(struct ProtoDefinition*, me->iface);
-
-	for(i=0; i!=vector_size(me->deconstructedProtoBody); ++i) {
-		struct ProtoElementPointer* ele;
-		ele = vector_get(struct ProtoElementPointer*, me->deconstructedProtoBody, i);
-		FREE_IF_NZ(ele->stringToken);
-		FREE_IF_NZ(ele);
-	}
-	if (!me->isCopy) deleteVector(struct ProtoRoute*, me->deconstructedProtoBody);
-	FREE_IF_NZ(me->protoName);
-	FREE_IF_NZ (me);
-}
-#endif
-
 /* Other members */
 /* ************* */
 

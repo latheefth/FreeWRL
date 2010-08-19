@@ -371,23 +371,6 @@ static int ReWireNameIndex (char *name) {
 	return ReWireNametableSize;
 }
 
-#ifdef OLDCODE
-static void sendCompiledNodeToReWire(struct X3D_MidiControl *node) {
-#define MAXOUTLINE 3000
-	char outline[MAXOUTLINE];
-	printf ("sendCompiledNodeToReWire %d\n",node);
-
-	sprintf (outline,"RWNODE\n%d %d %d %d %d %d %d %d %f %d %d %s\nRW_EOT",
-			node,node->_bus, node->_channel, node->deviceMinVal, node->deviceMaxVal,
-			node->minVal, node->maxVal,node->intValue, node->floatValue, node->useIntValue,
-			node->highResolution,node->controllerType->strptr);
-
-	printf (outline); printf ("\n");
-	EAI_send_string(outline,EAIMIDIlistenfd);
-}
-#endif
-
-
 #if defined(REWIRE_SERVER)
 /* make sure the EAI port is turned on... */
 static int requestToStartEAIdone = FALSE;
