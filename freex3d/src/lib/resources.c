@@ -410,6 +410,7 @@ bool resource_fetch(resource_item_t *res)
 					res->status = ress_downloaded;
 					res->actual_file = STRDUP(res->parsed_request);
 					if (pound != NULL) {
+						/* copy the name out, so that Anchors can go to correct Viewpoint */
 						pound ++;
 						res->afterPoundCharacters = STRDUP(pound);
 					}

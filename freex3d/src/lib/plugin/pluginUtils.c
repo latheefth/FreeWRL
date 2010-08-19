@@ -252,7 +252,7 @@ int doBrowserAction()
 			res->media_type = resm_image; /* quick hack */
 
 			if (resource_fetch(res)) {
-				printf ("really loading anchor from %s\n", res->actual_file);
+				/* printf ("really loading anchor from %s\n", res->actual_file); */
 
 				if (checkIfX3DVRMLFile(res->actual_file)) {
 					resource_item_t *resToLoad;
