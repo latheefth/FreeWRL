@@ -291,7 +291,7 @@
 		2676A369091C0C3E00F127AA /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = i386;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				GCC_VERSION = 4.0;
 				HEADER_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
@@ -299,6 +299,7 @@
 				PREBINDING = NO;
 				SDKROOT = macosx10.4;
 				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/**";
+				VALID_ARCHS = "i386 ppc x86_64";
 			};
 			name = Development;
 		};

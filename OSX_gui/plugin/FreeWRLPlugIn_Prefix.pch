@@ -1,6 +1,7 @@
 //
-// Prefix header for all source files of the 'MoviePlugIn' target in the 'MoviePlugIn' project.
+// Prefix header for all source files
 //
+
 
 #ifdef __OBJC__
     #import <Foundation/Foundation.h>

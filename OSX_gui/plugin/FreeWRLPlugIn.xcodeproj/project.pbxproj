@@ -289,12 +289,13 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_VERSION = 4.0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx10.5;
 				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/** /FreeWRL/freewrl/freex3d/appleOSX";
-				VALID_ARCHS = i386;
+				VALID_ARCHS = "ppc x86_64 i386";
 			};
 			name = Debug;
 		};

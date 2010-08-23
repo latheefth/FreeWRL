@@ -168,13 +168,6 @@ static X3DView* firstView = NULL;
 }
 
 
-/* + (NSView *)plugInViewWithArguments:(NSDictionary *)arguments
-{
-    MovieView *movieView = [[[self alloc] init] autorelease];
-	[movieView setArguments:arguments];
-    return movieView;
-} */
-
 
 - (void)setArguments:(NSDictionary *)arguments
 {
@@ -253,6 +246,9 @@ static X3DView* firstView = NULL;
 	BOOL widthIsPercent = FALSE;
 	BOOL heightIsPercent = FALSE;
 	CGLContextObj cglContext;
+	
+	//NSLog (@"lockFocus, start\n");
+	
 	if (!freewrlInitialized && !freewrlCurrentlyRunning && !isNotFirst) {
 		
 		//NSLog(@"not init, not running");
@@ -274,12 +270,14 @@ static X3DView* firstView = NULL;
 		initGL();
 	}
 
+	//NSLog(@"lockFocus, step 1\n");
+	
 	if (!freewrlCurrentlyRunning &&  !isNotFirst) {
-				//NSLog(@"not running");
+		//NSLog(@"not running");
 	    freewrlCurrentlyRunning = TRUE;		
 		
-		NSEnumerator *enumerator = [_arguments keyEnumerator];
-		id key;
+		//NSEnumerator *enumerator = [_arguments keyEnumerator];
+		//id key;
 		
 		/* while ( key = [enumerator nextObject] ) {
 			printf( "%s => %s\n",
@@ -332,6 +330,9 @@ static X3DView* firstView = NULL;
 		
 		[oglContext setView: self];
 	}
+	
+	//NSLog (@"lockFocus, end of if statements\n");
+	
 	[[self window] makeFirstResponder:self];
     [super lockFocus];
 }
@@ -339,20 +340,22 @@ static X3DView* firstView = NULL;
 
 - (void)webPlugInInitialize
 {
-	//printf ("webPlugInInitialize\n");
+	//NSLog (@"webPlugInInitialize\n");
 	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 	NSString* imageName = [bundle pathForResource:@"simple" ofType:@"png"];
 	//NSLog(@"imageName is %@\n", imageName);
 	stopImage = [[NSImage alloc] initWithContentsOfFile:imageName];
 	isNotFirst = FALSE;
 	if (stopImage == nil) {
-		NSLog(@"Couldn't get image");
+		//NSLog(@"Couldn't get image");
 	}
 }
 
 - (void)webPlugInStart
 {
-	//printf ("webPlugInStart, I am %u\n", self);
+	
+	//NSLog(@"webPlugInStart\n");
+	//NSLog("webPlugInStart, I am %u\n", self);
 	if (freewrlCurrentlyRunning && (self != firstView) && (firstView != NULL)) {
 		//printf("already RUNNING\n");
 		isNotFirst = TRUE;
@@ -376,13 +379,13 @@ static X3DView* firstView = NULL;
 
 - (void)webPlugInStop
 {
-	//printf("webPluginStop\n");
+	// NSLog(@"webPluginStop\n");
 
 }
 
 - (void)webPlugInDestroy
 {
-	//printf("webplugin destroy\n");
+	//NSLog(@"webplugin destroy\n");
 	if (!isNotFirst) {
 		freewrlCurrentlyRunning = FALSE;
 		freewrlInitialized = FALSE;
