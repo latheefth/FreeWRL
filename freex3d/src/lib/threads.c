@@ -139,9 +139,6 @@ void initializeInputParseThread()
 	fflush(stdout);
 	fflush(stderr);
 
-/* 	pthread_mutex_init( &mutex_resource_tree, NULL ); */
-/* 	pthread_mutex_init( &mutex_resource_list, NULL ); */
-
 	ASSERT(TEST_NULL_THREAD(PCthread));
 	ret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
 	switch (ret) {
