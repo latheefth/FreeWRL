@@ -299,7 +299,7 @@ int doBrowserAction()
 		if (OSX_replace_world_from_console == NULL) {
 			/* this is just a simple "clean out the old world" */
 			#ifndef AQUA
-			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+			//kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 			#endif
 			return FALSE;
 		} else {
