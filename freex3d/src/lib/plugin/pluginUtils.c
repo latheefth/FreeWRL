@@ -167,6 +167,7 @@ static int urlLoadingStatus() {
 	/* printf ("and we have %d children in root.\n",X3D_GROUP(rootNode)->children.n); */
 
 	switch (res->status) {
+		case ress_downloaded:
 		case ress_parsed:
 			EAI_Anchor_Response(TRUE);
 			waitingForURLtoLoad = FALSE;
