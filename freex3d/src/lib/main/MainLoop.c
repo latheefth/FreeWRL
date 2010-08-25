@@ -2056,17 +2056,18 @@ void resetSensorEvents(void) {
        /* remove any display on-screen */
        sendDescriptionToStatusBar(NULL);
 	CursorOverSensitive=NULL; 
+
 	oldCOS=NULL;
 	lastMouseEvent = 0;
-/*JAS #ifndef _MSC_VER */
+#ifndef _MSC_VER
 	lastPressedOver = NULL;
+#endif
 	lastOver = NULL;
 	FREE_IF_NZ(SensorEvents);
 	num_SensorEvents = 0;
 	hypersensitive = NULL;
 	hyperhit = NULL;
 printf ("set resetSensorEvents to zero\n");
-/*JAS #endif */
 	/* Cursor - ensure it is not the "sensitive" cursor */
 	ARROW_CURSOR;
 
