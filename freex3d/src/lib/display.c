@@ -282,12 +282,12 @@ bool initialize_rdr_caps()
 
 	/* Special drivers settings */
 
-	if (strncmp(rdr_caps.renderer, "Intel GMA 9", 11) == 0) {
+	if (strnstr(rdr_caps.renderer, "Intel GMA 9", 11) != NULL) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
 		global_use_VBOs = false;
 	}
 
-	if (strncmp(rdr_caps.renderer, "NVIDIA GeForce2", 15) == 0) {
+	if (strnstr(rdr_caps.renderer, "NVIDIA GeForce2", 15) !=NULL) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024; 
 		global_use_VBOs = false;
 	}

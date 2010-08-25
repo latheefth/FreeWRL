@@ -30,8 +30,14 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 #define __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 
-/* for X3D_Node */
-#include "../vrml_parser/Structs.h"
+/* structure for rayhits */
+struct currayhit {
+	struct X3D_Node *hitNode; /* What node hit at that distance? */
+	GLDOUBLE modelMatrix[16]; /* What the matrices were at that node */
+	GLDOUBLE projMatrix[16];
+};
+
+extern struct currayhit rayHit,rayph,rayHitHyper;
 
 /* function protos */
 int nextlight(void);

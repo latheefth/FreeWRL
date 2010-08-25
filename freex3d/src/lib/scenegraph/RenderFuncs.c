@@ -563,6 +563,7 @@ void update_node(struct X3D_Node *node) {
  * depending on what we are doing right now.
  */
 
+
 #ifdef RENDERVERBOSE
 static int renderLevel = 0;
 #endif
@@ -616,7 +617,6 @@ void render_node(struct X3D_Node *node) {
          	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 	printf("change %d ichange %d changed %d\n",node->_change, node->_ichange,v->changed);
 #endif
-
 
 	/* call the "changed_" function */
 	if(NODE_NEEDS_COMPILING  && (v->changed != NULL)) {
@@ -684,7 +684,7 @@ void render_node(struct X3D_Node *node) {
 		cur_hits = 0;
 		/* HP */
 		srh = rayph;
-		rayph.node = node;
+		rayph.hitNode = node;
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, rayph.modelMatrix);
 		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, rayph.projMatrix);
 		PRINT_GL_ERROR_IF_ANY("render_sensitive"); PRINT_NODE(node,v);
