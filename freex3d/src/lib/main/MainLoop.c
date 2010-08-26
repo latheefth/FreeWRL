@@ -2066,7 +2066,7 @@ void resetSensorEvents(void) {
 	hypersensitive = NULL;
 	hyperhit = NULL;
 	/* Cursor - ensure it is not the "sensitive" cursor */
-	ARROW_CURSOR;
+/*	ARROW_CURSOR; */
 
 }
 
