@@ -2059,15 +2059,12 @@ void resetSensorEvents(void) {
 
 	oldCOS=NULL;
 	lastMouseEvent = 0;
-#ifndef _MSC_VER
 	lastPressedOver = NULL;
-#endif
 	lastOver = NULL;
 	FREE_IF_NZ(SensorEvents);
 	num_SensorEvents = 0;
 	hypersensitive = NULL;
 	hyperhit = NULL;
-printf ("set resetSensorEvents to zero\n");
 	/* Cursor - ensure it is not the "sensitive" cursor */
 	ARROW_CURSOR;
 

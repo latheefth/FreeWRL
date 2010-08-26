@@ -1366,7 +1366,9 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	UNUSED(but1);
 
 	if (!node) return;
-	if (ev==ButtonPress) {
+	/* try button release, so that we dont get worlds flashing past if 
+	   the user keeps the finger down. :-) if (ev==ButtonPress) { */
+	if (ev==ButtonRelease) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 		AnchorsAnchor = node;
