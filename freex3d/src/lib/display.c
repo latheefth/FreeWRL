@@ -207,8 +207,11 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
  * In any case we setup the rdr_capabilities struct.
  */
 #ifdef _MSC_VER
-#define strnstr strncmp
-#define NULL 0
+# define strnstr strncmp
+# define NULL 0
+#endif
+#if defined(TARGET_X11) || defined(TARGET_MOTIF)
+# define strnstr(aa,bb,cc) strstr(aa,bb)
 #endif
 bool initialize_rdr_caps()
 {
