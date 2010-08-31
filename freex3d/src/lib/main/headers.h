@@ -191,6 +191,7 @@ node for ANY node that takes something other than a Group */
 
 #define MARK_NODE_COMPILED node->_ichange = node->_change;
 #define NODE_NEEDS_COMPILING (node->_ichange != node->_change)
+#define ROOTNODE_NEEDS_COMPILING (rootNode->_ichange != rootNode->_change)
 /* end of compile simple nodes code */
 
 
@@ -618,7 +619,7 @@ extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data.
 #undef die
 #endif
 
-extern void *rootNode;
+extern struct X3D_Group *rootNode;
 
 extern int isPerlParsing(void);
 /* extern int isURLLoaded(void);	/\* initial scene loaded? Robert Sim *\/ */

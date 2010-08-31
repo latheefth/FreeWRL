@@ -456,7 +456,7 @@ float AC_LastDuration[50]  = {-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
 
-void *rootNode=NULL;	/* scene graph root node */
+struct X3D_Group *rootNode=NULL;	/* scene graph root node */
 void *empty_group=0;
 
 /*******************************************************************************/
