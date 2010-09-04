@@ -52,7 +52,6 @@ void EAI_killBindables (void);
 
 /* function prototypes */
 void EAIListener (void);
-/* void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf); now only in ../world_script/fieldGet.h*/
 unsigned int EAI_SendEvent (char *ptr);
 void EAI_RNewW(char *bufptr);
 void EAI_RW(char *bufptr);
