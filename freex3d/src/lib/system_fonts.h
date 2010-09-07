@@ -31,6 +31,9 @@ Internal header: fonts dependencies.
 #ifndef __LIBFREEWRL_SYSTEM_FONTS_H__
 #define __LIBFREEWRL_SYSTEM_FONTS_H__
 
+#ifdef HAVE_FONTCONFIG
+#include <fontconfig/fontconfig.h>
+#endif
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
