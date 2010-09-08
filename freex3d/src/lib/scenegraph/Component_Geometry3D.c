@@ -40,6 +40,8 @@ X3D Geometry 3D Component
 #include "../main/headers.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/Textures.h"
+#include "../scenegraph/RenderFuncs.h"
+
 
 #include "Collision.h"
 #include "Polyrep.h"
