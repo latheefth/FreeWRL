@@ -2527,7 +2527,9 @@ double yyy[16];
 
 	mesa_Frustum(xmin, xmax, ymin, ymax, zNear, zFar, ndp);
 	matmultiply(ndp,ndp,dp);
+	FW_GL_LOADMATRIXD(ndp);
 
+/* testing... */
 {
     double sine, cotangent, deltaZ;
     double radians = fovy / 2 * M_PI / 180;
