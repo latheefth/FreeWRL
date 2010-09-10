@@ -472,8 +472,8 @@ void setScreenDim(int wi, int he);
 #endif
 
 	/* GLU replacement - needs local matrix stacks, plus more code */
-		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
-//		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
+//		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) gluPerspective(aaa,bbb,ccc,ddd)
+		#define FW_GLU_PERSPECTIVE(aaa,bbb,ccc,ddd) fw_gluPerspective(aaa,bbb,ccc,ddd)
 
 
 		#define FW_GLU_UNPROJECT(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluUnProject(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
