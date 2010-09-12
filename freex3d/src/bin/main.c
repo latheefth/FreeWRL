@@ -85,7 +85,7 @@ int main (int argc, char **argv)
 		static char *fdir;
 		char *pp = strcpy(malloc(MAX_PATH),argv[0]);
 		PathRemoveFileSpec(pp);
-		PathAppend(pp,"..\\..\\fonts"); 
+		PathAppend(pp,"..\\..\\..\\..\\fonts"); 
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
 		strcat(fdir,pp);
