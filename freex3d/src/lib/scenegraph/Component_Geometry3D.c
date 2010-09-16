@@ -985,6 +985,7 @@ void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
 		} 
 		if (!node->_intern) return;
 
+//printf ("render_ifs, solid %d, node %p\n",node->solid,node);
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }

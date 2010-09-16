@@ -545,7 +545,6 @@ void AddRemoveChildren (
 	struct X3D_Node * *tmpptr;
 	int done;
 
-
 	int counter, c2;
 	#ifdef CRVERBOSE
 	
@@ -586,6 +585,7 @@ void AddRemoveChildren (
 		ar = 1;
 
 	}
+
 
 	if (ar == 1) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets MALLOC and add */
@@ -712,7 +712,6 @@ void AddRemoveChildren (
 
 	update_node(parent);
 }
-#undef CRVERBOSE
 
 /* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */
@@ -1406,7 +1405,7 @@ static void gatherScriptEventOuts(void) {
 				tptr = to_ptr->foffset;
 
 				#ifdef CRVERBOSE 
-					printf ("%s script %d VALUE CHANGED! copy value and update %d\n",JSparamnames[fptr].name,actualscript,tn);
+					printf ("%s script %d VALUE CHANGED! copy value and update %p\n",JSparamnames[fptr].name,actualscript,tn);
 				#endif
 
 				/* eventOuts go to VRML data structures */

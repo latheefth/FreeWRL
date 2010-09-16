@@ -286,7 +286,7 @@ void EventLoop() {
         Cursor cursor;
 #endif
 	while (refreshOK) {
-		usleep(10);
+		usleep(50);
 	}
 
         DEBUG_RENDER("start of MainLoop (parsing=%s) (url loaded=%s)\n", 

@@ -372,7 +372,3 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
         }
 }
 
-void changed_HAnimSite (struct X3D_HAnimSite *node) {
-	INITIALIZE_EXTENT
-}
-
