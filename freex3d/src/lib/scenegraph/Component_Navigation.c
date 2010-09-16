@@ -390,7 +390,7 @@ void proximity_LOD (struct X3D_LOD *node) {
  *
  ************************************************************************/
  
-void changed_ViewpointGroup (struct X3D_ViewpointGroup *node) {
+void compile_ViewpointGroup (struct X3D_ViewpointGroup *node) {
 	struct X3D_ProximitySensor *pn;
 
 	/* check if we need to create the proximity node */

@@ -1577,11 +1577,6 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 	LOCAL_LIGHT_OFF
 }
 
-void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
-	INITIALIZE_GEOSPATIAL(node)
-	COMPILE_IF_REQUIRED
-}
-
 /* do transforms, calculate the distance */
 void prep_GeoLocation (struct X3D_GeoLocation *node) {
 	INITIALIZE_GEOSPATIAL(node)
@@ -1634,12 +1629,6 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /************************************************************************/
 /* GeoLOD								*/
 /************************************************************************/
-
-void changed_GeoLOD (struct X3D_GeoLOD *node) {
-	INITIALIZE_GEOSPATIAL(node)
-	COMPILE_IF_REQUIRED
-	INITIALIZE_EXTENT;
-}
 
 #define LOAD_CHILD(childNode,childUrl) \
 		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
@@ -2680,12 +2669,6 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
             }
         }
 } 
-
-void changed_GeoTransform (struct X3D_GeoTransform *node) { 
-	INITIALIZE_GEOSPATIAL(node)
-	COMPILE_IF_REQUIRED
-	INITIALIZE_EXTENT;
-}
 
 void child_GeoTransform (struct X3D_GeoTransform *node) {
 	CHILDREN_COUNT

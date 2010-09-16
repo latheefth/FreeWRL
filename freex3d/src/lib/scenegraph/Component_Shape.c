@@ -402,7 +402,6 @@ void compile_Material (struct X3D_Material *node) {
 
 
 void render_Material (struct X3D_Material *node) {
-
 	COMPILE_IF_REQUIRED
 
 	/* record this node for OpenGL-ES and OpenGL-3.1 operation */

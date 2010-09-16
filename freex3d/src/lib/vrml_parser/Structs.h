@@ -42,11 +42,9 @@ struct X3D_Virt {
 	void (*fin)(void *);
 	void (*rendray)(void *);
 	void (*mkpolyrep)(void *);
-	void (*changed)(void *);
 	void (*proximity)(void *);
 	void (*collision)(void *);
 	void (*compile)(void *, void *, void *, void *, void *);
-	/* char *name; */
 };
 
 /* a string is stored as a pointer, and a length of that mallocd pointer */
