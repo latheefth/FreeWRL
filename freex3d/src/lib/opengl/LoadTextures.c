@@ -703,7 +703,7 @@ void _textureThread()
 		
 		/* Process all resource list items, whatever status they may have */
 		while (texture_list != NULL) {
-printf ("textureThread running\n");
+//printf ("textureThread running\n");
 			ml_foreach(texture_list, texture_process_list(__l));
 		}
 		TextureParsing = FALSE;

@@ -38,19 +38,19 @@ Screen snapshot.
    each texture has this kind of structure
 */
 struct textureTableIndexStruct {
-	struct	X3D_Node*	scenegraphNode;
-	int			nodeType;
-	int	imageType;
-	int 	status;
-	int 	hasAlpha;
-	GLuint	OpenGLTexture;
-	int	frames;
-	char    *filename;
-        int x;
-        int y;
-        unsigned char *texdata;
-        GLint Src;
-        GLint Trc;
+	struct X3D_Node*	scenegraphNode;
+	int    nodeType;
+	int    imageType;
+	int    status;
+	int    hasAlpha;
+	GLuint OpenGLTexture;
+	int    frames;
+	char   *filename;
+    int    x;
+    int    y;
+    unsigned char *texdata;
+    GLint  Src;
+    GLint  Trc;
 };
 typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 
