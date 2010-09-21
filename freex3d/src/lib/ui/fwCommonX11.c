@@ -290,6 +290,7 @@ bool create_GLcontext()
 	if (glXIsDirect(Xdpy, GLcx)) {
 		TRACE_MSG("glX: direct rendering enabled\n");
 	}
+#endif
 	return TRUE;
 }
 
