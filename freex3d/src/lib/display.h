@@ -238,13 +238,6 @@ extern int PaneClipwidth;
 extern int PaneClipheight;
 extern int PaneClipChanged;
 
-# if defined(WANT_MULTI_OPENGL_THREADS)
-/* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
-   blows plugins out of the water, because of the XLib threaded call in FrontEnd
-   not working that well... */
-#undef DO_MULTI_OPENGL_THREADS
-#endif
-
 #include "OpenGL/glu.h"
 #endif
 #endif /* defined TARGET_AQUA */

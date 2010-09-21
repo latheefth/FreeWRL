@@ -362,9 +362,6 @@ int last_texture_type = NOTEXTURE;
 int sound_from_audioclip = 0;
 
 int textures_take_priority = TRUE;
-#ifdef DO_MULTI_OPENGL_THREADS
-int useShapeThreadIfPossible = TRUE;
-#endif
 
 /* for printing warnings about Sound node problems - only print once per invocation */
 int soundWarned = FALSE;

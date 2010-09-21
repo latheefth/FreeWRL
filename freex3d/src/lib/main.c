@@ -255,10 +255,6 @@ bool initFreeWRL(freewrl_params_t *params)
 	   to complete initialization */
 	initializeDisplayThread();
 	
-	/* shape compiler thread - if we can do this */
-#ifdef DO_MULTI_OPENGL_THREADS
-	initializeShapeCompileThread();
-#endif
 	initializeInputParseThread();
 	while (!isInputThreadInitialized()) {
 		usleep(50);

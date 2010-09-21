@@ -1762,9 +1762,7 @@ void setLineWidth(float lwidth) {
 }
 
 void setUseShapeThreadIfPossible(int x) {
-#ifdef DO_MULTI_OPENGL_THREADS
-	useShapeThreadIfPossible = x;
-#endif
+/* this is now unused, and call should be removed from front ends */
 }
 
 void setTextures_take_priority (int x) {

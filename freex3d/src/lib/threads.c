@@ -196,11 +196,6 @@ int fw_thread_id()
 	if (pthread_equal(current_thread, loadThread))
 		return FREEWRL_THREAD_TEXTURE;
 
-#ifdef DO_MULTI_OPENGL_THREADS
-	if (pthread_equal(current_thread, shapeThread))
-		return FREEWRL_THREAD_SHAPE;
-#endif
-
 /*#endif*/
 	return -1;
 }

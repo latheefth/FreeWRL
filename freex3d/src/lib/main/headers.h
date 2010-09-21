@@ -590,8 +590,6 @@ extern int textures_take_priority;
 void setTextures_take_priority (int x);
 extern int useExperimentalParser;
 void setUseCParser (int x);
-extern int useShapeThreadIfPossible;
-void setUseShapeThreadIfPossible(int x);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
