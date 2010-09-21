@@ -41,6 +41,7 @@ $Id$
 #include "../opengl/Material.h"
 #include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"

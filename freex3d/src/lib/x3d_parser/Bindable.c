@@ -48,6 +48,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
 #include "../scenegraph/Component_Geospatial.h"
+#include "../scenegraph/RenderFuncs.h"
 
 
 /* Viewport data */

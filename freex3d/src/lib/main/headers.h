@@ -301,7 +301,6 @@ extern int HaveSensitive;
 void zeroVisibilityFlag(void);
 void setField_fromJavascript (struct X3D_Node *ptr, char *field, char *value, int isXML);
 unsigned int setField_FromEAI (char *ptr);
-void setField_javascriptEventOut(struct X3D_Node  *tn,unsigned int tptr, int fieldType, unsigned len, int extraData, uintptr_t mycx);
 
 #define EXTENTTOBBOX
 #define INITIALIZE_EXTENT        { node->EXTENT_MAX_X = (float) -10000.0; \
