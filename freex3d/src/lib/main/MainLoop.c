@@ -1766,7 +1766,7 @@ void setUseShapeThreadIfPossible(int x) {
 }
 
 void setTextures_take_priority (int x) {
-        textures_take_priority = x;
+/* this is now unused, and call should be removed from front ends */
 }
 
 /* set the opengl_has_textureSize. Expect a number that is 0 - use max, or negative. eg,
