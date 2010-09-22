@@ -40,6 +40,7 @@ texture enabling - works for single texture, for multitexture.
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../scenegraph/Component_Shape.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #include "OpenGL_Utils.h"
 #include "Textures.h"
@@ -325,7 +326,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 					passedInGenTex(&mtf);
 				} else {
 					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
 					FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 				}
 			}
@@ -360,7 +361,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 					if (setActiveTexture(c,appearanceProperties.transparency)) {
         					if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 						FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);
-						FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+						FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
 						FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 					}
 				}
@@ -383,7 +384,7 @@ static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode) {
 			
 				/* do the texture coordinate stuff */
 				if (myTCnode->_nodeType == NODE_TextureCoordinate) {
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)myTCnode->__compiledpoint.p);
 				} else if (myTCnode->_nodeType == NODE_TextureCoordinateGenerator) {
 					setupTexGen ((struct X3D_TextureCoordinateGenerator*) myTCnode);
 				}

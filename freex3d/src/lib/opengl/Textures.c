@@ -50,7 +50,7 @@
 #include "../world_script/fieldSet.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Component_CubeMapTexturing.h"
-
+#include "../scenegraph/RenderFuncs.h"
 #include "LoadTextures.h"
 
 #ifdef AQUA
