@@ -47,6 +47,7 @@ X3D Geometry2D  Component
 #include "Component_Geometry3D.h"
 #include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../opengl/OpenGL_Utils.h"
 
 #include <float.h>
 
