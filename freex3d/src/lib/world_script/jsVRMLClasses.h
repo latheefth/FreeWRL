@@ -38,10 +38,6 @@ Complex VRML nodes as Javascript classes.
 #define INIT_ARGC_NODE 1
 #define INIT_ARGC 0
 
-/* quick fix to get around some compiler warnings on 64 bit systems */
-#define VERBOSE_OBJX (unsigned long)
-#define VERBOSE_OBJ (unsigned int)
-
 /* tie a node into the root. Currently not required, as we do a better job
 of garbage collection */
 #define ADD_ROOT(a,b) \
@@ -771,9 +767,9 @@ MFStringAddProperty(JSContext *cx,
 					jsval *vp);
 
 JSBool MFStringDeleteProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
-JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
-JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
-JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) ;
+JSBool MFStringEnumerateProperty(JSContext *cx, JSObject *obj) ;
+JSBool MFStringResolveProperty(JSContext *cx, JSObject *obj, jsval id) ;
+JSBool MFStringConvertProperty(JSContext *cx, JSObject *obj, JSType type, jsval *vp) ;
        
 
 
