@@ -123,4 +123,9 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
  
 char *X3DParser_getNameFromNode(struct X3D_Node* myNode);
 
+void setChildAttributes(int index,void *ptr);
+void *getChildAttributes(int index);
+void deleteChildAttributes(int index);
+
+
 #endif /*  __FREEWRL_X3D_PARSER_H__ */
