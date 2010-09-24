@@ -128,7 +128,7 @@ void parser_registerRoute(struct VRMLParser*,
 BOOL parseType(struct VRMLParser* me, int type,   union anyVrml *defaultVal);
 
 
-void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, int *outSize);
+void replaceProtoField(struct VRMLLexer *me, struct ProtoDefinition *thisProto, char *thisID, char **outTextPtr, size_t *outSize);
 
 void cParseErrorCurID(struct VRMLParser *me, char *str);
 void cParseErrorFieldString(struct VRMLParser *me, char *str1, const char *str2);
