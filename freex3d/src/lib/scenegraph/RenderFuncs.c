@@ -801,7 +801,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 }
 
 void
-render_hier(struct X3D_Node *p, int rwhat) {
+render_hier(struct X3D_Group *p, int rwhat) {
 	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
 
@@ -862,7 +862,7 @@ render_hier(struct X3D_Node *p, int rwhat) {
 	}
 #endif
 
-	render_node(p);
+	render_node(X3D_NODE(p));
 
 #ifdef render_pre_profile
 	if (render_geom) {

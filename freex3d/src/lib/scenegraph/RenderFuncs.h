@@ -68,6 +68,6 @@ void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int str
 void sendClientStateToGPU(int enable, int cap);
 void sendArraysToGPU (int mode, int first, int count);
 void sendElementsToGPU (int mode, int count, int type, int *indices);
-
+void render_hier(struct X3D_Group *p, int rwhat);
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */
