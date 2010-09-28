@@ -215,13 +215,13 @@ bool initFreeWRL(freewrl_params_t *params)
 		TRACE_MSG("Env: TRACE THREADS enabled.\n");
 	}
 
-	global_use_VBOs = (getenv("FREEWRL_NO_VBOS") == NULL);
-	global_use_VBOs = (getenv("FREEWRL_USE_VBOS") != NULL);
+	if (getenv("FREEWRL_NO_VBOS") != NULL) global_use_VBOs = FALSE; 
+	else if (getenv("FREEWRL_USE_VBOS") != NULL) global_use_VBOs = TRUE;
+
 	if (global_use_VBOs) {
 		TRACE_MSG("Env: trying VBOs enabled.\n");
 	}
 
-	
 #ifdef IPHONE
 	global_use_shaders_when_possible = TRUE; /* OpenGL-ES 2.0 requires this */
 #else
