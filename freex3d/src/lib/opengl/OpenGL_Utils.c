@@ -333,11 +333,9 @@ static void getAppearanceShader(s_shader_capabilities_t *myShader, char *pathToS
 	(*myShader).ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	(*myShader).Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 	(*myShader).Normals = GET_ATTRIB(myProg,"fw_Normal");
-printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
-(*myShader).Vertices,
-(*myShader).Normals,
-(*myShader).ModelViewMatrix,
-(*myShader).ProjectionMatrix);
+
+	/*printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
+		(*myShader).Vertices, (*myShader).Normals, (*myShader).ModelViewMatrix, (*myShader).ProjectionMatrix); */
 
 }
 

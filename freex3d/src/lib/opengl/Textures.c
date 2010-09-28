@@ -821,6 +821,8 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	int nurls;
 
+	unsigned char *mytexdata;
+
 	
 	/* for getting repeatS and repeatT info. */
 	struct X3D_PixelTexture *pt = NULL;
@@ -828,7 +830,6 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	struct X3D_ImageTexture *it = NULL;
 	struct X3D_VRML1_Texture2* v1t = NULL;
 	struct X3D_TextureProperties *tpNode = NULL;
-	unsigned char *mytexdata;
 	int haveValidTexturePropertiesNode;
 	GLfloat texPri;
 	struct SFColorRGBA borderColour;
@@ -842,6 +843,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	compression = GL_FALSE;
 	borderWidth = 0;
 	nurls=1;
+	mytexdata = NULL;
 
 	/* printf ("move_texture_to_opengl, node of type %s\n",stringNodeType(me->scenegraphNode->_nodeType)); */
 
@@ -993,10 +995,10 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	/* is this a CubeMap? If so, lets try this... */
 
 	if (appearanceProperties.cubeFace != 0) {
-		unsigned char *dest = mytexdata;
+		unsigned char *dest = me->texdata;
 		uint32 *sp, *dp;
 
-		int cx,cy;
+		int cx;
 
 		#ifndef GL_EXT_texture_cube_map
 		# define GL_NORMAL_MAP_EXT                   0x8511

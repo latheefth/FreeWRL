@@ -262,7 +262,6 @@ int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* u
 
 /* make up the font name */
 void FW_make_fontname(int num) {
-    int x;
 /*
     bit:    0       BOLD        (boolean)
     bit:    1       ITALIC      (boolean)
