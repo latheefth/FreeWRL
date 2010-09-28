@@ -47,7 +47,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn);
 void handleEAIGetValue (char command, char *bufptr, int repno);
 int EAI_GetRootNode(void);
 
-void EAI_GetType(int cNode, char *ctmp, char *dtmp, int *cNodePtr, int *fieldOffset, uintptr_t *dataLen, int *typeString, unsigned int *scripttype, int *accessType);
+void EAI_GetType(int cNode, char *ctmp, char *dtmp, int *cNodePtr, int *fieldOffset, int *dataLen, int *typeString, int *scripttype, int *accessType);
 
 int mapToKEYWORDindex(indexT pkwIndex);
 void outBufferCat (char *str);
