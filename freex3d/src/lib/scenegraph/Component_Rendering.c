@@ -513,7 +513,8 @@ void render_LineSet (struct X3D_LineSet *node) {
 
 		/* aqua crashes on glMultiDrawElements and LINE_STRIPS */
 		indices = node->__vertIndx;
-		count  = node->vertexCount.p;
+		/* note the cast below - casting an int* to a GLsizei* seems to be ok on 32 and 64 bit systems */
+		count  = (GLsizei*) node->vertexCount.p;
 		for (i=0; i<node->__segCount; i++) {
 			FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_INT,indices[i]);
 		}

@@ -160,7 +160,12 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 
 		/* We doing VBOs? */
 		if (global_use_VBOs) {
-			if (node->__VBO == 0) glGenBuffers(1,&node->__VBO);
+			if (node->__VBO == 0) {
+				GLuint tmp;
+				/* do this in 2 steps to get around 32/64 bit OSX warnings */
+				glGenBuffers(1,&tmp);
+				node->__VBO = tmp;
+			}
 
 			glBindBufferARB(GL_ARRAY_BUFFER_ARB,node->__VBO);
 			glBufferDataARB(GL_ARRAY_BUFFER_ARB,sizeof (float)*2*global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW_ARB);
