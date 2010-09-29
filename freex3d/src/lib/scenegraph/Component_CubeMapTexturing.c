@@ -40,6 +40,7 @@ X3D Cubemap Texturing Component
 #include "../scenegraph/Component_CubeMapTexturing.h"
 #include "../input/EAIHelpers.h"
 #include <GL/glext.h>
+#include "../vrml_parser/CParseGeneral.h" /* for union anyVrml */
 #include "../world_script/JScript.h" /* for uint32 typedef */
 
 
@@ -163,7 +164,6 @@ bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	char *buffer;
 	unsigned long fileLen;
 union DDS_header hdr;
-size_t s = 0;
 unsigned int x = 0;
 unsigned int y = 0;
 unsigned int mipMapCount = 0;

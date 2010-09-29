@@ -300,7 +300,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 
 	} else { // all other cases are inline code to parse... let the parser do the job ;P...
 
-		char *sendIn;
+		const char *sendIn;
 
 		if (strncmp(inputstring,"#VRML V2.0", 6) == 0) {
 			sendIn = inputstring;

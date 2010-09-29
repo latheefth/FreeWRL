@@ -274,8 +274,15 @@ bool initialize_rdr_caps()
 #endif
 
 	/* Max texture size */
-	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &rdr_caps.max_texture_size);
-	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &rdr_caps.texture_units);
+	{
+		GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
+		
+		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
+		rdr_caps.max_texture_size = (int) tmp;
+
+		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
+		rdr_caps.texture_units = (int) tmp;
+	}
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
 	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);

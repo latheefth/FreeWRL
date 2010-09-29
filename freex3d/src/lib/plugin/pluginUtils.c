@@ -44,8 +44,9 @@
 #include "../x3d_parser/Bindable.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../main/ProdCon.h"
-
 #include "pluginUtils.h"
+#include "PluginSocket.h"
+
 
 static int checkIfX3DVRMLFile(char *fn);
 
@@ -106,7 +107,7 @@ static void goToViewpoint(char *vp) {
 }
 
 static void startNewHTMLWindow(char *url) {
-	char *browser;
+	const char *browser;
 #define LINELEN 4000
 #define ERRLINELEN 4200
 	char sysline[LINELEN];

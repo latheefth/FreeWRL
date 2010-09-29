@@ -40,6 +40,7 @@
 #include <threads.h>
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
+#include "input/InputFunctions.h"
 
 
 /**
