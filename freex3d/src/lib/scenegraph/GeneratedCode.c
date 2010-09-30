@@ -2017,7 +2017,8 @@ struct X3D_Virt virt_GeoViewpoint = { (void *)prep_GeoViewpoint,NULL,NULL,NULL,N
 
 void prep_Group(struct X3D_Group *);
 void child_Group(struct X3D_Group *);
-struct X3D_Virt virt_Group = { (void *)prep_Group,NULL,(void *)child_Group,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_Group(struct X3D_Group *);
+struct X3D_Virt virt_Group = { (void *)prep_Group,NULL,(void *)child_Group,NULL,NULL,NULL,NULL,NULL,(void *)compile_Group};
 
 struct X3D_Virt virt_HAnimDisplacer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 

@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.34  2010/09/30 16:21:53  crc_canada
+# only sort children if required.
+#
 # Revision 1.33  2010/09/16 18:32:58  crc_canada
 # finish removing of "changed_" routines.
 #
@@ -739,6 +742,7 @@
 %CompileC = map {($_=>1)} qw/
 	ImageCubeMap
 	Transform
+	Group
 	ViewpointGroup
 	Material
 	TwoSidedMaterial
