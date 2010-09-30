@@ -70,8 +70,6 @@
 
 #include "ProdCon.h"
 
-#define DJ_KEEP_COMPILER_WARNING 0
-
 /* used by the paser to call back the lexer for EXTERNPROTO */
 void embedEXTERNPROTO(struct VRMLLexer *me, char *myName, char *buffer, char *pound);
 

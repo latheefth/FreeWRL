@@ -48,8 +48,6 @@ X3D Navigation Component
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
 
-#define DJ_KEEP_COMPILER_WARNING 0
-
 extern struct sCollisionInfo OldCollisionInfo;
 
 void prep_Viewpoint (struct X3D_Viewpoint *node) {

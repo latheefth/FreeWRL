@@ -119,6 +119,7 @@ char *eaiPrintCommand (char command);
 #define GETNODETYPE	'k'
 #define MIDIINFO  	'l'
 #define MIDICONTROL  	'm'
+#define DUMPSCENE  	'n'
 
 
 /* command string to get the rootNode - this is a special match... */
