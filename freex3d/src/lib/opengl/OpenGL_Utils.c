@@ -1254,8 +1254,6 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 	if (!sortForDistance) return;
 	if (nc < 2) return;
 
-	if (sortForDistance) printf ("sortForDistance at %d %lf\n",sortForDistance, TickTime);
-
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
