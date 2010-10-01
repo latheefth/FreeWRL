@@ -9622,7 +9622,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 	char *nodeName;
 	#ifdef FW_DEBUG
 		Boolean allFields;
-		if (fp == stdout) { allFields = TRUE; } else { allFields = FALSE; }
+		if (fileno(fp) == fileno(stdout)) { allFields = TRUE; } else { allFields = FALSE; }
 	#else
 		Boolean allFields = FALSE;
 	#endif
