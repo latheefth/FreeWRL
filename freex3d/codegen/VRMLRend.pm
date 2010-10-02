@@ -17,6 +17,17 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.35  2010/10/02 06:42:25  davejoubert
+# Pickables. Scan for DJTRACK_PICKSENSORS
+# Modified Files:
+#  	codegen/VRMLC.pm codegen/VRMLNodes.pm codegen/VRMLRend.pm
+#  	src/lib/main/MainLoop.c src/lib/main/headers.h
+#  	src/lib/scenegraph/Component_Geometry3D.c
+#  	src/lib/scenegraph/Component_Grouping.c
+#  	src/lib/scenegraph/Component_Shape.c
+#  	src/lib/scenegraph/GeneratedCode.c
+#  	src/lib/vrml_parser/CRoutes.c
+#
 # Revision 1.34  2010/09/30 16:21:53  crc_canada
 # only sort children if required.
 #
@@ -278,6 +289,7 @@
 	NurbsTrimmedSurface	=>geometry,
 	MidiControl		=>children,
 	MidiKey			=>children,
+	PointPickSensor		=>children,
 
 
 	Arc2D			=>geometry,

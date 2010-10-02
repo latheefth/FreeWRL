@@ -281,6 +281,7 @@ __inline double Time1970sec()
 #ifndef IPHONE
 void EventLoop() {
         static int loop_count = 0;
+        static int slowloop_count = 0;
 
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         Cursor cursor;
@@ -355,6 +356,17 @@ void EventLoop() {
         }
 
         trisThisLoop = 0;
+
+/* DJTRACK_PICKSENSORS
+        if(slowloop_count == 1009) slowloop_count = 0 ;
+	if ((slowloop_count % 32) == 0) {
+		activate_picksensors() ;
+		printf("slowloop_count = %d, so activate_picksensors at T=%lf\n",slowloop_count, TickTime) ;
+	} else {
+		deactivate_picksensors() ;
+	}
+        slowloop_count++ ;
+*/
 
         /* handle any events provided on the command line - Robert Sim */
         if (keypress_string && doEvents) {
