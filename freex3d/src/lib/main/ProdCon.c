@@ -455,7 +455,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* ACTUALLY CALLS THE PARSER */
 		PARSE_STRING(of->text, nRn);
 	
-		if ((res != root_res) && (!root_res->complete)) {
+		if ((res != root_res) && ((!root_res) ||(!root_res->complete))) {
 			globalParser = savedParser;
 		}
 	

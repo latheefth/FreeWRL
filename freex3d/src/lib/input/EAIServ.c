@@ -122,6 +122,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	const int on=1;
 	int flags;
 #ifdef WIN32
+#define socklen_t int
 	int err;
 #endif
 
