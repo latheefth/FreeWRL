@@ -1680,6 +1680,22 @@ EXPOSED_FIELD(PointLight,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(PointLight,intensity,sffloat,intensity,FIELDTYPE_SFFloat)
 END_NODE(PointLight)
 
+/* PointPickSensor node */
+BEGIN_NODE(PointPickSensor)
+EVENT_IN(PointPickSensor,set_sortOrder,sfstring,set_sortOrder,FIELDTYPE_SFString)
+EXPOSED_FIELD(PointPickSensor,objectType,mfstring,objectType,FIELDTYPE_MFString)
+EVENT_OUT(PointPickSensor,pickedGeometry,mfnode,pickedGeometry,FIELDTYPE_MFNode)
+EXPOSED_FIELD(PointPickSensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(PointPickSensor,sortOrder,sfstring,sortOrder,FIELDTYPE_SFString)
+EXPOSED_FIELD(PointPickSensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+FIELD(PointPickSensor,intersectionType,sfstring,intersectionType,FIELDTYPE_SFString)
+EXPOSED_FIELD(PointPickSensor,pickTarget,mfnode,pickTarget,FIELDTYPE_MFNode)
+EVENT_OUT(PointPickSensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
+EVENT_OUT(PointPickSensor,pickedPoint,mfvec3f,pickedPoint,FIELDTYPE_MFVec3f)
+EVENT_IN(PointPickSensor,set_intersectionType,sfstring,set_intersectionType,FIELDTYPE_SFString)
+EXPOSED_FIELD(PointPickSensor,pickingGeometry,sfnode,pickingGeometry,FIELDTYPE_SFNode)
+END_NODE(PointPickSensor)
+
 /* PointSet node */
 BEGIN_NODE(PointSet)
 EXPOSED_FIELD(PointSet,color,sfnode,color,FIELDTYPE_SFNode)
