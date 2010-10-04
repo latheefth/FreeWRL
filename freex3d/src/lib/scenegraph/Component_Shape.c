@@ -408,9 +408,6 @@ void render_Material (struct X3D_Material *node) {
 	material_oneSided = node;
 }
 
-/* DJTRACK_PICKSENSORS */
-do_PickSensorTickDUMMY(void *ptr) {
-}
 
 void child_Shape (struct X3D_Shape *node) {
 	void *tmpN;
