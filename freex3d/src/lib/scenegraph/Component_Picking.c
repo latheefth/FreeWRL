@@ -482,5 +482,12 @@ struct X3D_Node* get_picksensor() {
 		return (struct X3D_Node *) NULL ;
 	}
 }
+#else // DJTRACK_PICKSENSORS
+/* PICKSENSOR stubs */
+void pick_Sphere (struct X3D_Sphere *node) {}
+void pick_PointPickSensor (struct X3D_PointPickSensor *node) {}
+void child_PickableGroup (struct X3D_Group *node) {}
+void prep_PickableGroup (struct X3D_Group *node) {}
+void add_picksensor(struct X3D_Node * node) {}
 
 #endif // DJTRACK_PICKSENSORS
