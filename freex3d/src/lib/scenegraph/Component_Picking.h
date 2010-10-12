@@ -33,5 +33,12 @@ Proximity sensor macro.
 
 /* see specifications section 38. Picking Sensor Component */
 
+/* in the meantime, provide function protos for what's in Component_Picking.c */
+void other_PointPickSensor (struct X3D_PointPickSensor *node);
+void other_PickableGroup (struct X3D_Group *node);
+void other_Sphere (struct X3D_Sphere *node);
+void child_PickableGroup (struct X3D_Group *node);
+void prep_PickableGroup (struct X3D_Group *node);
+void add_picksensor(struct X3D_Node * node);
 
 #endif /* __FREEWRL_SCENEGRAPH_PICKING_H__ */
