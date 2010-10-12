@@ -886,6 +886,7 @@ static void makeFIELDDEFret(int myptr, int repno) {
 	char ctmp;
 	char utilBuf[EAIREADSIZE];
 	int errcount;
+	memset(utilBuf,'\0',sizeof(utilBuf));
 
 	boxptr = getEAINodeFromTable(myptr,-1);
 
