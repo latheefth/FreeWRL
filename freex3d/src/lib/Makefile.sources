@@ -148,6 +148,8 @@ scenegraph/Polyrep.h \
 scenegraph/Component_Networking.c \
 scenegraph/Component_Networking.h \
 scenegraph/Component_PointingDevice.c \
+scenegraph/Component_Picking.c \
+scenegraph/Component_Picking.h \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
 scenegraph/Component_VRML1.c \
