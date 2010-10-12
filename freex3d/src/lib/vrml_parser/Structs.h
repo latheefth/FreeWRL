@@ -43,6 +43,7 @@ struct X3D_Virt {
 	void (*rendray)(void *);
 	void (*mkpolyrep)(void *);
 	void (*proximity)(void *);
+	void (*other)(void *);
 	void (*collision)(void *);
 	void (*compile)(void *, void *, void *, void *, void *);
 };

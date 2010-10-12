@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.36  2010/10/12 00:34:12  dug9
+# dug9 - codegeneration - added *other() virtual function, and assigned pointpicksensor, pickablegroup and sphere to implement it, put stubs for these other() functions for those that don't implement it.
+#
 # Revision 1.35  2010/10/02 06:42:25  davejoubert
 # Pickables. Scan for DJTRACK_PICKSENSORS
 # Modified Files:
@@ -849,6 +852,19 @@
 	ProximitySensor
 	LOD
 	Billboard
+/;
+
+#######################################################################
+#
+# OtherC = following code is run for miscalaneous tasks depending 
+# on what functions you define here and what VF flags you define and
+# check against in render_node() and/or switch on in your Other() 
+#
+
+%OtherC = map {($_=>1)} qw/
+	PointPickSensor
+	PickableGroup
+	Sphere
 /;
 
 
