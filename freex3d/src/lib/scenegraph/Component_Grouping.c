@@ -48,7 +48,6 @@ X3D Grouping Component
 #include "Children.h"
 
 void compile_Transform (struct X3D_Transform *node) { 
-	MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_Transform, metadata))
 	INITIALIZE_EXTENT;
 
 	/* printf ("changed Transform for node %u\n",node); */

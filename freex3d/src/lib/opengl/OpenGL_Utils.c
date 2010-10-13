@@ -2009,10 +2009,6 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged) 
 			break; /* can be a duplicate SF/MFNode pointer */
 	
-
-		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata) 
-			break; /* can be a duplicate SFNode pointer */
-	
 		if (*fieldOffsetsPtr == FIELDNAMES___lastParent) 
 			break; /* can be a duplicate SFNode pointer - field only in NODE_TextureCoordinate */
 	
