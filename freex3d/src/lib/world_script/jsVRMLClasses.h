@@ -79,11 +79,18 @@ of garbage collection */
                         }}
 
 
-#define SET_JS_TICKTIME(possibleRetVal) { jsval zimbo; \
+#define SET_JS_TICKTIME_FALSE(possibleRetVal) { jsval zimbo; \
         zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(cx, TickTime));  \
         if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
                 printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
                 return possibleRetVal; \
+        }}
+
+#define SET_JS_TICKTIME() { jsval zimbo; \
+        zimbo = DOUBLE_TO_JSVAL(JS_NewDouble(cx, TickTime));  \
+        if (!JS_DefineProperty(cx,obj, "__eventInTickTime", zimbo, JS_GET_PROPERTY_STUB, JS_SET_PROPERTY_STUB2, JSPROP_PERMANENT)) {  \
+                printf( "JS_DefineProperty failed for \"__eventInTickTime\" at %s:%d.\n",__FILE__,__LINE__); \
+                return FALSE; \
         }}
 
 #define COMPILE_FUNCTION_IF_NEEDED(tnfield) \

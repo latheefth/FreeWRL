@@ -207,7 +207,7 @@ int set_one_MFElementType(int tonode, int toname, int dataType, void *Data, int 
 	obj = ScriptControl[tonode].glob;
 
 	/* set the TickTime (possibly again) for this context */
-	SET_JS_TICKTIME(FALSE)
+	SET_JS_TICKTIME_FALSE()
 
 	/* make up the name */
 	switch (dataType) {
