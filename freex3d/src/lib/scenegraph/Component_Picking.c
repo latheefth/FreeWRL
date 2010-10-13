@@ -27,7 +27,6 @@ X3D Picking Component
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef DJTRACK_PICKSENSORS
 
 #include <config.h>
 #include <system.h>
@@ -54,6 +53,8 @@ X3D Picking Component
 #include "LinearAlgebra.h"
 #include "Component_Picking.h"
 #include "Children.h"
+
+#ifdef DJTRACK_PICKSENSORS
 
 /* see specifications section 38. Picking Sensor Component */
 
