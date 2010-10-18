@@ -542,6 +542,7 @@ void EventLoop() {
 
                         /* PlaneSensors, etc, take the last sensitive node pressed over, and a mouse movement */
                         sendSensorEvents(lastPressedOver,MotionNotify, ButDown[1], TRUE);
+						lastMouseEvent = 0 ; /* Dave's fix */
                 }
 
 
