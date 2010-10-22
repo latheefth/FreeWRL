@@ -258,6 +258,7 @@ void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int
 				glColorPointer(dataSize, dataType, stride, pointer); 
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
+printf ("sendAttrib, tex, OLD\n");
 				glTexCoordPointer(dataSize, dataType, stride, pointer);
 				break;
 			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
