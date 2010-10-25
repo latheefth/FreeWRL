@@ -37,6 +37,7 @@
 #include "vrml_parser/Structs.h"
 #include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
+#include "opengl/OpenGL_Utils.h"
 
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
 #include "plugin/pluginUtils.h"

@@ -63,7 +63,7 @@ void restoreLightState(int *ls);
 void fwglLightfv (int light, int pname, GLfloat *params);
 void fwglLightf (int light, int pname, GLfloat param);
 void initializeLightTables(void);
-void chooseAppearanceShader(struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided);
+void chooseAppearanceShader(shader_type_t requestedShader, struct X3D_Material *material_oneSided, struct X3D_TwoSidedMaterial *material_twoSided);
 void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int stride, float *pointer);
 void sendClientStateToGPU(int enable, int cap);
 void sendArraysToGPU (int mode, int first, int count);
