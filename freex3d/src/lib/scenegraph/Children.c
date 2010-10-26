@@ -41,6 +41,7 @@ Render the children of nodes.
 
 #include "Children.h"
 #include "Collision.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "RenderFuncs.h"
 #include "../opengl/Frustum.h"
 

@@ -41,6 +41,7 @@ X3D Rendering Component
 #include "../opengl/Frustum.h"
 #include "../opengl/Material.h"
 #include "Component_Shape.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
 
 /* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/

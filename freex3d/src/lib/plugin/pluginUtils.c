@@ -42,6 +42,7 @@
 #include "../input/EAIHeaders.h"	/* for implicit declarations */
 
 #include "../x3d_parser/Bindable.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../main/ProdCon.h"
 #include "pluginUtils.h"

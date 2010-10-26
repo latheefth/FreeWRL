@@ -48,6 +48,7 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include <resources.h>
 
 #include "../main/headers.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
 
 #include "../x3d_parser/Bindable.h"

@@ -37,6 +37,7 @@ X3D Lighting Component
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "RenderFuncs.h"
 #include "../opengl/OpenGL_Utils.h"
 
