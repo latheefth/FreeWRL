@@ -410,7 +410,7 @@ void setScreenDim(int wi, int he);
         #define FW_GL_PUSH_ATTRIB(aaa) glPushAttrib(aaa); 
 	#define FW_GL_POP_ATTRIB() glPopAttrib();
 	#define FW_GL_MATRIX_MODE(aaa) fw_glMatrixMode(aaa)
-	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff); 
+	#define FW_GL_ORTHO(aaa,bbb,ccc,ddd,eee,fff) fw_Ortho(aaa,bbb,ccc,ddd,eee,fff);
 
 
 	/* geometry rendering - varies on whether we are using appearance shaders, etc */
