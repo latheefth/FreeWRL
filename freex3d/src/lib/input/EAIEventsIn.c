@@ -185,12 +185,12 @@ void EAI_parse_commands () {
 					fclose(dumpfd) ;
 					throwAway = sprintf (outBuffer,"RE\n%f\n%d\n%s",TickTime,count,dumpname);
 				} else {
-					dumpfsize = ftell(dumpfd) ;
+					dumpfsize = (int) ftell(dumpfd) ;
 					fseek(dumpfd, 0L, SEEK_SET) ;
 
 					outBuffer = REALLOC(outBuffer,dumpfsize+200);
 					dumpInt = sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
-					throwAway = fread(outBuffer+dumpInt, dumpfsize, 1, dumpfd);
+					throwAway = (int) fread(outBuffer+dumpInt, dumpfsize, 1, dumpfd);
 					dumpInt += dumpfsize;
 
 					outBuffer[dumpInt] = '\0';
