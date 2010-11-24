@@ -1503,6 +1503,11 @@ nodes have eventins/eventouts - have to do the table multiple times
 in this case.
 
 ********************************************************************/
+
+#ifdef CRVERBOSE
+char * BOOL_STRING(int inp) {if (inp)return "true "; else return "false ";}
+#endif
+
 void propagate_events() {
 	int havinterp;
 	int counter;

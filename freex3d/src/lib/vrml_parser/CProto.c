@@ -746,7 +746,12 @@ printf ("PROTO HEADER - possible proto expansion in header?? \n");
 				CPARSE_ERROR_CURID("PROTO field not found in PROTO");
 				return;
 			}
+		} else {
+			/* hmmm - an error; lets not loop here forever */
+			CPARSE_ERROR_CURID ("expected an identifier in PROTO header...");
+			return;
 		}
+
 		#ifdef CPROTOVERBOSE
 		printf ("after pt, curID %s\n",me->lexer->curID);
 		#endif
@@ -759,7 +764,6 @@ printf ("PROTO HEADER - possible proto expansion in header?? \n");
 	printf ("end of getProtoInvocationFields\n");
 	#endif
 }
-
 
 /* what we do is to ensure that we have a "destination" we create a node containing the VALUE of each field of the 
    PROTO expansion, and we put it in a "special place" within the PROTO Group expansion */
