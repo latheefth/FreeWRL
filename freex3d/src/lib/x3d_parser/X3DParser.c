@@ -780,7 +780,7 @@ void linkNodeIn(char *where, int lineno) {
 			/* printf ("WE HAVE PROTODEF %d\n",X3D_GROUP(parentStack[parentIndex])->FreeWRL__protoDef);
 			printf ("GROUP has %d children\n",X3D_GROUP(parentStack[parentIndex])->children.n); */
 			if (X3D_GROUP(parentStack[parentIndex])->children.n>0) {
-				struct X3D_Group *firstCh = X3D_GROUP(parentStack[parentIndex])->children.p[0];
+				struct X3D_Group *firstCh = X3D_GROUP(X3D_GROUP(parentStack[parentIndex])->children.p[0]);
 
 				/* printf ("first child is of type %s\n", stringNodeType(firstCh->_nodeType)); */
 

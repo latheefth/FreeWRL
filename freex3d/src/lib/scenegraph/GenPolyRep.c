@@ -840,7 +840,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	/* texture coords IndexedFaceSet coords colors and normals */
 	if(co != NULL) {
 		struct Multi_Vec3f *dtmp;
-		dtmp = getCoordinate (co, "make FacedSet");
+		dtmp = getCoordinate (X3D_NODE(co), "make FacedSet");
 		npoints = dtmp->n;
 		points = dtmp->p;
 	}

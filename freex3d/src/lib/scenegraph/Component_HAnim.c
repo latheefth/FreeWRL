@@ -195,8 +195,6 @@ return;
 
 void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 	/* save the skinCoords and skinNormals for use in following HAnimJoints */
-	POSSIBLE_PROTO_EXPANSION(node->skinCoord,HANimSkinCoord)
-	POSSIBLE_PROTO_EXPANSION(node->skinNormal,HAnimSkinNormal)
 	/* printf ("rendering HAnimHumanoid\n"); */
 }
 

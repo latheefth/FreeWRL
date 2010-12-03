@@ -84,8 +84,8 @@ extern struct matpropstruct appearanceProperties;
 
 
 #define RENDER_MATERIAL_SUBNODES(which) \
-	{ void *tmpN;   \
-		POSSIBLE_PROTO_EXPANSION(which,tmpN) \
+	{ struct X3D_Node *tmpN;   \
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, which,tmpN) \
        		if(tmpN) { \
 			render_node(tmpN); \
 		} \

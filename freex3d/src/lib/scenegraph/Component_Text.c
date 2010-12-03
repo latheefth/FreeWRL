@@ -979,7 +979,7 @@ void make_Text (struct X3D_Text *node)
         unsigned char *stmp;
 
         /* step 0 - is the FontStyle a proto? */
-        POSSIBLE_PROTO_EXPANSION(node->fontStyle,fsp);
+        POSSIBLE_PROTO_EXPANSION(struct X3D_FontStyle *, node->fontStyle,fsp);
 
         /* fsp = (struct X3D_FontStyle *)node->fontStyle; */
         if (fsp->_nodeType != NODE_FontStyle) {

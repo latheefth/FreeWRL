@@ -255,7 +255,7 @@ void render_Sound (struct X3D_Sound *node) {
 	/* ok, is the source a valid node?? */
 
 	/* might be a PROTO expansion, as in what Adam Nash does... */
-	POSSIBLE_PROTO_EXPANSION(node->source,tmpN)
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->source,tmpN)
 
 	/* did not find a valid source node, even after really looking at a PROTO def */
 	if (tmpN == NULL) return;
