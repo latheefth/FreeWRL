@@ -468,8 +468,8 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	if (!MYN->_initialized) {
 		FREE_IF_NZ(MYN->enteredText->strptr);
 		FREE_IF_NZ(MYN->finalText->strptr);
-		MYN->enteredText->strptr = MALLOC(MAXSTRINGLEN+1);
-		MYN->finalText->strptr = MALLOC(MAXSTRINGLEN+1);
+		MYN->enteredText->strptr = MALLOC(char *, MAXSTRINGLEN+1);
+		MYN->finalText->strptr = MALLOC(char *, MAXSTRINGLEN+1);
 		MYN->enteredText->len=1;
 		MYN->finalText->len=1;
 		MYN->enteredText->strptr[0] = '\0';

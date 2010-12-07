@@ -59,7 +59,7 @@ size_t __fw_strnlen(const char *s, size_t maxlen)
 char *__fw_strndup(const char *s, size_t n)
 {
     size_t len = strnlen(s, n);
-    char *new = MALLOC(len + 1);
+    char *new = MALLOC(char *, len + 1);
     
     if (!new)
 	return NULL;

@@ -279,7 +279,7 @@ void Snapshot () {
 	#ifdef AQUA	
 		/* OSX needs 32 bits per byte. */
 		/* MALLOC 4 bytes per pixel */
-		buffer = MALLOC (4*screenWidth*screenHeight*sizeof(char));
+		buffer = MALLOC (char *, 4*screenWidth*screenHeight*sizeof(char));
 	
 		/* grab the data */
 		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);

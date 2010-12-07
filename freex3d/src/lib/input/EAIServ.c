@@ -244,7 +244,7 @@ int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 		EAIbufcount = 0;
 		EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
 		EBUFFLOCK;
-		EAIbuffer = (char *)MALLOC(EAIbufsize * sizeof (char));
+		EAIbuffer = MALLOC(char *, EAIbufsize * sizeof (char));
 		EBUFFUNLOCK;
 
 		/* zero out the EAIListenerData here, and after every use */

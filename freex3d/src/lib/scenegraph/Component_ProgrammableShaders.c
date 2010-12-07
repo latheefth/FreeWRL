@@ -245,7 +245,7 @@ static void shaderErrorLog(GLuint myShader) {
 			} \
 			if (node->__shaderIDS.n == 0) { \
 				node->__shaderIDS.n = 1; \
-				node->__shaderIDS.p = MALLOC(sizeof (GLuint)); \
+				node->__shaderIDS.p = MALLOC(GLuint *, sizeof (GLuint)); \
 				node->__shaderIDS.p[0] = (int)myProgram; \
 			} \
 		}
@@ -256,7 +256,7 @@ static void shaderErrorLog(GLuint myShader) {
 			LINK_SHADER(myProgram); \
 			if (node->__shaderIDS.n == 0) { \
 				node->__shaderIDS.n = 1; \
-				node->__shaderIDS.p = MALLOC(sizeof (GLuint)); \
+				node->__shaderIDS.p = MALLOC(GLuint *, sizeof (GLuint)); \
 				node->__shaderIDS.p[0] = (int)myProgram; \
 			} \
 		}
@@ -896,8 +896,8 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		haveFragShaderText = FALSE;
 		myProgram = CREATE_PROGRAM;
 
-		vertShaderSource = MALLOC(sizeof(GLchar*) * node->parts.n); 
-		fragShaderSource = MALLOC(sizeof(GLchar*) * node->parts.n);
+		vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n); 
+		fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n);
 	
 		/* set this up... set it to FALSE if there are problems */
 		node->isValid = TRUE;
@@ -936,8 +936,8 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		haveFragShaderText = FALSE;
 		myProgram = CREATE_PROGRAM;
 	
-		vertShaderSource = MALLOC(sizeof(GLchar*) * node->programs.n); 
-		fragShaderSource = MALLOC(sizeof(GLchar*) * node->programs.n);
+		vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->programs.n); 
+		fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->programs.n);
 	
 		/* set this up... set it to FALSE if there are problems */
 		node->isValid = TRUE;

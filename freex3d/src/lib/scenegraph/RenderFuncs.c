@@ -945,7 +945,7 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 		node->_nparents = 0; /* for possible threading issues */
 		node->_nparalloc += 10;
 		if (node->_parents == NULL)  {
-			node->_parents = (void **)MALLOC(sizeof(node->_parents[0])* node->_nparalloc) ;
+			node->_parents = MALLOC(void **, sizeof(node->_parents[0])* node->_nparalloc) ;
 		} else {
 			node->_parents = (void **)REALLOC(node->_parents, sizeof(node->_parents[0])*
 							  node->_nparalloc) ;

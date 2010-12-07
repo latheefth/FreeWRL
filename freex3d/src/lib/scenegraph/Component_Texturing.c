@@ -119,7 +119,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		/* possibly, if we are using VBOs, we might have an issue with freed memory */
 		/* so we do this in 2 steps */
 		if (!node->__compiledpoint.p) {
-			node->__compiledpoint.p = (struct SFVec2f *) MALLOC (sizeof(float) *2 * node->__compiledpoint.n);
+			node->__compiledpoint.p = (struct SFVec2f *) MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * node->__compiledpoint.n);
 		}
 	
 		fptr = (float *) node->__compiledpoint.p;

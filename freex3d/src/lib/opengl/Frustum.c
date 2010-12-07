@@ -771,8 +771,8 @@ void OcclusionStartofEventLoop() {
 				   so we don't have to realloc too much */
 				OccQuerySize = maxOccludersFound + 1000;
 
-				occluderNodePointer = MALLOC (sizeof (void *) * OccQuerySize);
-				OccQueries = MALLOC (sizeof(int) * OccQuerySize);
+				occluderNodePointer = MALLOC (void **, sizeof (void *) * OccQuerySize);
+				OccQueries = MALLOC (GLuint *, sizeof(GLuint) * OccQuerySize);
 	                	FW_GL_GENQUERIES(OccQuerySize,OccQueries);
 				OccInitialized = TRUE;
 				for (i=0; i<OccQuerySize; i++) {

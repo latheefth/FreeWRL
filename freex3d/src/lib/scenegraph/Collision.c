@@ -411,7 +411,7 @@ int helper_poly_clip_cap(struct point_XYZ* clippedpoly, int clippedpolynum, cons
     int i;
 
     if(!stepping) {
-		ppoly = (struct point_XYZ*) MALLOC(sizeof(struct point_XYZ) * num);
+		ppoly = MALLOC(struct point_XYZ*, sizeof(struct point_XYZ) * num);
 
 		/*sqush poly on cylinder cap plane.*/
 		for(i= 0; i < num; i++) {
@@ -2306,7 +2306,7 @@ struct point_XYZ elevationgrid_disp( double y1, double y2, double ystep, double 
     if(!pr.cindex || !pr.actualCoord)
 	printf("ZERO PTR! WE ARE DOOMED!\n");
 
-    newc = (float*)MALLOC(xdim*zdim*3*sizeof(float)); /* big chunk will be uninitialized.*/
+    newc = MALLOC(float *, xdim*zdim*3*sizeof(float)); /* big chunk will be uninitialized.*/
     /*  transform points that will be used.*/
     for(z = z1; z <= z2; z++)
 	for(x = x1; x <= x2; x++) {

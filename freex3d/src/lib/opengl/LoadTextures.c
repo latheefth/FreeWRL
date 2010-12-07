@@ -148,7 +148,7 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	this_tex->y = hei;
 	this_tex->hasAlpha = ((depth == 2) || (depth == 4));
 
-	texture = (unsigned char *)MALLOC (wid*hei*4);
+	texture = MALLOC (unsigned char *, wid*hei*4);
 	this_tex->texdata = texture; /* this will be freed when texture opengl-ized */
 	this_tex->status = TEX_NEEDSBINDING;
 
@@ -243,7 +243,7 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
 
 		/* Allocate memory for image data. This is the destination in memory
 		   where any drawing to the bitmap context will be rendered. */
-		bitmapData = MALLOC( bitmapByteCount );
+		bitmapData = MALLOC(void *, bitmapByteCount );
 
 		if (bitmapData == NULL) {
 		    fprintf (stderr, "Memory not allocated!");

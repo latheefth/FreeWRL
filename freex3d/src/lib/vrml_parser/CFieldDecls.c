@@ -51,7 +51,7 @@ $Id$
 
 struct FieldDecl* newFieldDecl(indexT mode, indexT type, indexT name, int JSname, int shv)
 {
- struct FieldDecl* ret=MALLOC(sizeof(struct FieldDecl));
+ struct FieldDecl* ret=MALLOC(struct FieldDecl *, sizeof(struct FieldDecl));
  ret->PKWmode=mode;
  ret->fieldType=type;
  ret->lexerNameIndex=name;

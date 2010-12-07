@@ -303,7 +303,7 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 		if (strncmp(inputstring,"#VRML V2.0", 6) == 0) {
 			sendIn = inputstring;
 		} else {
-			newString = MALLOC (strlen(inputstring) + strlen ("#VRML V2.0 utf8\n") + 3);
+			newString = MALLOC (char *, strlen(inputstring) + strlen ("#VRML V2.0 utf8\n") + 3);
 			strcpy (newString,"#VRML V2.0 utf8\n");
 			strcat (newString,inputstring);
 			sendIn = newString;
