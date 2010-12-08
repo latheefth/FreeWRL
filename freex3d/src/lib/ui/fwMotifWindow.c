@@ -590,7 +590,7 @@ void freewrlHomePopup (Widget w, XtPointer data, XtPointer callData)
 	if (!browser) {
 		browser = BROWSER;
 	}
-	sysline = MALLOC(strlen(browser)+strlen(pattern));
+	sysline = MALLOC(char *, strlen(browser)+strlen(pattern));
 	sprintf(sysline, pattern, browser);
 
 	freewrlSystem(sysline);
@@ -971,7 +971,7 @@ void setConsoleMessage (char *str)
                 
         /* put the text here */
         nl = strlen(str);
-        tptr = MALLOC (nl+10);
+        tptr = MALLOC (char *, nl+10);
         strcpy (tptr,str);
                         
         /* copy old string, if it exists */

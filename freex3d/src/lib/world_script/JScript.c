@@ -645,7 +645,7 @@ static char* re_strcat(char *_Dest, char *_Source, int *destLen, int *destDim)
 	   Usage example:
 		dstdim = (rows+1)*(elements*15) + 100; //a guess
 		dstlen = 0;
-		smallfield = MALLOC (dstdim+1); //rows+1)*(elements*15) + 100);
+		smallfield = MALLOC (char *, dstdim+1); //rows+1)*(elements*15) + 100);
 		smallfield[0] = '\0';
 		...
 		for(;;)
