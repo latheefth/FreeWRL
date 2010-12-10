@@ -37,6 +37,7 @@ Proximity sensor macro.
 #define INLINE_STABLE 10
 
 /* function protos */
+void registerOSCNode(struct X3D_Node *node);
 void registerReWireNode(struct X3D_Node *node);
 void load_Inline (struct X3D_Inline *node);
 
