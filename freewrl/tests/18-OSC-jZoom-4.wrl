@@ -1,0 +1,554 @@
+#VRML V2.0 utf8
+
+PROTO Cursor [
+
+ exposedField SFInt32 currX 0
+ exposedField SFInt32 currY 0
+
+ eventIn       MFInt32 set_P_colorIndex
+ eventIn       MFInt32 set_P_coordIndex
+
+ exposedField  SFNode  P_color NULL
+ exposedField  SFNode  P_coord NULL
+ field         MFInt32 P_colorIndex []
+ field         SFBool  P_colorPerVertex TRUE
+ field         MFInt32 P_coordIndex []
+]
+{ IndexedLineSet {
+	set_colorIndex IS set_P_colorIndex
+	set_coordIndex IS set_P_coordIndex
+	color IS P_color
+	coord IS P_coord
+	colorIndex IS P_colorIndex
+	colorPerVertex IS P_colorPerVertex
+	coordIndex IS P_coordIndex
+	}
+}
+
+DEF V1 Viewpoint {
+	description "Joystick"
+	position 0 0 10
+	orientation 1 0 0 0
+}
+
+Group {
+       children [
+		Shape {
+			appearance Appearance {
+				material Material {
+					emissiveColor 1.0 1.0 1.0
+				}
+			}
+			geometry DEF CURSOR_1 Cursor {
+				currX -99
+				currY -99
+				P_coord Coordinate {
+					point [
+					# Coordinates around the top of the cube
+						-1.0  1.0  1.0,
+						 1.0  1.0  1.0,
+						 1.0  1.0 -1.0,
+						-1.0  1.0 -1.0,
+					# Coordinates around the bottom of the cube
+						-1.0 -1.0  1.0,
+						 1.0 -1.0  1.0,
+						 1.0 -1.0 -1.0,
+						-1.0 -1.0 -1.0
+					]
+				}
+				P_coordIndex [
+				# top
+					0, 1, 2, 3, 0, -1,
+				# bottom
+					4, 5, 6, 7, 4, -1,
+				# vertical edges
+					0, 4, -1,
+					1, 5, -1,
+					2, 6, -1,
+					3, 7
+				]
+			}
+		}
+	       Shape { appearance Appearance {
+                                       material DEF mat Material {
+                                               emissiveColor 0.2 0.2 0.5
+                                               transparency 0.05
+						} }
+                       geometry DEF sfere Sphere {}
+               }
+
+	       Shape { appearance Appearance {
+                                       material Material {
+                                               emissiveColor 1.0 0.0 0.0
+                                               transparency 0.0
+						} }
+                       geometry Cylinder {
+				bottom FALSE
+				side TRUE
+				top TRUE
+				radius 0.25
+				height 2.1
+			}
+               }
+
+
+		Transform {
+			translation 1.0 0 0
+			children 
+			       Shape { appearance Appearance {
+						       material Material {
+							       emissiveColor 1.0 0.0 0.0
+							       transparency 0.0
+								} }
+				       geometry Box {
+						size 0.25 0.25 0.25
+					}
+				}
+		
+		}
+
+
+	    Billboard {
+	      axisOfRotation 0 0 0    # Screen-aligned
+	      children [
+
+		Transform {
+		  #translation 10.0 20 -9.0
+		  translation -10.0 5.0 -5.0
+		  children [
+				Shape {
+					appearance Appearance { material Material { emissiveColor 1.0 0.5 0.5 } }
+					geometry DEF message Text {
+					      string [ "OSC data ....", "" ]
+					      fontStyle FontStyle { size 0.50 family "SANS" style "PLAIN" justify "LEFT" }
+					}
+				}
+		  ]
+		}
+	    ] }
+
+
+
+
+       ]
+}
+
+DEF O1 OSC_Sensor {
+	enabled TRUE 
+	description "OSC joystick 1"
+	protocol "UDP"
+	port 7770
+	filter "/joystick/proportional/axis"
+	listenfor "iii"
+	handler "default"
+	talksTo [ "V1" ]
+	FIFOsize 64
+}
+
+
+DEF joystickController Script {
+	directOutput TRUE
+
+#
+# For use in all 'proportional' functions
+#
+	field SFNode o USE O1
+	field SFInt32 ControllerNo 0
+	field SFInt32 Axis 0
+	field SFInt32 ControllerValue 0
+	field SFInt32 Outstanding 0
+	field SFString myString ""
+
+	field SFNode m USE message 
+
+#
+# Increase the sphere radius based on the controller input
+#
+	eventIn SFInt32 sphereSize
+	field SFNode s USE sfere
+	field SFFloat radius 0.1
+#
+# Track a cursor. dependaent on PROTO working.
+#
+	eventIn SFInt32 trackCursor
+	field SFNode c USE CURSOR_1
+	field SFInt32 myCurrX 0
+	field SFInt32 myCurrY 0
+
+#
+# Change the fieldOfView of a Viewpoint
+#
+	eventIn SFInt32 zoom
+	field SFNode v USE V1
+
+#
+# Travel a sphere (via a Viewpoint)
+#
+	eventIn SFInt32 travel
+	field SFVec3f pos 0 0 0
+	field SFRotation rot 0 0 1 0
+
+	url "javascript:
+
+/* ******************************************************************************** */
+/*
+ * 3D library
+ *
+ * ******************************************************************************** */
+
+/*
+        JavaScript version of 29 Oct 1997 by Kevin Laurent, klaurent@usgs.gov,
+        U.S. Geological Survey, Reston, VA, based on the C version by Stephen Chenney.
+        The Chenney copyright header appears below.
+*/
+
+/*
+**    orient.c: Code to convert a from/at/up cmaera model to the orientation
+**              model used by VRML.
+**    Copyright (C) 1995  Stephen Chenney (schenney@cs.berkeley.edu)
+**
+**    This program is free software; you can redistribute it and/or modify
+**    it under the terms of the GNU General Public License as published by
+**    the Free Software Foundation; either version 2 of the License, or
+**    (at your option) any later version.
+**
+**    This program is distributed in the hope that it will be useful,
+**    but WITHOUT ANY WARRANTY; without even the implied warranty of
+**    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**    GNU General Public License for more details.
+**
+**    You should have received a copy of the GNU General Public License
+**    along with this program; if not, write to the Free Software
+**    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+*/
+
+/*
+** Written by Stephen Chenney, October 1995.
+** schenney@cs.berkeley.edu
+*/
+
+/*
+** As is this program prompts for a from vector, an at vector and an up
+** vector, then calculates the orientation required to align the default
+** VRML camera with the given camera.
+**
+** As a standalone program it does fine.
+** You are welcome to incorporate it into any other program you write, and
+** to modify it as required. However, it would be good if you left it all
+** in one file, and left the GNU header at the top. You probably shouldn't
+** sell it either.
+*/
+
+var rotAxis, rotAngle;
+function vMod () {
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+}
+function vDot (v2) {
+        return this.x * v2.x + this.y * v2.y + this.z * v2.z;
+}
+function vAdd (v2) {
+        var r;
+        r = new Vector ((this.x + v2.x), (this.y + v2.y), (this.z + v2.z));
+        return r;
+}
+function vSub (v2) {
+        var r;
+        r = new Vector ((this.x - v2.x), (this.y - v2.y), (this.z - v2.z));
+        return r;
+}
+function vCross (v2) {
+        var r;
+        r = new Vector ((this.y * v2.z - this.z * v2.y),
+                        (this.z * v2.x - this.x * v2.z),
+                        (this.x * v2.y - this.y * v2.x));
+//      alert('r(in vCross): '+r.x+' '+r.y+' '+r.z); // ***DEBUG
+        return r;
+}
+function vScalarMul (d) {
+        var r;
+        r = new Vector ((this.x * d), (this.y * d), (this.z * d));
+        return r;
+}
+function vUnit () {
+        var t, r;
+        t = 1.0/this.vMod();
+        r = this.vScalarMul (t);
+        return r;
+}
+function Vector (x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.vAdd = vAdd;
+        this.vSub = vSub;
+        this.vCross = vCross;
+        this.vScalarMul = vScalarMul;
+        this.vUnit = vUnit;
+        this.vMod = vMod;
+        this.vDot = vDot;
+}
+function QQMul (q2) {
+        var r, tempV;
+//      alert('q2: '+q2.vectPart.x+' '+q2.vectPart.y+' '+q2.vectPart.z+' '+q2.realPart); // ***DEBUG
+        r = new Quaternion (this.vectPart.vCross(q2.vectPart),
+                (this.realPart * q2.realPart - this.vectPart.vDot(q2.vectPart)));
+        tempV = this.vectPart.vScalarMul(q2.realPart);
+        r.vectPart = tempV.vAdd(r.vectPart);
+//      alert(r.vectPart.x+' '+r.vectPart.y+' '+r.vectPart.z+' '+r.realPart); // ***DEBUG
+        tempV = q2.vectPart.vScalarMul(this.realPart);
+        r.vectPart = tempV.vAdd(r.vectPart);
+        return r;
+}
+function toAxisAngle () {
+        var halfAngle, sinHalfAngle;
+        halfAngle = Math.acos(this.realPart);
+        sinHalfAngle = Math.sin(halfAngle);
+        rotAngle = halfAngle * 2.0;
+        if ((sinHalfAngle < 1e-8) && (sinHalfAngle > -1e-8)) rotAxis = new Vector(1.0,0.0,0.0);
+        else {
+                sinHalfAngle = 1/sinHalfAngle;
+                rotAxis = this.vectPart.vScalarMul(sinHalfAngle);
+        }
+}
+function Quaternion (vectPart, realPart) {
+        this.vectPart = vectPart;
+        this.realPart = realPart;
+        this.QQMul = QQMul;
+        this.toAxisAngle = toAxisAngle;
+}
+function buildRotateQuaternion (axis, cosAngle) {
+        var angle = 0.0, sinHalfAngle = 0.0, cosHalfAngle = 0.0, r;
+        if (cosAngle > 1.0) cosAngle = 1.0;
+        if (cosAngle < -1.0) cosAngle = -1.0;
+        angle = Math.acos(cosAngle);
+        sinHalfAngle = Math.sin(angle/2.0);
+        cosHalfAngle = Math.cos(angle/2.0);
+        r = new Quaternion (axis.vScalarMul(sinHalfAngle), cosHalfAngle);
+        return r;
+}
+function convertCameraModel (pos, at, up, resAxis, resAngle) {
+        var n, tempD, tempV, v, normAxis, normQuat, invNormQuat, yQuat, newYQuat, newY, rotYQuat, rotQuat;
+        n = at.vSub(pos);
+        n = n.vUnit();
+        up = up.vUnit();
+        tempD = up.vDot(n);
+        tempV = n.vScalarMul(tempD);
+        v = up.vSub(tempV);
+        v = v.vUnit();
+        normAxis = new Vector(n.y, -n.x, 0);
+        if (normAxis.vDot(normAxis) < 1e-8) {
+                if (n.z > 0.0) normQuat = new Quaternion(new Vector(0.0,1.0,0.0), 1.0);
+                else normQuat = new Quaternion(new Vector(0.0,0.0,0.0), 1.0);
+        }
+        else {
+                normAxis = normAxis.vUnit();
+                normQuat = buildRotateQuaternion(normAxis, -n.z);
+        }
+        invNormQuat = new Quaternion(normQuat.vectPart.vScalarMul(-1),normQuat.realPart);
+        yQuat = new Quaternion(new Vector(0.0,1.0,0.0),0.0);
+        newYQuat = normQuat.QQMul(yQuat);
+        newYQuat = newYQuat.QQMul(invNormQuat);
+        newY = newYQuat.vectPart;
+        tempV = newY.vCross(v);
+        if (tempV.vDot(tempV) < 1e-8) {
+                tempV = new Vector(0.0, -v.z, v.y);
+                if (tempV.vDot(tempV) < 1e-8) tempV = new Vector(v.z, 0.0, -v.x);
+        }
+        tempV = tempV.vUnit();
+//      alert(tempV.x+' '+tempV.y+' '+tempV.z); // ***DEBUG
+        rotYQuat = buildRotateQuaternion(tempV, newY.vDot(v));
+        rotQuat = rotYQuat.QQMul(normQuat);
+        rotQuat.toAxisAngle();
+}
+function calcView (form) {
+        var pos, at, up;
+        pos = new Vector (eval(form.cameraX.value),eval(form.cameraY.value),
+                        eval(form.cameraZ.value));
+        at = new Vector (eval(form.lookX.value),eval(form.lookY.value),
+                        eval(form.lookZ.value));
+        up = new Vector (eval(form.upX.value),eval(form.upY.value),
+                        eval(form.upZ.value));
+        rotAxis = new Vector(0.0,0.0,0.0);
+        convertCameraModel(pos, at, up, rotAxis, rotAngle);
+        form.orientation.value =
+                'orientation ' + rotAxis.x + ' ' + rotAxis.y + ' ' + rotAxis.z + ' ' + rotAngle;
+}
+
+/* ******************************************************************************** */
+/*
+ * End of 3D library
+ *
+ * ******************************************************************************** */
+			/*
+			 * Speedlink Black Widow
+			 *
+			 * ControllerNo 0 : spring-loaded upright joystick
+			 * ControllerNo 1 : thrust handle + rudder control
+			 * ControllerNo 2 : Hat controller
+			 */
+			/*
+			 * 0.0 right=pos , left=neg
+			 * 0.1 back=pos , forward=neg
+
+			 * 1.2 back=pos , forward=neg
+			 * 1.3 right=pos , left=neg
+
+			 * 2.4 right=pos , left=neg
+			 * 2.5 back=pos , forward=neg
+			 */
+
+	var dummyVar;
+	var prevValue = 0;
+
+	function initialize() {
+		prevValue = 0;
+	}
+
+	
+
+	function trackCursor(gotEvents, timestamp) {
+/*
+		myCurrX = c.currX ;
+		myCurrY = c.currY ;
+*/
+/*
+		c.currX = Math.round(1000*Math.random()) ;
+		c.currY = Math.round(1000*Math.random()) ;
+*/		
+	}
+
+	function travel(gotEvents, timestamp) {
+		/*
+		 * Make several assumptions for the moment
+
+		 * X == zero, ie we are travelling on the YZ plane
+
+		 * We are at Y == zero
+
+		 * Z is positive
+
+		 * Our viewpoint orientation is towards the centre of the universe
+
+		 * The controller range is -32767 to +32767, which we are going to
+		 * map as -PI to +PI
+		 */
+		var oldX , newX ;
+		var oldY , newY ;
+		var oldZ , newZ ;
+		var sRadius ;
+		var theta ;
+
+		rot = v.orientation ;
+		pos = v.position ;
+		oldX = pos[0] ;
+		oldY = pos[1] ;
+		oldZ = pos[2] ;
+
+		sRadius = Math.sqrt(oldY*oldY + oldZ*oldZ);
+		myString  = ' sRadius = ' + String(sRadius);
+
+		Outstanding = o.gotEvents;
+
+		while (Outstanding > 0) {
+
+			ControllerNo = o.int32Inp;
+			Axis = o.int32Inp;
+			ControllerValue = o.int32Inp;
+			if(ControllerNo == 1) {
+				if(Axis == 2) {
+					theta = -ControllerValue * Math.PI/32768;
+					newX = oldX;
+					newY = Math.round(100*sRadius*Math.sin(theta))/100;
+					newZ = Math.round(100*sRadius*Math.cos(theta))/100;
+					rot[0] = 1 ;
+					rot[1] = 0 ;
+					rot[2] = 0 ;
+					rot[3] = -theta ;
+
+					pos[0] = newX ;
+					pos[1] = newY ;
+					pos[2] = newZ ;
+					
+
+					myString = 'gotEvents=' + String(Outstanding) + ' new=' + String(ControllerValue) + ' theta=' + String(Math.round(1000*theta)/1000) + ' newY=' + String(newY) + ' newZ=' + String(newZ) ;
+					prevValue =	ControllerValue ; 
+				}
+			}
+			Outstanding--;
+			o.gotEvents=Outstanding;
+		}
+		v.orientation = rot ;
+		v.position = pos ;
+		m.string[0] = myString ;
+	}
+
+	function zoom(gotEvents, timestamp) {
+		Outstanding = o.gotEvents;
+
+		while (Outstanding > 0) {
+
+			ControllerNo = o.int32Inp;
+			Axis = o.int32Inp;
+			ControllerValue = o.int32Inp;
+			if(ControllerNo == 1) {
+				if(Axis == 2) {
+					fieldOfView = v.fieldOfView;
+					if (ControllerValue < prevValue) {
+						myString = 'gotEvents=' + String(Outstanding) + ' +++ ' + 'old=' + String(prevValue) + 'new=' + String(ControllerValue);
+						fieldOfView = fieldOfView / 1.01 ;	
+					} else {
+						if (ControllerValue > prevValue) {
+							myString = 'gotEvents=' + String(Outstanding) + ' --- ' + 'old=' + String(prevValue) + 'new=' + String(ControllerValue);
+							fieldOfView = 1.01 * fieldOfView;	
+						}
+					}
+					v.fieldOfView = fieldOfView;
+					prevValue =	ControllerValue ; 
+
+					m.string[0] = myString ;
+				}
+			}
+			Outstanding--;
+			o.gotEvents=Outstanding;
+		}
+	}
+
+	function sphereSize(gotEvents, timestamp) {
+
+		/*
+		 * gotEvents tell us how long the queue of events is.
+		 */
+		Outstanding = o.gotEvents;
+
+		while (Outstanding > 0) {
+
+			ControllerNo = o.int32Inp;
+			Axis = o.int32Inp;
+			ControllerValue = o.int32Inp;
+			if(ControllerNo == 1) {
+				if(Axis == 2) {
+					radius = s.radius;
+					if (ControllerValue < prevValue) {
+						myString = 'gotEvents=' + String(Outstanding) + ' +++ ' + 'old=' + String(prevValue) + 'new=' + String(ControllerValue);
+						radius = 1.01 * radius;	
+					} else {
+						if (ControllerValue > prevValue) {
+							myString = 'gotEvents=' + String(Outstanding) + ' --- ' + 'old=' + String(prevValue) + 'new=' + String(ControllerValue);
+							radius = radius / 1.01 ;	
+						}
+					}
+					s.radius = radius;
+					prevValue =	ControllerValue ; 
+
+					m.string[0] = myString ;
+				}
+			}
+			Outstanding--;
+			o.gotEvents=Outstanding;
+		}
+	}"
+}
+
+#ROUTE O1.gotEvents TO joystickController.sphereSize
+#ROUTE O1.gotEvents TO joystickController.zoom
+ROUTE O1.gotEvents TO joystickController.travel
