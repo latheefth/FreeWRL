@@ -8,8 +8,10 @@ import java.util.*;
 import java.awt.*;
 import vrml.external.*;
 class FreeWRLFactory implements BrowserFactoryImpl {
-	public ExternalBrowser getBrowser(Applet applet) throws NotSupportedException, NoSuchBrowserException {
-		return new FreeWRLBrowser(applet);	
+//	public ExternalBrowser getBrowser(Applet applet) throws NotSupportedException, NoSuchBrowserException {
+//		return new FreeWRLBrowser(applet);	
+	public ExternalBrowser getBrowser() throws NotSupportedException, NoSuchBrowserException {
+		return new FreeWRLBrowser();	
 	}
 
 	public ExternalBrowser getBrowser(Applet applet, String frameName, int index) throws NotSupportedException, NoSuchBrowserException {

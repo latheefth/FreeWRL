@@ -88,21 +88,28 @@ public class FreeWRLNode implements X3DNode {
 	}
 	public X3DField getField(String fieldName) throws InvalidNameException, InvalidNodeException, ConnectionException {
 		FreeWRLField ret;
+		String NNPR, NOFF, NDS, NewDT, ScrT, access;
 		String NNN = "nodeFrom_getEventIn";
 		StringTokenizer tokens;
-
+		NNPR = NOFF = NDS = NewDT = ScrT = access = new String();
 		checkValid();
 		
 		// Return the type that is asked for.  To determine the subclass, look at the string.
 		String st = browser.SendEventType(perlPtr, ptr, fieldName, "eventIn");
-		
+		System.out.println("st = "+st);
 		tokens = new StringTokenizer(st);
-		String NNPR = tokens.nextToken();
-		String NOFF = tokens.nextToken();
-		String NDS = tokens.nextToken();
-		String NewDT = tokens.nextToken();
-		String ScrT = tokens.nextToken();
-		String access = tokens.nextToken();
+		if(tokens.hasMoreTokens())
+			NNPR = tokens.nextToken();
+		if(tokens.hasMoreTokens())
+			NOFF = tokens.nextToken();
+		if(tokens.hasMoreTokens())
+			NDS = tokens.nextToken();
+		if(tokens.hasMoreTokens())
+			NewDT = tokens.nextToken();
+		if(tokens.hasMoreTokens())
+			ScrT = tokens.nextToken();
+		if(tokens.hasMoreTokens())
+			access = tokens.nextToken();
 
 		if (access.equals("FreeWRLPTR")) {
 			throw new InvalidFieldException("Field name " + fieldName + " is not a valid field for this node");

@@ -9,7 +9,7 @@ public class BrowserFactory {
 
 	private static BrowserFactoryImpl freewrlFactory;
 	private static Properties freewrlProperties;
-
+	private static ExternalBrowser b; 
 	static {
 	
 		freewrlProperties = new Properties();
@@ -25,6 +25,7 @@ public class BrowserFactory {
 				System.out.println(e);
 			}
 		}
+		b = null;
 	}
 
 	
@@ -51,14 +52,18 @@ public class BrowserFactory {
 		return freewrlFactory.createX3DComponent(params);
 	}
 	
-	public static ExternalBrowser getBrowser(Applet applet) throws NotSupportedException, NoSuchBrowserException {
+	//public static ExternalBrowser getBrowser(Applet applet) throws NotSupportedException, NoSuchBrowserException {
+	public static ExternalBrowser getBrowser() throws NotSupportedException, NoSuchBrowserException {
 		if (freewrlFactory == null)
 			loadFactory();
 
-		ExternalBrowser b = freewrlFactory.getBrowser(applet);
+		//ExternalBrowser b = freewrlFactory.getBrowser(applet);
+		//ExternalBrowser b = freewrlFactory.getBrowser();
+		if(b == null)
+			b = freewrlFactory.getBrowser();
 
 		if (b == null) {
-			throw new NoSuchBrowserException("getBrowser(Applet): no such browser found");
+			throw new NoSuchBrowserException("getBrowser(): no such browser found");
 		}
 
 		return b;
@@ -68,7 +73,10 @@ public class BrowserFactory {
 		if (freewrlFactory == null)
 			loadFactory();
 
-                ExternalBrowser b = freewrlFactory.getBrowser(applet);
+                //ExternalBrowser b = freewrlFactory.getBrowser(applet);
+                //ExternalBrowser b = freewrlFactory.getBrowser();
+				if(b == null)
+					b = freewrlFactory.getBrowser();
 
                 if (b == null) {
                         throw new NoSuchBrowserException("getBrowser(Applet, String, int): no such browser found");
@@ -81,8 +89,9 @@ public class BrowserFactory {
 	public static ExternalBrowser getBrowser(InetAddress address, int port) throws NotSupportedException, NoSuchBrowserException, UnknownHostException, ConnectionException {
 		if (freewrlFactory == null)
 			loadFactory();
-
-		return freewrlFactory.getBrowser(address, port);
+		if(b == null)
+			b = freewrlFactory.getBrowser(address, port);
+		return b;
 	}
 
 	private static void loadFactory() {

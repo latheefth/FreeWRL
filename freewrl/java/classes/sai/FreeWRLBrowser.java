@@ -10,7 +10,7 @@ import java.util.*;
 import java.applet.*;
 import java.net.*;
 import java.io.*;
-import vrml.external.exception.*;
+//import vrml.external.exception.*;
 import sai.eai.*;
 import java.lang.System;
 import javax.swing.event.*;
@@ -141,7 +141,8 @@ public class FreeWRLBrowser implements ExternalBrowser, BrowserInterface
 		BrowserfromEAI = new BufferedReader (BrowserfromEAIPipe);
 
 		// Start the readfrom FREEWRL thread...
-		FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, EAIinThreadtoBrowser, this));
+		//FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, EAIinThreadtoBrowser, this));
+		FreeWRLThread = new Thread ( new EAIinThread(sock, EAIinThreadtoBrowser, this));
 		FreeWRLThread.start();
 
 		//====================================================================
@@ -173,7 +174,8 @@ public class FreeWRLBrowser implements ExternalBrowser, BrowserInterface
 	}
 
 	// Associates this instance with the first embedded plugin in the current frame.
-	public FreeWRLBrowser(Applet pApplet) {
+	//public FreeWRLBrowser(Applet pApplet) {
+	public FreeWRLBrowser() {
 		int counter;
 		int incrport = -1;
 		EAISocket = null;
@@ -212,7 +214,8 @@ public class FreeWRLBrowser implements ExternalBrowser, BrowserInterface
 		BrowserfromEAI = new BufferedReader (BrowserfromEAIPipe);
 
   		// Start the readfrom FREEWRL thread...
-	   	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, EAIinThreadtoBrowser, this));
+	   	//FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, EAIinThreadtoBrowser, this));
+	   	FreeWRLThread = new Thread ( new EAIinThread(sock, EAIinThreadtoBrowser, this));
 		FreeWRLThread.start();
 
 		//====================================================================
@@ -663,8 +666,8 @@ public class FreeWRLBrowser implements ExternalBrowser, BrowserInterface
 			retval = getVRMLreply(queryno);
 			System.out.println("GOT RETVAL: " + retval);
 			tokens = new StringTokenizer(retval);
-			temp.setPerlPtr(tokens.nextToken());
-			temp.setPointer(tokens.nextToken());
+			if(tokens.hasMoreTokens() ) temp.setPerlPtr(tokens.nextToken());
+			if(tokens.hasMoreTokens() ) temp.setPointer(tokens.nextToken());
 			queryno += 1;
 		}
 		if (((temp.getPerlPtr()).equals(NodeName)) || ((temp.getPerlPtr()).equals("-1"))) {
@@ -722,7 +725,10 @@ public class FreeWRLBrowser implements ExternalBrowser, BrowserInterface
       String retval;
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "F " + NodeName + " " + ptr + " " + FieldName + " " + direction + "\n");
+    	String ptrn = "";
+    	if(ptr != null)
+    		ptrn = ptr;
+        EAIoutSender.send ("" + queryno + "F " + NodeName + " " + ptrn + " " + FieldName + " " + direction + "\n");
         retval = getVRMLreply(queryno);
         queryno += 1;
       }

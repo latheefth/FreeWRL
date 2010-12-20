@@ -3,7 +3,7 @@ package sai.eai;
 import org.web3d.x3d.sai.*;
 import sai.*;
 
-import java.applet.*;
+//import java.applet.*;
 import java.net.*;
 import java.io.*;
 
@@ -14,7 +14,7 @@ public  class EAIinThread implements Runnable {
 	// DataInputStream	EAIin;
 	BufferedReader	EAIin;
 	Socket		sock;
-	Applet		FreeWLRSceneInterface;
+	//Applet		FreeWLRSceneInterface;
 	BrowserInterface 	mybrowser;
 
 	boolean debug = false;
@@ -27,10 +27,11 @@ public  class EAIinThread implements Runnable {
 	private PrintWriter EAItoBrowserPrintWriter = null;
 
 	// Initialization - get the socket and the FreeWLRSceneInterfaces thread
-	public EAIinThread (Socket s, Applet d, PrintWriter pwtoBrowserjava, BrowserInterface me) {
+	//public EAIinThread (Socket s, Applet d, PrintWriter pwtoBrowserjava, BrowserInterface me) {
+	public EAIinThread (Socket s, PrintWriter pwtoBrowserjava, BrowserInterface me) {
 
 		sock = s;
-		FreeWLRSceneInterface=d;
+		//FreeWLRSceneInterface=d;
 		mybrowser=me;
 		EAItoBrowserPrintWriter = pwtoBrowserjava;
 	}

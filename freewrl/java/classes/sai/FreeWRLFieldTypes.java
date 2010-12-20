@@ -154,6 +154,7 @@ public class FreeWRLFieldTypes implements X3DFieldTypes {
 		accessTypesc.put("field", new Integer(INITIALIZE_ONLY));
 		accessTypesc.put("exposedField", new Integer(INPUT_OUTPUT));
 		accessTypesc.put("eventOut", new Integer(OUTPUT_ONLY));
+		accessTypesc.put("inputOutput", new Integer(INPUT_OUTPUT));
 
 		accessTypesb = new HashMap();
 		accessTypesb.put(new Integer(INPUT_ONLY), "INPUT_ONLY");
