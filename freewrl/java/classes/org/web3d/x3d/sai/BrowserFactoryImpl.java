@@ -7,7 +7,8 @@ import java.awt.*;
 
 public interface BrowserFactoryImpl {
 
-	public ExternalBrowser getBrowser(Applet applet) throws NotSupportedException, NoSuchBrowserException, ConnectionException;
+	//public ExternalBrowser getBrowser(Applet applet) throws NotSupportedException, NoSuchBrowserException, ConnectionException;
+	public ExternalBrowser getBrowser() throws NotSupportedException, NoSuchBrowserException, ConnectionException;
 
 	public ExternalBrowser getBrowser(Applet applet, String frameName, int index) throws NotSupportedException, NoSuchBrowserException, ConnectionException;
 
