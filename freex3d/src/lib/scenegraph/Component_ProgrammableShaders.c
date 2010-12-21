@@ -876,6 +876,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	DEBUG_SHADER("called compile_ComposedShader(%p)\n",(void *)node);
+	printf("called compile_ComposedShader(%p)\n",(void *)node);
 	#ifdef HAVE_SHADERS
 	{
 		/* an array of text pointers, should contain shader source */

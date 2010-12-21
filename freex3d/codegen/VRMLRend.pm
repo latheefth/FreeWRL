@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.38  2010/12/21 20:10:33  crc_canada
+# some code changes for Geometry Shaders.
+#
 # Revision 1.37  2010/12/10 17:17:19  davejoubert
 # Add OSC capability to FreeWRL. This update is spread across several files,
 # but the two post important changed are in codegen/VRMLNodes.pm and
@@ -774,6 +777,7 @@
 # Compile --
 #
 %CompileC = map {($_=>1)} qw/
+	Shape
 	ImageCubeMap
 	Transform
 	Group
