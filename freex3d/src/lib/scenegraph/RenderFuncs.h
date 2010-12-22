@@ -30,6 +30,28 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 #define __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 
+void chooseBackgroundShader (shader_type_t);
+void setCurrentShader(s_shader_capabilities_t *);
+
+void turnGlobalShaderOff(void);
+
+#ifdef GL_VERSION_2_0
+	#define TURN_GLOBAL_SHADER_OFF \
+		turnGlobalShaderOff()
+	#define TURN_FILLPROPERTIES_SHADER_OFF \
+		{if (fillpropCurrentShader!=0) { glUseProgram(0);}}
+#else
+	#ifdef GL_VERSION_1_5
+		#define TURN_GLOBAL_SHADER_OFF \
+		turnGlobalShaderOff()
+		#define TURN_FILLPROPERTIES_SHADER_OFF \
+			{if (fillpropCurrentShader!=0) { fillpropCurrentShader = 0; glUseProgramObjectARB(0);}}
+	#else
+		#define TURN_GLOBAL_SHADER_OFF
+		#define TURN_FILLPROPERTIES_SHADER_OFF
+	#endif
+#endif
+
 /* trat: test if a ratio is reasonable */
 #define TRAT(a) ((a) > 0 && ((a) < hitPointDist || hitPointDist < 0))
 

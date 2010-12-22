@@ -771,23 +771,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
 #define make_GeoElevationGrid make_genericfaceset
 
 
-#ifdef GL_VERSION_2_0
-	#define TURN_APPEARANCE_SHADER_OFF \
-		{if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgram(0);}}
-	#define TURN_FILLPROPERTIES_SHADER_OFF \
-		{if (fillpropCurrentShader!=0) { glUseProgram(0);}}
-#else
-	#ifdef GL_VERSION_1_5
-		#define TURN_APPEARANCE_SHADER_OFF \
-			{if (globalCurrentShader!=0) { globalCurrentShader = 0; glUseProgramObjectARB(0);}}
-		#define TURN_FILLPROPERTIES_SHADER_OFF \
-			{if (fillpropCurrentShader!=0) { fillpropCurrentShader = 0; glUseProgramObjectARB(0);}}
-	#else
-		#define TURN_APPEARANCE_SHADER_OFF
-		#define TURN_FILLPROPERTIES_SHADER_OFF
-	#endif
-#endif
-
 void prep_MidiControl (struct X3D_MidiControl *node);
 void do_MidiControl (void *node);
 void MIDIRegisterMIDI(char *str);
