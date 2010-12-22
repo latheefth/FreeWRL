@@ -83,16 +83,19 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
+/*
 	letSystemChooseShader,		// special case; instruct FreeWRL to find a shader
+*/
 	backgroundSphereShader,
 	backgroundTextureBoxShader,
-	noAppearanceNoMaterialShader,
+/*	noAppearanceNoMaterialShader,
 	noLightNoTextureAppearanceShader,
 	genericHeadlightNoTextureAppearanceShader,
 	multiLightNoTextureAppearanceShader,
 	headlightOneTextureAppearanceShader,
 	headlightMultiTextureAppearanceShader,
 	multiLightMultiTextureAppearanceShader
+*/
 } shader_type_t;
 
 
