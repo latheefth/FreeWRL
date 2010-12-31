@@ -159,7 +159,13 @@ bool global_occlusion_disable = FALSE;
 unsigned global_texture_size = 0;
 bool global_print_opengl_errors = FALSE;
 bool global_trace_threads = FALSE;
+
+/* having trouble with VBOs, make false unless otherwise told to do so */
+#ifdef SHADERS_2011
 bool global_use_VBOs = TRUE;
+#else
+bool global_use_VBOs = FALSE;
+#endif /* SHADERS_2011 */
 
 #ifdef OLD_SHADER_CODE
 OLD_SHADER_CODE bool global_use_shaders_when_possible = FALSE;
