@@ -78,6 +78,8 @@ extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
 extern char *OSX_replace_world_from_console;
 
+extern GLint lightOnOff[];
+
 
 void lightState(GLint light, int status);
 void saveLightState(int *ls);
