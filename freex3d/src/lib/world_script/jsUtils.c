@@ -182,6 +182,7 @@ static void JS_ECMA_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int data
 			memcpy (Data, (void *) &fl, datalen);
 			break;
 		}
+		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:	{
 			if (!JS_ValueToNumber(cx,*newval,&dl)) {
 				printf ("problems converting Javascript val to number\n");
@@ -319,6 +320,7 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval 
 			*newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)fl));
 			break;
 		}
+		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:	{
 			memcpy ((void *) &dl, Data, datalen);
 			*newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,dl));
@@ -1022,6 +1024,7 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFFloat:
 		case FIELDTYPE_SFTime:
+		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFString:
 			X3D_ECMA_TO_JS(context, offsetPointer_deref (void *, node, *(fieldOffsetsPtr+1)),
@@ -1126,6 +1129,7 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp) {
 		case FIELDTYPE_SFBool:
 		case FIELDTYPE_SFFloat:
 		case FIELDTYPE_SFTime:
+		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFInt32:
 		case FIELDTYPE_SFString:
 			JS_ECMA_TO_X3D(context, ((void *)( ((unsigned char *) node) + *(fieldOffsetsPtr+1))),

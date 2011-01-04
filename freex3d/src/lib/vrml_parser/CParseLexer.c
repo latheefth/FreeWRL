@@ -1097,7 +1097,7 @@ BOOL lexer_double(struct VRMLLexer* me, vrmlDoubleT* ret)
 
   if(negExp)
    exp=-exp;
-  *ret*=(float)(pow(10, exp));
+  *ret*=(pow(10, exp));
  }
  LEXER_UNGETINPUT(c)
 
