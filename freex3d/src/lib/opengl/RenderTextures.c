@@ -257,6 +257,9 @@ void textureDraw_end(void) {
 	}
 
 	/* DISABLE_TEXTURES */
+	/* setting this ENSURES that items, like the HUD, that are not within the normal
+	   rendering path do not try and use textures... */
+	textureStackTop = 0;
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
