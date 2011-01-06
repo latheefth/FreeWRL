@@ -19,7 +19,6 @@
 		26A96F3410066C02005CE65C /* ReWire_Logo.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 262200800BC2BDB200B163E5 /* ReWire_Logo.jpg */; };
 		26A96F3510066C02005CE65C /* VRMLFreeWRLIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2681B5640ED36AB700D7C438 /* VRMLFreeWRLIcon.icns */; };
 		26A96F3610066C02005CE65C /* X3DFreeWRLIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2681B5670ED36AC200D7C438 /* X3DFreeWRLIcon.icns */; };
-		26A96F3810066C02005CE65C /* FreeWRLView.m in Sources */ = {isa = PBXBuildFile; fileRef = F58250CC03E860C8011E699C /* FreeWRLView.m */; };
 		26A96F3910066C02005CE65C /* cfrontend.m in Sources */ = {isa = PBXBuildFile; fileRef = 26D9FFC505C84E0D0070EC3E /* cfrontend.m */; };
 		26A96F3A10066C02005CE65C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 26554F8A05B6F0E100B3E2A8 /* main.m */; };
 		26A96F3B10066C02005CE65C /* MyApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 26D901C305CAD25F0070EC3E /* MyApp.m */; };
@@ -31,6 +30,7 @@
 		26A96F4210066C02005CE65C /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 26C43D7C07FC52AB009F4D1C /* Carbon.framework */; };
 		26A96F4310066C02005CE65C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 26C43FE407FC52F7009F4D1C /* CoreFoundation.framework */; };
 		26A96F4410066C02005CE65C /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 26F1C1E90BBAB25E0081EE32 /* ApplicationServices.framework */; };
+		52C59CC712D4DC880052EF93 /* FreeWRLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 52C59CC612D4DC880052EF93 /* FreeWRLView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,7 +43,7 @@
 		266A41A50623305B00292567 /* wdelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = wdelegate.m; sourceTree = "<group>"; };
 		2681B5640ED36AB700D7C438 /* VRMLFreeWRLIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = VRMLFreeWRLIcon.icns; sourceTree = "<group>"; };
 		2681B5670ED36AC200D7C438 /* X3DFreeWRLIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = X3DFreeWRLIcon.icns; sourceTree = "<group>"; };
-		26A96F6D10066C02005CE65C /* Info-FreeWRL__Upgraded__2.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-FreeWRL__Upgraded__2.plist"; sourceTree = "<group>"; };
+		26A96F6D10066C02005CE65C /* Info-FreeWRL__Upgraded_.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-FreeWRL__Upgraded_.plist"; sourceTree = "<group>"; };
 		26C43D7C07FC52AB009F4D1C /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		26C43FE407FC52F7009F4D1C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		26D901C205CAD25F0070EC3E /* MyApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyApp.h; sourceTree = "<group>"; };
@@ -58,8 +58,8 @@
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		52C59CC612D4DC880052EF93 /* FreeWRLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FreeWRLView.m; sourceTree = "<group>"; };
 		F58250CB03E860C8011E699C /* FreeWRLView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = FreeWRLView.h; sourceTree = "<group>"; };
-		F58250CC03E860C8011E699C /* FreeWRLView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = FreeWRLView.m; sourceTree = "<group>"; };
 		F5BD4F0B03A7C545015C2259 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = /System/Library/Frameworks/GLUT.framework; sourceTree = "<absolute>"; };
 		F5BD4F1E03A7C558015C2259 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
@@ -84,7 +84,7 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				F58250CC03E860C8011E699C /* FreeWRLView.m */,
+				52C59CC612D4DC880052EF93 /* FreeWRLView.m */,
 				F58250CB03E860C8011E699C /* FreeWRLView.h */,
 				26D901C205CAD25F0070EC3E /* MyApp.h */,
 				26D901C305CAD25F0070EC3E /* MyApp.m */,
@@ -123,7 +123,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				26A96F6D10066C02005CE65C /* Info-FreeWRL__Upgraded__2.plist */,
+				26A96F6D10066C02005CE65C /* Info-FreeWRL__Upgraded_.plist */,
 				26E17A85100692870074D2FB /* FreeWRL.app */,
 			);
 			name = Products;
@@ -264,12 +264,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				26A96F3810066C02005CE65C /* FreeWRLView.m in Sources */,
 				26A96F3910066C02005CE65C /* cfrontend.m in Sources */,
 				26A96F3A10066C02005CE65C /* main.m in Sources */,
 				26A96F3B10066C02005CE65C /* MyApp.m in Sources */,
 				26A96F3C10066C02005CE65C /* MyWindowController.m in Sources */,
 				26A96F3D10066C02005CE65C /* wdelegate.m in Sources */,
+				52C59CC712D4DC880052EF93 /* FreeWRLView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

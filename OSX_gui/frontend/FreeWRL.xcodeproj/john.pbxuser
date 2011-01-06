@@ -13,6 +13,11 @@
 			52ABF5D010B7504400F997D5 /* FreeWRL */,
 		);
 	};
+	26A96F6D10066C02005CE65C /* Info-FreeWRL__Upgraded_.plist */ = {
+		uiCtxt = {
+			sepNavWindowFrame = "{{0, 233}, {1044, 945}}";
+		};
+	};
 	26D901C305CAD25F0070EC3E /* MyApp.m */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {726, 6396}}";
@@ -25,7 +30,7 @@
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {880, 2288}}";
 			sepNavSelRange = "{1851, 0}";
-			sepNavVisRange = "{1643, 2007}";
+			sepNavVisRange = "{1643, 1803}";
 			sepNavWindowFrame = "{{15, 185}, {777, 988}}";
 		};
 	};
@@ -50,6 +55,9 @@
 		activeBuildConfigurationName = Deployment;
 		activeExecutable = 52ABF5D010B7504400F997D5 /* FreeWRL */;
 		activeTarget = 26A96F2710066C02005CE65C /* library */;
+		addToTargets = (
+			26A96F2710066C02005CE65C /* library */,
+		);
 		breakpoints = (
 		);
 		codeSenseManager = 52ABF5EA10B7505100F997D5 /* Code sense */;
@@ -57,12 +65,26 @@
 			52ABF5D010B7504400F997D5 /* FreeWRL */,
 		);
 		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXExecutablesDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXExecutablesDataSource_NameID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					22,
+					300,
+					556.58349609375,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXExecutablesDataSource_ActiveFlagID,
+					PBXExecutablesDataSource_NameID,
+					PBXExecutablesDataSource_CommentsID,
+				);
+			};
 			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
 				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
 				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
 				PBXFileTableDataSourceColumnWidthsKey = (
 					20,
-					355,
+					669,
 					20,
 					48,
 					43,
@@ -79,29 +101,22 @@
 					PBXFileDataSource_Target_ColumnID,
 				);
 			};
-			PBXPerProjectTemplateStateSaveDate = 304275552;
-			PBXWorkspaceStateSaveDate = 304275552;
+			PBXPerProjectTemplateStateSaveDate = 315952338;
+			PBXWorkspaceStateSaveDate = 315952338;
 		};
 		perUserProjectItems = {
-			5207A5E211C67F0B0096EC67 = 5207A5E211C67F0B0096EC67 /* PBXTextBookmark */;
-			5207A5FE11C67F2F0096EC67 = 5207A5FE11C67F2F0096EC67 /* PBXTextBookmark */;
-			5207A60B11C6AEB20096EC67 = 5207A60B11C6AEB20096EC67 /* PBXTextBookmark */;
-			5207A60C11C6AEB20096EC67 = 5207A60C11C6AEB20096EC67 /* PBXTextBookmark */;
-			5207A60D11C6AEB20096EC67 = 5207A60D11C6AEB20096EC67 /* PBXTextBookmark */;
-			5214E30C1222E064005978B8 /* PBXTextBookmark */ = 5214E30C1222E064005978B8 /* PBXTextBookmark */;
-			5214E30F1222E064005978B8 /* PBXTextBookmark */ = 5214E30F1222E064005978B8 /* PBXTextBookmark */;
-			5214E3101222E064005978B8 /* PBXTextBookmark */ = 5214E3101222E064005978B8 /* PBXTextBookmark */;
-			5214E3111222E064005978B8 /* PBXTextBookmark */ = 5214E3111222E064005978B8 /* PBXTextBookmark */;
-			5242BC6710D7F9BE00A8B378 = 5242BC6710D7F9BE00A8B378 /* PBXTextBookmark */;
-			5242BC6810D7F9BE00A8B378 = 5242BC6810D7F9BE00A8B378 /* PBXTextBookmark */;
-			525884AA10BB125A00A1092C = 525884AA10BB125A00A1092C /* PBXTextBookmark */;
-			5281F9E010D1845000E99A1C = 5281F9E010D1845000E99A1C /* PBXTextBookmark */;
-			5281F9E110D1845000E99A1C = 5281F9E110D1845000E99A1C /* PBXTextBookmark */;
-			52F946FD1222DF44005B0F01 = 52F946FD1222DF44005B0F01 /* PBXTextBookmark */;
-			52F9473D1222E04A005B0F01 = 52F9473D1222E04A005B0F01 /* PBXTextBookmark */;
-			52F9473F1222E04A005B0F01 = 52F9473F1222E04A005B0F01 /* PBXTextBookmark */;
-			52F947401222E04A005B0F01 = 52F947401222E04A005B0F01 /* PBXTextBookmark */;
-			52F947411222E04A005B0F01 = 52F947411222E04A005B0F01 /* PBXTextBookmark */;
+			5207A5E211C67F0B0096EC67 /* PBXTextBookmark */ = 5207A5E211C67F0B0096EC67 /* PBXTextBookmark */;
+			5207A5FE11C67F2F0096EC67 /* PBXTextBookmark */ = 5207A5FE11C67F2F0096EC67 /* PBXTextBookmark */;
+			5242BC6710D7F9BE00A8B378 /* PBXTextBookmark */ = 5242BC6710D7F9BE00A8B378 /* PBXTextBookmark */;
+			525884AA10BB125A00A1092C /* PBXTextBookmark */ = 525884AA10BB125A00A1092C /* PBXTextBookmark */;
+			5281F9E010D1845000E99A1C /* PBXTextBookmark */ = 5281F9E010D1845000E99A1C /* PBXTextBookmark */;
+			5281F9E110D1845000E99A1C /* PBXTextBookmark */ = 5281F9E110D1845000E99A1C /* PBXTextBookmark */;
+			52B324D812D4C6820074667F /* PlistBookmark */ = 52B324D812D4C6820074667F /* PlistBookmark */;
+			52C0224C12D515CF00379C19 /* PBXTextBookmark */ = 52C0224C12D515CF00379C19 /* PBXTextBookmark */;
+			52C0224D12D515CF00379C19 /* PBXTextBookmark */ = 52C0224D12D515CF00379C19 /* PBXTextBookmark */;
+			52C0224E12D515CF00379C19 /* PBXTextBookmark */ = 52C0224E12D515CF00379C19 /* PBXTextBookmark */;
+			52FAFAFF1222FEFD00D25322 /* PBXTextBookmark */ = 52FAFAFF1222FEFD00D25322 /* PBXTextBookmark */;
+			52FAFB22122304FF00D25322 /* PlistBookmark */ = 52FAFB22122304FF00D25322 /* PlistBookmark */;
 		};
 		sourceControlManager = 52ABF5E910B7505100F997D5 /* Source Control */;
 		userBuildSettings = {
@@ -127,76 +142,6 @@
 		vrLen = 1143;
 		vrLoc = 524;
 	};
-	5207A60B11C6AEB20096EC67 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = F58250CB03E860C8011E699C /* FreeWRLView.h */;
-		name = "FreeWRLView.h: 62";
-		rLen = 0;
-		rLoc = 1705;
-		rType = 0;
-		vrLen = 1729;
-		vrLoc = 338;
-	};
-	5207A60C11C6AEB20096EC67 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = F58250CC03E860C8011E699C /* FreeWRLView.m */;
-		name = "FreeWRLView.m: 1";
-		rLen = 1;
-		rLoc = 20;
-		rType = 0;
-		vrLen = 1576;
-		vrLoc = 0;
-	};
-	5207A60D11C6AEB20096EC67 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 26D901F305CAD3B50070EC3E /* MyWindowController.m */;
-		name = "MyWindowController.m: 77";
-		rLen = 0;
-		rLoc = 1851;
-		rType = 0;
-		vrLen = 2007;
-		vrLoc = 1643;
-	};
-	5214E30C1222E064005978B8 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 52F9473E1222E04A005B0F01 /* types.h */;
-		name = "types.h: 85";
-		rLen = 0;
-		rLoc = 3632;
-		rType = 0;
-		vrLen = 691;
-		vrLoc = 3158;
-	};
-	5214E30F1222E064005978B8 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = F58250CB03E860C8011E699C /* FreeWRLView.h */;
-		name = "FreeWRLView.h: 62";
-		rLen = 0;
-		rLoc = 1705;
-		rType = 0;
-		vrLen = 1729;
-		vrLoc = 338;
-	};
-	5214E3101222E064005978B8 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = F58250CC03E860C8011E699C /* FreeWRLView.m */;
-		name = "FreeWRLView.m: 1";
-		rLen = 1;
-		rLoc = 20;
-		rType = 0;
-		vrLen = 1576;
-		vrLoc = 0;
-	};
-	5214E3111222E064005978B8 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 26D901F305CAD3B50070EC3E /* MyWindowController.m */;
-		name = "MyWindowController.m: 77";
-		rLen = 0;
-		rLoc = 1851;
-		rType = 0;
-		vrLen = 2007;
-		vrLoc = 1643;
-	};
 	5242BC6710D7F9BE00A8B378 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 26D901C305CAD25F0070EC3E /* MyApp.m */;
@@ -207,16 +152,6 @@
 		vrLen = 517;
 		vrLoc = 7243;
 	};
-	5242BC6810D7F9BE00A8B378 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = F58250CC03E860C8011E699C /* FreeWRLView.m */;
-		name = "FreeWRLView.m: 10";
-		rLen = 0;
-		rLoc = 207;
-		rType = 0;
-		vrLen = 776;
-		vrLoc = 1522;
-	};
 	525884AA10BB125A00A1092C /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
 		fRef = 26D9FF3905C5BCFB0070EC3E /* cfrontend.h */;
@@ -226,6 +161,13 @@
 		rType = 0;
 		vrLen = 300;
 		vrLoc = 0;
+	};
+	527359FC1222F68600BA2D07 /* types.h */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.c.h;
+		name = types.h;
+		path = /Developer/SDKs/MacOSX10.4u.sdk/usr/include/sys/types.h;
+		sourceTree = "<absolute>";
 	};
 	5281F9E010D1845000E99A1C /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
@@ -266,6 +208,21 @@
 		dylibVariantSuffix = "";
 		enableDebugStr = 1;
 		environmentEntries = (
+			{
+				active = YES;
+				name = NSShowAllDrawing;
+				value = YES;
+			},
+			{
+				active = YES;
+				name = NSShowAllWindows;
+				value = YES;
+			},
+			{
+				active = YES;
+				name = NSShowAllViews;
+				value = YES;
+			},
 		);
 		executableSystemSymbolLevel = 0;
 		executableUserSymbolLevel = 0;
@@ -276,6 +233,8 @@
 		showTypeColumn = 0;
 		sourceDirectories = (
 		);
+		variableFormatDictionary = {
+		};
 	};
 	52ABF5E910B7505100F997D5 /* Source Control */ = {
 		isa = PBXSourceControlManager;
@@ -291,87 +250,100 @@
 		isa = PBXCodeSenseManager;
 		indexTemplatePath = "";
 	};
-	52F946FD1222DF44005B0F01 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		comments = "Duplicate 'unsigned'";
-		fRef = 52F946FE1222DF44005B0F01 /* types.h */;
-		rLen = 1;
-		rLoc = 84;
-		rType = 1;
+	52B324D812D4C6820074667F /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = 26A96F6D10066C02005CE65C /* Info-FreeWRL__Upgraded_.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/john/Desktop/X3D/OSX_gui/frontend/Info-FreeWRL__Upgraded_.plist";
+		rLen = 0;
+		rLoc = 9223372036854775808;
 	};
-	52F946FE1222DF44005B0F01 /* types.h */ = {
+	52BE61F912D50C810044692E /* Carbon.h */ = {
 		isa = PBXFileReference;
 		lastKnownFileType = sourcecode.c.h;
-		name = types.h;
-		path = /Developer/SDKs/MacOSX10.4u.sdk/usr/include/sys/types.h;
+		name = Carbon.h;
+		path = /Developer/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/Carbon.framework/Headers/Carbon.h;
 		sourceTree = "<absolute>";
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {847, 1053}}";
+			sepNavSelRange = "{423, 0}";
+			sepNavVisRange = "{0, 1075}";
+		};
 	};
-	52F9473D1222E04A005B0F01 /* PBXTextBookmark */ = {
+	52C0224C12D515CF00379C19 /* PBXTextBookmark */ = {
 		isa = PBXTextBookmark;
-		fRef = 52F9473E1222E04A005B0F01 /* types.h */;
+		fRef = 52BE61F912D50C810044692E /* Carbon.h */;
+		name = "Carbon.h: 20";
+		rLen = 0;
+		rLoc = 423;
+		rType = 0;
+		vrLen = 1075;
+		vrLoc = 0;
+	};
+	52C0224D12D515CF00379C19 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 52C59CC612D4DC880052EF93 /* FreeWRLView.m */;
+		name = "FreeWRLView.m: 688";
+		rLen = 0;
+		rLoc = 17764;
+		rType = 0;
+		vrLen = 1460;
+		vrLoc = 0;
+	};
+	52C0224E12D515CF00379C19 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 52C59CC612D4DC880052EF93 /* FreeWRLView.m */;
+		name = "FreeWRLView.m: 688";
+		rLen = 0;
+		rLoc = 17764;
+		rType = 0;
+		vrLen = 1079;
+		vrLoc = 18189;
+	};
+	52C59CC612D4DC880052EF93 /* FreeWRLView.m */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {847, 11583}}";
+			sepNavSelRange = "{17764, 0}";
+			sepNavVisRange = "{18189, 1079}";
+		};
+	};
+	52FAFAFF1222FEFD00D25322 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 527359FC1222F68600BA2D07 /* types.h */;
 		name = "types.h: 85";
 		rLen = 0;
 		rLoc = 3632;
 		rType = 0;
-		vrLen = 782;
-		vrLoc = 3158;
+		vrLen = 693;
+		vrLoc = 3155;
 	};
-	52F9473E1222E04A005B0F01 /* types.h */ = {
+	52FAFB1B1222FFB500D25322 /* Info-FreeWRL__Upgraded__.plist */ = {
 		isa = PBXFileReference;
-		lastKnownFileType = sourcecode.c.h;
-		name = types.h;
-		path = /Developer/SDKs/MacOSX10.4u.sdk/usr/include/sys/types.h;
+		lastKnownFileType = text.plist.xml;
+		name = "Info-FreeWRL__Upgraded__.plist";
+		path = "/Users/john/Desktop/X3D/OSX_gui/frontend/Info-FreeWRL__Upgraded__.plist";
 		sourceTree = "<absolute>";
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {551, 4368}}";
-			sepNavSelRange = "{3632, 0}";
-			sepNavVisRange = "{3158, 691}";
-		};
 	};
-	52F9473F1222E04A005B0F01 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = F58250CB03E860C8011E699C /* FreeWRLView.h */;
-		name = "FreeWRLView.h: 62";
+	52FAFB22122304FF00D25322 /* PlistBookmark */ = {
+		isa = PlistBookmark;
+		fRef = 52FAFB1B1222FFB500D25322 /* Info-FreeWRL__Upgraded__.plist */;
+		fallbackIsa = PBXBookmark;
+		isK = 0;
+		kPath = (
+		);
+		name = "/Users/john/Desktop/X3D/OSX_gui/frontend/Info-FreeWRL__Upgraded__.plist";
 		rLen = 0;
-		rLoc = 1705;
-		rType = 0;
-		vrLen = 1729;
-		vrLoc = 338;
-	};
-	52F947401222E04A005B0F01 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = F58250CC03E860C8011E699C /* FreeWRLView.m */;
-		name = "FreeWRLView.m: 1";
-		rLen = 1;
-		rLoc = 20;
-		rType = 0;
-		vrLen = 1576;
-		vrLoc = 0;
-	};
-	52F947411222E04A005B0F01 /* PBXTextBookmark */ = {
-		isa = PBXTextBookmark;
-		fRef = 26D901F305CAD3B50070EC3E /* MyWindowController.m */;
-		name = "MyWindowController.m: 77";
-		rLen = 0;
-		rLoc = 1851;
-		rType = 0;
-		vrLen = 2007;
-		vrLoc = 1643;
+		rLoc = 9223372036854775808;
 	};
 	F58250CB03E860C8011E699C /* FreeWRLView.h */ = {
 		uiCtxt = {
 			sepNavIntBoundsRect = "{{0, 0}, {985, 2119}}";
 			sepNavSelRange = "{1705, 0}";
 			sepNavVisRange = "{338, 1729}";
-			sepNavWindowFrame = "{{38, 207}, {1044, 945}}";
-		};
-	};
-	F58250CC03E860C8011E699C /* FreeWRLView.m */ = {
-		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {718, 10829}}";
-			sepNavSelRange = "{20, 1}";
-			sepNavVisRange = "{0, 1576}";
-			sepNavWindowFrame = "{{625, 63}, {777, 988}}";
+			sepNavWindowFrame = "{{662, 233}, {1044, 945}}";
 		};
 	};
 }

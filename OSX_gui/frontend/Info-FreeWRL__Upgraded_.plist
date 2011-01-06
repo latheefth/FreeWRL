@@ -12,6 +12,7 @@
 				<string>wrz</string>
 				<string>wrl</string>
 				<string>x3d</string>
+				<string>x3dv</string>
 			</array>
 			<key>LSHandlerRank</key>
 			<string>Default</string>
@@ -36,11 +37,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.22.8</string>
+	<string>1.22.10</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.22.8</string>
+	<string>1.22.10</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

@@ -10,15 +10,21 @@
 
 
 @implementation FreeWRLView
+
+BOOL mouseOverSensitive = false;
+BOOL mouseDisplaySensitive = false;
+
+
 - (void) debugPrint: (char *) theString
 {
-//	if (theFile == NULL) {
-//		theFile = fopen("/tmp/aqua_log", "w");
-//		if (theFile == NULL) abort();
-//		fileIsOpen = TRUE;
-//	}
-//	fprintf(theFile, "%s\n", theString);
-//	fflush(theFile);
+	/*if (theFile == NULL) {
+		theFile = fopen("/tmp/aqua_log", "w");
+		if (theFile == NULL) abort();
+		fileIsOpen = TRUE;
+	}
+	fprintf(theFile, "%s\n", theString);
+	fflush(theFile);
+	 */
 }
 
 - (void) print:(id)sender {
@@ -65,24 +71,40 @@
     return YES;
 }
 
+#define SET_CURSOR_FOR_ME \
+	if (mouseOverSensitive != mouseDisplaySensitive) { \
+		if (mouseOverSensitive) { \
+			/*[[NSCursor disappearingItemCursor] push]; */ \
+			[[NSCursor pointingHandCursor] push]; \
+		} else { \
+			[NSCursor pop]; \
+		} \
+		mouseDisplaySensitive = mouseOverSensitive; \
+	}
+	
+
 - (void) mouseMoved: (NSEvent *) theEvent
 {
-		char dmesg[128];
+		//char dmesg[128];
 	place = [theEvent locationInWindow];
 	xcoor = place.x;
 	        
-		sprintf(dmesg, "mouse moved %f %f", place.x, place.y);
-		[self debugPrint: dmesg];
+		
+		 //sprintf(dmesg, "mouse moved %f %f self %p", place.x, place.y,self);
+		//[self debugPrint: dmesg];
+		 
 		
     ycoor = place.y;
 	button = 0;
 	myrect = [self frame];
 	curHeight = myrect.size.height;
+	
     ycoor = curHeight - place.y;
 	setCurXY((int)xcoor,(int)ycoor);
 	//NSLog(@"sending motion notify with %f %f\n", xcoor, ycoor);
 	handle_aqua(MotionNotify, button, xcoor, ycoor);
 	
+	SET_CURSOR_FOR_ME	
 }
 - (void) mouseDown: (NSEvent *) theEvent
 {
@@ -110,6 +132,8 @@
 	setButDown(button, TRUE);
 	setLastMouseEvent(ButtonPress);
 	handle_aqua(ButtonPress, button, xcoor, ycoor);
+	
+	SET_CURSOR_FOR_ME
 
 }
 - (void) mouseDragged: (NSEvent *) theEvent
@@ -162,6 +186,8 @@
 	setCurXY((int)xcoor,(int)ycoor);
 	setLastMouseEvent(ButtonRelease);
 	handle_aqua(ButtonRelease, button, xcoor, ycoor);
+	
+	SET_CURSOR_FOR_ME
 }
 
 - (void) rightMouseDown: (NSEvent *) theEvent
@@ -254,17 +280,9 @@
     NSArray* args = [PInfo arguments];
     [args retain];
     
-    //NSString* path = [[NSBundle mainBundle] pathForResource: @"cross" ofType: @"gif"];
-    //NSImage* crossImage = [[[NSImage alloc] initWithContentsOfFile: path] retain];
-    //crossCursor = [[[NSCursor alloc] initWithImage: crossImage hotSpot: mouseSpot] retain];    
-	crossCursor = [[NSCursor pointingHandCursor] retain];
-	arrowCursor = [[NSCursor arrowCursor] retain];
-	[self addCursorRect:[self visibleRect] cursor:arrowCursor];
-	currentCursor = arrowCursor;
     options = NO;
 	fullscreen = FALSE;
 
-	
 	[self debugPrint: "before if"];
 	
 	// If we started from the command line, parse arguments
@@ -498,7 +516,7 @@
 	[self debugPrint: "in init browser - going to fwpassObjects"];
 	context = [NSOpenGLContext currentContext];
 	
-	fwpassObjects(self, context, crossCursor, [NSCursor arrowCursor]);
+	fwpassObjects(self, context, [NSCursor resizeLeftCursor], [NSCursor resizeRightCursor]);
 	initGL();
 
 		
@@ -619,6 +637,7 @@
     size.width = (float) width;
     size.height = (float) height;
     [myWindow setContentSize: size];
+	
     [self setFrameSize: size];
 	setScreenDim((int) width, (int) height);
 }
@@ -667,7 +686,6 @@
 		[viewWindow makeKeyAndOrderFront: nil];
 		[NSApp activateIgnoringOtherApps: YES];
 		haveFileOnCommandLine = TRUE;
-		//[self initBrowser];
     }
 	[self initBrowser];
 }
@@ -687,32 +705,17 @@
 	view = passedView;
 }
 
-- (void) setCrossCursor
-{
-	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
-	
-	[crossCursor set];	
-	currentCursor = crossCursor;
-	[currentCursor retain];
-	[[self window] invalidateCursorRectsForView:self];
-	[viewWindow makeKeyWindow];
-	
-	[[self window] makeKeyWindow];
-	[[self window] display];
-	[self setNeedsDisplay:YES];
-	[mypool release];
-}
+
 - (void) resetCursorRects {
+	//char dmesg[128];
+	
+	//sprintf (dmesg, "starting resetCursorRects, %p",self);
+	//[self debugPrint: dmesg];
+
 	[super resetCursorRects];
-	//[[self window] invalidateCursorRectsForView:self];
-	[self addCursorRect:[self visibleRect] cursor:currentCursor];
-	if (currentCursor != nil && currentCursor != [NSCursor arrowCursor]) {
-	      //NSLog(@"pointing cursor");
-		[self addCursorRect:[self visibleRect] cursor: crossCursor];
-	} else {
-			//NSLog(@"arrow cursor");
-	      [self addCursorRect:[self visibleRect] cursor:arrowCursor];
-	}
+	
+	// set the cursor that is seen at the start of the program....
+	[self addCursorRect:[self visibleRect] cursor:[NSCursor crosshairCursor]];
 }
 
 - (void) setApp: (id) app
@@ -730,20 +733,22 @@
 	}
 }
 
-- (void) setArrowCursor
+
+/* JAS - try pushing/popping curso in the event loop */
+- (void) setCrossCursor
 {
-	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
-	[arrowCursor set];
-	currentCursor = arrowCursor;
-
-	[[self window] invalidateCursorRectsForView:self];
-	[viewWindow makeKeyWindow];
-
-	[[self window] makeKeyWindow];
-	[[self window] display];
-	[self setNeedsDisplay:YES];
-	[mypool release];
+	//[self debugPrint: "setting sensitive cursor"];
+	
+	mouseOverSensitive = true;
 }
+
+-(void) setArrowCursor
+{
+	//[self debugPrint: "setting normal pokey cursor"];
+	
+	mouseOverSensitive = false;
+}
+
 
 - (void) setWinPtr: (void*) win
 {
