@@ -6,9 +6,56 @@
 @implementation X3DView
 NSDictionary *_arguments;
 
+// grab the global variable "ocurse" from libFreeWRLFunc.dylib; if it is 0,
+// normal cursor, if 1, pointer cursor
+
+// note that we set the cursor every time the following macro is set; 
+// had difficulty setting the cursor on entry to be the crosshairCursor
+// all the time. Worked OK on the front end, not here.
+
+#define SET_CURSOR_FOR_ME \
+	if (!ourMouseCursorInitialized) { \
+		/* first time through, we ensure that our mouse is as we want it */ \
+		[[NSCursor crosshairCursor] set]; \
+		ourMouseCursorInitialized = true; \
+} \
+	mouseOverSensitive = (ocurse == 1); \
+	if (mouseOverSensitive != mouseDisplaySensitive) { \
+		if (mouseOverSensitive) { \
+			/*NSLog(@"sensiitive cursor"); */ \
+			[[NSCursor pointingHandCursor] set]; \
+		} else { \
+			/* NSLog(@"old arrow cursor"); */ \
+			[[NSCursor crosshairCursor] set]; \
+		} \
+		mouseDisplaySensitive = mouseOverSensitive; \
+	}
+
+
 static int freewrlInitialized = FALSE;
 static int freewrlCurrentlyRunning = FALSE;
 static X3DView* firstView = NULL;
+
+static BOOL mouseOverSensitive = false;
+static BOOL mouseDisplaySensitive = false;
+static BOOL ourMouseCursorInitialized = false;
+
+/* Cursor handling - copy from the standalone version - crosshairCursor is
+standard cursor, hand cursor is "cursorOverSensitive" cursor */
+
+- (void) resetCursorRects {
+	//NSLog(@"do resetCursorRects");
+	
+	[super resetCursorRects];
+	
+	// set the cursor that is seen at the start of the program....
+	// note that the cursor does not change immediately because of this call,
+	// so we set it all the time in the SET_CURSOR_FOR_ME macro
+	[self addCursorRect:[self visibleRect] cursor:[NSCursor crosshairCursor]
+	 ];
+}
+/* end of cursor changes */
+
 
 - (void) mouseMoved: (NSEvent *) theEvent
 {
@@ -23,8 +70,9 @@ static X3DView* firstView = NULL;
     ycoor = curHeight - place.y;
 	setCurXY((int)xcoor,(int)ycoor);
 	handle_aqua(MotionNotify, button, xcoor, ycoor);
-	
+	SET_CURSOR_FOR_ME
 }
+
 - (void) mouseDown: (NSEvent *) theEvent
 {
 	place = [theEvent locationInWindow];
@@ -47,8 +95,9 @@ static X3DView* firstView = NULL;
 	setButDown(button, TRUE);
 	setLastMouseEvent(ButtonPress);
 	handle_aqua(ButtonPress, button, xcoor, ycoor);
-	
+	SET_CURSOR_FOR_ME
 }
+
 - (void) mouseDragged: (NSEvent *) theEvent
 {
 	
@@ -98,6 +147,7 @@ static X3DView* firstView = NULL;
 	setCurXY((int)xcoor,(int)ycoor);
 	setLastMouseEvent(ButtonRelease);
 	handle_aqua(ButtonRelease, button, xcoor, ycoor);
+	SET_CURSOR_FOR_ME
 }
 
 - (void) rightMouseDown: (NSEvent *) theEvent
@@ -213,6 +263,7 @@ static X3DView* firstView = NULL;
 
 - (void) drawRect: (NSRect) bounds
 {
+	//NSLog(@"drawRect");
 	if (isNotFirst) {
 		//NSLog(@"is not first drawRect");
 		//[stopImage drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1];
@@ -238,8 +289,9 @@ static X3DView* firstView = NULL;
 - (void) setFrame: (NSRect) frameRect {
 	//NSLog(@"In set frame");
 	[super setFrame: frameRect];
-	if (!isNotFirst)
+	if (!isNotFirst) {
 		[self doResize];
+	}
 }
 
 - (void)lockFocus {
@@ -373,7 +425,6 @@ static X3DView* firstView = NULL;
 		[theView setImage: stopImage];
 		[self addSubview:theView];
 		[theView setNeedsDisplay: YES];
-		
 	}
 }
 

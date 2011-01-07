@@ -13,6 +13,8 @@ extern void setScreenDim(int wi, int he);
 void OSX_initializeParameters(const char* initialURL);
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line);
 void stopRenderingLoop();
+extern int ocurse;
+
 
 #define KeyPress        2
 #define KeyRelease      3
@@ -20,6 +22,9 @@ void stopRenderingLoop();
 #define ButtonRelease   5
 #define MotionNotify    6
 
+/* file for debugging purposes */
+FILE* theFile; 
+bool fileIsOpen;
 
 @interface X3DView : NSView {
   @private
@@ -49,4 +54,3 @@ void stopRenderingLoop();
 + (NSOpenGLPixelFormat*)defaultPixelFormat;
 
 @end
-
