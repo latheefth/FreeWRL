@@ -53,6 +53,9 @@ which is the sample application included with the javascript engine.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
+#ifdef WIN32
+#include <pthread.h> // win32 needs the strtok_r 
+#endif
 
 #ifdef WANT_OSC
 	#include "../scenegraph/ringbuf.h"
