@@ -84,6 +84,9 @@ typedef struct {
 typedef enum shader_type {
 	backgroundSphereShader,
 	backgroundTextureBoxShader,
+	genericFullFeaturedShader,
+	noMaterialNoAppearanceShader,
+	genericFullFeaturedSphereShader,
 } shader_type_t;
 
 

@@ -30,8 +30,7 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 #define __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__
 
-void chooseBackgroundShader (shader_type_t);
-void setCurrentShader(s_shader_capabilities_t *);
+void chooseShader (shader_type_t);
 
 void turnGlobalShaderOff(void);
 
