@@ -326,7 +326,7 @@ static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode) {
 
 				if (myTCnode->__VBO != 0) {
                                 	struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-                                	glBindBufferARB(GL_ARRAY_BUFFER_ARB,myTCnode->__VBO);
+                                	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,myTCnode->__VBO);
 					passedInGenTex(&mtf);
 				} else {
 					FW_GL_BINDTEXTURE(GL_TEXTURE_2D,boundTextureStack[c]);

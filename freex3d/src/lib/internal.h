@@ -378,7 +378,4 @@ extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
 extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
 extern bool global_use_VBOs;       /* try and use VBOs rather than vertex arrays for geometry */
 
-#ifdef OLD_SHADER_CODE
-OLD_SHADER_CODE extern bool global_use_shaders_when_possible; /* Appearance shaders, etc, etc, for OpenGL-ES and OpenGL-3.2 */
-#endif /* OLD_SHADER_CODE */
 #endif /* __LIBFREEWRL_DECL_H__ */

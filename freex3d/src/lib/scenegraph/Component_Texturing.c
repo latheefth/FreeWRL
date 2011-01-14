@@ -167,7 +167,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 				node->__VBO = tmp;
 			}
 
-			glBindBufferARB(GL_ARRAY_BUFFER_ARB,node->__VBO);
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB,node->__VBO);
 			glBufferDataARB(GL_ARRAY_BUFFER_ARB,sizeof (float)*2*global_tcin_count, node->__compiledpoint.p, GL_STATIC_DRAW_ARB);
 			FREE_IF_NZ(node->__compiledpoint.p);
 		}

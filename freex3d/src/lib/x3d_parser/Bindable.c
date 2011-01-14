@@ -900,6 +900,17 @@ void render_Background (struct X3D_Background *node) {
 
 	#ifdef SHADERS_2011
 	chooseShader(backgroundSphereShader);
+        glDisableClientState(GL_COLOR_ARRAY);
+        glDisableClientState(GL_EDGE_FLAG_ARRAY);
+        glDisableClientState(GL_INDEX_ARRAY);
+glDisableClientState(GL_NORMAL_ARRAY);
+        glDisableClientState(GL_FOG_COORD_ARRAY);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	#endif
 
 	/* now, display the lists */
@@ -909,6 +920,11 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_DISABLECLIENTSTATE(GL_NORMAL_ARRAY);
 
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
+
+               /* turn off */
+                FW_GL_BINDBUFFER(GL_ARRAY_BUFFER_ARB, 0);
+                FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+
 
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
 	FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
