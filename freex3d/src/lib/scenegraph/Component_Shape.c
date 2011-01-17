@@ -518,7 +518,6 @@ void child_Shape (struct X3D_Shape *node) {
 	float scol[4];
 	float amb;
 
-printf ("start of child_Shape\n");
 	COMPILE_IF_REQUIRED
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
