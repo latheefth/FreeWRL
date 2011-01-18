@@ -78,8 +78,13 @@ struct fw_MaterialParameters {
 	};
 
 struct matpropstruct {
+	/* material properties for current shape */
 	struct fw_MaterialParameters fw_FrontMaterial;
 	struct fw_MaterialParameters fw_BackMaterial;
+
+	/* which shader is active; 0 = no shader active */
+	GLint currentShader; 
+	s_shader_capabilities_t *currentShaderProperties;
 
 	float	transparency;
 	GLfloat	emissionColour[3];

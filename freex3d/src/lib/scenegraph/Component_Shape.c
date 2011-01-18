@@ -676,7 +676,7 @@ void child_Shape (struct X3D_Shape *node) {
 #endif
 
 	/* if we do NOT have a shader node, do the appearance nodes */
-        if (globalCurrentShader == 0) {
+        if (appearanceProperties.currentShader == 0) {
 			if (material_oneSided != NULL) {
 				/* we have a normal material node */
 				appearanceProperties.transparency = 1.0f - material_oneSided->transparency; /* 1 == solid, 0 = totally transparent */ 

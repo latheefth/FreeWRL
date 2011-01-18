@@ -39,11 +39,10 @@ texture enabling - works for single texture, for multitexture.
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
-#include "../scenegraph/Component_Shape.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 
-#include "OpenGL_Utils.h"
 #include "Textures.h"
 #include "Material.h"
 

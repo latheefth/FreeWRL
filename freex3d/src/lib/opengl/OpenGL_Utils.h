@@ -50,6 +50,12 @@ typedef struct {
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
+	
+	/* some geom shaders have particular uniforms, eg geom radius */
+	GLint specialUniform1;
+	GLint specialUniform2;
+	GLint specialUniform3;
+	GLint specialUniform4;
 } s_shader_capabilities_t;
 
 typedef struct {

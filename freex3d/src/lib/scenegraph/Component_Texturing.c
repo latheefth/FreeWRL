@@ -39,6 +39,7 @@ X3D Texturing Component
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 #include "../opengl/Textures.h"
+#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/Component_Shape.h"
 
 

@@ -45,10 +45,10 @@ X3D Geometry2D  Component
 #include "../opengl/Material.h"
 #include "../opengl/Textures.h"
 #include "Component_Geometry3D.h"
+#include "../opengl/OpenGL_Utils.h"
+
 #include "Component_Shape.h"
-#include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
-#include "../opengl/OpenGL_Utils.h"
 
 #include <float.h>
 
