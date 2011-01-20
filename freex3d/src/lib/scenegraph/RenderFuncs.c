@@ -195,7 +195,8 @@ void chooseShader(shader_type_t requestedShader) {
 	USE_SHADER(appearanceProperties.currentShader);
 
 	/* send in the current position and modelview matricies */
-	sendMatriciesToShader(appearanceProperties.currentShaderProperties);
+	sendMatriciesToShader(appearanceProperties.currentShaderProperties); 
+
 }
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */

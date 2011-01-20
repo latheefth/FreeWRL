@@ -88,11 +88,21 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
+	/* Background shaders */
 	backgroundSphereShader,
 	backgroundTextureBoxShader,
+
+	/* generic (not geometry Shader specific) shaders */
 	genericFullFeaturedShader,
 	noMaterialNoAppearanceShader,
+	twoMaterialGenericShader,
+
+	/* Sphere Geometry Shaders */
+	noMaterialNoAppearanceSphereShader,
 	genericFullFeaturedSphereShader,
+	twoMaterialSphereShader
+
+
 } shader_type_t;
 
 
@@ -133,6 +143,7 @@ void fw_iphone_normalPointer(GLenum aaa,GLsizei bbb, const GLvoid *ccc);
 void fw_iphone_texcoordPointer(GLint aaa, GLenum bbb ,GLsizei ccc,const GLvoid *ddd);
 void fw_iphone_colorPointer(GLint aaa, GLenum bbb,GLsizei ccc,const GLvoid *ddd);
 void sendMatriciesToShader(s_shader_capabilities_t *);
+void sendMaterialsToShader(s_shader_capabilities_t *);
 void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void fw_gluPickMatrix(GLDOUBLE xx, GLDOUBLE yy, GLDOUBLE width, GLDOUBLE height, GLint *vp);
 void fw_Frustum(double left, double right, double bottom, double top, double nearZ, double farZ);

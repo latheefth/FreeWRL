@@ -202,7 +202,7 @@ int bufferarray[] = {GL_BACK,0};
 double TickTime;
 double lastTime;
 double BrowserStartTime;        /* start of calculating FPS     */
-double BrowserFPS = 0.0;        /* calculated FPS               */
+double BrowserFPS = 100.0;        /* calculated FPS               */
 double BrowserSpeed = 0.0;      /* calculated movement speed    */
 
 int trisThisLoop;

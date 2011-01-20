@@ -139,16 +139,6 @@ void render_Box (struct X3D_Box *node) {
 	
 	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
-/*
-#include "Component_Shape.h"
-
-printf ("render_Box, diffuse %f %f %f %f\n",
-appearanceProperties.fw_FrontMaterial.diffuse[0],
-appearanceProperties.fw_FrontMaterial.diffuse[1],
-appearanceProperties.fw_FrontMaterial.diffuse[2],
-appearanceProperties.fw_FrontMaterial.diffuse[3]);
-*/
-
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
 	float z = ((node->size).c[2])/2;
