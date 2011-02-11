@@ -40,7 +40,7 @@ X3D Cubemap Texturing Component
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Component_CubeMapTexturing.h"
 #include "../input/EAIHelpers.h"
-#include <GL/glext.h>
+/* #include <GL/glext.h> should be in display.h */
 #include "../vrml_parser/CParseGeneral.h" /* for union anyVrml */
 #include "../world_script/JScript.h" /* for uint32 typedef */
 

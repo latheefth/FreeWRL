@@ -454,10 +454,6 @@ void normalize_ifs_face (float *point_normal,
 /* Text node system fonts. On startup, freewrl checks to see where the fonts
  * are stored
  */
-#define fp_name_len 256
-extern char sys_fp[fp_name_len];
-
-
 extern float AC_LastDuration[];
 
 extern int SoundEngineStarted;

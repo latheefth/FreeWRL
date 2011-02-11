@@ -752,7 +752,7 @@ void handle_yawpitchzoom(const int mev, const unsigned int button, float x, floa
 				fac = ((d * .5) + (1.0 - d) * 1.0);
 			}
 			fovZoom = fovZoom * fac;
-			fovZoom = min(2.0,max(.125,fovZoom));  
+			fovZoom = DOUBLE_MIN(2.0,DOUBLE_MAX(.125,fovZoom));  
 		}
  	}
 }

@@ -42,7 +42,7 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #define SOUNDVERBOSE
 
-#if defined(WIN32)
+#if defined(WIN32) || defined (IPHONE)
 
 void
 Sound_toserver(char *message)
@@ -77,7 +77,7 @@ void
 SetAudioActive(int num, int stat)
 {}
 
-#else /*ifdef win32 */
+#else /*ifdef win32 or IPHONE */
 
 
 int SReg[MAXSOUNDS];

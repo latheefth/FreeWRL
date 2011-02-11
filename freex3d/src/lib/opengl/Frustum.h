@@ -40,9 +40,16 @@ Global includes.
 
 #define RECORD_DISTANCE if (render_geom && (!render_blend)) {record_ZBufferDistance (X3D_NODE(node)); }
 
-#define OCCLUSION
-#define VISIBILITYOCCLUSION
-#define SHAPEOCCLUSION
+/* IPHONE - no occlusion queries right now */
+#ifdef IPHONE
+	#undef OCCLUSION
+	#undef VISIBILITYOCCLUSION
+	#undef SHAPEOCCLUSION
+#else
+	#define OCCLUSION
+	#define VISIBILITYOCCLUSION
+	#define SHAPEOCCLUSION
+#endif
 
 extern GLuint OccQuerySize;
 extern GLint OccResultsAvailable;

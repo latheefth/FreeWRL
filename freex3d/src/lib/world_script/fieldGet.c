@@ -57,6 +57,7 @@ Javascript C language binding.
 #include "fieldSet.h"
 #include "fieldGet.h"
 
+#ifdef HAVE_JAVASCRIPT
 /********************************************************************
 
 getField_ToJavascript.
@@ -116,7 +117,6 @@ void getField_ToJavascript (int num, int fromoffset) {
 /******************************************************************************/
 
 void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, int datalen) {
-
 	char scriptline[100];
 	jsval newval;
 	JSContext *cx;
@@ -854,6 +854,8 @@ void setScriptMultiElementtype (int num)
 		set_one_MultiElementType (myObj->num, tptr, fn, len);
 	}
 }
+
+#endif /* HAVE_JAVASCRIPT */
 
 /* convert a number in memory to a printable type. Used to send back EVents, or replies to
    the SAI/EAI client program. */

@@ -46,6 +46,15 @@ Internal header: system dependencies.
  * display.h		window system (Aqua/X11/Motif + OpenGL) related headers
  */
 
+
+/* do we have JavaScript? */
+#ifdef IPHONE
+	#undef HAVE_JAVASCRIPT
+#else
+	/* Everything has JavaScript */
+	#undef HAVE_JAVASCRIPT
+#endif
+
 #if HAVE_STDINT_H
 # include <stdint.h>
 #endif

@@ -26,6 +26,8 @@
 ****************************************************************************/
 
 
+/* IPHONE - bypass textures for now */
+#ifndef IPHONE
 
 #include <config.h>
 #include <system.h>
@@ -717,3 +719,4 @@ void _textureThread()
 }
 
 
+#endif /* IPHONE */

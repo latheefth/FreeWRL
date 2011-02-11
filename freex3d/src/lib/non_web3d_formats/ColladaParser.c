@@ -26,6 +26,8 @@ $Id$
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+/* IPHONE - right now do not do XML parsing */
+#ifndef IPHONE
 
 
 #include <config.h>
@@ -198,3 +200,4 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	return TRUE;
 }
 
+#endif /* IPHONE */

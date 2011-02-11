@@ -34,7 +34,6 @@
 #ifndef __FREEWRL_SYSTEM_H__
 #define __FREEWRL_SYSTEM_H__
 
-
 #if HAVE_STDINT_H
 # include <stdint.h>
 #endif
@@ -75,7 +74,9 @@ typedef unsigned char _Bool;
 #define FALSE 0
 
 #if HAVE_UNISTD_H
-# include <sys/types.h>
+# if HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
 # include <unistd.h>
 #endif
 

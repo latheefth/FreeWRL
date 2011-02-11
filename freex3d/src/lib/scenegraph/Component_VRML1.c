@@ -650,7 +650,12 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
         int i;
         struct SFVec3f *points=NULL; int npoints=0;
 	int renderMatOver = FALSE;
+
+	#ifdef IPHONE
+	printf ("vrml1 pointset, ignoring pointset\n");
+	#else
 	FW_GL_POINTSIZE (2);
+	#endif
 
         if(cSLD->c3Node) {
 		points =  cSLD->c3Node->point.p;

@@ -27,7 +27,7 @@ which is the sample application included with the javascript engine.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -1614,3 +1614,5 @@ JSBool js_SetPropertyDebug9 (JSContext *context, JSObject *obj, jsval id, jsval 
 	#endif
 	return JS_TRUE;
 }
+
+#endif /* HAVE_JAVASCRIPT */

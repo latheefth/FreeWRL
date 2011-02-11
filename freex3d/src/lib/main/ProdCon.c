@@ -88,6 +88,10 @@ void *setBackgroundBindInRender = NULL;
 void *setNavigationBindInRender = NULL;
 char *givenInitialViewpoint = NULL;
 
+/* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
+struct VRMLParser* savedParser;
+
+
 /*
    ==============================================
    Explanations for this horrible modification :P

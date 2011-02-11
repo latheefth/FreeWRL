@@ -26,7 +26,7 @@ $Id$
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -1867,3 +1867,4 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	return JS_TRUE;
 }
+#endif /* HAVE_JAVASCRIPT */

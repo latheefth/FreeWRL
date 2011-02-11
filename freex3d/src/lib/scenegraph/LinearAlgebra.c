@@ -26,7 +26,7 @@ $Id$
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#include <math.h>
 
 #include <config.h>
 #include <system.h>

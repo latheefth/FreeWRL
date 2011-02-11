@@ -220,6 +220,14 @@ bool initFreeWRL(freewrl_params_t *params)
 	else if (getenv("FREEWRL_USE_VBOS") != NULL) global_use_VBOs = TRUE;
 
 	if (global_use_VBOs) {
+		printf ("Env: trying VBOs enabled.\n");
+/*
+	} else {
+		printf ("Env: not using VBOs \n");
+*/
+	}
+
+	if (global_use_VBOs) {
 		TRACE_MSG("Env: trying VBOs enabled.\n");
 	}
 
