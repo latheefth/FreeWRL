@@ -52,7 +52,7 @@ Internal header: system dependencies.
 	#undef HAVE_JAVASCRIPT
 #else
 	/* Everything has JavaScript */
-	#undef HAVE_JAVASCRIPT
+	#define HAVE_JAVASCRIPT
 #endif
 
 #if HAVE_STDINT_H
