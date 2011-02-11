@@ -1465,7 +1465,7 @@ static void sendScriptEventIn(int num) {
 
 	if (CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-			#if HAVE_JAVASCRIPT
+			#ifdef HAVE_JAVASCRIPT
 			struct Shader_Script *myObj;
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {

@@ -26,7 +26,6 @@ Javascript C language binding.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -65,6 +64,7 @@ Javascript C language binding.
 #include "jsVRMLClasses.h"
 #include "jsVRMLBrowser.h"
 
+#ifdef HAVE_JAVASCRIPT
 
 static JSClass Browser = {
     "Browser",

@@ -27,7 +27,6 @@ which is the sample application included with the javascript engine.
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -56,6 +55,8 @@ which is the sample application included with the javascript engine.
 #ifdef WIN32
 #include <pthread.h> // win32 needs the strtok_r 
 #endif
+
+#ifdef HAVE_JAVASCRIPT
 
 #ifdef WANT_OSC
 	#include "../scenegraph/ringbuf.h"

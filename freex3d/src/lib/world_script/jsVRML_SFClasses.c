@@ -25,7 +25,6 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-#ifdef HAVE_JAVASCRIPT
 
 #include <config.h>
 #include <system.h>
@@ -56,6 +55,8 @@
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "JScript.h"
+
+#ifdef HAVE_JAVASCRIPT
 
 /********************************************************/
 /*							*/
