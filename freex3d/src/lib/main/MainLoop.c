@@ -1323,8 +1323,8 @@ static void render_collisions() {
 		}
         get_collisionoffset(&(v.x), &(v.y), &(v.z));
 
-	/* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
-		printf ("MainLoop, rendercollisions, offset %f %f %f\n",v.x,v.y,v.z);
+	 /* if (!APPROX(v.x,0.0) || !APPROX(v.y,0.0) || !APPROX(v.z,0.0)) {
+		printf ("%lf MainLoop, rendercollisions, offset %f %f %f\n",TickTime,v.x,v.y,v.z);
 	} */
 		/* v should be in avatar coordinates*/
         increment_pos(&v);
