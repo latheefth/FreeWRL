@@ -1783,7 +1783,11 @@ void _displayThread()
 	   make it current to this thread */
 	bind_GLcontext();
 
+	#ifdef IPHONE
+	printf ("skipping new_tess call\n");
+	#else
 	new_tessellation();
+	#endif
 	
 	set_viewer_type(VIEWER_EXAMINE);
 	

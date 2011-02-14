@@ -26,7 +26,7 @@ $Id$
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
+#ifndef IPHONE
 
 #include <config.h>
 #include <system.h>
@@ -2207,3 +2207,4 @@ void endProtoDeclare(void) {
 }
 
 
+#endif

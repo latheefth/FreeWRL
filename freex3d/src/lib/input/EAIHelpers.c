@@ -342,7 +342,13 @@ int EAI_GetNode(const char *str) {
 	}	
 	
 	/* Try to get X3D node name */
+	#ifdef IPHONE
+	myNode = NULL; 
+	printf ("X3DParser_getNodeFromName not here yet\n");
+	#else
 	myNode = X3DParser_getNodeFromName(str);
+	#endif
+
 	if (myNode == NULL) {
 		/* Try to get VRML node name */
 		myNode = parser_getNodeFromName(str);
@@ -641,7 +647,12 @@ struct X3D_Node *EAI_GetViewpoint(const char *str) {
 
         /* Try to get X3D node name */
 
-        myNode = X3DParser_getNodeFromName(str);
+	#ifdef IPHONE
+	myNode = NULL; 
+	printf ("X3DParser_getNodeFromName not here yet\n");
+	#else
+	myNode = X3DParser_getNodeFromName(str);
+	#endif
         if (myNode == NULL) {
                 /* Try to get VRML node name */
                 myNode = parser_getNodeFromName(str);

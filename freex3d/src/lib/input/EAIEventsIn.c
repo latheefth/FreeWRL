@@ -751,7 +751,11 @@ static void handleGETEAINODETYPE (char *bufptr, int repno) {
 	}
 
         /* Try to get X3D node name */
+	#ifdef IPHONE
+	cptr = NULL; /* no xml parsing for now in iphone */
+	#else
 	cptr = X3DParser_getNameFromNode(myNode);
+	#endif
 	IGNORE_IF_FABRICATED_INTERNAL_NAME
 
 
