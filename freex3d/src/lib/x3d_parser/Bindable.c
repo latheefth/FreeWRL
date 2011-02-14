@@ -925,9 +925,11 @@ void render_Background (struct X3D_Background *node) {
 
 	FW_GL_DRAWARRAYS (GL_TRIANGLES, 0, node->__quadcount);
 
+	#ifdef SHADERS_2011
                /* turn off */
                 FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
                 FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+	#endif
 
 
 	FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
