@@ -393,7 +393,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 			createLoadUrlString(myBuf,myBufSize,_costr[0], _costr[1]);
 			createLoadURL(myBuf);
 
-			/* now tell the EventLoop that BrowserAction is requested... */
+			/* now tell the RenderSceneUpdateScene that BrowserAction is requested... */
 			AnchorsAnchor = &EAI_AnchorNode;
 		}
 		BrowserAction = TRUE;

@@ -69,8 +69,10 @@ extern pthread_t loadThread; /* texture thread */
  *   Gather here all functions that create threads 
  */
 /* DISPLAY THREAD */
+#if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
 void initializeDisplayThread();
 void _displayThread();
+#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 /* PARSER THREAD */
 void initializeInputParseThread();

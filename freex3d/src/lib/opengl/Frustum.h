@@ -108,7 +108,7 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 void printmatrix(GLDOUBLE* mat);
 void propagateExtent(struct X3D_Node *me);
 void record_ZBufferDistance(struct X3D_Node *node);
-void OcclusionStartofEventLoop(void);
+void OcclusionStartofRenderSceneUpdateScene(void);
 void OcclusionCulling (void);
 void zeroOcclusion(void);
 

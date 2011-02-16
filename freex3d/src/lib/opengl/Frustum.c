@@ -741,7 +741,7 @@ printf ("render_geom %d, render_blend %d\n",render_geom, render_blend);
 
 /***************************************************************************/
 
-void OcclusionStartofEventLoop() {
+void OcclusionStartofRenderSceneUpdateScene() {
 
 #ifdef OCCLUSION /* do we have hardware for occlusion culling? */
 	int i;
@@ -767,7 +767,7 @@ void OcclusionStartofEventLoop() {
 	        	if (rdr_caps.av_occlusion_q) {
 		
 				#ifdef OCCLUSIONVERBOSE
-	        	        printf ("OcclusionStartofEventLoop: have OcclusionQuery\n"); 
+	        	        printf ("OcclusionStartofRenderSceneUpdateScene: have OcclusionQuery\n"); 
 				#endif
 	
 				/* we make the OccQuerySize larger than the maximum number of occluders,
@@ -788,7 +788,7 @@ void OcclusionStartofEventLoop() {
 
         		} else {
 				#ifdef OCCLUSIONVERBOSE
-        	       		 printf ("OcclusionStartofEventLoop: DO NOT have OcclusionQuery\n"); 
+        	       		 printf ("OcclusionStartofRenderSceneUpdateScene: DO NOT have OcclusionQuery\n"); 
 				#endif
 
 				/* we dont seem to have this extension here at runtime! */
@@ -910,7 +910,6 @@ void OcclusionCulling ()  {
 		#ifdef SLEEP_FOR_QUERY_RESULTS
 		/* for now, lets loop to see when we get results */
 		while (OccResultsAvailable == GL_FALSE) {
-			/* printf ("waiting and looping for results - myglobalContext %u\n",myglobalContext);  */
 			usleep(100);
 			FW_GL_GETQUERYOBJECTIV(OccQueries[i],GL_QUERY_RESULT_AVAILABLE,&OccResultsAvailable);
 			PRINT_GL_ERROR_IF_ANY("FW_GL_GETQUERYOBJECTIV::QUERY_RESULTS_AVAIL");

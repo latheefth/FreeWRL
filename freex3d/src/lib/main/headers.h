@@ -878,8 +878,6 @@ extern int cc_changed;
 
 /* int mapFieldTypeToInernaltype (indexT kwIndex); msvc has problem perhaps with typedef typdef unsigned int indexT*/
 int mapFieldTypeToInernaltype (unsigned int kwIndex);
-void finishEventLoop();
-void resetEventLoop();
 void resetSensorEvents();
 
 /* MIDI stuff... */

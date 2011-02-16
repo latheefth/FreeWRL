@@ -40,7 +40,7 @@ void Next_ViewPoint();
 void setTextures_take_priority (int x);
 void setUseShapeThreadIfPossible(int x);
 void toggle_headlight();
-void EventLoop();
+void RenderSceneUpdateScene();
 
 /* should be in OpenGL_Utils.h but this would grab all X3D defs.... */
 void setglClearColor(float *val);

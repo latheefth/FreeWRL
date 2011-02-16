@@ -38,6 +38,8 @@
 
 int open_display()
 {
+printf ("OSX - open_display called\n");
+
 	/* Guess: We are linked with libAquaInt....
 	   display is alread initialized....
 	   nothing to do except catch to relevant variables...
@@ -47,6 +49,9 @@ int open_display()
 
 int create_main_window(int argc, char *argv[])
 {
+
+printf ("OSX - create_main_window called\n");
+
 	/* Guess: We are linked with libAquaInt....
 	   display is alread initialized....
 	   nothing to do except catch to relevant variables...
@@ -60,6 +65,8 @@ int create_main_window(int argc, char *argv[])
  */
 bool create_GLcontext()
 {	
+
+printf ("OSX - createGLContext called\n");
 	fw_thread_dump();
 
 	/* Guess: call the aglCreateContext ... */
@@ -73,6 +80,8 @@ bool create_GLcontext()
  */
 bool bind_GLcontext()
 {
+
+printf ("OSX - bind_GLContext called \n");
 	fw_thread_dump();
 
 	/* Guess: call the aglMakeCurrent ... */

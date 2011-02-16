@@ -553,7 +553,7 @@ void EAI_parse_commands () {
 				/* prep the reply... */
 				sprintf (outBuffer,"RE\n%f\n%d\n",TickTime,count);
 
-				/* now tell the EventLoop that BrowserAction is requested... */
+				/* now tell the RenderSceneUpdateScene that BrowserAction is requested... */
 				AnchorsAnchor = &EAI_AnchorNode;
 				BrowserAction = TRUE;
 				break;
