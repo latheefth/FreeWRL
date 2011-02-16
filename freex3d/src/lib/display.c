@@ -134,8 +134,7 @@ int display_initialize()
 		return FALSE;
 	}
 
-/* Why cant we bind the glContext here in MSC? */
-#ifndef _MSC_VER
+#ifdef _MSC_VER
 	bind_GLcontext();
 #endif
 

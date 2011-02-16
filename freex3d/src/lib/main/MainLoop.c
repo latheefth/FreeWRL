@@ -1631,11 +1631,6 @@ void initializeRenderSceneUpdateScene() {
 	/* Context has been created,
 	   make it current to this thread */
 
-/* why does MSC_VER need to bind glContext here? Others do it in src/lib/display.c */
-#ifdef _MSC_VER
-        bind_GLcontext();
-#endif
-
 	new_tessellation();
 	
 	set_viewer_type(VIEWER_EXAMINE);
