@@ -327,11 +327,13 @@ if (shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling T
 void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 
 	
+/*
 	if (target == GL_ARRAY_BUFFER_BINDING) printf ("glBindBuffer, GL_ARRAY_BUFFER_BINDING %d at %s:%d\n",buffer,file,line);
 	else if (target == GL_ARRAY_BUFFER) printf ("glBindBuffer, GL_ARRAY_BUFFER %d at %s:%d\n",buffer,file,line);
 	else if (target == GL_ELEMENT_ARRAY_BUFFER) printf ("glBindBuffer, GL_ELEMENT_ARRAY_BUFFER %d at %s:%d\n",buffer,file,line);
 	else printf ("glBindBuffer, %d %d at %s:%d\n",target,buffer,file,line);
 	
+*/
 
 	glBindBuffer(target,buffer);
 }

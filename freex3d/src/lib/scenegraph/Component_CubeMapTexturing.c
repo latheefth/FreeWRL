@@ -28,6 +28,9 @@ X3D Cubemap Texturing Component
 
 
 #include <config.h>
+
+#ifndef IPHONE
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -535,3 +538,5 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	/* get rid of the original texture data now */
 	FREE_IF_NZ(me->texdata);
 }
+
+#endif /* IPHONE */

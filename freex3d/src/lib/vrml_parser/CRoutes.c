@@ -1234,10 +1234,9 @@ in the routing table that this node/offset triggered an event.
 void mark_event (struct X3D_Node *from, int totalptr) {
 	int findit;
 
-#ifdef WIN32
 	if(from == 0) return;
 	/*if(totalptr == 0) return; */
-#endif
+
 	X3D_NODE_CHECK(from);
 
 	/* maybe this MARK_EVENT is coming in during initial node startup, before routing is registered? */

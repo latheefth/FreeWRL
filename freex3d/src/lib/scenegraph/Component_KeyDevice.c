@@ -67,7 +67,7 @@ int ctrlPressed = 0;
 #endif
 
 /* mapped from my Apple OSX keyboard, canadian setup, so here goes... */
-#ifdef WIN32
+#if defined (WIN32)
 /* values from WinUser.h */
 #define PHOME_KEY 0x24
 #define PPGDN_KEY 0x22
@@ -100,7 +100,7 @@ int ctrlPressed = 0;
 	#define KEYUP	3
 	#endif
 
-#elif AQUA
+#elif defined (AQUA) 
 
 /* verified August 2010 for OSX - aluminium keyboard, "Canadian English" one. */
 

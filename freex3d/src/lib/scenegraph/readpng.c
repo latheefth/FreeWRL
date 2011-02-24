@@ -27,12 +27,12 @@ FreeWRL now only uses this on Linux machines.
 ****************************************************************************/
 
 
+#include <config.h>
 
 #ifndef AQUA
 
 #include <png.h>        /* libpng header; includes zlib.h */
 
-#include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>

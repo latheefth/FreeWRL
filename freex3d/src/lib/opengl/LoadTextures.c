@@ -80,7 +80,6 @@ s_list_t *texture_list = NULL;
 
 #endif /* IPHONE */
 
-/* defaultBlankTexture... */
 GLuint defaultBlankTexture;
 
 /* IPHONE - bypass textures for now */

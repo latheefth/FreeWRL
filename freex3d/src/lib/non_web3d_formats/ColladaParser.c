@@ -26,11 +26,12 @@ $Id$
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#include <config.h>
+
 /* IPHONE - right now do not do XML parsing */
 #ifndef IPHONE
 
 
-#include <config.h>
 #include <system.h>
 #include <display.h>
 #include <internal.h>

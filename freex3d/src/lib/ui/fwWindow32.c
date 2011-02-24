@@ -7,18 +7,23 @@
 */
 /* #define WIN32_LEAN_AND_MEAN 1*/
 
-#include <windows.h>
-#include <shlwapi.h>
+
 
 #include <config.h>
+
+#ifndef IPHONE
+
 #include <system.h>
 #include <display.h>
 #include <main/headers.h>
+#include <windows.h>
+#include <shlwapi.h>
 
 #include <internal.h>
 
 #include <libFreeWRL.h>
 #include <float.h>
+
 
 
 HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
@@ -756,3 +761,4 @@ int create_main_window(int argc, char *argv[])
     return TRUE;
 }
 
+#endif /* IPHONE */

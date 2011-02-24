@@ -1631,7 +1631,9 @@ void initializeRenderSceneUpdateScene() {
 	/* Context has been created,
 	   make it current to this thread */
 
+	#ifndef IPHONE /* temporary to get iphone running */
 	new_tessellation();
+	#endif /* IPHONE */
 	
 	set_viewer_type(VIEWER_EXAMINE);
 	

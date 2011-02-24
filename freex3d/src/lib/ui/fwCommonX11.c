@@ -25,9 +25,10 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
+
+#ifndef IPHONE
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -323,3 +324,5 @@ bool bind_GLcontext()
 
 	return TRUE;
 }
+
+#endif /* IPHONE */

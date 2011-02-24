@@ -28,6 +28,8 @@
 #include <display.h>
 #include <internal.h>
 
+#ifndef IPHONE
+
 #include <libFreeWRL.h>
 #include <list.h>
 #include <io_files.h>
@@ -642,3 +644,4 @@ void drawStatusBar()
 	FW_GL_FLUSH();
 
 }
+#endif /* IPHONE */
