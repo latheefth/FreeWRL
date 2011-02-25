@@ -77,9 +77,6 @@ extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
 extern char *OSX_replace_world_from_console;
 
-extern GLint lightOnOff[];
-
-
 void lightState(GLint light, int status);
 void saveLightState(int *ls);
 void restoreLightState(int *ls);
@@ -93,5 +90,6 @@ void sendArraysToGPU (int mode, int first, int count);
 void sendBindBufferToGPU (GLenum target, GLuint buffer,char *, int);
 void sendElementsToGPU (int mode, int count, int type, int *indices);
 void render_hier(struct X3D_Group *p, int rwhat);
+void sendLightInfo (s_shader_capabilities_t *me);
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

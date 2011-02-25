@@ -47,10 +47,11 @@ typedef struct {
 	GLint myMaterialBackEmission;
 
 	GLint lightState;
-	GLint lightAmbient;
-	GLint lightDiffuse;
-	GLint lightSpecular;
-	GLint lightPosition;
+        GLint lightAmbient;
+        GLint lightDiffuse;
+        GLint lightSpecular;
+        GLint lightPosition;
+
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
 	GLint NormalMatrix;
