@@ -1361,6 +1361,7 @@ bool initialize_GL()
 
 
 	/* nodes with Geometry Shaders */
+	#ifdef HAVE_GEOMETRY_SHADERS
         getGenericShader(noMaterialNoAppearanceSphereShader);
         getGenericShader(noTexOneMaterialSphereShader);
 	getGenericShader(noTexTwoMaterialSphereShader);
@@ -1368,6 +1369,7 @@ bool initialize_GL()
 	getGenericShader(oneTexTwoMaterialSphereShader);
 	getGenericShader(complexTexOneMaterialSphereShader);
 	getGenericShader(complexTexTwoMaterialSphereShader);
+	#endif /* HAVE_GEOMETRY_SHADERS */
 
 	#endif /* SHADERS_2011 */
 

@@ -36,6 +36,7 @@
 	#define GLDOUBLE double
 	#define DOUBLE_MAX fmax
 	#define DOUBLE_MIN fmin
+	#undef HAVE_GEOMETRY_SHADERS
 #else
 	#define GLDOUBLE GLdouble
 	#define DOUBLE_MAX max

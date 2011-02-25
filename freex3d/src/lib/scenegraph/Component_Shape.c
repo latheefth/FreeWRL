@@ -516,11 +516,14 @@ void render_Material (struct X3D_Material *node) {
 /* find info on the geometry of this shape */
 static int newGetGeometryShader (struct X3D_Node *myGeom) {
 	struct X3D_Node *realNode;
+	#ifdef HAVE_GEOMETRY_SHADERS
+
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
 
 	if (realNode == NULL) return NO_GEOM_SHADER;
 
 	if (realNode->_nodeType == NODE_Sphere) return SPHERE_GEOM_SHADER;
+	#endif /* HAVE_GEOMETRY_SHADERS */
 
 	return NO_GEOM_SHADER;
 }
