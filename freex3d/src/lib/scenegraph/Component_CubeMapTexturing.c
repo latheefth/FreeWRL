@@ -29,8 +29,6 @@ X3D Cubemap Texturing Component
 
 #include <config.h>
 
-#ifndef IPHONE
-
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -75,6 +73,7 @@ X3D Cubemap Texturing Component
  ****************************************************************************/
 
 void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
+#ifndef IPHONE 
 	int count;
 	struct X3D_Node *thistex = 0;
 
@@ -111,6 +110,7 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 			} 
 		}
 	}
+#endif /* IPHONE */
 }
 
 /****************************************************************************
@@ -164,6 +164,8 @@ struct DdsLoadInfo loadInfoIndex8 = {
 };
 
 bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
+#ifndef IPHONE 
+
 	FILE *file;
 	char *buffer;
 	unsigned long fileLen;
@@ -376,6 +378,7 @@ printf ("put in the dummy file here, and call it quits\n");
 	}
 	FREE_IF_NZ(buffer);
 	return FALSE;
+#endif /* IPHONE */
 }
 
 
@@ -465,6 +468,7 @@ static int offsets[]={
 
 /* fill in the 6 PixelTextures from the data in the texture */
 void unpackImageCubeMap (textureTableIndexStruct_s* me) {
+#ifndef IPHONE
 	int size;
 	int count;
 
@@ -537,6 +541,6 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 
 	/* get rid of the original texture data now */
 	FREE_IF_NZ(me->texdata);
+#endif /* IPHONE */
 }
 
-#endif /* IPHONE */

@@ -1509,6 +1509,8 @@ void setMono()
 	Viewer.sidebyside = 0;
 	Viewer.shutterGlasses = 0;
 	shutterGlasses = 0;
+
+printf ("setMono - Viewer.shutterGlasses %d\n",Viewer.shutterGlasses);
 }
 
 void setStereo(int type)
@@ -1565,6 +1567,7 @@ void viewer_postGLinit_init(void)
 				ConsoleMessage("anaglyph shaders did not initialize - do you have opengl 2.0+ drivers?\n");
 			}
 	}
+printf ("Viewer.shutterGlasses is %d\n",Viewer.shutterGlasses);
 	if(Viewer.shutterGlasses)
 	{
 		// does this opengl driver/hardware support GL_STEREO? p.469, p.729 RedBook and

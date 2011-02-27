@@ -158,9 +158,6 @@ void initializeInputParseThread()
 
 void initializeTextureThread()
 {
-#ifdef IPHONE
-	printf ("skipping initializeTextureThread\n");
-#else
 	int ret;
 
 	/* Synchronize trace/error log... */
@@ -176,7 +173,6 @@ void initializeTextureThread()
 		ERROR_MSG("initializeTextureThread: not enough system resources to create a process for the new thread.");
 		return;
 	}
-#endif /* IPHONE */
 }
 
 int fw_thread_id()
