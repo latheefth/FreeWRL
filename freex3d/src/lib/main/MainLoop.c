@@ -1599,7 +1599,7 @@ void Next_ViewPoint() {
 
 /* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
 void initializeRenderSceneUpdateScene() {
-	printf ("initializeRenderSceneUpdateScene start\n");
+	/* printf ("initializeRenderSceneUpdateScene start\n"); */
 
 	/* Initialize display */
 	if (!display_initialize()) {
@@ -1622,7 +1622,7 @@ void initializeRenderSceneUpdateScene() {
 	if (fullscreen) resetGeometry();
 	#endif
 
-	printf ("initializeRenderSceneUpdateScene finish\n");
+	/* printf ("initializeRenderSceneUpdateScene finish\n"); */
 }
 
 void finalizeRenderSceneUpdateScene() {

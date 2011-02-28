@@ -46,8 +46,16 @@ void turnGlobalShaderOff(void);
 		#define TURN_FILLPROPERTIES_SHADER_OFF \
 			{if (fillpropCurrentShader!=0) { fillpropCurrentShader = 0; glUseProgramObjectARB(0);}}
 	#else
-		#define TURN_GLOBAL_SHADER_OFF
-		#define TURN_FILLPROPERTIES_SHADER_OFF
+		#ifdef IPHONE
+			#define TURN_GLOBAL_SHADER_OFF \
+				turnGlobalShaderOff()
+			#define TURN_FILLPROPERTIES_SHADER_OFF \
+				{if (fillpropCurrentShader!=0) { glUseProgram(0);}}
+
+		#else
+			#define TURN_GLOBAL_SHADER_OFF printf ("can not do TURN_SHADERS_OFF at %s:%d\n",__FILE__,__LINE__);
+			#define TURN_FILLPROPERTIES_SHADER_OFF printf ("can not do TURN_SHADERS_OFF at %s:%d\n",__FILE__,__LINE__);
+		#endif
 	#endif
 #endif
 
