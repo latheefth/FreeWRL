@@ -1,0 +1,1123 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		73CC529D13116B7F00D8773C /* display.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51CD13116B7F00D8773C /* display.c */; };
+		73CC529E13116B7F00D8773C /* display.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51CE13116B7F00D8773C /* display.h */; };
+		73CC529F13116B7F00D8773C /* convert1To2.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51D013116B7F00D8773C /* convert1To2.c */; };
+		73CC52A013116B7F00D8773C /* EAI_C_CommonFunctions.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51D113116B7F00D8773C /* EAI_C_CommonFunctions.c */; };
+		73CC52A113116B7F00D8773C /* EAIEventsIn.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51D213116B7F00D8773C /* EAIEventsIn.c */; };
+		73CC52A213116B7F00D8773C /* EAIEventsOut.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51D313116B7F00D8773C /* EAIEventsOut.c */; };
+		73CC52A313116B7F00D8773C /* EAIHeaders.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51D413116B7F00D8773C /* EAIHeaders.h */; };
+		73CC52A413116B7F00D8773C /* EAIHelpers.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51D513116B7F00D8773C /* EAIHelpers.c */; };
+		73CC52A513116B7F00D8773C /* EAIHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51D613116B7F00D8773C /* EAIHelpers.h */; };
+		73CC52A613116B7F00D8773C /* EAIServ.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51D713116B7F00D8773C /* EAIServ.c */; };
+		73CC52A713116B7F00D8773C /* InputFunctions.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51D813116B7F00D8773C /* InputFunctions.c */; };
+		73CC52A813116B7F00D8773C /* InputFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51D913116B7F00D8773C /* InputFunctions.h */; };
+		73CC52A913116B7F00D8773C /* SensInterps.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51DA13116B7F00D8773C /* SensInterps.c */; };
+		73CC52AA13116B7F00D8773C /* SensInterps.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51DB13116B7F00D8773C /* SensInterps.h */; };
+		73CC52AB13116B7F00D8773C /* internal.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51DC13116B7F00D8773C /* internal.c */; };
+		73CC52AC13116B7F00D8773C /* internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51DD13116B7F00D8773C /* internal.h */; };
+		73CC52AD13116B7F00D8773C /* io_files.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51DE13116B7F00D8773C /* io_files.c */; };
+		73CC52AE13116B7F00D8773C /* io_files.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51DF13116B7F00D8773C /* io_files.h */; };
+		73CC52AF13116B7F00D8773C /* io_http.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51E013116B7F00D8773C /* io_http.c */; };
+		73CC52B013116B7F00D8773C /* io_http.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51E113116B7F00D8773C /* io_http.h */; };
+		73CC52B213116B7F00D8773C /* libFreeWRL.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51E313116B7F00D8773C /* libFreeWRL.h */; };
+		73CC52B313116B7F00D8773C /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51E513116B7F00D8773C /* list.c */; };
+		73CC52B413116B7F00D8773C /* list.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51E613116B7F00D8773C /* list.h */; };
+		73CC52B513116B7F00D8773C /* ConsoleMessage.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51E813116B7F00D8773C /* ConsoleMessage.c */; };
+		73CC52B613116B7F00D8773C /* headers.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51E913116B7F00D8773C /* headers.h */; };
+		73CC52B713116B7F00D8773C /* installdir.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51EA13116B7F00D8773C /* installdir.h */; };
+		73CC52B813116B7F00D8773C /* MainLoop.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51EB13116B7F00D8773C /* MainLoop.c */; };
+		73CC52B913116B7F00D8773C /* MainLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51EC13116B7F00D8773C /* MainLoop.h */; };
+		73CC52BA13116B7F00D8773C /* ProdCon.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51ED13116B7F00D8773C /* ProdCon.c */; };
+		73CC52BB13116B7F00D8773C /* ProdCon.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51EE13116B7F00D8773C /* ProdCon.h */; };
+		73CC52BC13116B7F00D8773C /* Snapshot.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51EF13116B7F00D8773C /* Snapshot.c */; };
+		73CC52BD13116B7F00D8773C /* Snapshot.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51F013116B7F00D8773C /* Snapshot.h */; };
+		73CC52BE13116B7F00D8773C /* SoundEngineClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51F113116B7F00D8773C /* SoundEngineClient.c */; };
+		73CC52BF13116B7F00D8773C /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51F213116B7F00D8773C /* utils.c */; };
+		73CC52C013116B7F00D8773C /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51F313116B7F00D8773C /* main.c */; };
+		73CC52C113116B7F00D8773C /* main.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51F413116B7F00D8773C /* main.h */; };
+		73CC52C213116B7F00D8773C /* ColladaParser.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51F813116B7F00D8773C /* ColladaParser.c */; };
+		73CC52C313116B7F00D8773C /* ColladaParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51F913116B7F00D8773C /* ColladaParser.h */; };
+		73CC52C413116B7F00D8773C /* Frustum.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51FB13116B7F00D8773C /* Frustum.c */; };
+		73CC52C513116B7F00D8773C /* Frustum.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51FC13116B7F00D8773C /* Frustum.h */; };
+		73CC52C613116B7F00D8773C /* LoadTextures.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51FD13116B7F00D8773C /* LoadTextures.c */; };
+		73CC52C713116B7F00D8773C /* LoadTextures.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC51FE13116B7F00D8773C /* LoadTextures.h */; };
+		73CC52C813116B7F00D8773C /* Material.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC51FF13116B7F00D8773C /* Material.c */; };
+		73CC52C913116B7F00D8773C /* Material.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC520013116B7F00D8773C /* Material.h */; };
+		73CC52CA13116B7F00D8773C /* OpenGL_Utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC520213116B7F00D8773C /* OpenGL_Utils.c */; };
+		73CC52CB13116B7F00D8773C /* OpenGL_Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC520313116B7F00D8773C /* OpenGL_Utils.h */; };
+		73CC52CC13116B7F00D8773C /* OSX_miniglew.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC520413116B7F00D8773C /* OSX_miniglew.c */; };
+		73CC52CD13116B7F00D8773C /* OSX_miniglew.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC520513116B7F00D8773C /* OSX_miniglew.h */; };
+		73CC52CE13116B7F00D8773C /* RasterFont.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC520613116B7F00D8773C /* RasterFont.c */; };
+		73CC52CF13116B7F00D8773C /* RasterFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC520713116B7F00D8773C /* RasterFont.h */; };
+		73CC52D013116B7F00D8773C /* RenderTextures.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC520813116B7F00D8773C /* RenderTextures.c */; };
+		73CC52D113116B7F00D8773C /* Textures.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC520913116B7F00D8773C /* Textures.c */; };
+		73CC52D213116B7F00D8773C /* Textures.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC520A13116B7F00D8773C /* Textures.h */; };
+		73CC52D313116B7F00D8773C /* PluginSocket.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC520C13116B7F00D8773C /* PluginSocket.c */; };
+		73CC52D413116B7F00D8773C /* PluginSocket.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC520D13116B7F00D8773C /* PluginSocket.h */; };
+		73CC52D513116B7F00D8773C /* pluginUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC520E13116B7F00D8773C /* pluginUtils.c */; };
+		73CC52D613116B7F00D8773C /* pluginUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC520F13116B7F00D8773C /* pluginUtils.h */; };
+		73CC52D713116B7F00D8773C /* resources.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521013116B7F00D8773C /* resources.c */; };
+		73CC52D813116B7F00D8773C /* resources.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC521113116B7F00D8773C /* resources.h */; };
+		73CC52D913116B7F00D8773C /* Children.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521313116B7F00D8773C /* Children.c */; };
+		73CC52DA13116B7F00D8773C /* Children.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC521413116B7F00D8773C /* Children.h */; };
+		73CC52DB13116B7F00D8773C /* Collision.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521513116B7F00D8773C /* Collision.c */; };
+		73CC52DC13116B7F00D8773C /* Collision.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC521613116B7F00D8773C /* Collision.h */; };
+		73CC52DD13116B7F00D8773C /* Component_Core.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521713116B7F00D8773C /* Component_Core.c */; };
+		73CC52DE13116B7F00D8773C /* Component_Core.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC521813116B7F00D8773C /* Component_Core.h */; };
+		73CC52DF13116B7F00D8773C /* Component_CubeMapTexturing.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521913116B7F00D8773C /* Component_CubeMapTexturing.c */; };
+		73CC52E013116B7F00D8773C /* Component_CubeMapTexturing.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC521A13116B7F00D8773C /* Component_CubeMapTexturing.h */; };
+		73CC52E113116B7F00D8773C /* Component_DIS.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521B13116B7F00D8773C /* Component_DIS.c */; };
+		73CC52E213116B7F00D8773C /* Component_EnvironEffects.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521C13116B7F00D8773C /* Component_EnvironEffects.c */; };
+		73CC52E313116B7F00D8773C /* Component_EnvironSensor.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521D13116B7F00D8773C /* Component_EnvironSensor.c */; };
+		73CC52E413116B7F00D8773C /* Component_EventUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521E13116B7F00D8773C /* Component_EventUtils.c */; };
+		73CC52E513116B7F00D8773C /* Component_Geometry2D.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC521F13116B7F00D8773C /* Component_Geometry2D.c */; };
+		73CC52E613116B7F00D8773C /* Component_Geometry3D.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522013116B7F00D8773C /* Component_Geometry3D.c */; };
+		73CC52E713116B7F00D8773C /* Component_Geometry3D.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC522113116B7F00D8773C /* Component_Geometry3D.h */; };
+		73CC52E813116B7F00D8773C /* Component_Geospatial.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522213116B7F00D8773C /* Component_Geospatial.c */; };
+		73CC52E913116B7F00D8773C /* Component_Geospatial.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC522313116B7F00D8773C /* Component_Geospatial.h */; };
+		73CC52EA13116B7F00D8773C /* Component_Grouping.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522413116B7F00D8773C /* Component_Grouping.c */; };
+		73CC52EB13116B7F00D8773C /* Component_HAnim.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522513116B7F00D8773C /* Component_HAnim.c */; };
+		73CC52EC13116B7F00D8773C /* Component_Interpolation.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522613116B7F00D8773C /* Component_Interpolation.c */; };
+		73CC52ED13116B7F00D8773C /* Component_KeyDevice.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522713116B7F00D8773C /* Component_KeyDevice.c */; };
+		73CC52EE13116B7F00D8773C /* Component_KeyDevice.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC522813116B7F00D8773C /* Component_KeyDevice.h */; };
+		73CC52EF13116B7F00D8773C /* Component_Lighting.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522913116B7F00D8773C /* Component_Lighting.c */; };
+		73CC52F013116B7F00D8773C /* Component_Navigation.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522A13116B7F00D8773C /* Component_Navigation.c */; };
+		73CC52F113116B7F00D8773C /* Component_Networking.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522B13116B7F00D8773C /* Component_Networking.c */; };
+		73CC52F213116B7F00D8773C /* Component_Networking.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC522C13116B7F00D8773C /* Component_Networking.h */; };
+		73CC52F313116B7F00D8773C /* Component_NURBS.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522D13116B7F00D8773C /* Component_NURBS.c */; };
+		73CC52F413116B7F00D8773C /* Component_Picking.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC522E13116B7F00D8773C /* Component_Picking.c */; };
+		73CC52F513116B7F00D8773C /* Component_Picking.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC522F13116B7F00D8773C /* Component_Picking.h */; };
+		73CC52F613116B7F00D8773C /* Component_PointingDevice.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523013116B7F00D8773C /* Component_PointingDevice.c */; };
+		73CC52F713116B7F00D8773C /* Component_ProgrammableShaders.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523113116B7F00D8773C /* Component_ProgrammableShaders.c */; };
+		73CC52F813116B7F00D8773C /* Component_ProgrammableShaders.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC523213116B7F00D8773C /* Component_ProgrammableShaders.h */; };
+		73CC52F913116B7F00D8773C /* Component_Rendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523313116B7F00D8773C /* Component_Rendering.c */; };
+		73CC52FA13116B7F00D8773C /* Component_Scripting.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523413116B7F00D8773C /* Component_Scripting.c */; };
+		73CC52FB13116B7F00D8773C /* Component_Shape.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523513116B7F00D8773C /* Component_Shape.c */; };
+		73CC52FC13116B7F00D8773C /* Component_Shape.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC523613116B7F00D8773C /* Component_Shape.h */; };
+		73CC52FD13116B7F00D8773C /* Component_Sound.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523713116B7F00D8773C /* Component_Sound.c */; };
+		73CC52FE13116B7F00D8773C /* Component_Text.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523813116B7F00D8773C /* Component_Text.c */; };
+		73CC52FF13116B7F00D8773C /* Component_Text.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC523913116B7F00D8773C /* Component_Text.h */; };
+		73CC530013116B7F00D8773C /* Component_Texturing.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523A13116B7F00D8773C /* Component_Texturing.c */; };
+		73CC530113116B7F00D8773C /* Component_Time.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523B13116B7F00D8773C /* Component_Time.c */; };
+		73CC530213116B7F00D8773C /* Component_VRML1.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523C13116B7F00D8773C /* Component_VRML1.c */; };
+		73CC530313116B7F00D8773C /* GeneratedCode.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523D13116B7F00D8773C /* GeneratedCode.c */; };
+		73CC530413116B7F00D8773C /* GenPolyRep.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523E13116B7F00D8773C /* GenPolyRep.c */; };
+		73CC530513116B7F00D8773C /* LinearAlgebra.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC523F13116B7F00D8773C /* LinearAlgebra.c */; };
+		73CC530613116B7F00D8773C /* LinearAlgebra.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524013116B7F00D8773C /* LinearAlgebra.h */; };
+		73CC530713116B7F00D8773C /* mpeg.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524113116B7F00D8773C /* mpeg.h */; };
+		73CC530813116B7F00D8773C /* MPEG_Utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524213116B7F00D8773C /* MPEG_Utils.c */; };
+		73CC530913116B7F00D8773C /* NormalCalcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524313116B7F00D8773C /* NormalCalcs.c */; };
+		73CC530A13116B7F00D8773C /* OSCcallbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524413116B7F00D8773C /* OSCcallbacks.c */; };
+		73CC530B13116B7F00D8773C /* Polyrep.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524513116B7F00D8773C /* Polyrep.c */; };
+		73CC530C13116B7F00D8773C /* Polyrep.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524613116B7F00D8773C /* Polyrep.h */; };
+		73CC530D13116B7F00D8773C /* quaternion.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524713116B7F00D8773C /* quaternion.c */; };
+		73CC530E13116B7F00D8773C /* quaternion.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524813116B7F00D8773C /* quaternion.h */; };
+		73CC530F13116B7F00D8773C /* readpng.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524913116B7F00D8773C /* readpng.c */; };
+		73CC531013116B7F00D8773C /* readpng.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524A13116B7F00D8773C /* readpng.h */; };
+		73CC531113116B7F00D8773C /* RenderFuncs.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524B13116B7F00D8773C /* RenderFuncs.c */; };
+		73CC531213116B7F00D8773C /* RenderFuncs.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524C13116B7F00D8773C /* RenderFuncs.h */; };
+		73CC531313116B7F00D8773C /* ringbuf.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC524D13116B7F00D8773C /* ringbuf.c */; };
+		73CC531413116B7F00D8773C /* ringbuf.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524E13116B7F00D8773C /* ringbuf.h */; };
+		73CC531513116B7F00D8773C /* sounds.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC524F13116B7F00D8773C /* sounds.h */; };
+		73CC531613116B7F00D8773C /* statics.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC525013116B7F00D8773C /* statics.c */; };
+		73CC531713116B7F00D8773C /* StreamPoly.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC525113116B7F00D8773C /* StreamPoly.c */; };
+		73CC531813116B7F00D8773C /* Tess.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC525213116B7F00D8773C /* Tess.c */; };
+		73CC531913116B7F00D8773C /* Tess.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525313116B7F00D8773C /* Tess.h */; };
+		73CC531A13116B7F00D8773C /* Vector.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC525413116B7F00D8773C /* Vector.c */; };
+		73CC531B13116B7F00D8773C /* Vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525513116B7F00D8773C /* Vector.h */; };
+		73CC531C13116B7F00D8773C /* Viewer.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC525613116B7F00D8773C /* Viewer.c */; };
+		73CC531D13116B7F00D8773C /* Viewer.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525713116B7F00D8773C /* Viewer.h */; };
+		73CC531E13116B7F00D8773C /* system.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525813116B7F00D8773C /* system.h */; };
+		73CC531F13116B7F00D8773C /* system_fonts.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525913116B7F00D8773C /* system_fonts.h */; };
+		73CC532013116B7F00D8773C /* system_js.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525A13116B7F00D8773C /* system_js.h */; };
+		73CC532113116B7F00D8773C /* system_net.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525B13116B7F00D8773C /* system_net.h */; };
+		73CC532213116B7F00D8773C /* system_threads.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525C13116B7F00D8773C /* system_threads.h */; };
+		73CC532313116B7F00D8773C /* threads.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC525D13116B7F00D8773C /* threads.c */; };
+		73CC532413116B7F00D8773C /* threads.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC525E13116B7F00D8773C /* threads.h */; };
+		73CC532513116B7F00D8773C /* aquaInt.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC526013116B7F00D8773C /* aquaInt.h */; };
+		73CC532613116B7F00D8773C /* fwBareWindow.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526113116B7F00D8773C /* fwBareWindow.c */; };
+		73CC532713116B7F00D8773C /* fwBareWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC526213116B7F00D8773C /* fwBareWindow.h */; };
+		73CC532813116B7F00D8773C /* fwCommonX11.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526313116B7F00D8773C /* fwCommonX11.c */; };
+		73CC532913116B7F00D8773C /* fwMotifWindow.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526413116B7F00D8773C /* fwMotifWindow.c */; };
+		73CC532A13116B7F00D8773C /* fwWindow32.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526513116B7F00D8773C /* fwWindow32.c */; };
+		73CC532B13116B7F00D8773C /* fwWindowAqua.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526813116B7F00D8773C /* fwWindowAqua.c */; };
+		73CC532C13116B7F00D8773C /* GLwDrawA.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526913116B7F00D8773C /* GLwDrawA.c */; };
+		73CC532D13116B7F00D8773C /* GLwDrawA.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC526A13116B7F00D8773C /* GLwDrawA.h */; };
+		73CC532E13116B7F00D8773C /* GLwDrawAP.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC526B13116B7F00D8773C /* GLwDrawAP.h */; };
+		73CC532F13116B7F00D8773C /* statusbar.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526C13116B7F00D8773C /* statusbar.c */; };
+		73CC533013116B7F00D8773C /* statusbar.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC526D13116B7F00D8773C /* statusbar.h */; };
+		73CC533113116B7F00D8773C /* statusbarConsole.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526E13116B7F00D8773C /* statusbarConsole.c */; };
+		73CC533213116B7F00D8773C /* statusbarHud.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC526F13116B7F00D8773C /* statusbarHud.c */; };
+		73CC533313116B7F00D8773C /* statusbarStub.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC527013116B7F00D8773C /* statusbarStub.c */; };
+		73CC533413116B7F00D8773C /* CFieldDecls.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC527213116B7F00D8773C /* CFieldDecls.c */; };
+		73CC533513116B7F00D8773C /* CFieldDecls.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527313116B7F00D8773C /* CFieldDecls.h */; };
+		73CC533613116B7F00D8773C /* CParse.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC527413116B7F00D8773C /* CParse.c */; };
+		73CC533713116B7F00D8773C /* CParse.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527513116B7F00D8773C /* CParse.h */; };
+		73CC533813116B7F00D8773C /* CParseGeneral.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527613116B7F00D8773C /* CParseGeneral.h */; };
+		73CC533913116B7F00D8773C /* CParseLexer.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC527713116B7F00D8773C /* CParseLexer.c */; };
+		73CC533A13116B7F00D8773C /* CParseLexer.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527813116B7F00D8773C /* CParseLexer.h */; };
+		73CC533B13116B7F00D8773C /* CParseParser.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC527913116B7F00D8773C /* CParseParser.c */; };
+		73CC533C13116B7F00D8773C /* CParseParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527A13116B7F00D8773C /* CParseParser.h */; };
+		73CC533D13116B7F00D8773C /* CProto.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC527B13116B7F00D8773C /* CProto.c */; };
+		73CC533E13116B7F00D8773C /* CProto.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527C13116B7F00D8773C /* CProto.h */; };
+		73CC533F13116B7F00D8773C /* CRoutes.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC527D13116B7F00D8773C /* CRoutes.c */; };
+		73CC534013116B7F00D8773C /* CRoutes.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527E13116B7F00D8773C /* CRoutes.h */; };
+		73CC534113116B7F00D8773C /* NodeFields.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC527F13116B7F00D8773C /* NodeFields.h */; };
+		73CC534213116B7F00D8773C /* Structs.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528013116B7F00D8773C /* Structs.h */; };
+		73CC534313116B7F00D8773C /* VrmlTypeList.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528113116B7F00D8773C /* VrmlTypeList.h */; };
+		73CC534413116B7F00D8773C /* CScripts.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC528313116B7F00D8773C /* CScripts.c */; };
+		73CC534513116B7F00D8773C /* CScripts.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528413116B7F00D8773C /* CScripts.h */; };
+		73CC534613116B7F00D8773C /* fieldGet.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC528513116B7F00D8773C /* fieldGet.c */; };
+		73CC534713116B7F00D8773C /* fieldGet.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528613116B7F00D8773C /* fieldGet.h */; };
+		73CC534813116B7F00D8773C /* fieldSet.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC528713116B7F00D8773C /* fieldSet.c */; };
+		73CC534913116B7F00D8773C /* fieldSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528813116B7F00D8773C /* fieldSet.h */; };
+		73CC534A13116B7F00D8773C /* JScript.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC528913116B7F00D8773C /* JScript.c */; };
+		73CC534B13116B7F00D8773C /* JScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528A13116B7F00D8773C /* JScript.h */; };
+		73CC534C13116B7F00D8773C /* jsNative.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528B13116B7F00D8773C /* jsNative.h */; };
+		73CC534D13116B7F00D8773C /* jsUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC528C13116B7F00D8773C /* jsUtils.c */; };
+		73CC534E13116B7F00D8773C /* jsUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC528D13116B7F00D8773C /* jsUtils.h */; };
+		73CC534F13116B7F00D8773C /* jsVRML_MFClasses.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC528E13116B7F00D8773C /* jsVRML_MFClasses.c */; };
+		73CC535013116B7F00D8773C /* jsVRML_SFClasses.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC528F13116B7F00D8773C /* jsVRML_SFClasses.c */; };
+		73CC535113116B7F00D8773C /* jsVRMLBrowser.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC529013116B7F00D8773C /* jsVRMLBrowser.c */; };
+		73CC535213116B7F00D8773C /* jsVRMLBrowser.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC529113116B7F00D8773C /* jsVRMLBrowser.h */; };
+		73CC535313116B7F00D8773C /* jsVRMLClasses.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC529213116B7F00D8773C /* jsVRMLClasses.c */; };
+		73CC535413116B7F00D8773C /* jsVRMLClasses.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC529313116B7F00D8773C /* jsVRMLClasses.h */; };
+		73CC535513116B7F00D8773C /* world_script.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC529413116B7F00D8773C /* world_script.h */; };
+		73CC535613116B7F00D8773C /* Bindable.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC529613116B7F00D8773C /* Bindable.c */; };
+		73CC535713116B7F00D8773C /* Bindable.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC529713116B7F00D8773C /* Bindable.h */; };
+		73CC535813116B7F00D8773C /* capabilitiesHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC529813116B7F00D8773C /* capabilitiesHandler.c */; };
+		73CC535913116B7F00D8773C /* X3DParser.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC529913116B7F00D8773C /* X3DParser.c */; };
+		73CC535A13116B7F00D8773C /* X3DParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC529A13116B7F00D8773C /* X3DParser.h */; };
+		73CC535B13116B7F00D8773C /* X3DProtoScript.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC529B13116B7F00D8773C /* X3DProtoScript.c */; };
+		73CC535C13116B7F00D8773C /* X3DProtoScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC529C13116B7F00D8773C /* X3DProtoScript.h */; };
+		73CC538813116F5200D8773C /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73CC538713116F5200D8773C /* OpenGLES.framework */; };
+		73CC54E013131C2C00D8773C /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 73CC54DF13131C2C00D8773C /* config.h */; };
+		73CC551A131453E700D8773C /* JOHNS_lib_version.c in Sources */ = {isa = PBXBuildFile; fileRef = 73CC5519131453E700D8773C /* JOHNS_lib_version.c */; };
+		AA747D9F0F9514B9006C5449 /* FreeWRL_IPhone_Static_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* FreeWRL_IPhone_Static_Prefix.pch */; };
+		AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AACBBE490F95108600F1A2B1 /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		73CC51CD13116B7F00D8773C /* display.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = display.c; path = /FreeWRL/freewrl/freex3d/src/lib/display.c; sourceTree = "<absolute>"; };
+		73CC51CE13116B7F00D8773C /* display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = display.h; path = /FreeWRL/freewrl/freex3d/src/lib/display.h; sourceTree = "<absolute>"; };
+		73CC51D013116B7F00D8773C /* convert1To2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = convert1To2.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/convert1To2.c; sourceTree = "<absolute>"; };
+		73CC51D113116B7F00D8773C /* EAI_C_CommonFunctions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = EAI_C_CommonFunctions.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/EAI_C_CommonFunctions.c; sourceTree = "<absolute>"; };
+		73CC51D213116B7F00D8773C /* EAIEventsIn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = EAIEventsIn.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/EAIEventsIn.c; sourceTree = "<absolute>"; };
+		73CC51D313116B7F00D8773C /* EAIEventsOut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = EAIEventsOut.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/EAIEventsOut.c; sourceTree = "<absolute>"; };
+		73CC51D413116B7F00D8773C /* EAIHeaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EAIHeaders.h; path = /FreeWRL/freewrl/freex3d/src/lib/input/EAIHeaders.h; sourceTree = "<absolute>"; };
+		73CC51D513116B7F00D8773C /* EAIHelpers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = EAIHelpers.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/EAIHelpers.c; sourceTree = "<absolute>"; };
+		73CC51D613116B7F00D8773C /* EAIHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EAIHelpers.h; path = /FreeWRL/freewrl/freex3d/src/lib/input/EAIHelpers.h; sourceTree = "<absolute>"; };
+		73CC51D713116B7F00D8773C /* EAIServ.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = EAIServ.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/EAIServ.c; sourceTree = "<absolute>"; };
+		73CC51D813116B7F00D8773C /* InputFunctions.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = InputFunctions.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/InputFunctions.c; sourceTree = "<absolute>"; };
+		73CC51D913116B7F00D8773C /* InputFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = InputFunctions.h; path = /FreeWRL/freewrl/freex3d/src/lib/input/InputFunctions.h; sourceTree = "<absolute>"; };
+		73CC51DA13116B7F00D8773C /* SensInterps.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = SensInterps.c; path = /FreeWRL/freewrl/freex3d/src/lib/input/SensInterps.c; sourceTree = "<absolute>"; };
+		73CC51DB13116B7F00D8773C /* SensInterps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SensInterps.h; path = /FreeWRL/freewrl/freex3d/src/lib/input/SensInterps.h; sourceTree = "<absolute>"; };
+		73CC51DC13116B7F00D8773C /* internal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = internal.c; path = /FreeWRL/freewrl/freex3d/src/lib/internal.c; sourceTree = "<absolute>"; };
+		73CC51DD13116B7F00D8773C /* internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = internal.h; path = /FreeWRL/freewrl/freex3d/src/lib/internal.h; sourceTree = "<absolute>"; };
+		73CC51DE13116B7F00D8773C /* io_files.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = io_files.c; path = /FreeWRL/freewrl/freex3d/src/lib/io_files.c; sourceTree = "<absolute>"; };
+		73CC51DF13116B7F00D8773C /* io_files.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = io_files.h; path = /FreeWRL/freewrl/freex3d/src/lib/io_files.h; sourceTree = "<absolute>"; };
+		73CC51E013116B7F00D8773C /* io_http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = io_http.c; path = /FreeWRL/freewrl/freex3d/src/lib/io_http.c; sourceTree = "<absolute>"; };
+		73CC51E113116B7F00D8773C /* io_http.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = io_http.h; path = /FreeWRL/freewrl/freex3d/src/lib/io_http.h; sourceTree = "<absolute>"; };
+		73CC51E213116B7F00D8773C /* JOHNS_lib_version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = JOHNS_lib_version.c; path = /FreeWRL/freewrl/freex3d/src/lib/JOHNS_lib_version.c; sourceTree = "<absolute>"; };
+		73CC51E313116B7F00D8773C /* libFreeWRL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = libFreeWRL.h; path = /FreeWRL/freewrl/freex3d/src/lib/libFreeWRL.h; sourceTree = "<absolute>"; };
+		73CC51E413116B7F00D8773C /* libFreeWRL.pc.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = libFreeWRL.pc.in; path = /FreeWRL/freewrl/freex3d/src/lib/libFreeWRL.pc.in; sourceTree = "<absolute>"; };
+		73CC51E513116B7F00D8773C /* list.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = list.c; path = /FreeWRL/freewrl/freex3d/src/lib/list.c; sourceTree = "<absolute>"; };
+		73CC51E613116B7F00D8773C /* list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = list.h; path = /FreeWRL/freewrl/freex3d/src/lib/list.h; sourceTree = "<absolute>"; };
+		73CC51E813116B7F00D8773C /* ConsoleMessage.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ConsoleMessage.c; path = /FreeWRL/freewrl/freex3d/src/lib/main/ConsoleMessage.c; sourceTree = "<absolute>"; };
+		73CC51E913116B7F00D8773C /* headers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = headers.h; path = /FreeWRL/freewrl/freex3d/src/lib/main/headers.h; sourceTree = "<absolute>"; };
+		73CC51EA13116B7F00D8773C /* installdir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = installdir.h; path = /FreeWRL/freewrl/freex3d/src/lib/main/installdir.h; sourceTree = "<absolute>"; };
+		73CC51EB13116B7F00D8773C /* MainLoop.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = MainLoop.c; path = /FreeWRL/freewrl/freex3d/src/lib/main/MainLoop.c; sourceTree = "<absolute>"; };
+		73CC51EC13116B7F00D8773C /* MainLoop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MainLoop.h; path = /FreeWRL/freewrl/freex3d/src/lib/main/MainLoop.h; sourceTree = "<absolute>"; };
+		73CC51ED13116B7F00D8773C /* ProdCon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ProdCon.c; path = /FreeWRL/freewrl/freex3d/src/lib/main/ProdCon.c; sourceTree = "<absolute>"; };
+		73CC51EE13116B7F00D8773C /* ProdCon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProdCon.h; path = /FreeWRL/freewrl/freex3d/src/lib/main/ProdCon.h; sourceTree = "<absolute>"; };
+		73CC51EF13116B7F00D8773C /* Snapshot.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Snapshot.c; path = /FreeWRL/freewrl/freex3d/src/lib/main/Snapshot.c; sourceTree = "<absolute>"; };
+		73CC51F013116B7F00D8773C /* Snapshot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Snapshot.h; path = /FreeWRL/freewrl/freex3d/src/lib/main/Snapshot.h; sourceTree = "<absolute>"; };
+		73CC51F113116B7F00D8773C /* SoundEngineClient.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = SoundEngineClient.c; path = /FreeWRL/freewrl/freex3d/src/lib/main/SoundEngineClient.c; sourceTree = "<absolute>"; };
+		73CC51F213116B7F00D8773C /* utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = utils.c; path = /FreeWRL/freewrl/freex3d/src/lib/main/utils.c; sourceTree = "<absolute>"; };
+		73CC51F313116B7F00D8773C /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = main.c; path = /FreeWRL/freewrl/freex3d/src/lib/main.c; sourceTree = "<absolute>"; };
+		73CC51F413116B7F00D8773C /* main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = main.h; path = /FreeWRL/freewrl/freex3d/src/lib/main.h; sourceTree = "<absolute>"; };
+		73CC51F513116B7F00D8773C /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Makefile.am; path = /FreeWRL/freewrl/freex3d/src/lib/Makefile.am; sourceTree = "<absolute>"; };
+		73CC51F613116B7F00D8773C /* Makefile.sources */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Makefile.sources; path = /FreeWRL/freewrl/freex3d/src/lib/Makefile.sources; sourceTree = "<absolute>"; };
+		73CC51F813116B7F00D8773C /* ColladaParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ColladaParser.c; path = /FreeWRL/freewrl/freex3d/src/lib/non_web3d_formats/ColladaParser.c; sourceTree = "<absolute>"; };
+		73CC51F913116B7F00D8773C /* ColladaParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ColladaParser.h; path = /FreeWRL/freewrl/freex3d/src/lib/non_web3d_formats/ColladaParser.h; sourceTree = "<absolute>"; };
+		73CC51FB13116B7F00D8773C /* Frustum.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Frustum.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/Frustum.c; sourceTree = "<absolute>"; };
+		73CC51FC13116B7F00D8773C /* Frustum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Frustum.h; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/Frustum.h; sourceTree = "<absolute>"; };
+		73CC51FD13116B7F00D8773C /* LoadTextures.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = LoadTextures.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/LoadTextures.c; sourceTree = "<absolute>"; };
+		73CC51FE13116B7F00D8773C /* LoadTextures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LoadTextures.h; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/LoadTextures.h; sourceTree = "<absolute>"; };
+		73CC51FF13116B7F00D8773C /* Material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Material.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/Material.c; sourceTree = "<absolute>"; };
+		73CC520013116B7F00D8773C /* Material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Material.h; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/Material.h; sourceTree = "<absolute>"; };
+		73CC520113116B7F00D8773C /* old_texture_stuff */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = old_texture_stuff; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/old_texture_stuff; sourceTree = "<absolute>"; };
+		73CC520213116B7F00D8773C /* OpenGL_Utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = OpenGL_Utils.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/OpenGL_Utils.c; sourceTree = "<absolute>"; };
+		73CC520313116B7F00D8773C /* OpenGL_Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenGL_Utils.h; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/OpenGL_Utils.h; sourceTree = "<absolute>"; };
+		73CC520413116B7F00D8773C /* OSX_miniglew.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = OSX_miniglew.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/OSX_miniglew.c; sourceTree = "<absolute>"; };
+		73CC520513116B7F00D8773C /* OSX_miniglew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OSX_miniglew.h; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/OSX_miniglew.h; sourceTree = "<absolute>"; };
+		73CC520613116B7F00D8773C /* RasterFont.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = RasterFont.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/RasterFont.c; sourceTree = "<absolute>"; };
+		73CC520713116B7F00D8773C /* RasterFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RasterFont.h; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/RasterFont.h; sourceTree = "<absolute>"; };
+		73CC520813116B7F00D8773C /* RenderTextures.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = RenderTextures.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/RenderTextures.c; sourceTree = "<absolute>"; };
+		73CC520913116B7F00D8773C /* Textures.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Textures.c; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/Textures.c; sourceTree = "<absolute>"; };
+		73CC520A13116B7F00D8773C /* Textures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Textures.h; path = /FreeWRL/freewrl/freex3d/src/lib/opengl/Textures.h; sourceTree = "<absolute>"; };
+		73CC520C13116B7F00D8773C /* PluginSocket.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = PluginSocket.c; path = /FreeWRL/freewrl/freex3d/src/lib/plugin/PluginSocket.c; sourceTree = "<absolute>"; };
+		73CC520D13116B7F00D8773C /* PluginSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginSocket.h; path = /FreeWRL/freewrl/freex3d/src/lib/plugin/PluginSocket.h; sourceTree = "<absolute>"; };
+		73CC520E13116B7F00D8773C /* pluginUtils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pluginUtils.c; path = /FreeWRL/freewrl/freex3d/src/lib/plugin/pluginUtils.c; sourceTree = "<absolute>"; };
+		73CC520F13116B7F00D8773C /* pluginUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pluginUtils.h; path = /FreeWRL/freewrl/freex3d/src/lib/plugin/pluginUtils.h; sourceTree = "<absolute>"; };
+		73CC521013116B7F00D8773C /* resources.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = resources.c; path = /FreeWRL/freewrl/freex3d/src/lib/resources.c; sourceTree = "<absolute>"; };
+		73CC521113116B7F00D8773C /* resources.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = resources.h; path = /FreeWRL/freewrl/freex3d/src/lib/resources.h; sourceTree = "<absolute>"; };
+		73CC521313116B7F00D8773C /* Children.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Children.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Children.c; sourceTree = "<absolute>"; };
+		73CC521413116B7F00D8773C /* Children.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Children.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Children.h; sourceTree = "<absolute>"; };
+		73CC521513116B7F00D8773C /* Collision.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Collision.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Collision.c; sourceTree = "<absolute>"; };
+		73CC521613116B7F00D8773C /* Collision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Collision.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Collision.h; sourceTree = "<absolute>"; };
+		73CC521713116B7F00D8773C /* Component_Core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Core.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Core.c; sourceTree = "<absolute>"; };
+		73CC521813116B7F00D8773C /* Component_Core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_Core.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Core.h; sourceTree = "<absolute>"; };
+		73CC521913116B7F00D8773C /* Component_CubeMapTexturing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_CubeMapTexturing.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_CubeMapTexturing.c; sourceTree = "<absolute>"; };
+		73CC521A13116B7F00D8773C /* Component_CubeMapTexturing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_CubeMapTexturing.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_CubeMapTexturing.h; sourceTree = "<absolute>"; };
+		73CC521B13116B7F00D8773C /* Component_DIS.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_DIS.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_DIS.c; sourceTree = "<absolute>"; };
+		73CC521C13116B7F00D8773C /* Component_EnvironEffects.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_EnvironEffects.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_EnvironEffects.c; sourceTree = "<absolute>"; };
+		73CC521D13116B7F00D8773C /* Component_EnvironSensor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_EnvironSensor.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_EnvironSensor.c; sourceTree = "<absolute>"; };
+		73CC521E13116B7F00D8773C /* Component_EventUtils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_EventUtils.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_EventUtils.c; sourceTree = "<absolute>"; };
+		73CC521F13116B7F00D8773C /* Component_Geometry2D.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Geometry2D.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Geometry2D.c; sourceTree = "<absolute>"; };
+		73CC522013116B7F00D8773C /* Component_Geometry3D.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Geometry3D.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Geometry3D.c; sourceTree = "<absolute>"; };
+		73CC522113116B7F00D8773C /* Component_Geometry3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_Geometry3D.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Geometry3D.h; sourceTree = "<absolute>"; };
+		73CC522213116B7F00D8773C /* Component_Geospatial.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Geospatial.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Geospatial.c; sourceTree = "<absolute>"; };
+		73CC522313116B7F00D8773C /* Component_Geospatial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_Geospatial.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Geospatial.h; sourceTree = "<absolute>"; };
+		73CC522413116B7F00D8773C /* Component_Grouping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Grouping.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Grouping.c; sourceTree = "<absolute>"; };
+		73CC522513116B7F00D8773C /* Component_HAnim.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_HAnim.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_HAnim.c; sourceTree = "<absolute>"; };
+		73CC522613116B7F00D8773C /* Component_Interpolation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Interpolation.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Interpolation.c; sourceTree = "<absolute>"; };
+		73CC522713116B7F00D8773C /* Component_KeyDevice.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_KeyDevice.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_KeyDevice.c; sourceTree = "<absolute>"; };
+		73CC522813116B7F00D8773C /* Component_KeyDevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_KeyDevice.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_KeyDevice.h; sourceTree = "<absolute>"; };
+		73CC522913116B7F00D8773C /* Component_Lighting.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Lighting.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Lighting.c; sourceTree = "<absolute>"; };
+		73CC522A13116B7F00D8773C /* Component_Navigation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Navigation.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Navigation.c; sourceTree = "<absolute>"; };
+		73CC522B13116B7F00D8773C /* Component_Networking.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Networking.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Networking.c; sourceTree = "<absolute>"; };
+		73CC522C13116B7F00D8773C /* Component_Networking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_Networking.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Networking.h; sourceTree = "<absolute>"; };
+		73CC522D13116B7F00D8773C /* Component_NURBS.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_NURBS.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_NURBS.c; sourceTree = "<absolute>"; };
+		73CC522E13116B7F00D8773C /* Component_Picking.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Picking.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Picking.c; sourceTree = "<absolute>"; };
+		73CC522F13116B7F00D8773C /* Component_Picking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_Picking.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Picking.h; sourceTree = "<absolute>"; };
+		73CC523013116B7F00D8773C /* Component_PointingDevice.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_PointingDevice.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_PointingDevice.c; sourceTree = "<absolute>"; };
+		73CC523113116B7F00D8773C /* Component_ProgrammableShaders.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_ProgrammableShaders.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_ProgrammableShaders.c; sourceTree = "<absolute>"; };
+		73CC523213116B7F00D8773C /* Component_ProgrammableShaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_ProgrammableShaders.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_ProgrammableShaders.h; sourceTree = "<absolute>"; };
+		73CC523313116B7F00D8773C /* Component_Rendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Rendering.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Rendering.c; sourceTree = "<absolute>"; };
+		73CC523413116B7F00D8773C /* Component_Scripting.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Scripting.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Scripting.c; sourceTree = "<absolute>"; };
+		73CC523513116B7F00D8773C /* Component_Shape.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Shape.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Shape.c; sourceTree = "<absolute>"; };
+		73CC523613116B7F00D8773C /* Component_Shape.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_Shape.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Shape.h; sourceTree = "<absolute>"; };
+		73CC523713116B7F00D8773C /* Component_Sound.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Sound.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Sound.c; sourceTree = "<absolute>"; };
+		73CC523813116B7F00D8773C /* Component_Text.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Text.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Text.c; sourceTree = "<absolute>"; };
+		73CC523913116B7F00D8773C /* Component_Text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Component_Text.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Text.h; sourceTree = "<absolute>"; };
+		73CC523A13116B7F00D8773C /* Component_Texturing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Texturing.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Texturing.c; sourceTree = "<absolute>"; };
+		73CC523B13116B7F00D8773C /* Component_Time.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_Time.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_Time.c; sourceTree = "<absolute>"; };
+		73CC523C13116B7F00D8773C /* Component_VRML1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Component_VRML1.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Component_VRML1.c; sourceTree = "<absolute>"; };
+		73CC523D13116B7F00D8773C /* GeneratedCode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = GeneratedCode.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/GeneratedCode.c; sourceTree = "<absolute>"; };
+		73CC523E13116B7F00D8773C /* GenPolyRep.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = GenPolyRep.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/GenPolyRep.c; sourceTree = "<absolute>"; };
+		73CC523F13116B7F00D8773C /* LinearAlgebra.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = LinearAlgebra.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/LinearAlgebra.c; sourceTree = "<absolute>"; };
+		73CC524013116B7F00D8773C /* LinearAlgebra.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LinearAlgebra.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/LinearAlgebra.h; sourceTree = "<absolute>"; };
+		73CC524113116B7F00D8773C /* mpeg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mpeg.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/mpeg.h; sourceTree = "<absolute>"; };
+		73CC524213116B7F00D8773C /* MPEG_Utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = MPEG_Utils.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/MPEG_Utils.c; sourceTree = "<absolute>"; };
+		73CC524313116B7F00D8773C /* NormalCalcs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = NormalCalcs.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/NormalCalcs.c; sourceTree = "<absolute>"; };
+		73CC524413116B7F00D8773C /* OSCcallbacks.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = OSCcallbacks.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/OSCcallbacks.c; sourceTree = "<absolute>"; };
+		73CC524513116B7F00D8773C /* Polyrep.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Polyrep.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Polyrep.c; sourceTree = "<absolute>"; };
+		73CC524613116B7F00D8773C /* Polyrep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Polyrep.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Polyrep.h; sourceTree = "<absolute>"; };
+		73CC524713116B7F00D8773C /* quaternion.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = quaternion.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/quaternion.c; sourceTree = "<absolute>"; };
+		73CC524813116B7F00D8773C /* quaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = quaternion.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/quaternion.h; sourceTree = "<absolute>"; };
+		73CC524913116B7F00D8773C /* readpng.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = readpng.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/readpng.c; sourceTree = "<absolute>"; };
+		73CC524A13116B7F00D8773C /* readpng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = readpng.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/readpng.h; sourceTree = "<absolute>"; };
+		73CC524B13116B7F00D8773C /* RenderFuncs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = RenderFuncs.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/RenderFuncs.c; sourceTree = "<absolute>"; };
+		73CC524C13116B7F00D8773C /* RenderFuncs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderFuncs.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/RenderFuncs.h; sourceTree = "<absolute>"; };
+		73CC524D13116B7F00D8773C /* ringbuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ringbuf.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/ringbuf.c; sourceTree = "<absolute>"; };
+		73CC524E13116B7F00D8773C /* ringbuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ringbuf.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/ringbuf.h; sourceTree = "<absolute>"; };
+		73CC524F13116B7F00D8773C /* sounds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sounds.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/sounds.h; sourceTree = "<absolute>"; };
+		73CC525013116B7F00D8773C /* statics.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = statics.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/statics.c; sourceTree = "<absolute>"; };
+		73CC525113116B7F00D8773C /* StreamPoly.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = StreamPoly.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/StreamPoly.c; sourceTree = "<absolute>"; };
+		73CC525213116B7F00D8773C /* Tess.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Tess.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Tess.c; sourceTree = "<absolute>"; };
+		73CC525313116B7F00D8773C /* Tess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Tess.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Tess.h; sourceTree = "<absolute>"; };
+		73CC525413116B7F00D8773C /* Vector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Vector.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Vector.c; sourceTree = "<absolute>"; };
+		73CC525513116B7F00D8773C /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vector.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Vector.h; sourceTree = "<absolute>"; };
+		73CC525613116B7F00D8773C /* Viewer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Viewer.c; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Viewer.c; sourceTree = "<absolute>"; };
+		73CC525713116B7F00D8773C /* Viewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Viewer.h; path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph/Viewer.h; sourceTree = "<absolute>"; };
+		73CC525813116B7F00D8773C /* system.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = system.h; path = /FreeWRL/freewrl/freex3d/src/lib/system.h; sourceTree = "<absolute>"; };
+		73CC525913116B7F00D8773C /* system_fonts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = system_fonts.h; path = /FreeWRL/freewrl/freex3d/src/lib/system_fonts.h; sourceTree = "<absolute>"; };
+		73CC525A13116B7F00D8773C /* system_js.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = system_js.h; path = /FreeWRL/freewrl/freex3d/src/lib/system_js.h; sourceTree = "<absolute>"; };
+		73CC525B13116B7F00D8773C /* system_net.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = system_net.h; path = /FreeWRL/freewrl/freex3d/src/lib/system_net.h; sourceTree = "<absolute>"; };
+		73CC525C13116B7F00D8773C /* system_threads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = system_threads.h; path = /FreeWRL/freewrl/freex3d/src/lib/system_threads.h; sourceTree = "<absolute>"; };
+		73CC525D13116B7F00D8773C /* threads.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = threads.c; path = /FreeWRL/freewrl/freex3d/src/lib/threads.c; sourceTree = "<absolute>"; };
+		73CC525E13116B7F00D8773C /* threads.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = threads.h; path = /FreeWRL/freewrl/freex3d/src/lib/threads.h; sourceTree = "<absolute>"; };
+		73CC526013116B7F00D8773C /* aquaInt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = aquaInt.h; path = /FreeWRL/freewrl/freex3d/src/lib/ui/aquaInt.h; sourceTree = "<absolute>"; };
+		73CC526113116B7F00D8773C /* fwBareWindow.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fwBareWindow.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwBareWindow.c; sourceTree = "<absolute>"; };
+		73CC526213116B7F00D8773C /* fwBareWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fwBareWindow.h; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwBareWindow.h; sourceTree = "<absolute>"; };
+		73CC526313116B7F00D8773C /* fwCommonX11.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fwCommonX11.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwCommonX11.c; sourceTree = "<absolute>"; };
+		73CC526413116B7F00D8773C /* fwMotifWindow.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fwMotifWindow.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwMotifWindow.c; sourceTree = "<absolute>"; };
+		73CC526513116B7F00D8773C /* fwWindow32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fwWindow32.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwWindow32.c; sourceTree = "<absolute>"; };
+		73CC526613116B7F00D8773C /* fwWindow32.dlg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = fwWindow32.dlg; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwWindow32.dlg; sourceTree = "<absolute>"; };
+		73CC526713116B7F00D8773C /* fwWindow32.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = fwWindow32.rc; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwWindow32.rc; sourceTree = "<absolute>"; };
+		73CC526813116B7F00D8773C /* fwWindowAqua.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fwWindowAqua.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/fwWindowAqua.c; sourceTree = "<absolute>"; };
+		73CC526913116B7F00D8773C /* GLwDrawA.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = GLwDrawA.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/GLwDrawA.c; sourceTree = "<absolute>"; };
+		73CC526A13116B7F00D8773C /* GLwDrawA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GLwDrawA.h; path = /FreeWRL/freewrl/freex3d/src/lib/ui/GLwDrawA.h; sourceTree = "<absolute>"; };
+		73CC526B13116B7F00D8773C /* GLwDrawAP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GLwDrawAP.h; path = /FreeWRL/freewrl/freex3d/src/lib/ui/GLwDrawAP.h; sourceTree = "<absolute>"; };
+		73CC526C13116B7F00D8773C /* statusbar.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = statusbar.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/statusbar.c; sourceTree = "<absolute>"; };
+		73CC526D13116B7F00D8773C /* statusbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = statusbar.h; path = /FreeWRL/freewrl/freex3d/src/lib/ui/statusbar.h; sourceTree = "<absolute>"; };
+		73CC526E13116B7F00D8773C /* statusbarConsole.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = statusbarConsole.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/statusbarConsole.c; sourceTree = "<absolute>"; };
+		73CC526F13116B7F00D8773C /* statusbarHud.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = statusbarHud.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/statusbarHud.c; sourceTree = "<absolute>"; };
+		73CC527013116B7F00D8773C /* statusbarStub.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = statusbarStub.c; path = /FreeWRL/freewrl/freex3d/src/lib/ui/statusbarStub.c; sourceTree = "<absolute>"; };
+		73CC527213116B7F00D8773C /* CFieldDecls.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CFieldDecls.c; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CFieldDecls.c; sourceTree = "<absolute>"; };
+		73CC527313116B7F00D8773C /* CFieldDecls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CFieldDecls.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CFieldDecls.h; sourceTree = "<absolute>"; };
+		73CC527413116B7F00D8773C /* CParse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CParse.c; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CParse.c; sourceTree = "<absolute>"; };
+		73CC527513116B7F00D8773C /* CParse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CParse.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CParse.h; sourceTree = "<absolute>"; };
+		73CC527613116B7F00D8773C /* CParseGeneral.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CParseGeneral.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CParseGeneral.h; sourceTree = "<absolute>"; };
+		73CC527713116B7F00D8773C /* CParseLexer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CParseLexer.c; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CParseLexer.c; sourceTree = "<absolute>"; };
+		73CC527813116B7F00D8773C /* CParseLexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CParseLexer.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CParseLexer.h; sourceTree = "<absolute>"; };
+		73CC527913116B7F00D8773C /* CParseParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CParseParser.c; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CParseParser.c; sourceTree = "<absolute>"; };
+		73CC527A13116B7F00D8773C /* CParseParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CParseParser.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CParseParser.h; sourceTree = "<absolute>"; };
+		73CC527B13116B7F00D8773C /* CProto.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CProto.c; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CProto.c; sourceTree = "<absolute>"; };
+		73CC527C13116B7F00D8773C /* CProto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CProto.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CProto.h; sourceTree = "<absolute>"; };
+		73CC527D13116B7F00D8773C /* CRoutes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CRoutes.c; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CRoutes.c; sourceTree = "<absolute>"; };
+		73CC527E13116B7F00D8773C /* CRoutes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CRoutes.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/CRoutes.h; sourceTree = "<absolute>"; };
+		73CC527F13116B7F00D8773C /* NodeFields.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NodeFields.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/NodeFields.h; sourceTree = "<absolute>"; };
+		73CC528013116B7F00D8773C /* Structs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Structs.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/Structs.h; sourceTree = "<absolute>"; };
+		73CC528113116B7F00D8773C /* VrmlTypeList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VrmlTypeList.h; path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser/VrmlTypeList.h; sourceTree = "<absolute>"; };
+		73CC528313116B7F00D8773C /* CScripts.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = CScripts.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/CScripts.c; sourceTree = "<absolute>"; };
+		73CC528413116B7F00D8773C /* CScripts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CScripts.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/CScripts.h; sourceTree = "<absolute>"; };
+		73CC528513116B7F00D8773C /* fieldGet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fieldGet.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/fieldGet.c; sourceTree = "<absolute>"; };
+		73CC528613116B7F00D8773C /* fieldGet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fieldGet.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/fieldGet.h; sourceTree = "<absolute>"; };
+		73CC528713116B7F00D8773C /* fieldSet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fieldSet.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/fieldSet.c; sourceTree = "<absolute>"; };
+		73CC528813116B7F00D8773C /* fieldSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fieldSet.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/fieldSet.h; sourceTree = "<absolute>"; };
+		73CC528913116B7F00D8773C /* JScript.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = JScript.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/JScript.c; sourceTree = "<absolute>"; };
+		73CC528A13116B7F00D8773C /* JScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JScript.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/JScript.h; sourceTree = "<absolute>"; };
+		73CC528B13116B7F00D8773C /* jsNative.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsNative.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsNative.h; sourceTree = "<absolute>"; };
+		73CC528C13116B7F00D8773C /* jsUtils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jsUtils.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsUtils.c; sourceTree = "<absolute>"; };
+		73CC528D13116B7F00D8773C /* jsUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsUtils.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsUtils.h; sourceTree = "<absolute>"; };
+		73CC528E13116B7F00D8773C /* jsVRML_MFClasses.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jsVRML_MFClasses.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsVRML_MFClasses.c; sourceTree = "<absolute>"; };
+		73CC528F13116B7F00D8773C /* jsVRML_SFClasses.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jsVRML_SFClasses.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsVRML_SFClasses.c; sourceTree = "<absolute>"; };
+		73CC529013116B7F00D8773C /* jsVRMLBrowser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jsVRMLBrowser.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsVRMLBrowser.c; sourceTree = "<absolute>"; };
+		73CC529113116B7F00D8773C /* jsVRMLBrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsVRMLBrowser.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsVRMLBrowser.h; sourceTree = "<absolute>"; };
+		73CC529213116B7F00D8773C /* jsVRMLClasses.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jsVRMLClasses.c; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsVRMLClasses.c; sourceTree = "<absolute>"; };
+		73CC529313116B7F00D8773C /* jsVRMLClasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsVRMLClasses.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/jsVRMLClasses.h; sourceTree = "<absolute>"; };
+		73CC529413116B7F00D8773C /* world_script.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = world_script.h; path = /FreeWRL/freewrl/freex3d/src/lib/world_script/world_script.h; sourceTree = "<absolute>"; };
+		73CC529613116B7F00D8773C /* Bindable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = Bindable.c; path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser/Bindable.c; sourceTree = "<absolute>"; };
+		73CC529713116B7F00D8773C /* Bindable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bindable.h; path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser/Bindable.h; sourceTree = "<absolute>"; };
+		73CC529813116B7F00D8773C /* capabilitiesHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = capabilitiesHandler.c; path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser/capabilitiesHandler.c; sourceTree = "<absolute>"; };
+		73CC529913116B7F00D8773C /* X3DParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = X3DParser.c; path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser/X3DParser.c; sourceTree = "<absolute>"; };
+		73CC529A13116B7F00D8773C /* X3DParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = X3DParser.h; path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser/X3DParser.h; sourceTree = "<absolute>"; };
+		73CC529B13116B7F00D8773C /* X3DProtoScript.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = X3DProtoScript.c; path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser/X3DProtoScript.c; sourceTree = "<absolute>"; };
+		73CC529C13116B7F00D8773C /* X3DProtoScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = X3DProtoScript.h; path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser/X3DProtoScript.h; sourceTree = "<absolute>"; };
+		73CC538713116F5200D8773C /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		73CC54DF13131C2C00D8773C /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		73CC5519131453E700D8773C /* JOHNS_lib_version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = JOHNS_lib_version.c; sourceTree = "<group>"; };
+		AA747D9E0F9514B9006C5449 /* FreeWRL_IPhone_Static_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FreeWRL_IPhone_Static_Prefix.pch; sourceTree = SOURCE_ROOT; };
+		AACBBE490F95108600F1A2B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		D2AAC07E0554694100DB518D /* libFreeWRL_IPhone_Static.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libFreeWRL_IPhone_Static.a; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D2AAC07C0554694100DB518D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */,
+				73CC538813116F5200D8773C /* OpenGLES.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		034768DFFF38A50411DB9C8B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2AAC07E0554694100DB518D /* libFreeWRL_IPhone_Static.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0867D691FE84028FC02AAC07 /* FreeWRL-IPhone_Static */ = {
+			isa = PBXGroup;
+			children = (
+				08FB77AEFE84172EC02AAC07 /* Classes */,
+				32C88DFF0371C24200C91783 /* Other Sources */,
+				0867D69AFE84028FC02AAC07 /* Frameworks */,
+				034768DFFF38A50411DB9C8B /* Products */,
+			);
+			name = "FreeWRL-IPhone_Static";
+			sourceTree = "<group>";
+		};
+		0867D69AFE84028FC02AAC07 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				73CC538713116F5200D8773C /* OpenGLES.framework */,
+				AACBBE490F95108600F1A2B1 /* Foundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		08FB77AEFE84172EC02AAC07 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		32C88DFF0371C24200C91783 /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				73CC5519131453E700D8773C /* JOHNS_lib_version.c */,
+				73CC54DF13131C2C00D8773C /* config.h */,
+				73CC51CB13116B7F00D8773C /* lib */,
+				AA747D9E0F9514B9006C5449 /* FreeWRL_IPhone_Static_Prefix.pch */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		73CC51CB13116B7F00D8773C /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				73CC51CC13116B7F00D8773C /* common_parser */,
+				73CC51CD13116B7F00D8773C /* display.c */,
+				73CC51CE13116B7F00D8773C /* display.h */,
+				73CC51CF13116B7F00D8773C /* input */,
+				73CC51DC13116B7F00D8773C /* internal.c */,
+				73CC51DD13116B7F00D8773C /* internal.h */,
+				73CC51DE13116B7F00D8773C /* io_files.c */,
+				73CC51DF13116B7F00D8773C /* io_files.h */,
+				73CC51E013116B7F00D8773C /* io_http.c */,
+				73CC51E113116B7F00D8773C /* io_http.h */,
+				73CC51E213116B7F00D8773C /* JOHNS_lib_version.c */,
+				73CC51E313116B7F00D8773C /* libFreeWRL.h */,
+				73CC51E413116B7F00D8773C /* libFreeWRL.pc.in */,
+				73CC51E513116B7F00D8773C /* list.c */,
+				73CC51E613116B7F00D8773C /* list.h */,
+				73CC51E713116B7F00D8773C /* main */,
+				73CC51F313116B7F00D8773C /* main.c */,
+				73CC51F413116B7F00D8773C /* main.h */,
+				73CC51F513116B7F00D8773C /* Makefile.am */,
+				73CC51F613116B7F00D8773C /* Makefile.sources */,
+				73CC51F713116B7F00D8773C /* non_web3d_formats */,
+				73CC51FA13116B7F00D8773C /* opengl */,
+				73CC520B13116B7F00D8773C /* plugin */,
+				73CC521013116B7F00D8773C /* resources.c */,
+				73CC521113116B7F00D8773C /* resources.h */,
+				73CC521213116B7F00D8773C /* scenegraph */,
+				73CC525813116B7F00D8773C /* system.h */,
+				73CC525913116B7F00D8773C /* system_fonts.h */,
+				73CC525A13116B7F00D8773C /* system_js.h */,
+				73CC525B13116B7F00D8773C /* system_net.h */,
+				73CC525C13116B7F00D8773C /* system_threads.h */,
+				73CC525D13116B7F00D8773C /* threads.c */,
+				73CC525E13116B7F00D8773C /* threads.h */,
+				73CC525F13116B7F00D8773C /* ui */,
+				73CC527113116B7F00D8773C /* vrml_parser */,
+				73CC528213116B7F00D8773C /* world_script */,
+				73CC529513116B7F00D8773C /* x3d_parser */,
+			);
+			name = lib;
+			path = /FreeWRL/freewrl/freex3d/src/lib;
+			sourceTree = "<absolute>";
+		};
+		73CC51CC13116B7F00D8773C /* common_parser */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = common_parser;
+			path = /FreeWRL/freewrl/freex3d/src/lib/common_parser;
+			sourceTree = "<absolute>";
+		};
+		73CC51CF13116B7F00D8773C /* input */ = {
+			isa = PBXGroup;
+			children = (
+				73CC51D013116B7F00D8773C /* convert1To2.c */,
+				73CC51D113116B7F00D8773C /* EAI_C_CommonFunctions.c */,
+				73CC51D213116B7F00D8773C /* EAIEventsIn.c */,
+				73CC51D313116B7F00D8773C /* EAIEventsOut.c */,
+				73CC51D413116B7F00D8773C /* EAIHeaders.h */,
+				73CC51D513116B7F00D8773C /* EAIHelpers.c */,
+				73CC51D613116B7F00D8773C /* EAIHelpers.h */,
+				73CC51D713116B7F00D8773C /* EAIServ.c */,
+				73CC51D813116B7F00D8773C /* InputFunctions.c */,
+				73CC51D913116B7F00D8773C /* InputFunctions.h */,
+				73CC51DA13116B7F00D8773C /* SensInterps.c */,
+				73CC51DB13116B7F00D8773C /* SensInterps.h */,
+			);
+			name = input;
+			path = /FreeWRL/freewrl/freex3d/src/lib/input;
+			sourceTree = "<absolute>";
+		};
+		73CC51E713116B7F00D8773C /* main */ = {
+			isa = PBXGroup;
+			children = (
+				73CC51E813116B7F00D8773C /* ConsoleMessage.c */,
+				73CC51E913116B7F00D8773C /* headers.h */,
+				73CC51EA13116B7F00D8773C /* installdir.h */,
+				73CC51EB13116B7F00D8773C /* MainLoop.c */,
+				73CC51EC13116B7F00D8773C /* MainLoop.h */,
+				73CC51ED13116B7F00D8773C /* ProdCon.c */,
+				73CC51EE13116B7F00D8773C /* ProdCon.h */,
+				73CC51EF13116B7F00D8773C /* Snapshot.c */,
+				73CC51F013116B7F00D8773C /* Snapshot.h */,
+				73CC51F113116B7F00D8773C /* SoundEngineClient.c */,
+				73CC51F213116B7F00D8773C /* utils.c */,
+			);
+			name = main;
+			path = /FreeWRL/freewrl/freex3d/src/lib/main;
+			sourceTree = "<absolute>";
+		};
+		73CC51F713116B7F00D8773C /* non_web3d_formats */ = {
+			isa = PBXGroup;
+			children = (
+				73CC51F813116B7F00D8773C /* ColladaParser.c */,
+				73CC51F913116B7F00D8773C /* ColladaParser.h */,
+			);
+			name = non_web3d_formats;
+			path = /FreeWRL/freewrl/freex3d/src/lib/non_web3d_formats;
+			sourceTree = "<absolute>";
+		};
+		73CC51FA13116B7F00D8773C /* opengl */ = {
+			isa = PBXGroup;
+			children = (
+				73CC51FB13116B7F00D8773C /* Frustum.c */,
+				73CC51FC13116B7F00D8773C /* Frustum.h */,
+				73CC51FD13116B7F00D8773C /* LoadTextures.c */,
+				73CC51FE13116B7F00D8773C /* LoadTextures.h */,
+				73CC51FF13116B7F00D8773C /* Material.c */,
+				73CC520013116B7F00D8773C /* Material.h */,
+				73CC520113116B7F00D8773C /* old_texture_stuff */,
+				73CC520213116B7F00D8773C /* OpenGL_Utils.c */,
+				73CC520313116B7F00D8773C /* OpenGL_Utils.h */,
+				73CC520413116B7F00D8773C /* OSX_miniglew.c */,
+				73CC520513116B7F00D8773C /* OSX_miniglew.h */,
+				73CC520613116B7F00D8773C /* RasterFont.c */,
+				73CC520713116B7F00D8773C /* RasterFont.h */,
+				73CC520813116B7F00D8773C /* RenderTextures.c */,
+				73CC520913116B7F00D8773C /* Textures.c */,
+				73CC520A13116B7F00D8773C /* Textures.h */,
+			);
+			name = opengl;
+			path = /FreeWRL/freewrl/freex3d/src/lib/opengl;
+			sourceTree = "<absolute>";
+		};
+		73CC520B13116B7F00D8773C /* plugin */ = {
+			isa = PBXGroup;
+			children = (
+				73CC520C13116B7F00D8773C /* PluginSocket.c */,
+				73CC520D13116B7F00D8773C /* PluginSocket.h */,
+				73CC520E13116B7F00D8773C /* pluginUtils.c */,
+				73CC520F13116B7F00D8773C /* pluginUtils.h */,
+			);
+			name = plugin;
+			path = /FreeWRL/freewrl/freex3d/src/lib/plugin;
+			sourceTree = "<absolute>";
+		};
+		73CC521213116B7F00D8773C /* scenegraph */ = {
+			isa = PBXGroup;
+			children = (
+				73CC521313116B7F00D8773C /* Children.c */,
+				73CC521413116B7F00D8773C /* Children.h */,
+				73CC521513116B7F00D8773C /* Collision.c */,
+				73CC521613116B7F00D8773C /* Collision.h */,
+				73CC521713116B7F00D8773C /* Component_Core.c */,
+				73CC521813116B7F00D8773C /* Component_Core.h */,
+				73CC521913116B7F00D8773C /* Component_CubeMapTexturing.c */,
+				73CC521A13116B7F00D8773C /* Component_CubeMapTexturing.h */,
+				73CC521B13116B7F00D8773C /* Component_DIS.c */,
+				73CC521C13116B7F00D8773C /* Component_EnvironEffects.c */,
+				73CC521D13116B7F00D8773C /* Component_EnvironSensor.c */,
+				73CC521E13116B7F00D8773C /* Component_EventUtils.c */,
+				73CC521F13116B7F00D8773C /* Component_Geometry2D.c */,
+				73CC522013116B7F00D8773C /* Component_Geometry3D.c */,
+				73CC522113116B7F00D8773C /* Component_Geometry3D.h */,
+				73CC522213116B7F00D8773C /* Component_Geospatial.c */,
+				73CC522313116B7F00D8773C /* Component_Geospatial.h */,
+				73CC522413116B7F00D8773C /* Component_Grouping.c */,
+				73CC522513116B7F00D8773C /* Component_HAnim.c */,
+				73CC522613116B7F00D8773C /* Component_Interpolation.c */,
+				73CC522713116B7F00D8773C /* Component_KeyDevice.c */,
+				73CC522813116B7F00D8773C /* Component_KeyDevice.h */,
+				73CC522913116B7F00D8773C /* Component_Lighting.c */,
+				73CC522A13116B7F00D8773C /* Component_Navigation.c */,
+				73CC522B13116B7F00D8773C /* Component_Networking.c */,
+				73CC522C13116B7F00D8773C /* Component_Networking.h */,
+				73CC522D13116B7F00D8773C /* Component_NURBS.c */,
+				73CC522E13116B7F00D8773C /* Component_Picking.c */,
+				73CC522F13116B7F00D8773C /* Component_Picking.h */,
+				73CC523013116B7F00D8773C /* Component_PointingDevice.c */,
+				73CC523113116B7F00D8773C /* Component_ProgrammableShaders.c */,
+				73CC523213116B7F00D8773C /* Component_ProgrammableShaders.h */,
+				73CC523313116B7F00D8773C /* Component_Rendering.c */,
+				73CC523413116B7F00D8773C /* Component_Scripting.c */,
+				73CC523513116B7F00D8773C /* Component_Shape.c */,
+				73CC523613116B7F00D8773C /* Component_Shape.h */,
+				73CC523713116B7F00D8773C /* Component_Sound.c */,
+				73CC523813116B7F00D8773C /* Component_Text.c */,
+				73CC523913116B7F00D8773C /* Component_Text.h */,
+				73CC523A13116B7F00D8773C /* Component_Texturing.c */,
+				73CC523B13116B7F00D8773C /* Component_Time.c */,
+				73CC523C13116B7F00D8773C /* Component_VRML1.c */,
+				73CC523D13116B7F00D8773C /* GeneratedCode.c */,
+				73CC523E13116B7F00D8773C /* GenPolyRep.c */,
+				73CC523F13116B7F00D8773C /* LinearAlgebra.c */,
+				73CC524013116B7F00D8773C /* LinearAlgebra.h */,
+				73CC524113116B7F00D8773C /* mpeg.h */,
+				73CC524213116B7F00D8773C /* MPEG_Utils.c */,
+				73CC524313116B7F00D8773C /* NormalCalcs.c */,
+				73CC524413116B7F00D8773C /* OSCcallbacks.c */,
+				73CC524513116B7F00D8773C /* Polyrep.c */,
+				73CC524613116B7F00D8773C /* Polyrep.h */,
+				73CC524713116B7F00D8773C /* quaternion.c */,
+				73CC524813116B7F00D8773C /* quaternion.h */,
+				73CC524913116B7F00D8773C /* readpng.c */,
+				73CC524A13116B7F00D8773C /* readpng.h */,
+				73CC524B13116B7F00D8773C /* RenderFuncs.c */,
+				73CC524C13116B7F00D8773C /* RenderFuncs.h */,
+				73CC524D13116B7F00D8773C /* ringbuf.c */,
+				73CC524E13116B7F00D8773C /* ringbuf.h */,
+				73CC524F13116B7F00D8773C /* sounds.h */,
+				73CC525013116B7F00D8773C /* statics.c */,
+				73CC525113116B7F00D8773C /* StreamPoly.c */,
+				73CC525213116B7F00D8773C /* Tess.c */,
+				73CC525313116B7F00D8773C /* Tess.h */,
+				73CC525413116B7F00D8773C /* Vector.c */,
+				73CC525513116B7F00D8773C /* Vector.h */,
+				73CC525613116B7F00D8773C /* Viewer.c */,
+				73CC525713116B7F00D8773C /* Viewer.h */,
+			);
+			name = scenegraph;
+			path = /FreeWRL/freewrl/freex3d/src/lib/scenegraph;
+			sourceTree = "<absolute>";
+		};
+		73CC525F13116B7F00D8773C /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				73CC526013116B7F00D8773C /* aquaInt.h */,
+				73CC526113116B7F00D8773C /* fwBareWindow.c */,
+				73CC526213116B7F00D8773C /* fwBareWindow.h */,
+				73CC526313116B7F00D8773C /* fwCommonX11.c */,
+				73CC526413116B7F00D8773C /* fwMotifWindow.c */,
+				73CC526513116B7F00D8773C /* fwWindow32.c */,
+				73CC526613116B7F00D8773C /* fwWindow32.dlg */,
+				73CC526713116B7F00D8773C /* fwWindow32.rc */,
+				73CC526813116B7F00D8773C /* fwWindowAqua.c */,
+				73CC526913116B7F00D8773C /* GLwDrawA.c */,
+				73CC526A13116B7F00D8773C /* GLwDrawA.h */,
+				73CC526B13116B7F00D8773C /* GLwDrawAP.h */,
+				73CC526C13116B7F00D8773C /* statusbar.c */,
+				73CC526D13116B7F00D8773C /* statusbar.h */,
+				73CC526E13116B7F00D8773C /* statusbarConsole.c */,
+				73CC526F13116B7F00D8773C /* statusbarHud.c */,
+				73CC527013116B7F00D8773C /* statusbarStub.c */,
+			);
+			name = ui;
+			path = /FreeWRL/freewrl/freex3d/src/lib/ui;
+			sourceTree = "<absolute>";
+		};
+		73CC527113116B7F00D8773C /* vrml_parser */ = {
+			isa = PBXGroup;
+			children = (
+				73CC527213116B7F00D8773C /* CFieldDecls.c */,
+				73CC527313116B7F00D8773C /* CFieldDecls.h */,
+				73CC527413116B7F00D8773C /* CParse.c */,
+				73CC527513116B7F00D8773C /* CParse.h */,
+				73CC527613116B7F00D8773C /* CParseGeneral.h */,
+				73CC527713116B7F00D8773C /* CParseLexer.c */,
+				73CC527813116B7F00D8773C /* CParseLexer.h */,
+				73CC527913116B7F00D8773C /* CParseParser.c */,
+				73CC527A13116B7F00D8773C /* CParseParser.h */,
+				73CC527B13116B7F00D8773C /* CProto.c */,
+				73CC527C13116B7F00D8773C /* CProto.h */,
+				73CC527D13116B7F00D8773C /* CRoutes.c */,
+				73CC527E13116B7F00D8773C /* CRoutes.h */,
+				73CC527F13116B7F00D8773C /* NodeFields.h */,
+				73CC528013116B7F00D8773C /* Structs.h */,
+				73CC528113116B7F00D8773C /* VrmlTypeList.h */,
+			);
+			name = vrml_parser;
+			path = /FreeWRL/freewrl/freex3d/src/lib/vrml_parser;
+			sourceTree = "<absolute>";
+		};
+		73CC528213116B7F00D8773C /* world_script */ = {
+			isa = PBXGroup;
+			children = (
+				73CC528313116B7F00D8773C /* CScripts.c */,
+				73CC528413116B7F00D8773C /* CScripts.h */,
+				73CC528513116B7F00D8773C /* fieldGet.c */,
+				73CC528613116B7F00D8773C /* fieldGet.h */,
+				73CC528713116B7F00D8773C /* fieldSet.c */,
+				73CC528813116B7F00D8773C /* fieldSet.h */,
+				73CC528913116B7F00D8773C /* JScript.c */,
+				73CC528A13116B7F00D8773C /* JScript.h */,
+				73CC528B13116B7F00D8773C /* jsNative.h */,
+				73CC528C13116B7F00D8773C /* jsUtils.c */,
+				73CC528D13116B7F00D8773C /* jsUtils.h */,
+				73CC528E13116B7F00D8773C /* jsVRML_MFClasses.c */,
+				73CC528F13116B7F00D8773C /* jsVRML_SFClasses.c */,
+				73CC529013116B7F00D8773C /* jsVRMLBrowser.c */,
+				73CC529113116B7F00D8773C /* jsVRMLBrowser.h */,
+				73CC529213116B7F00D8773C /* jsVRMLClasses.c */,
+				73CC529313116B7F00D8773C /* jsVRMLClasses.h */,
+				73CC529413116B7F00D8773C /* world_script.h */,
+			);
+			name = world_script;
+			path = /FreeWRL/freewrl/freex3d/src/lib/world_script;
+			sourceTree = "<absolute>";
+		};
+		73CC529513116B7F00D8773C /* x3d_parser */ = {
+			isa = PBXGroup;
+			children = (
+				73CC529613116B7F00D8773C /* Bindable.c */,
+				73CC529713116B7F00D8773C /* Bindable.h */,
+				73CC529813116B7F00D8773C /* capabilitiesHandler.c */,
+				73CC529913116B7F00D8773C /* X3DParser.c */,
+				73CC529A13116B7F00D8773C /* X3DParser.h */,
+				73CC529B13116B7F00D8773C /* X3DProtoScript.c */,
+				73CC529C13116B7F00D8773C /* X3DProtoScript.h */,
+			);
+			name = x3d_parser;
+			path = /FreeWRL/freewrl/freex3d/src/lib/x3d_parser;
+			sourceTree = "<absolute>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D2AAC07A0554694100DB518D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA747D9F0F9514B9006C5449 /* FreeWRL_IPhone_Static_Prefix.pch in Headers */,
+				73CC529E13116B7F00D8773C /* display.h in Headers */,
+				73CC52A313116B7F00D8773C /* EAIHeaders.h in Headers */,
+				73CC52A513116B7F00D8773C /* EAIHelpers.h in Headers */,
+				73CC52A813116B7F00D8773C /* InputFunctions.h in Headers */,
+				73CC52AA13116B7F00D8773C /* SensInterps.h in Headers */,
+				73CC52AC13116B7F00D8773C /* internal.h in Headers */,
+				73CC52AE13116B7F00D8773C /* io_files.h in Headers */,
+				73CC52B013116B7F00D8773C /* io_http.h in Headers */,
+				73CC52B213116B7F00D8773C /* libFreeWRL.h in Headers */,
+				73CC52B413116B7F00D8773C /* list.h in Headers */,
+				73CC52B613116B7F00D8773C /* headers.h in Headers */,
+				73CC52B713116B7F00D8773C /* installdir.h in Headers */,
+				73CC52B913116B7F00D8773C /* MainLoop.h in Headers */,
+				73CC52BB13116B7F00D8773C /* ProdCon.h in Headers */,
+				73CC52BD13116B7F00D8773C /* Snapshot.h in Headers */,
+				73CC52C113116B7F00D8773C /* main.h in Headers */,
+				73CC52C313116B7F00D8773C /* ColladaParser.h in Headers */,
+				73CC52C513116B7F00D8773C /* Frustum.h in Headers */,
+				73CC52C713116B7F00D8773C /* LoadTextures.h in Headers */,
+				73CC52C913116B7F00D8773C /* Material.h in Headers */,
+				73CC52CB13116B7F00D8773C /* OpenGL_Utils.h in Headers */,
+				73CC52CD13116B7F00D8773C /* OSX_miniglew.h in Headers */,
+				73CC52CF13116B7F00D8773C /* RasterFont.h in Headers */,
+				73CC52D213116B7F00D8773C /* Textures.h in Headers */,
+				73CC52D413116B7F00D8773C /* PluginSocket.h in Headers */,
+				73CC52D613116B7F00D8773C /* pluginUtils.h in Headers */,
+				73CC52D813116B7F00D8773C /* resources.h in Headers */,
+				73CC52DA13116B7F00D8773C /* Children.h in Headers */,
+				73CC52DC13116B7F00D8773C /* Collision.h in Headers */,
+				73CC52DE13116B7F00D8773C /* Component_Core.h in Headers */,
+				73CC52E013116B7F00D8773C /* Component_CubeMapTexturing.h in Headers */,
+				73CC52E713116B7F00D8773C /* Component_Geometry3D.h in Headers */,
+				73CC52E913116B7F00D8773C /* Component_Geospatial.h in Headers */,
+				73CC52EE13116B7F00D8773C /* Component_KeyDevice.h in Headers */,
+				73CC52F213116B7F00D8773C /* Component_Networking.h in Headers */,
+				73CC52F513116B7F00D8773C /* Component_Picking.h in Headers */,
+				73CC52F813116B7F00D8773C /* Component_ProgrammableShaders.h in Headers */,
+				73CC52FC13116B7F00D8773C /* Component_Shape.h in Headers */,
+				73CC52FF13116B7F00D8773C /* Component_Text.h in Headers */,
+				73CC530613116B7F00D8773C /* LinearAlgebra.h in Headers */,
+				73CC530713116B7F00D8773C /* mpeg.h in Headers */,
+				73CC530C13116B7F00D8773C /* Polyrep.h in Headers */,
+				73CC530E13116B7F00D8773C /* quaternion.h in Headers */,
+				73CC531013116B7F00D8773C /* readpng.h in Headers */,
+				73CC531213116B7F00D8773C /* RenderFuncs.h in Headers */,
+				73CC531413116B7F00D8773C /* ringbuf.h in Headers */,
+				73CC531513116B7F00D8773C /* sounds.h in Headers */,
+				73CC531913116B7F00D8773C /* Tess.h in Headers */,
+				73CC531B13116B7F00D8773C /* Vector.h in Headers */,
+				73CC531D13116B7F00D8773C /* Viewer.h in Headers */,
+				73CC531E13116B7F00D8773C /* system.h in Headers */,
+				73CC531F13116B7F00D8773C /* system_fonts.h in Headers */,
+				73CC532013116B7F00D8773C /* system_js.h in Headers */,
+				73CC532113116B7F00D8773C /* system_net.h in Headers */,
+				73CC532213116B7F00D8773C /* system_threads.h in Headers */,
+				73CC532413116B7F00D8773C /* threads.h in Headers */,
+				73CC532513116B7F00D8773C /* aquaInt.h in Headers */,
+				73CC532713116B7F00D8773C /* fwBareWindow.h in Headers */,
+				73CC532D13116B7F00D8773C /* GLwDrawA.h in Headers */,
+				73CC532E13116B7F00D8773C /* GLwDrawAP.h in Headers */,
+				73CC533013116B7F00D8773C /* statusbar.h in Headers */,
+				73CC533513116B7F00D8773C /* CFieldDecls.h in Headers */,
+				73CC533713116B7F00D8773C /* CParse.h in Headers */,
+				73CC533813116B7F00D8773C /* CParseGeneral.h in Headers */,
+				73CC533A13116B7F00D8773C /* CParseLexer.h in Headers */,
+				73CC533C13116B7F00D8773C /* CParseParser.h in Headers */,
+				73CC533E13116B7F00D8773C /* CProto.h in Headers */,
+				73CC534013116B7F00D8773C /* CRoutes.h in Headers */,
+				73CC534113116B7F00D8773C /* NodeFields.h in Headers */,
+				73CC534213116B7F00D8773C /* Structs.h in Headers */,
+				73CC534313116B7F00D8773C /* VrmlTypeList.h in Headers */,
+				73CC534513116B7F00D8773C /* CScripts.h in Headers */,
+				73CC534713116B7F00D8773C /* fieldGet.h in Headers */,
+				73CC534913116B7F00D8773C /* fieldSet.h in Headers */,
+				73CC534B13116B7F00D8773C /* JScript.h in Headers */,
+				73CC534C13116B7F00D8773C /* jsNative.h in Headers */,
+				73CC534E13116B7F00D8773C /* jsUtils.h in Headers */,
+				73CC535213116B7F00D8773C /* jsVRMLBrowser.h in Headers */,
+				73CC535413116B7F00D8773C /* jsVRMLClasses.h in Headers */,
+				73CC535513116B7F00D8773C /* world_script.h in Headers */,
+				73CC535713116B7F00D8773C /* Bindable.h in Headers */,
+				73CC535A13116B7F00D8773C /* X3DParser.h in Headers */,
+				73CC535C13116B7F00D8773C /* X3DProtoScript.h in Headers */,
+				73CC54E013131C2C00D8773C /* config.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		D2AAC07D0554694100DB518D /* FreeWRL-IPhone_Static */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB921E08733DC00010E9CD /* Build configuration list for PBXNativeTarget "FreeWRL-IPhone_Static" */;
+			buildPhases = (
+				D2AAC07A0554694100DB518D /* Headers */,
+				D2AAC07B0554694100DB518D /* Sources */,
+				D2AAC07C0554694100DB518D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FreeWRL-IPhone_Static";
+			productName = "FreeWRL-IPhone_Static";
+			productReference = D2AAC07E0554694100DB518D /* libFreeWRL_IPhone_Static.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0867D690FE84028FC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB922208733DC00010E9CD /* Build configuration list for PBXProject "FreeWRL-IPhone_Static" */;
+			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 0867D691FE84028FC02AAC07 /* FreeWRL-IPhone_Static */;
+			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D2AAC07D0554694100DB518D /* FreeWRL-IPhone_Static */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D2AAC07B0554694100DB518D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				73CC529D13116B7F00D8773C /* display.c in Sources */,
+				73CC529F13116B7F00D8773C /* convert1To2.c in Sources */,
+				73CC52A013116B7F00D8773C /* EAI_C_CommonFunctions.c in Sources */,
+				73CC52A113116B7F00D8773C /* EAIEventsIn.c in Sources */,
+				73CC52A213116B7F00D8773C /* EAIEventsOut.c in Sources */,
+				73CC52A413116B7F00D8773C /* EAIHelpers.c in Sources */,
+				73CC52A613116B7F00D8773C /* EAIServ.c in Sources */,
+				73CC52A713116B7F00D8773C /* InputFunctions.c in Sources */,
+				73CC52A913116B7F00D8773C /* SensInterps.c in Sources */,
+				73CC52AB13116B7F00D8773C /* internal.c in Sources */,
+				73CC52AD13116B7F00D8773C /* io_files.c in Sources */,
+				73CC52AF13116B7F00D8773C /* io_http.c in Sources */,
+				73CC52B313116B7F00D8773C /* list.c in Sources */,
+				73CC52B513116B7F00D8773C /* ConsoleMessage.c in Sources */,
+				73CC52B813116B7F00D8773C /* MainLoop.c in Sources */,
+				73CC52BA13116B7F00D8773C /* ProdCon.c in Sources */,
+				73CC52BC13116B7F00D8773C /* Snapshot.c in Sources */,
+				73CC52BE13116B7F00D8773C /* SoundEngineClient.c in Sources */,
+				73CC52BF13116B7F00D8773C /* utils.c in Sources */,
+				73CC52C013116B7F00D8773C /* main.c in Sources */,
+				73CC52C213116B7F00D8773C /* ColladaParser.c in Sources */,
+				73CC52C413116B7F00D8773C /* Frustum.c in Sources */,
+				73CC52C613116B7F00D8773C /* LoadTextures.c in Sources */,
+				73CC52C813116B7F00D8773C /* Material.c in Sources */,
+				73CC52CA13116B7F00D8773C /* OpenGL_Utils.c in Sources */,
+				73CC52CC13116B7F00D8773C /* OSX_miniglew.c in Sources */,
+				73CC52CE13116B7F00D8773C /* RasterFont.c in Sources */,
+				73CC52D013116B7F00D8773C /* RenderTextures.c in Sources */,
+				73CC52D113116B7F00D8773C /* Textures.c in Sources */,
+				73CC52D313116B7F00D8773C /* PluginSocket.c in Sources */,
+				73CC52D513116B7F00D8773C /* pluginUtils.c in Sources */,
+				73CC52D713116B7F00D8773C /* resources.c in Sources */,
+				73CC52D913116B7F00D8773C /* Children.c in Sources */,
+				73CC52DB13116B7F00D8773C /* Collision.c in Sources */,
+				73CC52DD13116B7F00D8773C /* Component_Core.c in Sources */,
+				73CC52DF13116B7F00D8773C /* Component_CubeMapTexturing.c in Sources */,
+				73CC52E113116B7F00D8773C /* Component_DIS.c in Sources */,
+				73CC52E213116B7F00D8773C /* Component_EnvironEffects.c in Sources */,
+				73CC52E313116B7F00D8773C /* Component_EnvironSensor.c in Sources */,
+				73CC52E413116B7F00D8773C /* Component_EventUtils.c in Sources */,
+				73CC52E513116B7F00D8773C /* Component_Geometry2D.c in Sources */,
+				73CC52E613116B7F00D8773C /* Component_Geometry3D.c in Sources */,
+				73CC52E813116B7F00D8773C /* Component_Geospatial.c in Sources */,
+				73CC52EA13116B7F00D8773C /* Component_Grouping.c in Sources */,
+				73CC52EB13116B7F00D8773C /* Component_HAnim.c in Sources */,
+				73CC52EC13116B7F00D8773C /* Component_Interpolation.c in Sources */,
+				73CC52ED13116B7F00D8773C /* Component_KeyDevice.c in Sources */,
+				73CC52EF13116B7F00D8773C /* Component_Lighting.c in Sources */,
+				73CC52F013116B7F00D8773C /* Component_Navigation.c in Sources */,
+				73CC52F113116B7F00D8773C /* Component_Networking.c in Sources */,
+				73CC52F313116B7F00D8773C /* Component_NURBS.c in Sources */,
+				73CC52F413116B7F00D8773C /* Component_Picking.c in Sources */,
+				73CC52F613116B7F00D8773C /* Component_PointingDevice.c in Sources */,
+				73CC52F713116B7F00D8773C /* Component_ProgrammableShaders.c in Sources */,
+				73CC52F913116B7F00D8773C /* Component_Rendering.c in Sources */,
+				73CC52FA13116B7F00D8773C /* Component_Scripting.c in Sources */,
+				73CC52FB13116B7F00D8773C /* Component_Shape.c in Sources */,
+				73CC52FD13116B7F00D8773C /* Component_Sound.c in Sources */,
+				73CC52FE13116B7F00D8773C /* Component_Text.c in Sources */,
+				73CC530013116B7F00D8773C /* Component_Texturing.c in Sources */,
+				73CC530113116B7F00D8773C /* Component_Time.c in Sources */,
+				73CC530213116B7F00D8773C /* Component_VRML1.c in Sources */,
+				73CC530313116B7F00D8773C /* GeneratedCode.c in Sources */,
+				73CC530413116B7F00D8773C /* GenPolyRep.c in Sources */,
+				73CC530513116B7F00D8773C /* LinearAlgebra.c in Sources */,
+				73CC530813116B7F00D8773C /* MPEG_Utils.c in Sources */,
+				73CC530913116B7F00D8773C /* NormalCalcs.c in Sources */,
+				73CC530A13116B7F00D8773C /* OSCcallbacks.c in Sources */,
+				73CC530B13116B7F00D8773C /* Polyrep.c in Sources */,
+				73CC530D13116B7F00D8773C /* quaternion.c in Sources */,
+				73CC530F13116B7F00D8773C /* readpng.c in Sources */,
+				73CC531113116B7F00D8773C /* RenderFuncs.c in Sources */,
+				73CC531313116B7F00D8773C /* ringbuf.c in Sources */,
+				73CC531613116B7F00D8773C /* statics.c in Sources */,
+				73CC531713116B7F00D8773C /* StreamPoly.c in Sources */,
+				73CC531813116B7F00D8773C /* Tess.c in Sources */,
+				73CC531A13116B7F00D8773C /* Vector.c in Sources */,
+				73CC531C13116B7F00D8773C /* Viewer.c in Sources */,
+				73CC532313116B7F00D8773C /* threads.c in Sources */,
+				73CC532613116B7F00D8773C /* fwBareWindow.c in Sources */,
+				73CC532813116B7F00D8773C /* fwCommonX11.c in Sources */,
+				73CC532913116B7F00D8773C /* fwMotifWindow.c in Sources */,
+				73CC532A13116B7F00D8773C /* fwWindow32.c in Sources */,
+				73CC532B13116B7F00D8773C /* fwWindowAqua.c in Sources */,
+				73CC532C13116B7F00D8773C /* GLwDrawA.c in Sources */,
+				73CC532F13116B7F00D8773C /* statusbar.c in Sources */,
+				73CC533113116B7F00D8773C /* statusbarConsole.c in Sources */,
+				73CC533213116B7F00D8773C /* statusbarHud.c in Sources */,
+				73CC533313116B7F00D8773C /* statusbarStub.c in Sources */,
+				73CC533413116B7F00D8773C /* CFieldDecls.c in Sources */,
+				73CC533613116B7F00D8773C /* CParse.c in Sources */,
+				73CC533913116B7F00D8773C /* CParseLexer.c in Sources */,
+				73CC533B13116B7F00D8773C /* CParseParser.c in Sources */,
+				73CC533D13116B7F00D8773C /* CProto.c in Sources */,
+				73CC533F13116B7F00D8773C /* CRoutes.c in Sources */,
+				73CC534413116B7F00D8773C /* CScripts.c in Sources */,
+				73CC534613116B7F00D8773C /* fieldGet.c in Sources */,
+				73CC534813116B7F00D8773C /* fieldSet.c in Sources */,
+				73CC534A13116B7F00D8773C /* JScript.c in Sources */,
+				73CC534D13116B7F00D8773C /* jsUtils.c in Sources */,
+				73CC534F13116B7F00D8773C /* jsVRML_MFClasses.c in Sources */,
+				73CC535013116B7F00D8773C /* jsVRML_SFClasses.c in Sources */,
+				73CC535113116B7F00D8773C /* jsVRMLBrowser.c in Sources */,
+				73CC535313116B7F00D8773C /* jsVRMLClasses.c in Sources */,
+				73CC535613116B7F00D8773C /* Bindable.c in Sources */,
+				73CC535813116B7F00D8773C /* capabilitiesHandler.c in Sources */,
+				73CC535913116B7F00D8773C /* X3DParser.c in Sources */,
+				73CC535B13116B7F00D8773C /* X3DProtoScript.c in Sources */,
+				73CC551A131453E700D8773C /* JOHNS_lib_version.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB921F08733DC00010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = NO;
+				DSTROOT = /tmp/FreeWRL_IPhone_Static.dst;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = FreeWRL_IPhone_Static_Prefix.pch;
+				HEADER_SEARCH_PATHS = /FreeWRL/freewrl/freex3d/src/lib;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = FreeWRL_IPhone_Static;
+			};
+			name = Debug;
+		};
+		1DEB922008733DC00010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				DSTROOT = /tmp/FreeWRL_IPhone_Static.dst;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = FreeWRL_IPhone_Static_Prefix.pch;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = FreeWRL_IPhone_Static;
+			};
+			name = Release;
+		};
+		1DEB922308733DC00010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PREBINDING = NO;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		1DEB922408733DC00010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PREBINDING = NO;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB921E08733DC00010E9CD /* Build configuration list for PBXNativeTarget "FreeWRL-IPhone_Static" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB921F08733DC00010E9CD /* Debug */,
+				1DEB922008733DC00010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB922208733DC00010E9CD /* Build configuration list for PBXProject "FreeWRL-IPhone_Static" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB922308733DC00010E9CD /* Debug */,
+				1DEB922408733DC00010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0867D690FE84028FC02AAC07 /* Project object */;
+}
