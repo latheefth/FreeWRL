@@ -18,7 +18,6 @@
 	setScreenDim((int)rect.size.width, (int)rect.size.height);
 	display_initialize();
 	OSX_initializeParameters("wrong path entered");
-	setMono(); /* no shutter glasses... */
 	initializeRenderSceneUpdateScene();
 	
 	//NSLog (@"setupView complete");
@@ -26,7 +25,6 @@
 
 - (void)drawView:(GLView*)view;
 {
-	
 	RenderSceneUpdateScene();
 	
 }
