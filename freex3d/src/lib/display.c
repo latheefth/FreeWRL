@@ -134,7 +134,7 @@ int display_initialize()
 		return FALSE;
 	}
 
-#ifdef _MSC_VER
+#if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	bind_GLcontext();
 #endif
 
