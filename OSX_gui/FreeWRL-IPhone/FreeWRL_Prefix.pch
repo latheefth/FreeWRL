@@ -1,0 +1,9 @@
+//
+// Prefix header for all source files of the 'FreeWRL' target in the 'FreeWRL' project
+//
+
+#ifdef __OBJC__
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import "ConstantsAndMacros.h"
+#endif
