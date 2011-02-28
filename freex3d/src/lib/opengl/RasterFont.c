@@ -70,7 +70,7 @@ void rf_print(const char *text)
 void rf_printf(int x, int y, const char *format, ...)
 {
 #ifdef IPHONE
-printf ("skipping the rf_printf\n");
+//printf ("skipping the rf_printf\n");
 #else
     va_list ap;
     char xfont_buffer[5000];
@@ -99,7 +99,7 @@ void rf_layer2D()
 {
 
 #ifdef IPHONE
-printf ("skipping the push attrib\n");
+//printf ("skipping the push attrib\n");
 #else
     FW_GL_PUSH_ATTRIB(GL_ENABLE_BIT);
 #endif
@@ -125,7 +125,7 @@ printf ("skipping the push attrib\n");
 void rf_leave_layer2D()
 {
 #ifdef IPHONE
-printf ("skipping the popattribhte\n");
+//printf ("skipping the popattribhte\n");
 #else
     FW_GL_POP_ATTRIB();
 #endif

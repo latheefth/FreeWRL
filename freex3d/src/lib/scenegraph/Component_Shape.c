@@ -687,17 +687,6 @@ void child_Shape (struct X3D_Shape *node) {
 		return;
 	}
 
-/*
-struct fw_MaterialParameters {
-                float emission[4];
-                float ambient[4];
-                float diffuse[4];
-                float specular[4];
-                float shininess;
-        };
-
-*/
-
 struct fw_MaterialParameters defaultMaterials = {
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */
 					{0.0f, 0.0f, 0.0f, 1.0f}, /* ambientIntensity */
