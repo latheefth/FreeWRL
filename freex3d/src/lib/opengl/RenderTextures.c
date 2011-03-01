@@ -135,8 +135,8 @@ printf ("skipping setActiveTexture\n");
 #ifdef IPHONE
 printf ("skipping te texenvi\n");
 #else
-		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 #endif
+		FW_GL_TEXENVI (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	} else {
 		paramPtr = textureParameterStack[c];
 
