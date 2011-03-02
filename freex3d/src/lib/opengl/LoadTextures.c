@@ -74,10 +74,6 @@ void Multi_String_print(struct Multi_String *url);
 #endif /* IPHONE */
 #endif /* TARGET_AQUA */
 
-
-	CGImageRef 	image;
-
-
 /* is the texture thread up and running yet? */
 int TextureThreadInitialized = FALSE;
 
