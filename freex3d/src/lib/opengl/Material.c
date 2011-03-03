@@ -106,7 +106,7 @@ void fwAnaglyphremapRgbav(unsigned char *rgba,int y,int x)
 void fwglMaterialfv(GLenum face, GLenum pname, const GLfloat *params)
 {
 #ifdef IPHONE
-printf ("fwglMaterialfv called\n");
+/* printf ("fwglMaterialfv called... %f %f %f\n",params[0],params[1],params[2]); */
 #else
 	if(usingAnaglyph2())
 		switch(pname)

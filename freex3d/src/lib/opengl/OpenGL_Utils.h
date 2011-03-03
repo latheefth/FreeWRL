@@ -59,6 +59,8 @@ typedef struct {
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
+	GLint Texture0;
+
 	
 	/* some geom shaders have particular uniforms, eg geom radius */
 	GLint specialUniform1;
