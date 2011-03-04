@@ -639,7 +639,6 @@ printf ("texture, Sphere, one sided material!\n");
 
 	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER:
 	case NO_GEOM_SHADER | ONE_TEX_APPEARANCE_SHADER | MATERIAL_APPEARANCE_SHADER:
-printf ("texture, one sided material!\n");
 		node->_shaderTableEntry = oneTexOneMaterialShader;
 		break;	
 	
