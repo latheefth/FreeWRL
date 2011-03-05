@@ -40,7 +40,6 @@ struct nameValuePairs {
 
 /* header file for the X3D parser, only items common between the X3DParser files should be here. */
 
-/* FIXME: This should be avoided -- including "expat.h" */
 /*#define X3DPARSERVERBOSE 1*/
 #define PARSING_NODES 1
 #define PARSING_SCRIPT 2
