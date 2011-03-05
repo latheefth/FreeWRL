@@ -118,6 +118,15 @@ static void myTexImage2D (int generateMipMaps, GLenum target, GLint level, GLint
 
 /* gluScaleImage replacement */
 
+/* we manipulate things here as 4 byte colours (RGBA, or BGRA) so we try and ensure
+that we have 32 bit numbers, thus this definition. ES-2.0 is 32 bits, but in case
+someone compiles on a 64 bit system, with Material shader definitions in OpenGL-3.x,
+then hopefully this will work for them, too */
+
+#ifndef uint32
+# define uint32 uint32_t
+#endif
+
 static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *src, unsigned char *dest) {
 	float YscaleFactor;
 	float XscaleFactor;
