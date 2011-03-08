@@ -59,7 +59,7 @@ typedef struct freewrl_params {
 
 /* FreeWRL parameters */
 #ifdef _MSC_VER
-freewrl_params_t fw_params;
+extern freewrl_params_t fw_params;
 #else
 extern freewrl_params_t fw_params;
 #endif

@@ -130,6 +130,7 @@ int display_initialize()
 
 	if (0 != screenWidth)  win_width  = screenWidth;
 	if (0 != screenHeight) win_height = screenHeight;
+	setScreenDim(win_width,win_height); /* recompute screenRatio */
 	if (!create_main_window(0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
