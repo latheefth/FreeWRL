@@ -14,12 +14,10 @@
 #define TARGET_AQUA 1
 #define _REENTRANT 1
 #define SHADERS_2011 1
-#define IPHONE -DAQUA 1
+#define HAVE_LIBXML_H 1
+#define IPHONE
+#define AQUA 1
 
-
-#ifndef AQUA
-#define AQUA
-#endif
 #define INSTALLDIR "/usr/share/freewrl"
 #define FONTS_DIR "/usr/share/freewrl/fonts"
 #define HAVE_STDINT_H 1
@@ -42,9 +40,6 @@
 #include <sys/time.h>
 #include <dirent.h>
 #include <fcntl.h>
-#ifndef IPHONE
-#include <expat.h>
-#endif
 #include <internal.h>
 #define HAVE_STDINT_H 1
 #define HAVE_STDBOOL_H 1
