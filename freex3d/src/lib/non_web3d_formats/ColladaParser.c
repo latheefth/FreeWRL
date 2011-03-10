@@ -28,10 +28,6 @@ $Id$
 
 #include <config.h>
 
-/* IPHONE - right now do not do XML parsing */
-#ifndef IPHONE
-
-
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -244,5 +240,3 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	shutdownColladaParser();
 	return TRUE;
 }
-
-#endif /* IPHONE */
