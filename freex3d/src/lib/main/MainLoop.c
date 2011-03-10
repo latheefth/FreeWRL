@@ -1696,14 +1696,6 @@ void setTextures_take_priority (int x) {
 /* this is now unused, and call should be removed from front ends */
 }
 
-/* set the opengl_has_textureSize. Expect a number that is 0 - use max, or negative. eg,
-   -512 hopefully sets to size 512x512; this will be bounds checked in the texture
-   thread */
-void setTexSize(int requestedsize) {
-/*         opengl_has_textureSize = requestedsize; */	
-}
-
-
 void setKeyString(const char* kstring)
 {
     keypress_string = strdup(kstring);

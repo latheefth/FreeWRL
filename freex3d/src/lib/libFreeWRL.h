@@ -90,7 +90,6 @@ bool Anchor_ReplaceWorld();
 #define VIEWER_YAWPITCHZOOM 5
 void set_viewer_type(const int type);
 
-void setTexSize(int requestedsize);
 void setGeometry_from_cmdline(const char *gstring);
 void setSnapFile(const char* file);
 void setSnapTmp(const char* file);

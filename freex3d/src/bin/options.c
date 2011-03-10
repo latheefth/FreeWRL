@@ -287,8 +287,7 @@ int parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'f': /* --fast, no argument */
-	    /* set negative so that the texture thread will pick this up */
-	    setTexSize(-256);
+		/* does nothing right now */
 	    break;
 
 	case 'W': /* --linewidth, required argument: float */
