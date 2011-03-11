@@ -364,7 +364,7 @@ unsigned int setField_FromEAI (char *ptr);
 #endif /* end of ifdef DEBUG */
 
 /* number of tesselated coordinates allowed */
-#define TESS_MAX_COORDS  500
+#define TESS_MAX_COORDS  200000
 
 #define offset_of(p_type,field) ((unsigned int)(&(((p_type)NULL)->field)-NULL))
 
