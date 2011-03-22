@@ -19,6 +19,7 @@
 		7300A442131AE8C800D1F798 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7300A441131AE8C800D1F798 /* Foundation.framework */; };
 		7300A499131AE8D200D1F798 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7300A498131AE8D200D1F798 /* CoreGraphics.framework */; };
 		7300A49D131AE8E500D1F798 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7300A49C131AE8E500D1F798 /* QuartzCore.framework */; };
+		731321491337EA2E00FEAD96 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 731321481337EA2E00FEAD96 /* ImageIO.framework */; };
 		73E39CF5132954F4001ADBBB /* libFreeWRL_IPhone_Static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */; };
 /* End PBXBuildFile section */
 
@@ -42,6 +43,7 @@
 		7300A441131AE8C800D1F798 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7300A498131AE8D200D1F798 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		7300A49C131AE8E500D1F798 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		731321481337EA2E00FEAD96 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFreeWRL_IPhone_Static.a; path = "../../../../../Library/Developer/Xcode/DerivedData/FreeWRL-IPhone_Static-deiqfpgwfkdeazfgfpugrrlilzim/Build/Products/Debug-iphoneos/libFreeWRL_IPhone_Static.a"; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* FreeWRL-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FreeWRL-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -57,6 +59,7 @@
 				7300A499131AE8D200D1F798 /* CoreGraphics.framework in Frameworks */,
 				7300A49D131AE8E500D1F798 /* QuartzCore.framework in Frameworks */,
 				73E39CF5132954F4001ADBBB /* libFreeWRL_IPhone_Static.a in Frameworks */,
+				731321491337EA2E00FEAD96 /* ImageIO.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -129,6 +132,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				731321481337EA2E00FEAD96 /* ImageIO.framework */,
 				73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */,
 				7300A49C131AE8E500D1F798 /* QuartzCore.framework */,
 				7300A441131AE8C800D1F798 /* Foundation.framework */,
