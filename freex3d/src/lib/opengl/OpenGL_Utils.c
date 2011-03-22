@@ -2200,6 +2200,8 @@ void startOfLoopNodeUpdates(void) {
 	/* process one inline per loop; do it outside of the lock/unlock memory table */
 	struct Vector *loadInlines;
 
+	if (rootNode == NULL) return; /* nothing to do, and we have not really started yet */
+
 	/* initialization */
 	addChildren = NULL;
 	removeChildren = NULL;

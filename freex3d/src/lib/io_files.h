@@ -42,7 +42,8 @@ bool do_dir_exists(const char *dir);
 typedef struct openned_file {
 	const char *filename;
 	int fd;
-	char *text;
+	int dataSize;
+	char *data;
 } openned_file_t;
 
 void of_dump(openned_file_t *of);

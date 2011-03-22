@@ -107,7 +107,9 @@ int PaneClipChanged = FALSE;
  */
 int display_initialize()
 {
-	printf ("calling display_initialize\n");
+
+	if (display_initialized) return TRUE;
+
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
 	/* FreeWRL parameters */
@@ -153,8 +155,6 @@ int display_initialize()
 		sendXwinToPlugin();
 	}
 #endif
-
-printf ("finished calling open_Display\n");
 
 	return TRUE;
 }
@@ -285,6 +285,8 @@ bool initialize_rdr_caps()
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
 		#endif
 		rdr_caps.texture_units = (int) tmp;
+printf ("max_texture_size %d, max_texture_units %d\n",rdr_caps.max_texture_size, rdr_caps.texture_units);
+
 	}
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */

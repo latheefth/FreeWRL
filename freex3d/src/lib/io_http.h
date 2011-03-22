@@ -31,7 +31,8 @@
 #define __LIBFREEWRL_IO_HTTP_H__
 
 
-char* download_url(const char *url, const char *tmp);
+/* change method char* download_url(const char *url, const char *tmp); */
+void download_url(resource_item_t *res);
 
 void popInputResource();
 void pushInputResource(resource_item_t *url);

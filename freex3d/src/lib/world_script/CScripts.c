@@ -420,14 +420,14 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 
 			/* ok - Scripts get initialized; shaders get the buffer returned */
 			if (me==NULL) { /* a Shader */
-			 	buffer = STRDUP(of->text);
+			 	buffer = STRDUP(of->data);
 			 	/* JAS printf("**** Shader:\n%s\n", buffer); 
 				printf ("*** Shader: doing the quick return here\n"); */
 				return TRUE;
 			} else {
 				/* a Script */
 			 	/* printf("**** Script:\n%s\n", buffer); */
-			 	rv = script_initCode(me, of->text);
+			 	rv = script_initCode(me, of->data);
 			}
 		 }
 	 }
