@@ -105,7 +105,7 @@ static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
 static XML_Parser currentColladaParser = NULL;
 static int parentIndex = 0;
 static int ColladaParserRecurseLevel = 0;
-//static int inCDATA = FALSE;
+static int inCDATA = FALSE;
 struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
 static int indentLevel = 0;
 
