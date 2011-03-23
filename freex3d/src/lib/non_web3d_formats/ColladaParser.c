@@ -56,7 +56,7 @@ $Id$
 
 #if HAVE_EXPAT_H
 # include <expat.h>
-static int inCDATA = FALSE;
+//static int inCDATA = FALSE;
 #define XML_CreateParserLevel(aaa)  aaa = XML_ParserCreate(NULL);
 #define XML_ParseFile(aaa,bbb,ccc,ddd) XML_Parse(aaa,bbb,ccc,ddd)
 
