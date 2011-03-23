@@ -89,7 +89,7 @@ Extru_tex(int vertex_ind,
 		  int A,
 		  int B,
 		  int C,
-		  int *tcindex,
+		  GLuint *tcindex,
 		  int ccw,
 		  int tcindexsize);
 
@@ -99,8 +99,8 @@ void Extru_ST_map(
         int end,
         float *Vals,
         int nsec,
-        int *tcindex,
-        int *cindex,
+        GLuint *tcindex,
+        GLuint *cindex,
         float *GeneratedTexCoords,
         int tcoordsize);
 

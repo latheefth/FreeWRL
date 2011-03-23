@@ -244,7 +244,7 @@ static void shaderErrorLog(GLuint myShader) {
 			} \
 			if (node->__shaderIDS.n == 0) { \
 				node->__shaderIDS.n = 1; \
-				node->__shaderIDS.p = MALLOC(GLuint *, sizeof (GLuint)); \
+				node->__shaderIDS.p = MALLOC(GLint *, sizeof (GLint)); \
 				node->__shaderIDS.p[0] = (int)myProgram; \
 			} \
 		}
@@ -255,7 +255,7 @@ static void shaderErrorLog(GLuint myShader) {
 			LINK_SHADER(myProgram); \
 			if (node->__shaderIDS.n == 0) { \
 				node->__shaderIDS.n = 1; \
-				node->__shaderIDS.p = MALLOC(GLuint *, sizeof (GLuint)); \
+				node->__shaderIDS.p = MALLOC(GLint *, sizeof (GLint)); \
 				node->__shaderIDS.p[0] = (int)myProgram; \
 			} \
 		}
@@ -503,13 +503,13 @@ void getField_ToShader(int num) {
 
 		switch (to_ptr->routeToNode->_nodeType) {
 		case NODE_ComposedShader:
-			myObj = X3D_COMPOSEDSHADER(to_ptr->routeToNode)->__shaderObj;
+			myObj = (struct Shader_Script *)(X3D_COMPOSEDSHADER(to_ptr->routeToNode)->__shaderObj);
 			break;
 		case NODE_PackagedShader:
-			myObj = X3D_PACKAGEDSHADER(to_ptr->routeToNode)->__shaderObj;
+			myObj = (struct Shader_Script *)(X3D_PACKAGEDSHADER(to_ptr->routeToNode)->__shaderObj);
 			break;
 		case NODE_ShaderProgram: 
-			myObj = X3D_SHADERPROGRAM(to_ptr->routeToNode)->__shaderObj;
+			myObj = (struct Shader_Script *)(X3D_SHADERPROGRAM(to_ptr->routeToNode)->__shaderObj);
 			break;
 		default: {
 			ConsoleMessage ("getField_ToShader, unhandled type??");

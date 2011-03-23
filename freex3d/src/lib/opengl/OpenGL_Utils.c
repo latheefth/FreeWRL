@@ -3067,11 +3067,6 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 
 }
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
-	float spval[16];
-	int i;
-	float *sp; 
-	GLDOUBLE *dp;
-
 	/* go through all of the Uniforms for this shader */
 
 #define SEND_VEC4(myMat,myVal) \
