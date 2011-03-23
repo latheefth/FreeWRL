@@ -20,7 +20,9 @@
     initializeRenderSceneUpdateScene();
     
     //OSX_initializeParameters("http://freewrl.sourceforge.net/test2pt.wrl");
-    OSX_initializeParameters("http://freewrl.sourceforge.net/test2.wrl");
+    OSX_initializeParameters(
+        "http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount500.x3d");
+                             //"http://freewrl.sourceforge.net/test2.wrl");
     
     // simple cone OSX_initializeParameters("http://freewrl.sourceforge.net/test.wrl");
 
@@ -44,13 +46,13 @@ NSMutableData *receivedData;
     // redirect, so each time we reset the data.
     
     // receivedData is an instance variable declared elsewhere.
-    //NSLog (@"connection: didReceiveResponse called");
+    NSLog (@"connection: didReceiveResponse called");
     [receivedData setLength:0];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-    //NSLog (@"connection: didReceiveData called");
+    NSLog (@"connection: didReceiveData called");
     // Append the new data to receivedData.
     // receivedData is an instance variable declared elsewhere.
     [receivedData appendData:data];
@@ -119,6 +121,7 @@ NSMutableData *receivedData;
 
 - (void)drawView:(GLView*)view;
 {
+    //NSLog (@"drawing");
     if (frontEndWantsFileName() != nil) {
         if (!frontEndGettingFile) {
             frontEndGettingFile = true;
