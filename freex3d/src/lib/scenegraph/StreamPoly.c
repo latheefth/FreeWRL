@@ -547,7 +547,23 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,newpoints, GL_STATIC_DRAW);
 
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,r->VBO_buffers[INDEX_VBO]);
+#ifdef IPHONE
+{
+GLushort *myindicies = MALLOC(GLushort *, r->ntri*3);
+int i;
+printf ("creating GLushort array for indexes for polyreps\n");
+for (i=0; i<r->ntri*3; i++) {
+myindicies[i] = r->cindex[i];
+    printf ("     for index %d, we have ind %d, %d\n",i,myindicies[i],r->cindex[i]);
+}
+
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3,myindicies,GL_STATIC_DRAW);
+		FREE_IF_NZ(myindicies);
+}
+#else
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (int)*r->ntri*3,r->cindex,GL_STATIC_DRAW);
+#endif
 
 		if (r->GeneratedTexCoords) {
 			if (r->VBO_buffers[TEXTURE_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO]);

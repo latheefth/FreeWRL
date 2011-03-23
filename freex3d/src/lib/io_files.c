@@ -369,9 +369,20 @@ char *frontEndWantsFileName() {
 
 void frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_LOCK_FILE_RETRIEVAL
-	fileText = MALLOC (unsigned char *, len);
+    
+    /* note the "+1" ....*/
+	fileText = MALLOC (unsigned char *, len+1);
 	memcpy (fileText, dataPointer, len);
 	fileSize = len;
+    
+    /* ok - we do not know if this is a binary or a text file,
+       but because we added 1 to it, we can put a null terminator
+       on the end - that will terminate a text string, but will
+       not affect a binary file, because we have the binary data
+       and binary length recorded. */
+
+    fileText[len] = '\0';  /* the string terminator */
+    
 	fileName = NULL; /* not freed as only passed by pointer */
 	frontendPleaseGetAFile = FALSE;
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
