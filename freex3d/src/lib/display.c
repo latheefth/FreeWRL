@@ -279,7 +279,7 @@ bool initialize_rdr_caps()
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
 		rdr_caps.max_texture_size = (int) tmp;
 
-		#ifdef IPHONE
+		#ifdef GL_ES_VERSION_2_0
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_IMAGE_UNITS, &tmp);
 		#else
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
