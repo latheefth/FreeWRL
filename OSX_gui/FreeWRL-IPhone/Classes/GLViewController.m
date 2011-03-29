@@ -21,8 +21,10 @@
     
     //OSX_initializeParameters("http://freewrl.sourceforge.net/test2pt.wrl");
     OSX_initializeParameters(
-        "http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount500.x3d");
-                             //"http://freewrl.sourceforge.net/test2.wrl");
+        //"http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount500.x3d");
+                             "http://dl.dropbox.com/u/17457/bike.wrl");
+    
+                             //"http://freewrl.sourceforge.net/test.wrl");
     
     // simple cone OSX_initializeParameters("http://freewrl.sourceforge.net/test.wrl");
 
@@ -52,7 +54,7 @@ NSMutableData *receivedData;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-    NSLog (@"connection: didReceiveData called");
+    //NSLog (@"connection: didReceiveData called");
     // Append the new data to receivedData.
     // receivedData is an instance variable declared elsewhere.
     [receivedData appendData:data];
@@ -157,5 +159,81 @@ NSMutableData *receivedData;
 	// JASfinalizeRenderSceneUpdateScene();
     [super dealloc];
 }
+
+
+#pragma mark -
+#pragma mark touch events
+
+/* from the headers.h file - for now */
+#define KeyPress        2
+#define KeyRelease      3
+#define ButtonPress     4
+#define ButtonRelease   5
+#define MotionNotify    6
+#define MapNotify       19
+/* .... */
+
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{    
+           
+    setButDown(1, 1); 
+    setLastMouseEvent(ButtonPress);
+    for (UITouch *t in touches) 
+    {
+        CGPoint loc = [t locationInView:self.view];
+        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        
+        setCurXY((int)loc.x, (int)loc.y);
+        handle_aqua(ButtonPress,1,(int)loc.x,(int)loc.y);
+    }
+
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    setButDown(1, 1);
+    setLastMouseEvent(MotionNotify);
+    
+    for (UITouch *t in touches) 
+    {
+        CGPoint loc = [t locationInView:self.view];
+        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        
+        setCurXY((int)loc.x, (int)loc.y);
+        handle_aqua(MotionNotify,1,(int)loc.x,(int)loc.y);
+    }
+    
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    setButDown(1, 0);
+    setLastMouseEvent(ButtonRelease);
+    for (UITouch *t in touches) 
+    {
+        CGPoint loc = [t locationInView:self.view];
+        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        
+        setCurXY((int)loc.x, (int)loc.y);
+        handle_aqua(ButtonRelease,1,(int)loc.x,(int)loc.y);
+    }
+    
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    setButDown(1, 0);
+    setLastMouseEvent(ButtonRelease);
+    for (UITouch *t in touches) 
+    {
+        CGPoint loc = [t locationInView:self.view];
+        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        
+        setCurXY((int)loc.x, (int)loc.y);
+        handle_aqua(ButtonRelease,1,(int)loc.x,(int)loc.y);
+    }
+}
+
 @end
 
