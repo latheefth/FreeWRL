@@ -1454,8 +1454,9 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 							texOk = TRUE;
 						}
 					}
+                    #endif /* SHADERS_2011 */
 				}
-				#endif /* SHADERS_2011 */
+				
 		
 				if (global_print_opengl_errors) {
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
