@@ -1242,6 +1242,7 @@ void do_keyPress(const char kp, int type) {
                                 case '/': { print_viewer(); break; }
                                 case '\\': { dump_scenegraph(); break; }
                                 case '$': resource_tree_dump(0, root_res); break;
+                                case '*': resource_tree_list_files(0, root_res); break;
                                 case 'q': { if (!RUNNINGASPLUGIN) {
                                                   doQuit();
                                             }
