@@ -301,6 +301,7 @@ bool initialize_rdr_caps()
 	if (
 	strstr(rdr_caps.renderer, "Intel GMA 9") != NULL ||
 	strstr(rdr_caps.renderer, "Intel(R) 9") != NULL ||
+	strstr(rdr_caps.renderer, "i915") != NULL ||
 	strstr(rdr_caps.renderer, "NVIDIA GeForce2") != NULL
 	) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
