@@ -13,9 +13,9 @@
    stuff in there, as there's lots of stuff that is hard
    to compile here. */
 
-#define COMPILING_IPHONE_FRONT_END
+//#define COMPILING_IPHONE_FRONT_END
 #include "../../../freex3d/src/lib/libFreeWRL.h"
-#undef COMPILING_IPHONE_FRONT_END
+//#undef COMPILING_IPHONE_FRONT_END
 
 
 @interface GLViewController : UIViewController <GLViewDelegate>

@@ -21,8 +21,9 @@
     
     //OSX_initializeParameters("http://freewrl.sourceforge.net/test2pt.wrl");
     OSX_initializeParameters(
-        //"http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount500.x3d");
-                             "http://dl.dropbox.com/u/17457/bike.wrl");
+        "http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount10.x3d");
+                             //"http://dl.dropbox.com/u/17457/bike.wrl");
+                             //"http://freewrl.sourceforge.net/JAS/IFStests/bike-modified.wrl");
     
                              //"http://freewrl.sourceforge.net/test.wrl");
     
