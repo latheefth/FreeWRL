@@ -60,6 +60,7 @@
 
 #include "../opengl/OpenGL_Utils.h"
 #include "../ui/statusbar.h"
+#include "../ui/CursorDraw.h"
 #include "../scenegraph/RenderFuncs.h"
 #ifdef WANT_OSC
 	#define USE_OSC 1

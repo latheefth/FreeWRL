@@ -185,6 +185,8 @@ opengl/RasterFont.c \
  \
 ui/aquaInt.h \
 ui/statusbar.h \
+ui/CursorDraw.c \
+ui/CursorDraw.h \
  \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \
