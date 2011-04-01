@@ -202,6 +202,7 @@ int create_main_window(int argc, char *argv[])
 	XtSetArg(initArgs[initArgc], XmNlabelString, XmStringCreate(window_title, XmSTRING_DEFAULT_CHARSET)); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNheight, win_height); initArgc++;
 	XtSetArg(initArgs[initArgc], XmNwidth, win_width); initArgc++;
+	XtSetArg(initArgs[initArgc], XmNmappedWhenManaged, False); initArgc++;
 
 	/**
 	 *   This new initialization sequence let us create the Display and GLX context "à part" from Motif and use the

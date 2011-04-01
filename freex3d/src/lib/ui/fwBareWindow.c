@@ -102,9 +102,10 @@ int create_main_window(int argc, char *argv[])
     }
 
 
-
-    XMapWindow(Xdpy, Xwin);
-    XFlush(Xdpy);
+    if (!RUNNINGASPLUGIN) {
+	    XMapWindow(Xdpy, Xwin);
+	    XFlush(Xdpy);
+    }
 		
     if (fullscreen) {
 	XMoveWindow(Xdpy, Xwin, 0, 0);
@@ -135,3 +136,7 @@ int create_main_window(int argc, char *argv[])
 }
 
 #endif /* IPHONE */
+
+/* Local Variables: */
+/* c-basic-offset: 8 */
+/* End: */
