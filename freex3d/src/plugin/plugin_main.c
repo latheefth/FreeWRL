@@ -48,6 +48,10 @@
 #include <config.h>
 #include <system.h>
 
+#if defined(HAVE_STDARG_H)
+# include <stdarg.h>
+#endif
+
 #include <plugin_utils.h>
 #include <npapi.h>
 
