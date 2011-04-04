@@ -98,14 +98,15 @@ void rf_printf(int x, int y, const char *format, ...)
 void rf_layer2D()
 {
 
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 //printf ("skipping the push attrib\n");
 #else
     FW_GL_PUSH_ATTRIB(GL_ENABLE_BIT);
+    FW_GL_DISABLE(GL_LIGHTING);
 #endif
     FW_GL_DISABLE(GL_DEPTH_TEST);
     FW_GL_DISABLE(GL_CULL_FACE);
-    FW_GL_DISABLE(GL_LIGHTING);
+
 
     // On assume être en MODELVIEW
     FW_GL_MATRIX_MODE(GL_PROJECTION);
@@ -124,7 +125,7 @@ void rf_layer2D()
 
 void rf_leave_layer2D()
 {
-#ifdef IPHONE
+#ifdef GL_ES_VERSION_2_0
 //printf ("skipping the popattribhte\n");
 #else
     FW_GL_POP_ATTRIB();
