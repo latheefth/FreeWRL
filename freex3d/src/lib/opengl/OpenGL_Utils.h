@@ -58,6 +58,7 @@ typedef struct {
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
+	GLint useShapeColour;
 	GLint TexCoords;
 	GLint Texture0;
 

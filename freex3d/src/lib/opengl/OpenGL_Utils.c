@@ -900,6 +900,7 @@ void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
+	me->useShapeColour = GET_UNIFORM(myProg,"fw_useShapeColour");
 	me->TexCoords = GET_ATTRIB(myProg,"fw_TexCoords");
 	me->Texture0 = GET_UNIFORM(myProg,"fw_Texture0");
 

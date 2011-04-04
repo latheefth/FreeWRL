@@ -21,9 +21,9 @@
     
     //OSX_initializeParameters("http://freewrl.sourceforge.net/test2pt.wrl");
     OSX_initializeParameters(
-        "http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount10.x3d");
-                             //"http://dl.dropbox.com/u/17457/bike.wrl");
-                             //"http://freewrl.sourceforge.net/JAS/IFStests/bike-modified.wrl");
+        //"http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount10.x3d");
+        //"http://dl.dropbox.com/u/17457/bike.wrl");
+    "http://freewrl.sourceforge.net/JAS/IFStests/bike-modified.wrl");
     
                              //"http://freewrl.sourceforge.net/test.wrl");
     
@@ -126,6 +126,36 @@ NSMutableData *receivedData;
 {
     //NSLog (@"drawing");
     if (frontEndWantsFileName() != nil) {
+#define ccFUDGE_THIS_FOR_TESTING
+#ifdef FUDGE_THIS_FOR_TESTING
+#define MYSTRING "#VRML V2.0 utf8\n" \
+        "Shape {geometry Sphere {}}"
+        
+#define MYSTRING \
+"#VRML V2.0 utf8\n" \
+"# 10vertices.wrl\n" \
+        " Shape { appearance Appearance { material Material {} } geometry IndexedFaceSet { color Color {color [0 1 0]} colorPerVertex FALSE coord Coordinate { point [-1 0 0,0 0 0,1 0 0, 1 0.5 0,1 1 0,1 2 0, 0 2 0,-1 2 0,-1 1 0, -1 0.5 0]} coordIndex [0,1,2,3,4,5,6,7,8, 9,-1] solid FALSE } }"
+        
+#define XMYSTRING \
+"#VRML V2.0 utf8\n" \
+"# 10vertices.wrl - no color \n" \
+" Shape { appearance Appearance { material Material {} } geometry IndexedFaceSet {  coord Coordinate { point [-1 0 0,0 0 0,1 0 0, 1 0.5 0,1 1 0,1 2 0, 0 2 0,-1 2 0,-1 1 0, -1 0.5 0]} coordIndex [0,1,2,3,4,5,6,7,8, 9,-1] solid FALSE } }"
+
+        
+#define XMYSTRING \
+"#VRML V2.0 utf8\n" \
+"# 10vertices.wrl - no color \n" \
+" Shape { appearance Appearance { material Material {} } geometry IndexedFaceSet { coord Coordinate{ " \
+"point [  -3.0 1.5 1.0, 3.0 1.5 1.0, 3.0 1.5 -1.0, -3.0 1.5 -1.0, -3.0 -1.5 1.0, 3.0 -1.5 1.0, 3.0 -1.5 -1.0, -3.0 -1.5 -1.0,  ] } " \
+" coordIndex [ 0, 1, 2, 3, -1, 7, 6, 5, 4, -1, 0, 4, 5, 1, -1,  1, 5, 6, 2, -1, 2, 6, 7, 3, -1, 3, 7, 4, 0,  ] } } "
+
+        
+        
+
+        
+        frontEndReturningData(MYSTRING, strlen(MYSTRING));
+        
+#else
         if (!frontEndGettingFile) {
             frontEndGettingFile = true;
         
@@ -150,6 +180,7 @@ NSMutableData *receivedData;
             // Inform the user that the connection failed.
         }
         }
+#endif
     }
 
     RenderSceneUpdateScene();
@@ -183,7 +214,7 @@ NSMutableData *receivedData;
     for (UITouch *t in touches) 
     {
         CGPoint loc = [t locationInView:self.view];
-        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        //NSLog(@"x:%f y:%f", loc.x, loc.y);
         
         setCurXY((int)loc.x, (int)loc.y);
         handle_aqua(ButtonPress,1,(int)loc.x,(int)loc.y);
@@ -199,7 +230,7 @@ NSMutableData *receivedData;
     for (UITouch *t in touches) 
     {
         CGPoint loc = [t locationInView:self.view];
-        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        //NSLog(@"x:%f y:%f", loc.x, loc.y);
         
         setCurXY((int)loc.x, (int)loc.y);
         handle_aqua(MotionNotify,1,(int)loc.x,(int)loc.y);
@@ -214,7 +245,7 @@ NSMutableData *receivedData;
     for (UITouch *t in touches) 
     {
         CGPoint loc = [t locationInView:self.view];
-        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        //NSLog(@"x:%f y:%f", loc.x, loc.y);
         
         setCurXY((int)loc.x, (int)loc.y);
         handle_aqua(ButtonRelease,1,(int)loc.x,(int)loc.y);
@@ -229,7 +260,7 @@ NSMutableData *receivedData;
     for (UITouch *t in touches) 
     {
         CGPoint loc = [t locationInView:self.view];
-        NSLog(@"x:%f y:%f", loc.x, loc.y);
+        //NSLog(@"x:%f y:%f", loc.x, loc.y);
         
         setCurXY((int)loc.x, (int)loc.y);
         handle_aqua(ButtonRelease,1,(int)loc.x,(int)loc.y);
