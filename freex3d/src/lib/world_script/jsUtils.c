@@ -321,13 +321,13 @@ void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval 
 
 		case FIELDTYPE_SFFloat:	{
 			memcpy ((void *) &fl, Data, datalen);
-			*newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,(double)fl));
+			JS_NewNumberValue(cx,(double)fl,newval);
 			break;
 		}
 		case FIELDTYPE_SFDouble:
 		case FIELDTYPE_SFTime:	{
 			memcpy ((void *) &dl, Data, datalen);
-			*newval = DOUBLE_TO_JSVAL(JS_NewDouble(cx,dl));
+			JS_NewNumberValue(cx,dl,newval);
 			break;
 		}
 		case FIELDTYPE_SFBool:
@@ -969,7 +969,7 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval
 				printf("getSFNodeField %d : fVal=%d\n",__LINE__,fVal);
 				#endif
 
-				*vp = DOUBLE_TO_JSVAL(JS_NewDouble(context,(double)fVal));
+				JS_NewNumberValue(context,(double)fVal,vp);
 				return JS_TRUE;
 			} else {
 				#if TRACK_FIFO_MSG
