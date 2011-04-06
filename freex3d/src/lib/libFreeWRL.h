@@ -68,13 +68,7 @@ typedef struct freewrl_params {
 } freewrl_params_t;
 
 /* FreeWRL parameters */
-#ifdef _MSC_VER
 extern freewrl_params_t fw_params;
-#else
-extern freewrl_params_t fw_params;
-#endif
-
-
 
 bool initFreeWRL(freewrl_params_t *params);
 void startFreeWRL(const char *url);

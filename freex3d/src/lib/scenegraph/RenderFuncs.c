@@ -461,14 +461,15 @@ if (shaderTextureArray) printf ("shaderTextureArray TRUE\n"); else printf ("shad
 }
 
 void initializeLightTables() {
+	int i;
         float pos[] = { 0.0f, 0.0f, 1.0f, 0.0f };
         float dif[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         float shin[] = { 0.6f, 0.6f, 0.6f, 1.0f };
         float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-    PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
-	int i;
-        for (i=0; i<8; i++) {
+      PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
+
+	for(i=0; i<8; i++) {
                 lightOnOff[i] = 9999;
                 lightState(i,FALSE);
             

@@ -193,6 +193,7 @@ int parseCommandLine (int argc, char **argv)
 # if HAVE_GETOPT_LONG
 
 #if defined(_MSC_VER)
+#define strncasecmp _strnicmp
 	for(c=0;c<argc;c++)
 	{
 		printf("argv[%d]=%s\n",c,argv[c]);

@@ -162,7 +162,7 @@ int display_initialize()
 
     PRINT_GL_ERROR_IF_ANY ("end of display_initialize");
     
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_MSC_VER))
         
 	if (RUNNINGASPLUGIN) {
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
