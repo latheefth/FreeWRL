@@ -393,14 +393,14 @@ void sendArraysToGPU (int mode, int first, int count) {
 			else glDisableVertexAttribArray(appearanceProperties.currentShaderProperties->TexCoords);
 	} 
 
-
+/* 
 printf ("sendArraysToGPU; appearanceProperties.currentShaderProperties %p (true %d) normal %d vertex %d colour %d texture %d\n",appearanceProperties.currentShaderProperties,TRUE, shaderNormalArray,shaderVertexArray,shaderColourArray,shaderTextureArray);
 if (shaderNormalArray) printf ("glEnableVertexAttribArray Normal\n"); else printf ("glDisableVertexAttribArray Normal\n");
 if (shaderVertexArray) printf ("glEnableVertexAttribArray Vertex\n"); else printf ("glDisableVertexAttribArray Vertex\n");
 if (shaderColourArray) printf ("glEnableVertexAttribArray Colour\n"); else printf ("glDisableVertexAttribArray Colour\n");
 if (shaderTextureArray) printf ("glEnableVertexAttribArray Texture\n"); else printf ("glDisableVertexAttribArray Texture\n");
 	printf ("calling glDrawArrays, mode %d, first %d, count %d\n",mode,first,count);
-
+*/
 
 	}
 

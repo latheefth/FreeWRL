@@ -1068,12 +1068,13 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	}
 
 	/* do we need to convert this to an OpenGL texture stream?*/
-
+/*
 #ifdef IPHONE
 printf ("for IPHONE, ensuring packing\n");
 glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 #endif
-
+*/
+ 
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
