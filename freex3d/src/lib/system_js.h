@@ -57,7 +57,7 @@ typedef int JSErrorReport;
 
 
 /* int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval); */
-#else
+#else /* IPHONE */
 
 
 #ifdef MOZILLA_JS_UNSTABLE_INCLUDES
@@ -68,6 +68,10 @@ typedef int JSErrorReport;
 # include <jsdbgapi.h> /* JS debugger */
 #endif
 
-#endif /* IPHONE */
+#if MOZILLA_JS_VERSION >= 2.0
+# include "js_deprecated.h"
+#endif
+
+#endif /* !IPHONE */
 
 #endif /* __LIBFREEWRL_SYSTEM_JS_H__ */
