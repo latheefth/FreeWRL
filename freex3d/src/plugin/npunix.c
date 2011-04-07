@@ -304,7 +304,7 @@ JRIEnv* NPN_GetJavaEnv()
 #if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
         return CallNPN_GetJavaEnvProc(gNetscapeFuncs.getJavaEnv);
 #else
-        return (*gNetscapeFuncs.getJavaEnv);
+        return (JRIEnv*) (*gNetscapeFuncs.getJavaEnv);
 #endif
 }
 
