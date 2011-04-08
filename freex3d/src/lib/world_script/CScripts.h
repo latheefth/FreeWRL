@@ -59,7 +59,7 @@ extern int MAXJSparamNames;
 #define JS_SET_PROPERTY_STUB1 js_SetPropertyDebug1
 
 /* #define JS_SET_PROPERTY_STUB2 js_SetPropertyDebug2  */
-#if defined(MOZILLA_JS_VERSION) && MOZILLA_JS_VERSION >= 2.0
+#if defined(MOZILLA_JS_VERSION) && MOZILLA_JS_VERSION >= 2
 # define JS_SET_PROPERTY_STUB2 JS_StrictPropertyStub
 #else
 # define JS_SET_PROPERTY_STUB2 JS_PropertyStub
