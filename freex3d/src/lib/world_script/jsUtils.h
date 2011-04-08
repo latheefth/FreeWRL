@@ -98,8 +98,11 @@ errorReporter(JSContext *cx,
 			  JSErrorReport *report);
 
 void X3D_ECMA_TO_JS(JSContext *cx, void *Data, int datalen, int dataType, jsval *ret);
-JSBool setSFNodeField (JSContext *context, JSObject *obj, jsval id, jsval *vp);
-
+#if JS_VERSION < 185
+JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval *vp);
+#else
+JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict, jsval *vp);
+#endif
 
 const char *classToString(JSClass *myClass);
 #define CHECK_CLASS(cx,obj,argv,fnString,expClass) \
