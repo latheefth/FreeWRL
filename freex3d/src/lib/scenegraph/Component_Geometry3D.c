@@ -984,7 +984,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		glGenBuffers(1,&SphereGeomVBO);
  		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, SphereGeomVBO);
  		glBufferData(GL_ARRAY_BUFFER, sizeof(sphTri), sphTri, GL_STATIC_DRAW);
-		printf ("creating VBO, size %d\n",sizeof(sphTri));
+		/* printf ("creating VBO, size %d\n",sizeof(sphTri)); */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
 	}
 }

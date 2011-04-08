@@ -58,7 +58,6 @@ typedef struct {
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
-	GLint useShapeColour;
 	GLint TexCoords;
 	GLint Texture0;
 
@@ -120,7 +119,14 @@ typedef enum shader_type {
 	oneTexOneMaterialSphereShader,
 	oneTexTwoMaterialSphereShader,
 	complexTexOneMaterialSphereShader,
-	complexTexTwoMaterialSphereShader
+	complexTexTwoMaterialSphereShader,
+
+	/* Shape has Color node */
+	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
+	noTexTwoMaterialColourShader,
+	noTexOneMaterialColourShader,
+	oneTexTwoMaterialColourShader,
+	oneTexOneMaterialColourShader
 
 
 } shader_type_t;
