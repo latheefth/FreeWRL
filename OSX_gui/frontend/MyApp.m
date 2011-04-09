@@ -74,7 +74,7 @@
 		[sender setState: NSOnState];
 	}
 	ks = 'c';
-	do_keyPress(ks, KeyPress);
+	fwl_do_keyPress(ks, KeyPress);
 }
 
 - (void) toggleCollButton: (int) val {
@@ -102,7 +102,7 @@
 	[FlyMode setState: NSOffState];
 	[WalkMode setState: NSOffState];
 	ks = 'e';
-	do_keyPress(ks, KeyPress);
+	fwl_do_keyPress(ks, KeyPress);
 }
 
 - (IBAction) FlyMd: (id) sender {
@@ -116,7 +116,7 @@
 	[WalkMode setState: NSOffState];
 	[ExamineMode setState: NSOffState];
 	ks = 'f';
-	do_keyPress(ks, KeyPress);
+	fwl_do_keyPress(ks, KeyPress);
 }
 
 
@@ -129,7 +129,7 @@
 
 	}
 	ks = 'h';
-	do_keyPress(ks, KeyPress);
+	fwl_do_keyPress(ks, KeyPress);
 }
 
 - (void) toggleHLButton: (int) val {
@@ -157,20 +157,20 @@
 }
 
 - (IBAction) FirstView: (id) sender {
-	First_ViewPoint();
+	fwl_First_ViewPoint();
 }
 
 - (IBAction) LastView: (id) sender {
-	Last_ViewPoint();
+	fwl_Last_ViewPoint();
 }
 
 - (IBAction) NextView: (id) sender {
 	ks = 'v';
-	do_keyPress(ks, KeyPress);
+	fwl_do_keyPress(ks, KeyPress);
 }
 
 - (IBAction) PrevView: (id) sender {
-	Prev_ViewPoint();
+	fwl_Prev_ViewPoint();
 }
 
 - (IBAction) WalkMd: (id) sender {
@@ -183,7 +183,7 @@
 	[FlyMode setState: NSOffState];
 	[ExamineMode setState: NSOffState];
 	ks = 'w';
-	do_keyPress(ks, KeyPress);
+	fwl_do_keyPress(ks, KeyPress);
 }
 
 - (void) setMessage: (NSString*) message {
@@ -342,7 +342,7 @@
 		//[freewrl stopEai];
 	} else {
 		[sender setState: NSOnState];
-		//[freewrl setSnapSeq];
+		//[freewrl fwl_init_SnapSeq];
 	}
 }
 

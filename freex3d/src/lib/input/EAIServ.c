@@ -462,7 +462,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 
 				/* And, lets just exit FreeWRL*/
 				printf ("FreeWRL:EAI socket closed, exiting...\n");
-				doQuit();
+				fwl_doQuit();
 			}
 
 			if (eaiverbose) {

@@ -248,7 +248,7 @@ typedef struct viewer {
 
 void Viewer_anaglyph_setSide(int iside);
 
-void initStereoDefaults(void);
+void fwl_init_StereoDefaults(void);
 
 void viewer_postGLinit_init(void);
 

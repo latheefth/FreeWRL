@@ -167,6 +167,15 @@ bool global_trace_threads = FALSE;
 	bool global_use_VBOs = FALSE;
 #endif /* SHADERS_2011 */
 
+/* Set up global environment, usually from environment variables */
+void fwl_set_strictParsing	(bool flag) { global_strictParsing = flag ; }
+void fwl_set_plugin_print	(bool flag) { global_plugin_print = flag ; }
+void fwl_set_occlusion_disable	(bool flag) { global_occlusion_disable = flag; }
+void fwl_set_print_opengl_errors(bool flag) { global_print_opengl_errors = flag;}
+void fwl_set_trace_threads	(bool flag) { global_trace_threads = flag;}
+void fwl_set_use_VBOs		(bool flag) { global_use_VBOs = flag ; }
+void fwl_set_texture_size	(unsigned int texture_size) { global_texture_size = texture_size ; }
+
 #ifdef FREEWRL_THREAD_COLORIZED
 
 /* == Interal printf and fprintf function to output colors ==

@@ -30,7 +30,10 @@
 #define __FREEWRL_MAIN_OPTIONS_H__
 
 
-extern int parseCommandLine (int argc, char **argv);
+extern int fv_parseCommandLine (int argc, char **argv);
+void fv_parseEnvVars(void);
+
+extern void fv_setGeometry_from_cmdline(const char *gstring); /* See lib/display.c : scan command line arguments (X11 convention) */
 
 
 #endif /* __FREEWRL_MAIN_OPTIONS_H__ */

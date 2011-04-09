@@ -29,6 +29,6 @@
 #ifndef __LIBFREEWRL_SRC_MAIN_H__
 #define __LIBFREEWRL_SRC_MAIN_H__
 
-void OSX_initializeParameters(const char* initialURL);
+/* void OSX_initializeParameters(const char* initialURL); */
 
 #endif /* __LIBFREEWRL_SRC_MAIN_H__ */

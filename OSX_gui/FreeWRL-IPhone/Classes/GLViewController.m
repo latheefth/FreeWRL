@@ -17,15 +17,15 @@
 +(void)aMethod:(id)param {
     //NSLog (@"starting loading thread");
     
-    initializeRenderSceneUpdateScene();
+    fwl_initializeRenderSceneUpdateScene();
     
-    //OSX_initializeParameters("http://freewrl.sourceforge.net/test2pt.wrl");
-   // OSX_initializeParameters( //"http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount500.x3d");
+    //fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test2pt.wrl");
+   // fwl_OSX_initializeParameters( //"http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount500.x3d");
                              //"http://freewrl.sourceforge.net/test2.wrl");
     
-    //OSX_initializeParameters("http://kins.net/smar/files/ryatkins/aeroboat.wrl");
-	OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
-    //OSX_initializeParameters("http://dl.dropbox.com/u/17457/aeroboat.wrl");
+    //fwl_OSX_initializeParameters("http://kins.net/smar/files/ryatkins/aeroboat.wrl");
+	fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
+    //fwl_OSX_initializeParameters("http://dl.dropbox.com/u/17457/aeroboat.wrl");
     //NSLog (@"ending loading thread");
 	
 }
@@ -83,8 +83,8 @@ NSMutableData *receivedData;
 	CGRect rect = view.bounds;
     //NSLog (@"initialize - size %d %d",(int)rect.size.width, (int)rect.size.height);
     
-	setScreenDim((int)rect.size.width, (int)rect.size.height);
-	display_initialize();
+	fwl_setScreenDim((int)rect.size.width, (int)rect.size.height);
+	fwl_display_initialize();
 	
         // thread the getting of the file...
     [NSThread detachNewThreadSelector:@selector(aMethod:) toTarget:[MyObject class] withObject:nil];
@@ -106,7 +106,7 @@ NSMutableData *receivedData;
 "# 10vertices.wrl\n" \
         " Shape { appearance Appearance { material Material {} } geometry IndexedFaceSet { color Color {color [0 1 0]} colorPerVertex FALSE coord Coordinate { point [-1 0 0,0 0 0,1 0 0, 1 0.5 0,1 1 0,1 2 0, 0 2 0,-1 2 0,-1 1 0, -1 0.5 0]} coordIndex [0,1,2,3,4,5,6,7,8, 9,-1] solid FALSE } }"
         
-        frontEndReturningData(MYSTRING, strlen(MYSTRING));
+        fwl_frontEndReturningData(MYSTRING, strlen(MYSTRING));
         
 #else
         if (!frontEndGettingFile) {
@@ -196,7 +196,7 @@ NSMutableData *receivedData;
     //const char* cString = [s UTF8String]; 
     //[s release];
     
-    frontEndReturningData(myData,len);
+    fwl_frontEndReturningData(myData,len);
 
     free (myData);
     frontEndGettingFile = false;
@@ -236,24 +236,24 @@ NSMutableData *receivedData;
     
     // FIRST TOUCH
     if (recognizer.state == UIGestureRecognizerStateBegan) {
-        setButDown(3, 1);
-        setLastMouseEvent(ButtonPress);        
-        handle_aqua(ButtonPress,3,(int)loc.x,(int)distance);
+        fwl_setButDown(3, 1);
+        fwl_setLastMouseEvent(ButtonPress);        
+        fwl_handle_aqua(ButtonPress,3,(int)loc.x,(int)distance);
         NSLog(@"==== pinch first touch ====");
         
     // END    
     } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {        
         
-        setButDown(3, 0);
-        setLastMouseEvent(ButtonRelease);
-        handle_aqua(ButtonRelease,3,(int)loc.x,(int)loc.y);       
+        fwl_setButDown(3, 0);
+        fwl_setLastMouseEvent(ButtonRelease);
+        fwl_handle_aqua(ButtonRelease,3,(int)loc.x,(int)loc.y);       
         
     // CONTINUING
     } else if (recognizer.state == UIGestureRecognizerStateChanged) {        
-        setButDown(3, 1);
-        setLastMouseEvent(MotionNotify);       
+        fwl_setButDown(3, 1);
+        fwl_setLastMouseEvent(MotionNotify);       
                 
-        handle_aqua(MotionNotify,3,(int)loc.x,(int)distance);
+        fwl_handle_aqua(MotionNotify,3,(int)loc.x,(int)distance);
         NSLog(@"SCALE y:%f h:%f scale:%f", loc.y, height, scale);
     }
 }
@@ -272,26 +272,26 @@ NSMutableData *receivedData;
     // FIRST TOUCH
     if (recognizer.state == UIGestureRecognizerStateBegan) {
         
-        setButDown(1, 1);
-        setLastMouseEvent(ButtonPress);    
-        //setCurXY((int)loc.x, (int)loc.y);
-        handle_aqua(ButtonPress,1,(int)loc.x,(int)loc.y);      
+        fwl_setButDown(1, 1);
+        fwl_setLastMouseEvent(ButtonPress);    
+        //fwl_setCurXY((int)loc.x, (int)loc.y);
+        fwl_handle_aqua(ButtonPress,1,(int)loc.x,(int)loc.y);      
         
     // END    
     } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {        
         
-        setButDown(1, 0);
-        setLastMouseEvent(ButtonRelease);
-        //setCurXY((int)loc.x, (int)loc.y);
-        handle_aqua(ButtonRelease,1,(int)loc.x,(int)loc.y);       
+        fwl_setButDown(1, 0);
+        fwl_setLastMouseEvent(ButtonRelease);
+        //fwl_setCurXY((int)loc.x, (int)loc.y);
+        fwl_handle_aqua(ButtonRelease,1,(int)loc.x,(int)loc.y);       
         
     // CONTINUING
     } else if (recognizer.state == UIGestureRecognizerStateChanged) {        
-        setButDown(1, 1);
-        setLastMouseEvent(MotionNotify);
+        fwl_setButDown(1, 1);
+        fwl_setLastMouseEvent(MotionNotify);
         
-        //setCurXY((int)loc.x, (int)loc.y);
-        handle_aqua(MotionNotify,1,(int)loc.x,(int)loc.y);
+        //fwl_setCurXY((int)loc.x, (int)loc.y);
+        fwl_handle_aqua(MotionNotify,1,(int)loc.x,(int)loc.y);
         NSLog(@"PAN x:%f y:%f", loc.x, loc.y);
     }	
    

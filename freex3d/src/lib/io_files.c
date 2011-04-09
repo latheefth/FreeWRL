@@ -369,7 +369,7 @@ char *frontEndWantsFileName() {
 /* it is best to malloc and copy the data here, as that way the front end 
    can manage its buffers as it sees fit */
 
-void frontEndReturningData(unsigned char *dataPointer, int len) {
+void fwl_frontEndReturningData(unsigned char *dataPointer, int len) {
 	MUTEX_LOCK_FILE_RETRIEVAL
     
     /* note the "+1" ....*/

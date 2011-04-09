@@ -27,14 +27,14 @@
 
 //Function Prototypes for code in the FreeWRL side of things. Used to be in
 //headers.h - JAS
-void handle_aqua(const int mev, const unsigned int button, int x, int y);
-void setCurXY(int x, int y);
+void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
+void fwl_setCurXY(int x, int y);
 extern int getOffset();
 extern void initGL();
-extern void setButDown(int button, int value);
-extern void setCurXY(int x, int y);
-extern void do_keyPress (char ch, int ev);
-extern void setLastMouseEvent(int etype);
+extern void fwl_setButDown(int button, int value);
+extern void fwl_setCurXY(int x, int y);
+extern void fwl_do_keyPress (char ch, int ev);
+extern void fwl_setLastMouseEvent(int etype);
 extern void aqDisplayThread();
 void setUseShapeThreadIfPossible(int x);
 void setNoCollision();
@@ -46,22 +46,22 @@ void sendPluginFD(int fd);
 void aquaPrintVersion();
 void setPluginPath(char* path);
 void setEaiVerbose();
-void setSnapGif();
-void setMaxImages(int);
-void setKeyString(const char* kstring);
-void setSnapSeq();
+void fwl_init_SnapGif();
+void fwl_set_MaxImages(int);
+void fwl_set_KeyString(const char* kstring);
+void fwl_init_SnapSeq();
 void setEAIport(int pnum);
 int isShapeCompilerParsing(void);
 int isinputThreadParsing(void);
 int isTextureParsing(void);
 void setWantEAI(int flag);
-void setSeqFile(const char* file);
+void fwl_set_SeqFile(const char* file);
 int isInputThreadInitialized(void);
 
 
 #include "/FreeWRL/freewrl/freex3d/src/lib/libFreeWRL.h"
 //some from #include "display.h"
-void setScreenDim(int wi, int he);
+void fwl_setScreenDim(int wi, int he);
 
 
 

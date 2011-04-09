@@ -33,10 +33,12 @@
 extern int currentX[20], currentY[20];
 
 void setDisplayed(int);
+/* Now public
 void First_ViewPoint();
 void Last_ViewPoint();
 void Prev_ViewPoint();
 void Next_ViewPoint();
+*/
 void setTextures_take_priority (int x);
 void setUseShapeThreadIfPossible(int x);
 void toggle_headlight();

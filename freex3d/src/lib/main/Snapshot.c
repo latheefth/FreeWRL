@@ -96,7 +96,7 @@ static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 #if defined( WIN32) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
-void setSnapGif(){}
+void fwl_init_SnapGif(){}
 void saveSnapSequence() {}
 #ifndef _MSC_VER
 void Snapshot () {}
@@ -145,12 +145,12 @@ void Snapshot ()
 
 #else /*ifdef win32*/
 
-void setSnapGif()
+void fwl_init_SnapGif()
 {
     snapGif = TRUE;
 }
 
-void setPrintShot() {
+void fwl_init_PrintShot() {
 	doPrintshot = TRUE;
 	savedSnapshot = doSnapshot;
 	doSnapshot = TRUE;
@@ -158,7 +158,7 @@ void setPrintShot() {
 }
 
 /* turn snapshotting on; if sequenced; possibly turn off an convert sequence */
-void setSnapshot() {
+void fwl_toggleSnapshot() {
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 	if (!doSnapshot) {

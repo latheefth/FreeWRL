@@ -12,7 +12,7 @@
 @implementation wdelegate
 - (void) windowWillClose: (NSNotification*) aNotification
 {
-	doQuit();
+	fwl_doQuit();
 	[NSApp terminate: self];
 }
 

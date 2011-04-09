@@ -31,7 +31,7 @@ BOOL mouseDisplaySensitive = false;
 	NSFileManager* myManager;
 	myManager = [NSFileManager defaultManager];
 	
-	setPrintShot();
+	fwl_initPrintShot();
 	
 	while (TRUE) {
 		usleep(10000);
@@ -100,9 +100,9 @@ BOOL mouseDisplaySensitive = false;
 	curHeight = myrect.size.height;
 	
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
 	//NSLog(@"sending motion notify with %f %f\n", xcoor, ycoor);
-	handle_aqua(MotionNotify, button, xcoor, ycoor);
+	fwl_handle_aqua(MotionNotify, button, xcoor, ycoor);
 	
 	SET_CURSOR_FOR_ME	
 }
@@ -128,10 +128,10 @@ BOOL mouseDisplaySensitive = false;
         button = 1;
     }
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setButDown(button, TRUE);
-	setLastMouseEvent(ButtonPress);
-	handle_aqua(ButtonPress, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setButDown(button, TRUE);
+	fwl_setLastMouseEvent(ButtonPress);
+	fwl_handle_aqua(ButtonPress, button, xcoor, ycoor);
 	
 	SET_CURSOR_FOR_ME
 
@@ -160,9 +160,9 @@ BOOL mouseDisplaySensitive = false;
     ycoor = curHeight - place.y;
 //	NSLog(@"xcoor %f ycoor %f\n", xcoor, ycoor);
 	//NSLog(@"sending motion notify with %f %f\n", xcoor, ycoor);
-	setCurXY((int)xcoor,(int)ycoor);
-	setLastMouseEvent(MotionNotify);
-	handle_aqua(MotionNotify, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setLastMouseEvent(MotionNotify);
+	fwl_handle_aqua(MotionNotify, button, xcoor, ycoor);
 }
 
 - (void) mouseUp: (NSEvent *) theEvent
@@ -182,10 +182,10 @@ BOOL mouseDisplaySensitive = false;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setButDown(button, FALSE);
-	setCurXY((int)xcoor,(int)ycoor);
-	setLastMouseEvent(ButtonRelease);
-	handle_aqua(ButtonRelease, button, xcoor, ycoor);
+	fwl_setButDown(button, FALSE);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setLastMouseEvent(ButtonRelease);
+	fwl_handle_aqua(ButtonRelease, button, xcoor, ycoor);
 	
 	SET_CURSOR_FOR_ME
 }
@@ -199,10 +199,10 @@ BOOL mouseDisplaySensitive = false;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setButDown(button, TRUE);
-	setLastMouseEvent(ButtonPress);
-	handle_aqua(ButtonPress, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setButDown(button, TRUE);
+	fwl_setLastMouseEvent(ButtonPress);
+	fwl_handle_aqua(ButtonPress, button, xcoor, ycoor);
 }
 - (void) rightMouseUp: (NSEvent *) theEvent
 {
@@ -213,10 +213,10 @@ BOOL mouseDisplaySensitive = false;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setButDown(button, FALSE);
-	setLastMouseEvent(ButtonRelease);
-	handle_aqua(ButtonRelease, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setButDown(button, FALSE);
+	fwl_setLastMouseEvent(ButtonRelease);
+	fwl_handle_aqua(ButtonRelease, button, xcoor, ycoor);
 }
 - (void) rightMouseDragged: (NSEvent *) theEvent
 {
@@ -227,9 +227,9 @@ BOOL mouseDisplaySensitive = false;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setLastMouseEvent(MotionNotify);
-	handle_aqua(MotionNotify, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setLastMouseEvent(MotionNotify);
+	fwl_handle_aqua(MotionNotify, button, xcoor, ycoor);
 }
 - (void) keyUp: (NSEvent*) theEvent
 {
@@ -237,7 +237,7 @@ BOOL mouseDisplaySensitive = false;
         NSString* character = [theEvent characters];
 		char ks;
 		ks = (char) [character characterAtIndex: 0];
-		do_keyPress(ks, KeyRelease);
+		fwl_do_keyPress(ks, KeyRelease);
         NS_HANDLER
         return;
         NS_ENDHANDLER
@@ -249,7 +249,7 @@ BOOL mouseDisplaySensitive = false;
 		char ks;
 		ks = (char) [character characterAtIndex: 0];
 		//NSLog(@"got char down: ll%cll\n", ks);
-		do_keyPress(ks, KeyPress);
+		dwl_do_keyPress(ks, KeyPress);
         NS_HANDLER
         return;
         NS_ENDHANDLER
@@ -407,15 +407,15 @@ BOOL mouseDisplaySensitive = false;
 					aquaPrintVersion();
 				}
 				else if ([[args objectAtIndex:mi] hasSuffix: @"--gif"]) {
-					setSnapGif();
+					fwl_init_SnapGif();
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"maximg"]) {
 					int maxImages = [[args objectAtIndex:(mi+1)] intValue];
-					setMaxImages(maxImages);
+					fwl_set_MaxImages(maxImages);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"linewidth"]) {
 					float lwidth = [[args objectAtIndex:(mi+1)] floatValue];
-					setLineWidth(lwidth);
+					fwl_set_LineWidth(lwidth);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"best"]) {
 					setTexSize(-256);
@@ -424,19 +424,19 @@ BOOL mouseDisplaySensitive = false;
 					NSString* keyString = [args objectAtIndex:(mi+1)];
 					char kString[528];
 					[keyString getCString: kString];
-					setKeyString(kString);
+					fwl_set_KeyString(kString);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"seqb"]) {
 					NSString* seqFile = [args objectAtIndex:(mi+1)];
 					char sFile[528];
 					[seqFile getCString: sFile];
-					setSeqFile(sFile);
+					fwl_set_SeqFile(sFile);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"snapb"]) {
 					NSString* snapFile = [args objectAtIndex:(mi+1)];
 					char snFile[528];
 					[snapFile getCString: snFile];
-					setSnapFile(snFile);
+					fwl_set_SnapFile(snFile);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"seqtmp"]) {
 					NSString* seqtFile = [args objectAtIndex:(mi+1)];
@@ -525,9 +525,9 @@ BOOL mouseDisplaySensitive = false;
 	usleep(100);
 
 	if (haveFileOnCommandLine)
-			OSX_initializeParameters([fileToOpen cString]);
+			fwl_OSX_initializeParameters([fileToOpen cString]);
 	else 
-			OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
+			fwl_OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
 	initFinished = TRUE;
 	/* do we require EAI? */
 	if (wantEAI) {
@@ -572,15 +572,15 @@ BOOL mouseDisplaySensitive = false;
 	NSOpenGLContext* currentContext;
 	currentContext = [NSOpenGLContext currentContext];
 	[currentContext setView:self];
-	askForRefreshOK();
-	while (!checkRefresh()) {
+	fwl_askForRefreshOK();
+	while (!fwl_checkRefresh()) {
 		usleep(10);
 	}
 	[currentContext update];
-	resetRefresh();
+	fwl_resetRefresh();
 	NSSize mySize = [self frame].size;
 	
-	setScreenDim((int) mySize.width, (int) mySize.height);
+	fwl_setScreenDim((int) mySize.width, (int) mySize.height);
 }
 
 
@@ -612,7 +612,7 @@ BOOL mouseDisplaySensitive = false;
 
 - (void) setSeqImages
 {
-	setSnapSeq();
+	fwl_init_SnapSeq();
 }
 
 - (void) setEAIport: (int) portNum
@@ -639,12 +639,12 @@ BOOL mouseDisplaySensitive = false;
     [myWindow setContentSize: size];
 	
     [self setFrameSize: size];
-	setScreenDim((int) width, (int) height);
+	fwl_setScreenDim((int) width, (int) height);
 }
 
-- (void) setSeqFile: (NSString*) seqFile
+- (void) fwl_set_SeqFile: (NSString*) seqFile
 {
-	setSeqFile([seqFile cString]);
+	fwl_set_SeqFile([seqFile cString]);
 }
 
 - (void) setTempSeqFile: (NSString*) seqTempFile
@@ -652,14 +652,14 @@ BOOL mouseDisplaySensitive = false;
 	// JAS - 1.22.2 removes this option setSeqTemp([seqTempFile cString]);
 }
 
-- (void) setSnapFile: (NSString*) snapFile
+- (void) fwl_set_SnapFile: (NSString*) snapFile
 {
-	setSnapFile([snapFile cString]);
+	fwl_set_SnapFile([snapFile cString]);
 }
 
-- (void) setMaxImages: (int) maxImg
+- (void) fwl_set_MaxImages: (int) maxImg
 {
-	setMaxImages(maxImg);
+	fwl_set_MaxImages(maxImg);
 }
 
 - (void) initScreen

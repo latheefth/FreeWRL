@@ -527,16 +527,16 @@ void EAI_parse_commands () {
 
 		  	case STOPFREEWRL: {
 				if (!RUNNINGASPLUGIN) {
-					doQuit();
+					fwl_doQuit();
 				    break;
 				}
 			    }
 			  case VIEWPOINT: {
 				/* do the viewpoints. Note the spaces in the strings */
-				if (!strcmp(&EAI_BUFFER_CUR, " NEXT")) Next_ViewPoint();
-				if (!strcmp(&EAI_BUFFER_CUR, " FIRST")) First_ViewPoint();
-				if (!strcmp(&EAI_BUFFER_CUR, " LAST")) Last_ViewPoint();
-				if (!strcmp(&EAI_BUFFER_CUR, " PREV")) Prev_ViewPoint();
+				if (!strcmp(&EAI_BUFFER_CUR, " NEXT")) fwl_Next_ViewPoint();
+				if (!strcmp(&EAI_BUFFER_CUR, " FIRST")) fwl_First_ViewPoint();
+				if (!strcmp(&EAI_BUFFER_CUR, " LAST")) fwl_Last_ViewPoint();
+				if (!strcmp(&EAI_BUFFER_CUR, " PREV")) fwl_Prev_ViewPoint();
 
 				sprintf (outBuffer,"RE\n%f\n%d\n0",TickTime,count);
 				break;

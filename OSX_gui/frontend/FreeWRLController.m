@@ -92,18 +92,18 @@
         
     if (maxImagesValue != 0)
     {
-        [freewrlView setMaxImages: maxImagesValue];
+        [freewrlView fwl_set_MaxImages: maxImagesValue];
     }
     
     if ([seqFileValue length] != 0)
     {
-        [freewrlView setSeqFile: seqFileValue];
+        [freewrlView fwl_set_SeqFile: seqFileValue];
         [freewrlView setSeqImages];
     }
     
     if ([snapFileValue length] != 0)
     {
-        [freewrlView setSnapFile: snapFileValue];
+        [freewrlView fwl_set_SnapFile: snapFileValue];
     }
     
     if ([seqTempFileValue length] != 0)

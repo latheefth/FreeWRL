@@ -1330,7 +1330,7 @@ int initAnaglyphShaders()
 
 
 int StereoInitializedOnce = 0;
-void initStereoDefaults()
+void fwl_init_StereoDefaults()
 {
 	/* must call this before getting values from command line in options.c */
 	Viewer.shutterGlasses = 0;

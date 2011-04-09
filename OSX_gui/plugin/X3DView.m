@@ -68,8 +68,8 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
 	myrect = [self frame];
 	curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	handle_aqua(MotionNotify, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_handle_aqua(MotionNotify, button, xcoor, ycoor);
 	SET_CURSOR_FOR_ME
 }
 
@@ -91,10 +91,10 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
         button = 1;
     }
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setButDown(button, TRUE);
-	setLastMouseEvent(ButtonPress);
-	handle_aqua(ButtonPress, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setButDown(button, TRUE);
+	fwl_setLastMouseEvent(ButtonPress);
+	fwl_handle_aqua(ButtonPress, button, xcoor, ycoor);
 	SET_CURSOR_FOR_ME
 }
 
@@ -120,9 +120,9 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setLastMouseEvent(MotionNotify);
-	handle_aqua(MotionNotify, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setLastMouseEvent(MotionNotify);
+	fwl_handle_aqua(MotionNotify, button, xcoor, ycoor);
 }
 
 - (void) mouseUp: (NSEvent *) theEvent
@@ -143,10 +143,10 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setButDown(button, FALSE);
-	setCurXY((int)xcoor,(int)ycoor);
-	setLastMouseEvent(ButtonRelease);
-	handle_aqua(ButtonRelease, button, xcoor, ycoor);
+	fwl_setButDown(button, FALSE);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setLastMouseEvent(ButtonRelease);
+	fwl_handle_aqua(ButtonRelease, button, xcoor, ycoor);
 	SET_CURSOR_FOR_ME
 }
 
@@ -160,10 +160,10 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setButDown(button, TRUE);
-	setLastMouseEvent(ButtonPress);
-	handle_aqua(ButtonPress, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setButDown(button, TRUE);
+	fwl_setLastMouseEvent(ButtonPress);
+	fwl_handle_aqua(ButtonPress, button, xcoor, ycoor);
 }
 - (void) rightMouseUp: (NSEvent *) theEvent
 {
@@ -175,10 +175,10 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setButDown(button, FALSE);
-	setLastMouseEvent(ButtonRelease);
-	handle_aqua(ButtonRelease, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setButDown(button, FALSE);
+	fwl_setLastMouseEvent(ButtonRelease);
+	fwl_handle_aqua(ButtonRelease, button, xcoor, ycoor);
 }
 - (void) rightMouseDragged: (NSEvent *) theEvent
 {
@@ -190,9 +190,9 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
-	setCurXY((int)xcoor,(int)ycoor);
-	setLastMouseEvent(MotionNotify);
-	handle_aqua(MotionNotify, button, xcoor, ycoor);
+	fwl_setCurXY((int)xcoor,(int)ycoor);
+	fwl_setLastMouseEvent(MotionNotify);
+	fwl_handle_aqua(MotionNotify, button, xcoor, ycoor);
 }
 - (void) keyUp: (NSEvent*) theEvent
 {
@@ -200,7 +200,7 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
 	NSString* character = [theEvent characters];
 	char ks;
 	ks = (char) [character characterAtIndex: 0];
-	do_keyPress(ks, KeyRelease);
+	fwl_do_keyPress(ks, KeyRelease);
 	NS_HANDLER
 	return;
 	NS_ENDHANDLER
@@ -211,7 +211,7 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
 	NSString* character = [theEvent characters];
 	char ks;
 	ks = (char) [character characterAtIndex: 0];
-	do_keyPress(ks, KeyPress);
+	fwl_do_keyPress(ks, KeyPress);
 	NS_HANDLER
 	return;
 	NS_ENDHANDLER
@@ -278,7 +278,7 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
 	//NSLog(@"do resize");
 	NSOpenGLContext* currentContext;
 	NSSize mySize = [self frame].size;
-	setScreenDim((int) mySize.width, (int) mySize.height);
+	fwl_setScreenDim((int) mySize.width, (int) mySize.height);
 
 	currentContext = [NSOpenGLContext currentContext];
 	[currentContext setView:self];
@@ -348,11 +348,11 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
 			NSURL *URL = [NSURL URLWithString:URLString relativeToURL:baseURL];
 			
 			//printf ("URL is %s\n",[[URL absoluteString] UTF8String]);
-			OSX_initializeParameters([[URL absoluteString] UTF8String]);
+			fwl_OSX_initializeParameters([[URL absoluteString] UTF8String]);
 		} else {
 			// woah nelly! the url does not exist in the embed tag! lets just start something
 			//printf("Oops ... no URL passed?");
-			OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
+			fwl_OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
 		}
 		
 		// set the width/height of the window
@@ -378,7 +378,7 @@ standard cursor, hand cursor is "cursorOverSensitive" cursor */
 		if (widthIsPercent) {
 			wid = wid/100 * mySize.width;
 		}
-		setScreenDim(wid,hei);
+		fwl_setScreenDim(wid,hei);
 		
 		[oglContext setView: self];
 	}

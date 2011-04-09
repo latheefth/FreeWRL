@@ -3,14 +3,14 @@
 #import <OpenGL/glu.h>
 #include "libFreeWRL.h"
 extern void initGL();
-void handle_aqua(const int mev, const unsigned int button, int x, int y);
-void setCurXY(int x, int y);
-extern void setButDown(int button, int value);
-extern void setCurXY(int x, int y);
-extern void do_keyPress (char ch, int ev);
-extern void setLastMouseEvent(int etype);
-extern void setScreenDim(int wi, int he);
-void OSX_initializeParameters(const char* initialURL);
+void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
+void fwl_setCurXY(int x, int y);
+extern void fwl_setButDown(int button, int value);
+extern void fwl_setCurXY(int x, int y);
+extern void fwl_do_keyPress (char ch, int ev);
+extern void fwl_setLastMouseEvent(int etype);
+extern void fwl_setScreenDim(int wi, int he);
+void fwl_OSX_initializeParameters(const char* initialURL);
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line);
 void stopRenderingLoop();
 extern int ocurse;
