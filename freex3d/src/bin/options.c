@@ -248,6 +248,8 @@ int fv_parseCommandLine (int argc, char **argv)
 /* Window options */
 
 	case 'c': /* --fullscreen, no argument */
+
+#if !defined(TARGET_AQUA)
 #if defined(HAVE_XF86_VMODE)
 	    params->fullscreen = TRUE;
 #else
@@ -257,7 +259,8 @@ int fv_parseCommandLine (int argc, char **argv)
 		   "Configure should autodetect it for you. If not please report"
 		   "this problem to\n\t " PACKAGE_BUGREPORT "\n");
 	    params->fullscreen = FALSE;
-#endif
+#endif /* HAVE_XF86_VMODE */
+#endif /* TARGET_AQUA */
 	    break;
 
 	case 'g': /* --geometry, required argument: string "WxH" */
