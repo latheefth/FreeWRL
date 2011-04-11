@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		26A96F2910066C02005CE65C /* FreeWRLView.h in Headers */ = {isa = PBXBuildFile; fileRef = F58250CB03E860C8011E699C /* FreeWRLView.h */; settings = {COMPILER_FLAGS = "-DAQUA"; }; };
-		26A96F2A10066C02005CE65C /* cfrontend.h in Headers */ = {isa = PBXBuildFile; fileRef = 26D9FF3905C5BCFB0070EC3E /* cfrontend.h */; };
 		26A96F2B10066C02005CE65C /* MyApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 26D901C205CAD25F0070EC3E /* MyApp.h */; };
 		26A96F2C10066C02005CE65C /* MyWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 26D901F205CAD3B50070EC3E /* MyWindowController.h */; };
 		26A96F2D10066C02005CE65C /* aquaInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 262A3D6B05D983570058903B /* aquaInterface.h */; };
@@ -19,7 +18,6 @@
 		26A96F3410066C02005CE65C /* ReWire_Logo.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 262200800BC2BDB200B163E5 /* ReWire_Logo.jpg */; };
 		26A96F3510066C02005CE65C /* VRMLFreeWRLIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2681B5640ED36AB700D7C438 /* VRMLFreeWRLIcon.icns */; };
 		26A96F3610066C02005CE65C /* X3DFreeWRLIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 2681B5670ED36AC200D7C438 /* X3DFreeWRLIcon.icns */; };
-		26A96F3910066C02005CE65C /* cfrontend.m in Sources */ = {isa = PBXBuildFile; fileRef = 26D9FFC505C84E0D0070EC3E /* cfrontend.m */; };
 		26A96F3A10066C02005CE65C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 26554F8A05B6F0E100B3E2A8 /* main.m */; };
 		26A96F3B10066C02005CE65C /* MyApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 26D901C305CAD25F0070EC3E /* MyApp.m */; };
 		26A96F3C10066C02005CE65C /* MyWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 26D901F305CAD3B50070EC3E /* MyWindowController.m */; };
@@ -50,8 +48,6 @@
 		26D901C305CAD25F0070EC3E /* MyApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyApp.m; sourceTree = "<group>"; };
 		26D901F205CAD3B50070EC3E /* MyWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyWindowController.h; sourceTree = "<group>"; };
 		26D901F305CAD3B50070EC3E /* MyWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyWindowController.m; sourceTree = "<group>"; };
-		26D9FF3905C5BCFB0070EC3E /* cfrontend.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = cfrontend.h; sourceTree = "<group>"; };
-		26D9FFC505C84E0D0070EC3E /* cfrontend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cfrontend.m; sourceTree = "<group>"; };
 		26E17A85100692870074D2FB /* FreeWRL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FreeWRL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		26EF153509E2F90B00F8E4F2 /* Credits.html */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.html; path = Credits.html; sourceTree = "<group>"; };
 		26F1C1E90BBAB25E0081EE32 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
@@ -92,8 +88,6 @@
 				26D901F305CAD3B50070EC3E /* MyWindowController.m */,
 				266A41A40623305B00292567 /* wdelegate.h */,
 				266A41A50623305B00292567 /* wdelegate.m */,
-				26D9FF3905C5BCFB0070EC3E /* cfrontend.h */,
-				26D9FFC505C84E0D0070EC3E /* cfrontend.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -196,7 +190,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				26A96F2910066C02005CE65C /* FreeWRLView.h in Headers */,
-				26A96F2A10066C02005CE65C /* cfrontend.h in Headers */,
 				26A96F2B10066C02005CE65C /* MyApp.h in Headers */,
 				26A96F2C10066C02005CE65C /* MyWindowController.h in Headers */,
 				26A96F2D10066C02005CE65C /* aquaInterface.h in Headers */,
@@ -233,7 +226,14 @@
 			isa = PBXProject;
 			buildConfigurationList = 2676A368091C0C3E00F127AA /* Build configuration list for PBXProject "FreeWRL" */;
 			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* FreeWRL */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -264,7 +264,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				26A96F3910066C02005CE65C /* cfrontend.m in Sources */,
 				26A96F3A10066C02005CE65C /* main.m in Sources */,
 				26A96F3B10066C02005CE65C /* MyApp.m in Sources */,
 				26A96F3C10066C02005CE65C /* MyWindowController.m in Sources */,

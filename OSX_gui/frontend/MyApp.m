@@ -7,7 +7,6 @@
 //
 
 #import "MyApp.h"
-#include "cfrontend.h"
 #define KeyPress        2
 #define KeyRelease      3
 #define ButtonPress     4
@@ -373,21 +372,21 @@
 }
 
 - (IBAction) bigTextures: (id) sender {
-	setTexSize(0);
+	// JAS setTexSize(0);
 	[bTex setState: NSOnState];
 	[sTex setState: NSOffState];
 	[mTex setState: NSOffState];
 }
 
 - (IBAction) mediumTextures: (id) sender {
-	setTexSize(-512);
+	// JAS setTexSize(-512);
 	[bTex setState: NSOffState];
 	[sTex setState: NSOffState];
 	[mTex setState: NSOnState];
 }
 
 - (IBAction) smallTextures: (id) sender {
-	setTexSize(-256);
+	// JAS setTexSize(-256);
 	[bTex setState: NSOffState];
 	[sTex setState: NSOnState];
 	[mTex setState: NSOffState];	

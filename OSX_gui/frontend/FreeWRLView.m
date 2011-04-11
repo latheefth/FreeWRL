@@ -31,7 +31,7 @@ BOOL mouseDisplaySensitive = false;
 	NSFileManager* myManager;
 	myManager = [NSFileManager defaultManager];
 	
-	fwl_initPrintShot();
+	fwl_init_PrintShot();
 	
 	while (TRUE) {
 		usleep(10000);
@@ -249,7 +249,7 @@ BOOL mouseDisplaySensitive = false;
 		char ks;
 		ks = (char) [character characterAtIndex: 0];
 		//NSLog(@"got char down: ll%cll\n", ks);
-		dwl_do_keyPress(ks, KeyPress);
+		fwl_do_keyPress(ks, KeyPress);
         NS_HANDLER
         return;
         NS_ENDHANDLER
@@ -418,7 +418,7 @@ BOOL mouseDisplaySensitive = false;
 					fwl_set_LineWidth(lwidth);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"best"]) {
-					setTexSize(-256);
+					// JAS setTexSize(-256);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"keypress"]) {
 					NSString* keyString = [args objectAtIndex:(mi+1)];
