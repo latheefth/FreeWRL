@@ -2421,6 +2421,7 @@ static void stuffDEFUSE(struct Multi_Node *outMF, vrmlNodeT in, int type) {
 static void stuffSFintoMF(struct Multi_Node *outMF, vrmlNodeT *inSF, int type) {
     int rsz;
     int elelen;
+    int i;
 
     /* printf ("stuffSFintoMF, got vrmlT vector successfully - it is a type of %s\n",FIELDTYPES[type]);  */
 
@@ -2439,7 +2440,16 @@ static void stuffSFintoMF(struct Multi_Node *outMF, vrmlNodeT *inSF, int type) {
         /* is the "old" size something other than 1? */
         /* I am not sure when this would ever happen, but one never knows... */
 
-	/* printf ("so, ets see, the outMF has a size of %d\n",outMF->n); */
+	/* free up old memory here */
+	for (i=0; i<outMF->n; i++) {
+		if (type == FIELDTYPE_MFString) {
+			struct Uni_String *m = (struct Uni_String *)outMF->p[i];
+			/* printf ("freeing string :%s:\n",m->strptr); */
+			FREE_IF_NZ(m->strptr);
+		}
+
+	}
+
         if (outMF->n != 1) {
 	    /* printf ("deleting pointer %p\n",outMF->p); */
             FREE_IF_NZ(outMF->p);
