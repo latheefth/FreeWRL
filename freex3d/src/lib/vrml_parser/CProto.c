@@ -705,6 +705,9 @@ static void getProtoInvocationFields(struct VRMLParser *me, struct ProtoDefiniti
 					}
 
 					/* printf ("getPRotoInvocationFields, before parseType, nextIn %s\n",me->lexer->nextIn); */
+					/* ensure that if this is an MF type, that the size field is set to zero */
+					bzero (&thisVal,sizeof (union anyVrml));
+
 					if (!parseType(me, pdecl->type, &thisVal)) {
 						#ifdef CPROTOVERBOSE
 						printf ("getProtoInvocationField, parsing error on field value in proto expansion\n");

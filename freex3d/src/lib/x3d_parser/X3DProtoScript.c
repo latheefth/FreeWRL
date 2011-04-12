@@ -1458,6 +1458,8 @@ void parseProtoBody (char **atts) {
 	pushParserMode(PARSING_PROTOBODY);
 }
 
+#define X3DPARSERVERBOSE
+
 void parseProtoDeclare (char **atts) {
 	int count;
 	int nameIndex;
@@ -1495,6 +1497,7 @@ void parseProtoDeclare (char **atts) {
 		ConsoleMessage ("\"ProtoDeclare\" found, but field \"name\" not found!\n");
 	}
 }
+#undef X3DPARSERVERBOSE
 
 
 void parseExternProtoDeclare (char **atts) {
