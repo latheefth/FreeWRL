@@ -32,6 +32,7 @@ Screen snapshot.
 
 /* OpenGL renderer capabilities */
 typedef struct {
+	GLint compiledOK;
 	GLuint myShaderProgram;
 
 	GLint myMaterialAmbient;
@@ -136,8 +137,6 @@ extern s_renderer_capabilities_t rdr_caps;
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);
-
-void getShaderCommonInterfaces (s_shader_capabilities_t *);
 
 void
 BackEndClearBuffer(int);

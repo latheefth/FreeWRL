@@ -216,7 +216,7 @@ static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeigh
             r += src[srcIndex[sample]];
             g += src[srcIndex[sample] + 1];
             b += src[srcIndex[sample] + 2];
-            a += src[srcIndex[sample] + 2];
+            a += src[srcIndex[sample] + 3];
          }
 
          // Average results
