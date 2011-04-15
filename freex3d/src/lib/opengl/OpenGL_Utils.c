@@ -2354,21 +2354,10 @@ void zeroVisibilityFlag(void) {
 			#endif
 
 			node->_renderFlags = node->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
-#ifdef OLDCODE
-			/* remove the blended mode flag, if it exists - maybe the blended node has disappeared? */
-			node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);
-#endif
 			}
 	
 		}		
 	}
-
-#ifdef OLDCODE
-	/* the rootNode is not in the memory table, but do it here, anyway */
-	rootNode->_renderFlags = rootNode->_renderFlags  & (0xFFFF^ VF_shouldSortChildren);
-	rootNode->_renderFlags = rootNode->_renderFlags  & (0xFFFF^ VF_Blend);
-	rootNode->_renderFlags = rootNode->_renderFlags & (0xFFFF^VF_hasVisibleChildren);
-#endif
 
 	UNLOCK_MEMORYTABLE
 }

@@ -48,6 +48,7 @@ X3D Text Component
 
 #include "Collision.h"
 #include "LinearAlgebra.h"
+#include "Component_Shape.h"
 #include "../scenegraph/Tess.h"
 
 

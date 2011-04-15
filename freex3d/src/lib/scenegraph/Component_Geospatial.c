@@ -52,6 +52,7 @@ X3D Geospatial Component
 
 #include "Polyrep.h"
 #include "LinearAlgebra.h"
+#include "Component_Shape.h" /* for appearance properties */
 #include "Component_Geospatial.h"
 #include "Children.h"
 

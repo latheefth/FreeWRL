@@ -89,6 +89,7 @@ struct matpropstruct {
 	float	transparency;
 	GLfloat	emissionColour[3];
 	GLint   cubeFace;		/* for cubemapping, if 0, not cube mapping */
+	int 	cullFace;		/* is this single-sided or two-sided? */
 };
 
 extern struct matpropstruct appearanceProperties;

@@ -570,14 +570,6 @@ void registerReWireNode(struct X3D_Node *node) {
 }
 
 
-#ifdef OLDCODE
-OLDCODE/* "forget" the ReWireNames. Keep the table around, though, as the entries will simply be used again. */
-OLDCODEstatic void kill_ReWireNameTable(void) {
-OLDCODE	ReWireNametableSize = -1;
-OLDCODE	ReWireDevicetableSize = -1;
-OLDCODE}
-#endif /* OLDCODE */
-
 /* return a node assoicated with this name. If the name exists, return the previous node. If not, return
 the new node */
 static int ReWireNameIndex (char *name) {

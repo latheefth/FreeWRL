@@ -44,6 +44,7 @@ X3D Environmental Sensors Component
 #include "Component_Geospatial.h"
 #include "../opengl/Frustum.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 
 

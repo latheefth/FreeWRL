@@ -875,10 +875,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		rep_->tcoordtype=0;
 	}
 
-	if (!smooth_normals){
-		creaseAngle = (float) 0.0;  /* trick following code into doing things quick */
-	}
-
 	/* count the faces in this polyrep and allocate memory. */
 	faces = count_IFS_faces (cin,orig_coordIndex);
 	#ifdef VERBOSE
@@ -1677,7 +1673,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 		/* { int i; for (i=0; i<tcindexsize; i++) { tcindex[i]=0; } }*/
 
 	/* Normal Generation Code */
-	HAVETOSMOOTH = smooth_normals && (fabs(creaseAngle)>0.0001);
+	HAVETOSMOOTH = (fabs(creaseAngle)>0.0001);
 	for (tmp = 0; tmp < 3*rep_->ntri; tmp++) {
 		pointfaces[tmp*POINT_FACES]=0;
 	}
