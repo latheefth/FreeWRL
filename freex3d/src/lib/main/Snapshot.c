@@ -96,6 +96,7 @@ static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 #if defined( WIN32) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
+void fwl_toggleSnapshot(){}
 void fwl_init_SnapGif(){}
 void saveSnapSequence() {}
 #ifndef _MSC_VER
