@@ -79,11 +79,49 @@ NSMutableData *receivedData;
 
 -(void)setupView:(GLView*)view
 {
+//#ifdef TRY_SCREEN_RESOLUTION_1
+    /* trying resolution first way */
+    {
+        
+        int w = 320;
+        int h = 480;
+        
+        float ver = [[[UIDevice currentDevice] systemVersion] floatValue];
+        // You can't detect screen resolutions in pre 3.2 devices, but they are all 320x480
+        NSLog (@"UIDevice version %f",ver);
+        if (ver >= 3.2f)
+        {
+            UIScreen* mainscr = [UIScreen mainScreen];
+            w = mainscr.currentMode.size.width;
+            h = mainscr.currentMode.size.height;
+            NSLog (@"UIDevice try 1 size w %d,  h %d",w,h);
+            fwl_setScreenDim(w,h); 
+        }
+        
+    }
+//#endif /* TRY_SCREEN_RESOLUTION_1 */
+    
+    /* trying resolution second way */
+    
+    float scaleFac = [[UIScreen mainScreen] scale];
+    NSLog (@"mainScreen scale factor %f",scaleFac);
+    
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    CGFloat screenWidth = screenRect.size.width;
+    CGFloat screenHeight = screenRect.size.height;
+    NSLog (@"Screen resolution, 2nd way, %f x %f",screenWidth, screenHeight);
+    //fwl_setScreenDim((int)screenWidth, (int)screenHeight); 
+        
+    
+    
+//#ifdef TRY_SCREEN_RESOLUTION_3   
 	//NSLog (@"setupView");
 	CGRect rect = view.bounds;
-    //NSLog (@"initialize - size %d %d",(int)rect.size.width, (int)rect.size.height);
+    NSLog (@"Third way - size %d %d",(int)rect.size.width, (int)rect.size.height);
+	//fwl_setScreenDim((int)rect.size.width, (int)rect.size.height);    
+	//fwl_setScreenDim((int)rect.size.height, (int)rect.size.width);
+//#endif /* TRY_SCREEN_RESOLUTION_3 */
     
-	fwl_setScreenDim((int)rect.size.width, (int)rect.size.height);
 	fwl_display_initialize();
 	
         // thread the getting of the file...
@@ -98,13 +136,13 @@ NSMutableData *receivedData;
 {
     //NSLog (@"drawing");
     if (frontEndWantsFileName() != nil) {
-#define ccFUDGE_THIS_FOR_TESTING
+#define FUDGE_THIS_FOR_TESTING
 #ifdef FUDGE_THIS_FOR_TESTING
         
 #define MYSTRING \
 "#VRML V2.0 utf8\n" \
-"# 10vertices.wrl\n" \
-        " Shape { appearance Appearance { material Material {} } geometry IndexedFaceSet { color Color {color [0 1 0]} colorPerVertex FALSE coord Coordinate { point [-1 0 0,0 0 0,1 0 0, 1 0.5 0,1 1 0,1 2 0, 0 2 0,-1 2 0,-1 1 0, -1 0.5 0]} coordIndex [0,1,2,3,4,5,6,7,8, 9,-1] solid FALSE } }"
+"Background {skyAngle        [ 1.07 1.45 1.52 1.57 ]skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]}" \
+        " Shape { appearance Appearance { material Material {} } geometry Cone {}  }"
         
         fwl_frontEndReturningData(MYSTRING, strlen(MYSTRING));
         

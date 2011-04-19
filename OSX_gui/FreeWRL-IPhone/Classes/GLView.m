@@ -38,9 +38,22 @@
     
     if ((self = [super initWithCoder:coder])) {
         // Get the layer
+        
+        //self.multipleTouchEnabled = YES;
+        //self.opaque = YES;
+        
+        // Set scaling to account for Retina display
+        if ([self respondsToSelector:@selector(setContentScaleFactor:)])
+        {
+            self.contentScaleFactor = [[UIScreen mainScreen] scale];
+        }
+
+        
         CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
         
         eaglLayer.opaque = YES;
+        
+        
         eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
                                         [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
 		
