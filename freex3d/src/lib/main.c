@@ -193,11 +193,7 @@ void fwl_resource_push_single_request_IE_main_scene(const char *request)
 	if (!request)
 		return;
 	ConsoleMessage("before create resource\n");
-#ifdef AQUA
-	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self());
-#else
 	ConsoleMessage("frontend thread ID = %d\n",(int)pthread_self().p);
-#endif
 
 	res = resource_create_single(request);
 	/*
