@@ -1287,6 +1287,51 @@ void fwl_do_keyPress(const char kp, int type) {
         }
 }
 
+
+
+/* go to a viewpoint, hopefully it is one that is in our current list */
+void fwl_gotoViewpoint (char *findThisOne) {
+	int i;
+	int whichnode = -1;
+	/* did we have a "#viewpoint" here? */
+	if (findThisOne != NULL) {
+		for (i=0; i<totviewpointnodes; i++) {
+			switch ((X3D_NODE(viewpointnodes[i])->_nodeType)) {
+				case NODE_Viewpoint:
+					if (strcmp(findThisOne,
+						X3D_VIEWPOINT(viewpointnodes[i])->description->strptr) == 0) {
+						whichnode = i;
+					}
+					break;
+
+
+				case NODE_GeoViewpoint:
+					if (strcmp(findThisOne,
+						X3D_GEOVIEWPOINT(viewpointnodes[i])->description->strptr) == 0) {
+						whichnode = i;
+					}
+					break;
+
+				case NODE_OrthoViewpoint:
+					if (strcmp(findThisOne,
+						X3D_ORTHOVIEWPOINT(viewpointnodes[i])->description->strptr) == 0) {
+						whichnode = i;
+					}
+					break;
+
+
+			}	
+		}
+
+		
+		/* were we successful at finding this one? */
+		if (whichnode != -1) {
+			/* set the initial viewpoint for this file */
+			setViewpointBindInRender = viewpointnodes[whichnode];
+		}
+    	}	
+}
+
 struct X3D_Node* getRayHit() {
         double x,y,z;
         int i;
