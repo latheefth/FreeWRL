@@ -32,7 +32,6 @@ General functions declarations.
 
 
 void registerBindable(struct X3D_Node *);
-extern char *givenInitialViewpoint;
 
 
 #endif /* __FREEWRL_PRODCON_MAIN_H__ */

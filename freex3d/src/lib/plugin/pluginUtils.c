@@ -266,7 +266,7 @@ int doBrowserAction()
 					kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 
 					/* tell the new world which viewpoint to go to */
-					givenInitialViewpoint = plugin_res->afterPoundCharacters;
+					fwl_gotoViewpoint (plugin_res->afterPoundCharacters);
 					resToLoad = resource_create_single(plugin_res->actual_file);
 
 					/* in with the new... */

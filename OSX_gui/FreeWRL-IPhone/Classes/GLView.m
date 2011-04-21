@@ -39,43 +39,40 @@
     if ((self = [super initWithCoder:coder])) {
         // Get the layer
         
-        //self.multipleTouchEnabled = YES;
-        //self.opaque = YES;
-        
         // Set scaling to account for Retina display
         if ([self respondsToSelector:@selector(setContentScaleFactor:)])
         {
             self.contentScaleFactor = [[UIScreen mainScreen] scale];
         }
 
-        
+       
+
         CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
         
+//#define TRANSPARENT_EAGL_LAYER       
+#ifdef TRANSPARENT_EAGL_LAYER        
         eaglLayer.opaque = YES;
+	self.alpha = 0.3f;
+#else
+        eaglLayer.opaque = YES;
+        self.alpha = 1.0f;
+#endif
         
         
         eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
-                                        [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
+        	[NSNumber numberWithBool:FALSE], 
+		kEAGLDrawablePropertyRetainedBacking, 
+		kEAGLColorFormatRGBA8, 
+		kEAGLDrawablePropertyColorFormat, 
+	nil];
 		
 
         context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-		NSLog (@"built GLES2 context, it is %p",context);
         if (context == NULL)
         {
 			NSLog (@"ES-2.0 context failure - not coding with 1.1");
 			[self release];
 			return nil;
-
-			/*
-			 not bothering with GLES1
-            context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
-            
-            if (!context || ![EAGLContext setCurrentContext:context]) {
-                [self release];
-                return nil;
-            }
-			 */
-
         }
 
         

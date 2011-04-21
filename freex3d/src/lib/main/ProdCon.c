@@ -86,7 +86,6 @@ void *setViewpointBindInRender = NULL;
 void *setFogBindInRender = NULL;
 void *setBackgroundBindInRender = NULL;
 void *setNavigationBindInRender = NULL;
-char *givenInitialViewpoint = NULL;
 
 /* make up a new parser for parsing from createVrmlFromURL and createVrmlFromString */
 struct VRMLParser* savedParser;
@@ -518,8 +517,6 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 
 				/* set the initial viewpoint for this file */
 				setViewpointBindInRender = viewpointnodes[0];
-				
-				FREE_IF_NZ(givenInitialViewpoint);
 			}
 		}
 	
