@@ -79,7 +79,7 @@ $(OBJDIR)/%.o: %.c %.h
 
 $(OBJDIR)/jsinterp.o: jsinterp.c jsinterp.h
 	@$(MAKE_OBJDIR)
-	$(CC) -o $@ -arch i386 -no_compact_linkedit -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -c $(INTERP_CFLAGS) jsinterp.c
+	$(CC) -o $@ -arch i386 -no_compact_linkedit -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -c $(INTERP_CFLAGS) jsinterp.c
 
 $(OBJDIR)/%.o: %.c
 	@$(MAKE_OBJDIR)

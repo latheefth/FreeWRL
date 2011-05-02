@@ -47,7 +47,7 @@ CC = cc
 CCC = g++
 CFLAGS +=  -Wno-format -MMD -arch x86_64 -mmacosx-version-min=10.5
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DOS_64_BIT -DDARWIN -DHAVE_VA_COPY -DVA_COPY=va_copy
-LDFLAGS += -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5
+LDFLAGS += -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.5
 
 RANLIB = ranlib
 MKSHLIB = $(CC) -dynamiclib $(XMKSHLIBOPTS) -framework System -mmacosx-version-min=10.5

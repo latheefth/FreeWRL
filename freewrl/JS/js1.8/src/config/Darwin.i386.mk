@@ -43,11 +43,12 @@
 # Just ripped from Linux config
 #
 
-CC = gcc-4.0 
+#JAS CC = gcc-4.0 
+CC = gcc-4.2
 CCC = g++
-CFLAGS +=  -Wno-format -MMD -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -no_compact_linkedit
+CFLAGS +=  -Wno-format -MMD -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.6.sdk -no_compact_linkedit
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DDARWIN -DHAVE_VA_COPY -DVA_COPY=va_copy
-LDFLAGS += -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk -mmacosx-version-min=10.4
+LDFLAGS += -arch i386 -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.4
 
 RANLIB = ranlib
 MKSHLIB = $(CC) -dynamiclib $(XMKSHLIBOPTS) -framework System -mmacosx-version-min=10.4
