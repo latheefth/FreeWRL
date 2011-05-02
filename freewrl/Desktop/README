@@ -1,9 +1,0 @@
-Tying FreeWRL into your desktop. 
-
-This should be done in the build process, but if it fails for some
-reason:
-
-1) Copy freewrl.desktop into /usr/share/applications
-2) Copy freewrl.png into /usr/share/pixmaps
-
-and you should be ok.

@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# run the windowed front end from here. This file is for Mac OSX only.
-
-/Applications/FreeWRL/FreeWRL.app/Contents/MacOS/FreeWRL $* `pwd`

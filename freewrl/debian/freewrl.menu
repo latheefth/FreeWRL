@@ -1,4 +1,0 @@
-?package(freewrl):needs="X11" section="Applications/Graphics" \
-		hints="3D Viewer" \
-                title="FreeWRL" command="/usr/bin/freewrl" \
-                icon="/usr/share/pixmaps/freewrl.png"
