@@ -195,6 +195,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 	Parser_scanStringValueToMem(node, (size_t) coffset, ctype, value, isXML);
 }
 
+
 /* and incoming EAI event has come in, and the destination is an inputOnly field of a script.
    Make It So. This mimics the routing function "getField_ToJavascript" except that we do not
    have a routing entry for the from address and size and type, so we have to do this by hand.

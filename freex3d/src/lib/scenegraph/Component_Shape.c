@@ -733,6 +733,7 @@ void compile_Shape (struct X3D_Shape *node) {
 
 
 /* debug */
+/* 
 printf ("shape using shader: ");
 switch (node->_shaderTableEntry) {
 case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
@@ -757,6 +758,7 @@ case oneTexTwoMaterialColourShader: printf ("oneTexTwoMaterialColourShader\n"); 
 case oneTexOneMaterialColourShader: printf ("oneTexOneMaterialColourShader\n"); break;
 default: {printf ("no ascii equiv\n");}
 }
+*/
 
 
 	#endif /* SHADERS_2011 */

@@ -337,17 +337,13 @@ int EAI_GetNode(const char *str) {
 
 	struct X3D_Node * myNode;
 
+		printf ("EAI_GetNode - getting %s\n",str);
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
 	
 	/* Try to get X3D node name */
-	#ifdef IPHONE
-	myNode = NULL; 
-	printf ("X3DParser_getNodeFromName not here yet\n");
-	#else
 	myNode = X3DParser_getNodeFromName(str);
-	#endif
 
 	if (myNode == NULL) {
 		/* Try to get VRML node name */
@@ -526,7 +522,6 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %lu\n",(unsigned long int)nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
-
 
 
 	if (eaiverbose) printf ("EAI_GetType, after findFieldInOFFSETS, have myFieldOffs %u, ctype %d, accessType %d \n",myFieldOffs, ctype, *accessType);
