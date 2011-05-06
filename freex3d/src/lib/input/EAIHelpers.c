@@ -337,7 +337,6 @@ int EAI_GetNode(const char *str) {
 
 	struct X3D_Node * myNode;
 
-		printf ("EAI_GetNode - getting %s\n",str);
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
