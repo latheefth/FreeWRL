@@ -2451,12 +2451,12 @@ static void calculateViewingSpeed() {
 			
 				/* speed is dependent on elevation above WGS84 ellipsoid */
 				Viewer.speed  = fabs(sqrt(gcCoords.c[0]*gcCoords.c[0] + gcCoords.c[1]*gcCoords.c[1] + gcCoords.c[2]*gcCoords.c[2])
-					-GEOSP_WE_A);
+					-GEOSP_WE_A) * Viewer.GeoSpatialNode->speedFactor;
 				if (Viewer.speed < 1.0) Viewer.speed=1.0;
+
 				#ifdef VERBOSE
 				printf ("height above center %f WGS84 ellipsoid is %lf\n",Viewer.speed,GEOSP_WE_A); 
 				#endif
-		
 /*
 				Viewer.speed = fabs(Viewer.speed * Viewer.GeoSpatialNode->speedFactor);
 				if (Viewer.speed < Viewer.GeoSpatialNode->speedFactor) Viewer.speed = Viewer.GeoSpatialNode->speedFactor;
