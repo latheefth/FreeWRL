@@ -1738,6 +1738,9 @@ package VRML::NodeType;
 			__movedCoords => [SFVec3d, [0, 0, 0], inputOutput, 0],
 			__oldgeoCoords => [SFVec3d, [0, 0, 0], inputOutput, 0],
 			__oldMFString => [MFString, [],inputOutput, 0], # the navType
+			__reast => [SFVec3d, [1, 0, 0], inputOutput, 0],
+			__rup => [SFVec3d, [0, 1, 0], inputOutput, 0],
+			__rsouth => [SFVec3d, [0, 0, 1], inputOutput, 0],
 			
 					},"X3DChildNode"),
 
