@@ -44,6 +44,39 @@ $Id$
 
 /* Altenate implemetations available, should merge them eventually */
 
+
+double * veccrossd(double *c, double *a, double *b)
+{
+    c[0] = a[1] * b[2] - a[2] * b[1];
+    c[1] = a[2] * b[0] - a[0] * b[2];
+    c[2] = a[0] * b[1] - a[1] * b[0];
+	return c;
+}
+double veclengthd( double *p )
+{
+	return sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+}
+double vecdotd(double *a, double *b)
+{
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+double* vecscaled(double* r, double* v, double s)
+{
+    r[0] = v[0] * s;
+    r[1] = v[1] * s;
+    r[2] = v[2] * s;
+    return r;
+}
+/* returns vector length, too */
+double vecnormald(double *r, double *v)
+{
+    double ret = sqrt(vecdotd(v,v));
+    /* if(ret == 0.) return 0.; */
+    if (APPROX(ret, 0)) return 0.;
+    vecscaled(r,v,1./ret);
+    return ret;
+}
+
 void veccross(struct point_XYZ *c, struct point_XYZ a, struct point_XYZ b)
 {
     c->x = a.y * b.z - a.z * b.y;

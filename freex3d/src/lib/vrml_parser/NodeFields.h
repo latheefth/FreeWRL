@@ -651,8 +651,8 @@ END_NODE(GeoMetadata)
 /* GeoOrigin node */
 BEGIN_NODE(GeoOrigin)
 FIELD(GeoOrigin,geoSystem,mfstring,geoSystem,FIELDTYPE_MFString)
-EXPOSED_FIELD(GeoOrigin,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 FIELD(GeoOrigin,rotateYUp,sfbool,rotateYUp,FIELDTYPE_SFBool)
+EXPOSED_FIELD(GeoOrigin,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(GeoOrigin,geoCoords,sfvec3d,geoCoords,FIELDTYPE_SFVec3d)
 END_NODE(GeoOrigin)
 

@@ -164,6 +164,13 @@ double vecangle(struct point_XYZ* V1, struct point_XYZ* V2);
 void veccross(struct point_XYZ *c , struct point_XYZ a, struct point_XYZ b);
 
 
+double * veccrossd(double *c, double *a, double *b);
+double veclengthd( double *p );
+double vecdotd(double *a, double *b);
+double* vecscaled(double* r, double* v, double s);
+double vecnormald(double *r, double *v);
+
+
 GLDOUBLE det3x3(GLDOUBLE* data);
 
 struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
