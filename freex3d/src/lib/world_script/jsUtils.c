@@ -768,6 +768,8 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 	char *errorReport = 0;
 	int len = 0, charPtrSize = (int) sizeof(char *);
 
+printf ("*** errorReporter ***\n");
+
     if (!report) {
         fprintf(stderr, "%s\n", message);
         return;
