@@ -356,6 +356,8 @@ static double geoidCorrection(double latitudeDeg, double longitudeDeg)
 	dp /= 10.0;
 	//step 5: bilinear interpolate from 4 corners to position in cell
 	d = (1.0 - dl)*(1.0 - dp)*d00 + (dl)*(1.0 - dp)*d10 + (1.0-dl)*(dp)*d01 + (dl)*(dp)*d11;
+	// d is how much higher the geoid is from the ellipsoid. 
+	d = -d; // to correct a geoid map to ellpsoid, subtract this amount
 	return (double)d;
 }
 /* move ourselves BACK to the from the GeoOrigin */
