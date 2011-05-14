@@ -2054,8 +2054,9 @@ struct X3D_Virt virt_GeoOrigin = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 void compile_GeoPositionInterpolator(struct X3D_GeoPositionInterpolator *);
 struct X3D_Virt virt_GeoPositionInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoPositionInterpolator};
 
+void proximity_GeoProximitySensor(struct X3D_GeoProximitySensor *);
 void compile_GeoProximitySensor(struct X3D_GeoProximitySensor *);
-struct X3D_Virt virt_GeoProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoProximitySensor};
+struct X3D_Virt virt_GeoProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,(void *)proximity_GeoProximitySensor,NULL,NULL,(void *)compile_GeoProximitySensor};
 
 void compile_GeoTouchSensor(struct X3D_GeoTouchSensor *);
 struct X3D_Virt virt_GeoTouchSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoTouchSensor};
