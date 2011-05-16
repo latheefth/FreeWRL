@@ -771,7 +771,6 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
 	#endif
 
-
 #define GETJSVAL_TYPE_A(thistype,field) \
 		case FIELDTYPE_##thistype: { \
 			/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); */ \
