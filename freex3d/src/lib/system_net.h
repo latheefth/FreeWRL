@@ -41,7 +41,11 @@ Internal header: network dependencies.
 #endif
 
 #include <netinet/in.h> 
+#if defined(_ANDROID)
+#include <linux/msg.h>
+#else
 #include <sys/msg.h> 
+#endif
 
 #else
 

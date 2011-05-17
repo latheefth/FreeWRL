@@ -69,7 +69,7 @@ void rf_print(const char *text)
 
 void rf_printf(int x, int y, const char *format, ...)
 {
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID )
 //printf ("skipping the rf_printf\n");
 #else
     va_list ap;

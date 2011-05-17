@@ -996,7 +996,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			/* If we have concave, tesselate! */
 			if (!convex) {
-				#ifndef IPHONE
+				#if !defined(IPHONE) && !defined(_ANDROID)
 				FW_GLU_BEGIN_POLYGON(global_tessobj);
 				#endif /* IPHONE - no tessellation yet */
 			} else {
@@ -1008,7 +1008,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			while (i != -1) {
 				if (!convex) {
-					#ifndef IPHONE
+					#if !defined(IPHONE) && !defined(_ANDROID)
 					int ind;
 					int foundContour = FALSE;
 					/* printf ("\nwhile, i is %d this_coord %d rel coord %d\n",i,this_coord,relative_coord); */
@@ -1060,7 +1060,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			}
 
 			if (!convex) {
-				#ifndef IPHONE
+				#if !defined(IPHONE) && !defined(_ANDROID)
 				FW_GLU_END_POLYGON(global_tessobj);
 
 				/* Tesselated faces may have a different normal than calculated previously */
@@ -2276,7 +2276,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 	} else
 	    if(beginCap || endCap) {
-#ifndef IPHONE
+#if !defined(IPHONE) && !defined(_ANDROID)
 		/* polygons might be concave-> do tessellation			*/
 		/* XXX - no textures yet - Linux Tesselators give me enough headaches;
 		   lets wait until they are all ok before trying texture mapping */

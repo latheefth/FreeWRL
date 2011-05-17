@@ -38,6 +38,10 @@
 #include <system_threads.h>
 #endif
 
+#ifdef _ANDROID
+#include <system_threads.h>
+#endif
+
 
 
 int freewrlSystem(const char *string);

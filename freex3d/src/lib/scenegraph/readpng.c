@@ -29,7 +29,8 @@ FreeWRL now only uses this on Linux machines.
 
 #include <config.h>
 
-#ifndef AQUA
+#if !defined(AQUA) && !defined(_ANDROID)
+
 
 #include <png.h>        /* libpng header; includes zlib.h */
 

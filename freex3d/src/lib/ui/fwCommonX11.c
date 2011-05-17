@@ -27,7 +27,7 @@
 
 #include <config.h>
 
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 
 #include <system.h>
 #include <display.h>

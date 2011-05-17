@@ -31,7 +31,7 @@ X3D Text Component
 #include <config.h>
 #include <system.h>
 
-#ifndef IPHONE
+#if !defined(IPHONE) && !defined(_ANDROID)
 #include <system_fonts.h>
 #endif /* IPHONE */
 
@@ -52,7 +52,7 @@ X3D Text Component
 #include "../scenegraph/Tess.h"
 
 
-#ifdef IPHONE
+#if defined(IPHONE) || defined(_ANDROID)
 void collide_Text (struct X3D_Text *me) {printf ("skipping collide_Text on iphone\n");}
 void make_Text (struct X3D_Text *me) {printf ("skipping make_Text on iphone\n");}
 void render_Text (struct X3D_Text *me) {printf ("skipping render_Text on iphone\n");}

@@ -39,7 +39,9 @@ $Id$
 #include "../main/headers.h"
 
 
-#ifndef IPHONE /* OpenGL-ES 2.0 does not have tessellator */
+/* OpenGL-ES 2.0 does not have tessellator */
+#if !defined(IPHONE) && !defined(_ANDROID)
+
 
 /* JAS */
 #ifdef AQUA
@@ -73,7 +75,7 @@ typedef  void (__stdcall *_GLUfuncptr)();
  * number of triangles in global_tess_polyrep after tessellation.
  */
 
-#ifndef IPHONE
+#if !defined(IPHONE) && !defined(_ANDROID)
 GLUtriangulatorObj *global_tessobj;
 #else
 int global_tessobj;
@@ -85,7 +87,8 @@ int global_IFS_Coords[TESS_MAX_COORDS];
 int global_IFS_Coord_count=0;
 
 
-#ifndef IPHONE /* OpenGL-ES 2.0 does not have tessellator */
+#if !defined(IPHONE) && !defined(_ANDROID)
+/* OpenGL-ES 2.0 does not have tessellator */
 /* and now all the callback functions, which will be called
 	by OpenGL automatically, if the Polygon is specified	*/
 

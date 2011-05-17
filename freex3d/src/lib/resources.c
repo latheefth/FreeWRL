@@ -45,6 +45,10 @@
 #include <io_http.h>
 #include <threads.h>
 
+#ifdef _ANDROID
+#include <strings.h>
+#endif
+
 
 #include "zlib.h"
 
@@ -934,7 +938,7 @@ char *resourceMediaTypeToString (int mt) {
 
 
 #define SLASHDOTDOTSLASH "/../"
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(_ANDROID)
 #define rindex strrchr
 #endif
 static void removeFilenameFromPath (char *path) {
@@ -980,7 +984,7 @@ static void removeFilenameFromPath (char *path) {
 
 /* is this a gzipped file? if so, unzip the text and replace the original with this. */
 static void possiblyUnzip (openned_file_t *of) {
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 	if (of->data == NULL) return;
 	if (of->data[0] == '\0') return;
 	if (of->data[1] == '\0') return;

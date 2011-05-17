@@ -1657,10 +1657,13 @@ bool initialize_GL()
     
 	PRINT_GL_ERROR_IF_ANY("initialize_GL start 4");
     
-
 	/* Set up the OpenGL state. This'll get overwritten later... */
 	#ifndef SHADERS_2011
+	#if defined( _ANDROID )
+	glClearDepthf(1.0);
+	#else // _ANDROID
 	FW_GL_CLEAR_DEPTH(1.0);
+	#endif // _ANDROID	
 	#endif
     
 	PRINT_GL_ERROR_IF_ANY("initialize_GL start 5");
@@ -1682,9 +1685,11 @@ bool initialize_GL()
     
 	
 	#ifndef SHADERS_2011
+#if !(defined(_ANDROID))
 	FW_GL_SHADEMODEL(GL_SMOOTH);
 	FW_GL_HINT(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
 	FW_GL_ENABLE (GL_RESCALE_NORMAL);
+#endif
 	#endif
     
 	PRINT_GL_ERROR_IF_ANY("initialize_GL start 8");
@@ -1727,7 +1732,9 @@ bool initialize_GL()
 
 	#ifndef SHADERS_2011
 	FW_GL_TEXENVI(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+#if !(defined(ANDROID))
 	FW_GL_ENABLE(GL_NORMALIZE);
+#endif
 	#endif
 
 	/* for textured appearance add specular highlights as a separate secondary color

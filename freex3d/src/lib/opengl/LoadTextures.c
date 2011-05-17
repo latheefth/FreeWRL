@@ -56,7 +56,7 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
-	#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 		#include <Imlib2.h>
 	#endif
 #endif
@@ -303,7 +303,7 @@ colorSpace = CGColorSpaceCreateDeviceRGB();
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
-char* download_file(filename);
+char* download_file(char* filename);
 
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
@@ -335,7 +335,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 
 
 /* LINUX */
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA)
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID)
     Imlib_Image image;
 
     image = imlib_load_image_immediately(filename);

@@ -28,7 +28,7 @@
 #include <display.h>
 #include <internal.h>
 
-#ifndef IPHONE
+#if !(defined(IPHONE) || defined(_ANDROID))
 
 #include <libFreeWRL.h>
 #include <list.h>

@@ -42,7 +42,7 @@ Some of this stuff came from files from "wavplay"  - see information below
 
 #define SOUNDVERBOSE
 
-#if defined(WIN32) || defined (IPHONE)
+#if defined(WIN32) || defined (IPHONE) || defined(_ANDROID)
 
 void
 Sound_toserver(char *message)
