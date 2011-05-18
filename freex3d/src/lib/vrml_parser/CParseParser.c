@@ -491,6 +491,7 @@ BOOL parser_vrmlScene(struct VRMLParser* me)
 
     /* We were unable to keep parsing Nodes, ROUTEs, or PROTOs.  Check that this is indeed the end of the file.  If it isn't, 
        there is an error, so we return FALSE. */
+
     return lexer_eof(me->lexer);
 }
 
