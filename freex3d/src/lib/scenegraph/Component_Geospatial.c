@@ -2785,6 +2785,10 @@ doExamineModeDistanceCalculations = TRUE;
 void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	Quaternion q_i;
 
+        /* did bind_node tell us we could bind this guy? */
+        if (!(node->isBound)) return;
+
+
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 
