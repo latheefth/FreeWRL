@@ -1110,8 +1110,8 @@ void handleOptionPress()
 
 
 int osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
-int lenhelp = 26;
-char * keyboardShortcutHelp[26] = {
+int lenhelp = 27;
+char * keyboardShortcutHelp[27] = {
 "EXAMINE Mode",
 "   LMB rotation: MX rotation around Y axis; MY rotation around X axis",
 "   RMB zooms", // On Apple computers with one button mice, press and hold the "control" key, and use your mouse. 
@@ -1137,6 +1137,7 @@ char * keyboardShortcutHelp[26] = {
 "  / Print current viewport local pose", 
 "  h Toggle headlight",
 "  c Toggle collision detection",
+"  x Snapshot",
 "  q Quit browser"
 };
 void printKeyboardHelp()
