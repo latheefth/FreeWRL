@@ -8209,7 +8209,7 @@ void *createNewX3DNode (int nt) {
 			tmp2->bindTime = -1;
 			tmp2->transitionComplete = FALSE;
 			tmp2->speed = 1.0f;
-			tmp2->transitionType.n=0; tmp2->transitionType.p=0;
+			tmp2->transitionType.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->transitionType.p[0] = newASCIIString("LINEAR");tmp2->transitionType.n=1; ;
 			tmp2->type.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*2);tmp2->type.p[0] = newASCIIString("EXAMINE");tmp2->type.p[1] = newASCIIString("ANY");tmp2->type.n=2; ;
 			tmp2->metadata = NULL;
 			tmp2->visibilityLimit = 0.0f;

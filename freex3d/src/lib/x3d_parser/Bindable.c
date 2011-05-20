@@ -150,6 +150,20 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
         Viewer.headlight = node->headlight;
 	/* tell the menu buttons of the state of this headlight */
 	setMenuButton_headlight(node->headlight);
+
+	/* transition effects */
+	Viewer.transitionTime = node->transitionTime;
+	/* 	LINEAR  = 1
+ 		TELEPORT = 0
+		ANIMATE = 3
+	*/
+	Viewer.transitionType = 1; /* assume LINEAR */
+	if (node->transitionType.n > 0) {
+		if (strcmp("LINEAR", node->transitionType.p[0]) == 0) Viewer.transitionType = 1;
+		if (strcmp("TELEPORT", node->transitionType.p[0]) == 0) Viewer.transitionType = 0;
+		if (strcmp("ANIMATE", node->transitionType.p[0]) == 0) Viewer.transitionType = 3;
+	}
+
 }
 
 

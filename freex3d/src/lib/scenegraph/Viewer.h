@@ -231,6 +231,9 @@ typedef struct viewer {
 	int SLERPing;
 	double startSLERPtime;
 
+	int transitionType;
+	double transitionTime;
+
 	struct point_XYZ startSLERPPos;
 	struct point_XYZ startSLERPAntiPos;
 	Quaternion startSLERPQuat;
