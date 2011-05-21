@@ -55,6 +55,12 @@ for loosing the reference. Also, most if it is found in
 #include "../plugin/pluginUtils.h"
 #include "../plugin/PluginSocket.h"
 
+#if defined(_ANDROID)
+#include <jni.h>
+#include <android/log.h>
+#define  LOG_TAG    "WRL-"
+#endif
+
 /* >>> statusbar hud */
 void hudSetConsoleMessage(char *buffer);
 /* <<< statusbar hud */
@@ -273,7 +279,6 @@ int fwvsnprintf(char *buffer,int buffer_length, const char *fmt, va_list ap)
 	return 1;
 }
 
-
 /* >>> statusbar hud */
 int Console_writeToCRT = 1; /*regular printf*/
 int Console_writeToFile = 0;
@@ -284,6 +289,10 @@ int consolefileOpened = 0;
 FILE* consolefile;
 int ConsoleMessage0(const char *fmt, va_list args)  
 {
+#if defined(_ANDROID)
+	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,fmt,args);
+	return 1;
+#else
 	int retval;
 	retval = 0;
 	//Console_writeToCRT = 0; //test
@@ -346,6 +355,7 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		if(doFree) free( buffer ); 
 	}
 	return retval;
+#endif // _ANDROID
 }
 int ConsoleMessage(const char *fmt, ...)
 {
