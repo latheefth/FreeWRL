@@ -96,7 +96,7 @@ typedef struct {
 	int max_texture_size;
 	float anisotropicDegree;
 
-	s_shader_capabilities_t backgroundShaderArrays[2]; /* one element for each shader_type */
+	s_shader_capabilities_t backgroundShaderArrays[20]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
 typedef enum shader_type {
