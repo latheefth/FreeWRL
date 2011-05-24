@@ -81,8 +81,6 @@ static freewrl_params_t *OSXparams = NULL;
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
 
-printf ("start of fwl_OSX_initializeParameters, url %s\n",initialURL);
-
     /* have we been through once already (eg, plugin loading new file)? */
     if (OSXparams == NULL) {
 
