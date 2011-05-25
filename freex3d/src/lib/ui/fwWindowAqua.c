@@ -36,9 +36,9 @@
 
 /*======== "VIRTUAL FUNCTIONS" ==============*/
 
-int open_display()
+int fv_open_display()
 {
-printf ("OSX - open_display called\n");
+printf ("OSX - fv_open_display called\n");
 
 	/* Guess: We are linked with libAquaInt....
 	   display is alread initialized....
@@ -60,14 +60,14 @@ printf ("OSX - create_main_window called\n");
 }
 
 /**
- *   create_GLcontext: create the main OpenGL context.
+ *   fv_create_GLcontext: create the main OpenGL context.
  *                     TODO: finish implementation for Mac and Windows.
  */
-bool create_GLcontext()
+bool fv_create_GLcontext()
 {	
 
 printf ("OSX - createGLContext called\n");
-	fw_thread_dump();
+	fwl_thread_dump();
 
 	/* Guess: call the aglCreateContext ... */
 
@@ -75,14 +75,14 @@ printf ("OSX - createGLContext called\n");
 }
 
 /**
- *   bind_GLcontext: attache the OpenGL context to the main window.
+ *   fv_bind_GLcontext: attache the OpenGL context to the main window.
  *                   TODO: finish implementation for Mac and Windows.
  */
-bool bind_GLcontext()
+bool fv_bind_GLcontext()
 {
 
 printf ("OSX - bind_GLContext called \n");
-	fw_thread_dump();
+	fwl_thread_dump();
 
 	/* Guess: call the aglMakeCurrent ... */
 

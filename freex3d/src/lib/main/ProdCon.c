@@ -195,10 +195,10 @@ static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call dest
 
 /* is a parser running? this is a function, because if we need to mutex lock, we
    can do all locking in this file */
-int isInputThreadInitialized() {return inputParseInitialized;}
+int fwl_isInputThreadInitialized() {return inputParseInitialized;}
 
 /* statusbar uses this to tell user that we are still loading */
-int isinputThreadParsing() {return(inputThreadParsing);}
+int fwl_isinputThreadParsing() {return(inputThreadParsing);}
 
 /**
  *   parser_do_parse_string: actually calls the parser.

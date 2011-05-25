@@ -38,5 +38,7 @@ extern int optind;
 
 extern freewrl_params_t *params;
 
+void fv_startFreeWRL(char *start_url);
+bool fv_initFreeWRL(freewrl_params_t *params);
 
 #endif /* __FREEWRL_MAIN_H__ */

@@ -282,7 +282,7 @@ void shutdown_EAI() {
 
 }
 
-void create_EAI()
+void fwl_create_EAI()
 {
         if (eaiverbose) { 
 	printf ("EAISERVER:create_EAI called\n");

@@ -149,7 +149,7 @@ extern void textureDraw_end(void);
 
 extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
 
-extern int isTextureLoaded(int texno);
+extern int fwl_isTextureLoaded(int texno);
 extern int isTextureAlpha(int n);
 extern int display_status;
 

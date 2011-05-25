@@ -65,7 +65,7 @@ void openBareMainWindow (int argc, char **argv)
     if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
 }
 
-int create_main_window(int argc, char *argv[])
+int fv_create_main_window(int argc, char *argv[])
 {
     Window root_ret;
     Window child_ret;

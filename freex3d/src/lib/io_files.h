@@ -28,6 +28,8 @@
 #ifndef __LIBFREEWRL_IO_FILES_H__
 #define __LIBFREEWRL_IO_FILES_H__
 
+void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
+void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 
 /* Path manipulation */
 char* concat_path(const char *a, const char *b);

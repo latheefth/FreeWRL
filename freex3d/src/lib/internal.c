@@ -137,6 +137,7 @@ void fw_perror(FILE *f, const char *format, ...)
     fflush(f);
 }
 
+#if 0
 /* == Lib FreeWRL parameters ==
    This can be extended ... 
 */
@@ -150,6 +151,7 @@ freewrl_params_t fw_params = {
 	/* eai */            TRUE,
 	/* verbose */        FALSE,
 };
+#endif
 
 /* Global FreeWRL options (will become profiles ?) */
 

@@ -33,7 +33,7 @@
 extern int currentX[20], currentY[20];
 
 void setDisplayed(int);
-/* Now public
+/* OLDCODE: Now public
 void First_ViewPoint();
 void Last_ViewPoint();
 void Prev_ViewPoint();
@@ -41,12 +41,12 @@ void Next_ViewPoint();
 */
 void setTextures_take_priority (int x);
 void setUseShapeThreadIfPossible(int x);
-void toggle_headlight();
-void RenderSceneUpdateScene();
+void fwl_toggle_headlight();
+/* OLDCODE: now in lib header file void RenderSceneUpdateScene(); */
 
 /* should be in OpenGL_Utils.h but this would grab all X3D defs.... */
-void setglClearColor(float *val);
-int isTextureParsing();
+void setglClearColor(float *val); /* rather start using fwl_set_ClearColor(f,f,f,f) */
+/* OLDCODE: now in lib header file int isTextureParsing(); */
 
 /* where this should be ? */
 const char* freewrl_get_browser_program();

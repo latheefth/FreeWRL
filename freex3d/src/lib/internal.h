@@ -356,7 +356,7 @@ void *freewrlStrdup(int line, char *file, char *str);
 #endif
 
 /* Move those to a better place: */
-void initialize_parser();
+/* OLDCODE: void initialize_parser(); */
 
 /* Global FreeWRL options (will become profiles ?) */
 

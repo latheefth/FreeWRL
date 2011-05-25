@@ -179,7 +179,9 @@ void resource_remove_child(resource_item_t *parent, resource_item_t *child);
 
 void send_resource_to_parser(resource_item_t *res);
 
+/*
 void resource_push_single_request(const char *request);
+*/
 void resource_push_multi_request(struct Multi_String *request);
 void resource_wait(resource_item_t *res);
 

@@ -1304,7 +1304,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 			/* printf ("opengl tex is %d\n",tnode->__texture); */
 			/* is this texture thought of yet? */
 			nowLoading++;
-			if (isTextureLoaded(tnode->__textureTableIndex)) {
+			if (fwl_isTextureLoaded(tnode->__textureTableIndex)) {
 				/* is it finished loading? */
 				nowFinished ++;
 			}
@@ -1319,7 +1319,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 			if (mnode->__texture0_ > 0) {
 				nowLoading++;
 				/* is it finished loading? */
-				if (isTextureLoaded(mnode->__texture0_)) nowFinished ++;
+				if (fwl_isTextureLoaded(mnode->__texture0_)) nowFinished ++;
 			}
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 				

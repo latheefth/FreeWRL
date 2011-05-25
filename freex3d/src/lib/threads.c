@@ -94,7 +94,7 @@ pthread_cond_t texture_list_condition = PTHREAD_COND_INITIALIZER;
 void sync(){}
 #endif
 
-void initializeDisplayThread()
+void fwl_initializeDisplayThread()
 {
 	int ret;
 
@@ -137,7 +137,7 @@ void initializeDisplayThread()
 }
 
 /* create consumer thread and set the "read only" flag indicating this */
-void initializeInputParseThread()
+void fwl_initializeInputParseThread()
 {
 	int ret;
 
@@ -156,7 +156,7 @@ void initializeInputParseThread()
 	}
 }
 
-void initializeTextureThread()
+void fwl_initializeTextureThread()
 {
 	int ret;
 
@@ -219,7 +219,7 @@ int fw_thread_color(int thread_id)
 
 #endif /* FREEWRL_THREAD_COLORIZED */
 
-void fw_thread_dump()
+void fwl_thread_dump()
 {
 	if (global_trace_threads) {
 		/* Synchronize trace/error log... */

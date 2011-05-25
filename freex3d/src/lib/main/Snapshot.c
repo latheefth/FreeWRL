@@ -156,7 +156,7 @@ void Snapshot ()
 {
 /* going to try just the single snapshot for windows, to .bmp format 
   (and future: remember .avi holds a sequence of DIBs. A .bmp holds 1 DIB.
-  There’s something in the 2003 platform SDK and online for AVI & RIFF/DIB/BMP
+  There is something in the 2003 platform SDK and online for AVI & RIFF/DIB/BMP
   http://msdn.microsoft.com/en-us/library/dd145119(v=VS.85).aspx storing a bitmap
   http://msdn.microsoft.com/en-us/library/dd183391(VS.85).aspx  .bmp
   http://msdn.microsoft.com/en-us/library/aa446563.aspx  sample program

@@ -765,9 +765,9 @@ void resource_dump(resource_item_t *res)
 }
 
 /**
- *   resource_push_single_request: easy function to launch a load process (asynchronous).
+ *   fwl_resource_push_single_request: easy function to launch a load process (asynchronous).
  */
-void resource_push_single_request(const char *request)
+void fwl_resource_push_single_request(const char *request)
 {
 	resource_item_t *res;
 
