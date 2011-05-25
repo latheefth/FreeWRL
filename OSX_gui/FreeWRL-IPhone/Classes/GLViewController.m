@@ -74,6 +74,11 @@ NSMutableData *receivedData;
     [self.view addGestureRecognizer:rotationGesture];
     [rotationGesture release];
     
+    // JAS - trying auto rotation sensing for landscape,portrait, etc.
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(receivedRotate:) name: UIDeviceOrientationDidChangeNotification object: nil];
+
+    
 }
 
 
@@ -365,6 +370,34 @@ NSMutableData *receivedData;
     }
 	
 }
+
+
+-(void) receivedRotate: (NSNotification*) notification
+{
+    UIDeviceOrientation interfaceOrientation = [[UIDevice currentDevice] orientation];
+    NSLog (@"recievedRotate");
+    if(interfaceOrientation == UIInterfaceOrientationLandscapeLeft)
+    {
+        NSLog (@"LandscapeLeft");   
+    } else if (interfaceOrientation == UIInterfaceOrientationLandscapeRight)
+    { NSLog (@"LandscapeRight");
+    } else if (interfaceOrientation == UIInterfaceOrientationPortrait)
+    {NSLog (@"Portrait");
+    } else if (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown)
+    {NSLog (@"PortraitUpsideDown");
+    } else {
+        NSLog (@"rotate not handled!");
+    }
+    
+}
+
+/* stop landscape/portrait, etc...
+-(void) viewWillDisappear: (BOOL) animated{
+    [[NSNotificationCenter defaultCenter] removeObserver: self];
+    [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+}
+ */
+
 
 #pragma mark -
 #pragma mark Memory management
