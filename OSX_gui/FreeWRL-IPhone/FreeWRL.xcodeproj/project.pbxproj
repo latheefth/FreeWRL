@@ -20,6 +20,11 @@
 		7300A499131AE8D200D1F798 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7300A498131AE8D200D1F798 /* CoreGraphics.framework */; };
 		7300A49D131AE8E500D1F798 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7300A49C131AE8E500D1F798 /* QuartzCore.framework */; };
 		731321491337EA2E00FEAD96 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 731321481337EA2E00FEAD96 /* ImageIO.framework */; };
+		736E1511138D922F008A39E1 /* X3DFreeWRL_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = 736E1510138D922F008A39E1 /* X3DFreeWRL_icon_57.png */; };
+		736E1513138D9236008A39E1 /* X3DFreeWRL_icon_114.png in Resources */ = {isa = PBXBuildFile; fileRef = 736E1512138D9236008A39E1 /* X3DFreeWRL_icon_114.png */; };
+		73AE9CE6138D90950024D4BF /* X3DFreeWRL_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = 73AE9CE5138D90950024D4BF /* X3DFreeWRL_icon_57.png */; };
+		73AE9CE8138D91110024D4BF /* X3DFreeWRL_icon_114.png in Resources */ = {isa = PBXBuildFile; fileRef = 73AE9CE7138D91110024D4BF /* X3DFreeWRL_icon_114.png */; };
+		73B36C32138D9329006A3D7D /* X3DFreeWRL_icon_72.png in Resources */ = {isa = PBXBuildFile; fileRef = 73B36C31138D9329006A3D7D /* X3DFreeWRL_icon_72.png */; };
 		73E39CF5132954F4001ADBBB /* libFreeWRL_IPhone_Static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */; };
 /* End PBXBuildFile section */
 
@@ -44,6 +49,11 @@
 		7300A498131AE8D200D1F798 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		7300A49C131AE8E500D1F798 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		731321481337EA2E00FEAD96 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		736E1510138D922F008A39E1 /* X3DFreeWRL_icon_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_57.png; sourceTree = "<group>"; };
+		736E1512138D9236008A39E1 /* X3DFreeWRL_icon_114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_114.png; sourceTree = "<group>"; };
+		73AE9CE5138D90950024D4BF /* X3DFreeWRL_icon_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_57.png; sourceTree = "<group>"; };
+		73AE9CE7138D91110024D4BF /* X3DFreeWRL_icon_114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_114.png; sourceTree = "<group>"; };
+		73B36C31138D9329006A3D7D /* X3DFreeWRL_icon_72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_72.png; sourceTree = "<group>"; };
 		73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFreeWRL_IPhone_Static.a; path = "../../../../../Library/Developer/Xcode/DerivedData/FreeWRL-IPhone_Static-deiqfpgwfkdeazfgfpugrrlilzim/Build/Products/Debug-iphoneos/libFreeWRL_IPhone_Static.a"; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* FreeWRL-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FreeWRL-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -101,6 +111,11 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				73B36C31138D9329006A3D7D /* X3DFreeWRL_icon_72.png */,
+				736E1512138D9236008A39E1 /* X3DFreeWRL_icon_114.png */,
+				736E1510138D922F008A39E1 /* X3DFreeWRL_icon_57.png */,
+				73AE9CE7138D91110024D4BF /* X3DFreeWRL_icon_114.png */,
+				73AE9CE5138D90950024D4BF /* X3DFreeWRL_icon_57.png */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -194,6 +209,11 @@
 			files = (
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				1F99BC41116CBBE800AD7B28 /* MainWindow-iPad.xib in Resources */,
+				73AE9CE6138D90950024D4BF /* X3DFreeWRL_icon_57.png in Resources */,
+				73AE9CE8138D91110024D4BF /* X3DFreeWRL_icon_114.png in Resources */,
+				736E1511138D922F008A39E1 /* X3DFreeWRL_icon_57.png in Resources */,
+				736E1513138D9236008A39E1 /* X3DFreeWRL_icon_114.png in Resources */,
+				73B36C32138D9329006A3D7D /* X3DFreeWRL_icon_72.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -227,6 +247,7 @@
 				GCC_PREFIX_HEADER = FreeWRL_Prefix.pch;
 				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
 				INFOPLIST_FILE = "FreeWRL-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../FreeWRL-IPhone_Static/build/Debug-iphoneos\"",
@@ -248,6 +269,7 @@
 				GCC_PREFIX_HEADER = FreeWRL_Prefix.pch;
 				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
 				INFOPLIST_FILE = "FreeWRL-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../FreeWRL-IPhone_Static/build/Debug-iphoneos\"",
