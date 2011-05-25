@@ -226,8 +226,8 @@ void turnGlobalShaderOff(void) {
 
 
 
-/* choose a shader for this geometry */
-void chooseShader(shader_type_t requestedShader) {
+/* choose and turn on a shader for this geometry */
+void enableGlobalShader(shader_type_t requestedShader) {
 
 	appearanceProperties.currentShaderProperties = &(rdr_caps.backgroundShaderArrays[requestedShader]);
 	appearanceProperties.currentShader = appearanceProperties.currentShaderProperties->myShaderProgram;

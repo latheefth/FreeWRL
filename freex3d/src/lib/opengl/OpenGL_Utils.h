@@ -30,6 +30,41 @@ Screen snapshot.
 #ifndef __FREEWRL_OPENGL_UTILS_H__
 #define __FREEWRL_OPENGL_UTILS_H__
 
+typedef enum shader_type {
+	/* Background shaders */
+	backgroundSphereShader,
+	backgroundTextureBoxShader,
+
+	/* generic (not geometry Shader specific) shaders */
+	noMaterialNoAppearanceShader,
+	noTexOneMaterialShader,
+	noTexTwoMaterialShader,
+	oneTexOneMaterialShader,
+	oneTexTwoMaterialShader,
+	complexTexOneMaterialShader,
+	complexTexTwoMaterialShader,
+
+	/* Sphere Geometry Shaders */
+	noMaterialNoAppearanceSphereShader,
+	noTexOneMaterialSphereShader,
+	noTexTwoMaterialSphereShader,
+	oneTexOneMaterialSphereShader,
+	oneTexTwoMaterialSphereShader,
+	complexTexOneMaterialSphereShader,
+	complexTexTwoMaterialSphereShader,
+
+	/* Shape has Color node */
+	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
+	noTexTwoMaterialColourShader,
+	noTexOneMaterialColourShader,
+	oneTexTwoMaterialColourShader,
+	oneTexOneMaterialColourShader,
+
+	/* final one, used for array sizing */
+	max_enum_shader_type
+} shader_type_t;
+
+
 /* OpenGL renderer capabilities */
 typedef struct {
 	GLint compiledOK;
@@ -96,41 +131,8 @@ typedef struct {
 	int max_texture_size;
 	float anisotropicDegree;
 
-	s_shader_capabilities_t backgroundShaderArrays[20]; /* one element for each shader_type */
+	s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
-
-typedef enum shader_type {
-	/* Background shaders */
-	backgroundSphereShader,
-	backgroundTextureBoxShader,
-
-	/* generic (not geometry Shader specific) shaders */
-	noMaterialNoAppearanceShader,
-	noTexOneMaterialShader,
-	noTexTwoMaterialShader,
-	oneTexOneMaterialShader,
-	oneTexTwoMaterialShader,
-	complexTexOneMaterialShader,
-	complexTexTwoMaterialShader,
-
-	/* Sphere Geometry Shaders */
-	noMaterialNoAppearanceSphereShader,
-	noTexOneMaterialSphereShader,
-	noTexTwoMaterialSphereShader,
-	oneTexOneMaterialSphereShader,
-	oneTexTwoMaterialSphereShader,
-	complexTexOneMaterialSphereShader,
-	complexTexTwoMaterialSphereShader,
-
-	/* Shape has Color node */
-	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
-	noTexTwoMaterialColourShader,
-	noTexOneMaterialColourShader,
-	oneTexTwoMaterialColourShader,
-	oneTexOneMaterialColourShader
-
-
-} shader_type_t;
 
 
 extern s_renderer_capabilities_t rdr_caps;

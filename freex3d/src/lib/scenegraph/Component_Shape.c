@@ -811,7 +811,7 @@ PRINT_GL_ERROR_IF_ANY("");
 		memcpy (&appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 	}
 	/* enable the shader for this shape */
-        chooseShader (node->_shaderTableEntry);
+        enableGlobalShader (node->_shaderTableEntry);
 
 
 PRINT_GL_ERROR_IF_ANY("");
