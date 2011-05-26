@@ -127,7 +127,7 @@ NSMutableData *receivedData;
 	//fwl_setScreenDim((int)rect.size.height, (int)rect.size.width);
 //#endif /* TRY_SCREEN_RESOLUTION_3 */
     
-	fwl_display_initialize();
+	fv_display_initialize();
 	
         // thread the getting of the file...
     [NSThread detachNewThreadSelector:@selector(aMethod:) toTarget:[MyObject class] withObject:nil];
@@ -146,10 +146,11 @@ NSMutableData *receivedData;
         
 #define MYSTRING \
 "#VRML V2.0 utf8\n" \
+"NavigationInfo {type \"WALK\"}\n" \
 "Background {skyAngle        [ 1.07 1.45 1.52 1.57 ]skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]}" \
-        " Shape { appearance Appearance { material Material {} } geometry Cone {}  }"
+        " Shape { appearance Appearance { material Material {} } geometry Box {}  }"
         
-        fwl_frontEndReturningData(MYSTRING, strlen(MYSTRING));
+        fwg_frontEndReturningData(MYSTRING, strlen(MYSTRING));
         
 #else
         if (!frontEndGettingFile) {
@@ -179,7 +180,7 @@ NSMutableData *receivedData;
 #endif
     }
 
-    RenderSceneUpdateScene();
+    fwl_RenderSceneUpdateScene();
 	
 }
 
@@ -239,7 +240,7 @@ NSMutableData *receivedData;
     //const char* cString = [s UTF8String]; 
     //[s release];
     
-    fwl_frontEndReturningData(myData,len);
+    fwg_frontEndReturningData(myData,len);
 
     free (myData);
     frontEndGettingFile = false;
@@ -317,7 +318,6 @@ NSMutableData *receivedData;
         
         fwl_setButDown(1, 1);
         fwl_setLastMouseEvent(ButtonPress);    
-        //fwl_setCurXY((int)loc.x, (int)loc.y);
         fwl_handle_aqua(ButtonPress,1,(int)loc.x,(int)loc.y);      
         
     // END    
@@ -325,7 +325,6 @@ NSMutableData *receivedData;
         
         fwl_setButDown(1, 0);
         fwl_setLastMouseEvent(ButtonRelease);
-        //fwl_setCurXY((int)loc.x, (int)loc.y);
         fwl_handle_aqua(ButtonRelease,1,(int)loc.x,(int)loc.y);       
         
     // CONTINUING
@@ -333,9 +332,8 @@ NSMutableData *receivedData;
         fwl_setButDown(1, 1);
         fwl_setLastMouseEvent(MotionNotify);
         
-        //fwl_setCurXY((int)loc.x, (int)loc.y);
         fwl_handle_aqua(MotionNotify,1,(int)loc.x,(int)loc.y);
-        NSLog(@"PAN x:%f y:%f", loc.x, loc.y);
+        //NSLog(@"PAN x:%f y:%f", loc.x, loc.y);
     }	
    
 }
@@ -375,23 +373,22 @@ NSMutableData *receivedData;
 -(void) receivedRotate: (NSNotification*) notification
 {
     UIDeviceOrientation interfaceOrientation = [[UIDevice currentDevice] orientation];
-    NSLog (@"recievedRotate");
+    //NSLog (@"recievedRotate");
     if(interfaceOrientation == UIInterfaceOrientationLandscapeLeft)
     {
-        NSLog (@"LandscapeLeft");  
-        fwl_orientation(90);
+        fwl_setOrientation(90);
         
     } else if (interfaceOrientation == UIInterfaceOrientationLandscapeRight)
-    { NSLog (@"LandscapeRight");
-        fwl_orientation(270);
+    { 
+        fwl_setOrientation(270);
     } else if (interfaceOrientation == UIInterfaceOrientationPortrait)
-    {NSLog (@"Portrait");
-        fwl_orientation(0);
+    {
+        fwl_setOrientation(0);
     } else if (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown)
-    {NSLog (@"PortraitUpsideDown");
-        fwl_orientation(180);
+    {
+        fwl_setOrientation(180);
     } else {
-        NSLog (@"rotate not handled!");
+        //NSLog (@"rotate not handled!");
     }
     
 }

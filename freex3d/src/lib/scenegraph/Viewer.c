@@ -164,6 +164,9 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 
 		/* Orthographic projections */
 		viewer->ortho = FALSE;
+
+		/* orientation - 0 is normal */
+		viewer->orient = 0;
 	}
 
 	resolve_pos();

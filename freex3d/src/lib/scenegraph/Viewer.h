@@ -255,6 +255,10 @@ typedef struct viewer {
 	/* are we perspective or ortho? */
 	int ortho;
 	double orthoField[4];
+
+	/* are we normal, or rotated? (makes sense only for mobile devices) */
+	int orient;
+
 } X3D_Viewer;
 
 void Viewer_anaglyph_setSide(int iside);
