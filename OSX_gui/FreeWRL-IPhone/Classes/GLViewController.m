@@ -378,13 +378,18 @@ NSMutableData *receivedData;
     NSLog (@"recievedRotate");
     if(interfaceOrientation == UIInterfaceOrientationLandscapeLeft)
     {
-        NSLog (@"LandscapeLeft");   
+        NSLog (@"LandscapeLeft");  
+        fwl_orientation(90);
+        
     } else if (interfaceOrientation == UIInterfaceOrientationLandscapeRight)
     { NSLog (@"LandscapeRight");
+        fwl_orientation(270);
     } else if (interfaceOrientation == UIInterfaceOrientationPortrait)
     {NSLog (@"Portrait");
+        fwl_orientation(0);
     } else if (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown)
     {NSLog (@"PortraitUpsideDown");
+        fwl_orientation(180);
     } else {
         NSLog (@"rotate not handled!");
     }
