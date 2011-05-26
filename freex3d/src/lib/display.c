@@ -110,8 +110,6 @@ int fv_display_initialize()
 
 	if (display_initialized) return TRUE;
 
-    PRINT_GL_ERROR_IF_ANY("start of fv_display_initialize");
-    
 	memset(&rdr_caps, 0, sizeof(rdr_caps));
 
 	/* FreeWRL parameters */
@@ -139,15 +137,10 @@ int fv_display_initialize()
 		return FALSE;
 	}
 
-    PRINT_GL_ERROR_IF_ANY ("fv_display_initialize - before the fv_bind_GLcontext call");
-    
 #if ! ( defined(_MSC_VER) || defined(FRONTEND_HANDLES_DISPLAY_THREAD) )
 	fv_bind_GLcontext();
 #endif
 
-    PRINT_GL_ERROR_IF_ANY ("fv_display_initialize - before the fwl_initialize_GL call");
-
-    
 	if (!fwl_initialize_GL()) {
 		return FALSE;
 	}
@@ -156,10 +149,6 @@ int fv_display_initialize()
         XFlush(Xdpy);
 #endif
 
-
-    PRINT_GL_ERROR_IF_ANY ("fv_display_initialize - after fwl_initialize_GL call");
-
-    
 	/* Display full initialized :P cool ! */
 	display_initialized = TRUE;
 

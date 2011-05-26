@@ -47,7 +47,7 @@ printf ("OSX - fv_open_display called\n");
 	return TRUE;
 }
 
-int create_main_window(int argc, char *argv[])
+int fv_create_main_window(int argc, char *argv[])
 {
 
 printf ("OSX - create_main_window called\n");
