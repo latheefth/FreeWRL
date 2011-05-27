@@ -49,7 +49,7 @@ $Id$
 #include "Tess.h"
 
 /* reset colors to defaults, if we have to */
-static GLfloat diffuseColor[] = {0.3f, 0.3f, 0.8f, 1.0f};
+static GLfloat diffuseColor[] = {0.8f, 0.8f, 0.8f, 1.0f};
 static GLfloat ambientIntensity[] = {0.16f, 0.16f, 0.16f, 1.0f}; /*VRML diff*amb defaults */
 static GLfloat specularColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
 static GLfloat emissiveColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
