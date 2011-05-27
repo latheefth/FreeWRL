@@ -146,7 +146,7 @@ NSMutableData *receivedData;
         
 #define MYSTRING \
 "#VRML V2.0 utf8\n" \
-"NavigationInfo {type \"WALK\"}\n" \
+"NavigationInfo {type \"EXAMINE\"}\n" \
 "Background {skyAngle        [ 1.07 1.45 1.52 1.57 ]skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]}" \
         " Shape { appearance Appearance { material Material {} } geometry Box {}  }"
         
