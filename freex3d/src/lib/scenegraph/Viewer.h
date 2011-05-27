@@ -130,9 +130,9 @@ void fwl_set_viewer_type(const int type);
         Viewer.Dist = sqrt (xd*xd+yd*yd+zd*zd);
 
 #define INITIATE_ROTATION_ORIGIN \
-        Viewer.examine->Origin.x = vp->centerOfRotation.c[0]; \
-        Viewer.examine->Origin.y = vp->centerOfRotation.c[1]; \
-	Viewer.examine->Origin.z = vp->centerOfRotation.c[2];
+        Viewer.examine.Origin.x = vp->centerOfRotation.c[0]; \
+        Viewer.examine.Origin.y = vp->centerOfRotation.c[1]; \
+	Viewer.examine.Origin.z = vp->centerOfRotation.c[2];
 
 #define INITIATE_POSITION_ANTIPOSITION \
         Viewer.Pos.x = vp->position.c[0]; \

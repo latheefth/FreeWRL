@@ -974,7 +974,7 @@ void render_Background (struct X3D_Background *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+	FW_GL_SCALE_D (Viewer.backgroundPlane, Viewer.backgroundPlane, Viewer.backgroundPlane);
 
 	#ifdef SHADERS_2011
 		enableGlobalShader(backgroundSphereShader);
@@ -1075,7 +1075,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* we have a sphere (maybe one and a half, as the sky and ground are different) so scale it up so that
 	   all geometry fits within the spheres */
-	FW_GL_SCALE_D (backgroundPlane, backgroundPlane, backgroundPlane);
+	FW_GL_SCALE_D (Viewer.backgroundPlane, Viewer.backgroundPlane, Viewer.backgroundPlane);
 
 
 	#ifdef SHADERS_2011
