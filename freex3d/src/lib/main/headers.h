@@ -477,9 +477,6 @@ void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 
 /* bindable nodes */
 extern GLint viewport[];
-extern GLDOUBLE fieldofview;
-extern GLDOUBLE fovZoom;
-//extern struct point_XYZ ViewerUpvector;
 extern struct sNaviInfo naviinfo;
 extern double defaultExamineDist;
 
@@ -709,8 +706,6 @@ extern char *myPerlInstallDir;
 #define EXTENT_MIN_Z _extent[5]
 
 void freewrlDie(const char *format);
-
-extern double nearPlane, farPlane, screenRatio, backgroundPlane;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 

@@ -1424,10 +1424,10 @@ void handleButtonPress()
 				butStatus[i] = 1;
 				switch(i)
 				{
-                    case 0: { set_viewer_type (VIEWER_WALK); break; }
-                    case 1: { set_viewer_type (VIEWER_FLY); break; }
-                    //case 2: { set_viewer_type (VIEWER_EXFLY); break; }
-                    case 2: { set_viewer_type (VIEWER_EXAMINE); break; }
+                    case 0: { fwl_set_viewer_type (VIEWER_WALK); break; }
+                    case 1: { fwl_set_viewer_type (VIEWER_FLY); break; }
+                    //case 2: { fwl_set_viewer_type (VIEWER_EXFLY); break; }
+                    case 2: { fwl_set_viewer_type (VIEWER_EXAMINE); break; }
 				}
 
 			}
