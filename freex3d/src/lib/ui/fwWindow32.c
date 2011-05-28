@@ -551,6 +551,9 @@ static int shiftState = 0;
     } 
     mev = MotionNotify;
     break;
+#ifndef WM_MOUSEWHEEL
+#define WM_MOUSEWHEEL                   0x020A
+#endif
     case WM_MOUSEWHEEL:
 	/* The WM_MOUSEWHEEL message is sent to the focus window 
 	 * when the mouse wheel is rotated. The DefWindowProc 
@@ -750,12 +753,13 @@ int create_main_window0(int argc, char *argv[])
    
     return TRUE;
 }
+extern freewrl_params_t fwl_params;
 int fv_create_main_window(int argc, char *argv[])
 {
-	if( fv_params.winToEmbedInto > 0 )
+	if( fwl_params.winToEmbedInto > 0 )
 	{
 		//if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
-		ghWnd = (HWND)fv_params.winToEmbedInto;
+		ghWnd = (HWND)fwl_params.winToEmbedInto;
 		fv_create_GLcontext();
 		fv_bind_GLcontext();
 		return TRUE;

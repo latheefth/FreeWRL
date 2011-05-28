@@ -100,7 +100,7 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 
 #endif /* HAVE_LIBXML_PARSER_H */
 
-#define PROTOINSTANCE_MAX_LEVELS 10
+//#define PROTOINSTANCE_MAX_LEVELS 10
 static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
 static XML_Parser currentColladaParser = NULL;
 static int parentIndex = 0;
@@ -226,7 +226,7 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	/* printf ("X3DParse, current ColladaParser is %u\n",currentColladaParser); */
 
 
-	INCREMENT_PARENTINDEX
+	INCREMENT_PARENTINDEXC
 	colladaParentStack[parentIndex] = X3D_NODE(myParent);
 
 	if (XML_ParseFile(currentColladaParser, inputstring, (int) strlen(inputstring), TRUE) == XML_STATUS_ERROR) {

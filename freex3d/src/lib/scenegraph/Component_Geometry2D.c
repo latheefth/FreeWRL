@@ -51,7 +51,10 @@ X3D Geometry2D  Component
 #include "../scenegraph/RenderFuncs.h"
 
 #include <float.h>
-
+#if defined(_MSC_VER) && _MSC_VER < 1500
+#define cosf cos
+#define sinf sin
+#endif
 #define SEGMENTS_PER_CIRCLE 36
 #define PIE 10
 #define CHORD 20

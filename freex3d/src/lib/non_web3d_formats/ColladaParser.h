@@ -51,7 +51,7 @@ extern char *CDATA_Text;
 
 extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
 
-#define INCREMENT_PARENTINDEX \
+#define INCREMENT_PARENTINDEXC \
         if (parentIndex < (PARENTSTACKSIZE-2))  { \
                 parentIndex++; \
                 colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
