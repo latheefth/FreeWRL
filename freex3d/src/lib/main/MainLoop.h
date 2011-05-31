@@ -39,8 +39,6 @@ void Last_ViewPoint();
 void Prev_ViewPoint();
 void Next_ViewPoint();
 */
-void setTextures_take_priority (int x);
-void setUseShapeThreadIfPossible(int x);
 void fwl_toggle_headlight();
 /* OLDCODE: now in lib header file void RenderSceneUpdateScene(); */
 

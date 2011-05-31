@@ -28,6 +28,23 @@
 #ifndef __LIBFREEWRL_API_H__
 #define __LIBFREEWRL_API_H__
 
+
+/* for front ends that do not have these X-11-based defines */
+#if defined(AQUA) || defined(WIN32) || defined(_ANDROID)
+#ifndef _MIMIC_X11_SCREEN_BUTTONS
+        #define _MIMIC_X11_SCREEN_BUTTONS
+                #define KeyPress        2
+                #define KeyRelease      3
+                #define ButtonPress     4
+                #define ButtonRelease   5
+                #define MotionNotify    6
+                #define MapNotify       19
+        #endif
+#endif
+
+
+
+
 #ifdef COMPILING_IPHONE_FRONT_END
 	/* Ok, ok, ok. I know. Another definition. But, Objective-C gives lots of
  	   errors if the whole file is included, and also, we only need a couple of
@@ -280,5 +297,8 @@ void fwl_setScreenDim(int wi, int he);
 bool fwl_initialize_GL(void);
 void fwl_setLastMouseEvent(int etype);
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
+
+/* JAS - moving OSX front end into 2011 code workings - these may change. */
+void fwl_replaceWorldNeeded(char* str);
 
 #endif /* __LIBFREEWRL_API_H__ */
