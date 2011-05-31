@@ -10,11 +10,13 @@
 #import <ApplicationServices/ApplicationServices.h>
 #import "MyWindowController.h"
 
+#define BUFF_LEN 256
+
 @interface MyApp : NSDocumentController {
 	FILE* theFile;
 	bool fileIsOpen;
 	id wc;
-	char buff[128];
+	char buff[BUFF_LEN];
 	char file_name[2048];
 	char ks;
 	id freewrl;

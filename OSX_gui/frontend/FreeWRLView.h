@@ -27,6 +27,13 @@
 void fwl_replaceWorldNeeded(char* str);
 void fwl_setCurXY(int x, int y);
 void fwl_setButDown(int button, int value);
+void setglClearColor (float *val);
+void setStereo(int type);
+void setNoCollision(void);
+void setEAIport(int pnum);
+void initGL(void);
+int aquaPrintVersion(void);
+
 
 
 /* for front ends that do not have these X-11-based defines */

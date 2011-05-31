@@ -44,7 +44,7 @@ BOOL mouseDisplaySensitive = false;
 		}
 	}
 	NSImage* myImage = [[NSImage alloc] initWithContentsOfFile:@"/tmp/FW_print_snap_tmp.png"];
-	[myManager removeFileAtPath:@"/tmp/FW_print_snap_tmp.png" handler:NULL];
+	[myManager removeItemAtPath:@"/tmp/FW_print_snap_tmp.png" error:NULL];
 	NSSize mySize = [myImage size];
 	NSRect theFrame;
 	theFrame.origin.x = 0;
@@ -316,7 +316,7 @@ BOOL mouseDisplaySensitive = false;
 			for (mi = 1; mi < [args count]; mi++) {
 				[self debugPrint: "     ... "];
 				[self debugPrint: "getting next"];
-				[[args objectAtIndex:mi] getCString: buff];
+				[[args objectAtIndex:mi] getCString:buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
 				sprintf(dmesg, "arg at %d is %s count is %d", mi, buff, [args count]);
 				[self debugPrint: dmesg];
 				if ((buff == NULL) || ([args objectAtIndex:mi] == NULL) || (!(strcmp(buff, "(null)")))){
@@ -325,7 +325,7 @@ BOOL mouseDisplaySensitive = false;
 				}
 				else if (([[args objectAtIndex:mi] hasSuffix: @".wrl"]) || ([[args objectAtIndex:mi] hasSuffix: @".x3d"]) || ([[args objectAtIndex:mi] hasSuffix: @".X3D"]) || ([[args objectAtIndex:mi] hasSuffix: @".x3dv"]) || ([[args objectAtIndex:mi] hasSuffix: @".X3DV"]) ){
 					fileToOpen = [args objectAtIndex:mi];
-					[fileToOpen getCString: buff];
+					[fileToOpen getCString: buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
 					[self debugPrint: "arg is filename"];
 					[self debugPrint: buff];
 					
@@ -340,7 +340,7 @@ BOOL mouseDisplaySensitive = false;
 						[self debugPrint: dmesg];
 						
 						char totalbuf[2048];
-						[fileToOpen getCString: buff];
+						[fileToOpen getCString: buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
 						
 						// is this a file WITHOUT a url/uri on the front? 
 						if (!checkNetworkFile(buff)) {
@@ -360,17 +360,16 @@ BOOL mouseDisplaySensitive = false;
 				else if ([[args objectAtIndex:mi] hasPrefix: @"HD:"]) {
 					tempFile = [args objectAtIndex:(mi)];
 					fileToOpen = [tempFile substringFromIndex: 2];
-					[fileToOpen getCString: buff];
+					[fileToOpen getCString:buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
 					[self debugPrint: "have HD: about to print before swap"];
 					[self debugPrint: buff];
 					for (myi = 0; myi < 2048; myi++) { // JAS - was 512, now 2048
 						if (buff[myi] == ':')
 								buff[myi] = '/';
 					}
-					int len = strlen(buff);
-					fileToOpen = [NSString stringWithCString: buff length: len];
+					fileToOpen = [[NSString alloc] initWithCString:buff encoding:NSUTF8StringEncoding];
 					[fileToOpen retain];
-					[fileToOpen getCString: buff];
+					[fileToOpen getCString:buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding ];
 					[self debugPrint: buff];
 
 				}
@@ -385,7 +384,7 @@ BOOL mouseDisplaySensitive = false;
 					char geo[256];
 					int xval, yval;
 					NSString* geomString = [args objectAtIndex:(mi+1)];
-					[geomString getCString: geo]; 
+					[geomString getCString: geo maxLength:200 encoding:NSUTF8StringEncoding]; 
 					sscanf(geo, "%dx%d", &xval, &yval);
 					sprintf(dmesg, "setting height to %d, width to %d\n", yval, xval);
 					[self debugPrint: dmesg];
@@ -426,25 +425,25 @@ BOOL mouseDisplaySensitive = false;
 				else if ([[args objectAtIndex: mi] hasSuffix: @"keypress"]) {
 					NSString* keyString = [args objectAtIndex:(mi+1)];
 					char kString[528];
-					[keyString getCString: kString];
+					[keyString getCString: kString maxLength:500 encoding:NSUTF8StringEncoding];
 					fwl_set_KeyString(kString);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"seqb"]) {
 					NSString* seqFile = [args objectAtIndex:(mi+1)];
 					char sFile[528];
-					[seqFile getCString: sFile];
+					[seqFile getCString: sFile maxLength:500 encoding:NSUTF8StringEncoding];
 					fwl_set_SeqFile(sFile);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"snapb"]) {
 					NSString* snapFile = [args objectAtIndex:(mi+1)];
 					char snFile[528];
-					[snapFile getCString: snFile];
+					[snapFile getCString: snFile maxLength:500 encoding:NSUTF8StringEncoding];
 					fwl_set_SnapFile(snFile);
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"seqtmp"]) {
 					NSString* seqtFile = [args objectAtIndex:(mi+1)];
 					char stFile[528];
-					[seqtFile getCString: stFile];
+					[seqtFile getCString: stFile maxLength:500 encoding:NSUTF8StringEncoding];
 					//JAS 1.22.2 removes this option setSeqTemp(stFile);
 				}
 				else if ([[args objectAtIndex:mi] hasSuffix: @"plugin"]) {
@@ -494,22 +493,15 @@ BOOL mouseDisplaySensitive = false;
 
 		
 	/* create the display thread. */
-	[self debugPrint: [fileToOpen cString]];
+	[self debugPrint: [fileToOpen UTF8String]];
 	usleep(100);
 
 	if (haveFileOnCommandLine)
-			fwl_OSX_initializeParameters([fileToOpen cString]);
+        fwl_OSX_initializeParameters([fileToOpen UTF8String]);
 	else 
 			fwl_OSX_initializeParameters("/Applications/FreeWRL/blankScreen.wrl");
 	initFinished = TRUE;
-	/* do we require EAI? */
-	if (wantEAI) {
-		fwl_create_EAI();
-		setWantEAI(1);
-	} else {
-		setWantEAI(0);
-	}
-	
+    	
     // Tell the window to track all mouse events
     NSWindow* myWindow = [self window];
 	if (haveFileOnCommandLine) [myWindow setTitle: fileToOpen];
@@ -595,12 +587,12 @@ BOOL mouseDisplaySensitive = false;
 
 - (void) startEai
 {
-		wantEAI = TRUE;
+// obsolete
 }
 
 - (void) stopEai
 {
-	wantEAI = FALSE;
+// obsolete
 }
 
 - (void) setHeight: (int) height width: (int) width
@@ -617,7 +609,7 @@ BOOL mouseDisplaySensitive = false;
 
 - (void) fwl_set_SeqFile: (NSString*) seqFile
 {
-	fwl_set_SeqFile([seqFile cString]);
+	fwl_set_SeqFile([seqFile UTF8String]);
 }
 
 - (void) setTempSeqFile: (NSString*) seqTempFile
@@ -627,7 +619,7 @@ BOOL mouseDisplaySensitive = false;
 
 - (void) fwl_set_SnapFile: (NSString*) snapFile
 {
-	fwl_set_SnapFile([snapFile cString]);
+	fwl_set_SnapFile([snapFile UTF8String]);
 }
 
 - (void) fwl_set_MaxImages: (int) maxImg

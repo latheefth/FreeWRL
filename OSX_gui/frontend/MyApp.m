@@ -231,7 +231,7 @@
 - (IBAction) Reload: (id) sender
 {
 	NSString *aFile = [freewrl getFileName];
-	[aFile getCString: file_name maxLength: 2048 encoding: NSUTF8StringEncoding];
+	[aFile getCString: file_name maxLength:sizeof(file_name)-1 encoding: NSUTF8StringEncoding];
 	//[wc hideWindow];
 	fwl_replaceWorldNeeded(file_name);
 	[wc showWindow];
@@ -290,7 +290,8 @@
 			[[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL: [NSURL fileURLWithPath: aFile]];
 			[self debugPrint: "setFile 2"];
 			[freewrl setFile: aFile];
-			[aFile getCString: buff];
+            
+        [aFile getCString:buff maxLength:sizeof(buff)-1  encoding:NSUTF8StringEncoding ];
 			//NSLog(@"Calling anchor_replaceworld1 ... ");
 		if ([freewrl hasDoneInit]) {
 				fwl_replaceWorldNeeded(buff);
@@ -310,7 +311,7 @@
 		[[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL: [NSURL fileURLWithPath: fileName]];
 		[self debugPrint: "setFile1"];
 		[freewrl setFile: fileName];
-		[fileName getCString: buff];
+		[fileName getCString:buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
 		if([freewrl hasDoneInit])
 			fwl_replaceWorldNeeded(buff);
 		[wc showWindow];
@@ -406,11 +407,8 @@
 
 - (void) changeColor: (id) sender {
 	NSColor* theColour = NULL;
-#ifdef USE_DOUBLE
+
 	CGFloat myred, mygreen, myblue, myalpha;
-#else
-	float myred, mygreen, myblue, myalpha;
-#endif
 	
 	theColour = [sender color];
 	[theColour getRed: &myred green: &mygreen blue: &myblue alpha: &myalpha];
@@ -422,13 +420,7 @@
 }
 
 - (IBAction) prioritizeTextures: (id) sender {
-// obsolete	if ([sender state] == NSOnState) {
-//		[sender setState: NSOffState];
-//		setTextures_take_priority(0);
-//	} else if ([sender state] == NSOffState) {
-//		[sender setState: NSOnState];
-//		setTextures_take_priority(1);
-//	}
+// obsolete
 }
 
 
