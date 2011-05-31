@@ -71,10 +71,49 @@ void __attribute__ ((destructor)) libFreeWRL_fini(void)
 /**
  * Explicit initialization
  */
+ 
+#if defined (_ANDROID)
+
+// Android library initialization - similar to iPhone but we will poke files in later
+
+int fwl_ANDROID_initialize(void)
+{
+	mainThread = pthread_self();
+
+	/* Initialize console (log, error, ...) */
+	setbuf(stdout,0);
+	setbuf(stderr,0);
+	
+	/* Initialize parser */
+	initialize_parser();
+
+	/* Multithreading ? */
+
+	/* OK the display is now initialized,
+	   create the display thread and wait for it
+	   to complete initialization */
+	initializeDisplayThread();
+	
+
+	initializeInputParseThread();
+	while (!isInputThreadInitialized()) {
+		usleep(50);
+	}
+
+	initializeTextureThread();
+	while (!isTextureinitialized()) {
+		usleep(50);
+	}
+	
+	fw_params.collision = 1;
 
 
-#if defined (TARGET_AQUA)
-#endif
+	return TRUE;
+}
+#endif // _ANDROID
+
+
+#if defined (TARGET_AQUA) || defined(_ANDROID)
 
 /* put some config stuff here, as that way the Objective-C Standalone OSX front end does not
 need to worry about specific structures and calls */
