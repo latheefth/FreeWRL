@@ -25,17 +25,17 @@ int doBrowserAction()
 	return 1;
 }
 
-int open_display(void)
+int fv_open_display(void)
 {
 	return 1;
 }
 
-bool create_GLcontext(void)
+bool fv_create_GLcontext(void)
 {
 	return 1;
 }
 
-int create_main_window(int argc, char *argv[])
+int fv_create_main_window(int argc, char *argv[])
 {
 	return 1;
 }
