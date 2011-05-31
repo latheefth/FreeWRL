@@ -1,12 +1,16 @@
+
+
+#define AQUA
+
 #import "FreeWRLView.h"
 #import "MyWindowController.h"
 #import "wdelegate.h"
-#define AQUA
 #include <OpenGL/gl.h>
 #include <OpenGL/OpenGL.h>
 #include "aquaInterface.h"
 #include <string.h>
 #include <unistd.h>
+
 
 
 @implementation FreeWRLView
@@ -260,9 +264,8 @@ BOOL mouseDisplaySensitive = false;
 {
     NSPoint mouseSpot;
 	char dmesg[2048];
-	setUseShapeThreadIfPossible(0);
+
 	messageFlag = FALSE;
-	//setUseCParser(0);
     mouseSpot.x = 8;
     mouseSpot.y = 8;
 	theWindow = NULL;

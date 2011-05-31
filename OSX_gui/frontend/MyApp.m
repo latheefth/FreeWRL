@@ -7,6 +7,8 @@
 //
 
 #import "MyApp.h"
+#import "libFreeWRL.h"
+
 #define KeyPress        2
 #define KeyRelease      3
 #define ButtonPress     4
@@ -231,7 +233,7 @@
 	NSString *aFile = [freewrl getFileName];
 	[aFile getCString: file_name maxLength: 2048 encoding: NSUTF8StringEncoding];
 	//[wc hideWindow];
-	replaceWorldNeeded(file_name);
+	fwl_replaceWorldNeeded(file_name);
 	[wc showWindow];
 }
 
@@ -291,7 +293,7 @@
 			[aFile getCString: buff];
 			//NSLog(@"Calling anchor_replaceworld1 ... ");
 		if ([freewrl hasDoneInit]) {
-				replaceWorldNeeded(buff);
+				fwl_replaceWorldNeeded(buff);
 		}
 			[wc showWindow];
     }
@@ -395,23 +397,12 @@
 - (IBAction) shapeThread: (id) sender {
 	if ([sender state] == NSOnState) {
 		[sender setState: NSOffState];
-		setUseShapeThreadIfPossible(0);
+		// obsolete - JAS setUseShapeThreadIfPossible(0);
 	} else if ([sender state] == NSOffState) {
 		[sender setState: NSOnState];
-		setUseShapeThreadIfPossible(1);
+		// obsolete - JAS setUseShapeThreadIfPossible(1);
 	}
 }
-
-/* - (IBAction) expParser: (id) sender {
-		if ([sender state] == NSOnState) {
-		[sender setState: NSOffState];
-		setUseCParser(0);
-	} else if ([sender state] == NSOffState) {
-		[sender setState: NSOnState];
-		setUseCParser(1);
-	}
-
-} */
 
 - (void) changeColor: (id) sender {
 	NSColor* theColour = NULL;

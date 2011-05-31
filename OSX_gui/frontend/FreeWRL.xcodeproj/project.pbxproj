@@ -290,35 +290,31 @@
 		2676A369091C0C3E00F127AA /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				GCC_VERSION = 4.0;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_VERSION = 4.2;
 				HEADER_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PREBINDING = NO;
-				SDKROOT = macosx10.4;
-				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/**";
-				VALID_ARCHS = "i386 ppc x86_64";
+				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "/Users/johns/Desktop/iphoneFreeWRL/freewrl/freex3d/src/**";
+				VALID_ARCHS = "x86_64 i386";
 			};
 			name = Development;
 		};
 		2676A36A091C0C3E00F127AA /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					ppc,
-					i386,
-					x86_64,
-				);
-				GCC_VERSION = 4.0;
-				"GCC_VERSION[arch=i386]" = 4.0;
-				"GCC_VERSION[arch=ppc64]" = 4.0;
-				"GCC_VERSION[arch=ppc]" = 4.0;
-				HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/OSX/XXX/**";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_VERSION = 4.2;
+				"GCC_VERSION[arch=i386]" = 4.2;
+				"GCC_VERSION[arch=ppc64]" = 4.2;
+				"GCC_VERSION[arch=ppc]" = 4.2;
+				HEADER_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = "";
-				"MACOSX_DEPLOYMENT_TARGET[arch=i386]" = 10.4;
-				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[arch=i386]" = 10.5;
+				"MACOSX_DEPLOYMENT_TARGET[arch=ppc]" = 10.5;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "-DUSE_DOUBLE";
@@ -326,24 +322,24 @@
 				"OTHER_CFLAGS[arch=ppc]" = "-DUSE_FLOAT";
 				OTHER_LDFLAGS = "-lAquaIntLib";
 				PREBINDING = NO;
-				SDKROOT = "";
+				SDKROOT = macosx;
 				"SDKROOT[arch=i386]" = macosx10.4;
 				"SDKROOT[arch=ppc]" = macosx10.4;
 				"SDKROOT[arch=x86_64]" = macosx10.5;
-				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/**";
-				VALID_ARCHS = "ppc i386 x86_64";
+				USER_HEADER_SEARCH_PATHS = "/Users/johns/Desktop/iphoneFreeWRL/freewrl/freex3d/src/**";
+				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Deployment;
 		};
 		2676A36B091C0C3E00F127AA /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = i386;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				PREBINDING = NO;
-				SDKROOT = macosx10.4;
-				USER_HEADER_SEARCH_PATHS = "/FreeWRL/freewrl/freex3d/**";
+				SDKROOT = macosx;
+				USER_HEADER_SEARCH_PATHS = "/Users/johns/Desktop/iphoneFreeWRL/freewrl/freex3d/src/**";
 			};
 			name = Default;
 		};
@@ -358,14 +354,6 @@
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = (
-					/Users/sarah/FreeWRL/localIncludes/,
-					/FreeWRL/freewrl/freex3d/src/lib/,
-					/FreeWRL/freewrl/freex3d/src/lib/vrml_parser/,
-					/FreeWRL/freewrl/freex3d/src/lib/scenegraph/,
-					/FreeWRL/freewrl/freex3d/src/lib/main/,
-					/FreeWRL/freewrl/freex3d/src/lib/ui/,
-					/FreeWRL/freewrl/freewrl/src/lib/opengl/,
-					/FreeWRL/freewrl/freewrl/src/lib/world_script/,
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenGL.framework/Headers",
 					/opt/local/include/,
 					"$(SYSTEM_LIBRARY_DIR)/Perl/5.8.6/darwin-thread-multi-2level/CORE",
@@ -402,14 +390,6 @@
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				HEADER_SEARCH_PATHS = (
-					/Users/sarah/FreeWRL/localIncludes/,
-					/FreeWRL/freewrl/freex3d/src/lib/,
-					/FreeWRL/freewrl/freex3d/src/lib/vrml_parser/,
-					/FreeWRL/freewrl/freex3d/src/lib/scenegraph/,
-					/FreeWRL/freewrl/freex3d/src/lib/main/,
-					/FreeWRL/freewrl/freex3d/src/lib/ui/,
-					/FreeWRL/freewrl/freewrl/src/lib/opengl/,
-					/FreeWRL/freewrl/freewrl/src/lib/world_script/,
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenGL.framework/Headers",
 					/opt/local/include/,
 					"$(SYSTEM_LIBRARY_DIR)/Perl/5.8.6/darwin-thread-multi-2level/CORE",
@@ -442,14 +422,6 @@
 				DEFINE = "-DAQUA";
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = (
-					/Users/sarah/FreeWRL/localIncludes/,
-					/FreeWRL/freewrl/freex3d/src/lib/,
-					/FreeWRL/freewrl/freex3d/src/lib/vrml_parser/,
-					/FreeWRL/freewrl/freex3d/src/lib/scenegraph/,
-					/FreeWRL/freewrl/freex3d/src/lib/main/,
-					/FreeWRL/freewrl/freex3d/src/lib/ui/,
-					/FreeWRL/freewrl/freewrl/src/lib/opengl/,
-					/FreeWRL/freewrl/freewrl/src/lib/world_script/,
 					"$(SYSTEM_LIBRARY_DIR)/Frameworks/OpenGL.framework/Headers",
 					/opt/local/include/,
 					"$(SYSTEM_LIBRARY_DIR)/Perl/5.8.6/darwin-thread-multi-2level/CORE",

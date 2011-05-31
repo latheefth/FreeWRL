@@ -1,4 +1,7 @@
 /* FreeWRLView */
+
+#define AQUA
+
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 #import <CoreFoundation/CoreFoundation.h>
@@ -16,54 +19,28 @@
 #include <resources.h>
 #include <io_http.h>
 
-#define DEFAULT_TIME_INTERVAL 	0.0001
-#define IPADDR "127.0.0.1"
-#define PORTNUM 6452
+
+
+#import <libFreeWRL.h>
+
+/* the following should be imported from libFreeWRL.h, but they are not scoped?? */
+void fwl_replaceWorldNeeded(char* str);
+void fwl_setCurXY(int x, int y);
+void fwl_setButDown(int button, int value);
+
+
+/* for front ends that do not have these X-11-based defines */
+#if defined(AQUA) || defined(WIN32) || defined(_ANDROID)
+#ifndef _MIMIC_X11_SCREEN_BUTTONS
+#define _MIMIC_X11_SCREEN_BUTTONS
 #define KeyPress        2
 #define KeyRelease      3
 #define ButtonPress     4
 #define ButtonRelease   5
 #define MotionNotify    6
-
-//Function Prototypes for code in the FreeWRL side of things. Used to be in
-//headers.h - JAS
-void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
-void fwl_setCurXY(int x, int y);
-extern int getOffset();
-extern void initGL();
-extern void fwl_setButDown(int button, int value);
-extern void fwl_setCurXY(int x, int y);
-extern void fwl_do_keyPress (char ch, int ev);
-extern void fwl_setLastMouseEvent(int etype);
-extern void aqDisplayThread();
-void setUseShapeThreadIfPossible(int x);
-void setNoCollision();
-bool notFinished();
-void setPaneClipRect(int npx, int npy, WindowPtr fwWindow, int ct, int cb, int cr, int cl, int width, int height);
-void createContext(CGrafPtr grafPtr);
-void setIsPlugin();
-void sendPluginFD(int fd);
-void aquaPrintVersion();
-void setPluginPath(char* path);
-void setEaiVerbose();
-void fwl_init_SnapGif();
-void fwl_set_MaxImages(int);
-void fwl_set_KeyString(const char* kstring);
-void fwl_init_SnapSeq();
-void setEAIport(int pnum);
-int isShapeCompilerParsing(void);
-int isinputThreadParsing(void);
-int isTextureParsing(void);
-void setWantEAI(int flag);
-void fwl_set_SeqFile(const char* file);
-int isInputThreadInitialized(void);
-
-
-#include "/FreeWRL/freewrl/freex3d/src/lib/libFreeWRL.h"
-//some from #include "display.h"
-void fwl_setScreenDim(int wi, int he);
-
-
+#define MapNotify       19
+#endif
+#endif
 
 @interface FreeWRLView : NSView
 {
