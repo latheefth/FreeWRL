@@ -115,7 +115,7 @@ static int getFieldAccessMethodFromProtoInterface (struct VRMLLexer *myLexer, ch
 //#else
 extern int curProtoInsStackInd;
 
-extern struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
+// JAS extern struct PROTOInstanceEntry ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 
 /* PROTO table */
 extern struct PROTOnameStruct *PROTONames;

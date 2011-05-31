@@ -53,7 +53,6 @@
 #include "zlib.h"
 
 
-static void removeFilenameFromPath (char *path);
 static void possiblyUnzip (openned_file_t *of);
 
 /**
@@ -941,7 +940,7 @@ char *resourceMediaTypeToString (int mt) {
 #if defined(_MSC_VER) || defined(_ANDROID)
 #define rindex strrchr
 #endif
-static void removeFilenameFromPath (char *path) {
+void removeFilenameFromPath (char *path) {
 	char *slashindex;
 	char *slashDotDotSlash;
 

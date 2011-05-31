@@ -34,14 +34,17 @@
 #define REWIRE_SERVER "/usr/bin/freewrlReWireServer"
 #define SOUNDSERVERBINARY "/usr/bin/FreeWRL_SoundServer"
 #include <stdio.h>
+#include <fcntl.h>
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <dirent.h>
-#include <fcntl.h>
-#include <internal.h>
+
+/* #include <internal.h>*/
+
 #define HAVE_STDINT_H 1
 #define HAVE_STDBOOL_H 1
 #define HAVE_UNISTD_H 1
