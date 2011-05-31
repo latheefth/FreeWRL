@@ -379,7 +379,7 @@ BOOL mouseDisplaySensitive = false;
 					switchEAI = TRUE;
 				}
 				else if ([[args objectAtIndex: mi] hasSuffix: @"eaiverbose"]) {
-					setEaiVerbose();
+					// obsolete setEaiVerbose();
 				}
 				else if ([[args objectAtIndex:mi] hasSuffix: @"geom"]) {
 					char geo[256];
@@ -471,36 +471,6 @@ BOOL mouseDisplaySensitive = false;
 				else if ([[args objectAtIndex:mi] hasSuffix: @"fullscreen"]) {
 					fullscreen = TRUE;
 				}
-				else if ([[args objectAtIndex:mi] hasSuffix: @"shutter"]) {
-					setShutter();
-				}
-				else if ([[args objectAtIndex:mi] hasSuffix: @"anaglyph"]) {
-					char anaglyph[256];
-					NSString* anaString = [args objectAtIndex:(mi+1)];
-					[anaString getCString: anaglyph];
-					setAnaglyphParameter(anaglyph);
-				}
-				else if ([[args objectAtIndex:mi] hasSuffix: @"sidebyside"]) {
-					setSideBySide();
-				}
-				else if ([[args objectAtIndex:mi] hasSuffix: @"eyedist"]) {
-					char eyeDist[256];
-					NSString* eyeString = [args objectAtIndex:(mi+1)];
-					[eyeString getCString: eyeDist];
-					setEyeDist(eyeDist);
-				}
-				else if ([[args objectAtIndex:mi] hasSuffix: @"screendist"]) {
-					char screenDist[256];
-					NSString* screenString = [args objectAtIndex:(mi+1)];
-					[screenString getCString: screenDist];
-					setScreenDist(screenDist);
-				}
-				else if ([[args objectAtIndex:mi] hasSuffix: @"stereo"]) {
-					char stereo[256];
-					NSString* stereoString = [args objectAtIndex:(mi+1)];
-					[stereoString getCString: stereo];
-					setStereoParameter(stereo);
-				}
 			}
         }
     }
@@ -534,7 +504,7 @@ BOOL mouseDisplaySensitive = false;
 	initFinished = TRUE;
 	/* do we require EAI? */
 	if (wantEAI) {
-		create_EAI();
+		fwl_create_EAI();
 		setWantEAI(1);
 	} else {
 		setWantEAI(0);
@@ -773,7 +743,7 @@ BOOL mouseDisplaySensitive = false;
 
 - (void) setStatusMess: (char*) stat {
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
-	if (isinputThreadParsing() || isTextureParsing() || (!isInputThreadInitialized())) {
+	if (fwl_isinputThreadParsing() || fwl_isTextureParsing() || (!fwl_isInputThreadInitialized())) {
 		[theApp setStatusMessage: [NSString stringWithFormat: @"Loading ..."]];
 	} else {
 		statString = [[NSString alloc] initWithCString: stat encoding: [NSString defaultCStringEncoding]];
@@ -784,7 +754,7 @@ BOOL mouseDisplaySensitive = false;
 
 - (void) setStatusFps: (double) myfps {
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
-	if (isinputThreadParsing() || isTextureParsing() || (!isInputThreadInitialized())) {
+	if (fwl_isinputThreadParsing() || fwl_isTextureParsing() || (!fwl_isInputThreadInitialized())) {
 		[theApp setStatusMessage: [NSString stringWithFormat: @"Loading ..."]];
 	} else {
 		fps = myfps;

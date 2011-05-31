@@ -312,7 +312,7 @@
 		[freewrl setFile: fileName];
 		[fileName getCString: buff];
 		if([freewrl hasDoneInit])
-			replaceWorldNeeded(buff);
+			fwl_replaceWorldNeeded(buff);
 		[wc showWindow];
 	}
 	return TRUE;
@@ -422,13 +422,13 @@
 }
 
 - (IBAction) prioritizeTextures: (id) sender {
-	if ([sender state] == NSOnState) {
-		[sender setState: NSOffState];
-		setTextures_take_priority(0);
-	} else if ([sender state] == NSOffState) {
-		[sender setState: NSOnState];
-		setTextures_take_priority(1);
-	}
+// obsolete	if ([sender state] == NSOnState) {
+//		[sender setState: NSOffState];
+//		setTextures_take_priority(0);
+//	} else if ([sender state] == NSOffState) {
+//		[sender setState: NSOnState];
+//		setTextures_take_priority(1);
+//	}
 }
 
 
