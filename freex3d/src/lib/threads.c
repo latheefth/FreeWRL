@@ -96,7 +96,9 @@ void sync(){}
 
 void fwl_initializeDisplayThread()
 {
+#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
 	int ret;
+#endif
 
 	/* Synchronize trace/error log... */
 	fflush(stdout);

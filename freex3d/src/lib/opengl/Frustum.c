@@ -91,13 +91,18 @@ GLuint potentialOccluderCount = 0;
 void ** occluderNodePointer = NULL;
 
 /* older occluder code */
+#ifdef OCCLUSION 
 static int maxOccludersFound = 0;
-GLuint OccQuerySize=0;
 static int QueryCount = 0;
+static int OccInitialized = FALSE;
+#endif
+
+GLuint OccQuerySize=0;
+
 	#ifdef OCCLUSIONVERBOSE
 		static GLint queryCounterBits;
 	#endif
-static int OccInitialized = FALSE;
+
 int OccFailed = FALSE;
 GLint OccResultsAvailable = FALSE;
 

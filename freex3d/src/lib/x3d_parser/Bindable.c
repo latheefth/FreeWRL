@@ -71,8 +71,10 @@ uintptr_t fog_stack[MAX_STACK];
 uintptr_t viewpoint_stack[MAX_STACK];
 uintptr_t navi_stack[MAX_STACK];
 
+#ifndef GL_ES_VERSION_2_0
 /* Background - fog nodes do not affect the background node rendering. */
 static int fog_enabled = FALSE;
+#endif
 
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
@@ -598,7 +600,7 @@ void render_Fog (struct X3D_Fog *node) {
 	fog_enabled = TRUE;
 
 	FW_GL_POP_MATRIX();
-	#endif */ GL_ES_VERSION_2_0 this should be handled in material shader */
+	#endif /* GL_ES_VERSION_2_0 this should be handled in material shader */
 }
 
 
@@ -906,16 +908,16 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 
 	#ifdef SHADERS_2011
 	{
-		struct MyVertex *combinedBuffer = MALLOC(GLfloat *, sizeof (struct MyVertex) * actq * 2);
+		struct MyVertex *combinedBuffer = MALLOC(struct MyVertex *, sizeof (struct MyVertex) * actq * 2);
 		int i;
 		float *npp = newPoints;
 		float *ncp = newColors;
 
 
 		if (node->_nodeType == NODE_Background) {
-			if (node->__VBO == 0) glGenBuffers(1,&node->__VBO);
+			if (node->__VBO == 0) glGenBuffers(1,(unsigned int*) &node->__VBO);
 		} else {
-			if (tbnode->__VBO == 0) glGenBuffers(1,&tbnode->__VBO);
+			if (tbnode->__VBO == 0) glGenBuffers(1,(unsigned int*) &tbnode->__VBO);
 		}
 
 		/* stream both the vertex and colours together (could have done this above, but

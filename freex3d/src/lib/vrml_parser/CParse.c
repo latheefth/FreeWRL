@@ -79,7 +79,6 @@ BOOL cParse(void* ptr, unsigned ofs, const char* data) {
  	ASSERT(parser->lexer);
 
  	if(!parser_vrmlScene(parser)) {
-		int sl = strlen (parser->lexer->nextIn);
 		#define CHARS_TO_RETURN_ERROR_END 200
 		char finalChars[CHARS_TO_RETURN_ERROR_END];
 

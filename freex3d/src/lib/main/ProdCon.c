@@ -512,7 +512,6 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 				setNavigationBindInRender = navnodes[0];
 			}
 			if (totviewpointnodes != 0) {
-				int whichnode = 0;
 				for (i=0; i < totviewpointnodes; ++i) send_bind_to(X3D_NODE(viewpointnodes[i]), 0);  /* Initialize binding info */
 
 				/* set the initial viewpoint for this file */
