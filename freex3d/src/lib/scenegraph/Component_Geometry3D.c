@@ -1235,6 +1235,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 	} else {
 #if !defined(IPHONE) && !defined(_ANDROID)
+		int count;
 		textureDraw_start(NULL,&mtf);
 		FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_NORMAL_POINTER (GL_FLOAT,0,spherenorms);
