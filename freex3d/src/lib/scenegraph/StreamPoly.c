@@ -552,7 +552,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	r->isRGBAcolorNode = isRGBA;
 
 	/* send the data to VBOs if required */
-	if (global_use_VBOs) {
+	if (gglobal()->internalc.global_use_VBOs) {
 		/* printf("stream polyrep, uploading vertices to VBO %u and %u\n",r->VBO_buffers[VERTEX_VBO], r->VBO_buffers[INDEX_VBO]); */
 
 		if (r->normal) {

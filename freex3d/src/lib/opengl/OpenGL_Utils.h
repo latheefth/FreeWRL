@@ -135,7 +135,7 @@ typedef struct {
 } s_renderer_capabilities_t;
 
 
-extern s_renderer_capabilities_t rdr_caps;
+//extern s_renderer_capabilities_t rdr_caps;
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);

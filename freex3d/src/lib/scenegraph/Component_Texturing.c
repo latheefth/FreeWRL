@@ -161,7 +161,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *node) {
 		#endif
 
 		/* We doing VBOs? */
-		if (global_use_VBOs) {
+		if (gglobal()->internalc.global_use_VBOs) {
 			if (node->__VBO == 0) {
 				GLuint tmp;
 				/* do this in 2 steps to get around 32/64 bit OSX warnings */

@@ -863,7 +863,7 @@ void linkNodeIn(char *where, int lineno) {
 
 	/* FreeWRL verses FreeX3D - lets see if this is a Metadatafield not following guidelines */
 
-	if ((coffset <= 0) && (!global_strictParsing)) {
+	if ((coffset <= 0) && (!gglobal()->internalc.global_strictParsing)) {
 		if ((parentStack[parentIndex]->_nodeType == NODE_MetadataFloat) ||
 		    (parentStack[parentIndex]->_nodeType == NODE_MetadataString) ||
 		    (parentStack[parentIndex]->_nodeType == NODE_MetadataDouble) ||

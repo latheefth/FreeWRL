@@ -2370,7 +2370,7 @@ void do_GeoProximitySensorTick( void *ptr) {
 			#endif
 
 			node->isActive = 1;
-			node->enterTime = TickTime;
+			node->enterTime = TickTime();
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, isActive));
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, enterTime));
 
@@ -2435,7 +2435,7 @@ void do_GeoProximitySensorTick( void *ptr) {
 			#endif
 
 			node->isActive = 0;
-			node->exitTime = TickTime;
+			node->exitTime = TickTime();
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, isActive));
 
 			MARK_EVENT (ptr, offsetof(struct X3D_GeoProximitySensor, exitTime));
@@ -2472,7 +2472,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 	COMPILE_IF_REQUIRED
 
 	#ifdef SENSVERBOSE
-	printf ("%lf: TS ",TickTime);
+	printf ("%lf: TS ",TickTime());
 	if (ev==ButtonPress) printf ("ButtonPress ");
 	else if (ev==ButtonRelease) printf ("ButtonRelease ");
 	else if (ev==KeyPress) printf ("KeyPress ");
@@ -2511,7 +2511,7 @@ void do_GeoTouchSensor ( void *ptr, int ev, int but1, int over) {
 		printf ("touchSens %u, butPress\n",node);
 		#endif
 
-		node->touchTime = TickTime;
+		node->touchTime = TickTime();
 		MARK_EVENT(ptr, offsetof (struct X3D_GeoTouchSensor, touchTime));
 
 	} else if (ev == ButtonRelease) {

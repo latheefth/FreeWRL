@@ -766,10 +766,10 @@ void OcclusionStartofRenderSceneUpdateScene() {
 		printf ("initializing OcclusionCulling...\n");
 		#endif
 		/* do we have an environment variable for this? */
-		if (global_occlusion_disable) {
+		if (gglobal()->internalc.global_occlusion_disable) {
 			OccFailed = TRUE;
 		} else {
-	        	if (rdr_caps.av_occlusion_q) {
+	        	if (gglobal()->display.rdr_caps.av_occlusion_q) {
 		
 				#ifdef OCCLUSIONVERBOSE
 	        	        printf ("OcclusionStartofRenderSceneUpdateScene: have OcclusionQuery\n"); 

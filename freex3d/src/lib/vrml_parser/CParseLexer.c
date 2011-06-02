@@ -543,7 +543,7 @@ BOOL lexer_defineID(struct VRMLLexer* me, int* ret, struct Vector* vec, BOOL mul
 		}
 	} else {
 		/* is this already defined? */
-		if (global_strictParsing) {
+		if (gglobal()->internalc.global_strictParsing) {
 			int i;
 			for(i=0; i!=vector_size(vec); ++i) {
 				if(!strcmp(me->curID, vector_get(const char*, vec, i))) {
@@ -1402,7 +1402,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         }
 
 	res = resource_create_multi(&url);
-	resource_identify(root_res, res);
+	resource_identify(gglobal()->resources.root_res, res);
 
 	if (res->type != rest_invalid) {
 		if (resource_fetch(res)) {

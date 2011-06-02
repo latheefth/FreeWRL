@@ -40,10 +40,10 @@ EAI and java CLASS invocation
 
 #include <pthread.h>
 
-#define EBUFFLOCK pthread_mutex_lock(&eaibufferlock)
-#define EBUFFUNLOCK pthread_mutex_unlock(&eaibufferlock)
+#define EBUFFLOCK pthread_mutex_lock(&p->eaibufferlock)
+#define EBUFFUNLOCK pthread_mutex_unlock(&p->eaibufferlock)
 
-extern int eaiverbose;
+//extern int eaiverbose;
 
 void shutdown_EAI(void);
 int EAI_GetNode(const char *str);
@@ -179,17 +179,17 @@ int createUDPSocket();
 int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd);
 void EAI_send_string (char *str, int listenfd);
 char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd);
-extern int EAIlistenfd;
-extern int EAIsockfd;
-extern int EAIport;
-extern int EAIwanted;
-extern int EAIbufsize;
-extern int EAIMIDIlistenfd;
-extern int EAIMIDIsockfd;
-extern int EAIMIDIwanted;
-extern char *EAIbuffer;
-extern int EAIbufcount;
-extern char EAIListenerData[EAIREADSIZE];
+//extern int EAIlistenfd;
+//extern int EAIsockfd;
+//extern int EAIport;
+//extern int EAIwanted;
+//extern int EAIbufsize;
+//extern int EAIMIDIlistenfd;
+//extern int EAIMIDIsockfd;
+//extern int EAIMIDIwanted;
+//extern char *EAIbuffer;
+//extern int EAIbufcount;
+//extern char EAIListenerData[EAIREADSIZE];
 
 #define MIDI_CONTROLLER_UNUSED 4
 #define MIDI_CONTROLLER_FADER 1

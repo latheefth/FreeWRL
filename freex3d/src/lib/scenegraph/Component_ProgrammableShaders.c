@@ -125,7 +125,7 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 		}
 
 #define CHECK_SHADERS \
-	if (!rdr_caps.av_glsl_shaders) { \
+	if (!gglobal()->display.rdr_caps.av_glsl_shaders) { \
 		if (node->isValid) ConsoleMessage ("have an X3D program with shaders, but no shader support on this computer"); \
 		node->isValid = FALSE; \
 		return; \

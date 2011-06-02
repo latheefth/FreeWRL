@@ -106,14 +106,14 @@ void fwl_set_viewer_type(const int type);
 	        yd = (float) Viewer.currentPosInModel.y; \
 	        zd = (float) Viewer.currentPosInModel.z; \
 	        test = sqrt (xd*xd+yd*yd+zd*zd); \
-		/* printf ("htw; cur Dist %4.2f, calculated %4.2f at %lf\n", Viewer.Dist, test,TickTime);  */\
+		/* printf ("htw; cur Dist %4.2f, calculated %4.2f at %lf\n", Viewer.Dist, test,TickTime());  */\
 		Viewer.Dist = test; \
 	}
 
 #define INITIATE_SLERP \
 	if (Viewer.transitionType != VIEWER_TRANSITION_TELEPORT) { \
         Viewer.SLERPing = TRUE; \
-        Viewer.startSLERPtime = TickTime; \
+        Viewer.startSLERPtime = TickTime(); \
         memcpy (&Viewer.startSLERPPos, &Viewer.Pos, sizeof (struct point_XYZ)); \
         memcpy (&Viewer.startSLERPAntiPos, &Viewer.AntiPos, sizeof (struct point_XYZ)); \
         memcpy (&Viewer.startSLERPQuat, &Viewer.Quat, sizeof (Quaternion)); \

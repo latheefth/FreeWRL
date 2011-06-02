@@ -408,7 +408,7 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  printf ("script_initCodeFromUri, uri is %s\n", uri); 
 
  res = resource_create_single(uri);
- resource_identify(root_res, res);
+ resource_identify(gglobal()->resources.root_res, res);
  if (res->type != rest_invalid) {
 	 if (resource_fetch(res)) {
 		 if (resource_load(res)) {

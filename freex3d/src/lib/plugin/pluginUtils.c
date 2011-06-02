@@ -407,7 +407,7 @@ void URLprint (const char *m, const char *p) {
 		fprintf (tty, "\nplugin restarted\n");
 	}
 
-	fprintf (tty,"%f URLprint: ",TickTime);
+	fprintf (tty,"%f URLprint: ",TickTime());
 	fprintf(tty, m,p);
 	fflush(tty);
 #endif

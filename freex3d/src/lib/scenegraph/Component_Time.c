@@ -65,7 +65,7 @@ void do_TimeSensorTick ( void *ptr) {
 	}
 
 	/* can we possibly have started yet? */
-	if(TickTime < node->startTime) {
+	if(TickTime() < node->startTime) {
 		return;
 	}
 
@@ -111,11 +111,11 @@ void do_TimeSensorTick ( void *ptr) {
 
 	if(node->isActive == 1) {
 		/* set time field */
-		node->time = TickTime;
+		node->time = TickTime();
 		MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, time));
 
 		/* calculate what fraction we should be */
- 		myTime = (TickTime - node->startTime) / myDuration;
+ 		myTime = (TickTime() - node->startTime) / myDuration;
 
 		if (node->loop) {
 			frac = myTime - (int) myTime;
@@ -130,7 +130,7 @@ void do_TimeSensorTick ( void *ptr) {
 		/* cycleTime events once at start, and once every loop. */
 		if (frac < node->__ctflag) {
 			/* push @e, [$t, cycleTime, $TickTime]; */
-			node->cycleTime = TickTime;
+			node->cycleTime = TickTime();
 			MARK_EVENT (ptr, offsetof(struct X3D_TimeSensor, cycleTime));
 		}
 		node->__ctflag = frac;

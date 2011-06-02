@@ -113,8 +113,8 @@ void rf_layer2D()
     FW_GL_PUSH_MATRIX();
     FW_GL_LOAD_IDENTITY();
 
-    FW_GL_ORTHO(0.0, (GLfloat) screenWidth,  // we need a viewport variable: glc.viewport[2],
-	    0.0, (GLfloat) screenHeight, // glc.viewport[3],
+    FW_GL_ORTHO(0.0, (GLfloat) gglobal()->display.screenWidth,  // we need a viewport variable: glc.viewport[2],
+	    0.0, (GLfloat) gglobal()->display.screenHeight, // glc.viewport[3],
 	    -1, 1);
     // Faire un FW_GL_POP_MATRIX après ...
     FW_GL_MATRIX_MODE(GL_MODELVIEW);

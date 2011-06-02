@@ -30,7 +30,7 @@
 #ifndef __FREEWRL_MAINLOOP_MAIN_H__
 #define __FREEWRL_MAINLOOP_MAIN_H__
 
-extern int currentX[20], currentY[20];
+//extern int currentX[20], currentY[20];
 
 void setDisplayed(int);
 /* OLDCODE: Now public

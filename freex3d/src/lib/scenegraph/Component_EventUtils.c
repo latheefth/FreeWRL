@@ -213,7 +213,7 @@ void do_TimeTrigger (void *node){
 	if (!node) return;
 	px = (struct X3D_TimeTrigger *) node;
 
-	px->triggerTime = TickTime;
+	px->triggerTime = TickTime();
 	MARK_EVENT (node, offsetof (struct X3D_TimeTrigger,triggerTime));
 }
 

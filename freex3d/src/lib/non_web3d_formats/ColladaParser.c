@@ -103,6 +103,7 @@ static int XML_ParseFile(xmlSAXHandler *me, const char *myinput, int myinputlen,
 //#define PROTOINSTANCE_MAX_LEVELS 10
 static XML_Parser colladaParser[PROTOINSTANCE_MAX_LEVELS];
 static XML_Parser currentColladaParser = NULL;
+//static int parentIndex = 0;
 static int ColladaParserRecurseLevel = 0;
 static int inCDATA = FALSE;
 struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];

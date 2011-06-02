@@ -188,13 +188,13 @@ void render_AudioControl (struct X3D_AudioControl *node) {
 			node->deltaFloatVal = (float) 0.0;
 		} else {
 			#ifdef SOUNDVERBOSE
-			printf ("maxM/S %f \n",(node->__oldLen - len)/ (TickTime- lastTime));
+			printf ("maxM/S %f \n",(node->__oldLen - len)/ (TickTime()- lastTime));
 			#endif
 
 			/* calculate change as Metres/second */
 
 			/* compute node->deltaFloatVal, and clamp to range of -1.0 to 1.0 */
-			node->deltaFloatVal = (float) ((node->__oldLen - len)/(TickTime-lastTime))/node->maxDelta;
+			node->deltaFloatVal = (float) ((node->__oldLen - len)/(TickTime()-lastTime()))/node->maxDelta;
 			if (node->deltaFloatVal < (float) -1.0) node->deltaFloatVal = (float) -1.0; if (node->deltaFloatVal > (float) 1.0) node->deltaFloatVal = (float) 1.0;
 			node->__oldLen = len;
 		}

@@ -59,7 +59,8 @@ fd_set rfds;
 struct timeval tv;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
-extern double TickTime;
+//extern double TickTime;
+double TickTime();
 
 /* Doug Sandens windows function; lets make it static here for non-windows */
 #if defined(_MSC_VER)
@@ -79,7 +80,7 @@ static double Time1970sec(void) {
 static void pluginprint (const char *m, const char *p)
 {
 	double myt;
-	if (global_plugin_print) {
+	if (gglobal()->internalc.global_plugin_print) {
         	/* Set the timestamp */
 		myt = Time1970sec();
         	printf ("%f: freewrl: ",myt);

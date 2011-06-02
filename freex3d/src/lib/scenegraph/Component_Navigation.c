@@ -84,7 +84,7 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
                 struct point_XYZ antipos;
 
                 /* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
-                tickFrac = (TickTime - Viewer.startSLERPtime)/Viewer.transitionTime;
+                tickFrac = (TickTime() - Viewer.startSLERPtime)/Viewer.transitionTime;
 
                 quaternion_slerp (&slerpedDiff,&Viewer.startSLERPprepVPQuat,&Viewer.prepVPQuat,tickFrac);
 

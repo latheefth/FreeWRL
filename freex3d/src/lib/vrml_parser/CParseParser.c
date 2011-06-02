@@ -2673,12 +2673,12 @@ static BOOL parser_sfboolValue(struct VRMLParser* me, void* ret) {
     }
 
     /* possibly this is from the XML parser, but there is a case problem */
-    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"TRUE"))) {
+    if (!gglobal()->internalc.global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"TRUE"))) {
 	CPARSE_ERROR_CURID("found upper case TRUE in XML file - should be lower case");
         *rv = TRUE;
         return TRUE;
     }
-    if (!global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"FALSE"))) {
+    if (!gglobal()->internalc.global_strictParsing && (!strcmp(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel],"FALSE"))) {
 	CPARSE_ERROR_CURID ("found upper case FALSE in XML file - should be lower case");
         *rv = FALSE;
         return TRUE;

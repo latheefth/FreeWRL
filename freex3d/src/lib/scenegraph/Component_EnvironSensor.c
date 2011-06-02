@@ -185,7 +185,7 @@ void do_VisibilitySensorTick (void *ptr) {
                         #endif
 
                         node->isActive = 1;
-                        node->enterTime = TickTime;
+                        node->enterTime = TickTime();
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, enterTime));
 
@@ -198,7 +198,7 @@ void do_VisibilitySensorTick (void *ptr) {
                         #endif
 
                         node->isActive = 0;
-                        node->exitTime = TickTime;
+                        node->exitTime = TickTime();
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
                         MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, exitTime));
 		}

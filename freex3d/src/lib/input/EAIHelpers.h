@@ -32,8 +32,8 @@ EAI Helpers functions
 
 #include "../vrml_parser/Structs.h"
 
-extern char *outBuffer;
-extern int outBufferLen;
+//extern char *outBuffer;
+//extern int outBufferLen;
 
 struct Uni_String *newASCIIString(char *str);
 void verify_Uni_String(struct  Uni_String *unis, char *str);

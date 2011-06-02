@@ -953,9 +953,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 	errcount = UtilEAI_Convert_mem_to_ASCII (type,memptr, utilBuf);
 	if (0 == errcount) {
-		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime,id, utilBuf);
+		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime(),id, utilBuf);
 	} else {
-		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime,id, "indeterminate....");
+		sprintf (buf,"%s\n%f\n%d\n%s",reptype,TickTime(),id, "indeterminate....");
 	}
 }
 
@@ -983,6 +983,8 @@ int UtilEAI_Convert_mem_to_ASCII (int type, char *memptr, char *buf) { /* Return
 
 	/* used because of endian problems... */
 	int *intptr;
+	int eaiverbose;
+	eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 	intptr = (int *) memptr;
 
 /* printf("%s,%d UtilEAI_Convert_mem_to_ASCII (type=%d , memptr=%p intptr=%p ....)\n",__FILE__,__LINE__,type,memptr,intptr); */
