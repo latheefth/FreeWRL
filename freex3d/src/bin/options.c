@@ -366,7 +366,7 @@ int fv_parseCommandLine (int argc, char **argv)
 
 	case 'K': /* --keypress, required argument: string */
 	    /* initial string of keypresses once main url is loaded */
-	    keypress_string = optarg; /* ! strdup ! */
+		fwl_set_KeyString(optarg);
 	    break;
 
 /* Internal options */
