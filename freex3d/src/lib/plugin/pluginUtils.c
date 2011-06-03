@@ -317,7 +317,7 @@ int doBrowserAction()
 
 		/* were we successful?? */
 		if (p->plugin_res->status != ress_loaded) {
-			ERROR_MSG("Could not load new world: %s\n", plugin_res->actual_file);
+			ERROR_MSG("Could not load new world: %s\n", p->plugin_res->actual_file);
 			return FALSE;
 		}
 
