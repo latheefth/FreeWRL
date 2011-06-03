@@ -242,9 +242,9 @@ void fwl_init_SideBySide(void);
 void fwl_set_AnaglyphParameter(const char *optArg);
 void fwl_set_StereoParameter(const char *optArg);
 
-void fwl_askForRefreshOK();
-int  fwl_checkRefresh();
-void fwl_resetRefresh();
+// JAS obsolete void fwl_askForRefreshOK();
+// JAS obsolete int  fwl_checkRefresh();
+// JAS obsolete void fwl_resetRefresh();
 
 /* DISPLAY THREAD */
 void fwl_initializeDisplayThread();
