@@ -607,13 +607,17 @@ void resetGeometry();
 	#endif
 
 	#if defined (TARGET_AQUA)
-		#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD) 
-			#define FW_GL_SWAPBUFFERS { \
-				CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
-				if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
-		#else
+#ifdef OLDCODE
+OLDCODE		#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD) 
+OLDCODE			#define FW_GL_SWAPBUFFERS { \
+OLDCODE				CGLError err = FW_GL_CGLFLUSHDRAWABLE(myglobalContext); \
+OLDCODE				if (err != kCGLNoError) printf ("FW_GL_CGLFLUSHDRAWABLE error %d\n",err); }
+OLDCODE		#else
+OLDCODE			#define FW_GL_SWAPBUFFERS /* do nothing */
+OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+#else
 			#define FW_GL_SWAPBUFFERS /* do nothing */
-		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+#endif
 
 	#endif
 
