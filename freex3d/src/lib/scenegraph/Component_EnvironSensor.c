@@ -69,7 +69,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		/* first time through, if we have a visibility sensor, but do not have the OpenGL ability to
 		   use it, we print up a console message */
-		if (OccFailed) {
+		if (gglobal()->Frustum.OccFailed) {
 			candoVisibility = FALSE;
 			ConsoleMessage("VisibilitySensor: OpenGL on this machine does not support GL_ARB_occlusion_query");
 			return;
@@ -80,7 +80,8 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 		if (render_blend) { 
                         #ifdef VISIBILITYOCCLUSION
 
-			BEGINOCCLUSIONQUERY
+			//BEGINOCCLUSIONQUERY
+			beginOcclusionQuery(node,render_geom);
 			LIGHTING_OFF
 			DISABLE_CULL_FACE 
 
@@ -89,7 +90,8 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			ENABLE_CULL_FACE
 			LIGHTING_ON
 			
-			ENDOCCLUSIONQUERY
+			//ENDOCCLUSIONQUERY
+			endOcclusionQuery(node,render_geom);
                         #endif
 		}
 
