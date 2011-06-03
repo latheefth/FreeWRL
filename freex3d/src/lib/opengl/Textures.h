@@ -137,7 +137,8 @@ struct multiTexParams {
 extern int textureStackTop; 
 
 /* what are the textures, and what are the multitexturing parameters if more than one? */
-extern struct multiTexParams *textureParameterStack[];
+//extern struct multiTexParams *textureParameterStack[];
+//extern void *textureParameterStack[];
 extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
 
 extern GLuint     *global_tcin;

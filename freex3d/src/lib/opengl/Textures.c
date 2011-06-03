@@ -1490,6 +1490,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 	textureTableIndexStruct_s *myTableIndex;
 	float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
+	ttglobal tg = gglobal();
 
 	GET_THIS_TEXTURE;
 	myTableIndex = getTableIndex(thisTexture);
@@ -1554,7 +1555,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
-			textureParameterStack[textureStackTop] = param; 
+			tg->RenderTextures.textureParameterStack[textureStackTop] = (void*)param; 
 	
 			textureInProcess = -1; /* we have finished the whole process */
 			break;
