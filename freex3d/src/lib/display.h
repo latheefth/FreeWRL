@@ -363,7 +363,7 @@ void setMenuStatus(char *stat);
 //extern int xPos;
 //extern int yPos;
 //
-extern int displayDepth;
+//extern int displayDepth;
 //
 //extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
 //extern int quadbuff_stereo_mode; /* quad buffer enabled ? */

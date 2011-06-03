@@ -596,7 +596,7 @@ void fwl_RenderSceneUpdateScene() {
         }
 
         /* has the default background changed? */
-        if (cc_changed) doglClearColor();
+        if (tg->OpenGL_Utils.cc_changed) doglClearColor();
 
         OcclusionStartofRenderSceneUpdateScene();
         startOfLoopNodeUpdates();
