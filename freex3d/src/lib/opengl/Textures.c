@@ -90,6 +90,7 @@ int textureInProcess = -1;
 GLuint	*global_tcin;
 int	global_tcin_count;
 void 	*global_tcin_lastParent;
+GLuint defaultBlankTexture;
 
 
 #if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
@@ -327,7 +328,7 @@ int isTextureAlpha(int texno) {
 
 /* is the texture thread initialized yet? */
 int fwl_isTextureinitialized() {
-	return TextureThreadInitialized;
+	return gglobal()->LoadTextures.TextureThreadInitialized;
 }
 
 /* is this texture loaded? used in LoadSensor */
