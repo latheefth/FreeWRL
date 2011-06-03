@@ -481,6 +481,8 @@ void handleButtonOver(){}
 void handleOptionPress(){}
 void handleButtonPress(){}
 
+#define MAXSTAT 200
+char myMenuStatus[MAXSTAT];
 void setMenuButton_collision(int val){}
 void setMenuButton_texSize(int size){}
 void setMenuButton_headlight(int val){}

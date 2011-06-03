@@ -334,9 +334,9 @@ void initialize_rdr_functions();
 void rdr_caps_dump();
 void setMessageBar(void);
 void setMenuStatus(char *stat);
-#define MAXSTAT 200
-//extern char myMenuStatus[MAXSTAT];
-//extern float myFps;
+/* OLDCODE #define MAXSTAT 200 */
+/* OLDCODE extern char myMenuStatus[MAXSTAT]; */
+/* OLDCODE extern float myFps; */
 
 /**
  * Main window parameters

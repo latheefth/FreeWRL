@@ -43,6 +43,12 @@ Cursor curcursor;
 
 #if KEEP_X11_INLIB
 
+int win_height; /* window */
+int win_width;
+int fullscreen;
+int shutterGlasses; /* shutter glasses, stereo enabled ? */
+int quadbuff_stereo_mode; /* quad buffer enabled ? */
+
 GLXContext GLcx;
 long event_mask;
 XEvent event;
