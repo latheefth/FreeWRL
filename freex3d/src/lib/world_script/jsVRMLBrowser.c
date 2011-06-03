@@ -465,10 +465,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 		#endif
 
 		/* do the call to make the VRML code  - create a new browser just for this string */
-		savedParser = globalParser; globalParser = NULL;
+		gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
 		retGroup = createNewX3DNode(NODE_Group);
 		ra = EAI_CreateVrml("String",_c,retGroup);
-		globalParser = savedParser; /* restore it */
+		globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
 
 
 		/* and, make a string that we can use to create the javascript object */

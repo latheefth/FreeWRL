@@ -37,12 +37,12 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 extern GLint viewPort[];
 
 /* Bindables, Viewpoint, NavigationInfo, Background, TextureBackground and Fog */
-extern void * *fognodes;
-extern void * *backgroundnodes;
-extern void * *navnodes;
-extern void * *viewpointnodes;
-extern int totfognodes, totbacknodes, totnavnodes, totviewpointnodes;
-extern int currboundvpno;
+//extern void * *fognodes;
+//extern void * *backgroundnodes;
+//extern void * *navnodes;
+//extern void * *viewpointnodes;
+//extern int totfognodes, totbacknodes, totnavnodes;//, totviewpointnodes;
+//extern int currboundvpno;
 
 extern int viewpoint_tos;
 extern int background_tos;

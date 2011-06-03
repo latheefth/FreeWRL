@@ -87,19 +87,19 @@ static void goToViewpoint(char *vp) {
 	struct X3D_Node *localNode;
 	/* unused int tableIndex; */
 	int flen;
-
+	struct tProdCon *t = &gglobal()->ProdCon;
 
 	/* see if we can get a node that matches this DEF name */
 	localNode = EAI_GetViewpoint(vp);
 	
 	/*  did we find a match with known Viewpoints?*/
 	if (localNode != NULL) {
-		for (flen=0; flen<totviewpointnodes;flen++) {
-			if (localNode == viewpointnodes[flen]) {
+		for (flen=0; flen<t->totviewpointnodes;flen++) {
+			if (localNode == t->viewpointnodes[flen]) {
 				/* unbind current, and bind this one */
-				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),0);
-				currboundvpno=flen;
-				send_bind_to(X3D_NODE(viewpointnodes[currboundvpno]),1);
+				send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),0);
+				t->currboundvpno=flen;
+				send_bind_to(X3D_NODE(t->viewpointnodes[t->currboundvpno]),1);
 
 				return;
 			}
