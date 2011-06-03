@@ -1675,12 +1675,14 @@ bool fwl_initialize_GL()
 	char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
-	#if defined (TARGET_AQUA) 
-		extern CGLContextObj myglobalContext;
-                CGLSetCurrentContext(myglobalContext);
-	#endif /* TARGET_AQUA */
-#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+#ifdef OLDCODE
+OLDCODE#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
+OLDCODE	#if defined (TARGET_AQUA) 
+OLDCODE		extern CGLContextObj myglobalContext;
+OLDCODE                CGLSetCurrentContext(myglobalContext);
+OLDCODE	#endif /* TARGET_AQUA */
+OLDCODE#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
+#endif // OLDCODE
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 1");
 	initialize_rdr_caps();
