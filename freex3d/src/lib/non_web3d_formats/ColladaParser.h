@@ -49,13 +49,13 @@ int freewrl_XML_GetCurrentLineNumber();
 extern int CDATA_Text_curlen;
 extern char *CDATA_Text;
 
-extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
+//extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
 
-#define INCREMENT_PARENTINDEXC \
-        if (parentIndex < (PARENTSTACKSIZE-2))  { \
-                parentIndex++; \
-                colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
-        } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
+//#define INCREMENT_PARENTINDEXC \
+//        if (parentIndex < (PARENTSTACKSIZE-2))  { \
+//                parentIndex++; \
+//                colladaParentStack[parentIndex] = NULL; /* make sure we know the state of the new Top of Stack */ \
+//        } else ConsoleMessage ("ColladaParser, line %d stack overflow",LINE);
 
 int ColladaParse (struct X3D_Group* myParent, const char *inputstring);
 
