@@ -484,8 +484,11 @@ void dump_resource_waiting(resource_item_t* res)
 void dump_parser_wait_queue()
 {
 #ifdef FW_DEBUG
+	ppProdCon p;
+	struct tProdCon *t = &gglobal()->ProdCon;
+	p = (ppProdCon)t->prv;
 	printf("Parser wait queue:\n");
-	ml_foreach(resource_list_to_parse, dump_resource_waiting((resource_item_t*)ml_elem(__l)));
+	ml_foreach(p->resource_list_to_parse, dump_resource_waiting((resource_item_t*)ml_elem(__l)));
 	printf(".\n");
 #endif
 }

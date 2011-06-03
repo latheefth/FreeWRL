@@ -1174,12 +1174,13 @@ void renderCursors();
 /* Render the scene */
 static void render() 
 {
-#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+
+#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
     int count,i;
 	static double shuttertime;
 	static int shutterside;
-	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 	/*  profile*/
     /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
     /* struct timeval mytime;*/
