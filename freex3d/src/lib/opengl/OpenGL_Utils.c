@@ -1673,7 +1673,9 @@ void end_textureTransform (void) {
 bool fwl_initialize_GL()
 {
 	char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
 #ifdef OLDCODE
 OLDCODE#if !defined (FRONTEND_HANDLES_DISPLAY_THREAD)
@@ -1852,11 +1854,11 @@ OLDCODE#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 	do_shininess(GL_FRONT_AND_BACK,(float) 0.2);
 	{
-	extern GLuint defaultBlankTexture;
+	//extern GLuint defaultBlankTexture;
 
         /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
-        FW_GL_GENTEXTURES (1,&defaultBlankTexture);
-        FW_GL_BINDTEXTURE (GL_TEXTURE_2D, defaultBlankTexture);
+        FW_GL_GENTEXTURES (1,&tg->Textures.defaultBlankTexture);
+        FW_GL_BINDTEXTURE (GL_TEXTURE_2D, tg->Textures.defaultBlankTexture);
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
