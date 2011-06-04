@@ -47,8 +47,32 @@ X3D H-Anim Component
 
 
 /* last HAnimHumanoid skinCoord and skinNormals */
-void *HANimSkinCoord = 0;
-void *HAnimSkinNormal = 0;
+//void *HANimSkinCoord = 0;
+//void *HAnimSkinNormal = 0;
+typedef struct pComponent_HAnim{
+	void *HANimSkinCoord;// = 0;
+	void *HAnimSkinNormal;// = 0;
+
+}* ppComponent_HAnim;
+void *Component_HAnim_constructor(){
+	void *v = malloc(sizeof(struct pComponent_HAnim));
+	memset(v,0,sizeof(struct pComponent_HAnim));
+	return v;
+}
+void Component_HAnim_init(struct tComponent_HAnim *t){
+	//public
+	//private
+	t->prv = Component_HAnim_constructor();
+	{
+		ppComponent_HAnim p = (ppComponent_HAnim)t->prv;
+		p->HANimSkinCoord = 0;
+		p->HAnimSkinNormal = 0;
+
+	}
+}
+//ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
+
+
 
 void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
 /*
