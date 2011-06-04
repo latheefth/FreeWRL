@@ -390,8 +390,8 @@ extern int global_lineProperties;
 extern int global_fillProperties;
 //extern float gl_linewidth;
 extern int soundWarned;
-extern int cur_hits;
-extern struct point_XYZ hyper_r1,hyper_r2;
+//extern int cur_hits;
+//extern struct point_XYZ hyper_r1,hyper_r2;
 
 extern struct X3D_Text *lastTextNode;
 
