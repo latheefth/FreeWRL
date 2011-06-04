@@ -148,7 +148,8 @@ extern GLuint boundTextureStack[]; /* defined as MAX_MULTITEXTURE in size */
 extern void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo *tex);
 extern void textureDraw_end(void);
 
-extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
+//extern struct X3D_Node *this_textureTransform;  /* do we have some kind of textureTransform? */
+struct X3D_Node *getThis_textureTransform();
 
 extern int fwl_isTextureLoaded(int texno);
 extern int isTextureAlpha(int n);

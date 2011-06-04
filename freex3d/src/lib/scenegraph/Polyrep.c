@@ -62,7 +62,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	float *op, *np;
 
 	/* first, make sure we do not do this over and over... */
-	r->transparency = appearanceProperties.transparency;
+	r->transparency = getAppearanceProperties()->transparency;
 
 	newcolors = MALLOC (struct SFColorRGBA *, sizeof (struct SFColorRGBA)*r->ntri*3);
 	op = r->color;
@@ -72,7 +72,7 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 		*np = *op; np++; op++;  		/* R */
 		*np = *op; np++; op++;  		/* G */
 		*np = *op; np++; op++;  		/* B */
-		*np = appearanceProperties.transparency; np++; op++;	/* A */
+		*np = getAppearanceProperties()->transparency; np++; op++;	/* A */
 	}
 	FREE_IF_NZ(r->color);
 	r->color = (float *)newcolors;
@@ -823,7 +823,7 @@ void render_polyrep(void *node) {
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(hasc){
 		if (!pr->isRGBAcolorNode) 
-			if (!APPROX(pr->transparency,appearanceProperties.transparency)) {
+			if (!APPROX(pr->transparency,getAppearanceProperties()->transparency)) {
 				recalculateColorField(pr);
 			}
 		

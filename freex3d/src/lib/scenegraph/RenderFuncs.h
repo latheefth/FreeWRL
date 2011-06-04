@@ -38,7 +38,7 @@ void turnGlobalShaderOff(void);
 	#define TURN_GLOBAL_SHADER_OFF \
 		turnGlobalShaderOff()
 	#define TURN_FILLPROPERTIES_SHADER_OFF \
-		{if (fillpropCurrentShader!=0) { glUseProgram(0);}}
+		{if (p->fillpropCurrentShader!=0) { glUseProgram(0);}}
 #else
 	#ifdef GL_VERSION_1_5
 		#define TURN_GLOBAL_SHADER_OFF \

@@ -118,8 +118,8 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 #define RUN_IF_VALID \
 		if (node->isValid) { \
 			if (node->__shaderIDS.n != 0) { \
-				appearanceProperties.currentShader = (GLuint) node->__shaderIDS.p[0]; \
-				USE_SHADER(appearanceProperties.currentShader); \
+				getAppearanceProperties()->currentShader = (GLuint) node->__shaderIDS.p[0]; \
+				USE_SHADER(getAppearanceProperties()->currentShader); \
 				if (!node->__initialized) sendInitialFieldsToShader(X3D_NODE(node)); \
 			} \
 		}
@@ -842,7 +842,7 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 					printf ("ProgramShader, activate %d isSelected %d isValid %d TRUE %d FALSE %d\n",
 						X3D_PROGRAMSHADER(node)->activate,X3D_PROGRAMSHADER(node)->isSelected,
 						X3D_PROGRAMSHADER(node)->isValid, TRUE, FALSE);
-					printf ("runningShader %d, myShader %d\n",appearanceProperties.currentShader, X3D_PROGRAMSHADER(node)->__shaderIDS.p[0]);
+					printf ("runningShader %d, myShader %d\n",getAppearanceProperties()->currentShader, X3D_PROGRAMSHADER(node)->__shaderIDS.p[0]);
 					#endif
 
 					struct X3D_ShaderProgram *part = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);

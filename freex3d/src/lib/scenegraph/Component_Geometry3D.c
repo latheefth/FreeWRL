@@ -1040,7 +1040,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	CULL_FACE(node->solid)
 
 	/* send in the radius, Charlie! */
-	GLUNIFORM1F(appearanceProperties.currentShaderProperties->specialUniform1,rad);
+	GLUNIFORM1F(getAppearanceProperties()->currentShaderProperties->specialUniform1,rad);
 
 
 	/* vertices */

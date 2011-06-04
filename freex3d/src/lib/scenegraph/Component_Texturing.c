@@ -208,7 +208,7 @@ void render_PixelTexture (struct X3D_PixelTexture *node) {
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
-	/* printf ("render_ImageTexture, global Transparency %f\n",appearanceProperties.transparency); */
+	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
 	textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }

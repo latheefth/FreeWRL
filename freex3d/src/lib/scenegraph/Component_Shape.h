@@ -92,7 +92,8 @@ struct matpropstruct {
 	int 	cullFace;		/* is this single-sided or two-sided? */
 };
 
-extern struct matpropstruct appearanceProperties;
+//extern struct matpropstruct appearanceProperties;
+struct matpropstruct* getAppearanceProperties();
 
 #define MIN_NODE_TRANSPARENCY 0.0f
 #define MAX_NODE_TRANSPARENCY 0.99f  /* if 1.0, then occlusion culling will cause flashing */
@@ -111,7 +112,7 @@ extern struct matpropstruct appearanceProperties;
 		\
 	if (trans<0.0f) trans = 0.0f;		\
 	if (trans>=0.999999f) trans = 0.9999999f;		\
-	appearanceProperties.transparency = trans;		\
+	getAppearanceProperties()->transparency = trans;		\
 		\
 	dcol[3] = trans;		\
 	scol[3] = trans;		\
