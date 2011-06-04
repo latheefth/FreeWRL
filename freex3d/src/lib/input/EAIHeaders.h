@@ -118,7 +118,10 @@ char *eaiPrintCommand (char command);
 #define GETROUTES	'j'
 #define GETNODETYPE	'k'
 #define MIDIINFO  	'l'
-#define MIDICONTROL  	'm'
+#ifdef OLDCODE
+OLDCODE #define MIDICONTROL  	'm'
+#endif // OLDCODE
+
 #define DUMPSCENE  	'n'
 
 

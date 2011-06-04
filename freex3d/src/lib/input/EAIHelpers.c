@@ -790,7 +790,6 @@ char *eaiPrintCommand (char command) {
 		case GETROUTES: return ("GETROUTES");
 		case GETNODETYPE: return ("GETNODETYPE");
 		case MIDIINFO: return ("MIDIINFO");
-		case MIDICONTROL: return ("MIDICONTROL");
 		default:{} ;
 	}
 	return "unknown command...";

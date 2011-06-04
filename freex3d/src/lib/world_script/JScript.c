@@ -142,12 +142,7 @@ static char *DefaultScriptMethods = "function initialize() {}; " \
 			" function createX3DFromString(x) {Browser.createX3DFromString(x)}; "\
 			" function createX3DFromURL(x,y,z) {Browser.createX3DFromURL(x,y,z)}; "\
 			" function addRoute(a,b,c,d) {Browser.addRoute(a,b,c,d)}; "\
-			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "\
-			" function getMidiDeviceList() {return Browser.getMidiDeviceList()}; "\
-			" function getMidiDeviceInfo(x) {return Browser.getMidiDeviceInfo(x)}; "\
-			" function getMidiControlMin(x,y) {return Browser.getMidiControlMin(x,y)}; "\
-			" function getMidiControlMax(x,y) {return Browser.getMidiControlMax(x,y)}; "\
-			" function getMidiControlNumber(x,y) {return Browser.getMidiControlNumber(x,y)}; "\
+			" function deleteRoute(a,b,c,d) {Browser.deleteRoute(a,b,c,d)}; "
 			"";
 
 static JSRuntime *runtime = NULL;
