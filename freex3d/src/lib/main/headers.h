@@ -782,11 +782,11 @@ struct ReWireNamenameStruct {
         char *name;
 };
 
-extern struct ReWireNamenameStruct *ReWireNamenames;
-extern int ReWireNametableSize;
-extern struct ReWireDeviceStruct *ReWireDevices;
-extern int ReWireDevicetableSize;
-extern int MAXReWireDevices;
+//extern struct ReWireNamenameStruct *ReWireNamenames;
+//extern int ReWireNametableSize;
+//extern struct ReWireDeviceStruct *ReWireDevices;
+//extern int ReWireDevicetableSize;
+//extern int MAXReWireDevices;
 
 
 /* Event Utilities Component */

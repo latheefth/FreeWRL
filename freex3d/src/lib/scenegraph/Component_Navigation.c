@@ -48,7 +48,7 @@ X3D Navigation Component
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
 
-extern struct sCollisionInfo OldCollisionInfo;
+//extern struct sCollisionInfo OldCollisionInfo;
 
 void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	double a1;
