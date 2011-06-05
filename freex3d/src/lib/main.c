@@ -395,6 +395,7 @@ OLDCODE*/
 	   create the display thread and wait for it
 	   to complete initialization */
 	fwl_initializeDisplayThread();
+	sleep(50);
 	set_thread2global(fwl,gglobal()->threads.DispThrd );
 
 
