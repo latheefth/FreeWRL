@@ -265,6 +265,14 @@ void fwl_thread_dump()
 
 void trace_enter_thread(const char *str)
 {
+	int nloops = 0;
+	ttglobal tg = NULL;
+	while(tg == NULL){
+		sleep(50);
+		tg = gglobal0(); //<< new function ttglobal0() just returns NULL if thread not registered yet
+		nloops++;
+	}
+	printf("trace_enter_thread spent %d loops\n",nloops);
 	if (gglobal()->internalc.global_trace_threads) {
 		/* Synchronize trace/error log... */
 		fflush(stdout);
