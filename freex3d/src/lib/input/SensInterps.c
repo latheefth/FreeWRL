@@ -1407,7 +1407,7 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	if (ev==ButtonRelease) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
-		AnchorsAnchor = node;
+		setAnchorsAnchor( node );
 		FREE_IF_NZ(OSX_replace_world_from_console);
 		BrowserAction = TRUE;
 	}

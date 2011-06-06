@@ -403,7 +403,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 			createLoadURL(myBuf);
 
 			/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
-			AnchorsAnchor = get_EAIEventsIn_AnchorNode(); //&gglobal()->EAIEventsIn.EAI_AnchorNode;
+			setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&gglobal()->EAIEventsIn.EAI_AnchorNode;
 		}
 		BrowserAction = TRUE;
 

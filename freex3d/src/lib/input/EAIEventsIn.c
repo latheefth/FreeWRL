@@ -594,7 +594,7 @@ OLDCODE				}
 				sprintf (th->outBuffer,"RE\n%f\n%d\n",TickTime(),count);
 
 				/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
-				AnchorsAnchor = get_EAIEventsIn_AnchorNode(); //&tg->EAIEventsIn.EAI_AnchorNode;
+				setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&tg->EAIEventsIn.EAI_AnchorNode;
 				BrowserAction = TRUE;
 				break;
 				}

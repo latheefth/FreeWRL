@@ -82,7 +82,9 @@ int nextlight(void);
 void render_node(struct X3D_Node *node);
 
 extern int BrowserAction;
-extern struct X3D_Anchor *AnchorsAnchor;
+//extern struct X3D_Anchor *AnchorsAnchor;
+struct X3D_Anchor *AnchorsAnchor();
+void setAnchorsAnchor(struct X3D_Anchor* anchor);
 extern char *OSX_replace_world_from_console;
 
 void lightState(GLint light, int status);
