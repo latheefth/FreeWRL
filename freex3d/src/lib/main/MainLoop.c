@@ -570,8 +570,8 @@ void fwl_RenderSceneUpdateScene() {
 
 
         /* BrowserAction required? eg, anchors, etc */
-        if (BrowserAction) {
-                BrowserAction = doBrowserAction ();
+        if (tg->RenderFuncs.BrowserAction) {
+                tg->RenderFuncs.BrowserAction = doBrowserAction ();
         }
 
         /* has the default background changed? */
@@ -2367,15 +2367,17 @@ void fwl_init_EaiVerbose() {
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
+	ttglobal tg = gglobal();
 	//printf ("replaceWorldneeded called - file %s\n",str); 
-        setAnchorsAnchor( NULL );
-        FREE_IF_NZ(OSX_replace_world_from_console);
-	OSX_replace_world_from_console = STRDUP(str);
-        BrowserAction = TRUE;
+	setAnchorsAnchor( NULL );
+	FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+	tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
+	tg->RenderFuncs.BrowserAction = TRUE;
 }
 
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
 void stopRenderingLoop(void) {
+	ttglobal tg = gglobal();
 	//printf ("stopRenderingLoop called\n");
 
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
@@ -2386,8 +2388,8 @@ void stopRenderingLoop(void) {
 	/* lets do an equivalent to replaceWorldNeeded, but with NULL for the new world */
 
         setAnchorsAnchor( NULL );
-        BrowserAction = TRUE;
-        FREE_IF_NZ(OSX_replace_world_from_console);
+        tg->RenderFuncs.BrowserAction = TRUE;
+        FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
 	// printf ("stopRenderingLoop finished\n");
 }
 

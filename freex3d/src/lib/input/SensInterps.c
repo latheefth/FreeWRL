@@ -1405,11 +1405,12 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 	/* try button release, so that we dont get worlds flashing past if 
 	   the user keeps the finger down. :-) if (ev==ButtonPress) { */
 	if (ev==ButtonRelease) {
+		ttglobal tg = gglobal();
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 		setAnchorsAnchor( node );
-		FREE_IF_NZ(OSX_replace_world_from_console);
-		BrowserAction = TRUE;
+		FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+		tg->RenderFuncs.BrowserAction = TRUE;
 	}
 }
 

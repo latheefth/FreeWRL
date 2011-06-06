@@ -56,6 +56,8 @@ static X3D_Viewer_YawPitchZoom viewer_ypz = { {0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
 static FILE *exfly_in_file;
+X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
+
 
 static void handle_tick_walk(void);
 static void handle_tick_fly(void);

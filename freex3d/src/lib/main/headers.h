@@ -478,7 +478,7 @@ extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 
 /* bindable nodes */
-extern GLint viewport[];
+extern GLint viewport[]; //true static
 extern struct sNaviInfo naviinfo;
 extern double defaultExamineDist;
 

@@ -595,7 +595,7 @@ OLDCODE				}
 
 				/* now tell the fwl_RenderSceneUpdateScene that BrowserAction is requested... */
 				setAnchorsAnchor( get_EAIEventsIn_AnchorNode()); //&tg->EAIEventsIn.EAI_AnchorNode;
-				BrowserAction = TRUE;
+				tg->RenderFuncs.BrowserAction = TRUE;
 				break;
 				}
 

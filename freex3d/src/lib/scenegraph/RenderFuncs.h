@@ -81,11 +81,11 @@ extern struct point_XYZ r1, r2;         /* in VRMLC.pm */
 int nextlight(void);
 void render_node(struct X3D_Node *node);
 
-extern int BrowserAction;
+//extern int BrowserAction;
 //extern struct X3D_Anchor *AnchorsAnchor;
 struct X3D_Anchor *AnchorsAnchor();
 void setAnchorsAnchor(struct X3D_Anchor* anchor);
-extern char *OSX_replace_world_from_console;
+//extern char *OSX_replace_world_from_console;
 
 void lightState(GLint light, int status);
 void saveLightState(int *ls);
