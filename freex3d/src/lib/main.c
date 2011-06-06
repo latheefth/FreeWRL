@@ -344,7 +344,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	   to complete initialization */
 	fwl_initializeDisplayThread();
 
-	sleep(50);
+	usleep(50);
 	set_thread2global(fwl,gglobal()->threads.DispThrd );
 
 #endif //FRONTEND_HANDLES_DISPLAY_THREAD
