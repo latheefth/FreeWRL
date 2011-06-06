@@ -385,11 +385,11 @@ unsigned int setField_FromEAI (char *ptr);
 )
 
 /* from VRMLC.pm */
-extern int sound_from_audioclip;
+//extern int sound_from_audioclip;
 extern int global_lineProperties;
 extern int global_fillProperties;
 //extern float gl_linewidth;
-extern int soundWarned;
+//extern int soundWarned;
 //extern int cur_hits;
 //extern struct point_XYZ hyper_r1,hyper_r2;
 
@@ -454,9 +454,9 @@ void normalize_ifs_face (float *point_normal,
 /* Text node system fonts. On startup, freewrl checks to see where the fonts
  * are stored
  */
-extern float AC_LastDuration[];
+//extern float AC_LastDuration[];
 
-extern int SoundEngineStarted;
+//extern int SoundEngineStarted;
 
 /* used to determine whether we have transparent materials. */
 extern int have_transparency;
