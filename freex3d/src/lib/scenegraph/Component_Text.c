@@ -392,13 +392,12 @@ void FW_make_fontname(int num) {
     fonts directory.
 */
 
+    ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     #ifdef HAVE_FONTCONFIG
     FcPattern *FW_fp=NULL;
     FcPattern *FW_fm=NULL;
     FcChar8 *FW_file=NULL;
-    ppCpmponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
     #else
-	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
     if (!p->font_directory) {
         printf("Internal error: no font directory.\n");
