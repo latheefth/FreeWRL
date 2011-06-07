@@ -649,8 +649,10 @@ extern int isPerlinitialized(void);
 extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
 extern int  lightingOn;			/* state of GL_LIGHTING */
-extern struct sCollisionInfo CollisionInfo;
-extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
+//extern struct sCollisionInfo CollisionInfo;
+//extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
+struct sCollisionInfo* CollisionInfo();
+struct sFallInfo* FallInfo();
 
 extern void xs_init(void);
 

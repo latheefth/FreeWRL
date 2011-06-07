@@ -79,6 +79,9 @@ static int fog_enabled = FALSE;
 
 static void saveBGVert (float *colptr, float *pt, int *vertexno, float *col, double dist, double x, double y, double z) ;
 
+/* dimentions of viewer, and "up" vector (for collision detection) */
+struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
+
 /* common entry routine for setting avatar size */
 void set_naviWidthHeightStep(double wid, double hei, double step) {
 
