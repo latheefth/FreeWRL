@@ -472,7 +472,7 @@ double lastTime();
 //extern int trisThisLoop;
 
 /* saved rayhit and hyperhit */
-extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
+//extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 
 /* set a node to be sensitive */
 void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);

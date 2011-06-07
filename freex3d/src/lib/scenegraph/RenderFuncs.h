@@ -60,7 +60,7 @@ void turnGlobalShaderOff(void);
 #endif
 
 /* trat: test if a ratio is reasonable */
-#define TRAT(a) ((a) > 0 && ((a) < hitPointDist || hitPointDist < 0))
+#define TRAT(a) ((a) > 0 && ((a) < gglobal()->RenderFuncs.hitPointDist || gglobal()->RenderFuncs.hitPointDist < 0))
 
 /* structure for rayhits */
 struct currayhit {
@@ -70,7 +70,7 @@ struct currayhit {
 };
 
 extern struct currayhit rayHit,rayph,rayHitHyper;
-extern double hitPointDist;                   /* in VRMLC.pm */
+//extern double hitPointDist;                   /* in VRMLC.pm */
 extern struct point_XYZ hp;                     /* in VRMLC.pm */
 extern void *hypersensitive;            /* in VRMLC.pm */
 extern int hyperhit;                    /* in VRMLC.pm */
