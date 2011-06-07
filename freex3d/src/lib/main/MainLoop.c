@@ -1038,11 +1038,11 @@ static void render_pre() {
 			{
 				/* find pickingSensors, record their world transform and picktargets */
 				save_viewpoint2world();
-				render_hier(rootNode, VF_PickingSensor | VF_Other);
+				render_hier(rootNode(), VF_PickingSensor | VF_Other);
 				if( enabled_picksensors() )
 				{
 					/* find picktargets, transform to world and do pick test and save results */
-					render_hier(rootNode, VF_inPickableGroup | VF_Other );
+					render_hier(rootNode(), VF_inPickableGroup | VF_Other );
 					/* record results of picks to picksensor node fields and event outs*/
 					do_pickSensors();
 				}

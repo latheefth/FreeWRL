@@ -1762,7 +1762,7 @@ void prep_GeoLocation (struct X3D_GeoLocation *node) {
 	/* do we have any geometry visible, and are we doing anything with geometry? */
 	OCCLUSIONTEST
 
-	if(!render_vp) {
+	if(!renderstate()->render_vp) {
 		FW_GL_PUSH_MATRIX();
 
 		/* TRANSLATION */
@@ -1786,7 +1786,7 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 	COMPILE_IF_REQUIRED
 	OCCLUSIONTEST
 
-        if(!render_vp) {
+        if(!renderstate()->render_vp) {
             FW_GL_POP_MATRIX();
         } else {
 		if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
@@ -2678,7 +2678,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 
-	if (!render_vp) return;
+	if (!renderstate()->render_vp) return;
 
 	INITIALIZE_GEOSPATIAL(node)
 
@@ -2930,7 +2930,7 @@ void prep_GeoTransform (struct X3D_GeoTransform *node) {
 	/* do we have any geometry visible, and are we doing anything with geometry? */
 	OCCLUSIONTEST
 
-	if(!render_vp) {
+	if(!renderstate()->render_vp) {
 		FW_GL_PUSH_MATRIX();
 
 
@@ -2979,7 +2979,7 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
 	COMPILE_IF_REQUIRED
 	OCCLUSIONTEST
 
-        if(!render_vp) {
+        if(!renderstate()->render_vp) {
             FW_GL_POP_MATRIX();
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/

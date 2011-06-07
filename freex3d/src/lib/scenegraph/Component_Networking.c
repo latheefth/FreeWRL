@@ -1378,7 +1378,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	if (!node->enabled) return;
 
 	/* we only need to look at this during the rendering pass - once per event loop */
-	if (!render_geom) return;
+	if (!renderstate()->render_geom) return;
 
 	/* do we need to re-generate our internal variables? */
 	if NODE_NEEDS_COMPILING {

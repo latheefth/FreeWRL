@@ -98,11 +98,11 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		RECORD_DISTANCE
 
-		if (render_blend) { 
+		if (renderstate()->render_blend) { 
                         #ifdef VISIBILITYOCCLUSION
 
 			//BEGINOCCLUSIONQUERY
-			beginOcclusionQuery(node,render_geom);
+			beginOcclusionQuery(node,renderstate()->render_geom);
 			LIGHTING_OFF
 			DISABLE_CULL_FACE 
 
@@ -112,7 +112,7 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			LIGHTING_ON
 			
 			//ENDOCCLUSIONQUERY
-			endOcclusionQuery(node,render_geom);
+			endOcclusionQuery(node,renderstate()->render_geom);
                         #endif
 		}
 
