@@ -252,7 +252,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, void *
 	#endif
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
-	hasc = ((ncolors || r->color) && (last_texture_type!=TEXTURE_NO_ALPHA));
+	hasc = ((ncolors || r->color) && (gglobal()->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA));
 
 
 	if MUST_GENERATE_TEXTURES {

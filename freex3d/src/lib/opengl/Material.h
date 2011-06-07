@@ -37,7 +37,7 @@ Global includes.
 
 #define GET_COLOUR_POINTER \
 		/* is there an emissiveColor here??? */ \
-		if (lightingOn) { \
+		if (gglobal()->RenderFuncs.lightingOn) { \
 			thisColor = getAppearanceProperties()->emissionColour; \
 		} else { \
 			thisColor = defColor; \

@@ -818,7 +818,7 @@ void render_polyrep(void *node) {
 	/*  clockwise or not?*/
 	if (!pr->ccw) { FW_GL_FRONTFACE(GL_CW); }
 	
-	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (last_texture_type!=TEXTURE_NO_ALPHA);
+	hasc = ((pr->VBO_buffers[COLOR_VBO]!=0) || pr->color) && (tg->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA);
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(hasc){
