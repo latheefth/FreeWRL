@@ -1001,9 +1001,15 @@ void render_ray_polyrep(void *node) {
 	float tmp1,tmp2;
 	float v1len, v2len, v3len;
 	float v12pt;
+	struct point_XYZ t_r1,t_r2,t_r3;
+	ttglobal tg;
 
 	/* is this structure still loading? */
 	if (!node) return;
+	tg = gglobal();
+	VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+	VECCOPY(t_r3,tg->RenderFuncs.t_r3);
 
 	ray.x = t_r2.x - t_r1.x;
 	ray.y = t_r2.y - t_r1.y;

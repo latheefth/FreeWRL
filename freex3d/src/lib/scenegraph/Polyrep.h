@@ -39,9 +39,9 @@ Polyrep ???
 
 
 /* transformed ray */
-extern struct point_XYZ t_r1;
-extern struct point_XYZ t_r2;
-extern struct point_XYZ t_r3;
+//extern struct point_XYZ t_r1;
+//extern struct point_XYZ t_r2;
+//extern struct point_XYZ t_r3;
 
 
 
