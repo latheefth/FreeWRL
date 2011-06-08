@@ -157,7 +157,7 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		viewer->doExamineModeDistanceCalculations = FALSE;
 
 		/* orientation - 0 is normal */
-		viewer->orient = 0;
+		viewer->screenOrientation = 0;
 
 		viewer->nearPlane=DEFAULT_NEARPLANE;                     /* near Clip plane - MAKE SURE that statusbar is not in front of this!! */
 		viewer->farPlane=DEFAULT_FARPLANE;                       /* a good default value */

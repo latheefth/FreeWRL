@@ -262,7 +262,7 @@ typedef struct viewer {
 	double orthoField[4];
 
 	/* are we normal, or rotated? (makes sense only for mobile devices) */
-	int orient;
+	int screenOrientation;
 
 	double nearPlane;
 	double farPlane;
