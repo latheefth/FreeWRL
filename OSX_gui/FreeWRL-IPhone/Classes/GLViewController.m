@@ -78,7 +78,9 @@ NSMutableData *receivedData;
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(receivedRotate:) name: UIDeviceOrientationDidChangeNotification object: nil];
 
-    
+    // global data area
+    NSLog (@"calling fwl_init_instance()");
+    fwl_init_instance();
 }
 
 
@@ -126,6 +128,7 @@ NSMutableData *receivedData;
 	//fwl_setScreenDim((int)rect.size.width, (int)rect.size.height);    
 	//fwl_setScreenDim((int)rect.size.height, (int)rect.size.width);
 //#endif /* TRY_SCREEN_RESOLUTION_3 */
+    
     
 	fv_display_initialize();
 	
