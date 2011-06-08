@@ -1277,7 +1277,7 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *geometrySource[2];
 
 	/* pointerize this */
-	myShader = &gglobal()->display..backgroundShaderArrays[whichOne];
+	myShader = &gglobal()->display.rdr_caps.backgroundShaderArrays[whichOne];
 	myProg = glCreateProgram(); /* CREATE_PROGRAM */
 	(*myShader).myShaderProgram = myProg;
 
