@@ -30,7 +30,6 @@
 
 #include <system.h>
 #include <display.h>
-#include <iglobal.h> /* for myMenuStatus */
 #if KEEP_FV_INLIB
 #include <internal.h>
 
