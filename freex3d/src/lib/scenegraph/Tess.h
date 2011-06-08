@@ -31,11 +31,11 @@ $Id$
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
 extern struct X3D_PolyRep *global_tess_polyrep;
-#if !defined(IPHONE) && !defined(_ANDROID)
-extern GLUtriangulatorObj *global_tessobj;
-#endif
-extern int global_IFS_Coords[];
-extern int global_IFS_Coord_count;
+//#if !defined(IPHONE) && !defined(_ANDROID)
+//extern GLUtriangulatorObj *global_tessobj;
+//#endif
+//extern int global_IFS_Coords[];
+//extern int global_IFS_Coord_count;
 
 
 #endif /* __FREEWRL_TESS_H__ */
