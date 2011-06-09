@@ -60,7 +60,7 @@ struct ProtoElementPointer
  {FREE_IF_NZ(me->stringToken); FREE_IF_NZ(me);}
 
 #define ASSIGN_UNIQUE_ID(me) \
-	{me->fabricatedDef = nextFabricatedDef; nextFabricatedDef ++; }
+	{me->fabricatedDef = p->nextFabricatedDef; p->nextFabricatedDef ++; }
 
 #define FABRICATED_DEF_HEADER "fReEwEL_fAbricatio_dEF_" /* hopefully quite unique! */
 
