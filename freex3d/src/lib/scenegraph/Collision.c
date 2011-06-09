@@ -34,8 +34,8 @@ Render the children of nodes.
 
 #include <libFreeWRL.h>
 
-#include <Viewer.h>
-#include <RenderFuncs.h>
+#include "Viewer.h"
+#include "RenderFuncs.h"
 
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
