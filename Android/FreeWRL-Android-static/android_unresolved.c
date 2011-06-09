@@ -14,16 +14,16 @@ void resetGeometry(void)
 	// fwCommonX11.x
 }
 
-void killErrantChildren(void)
-{
+//void killErrantChildren(void)
+//{
 	// pluginUtils.c
-}
+//}
 
-int doBrowserAction()
-{
+//int doBrowserAction()
+//{
 	// pluginUtils.c
-	return 1;
-}
+//	return 1;
+//}
 
 int fv_open_display(void)
 {
