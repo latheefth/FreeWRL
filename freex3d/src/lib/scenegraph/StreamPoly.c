@@ -96,9 +96,8 @@ void StreamPoly_init(struct tStreamPoly *t){
 	//public
 	//private
 	t->prv = StreamPoly_constructor();
-	{
-		ppStreamPoly p = (ppStreamPoly)t->prv;
-	}
+
+	// JAS {ppStreamPoly p = (ppStreamPoly)t->prv;}
 }
 //ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
 

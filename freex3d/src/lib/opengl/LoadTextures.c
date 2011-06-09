@@ -396,11 +396,16 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 #if defined (TARGET_AQUA)
 
 	CGImageRef 	image;
-	CFStringRef	path;
-	CFURLRef 	url;
+
+
 	int 		image_width;
 	int 		image_height;
 
+#ifndef FRONTEND_GETS_FILES
+	CFStringRef	path;
+    CFURLRef 	url;
+#endif
+    
 	CGContextRef 	cgctx;
 
 	/* Quicktime params */
@@ -424,7 +429,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 #ifdef FRONTEND_GETS_FILES
 	openned_file_t *myFile = load_file (filename);
 
-	CFDataRef localData = CFDataCreate(NULL,myFile->data,myFile->dataSize);
+	CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->data,myFile->dataSize);
 	sourceRef = CGImageSourceCreateWithData(localData,NULL);
 	if (sourceRef != NULL) {
 		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);

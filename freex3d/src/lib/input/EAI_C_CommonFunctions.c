@@ -123,7 +123,7 @@ void verify_Uni_String(struct  Uni_String *unis, char *str) {
 	char *ns;
 	char *os;
 	size_t len;
-	int eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
+	// JASint eaiverbose = gglobal()->EAI_C_CommonFunctions.eaiverbose;
 
 	/* bounds checking */
 	if (unis == NULL) {

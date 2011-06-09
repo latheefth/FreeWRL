@@ -540,7 +540,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 	/* if (eaiverbose) printf ("read_EAI_socket, thread %d EAIlistenfd %d buffer addr %d time %lf\n",pthread_self(),*EAIlistenfd,bf,TickTime()); */
 	retval = FALSE;
 	do {
-		int fd;
+		// JAS int fd;
 		p->tv2.tv_sec = 0;
 		p->tv2.tv_usec = 0;
 		FD_ZERO(&p->rfds2);

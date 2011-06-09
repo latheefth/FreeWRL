@@ -1657,7 +1657,7 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 /************************************************************************/
 
 void compile_GeoLocation (struct X3D_GeoLocation * node) {
-	int i;
+	// JAS int i;
 	MF_SF_TEMPS
 
 	#ifdef VERBOSE

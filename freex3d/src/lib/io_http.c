@@ -62,7 +62,7 @@ void io_http_init(struct tio_http* t)
 {
 	//public
 	//private
-	ppio_http p;
+	//ppio_http p;
 	t->prv = io_http_constructor();
 	//p = (ppio_http)t->prv);
 }
