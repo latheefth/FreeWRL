@@ -710,11 +710,11 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         //printf ("fov %f tzd %f \n",(float) fieldofview, (float) p->TextZdist);
 #else
         /* the equation should be simple, but it did not work. Lets try the following: */
-        if (Viewer.fieldofview < 12.0f) {
+        if (Viewer()->fieldofview < 12.0f) {
             p->TextZdist = -12.0f;
-        } else if (Viewer.fieldofview < 46.0f) {
+        } else if (Viewer()->fieldofview < 46.0f) {
             p->TextZdist = -0.2f;
-        } else if (Viewer.fieldofview  < 120.0f) {
+        } else if (Viewer()->fieldofview  < 120.0f) {
             p->TextZdist = +2.0f;
         } else {
             p->TextZdist = + 2.88f;
