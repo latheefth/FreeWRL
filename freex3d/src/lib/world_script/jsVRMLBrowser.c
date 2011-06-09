@@ -450,6 +450,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj, uintN argc, j
 	int count;
 	int wantedsize;
 	int MallocdSize;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	
 
 	/* make this a default value */

@@ -301,6 +301,7 @@ struct VRMLParser* newParser(void* ptr, unsigned ofs, int parsingX3DfromXML) {
 
 struct VRMLParser* reuseParser(void* ptr, unsigned ofs) {
     struct VRMLParser* ret;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
     /* keep the defined nodes around, etc */
     ret = globalParser;
