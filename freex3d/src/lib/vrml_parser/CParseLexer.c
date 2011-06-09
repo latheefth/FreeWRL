@@ -51,8 +51,7 @@ $Id$
 #include "CParse.h"
 
 void lexer_handle_EXTERNPROTO(struct VRMLLexer *me);
-char *externProtoPointer = NULL;
-
+//char *externProtoPointer = NULL; //not used
 /* Pre- and suffix for exposed events. */
 const char* EXPOSED_EVENT_IN_PRE="set_";
 const char* EXPOSED_EVENT_OUT_SUF="_changed";
@@ -130,7 +129,7 @@ void deleteLexer(struct VRMLLexer* me)
 	#endif
 	 FREE_IF_NZ (me->curID);
  	FREE_IF_NZ (me);
- 	FREE_IF_NZ (externProtoPointer);
+ 	//FREE_IF_NZ (p->externProtoPointer);
 }
 
 
