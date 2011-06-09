@@ -1,3 +1,4 @@
+
 LOCAL_PATH := $(call my-dir)
 
 # We need to build this for both the device (as a shared library)
@@ -85,6 +86,7 @@ common_SRC_FILES:=../../freex3d/src/lib/vrml_parser/CProto.c \
 	../../freex3d/src/lib/world_script/jsVRML_MFClasses.c \
 	../../freex3d/src/lib/world_script/jsVRML_SFClasses.c	\
 	../../freex3d/src/lib/display.c \
+	../../freex3d/src/lib/iglobal.c \
 	../../freex3d/src/lib/internal.c \
 	../../freex3d/src/lib/io_files.c \
 	../../freex3d/src/lib/io_http.c \
@@ -106,6 +108,8 @@ common_SRC_FILES:=../../freex3d/src/lib/vrml_parser/CProto.c \
 	../../freex3d/src/lib/ui/statusbarConsole.c \
 	../../freex3d/src/lib/ui/statusbarHud.c \
 	../../freex3d/src/lib/ui/statusbarStub.c \
+	../../freex3d/src/lib/plugin/PluginSocket.c \
+	../../freex3d/src/lib/plugin/pluginUtils.c \
 	../FreeWRL-Android-static/android_unresolved.c \
 	../FreeWRL-Android-static/android_version.c	
 
@@ -114,7 +118,9 @@ common_SRC_FILES:=../../freex3d/src/lib/vrml_parser/CProto.c \
 
 include $(CLEAR_VARS)
 
-LOCAL_CFLAGS:=-D_ANDROID
+APP_OPTIM=debug
+
+LOCAL_CFLAGS:=-D_ANDROID -O0 -g -ggdb
 
 LOCAL_C_INCLUDES += \
 	/_Projects/libxml2/include \
