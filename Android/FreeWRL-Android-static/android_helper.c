@@ -98,11 +98,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 JNIEXPORT void JNICALL Java_awila_com_libWrapper_initLib(JNIEnv* ioEnv, jobject ioThis, int wid, int hei)
 {
 	DROIDDEBUG(">initLib() : %d,%d",wid,hei);
+
+	fwl_setp_width(wid);
+	fwl_setp_height(hei);
 	
-DROIDDEBUG("--setscreendim");
 	fwl_setScreenDim(wid,hei);
 	
-DROIDDEBUG("--display_init");
 	if( fv_display_initialize() == 0 )
 	{
 		DROIDDEBUG("--Error in fwl_display_initialize" );
@@ -198,20 +199,19 @@ void _fileLoadThread(void* param)
 	    		result = (*ioEnv)->CallStaticObjectMethod(ioEnv,fileCallbackClass,fileLoadCallback,strFilename );
 		    		
 	    		
-//	    		const char* pCacheFile = ((*ioEnv)->GetStringUTFChars(ioEnv, result, &jb));
+	    		const char* pCacheFile = ((*ioEnv)->GetStringUTFChars(ioEnv, result, &jb));
 					    		
-//	    		DROIDDEBUG( "Returning cached local file: %s", pCacheFile );
+	    		DROIDDEBUG( "Returning cached local file: %s", pCacheFile );
 	    		
-//	    		fwl_frontEndReturningLocalFile( pCacheFile, 1);
+	    		fwg_frontEndReturningLocalFile( (char*)pCacheFile, 1);
 	    		
-//	    		(*ioEnv)->ReleaseStringUTFChars(ioEnv, result, pCacheFile );
+	    		(*ioEnv)->ReleaseStringUTFChars(ioEnv, result, pCacheFile );
 		    }
     		else
     		{
     			DROIDDEBUG( "Error obtaining environment");
     			return;
-    		}
-    		
+    		}    		
     	}
     	else
     	{
@@ -284,17 +284,13 @@ JNIEXPORT void JNICALL Java_awila_com_libWrapper_cachedFile(JNIEnv* ioEnv, jobje
 }
 
 
-float mainloop_getPos(float* pPos);
-void mainloop_setPos(float posX, float posY, float posZ);
-
-
 JNIEXPORT void JNICALL Java_awila_com_libWrapper_getViewerPosition(JNIEnv* ioEnv, jobject ioThis, jobject jfaXYZ)
 {
 	float * pXYZ = (float*)(*ioEnv)->GetDirectBufferAddress(ioEnv,jfaXYZ);
 	
 	if( pXYZ != NULL )
 	{
-		mainloop_getPos(pXYZ);
+//		mainloop_getPos(pXYZ);
 	}
 	else
 	{
@@ -304,7 +300,7 @@ JNIEXPORT void JNICALL Java_awila_com_libWrapper_getViewerPosition(JNIEnv* ioEnv
 
 JNIEXPORT void JNICALL Java_awila_com_libWrapper_setViewerPosition(JNIEnv* ioEnv, jobject ioThis, float x, float y, float z)
 {
-	mainloop_setPos(x,y,z);
+//	mainloop_setPos(x,y,z);
 }
 
 #endif
