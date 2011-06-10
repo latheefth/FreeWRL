@@ -2677,7 +2677,7 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
-
+	GLint viewPort[10];
 	if (!renderstate()->render_vp) return;
 
 	INITIALIZE_GEOSPATIAL(node)

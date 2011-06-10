@@ -326,7 +326,8 @@ bool parser_do_parse_string(const char *input, struct X3D_Group *nRn)
 /* interface for telling the parser side to forget about everything...  */
 void EAI_killBindables (void) {
 	int complete;
-	ppProdCon p = gglobal()->ProdCon.prv;
+	ttglobal tg = gglobal();
+	ppProdCon p = (ppProdCon)tg->ProdCon.prv;
 
 	WAIT_WHILE_PARSER_BUSY;
 	complete=0;
@@ -351,10 +352,10 @@ void EAI_killBindables (void) {
 	UNLOCK;
 
 	/* and, reset our stack pointers */
-	background_tos = INT_ID_UNDEFINED;
-	fog_tos = INT_ID_UNDEFINED;
-	navi_tos = INT_ID_UNDEFINED;
-	viewpoint_tos = INT_ID_UNDEFINED;
+	tg->Bindable.background_tos = INT_ID_UNDEFINED;
+	tg->Bindable.fog_tos = INT_ID_UNDEFINED;
+	tg->Bindable.navi_tos = INT_ID_UNDEFINED;
+	tg->Bindable.viewpoint_tos = INT_ID_UNDEFINED;
 }
 
 /* interface for creating VRML for EAI */

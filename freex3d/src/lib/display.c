@@ -44,6 +44,7 @@
 #include "plugin/pluginUtils.h"
 #endif
 
+
 //bool display_initialized = FALSE;
 //
 //int win_height = 0; /* window */
@@ -72,7 +73,7 @@
 //int quadbuff_stereo_mode = 0;
 //
 
-s_renderer_capabilities_t rdr_caps;
+//s_renderer_capabilities_t rdr_caps;
 
 //
 //
@@ -259,6 +260,7 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
  */
 bool initialize_rdr_caps()
 {
+	s_renderer_capabilities_t rdr_caps;
 	/* OpenGL is initialized, context is created,
 	   get some info, for later use ...*/
         rdr_caps.renderer   = (char *) FW_GL_GETSTRING(GL_RENDERER);
@@ -374,7 +376,7 @@ bool initialize_rdr_caps()
 
 	/* print some debug infos */
 	rdr_caps_dump(&rdr_caps);
-
+	memcpy(&gglobal()->display.rdr_caps,&rdr_caps,sizeof(rdr_caps));
 	return TRUE;
 }
 

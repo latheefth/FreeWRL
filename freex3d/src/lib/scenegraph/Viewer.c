@@ -300,7 +300,8 @@ void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 }
 
 void fwl_set_viewer_type(const int type) {
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	ttglobal tg = gglobal();
+	ppViewer p = (ppViewer)tg->Viewer.prv;
 
 	switch(type) {
 	case VIEWER_NONE:
@@ -322,7 +323,7 @@ void fwl_set_viewer_type(const int type) {
 
 	/* can the currently bound viewer type handle this */
 	/* if there is no bound viewer, just ignore (happens on initialization) */
-	if (navi_tos != -1)
+	if (tg->Bindable.navi_tos != -1)
 		if (p->Viewer.oktypes[type]==FALSE) {
 			setMenuButton_navModes(p->Viewer.type);
 			return;

@@ -50,5 +50,8 @@ void setMessageBar();
 void setCursor();
 void setWindowTitle();
 
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif
 
 #endif /* __LIBFREEWRL_UI_COMMON_H__ */

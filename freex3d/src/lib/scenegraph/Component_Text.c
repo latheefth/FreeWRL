@@ -996,10 +996,11 @@ int avatarCollisionVolumeIntersectMBBf(double *modelMatrix, float *minVals, floa
 
 void collide_Text (struct X3D_Text *node)
 {
-    GLDOUBLE awidth = naviinfo.width; /*avatar width*/
-    GLDOUBLE atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-    GLDOUBLE abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-    GLDOUBLE astep = -naviinfo.height+naviinfo.step;
+	ttglobal tg = gglobal();
+    GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width*/
+    GLDOUBLE atop = tg->Bindable.naviinfo.width; /*top of avatar (relative to eyepoint)*/
+    GLDOUBLE abottom = -tg->Bindable.naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+    GLDOUBLE astep = -tg->Bindable.naviinfo.height+tg->Bindable.naviinfo.step;
     GLDOUBLE modelMatrix[16];
     //GLDOUBLE upvecmat[16];
 

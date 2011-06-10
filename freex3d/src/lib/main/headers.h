@@ -479,7 +479,9 @@ void setSensitive(struct X3D_Node *parent,struct X3D_Node *me);
 
 /* bindable nodes */
 extern GLint viewport[]; //true static
-extern struct sNaviInfo naviinfo;
+//extern struct sNaviInfo naviinfo;
+
+
 extern double defaultExamineDist;
 
 
@@ -655,7 +657,7 @@ struct sFallInfo* FallInfo();
 
 extern void xs_init(void);
 
-extern int navi_tos;
+//extern int navi_tos;
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
