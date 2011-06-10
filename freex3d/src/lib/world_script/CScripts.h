@@ -185,7 +185,9 @@ struct CRscriptStruct {
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */
 };
-extern struct CRscriptStruct *ScriptControl;
+//extern struct CRscriptStruct *ScriptControl;
+struct CRscriptStruct *getScriptControl();
+void setScriptControl(struct CRscriptStruct *ScriptControl);
 
 /* function protos */
 

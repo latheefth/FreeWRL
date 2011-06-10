@@ -608,7 +608,7 @@ int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to ty
 //extern double BrowserSpeed;
 void render_polyrep(void *node);
 
-extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
+//extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
 
 /* types of scripts. */
 #define NOSCRIPT 	0

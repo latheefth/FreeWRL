@@ -491,7 +491,7 @@ void getField_ToShader(int num) {
 	size_t i;
 	GLfloat* sourceData;
 	GLuint currentShader;	
-
+	struct CRStruct *CRoutes = getCRoutes();
 
 	/* go through each destination for this node */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {

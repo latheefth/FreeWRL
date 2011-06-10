@@ -72,8 +72,8 @@ void resetNameInECMATable(JSContext *context, char *toFind);
 
 /* We keep around the results of script routing, or just script running... */
 extern jsval JSCreate_global_return_val;
-extern jsval JSglobal_return_val;
-extern void *JSSFpointer;
+//extern jsval JSglobal_return_val;
+//extern void *JSSFpointer;
 
 int jsrrunScript(JSContext *_context, JSObject *_globalObj, char *script, jsval *rval);
 int JS_DefineSFNodeSpecificProperties (JSContext *context, JSObject *object, struct X3D_Node * ptr);

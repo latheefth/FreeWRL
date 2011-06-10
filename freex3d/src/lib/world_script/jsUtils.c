@@ -301,7 +301,7 @@ static void JS_SF_TO_X3D(JSContext *cx, void *Data, unsigned datalen, int dataTy
 
 /* make an MF type from the X3D node. This can be fairly slow... */
 static void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType, jsval *newval) {
-
+	ttglobal tg = gglobal();
 	#ifdef JSVRMLCLASSESVERBOSE
 	printf ("calling JS_MF_TO_X3D on type %s\n",FIELDTYPES[dataType]);
 	printf ("JS_MF_TO_X3D, we have object %u, newval %u\n",obj,*newval);
@@ -315,7 +315,7 @@ static void JS_MF_TO_X3D(JSContext *cx, JSObject * obj, void *Data, int dataType
 	printf ("JS_MF_TO_X3D, vp is a "); printJSNodeType(cx,JSVAL_TO_OBJECT(*newval));
 	#endif
 
-	JSglobal_return_val = *newval;
+	tg->CRoutes.JSglobal_return_val = *newval;
 	getJSMultiNumType (cx, (struct Multi_Vec3f*) Data, convertToSFType(dataType));
 
 }

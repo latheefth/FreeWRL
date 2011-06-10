@@ -1410,6 +1410,7 @@ static void parseAttributes(void) {
 					if (offs != INT_ID_UNDEFINED) {
 
 					        struct ScriptParamList *thisEntry;
+							struct CRscriptStruct *ScriptControl = getScriptControl();
 
         					thisEntry = ScriptControl[myObj->num].paramList;
         					while (thisEntry != NULL) {

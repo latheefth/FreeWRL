@@ -69,11 +69,11 @@ void EAIListener () {
 	//p = (ppEAIServ)tg->EAIServ.prv;
 
 	/* get the type and the id.*/
-	tp = CRoutesExtra&0xff;
-	id = (CRoutesExtra & 0xffffff00) >>8;
+	tp = tg->CRoutes.CRoutesExtra&0xff;
+	id = (tg->CRoutes.CRoutesExtra & 0xffffff00) >>8;
 
 	if (eaiverbose) {
-		printf ("Handle listener, id %x type %s extradata %x\n",id,stringFieldtypeType(tp),CRoutesExtra);
+		printf ("Handle listener, id %x type %s extradata %x\n",id,stringFieldtypeType(tp),tg->CRoutes.CRoutesExtra);
 	}	
 
 	/* convert the data to string form, for sending to the EAI java client */
