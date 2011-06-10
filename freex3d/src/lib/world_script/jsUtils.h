@@ -64,8 +64,8 @@ struct ECMAValueStruct {
 };
 
 
-extern struct ECMAValueStruct ECMAValues[];
-extern int maxECMAVal;
+//extern struct ECMAValueStruct ECMAValues[];
+//extern int maxECMAVal;
 int findInECMATable(JSContext *context, jsval toFind);
 int findNameInECMATable(JSContext *context, char *toFind);
 void resetNameInECMATable(JSContext *context, char *toFind);
