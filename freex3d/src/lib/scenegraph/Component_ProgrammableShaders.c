@@ -492,6 +492,7 @@ void getField_ToShader(int num) {
 	GLfloat* sourceData;
 	GLuint currentShader;	
 	struct CRStruct *CRoutes = getCRoutes();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
 	/* go through each destination for this node */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
@@ -712,6 +713,8 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	size_t i;
 
 	struct Shader_Script* me = NULL;
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
 	if (node->_nodeType==NODE_ShaderProgram) me = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->__shaderObj;
 	else if (node->_nodeType == NODE_ComposedShader) me = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->__shaderObj;
 	else {

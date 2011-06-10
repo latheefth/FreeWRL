@@ -567,6 +567,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 		/* is this a Script node? */
 		if (nodePtr->_nodeType == NODE_Script) {
 			struct Shader_Script* myScript;
+			struct CRjsnameStruct *JSparamnames = getJSparamnames();
 			struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 			if (eaiverbose)
 				printf ("EAI_GetType, node is a Script node...\n");

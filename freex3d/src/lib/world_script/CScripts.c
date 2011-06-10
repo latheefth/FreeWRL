@@ -207,6 +207,8 @@ int scriptFieldDecl_getRoutingOffset(struct ScriptFieldDecl* me)
 #ifdef HAVE_JAVASCRIPT
 /* Initialize JSField */
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
 	#ifdef CPARSERVERBOSE
 	printf ("scriptFieldDecl_jsFieldInit mode %d\n",me->fieldDecl->mode);
 	#endif
@@ -329,6 +331,8 @@ void deleteScript(struct Shader_Script* me)
 struct ScriptFieldDecl* script_getField_viaCharName (struct Shader_Script* me, const char *name)
 {
  size_t i;
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
  for(i=0; i!=vector_size(me->fields); ++i)
  {
   struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
