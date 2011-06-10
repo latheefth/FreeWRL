@@ -481,27 +481,10 @@ void handleButtonOver(){}
 void handleOptionPress(){}
 void handleButtonPress(){}
 
-#define MAXSTAT 200
-char myMenuStatus[MAXSTAT];
 void setMenuButton_collision(int val){}
 void setMenuButton_texSize(int size){}
 void setMenuButton_headlight(int val){}
 void setMenuButton_navModes(int type){}
-char messagebar[200];
-void setMessageBar()
-{
-	sprintf(&messagebar[0],"%10f",myFps);
-	sprintf(&messagebar[15],"%s",myMenuStatus);
-}
-void setMenuStatus(char *stat) {
-    strncpy (myMenuStatus, stat, MAXSTAT);
-    setMessageBar();
-}
-
-void setMenuFps (float fps) {
-    myFps = fps;
-    setMessageBar();
-}
 
 int handleStatusbarHud(int mev, int* clipplane)
 { return 0; }

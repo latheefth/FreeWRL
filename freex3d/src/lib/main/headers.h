@@ -599,7 +599,6 @@ void setMenuButton_collision (int val) ;
 void setMenuButton_headlight (int val) ;
 void setMenuButton_navModes (int type) ;
 void setConsoleMessage(char *stat) ;
-void setMenuFps (float fps) ;
 void setMenuButton_texSize (int size);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */

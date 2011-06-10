@@ -75,6 +75,8 @@ typedef struct freewrl_params {
 	*/
 	int width;
 	int height;
+	int xpos;
+	int ypos;
 	long int winToEmbedInto;
 	bool fullscreen;
 	bool multithreading;
@@ -83,6 +85,8 @@ typedef struct freewrl_params {
 	int collision;	/* do collision detection? */
 
 } freewrl_params_t;
+
+extern freewrl_params_t fwl_params;
 
 /* FreeWRL parameters */
 /*
@@ -114,9 +118,11 @@ bool	fwl_getp_verbose	(void);
 int	fwl_getp_collision	(void);
 
 bool fwl_initFreeWRL(freewrl_params_t *params);
-/* void startFreeWRL(const char *url); */
 void closeFreeWRL();
 void terminateFreeWRL();
+
+int fwl_parse_geometry_string(const char *geometry, int *out_width, int *out_height, 
+			      int *out_xpos, int *out_ypos);
 
 /**
  * General functions

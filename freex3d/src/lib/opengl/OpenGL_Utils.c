@@ -69,6 +69,9 @@
 
 #include "../x3d_parser/Bindable.h"
 
+#include "ui/common.h"
+
+
 #define USE_JS_EXPERIMENTAL_CODE 0
 void kill_rendering(void);
 
@@ -1282,7 +1285,7 @@ static void getGenericShader(shader_type_t whichOne) {
 	char *geometrySource[2];
 
 	/* pointerize this */
-	myShader = &gglobal()->display.rdr_caps.backgroundShaderArrays[whichOne];
+	myShader = &rdr_caps.backgroundShaderArrays[whichOne];
 	myProg = glCreateProgram(); /* CREATE_PROGRAM */
 	(*myShader).myShaderProgram = myProg;
 

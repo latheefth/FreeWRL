@@ -48,7 +48,8 @@ extern const char *freewrl_get_version();
 #define DEBUG_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define TRACE_MSG(...) DEBUG_(fprintf(stdout, __VA_ARGS__))
 #define WARN_MSG(...)  DEBUG_(fprintf(stdout, __VA_ARGS__))
-#define ERROR_MSG(...) DEBUG_(fprintf(stderr, __VA_ARGS__))
+/* Error message should always be printed */
+#define ERROR_MSG(...) fprintf(stderr, __VA_ARGS__)
 
 #ifdef VERBOSE
 #define DEBUG_FW(...) DEBUG_(printf("FW: " __VA_ARGS__))

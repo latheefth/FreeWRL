@@ -185,6 +185,8 @@ opengl/LoadTextures.c \
 opengl/RasterFont.h \
 opengl/RasterFont.c \
  \
+ui/common.h \
+ui/common.c \
 ui/aquaInt.h \
 ui/statusbar.h \
 ui/CursorDraw.c \

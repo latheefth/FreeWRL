@@ -38,9 +38,6 @@ void setMenuButton_collision(int val){}
 void setMenuButton_texSize(int size){}
 void setMenuButton_headlight(int val){}
 void setMenuButton_navModes(int type){}
-void setMenuStatus(char *stat) {}
-void setMenuFps (float fps) {}
-
 int handleStatusbarHud(int mev, int* clipplane)
 {return 0;}
 void drawStatusBar()
