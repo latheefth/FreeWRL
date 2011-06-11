@@ -422,7 +422,7 @@ typedef struct {
 	s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
-//extern s_renderer_capabilities_t rdr_caps;
+extern s_renderer_capabilities_t rdr_caps;
 
 bool initialize_rdr_caps();
 void initialize_rdr_functions();
