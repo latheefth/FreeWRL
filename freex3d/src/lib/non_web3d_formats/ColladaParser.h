@@ -46,8 +46,8 @@ int freewrl_XML_GetCurrentLineNumber();
 #endif
 
 
-extern int CDATA_Text_curlen;
-extern char *CDATA_Text;
+//extern int CDATA_Text_curlen;
+//extern char *CDATA_Text;
 
 //extern struct X3D_Node *colladaParentStack[PARENTSTACKSIZE];
 
