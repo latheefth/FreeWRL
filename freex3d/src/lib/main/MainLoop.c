@@ -62,7 +62,7 @@
 #include "../ui/CursorDraw.h"
 #include "../scenegraph/RenderFuncs.h"
 
-#include "ui/common.h"
+#include "../ui/common.h"
 
 
 void (*newResetGeometry) (void) = NULL;

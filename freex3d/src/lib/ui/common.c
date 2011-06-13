@@ -11,7 +11,7 @@
 #include <system.h>
 #include <libFreeWRL.h>
 
-#include "ui/common.h"
+#include "../ui/common.h"
 
 /* Status variables */
 

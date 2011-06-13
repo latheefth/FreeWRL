@@ -69,7 +69,7 @@
 
 #include "../x3d_parser/Bindable.h"
 
-#include "ui/common.h"
+#include "../ui/common.h"
 
 
 #define USE_JS_EXPERIMENTAL_CODE 0

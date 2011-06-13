@@ -334,7 +334,6 @@ bool fv_bind_GLcontext()
 }
 #endif /* KEEP_FV_INLIB */
 
-#endif /* IPHONE */
 
 /*
  * setCursor() declared as generic in common.h
@@ -356,3 +355,5 @@ void setWindowTitle()
 	XStoreName(Xdpy, Xwin, window_title);
 	XSetIconName(Xdpy, Xwin, window_title);
 }
+
+#endif /* IPHONE */
