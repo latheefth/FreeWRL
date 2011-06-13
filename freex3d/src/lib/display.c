@@ -73,7 +73,7 @@
 //int quadbuff_stereo_mode = 0;
 //
 
-s_renderer_capabilities_t rdr_caps;
+// JAS - no longer need this one s_renderer_capabilities_t rdr_caps;
 
 //
 //

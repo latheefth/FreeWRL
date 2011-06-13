@@ -88,3 +88,14 @@ printf ("OSX - bind_GLContext called \n");
 
 	return TRUE;
 }
+
+
+/* set cursor - see the X11 implementation, for instance */
+void setCursor() {
+
+}
+
+
+void setWindowTitle() {
+
+}

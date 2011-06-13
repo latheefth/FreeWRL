@@ -338,6 +338,7 @@ void enableGlobalShader(shader_type_t requestedShader) {
 	getAppearanceProperties()->currentShader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
 	USE_SHADER(getAppearanceProperties()->currentShader);
 
+
 	/* send in the current position and modelview matricies */
 	sendMatriciesToShader(getAppearanceProperties()->currentShaderProperties); 
 
