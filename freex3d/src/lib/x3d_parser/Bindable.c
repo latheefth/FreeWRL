@@ -50,6 +50,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "../scenegraph/Component_Geospatial.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
+#include "../ui/common.h"
 
 /* for Background spheres */
 struct MyVertex
@@ -1005,7 +1006,11 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 
 void render_Background (struct X3D_Background *node) {
 	ttglobal tg = gglobal();
+    
+    #ifndef GL_ES_VERSION_2_0
 	ppBindable p = (ppBindable)tg->Bindable.prv;
+    #endif
+    
 	X3D_Viewer *viewer = Viewer();
 	/* if we are rendering blended nodes, don't bother with this one */
 	if (renderstate()->render_blend) return;
@@ -1108,7 +1113,11 @@ void render_Background (struct X3D_Background *node) {
 
 void render_TextureBackground (struct X3D_TextureBackground *node) {
 	ttglobal tg = gglobal();
+    
+	#ifndef GL_ES_VERSION_2_0    
 	ppBindable p = (ppBindable)tg->Bindable.prv;
+    #endif
+    
 	X3D_Viewer *viewer = Viewer();
 	/* if we are rendering blended nodes, don't bother with this one */
 	if (renderstate()->render_blend) return;
