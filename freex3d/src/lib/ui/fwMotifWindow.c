@@ -352,8 +352,8 @@ void fv_aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 
     ver = libFreeWRL_get_version();
 
-    rdr = rdr_caps.renderer;
-    vendor = rdr_caps.vendor;
+    rdr = gglobal()->display.rdr_caps.renderer;
+    vendor = gglobal()->display.rdr_caps.vendor;
 
     msg = malloc(strlen(ABOUT_FREEWRL) + strlen(ver) 
 		 + strlen(rdr) + strlen(vendor));
