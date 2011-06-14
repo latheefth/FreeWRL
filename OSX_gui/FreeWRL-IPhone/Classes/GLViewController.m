@@ -144,7 +144,7 @@ NSMutableData *receivedData;
 {
     //NSLog (@"drawing");
     if (frontEndWantsFileName() != nil) {
-#define FUDGE_THIS_FOR_TESTING
+#define XFUDGE_THIS_FOR_TESTING
 #ifdef FUDGE_THIS_FOR_TESTING
         
 #define MYSTRING \
