@@ -13,7 +13,15 @@
 
 @interface GLViewController : UIViewController <GLViewDelegate, UIGestureRecognizerDelegate>
 {
-
+    UITextField *urlFieldText;
+    
+    IBOutlet UILabel *StatusBar;
+    
+    IBOutlet UIButton *ViewPointPressed;
+    IBOutlet UITextField *URLField2;    
+    IBOutlet UITextField *URLField;
+    IBOutlet UIButton *ExamineModePressed;
+    IBOutlet UIButton *WalkModePressed;
     //NSMutableDictionary *receivedData;
 
 //@synthesize(nonatomic, retain) NSMutableData *receivedData;    

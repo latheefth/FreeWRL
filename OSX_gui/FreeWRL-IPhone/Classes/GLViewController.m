@@ -9,6 +9,10 @@
 #import "GLViewController.h"
 #import "ConstantsAndMacros.h"
 
+NSString *initialURL = nil;
+UITextField *urlFieldText = nil;
+
+
 @interface MyObject : NSObject
 +(void)aMethod:(id)param;
 @end
@@ -17,15 +21,25 @@
 +(void)aMethod:(id)param {
     //NSLog (@"starting loading thread");
     
+   
+    
     fwl_initializeRenderSceneUpdateScene();
     
+    // the user hit return, and we are flying...
+    if (initialURL != nil) {
+        //const char* cString = [initialURL UTF8String]; 
+        //NSLog (@"initial url %s",cString);
+        
+        fwl_OSX_initializeParameters(
+            [initialURL UTF8String]);
+          
+        
+        
+    }
     //fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test2pt.wrl");
    // fwl_OSX_initializeParameters( //"http://freewrl.sourceforge.net/JAS/SSID-Mar2011/staticCount500.x3d");
                              //"http://freewrl.sourceforge.net/test2.wrl");
     
-    //fwl_OSX_initializeParameters("http://kins.net/smar/files/ryatkins/aeroboat.wrl");
-	fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
-    //fwl_OSX_initializeParameters("http://dl.dropbox.com/u/17457/aeroboat.wrl");
     //NSLog (@"ending loading thread");
 	
 }
@@ -53,7 +67,8 @@ NSMutableData *receivedData;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-	
+
+
    	UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapFrom:)];
     [tapGesture setDelegate:self];
 	[self.view addGestureRecognizer:tapGesture];
@@ -77,7 +92,7 @@ NSMutableData *receivedData;
     // JAS - trying auto rotation sensing for landscape,portrait, etc.
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(receivedRotate:) name: UIDeviceOrientationDidChangeNotification object: nil];
-
+    
     // global data area
     NSLog (@"calling fwl_init_instance()");
     fwl_init_instance();
@@ -133,8 +148,11 @@ NSMutableData *receivedData;
 	fv_display_initialize();
 	
         // thread the getting of the file...
-    [NSThread detachNewThreadSelector:@selector(aMethod:) toTarget:[MyObject class] withObject:nil];
+    //[NSThread detachNewThreadSelector:@selector(aMethod:) toTarget:[MyObject class] withObject:nil];
     
+    
+    // show the URL text field, and the keyboard
+    [URLField becomeFirstResponder];
     
 	// NSLog (@"setupView complete");
 }
@@ -144,13 +162,13 @@ NSMutableData *receivedData;
 {
     //NSLog (@"drawing");
     if (frontEndWantsFileName() != nil) {
-#define XFUDGE_THIS_FOR_TESTING
+#define FUDGE_THIS_FOR_TESTING
 #ifdef FUDGE_THIS_FOR_TESTING
         
 #define MYSTRING \
 "#VRML V2.0 utf8\n" \
 "NavigationInfo {type \"EXAMINE\"}\n" \
-"Background {skyAngle        [ 1.07 1.45 1.52 1.57 ]skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]}" \
+"#Background {skyAngle        [ 1.07 1.45 1.52 1.57 ]skyColor        [ 0.00 0.00 0.30 0.00 0.00 0.80 0.45 0.70 0.80 0.70 0.50 0.00 1.00 0.00 0.00 ] groundAngle     1.57 groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]}" \
         " Shape { appearance Appearance { material Material {} } geometry Box {}  }"
         
         fwg_frontEndReturningData(MYSTRING, strlen(MYSTRING));
@@ -175,8 +193,11 @@ NSMutableData *receivedData;
             // Create the NSMutableData to hold the received data.
             // receivedData is an instance variable declared elsewhere.
             receivedData = [[NSMutableData data] retain];
-         
+            [StatusBar setText:@"Loading..."];
+
         } else {
+            [StatusBar setText:@"URL Not valid"];
+
             // Inform the user that the connection failed.
         }
         }
@@ -200,13 +221,16 @@ NSMutableData *receivedData;
     // redirect, so each time we reset the data.
     
     // receivedData is an instance variable declared elsewhere.
-    NSLog (@"connection: didReceiveResponse called");
+    //NSLog (@"connection: didReceiveResponse called");
+    [StatusBar setText:@"receiving..."];
     [receivedData setLength:0];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
     NSLog (@"connection: didReceiveData called");
+    [StatusBar setText:@"data..."];
+    
     // Append the new data to receivedData.
     // receivedData is an instance variable declared elsewhere.
     [receivedData appendData:data];
@@ -220,9 +244,12 @@ NSMutableData *receivedData;
     [receivedData release];
     
     // inform the user
-    NSLog(@"Connection failed! Error - %@ %@",
-          [error localizedDescription],
-          [[error userInfo] objectForKey:NSURLErrorFailingURLStringErrorKey]);
+    //NSLog(@"Connection failed! Error - %@ %@",
+      //    [error localizedDescription],
+        //  [[error userInfo] objectForKey:NSURLErrorFailingURLStringErrorKey]);
+    
+    [StatusBar setText:@"URL Invalid"];
+
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -242,6 +269,9 @@ NSMutableData *receivedData;
     //NSLog(@"at A: string is: %@", s);
     //const char* cString = [s UTF8String]; 
     //[s release];
+    
+    [StatusBar setText:@"Data -> FreeWRL"];
+    urlFieldText.hidden=YES;
     
     fwg_frontEndReturningData(myData,len);
 
@@ -396,6 +426,48 @@ NSMutableData *receivedData;
     
 }
 
+
+- (BOOL)acceptsFirstResponder {
+    return YES;
+
+}
+- (IBAction)ViewPointPressed:(id)sender {
+    NSLog (@"VP");
+    fwl_Next_ViewPoint();
+    
+}
+
+- (IBAction)WalkModePressed:(id)sender {
+    NSLog (@"Wakl");
+    fwl_set_viewer_type(VIEWER_WALK);
+}
+- (IBAction)ExamineModePressed:(id)sender {
+    NSLog (@"Examine");
+    fwl_set_viewer_type(VIEWER_EXAMINE);
+}
+
+
+
+
+
+- (IBAction)URLField:(id)sender {
+    //UITextField inField;
+    //inField = (UITextField*)sender;
+    NSLog (@"URLField text");
+    [sender resignFirstResponder];
+    
+    urlFieldText = (UITextField*) sender;
+    [urlFieldText retain];
+    
+    initialURL = [[NSString stringWithString:((UITextField *)sender).text] retain];
+    
+     [StatusBar setText:@"Resolving..."];
+    
+    [NSThread detachNewThreadSelector:@selector(aMethod:) toTarget:[MyObject class] withObject:nil];
+
+}
+
+
 /* stop landscape/portrait, etc...
 -(void) viewWillDisappear: (BOOL) animated{
     [[NSNotificationCenter defaultCenter] removeObserver: self];
@@ -409,6 +481,12 @@ NSMutableData *receivedData;
 
 - (void)dealloc {
 	// JASfinalizeRenderSceneUpdateScene();
+    [ViewPointPressed release];
+    [WalkModePressed release];
+    [ExamineModePressed release];
+    [URLField release];
+    [urlFieldText release];
+    [StatusBar release];
     [super dealloc];
 }
 
