@@ -2046,9 +2046,6 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 			}
 
 		}
-printf ("fwl_handle_aqua, oriengation %d, mouse is now at %d,%d, realizing that 0,0 is lower left corner\n",
-Viewer()->screenOrientation,
-x,y);
 	}
 
 	#endif

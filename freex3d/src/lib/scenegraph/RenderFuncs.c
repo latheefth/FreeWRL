@@ -459,7 +459,7 @@ if (p->shaderTextureArray) printf ("enabling Texture\n"); else printf ("disablin
 			if (enable) glEnableClientState(cap);
 			else glDisableClientState(cap);
 		#else
-			printf ("sendClientStateToGPU - currentShaderProperties not set\n");
+			//printf ("sendClientStateToGPU - currentShaderProperties not set\n");
 		#endif
 	}
 }
@@ -618,7 +618,7 @@ void initializeLightTables() {
         FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
         FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
 	#else
-	printf ("skipping light setups\n");
+	//printf ("skipping light setups\n");
 	#endif
 
     LIGHTING_INITIALIZE

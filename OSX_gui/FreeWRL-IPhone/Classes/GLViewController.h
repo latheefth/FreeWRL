@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "GLView.h"
+#import "RecentItems.h"
 
 #include "../../../freex3d/src/lib/libFreeWRL.h"
 
@@ -15,10 +16,13 @@
 {
     UITextField *urlFieldText;
     
+    IBOutlet UIButton *quitPressed;
     IBOutlet UILabel *StatusBar;
     
+    IBOutlet UIButton *Recent2;
+    IBOutlet UIButton *Recent1;
     IBOutlet UIButton *ViewPointPressed;
-    IBOutlet UITextField *URLField2;    
+    
     IBOutlet UITextField *URLField;
     IBOutlet UIButton *ExamineModePressed;
     IBOutlet UIButton *WalkModePressed;

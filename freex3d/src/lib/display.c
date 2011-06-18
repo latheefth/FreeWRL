@@ -363,19 +363,16 @@ bool initialize_rdr_caps()
 	}
 
 	/* JAS - temporary warning message */
+	#ifndef GL_ES_VERSION_2_0
 	if (gglobal()->internalc.global_use_VBOs) {
 		printf ("NOTE: Trying to use Vertex Buffer Objects - turn off with the environment var if desired\n");
 	}
-
-	/* Shaders for OpenGL-ES and OpenGL-3.2ish */
-	/*	
-		GLuint appearanceNoTextureShader;
-		GLuint appearanceOneTextureShader;
-		GLuint appearanceMultiTextureShader;
-	are set to 0 by the memset above; 0 means no shader */
+	#endif
 
 	/* print some debug infos */
 	rdr_caps_dump(&rdr_caps);
+
+	//make this the renderer caps for this thread.
 	memcpy(&gglobal()->display.rdr_caps,&rdr_caps,sizeof(rdr_caps));
 	return TRUE;
 }

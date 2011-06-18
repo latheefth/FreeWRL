@@ -16,6 +16,10 @@
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
     
+    // change the statusbar
+    //[application setStatusBarStyle:UIStatusBarStyleBlackOpaque];
+    [application setStatusBarHidden:YES];
+    
 	glView.animationInterval = 1.0 / kRenderingFrequency;
 	[glView startAnimation];
 }

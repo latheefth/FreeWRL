@@ -1097,7 +1097,10 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 
 		case oneTexTwoMaterialShader:
 		case oneTexTwoMaterialSphereShader: {
+			#ifdef FW_DEBUG
 			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+			#endif
+
 			return FALSE;
 			break;
 		}
@@ -1139,7 +1142,9 @@ static int getGenericShaderSource (char **vertexSource, char **fragmentSource, c
 		case complexTexTwoMaterialShader:
 		case complexTexOneMaterialSphereShader:
 		case complexTexTwoMaterialSphereShader: {
+			#ifdef FW_DEBUG
 			printf ("warning! shader still to be written at %s:%d\n",__FILE__,__LINE__);
+			#endif
 			return FALSE;
 			break;
 		}

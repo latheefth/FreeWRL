@@ -49,7 +49,7 @@ GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
 /* bounds check and do the shininess calculations */
 void do_shininess (GLenum face, float shininess) {
 #ifdef GL_ES_VERSION_2_0
-printf ("do_shininess called\n");
+	//printf ("do_shininess called\n");
 #else
 
 	/* which should it be? From the spec:
