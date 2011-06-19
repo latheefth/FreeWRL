@@ -102,6 +102,7 @@ common_SRC_FILES:=../../freex3d/src/lib/vrml_parser/CProto.c \
 	../../freex3d/src/lib/opengl/RasterFont.c \
 	../../freex3d/src/lib/opengl/RenderTextures.c \
 	../../freex3d/src/lib/opengl/Textures.c \
+	../../freex3d/src/lib/ui/common.c \
 	../../freex3d/src/lib/ui/fwCommonX11.c \
 	../../freex3d/src/lib/ui/CursorDraw.c \
 	../../freex3d/src/lib/ui/GLwDrawA.c \
