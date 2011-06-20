@@ -18,6 +18,7 @@
 
 #include <pthread.h>
 #include <resources.h>
+#include <iglobal.h>
 
 
 #define  LOG_TAG    "WRL-"
@@ -28,6 +29,7 @@ static JavaVM* g_jvm = NULL;
 static jclass fileCallbackClass = NULL;
 static jmethodID fileLoadCallback = NULL;
 static jmethodID startRenderCallback = NULL;
+static ttglobal *pGlobal=NULL;
 
 
 
@@ -97,6 +99,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 
 JNIEXPORT void JNICALL Java_awila_com_libWrapper_initLib(JNIEnv* ioEnv, jobject ioThis, int wid, int hei)
 {
+	ttglobal *pGlobal=NULL;
+	
+	if( pGlobal == NULL ) {
+		pGlobal = (ttglobal*)fwl_init_instance();
+	}
+	
 	DROIDDEBUG(">initLib() : %d,%d",wid,hei);
 
 	fwl_setp_width(wid);
