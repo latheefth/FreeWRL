@@ -45,6 +45,13 @@ bool bind_GLcontext()
 	return 1;
 }
 
+void setCursor(void) {
+	//MainLoop.c 744
+}
+
+void setWindowTitle(void) {
+	//display.c 172
+}
 
 
 #endif
