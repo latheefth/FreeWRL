@@ -313,7 +313,7 @@ char *getWgetPath();
 #define FRONTEND_GETS_FILES 1
 #define FRONTEND_HANDLES_DISPLAY_THREAD 1
 #define SHADERS_2011 1
-#define HAVE_GEOMETRY_SHADERS 1
+#define HAVE_GEOMETRY_SHADERS 0
 
 #ifdef _ANDROID
 void DROIDDEBUG( const char*pFmtStr, ...);
