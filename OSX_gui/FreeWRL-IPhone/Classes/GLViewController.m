@@ -240,7 +240,10 @@ NSMutableData *receivedData;
     //NSLog (@"messagebar is %s",messagebar);
     if (myMenuStatus[0] != '\0') {
         // we are running so lets put the status here
-        [StatusBar setText:@"running"];
+        //[StatusBar setText:@"running"];
+        NSString *myS = [NSString stringWithCString:myMenuStatus encoding:NSUTF8StringEncoding];
+        [StatusBar setText:myS]; 
+        
     }
     fwl_RenderSceneUpdateScene();
 	

@@ -35,14 +35,6 @@ void setMenuStatus(char *stat)
 {
 	int loading = FALSE;
 
-/* - JAS - for testing IPHONE
-printf ("setMenuStatus, %d %d %d, true %d\n",fwl_isinputThreadParsing(),
-fwl_isTextureParsing(),
-!fwl_isInputThreadInitialized(),
-TRUE);
-*/
-
-
         if (fwl_isinputThreadParsing() || 
 	    fwl_isTextureParsing() || 
 	    (!fwl_isInputThreadInitialized())) loading = TRUE;
