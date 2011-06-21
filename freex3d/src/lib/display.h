@@ -436,7 +436,7 @@ typedef struct {
 
 bool initialize_rdr_caps();
 void initialize_rdr_functions();
-void rdr_caps_dump();
+void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps);
 
 
 /**
