@@ -86,7 +86,7 @@ NSFileHandle *myFile = nil;
     }
     
     NSLog (@"setting Recent2 to test directly");
-    Recent2 = [NSString stringWithCString:"http://freewrl.sf.net/JAS/12.x3d" encoding:NSUTF8StringEncoding];
+    Recent2 = [NSString stringWithCString:"http://freewrl.sf.net/JAS/12mod.wrl" encoding:NSUTF8StringEncoding];
 
 }
 
