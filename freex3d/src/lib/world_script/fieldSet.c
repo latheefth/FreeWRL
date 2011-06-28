@@ -1186,8 +1186,8 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	printJSNodeType (cx,myJSVal);
 	#endif
 
-	if (!JS_GetProperty(cx, (JSObject *)myJSVal, "length", &mainElement)) {
-		printf ("JS_GetProperty failed for \"length\" in getJSMultiNumType\n");
+	if (!JS_GetProperty(cx, (JSObject *)myJSVal,  MF_LENGTH_FIELD, &mainElement)) {
+		printf ("JS_GetProperty failed for \"%s\" in getJSMultiNumType\n", MF_LENGTH_FIELD);
 		return;
 	}
 	len = JSVAL_TO_INT(mainElement);
@@ -1426,8 +1426,8 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	if (!JS_ValueToObject(cx, (jsval) from, &obj))
 		printf ("JS_ValueToObject failed in getMFStringtype\n");
 
-	if (!JS_GetProperty(cx, obj, "length", &_v)) {
-		printf ("JS_GetProperty failed for \"length\" in getMFStringtype.\n");
+	if (!JS_GetProperty(cx, obj,  MF_LENGTH_FIELD, &_v)) {
+		printf ("JS_GetProperty failed for \"%s\" in getMFStringtype.\n", MF_LENGTH_FIELD);
         }
 
 	newlen = JSVAL_TO_INT(_v);
