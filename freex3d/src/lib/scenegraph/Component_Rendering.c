@@ -292,7 +292,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 				colorIndInt = node->colorIndex.p; /* use ColorIndex */
 			} else {
                 /* we are using the simple index for colour selection */
-                colorIndShort = node->__vertArr;                 
+     	           colorIndShort = node->__vertArr;                 
             }
 		}
 
@@ -311,7 +311,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
                     			if (colorIndInt != NULL)
                         		curcolor = colorIndInt[curSeg];
                     			else
-                        		curcolor = colorIndShort[i];
+                        		curcolor = colorIndShort[curSeg];
 				}
 
 				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
