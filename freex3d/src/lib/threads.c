@@ -266,7 +266,7 @@ void fwl_thread_dump()
 void trace_enter_thread(const char *str)
 {
 	int nloops = 0;
-	ttglobal tg = gglobal(); // get the value if we can
+	ttglobal tg = gglobal0(); // get the value if we can
 	while(tg == NULL){
 		usleep(50);
 		tg = gglobal0(); //<< new function ttglobal0() just returns NULL if thread not registered yet

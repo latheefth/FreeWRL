@@ -510,12 +510,12 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int i;
 	int offsetInNode;
 	int shouldBind;
+    int parsedOk = FALSE; // results from parser
 	ppProdCon p;
 	struct tProdCon *t;
 	ttglobal tg = gglobal();
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
-    int parsedOk = FALSE; // results from parser
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	shouldBind = FALSE;

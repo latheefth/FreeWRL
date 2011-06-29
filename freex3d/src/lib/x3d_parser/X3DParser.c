@@ -447,7 +447,7 @@ struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int forc
 	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
 
 	if (p->myLexer == NULL) return NULL;
-
+	lexer_forceStringCleanup(p->myLexer); 
 	lexer_fromString(p->myLexer,STRDUP(name));
 
 	if(!lexer_defineNodeName(p->myLexer, &ind))
