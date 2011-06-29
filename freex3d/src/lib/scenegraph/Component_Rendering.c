@@ -387,26 +387,6 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
             // draw. Note the casting of the last param - it is ok, because we tell that
             // we are sending in ushorts; it gets around a compiler warning.
             
-
-#ifdef DEBUG
-            if (node->__colours) {
-                int j;
-                ushort *indx = indxStartPtr[i];
-                struct SFColorRGBA * cp = (struct SFColorRGBA*)node->__colours;
-                printf ("seg %d, count %d \n",i,count[i]);
-                for (j=0; j<count[i]; j++) {
-                    printf ("   vert %d, indx %d col %f %f %f %F\n",j,indx[j],
-                                    cp[indx[j]].c[0],
-                                       cp[indx[j]].c[1],
-                            cp[indx[j]].c[2],
-                            cp[indx[j]].c[3]
-                                       
-                                       );
-                }
-                
-            }
-#endif
-
             FW_GL_DRAWELEMENTS(GL_LINE_STRIP,count[i],GL_UNSIGNED_SHORT,(int *)indxStartPtr[i]);
 		}
 

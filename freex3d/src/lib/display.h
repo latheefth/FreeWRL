@@ -359,6 +359,7 @@ typedef enum shader_type {
 	oneTexTwoMaterialColourShader,
 	oneTexOneMaterialColourShader,
 	linePointColorNodeShader,
+	linePointNoColorNodeShader,
 
 	/* final one, used for array sizing */
 	max_enum_shader_type
@@ -394,6 +395,9 @@ typedef struct {
 	GLint Colours;
 	GLint TexCoords;
 	GLint Texture0;
+
+	/* some items have no real colour, like lines and points */
+	GLint myMaterialColour;
 
 	
 	/* some geom shaders have particular uniforms, eg geom radius */

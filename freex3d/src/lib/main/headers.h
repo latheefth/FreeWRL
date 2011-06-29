@@ -649,7 +649,6 @@ extern int isPerlinitialized(void);
 
 extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
-//extern int  lightingOn;			/* state of GL_LIGHTING */
 //extern struct sCollisionInfo CollisionInfo;
 //extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
 struct sCollisionInfo* CollisionInfo();
@@ -817,9 +816,11 @@ void do_TimeTrigger (void *node);
 
 
 #ifdef GL_ES_VERSION_2_0
-	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;}
+	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;} 
 	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;}
+
 	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE;
+
 #else 
 	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
 	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}
