@@ -142,11 +142,13 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 		p->linePropertySet=TRUE;
 		if (node->linewidthScaleFactor > 1.0) {
 			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
+            #ifndef GL_ES_VERSION_2_0
 			FW_GL_POINTSIZE(node->linewidthScaleFactor);
+            #endif
 		}
 
 
-		if (node->linetype > 0) {
+		if (node->linetype > 1) {
 #ifndef GL_ES_VERSION_2_0
 			factor = 2;
 			pat = 0xffff; /* can not support fancy line types - this is the default */
@@ -1181,7 +1183,9 @@ void child_Shape (struct X3D_Shape *node) {
 	if (p->linePropertySet) {
 		FW_GL_DISABLE (GL_LINE_STIPPLE);
 		FW_GL_LINEWIDTH(1.0f);
+        #ifndef GL_ES_VERSION_2_0
 		FW_GL_POINTSIZE(1.0f);
+        #endif
 	}
 
 	/* were we cubemapping? */

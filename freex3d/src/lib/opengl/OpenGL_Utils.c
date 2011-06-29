@@ -1828,13 +1828,15 @@ OLDCODE#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
 	
-	#ifndef GL_ES_VERSION_2_0
+	
 	{
 		float gl_linewidth = gglobal()->Mainloop.gl_linewidth;
 		FW_GL_LINEWIDTH(gl_linewidth);
+        #ifndef GL_ES_VERSION_2_0
 		FW_GL_POINTSIZE(gl_linewidth);
+        #endif
 	}
-	#endif
+	
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start a");
     

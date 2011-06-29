@@ -103,6 +103,7 @@ void render_TriangleSet (struct X3D_TriangleSet *node) {
 }
 
 
+
 void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	int i;		/* temporary */
 	struct SFVec3f *points;
@@ -313,7 +314,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
                     			else
                         		curcolor = colorIndShort[curSeg];
 				}
-
+                printf ("curSeg %d, i %d, node->coordIndex.p %d curcolor %d\n",curSeg,i,node->coordIndex.p[i], curcolor);
 				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
 					ConsoleMessage ("IndexedLineSet, colorIndex %d (for vertex %d or segment %d) out of range (0..%d)\n",
 						curcolor, i, curSeg, cc->color.n);
@@ -416,8 +417,6 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		}
 	}
 }
-
-
 
 
 void compile_PointSet (struct X3D_PointSet *node) {

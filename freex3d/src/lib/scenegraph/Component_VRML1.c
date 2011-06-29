@@ -688,9 +688,7 @@ void render_VRML1_PointSet (struct X3D_VRML1_PointSet *this) {
 	int renderMatOver = FALSE;
 	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 
-	#ifdef IPHONE
-	printf ("vrml1 pointset, ignoring pointset\n");
-	#else
+	#ifndef GL_ES_VERSION_2_0
 	FW_GL_POINTSIZE (2);
 	#endif
 
