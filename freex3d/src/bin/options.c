@@ -458,6 +458,4 @@ void fv_parseEnvVars()
 			fwl_set_texture_size(local_texture_size);
 		}
 	}
-	fwl_set_use_VBOs (FALSE);
-	if (getenv("FREEWRL_USE_VBOS") != NULL) fwl_set_use_VBOs(TRUE);
 }

@@ -359,15 +359,7 @@ bool initialize_rdr_caps()
 	strstr(rdr_caps.renderer, "NVIDIA GeForce2") != NULL
 	) {
 		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
-		gglobal()->internalc.global_use_VBOs = false;
 	}
-
-	/* JAS - temporary warning message */
-	#ifndef GL_ES_VERSION_2_0
-	if (gglobal()->internalc.global_use_VBOs) {
-		printf ("NOTE: Trying to use Vertex Buffer Objects - turn off with the environment var if desired\n");
-	}
-	#endif
 
 	/* print some debug infos */
 	rdr_caps_dump(&rdr_caps);

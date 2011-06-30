@@ -176,7 +176,6 @@ void fwl_set_plugin_print(bool flag);
 void fwl_set_occlusion_disable(bool flag);
 void fwl_set_print_opengl_errors(bool flag);
 void fwl_set_trace_threads(bool flag);
-void fwl_set_use_VBOs(bool flag);
 void fwl_set_texture_size(unsigned int texture_size);
 void fwl_set_glClearColor (float red , float green , float blue , float alpha);
 void fwl_thread_dump(void);

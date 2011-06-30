@@ -120,7 +120,7 @@ void glMaterialf (GLenum face, GLenum pname, float param);
 #endif
 
 /* face culling */
-#ifdef GL_ES_VERSION_2_0
+#ifdef XXXGL_ES_VERSION_2_0
 #define CULL_FACE(v) /* printf ("nodeSolid %d getAppearanceProperties()->cullFace %d GL_FALSE %d FALSE %d\n",v,getAppearanceProperties()->cullFace,GL_FALSE,FALSE); */ \
                 if (v != getAppearanceProperties()->cullFace) {    \
                         getAppearanceProperties()->cullFace = v; \

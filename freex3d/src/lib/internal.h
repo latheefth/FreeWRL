@@ -511,6 +511,5 @@ void *freewrlStrdup(int line, char *file, char *str);
 //extern bool global_print_opengl_errors; /* print OpenGL errors as they come ? */
 
 //extern bool global_trace_threads;       /* trace thread creation / switch ... ? */
-//extern bool global_use_VBOs;       /* try and use VBOs rather than vertex arrays for geometry */
 
 #endif /* __LIBFREEWRL_DECL_H__ */
