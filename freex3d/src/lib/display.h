@@ -248,13 +248,6 @@ void glMaterialf (GLenum face, GLenum pname, float param);
 	#define GL_TEXTURE_HEIGHT                 0x1001
 	#define GL_POSITION                       0x1203
 	#define GL_SPOT_DIRECTION                 0x1204
-	#define GL_POSITION                       0x1203
-	#define GL_CONSTANT_ATTENUATION           0x1207
-	#define GL_LINEAR_ATTENUATION             0x1208
-	#define GL_QUADRATIC_ATTENUATION          0x1209
-	#define GL_SPOT_CUTOFF                    0x1206
-	#define GL_SPOT_DIRECTION                 0x1204
-	#define GL_POSITION                       0x1203
 	#define GL_CONSTANT_ATTENUATION           0x1207
 	#define GL_LINEAR_ATTENUATION             0x1208
 	#define GL_QUADRATIC_ATTENUATION          0x1209
@@ -386,6 +379,12 @@ typedef struct {
         GLint lightDiffuse;
         GLint lightSpecular;
         GLint lightPosition;
+	GLint lightSpotDir;
+	GLint lightConstAtten;
+	GLint lightLinAtten;
+	GLint lightQuadAtten;
+	GLint lightSpotCut;
+	GLint lightSpotExp;
 
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
