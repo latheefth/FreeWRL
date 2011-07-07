@@ -33,6 +33,9 @@
 
 #include "main.h"
 #include "options.h"
+#ifdef _MSC_VER
+#include "getopt.h"
+#endif
 
 
 /**

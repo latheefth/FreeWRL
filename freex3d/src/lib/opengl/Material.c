@@ -221,7 +221,7 @@ int verify_scale(GLfloat *params) {
 	return TRUE;
 }
 
-#include "Component_Shape.h"
+#include "../scenegraph/Component_Shape.h"
 
 /* for OpenGL ES, we mimic the old glColor stuff from fixed functionality */
 #ifdef GL_ES_VERSION_2_0

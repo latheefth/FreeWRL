@@ -2275,9 +2275,9 @@ void collisionCylinder_init(struct X3D_Cylinder *node)
 	
 	/* not initialized yet - wait for next pass */
 
-#ifdef SHADERS_2011
+//#if defined(SHADERS_2011) || defined(_MSC_VER)
     if (!node->__points.p) return;
-#endif
+//#endif
 
 	/*  re-using the compile_cylinder node->__points data which is organized into GL_TRAIANGLE_FAN (bottom and top) 
 	    and GL_QUADS (side)
