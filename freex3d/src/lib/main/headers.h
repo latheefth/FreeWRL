@@ -331,8 +331,8 @@ unsigned int setField_FromEAI (char *ptr);
 /* Parsing & Lexing */
 #undef CPARSERVERBOSE 
 
-/* Java Class invocation */
-#undef JSVRMLCLASSESVERBOSE
+/* Java Class invocation 
+undef JSVRMLCLASSESVERBOSE */
 
 /* child node parsing */
 #undef CHILDVERBOSE
@@ -340,8 +340,8 @@ unsigned int setField_FromEAI (char *ptr);
 /* routing */
 #undef CRVERBOSE
 
-/* Javascript */
-#undef JSVERBOSE
+/* Javascript 
+undef JSVERBOSE */
 
 /* sensitive events */
 #undef SEVERBOSE

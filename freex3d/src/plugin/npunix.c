@@ -68,7 +68,7 @@
 #include <system.h>
 
 #define XP_UNIX 1
-#define OJI 1
+/* define OJI 1  -- auto-defined in configure.ac when JRIEnv type exists */
 
 #include <npapi.h>
 #if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) < 20)
@@ -1012,7 +1012,8 @@ NP_Initialize(NPNetscapeFuncs* nsTable, NPPluginFuncs* pluginFuncs)
                 pluginFuncs->javaClass = NULL;
 #endif
 
-                err = NPP_Initialize();
+/*                err = NPP_Initialize(); 
+--note, this never did anything, so skipping the call (fixes compile warning) */
         }
 
         return err;
@@ -1029,6 +1030,7 @@ NPError
 NP_Shutdown(void)
 {
         PLUGINDEBUGSTR("NP_Shutdown");
-        NPP_Shutdown();
+/*        NPP_Shutdown();
+--note, this never did anything, so skipping the call (fixes compile warning) */
         return NPERR_NO_ERROR;
 }

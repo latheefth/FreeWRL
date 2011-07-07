@@ -728,10 +728,12 @@ NPError NPP_Initialize(void) {
         return NPERR_NO_ERROR;
 }
 
+#ifdef OJI
 jref NPP_GetJavaClass( void )
 {
 	return NULL;
 }
+#endif
 
 /*
 ** NPP_Shutdown is called when your DLL is being unloaded to do any
