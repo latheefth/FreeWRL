@@ -59,7 +59,10 @@ Javascript C language binding.
 //int JSMaxScript = 0;
 ///* Script name/type table */
 //struct CRjsnameStruct *JSparamnames = NULL;
-
+#ifndef JSCLASS_GLOBAL_FLAGS
+//spidermonkey < 1.7 doesn't have so define here
+#define JSCLASS_GLOBAL_FLAGS 0
+#endif
 //int jsnameindex = -1;
 //int MAXJSparamNames = 0;
 //static JSRuntime *runtime = NULL;

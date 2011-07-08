@@ -51,7 +51,8 @@ of garbage collection */
 	/* printf ("removing root %u\n",b); \
         JS_RemoveRoot(a,&b);  */
 
-#define MF_LENGTH_FIELD "mf_len"
+//#define MF_LENGTH_FIELD "mf_len"
+#define MF_LENGTH_FIELD "length"
 
 #define DEFINE_LENGTH(this_context,this_object,this_length) \
 	{jsval zimbo = INT_TO_JSVAL(this_length);\
