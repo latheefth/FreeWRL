@@ -1943,7 +1943,7 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 	JSObject *_o;
 	JSString *_str;
 	const uintN _argc = 2;
-#ifdef WIN32
+#ifdef _MSC_VER
 	jsval newVal, initVal, _argv[2]; /* win32 complains cant allocate array of size 0 */
 #else
 	jsval newVal, initVal, _argv[_argc];

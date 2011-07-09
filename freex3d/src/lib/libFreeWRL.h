@@ -30,7 +30,7 @@
 
 
 /* for front ends that do not have these X-11-based defines */
-#if defined(AQUA) || defined(WIN32) || defined(_ANDROID)
+#if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID)
 #ifndef _MIMIC_X11_SCREEN_BUTTONS
         #define _MIMIC_X11_SCREEN_BUTTONS
                 #define KeyPress        2

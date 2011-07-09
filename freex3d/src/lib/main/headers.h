@@ -675,7 +675,7 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 /* mimic X11 events in AQUA and/or WIN32 ; FIXME: establish a cleaner interface for this */
 #define KeyChar         1
 
-#if defined(AQUA) || defined(WIN32) || defined(_ANDROID)
+#if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID)
 #ifndef _MIMIC_X11_SCREEN_BUTTONS
 	#define _MIMIC_X11_SCREEN_BUTTONS
 		#define KeyPress        2

@@ -330,8 +330,8 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	/* Initialize parser */
 	fwl_initialize_parser();
 
-	/* Initialize common UI variables */
-	myMenuStatus[0] = '\0';
+	///* Initialize common UI variables */ - done in common.c
+	//myMenuStatus[0] = '\0';
 
 #ifndef FRONTEND_HANDLES_DISPLAY_THREAD
 	/* OK the display is now initialized,

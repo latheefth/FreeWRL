@@ -138,7 +138,7 @@ void Textures_init(struct tTextures *t){
 
 #if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
 
-#elif defined(WIN32)
+#elif defined(_MSC_VER)
 
 #else
 #if !defined(_ANDROID)

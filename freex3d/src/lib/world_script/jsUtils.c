@@ -52,7 +52,7 @@ which is the sample application included with the javascript engine.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 #include "fieldSet.h"
-#ifdef WIN32
+#ifdef _MSC_VER
 #include <pthread.h> // win32 needs the strtok_r 
 #endif
 

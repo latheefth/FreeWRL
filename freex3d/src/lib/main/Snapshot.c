@@ -232,7 +232,7 @@ static char * grabScreen(int bytesPerPixel, int x, int y, int width, int height)
 	return buffer;
 }
 
-#if defined( WIN32) || defined (IPHONE)
+#if defined( _MSC_VER) || defined (IPHONE)
 /* stubbs for now */
 void setSnapshot() {}
 void fwl_toggleSnapshot(){}

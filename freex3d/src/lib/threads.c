@@ -154,7 +154,7 @@ void fwl_initializeDisplayThread()
 	}
 
 
-#if !defined(TARGET_AQUA) && !defined(_MSC_VER) //TARGET_WIN32)
+#if !defined(TARGET_AQUA) && !defined(_MSC_VER) 
 	if (gglobal()->internalc.global_trace_threads) {
 		TRACE_MSG("initializeDisplayThread: waiting for display to become initialized...\n");
 		while (IS_DISPLAY_INITIALIZED == FALSE) {
