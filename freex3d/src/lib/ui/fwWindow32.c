@@ -389,9 +389,9 @@ static int shiftState = 0;
 	fwl_doQuit();
 	break; 
 
-    case WM_SETCURSOR:
-	    setArrowCursor();
-	    break;
+    //case WM_SETCURSOR:
+	   // setArrowCursor();
+	   // break;
 
 /**************************************************************\
  *     WM_PAINT:                                                *

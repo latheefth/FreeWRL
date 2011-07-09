@@ -64,14 +64,16 @@ char *getMessageBar()
 #ifndef _MSC_VER
 void setArrowCursor()
 {
-	ocurse = ccurse;
-	ccurse = ACURSE;
-	setCursor();
+	if (ocurse != ACURSE) {
+		ccurse = ocurse = ACURSE;
+		setCursor();
+	}
 }
 void setSensorCursor()
 {
-	ocurse = ccurse;
-	ccurse = SCURSE;
-	setCursor();
+	if (ocurse != SCURSE) {
+		ccurse = ocurse = SCURSE;
+		setCursor();
+	}
 }
 #endif
