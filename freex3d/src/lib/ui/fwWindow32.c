@@ -741,7 +741,7 @@ int create_main_window0(int argc, char *argv[])
     if (!wc.hIcon) {
 		wc.hIcon = LoadIcon( NULL, IDI_APPLICATION );
 	}
-    wc.hCursor = hArrow;
+    wc.hCursor = NULL; //hArrow;
     wc.hbrBackground = (HBRUSH)( COLOR_WINDOW+1 );
     wc.lpszMenuName = 0; /* "GenericAppMenu"; */
     wc.cbClsExtra = 0;
@@ -776,6 +776,8 @@ int create_main_window0(int argc, char *argv[])
     UpdateWindow(ghWnd); 
     printf("updated window - leaving createwindow\n");
 	//setWindowTitle00();
+	//ShowCursor(0); //turns off hArrow, hHand cursors
+	setArrowCursor();
     return TRUE;
 }
 
