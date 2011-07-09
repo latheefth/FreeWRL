@@ -31,7 +31,7 @@ void setMenuFps(float fps)
 	setMessageBar();
 }
 
-void setMenuStatus(char *stat)
+void setMenuStatus(char *stattext)
 {
 	int loading = FALSE;
 
@@ -44,7 +44,7 @@ void setMenuStatus(char *stat)
 			 "(Loading...)");
 	} else {
 		snprintf(myMenuStatus, sizeof(myMenuStatus),
-			 "Viewpoint: %s", stat);
+			 "Viewpoint: %s", stattext);
 	}
 }
 void setWindowTitle0()
@@ -56,6 +56,10 @@ void setMessageBar()
 {
 	snprintf(&messagebar[0], 10, "%10f", myFps);
 	snprintf(&messagebar[15], sizeof(myMenuStatus)-15, "%s", myMenuStatus);
+}
+char *getMessageBar()
+{
+	return messagebar;
 }
 #ifndef _MSC_VER
 void setArrowCursor()

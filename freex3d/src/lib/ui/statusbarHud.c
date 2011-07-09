@@ -1708,7 +1708,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 	}
 	return 0;
 }
-
+//char *getMessageBar();
 
 void drawStatusBar() 
 {
@@ -1814,9 +1814,17 @@ M       void toggle_collision()                             //"
 		/* print status bar text - things like PLANESENSOR */
 		printString(pp); 
 		p->hadString = 1;
-	}else{
+	}
+	//else
+	{
+		char *strfps,*strstatus;
+		//printString(p->messagebar);
+		strfps = getMessageBar();
+		strstatus = &strfps[15];
+		FW_GL_WINDOWPOS2I(150,0); //300,0);
+		printString(strfps);
 		FW_GL_WINDOWPOS2I(300,0);
-		printString(p->messagebar);
+		printString(strstatus);
 	}
 	FW_GL_SHADEMODEL(GL_FLAT);
 	if(p->butStatus[8]) printKeyboardHelp();

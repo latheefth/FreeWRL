@@ -52,6 +52,7 @@ void setArrowCursor();
 void setSensorCursor();
 void setWindowTitle0();
 void setWindowTitle();
+char *getMessageBar();
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
