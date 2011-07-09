@@ -1869,7 +1869,8 @@ void fwl_doQuit()
     void scanMallocTableOnQuit(void);
     scanMallocTableOnQuit();
 #endif
-
+	/* tested on win32 console program July9,2011 seems OK */
+	iglobal_destructor(gglobal());
     exit(EXIT_SUCCESS);
 }
 
