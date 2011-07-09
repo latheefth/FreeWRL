@@ -2153,6 +2153,13 @@ void fwl_replaceWorldNeeded(char* str)
 	tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
 	tg->RenderFuncs.BrowserAction = TRUE;
 }
+void fwl_reload()
+{
+	char *oldworld;
+	ttglobal tg = gglobal();
+	oldworld = tg->RenderFuncs.OSX_last_world_url_for_reload;
+	fwl_replaceWorldNeeded(oldworld);
+}
 
 /* OSX the Plugin is telling the displayThread to stop and clean everything up */
 void stopRenderingLoop(void) {
