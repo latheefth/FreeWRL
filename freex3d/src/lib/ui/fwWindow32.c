@@ -643,7 +643,7 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 }
 /*======== "VIRTUAL FUNCTIONS" ==============*/
 
-void setWindowTitle00() //char *window_title)
+void setWindowTitle() //char *window_title)
 {
 	//XStoreName(Xdpy, Xwin, window_title);
 	//XSetIconName(Xdpy, Xwin, window_title);
@@ -652,8 +652,8 @@ void setWindowTitle00() //char *window_title)
 	 // __in      HWND hWnd,
 	 // __in_opt  LPCTSTR lpString);
 	
-	SetWindowText(ghWnd,fwl_getWindowTitle());
-	//SetWindowText(ghWnd,window_title);
+	//SetWindowText(ghWnd,fwl_getWindowTitle());
+	SetWindowText(ghWnd,window_title);
 }
 
 /**
@@ -775,7 +775,7 @@ int create_main_window0(int argc, char *argv[])
 
     UpdateWindow(ghWnd); 
     printf("updated window - leaving createwindow\n");
-	setWindowTitle00();
+	//setWindowTitle00();
     return TRUE;
 }
 
