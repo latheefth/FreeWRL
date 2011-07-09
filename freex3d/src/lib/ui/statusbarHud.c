@@ -862,13 +862,6 @@ void statusbar_init(struct tstatusbar *t){
 }
 //ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
-//called from common.c:
-void setMessageBar0(char *messagebar)
-{
-	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
-	strncpy(p->messagebar,messagebar,min(sizeof(messagebar),199));
-	p->messagebar[199] = '\0';
-}
 void fwMakeRasterFonts()
 {
 	int ichar;
