@@ -1870,6 +1870,7 @@ M       void toggle_collision()                             //"
 		FW_GL_WINDOWPOS2I(300,0);
 		printString(strstatus);
 	}
+	FW_GL_COLOR3F(1.0f,1.0f,1.0f);
 	FW_GL_SHADEMODEL(GL_FLAT);
 	if(p->butStatus[8]) printKeyboardHelp();
 	if(p->butStatus[9]) printConsoleText();
