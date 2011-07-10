@@ -54,7 +54,7 @@ void setWindowTitle0()
 }
 void setMessageBar()
 {
-	snprintf(&messagebar[0], 10, "%10f", myFps);
+	snprintf(&messagebar[0], 10, "%10.0f", myFps);
 	snprintf(&messagebar[15], sizeof(myMenuStatus)-15, "%s", myMenuStatus);
 }
 char *getMessageBar()

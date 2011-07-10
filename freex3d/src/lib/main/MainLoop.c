@@ -959,8 +959,8 @@ static void render_pre() {
 			}
 #endif
 		}
-
-        PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
+		drawStatusBar();
+		PRINT_GL_ERROR_IF_ANY("GLBackend::render_pre");
 }
 void setup_projection(int pick, int x, int y) 
 {
