@@ -276,7 +276,7 @@ typedef struct viewer {
 } X3D_Viewer;
 
 void Viewer_anaglyph_setSide(int iside);
-
+void Viewer_anaglyph_clearSides();
 void fwl_init_StereoDefaults(void);
 
 void viewer_postGLinit_init(void);

@@ -1747,7 +1747,7 @@ int handleStatusbarHud(int mev, int* clipplane)
 	}
 	return 0;
 }
-//char *getMessageBar();
+char *getMessageBar(); //in common.c
 
 void drawStatusBar() 
 {

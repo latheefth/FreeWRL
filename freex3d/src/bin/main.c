@@ -163,11 +163,14 @@ int main (int argc, char **argv)
 #if !defined(TARGET_AQUA) /* Aqua front ends do the parsing */
     /* parse command line arguments */
     if (fv_parseCommandLine(argc, argv)) {
-
-	    start_url = argv[optind];
+		if(argc > 1){
+			start_url = argv[optind];
 #ifdef _MSC_VER
-	    start_url = strBackslash2fore(start_url);
+			start_url = strBackslash2fore(start_url);
 #endif
+		}else{
+			start_url = NULL;
+		}
     }
 #endif
 
