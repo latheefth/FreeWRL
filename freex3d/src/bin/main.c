@@ -156,7 +156,7 @@ int main (int argc, char **argv)
     fv_params->fullscreen = FALSE;
     fv_params->winToEmbedInto = -1;
     fv_params->verbose = FALSE;
-    fv_params->collision = 1;
+    fv_params->collision = 0; //1; if you set it, you need to update ui button with a call
 
     fwl_init_StereoDefaults();
 
