@@ -642,7 +642,7 @@ void fwl_RenderSceneUpdateScene() {
         /* handle_mouse events if clicked on a sensitive node */
 	/* printf("nav mode =%d sensitive= %d\n",NavigationMode, HaveSensitive);  */
         if (!p->NavigationMode && tg->Mainloop.HaveSensitive) {
-		p->currentCursor = 0;
+                p->currentCursor = 0;
                 setup_projection(TRUE,tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
                 setup_viewpoint();
                 render_hier(rootNode(),VF_Sensitive  | VF_Geom); 
@@ -747,6 +747,8 @@ void fwl_RenderSceneUpdateScene() {
                 //        setCursor();
                 //}
         } /* (!NavigationMode && HaveSensitive) */
+		else
+			setArrowCursor();
 
 
         /* handle snapshots */

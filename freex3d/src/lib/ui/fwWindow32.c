@@ -90,6 +90,7 @@ void swapbuffers32()
 static bool m_fullscreen = false;
 static bool dualmonitor = false;
 static RECT smallrect;
+void setLastCursor();
 bool EnableFullscreen(int w, int h, int bpp)
 {
 #if defined(_MSC_VER)
@@ -322,7 +323,7 @@ bool fv_bind_GLcontext()
 
 static HCURSOR hSensor, hArrow;
 static HCURSOR cursor;
-
+//void setArrowCursor0();
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
     UINT msg, 
@@ -389,9 +390,11 @@ static int shiftState = 0;
 	fwl_doQuit();
 	break; 
 
-    //case WM_SETCURSOR:
-	   // setArrowCursor();
-	   // break;
+  //  case WM_SETCURSOR:
+	 //  //setLastCursor();
+		//printf("_");
+	 //  //setArrowCursor0();
+	 //  break;
 
 /**************************************************************\
  *     WM_PAINT:                                                *
@@ -602,14 +605,28 @@ int doEventsWin32A()
     eventcount = 0;
     return FALSE;
 }
+//bool lastCursorArrow = true;
 void setSensorCursor()
 {
+	//lastCursorArrow = false;
 	SetCursor(hSensor);
+	//printf("S");
 }
 void setArrowCursor()
 {
+	//lastCursorArrow = true;
 	SetCursor(hArrow);
+	//printf("^");
 }
+//void setLastCursor()
+//{
+//	printf("_");
+//	if(lastCursorArrow)
+//		setArrowCursor();
+//	else
+//		setSensorCursor();
+//}
+
 //void setCursor()
 //{
 //	switch (ccurse) {
