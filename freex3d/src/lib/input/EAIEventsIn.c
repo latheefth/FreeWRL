@@ -573,10 +573,10 @@ OLDCODE				}
 			    }
 			  case VIEWPOINT: {
 				/* do the viewpoints. Note the spaces in the strings */
-				if (!strcmp(&EAI_BUFFER_CUR, " NEXT")) fwl_Next_ViewPoint();
-				if (!strcmp(&EAI_BUFFER_CUR, " FIRST")) fwl_First_ViewPoint();
-				if (!strcmp(&EAI_BUFFER_CUR, " LAST")) fwl_Last_ViewPoint();
-				if (!strcmp(&EAI_BUFFER_CUR, " PREV")) fwl_Prev_ViewPoint();
+				if (!strncmp(&EAI_BUFFER_CUR, " NEXT",5)) fwl_Next_ViewPoint();
+				if (!strncmp(&EAI_BUFFER_CUR, " FIRST",6)) fwl_First_ViewPoint();
+				if (!strncmp(&EAI_BUFFER_CUR, " LAST",5)) fwl_Last_ViewPoint();
+				if (!strncmp(&EAI_BUFFER_CUR, " PREV",5)) fwl_Prev_ViewPoint();
 
 				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
 				break;
