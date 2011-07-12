@@ -47,7 +47,7 @@ void setMessageBar();
 
 /* Generic (virtual) update functions */
 
-//void setCursor();
+void setCursor();
 void setArrowCursor();
 void setSensorCursor();
 void setWindowTitle0();
