@@ -193,7 +193,7 @@ char* download_url_curl(resource_item_t *res)
     char *temp;
     FILE *file;
 
-    if (res->_temp_dir) {
+    if (res->temp_dir) {
 	    temp = STRDUP(res->temp_dir);
     } else {
 	    temp = tempnam("/tmp", "freewrl_download_curl_XXXXXXXX");
@@ -231,7 +231,7 @@ char* download_url_curl(resource_item_t *res)
 	fclose(file);
 	return temp;
     } else {
-	ERROR_MSG("Download failed for url %s (%d)\n", res->-parsed_request, (int) success);
+	ERROR_MSG("Download failed for url %s (%d)\n", res->parsed_request, (int) success);
 	fclose(file);
 	unlink(temp);
 	FREE(temp);
