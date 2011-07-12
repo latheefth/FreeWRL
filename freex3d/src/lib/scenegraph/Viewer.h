@@ -355,7 +355,12 @@ void getCurrentSpeed(void);
 void getCurrentPosInModel (int addInAntiPos);
 
 void toggle_collision(void);
-void viewer_lastP_clear();
+void viewer_lastP_clear(void);
 void avatar2BoundViewpointVerticalAvatar(GLDOUBLE *matA2BVVA, GLDOUBLE *matBVVA2A);
+
+void toggleOrSetStereo(int type);
+void setAnaglyphSideColor(char val, int iside);
+void updateEyehalf(void);
+void viewer_level_to_bound(void);
 
 #endif /* __FREEWRL_VIEWER_H__ */
