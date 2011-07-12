@@ -473,7 +473,7 @@ bool resource_load(resource_item_t *res)
 		} else {
 
 #ifdef FRONTEND_GETS_FILES
-			if (frontEndWantsFileName() != NULL) {
+			if (fwg_frontEndWantsFileName() != NULL) {
 				/* printf ("resource still loading, lets yield here\n"); */
 			} else {
 #endif 

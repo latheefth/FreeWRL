@@ -193,7 +193,7 @@ void _fileLoadThread(void* param)
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded))
     {
-    	const char* pFilename = (const char*)frontEndWantsFileName();
+    	const char* pFilename = (const char*)fwg_frontEndWantsFileName();
     	if( NULL != pFilename )
     	{
     		DROIDDEBUG( "Want file: %s", pFilename);

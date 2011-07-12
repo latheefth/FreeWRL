@@ -21,12 +21,12 @@
 #define MapNotify       19
 
 // these should be included from the static library.
-void fwl_initializeRenderSceneUpdateScene(void);
-char *frontEndWantsFileName(void);
-int fv_display_initialize(void);
-void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
-void fwl_setButDown(int button, int value);
-void fwl_setOrientation(int);
+//void fwl_initializeRenderSceneUpdateScene(void);
+//char *frontEndWantsFileName(void);
+//int fv_display_initialize(void);
+//void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
+//void fwl_setButDown(int button, int value);
+//void fwl_setOrientation(int);
 extern char myMenuStatus[200];
 extern char messagebar[200];
 
@@ -190,7 +190,7 @@ NSMutableData *receivedData;
 - (void)drawView:(GLView*)view;
 {
     //NSLog (@"drawing");
-    if (frontEndWantsFileName() != NULL) {
+    if (fwg_frontEndWantsFileName() != NULL) {
         if (!frontEndGettingFile) {
             frontEndGettingFile = true;
         
@@ -207,8 +207,8 @@ NSMutableData *receivedData;
             
 
         // Create the request. Get the file name from the FreeWRL library.
-        NSString *myString = [[NSString alloc] initWithUTF8String:frontEndWantsFileName()];
-        //NSLog (@"string from lib is %@ as a string %s",myString,frontEndWantsFileName());
+        NSString *myString = [[NSString alloc] initWithUTF8String:fwg_frontEndWantsFileName()];
+        //NSLog (@"string from lib is %@ as a string %s",myString,fwg_frontEndWantsFileName());
             
         NSURLRequest *theRequest=
             [NSURLRequest requestWithURL:[NSURL URLWithString: myString ]

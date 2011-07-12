@@ -377,8 +377,8 @@ static pthread_cond_t waitingForFile = PTHREAD_COND_INITIALIZER;
 /* accessor functions */
 /* return the filename of the file we want. */
 
-char *frontEndWantsFileName() {
-	//if (fileName != NULL) printf ("frontEndWantsFileName called - fileName currently %s\n",fileName);
+char *fwg_frontEndWantsFileName() {
+	//if (fileName != NULL) printf ("fwg_frontEndWantsFileName called - fileName currently %s\n",fileName);
 	return fileName;
 }
 
@@ -428,7 +428,7 @@ void fwg_frontEndReturningLocalFile(char *localfile, int iret) {
 }
 
 #else
-char *frontEndWantsFileName() {return NULL;}
+char *fwg_frontEndWantsFileName() {return NULL;}
 void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {}
 void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}
 #endif
