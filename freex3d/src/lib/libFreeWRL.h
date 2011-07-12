@@ -290,4 +290,10 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 /* JAS - moving OSX front end into 2011 code workings - these may change. */
 void fwl_replaceWorldNeeded(char* str);
 
+/* IS - moving from main/headers.h to here for use in front-ends (bin/main.c calls some of these) */
+void setMenuButton_collision (int val);
+void setMenuButton_headlight (int val);
+void setMenuButton_navModes (int type);
+void setMenuButton_texSize (int size);
+
 #endif /* __LIBFREEWRL_API_H__ */
