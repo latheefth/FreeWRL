@@ -2067,7 +2067,6 @@ void fwl_setCurXY(int cx, int cy) {
 	/* printf ("fwl_setCurXY, have %d %d\n",p->currentX[p->currentCursor],p->currentY[p->currentCursor]); */
         tg->Mainloop.currentX[p->currentCursor] = cx;
         tg->Mainloop.currentY[p->currentCursor] = cy;
-    printf ("fwl_setCurXY, have %x %x\n",cx,cy);
 }
 
 void fwl_setButDown(int button, int value) {
