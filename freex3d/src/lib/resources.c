@@ -52,7 +52,6 @@
 
 #include "zlib.h"
 
-
 static void possiblyUnzip (openned_file_t *of);
 
 /**
@@ -241,10 +240,16 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		}
 	}
 
+#ifdef FRONTEND_GETS_FILES
+	DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network type\n");
+	network = TRUE;
+#else
 	network = FALSE;
 	if (defaults) {
 		network = defaults->network;
 	}
+#endif
+
 
 	/* URI specifier at the beginning ? */
 	res->network = checkNetworkFile(res->request);
