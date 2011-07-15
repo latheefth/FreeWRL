@@ -61,6 +61,15 @@
 #include <X11/StringDefs.h>
 #include <X11/Xatom.h>
 
+#ifdef HAVE_NSPR /* for PRBool */
+#include <prtypes.h>
+#else
+/* in nspr as of 2011-07-15, PRBool was just an int; if no nspr then define explicitly */
+# define PR_TRUE 1
+# define PR_FALSE 0
+typedef int PRBool
+#endif
+
 #define PLUGIN_NAME                     "FreeWRL X3D/VRML"
 
 #define BOOL_STR(b) (b ? "TRUE" : "FALSE")
@@ -697,6 +706,10 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value)
                 *((char **)value) = PLUGIN_NAME;
                 break;
 
+	case NPPVpluginNeedsXEmbed:
+		*((PRBool *)value) = PR_TRUE;
+		break;
+
         case NPPVpluginDescriptionString:
                 snprintf(version_description, VERSION_DESCRIPTION_SIZE,
                          "<b>FreeWRL is a VRML/X3D plugin.</b><br>"
@@ -825,7 +838,6 @@ NPP_New(NPMIMEType pluginType,
         PRINT("NPP_New returning %d\n", err);
         return err;
 }
-
 
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save)
@@ -1002,7 +1014,6 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
         PRINT("exiting NPP_SetWindow\n");
         return result;
 }
-
 
 NPError
 NPP_NewStream(NPP instance,
