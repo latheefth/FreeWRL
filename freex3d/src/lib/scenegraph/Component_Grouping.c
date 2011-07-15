@@ -365,7 +365,8 @@ void child_Transform (struct X3D_Transform *node) {
 	      // matrotate2v(upvecmat,ViewerUpvector,tupv);
 	      // matmultiply(modelMatrix,upvecmat,modelMatrix);
 	       /* matinverse(upvecmat,upvecmat); */
-			matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];

@@ -1041,7 +1041,8 @@ void collide_Text (struct X3D_Text *node)
 
     FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
-	matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
+	matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
+	//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
 
 	if(!avatarCollisionVolumeIntersectMBBf(modelMatrix,pr.minVals,pr.maxVals) )return;
     delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); 
