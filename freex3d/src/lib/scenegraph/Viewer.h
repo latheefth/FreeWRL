@@ -238,6 +238,9 @@ typedef struct viewer {
 
 	struct point_XYZ VPvelocity;
 
+	int SLERPing2;
+	int SLERPing2justStarted;
+
 	int SLERPing;
 	double startSLERPtime;
 

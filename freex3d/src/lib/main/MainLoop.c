@@ -365,6 +365,7 @@ static void get_collisionoffset(double *x, double *y, double *z);
 static void sendDescriptionToStatusBar(struct X3D_Node *CursorOverSensitive);
 /* void fwl_do_keyPress(char kp, int type); Now in lib.h */
 void render_collisions(int Viewer_type);
+void slerp_viewpoint();
 static void render_pre(void);
 static void render(void);
 static void setup_projection(int pick, int x, int y);
@@ -626,7 +627,12 @@ void fwl_RenderSceneUpdateScene() {
     PRINT_GL_ERROR_IF_ANY("after handle_tick")
     
         /* setup Projection and activate ProximitySensors */
-        if (p->onScreen) render_pre(); 
+        if (p->onScreen) 
+		{
+			render_pre(); 
+			slerp_viewpoint();
+		}
+		
 
         /* first events (clock ticks, etc) if we have other things to do, yield */
         if (p->doEvents) do_first (); else sched_yield();
