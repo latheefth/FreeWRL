@@ -240,15 +240,10 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 		}
 	}
 
-#ifdef FRONTEND_GETS_FILES
-	DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network type\n");
-	network = TRUE;
-#else
 	network = FALSE;
 	if (defaults) {
 		network = defaults->network;
 	}
-#endif
 
 
 	/* URI specifier at the beginning ? */
@@ -356,6 +351,17 @@ void resource_identify(resource_item_t *baseResource, resource_item_t *res)
 	res->parsed_request = url;
 	res->base = STRDUP(url);
 	removeFilenameFromPath(res->base);
+
+
+#ifdef FRONTEND_GETS_FILES
+        DEBUG_RES ("FRONTEND_GETS_FILES set to true, always assume that the file is of network ty pe\n");
+	res->network = TRUE;
+	res->type = rest_url;
+
+#endif
+
+
+        // ok we should be good to go now        res->network = TRUE;
 
 	DEBUG_RES("resource_identify (end): network=%s type=%s status=%s"
 		  " request=<%s> base=<%s> url=<%s> [parent %p, %s]\n", 
