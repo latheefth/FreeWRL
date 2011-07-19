@@ -525,7 +525,8 @@ void fwl_RenderSceneUpdateScene() {
 	if ((p->slowloop_count % 256) == 0) {
 		/* activate_picksensors() ; */
 		/*
-		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",slowloop_count, TickTime(), p->lastMouseEvent, MotionNotify) ;
+		printf("slowloop_count = %d at T=%lf : lastMouseEvent=%d , MotionNotify=%d\n",
+			p->slowloop_count, TickTime(), p->lastMouseEvent, MotionNotify) ;
 		*/
 		activate_OSCsensors() ;
 	} else {
