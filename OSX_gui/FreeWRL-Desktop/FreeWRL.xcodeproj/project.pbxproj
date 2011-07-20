@@ -1,0 +1,308 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		73295A4B13D71F4800D82816 /* FWGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 73295A4913D71F4800D82816 /* FWGLView.m */; };
+		73CE189613D71AAD0038EB81 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 73CE189513D71AAD0038EB81 /* MainMenu.xib */; };
+		73D4357A13D71596000293CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73D4357913D71596000293CE /* Cocoa.framework */; };
+		73D4358413D71596000293CE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 73D4358213D71596000293CE /* InfoPlist.strings */; };
+		73D4358713D71596000293CE /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 73D4358613D71596000293CE /* main.m */; };
+		73D4358A13D71596000293CE /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 73D4358813D71596000293CE /* Credits.rtf */; };
+		73D4358D13D71596000293CE /* FreeWRLAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 73D4358C13D71596000293CE /* FreeWRLAppDelegate.m */; };
+		73D4359013D71596000293CE /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 73D4358E13D71596000293CE /* MainMenu.xib */; };
+		73D435A013D71869000293CE /* UrlDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 73D4359E13D71869000293CE /* UrlDownloader.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		73295A4913D71F4800D82816 /* FWGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FWGLView.m; sourceTree = "<group>"; };
+		73295A4A13D71F4800D82816 /* FWGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FWGLView.h; sourceTree = "<group>"; };
+		73CE189513D71AAD0038EB81 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
+		73D4357513D71595000293CE /* FreeWRL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FreeWRL.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		73D4357913D71596000293CE /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		73D4357C13D71596000293CE /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		73D4357D13D71596000293CE /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		73D4357E13D71596000293CE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		73D4358113D71596000293CE /* FreeWRL-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FreeWRL-Info.plist"; sourceTree = "<group>"; };
+		73D4358313D71596000293CE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		73D4358513D71596000293CE /* FreeWRL-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FreeWRL-Prefix.pch"; sourceTree = "<group>"; };
+		73D4358613D71596000293CE /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		73D4358913D71596000293CE /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		73D4358B13D71596000293CE /* FreeWRLAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FreeWRLAppDelegate.h; sourceTree = "<group>"; };
+		73D4358C13D71596000293CE /* FreeWRLAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FreeWRLAppDelegate.m; sourceTree = "<group>"; };
+		73D4358F13D71596000293CE /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		73D4359E13D71869000293CE /* UrlDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UrlDownloader.m; sourceTree = "<group>"; };
+		73D4359F13D71869000293CE /* UrlDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UrlDownloader.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		73D4357213D71595000293CE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				73D4357A13D71596000293CE /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		73D4356A13D71594000293CE = {
+			isa = PBXGroup;
+			children = (
+				73D4357F13D71596000293CE /* FreeWRL */,
+				73D4357813D71596000293CE /* Frameworks */,
+				73D4357613D71596000293CE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		73D4357613D71596000293CE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				73D4357513D71595000293CE /* FreeWRL.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		73D4357813D71596000293CE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				73D4357913D71596000293CE /* Cocoa.framework */,
+				73D4357B13D71596000293CE /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		73D4357B13D71596000293CE /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				73D4357C13D71596000293CE /* AppKit.framework */,
+				73D4357D13D71596000293CE /* CoreData.framework */,
+				73D4357E13D71596000293CE /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		73D4357F13D71596000293CE /* FreeWRL */ = {
+			isa = PBXGroup;
+			children = (
+				73295A4913D71F4800D82816 /* FWGLView.m */,
+				73295A4A13D71F4800D82816 /* FWGLView.h */,
+				73D4358B13D71596000293CE /* FreeWRLAppDelegate.h */,
+				73D4359E13D71869000293CE /* UrlDownloader.m */,
+				73CE189513D71AAD0038EB81 /* MainMenu.xib */,
+				73D4359F13D71869000293CE /* UrlDownloader.h */,
+				73D4358C13D71596000293CE /* FreeWRLAppDelegate.m */,
+				73D4358E13D71596000293CE /* MainMenu.xib */,
+				73D4358013D71596000293CE /* Supporting Files */,
+			);
+			path = FreeWRL;
+			sourceTree = "<group>";
+		};
+		73D4358013D71596000293CE /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				73D4358113D71596000293CE /* FreeWRL-Info.plist */,
+				73D4358213D71596000293CE /* InfoPlist.strings */,
+				73D4358513D71596000293CE /* FreeWRL-Prefix.pch */,
+				73D4358613D71596000293CE /* main.m */,
+				73D4358813D71596000293CE /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		73D4357413D71595000293CE /* FreeWRL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 73D4359313D71596000293CE /* Build configuration list for PBXNativeTarget "FreeWRL" */;
+			buildPhases = (
+				73D4357113D71595000293CE /* Sources */,
+				73D4357213D71595000293CE /* Frameworks */,
+				73D4357313D71595000293CE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FreeWRL;
+			productName = FreeWRL;
+			productReference = 73D4357513D71595000293CE /* FreeWRL.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		73D4356C13D71594000293CE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = "CRC Canada";
+			};
+			buildConfigurationList = 73D4356F13D71595000293CE /* Build configuration list for PBXProject "FreeWRL" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 73D4356A13D71594000293CE;
+			productRefGroup = 73D4357613D71596000293CE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				73D4357413D71595000293CE /* FreeWRL */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		73D4357313D71595000293CE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				73D4358413D71596000293CE /* InfoPlist.strings in Resources */,
+				73D4358A13D71596000293CE /* Credits.rtf in Resources */,
+				73D4359013D71596000293CE /* MainMenu.xib in Resources */,
+				73CE189613D71AAD0038EB81 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		73D4357113D71595000293CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				73D4358713D71596000293CE /* main.m in Sources */,
+				73D4358D13D71596000293CE /* FreeWRLAppDelegate.m in Sources */,
+				73D435A013D71869000293CE /* UrlDownloader.m in Sources */,
+				73295A4B13D71F4800D82816 /* FWGLView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		73D4358213D71596000293CE /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				73D4358313D71596000293CE /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		73D4358813D71596000293CE /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				73D4358913D71596000293CE /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		73D4358E13D71596000293CE /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				73D4358F13D71596000293CE /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		73D4359113D71596000293CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		73D4359213D71596000293CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		73D4359413D71596000293CE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FreeWRL/FreeWRL-Prefix.pch";
+				INFOPLIST_FILE = "FreeWRL/FreeWRL-Info.plist";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = /usr/local/lib;
+				OTHER_LDFLAGS = "";
+				"OTHER_LDFLAGS[arch=*]" = "-lFreeX3DFunc";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		73D4359513D71596000293CE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FreeWRL/FreeWRL-Prefix.pch";
+				INFOPLIST_FILE = "FreeWRL/FreeWRL-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		73D4356F13D71595000293CE /* Build configuration list for PBXProject "FreeWRL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73D4359113D71596000293CE /* Debug */,
+				73D4359213D71596000293CE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		73D4359313D71596000293CE /* Build configuration list for PBXNativeTarget "FreeWRL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73D4359413D71596000293CE /* Debug */,
+				73D4359513D71596000293CE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 73D4356C13D71594000293CE /* Project object */;
+}
