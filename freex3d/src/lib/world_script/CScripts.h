@@ -42,7 +42,11 @@ Class to wrap a java script for CParser
 struct CRjsnameStruct {
         int     	type;
         char    	name[MAXJSVARIABLELENGTH];
+#if JS_VERSION >= 185
+	JSObject *	eventInFunction;		/* compiled javascript function... if it is required */
+#else
 	JSScript *	eventInFunction;		/* compiled javascript function... if it is required */
+#endif
 };
 
 
@@ -182,7 +186,11 @@ struct CRscriptStruct {
 	int _initialized;			/* this script initialized yet? */
 	JSContext *	cx;			/* JSContext		*/
 	JSObject *	glob;			/* JSGlobals		*/
+#if JS_VERSION >= 185
+	JSObject *eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
+#else
 	JSScript *eventsProcessed; 	/* eventsProcessed() compiled function parameter*/
+#endif
 	char *scriptText;
 	struct ScriptParamList *paramList;
 	int 		scriptOK;		/* set to TRUE if the script loads ok */
