@@ -29,6 +29,23 @@
 		73E39CF5132954F4001ADBBB /* libFreeWRL_IPhone_Static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		7375142913D8AAA100408F3A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 738C7BE613D8A87100ED9991 /* FreeWRL-IPhone_Static.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = "FreeWRL-IPhone_Static";
+		};
+		738C7BED13D8A87100ED9991 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 738C7BE613D8A87100ED9991 /* FreeWRL-IPhone_Static.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = "FreeWRL-IPhone_Static";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1D3623240D0F684500981E51 /* FreeWRLAppDelegate.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = FreeWRLAppDelegate.h; path = Classes/FreeWRLAppDelegate.h; sourceTree = SOURCE_ROOT; };
 		1D3623250D0F684500981E51 /* FreeWRLAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = FreeWRLAppDelegate.m; path = Classes/FreeWRLAppDelegate.m; sourceTree = SOURCE_ROOT; };
@@ -52,6 +69,7 @@
 		731321481337EA2E00FEAD96 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		736E1510138D922F008A39E1 /* X3DFreeWRL_icon_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_57.png; sourceTree = "<group>"; };
 		736E1512138D9236008A39E1 /* X3DFreeWRL_icon_114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_114.png; sourceTree = "<group>"; };
+		738C7BE613D8A87100ED9991 /* FreeWRL-IPhone_Static.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "FreeWRL-IPhone_Static.xcodeproj"; path = "../FreeWRL-IPhone_Static/FreeWRL-IPhone_Static.xcodeproj"; sourceTree = "<group>"; };
 		73AE9CE5138D90950024D4BF /* X3DFreeWRL_icon_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_57.png; sourceTree = "<group>"; };
 		73AE9CE7138D91110024D4BF /* X3DFreeWRL_icon_114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_114.png; sourceTree = "<group>"; };
 		73B36C31138D9329006A3D7D /* X3DFreeWRL_icon_72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = X3DFreeWRL_icon_72.png; sourceTree = "<group>"; };
@@ -116,6 +134,7 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				738C7BE613D8A87100ED9991 /* FreeWRL-IPhone_Static.xcodeproj */,
 				73B36C31138D9329006A3D7D /* X3DFreeWRL_icon_72.png */,
 				736E1512138D9236008A39E1 /* X3DFreeWRL_icon_114.png */,
 				736E1510138D922F008A39E1 /* X3DFreeWRL_icon_57.png */,
@@ -163,6 +182,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		738C7BE713D8A87100ED9991 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				738C7BEE13D8A87100ED9991 /* libFreeWRL_IPhone_Static.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -177,6 +204,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				7375142A13D8AAA100408F3A /* PBXTargetDependency */,
 			);
 			name = FreeWRL;
 			productName = FreeWRL;
@@ -200,12 +228,28 @@
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 738C7BE713D8A87100ED9991 /* Products */;
+					ProjectRef = 738C7BE613D8A87100ED9991 /* FreeWRL-IPhone_Static.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				1D6058900D05DD3D006BFB54 /* FreeWRL */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		738C7BEE13D8A87100ED9991 /* libFreeWRL_IPhone_Static.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libFreeWRL_IPhone_Static.a;
+			remoteRef = 738C7BED13D8A87100ED9991 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1D60588D0D05DD3D006BFB54 /* Resources */ = {
@@ -239,6 +283,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7375142A13D8AAA100408F3A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "FreeWRL-IPhone_Static";
+			targetProxy = 7375142913D8AAA100408F3A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1D6058940D05DD3E006BFB54 /* Debug */ = {
