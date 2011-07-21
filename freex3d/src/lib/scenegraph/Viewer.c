@@ -2055,8 +2055,8 @@ void slerp_viewpoint()
 				p->tickFrac += .1;
 				tickFrac = min(tickFrac,p->tickFrac);
 			}*/
-			tickFrac = min(tickFrac,1.0);
-			tickFrac = max(tickFrac,0.0);
+			tickFrac = DOUBLE_MIN(tickFrac,1.0);
+			tickFrac = DOUBLE_MAX(tickFrac,0.0);
 			//printf(" %4.1lf",tickFrac);
 			//slerping quat and point
 			vzero[0] = vzero[1] = vzero[2] = 0.0;
