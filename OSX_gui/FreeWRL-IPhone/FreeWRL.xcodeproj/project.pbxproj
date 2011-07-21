@@ -252,7 +252,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = FreeWRL_Prefix.pch;
 				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
-				HEADER_SEARCH_PATHS = "/Users/johns/Desktop/iphoneFreeWRL/freewrl/freex3d/src/lib/**";
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../freex3d/src/lib/**";
 				"HEADER_SEARCH_PATHS[arch=*]" = "";
 				INFOPLIST_FILE = "FreeWRL-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
@@ -276,7 +276,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = FreeWRL_Prefix.pch;
 				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
-				HEADER_SEARCH_PATHS = "/Users/johns/Desktop/iphoneFreeWRL/freewrl/freex3d/src/lib/**";
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../freex3d/src/lib/**";
 				INFOPLIST_FILE = "FreeWRL-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				LIBRARY_SEARCH_PATHS = (
