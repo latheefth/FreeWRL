@@ -52,7 +52,7 @@ int mainloopCount = 0;
     if (fileToOpen != nil) {
         cString = (char *)[fileToOpen UTF8String];
     } else {
-        cString = "/Applications/FreeWRL/blankScreen.wrl";
+        //cString = "/Applications/FreeWRL/blankScreen.wrl";
         cString = "/FreeWRL/freewrl/freewrl/tests/16.wrl";
         //cString = "http://freewrl.sf.net/tests/16.wrl";
     }
