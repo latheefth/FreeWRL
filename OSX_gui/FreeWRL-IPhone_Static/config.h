@@ -19,20 +19,10 @@
 #define IPHONE
 #define AQUA 1
 
-#define INSTALLDIR "/usr/share/freewrl"
 #define FONTS_DIR "/usr/share/freewrl/fonts"
-#define HAVE_STDINT_H 1
-#define HAVE_STDBOOL_H 1
-#define HAVE_UNISTD_H 1
-#define HAVE_SYS_WAIT_H 1
-#define HAVE_PTHREAD 1
 #define HAVE_CONFIG_H 1
-#define BUILDDIR "/FreeWRL/freewrl/freex3d/appleOSX"
 #define FWVER "1.22.10"
-#define FREEX3D_MESSAGE_WRAPPER "/usr/bin/say"
 #define FREEWRL_MESSAGE_WRAPPER "/usr/bin/say"
-#define REWIRE_SERVER "/usr/bin/freewrlReWireServer"
-#define SOUNDSERVERBINARY "/usr/bin/FreeWRL_SoundServer"
 #include <stdio.h>
 #include <fcntl.h>
 

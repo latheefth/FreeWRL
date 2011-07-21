@@ -10,7 +10,7 @@
 #import "ConstantsAndMacros.h"
 
 #define COMPILING_IPHONE_FRONT_END 1
-#include "/Users/johns/Desktop/iphoneFreeWRL/freewrl/freex3d/src/lib/libFreeWRL.h"
+#include "../../../freex3d/src/lib/libFreeWRL.h"
 
 /* from the headers.h file - for now */
 #define KeyPress        2

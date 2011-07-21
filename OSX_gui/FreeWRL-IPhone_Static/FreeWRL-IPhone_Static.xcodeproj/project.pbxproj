@@ -1061,11 +1061,11 @@
 				GCC_VERSION = 4.2;
 				HEADER_SEARCH_PATHS = (
 					"${SDK_DIR}/usr/local/libxml2",
-					/FreeWRL/freewrl/freex3d/src/lib,
+					"${SRCROOT}/../../freex3d/src/lib/",
 				);
 				"HEADER_SEARCH_PATHS[arch=*]" = (
 					"${SDK_DIR}/usr/local/libxml2",
-					/FreeWRL/freewrl/freex3d/src/lib,
+					"${SRCROOT}/../../freex3d/src/lib/",
 				);
 				INSTALL_PATH = /usr/local/lib;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
