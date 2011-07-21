@@ -46,6 +46,7 @@ typedef int JSContext;
 typedef int JSObject;
 typedef int JSScript;
 typedef int jsval;
+typedef int jsid;
 typedef int JSType;
 typedef int JSClass;
 typedef int JSFunctionSpec;
