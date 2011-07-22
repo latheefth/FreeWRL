@@ -250,7 +250,9 @@ void kill_javascript(void) {
 			if (ScriptControl[i].cx != 0) {
 				/* printf ("kill_javascript, context is %p\n",ScriptControl[i].cx); */
 #if JS_VERSION >= 185
+/* currently causes assertion failure (segfault), unsure why ...
 				JS_RemoveObjectRoot(ScriptControl[i].cx,ScriptControl[i].eventsProcessed);
+*/
 #endif
 				JS_DestroyContextMaybeGC(ScriptControl[i].cx);
 			}
