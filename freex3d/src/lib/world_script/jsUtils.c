@@ -827,7 +827,11 @@ printf ("*** errorReporter ***\n");
 		return;
 	}
 
-	len = (int) ((strlen(report->filename) + 1) + (strlen(message) + 1));
+	if (report->filename == NULL) {
+		len = (int) (strlen(message) + 1);
+	} else {
+		len = (int) ((strlen(report->filename) + 1) + (strlen(message) + 1));
+	}
 
 	errorReport = (char *) JS_malloc(context, (len + STRING) * charPtrSize);
 	if (!errorReport) {
