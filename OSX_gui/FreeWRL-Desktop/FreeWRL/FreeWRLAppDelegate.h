@@ -31,14 +31,3 @@
 -(void)addOperation:(UrlDownloader *)operation;
 
 @end
-
-
-
-//@interface FreeWRLAppDelegate : NSObject <NSApplicationDelegate> {
-//@private
-//    NSWindow *window;
-//}
-
-//@property (assign) IBOutlet NSWindow *window;
-//
-//@end

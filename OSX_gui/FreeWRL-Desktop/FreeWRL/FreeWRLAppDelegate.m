@@ -16,18 +16,13 @@ bool *opFlagPtr;
 
 @implementation FreeWRLAppDelegate
 
-//@synthesize window;
-
-
-//start of additions
-//-(void)addOperation:(UrlDownloaderOperation *)operation
 -(void)addOperation:(UrlDownloader *)operation {
     
     [_queue addOperation:operation];
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)notification
-{
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+
     _queue = [[NSOperationQueue alloc] init];
     // Set to 1 to serialize operations. Comment out for parallel operations.
     // [_queue setMaxConcurrentOperationCount:1];

@@ -39,7 +39,7 @@
 				<int key="NSWindowBacking">2</int>
 				<string key="NSWindowRect">{{576, 906}, {800, 620}}</string>
 				<int key="NSWTFlags">1886912512</int>
-				<string key="NSWindowTitle">Cocoa OpenGL</string>
+				<string key="NSWindowTitle">FreeWRL</string>
 				<string key="NSWindowClass">NSWindow</string>
 				<object class="NSMutableString" key="NSViewClass">
 					<characters key="NS.bytes">View</characters>
@@ -54,14 +54,14 @@
 							<int key="NSvFlags">274</int>
 							<string key="NSFrame">{{0, 20}, {800, 600}}</string>
 							<reference key="NSSuperview" ref="546786084"/>
-							<reference key="NSWindow"/>
+							<reference key="NSNextKeyView"/>
 							<string key="NSClassName">FWGLView</string>
 							<string key="NSExtension">NSOpenGLView</string>
 						</object>
 					</array>
 					<string key="NSFrame">{{7, 11}, {800, 620}}</string>
 					<reference key="NSSuperview"/>
-					<reference key="NSWindow"/>
+					<reference key="NSNextKeyView" ref="717874037"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {2560, 1418}}</string>
 				<string key="NSMinSize">{213, 129}</string>
@@ -72,7 +72,7 @@
 				<array class="NSMutableArray" key="NSMenuItems">
 					<object class="NSMenuItem" id="366567747">
 						<reference key="NSMenu" ref="694976468"/>
-						<string key="NSTitle">Cocoa OpenGL</string>
+						<string key="NSTitle">FreeWRL</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -86,11 +86,11 @@
 						</object>
 						<string key="NSAction">submenuAction:</string>
 						<object class="NSMenu" key="NSSubmenu" id="659794828">
-							<string key="NSTitle">Cocoa OpenGL</string>
+							<string key="NSTitle">FreeWRL</string>
 							<array class="NSMutableArray" key="NSMenuItems">
 								<object class="NSMenuItem" id="52394834">
 									<reference key="NSMenu" ref="659794828"/>
-									<string key="NSTitle">About Cocoa OpenGL</string>
+									<string key="NSTitle">About FreeWRL</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="618745379"/>
@@ -157,7 +157,7 @@
 								</object>
 								<object class="NSMenuItem" id="439584440">
 									<reference key="NSMenu" ref="659794828"/>
-									<string key="NSTitle">Hide Cocoa OpenGL</string>
+									<string key="NSTitle">Hide FreeWRL</string>
 									<string key="NSKeyEquiv">h</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -195,7 +195,7 @@
 								</object>
 								<object class="NSMenuItem" id="990019422">
 									<reference key="NSMenu" ref="659794828"/>
-									<string key="NSTitle">Quit Cocoa OpenGL</string>
+									<string key="NSTitle">Quit FreeWRL</string>
 									<string key="NSKeyEquiv">q</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -633,7 +633,7 @@
 							<array class="NSMutableArray" key="NSMenuItems">
 								<object class="NSMenuItem" id="485524775">
 									<reference key="NSMenu" ref="169386439"/>
-									<string key="NSTitle">Cocoa OpenGL</string>
+									<string key="NSTitle">FreeWRL</string>
 									<string key="NSKeyEquiv">?</string>
 									<int key="NSKeyEquivModMask">1048576</int>
 									<int key="NSMnemonicLoc">2147483647</int>
@@ -1508,53 +1508,9 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">214</int>
+			<int key="maxID">215</int>
 		</object>
-		<object class="IBClassDescriber" key="IBDocument.Classes">
-			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
-				<object class="IBPartialClassDescription">
-					<string key="className">FreeWRLAppDelegate</string>
-					<string key="superclassName">NSObject</string>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/FreeWRLAppDelegate.h</string>
-					</object>
-				</object>
-				<object class="IBPartialClassDescription">
-					<string key="className">FWGLView</string>
-					<string key="superclassName">NSOpenGLView</string>
-					<dictionary class="NSMutableDictionary" key="actions">
-						<string key="animate:">id</string>
-						<string key="info:">id</string>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="actionInfosByName">
-						<object class="IBActionInfo" key="animate:">
-							<string key="name">animate:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-						<object class="IBActionInfo" key="info:">
-							<string key="name">info:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-					</dictionary>
-					<object class="NSMutableDictionary" key="outlets">
-						<string key="NS.key.0">animateMenuItem</string>
-						<string key="NS.object.0">NSMenuItem</string>
-					</object>
-					<object class="NSMutableDictionary" key="toOneOutletInfosByName">
-						<string key="NS.key.0">animateMenuItem</string>
-						<object class="IBToOneOutletInfo" key="NS.object.0">
-							<string key="name">animateMenuItem</string>
-							<string key="candidateClassName">NSMenuItem</string>
-						</object>
-					</object>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/FWGLView.h</string>
-					</object>
-				</object>
-			</array>
-		</object>
+		<object class="IBClassDescriber" key="IBDocument.Classes"/>
 		<int key="IBDocument.localizationMode">0</int>
 		<string key="IBDocument.TargetRuntimeIdentifier">IBCocoaFramework</string>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencies">

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		73295A4B13D71F4800D82816 /* FWGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 73295A4913D71F4800D82816 /* FWGLView.m */; };
+		73ADF1A613D9C34500154A27 /* X3DFreeWRLIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 73ADF1A513D9C34500154A27 /* X3DFreeWRLIcon.icns */; };
 		73CE189613D71AAD0038EB81 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 73CE189513D71AAD0038EB81 /* MainMenu.xib */; };
 		73D4357A13D71596000293CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73D4357913D71596000293CE /* Cocoa.framework */; };
 		73D4358413D71596000293CE /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 73D4358213D71596000293CE /* InfoPlist.strings */; };
@@ -21,6 +22,7 @@
 /* Begin PBXFileReference section */
 		73295A4913D71F4800D82816 /* FWGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FWGLView.m; sourceTree = "<group>"; };
 		73295A4A13D71F4800D82816 /* FWGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FWGLView.h; sourceTree = "<group>"; };
+		73ADF1A513D9C34500154A27 /* X3DFreeWRLIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = X3DFreeWRLIcon.icns; sourceTree = "<group>"; };
 		73CE189513D71AAD0038EB81 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
 		73D4357513D71595000293CE /* FreeWRL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FreeWRL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		73D4357913D71596000293CE /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -54,6 +56,7 @@
 		73D4356A13D71594000293CE = {
 			isa = PBXGroup;
 			children = (
+				73ADF1A513D9C34500154A27 /* X3DFreeWRLIcon.icns */,
 				73D4357F13D71596000293CE /* FreeWRL */,
 				73D4357813D71596000293CE /* Frameworks */,
 				73D4357613D71596000293CE /* Products */,
@@ -169,6 +172,7 @@
 				73D4358A13D71596000293CE /* Credits.rtf in Resources */,
 				73D4359013D71596000293CE /* MainMenu.xib in Resources */,
 				73CE189613D71AAD0038EB81 /* MainMenu.xib in Resources */,
+				73ADF1A613D9C34500154A27 /* X3DFreeWRLIcon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

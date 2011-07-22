@@ -52,9 +52,8 @@ int mainloopCount = 0;
     if (fileToOpen != nil) {
         cString = (char *)[fileToOpen UTF8String];
     } else {
-        //cString = "/Applications/FreeWRL/blankScreen.wrl";
-        cString = "/FreeWRL/freewrl/freewrl/tests/16.wrl";
-        //cString = "http://freewrl.sf.net/tests/16.wrl";
+        // no file specified; go here.
+        cString = "/Applications/FreeWRL/blankScreen.wrl";
     }
     
     // wait for the main loop to go through at least once, 
@@ -413,9 +412,10 @@ mouseDisplaySensitive = mouseOverSensitive; \
 
 -(id) initWithFrame: (NSRect) frameRect
 {
-	NSOpenGLPixelFormat * pf = [FWGLView basicPixelFormat];
-
+    NSOpenGLPixelFormat * pf = [FWGLView basicPixelFormat];
+    
 	self = [super initWithFrame: frameRect pixelFormat: pf];
+
     return self;
 }
 
