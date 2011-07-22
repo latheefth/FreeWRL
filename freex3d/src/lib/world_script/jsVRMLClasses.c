@@ -1031,7 +1031,7 @@ JSBool _standardMFAssign(JSContext *cx,
 		printf("StandardMFAssign %s: obj = %p, id = \"%s\", from = %p, len = %d\n",stringFieldtypeType(type),
 		obj, _id_str, _from_obj, len);
 #if JS_VERSION >= 185
-		JS_free(cx,_id_jsstr);
+		JS_free(cx,_id_str);
 #endif
 	#endif
 
