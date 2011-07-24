@@ -274,6 +274,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
         p->coordmaxsize+=800;
         p->FW_rep_->actualCoord = (float *)REALLOC(p->FW_rep_->actualCoord, 
                                                 sizeof(*(p->FW_rep_->actualCoord))*p->coordmaxsize*3);
+		printf("realloc actualCoord=%ld\n",(unsigned int)p->FW_rep_->actualCoord);
     }
 }
 
@@ -936,7 +937,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
     }
 
     /* what is the estimated number of triangles? assume a certain number of tris per char */
-    est_tri = char_count*TESS_MAX_COORDS;
+    est_tri = char_count*800; /* 800 was TESS_MAX_COORDS - REALLOC if needed */
     p->coordmaxsize=est_tri;
     p->cindexmaxsize=est_tri;
     p->FW_rep_->cindex=MALLOC(GLuint *, sizeof(*(p->FW_rep_->cindex))*est_tri);
@@ -1056,7 +1057,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
             }
 
             if (p->indx_count > (p->cindexmaxsize-400)) {
-                p->cindexmaxsize +=TESS_MAX_COORDS;
+                p->cindexmaxsize += 800; /* 800 was TESS_MAX_COORDS; */
                 p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
             }
         }
