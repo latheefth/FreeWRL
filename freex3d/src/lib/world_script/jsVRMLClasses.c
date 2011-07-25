@@ -1851,8 +1851,13 @@ void setInECMATable(JSContext *context, char *toFind) {
 		ConsoleMessage ("problem in setInECMATable for scripting\n");
 		p->maxECMAVal = ECMAValueTableSize - 10;
 	}
-/* Dangerous code, taking a string and casting it directly -- why does this happen? */
+#if JS_VERSION < 185
+	/* Dangerous code, taking a string and casting it directly -- why does this happen? */
 	p->ECMAValues[p->maxECMAVal-1].JS_address = (jsval) toFind;
+#else
+	/* since this seems to never be used anyways .. */
+	p->ECMAValues[p->maxECMAVal-1].JS_address = JSVAL_ZERO;
+#endif
 	p->ECMAValues[p->maxECMAVal-1].valueChanged = TRUE;
 	p->ECMAValues[p->maxECMAVal-1].name = STRDUP(toFind);
 	p->ECMAValues[p->maxECMAVal-1].context = context;

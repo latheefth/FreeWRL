@@ -1639,7 +1639,9 @@ static void parseAttributes(void) {
 
 							/* get offsets for this field in this nodeType */
 							#ifdef SETFIELDVERBOSE
+/* ..does not compile right now...
 							printf ("getting nodeOffsets for type %s field %s value %s\n",stringNodeType(node->_nodeType),field,value); 
+*/
 							#endif
 
 							findFieldInOFFSETS(thisNode->_nodeType, foffset, &coffset, &ctype, &ctmp);
