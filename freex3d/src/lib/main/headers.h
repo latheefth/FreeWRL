@@ -322,7 +322,7 @@ unsigned int setField_FromEAI (char *ptr);
 /********************************
 	Verbosity
 *********************************/
-#ifdef DEBUG
+#if defined(DEBUG) || defined(FW_DEBUG)
 	/* define verbosity that should be forced-on when debug is set */
 
 
@@ -331,8 +331,8 @@ unsigned int setField_FromEAI (char *ptr);
 /* Parsing & Lexing */
 #undef CPARSERVERBOSE 
 
-/* Java Class invocation 
-undef JSVRMLCLASSESVERBOSE */
+/* Java Class invocation */
+#undef JSVRMLCLASSESVERBOSE 
 
 /* child node parsing */
 #undef CHILDVERBOSE
@@ -340,8 +340,8 @@ undef JSVRMLCLASSESVERBOSE */
 /* routing */
 #undef CRVERBOSE
 
-/* Javascript 
-undef JSVERBOSE */
+/* Javascript */
+#undef JSVERBOSE
 
 /* sensitive events */
 #undef SEVERBOSE
