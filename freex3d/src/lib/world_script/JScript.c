@@ -265,6 +265,7 @@ void kill_javascript(void) {
 	tg->CRoutes.max_script_found = -1;
 	tg->CRoutes.max_script_found_and_initialized = -1;
 	FREE_IF_NZ (ScriptControl);
+	setScriptControl(NULL);
 	FREE_IF_NZ(tg->CRoutes.scr_act);
 
 	/* Script name/type table */
