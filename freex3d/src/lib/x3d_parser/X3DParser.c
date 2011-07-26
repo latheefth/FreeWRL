@@ -408,6 +408,7 @@ void kill_X3DDefs(void) {
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
 
 	FREE_IF_NZ(p->childAttributes);
+	p->childAttributes = NULL;
 
 	if (p->DEFedNodes != NULL) {
 		for (i=0; i<vector_size(p->DEFedNodes); i++) {
@@ -419,6 +420,7 @@ void kill_X3DDefs(void) {
 			deleteVector (struct Vector *,myele);
 		}
 		deleteVector(struct Vector*, p->DEFedNodes);
+		p->DEFedNodes = NULL;
 	}
 
 	/* now, for the lexer... */
