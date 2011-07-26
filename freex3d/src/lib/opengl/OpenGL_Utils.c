@@ -2590,7 +2590,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		//globalParser = NULL;
 		gglobal()->CParse.globalParser = NULL;
 	}
-
+	kill_X3DDefs();
 
 	/* tell statusbar that we have none */
 	viewer_default();
