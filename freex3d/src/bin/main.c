@@ -106,7 +106,7 @@ int main (int argc, char **argv)
 		static char *fdir;
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
-		strcat(fdir,"../../../../fonts");
+		strcat(fdir,"C:/fonts");
 		_putenv( fdir );
 	}
 	else
