@@ -148,12 +148,12 @@ void X3DProtoScript_init(struct tX3DProtoScript *t){
 		p->currentProtoDeclare  = INT_ID_UNDEFINED;
 		p->MAXProtos = 0;
 		p->curProDecStackInd = 0;
-		p->currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
+		//p->currentProtoInstance[PROTOINSTANCE_MAX_LEVELS];
 		p->curProtoInsStackInd = -1;
-		p->ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
+		//p->ProtoInstanceTable[PROTOINSTANCE_MAX_LEVELS];
 		p->PROTONames = NULL;
-		p->fieldNodeParsingStateA[PROTOINSTANCE_MAX_LEVELS]; 
-		p->fieldNodeParsingStateB[PARENTSTACKSIZE];
+		//p->fieldNodeParsingStateA[PROTOINSTANCE_MAX_LEVELS]; 
+		//p->fieldNodeParsingStateB[PARENTSTACKSIZE];
 	}
 }
 //ppX3DProtoScript p = (ppX3DProtoScript)gglobal()->X3DProtoScript.prv;

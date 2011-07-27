@@ -124,7 +124,7 @@ void ColladaParser_init(struct tColladaParser *t){
 	t->prv = ColladaParser_constructor();
 	{
 		ppColladaParser p = (ppColladaParser)t->prv;
-		p->colladaParser[PROTOINSTANCE_MAX_LEVELS];
+		//p->colladaParser[PROTOINSTANCE_MAX_LEVELS];
 		p->currentColladaParser = NULL;
 		//static int parentIndex = 0;
 		p->ColladaParserRecurseLevel = 0;

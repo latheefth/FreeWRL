@@ -174,10 +174,10 @@ void X3DParser_init(struct tX3DParser *t){
 		p->in3_3_fieldIndex = INT_ID_UNDEFINED;
 		/* XML parser variables */
 		p->X3DParserRecurseLevel = INT_ID_UNDEFINED;
-		p->x3dparser[PROTOINSTANCE_MAX_LEVELS];
+		//p->x3dparser[PROTOINSTANCE_MAX_LEVELS];
 		p->currentX3DParser = NULL;
 
-		p->currentParserMode[PROTOINSTANCE_MAX_LEVELS];
+		//p->currentParserMode[PROTOINSTANCE_MAX_LEVELS];
 		p->currentParserModeIndex = 0; //INT_ID_UNDEFINED;
 
 	}

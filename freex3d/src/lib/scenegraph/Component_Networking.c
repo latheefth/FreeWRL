@@ -1661,8 +1661,6 @@ static void loadInline(struct X3D_Inline *me)
 
 /* note that we get the resources in a couple of steps; this tries to keep the scenegraph running */
 void load_Inline (struct X3D_Inline *node) {
-	resource_item_t *res;
-
 	// printf ("load_Inline %u, loadStatus %d loadResource %u\n",node, node->__loadstatus, node->__loadResource);
 
 	if (node->load) {
