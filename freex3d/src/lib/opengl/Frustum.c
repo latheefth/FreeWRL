@@ -1137,7 +1137,8 @@ void zeroOcclusion(void) {
 #endif
 
 	p->QueryCount = 0;
-	FW_GL_DELETE_QUERIES (p->OccQuerySize, p->OccQueries);
+	if(p->OccQueries)
+		FW_GL_DELETE_QUERIES (p->OccQuerySize, p->OccQueries);
 	FW_GL_FLUSH();
 	
 	p->OccQuerySize=0;
