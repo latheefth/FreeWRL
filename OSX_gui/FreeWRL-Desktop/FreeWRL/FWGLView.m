@@ -19,6 +19,8 @@ NSRect myrect;
 float curHeight;
 NSMutableData *receivedData;
 
+#define TOP_BAR_HEIGHT 0.0
+
 // wait for loading until loopCount != 0, so things "can get set up"
 int mainloopCount = 0;
 
@@ -41,7 +43,7 @@ int mainloopCount = 0;
     //can not do any opengl calls in this thread here.
     //[[self openGLContext] makeCurrentContext];
     
-    NSLog (@"calling fwl_initializeRenderSceneUpdateScene");
+    //NSLog (@"calling fwl_initializeRenderSceneUpdateScene");
     fwl_initializeRenderSceneUpdateScene();
     
     // has fwl_RenderSceneUpdateScene run at least once??
@@ -54,6 +56,7 @@ int mainloopCount = 0;
     } else {
         // no file specified; go here.
         cString = "/Applications/FreeWRL/blankScreen.wrl";
+        //cString = "/FreeWRL/freewrl/freewrl/tests/13.wrl";
     }
     
     // wait for the main loop to go through at least once, 
@@ -64,15 +67,15 @@ int mainloopCount = 0;
     }
     
     
-    NSLog (@"initial url %s",cString);
+    //NSLog (@"initial url %s",cString);
 
-    NSLog (@"calling fwl_OSX_initializeParameters");
+    //NSLog (@"calling fwl_OSX_initializeParameters");
     
     fwl_OSX_initializeParameters((const char*)cString);
-    NSLog (@"finished calling fwl_OSX_initializeParameters");
+    //NSLog (@"finished calling fwl_OSX_initializeParameters");
     [pool drain];
     
-    NSLog (@"ending loading thread");
+    //NSLog (@"ending loading thread");
     
 }
 @end
@@ -194,10 +197,17 @@ mouseDisplaySensitive = mouseOverSensitive; \
     myrect = [self frame];
     curHeight = myrect.size.height;
     
+   
+   
     ycoor = curHeight - place.y;
+    //NSLog (@"mouse moved, place.y %f", place.y);
+    
     fwl_setCurXY((int)xcoor,(int)ycoor);
     //NSLog(@"sending motion notify with %f %f\n", xcoor, ycoor);
+    fwl_setLastMouseEvent(ButtonPress);
     fwl_handle_aqua(MotionNotify, button, xcoor, ycoor);
+        
+    
     
     SET_CURSOR_FOR_ME
 }
@@ -206,7 +216,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
 {
     place = [theEvent locationInWindow];
     xcoor = place.x;
-    ycoor = place.y;
+    ycoor = place.y + TOP_BAR_HEIGHT;
     
     
     myrect = [self frame];
@@ -240,7 +250,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
         button = 1;
     }
     xcoor = place.x;
-    ycoor = place.y;
+    ycoor = place.y + TOP_BAR_HEIGHT;
         
     myrect = [self frame];
     curHeight = myrect.size.height;
@@ -265,7 +275,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     }
     
     xcoor = place.x;
-    ycoor = place.y;
+    ycoor = place.y + TOP_BAR_HEIGHT;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
@@ -282,7 +292,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     place = [theEvent locationInWindow];
     button = 3;
     xcoor = place.x;
-    ycoor = place.y;
+    ycoor = place.y + TOP_BAR_HEIGHT;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
@@ -296,7 +306,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     place = [theEvent locationInWindow];
     button = 3;
     xcoor = place.x;
-    ycoor = place.y;
+    ycoor = place.y + TOP_BAR_HEIGHT;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
@@ -310,7 +320,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     place = [theEvent locationInWindow];
     button = 3;
     xcoor = place.x;
-    ycoor = place.y;
+    ycoor = place.y + TOP_BAR_HEIGHT;
     myrect = [self frame];
     curHeight = myrect.size.height;
     ycoor = curHeight - place.y;
@@ -355,7 +365,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
         if (!gettingURL) {
             gettingURL = true;
             NSString *myString = [[NSString alloc] initWithUTF8String:fwg_frontEndWantsFileName()];
-            NSLog (@"string from lib is %@ as a string %s",myString,fwg_frontEndWantsFileName());
+            //NSLog (@"string from lib is %@ as a string %s",myString,fwg_frontEndWantsFileName());
           
             //NSLog (@"going to add to queue");
             [FreeWRLAppDelegate newDoURL:myString opFlag:&gettingURL];
@@ -412,12 +422,37 @@ mouseDisplaySensitive = mouseOverSensitive; \
 
 -(id) initWithFrame: (NSRect) frameRect
 {
+    //NSLog(@"initWithFrame");
     NSOpenGLPixelFormat * pf = [FWGLView basicPixelFormat];
     
 	self = [super initWithFrame: frameRect pixelFormat: pf];
 
+    // allow tracking of certain things, like MotionNotify, etc.
+    NSTrackingArea* trackingArea = [[NSTrackingArea alloc] 
+                    initWithRect:[self bounds] 
+                    options: (NSTrackingMouseEnteredAndExited |
+                            NSTrackingMouseMoved |
+                            NSTrackingCursorUpdate |
+                            NSTrackingActiveAlways)
+                    owner:self userInfo:nil];
+    
+    [self addTrackingArea:trackingArea];
+
     return self;
 }
+
+-(void)mouseEntered:(NSEvent *)theEvent {
+    
+    //NSLog(@"mouse entered");
+    
+}
+
+-(void)mouseExited:(NSEvent *)theEvent {
+    
+    //NSLog(@"mouse exited");
+    
+}
+
 
 // ---------------------------------
 
@@ -498,7 +533,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
         }
 
     }
-    NSLog (@"arg checking finished");
+    //NSLog (@"arg checking finished");
     
 
 }

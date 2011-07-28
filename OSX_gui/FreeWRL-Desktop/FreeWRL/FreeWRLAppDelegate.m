@@ -44,7 +44,7 @@ bool *opFlagPtr;
 
 +(void)newDoURL:(NSString *)url opFlag:(bool *)opFlag
 {
-    NSLog (@"starting newDoURL");
+    //NSLog (@"starting newDoURL");
     opFlagPtr = opFlag;
     
     

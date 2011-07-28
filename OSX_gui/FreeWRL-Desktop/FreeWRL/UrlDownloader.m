@@ -74,7 +74,7 @@ NSString *net_url = nil;
         return;
     }
     
-    NSLog(@"opeartion for <%@> started.", _url);
+    // NSLog(@"opeartion for <%@> started.", _url);
     
     //if (*opFlagPtr) {
     //    NSLog (@"UrlDownloaderStart - flag says downloading");
@@ -138,9 +138,9 @@ NSString *net_url = nil;
 
 - (void)finish
 {
-    NSLog(@"operation for <%@> finished. "
-          @"status code: %d, error: %@, data size: %u",
-          _url, _statusCode, _error, [receivedData length]);
+ //   NSLog(@"operation for <%@> finished. "
+ //         @"status code: %d, error: %@, data size: %u",
+ //         _url, _statusCode, _error, [receivedData length]);
     
     [net_connection release];
     net_connection = nil;
