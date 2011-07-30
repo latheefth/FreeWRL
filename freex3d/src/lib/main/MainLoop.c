@@ -2112,7 +2112,11 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH)
 		emulate_multitouch(mev,button,x, y);
 	else
+	{
 		fwl_handle_aqua_multi(mev,button,x,y,0);
+
+		updateCursorStyle(); 
+	}
 }
 
 #endif
