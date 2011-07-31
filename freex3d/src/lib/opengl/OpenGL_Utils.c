@@ -64,7 +64,6 @@
 #include "OpenGL_Utils.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Component_Shape.h"
-
 #include <float.h>
 
 #include "../x3d_parser/Bindable.h"
