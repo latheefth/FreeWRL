@@ -1713,6 +1713,7 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 	myObj = NULL;
 	sdecl = NULL;
 	name = ID_UNDEFINED;
+	bzero(&defaultVal, sizeof (union anyVrml));
 
 	#ifdef X3DPARSERVERBOSE
 	printf ("start of parseScriptProtoField, parentStack is of type %s\n",stringNodeType(parentStack[parentIndex]->_nodeType));

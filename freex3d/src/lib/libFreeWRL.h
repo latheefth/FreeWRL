@@ -55,9 +55,6 @@
 
 #else /* COMPILING_IPHONE_FRONT_END */
 
-#ifdef COMPILING_ACTIVEX_FRONTEND
-	void fwl_initializeRenderSceneUpdateScene(void);
-#endif
 /**
  * Version embedded
  */

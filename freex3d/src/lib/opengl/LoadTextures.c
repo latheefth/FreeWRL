@@ -344,16 +344,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	char *fname;
 	int ret;
 
-#ifdef FRONTEND_GETS_FILES
-	fname = download_file(filename);
-	if(!fname) 
-	{
-		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
-		return FALSE;
-	}
-#else
 	fname = strdup(filename);
-#endif
 	ret = loadImage(this_tex, fname);
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);

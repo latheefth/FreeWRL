@@ -303,8 +303,25 @@ int doBrowserAction()
 					p->waitingForURLtoLoad = TRUE;
 					return TRUE; /* keep the browser ticking along here */
 				} else {
-					p->plugin_res->complete = TRUE;
-					startNewHTMLWindow(p->plugin_res->parsed_request);
+#ifdef _MSC_VER				
+						//we don't want to launch a new IE browser or IE tab, 
+						//just load a new scene in freewrl
+						//analogous to what happens when we have file://...AnchorA.x3d 
+						//the following is the only way I know to do that right now, same as 
+						//below several lines:
+						kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
+
+						/* we want to clean out the old world AND load a new one in */
+						p->plugin_res = resource_create_single (p->plugin_res->parsed_request);
+
+						send_resource_to_parser(p->plugin_res);
+
+						p->waitingForURLtoLoad = TRUE;
+						return TRUE; /* keep the browser ticking along here */
+#else
+						p->plugin_res->complete = TRUE;
+						startNewHTMLWindow(p->plugin_res->parsed_request);
+#endif
 				}
 			} else {
 				/* we had a problem with that URL, set this so we can try the next */

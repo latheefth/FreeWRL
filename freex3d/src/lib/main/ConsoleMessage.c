@@ -408,6 +408,7 @@ int ConsoleMessage0(const char *fmt, va_list args)
 	int retval;
 	ppConsoleMessage p;
 	ttglobal tg = gglobal();
+	if(!tg) return 0; //dug9 test july31,2011
 	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	retval = 0;
 	//p->Console_writeToCRT = 0; //test

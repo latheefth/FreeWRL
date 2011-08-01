@@ -1967,6 +1967,7 @@ void outOfMemory(const char *msg) {
 void fwl_doQuitInstance()
 {
     stopDisplayThread();
+	//these stop threads arent working july 31, 2011, 10am.
 	//stopLoadThread();
 	//stopPCThread();
     kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
