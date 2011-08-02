@@ -139,13 +139,20 @@ void hudSetConsoleMessage(char *buffer);
 //int setTargetAndroid = 0;
 void fwl_ConsoleSetup(int DefAqua , int TargetAqua , int HaveMotif , int TargetMotif , int HaveMscVer , int TargetAndroid) {
 
-	ppConsoleMessage p = (ppConsoleMessage)gglobal()->ConsoleMessage.prv;
+	ttglobal tg = gglobal();
+	ppConsoleMessage p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	p->setDefAqua = DefAqua ;
 	p->setTargetAqua  = TargetAqua ;
 	p->setHaveMotif  = HaveMotif ;
 	p->setTargetMotif  = TargetMotif ;
 	p->setHaveMscVer = HaveMscVer ;
 	p->setTargetAndroid  = TargetAndroid ;
+	//it helps to know a bit earlier -before the first statusbarHud.c draw-
+	//if you have it, then early messages come out on the ! panel
+#ifdef STATUSBAR_HUD
+	//if(statusBarHud)
+	tg->ConsoleMessage.Console_writeToHud = 1;
+#endif
 }
 int fwl_StringConsoleMessage(char* consoleBuffer) { return ConsoleMessage(consoleBuffer); }
 
@@ -193,6 +200,7 @@ void initConsoleH(DWORD pid)
 		AllocConsole();
 	}
 	p->hStdErr = GetStdHandle(STD_ERROR_HANDLE);
+	if(!p->hStdErr) p->hStdErr = -1;
 #endif
 }
 
@@ -407,8 +415,17 @@ int ConsoleMessage0(const char *fmt, va_list args)
 #else
 	int retval;
 	ppConsoleMessage p;
-	ttglobal tg = gglobal();
-	if(!tg) return 0; //dug9 test july31,2011
+	ttglobal tg = gglobal0();
+	if(!tg){
+		/* we must be just starting up or shutting down -
+		   just do primitive console write to (global resource) stdout console*/
+		retval = vfprintf(stdout,fmt,args); //printf(buffer);
+#ifdef TARGET_AQUA
+		/* JohnS - we need a carrage return here */
+		printf ("\n");
+#endif
+		return retval; 
+	}
 	p = (ppConsoleMessage)tg->ConsoleMessage.prv;
 	retval = 0;
 	//p->Console_writeToCRT = 0; //test
@@ -416,8 +433,8 @@ int ConsoleMessage0(const char *fmt, va_list args)
 	if(p->Console_writeToCRT) {
 		retval = vfprintf(stdout,fmt,args); //printf(buffer);
 #ifdef TARGET_AQUA
-	/* JohnS - we need a carrage return here */
-	printf ("\n");
+		/* JohnS - we need a carrage return here */
+		printf ("\n");
 #endif
 	}
 

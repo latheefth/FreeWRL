@@ -126,6 +126,10 @@ $Id$
 #ifndef __LIBFREEWRL_DECL_H__
 #define __LIBFREEWRL_DECL_H__
 
+#if defined(_MSC_VER)  /* other configs welcome to join */
+/* redirect printfs to ConsoleMessage, and from there to statusbarHud.c ! panel */
+#define printf ConsoleMessage
+#endif
 
 #ifdef FREEWRL_THREAD_COLORIZED
 
