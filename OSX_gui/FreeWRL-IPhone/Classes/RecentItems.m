@@ -77,16 +77,16 @@ NSFileHandle *myFile = nil;
         Recent1 = [NSString stringWithCString:"http://freewrl.sf.net/test.wrl" encoding:NSUTF8StringEncoding];
     }
     
-    NSLog (@"setting Recent1 to test directly");
-    Recent1 = [NSString stringWithCString:"http://freewrl.sf.net/tests/12.wrl" encoding:NSUTF8StringEncoding];
+    //NSLog (@"setting Recent1 to test directly");
+    //Recent1 = [NSString stringWithCString:"http://freewrl.sf.net/tests/12.wrl" encoding:NSUTF8StringEncoding];
     if ([chunks count] > 1) {
         Recent2 = [chunks objectAtIndex:1];
     } else {
         Recent2 = [NSString stringWithCString:"http://freewrl.sf.net/test2.wrl" encoding:NSUTF8StringEncoding];
     }
     
-    NSLog (@"setting Recent2 to test directly");
-    Recent2 = [NSString stringWithCString:"http://freewrl.sf.net/JAS/12mod.wrl" encoding:NSUTF8StringEncoding];
+    //NSLog (@"setting Recent2 to test directly");
+    //Recent2 = [NSString stringWithCString:"http://freewrl.sf.net/JAS/12mod.wrl" encoding:NSUTF8StringEncoding];
 
 }
 

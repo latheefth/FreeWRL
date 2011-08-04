@@ -1077,7 +1077,7 @@
 		1DEB922008733DC00010E9CD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				DSTROOT = /tmp/FreeWRL_IPhone_Static.dst;
 				GCC_MODEL_TUNING = G5;
@@ -1100,6 +1100,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
+				"HEADER_SEARCH_PATHS[arch=*]" = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				OTHER_LDFLAGS = (
 					"-lxml2",
@@ -1108,6 +1109,7 @@
 				PREBINDING = NO;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				USER_HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
 			};
 			name = Debug;
@@ -1130,7 +1132,8 @@
 				PREBINDING = NO;
 				PRECOMPS_INCLUDE_HEADERS_FROM_BUILT_PRODUCTS_DIR = NO;
 				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2";
+				SKIP_INSTALL = YES;
+				USER_HEADER_SEARCH_PATHS = "${SDK_DIR}/usr/include/libxml2 ../../freewrl/freex3d/src/lib/** ../../../freewrl/freex3d/src/lib/**";
 			};
 			name = Release;
 		};

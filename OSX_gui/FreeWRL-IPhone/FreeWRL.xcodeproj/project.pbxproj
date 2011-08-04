@@ -20,13 +20,14 @@
 		7300A499131AE8D200D1F798 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7300A498131AE8D200D1F798 /* CoreGraphics.framework */; };
 		7300A49D131AE8E500D1F798 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7300A49C131AE8E500D1F798 /* QuartzCore.framework */; };
 		731321491337EA2E00FEAD96 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 731321481337EA2E00FEAD96 /* ImageIO.framework */; };
-		736E1511138D922F008A39E1 /* X3DFreeWRL_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = 736E1510138D922F008A39E1 /* X3DFreeWRL_icon_57.png */; };
 		736E1513138D9236008A39E1 /* X3DFreeWRL_icon_114.png in Resources */ = {isa = PBXBuildFile; fileRef = 736E1512138D9236008A39E1 /* X3DFreeWRL_icon_114.png */; };
+		7384E3F513E5A5EA00DA0DE1 /* X3DFreeWRL_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = 736E1510138D922F008A39E1 /* X3DFreeWRL_icon_57.png */; };
 		73AE9CE6138D90950024D4BF /* X3DFreeWRL_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = 73AE9CE5138D90950024D4BF /* X3DFreeWRL_icon_57.png */; };
-		73AE9CE8138D91110024D4BF /* X3DFreeWRL_icon_114.png in Resources */ = {isa = PBXBuildFile; fileRef = 73AE9CE7138D91110024D4BF /* X3DFreeWRL_icon_114.png */; };
 		73B36C32138D9329006A3D7D /* X3DFreeWRL_icon_72.png in Resources */ = {isa = PBXBuildFile; fileRef = 73B36C31138D9329006A3D7D /* X3DFreeWRL_icon_72.png */; };
 		73C4F1F513AA73B5002B4083 /* RecentItems.m in Sources */ = {isa = PBXBuildFile; fileRef = 73C4F1F413AA73B5002B4083 /* RecentItems.m */; };
 		73E39CF5132954F4001ADBBB /* libFreeWRL_IPhone_Static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */; };
+		73F58F8813E5A82D00127A6F /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 73F58F8713E5A82D00127A6F /* Default.png */; };
+		73F58F8A13E5A83300127A6F /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 73F58F8913E5A83300127A6F /* Default@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +77,8 @@
 		73C4F1F313AA73B5002B4083 /* RecentItems.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RecentItems.h; sourceTree = "<group>"; };
 		73C4F1F413AA73B5002B4083 /* RecentItems.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RecentItems.m; sourceTree = "<group>"; };
 		73E39CF4132954F4001ADBBB /* libFreeWRL_IPhone_Static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFreeWRL_IPhone_Static.a; path = "../../../../../Library/Developer/Xcode/DerivedData/FreeWRL-IPhone_Static-deiqfpgwfkdeazfgfpugrrlilzim/Build/Products/Debug-iphoneos/libFreeWRL_IPhone_Static.a"; sourceTree = "<group>"; };
+		73F58F8713E5A82D00127A6F /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		73F58F8913E5A83300127A6F /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* FreeWRL-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "FreeWRL-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -134,6 +137,8 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				73F58F8913E5A83300127A6F /* Default@2x.png */,
+				73F58F8713E5A82D00127A6F /* Default.png */,
 				738C7BE613D8A87100ED9991 /* FreeWRL-IPhone_Static.xcodeproj */,
 				73B36C31138D9329006A3D7D /* X3DFreeWRL_icon_72.png */,
 				736E1512138D9236008A39E1 /* X3DFreeWRL_icon_114.png */,
@@ -259,10 +264,11 @@
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				1F99BC41116CBBE800AD7B28 /* MainWindow-iPad.xib in Resources */,
 				73AE9CE6138D90950024D4BF /* X3DFreeWRL_icon_57.png in Resources */,
-				73AE9CE8138D91110024D4BF /* X3DFreeWRL_icon_114.png in Resources */,
-				736E1511138D922F008A39E1 /* X3DFreeWRL_icon_57.png in Resources */,
 				736E1513138D9236008A39E1 /* X3DFreeWRL_icon_114.png in Resources */,
 				73B36C32138D9329006A3D7D /* X3DFreeWRL_icon_72.png in Resources */,
+				7384E3F513E5A5EA00DA0DE1 /* X3DFreeWRL_icon_57.png in Resources */,
+				73F58F8813E5A82D00127A6F /* Default.png in Resources */,
+				73F58F8A13E5A83300127A6F /* Default@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -297,7 +303,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -315,7 +321,9 @@
 				);
 				PRODUCT_NAME = FreeWRL;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SKIP_INSTALL = NO;
+				"SKIP_INSTALL[sdk=*]" = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -323,7 +331,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = FreeWRL_Prefix.pch;
@@ -338,7 +346,8 @@
 				);
 				PRODUCT_NAME = FreeWRL;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				"SKIP_INSTALL[sdk=*]" = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -346,6 +355,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "${SDK_DIR}/usr/include/libxml2";
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -363,13 +373,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer: John Stewart (P728G4MYJK)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.1;
 				"OTHER_LDFLAGS[arch=*]" = "-lxml2";
 				PREBINDING = NO;
+				PROVISIONING_PROFILE = "2153667D-4CA0-42EB-81C2-BC1CF5B5B3F1";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 			};
 			name = Release;
