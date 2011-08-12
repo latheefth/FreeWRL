@@ -296,18 +296,6 @@ bool initialize_rdr_caps()
 
 #ifdef HAVE_LIBGLEW
 
-	/* Initialize GLEW */
-	if(0){
-	GLenum err;
-	err = glewInit();
-    printf("opengl version=%s\n",rdr_caps.version);
-	if (GLEW_OK != err) {
-		/* Problem: glewInit failed, something is seriously wrong. */
-		ERROR_MSG("GLEW initialization error: %s\n", glewGetErrorString(err));
-		return FALSE;
-	}
-	TRACE_MSG("GLEW initialization: version %s\n", glewGetString(GLEW_VERSION));
-	}
 	{
     printf("opengl version=%s\n",rdr_caps.version);
 
