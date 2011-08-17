@@ -1124,7 +1124,7 @@ int open_font()
 #ifndef HAVE_FONTCONFIG
     /* where are the fonts stored? */
     p->font_directory = makeFontDirectory();
-
+	ConsoleMessage("font directory=%s\n",p->font_directory);
     /* were fonts not found? */
     if (p->font_directory == NULL) {
 #ifdef AQUA
