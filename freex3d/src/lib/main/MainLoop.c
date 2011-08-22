@@ -963,7 +963,6 @@ static void render_pre() {
         /* 2. Headlight, initialized here where we have the modelview matrix to Identity.
         FIXME: position of light sould actually be offset a little (towards the center)
         when in stereo mode. */
-        // JAS FW_GL_LOAD_IDENTITY();
 
         /*printf("calling get headlight in render_pre\n"); */
         if (fwl_get_headlight()) lightState(HEADLIGHT_LIGHT,TRUE);
@@ -1840,8 +1839,6 @@ void fwl_initializeRenderSceneUpdateScene() {
 	       exit(1);
 	}
 #endif /* KEEP_X11_INLIB */
-	/* Context has been created,
-	   make it current to this thread */
 
 	#if !(defined(IPHONE) || defined(_ANDROID))
 	new_tessellation();
@@ -1856,7 +1853,12 @@ void fwl_initializeRenderSceneUpdateScene() {
 	#endif
 
 	/* printf ("fwl_initializeRenderSceneUpdateScene finish\n"); */
+	// on OSX, this function is not called by the thread that holds the OpenGL
+	// context. Unsure if only Windows can do this one, but for now,
+	// do NOT do this on OSX. 
+#ifndef TARGET_AQUA
 	drawStatusBar(); //just to get it initialized
+#endif
 }
 
 void finalizeRenderSceneUpdateScene() {

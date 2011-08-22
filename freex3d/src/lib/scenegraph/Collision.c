@@ -2254,9 +2254,15 @@ if (pr.VBO_buffers[VERTEX_VBO] != 0) {
         init_collide(pr);
 
 
-	run_collide_program(pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri);
+	pp->res = run_collide_program(pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri);
+printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
+} else {
+	pp->res.x = 0.0; pp->res.y = 0.0; pp->res.z = 0.0;
+	printf ("error in polyrep_disp2, no VBO\n");
 }
-#endif
+
+#else
+
 
     pp->res.x=0.0; pp->res.y=0.0; pp->res.z=0.0;
     maxc = 0; /*  highest cindex, used to point into prd_newc_floats structure.*/
@@ -2316,6 +2322,10 @@ meprinted = TRUE;
 
 
 	pp->res = polyrep_disp_rec2(&pr,pp->prd_normals,pp->res,flags); //polyrep_disp_rec(y1,y2,ystep,r,&pr,prd_normals,res,flags);
+
+	/* printf ("polyrep_disp_rec2 returned %f %f %f\n",pp->res.x, pp->res.y, pp->res.z); */
+
+#endif
 
     pr.actualCoord = 0;
     return pp->res;
