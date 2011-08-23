@@ -651,8 +651,6 @@ extern int isPerlinitialized(void);
 
 extern char *getInputURL(void);
 extern char *lastReadFile; 		/* name last file read in */
-//extern struct sCollisionInfo CollisionInfo;
-//extern struct sFallInfo FallInfo; /*like sCollisionInfo, except for vertical falls */
 struct sCollisionInfo* CollisionInfo();
 struct sFallInfo* FallInfo();
 
