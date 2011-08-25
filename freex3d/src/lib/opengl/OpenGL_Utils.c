@@ -1080,7 +1080,7 @@ mat_diffuse_colour = vec4(0.6,0.6,0.6,1.0); */  \
 \n#ifdef USE_FOG\n \
 	v_fog_factor = compute_fog();   \
 \n#endif \n \
-    \   
+    \
 	gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;   \
 }";
 
