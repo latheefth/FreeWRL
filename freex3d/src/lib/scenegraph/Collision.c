@@ -2455,7 +2455,7 @@ struct point_XYZ polyrep_disp_rec2(struct X3D_PolyRep* pr, struct point_XYZ* n, 
 	return dispsum;
 }
 
-#define POLYREP_DISP2_PERFORMANCE
+#undef POLYREP_DISP2_PERFORMANCE
 #ifdef POLYREP_DISP2_PERFORMANCE
 static double Time1970sec(void) {
                 struct timeval mytime;
