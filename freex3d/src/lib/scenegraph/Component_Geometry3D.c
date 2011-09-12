@@ -1387,6 +1387,8 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		fi->checkCylinder = 1; /* 1= shape MBB overlaps avatar collision MBB, else 0 */
 		fi->checkFall = 1;     /* 1= shape MBB overlaps avatar fall/climb line segment else 0 */
 		fi->checkPenetration = 1;
+
+#ifdef OLDCODE
 		if(fi->fastTestMethod==0)
 		{
 		   /* I'm getting false negatives - I'll be navigating along and this will start returning here
@@ -1424,7 +1426,9 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 				fi->checkPenetration = overlapMBBs(fi->penMin,fi->penMax,prminvals,prmaxvals);
 			if(!fi->checkCylinder && !fi->checkFall && !fi->checkPenetration){/*printf("@");*/ return 0;} 
 		}
+
 		if(fi->fastTestMethod==2)
+#endif // OLDCODE
 		{
 		   /*  minimum bounding box MBB test in avatar/collision space */
 			double foot = abottom;
@@ -1439,17 +1443,26 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 				fi->checkPenetration = overlapMBBs(fi->penMin,fi->penMax,prminvals,prmaxvals);
 			if(!fi->checkCylinder && !fi->checkFall && !fi->checkPenetration){/*printf("$");*/ return 0;} 
 		}
+#ifdef OLDCODE
 		if(fi->fastTestMethod==3)
 		{
 		   //skip fast method
 		}
+#endif
+
 	}
 	else
 	{
 		/* examine/fly spherical avatar collision volume */
 		GLDOUBLE awidth = tg->Bindable.naviinfo.width; /*avatar width - used as avatar sphere radius*/
+#ifdef OLDCODE
 		if(fi->fastTestMethod==2 || fi->fastTestMethod == 0)
+#endif
+
+
 			if( !fast_sphere_MBB_intersect_collisionSpace(awidth, modelMatrix, prminvals, prmaxvals )) return 0;
+
+#ifdef OLDCODE
 		if(fi->fastTestMethod == 1 )
 		{
 			GLDOUBLE Collision2Shape[16];
@@ -1460,6 +1473,8 @@ int avatarCollisionVolumeIntersectMBB(double *modelMatrix, double *prminvals, do
 		{
 		   //skip fast method
 		}
+#endif
+
 	}
 	return 1;
 }
