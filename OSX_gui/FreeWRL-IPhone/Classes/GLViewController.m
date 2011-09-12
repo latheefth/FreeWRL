@@ -11,6 +11,7 @@
 
 #define COMPILING_IPHONE_FRONT_END 1
 #include "../../../freex3d/src/lib/libFreeWRL.h"
+#include "../../../freex3d/src/lib/ui/common.h"
 
 /* from the headers.h file - for now */
 #define KeyPress        2
@@ -27,11 +28,6 @@
 //void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
 //void fwl_setButDown(int button, int value);
 //void fwl_setOrientation(int);
-extern char myMenuStatus[200];
-extern char messagebar[200];
-
-
-
 
 
 NSString *initialURL = nil;
@@ -237,11 +233,13 @@ NSMutableData *receivedData;
 
     // menu status bar...
     //NSLog (@"myMenuStatus is %s",myMenuStatus);
-    //NSLog (@"messagebar is %s",messagebar);
-    if (myMenuStatus[0] != '\0') {
+    
+    ppcommon p = gglobal_common();
+        
+	if (p->myMenuStatus[0] != '\0') {
         // we are running so lets put the status here
         //[StatusBar setText:@"running"];
-        NSString *myS = [NSString stringWithCString:myMenuStatus encoding:NSUTF8StringEncoding];
+        NSString *myS = [NSString stringWithCString:p->myMenuStatus encoding:NSUTF8StringEncoding];
         [StatusBar setText:myS]; 
         
     }
