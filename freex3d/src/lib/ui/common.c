@@ -21,18 +21,15 @@
 int ccurse = ACURSE;
 int ocurse = ACURSE;
 
-//float myFps = (float) 0.0;
-//char myMenuStatus[MAXSTAT];
-//char messagebar[MAXSTAT];
-//char window_title[MAXTITLE];
-
-typedef struct pcommon{
+/* typedef struct pcommon{
 	float myFps; // = (float) 0.0;
 	char myMenuStatus[MAXSTAT];
 	char messagebar[MAXSTAT];
 	char window_title[MAXTITLE];
 	int cursorStyle;
 }* ppcommon;
+*/
+
 void *common_constructor(){
 	void *v = malloc(sizeof(struct pcommon));
 	memset(v,0,sizeof(struct pcommon));

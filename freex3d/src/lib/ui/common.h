@@ -39,6 +39,15 @@ extern int ocurse;
 #define MAXTITLE 200
 //extern char window_title[MAXTITLE];
 
+/* textual status messages */
+typedef struct pcommon{
+        float myFps; // = (float) 0.0;
+        char myMenuStatus[MAXSTAT];
+        char messagebar[MAXSTAT];
+        char window_title[MAXTITLE];
+        int cursorStyle;
+}* ppcommon;
+
 /* Status update functions */
 
 void setMenuFps(float fps);
