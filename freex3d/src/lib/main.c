@@ -232,7 +232,6 @@ int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 ttglobal fwl;
 void* fwl_init_instance()
 {
-	//ttglobal fwl;
 	fwl = iglobal_constructor();
 	return (void *)fwl;
 }
