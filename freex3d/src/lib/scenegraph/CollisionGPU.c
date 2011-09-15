@@ -47,20 +47,6 @@ Render the children of nodes.
 
 static const char* collide_non_walk_kernel;
 
-#ifdef OLDCODE
-#if defined (__APPLE__) || defined(MACOSX) || defined(TARGET_AQUA)
-	#include <OpenCL/opencl.h>
-	#include <OpenGL/CGLDevice.h>
-#elif defined(_MSC_VER)
-    #include <windows.h>  //WGL prototyped in wingdi.h
-    #include <CL/opencl.h>
-	#define DEBUG
-#else  //LINUX
-    #include <CL/opencl.h>
-#endif 
-#endif // OLDCODE
-
-
 #define FLOAT_TOLERANCE 0.00000001
 
 /********************************************************************************/

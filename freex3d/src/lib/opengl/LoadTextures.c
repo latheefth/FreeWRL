@@ -56,7 +56,7 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID))
 		#include <Imlib2.h>
 	#endif
 #endif
