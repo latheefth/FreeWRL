@@ -1207,9 +1207,9 @@ glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 
 	if (!haveValidTexturePropertiesNode) {
 		/* convert TRUE/FALSE to GL_TRUE/GL_FALSE for wrapS and wrapT */
-		Src = Src ? GL_REPEAT : GL_CLAMP;
-		Trc = Trc ? GL_REPEAT : GL_CLAMP;
-		Rrc = Rrc ? GL_REPEAT : GL_CLAMP;
+		Src = Src ? GL_REPEAT : GL_CLAMP_TO_EDGE; //GL_CLAMP;   //du9 changed from CLAMP to CLAMP_TO_EDGE Sept18,2011 to fix panorama seamline visibility
+		Trc = Trc ? GL_REPEAT : GL_CLAMP_TO_EDGE; //GL_CLAMP;
+		Rrc = Rrc ? GL_REPEAT : GL_CLAMP_TO_EDGE; //GL_CLAMP;
 		generateMipMaps = GL_TRUE;
 
 
