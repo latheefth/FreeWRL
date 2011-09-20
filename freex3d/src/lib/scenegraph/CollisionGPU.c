@@ -704,6 +704,8 @@ static const char* collide_non_walk_kernel = " \
 /*	Collide kernel for fly and examine modes				*/ \n\
 /*										*/ \n\
 /********************************************************************************/ \n\
+/* Function prototypes */ \n\
+float4 closest_point_on_plane(float4 point_a, float4 point_b, float4 point_c); \n\
  \n\
 /* start the collide process. \n\
  \n\
