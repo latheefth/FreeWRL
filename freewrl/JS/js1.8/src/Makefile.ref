@@ -71,6 +71,9 @@ OTHER_LIBS += -L$(DIST)/lib -lnspr$(NSPR_LIBSUFFIX)
 endif
 endif
 
+#added for Lion build
+OTHER_LIBS += -L/usr/lib
+
 ifdef JS_NO_THIN_LOCKS
 DEFINES += -DJS_USE_ONLY_NSPR_LOCKS
 endif

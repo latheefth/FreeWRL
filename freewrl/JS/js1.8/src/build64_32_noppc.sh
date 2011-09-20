@@ -1,5 +1,6 @@
 #!/bin/tcsh
 
+rm -f Darwin_DBG.OBJ/libjs.a
 rm -f Darwin_DBG.OBJ/libjs_i386.dylib
 rm -f Darwin_DBG.OBJ/libjs_x86_64.dylib
 rm -f Darwin_DBG.OBJ/libjs.dylib
@@ -28,6 +29,6 @@ rm -f editline/Darwin_DBG.OBJ/*.o
 make -f Makefile.ref
 cp Darwin_DBG.OBJ/libjs.dylib Darwin_DBG.OBJ/libjs_x86_64.dylib
 
-lipo -create Darwin_DBG.OBJ/libjs_i386.dylib Darwin_DBG.OBJ/libjs_x86_64.dylib -output Darwin_DBG.OBJ/libFreeWRLjs.dylib
+lipo -create Darwin_DBG.OBJ/libjs_i386.dylib Darwin_DBG.OBJ/libjs_x86_64.dylib -output Darwin_DBG.OBJ/libFreeX3Djs.dylib
 rm -f Darwin_DBG.OBJ/libjs_i386.dylib
 rm -f Darwin_DBG.OBJ/libjs_x86_64.dylib

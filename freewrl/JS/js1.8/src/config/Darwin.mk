@@ -50,7 +50,7 @@ OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE -DOS_64_BIT -DD
 LDFLAGS += -arch x86_64 -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.6.sdk -mmacosx-version-min=10.5
 
 RANLIB = ranlib
-MKSHLIB = $(CC) -dynamiclib $(XMKSHLIBOPTS) -framework System -mmacosx-version-min=10.5
+MKSHLIB = $(CC) -dynamiclib $(XMKSHLIBOPTS) -framework System -mmacosx-version-min=10.5 -arch x86_64
 
 SO_SUFFIX = dylib
 
