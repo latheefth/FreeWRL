@@ -238,6 +238,7 @@ int doBrowserAction()
 	*/
 
 	if (AnchorsAnchor() != NULL) {
+
 		Anchor_url = AnchorsAnchor()->url;
 		description = AnchorsAnchor()->description->strptr;
 
@@ -358,7 +359,7 @@ int doBrowserAction()
 			/* we want to clean out the old world AND load a new one in */
 			p->plugin_res = resource_create_single (tg->RenderFuncs.OSX_replace_world_from_console);
 
-			send_resource_to_parser(p->plugin_res);
+			send_resource_to_parser_async(p->plugin_res);
 
 			p->waitingForURLtoLoad = TRUE;
 			return TRUE; /* keep the browser ticking along here */

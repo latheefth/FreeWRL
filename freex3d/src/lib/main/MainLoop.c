@@ -2303,13 +2303,8 @@ void fwl_reload()
 {
 	char *oldworld;
 	ttglobal tg = gglobal();
-printf ("reload world called, tg %p\n",tg);
-printf ("reload world called, tg->RenderFuncs %p\n",tg->RenderFuncs);
-printf ("reload world called, tg->RenderFuncs. %p\n",tg->RenderFuncs.OSX_last_world_url_for_reload);
 
 	oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
-printf ("now going to fwl_replaceWorldNeeded\n");
-
 	fwl_replaceWorldNeeded(oldworld);
 	FREE_IF_NZ(oldworld);
 }
