@@ -141,6 +141,6 @@ void updateCursorStyle()
 	updateCursorStyle0(cstyle); /* in fwWindow32 where cursors are loaded */
 #else
 	ccurse = ocurse = cstyle;
-	setCursor(); /*updateCursorStyle0(cstyle); /* in fwWindow32 where cursors are loaded */
+	setCursor(); /*updateCursorStyle0(cstyle); // in fwWindow32 where cursors are loaded */
 #endif
 }

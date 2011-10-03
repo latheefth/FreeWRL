@@ -352,8 +352,8 @@ void setCursor()
 
 void setWindowTitle()
 {
-	XStoreName(Xdpy, Xwin, window_title);
-	XSetIconName(Xdpy, Xwin, window_title);
+	XStoreName(Xdpy, Xwin, getWindowTitle());
+	XSetIconName(Xdpy, Xwin, getWindowTitle());
 }
 
 #endif /* IPHONE */
