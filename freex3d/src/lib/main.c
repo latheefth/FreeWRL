@@ -327,8 +327,8 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 void fwl_startFreeWRL(const char *url)
 {
 
-	printf ("fwl_startFreeWRL called\n");
 	ttglobal tg = gglobal();
+	printf ("fwl_startFreeWRL called\n");
 	/* Give the main argument to the resource handler */
 	if (url != NULL) {
 		tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(url);
