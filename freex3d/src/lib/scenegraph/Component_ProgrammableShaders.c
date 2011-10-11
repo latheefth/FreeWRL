@@ -550,10 +550,11 @@ void getField_ToShader(int num) {
 		break;
 	case NODE_ShaderProgram: 
 		/* printf ("ShaderProgram- the parent ProgramShader holds the ids\n"); */
-		if (X3D_SHADERPROGRAM(to_ptr->routeToNode)->_nparents > 0) {
+		if ((X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector != NULL) &&
+		    (vector_size(X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector) > 0)) {
 			/* assume only one parent here? */
-			currentShader = (GLuint) X3D_PROGRAMSHADER(
-				X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parents[0])->__shaderIDS.p[0];
+			currentShader = (GLuint) X3D_PROGRAMSHADER(vector_get(struct X3D_Node *,
+				X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector,0))->__shaderIDS.p[0];
 		} else {
 			printf ("no parents for routed ShaderProgram\n");
 		}
