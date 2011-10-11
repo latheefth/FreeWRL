@@ -2107,8 +2107,10 @@ bool fwl_initialize_GL()
     
 
 	/* Configure OpenGL for our uses. */
+#ifndef SHADERS_2011
         FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
         FW_GL_ENABLECLIENTSTATE(GL_NORMAL_ARRAY);
+#endif
 	FW_GL_CLEAR_COLOR(p->cc_red, p->cc_green, p->cc_blue, p->cc_alpha);
 
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 7");
