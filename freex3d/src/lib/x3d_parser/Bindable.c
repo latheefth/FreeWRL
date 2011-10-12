@@ -496,7 +496,7 @@ void bind_node (struct X3D_Node *node, int *tos, uintptr_t *stack) {
 
 		/* save pointer to new top of stack */
 		*newstacktop = (uintptr_t) node;
-		update_node(X3D_NODE(newstacktop));
+		update_node(X3D_NODE(*newstacktop));
 
 		/* was there another DIFFERENT node at the top of the stack?
 		   have to check for a different one, as if we are binding to the current
