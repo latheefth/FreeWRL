@@ -900,12 +900,6 @@ void replaceWorldNeeded(char* str);
 int X3DParse(struct X3D_Group *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 
-/* node binding */
-//extern void *setViewpointBindInRender;
-//extern void *setFogBindInRender;
-//extern void *setBackgroundBindInRender;
-//extern void *setNavigationBindInRender;
-
 char* convert1To2(const char *inp);
 
 //updateStatusBar(void);
