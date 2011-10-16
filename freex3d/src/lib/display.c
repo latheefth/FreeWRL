@@ -200,6 +200,9 @@ int fv_display_initialize()
 		XMapWindow(Xdpy, Xwin);
 	}
 #endif /* IPHONE */
+#ifdef DO_COLLISION_GPU
+		collision_initGPUCollide();
+#endif
 
 	return TRUE;
 }

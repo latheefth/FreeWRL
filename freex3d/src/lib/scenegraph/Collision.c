@@ -156,7 +156,7 @@ void collision_init(struct tcollision *t){
 		p->CollisionGPU.collide_rvs.n = 0;
 		p->CollisionGPU.collide_rvs.p = NULL;
 
-		p->openCL_initialized = init_GPU_collide(&p->CollisionGPU);
+		p->openCL_initialized = FALSE; //do after opengl init  init_GPU_collide(&p->CollisionGPU);
 
 		#endif
 	}
@@ -181,6 +181,12 @@ struct sCollisionGPU* GPUCollisionInfo()
 {
         ppcollision p = (ppcollision)gglobal()->collision.prv;
         return &p->CollisionGPU;
+}
+int collision_initGPUCollide()
+{
+	ppcollision p = (ppcollision)gglobal()->collision.prv;
+	p->openCL_initialized = init_GPU_collide(&p->CollisionGPU);
+	return p->openCL_initialized ? 1 : 0;
 }
 #endif // DO_COLLISION_GPU
 
@@ -1754,7 +1760,7 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 			pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri,
 			pr.ccw, flags, awidth);
 		
-		// printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
+		 printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
 		
 
 #ifdef POLYREP_DISP2_PERFORMANCE
