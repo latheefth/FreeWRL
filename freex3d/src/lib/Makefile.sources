@@ -115,6 +115,7 @@ scenegraph/Component_Core.c \
 scenegraph/Component_EnvironEffects.c \
 scenegraph/Component_Grouping.c \
 scenegraph/Collision.c \
+scenegraph/CollisionGPU.c \
 scenegraph/Component_Text.c \
 scenegraph/Component_Text.h \
 scenegraph/LinearAlgebra.c \
