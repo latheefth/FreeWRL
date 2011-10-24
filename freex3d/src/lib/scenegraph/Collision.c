@@ -1760,7 +1760,7 @@ struct point_XYZ polyrep_disp2(struct X3D_PolyRep pr, GLDOUBLE* mat, prflags fla
 			pr.VBO_buffers[VERTEX_VBO],pr.VBO_buffers[INDEX_VBO],mymat, pr.ntri,
 			pr.ccw, flags, awidth);
 		
-		 printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
+		 //printf ("openCL sez: move us %f %f %f\n",pp->res.x,pp->res.y,pp->res.z);
 		
 
 #ifdef POLYREP_DISP2_PERFORMANCE
