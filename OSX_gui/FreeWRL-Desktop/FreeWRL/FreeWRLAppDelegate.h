@@ -27,6 +27,7 @@
 -(void)dealloc;
 - (void)applicationDidFinishLaunching:(NSNotification *)notification;
 
++(bool)applicationHasLaunched;
 
 -(void)addOperation:(UrlDownloader *)operation;
 

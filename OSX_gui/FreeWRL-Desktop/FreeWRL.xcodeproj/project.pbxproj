@@ -144,6 +144,7 @@
 		73D4356C13D71594000293CE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastUpgradeCheck = 0420;
 				ORGANIZATIONNAME = "CRC Canada";
 			};
 			buildConfigurationList = 73D4356F13D71595000293CE /* Build configuration list for PBXProject "FreeWRL" */;

@@ -10,31 +10,44 @@
 #import "UrlDownloader.h"
 
 static NSString * OperationsChangedContext = @"OperationsChangedContext";
-NSOperationQueue * _queue;
+NSOperationQueue * _queue = nil;
 bool *opFlagPtr;
+static bool appRunningNow = false;
 
 
 @implementation FreeWRLAppDelegate
 
 -(void)addOperation:(UrlDownloader *)operation {
+    //NSLog (@"Delegate: addOperation");
     
     [_queue addOperation:operation];
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)notification {
++(bool)applicationHasLaunched
+{
+    return appRunningNow;
+}
 
-    _queue = [[NSOperationQueue alloc] init];
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+    //NSLog (@"Delegate: applicationDidFinishLaunching queue %p",_queue);
+
+        _queue = [[NSOperationQueue alloc] init];
     // Set to 1 to serialize operations. Comment out for parallel operations.
     // [_queue setMaxConcurrentOperationCount:1];
+    
     
     [_queue addObserver:self
              forKeyPath:@"operations"
                 options:0
                 context:&OperationsChangedContext];
+    appRunningNow = true;
+    
 }
 
 - (void)dealloc
 {
+    //NSLog (@"Delegate: dealloc");
     [_queue removeObserver:self forKeyPath:@"operations"];
     [_queue release];
     [super dealloc];
@@ -44,7 +57,8 @@ bool *opFlagPtr;
 
 +(void)newDoURL:(NSString *)url opFlag:(bool *)opFlag
 {
-    //NSLog (@"starting newDoURL");
+   //NSLog (@"Delegate: starting newDoURL queue %p",_queue);
+        
     opFlagPtr = opFlag;
     
     
@@ -60,12 +74,14 @@ bool *opFlagPtr;
                         change:(NSDictionary *)change
                        context:(void *)context
 {
+    //NSLog (@"Delegate: observeValueForKeyPath");
     if (context == &OperationsChangedContext)
     {
-        //NSLog(@"Queue size: %u", [[_queue operations] count]);
+        //NSLog(@"Delegate: Queue size: %u", [[_queue operations] count]);
     }
     else
     {
+        //NSLog (@"Delegate: observeValueForKeyPath - having to super");
         [super observeValueForKeyPath:keyPath
                              ofObject:object
                                change:change

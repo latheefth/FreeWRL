@@ -24,6 +24,11 @@ NSString *net_url = nil;
 @synthesize isExecuting = _isExecuting;
 @synthesize isFinished = _isFinished;
 
+- (void) awakeFromNib
+{
+    //NSLog (@"URL: awakeFromNib");
+}
+
 
 + (id)urlDownloaderWithUrlString:(NSString *)urlString opFlag:(bool *)opFlag
 {
@@ -38,12 +43,16 @@ NSString *net_url = nil;
 
 - (id)initWithUrl:(NSURL *)url origString:urlString;
 {
+    //NSLog (@"URL: initWithUrl");
+    
     self = [super init];
     if (self == nil)
         return nil;
     
     _url = [url copy];
     net_url = [urlString copy];
+    //NSLog (@"URL: _url %p",_url);
+    //NSLog (@"URL: net_url %s",[net_url UTF8String]);
     
     _isExecuting = NO;
     _isFinished = NO;
@@ -53,6 +62,7 @@ NSString *net_url = nil;
 
 - (void)dealloc
 {
+    //NSLog (@"URL = dealloc");
     [_url release];
     [net_connection release];
     [receivedData release];
@@ -62,12 +72,14 @@ NSString *net_url = nil;
 
 - (BOOL)isConcurrent
 {
+    //NSLog (@"URL = isConcurrent");
     return YES;
     //return NO;
 }
 
 - (void)start
 {
+    //NSLog (@"URL - start");
     if (![NSThread isMainThread])
     {
         [self performSelectorOnMainThread:@selector(start) withObject:nil waitUntilDone:NO];
@@ -95,11 +107,9 @@ NSString *net_url = nil;
     
     // is this a local file, or a network file?
     char *ascii_url = (char *)[net_url UTF8String];
-    //NSLog (@"ascii_url %s",ascii_url);
+    //NSLog (@"URL: ascii_url %s",ascii_url);
     
     // call to library
-    bool checkNetworkFile(char *);
-    
     if (checkNetworkFile(ascii_url)) {
         //NSLog (@" this is a netowrk file");
         
@@ -107,8 +117,8 @@ NSString *net_url = nil;
         net_connection = [[NSURLConnection alloc] initWithRequest:request
                                                          delegate:self];
     } else {
-        //NSLog (@"url is not a network url, get it locally");
-         NSError *error;
+        //NSLog (@"URL: url is not a network url, get it locally");
+         //NSError *error;
         
         // just open the file, if it exists
         NSData *texData = [[NSData alloc] initWithContentsOfFile:net_url];
@@ -116,14 +126,12 @@ NSString *net_url = nil;
         
         if (texData == nil) {
             //NSLog (@"texData nil, returning zero");
-            //fwg_frontEndReturningData(NULL,0);
         } else {
-            cStringLen = [texData length];
+            cStringLen = (int)[texData length];
             cString = malloc(cStringLen+2); // pad it out by 2 chars...
             [texData getBytes:cString];
         
             //NSLog (@"got data, returning length %d",cStringLen);
-            //fwg_frontEndReturningData((unsigned char*)myData,tdlen);
         }
         
     }
@@ -138,9 +146,9 @@ NSString *net_url = nil;
 
 - (void)finish
 {
- //   NSLog(@"operation for <%@> finished. "
- //         @"status code: %d, error: %@, data size: %u",
- //         _url, _statusCode, _error, [receivedData length]);
+    //NSLog(@"operation for <%@> finished. "
+      //    @"status code: %d, error: %@, data size: %u",
+        //  _url, _statusCode, _error, [receivedData length]);
     
     [net_connection release];
     net_connection = nil;
@@ -163,7 +171,7 @@ NSString *net_url = nil;
 
     
     if (_error != nil) {
-        NSLog (@"have error here");
+        //NSLog (@"URL: have error here");
         
         // tell front end that things failed
         fwg_frontEndReturningData(NULL,0);
@@ -171,10 +179,11 @@ NSString *net_url = nil;
     }else {
         // what is the status code? if it is 404, we have an error...
         if (_statusCode == 404) {
+            //NSLog (@"URL: 404 ");
             fwg_frontEndReturningData(NULL,0);
             
         } else {
-            //NSLog (@"good download, here's the data");
+            //NSLog (@"URL: good download, here's the data");
             
             if (cStringLen != 0) {
                 fwg_frontEndReturningData((unsigned char*)cString, cStringLen);
@@ -183,11 +192,11 @@ NSString *net_url = nil;
             } else {
                 int len;
                 unsigned char *myData;
-                len = [receivedData length];
+                len = (int)[receivedData length];
                 myData = malloc (len+2); // pad it out by 2 chars
                 [receivedData getBytes:myData];
                 
-                //printf ("mydata %s\n",myData);
+                //printf ("URL: mydata %s\n",myData);
         
                 fwg_frontEndReturningData((unsigned char*)myData,len);
         

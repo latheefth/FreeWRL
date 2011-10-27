@@ -24,5 +24,6 @@
 + (id)urlDownloaderWithUrlString:(NSString *)urlString opFlag:(bool *)opFlag;
 
 - (id)initWithUrl:(NSURL *)url origString:(NSString *)urlString;
+- (void) awakeFromNib;
 
 @end

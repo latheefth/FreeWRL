@@ -22,7 +22,7 @@ NSMutableData *receivedData;
 #define TOP_BAR_HEIGHT 0.0
 
 // wait for loading until loopCount != 0, so things "can get set up"
-int mainloopCount = 0;
+//int mainloopCount = 0;
 
 
 // ===================================
@@ -56,15 +56,21 @@ int mainloopCount = 0;
     } else {
         // no file specified; go here.
         cString = "/Applications/FreeWRL/blankScreen.wrl";
-        //cString = "/FreeWRL/freewrl/freewrl/tests/13.wrl";
+        //cString = "/FreeWRL/freewrl/freewrl/tests/16.wrl";
     }
     
+    while ([FreeWRLAppDelegate applicationHasLaunched]) {
+        //NSSLog (@"applicationHasLaunched false, sleeping...");
+        usleep(20);
+
+        
+    }
     // wait for the main loop to go through at least once, 
     // so that we know things are initialized properly.
-    while (mainloopCount == 0) {
-        //NSLog (@"sleeping...");
-        usleep(20);
-    }
+//    while (mainloopCount == 0) {
+  //      //NSLog (@"sleeping...");
+    //    usleep(20);
+   // }
     
     
     //NSLog (@"initial url %s",cString);
@@ -352,6 +358,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     NS_ENDHANDLER
 }
 
+static bool URLSystemRunning = false;
 
 
 
@@ -361,15 +368,22 @@ mouseDisplaySensitive = mouseOverSensitive; \
 {		
     
     if (fwg_frontEndWantsFileName() != nil) {
+        //NSLog (@"drawRect mainloopCount %d",mainloopCount);
+        
+        // ensure that the app delegate for loading is called first....
+        //URLSystemRunning = (mainloopCount > 100);
+        
+        
         //NSLog (@"FRONT END WANTS FILENAME");
         if (!gettingURL) {
+            if ([FreeWRLAppDelegate applicationHasLaunched]) {
             gettingURL = true;
             NSString *myString = [[NSString alloc] initWithUTF8String:fwg_frontEndWantsFileName()];
             //NSLog (@"string from lib is %@ as a string %s",myString,fwg_frontEndWantsFileName());
           
             //NSLog (@"going to add to queue");
             [FreeWRLAppDelegate newDoURL:myString opFlag:&gettingURL];
-           
+            }
         }
 
     }
@@ -382,7 +396,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     
     fwl_RenderSceneUpdateScene();
 
-    mainloopCount ++;
+    //mainloopCount ++;
     
     
     [[self openGLContext] flushBuffer];
@@ -479,7 +493,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
 
 - (void) awakeFromNib
 {
-    //NSLog (@"awakeFromNib");
+   // NSLog (@"awakeFromNib");
     int mi;
     char buff[2048]; 
     
@@ -496,7 +510,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     NSLog (@"checking for args");
     for (mi = 1; mi < [args count]; mi++) {
         [[args objectAtIndex:mi] getCString:buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
-        NSLog (@"arg at %d is %s count is %d", mi, buff, [args count]);
+        NSLog (@"arg at %d is %s count is %ld", mi, buff, [args count]);
         
         // null argument - ignore if one found
         if ((buff == NULL) || ([args objectAtIndex:mi] == NULL) || (!(strcmp(buff, "(null)")))){
@@ -511,13 +525,13 @@ mouseDisplaySensitive = mouseOverSensitive; \
             // does this name have a prefix? if not, prepend the current working directory
             if(!([fileToOpen hasPrefix: @"/"])) {
                 char *mywd = getwd(NULL);
-                int len = strlen(mywd);
+                //int len = strlen(mywd);
                 
                 char totalbuf[2048];
                 [fileToOpen getCString: buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
                 
                 // is this a file WITHOUT a url/uri on the front? 
-                if (!checkNetworkFile(buff)) {
+                if (!fwl_checkNetworkFile(buff)) {
                     
                     // make up a path, using the cwd and the file name
                     strcpy(totalbuf,mywd);
