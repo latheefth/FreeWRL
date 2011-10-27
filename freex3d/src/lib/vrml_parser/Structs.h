@@ -1948,6 +1948,7 @@ struct X3D_Node {
 #define X3D_SHAPE(node) ((struct X3D_Shape*)node)
 #define X3D_VISIBILITYSENSOR(node) ((struct X3D_VisibilitySensor*)node)
 #define X3D_BILLBOARD(node) ((struct X3D_Billboard*)node)
+#define X3D_NAVIGATIONINFO(node) ((struct X3D_NavigationInfo*)node)
 #define X3D_BACKGROUND(node) ((struct X3D_Background*)node)
 #define X3D_TEXTUREBACKGROUND(node) ((struct X3D_TextureBackground*)node)
 #define X3D_FOG(node) ((struct X3D_Fog*)node)
