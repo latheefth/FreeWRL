@@ -119,16 +119,7 @@ NSMutableData *receivedData;
 {
 	NSRect rectView = [self bounds];
 	
-	// ensure camera knows size changed
-	if ((camera.viewHeight != rectView.size.height) ||
-	    (camera.viewWidth != rectView.size.width)) {
-		camera.viewHeight = rectView.size.height;
-		camera.viewWidth = rectView.size.width;
-        
-        //NSLog (@"fwl_setScreenDim(%d, %d)",camera.viewWidth,camera.viewHeight);
-        fwl_setScreenDim(camera.viewWidth,camera.viewHeight);
-        //NSLog (@"finished resize GL");
-	}
+    fwl_setScreenDim(rectView.size.width,rectView.size.height);
 }
 
 
@@ -358,10 +349,6 @@ mouseDisplaySensitive = mouseOverSensitive; \
     NS_ENDHANDLER
 }
 
-static bool URLSystemRunning = false;
-
-
-
 // ---------------------------------
 
 - (void) drawRect:(NSRect)rect
@@ -493,9 +480,19 @@ static bool URLSystemRunning = false;
 
 - (void) awakeFromNib
 {
+    
+#define BUFFSIZE 2048
+#define MAX_ARGC 200
    // NSLog (@"awakeFromNib");
     int mi;
-    char buff[2048]; 
+#define BUFSIZE 2048
+    char buff[BUFSIZE]; 
+    char opt[BUFSIZE];
+    bool argLookedAt[MAX_ARGC];
+    unsigned long argc;
+    
+    for (mi=0; mi<MAX_ARGC; mi++) argLookedAt[mi] = false;
+
     
 	// start animation timer
 	timer = [NSTimer timerWithTimeInterval:(1.0f/60.0f) target:self selector:@selector(animationTimer:) userInfo:nil repeats:YES];
@@ -506,19 +503,34 @@ static bool URLSystemRunning = false;
     NSProcessInfo* PInfo = [NSProcessInfo processInfo];
     NSArray* args = [PInfo arguments];
     [args retain];
+    argc = [args count];
+    if (argc > MAX_ARGC) argc = MAX_ARGC;
     
-    NSLog (@"checking for args");
-    for (mi = 1; mi < [args count]; mi++) {
-        [[args objectAtIndex:mi] getCString:buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
-        NSLog (@"arg at %d is %s count is %ld", mi, buff, [args count]);
+    
+    //NSLog (@"checking for args");
+    for (mi = 1; mi < argc; mi++) {
+        [[args objectAtIndex:mi] getCString:buff maxLength:BUFSIZE-1 encoding:NSUTF8StringEncoding];
+        if (mi <(argc-1)) {
+            [[args objectAtIndex:mi+1] getCString:opt maxLength:BUFSIZE-1 encoding:NSUTF8StringEncoding];
+        } else {
+            opt[0] = '\0'; // no more arguments possible for this command line argument
+        }
+
+        //NSLog (@"arg at %d is %s count is %ld", mi, buff, [args count]);
+        //fprintf (stderr,"FreeWRL arguments at %d is %s count is %ld\n", mi, buff, [args count]);
         
         // null argument - ignore if one found
-        if ((buff == NULL) || ([args objectAtIndex:mi] == NULL) || (!(strcmp(buff, "(null)")))){
+        if ((argLookedAt[mi]) || (buff == NULL) || ([args objectAtIndex:mi] == NULL) || (!(strcmp(buff, "(null)")))){
             break;
         }
 
         // found a file name (possibly)
-        else if (([[args objectAtIndex:mi] hasSuffix: @".wrl"]) || ([[args objectAtIndex:mi] hasSuffix: @".x3d"]) || ([[args objectAtIndex:mi] hasSuffix: @".X3D"]) || ([[args objectAtIndex:mi] hasSuffix: @".x3dv"]) || ([[args objectAtIndex:mi] hasSuffix: @".X3DV"]) ){
+        else if (([[args objectAtIndex:mi] hasSuffix: @".wrl"]) || 
+                 ([[args objectAtIndex:mi] hasSuffix: @".WRL"]) || 
+                 ([[args objectAtIndex:mi] hasSuffix: @".x3d"]) || 
+                 ([[args objectAtIndex:mi] hasSuffix: @".X3D"]) || 
+                 ([[args objectAtIndex:mi] hasSuffix: @".x3dv"]) || 
+                 ([[args objectAtIndex:mi] hasSuffix: @".X3DV"]) ){
             fileToOpen = [args objectAtIndex:mi];
             [fileToOpen getCString: buff maxLength:sizeof(buff)-1 encoding:NSUTF8StringEncoding];
             
@@ -542,8 +554,75 @@ static bool URLSystemRunning = false;
                 }
             }
         } else {
-            
-            
+            /* Command line options - from the USE web page, Oct 2011
+             --version
+             --fullscreen
+             --big
+             --geo[metry] geom
+             --eai host:port
+             --server
+             --sig
+             --shutter
+             --anaglyph LR
+             --sidebyside 
+             --eyedist number
+             --screendist number
+             --stereo number
+             */
+            if ([[args objectAtIndex:mi] isEqualTo: @"--version"]) {
+                NSLog (@"FreeWRL UI Version %s, Library Version %s",fwl_freewrl_get_version(), fwl_libFreeWRL_get_version()); 
+                printf ("FreeWRL UI Version %s, Library Version %s\n",fwl_freewrl_get_version(), fwl_libFreeWRL_get_version());
+                
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--fullscreen"]) {
+                NSLog (@"command line argument :%s: ignored in this version",buff);
+                
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--big"]) {
+            } else if (([[args objectAtIndex:mi] isEqualTo: @"--geo"]) ||
+                       ([[args objectAtIndex:mi] isEqualTo: @"--geom"]) ||
+                       ([[args objectAtIndex:mi] isEqualTo: @"--geometry"])) {
+                argLookedAt[mi+1] = true; // next argument already peeked at
+                NSLog (@"command line argument :%s: ignored in this version",buff);
+                
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--eai"]) {
+                argLookedAt[mi+1] = true; // next argument already peeked at
+                NSLog (@"command line argument :%s: ignored in this version",buff);
+
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--server"]) {
+                NSLog (@"command line argument :%s: ignored in this version",buff);
+
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--sig"]) {
+                NSLog (@"command line argument :%s: ignored in this version",buff);
+
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--shutter"]) {
+                fwl_init_Shutter();
+
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--keypress"]) {
+                fwl_set_KeyString(opt);
+                argLookedAt[mi+1] = true; // next argument already peeked at
+                
+
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--anaglyph"]) {
+                fwl_set_AnaglyphParameter(opt);
+                argLookedAt[mi+1] = true; // next argument already peeked at
+                
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--sidebyside"]) {
+                fwl_init_SideBySide();
+
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--eyedist"]) {
+                fwl_set_EyeDist(optarg);
+                argLookedAt[mi+1] = true; // next argument already peeked at
+                
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--screendist"]) {
+                argLookedAt[mi+1] = true; // next argument already peeked at  
+                fwl_set_ScreenDist(opt);
+                
+            } else if ([[args objectAtIndex:mi] isEqualTo: @"--stereo"]) {
+                argLookedAt[mi+1] = true; // next argument already peeked at
+                fwl_set_StereoParameter(opt);
+               
+            } else {
+                NSLog (@"unknown command line argument, :%s:",buff);
+            }
         }
 
     }

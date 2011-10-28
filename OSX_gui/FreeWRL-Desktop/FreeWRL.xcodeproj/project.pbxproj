@@ -264,6 +264,7 @@
 				GCC_PREFIX_HEADER = "FreeWRL/FreeWRL-Prefix.pch";
 				INFOPLIST_FILE = "FreeWRL/FreeWRL-Info.plist";
 				"LIBRARY_SEARCH_PATHS[arch=*]" = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_LDFLAGS = "";
 				"OTHER_LDFLAGS[arch=*]" = "-lFreeX3DFunc";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -281,6 +282,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FreeWRL/FreeWRL-Prefix.pch";
 				INFOPLIST_FILE = "FreeWRL/FreeWRL-Info.plist";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				"OTHER_LDFLAGS[arch=*]" = "-lFreeX3DFunc";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

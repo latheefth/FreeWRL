@@ -161,15 +161,7 @@ NSString *net_url = nil;
 
     [self didChangeValueForKey:@"isExecuting"];
     [self didChangeValueForKey:@"isFinished"];
-    
-    //if (*opFlagPtr) {
-      //  NSLog (@"UrlDownloaderFinish - flag says downloading");
-    //    
-    //} else {
-      //  NSLog (@"UrlDownloaderFinish - flag says not downloading");
-    //}
-
-    
+        
     if (_error != nil) {
         //NSLog (@"URL: have error here");
         

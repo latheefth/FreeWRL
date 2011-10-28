@@ -21,7 +21,7 @@ typedef struct {
 	recVec viewUp; // View up direction
 	recVec rotPoint; // Point to rotate about
 	GLdouble aperture; // pContextInfo->camera aperture
-	GLint viewWidth, viewHeight; // current window/screen height and width
+	//GLint viewWidth, viewHeight; // current window/screen height and width
 } recCamera;
 
 @interface FWGLView : NSOpenGLView
