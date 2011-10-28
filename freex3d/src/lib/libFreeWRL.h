@@ -60,6 +60,10 @@
  */
 const char *libFreeWRL_get_version();
 
+/* for front ends to get the versions */
+const char *fwl_libFreeWRL_get_version(); /* library version */
+const char *fwl_freewrl_get_version();  /* UI version */
+
 /**
  * Initialization
  */
