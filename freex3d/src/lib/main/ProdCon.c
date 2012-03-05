@@ -483,14 +483,14 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 	int offsetInNode;
 	int shouldBind;
     int parsedOk = FALSE; // results from parser
+	/* we only bind to new nodes, if we are adding via Inlines, etc */
+	int origFogNodes, origBackgroundNodes, origNavigationNodes, origViewpointNodes;
 	ppProdCon p;
 	struct tProdCon *t;
 	ttglobal tg = gglobal();
 	t = &tg->ProdCon;
 	p = (ppProdCon)t->prv;
 
-	/* we only bind to new nodes, if we are adding via Inlines, etc */
-	int origFogNodes, origBackgroundNodes, origNavigationNodes, origViewpointNodes;
 
 	/* printf("processing VRML/X3D resource: %s\n", res->request);  */
 	

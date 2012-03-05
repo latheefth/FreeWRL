@@ -43,7 +43,7 @@ and write out C struct versions:
 buttonType = 0; // 0 = rgba .png 1= .c bitmap (see above) 
 savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put 1 
 */ 
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(IPHONE) || defined(_ANDROID)) // || defined(GLES2))
 
 GLubyte walk[] = {
 0x0,0x0,0x0,0x0,

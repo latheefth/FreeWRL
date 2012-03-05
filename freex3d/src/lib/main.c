@@ -32,7 +32,7 @@
 #include <system_threads.h>
 #include <display.h>
 #include <internal.h>
-
+#include <signal.h>
 #include <libFreeWRL.h>
 #include <list.h>
 #include <io_files.h>
@@ -338,9 +338,10 @@ void fwl_startFreeWRL(const char *url)
 		tg->RenderFuncs.OSX_last_world_url_for_reload = NULL;
 		DEBUG_MSG("no request for parser thread, main thread joining display thread...\n");
 	}
-
+#ifndef GLES2
 	/* now wait around until something kills this thread. */
 	pthread_join(gglobal()->threads.DispThrd, NULL);
+#endif
 }
 
 /**

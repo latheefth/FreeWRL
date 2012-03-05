@@ -264,7 +264,7 @@ static void shaderErrorLog(GLuint myShader) {
 /* do type checking of shader and field variables when initializing interface */
 static int shader_checkType(struct FieldDecl * myField,
 		GLuint myShader, GLint myVar) {
-	int retval;
+	int retval = FALSE;
 
 	/* check the type, if we are OpenGL 2.0 or above */
 

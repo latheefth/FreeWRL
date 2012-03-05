@@ -130,8 +130,11 @@ struct multiTexParams {
 #define HAVETODOTEXTURES (gglobal()->RenderFuncs.textureStackTop != 0)
 
 /* multitexture and single texture handling */
+#ifdef GLES2
+#define MAX_MULTITEXTURE 4
+#else
 #define MAX_MULTITEXTURE 10
-
+#endif
 /* texture stuff - see code. Need array because of MultiTextures */
 /* first, how many textures do we have? 0 -> MAX_MULTITEXTURE */
 //extern int textureStackTop; 

@@ -159,7 +159,7 @@ bool is_url(const char *url)
 
 static CURL *curl_h = NULL;
 
-int with_libcurl = FALSE;
+int with_libcurl = TRUE;
 
 /*
   libCurl needs to be initialized once.

@@ -115,7 +115,7 @@ void rf_print(const char *text)
 
 void rf_printf(int x, int y, const char *format, ...)
 {
-#if defined(IPHONE) || defined(_ANDROID )
+#if defined(IPHONE) || defined(_ANDROID ) || defined(GLES2)
 //printf ("skipping the rf_printf\n");
 #else
     va_list ap;

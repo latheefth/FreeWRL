@@ -39,10 +39,10 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include <libFreeWRL.h>
 #include <list.h>
 
-#include "vrml_parser/Structs.h"
-#include "input/InputFunctions.h"
-#include "opengl/Textures.h"            /* for finding a texture url in a multi url */
-#include "opengl/LoadTextures.h"        /* for finding a texture url in a multi url */
+#include "../vrml_parser/Structs.h"
+#include "../input/InputFunctions.h"
+#include "../opengl/Textures.h"            /* for finding a texture url in a multi url */
+#include "../opengl/LoadTextures.h"        /* for finding a texture url in a multi url */
 
 
 #include <resources.h>
