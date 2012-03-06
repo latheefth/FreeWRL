@@ -323,6 +323,17 @@ void glMaterialf (GLenum face, GLenum pname, float param);
 	#define GLUNIFORMMATRIX4FV glUniformMatrix4fv
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
+
+#ifdef GLU_VERSION
+	#define HAVE_GLU_TESS 1
+#else
+	#if defined(GLES2) 
+		#include <libtess2.h>
+		#define HAVE_GLU_TESS 1
+	#endif
+#endif
+
+
 /* Main initialization function */
 /* int display_initialize(); */
 //extern bool display_initialized;

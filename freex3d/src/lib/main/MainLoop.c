@@ -1802,7 +1802,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	}
 #endif /* KEEP_X11_INLIB */
 
-	#if !(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
+	#if defined(HAVE_GLU_TESS) //!(defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
 	new_tessellation();
 	#endif /* IPHONE */
 	
