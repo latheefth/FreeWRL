@@ -896,14 +896,14 @@ OLDCODE		#endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
 #if defined(IPHONE) || defined(GLES2)
 	/* ES 2.0 - set the sampler */
-	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); \
- //    glUniform1i(getAppearanceProperties()->currentShaderProperties->Texture0+aaa, aaa); \
-	// if(getAppearanceProperties()->currentShaderProperties->useTex > -1){ \
-	//	float fw_useTex[4]; \
-	//	int jj; \
-	//	for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= aaa ? 1.0f : 0.0f; \
-	//	glUniform4f(getAppearanceProperties()->currentShaderProperties->useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); \
-	//  } \
+	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); 
+ //    glUniform1i(getAppearanceProperties()->currentShaderProperties->Texture0+aaa, aaa); 
+	// if(getAppearanceProperties()->currentShaderProperties->useTex > -1){ 
+	//	float fw_useTex[4]; 
+	//	int jj; 
+	//	for(jj=0;jj<4;jj++) fw_useTex[jj] = jj <= aaa ? 1.0f : 0.0f; 
+	//	glUniform4f(getAppearanceProperties()->currentShaderProperties->useTex,fw_useTex[0],fw_useTex[1],fw_useTex[2],fw_useTex[3]); 
+	//  } 
 	// }
 #define SET_TEXTURE_UNIT(c) \
 			if(1){ \

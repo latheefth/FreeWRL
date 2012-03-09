@@ -905,7 +905,7 @@ node->_shaderTableEntry = noMaterialNoAppearanceShader;
 
 /* debug */
 
-    
+	if(1){
 printf ("shape using shader: ");
 switch (node->_shaderTableEntry) {
 case backgroundSphereShader: printf ("backgroundSphereShader\n"); break;
@@ -932,7 +932,7 @@ case linePointColorNodeShader: printf ("linePointColorNodeShader\n"); break;
 case linePointNoColorNodeShader: printf ("linePointNoColorNodeShader\n"); break;
 default: {printf ("no ascii equiv\n");}
 }
-
+	}
 
 
 	#endif /* SHADERS_2011 */
