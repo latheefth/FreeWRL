@@ -668,7 +668,7 @@ int Run (NPP instance)
 
 /*******************************************************************************
  ******************************************************************************/
-/*const*/ char* NPP_GetMIMEDescription(void)
+const char* NPP_GetMIMEDescription(void)
 {
         static const char mime_types[] =
                 "x-world/x-vrml:wrl:FreeWRL VRML Browser;"
@@ -679,11 +679,8 @@ int Run (NPP instance)
                 "model/x3d+binary:x3db:FreeWRL X3D Browser"
                 ;
 
-        /* print_here ("NPP_GetMIMEDescription"); */
+        print (NULL, "NPP_GetMIMEDescription: %s\n", mime_types);
         return (char *) mime_types;
-/*
-  return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser;model/x3d+vrml:x3dv:FreeWRL VRML Browser;model/x3d+xml:x3d:FreeWRL X3D Browser;model/x3d+vrml:x3dv:FreeWRL X3D Browser;model/x3d+binary:x3db:FreeWRL X3D Browser");
-*/
 }
 
 NPError
