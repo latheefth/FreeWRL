@@ -1507,7 +1507,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 
 		/* does the property exist? */
                 if (JS_LookupProperty (cx, obj, _id_c, &rval)) {
-			if (rval == JSVAL_VOID) {
+	                if (JSVAL_IS_NULL(rval)) {
 				ConsoleMessage ("SFNode - field :%s: does not exist",_id_c);
 				return JS_FALSE;
 			}
