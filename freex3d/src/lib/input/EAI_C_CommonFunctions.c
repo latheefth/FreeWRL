@@ -432,10 +432,14 @@ MF_TYPE(MFNode, mfnode, Node)
 			case FIELDTYPE_SFString: {
 					struct Uni_String *mptr;
 					mptr = * (struct Uni_String **)nst;
-					FREE_IF_NZ(mptr->strptr);
-					mptr->strptr = myVal.sfstring->strptr;
-					mptr->len = myVal.sfstring->len;
-					mptr->touched = myVal.sfstring->touched;
+					if (!mptr) {
+						ERROR_MSG("Parser_scanStringValueToMem: is nst (Uni_String) supposed to hold a NULL value ?");
+					} else {
+						FREE_IF_NZ(mptr->strptr);
+						mptr->strptr = myVal.sfstring->strptr;
+						mptr->len = myVal.sfstring->len;
+						mptr->touched = myVal.sfstring->touched;
+					}
 				break; }
 
 			default: {
