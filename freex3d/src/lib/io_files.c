@@ -210,13 +210,10 @@ bool do_dir_exists(const char *dir)
 		if (access(dir,X_OK) == 0) {
 			return TRUE;
 		} else {
-			printf("Internal error: cannot access directory: %s\n", dir);
+			WARN_MSG("directory '%s' exists but is not accessible\n", dir);
 		}
-	} else {
-		printf("Internal error: directory does not exist: %s\n", dir);
 	}
 	return FALSE;
-
 }
 
 /**
