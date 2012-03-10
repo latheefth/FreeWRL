@@ -183,6 +183,12 @@ int fv_display_initialize()
         XFlush(Xdpy);
 #endif
 
+        /* initialize default font 
+           
+           TODO: this may be a configuration option (config file or command line)
+         */
+        rf_xfont_init("fixed");
+
 	/* Display full initialized :P cool ! */
 	d->display_initialized = TRUE;
 
