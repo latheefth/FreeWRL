@@ -115,10 +115,10 @@ static JSBool setSF_in_MF (JSContext *cx, JSObject *obj, jsid iid, JSBool strict
 	JSObject *par;
 	jsval ele; 
 	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
+	jsid oid;
 #if JS_VERSION >= 185
 	char *tmp;
 	jsval id;
-	jsid oid;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("setSF_in_MF: JS_IdToValue failed.\n");
 		return JS_FALSE;
@@ -970,7 +970,7 @@ static JSBool getSFNodeField (JSContext *context, JSObject *obj, jsid id, jsval 
 	/* _id_c = JS_EncodeString(context,_idStr); */
 /* #endif */
 #if JS_VERSION < 185
-	_id_c = JS_GetStringBytes(JSID_TO_STRING(id));
+	_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id));
 #else
 	_id_c = JS_EncodeString(context,JSID_TO_STRING(id));
 #endif
@@ -1180,7 +1180,7 @@ JSBool setSFNodeField (JSContext *context, JSObject *obj, jsid id, JSBool strict
 	/* get the id field... */
 
 #if JS_VERSION < 185
-	_id_c = JS_GetStringBytes(JSID_TO_STRING(id));
+	_id_c = JS_GetStringBytes(JSVAL_TO_STRING(id));
 #else
 	_id_c = JS_EncodeString(context,JSID_TO_STRING(id));
 #endif

@@ -1467,9 +1467,9 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp, int type) {
 	jsval pf;
 	jsval nf;
 	char * _cc;
+	jsid oid;
 #if JS_VERSION >= 185
 	jsval id;
-	jsid oid;
 	if (!JS_IdToValue(cx,iid,&id)) {
 		printf("doMFSetProperty, JS_IdToValue failed.\n");
 		return JS_FALSE;
