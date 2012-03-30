@@ -2643,6 +2643,45 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	setMenuStatus("NONE");
 }
 
+
+#ifdef SWAMPTEA
+
+/* Android wants the OpenGL system to re-create assets like textures on onSurfaceCreated call */
+void fwl_Android_reloadAssets(void) {
+        int tc;
+	struct X3D_Node *node;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	ConsoleMessage("fwl_Android_reloadAssets called");
+
+	ConsoleMessage ("fwl_Android_reloadAssets - reloading shader code");
+	fwl_initialize_GL();
+
+        LOCK_MEMORYTABLE
+	for (tc = 0; tc< p->nextEntry; tc++) {
+		node=p->memoryTable[tc];
+
+		/* tell each node to update itself */
+		node->_change ++;
+#ifdef LOOK_AT_EACH_NODE_ON_SURFACE_CREATED
+		switch (node->_nodeType) {
+			case NODE_Background: {
+				struct X3D_Background *me = (struct X3D_Background *)node;
+				ConsoleMessage ("Background - zeroing VBO");
+//Not required				me->__VBO = 0;
+				break;
+			}
+			default: {
+			}
+		}
+#endif
+
+        }
+        UNLOCK_MEMORYTABLE
+
+}
+#endif //SWAMPTEA
+
 /* for verifying that a memory pointer exists */
 int checkNode(struct X3D_Node *node, char *fn, int line) {
 	int tc;

@@ -51,6 +51,18 @@
 #include "plugin/PluginSocket.h"
 
 
+#ifdef SWAMPTEA 
+static int assetSuccessCount=0;
+
+
+/* SWAMPTEA - return the assetSuccessCount */
+int freewrlAssetReturnCount(void) {
+        return assetSuccessCount;
+}
+
+#endif // SWAMPTEA
+
+
 /* Internal function prototypes */
 void append_openned_file(s_list_t *list, const char *filename, int fd, char *text);
 
@@ -412,6 +424,14 @@ void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {
 
 		frontend_return_status = 0;
 		/* got the file, send along a message */
+
+#ifdef SWAMPTEA
+               /* we have success in the following numbers: */
+                assetSuccessCount++;
+#endif //SWAMPTEA
+
+
+
 	}
 
 	SEND_FILE_SIGNAL

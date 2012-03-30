@@ -103,12 +103,10 @@ GLEWContext * glewGetContext();
 #include <GL/glx.h>
 #else
 /* ANDROID NDK */
-//#include <GLES/gl.h>
-//#include <GLES/glext.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-typedef char GLchar;
+//JAS typedef char GLchar;
 
 #endif /*ANDROID_NDK*/
 #endif
