@@ -1245,7 +1245,7 @@ void handleOptionPress()
 	case 'D': {
 		/* screendist */
 		printf("reduce screendist");
-		viewer->screendist *= .9;
+		viewer->screendist -= .02; //*= .9;
 		updateEyehalf();
 		break;}
 	case 'E': {
@@ -1255,7 +1255,7 @@ void handleOptionPress()
 	case 'F': {
 		/* screendist */
 		printf("increase screendist");
-		viewer->screendist *= 1.1;
+		viewer->screendist += .02; //*= 1.1;
 		updateEyehalf();
 		break;}
 	case 'H': {

@@ -270,7 +270,6 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
         setbuf(stderr,0);
-	
 
 	/* Check parameters */
 	if (params) {
