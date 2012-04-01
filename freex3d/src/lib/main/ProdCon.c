@@ -719,7 +719,7 @@ static bool parser_process_res(s_list_t *item)
 		// printf("processing resource, media_type %s\n",resourceMediaTypeToString(res->media_type)); 
 		switch (res->media_type) {
 		case resm_unknown:
-			ConsoleMessage ("deciphering loaded file, unknown file type encountered.");
+			ConsoleMessage ("deciphering file: 404 file not found or unknown file type encountered.");
 			remove_it = TRUE;
 			res->complete=TRUE; /* not going to do anything else with this one */
 			res->status = ress_not_loaded;
