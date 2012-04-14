@@ -1455,7 +1455,6 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
                 FREE_IF_NZ (ptr);
         }
 }
-
 JSBool
 #if JS_VERSION < 185
 SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)

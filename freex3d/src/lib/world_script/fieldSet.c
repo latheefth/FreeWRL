@@ -921,10 +921,13 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 		}
 
 		case FIELDTYPE_SFNode: {
-
+			//unsigned int valuecopied;
+			//unsigned int *ptr2value;
 				/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((SFNodeNative *)JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode));*/
 			memcpy ((void *)memptr, (void *) &(((SFNodeNative *)tg->CRoutes.JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode)); 
-
+				//ptr2value = (unsigned int*)memptr;
+				//valuecopied = *ptr2value;
+				//printf("value of memptr %u after memcpy in script route= %u\n",(void*)memptr,valuecopied);
 				break;
 		}
 
@@ -936,6 +939,10 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	#ifdef SETFIELDVERBOSE
 	printf ("done setField_javascriptEventOut\n");
 	if (fieldType == FIELDTYPE_MFInt32) {
+		printf ("setField_javascriptEventOut, checking the pointers...\n");
+		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
+	}
+	if (fieldType == FIELDTYPE_SFNode) {
 		printf ("setField_javascriptEventOut, checking the pointers...\n");
 		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
 	}

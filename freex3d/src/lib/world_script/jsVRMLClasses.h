@@ -29,7 +29,9 @@ Complex VRML nodes as Javascript classes.
 
 #ifndef __FREEWRL_JS_VRML_CLASSES_H__
 #define __FREEWRL_JS_VRML_CLASSES_H__
-
+#ifdef HAVE_JAVASCRIPT
+# include <jsversion.h> //re-included for IDE readability below, should be included by jsapi.h elsewhere
+#endif
 
 #ifndef UNUSED
 #define UNUSED(v) ((void) v)

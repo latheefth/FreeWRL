@@ -821,7 +821,7 @@ errorReporter(JSContext *context, const char *message, JSErrorReport *report)
 	int len = 0, charPtrSize = (int) sizeof(char *);
 	ppjsUtils p = (ppjsUtils)gglobal()->jsUtils.prv;
 
-printf ("*** errorReporter ***\n");
+//printf ("*** errorReporter ***\n");
 
     if (!report) {
         fprintf(stderr, "%s\n", message);

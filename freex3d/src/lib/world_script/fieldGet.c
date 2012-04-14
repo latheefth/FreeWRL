@@ -871,6 +871,7 @@ void **getInternalDataPointerForJavascriptObject(JSContext *cx, JSObject *obj, i
 		
         } else if (JS_InstanceOf(cx, sfObj, &SFNodeClass, NULL)) { 
 		SFNodeNative *me = (SFNodeNative *)_privPtr;
+		return (void **) &me->handle;;
 		//JAS return (void **) &me->v;
 		
         } else if (JS_InstanceOf(cx, sfObj, &SFImageClass, NULL)) { 
