@@ -1502,6 +1502,28 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		printf ("SFNodeGetProperty, working on node %p, field %s\n",ptr->handle,_id_c);
 		#endif
 
+		/* dug9 attempt to find read the field of another script */
+		if(!strcmp(stringNodeType(ptr->handle->_nodeType),"Script"))
+		{
+			struct Shader_Script *myObj;
+			JSContext *cx2;
+			JSObject *obj2;
+			struct CRscriptStruct *ScriptControl = getScriptControl(); 
+			myObj = X3D_SCRIPT(ptr->handle)->__scriptObj;
+			/* get context and global object for this script */
+			cx2 =  ScriptControl[myObj->num].cx;
+			obj2 = ScriptControl[myObj->num].glob;
+			if (JS_GetProperty (cx2, obj2, _id_c, &rval)) {
+				if (JSVAL_IS_NULL(rval)) {
+					ConsoleMessage ("SFNode - field :%s: does not exist",_id_c);
+					return JS_FALSE;
+				}else{
+					*vp = rval;
+					return JS_TRUE;
+				}
+			}
+		}
+
 		JS_DefineSFNodeSpecificProperties (cx, obj, ptr->handle);
 
 		/* does the property exist? */
