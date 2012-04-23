@@ -5,18 +5,36 @@ FreeWRL (FreeX3d) - Android build notes
 
 Quick:
 
-0) get the Android build tools and install. (both NDK and SDK toolsets)
+0) get tool sets, helper files, etc.
+
+	- get the Android build tools and install. (both NDK and SDK toolsets)
+
+	- get the libxml2.tar file from:
+
+	  and put it in the "freewrl" directory (the parent of the "Android" directory)
+
+
+
 
 1) cd to freewrl/Android
 
 2) get the package set up with the android tools. Issue the command:
 
-	android update project --target 1 --path ./
+	android update project --target 1 --name FreeWRL --path ./
 
 3) plug your testing device in. Edit the "make-install" script, and put the device id
-in. (do "adb devices" to see attached android devices)
+in. eg:
+
+	prompt> adb devices
+	List of devices attached 
+	388924841bf5497	device
 
 You may have to enable "USB Debugging" on your Android device.
+
+4) ndk-build appears to require the exact full path to it; EDIT the make-install to put
+   the full path in. You'll see the path for my system, eg:
+
+	/Users/johns/Desktop/Android-tests-current/android_tools/android-ndk-r7/ndk-build
 
 4) sh make-install should build, and install onto your device.
 
