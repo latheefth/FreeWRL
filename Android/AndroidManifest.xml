@@ -19,10 +19,10 @@
 -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.awila.libtest">
+    package="org.freewrl">
     <application
-            android:label="@string/freex_activity">
-        <activity android:name="freexActivity"
+            android:label="@string/freewrl_activity">
+        <activity android:name="FreeWRLActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             	android:launchMode="singleTask"
             	android:configChanges="orientation|keyboardHidden">
@@ -34,4 +34,8 @@
     </application>
     <uses-feature android:glEsVersion="0x00020000"/>
     <uses-sdk android:minSdkVersion="5"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+        <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+        <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
+
 </manifest>

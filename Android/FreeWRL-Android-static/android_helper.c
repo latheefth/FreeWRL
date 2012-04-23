@@ -2,9 +2,25 @@
 
 #if defined( _ANDROID )
 
+#include <stddef.h>
+/* possibly also stdlib.h, stdio.h...*/
+
+# include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+
+
+#include <libFreeWRL.h>
+#include <jni.h>
+#include <android/log.h>
+
+#include <pthread.h>
+
+// from orig system
+
 #include <config.h>
-#include <system.h>
-#include <internal.h>
+//JAS #include <system.h>
+//JAS #include <internal.h>
 
 #include <libFreeWRL.h>
 #include <list.h>
@@ -20,8 +36,13 @@
 #include <resources.h>
 #include <iglobal.h>
 
+// end from orig system
 
-#define  LOG_TAG    "WRL-"
+
+
+#define TRUE (1==1)
+#define FALSE (1==0)
+#define  LOG_TAG    "FreeWRL-androidHelper-"
 
 // globals
 
@@ -29,11 +50,33 @@ static JavaVM* g_jvm = NULL;
 static jclass fileCallbackClass = NULL;
 static jmethodID fileLoadCallback = NULL;
 static jmethodID startRenderCallback = NULL;
+void DROIDDEBUG( const char*pFmtStr, ...);
+
+static char* initialFile = NULL;
+
+// keep sequence here so that we know if we have a restart, or just a refresh
+static int mapTexture = -1;
+static int confidenceCone = -1;
+
 static ttglobal *pGlobal=NULL;
 
+/********************************************
+ Initializer thread 
+*********************************************/
+
+pthread_t loadFileThread = (pthread_t)0;
+
+void fileLoadThread(void* param) {
+
+	DROIDDEBUG("------------------LOAD THREAD-----------------------");
+	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+	fwl_OSX_initializeParameters(initialFile);
+	DROIDDEBUG("------------------FIN LOAD THREAD-----------------------");
+}
 
 
-void _fileLoadThread(void* param);
+/********************************************
+*********************************************/
 
 
 void DROIDDEBUG( const char*pFmtStr, ...)
@@ -47,268 +90,164 @@ void DROIDDEBUG( const char*pFmtStr, ...)
 	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,zLog);
 }
 
-void checkGlError(const char* op) 
-{
-	GLint error;
-	
-    for (error = glGetError(); error; error = glGetError())
-    {
-        DROIDDEBUG("after %s() glError (0x%x)\n", op, error);
-    }
-}
-
 JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 {
 	DROIDDEBUG("------------------ON LOAD-----------------------");
 	g_jvm = vm;
 	JNIEnv* ioEnv = NULL;
 
-	DROIDDEBUG("Registering callbacks...");
-	if( (*g_jvm)->GetEnv(g_jvm,(void**)&ioEnv, JNI_VERSION_1_6) == JNI_OK )
-	{
-		fileCallbackClass = (*ioEnv)->FindClass(ioEnv,"awila/com/Callbacks");
-		
-		if( fileCallbackClass!=NULL )
-		{
-			fileLoadCallback = (*ioEnv)->GetStaticMethodID(ioEnv, fileCallbackClass, "getLocalFileForRemote", "(Ljava/lang/String;)Ljava/lang/String;");
-			startRenderCallback = (*ioEnv)->GetStaticMethodID(ioEnv, fileCallbackClass, "startRender", "()V");
-			
-			if( fileLoadCallback == NULL )
-			{
-				DROIDDEBUG( "Could not GetMethodID for (s) getLocaFileForRemote(s)");
-			}
-			else
-			{
-				DROIDDEBUG( "have getLocalFileForRemote method!");
-				
-			}
-		}
-		else
-		{
-			DROIDDEBUG( "Could not find class 'awila/com/Callbacks'");
-		}
-	}
-	else
-	{
-		DROIDDEBUG( "Failed to get environment.");
-	}
-	
+
+        if( pGlobal == NULL ) {
+                pGlobal = (ttglobal*)fwl_init_instance();
+        }
+
+
+	DROIDDEBUG("------------------FIN ON LOAD-----------------------");
 	return JNI_VERSION_1_6;
 }
 
-
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_initLib(JNIEnv* ioEnv, jobject ioThis, int wid, int hei)
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, jobject obj, jstring passedInitialFile)
 {
-	ttglobal *pGlobal=NULL;
-	
-	if( pGlobal == NULL ) {
-		pGlobal = (ttglobal*)fwl_init_instance();
-	}
-	
-	DROIDDEBUG(">initLib() : %d,%d",wid,hei);
+	DROIDDEBUG("------------------INITIAL FILE-----------------------");
+	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
 
-	fwl_setp_width(wid);
-	fwl_setp_height(hei);
-	
-	fwl_setScreenDim(wid,hei);
-	
-	if( fv_display_initialize() == 0 )
-	{
-		DROIDDEBUG("--Error in fwl_display_initialize" );
-		
-	}
-	
-	DROIDDEBUG("<<leaving initLib");
-}
+	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
+
+	/* save a copy of this filename - we can probably free this after the initial request from the NDK rendering
+	   library, as it will cache it as well */
+
+	if (initialFile != NULL) free(initialFile);
+	initialFile = strdup(cFilename);
 
 
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_renderScene(JNIEnv* ioEnv, jobject ioThis)
-{
-	fwl_RenderSceneUpdateScene();	
-}
+	//DROIDDEBUG("cFilename is :%s:",initialFile);
 
-
-// Call once at start up
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_initScene(JNIEnv* ioEnv, jobject ioThis)
-{
-	DROIDDEBUG(">>initScene");
+	// step 1:
 	fwl_initializeRenderSceneUpdateScene();
-	
-    
-	DROIDDEBUG(">>initialize");
-    //fwl_OSX_initializeParameters("http://freewrl.sourceforge.net/test3.wrl");
-    
-    // added ANDROID specific initialisation as we don't want the render thread loading files...
-    fwl_ANDROID_initialize();
-    
+
+        // step 2:  create a thread to handle the file load requests from the library
+        if( 0 != pthread_create(&loadFileThread, NULL, (void*)fileLoadThread, (void*)initialFile) )
+        {
+                DROIDDEBUG("!!Error creating fileloadedThread");
+                return;
+        }
+
+
+	// step 3:
+	fv_display_initialize();
+	(*env)->ReleaseStringUTFChars(env, initialFile, cFilename);
+	DROIDDEBUG("------------------END INITIAL FILE-----------------------");
 }
 
 
-// Call on termination
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_termScene(JNIEnv* ioEnv, jobject ioThis)
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_init(JNIEnv * env, jobject obj,  jint width, jint height)
 {
-	DROIDDEBUG(">>termScene");
-	finalizeRenderSceneUpdateScene();
+	DROIDDEBUG("------------------LIB INIT-----------------------");
+	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+
+	fwl_setScreenDim(width, height);
+
+	DROIDDEBUG("------------------FIN LIB INIT-----------------------");
 }
 
-pthread_t loadFileThread = (pthread_t)0;
 
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_loadFile( JNIEnv* ioEnv, jobject ioThis, jstring sFilename)
-{
-	resource_item_t* res;
-	char* pFilename = NULL;
-	jboolean jb;
-	
-	pFilename = (char*)((*ioEnv)->GetStringUTFChars(ioEnv, sFilename, &jb));
-	DROIDDEBUG(">>loadFile( %s )", pFilename );
-	
-	if( 0 != loadFileThread )
-	{
-		DROIDDEBUG("Attempt to load a new file while waiting for a file to load!");
-		(*ioEnv)->ReleaseStringUTFChars(ioEnv, sFilename, pFilename );
-		return;
-	}
-		
-    /* Give the main argument to the resource handler */
-    res = resource_create_single(pFilename);
-
-	// create a thread to handle the file load requests from the library
-	if( 0 != pthread_create(&loadFileThread, NULL, (void*)_fileLoadThread, res ) )
-	{
-		DROIDDEBUG("!!Error creating fileloadedThread");
-		(*ioEnv)->ReleaseStringUTFChars(ioEnv, sFilename, pFilename );
-		return;
-	}
-
-    send_resource_to_parser(res);
-    
-	(*ioEnv)->ReleaseStringUTFChars(ioEnv, sFilename, pFilename );
+/* do we WANT a file? return yes/no */
+JNIEXPORT jboolean JNICALL Java_org_freewrl_FreeWRLLib_resourceWanted(JNIEnv * env, jobject obj) {
+	return fwg_frontEndWantsFileName()!=NULL;
 }
 
-void _fileLoadThread(void* param)
-{
-	jboolean jb;
-	resource_item_t* res = (resource_item_t*)param;
-	JNIEnv* ioEnv = NULL;
+/* return the NAME of the resource we want... */
+JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_resourceNameWanted(JNIEnv *env, jobject obj) {
+	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
+	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+	DROIDDEBUG(fwg_frontEndWantsFileName());
+	return (*env)->NewStringUTF(env,fwg_frontEndWantsFileName());
+}
 
-    while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded))
-    {
-    	const char* pFilename = (const char*)fwg_frontEndWantsFileName();
-    	if( NULL != pFilename )
-    	{
-    		DROIDDEBUG( "Want file: %s", pFilename);
-    		if( (*g_jvm)->AttachCurrentThread(g_jvm, &ioEnv,NULL) == JNI_OK )
-    		{
-				jstring strFilename;
-				jstring result;
-				
-	    		strFilename = (*ioEnv)->NewStringUTF(ioEnv, pFilename);
-		    		
-	    		result = (*ioEnv)->CallStaticObjectMethod(ioEnv,fileCallbackClass,fileLoadCallback,strFilename );
-		    		
-	    		
-	    		const char* pCacheFile = ((*ioEnv)->GetStringUTFChars(ioEnv, result, &jb));
-					    		
-	    		DROIDDEBUG( "Returning cached local file: %s", pCacheFile );
-	    		
-	    		fwg_frontEndReturningLocalFile( (char*)pCacheFile, 1);
-	    		
-	    		(*ioEnv)->ReleaseStringUTFChars(ioEnv, result, pCacheFile );
-		    }
-    		else
-    		{
-    			DROIDDEBUG( "Error obtaining environment");
-    			return;
-    		}    		
-    	}
-    	else
-    	{
-			usleep(500);
+/* return the data associated with the name */
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_resourceData(JNIEnv * env, jobject this, jstring logThis)
+{
+	jboolean isCopy;
+	const char * szLogThis = (*env)->GetStringUTFChars(env, logThis, &isCopy);
+
+	fwg_frontEndReturningData(szLogThis,strlen(szLogThis));
+	(*env)->ReleaseStringUTFChars(env, logThis, szLogThis);
+}  
+
+/* return fileDescriptor, offset and length, and read the file here */
+
+
+#define SUCCESS			         			0
+#define ERROR_CODE_CANNOT_OPEN_MYFILE         			100
+#define ERROR_CODE_CANNOT_GET_DESCRIPTOR_FIELD			101
+#define ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS		102
+
+JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, jclass thiz, jobject fd_sys, jint off, jint len) {
+	jclass fdClass = (*env)->FindClass(env,"java/io/FileDescriptor");
+	if (fdClass != NULL){
+		jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env,fdClass, "descriptor", "I");
+		if (fdClassDescriptorFieldID != NULL && fd_sys != NULL){
+			jint fd = (*env)->GetIntField(env,fd_sys, fdClassDescriptorFieldID);
+			int myfd = dup(fd);
+			FILE* myFile = fdopen(myfd, "rb");
+			if (myFile){
+				char myString[2000];
+				unsigned char *myFileData = malloc (len+1);
+				size_t frv;
+				fseek(myFile, off, SEEK_SET);
+				frv = fread (myFileData, (size_t)len, (size_t)1, myFile);
+
+				/* null terminate this; note that for textures, file is from 0 to (len-1) 
+				   so final trailing null is of no consequence */
+				myFileData[len] = '\0'; 
+				fwg_frontEndReturningData(myFileData,len);
+				return (jint)SUCCESS;
+			}
+			else {
+				return (jint) ERROR_CODE_CANNOT_OPEN_MYFILE;
+			}
 		}
-    }
-
-    /* did this load correctly? */
-    if (res->status == ress_not_loaded) {
-DROIDDEBUG("-- it's not loaded!");    
-		ConsoleMessage ("FreeWRL: Problem loading file \"%s\"", res->request);
-    }
-
-    if (res->status == ress_failed) {
-		printf("load failed %s\n", res->request);
-		ConsoleMessage ("FreeWRL: unknown data on command line: \"%s\"", res->request);
-    } else {
-    	/* tell the new world which viewpoint to go to */
-    	if (res->afterPoundCharacters != NULL) {
-			fwl_gotoViewpoint(res->afterPoundCharacters);
-			/* Success! 
-			printf("loaded %s\n", initialURL); */
+		else {
+			return (jint)ERROR_CODE_CANNOT_GET_DESCRIPTOR_FIELD;
 		}
-    }
-    loadFileThread = (pthread_t)0;
-    
-	(*ioEnv)->CallStaticVoidMethod(ioEnv,fileCallbackClass,startRenderCallback);
-	
-	(*g_jvm)->DetachCurrentThread(g_jvm);
-    
-    return;
-}
-
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_cachedFile(JNIEnv* ioEnv, jobject ioThis, jstring filename)
-{
-	jboolean jb;
-	FILE *fp = NULL;
-	struct stat st;
-	int len = 0;
-	
-	const char* pCacheFile = ((*ioEnv)->GetStringUTFChars(ioEnv, filename, &jb));
-		    		
-/*
-	DROIDDEBUG( ">>cachedFile is : %s", pCacheFile );
-
-	stat(pCacheFile, &st);
-	len = (int)st.st_size;		
-
-	DROIDDEBUG("File length is %d", len );
-	
-	
-	if( (fp=fopen(pCacheFile,"rb")) != NULL )
-	{
-		char* data = (char*)malloc(len+1);
-		
-		fread(data,1,len,fp);
-		DROIDDEBUG("read the file" );
-		
-		fclose(fp);
-		
-		DROIDDEBUG("Submitting data");
-
-		fwg_frontEndReturningData( data,len );
 	}
-*/
-		
-	fwg_frontEndReturningLocalFile( (char*)pCacheFile, 1);
-	
-//	(*ioEnv)->ReleaseStringUTFChars(ioEnv, filename, pCacheFile );
-}
-
-
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_getViewerPosition(JNIEnv* ioEnv, jobject ioThis, jobject jfaXYZ)
-{
-	float * pXYZ = (float*)(*ioEnv)->GetDirectBufferAddress(ioEnv,jfaXYZ);
-	
-	if( pXYZ != NULL )
-	{
-//		mainloop_getPos(pXYZ);
-	}
-	else
-	{
-		DROIDDEBUG("!!ERROR in GetDirectBufferAddress");
+	else {
+		return (jint)ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS;
 	}
 }
 
-JNIEXPORT void JNICALL Java_awila_com_libWrapper_setViewerPosition(JNIEnv* ioEnv, jobject ioThis, float x, float y, float z)
+/* do a call of the scenegraph. */
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_step(JNIEnv * env, jobject obj)
 {
-//	mainloop_setPos(x,y,z);
+    	fwl_RenderSceneUpdateScene();
+}
+
+
+/* reload assets when onSurfaceCreated, but system already loaded */
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_nextViewpoint(JNIEnv * env, jobject obj)
+{
+    	fwl_Next_ViewPoint();
+}
+
+/* reload assets when onSurfaceCreated, but system already loaded */
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_reloadAssets(JNIEnv * env, jobject obj)
+{
+    	fwl_Android_reloadAssets();
+}
+/* handle touch */
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setButDown(JNIEnv *env, jobject obj, int but, int state)
+{
+        fwl_setButDown(but,state);
+}
+
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setLastMouseEvent(JNIEnv *env, jobject obj, int state)
+{
+        fwl_setLastMouseEvent(state);
+}
+
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobject obj, int but, int state, int x, int y)
+{
+        fwl_handle_aqua(but,state,x,y);
 }
 
 #endif

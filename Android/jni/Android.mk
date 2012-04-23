@@ -127,11 +127,17 @@ LOCAL_C_INCLUDES += \
 	/_Projects/libxml2/include \
 	/_Projects/icu4c/common/ \
 	/_Projects/freewrl/Android/FreeWRL-Android-static/ \
-	/_Projects/freewrl/freex3d/src/lib/
+	/_Projects/freewrl/freex3d/src/lib/ \
+	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/Android/FreeWRL-Android-static/  \
+	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/freex3d/src/lib \
+	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/libxml2/include \
+	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/libxml2 \
+
+
 
 LOCAL_SRC_FILES := $(common_SRC_FILES)
 
-LOCAL_MODULE:= freeWRL
+LOCAL_MODULE:= FreeWRL
 
 LOCAL_STATIC_LIBRARIES := xml2
 
@@ -139,4 +145,4 @@ LOCAL_LDLIBS    := -lGLESv2 -lGLESv1_CM -lc -llog
 
 include $(BUILD_SHARED_LIBRARY)
 
-include $(LOCAL_PATH)/../../../libxml2/Android.mk
+include $(LOCAL_PATH)/../../libxml2/Android.mk
