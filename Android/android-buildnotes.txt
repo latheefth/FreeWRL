@@ -1,7 +1,26 @@
+Modified April 23 2012
 
 
 FreeWRL (FreeX3d) - Android build notes
 
+Quick:
+
+0) get the Android build tools and install. (both NDK and SDK toolsets)
+
+1) cd to freewrl/Android
+
+2) get the package set up with the android tools. Issue the command:
+
+	android update project --target 1 --path ./
+
+3) plug your testing device in. Edit the "make-install" script, and put the device id
+in. (do "adb devices" to see attached android devices)
+
+You may have to enable "USB Debugging" on your Android device.
+
+4) sh make-install should build, and install onto your device.
+
+-------------------------------------------------------------------- 
 
 Pre-Requisites:
 
@@ -19,7 +38,8 @@ xml files, that are wide character based, this is a good place to start.
 Compilation:
 
 cd to freewrl/Android
-issue the ndk-build command
+(new) issue the build-install shell script.
+
 
 
 Android Files (freewrl/Android) :
