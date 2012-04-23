@@ -722,7 +722,14 @@ void setAnchorsAnchor(struct X3D_Anchor* anchor)
 //struct X3D_Group *_rootNode=NULL;	/* scene graph root node */
 struct X3D_Group *rootNode()
 {
+	// ConsoleMessage ("rootNode called");
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
+if (p==NULL) {
+	ConsoleMessage ("rootNode, p null");
+	return NULL;
+}
+
+
 	return p->rootNode;
 }
 void setRootNode(struct X3D_Group *rn)
