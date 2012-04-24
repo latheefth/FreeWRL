@@ -11,7 +11,9 @@ Quick:
 
 	- get the libxml2.tar file from:
 
-	  and put it in the "freewrl" directory (the parent of the "Android" directory)
+		http://freewrl.sourceforge.net/libxml2.tar.gz
+
+	  uncompress, untar and put it in the "freewrl" directory (the parent of the "Android" directory)
 
 
 
@@ -38,7 +40,10 @@ You may have to enable "USB Debugging" on your Android device.
 
 4) sh make-install should build, and install onto your device.
 
--------------------------------------------------------------------- 
+--------------------------------------------------------------------
+
+Older notes:
+
 
 Pre-Requisites:
 
