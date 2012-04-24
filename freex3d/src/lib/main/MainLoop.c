@@ -1925,6 +1925,9 @@ void fwl_setLastMouseEvent(int etype) {
 
 void fwl_initialize_parser()
 {
+if (gglobal() == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal() NULL");
+if ((gglobal()->Mainloop.prv) == NULL) ConsoleMessage ("fwl_initialize_parser, gglobal()->Mainloop.prv NULL");
+
         ((ppMainloop)(gglobal()->Mainloop.prv))->quitThread = FALSE;
 
 	/* create the root node */

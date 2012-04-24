@@ -1,0 +1,26 @@
+#VRML V2.0 utf8
+#MultiTexture test - images taken from X3D Spec. John Stewart CRC Canada.
+
+Viewpoint {position 0 0 10}
+Viewpoint {position 0 0 20}
+Viewpoint {position 0 0 30}
+
+Transform {
+#	rotation 1 0 0 0.4
+#	translation 0 0 3
+	children [
+		DEF BOX Transform { children Shape {
+			appearance Appearance {
+				material Material { }
+				#texture MultiTexture {  
+					#mode [ "MODULATE" "ADD" ] 
+					#texture [ ImageTexture{url "crate-150x150.jpg"} ImageTexture{url "l3d-150x150.jpg"} ] 
+				#}
+			}
+			geometry Box { }
+		}
+	}
+
+	]
+}
+
