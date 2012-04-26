@@ -124,36 +124,24 @@ APP_OPTIM=debug
 LOCAL_CFLAGS:=-D_ANDROID -O0 -g -ggdb
 
 LOCAL_C_INCLUDES += \
-	\
+	$(LOCAL_PATH)/../../jpeg/6b/jpeg/ \
 	$(LOCAL_PATH)/../FreeWRL-Android-static/ \
 	$(LOCAL_PATH)/../../freex3d/src/lib/  \
-	$(LOCAL_PATH)/../../libxml2/include/  
+	$(LOCAL_PATH)/../../libxml2/include/ \ 
 
-#	/_Projects/libxml2/include \
-#	/_Projects/freewrl/Android/FreeWRL-Android-static/ \
-#	/_Projects/../freewrl/Android/FreeWRL-Android-static/ \
-#	/_Projects/../../freewrl/Android/FreeWRL-Android-static/ \
-#	/_Projects/FreeWRL-Android-static/ \
-#	/_Projects/Android/FreeWRL-Android-static/ \
-#	./FreeWRL-Android-static/ \
-#	./Android/FreeWRL-Android-static/ \
-#
-#	/_Projects/icu4c/common/ \
-#	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/Android/FreeWRL-Android-static/  \
-#	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/freex3d/src/lib \
-#	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/libxml2/include \
-#	/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl/libxml2 \
 
+#	$(LOCAL_PATH)/../../jpeg/6b/jpeg/ \
 
 
 LOCAL_SRC_FILES := $(common_SRC_FILES)
 
 LOCAL_MODULE:= FreeWRL
 
-LOCAL_STATIC_LIBRARIES := xml2
+LOCAL_STATIC_LIBRARIES := xml2 jpeg
 
 LOCAL_LDLIBS    := -lGLESv2 -lGLESv1_CM -lc -llog
 
 include $(BUILD_SHARED_LIBRARY)
 
-include $(LOCAL_PATH)/../../libxml2/Android.mk
+include $(LOCAL_PATH)/../../libxml2/Android.mk \
+	$(LOCAL_PATH)/../../jpeg/6b/Android.mk

@@ -12,10 +12,10 @@ Transform {
 		DEF BOX Transform { children Shape {
 			appearance Appearance {
 				material Material { }
-				#texture MultiTexture {  
-					#mode [ "MODULATE" "ADD" ] 
-					#texture [ ImageTexture{url "crate-150x150.jpg"} ImageTexture{url "l3d-150x150.jpg"} ] 
-				#}
+				texture MultiTexture {  
+					mode [ "MODULATE" "ADD" ] 
+					texture [ ImageTexture{url "MTbase.jpg"} ImageTexture{url "MToverlay.jpg"} ] 
+				}
 			}
 			geometry Box { }
 		}

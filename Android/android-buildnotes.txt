@@ -1,4 +1,4 @@
-Modified April 23 2012
+Modified April 25 2012
 
 
 FreeWRL (FreeX3d) - Android build notes
@@ -13,7 +13,11 @@ Quick:
 
 		http://freewrl.sourceforge.net/libxml2.tar.gz
 
-	  uncompress, untar and put it in the "freewrl" directory (the parent of the "Android" directory)
+	- get the jpeg.tar file from:
+
+		http://freewrl.sourceforge.net/jpeg.tar.gz
+
+	  uncompress, untar and put them in the "freewrl" directory (the parent of the "Android" directory)
 
 
 
