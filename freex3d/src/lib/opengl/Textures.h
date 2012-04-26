@@ -30,7 +30,6 @@ Screen snapshot.
 #ifndef __FREEWRL_TEXTURES_H__
 #define __FREEWRL_TEXTURES_H__
 
-
 #define TEXTURE_INVALID 0
 
 /* Texture loading table :
@@ -109,32 +108,30 @@ struct textureVertexInfo {
 const char *texst(int num);
 
 
-struct multiTexParams {
-	GLint texture_env_mode;
-	GLint combine_rgb;
-	GLint source0_rgb;
-	GLint operand0_rgb;
-	GLint source1_rgb;
-	GLint operand1_rgb;
-	GLint combine_alpha;
-	GLint source0_alpha;
-	GLint operand0_alpha;
-	GLint source1_alpha;
-	GLint operand1_alpha;
-	GLfloat rgb_scale;
-	GLfloat alpha_scale;
-};
+#ifdef OLDCODE
+OLDCODEnow in iglobal.h
+OLDCODE
+OLDCODEstruct multiTexParams {
+OLDCODE    int multitex_mode;
+OLDCODE    int multitex_source;
+OLDCODE    int multitex_function;
+OLDCODE};
+#endif //OLDCODE
 
 
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES (gglobal()->RenderFuncs.textureStackTop != 0)
 
-/* multitexture and single texture handling */
-#ifdef GLES2
-#define MAX_MULTITEXTURE 4
-#else
-#define MAX_MULTITEXTURE 10
-#endif
+#ifdef OLDCODE
+OLDCODEbump this up because now display.h needs it
+OLDCODE/* multitexture and single texture handling */
+OLDCODE#ifdef GLES2
+OLDCODE#define MAX_MULTITEXTURE 4
+OLDCODE#else
+OLDCODE#define MAX_MULTITEXTURE 10
+OLDCODE#endif
+#endif //OLDCODE
+
 /* texture stuff - see code. Need array because of MultiTextures */
 /* first, how many textures do we have? 0 -> MAX_MULTITEXTURE */
 //extern int textureStackTop; 

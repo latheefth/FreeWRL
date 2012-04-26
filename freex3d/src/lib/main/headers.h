@@ -184,6 +184,20 @@ void compile_polyrep(void *node, void *coord, void *color, void *normal, void *t
 		if (node->_ichange == 0) return NULL; \
 	}
 
+#define COMPILE_TCNODE { \
+    struct X3D_Virt *v; \
+    if (myTCnode->_ichange != myTCnode->_change) { \
+        v = virtTable[myTCnode->_nodeType]; \
+        if (v->compile) { \
+            compileNode (v->compile, (void *)myTCnode, NULL, NULL, NULL, NULL); \
+            myTCnode->_ichange = myTCnode->_change; \
+        } else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(myTCnode->_nodeType),__FILE__,__LINE__);} \
+    } \
+    if (myTCnode->_ichange == 0) return; \
+}
+
+
+
 /* convert a PROTO node (which will be a Group node) into a node. eg, for Materials  - this is a possible child
 node for ANY node that takes something other than a Group */
 

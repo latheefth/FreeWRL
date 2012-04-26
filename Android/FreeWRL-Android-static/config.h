@@ -3,6 +3,10 @@
 	Android compatible config.h
 */
 
+
+#define MAX_MULTITEXTURE 4
+#undef GLES2
+
 #undef HAVE_JAVASCRIPT
 
 #undef HAVE_STDBOOL_H
@@ -313,7 +317,7 @@ char *getWgetPath();
 #define FRONTEND_GETS_FILES 1
 #define FRONTEND_HANDLES_DISPLAY_THREAD 1
 #define SHADERS_2011 1
-#define HAVE_GEOMETRY_SHADERS 0
+#undef HAVE_GEOMETRY_SHADERS
 
 #ifdef _ANDROID
 void DROIDDEBUG( const char*pFmtStr, ...);

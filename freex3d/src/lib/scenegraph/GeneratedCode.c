@@ -1352,6 +1352,62 @@ const int COMPONENTS_COUNT = ARR_SIZE(COMPONENTS);
 const int PROTOKEYWORDS_COUNT = ARR_SIZE(PROTOKEYWORDS);
 
 
+/* Table of MULTITEXTUREMODE keywords */
+       const char *MULTITEXTUREMODE[] = {
+	"ADDSIGNED2X",
+	"REPLACE",
+	"BLENDCURRENTALPHA",
+	"MODULATE",
+	"DOTPRODUCT3",
+	"SELECTARG2",
+	"SELECTARG1",
+	"BLENDDIFFUSEALPHA",
+	"SUBTRACT",
+	"ADD",
+	"MODULATEINVCOLOR_ADDALPHA",
+	"ADDSMOOTH",
+	"MODULATE2X",
+	"MODULATE4X",
+	"OFF",
+	"MODULATEINVALPHA_ADDCOLOR",
+	"MODULATEALPHA_ADDCOLOR",
+	"ADDSIGNED",
+};
+const int MULTITEXTUREMODE_COUNT = ARR_SIZE(MULTITEXTUREMODE);
+
+
+/* Table of MULTITEXTURESOURCE keywords */
+       const char *MULTITEXTURESOURCE[] = {
+	"ADDSIGNED2X",
+	"REPLACE",
+	"BLENDCURRENTALPHA",
+	"MODULATE",
+	"DOTPRODUCT3",
+	"SELECTARG2",
+	"SELECTARG1",
+	"BLENDDIFFUSEALPHA",
+	"SUBTRACT",
+	"ADD",
+	"MODULATEINVCOLOR_ADDALPHA",
+	"ADDSMOOTH",
+	"MODULATE2X",
+	"MODULATE4X",
+	"OFF",
+	"MODULATEINVALPHA_ADDCOLOR",
+	"MODULATEALPHA_ADDCOLOR",
+	"ADDSIGNED",
+};
+const int MULTITEXTURESOURCE_COUNT = ARR_SIZE(MULTITEXTURESOURCE);
+
+
+/* Table of MULTITEXTUREFUNCTION keywords */
+       const char *MULTITEXTUREFUNCTION[] = {
+	"COMPLEMENT",
+	"ALPHAREPLICATE",
+};
+const int MULTITEXTUREFUNCTION_COUNT = ARR_SIZE(MULTITEXTUREFUNCTION);
+
+
 /* Table of X3DSPECIAL keywords */
        const char *X3DSPECIAL[] = {
 	"IS",
@@ -5512,6 +5568,24 @@ const char *stringComponentType (int st) {
 const char *stringPROTOKeywordType (int st) {
 	if ((st < 0) || (st >= PROTOKEYWORDS_COUNT)) return "(proto keyword invalid)"; 
 	return PROTOKEYWORDS[st];
+}
+
+/* Return a pointer to a string representation of the MULTITEXTUREMODE keyword type */
+const char *stringMULTITEXTUREMODEType (int st) {
+	if ((st < 0) || (st >= MULTITEXTUREMODE_COUNT)) return "(special keyword invalid)"; 
+	return MULTITEXTUREMODE[st];
+}
+
+/* Return a pointer to a string representation of the MULTITEXTURESOURCE keyword type */
+const char *stringMULTITEXTURESOURCEType (int st) {
+	if ((st < 0) || (st >= MULTITEXTURESOURCE_COUNT)) return "(special keyword invalid)"; 
+	return MULTITEXTURESOURCE[st];
+}
+
+/* Return a pointer to a string representation of the MULTITEXTUREFUNCTION keyword type */
+const char *stringMULTITEXTUREFUNCTIONType (int st) {
+	if ((st < 0) || (st >= MULTITEXTUREFUNCTION_COUNT)) return "(special keyword invalid)"; 
+	return MULTITEXTUREFUNCTION[st];
 }
 
 /* Return a pointer to a string representation of the X3DSPECIAL keyword type */

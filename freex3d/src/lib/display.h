@@ -439,20 +439,25 @@ typedef struct {
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
-	GLint Texture0;
-	GLint Texture1;
-	GLint Texture2;
-	GLint Texture3;
-	GLint useTex;
+	//GLint Texture0;
+	//GLint Texture1;
+	//GLint Texture2;
+	//GLint Texture3;
+	//GLint useTex;
 	/* some items have no real colour, like lines and points */
 	GLint myMaterialColour;
 
+    GLint TextureUnit[MAX_MULTITEXTURE];
+    GLint TextureMode[MAX_MULTITEXTURE];
+    GLint textureCount;
+
+
 	
-	/* some geom shaders have particular uniforms, eg geom radius */
-	GLint specialUniform1;
-	GLint specialUniform2;
-	GLint specialUniform3;
-	GLint specialUniform4;
+	///* some geom shaders have particular uniforms, eg geom radius */
+	//GLint specialUniform1;
+	//GLint specialUniform2;
+	//GLint specialUniform3;
+	//GLint specialUniform4;
 } s_shader_capabilities_t;
 
 typedef struct {
