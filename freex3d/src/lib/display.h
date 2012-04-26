@@ -131,7 +131,6 @@ GLEWContext * glewGetContext();
 	#define GLDOUBLE double
 	#define DOUBLE_MAX fmax
 	#define DOUBLE_MIN fmin
-	#undef HAVE_GEOMETRY_SHADERS
 #else
 	#define GLDOUBLE GLdouble
 	#define DOUBLE_MAX max
@@ -382,15 +381,6 @@ typedef enum shader_type {
 	complexTexOneMaterialShader,
 	complexTexTwoMaterialShader,
 
-	/* Sphere Geometry Shaders */
-	noMaterialNoAppearanceSphereShader,
-	noTexOneMaterialSphereShader,
-	noTexTwoMaterialSphereShader,
-	oneTexOneMaterialSphereShader,
-	oneTexTwoMaterialSphereShader,
-	complexTexOneMaterialSphereShader,
-	complexTexTwoMaterialSphereShader,
-
 	/* Shape has Color node */
 	/* noMaterialNoAppearanceColourShader, -same as backgroundSphereShader */
 	noTexTwoMaterialColourShader,
@@ -399,6 +389,9 @@ typedef enum shader_type {
 	oneTexOneMaterialColourShader,
 	linePointColorNodeShader,
 	linePointNoColorNodeShader,
+
+	/* full MultiTexture shader */
+	multiTexShader,
 
 	/* final one, used for array sizing */
 	max_enum_shader_type
