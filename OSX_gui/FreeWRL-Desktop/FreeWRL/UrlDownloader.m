@@ -1,5 +1,5 @@
 #import "UrlDownloader.h"
-#import "/freeWRL/freewrl/freex3d/src/lib/libFreeWRL.h"
+#import "../../../freex3d/src/lib/libFreeWRL.h"
 
 bool *opFlagPtr;
 
@@ -110,7 +110,7 @@ NSString *net_url = nil;
     //NSLog (@"URL: ascii_url %s",ascii_url);
     
     // call to library
-    if (checkNetworkFile(ascii_url)) {
+    if (fwl_checkNetworkFile(ascii_url)) {
         //NSLog (@" this is a netowrk file");
         
         NSURLRequest * request = [NSURLRequest requestWithURL:_url];

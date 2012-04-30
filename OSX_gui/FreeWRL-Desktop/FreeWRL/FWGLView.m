@@ -1,7 +1,7 @@
 #import "FreeWRLAppDelegate.h"
 #import "FWGLView.h"
 #import "UrlDownloader.h"
-#import "/FreeWRL/freewrl/freex3d/src/lib/libFreeWRL.h"
+#import "../../../freex3d/src/lib/libFreeWRL.h"
 
 // ==================================
 
@@ -570,8 +570,8 @@ mouseDisplaySensitive = mouseOverSensitive; \
              --stereo number
              */
             if ([[args objectAtIndex:mi] isEqualTo: @"--version"]) {
-                NSLog (@"FreeWRL UI Version %s, Library Version %s",fwl_freewrl_get_version(), fwl_libFreeWRL_get_version()); 
-                printf ("FreeWRL UI Version %s, Library Version %s\n",fwl_freewrl_get_version(), fwl_libFreeWRL_get_version());
+                //NSLog (@"FreeWRL UI Version %s, Library Version %s",fwl_freewrl_get_version(), fwl_libFreeWRL_get_version()); 
+                //printf ("FreeWRL UI Version %s, Library Version %s\n",fwl_freewrl_get_version(), fwl_libFreeWRL_get_version());
                 
             } else if ([[args objectAtIndex:mi] isEqualTo: @"--fullscreen"]) {
                 NSLog (@"command line argument :%s: ignored in this version",buff);
