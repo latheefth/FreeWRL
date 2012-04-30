@@ -1068,7 +1068,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 	struct X3D_ImageTexture *nt;
         ttglobal tg = gglobal();
-        ppRenderTextures p = (ppRenderTextures)tg->Textures.prv;
+        ppRenderTextures p = (ppRenderTextures)tg->RenderTextures.prv;
 
 
 #ifdef TEXVERBOSE
@@ -1802,7 +1802,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
-			tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop] = param; 
+			memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
 	
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;
