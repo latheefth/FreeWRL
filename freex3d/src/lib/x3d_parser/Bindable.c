@@ -106,7 +106,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	svptr = node->type.p;
 
 	/* assume "NONE" is set */
-	for (i=0; i<7; i++) viewer->oktypes[i] = FALSE;
+	for (i=0; i<16; i++) viewer->oktypes[i] = FALSE;
 
 
 	/* now, find the ones that are ok */
