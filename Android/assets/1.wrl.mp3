@@ -5,17 +5,31 @@ Viewpoint {position 0 0 10}
 Viewpoint {position 0 0 20}
 Viewpoint {position 0 0 30}
 
+    Background {
+        skyAngle        [ 1.07 1.45 1.52 1.57 ]
+        skyColor        [ 0.00 0.00 0.30
+                          0.00 0.00 0.80
+                          0.45 0.70 0.80
+                          0.70 0.50 0.00
+                          1.00 0.00 0.00 ]
+        groundAngle     1.57
+        groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]
+    }
+
+
+
 Transform {
 #	rotation 1 0 0 0.4
 #	translation 0 0 3
 	children [
 		DEF BOX Transform { children Shape {
 			appearance Appearance {
+texture ImageTexture{url "MTbase.jpg"} 
 				material Material { }
-				texture MultiTexture {  
-					mode [ "MODULATE" "ADD" ] 
-					texture [ ImageTexture{url "MTbase.jpg"} ImageTexture{url "MToverlay.jpg"} ] 
-				}
+#				texture MultiTexture {  
+#					mode [ "MODULATE" "ADD" ] 
+#					texture [ ImageTexture{url "MTbase.jpg"} ImageTexture{url "MToverlay.jpg"} ] 
+#				}
 			}
 			geometry Box { }
 		}

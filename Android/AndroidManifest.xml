@@ -21,7 +21,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.freewrl">
     <application
-            android:label="@string/freewrl_activity">
+	android:icon="@drawable/icon"
+        android:label="@string/freewrl_activity">
         <activity android:name="FreeWRLActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             	android:launchMode="singleTask"
