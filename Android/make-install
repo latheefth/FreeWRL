@@ -5,5 +5,7 @@ cd jni
 cd ..
 ant debug
 echo
-echo "installing on JohnS Acer Iconia A500"
+echo "installing on Iconia A500"
 adb -s 388924841bf5497 install -r ./bin/FreeWRL-debug-unaligned.apk
+echo "installing on Nexus S"
+adb -s 313000C1ED5500EC install -r ./bin/FreeWRL-debug-unaligned.apk
