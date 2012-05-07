@@ -788,10 +788,10 @@ Private_GetJavaClass(void)
  *  - Netscape uses the return value to identify when an object instance
  *    of this plugin should be created.
  */
-#if (((NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR) >= 27)
-const char *
-#else
+#ifdef LEGACY_NPAPI
 char *
+#else
+const char *
 #endif
 NP_GetMIMEDescription(void)
 {
