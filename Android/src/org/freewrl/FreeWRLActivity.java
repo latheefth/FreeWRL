@@ -12,20 +12,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiConfiguration;
 
-// TESTING
 import android.view.Menu;
 import android.view.MenuItem;
-// END TESTING
-
-// Hackfest
-import android.widget.Button;
-import android.widget.LinearLayout.LayoutParams;
-import android.widget.LinearLayout;
-import android.view.Gravity;
-import android.view.View.OnTouchListener;
-import android.view.View;
-import android.view.MotionEvent;
-// end Hackfest
 
 public class FreeWRLActivity extends Activity {
 
@@ -34,41 +22,47 @@ public class FreeWRLActivity extends Activity {
 	WifiManager wifi;
 
 
-// TESTING
+static final int NEW_WORLD= 0;
+static final int VIEWPOINT_CHANGE= 1;
+static final int DISMISS =2;
 
-static final int EDIT_CONTACT= 0;
-static final int DELETE_CONTACT= 1;
-static final int EXIT =2;
+
 public boolean onCreateOptionsMenu(Menu menu){
 
 	Log.w(TAG,"onCreateOptionsMenu");
-	menu.add(0,EDIT_CONTACT,0,"Edit Contact");
-	menu.add(0,DELETE_CONTACT,0,"Delete Contact");
-	menu.add(0,EXIT,0,"Exit");
+	menu.add(0,NEW_WORLD,0,"New");
+	menu.add(0,VIEWPOINT_CHANGE,0,"Viewpoint");
+	menu.add(0,DISMISS,0,"Dismiss");
 	return true;
 }
 public boolean onOptionsItemSelected (MenuItem item){
 	Log.w(TAG,"onOptionsItemSelected");
 	switch (item.getItemId()){
 	
-case EDIT_CONTACT:
+		case NEW_WORLD: {
+			/* Actions in case that Edid Contacts is pressed */
+			Log.w(TAG,"NEW_WORLD");
+			break;
+		}
+	
+		case VIEWPOINT_CHANGE : {
+			Log.w(TAG,"VIEWPOINT_CHANGE");
+			/* Actions in case that Delete Contact is pressed */
+			FreeWRLLib.nextViewpoint();
+			break;
+		}
+	
+		case DISMISS: {
+			Log.w (TAG,"DISMISS");
+			finish();
+			break;
+		}
 
-/* Actions in case that Edid Contacts is pressed */
-Log.w(TAG,"EDIT CONTACT");
-return true;
+	}
 
-case DELETE_CONTACT :
-
-Log.w(TAG,"DELETE CONTACT");
-/* Actions in case that Delete Contact is pressed */
+	return true;
 
 }
-return true;
-
-}
-
-
-// END TESTING
 
 
     @Override protected void onCreate(Bundle icicle) {
@@ -81,50 +75,50 @@ return true;
 
 	setContentView(mView);
 
-	// Create buttons - Hackfest time
-	LinearLayout ll = new LinearLayout(this);
-
-	Button daMiss = new Button(this);
-	daMiss.setText("Dismiss");
-	ll.addView(daMiss);
-	//ll.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
-	ll.setGravity(Gravity.BOTTOM | Gravity.LEFT);
-	this.addContentView(ll, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-
-	// set listener for it
-	daMiss.setOnTouchListener(new OnTouchListener() {
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-		Log.w(TAG,"quit button onTouched");
-
-        	final int action = event.getAction();
-		Log.w(TAG,"action "+ action + "masked action "+ MotionEvent.ACTION_MASK);
-		if (action == MotionEvent.ACTION_DOWN) {
-			finish();
-		}
-		return true;
-		}
-        });
-
-	Button nextVP = new Button(this);
-	nextVP.setText("ViewPoint");
-	ll.addView(nextVP);
-
-	// set listener for it
-	nextVP.setOnTouchListener(new OnTouchListener() {
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-		Log.w(TAG,"quit button onTouched");
-
-        	final int action = event.getAction();
-		if (action == MotionEvent.ACTION_DOWN) FreeWRLLib.nextViewpoint();
-		return true;
-            }
-        });
-
-	// finish Create buttons - Hackfest time
+//	// Create buttons - Hackfest time
+//	LinearLayout ll = new LinearLayout(this);
+//
+//	Button daMiss = new Button(this);
+//	daMiss.setText("Dismiss");
+//	ll.addView(daMiss);
+//	//ll.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
+//	ll.setGravity(Gravity.BOTTOM | Gravity.LEFT);
+//	this.addContentView(ll, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
+//
+//	// set listener for it
+//	daMiss.setOnTouchListener(new OnTouchListener() {
+//
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//		Log.w(TAG,"quit button onTouched");
+//
+//        	final int action = event.getAction();
+//		Log.w(TAG,"action "+ action + "masked action "+ MotionEvent.ACTION_MASK);
+//		if (action == MotionEvent.ACTION_DOWN) {
+//			finish();
+//		}
+//		return true;
+//		}
+//        });
+//
+//	Button nextVP = new Button(this);
+//	nextVP.setText("ViewPoint");
+//	ll.addView(nextVP);
+//
+//	// set listener for it
+//	nextVP.setOnTouchListener(new OnTouchListener() {
+//
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//		Log.w(TAG,"quit button onTouched");
+//
+//        	final int action = event.getAction();
+//		if (action == MotionEvent.ACTION_DOWN) FreeWRLLib.nextViewpoint();
+//		return true;
+//            }
+//        });
+//
+//	// finish Create buttons - Hackfest time
     }
 
     @Override protected void onPause() {
