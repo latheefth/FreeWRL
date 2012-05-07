@@ -43,6 +43,11 @@ Functions:
 #ifndef __LIBFREEWRL_DISPLAY_H__
 #define __LIBFREEWRL_DISPLAY_H__
 
+/* this is platform-dependent but there is no default so set one here */
+#ifndef MAX_MULTITEXTURE
+#define MAX_MULTITEXTURE 4
+#endif
+
 /* for generic GLES2 ie from desktop simulator */
 #ifdef GLES2
 	#include <GLES2/gl2.h>
