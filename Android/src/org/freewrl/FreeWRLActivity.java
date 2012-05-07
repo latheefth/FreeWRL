@@ -12,6 +12,11 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiConfiguration;
 
+// TESTING
+import android.view.Menu;
+import android.view.MenuItem;
+// END TESTING
+
 // Hackfest
 import android.widget.Button;
 import android.widget.LinearLayout.LayoutParams;
@@ -27,6 +32,44 @@ public class FreeWRLActivity extends Activity {
     FreeWRLView mView;
     private static String TAG = "FreeWRLView";
 	WifiManager wifi;
+
+
+// TESTING
+
+static final int EDIT_CONTACT= 0;
+static final int DELETE_CONTACT= 1;
+static final int EXIT =2;
+public boolean onCreateOptionsMenu(Menu menu){
+
+	Log.w(TAG,"onCreateOptionsMenu");
+	menu.add(0,EDIT_CONTACT,0,"Edit Contact");
+	menu.add(0,DELETE_CONTACT,0,"Delete Contact");
+	menu.add(0,EXIT,0,"Exit");
+	return true;
+}
+public boolean onOptionsItemSelected (MenuItem item){
+	Log.w(TAG,"onOptionsItemSelected");
+	switch (item.getItemId()){
+	
+case EDIT_CONTACT:
+
+/* Actions in case that Edid Contacts is pressed */
+Log.w(TAG,"EDIT CONTACT");
+return true;
+
+case DELETE_CONTACT :
+
+Log.w(TAG,"DELETE CONTACT");
+/* Actions in case that Delete Contact is pressed */
+
+}
+return true;
+
+}
+
+
+// END TESTING
+
 
     @Override protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
