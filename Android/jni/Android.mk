@@ -111,6 +111,16 @@ common_SRC_FILES:=../../freex3d/src/lib/vrml_parser/CProto.c \
 	../../freex3d/src/lib/ui/statusbarStub.c \
 	../../freex3d/src/lib/plugin/PluginSocket.c \
 	../../freex3d/src/lib/plugin/pluginUtils.c \
+	../../freex3d/src/libtess/dict.c \
+	../../freex3d/src/libtess/geom.c \
+	../../freex3d/src/libtess/memalloc.c \
+	../../freex3d/src/libtess/mesh.c \
+	../../freex3d/src/libtess/normal.c \
+	../../freex3d/src/libtess/priorityq.c \
+	../../freex3d/src/libtess/render.c \
+	../../freex3d/src/libtess/sweep.c \
+	../../freex3d/src/libtess/tess.c \
+	../../freex3d/src/libtess/tessmono.c \
 	../FreeWRL-Android-static/android_unresolved.c \
 	../FreeWRL-Android-static/android_version.c	
 
@@ -125,8 +135,10 @@ LOCAL_CFLAGS:=-D_ANDROID -O0 -g -ggdb
 
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../../jpeg/6b/jpeg/ \
+	$(LOCAL_PATH)/../../cdave1-freetype2-android-006e528/include/ \
 	$(LOCAL_PATH)/../FreeWRL-Android-static/ \
 	$(LOCAL_PATH)/../../freex3d/src/lib/  \
+	$(LOCAL_PATH)/../../freex3d/src/libtess/ \
 	$(LOCAL_PATH)/../../libxml2/include/ \ 
 
 
@@ -137,11 +149,12 @@ LOCAL_SRC_FILES := $(common_SRC_FILES)
 
 LOCAL_MODULE:= FreeWRL
 
-LOCAL_STATIC_LIBRARIES := xml2 jpeg
+LOCAL_STATIC_LIBRARIES := xml2 jpeg freetype
 
 LOCAL_LDLIBS    := -lGLESv2 -lGLESv1_CM -lc -llog
 
 include $(BUILD_SHARED_LIBRARY)
 
 include $(LOCAL_PATH)/../../libxml2/Android.mk \
+	$(LOCAL_PATH)/../../cdave1-freetype2-android-006e528/Android/jni/Android.mk \
 	$(LOCAL_PATH)/../../jpeg/6b/Android.mk

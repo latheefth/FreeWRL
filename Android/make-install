@@ -1,5 +1,8 @@
 #! /bin/sh
 ant clean
+
+# we are back here
+
 cd jni
 /Users/johns/Desktop/Android-tests-current/android_tools/android-ndk-r7/ndk-build
 cd ..

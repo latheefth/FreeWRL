@@ -17,8 +17,15 @@ Quick:
 
 		http://freewrl.sourceforge.net/jpeg.tar.gz
 
+	- get freetype from:
+
+		http://freetype.org
+
+make symbolic link for cpp to be same as gcc *******
+
 	  uncompress, untar and put them in the "freewrl" directory (the parent of the "Android" directory)
 
+	  
 
 
 
