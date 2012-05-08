@@ -31,9 +31,7 @@ X3D Text Component
 #include <config.h>
 #include <system.h>
 
-#if !defined(IPHONE) && !defined(_ANDROID)
 #include <system_fonts.h>
-#endif /* IPHONE */
 
 #include <display.h>
 #include <internal.h>
@@ -53,7 +51,7 @@ X3D Text Component
 #include "../scenegraph/Tess.h"
 
 
-#if !defined(HAVE_GLU_TESS) //defined(IPHONE) || defined(_ANDROID) || defined(GLES2)
+#if !defined(HAVE_GLU_TESS) 
 void collide_Text (struct X3D_Text *me) {printf ("skipping collide_Text on iphone\n");}
 void make_Text (struct X3D_Text *me) {printf ("skipping make_Text on iphone\n");}
 void render_Text (struct X3D_Text *me) {printf ("skipping render_Text on iphone\n");}

@@ -431,13 +431,13 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 void render_Cylinder (struct X3D_Cylinder * node) {
     
-#if !defined(IPHONE) && !defined(_ANDROID)
+#if !defined(SHADERS_2011)
 	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
 	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
 	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
 	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
 
-#endif /* IPHONE and ANDROID */
+#endif //SHADERS_2011
 
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
 	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL};    
@@ -723,7 +723,7 @@ void compile_Cone (struct X3D_Cone *node) {
 }
 
 void render_Cone (struct X3D_Cone *node) {
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !defined(SHADERS_2011)
 	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
 	extern float trisidtex[];		/*  in CFuncs/statics.c*/
 #endif
@@ -1694,7 +1694,7 @@ static void collisionCone_init(struct X3D_Cone *node)
 	struct SFVec3f *spt;			/*  side points*/
 	struct Multi_Vec3f botpoints;
     	
-#if !defined(IPHONE) && !defined(_ANDROID)
+#if !defined(SHADERS_2011)
 	extern unsigned char tribotindx[];
 #endif	
 
