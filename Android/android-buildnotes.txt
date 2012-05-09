@@ -11,25 +11,33 @@ Quick:
 
 	- get the libxml2.tar file from:
 
-		http://freewrl.sourceforge.net/libxml2.tar.gz
+		http://freewrl.sourceforge.net/AndroidBuild/libxml2.tar.gz
 
 	- get the jpeg.tar file from:
 
-		http://freewrl.sourceforge.net/jpeg.tar.gz
+		http://freewrl.sourceforge.net/AndroidBuild/jpeg.tar.gz
 
 	- get freetype from:
 
-		http://freetype.org
+		http://freewrl.sourceforge.net/AndroidBuild/freewrl-cdave1-freetype2-android-006e528.tar.gz
 
-make symbolic link for cpp to be same as gcc *******
+		(this is a modified version of the freetype build from http://freetype.org, simplified at
+		https://github.com/cdave1/freetype2-android, but include paths changed in the Android.mk file 
+		in "our" version shown above)
 
 	  uncompress, untar and put them in the "freewrl" directory (the parent of the "Android" directory)
 
-	  
+
+	Your base FreeWRL directory will probably look something like this now:
+
+	Johns-MacBook-Air:Android johns$ ls ..
+	Android					cdave1-freetype2-android-006e528	jpeg
+	CVS					freewrl					libxml2
+	OSX_gui					freewrl2
+	SoundEngine				freex3d
 
 
-
-1) cd to freewrl/Android
+1) cd to Android
 
 2) get the package set up with the android tools. Issue the command:
 

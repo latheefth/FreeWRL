@@ -8,6 +8,14 @@
 # this is a lightning bolt. "VRML Sourcebook v2.0", figure 13.13
 
 Viewpoint {centerOfRotation 0 0 -10}
+Transform { translation 0 3 0 children [
+Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
+	geometry Text {
+		string ["this is" "one line"]
+	}
+}
+]}
+
 Group {
 	children Transform {
 		translation -3.0 -5.0 -10.0

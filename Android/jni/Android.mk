@@ -149,7 +149,7 @@ LOCAL_SRC_FILES := $(common_SRC_FILES)
 
 LOCAL_MODULE:= FreeWRL
 
-LOCAL_STATIC_LIBRARIES := xml2 jpeg freetype
+LOCAL_STATIC_LIBRARIES := xml2 jpeg freetype2-static
 
 LOCAL_LDLIBS    := -lGLESv2 -lGLESv1_CM -lc -llog
 
