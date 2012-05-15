@@ -19,8 +19,6 @@
 // from orig system
 
 #include <config.h>
-//JAS #include <system.h>
-//JAS #include <internal.h>
 
 #include <libFreeWRL.h>
 #include <list.h>
@@ -52,7 +50,7 @@ static jmethodID fileLoadCallback = NULL;
 static jmethodID startRenderCallback = NULL;
 void DROIDDEBUG( const char*pFmtStr, ...);
 
-static char* initialFile = NULL;
+static char* currentFile = NULL;
 
 // keep sequence here so that we know if we have a restart, or just a refresh
 static int mapTexture = -1;
@@ -69,8 +67,8 @@ pthread_t loadFileThread = (pthread_t)0;
 void fileLoadThread(void* param) {
 
 	DROIDDEBUG("------------------LOAD THREAD-----------------------");
-	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
-	fwl_OSX_initializeParameters(initialFile);
+	if (currentFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+	fwl_OSX_initializeParameters(currentFile);
 	DROIDDEBUG("------------------FIN LOAD THREAD-----------------------");
 }
 
@@ -109,24 +107,27 @@ JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, jobject obj, jstring passedInitialFile)
 {
 	DROIDDEBUG("------------------INITIAL FILE-----------------------");
-	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+	if (currentFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
 
 	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
 
 	/* save a copy of this filename - we can probably free this after the initial request from the NDK rendering
 	   library, as it will cache it as well */
 
-	if (initialFile != NULL) free(initialFile);
-	initialFile = strdup(cFilename);
+	if (currentFile != NULL) free(currentFile);
+	currentFile = strdup(cFilename);
 
 
-	//DROIDDEBUG("cFilename is :%s:",initialFile);
-
+	DROIDDEBUG("cFilename is :%s:",currentFile);
+	
 	// step 1:
+	//DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 1");
 	fwl_initializeRenderSceneUpdateScene();
 
+
         // step 2:  create a thread to handle the file load requests from the library
-        if( 0 != pthread_create(&loadFileThread, NULL, (void*)fileLoadThread, (void*)initialFile) )
+	//DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 2");
+        if( 0 != pthread_create(&loadFileThread, NULL, (void*)fileLoadThread, (void*)currentFile) )
         {
                 DROIDDEBUG("!!Error creating fileloadedThread");
                 return;
@@ -134,8 +135,12 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 
 
 	// step 3:
-	fv_display_initialize();
-	(*env)->ReleaseStringUTFChars(env, initialFile, cFilename);
+	//DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 3");
+	int x = fv_display_initialize();
+
+
+	// do not free this...
+	//(*env)->ReleaseStringUTFChars(env, currentFile, cFilename);
 	DROIDDEBUG("------------------END INITIAL FILE-----------------------");
 }
 
@@ -143,7 +148,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_init(JNIEnv * env, jobject obj,  jint width, jint height)
 {
 	DROIDDEBUG("------------------LIB INIT-----------------------");
-	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+	if (currentFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
 
 	fwl_setScreenDim(width, height);
 
@@ -159,7 +164,7 @@ JNIEXPORT jboolean JNICALL Java_org_freewrl_FreeWRLLib_resourceWanted(JNIEnv * e
 /* return the NAME of the resource we want... */
 JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_resourceNameWanted(JNIEnv *env, jobject obj) {
 	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
-	if (initialFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+	if (currentFile == NULL) { DROIDDEBUG("..... currentFile NULL");} else {DROIDDEBUG("+++++++++ currentFile NOT null");}
 	DROIDDEBUG(fwg_frontEndWantsFileName());
 	return (*env)->NewStringUTF(env,fwg_frontEndWantsFileName());
 }
@@ -182,7 +187,21 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_resourceData(JNIEnv * env, jo
 #define ERROR_CODE_CANNOT_GET_DESCRIPTOR_FIELD			101
 #define ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS		102
 
+// For x3d, wrl, textures:
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, jclass thiz, jobject fd_sys, jint off, jint len) {
+
+
+FILE* file = fopen("/sdcard/2.wrl","r");
+
+if (file != NULL) {
+DROIDDEBUG("/sdcard/2.wrl opened");
+fclose(file);
+} else {
+DROIDDEBUG("/sdcard/2.wrl ERROR");
+}
+
+
+
 	jclass fdClass = (*env)->FindClass(env,"java/io/FileDescriptor");
 	if (fdClass != NULL){
 		jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env,fdClass, "descriptor", "I");
@@ -215,6 +234,35 @@ JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, j
 		return (jint)ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS;
 	}
 }
+
+//sendFontFile - send only file descriptor, let freewrl open it if wished for.
+JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_sendFontFile (JNIEnv * env, jclass thiz, jint whichFontFile, jobject fd_sys, jint off, jint len) {
+	jclass fdClass = (*env)->FindClass(env,"java/io/FileDescriptor");
+	if (fdClass != NULL){
+		jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env,fdClass, "descriptor", "I");
+		if (fdClassDescriptorFieldID != NULL && fd_sys != NULL){
+			jint fd = (*env)->GetIntField(env,fd_sys, fdClassDescriptorFieldID);
+			int myfd = dup(fd);
+			FILE* myFile = fdopen(myfd, "rb");
+			if (myFile){
+				// seek but don't read.
+				fseek(myFile, off, SEEK_SET);
+				fwg_AndroidFontFile(myFile,len);
+				return (jint)SUCCESS;
+			}
+			else {
+				return (jint) ERROR_CODE_CANNOT_OPEN_MYFILE;
+			}
+		}
+		else {
+			return (jint)ERROR_CODE_CANNOT_GET_DESCRIPTOR_FIELD;
+		}
+	}
+	else {
+		return (jint)ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS;
+	}
+}
+
 
 /* do a call of the scenegraph. */
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_step(JNIEnv * env, jobject obj)

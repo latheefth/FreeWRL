@@ -11,6 +11,7 @@ import android.util.Log;
 
 import android.view.ScaleGestureDetector;
 
+import android.os.Environment;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
@@ -24,6 +25,14 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.opengles.GL10;
+
+/*
+// for assets/fonts
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+*/
+
 
 /**
  * A simple GLSurfaceView sub-class that demonstrate how to perform
@@ -95,7 +104,7 @@ class FreeWRLView extends GLSurfaceView {
     }
 
     private void init(boolean translucent, int depth, int stencil) {
-	//Log.w(TAG, "----------------- init method called");
+	Log.w(TAG, "----------------- init method called");
         /* By default, GLSurfaceView() creates a RGB_565 opaque surface.
          * If we want a translucent one, we should change the surface's
          * format here, using PixelFormat.TRANSLUCENT for GL Surfaces
@@ -497,6 +506,10 @@ private static class Renderer implements GLSurfaceView.Renderer {
 	static FreeWRLAssets myAsset = null;
 	static boolean onSurfaceAlreadyCreated = false;
 
+	// Fonts
+	static FreeWRLAssets fontAsset_01 = null; 
+	static FreeWRLAssetData fontAssetSize_01;
+
 
         public void onDrawFrame(GL10 gl) {
 		if (myAsset==null) {
@@ -507,6 +520,17 @@ private static class Renderer implements GLSurfaceView.Renderer {
 		// do we want a new resource?
 		if (FreeWRLLib.resourceWanted()) {
 			FreeWRLAssetData myAssetSize;
+
+			if (fontAsset_01 == null) {
+				Log.w(TAG,"creating font assets");
+				fontAsset_01 = new FreeWRLAssets();
+				fontAssetSize_01 = fontAsset_01.openAsset(myContext,"fonts/Vera.ttf.mp3");
+				int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.ad.getFileDescriptor(), 
+						(int) fontAssetSize_01.ad.getStartOffset(),
+						(int) fontAssetSize_01.ad.getLength());
+			}
+			Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.ad.getLength());
+
 
 			//Log.w(TAG,"--------------RESOURCE WANTED");
 			String wantedName = FreeWRLLib.resourceNameWanted();
@@ -545,10 +569,8 @@ private static class Renderer implements GLSurfaceView.Renderer {
         }
 
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		String FILE_NAME = "1.wrl.mp3";
-		//String FILE_NAME = "2.wrl.mp3";
-		//String FILE_NAME = "staticCount10.x3d.mp3";
-		//String FILE_NAME = "staticCount100.x3d.mp3";
+		String FILE_NAME = "blankScreen.wrl.mp3";
+		//String FILE_NAME = "1.wrl.mp3";
 
 		if (onSurfaceAlreadyCreated) {
 			Log.w(TAG,"........................onSurfaceAlreadyCreated TRUE");
@@ -557,11 +579,27 @@ private static class Renderer implements GLSurfaceView.Renderer {
 		}
 
 
-		//Log.w(TAG, "--------------onSurfaceCreated");
+		Log.w(TAG, "--------------onSurfaceCreated");
 		if (onSurfaceAlreadyCreated) {
 			Log.w(TAG,"awake from screen sleep, me thinks");
 			FreeWRLLib.reloadAssets();
 		} else {
+/*
+			String apkFilePath = null;
+			ApplicationInfo appInfo = null;
+			PackageManager packMgmr = this.getPackageManager();
+			//PackageManager packMgmr = getPackageManager();
+			try {
+			        appInfo = packMgmr.getApplicationInfo("org.freewrl", 0);
+			    } catch (NameNotFoundException e) {
+				 e.printStackTrace();
+				throw new RuntimeException("Unable to locate assets, aborting...");
+			    }
+			apkFilePath = appInfo.sourceDir;
+	
+			Log.w(TAG,"+++ apkFilePath is " + apkFilePath);
+*/
+
 			FreeWRLLib.initialFile(FILE_NAME);
 			onSurfaceAlreadyCreated = true;
 		}

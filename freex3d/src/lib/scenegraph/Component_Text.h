@@ -32,4 +32,8 @@ X3D Text Component
 
 void render_Text (struct X3D_Text * node);
 
+#ifdef _ANDROID
+void fwg_AndroidFontFile(FILE *myFile,int len);
+#endif //ANDROID
+
 #endif  /* __FREEWRL_SCENEGRAPH_TEXT_H__ */

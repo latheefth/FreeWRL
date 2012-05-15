@@ -8,18 +8,19 @@ import android.view.ViewGroup;
 import android.content.Context;
 import java.util.List;
 import android.content.IntentFilter;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiConfiguration;
 
 import android.view.Menu;
 import android.view.MenuItem;
+
+
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 
 public class FreeWRLActivity extends Activity {
 
     FreeWRLView mView;
     private static String TAG = "FreeWRLView";
-	WifiManager wifi;
 
 
 static final int NEW_WORLD= 0;
@@ -75,50 +76,23 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 	setContentView(mView);
 
-//	// Create buttons - Hackfest time
-//	LinearLayout ll = new LinearLayout(this);
-//
-//	Button daMiss = new Button(this);
-//	daMiss.setText("Dismiss");
-//	ll.addView(daMiss);
-//	//ll.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
-//	ll.setGravity(Gravity.BOTTOM | Gravity.LEFT);
-//	this.addContentView(ll, new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
-//
-//	// set listener for it
-//	daMiss.setOnTouchListener(new OnTouchListener() {
-//
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//		Log.w(TAG,"quit button onTouched");
-//
-//        	final int action = event.getAction();
-//		Log.w(TAG,"action "+ action + "masked action "+ MotionEvent.ACTION_MASK);
-//		if (action == MotionEvent.ACTION_DOWN) {
-//			finish();
-//		}
-//		return true;
-//		}
-//        });
-//
-//	Button nextVP = new Button(this);
-//	nextVP.setText("ViewPoint");
-//	ll.addView(nextVP);
-//
-//	// set listener for it
-//	nextVP.setOnTouchListener(new OnTouchListener() {
-//
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//		Log.w(TAG,"quit button onTouched");
-//
-//        	final int action = event.getAction();
-//		if (action == MotionEvent.ACTION_DOWN) FreeWRLLib.nextViewpoint();
-//		return true;
-//            }
-//        });
-//
-//	// finish Create buttons - Hackfest time
+	Log.w(TAG, "onCreate - lets do some lookin");
+
+
+
+String apkFilePath = null;
+ApplicationInfo appInfo = null;
+PackageManager packMgmr = this.getPackageManager();
+try {
+        appInfo = packMgmr.getApplicationInfo("org.freewrl", 0);
+    } catch (NameNotFoundException e) {
+ e.printStackTrace();
+throw new RuntimeException("Unable to locate assets, aborting...");
+    }
+apkFilePath = appInfo.sourceDir;
+
+Log.w(TAG,"++++++++++++++++++++Activity:  apkFilePath is " + apkFilePath);
+
     }
 
     @Override protected void onPause() {
