@@ -1,5 +1,73 @@
 #VRML V2.0 utf8
 
+    Background {
+        skyAngle        [ 1.07 1.45 1.52 1.57 ]
+        skyColor        [ 0.00 0.00 0.30
+                          0.00 0.00 0.80
+                          0.45 0.70 0.80
+                          0.70 0.50 0.00
+                          1.00 0.00 0.00 ]
+        groundAngle     1.57
+        groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]
+    }
+
+    Viewpoint {
+        description "one"
+        position 0 0 10
+        orientation 0 1 0 0
+    }
+
+    Viewpoint {
+        description "one"
+        position 0 0 30
+        orientation 0 1 0 0
+    }
+
+    Viewpoint {
+        description "two"
+        position 8.660254 0 -5
+        orientation 0 1 0 2.0943951
+    }
+
+    Viewpoint {
+        description "three"
+        position -8.660254 0 -5
+        orientation 0 1 0 4.1887902
+    }
+    Viewpoint {
+        description "four"
+        position 0 20 0
+        orientation 1 0 0 -1.57
+    }
+
+
+    Transform {               # Second child - a red sphere
+      translation  4 0 2
+      children [
+        Shape {
+          geometry Sphere { radius 2.3 }
+          appearance Appearance {
+            material  Material { diffuseColor 1 0 0 }   # Red
+          }
+        }
+      ]
+    }
+
+    Transform {               # Third child - a blue box
+      translation -3 .2 1
+      rotation     0 1 1  .9
+      children [
+        Shape {
+          geometry Box {}
+          appearance Appearance {
+            material Material { diffuseColor 0 0 1 }  # Blue
+         }
+        }
+      ]
+    }
+
+
+
 Transform {
         rotation 1 0 0 0.4
         translation 0 0 3
