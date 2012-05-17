@@ -129,8 +129,6 @@ int fwl_parse_geometry_string(const char *geometry, int *out_width, int *out_hei
 int ConsoleMessage(const char *fmt, ...); /* This does not belong here!! */
 //#endif
 
-void create_MIDIEAI();
-
 /* void Anchor_ReplaceWorld(char *name); */
 bool Anchor_ReplaceWorld();
 

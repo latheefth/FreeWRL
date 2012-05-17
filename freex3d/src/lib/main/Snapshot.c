@@ -29,6 +29,9 @@ CProto ???
 
 
 #include <config.h>
+
+#if !defined(FRONTEND_DOES_SNAPSHOTS)
+
 #include <system.h>
 #include <display.h>
 #include <internal.h>
@@ -646,3 +649,5 @@ void Snapshot () {
 	#endif
 }
 #endif /*ifdef win32*/
+
+#endif //FRONTEND_DOES_SNAPSHOTS

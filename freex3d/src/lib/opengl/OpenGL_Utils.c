@@ -3694,10 +3694,12 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#endif
 
 
+	#if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
 	       	shutdown_EAI();
 	}
+	#endif //EXCLUDE_EAI
 
 	#ifndef AQUA
 		sprintf (mystring, "QUIT");

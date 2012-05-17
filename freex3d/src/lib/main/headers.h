@@ -584,7 +584,6 @@ int getRoutesCount(void);
 void getField_ToJavascript (int num, int fromoffset);
 void add_first(struct X3D_Node * node);
 void registerTexture(struct X3D_Node * node);
-void registerMIDINode(struct X3D_Node *node);
 int checkNode(struct X3D_Node *node, char *fn, int line);
 
 
@@ -681,7 +680,6 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *no
 void EAI_Route(char cmnd, const char *tf);
 
 void handle_EAI(void);
-void handle_MIDIEAI(void);
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 #define overMark        23425
@@ -786,32 +784,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
 #define rendray_GeoElevationGrid  render_ray_polyrep
 #define collide_GeoElevationGrid collide_genericfaceset
 #define make_GeoElevationGrid make_genericfaceset
-
-
-#ifdef OLDCODE
-OLDCODE /* MIDI stuff... */
-OLDCODE void ReWireRegisterMIDI (char *str);
-OLDCODE void ReWireMIDIControl(char *str);
-
-OLDCODEvoid MIDIRegisterMIDI(char *str);
-OLDCODE/* ReWire device/controller  table */
-OLDCODEstruct ReWireDeviceStruct {
-OLDCODE        struct X3D_MidiControl* node;   /* pointer to the node that controls this */
-OLDCODE        int encodedDeviceName;          /* index into ReWireNamenames */
-OLDCODE        int bus;                        /* which MIDI bus this is */
-OLDCODE        int channel;                    /* which MIDI channel on this bus it is */
-OLDCODE        int encodedControllerName;      /* index into ReWireNamenames */
-OLDCODE        int controller;                 /* controller number */
-OLDCODE        int cmin;                       /* minimum value for this controller */
-OLDCODE        int cmax;                       /* maximum value for this controller */
-OLDCODE        int ctype;                      /* controller type TYPE OF FADER control - not used currently */
-OLDCODE};
-OLDCODE
-OLDCODE/* ReWireName table */
-OLDCODEstruct ReWireNamenameStruct {
-OLDCODE        char *name;
-OLDCODE};
-#endif // OLDCODE
 
 
 /* Event Utilities Component */

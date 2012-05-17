@@ -42,6 +42,8 @@ Small routines to help with interfacing EAI to Daniel Kraft's parser.
 #include "../world_script/fieldGet.h"
 
 
+#if !defined(EXCLUDE_EAI)
+
 /*****************************************************************
 *
 *	EAIListener is called when a requested value changes.
@@ -116,4 +118,4 @@ void EAIListener () {
 	EAI_send_string(buf,tg->EAIServ.EAIlistenfd);
 }
 
-
+#endif //EXCLUDE_EAI

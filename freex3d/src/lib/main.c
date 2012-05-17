@@ -277,12 +277,14 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
 	}
 
+#if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
 	if (fwl_getp_eai()) {
 		fwl_create_EAI();
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 
 	}
+#endif
 
 
 	/* Initialize parser */

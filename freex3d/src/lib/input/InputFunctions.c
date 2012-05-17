@@ -67,6 +67,7 @@ char * stripLocalFileName (char * origName)
 	return origName;
 }
 
+#if !defined(_ANDROID)
 char* makeFontDirectory()
 {
 	char *tmp;
@@ -90,7 +91,7 @@ char* makeFontDirectory()
 	/* No directory found */
 	return NULL;
 }
-
+#endif //ANDROID
 
 /* sscanf replacements */
 void scanUnsignedIntoValue(char *sp, size_t *rv) {

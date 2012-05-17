@@ -294,12 +294,6 @@ int DEBUG_MSG(const char *fmt, ...)
 #define DEBUG_STREAM_POLY(...)
 #endif
 
-#ifdef MIDIVERBOSE
-#define DEBUG_MIDI(...) DEBUG_(PRINTF("MIDI: " __VA_ARGS__))
-#else
-#define DEBUG_MIDI(...)
-#endif
-
 #ifdef OCCLUSIONVERBOSE
 #define DEBUG_OCCLUSION(...) DEBUG_(PRINTF("OCCLUSION: " __VA_ARGS__))
 #else

@@ -791,7 +791,6 @@ char *eaiPrintCommand (char command) {
 		case GETNODEDEFNAME: return ("GETNODEDEFNAME");
 		case GETROUTES: return ("GETROUTES");
 		case GETNODETYPE: return ("GETNODETYPE");
-		case MIDIINFO: return ("MIDIINFO");
 		default:{} ;
 	}
 	return "unknown command...";
