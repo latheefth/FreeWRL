@@ -447,7 +447,7 @@ OLDCODE }
 #else
 char *fwg_frontEndWantsFileName() {return NULL;}
 void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {}
-OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}
+/*OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}*/
 #endif
 
 
