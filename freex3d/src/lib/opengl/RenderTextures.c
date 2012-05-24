@@ -171,8 +171,7 @@ void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo* genTex) 
 	struct X3D_TextureCoordinate *myTCnode = NULL;
 
 	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, textureStackTop %d texture[0] 
-%d\n",gglobal()->RenderFuncs.textureStackTop,gglobal()->RenderFuncs.boundTextureStack[0]);
+	printf ("textureDraw_start, textureStackTop %d texture[0] %d\n",gglobal()->RenderFuncs.textureStackTop,gglobal()->RenderFuncs.boundTextureStack[0]);
 	printf ("	texC %p, genTex %p\n",texC,genTex);
 	#endif
 
