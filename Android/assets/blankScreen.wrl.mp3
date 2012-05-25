@@ -40,6 +40,14 @@
         orientation 1 0 0 -1.57
     }
 
+Transform { translation 0 3 0 children [
+Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
+        geometry Text {
+                string ["this is" "one line"]
+        }
+}
+]}
+
 
     Transform {               # Second child - a red sphere
       translation  4 0 2
@@ -102,6 +110,6 @@ Transform {
                 ]
 }
 
-ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
-ROUTE ColumnPath.value_changed TO BOX.set_rotation
+#ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
+#ROUTE ColumnPath.value_changed TO BOX.set_rotation
 

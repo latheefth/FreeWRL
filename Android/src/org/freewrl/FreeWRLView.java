@@ -11,7 +11,7 @@ import android.util.Log;
 
 import android.view.ScaleGestureDetector;
 
-import android.os.Environment;
+//import android.os.Environment;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
@@ -25,6 +25,9 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.opengles.GL10;
+
+import android.os.AsyncTask; //<Params, Progress, Result>;
+
 
 /*
 // for assets/fonts
@@ -498,12 +501,10 @@ private static class ConfigChooser implements GLSurfaceView.EGLConfigChooser {
         private int[] mValue = new int[1];
 } // end of class ConfigChooser
 
-
-
 private static class Renderer implements GLSurfaceView.Renderer {
 
 	// keep track of the assets directory
-	static FreeWRLAssets myAsset = null;
+	//static FreeWRLAssets myAsset = null;
 	static boolean onSurfaceAlreadyCreated = false;
 
 	// Fonts
@@ -511,7 +512,23 @@ private static class Renderer implements GLSurfaceView.Renderer {
 	static FreeWRLAssetData fontAssetSize_01;
 
 
-        public void onDrawFrame(GL10 gl) {
+	
+	public void onDrawFrame(GL10 gl) {
+
+		// do we want a new resource?
+		if (FreeWRLLib.resourceWanted()) {
+			FreeWRLAssetGetter task = new FreeWRLAssetGetter();
+			task.sendInContext(myContext);
+			task.execute (new String (FreeWRLLib.resourceNameWanted()));
+		}
+
+		// do the draw
+		FreeWRLLib.step();
+
+	}
+
+/*
+        public void OLD_onDrawFrame(GL10 gl) {
 		if (myAsset==null) {
 			//Log.w(TAG,"creating FreeWRLAssets");
 			myAsset = new FreeWRLAssets();
@@ -561,6 +578,7 @@ private static class Renderer implements GLSurfaceView.Renderer {
 		}
             FreeWRLLib.step();
         }
+*/
 
 
         public void onSurfaceChanged(GL10 gl, int width, int height) {

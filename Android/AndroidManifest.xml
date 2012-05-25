@@ -23,6 +23,11 @@
     android:versionCode="1"
     android:versionName="1.1.1"
 	>
+    <!-- for sdcard reading -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-feature android:glEsVersion="0x00020000"/>
+    <uses-sdk android:minSdkVersion="8"/>
+
     <application
 	android:icon="@drawable/icon"
         android:label="@string/freewrl_activity">
@@ -36,8 +41,4 @@
             </intent-filter>
         </activity>
     </application>
-    <!-- for sdcard reading -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-feature android:glEsVersion="0x00020000"/>
-    <uses-sdk android:minSdkVersion="5"/>
 </manifest>

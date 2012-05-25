@@ -1,12 +1,17 @@
 #! /bin/sh
 ant clean
 
-# we are back here
+#lint the whole project
+#/Users/johns/Desktop/Android-tests-current/android_tools/android-sdk-macosx/tools/lint .
 
 cd jni
 /Users/johns/Desktop/Android-tests-current/android_tools/android-ndk-r7/ndk-build
 cd ..
 ant debug
+
+#lint the whole project
+/Users/johns/Desktop/Android-tests-current/android_tools/android-sdk-macosx/tools/lint .
+
 echo
 echo "installing on Iconia A500"
 adb -s 388924841bf5497 install -r ./bin/FreeWRL-debug-unaligned.apk
