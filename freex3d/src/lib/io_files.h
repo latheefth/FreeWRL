@@ -42,10 +42,10 @@ bool do_file_readable(const char *filename);
 bool do_dir_exists(const char *dir);
 
 typedef struct openned_file {
-	const char *filename;
-	int fd;
-	int dataSize;
-	char *data;
+	const char *fileFileName;
+	int fileDescriptor;
+	int fileDataSize;
+	char *fileData;
 } openned_file_t;
 
 void of_dump(openned_file_t *of);

@@ -1411,7 +1411,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
 				openned_file_t *of;
 				l = res->openned_files;
 				of = ml_elem(l);
-				buffer = of->data;
+				buffer = of->fileData;
  				embedEXTERNPROTO(me, myName, buffer, pound); 
 			}
 		}

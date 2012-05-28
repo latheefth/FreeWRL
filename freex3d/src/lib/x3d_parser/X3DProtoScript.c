@@ -2212,7 +2212,7 @@ void endExternProtoDeclare(void) {
 					openned_file_t *of;
 					l = res->openned_files;
 					of = ml_elem(l);
-					buffer = of->data;
+					buffer = of->fileData;
 /* 				pound = strchr(buffer, '#'); */
 /* 				embedEXTERNPROTO(me, myName, buffer, pound); */
 				/*	printf("**** X3D EXTERNPROTO:\n%s\n", buffer); */

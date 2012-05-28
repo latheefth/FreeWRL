@@ -531,7 +531,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 	
-		if (!of->data) {
+		if (!of->fileData) {
 			/* error */
 			return FALSE;
 		}
@@ -557,7 +557,7 @@ static bool parser_process_res_VRML_X3D(resource_item_t *res)
 		nRn = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 	
 		/* ACTUALLY CALLS THE PARSER */
-		parsedOk = PARSE_STRING(of->data, nRn);
+		parsedOk = PARSE_STRING(of->fileData, nRn);
 	
 		if ((res != tg->resources.root_res) && ((!tg->resources.root_res) ||(!tg->resources.root_res->complete))) {
 			tg->CParse.globalParser = t->savedParser;
