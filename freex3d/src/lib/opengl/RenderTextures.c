@@ -46,11 +46,16 @@ texture enabling - works for single texture, for multitexture.
 #include "Textures.h"
 #include "Material.h"
 
+#ifdef TEXVERBOSE
 #define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
-     /* printf ("textureUnit %d texture %d\n",aaa,bbb);  */ \
+    printf ("textureUnit %d texture %d\n",aaa,bbb); \
     glActiveTexture(GL_TEXTURE0+aaa); \
     glBindTexture(GL_TEXTURE_2D,bbb); }
-
+#else
+#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
+    glActiveTexture(GL_TEXTURE0+aaa); \
+    glBindTexture(GL_TEXTURE_2D,bbb); }
+#endif
 
 
 ///* variables for keeping track of status */
