@@ -57,53 +57,7 @@ You may have to enable "USB Debugging" on your Android device.
 
 	/Users/johns/Desktop/Android-tests-current/android_tools/android-ndk-r7/ndk-build
 
-4) sh make-install should build, and install onto your device.
+5) sh make-install should build, and install onto your device.
 
---------------------------------------------------------------------
-
-Older notes:
-
-
-Pre-Requisites:
-
-Android NDK and SDK development environment.
-
-
-ICU included from Android GIT repository - this is to satisfy headers when 
-compiling libxml2.
-
-libxml2 - Some tweaks were made to the encoder (mbstowcs / wcstombs). This will
-need re-visiting at some point in the future. If you experience failures to read
-xml files, that are wide character based, this is a good place to start.
-
-
-Compilation:
-
-cd to freewrl/Android
-(new) issue the build-install shell script.
-
-
-
-Android Files (freewrl/Android) :
-
-
-Under jni is the master make file (Android.mk). This will build libxml2 and the freex3d 
-library. Paths to libxml2 and icu will need tweaking to suit your environment. I attempted to 
-make these relative but could not get the 'C' includes to resolve correctly.
-
-libxml2 and ICU are available from the Android GIT repository.
-
-
-default.properties
-
-This files sets the platform specific headers/libraries that the NDK will use, under
-($NDK)/platforms. Currently targets android-5.
-
-
-under FreeWRL-Android-static are 3 helper source file and the Android config.h
-The source files contain unresolved gui functions, version info, and some helpers to start 
-calling the library from an Android / Java front end.
-
-
-All Android specific code changes should be wrapped in #if defined(_ANDROID). The Android
-make files define this directive on the compilers command line.
+6) "adb logcat" when your Android device is connected and in debug mode; 
+   "adb logcat | grep FreeWRL" will show you only the FreeWRL messages.
