@@ -12,6 +12,8 @@ import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -37,6 +39,9 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	static final int NEW_WORLD= 0;
 	static final int VIEWPOINT_CHANGE= 1;
 	static final int DISMISS =2;
+
+	// timer trials
+	private Timer myTimer;
 
         // Fonts
         static FreeWRLAssets fontAsset_01 = null;
@@ -176,6 +181,17 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 	Log.w(TAG,"++++++++++++++++++++Activity:  apkFilePath is " + apkFilePath);
 
+	Log.w(TAG,"starting timer task");
+		myTimer = new Timer();
+		myTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				TimerMethod();
+			}
+
+		// do it 30 times per second (1/30)
+		}, 0, 33);
+
 
 }
 
@@ -188,4 +204,34 @@ public boolean onOptionsItemSelected (MenuItem item){
         super.onResume();
         mView.onResume();
     }
+
+
+
+
+	// timer stuff 
+	private void TimerMethod()
+	{
+		//This method is called directly by the timer
+		//and runs in the same thread as the timer.
+
+		//We call the method that will work with the UI
+		//through the runOnUiThread method.
+		this.runOnUiThread(Timer_Tick);
+	}
+
+	private Runnable Timer_Tick = new Runnable() {
+		public void run() {
+
+			//This method runs in the same thread as the UI.    	       
+
+			// Log.w(TAG,"timer tick");
+			// do we want a new resource?
+			if (FreeWRLLib.resourceWanted()) {
+				FreeWRLAssetGetter task = new FreeWRLAssetGetter();
+				task.sendInContext(getApplication());
+				task.execute (new String (FreeWRLLib.resourceNameWanted()));
+			}
+
+		}
+	};
 }

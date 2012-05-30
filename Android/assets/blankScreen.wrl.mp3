@@ -62,13 +62,41 @@ Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
     }
 
     Transform {               # Third child - a blue box
-      translation -3 .2 1
+      translation 3 2 1
       rotation     0 1 1  .9
       children [
         Shape {
           geometry Box {}
           appearance Appearance {
             material Material { diffuseColor 0 0 1 }  # Blue
+         }
+        }
+      ]
+    }
+
+
+    Transform {               # Third child - a blue box
+      translation -3 2 1
+      children [
+        Shape {
+          geometry Box {}
+          appearance Appearance {
+            material Material { diffuseColor 0 0 1 }  # Blue
+	    texture ImageTexture {url "MTbase.jpg"}
+         }
+        }
+      ]
+    }
+
+
+    Transform {               # Third child - a blue box
+      translation -3 .2 1
+      children [
+        Shape {
+          geometry Box {}
+          appearance Appearance {
+            material Material { diffuseColor 0 0 1 }  # Blue
+	    texture ImageTexture {url "MToverlay.jpg"}
          }
         }
       ]

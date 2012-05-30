@@ -11,8 +11,6 @@ import android.util.Log;
 
 import android.view.ScaleGestureDetector;
 
-//import android.os.Environment;
-
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
@@ -514,72 +512,9 @@ private static class Renderer implements GLSurfaceView.Renderer {
 
 	
 	public void onDrawFrame(GL10 gl) {
-
-		// do we want a new resource?
-		if (FreeWRLLib.resourceWanted()) {
-			FreeWRLAssetGetter task = new FreeWRLAssetGetter();
-			task.sendInContext(myContext);
-			task.execute (new String (FreeWRLLib.resourceNameWanted()));
-		}
-
 		// do the draw
 		FreeWRLLib.step();
-
 	}
-
-/*
-        public void OLD_onDrawFrame(GL10 gl) {
-		if (myAsset==null) {
-			//Log.w(TAG,"creating FreeWRLAssets");
-			myAsset = new FreeWRLAssets();
-		}
-
-		// do we want a new resource?
-		if (FreeWRLLib.resourceWanted()) {
-			FreeWRLAssetData myAssetSize;
-
-			if (fontAsset_01 == null) {
-				Log.w(TAG,"creating font assets");
-				fontAsset_01 = new FreeWRLAssets();
-				fontAssetSize_01 = fontAsset_01.openAsset(myContext,"fonts/Vera.ttf.mp3");
-				int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.ad.getFileDescriptor(), 
-						(int) fontAssetSize_01.ad.getStartOffset(),
-						(int) fontAssetSize_01.ad.getLength());
-			}
-			Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.ad.getLength());
-
-
-			//Log.w(TAG,"--------------RESOURCE WANTED");
-			String wantedName = FreeWRLLib.resourceNameWanted();
-
-			//Log.w(TAG,"--------------RESOURCE Wanted name is " + wantedName);
-				
-			// remove slash at the beginning, if it exists
-			// as Android assets are not root based but getwd returns root base.
-			if (wantedName.indexOf('/') == 0)
-				wantedName = wantedName.substring(1);
-
-			//Log.w(TAG,"now, RESOURCE Wanted name is " + wantedName);
-
-			myAssetSize = myAsset.openAsset(myContext,wantedName);
-
-			//Log.w(TAG,"-------------myAssetSize offset is " + myAssetSize.offset);
-			//Log.w(TAG,"-------------myAssetSize size is " + myAssetSize.length);
-
-			// send this to FreeWRL
-			FileDescriptor fd = myAssetSize.ad.getFileDescriptor();
-			int off = (int) myAssetSize.ad.getStartOffset();
-			int len = (int) myAssetSize.ad.getLength();
-			int res = FreeWRLLib.resourceFile(fd, off, len);
-			//Log.w(TAG,"-------------and, the getStartOffset, getLength is " + off + "  " + len);
-			//Log.w (TAG,"------------resourceFile NDK call returns " + res);
-		} else {
-
-		}
-            FreeWRLLib.step();
-        }
-*/
-
 
         public void onSurfaceChanged(GL10 gl, int width, int height) {
 		//Log.w(TAG, "-------------onSurfaceChanged");

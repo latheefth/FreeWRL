@@ -3,6 +3,7 @@ package org.freewrl;
 import android.util.Log;
 import java.io.FileDescriptor;
 import android.content.Context;
+import android.os.Looper;
 
 import android.os.AsyncTask; //<Params, Progress, Result>;
 
@@ -24,6 +25,8 @@ FreeWRLAssetData myAssetSize;
 		// local munged copy of the requested file name.
 		String myName ;
 
+		Log.w(TAG,"AsyncTask, calling Looper.prepare here");	
+		Looper.prepare();
 
 		myAsset = new FreeWRLAssets();
 
