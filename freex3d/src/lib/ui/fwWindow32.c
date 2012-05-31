@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
 
 #include <system.h>
 #include <display.h>

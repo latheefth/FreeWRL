@@ -196,6 +196,8 @@ bool do_file_readable(const char *filename)
 	return FALSE;
 }
 
+#endif //FRONTEND_GETS_FILES
+
 /**
  *   do_dir_exists: asserts that the given directory exists.
  */
@@ -216,7 +218,7 @@ bool do_dir_exists(const char *dir)
 	}
 	return FALSE;
 }
-#endif //FRONTEND_GETS_FILES
+
 
 /**
  *   of_dump: print the structure.

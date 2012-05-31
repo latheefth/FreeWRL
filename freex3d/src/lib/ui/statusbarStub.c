@@ -22,8 +22,9 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#include <config.h>
 
-
+#if !defined(AQUA)
 void kill_status (void) {
 }
 void update_status(char* msg)
@@ -43,3 +44,5 @@ int handleStatusbarHud(int mev, int* clipplane)
 void drawStatusBar()
 {
 }
+
+#endif //AQUA

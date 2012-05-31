@@ -52,6 +52,8 @@
 
 #include "../opengl/RasterFont.h"
 
+#if !defined(AQUA)
+
 #define DJ_KEEP_COMPILER_WARNING 0
 
 #define MAX_BUFFER_SIZE 4096
@@ -136,3 +138,5 @@ void drawStatusBar()
 	}
 #endif
 }
+
+#endif //AQUA

@@ -28,7 +28,7 @@
 #include <display.h>
 #include <internal.h>
 
-#if !(defined(IPHONE) || defined(_ANDROID))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
 
 #include <libFreeWRL.h>
 #include <list.h>
