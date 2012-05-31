@@ -11729,8 +11729,8 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_PointPickSensor : {
 			struct X3D_PointPickSensor *tmp;
 			tmp = (struct X3D_PointPickSensor *) node;
-			spacer fprintf (fp,"\t_nparents (int) %d\n",vector_size(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */
-			for (i=0; i<vector_size(tmp->_parentVector); i++) { spacer fprintf (fp,"    %d: %p\n",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }
+			spacer fprintf (fp,"\t_nparents (int) %d\n",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */
+			for (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,"    %d: %p\n",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }
 			spacer fprintf (fp,"\tobjectType (MFString): \n");
 			for (i=0; i<tmp->objectType.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->objectType.p[i]->strptr); }
 		    if(allFields) {

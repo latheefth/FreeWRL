@@ -97,12 +97,12 @@ void update_renderFlag (struct X3D_Node *p, int flag) {
 	/* send notification up the chain */
 	
 	/* printf ("start of update_RenderFlag for %d (%s) flag %x parents %d\n",p, stringNodeType(p->_nodeType),
-			flag, vector_size(p->_parentVector); */
+			flag, vectorSize(p->_parentVector); */
 	
 
 	p->_renderFlags = p->_renderFlags | flag;
 
-	for (i = 0; i < vector_size(p->_parentVector); i++) {
+	for (i = 0; i < vectorSize(p->_parentVector); i++) {
 		struct X3D_Node *me = vector_get(struct X3D_Node *,p->_parentVector, i);
 
 		/* printf ("node %d has %d for a parent\n",p,p->_parents[i]);  */

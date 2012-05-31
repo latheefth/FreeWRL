@@ -78,7 +78,7 @@ void lexer_destroyIdStack(Stack*);
 
 /* Count of elements to pop off the PROTO vector for scope-out */
 #define lexer_getProtoPopCnt(me) \
- (vector_size(me->userNodeTypesVec)-stack_top(int, me->userNodeTypesStack))
+ (vectorSize(me->userNodeTypesVec)-stack_top(int, me->userNodeTypesStack))
 
 /* Set input */
 void lexer_fromString (struct VRMLLexer *, char *);

@@ -149,7 +149,7 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
 		return NULL;
 
 	ASSERT(!stack_empty(globalParser->DEFedNodes));
-	ASSERT(ind<vector_size(stack_top(struct Vector*, globalParser->DEFedNodes)));
+	ASSERT(ind<vectorSize(stack_top(struct Vector*, globalParser->DEFedNodes)));
 	return vector_get(struct X3D_Node*,
 		stack_top(struct Vector*, globalParser->DEFedNodes), ind);
 }
@@ -177,11 +177,11 @@ char* parser_getNameFromNode(struct X3D_Node *node)
 	/* go through the DEFedNodes, looking for the X3D_Node pointer. If it is found, use that
 	   index, and look in the userNodeNames list for it */
 
-	/* for (ind=0; ind < vector_size(curNameStackTop); ind ++) {
+	/* for (ind=0; ind < vectorSize(curNameStackTop); ind ++) {
 		printf ("DEBUG: userNodeNames index %d is %s\n",ind, vector_get (const char*, curNameStackTop,ind));
 	} */
 
-	for (ind=0; ind < vector_size(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
+	for (ind=0; ind < vectorSize(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
 		/* did we find this index? */
 		if (vector_get(struct X3D_Node*, stack_top(struct Vector*, globalParser->DEFedNodes), ind) == node) {
 			return vector_get (char*, curNameStackTop, ind);

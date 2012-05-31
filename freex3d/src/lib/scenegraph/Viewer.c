@@ -385,7 +385,7 @@ void fwl_set_viewer_type(const int type) {
 
 	/* can the currently bound viewer type handle this */
 	/* if there is no bound viewer, just ignore (happens on initialization) */
-	if (vector_size(tg->Bindable.navigation_stack) >0)
+	if (vectorSize(tg->Bindable.navigation_stack) >0)
 		if (p->Viewer.oktypes[type]==FALSE) {
 			setMenuButton_navModes(p->Viewer.type);
 			return;

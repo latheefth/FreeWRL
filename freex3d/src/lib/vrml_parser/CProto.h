@@ -175,7 +175,7 @@ struct ProtoDefinition
 
 /* Get fields by indices */
 #define protoDefinition_getFieldCount(me) \
- vector_size((me)->iface)
+ vectorSize((me)->iface)
 #define protoDefinition_getFieldByNum(me, i) \
  vector_get(struct ProtoFieldDecl*, (me)->iface, i)
 
