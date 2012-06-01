@@ -39,6 +39,7 @@
 #include <io_files.h>
 #include <io_http.h>
 
+#include <sys/stat.h>
 
 #include <threads.h> /* for freewrlSystem */
 

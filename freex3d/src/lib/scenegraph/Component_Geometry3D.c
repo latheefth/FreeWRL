@@ -194,9 +194,11 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 	float h = (node->height)/2;
 	float r = node->radius;
 	int i = 0;
+#ifndef SHADERS_2011
 	struct SFVec3f *pt;
 	float a1, a2;
 	struct SFVec3f *tmpptr;
+#endif //SHADERS_2011
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
