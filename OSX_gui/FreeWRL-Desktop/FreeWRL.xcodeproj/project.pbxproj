@@ -129,6 +129,24 @@
 		52DA6B321577E6C100130065 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52DA6B311577E6C100130065 /* libz.dylib */; };
 		52DA6B341577E8C000130065 /* OSX_Specific.c in Sources */ = {isa = PBXBuildFile; fileRef = 52DA6B331577E8C000130065 /* OSX_Specific.c */; };
 		52DA6B361577F0DB00130065 /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52DA6B351577F0DB00130065 /* OpenCL.framework */; };
+		52EC0F7B1579070500697399 /* alg-outline in Resources */ = {isa = PBXBuildFile; fileRef = 52EC0F581579070500697399 /* alg-outline */; };
+		52EC0F7C1579070500697399 /* dict.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F5A1579070500697399 /* dict.c */; };
+		52EC0F7D1579070500697399 /* geom.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F5C1579070500697399 /* geom.c */; };
+		52EC0F7E1579070500697399 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F611579070500697399 /* Makefile */; };
+		52EC0F7F1579070500697399 /* memalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F621579070500697399 /* memalloc.c */; };
+		52EC0F801579070500697399 /* mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F641579070500697399 /* mesh.c */; };
+		52EC0F811579070500697399 /* normal.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F661579070500697399 /* normal.c */; };
+		52EC0F821579070500697399 /* priorityq-heap.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F681579070500697399 /* priorityq-heap.c */; };
+		52EC0F831579070500697399 /* priorityq.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F6B1579070500697399 /* priorityq.c */; };
+		52EC0F841579070500697399 /* README in Resources */ = {isa = PBXBuildFile; fileRef = 52EC0F6D1579070500697399 /* README */; };
+		52EC0F851579070500697399 /* render.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F6E1579070500697399 /* render.c */; };
+		52EC0F861579070500697399 /* sweep.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F701579070500697399 /* sweep.c */; };
+		52EC0F871579070500697399 /* tess.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F721579070500697399 /* tess.c */; };
+		52EC0F881579070500697399 /* tessmono.c in Sources */ = {isa = PBXBuildFile; fileRef = 52EC0F741579070500697399 /* tessmono.c */; };
+		52EC0F891579070500697399 /* libtess.sln in Resources */ = {isa = PBXBuildFile; fileRef = 52EC0F781579070500697399 /* libtess.sln */; };
+		52EC0F8A1579070500697399 /* libtess.vcproj in Resources */ = {isa = PBXBuildFile; fileRef = 52EC0F791579070500697399 /* libtess.vcproj */; };
+		52EC0F8B1579070500697399 /* ReadMe.txt in Resources */ = {isa = PBXBuildFile; fileRef = 52EC0F7A1579070500697399 /* ReadMe.txt */; };
+		52EC0F8E15790F3800697399 /* libfreetype.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52EC0F8D15790F3800697399 /* libfreetype.6.dylib */; };
 		73295A4B13D71F4800D82816 /* FWGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 73295A4913D71F4800D82816 /* FWGLView.m */; };
 		73ADF1A613D9C34500154A27 /* X3DFreeWRLIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 73ADF1A513D9C34500154A27 /* X3DFreeWRLIcon.icns */; };
 		73CE189613D71AAD0038EB81 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 73CE189513D71AAD0038EB81 /* MainMenu.xib */; };
@@ -351,6 +369,40 @@
 		52DA6B311577E6C100130065 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = ../../../../../../../usr/lib/libz.dylib; sourceTree = "<group>"; };
 		52DA6B331577E8C000130065 /* OSX_Specific.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OSX_Specific.c; sourceTree = "<group>"; };
 		52DA6B351577F0DB00130065 /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = ../../../../../../../System/Library/Frameworks/OpenCL.framework; sourceTree = "<group>"; };
+		52EC0F581579070500697399 /* alg-outline */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "alg-outline"; sourceTree = "<group>"; };
+		52EC0F591579070500697399 /* dict-list.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "dict-list.h"; sourceTree = "<group>"; };
+		52EC0F5A1579070500697399 /* dict.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dict.c; sourceTree = "<group>"; };
+		52EC0F5B1579070500697399 /* dict.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dict.h; sourceTree = "<group>"; };
+		52EC0F5C1579070500697399 /* geom.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = geom.c; sourceTree = "<group>"; };
+		52EC0F5D1579070500697399 /* geom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = geom.h; sourceTree = "<group>"; };
+		52EC0F5E1579070500697399 /* glu_mangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glu_mangle.h; sourceTree = "<group>"; };
+		52EC0F5F1579070500697399 /* gluos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gluos.h; sourceTree = "<group>"; };
+		52EC0F601579070500697399 /* libtess2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = libtess2.h; sourceTree = "<group>"; };
+		52EC0F611579070500697399 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		52EC0F621579070500697399 /* memalloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memalloc.c; sourceTree = "<group>"; };
+		52EC0F631579070500697399 /* memalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = memalloc.h; sourceTree = "<group>"; };
+		52EC0F641579070500697399 /* mesh.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mesh.c; sourceTree = "<group>"; };
+		52EC0F651579070500697399 /* mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mesh.h; sourceTree = "<group>"; };
+		52EC0F661579070500697399 /* normal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = normal.c; sourceTree = "<group>"; };
+		52EC0F671579070500697399 /* normal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = normal.h; sourceTree = "<group>"; };
+		52EC0F681579070500697399 /* priorityq-heap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "priorityq-heap.c"; sourceTree = "<group>"; };
+		52EC0F691579070500697399 /* priorityq-heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "priorityq-heap.h"; sourceTree = "<group>"; };
+		52EC0F6A1579070500697399 /* priorityq-sort.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "priorityq-sort.h"; sourceTree = "<group>"; };
+		52EC0F6B1579070500697399 /* priorityq.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = priorityq.c; sourceTree = "<group>"; };
+		52EC0F6C1579070500697399 /* priorityq.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = priorityq.h; sourceTree = "<group>"; };
+		52EC0F6D1579070500697399 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		52EC0F6E1579070500697399 /* render.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = render.c; sourceTree = "<group>"; };
+		52EC0F6F1579070500697399 /* render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render.h; sourceTree = "<group>"; };
+		52EC0F701579070500697399 /* sweep.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sweep.c; sourceTree = "<group>"; };
+		52EC0F711579070500697399 /* sweep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sweep.h; sourceTree = "<group>"; };
+		52EC0F721579070500697399 /* tess.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tess.c; sourceTree = "<group>"; };
+		52EC0F731579070500697399 /* tess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tess.h; sourceTree = "<group>"; };
+		52EC0F741579070500697399 /* tessmono.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tessmono.c; sourceTree = "<group>"; };
+		52EC0F751579070500697399 /* tessmono.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tessmono.h; sourceTree = "<group>"; };
+		52EC0F781579070500697399 /* libtess.sln */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = libtess.sln; sourceTree = "<group>"; };
+		52EC0F791579070500697399 /* libtess.vcproj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = libtess.vcproj; sourceTree = "<group>"; };
+		52EC0F7A1579070500697399 /* ReadMe.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ReadMe.txt; sourceTree = "<group>"; };
+		52EC0F8D15790F3800697399 /* libfreetype.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfreetype.6.dylib; path = ../../../../../../../opt/local/lib/libfreetype.6.dylib; sourceTree = "<group>"; };
 		73295A4913D71F4800D82816 /* FWGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FWGLView.m; sourceTree = "<group>"; };
 		73295A4A13D71F4800D82816 /* FWGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FWGLView.h; sourceTree = "<group>"; };
 		73ADF1A513D9C34500154A27 /* X3DFreeWRLIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = X3DFreeWRLIcon.icns; sourceTree = "<group>"; };
@@ -382,6 +434,7 @@
 				52DA6B301577E65700130065 /* libxml2.dylib in Frameworks */,
 				52DA6B321577E6C100130065 /* libz.dylib in Frameworks */,
 				52DA6B361577F0DB00130065 /* OpenCL.framework in Frameworks */,
+				52EC0F8E15790F3800697399 /* libfreetype.6.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -687,6 +740,63 @@
 			path = x3d_parser;
 			sourceTree = "<group>";
 		};
+		52EC0F571579070500697399 /* libtess */ = {
+			isa = PBXGroup;
+			children = (
+				52EC0F581579070500697399 /* alg-outline */,
+				52EC0F591579070500697399 /* dict-list.h */,
+				52EC0F5A1579070500697399 /* dict.c */,
+				52EC0F5B1579070500697399 /* dict.h */,
+				52EC0F5C1579070500697399 /* geom.c */,
+				52EC0F5D1579070500697399 /* geom.h */,
+				52EC0F5E1579070500697399 /* glu_mangle.h */,
+				52EC0F5F1579070500697399 /* gluos.h */,
+				52EC0F601579070500697399 /* libtess2.h */,
+				52EC0F611579070500697399 /* Makefile */,
+				52EC0F621579070500697399 /* memalloc.c */,
+				52EC0F631579070500697399 /* memalloc.h */,
+				52EC0F641579070500697399 /* mesh.c */,
+				52EC0F651579070500697399 /* mesh.h */,
+				52EC0F661579070500697399 /* normal.c */,
+				52EC0F671579070500697399 /* normal.h */,
+				52EC0F681579070500697399 /* priorityq-heap.c */,
+				52EC0F691579070500697399 /* priorityq-heap.h */,
+				52EC0F6A1579070500697399 /* priorityq-sort.h */,
+				52EC0F6B1579070500697399 /* priorityq.c */,
+				52EC0F6C1579070500697399 /* priorityq.h */,
+				52EC0F6D1579070500697399 /* README */,
+				52EC0F6E1579070500697399 /* render.c */,
+				52EC0F6F1579070500697399 /* render.h */,
+				52EC0F701579070500697399 /* sweep.c */,
+				52EC0F711579070500697399 /* sweep.h */,
+				52EC0F721579070500697399 /* tess.c */,
+				52EC0F731579070500697399 /* tess.h */,
+				52EC0F741579070500697399 /* tessmono.c */,
+				52EC0F751579070500697399 /* tessmono.h */,
+				52EC0F761579070500697399 /* win32 */,
+			);
+			name = libtess;
+			path = ../../../freex3d/src/libtess;
+			sourceTree = "<group>";
+		};
+		52EC0F761579070500697399 /* win32 */ = {
+			isa = PBXGroup;
+			children = (
+				52EC0F771579070500697399 /* Debug */,
+				52EC0F781579070500697399 /* libtess.sln */,
+				52EC0F791579070500697399 /* libtess.vcproj */,
+				52EC0F7A1579070500697399 /* ReadMe.txt */,
+			);
+			path = win32;
+			sourceTree = "<group>";
+		};
+		52EC0F771579070500697399 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
 		73D4356A13D71594000293CE = {
 			isa = PBXGroup;
 			children = (
@@ -708,6 +818,7 @@
 		73D4357813D71596000293CE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				52EC0F8D15790F3800697399 /* libfreetype.6.dylib */,
 				52DA6B351577F0DB00130065 /* OpenCL.framework */,
 				52DA6B311577E6C100130065 /* libz.dylib */,
 				52DA6B2F1577E65700130065 /* libxml2.dylib */,
@@ -733,6 +844,7 @@
 			children = (
 				52DA6B331577E8C000130065 /* OSX_Specific.c */,
 				52DA6B281577D4ED00130065 /* config.h */,
+				52EC0F571579070500697399 /* libtess */,
 				52DA69DB1577D31900130065 /* lib */,
 				73295A4913D71F4800D82816 /* FWGLView.m */,
 				73295A4A13D71F4800D82816 /* FWGLView.h */,
@@ -820,6 +932,11 @@
 				52DA6AC91577D31900130065 /* Makefile.sources in Resources */,
 				52DA6B0C1577D31A00130065 /* fwWindow32.dlg in Resources */,
 				52DA6B0D1577D31A00130065 /* fwWindow32.rc in Resources */,
+				52EC0F7B1579070500697399 /* alg-outline in Resources */,
+				52EC0F841579070500697399 /* README in Resources */,
+				52EC0F891579070500697399 /* libtess.sln in Resources */,
+				52EC0F8A1579070500697399 /* libtess.vcproj in Resources */,
+				52EC0F8B1579070500697399 /* ReadMe.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -947,6 +1064,18 @@
 				52DA6B251577D31A00130065 /* X3DParser.c in Sources */,
 				52DA6B261577D31A00130065 /* X3DProtoScript.c in Sources */,
 				52DA6B341577E8C000130065 /* OSX_Specific.c in Sources */,
+				52EC0F7C1579070500697399 /* dict.c in Sources */,
+				52EC0F7D1579070500697399 /* geom.c in Sources */,
+				52EC0F7E1579070500697399 /* Makefile in Sources */,
+				52EC0F7F1579070500697399 /* memalloc.c in Sources */,
+				52EC0F801579070500697399 /* mesh.c in Sources */,
+				52EC0F811579070500697399 /* normal.c in Sources */,
+				52EC0F821579070500697399 /* priorityq-heap.c in Sources */,
+				52EC0F831579070500697399 /* priorityq.c in Sources */,
+				52EC0F851579070500697399 /* render.c in Sources */,
+				52EC0F861579070500697399 /* sweep.c in Sources */,
+				52EC0F871579070500697399 /* tess.c in Sources */,
+				52EC0F881579070500697399 /* tessmono.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1029,6 +1158,10 @@
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "FreeWRL/FreeWRL-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_LDFLAGS = "";
@@ -1048,6 +1181,10 @@
 				GCC_PREFIX_HEADER = "FreeWRL/FreeWRL-Prefix.pch";
 				"HEADER_SEARCH_PATHS[arch=*]" = /usr/include/libxml2;
 				INFOPLIST_FILE = "FreeWRL/FreeWRL-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = /usr/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
