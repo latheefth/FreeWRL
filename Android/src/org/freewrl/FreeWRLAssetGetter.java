@@ -40,12 +40,12 @@ FreeWRLAssetData myAssetSize;
 		else
 			myName = wantedName[0];
 
-		//Log.w(TAG,"now, RESOURCE Wanted name is " + wantedName);
+		Log.w(TAG,"now, RESOURCE Wanted name is " + wantedName);
 
 		myAssetSize = myAsset.openAsset(myContext,myName);
 
-		//Log.w(TAG,"-------------myAssetSize offset is " + myAssetSize.offset);
-		//Log.w(TAG,"-------------myAssetSize size is " + myAssetSize.length);
+		Log.w(TAG,"-------------myAssetSize offset is " + myAssetSize.offset);
+		Log.w(TAG,"-------------myAssetSize size is " + myAssetSize.length);
 
 		// send this to FreeWRL
 		FileDescriptor fd = myAssetSize.ad.getFileDescriptor();
@@ -62,6 +62,8 @@ FreeWRLAssetData myAssetSize;
 	@Override
 	protected void onPostExecute(String result) {
 		Log.w(TAG, "AsyncTask onPostExecute done - string "+ result);
+		FreeWRLActivity.currentlyGettingResource=false;
+
 	}
 }
 

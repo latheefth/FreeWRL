@@ -35,6 +35,9 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 
 	private static String TAG = "FreeWRLView";
 
+	// are we currently getting a resource? if so, we just ignore 
+	// front end request for a file, because the requests are synchronous.
+	public static boolean currentlyGettingResource = false;
 
 	static final int NEW_WORLD= 0;
 	static final int VIEWPOINT_CHANGE= 1;
@@ -222,13 +225,25 @@ public boolean onOptionsItemSelected (MenuItem item){
 	private Runnable Timer_Tick = new Runnable() {
 		public void run() {
 
-			//This method runs in the same thread as the UI.    	       
+			// This method runs in the same thread as the UI.       
+			// it checks if a resource is requested by the back end, and if one is,
+			// it checks to see that we have not already started a thread to 
+			// satisfy the request. The back end will send only work on one file
+			// at a time, so in essence, we just need to keep track of this
+			// synchronous stream and thus we'll be getting only one resource at
+			// a time, too.
 
 			// Log.w(TAG,"timer tick");
-			// do we want a new resource?
-			if (FreeWRLLib.resourceWanted()) {
+			// do we want a new resource? are we currently NOT getting a resource??
+			if (FreeWRLLib.resourceWanted()&& (!currentlyGettingResource)) {
+				// we are getting a resource...
+				currentlyGettingResource = true;
+
 				FreeWRLAssetGetter task = new FreeWRLAssetGetter();
 				task.sendInContext(getApplication());
+
+				// execute the task, and then the ending of the task will 
+				// set the currentlyGettingResource to false.
 				task.execute (new String (FreeWRLLib.resourceNameWanted()));
 			}
 

@@ -15,6 +15,7 @@ import android.content.Context;
 
 
 import java.io.File;
+import java.net.URLConnection; //file type guessing
 
 public class FreeWRLAssets {
 
@@ -28,7 +29,10 @@ public FreeWRLAssetData openAsset(Context context, String path )
 	AssetFileDescriptor ad;
    try
    {
-	//Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
+	Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
+	//Log.w(TAG," VRML guessing it is a " + URLConnection.guessContentTypeFromName("/sdcard/1.wrl"));
+	//Log.w(TAG," VRML guessing it is a " + URLConnection.guessContentTypeFromName("/sdcard/1.x3d"));
+	//Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
 	      ad = context.getResources().getAssets().openFd( path );
 	      Integer off = (int) ad.getStartOffset();
 	      Integer len = (int) ad.getLength();
