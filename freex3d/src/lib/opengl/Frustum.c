@@ -512,8 +512,10 @@ void setExtent(float maxx, float minx, float maxy, float miny, float maxz, float
 	me->EXTENT_MAX_Z = maxz; me->EXTENT_MIN_Z = minz;
 
 	if (me->_parentVector == NULL) {
+		#ifdef FRUSTUMVERBOSE
 		printf ("setExtent, parentVector NULL for node %p type %s\n",
 			me,stringNodeType(me->_nodeType));
+		#endif
 		return;
 	}
 
