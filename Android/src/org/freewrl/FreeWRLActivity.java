@@ -33,7 +33,9 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	FreeWRLView mView;
 	ViewGroup overViewGroup;
 
-	private static String TAG = "FreeWRLView";
+	private static String TAG = "FreeWRLActivity";
+
+	private static boolean contextProbablyDestroyed = false;
 
 	// are we currently getting a resource? if so, we just ignore 
 	// front end request for a file, because the requests are synchronous.
@@ -144,6 +146,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 
     @Override protected void onCreate(Bundle icicle) {
+	Log.w(TAG,"onCreate");
         super.onCreate(icicle);
         mView = new FreeWRLView(getApplication());
 
@@ -164,6 +167,13 @@ public boolean onOptionsItemSelected (MenuItem item){
 	}
 	Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.ad.getLength());
 
+
+                String FILE_NAME = "blankScreen.wrl.mp3";
+                //String FILE_NAME = "1.wrl.mp3";
+
+                Log.w(TAG, "--------------sending in file name");
+                //FreeWRLLib.initialFile(FILE_NAME);
+		mView.setNewFileName(FILE_NAME);
 
 
 
@@ -197,15 +207,56 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 
 }
+    @Override protected void onRestart() {
+	Log.w (TAG,"onRestart");
+        super.onRestart();
+//	if (contextProbablyDestroyed) {
+//		Log.w(TAG,"reloadingAssets");
+//		FreeWRLLib.reloadAssets();
+//		contextProbablyDestroyed = false;
+//	}
+        //mView.onRestart();
+    }
+
+    @Override protected void onStop() {
+	Log.w (TAG,"onStop");
+        super.onStop();
+	contextProbablyDestroyed =true;
+        //mView.onStop();
+    }
+
+    @Override protected void onStart() {
+	Log.w (TAG,"onStart");
+        super.onStart();
+//	if (contextProbablyDestroyed) {
+//		Log.w(TAG,"reloadingAssets");
+//		FreeWRLLib.reloadAssets();
+//		contextProbablyDestroyed = false;
+//	}
+        //mView.onStart();
+    }
+
+    @Override protected void onDestroy() {
+	Log.w (TAG,"onDestroy");
+        super.onDestroy();
+        //mView.onDestroy();
+    }
 
     @Override protected void onPause() {
+	Log.w (TAG,"onPause");
         super.onPause();
         mView.onPause();
     }
 
     @Override protected void onResume() {
+	Log.w (TAG,"onResume");
         super.onResume();
         mView.onResume();
+//	if (contextProbablyDestroyed) {
+//		Log.w(TAG,"reloadingAssets");
+//		FreeWRLLib.reloadAssets();
+//		contextProbablyDestroyed = false;
+//	}
     }
 
 

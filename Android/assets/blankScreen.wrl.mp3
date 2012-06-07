@@ -40,20 +40,21 @@
         orientation 1 0 0 -1.57
     }
 
-Transform { translation 0 3 0 children [
-Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
-        geometry Text {
-                string ["this is" "one line"]
-        }
-}
-]}
-
-
+#JASTransform { translation 0 3 0 children [
+#JASShape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
+#JAS        geometry Text {
+#JAS                string ["this is" "one line"]
+#JAS        }
+#JAS}
+#JAS]}
+#JAS
+#JAS
     Transform {               # Second child - a red sphere
       translation  4 0 2
       children [
         Shape {
-          geometry Sphere { radius 2.3 }
+          #geometry Sphere { radius 2.3 }
+          geometry Box {  }
           appearance Appearance {
             material  Material { diffuseColor 1 0 0 }   # Red
           }
@@ -61,83 +62,83 @@ Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
       ]
     }
 
-    Transform {               # Third child - a blue box
-      translation 3 2 1
-      rotation     0 1 1  .9
-      children [
-        Shape {
-          geometry Box {}
-          appearance Appearance {
-            material Material { diffuseColor 0 0 1 }  # Blue
-         }
-        }
-      ]
-    }
+#JAS    Transform {               # Third child - a blue box
+#JAS      translation 3 2 1
+#JAS      rotation     0 1 1  .9
+#JAS      children [
+#JAS        Shape {
+#JAS          geometry Box {}
+#JAS          appearance Appearance {
+#JAS            material Material { diffuseColor 0 0 1 }  # Blue
+#JAS         }
+#JAS        }
+#JAS      ]
+#JAS    }
 
 
-    Transform {               # Third child - a blue box
-      translation -3 2 1
-      children [
-        Shape {
-          geometry Box {}
-          appearance Appearance {
-            material Material { diffuseColor 0 0 1 }  # Blue
-	    texture ImageTexture {url "MTbase.jpg"}
-         }
-        }
-      ]
-    }
-
-
-    Transform {               # Third child - a blue box
-      translation -3 .2 1
-      children [
-        Shape {
-          geometry Box {}
-          appearance Appearance {
-            material Material { diffuseColor 0 0 1 }  # Blue
-	    texture ImageTexture {url "MToverlay.jpg"}
-         }
-        }
-      ]
-    }
-
-
-
-Transform {
-        rotation 1 0 0 0.4
-        translation 0 0 3
-        children [
-                DEF BOX Transform { children Shape {
-                        appearance Appearance {
-                                material Material { }
-				texture ImageTexture {url "startupImage.jpg"}
-                        }
-                        geometry Box { }
-                }
-        }
-
-        ]
-}
-
-
-# Animation clock
-        DEF Clock TimeSensor {
-                cycleInterval 4.0
-                loop TRUE
-        },
-
-# Animation path
-
-        DEF ColumnPath OrientationInterpolator {
-                key [ 0.0 0.5 1.0 ]
-                keyValue [
-                        0.0 1.0 0.0 6.28,
-                        0.0 1.0 0.0 3.14,
-                        0.0 1.0 0.0 0.0,
-                ]
-}
-
-#ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
-#ROUTE ColumnPath.value_changed TO BOX.set_rotation
-
+#JAS    Transform {               # Third child - a blue box
+#JAS      translation -3 2 1
+#JAS      children [
+#JAS        Shape {
+#JAS          geometry Box {}
+#JAS          appearance Appearance {
+#JAS            material Material { diffuseColor 0 0 1 }  # Blue
+#JAS	    texture ImageTexture {url "MTbase.jpg"}
+#JAS         }
+#JAS        }
+#JAS      ]
+#JAS    }
+#JAS
+#JAS
+#JAS    Transform {               # Third child - a blue box
+#JAS      translation -3 .2 1
+#JAS      children [
+#JAS        Shape {
+#JAS          geometry Box {}
+#JAS          appearance Appearance {
+#JAS            material Material { diffuseColor 0 0 1 }  # Blue
+#JAS	    texture ImageTexture {url "MToverlay.jpg"}
+#JAS         }
+#JAS        }
+#JAS      ]
+#JAS    }
+#JAS
+#JAS
+#JAS
+#JASTransform {
+#JAS        rotation 1 0 0 0.4
+#JAS        translation 0 0 3
+#JAS        children [
+#JAS                DEF BOX Transform { children Shape {
+#JAS                        appearance Appearance {
+#JAS                                material Material { }
+#JAS				texture ImageTexture {url "startupImage.jpg"}
+#JAS                        }
+#JAS                        geometry Box { }
+#JAS                }
+#JAS        }
+#JAS
+#JAS        ]
+#JAS}
+#JAS
+#JAS
+#JAS# Animation clock
+#JAS        DEF Clock TimeSensor {
+#JAS                cycleInterval 4.0
+#JAS                loop TRUE
+#JAS        },
+#JAS
+#JAS# Animation path
+#JAS
+#JAS        DEF ColumnPath OrientationInterpolator {
+#JAS                key [ 0.0 0.5 1.0 ]
+#JAS                keyValue [
+#JAS                        0.0 1.0 0.0 6.28,
+#JAS                        0.0 1.0 0.0 3.14,
+#JAS                        0.0 1.0 0.0 0.0,
+#JAS                ]
+#JAS}
+#JAS
+#JAS#ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
+#JAS#ROUTE ColumnPath.value_changed TO BOX.set_rotation
+#JAS

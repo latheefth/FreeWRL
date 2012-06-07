@@ -58,6 +58,10 @@ class FreeWRLView extends GLSurfaceView {
     private static final boolean DEBUG = false;
     private static Context myContext;
 
+    // if we loose the context, we will have to reload OpenGL ES resources
+    // within FreeWRL (shaders, buffers, etc) on restart.
+    private static boolean reloadAssetsRequired = false;
+
 //gesture stuff
     private static final int INVALID_POINTER_ID = -1;
     private float mPosX;
@@ -83,6 +87,9 @@ class FreeWRLView extends GLSurfaceView {
 
 	public static boolean poisedForAction = false;
 // end gesture stuff
+
+	private static String myNewX3DFile = "";
+	private static boolean loadNewX3DFile = false;
 
 
     public FreeWRLView(Context context) {
@@ -136,7 +143,7 @@ class FreeWRLView extends GLSurfaceView {
     private static class ContextFactory implements GLSurfaceView.EGLContextFactory {
         private static int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
         public EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig) {
-            //Log.w(TAG, "creating OpenGL ES 2.0 context");
+            Log.w(TAG, "creating OpenGL ES 2.0 context");
             checkEglError("Before eglCreateContext", egl);
             int[] attrib_list = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE };
             EGLContext context = egl.eglCreateContext(display, eglConfig, EGL10.EGL_NO_CONTEXT, attrib_list);
@@ -145,7 +152,9 @@ class FreeWRLView extends GLSurfaceView {
         }
 
         public void destroyContext(EGL10 egl, EGLDisplay display, EGLContext context) {
-            egl.eglDestroyContext(display, context);
+		Log.w(TAG,"destroyContext called");
+		egl.eglDestroyContext(display, context);
+		reloadAssetsRequired = true;
         }
     }
 
@@ -155,6 +164,15 @@ class FreeWRLView extends GLSurfaceView {
             Log.e(TAG, String.format("%s: EGL error: 0x%x", prompt, error));
         }
     }
+
+	//onCreate called - we need to initialize FreeWRL, but can't do it until the context is
+	//stable, so we just store the file name here.
+	public void setNewFileName(String fn) {
+		myNewX3DFile = fn;
+		loadNewX3DFile = true;
+	}
+
+
 
 	// touch events (gestures)
 	// note the "poisedForAction" - we delay initial sending of "ButtonDown" messages
@@ -503,7 +521,6 @@ private static class Renderer implements GLSurfaceView.Renderer {
 
 	// keep track of the assets directory
 	//static FreeWRLAssets myAsset = null;
-	static boolean onSurfaceAlreadyCreated = false;
 
 	// Fonts
 	static FreeWRLAssets fontAsset_01 = null; 
@@ -513,6 +530,17 @@ private static class Renderer implements GLSurfaceView.Renderer {
 	
 	public void onDrawFrame(GL10 gl) {
 		// do the draw
+		if (loadNewX3DFile) {
+			Log.w(TAG,"onDrawFrame, new file");
+			loadNewX3DFile = false;
+			FreeWRLLib.initialFile(myNewX3DFile);
+		}
+
+		if (reloadAssetsRequired) {
+			Log.w(TAG,"onDrawFrame, reloadAssets required");
+			FreeWRLLib.reloadAssets();
+			reloadAssetsRequired = false;
+		}
 		FreeWRLLib.step();
 	}
 
@@ -522,40 +550,11 @@ private static class Renderer implements GLSurfaceView.Renderer {
         }
 
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		String FILE_NAME = "blankScreen.wrl.mp3";
+		//String FILE_NAME = "blankScreen.wrl.mp3";
 		//String FILE_NAME = "1.wrl.mp3";
 
-		if (onSurfaceAlreadyCreated) {
-			Log.w(TAG,"........................onSurfaceAlreadyCreated TRUE");
-		} else {
-			Log.w(TAG,"........................onSurfaceAlreadyCreated FALSE");
-		}
-
-
 		Log.w(TAG, "--------------onSurfaceCreated");
-		if (onSurfaceAlreadyCreated) {
-			Log.w(TAG,"awake from screen sleep, me thinks");
-			FreeWRLLib.reloadAssets();
-		} else {
-/*
-			String apkFilePath = null;
-			ApplicationInfo appInfo = null;
-			PackageManager packMgmr = this.getPackageManager();
-			//PackageManager packMgmr = getPackageManager();
-			try {
-			        appInfo = packMgmr.getApplicationInfo("org.freewrl", 0);
-			    } catch (NameNotFoundException e) {
-				 e.printStackTrace();
-				throw new RuntimeException("Unable to locate assets, aborting...");
-			    }
-			apkFilePath = appInfo.sourceDir;
-	
-			Log.w(TAG,"+++ apkFilePath is " + apkFilePath);
-*/
-
-			FreeWRLLib.initialFile(FILE_NAME);
-			onSurfaceAlreadyCreated = true;
-		}
+		//FreeWRLLib.initialFile(FILE_NAME);
         }
 } // end of class Renderer
 }
