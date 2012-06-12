@@ -193,6 +193,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_resourceData(JNIEnv * env, jo
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, jclass thiz, jobject fd_sys, jint off, jint len) {
 
 
+/*
 FILE* file = fopen("/sdcard/2.wrl","r");
 
 if (file != NULL) {
@@ -201,6 +202,7 @@ fclose(file);
 } else {
 DROIDDEBUG("/sdcard/2.wrl ERROR");
 }
+*/
 
 
 
@@ -281,7 +283,6 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_nextViewpoint(JNIEnv * env, j
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_doQuitInstance(JNIEnv * env, jobject obj)
 {
     	fwl_doQuitInstance();
-	DROIDDEBUG("freewrllib just called fwl_doQuitInstance");
 	pGlobal = NULL;
 }
 

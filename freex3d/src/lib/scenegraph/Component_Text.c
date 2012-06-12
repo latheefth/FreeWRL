@@ -571,7 +571,7 @@ int fileLen= -1;
 	return FALSE;
 
     } else {
-	ConsoleMessage("FT_Open_Face looks ok to go");
+	// ConsoleMessage("FT_Open_Face looks ok to go");
 	
 	unsigned char *myFileData = malloc (fileLen+1);
 	size_t frv;

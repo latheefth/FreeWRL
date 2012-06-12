@@ -82,10 +82,14 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 				public void onClick(DialogInterface dialog,
 				int which) {
 					Log.w(TAG,"Clicked file - listener " + which );
-
-
 				}
-
+			})
+		.setNegativeButton("NO",
+			new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog,
+				int which) {
+					Log.w(TAG,"Clicked file - listener " + which );
+				}
 			}).show();
 	}
 
@@ -162,25 +166,25 @@ public boolean onOptionsItemSelected (MenuItem item){
 	if (fontAsset_01 == null) {
 		Log.w(TAG,"creating font assets");
 		fontAsset_01 = new FreeWRLAssets();
-		fontAssetSize_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
-		int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.ad.getFileDescriptor(),
+	}
+
+	// send in the font file descriptor on create.
+	fontAssetSize_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
+	int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.ad.getFileDescriptor(),
 		(int) fontAssetSize_01.ad.getStartOffset(),
 		(int) fontAssetSize_01.ad.getLength());
-	}
+	
 	Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.ad.getLength());
 
 
-                String FILE_NAME = "blankScreen.wrl.mp3";
-                //String FILE_NAME = "1.wrl.mp3";
+        String FILE_NAME = "blankScreen.wrl.mp3";
+        //String FILE_NAME = "1.wrl.mp3";
 
-                Log.w(TAG, "--------------sending in file name");
-                //FreeWRLLib.initialFile(FILE_NAME);
-		mView.setNewFileName(FILE_NAME);
-
-
+        Log.w(TAG, "--------------sending in file name");
+        //FreeWRLLib.initialFile(FILE_NAME);
+	mView.setNewFileName(FILE_NAME);
 
 	Log.w(TAG, "onCreate - lets do some lookin");
-
 
 
 	String apkFilePath = null;
@@ -274,14 +278,6 @@ public boolean onOptionsItemSelected (MenuItem item){
 			if (FreeWRLLib.resourceWanted()&& (!currentlyGettingResource)) {
 				// we are getting a resource...
 				currentlyGettingResource = true;
-
-
-               Log.w(TAG,"FreeWRLAssetGetter, calling Looper.prepare here");
-                if (Looper.myLooper () == null) {
-                        Log.w(TAG,"FreeWRLActivity, no looper yet");
-                } else {
-                        Log.w(TAG,"FreeWRLActivity, LOOPER exists");
-                }
 
 				FreeWRLAssetGetter task = new FreeWRLAssetGetter();
 				task.sendInContext(getApplication());

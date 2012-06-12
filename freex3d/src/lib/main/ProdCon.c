@@ -789,13 +789,7 @@ static bool parser_process_res(s_list_t *item)
 #if !defined(HAVE_PTHREAD_CANCEL)
 void Parser_thread_exit_handler(int sig)
 {
-    ConsoleMessage("parserThread exiting");
-    ConsoleMessage("parserThread exiting");
-    ConsoleMessage("parserThread exiting");
-    ConsoleMessage("parserThread exiting");
-    ConsoleMessage("parserThread exiting");
-    ConsoleMessage("parserThread exiting");
-    ConsoleMessage("parserThread exiting");
+    ConsoleMessage("Parser_thread_exit_handler: parserThread exiting");
     pthread_exit(0);
 }
 #endif //HAVE_PTHREAD_CANCEL

@@ -646,6 +646,7 @@ package VRML::NodeType;
 		solid => [SFBool, TRUE, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__points =>[MFVec3f,[],initializeOnly, 0],
 		_sideVBO =>[SFInt32, 0, initializeOnly, 0], 
+		__SphereIndxVBO =>[SFInt32, 0, initializeOnly, 0], 
  	},"X3DGeometryNode"),
 
 

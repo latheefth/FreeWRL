@@ -141,15 +141,6 @@ char *get_current_dir()
 	if (NULL != retvar) {
 			size_t ll;
 			ll = strlen(cwd);
-#ifdef OLDCODE
-OLDCODE #ifdef _MSC_VER
-OLDCODE 			{
-OLDCODE 				size_t jj;
-OLDCODE 				for( jj=0;jj<ll;jj++)
-OLDCODE 					if(cwd[jj] == '\\' ) cwd[jj] = '/';
-OLDCODE 			}
-OLDCODE #endif
-#endif //OLDCODE
 			cwd = strBackslash2fore(cwd);
 			cwd[ll] = '/';  /* put / ending to match posix version which puts local file name on end*/
 			cwd[ll+1] = '\0';
@@ -157,8 +148,8 @@ OLDCODE #endif
 		printf("Unable to establish current working directory in %s,%d errno=%d",__FILE__,__LINE__,errno) ;
 		cwd = "/tmp/" ;
 	}
-	sprintf(consoleBuffer ,"get_current_dir returns[%s]\n",cwd);
-	fwl_StringConsoleMessage(consoleBuffer);
+	//sprintf(consoleBuffer ,"get_current_dir returns[%s]\n",cwd);
+	//fwl_StringConsoleMessage(consoleBuffer);
 	return cwd;
 }
 

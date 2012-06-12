@@ -25,19 +25,13 @@ FreeWRLAssetData myAssetSize;
 		// local munged copy of the requested file name.
 		String myName ;
 
-		Log.w(TAG,"FreeWRLAssetGetter, calling Looper.prepare here");	
 		if (Looper.myLooper () == null) {
-			Log.w(TAG,"FreeWRLAssetGetter, no looper yet");
+			//Log.w(TAG,"FreeWRLAssetGetter, no looper yet");
 			Looper.prepare();
-		} else {
-			Log.w(TAG,"FreeWRLAssetGetter, LOOPER exists");
 		}
  
 
 		myAsset = new FreeWRLAssets();
-
-		Log.w(TAG,"FreeWRLAssetGetter, doInBackground");
-		Log.w(TAG,"FreeWRLAssetGetter, ignoring FONT ASSETS");
 
 		// remove slash at the beginning, if it exists
 		// as Android assets are not root based but getwd returns root base.

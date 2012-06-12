@@ -40,15 +40,15 @@
         orientation 1 0 0 -1.57
     }
 
-#JASTransform { translation 0 3 0 children [
-#JASShape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
-#JAS        geometry Text {
-#JAS                string ["this is" "one line"]
-#JAS        }
-#JAS}
-#JAS]}
-#JAS
-#JAS
+Transform { translation 0 3 0 children [
+Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
+        geometry Text {
+                string ["this is" "one line"]
+        }
+}
+]}
+
+
     Transform {               # Second child - a red sphere
       translation  4 0 2
       children [
@@ -139,6 +139,6 @@ Transform {
                 ]
 }
 
-#ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
-#ROUTE ColumnPath.value_changed TO BOX.set_rotation
+ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
+ROUTE ColumnPath.value_changed TO BOX.set_rotation
 
