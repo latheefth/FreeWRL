@@ -282,6 +282,7 @@ int returnElementRowSize (int type) {
 /* from the XML parser, for instance, we can call this on close to delete memory and memory tables */
 void Parser_deleteParserForScanStringValueToMem(void) {
 	ppEAI_C_CommonFunctions p = (ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv;
+	if (p==NULL) return;
 	if (p->parser != NULL) {
 		lexer_destroyData(p->parser->lexer);
 		deleteParser(p->parser);

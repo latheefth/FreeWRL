@@ -122,7 +122,7 @@ void ConsoleMessage_init(struct tConsoleMessage *t){
 #if defined(_ANDROID)
 #include <jni.h>
 #include <android/log.h>
-#define  LOG_TAG    "WRL-"
+#define  LOG_TAG    "FreeWRL-ConsoleMessage"
 #endif
 
 /* >>> statusbar hud */

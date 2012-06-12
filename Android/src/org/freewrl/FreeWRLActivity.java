@@ -27,6 +27,7 @@ import android.widget.ListView;
 import android.os.Environment;
 // File Dialog 2
 
+import android.os.Looper;
 
 
 public class FreeWRLActivity extends Activity implements IFolderItemListener {
@@ -34,8 +35,6 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	ViewGroup overViewGroup;
 
 	private static String TAG = "FreeWRLActivity";
-
-	private static boolean contextProbablyDestroyed = false;
 
 	// are we currently getting a resource? if so, we just ignore 
 	// front end request for a file, because the requests are synchronous.
@@ -46,7 +45,7 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	static final int DISMISS =2;
 
 	// timer trials
-	private Timer myTimer;
+	private static Timer myTimer = null;
 
         // Fonts
         static FreeWRLAssets fontAsset_01 = null;
@@ -150,6 +149,9 @@ public boolean onOptionsItemSelected (MenuItem item){
         super.onCreate(icicle);
         mView = new FreeWRLView(getApplication());
 
+	// tell the library to (re)create it's internal databases
+	FreeWRLLib.createInstance();
+
 	// for gestures
 	mView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
 		ViewGroup.LayoutParams.MATCH_PARENT));
@@ -195,51 +197,39 @@ public boolean onOptionsItemSelected (MenuItem item){
 	Log.w(TAG,"++++++++++++++++++++Activity:  apkFilePath is " + apkFilePath);
 
 	Log.w(TAG,"starting timer task");
-		myTimer = new Timer();
-		myTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				TimerMethod();
-			}
+	myTimer = new Timer();
+	myTimer.schedule(new TimerTask() {
+		@Override
+		public void run() {
+			TimerMethod();
+		}
 
-		// do it 30 times per second (1/30)
-		}, 0, 33);
-
-
+	// do it 30 times per second (1/30)
+	}, 0, 33);
 }
+
+
+
     @Override protected void onRestart() {
 	Log.w (TAG,"onRestart");
         super.onRestart();
-//	if (contextProbablyDestroyed) {
-//		Log.w(TAG,"reloadingAssets");
-//		FreeWRLLib.reloadAssets();
-//		contextProbablyDestroyed = false;
-//	}
-        //mView.onRestart();
     }
 
     @Override protected void onStop() {
 	Log.w (TAG,"onStop");
         super.onStop();
-	contextProbablyDestroyed =true;
-        //mView.onStop();
     }
 
     @Override protected void onStart() {
 	Log.w (TAG,"onStart");
         super.onStart();
-//	if (contextProbablyDestroyed) {
-//		Log.w(TAG,"reloadingAssets");
-//		FreeWRLLib.reloadAssets();
-//		contextProbablyDestroyed = false;
-//	}
-        //mView.onStart();
     }
 
     @Override protected void onDestroy() {
 	Log.w (TAG,"onDestroy");
         super.onDestroy();
-        //mView.onDestroy();
+	FreeWRLLib.doQuitInstance();
+	Log.w (TAG,"FreeWRL onDestroyed");
     }
 
     @Override protected void onPause() {
@@ -252,11 +242,6 @@ public boolean onOptionsItemSelected (MenuItem item){
 	Log.w (TAG,"onResume");
         super.onResume();
         mView.onResume();
-//	if (contextProbablyDestroyed) {
-//		Log.w(TAG,"reloadingAssets");
-//		FreeWRLLib.reloadAssets();
-//		contextProbablyDestroyed = false;
-//	}
     }
 
 
@@ -289,6 +274,14 @@ public boolean onOptionsItemSelected (MenuItem item){
 			if (FreeWRLLib.resourceWanted()&& (!currentlyGettingResource)) {
 				// we are getting a resource...
 				currentlyGettingResource = true;
+
+
+               Log.w(TAG,"FreeWRLAssetGetter, calling Looper.prepare here");
+                if (Looper.myLooper () == null) {
+                        Log.w(TAG,"FreeWRLActivity, no looper yet");
+                } else {
+                        Log.w(TAG,"FreeWRLActivity, LOOPER exists");
+                }
 
 				FreeWRLAssetGetter task = new FreeWRLAssetGetter();
 				task.sendInContext(getApplication());

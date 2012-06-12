@@ -25,13 +25,19 @@ FreeWRLAssetData myAssetSize;
 		// local munged copy of the requested file name.
 		String myName ;
 
-		Log.w(TAG,"AsyncTask, calling Looper.prepare here");	
-		Looper.prepare();
+		Log.w(TAG,"FreeWRLAssetGetter, calling Looper.prepare here");	
+		if (Looper.myLooper () == null) {
+			Log.w(TAG,"FreeWRLAssetGetter, no looper yet");
+			Looper.prepare();
+		} else {
+			Log.w(TAG,"FreeWRLAssetGetter, LOOPER exists");
+		}
+ 
 
 		myAsset = new FreeWRLAssets();
 
-		Log.w(TAG,"AsyncTask, doInBackground");
-		Log.w(TAG,"AsyncTask, ignoring FONT ASSETS");
+		Log.w(TAG,"FreeWRLAssetGetter, doInBackground");
+		Log.w(TAG,"FreeWRLAssetGetter, ignoring FONT ASSETS");
 
 		// remove slash at the beginning, if it exists
 		// as Android assets are not root based but getwd returns root base.
@@ -61,7 +67,7 @@ FreeWRLAssetData myAssetSize;
 
 	@Override
 	protected void onPostExecute(String result) {
-		Log.w(TAG, "AsyncTask onPostExecute done - string "+ result);
+		Log.w(TAG, "FreeWRLAssetGetter onPostExecute done - string "+ result);
 		FreeWRLActivity.currentlyGettingResource=false;
 
 	}

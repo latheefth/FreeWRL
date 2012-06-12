@@ -67,7 +67,6 @@ pthread_t loadFileThread = (pthread_t)0;
 void fileLoadThread(void* param) {
 
 	DROIDDEBUG("------------------LOAD THREAD-----------------------");
-	if (currentFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
 	fwl_OSX_initializeParameters(currentFile);
 	DROIDDEBUG("------------------FIN LOAD THREAD-----------------------");
 }
@@ -95,19 +94,24 @@ JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 	JNIEnv* ioEnv = NULL;
 
 
-        if( pGlobal == NULL ) {
-                pGlobal = (ttglobal*)fwl_init_instance();
-        }
+	//pGlobal = (ttglobal*)fwl_init_instance();
 
 
 	DROIDDEBUG("------------------FIN ON LOAD-----------------------");
 	return JNI_VERSION_1_6;
 }
 
+// explicitly ask to create an instance of the freewrl runtime code. Useful for onDestroy
+// to a restart - the library will NOT be reloaded, but we MUST re-initialize our code.
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_createInstance(JNIEnv * env, jobject obj)
+{
+	if (pGlobal != NULL) DROIDDEBUG("createInstance, pGlobal != NULL!!");
+	pGlobal = (ttglobal*)fwl_init_instance();
+}
+
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, jobject obj, jstring passedInitialFile)
 {
 	DROIDDEBUG("------------------INITIAL FILE-----------------------");
-	if (currentFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
 
 	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
 
@@ -147,12 +151,11 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_init(JNIEnv * env, jobject obj,  jint width, jint height)
 {
-	DROIDDEBUG("------------------LIB INIT-----------------------");
-	if (currentFile == NULL) { DROIDDEBUG("..... iniitialFile NULL");} else {DROIDDEBUG("+++++++++ initialfile NOT null");}
+	//DROIDDEBUG("------------------LIB INIT-----------------------");
 
 	fwl_setScreenDim(width, height);
 
-	DROIDDEBUG("------------------FIN LIB INIT-----------------------");
+	//DROIDDEBUG("------------------FIN LIB INIT-----------------------");
 }
 
 
@@ -164,7 +167,6 @@ JNIEXPORT jboolean JNICALL Java_org_freewrl_FreeWRLLib_resourceWanted(JNIEnv * e
 /* return the NAME of the resource we want... */
 JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_resourceNameWanted(JNIEnv *env, jobject obj) {
 	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
-	if (currentFile == NULL) { DROIDDEBUG("..... currentFile NULL");} else {DROIDDEBUG("+++++++++ currentFile NOT null");}
 	DROIDDEBUG(fwg_frontEndWantsFileName());
 	return (*env)->NewStringUTF(env,fwg_frontEndWantsFileName());
 }
@@ -271,10 +273,16 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_step(JNIEnv * env, jobject ob
 }
 
 
-/* reload assets when onSurfaceCreated, but system already loaded */
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_nextViewpoint(JNIEnv * env, jobject obj)
 {
     	fwl_Next_ViewPoint();
+}
+
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_doQuitInstance(JNIEnv * env, jobject obj)
+{
+    	fwl_doQuitInstance();
+	DROIDDEBUG("freewrllib just called fwl_doQuitInstance");
+	pGlobal = NULL;
 }
 
 /* reload assets when onSurfaceCreated, but system already loaded */

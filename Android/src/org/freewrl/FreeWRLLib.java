@@ -22,4 +22,6 @@ public class FreeWRLLib {
 	public static native void handleAqua(int but, int state, int x, int y);
 	public static native void reloadAssets();
 	public static native void nextViewpoint();
+	public static native void doQuitInstance();
+	public static native void createInstance();
 }

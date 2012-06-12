@@ -1100,9 +1100,37 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 /**
  *   _textureThread: work on textures, until the end of time.
  */
+
+
+#if !defined(HAVE_PTHREAD_CANCEL)
+void Texture_thread_exit_handler(int sig)
+{ 
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    ConsoleMessage("textureThread exiting");
+    pthread_exit(0);
+}
+#endif //HAVE_PTHREAD_CANCEL
+
 void _textureThread()
 {
 	ENTER_THREAD("texture loading");
+
+	#if !defined (HAVE_PTHREAD_CANCEL)
+	struct sigaction actions;
+	int rc;
+	memset(&actions, 0, sizeof(actions)); 
+	sigemptyset(&actions.sa_mask);
+	actions.sa_flags = 0; 
+	actions.sa_handler = Texture_thread_exit_handler;
+	rc = sigaction(SIGUSR2,&actions,NULL);
+ConsoleMessage ("for textureThread, have defined exit handler");
+	#endif //HAVE_PTHREAD_CANCEL
+
 	{
 
 		ppLoadTextures p;
