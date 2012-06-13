@@ -684,7 +684,7 @@ NPP_GetMIMEDescription(void)
                 "model/x3d+binary:x3db:FreeWRL X3D Browser"
                 ;
 
-        PRINT("NPP_GetMIMEDescription: %s\n", mime_types);
+        print (NULL, "NPP_GetMIMEDescription: %s\n", mime_types);
         return (char *) mime_types;
 }
 
