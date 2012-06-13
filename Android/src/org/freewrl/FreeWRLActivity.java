@@ -30,6 +30,8 @@ import android.os.Environment;
 import android.os.Looper;
 
 
+// testing import android.widget.EditText;
+
 public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	FreeWRLView mView;
 	ViewGroup overViewGroup;
@@ -122,8 +124,11 @@ public boolean onOptionsItemSelected (MenuItem item){
 			Log.w(TAG, "3 going to findViewById");
 			localFolders.setDir(Environment.getExternalStorageDirectory().getPath());
 
+			// set the background colour - let FreeWRL show through sometimes.
+			localFolders.setBackgroundColor(0xAF000000 );
 			// display it
-			setContentView(localFolders);
+			getWindow().addContentView(localFolders, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
+			//setContentView(localFolders);
 
 			break;
 		}
@@ -161,6 +166,11 @@ public boolean onOptionsItemSelected (MenuItem item){
 		ViewGroup.LayoutParams.MATCH_PARENT));
 
 	setContentView(mView);
+
+// testing 	EditText editBox = new EditText(getApplication());
+// testing 	editBox.setText("Hello Matron");
+// testing 	// works addContentView(editBox,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+// testing 	getWindow().addContentView(editBox,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
 	// send in font directory pointers.
 	if (fontAsset_01 == null) {

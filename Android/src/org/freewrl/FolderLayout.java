@@ -15,6 +15,14 @@ import android.util.Log;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
+import android.widget.Button;
+
+// for setContentView
+//import android.app.Activity;
+//import android.os.Bundle;
+
+
+
 
    public class FolderLayout extends LinearLayout implements OnItemClickListener {
 
@@ -25,25 +33,32 @@ import java.util.ArrayList;
     private String root = "/";
     private TextView myPath;
     private ListView lstView;
+   //private FreeWRLView mView;
+    private Button CancelButton;
+
+    private View newFileView;
 
     private static String TAG = "FreeWRLView";
 
     public FolderLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        // TODO Auto-generated constructor stub
         this.context = context;
 
 
         LayoutInflater layoutInflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = layoutInflater.inflate(R.layout.folderview, this);
-
-Log.w (TAG,"layoutInflater parent is " + view.getParent());
+        newFileView = layoutInflater.inflate(R.layout.folderview, this);
 
         myPath = (TextView) findViewById(R.id.path);
         lstView = (ListView) findViewById(R.id.list);
-Log.w(TAG,"R.id.path " + myPath + " R.id.list " + lstView);
+	CancelButton = (Button) findViewById(R.id.CancelButton);
+	CancelButton.setOnClickListener(new View.OnClickListener() {
+             public void onClick(View v) {
+                 // Perform action on click
+		newFileView.setVisibility(View.GONE);
+             }
+         });
 
         Log.w(TAG, "Constructed");
         getDir(root, lstView);
@@ -53,6 +68,10 @@ Log.w(TAG,"R.id.path " + myPath + " R.id.list " + lstView);
     public void setIFolderItemListener(IFolderItemListener folderItemListener) {
         this.folderListener = folderItemListener;
     }
+
+    //public void setParentView(FreeWRLView mView) {
+//	this.mView = mView;
+ //   }
 
     //Set Directory for view at anytime
     public void setDir(String dirPath){
@@ -78,12 +97,16 @@ Log.w(TAG,"R.id.path " + myPath + " R.id.list " + lstView);
         }
         for (int i = 0; i < files.length; i++) {
             File file = files[i];
-            path.add(file.getPath());
-            if (file.isDirectory())
+            //path.add(file.getPath());
+            if (file.isDirectory()) {
+            	path.add(file.getPath());
                 item.add(file.getName() + "/");
-            else
-                item.add(file.getName());
-
+            } else {
+		if (!file.isHidden()) {
+            		path.add(file.getPath());
+                	item.add(file.getName());
+		}
+	    }
         }
 
         Log.w(TAG, "local folders getDir returns " + files.length + "");

@@ -5,13 +5,25 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 
-	<TextView android:id="@+id/path" android:text="Path"
+	<TextView 
+		android:id="@+id/path" android:text="Path"
 		android:layout_width="match_parent" 
 		android:layout_height="wrap_content">
 	</TextView>
 
-	<ListView android:layout_width="fill_parent"
-        	android:layout_height="wrap_content" 
+	<ListView 
+		android:layout_weight="1.0"
+		android:layout_width="fill_parent"
+        	android:layout_height="fill_parent" 
 		android:id="@+id/list">
 	</ListView>
+    	<Button 
+		android:id="@+id/CancelButton" 
+		android:layout_width="match_parent"
+        	android:layout_height="wrap_content" 
+		android:gravity="bottom"
+		android:layout_alignParentBottom="true"
+		android:text="Cancel">
+	</Button>
+
 </LinearLayout>
