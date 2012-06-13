@@ -668,7 +668,12 @@ int Run (NPP instance)
 
 /*******************************************************************************
  ******************************************************************************/
-const char* NPP_GetMIMEDescription(void)
+#ifdef LEGACY_NPAPI
+char *
+#else
+const char *
+#endif
+NPP_GetMIMEDescription(void)
 {
         static const char mime_types[] =
                 "x-world/x-vrml:wrl:FreeWRL VRML Browser;"
@@ -679,7 +684,7 @@ const char* NPP_GetMIMEDescription(void)
                 "model/x3d+binary:x3db:FreeWRL X3D Browser"
                 ;
 
-        print (NULL, "NPP_GetMIMEDescription: %s\n", mime_types);
+        PRINT("NPP_GetMIMEDescription: %s\n", mime_types);
         return (char *) mime_types;
 }
 
