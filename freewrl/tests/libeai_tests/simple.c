@@ -1,3 +1,8 @@
+/*
+ *  Simple EAI test - draw a blue sphere.
+ *  Author:  Sarah Dumoulin
+ */
+
 #include <FreeWRLEAI/EAI_C.h>
 
 #define SPHERE          "Sphere"

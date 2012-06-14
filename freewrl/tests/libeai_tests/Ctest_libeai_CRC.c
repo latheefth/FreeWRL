@@ -1,3 +1,9 @@
+/* Advanced EAI test
+ * Draw a sphere and then move it around some
+ *
+ * Author:  dug9
+ */
+
 #include <FreeWRLEAI/EAI_C.h>
 #define WIN32
 #define SPHERE          "Sphere"
