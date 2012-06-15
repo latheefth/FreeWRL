@@ -1,3 +1,27 @@
+/*
+  $Id$
+
+*/
+
+/****************************************************************************
+    This file is part of the FreeWRL/FreeX3D Distribution.
+
+    Copyright 2012 CRC Canada. (http://www.crc.gc.ca)
+
+    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
+****************************************************************************/
+
 package org.freewrl;
 
 import android.util.Log;
@@ -23,7 +47,7 @@ FreeWRLAssetData myAssetSize;
 		FreeWRLAssetData myAssetSize;
 
 		// local munged copy of the requested file name.
-		String myName ;
+		String myName  = wantedName[0];
 
 		if (Looper.myLooper () == null) {
 			//Log.w(TAG,"FreeWRLAssetGetter, no looper yet");
@@ -33,29 +57,21 @@ FreeWRLAssetData myAssetSize;
 
 		myAsset = new FreeWRLAssets();
 
-		// remove slash at the beginning, if it exists
-		// as Android assets are not root based but getwd returns root base.
-		if (wantedName[0].indexOf('/') == 0)
-			myName = wantedName[0].substring(1);
-		else
-			myName = wantedName[0];
-
-		Log.w(TAG,"now, RESOURCE Wanted name is " + wantedName);
+		Log.w(TAG,"now, RESOURCE Wanted name is " + myName);
 
 		myAssetSize = myAsset.openAsset(myContext,myName);
-
 		Log.w(TAG,"-------------myAssetSize offset is " + myAssetSize.offset);
 		Log.w(TAG,"-------------myAssetSize size is " + myAssetSize.length);
+		Log.w(TAG,"-------------myAssetSize fd is " + myAssetSize.fd);
 
 		// send this to FreeWRL
-		FileDescriptor fd = myAssetSize.ad.getFileDescriptor();
-		int off = (int) myAssetSize.ad.getStartOffset();
-		int len = (int) myAssetSize.ad.getLength();
+		FileDescriptor fd = myAssetSize.fd;
+		int off = (int) myAssetSize.offset;
+		int len = (int) myAssetSize.length;
 		int res = FreeWRLLib.resourceFile(fd, off, len);
-		//Log.w(TAG,"-------------and, the getStartOffset, getLength is " + off + "  " + len);
-		//Log.w (TAG,"------------resourceFile NDK call returns " + res);
+		Log.w(TAG,"-------------and, the getStartOffset, getLength is " + off + "  " + len);
+		Log.w (TAG,"------------resourceFile NDK call returns " + res);
 
-		//return new String(""); // dummy return value
 		return myName;
 	}
 

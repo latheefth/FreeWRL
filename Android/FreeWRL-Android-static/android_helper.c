@@ -1,3 +1,28 @@
+/*
+  $Id$
+
+*/
+
+/****************************************************************************
+    This file is part of the FreeWRL/FreeX3D Distribution.
+
+    Copyright 2012 CRC Canada. (http://www.crc.gc.ca)
+
+    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
+****************************************************************************/
+
+
 /* androidHelper.c */
 
 #if defined( _ANDROID )
@@ -192,32 +217,45 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_resourceData(JNIEnv * env, jo
 // For x3d, wrl, textures:
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, jclass thiz, jobject fd_sys, jint off, jint len) {
 
-
-/*
-FILE* file = fopen("/sdcard/2.wrl","r");
-
-if (file != NULL) {
-DROIDDEBUG("/sdcard/2.wrl opened");
-fclose(file);
-} else {
-DROIDDEBUG("/sdcard/2.wrl ERROR");
-}
-*/
-
-
-
 	jclass fdClass = (*env)->FindClass(env,"java/io/FileDescriptor");
+DROIDDEBUG("A");
 	if (fdClass != NULL){
 		jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env,fdClass, "descriptor", "I");
+DROIDDEBUG("B");
+if (fd_sys == NULL) {
+DROIDDEBUG("B - fd_sys NULL");
+}
+if (fdClassDescriptorFieldID == NULL) {
+DROIDDEBUG("B - fdClassDescriptorFieldID NULL");
+}
 		if (fdClassDescriptorFieldID != NULL && fd_sys != NULL){
 			jint fd = (*env)->GetIntField(env,fd_sys, fdClassDescriptorFieldID);
 			int myfd = dup(fd);
 			FILE* myFile = fdopen(myfd, "rb");
+DROIDDEBUG("C");
+
 			if (myFile){
-				char myString[2000];
-				unsigned char *myFileData = malloc (len+1);
+				DROIDDEBUG("duplicated file descriptor ok");
+DROIDDEBUG("D");
+
+				unsigned char *myFileData;
 				size_t frv;
-				fseek(myFile, off, SEEK_SET);
+
+				if (len <= 0) {
+					DROIDDEBUG("len le zero, finding length");
+					fseek(myFile,0L,SEEK_END);
+					len = ftell(myFile);
+					fseek(myFile,0L,SEEK_SET);
+				}
+
+				if (off > 0) {
+					DROIDDEBUG("offset is greater than zero, doing seek");
+					fseek(myFile, off, SEEK_SET);
+				}
+
+char myLine[200]; sprintf(myLine,"reading in %d bytes",len); DROIDDEBUG(myLine);
+
+ 				myFileData = malloc (len+1);
 				frv = fread (myFileData, (size_t)len, (size_t)1, myFile);
 
 				/* null terminate this; note that for textures, file is from 0 to (len-1) 
@@ -300,6 +338,13 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setButDown(JNIEnv *env, jobje
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setLastMouseEvent(JNIEnv *env, jobject obj, int state)
 {
         fwl_setLastMouseEvent(state);
+}
+
+
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_replaceWorldNeeded(JNIEnv *env, jobject obj,jstring passedInitialFile)
+{
+	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
+	fwl_replaceWorldNeeded(cFilename);
 }
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobject obj, int but, int state, int x, int y)

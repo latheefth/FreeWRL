@@ -1,3 +1,27 @@
+/*
+  $Id$
+
+*/
+
+/****************************************************************************
+    This file is part of the FreeWRL/FreeX3D Distribution.
+
+    Copyright 2012 CRC Canada. (http://www.crc.gc.ca)
+
+    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
+****************************************************************************/
+
 package org.freewrl;
 
 
@@ -88,7 +112,10 @@ class FreeWRLView extends GLSurfaceView {
 	public static boolean poisedForAction = false;
 // end gesture stuff
 
-	private static String myNewX3DFile = "";
+	// starting file - we default to a "splash x3d file" in the assets dir.
+	//private static String myNewX3DFile = "blankScreen.wrl.mp3";
+	private static String myNewX3DFile = "/mnt/sdcard/FreeWRL_tests/1.wrl";
+	private static String possibleNewX3DFile = null;
 	private static boolean loadNewX3DFile = false;
 
 
@@ -167,8 +194,22 @@ class FreeWRLView extends GLSurfaceView {
 
 	//onCreate called - we need to initialize FreeWRL, but can't do it until the context is
 	//stable, so we just store the file name here.
-	public void setNewFileName(String fn) {
-		myNewX3DFile = fn;
+	public void setPossibleNewFileName(String fn) {
+		possibleNewX3DFile = fn;
+		Log.w(TAG,"setNewFileName - setting file name to " + fn);
+	}
+
+	public void discardPossibleNewFileName() {
+		possibleNewX3DFile = null;
+	}
+
+	// Ok - initiate a new load here.
+	public void setLoadNewX3DFile() {
+		// did we have a new file name here?
+		if (possibleNewX3DFile != null) {
+			myNewX3DFile = possibleNewX3DFile;
+			FreeWRLLib.replaceWorldNeeded(possibleNewX3DFile);
+		}
 		loadNewX3DFile = true;
 	}
 
@@ -550,11 +591,7 @@ private static class Renderer implements GLSurfaceView.Renderer {
         }
 
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		//String FILE_NAME = "blankScreen.wrl.mp3";
-		//String FILE_NAME = "1.wrl.mp3";
-
 		Log.w(TAG, "--------------onSurfaceCreated");
-		//FreeWRLLib.initialFile(FILE_NAME);
         }
 } // end of class Renderer
 }

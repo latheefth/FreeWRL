@@ -1,3 +1,27 @@
+/*
+  $Id$
+
+*/
+
+/****************************************************************************
+    This file is part of the FreeWRL/FreeX3D Distribution.
+
+    Copyright 2012 CRC Canada. (http://www.crc.gc.ca)
+
+    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
+****************************************************************************/
+
 package org.freewrl;
 
 import android.content.Context;
@@ -69,10 +93,6 @@ import android.widget.Button;
         this.folderListener = folderItemListener;
     }
 
-    //public void setParentView(FreeWRLView mView) {
-//	this.mView = mView;
- //   }
-
     //Set Directory for view at anytime
     public void setDir(String dirPath){
         getDir(dirPath, lstView);
@@ -109,7 +129,7 @@ import android.widget.Button;
 	    }
         }
 
-        Log.w(TAG, "local folders getDir returns " + files.length + "");
+        //Log.w(TAG, "local folders getDir returns " + files.length + "");
 
         setItemList(item);
 
@@ -127,14 +147,14 @@ import android.widget.Button;
 
     public void onListItemClick(ListView l, View v, int position, long id) {
         File file = new File(path.get(position));
-Log.w(TAG,"onListItemClick, listView " + l + " view " + v + " position " + position + " id " + id);
+	// Log.w(TAG,"onListItemClick, listView " + l + " view " + v + " position " + position + " id " + id);
 
         if (file.isDirectory()) {
-	Log.w(TAG,"onListItemClick, directory");
+	//Log.w(TAG,"onListItemClick, directory");
             if (file.canRead())
                 getDir(path.get(position), l);
             else {
-//what to do when folder is unreadable
+		//what to do when folder is unreadable
                 if (folderListener != null) {
                     folderListener.OnCannotFileRead(file);
 
@@ -143,11 +163,11 @@ Log.w(TAG,"onListItemClick, listView " + l + " view " + v + " position " + posit
             }
         } else {
 
-//what to do when file is clicked
-//You can add more,like checking extension,and performing separate actions
-	Log.w(TAG,"onListItemClick, NOT directory");
+	//what to do when file is clicked
+	//You can add more,like checking extension,and performing separate actions
+	//Log.w(TAG,"onListItemClick, NOT directory");
             if (folderListener != null) {
-		Log.w(TAG,"onListItemClick, NOT dir + folderListener not null");
+		//Log.w(TAG,"onListItemClick, NOT dir + folderListener not null");
                 folderListener.OnFileClicked(file);
             }
 

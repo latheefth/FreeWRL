@@ -1,3 +1,27 @@
+/*
+  $Id$
+
+*/
+
+/****************************************************************************
+    This file is part of the FreeWRL/FreeX3D Distribution.
+
+    Copyright 2012 CRC Canada. (http://www.crc.gc.ca)
+
+    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
+****************************************************************************/
+
 package org.freewrl;
 
 
@@ -29,8 +53,11 @@ import android.os.Environment;
 
 import android.os.Looper;
 
-
-// testing import android.widget.EditText;
+// logcat stuff
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+// end logcat stuff
 
 public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	FreeWRLView mView;
@@ -44,7 +71,8 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 
 	static final int NEW_WORLD= 0;
 	static final int VIEWPOINT_CHANGE= 1;
-	static final int DISMISS =2;
+	static final int LOG_LOOK = 2;
+	//static final int DISMISS = 3;
 
 	// timer trials
 	private static Timer myTimer = null;
@@ -76,33 +104,92 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	public void OnFileClicked(File file) {
 
 		Log.w(TAG,"OnFileClicked - file " + file);
+Log.w(TAG,"trying to load a new file here no matter what user does");
+mView.setPossibleNewFileName(""+file);
+
 		new AlertDialog.Builder(this)
 		.setIcon(R.drawable.icon)
-		.setTitle("[" + file.getName() + "]")
+		.setTitle("Load " + file.getName() + "?")
 		.setPositiveButton("OK",
 			new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,
 				int which) {
-					Log.w(TAG,"Clicked file - listener " + which );
+					mView.setLoadNewX3DFile();
+					//mView.setNewFileName(new String(file.getName()));
 				}
 			})
 		.setNegativeButton("NO",
 			new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,
 				int which) {
-					Log.w(TAG,"Clicked file - listener " + which );
+				mView.discardPossibleNewFileName();
 				}
 			}).show();
 	}
 
 
+private final String[] LOGCAT_CMD = new String[] { "logcat", "" };
+public static final String[] LOGCAT_CLEAR_CMD = new String[] { "logcat", "-c" };
+private Process mLogcatProc = null;
+private BufferedReader reader = null;
+private final int BUFFER_SIZE = 1024;
+
+private String readLog() throws IOException{
+Log.w("Logger","started readLog");
+		String returnLogLines = "";
+
+                reader = new BufferedReader(new InputStreamReader(mLogcatProc.getInputStream()),  BUFFER_SIZE);
+
+                String line;
+                //while ( !Thread.currentThread().isInterrupted() && (line = reader.readLine())  != null )
+                while ((line = reader.readLine())  != null )
+                {
+Log.w("Logger","read a line");
+                        if(line.contains("FreeWRL")){
+				returnLogLines = returnLogLines + "\n" + line;
+                        }
+                }
+Log.w("Logger","returning");
+		return returnLogLines;
+    }
+
+private String getXXX() {
+	String retString = "";
+ try{
+                mLogcatProc = Runtime.getRuntime().exec(LOGCAT_CMD);
+        }catch( IOException e ){
+                Log.i("LogReader", "Logcat process failed. " + e.getMessage());
+                return "ERROR";
+        }
+
+Log.w(TAG,"sleeping here");
+try {Thread.sleep (5000);} catch (InterruptedException f) { }
+Log.w(TAG,"finished sleeping here");
+        try{
+
+                retString = readLog();
+
+        }catch( IOException e ){
+                Log.i("LogReader", "Logcat process error. " + e.getMessage());
+        }finally{
+
+                if (reader != null){
+                        Log.i("LogReader", "reader.close()");
+                try {
+                        reader.close();
+                }catch(IOException e) {}
+                }
+        }
+	return retString;
+}
 
 public boolean onCreateOptionsMenu(Menu menu){
 
 	Log.w(TAG,"onCreateOptionsMenu");
 	menu.add(0,NEW_WORLD,0,"New");
 	menu.add(0,VIEWPOINT_CHANGE,0,"Viewpoint");
-	menu.add(0,DISMISS,0,"Dismiss");
+	menu.add(0,LOG_LOOK,0,"Info");
+	//menu.add(0,DISMISS,0,"Dismiss");
 	return true;
 }
 public boolean onOptionsItemSelected (MenuItem item){
@@ -126,9 +213,9 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 			// set the background colour - let FreeWRL show through sometimes.
 			localFolders.setBackgroundColor(0xAF000000 );
+
 			// display it
 			getWindow().addContentView(localFolders, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
-			//setContentView(localFolders);
 
 			break;
 		}
@@ -139,12 +226,34 @@ public boolean onOptionsItemSelected (MenuItem item){
 			FreeWRLLib.nextViewpoint();
 			break;
 		}
-	
-		case DISMISS: {
-			Log.w (TAG,"DISMISS");
-			finish();
+
+		case LOG_LOOK : {
+			ConsoleLayout myConsole;
+			Context origContext = getApplication();
+
+			/* Actions in case that Edid Contacts is pressed */
+			Log.w(TAG,"LOG_LOOK");
+			// File Dialog 2
+			myConsole = new ConsoleLayout(getApplication(),null);
+
+			Log.w(TAG, "3 going to findViewById");
+			myConsole.setConsoleListing(FreeWRLVersion.version,getXXX());
+
+			// set the background colour - let FreeWRL show through sometimes.
+			myConsole.setBackgroundColor(0xAF000000 );
+
+			// display it
+			getWindow().addContentView(myConsole, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
+
 			break;
+
 		}
+	
+		//case DISMISS: {
+		//	Log.w (TAG,"DISMISS");
+		//	finish();
+		//	break;
+		//}
 
 	}
 
@@ -167,11 +276,6 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 	setContentView(mView);
 
-// testing 	EditText editBox = new EditText(getApplication());
-// testing 	editBox.setText("Hello Matron");
-// testing 	// works addContentView(editBox,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-// testing 	getWindow().addContentView(editBox,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
 	// send in font directory pointers.
 	if (fontAsset_01 == null) {
 		Log.w(TAG,"creating font assets");
@@ -180,19 +284,14 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 	// send in the font file descriptor on create.
 	fontAssetSize_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
-	int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.ad.getFileDescriptor(),
-		(int) fontAssetSize_01.ad.getStartOffset(),
-		(int) fontAssetSize_01.ad.getLength());
+	int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.fd,
+		(int) fontAssetSize_01.offset,
+		(int) fontAssetSize_01.length);
 	
-	Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.ad.getLength());
+	Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.length);
 
 
-        String FILE_NAME = "blankScreen.wrl.mp3";
-        //String FILE_NAME = "1.wrl.mp3";
-
-        Log.w(TAG, "--------------sending in file name");
-        //FreeWRLLib.initialFile(FILE_NAME);
-	mView.setNewFileName(FILE_NAME);
+	mView.setLoadNewX3DFile();
 
 	Log.w(TAG, "onCreate - lets do some lookin");
 
