@@ -69,11 +69,6 @@ struct currayhit {
 	GLDOUBLE projMatrix[16];
 };
 
-//extern struct currayhit rayHit,rayph,rayHitHyper;
-//extern double hitPointDist;                   /* in VRMLC.pm */
-//extern struct point_XYZ hp;                     /* in VRMLC.pm */
-//extern void *hypersensitive;            /* in VRMLC.pm */
-//extern int hyperhit;                    /* in VRMLC.pm */
 extern struct point_XYZ r1, r2;         /* in VRMLC.pm */
 
 
@@ -81,11 +76,8 @@ extern struct point_XYZ r1, r2;         /* in VRMLC.pm */
 int nextlight(void);
 void render_node(struct X3D_Node *node);
 
-//extern int BrowserAction;
-//extern struct X3D_Anchor *AnchorsAnchor;
 struct X3D_Anchor *AnchorsAnchor();
 void setAnchorsAnchor(struct X3D_Anchor* anchor);
-//extern char *OSX_replace_world_from_console;
 
 void lightState(GLint light, int status);
 void saveLightState(int *ls);

@@ -1411,7 +1411,10 @@ void do_Anchor ( void *ptr, int ev, int but1, int over) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 		setAnchorsAnchor( node );
-		FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+		#ifdef OLDCODE
+		OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
+		#endif // OLDCODE
+
 		tg->RenderFuncs.BrowserAction = TRUE;
 	}
 }
