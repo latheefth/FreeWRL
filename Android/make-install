@@ -1,4 +1,15 @@
 #! /bin/sh
+
+echo "updating FreeWRLVersion.java"
+echo "updating FreeWRLVersion.java"
+VERSION_VALUE=`cat ../freex3d/versions/FREEWRL`
+VERSION_DATE=`date "+%Y-%m-%d:%H:%M:%S"`
+echo $VERSION_VALUE
+echo $VERSION_DATE
+sed 's/static String version.*;/static String version = "'"$VERSION_VALUE"'";/' < src/org/freewrl/FreeWRLVersion.java > /tmp/step1
+sed 's/static String compileDate.*;/static String compileDate = "'"$VERSION_DATE"'";/' < /tmp/step1 > src/org/freewrl/FreeWRLVersion.java
+rm /tmp/step1
+
 ant clean
 
 #lint the whole project
