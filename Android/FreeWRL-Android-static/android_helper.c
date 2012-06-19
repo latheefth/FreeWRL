@@ -218,25 +218,16 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_resourceData(JNIEnv * env, jo
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, jclass thiz, jobject fd_sys, jint off, jint len) {
 
 	jclass fdClass = (*env)->FindClass(env,"java/io/FileDescriptor");
-DROIDDEBUG("A");
 	if (fdClass != NULL){
 		jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env,fdClass, "descriptor", "I");
-DROIDDEBUG("B");
-if (fd_sys == NULL) {
-DROIDDEBUG("B - fd_sys NULL");
-}
-if (fdClassDescriptorFieldID == NULL) {
-DROIDDEBUG("B - fdClassDescriptorFieldID NULL");
-}
+
 		if (fdClassDescriptorFieldID != NULL && fd_sys != NULL){
 			jint fd = (*env)->GetIntField(env,fd_sys, fdClassDescriptorFieldID);
 			int myfd = dup(fd);
 			FILE* myFile = fdopen(myfd, "rb");
-DROIDDEBUG("C");
 
 			if (myFile){
 				DROIDDEBUG("duplicated file descriptor ok");
-DROIDDEBUG("D");
 
 				unsigned char *myFileData;
 				size_t frv;
@@ -252,8 +243,6 @@ DROIDDEBUG("D");
 					DROIDDEBUG("offset is greater than zero, doing seek");
 					fseek(myFile, off, SEEK_SET);
 				}
-
-char myLine[200]; sprintf(myLine,"reading in %d bytes",len); DROIDDEBUG(myLine);
 
  				myFileData = malloc (len+1);
 				frv = fread (myFileData, (size_t)len, (size_t)1, myFile);
@@ -344,7 +333,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setLastMouseEvent(JNIEnv *env
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_replaceWorldNeeded(JNIEnv *env, jobject obj,jstring passedInitialFile)
 {
 	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
-	fwl_replaceWorldNeeded(cFilename);
+	fwl_Android_replaceWorldNeeded();
 }
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobject obj, int but, int state, int x, int y)

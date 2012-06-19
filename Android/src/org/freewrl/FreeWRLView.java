@@ -113,8 +113,8 @@ class FreeWRLView extends GLSurfaceView {
 // end gesture stuff
 
 	// starting file - we default to a "splash x3d file" in the assets dir.
-	//private static String myNewX3DFile = "blankScreen.wrl.mp3";
-	private static String myNewX3DFile = "/mnt/sdcard/FreeWRL_tests/1.wrl";
+	private static String myNewX3DFile = "blankScreen.wrl.mp3";
+	//private static String myNewX3DFile = "/mnt/sdcard/1.wrl";
 	private static String possibleNewX3DFile = null;
 	private static boolean loadNewX3DFile = false;
 

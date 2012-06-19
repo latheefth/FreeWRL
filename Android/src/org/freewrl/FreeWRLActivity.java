@@ -59,6 +59,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 // end logcat stuff
 
+// for removing local file and console Views
+import android.view.View;
+
 public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	FreeWRLView mView;
 	ViewGroup overViewGroup;
@@ -80,6 +83,11 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
         // Fonts
         static FreeWRLAssets fontAsset_01 = null;
         static FreeWRLAssetData fontAssetSize_01;
+
+
+	// New File and Console View.
+	FolderLayout localFolders = null;
+	ConsoleLayout myConsole = null;
                         
 	// Cannot open Folder
 	public void OnCannotFileRead(File file) {
@@ -116,6 +124,9 @@ mView.setPossibleNewFileName(""+file);
 				int which) {
 					mView.setLoadNewX3DFile();
 					//mView.setNewFileName(new String(file.getName()));
+
+					// remove the folder viewing View.
+					localFolders.setVisibility(View.GONE);
 				}
 			})
 		.setNegativeButton("NO",
@@ -162,9 +173,11 @@ private String getXXX() {
                 return "ERROR";
         }
 
+/* 
 Log.w(TAG,"sleeping here");
 try {Thread.sleep (5000);} catch (InterruptedException f) { }
 Log.w(TAG,"finished sleeping here");
+*/
         try{
 
                 retString = readLog();
@@ -197,18 +210,18 @@ public boolean onOptionsItemSelected (MenuItem item){
 	switch (item.getItemId()){
 	
 		case NEW_WORLD: {
-			FolderLayout localFolders;
 			Context origContext = getApplication();
 
 			/* Actions in case that Edid Contacts is pressed */
-			Log.w(TAG,"NEW_WORLD");
+			//Log.w(TAG,"NEW_WORLD");
 			// File Dialog 2
+			if (localFolders != null) localFolders.setVisibility(View.GONE);
 			localFolders = new FolderLayout(getApplication(),null);
 
-			Log.w(TAG, "2 going to findViewById");
+			//Log.w(TAG, "2 going to findViewById");
 			localFolders.setIFolderItemListener(this);
 
-			Log.w(TAG, "3 going to findViewById");
+			//Log.w(TAG, "3 going to findViewById");
 			localFolders.setDir(Environment.getExternalStorageDirectory().getPath());
 
 			// set the background colour - let FreeWRL show through sometimes.
@@ -228,12 +241,13 @@ public boolean onOptionsItemSelected (MenuItem item){
 		}
 
 		case LOG_LOOK : {
-			ConsoleLayout myConsole;
 			Context origContext = getApplication();
 
 			/* Actions in case that Edid Contacts is pressed */
-			Log.w(TAG,"LOG_LOOK");
+			//Log.w(TAG,"LOG_LOOK");
 			// File Dialog 2
+			// remove an older one, if it exists.
+			if (myConsole != null) myConsole.setVisibility(View.GONE);
 			myConsole = new ConsoleLayout(getApplication(),null);
 
 			Log.w(TAG, "3 going to findViewById");

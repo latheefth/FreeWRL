@@ -58,7 +58,7 @@ import android.widget.Button;
     private TextView lstView;
     private Button CancelButton;
 
-    private View newFileView;
+    private View newConsoleView;
 
     private static String TAG = "FreeWRLView";
 
@@ -70,7 +70,7 @@ import android.widget.Button;
 
         LayoutInflater layoutInflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        newFileView = layoutInflater.inflate(R.layout.consoleview, this);
+        newConsoleView = layoutInflater.inflate(R.layout.consoleview, this);
 
         myVersion = (TextView) findViewById(R.id.path);
         lstView = (TextView) findViewById(R.id.list);
@@ -78,7 +78,7 @@ import android.widget.Button;
 	CancelButton.setOnClickListener(new View.OnClickListener() {
              public void onClick(View v) {
                  // Perform action on click
-		newFileView.setVisibility(View.GONE);
+		newConsoleView.setVisibility(View.GONE);
              }
          });
 
