@@ -55,6 +55,7 @@ import android.widget.Button;
     private List<String> item = null;
     private List<String> path = null;
     private TextView myVersion;
+    private TextView myBuildDate;
     private TextView lstView;
     private Button CancelButton;
 
@@ -72,7 +73,8 @@ import android.widget.Button;
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         newConsoleView = layoutInflater.inflate(R.layout.consoleview, this);
 
-        myVersion = (TextView) findViewById(R.id.path);
+        myVersion = (TextView) findViewById(R.id.version);
+        myBuildDate = (TextView) findViewById(R.id.builddate);
         lstView = (TextView) findViewById(R.id.list);
 	CancelButton = (Button) findViewById(R.id.CancelButton);
 	CancelButton.setOnClickListener(new View.OnClickListener() {
@@ -88,14 +90,15 @@ import android.widget.Button;
     }
 
     //Set Directory for view at anytime
-    public void setConsoleListing(String myVers, String consoleText){
-        setList(myVers, consoleText, lstView);
+    public void setConsoleListing(String myVers, String myBuildDate, String consoleText){
+        setList(myVers, myBuildDate,consoleText, lstView);
     }
 
 
-    private void setList(String myVers, String consoleText, TextView v) {
+    private void setList(String myVers, String myBD, String consoleText, TextView v) {
 
-        myVersion.setText("FreeWRL  Version " + myVers + "\n");
+        myVersion.setText("FreeWRL  Version " + myVers);
+	myBuildDate.setText("Build Date    " + myBD);
 	lstView.setText("Console Text:\n" + consoleText);
     }
 

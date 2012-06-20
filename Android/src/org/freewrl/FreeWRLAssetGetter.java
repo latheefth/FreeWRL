@@ -69,8 +69,8 @@ FreeWRLAssetData myAssetSize;
 		int off = (int) myAssetSize.offset;
 		int len = (int) myAssetSize.length;
 		int res = FreeWRLLib.resourceFile(fd, off, len);
-		Log.w(TAG,"-------------and, the getStartOffset, getLength is " + off + "  " + len);
-		Log.w (TAG,"------------resourceFile NDK call returns " + res);
+		//Log.w(TAG,"-------------and, the getStartOffset, getLength is " + off + "  " + len);
+		//Log.w (TAG,"------------resourceFile NDK call returns " + res);
 
 		return myName;
 	}

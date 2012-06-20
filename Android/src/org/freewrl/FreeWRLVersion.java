@@ -26,5 +26,5 @@ package org.freewrl;
 
 public class FreeWRLVersion {
 	public static String version = "1.22.13";
-	public static String compileDate = "2012-06-19:11:04:15";
+	public static String compileDate = "2012-06-20:13:15:03";
 }

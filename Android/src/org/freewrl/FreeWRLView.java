@@ -208,7 +208,8 @@ class FreeWRLView extends GLSurfaceView {
 		// did we have a new file name here?
 		if (possibleNewX3DFile != null) {
 			myNewX3DFile = possibleNewX3DFile;
-			FreeWRLLib.replaceWorldNeeded(possibleNewX3DFile);
+			FreeWRLLib.replaceWorldNeeded(myNewX3DFile);
+			possibleNewX3DFile = null;
 		}
 		loadNewX3DFile = true;
 	}

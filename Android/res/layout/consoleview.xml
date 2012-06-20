@@ -6,7 +6,12 @@
 	android:layout_height="match_parent">
 
 	<TextView 
-		android:id="@+id/path" android:text="Path"
+		android:id="@+id/version" android:text="Path"
+		android:layout_width="match_parent" 
+		android:layout_height="wrap_content">
+	</TextView>
+	<TextView 
+		android:id="@+id/builddate" android:text="Path"
 		android:layout_width="match_parent" 
 		android:layout_height="wrap_content">
 	</TextView>

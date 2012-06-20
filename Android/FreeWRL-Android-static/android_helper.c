@@ -247,6 +247,7 @@ JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, j
  				myFileData = malloc (len+1);
 				frv = fread (myFileData, (size_t)len, (size_t)1, myFile);
 
+DROIDDEBUG ("final results of file are length %d",len);
 				/* null terminate this; note that for textures, file is from 0 to (len-1) 
 				   so final trailing null is of no consequence */
 				myFileData[len] = '\0'; 
@@ -309,7 +310,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_nextViewpoint(JNIEnv * env, j
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_doQuitInstance(JNIEnv * env, jobject obj)
 {
-    	fwl_doQuitInstance();
+    	fwl_Android_doQuitInstance();
 	pGlobal = NULL;
 }
 

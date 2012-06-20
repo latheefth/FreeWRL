@@ -40,74 +40,18 @@
         orientation 1 0 0 -1.57
     }
 
-Transform { translation 0 3 0 children [
+Transform { translation -5 3 0 children [
 Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
         geometry Text {
-                string ["this is" "one line"]
+                string ["Choose a new VRML/X3D" "file with the menu" "New button"]
         }
 }
 ]}
 
 
-    Transform {               # Second child - a red sphere
-      translation  4 0 2
-      children [
-        Shape {
-          geometry Sphere { radius 2.3 }
-          #geometry Box {  }
-          appearance Appearance {
-            material  Material { emissiveColor 0 1 1 diffuseColor 1 0 0 }   # Red
-          }
-        }
-      ]
-    }
-
-    Transform {               # Third child - a blue box
-      translation 3 2 1
-      rotation     0 1 1  .9
-      children [
-        Shape {
-          geometry Box {}
-          appearance Appearance {
-            material Material { diffuseColor 0 0 1 }  # Blue
-         }
-        }
-      ]
-    }
-
-
-    Transform {               # Third child - a blue box
-      translation -3 2 1
-      children [
-        Shape {
-          geometry Box {}
-          appearance Appearance {
-            material Material { diffuseColor 0 0 1 }  # Blue
-	    texture ImageTexture {url "MTbase.jpg"}
-         }
-        }
-      ]
-    }
-
-
-    Transform {               # Third child - a blue box
-      translation -3 .2 1
-      children [
-        Shape {
-          geometry Box {}
-          appearance Appearance {
-            material Material { diffuseColor 0 0 1 }  # Blue
-	    texture ImageTexture {url "MToverlay.jpg"}
-         }
-        }
-      ]
-    }
-
-
-
 Transform {
         rotation 1 0 0 0.4
-        translation 0 0 3
+        translation 0 -2 3
         children [
                 DEF BOX Transform { children Shape {
                         appearance Appearance {

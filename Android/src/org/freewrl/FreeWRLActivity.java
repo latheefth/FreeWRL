@@ -123,7 +123,6 @@ mView.setPossibleNewFileName(""+file);
 				public void onClick(DialogInterface dialog,
 				int which) {
 					mView.setLoadNewX3DFile();
-					//mView.setNewFileName(new String(file.getName()));
 
 					// remove the folder viewing View.
 					localFolders.setVisibility(View.GONE);
@@ -251,7 +250,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 			myConsole = new ConsoleLayout(getApplication(),null);
 
 			Log.w(TAG, "3 going to findViewById");
-			myConsole.setConsoleListing(FreeWRLVersion.version,getXXX());
+			myConsole.setConsoleListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getXXX());
 
 			// set the background colour - let FreeWRL show through sometimes.
 			myConsole.setBackgroundColor(0xAF000000 );
