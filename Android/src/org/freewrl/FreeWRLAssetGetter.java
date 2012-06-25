@@ -60,15 +60,13 @@ FreeWRLAssetData myAssetSize;
 		Log.w(TAG,"now, RESOURCE Wanted name is " + myName);
 
 		myAssetSize = myAsset.openAsset(myContext,myName);
-		Log.w(TAG,"-------------myAssetSize offset is " + myAssetSize.offset);
-		Log.w(TAG,"-------------myAssetSize size is " + myAssetSize.length);
-		Log.w(TAG,"-------------myAssetSize fd is " + myAssetSize.fd);
 
 		// send this to FreeWRL
-		FileDescriptor fd = myAssetSize.fd;
-		int off = (int) myAssetSize.offset;
-		int len = (int) myAssetSize.length;
-		int res = FreeWRLLib.resourceFile(fd, off, len);
+		FreeWRLLib.resourceFile(
+			myAssetSize.myBytes, 
+			myAssetSize.imageWidth, 
+			myAssetSize.imageHeight, 
+			myAssetSize.hasAlpha);
 		//Log.w(TAG,"-------------and, the getStartOffset, getLength is " + off + "  " + len);
 		//Log.w (TAG,"------------resourceFile NDK call returns " + res);
 

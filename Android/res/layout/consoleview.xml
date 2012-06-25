@@ -6,12 +6,12 @@
 	android:layout_height="match_parent">
 
 	<TextView 
-		android:id="@+id/version" android:text="Path"
+		android:id="@+id/version" android:text="@string/Path"
 		android:layout_width="match_parent" 
 		android:layout_height="wrap_content">
 	</TextView>
 	<TextView 
-		android:id="@+id/builddate" android:text="Path"
+		android:id="@+id/builddate" android:text="@string/Path"
 		android:layout_width="match_parent" 
 		android:layout_height="wrap_content">
 	</TextView>
@@ -19,7 +19,7 @@
 	<TextView 
 		android:layout_weight="1.0"
 		android:layout_width="fill_parent"
-        	android:layout_height="fill_parent" 
+        	android:layout_height="0dip" 
 		android:id="@+id/list">
 	</TextView>
     	<Button 
@@ -27,8 +27,7 @@
 		android:layout_width="match_parent"
         	android:layout_height="wrap_content" 
 		android:gravity="bottom"
-		android:layout_alignParentBottom="true"
-		android:text="Cancel">
+		android:text="@string/Cancel">
 	</Button>
 
 </LinearLayout>

@@ -41,17 +41,9 @@ import java.util.List;
 import java.util.ArrayList;
 import android.widget.Button;
 
-// for setContentView
-//import android.app.Activity;
-//import android.os.Bundle;
-
-
-
-
    public class ConsoleLayout extends LinearLayout {
 
     Context context;
-    //JAS IFolderItemListener folderListener;
     private List<String> item = null;
     private List<String> path = null;
     private TextView myVersion;
@@ -101,15 +93,5 @@ import android.widget.Button;
 	myBuildDate.setText("Build Date    " + myBD);
 	lstView.setText("Console Text:\n" + consoleText);
     }
-
-/*
-    //can manually set Item to display, if u want
-    public void setItemList(List<String> item){
-        ArrayAdapter<String> fileList = new ArrayAdapter<String>(context,
-                R.layout.row, item);
-
-        //JAS lstView.setAdapter(fileList);
-    }
-*/
 }
 

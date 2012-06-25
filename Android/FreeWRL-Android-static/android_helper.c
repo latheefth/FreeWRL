@@ -196,79 +196,35 @@ JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_resourceNameWanted(JNIEnv 
 	return (*env)->NewStringUTF(env,fwg_frontEndWantsFileName());
 }
 
-/* return the data associated with the name */
-JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_resourceData(JNIEnv * env, jobject this, jstring logThis)
-{
-	jboolean isCopy;
-	const char * szLogThis = (*env)->GetStringUTFChars(env, logThis, &isCopy);
-
-	fwg_frontEndReturningData(szLogThis,strlen(szLogThis));
-	(*env)->ReleaseStringUTFChars(env, logThis, szLogThis);
-}  
-
 /* return fileDescriptor, offset and length, and read the file here */
 
 
 #define SUCCESS			         			0
-#define ERROR_CODE_CANNOT_OPEN_MYFILE         			100
-#define ERROR_CODE_CANNOT_GET_DESCRIPTOR_FIELD			101
-#define ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS		102
+//public static native int resourceFile(byte[]myBytes, int width, int height, bool hasAlpha);
 
 // For x3d, wrl, textures:
-JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, jclass thiz, jobject fd_sys, jint off, jint len) {
+JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_resourceFile (JNIEnv * env, jclass thiz, 
+		jbyteArray myBytes,
+		jint width,
+		jint height,
+		jboolean hasAlpha) {
 
-	jclass fdClass = (*env)->FindClass(env,"java/io/FileDescriptor");
-	if (fdClass != NULL){
-		jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env,fdClass, "descriptor", "I");
+	jbyte *fileData;
+	bool ok;
+	int length = (*env)->GetArrayLength(env,myBytes);
 
-		if (fdClassDescriptorFieldID != NULL && fd_sys != NULL){
-			jint fd = (*env)->GetIntField(env,fd_sys, fdClassDescriptorFieldID);
-			int myfd = dup(fd);
-			FILE* myFile = fdopen(myfd, "rb");
+	// get the bytes over first
+	fileData = (*env)->GetByteArrayElements(env,myBytes,0);
+	fwg_frontEndReturningData(fileData,length,width,height,hasAlpha);
 
-			if (myFile){
-				DROIDDEBUG("duplicated file descriptor ok");
+	(*env)->ReleaseByteArrayElements(env,myBytes,fileData,JNI_ABORT);
 
-				unsigned char *myFileData;
-				size_t frv;
-
-				if (len <= 0) {
-					DROIDDEBUG("len le zero, finding length");
-					fseek(myFile,0L,SEEK_END);
-					len = ftell(myFile);
-					fseek(myFile,0L,SEEK_SET);
-				}
-
-				if (off > 0) {
-					DROIDDEBUG("offset is greater than zero, doing seek");
-					fseek(myFile, off, SEEK_SET);
-				}
-
- 				myFileData = malloc (len+1);
-				frv = fread (myFileData, (size_t)len, (size_t)1, myFile);
-
-DROIDDEBUG ("final results of file are length %d",len);
-				/* null terminate this; note that for textures, file is from 0 to (len-1) 
-				   so final trailing null is of no consequence */
-				myFileData[len] = '\0'; 
-				fwg_frontEndReturningData(myFileData,len);
-				return (jint)SUCCESS;
-			}
-			else {
-				return (jint) ERROR_CODE_CANNOT_OPEN_MYFILE;
-			}
-		}
-		else {
-			return (jint)ERROR_CODE_CANNOT_GET_DESCRIPTOR_FIELD;
-		}
-	}
-	else {
-		return (jint)ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS;
-	}
+return (jint)SUCCESS;
 }
 
 //sendFontFile - send only file descriptor, let freewrl open it if wished for.
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_sendFontFile (JNIEnv * env, jclass thiz, jint whichFontFile, jobject fd_sys, jint off, jint len) {
+
 	jclass fdClass = (*env)->FindClass(env,"java/io/FileDescriptor");
 	if (fdClass != NULL){
 		jfieldID fdClassDescriptorFieldID = (*env)->GetFieldID(env,fdClass, "descriptor", "I");
@@ -283,15 +239,15 @@ JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_sendFontFile (JNIEnv * env, j
 				return (jint)SUCCESS;
 			}
 			else {
-				return (jint) ERROR_CODE_CANNOT_OPEN_MYFILE;
+				return (jint) !SUCCESS;
 			}
 		}
 		else {
-			return (jint)ERROR_CODE_CANNOT_GET_DESCRIPTOR_FIELD;
+			return (jint)!SUCCESS;
 		}
 	}
 	else {
-		return (jint)ERROR_CODE_CANNOT_GET_FILE_DESCRIPTOR_CLASS;
+		return (jint)!SUCCESS;
 	}
 }
 
@@ -342,4 +298,8 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobje
         fwl_handle_aqua(but,state,x,y);
 }
 
+JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_androidGetLastMessage(JNIEnv *env, jobject obj) {
+	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
+	return (*env)->NewStringUTF(env,android_get_last_message());
+}
 #endif

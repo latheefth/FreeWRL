@@ -28,7 +28,8 @@
 #ifndef __LIBFREEWRL_IO_FILES_H__
 #define __LIBFREEWRL_IO_FILES_H__
 
-void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
+//void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
+void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 
 /* Path manipulation */
@@ -46,6 +47,9 @@ typedef struct openned_file {
 	int fileDescriptor;
 	int fileDataSize;
 	char *fileData;
+	int imageHeight;
+	int imageWidth;
+	bool imageAlpha;
 } openned_file_t;
 
 void of_dump(openned_file_t *of);

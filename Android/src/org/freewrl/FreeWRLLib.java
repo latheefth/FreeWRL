@@ -36,11 +36,8 @@ public class FreeWRLLib {
      public static native void initialFile(String initFile);
 	public static native boolean resourceWanted();
 	public static native String resourceNameWanted();
-	public static native void resourceData(String data);
-	public static native int resourceFile(FileDescriptor ad, int offset, int length);
-
+	public static native void resourceFile(byte[]myBytes, int width, int height, boolean hasAlpha);
 	public static native int sendFontFile(int which, FileDescriptor ad, int offset, int length);
-
 	public static native void setButDown(int but, int state);
 	public static native void setLastMouseEvent(int state);
 	public static native void handleAqua(int but, int state, int x, int y);
@@ -49,4 +46,6 @@ public class FreeWRLLib {
 	public static native void doQuitInstance();
 	public static native void createInstance();
 	public static native void replaceWorldNeeded(String newFile);
+
+	public static native String androidGetLastMessage();
 }

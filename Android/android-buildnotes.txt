@@ -1,4 +1,4 @@
-Modified April 25 2012
+Modified June 22 2012
 
 
 FreeWRL (FreeX3d) - Android build notes
@@ -12,10 +12,6 @@ Quick:
 	- get the libxml2.tar file from:
 
 		http://freewrl.sourceforge.net/AndroidBuild/libxml2.tar.gz
-
-	- get the jpeg.tar file from:
-
-		http://freewrl.sourceforge.net/AndroidBuild/jpeg.tar.gz
 
 	- get freetype from:
 
@@ -31,8 +27,8 @@ Quick:
 	Your base FreeWRL directory will probably look something like this now:
 
 	Johns-MacBook-Air:Android johns$ ls ..
-	Android					cdave1-freetype2-android-006e528	jpeg
-	CVS					freewrl					libxml2
+	Android					cdave1-freetype2-android-006e528	libxml2
+	CVS					freewrl					
 	OSX_gui					freewrl2
 	SoundEngine				freex3d
 

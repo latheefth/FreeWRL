@@ -39,7 +39,6 @@ Screen snapshot.
 struct textureTableIndexStruct {
 	struct X3D_Node*	scenegraphNode;
 	int    nodeType;
-	int    imageType;
 	int    status;
 	int    hasAlpha;
 	GLuint OpenGLTexture;
@@ -66,18 +65,6 @@ struct textureVertexInfo {
 	GLsizei TC_stride;	/* glTexCoordPointer - stride param */
 	GLvoid *TC_pointer;	/* glTexCoordPointer - pointer to first element */
 };
-
-
-/* imageType */
-#define PNGTexture 200
-#define JPGTexture 300
-
-/* removed from GET_THIS_TEXTURE 
-                        } else if (thisTextureType==NODE_GeneratedCubeMapTexture){ 
-                                gct = (struct X3D_GeneratedCubeMapTexture*) node; 
-                                thisTexture = mt->__textureTableIndex; 
-
-*/
 
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \

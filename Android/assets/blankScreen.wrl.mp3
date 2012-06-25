@@ -2,13 +2,13 @@
 
     Background {
         skyAngle        [ 1.07 1.45 1.52 1.57 ]
-        skyColor        [ 0.00 0.00 0.30
-                          0.00 0.00 0.80
-                          0.45 0.70 0.80
+        skyColor        [ 0.00 0.00 0.00
+                          0.00 0.00 0.00
+                          0.2 0.00 0.00
                           0.70 0.50 0.00
-                          1.00 0.00 0.00 ]
+                          1.00 0.500 0.00 ]
         groundAngle     1.57
-        groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]
+        groundColor     [ 0.0 0.0 0.0, 0.0 0.3 0.0 ]
     }
 
     Viewpoint {
@@ -40,10 +40,14 @@
         orientation 1 0 0 -1.57
     }
 
-Transform { translation -5 3 0 children [
+DEF OPENTEXT Transform { translation  0 3 -5  children [
 Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}
         geometry Text {
                 string ["Choose a new VRML/X3D" "file with the menu" "New button"]
+		fontStyle FontStyle{
+			justify ["MIDDLE","MIDDLE","MIDDLE"]
+			size 0.5
+		}
         }
 }
 ]}
@@ -68,7 +72,7 @@ Transform {
 
 # Animation clock
         DEF Clock TimeSensor {
-                cycleInterval 4.0
+                cycleInterval 6.0
                 loop TRUE
         },
 
@@ -85,4 +89,5 @@ Transform {
 
 ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
 ROUTE ColumnPath.value_changed TO BOX.set_rotation
+ROUTE ColumnPath.value_changed TO OPENTEXT.set_rotation
 

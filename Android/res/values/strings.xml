@@ -23,7 +23,8 @@
 
 <resources>
     <!-- Simple strings. -->
-    <string name="freewrl_activity">FreeWRL</string>
-
+	<string name="freewrl_activity">FreeWRL</string>
+	<string name="Path">Path</string>
+	<string name="Cancel">Cancel</string>
 </resources>
 

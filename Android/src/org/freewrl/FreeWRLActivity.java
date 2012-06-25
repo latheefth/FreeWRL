@@ -144,54 +144,10 @@ private Process mLogcatProc = null;
 private BufferedReader reader = null;
 private final int BUFFER_SIZE = 1024;
 
-private String readLog() throws IOException{
-Log.w("Logger","started readLog");
-		String returnLogLines = "";
-
-                reader = new BufferedReader(new InputStreamReader(mLogcatProc.getInputStream()),  BUFFER_SIZE);
-
-                String line;
-                //while ( !Thread.currentThread().isInterrupted() && (line = reader.readLine())  != null )
-                while ((line = reader.readLine())  != null )
-                {
-Log.w("Logger","read a line");
-                        if(line.contains("FreeWRL")){
-				returnLogLines = returnLogLines + "\n" + line;
-                        }
-                }
-Log.w("Logger","returning");
-		return returnLogLines;
-    }
-
 private String getXXX() {
-	String retString = "";
- try{
-                mLogcatProc = Runtime.getRuntime().exec(LOGCAT_CMD);
-        }catch( IOException e ){
-                Log.i("LogReader", "Logcat process failed. " + e.getMessage());
-                return "ERROR";
-        }
-
-/* 
-Log.w(TAG,"sleeping here");
-try {Thread.sleep (5000);} catch (InterruptedException f) { }
-Log.w(TAG,"finished sleeping here");
-*/
-        try{
-
-                retString = readLog();
-
-        }catch( IOException e ){
-                Log.i("LogReader", "Logcat process error. " + e.getMessage());
-        }finally{
-
-                if (reader != null){
-                        Log.i("LogReader", "reader.close()");
-                try {
-                        reader.close();
-                }catch(IOException e) {}
-                }
-        }
+Log.w(TAG,"getXXX  - calling androidGetLastMessage");
+	String retString = FreeWRLLib.androidGetLastMessage();
+Log.w(TAG,"getXXX returns: " + retString);
 	return retString;
 }
 
@@ -202,7 +158,8 @@ public boolean onCreateOptionsMenu(Menu menu){
 	menu.add(0,VIEWPOINT_CHANGE,0,"Viewpoint");
 	menu.add(0,LOG_LOOK,0,"Info");
 	//menu.add(0,DISMISS,0,"Dismiss");
-	return true;
+	return super.onCreateOptionsMenu(menu);
+	//return true;
 }
 public boolean onOptionsItemSelected (MenuItem item){
 	Log.w(TAG,"onOptionsItemSelected");
@@ -298,8 +255,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 	// send in the font file descriptor on create.
 	fontAssetSize_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
 	int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.fd,
-		(int) fontAssetSize_01.offset,
-		(int) fontAssetSize_01.length);
+		(int) fontAssetSize_01.offset, fontAssetSize_01.length);
 	
 	Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.length);
 

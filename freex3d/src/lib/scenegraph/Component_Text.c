@@ -556,16 +556,8 @@ int FW_init_face()
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
 #ifdef _ANDROID
-    unsigned char *fontData;
         FT_Open_Args myArgs;
-        //
 
-
-
-/*
-FILE *androidFontFile = NULL;
-int fileLen= -1;
-*/
     if ((fileLen < 0) || (androidFontFile ==NULL)) {
 	ConsoleMessage ("FW_init_face, fileLen and/or androidFontFile issue");
 	return FALSE;

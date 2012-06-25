@@ -134,7 +134,6 @@ APP_OPTIM=debug
 LOCAL_CFLAGS:=-D_ANDROID -O0 -g -ggdb
 
 LOCAL_C_INCLUDES += \
-	$(LOCAL_PATH)/../../jpeg/6b/jpeg/ \
 	$(LOCAL_PATH)/../../cdave1-freetype2-android-006e528/include/ \
 	$(LOCAL_PATH)/../FreeWRL-Android-static/ \
 	$(LOCAL_PATH)/../../freex3d/src/lib/  \
@@ -142,19 +141,15 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/../../libxml2/include/ \ 
 
 
-#	$(LOCAL_PATH)/../../jpeg/6b/jpeg/ \
-
-
 LOCAL_SRC_FILES := $(common_SRC_FILES)
 
 LOCAL_MODULE:= FreeWRL
 
-LOCAL_STATIC_LIBRARIES := xml2 jpeg freetype2-static
+LOCAL_STATIC_LIBRARIES := xml2 freetype2-static
 
 LOCAL_LDLIBS    := -lGLESv2 -lGLESv1_CM -lc -llog
 
 include $(BUILD_SHARED_LIBRARY)
 
 include $(LOCAL_PATH)/../../libxml2/Android.mk \
-	$(LOCAL_PATH)/../../cdave1-freetype2-android-006e528/Android/jni/Android.mk \
-	$(LOCAL_PATH)/../../jpeg/6b/Android.mk
+	$(LOCAL_PATH)/../../cdave1-freetype2-android-006e528/Android/jni/Android.mk 
