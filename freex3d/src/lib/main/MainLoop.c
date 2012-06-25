@@ -676,9 +676,9 @@ void fwl_RenderSceneUpdateScene() {
                 /* for nodes that use an "isOver" eventOut... */
                 if (p->lastOver != p->CursorOverSensitive) {
                         #ifdef VERBOSE
-                        printf ("%lf over changed, lastOver %u cursorOverSensitive %u, butDown1 %d\n",
-				TickTime(), (unsigned int) lastOver, (unsigned int) CursorOverSensitive,
-				ButDown[currentCursor][1]);
+			  printf ("%lf over changed, p->lastOver %u p->cursorOverSensitive %u, p->butDown1 %d\n",
+				TickTime(), (unsigned int) p->lastOver, (unsigned int) p->CursorOverSensitive,
+				p->ButDown[p->currentCursor][1]);
                         #endif
 
                         if (p->ButDown[p->currentCursor][1]==0) {
@@ -698,10 +698,10 @@ void fwl_RenderSceneUpdateScene() {
 
                 }
                 #ifdef VERBOSE
-                if (CursorOverSensitive != NULL) 
+                if (p->CursorOverSensitive != NULL) 
 			printf("COS %d (%s)\n",
-			       (unsigned int) CursorOverSensitive,
-			       stringNodeType(CursorOverSensitive->_nodeType));
+			       (unsigned int) p->CursorOverSensitive,
+			       stringNodeType(p->CursorOverSensitive->_nodeType));
                 #endif /* VERBOSE */
 
                 /* did we have a click of button 1? */
