@@ -118,10 +118,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 	g_jvm = vm;
 	JNIEnv* ioEnv = NULL;
 
-
-	//pGlobal = (ttglobal*)fwl_init_instance();
-
-
 	DROIDDEBUG("------------------FIN ON LOAD-----------------------");
 	return JNI_VERSION_1_6;
 }
@@ -130,7 +126,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 // to a restart - the library will NOT be reloaded, but we MUST re-initialize our code.
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_createInstance(JNIEnv * env, jobject obj)
 {
-	if (pGlobal != NULL) DROIDDEBUG("createInstance, pGlobal != NULL!!");
+	//if (pGlobal != NULL) DROIDDEBUG("createInstance, pGlobal != NULL!!");
+	
+	// never use pGlobal, but...
 	pGlobal = (ttglobal*)fwl_init_instance();
 }
 
@@ -173,6 +171,13 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 	DROIDDEBUG("------------------END INITIAL FILE-----------------------");
 }
 
+/* send in the location for FreeWRL tmp files; eg, for making copies of PROTO expansions and such. */
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setTmpDir(JNIEnv * env, jobject obj, jstring tmpdir) {
+	const char *cFilename = (*env)->GetStringUTFChars(env, tmpdir, NULL);
+	fwl_tmpFileLocation(cFilename);
+	//(*env)->ReleaseStringUTFChars(env, currentFile, cFilename);
+}
+
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_init(JNIEnv * env, jobject obj,  jint width, jint height)
 {
@@ -196,7 +201,7 @@ JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_resourceNameWanted(JNIEnv 
 	return (*env)->NewStringUTF(env,fwg_frontEndWantsFileName());
 }
 
-/* return fileDescriptor, offset and length, and read the file here */
+
 
 
 #define SUCCESS			         			0
@@ -267,7 +272,6 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_nextViewpoint(JNIEnv * env, j
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_doQuitInstance(JNIEnv * env, jobject obj)
 {
     	fwl_Android_doQuitInstance();
-	pGlobal = NULL;
 }
 
 /* reload assets when onSurfaceCreated, but system already loaded */

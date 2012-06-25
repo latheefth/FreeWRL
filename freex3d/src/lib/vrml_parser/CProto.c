@@ -1281,8 +1281,8 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 	int routeSize = 0;
 
 	#define	OPEN_PROTO_EXPAND_FILE_WRITE { \
-		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp")); \
-		sprintf (tempRoutename, "%s",tempnam("/tmp","freewrl_tmp")); \
+		sprintf (tempname, "%s",tempnam(gglobal()->Mainloop.tmpFileLocation,"freewrl_tmp")); \
+		sprintf (tempRoutename, "%s",tempnam(gglobal()->Mainloop.tmpFileLocation,"freewrl_tmp")); \
 		pexfile = fopen (tempname,"w"); \
 		routefile = fopen (tempRoutename,"w"); \
 		if ((pexfile==NULL) ||(routefile==NULL)) {ConsoleMessage ("error opening PROTO temp file for write!"); return "";}}

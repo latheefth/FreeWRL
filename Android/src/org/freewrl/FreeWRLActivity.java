@@ -144,10 +144,9 @@ private Process mLogcatProc = null;
 private BufferedReader reader = null;
 private final int BUFFER_SIZE = 1024;
 
-private String getXXX() {
-Log.w(TAG,"getXXX  - calling androidGetLastMessage");
+private String getLastConsoleMessage() {
 	String retString = FreeWRLLib.androidGetLastMessage();
-Log.w(TAG,"getXXX returns: " + retString);
+Log.w(TAG,"getLastConsoleMessage returns: " + retString);
 	return retString;
 }
 
@@ -207,7 +206,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 			myConsole = new ConsoleLayout(getApplication(),null);
 
 			Log.w(TAG, "3 going to findViewById");
-			myConsole.setConsoleListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getXXX());
+			myConsole.setConsoleListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getLastConsoleMessage());
 
 			// set the background colour - let FreeWRL show through sometimes.
 			myConsole.setBackgroundColor(0xAF000000 );
@@ -258,6 +257,10 @@ public boolean onOptionsItemSelected (MenuItem item){
 		(int) fontAssetSize_01.offset, fontAssetSize_01.length);
 	
 	Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.length);
+
+	// send in the temp file, used by FreeWRL for creating tmp files, what else?
+	Log.w(TAG,"  temp file name is " + getApplicationContext().getCacheDir().getAbsolutePath());
+	FreeWRLLib.setTmpDir(getApplicationContext().getCacheDir().getAbsolutePath());
 
 
 	mView.setLoadNewX3DFile();

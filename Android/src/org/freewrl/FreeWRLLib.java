@@ -46,6 +46,7 @@ public class FreeWRLLib {
 	public static native void doQuitInstance();
 	public static native void createInstance();
 	public static native void replaceWorldNeeded(String newFile);
+	public static native void setTmpDir(String tmpDirectory);
 
 	public static native String androidGetLastMessage();
 }

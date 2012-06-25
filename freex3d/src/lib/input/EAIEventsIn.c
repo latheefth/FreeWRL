@@ -216,7 +216,7 @@ void EAI_parse_commands () {
 			case DUMPSCENE: {
 				int throwAway = 0 ;
 				int sendNameNotFile = 1 ;
-				dumpname = TEMPNAM("/tmp","fwtmp");
+				dumpname = TEMPNAM(gglobal()->Mainloop.tmpFileLocation,"fwtmp");
 				dumpfd = fopen(dumpname,"w+");
 				dump_scene(dumpfd, 0, (struct X3D_Node*) rootNode());
 				fflush(dumpfd) ;
