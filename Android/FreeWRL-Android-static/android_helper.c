@@ -302,8 +302,8 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobje
         fwl_handle_aqua(but,state,x,y);
 }
 
-JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_androidGetLastMessage(JNIEnv *env, jobject obj) {
+JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_androidGetLastMessage(JNIEnv *env, jobject obj, int whichone) {
 	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
-	return (*env)->NewStringUTF(env,android_get_last_message());
+	return (*env)->NewStringUTF(env,android_get_last_message(whichone));
 }
 #endif

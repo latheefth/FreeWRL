@@ -15,6 +15,11 @@
 		android:layout_width="match_parent" 
 		android:layout_height="wrap_content">
 	</TextView>
+	<TextView 
+		android:id="@+id/helpEmail" android:text="@string/HelpEmail"
+		android:layout_width="match_parent" 
+		android:layout_height="wrap_content">
+	</TextView>
 
 	<TextView 
 		android:layout_weight="1.0"

@@ -25,6 +25,7 @@
     <!-- Simple strings. -->
 	<string name="freewrl_activity">FreeWRL</string>
 	<string name="Path">Path</string>
+	<string name="HelpEmail">contact email: ivatt260@gmail.com</string>
 	<string name="Cancel">Cancel</string>
 </resources>
 
