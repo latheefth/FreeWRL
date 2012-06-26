@@ -166,19 +166,22 @@ NSString *net_url = nil;
         //NSLog (@"URL: have error here");
         
         // tell front end that things failed
-        fwg_frontEndReturningData(NULL,0);
+	// void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+        fwg_frontEndReturningData(NULL,0,0,0,false); 
         
     }else {
         // what is the status code? if it is 404, we have an error...
         if (_statusCode == 404) {
             //NSLog (@"URL: 404 ");
-            fwg_frontEndReturningData(NULL,0);
+	    // void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+            fwg_frontEndReturningData(NULL,0,0,0,false);
             
         } else {
             //NSLog (@"URL: good download, here's the data");
             
             if (cStringLen != 0) {
-                fwg_frontEndReturningData((unsigned char*)cString, cStringLen);
+	        // void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+                fwg_frontEndReturningData((unsigned char*)cString, cStringLen,0,0,false);
                 if (cString != NULL)
                     free (cString);
             } else {
@@ -190,7 +193,8 @@ NSString *net_url = nil;
                 
                 //printf ("URL: mydata %s\n",myData);
         
-                fwg_frontEndReturningData((unsigned char*)myData,len);
+	        // void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+                fwg_frontEndReturningData((unsigned char*)myData,len,0,0,false);
         
                 free (myData);
             }

@@ -21,15 +21,6 @@
 #define MotionNotify    6
 #define MapNotify       19
 
-// these should be included from the static library.
-//void fwl_initializeRenderSceneUpdateScene(void);
-//char *frontEndWantsFileName(void);
-//int fv_display_initialize(void);
-//void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
-//void fwl_setButDown(int button, int value);
-//void fwl_setOrientation(int);
-
-
 NSString *initialURL = nil;
 UITextField *urlFieldText = nil;
 UIButton *Recent1Text = nil;
@@ -293,7 +284,8 @@ NSMutableData *receivedData;
     [StatusBar setText:@"URL Invalid"];
     
     // send in a blank world so that the quit button works
-    fwg_frontEndReturningData((unsigned char*)MYSTRING, strlen(MYSTRING));
+    //void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+    fwg_frontEndReturningData((unsigned char*)MYSTRING, strlen(MYSTRING),0,0,false);
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -319,7 +311,8 @@ NSMutableData *receivedData;
     // save this as the most recent one, if it is different
     [RecentItems setMostRecent:initialURL];
     
-    fwg_frontEndReturningData((unsigned char*)myData,len);
+    //void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
+    fwg_frontEndReturningData((unsigned char*)myData,len,0,0,false);
 
     free (myData);
     frontEndGettingFile = false;

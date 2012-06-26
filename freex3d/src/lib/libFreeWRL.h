@@ -280,7 +280,6 @@ void fwl_resource_push_single_request(const char *request);
 void fwl_OSX_initializeParameters(const char* initialURL);
 void fwl_resource_push_single_request_IE_main_scene(const char *request);
 
-//void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
 void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
 
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);

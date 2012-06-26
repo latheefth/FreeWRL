@@ -429,8 +429,7 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 
 #else
 char *fwg_frontEndWantsFileName() {return NULL;}
-void fwg_frontEndReturningData(unsigned char *dataPointer, int len) {}
-/*OLDCODE void fwg_frontEndReturningLocalFile(char *localfile, int iret) {}*/
+void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha) {}
 #endif
 
 

@@ -28,7 +28,6 @@
 #ifndef __LIBFREEWRL_IO_FILES_H__
 #define __LIBFREEWRL_IO_FILES_H__
 
-//void fwg_frontEndReturningData(unsigned char *dataPointer, int len);
 void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int height,bool hasAlpha);
 void fwg_frontEndReturningLocalFile(char *localfile, int iret);
 
