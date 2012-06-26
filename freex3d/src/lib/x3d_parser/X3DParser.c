@@ -1745,7 +1745,7 @@ static void XMLCALL X3DstartElement(void *unused, const xmlChar *iname, const xm
 
 	if(atts)
 		for (i = 0; atts[i]; i += 2) {
-			atts[i+1] = fixAmp(atts[i+1]);
+			atts[i+1] = fixAmp((char *)atts[i+1]);
 		}
 	
 	/* are we storing a PROTO body?? */
