@@ -120,9 +120,7 @@ common_SRC_FILES:=../../freex3d/src/lib/vrml_parser/CProto.c \
 	../../freex3d/src/libtess/render.c \
 	../../freex3d/src/libtess/sweep.c \
 	../../freex3d/src/libtess/tess.c \
-	../../freex3d/src/libtess/tessmono.c \
-	../FreeWRL-Android-static/android_unresolved.c \
-	../FreeWRL-Android-static/android_version.c	
+	../../freex3d/src/libtess/tessmono.c 
 
 # For the device
 # =====================================================

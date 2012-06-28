@@ -1,7 +1,6 @@
 #! /bin/sh
 
 echo "updating FreeWRLVersion.java"
-echo "updating FreeWRLVersion.java"
 VERSION_VALUE=`cat ../freex3d/versions/FREEWRL`
 VERSION_DATE=`date "+%Y-%m-%d:%H:%M:%S"`
 echo $VERSION_VALUE
