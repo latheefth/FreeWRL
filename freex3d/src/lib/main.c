@@ -282,7 +282,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 #if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
 	if (fwl_getp_eai()) {
-		fwl_create_EAI();
+		fwlio_RxTx_control(CHANNEL_EAI, RxTx_START);
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 
 	}

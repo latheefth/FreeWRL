@@ -679,7 +679,6 @@ void removeFilenameFromPath (char *path);
 int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
 void EAI_Route(char cmnd, const char *tf);
 
-void handle_EAI(void);
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 #define overMark        23425

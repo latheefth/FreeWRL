@@ -3699,7 +3699,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
-	       	shutdown_EAI();
+	       	/* shutdown_EAI(); */
+		fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
 	}
 	#endif //EXCLUDE_EAI
 
@@ -3801,7 +3802,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 	/* free EAI */
 	if (kill_EAI) {
-	       	shutdown_EAI();
+	       	/* shutdown_EAI(); */
+		fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
 	}
 
 	#ifndef AQUA
