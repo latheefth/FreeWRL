@@ -891,7 +891,7 @@ void _textureThread()
 	actions.sa_flags = 0; 
 	actions.sa_handler = Texture_thread_exit_handler;
 	rc = sigaction(SIGUSR2,&actions,NULL);
-ConsoleMessage ("for textureThread, have defined exit handler");
+	//ConsoleMessage ("for textureThread, have defined exit handler");
 	#endif //HAVE_PTHREAD_CANCEL
 
 	{

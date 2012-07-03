@@ -813,7 +813,7 @@ void _inputParseThread(void)
         actions.sa_flags = 0;
         actions.sa_handler = Parser_thread_exit_handler;
         rc = sigaction(SIGUSR2,&actions,NULL);
-ConsoleMessage ("for parserThread, have defined exit handler");
+	// ConsoleMessage ("for parserThread, have defined exit handler");
         #endif //HAVE_PTHREAD_CANCEL
 
 	{
