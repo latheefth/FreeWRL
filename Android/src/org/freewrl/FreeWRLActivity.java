@@ -111,9 +111,8 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	//File Click
 	public void OnFileClicked(File file) {
 
-		Log.w(TAG,"OnFileClicked - file " + file);
-Log.w(TAG,"trying to load a new file here no matter what user does");
-mView.setPossibleNewFileName(""+file);
+		//Log.w(TAG,"OnFileClicked - file " + file);
+		mView.setPossibleNewFileName(""+file);
 
 		new AlertDialog.Builder(this)
 		.setIcon(R.drawable.icon)
@@ -157,7 +156,7 @@ private String getLastConsoleMessages() {
 
 public boolean onCreateOptionsMenu(Menu menu){
 
-	Log.w(TAG,"onCreateOptionsMenu");
+	//Log.w(TAG,"onCreateOptionsMenu");
 	menu.add(0,NEW_WORLD,0,"New");
 	menu.add(0,VIEWPOINT_CHANGE,0,"Viewpoint");
 	menu.add(0,LOG_LOOK,0,"Info");
@@ -166,7 +165,7 @@ public boolean onCreateOptionsMenu(Menu menu){
 	//return true;
 }
 public boolean onOptionsItemSelected (MenuItem item){
-	Log.w(TAG,"onOptionsItemSelected");
+	//Log.w(TAG,"onOptionsItemSelected");
 	switch (item.getItemId()){
 	
 		case NEW_WORLD: {
@@ -194,7 +193,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 		}
 	
 		case VIEWPOINT_CHANGE : {
-			Log.w(TAG,"VIEWPOINT_CHANGE");
+			//Log.w(TAG,"VIEWPOINT_CHANGE");
 			/* Actions in case that Delete Contact is pressed */
 			FreeWRLLib.nextViewpoint();
 			break;
@@ -210,7 +209,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 			if (myConsole != null) myConsole.setVisibility(View.GONE);
 			myConsole = new ConsoleLayout(getApplication(),null);
 
-			Log.w(TAG, "3 going to findViewById");
+			//Log.w(TAG, "3 going to findViewById");
 			myConsole.setConsoleListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getLastConsoleMessages());
 
 			// set the background colour - let FreeWRL show through sometimes.
@@ -237,7 +236,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 
     @Override protected void onCreate(Bundle icicle) {
-	Log.w(TAG,"onCreate");
+	//Log.w(TAG,"onCreate");
         super.onCreate(icicle);
         mView = new FreeWRLView(getApplication());
 
@@ -252,7 +251,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 	// send in font directory pointers.
 	if (fontAsset_01 == null) {
-		Log.w(TAG,"creating font assets");
+		//Log.w(TAG,"creating font assets");
 		fontAsset_01 = new FreeWRLAssets();
 	}
 
@@ -261,32 +260,15 @@ public boolean onOptionsItemSelected (MenuItem item){
 	int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.fd,
 		(int) fontAssetSize_01.offset, fontAssetSize_01.length);
 	
-	Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.length);
+	//Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.length);
 
 	// send in the temp file, used by FreeWRL for creating tmp files, what else?
-	Log.w(TAG,"  temp file name is " + getApplicationContext().getCacheDir().getAbsolutePath());
 	FreeWRLLib.setTmpDir(getApplicationContext().getCacheDir().getAbsolutePath());
 
 
 	mView.setLoadNewX3DFile();
 
-	Log.w(TAG, "onCreate - lets do some lookin");
-
-
-	String apkFilePath = null;
-	ApplicationInfo appInfo = null;
-	PackageManager packMgmr = this.getPackageManager();
-	try {
-	        appInfo = packMgmr.getApplicationInfo("org.freewrl", 0);
-	} catch (NameNotFoundException e) {
- 		e.printStackTrace();
-		throw new RuntimeException("Unable to locate assets, aborting...");
-	}
-	apkFilePath = appInfo.sourceDir;
-
-	Log.w(TAG,"++++++++++++++++++++Activity:  apkFilePath is " + apkFilePath);
-
-	Log.w(TAG,"starting timer task");
+	//Log.w(TAG,"starting timer task");
 	myTimer = new Timer();
 	myTimer.schedule(new TimerTask() {
 		@Override
@@ -301,35 +283,35 @@ public boolean onOptionsItemSelected (MenuItem item){
 
 
     @Override protected void onRestart() {
-	Log.w (TAG,"onRestart");
+	//Log.w (TAG,"onRestart");
         super.onRestart();
     }
 
     @Override protected void onStop() {
-	Log.w (TAG,"onStop");
+	//Log.w (TAG,"onStop");
         super.onStop();
     }
 
     @Override protected void onStart() {
-	Log.w (TAG,"onStart");
+	//Log.w (TAG,"onStart");
         super.onStart();
     }
 
     @Override protected void onDestroy() {
-	Log.w (TAG,"onDestroy");
+	//Log.w (TAG,"onDestroy");
         super.onDestroy();
 	FreeWRLLib.doQuitInstance();
-	Log.w (TAG,"FreeWRL onDestroyed");
+	//Log.w (TAG,"FreeWRL onDestroyed");
     }
 
     @Override protected void onPause() {
-	Log.w (TAG,"onPause");
+	//Log.w (TAG,"onPause");
         super.onPause();
         mView.onPause();
     }
 
     @Override protected void onResume() {
-	Log.w (TAG,"onResume");
+	//Log.w (TAG,"onResume");
         super.onResume();
         mView.onResume();
     }

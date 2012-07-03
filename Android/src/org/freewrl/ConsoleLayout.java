@@ -75,10 +75,6 @@ import android.widget.Button;
 		newConsoleView.setVisibility(View.GONE);
              }
          });
-
-        Log.w(TAG, "Constructed");
-        //setList(root, lstView);
-
     }
 
     //Set Directory for view at anytime

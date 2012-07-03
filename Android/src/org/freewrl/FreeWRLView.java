@@ -139,7 +139,7 @@ class FreeWRLView extends GLSurfaceView {
     }
 
     private void init(boolean translucent, int depth, int stencil) {
-	Log.w(TAG, "----------------- init method called");
+	//Log.w(TAG, "----------------- init method called");
         /* By default, GLSurfaceView() creates a RGB_565 opaque surface.
          * If we want a translucent one, we should change the surface's
          * format here, using PixelFormat.TRANSLUCENT for GL Surfaces
@@ -170,7 +170,7 @@ class FreeWRLView extends GLSurfaceView {
     private static class ContextFactory implements GLSurfaceView.EGLContextFactory {
         private static int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
         public EGLContext createContext(EGL10 egl, EGLDisplay display, EGLConfig eglConfig) {
-            Log.w(TAG, "creating OpenGL ES 2.0 context");
+            //Log.w(TAG, "creating OpenGL ES 2.0 context");
             checkEglError("Before eglCreateContext", egl);
             int[] attrib_list = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL10.EGL_NONE };
             EGLContext context = egl.eglCreateContext(display, eglConfig, EGL10.EGL_NO_CONTEXT, attrib_list);
@@ -179,7 +179,7 @@ class FreeWRLView extends GLSurfaceView {
         }
 
         public void destroyContext(EGL10 egl, EGLDisplay display, EGLContext context) {
-		Log.w(TAG,"destroyContext called");
+		//Log.w(TAG,"destroyContext called");
 		egl.eglDestroyContext(display, context);
 		reloadAssetsRequired = true;
         }
@@ -196,7 +196,7 @@ class FreeWRLView extends GLSurfaceView {
 	//stable, so we just store the file name here.
 	public void setPossibleNewFileName(String fn) {
 		possibleNewX3DFile = fn;
-		Log.w(TAG,"setNewFileName - setting file name to " + fn);
+		//Log.w(TAG,"setNewFileName - setting file name to " + fn);
 	}
 
 	public void discardPossibleNewFileName() {
@@ -541,7 +541,7 @@ private static class ConfigChooser implements GLSurfaceView.EGLConfigChooser {
                 int attribute = attributes[i];
                 String name = names[i];
                 if ( egl.eglGetConfigAttrib(display, config, attribute, value)) {
-                    Log.w(TAG, String.format("  %s: %d\n", name, value[0]));
+                    //Log.w(TAG, String.format("  %s: %d\n", name, value[0]));
                 } else {
                     // Log.w(TAG, String.format("  %s: failed\n", name));
                     while (egl.eglGetError() != EGL10.EGL_SUCCESS);
@@ -573,13 +573,13 @@ private static class Renderer implements GLSurfaceView.Renderer {
 	public void onDrawFrame(GL10 gl) {
 		// do the draw
 		if (loadNewX3DFile) {
-			Log.w(TAG,"onDrawFrame, new file");
+			//Log.w(TAG,"onDrawFrame, new file");
 			loadNewX3DFile = false;
 			FreeWRLLib.initialFile(myNewX3DFile);
 		}
 
 		if (reloadAssetsRequired) {
-			Log.w(TAG,"onDrawFrame, reloadAssets required");
+			//Log.w(TAG,"onDrawFrame, reloadAssets required");
 			FreeWRLLib.reloadAssets();
 			reloadAssetsRequired = false;
 		}
@@ -592,7 +592,7 @@ private static class Renderer implements GLSurfaceView.Renderer {
         }
 
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		Log.w(TAG, "--------------onSurfaceCreated");
+		//Log.w(TAG, "--------------onSurfaceCreated");
         }
 } // end of class Renderer
 }

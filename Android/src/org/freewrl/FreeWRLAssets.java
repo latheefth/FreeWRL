@@ -69,7 +69,7 @@ public class FreeWRLAssets {
 
 		// Step 1 - is this in the FreeWRL Assets folder??
 		try {
-			Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
+			//Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
 			//Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
 	
 			AssetFileDescriptor ad = null;
@@ -107,7 +107,7 @@ public class FreeWRLAssets {
 	
 		// Step 2 - if not an Asset in the FreeWRL Apk, try the exact path
 	
-		Log.w(TAG,"openAsset: Obviously NOT in the applications asset area");
+		//Log.w(TAG,"openAsset: Obviously NOT in the applications asset area");
 		InputStream in = null;
 		try {
 			in = new BufferedInputStream(new FileInputStream(path));

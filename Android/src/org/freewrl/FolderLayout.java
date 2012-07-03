@@ -84,7 +84,6 @@ import android.widget.Button;
              }
          });
 
-        Log.w(TAG, "Constructed");
         getDir(root, lstView);
 
     }

@@ -103,6 +103,7 @@ void fileLoadThread(void* param) {
 
 void DROIDDEBUG( const char*pFmtStr, ...)
 {
+#ifdef DEBUG
 	static char zLog[500];
 	
 	va_list mrk;
@@ -110,6 +111,7 @@ void DROIDDEBUG( const char*pFmtStr, ...)
 	vsprintf(zLog,pFmtStr, mrk);
 	va_end(mrk);
 	__android_log_print(ANDROID_LOG_INFO,LOG_TAG,zLog);
+#endif //DEBUG
 }
 
 JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )

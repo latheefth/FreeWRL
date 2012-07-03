@@ -57,7 +57,7 @@ FreeWRLAssetData myAssetSize;
 
 		myAsset = new FreeWRLAssets();
 
-		Log.w(TAG,"now, RESOURCE Wanted name is " + myName);
+		//Log.w(TAG,"now, RESOURCE Wanted name is " + myName);
 
 		myAssetSize = myAsset.openAsset(myContext,myName);
 
@@ -75,7 +75,7 @@ FreeWRLAssetData myAssetSize;
 
 	@Override
 	protected void onPostExecute(String result) {
-		Log.w(TAG, "FreeWRLAssetGetter onPostExecute done - string "+ result);
+		//Log.w(TAG, "FreeWRLAssetGetter onPostExecute done - string "+ result);
 		FreeWRLActivity.currentlyGettingResource=false;
 
 	}

@@ -78,12 +78,12 @@ public class FreeWRLAssetData {
 			
 			// do we have a valid input stream, that is NOT a bitmap?
 			if (mybitmap == null) {
-				Log.w(TAG,"Most likely a text file  - myStream" + myStream);
+				//Log.w(TAG,"Most likely a text file  - myStream" + myStream);
 	
 				
 				try {
 					InputStreamReader irs = new InputStreamReader(myStream);
-if (irs.ready()) Log.w(TAG,"InputStreamReader ready to go"); else Log.w(TAG,"InputStreamReader NOT ready");
+					//if (irs.ready()) Log.w(TAG,"InputStreamReader ready to go"); else Log.w(TAG,"InputStreamReader NOT ready");
 
 					StringBuilder mycharstring = new StringBuilder();
 					Reader in = new BufferedReader(irs);
@@ -94,17 +94,17 @@ if (irs.ready()) Log.w(TAG,"InputStreamReader ready to go"); else Log.w(TAG,"Inp
 					}
 					in.close();
 					irs.close();
-					Log.w(TAG,"Text actual length " + mycharstring.length() + " input length was " + len);
+					//Log.w(TAG,"Text actual length " + mycharstring.length() + " input length was " + len);
 	
 					// convert this to a char array for us to send to FreeWRL
 					try {
 						String mys = new String(mycharstring);
 						myBytes = mys.getBytes();
 					} catch (NullPointerException e) {
-						Log.w(TAG,"String ops" + e);
+						//Log.w(TAG,"String ops" + e);
 					}
 				} catch (IOException e) {
-					Log.w(TAG,"io exception on read of text string: " + e);
+					//Log.w(TAG,"io exception on read of text string: " + e);
 					length = 0;
 				}
 			} else {
