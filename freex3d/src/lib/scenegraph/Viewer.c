@@ -2522,14 +2522,10 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 
 // Android - we are loading in a new file while keeping the system sane.
 void Android_reset_viewer_to_defaults() {
-	ConsoleMessage("********** Android_reset_viewer_to_defaults");
+	//ConsoleMessage("********** Android_reset_viewer_to_defaults");
         // reset the viewer to initial mode.
         ppViewer p = (ppViewer)gglobal()->Viewer.prv;
         p->viewer_initialized = FALSE;
-
-	{char me[200]; sprintf(me,"Viewer.prv %p",gglobal()->Viewer.prv); ConsoleMessage(me);}
-	if (p->viewer_initialized) ConsoleMessage("VIEWER INIT TRUE"); else ConsoleMessage("VIEWER INIT FALSE");
-
 
 	viewer_default();
 	p->Viewer.SLERPing2 = FALSE;

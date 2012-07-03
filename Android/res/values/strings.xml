@@ -26,6 +26,6 @@
 	<string name="freewrl_activity">FreeWRL</string>
 	<string name="Path">Path</string>
 	<string name="HelpEmail"></string>
-	<string name="Cancel">Cancel</string>
+	<string name="Cancel">Dismiss</string>
 </resources>
 

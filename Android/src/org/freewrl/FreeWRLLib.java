@@ -49,4 +49,5 @@ public class FreeWRLLib {
 	public static native void setTmpDir(String tmpDirectory);
 
 	public static native String androidGetLastMessage(int whichone);
+	public static native int androidGetUnreadMessageCount();
 }

@@ -241,7 +241,7 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		}
 
 	default:
-		ConsoleMessage("send_bind_to, cant send a set_bind to %s !!\n",stringNodeType(node->_nodeType));
+		ConsoleMessage("send_bind_to, cant send a set_bind to %s %p!!\n",stringNodeType(node->_nodeType),node);
 	}
 }
 

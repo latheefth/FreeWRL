@@ -164,6 +164,25 @@ public boolean onCreateOptionsMenu(Menu menu){
 	return super.onCreateOptionsMenu(menu);
 	//return true;
 }
+
+// throw the console on the screen - either the user wanted it, or we have an error
+private void displayConsole() {
+	Context origContext = getApplication();
+
+	// remove an older one, if it exists.
+	if (myConsole != null) myConsole.setVisibility(View.GONE);
+	myConsole = new ConsoleLayout(getApplication(),null);
+
+	myConsole.setConsoleListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getLastConsoleMessages());
+
+	// set the background colour - let FreeWRL show through sometimes.
+	myConsole.setBackgroundColor(0xAF000000 );
+
+	// display it
+	getWindow().addContentView(myConsole, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
+}
+
+// user hit the menu button - display our main selections.
 public boolean onOptionsItemSelected (MenuItem item){
 	//Log.w(TAG,"onOptionsItemSelected");
 	switch (item.getItemId()){
@@ -200,24 +219,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 		}
 
 		case LOG_LOOK : {
-			Context origContext = getApplication();
-
-			/* Actions in case that Edid Contacts is pressed */
-			//Log.w(TAG,"LOG_LOOK");
-			// File Dialog 2
-			// remove an older one, if it exists.
-			if (myConsole != null) myConsole.setVisibility(View.GONE);
-			myConsole = new ConsoleLayout(getApplication(),null);
-
-			//Log.w(TAG, "3 going to findViewById");
-			myConsole.setConsoleListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getLastConsoleMessages());
-
-			// set the background colour - let FreeWRL show through sometimes.
-			myConsole.setBackgroundColor(0xAF000000 );
-
-			// display it
-			getWindow().addContentView(myConsole, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
-
+			displayConsole();
 			break;
 
 		}
@@ -353,6 +355,11 @@ public boolean onOptionsItemSelected (MenuItem item){
 				// execute the task, and then the ending of the task will 
 				// set the currentlyGettingResource to false.
 				task.execute (new String (FreeWRLLib.resourceNameWanted()));
+			}
+
+			// Do we have any console messages not shown? 
+			if (FreeWRLLib.androidGetUnreadMessageCount() > 0) {
+				displayConsole();
 			}
 
 		}
