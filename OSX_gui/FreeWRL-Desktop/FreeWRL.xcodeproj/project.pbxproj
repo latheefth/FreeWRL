@@ -1153,8 +1153,8 @@
 				"HEADER_SEARCH_PATHS[arch=*]" = (
 					/usr/X11/include/freetype2,
 					/usr/X11/include,
-					"/Users/john/Desktop/Android-tests-current/freewrl/freex3d/src/lib",
-					"~john/Desktop/Android-tests-current/freewrl/freewrl/JS/js1.8/src/**",
+					../../freex3d/src/lib,
+					"../../freewrl/JS/js1.8/src/**",
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "FreeWRL/FreeWRL-Info.plist";
