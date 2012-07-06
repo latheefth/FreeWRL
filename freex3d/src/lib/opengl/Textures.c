@@ -758,7 +758,7 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         
         if (node->function.n>count) {
             param = node->function.p[count]->strptr;
-            paramPtr->multitex_source = findFieldInMULTITEXTUREFUNCTION(param);
+            paramPtr->multitex_function = findFieldInMULTITEXTUREFUNCTION(param);
         }
 
 printf ("compile_MultiTexture, %d of %d, string %s mode %d function %d\n",count,max,param,paramPtr->multitex_mode,paramPtr->multitex_function);
