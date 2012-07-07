@@ -31,6 +31,15 @@ Screen snapshot.
 #define __FREEWRL_OPENGL_UTILS_H__
 
 
+/* Ian moved this from iglobal.h so that OpenGL_Utils.c could use it
+ * since OpenGL_Utils.c cannot #include <iglobal.h> due to recursion */
+struct multiTexParams {
+    int multitex_mode;
+    int multitex_source;
+    int multitex_function;
+};
+
+
 void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void end_textureTransform (void);
 void markForDispose(struct X3D_Node *node, int recursive);
@@ -93,5 +102,8 @@ void fw_gluUnProject( GLDOUBLE winX,
 void fw_gluPickMatrix(GLDOUBLE x, GLDOUBLE y, GLDOUBLE deltax, GLDOUBLE deltay,
                   GLint viewport[4]);
 
+#ifndef SHADERS_2011
+void doNonShaderTextureHandlingWithMultiTexParams(struct multiTexParams *params);
+#endif
 
 #endif /* __FREEWRL_OPENGL_UTILS_H__ */
