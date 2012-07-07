@@ -434,6 +434,18 @@ void child_Appearance (struct X3D_Appearance *node) {
 printf ("child_Appearance called\n");
 }
 
+void compile_Material (struct X3D_Appearance *node) {
+printf ("compile_Material called\n");
+}
+
+void compile_TwoSidedMaterial (struct X3D_Appearance *node) {
+printf ("compile_TwoSidedMaterial called\n");
+}
+
+void render_TwoSidedMaterial (struct X3D_Appearance *node) {
+printf ("render_TwoSidedMaterial called\n");
+}
+
 #else //SHADERS_2011
 
 static void shaderErrorLog(GLuint myShader, char *which) {
