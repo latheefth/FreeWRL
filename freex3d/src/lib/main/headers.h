@@ -398,17 +398,6 @@ unsigned int setField_FromEAI (char *ptr);
                >NORMAL_VECTOR_LENGTH_TOLERANCE \
 )
 
-/* from VRMLC.pm */
-//extern int sound_from_audioclip;
-extern int global_lineProperties;
-extern int global_fillProperties;
-//extern float gl_linewidth;
-//extern int soundWarned;
-//extern int cur_hits;
-//extern struct point_XYZ hyper_r1,hyper_r2;
-
-extern struct X3D_Text *lastTextNode;
-
 /* defines for raycasting: */
 #define XEQ (APPROX(t_r1.x,t_r2.x))
 #define YEQ (APPROX(t_r1.y,t_r2.y))

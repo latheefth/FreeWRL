@@ -59,7 +59,6 @@ Functions:
 	#ifndef GLchar
 		#define GLchar GLbyte
 	#endif
-#define GL_BGRA  0x8765 /*random unlikely number so it never matches*/
 #undef HAVE_LIBGLEW
 #undef GLEW
 #undef GLEW_MX
