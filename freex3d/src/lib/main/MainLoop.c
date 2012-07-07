@@ -2104,7 +2104,7 @@ void fwl_set_KeyString(const char* kstring)
    console. */
 void outOfMemory(const char *msg) {
         ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
-                        "and is exiting.\nPlease email this file to freewrl-09@rogers.com\n -- %s--",msg);
+                        "and is exiting. -- %s--",msg);
         usleep(10 * 1000);
         exit(EXIT_FAILURE);
 }

@@ -211,7 +211,7 @@ void fv_catch_SIGSEGV()
 {
     if (!CaughtSEGV) {
 
-        fwl_StringConsoleMessage("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-09@rogers.com with a valid subject line. Thanks.\n");
+        fwl_StringConsoleMessage("FreeWRL got a SIGSEGV - please feel free to report this - http://freewrl.sf.net.\n");
 	CaughtSEGV = TRUE;
     }
     exit(1);

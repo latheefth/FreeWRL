@@ -61,12 +61,8 @@
 #define ABOUT_FREEWRL "FreeWRL Version %s\n \
 %s %s.\n \n \
 FreeWRL is a VRML/X3D Browser for OS X and Unix.\n \n \
-FreeWRL is maintained by:\nJohn A. Stewart and Sarah J. Dumoulin.\n \n \
-Contact: freewrl-09@rogers.com\n \
-Telephone: +1 613-998-2079\nhttp://www.crc.ca/FreeWRL\n \n \
 Thanks to the Open Source community for all the help received.\n \
-Communications Research Centre\n \
-Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
+http://freewrl.sf.net"
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
