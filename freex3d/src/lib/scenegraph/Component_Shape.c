@@ -200,7 +200,7 @@ void render_Material (struct X3D_Material *node) {
 	}
 }
 
-
+#ifdef SHADERS_2011
 /* bounds check the material node fields */
 void compile_Material (struct X3D_Material *node) {
 	int i;
@@ -277,7 +277,7 @@ void compile_Material (struct X3D_Material *node) {
 	MARK_NODE_COMPILED
 }
 
-
+#endif //SHADERS_2011
 
 
 #ifdef SHADERS_2011

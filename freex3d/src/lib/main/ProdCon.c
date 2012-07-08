@@ -895,11 +895,11 @@ char me[200];
 
 
 void kill_bindables (void) {
+	int i;
 	ppProdCon p;
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
 
-	int i;
 
 	KILL_BINDABLE(t->viewpointNodes);
 	KILL_BINDABLE(p->backgroundNodes);

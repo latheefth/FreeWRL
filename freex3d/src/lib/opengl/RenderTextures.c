@@ -164,7 +164,9 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
 		if (tg->RenderTextures.textureParameterStack[c].multitex_source != MTMODE_OFF) {
 #ifndef SHADERS_2011
+#ifndef _MSC_VER
 			doNonShaderTextureHandlingWithMultiTexParams(&(tg->RenderTextures.textureParameterStack[c]));
+#endif
 #endif
 		} else {
 			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
