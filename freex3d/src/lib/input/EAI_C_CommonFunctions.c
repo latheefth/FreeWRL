@@ -306,7 +306,13 @@ void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, indexT c
 	      - that we are using X3D formatted field strings, NOT "VRML" ones;
 	      - that the destination node is not important (the NULL, offset 0) */
 
-	if (parser == NULL) parser=newParser(NULL, 0, TRUE);
+	if (parser == NULL) {
+		parser=newParser(NULL, 0, TRUE);
+		//ConsoleMessage ("Parser_ScanStringValueToMem, new parser created");
+		// save it
+		((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser = parser;
+	}
+
 	lexer_forceStringCleanup(parser->lexer);
 
 	/* October 20, 2009; XML parsing should not go through here; XML encoded X3D should not have a "value=" field, but

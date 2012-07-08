@@ -471,9 +471,9 @@ char *android_get_last_message(int whichOne) {
 	whm = p->androidFreeSlot - whichOne;
 	if (whm < 0) whm = MAX_ANDROID_CONSOLE_MESSAGE_SLOTS-1;
 
-	if (p->androidMessageSlot[whm] == NULL) return "";
+	if (p->androidMessageSlot[whm] == NULL) return strdup("");
 
-	return p->androidMessageSlot[whm];
+	return strdup(p->androidMessageSlot[whm]);
 }
 
 #endif //ANDROID
