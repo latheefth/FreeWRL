@@ -2516,7 +2516,11 @@ void fwl_Android_replaceWorldNeeded() {
 
 	Android_reset_viewer_to_defaults();
         struct tProdCon *t = &gglobal()->ProdCon;
-        send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
+	// if we have a bound vp; if the old world did not have a vp, there will be nothing to send_bind_to
+	if (vectorSize(t->viewpointNodes) > t->currboundvpno) {
+		send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
+	}
+
 
 	/* mark all rootNode children for Dispose */
 	for (i=0; i<rootNode()->children.n; i++) {
