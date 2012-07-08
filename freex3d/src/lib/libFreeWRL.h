@@ -316,6 +316,11 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 /* JAS - moving OSX front end into 2011 code workings - these may change. */
 void fwl_replaceWorldNeeded(char* str);
+int fwl_pollPromptForURL(); /* poll from front end / UI in loop */
+int fwl_pollPromptForFile();
+void fwl_setPromptForURL(int state);
+void fwl_setPromptForFile(int state);
+
 char *fwg_frontEndWantsFileName(void);
 int fv_display_initialize(void);
 void fwl_initializeRenderSceneUpdateScene(void);

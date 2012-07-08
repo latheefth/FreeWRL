@@ -46,6 +46,8 @@ typedef struct pcommon{
         char messagebar[MAXSTAT];
         char window_title[MAXTITLE];
         int cursorStyle;
+		int promptForURL;
+		int promptForFile;
 }* ppcommon;
 
 /* Status update functions */
