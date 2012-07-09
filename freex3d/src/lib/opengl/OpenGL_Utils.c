@@ -1509,7 +1509,7 @@ static void getGenericShader(shader_type_t whichOne) {
    ...still need to figure out where this function would be called from, though...
    ...maybe in setActiveTexture, same as it used to??
  */
-void doNonShaderTextureHandlingWithMultiTextParams(struct multiTexParams *param) {
+void doNonShaderTextureHandlingWithMultiTexParams(struct multiTexParams *param) {
 	GLint texture_env_mode = GL_MODULATE;
 	GLint combine_rgb = GL_MODULATE;
 	GLint source0_rgb = GL_TEXTURE;
