@@ -23,10 +23,10 @@ ant debug
 /Users/johns/Desktop/Android-tests-current/android_tools/android-sdk-macosx/tools/lint .
 
 echo
-echo "installing on Iconia A500"
-adb -s 388924841bf5497 install -r ./bin/FreeWRL-debug-unaligned.apk
-echo "installing on Nexus S"
-adb -s 313000C1ED5500EC install -r ./bin/FreeWRL-debug-unaligned.apk
+#echo "installing on Iconia A500"
+#adb -s 388924841bf5497 install -r ./bin/FreeWRL-debug-unaligned.apk
+#echo "installing on Nexus S"
+#adb -s 313000C1ED5500EC install -r ./bin/FreeWRL-debug-unaligned.apk
 
 echo "trying emulator"
 adb install -r ./bin/FreeWRL-debug-unaligned.apk
