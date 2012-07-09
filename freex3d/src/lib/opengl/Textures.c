@@ -438,6 +438,8 @@ void registerTexture(struct X3D_Node *tmp) {
 
 		// new texture table entry 
 		textureTableIndexStruct_s * newTexture = MALLOC (textureTableIndexStruct_s *,sizeof (textureTableIndexStruct_s));
+		/* zero the filename so we don't attempt to read dirty data */
+		newTexture->filename = NULL;
 
 		ppTextures p = (ppTextures)gglobal()->Textures.prv;
 
