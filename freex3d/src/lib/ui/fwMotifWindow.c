@@ -40,7 +40,7 @@
 #include "../main/MainLoop.h"
 #include "../vrml_parser/Structs.h"
 #include "../opengl/OpenGL_Utils.h"
-
+#include "../scenegraph/Viewer.h"
 #include "../ui/common.h"
 
 #include <Xm/MainW.h>
@@ -459,7 +459,8 @@ void fv_Headlight (Widget w, XtPointer data, XtPointer callData)
 
 void fv_Collision (Widget w, XtPointer data, XtPointer callData)
 {
-    fwl_setp_collision(!fwl_getp_collision());
+/*    fwl_setp_collision(!fwl_getp_collision());*/
+    toggle_collision();
 }
 
 void fv_ViewpointStraighten (Widget w, XtPointer data, XtPointer callData)
