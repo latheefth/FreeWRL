@@ -133,7 +133,6 @@ void fwl_setPromptForFile(int state)
 	p->promptForFile = state; //1 or 0
 }
 
-
 void setArrowCursor()
 {
 	ppcommon p = (ppcommon)gglobal()->common.prv;

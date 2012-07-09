@@ -148,7 +148,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	}
         viewer->headlight = node->headlight;
 	/* tell the menu buttons of the state of this headlight */
-	setMenuButton_headlight(node->headlight);
+	//setMenuButton_headlight(node->headlight);
 
 	/* transition effects */
 	viewer->transitionTime = node->transitionTime;

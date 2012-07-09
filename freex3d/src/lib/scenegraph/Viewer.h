@@ -212,6 +212,7 @@ typedef struct viewer {
 	Quaternion AntiQuat;
 	Quaternion bindTimeQuat;
 	int headlight;
+	int collision; //added July 7, 2012
 	double speed;
 	double Dist;
 	/*stereovision...*/

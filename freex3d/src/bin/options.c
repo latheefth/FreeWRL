@@ -310,8 +310,8 @@ int fv_parseCommandLine (int argc, char **argv)
 	    break;
 
 	case 'Q': /* --nocollision, no argument */
-	    fwl_setp_collision(FALSE);
-	    fv_params->collision = FALSE;
+	    //fwl_setp_collision(FALSE);
+	    //fv_params->collision = FALSE; this is the default
 	    break;
 
 /* Snapshot options */

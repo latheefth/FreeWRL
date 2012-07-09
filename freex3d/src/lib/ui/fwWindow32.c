@@ -31,7 +31,10 @@ HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
 HDC   ghDC; 
 HGLRC ghRC; 
 
-
+HWND fw_window32_hwnd()
+{
+	return ghWnd;
+}
 void fwl_do_keyPress(const char kp, int type);
 
 /* from Blender GHOST_SystemWin32.cpp: Key code values not found in winuser.h */
