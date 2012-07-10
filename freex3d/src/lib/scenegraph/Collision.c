@@ -2116,7 +2116,7 @@ void printpolyrep(struct X3D_PolyRep pr) {
     printf("%f};\n",pr.actualCoord[i]);
 
     printf("static int cindex[%d];\nstatic float coord[%d];\n",pr.ntri*3,npoints*3);
-    printf("X3D_PolyRep pr = {0,%d,%d,cindex,coord,NULL,NULL,NULL,NULL,NULL,NULL};\n",pr.ntri,pr.alloc_tri);
+    printf("X3D_PolyRep pr = {0,%d,cindex,coord,NULL,NULL,NULL,NULL,NULL,NULL};\n",pr.ntri);
     printf("memcpy(cindex,cindext,sizeof(cindex));\n");
     printf("memcpy(coord,coordt,sizeof(coord));\n");
     printf("return pr; }\n");
