@@ -64,7 +64,6 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int ccw;	/* ccw field for single faced structures */
 	int ntri; /* number of triangles */
 	int streamed;	/* is this done the streaming pass? */
-	int alloc_tri; /* number of allocated triangles */
 
 	/* indicies for arrays. OpenGL ES 2.0 - unsigned short for the DrawArrays call */
 	GLuint *cindex;   /* triples (per triangle) */
