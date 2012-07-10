@@ -60,7 +60,9 @@ static   GLbyte vShaderStr[] =
 
 // using Luminance-alpha images, you need to set a color in order for it to show up different than white
 static   GLbyte fShaderStr[] =  
+#ifdef GL_ES_VERSION_2_0
       "precision mediump float;                            \n"
+#endif //GL_ES_VERSION_2_0
       "varying vec2 v_texCoord;                            \n"
       "uniform sampler2D Texture0;                         \n"
       "uniform vec4 Color4f;                               \n"

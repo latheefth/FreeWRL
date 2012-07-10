@@ -155,7 +155,7 @@ extern double geoHeightinZAxis;
    meshes are rendered using the PolyRep scheme, which also compiles into OpenGL 
    calls, using the PolyRep (and, stream_PolyRep) methodology */
 
-void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
+
 
 #define NODE_CHANGE_INIT_VAL 153	/* node->_change is set to this when created */
 #define COMPILE_POLY_IF_REQUIRED(a,b,c,d) \

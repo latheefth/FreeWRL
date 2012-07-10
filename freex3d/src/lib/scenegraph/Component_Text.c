@@ -49,6 +49,7 @@ X3D Text Component
 #include "LinearAlgebra.h"
 #include "Component_Shape.h"
 #include "../scenegraph/Tess.h"
+#include "../scenegraph/Polyrep.h"
 
 
 #ifdef _ANDROID

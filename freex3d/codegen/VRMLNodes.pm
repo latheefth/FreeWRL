@@ -919,9 +919,6 @@ package VRML::NodeType;
 	TextureCoordinate => new VRML::NodeType("TextureCoordinate", { 
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		point => [MFVec2f, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__compiledpoint => [MFVec2f, [], initializeOnly, 0],
-		__lastParent => [FreeWRLPTR, 0, initializeOnly, 0],
-		__VBO =>[SFInt32,0,initializeOnly,0],
 	},"X3DTextureCoordinateNode"),
 
 	TextureCoordinateGenerator => new VRML::NodeType("TextureCoordinateGenerator", { 

@@ -124,7 +124,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
     	fwl_setp_height(400);
     	fwl_setp_eai(FALSE);
     	fwl_setp_fullscreen(FALSE);
-    	fwl_setp_collision(1);
+    	/* removed by doug fwl_setp_collision(1); */
     } 
 
     /* start threads, parse initial scene, etc */

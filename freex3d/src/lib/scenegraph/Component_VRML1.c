@@ -75,6 +75,7 @@ Have fun! John A. Stewart, June 2009
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Vector.h"
 #include "../scenegraph/Component_Shape.h"
+#include "../scenegraph/Polyrep.h"
 
 
 #include "LinearAlgebra.h"

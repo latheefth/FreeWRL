@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.42  2012/07/10 18:40:26  crc_canada
+# changing TextureCoordinate handling for shaders; remove "precision" for non-GLES shaders.
+#
 # Revision 1.41  2012/04/26 16:36:23  crc_canada
 # Android changes - preparing for MultiTexturing
 #
@@ -612,7 +615,6 @@
 	GeoElevationGrid 
 	LoadSensor 
 	TextureCoordinateGenerator 
-	TextureCoordinate 
 	Text 
 	LineProperties 
 	FillProperties 

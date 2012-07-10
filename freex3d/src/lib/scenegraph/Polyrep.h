@@ -117,6 +117,6 @@ do_color_normal_reset(void);
 void
 do_glNormal3fv(struct SFVec3f *dest, GLfloat *param);
 
-void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
-void compile_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
+void stream_polyrep(void *node, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord);
+void compile_polyrep(void *node, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord);
 

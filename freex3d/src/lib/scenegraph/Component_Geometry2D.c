@@ -386,7 +386,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 
 		CULL_FACE(node->solid)
 
-		textureDraw_start(NULL,&mtf);
+		textureDraw_start(&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 #if !defined(GLES2)
@@ -472,7 +472,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 		CULL_FACE(node->solid)
 
-		textureDraw_start(NULL,&mtf);
+		textureDraw_start(&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 		FW_GL_DISABLECLIENTSTATE (GL_NORMAL_ARRAY);
 #if defined(GLES2)
@@ -544,7 +544,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	textureDraw_start(NULL,&mtf);
+	textureDraw_start(&mtf);
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
