@@ -23,7 +23,6 @@
 #define TARGET_AQUA 1
 #define _REENTRANT 1
 
-#define SHADERS_2011 1
 // not yet #define DO_COLLISION_GPU 1
 #define HAVE_LIBXML_PARSER_H 1
 #define IPHONE

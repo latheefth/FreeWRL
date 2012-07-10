@@ -8,7 +8,6 @@
 
 #define STATUSBAR_HUD 1
 #define DO_COLLISION_GPU 1
-#define SHADERS_2011 1
 
 #define FONTS_DIR "/Applications/FreeWRL/fonts"
 

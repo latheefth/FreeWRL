@@ -127,7 +127,6 @@
 
 #define FRONTEND_GETS_FILES 1
 #define FRONTEND_HANDLES_DISPLAY_THREAD 1
-#define SHADERS_2011 1
 
 #ifdef _ANDROID
 void DROIDDEBUG( const char*pFmtStr, ...);

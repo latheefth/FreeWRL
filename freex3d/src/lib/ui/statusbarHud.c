@@ -44,9 +44,8 @@ buttonType = 0; // 0 = rgba .png 1= .c bitmap (see above)
 savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put 1 
 */ 
 #if defined(STATUSBAR_HUD) //&& defined(GLES2) //!(defined(IPHONE) || defined(_ANDROID)) // || defined(GLES2))
-#ifdef SHADERS_2011
 #define GLES2
-#endif
+
 #ifdef GLES2
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
