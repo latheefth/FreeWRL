@@ -813,7 +813,7 @@ OLDCODE		#endif /* SHADERS_2011 */
 OLDCODE	#ifdef SHADERS_2011
 OLDCODE	{
 #endif //OLDCODE
-
+	{
 		struct MyVertex *combinedBuffer = MALLOC(struct MyVertex *, sizeof (struct MyVertex) * actq * 2);
 		int i;
 		float *npp = newPoints;
@@ -851,7 +851,7 @@ OLDCODE	{
 
 		/* and, we can free it */
 		FREE_IF_NZ(combinedBuffer);
-
+	}
 #ifdef OLDCODE
 OLDCODE	}
 OLDCODE	#endif /* SHADERS_2011 */
