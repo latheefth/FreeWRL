@@ -390,7 +390,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
     
 
 	if (realAppearanceNode->texture != NULL) {
-        printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
+        //printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
         if ((realAppearanceNode->texture->_nodeType == NODE_ImageTexture) ||
             (realAppearanceNode->texture->_nodeType == NODE_PixelTexture)){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
@@ -401,7 +401,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 			stringNodeType(realAppearanceNode->texture->_nodeType));
 		}
 	}
-    printf ("getAppearanceShader, returning %x\n",retval);
+    //printf ("getAppearanceShader, returning %x\n",retval);
 
 	return retval;
 }

@@ -57,7 +57,7 @@ NSMutableData *receivedData;
         // no file specified; go here.
         cString = "/Applications/FreeWRL/blankScreen.wrl";
         //cString = "/FreeWRL/freewrl/freewrl/tests/16.wrl";
-        cString="/Users/john/Desktop/palm.wrl";
+        cString="/Users/johns/Desktop/palm.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {

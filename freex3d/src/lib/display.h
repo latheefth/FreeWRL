@@ -429,6 +429,7 @@ typedef struct {
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
 	GLint NormalMatrix;
+	GLint TextureMatrix;
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
