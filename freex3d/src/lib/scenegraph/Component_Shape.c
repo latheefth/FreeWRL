@@ -121,11 +121,11 @@ struct matpropstruct *getAppearanceProperties(){
 	return &p->appearanceProperties;
 }
 
+
 struct X3D_Node *getThis_textureTransform(){
-	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+    ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 	return p->this_textureTransform;
 }
-
 
 void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;

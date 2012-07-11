@@ -40,8 +40,7 @@ struct multiTexParams {
 };
 
 
-void start_textureTransform (struct X3D_Node *textureNode, int ttnum);
-void end_textureTransform (void);
+void do_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void markForDispose(struct X3D_Node *node, int recursive);
 
 void
