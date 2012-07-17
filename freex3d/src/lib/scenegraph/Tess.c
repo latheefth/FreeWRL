@@ -26,8 +26,6 @@ $Id$
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-
-
 #include <config.h>
 #include <system.h>
 #include <display.h>
@@ -38,9 +36,6 @@ $Id$
 #include "../vrml_parser/Structs.h"
 #include "../main/headers.h"
 
-
-/* OpenGL-ES 2.0 does not have tessellator */
-#if defined(HAVE_GLU_TESS) 
 
 
 /* JAS */
@@ -273,5 +268,3 @@ void destruct_tessellation(void) {
 	printf("Tessellation Object deleted!\n");
 }
 
-
-#endif /* HAVE_GLU_TESS */

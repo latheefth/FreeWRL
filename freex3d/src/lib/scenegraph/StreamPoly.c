@@ -346,7 +346,6 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	}
     
     if (NO_TEXCOORD_NODE) {
-        ConsoleMessage ("no TextureCoordinate node, must generate default texture maps");
         defaultTextureMap(node, r);
     }
     
