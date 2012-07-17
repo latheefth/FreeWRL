@@ -98,7 +98,6 @@ const char *texst(int num);
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES (gglobal()->RenderFuncs.textureStackTop != 0)
 
-//OLDCODEextern void textureDraw_start(struct X3D_Node *texC, struct textureVertexInfo *tex);
 extern void textureDraw_start(struct textureVertexInfo *tex);
 extern void textureDraw_end(void);
 

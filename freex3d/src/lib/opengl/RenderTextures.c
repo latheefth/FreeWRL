@@ -81,7 +81,8 @@ static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode);
 
 /* TextureGenerator node? if so, do it */
 static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
-#if defined(IPHONE) || defined(_ANDROID ) || defined(GLES2)
+#if defined(GL_ES_VERSION_2_0)
+
 printf ("skipping setupTexGen\n");
 #else
 	switch (this->__compiledmode) {
