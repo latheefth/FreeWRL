@@ -369,10 +369,7 @@ static char *oneTexFragmentShader = " \
 varying vec2 v_texC; \
 uniform sampler2D fw_Texture_unit0; \
 void main () { \
-vec2 tmpt; \
-tmpt.s = clamp(v_texC.s,0.0,1.0); \
-tmpt.t = clamp(v_texC.t,0.0,1.0); \
-gl_FragColor = texture2D(fw_Texture_unit0, tmpt); \
+gl_FragColor = texture2D(fw_Texture_unit0, v_texC); \
 }";
 
 static char *oneTexVertexShader = " \
