@@ -315,7 +315,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
                     			else
                         		curcolor = colorIndShort[curSeg];
 				}
-                printf ("curSeg %d, i %d, node->coordIndex.p %d curcolor %d\n",curSeg,i,node->coordIndex.p[i], curcolor);
+                //ConsoleMessage ("curSeg %d, i %d, node->coordIndex.p %d curcolor %d\n",curSeg,i,node->coordIndex.p[i], curcolor);
 				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
 					ConsoleMessage ("IndexedLineSet, colorIndex %d (for vertex %d or segment %d) out of range (0..%d)\n",
 						curcolor, i, curSeg, cc->color.n);

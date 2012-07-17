@@ -99,8 +99,8 @@ void *ConsoleMessage_constructor(){
 }
 void ConsoleMessage_init(struct tConsoleMessage *t){
 	//public
-	t->Console_writeToHud; //= 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
-	t->consMsgCount; // = 0;
+	//t->Console_writeToHud; //= 0; /*something should change this to 1 if running statusbarHUD or (a gui with no console and) statusbarConsole*/
+	//t->consMsgCount; // = 0;
 	//private
 	t->prv = ConsoleMessage_constructor();
 	{
