@@ -600,11 +600,6 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	r->isRGBAcolorNode = isRGBA;
 
 	/* send the data to VBOs if required */
-#ifdef OLDCODE
-OLDCODE #ifdef SHADERS_2011
-OLDCODE 	 {
-#endif //OLDCODE
-
 		/* printf("stream polyrep, uploading vertices to VBO %u and %u\n",r->VBO_buffers[VERTEX_VBO], r->VBO_buffers[INDEX_VBO]); */
 
 		if (r->normal) {
@@ -653,11 +648,6 @@ OLDCODE 	 {
 			/* finished with these - if we did not use it as a flag later, we could get rid of it */
 			//FREE_IF_NZ(r->GeneratedTexCoords);
 		}
-
-#ifdef OLDCODE
-OLDCODE	}
-OLDCODE#endif // SHADERS_2011
-#endif //OLDCODE
 
 
 	#ifdef STREAM_POLY_VERBOSE
