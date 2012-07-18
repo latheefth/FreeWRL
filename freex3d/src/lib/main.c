@@ -90,7 +90,7 @@ int fwl_ANDROID_initialize(void)
 	fwl_setp_height(320);
 	fwl_setp_eai(FALSE);
 	fwl_setp_fullscreen(FALSE);
-	fwl_setp_collision(1);
+	//fwl_setp_collision(1);
 		
 	if (!fwl_initFreeWRL(NULL)) {
 		ERROR_MSG("main: aborting during initialization.\n");
