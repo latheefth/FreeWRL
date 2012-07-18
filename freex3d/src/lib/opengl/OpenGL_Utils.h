@@ -43,6 +43,11 @@ struct multiTexParams {
 void do_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void markForDispose(struct X3D_Node *node, int recursive);
 
+
+void sendMatriciesToShader(s_shader_capabilities_t *me);
+
+void sendMaterialsToShader(s_shader_capabilities_t *me);
+
 void
 BackEndClearBuffer(int);
 

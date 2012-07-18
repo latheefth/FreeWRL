@@ -772,8 +772,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 	struct multiTexParams *paramPtr;
 
 	struct X3D_ImageTexture *nt;
-        ttglobal tg = gglobal();
-        ppRenderTextures p = (ppRenderTextures)tg->RenderTextures.prv;
 
 #ifdef TEXVERBOSE
 	 printf ("loadMultiTexture, this %s has %d textures %x %x\n",stringNodeType(node->_nodeType),

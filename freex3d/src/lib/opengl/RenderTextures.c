@@ -66,10 +66,10 @@ void *RenderTextures_constructor(){
 void RenderTextures_init(struct tRenderTextures *t){
 	//t->textureParameterStack[];
 	t->prv = RenderTextures_constructor();
-	{
-		ppRenderTextures p = (ppRenderTextures)t->prv;
-		/* variables for keeping track of status */
-	}
+//	{
+//		ppRenderTextures p = (ppRenderTextures)t->prv;
+//		/* variables for keeping track of status */
+//	}
 }
 
 

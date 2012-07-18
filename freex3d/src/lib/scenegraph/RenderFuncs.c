@@ -829,8 +829,7 @@ for (i=0; i<16; i++) printf ("%4.3lf ",projMatrix[i]); printf ("\n");
 
 void update_node(struct X3D_Node *node) {
 	int i;
-	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-
+	
 #ifdef VERBOSE
 	printf ("update_node for %d %s nparents %d renderflags %x\n",node, stringNodeType(node->_nodeType),node->_nparents, node->_renderFlags); 
 	if (node->_nparents == 0) {
@@ -1095,7 +1094,6 @@ void render_node(struct X3D_Node *node) {
  */
 
 void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int line) {
-	int oldparcount;
 
 	if(!node) return;
 
