@@ -92,7 +92,6 @@ struct matpropstruct {
 	int 	cullFace;		/* is this single-sided or two-sided? */
 };
 
-//extern struct matpropstruct appearanceProperties;
 struct matpropstruct* getAppearanceProperties();
 
 #define MIN_NODE_TRANSPARENCY 0.0f
