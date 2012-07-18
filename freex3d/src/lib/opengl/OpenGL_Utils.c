@@ -1050,10 +1050,10 @@ p_eye = fw_ModelViewMatrix * fw_Vertex;   \
 n = fw_NormalMatrix * fw_Normal;   \
 /* if (rescale_normal) {   \
 n = rescale_normal_factor * n;   \
-}   \
-if (normalize_normal)    \
+}  \
+if (normalize_normal) */    \
 n = normalize(n);   \
-*/  \
+ \
 /* mat_ambient_colour = enable_colour_material ? fw_Color   \
 : fw_FrontMaterial.ambient; */   \
 \

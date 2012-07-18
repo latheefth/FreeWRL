@@ -387,6 +387,8 @@ int loadImage(textureTableIndexStruct_s* tti, char* fname)
 					memcpy(destrow,sourcerow,rowcount);
 				}
 				tti->texdata = blob;
+				//try johns next time: tti->texdata = flipImageVertically(myFile->fileData, myFile->imageHeight, myFile->imageWidth); 
+
 			}
 		}
 		tti->hasAlpha = 1; //img.transparency; //Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat())?1:0;
