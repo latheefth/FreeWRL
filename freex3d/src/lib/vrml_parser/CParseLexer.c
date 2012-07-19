@@ -1347,7 +1347,7 @@ void lexer_handle_EXTERNPROTO(struct VRMLLexer *me) {
         int mode;
         int type;
         struct Multi_String url;
-        char *buffer;
+        unsigned char *buffer;
         char *testname;
 		char *pound;
 

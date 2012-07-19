@@ -624,10 +624,11 @@ void resource_identify_type(resource_item_t *res)
 
 
 		/* Test it */
-		t = determineFileType(test_it);
+		t = determineFileType(test_it,(const int)strlen(test_it));
 		switch (t) {
 		case IS_TYPE_VRML:
 		case IS_TYPE_VRML1:
+                                
 			res->media_type = resm_vrml;
 			break;
 		case IS_TYPE_COLLADA:
@@ -644,20 +645,6 @@ void resource_identify_type(resource_item_t *res)
 	return;
 }
 
-/**
- *   resource_get_text: return read data.
- */
-char *resource_get_text(resource_item_t *res)
-{
-	if (res->openned_files) {
-		s_list_t *l = (s_list_t *) res->openned_files;
-		openned_file_t *of = l->elem;
-		if (of) {
-			return of->fileData;
-		}
-	}
-	return NULL;
-}
 
 /**
  *   resource_remove_cached_file: TODO.
