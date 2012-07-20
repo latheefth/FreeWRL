@@ -67,12 +67,6 @@ void fwg_AndroidFontFile(FILE *myFile,int len) {
 
 #endif //ANDROID
 
-#if !defined(HAVE_GLU_TESS) 
-void collide_Text (struct X3D_Text *me) {printf ("skipping collide_Text on iphone\n");}
-void make_Text (struct X3D_Text *me) {printf ("skipping make_Text on iphone\n");}
-void render_Text (struct X3D_Text *me) {printf ("skipping render_Text on iphone\n");}
-#else
-
 #define XRES 96
 #define YRES 96
 #define PPI 72
@@ -1409,5 +1403,3 @@ void make_Text (struct X3D_Text *node)
                   (node->maxExtent),spacing,size,fsparams,rep_);
 
 }
-
-#endif /* IPHONE */

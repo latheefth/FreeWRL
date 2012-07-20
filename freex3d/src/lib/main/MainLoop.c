@@ -2011,10 +2011,8 @@ void fwl_initializeRenderSceneUpdateScene() {
 	}
 #endif /* KEEP_X11_INLIB */
 
-	#if defined(HAVE_GLU_TESS)
 	new_tessellation();
-	#endif /* IPHONE */
-	
+
 	fwl_set_viewer_type(VIEWER_EXAMINE);
 	
 	viewer_postGLinit_init();
