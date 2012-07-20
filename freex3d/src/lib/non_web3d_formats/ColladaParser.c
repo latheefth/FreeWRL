@@ -26,6 +26,7 @@ $Id$
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#if defined (INCLUDE_NON_WEB3D_FORMATS)
 #include <config.h>
 
 #include <system.h>
@@ -270,3 +271,4 @@ int ColladaParse (struct X3D_Group* myParent, const char *inputstring) {
 	shutdownColladaParser();
 	return TRUE;
 }
+#endif //INCLUDE_NON_WEB3D_FORMATS
