@@ -442,6 +442,7 @@ void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int 
  */
 openned_file_t* load_file(const char *filename)
 {
+    openned_file_t *of = NULL;
 
 	DEBUG_RES("loading file: %s\n", filename);
 
@@ -467,7 +468,6 @@ openned_file_t* load_file(const char *filename)
     
 #else //FRONTEND_GETS_FILES 
 
-    openned_file_t *of = NULL;
 
 
 #if defined(FW_USE_MMAP)
