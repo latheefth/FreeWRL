@@ -282,7 +282,7 @@ typedef struct viewer {
 	GLDOUBLE fovZoom ;
 	double calculatedNearPlane ;
 	double calculatedFarPlane ;
-
+	int wasBound; /* 0 for default viewpoint, 1 thereafter (for no-slerp startup) */
 
 } X3D_Viewer;
 
