@@ -909,7 +909,7 @@ static void InitScriptField(int num, indexT kind, indexT type, const char* field
 				JSaddGlobalECMANativeProperty(num, field);
 				if (kind == PKW_initializeOnly) {
 					if  (type == FIELDTYPE_SFString) {
-						tlen = (int) strlen(value.sfstring->strptr) + 20;
+						tlen = (int) strlen(value.sfstring->strptr) + strlen(field) + 20;
 					} else {
 						tlen = (int) strlen(field) + 400; /* long, in the case of doubles */
 					}
