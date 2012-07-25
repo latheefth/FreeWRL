@@ -213,7 +213,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
 	ttglobal tg = gglobal();
+    s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
 
+    
 	#ifdef TEXVERBOSE
 	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",tg->RenderFuncs.textureStackTop);
 	#endif 
@@ -261,11 +263,11 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 
 	}
 
-	if (getAppearanceProperties()->currentShaderProperties != NULL) {
+	if (me != NULL) {
 	    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
         	//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
-		glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureUnit[i],i);
-		glUniform1i(getAppearanceProperties()->currentShaderProperties->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
+		glUniform1i(me->TextureUnit[i],i);
+		glUniform1i(me->TextureMode[i],tg->RenderTextures.textureParameterStack[i].multitex_mode);
 	    }
 	#ifdef TEXVERBOSE
 	} else {
