@@ -1,0 +1,147 @@
+#VRML V2.0 utf8
+#simple points and lines testing.
+
+Background {
+        skyAngle        [ 1.07 1.45 1.52 1.57 ]
+        skyColor        [ 0.00 0.00 0.30
+                          0.00 0.00 0.80
+                          0.45 0.70 0.80
+                          0.70 0.50 0.00
+                          1.00 0.00 0.00 ]
+        groundAngle     1.57
+        groundColor     [ 0.0 0.0 0.0, 0.0 0.7 0.0 ]
+    }
+
+
+Transform {translation -3 2 0 children
+	Shape {
+
+	geometry PointSet {
+		coord DEF COORD Coordinate {
+		point [
+			# the top of the cube
+			-1.0 1.0 1.0, 1.0 1.0 1.0, 1.0 1.0 -1.0, -1.0 1.0 -1.0,
+			# around the bottom of the cube
+			-1.0 -1.0 1.0, 1.0 -1.0 1.0, 1.0 -1.0 -1.0, -1.0 -1.0 -1.0
+			]
+		}
+		}
+} }
+
+Transform {translation 0 2 0 children
+	Shape {
+		appearance Appearance {
+			lineProperties LineProperties {
+			linewidthScaleFactor 4.0
+		}
+		material Material {
+		  emissiveColor 1.0 0 0
+		}
+	}
+
+	geometry PointSet {
+		coord USE COORD
+	}
+}}
+Transform {translation 3 2 0 children
+	Shape {
+		appearance Appearance {
+			lineProperties LineProperties {
+			linewidthScaleFactor 8.0
+		}
+		material Material {
+		  emissiveColor 1.0 0 0
+		}
+	}
+
+	geometry PointSet {
+		coord USE COORD
+		color Color { color [
+			1.0 0.0 0.0
+			1.0 0.0 0.0
+			0.0 1.0 0.0
+			1.0 1.0 0.0
+			1.0 0.0 0.1
+			1.0 0.0 0.0
+			1.0 1.0 0.0
+			1.0 0.0 1.0
+			0.0 0.0 1.0
+		]}
+	}
+}}
+
+#LineSets
+
+Transform {translation -3 -2 0 children
+	Shape {
+	geometry IndexedLineSet {
+		coord USE COORD
+		coordIndex [
+                        0, 1, 2, 3, 0, -1,
+                        4, 5, 6, 7, 4, -1,
+                        0, 4, -1,
+                        1, 5, -1,
+                        2, 6, -1,
+                        3, 7
+                ]
+
+	}
+}}
+Transform {translation 0 -2 0 children
+	Shape {
+		appearance Appearance {
+			lineProperties LineProperties {
+			linewidthScaleFactor 1.0
+		}
+		material Material {
+		  emissiveColor 1.0 0 0
+		}
+	}
+
+	geometry IndexedLineSet {
+		coord USE COORD
+		coordIndex [
+                        0, 1, 2, 3, 0, -1,
+                        4, 5, 6, 7, 4, -1,
+                        0, 4, -1,
+                        1, 5, -1,
+                        2, 6, -1,
+                        3, 7
+                ]
+	}
+}}
+
+Transform {translation 3 -2 0 children
+	Shape {
+		appearance Appearance {
+			lineProperties LineProperties {
+			linewidthScaleFactor 4.0
+		}
+		material Material {
+		  emissiveColor 1.0 0 0
+		}
+	}
+
+	geometry IndexedLineSet {
+		coord USE COORD
+		coordIndex [
+                        0, 1, 2, 3, 0, -1,
+                        4, 5, 6, 7, 4, -1,
+                        0, 4, -1,
+                        1, 5, -1,
+                        2, 6, -1,
+                        3, 7
+                ]
+		color Color { color [
+			1.0 0.0 0.0
+			1.0 0.0 0.0
+			0.0 1.0 0.0
+			1.0 1.0 0.0
+			1.0 0.0 0.1
+			1.0 0.0 0.0
+			1.0 1.0 0.0
+			1.0 0.0 1.0
+			0.0 0.0 1.0
+		]}
+	}
+}}
