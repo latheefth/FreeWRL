@@ -38,17 +38,17 @@ Proximity sensor macro.
 #define MATERIAL_APPEARANCE_SHADER 0x0002
 #define TWO_MATERIAL_APPEARANCE_SHADER 0x0004
 #define ONE_TEX_APPEARANCE_SHADER 0x0008
-#define MULTI_TEX_APPEARANCE_SHADER 0x000C
+#define MULTI_TEX_APPEARANCE_SHADER 0x0010
 
 /* PolyRep (etc) color field present */
-#define COLOUR_MATERIAL_SHADER 0x00010
+#define COLOUR_MATERIAL_SHADER 0x00020
 
 /*  - fillProperties present */
-#define FILL_PROPERTIES_SHADER 0x00020
+#define FILL_PROPERTIES_SHADER 0x00040
 
 /*  - lines, points */
-#define HAVE_LINEPOINTS_COLOR 0x0040
-#define HAVE_LINEPOINTS_APPEARANCE 0x0080
+#define HAVE_LINEPOINTS_COLOR 0x0080
+#define HAVE_LINEPOINTS_APPEARANCE 0x00100
 
 /*******************************************************/
 

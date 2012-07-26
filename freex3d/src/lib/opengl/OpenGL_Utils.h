@@ -66,25 +66,28 @@ typedef enum vertexShaderResources {
 typedef enum fragmenShaderResources {
 	fragmentPrecisionDeclare,
     
+    fragmentMultiTexDefines,
     fragmentLightDefines,
     
     fragmentNormalColorDefs,
     
     fragmentTexCoordDeclare,
     fragmentTex0Declare,
+    fragmentMultiTexDeclare,
 	fragmentSimpleColourDeclare,
     fragmentOneColourDeclare,
     fragmentBackColourDeclare,
     fragmentPhongNormPosDeclare,
     
     fragmentADSLLightModel,
+    fragmentMultiTexModel,
     
 	fragmentMainStart,
     
 	fragmentSimpleColourAssign,
     fragmentOneColourAssign,
     fragmentADSLAssign,
-    fragmentSingleTextureAssign,
+    fragmentTextureAssign,
     
 	fragmentMainEnd,
 	fragmentEndMarker
