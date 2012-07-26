@@ -31,38 +31,61 @@ Screen snapshot.
 #define __FREEWRL_OPENGL_UTILS_H__
 
 typedef enum vertexShaderResources {
-       	vertexPrecisionDeclare,
+    vertexPrecisionDeclare,
+    
     vertexLightDefines,
-    vertexPhongDeclare,
+    
+ 
     vertexNormalDeclare,
 	vertexPositionDeclare,
 	vertexSimpleColourDeclare,
+    vertexTextureMatrixDeclare,
     vertexOneMaterialDeclare,
     vertexBackMaterialDeclare,
     vertFrontColourDeclare,
+    vertexTexCoordInputDeclare,
+    
+    vertexTexCoordOutputDeclare,
+    
+    vertexPhongOutput,
+    
     vertexLightingEquation,
+    
 	vertexMainStart,
+    
 	vertexPosition,
+    vertexSingleTextureCalculation,
     vertexOneMaterialCalculation,
     vertexPhongCalculation,
 	vertexSimpleColour,
+    
 	vertexMainEnd,
 	vertexEndMarker
 } vertexShaderResources_t;
 
 typedef enum fragmenShaderResources {
 	fragmentPrecisionDeclare,
+    
     fragmentLightDefines,
+    
     fragmentNormalColorDefs,
+    
+    fragmentTexCoordDeclare,
+    fragmentTex0Declare,
 	fragmentSimpleColourDeclare,
     fragmentOneColourDeclare,
     fragmentBackColourDeclare,
     fragmentPhongNormPosDeclare,
+    
     fragmentADSLLightModel,
+    
 	fragmentMainStart,
+    
 	fragmentSimpleColourAssign,
     fragmentOneColourAssign,
     fragmentADSLAssign,
+    fragmentSingleTextureAssign,
+    
 	fragmentMainEnd,
 	fragmentEndMarker
 } fragmentShaderResources_t;
