@@ -477,10 +477,6 @@ void child_Shape (struct X3D_Shape *node) {
 
 	COMPILE_IF_REQUIRED
 
-    
-    //FW_GL_MATRIX_MODE(GL_TEXTURE);
-    //FW_GL_LOAD_IDENTITY();
-    //FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
 	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -617,6 +613,8 @@ void compile_Shape (struct X3D_Shape *node) {
 	if (node->_shaderTableEntry == NOTHING) 
         node->_shaderTableEntry = NO_APPEARANCE_SHADER;
 
+    printf ("compile_Shape, node->_shaderTableEntry is %x\n",node->_shaderTableEntry);
+    
 	MARK_NODE_COMPILED
 }
 
