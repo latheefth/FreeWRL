@@ -749,7 +749,7 @@ useBrick = step(position, HatchPct); \
 \
 if (hatched) colour = mix(HatchColour, prevColour, useBrick.x * useBrick.y); \
 else { \
-    if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,1.,1); }\
+    if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,0.,0); }\
 } \
 return colour; } ";
 
