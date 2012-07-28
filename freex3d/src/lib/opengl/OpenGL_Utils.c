@@ -993,17 +993,17 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }    
+		if(1){
+			vertexShaderResources_t x1;
+			fragmentShaderResources_t x2; 
 
-    vertexShaderResources_t x1;
-	fragmentShaderResources_t x2; 
-
-    ConsoleMessage ("Vertex source:");
-    for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
-		ConsoleMessage(vertexSource[x1]); 
-    ConsoleMessage("Fragment Source:");
-	for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
-		ConsoleMessage(fragmentSource[x2]); 
-
+			ConsoleMessage ("Vertex source:");
+			for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
+				ConsoleMessage(vertexSource[x1]); 
+			ConsoleMessage("Fragment Source:");
+			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
+				ConsoleMessage(fragmentSource[x2]); 
+		}
 	return TRUE;
 }
 
