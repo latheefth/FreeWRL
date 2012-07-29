@@ -339,7 +339,6 @@ void enableGlobalShader(s_shader_capabilities_t *myShader) {
     //ConsoleMessage ("enableGlobalShader, have myShader %d",myShader->myShaderProgram);
     if (myShader == NULL) {
         TURN_GLOBAL_SHADER_OFF; 
-        getAppearanceProperties()->currentShaderProperties = NULL;
         return;
     };
     
