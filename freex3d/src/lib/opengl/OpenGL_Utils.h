@@ -46,6 +46,7 @@ typedef enum vertexShaderResources {
     vertexTexCoordInputDeclare,
     vertexTexCoordOutputDeclare,
     vertexHatchPositionDeclare,
+    vertexPointSizeDeclare,
     
     vertexPhongOutput,
     
@@ -53,6 +54,7 @@ typedef enum vertexShaderResources {
     
 	vertexMainStart,
     
+    vertexPointSizeAssign,
 	vertexPositionCalculation,
     vertexSingleTextureCalculation,
     vertexOneMaterialCalculation,

@@ -80,6 +80,9 @@ struct matpropstruct {
     bool filledBool;
     GLfloat hatchPercent[2];
     GLfloat hatchColour[3];
+
+	// points now specified in shader, not via an opengl call 
+	GLfloat pointSize;
     
 };
 
