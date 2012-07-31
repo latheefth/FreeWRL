@@ -57,7 +57,6 @@ import android.widget.Button;
     private String root = "/";
     private TextView myPath;
     private ListView lstView;
-   //private FreeWRLView mView;
     private Button CancelButton;
 
     private View newFileView;
@@ -99,7 +98,6 @@ import android.widget.Button;
 
 
     private void getDir(String dirPath, ListView v) {
-
         myPath.setText("Location: " + dirPath);
         item = new ArrayList<String>();
         path = new ArrayList<String>();
@@ -116,7 +114,6 @@ import android.widget.Button;
         }
         for (int i = 0; i < files.length; i++) {
             File file = files[i];
-            //path.add(file.getPath());
             if (file.isDirectory()) {
             	path.add(file.getPath());
                 item.add(file.getName() + "/");
@@ -150,13 +147,13 @@ import android.widget.Button;
 
         if (file.isDirectory()) {
 	//Log.w(TAG,"onListItemClick, directory");
-            if (file.canRead())
+            if (file.canRead()) {
+		folderListener.OnDirectoryClicked(file);
                 getDir(path.get(position), l);
-            else {
+            } else {
 		//what to do when folder is unreadable
                 if (folderListener != null) {
                     folderListener.OnCannotFileRead(file);
-
                 }
 
             }

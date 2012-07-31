@@ -107,6 +107,11 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 
 	}
 
+	//Directory click. Keep a copy of this directory.
+	public void OnDirectoryClicked(File file) {
+		//Log.w (TAG,"OnDirectoryClicked " + file);	
+		lastDirectoryBrowsed = file.toString();
+	}
 
 	//File Click
 	public void OnFileClicked(File file) {
@@ -142,6 +147,9 @@ public static final String[] LOGCAT_CLEAR_CMD = new String[] { "logcat", "-c" };
 private Process mLogcatProc = null;
 private BufferedReader reader = null;
 private final int BUFFER_SIZE = 1024;
+
+// where do we look for files on the Android device?
+private static String lastDirectoryBrowsed = null;
 
 // get the last so many console messages. Message 0 is most recent, 1 is prev, 2, prev
 // to that, etc. etc.
@@ -200,7 +208,11 @@ public boolean onOptionsItemSelected (MenuItem item){
 			localFolders.setIFolderItemListener(this);
 
 			//Log.w(TAG, "3 going to findViewById");
-			localFolders.setDir(Environment.getExternalStorageDirectory().getPath());
+			if (lastDirectoryBrowsed == null) 
+				lastDirectoryBrowsed = Environment.getExternalStorageDirectory().getPath();
+
+			//localFolders.setDir(Environment.getExternalStorageDirectory().getPath());
+			localFolders.setDir(lastDirectoryBrowsed);
 
 			// set the background colour - let FreeWRL show through sometimes.
 			localFolders.setBackgroundColor(0xAF000000 );
