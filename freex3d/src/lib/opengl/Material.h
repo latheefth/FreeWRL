@@ -31,26 +31,25 @@ Global includes.
 #define __FREEWRL_MATERIAL_H__
 
 
-#define DEFAULT_COLOUR_POINTER  \
-        GLfloat defColor[] = {1.0f, 1.0f, 1.0f};\
-        GLfloat *thisColor;
+#ifdef OLDCODE
+OLDCODE#define DEFAULT_COLOUR_POINTER  \
+OLDCODE        GLfloat defColor[] = {1.0f, 1.0f, 1.0f};\
+OLDCODE        GLfloat *thisColor;
+OLDCODE
+OLDCODE#define GET_COLOUR_POINTER \
+OLDCODE		/* is there an emissiveColor here??? */ \
+OLDCODE		if (gglobal()->RenderFuncs.lightingOn) { \
+OLDCODE			thisColor = getAppearanceProperties()->emissionColour; \
+OLDCODE		} else { \
+OLDCODE			thisColor = defColor; \
+OLDCODE		}
+OLDCODE
+OLDCODE#define DO_COLOUR_POINTER                FW_GL_COLOR3FV (thisColor);
+#endif //OLDCODE
 
-#define GET_COLOUR_POINTER \
-		/* is there an emissiveColor here??? */ \
-		if (gglobal()->RenderFuncs.lightingOn) { \
-			thisColor = getAppearanceProperties()->emissionColour; \
-		} else { \
-			thisColor = defColor; \
-		}
 
-#define DO_COLOUR_POINTER                FW_GL_COLOR3FV (thisColor);
-
-
-extern GLfloat last_emission[4];
-
-
-void do_shininess (GLenum face, float shininess);
-void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
+//OLDCODE void do_shininess (GLenum face, float shininess);
+//OLDCODE void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
 int verify_rotate(GLfloat *params);
 int verify_translate(GLfloat *params);
 int verify_scale(GLfloat *params);
