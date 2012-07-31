@@ -58,6 +58,7 @@ NSMutableData *receivedData;
         cString = "/Applications/FreeWRL/blankScreen.wrl";
         //cString = "/FreeWRL/freewrl/freewrl/tests/16.wrl";
         cString="/Users/johns/Desktop/palm.wrl";
+        cString="/Users//johns/Desktop/Android-freewrl-fullbuild/freewrl/freewrl/tests/53.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {

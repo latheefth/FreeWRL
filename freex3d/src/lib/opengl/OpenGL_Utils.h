@@ -122,7 +122,9 @@ BackEndClearBuffer(int);
 void
 BackEndLightsOff(void);
 
+#ifdef DEBUGGING_CODE
 void drawBBOX(struct X3D_Node *node);
+#endif //DEBUGGING_CODE
 
 
 void fw_glMatrixMode(GLint mode);
