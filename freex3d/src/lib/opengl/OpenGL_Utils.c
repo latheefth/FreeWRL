@@ -2246,15 +2246,39 @@ void fwl_Android_reloadAssets(void) {
 				break;
 
 			}
+			case NODE_Cone: {
+				struct X3D_Cone *me = (struct X3D_Cone *)node;
+				me->__coneVBO = 0;
+				node->_change ++;
+				break;
+			}
+			case NODE_Cylinder: {
+				struct X3D_Cylinder *me = (struct X3D_Cylinder *)node;
+				me->__cylinderVBO = 0;
+				node->_change ++;
+				break;
+			}
 			case NODE_Background: {
 				struct X3D_Background *me = (struct X3D_Background *)node;
 				//ConsoleMessage ("Background - zeroing VBO");
-					me->__VBO = 0;
+				me->__VBO = 0;
 				node->_change ++;
 				break;
 			}
 			default: {
+				struct X3D_PolyRep *pr = (struct X3D_PolyRep *)node->_intern;
+				int i;
+
+				//ConsoleMessage ("node Type %s, intern %p",stringNodeType(node->_nodeType),pr);
+
+				// get rid of the PolyRep VBOs.
+				if (pr!=NULL) {
+					for (i=0; i<VBO_COUNT; i++) pr->VBO_buffers[i] = 0;
+					pr->irep_change ++;
+					node->_change ++;
+				}
 			}
+		
 		}
         }
         UNLOCK_MEMORYTABLE
