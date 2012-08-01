@@ -1620,6 +1620,7 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 bool fwl_initialize_GL()
 {
 	char blankTexture[] = {0x40, 0x40, 0x40, 0xFF};
+	float gl_linewidth;
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
@@ -1661,7 +1662,7 @@ bool fwl_initialize_GL()
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
-	float gl_linewidth = gglobal()->Mainloop.gl_linewidth;
+	gl_linewidth = gglobal()->Mainloop.gl_linewidth;
 	FW_GL_LINEWIDTH(gl_linewidth);
         #ifndef GL_ES_VERSION_2_0
 		FW_GL_POINTSIZE(gl_linewidth);
