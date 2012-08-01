@@ -3936,7 +3936,7 @@ struct X3D_IntegerTrigger {
  	/*** node specific data: *****/
 	int integerKey;
 	struct X3D_Node *metadata;
-	double set_triggerTime;
+	int set_boolean;
 	int triggerValue;
 };
 extern struct X3D_Virt virt_IntegerTrigger;

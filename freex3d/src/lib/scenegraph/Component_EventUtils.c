@@ -201,8 +201,16 @@ void do_IntegerTrigger (void *node){
 	if (!node) return;
 
 	px = (struct X3D_IntegerTrigger *) node;
-	px->triggerValue = px->integerKey;
-	MARK_EVENT (node, offsetof (struct X3D_IntegerTrigger,triggerValue));
+
+	if (px->set_boolean == TRUE) {
+		px->triggerValue = px->integerKey;
+		MARK_EVENT (node, offsetof (struct X3D_IntegerTrigger,triggerValue));
+        } else {
+		// do nothing
+        }
+
+
+
 }
 
 /******************************************************************************/

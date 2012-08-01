@@ -943,8 +943,8 @@ END_NODE(IntegerSequencer)
 
 /* IntegerTrigger node */
 BEGIN_NODE(IntegerTrigger)
+EVENT_IN(IntegerTrigger,set_boolean,sfbool,set_boolean,FIELDTYPE_SFBool)
 EXPOSED_FIELD(IntegerTrigger,metadata,sfnode,metadata,FIELDTYPE_SFNode)
-EVENT_IN(IntegerTrigger,set_triggerTime,sftime,set_triggerTime,FIELDTYPE_SFTime)
 EXPOSED_FIELD(IntegerTrigger,integerKey,sfint32,integerKey,FIELDTYPE_SFInt32)
 EVENT_OUT(IntegerTrigger,triggerValue,sfint32,triggerValue,FIELDTYPE_SFInt32)
 END_NODE(IntegerTrigger)
