@@ -443,7 +443,6 @@ typedef struct {
 	int max_texture_size;
 	float anisotropicDegree;
 
-	// OLDCODE s_shader_capabilities_t backgroundShaderArrays[max_enum_shader_type]; /* one element for each shader_type */
 } s_renderer_capabilities_t;
 
 // JAS extern s_renderer_capabilities_t rdr_caps;
