@@ -213,7 +213,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
-        p->usePhongShaders = true;
+        p->usePhongShaders = false;
 	}
 }
 #ifdef GLEW_MX
@@ -425,8 +425,6 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
-#undef PHONG_SHADING_ALWAYS
-
 
 /* VERTEX inputs */
 
