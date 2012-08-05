@@ -28,6 +28,6 @@ echo
 #echo "installing on Nexus S"
 #adb -s 313000C1ED5500EC install -r ./bin/FreeWRL-debug-unaligned.apk
 
-echo "trying emulator"
-adb install -r ./bin/FreeWRL-debug-unaligned.apk
+#echo "trying emulator"
+#adb install -r ./bin/FreeWRL-debug-unaligned.apk
 
