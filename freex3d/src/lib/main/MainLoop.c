@@ -1289,14 +1289,10 @@ static void render()
 					Viewer_anaglyph_clearSides(); //clear all channels 
 				else
 					Viewer_anaglyph_setSide(count); //clear just the channels we're going to draw to
-				//USE_SHADER(Viewer.programs[Viewer.iprog[count]]);
 			}
 			setup_projection(0, 0, 0);
-			//if(Viewer()->sidebyside && count >0)
-			//	BackEndClearBuffer(1);  changed Mar 2012 with scissored viewports in setup_projection
-			//else
-				BackEndClearBuffer(2);
-			if(Viewer()->anaglyph) //haveAnaglyphShader)
+			BackEndClearBuffer(2);
+			if(Viewer()->anaglyph) 
 				Viewer_anaglyph_setSide(count); //set the channels for scenegraph drawing
 			setup_viewpoint(); 
 		}
@@ -1336,22 +1332,7 @@ static void render()
 		if (Viewer()->isStereo) {
 			cursorDraw(1,p->viewpointScreenX[count],0,0.0f); //draw a fiducial mark where centre of viewpoint is
 			if (Viewer()->anaglyph)
-				if(Viewer()->anaglyphMethod == 1) //haveAnaglyphShader) 
-				{
-#ifndef GLES2
-					if (count==0) {
-						USE_SHADER(0);
-						FW_GL_ACCUM(GL_LOAD,1.0); 
-					}
-					else if(count==1) {
-						USE_SHADER(0);
-						FW_GL_ACCUM(GL_ACCUM,1.0); 
-						FW_GL_ACCUM(GL_RETURN,1.0);
-					}
-#endif
-				}
-				else if(Viewer()->anaglyphMethod == 2)
-					glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
+				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
 	} /* for loop */
 

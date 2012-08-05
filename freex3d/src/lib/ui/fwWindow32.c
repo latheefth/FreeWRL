@@ -260,7 +260,7 @@ BOOL bSetupPixelFormat(HDC hdc)
     ppfd->cColorBits = 24; 
 	ppfd->cAlphaBits = 8;
     ppfd->cDepthBits = 32; 
-    ppfd->cAccumBits = 64; /*need accum buffer for shader anaglyph - 8 bits per channel OK*/
+    //not using accum now, using color masks ppfd->cAccumBits = 64; /*need accum buffer for shader anaglyph - 8 bits per channel OK*/
     ppfd->cStencilBits = 8; 
 	ppfd->cAuxBuffers = 0;
  

@@ -228,14 +228,8 @@ typedef struct viewer {
 	double eyehalfangle;
 	double screendist;
 	double eyedist;
-	/*anaglyph...*/
-	int anaglyphMethod; /* 1= use shaders 2= draw gray */
-	int haveAnaglyphShader;
-	int haveVer2;
-	GLuint shaders[6]; /*= {0,0,0,0,0,0};*/
-	GLuint programs[6]; /*= {0,0,0,0,0,0}; //p.642 red book */
-	int iprog[2]; /*which shader program for left vp,right vp 0-5 */
-	/* */
+	
+	int iprog[2]; /*anaglyph R=0,GBACM per side */
 	unsigned int buffer;
 	int oktypes[16];		/* boolean for types being acceptable. */
 	X3D_Viewer_Walk walk;
