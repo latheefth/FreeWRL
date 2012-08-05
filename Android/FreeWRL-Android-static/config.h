@@ -132,3 +132,4 @@
 void DROIDDEBUG( const char*pFmtStr, ...);
 #endif
 
+#undef INCLUDE_STL_FILES
