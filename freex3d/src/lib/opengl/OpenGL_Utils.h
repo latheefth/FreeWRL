@@ -48,7 +48,7 @@ typedef enum vertexShaderResources {
     vertexHatchPositionDeclare,
     vertexPointSizeDeclare,
     
-    vertexPhongOutput,
+    vertexNormPosOutput,
     
     vertexLightingEquation,
     
@@ -58,7 +58,8 @@ typedef enum vertexShaderResources {
 	vertexPositionCalculation,
     vertexSingleTextureCalculation,
     vertexOneMaterialCalculation,
-    vertexPhongCalculation,
+    vertexNormPosCalculation,
+    vertexADSLCalculation,
 	vertexSimpleColourCalculation,
     vertexHatchPositionCalculation,
     
@@ -81,7 +82,7 @@ typedef enum fragmenShaderResources {
 	fragmentSimpleColourDeclare,
     fragmentOneColourDeclare,
     fragmentBackColourDeclare,
-    fragmentPhongNormPosDeclare,
+    fragmentNormPosDeclare,
     fragmentHatchPositionDeclare,
     
     fragmentADSLLightModel,
