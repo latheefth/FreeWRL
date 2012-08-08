@@ -82,7 +82,7 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 
         // Fonts
         static FreeWRLAssets fontAsset_01 = null;
-        static FreeWRLAssetData fontAssetSize_01;
+        static FreeWRLAssetData fontAssetDatum_01;
 
 
 	// New File and Console View.
@@ -270,11 +270,11 @@ public boolean onOptionsItemSelected (MenuItem item){
 	}
 
 	// send in the font file descriptor on create.
-	fontAssetSize_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
-	int res = FreeWRLLib.sendFontFile(01,fontAssetSize_01.fd,
-		(int) fontAssetSize_01.offset, fontAssetSize_01.length);
+	fontAssetDatum_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
+	int res = FreeWRLLib.sendFontFile(01,fontAssetDatum_01.fd,
+		(int) fontAssetDatum_01.offset, fontAssetDatum_01.length);
 	
-	//Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetSize_01.length);
+	//Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetDatum_01.length);
 
 	// send in the temp file, used by FreeWRL for creating tmp files, what else?
 	FreeWRLLib.setTmpDir(getApplicationContext().getCacheDir().getAbsolutePath());

@@ -22,6 +22,19 @@ You should have received a copy of the GNU General Public License
 along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+/* Notes:
+
+An Asset, in FreeWRL terms, is a resource (vrml file, jpg file, etc) that resides
+*SOMEWHERE*.
+
+It can reside within the FreeWRL apk (eg, font files reside there), or it can
+reside on the SD card.
+
+We ALWAYS look in the assets in the apk file first; if not there, then we go elsewhere.
+
+*/
+
+
 package org.freewrl;
 
 import android.app.Activity;
@@ -67,10 +80,62 @@ public class FreeWRLAssets {
 		FileDescriptor fd = null;
 		InputStream imgFile = null;
 
+		// Dave Joubert sent this in 5 August 2011
+		Log.w(TAG,"---------------------- ** START ** -------------------------");
+		Log.w(TAG, path);;
+
+		Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
+			" class " + new Throwable().getStackTrace()[0].getClassName() +
+			" method " + new Throwable().getStackTrace()[0].getMethodName() +
+			" line " + new Throwable().getStackTrace()[0].getLineNumber());
+		Log.w(TAG, "....From : " +
+			" class " + new Throwable().getStackTrace()[1].getClassName() +
+			" method " + new Throwable().getStackTrace()[1].getMethodName() +
+			" line " + new Throwable().getStackTrace()[1].getLineNumber());
+		Log.w(TAG, "......From : " +
+			" class " + new Throwable().getStackTrace()[2].getClassName() +
+			" method " + new Throwable().getStackTrace()[2].getMethodName() +
+			" line " + new Throwable().getStackTrace()[2].getLineNumber());
+
+		// Step 0 (Probably makes step 1 redundant...)
+
+		if (path.indexOf('/') == 0) {
+			Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
+				" class " + new Throwable().getStackTrace()[0].getClassName() +
+				" method " + new Throwable().getStackTrace()[0].getMethodName() +
+				" line " + new Throwable().getStackTrace()[0].getLineNumber());
+			// remove slash at the beginning, if it exists
+			// as Android assets are not root based but getwd returns root base.
+			// And we know it is not an URL based filename
+			String tryInAppAssets = path.substring(1);
+
+			try {
+				AssetFileDescriptor ad = context.getResources().getAssets().openFd(tryInAppAssets);
+				if (ad != null) {
+					ad.close();
+					Log.w(TAG," Best guess: "+path+" is an asset ");
+					FreeWRLAssetData rv = new FreeWRLAssetData(context, tryInAppAssets, 1);
+					if(null != rv) {
+						Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
+							" class " + new Throwable().getStackTrace()[0].getClassName() +
+							" method " + new Throwable().getStackTrace()[0].getMethodName() +
+							" line " + new Throwable().getStackTrace()[0].getLineNumber());
+						Log.w(TAG, "rv: offset = "+rv.offset+" , length= "+rv.length+" ,  knownType= "+rv.knownType) ;
+						return rv;
+					}
+				}
+			} catch( IOException e ) {
+				// this is not really an error - it just indicates that the file is not
+				// within the FreeWRL apk - we'll look elsewhere
+				Log.e( TAG, "openAsset - not an Asset: " + e.toString() );
+			}
+		}
+		// end of Dave Joubert sent this in 5 August 2011
+
 		// Step 1 - is this in the FreeWRL Assets folder??
 		try {
-			//Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
-			//Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
+			Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
+			Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
 	
 			AssetFileDescriptor ad = null;
 			String tryInAppAssets = path;
@@ -92,7 +157,7 @@ public class FreeWRLAssets {
 	
 		  	Integer off = (int) ad.getStartOffset();
 		  	Integer len = (int) ad.getLength();
-			//Log.w(TAG,"FreeWRLAssetData content is off " + rv.offset + " len " + rv.length + " fd " + rv.fd);
+			Log.w(TAG,"FreeWRLAssetData content is off " + off + " len " + len + " fd " + fd);
 			FreeWRLAssetData rv = new FreeWRLAssetData(off,len,fd,imgFile);
 			
 			// found it, return the asset info
@@ -101,7 +166,7 @@ public class FreeWRLAssets {
 		} catch( IOException e ) {
 			// this is not really an error - it just indicates that the file is not
 			// within the FreeWRL apk - we'll look next on the filesystem.
-			//Log.e( TAG, "openAsset: " + e.toString() );
+			//Log.e( TAG, "openAsset: not an Asset " + e.toString() );
 		}
 	
 	
@@ -116,7 +181,7 @@ public class FreeWRLAssets {
 			return new FreeWRLAssetData(0,0,null,null);
 		}
 	
-		// Log.w (TAG,"successfully opened " + path);
+		Log.w (TAG,"successfully opened " + path);
 
 		// got this in the /mnt/sdcard (or wherever it resides) directory.
 		return new FreeWRLAssetData(0,0,fd,in);
