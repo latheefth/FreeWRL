@@ -51,7 +51,11 @@ Functions:
 /* for generic GLES2 ie from desktop simulator */
 #ifdef GLES2
 	#include <GLES2/gl2.h>
+
+	#if !defined(_ANDROID)
 	#include <EGL/egl.h>
+	#endif //NOT Android
+
 	#ifndef GLchar
 		#define GLchar GLbyte
 	#endif
