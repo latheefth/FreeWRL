@@ -97,9 +97,11 @@ public class FreeWRLAssets {
 			" method " + new Throwable().getStackTrace()[2].getMethodName() +
 			" line " + new Throwable().getStackTrace()[2].getLineNumber());
 
-		// Step 0 (Probably makes step 1 redundant...)
-
+		// Step 1 - is this in the FreeWRL Assets folder??
 		if (path.indexOf('/') == 0) {
+			Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
+			Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
+
 			Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
 				" class " + new Throwable().getStackTrace()[0].getClassName() +
 				" method " + new Throwable().getStackTrace()[0].getMethodName() +
@@ -130,46 +132,7 @@ public class FreeWRLAssets {
 				Log.e( TAG, "openAsset - not an Asset: " + e.toString() );
 			}
 		}
-		// end of Dave Joubert sent this in 5 August 2011
 
-		// Step 1 - is this in the FreeWRL Assets folder??
-		try {
-			Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
-			Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
-	
-			AssetFileDescriptor ad = null;
-			String tryInAppAssets = path;
-	
-			// remove slash at the beginning, if it exists
-			// as Android assets are not root based but getwd returns root base.
-			if (path.indexOf('/') == 0) tryInAppAssets = path.substring(1);
-	
-			// get the asset file descriptor - it should be within the
-			// freewrl apk assets folder.
-			ad = context.getResources().getAssets().openFd(tryInAppAssets);
-
-			// get the InputStream for this file
-			imgFile = context.getAssets().open(tryInAppAssets);
-
-			// get the file descriptor, the offset and the length for getting this
-			// file from within the FreeWRL apk	
-			fd = ad.getFileDescriptor();
-	
-		  	Integer off = (int) ad.getStartOffset();
-		  	Integer len = (int) ad.getLength();
-			Log.w(TAG,"FreeWRLAssetData content is off " + off + " len " + len + " fd " + fd);
-			FreeWRLAssetData rv = new FreeWRLAssetData(off,len,fd,imgFile);
-			
-			// found it, return the asset info
-			return rv;
-	
-		} catch( IOException e ) {
-			// this is not really an error - it just indicates that the file is not
-			// within the FreeWRL apk - we'll look next on the filesystem.
-			//Log.e( TAG, "openAsset: not an Asset " + e.toString() );
-		}
-	
-	
 		// Step 2 - if not an Asset in the FreeWRL Apk, try the exact path
 	
 		//Log.w(TAG,"openAsset: Obviously NOT in the applications asset area");
