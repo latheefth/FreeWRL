@@ -965,6 +965,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	#endif //VERBOSE
 	#endif // GL_ES_VERSION_2_0
 
+
     #ifdef VERBOSE
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
     if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
