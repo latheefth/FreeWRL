@@ -446,6 +446,8 @@ typedef struct {
 	int texture_units;
 	int max_texture_size;
 	float anisotropicDegree;
+    
+    GLboolean quadBuffer;        /* does platform support quadbuffer? */
 
 } s_renderer_capabilities_t;
 

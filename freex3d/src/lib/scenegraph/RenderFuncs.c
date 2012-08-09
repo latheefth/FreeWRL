@@ -490,6 +490,7 @@ static bool setupShader() {
     
 	if (mysp != NULL) {
         
+
 		/* if we had a shader compile problem, do not draw */
 		if (!(mysp->compiledOK)) {
 #ifdef RENDERVERBOSE
@@ -538,6 +539,7 @@ static bool setupShader() {
     return true;
     
 }
+
 
 void sendArraysToGPU (int mode, int first, int count) {
 #ifdef RENDERVERBOSE

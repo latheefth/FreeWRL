@@ -1367,15 +1367,6 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 //printf ("last_texture_type = TEXTURE_NO_ALPHA now\n"); last_texture_type=TEXTURE_NO_ALPHA;
 	
-#ifdef OLDCODE
-OLDCODE			/* if, we have RGB, or RGBA, X3D Spec 17.2.2.3 says ODrgb = IDrgb, ie, the diffuseColor is
-OLDCODE			   ignored. We do this here, because when we do the Material node, we do not know what the
-OLDCODE			   texture depth is (if there is any texture, even) */
-OLDCODE			if (myTableIndex->hasAlpha) {
-OLDCODE				do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
-OLDCODE			}
-#endif //OLDCODE
-	
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			if (myTableIndex->nodeType != NODE_MovieTexture) {
 #endif

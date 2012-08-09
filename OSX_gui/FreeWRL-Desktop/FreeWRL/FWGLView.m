@@ -46,6 +46,15 @@ NSMutableData *receivedData;
     //NSLog (@"calling fwl_initializeRenderSceneUpdateScene");
     fwl_initializeRenderSceneUpdateScene();
     
+    
+    NSLog (@"trying sidebyside");
+    fwl_init_SideBySide();
+    //
+    //fwl_set_AnaglyphParameter("RC");
+    
+    
+    
+    
     // has fwl_RenderSceneUpdateScene run at least once??
     
     
@@ -58,7 +67,9 @@ NSMutableData *receivedData;
         cString = "/Applications/FreeWRL/blankScreen.wrl";
         //cString = "/FreeWRL/freewrl/freewrl/tests/16.wrl";
         cString="/Users/johns/Desktop/palm.wrl";
-        cString="/Users//johns/Desktop/Android-freewrl-fullbuild/freewrl/freewrl/tests/53.wrl";
+        //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/42.wrl";
+        //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/13.wrl";
+        cString="/Users/johns/Desktop/testvrml.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {

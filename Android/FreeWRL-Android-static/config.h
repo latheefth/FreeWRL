@@ -3,6 +3,9 @@
 	Android compatible config.h
 */
 
+//  try stereo rendering
+#define FREEWRL_STEREO_RENDERING
+
 #define MAX_MULTITEXTURE 4
 
 #define GLES2 1
