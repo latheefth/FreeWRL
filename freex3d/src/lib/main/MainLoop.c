@@ -1348,12 +1348,14 @@ static void render()
 			if(p->touchlist[i].isDown > 0)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
+#ifndef STATUSBAR_HUD
 	/* status bar, if we have one */
 	drawStatusBar();
 
 	/* swap the rendering area */
 	FW_GL_SWAPBUFFERS;
         PRINT_GL_ERROR_IF_ANY("XEvents::render");
+#endif
 }
 
 
@@ -2124,6 +2126,12 @@ void _displayThread()
 		updateButtonStatus(); //poll Model & update UI(View)
 		updateConsoleStatus(); //poll Model & update UI(View)
 		checkFileLoadRequest();
+		/* status bar, if we have one */
+		drawStatusBar();  // UI/View 
+
+		/* swap the rendering area */
+		FW_GL_SWAPBUFFERS;
+			PRINT_GL_ERROR_IF_ANY("XEvents::render");
 	} 
 	/* when finished: */
 	finalizeRenderSceneUpdateScene();
