@@ -575,8 +575,10 @@ int ConsoleMessage0(const char *fmt, va_list args)
 		if(p->Console_writeToLog)
 			writeToLogFile(buffer);
 		if(tg->ConsoleMessage.Console_writeToHud){
+#if defined(STATUSBAR_HUD)
 			android_save_log(STRDUP(buffer));
 			//hudSetConsoleMessage(buffer);
+#endif
 		}
 #ifdef _MSC_VER
 		if(Console_writePrimitive)
