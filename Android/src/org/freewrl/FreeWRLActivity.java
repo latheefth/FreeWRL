@@ -24,11 +24,15 @@
 
 package org.freewrl;
 
+import android.view.MenuInflater;
+
+import java.util.Stack;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import java.util.List;
 import android.content.IntentFilter;
 import android.content.Context;
@@ -63,19 +67,16 @@ import java.io.InputStreamReader;
 import android.view.View;
 
 public class FreeWRLActivity extends Activity implements IFolderItemListener {
-	FreeWRLView mView;
-	ViewGroup overViewGroup;
+	static FreeWRLView glView;
+	static LinearLayout mainView;
+
+	static Stack viewStack;
 
 	private static String TAG = "FreeWRLActivity";
 
 	// are we currently getting a resource? if so, we just ignore 
 	// front end request for a file, because the requests are synchronous.
 	public static boolean currentlyGettingResource = false;
-
-	static final int NEW_WORLD= 0;
-	static final int VIEWPOINT_CHANGE= 1;
-	static final int LOG_LOOK = 2;
-	//static final int DISMISS = 3;
 
 	// timer trials
 	private static Timer myTimer = null;
@@ -117,28 +118,33 @@ public class FreeWRLActivity extends Activity implements IFolderItemListener {
 	public void OnFileClicked(File file) {
 
 		//Log.w(TAG,"OnFileClicked - file " + file);
-		mView.setPossibleNewFileName(""+file);
+		glView.setPossibleNewFileName(""+file);
 
-		new AlertDialog.Builder(this)
+		AlertDialog me = new AlertDialog.Builder(this)
 		.setIcon(R.drawable.icon)
 		.setTitle("Load " + file.getName() + "?")
 		.setPositiveButton("OK",
 			new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,
 				int which) {
-					mView.setLoadNewX3DFile();
+					Log.w(TAG,"OK pressed = popping back to main view");
+					popBackToMainView();
+					glView.setLoadNewX3DFile();
 
-					// remove the folder viewing View.
-					localFolders.setVisibility(View.GONE);
 				}
 			})
 		.setNegativeButton("NO",
 			new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,
 				int which) {
-				mView.discardPossibleNewFileName();
+					//Log.w(TAG,"NO pressed, popping back one");
+					popBackOne();
+					glView.discardPossibleNewFileName();
 				}
 			}).show();
+
+		Log.w(TAG,"OnFileClicked, created dialog " + me);
+		viewStack.push(me);
 	}
 
 
@@ -162,15 +168,104 @@ private String getLastConsoleMessages() {
 	return retString;
 }
 
-public boolean onCreateOptionsMenu(Menu menu){
 
-	//Log.w(TAG,"onCreateOptionsMenu");
-	menu.add(0,NEW_WORLD,0,"New");
-	menu.add(0,VIEWPOINT_CHANGE,0,"Viewpoint");
-	menu.add(0,LOG_LOOK,0,"Info");
-	//menu.add(0,DISMISS,0,"Dismiss");
-	return super.onCreateOptionsMenu(menu);
-	//return true;
+/* pop one off the stack, unless it is at the mainView already */
+public static void popBackOne() {
+	Object tos;
+
+//Log.w(TAG,"------popBackOne-----" + viewStack.size());
+
+	// bounds checking
+	if (viewStack.isEmpty()) {
+		Log.w(TAG,"popBackOne - ERROR - viewStack is empty");
+		return;
+	}
+
+	tos = viewStack.peek();
+	if (tos == mainView) {
+		//Log.w(TAG,"tos is main view, just make sure it is visible and exit");
+		mainView.setVisibility(View.VISIBLE);
+		return;
+	}
+
+
+	tos = viewStack.pop();
+	if (tos instanceof AlertDialog) {
+		//Log.w(TAG,"popBackOne - have an alert Dialog");
+	} else 
+	if (tos instanceof View) {
+		//Log.w(TAG,"tos is a View but now its GONE");
+		View me = (View)tos;
+		me.setVisibility(View.GONE);
+	} else {
+		//Log.w(TAG, "undecifered entry");
+	}
+
+	//Log.w(TAG,"popBackOne, popped; current tos is " + tos + " class " + tos.getClass());
+
+	tos = viewStack.peek();
+	/* make sure we can see our current */
+	if (tos instanceof View) {
+		//Log.w(TAG,"tos is ia View and now it is VISIBLE");
+		View me = (View)tos;
+		me.setVisibility(View.VISIBLE);
+	}
+//Log.w(TAG,"------popBackOne-Finished----" + viewStack.size());
+}
+
+
+/* pop back until we get our main view here */
+public static void popBackToMainView() {
+	Object tos;
+
+//Log.w(TAG,"------popBackToMainView----" + viewStack.size());
+	// bounds checking
+	if (viewStack.isEmpty()) {
+		Log.w(TAG,"popBackToMainView - ERROR - viewStack is empty");
+		mainView.setVisibility(View.VISIBLE);
+		return;
+	}
+
+	while (viewStack.peek() != mainView) {
+		tos = viewStack.peek();
+		//Log.w(TAG,"popBackToMainWindow, GONE is " + tos + " stack size " + viewStack.size());
+
+		if (tos instanceof View) {
+			//Log.w(TAG,"tos is View but now its GONE");
+			View me = (View)tos;
+			me.setVisibility(View.GONE);
+		}
+		tos = viewStack.pop();
+
+		// bounds checking
+		if (viewStack.isEmpty()) {
+			Log.w(TAG,"popBackToMainView - ERROR - viewStack is empty in while loop");
+			mainView.setVisibility(View.VISIBLE);
+			return;
+		}
+	}
+
+	/* make sure we can see our mainView */
+	mainView.setVisibility(View.VISIBLE);
+//Log.w(TAG,"------popBackToMainView-Finished----" + viewStack.size());
+}
+
+
+
+
+@Override
+public void onBackPressed() {
+	Log.w(TAG,"onBackPressed");
+	popBackOne();
+}
+
+
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+	MenuInflater inflater = getMenuInflater();
+	inflater.inflate(R.menu.main_activity, menu);
+	//Log.w(TAG,"onCreateOptionsMenu called");
+	return true;
 }
 
 // throw the console on the screen - either the user wanted it, or we have an error
@@ -178,7 +273,7 @@ private void displayConsole() {
 	Context origContext = getApplication();
 
 	// remove an older one, if it exists.
-	if (myConsole != null) myConsole.setVisibility(View.GONE);
+	if (myConsole != null) myConsole.setVisibility(View.INVISIBLE);
 	myConsole = new ConsoleLayout(getApplication(),null);
 
 	myConsole.setConsoleListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getLastConsoleMessages());
@@ -186,22 +281,24 @@ private void displayConsole() {
 	// set the background colour - let FreeWRL show through sometimes.
 	myConsole.setBackgroundColor(0xAF000000 );
 
+	viewStack.push(myConsole);
+	Log.w(TAG, "displayConsole, pushing " + viewStack.peek());
+
 	// display it
 	getWindow().addContentView(myConsole, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
 }
 
-// user hit the menu button - display our main selections.
-public boolean onOptionsItemSelected (MenuItem item){
-	//Log.w(TAG,"onOptionsItemSelected");
-	switch (item.getItemId()){
-	
-		case NEW_WORLD: {
+
+@Override
+public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+        case R.id.NEW_WORLD:
 			Context origContext = getApplication();
 
 			/* Actions in case that Edid Contacts is pressed */
 			//Log.w(TAG,"NEW_WORLD");
 			// File Dialog 2
-			if (localFolders != null) localFolders.setVisibility(View.GONE);
+			if (localFolders != null) localFolders.setVisibility(View.INVISIBLE);
 			localFolders = new FolderLayout(getApplication(),null);
 
 			//Log.w(TAG, "2 going to findViewById");
@@ -218,50 +315,71 @@ public boolean onOptionsItemSelected (MenuItem item){
 			localFolders.setBackgroundColor(0xAF000000 );
 
 			// display it
+			viewStack.push(localFolders);
+			Log.w(TAG, "onOpetionsIntemSelected, pushing " + viewStack.peek());
 			getWindow().addContentView(localFolders, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
 
 			break;
-		}
-	
-		case VIEWPOINT_CHANGE : {
+		case R.id.VIEWPOINT : {
 			//Log.w(TAG,"VIEWPOINT_CHANGE");
 			/* Actions in case that Delete Contact is pressed */
 			FreeWRLLib.nextViewpoint();
 			break;
 		}
 
-		case LOG_LOOK : {
+		case R.id.PREFERENCES: {
+			Log.w(TAG,"PREFERENCES");
+			break;
+		}
+
+		case R.id.SETTINGS: {
+			Log.w(TAG,"SETTINGS");
+			break;
+		}
+
+		case R.id.LOG_LOOK : {
 			displayConsole();
 			break;
 
 		}
-	
-		//case DISMISS: {
-		//	Log.w (TAG,"DISMISS");
-		//	finish();
-		//	break;
-		//}
-
-	}
-
+    }
 	return true;
-
 }
+
+
+//// user hit the menu button - display our main selections.
 
 
     @Override protected void onCreate(Bundle icicle) {
 	//Log.w(TAG,"onCreate");
         super.onCreate(icicle);
-        mView = new FreeWRLView(getApplication());
+
+	// try making the view stack here, for the back button
+	viewStack = new Stack();
+
+
+	setContentView(R.layout.main);
+
+	mainView = (LinearLayout)findViewById(R.id.MainView);
+	viewStack.push(mainView);
+	Log.w(TAG, "onCreate pushing " + viewStack.peek());
+
+
+        glView = new FreeWRLView(getApplication());
+
+
 
 	// tell the library to (re)create it's internal databases
 	FreeWRLLib.createInstance();
 
 	// for gestures
-	mView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-		ViewGroup.LayoutParams.MATCH_PARENT));
+	//	glView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-	setContentView(mView);
+	// add the glView here.
+mainView.addView((View)glView,0,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+Log.w(TAG,"setContentView on glView");
+//	setContentView(glView);
 
 	// send in font directory pointers.
 	if (fontAsset_01 == null) {
@@ -280,7 +398,7 @@ public boolean onOptionsItemSelected (MenuItem item){
 	FreeWRLLib.setTmpDir(getApplicationContext().getCacheDir().getAbsolutePath());
 
 
-	mView.setLoadNewX3DFile();
+	glView.setLoadNewX3DFile();
 
 	//Log.w(TAG,"starting timer task");
 	myTimer = new Timer();
@@ -321,13 +439,13 @@ public boolean onOptionsItemSelected (MenuItem item){
     @Override protected void onPause() {
 	//Log.w (TAG,"onPause");
         super.onPause();
-        mView.onPause();
+        glView.onPause();
     }
 
     @Override protected void onResume() {
 	//Log.w (TAG,"onResume");
         super.onResume();
-        mView.onResume();
+        glView.onResume();
     }
 
 

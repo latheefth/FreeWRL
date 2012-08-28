@@ -91,9 +91,9 @@ pthread_t loadFileThread = (pthread_t)0;
 
 void fileLoadThread(void* param) {
 
-	DROIDDEBUG("------------------LOAD THREAD-----------------------");
+	//DROIDDEBUG("------------------LOAD THREAD-----------------------");
 	fwl_OSX_initializeParameters(currentFile);
-	DROIDDEBUG("------------------FIN LOAD THREAD-----------------------");
+	//DROIDDEBUG("------------------FIN LOAD THREAD-----------------------");
 }
 
 
@@ -116,11 +116,11 @@ void DROIDDEBUG( const char*pFmtStr, ...)
 
 JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 {
-	DROIDDEBUG("------------------ON LOAD-----------------------");
+	//DROIDDEBUG("------------------ON LOAD-----------------------");
 	g_jvm = vm;
 	JNIEnv* ioEnv = NULL;
 
-	DROIDDEBUG("------------------FIN ON LOAD-----------------------");
+	//DROIDDEBUG("------------------FIN ON LOAD-----------------------");
 	return JNI_VERSION_1_6;
 }
 
@@ -136,7 +136,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_createInstance(JNIEnv * env, 
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, jobject obj, jstring passedInitialFile)
 {
-	DROIDDEBUG("------------------INITIAL FILE-----------------------");
+	//DROIDDEBUG("------------------INITIAL FILE-----------------------");
 
 	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
 
@@ -147,7 +147,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 	currentFile = strdup(cFilename);
 
 
-	DROIDDEBUG("cFilename is :%s:",currentFile);
+	//DROIDDEBUG("cFilename is :%s:",currentFile);
 	
 	// step 1:
 	//DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 1");
@@ -170,7 +170,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 
 	// do not free this...
 	//(*env)->ReleaseStringUTFChars(env, currentFile, cFilename);
-	DROIDDEBUG("------------------END INITIAL FILE-----------------------");
+	//DROIDDEBUG("------------------END INITIAL FILE-----------------------");
 }
 
 /* send in the location for FreeWRL tmp files; eg, for making copies of PROTO expansions and such. */
@@ -198,8 +198,8 @@ JNIEXPORT jboolean JNICALL Java_org_freewrl_FreeWRLLib_resourceWanted(JNIEnv * e
 
 /* return the NAME of the resource we want... */
 JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_resourceNameWanted(JNIEnv *env, jobject obj) {
-	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
-	DROIDDEBUG(fwg_frontEndWantsFileName());
+	//DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
+	//DROIDDEBUG(fwg_frontEndWantsFileName());
 	return (*env)->NewStringUTF(env,fwg_frontEndWantsFileName());
 }
 
@@ -273,7 +273,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_nextViewpoint(JNIEnv * env, j
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_doQuitInstance(JNIEnv * env, jobject obj)
 {
-    	fwl_Android_doQuitInstance();
+    	fwl_doQuitInstance();
 }
 
 /* reload assets when onSurfaceCreated, but system already loaded */
@@ -293,9 +293,8 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setLastMouseEvent(JNIEnv *env
 }
 
 
-JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_replaceWorldNeeded(JNIEnv *env, jobject obj,jstring passedInitialFile)
+JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_replaceWorldNeeded(JNIEnv *env, jobject obj)
 {
-	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
 	fwl_Android_replaceWorldNeeded();
 }
 
@@ -306,13 +305,13 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobje
 
 // how many console messages do we have?
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_androidGetUnreadMessageCount(JNIEnv *env, jobject obj) {
-	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
+	//DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
 	return android_get_unread_message_count();
 }
 
 // get the console message, indicated by the parameter.
 JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_androidGetLastMessage(JNIEnv *env, jobject obj, int whichone) {
-	DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
+	//DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
 	return (*env)->NewStringUTF(env,android_get_last_message(whichone));
 }
 #endif

@@ -64,7 +64,7 @@ import java.io.InputStream;
 
 public class FreeWRLAssets {
 
-	private static String TAG = "FreeWRLView";
+	private static String TAG = "FreeWRLAssets";
 	
 	// open a file. 
 	// first, see if it is within the FreeWRL apk "assets" directory.
@@ -79,11 +79,13 @@ public class FreeWRLAssets {
 		Integer length = 0;
 		FileDescriptor fd = null;
 		InputStream imgFile = null;
+		long f_length = 0;
 
 		// Dave Joubert sent this in 5 August 2011
-		Log.w(TAG,"---------------------- ** START ** -------------------------");
-		Log.w(TAG, path);;
+		//Log.w(TAG,"---------------------- ** START ** -------------------------");
+		//Log.w(TAG, path);;
 
+/*
 		Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
 			" class " + new Throwable().getStackTrace()[0].getClassName() +
 			" method " + new Throwable().getStackTrace()[0].getMethodName() +
@@ -96,16 +98,19 @@ public class FreeWRLAssets {
 			" class " + new Throwable().getStackTrace()[2].getClassName() +
 			" method " + new Throwable().getStackTrace()[2].getMethodName() +
 			" line " + new Throwable().getStackTrace()[2].getLineNumber());
+*/
 
 		// Step 1 - is this in the FreeWRL Assets folder??
 		if (path.indexOf('/') == 0) {
-			Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
+			//Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
 			//Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
 
+/*
 			Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
 				" class " + new Throwable().getStackTrace()[0].getClassName() +
 				" method " + new Throwable().getStackTrace()[0].getMethodName() +
 				" line " + new Throwable().getStackTrace()[0].getLineNumber());
+*/
 			// remove slash at the beginning, if it exists
 			// as Android assets are not root based but getwd returns root base.
 			// And we know it is not an URL based filename
@@ -115,27 +120,29 @@ public class FreeWRLAssets {
 				AssetFileDescriptor ad = context.getResources().getAssets().openFd(tryInAppAssets);
 				if (ad != null) {
 					ad.close();
-					Log.w(TAG," Best guess: "+path+" is an asset ");
+					//Log.w(TAG," Best guess: "+path+" is an asset ");
 					FreeWRLAssetData rv = new FreeWRLAssetData(context, tryInAppAssets, 1);
 					if(null != rv) {
+/*
 						Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
 							" class " + new Throwable().getStackTrace()[0].getClassName() +
 							" method " + new Throwable().getStackTrace()[0].getMethodName() +
 							" line " + new Throwable().getStackTrace()[0].getLineNumber());
-						Log.w(TAG, "rv: offset = "+rv.offset+" , length= "+rv.length+" ,  knownType= "+rv.knownType) ;
+*/
+						//Log.w(TAG, "rv: offset = "+rv.offset+" , length= "+rv.length+" ,  knownType= "+rv.knownType) ;
 						return rv;
 					}
 				}
 			} catch( IOException e ) {
 				// this is not really an error - it just indicates that the file is not
 				// within the FreeWRL apk - we'll look elsewhere
-				Log.e( TAG, "openAsset - not an Asset: " + e.toString() );
+				//Log.e( TAG, "openAsset - not an Asset: " + e.toString() );
 			}
 		}
 
 
 		try {
-			//Log.w(TAG,"---------------- GOING TO OPEN ASSET FILE ------------------");
+			//Log.w(TAG,"---------------- NOPE - try2 GOING TO OPEN ASSET FILE ------------------");
 			//Log.w(TAG," guessing it is a " + URLConnection.guessContentTypeFromName(path));
 	
 			AssetFileDescriptor ad = null;
@@ -181,9 +188,17 @@ public class FreeWRLAssets {
 			return new FreeWRLAssetData(0,0,null,null);
 		}
 	
-		Log.w (TAG,"successfully opened " + path);
+
+try {
+File f = new File(path);
+InputStream r=new FileInputStream(f);
+f_length = f.length();
+//Log.w(TAG,"testing, file length is " + f_length);
+}catch (FileNotFoundException e) {}
+
+		//Log.w (TAG,"successfully opened " + path);
 
 		// got this in the /mnt/sdcard (or wherever it resides) directory.
-		return new FreeWRLAssetData(0,0,fd,in);
+		return new FreeWRLAssetData(0,(int)f_length,fd,in);
 	}
 }

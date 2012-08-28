@@ -27,5 +27,15 @@
 	<string name="Path">Path</string>
 	<string name="HelpEmail"></string>
 	<string name="Cancel">Dismiss</string>
+	<string name="menu_save">menu_save</string>
+
+
+	<string name="NEW_WORLD">New</string>
+	<string name="PREFERENCES">Preferences</string>
+	<string name="SETTINGS">Settings</string>
+	<string name="VIEWPOINT">Viewpoint</string>
+	<string name="LOG_LOOK">Log</string>
+
+
 </resources>
 

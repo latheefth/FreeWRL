@@ -45,7 +45,7 @@ import android.os.AsyncTask; //<Params, Progress, Result>;
 
 public class FreeWRLAssetGetter extends AsyncTask<String, String, String> {
 
-private static String TAG="FreeWRL";
+private static String TAG="FreeWRLAssetGetter";
 private static Context myContext= null;
 private static FreeWRLAssets myAsset = null;
 FreeWRLAssetData myAssetDatum;
@@ -66,6 +66,7 @@ FreeWRLAssetData myAssetDatum;
 			Looper.prepare();
 		}
 
+/*
 		Log.w(TAG,"now, RESOURCE Wanted name is " + myName);
 
                 Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
@@ -76,10 +77,11 @@ FreeWRLAssetData myAssetDatum;
                         " class " + new Throwable().getStackTrace()[1].getClassName() +
                         " method " + new Throwable().getStackTrace()[1].getMethodName() +
                         " line " + new Throwable().getStackTrace()[1].getLineNumber());
+*/
 
 		myAsset = new FreeWRLAssets();
 		myAssetDatum = myAsset.openAsset(myContext,myName);
-		Log.w(TAG,"-------------and, the getStartOffset, getLength is " + myAssetDatum.offset + "  " + myAssetDatum.length);
+		//Log.w(TAG,"-------------and, the getStartOffset, getLength is " + myAssetDatum.offset + "  " + myAssetDatum.length);
 
 		// send this to FreeWRL
 		FreeWRLLib.resourceFile(
@@ -94,7 +96,7 @@ FreeWRLAssetData myAssetDatum;
 
 	@Override
 	protected void onPostExecute(String result) {
-		Log.w(TAG, "FreeWRLAssetGetter onPostExecute done - string "+ result);
+		//Log.w(TAG, "FreeWRLAssetGetter onPostExecute done - string "+ result);
 		FreeWRLActivity.currentlyGettingResource=false;
 
 	}

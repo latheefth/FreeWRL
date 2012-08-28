@@ -3,6 +3,11 @@
 	Android compatible config.h
 */
 
+
+//#define DEBUG_MALLOC 1
+//#define FW_DEBUG 1
+
+
 //  try stereo rendering
 #define FREEWRL_STEREO_RENDERING
 

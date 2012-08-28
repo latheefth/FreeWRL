@@ -53,7 +53,7 @@ import android.widget.Button;
 
     private View newConsoleView;
 
-    private static String TAG = "FreeWRLView";
+    private static String TAG = "FreeWRLConsoleLayout";
 
     public ConsoleLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -71,8 +71,8 @@ import android.widget.Button;
 	CancelButton = (Button) findViewById(R.id.CancelButton);
 	CancelButton.setOnClickListener(new View.OnClickListener() {
              public void onClick(View v) {
-                 // Perform action on click
-		newConsoleView.setVisibility(View.GONE);
+                 // clicked dismiss; back to main window.
+		FreeWRLActivity.popBackToMainView();
              }
          });
     }
