@@ -1301,7 +1301,7 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr, sending resource to parser\n");
 				#endif
-				send_resource_to_parser(res);
+				send_resource_to_parser(res,__FILE__,__LINE__);
 				#ifdef JSVRMLCLASSESVERBOSE
 				printf ("SFNodeConstr, waiting on resource\n");
 				#endif

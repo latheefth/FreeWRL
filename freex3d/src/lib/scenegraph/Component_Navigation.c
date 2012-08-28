@@ -242,7 +242,7 @@ void fin_Billboard (struct X3D_Billboard *node) {
 
 
 void  child_Billboard (struct X3D_Billboard *node) {
-	CHILDREN_COUNT
+    int nc = node->children.n;
 	LOCAL_LIGHT_SAVE
 
 
@@ -287,7 +287,7 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 
 
 void child_Collision (struct X3D_Collision *node) {
-	CHILDREN_COUNT
+    int nc = node->children.n;
 	int i;
 	struct X3D_Node *tmpN;
 

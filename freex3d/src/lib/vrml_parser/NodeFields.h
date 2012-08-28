@@ -193,8 +193,8 @@ FIELD(Collision,proxy,sfnode,proxy,FIELDTYPE_SFNode)
 EVENT_OUT(Collision,collideTime,sftime,collideTime,FIELDTYPE_SFTime)
 FIELD(Collision,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(Collision,collide,sfbool,collide,FIELDTYPE_SFBool)
-EXPOSED_FIELD(Collision,enabled,sfbool,enabled,FIELDTYPE_SFBool)
 EVENT_IN(Collision,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Collision,enabled,sfbool,enabled,FIELDTYPE_SFBool)
 END_NODE(Collision)
 
 /* Color node */

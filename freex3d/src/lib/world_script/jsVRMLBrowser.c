@@ -820,7 +820,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, uintN argc, jsval *vp) {
 	/* printf ("type of field %s, accessType %s\n",stringFieldtypeType(type),stringKeywordType(accessType)); */
 	res->offsetFromWhere = offs;
 
-	send_resource_to_parser(res);
+	send_resource_to_parser(res,__FILE__,__LINE__);
 	resource_wait(res);
 	
 	if (res->status == ress_parsed) {

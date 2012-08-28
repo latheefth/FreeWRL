@@ -1777,7 +1777,7 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 
 	resource_get_valid_url_from_multi(parentPath, res);
 
-	send_resource_to_parser(res);
+	send_resource_to_parser(res,__FILE__,__LINE__);
 	resource_wait(res);
 	
 	if (res->status == ress_loaded) {

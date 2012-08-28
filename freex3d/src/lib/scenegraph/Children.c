@@ -71,6 +71,7 @@ void normalChildren(struct Multi_Node ch) {
 
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Node *p = X3D_NODE(ch.p[i]);
+		//ConsoleMessage("NC, ch %d is %p",i,p);
 		if (p != NULL) {
 			/* printf ("child %d of %d is a %s\n",i,ch.n,stringNodeType(p->_nodeType)); */
 			/* as long as this is not a local light... if it is, it will be handled by
@@ -100,10 +101,20 @@ void update_renderFlag (struct X3D_Node *p, int flag) {
 			flag, vectorSize(p->_parentVector); */
 	
 
+	if (p==NULL) {
+		ConsoleMessage ("update_renderFlag, p NULL");
+		return;
+	}
+
 	p->_renderFlags = p->_renderFlags | flag;
 
 	for (i = 0; i < vectorSize(p->_parentVector); i++) {
 		struct X3D_Node *me = vector_get(struct X3D_Node *,p->_parentVector, i);
+
+		if (me==NULL) {
+			ConsoleMessage ("update_renderFlag, me  NULL for child %d",i);
+			return;
+		}
 
 		/* printf ("node %d has %d for a parent\n",p,p->_parents[i]);  */
 		switch (me->_nodeType) {

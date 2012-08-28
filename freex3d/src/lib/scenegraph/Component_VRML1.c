@@ -76,6 +76,8 @@ Have fun! John A. Stewart, June 2009
 #include "../scenegraph/Vector.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Polyrep.h"
+#include "../vrml_parser/CRoutes.h"
+
 
 
 #include "LinearAlgebra.h"
@@ -232,6 +234,12 @@ static void renderSpecificMaterial (int ind) {
 void prep_VRML1_Separator (struct X3D_VRML1_Separator *node) {
 	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 	/* printf ("prepSep %u\n",node); */
+
+
+	/* this might not be the place to copy over the fields, but there is no
+	   compile_VRML1_Separator... */
+	REINITIALIZE_SORTED_NODES_FIELD(node->VRML1children,node->_sortedChildren);
+
 
 	/* lets set the transparency param to 1.0 here, it can be overridden later */
 	getAppearanceProperties()->transparency = MAX_NODE_TRANSPARENCY;

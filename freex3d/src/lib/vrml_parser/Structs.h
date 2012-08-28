@@ -2070,7 +2070,6 @@ struct X3D_Anchor {
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
 	void * _parentResource;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
@@ -2242,7 +2241,6 @@ struct X3D_Billboard {
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
 	double _rotationAngle;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
 	struct SFVec3f axisOfRotation;
 	struct SFVec3f bboxCenter;
@@ -2408,7 +2406,6 @@ struct X3D_Collision {
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
 	int __hit;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
@@ -3889,7 +3886,6 @@ struct X3D_Inline {
 	void * __loadResource;
 	int __loadstatus;
 	void * _parentResource;
-	struct Multi_Node _sortedChildren;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	int load;
@@ -5509,7 +5505,6 @@ struct X3D_PickableGroup {
  	/*** node specific data: *****/
 	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
 	int FreeWRL__protoDef;
-	struct Multi_Node _sortedChildren;
 	struct Multi_Node addChildren;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;

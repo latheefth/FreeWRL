@@ -629,6 +629,8 @@ void propagateExtent(struct X3D_Node *me) {
 	struct X3D_Node *geomParent;
 	int touched;
 
+	if (me==NULL) return;
+
 	#ifdef FRUSTUMVERBOSE
 	printf ("propextent Iam %s, myExtent (%4.2f %4.2f) (%4.2f %4.2f) (%4.2f %4.2f) me %u parents %d\n",
 			stringNodeType(me->_nodeType),
@@ -640,7 +642,7 @@ void propagateExtent(struct X3D_Node *me) {
 
 
 	if (me->_parentVector == NULL) {
-		printf ("propagateExtent, parentVector NULL, me %p %s\n",
+		ConsoleMessage ("propagateExtent, parentVector NULL, me %p %s\n",
 			me,stringNodeType(me->_nodeType));
 		return;
 	}
