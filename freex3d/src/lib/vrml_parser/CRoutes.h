@@ -71,6 +71,9 @@ struct CRStruct *getCRoutes();
 int get_valueChanged_flag (int, int);
 void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset, struct X3D_Node **toNode, int *toOffset);
 
+void do_first(void);
+void delete_first(struct X3D_Node *);
+
 void mark_event (struct X3D_Node *from, int fromoffset);
 void mark_event_check (struct X3D_Node *from, int fromoffset,char *fn, int line);
 void resetScriptTouchedFlag(int actualscript, int fptr);
