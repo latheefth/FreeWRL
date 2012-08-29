@@ -370,6 +370,7 @@ void FW_make_fontname(int num) {
     FcPattern *FW_fp=NULL;
     FcPattern *FW_fm=NULL;
     FcChar8 *FW_file=NULL;
+    FcResult fcjunkresult;
     #else
 
     if (!p->font_directory) {
@@ -487,7 +488,7 @@ void FW_make_fontname(int num) {
     #ifdef HAVE_FONTCONFIG
     FcConfigSubstitute(0,FW_fp,FcMatchPattern);
     FcDefaultSubstitute(FW_fp);
-    if (!(FW_fm = FcFontMatch(0,FW_fp,0))) {
+    if (!(FW_fm = FcFontMatch(0,FW_fp,&fcjunkresult))) {
 	/* do whatever is done when no match found */
 	printf ("could not find font for id %x\n",num);
     } else {
