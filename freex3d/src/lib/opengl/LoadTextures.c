@@ -699,6 +699,13 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	url = NULL;
 	res = NULL;
 
+    /* did this node just disappear? */
+    if (!checkNode(entry->scenegraphNode,__FILE__,__LINE__)) {
+        ConsoleMessage ("node for texture just deleted...\n");
+        return FALSE;
+    }
+    
+    
 	switch (entry->nodeType) {
 
 	case NODE_PixelTexture:

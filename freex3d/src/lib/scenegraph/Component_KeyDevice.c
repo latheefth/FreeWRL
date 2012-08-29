@@ -351,6 +351,9 @@ void sendKeyToKeySensor(const char key, int upDown) {
 		printf ("sendKeyToKeySensor, sending key %d to %d of %d\n",key,count,p->keySinkCurMax);
 		#endif
 
+        /* make sure this has not been deleted  - we should really re-create list, but
+         so few keySensor X3D nodes are in use, who cares? */
+        if (checkNode(p->keySink[count],__FILE__,__LINE__)) {
 #ifdef _MSC_VER
 		if (p->keySink[count]->_nodeType == NODE_KeySensor && (upDown != KeyChar)) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
 #else
@@ -358,6 +361,7 @@ void sendKeyToKeySensor(const char key, int upDown) {
 #endif
 		if (p->keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(p->keySink[count], (int)key&0xFFFF, upDown);
 	}
+    }
 }
 
 /*******************************************************/

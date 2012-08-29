@@ -146,6 +146,7 @@ void activate_OSCsensors() {
 
 	while (active_OSC_Nodes && curr_OSC_Node < num_OSC_Nodes) {
 		realnode = (struct X3D_OSC_Sensor *) OSC_Nodes[curr_OSC_Node] ;
+        if (checkNode(realnode,__FILE__,__LINE__) {
 		#if TRACK_OSC_MSG
 		printf("activate_OSCsensors : %s,%d node=%p name=%s\n", __FILE__,__LINE__,realnode,realnode->description->strptr) ;
 		#endif
@@ -258,6 +259,8 @@ void activate_OSCsensors() {
 			/* We only want one OSC node to become active in one slowtick */
 			active_OSC_Nodes = FALSE ;
 		} 
+        } // end of checkNode conditional - JAS
+            
 		curr_OSC_Node++;
 	}
 }
