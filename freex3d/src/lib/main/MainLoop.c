@@ -2203,32 +2203,6 @@ void outOfMemory(const char *msg) {
         exit(EXIT_FAILURE);
 }
 
-#ifdef OLDCODE
-OLDCODE#if defined (_ANDROID)
-OLDCODE
-OLDCODE// we are loading a new file, or just not visible anymore
-OLDCODEvoid fwl_Android_doQuitInstance()
-OLDCODE{
-OLDCODE
-OLDCODE    kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__); //must be done from this thread
-OLDCODE	stopLoadThread();
-OLDCODE	stopPCThread();
-OLDCODE
-OLDCODE    /* set geometry to normal size from fullscreen */
-OLDCODE    if (newResetGeometry != NULL) newResetGeometry();
-OLDCODE
-OLDCODE    /* kill any remaining children */
-OLDCODE    killErrantChildren();
-OLDCODE    
-OLDCODE#ifdef DEBUG_MALLOC
-OLDCODE    void scanMallocTableOnQuit(void);
-OLDCODE    scanMallocTableOnQuit();
-OLDCODE#endif
-OLDCODE	/* tested on win32 console program July9,2011 seems OK */
-OLDCODE	iglobal_destructor(gglobal());
-OLDCODE}
-OLDCODE#else
-#endif //OLDCODE
 void fwl_doQuitInstance()
 {
 

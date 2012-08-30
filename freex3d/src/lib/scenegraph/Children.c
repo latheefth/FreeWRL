@@ -92,7 +92,8 @@ void normalChildren(struct Multi_Node ch) {
  * of interest down the branch. Eg, Transparent nodes - no sense going
  * through it all when rendering only for nodes. */
 
-void update_renderFlag (struct X3D_Node *p, int flag) {
+/* void update_renderFlag (struct X3D_Node *p, int flag) { */
+void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li) {
 	int i;
 
 	/* send notification up the chain */
@@ -102,17 +103,27 @@ void update_renderFlag (struct X3D_Node *p, int flag) {
 	
 
 	if (p==NULL) {
-		ConsoleMessage ("update_renderFlag, p NULL");
+		ConsoleMessage ("update_renderFlag, p NULL from %s:%d\n",fi,li);
 		return;
 	}
 
 	p->_renderFlags = p->_renderFlags | flag;
+
+	if (p->_parentVector == NULL) {
+		ConsoleMessage ("update_renderFlag, %p->parentVector NULL  refcount %d (%s) from %s:%d\n",p,p->referenceCount,stringNodeType(p->_nodeType),fi,li);
+		return;
+	}
 
 	for (i = 0; i < vectorSize(p->_parentVector); i++) {
 		struct X3D_Node *me = vector_get(struct X3D_Node *,p->_parentVector, i);
 
 		if (me==NULL) {
 			ConsoleMessage ("update_renderFlag, me  NULL for child %d",i);
+			return;
+		}
+
+		if (me->_parentVector == NULL) {
+			ConsoleMessage ("warning, for node %p, pv %d, child has null parentVector\n",p,i);
 			return;
 		}
 

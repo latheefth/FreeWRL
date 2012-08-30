@@ -3170,8 +3170,7 @@ E_JS_EXPERIMENTAL_CODE
 
 	/* now, we can go and tell the grouping nodes which ones are the lucky ones that contain the current Viewpoint node */
 	if (vectorSize(tg->Bindable.viewpoint_stack) > 0) {
-		ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n",
-vectorSize(tg->Bindable.viewpoint_stack));
+		//ConsoleMessage ("going to updateRF on viewpoint, stack is %d in size\n", vectorSize(tg->Bindable.viewpoint_stack));
 
 
 		update_renderFlag(vector_back(struct X3D_Node*, 
@@ -3291,11 +3290,11 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 #define DELETE_IF_IN_PRODCON(aaa) \
 	if (tg->ProdCon.aaa) { \
 		bool foundIt = FALSE; \
-		ConsoleMessage ("ProdCon stack is %d in size\n",vectorSize(tg->ProdCon.aaa)); \
+		/* ConsoleMessage ("ProdCon stack is %d in size\n",vectorSize(tg->ProdCon.aaa)); */ \
 		for (i=0; i<vectorSize(tg->ProdCon.aaa); i++) { \
 			if (vector_get(struct X3D_Node*,tg->ProdCon.aaa, i) == structptr) { \
 				foundIt = TRUE; \
-				ConsoleMessage ("found it in the stack!\n"); \
+				/* ConsoleMessage ("found it in the stack!\n"); */ \
 			} \
 		} \
 		if (foundIt) { \
@@ -3314,11 +3313,11 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 #define DELETE_IF_IN_STACK(aaa) \
 	if (tg->Bindable.aaa) { \
 		bool foundIt = FALSE; \
-		ConsoleMessage ("Bindable stack is %d in size\n",vectorSize(tg->Bindable.aaa)); \
+		/* ConsoleMessage ("Bindable stack is %d in size\n",vectorSize(tg->Bindable.aaa)); */ \
 		for (i=0; i<vectorSize(tg->Bindable.aaa); i++) { \
 			if (vector_get(struct X3D_Node*,tg->Bindable.aaa, i) == structptr) { \
 				foundIt = TRUE; \
-				ConsoleMessage ("found it in the stack!\n"); \
+				/* ConsoleMessage ("found it in the stack!\n"); */ \
 			} \
 		} \
 		if (foundIt) { \
@@ -3363,8 +3362,7 @@ static void killNode (int index) {
 
 	structptr = p->memoryTable[index];		
 
-	ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n",
-structptr,stringNodeType(structptr->_nodeType));
+	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
 
 
 	DELETE_IF_IN_STACK(viewpoint_stack);
@@ -3382,7 +3380,6 @@ structptr,stringNodeType(structptr->_nodeType));
 	}
 
 	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
-#define VERBOSE
 
 	#ifdef VERBOSE
 	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,p->nextEntry);
@@ -3563,7 +3560,6 @@ structptr,stringNodeType(structptr->_nodeType));
 	FREE_IF_NZ(p->memoryTable[index]);
 	p->memoryTable[index]=NULL;
 }
-#undef VERBOSE
 
 #ifdef DEBUG_FW_LOADMAT
 	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {

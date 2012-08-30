@@ -548,7 +548,9 @@ void *returnInterpolatorPointer (const char *x);
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, struct X3D_Node * *nodelist, int len, int ar, char * where, int lin);
 
 void update_node(struct X3D_Node *ptr);
-void update_renderFlag(struct X3D_Node *ptr, int flag);
+//void update_renderFlag(struct X3D_Node *ptr, int flag);
+void UPDATE_RENDERFLAG(struct X3D_Node *ptr, int flag,char *fi, int li);
+#define update_renderFlag(aaa,bbb) UPDATE_RENDERFLAG(aaa,bbb,__FILE__,__LINE__)
 
 void JSMaxAlloc(void);
 

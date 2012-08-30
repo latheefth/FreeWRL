@@ -2018,6 +2018,8 @@ Stop routing, remove structure. Used for ReplaceWorld style calls.
 void kill_routing (void) {
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 
+ConsoleMessage ("kill_routing called\n");
+
         if (p->CRoutes_Initiated) {
                 p->CRoutes_Initiated = FALSE;
                 p->CRoutes_Count = 0;
