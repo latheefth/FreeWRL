@@ -37,7 +37,7 @@ Quick:
 
 2) get the package set up with the android tools. Issue the command:
 
-	android update project --target 1 --name FreeWRL --path ./
+	android update project --target 15 --name FreeWRL --path ./
 
 3) plug your testing device in. Edit the "make-install" script, and put the device id
 in. eg:
