@@ -119,11 +119,13 @@ void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li) {
 
 		if (me==NULL) {
 			ConsoleMessage ("update_renderFlag, me  NULL for child %d",i);
+			markForDispose(p, TRUE);
 			return;
 		}
 
 		if (me->_parentVector == NULL) {
-			ConsoleMessage ("warning, for node %p, pv %d, child has null parentVector\n",p,i);
+			ConsoleMessage ("warning, for node %p (%s), pv %d, child has null parentVector\n",p,stringNodeType(p->_nodeType),i);
+			markForDispose(p, TRUE);
 			return;
 		}
 

@@ -3185,7 +3185,6 @@ E_JS_EXPERIMENTAL_CODE
 }
 
 void markForDispose(struct X3D_Node *node, int recursive){
-	struct Multi_Node* MNode;
 
 	#if USE_JS_EXPERIMENTAL_CODE
 	struct X3D_Node sfnode;
@@ -3201,10 +3200,11 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	}
 
 	 
-/*
-	printf ("\nmarkingForDispose %u (%s) currently at %d\n",node,
+	#ifdef VERBOSE
+	printf ("\nmarkingForDispose %p (%s) currently at %d\n",node,
 		stringNodeType(node->_nodeType),node->referenceCount);
-*/
+	#endif
+
 	
 	if (node->referenceCount > 0) node->referenceCount --;
 
@@ -3247,7 +3247,9 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		switch(*(fieldOffsetsPtr+2)){
 			case FIELDTYPE_MFNode: {
 				int i;
+				struct Multi_Node* MNode;
 				struct X3D_Node *tp;
+
 				MNode=(struct Multi_Node *)fieldPtr;
 		/* printf (" ... field MFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); */
 
@@ -3260,23 +3262,25 @@ void markForDispose(struct X3D_Node *node, int recursive){
 				MNode->n=0;
 				break;
 				}	
-#ifdef wrwewetwetwe
 			case FIELDTYPE_SFNode: {
 				struct X3D_Node *SNode;
 
-				SNode = (struct X3D_Node *)*fieldPtr;
-printf ("SFNode, field is %u...\n",SNode);
-if (SNode != NULL)
-printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
+				memcpy(&SNode,fieldPtr,sizeof(struct X3D_Node *));
 
-		printf (" ... field SFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
-				printf ("marking this SFnode for dispose, %u\n",SNode); 
+				#ifdef VERBOSE
+				printf ("SFNode, field is %p...\n",SNode);
+				if (SNode != NULL)
+					printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
+
+				printf (" ... field SFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+				printf ("marking this SFnode for dispose, %p\n",SNode); 
+				#endif
+
 				markForDispose(SNode, TRUE);
 				break;
 				
 
 			}	
-#endif
 			default:; /* do nothing - field not malloc'd */
 		}
 		fieldOffsetsPtr+=5;	
@@ -3285,7 +3289,6 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 
 	}
 }
-
 
 #define DELETE_IF_IN_PRODCON(aaa) \
 	if (tg->ProdCon.aaa) { \
@@ -3332,7 +3335,6 @@ printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
 			tg->Bindable.aaa = newStack; \
 		} \
 	}
-
 
 /*delete node created*/
 static void killNode (int index) {
@@ -3394,7 +3396,7 @@ static void killNode (int index) {
  	deleteVector(char*, structptr->_parentVector);
 
 
-	fieldOffsetsPtr = NODE_OFFSETS[structptr->_nodeType];
+	fieldOffsetsPtr = (int *)NODE_OFFSETS[structptr->_nodeType];
 	/*go thru all field*/				
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));
@@ -3494,7 +3496,7 @@ static void killNode (int index) {
 					struct X3D_Node *tp;
 					for (i=0; i<MNode->n; i++) {
 						tp = MNode->p[i];
-						printf ("	MNode field has child %u\n",tp);
+						printf ("	MNode field has child %p\n",tp);
 						if (tp!=NULL)
 						printf ("	ct %s\n",stringNodeType(tp->_nodeType));
 					}
@@ -3560,6 +3562,7 @@ static void killNode (int index) {
 	FREE_IF_NZ(p->memoryTable[index]);
 	p->memoryTable[index]=NULL;
 }
+
 
 #ifdef DEBUG_FW_LOADMAT
 	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {

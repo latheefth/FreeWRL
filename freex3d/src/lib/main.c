@@ -247,7 +247,7 @@ static ttglobal fwl_instance_parameters = NULL;
 
 void* fwl_init_instance()
 {
-	ConsoleMessage ("called fwl_init_instance");
+	//ConsoleMessage ("called fwl_init_instance");
 	fwl_instance_parameters = iglobal_constructor();
 	return (void *)fwl_instance_parameters;
 }
@@ -339,7 +339,7 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 void fwl_startFreeWRL(const char *url)
 {
 
-printf ("yes, really, FWL_STARTFREEWRL called is called\n");
+	//ConsoleMessage ("yes, really, FWL_STARTFREEWRL called is called\n");
 
 	/* Give the main argument to the resource handler */
 	if (url != NULL) {

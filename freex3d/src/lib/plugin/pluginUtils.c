@@ -400,7 +400,7 @@ bool Anchor_ReplaceWorld(const char *name)
 {
 	resource_item_t *AR_res;
 
-ConsoleMessage ("Anchor_ReplaceWorld called\n");
+	//ConsoleMessage ("Anchor_ReplaceWorld called\n");
 
 	AR_res = resource_create_single(name);
 	AR_res->new_root = TRUE;

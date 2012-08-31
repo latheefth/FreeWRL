@@ -413,73 +413,71 @@ void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 
 	if (res->new_root) {
 
-ConsoleMessage ("SHOULD CALL KILL_OLDWORLD HERE\n");
+		//ConsoleMessage ("SHOULD CALL KILL_OLDWORLD HERE\n");
 
 
-	//struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-
-	/* get rid of sensor events */
-	resetSensorEvents();
-
-
-	/* close the Console Message system, if required. */
-	closeConsoleMessage();
-
-	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
-	zeroOcclusion();
-
-	/* clock events - stop them from ticking */
-	kill_clockEvents();
-
-
-	/* kill DEFS, handles */
-	EAI_killBindables();
-	kill_bindables();
-	killKeySensorNodeList();
-
-
-	/* stop routing */
-	kill_routing();
-
-	/* tell the statusbar that it needs to reinitialize */
-	kill_status();
-
-	/* free textures */
-/*
-	kill_openGLTextures();
-*/
+		//struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	
-	/* free scripts */
-	#ifdef HAVE_JAVASCRIPT
-	kill_javascript();
+		/* get rid of sensor events */
+		resetSensorEvents();
+	
+	
+		/* close the Console Message system, if required. */
+		closeConsoleMessage();
+	
+		/* occlusion testing - zero total count, but keep MALLOC'd memory around */
+		zeroOcclusion();
+	
+		/* clock events - stop them from ticking */
+		kill_clockEvents();
+	
+	
+		/* kill DEFS, handles */
+		EAI_killBindables();
+		kill_bindables();
+		killKeySensorNodeList();
+	
+	
+		/* stop routing */
+		kill_routing();
+	
+		/* tell the statusbar that it needs to reinitialize */
+		kill_status();
+	
+		/* free textures */
+	/*
+		kill_openGLTextures();
+	*/
+		
+		/* free scripts */
+		#ifdef HAVE_JAVASCRIPT
+		kill_javascript();
+		#endif
+	
+	
+	#ifdef DO_NOT_KNOW
+		/* free EAI */
+		if (kill_EAI) {
+		       	/* shutdown_EAI(); */
+			fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
+		}
 	#endif
-
-
-#ifdef DO_NOT_KNOW
-	/* free EAI */
-	if (kill_EAI) {
-	       	/* shutdown_EAI(); */
-		fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
-	}
-#endif
-
-	/* reset any VRML Parser data */
-/*
-	if (globalParser != NULL) {
-		parser_destroyData(globalParser);
-		//globalParser = NULL;
-		gglobal()->CParse.globalParser = NULL;
-	}
-*/
-	kill_X3DDefs();
-
-	/* tell statusbar that we have none */
-	viewer_default();
-	setMenuStatus("NONE");
-
-/* XXXXX */
-
-ConsoleMessage ("new_root, right now rootNode has %d children\n",rootNode()->children.n);
+	
+		/* reset any VRML Parser data */
+	/*
+		if (globalParser != NULL) {
+			parser_destroyData(globalParser);
+			//globalParser = NULL;
+			gglobal()->CParse.globalParser = NULL;
+		}
+	*/
+		kill_X3DDefs();
+	
+		/* tell statusbar that we have none */
+		viewer_default();
+		setMenuStatus("NONE");
+	
+		//ConsoleMessage ("new_root, right now rootNode has %d children\n",rootNode()->children.n);
 
 		//ConsoleMessage("send_resource_to_parser, new_root\n");
         	/* mark all rootNode children for Dispose */
