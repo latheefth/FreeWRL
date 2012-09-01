@@ -9653,7 +9653,7 @@ void *createNewX3DNode (int nt) {
        /* possibly a KeySensor node? */
        addNodeToKeySensorList(X3D_NODE(tmp));
 
-ConsoleMessage("created %p of type %s\n",tmp,stringNodeType(nt));
+	//ConsoleMessage("created %p of type %s\n",tmp,stringNodeType(nt));
 	return tmp;
 }
 /* Dump the scene graph.  */
