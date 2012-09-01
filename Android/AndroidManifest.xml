@@ -30,7 +30,7 @@
     <uses-feature android:glEsVersion="0x00020000" android:required="true" />
     <uses-sdk 
 		android:minSdkVersion="8"
-		android:targetSdkVersion="11"
+		android:targetSdkVersion="15"
     />
 
     <application
