@@ -33,6 +33,10 @@
 		android:targetSdkVersion="15"
     />
 
+<!-- try this one 
+		android:theme="@android:style/Theme.Holo"
+-->
+
     <application
 	android:icon="@drawable/icon"
         android:label="@string/freewrl_activity">
@@ -40,7 +44,7 @@
 		android:name="FreeWRLActivity"
 
 		android:label=""
-		android:theme="@android:style/Theme.Holo"
+android:theme="@style/Theme.Sherlock"
             	android:launchMode="singleTask"
             	android:configChanges="orientation|keyboardHidden">
             <intent-filter>
