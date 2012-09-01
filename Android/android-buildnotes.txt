@@ -33,14 +33,23 @@ Quick:
 	SoundEngine				freex3d
 
 
+ActionBarSherlock.
+
+	android update lib-project --path . --target android-15
+
+in the library folder. NOTE the target parameter...
+
+
 1) cd to Android
 
 2) get the package set up with the android tools. Issue the command:
 
-	android update project --target (see below)  --name FreeWRL --path ./
+	android update project --target android-15  --name FreeWRL --path ./ --library ../JakeWharton-ActionBarSherlock-88fc341/library
 
-The target number must be for OS version 4.0.3 or later. "android list targets" will show you the
-targets and the corresponding index number.
+Note1: 	The target number must be for OS version 4.0.3 or later. "android list targets" will show you the
+	targets and the corresponding index number.
+Note2:	The path to the ActionBarSherlock path should actually point to the directory where the AndroidManifest.xml
+	for the ABS project resides.
 
 
 3) plug your testing device in. Edit the "make-install" script, and put the device id
