@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item 
+	android:id="@+id/NEW_WORLD"
+	android:title="@string/NEW_WORLD"
+	android:showAsAction="ifRoom|withText" 
+    />
+    <item 
+	android:id="@+id/VIEWPOINT"
+	android:title="@string/VIEWPOINT"
+	android:showAsAction="ifRoom|withText" 
+    />
+    <item 
+	android:id="@+id/SETTINGS"
+	android:title="@string/SETTINGS"
+	android:showAsAction="ifRoom|withText" 
+    />
+    <item 
+	android:id="@+id/PREFERENCES"
+	android:title="@string/PREFERENCES"
+	android:showAsAction="ifRoom|withText" 
+    />
+    <item 
+	android:id="@+id/LOG_LOOK"
+	android:title="@string/LOG_LOOK"
+	android:showAsAction="ifRoom|withText" 
+    />
+</menu>
