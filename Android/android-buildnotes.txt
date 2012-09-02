@@ -1,9 +1,4 @@
-Modified June 22 2012
-
-
 FreeWRL (FreeX3d) - Android build notes
-
-Quick:
 
 1) get tool sets, helper files, etc.
 
@@ -58,7 +53,8 @@ Note1: 	The target number must be for OS version 4.0.3 or later. "android list t
 	targets; make sure "android-15" is shown as one of the possible targets.
 Note2:	The path to the ActionBarSherlock path should actually point to the directory where the AndroidManifest.xml
 	for the ABS project resides.
-
+Note3:  MAKE SURE that only one reference resides in the project.properties file; if more than one copy, you will
+	get lots of compile errors, due to duplicate references.
 
 3) plug your testing device in. Edit the "make-install" script, and put the device id
 in. eg:
