@@ -1,8 +1,25 @@
 FreeWRL (FreeX3d) - Android build notes
+September 3, 2012
+
+John A. Stewart (Canada) & Dave Joubert(UK).
+
+0.1) if building on Linux:
+
+Dave says: get the following modules, copy and paste the following line:
+
+apt-get install git-core gnupg flex bison gperf build-essential zip curl libc6-dev libncurses5-dev:i386 x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-glx:i386 libgl1-mesa-dev g++-multilib mingw32 openjdk-6-jdk tofrodos python-markdown libxml2-utils xsltproc zlib1g-dev:i386
+
+You may have to do this to get libGL to be recognised by the emulator:
+sudo ln -s /usr/lib32/mesa/libGL.so.1 /usr/lib32/mesa/libGL.so
+
 
 1) get tool sets, helper files, etc.
 
 	- get the Android build tools and install. (both NDK and SDK toolsets)
+		Up to you, but Dave prefers to install these in say /opt rather than my home directory,
+		because I have multiple versions of Linux where /opt is shared.
+		You might prefer to also install Eclipse, but FreeWRL does not require it.
+
 
 	- get the libxml2.tar file from:
 
@@ -32,6 +49,33 @@ FreeWRL (FreeX3d) - Android build notes
 	OSX_gui					freex3d
 	SoundEngine				libxml2
 
+1a) Run the android GUI.
+Check if your installation is up to date, and download and upgrade if needed.
+
+1b) You may want to debug with an emulator. Remember, only the very latest emulators contain GLES
+Read http://stackoverflow.com/questions/4974568/how-do-i-launch-the-android-emulator-from-the-command-line
+
+if you want to define/start the emultor via CLI
+else
+Start the android GUI (as the user you want to be, because the AVD definitions are kept in ~/.android/avd)
+
+Tools -> Manage AVDs...
+
+If you have no emulators, create a new one, with at least a level 15 API (for GLES)
+GLES note: This works by translating your GLES calls in openGL call within the emulator,
+So you will need a working openGL setup...
+	- Start the emulator
+	- Ignore or heed warnings... for example
+	- Starting emulator for AVD 'TestGLES'
+	- Failed to load libGL.so
+	- error libGL.so: cannot open shared object file: No such file or directory
+	- Failed to load libGL.so
+	- error libGL.so: cannot open shared object file: No such file or directory
+	- emulator: warning: opening audio output failed
+
+On OSX, you may see an error message indicating that the AVD uses a deprecated UI call, you can ignore this, 
+as the AVD will run anyway.
+
 
 2) ActionBarSherlock.
 	cd into the library subdirectory of ActionBarSherlock; probably this will work:
@@ -53,7 +97,7 @@ Note1: 	The target number must be for OS version 4.0.3 or later. "android list t
 	targets; make sure "android-15" is shown as one of the possible targets.
 Note2:	The path to the ActionBarSherlock path should actually point to the directory where the AndroidManifest.xml
 	for the ABS project resides.
-Note3:  MAKE SURE that only one reference resides in the project.properties file; if more than one copy, you will
+Note3:  MAKE SURE that only one reference resides in the "project.properties" file; if more than one copy, you will
 	get lots of compile errors, due to duplicate references.
 
 3) plug your testing device in. Edit the "make-install" script, and put the device id
@@ -62,15 +106,59 @@ in. eg:
 	prompt> adb devices
 	List of devices attached 
 	388924841bf5497	device
+	10001bce46cd	device
+	emulator-5554	device (if you are running an emulator)
+
 
 You may have to enable "USB Debugging" on your Android device.
 
-4) ndk-build appears to require the exact full path to it; EDIT the make-install to put
+4) And, if you get output like this:
+
+	adb devices
+	List of devices attached 
+	????????????	no permissions
+
+	or, nothing shown
+
+	You may have to restart the adb server as follows:
+	adb kill-server
+	adb start-server
+	* daemon not running. starting it now on port 5037 *
+	* daemon started successfully *
+
+	adb devices
+	…
+
+5) For the next step, you might prefer to make your own copy, of the make-install script,
+so that your changes do not clobber/get clobbered by the CVS sync.
+
+Edit the "make-install" script , and put the device id in. eg:
+echo "installing on Samsung Galaxy Tab (GT-P1000)"
+adb -s 10001bce46cd install -r ./bin/FreeWRL-debug-unaligned.apk
+
+
+6) ndk-build appears to require the exact full path to it; EDIT the make-install to put
    the full path in. You'll see the path for my system, eg:
 
 	/Users/johns/Desktop/Android-tests-current/android_tools/android-ndk-r7/ndk-build
+or
+	/opt/android-ndk-r8/ndk-build (if you chose to do a global type install)
 
-5) sh make-install should build, and install onto your device.
+Also, you might want to use the Android lint:
+/Users/johns/Desktop/Android-tests-current/android_tools/android-sdk-macosx/tools/lint .
+or
+/opt/android-sdk-linux/tools/lint .
 
-6) "adb logcat" when your Android device is connected and in debug mode; 
+7) The Android build process does not use the *nix Makefiles and configure etc.
+BUT: the EAI code has a function that returns the version number of the running FreeWRL.
+That in turn depends on Make creating the version.c file. So, indirectly, yes you should
+in fact go through the autogen, configure and make process at least once.
+
+8)For the moment, you may also need to edit FreeWRL-Android-static/config.h
+Edit it to change any of the options such as EXCLUDE_EAI
+
+9) sh make-install should build, and install onto your device.
+(You did remember to take out the inappropriate devices line, didn't you?)
+
+10) "adb logcat" when your Android device is connected and in debug mode; 
    "adb logcat | grep FreeWRL" will show you only the FreeWRL messages.
