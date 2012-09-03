@@ -376,7 +376,7 @@ static void stopLoadThread()
 			int status; 
 			char me[200]; 
 			sprintf(me,"faking pthread cancel on thread %x",tg->threads.loadThread); 
-			ConsoleMessage(me); 
+			//ConsoleMessage(me); 
 			if ((status = pthread_kill(tg->threads.loadThread, SIGUSR2)) != 0) {
 				ConsoleMessage("issue stopping thread");
 			}
@@ -405,7 +405,7 @@ static void stopPCThread()
 			int status; 
 			char me[200]; 
 			sprintf(me,"faking pthread cancel on thread %x",tg->threads.PCthread); 
-			ConsoleMessage(me); 
+			//ConsoleMessage(me); 
 			if ((status = pthread_kill(tg->threads.PCthread, SIGUSR2)) != 0) {
 				ConsoleMessage("issue stopping thread");
 			}

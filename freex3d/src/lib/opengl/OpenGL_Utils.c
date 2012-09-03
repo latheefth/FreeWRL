@@ -2046,7 +2046,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
-ConsoleMessage ("kill_oldWorld called");
+	//ConsoleMessage ("kill_oldWorld called");
 
 
 #ifdef VERBOSE
@@ -2262,56 +2262,61 @@ void fwl_Android_reloadAssets(void) {
         LOCK_MEMORYTABLE
 	for (tc = 0; tc< p->nextEntry; tc++) {
 		node=p->memoryTable[tc];
+		//ConsoleMessage ("rla, node %p\n",node);
 
-		/* tell each node to update itself */
-		node->_change ++;
-		switch (node->_nodeType) {
-			case NODE_Sphere: {
-				struct X3D_Sphere *me = (struct X3D_Sphere *)node;
-				//ConsoleMessage ("Sphere - zeroing VBO");
-				me->_sideVBO = 0;
-				me->__SphereIndxVBO = 0;
-				FREE_IF_NZ(me->__points.p);
-				me->__points.p = NULL;
-				me->__points.n = 0;
-				node->_change ++;
-				break;
-
-			}
-			case NODE_Cone: {
-				struct X3D_Cone *me = (struct X3D_Cone *)node;
-				me->__coneVBO = 0;
-				node->_change ++;
-				break;
-			}
-			case NODE_Cylinder: {
-				struct X3D_Cylinder *me = (struct X3D_Cylinder *)node;
-				me->__cylinderVBO = 0;
-				node->_change ++;
-				break;
-			}
-			case NODE_Background: {
-				struct X3D_Background *me = (struct X3D_Background *)node;
-				//ConsoleMessage ("Background - zeroing VBO");
-				me->__VBO = 0;
-				node->_change ++;
-				break;
-			}
-			default: {
-				struct X3D_PolyRep *pr = (struct X3D_PolyRep *)node->_intern;
-				int i;
-
-				//ConsoleMessage ("node Type %s, intern %p",stringNodeType(node->_nodeType),pr);
-
-				// get rid of the PolyRep VBOs.
-				if (pr!=NULL) {
-					for (i=0; i<VBO_COUNT; i++) pr->VBO_buffers[i] = 0;
-					pr->irep_change ++;
+		if (node!=NULL) {
+	
+			/* tell each node to update itself */
+			node->_change ++;
+			switch (node->_nodeType) {
+				case NODE_Sphere: {
+					struct X3D_Sphere *me = (struct X3D_Sphere *)node;
+					//ConsoleMessage ("Sphere - zeroing VBO");
+					me->_sideVBO = 0;
+					me->__SphereIndxVBO = 0;
+					FREE_IF_NZ(me->__points.p);
+					me->__points.p = NULL;
+					me->__points.n = 0;
 					node->_change ++;
+					break;
+	
 				}
+				case NODE_Cone: {
+					struct X3D_Cone *me = (struct X3D_Cone *)node;
+					me->__coneVBO = 0;
+					node->_change ++;
+					break;
+				}
+				case NODE_Cylinder: {
+					struct X3D_Cylinder *me = (struct X3D_Cylinder *)node;
+					me->__cylinderVBO = 0;
+					node->_change ++;
+					break;
+				}
+				case NODE_Background: {
+					struct X3D_Background *me = (struct X3D_Background *)node;
+					//ConsoleMessage ("Background - zeroing VBO");
+					me->__VBO = 0;
+					node->_change ++;
+					break;
+				}
+				default: {
+					struct X3D_PolyRep *pr = (struct X3D_PolyRep *)node->_intern;
+					int i;
+	
+					//ConsoleMessage ("node Type %s, intern %p",stringNodeType(node->_nodeType),pr);
+	
+					// get rid of the PolyRep VBOs.
+					if (pr!=NULL) {
+						for (i=0; i<VBO_COUNT; i++) pr->VBO_buffers[i] = 0;
+						pr->irep_change ++;
+						node->_change ++;
+					}
+				}
+			
 			}
-		
 		}
+
         }
         UNLOCK_MEMORYTABLE
 
