@@ -137,7 +137,7 @@ public class FreeWRLActivity extends SherlockActivity implements IFolderItemList
 			new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,
 				int which) {
-					Log.w(TAG,"OK pressed = popping back to main view");
+					//Log.w(TAG,"OK pressed = popping back to main view");
 					popBackToMainView();
 					glView.setLoadNewX3DFile();
 
@@ -153,7 +153,7 @@ public class FreeWRLActivity extends SherlockActivity implements IFolderItemList
 				}
 			}).show();
 
-		Log.w(TAG,"OnFileClicked, created dialog " + me);
+		//Log.w(TAG,"OnFileClicked, created dialog " + me);
 		viewStack.push(me);
 	}
 
@@ -265,7 +265,7 @@ public static void popBackToMainView() {
 
 @Override
 public void onBackPressed() {
-	Log.w(TAG,"onBackPressed");
+	//Log.w(TAG,"onBackPressed");
 	popBackOne();
 }
 
@@ -296,7 +296,7 @@ private void displayConsole() {
 	myConsole.setBackgroundColor(0xAF000000 );
 
 	viewStack.push(myConsole);
-	Log.w(TAG, "displayConsole, pushing " + viewStack.peek());
+	//Log.w(TAG, "displayConsole, pushing " + viewStack.peek());
 
 	// display it
 	getWindow().addContentView(myConsole, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
@@ -330,7 +330,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 
 			// display it
 			viewStack.push(localFolders);
-			Log.w(TAG, "onOpetionsIntemSelected, pushing " + viewStack.peek());
+			//Log.w(TAG, "onOpetionsIntemSelected, pushing " + viewStack.peek());
 			getWindow().addContentView(localFolders, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
 
 			break;
@@ -341,6 +341,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 			break;
 		}
 
+/* not here in this version
 		case R.id.PREFERENCES: {
 			Log.w(TAG,"PREFERENCES");
 			break;
@@ -350,6 +351,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 			Log.w(TAG,"SETTINGS");
 			break;
 		}
+*/
 
 		case R.id.LOG_LOOK : {
 			displayConsole();
@@ -376,7 +378,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 
 	mainView = (LinearLayout)findViewById(R.id.MainView);
 	viewStack.push(mainView);
-	Log.w(TAG, "onCreate pushing " + viewStack.peek());
+	//Log.w(TAG, "onCreate pushing " + viewStack.peek());
 
 
         glView = new FreeWRLView(getApplication());
@@ -392,8 +394,8 @@ public boolean onOptionsItemSelected(MenuItem item) {
 	// add the glView here.
 mainView.addView((View)glView,0,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-Log.w(TAG,"setContentView on glView");
-//	setContentView(glView);
+	//Log.w(TAG,"setContentView on glView");
+	// now we have a main view, and glView is a sub-view...	setContentView(glView);
 
 	// send in font directory pointers.
 	if (fontAsset_01 == null) {

@@ -20,8 +20,8 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.freewrl"
-    android:versionCode="5"
-    android:versionName="1.22.13"
+    android:versionCode="6"
+    android:versionName="1.22.13-r6"
 	>
     <!-- for sdcard reading -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -42,9 +42,7 @@
         android:label="@string/freewrl_activity">
         <activity 
 		android:name="FreeWRLActivity"
-
-		android:label=""
-android:theme="@style/Theme.Sherlock"
+		android:theme="@style/Theme.Sherlock"
             	android:launchMode="singleTask"
             	android:configChanges="orientation|keyboardHidden">
             <intent-filter>

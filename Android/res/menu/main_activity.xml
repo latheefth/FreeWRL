@@ -10,6 +10,8 @@
 	android:title="@string/VIEWPOINT"
 	android:showAsAction="ifRoom|withText" 
     />
+
+<!-- do this in the next version
     <item 
 	android:id="@+id/SETTINGS"
 	android:title="@string/SETTINGS"
@@ -20,6 +22,8 @@
 	android:title="@string/PREFERENCES"
 	android:showAsAction="ifRoom|withText" 
     />
+-->
+
     <item 
 	android:id="@+id/LOG_LOOK"
 	android:title="@string/LOG_LOOK"

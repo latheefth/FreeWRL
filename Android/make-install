@@ -20,7 +20,8 @@ cd ..
 ant debug
 
 #lint the whole project
-/Users/johns/Desktop/Android-tests-current/android_tools/android-sdk-macosx/tools/lint .
+#note -this will give lots of errors for ActionBarSherlock, so is commented out for now.
+#/Users/johns/Desktop/Android-tests-current/android_tools/android-sdk-macosx/tools/lint .
 
 echo
 #echo "installing on Iconia A500"
