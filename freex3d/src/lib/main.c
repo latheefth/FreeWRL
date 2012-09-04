@@ -114,14 +114,16 @@ OLDCODE #endif // _ANDROID
 /* put some config stuff here, as that way the Objective-C Standalone OSX front end does not
 need to worry about specific structures and calls */
 
-/* static freewrl_params_t *OSX_params = NULL; */
-static bool qParamsInit = FALSE ;
-
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
 
+    ttglobal tg = gglobal();
+
     /* have we been through once already (eg, plugin loading new file)? */
-    if (!qParamsInit) {
+
+	//ConsoleMessage("fwl_OSX_initializeParameters - loadThread %p,  pcThread %p", tg->threads.loadThread, tg->threads.PCthread);
+
+    if ((tg->threads.loadThread == NULL) || (tg->threads.PCthread == NULL)) {
 	//ConsoleMessage("fwl_OSX_initializeParameters, qParamsInit is FALSE");
 
 	fwl_initParams(NULL);
@@ -133,8 +135,6 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
     	fwl_setp_fullscreen(FALSE);
     	/* removed by doug fwl_setp_collision(1); */
 
-	qParamsInit = TRUE;
-
     /* start threads, parse initial scene, etc */
 
 	//ConsoleMessage ("calling fwl_initFreeWRL from within fwl_OSX_initializeParameters");
@@ -145,14 +145,17 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 	   }
     } 
 
+
     /* Give the main argument to the resource handler */
     res = resource_create_single(initialURL);
+
     res->new_root = TRUE;
     send_resource_to_parser(res,__FILE__,__LINE__);
 
     while ((!res->complete) && (res->status != ress_failed) && (res->status != ress_not_loaded)) {
-            usleep(500);
+            usleep(100);
     }
+
 
     /* did this load correctly? */
     if (res->status == ress_not_loaded) {

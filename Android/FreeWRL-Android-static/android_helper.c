@@ -91,9 +91,9 @@ pthread_t loadFileThread = (pthread_t)0;
 
 void fileLoadThread(void* param) {
 
-	//DROIDDEBUG("------------------LOAD THREAD-----------------------");
+	DROIDDEBUG("------------------LOAD THREAD-----------------------");
 	fwl_OSX_initializeParameters(currentFile);
-	//DROIDDEBUG("------------------FIN LOAD THREAD-----------------------");
+	DROIDDEBUG("------------------FIN LOAD THREAD-----------------------");
 }
 
 
@@ -116,11 +116,11 @@ void DROIDDEBUG( const char*pFmtStr, ...)
 
 JNIEXPORT jint JNICALL JNI_OnLoad( JavaVM* vm, void* reserved )
 {
-	//DROIDDEBUG("------------------ON LOAD-----------------------");
+	DROIDDEBUG("------------------ON LOAD-----------------------");
 	g_jvm = vm;
 	JNIEnv* ioEnv = NULL;
 
-	//DROIDDEBUG("------------------FIN ON LOAD-----------------------");
+	DROIDDEBUG("------------------FIN ON LOAD-----------------------");
 	return JNI_VERSION_1_6;
 }
 
@@ -136,7 +136,7 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_createInstance(JNIEnv * env, 
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, jobject obj, jstring passedInitialFile)
 {
-	//DROIDDEBUG("------------------INITIAL FILE-----------------------");
+	DROIDDEBUG("------------------INITIAL FILE-----------------------");
 
 	const char *cFilename = (*env)->GetStringUTFChars(env, passedInitialFile, NULL);
 
@@ -147,15 +147,15 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 	currentFile = strdup(cFilename);
 
 
-	//DROIDDEBUG("cFilename is :%s:",currentFile);
+	DROIDDEBUG("cFilename is :%s:",currentFile);
 	
 	// step 1:
-	//DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 1");
+	DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 1");
 	fwl_initializeRenderSceneUpdateScene();
 
 
         // step 2:  create a thread to handle the file load requests from the library
-	//DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 2");
+	DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 2");
         if( 0 != pthread_create(&loadFileThread, NULL, (void*)fileLoadThread, (void*)currentFile) )
         {
                 DROIDDEBUG("!!Error creating fileloadedThread");
@@ -164,13 +164,13 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_initialFile(JNIEnv * env, job
 
 
 	// step 3:
-	//DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 3");
+	DROIDDEBUG(" Java_org_freewrl_FreeWRLLib_currentFile starting step 3");
 	int x = fv_display_initialize();
 
 
 	// do not free this...
 	//(*env)->ReleaseStringUTFChars(env, currentFile, cFilename);
-	//DROIDDEBUG("------------------END INITIAL FILE-----------------------");
+	DROIDDEBUG("------------------END INITIAL FILE-----------------------");
 }
 
 /* send in the location for FreeWRL tmp files; eg, for making copies of PROTO expansions and such. */
@@ -183,11 +183,11 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_setTmpDir(JNIEnv * env, jobje
 
 JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_init(JNIEnv * env, jobject obj,  jint width, jint height)
 {
-	//DROIDDEBUG("------------------LIB INIT-----------------------");
+	DROIDDEBUG("------------------LIB INIT-----------------------");
 
 	fwl_setScreenDim(width, height);
 
-	//DROIDDEBUG("------------------FIN LIB INIT-----------------------");
+	DROIDDEBUG("------------------FIN LIB INIT-----------------------");
 }
 
 
@@ -199,7 +199,7 @@ JNIEXPORT jboolean JNICALL Java_org_freewrl_FreeWRLLib_resourceWanted(JNIEnv * e
 /* return the NAME of the resource we want... */
 JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_resourceNameWanted(JNIEnv *env, jobject obj) {
 	//DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
-	//DROIDDEBUG(fwg_frontEndWantsFileName());
+	DROIDDEBUG(fwg_frontEndWantsFileName());
 	return (*env)->NewStringUTF(env,fwg_frontEndWantsFileName());
 }
 
@@ -305,13 +305,13 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobje
 
 // how many console messages do we have?
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_androidGetUnreadMessageCount(JNIEnv *env, jobject obj) {
-	//DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
+	//DROIDDEBUG("------------------GET UNREAD MESSAGE COUNT CALLED----------------------");
 	return android_get_unread_message_count();
 }
 
 // get the console message, indicated by the parameter.
 JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_androidGetLastMessage(JNIEnv *env, jobject obj, int whichone) {
-	//DROIDDEBUG("------------------RESOURCE NAME WANTED CALLED----------------------");
+	//DROIDDEBUG("------------------GET LAST MESSAGE CALLED----------------------");
 	return (*env)->NewStringUTF(env,android_get_last_message(whichone));
 }
 #endif
