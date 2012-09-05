@@ -401,7 +401,10 @@ private static class ConfigChooser implements GLSurfaceView.EGLConfigChooser {
             int numConfigs = num_config[0];
 
             if (numConfigs <= 0) {
-                throw new IllegalArgumentException("No configs match configSpec");
+                //throw new IllegalArgumentException("No configs match configSpec");
+		Log.e(TAG,"Need OpenGL ES 2.0 - not found");
+		
+		return null;
             }
 
             /* Allocate then read the array of minimally matching EGL configs

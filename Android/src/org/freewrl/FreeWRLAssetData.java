@@ -181,7 +181,7 @@ public class FreeWRLAssetData {
 
 				myStream.reset();
 			} catch (IOException e) {
-				Log.w(TAG,"io exception caught");
+				Log.w(TAG,"io exception caught - mybitmap is " + mybitmap);
 			}
 			
 			// do we have a valid input stream, that is NOT a bitmap?

@@ -172,8 +172,8 @@ private static String lastDirectoryBrowsed = null;
 
 private String getLastConsoleMessages() {
 	String retString = FreeWRLLib.androidGetLastMessage(0) + 
-			"\n(prev):\n" + FreeWRLLib.androidGetLastMessage(1) +
-			"\n(prev):\n" + FreeWRLLib.androidGetLastMessage(2);
+			"\n(previous):\n" + FreeWRLLib.androidGetLastMessage(1) +
+			"\n(previous):\n" + FreeWRLLib.androidGetLastMessage(2);
 	//Log.w(TAG,"getLastConsoleMessages returns: " + retString);
 	return retString;
 }
