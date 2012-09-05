@@ -35,6 +35,8 @@
 
 <!-- try this one 
 		android:theme="@android:style/Theme.Holo"
+		android:theme="@style/Theme.Sherlock"
+		android:theme="@style/Theme.Sherlock.Light"
 -->
 
     <application

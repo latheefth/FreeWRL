@@ -37,17 +37,8 @@ We ALWAYS look in the assets in the apk file first; if not there, then we go els
 
 package org.freewrl;
 
-// JAS testing
 import java.io.BufferedInputStream;
 
-
-
-
-
-//DJ import android.app.Activity;
-//DJ import android.os.Bundle;
-//DJ import android.view.WindowManager;
-// 
 import android.util.Log;
 import android.content.Context;
 
@@ -65,7 +56,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.BufferUnderflowException;
 
-//DJ import android.content.res.Resources;
 import android.content.res.AssetManager;
 import android.content.res.AssetFileDescriptor;
 
@@ -93,18 +83,6 @@ public class FreeWRLAssetData {
                 this.hasAlpha = false;
                 this.knownType = forceType;
 
-//Log.w(TAG,"Constructor 1, " + assetName + " forceType " + forceType);
-/*
-		Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
-			" class " + new Throwable().getStackTrace()[0].getClassName() +
-			" method " + new Throwable().getStackTrace()[0].getMethodName() +
-			" line " + new Throwable().getStackTrace()[0].getLineNumber());
-		Log.w(TAG, "FROM : " + 
-			" class " + new Throwable().getStackTrace()[1].getClassName() +
-			" method " + new Throwable().getStackTrace()[1].getMethodName() +
-			" line " + new Throwable().getStackTrace()[1].getLineNumber());
-*/
-
                 AssetManager am = myAppContext.getAssets();
                 if (forceType == 1) {
                         // String. Based on example code from APress Pro Android
@@ -112,12 +90,6 @@ public class FreeWRLAssetData {
                                 InputStream is = am.open(assetName) ;
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-/*
-				Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
-					" class " + new Throwable().getStackTrace()[0].getClassName() +
-					" method " + new Throwable().getStackTrace()[0].getMethodName() +
-					" line " + new Throwable().getStackTrace()[0].getLineNumber());
-*/
 				byte[] b = new byte[1024];
 				int bytesRead ;
 				while ( (bytesRead = is.read(b)) != -1) {
@@ -128,14 +100,6 @@ public class FreeWRLAssetData {
 				mybitmap = BitmapFactory.decodeByteArray(myBytes, 0, length);
 
 				if (mybitmap != null) {
-/*
-					Log.w(TAG, "file " + new Throwable().getStackTrace()[0].getFileName() +
-						" class " + new Throwable().getStackTrace()[0].getClassName() +
-						" method " + new Throwable().getStackTrace()[0].getMethodName() +
-						" line " + new Throwable().getStackTrace()[0].getLineNumber());
-					Log.w(TAG,"BITMAP!!! bitmap is a " + mybitmap.getConfig());
-*/
-
 					// convert this bitmap into ARGB_8888 if it is not.
 					if (mybitmap.getConfig() != Bitmap.Config.ARGB_8888) {
 						//Log.w(TAG, "BITMAP changing");
@@ -162,23 +126,24 @@ public class FreeWRLAssetData {
 	/** Read the given binary file, and return its contents as a byte array.*/ 
 	private byte[] binary_read(Integer len, InputStream myStream) {
 		byte[] result = new byte[(int)len];
+			// Log.w(TAG,"start binary_read, len " + len);
 			try {
 				int totalBytesRead = 0;
-				InputStream input = new BufferedInputStream(myStream);
+				BufferedInputStream input = new BufferedInputStream(myStream,8192);
+
+				// Log.w(TAG,"BufferedInputStream available bytes " + input.available());
+
 				while(totalBytesRead < result.length){
 					int bytesRemaining = result.length - totalBytesRead;
+
+					//Log.w(TAG,"totalBytesRead " + totalBytesRead + "  bytesRemaining " + bytesRemaining);
 					//input.read() returns -1, 0, or more :
+
 					int bytesRead = input.read(result, totalBytesRead, bytesRemaining); 
 					if (bytesRead > 0){
 						totalBytesRead = totalBytesRead + bytesRead;
 					}
 				}
-				/*
-				 the above style is a bit tricky: it places bytes into the 'result' array; 
-				 'result' is an output parameter;
-				 the while loop usually has a single iteration only.
-				*/
-				//Log.w(TAG,"BINARY READ Num bytes read: " + totalBytesRead);
 		} catch (IOException ex) {
 			Log.w(TAG,ex);
 		}
@@ -196,54 +161,35 @@ public class FreeWRLAssetData {
 		this.imageHeight = -1;
 		this.hasAlpha = false;
 
-//Log.w(TAG,"Constructor 2 fd " + fd );
 
 		// any hope of finding anything? if so, lets continue...
 		if (myStream != null) {
 
-			// if the InputStream is null, we had a failure, thus we can not have a bitmap.
-			mybitmap = BitmapFactory.decodeStream(myStream);
+			// NOTE: Android 2.2 REQUIRES the reset to be called, or else the binary_read can not be
+			// read. Android 3.x and above do not require this, not sure about 2.3.x
+
+			try {
+				//Log.w(TAG,"FAD constructor, myStream  has available " + myStream.available());
+				if (myStream.markSupported()) {
+					//Log.w(TAG,"mark supported");
+				} else {
+					//Log.w(TAG,"mark NOT supported");
+				}
+
+				// if the InputStream is null, we had a failure, thus we can not have a bitmap.
+				mybitmap = BitmapFactory.decodeStream(myStream);
+
+				myStream.reset();
+			} catch (IOException e) {
+				Log.w(TAG,"io exception caught");
+			}
 			
 			// do we have a valid input stream, that is NOT a bitmap?
 			if (mybitmap == null) {
 				//Log.w(TAG,"not decoded as a bitmap; Most likely a text file  - of " + of + " len " + len);
-	
 				
 					myBytes = binary_read(len,myStream);
 
-/* OLDCODE
-					InputStreamReader irs = new InputStreamReader(myStream);
-
-
-					Reader in = new BufferedReader(irs);
-	
-					int ch;
-					while ((ch = in.read()) > -1) {
-						mycharstring.append((char)ch);
-					}
-					in.close();
-					irs.close();
-					//Log.w(TAG,"Text actual length " + mycharstring.length() + " input length was " + len);
-*/
-
-
-/* OLDCODE
-//Log.w(TAG,"length of input file is "+len);
-					if (len>0) for (int gx =0; gx < 84; gx++) {
-						Byte bb = mydata[gx];
-						//Log.w(TAG,"input byte " + gx + " as byte " + bb.toString());
-
-					}
-	
-					// convert this to a char array for us to send to FreeWRL
-					StringBuilder mycharstring = new StringBuilder();
-					try {
-						String mys = new String(mycharstring);
-						myBytes = mys.getBytes();
-					} catch (NullPointerException e) {
-						////Log.w(TAG,"String ops" + e);
-					}
-*/
 			} else {
 
 				//Log.w(TAG,"BITMAP!!! bitmap is a " + mybitmap.getConfig());
