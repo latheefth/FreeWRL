@@ -40,9 +40,12 @@ import com.actionbarsherlock.view.MenuInflater;
 import java.util.Stack;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.pm.ConfigurationInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.LinearLayout;
 import java.util.List;
 import android.content.IntentFilter;
@@ -77,7 +80,7 @@ import android.view.View;
 
 //ActionBarSherlock... public class FreeWRLActivity extends Activity implements IFolderItemListener {
 public class FreeWRLActivity extends SherlockActivity implements IFolderItemListener {
-	static FreeWRLView glView;
+	static FreeWRLView glView = null;
 	static LinearLayout mainView;
 
 	static Stack viewStack;
@@ -126,6 +129,8 @@ public class FreeWRLActivity extends SherlockActivity implements IFolderItemList
 
 	//File Click
 	public void OnFileClicked(File file) {
+
+		if (glView == null) return;
 
 		//Log.w(TAG,"OnFileClicked - file " + file);
 		glView.setPossibleNewFileName(""+file);
@@ -273,12 +278,16 @@ public void onBackPressed() {
 @Override
 public boolean onCreateOptionsMenu(Menu menu) {
 
+	if (glView != null) {
+
 	// ActionBarSherlock...MenuInflater inflater = getMenuInflater();
 	MenuInflater inflater = getSupportMenuInflater(); //ActionBarSherlock
 
 
 	inflater.inflate(R.menu.main_activity, menu);
 	//Log.w(TAG,"onCreateOptionsMenu called");
+	}
+
 	return true;
 }
 
@@ -381,51 +390,73 @@ public boolean onOptionsItemSelected(MenuItem item) {
 	//Log.w(TAG, "onCreate pushing " + viewStack.peek());
 
 
-        glView = new FreeWRLView(getApplication());
+	// Check at init whether we can really do OpenGL ES2.0
+	final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+	final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+	final boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000;
 
-
-
-	// tell the library to (re)create it's internal databases
-	FreeWRLLib.createInstance();
-
-	// for gestures
-	//	glView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-	// add the glView here.
-mainView.addView((View)glView,0,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-	//Log.w(TAG,"setContentView on glView");
-	// now we have a main view, and glView is a sub-view...	setContentView(glView);
-
-	// send in font directory pointers.
-	if (fontAsset_01 == null) {
-		//Log.w(TAG,"creating font assets");
-		fontAsset_01 = new FreeWRLAssets();
+	if (supportsEs2) {
+		Log.w(TAG, "supportsEs2 TRUE");
+	} else {
+		Log.w(TAG,"supportsEs2 FALSE");
 	}
 
-	// send in the font file descriptor on create.
-	fontAssetDatum_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
-	int res = FreeWRLLib.sendFontFile(01,fontAssetDatum_01.fd,
-		(int) fontAssetDatum_01.offset, fontAssetDatum_01.length);
+	if (supportsEs2) {
+	        glView = new FreeWRLView(getApplication());
 	
-	//Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetDatum_01.length);
-
-	// send in the temp file, used by FreeWRL for creating tmp files, what else?
-	FreeWRLLib.setTmpDir(getApplicationContext().getCacheDir().getAbsolutePath());
-
-
-	glView.setLoadNewX3DFile();
-
-	//Log.w(TAG,"starting timer task");
-	myTimer = new Timer();
-	myTimer.schedule(new TimerTask() {
-		@Override
-		public void run() {
-			TimerMethod();
+		Log.w(TAG,"glView is " + glView);
+	
+	
+	
+		// tell the library to (re)create it's internal databases
+		FreeWRLLib.createInstance();
+	
+		// for gestures
+		//	glView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+	
+		// add the glView here.
+	mainView.addView((View)glView,0,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+	
+		//Log.w(TAG,"setContentView on glView");
+		// now we have a main view, and glView is a sub-view...	setContentView(glView);
+	
+		// send in font directory pointers.
+		if (fontAsset_01 == null) {
+			//Log.w(TAG,"creating font assets");
+			fontAsset_01 = new FreeWRLAssets();
 		}
+	
+		// send in the font file descriptor on create.
+		fontAssetDatum_01 = fontAsset_01.openAsset(getApplicationContext(),"fonts/Vera.ttf.mp3");
+		int res = FreeWRLLib.sendFontFile(01,fontAssetDatum_01.fd,
+			(int) fontAssetDatum_01.offset, fontAssetDatum_01.length);
+		
+		//Log.w(TAG,"---- assets for Vera.ttf; " + fontAssetDatum_01.length);
+	
+		// send in the temp file, used by FreeWRL for creating tmp files, what else?
+		FreeWRLLib.setTmpDir(getApplicationContext().getCacheDir().getAbsolutePath());
+	
+	
+		glView.setLoadNewX3DFile();
+	
+		//Log.w(TAG,"starting timer task");
+		myTimer = new Timer();
+		myTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				TimerMethod();
+			}
+	
+		// do it 30 times per second (1/30)
+		}, 0, 33);
+	} else {
+		 // no GLES2
+		glView = null;
+		Log.w (TAG, "no OpenGL ES 2.0 config available");
 
-	// do it 30 times per second (1/30)
-	}, 0, 33);
+		TextView myPath = (TextView) findViewById(R.id.rowtext);
+		       myPath.setText("CAN NOT DO OPENGL ES 2 ON THIS PHONE");
+	}
 }
 
 
@@ -455,13 +486,13 @@ mainView.addView((View)glView,0,new ViewGroup.LayoutParams(ViewGroup.LayoutParam
     @Override protected void onPause() {
 	//Log.w (TAG,"onPause");
         super.onPause();
-        glView.onPause();
+        if (glView != null) glView.onPause();
     }
 
     @Override protected void onResume() {
 	//Log.w (TAG,"onResume");
         super.onResume();
-        glView.onResume();
+        if (glView != null) glView.onResume();
     }
 
 
