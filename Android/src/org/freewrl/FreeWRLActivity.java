@@ -178,7 +178,8 @@ private static String lastDirectoryBrowsed = null;
 private String getLastConsoleMessages() {
 	String retString = FreeWRLLib.androidGetLastMessage(0) + 
 			"\n(previous):\n" + FreeWRLLib.androidGetLastMessage(1) +
-			"\n(previous):\n" + FreeWRLLib.androidGetLastMessage(2);
+			"\n(previous):\n" + FreeWRLLib.androidGetLastMessage(2) +
+			"\n(previous):\n" + FreeWRLLib.androidGetLastMessage(3);
 	//Log.w(TAG,"getLastConsoleMessages returns: " + retString);
 	return retString;
 }
@@ -395,18 +396,18 @@ public boolean onOptionsItemSelected(MenuItem item) {
 	final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
 	final boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000;
 
+	/*
 	if (supportsEs2) {
 		Log.w(TAG, "supportsEs2 TRUE");
 	} else {
 		Log.w(TAG,"supportsEs2 FALSE");
 	}
+	*/
 
 	if (supportsEs2) {
 	        glView = new FreeWRLView(getApplication());
 	
-		Log.w(TAG,"glView is " + glView);
-	
-	
+		//Log.w(TAG,"glView is " + glView);
 	
 		// tell the library to (re)create it's internal databases
 		FreeWRLLib.createInstance();
@@ -435,7 +436,8 @@ public boolean onOptionsItemSelected(MenuItem item) {
 	
 		// send in the temp file, used by FreeWRL for creating tmp files, what else?
 		FreeWRLLib.setTmpDir(getApplicationContext().getCacheDir().getAbsolutePath());
-	
+
+		//Log.w(TAG,"cache dir is " + getApplicationContext().getCacheDir().getAbsolutePath());
 	
 		glView.setLoadNewX3DFile();
 	
