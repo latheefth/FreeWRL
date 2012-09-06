@@ -68,9 +68,6 @@ void Component_Shape_init(struct tComponent_Shape *t){
 	//public
 	//private
 	t->prv = Component_Shape_constructor();
-	{
-		ppComponent_Shape p = (ppComponent_Shape)t->prv;
-	}
 }
 
 //getters
@@ -254,11 +251,7 @@ void compile_Material (struct X3D_Material *node) {
 	} \
 
 /* if this is a LineSet, PointSet, etc... */
-static bool getIfLinePoints(struct X3D_Node *myGeom) {
-	struct X3D_Node *realNode;
-
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
-
+static bool getIfLinePoints(struct X3D_Node *realNode) {
 	if (realNode == NULL) return NO_APPEARANCE_SHADER;
 	switch (realNode->_nodeType) {
 		case NODE_IndexedLineSet:
@@ -272,6 +265,31 @@ static bool getIfLinePoints(struct X3D_Node *myGeom) {
 	return false; // do not add any capabilites here.
 }
 
+static bool getShapeTextureCoordGen(struct X3D_Node *realNode) {
+    struct X3D_Node *tc = NULL;
+    int *fieldOffsetsPtr = NULL;
+    
+    ConsoleMessage ("getShapeTextureCoordGen, node type %s\n",stringNodeType(realNode->_nodeType));
+    if (realNode == NULL) return NO_APPEARANCE_SHADER;
+    
+    fieldOffsetsPtr = (int *)NODE_OFFSETS[realNode->_nodeType];
+    /*go thru all field*/
+    while (*fieldOffsetsPtr != -1) {
+        if (*fieldOffsetsPtr == FIELDNAMES_texCoord) {
+            // get the pointer stored here...
+            memcpy(&tc,offsetPointer_deref(void*, realNode,*(fieldOffsetsPtr+1)),sizeof(struct X3D_Node *));
+            //ConsoleMessage ("tc is %p\n",tc);
+            //ConsoleMessage ("tc is of type %s\n",stringNodeType(tc->_nodeType));
+            if (tc != NULL) {
+                if (tc->_nodeType == NODE_TextureCoordinateGenerator) return true;
+            }
+        }
+        
+        fieldOffsetsPtr += 5;
+    }
+
+    return false;
+}
 
 
 /* Some shapes have Color nodes - if so, then we have other shaders */
@@ -573,12 +591,14 @@ void compile_Shape (struct X3D_Shape *node) {
 	int whichAppearanceShader = 0;
 	int whichShapeColorShader = 0;
 	bool isUnlitGeometry = false;
+    bool hasTextureCoordinateGenerator = false;
     int whichUnlitGeometry = 0;
     struct X3D_Node *tmpN = NULL;
     
     POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 	whichShapeColorShader = getShapeColourShader(tmpN);
     isUnlitGeometry = getIfLinePoints(tmpN);
+    hasTextureCoordinateGenerator = getShapeTextureCoordGen(tmpN);
     
     POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->appearance,tmpN);
 
