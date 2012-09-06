@@ -47,8 +47,8 @@ NSMutableData *receivedData;
     fwl_initializeRenderSceneUpdateScene();
     
     
-    NSLog (@"trying sidebyside");
-    fwl_init_SideBySide();
+    //NSLog (@"trying sidebyside");
+    //fwl_init_SideBySide();
     //
     //fwl_set_AnaglyphParameter("RC");
     
@@ -70,6 +70,7 @@ NSMutableData *receivedData;
         //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/42.wrl";
         //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/13.wrl";
         cString="/Users/johns/Desktop/testvrml.wrl";
+        cString="/Users/johns/Desktop/venus.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
