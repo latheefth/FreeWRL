@@ -477,7 +477,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"tickTime",
 	"articulationParameterValue0_changed",
 	"__rightTexture",
-	"__compiledmode",
 	"geoCenter",
 	"emissiveColor",
 	"antennaPatternLength",
@@ -1377,26 +1376,28 @@ const int MULTITEXTUREMODE_COUNT = ARR_SIZE(MULTITEXTUREMODE);
 
 /* Table of MULTITEXTURESOURCE keywords */
        const char *MULTITEXTURESOURCE[] = {
-	"ADDSIGNED2X",
-	"REPLACE",
-	"BLENDCURRENTALPHA",
-	"MODULATE",
-	"DOTPRODUCT3",
-	"SELECTARG2",
-	"SELECTARG1",
-	"BLENDDIFFUSEALPHA",
-	"SUBTRACT",
-	"ADD",
-	"MODULATEINVCOLOR_ADDALPHA",
-	"ADDSMOOTH",
-	"MODULATE2X",
-	"MODULATE4X",
-	"OFF",
-	"MODULATEINVALPHA_ADDCOLOR",
-	"MODULATEALPHA_ADDCOLOR",
-	"ADDSIGNED",
+	"DIFFUSE",
+	"SPECULAR",
+	"FACTOR",
 };
 const int MULTITEXTURESOURCE_COUNT = ARR_SIZE(MULTITEXTURESOURCE);
+
+
+/* Table of TEXTURECOORDINATEGENERATOR keywords */
+       const char *TEXTURECOORDINATEGENERATOR[] = {
+	"NOISE",
+	"CAMERASPACENORMAL",
+	"NOISE-EYE",
+	"SPHERE",
+	"SPHERE-REFLECT-LOCAL",
+	"SPHERE-REFLECT",
+	"CAMERASPACEREFLECTION",
+	"SPHERE-LOCAL",
+	"COORD-EYE",
+	"COORD",
+	"CAMERASPACEPOSITION",
+};
+const int TEXTURECOORDINATEGENERATOR_COUNT = ARR_SIZE(TEXTURECOORDINATEGENERATOR);
 
 
 /* Table of MULTITEXTUREFUNCTION keywords */
@@ -2423,8 +2424,7 @@ struct X3D_Virt virt_TextureBackground = { NULL,(void *)render_TextureBackground
 
 struct X3D_Virt virt_TextureCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *);
-struct X3D_Virt virt_TextureCoordinateGenerator = { NULL,(void *)render_TextureCoordinateGenerator,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_TextureCoordinateGenerator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_TextureProperties = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -4817,7 +4817,6 @@ const int OFFSETS_TextureCoordinate[] = {
 
 const int OFFSETS_TextureCoordinateGenerator[] = {
 	(int) FIELDNAMES_parameter, (int) offsetof (struct X3D_TextureCoordinateGenerator, parameter),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES___compiledmode, (int) offsetof (struct X3D_TextureCoordinateGenerator, __compiledmode),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_mode, (int) offsetof (struct X3D_TextureCoordinateGenerator, mode),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TextureCoordinateGenerator, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
@@ -8846,7 +8845,6 @@ void *createNewX3DNode (int nt) {
 			tmp2 = (struct X3D_TextureCoordinateGenerator *) tmp;
 		/* ttmp2->v = &virt_TextureCoordinateGenerator;*/ 
 			tmp2->parameter.n=0; tmp2->parameter.p=0;
-			tmp2->__compiledmode = 0;
 			tmp2->mode = newASCIIString("SPHERE");
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_texCoord;
@@ -9652,8 +9650,6 @@ void *createNewX3DNode (int nt) {
        add_first(tmp);
        /* possibly a KeySensor node? */
        addNodeToKeySensorList(X3D_NODE(tmp));
-
-	//ConsoleMessage("created %p of type %s\n",tmp,stringNodeType(nt));
 	return tmp;
 }
 /* Dump the scene graph.  */

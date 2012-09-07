@@ -50,6 +50,9 @@ Proximity sensor macro.
 #define HAVE_LINEPOINTS_COLOR 0x0080
 #define HAVE_LINEPOINTS_APPEARANCE 0x00100
 
+/* TextureCoordinateGenerator */
+#define HAVE_TEXTURECOORDINATEGENERATOR 0x00200
+
 /*******************************************************/
 
 
@@ -82,8 +85,10 @@ struct matpropstruct {
     GLfloat hatchColour[3];
 
 	// points now specified in shader, not via an opengl call 
-	GLfloat pointSize;
+	GLfloat pointSize;   
     
+    //TextureCoordinateGenerator value - a "TCGT_XXX" type
+    int texCoordGeneratorType;
 };
 
 struct matpropstruct* getAppearanceProperties();

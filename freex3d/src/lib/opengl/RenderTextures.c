@@ -77,30 +77,6 @@ void RenderTextures_init(struct tRenderTextures *t){
 static void haveTexCoord(struct X3D_TextureCoordinate *myTCnode);
 static void passedInGenTex(struct textureVertexInfo *genTex);
 static void haveMultiTexCoord(struct X3D_MultiTextureCoordinate *myMTCnode);
-static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode);
-
-/* TextureGenerator node? if so, do it */
-static void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
-#if defined(GL_ES_VERSION_2_0)
-
-printf ("skipping setupTexGen\n");
-#else
-	switch (this->__compiledmode) {
-	case GL_OBJECT_LINEAR:
-	case GL_EYE_LINEAR:
-	case GL_REFLECTION_MAP:
-	case GL_SPHERE_MAP:
-	case GL_NORMAL_MAP:
-		FW_GL_TEXGENI(GL_S, GL_TEXTURE_GEN_MODE,this->__compiledmode);
-		FW_GL_TEXGENI(GL_T,GL_TEXTURE_GEN_MODE,this->__compiledmode);                      
-		FW_GL_ENABLE(GL_TEXTURE_GEN_S);
-		FW_GL_ENABLE(GL_TEXTURE_GEN_T);
-	break;
-	default: {}
-		/* printf ("problem with compiledmode %d\n",this->__compiledmode); */
-	}
-#endif
-}
 
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
    background coloUr??? Larry the Cucumber, help! */
@@ -289,41 +265,3 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
     
 	PRINT_GL_ERROR_IF_ANY("");
 }
-
-
-static void haveTexCoordGenerator (struct X3D_TextureCoordinate *myTCnode) {
-	int c;
-
-	GLint texUnit[MAX_MULTITEXTURE];
-	GLint texMode[MAX_MULTITEXTURE];
-	ttglobal tg = gglobal();
-	#ifdef TEXVERBOSE
-	printf ("have a NODE_TextureCoordinateGenerator\n");
-	#endif
-		
-	/* render the TextureCoordinate node for every texture in this node */
-	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
-		render_node ((void *)myTCnode);
-		/* are we ok with this texture yet? */
-		if (tg->RenderFuncs.boundTextureStack[c] != 0) {
-			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
-	       			if (getThis_textureTransform()) do_textureTransform(getThis_textureTransform(),c);
-				FW_GL_BINDTEXTURE(GL_TEXTURE_2D,tg->RenderFuncs.boundTextureStack[c]);
-
-				setupTexGen((struct X3D_TextureCoordinateGenerator*) myTCnode);
-			}
-		}
-	}
-}
-
-/*
-  Some functions in Textures.c should be moved here
-  and possibly renamed to textureDraw_###### :
-
-  loadBackgroundTextures
-  loadTextureBackgroundTextures
-
-  Reason: it seems those function do a render job
-  whereas other load functions do a fetch & load job.
-*/
-

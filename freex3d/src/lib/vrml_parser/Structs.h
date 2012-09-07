@@ -76,6 +76,7 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	float *normal; /* triples or null */
         float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
+	int texgentype; /* if we do have a TextureCoordinateGenerator, what "TCGT_XXX" type is it? */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */
 	GLfloat maxVals[3];		/* for collision and default texture coord generation */
 	GLfloat transparency;		/* what the transparency value was during compile, put in color array if RGBA colors */
@@ -746,244 +747,243 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES_tickTime	403
 #define FIELDNAMES_articulationParameterValue0_changed	404
 #define FIELDNAMES___rightTexture	405
-#define FIELDNAMES___compiledmode	406
-#define FIELDNAMES_geoCenter	407
-#define FIELDNAMES_emissiveColor	408
-#define FIELDNAMES_antennaPatternLength	409
-#define FIELDNAMES_filled	410
-#define FIELDNAMES_groundAngle	411
-#define FIELDNAMES_mapping	412
-#define FIELDNAMES_isValid	413
-#define FIELDNAMES_string	414
-#define FIELDNAMES_children	415
-#define FIELDNAMES_isBound	416
-#define FIELDNAMES_triggerValue	417
-#define FIELDNAMES___bottomTexture	418
-#define FIELDNAMES_controlKey	419
-#define FIELDNAMES_textureCompression	420
-#define FIELDNAMES_frontTexture	421
-#define FIELDNAMES_entityCategory	422
-#define FIELDNAMES_centerOfRotation_changed	423
-#define FIELDNAMES_diskAngle	424
-#define FIELDNAMES___Samples	425
-#define FIELDNAMES_transmitFrequencyBandwidth	426
-#define FIELDNAMES___do_rotation	427
-#define FIELDNAMES_dataLength	428
-#define FIELDNAMES_radioEntityTypeCategory	429
-#define FIELDNAMES_set_fraction	430
-#define FIELDNAMES_subcategory	431
-#define FIELDNAMES_transitionComplete	432
-#define FIELDNAMES_specific	433
-#define FIELDNAMES___inittime	434
-#define FIELDNAMES__status	435
-#define FIELDNAMES_backUrl	436
-#define FIELDNAMES_set_sortOrder	437
-#define FIELDNAMES_size	438
-#define FIELDNAMES_maxExtent	439
-#define FIELDNAMES_domain	440
-#define FIELDNAMES_kind	441
-#define FIELDNAMES_orientation_changed	442
-#define FIELDNAMES___regenSubTextures	443
-#define FIELDNAMES_readInterval	444
-#define FIELDNAMES___child3Node	445
-#define FIELDNAMES_materialIndex	446
-#define FIELDNAMES_style	447
-#define FIELDNAMES_radioEntityTypeDomain	448
-#define FIELDNAMES_bottom	449
-#define FIELDNAMES_hatchColor	450
-#define FIELDNAMES_justify	451
-#define FIELDNAMES_removedEntities	452
-#define FIELDNAMES_modulationTypeSystem	453
-#define FIELDNAMES_side	454
-#define FIELDNAMES_frontUrl	455
-#define FIELDNAMES__stringInpFIFO	456
-#define FIELDNAMES_dimension	457
-#define FIELDNAMES_modulationTypeDetail	458
-#define FIELDNAMES__solid	459
-#define FIELDNAMES_separateBackColor	460
-#define FIELDNAMES___rootUrl	461
-#define FIELDNAMES__verifiedFrontColor	462
-#define FIELDNAMES_bindTime	463
-#define FIELDNAMES_depth	464
-#define FIELDNAMES_set_boolean	465
-#define FIELDNAMES_gotEvents	466
-#define FIELDNAMES_fieldOfView	467
-#define FIELDNAMES___oldHeadlight	468
-#define FIELDNAMES_listenfor	469
-#define FIELDNAMES_borderColor	470
-#define FIELDNAMES_set_height	471
-#define FIELDNAMES_child1Url	472
-#define FIELDNAMES_endCap	473
-#define FIELDNAMES_set_colorIndex	474
-#define FIELDNAMES_reference	475
-#define FIELDNAMES_uTessellation	476
-#define FIELDNAMES___normals	477
-#define FIELDNAMES_set_triggerTime	478
-#define FIELDNAMES__oldhitTexCoord	479
-#define FIELDNAMES__oldpickedGeometry	480
-#define FIELDNAMES_value_changed	481
-#define FIELDNAMES___oldKeyValuePtr	482
-#define FIELDNAMES_keyValue	483
-#define FIELDNAMES_bottomRadius	484
-#define FIELDNAMES_mustEvaluate	485
-#define FIELDNAMES_diffuseColor	486
-#define FIELDNAMES_tessellationScale	487
-#define FIELDNAMES_startIndex	488
-#define FIELDNAMES_handler	489
-#define FIELDNAMES__vertValue	490
-#define FIELDNAMES___oldmetadata	491
-#define FIELDNAMES_inputNegate	492
-#define FIELDNAMES_keyWeight	493
-#define FIELDNAMES_entitySpecific	494
-#define FIELDNAMES_set_articulationParameterValue2	495
-#define FIELDNAMES_key	496
-#define FIELDNAMES__typeValue	497
-#define FIELDNAMES_ulimit	498
-#define FIELDNAMES___quadcount	499
-#define FIELDNAMES_skinCoord	500
-#define FIELDNAMES_yScale	501
-#define FIELDNAMES___oldEnabled	502
-#define FIELDNAMES___movedOrientation	503
-#define FIELDNAMES_name	504
-#define FIELDNAMES_texCoord	505
-#define FIELDNAMES__ccw	506
-#define FIELDNAMES_pickable	507
-#define FIELDNAMES___coneVBO	508
-#define FIELDNAMES_lineBounds	509
-#define FIELDNAMES_hatched	510
-#define FIELDNAMES_easeInEaseOut	511
-#define FIELDNAMES__creaseAngle	512
-#define FIELDNAMES_level_changed	513
-#define FIELDNAMES___texCoords	514
-#define FIELDNAMES_geovalue_changed	515
-#define FIELDNAMES__texCoord	516
-#define FIELDNAMES_texCoordIndex	517
-#define FIELDNAMES__shaderTableEntry	518
-#define FIELDNAMES_beginCap	519
-#define FIELDNAMES_linearAcceleration	520
-#define FIELDNAMES_transparency	521
-#define FIELDNAMES___vertexCount	522
-#define FIELDNAMES_intersectionType	523
-#define FIELDNAMES_set_bind	524
-#define FIELDNAMES_textureTransform	525
-#define FIELDNAMES___sourceNumber	526
-#define FIELDNAMES_progress	527
-#define FIELDNAMES_lengthOfModulationParameters	528
-#define FIELDNAMES_height	529
-#define FIELDNAMES_right	530
-#define FIELDNAMES_pickingGeometry	531
-#define FIELDNAMES_entityCountry	532
-#define FIELDNAMES___localOrient	533
-#define FIELDNAMES_protocol	534
-#define FIELDNAMES_isNetworkReader	535
-#define FIELDNAMES_antennaPatternType	536
-#define FIELDNAMES_startAngle	537
-#define FIELDNAMES_minAngle	538
-#define FIELDNAMES_weight	539
-#define FIELDNAMES_talksTo	540
-#define FIELDNAMES_visibilityLimit	541
-#define FIELDNAMES_munitionApplicationID	542
-#define FIELDNAMES_firedTime	543
-#define FIELDNAMES_forceID	544
-#define FIELDNAMES_articulationParameterDesignatorArray	545
-#define FIELDNAMES__verifiedColor	546
-#define FIELDNAMES___oldSize	547
-#define FIELDNAMES__radius	548
-#define FIELDNAMES_collideTime	549
-#define FIELDNAMES___loadstatus	550
-#define FIELDNAMES_magnificationFilter	551
-#define FIELDNAMES_numComponents	552
-#define FIELDNAMES_fogCoord	553
-#define FIELDNAMES_munitionEndPoint	554
-#define FIELDNAMES___oldGeoCenter	555
-#define FIELDNAMES_choice	556
-#define FIELDNAMES_hatchStyle	557
-#define FIELDNAMES___params	558
-#define FIELDNAMES_cutOffAngle	559
-#define FIELDNAMES_minPosition	560
-#define FIELDNAMES___rotyup	561
-#define FIELDNAMES_linewidthScaleFactor	562
-#define FIELDNAMES___geoSystem	563
-#define FIELDNAMES_finalText	564
-#define FIELDNAMES_rootUrl	565
-#define FIELDNAMES_FreeWRL_PROTOInterfaceNodes	566
-#define FIELDNAMES_entityExtra	567
-#define FIELDNAMES_url	568
-#define FIELDNAMES_coord	569
-#define FIELDNAMES_startTime	570
-#define FIELDNAMES___frontTexture	571
-#define FIELDNAMES___topTexture	572
-#define FIELDNAMES_minFront	573
-#define FIELDNAMES_ccw	574
-#define FIELDNAMES_valueChanged	575
-#define FIELDNAMES_level	576
-#define FIELDNAMES_vertexCount	577
-#define FIELDNAMES_transitionType	578
-#define FIELDNAMES___rendersub	579
-#define FIELDNAMES_llimit	580
-#define FIELDNAMES_range	581
-#define FIELDNAMES_keyPress	582
-#define FIELDNAMES_resumeTime	583
-#define FIELDNAMES_antennaLocation	584
-#define FIELDNAMES_timestamp	585
-#define FIELDNAMES_vertexOrdering	586
-#define FIELDNAMES_forceTransitions	587
-#define FIELDNAMES_radioEntityTypeNomenclature	588
-#define FIELDNAMES_shaders	589
-#define FIELDNAMES_language	590
-#define FIELDNAMES_VRML1children	591
-#define FIELDNAMES__cpv	592
-#define FIELDNAMES_shiftKey	593
-#define FIELDNAMES_filter	594
-#define FIELDNAMES_leftTexture	595
-#define FIELDNAMES_momentsOfInertia	596
-#define FIELDNAMES_lineSegments	597
-#define FIELDNAMES_coordIndex	598
-#define FIELDNAMES_stringInp	599
-#define FIELDNAMES_set_intersectionType	600
-#define FIELDNAMES_material	601
-#define FIELDNAMES__selected	602
-#define FIELDNAMES_set_scale	603
-#define FIELDNAMES_loadTime	604
-#define FIELDNAMES_transmitterApplicationID	605
-#define FIELDNAMES__convex	606
-#define FIELDNAMES_frequency	607
-#define FIELDNAMES_actionKeyRelease	608
-#define FIELDNAMES_articulationParameterValue1_changed	609
-#define FIELDNAMES_isSelected	610
-#define FIELDNAMES___oldMFString	611
-#define FIELDNAMES_rtpHeaderExpected	612
-#define FIELDNAMES_child3Url	613
-#define FIELDNAMES_pauseTime	614
-#define FIELDNAMES_isCollided	615
-#define FIELDNAMES__ILS	616
-#define FIELDNAMES_normalIndex	617
-#define FIELDNAMES_beamWidth	618
-#define FIELDNAMES_pickTarget	619
-#define FIELDNAMES_zSpacing	620
-#define FIELDNAMES___oldSFString	621
-#define FIELDNAMES_whichGeometry	622
-#define FIELDNAMES_eventSiteID	623
-#define FIELDNAMES_innerRadius	624
-#define FIELDNAMES_fontStyle	625
-#define FIELDNAMES_convex	626
-#define FIELDNAMES_orientation	627
-#define FIELDNAMES_set_texCoordIndex	628
-#define FIELDNAMES_whichChild	629
-#define FIELDNAMES_autoOffset	630
-#define FIELDNAMES_appearance	631
-#define FIELDNAMES_wrapT	632
-#define FIELDNAMES_zDimension	633
-#define FIELDNAMES__floatOutFIFO	634
-#define FIELDNAMES__normal	635
-#define FIELDNAMES_entitySubCategory	636
-#define FIELDNAMES_set_coordIndex	637
-#define FIELDNAMES_munitionQuantity	638
-#define FIELDNAMES__stringOutFIFO	639
-#define FIELDNAMES_elapsedTime	640
-#define FIELDNAMES_numPoints	641
-#define FIELDNAMES___vertices	642
-#define FIELDNAMES___initialized	643
+#define FIELDNAMES_geoCenter	406
+#define FIELDNAMES_emissiveColor	407
+#define FIELDNAMES_antennaPatternLength	408
+#define FIELDNAMES_filled	409
+#define FIELDNAMES_groundAngle	410
+#define FIELDNAMES_mapping	411
+#define FIELDNAMES_isValid	412
+#define FIELDNAMES_string	413
+#define FIELDNAMES_children	414
+#define FIELDNAMES_isBound	415
+#define FIELDNAMES_triggerValue	416
+#define FIELDNAMES___bottomTexture	417
+#define FIELDNAMES_controlKey	418
+#define FIELDNAMES_textureCompression	419
+#define FIELDNAMES_frontTexture	420
+#define FIELDNAMES_entityCategory	421
+#define FIELDNAMES_centerOfRotation_changed	422
+#define FIELDNAMES_diskAngle	423
+#define FIELDNAMES___Samples	424
+#define FIELDNAMES_transmitFrequencyBandwidth	425
+#define FIELDNAMES___do_rotation	426
+#define FIELDNAMES_dataLength	427
+#define FIELDNAMES_radioEntityTypeCategory	428
+#define FIELDNAMES_set_fraction	429
+#define FIELDNAMES_subcategory	430
+#define FIELDNAMES_transitionComplete	431
+#define FIELDNAMES_specific	432
+#define FIELDNAMES___inittime	433
+#define FIELDNAMES__status	434
+#define FIELDNAMES_backUrl	435
+#define FIELDNAMES_set_sortOrder	436
+#define FIELDNAMES_size	437
+#define FIELDNAMES_maxExtent	438
+#define FIELDNAMES_domain	439
+#define FIELDNAMES_kind	440
+#define FIELDNAMES_orientation_changed	441
+#define FIELDNAMES___regenSubTextures	442
+#define FIELDNAMES_readInterval	443
+#define FIELDNAMES___child3Node	444
+#define FIELDNAMES_materialIndex	445
+#define FIELDNAMES_style	446
+#define FIELDNAMES_radioEntityTypeDomain	447
+#define FIELDNAMES_bottom	448
+#define FIELDNAMES_hatchColor	449
+#define FIELDNAMES_justify	450
+#define FIELDNAMES_removedEntities	451
+#define FIELDNAMES_modulationTypeSystem	452
+#define FIELDNAMES_side	453
+#define FIELDNAMES_frontUrl	454
+#define FIELDNAMES__stringInpFIFO	455
+#define FIELDNAMES_dimension	456
+#define FIELDNAMES_modulationTypeDetail	457
+#define FIELDNAMES__solid	458
+#define FIELDNAMES_separateBackColor	459
+#define FIELDNAMES___rootUrl	460
+#define FIELDNAMES__verifiedFrontColor	461
+#define FIELDNAMES_bindTime	462
+#define FIELDNAMES_depth	463
+#define FIELDNAMES_set_boolean	464
+#define FIELDNAMES_gotEvents	465
+#define FIELDNAMES_fieldOfView	466
+#define FIELDNAMES___oldHeadlight	467
+#define FIELDNAMES_listenfor	468
+#define FIELDNAMES_borderColor	469
+#define FIELDNAMES_set_height	470
+#define FIELDNAMES_child1Url	471
+#define FIELDNAMES_endCap	472
+#define FIELDNAMES_set_colorIndex	473
+#define FIELDNAMES_reference	474
+#define FIELDNAMES_uTessellation	475
+#define FIELDNAMES___normals	476
+#define FIELDNAMES_set_triggerTime	477
+#define FIELDNAMES__oldhitTexCoord	478
+#define FIELDNAMES__oldpickedGeometry	479
+#define FIELDNAMES_value_changed	480
+#define FIELDNAMES___oldKeyValuePtr	481
+#define FIELDNAMES_keyValue	482
+#define FIELDNAMES_bottomRadius	483
+#define FIELDNAMES_mustEvaluate	484
+#define FIELDNAMES_diffuseColor	485
+#define FIELDNAMES_tessellationScale	486
+#define FIELDNAMES_startIndex	487
+#define FIELDNAMES_handler	488
+#define FIELDNAMES__vertValue	489
+#define FIELDNAMES___oldmetadata	490
+#define FIELDNAMES_inputNegate	491
+#define FIELDNAMES_keyWeight	492
+#define FIELDNAMES_entitySpecific	493
+#define FIELDNAMES_set_articulationParameterValue2	494
+#define FIELDNAMES_key	495
+#define FIELDNAMES__typeValue	496
+#define FIELDNAMES_ulimit	497
+#define FIELDNAMES___quadcount	498
+#define FIELDNAMES_skinCoord	499
+#define FIELDNAMES_yScale	500
+#define FIELDNAMES___oldEnabled	501
+#define FIELDNAMES___movedOrientation	502
+#define FIELDNAMES_name	503
+#define FIELDNAMES_texCoord	504
+#define FIELDNAMES__ccw	505
+#define FIELDNAMES_pickable	506
+#define FIELDNAMES___coneVBO	507
+#define FIELDNAMES_lineBounds	508
+#define FIELDNAMES_hatched	509
+#define FIELDNAMES_easeInEaseOut	510
+#define FIELDNAMES__creaseAngle	511
+#define FIELDNAMES_level_changed	512
+#define FIELDNAMES___texCoords	513
+#define FIELDNAMES_geovalue_changed	514
+#define FIELDNAMES__texCoord	515
+#define FIELDNAMES_texCoordIndex	516
+#define FIELDNAMES__shaderTableEntry	517
+#define FIELDNAMES_beginCap	518
+#define FIELDNAMES_linearAcceleration	519
+#define FIELDNAMES_transparency	520
+#define FIELDNAMES___vertexCount	521
+#define FIELDNAMES_intersectionType	522
+#define FIELDNAMES_set_bind	523
+#define FIELDNAMES_textureTransform	524
+#define FIELDNAMES___sourceNumber	525
+#define FIELDNAMES_progress	526
+#define FIELDNAMES_lengthOfModulationParameters	527
+#define FIELDNAMES_height	528
+#define FIELDNAMES_right	529
+#define FIELDNAMES_pickingGeometry	530
+#define FIELDNAMES_entityCountry	531
+#define FIELDNAMES___localOrient	532
+#define FIELDNAMES_protocol	533
+#define FIELDNAMES_isNetworkReader	534
+#define FIELDNAMES_antennaPatternType	535
+#define FIELDNAMES_startAngle	536
+#define FIELDNAMES_minAngle	537
+#define FIELDNAMES_weight	538
+#define FIELDNAMES_talksTo	539
+#define FIELDNAMES_visibilityLimit	540
+#define FIELDNAMES_munitionApplicationID	541
+#define FIELDNAMES_firedTime	542
+#define FIELDNAMES_forceID	543
+#define FIELDNAMES_articulationParameterDesignatorArray	544
+#define FIELDNAMES__verifiedColor	545
+#define FIELDNAMES___oldSize	546
+#define FIELDNAMES__radius	547
+#define FIELDNAMES_collideTime	548
+#define FIELDNAMES___loadstatus	549
+#define FIELDNAMES_magnificationFilter	550
+#define FIELDNAMES_numComponents	551
+#define FIELDNAMES_fogCoord	552
+#define FIELDNAMES_munitionEndPoint	553
+#define FIELDNAMES___oldGeoCenter	554
+#define FIELDNAMES_choice	555
+#define FIELDNAMES_hatchStyle	556
+#define FIELDNAMES___params	557
+#define FIELDNAMES_cutOffAngle	558
+#define FIELDNAMES_minPosition	559
+#define FIELDNAMES___rotyup	560
+#define FIELDNAMES_linewidthScaleFactor	561
+#define FIELDNAMES___geoSystem	562
+#define FIELDNAMES_finalText	563
+#define FIELDNAMES_rootUrl	564
+#define FIELDNAMES_FreeWRL_PROTOInterfaceNodes	565
+#define FIELDNAMES_entityExtra	566
+#define FIELDNAMES_url	567
+#define FIELDNAMES_coord	568
+#define FIELDNAMES_startTime	569
+#define FIELDNAMES___frontTexture	570
+#define FIELDNAMES___topTexture	571
+#define FIELDNAMES_minFront	572
+#define FIELDNAMES_ccw	573
+#define FIELDNAMES_valueChanged	574
+#define FIELDNAMES_level	575
+#define FIELDNAMES_vertexCount	576
+#define FIELDNAMES_transitionType	577
+#define FIELDNAMES___rendersub	578
+#define FIELDNAMES_llimit	579
+#define FIELDNAMES_range	580
+#define FIELDNAMES_keyPress	581
+#define FIELDNAMES_resumeTime	582
+#define FIELDNAMES_antennaLocation	583
+#define FIELDNAMES_timestamp	584
+#define FIELDNAMES_vertexOrdering	585
+#define FIELDNAMES_forceTransitions	586
+#define FIELDNAMES_radioEntityTypeNomenclature	587
+#define FIELDNAMES_shaders	588
+#define FIELDNAMES_language	589
+#define FIELDNAMES_VRML1children	590
+#define FIELDNAMES__cpv	591
+#define FIELDNAMES_shiftKey	592
+#define FIELDNAMES_filter	593
+#define FIELDNAMES_leftTexture	594
+#define FIELDNAMES_momentsOfInertia	595
+#define FIELDNAMES_lineSegments	596
+#define FIELDNAMES_coordIndex	597
+#define FIELDNAMES_stringInp	598
+#define FIELDNAMES_set_intersectionType	599
+#define FIELDNAMES_material	600
+#define FIELDNAMES__selected	601
+#define FIELDNAMES_set_scale	602
+#define FIELDNAMES_loadTime	603
+#define FIELDNAMES_transmitterApplicationID	604
+#define FIELDNAMES__convex	605
+#define FIELDNAMES_frequency	606
+#define FIELDNAMES_actionKeyRelease	607
+#define FIELDNAMES_articulationParameterValue1_changed	608
+#define FIELDNAMES_isSelected	609
+#define FIELDNAMES___oldMFString	610
+#define FIELDNAMES_rtpHeaderExpected	611
+#define FIELDNAMES_child3Url	612
+#define FIELDNAMES_pauseTime	613
+#define FIELDNAMES_isCollided	614
+#define FIELDNAMES__ILS	615
+#define FIELDNAMES_normalIndex	616
+#define FIELDNAMES_beamWidth	617
+#define FIELDNAMES_pickTarget	618
+#define FIELDNAMES_zSpacing	619
+#define FIELDNAMES___oldSFString	620
+#define FIELDNAMES_whichGeometry	621
+#define FIELDNAMES_eventSiteID	622
+#define FIELDNAMES_innerRadius	623
+#define FIELDNAMES_fontStyle	624
+#define FIELDNAMES_convex	625
+#define FIELDNAMES_orientation	626
+#define FIELDNAMES_set_texCoordIndex	627
+#define FIELDNAMES_whichChild	628
+#define FIELDNAMES_autoOffset	629
+#define FIELDNAMES_appearance	630
+#define FIELDNAMES_wrapT	631
+#define FIELDNAMES_zDimension	632
+#define FIELDNAMES__floatOutFIFO	633
+#define FIELDNAMES__normal	634
+#define FIELDNAMES_entitySubCategory	635
+#define FIELDNAMES_set_coordIndex	636
+#define FIELDNAMES_munitionQuantity	637
+#define FIELDNAMES__stringOutFIFO	638
+#define FIELDNAMES_elapsedTime	639
+#define FIELDNAMES_numPoints	640
+#define FIELDNAMES___vertices	641
+#define FIELDNAMES___initialized	642
 
 const char *stringFieldType(int st);
 
@@ -1642,24 +1642,25 @@ const char *stringMULTITEXTUREMODEType(int st);
 /* Table of built-in MULTITEXTURESOURCE keywords */
 extern const char *MULTITEXTURESOURCE[];
 extern const int MULTITEXTURESOURCE_COUNT;
-#define MTSRC_ADDSIGNED2X	0
-#define MTSRC_REPLACE	1
-#define MTSRC_BLENDCURRENTALPHA	2
-#define MTSRC_MODULATE	3
-#define MTSRC_DOTPRODUCT3	4
-#define MTSRC_SELECTARG2	5
-#define MTSRC_SELECTARG1	6
-#define MTSRC_BLENDDIFFUSEALPHA	7
-#define MTSRC_SUBTRACT	8
-#define MTSRC_ADD	9
-#define MTSRC_MODULATEINVCOLOR_ADDALPHA	10
-#define MTSRC_ADDSMOOTH	11
-#define MTSRC_MODULATE2X	12
-#define MTSRC_MODULATE4X	13
-#define MTSRC_OFF	14
-#define MTSRC_MODULATEINVALPHA_ADDCOLOR	15
-#define MTSRC_MODULATEALPHA_ADDCOLOR	16
-#define MTSRC_ADDSIGNED	17
+#define MTSRC_DIFFUSE	0
+#define MTSRC_SPECULAR	1
+#define MTSRC_FACTOR	2
+
+
+/* Table of built-in TEXTURECOORDINATEGENERATOR keywords */
+extern const char *TEXTURECOORDINATEGENERATOR[];
+extern const int TEXTURECOORDINATEGENERATOR_COUNT;
+#define TCGT_NOISE	0
+#define TCGT_CAMERASPACENORMAL	1
+#define TCGT_NOISE_EYE	2
+#define TCGT_SPHERE	3
+#define TCGT_SPHERE_REFLECT_LOCAL	4
+#define TCGT_SPHERE_REFLECT	5
+#define TCGT_CAMERASPACEREFLECTION	6
+#define TCGT_SPHERE_LOCAL	7
+#define TCGT_COORD_EYE	8
+#define TCGT_COORD	9
+#define TCGT_CAMERASPACEPOSITION	10
 
 const char *stringMULTITEXTURESOURCEType(int st);
 
@@ -1982,7 +1983,7 @@ struct X3D_Node {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2064,7 +2065,7 @@ struct X3D_Anchor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2090,7 +2091,7 @@ struct X3D_Appearance {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2113,7 +2114,7 @@ struct X3D_Arc2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2135,7 +2136,7 @@ struct X3D_ArcClose2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2159,7 +2160,7 @@ struct X3D_AudioClip {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2192,7 +2193,7 @@ struct X3D_Background {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2235,7 +2236,7 @@ struct X3D_Billboard {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2259,7 +2260,7 @@ struct X3D_BooleanFilter {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2280,7 +2281,7 @@ struct X3D_BooleanSequencer {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2303,7 +2304,7 @@ struct X3D_BooleanToggle {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2322,7 +2323,7 @@ struct X3D_BooleanTrigger {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2341,7 +2342,7 @@ struct X3D_Box {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2361,7 +2362,7 @@ struct X3D_Circle2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2381,7 +2382,7 @@ struct X3D_ClipPlane {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2400,7 +2401,7 @@ struct X3D_Collision {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2427,7 +2428,7 @@ struct X3D_Color {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2445,7 +2446,7 @@ struct X3D_ColorInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2466,7 +2467,7 @@ struct X3D_ColorRGBA {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2484,7 +2485,7 @@ struct X3D_ComposedCubeMapTexture {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2508,7 +2509,7 @@ struct X3D_ComposedShader {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2533,7 +2534,7 @@ struct X3D_Cone {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2560,7 +2561,7 @@ struct X3D_Contour2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2580,7 +2581,7 @@ struct X3D_ContourPolyLine2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2597,7 +2598,7 @@ struct X3D_Coordinate {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2615,7 +2616,7 @@ struct X3D_CoordinateInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2636,7 +2637,7 @@ struct X3D_CoordinateInterpolator2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2657,7 +2658,7 @@ struct X3D_Cylinder {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2684,7 +2685,7 @@ struct X3D_CylinderSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2718,7 +2719,7 @@ struct X3D_DISEntityManager {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2742,7 +2743,7 @@ struct X3D_DISEntityTypeMapping {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2767,7 +2768,7 @@ struct X3D_DirectionalLight {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2790,7 +2791,7 @@ struct X3D_Disk2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2814,7 +2815,7 @@ struct X3D_EaseInEaseOut {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2835,7 +2836,7 @@ struct X3D_ElevationGrid {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2869,7 +2870,7 @@ struct X3D_EspduTransform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -2974,7 +2975,7 @@ struct X3D_Extrusion {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3005,7 +3006,7 @@ struct X3D_FillProperties {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3026,7 +3027,7 @@ struct X3D_FloatVertexAttribute {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3046,7 +3047,7 @@ struct X3D_Fog {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3069,7 +3070,7 @@ struct X3D_FogCoordinate {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3087,7 +3088,7 @@ struct X3D_FontStyle {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3113,7 +3114,7 @@ struct X3D_GeneratedCubeMapTexture {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3134,7 +3135,7 @@ struct X3D_GeoCoordinate {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3156,7 +3157,7 @@ struct X3D_GeoElevationGrid {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3193,7 +3194,7 @@ struct X3D_GeoLOD {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3235,7 +3236,7 @@ struct X3D_GeoLocation {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3266,7 +3267,7 @@ struct X3D_GeoMetadata {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3286,7 +3287,7 @@ struct X3D_GeoOrigin {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3311,7 +3312,7 @@ struct X3D_GeoPositionInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3339,7 +3340,7 @@ struct X3D_GeoProximitySensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3377,7 +3378,7 @@ struct X3D_GeoTouchSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3410,7 +3411,7 @@ struct X3D_GeoTransform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3450,7 +3451,7 @@ struct X3D_GeoViewpoint {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3490,7 +3491,7 @@ struct X3D_Group {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3515,7 +3516,7 @@ struct X3D_HAnimDisplacer {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3536,7 +3537,7 @@ struct X3D_HAnimHumanoid {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3571,7 +3572,7 @@ struct X3D_HAnimJoint {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3611,7 +3612,7 @@ struct X3D_HAnimSegment {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3639,7 +3640,7 @@ struct X3D_HAnimSite {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3672,7 +3673,7 @@ struct X3D_ImageCubeMapTexture {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3695,7 +3696,7 @@ struct X3D_ImageTexture {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3718,7 +3719,7 @@ struct X3D_IndexedFaceSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3755,7 +3756,7 @@ struct X3D_IndexedLineSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3787,7 +3788,7 @@ struct X3D_IndexedTriangleFanSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3817,7 +3818,7 @@ struct X3D_IndexedTriangleSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3847,7 +3848,7 @@ struct X3D_IndexedTriangleStripSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3877,7 +3878,7 @@ struct X3D_Inline {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3902,7 +3903,7 @@ struct X3D_IntegerSequencer {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3925,7 +3926,7 @@ struct X3D_IntegerTrigger {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3945,7 +3946,7 @@ struct X3D_KeySensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -3972,7 +3973,7 @@ struct X3D_LOD {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4001,7 +4002,7 @@ struct X3D_LineProperties {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4021,7 +4022,7 @@ struct X3D_LineSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4046,7 +4047,7 @@ struct X3D_LoadSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4074,7 +4075,7 @@ struct X3D_LocalFog {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4095,7 +4096,7 @@ struct X3D_Material {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4119,7 +4120,7 @@ struct X3D_Matrix3VertexAttribute {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4138,7 +4139,7 @@ struct X3D_Matrix4VertexAttribute {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4157,7 +4158,7 @@ struct X3D_MetadataDouble {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4177,7 +4178,7 @@ struct X3D_MetadataFloat {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4197,7 +4198,7 @@ struct X3D_MetadataInteger {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4217,7 +4218,7 @@ struct X3D_MetadataMFBool {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4237,7 +4238,7 @@ struct X3D_MetadataMFColor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4257,7 +4258,7 @@ struct X3D_MetadataMFColorRGBA {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4277,7 +4278,7 @@ struct X3D_MetadataMFDouble {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4297,7 +4298,7 @@ struct X3D_MetadataMFFloat {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4317,7 +4318,7 @@ struct X3D_MetadataMFInt32 {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4337,7 +4338,7 @@ struct X3D_MetadataMFMatrix3d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4357,7 +4358,7 @@ struct X3D_MetadataMFMatrix3f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4377,7 +4378,7 @@ struct X3D_MetadataMFMatrix4d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4397,7 +4398,7 @@ struct X3D_MetadataMFMatrix4f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4417,7 +4418,7 @@ struct X3D_MetadataMFNode {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4437,7 +4438,7 @@ struct X3D_MetadataMFRotation {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4457,7 +4458,7 @@ struct X3D_MetadataMFString {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4477,7 +4478,7 @@ struct X3D_MetadataMFTime {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4497,7 +4498,7 @@ struct X3D_MetadataMFVec2d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4517,7 +4518,7 @@ struct X3D_MetadataMFVec2f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4537,7 +4538,7 @@ struct X3D_MetadataMFVec3d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4557,7 +4558,7 @@ struct X3D_MetadataMFVec3f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4577,7 +4578,7 @@ struct X3D_MetadataMFVec4d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4597,7 +4598,7 @@ struct X3D_MetadataMFVec4f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4617,7 +4618,7 @@ struct X3D_MetadataSFBool {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4637,7 +4638,7 @@ struct X3D_MetadataSFColor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4657,7 +4658,7 @@ struct X3D_MetadataSFColorRGBA {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4677,7 +4678,7 @@ struct X3D_MetadataSFDouble {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4697,7 +4698,7 @@ struct X3D_MetadataSFFloat {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4717,7 +4718,7 @@ struct X3D_MetadataSFImage {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4737,7 +4738,7 @@ struct X3D_MetadataSFInt32 {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4757,7 +4758,7 @@ struct X3D_MetadataSFMatrix3d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4777,7 +4778,7 @@ struct X3D_MetadataSFMatrix3f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4797,7 +4798,7 @@ struct X3D_MetadataSFMatrix4d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4817,7 +4818,7 @@ struct X3D_MetadataSFMatrix4f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4837,7 +4838,7 @@ struct X3D_MetadataSFNode {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4857,7 +4858,7 @@ struct X3D_MetadataSFRotation {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4877,7 +4878,7 @@ struct X3D_MetadataSFString {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4897,7 +4898,7 @@ struct X3D_MetadataSFTime {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4917,7 +4918,7 @@ struct X3D_MetadataSFVec2d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4937,7 +4938,7 @@ struct X3D_MetadataSFVec2f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4957,7 +4958,7 @@ struct X3D_MetadataSFVec3d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4977,7 +4978,7 @@ struct X3D_MetadataSFVec3f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -4997,7 +4998,7 @@ struct X3D_MetadataSFVec4d {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5017,7 +5018,7 @@ struct X3D_MetadataSFVec4f {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5037,7 +5038,7 @@ struct X3D_MetadataSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5057,7 +5058,7 @@ struct X3D_MetadataString {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5077,7 +5078,7 @@ struct X3D_MovieTexture {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5111,7 +5112,7 @@ struct X3D_MultiTexture {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5135,7 +5136,7 @@ struct X3D_MultiTextureCoordinate {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5153,7 +5154,7 @@ struct X3D_MultiTextureTransform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5171,7 +5172,7 @@ struct X3D_NavigationInfo {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5199,7 +5200,7 @@ struct X3D_Normal {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5217,7 +5218,7 @@ struct X3D_NormalInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5238,7 +5239,7 @@ struct X3D_NurbsCurve {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5260,7 +5261,7 @@ struct X3D_NurbsCurve2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5282,7 +5283,7 @@ struct X3D_NurbsGroup {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5305,7 +5306,7 @@ struct X3D_NurbsPositionInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5329,7 +5330,7 @@ struct X3D_NurbsSurface {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5354,7 +5355,7 @@ struct X3D_NurbsTextureSurface {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5371,7 +5372,7 @@ struct X3D_NurbsTrimmedSurface {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5388,7 +5389,7 @@ struct X3D_OSC_Sensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5427,7 +5428,7 @@ struct X3D_OrientationInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5448,7 +5449,7 @@ struct X3D_OrthoViewpoint {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5475,7 +5476,7 @@ struct X3D_PackagedShader {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5498,7 +5499,7 @@ struct X3D_PickableGroup {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5524,7 +5525,7 @@ struct X3D_PixelTexture {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5547,7 +5548,7 @@ struct X3D_PlaneSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5578,7 +5579,7 @@ struct X3D_PointLight {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5603,7 +5604,7 @@ struct X3D_PointPickSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5637,7 +5638,7 @@ struct X3D_PointSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5658,7 +5659,7 @@ struct X3D_Polyline2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5676,7 +5677,7 @@ struct X3D_Polypoint2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5694,7 +5695,7 @@ struct X3D_PositionInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5715,7 +5716,7 @@ struct X3D_PositionInterpolator2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5736,7 +5737,7 @@ struct X3D_ProgramShader {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5760,7 +5761,7 @@ struct X3D_ProximitySensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5790,7 +5791,7 @@ struct X3D_ReceiverPdu {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5835,7 +5836,7 @@ struct X3D_Rectangle2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5856,7 +5857,7 @@ struct X3D_ScalarInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5877,7 +5878,7 @@ struct X3D_Script {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5899,7 +5900,7 @@ struct X3D_ShaderPart {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5919,7 +5920,7 @@ struct X3D_ShaderProgram {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5940,7 +5941,7 @@ struct X3D_Shape {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -5965,7 +5966,7 @@ struct X3D_SignalPdu {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6010,7 +6011,7 @@ struct X3D_Sound {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6037,7 +6038,7 @@ struct X3D_Sphere {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6059,7 +6060,7 @@ struct X3D_SphereSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6090,7 +6091,7 @@ struct X3D_SplinePositionInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6114,7 +6115,7 @@ struct X3D_SplinePositionInterpolator2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6138,7 +6139,7 @@ struct X3D_SplineScalarInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6162,7 +6163,7 @@ struct X3D_SpotLight {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6190,7 +6191,7 @@ struct X3D_SquadOrientationInterpolator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6212,7 +6213,7 @@ struct X3D_StaticGroup {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6235,7 +6236,7 @@ struct X3D_StringSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6259,7 +6260,7 @@ struct X3D_Switch {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6284,7 +6285,7 @@ struct X3D_Text {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6310,7 +6311,7 @@ struct X3D_TextureBackground {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6346,7 +6347,7 @@ struct X3D_TextureCoordinate {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6364,12 +6365,11 @@ struct X3D_TextureCoordinateGenerator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
-	int __compiledmode;
 	struct X3D_Node *metadata;
 	struct Uni_String *mode;
 	struct Multi_Float parameter;
@@ -6384,7 +6384,7 @@ struct X3D_TextureProperties {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6412,7 +6412,7 @@ struct X3D_TextureTransform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6433,7 +6433,7 @@ struct X3D_TimeSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6466,7 +6466,7 @@ struct X3D_TimeTrigger {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6485,7 +6485,7 @@ struct X3D_TouchSensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6514,7 +6514,7 @@ struct X3D_Transform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6548,7 +6548,7 @@ struct X3D_TransmitterPdu {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6609,7 +6609,7 @@ struct X3D_TriangleFanSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6638,7 +6638,7 @@ struct X3D_TriangleSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6666,7 +6666,7 @@ struct X3D_TriangleSet2D {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6686,7 +6686,7 @@ struct X3D_TriangleStripSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6715,7 +6715,7 @@ struct X3D_TwoSidedMaterial {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6747,7 +6747,7 @@ struct X3D_VRML1_AsciiText {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6768,7 +6768,7 @@ struct X3D_VRML1_Cone {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6788,7 +6788,7 @@ struct X3D_VRML1_Coordinate3 {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6805,7 +6805,7 @@ struct X3D_VRML1_Cube {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6825,7 +6825,7 @@ struct X3D_VRML1_Cylinder {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6845,7 +6845,7 @@ struct X3D_VRML1_DirectionalLight {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6865,7 +6865,7 @@ struct X3D_VRML1_FontStyle {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6884,7 +6884,7 @@ struct X3D_VRML1_IndexedFaceSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6914,7 +6914,7 @@ struct X3D_VRML1_IndexedLineSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6935,7 +6935,7 @@ struct X3D_VRML1_Info {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6952,7 +6952,7 @@ struct X3D_VRML1_LOD {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6970,7 +6970,7 @@ struct X3D_VRML1_Material {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -6993,7 +6993,7 @@ struct X3D_VRML1_MaterialBinding {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7012,7 +7012,7 @@ struct X3D_VRML1_MatrixTransform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7029,7 +7029,7 @@ struct X3D_VRML1_Normal {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7046,7 +7046,7 @@ struct X3D_VRML1_NormalBinding {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7065,7 +7065,7 @@ struct X3D_VRML1_OrthographicCamera {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7085,7 +7085,7 @@ struct X3D_VRML1_PerspectiveCamera {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7105,7 +7105,7 @@ struct X3D_VRML1_PointLight {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7125,7 +7125,7 @@ struct X3D_VRML1_PointSet {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7143,7 +7143,7 @@ struct X3D_VRML1_Rotation {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7160,7 +7160,7 @@ struct X3D_VRML1_Scale {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7177,7 +7177,7 @@ struct X3D_VRML1_Separator {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7196,7 +7196,7 @@ struct X3D_VRML1_ShapeHints {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7220,7 +7220,7 @@ struct X3D_VRML1_Sphere {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7238,7 +7238,7 @@ struct X3D_VRML1_SpotLight {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7261,7 +7261,7 @@ struct X3D_VRML1_Switch {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7278,7 +7278,7 @@ struct X3D_VRML1_Texture2 {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7303,7 +7303,7 @@ struct X3D_VRML1_Texture2Transform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7323,7 +7323,7 @@ struct X3D_VRML1_TextureCoordinate2 {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7340,7 +7340,7 @@ struct X3D_VRML1_Transform {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7361,7 +7361,7 @@ struct X3D_VRML1_Translation {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7378,7 +7378,7 @@ struct X3D_VRML1_WWWAnchor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7397,7 +7397,7 @@ struct X3D_VRML1_WWWInline {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7416,7 +7416,7 @@ struct X3D_Viewpoint {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7443,7 +7443,7 @@ struct X3D_ViewpointGroup {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7467,7 +7467,7 @@ struct X3D_VisibilitySensor {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
@@ -7495,7 +7495,7 @@ struct X3D_WorldInfo {
        struct Vector* _parentVector; 
        double _dist; /*sorting for blending */ 
        float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
-       void *_intern; 
+       struct X3D_PolyRep *_intern; 
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */

@@ -17,6 +17,10 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.43  2012/09/07 19:30:52  crc_canada
+# TextureCoordinateGenerator - works for type "SPHERE" now; other types should
+# be soon and easy.
+#
 # Revision 1.42  2012/07/10 18:40:26  crc_canada
 # changing TextureCoordinate handling for shaders; remove "precision" for non-GLES shaders.
 #
@@ -614,7 +618,6 @@
 	PointSet 
 	GeoElevationGrid 
 	LoadSensor 
-	TextureCoordinateGenerator 
 	Text 
 	LineProperties 
 	FillProperties 
@@ -1406,6 +1409,21 @@
 	ADD
 	OFF
 /;
+
+%TextureCoordGenModeC = map {($_=>1)} qw/
+	SPHERE-REFLECT-LOCAL
+	SPHERE-REFLECT
+	SPHERE-LOCAL
+	SPHERE
+	CAMERASPACENORMAL
+	CAMERASPACEPOSITION
+	CAMERASPACEREFLECTION
+	COORD-EYE
+	COORD
+	NOISE-EYE
+	NOISE
+/;
+
 
 #
 # X3DSPECIAL Keywords

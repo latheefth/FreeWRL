@@ -923,7 +923,6 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		mode => [SFString,"SPHERE",inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		parameter => [MFFloat, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__compiledmode => [SFInt32,0,initializeOnly, 0],
 	},"X3DTextureCoordinateNode"),
 
 	TextureProperties => new VRML::NodeType("TextureProperties", {

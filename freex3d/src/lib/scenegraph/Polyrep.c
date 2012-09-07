@@ -811,8 +811,7 @@ void render_polyrep(void *node) {
 		printf ("render_polyrep, not streamed, returning\n");
 		return;
 	}
-
-
+    
 	/* save these values for streaming the texture coordinates later */
 	tg->Textures.global_tcin = pr->tcindex;
 	tg->Textures.global_tcin_count = pr->ntri*3;

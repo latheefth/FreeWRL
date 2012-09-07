@@ -247,21 +247,26 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 		} else { normals = nc->vector.p; nnormals = nc->vector.n; }
 	}
 
-	if (texCoordNode) {
-        struct X3D_TextureCoordinate *tc = (struct X3D_TextureCoordinate *) texCoordNode;
-		if ((tc->_nodeType != NODE_TextureCoordinate) && 
-			(tc->_nodeType != NODE_MultiTextureCoordinate) &&
-			(tc->_nodeType != NODE_TextureCoordinateGenerator )) {
-			ConsoleMessage ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
+
+	if (r->tcoordtype) {
+		if ((r->tcoordtype != NODE_TextureCoordinate) && 
+			(r->tcoordtype != NODE_MultiTextureCoordinate) &&
+            (r->tcoordtype != NODE_TextureCoordinateGenerator )) {
+			ConsoleMessage ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, r->tcoordtype);
 			r->ntri=0; 
 			return;
         }
 
-        if (tc->_nodeType == NODE_TextureCoordinate) {
+        if (r->tcoordtype == NODE_TextureCoordinate) {
             //ConsoleMessage ("have textureCoord, point.n = %d",tc->point.n);
-            textureCoordPoint = &(tc->point);
+            textureCoordPoint = &(texCoordNode->point);
         }
      
+        // TextureCoordinateGenerator, make the r->texgentype match the TCGT_ definition of the field 
+        if (r->tcoordtype == NODE_TextureCoordinateGenerator) {
+            r->texgentype = findFieldInARR(((struct X3D_TextureCoordinateGenerator *)texCoordNode)->mode->strptr, TEXTURECOORDINATEGENERATOR, TEXTURECOORDINATEGENERATOR_COUNT);    
+            //ConsoleMessage("have texgen, type %d",r->texgentype);
+        }
      
      
 	}

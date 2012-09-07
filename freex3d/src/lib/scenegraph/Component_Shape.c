@@ -252,7 +252,7 @@ void compile_Material (struct X3D_Material *node) {
 
 /* if this is a LineSet, PointSet, etc... */
 static bool getIfLinePoints(struct X3D_Node *realNode) {
-	if (realNode == NULL) return NO_APPEARANCE_SHADER;
+	if (realNode == NULL) return false;
 	switch (realNode->_nodeType) {
 		case NODE_IndexedLineSet:
 		case NODE_LineSet:
@@ -265,12 +265,13 @@ static bool getIfLinePoints(struct X3D_Node *realNode) {
 	return false; // do not add any capabilites here.
 }
 
-static bool getShapeTextureCoordGen(struct X3D_Node *realNode) {
+/* is the texCoord field a TextureCoordinateGenerator or not? */
+static int getShapeTextureCoordGen(struct X3D_Node *realNode) {
     struct X3D_Node *tc = NULL;
     int *fieldOffsetsPtr = NULL;
     
-    ConsoleMessage ("getShapeTextureCoordGen, node type %s\n",stringNodeType(realNode->_nodeType));
-    if (realNode == NULL) return NO_APPEARANCE_SHADER;
+    //ConsoleMessage ("getShapeTextureCoordGen, node type %s\n",stringNodeType(realNode->_nodeType));
+    if (realNode == NULL) return 0;
     
     fieldOffsetsPtr = (int *)NODE_OFFSETS[realNode->_nodeType];
     /*go thru all field*/
@@ -281,14 +282,14 @@ static bool getShapeTextureCoordGen(struct X3D_Node *realNode) {
             //ConsoleMessage ("tc is %p\n",tc);
             //ConsoleMessage ("tc is of type %s\n",stringNodeType(tc->_nodeType));
             if (tc != NULL) {
-                if (tc->_nodeType == NODE_TextureCoordinateGenerator) return true;
+                if (tc->_nodeType == NODE_TextureCoordinateGenerator) return HAVE_TEXTURECOORDINATEGENERATOR;
             }
         }
         
         fieldOffsetsPtr += 5;
     }
 
-    return false;
+    return 0;
 }
 
 
@@ -545,6 +546,14 @@ void child_Shape (struct X3D_Shape *node) {
 		#endif
 
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
+        
+        //see if we have to set up a TextureCoordinateGenerator type here
+        if (node->geometry->_intern) {
+            if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
+                getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
+                //ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
+            }
+        }
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION
@@ -591,7 +600,7 @@ void compile_Shape (struct X3D_Shape *node) {
 	int whichAppearanceShader = 0;
 	int whichShapeColorShader = 0;
 	bool isUnlitGeometry = false;
-    bool hasTextureCoordinateGenerator = false;
+    int hasTextureCoordinateGenerator = 0;
     int whichUnlitGeometry = 0;
     struct X3D_Node *tmpN = NULL;
     
@@ -624,7 +633,8 @@ void compile_Shape (struct X3D_Shape *node) {
     }
     
     /* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
-    node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | whichUnlitGeometry);
+    node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | 
+                            hasTextureCoordinateGenerator | whichUnlitGeometry);
     
     
 	if (node->_shaderTableEntry == NOTHING) 

@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.68  2012/09/07 19:30:52  crc_canada
+# TextureCoordinateGenerator - works for type "SPHERE" now; other types should
+# be soon and easy.
+#
 # Revision 1.67  2012/07/10 13:14:57  crc_canada
 # remove alloc_tri field from struct X3D_PolyRep
 #
@@ -520,7 +524,7 @@ my $interalNodeCommonFields =
                "       struct Vector* _parentVector; \n"  .
 	       "       double _dist; /*sorting for blending */ \n".
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
-               "       void *_intern; \n"              	.
+               "       struct X3D_PolyRep *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
                "       int referenceCount; /* if this reaches zero, nobody wants it anymore */ \n".
 	       "       int _defaultContainer; /* holds the container */\n".
@@ -1080,7 +1084,7 @@ sub gen {
 
 	push @genFuncs1, "\n/* Table of MULTITEXTURESOURCE keywords */\n       const char *MULTITEXTURESOURCE[] = {\n";
 
-        my @sf = keys %MultiTextureModeC;
+        my @sf = keys %MultiTextureSourceC;
 	$keywordIntegerType = 0;
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -1092,6 +1096,31 @@ sub gen {
 	push @str, "\n";
 	push @genFuncs1, "};\nconst int MULTITEXTURESOURCE_COUNT = ARR_SIZE(MULTITEXTURESOURCE);\n\n";
 
+
+	#####################
+	# process TextureCoordinateGenerator keywords 
+	push @str, "\n/* Table of built-in TEXTURECOORDINATEGENERATOR keywords */\nextern const char *TEXTURECOORDINATEGENERATOR[];\n";
+	push @str, "extern const int TEXTURECOORDINATEGENERATOR_COUNT;\n";
+
+	push @genFuncs1, "\n/* Table of TEXTURECOORDINATEGENERATOR keywords */\n       const char *TEXTURECOORDINATEGENERATOR[] = {\n";
+
+        my @sf = keys %TextureCoordGenModeC;
+	$keywordIntegerType = 0;
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		# C defines can not have minus signs in it, make it an underscore
+		my $nous = $_;
+		$nous=~ s/-/_/g;
+		push @str, "#define TCGT_".$nous."	$keywordIntegerType\n";
+		$keywordIntegerType ++;
+		push @genFuncs1, "	\"$_\",\n";
+	}
+	push @str, "\n";
+	push @genFuncs1, "};\nconst int TEXTURECOORDINATEGENERATOR_COUNT = ARR_SIZE(TEXTURECOORDINATEGENERATOR);\n\n";
+
+
+	####################
 	# make a function to print Keyword name from an integer type.
 	push @genFuncs2, "/* Return a pointer to a string representation of the MULTITEXTURESOURCE keyword type */\n". 
 		"const char *stringMULTITEXTURESOURCEType (int st) {\n".
@@ -2054,6 +2083,7 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	float *normal; /* triples or null */
         float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
+	int texgentype; /* if we do have a TextureCoordinateGenerator, what "TCGT_XXX" type is it? */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */
 	GLfloat maxVals[3];		/* for collision and default texture coord generation */
 	GLfloat transparency;		/* what the transparency value was during compile, put in color array if RGBA colors */

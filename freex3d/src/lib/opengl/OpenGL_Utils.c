@@ -432,6 +432,9 @@ static const GLchar *vertSimColDec = "\
 static const GLchar *vertTexMatrixDec = "\
     uniform mat4 fw_TextureMatrix;\n";
 
+static const GLchar *vertTexCoordGenDec ="\
+uniform int fw_textureCoordGenType;\n";
+
 static const GLchar *vertTexCoordDec = "\
     attribute vec2 fw_MultiTexCoord0;\n";
 
@@ -478,6 +481,19 @@ static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
 static const GLchar *vertSingTexCalc = "v_texC = vec2(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).st;\n";
+static const GLchar *semCalc = " \
+vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); \
+vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
+vec3 r = reflect (u,n); \
+if (fw_textureCoordGenType==3) { \
+    float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \
+    v_texC = vec2(r.x/m+0.5,r.y/m+0.5); \
+}else if (fw_textureCoordGenType==0) { \
+float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \
+v_texC = vec2(r.x/m+0.5,r.y/m+0.5); \
+}\
+";
+
 
 static const GLchar *vertHatchPosCalc = "hatchPosition = fw_Vertex.xy;\n";
 
@@ -965,6 +981,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("want FILL_PROPERTIES_SHADER");
     if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
     if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
+    if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
     #endif //VERBOSE
  
 	/* initialize */
@@ -1071,6 +1088,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
         /* texturing - MULTI_TEX builds on ONE_TEX */
         if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
+            DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ||
             DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
             vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
             vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
@@ -1080,8 +1098,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
           fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord; 
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentTextureAssign] = fragSingTexAss;
-            
-            
         }
 
         /* MULTI_TEX builds on ONE_TEX */
@@ -1101,11 +1117,17 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentMultiTexModel] = fragMulTexFunc;
             fragmentSource[fragmentTextureAssign] = fragMulTexCalc;
-
-
-
-            
         }
+    
+    /* TextureCoordinateGenerator - do calcs in Vertex, fragment like one texture */
+    if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) {
+        /* the vertex single texture calculation is different from normal single texture */
+        /* pass in the type of generator, and do the calculations */
+        vertexSource[vertexTextureMatrixDeclare] = vertTexCoordGenDec;
+        vertexSource[vertexSingleTextureCalculation] = semCalc;
+        
+        
+    }
         
         if DESIRE(whichOne,FILL_PROPERTIES_SHADER) {
             /* just add on top of the other shaders the fill properties "stuff" */
@@ -1118,7 +1140,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }    
-
 
 	#ifdef VERBOSE
 	/* print out the vertex source here */
@@ -1133,7 +1154,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 			ConsoleMessage("Fragment Source:");
             i=0;
 			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) {
-				ConsoleMessage("%d",i++);
+				//ConsoleMessage("%d",i++);
                 ConsoleMessage(fragmentSource[x2]); 
             }
 		}
@@ -1314,6 +1335,9 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->filledBool = GET_UNIFORM(myProg,"filled");
 	me->hatchedBool = GET_UNIFORM(myProg,"hatched");
 	me->algorithm = GET_UNIFORM(myProg,"algorithm");
+    
+    /* TextureCoordinateGenerator */
+    me->texCoordGenType = GET_UNIFORM(myProg,"fw_textureCoordGenType");
 
 
 	#ifdef VERBOSE
@@ -3754,6 +3778,9 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
     SEND_INT(algorithm,myap->algorithm);
     SEND_VEC3(hatchColour,myap->hatchColour);
     SEND_VEC2(hatchPercent,myap->hatchPercent);
+
+    //TextureCoordinateGenerator
+    SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
 }
 
 static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
