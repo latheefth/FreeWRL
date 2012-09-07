@@ -48,12 +48,6 @@ $Id$
 #include "LinearAlgebra.h"
 #include "Tess.h"
 
-/* reset colors to defaults, if we have to */
-static GLfloat diffuseColor[] = {0.8f, 0.8f, 0.8f, 1.0f};
-static GLfloat ambientIntensity[] = {0.16f, 0.16f, 0.16f, 1.0f}; /*VRML diff*amb defaults */
-static GLfloat specularColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
-static GLfloat emissiveColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
-
 
 /* Polyrep rendering, node has a color field, which is an RGB field (not RGBA) and transparency is changing */
 static void recalculateColorField(struct X3D_PolyRep *r) {
@@ -792,7 +786,7 @@ void render_polyrep(void *node) {
 
 	renderedNodePtr = X3D_NODE(node);
 	virt = virtTable[renderedNodePtr->_nodeType];
-	pr = (struct X3D_PolyRep *)renderedNodePtr->_intern;
+	pr = renderedNodePtr->_intern;
 
 	#ifdef TEXVERBOSE
 	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(renderedNodePtr->_nodeType)); 
@@ -982,7 +976,7 @@ void render_ray_polyrep(void *node) {
 		return;
 	}
 
-	polyRep = (struct X3D_PolyRep *)genericNodePtr->_intern;
+	polyRep = genericNodePtr->_intern;
 
 	/*	
 	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,stringNodeType(genericNodePtr->_nodeType),
@@ -1101,7 +1095,7 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 
 		node->_intern = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
 
-		polyrep = (struct X3D_PolyRep *)node->_intern;
+		polyrep = node->_intern;
 		polyrep->ntri = -1;
 		polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
 		polyrep->norindex = 0; polyrep->normal = 0; polyrep->GeneratedTexCoords = 0;
@@ -1127,7 +1121,7 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 
 	}
 
-	polyrep = (struct X3D_PolyRep *)node->_intern;
+	polyrep = node->_intern;
 
 	/* Android, for instance, needs the VBO_buffers re-created. Check to see if this is the case here */
 	if (polyrep->VBO_buffers[VERTEX_VBO] == 0) {
@@ -1136,8 +1130,6 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 		glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
 	} 
 
-
-	polyrep = (struct X3D_PolyRep *)node->_intern;
 	/* if multithreading, tell the rendering loop that we are regenning this one */
 	/* if singlethreading, this'll be set to TRUE before it is tested	     */
 	polyrep->streamed = FALSE;

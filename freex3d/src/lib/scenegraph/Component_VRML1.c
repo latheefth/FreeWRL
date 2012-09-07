@@ -846,7 +846,7 @@ void render_VRML1_IndexedFaceSet (struct X3D_VRML1_IndexedFaceSet *node) {
 	/* this is like the COMPILE_POLY_IF_REQUIRED(a,b,c,d) macro, with additional steps */
 	ppComponent_VRML1 p = (ppComponent_VRML1)gglobal()->Component_VRML1.prv;
 
-	if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { 
+	if(!node->_intern || node->_change != node->_intern->irep_change) { 
 		if (p->cSLD != NULL)
 			copyPointersToVRML1IndexedFaceSet(node);
 		compileNode ((void *)compile_polyrep, node, 

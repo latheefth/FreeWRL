@@ -159,7 +159,7 @@ extern double geoHeightinZAxis;
 
 #define NODE_CHANGE_INIT_VAL 153	/* node->_change is set to this when created */
 #define COMPILE_POLY_IF_REQUIRED(a,b,c,d) \
-                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->irep_change) { \
+                if(!node->_intern || node->_change != (node->_intern)->irep_change) { \
                         compileNode ((void *)compile_polyrep, node, a,b,c,d); \
 		} \
 		if (!node->_intern) return;

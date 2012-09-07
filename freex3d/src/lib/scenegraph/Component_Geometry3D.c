@@ -929,17 +929,17 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 	       int change = 0;
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
+		if (node->_intern == NULL) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
+		if (node->_intern->ntri == 0) return;
 
 	       /*save changed state.*/
-	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->irep_change;
+	       if(node->_intern) change = node->_intern->irep_change;
 		COMPILE_POLY_IF_REQUIRED (NULL, NULL, NULL, NULL)
 
 
-	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->irep_change = change;
+	       if(node->_intern) node->_intern->irep_change = change;
 	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
@@ -947,7 +947,7 @@ void collide_genericfaceset (struct X3D_IndexedFaceSet *node ){
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 
-	       pr = *((struct X3D_PolyRep*)node->_intern);
+	       pr = *(node->_intern);
 
 
 		/* IndexedFaceSets are "different", in that the user specifies points, among
@@ -2005,15 +2005,15 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 	       int change = 0;
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
+		if (node->_intern == NULL) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
+		if (node->_intern->ntri == 0) return;
 
 	       /*save changed state.*/
-	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->irep_change;
+	       if(node->_intern) change = node->_intern->irep_change;
                 COMPILE_POLY_IF_REQUIRED(NULL, NULL, NULL, NULL)
- 	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->irep_change = change;
+ 	       if(node->_intern) node->_intern->irep_change = change;
 	       /*restore changes state, invalidates compile_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
@@ -2021,7 +2021,7 @@ void collide_Extrusion (struct X3D_Extrusion *node) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 /*	       printf("_PolyRep = %d\n",node->_intern);*/
-	       pr = *((struct X3D_PolyRep*)node->_intern);
+	       pr = *(node->_intern);
 	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
    			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 

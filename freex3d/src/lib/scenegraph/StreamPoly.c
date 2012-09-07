@@ -173,7 +173,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	
 	/* get internal structures */
 	node = X3D_NODE(innode);
-	r = (struct X3D_PolyRep *)node->_intern;
+	r = node->_intern;
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("start spv for %u extents %lf %lf, %lf %lf, %lf %lf\n",node,

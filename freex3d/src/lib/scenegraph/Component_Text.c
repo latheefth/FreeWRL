@@ -1205,24 +1205,24 @@ void collide_Text (struct X3D_Text *node)
     int change = 0;
 
     /* JAS - first pass, intern is probably zero */
-    if (((struct X3D_PolyRep *)node->_intern) == 0) return;
+    if (node->_intern == NULL) return;
 
     /* JAS - no triangles in this text structure */
-    if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
+    if (node->_intern->ntri == 0) return;
 
     /*save changed state.*/
     if (node->_intern)
-        change = ((struct X3D_PolyRep *)node->_intern)->irep_change;
+        change = node->_intern->irep_change;
 
     COMPILE_POLY_IF_REQUIRED(NULL, NULL, NULL, NULL);
 
     if (node->_intern)
-        ((struct X3D_PolyRep *)node->_intern)->irep_change = change;
+        node->_intern->irep_change = change;
 
     /* restore changes state, invalidates compile_polyrep work done, so it can be done
        correclty in the RENDER pass */
 
-    pr = *((struct X3D_PolyRep*)node->_intern);
+    pr = *(node->_intern);
 
     /* do the triangle test again, now that we may have compiled the node. */
     if (pr.ntri == 0) {
@@ -1254,7 +1254,7 @@ void collide_Text (struct X3D_Text *node)
 
 void make_Text (struct X3D_Text *node) 
 {
-    struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)node->_intern;
+    struct X3D_PolyRep *rep_ = node->_intern;
     double spacing = 1.0;
     double size = 1.0;
     unsigned int fsparams = 0;

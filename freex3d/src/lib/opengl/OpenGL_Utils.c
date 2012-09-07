@@ -2325,7 +2325,7 @@ void fwl_Android_reloadAssets(void) {
 					break;
 				}
 				default: {
-					struct X3D_PolyRep *pr = (struct X3D_PolyRep *)node->_intern;
+					struct X3D_PolyRep *pr = node->_intern;
 					int i;
 	
 					//ConsoleMessage ("node Type %s, intern %p",stringNodeType(node->_nodeType),pr);

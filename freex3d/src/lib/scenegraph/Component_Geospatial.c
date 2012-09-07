@@ -1408,7 +1408,7 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 		*/
 	}
 
-	rep = (struct X3D_PolyRep *)node->_intern;
+	rep = node->_intern;
 
 	/* work out how many triangles/quads we will have */
 	ntri = (nx && nz ? 2 * (nx-1) * (nz-1) : 0);
