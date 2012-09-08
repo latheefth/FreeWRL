@@ -84,9 +84,10 @@ static resource_item_t *newResourceItem() {
  */
 resource_item_t* resource_create_single(const char *request)
 {
+	resource_item_t *item;
 	DEBUG_RES("creating resource: SINGLE: %s\n", request);
 
-	resource_item_t *item = newResourceItem();
+	item = newResourceItem();
 	item->request = STRDUP(request);
 
 	/* Lock access to the resource tree */
@@ -115,9 +116,10 @@ resource_item_t* resource_create_single(const char *request)
  */
 resource_item_t* resource_create_multi(s_Multi_String_t *request)
 {
-	DEBUG_RES("creating resource: MULTI: %d, %s ...\n", request->n, request->p[0]->strptr);
-	resource_item_t *item = newResourceItem();
 	int i;
+	resource_item_t *item;
+	DEBUG_RES("creating resource: MULTI: %d, %s ...\n", request->n, request->p[0]->strptr);
+	item = newResourceItem();
 
 
 	item->type = rest_multi;
@@ -156,8 +158,9 @@ resource_item_t* resource_create_multi(s_Multi_String_t *request)
  */
 resource_item_t* resource_create_from_string(const char *string)
 {
+	resource_item_t *item;
 	DEBUG_RES("creating resource: STRING: %s\n", string);
-	resource_item_t *item = newResourceItem();
+	item = newResourceItem();
 
 
 	item->request = STRDUP(string);
