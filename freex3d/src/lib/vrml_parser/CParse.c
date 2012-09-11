@@ -180,7 +180,7 @@ char* parser_getNameFromNode(struct X3D_Node *node)
 	/* for (ind=0; ind < vectorSize(curNameStackTop); ind ++) {
 		printf ("DEBUG: userNodeNames index %d is %s\n",ind, vector_get (const char*, curNameStackTop,ind));
 	} */
-
+	if(globalParser->DEFedNodes == NULL) return NULL;
 	for (ind=0; ind < vectorSize(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
 		/* did we find this index? */
 		if (vector_get(struct X3D_Node*, stack_top(struct Vector*, globalParser->DEFedNodes), ind) == node) {
