@@ -1451,9 +1451,9 @@ static void setup_viewpoint() {
 extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
 void dump_scenegraph()
 {
-#ifdef FW_DEBUG
-	dump_scene(stdout, 0, (struct X3D_Node*) rootNode);
-#endif
+//#ifdef FW_DEBUG
+	dump_scene(stdout, 0, (struct X3D_Node*) rootNode());
+//#endif
 }
 
 void sendKeyToKeySensor(const char key, int upDown);
