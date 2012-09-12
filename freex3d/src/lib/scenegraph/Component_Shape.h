@@ -53,6 +53,10 @@ Proximity sensor macro.
 /* TextureCoordinateGenerator */
 #define HAVE_TEXTURECOORDINATEGENERATOR 0x00200
 
+/* CubeMapTexturing */
+#define HAVE_CUBEMAP_TEXTURE 0x00400
+
+
 /*******************************************************/
 
 

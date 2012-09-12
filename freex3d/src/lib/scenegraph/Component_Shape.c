@@ -370,6 +370,10 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 			retval |= ONE_TEX_APPEARANCE_SHADER;
 		} else if (tex->_nodeType == NODE_MultiTexture) {
             retval |= MULTI_TEX_APPEARANCE_SHADER;
+        } else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||
+                   (tex->_nodeType == NODE_ImageCubeMapTexture) || 
+                   (tex->_nodeType == NODE_GeneratedCubeMapTexture)) {
+            retval |= HAVE_CUBEMAP_TEXTURE;
         } else {
 			ConsoleMessage ("getAppearanceShader, texture field %s not supported yet\n",
 			stringNodeType(tex->_nodeType));

@@ -457,7 +457,7 @@ static const GLchar *varyingNormPos = " \
     varying vec4 Pos; \n";
 
 static const GLchar *varyingTexCoord = "\
-    varying vec2 v_texC;\n";
+    varying vec3 v_texC;\n";
 
 static const GLchar *varyingFrontColour = "\
     varying vec4    v_front_colour; \n";
@@ -480,17 +480,34 @@ static const GLchar *vertNormPosCalc = "\
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
-static const GLchar *vertSingTexCalc = "v_texC = vec2(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).st;\n";
+static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
+
+/* TextureCoordinateGenerator mapping - eventually handle the following:
+#define TCGT_NOISE      0
+#define TCGT_CAMERASPACENORMAL  1
+#define TCGT_NOISE_EYE  2
+#define TCGT_SPHERE     3
+#define TCGT_SPHERE_REFLECT_LOCAL       4
+#define TCGT_SPHERE_REFLECT     5
+#define TCGT_CAMERASPACEREFLECTION      6
+#define TCGT_SPHERE_LOCAL       7
+#define TCGT_COORD_EYE  8
+#define TCGT_COORD      9
+#define TCGT_CAMERASPACEPOSITION        10
+
+Good hints for code here: http://www.opengl.org/wiki/Mathematics_of_glTexGen
+*/
+
 static const GLchar *semCalc = " \
-vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); \
+vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); /* myEyeVertex */ \
 vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
-vec3 r = reflect (u,n); \
-if (fw_textureCoordGenType==3) { \
+vec3 r = reflect (u,n); /* myEyeNormal */ \
+if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \
-    v_texC = vec2(r.x/m+0.5,r.y/m+0.5); \
-}else if (fw_textureCoordGenType==0) { \
-float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \
-v_texC = vec2(r.x/m+0.5,r.y/m+0.5); \
+    v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \
+}else if (fw_textureCoordGenType==0) /* GL_REFLECTION_MAP used for sampling cubemaps */ { \
+	float dotResult = 2.0 * dot(u,r); \
+	v_texC = vec3(u-r)*dotResult;\
 }\
 ";
 
@@ -713,7 +730,7 @@ static const GLchar *fragFrontColAss=    " finalFrag = v_front_colour;";
 const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(Norm,Pos);";
 const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(Norm,Pos);";
 
-const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC);\n";
+const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC.st);\n";
 
 
 /* MultiTexture stuff */
@@ -883,15 +900,15 @@ return rv; \
 } \n";
 
 const static GLchar *fragMulTexCalc = "\
-if(textureCount>=1) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,v_texC);} \n\
-if(textureCount>=2) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,v_texC);} \n\
-if(textureCount>=3) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC);} \n\
+if(textureCount>=1) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,v_texC.st);} \n\
+if(textureCount>=2) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,v_texC.st);} \n\
+if(textureCount>=3) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC.st);} \n\
 /* REMOVE these as shader compile takes long \
-if(textureCount>=4) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode3,fw_Texture_unit3,v_texC);} \n\
-if(textureCount>=5) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode4,fw_Texture_unit4,v_texC);} \n\
-if(textureCount>=6) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode5,fw_Texture_unit5,v_texC);} \n\
-if(textureCount>=7) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode6,fw_Texture_unit6,v_texC);} \n\
-if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Texture_unit7,v_texC);} \n\
+if(textureCount>=4) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode3,fw_Texture_unit3,v_texC.st);} \n\
+if(textureCount>=5) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode4,fw_Texture_unit4,v_texC.st);} \n\
+if(textureCount>=6) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode5,fw_Texture_unit5,v_texC.st);} \n\
+if(textureCount>=7) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode6,fw_Texture_unit6,v_texC.st);} \n\
+if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Texture_unit7,v_texC.st);} \n\
 */ \n";
 
 
@@ -982,6 +999,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
     if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
     if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
+    if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
+
     #endif //VERBOSE
  
 	/* initialize */
