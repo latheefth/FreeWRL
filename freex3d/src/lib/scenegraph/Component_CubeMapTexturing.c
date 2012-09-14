@@ -79,12 +79,12 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 	int count;
 	struct X3D_Node *thistex = 0;
 
-        printf ("render_ComposedCubeMapTexture\n");
+        //printf ("render_ComposedCubeMapTexture\n");
 	for (count=0; count<6; count++) {
 
 		/* set up the appearanceProperties to indicate a CubeMap */
 		getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
-
+        //printf ("set cubeFace to %d in rcm\n",getAppearanceProperties()->cubeFace);
 		/* go through these, right left, top, bottom, back, front */
 		switch (count) {
 			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->top,thistex);  break;}
@@ -98,6 +98,7 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
 			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
 		}
+        //printf ("rcm, thistex %p, type %s\n",thistex,stringNodeType(thistex->_nodeType));
 		if (thistex != 0) {
 			/* we have an image specified for this face */
 			/* the X3D spec says that a X3DTextureNode has to be one of... */

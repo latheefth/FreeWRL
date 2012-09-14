@@ -477,8 +477,6 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 				case 13: pat = 0x0000; break; /* optional */
 				default: {}
 			}
-			//FW_GL_LINE_STIPPLE(factor,pat);
-			//FW_GL_ENABLE(GL_LINE_STIPPLE);
 		}
 	}
 }

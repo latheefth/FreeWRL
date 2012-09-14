@@ -71,6 +71,8 @@ NSMutableData *receivedData;
         //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/13.wrl";
         cString="/Users/johns/Desktop/testvrml.wrl";
         cString="/Users/johns/Desktop/venus.wrl";
+        cString="/Users/johns/Desktop/JAStests/composedCube.wrl";
+
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {

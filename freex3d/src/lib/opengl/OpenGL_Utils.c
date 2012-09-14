@@ -481,6 +481,8 @@ static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
 static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
+static const GLchar *vertSingTexCubeCalc = "v_texC = fw_Normal;\n";
+
 
 /* TextureCoordinateGenerator mapping - eventually handle the following:
 #define TCGT_NOISE      0
@@ -498,7 +500,7 @@ static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec
 Good hints for code here: http://www.opengl.org/wiki/Mathematics_of_glTexGen
 */
 
-static const GLchar *semCalc = " \
+static const GLchar *sphEnvMapCalc = " \
 vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); /* myEyeVertex */ \
 vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
 vec3 r = reflect (u,n); /* myEyeNormal */ \
@@ -723,6 +725,7 @@ static const GLchar *anaglyphGrayFragEnd =	"float gray = dot(finalFrag.rgb, vec3
 gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
 static const GLchar *fragEnd = "gl_FragColor = finalFrag;}";
 static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
+static const GLchar *fragTex0CubeDec = "uniform samplerCube fw_Texture_unit0; \n";
 
 static const GLchar *fragSimColAss = "finalFrag = v_front_colour;\n ";
 static const GLchar *fragNoAppAss = "finalFrag = vec4(1.0, 1.0, 1.0, 1.0);\n";
@@ -731,7 +734,7 @@ const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(Norm,Pos);";
 const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(Norm,Pos);";
 
 const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC.st);\n";
-
+const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, v_texC);\n";
 
 /* MultiTexture stuff */
 /* still to do:
@@ -1000,9 +1003,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
     if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
     if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
-
     #endif //VERBOSE
- 
+
 	/* initialize */
     
     /* Generic things first */
@@ -1108,6 +1110,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         /* texturing - MULTI_TEX builds on ONE_TEX */
         if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
             DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ||
+            DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ||
             DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
             vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
             vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
@@ -1118,6 +1121,14 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentTex0Declare] = fragTex0Dec;
             fragmentSource[fragmentTextureAssign] = fragSingTexAss;
         }
+    
+        /* Cubemaps - do not multi-texture these yet */
+    if (DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)) {
+        vertexSource[vertexSingleTextureCalculation] = vertSingTexCubeCalc;
+
+        fragmentSource[fragmentTex0Declare] = fragTex0CubeDec;
+        fragmentSource[fragmentTextureAssign] = fragSingTexCubeAss;
+    }
 
         /* MULTI_TEX builds on ONE_TEX */
         if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER) {
@@ -1143,7 +1154,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         /* the vertex single texture calculation is different from normal single texture */
         /* pass in the type of generator, and do the calculations */
         vertexSource[vertexTextureMatrixDeclare] = vertTexCoordGenDec;
-        vertexSource[vertexSingleTextureCalculation] = semCalc;
+        vertexSource[vertexSingleTextureCalculation] = sphEnvMapCalc;
         
         
     }
@@ -1159,7 +1170,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }    
-
 	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -1752,13 +1762,6 @@ bool fwl_initialize_GL()
 
 	FW_GL_ENABLE(GL_BLEND);
 	FW_GL_BLENDFUNC(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	//FW_GL_BLENDFUNC(GL_ONE, GL_ONE); wierd colours
-	//FW_GL_BLENDFUNC(GL_SRC, GL_ONE_MINUS_SRC);
-
-	//if this is enabled, VisibilitySensors must have an alpha of greater than 0.0
-	//FW_GL_ENABLE(GL_ALPHA_TEST);
-	//FW_GL_ALPHAFUNC(GL_GREATER, 0); 
-
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start b");

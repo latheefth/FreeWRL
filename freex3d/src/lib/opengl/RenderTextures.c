@@ -46,16 +46,18 @@ texture enabling - works for single texture, for multitexture.
 #include "Textures.h"
 #include "Material.h"
 
+
 #ifdef TEXVERBOSE
-#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
-	printf ("textureUnit %d texture %d at %d\n",aaa,bbb,__LINE__); \
-	glActiveTexture(GL_TEXTURE0+aaa); \
-	glBindTexture(GL_TEXTURE_2D,bbb); }
+#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
+	printf ("cubeFace %d textureUnit %d texture %d at %d\n",aaa,bbb,ccc,__LINE__); \
+    glActiveTexture(GL_TEXTURE0+bbb); \
+	if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
 #else
-#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb) { \
-	glActiveTexture(GL_TEXTURE0+aaa); \
-	glBindTexture(GL_TEXTURE_2D,bbb); }
+#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
+    glActiveTexture(GL_TEXTURE0+bbb); \
+    if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
 #endif
+
 
 
 void *RenderTextures_constructor(){
@@ -194,9 +196,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 
     s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
 
-    
 	#ifdef TEXVERBOSE
 	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",tg->RenderFuncs.textureStackTop);
+        printf ("passedInGenTex, cubeFace %d\n",getAppearanceProperties()->cubeFace);
 	#endif 
 
     /* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
@@ -211,7 +213,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
                     struct X3D_Node *tt = getThis_textureTransform();
                     //printf ("passedInGenTex, C\n");
                     if (tt!=NULL) do_textureTransform(tt,c);
-                    SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
+                    SET_TEXTURE_UNIT_AND_BIND(getAppearanceProperties()->cubeFace,c,tg->RenderFuncs.boundTextureStack[c]);
                    
                     FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);
                     sendClientStateToGPU(TRUE,GL_TEXTURE_COORD_ARRAY);
@@ -229,7 +231,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
                     //printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
                     struct X3D_Node *tt = getThis_textureTransform();
                     if (tt!=NULL) do_textureTransform(tt,c);
-                    SET_TEXTURE_UNIT_AND_BIND(c,tg->RenderFuncs.boundTextureStack[c]);
+                    SET_TEXTURE_UNIT_AND_BIND(getAppearanceProperties()->cubeFace,c,tg->RenderFuncs.boundTextureStack[c]);
                     
 					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
 						genTex->TC_type,

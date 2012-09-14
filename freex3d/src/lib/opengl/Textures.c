@@ -67,6 +67,21 @@
 # endif
 #endif
 
+#ifndef GL_EXT_texture_cube_map
+# define GL_NORMAL_MAP_EXT                   0x8511
+# define GL_REFLECTION_MAP_EXT               0x8512
+# define GL_TEXTURE_CUBE_MAP_EXT             0x8513
+# define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT  0x8515
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
+# define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
+# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
+# define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
+# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
+#endif
+
 
 static void new_bind_image(struct X3D_Node *node, struct multiTexParams *param);
 textureTableIndexStruct_s *getTableIndex(int i);
@@ -643,6 +658,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 /* load in a texture, if possible */
 void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param) 
 {
+    //printf ("loadTextureNode, node %p, params %p",node,param);
     if (NODE_NEEDS_COMPILING) {
 
 	DEBUG_TEX ("FORCE NODE RELOAD: %p %s\n", node, stringNodeType(node->_nodeType));
@@ -936,7 +952,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	/* we need to get parameters. */	
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
+        if ((getAppearanceProperties()->cubeFace==0) || (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB)) {
 		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
+        printf ("just glGend texture for block %p is %u, type %s\n",
+                me, me->OpenGLTexture,stringNodeType(me->nodeType));
+        }
+
 #ifdef TEXVERBOSE
 		printf ("just glGend texture for block %p is %u, type %s\n",
 			me, me->OpenGLTexture,stringNodeType(me->nodeType));
@@ -1090,7 +1111,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		}
 	}
 
-
+        ConsoleMessage ("move_texture_to_opengl cubeFace %x\n",getAppearanceProperties()->cubeFace);
 
 	/* is this a CubeMap? If so, lets try this... */
 
@@ -1100,20 +1121,6 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 		int cx;
 
-		#ifndef GL_EXT_texture_cube_map
-		# define GL_NORMAL_MAP_EXT                   0x8511
-		# define GL_REFLECTION_MAP_EXT               0x8512
-		# define GL_TEXTURE_CUBE_MAP_EXT             0x8513
-		# define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
-		# define GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT  0x8515
-		# define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
-		# define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
-		# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
-		# define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
-		# define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
-		# define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
-		# define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
-		#endif
 
 		#if defined (GL_BGRA)
 		iformat = GL_RGBA; format = GL_BGRA;
@@ -1121,6 +1128,8 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		iformat = GL_RGBA; format = GL_RGBA;
 		#endif
 
+
+        
 		/* first image in the ComposedCubeMap, do some setups */
 		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X) {
 			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1200,7 +1209,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 			if (compression != GL_NONE) {
 				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
-				FW_GL_HINT(GL_TEXTURE_COMPRESSION_HINT, compression);
+				glHint(GL_TEXTURE_COMPRESSION_HINT, compression);
 			}
 			x = me->x;
 			y = me->y;
@@ -1383,6 +1392,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 				}
 	
 				tg->RenderFuncs.boundTextureStack[tg->RenderFuncs.textureStackTop] = myTableIndex->OpenGLTexture;
+                //printf ("new_bind, boundTextureStack[%d] set to %d\n",tg->RenderFuncs.textureStackTop,myTableIndex->OpenGLTexture);
+                
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 			} else {
 				boundTextureStack[textureStackTop] = 

@@ -302,7 +302,6 @@ GLEWContext * glewGetContext();
 	#define LINK_STATUS GL_LINK_STATUS
 	#define COMPILE_STATUS GL_COMPILE_STATUS
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
-	#define GET_UNIFORM_BLOCK(aaa,bbb) glGetUniformBlockIndex(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
 	#define GLUNIFORM1I glUniform1i
 	#define GLUNIFORM1F glUniform1f
@@ -625,7 +624,6 @@ void resetGeometry();
 	#define LINK_STATUS GL_LINK_STATUS
 	#define COMPILE_STATUS GL_COMPILE_STATUS
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocation(aaa,bbb)
-	#define GET_UNIFORM_BLOCK(aaa,bbb) glGetUniformBlockIndex(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocation(aaa,bbb)
 	#define GLUNIFORM1I glUniform1i
 	#define GLUNIFORM1F glUniform1f
@@ -659,7 +657,6 @@ void resetGeometry();
 	#define LINK_STATUS GL_OBJECT_LINK_STATUS_ARB
 	#define COMPILE_STATUS GL_OBJECT_COMPILE_STATUS_ARB
 	#define GET_UNIFORM(aaa,bbb) glGetUniformLocationARB(aaa,bbb)
-	#define GET_UNIFORM_BLOCK(aaa,bbb) glGetUniformBlockIndex(aaa,bbb)
 	#define GET_ATTRIB(aaa,bbb) glGetAttribLocationARB(aaa,bbb)
 	#define GLUNIFORM1F glUniform1fARB
 	#define GLUNIFORM1I glUniform1iARB
@@ -727,7 +724,6 @@ void resetGeometry();
 	#define FW_GLU_TESS_VERTEX(aaa, bbb, ccc) gluTessVertex(aaa, bbb, ccc)
 	#define FW_GLU_TESS_CALLBACK(aaa, bbb, ccc) gluTessCallback(aaa,bbb,ccc);
 	#define FW_GLU_NEXT_CONTOUR(aaa, bbb) gluNextContour(aaa,bbb)
-	#define FW_GLU_SCALE_IMAGE(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii) gluScaleImage(aaa, bbb, ccc, ddd, eee, fff, ggg, hhh, iii)
 
 
 	#define FW_GL_GETDOUBLEV(aaa,bbb) fw_glGetDoublev(aaa,bbb);
@@ -761,7 +757,6 @@ void resetGeometry();
 	#define FW_GL_DISABLECLIENTSTATE(aaa) { sendClientStateToGPU(FALSE,aaa); }
 	#define FW_GL_DRAWARRAYS(xxx,yyy,zzz) { sendArraysToGPU(xxx,yyy,zzz); }
 	#define FW_GL_BINDBUFFER(xxx,yyy) {sendBindBufferToGPU(xxx,yyy,__FILE__,__LINE__); }
-	#define FW_GL_VERTEXATTRBPOINTER(a1,a2,a3,a4,a5,a6) {sendVertexAttribsToGPU(a1,a2,a3,a4,a5,a6);}
 	#define FW_GL_DRAWELEMENTS(aaa,bbb,ccc,ddd) {sendElementsToGPU(aaa,bbb,ccc,ddd); }
 
 
@@ -771,19 +766,15 @@ void resetGeometry();
 	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
 	#define FW_GL_ENABLE(aaa) glEnable(aaa)
 	#define FW_GL_DISABLE(aaa) glDisable(aaa) 
-	#define FW_GL_ALPHAFUNC(aaa,bbb) glAlphaFunc(aaa,bbb); 
         #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) glScissor(aaa,bbb,ccc,ddd); 
 	#define FW_GL_WINDOWPOS2I(aaa,bbb) glWindowPos2i(aaa,bbb);
 	#define FW_GL_FLUSH glFlush
 	#define FW_GL_RASTERPOS2I(aaa,bbb) glRasterPos2i(aaa,bbb); 
-	#define FW_GL_PIXELZOOM(aaa,bbb) glPixelZoom(aaa,bbb);
         #define FW_GL_LIGHTMODELI(aaa,bbb) glLightModeli(aaa,bbb); 
         #define FW_GL_LIGHTMODELFV(aaa,bbb) glLightModelfv(aaa,bbb); 
-	#define FW_GL_CLEAR_DEPTH(aaa) glClearDepth(aaa); 
 	#define FW_GL_BLENDFUNC(aaa,bbb) glBlendFunc(aaa,bbb);
 	#define FW_GL_LIGHTFV(aaa,bbb,ccc) fwglLightfv(aaa,bbb,ccc);
 	#define FW_GL_LIGHTF(aaa,bbb,ccc) fwglLightf(aaa,bbb,ccc);
-	#define FW_GL_HINT(aaa,bbb) glHint(aaa,bbb); 
 	#define FW_GL_CLEAR(zzz) glClear(zzz); 
 	#define FW_GL_DEPTHFUNC(zzz) glDepthFunc(zzz); 
 	#define FW_GL_SHADEMODEL(aaa) glShadeModel(aaa); 
@@ -805,13 +796,10 @@ void resetGeometry();
 
 	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 	
-	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)
 	#define FW_GL_GETSTRING(aaa) glGetString(aaa)
 	#define FW_GL_DELETETEXTURES(aaa,bbb) glDeleteTextures(aaa,bbb);
-	#define FW_GL_LOADMATRIXD(aaa) fw_glLoadMatrixd(aaa)
 	#define FW_GL_GETINTEGERV(aaa,bbb) glGetIntegerv(aaa,bbb);
 	#define FW_GL_GETFLOATV(aaa,bbb) glGetFloatv(aaa,bbb);
-	#define FW_GL_MATERIALF(aaa, bbb, ccc) glMaterialf(aaa, bbb, ccc)
 
 
 	#define FW_GL_FRONTFACE(aaa) glFrontFace(aaa);
@@ -831,7 +819,6 @@ void resetGeometry();
 	#define FW_GL_DELETE_QUERIES(aaa,bbb) glDeleteQueries(aaa,bbb)
 	
 	/*apr 6 2010 checkout win32 was missing the following macros */
-	#define FW_GL_ACCUM(aaa,bbb) glAccum(aaa,bbb)
 	#define FW_GL_DRAWBUFFER(aaa) glDrawBuffer(aaa)
 	#define FW_GL_ENDLIST() glEndList()
 	#define FW_GL_BITMAP(aaa,bbb,ccc,ddd,eee,fff,ggg) glBitmap(aaa,bbb,ccc,ddd,eee,fff,ggg)
