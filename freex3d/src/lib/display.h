@@ -144,18 +144,6 @@ GLEWContext * glewGetContext();
 	#define DOUBLE_MIN min
 #endif
 
-/* OpenGL ES 2.0 - send unlit colours to selected shader */
-#ifdef OLDCODE
-OLDCODE#ifdef GL_ES_VERSION_2_0
-OLDCODEvoid glColor3d (double r, double g, double b);
-OLDCODEvoid glColor3dv (double *cols);
-OLDCODEvoid glColor3fv (float *cols);
-OLDCODEvoid glColor4fv (float *cols);
-OLDCODEvoid glColorMaterial (GLenum face, GLenum mode);
-OLDCODEvoid glMaterialfv (GLenum face, GLenum pname, float *param);
-OLDCODEvoid glMaterialf (GLenum face, GLenum pname, float param);
-OLDCODE#endif
-#endif //OLDCODE
 
 /* face culling */
 #ifdef XXXGL_ES_VERSION_2_0
@@ -460,36 +448,6 @@ bool initialize_rdr_caps();
 void initialize_rdr_functions();
 void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps);
 
-
-/**
- * Main window parameters
- */
-//extern int win_height; /* window */
-//extern int win_width;
-//extern long int winToEmbedInto;
-//extern int fullscreen;
-//extern int view_height; /* viewport */
-//extern int view_width;
-//
-//extern int screenWidth;
-//extern int screenHeight;
-//
-//extern double screenRatio;
-//
-//extern char *window_title;
-//
-//extern int mouse_x;
-//extern int mouse_y;
-//
-//extern int show_mouse;
-//
-//extern int xPos;
-//extern int yPos;
-//
-//extern int displayDepth;
-//
-//extern int shutterGlasses; /* shutter glasses, stereo enabled ? */
-//extern int quadbuff_stereo_mode; /* quad buffer enabled ? */
 
 #ifdef TARGET_AQUA
 #ifndef IPHONE
@@ -832,10 +790,6 @@ void resetGeometry();
 	#define FW_GL_LINEWIDTH(aaa) glLineWidth(aaa); 
 	#define FW_GL_POINTSIZE(aaa) glPointSize(aaa); 
 	#define FW_GL_PIXELSTOREI(aaa,bbb) glPixelStorei(aaa,bbb);
-	#define FW_GL_CGLFLUSHDRAWABLE(aaa) CGLFlushDrawable(aaa)
-	#define FW_GL_TEXENVI(aaa,bbb,ccc) glTexEnvi(aaa,bbb,ccc)
-	#define FW_GL_TEXGENI(aaa,bbb,ccc) glTexGeni(aaa,bbb,ccc)
-	#define FW_GL_BINDTEXTURE(aaa,bbb) glBindTexture(aaa,bbb)
 
 #ifndef GL_FOG
 #define GL_FOG 0x0B60
@@ -849,7 +803,6 @@ void resetGeometry();
 	#define FW_GL_VERTEX3D(aaa, bbb, ccc) glVertex3d(aaa, bbb, ccc)
 
 
-	#define FW_GL_GET_TEX_LEVEL_PARAMETER_IV(aaa, bbb, ccc, ddd) glGetTexLevelParameteriv(aaa, bbb, ccc, ddd)
 	//#define SET_TEXTURE_UNIT(aaa) { glActiveTexture(GL_TEXTURE0+aaa); glClientActiveTexture(GL_TEXTURE0+aaa); }
 	
 	#define FW_GL_VERTEX3F(aaa, bbb, ccc) glVertex3f(aaa, bbb, ccc)

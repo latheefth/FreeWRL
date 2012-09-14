@@ -75,40 +75,6 @@ void __attribute__ ((destructor)) libFreeWRL_fini(void)
  */
  
 
-#ifdef OLDCODE
-OLDCODE #if defined (_ANDROID)
-OLDCODE 
-OLDCODE // Android library initialization - similar to iPhone but we will poke files in later
-OLDCODE 
-OLDCODE int fwl_ANDROID_initialize(void)
-OLDCODE {
-OLDCODE 
-OLDCODE ConsoleMessage ("fwl_ANDROID_initialize - calling fwl_OSX_initializeParameters");
-OLDCODE 
-OLDCODE 
-OLDCODE 	/* Initialize console (log, error, ...) */
-OLDCODE 	setbuf(stdout,0);
-OLDCODE 	setbuf(stderr,0);
-OLDCODE 	
-OLDCODE 	fwl_initParams(NULL);
-OLDCODE 	fwl_setp_width(480);
-OLDCODE 	fwl_setp_height(320);
-OLDCODE 	fwl_setp_eai(FALSE);
-OLDCODE 	fwl_setp_fullscreen(FALSE);
-OLDCODE 	//fwl_setp_collision(1);
-OLDCODE 		
-OLDCODE 	if (!fwl_initFreeWRL(NULL)) {
-OLDCODE 		ERROR_MSG("main: aborting during initialization.\n");
-OLDCODE 		exit(1);
-OLDCODE 	}
-OLDCODE 	
-OLDCODE 
-OLDCODE 	return TRUE;
-OLDCODE }
-OLDCODE #endif // _ANDROID
-#endif //OLDCODE
-
-
 #if defined (TARGET_AQUA) || defined(_ANDROID)
 
 /* put some config stuff here, as that way the Objective-C Standalone OSX front end does not

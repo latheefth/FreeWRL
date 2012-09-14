@@ -1181,7 +1181,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				printf ("mytexdata is null, texture failed, put something here\n");
 			}
 
-			FW_GL_BINDTEXTURE (GL_TEXTURE_2D, me->OpenGLTexture);
+			glBindTexture (GL_TEXTURE_2D, me->OpenGLTexture);
 			
 			/* save this to determine whether we need to do material node
 			  within appearance or not */
