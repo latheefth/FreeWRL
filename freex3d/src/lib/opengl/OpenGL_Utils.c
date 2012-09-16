@@ -352,6 +352,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     #endif //GL_ES_VERSION_2_0
 
 
+
 #ifdef VERBOSE
 #ifdef GL_ES_VERSION_2_0
 	{ /* debugging */
@@ -481,7 +482,11 @@ static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
 static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
-static const GLchar *vertSingTexCubeCalc = "v_texC = fw_Normal;\n";
+
+static const GLchar *vertSingTexCubeCalc = "\
+    vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); /* myEyeVertex */ \
+    vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
+    v_texC = reflect(u,n); /* myEyeNormal */ \n";
 
 
 /* TextureCoordinateGenerator mapping - eventually handle the following:
@@ -503,7 +508,7 @@ Good hints for code here: http://www.opengl.org/wiki/Mathematics_of_glTexGen
 static const GLchar *sphEnvMapCalc = " \
 vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); /* myEyeVertex */ \
 vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
-vec3 r = reflect (u,n); /* myEyeNormal */ \
+vec3 r = reflect(u,n); /* myEyeNormal */ \
 if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \
     v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \
@@ -1169,7 +1174,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentHatchPositionDeclare] = varyingHatchPosition;
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
-        }    
+        }  
+    
+#define VERBOSE
 	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -1188,6 +1195,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             }
 		}
 	#endif //VERBOSE
+#undef VERBOSE
 
 	return TRUE;
 }
@@ -1209,10 +1217,6 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
     
 #ifdef VERBOSE
         ConsoleMessage ("makeAndCompileShader called");
-#endif //VERBOSE
-
-#ifdef VERBOSE
-	printCompilingShader(me);
 #endif //VERBOSE
     
    	/* initialize shader sources to blank strings, later we'll fill it in */
@@ -1531,9 +1535,10 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	ttglobal tg = gglobal();
 	X3D_Viewer *viewer = Viewer();
 
+
 	#ifdef VERBOSE
 	printf ("have a bound viewpoint... lets calculate our near/far planes from it \n");
-	printf ("we are currently at %4.2f %4.2f %4.2f\n",Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z);
+	printf ("we are currently at %4.2f %4.2f %4.2f\n",Viewer()->currentPosInModel.x, Viewer()->currentPosInModel.y, Viewer()->currentPosInModel.z);
 	#endif
 
 
@@ -1555,10 +1560,7 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, MM);
 
 		#ifdef VERBOSE
-		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",
-				rootNode->EXTENT_MAX_X, rootNode->EXTENT_MIN_X,
-				rootNode->EXTENT_MAX_Y, rootNode->EXTENT_MIN_Y,
-				rootNode->EXTENT_MAX_Z, rootNode->EXTENT_MIN_Z);
+		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",rootNode()->EXTENT_MAX_X, rootNode()->EXTENT_MIN_X,rootNode()->EXTENT_MAX_Y, rootNode()->EXTENT_MIN_Y,rootNode()->EXTENT_MAX_Z, rootNode()->EXTENT_MIN_Z);
 		#endif
 		/* make up 8 vertices for our bounding box, and place them within our view */
 		{
