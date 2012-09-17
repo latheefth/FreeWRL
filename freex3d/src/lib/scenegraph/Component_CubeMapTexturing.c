@@ -113,6 +113,9 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 			} 
 		}
 	}
+    
+    /* set this back for "normal" textures. */
+     getAppearanceProperties()->cubeFace = 0;
 }
 
 /****************************************************************************
@@ -457,6 +460,8 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 			/* go through these, back, front, top, bottom, right left */
 			render_node(node->__subTextures.p[count]);
 		}
+        /* Finished rendering CubeMap, set it back for normal textures */
+        getAppearanceProperties()->cubeFace = 0; 
 	}
 }
 

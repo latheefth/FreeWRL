@@ -485,8 +485,10 @@ static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec
 
 static const GLchar *vertSingTexCubeCalc = "\
     vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); /* myEyeVertex */ \
-    vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
-    v_texC = reflect(u,n); /* myEyeNormal */ \n";
+    /* vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
+    v_texC = reflect(u,n); myEyeNormal */ \n \
+    /* v_texC = reflect(normalize(vec3(Pos)),Norm);\n */ \
+    v_texC = reflect(u,Norm);\n";
 
 
 /* TextureCoordinateGenerator mapping - eventually handle the following:
@@ -505,17 +507,22 @@ static const GLchar *vertSingTexCubeCalc = "\
 Good hints for code here: http://www.opengl.org/wiki/Mathematics_of_glTexGen
 */
 
-static const GLchar *sphEnvMapCalc = " \
-vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); /* myEyeVertex */ \
+static const GLchar *sphEnvMapCalc = " \n\
+/* sphereEnvironMapping Calculation */ \
+/* vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex));  (myEyeVertex)  \
 vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
-vec3 r = reflect(u,n); /* myEyeNormal */ \
-if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \
-    float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \
-    v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \
-}else if (fw_textureCoordGenType==0) /* GL_REFLECTION_MAP used for sampling cubemaps */ { \
-	float dotResult = 2.0 * dot(u,r); \
-	v_texC = vec3(u-r)*dotResult;\
-}\
+vec3 r = reflect(u,n);  (myEyeNormal) */ \n\
+vec3 u=normalize(vec3(Pos)); /* u is normalized position, used below more than once */ \n \
+vec3 r= reflect(u,Norm); \n\
+if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
+    float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
+    v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n \
+}else if (fw_textureCoordGenType==0) /* GL_REFLECTION_MAP used for sampling cubemaps */ {\n \
+	float dotResult = 2.0 * dot(u,r); \n\
+	v_texC = vec3(u-r)*dotResult;\n\
+} else { /* default usage - like default CubeMaps */ \n\
+    v_texC = reflect(normalize(vec3(Pos)),Norm);\n\
+}\n\
 ";
 
 
@@ -995,7 +1002,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	#endif //VERBOSE
 	#endif // GL_ES_VERSION_2_0
 
-
     #ifdef VERBOSE
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
     if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
@@ -1176,7 +1182,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }  
     
-#define VERBOSE
+
 	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -1185,17 +1191,19 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             int i;
 
 			ConsoleMessage ("Vertex source:");
-			for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
+			for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) {
+                    if (strlen(vertexSource[x1])>0)
 				ConsoleMessage(vertexSource[x1]); 
+        }
 			ConsoleMessage("Fragment Source:");
             i=0;
 			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) {
-				//ConsoleMessage("%d",i++);
+				if (strlen(fragmentSource[x2])>0)
                 ConsoleMessage(fragmentSource[x2]); 
             }
 		}
 	#endif //VERBOSE
-#undef VERBOSE
+
 
 	return TRUE;
 }

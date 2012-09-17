@@ -17,6 +17,10 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.44  2012/09/17 16:11:02  crc_canada
+# ImageCubeMap compile now working. Have not tried a DDS file yet, but the "cross" 4:3 maps appear to render
+# without errors or warnings. Hopefully the math is ok; will verify as the week progresses.
+#
 # Revision 1.43  2012/09/07 19:30:52  crc_canada
 # TextureCoordinateGenerator - works for type "SPHERE" now; other types should
 # be soon and easy.
@@ -786,7 +790,7 @@
 #
 %CompileC = map {($_=>1)} qw/
 	Shape
-	ImageCubeMap
+	ImageCubeMapTexture
 	Transform
 	Group
 	ViewpointGroup

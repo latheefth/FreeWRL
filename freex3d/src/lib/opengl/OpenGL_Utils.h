@@ -56,9 +56,10 @@ typedef enum vertexShaderResources {
     
     vertexPointSizeAssign,
 	vertexPositionCalculation,
-    vertexSingleTextureCalculation,
+
     vertexOneMaterialCalculation,
     vertexNormPosCalculation,
+        vertexSingleTextureCalculation,
     vertexADSLCalculation,
 	vertexSimpleColourCalculation,
     vertexHatchPositionCalculation,

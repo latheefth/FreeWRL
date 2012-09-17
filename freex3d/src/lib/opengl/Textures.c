@@ -953,9 +953,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	if (me->OpenGLTexture == TEXTURE_INVALID) {
 /* 		me->OpenGLTexture = MALLOC (GLuint *, sizeof (GLuint) * me->frames); */
         if ((getAppearanceProperties()->cubeFace==0) || (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB)) {
-		FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
-        printf ("just glGend texture for block %p is %u, type %s\n",
-                me, me->OpenGLTexture,stringNodeType(me->nodeType));
+                FW_GL_GENTEXTURES (1, &me->OpenGLTexture);
         }
 
 #ifdef TEXVERBOSE
@@ -1111,7 +1109,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		}
 	}
 
-        ConsoleMessage ("move_texture_to_opengl cubeFace %x\n",getAppearanceProperties()->cubeFace);
+        //ConsoleMessage ("move_texture_to_opengl cubeFace %x\n",getAppearanceProperties()->cubeFace);
 
 	/* is this a CubeMap? If so, lets try this... */
 

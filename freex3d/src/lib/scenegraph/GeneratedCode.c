@@ -2087,7 +2087,8 @@ void fin_HAnimSite(struct X3D_HAnimSite *);
 struct X3D_Virt virt_HAnimSite = { (void *)prep_HAnimSite,NULL,(void *)child_HAnimSite,(void *)fin_HAnimSite,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *);
-struct X3D_Virt virt_ImageCubeMapTexture = { NULL,(void *)render_ImageCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *);
+struct X3D_Virt virt_ImageCubeMapTexture = { NULL,(void *)render_ImageCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ImageCubeMapTexture};
 
 void render_ImageTexture(struct X3D_ImageTexture *);
 struct X3D_Virt virt_ImageTexture = { NULL,(void *)render_ImageTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
