@@ -70,8 +70,6 @@
 
 #include "../ui/common.h"
 
-
-
 void kill_rendering(void);
 
 /* Node Tracking */
@@ -484,7 +482,7 @@ static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMater
 static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
 
 static const GLchar *vertSingTexCubeCalc = "\
-    vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex)); /* myEyeVertex */ \
+    vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
     /* vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
     v_texC = reflect(u,n); myEyeNormal */ \n \
     /* v_texC = reflect(normalize(vec3(Pos)),Norm);\n */ \
@@ -521,7 +519,8 @@ if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \
 	float dotResult = 2.0 * dot(u,r); \n\
 	v_texC = vec3(u-r)*dotResult;\n\
 } else { /* default usage - like default CubeMaps */ \n\
-    v_texC = reflect(normalize(vec3(Pos)),Norm);\n\
+    vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
+    v_texC = reflect(u,Norm);\n \
 }\n\
 ";
 
@@ -623,104 +622,6 @@ for (i=0; i<8; i++) { \
 } \
 return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
 } ";
-
-#ifdef OLDCODE
-const GLchar *vertLightingEquation = "\
-vec4 p_eye;   \
-vec3 n;   \
-vec4 mat_ambient_colour;   \
-vec4 mat_diffuse_colour;   \
-const float     c_zero = 0.0;   \
-const float     c_one = 1.0;   \
-const int       indx_zero = 0;   \
-const int       indx_one = 1;   \
-\
-\
-vec4 lighting_equation (int i) {   \
-    vec4 computed_colour = vec4(c_zero, c_zero, c_zero, c_zero);   \
-    vec3 h_vec;   \
-    float ndotl, ndoth;   \
-    float att_factor;   \
-    vec3 VPpli;   \
-    \
-    att_factor = c_one;   \
-    if (lightPosition[i].w != c_zero) { \
-        float spot_factor;   \
-        vec3 att_dist;   \
-        \
-        VPpli = lightPosition[i].xyz - p_eye.xyz;   \
-        if (light_constAtten[i]> 0.0) {   \
-            att_dist.x = c_one;   \
-            att_dist.z = dot(VPpli, VPpli);  \
-            att_dist.y = sqrt(att_dist.z);    \
-            /* JAS - make the light_constAtten a vec3 - correct? */ \
-            /* att_factor = c_one / dot (att_dist, vec3(light_constAtten[i],light_constAtten[i],light_constAtten[i]));   */ \
-        }   \
-        \
-        VPpli = normalize(VPpli);   \
-        \
-        if (lightSpotCut[i] < 180.0) {   \
-            spot_factor = dot (-VPpli, lightSpotDir[i].xyz);  \
-            if (spot_factor >= cos(radians(lightSpotCut[i])))   \
-                spot_factor = pow(spot_factor, lightSpotExp[i]);   \
-            else   \
-                spot_factor = c_zero;   \
-            \
-            att_factor *= spot_factor;   \
-        }   \
-    } else {   \
-        VPpli = lightPosition[i].xyz;   \
-    }   \
-    if (att_factor > c_zero) { \
-        computed_colour += (lightAmbient[i] * mat_ambient_colour);     \
-        /* JAS - testing computed_colour += (vec4(0., 0., 0., 1.) * mat_ambient_colour); */   \
-        ndotl = max(c_zero,dot(n, VPpli));   \
-        computed_colour += (ndotl * lightDiffuse[i] * mat_diffuse_colour);    \
-        /* testing... computed_colour += (ndotl * vec4(1.,1.,1., 1.) * mat_diffuse_colour);   */ \
-        h_vec = normalize(VPpli + vec3(c_zero, c_zero, c_one));   \
-        ndoth = dot(n, h_vec);   \
-        \
-        if (ndoth > c_zero) {   \
-            computed_colour += (pow(ndoth,    \
-                                    fw_FrontMaterial.shininess) *   \
-                                fw_FrontMaterial.specular *   \
-                                lightSpecular[i]);   \
-        }   \
-        \
-        computed_colour *= att_factor;   \
-    }  \
-    \
-    return computed_colour;   \
-}   \
-\
-vec4 do_lighting() {   \
-    vec4    vtx_colour;   \
-    int i;   \
-    \
-    vtx_colour = fw_FrontMaterial.emission +   \
-    /* JAS ambient_scene_colour not set (mat_ambient_colour * ambient_scene_colour);   */ \
-    mat_ambient_colour; \
-    \
-    for (i=int(c_zero); i < 8; i++) {   \
-        if (lightState[i]==1) {   \
-            vtx_colour += lighting_equation(i);   \
-        }   \
-    }   \
-    \
-    vtx_colour.a = mat_diffuse_colour.a;   \
-    \
-    return vtx_colour;   \
-}   \n ";
-    
-static const GLchar *vertFrontMatCalc =" \
-p_eye = fw_ModelViewMatrix * fw_Vertex;   \
-n = normalize(fw_NormalMatrix * fw_Normal);   \
-mat_ambient_colour = fw_FrontMaterial.ambient;   \
-mat_diffuse_colour = fw_FrontMaterial.diffuse;   \
-\
-v_front_colour = do_lighting(); \
-\n ";
-#endif //OLDCODE
 
 
 /* FRAGMENT bits */
@@ -962,7 +863,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     } else {
         haveMediumPrecision = false; /* gouraud shading does not require mediump */
     }
-		
+	
+
 	#ifdef VERBOSE
         { /* debugging */
         GLboolean b;
@@ -1203,7 +1105,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             }
 		}
 	#endif //VERBOSE
-
+#undef VERBOSE
 
 	return TRUE;
 }
