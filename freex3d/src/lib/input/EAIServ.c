@@ -29,6 +29,10 @@ This is currently (Jun 2012) used by the EAI and the MIDI routines
 
 #include <config.h>
 #if !defined(EXCLUDE_EAI)
+	#if defined(_ANDROID)
+		#include <sys/socket.h>
+		#include <asm-generic/fcntl.h>
+	#endif
 #include <system.h>
 #include <system_net.h>
 

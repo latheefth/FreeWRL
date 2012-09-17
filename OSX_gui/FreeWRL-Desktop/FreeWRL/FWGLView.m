@@ -71,7 +71,11 @@ NSMutableData *receivedData;
         //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/13.wrl";
         cString="/Users/johns/Desktop/testvrml.wrl";
         cString="/Users/johns/Desktop/venus.wrl";
-        cString="/Users/johns/Desktop/JAStests/composedCube.wrl";
+        //cString="/Users/johns/Desktop/JAStests/composedCube.wrl";
+        //cString="/Users/john/Desktop/JAStests/CastleEngine/demo_models/cube_environment_mapping/cubemap_composed.x3dv";
+        //cString="/Users/john/Desktop/JAStests/CastleEngine/demo_models/cube_environment_mapping/cubemap_image_dds.x3dv";
+        //cString="/Users/johns/Desktop/JAStests/imageCube.wrl";
+
 
     }
     

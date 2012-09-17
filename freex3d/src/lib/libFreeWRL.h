@@ -176,6 +176,14 @@ void fwl_set_trace_threads(bool flag);
 void fwl_set_texture_size(unsigned int texture_size);
 void fwl_set_glClearColor (float red , float green , float blue , float alpha);
 void fwl_thread_dump(void);
+int fwg_get_unread_message_count(void);
+char *fwg_get_last_message(int whichOne);
+
+#if defined(_ANDROID)
+void DROIDDEBUG( const char*pFmtStr, ...);
+void PRINTF_ALL( const char*pFmtStr, ...);
+#endif
+
 
 /* ** REPLACE DJ ** */
 /* Try to replace the compile-time options in ConsoleMessage with run-time options */

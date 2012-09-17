@@ -64,6 +64,25 @@ void render_init(void);
 #define STATUS_LEN 2000
 #endif
 
+typedef struct pstatusbar{
+	int initDone;
+}* ppstatusbar;
+void *statusbar_constructor(){
+	void *v = malloc(sizeof(struct pstatusbar));
+	memset(v,0,sizeof(struct pstatusbar));
+	return v;
+}
+void statusbar_init(struct tstatusbar *t){
+	//public
+	//private
+	t->prv = statusbar_constructor();
+	{
+		ppstatusbar p = (ppstatusbar)t->prv;
+		p->initDone = FALSE;
+	}
+}
+//ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+
 /* make sure that on a re-load that we re-init */
 void kill_status (void) {
 	/* hopefully, by this time, rendering has been stopped */
@@ -123,20 +142,28 @@ void setup_projection(int pick, int x, int y)
  */
 void drawStatusBar()
 {
-#if !(defined(IPHONE) || defined(_ANDROID))
-	ttglobal tg = gglobal();
-	/* dont do this if we can not display; note that when we start, we can send along
-	   invalid data to the OpenGL drivers when doing ortho calcs */
-	if ((tg->display.screenWidth > 5) && (tg->display.screenHeight > 5)) {
-		/* update fps message (maybe extend this with other "text widgets" */
-
-		rf_xfont_set_color(xf_white);
-		rf_layer2D();
-
-		rf_printf(15, 15, buffer);
-		rf_leave_layer2D();
+    // DJ
+    if(1) {
+	if(buffer[0] != '\0') {
+		printf("%s:%d drawStatusBar NON-FUNCTIONAL %s\n",__FILE__,__LINE__,buffer);
+		buffer[0] = '\0';
 	}
+    } else {
+	#if !(defined(IPHONE) || defined(_ANDROID))
+		ttglobal tg = gglobal();
+		/* dont do this if we can not display; note that when we start, we can send along
+		   invalid data to the OpenGL drivers when doing ortho calcs */
+		if ((tg->display.screenWidth > 5) && (tg->display.screenHeight > 5)) {
+			/* update fps message (maybe extend this with other "text widgets" */
+
+			rf_xfont_set_color(xf_white);
+			rf_layer2D();
+
+			rf_printf(15, 15, buffer);
+			rf_leave_layer2D();
+		}
 #endif
+    }
 }
 
 #endif //AQUA

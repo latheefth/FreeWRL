@@ -306,12 +306,12 @@ JNIEXPORT void JNICALL Java_org_freewrl_FreeWRLLib_handleAqua(JNIEnv *env, jobje
 // how many console messages do we have?
 JNIEXPORT jint JNICALL Java_org_freewrl_FreeWRLLib_androidGetUnreadMessageCount(JNIEnv *env, jobject obj) {
 	//DROIDDEBUG("------------------GET UNREAD MESSAGE COUNT CALLED----------------------");
-	return android_get_unread_message_count();
+	return fwg_get_unread_message_count();
 }
 
 // get the console message, indicated by the parameter.
 JNIEXPORT jstring JNICALL Java_org_freewrl_FreeWRLLib_androidGetLastMessage(JNIEnv *env, jobject obj, int whichone) {
 	//DROIDDEBUG("------------------GET LAST MESSAGE CALLED----------------------");
-	return (*env)->NewStringUTF(env,android_get_last_message(whichone));
+	return (*env)->NewStringUTF(env,fwg_get_last_message(whichone));
 }
 #endif
