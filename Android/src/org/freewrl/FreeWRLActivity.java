@@ -47,6 +47,7 @@ import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import java.util.List;
 import android.content.IntentFilter;
 import android.content.Context;
@@ -102,6 +103,7 @@ public class FreeWRLActivity extends SherlockActivity implements IFolderItemList
 	// New File and Console View.
 	FolderLayout localFolders = null;
 	ConsoleLayout myConsole = null;
+	SettingsLayout mySettings = null;
                         
 	// Cannot open Folder
 	public void OnCannotFileRead(File file) {
@@ -161,6 +163,7 @@ public class FreeWRLActivity extends SherlockActivity implements IFolderItemList
 		//Log.w(TAG,"OnFileClicked, created dialog " + me);
 		viewStack.push(me);
 	}
+
 
 
 private final String[] LOGCAT_CMD = new String[] { "logcat", "" };
@@ -312,6 +315,26 @@ private void displayConsole() {
 	getWindow().addContentView(myConsole, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
 }
 
+// throw the runtime settings  on the screen - either the user wanted it, or we have an error
+private void displaySettings() {
+	Context origContext = getApplication();
+
+	// remove an older one, if it exists.
+	if (mySettings != null) mySettings.setVisibility(View.INVISIBLE);
+	mySettings = new SettingsLayout(getApplication(),null);
+
+	// JAS mySettings.setSettingsListing(FreeWRLVersion.version,FreeWRLVersion.compileDate,getLastSettingsMessages());
+
+	// set the background colour - let FreeWRL show through sometimes.
+	mySettings.setBackgroundColor(0xAF000000 );
+
+	viewStack.push(mySettings);
+	//Log.w(TAG, "displaySettings, pushing " + viewStack.peek());
+
+	// display it
+	getWindow().addContentView(mySettings, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT));
+}
+
 
 @Override
 public boolean onOptionsItemSelected(MenuItem item) {
@@ -351,7 +374,6 @@ public boolean onOptionsItemSelected(MenuItem item) {
 			break;
 		}
 
-/* not here in this version
 		case R.id.PREFERENCES: {
 			Log.w(TAG,"PREFERENCES");
 			break;
@@ -359,9 +381,9 @@ public boolean onOptionsItemSelected(MenuItem item) {
 
 		case R.id.SETTINGS: {
 			Log.w(TAG,"SETTINGS");
+			displaySettings();
 			break;
 		}
-*/
 
 		case R.id.LOG_LOOK : {
 			displayConsole();

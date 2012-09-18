@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+ 
+<TextView 
+          android:id="@+id/version" android:text="@string/runtimeSettings"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content">
+</TextView>
+
+<RadioGroup 
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:id="@+id/HeadlightButton">
+
+    <RadioButton 
+        android:id="@+id/headlightOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/on" 
+        />
+
+    <RadioButton 
+        android:id="@+id/headlightOff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/off"
+        />
+
+</RadioGroup>
+
+        <Button
+                android:id="@+id/CancelButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="bottom"
+                android:text="@string/Cancel">
+        </Button>
+
+</LinearLayout>
+

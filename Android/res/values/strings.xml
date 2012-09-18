@@ -30,12 +30,17 @@
 	<string name="menu_save">menu_save</string>
 
 
+	<!-- ActionBar -->
 	<string name="NEW_WORLD">New</string>
-	<string name="PREFERENCES">Preferences</string>
+	<string name="PREFERENCES">Prefs</string>
 	<string name="SETTINGS">Settings</string>
 	<string name="VIEWPOINT">Viewpoint</string>
 	<string name="LOG_LOOK">Log</string>
 
+	<!-- settings menu -->
+	<string name="runtimeSettings">Runtime Settings</string>
+    	<string name="on">On  </string>
+    	<string name="off">Off  </string>
 
 </resources>
 
