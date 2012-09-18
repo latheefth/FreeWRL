@@ -247,10 +247,12 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	   line which isn't dipthonged yet identical thread:
 	   set_thread2global(tg, tg->threads.mainThread ,"main thread"); 
 	*/
+#if !defined(_ANDROID)
+	/* Android does not have stdout nor stderr */
 	/* Initialize console (log, error, ...) */
 	setbuf(stdout,0);
         setbuf(stderr,0);
-
+#endif
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
