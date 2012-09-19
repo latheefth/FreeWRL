@@ -367,8 +367,12 @@ void releaseTexture(struct X3D_Node *node) {
 			tableIndex  = ((struct X3D_PixelTexture *)node)->__textureTableIndex;
 		} else if (node->_nodeType == NODE_MovieTexture) {
 			tableIndex  = ((struct X3D_MovieTexture *)node)->__textureTableIndex;
+            
+#if defined (DO_VRML1)
 		} else if (node->_nodeType == NODE_VRML1_Texture2) {
 			tableIndex  = ((struct X3D_VRML1_Texture2 *)node)->__textureTableIndex;
+#endif //DO_VRML1
+            
 		} else return;
 
 #ifdef TEXVERBOSE
@@ -443,7 +447,14 @@ void registerTexture(struct X3D_Node *tmp) {
 /* JAS - still to implement 
 		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
 */ 
-		(it->_nodeType == NODE_MovieTexture) || (it->_nodeType == NODE_VRML1_Texture2)) {
+
+		(it->_nodeType == NODE_MovieTexture) 
+        
+#if defined (DO_VRML1)
+        || (it->_nodeType == NODE_VRML1_Texture2)
+#endif //DO_VRML1
+        
+        ) {
 
 		// for the index, stored in the X3D node.
 		int textureNumber;
@@ -481,11 +492,15 @@ void registerTexture(struct X3D_Node *tmp) {
 			mt = (struct X3D_MovieTexture *) tmp;
 			mt->__textureTableIndex = textureNumber;
 			break; }
+                
+#ifdef DO_VRML1
 		case NODE_VRML1_Texture2: {
 			struct X3D_VRML1_Texture2 *v1t;
 			v1t = (struct X3D_VRML1_Texture2 *) tmp;
 			v1t->__textureTableIndex = textureNumber;
 			break; }
+#endif //DO_VRML1
+                
 /* JAS still to implement 
 		case NODE_GeneratedCubeMapTexture: {
 			struct X3D_GeneratedCubeMapTexture *v1t;
@@ -696,9 +711,11 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	    		releaseTexture(node); 
 		break;
 
+#if defined (DO_VRML1)
 		case NODE_VRML1_Texture2:
 	    		releaseTexture(node); 
 		break;
+#endif //DO_VRML1
 
 /* JAS - still to implement
 		case NODE_GeneratedCubeMapTexture:
@@ -910,7 +927,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	struct X3D_PixelTexture *pt = NULL;
 	struct X3D_MovieTexture *mt = NULL;
 	struct X3D_ImageTexture *it = NULL;
+    
+#if defined (DO_VRML1)
 	struct X3D_VRML1_Texture2* v1t = NULL;
+#endif //DO_VRML1
+    
 	struct X3D_TextureProperties *tpNode = NULL;
 	int haveValidTexturePropertiesNode;
 	GLfloat texPri;
@@ -978,10 +999,14 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	} else if (me->nodeType == NODE_ImageCubeMapTexture) {
 		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
 		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
+        
+#if defined (DO_VRML1)
 	} else if (me->nodeType == NODE_VRML1_Texture2) {
 		v1t = (struct X3D_VRML1_Texture2 *) me->scenegraphNode;
 		Src = v1t->_wrapS==VRML1MOD_REPEAT;
 		Trc = v1t->_wrapT==VRML1MOD_REPEAT;
+#endif //DO_VRML1
+        
 	}
 
 

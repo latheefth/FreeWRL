@@ -66,6 +66,26 @@ struct textureVertexInfo {
 	GLvoid *TC_pointer;	/* glTexCoordPointer - pointer to first element */
 };
 
+#if defined (DO_VRML1)
+#define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
+if (thisTextureType==NODE_ImageTexture){ \
+it = (struct X3D_ImageTexture*) node; \
+thisTexture = it->__textureTableIndex; \
+} else if (thisTextureType==NODE_PixelTexture){ \
+pt = (struct X3D_PixelTexture*) node; \
+thisTexture = pt->__textureTableIndex; \
+} else if (thisTextureType==NODE_MovieTexture){ \
+mt = (struct X3D_MovieTexture*) node; \
+thisTexture = mt->__textureTableIndex; \
+} else if (thisTextureType==NODE_VRML1_Texture2){ \
+v1t = (struct X3D_VRML1_Texture2*) node; \
+thisTexture = v1t->__textureTableIndex; \
+} else if (thisTextureType==NODE_ImageCubeMapTexture){ \
+ict = (struct X3D_ImageCubeMapTexture*) node; \
+thisTexture = ict->__textureTableIndex; \
+} else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
+
+#else //DO_VRML1
 
 #define GET_THIS_TEXTURE thisTextureType = node->_nodeType; \
                                 if (thisTextureType==NODE_ImageTexture){ \
@@ -77,13 +97,12 @@ struct textureVertexInfo {
                         } else if (thisTextureType==NODE_MovieTexture){ \
                                 mt = (struct X3D_MovieTexture*) node; \
                                 thisTexture = mt->__textureTableIndex; \
-                        } else if (thisTextureType==NODE_VRML1_Texture2){ \
-                                v1t = (struct X3D_VRML1_Texture2*) node; \
-                                thisTexture = v1t->__textureTableIndex; \
                         } else if (thisTextureType==NODE_ImageCubeMapTexture){ \
                                 ict = (struct X3D_ImageCubeMapTexture*) node; \
                                 thisTexture = ict->__textureTableIndex; \
                         } else { ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); return;}
+#endif //DO_VRML1
+
 
 /* for texIsloaded structure */
 #define TEX_NOTLOADED       0

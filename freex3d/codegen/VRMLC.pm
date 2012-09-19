@@ -8,6 +8,13 @@
 
 #
 # $Log$
+# Revision 1.69  2012/09/19 13:41:00  crc_canada
+# comment out VRML1 support, as it is not working with the shader based
+# rendering currently in use. In the C files, look for DO_VRML1, in the
+# perl generator files, look for the #OLDCODE directive, and note that
+# some strings must be put in the associated structure - comments in
+# code hopefully make it apparent.
+#
 # Revision 1.68  2012/09/07 19:30:52  crc_canada
 # TextureCoordinateGenerator - works for type "SPHERE" now; other types should
 # be soon and easy.
@@ -591,7 +598,7 @@ sub get_rendfunc {
 				("TriangleFanSet" ne ${n}) &&
 				("TriangleSet" ne ${n}) &&
 				("TriangleStripSet" ne ${n}) &&
-				("VRML1_IndexedFaceSet" ne ${n}) &&
+#OLDCODE				("VRML1_IndexedFaceSet" ne ${n}) &&
 				("GeoElevationGrid" ne ${n})) {
 					$v .= $comma."void collide_".${n}."(struct X3D_".${n}." *);\n";
 				}
@@ -606,7 +613,7 @@ sub get_rendfunc {
 				("TriangleFanSet" ne ${n}) &&
 				("TriangleSet" ne ${n}) &&
 				("TriangleStripSet" ne ${n}) &&
-				("VRML1_IndexedFaceSet" ne ${n}) &&
+#OLDCODE				("VRML1_IndexedFaceSet" ne ${n}) &&
 				("GeoElevationGrid" ne ${n})) {
 					$v .= $comma."void make_".${n}."(struct X3D_".${n}." *);\n";
 				}
@@ -623,7 +630,7 @@ sub get_rendfunc {
 				("TriangleFanSet" ne ${n}) &&
 				("TriangleSet" ne ${n}) &&
 				("TriangleStripSet" ne ${n}) &&
-				("VRML1_IndexedFaceSet" ne ${n}) &&
+#OLDCODE				("VRML1_IndexedFaceSet" ne ${n}) &&
 				("GeoElevationGrid" ne ${n})) {
 					$v .= $comma."void rendray_".${n}."(struct X3D_".${n}." *);\n";
 				}
@@ -1289,31 +1296,31 @@ sub gen {
 	push @str, "const char *stringTEXTURECOMPRESSIONKeywordType(int st);\n";
 
 
-	#####################
-	# process VRML1Modifier keywords 
-	push @str, "\n/* Table of built-in VRML1Modifier keywords */\nextern const char *VRML1Modifier[];\n";
-	push @str, "extern const int VRML1Modifier_COUNT;\n";
-
-	push @genFuncs1, "\n/* Table of VRML1Modifier keywords */\n       const char *VRML1Modifier[] = {\n";
-
-        my @sf = keys %VRML1ModifierC;
-	$keywordIntegerType = 0;
-	for (@sf) {
-		# print "node $_ is tagged as $nodeIntegerType\n";
-		# tag each node type with a integer key.
-		push @str, "#define VRML1MOD_".$_."	$keywordIntegerType\n";
-		$keywordIntegerType ++;
-		push @genFuncs1, "	\"$_\",\n";
-	}
-	push @str, "\n";
-	push @genFuncs1, "};\nconst int VRML1Modifier_COUNT = ARR_SIZE(VRML1Modifier);\n\n";
-
-	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1Modifier keyword type */\n". 
-		"const char *stringVRML1ModifierType (int st) {\n".
-		"	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return \"(VRML1 modifier invalid)\"; \n".
-		"	return VRML1Modifier[st];\n}\n\n";
-	push @str, "const char *stringVRML1ModifierType(int st);\n";
+#OLDCODE	#####################
+#OLDCODE	# process VRML1Modifier keywords 
+#OLDCODE	push @str, "\n/* Table of built-in VRML1Modifier keywords */\nextern const char *VRML1Modifier[];\n";
+#OLDCODE	push @str, "extern const int VRML1Modifier_COUNT;\n";
+#OLDCODE
+#OLDCODE	push @genFuncs1, "\n/* Table of VRML1Modifier keywords */\n       const char *VRML1Modifier[] = {\n";
+#OLDCODE
+#OLDCODE        my @sf = keys %VRML1ModifierC;
+#OLDCODE	$keywordIntegerType = 0;
+#OLDCODE	for (@sf) {
+#OLDCODE		# print "node $_ is tagged as $nodeIntegerType\n";
+#OLDCODE		# tag each node type with a integer key.
+#OLDCODE		push @str, "#define VRML1MOD_".$_."	$keywordIntegerType\n";
+#OLDCODE		$keywordIntegerType ++;
+#OLDCODE		push @genFuncs1, "	\"$_\",\n";
+#OLDCODE	}
+#OLDCODE	push @str, "\n";
+#OLDCODE	push @genFuncs1, "};\nconst int VRML1Modifier_COUNT = ARR_SIZE(VRML1Modifier);\n\n";
+#OLDCODE
+#OLDCODE	# make a function to print Keyword name from an integer type.
+#OLDCODE	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1Modifier keyword type */\n". 
+#OLDCODE		"const char *stringVRML1ModifierType (int st) {\n".
+#OLDCODE		"	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return \"(VRML1 modifier invalid)\"; \n".
+#OLDCODE		"	return VRML1Modifier[st];\n}\n\n";
+#OLDCODE	push @str, "const char *stringVRML1ModifierType(int st);\n";
 
 	#####################
 	# process GEOSPATIAL keywords 
@@ -1341,31 +1348,31 @@ sub gen {
 		"	return GEOSPATIAL[st];\n}\n\n";
 	push @str, "const char *stringGEOSPATIALType(int st);\n";
 
-	#####################
-	# process VRML1_ keywords 
-	push @str, "\n/* Table of built-in VRML1_ keywords */\nextern const char *VRML1_[];\n";
-	push @str, "extern const int VRML1__COUNT;\n";
-
-	push @genFuncs1, "\n/* Table of VRML1_ keywords */\n       const char *VRML1_[] = {\n";
-
-        my @sf = keys %VRML1_C;
-	$keywordIntegerType = 0;
-	for (@sf) {
-		# print "node $_ is tagged as $nodeIntegerType\n";
-		# tag each node type with a integer key.
-		push @str, "#define VRML1_".$_."	$keywordIntegerType\n";
-		$keywordIntegerType ++;
-		push @genFuncs1, "	\"$_\",\n";
-	}
-	push @str, "\n";
-	push @genFuncs1, "};\nconst int VRML1__COUNT = ARR_SIZE(VRML1_);\n\n";
-
-	# make a function to print Keyword name from an integer type.
-	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1_ keyword type */\n". 
-		"const char *stringVRML1_Type (int st) {\n".
-		"	if ((st < 0) || (st >= VRML1__COUNT)) return \"(VRML1 keyword invalid)\"; \n".
-		"	return VRML1_[st];\n}\n\n";
-	push @str, "const char *stringVRML1_Type(int st);\n";
+#OLDCODE	#####################
+#OLDCODE	# process VRML1_ keywords 
+#OLDCODE	push @str, "\n/* Table of built-in VRML1_ keywords */\nextern const char *VRML1_[];\n";
+#OLDCODE	push @str, "extern const int VRML1__COUNT;\n";
+#OLDCODE
+#OLDCODE	push @genFuncs1, "\n/* Table of VRML1_ keywords */\n       const char *VRML1_[] = {\n";
+#OLDCODE
+#OLDCODE        my @sf = keys %VRML1_C;
+#OLDCODE	$keywordIntegerType = 0;
+#OLDCODE	for (@sf) {
+#OLDCODE		# print "node $_ is tagged as $nodeIntegerType\n";
+#OLDCODE		# tag each node type with a integer key.
+#OLDCODE		push @str, "#define VRML1_".$_."	$keywordIntegerType\n";
+#OLDCODE		$keywordIntegerType ++;
+#OLDCODE		push @genFuncs1, "	\"$_\",\n";
+#OLDCODE	}
+#OLDCODE	push @str, "\n";
+#OLDCODE	push @genFuncs1, "};\nconst int VRML1__COUNT = ARR_SIZE(VRML1_);\n\n";
+#OLDCODE
+#OLDCODE	# make a function to print Keyword name from an integer type.
+#OLDCODE	push @genFuncs2, "/* Return a pointer to a string representation of the VRML1_ keyword type */\n". 
+#OLDCODE		"const char *stringVRML1_Type (int st) {\n".
+#OLDCODE		"	if ((st < 0) || (st >= VRML1__COUNT)) return \"(VRML1 keyword invalid)\"; \n".
+#OLDCODE		"	return VRML1_[st];\n}\n\n";
+#OLDCODE	push @str, "const char *stringVRML1_Type(int st);\n";
 
 	##############################################################
 
@@ -1517,8 +1524,8 @@ sub gen {
 	"#define X3D_SPOTLIGHT(node) ((struct X3D_SpotLight*)node)\n".
 	"#define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)\n".
 	"#define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)\n".
-	"#define VRML1_INDEXEDFACESET(node) ((struct X3D_VRML1_IndexedFaceSet*)node)\n".
-	"#define VRML1_SEPARATOR(node) ((struct X3D_VRML1_Separator*)node)\n".
+	"/* OLDCODE #define VRML1_INDEXEDFACESET(node) ((struct X3D_VRML1_IndexedFaceSet*)node)\n".
+	"OLDCODE #define VRML1_SEPARATOR(node) ((struct X3D_VRML1_Separator*)node)*/ \n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
 	"#define X3D_INDEXEDTRIANGLEFANSET(node) ((struct X3D_IndexedTriangleFanSet*)node)\n". 
 	"#define X3D_INDEXEDTRIANGLESET(node) ((struct X3D_IndexedTriangleSet*)node)\n". 

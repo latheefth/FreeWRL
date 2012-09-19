@@ -64,6 +64,8 @@ Have fun! John A. Stewart, June 2009
 #include <display.h>
 #include <internal.h>
 
+#if defined (DO_VRML1)
+
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
@@ -945,3 +947,5 @@ void render_VRML1_LOD (struct X3D_VRML1_LOD  *node) {}
 void render_VRML1_OrthographicCamera (struct X3D_VRML1_OrthographicCamera  *node) {}
 void render_VRML1_PerspectiveCamera (struct X3D_VRML1_PerspectiveCamera  *node) {}
 void render_VRML1_WWWInline (struct X3D_VRML1_WWWInline  *node) {}
+
+#endif //DO_VRML1

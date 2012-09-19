@@ -6,7 +6,10 @@ void display_init(struct tdisplay* d);
 void internalc_init(struct tinternalc* ic);
 void io_http_init(struct tio_http* t);
 void threads_init(struct tthreads* t);
+
+#if defined (DO_VRML1)
 void convert1To2_init(struct tconvert1To2* t);
+#endif //DO_VRML1
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
 void Snapshot_init(struct tSnapshot *);
@@ -54,7 +57,10 @@ void Component_Shape_init(struct tComponent_Shape *t);
 void Component_Sound_init(struct tComponent_Sound *t);
 void Component_Text_init(struct tComponent_Text *t);
 
+#if defined (DO_VRML1)
 void Component_VRML1_init(struct tComponent_VRML1 *t);
+#endif
+
 void RenderFuncs_init(struct tRenderFuncs *t);
 void StreamPoly_init(struct tStreamPoly *t);
 void Tess_init(struct tTess *t);
@@ -103,8 +109,12 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 	io_http_init(&iglobal->io_http);
 	//resources_init
 	threads_init(&iglobal->threads);
+    
+#if defined (DO_VRML1)
 	convert1To2_init(&iglobal->convert1To2);
-
+#endif //DO_VRML1
+    
+    
 	#if !defined(FRONTEND_DOES_SNAPSHOTS)
 	Snapshot_init(&iglobal->Snapshot);
 	#endif
@@ -147,7 +157,11 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	Component_Shape_init(&iglobal->Component_Shape);
 	Component_Sound_init(&iglobal->Component_Sound);
 	Component_Text_init(&iglobal->Component_Text);
+    
+#if defined (DO_VRML1)    
 	Component_VRML1_init(&iglobal->Component_VRML1);
+#endif //DO_VRML1
+    
 	RenderFuncs_init(&iglobal->RenderFuncs);
 	StreamPoly_init(&iglobal->StreamPoly);
 	Tess_init(&iglobal->Tess);
@@ -243,7 +257,12 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 	FREE_IF_NZ(tg->EAIEventsIn.prv);
 	FREE_IF_NZ(tg->EAI_C_CommonFunctions.prv);
 	FREE_IF_NZ(tg->Snapshot.prv);
+    
+#if defined (DO_VRML1)
 	FREE_IF_NZ(tg->convert1To2.prv);
+#endif //DO_VRML1
+    
+    
 	FREE_IF_NZ(tg->threads.prv);
 	FREE_IF_NZ(tg->resources.prv);
 	FREE_IF_NZ(tg->io_http.prv);

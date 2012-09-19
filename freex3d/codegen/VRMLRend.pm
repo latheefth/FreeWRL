@@ -17,6 +17,13 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.45  2012/09/19 13:41:00  crc_canada
+# comment out VRML1 support, as it is not working with the shader based
+# rendering currently in use. In the C files, look for DO_VRML1, in the
+# perl generator files, look for the #OLDCODE directive, and note that
+# some strings must be put in the associated structure - comments in
+# code hopefully make it apparent.
+#
 # Revision 1.44  2012/09/17 16:11:02  crc_canada
 # ImageCubeMap compile now working. Have not tried a DDS file yet, but the "cross" 4:3 maps appear to render
 # without errors or warnings. Hopefully the math is ok; will verify as the week progresses.
@@ -529,53 +536,51 @@
 	SplinePositionInterpolator2D 	=>children,
 	SplineScalarInterpolator 	=>children,
 	SquadOrientationInterpolator 	=>children,
-
-
-
-	VRML1_AsciiText		=>children,
-	VRML1_Cone		=>children,
-	VRML1_Coordinate3	=>children,
-	VRML1_Cube		=>children,
-	VRML1_Cylinder		=>children,
-	VRML1_DirectionalLight	=>children,
-	VRML1_FontStyle		=>children,
-	VRML1_IndexedFaceSet	=>children,
-	VRML1_IndexedLineSet	=>children,
-	VRML1_Info		=>children,
-	VRML1_LOD		=>children,
-	VRML1_Material		=>children,
-	VRML1_MaterialBinding	=>children,
-	VRML1_MatrixTransform	=>children,
-	VRML1_Normal		=>children,
-	VRML1_NormalBinding	=>children,
-	VRML1_OrthographicCamera=>children,
-	VRML1_PerspectiveCamera	=>children,
-	VRML1_PointLight	=>children,
-	VRML1_PointSet		=>children,
-	VRML1_Rotation		=>children,
-	VRML1_Scale		=>children,
-	VRML1_Separator		=>children,
-	VRML1_ShapeHints	=>children,
-	VRML1_Sphere		=>children,
-	VRML1_SpotLight		=>children,
-	VRML1_Switch		=>children,
-	VRML1_Texture2		=>children,
-	VRML1_Texture2Transform	=>children,
-	VRML1_TextureCoordinate2=>children,
-	VRML1_Transform		=>children,
-	VRML1_Translation	=>children,
-	VRML1_WWWAnchor		=>children,
-	VRML1_WWWInline		=>children,
-
 	DISEntityManager	=>children,
 	DISEntityTypeMapping	=>children,
 	EspduTransform		=>children,
 	ReceiverPdu		=>children,
 	SignalPdu		=>children,
 	TransmitterPdu		=>children,
-
-
 );
+
+
+#OLDCODE - put the following in the above structure
+#OLDCODE	VRML1_AsciiText		=>children,
+#OLDCODE	VRML1_Cone		=>children,
+#OLDCODE	VRML1_Coordinate3	=>children,
+#OLDCODE	VRML1_Cube		=>children,
+#OLDCODE	VRML1_Cylinder		=>children,
+#OLDCODE	VRML1_DirectionalLight	=>children,
+#OLDCODE	VRML1_FontStyle		=>children,
+#OLDCODE	VRML1_IndexedFaceSet	=>children,
+#OLDCODE	VRML1_IndexedLineSet	=>children,
+#OLDCODE	VRML1_Info		=>children,
+#OLDCODE	VRML1_LOD		=>children,
+#OLDCODE	VRML1_Material		=>children,
+#OLDCODE	VRML1_MaterialBinding	=>children,
+#OLDCODE	VRML1_MatrixTransform	=>children,
+#OLDCODE	VRML1_Normal		=>children,
+#OLDCODE	VRML1_NormalBinding	=>children,
+#OLDCODE	VRML1_OrthographicCamera=>children,
+#OLDCODE	VRML1_PerspectiveCamera	=>children,
+#OLDCODE	VRML1_PointLight	=>children,
+#OLDCODE	VRML1_PointSet		=>children,
+#OLDCODE	VRML1_Rotation		=>children,
+#OLDCODE	VRML1_Scale		=>children,
+#OLDCODE	VRML1_Separator		=>children,
+#OLDCODE	VRML1_ShapeHints	=>children,
+#OLDCODE	VRML1_Sphere		=>children,
+#OLDCODE	VRML1_SpotLight		=>children,
+#OLDCODE	VRML1_Switch		=>children,
+#OLDCODE	VRML1_Texture2		=>children,
+#OLDCODE	VRML1_Texture2Transform	=>children,
+#OLDCODE	VRML1_TextureCoordinate2=>children,
+#OLDCODE	VRML1_Transform		=>children,
+#OLDCODE	VRML1_Translation	=>children,
+#OLDCODE	VRML1_WWWAnchor		=>children,
+#OLDCODE	VRML1_WWWInline		=>children,
+
 
 #######################################################################
 #######################################################################
@@ -645,33 +650,35 @@
 	HAnimHumanoid
 	HAnimJoint
 
-	VRML1_AsciiText
-	VRML1_Cone
-	VRML1_Cube
-	VRML1_Cylinder
-	VRML1_IndexedFaceSet
-	VRML1_IndexedLineSet
-	VRML1_PointSet
-	VRML1_Sphere
-	VRML1_Scale
-	VRML1_Translation
-	VRML1_Transform
-	VRML1_Material
-	VRML1_Rotation
-	VRML1_DirectionalLight
-	VRML1_SpotLight
-	VRML1_PointLight
-	VRML1_Coordinate3
-	VRML1_FontStyle
-	VRML1_MaterialBinding
-	VRML1_Normal
-	VRML1_NormalBinding
-	VRML1_Texture2
-	VRML1_Texture2Transform
-	VRML1_TextureCoordinate2
-	VRML1_ShapeHints
-	VRML1_MatrixTransform
 /;
+
+#OLDCODE - put the following up in the preceeding structure
+#OLDCODE	VRML1_AsciiText
+#OLDCODE	VRML1_Cone
+#OLDCODE	VRML1_Cube
+#OLDCODE	VRML1_Cylinder
+#OLDCODE	VRML1_IndexedFaceSet
+#OLDCODE	VRML1_IndexedLineSet
+#OLDCODE	VRML1_PointSet
+#OLDCODE	VRML1_Sphere
+#OLDCODE	VRML1_Scale
+#OLDCODE	VRML1_Translation
+#OLDCODE	VRML1_Transform
+#OLDCODE	VRML1_Material
+#OLDCODE	VRML1_Rotation
+#OLDCODE	VRML1_DirectionalLight
+#OLDCODE	VRML1_SpotLight
+#OLDCODE	VRML1_PointLight
+#OLDCODE	VRML1_Coordinate3
+#OLDCODE	VRML1_FontStyle
+#OLDCODE	VRML1_MaterialBinding
+#OLDCODE	VRML1_Normal
+#OLDCODE	VRML1_NormalBinding
+#OLDCODE	VRML1_Texture2
+#OLDCODE	VRML1_Texture2Transform
+#OLDCODE	VRML1_TextureCoordinate2
+#OLDCODE	VRML1_ShapeHints
+#OLDCODE	VRML1_MatrixTransform
 
 #######################################################################
 #######################################################################
@@ -684,6 +691,7 @@
 #
 # 
 
+#OLDCODE - put the following in GenPolyRepC	VRML1_IndexedFaceSet
 %GenPolyRepC = map {($_=>1)} qw/
 	ElevationGrid
 	Extrusion
@@ -696,7 +704,6 @@
 	TriangleSet
 	Text
 	GeoElevationGrid
-	VRML1_IndexedFaceSet
 /;
 
 #######################################################################
@@ -707,6 +714,7 @@
 #  Prepare for rendering a node - e.g. for transforms, do the transform
 #  but not the children.
 
+#OLDCODE - put the following in PrepC:	VRML1_Separator
 %PrepC = map {($_=>1)} qw/
 	HAnimJoint
 	HAnimSite
@@ -722,7 +730,6 @@
 	GeoLocation
 	GeoViewpoint
 	GeoTransform
-	VRML1_Separator
 /;
 
 #######################################################################
@@ -735,6 +742,7 @@
 #
 #
 
+#OLDCODE - put the following in FinC:	VRML1_Separator
 %FinC = map {($_=>1)} qw/
 	GeoLocation
 	Transform
@@ -742,7 +750,6 @@
 	HAnimSite
 	HAnimJoint
 	GeoTransform
-	VRML1_Separator
 /;
 
 
@@ -756,6 +763,8 @@
 #
 
 # Render children (real child nodes, not e.g. appearance/geometry)
+
+#OLDCODE - put the following in ChildC:	VRML1_Separator
 %ChildC = map {($_=>1)} qw/
 	HAnimHumanoid
 	HAnimJoint
@@ -778,7 +787,6 @@
 	Appearance
 	Shape
 	VisibilitySensor
-	VRML1_Separator
 /;
 
 
@@ -940,6 +948,7 @@
 #	       /*           x,z=0                           */
 
 
+#OLDCODE - put the following in CollisionC:	VRML1_IndexedFaceSet
 %CollisionC = map {($_=>1)} qw/
 	Disk2D
 	Rectangle2D
@@ -959,7 +968,6 @@
 	Extrusion
 	Text
 	GeoElevationGrid
-	VRML1_IndexedFaceSet
 /;
 
 #######################################################################
@@ -1033,6 +1041,7 @@
 #
 # Other side: r*r*(
 
+#OLDCODE - put the following in the RendRayC:	VRML1_IndexedFaceSet
 %RendRayC = map {($_=>1)} qw/
 	Box
 	Sphere
@@ -1049,50 +1058,49 @@
 	TriangleSet
 	TriangleFanSet
 	TriangleStripSet
-	VRML1_IndexedFaceSet
 /;
 
-#######################################################################
-#######################################################################
-#######################################################################
-#
-# VRML1_ Keywords
-%VRML1_C = map {($_=>1)} qw/
-	VRML1_AsciiText
-	VRML1_Cone
-	VRML1_Cube
-	VRML1_Cylinder
-	VRML1_IndexedFaceSet
-	VRML1_IndexedLineSet
-	VRML1_PointSet
-	VRML1_Sphere
-	VRML1_Coordinate3
-	VRML1_FontStyle
-	VRML1_Info
-	VRML1_Material
-	VRML1_MaterialBinding
-	VRML1_Normal
-	VRML1_NormalBinding
-	VRML1_Texture2
-	VRML1_Texture2Transform
-	VRML1_TextureCoordinate2
-	VRML1_ShapeHints
-	VRML1_MatrixTransform
-	VRML1_Rotation
-	VRML1_Scale
-	VRML1_Transform
-	VRML1_Translation
-	VRML1_Separator
-	VRML1_Switch
-	VRML1_WWWAnchor
-	VRML1_LOD
-	VRML1_OrthographicCamera
-	VRML1_PerspectiveCamera
-	VRML1_DirectionalLight
-	VRML1_PointLight
-	VRML1_SpotLight
-	VRML1_WWWInline
-/;
+#OLDCODE#######################################################################
+#OLDCODE#######################################################################
+#OLDCODE#######################################################################
+#OLDCODE#
+#OLDCODE# VRML1_ Keywords
+#OLDCODE%VRML1_C = map {($_=>1)} qw/
+#OLDCODE	VRML1_AsciiText
+#OLDCODE	VRML1_Cone
+#OLDCODE	VRML1_Cube
+#OLDCODE	VRML1_Cylinder
+#OLDCODE	VRML1_IndexedFaceSet
+#OLDCODE	VRML1_IndexedLineSet
+#OLDCODE	VRML1_PointSet
+#OLDCODE	VRML1_Sphere
+#OLDCODE	VRML1_Coordinate3
+#OLDCODE	VRML1_FontStyle
+#OLDCODE	VRML1_Info
+#OLDCODE	VRML1_Material
+#OLDCODE	VRML1_MaterialBinding
+#OLDCODE	VRML1_Normal
+#OLDCODE	VRML1_NormalBinding
+#OLDCODE	VRML1_Texture2
+#OLDCODE	VRML1_Texture2Transform
+#OLDCODE	VRML1_TextureCoordinate2
+#OLDCODE	VRML1_ShapeHints
+#OLDCODE	VRML1_MatrixTransform
+#OLDCODE	VRML1_Rotation
+#OLDCODE	VRML1_Scale
+#OLDCODE	VRML1_Transform
+#OLDCODE	VRML1_Translation
+#OLDCODE	VRML1_Separator
+#OLDCODE	VRML1_Switch
+#OLDCODE	VRML1_WWWAnchor
+#OLDCODE	VRML1_LOD
+#OLDCODE	VRML1_OrthographicCamera
+#OLDCODE	VRML1_PerspectiveCamera
+#OLDCODE	VRML1_DirectionalLight
+#OLDCODE	VRML1_PointLight
+#OLDCODE	VRML1_SpotLight
+#OLDCODE	VRML1_WWWInline
+#OLDCODE/;
 
 #######################################################################
 #######################################################################
@@ -1192,43 +1200,43 @@
 	MPEG-4
 /;
 
-%VRML1ModifierC = map {($_=>1)} qw/
-	SIDES 
-	BOTTOM  
-	ALL 
-	TOP 
-	LEFT 
-	CENTER 
-	RIGHT 
-	SERIF
-	SANS 
-	TYPEWRITER 
-	NONE 
-	BOLD 
-	ITALIC 
-	DEFAULT 
-	OVERALL 
-	PER_PART 
-	PER_PART_INDEXED
-	PER_FACE 
-	PER_FACE_INDEXED 
-	PER_VERTEX 
-	PER_VERTEX_INDEXED 
-	ON 
-	OFF 
-	AUTO 
-	UNKNOWN_SHAPE_TYPE
-	CLOCKWISE 
-	COUNTERCLOCKWISE 
-	SOLID 
-	UNKNOWN_ORDERING 
-	UNKNOWN_FACE_TYPE 
-	CONVEX 
-	REPEAT 
-	CLAMP
-	NONE 
-	POINT
-/;
+#OLDCODE %VRML1ModifierC = map {($_=>1)} qw/
+#OLDCODE 	SIDES 
+#OLDCODE 	BOTTOM  
+#OLDCODE 	ALL 
+#OLDCODE 	TOP 
+#OLDCODE 	LEFT 
+#OLDCODE 	CENTER 
+#OLDCODE 	RIGHT 
+#OLDCODE 	SERIF
+#OLDCODE 	SANS 
+#OLDCODE 	TYPEWRITER 
+#OLDCODE 	NONE 
+#OLDCODE 	BOLD 
+#OLDCODE 	ITALIC 
+#OLDCODE 	DEFAULT 
+#OLDCODE 	OVERALL 
+#OLDCODE 	PER_PART 
+#OLDCODE 	PER_PART_INDEXED
+#OLDCODE 	PER_FACE 
+#OLDCODE 	PER_FACE_INDEXED 
+#OLDCODE 	PER_VERTEX 
+#OLDCODE 	PER_VERTEX_INDEXED 
+#OLDCODE 	ON 
+#OLDCODE 	OFF 
+#OLDCODE 	AUTO 
+#OLDCODE 	UNKNOWN_SHAPE_TYPE
+#OLDCODE 	CLOCKWISE 
+#OLDCODE 	COUNTERCLOCKWISE 
+#OLDCODE 	SOLID 
+#OLDCODE 	UNKNOWN_ORDERING 
+#OLDCODE 	UNKNOWN_FACE_TYPE 
+#OLDCODE 	CONVEX 
+#OLDCODE 	REPEAT 
+#OLDCODE 	CLAMP
+#OLDCODE 	NONE 
+#OLDCODE 	POINT
+#OLDCODE /;
 
 #######################################################################
 #######################################################################

@@ -278,7 +278,22 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		p->haveParsedCParsed = TRUE;
 		break;
 	case IS_TYPE_VRML1: {
+#if defined (DO_VRML1)        
 		char *newData = convert1To2((const char*)input);
+#else
+        char *newData = strdup("#VRML V2.0 utf8\n\
+        Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}\
+        geometry Text {\
+            string [\"This build\" \"is not made with\" \"VRML1 support\"]\
+            fontStyle FontStyle{\
+                justify [\"MIDDLE\",\"MIDDLE\"]\
+                size 0.5\
+            }\
+        }}\
+        ");
+#endif //DO_VRML1
+        
+
 		ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
 		FREE_IF_NZ(newData);
 		break;

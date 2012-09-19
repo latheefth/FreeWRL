@@ -71,9 +71,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 
 /* Table of built-in fieldIds */
        const char *FIELDNAMES[] = {
-	"wrapS",
 	"_sideVBO",
-	"_Value",
 	"integerKey",
 	"__proxNode",
 	"activate",
@@ -82,10 +80,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"modulationTypeMajor",
 	"whichChoice",
 	"load",
-	"textureCoordIndex",
 	"isLoaded",
 	"rotation",
-	"scaleFactor",
 	"toggle",
 	"set_articulationParameterValue7",
 	"set_articulationParameterValue3",
@@ -109,7 +105,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"transmitterEntityID",
 	"retainUserOffsets",
 	"vertices",
-	"filename",
 	"__children",
 	"__do_scale",
 	"left",
@@ -153,7 +148,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"solid",
 	"mode",
 	"__textureTableIndex",
-	"map",
 	"isRtpHeaderHeard",
 	"on",
 	"leftUrl",
@@ -164,16 +158,13 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"shininess",
 	"texturePriority",
 	"description",
-	"_wrapT",
 	"top",
-	"dropOffRate",
 	"outerRadius",
 	"fuse",
 	"set_articulationParameterValue4",
 	"touchTime",
 	"int32Inp",
 	"family",
-	"width",
 	"source",
 	"skinNormal",
 	"front",
@@ -214,12 +205,9 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"tessellation",
 	"scale",
 	"proxy",
-	"_coord",
 	"translation_changed",
-	"renderCulling",
 	"__numPoints",
 	"_floatInpFIFO",
-	"ambientColor",
 	"maxFront",
 	"rightTexture",
 	"set_spine",
@@ -242,7 +230,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_oldrotation",
 	"eventNumber",
 	"loop",
-	"_wrapS",
 	"actionKeyPress",
 	"extra",
 	"horizontal",
@@ -251,7 +238,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"fanCount",
 	"__child2Node",
 	"triggerTrue",
-	"shapeType",
 	"_parentResource",
 	"articulationParameterCount",
 	"avatarSize",
@@ -264,7 +250,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"networkMode",
 	"backEmissiveColor",
 	"repeatT",
-	"_npv",
 	"__visible",
 	"__movedPosition",
 	"topToBottom",
@@ -278,7 +263,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"navType",
 	"update",
 	"set_articulationParameterValue5",
-	"heightAngle",
 	"_oldisActive",
 	"__loading",
 	"next",
@@ -290,18 +274,15 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"articulationParameterIdPartAttachedToAr",
 	"__child1Node",
 	"multicastRelayHost",
-	"_color",
 	"__scriptObj",
 	"keyRelease",
 	"__backTexture",
 	"stopTime",
-	"_faceValue",
 	"crossSection",
 	"position",
 	"__solid",
 	"__do_scaleO",
 	"xSpacing",
-	"faceType",
 	"__transparency",
 	"isDetonated",
 	"scaleOrientation",
@@ -315,7 +296,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"set_normalIndex",
 	"knot",
 	"articulationParameterValue4_changed",
-	"justification",
 	"set_articulationParameterValue6",
 	"fogType",
 	"spacing",
@@ -336,7 +316,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__oldKeyPtr",
 	"displayed",
 	"hitGeoCoord_changed",
-	"focalDistance",
 	"cycleTime",
 	"boundaryModeR",
 	"__oldChildren",
@@ -516,7 +495,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__regenSubTextures",
 	"readInterval",
 	"__child3Node",
-	"materialIndex",
 	"style",
 	"radioEntityTypeDomain",
 	"bottom",
@@ -529,7 +507,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_stringInpFIFO",
 	"dimension",
 	"modulationTypeDetail",
-	"_solid",
 	"separateBackColor",
 	"__rootUrl",
 	"_verifiedFrontColor",
@@ -558,16 +535,13 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"mustEvaluate",
 	"diffuseColor",
 	"tessellationScale",
-	"startIndex",
 	"handler",
-	"_vertValue",
 	"__oldmetadata",
 	"inputNegate",
 	"keyWeight",
 	"entitySpecific",
 	"set_articulationParameterValue2",
 	"key",
-	"_typeValue",
 	"ulimit",
 	"__quadcount",
 	"skinCoord",
@@ -576,17 +550,14 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__movedOrientation",
 	"name",
 	"texCoord",
-	"_ccw",
 	"pickable",
 	"__coneVBO",
 	"lineBounds",
 	"hatched",
 	"easeInEaseOut",
-	"_creaseAngle",
 	"level_changed",
 	"__texCoords",
 	"geovalue_changed",
-	"_texCoord",
 	"texCoordIndex",
 	"_shaderTableEntry",
 	"beginCap",
@@ -656,13 +627,10 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"resumeTime",
 	"antennaLocation",
 	"timestamp",
-	"vertexOrdering",
 	"forceTransitions",
 	"radioEntityTypeNomenclature",
 	"shaders",
 	"language",
-	"VRML1children",
-	"_cpv",
 	"shiftKey",
 	"filter",
 	"leftTexture",
@@ -676,7 +644,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"set_scale",
 	"loadTime",
 	"transmitterApplicationID",
-	"_convex",
 	"frequency",
 	"actionKeyRelease",
 	"articulationParameterValue1_changed",
@@ -686,7 +653,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"child3Url",
 	"pauseTime",
 	"isCollided",
-	"_ILS",
 	"normalIndex",
 	"beamWidth",
 	"pickTarget",
@@ -699,19 +665,15 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"convex",
 	"orientation",
 	"set_texCoordIndex",
-	"whichChild",
 	"autoOffset",
 	"appearance",
-	"wrapT",
 	"zDimension",
 	"_floatOutFIFO",
-	"_normal",
 	"entitySubCategory",
 	"set_coordIndex",
 	"munitionQuantity",
 	"_stringOutFIFO",
 	"elapsedTime",
-	"numPoints",
 	"__vertices",
 	"__initialized",
 };
@@ -842,20 +804,17 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 
 /* Table of EXPOSED_FIELDs */
        const char *EXPOSED_FIELD[] = {
-	"wrapS",
 	"topTexture",
 	"integerKey",
 	"power",
 	"munitionSiteID",
 	"modulationTypeMajor",
 	"whichChoice",
-	"textureCoordIndex",
 	"maxBack",
 	"vector",
 	"sampleRate",
 	"rotation",
 	"firingRange",
-	"scaleFactor",
 	"stiffness",
 	"samples",
 	"detonationRelativeLocation",
@@ -885,7 +844,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"retainUserOffsets",
 	"image",
 	"vertices",
-	"filename",
 	"left",
 	"backAmbientIntensity",
 	"receivedPower",
@@ -916,7 +874,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"vTessellation",
 	"displacers",
 	"back",
-	"bboxCenter",
 	"emissiveColor",
 	"geoCenter",
 	"antennaPatternLength",
@@ -927,7 +884,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"mode",
 	"string",
 	"children",
-	"map",
 	"on",
 	"leftUrl",
 	"textureCompression",
@@ -942,11 +898,8 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"description",
 	"radioEntityTypeCategory",
 	"top",
-	"dropOffRate",
 	"fuse",
-	"family",
 	"int32Inp",
-	"width",
 	"source",
 	"skinNormal",
 	"front",
@@ -959,8 +912,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"summary",
 	"transmitState",
 	"readInterval",
-	"materialIndex",
-	"style",
 	"tdlType",
 	"radioEntityTypeDomain",
 	"hatchColor",
@@ -993,9 +944,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"fieldOfView",
 	"scale",
 	"listenfor",
-	"renderCulling",
 	"borderColor",
-	"ambientColor",
 	"maxFront",
 	"rightTexture",
 	"uTessellation",
@@ -1003,11 +952,9 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"plane",
 	"keyValue",
 	"radius",
-	"bottomRadius",
 	"controlPoint",
 	"tessellationScale",
 	"diffuseColor",
-	"startIndex",
 	"handler",
 	"point",
 	"inputSource",
@@ -1027,7 +974,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"texCoord",
 	"pickable",
 	"hatched",
-	"shapeType",
 	"articulationParameterCount",
 	"collide",
 	"avatarSize",
@@ -1043,7 +989,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"linearAcceleration",
 	"textureTransform",
 	"lengthOfModulationParameters",
-	"height",
 	"viewpoints",
 	"length",
 	"right",
@@ -1054,7 +999,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"navType",
 	"entityCountry",
 	"protocol",
-	"heightAngle",
 	"antennaPatternType",
 	"minAngle",
 	"weight",
@@ -1069,7 +1013,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"articulationParameterDesignatorArray",
 	"stopTime",
 	"position",
-	"faceType",
 	"magnificationFilter",
 	"fogCoord",
 	"scaleOrientation",
@@ -1080,9 +1023,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"boundaryModeS",
 	"hatchStyle",
 	"cutOffAngle",
-	"justification",
 	"fogType",
-	"spacing",
 	"skyColor",
 	"displacements",
 	"minPosition",
@@ -1098,7 +1039,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"startTime",
 	"minFront",
 	"displayed",
-	"focalDistance",
 	"boundaryModeR",
 	"level",
 	"vertexCount",
@@ -1107,21 +1047,16 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"backTexture",
 	"llimit",
 	"function",
-	"range",
 	"resumeTime",
 	"antennaLocation",
 	"alpha",
-	"vertexOrdering",
 	"radioEntityTypeNomenclature",
-	"bboxSize",
 	"backDiffuseColor",
 	"shaders",
-	"VRML1children",
 	"visibilityRange",
 	"filter",
 	"leftTexture",
 	"momentsOfInertia",
-	"coordIndex",
 	"stringInp",
 	"munitionStartPoint",
 	"skinCoordIndex",
@@ -1138,7 +1073,6 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"metadata",
 	"geoCoords",
 	"relativeAntennaLocation",
-	"normalIndex",
 	"beamWidth",
 	"location",
 	"pickTarget",
@@ -1150,17 +1084,14 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"eventSiteID",
 	"fontStyle",
 	"orientation",
-	"whichChild",
 	"appearance",
 	"center",
 	"autoOffset",
-	"wrapT",
 	"munitionEntityID",
 	"offset",
 	"entitySubCategory",
 	"munitionQuantity",
 	"cryptoSystem",
-	"numPoints",
 	"cryptoKeyID",
 	"anisotropicDegree",
 	"parts",
@@ -1481,46 +1412,6 @@ const int TEXTUREMINIFICATIONKEYWORDS_COUNT = ARR_SIZE(TEXTUREMINIFICATIONKEYWOR
 const int TEXTURECOMPRESSIONKEYWORDS_COUNT = ARR_SIZE(TEXTURECOMPRESSIONKEYWORDS);
 
 
-/* Table of VRML1Modifier keywords */
-       const char *VRML1Modifier[] = {
-	"REPEAT",
-	"ITALIC",
-	"PER_PART_INDEXED",
-	"PER_VERTEX_INDEXED",
-	"AUTO",
-	"TYPEWRITER",
-	"OVERALL",
-	"UNKNOWN_SHAPE_TYPE",
-	"SERIF",
-	"COUNTERCLOCKWISE",
-	"CLOCKWISE",
-	"POINT",
-	"PER_PART",
-	"SOLID",
-	"ALL",
-	"TOP",
-	"RIGHT",
-	"SIDES",
-	"BOLD",
-	"BOTTOM",
-	"LEFT",
-	"CONVEX",
-	"UNKNOWN_FACE_TYPE",
-	"SANS",
-	"UNKNOWN_ORDERING",
-	"PER_FACE",
-	"PER_VERTEX",
-	"NONE",
-	"PER_FACE_INDEXED",
-	"DEFAULT",
-	"ON",
-	"CLAMP",
-	"CENTER",
-	"OFF",
-};
-const int VRML1Modifier_COUNT = ARR_SIZE(VRML1Modifier);
-
-
 /* Table of GEOSPATIAL keywords */
        const char *GEOSPATIAL[] = {
 	"CC",
@@ -1568,46 +1459,6 @@ const int VRML1Modifier_COUNT = ARR_SIZE(VRML1Modifier);
 	"EA",
 };
 const int GEOSPATIAL_COUNT = ARR_SIZE(GEOSPATIAL);
-
-
-/* Table of VRML1_ keywords */
-       const char *VRML1_[] = {
-	"VRML1_Rotation",
-	"VRML1_Cone",
-	"VRML1_PerspectiveCamera",
-	"VRML1_ShapeHints",
-	"VRML1_LOD",
-	"VRML1_Translation",
-	"VRML1_MatrixTransform",
-	"VRML1_SpotLight",
-	"VRML1_Texture2",
-	"VRML1_IndexedLineSet",
-	"VRML1_OrthographicCamera",
-	"VRML1_Switch",
-	"VRML1_Scale",
-	"VRML1_Cube",
-	"VRML1_Separator",
-	"VRML1_PointSet",
-	"VRML1_FontStyle",
-	"VRML1_WWWInline",
-	"VRML1_TextureCoordinate2",
-	"VRML1_Info",
-	"VRML1_DirectionalLight",
-	"VRML1_AsciiText",
-	"VRML1_Transform",
-	"VRML1_Texture2Transform",
-	"VRML1_Cylinder",
-	"VRML1_Normal",
-	"VRML1_WWWAnchor",
-	"VRML1_NormalBinding",
-	"VRML1_MaterialBinding",
-	"VRML1_PointLight",
-	"VRML1_IndexedFaceSet",
-	"VRML1_Material",
-	"VRML1_Coordinate3",
-	"VRML1_Sphere",
-};
-const int VRML1__COUNT = ARR_SIZE(VRML1_);
 
 
 /* Table of Field Types */
@@ -1849,40 +1700,6 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"TriangleSet2D",
 	"TriangleStripSet",
 	"TwoSidedMaterial",
-	"VRML1_AsciiText",
-	"VRML1_Cone",
-	"VRML1_Coordinate3",
-	"VRML1_Cube",
-	"VRML1_Cylinder",
-	"VRML1_DirectionalLight",
-	"VRML1_FontStyle",
-	"VRML1_IndexedFaceSet",
-	"VRML1_IndexedLineSet",
-	"VRML1_Info",
-	"VRML1_LOD",
-	"VRML1_Material",
-	"VRML1_MaterialBinding",
-	"VRML1_MatrixTransform",
-	"VRML1_Normal",
-	"VRML1_NormalBinding",
-	"VRML1_OrthographicCamera",
-	"VRML1_PerspectiveCamera",
-	"VRML1_PointLight",
-	"VRML1_PointSet",
-	"VRML1_Rotation",
-	"VRML1_Scale",
-	"VRML1_Separator",
-	"VRML1_ShapeHints",
-	"VRML1_Sphere",
-	"VRML1_SpotLight",
-	"VRML1_Switch",
-	"VRML1_Texture2",
-	"VRML1_Texture2Transform",
-	"VRML1_TextureCoordinate2",
-	"VRML1_Transform",
-	"VRML1_Translation",
-	"VRML1_WWWAnchor",
-	"VRML1_WWWInline",
 	"Viewpoint",
 	"ViewpointGroup",
 	"VisibilitySensor",
@@ -2463,103 +2280,6 @@ void render_TwoSidedMaterial(struct X3D_TwoSidedMaterial *);
 void compile_TwoSidedMaterial(struct X3D_TwoSidedMaterial *);
 struct X3D_Virt virt_TwoSidedMaterial = { NULL,(void *)render_TwoSidedMaterial,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_TwoSidedMaterial};
 
-void render_VRML1_AsciiText(struct X3D_VRML1_AsciiText *);
-struct X3D_Virt virt_VRML1_AsciiText = { NULL,(void *)render_VRML1_AsciiText,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Cone(struct X3D_VRML1_Cone *);
-struct X3D_Virt virt_VRML1_Cone = { NULL,(void *)render_VRML1_Cone,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Coordinate3(struct X3D_VRML1_Coordinate3 *);
-struct X3D_Virt virt_VRML1_Coordinate3 = { NULL,(void *)render_VRML1_Coordinate3,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Cube(struct X3D_VRML1_Cube *);
-struct X3D_Virt virt_VRML1_Cube = { NULL,(void *)render_VRML1_Cube,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Cylinder(struct X3D_VRML1_Cylinder *);
-struct X3D_Virt virt_VRML1_Cylinder = { NULL,(void *)render_VRML1_Cylinder,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_DirectionalLight(struct X3D_VRML1_DirectionalLight *);
-struct X3D_Virt virt_VRML1_DirectionalLight = { NULL,(void *)render_VRML1_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_FontStyle(struct X3D_VRML1_FontStyle *);
-struct X3D_Virt virt_VRML1_FontStyle = { NULL,(void *)render_VRML1_FontStyle,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_IndexedFaceSet(struct X3D_VRML1_IndexedFaceSet *);
-struct X3D_Virt virt_VRML1_IndexedFaceSet = { NULL,(void *)render_VRML1_IndexedFaceSet,NULL,NULL,(void *)rendray_VRML1_IndexedFaceSet,(void *)make_VRML1_IndexedFaceSet,NULL,NULL,(void *)collide_VRML1_IndexedFaceSet,NULL};
-
-void render_VRML1_IndexedLineSet(struct X3D_VRML1_IndexedLineSet *);
-struct X3D_Virt virt_VRML1_IndexedLineSet = { NULL,(void *)render_VRML1_IndexedLineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-struct X3D_Virt virt_VRML1_Info = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-struct X3D_Virt virt_VRML1_LOD = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Material(struct X3D_VRML1_Material *);
-struct X3D_Virt virt_VRML1_Material = { NULL,(void *)render_VRML1_Material,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_MaterialBinding(struct X3D_VRML1_MaterialBinding *);
-struct X3D_Virt virt_VRML1_MaterialBinding = { NULL,(void *)render_VRML1_MaterialBinding,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_MatrixTransform(struct X3D_VRML1_MatrixTransform *);
-struct X3D_Virt virt_VRML1_MatrixTransform = { NULL,(void *)render_VRML1_MatrixTransform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Normal(struct X3D_VRML1_Normal *);
-struct X3D_Virt virt_VRML1_Normal = { NULL,(void *)render_VRML1_Normal,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_NormalBinding(struct X3D_VRML1_NormalBinding *);
-struct X3D_Virt virt_VRML1_NormalBinding = { NULL,(void *)render_VRML1_NormalBinding,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-struct X3D_Virt virt_VRML1_OrthographicCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-struct X3D_Virt virt_VRML1_PerspectiveCamera = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_PointLight(struct X3D_VRML1_PointLight *);
-struct X3D_Virt virt_VRML1_PointLight = { NULL,(void *)render_VRML1_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_PointSet(struct X3D_VRML1_PointSet *);
-struct X3D_Virt virt_VRML1_PointSet = { NULL,(void *)render_VRML1_PointSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Rotation(struct X3D_VRML1_Rotation *);
-struct X3D_Virt virt_VRML1_Rotation = { NULL,(void *)render_VRML1_Rotation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Scale(struct X3D_VRML1_Scale *);
-struct X3D_Virt virt_VRML1_Scale = { NULL,(void *)render_VRML1_Scale,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void prep_VRML1_Separator(struct X3D_VRML1_Separator *);
-void child_VRML1_Separator(struct X3D_VRML1_Separator *);
-void fin_VRML1_Separator(struct X3D_VRML1_Separator *);
-struct X3D_Virt virt_VRML1_Separator = { (void *)prep_VRML1_Separator,NULL,(void *)child_VRML1_Separator,(void *)fin_VRML1_Separator,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_ShapeHints(struct X3D_VRML1_ShapeHints *);
-struct X3D_Virt virt_VRML1_ShapeHints = { NULL,(void *)render_VRML1_ShapeHints,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Sphere(struct X3D_VRML1_Sphere *);
-struct X3D_Virt virt_VRML1_Sphere = { NULL,(void *)render_VRML1_Sphere,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_SpotLight(struct X3D_VRML1_SpotLight *);
-struct X3D_Virt virt_VRML1_SpotLight = { NULL,(void *)render_VRML1_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-struct X3D_Virt virt_VRML1_Switch = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Texture2(struct X3D_VRML1_Texture2 *);
-struct X3D_Virt virt_VRML1_Texture2 = { NULL,(void *)render_VRML1_Texture2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Texture2Transform(struct X3D_VRML1_Texture2Transform *);
-struct X3D_Virt virt_VRML1_Texture2Transform = { NULL,(void *)render_VRML1_Texture2Transform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_TextureCoordinate2(struct X3D_VRML1_TextureCoordinate2 *);
-struct X3D_Virt virt_VRML1_TextureCoordinate2 = { NULL,(void *)render_VRML1_TextureCoordinate2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Transform(struct X3D_VRML1_Transform *);
-struct X3D_Virt virt_VRML1_Transform = { NULL,(void *)render_VRML1_Transform,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-void render_VRML1_Translation(struct X3D_VRML1_Translation *);
-struct X3D_Virt virt_VRML1_Translation = { NULL,(void *)render_VRML1_Translation,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-struct X3D_Virt virt_VRML1_WWWAnchor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
-struct X3D_Virt virt_VRML1_WWWInline = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
 void prep_Viewpoint(struct X3D_Viewpoint *);
 struct X3D_Virt virt_Viewpoint = { (void *)prep_Viewpoint,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2763,40 +2483,6 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_TriangleSet2D,
 	 &virt_TriangleStripSet,
 	 &virt_TwoSidedMaterial,
-	 &virt_VRML1_AsciiText,
-	 &virt_VRML1_Cone,
-	 &virt_VRML1_Coordinate3,
-	 &virt_VRML1_Cube,
-	 &virt_VRML1_Cylinder,
-	 &virt_VRML1_DirectionalLight,
-	 &virt_VRML1_FontStyle,
-	 &virt_VRML1_IndexedFaceSet,
-	 &virt_VRML1_IndexedLineSet,
-	 &virt_VRML1_Info,
-	 &virt_VRML1_LOD,
-	 &virt_VRML1_Material,
-	 &virt_VRML1_MaterialBinding,
-	 &virt_VRML1_MatrixTransform,
-	 &virt_VRML1_Normal,
-	 &virt_VRML1_NormalBinding,
-	 &virt_VRML1_OrthographicCamera,
-	 &virt_VRML1_PerspectiveCamera,
-	 &virt_VRML1_PointLight,
-	 &virt_VRML1_PointSet,
-	 &virt_VRML1_Rotation,
-	 &virt_VRML1_Scale,
-	 &virt_VRML1_Separator,
-	 &virt_VRML1_ShapeHints,
-	 &virt_VRML1_Sphere,
-	 &virt_VRML1_SpotLight,
-	 &virt_VRML1_Switch,
-	 &virt_VRML1_Texture2,
-	 &virt_VRML1_Texture2Transform,
-	 &virt_VRML1_TextureCoordinate2,
-	 &virt_VRML1_Transform,
-	 &virt_VRML1_Translation,
-	 &virt_VRML1_WWWAnchor,
-	 &virt_VRML1_WWWInline,
 	 &virt_Viewpoint,
 	 &virt_ViewpointGroup,
 	 &virt_VisibilitySensor,
@@ -5029,233 +4715,6 @@ const int OFFSETS_TwoSidedMaterial[] = {
 	(int) FIELDNAMES_backShininess, (int) offsetof (struct X3D_TwoSidedMaterial, backShininess),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
-const int OFFSETS_VRML1_AsciiText[] = {
-	(int) FIELDNAMES_width, (int) offsetof (struct X3D_VRML1_AsciiText, width),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_justification, (int) offsetof (struct X3D_VRML1_AsciiText, justification),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_string, (int) offsetof (struct X3D_VRML1_AsciiText, string),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_spacing, (int) offsetof (struct X3D_VRML1_AsciiText, spacing),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__ILS, (int) offsetof (struct X3D_VRML1_AsciiText, _ILS),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Cone[] = {
-	(int) FIELDNAMES_parts, (int) offsetof (struct X3D_VRML1_Cone, parts),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_bottomRadius, (int) offsetof (struct X3D_VRML1_Cone, bottomRadius),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_height, (int) offsetof (struct X3D_VRML1_Cone, height),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__ILS, (int) offsetof (struct X3D_VRML1_Cone, _ILS),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Coordinate3[] = {
-	(int) FIELDNAMES_point, (int) offsetof (struct X3D_VRML1_Coordinate3, point),  (int) FIELDTYPE_MFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Cube[] = {
-	(int) FIELDNAMES_width, (int) offsetof (struct X3D_VRML1_Cube, width),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_height, (int) offsetof (struct X3D_VRML1_Cube, height),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_depth, (int) offsetof (struct X3D_VRML1_Cube, depth),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__ILS, (int) offsetof (struct X3D_VRML1_Cube, _ILS),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Cylinder[] = {
-	(int) FIELDNAMES_radius, (int) offsetof (struct X3D_VRML1_Cylinder, radius),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_parts, (int) offsetof (struct X3D_VRML1_Cylinder, parts),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_height, (int) offsetof (struct X3D_VRML1_Cylinder, height),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__ILS, (int) offsetof (struct X3D_VRML1_Cylinder, _ILS),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_DirectionalLight[] = {
-	(int) FIELDNAMES_on, (int) offsetof (struct X3D_VRML1_DirectionalLight, on),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_VRML1_DirectionalLight, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_color, (int) offsetof (struct X3D_VRML1_DirectionalLight, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_VRML1_DirectionalLight, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_FontStyle[] = {
-	(int) FIELDNAMES_style, (int) offsetof (struct X3D_VRML1_FontStyle, style),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_size, (int) offsetof (struct X3D_VRML1_FontStyle, size),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_family, (int) offsetof (struct X3D_VRML1_FontStyle, family),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_IndexedFaceSet[] = {
-	(int) FIELDNAMES__solid, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _solid),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_normalIndex, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, normalIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__normal, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _normal),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES_materialIndex, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, materialIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__cpv, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _cpv),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__creaseAngle, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _creaseAngle),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__color, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _color),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES__ccw, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _ccw),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__convex, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _convex),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_coordIndex, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, coordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__texCoord, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _texCoord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES__coord, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _coord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES_textureCoordIndex, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, textureCoordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__npv, (int) offsetof (struct X3D_VRML1_IndexedFaceSet, _npv),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_IndexedLineSet[] = {
-	(int) FIELDNAMES_normalIndex, (int) offsetof (struct X3D_VRML1_IndexedLineSet, normalIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_coordIndex, (int) offsetof (struct X3D_VRML1_IndexedLineSet, coordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_materialIndex, (int) offsetof (struct X3D_VRML1_IndexedLineSet, materialIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_textureCoordIndex, (int) offsetof (struct X3D_VRML1_IndexedLineSet, textureCoordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__ILS, (int) offsetof (struct X3D_VRML1_IndexedLineSet, _ILS),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Info[] = {
-	(int) FIELDNAMES_string, (int) offsetof (struct X3D_VRML1_Info, string),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_LOD[] = {
-	(int) FIELDNAMES_range, (int) offsetof (struct X3D_VRML1_LOD, range),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_center, (int) offsetof (struct X3D_VRML1_LOD, center),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Material[] = {
-	(int) FIELDNAMES_transparency, (int) offsetof (struct X3D_VRML1_Material, transparency),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_specularColor, (int) offsetof (struct X3D_VRML1_Material, specularColor),  (int) FIELDTYPE_MFColor, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__verifiedColor, (int) offsetof (struct X3D_VRML1_Material, _verifiedColor),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_emissiveColor, (int) offsetof (struct X3D_VRML1_Material, emissiveColor),  (int) FIELDTYPE_MFColor, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_shininess, (int) offsetof (struct X3D_VRML1_Material, shininess),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_diffuseColor, (int) offsetof (struct X3D_VRML1_Material, diffuseColor),  (int) FIELDTYPE_MFColor, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_ambientColor, (int) offsetof (struct X3D_VRML1_Material, ambientColor),  (int) FIELDTYPE_MFColor, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_MaterialBinding[] = {
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_VRML1_MaterialBinding, _initialized),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES_value, (int) offsetof (struct X3D_VRML1_MaterialBinding, value),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__Value, (int) offsetof (struct X3D_VRML1_MaterialBinding, _Value),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_MatrixTransform[] = {
-	(int) FIELDNAMES_value, (int) offsetof (struct X3D_VRML1_MatrixTransform, value),  (int) FIELDTYPE_SFMatrix4f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Normal[] = {
-	(int) FIELDNAMES_vector, (int) offsetof (struct X3D_VRML1_Normal, vector),  (int) FIELDTYPE_MFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_NormalBinding[] = {
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_VRML1_NormalBinding, _initialized),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES_value, (int) offsetof (struct X3D_VRML1_NormalBinding, value),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__Value, (int) offsetof (struct X3D_VRML1_NormalBinding, _Value),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_OrthographicCamera[] = {
-	(int) FIELDNAMES_position, (int) offsetof (struct X3D_VRML1_OrthographicCamera, position),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_orientation, (int) offsetof (struct X3D_VRML1_OrthographicCamera, orientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_focalDistance, (int) offsetof (struct X3D_VRML1_OrthographicCamera, focalDistance),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_height, (int) offsetof (struct X3D_VRML1_OrthographicCamera, height),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_PerspectiveCamera[] = {
-	(int) FIELDNAMES_heightAngle, (int) offsetof (struct X3D_VRML1_PerspectiveCamera, heightAngle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_position, (int) offsetof (struct X3D_VRML1_PerspectiveCamera, position),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_orientation, (int) offsetof (struct X3D_VRML1_PerspectiveCamera, orientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_focalDistance, (int) offsetof (struct X3D_VRML1_PerspectiveCamera, focalDistance),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_PointLight[] = {
-	(int) FIELDNAMES_on, (int) offsetof (struct X3D_VRML1_PointLight, on),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_color, (int) offsetof (struct X3D_VRML1_PointLight, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_location, (int) offsetof (struct X3D_VRML1_PointLight, location),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_VRML1_PointLight, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_PointSet[] = {
-	(int) FIELDNAMES_startIndex, (int) offsetof (struct X3D_VRML1_PointSet, startIndex),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_numPoints, (int) offsetof (struct X3D_VRML1_PointSet, numPoints),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Rotation[] = {
-	(int) FIELDNAMES_rotation, (int) offsetof (struct X3D_VRML1_Rotation, rotation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Scale[] = {
-	(int) FIELDNAMES_scaleFactor, (int) offsetof (struct X3D_VRML1_Scale, scaleFactor),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Separator[] = {
-	(int) FIELDNAMES_renderCulling, (int) offsetof (struct X3D_VRML1_Separator, renderCulling),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_VRML1children, (int) offsetof (struct X3D_VRML1_Separator, VRML1children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_VRML1_Separator, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_ShapeHints[] = {
-	(int) FIELDNAMES__faceValue, (int) offsetof (struct X3D_VRML1_ShapeHints, _faceValue),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES_faceType, (int) offsetof (struct X3D_VRML1_ShapeHints, faceType),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_VRML1_ShapeHints, _initialized),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES__typeValue, (int) offsetof (struct X3D_VRML1_ShapeHints, _typeValue),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES_creaseAngle, (int) offsetof (struct X3D_VRML1_ShapeHints, creaseAngle),  (int) FIELDTYPE_SFDouble, (int) KW_initializeOnly, (int) SPEC_VRML1,
-	(int) FIELDNAMES_vertexOrdering, (int) offsetof (struct X3D_VRML1_ShapeHints, vertexOrdering),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_shapeType, (int) offsetof (struct X3D_VRML1_ShapeHints, shapeType),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__vertValue, (int) offsetof (struct X3D_VRML1_ShapeHints, _vertValue),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Sphere[] = {
-	(int) FIELDNAMES_radius, (int) offsetof (struct X3D_VRML1_Sphere, radius),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__ILS, (int) offsetof (struct X3D_VRML1_Sphere, _ILS),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_SpotLight[] = {
-	(int) FIELDNAMES_on, (int) offsetof (struct X3D_VRML1_SpotLight, on),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_VRML1_SpotLight, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_color, (int) offsetof (struct X3D_VRML1_SpotLight, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_cutOffAngle, (int) offsetof (struct X3D_VRML1_SpotLight, cutOffAngle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_location, (int) offsetof (struct X3D_VRML1_SpotLight, location),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_dropOffRate, (int) offsetof (struct X3D_VRML1_SpotLight, dropOffRate),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_VRML1_SpotLight, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Switch[] = {
-	(int) FIELDNAMES_whichChild, (int) offsetof (struct X3D_VRML1_Switch, whichChild),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Texture2[] = {
-	(int) FIELDNAMES_wrapS, (int) offsetof (struct X3D_VRML1_Texture2, wrapS),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_VRML1_Texture2, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_image, (int) offsetof (struct X3D_VRML1_Texture2, image),  (int) FIELDTYPE_SFImage, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_wrapT, (int) offsetof (struct X3D_VRML1_Texture2, wrapT),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_VRML1_Texture2, _initialized),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES__wrapS, (int) offsetof (struct X3D_VRML1_Texture2, _wrapS),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES__wrapT, (int) offsetof (struct X3D_VRML1_Texture2, _wrapT),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
-	(int) FIELDNAMES_filename, (int) offsetof (struct X3D_VRML1_Texture2, filename),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_VRML1_Texture2, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Texture2Transform[] = {
-	(int) FIELDNAMES_rotation, (int) offsetof (struct X3D_VRML1_Texture2Transform, rotation),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_scaleFactor, (int) offsetof (struct X3D_VRML1_Texture2Transform, scaleFactor),  (int) FIELDTYPE_SFVec2f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_translation, (int) offsetof (struct X3D_VRML1_Texture2Transform, translation),  (int) FIELDTYPE_SFVec2f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_center, (int) offsetof (struct X3D_VRML1_Texture2Transform, center),  (int) FIELDTYPE_SFVec2f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_TextureCoordinate2[] = {
-	(int) FIELDNAMES_point, (int) offsetof (struct X3D_VRML1_TextureCoordinate2, point),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Transform[] = {
-	(int) FIELDNAMES_rotation, (int) offsetof (struct X3D_VRML1_Transform, rotation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_scaleOrientation, (int) offsetof (struct X3D_VRML1_Transform, scaleOrientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_scaleFactor, (int) offsetof (struct X3D_VRML1_Transform, scaleFactor),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_translation, (int) offsetof (struct X3D_VRML1_Transform, translation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_center, (int) offsetof (struct X3D_VRML1_Transform, center),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_Translation[] = {
-	(int) FIELDNAMES_translation, (int) offsetof (struct X3D_VRML1_Translation, translation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_WWWAnchor[] = {
-	(int) FIELDNAMES_map, (int) offsetof (struct X3D_VRML1_WWWAnchor, map),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_name, (int) offsetof (struct X3D_VRML1_WWWAnchor, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_description, (int) offsetof (struct X3D_VRML1_WWWAnchor, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
-const int OFFSETS_VRML1_WWWInline[] = {
-	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_VRML1_WWWInline, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_name, (int) offsetof (struct X3D_VRML1_WWWInline, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) SPEC_VRML1,
-	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_VRML1_WWWInline, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) SPEC_VRML1,
-	-1, -1, -1, -1, -1};
-
 const int OFFSETS_Viewpoint[] = {
 	(int) FIELDNAMES_set_bind, (int) offsetof (struct X3D_Viewpoint, set_bind),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_orientation, (int) offsetof (struct X3D_Viewpoint, orientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5492,40 +4951,6 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_TriangleSet2D,
 	OFFSETS_TriangleStripSet,
 	OFFSETS_TwoSidedMaterial,
-	OFFSETS_VRML1_AsciiText,
-	OFFSETS_VRML1_Cone,
-	OFFSETS_VRML1_Coordinate3,
-	OFFSETS_VRML1_Cube,
-	OFFSETS_VRML1_Cylinder,
-	OFFSETS_VRML1_DirectionalLight,
-	OFFSETS_VRML1_FontStyle,
-	OFFSETS_VRML1_IndexedFaceSet,
-	OFFSETS_VRML1_IndexedLineSet,
-	OFFSETS_VRML1_Info,
-	OFFSETS_VRML1_LOD,
-	OFFSETS_VRML1_Material,
-	OFFSETS_VRML1_MaterialBinding,
-	OFFSETS_VRML1_MatrixTransform,
-	OFFSETS_VRML1_Normal,
-	OFFSETS_VRML1_NormalBinding,
-	OFFSETS_VRML1_OrthographicCamera,
-	OFFSETS_VRML1_PerspectiveCamera,
-	OFFSETS_VRML1_PointLight,
-	OFFSETS_VRML1_PointSet,
-	OFFSETS_VRML1_Rotation,
-	OFFSETS_VRML1_Scale,
-	OFFSETS_VRML1_Separator,
-	OFFSETS_VRML1_ShapeHints,
-	OFFSETS_VRML1_Sphere,
-	OFFSETS_VRML1_SpotLight,
-	OFFSETS_VRML1_Switch,
-	OFFSETS_VRML1_Texture2,
-	OFFSETS_VRML1_Texture2Transform,
-	OFFSETS_VRML1_TextureCoordinate2,
-	OFFSETS_VRML1_Transform,
-	OFFSETS_VRML1_Translation,
-	OFFSETS_VRML1_WWWAnchor,
-	OFFSETS_VRML1_WWWInline,
 	OFFSETS_Viewpoint,
 	OFFSETS_ViewpointGroup,
 	OFFSETS_VisibilitySensor,
@@ -5609,22 +5034,10 @@ const char *stringTEXTURECOMPRESSIONKeywordType (int st) {
 	return TEXTURECOMPRESSIONKEYWORDS[st];
 }
 
-/* Return a pointer to a string representation of the VRML1Modifier keyword type */
-const char *stringVRML1ModifierType (int st) {
-	if ((st < 0) || (st >= VRML1Modifier_COUNT)) return "(VRML1 modifier invalid)"; 
-	return VRML1Modifier[st];
-}
-
 /* Return a pointer to a string representation of the GEOSPATIAL keyword type */
 const char *stringGEOSPATIALType (int st) {
 	if ((st < 0) || (st >= GEOSPATIAL_COUNT)) return "(keyword invalid)"; 
 	return GEOSPATIAL[st];
-}
-
-/* Return a pointer to a string representation of the VRML1_ keyword type */
-const char *stringVRML1_Type (int st) {
-	if ((st < 0) || (st >= VRML1__COUNT)) return "(VRML1 keyword invalid)"; 
-	return VRML1_[st];
 }
 
 char mapFieldTypeToEAItype (int st) {
@@ -5980,40 +5393,6 @@ void *createNewX3DNode (int nt) {
 		case NODE_TriangleSet2D : {tmp = MALLOC (struct X3D_TriangleSet2D *, sizeof (struct X3D_TriangleSet2D)); break;}
 		case NODE_TriangleStripSet : {tmp = MALLOC (struct X3D_TriangleStripSet *, sizeof (struct X3D_TriangleStripSet)); break;}
 		case NODE_TwoSidedMaterial : {tmp = MALLOC (struct X3D_TwoSidedMaterial *, sizeof (struct X3D_TwoSidedMaterial)); break;}
-		case NODE_VRML1_AsciiText : {tmp = MALLOC (struct X3D_VRML1_AsciiText *, sizeof (struct X3D_VRML1_AsciiText)); break;}
-		case NODE_VRML1_Cone : {tmp = MALLOC (struct X3D_VRML1_Cone *, sizeof (struct X3D_VRML1_Cone)); break;}
-		case NODE_VRML1_Coordinate3 : {tmp = MALLOC (struct X3D_VRML1_Coordinate3 *, sizeof (struct X3D_VRML1_Coordinate3)); break;}
-		case NODE_VRML1_Cube : {tmp = MALLOC (struct X3D_VRML1_Cube *, sizeof (struct X3D_VRML1_Cube)); break;}
-		case NODE_VRML1_Cylinder : {tmp = MALLOC (struct X3D_VRML1_Cylinder *, sizeof (struct X3D_VRML1_Cylinder)); break;}
-		case NODE_VRML1_DirectionalLight : {tmp = MALLOC (struct X3D_VRML1_DirectionalLight *, sizeof (struct X3D_VRML1_DirectionalLight)); break;}
-		case NODE_VRML1_FontStyle : {tmp = MALLOC (struct X3D_VRML1_FontStyle *, sizeof (struct X3D_VRML1_FontStyle)); break;}
-		case NODE_VRML1_IndexedFaceSet : {tmp = MALLOC (struct X3D_VRML1_IndexedFaceSet *, sizeof (struct X3D_VRML1_IndexedFaceSet)); break;}
-		case NODE_VRML1_IndexedLineSet : {tmp = MALLOC (struct X3D_VRML1_IndexedLineSet *, sizeof (struct X3D_VRML1_IndexedLineSet)); break;}
-		case NODE_VRML1_Info : {tmp = MALLOC (struct X3D_VRML1_Info *, sizeof (struct X3D_VRML1_Info)); break;}
-		case NODE_VRML1_LOD : {tmp = MALLOC (struct X3D_VRML1_LOD *, sizeof (struct X3D_VRML1_LOD)); break;}
-		case NODE_VRML1_Material : {tmp = MALLOC (struct X3D_VRML1_Material *, sizeof (struct X3D_VRML1_Material)); break;}
-		case NODE_VRML1_MaterialBinding : {tmp = MALLOC (struct X3D_VRML1_MaterialBinding *, sizeof (struct X3D_VRML1_MaterialBinding)); break;}
-		case NODE_VRML1_MatrixTransform : {tmp = MALLOC (struct X3D_VRML1_MatrixTransform *, sizeof (struct X3D_VRML1_MatrixTransform)); break;}
-		case NODE_VRML1_Normal : {tmp = MALLOC (struct X3D_VRML1_Normal *, sizeof (struct X3D_VRML1_Normal)); break;}
-		case NODE_VRML1_NormalBinding : {tmp = MALLOC (struct X3D_VRML1_NormalBinding *, sizeof (struct X3D_VRML1_NormalBinding)); break;}
-		case NODE_VRML1_OrthographicCamera : {tmp = MALLOC (struct X3D_VRML1_OrthographicCamera *, sizeof (struct X3D_VRML1_OrthographicCamera)); break;}
-		case NODE_VRML1_PerspectiveCamera : {tmp = MALLOC (struct X3D_VRML1_PerspectiveCamera *, sizeof (struct X3D_VRML1_PerspectiveCamera)); break;}
-		case NODE_VRML1_PointLight : {tmp = MALLOC (struct X3D_VRML1_PointLight *, sizeof (struct X3D_VRML1_PointLight)); break;}
-		case NODE_VRML1_PointSet : {tmp = MALLOC (struct X3D_VRML1_PointSet *, sizeof (struct X3D_VRML1_PointSet)); break;}
-		case NODE_VRML1_Rotation : {tmp = MALLOC (struct X3D_VRML1_Rotation *, sizeof (struct X3D_VRML1_Rotation)); break;}
-		case NODE_VRML1_Scale : {tmp = MALLOC (struct X3D_VRML1_Scale *, sizeof (struct X3D_VRML1_Scale)); break;}
-		case NODE_VRML1_Separator : {tmp = MALLOC (struct X3D_VRML1_Separator *, sizeof (struct X3D_VRML1_Separator)); break;}
-		case NODE_VRML1_ShapeHints : {tmp = MALLOC (struct X3D_VRML1_ShapeHints *, sizeof (struct X3D_VRML1_ShapeHints)); break;}
-		case NODE_VRML1_Sphere : {tmp = MALLOC (struct X3D_VRML1_Sphere *, sizeof (struct X3D_VRML1_Sphere)); break;}
-		case NODE_VRML1_SpotLight : {tmp = MALLOC (struct X3D_VRML1_SpotLight *, sizeof (struct X3D_VRML1_SpotLight)); break;}
-		case NODE_VRML1_Switch : {tmp = MALLOC (struct X3D_VRML1_Switch *, sizeof (struct X3D_VRML1_Switch)); break;}
-		case NODE_VRML1_Texture2 : {tmp = MALLOC (struct X3D_VRML1_Texture2 *, sizeof (struct X3D_VRML1_Texture2)); break;}
-		case NODE_VRML1_Texture2Transform : {tmp = MALLOC (struct X3D_VRML1_Texture2Transform *, sizeof (struct X3D_VRML1_Texture2Transform)); break;}
-		case NODE_VRML1_TextureCoordinate2 : {tmp = MALLOC (struct X3D_VRML1_TextureCoordinate2 *, sizeof (struct X3D_VRML1_TextureCoordinate2)); break;}
-		case NODE_VRML1_Transform : {tmp = MALLOC (struct X3D_VRML1_Transform *, sizeof (struct X3D_VRML1_Transform)); break;}
-		case NODE_VRML1_Translation : {tmp = MALLOC (struct X3D_VRML1_Translation *, sizeof (struct X3D_VRML1_Translation)); break;}
-		case NODE_VRML1_WWWAnchor : {tmp = MALLOC (struct X3D_VRML1_WWWAnchor *, sizeof (struct X3D_VRML1_WWWAnchor)); break;}
-		case NODE_VRML1_WWWInline : {tmp = MALLOC (struct X3D_VRML1_WWWInline *, sizeof (struct X3D_VRML1_WWWInline)); break;}
 		case NODE_Viewpoint : {tmp = MALLOC (struct X3D_Viewpoint *, sizeof (struct X3D_Viewpoint)); break;}
 		case NODE_ViewpointGroup : {tmp = MALLOC (struct X3D_ViewpointGroup *, sizeof (struct X3D_ViewpointGroup)); break;}
 		case NODE_VisibilitySensor : {tmp = MALLOC (struct X3D_VisibilitySensor *, sizeof (struct X3D_VisibilitySensor)); break;}
@@ -9144,435 +8523,6 @@ void *createNewX3DNode (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_material;
 		break;
 		}
-		case NODE_VRML1_AsciiText : {
-			struct X3D_VRML1_AsciiText * tmp2;
-			tmp2 = (struct X3D_VRML1_AsciiText *) tmp;
-		/* ttmp2->v = &virt_VRML1_AsciiText;*/ 
-			tmp2->width.p = MALLOC (float *, sizeof(float)*1);
-			tmp2->width.p[0] = 0.0f;
-			tmp2->width.n=1;;
-			tmp2->justification = newASCIIString("LEFT");
-			tmp2->string.n=0; tmp2->string.p=0;
-			tmp2->spacing = 1.0f;
-			tmp2->_ILS = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Cone : {
-			struct X3D_VRML1_Cone * tmp2;
-			tmp2 = (struct X3D_VRML1_Cone *) tmp;
-		/* ttmp2->v = &virt_VRML1_Cone;*/ 
-			tmp2->parts = newASCIIString("ALL");
-			tmp2->bottomRadius = 1.0f;
-			tmp2->height = 2.0f;
-			tmp2->_ILS = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Coordinate3 : {
-			struct X3D_VRML1_Coordinate3 * tmp2;
-			tmp2 = (struct X3D_VRML1_Coordinate3 *) tmp;
-		/* ttmp2->v = &virt_VRML1_Coordinate3;*/ 
-			tmp2->point.p = MALLOC (struct SFVec3f *, sizeof(struct SFVec3f)*1);
-
-			tmp2->point.p[0].c[0] = 0.0f; 
-			tmp2->point.p[0].c[1] = 0.0f; 
-			tmp2->point.p[0].c[2] = 0.0f; 
-			tmp2->point.n=1;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Cube : {
-			struct X3D_VRML1_Cube * tmp2;
-			tmp2 = (struct X3D_VRML1_Cube *) tmp;
-		/* ttmp2->v = &virt_VRML1_Cube;*/ 
-			tmp2->width = 2.0f;
-			tmp2->height = 2.0f;
-			tmp2->depth = 2.0f;
-			tmp2->_ILS = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Cylinder : {
-			struct X3D_VRML1_Cylinder * tmp2;
-			tmp2 = (struct X3D_VRML1_Cylinder *) tmp;
-		/* ttmp2->v = &virt_VRML1_Cylinder;*/ 
-			tmp2->radius = 1.0f;
-			tmp2->parts = newASCIIString("ALL");
-			tmp2->height = 2.0f;
-			tmp2->_ILS = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_DirectionalLight : {
-			struct X3D_VRML1_DirectionalLight * tmp2;
-			tmp2 = (struct X3D_VRML1_DirectionalLight *) tmp;
-		/* ttmp2->v = &virt_VRML1_DirectionalLight;*/ 
-			tmp2->on = TRUE;
-			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;;
-			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
-			tmp2->intensity = 1.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_FontStyle : {
-			struct X3D_VRML1_FontStyle * tmp2;
-			tmp2 = (struct X3D_VRML1_FontStyle *) tmp;
-		/* ttmp2->v = &virt_VRML1_FontStyle;*/ 
-			tmp2->style = newASCIIString("NONE");
-			tmp2->size = 10.0f;
-			tmp2->family = newASCIIString("SERIF");
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_IndexedFaceSet : {
-			struct X3D_VRML1_IndexedFaceSet * tmp2;
-			tmp2 = (struct X3D_VRML1_IndexedFaceSet *) tmp;
-		/* ttmp2->v = &virt_VRML1_IndexedFaceSet;*/ 
-			tmp2->_solid = TRUE;
-			tmp2->normalIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->normalIndex.p[0] = -1;
-			tmp2->normalIndex.n=1;;
-			tmp2->_normal = NULL;
-			tmp2->materialIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->materialIndex.p[0] = -1;
-			tmp2->materialIndex.n=1;;
-			tmp2->_cpv = TRUE;
-			tmp2->_creaseAngle = 0.0f;
-			tmp2->_color = NULL;
-			tmp2->_ccw = TRUE;
-			tmp2->_convex = TRUE;
-			tmp2->coordIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->coordIndex.p[0] = 0;
-			tmp2->coordIndex.n=1;;
-			tmp2->_texCoord = NULL;
-			tmp2->_coord = NULL;
-			tmp2->textureCoordIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->textureCoordIndex.p[0] = -1;
-			tmp2->textureCoordIndex.n=1;;
-			tmp2->_npv = TRUE;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_IndexedLineSet : {
-			struct X3D_VRML1_IndexedLineSet * tmp2;
-			tmp2 = (struct X3D_VRML1_IndexedLineSet *) tmp;
-		/* ttmp2->v = &virt_VRML1_IndexedLineSet;*/ 
-			tmp2->normalIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->normalIndex.p[0] = -1;
-			tmp2->normalIndex.n=1;;
-			tmp2->coordIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->coordIndex.p[0] = 0;
-			tmp2->coordIndex.n=1;;
-			tmp2->materialIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->materialIndex.p[0] = -1;
-			tmp2->materialIndex.n=1;;
-			tmp2->textureCoordIndex.p = MALLOC (int *, sizeof(int)*1);
-			tmp2->textureCoordIndex.p[0] = -1;
-			tmp2->textureCoordIndex.n=1;;
-			tmp2->_ILS = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Info : {
-			struct X3D_VRML1_Info * tmp2;
-			tmp2 = (struct X3D_VRML1_Info *) tmp;
-		/* ttmp2->v = &virt_VRML1_Info;*/ 
-			tmp2->string = newASCIIString("");
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_LOD : {
-			struct X3D_VRML1_LOD * tmp2;
-			tmp2 = (struct X3D_VRML1_LOD *) tmp;
-		/* ttmp2->v = &virt_VRML1_LOD;*/ 
-			tmp2->range.n=0; tmp2->range.p=0;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Material : {
-			struct X3D_VRML1_Material * tmp2;
-			tmp2 = (struct X3D_VRML1_Material *) tmp;
-		/* ttmp2->v = &virt_VRML1_Material;*/ 
-			tmp2->transparency.p = MALLOC (float *, sizeof(float)*1);
-			tmp2->transparency.p[0] = 0.0f;
-			tmp2->transparency.n=1;;
-			tmp2->specularColor.p = MALLOC (struct SFColor *, sizeof(struct SFColor)*1);
-
-			tmp2->specularColor.p[0].c[0] = 0.0f; 
-			tmp2->specularColor.p[0].c[1] = 0.0f; 
-			tmp2->specularColor.p[0].c[2] = 0.0f; 
-			tmp2->specularColor.n=1;;
-			tmp2->_verifiedColor.p = MALLOC (float *, sizeof(float)*17);
-			tmp2->_verifiedColor.p[0] = 0.0f;
-			tmp2->_verifiedColor.p[1] = 0.0f;
-			tmp2->_verifiedColor.p[2] = 0.0f;
-			tmp2->_verifiedColor.p[3] = 0.0f;
-			tmp2->_verifiedColor.p[4] = 0.0f;
-			tmp2->_verifiedColor.p[5] = 0.0f;
-			tmp2->_verifiedColor.p[6] = 0.0f;
-			tmp2->_verifiedColor.p[7] = 0.0f;
-			tmp2->_verifiedColor.p[8] = 0.0f;
-			tmp2->_verifiedColor.p[9] = 0.0f;
-			tmp2->_verifiedColor.p[10] = 0.0f;
-			tmp2->_verifiedColor.p[11] = 0.0f;
-			tmp2->_verifiedColor.p[12] = 0.0f;
-			tmp2->_verifiedColor.p[13] = 0.0f;
-			tmp2->_verifiedColor.p[14] = 0.0f;
-			tmp2->_verifiedColor.p[15] = 0.0f;
-			tmp2->_verifiedColor.p[16] = 0.0f;
-			tmp2->_verifiedColor.n=17;;
-			tmp2->emissiveColor.p = MALLOC (struct SFColor *, sizeof(struct SFColor)*1);
-
-			tmp2->emissiveColor.p[0].c[0] = 0.0f; 
-			tmp2->emissiveColor.p[0].c[1] = 0.0f; 
-			tmp2->emissiveColor.p[0].c[2] = 0.0f; 
-			tmp2->emissiveColor.n=1;;
-			tmp2->shininess.n=0; tmp2->shininess.p=0;
-			tmp2->diffuseColor.p = MALLOC (struct SFColor *, sizeof(struct SFColor)*1);
-
-			tmp2->diffuseColor.p[0].c[0] = 0.8f; 
-			tmp2->diffuseColor.p[0].c[1] = 0.8f; 
-			tmp2->diffuseColor.p[0].c[2] = 0.8f; 
-			tmp2->diffuseColor.n=1;;
-			tmp2->ambientColor.p = MALLOC (struct SFColor *, sizeof(struct SFColor)*1);
-
-			tmp2->ambientColor.p[0].c[0] = 0.2f; 
-			tmp2->ambientColor.p[0].c[1] = 0.2f; 
-			tmp2->ambientColor.p[0].c[2] = 0.2f; 
-			tmp2->ambientColor.n=1;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_MaterialBinding : {
-			struct X3D_VRML1_MaterialBinding * tmp2;
-			tmp2 = (struct X3D_VRML1_MaterialBinding *) tmp;
-		/* ttmp2->v = &virt_VRML1_MaterialBinding;*/ 
-			tmp2->_initialized = FALSE;
-			tmp2->value = newASCIIString("OVERALL");
-			tmp2->_Value = -1;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_MatrixTransform : {
-			struct X3D_VRML1_MatrixTransform * tmp2;
-			tmp2 = (struct X3D_VRML1_MatrixTransform *) tmp;
-		/* ttmp2->v = &virt_VRML1_MatrixTransform;*/ 
-			tmp2->value.c[0] = 1;tmp2->value.c[1] = 0;tmp2->value.c[2] = 0;tmp2->value.c[3] = 0;tmp2->value.c[4] = 0;tmp2->value.c[5] = 1;tmp2->value.c[6] = 0;tmp2->value.c[7] = 0;tmp2->value.c[8] = 0;tmp2->value.c[9] = 0;tmp2->value.c[10] = 1;tmp2->value.c[11] = 0;tmp2->value.c[12] = 0;tmp2->value.c[13] = 0;tmp2->value.c[14] = 0;tmp2->value.c[15] = 1;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Normal : {
-			struct X3D_VRML1_Normal * tmp2;
-			tmp2 = (struct X3D_VRML1_Normal *) tmp;
-		/* ttmp2->v = &virt_VRML1_Normal;*/ 
-			tmp2->vector.n=0; tmp2->vector.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_NormalBinding : {
-			struct X3D_VRML1_NormalBinding * tmp2;
-			tmp2 = (struct X3D_VRML1_NormalBinding *) tmp;
-		/* ttmp2->v = &virt_VRML1_NormalBinding;*/ 
-			tmp2->_initialized = FALSE;
-			tmp2->value = newASCIIString("DEFAULT");
-			tmp2->_Value = -1;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_OrthographicCamera : {
-			struct X3D_VRML1_OrthographicCamera * tmp2;
-			tmp2 = (struct X3D_VRML1_OrthographicCamera *) tmp;
-		/* ttmp2->v = &virt_VRML1_OrthographicCamera;*/ 
-			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 1.0f;;
-			tmp2->orientation.c[0] = 0;tmp2->orientation.c[1] = 0;tmp2->orientation.c[2] = 1;tmp2->orientation.c[3] = 0;;
-			tmp2->focalDistance = 5.0f;
-			tmp2->height = 2.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_PerspectiveCamera : {
-			struct X3D_VRML1_PerspectiveCamera * tmp2;
-			tmp2 = (struct X3D_VRML1_PerspectiveCamera *) tmp;
-		/* ttmp2->v = &virt_VRML1_PerspectiveCamera;*/ 
-			tmp2->heightAngle = 0.785398f;
-			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 1.0f;;
-			tmp2->orientation.c[0] = 0;tmp2->orientation.c[1] = 0;tmp2->orientation.c[2] = 1;tmp2->orientation.c[3] = 0;;
-			tmp2->focalDistance = 5.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_PointLight : {
-			struct X3D_VRML1_PointLight * tmp2;
-			tmp2 = (struct X3D_VRML1_PointLight *) tmp;
-		/* ttmp2->v = &virt_VRML1_PointLight;*/ 
-			tmp2->on = TRUE;
-			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
-			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 1.0f;;
-			tmp2->intensity = 1.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_PointSet : {
-			struct X3D_VRML1_PointSet * tmp2;
-			tmp2 = (struct X3D_VRML1_PointSet *) tmp;
-		/* ttmp2->v = &virt_VRML1_PointSet;*/ 
-			tmp2->startIndex = 0;
-			tmp2->numPoints = -1;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Rotation : {
-			struct X3D_VRML1_Rotation * tmp2;
-			tmp2 = (struct X3D_VRML1_Rotation *) tmp;
-		/* ttmp2->v = &virt_VRML1_Rotation;*/ 
-			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Scale : {
-			struct X3D_VRML1_Scale * tmp2;
-			tmp2 = (struct X3D_VRML1_Scale *) tmp;
-		/* ttmp2->v = &virt_VRML1_Scale;*/ 
-			tmp2->scaleFactor.c[0] = 1.0f;tmp2->scaleFactor.c[1] = 1.0f;tmp2->scaleFactor.c[2] = 1.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Separator : {
-			struct X3D_VRML1_Separator * tmp2;
-			tmp2 = (struct X3D_VRML1_Separator *) tmp;
-		/* ttmp2->v = &virt_VRML1_Separator;*/ 
-			tmp2->renderCulling = newASCIIString("AUTO");
-			tmp2->VRML1children.n=0; tmp2->VRML1children.p=0;
-			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_ShapeHints : {
-			struct X3D_VRML1_ShapeHints * tmp2;
-			tmp2 = (struct X3D_VRML1_ShapeHints *) tmp;
-		/* ttmp2->v = &virt_VRML1_ShapeHints;*/ 
-			tmp2->_faceValue = 0;
-			tmp2->faceType = newASCIIString("CONVEX");
-			tmp2->_initialized = FALSE;
-			tmp2->_typeValue = 0;
-			tmp2->creaseAngle = 0.5;
-			tmp2->vertexOrdering = newASCIIString("CLOCKWISE");
-			tmp2->shapeType = newASCIIString("SOLID");
-			tmp2->_vertValue = 0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Sphere : {
-			struct X3D_VRML1_Sphere * tmp2;
-			tmp2 = (struct X3D_VRML1_Sphere *) tmp;
-		/* ttmp2->v = &virt_VRML1_Sphere;*/ 
-			tmp2->radius = 1.0f;
-			tmp2->_ILS = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_SpotLight : {
-			struct X3D_VRML1_SpotLight * tmp2;
-			tmp2 = (struct X3D_VRML1_SpotLight *) tmp;
-		/* ttmp2->v = &virt_VRML1_SpotLight;*/ 
-			tmp2->on = TRUE;
-			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;;
-			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
-			tmp2->cutOffAngle = 0.785398f;
-			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 1.0f;;
-			tmp2->dropOffRate = 0.0f;
-			tmp2->intensity = 1.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Switch : {
-			struct X3D_VRML1_Switch * tmp2;
-			tmp2 = (struct X3D_VRML1_Switch *) tmp;
-		/* ttmp2->v = &virt_VRML1_Switch;*/ 
-			tmp2->whichChild = -1;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Texture2 : {
-			struct X3D_VRML1_Texture2 * tmp2;
-			tmp2 = (struct X3D_VRML1_Texture2 *) tmp;
-		/* ttmp2->v = &virt_VRML1_Texture2;*/ 
-			tmp2->wrapS = newASCIIString("REPEAT");
-			tmp2->__textureTableIndex = 0;
-			tmp2->image.n=3; tmp2->image.p=MALLOC (int *, sizeof(int)*3); tmp2->image.p[0] = 0; tmp2->image.p[1] = 0; tmp2->image.p[2] = 0;;
-			tmp2->wrapT = newASCIIString("REPEAT");
-			tmp2->_initialized = FALSE;
-			tmp2->_wrapS = -1;
-			tmp2->_wrapT = -1;
-			tmp2->filename.n=0; tmp2->filename.p=0;
-			tmp2->_parentResource = getInputResource();
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Texture2Transform : {
-			struct X3D_VRML1_Texture2Transform * tmp2;
-			tmp2 = (struct X3D_VRML1_Texture2Transform *) tmp;
-		/* ttmp2->v = &virt_VRML1_Texture2Transform;*/ 
-			tmp2->rotation = 0.0f;
-			tmp2->scaleFactor.c[0] = 1.0f;tmp2->scaleFactor.c[1] = 1.0f;;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_TextureCoordinate2 : {
-			struct X3D_VRML1_TextureCoordinate2 * tmp2;
-			tmp2 = (struct X3D_VRML1_TextureCoordinate2 *) tmp;
-		/* ttmp2->v = &virt_VRML1_TextureCoordinate2;*/ 
-			tmp2->point.p = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f)*1);
-			tmp2->point.p[0].c[0] = 0.0f; 
-			tmp2->point.p[0].c[1] = 0.0f; 
-			tmp2->point.n=1;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Transform : {
-			struct X3D_VRML1_Transform * tmp2;
-			tmp2 = (struct X3D_VRML1_Transform *) tmp;
-		/* ttmp2->v = &virt_VRML1_Transform;*/ 
-			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
-			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
-			tmp2->scaleFactor.c[0] = 1.0f;tmp2->scaleFactor.c[1] = 1.0f;tmp2->scaleFactor.c[2] = 1.0f;;
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
-			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_Translation : {
-			struct X3D_VRML1_Translation * tmp2;
-			tmp2 = (struct X3D_VRML1_Translation *) tmp;
-		/* ttmp2->v = &virt_VRML1_Translation;*/ 
-			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_WWWAnchor : {
-			struct X3D_VRML1_WWWAnchor * tmp2;
-			tmp2 = (struct X3D_VRML1_WWWAnchor *) tmp;
-		/* ttmp2->v = &virt_VRML1_WWWAnchor;*/ 
-			tmp2->map = newASCIIString("");
-			tmp2->name = newASCIIString("");
-			tmp2->description = newASCIIString("");
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
-		case NODE_VRML1_WWWInline : {
-			struct X3D_VRML1_WWWInline * tmp2;
-			tmp2 = (struct X3D_VRML1_WWWInline *) tmp;
-		/* ttmp2->v = &virt_VRML1_WWWInline;*/ 
-			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
-			tmp2->name = newASCIIString("");
-			tmp2->bboxSize.c[0] = 0.0f;tmp2->bboxSize.c[1] = 0.0f;tmp2->bboxSize.c[2] = 0.0f;;
-			tmp2->_defaultContainer = FIELDNAMES_children;
-		break;
-		}
 		case NODE_Viewpoint : {
 			struct X3D_Viewpoint * tmp2;
 			tmp2 = (struct X3D_Viewpoint *) tmp;
@@ -12409,411 +11359,6 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp,"\tbackShininess (SFFloat) \t%4.3f\n",tmp->backShininess);
 		    break;
 		}
-		case NODE_VRML1_AsciiText : {
-			struct X3D_VRML1_AsciiText *tmp;
-			tmp = (struct X3D_VRML1_AsciiText *) node;
-			spacer fprintf (fp,"\twidth (MFFloat):\n");
-			for (i=0; i<tmp->width.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->width.p[i]); }
-			spacer fprintf (fp,"\tjustification (SFString) \t%s\n",tmp->justification->strptr);
-			spacer fprintf (fp,"\tstring (MFString): \n");
-			for (i=0; i<tmp->string.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->string.p[i]->strptr); }
-			spacer fprintf (fp,"\tspacing (SFFloat) \t%4.3f\n",tmp->spacing);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_ILS (SFNode):\n"); dump_scene(fp,level+1,tmp->_ILS); 
-		    }
-		    break;
-		}
-		case NODE_VRML1_Cone : {
-			struct X3D_VRML1_Cone *tmp;
-			tmp = (struct X3D_VRML1_Cone *) node;
-			spacer fprintf (fp,"\tparts (SFString) \t%s\n",tmp->parts->strptr);
-			spacer fprintf (fp,"\tbottomRadius (SFFloat) \t%4.3f\n",tmp->bottomRadius);
-			spacer fprintf (fp,"\theight (SFFloat) \t%4.3f\n",tmp->height);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_ILS (SFNode):\n"); dump_scene(fp,level+1,tmp->_ILS); 
-		    }
-		    break;
-		}
-		case NODE_VRML1_Coordinate3 : {
-			struct X3D_VRML1_Coordinate3 *tmp;
-			tmp = (struct X3D_VRML1_Coordinate3 *) node;
-			spacer fprintf (fp,"\tpoint (MFVec3f):\n");
-			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
-		    break;
-		}
-		case NODE_VRML1_Cube : {
-			struct X3D_VRML1_Cube *tmp;
-			tmp = (struct X3D_VRML1_Cube *) node;
-			spacer fprintf (fp,"\twidth (SFFloat) \t%4.3f\n",tmp->width);
-			spacer fprintf (fp,"\theight (SFFloat) \t%4.3f\n",tmp->height);
-			spacer fprintf (fp,"\tdepth (SFFloat) \t%4.3f\n",tmp->depth);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_ILS (SFNode):\n"); dump_scene(fp,level+1,tmp->_ILS); 
-		    }
-		    break;
-		}
-		case NODE_VRML1_Cylinder : {
-			struct X3D_VRML1_Cylinder *tmp;
-			tmp = (struct X3D_VRML1_Cylinder *) node;
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
-			spacer fprintf (fp,"\tparts (SFString) \t%s\n",tmp->parts->strptr);
-			spacer fprintf (fp,"\theight (SFFloat) \t%4.3f\n",tmp->height);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_ILS (SFNode):\n"); dump_scene(fp,level+1,tmp->_ILS); 
-		    }
-		    break;
-		}
-		case NODE_VRML1_DirectionalLight : {
-			struct X3D_VRML1_DirectionalLight *tmp;
-			tmp = (struct X3D_VRML1_DirectionalLight *) node;
-			spacer fprintf (fp,"\ton (SFBool) \t%d\n",tmp->on);
-			spacer fprintf (fp,"\tdirection (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
-		    break;
-		}
-		case NODE_VRML1_FontStyle : {
-			struct X3D_VRML1_FontStyle *tmp;
-			tmp = (struct X3D_VRML1_FontStyle *) node;
-			spacer fprintf (fp,"\tstyle (SFString) \t%s\n",tmp->style->strptr);
-			spacer fprintf (fp,"\tsize (SFFloat) \t%4.3f\n",tmp->size);
-			spacer fprintf (fp,"\tfamily (SFString) \t%s\n",tmp->family->strptr);
-		    break;
-		}
-		case NODE_VRML1_IndexedFaceSet : {
-			struct X3D_VRML1_IndexedFaceSet *tmp;
-			tmp = (struct X3D_VRML1_IndexedFaceSet *) node;
-			spacer fprintf (fp,"\tnormalIndex (MFInt32):\n");
-			for (i=0; i<tmp->normalIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->normalIndex.p[i]); }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_normal (SFNode):\n"); dump_scene(fp,level+1,tmp->_normal); 
-		    }
-			spacer fprintf (fp,"\tmaterialIndex (MFInt32):\n");
-			for (i=0; i<tmp->materialIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->materialIndex.p[i]); }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_color (SFNode):\n"); dump_scene(fp,level+1,tmp->_color); 
-		    }
-			spacer fprintf (fp,"\tcoordIndex (MFInt32):\n");
-			for (i=0; i<tmp->coordIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->coordIndex.p[i]); }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->_texCoord); 
-		    }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_coord (SFNode):\n"); dump_scene(fp,level+1,tmp->_coord); 
-		    }
-			spacer fprintf (fp,"\ttextureCoordIndex (MFInt32):\n");
-			for (i=0; i<tmp->textureCoordIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->textureCoordIndex.p[i]); }
-		    break;
-		}
-		case NODE_VRML1_IndexedLineSet : {
-			struct X3D_VRML1_IndexedLineSet *tmp;
-			tmp = (struct X3D_VRML1_IndexedLineSet *) node;
-			spacer fprintf (fp,"\tnormalIndex (MFInt32):\n");
-			for (i=0; i<tmp->normalIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->normalIndex.p[i]); }
-			spacer fprintf (fp,"\tcoordIndex (MFInt32):\n");
-			for (i=0; i<tmp->coordIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->coordIndex.p[i]); }
-			spacer fprintf (fp,"\tmaterialIndex (MFInt32):\n");
-			for (i=0; i<tmp->materialIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->materialIndex.p[i]); }
-			spacer fprintf (fp,"\ttextureCoordIndex (MFInt32):\n");
-			for (i=0; i<tmp->textureCoordIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->textureCoordIndex.p[i]); }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_ILS (SFNode):\n"); dump_scene(fp,level+1,tmp->_ILS); 
-		    }
-		    break;
-		}
-		case NODE_VRML1_Info : {
-			struct X3D_VRML1_Info *tmp;
-			tmp = (struct X3D_VRML1_Info *) node;
-			spacer fprintf (fp,"\tstring (SFString) \t%s\n",tmp->string->strptr);
-		    break;
-		}
-		case NODE_VRML1_LOD : {
-			struct X3D_VRML1_LOD *tmp;
-			tmp = (struct X3D_VRML1_LOD *) node;
-			spacer fprintf (fp,"\trange (MFFloat):\n");
-			for (i=0; i<tmp->range.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->range.p[i]); }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
-		case NODE_VRML1_Material : {
-			struct X3D_VRML1_Material *tmp;
-			tmp = (struct X3D_VRML1_Material *) node;
-			spacer fprintf (fp,"\ttransparency (MFFloat):\n");
-			for (i=0; i<tmp->transparency.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->transparency.p[i]); }
-			spacer fprintf (fp,"\tspecularColor (MFColor):\n");
-			for (i=0; i<tmp->specularColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->specularColor.p[i]).c[0], (tmp->specularColor.p[i]).c[1],(tmp->specularColor.p[i]).c[2]); }
-			spacer fprintf (fp,"\temissiveColor (MFColor):\n");
-			for (i=0; i<tmp->emissiveColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->emissiveColor.p[i]).c[0], (tmp->emissiveColor.p[i]).c[1],(tmp->emissiveColor.p[i]).c[2]); }
-			spacer fprintf (fp,"\tshininess (MFFloat):\n");
-			for (i=0; i<tmp->shininess.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->shininess.p[i]); }
-			spacer fprintf (fp,"\tdiffuseColor (MFColor):\n");
-			for (i=0; i<tmp->diffuseColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->diffuseColor.p[i]).c[0], (tmp->diffuseColor.p[i]).c[1],(tmp->diffuseColor.p[i]).c[2]); }
-			spacer fprintf (fp,"\tambientColor (MFColor):\n");
-			for (i=0; i<tmp->ambientColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->ambientColor.p[i]).c[0], (tmp->ambientColor.p[i]).c[1],(tmp->ambientColor.p[i]).c[2]); }
-		    break;
-		}
-		case NODE_VRML1_MaterialBinding : {
-			struct X3D_VRML1_MaterialBinding *tmp;
-			tmp = (struct X3D_VRML1_MaterialBinding *) node;
-		    if(allFields) {
-			spacer fprintf (fp,"\t_initialized (SFInt32) \t%d\n",tmp->_initialized);
-		    }
-			spacer fprintf (fp,"\tvalue (SFString) \t%s\n",tmp->value->strptr);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_Value (SFInt32) \t%d\n",tmp->_Value);
-		    }
-		    break;
-		}
-		case NODE_VRML1_MatrixTransform : {
-			struct X3D_VRML1_MatrixTransform *tmp;
-			tmp = (struct X3D_VRML1_MatrixTransform *) node;
-			spacer fprintf (fp,"\tvalue (SFMatrix4f): \t");
-			for (i=0; i<16; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
-		case NODE_VRML1_Normal : {
-			struct X3D_VRML1_Normal *tmp;
-			tmp = (struct X3D_VRML1_Normal *) node;
-			spacer fprintf (fp,"\tvector (MFVec3f):\n");
-			for (i=0; i<tmp->vector.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->vector.p[i]).c[0], (tmp->vector.p[i]).c[1],(tmp->vector.p[i]).c[2]); }
-		    break;
-		}
-		case NODE_VRML1_NormalBinding : {
-			struct X3D_VRML1_NormalBinding *tmp;
-			tmp = (struct X3D_VRML1_NormalBinding *) node;
-		    if(allFields) {
-			spacer fprintf (fp,"\t_initialized (SFInt32) \t%d\n",tmp->_initialized);
-		    }
-			spacer fprintf (fp,"\tvalue (SFString) \t%s\n",tmp->value->strptr);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_Value (SFInt32) \t%d\n",tmp->_Value);
-		    }
-		    break;
-		}
-		case NODE_VRML1_OrthographicCamera : {
-			struct X3D_VRML1_OrthographicCamera *tmp;
-			tmp = (struct X3D_VRML1_OrthographicCamera *) node;
-			spacer fprintf (fp,"\tposition (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->position.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\torientation (SFRotation): \t");
-			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tfocalDistance (SFFloat) \t%4.3f\n",tmp->focalDistance);
-			spacer fprintf (fp,"\theight (SFFloat) \t%4.3f\n",tmp->height);
-		    break;
-		}
-		case NODE_VRML1_PerspectiveCamera : {
-			struct X3D_VRML1_PerspectiveCamera *tmp;
-			tmp = (struct X3D_VRML1_PerspectiveCamera *) node;
-			spacer fprintf (fp,"\theightAngle (SFFloat) \t%4.3f\n",tmp->heightAngle);
-			spacer fprintf (fp,"\tposition (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->position.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\torientation (SFRotation): \t");
-			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tfocalDistance (SFFloat) \t%4.3f\n",tmp->focalDistance);
-		    break;
-		}
-		case NODE_VRML1_PointLight : {
-			struct X3D_VRML1_PointLight *tmp;
-			tmp = (struct X3D_VRML1_PointLight *) node;
-			spacer fprintf (fp,"\ton (SFBool) \t%d\n",tmp->on);
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tlocation (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->location.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
-		    break;
-		}
-		case NODE_VRML1_PointSet : {
-			struct X3D_VRML1_PointSet *tmp;
-			tmp = (struct X3D_VRML1_PointSet *) node;
-			spacer fprintf (fp,"\tstartIndex (SFInt32) \t%d\n",tmp->startIndex);
-			spacer fprintf (fp,"\tnumPoints (SFInt32) \t%d\n",tmp->numPoints);
-		    break;
-		}
-		case NODE_VRML1_Rotation : {
-			struct X3D_VRML1_Rotation *tmp;
-			tmp = (struct X3D_VRML1_Rotation *) node;
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
-			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
-		case NODE_VRML1_Scale : {
-			struct X3D_VRML1_Scale *tmp;
-			tmp = (struct X3D_VRML1_Scale *) node;
-			spacer fprintf (fp,"\tscaleFactor (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scaleFactor.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
-		case NODE_VRML1_Separator : {
-			struct X3D_VRML1_Separator *tmp;
-			tmp = (struct X3D_VRML1_Separator *) node;
-			spacer fprintf (fp,"\trenderCulling (SFString) \t%s\n",tmp->renderCulling->strptr);
-			spacer fprintf (fp,"\tVRML1children (MFNode):\n");
-			for (i=0; i<tmp->VRML1children.n; i++) { dump_scene(fp,level+1,tmp->VRML1children.p[i]); }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_sortedChildren (MFNode):\n");
-			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
-		    }
-		    break;
-		}
-		case NODE_VRML1_ShapeHints : {
-			struct X3D_VRML1_ShapeHints *tmp;
-			tmp = (struct X3D_VRML1_ShapeHints *) node;
-		    if(allFields) {
-			spacer fprintf (fp,"\t_faceValue (SFInt32) \t%d\n",tmp->_faceValue);
-		    }
-			spacer fprintf (fp,"\tfaceType (SFString) \t%s\n",tmp->faceType->strptr);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_initialized (SFInt32) \t%d\n",tmp->_initialized);
-		    }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_typeValue (SFInt32) \t%d\n",tmp->_typeValue);
-		    }
-			spacer fprintf (fp,"\tvertexOrdering (SFString) \t%s\n",tmp->vertexOrdering->strptr);
-			spacer fprintf (fp,"\tshapeType (SFString) \t%s\n",tmp->shapeType->strptr);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_vertValue (SFInt32) \t%d\n",tmp->_vertValue);
-		    }
-		    break;
-		}
-		case NODE_VRML1_Sphere : {
-			struct X3D_VRML1_Sphere *tmp;
-			tmp = (struct X3D_VRML1_Sphere *) node;
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_ILS (SFNode):\n"); dump_scene(fp,level+1,tmp->_ILS); 
-		    }
-		    break;
-		}
-		case NODE_VRML1_SpotLight : {
-			struct X3D_VRML1_SpotLight *tmp;
-			tmp = (struct X3D_VRML1_SpotLight *) node;
-			spacer fprintf (fp,"\ton (SFBool) \t%d\n",tmp->on);
-			spacer fprintf (fp,"\tdirection (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcutOffAngle (SFFloat) \t%4.3f\n",tmp->cutOffAngle);
-			spacer fprintf (fp,"\tlocation (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->location.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tdropOffRate (SFFloat) \t%4.3f\n",tmp->dropOffRate);
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
-		    break;
-		}
-		case NODE_VRML1_Switch : {
-			struct X3D_VRML1_Switch *tmp;
-			tmp = (struct X3D_VRML1_Switch *) node;
-			spacer fprintf (fp,"\twhichChild (SFInt32) \t%d\n",tmp->whichChild);
-		    break;
-		}
-		case NODE_VRML1_Texture2 : {
-			struct X3D_VRML1_Texture2 *tmp;
-			tmp = (struct X3D_VRML1_Texture2 *) node;
-			spacer fprintf (fp,"\twrapS (SFString) \t%s\n",tmp->wrapS->strptr);
-			spacer fprintf (fp,"\timage (SFImage): (not dumped)\t");
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\twrapT (SFString) \t%s\n",tmp->wrapT->strptr);
-		    if(allFields) {
-			spacer fprintf (fp,"\t_initialized (SFInt32) \t%d\n",tmp->_initialized);
-		    }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_wrapS (SFInt32) \t%d\n",tmp->_wrapS);
-		    }
-		    if(allFields) {
-			spacer fprintf (fp,"\t_wrapT (SFInt32) \t%d\n",tmp->_wrapT);
-		    }
-			spacer fprintf (fp,"\tfilename (MFString): \n");
-			for (i=0; i<tmp->filename.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->filename.p[i]->strptr); }
-		    break;
-		}
-		case NODE_VRML1_Texture2Transform : {
-			struct X3D_VRML1_Texture2Transform *tmp;
-			tmp = (struct X3D_VRML1_Texture2Transform *) node;
-			spacer fprintf (fp,"\trotation (SFFloat) \t%4.3f\n",tmp->rotation);
-			spacer fprintf (fp,"\tscaleFactor (SFVec2f): \t");
-			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->scaleFactor.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ttranslation (SFVec2f): \t");
-			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcenter (SFVec2f): \t");
-			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
-		case NODE_VRML1_TextureCoordinate2 : {
-			struct X3D_VRML1_TextureCoordinate2 *tmp;
-			tmp = (struct X3D_VRML1_TextureCoordinate2 *) node;
-			spacer fprintf (fp,"\tpoint (MFVec2f):\n");
-			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1]); }
-		    break;
-		}
-		case NODE_VRML1_Transform : {
-			struct X3D_VRML1_Transform *tmp;
-			tmp = (struct X3D_VRML1_Transform *) node;
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
-			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tscaleOrientation (SFRotation): \t");
-			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tscaleFactor (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scaleFactor.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
-		case NODE_VRML1_Translation : {
-			struct X3D_VRML1_Translation *tmp;
-			tmp = (struct X3D_VRML1_Translation *) node;
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
-		case NODE_VRML1_WWWAnchor : {
-			struct X3D_VRML1_WWWAnchor *tmp;
-			tmp = (struct X3D_VRML1_WWWAnchor *) node;
-			spacer fprintf (fp,"\tmap (SFString) \t%s\n",tmp->map->strptr);
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-		    break;
-		}
-		case NODE_VRML1_WWWInline : {
-			struct X3D_VRML1_WWWInline *tmp;
-			tmp = (struct X3D_VRML1_WWWInline *) node;
-			spacer fprintf (fp,"\tbboxCenter (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->bboxCenter.c[i]); }
-			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
-			spacer fprintf (fp,"\tbboxSize (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->bboxSize.c[i]); }
-			fprintf (fp,"\n");
-		    break;
-		}
 		case NODE_Viewpoint : {
 			struct X3D_Viewpoint *tmp;
 			tmp = (struct X3D_Viewpoint *) node;
@@ -13081,40 +11626,6 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_TriangleSet2D: return X3DGeometryNode; break;
 	case NODE_TriangleStripSet: return X3DGeometryNode; break;
 	case NODE_TwoSidedMaterial: return X3DMaterialNode; break;
-	case NODE_VRML1_AsciiText: return X3DChildNode; break;
-	case NODE_VRML1_Cone: return X3DChildNode; break;
-	case NODE_VRML1_Coordinate3: return X3DChildNode; break;
-	case NODE_VRML1_Cube: return X3DChildNode; break;
-	case NODE_VRML1_Cylinder: return X3DChildNode; break;
-	case NODE_VRML1_DirectionalLight: return X3DChildNode; break;
-	case NODE_VRML1_FontStyle: return X3DChildNode; break;
-	case NODE_VRML1_IndexedFaceSet: return X3DChildNode; break;
-	case NODE_VRML1_IndexedLineSet: return X3DChildNode; break;
-	case NODE_VRML1_Info: return X3DChildNode; break;
-	case NODE_VRML1_LOD: return X3DChildNode; break;
-	case NODE_VRML1_Material: return X3DChildNode; break;
-	case NODE_VRML1_MaterialBinding: return X3DChildNode; break;
-	case NODE_VRML1_MatrixTransform: return X3DChildNode; break;
-	case NODE_VRML1_Normal: return X3DChildNode; break;
-	case NODE_VRML1_NormalBinding: return X3DChildNode; break;
-	case NODE_VRML1_OrthographicCamera: return X3DChildNode; break;
-	case NODE_VRML1_PerspectiveCamera: return X3DChildNode; break;
-	case NODE_VRML1_PointLight: return X3DChildNode; break;
-	case NODE_VRML1_PointSet: return X3DChildNode; break;
-	case NODE_VRML1_Rotation: return X3DChildNode; break;
-	case NODE_VRML1_Scale: return X3DChildNode; break;
-	case NODE_VRML1_Separator: return X3DChildNode; break;
-	case NODE_VRML1_ShapeHints: return X3DChildNode; break;
-	case NODE_VRML1_Sphere: return X3DChildNode; break;
-	case NODE_VRML1_SpotLight: return X3DChildNode; break;
-	case NODE_VRML1_Switch: return X3DChildNode; break;
-	case NODE_VRML1_Texture2: return X3DChildNode; break;
-	case NODE_VRML1_Texture2Transform: return X3DChildNode; break;
-	case NODE_VRML1_TextureCoordinate2: return X3DChildNode; break;
-	case NODE_VRML1_Transform: return X3DChildNode; break;
-	case NODE_VRML1_Translation: return X3DChildNode; break;
-	case NODE_VRML1_WWWAnchor: return X3DChildNode; break;
-	case NODE_VRML1_WWWInline: return X3DChildNode; break;
 	case NODE_Viewpoint: return X3DBindableNode; break;
 	case NODE_ViewpointGroup: return X3DGroupingNode; break;
 	case NODE_VisibilitySensor: return X3DEnvironmentalSensorNode; break;

@@ -25,6 +25,7 @@
 #include <internal.h>
 #include <stdio.h>
 
+#if defined (DO_VRML1)
 #include <libFreeWRL.h>
 
 #include "../vrml_parser/Structs.h"
@@ -357,3 +358,4 @@ char *convert1To2 (const char *inp)
 	return STRDUP("Shape{geometry Box {}}");
 
 }
+#endif //DO_VRML1

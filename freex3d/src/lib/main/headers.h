@@ -876,7 +876,11 @@ void replaceWorldNeeded(char* str);
 int X3DParse(struct X3D_Group *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 
+#if defined (DO_VRML1)
 char* convert1To2(const char *inp);
+#endif //DO_VRML1
+
+
 
 //updateStatusBar(void);
 

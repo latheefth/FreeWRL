@@ -242,13 +242,15 @@ void compile_Material (struct X3D_Material *node) {
 		break; \
 	} 
 
+#if defined (DO_VRML1)
 #define CHECK_VRML1_COLOUR_FIELD(aaa) \
 	case NODE_##aaa: { \
 		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
 		if (me->_color == NULL) return NOTHING; /* do not add any properties here */\
 		else return COLOUR_MATERIAL_SHADER; \
 		break; \
-	} \
+	} 
+#endif //DO_VRML1
 
 /* if this is a LineSet, PointSet, etc... */
 static bool getIfLinePoints(struct X3D_Node *realNode) {
@@ -256,9 +258,14 @@ static bool getIfLinePoints(struct X3D_Node *realNode) {
 	switch (realNode->_nodeType) {
 		case NODE_IndexedLineSet:
 		case NODE_LineSet:
+        case NODE_PointSet:
+            
+#if defined (DO_VRML1)            
 		case NODE_VRML1_IndexedLineSet:
-		case NODE_PointSet:
 		case NODE_VRML1_PointSet:
+#endif //DO_VRML1
+            
+            
 			return  true;
 
 	}
@@ -317,7 +324,11 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 		CHECK_COLOUR_FIELD(TriangleSet);
 		CHECK_COLOUR_FIELD(ElevationGrid);
 		CHECK_COLOUR_FIELD(GeoElevationGrid);
+            
+#if defined (DO_VRML1)
 		CHECK_VRML1_COLOUR_FIELD(VRML1_IndexedFaceSet);
+#endif //DO_VRML1
+            
 	}
 
 	/* if we are down here, we KNOW we do not have a color field */
