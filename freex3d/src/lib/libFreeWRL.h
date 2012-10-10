@@ -345,5 +345,6 @@ char* fwl_getNavModeStr();
 int fwl_getNavMode();
 int	fwl_getCollision();
 void fwl_setCollision(int state);
+int fwl_getAnaglyphSide(int whichSide);
 
 #endif /* __LIBFREEWRL_API_H__ */

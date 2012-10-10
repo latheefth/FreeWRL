@@ -141,8 +141,11 @@ void Viewer_init(struct tViewer *t){
 		#endif
 		p->StereoInitializedOnce = 0;
 		//p->acMask[2][3]; //anaglyphChannelMask
-		p->acMask[0][0] = (GLboolean)1;
-		p->acMask[1][1] = (GLboolean)1;
+		// most common is Red/Cyan glasses, set left to Red, right to Cyan.
+		p->acMask[0][0] = (GLboolean)1; // R = 1, 0, 0
+
+		p->acMask[1][1] = (GLboolean)1; // C = 0, 1, 1
+		p->acMask[1][2] = (GLboolean)1;
 
 		/* viewpoint slerping */
 		loadIdentityMatrix(p->viewpoint2rootnode);
@@ -2417,6 +2420,31 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 	viewer_lastP_clear();
 	resolve_pos();
 }
+
+int fwl_getAnaglyphSide(int whichSide) {
+	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+        //glColorMask(p->acMask[iside][0],p->acMask[iside][1],p->acMask[iside][2],t);
+
+	if ((whichSide<0) || (whichSide>1)) {
+		return 0;
+	}
+
+	/* should return 
+		000 0 Black
+		001 1 Blue
+		010 2 Green
+		011 3 Cyan
+		100 4  Red
+		101 5 Magenta
+		110 6 Yellow
+		111 7 White
+	*/
+
+	return (p->acMask[whichSide][0] << 2) | (p->acMask[whichSide][1] << 1) | (p->acMask[whichSide][2]);
+}
+
+
+
 
 // Android - we are loading in a new file while keeping the system sane.
 void Android_reset_viewer_to_defaults() {

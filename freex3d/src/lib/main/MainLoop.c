@@ -64,7 +64,6 @@
 
 #include "../ui/common.h"
 
-
 void (*newResetGeometry) (void) = NULL;
 
 #ifdef WANT_OSC
@@ -464,10 +463,15 @@ __inline double Time1970sec()
 
 /* Main eventloop for FreeWRL!!! */
 void fwl_RenderSceneUpdateScene() {
-        //static int loop_count = 0;
-        //static int slowloop_count = 0;
 		ttglobal tg = gglobal();
 		ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+/* HAd an issue with Anaglyph rendering on Android; the cursorDraw routine caused the MODELVIEW matrix
+to have the Identity matrix loaded, which caused near/far plane calculations to be dinked.  
+ should be set     FW_GL_MATRIX_MODE(GL_MODELVIEW);
+    FW_GL_LOAD_IDENTITY(); DO NOT LOAD IDENTITY HERE, ELSE near/Far planes screwed up.
+ if you want to see what happened, load identity matrix here! (uncomment above line)
+*/
 
     PRINT_GL_ERROR_IF_ANY("start of renderSceneUpdateScene");
     
@@ -525,7 +529,6 @@ void fwl_RenderSceneUpdateScene() {
         startOfLoopNodeUpdates();
 
         if (p->loop_count == 25) {
-
                 tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
                 setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
@@ -1236,7 +1239,6 @@ void setup_projection(int pick, int x, int y)
 		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane); 
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
-
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
 
 }
@@ -1245,7 +1247,7 @@ void setup_projection(int pick, int x, int y)
 static void render() 
 {
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
-    int count,i;
+    int count;
 	static double shuttertime;
 	static int shutterside;
 #endif
@@ -1273,6 +1275,7 @@ static void render()
 
 		if(Viewer()->isStereo)
 		{
+            
 			if(Viewer()->shutterGlasses == 2) /* flutter mode - like --shutter but no GL_STEREO so alternates */
 			{
 				if(TickTime() - shuttertime > 2.0)
@@ -1328,10 +1331,14 @@ static void render()
 		render_hier(rootNode(), VF_Geom | VF_Blend);
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 	}
-	
+        
+
 #if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
-			cursorDraw(1,p->viewpointScreenX[count],0,0.0f); //draw a fiducial mark where centre of viewpoint is
+            
+
+            cursorDraw(1,p->viewpointScreenX[count],0,0.0f); //draw a fiducial mark where centre of viewpoint is
+
 			if (Viewer()->anaglyph)
 				glColorMask(1,1,1,1); /*restore, for statusbarHud etc*/
 		}
@@ -1342,6 +1349,7 @@ static void render()
 	}
 
 #endif
+    
 	if(p->EMULATE_MULTITOUCH) {
         int i;
     
@@ -1349,14 +1357,6 @@ static void render()
 			if(p->touchlist[i].isDown > 0)
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
-//#ifndef STATUSBAR_HUD
-//	/* status bar, if we have one */
-//	drawStatusBar();
-//
-//	/* swap the rendering area */
-//	FW_GL_SWAPBUFFERS;
-//        PRINT_GL_ERROR_IF_ANY("XEvents::render");
-//#endif
 }
 
 
@@ -1427,7 +1427,7 @@ static void setup_viewpoint() {
         
             
 	#endif // screen rotate
-
+    
         viewer_togl(Viewer()->fieldofview);
         render_hier(rootNode(), VF_Viewpoint);
         PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
@@ -2566,28 +2566,29 @@ void fwl_Android_replaceWorldNeeded() {
 	/* get rid of sensor events */
 	resetSensorEvents();
 
-
 	/* make the root_res equal NULL - this throws away all old resource info */
-
 	gglobal()->resources.root_res = NULL;
-
 	Android_reset_viewer_to_defaults();
+
         struct tProdCon *t = &gglobal()->ProdCon;
+
 	// if we have a bound vp; if the old world did not have a vp, there will be nothing to send_bind_to
 	if (vectorSize(t->viewpointNodes) > t->currboundvpno) {
 		send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
 	}
 
-	/* mark all rootNode children for Dispose */
-	for (i=0; i<rootNode()->children.n; i++) {
-		markForDispose(rootNode()->children.p[i], TRUE);
+	if (rootNode() != NULL) {
+
+		/* mark all rootNode children for Dispose */
+		for (i=0; i<rootNode()->children.n; i++) {
+			markForDispose(rootNode()->children.p[i], TRUE);
+		}
+
+		/* stop rendering. This should be done when the new resource is loaded, and new_root is set,
+		but lets do it here just to make sure */
+		rootNode()->children.n = 0; // no children, but _sortedChildren not made; 
+		rootNode()->_change ++; // force the rootNode()->_sortedChildren to be made
 	}
-
-
-	/* stop rendering. This should be done when the new resource is loaded, and new_root is set,
-	but lets do it here just to make sure */
-	rootNode()->children.n = 0; // no children, but _sortedChildren not made; 
-	rootNode()->_change ++; // force the rootNode()->_sortedChildren to be made
 
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
@@ -2602,10 +2603,8 @@ void fwl_Android_replaceWorldNeeded() {
 	//if we do this here, we have a problem, as the parser is already killed and cleaned up.
 	//EAI_killBindables();
 
-
 	kill_bindables();
 	killKeySensorNodeList();
-
 
 	/* stop routing */
 	kill_routing();
@@ -2630,7 +2629,6 @@ void fwl_Android_replaceWorldNeeded() {
 		sprintf (mystring, "QUIT");
 		Sound_toserver(mystring);
 	#endif
-
 
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {

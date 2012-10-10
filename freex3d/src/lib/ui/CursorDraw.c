@@ -243,12 +243,29 @@ void cursorDraw(int ID, int x, int y, float angle)
 
 	//if( ID == 0 )return;
 
+#ifdef GL_ES_VERSION_2_0
+    // There is an issue here where Anaglyph rendering gets dinked - see 
+    // fwl_RenderSceneUpdateScene() for comments.
+    return;
+#endif //GL_ES_VERSION_2_0
+
+
+
+
 	FW_GL_DEPTHMASK(GL_FALSE);
 
     #ifndef GL_ES_VERSION_2_0
 	FW_GL_SHADEMODEL(GL_FLAT);
 	y += 10;
 	#else
+
+    // There is an issue here where Anaglyph rendering gets dinked - see 
+    // fwl_RenderSceneUpdateScene() for comments.
+    return;
+    
+
+// JAS, trying this GL_PUSH_MATRIX();
+
 	if(!p->done)
 	{
 		glGenTextures(1, &p->textureID);
@@ -292,6 +309,9 @@ void cursorDraw(int ID, int x, int y, float angle)
 	//FW_GL_ENABLECLIENTSTATE(GL_VERTEX_ARRAY);
 	//FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,cursorVert);
 	//FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,cursorTex);
+
+// JAS, trying this GL_POP_MATRIX();
+
 	#endif /* GL_ES_VERSION_2_0 */
 	FW_GL_DISABLE(GL_DEPTH_TEST);
 	
