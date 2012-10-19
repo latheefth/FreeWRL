@@ -286,16 +286,18 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	 \
 	 \
 			/* work changes into extent */ \
- \
+            /* because we have materially moved this Transform, the WHOLE Bounding Box has moved, too, \
+                thus we do not bother to test against OLD max/min values */ \
+            maxx = FLT_MIN; maxy = FLT_MIN; maxz = FLT_MIN; \
+            minx = FLT_MAX; miny = FLT_MAX; minz = FLT_MAX; \
 			for (i=0; i<8; i++) { \
-				if (inxyz[i].x > maxx) maxx = (float) inxyz[i].x; \
+				if (inxyz[i].x > maxx) maxx =  (float)inxyz[i].x; \
 				if (inxyz[i].y > maxy) maxy =  (float)inxyz[i].y; \
 				if (inxyz[i].z > maxz) maxz =  (float)inxyz[i].z; \
 				if (inxyz[i].x < minx) minx =  (float)inxyz[i].x; \
 				if (inxyz[i].y < miny) miny =  (float)inxyz[i].y; \
 				if (inxyz[i].z < minz) minz =  (float)inxyz[i].z; \
 			} \
- \
 		} \
 	} 
 
@@ -340,6 +342,10 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	 \
 	 \
 		/* work changes into extent */ \
+            /* because we have materially moved this Transform, the WHOLE Bounding Box has moved, too, \
+                thus we do not bother to test against OLD max/min values */ \
+            maxx = FLT_MIN; maxy = FLT_MIN; maxz = FLT_MIN; \
+            minx = FLT_MAX; miny = FLT_MAX; minz = FLT_MAX; \
 		for (i=0; i<8; i++) { \
 			if (inxyz[i].x > maxx) maxx = (float) inxyz[i].x; \
 			if (inxyz[i].y > maxy) maxy = (float) inxyz[i].y; \
@@ -424,6 +430,10 @@ void endOcclusionQuery(struct X3D_VisibilitySensor* node, int render_geometry)
 	 \
 	 \
 			/* work changes into extent */ \
+            		/* because we have materially moved this Transform, the WHOLE Bounding Box has moved, too, \
+            		    thus we do not bother to test against OLD max/min values */ \
+            		maxx = FLT_MIN; maxy = FLT_MIN; maxz = FLT_MIN; \
+            		minx = FLT_MAX; miny = FLT_MAX; minz = FLT_MAX; \
 			for (i=0; i<8; i++) { \
 				if (inxyz[i].x > maxx) maxx = (float) inxyz[i].x; \
 				if (inxyz[i].y > maxy) maxy = (float) inxyz[i].y; \
@@ -648,6 +658,8 @@ void propagateExtent(struct X3D_Node *me) {
 	}
 
 	/* calculate the maximum of the current position, and add the previous extent */
+	/* these MIGHT be overwritten if we have a Transform node here */
+	/* these values are used in PROP_EXTENT_CHECK */
 	maxx = me->EXTENT_MAX_X; minx = me->EXTENT_MIN_X;
 	maxy = me->EXTENT_MAX_Y; miny = me->EXTENT_MIN_Y;
 	maxz = me->EXTENT_MAX_Z; minz = me->EXTENT_MIN_Z;
@@ -658,6 +670,7 @@ void propagateExtent(struct X3D_Node *me) {
 	FRUSTUM_GEOLOCATION;
 	FRUSTUM_TRANS(HAnimSite);
 	FRUSTUM_TRANS(HAnimJoint);
+
 
 	for (i=0; i<vectorSize(me->_parentVector); i++) {
 		geomParent = vector_get(struct X3D_Node *, me->_parentVector, i);
