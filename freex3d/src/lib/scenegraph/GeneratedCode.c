@@ -436,6 +436,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"watchList",
 	"lineProperties",
 	"_oldpickTarget",
+	"_dir",
 	"data",
 	"centerOfRotation",
 	"minBack",
@@ -513,6 +514,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"bindTime",
 	"depth",
 	"set_boolean",
+	"_col",
 	"gotEvents",
 	"fieldOfView",
 	"__oldHeadlight",
@@ -675,6 +677,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_stringOutFIFO",
 	"elapsedTime",
 	"__vertices",
+	"_amb",
 	"__initialized",
 };
 const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
@@ -1801,7 +1804,8 @@ struct X3D_Virt virt_DISEntityTypeMapping = { NULL,NULL,NULL,NULL,NULL,NULL,NULL
 
 void prep_DirectionalLight(struct X3D_DirectionalLight *);
 void render_DirectionalLight(struct X3D_DirectionalLight *);
-struct X3D_Virt virt_DirectionalLight = { (void *)prep_DirectionalLight,(void *)render_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_DirectionalLight(struct X3D_DirectionalLight *);
+struct X3D_Virt virt_DirectionalLight = { (void *)prep_DirectionalLight,(void *)render_DirectionalLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_DirectionalLight};
 
 void render_Disk2D(struct X3D_Disk2D *);
 void collide_Disk2D(struct X3D_Disk2D *);
@@ -2151,7 +2155,8 @@ struct X3D_Virt virt_PlaneSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NUL
 
 void prep_PointLight(struct X3D_PointLight *);
 void render_PointLight(struct X3D_PointLight *);
-struct X3D_Virt virt_PointLight = { (void *)prep_PointLight,(void *)render_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_PointLight(struct X3D_PointLight *);
+struct X3D_Virt virt_PointLight = { (void *)prep_PointLight,(void *)render_PointLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_PointLight};
 
 void other_PointPickSensor(struct X3D_PointPickSensor *);
 struct X3D_Virt virt_PointPickSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)other_PointPickSensor,NULL,NULL};
@@ -2220,7 +2225,8 @@ struct X3D_Virt virt_SplineScalarInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,
 
 void prep_SpotLight(struct X3D_SpotLight *);
 void render_SpotLight(struct X3D_SpotLight *);
-struct X3D_Virt virt_SpotLight = { (void *)prep_SpotLight,(void *)render_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_SpotLight(struct X3D_SpotLight *);
+struct X3D_Virt virt_SpotLight = { (void *)prep_SpotLight,(void *)render_SpotLight,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_SpotLight};
 
 struct X3D_Virt virt_SquadOrientationInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2804,13 +2810,16 @@ const int OFFSETS_DISEntityTypeMapping[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_DirectionalLight[] = {
+	(int) FIELDNAMES_global, (int) offsetof (struct X3D_DirectionalLight, global),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__dir, (int) offsetof (struct X3D_DirectionalLight, _dir),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_ambientIntensity, (int) offsetof (struct X3D_DirectionalLight, ambientIntensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_DirectionalLight, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_on, (int) offsetof (struct X3D_DirectionalLight, on),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_DirectionalLight, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_global, (int) offsetof (struct X3D_DirectionalLight, global),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_DirectionalLight, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__col, (int) offsetof (struct X3D_DirectionalLight, _col),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_DirectionalLight, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_ambientIntensity, (int) offsetof (struct X3D_DirectionalLight, ambientIntensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__amb, (int) offsetof (struct X3D_DirectionalLight, _amb),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_DirectionalLight, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Disk2D[] = {
@@ -4123,12 +4132,15 @@ const int OFFSETS_PointLight[] = {
 	(int) FIELDNAMES_global, (int) offsetof (struct X3D_PointLight, global),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_location, (int) offsetof (struct X3D_PointLight, location),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_radius, (int) offsetof (struct X3D_PointLight, radius),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__dir, (int) offsetof (struct X3D_PointLight, _dir),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_ambientIntensity, (int) offsetof (struct X3D_PointLight, ambientIntensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_on, (int) offsetof (struct X3D_PointLight, on),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_color, (int) offsetof (struct X3D_PointLight, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__col, (int) offsetof (struct X3D_PointLight, _col),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_attenuation, (int) offsetof (struct X3D_PointLight, attenuation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_color, (int) offsetof (struct X3D_PointLight, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PointLight, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_PointLight, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__amb, (int) offsetof (struct X3D_PointLight, _amb),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PointPickSensor[] = {
@@ -4409,14 +4421,17 @@ const int OFFSETS_SpotLight[] = {
 	(int) FIELDNAMES_global, (int) offsetof (struct X3D_SpotLight, global),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_location, (int) offsetof (struct X3D_SpotLight, location),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_radius, (int) offsetof (struct X3D_SpotLight, radius),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__dir, (int) offsetof (struct X3D_SpotLight, _dir),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_ambientIntensity, (int) offsetof (struct X3D_SpotLight, ambientIntensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_on, (int) offsetof (struct X3D_SpotLight, on),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_SpotLight, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_cutOffAngle, (int) offsetof (struct X3D_SpotLight, cutOffAngle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_attenuation, (int) offsetof (struct X3D_SpotLight, attenuation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_SpotLight, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_attenuation, (int) offsetof (struct X3D_SpotLight, attenuation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__col, (int) offsetof (struct X3D_SpotLight, _col),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_intensity, (int) offsetof (struct X3D_SpotLight, intensity),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_SpotLight, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__amb, (int) offsetof (struct X3D_SpotLight, _amb),  (int) FIELDTYPE_SFVec4f, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SquadOrientationInterpolator[] = {
@@ -5862,13 +5877,16 @@ void *createNewX3DNode (int nt) {
 			struct X3D_DirectionalLight * tmp2;
 			tmp2 = (struct X3D_DirectionalLight *) tmp;
 		/* ttmp2->v = &virt_DirectionalLight;*/ 
+			tmp2->global = FALSE;
+			tmp2->_dir.c[0] = 0;tmp2->_dir.c[1] = 0;tmp2->_dir.c[2] = 0;tmp2->_dir.c[3] = 0;;
+			tmp2->ambientIntensity = 0.0f;
 			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;;
 			tmp2->on = TRUE;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
-			tmp2->global = FALSE;
-			tmp2->intensity = 1.0f;
+			tmp2->_col.c[0] = 0;tmp2->_col.c[1] = 0;tmp2->_col.c[2] = 0;tmp2->_col.c[3] = 0;;
 			tmp2->metadata = NULL;
-			tmp2->ambientIntensity = 0.0f;
+			tmp2->_amb.c[0] = 0;tmp2->_amb.c[1] = 0;tmp2->_amb.c[2] = 0;tmp2->_amb.c[3] = 0;;
+			tmp2->intensity = 1.0f;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -7713,12 +7731,15 @@ void *createNewX3DNode (int nt) {
 			tmp2->global = TRUE;
 			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;;
 			tmp2->radius = 100.0f;
+			tmp2->_dir.c[0] = 0;tmp2->_dir.c[1] = 0;tmp2->_dir.c[2] = 0;tmp2->_dir.c[3] = 0;;
 			tmp2->ambientIntensity = 0.0f;
 			tmp2->on = TRUE;
-			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
+			tmp2->_col.c[0] = 0;tmp2->_col.c[1] = 0;tmp2->_col.c[2] = 0;tmp2->_col.c[3] = 0;;
 			tmp2->attenuation.c[0] = 1.0f;tmp2->attenuation.c[1] = 0.0f;tmp2->attenuation.c[2] = 0.0f;;
+			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->metadata = NULL;
 			tmp2->intensity = 1.0f;
+			tmp2->_amb.c[0] = 0;tmp2->_amb.c[1] = 0;tmp2->_amb.c[2] = 0;tmp2->_amb.c[3] = 0;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8091,14 +8112,17 @@ void *createNewX3DNode (int nt) {
 			tmp2->global = TRUE;
 			tmp2->location.c[0] = 0.0f;tmp2->location.c[1] = 0.0f;tmp2->location.c[2] = 0.0f;;
 			tmp2->radius = 100.0f;
+			tmp2->_dir.c[0] = 0;tmp2->_dir.c[1] = 0;tmp2->_dir.c[2] = 0;tmp2->_dir.c[3] = 0;;
 			tmp2->ambientIntensity = 0.0f;
 			tmp2->on = TRUE;
 			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 0.0f;tmp2->direction.c[2] = -1.0f;;
 			tmp2->cutOffAngle = 0.785398f;
-			tmp2->attenuation.c[0] = 1.0f;tmp2->attenuation.c[1] = 0.0f;tmp2->attenuation.c[2] = 0.0f;;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
+			tmp2->attenuation.c[0] = 1.0f;tmp2->attenuation.c[1] = 0.0f;tmp2->attenuation.c[2] = 0.0f;;
+			tmp2->_col.c[0] = 0;tmp2->_col.c[1] = 0;tmp2->_col.c[2] = 0;tmp2->_col.c[3] = 0;;
 			tmp2->intensity = 1.0f;
 			tmp2->metadata = NULL;
+			tmp2->_amb.c[0] = 0;tmp2->_amb.c[1] = 0;tmp2->_amb.c[2] = 0;tmp2->_amb.c[3] = 0;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -9012,6 +9036,8 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_DirectionalLight : {
 			struct X3D_DirectionalLight *tmp;
 			tmp = (struct X3D_DirectionalLight *) node;
+			spacer fprintf (fp,"\tglobal (SFBool) \t%d\n",tmp->global);
+			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
 			spacer fprintf (fp,"\tdirection (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
 			fprintf (fp,"\n");
@@ -9019,12 +9045,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp,"\tcolor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tglobal (SFBool) \t%d\n",tmp->global);
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		    if(allFields) {
 			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
+			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		    break;
 		}
 		case NODE_Disk2D : {
@@ -10627,11 +10651,11 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
 			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
 			spacer fprintf (fp,"\ton (SFBool) \t%d\n",tmp->on);
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
-			fprintf (fp,"\n");
 			spacer fprintf (fp,"\tattenuation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->attenuation.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp,"\tcolor (SFColor): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
 			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -10987,11 +11011,11 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
 			fprintf (fp,"\n");
 			spacer fprintf (fp,"\tcutOffAngle (SFFloat) \t%4.3f\n",tmp->cutOffAngle);
-			spacer fprintf (fp,"\tattenuation (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->attenuation.c[i]); }
-			fprintf (fp,"\n");
 			spacer fprintf (fp,"\tcolor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp,"\tattenuation (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->attenuation.c[i]); }
 			fprintf (fp,"\n");
 			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		    if(allFields) {

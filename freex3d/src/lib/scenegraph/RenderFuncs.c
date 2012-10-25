@@ -287,15 +287,31 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	p->lightParamsDirty = TRUE;
 }
 
+//static int xxc = 0;
+
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 		/* for debugging: */
-
-			/* int i;
-			printf ("sendMAt - sending in lightState ");
-			for (i=0; i<8; i++) printf ("%d:%d ",i,p->lightOnOff[i]); printf ("\n");
-			*/
+  /*
+   if (xxc==10) {
+        ConsoleMessage ("light 0, constAtten %4.3f linAtten %4.3f quadAtten %4.3f spotCut %4.3f spotExp %4.3f",
+                        p->light_constAtten[0],p->light_linAtten[0], p->light_quadAtten[0],
+                        p->light_spotCut[0],p->light_spotExp[0]);
+        ConsoleMessage ("pos %4.3f %4.3f %4.3f %4.3f",p->light_pos[0][0],p->light_pos[0][1],p->light_pos[0][2],p->light_pos[0][3]);
+        xxc =0;
+    }
+    xxc++;
+   */ 
+    
+    /*
+			 int i;
+			printf ("sendLightInfo - sending in lightState ");
+			for (i=0; i<8; i++)
+                printf ("%d:%f ",i,p->light_spotCut[i]);
+                //printf ("%d:%d ",i,p->lightOnOff[i]); 
+                printf ("\n");
+	*/		
 		
 
 	/* if one of these are equal to -1, we had an error in the shaders... */

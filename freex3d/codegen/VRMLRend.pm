@@ -17,6 +17,10 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.46  2012/10/25 15:02:30  crc_canada
+# Shader code DirectionalLight incorrect. Fixed. SpotLight and PointLight
+# are next on the list.
+#
 # Revision 1.45  2012/09/19 13:41:00  crc_canada
 # comment out VRML1 support, as it is not working with the shader based
 # rendering currently in use. In the C files, look for DO_VRML1, in the
@@ -880,6 +884,10 @@
 	MetadataDouble
 	MetadataFloat
 	MetadataString
+	
+	SpotLight
+	PointLight
+	DirectionalLight
 /;
 
 

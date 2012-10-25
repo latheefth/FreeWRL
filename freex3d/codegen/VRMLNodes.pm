@@ -809,6 +809,9 @@ package VRML::NodeType;
 		intensity => [SFFloat, 1.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		on => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_dir =>[SFVec4f,[0,0,0,0],initializeOnly,0],
+		_col =>[SFVec4f,[0,0,0,0],initializeOnly,0],
+		_amb =>[SFVec4f,[0,0,0,0],initializeOnly,0],
 	},"X3DLightNode"),
 
 	PointLight => new VRML::NodeType("PointLight", {
@@ -821,7 +824,9 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		on => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		radius => [SFFloat, 100.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		##not in the spec
+		_dir =>[SFVec4f,[0,0,0,0],initializeOnly,0],
+		_col =>[SFVec4f,[0,0,0,0],initializeOnly,0],
+		_amb =>[SFVec4f,[0,0,0,0],initializeOnly,0],
 	},"X3DLightNode"),
 
 	SpotLight => new VRML::NodeType("SpotLight", {
@@ -837,6 +842,9 @@ package VRML::NodeType;
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		on => [SFBool, TRUE, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		radius => [SFFloat, 100.0, inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_dir =>[SFVec4f,[0,0,0,0],initializeOnly,0],
+		_col =>[SFVec4f,[0,0,0,0],initializeOnly,0],
+		_amb =>[SFVec4f,[0,0,0,0],initializeOnly,0],
 	},"X3DLightNode"),
 
 	###################################################################################
