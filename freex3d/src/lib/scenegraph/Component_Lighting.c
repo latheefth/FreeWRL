@@ -49,10 +49,18 @@ X3D Lighting Component
 		} else if (node->global) return; \
 		/* else printf ("and this is a local light\n"); */
 
+#define CHBOUNDS(aaa) \
+    if (aaa.c[0]>1.0) aaa.c[0] = 1.0; \
+    if (aaa.c[0]<0.0) aaa.c[0] = 0.0; \
+    if (aaa.c[1]>1.0) aaa.c[1] = 1.0; \
+    if (aaa.c[1]<0.0) aaa.c[1] = 0.0; \
+    if (aaa.c[2]>1.0) aaa.c[2] = 1.0; \
+    if (aaa.c[2]<0.0) aaa.c[3] = 0.0; 
+
 
 void compile_DirectionalLight (struct X3D_DirectionalLight *node) {
     struct point_XYZ vec;
-    
+
     vec.x = (double) -((node->direction).c[0]);
     vec.y = (double) -((node->direction).c[1]);
     vec.z = (double) -((node->direction).c[2]);
@@ -62,24 +70,18 @@ void compile_DirectionalLight (struct X3D_DirectionalLight *node) {
     node->_dir.c[2] = (float) vec.z;
     node->_dir.c[3] = 0.0f;/* 0.0 = DirectionalLight */
 
-    vec.x = (double) ((node->color).c[0]) * (node->intensity);
-    vec.y = (double) ((node->color).c[1]) * (node->intensity);
-    vec.z = (double) ((node->color).c[2]) * (node->intensity);
-    normalize_vector(&vec);
-    node->_col.c[0] = (float) vec.x;
-    node->_col.c[1] = (float) vec.y;
-    node->_col.c[2] = (float) vec.z;
+    node->_col.c[0] = ((node->color).c[0]) * (node->intensity);
+    node->_col.c[1] = ((node->color).c[1]) * (node->intensity);
+    node->_col.c[2] = ((node->color).c[2]) * (node->intensity);
     node->_col.c[3] = 1;
-
-    vec.x = (double) ((node->color).c[0]) * (node->ambientIntensity);
-    vec.y = (double) ((node->color).c[1]) * (node->ambientIntensity);
-    vec.z = (double) ((node->color).c[2]) * (node->ambientIntensity);
-    normalize_vector(&vec);
-    node->_amb.c[0] = (float) vec.x;
-    node->_amb.c[1] = (float) vec.y;
-    node->_amb.c[2] = (float) vec.z;
+    CHBOUNDS(node->_col);
+    
+    
+    node->_amb.c[0] = ((node->color).c[0]) * (node->ambientIntensity);
+    node->_amb.c[1] = ((node->color).c[1]) * (node->ambientIntensity);
+    node->_amb.c[2] = ((node->color).c[2]) * (node->ambientIntensity);
     node->_amb.c[3] = 1;
-
+    CHBOUNDS(node->_amb);
     MARK_NODE_COMPILED;
 }
 
@@ -109,7 +111,24 @@ void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
 }
 
 void compile_PointLight (struct X3D_PointLight *node) {
-    MARK_NODE_COMPILED; 
+    int i;
+    
+    for (i=0; i<3; i++) node->_loc.c[0] = node->location.c[0];
+    node->_loc.c[3] = 0.0f;/* vec3 to vec4... */
+    
+    node->_col.c[0] = ((node->color).c[0]) * (node->intensity);
+    node->_col.c[1] = ((node->color).c[1]) * (node->intensity);
+    node->_col.c[2] = ((node->color).c[2]) * (node->intensity);
+    node->_col.c[3] = 1;
+    CHBOUNDS(node->_col);
+    
+    
+    node->_amb.c[0] = ((node->color).c[0]) * (node->ambientIntensity);
+    node->_amb.c[1] = ((node->color).c[1]) * (node->ambientIntensity);
+    node->_amb.c[2] = ((node->color).c[2]) * (node->ambientIntensity);
+    node->_amb.c[3] = 1;
+    CHBOUNDS(node->_amb);
+    MARK_NODE_COMPILED;
 }
 
 
@@ -123,15 +142,11 @@ void render_PointLight (struct X3D_PointLight *node) {
 	if(node->on) {
 		int light = nextlight();
 		if(light >= 0) {
-			float vec[4];
+			float vec[4] = {0.0f, 0.0f, -1.0f, 1.0f};
+            
 			lightState(light,TRUE);
-			vec[0] = 0.0f; vec[1] = 0.0f; vec[2] = -1.0f; vec[3] = 1.0f;
 			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
-			vec[0] = ((node->location).c[0]);
-			vec[1] = ((node->location).c[1]);
-			vec[2] = ((node->location).c[2]);
-			vec[3] = 1;
-			FW_GL_LIGHTFV(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_POSITION, node->_loc.c);
 
 			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION,
 				((node->attenuation).c[0]));
@@ -141,18 +156,9 @@ void render_PointLight (struct X3D_PointLight *node) {
 				((node->attenuation).c[2]));
 
 
-			vec[0] = ((node->color).c[0]) * (node->intensity);
-			vec[1] = ((node->color).c[1]) * (node->intensity);
-			vec[2] = ((node->color).c[2]) * (node->intensity);
-			vec[3] = 1;
-			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
-			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
-
-			/* Aubrey Jaffer */
-			vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
-			vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
-			vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
-			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
+			FW_GL_LIGHTFV(light, GL_DIFFUSE, node->_col.c);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, node->_col.c);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
 
 			/* XXX */
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 180);
@@ -169,6 +175,34 @@ void prep_PointLight (struct X3D_PointLight *node) {
 }
 
 void compile_SpotLight (struct X3D_SpotLight *node) {
+    struct point_XYZ vec;
+    int i;
+    
+    for (i=0; i<3; i++) node->_loc.c[0] = node->location.c[0];
+    node->_loc.c[3] = 0.0f;/* vec3 to vec4... */
+
+    vec.x = (double) -((node->direction).c[0]);
+    vec.y = (double) -((node->direction).c[1]);
+    vec.z = (double) -((node->direction).c[2]);
+    normalize_vector(&vec);
+    node->_dir.c[0] = (float) vec.x;
+    node->_dir.c[1] = (float) vec.y;
+    node->_dir.c[2] = (float) vec.z;
+    node->_dir.c[3] = 1.0f;/* 1.0 = SpotLight */
+
+    node->_col.c[0] = ((node->color).c[0]) * (node->intensity);
+    node->_col.c[1] = ((node->color).c[1]) * (node->intensity);
+    node->_col.c[2] = ((node->color).c[2]) * (node->intensity);
+    node->_col.c[3] = 1;
+    CHBOUNDS(node->_col);
+    
+    
+    node->_amb.c[0] = ((node->color).c[0]) * (node->ambientIntensity);
+    node->_amb.c[1] = ((node->color).c[1]) * (node->ambientIntensity);
+    node->_amb.c[2] = ((node->color).c[2]) * (node->ambientIntensity);
+    node->_amb.c[3] = 1;
+    CHBOUNDS(node->_amb);
+
     MARK_NODE_COMPILED;
 }
 
@@ -184,19 +218,9 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 	if(node->on) {
 		int light = nextlight();
 		if(light >= 0) {
-			float vec[4];
 			lightState(light,TRUE);
-	       
-			vec[0] = ((node->direction).c[0]);
-			vec[1] = ((node->direction).c[1]);
-			vec[2] = ((node->direction).c[2]);
-			vec[3] = 1;
-			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
-			vec[0] = ((node->location).c[0]);
-			vec[1] = ((node->location).c[1]);
-			vec[2] = ((node->location).c[2]);
-			vec[3] = 1;
-			FW_GL_LIGHTFV(light, GL_POSITION, vec);
+			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, node->_dir.c);
+			FW_GL_LIGHTFV(light, GL_POSITION, node->_loc.c);
 	
 			FW_GL_LIGHTF(light, GL_CONSTANT_ATTENUATION,
 					((node->attenuation).c[0]));
@@ -205,21 +229,10 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 			FW_GL_LIGHTF(light, GL_QUADRATIC_ATTENUATION,
 					((node->attenuation).c[2]));
 	
-	
-			vec[0] = ((node->color).c[0]) * (node->intensity);
-			vec[1] = ((node->color).c[1]) * (node->intensity);
-			vec[2] = ((node->color).c[2]) * (node->intensity);
-			vec[3] = 1; 
-			FW_GL_LIGHTFV(light, GL_DIFFUSE, vec);
-			FW_GL_LIGHTFV(light, GL_SPECULAR, vec);
-
-			/* Aubrey Jaffer */
-			vec[0] = ((node->color).c[0]) * (node->ambientIntensity);
-			vec[1] = ((node->color).c[1]) * (node->ambientIntensity);
-			vec[2] = ((node->color).c[2]) * (node->ambientIntensity);
-
-			FW_GL_LIGHTFV(light, GL_AMBIENT, vec);
-
+            FW_GL_LIGHTFV(light, GL_DIFFUSE, node->_col.c);
+			FW_GL_LIGHTFV(light, GL_SPECULAR, node->_col.c);
+			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
+            
 			ft = 0.5f/(node->beamWidth +0.1f);
 			if (ft>128.0) ft=128.0f;
 			if (ft<0.0) ft=0.0f;

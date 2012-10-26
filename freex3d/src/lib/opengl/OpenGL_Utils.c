@@ -201,9 +201,6 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
-        
-        ConsoleMessage ("phong shaders now set to true");
-        p->usePhongShaders = true;
 	}
 }
 #ifdef GLEW_MX

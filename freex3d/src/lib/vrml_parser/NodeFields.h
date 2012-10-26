@@ -1918,18 +1918,18 @@ END_NODE(SplineScalarInterpolator)
 
 /* SpotLight node */
 BEGIN_NODE(SpotLight)
+EXPOSED_FIELD(SpotLight,on,sfbool,on,FIELDTYPE_SFBool)
+EXPOSED_FIELD(SpotLight,direction,sfvec3f,direction,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(SpotLight,attenuation,sfvec3f,attenuation,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(SpotLight,color,sfcolor,color,FIELDTYPE_SFColor)
+EXPOSED_FIELD(SpotLight,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(SpotLight,beamWidth,sffloat,beamWidth,FIELDTYPE_SFFloat)
 EXPOSED_FIELD(SpotLight,global,sfbool,global,FIELDTYPE_SFBool)
 EXPOSED_FIELD(SpotLight,location,sfvec3f,location,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(SpotLight,radius,sffloat,radius,FIELDTYPE_SFFloat)
 EXPOSED_FIELD(SpotLight,ambientIntensity,sffloat,ambientIntensity,FIELDTYPE_SFFloat)
-EXPOSED_FIELD(SpotLight,on,sfbool,on,FIELDTYPE_SFBool)
-EXPOSED_FIELD(SpotLight,direction,sfvec3f,direction,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(SpotLight,cutOffAngle,sffloat,cutOffAngle,FIELDTYPE_SFFloat)
-EXPOSED_FIELD(SpotLight,color,sfcolor,color,FIELDTYPE_SFColor)
-EXPOSED_FIELD(SpotLight,attenuation,sfvec3f,attenuation,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(SpotLight,intensity,sffloat,intensity,FIELDTYPE_SFFloat)
-EXPOSED_FIELD(SpotLight,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(SpotLight)
 
 /* SquadOrientationInterpolator node */
