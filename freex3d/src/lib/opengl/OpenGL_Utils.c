@@ -1452,7 +1452,7 @@ void drawBBOX(struct X3D_Node *node) {
 
 static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	struct point_XYZ bboxPoints[8];
-	GLDOUBLE cfp = DBL_MIN;
+	GLDOUBLE cfp = -DBL_MAX;
 	GLDOUBLE cnp = DBL_MAX;
 	GLDOUBLE MM[16];
 

@@ -65,9 +65,9 @@ static void *createLines (float start, float end, float radius, int closed, int 
 #define COMPILE_AND_GET_BOUNDS(myType,myField) \
 void compile_##myType (struct X3D_##myType *node){ \
 	float myminx = FLT_MAX; \
-	float mymaxx = FLT_MIN; \
+	float mymaxx = -FLT_MAX; \
 	float myminy = FLT_MAX; \
-	float mymaxy = FLT_MIN; \
+	float mymaxy = -FLT_MAX; \
 	int count; \
  \
 	if (node->myField.n<=0) { \
@@ -434,7 +434,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 	/* find min/max values for X and Y axes */
 	minY = minX = FLT_MAX;
-	maxY = maxX = FLT_MIN;
+	maxY = maxX = -FLT_MAX;
 	for (i=0; i<tmpint; i++) {
 		if (node->vertices.p[i].c[0] < minX) minX = node->vertices.p[i].c[0];
 		if (node->vertices.p[i].c[1] < minY) minY = node->vertices.p[i].c[1];
@@ -566,9 +566,9 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	int arcpoints;
 
         float myminx = FLT_MAX;
-        float mymaxx = FLT_MIN;
+        float mymaxx = -FLT_MAX;
         float myminy = FLT_MAX;
-        float mymaxy = FLT_MIN;
+        float mymaxy = -FLT_MAX;
 
 	*size = 0;
 
