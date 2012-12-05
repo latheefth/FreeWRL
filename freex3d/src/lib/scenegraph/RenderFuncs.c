@@ -320,7 +320,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	GLUNIFORM1FV (me->lightConstAtten, 8, p->light_constAtten);
 	GLUNIFORM1FV (me->lightLinAtten, 8, p->light_linAtten);
 	GLUNIFORM1FV(me->lightQuadAtten, 8, p->light_quadAtten);
-	GLUNIFORM1FV(me->lightSpotCut, 8, p->light_spotCut);
+    GLUNIFORM1FV(me->lightSpotCut, 8, p->light_spotCut);
 	GLUNIFORM1FV(me->lightSpotExp, 8, p->light_spotExp);
    
 	GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);

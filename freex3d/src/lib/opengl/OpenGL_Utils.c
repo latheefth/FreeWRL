@@ -366,12 +366,13 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     #endif //GL_ES_VERSION_2_0
 
 
-
 #ifdef VERBOSE
 #ifdef GL_ES_VERSION_2_0
 	{ /* debugging */
 	GLint range[2]; GLint precision;
 	GLboolean b;
+
+	ConsoleMessage("starting getMyShader");
 
 	glGetBooleanv(GL_SHADER_COMPILER,&b);
 	if (b) ConsoleMessage("have shader compiler"); else ConsoleMessage("NO SHADER COMPILER");
@@ -641,7 +642,7 @@ return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
 
 /* FRAGMENT bits */
 #ifdef GL_ES_VERSION_2_0
-static const GLchar *fragLowPrecision = "precision lowp float;\n ";
+static const GLchar *fragHighPrecision = "precision highp float;\n ";
 static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
 #endif
 
@@ -858,26 +859,24 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     
     
 	/* GL_ES - do we have medium precision, or just low precision?? */
-    /* Phong shading needs mediump */
+    /* Phong shading - use the highest we have */
 	#ifdef GL_ES_VERSION_2_0
-	bool haveMediumPrecision = false;
+	bool haveHighPrecisionFragmentShaders = false;
         GLint range[2]; GLint precision;
-    if (usePhongShading) {
-        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-        if (precision!=0) {
-            haveMediumPrecision=true;
-        } else {
-            haveMediumPrecision=false;
-            glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-            if (precision == 0) {
-                ConsoleMessage("have no precision info for shader maker - unknown results");
-            } else {
-                ConsoleMessage("low precision shaders only available - view may not work so well");
-            }
-        }
-    } else {
-        haveMediumPrecision = false; /* gouraud shading does not require mediump */
-    }
+
+	// see if we can use high precision fragment shaders for Phong shading
+	if (usePhongShading) {
+        	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
+        	if (precision!=0) {
+        	    haveHighPrecisionFragmentShaders=true;
+        	} else {
+        	    haveHighPrecisionFragmentShaders=false;
+        	    glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+        	    if (precision == 0) {
+        	        ConsoleMessage("low precision shaders only available - view may not work so well");
+        	    }
+        	}
+	}
 	
 
 	#ifdef VERBOSE
@@ -933,6 +932,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
     #endif //VERBOSE
 
+
 	/* initialize */
     
     /* Generic things first */
@@ -945,10 +945,15 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     
     /* Cross shader Fragment bits */
     #ifdef GL_ES_VERSION_2_0
-	if (haveMediumPrecision) 
+	if (haveHighPrecisionFragmentShaders)  {
+		fragmentSource[fragmentPrecisionDeclare] = fragHighPrecision;
+		//ConsoleMessage("have high precision fragment shaders");
+	} else {
 		fragmentSource[fragmentPrecisionDeclare] = fragMediumPrecision;
-	else
-		fragmentSource[fragmentPrecisionDeclare] = fragLowPrecision;
+		//ConsoleMessage("have medium precision fragment shaders");
+	}
+
+
     #endif
     fragmentSource[fragmentMainStart] = fragMainStart;
 	if(Viewer()->anaglyph)
@@ -1120,8 +1125,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             }
 		}
 	#endif //VERBOSE
-#undef VERBOSE
-
 	return TRUE;
 }
 
@@ -1257,6 +1260,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->lightLinAtten = GET_UNIFORM(myProg, "light_linAtten");
 	me->lightQuadAtten = GET_UNIFORM(myProg,"lightQuadAtten");
 	me->lightSpotCut = GET_UNIFORM(myProg, "lightSpotCut");
+	me->lightSpotExp = GET_UNIFORM(myProg, "lightSpotExp");
 	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDir");
 
 

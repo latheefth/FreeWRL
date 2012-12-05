@@ -734,6 +734,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 
 	    }
 	}
+
     new_bind_image (X3D_NODE(node), param);
 	return;
 }
@@ -1270,10 +1271,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 					DEBUG_MSG("initial texture scale to %d %d\n",rx,ry);
 				}
 		
-				if(rx != x || ry != y || rx > gglobal()->display.rdr_caps.max_texture_size || ry > gglobal()->display.rdr_caps.max_texture_size) {
+				//ConsoleMessage ("loadTextureNode, runtime texture size %d",gglobal()->display.rdr_caps.runtime_max_texture_size);
+
+				if(rx != x || ry != y || rx > gglobal()->display.rdr_caps.runtime_max_texture_size || ry > gglobal()->display.rdr_caps.runtime_max_texture_size) {
 					/* do we have texture limits??? */
-					if (rx > gglobal()->display.rdr_caps.max_texture_size) rx = gglobal()->display.rdr_caps.max_texture_size;
-					if (ry > gglobal()->display.rdr_caps.max_texture_size) ry = gglobal()->display.rdr_caps.max_texture_size;
+					if (rx > gglobal()->display.rdr_caps.runtime_max_texture_size) rx = gglobal()->display.rdr_caps.runtime_max_texture_size;
+					if (ry > gglobal()->display.rdr_caps.runtime_max_texture_size) ry = gglobal()->display.rdr_caps.runtime_max_texture_size;
 				}
 		
 				if (gglobal()->internalc.global_print_opengl_errors) {
@@ -1378,7 +1381,6 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 	/* default here; this is just a blank texture */
 	tg->RenderFuncs.boundTextureStack[tg->RenderFuncs.textureStackTop] = tg->Textures.defaultBlankTexture;
-
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
 			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);

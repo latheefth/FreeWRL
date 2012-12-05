@@ -357,7 +357,8 @@ bool initialize_rdr_caps()
 		GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
 		
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
-		rdr_caps.max_texture_size = (int) tmp;
+		rdr_caps.runtime_max_texture_size = (int) tmp;
+		rdr_caps.system_max_texture_size = (int) tmp;
 
 		#ifdef GL_ES_VERSION_2_0
 		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_IMAGE_UNITS, &tmp);
@@ -367,15 +368,17 @@ bool initialize_rdr_caps()
 		rdr_caps.texture_units = (int) tmp;
 	}
 
+
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
 #ifdef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
 	FW_GL_GETFLOATV (GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &rdr_caps.anisotropicDegree);
 #endif
 	/* User settings in environment */
 
-	if (gglobal()->internalc.global_texture_size > 0) {
-		DEBUG_MSG("Environment set texture size: %d", gglobal()->internalc.global_texture_size);
-		rdr_caps.max_texture_size = gglobal()->internalc.global_texture_size;
+	//ConsoleMessage ("Environment set texture size: %d", gglobal()->internalc.user_request_texture_size);
+	if (gglobal()->internalc.user_request_texture_size > 0) {
+		DEBUG_MSG("Environment set texture size: %d", gglobal()->internalc.user_request_texture_size);
+		rdr_caps.runtime_max_texture_size = gglobal()->internalc.user_request_texture_size;
 	}
 
 	/* Special drivers settings */
@@ -385,7 +388,7 @@ bool initialize_rdr_caps()
 	strstr(rdr_caps.renderer, "i915") != NULL ||
 	strstr(rdr_caps.renderer, "NVIDIA GeForce2") != NULL
 	) {
-		if (rdr_caps.max_texture_size > 1024) rdr_caps.max_texture_size = 1024;
+		if (rdr_caps.runtime_max_texture_size > 1024) rdr_caps.runtime_max_texture_size = 1024;
 	}
 
 	/* print some debug infos */
@@ -430,7 +433,8 @@ void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps)
 	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(rdr_caps->av_glsl_shaders));
 	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(rdr_caps->av_multitexture));
 	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps->av_occlusion_q));
-	DEBUG_MSG ("Max texture size      %d\n", rdr_caps->max_texture_size);
+	DEBUG_MSG ("Max texture size      %d\n", rdr_caps->runtime_max_texture_size);
+	DEBUG_MSG ("Max texture size      %d\n", rdr_caps->system_max_texture_size);
 	DEBUG_MSG ("Texture units         %d\n", rdr_caps->texture_units);
 }
 

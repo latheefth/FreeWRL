@@ -78,7 +78,21 @@ void io_http_init(struct tio_http* t)
  *   checkNetworkFile:
  */
 bool checkNetworkFile(const char *fn)
-{
+{int i; char *pt = fn; i=0;
+    
+    if (fn == NULL) {
+        ConsoleMessage ("checkNetworkFile, got a NULL here");
+        return FALSE;
+    }
+    
+  //  while (*pt != '\0') {
+  //      ConsoleMessage ("cfn %d is %x %c",i,*pt,*pt);
+  //      i++;
+  //      pt++;
+  //  }
+    
+    //ConsoleMessage ("checkNetworkFile, have %s, len %d\n",fn,strlen(fn));
+    
 	if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
 	    (strncmp(fn,"FTP://", strlen("FTP://"))) &&
 	    (strncmp(fn,"http://", strlen("http://"))) &&
@@ -93,8 +107,10 @@ bool checkNetworkFile(const char *fn)
 	    (strncmp(fn,"URN://", strlen("URN://")))
 
 	) {
+        	//ConsoleMessage ("CNF returning FALSE");
 		return FALSE;
 	}
+    	//ConsoleMessage ("CNF returning TRUE");
 	return TRUE;
 }
 

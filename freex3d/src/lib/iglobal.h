@@ -79,7 +79,7 @@ typedef struct iiglobal //InstanceGlobal
 		bool global_strictParsing;// = FALSE;
 		bool global_plugin_print;// = FALSE;
 		bool global_occlusion_disable;// = FALSE;
-		unsigned global_texture_size;// = 0;
+		unsigned user_request_texture_size;// = 0;
 		bool global_print_opengl_errors;// = FALSE;
 		bool global_trace_threads;// = FALSE;
 		void *prv;

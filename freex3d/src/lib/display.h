@@ -426,7 +426,8 @@ typedef struct {
 	bool av_occlusion_q;  /* Occlusion query available ? */
 	
 	int texture_units;
-	int max_texture_size;
+	int runtime_max_texture_size;
+	int system_max_texture_size;
 	float anisotropicDegree;
     
     GLboolean quadBuffer;        /* does platform support quadbuffer? */

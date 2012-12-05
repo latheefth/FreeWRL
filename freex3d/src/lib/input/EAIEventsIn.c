@@ -424,7 +424,7 @@ void EAI_core_commands () {
 				ttglobal tg = gglobal();
 				sprintf (th->outBuffer,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime(),count,
 					"SMOOTH",				/* Shading */
-					tg->display.rdr_caps.max_texture_size, gglobal()->display.rdr_caps.max_texture_size, 	/* Texture size */	
+					tg->display.rdr_caps.system_max_texture_size, gglobal()->display.rdr_caps.runtime_max_texture_size, 	/* Texture size */	
 					tg->display.rdr_caps.texture_units,				/* texture units */
 					"FALSE",				/* antialiased? */
 					tg->OpenGL_Utils.displayDepth,				/* bit depth of display */
