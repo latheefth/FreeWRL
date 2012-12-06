@@ -823,7 +823,7 @@ static BOOL parser_interfaceDeclaration(struct VRMLParser* me, struct ProtoDefin
 			curStrPtr += sz;
 
 			/* trailing null */
-			curStrPtr ++;
+			//curStrPtr ++; dug9 dec6,2012 I found this was letting 1 char of junk into the string
 			*curStrPtr = '\0';
 	    }
         }
