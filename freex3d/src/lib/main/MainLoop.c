@@ -657,7 +657,10 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 			render_pre(); 
 			slerp_viewpoint();
 		}
-		
+
+#ifdef RENDERVERBOSE		
+    printf("RENDER STEP----------\n");
+#endif
 
         /* first events (clock ticks, etc) if we have other things to do, yield */
         if (p->doEvents) do_first (); else sched_yield();

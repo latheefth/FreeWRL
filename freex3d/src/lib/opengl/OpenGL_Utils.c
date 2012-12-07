@@ -3708,7 +3708,7 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
                 fw_BackMaterial.shininess);
 */
       
-    
+PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 
 /* eventually do this with code blocks in glsl */
 	SEND_VEC4(myMaterialAmbient,fw_FrontMaterial.ambient);
@@ -3722,13 +3722,13 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
 	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial.specular);
 	SEND_VEC4(myMaterialBackEmission,fw_BackMaterial.emission);
 	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
-
+PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendMaterialsToShader");
 	if (me->lightState != -1) sendLightInfo(me);
-    
+PRINT_GL_ERROR_IF_ANY("MIDDLE2.1 sendMaterialsToShader");
     /* FillProperties, LineProperty lineType */
 
 	SEND_FLOAT(pointSize,myap->pointSize);
-
+PRINT_GL_ERROR_IF_ANY("MIDDLE2.2 sendMaterialsToShader");
     //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
     SEND_INT(filledBool,myap->filledBool);
     SEND_INT(hatchedBool,myap->hatchedBool);
@@ -3736,8 +3736,10 @@ ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f
     SEND_VEC3(hatchColour,myap->hatchColour);
     SEND_VEC2(hatchPercent,myap->hatchPercent);
 
+PRINT_GL_ERROR_IF_ANY("MIDDLE3 sendMaterialsToShader");
     //TextureCoordinateGenerator
     SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
+PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");
 }
 
 static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],

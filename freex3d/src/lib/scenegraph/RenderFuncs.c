@@ -303,33 +303,38 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     }
     xxc++;
    */ 
-    
-    /*
-			 int i;
-			printf ("sendLightInfo - sending in lightState ");
-			for (i=0; i<8; i++)
-                printf ("%d:%f ",i,p->light_spotCut[i]);
-                //printf ("%d:%d ",i,p->lightOnOff[i]); 
-                printf ("\n");
-	*/		
+#ifdef RENDERVERBOSE    
+	int i;
+	printf ("sendLightInfo - sending in lightState ");
+	for (i=0; i<8; i++) {
+		printf ("cut %d:%f ",i,p->light_spotCut[i]);
+		printf ("exp %d:%f ",i,p->light_spotExp[i]);
+		//printf ("%d:%d ",i,p->lightOnOff[i]);
+	}
+	printf ("\n");
+#endif
 		
-
+PRINT_GL_ERROR_IF_ANY("BEGIN sendLightInfo");
 	/* if one of these are equal to -1, we had an error in the shaders... */
 	GLUNIFORM1IV(me->lightState,8,p->lightOnOff);
-    
+PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendLightInfo");
 	GLUNIFORM1FV (me->lightConstAtten, 8, p->light_constAtten);
+PRINT_GL_ERROR_IF_ANY("MIDDLE1.1 sendLightInfo");
 	GLUNIFORM1FV (me->lightLinAtten, 8, p->light_linAtten);
+PRINT_GL_ERROR_IF_ANY("MIDDLE1.2 sendLightInfo");
 	GLUNIFORM1FV(me->lightQuadAtten, 8, p->light_quadAtten);
-    GLUNIFORM1FV(me->lightSpotCut, 8, p->light_spotCut);
+PRINT_GL_ERROR_IF_ANY("MIDDLE1.3 sendLightInfo");
+	GLUNIFORM1FV(me->lightSpotCut, 8, p->light_spotCut);
+PRINT_GL_ERROR_IF_ANY("MIDDLE1.4 sendLightInfo");
 	GLUNIFORM1FV(me->lightSpotExp, 8, p->light_spotExp);
-   
+PRINT_GL_ERROR_IF_ANY("MIDDLE2 sendLightInfo");
 	GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);
     
 	GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
 	GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
 	GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
 	GLUNIFORM4FV(me->lightSpotDir, 8, (float *)p->light_spotDir);
-     
+PRINT_GL_ERROR_IF_ANY("END sendLightInfo");
 }
 
 /* finished rendering thisshape. */
@@ -503,7 +508,7 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 static bool setupShader() {
     ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
     s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
-    
+PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
 	if (mysp != NULL) {
         
 
@@ -512,6 +517,7 @@ static bool setupShader() {
 #ifdef RENDERVERBOSE
 			printf ("shader compile error\n");
 #endif
+			PRINT_GL_ERROR_IF_ANY("EXIT(false) setupShader");
 			return false;
 		}
         
@@ -552,6 +558,7 @@ static bool setupShader() {
 		}
         
 	}
+	PRINT_GL_ERROR_IF_ANY("EXIT(true) setupShader");
     return true;
     
 }
@@ -996,6 +1003,7 @@ void render_node(struct X3D_Node *node) {
 
 	if(renderstate()->render_geom && !renderstate()->render_sensitive && virt->rend) {
 		DEBUG_RENDER("rs 3\n");
+		PRINT_GL_ERROR_IF_ANY("BEFORE render_geom"); PRINT_NODE(node,virt);
 		virt->rend(node);
 		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,virt);
 	}
