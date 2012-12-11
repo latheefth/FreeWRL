@@ -1811,6 +1811,8 @@ struct X3D_Node {
  	/*** node specific data: *****/
 };
 #define X3D_NODE(node) ((struct X3D_Node*)node)
+#define X3D_APPEARANCE(node) ((struct X3D_Appearance*)node)
+#define X3D_MATERIAL(node) ((struct X3D_Material*)node)
 #define X3D_GROUP(node) ((struct X3D_Group*)node)
 #define X3D_PICKABLEGROUP(node) ((struct X3D_PickableGroup*)node)
 #define X3D_POINTPICKSENSOR(node) ((struct X3D_PointPickSensor*)node)
@@ -1840,6 +1842,7 @@ struct X3D_Node {
 #define X3D_SPOTLIGHT(node) ((struct X3D_SpotLight*)node)
 #define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)
 #define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)
+#define X3D_INDEXEDLINESET(node) ((struct X3D_IndexedLineSet*)node)
 /* OLDCODE #define VRML1_INDEXEDFACESET(node) ((struct X3D_VRML1_IndexedFaceSet*)node)
 OLDCODE #define VRML1_SEPARATOR(node) ((struct X3D_VRML1_Separator*)node)*/ 
 #define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)

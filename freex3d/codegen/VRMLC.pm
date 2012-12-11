@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.70  2012/12/11 15:40:48  crc_canada
+# more casting macros
+#
 # Revision 1.69  2012/09/19 13:41:00  crc_canada
 # comment out VRML1 support, as it is not working with the shader based
 # rendering currently in use. In the C files, look for DO_VRML1, in the
@@ -1495,6 +1498,8 @@ sub gen {
 	push @str, "\n/* First, a generic struct, contains only the common elements */\n".
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
+	"#define X3D_APPEARANCE(node) ((struct X3D_Appearance*)node)\n".
+	"#define X3D_MATERIAL(node) ((struct X3D_Material*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"#define X3D_PICKABLEGROUP(node) ((struct X3D_PickableGroup*)node)\n".
 	"#define X3D_POINTPICKSENSOR(node) ((struct X3D_PointPickSensor*)node)\n".
@@ -1524,6 +1529,7 @@ sub gen {
 	"#define X3D_SPOTLIGHT(node) ((struct X3D_SpotLight*)node)\n".
 	"#define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)\n".
 	"#define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)\n".
+	"#define X3D_INDEXEDLINESET(node) ((struct X3D_IndexedLineSet*)node)\n".
 	"/* OLDCODE #define VRML1_INDEXEDFACESET(node) ((struct X3D_VRML1_IndexedFaceSet*)node)\n".
 	"OLDCODE #define VRML1_SEPARATOR(node) ((struct X3D_VRML1_Separator*)node)*/ \n".
 	"#define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)\n".
