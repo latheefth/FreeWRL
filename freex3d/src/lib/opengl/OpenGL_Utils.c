@@ -3078,8 +3078,36 @@ E_JS_EXPERIMENTAL_CODE
 			for (j=0; j<nParents; j++) {
 				struct X3D_Node *n = vector_get(struct X3D_Node *, parentVector, j);
 				n->_renderFlags = n->_renderFlags  | VF_Sensitive;
+				// >> start dug9 Dec 12, 2012 added:
+				// if sensor's parent is a ProtoBodyGroup wrapper:
+				//   if sensor is the first node in the ProtoBodyGroup (Proto is-a Sensor)
+				//     get proto instance's parents
+				//     flag each of its parents as sensitive, and make (parent,sensorNode) tuple
+				//  then in mainloop, when activating on a sensitive group child,
+				//   find the corresponding sensor node in the tuple list and update
+				if(n->_nodeType == NODE_Group)
+				{
+					struct X3D_Group *gpn = (struct X3D_Group*)n;
+					if(gpn->FreeWRL__protoDef != INT_ID_UNDEFINED)
+					{
+						//it's wrapped in a proto group
+						//if it is the FIRST node in the ProtoBody (type-of-proto == sensor)
+						//then the sensor should be perculated up through the ProtoGroup wrapper
+						if(gpn->children.p[0] == node)
+						{
+							int nnp, kkk;
+							nnp = vectorSize(gpn->_parentVector); 
+							for(kkk=0;kkk<nnp;kkk++){
+								struct X3D_Node *nnn = vector_get(struct X3D_Node*, gpn->_parentVector, kkk);
+								//ADD_PARENT(nnn,node); //this causes stack overflow
+								nnn->_renderFlags = nnn->_renderFlags | VF_Sensitive;
+								setSensitive(nnn, node); //add to tuple list - this seens to work
+							}
+						}
+					}
+				}
+				// << end dug9 Dec 12, 2012
 			}
-
 			/* tell mainloop that we have to do a sensitive pass now */
 			tg->Mainloop.HaveSensitive = TRUE;
 			nParents = 0;
