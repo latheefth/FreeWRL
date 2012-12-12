@@ -94,6 +94,7 @@ typedef struct pRenderFuncs{
 	struct X3D_Anchor *AnchorsAnchor;// = NULL;
 	struct currayhit rayHit,rayHitHyper;
 	struct trenderstate renderstate;
+	int renderLevel;
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
 	void *v = malloc(sizeof(struct pRenderFuncs));
@@ -145,6 +146,7 @@ OLDCODE	t->OSX_replace_world_from_console = NULL;
 		p->AnchorsAnchor = NULL;
 		t->rayHit = (void *)&p->rayHit;
 		t->rayHitHyper = (void *)&p->rayHitHyper;
+		p->renderLevel = 0;
 	}
 }
 //	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -914,13 +916,13 @@ void render_node(struct X3D_Node *node) {
 	X3D_NODE_CHECK(node);
 
 #ifdef RENDERVERBOSE
-	renderLevel ++;
+	p->renderLevel ++;
 #endif
 
 	if(!node) {
 #ifdef RENDERVERBOSE
 		DEBUG_RENDER("%d no node, quick return\n", renderLevel);
-		renderLevel--;
+		p->renderLevel--;
 #endif
 		return;
 	}
@@ -931,9 +933,9 @@ void render_node(struct X3D_Node *node) {
 	//printf("%d =========================================NODE RENDERED===================================================\n",renderLevel);
 	{
 		int i;
-		for(i=0;i<renderLevel;i++) printf(" ");
+		for(i=0;i<p->renderLevel;i++) printf(" ");
 	}
-	printf("%d node %u (%s) , v %u renderFlags %x ",renderLevel, node,stringNodeType(node->_nodeType),virt,node->_renderFlags);
+	printf("%d node %u (%s) , v %u renderFlags %x ",p->renderLevel, node,stringNodeType(node->_nodeType),virt,node->_renderFlags);
 
 	if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf (" VF_Viewpoint");
 	if ((node->_renderFlags & VF_Geom )== VF_Geom) printf (" VF_Geom");
@@ -964,7 +966,7 @@ void render_node(struct X3D_Node *node) {
                 if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
 #ifdef RENDERVERBOSE
                         printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
-			renderLevel--;
+			p->renderLevel--;
 #endif
                         return; 
                 } 
@@ -975,7 +977,7 @@ void render_node(struct X3D_Node *node) {
                 if ((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
 #ifdef RENDERVERBOSE
                         printf ("doing globalLight, but this  node is not for us - just returning\n"); 
-			renderLevel--;
+			p->renderLevel--;
 #endif
                         return; 
                 }
@@ -1081,10 +1083,10 @@ void render_node(struct X3D_Node *node) {
 #ifdef RENDERVERBOSE 
 	{
 		int i;
-		for(i=0;i<renderLevel;i++)printf(" ");
+		for(i=0;i<p->renderLevel;i++)printf(" ");
 	}
-	printf("%d (end render_node)\n",renderLevel);
-	renderLevel--;
+	printf("%d (end render_node)\n",p->renderLevel);
+	p->renderLevel--;
 #endif
 }
 //#undef RENDERVERBOSE
@@ -1188,9 +1190,10 @@ render_hier(struct X3D_Group *g, int rwhat) {
 		aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 	}
 #endif
-
-	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);  */
+#ifdef RENDERVERBOSE
+	 printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	   rs->render_vp,rs->render_geom,rs->render_light,rs->render_sensitive,rs->render_blend,rs->render_proximity,rs->render_collision);  
+#endif
 
 	if (!g) {
 		/* we have no geometry yet, sleep for a tiny bit */
