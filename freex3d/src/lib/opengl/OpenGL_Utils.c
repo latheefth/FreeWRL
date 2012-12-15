@@ -2540,7 +2540,8 @@ void zeroVisibilityFlag(void) {
 
 /* go through the linear list of nodes, and do "special things" for special nodes, like
    Sensitive nodes, Viewpoint nodes, ... */
-
+//#define OLD_UPDATE_MACROS 1
+#ifdef OLD_UPDATE_MACROS
 #define CMD(TTT,YYY) \
 	/* printf ("nt %s change %d ichange %d\n",stringNodeType(X3D_NODE(YYY)->_nodeType),X3D_NODE(YYY)->_change, X3D_NODE(YYY)->_ichange); */ \
 	if (NODE_NEEDS_COMPILING) compile_Metadata##TTT((struct X3D_Metadata##TTT *) YYY)
@@ -2653,10 +2654,155 @@ void zeroVisibilityFlag(void) {
 		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
 		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
+#else //new IS-A compatible macros, with pnode and node
+#define CMD(TTT,YYY) \
+	/* printf ("nt %s change %d ichange %d\n",stringNodeType(X3D_NODE(YYY)->_nodeType),X3D_NODE(YYY)->_change, X3D_NODE(YYY)->_ichange); */ \
+	if (NODE_NEEDS_COMPILING) compile_Metadata##TTT((struct X3D_Metadata##TTT *) YYY)
+
+#define BEGIN_NODE(thistype) case NODE_##thistype:
+#define END_NODE break;
+
+#define SIBLING_SENSITIVE(thistype) \
+			/* make Sensitive */ \
+			if (((struct X3D_##thistype *)node)->enabled) { \
+				nParents = vectorSize((struct X3D_##thistype *)pnode->_parentVector); \
+				parentVector = (((struct X3D_##thistype *)pnode)->_parentVector); \
+			}  
+
+#define ANCHOR_SENSITIVE(thistype) \
+			/* make THIS Sensitive - most nodes make the parents sensitive, Anchors have children...*/ \
+			anchorPtr = (struct X3D_Anchor *)node;
+
+#ifdef VIEWPOINT
+#undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
+#endif
+#define VIEWPOINT(thistype) \
+			setBindPtr = (int *)(((char*)(node))+offsetof (struct X3D_##thistype, set_bind)); \
+			if ((*setBindPtr) == 100) {setBindPtr = NULL; } else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */ 
+
+#define CHILDREN_NODE(thistype) \
+			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, children); \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->children; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->children; \
+			} 
+
+#define CHILDREN_SWITCH_NODE(thistype) \
+			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, choice); \
+			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
+				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
+			} \
+			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
+				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
+				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
+			} 
+
+#define CHILDREN_LOD_NODE \
+			addChildren = NULL; removeChildren = NULL; \
+			offsetOfChildrenPtr = offsetof (struct X3D_LOD, children); \
+			if (X3D_LODNODE(node)->addChildren.n > 0) { \
+				addChildren = &X3D_LODNODE(node)->addChildren; \
+				if (X3D_LODNODE(node)->__isX3D == 0) childrenPtr = &X3D_LODNODE(node)->level; \
+				else childrenPtr = &X3D_LODNODE(node)->children; \
+			} \
+			if (X3D_LODNODE(node)->removeChildren.n > 0) { \
+				removeChildren = &X3D_LODNODE(node)->removeChildren; \
+				if (X3D_LODNODE(node)->__isX3D == 0) childrenPtr = &X3D_LODNODE(node)->level; \
+				else childrenPtr = &X3D_LODNODE(node)->children; \
+			}
+
+#define EVIN_AND_FIELD_SAME(thisfield, thistype) \
+			if ((((struct X3D_##thistype *)node)->set_##thisfield.n) > 0) { \
+				((struct X3D_##thistype *)node)->thisfield.n = 0; \
+				FREE_IF_NZ (((struct X3D_##thistype *)node)->thisfield.p); \
+				((struct X3D_##thistype *)node)->thisfield.p = ((struct X3D_##thistype *)node)->set_##thisfield.p; \
+				((struct X3D_##thistype *)node)->thisfield.n = ((struct X3D_##thistype *)node)->set_##thisfield.n; \
+				((struct X3D_##thistype *)node)->set_##thisfield.n = 0; \
+				((struct X3D_##thistype *)node)->set_##thisfield.p = NULL; \
+			} 
+
+/* just tell the parent (a grouping node) that there is a locally scoped light as a child */
+/* do NOT send this up the scenegraph! */
+#define LOCAL_LIGHT_PARENT_FLAG \
+{ int i; \
+	for (i = 0; i < vectorSize(pnode->_parentVector); i++) { \
+		struct X3D_Node *n = vector_get(struct X3D_Node*, pnode->_parentVector, i); \
+		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
+	} \
+}
 
 
+
+#define  CHECK_MATERIAL_TRANSPARENCY \
+	if (((struct X3D_Material *)node)->transparency > 0.0001) { \
+		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \
+		update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
+	}
+ 
+#define CHECK_IMAGETEXTURE_TRANSPARENCY \
+	if (isTextureAlpha(((struct X3D_ImageTexture *)node)->__textureTableIndex)) { \
+		/* printf ("node %d IMAGETEXTURE HAS TRANSPARENCY\n", node); */ \
+		update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
+	}
+
+#define CHECK_PIXELTEXTURE_TRANSPARENCY \
+	if (isTextureAlpha(((struct X3D_PixelTexture *)node)->__textureTableIndex)) { \
+		/* printf ("node %d PIXELTEXTURE HAS TRANSPARENCY\n", node); */ \
+		update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
+	}
+
+#define CHECK_MOVIETEXTURE_TRANSPARENCY \
+	if (isTextureAlpha(((struct X3D_MovieTexture *)node)->__textureTableIndex)) { \
+		/* printf ("node %d MOVIETEXTURE HAS TRANSPARENCY\n", node); */ \
+		update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+		gglobal()->RenderFuncs.have_transparency = TRUE; \
+	}
+
+#endif
+//dug9 dec 13 >>
+//also used in renderfuncs.c setSensitive()
+//definition: type node: its the node that represents the type of the node
+//which for builtin nodes is the same as the node
+// it's only different for protoInstances, where the type node is the first node in the ProtoBody
+// or if the first node in the protoBody is a Proto, then its first node ad infinitum
+// goal: get the type node, given the node
+// then the Proto IS-A typeNode or can be used as one in some places
+struct X3D_Node* getTypeNode(struct X3D_Node *node)
+{
+	struct X3D_Node* dnode;
+	dnode = node; //for builtin types, the type node is just the node
+#ifndef OLD_UPDATE_MACROS
+	if(node->_nodeType == NODE_Group)
+	{
+		struct X3D_Group *gpn = (struct X3D_Group*)node;
+		if(gpn->FreeWRL__protoDef != INT_ID_UNDEFINED)
+		{
+			//the first node in a protobody determines its type
+			if(gpn->children.n > 0)
+				dnode = getTypeNode(gpn->children.p[0]);
+			else
+				dnode = NULL;
+		}
+	}
+#endif
+	return dnode;
+}
+//dug9 dec 13 <<
+// Dec 14, 2012 new proto IS-A version (see below for older version)
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
+	struct X3D_Node* dnode;
+	struct X3D_Node* pnode;
 	struct X3D_Anchor* anchorPtr;
 	struct Vector *parentVector;
 	int nParents;
@@ -2738,12 +2884,16 @@ void startOfLoopNodeUpdates(void) {
 		node = p->memoryTable[i];	
 		if (node != NULL) 
 		if (node->referenceCount > 0) {
-			switch (node->_nodeType) {
+			pnode = node;
+			node = getTypeNode(node); //+ dug9 dec 13
+			if (node != NULL)
+			//switch (node->_nodeType) { //- dug9 dec 13
+			switch (node->_nodeType) { //+ dug9 dec 13
 				BEGIN_NODE(Shape)
 					/* send along a "look at me" flag if we are visible, or we should look again */
 					if ((X3D_SHAPE(node)->__occludeCheckCount <=0) ||
 							(X3D_SHAPE(node)->__visible)) {
-						update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+						update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 						/* printf ("shape occludecounter, pushing visiblechildren flags\n");  */
 
 					}
@@ -2757,7 +2907,7 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(DirectionalLight)
 					if (X3D_DIRECTIONALLIGHT(node)->on) {
 						if (X3D_DIRECTIONALLIGHT(node)->global) 
-							update_renderFlag(node,VF_globalLight);
+							update_renderFlag(pnode,VF_globalLight);
 						else
 							LOCAL_LIGHT_PARENT_FLAG
 					}
@@ -2765,7 +2915,7 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(SpotLight)
 					if (X3D_SPOTLIGHT(node)->on) {
 						if (X3D_SPOTLIGHT(node)->global) 
-							update_renderFlag(node,VF_globalLight);
+							update_renderFlag(pnode,VF_globalLight);
 						else
 							LOCAL_LIGHT_PARENT_FLAG
 					}
@@ -2773,7 +2923,7 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(PointLight)
 					if (X3D_POINTLIGHT(node)->on) {
 						if (X3D_POINTLIGHT(node)->global) 
-							update_renderFlag(node,VF_globalLight);
+							update_renderFlag(pnode,VF_globalLight);
 						else
 							LOCAL_LIGHT_PARENT_FLAG
 					}
@@ -2847,7 +2997,7 @@ void startOfLoopNodeUpdates(void) {
 
 				BEGIN_NODE(StaticGroup)
 					/* we should probably not do this, but... */
-					sortChildren (__LINE__,&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_STATICGROUP(node)->children,&X3D_STATICGROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 				END_NODE
@@ -2862,7 +3012,7 @@ X3D_GROUP(node)->children.n,
 X3D_GROUP(node)->addChildren.n,
 X3D_GROUP(node)->removeChildren.n);
 */
-					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
 					propagateExtent(X3D_NODE(node));
@@ -2872,7 +3022,7 @@ X3D_GROUP(node)->removeChildren.n);
 #ifdef DJTRACK_PICKSENSORS
 				/* DJTRACK_PICKSENSORS */
 				BEGIN_NODE(PickableGroup) 
-					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
 E_JS_EXPERIMENTAL_CODE
@@ -2880,7 +3030,7 @@ E_JS_EXPERIMENTAL_CODE
 				END_NODE
 				/* PointPickSensor needs its own flag sent up the chain */
 				BEGIN_NODE (PointPickSensor)
-                			if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(node,VF_PickingSensor);
+                			if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(pnode,VF_PickingSensor);
 				END_NODE
 
 #endif
@@ -2898,7 +3048,7 @@ E_JS_EXPERIMENTAL_CODE
 				END_NODE
 
 				BEGIN_NODE(Transform) 
-					sortChildren (__LINE__,&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_TRANSFORM(node)->children,&X3D_TRANSFORM(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Transform) 
@@ -2927,7 +3077,7 @@ E_JS_EXPERIMENTAL_CODE
 				BEGIN_NODE(Billboard) 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(Billboard) 
-                			update_renderFlag(node,VF_Proximity);
+                			update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				BEGIN_NODE(Collision) 
@@ -2943,7 +3093,7 @@ E_JS_EXPERIMENTAL_CODE
 				BEGIN_NODE(LOD) 
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_LOD_NODE 
-                			update_renderFlag(node,VF_Proximity);
+                			update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				/* Material - transparency of materials */
@@ -2957,15 +3107,15 @@ E_JS_EXPERIMENTAL_CODE
 
 				/* Backgrounds, Fog */
 				BEGIN_NODE(Background)
-					if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+					if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 				BEGIN_NODE(TextureBackground)
-					if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+					if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 				BEGIN_NODE(Fog)
-					if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+					if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 
@@ -2974,24 +3124,24 @@ E_JS_EXPERIMENTAL_CODE
 					/* send along a "look at me" flag if we are visible, or we should look again */
 					if ((X3D_VISIBILITYSENSOR(node)->__occludeCheckCount <=0) ||
 							(X3D_VISIBILITYSENSOR(node)->__visible)) {
-						update_renderFlag (X3D_NODE(node),VF_hasVisibleChildren);
+						update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 						/* printf ("vis occludecounter, pushing visiblechildren flags\n"); */
 
 					}
 					X3D_VISIBILITYSENSOR(node)->__occludeCheckCount--;
 					/* VisibilitySensors have a transparent bounding box we have to render */
 
-                			update_renderFlag(node,VF_Blend & VF_shouldSortChildren);
+                			update_renderFlag(pnode,VF_Blend & VF_shouldSortChildren);
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (ProximitySensor)
-                			if (X3D_PROXIMITYSENSOR(node)->enabled) update_renderFlag(node,VF_Proximity);
+                			if (X3D_PROXIMITYSENSOR(node)->enabled) update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				/* GeoProximitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (GeoProximitySensor)
-                			if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(node,VF_Proximity);
+                			if (X3D_GEOPROXIMITYSENSOR(node)->enabled) update_renderFlag(pnode,VF_Proximity);
 				END_NODE
 
 				/* GeoLOD needs its own flag sent up the chain, and it has to push extent up, too */
@@ -2999,19 +3149,19 @@ E_JS_EXPERIMENTAL_CODE
 					if (!(NODE_NEEDS_COMPILING)) {
 						handle_GeoLODRange(X3D_GEOLOD(node));
 					}
-                			/* update_renderFlag(node,VF_Proximity); */
+                			/* update_renderFlag(pnode,VF_Proximity); */
 					propagateExtent(X3D_NODE(node));
 				END_NODE
 
 				BEGIN_NODE (GeoTransform)
-					sortChildren (__LINE__,&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_GEOTRANSFORM(node)->children,&X3D_GEOTRANSFORM(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoTransform) 
 				END_NODE
 
 				BEGIN_NODE (GeoLocation)
-					sortChildren (__LINE__,&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&X3D_GEOLOCATION(node)->children,&X3D_GEOLOCATION(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(GeoLocation) 
@@ -3063,10 +3213,10 @@ E_JS_EXPERIMENTAL_CODE
 				/* VRML1 Separator node; we do a bare bones implementation; always assume there are 
 					lights, geometry, and viewpoints here. */
 				BEGIN_NODE(VRML1_Separator) 
-					sortChildren (__LINE__,&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,node->_renderFlags & VF_shouldSortChildren);
+					sortChildren (__LINE__,&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 					propagateExtent(X3D_NODE(node));
-					update_renderFlag(X3D_NODE(node),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
+					update_renderFlag(X3D_NODE(pnode),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
 				END_NODE
 #endif //DO_VRML1
                     
@@ -3078,6 +3228,7 @@ E_JS_EXPERIMENTAL_CODE
 			for (j=0; j<nParents; j++) {
 				struct X3D_Node *n = vector_get(struct X3D_Node *, parentVector, j);
 				n->_renderFlags = n->_renderFlags  | VF_Sensitive;
+#ifdef OLD_UPDATE_MACROS
 				// >> start dug9 Dec 12, 2012 added:
 				// if sensor's parent is a ProtoBodyGroup wrapper:
 				//   if sensor is the first node in the ProtoBodyGroup (Proto is-a Sensor)
@@ -3106,7 +3257,7 @@ E_JS_EXPERIMENTAL_CODE
 						}
 					}
 				}
-				// << end dug9 Dec 12, 2012
+#endif
 			}
 			/* tell mainloop that we have to do a sensitive pass now */
 			tg->Mainloop.HaveSensitive = TRUE;
@@ -3198,6 +3349,9 @@ E_JS_EXPERIMENTAL_CODE
 	}
 }
 
+
+
+//#define VERBOSE 1
 void markForDispose(struct X3D_Node *node, int recursive){
 
 	#if USE_JS_EXPERIMENTAL_CODE
@@ -3303,6 +3457,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 
 	}
 }
+//#undef VERBOSE
 
 #define DELETE_IF_IN_PRODCON(aaa) \
 	if (tg->ProdCon.aaa) { \
