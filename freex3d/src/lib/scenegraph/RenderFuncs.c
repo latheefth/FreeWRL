@@ -1098,6 +1098,8 @@ void render_node(struct X3D_Node *node) {
  * We use this array code because VRML nodes usually don't have
  * hundreds of children and don't usually shuffle them too much.
  */
+//dug9 dec 13 >>
+struct X3D_Node* getTypeNode(struct X3D_Node *node);
 
 void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int line) {
 
@@ -1119,7 +1121,7 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 	vector_pushBack (struct X3D_Node*,node->_parentVector, parent);
 
 	/* tie in sensitive nodes */
-	setSensitive (parent, node);
+	setSensitive (parent, getTypeNode(node));
 }
 
 void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
