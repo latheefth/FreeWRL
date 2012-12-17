@@ -571,74 +571,74 @@ uniform vec4 lightSpotDir[8]; \
 uniform vec4 lightSpecular[8]; \n";
 
 
-static const GLchar *ADSLLightModel = "\
-/* use ADSLightModel here \
-the ADS colour is returned from the function. \
-*/  \
-vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
-int i; \
-vec4 diffuse = vec4(0., 0., 0., 0.); \
-vec4 ambient = vec4(0., 0., 0., 0.); \
-vec4 specular = vec4(0., 0., 0., 1.); \
-vec3 viewv = -normalize(myPosition.xyz); \
-vec3 norm = normalize (myNormal); \
-vec4 emissive; \
-float myAlph = 0.0; /* JAS */ \
-\
-bool backFacing = (dot(norm,viewv) < 0.0); \
-\
-/* back Facing materials - flip the normal */ \
-if (backFacing) { \
-	norm = -norm; \
-	emissive = fw_BackMaterial.emission;    \
-	myAlph = fw_BackMaterial.diffuse.a; \
-} else { \
-	emissive = fw_FrontMaterial.emission;   \
-	myAlph = fw_FrontMaterial.diffuse.a; \
-} \
-\
-/* apply the lights to this material */ \
-for (i=0; i<8; i++) { \
-	if (lightState[i] == 1) { \
-		vec4 myLightDiffuse = lightDiffuse[i]; \
-		vec4 myLightAmbient = lightAmbient[i]; \
-		vec4 myLightSpecular = lightSpecular[i]; \
-		vec4 myLightPosition = lightPosition[i]; \
-		/* normal, light, view, and light reflection vectors */ \
-		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
-		vec3 refl = reflect (-lightv, norm); \
-		\
-		if (backFacing) { \
-			/* diffuse light computation */ \
-            diffuse+=max(dot(vec4(norm,0.),myLightPosition),0.0) *fw_BackMaterial.diffuse*myLightDiffuse;\
-			\
-			/* ambient light computation */ \
-			ambient += fw_BackMaterial.ambient*myLightAmbient; \
-			\
-			/* Specular light computation */ \
-			if (dot(lightv, viewv) > 0.0) { \
-				specular += pow(max(0.0, dot(viewv, refl)), \
-				fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
-			} \
-		} else { \
-			\
-			/* diffuse light computation */ \
-			\
-            diffuse+=max(dot(vec4(norm,0.),myLightPosition),0.0) *fw_FrontMaterial.diffuse*myLightDiffuse;\
-			/* ambient light computation */ \
-			ambient += fw_FrontMaterial.ambient*myLightAmbient; \
-			\
-			/* Specular light computation */ \
-			if (dot(lightv, viewv) > 0.0) { \
-				specular += pow(max(0.0, dot(viewv, refl)), \
-				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
-			} \
-		} \
-	} \
-} \
-return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
-} ";
 
+static const GLchar *ADSLLightModel = " \
+/* use ADSLightModel here the ADS colour is returned from the function.  */  \n \
+vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \n \
+int i; \n \
+vec4 diffuse = vec4(0., 0., 0., 0.); \n \
+vec4 ambient = vec4(0., 0., 0., 0.); \n \
+vec4 specular = vec4(0., 0., 0., 1.); \n \
+vec3 viewv = -normalize(myPosition.xyz); \n \
+vec3 normal = normalize (myNormal); \n \
+vec4 emissive; \n \
+float myAlph = 0.0; \n \
+\n \
+bool backFacing = (dot(normal,viewv) < 0.0); \n \
+fw_MaterialParameters myMat = fw_FrontMaterial; \n \
+\n \
+/* back Facing materials - flip the normal and grab back materials */ \n \
+if (backFacing) { \n \
+	normal = -normal; \n \
+	myMat = fw_BackMaterial; \n \
+} \n \
+emissive = myMat.emission;   \n \
+myAlph = myMat.diffuse.a; \n \
+\n \
+/* apply the lights to this material */ \n \
+for (i=0; i<8; i++) { \n \
+	if (lightState[i] == 1) { \n \
+		vec4 myLightDiffuse = lightDiffuse[i]; \n \
+		vec4 myLightAmbient = lightAmbient[i]; \n \
+		vec4 myLightSpecular = lightSpecular[i]; \n \
+		vec4 myLightPosition = lightPosition[i]; \n \
+		/* normal, light, view, and light reflection vectors */ \n \
+		/* compute the half vector - eye position - light position; \n \
+		   note that our light vector is opposite to this direction */ \n \
+ \
+		vec3 eyeVector = normalize(myPosition.xyz); \n \
+		vec3 lightDir = normalize(myLightPosition.xyz-myPosition.xyz); \n \
+        float dist = length(myLightPosition.xyz-myPosition.xyz); \n \
+        vec3 halfVector = normalize(lightDir - eyeVector); \n \
+		float NdotL = max(dot(normal, lightDir), 0.0); \n  \
+\
+        float att = 1.0; /* assume directional light */ \n \
+		/* Specular light computation */ \n \
+		if (NdotL > 0.0) { \n \
+            /* do we have a pointlight? */ \
+            if (myLightPosition.w>0.5) { \n \
+                att = 1.0 / (light_constAtten[i] * dist +  \n \
+                    light_linAtten[i] * dist + \n \
+                    light_quadAtten[i] * dist * dist);\n \
+                att = 0.5;/* XXX */ \n \
+           } \n \
+            /* Specular */ \n \
+			float NdotHV = max(dot(normal,halfVector),0.0); \n \
+            specular += att * myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \
+\
+		} \n \
+\
+        /* diffuse light computation */ \n \
+        diffuse += att * NdotL*myMat.diffuse*myLightDiffuse; \n \
+        \
+        /* ambient light computation */ \n \
+        ambient += att * myMat.ambient*myLightAmbient; \n \
+        \n \
+\
+	} \n \
+} \n \
+return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \n \
+} ";
 
 /* FRAGMENT bits */
 #ifdef GL_ES_VERSION_2_0
@@ -1258,7 +1258,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
         me->lightPosition = GET_UNIFORM(myProg,"lightPosition");
 	me->lightConstAtten = GET_UNIFORM(myProg,"light_constAtten");
 	me->lightLinAtten = GET_UNIFORM(myProg, "light_linAtten");
-	me->lightQuadAtten = GET_UNIFORM(myProg,"lightQuadAtten");
+	me->lightQuadAtten = GET_UNIFORM(myProg,"light_quadAtten");
 	me->lightSpotCut = GET_UNIFORM(myProg, "lightSpotCut");
 	me->lightSpotExp = GET_UNIFORM(myProg, "lightSpotExp");
 	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDir");

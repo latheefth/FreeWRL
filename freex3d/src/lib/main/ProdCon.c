@@ -505,6 +505,11 @@ void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 		// the _sortedChildren field mimic the children field.
 		rootNode()->children.n = 0; rootNode()->_change ++;
 
+		// set the extents back to initial
+		{ struct X3D_Group *node = rootNode();
+			INITIALIZE_EXTENT;
+		}
+
 		//printf ("send_resource_to_parser, rootnode children count set to 0\n");
 
 	}

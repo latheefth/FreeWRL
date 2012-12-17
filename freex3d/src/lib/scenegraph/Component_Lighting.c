@@ -68,7 +68,7 @@ void compile_DirectionalLight (struct X3D_DirectionalLight *node) {
     node->_dir.c[0] = (float) vec.x;
     node->_dir.c[1] = (float) vec.y;
     node->_dir.c[2] = (float) vec.z;
-    node->_dir.c[3] = 0.0f;/* 0.0 = DirectionalLight */
+    node->_dir.c[3] = 0.0f;/* 0.0 = this is a vector, not a position */
 
     node->_col.c[0] = ((node->color).c[0]) * (node->intensity);
     node->_col.c[1] = ((node->color).c[1]) * (node->intensity);
@@ -114,8 +114,10 @@ void compile_PointLight (struct X3D_PointLight *node) {
     int i;
     
     for (i=0; i<3; i++) node->_loc.c[0] = node->location.c[0];
-    node->_loc.c[3] = 0.0f;/* vec3 to vec4... */
+    node->_loc.c[3] = 1.0f;/* 1 == this is a position, not a vector */
     
+    //ConsoleMessage("compile_PointLight, loc %f %f %f %f",node->_loc.c[0],node->_loc.c[1],node->_loc.c[2],node->_loc.c[3]);
+
     node->_col.c[0] = ((node->color).c[0]) * (node->intensity);
     node->_col.c[1] = ((node->color).c[1]) * (node->intensity);
     node->_col.c[2] = ((node->color).c[2]) * (node->intensity);

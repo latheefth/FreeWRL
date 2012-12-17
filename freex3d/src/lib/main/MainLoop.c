@@ -2760,6 +2760,109 @@ void resetSensorEvents(void) {
 	gglobal()->RenderFuncs.hyperhit = 0;
 	/* Cursor - ensure it is not the "sensitive" cursor */
 /*	ARROW_CURSOR; */
-
 }
 
+#if defined (_ANDROID)
+
+static struct X3D_IndexedLineSet *mys = NULL;
+
+
+struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
+	struct X3D_Node *shape, *app, *mat, *ils = NULL;
+	struct X3D_Node *bbCoord = NULL;
+
+	struct X3D_Group *rn = rootNode();
+        float emis[] = {0.8, 1.0, 0.6};
+        float myp[] = {
+            -2.0, 1.0, 1.0,
+            2.0, 1.0, 1.0,
+            2.0, 1.0, -1.0,
+            -2.0, 1.0, -1.0,
+            -2.0, -1.0, 1.0,
+            2.0, -1.0, 1.0,
+            2.0, -1.0, -1.0,
+            -2.0, -1.0, -1.0
+        };
+        int myci[] = {
+            0, 1, 2, 3, 0, -1,
+            4, 5, 6, 7, 4, -1,
+            0, 4, -1,
+            1, 5, -1,
+            2, 6, -1,
+            3, 7, -1
+
+        };
+
+	if (rn == NULL) return NULL;
+
+	if (rn->children.n > 0) {
+		shape = createNewX3DNode(NODE_Shape);
+		app = createNewX3DNode(NODE_Appearance);
+		mat = createNewX3DNode(NODE_Material);
+		ils = createNewX3DNode(NODE_IndexedLineSet);
+		bbCoord = createNewX3DNode(NODE_Coordinate);
+		//ConsoleMessage ("adding shape to rootNode");
+
+		memcpy(X3D_MATERIAL(mat)->emissiveColor.c,emis,sizeof(float) * 3);
+		X3D_INDEXEDLINESET(ils)->coordIndex.p = MALLOC (int *, sizeof(int) * 24);
+		X3D_INDEXEDLINESET(ils)->coordIndex.n = 24;
+		memcpy(X3D_INDEXEDLINESET(ils)->coordIndex.p, myci, sizeof(int) * 24);
+
+		X3D_COORDINATE(bbCoord)->point.p = MALLOC( struct SFVec3f *, sizeof(struct SFVec3f) * 8);
+		X3D_COORDINATE(bbCoord)->point.n = 8;
+		memcpy(X3D_COORDINATE(bbCoord)->point.p, myp, sizeof (struct SFVec3f) * 8);
+
+		// MFNode field manipulation
+		AddRemoveChildren(X3D_NODE(rootNode()),
+			offsetPointer_deref(void *,rootNode(),
+			offsetof(struct X3D_Group, children)),
+			&shape,1,1,__FILE__,__LINE__);
+
+		// SFNode manipulation
+		X3D_SHAPE(shape)->appearance = app;
+		ADD_PARENT(app,shape);
+
+		X3D_SHAPE(shape)->geometry = ils;
+
+		// we break the back link, so that this IndexedLineSet does not affect the
+		// bounding box. Try this with the 1.wrl test, with a Transform, translation in
+		// it, and see the difference
+		//ADD_PARENT(ils,shape);
+
+		X3D_INDEXEDLINESET(ils)->coord = bbCoord;
+		ADD_PARENT(ils,bbCoord);
+
+		X3D_APPEARANCE(app)->material = mat;
+		ADD_PARENT(mat,app);
+		
+		return X3D_INDEXEDLINESET(ils);
+	}
+	return NULL;
+}
+
+static int counter = 0;
+void fwl_update_boundingBox(struct X3D_IndexedLineSet* node) {
+
+	struct X3D_Group *rn = rootNode();
+	struct SFVec3f newbbc[8];
+
+	if (node==NULL) return;
+	if (rn != NULL) {
+		// x coordinate
+		newbbc[1].c[0] = newbbc[2].c[0]= newbbc[5].c[0] = newbbc[6].c[0]=rn->EXTENT_MAX_X;
+		newbbc[0].c[0] = newbbc[3].c[0]= newbbc[4].c[0] = newbbc[7].c[0]=rn->EXTENT_MIN_X;
+
+		// y coordinate
+		newbbc[0].c[1] = newbbc[1].c[1] = newbbc[2].c[1] = newbbc[3].c[1]=rn->EXTENT_MAX_Y;
+		newbbc[4].c[1] = newbbc[5].c[1] = newbbc[6].c[1] = newbbc[7].c[1]=rn->EXTENT_MIN_Y;
+
+		// z coordinate
+		newbbc[0].c[2] = newbbc[1].c[2] = newbbc[4].c[2] = newbbc[5].c[2]=rn->EXTENT_MAX_Z;
+		newbbc[2].c[2] = newbbc[3].c[2] = newbbc[6].c[2] = newbbc[7].c[2]=rn->EXTENT_MIN_Z;
+
+		memcpy(X3D_COORDINATE(node->coord)->point.p, newbbc, sizeof (struct SFVec3f) * 8);
+
+		node->_change++;
+	}
+}
+#endif // _ANDROID

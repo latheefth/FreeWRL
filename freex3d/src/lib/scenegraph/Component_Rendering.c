@@ -182,7 +182,9 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		if (node->coordIndex.p[i] > maxCoordFound) maxCoordFound = node->coordIndex.p[i];
 	}
 	if (maxCoordFound > npoints) {
-		ConsoleMessage ("IndexedLineSet - not enough coordinates - coordindex contains higher index\n");
+		//JAS - cheat - remove the BoundingBox for root node by simply making the coordinate element count 0,
+		//JAS - but if we do that, we get this console message.
+		//JAS ConsoleMessage ("IndexedLineSet - not enough coordinates - coordindex contains higher index\n");
 		return;
 	}
 
@@ -350,18 +352,9 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 }
 
 void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
-#ifdef OLDCODE
-OLDCODE	DEFAULT_COLOUR_POINTER
-#endif //OLDCODE
-
     ushort **indxStartPtr;
 	ushort *count;
 	int i;
-
-#ifdef OLDCODE
-OLDCODE	/* is there an emissiveColor here??? */
-OLDCODE	GET_COLOUR_POINTER
-#endif //OLDCODE
 
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
@@ -382,13 +375,6 @@ OLDCODE	GET_COLOUR_POINTER
 		if (node->__colours) {
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__colours);
 			FW_GL_ENABLECLIENTSTATE(GL_COLOR_ARRAY);
-#ifdef OLDCODE
-OLDCODE - now with shaders, the line colour will come from the appearance field,
-OLDCODE not from a specific shader variable. Yes, an "appearance" field will be present,
-OLDCODE even if one does not exist in the VRML/X3D file. 
-OLDCODE 		} else {
-OLDCODE 			DO_COLOUR_POINTER
-#endif //OLDCODE
 		}
 
         indxStartPtr = (ushort **)node->__vertIndx;
