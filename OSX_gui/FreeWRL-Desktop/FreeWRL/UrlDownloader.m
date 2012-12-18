@@ -107,7 +107,7 @@ NSString *net_url = nil;
     
     // is this a local file, or a network file?
     char *ascii_url = (char *)[net_url UTF8String];
-    //NSLog (@"URL: ascii_url %s",ascii_url);
+    NSLog (@"URL: ascii_url %s",ascii_url);
     
     // call to library
     if (fwl_checkNetworkFile(ascii_url)) {

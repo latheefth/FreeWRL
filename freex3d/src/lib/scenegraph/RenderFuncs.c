@@ -294,6 +294,34 @@ void fwglLightf (int light, int pname, GLfloat param) {
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+    
+    GLDOUBLE rv[16];
+    int i,j;
+    GLDOUBLE modelMatrix[16];
+    shaderVec4 translated_light_pos[8];
+
+    FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+    
+    /* pre-multiply the light position, as per the orange book, page 216,
+     "OpenGL specifies that light positions are transformed by the modelview
+     matrix when they are provided to OpenGL..." */
+    for(j=0;j<8;j++) {
+        //ConsoleMessage ("sendLightInfo, light %d lightOnOff %d",j,p->lightOnOff[j]);
+        if (p->lightOnOff[j] == 1) {
+            for(i=0;i<16;i++) rv[i]=p->light_pos[j][i];
+            
+            //ConsoleMessage("sendLightInfo, light %d",j);
+            //for(i=0;i<16;i++) ConsoleMessage ("i %d val %f",i,p->light_pos[j][i]);
+            
+            matmultiply(rv,rv,modelMatrix);
+            for(i=0;i<16;i++) translated_light_pos[j][i]=rv[i];
+            
+            //ConsoleMessage("sendLightInfo, translated ");
+            //for(i=0;i<16;i++) ConsoleMessage ("i %d val %f",i,translated_light_pos[j][i]);
+
+            
+        }
+    }
 		/* for debugging: */
   /*
    if (xxc==10) {
@@ -333,7 +361,7 @@ PRINT_GL_ERROR_IF_ANY("MIDDLE2 sendLightInfo");
 	GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);
     
 	GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
-	GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
+	GLUNIFORM4FV(me->lightPosition,8,(float *)translated_light_pos);
 	GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
 	GLUNIFORM4FV(me->lightSpotDir, 8, (float *)p->light_spotDir);
 PRINT_GL_ERROR_IF_ANY("END sendLightInfo");

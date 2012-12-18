@@ -201,6 +201,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
+        ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 	}
 }
 #ifdef GLEW_MX
@@ -602,35 +603,36 @@ for (i=0; i<8; i++) { \n \
 		vec4 myLightAmbient = lightAmbient[i]; \n \
 		vec4 myLightSpecular = lightSpecular[i]; \n \
 		vec4 myLightPosition = lightPosition[i]; \n \
+        bool havePointLight = (myLightPosition.w > 0.5); \n \
 		/* normal, light, view, and light reflection vectors */ \n \
 		/* compute the half vector - eye position - light position; \n \
 		   note that our light vector is opposite to this direction */ \n \
  \
 		vec3 eyeVector = normalize(myPosition.xyz); \n \
-		vec3 lightDir = normalize(myLightPosition.xyz-myPosition.xyz); \n \
+		vec3 lightDir = normalize(myLightPosition.xyz - viewv ); \n \
+\
         float dist = length(myLightPosition.xyz-myPosition.xyz); \n \
         vec3 halfVector = normalize(lightDir - eyeVector); \n \
 		float NdotL = max(dot(normal, lightDir), 0.0); \n  \
+        float NdotHV = max(dot(normal,halfVector),0.0); \n \
 \
         float att = 1.0; /* assume directional light */ \n \
 		/* Specular light computation */ \n \
 		if (NdotL > 0.0) { \n \
             /* do we have a pointlight? */ \
-            if (myLightPosition.w>0.5) { \n \
+            if (havePointLight) { \n \
                 att = 1.0 / (light_constAtten[i] * dist +  \n \
                     light_linAtten[i] * dist + \n \
                     light_quadAtten[i] * dist * dist);\n \
-                att = 0.5;/* XXX */ \n \
            } \n \
-            /* Specular */ \n \
-			float NdotHV = max(dot(normal,halfVector),0.0); \n \
-            specular += att * myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \
-\
 		} \n \
+\
+        /* Specular */ \n \
+        specular += att * myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \
 \
         /* diffuse light computation */ \n \
         diffuse += att * NdotL*myMat.diffuse*myLightDiffuse; \n \
-        \
+\
         /* ambient light computation */ \n \
         ambient += att * myMat.ambient*myLightAmbient; \n \
         \n \

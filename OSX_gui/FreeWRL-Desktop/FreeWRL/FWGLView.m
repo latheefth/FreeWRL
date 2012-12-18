@@ -49,6 +49,7 @@ NSMutableData *receivedData;
     
     //NSLog (@"trying sidebyside");
     //fwl_init_SideBySide();
+    //setAnaglyph();
     //
     //fwl_set_AnaglyphParameter("RC");
     
@@ -64,19 +65,25 @@ NSMutableData *receivedData;
         cString = (char *)[fileToOpen UTF8String];
     } else {
         // no file specified; go here.
-        cString = "/Applications/FreeWRL/blankScreen.wrl";
-        //cString = "/FreeWRL/freewrl/freewrl/tests/16.wrl";
-        cString="/Users/johns/Desktop/palm.wrl";
-        //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/42.wrl";
-        //cString="/Users/john/Desktop/Android-tests-current/freewrl/freewrl/tests/13.wrl";
-        cString="/Users/johns/Desktop/testvrml.wrl";
-        cString="/Users/johns/Desktop/venus.wrl";
-        cString="/Users/johns/Desktop/JAStests/composedCube.wrl";
-        //cString="/Users/john/Desktop/JAStests/CastleEngine/demo_models/cube_environment_mapping/cubemap_composed.x3dv";
-        //cString="/Users/john/Desktop/JAStests/CastleEngine/demo_models/cube_environment_mapping/cubemap_image_dds.x3dv";
-        cString="/Users/johns/Desktop/JAStests/imageCube.wrl";
-
-
+        //cString = "/Applications/FreeWRL/blankScreen.wrl";
+        // cString="/Users/johns/Desktop/Ed-Jellyfish/jellyfish-cutter.stl";
+        //cString="/Users/john/Desktop/penguin press complete.stl";
+        //cString="/Users/john/Desktop/Android-tests-current/stl_files/Box2X.stl";
+//cString="/Users/john/Desktop/Android-tests-current/stl_files/sphere0.stl";
+        //cString="/Users/john/Desktop/Android-tests-current/stl_files/jellyfish-cutter.stl";
+        //cString="/Users/john/Desktop/Android-tests-current/stl_files/Penguin press complete.stl";
+        //cString="/Users/john/Desktop/4bd040609.x3dv";
+        //cString="/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl-December08-2012/freewrl/tests/16.wrl";
+        //cString="/Users/john/Desktop/stlToX3D.wrl";
+        //cString="/Users/john/Desktop/x3dCone.wrl";
+        //cString="/Users/john/Desktop/4bd040609mesh.stl";
+        //cString="/Users/johns/Desktop/JAStests/4bd040609mesh.stl";
+        //cString="//Users/johns/Desktop/stl_files/love.stl";
+        //cString="//Users/johns/Desktop/stl_files/polysoup.stl";
+        cString="/Users/john/Desktop/specularColor.wrl";
+        cString="/Users/john/Desktop/SpecularMaterial.wrl";
+        cString="/Users/john/Desktop/PointLight.wrl";
+        //cString="/Users/john/Desktop/1.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
