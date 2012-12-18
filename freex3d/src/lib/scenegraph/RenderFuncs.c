@@ -252,7 +252,8 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 
 void fwglLightf (int light, int pname, GLfloat param) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	/*
+
+#ifdef RENDERVERBOSE
 	printf ("glLightf light: %d ",light);
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION: printf ("GL_CONSTANT_ATTENUATION"); break;
@@ -262,7 +263,8 @@ void fwglLightf (int light, int pname, GLfloat param) {
 		case GL_SPOT_EXPONENT: printf ("GL_SPOT_EXPONENT"); break;
 	}
 	printf (" %f\n",param);
-	*/
+#endif
+	
 
 	#ifndef GL_ES_VERSION_2_0
 		glLightf(GL_LIGHT0+light,pname,param);
@@ -294,9 +296,8 @@ void fwglLightf (int light, int pname, GLfloat param) {
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+    int j;
     
-    GLDOUBLE rv[16];
-    int i,j;
     GLDOUBLE modelMatrix[16];
     shaderVec4 translated_light_pos[8];
 
@@ -308,18 +309,21 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     for(j=0;j<8;j++) {
         //ConsoleMessage ("sendLightInfo, light %d lightOnOff %d",j,p->lightOnOff[j]);
         if (p->lightOnOff[j] == 1) {
-            for(i=0;i<16;i++) rv[i]=p->light_pos[j][i];
-            
-            //ConsoleMessage("sendLightInfo, light %d",j);
-            //for(i=0;i<16;i++) ConsoleMessage ("i %d val %f",i,p->light_pos[j][i]);
-            
-            matmultiply(rv,rv,modelMatrix);
-            for(i=0;i<16;i++) translated_light_pos[j][i]=rv[i];
-            
-            //ConsoleMessage("sendLightInfo, translated ");
-            //for(i=0;i<16;i++) ConsoleMessage ("i %d val %f",i,translated_light_pos[j][i]);
-
-            
+            /* DirectionalLight? */
+            if (p->light_pos[j][3] > 0.5) {
+                transformf(translated_light_pos[j],p->light_pos[j],modelMatrix);
+                translated_light_pos[j][3] = p->light_pos[j][3];
+                ConsoleMessage ("light %d orig %f %f %f %f now %f %f %f %f",j,p->light_pos[j][0],
+                            p->light_pos[j][1],
+                            p->light_pos[j][2],
+                            p->light_pos[j][3],
+                            translated_light_pos[j][0],
+                            translated_light_pos[j][1],
+                            translated_light_pos[j][2],
+                            translated_light_pos[j][3]);
+            } else {
+                memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
+            }
         }
     }
 		/* for debugging: */
@@ -333,8 +337,9 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     }
     xxc++;
    */ 
+
 #ifdef RENDERVERBOSE    
-	int i;
+{	int i;
 	printf ("sendLightInfo - sending in lightState ");
 	for (i=0; i<8; i++) {
 		printf ("cut %d:%f ",i,p->light_spotCut[i]);
@@ -342,7 +347,9 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 		//printf ("%d:%d ",i,p->lightOnOff[i]);
 	}
 	printf ("\n");
+}
 #endif
+
 		
 PRINT_GL_ERROR_IF_ANY("BEGIN sendLightInfo");
 	/* if one of these are equal to -1, we had an error in the shaders... */
@@ -362,6 +369,8 @@ PRINT_GL_ERROR_IF_ANY("MIDDLE2 sendLightInfo");
     
 	GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
 	GLUNIFORM4FV(me->lightPosition,8,(float *)translated_light_pos);
+    GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
+
 	GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
 	GLUNIFORM4FV(me->lightSpotDir, 8, (float *)p->light_spotDir);
 PRINT_GL_ERROR_IF_ANY("END sendLightInfo");
@@ -654,7 +663,7 @@ void initializeLightTables() {
           	FW_GL_LIGHTF(i, GL_CONSTANT_ATTENUATION,1.0f);
         	FW_GL_LIGHTF(i, GL_LINEAR_ATTENUATION,0.0f);
         	FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
-        	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,180.0f);
+        	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,0.0f);
         	FW_GL_LIGHTF(i, GL_SPOT_EXPONENT,0.0f);
             
             PRINT_GL_ERROR_IF_ANY("initizlizeLight2");

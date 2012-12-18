@@ -599,43 +599,43 @@ myAlph = myMat.diffuse.a; \n \
 /* apply the lights to this material */ \n \
 for (i=0; i<8; i++) { \n \
 	if (lightState[i] == 1) { \n \
-		vec4 myLightDiffuse = lightDiffuse[i]; \n \
-		vec4 myLightAmbient = lightAmbient[i]; \n \
-		vec4 myLightSpecular = lightSpecular[i]; \n \
-		vec4 myLightPosition = lightPosition[i]; \n \
-        bool havePointLight = (myLightPosition.w > 0.5); \n \
-		/* normal, light, view, and light reflection vectors */ \n \
-		/* compute the half vector - eye position - light position; \n \
-		   note that our light vector is opposite to this direction */ \n \
- \
-		vec3 eyeVector = normalize(myPosition.xyz); \n \
-		vec3 lightDir = normalize(myLightPosition.xyz - viewv ); \n \
 \
-        float dist = length(myLightPosition.xyz-myPosition.xyz); \n \
-        vec3 halfVector = normalize(lightDir - eyeVector); \n \
-		float NdotL = max(dot(normal, lightDir), 0.0); \n  \
-        float NdotHV = max(dot(normal,halfVector),0.0); \n \
+    vec4 myLightDiffuse = lightDiffuse[i]; \n \
+    vec4 myLightAmbient = lightAmbient[i]; \n \
+    vec4 myLightSpecular = lightSpecular[i]; \n \
+    vec4 myLightPosition = lightPosition[i]; \n \
 \
-        float att = 1.0; /* assume directional light */ \n \
-		/* Specular light computation */ \n \
-		if (NdotL > 0.0) { \n \
+        if (lightSpotCut[i]==180.0) { \n \
+            /* SpotLight */ \n \
+ambient=vec4(1.,0.,0.,1.); \n \
+        } else if (myLightPosition.w == 0.0) { \n \
+            /* DirectionalLight */ \n \
+            vec3 eyeVector = normalize(myPosition.xyz); \n \
+            vec3 lightDir = normalize(myLightPosition.xyz + viewv); /* -myPosition.xyz)*/ \
+\
+            float dist = length(myLightPosition.xyz-myPosition.xyz); \n \
+            vec3 halfVector = normalize(lightDir - eyeVector); \n \
+            float NdotL = max(dot(normal, lightDir), 0.0); \n  \
+            float NdotHV = max(dot(normal,halfVector),0.0); \n \
+\
+            float att = 1.0; /* assume directional light */ \n \
+            /* Specular light computation */ \n \
+            if (NdotL > 0.0) { \n \
             /* do we have a pointlight? */ \
-            if (havePointLight) { \n \
-                att = 1.0 / (light_constAtten[i] * dist +  \n \
-                    light_linAtten[i] * dist + \n \
-                    light_quadAtten[i] * dist * dist);\n \
-           } \n \
-		} \n \
-\
-        /* Specular */ \n \
-        specular += att * myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \
-\
-        /* diffuse light computation */ \n \
-        diffuse += att * NdotL*myMat.diffuse*myLightDiffuse; \n \
-\
-        /* ambient light computation */ \n \
-        ambient += att * myMat.ambient*myLightAmbient; \n \
-        \n \
+            } \n \
+            \
+            /* Specular */ \n \
+            specular += att * myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \
+            \
+            /* diffuse light computation */ \n \
+            diffuse += att * NdotL*myMat.diffuse*myLightDiffuse; \n \
+            \
+            /* ambient light computation */ \n \
+            ambient += att * myMat.ambient*myLightAmbient; \n \
+        } else { \n \
+            /* PointLight */ \n \
+            ambient=vec4(1.,1.,0.,1.); \n \
+        } \n \
 \
 	} \n \
 } \n \
@@ -1105,7 +1105,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         }  
-    
 
 	#ifdef VERBOSE
 	/* print out the vertex source here */
