@@ -634,7 +634,52 @@ ambient=vec4(1.,0.,0.,1.); \n \
             ambient += att * myMat.ambient*myLightAmbient; \n \
         } else { \n \
             /* PointLight */ \n \
-            ambient=vec4(1.,1.,0.,1.); \n \
+\
+            float nDotVP;       /* normal . light direction */ \n \
+            float nDotHV;       /* normal . light half vector */ \n \
+            float pf;           /* power factor */  \n \
+            float attenuation;  /* computed attenuation factor */ \n \
+            float d;            /* distance from surface to light source */ \n \
+            vec3  VP;           /* direction from surface to light position */ \n \
+            vec3  halfVector;   /* direction of maximum highlights */ \n \
+\
+            /* Compute vector from surface to light position */ \n \
+            /* myPosition is the surface... */ \n \
+            vec3 ecPosition3 = myPosition.xyz/myPosition.w; \n \
+\
+myLightPosition = vec4(0., 0., -10., 1.); \n \
+            VP = vec3 (myLightPosition) - ecPosition3; \n \
+\
+            /* Compute distance between surface and light position */ \n \
+            d = length(VP); \n \
+\
+            /* Normalize the vector from surface to light position */ \n \
+            VP = normalize(VP); \n \
+\
+            /* Compute attenuation */ \n \
+            attenuation = 1.0 / (light_constAtten[i] + \n \
+                     light_linAtten[i] * d + \n \
+                     light_quadAtten[i] * d * d); \n \
+\
+/* XXX - assume this for now */  \n \
+attenuation = 0.5; \n \
+\
+            vec3 eye = -normalize(ecPosition3); \n \
+            halfVector = normalize(VP + eye); \n \
+\
+            nDotVP = max(0.0, dot(normal,vec3(myLightPosition))); \n \
+            nDotHV = max(0.0, dot(normal, halfVector)); \n \
+\
+            if (nDotVP == 0.0) { \n \
+                pf = 0.0; \n \
+//ambient+= vec4(0.,1.,0.,1.); \n \
+            }else{ \n \
+                pf = pow(nDotHV, gl_FrontMaterial.shininess); \n \
+            } \n \
+            ambient  += myLightAmbient * attenuation; \n \
+            diffuse  += myLightDiffuse * nDotVP * attenuation; \n \
+            specular += myLightSpecular * pf * attenuation; \n \
+\
         } \n \
 \
 	} \n \
