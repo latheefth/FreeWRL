@@ -87,10 +87,6 @@ void Multi_String_print(struct Multi_String *url);
                         return; \
                 } \
 
-/* which GL_LIGHT is the headlight? */
-#define HEADLIGHT_LIGHT 7
-
-
 #define INT_ID_UNDEFINED -1
 
 /* Size of static array */

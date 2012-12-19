@@ -201,7 +201,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
-        ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
+        //ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 	}
 }
 #ifdef GLEW_MX
@@ -249,6 +249,7 @@ void fwl_set_phongShading (int val) {
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 	p->usePhongShaders = val;
 }
+
 
 int fwl_get_phongShading () {
 	ppOpenGL_Utils p;
@@ -559,19 +560,86 @@ vec4 diffuse;    \
 vec4 specular;    \
 float shininess;    \
 }; \n   \
-uniform int lightState[8];    \
-uniform float light_linAtten[8];    \
-uniform float light_constAtten[8];    \
-uniform float light_quadAtten[8];    \
-uniform float lightSpotCut[8];    \
-uniform float lightSpotExp[8];    \
-uniform vec4 lightAmbient[8];    \
-uniform vec4 lightDiffuse[8];    \
-uniform vec4 lightPosition[8];    \
-uniform vec4 lightSpotDir[8]; \
-uniform vec4 lightSpecular[8]; \n";
+uniform int lightState[MAX_LIGHTS];    \
+uniform float light_linAtten[MAX_LIGHTS];    \
+uniform float light_constAtten[MAX_LIGHTS];    \
+uniform float light_quadAtten[MAX_LIGHTS];    \
+uniform float lightSpotCut[MAX_LIGHTS];    \
+uniform float lightSpotExp[MAX_LIGHTS];    \
+uniform vec4 lightAmbient[MAX_LIGHTS];    \
+uniform vec4 lightDiffuse[MAX_LIGHTS];    \
+uniform vec4 lightPosition[MAX_LIGHTS];    \
+uniform vec4 lightSpotDir[MAX_LIGHTS]; \
+uniform vec4 lightSpecular[MAX_LIGHTS]; \n";
 
 
+static const GLchar *oldADSLLightModel = "\
+/* use ADSLightModel here \
+the ADS colour is returned from the function. \
+*/  \
+vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
+int i; \
+vec4 diffuse = vec4(0., 0., 0., 0.); \
+vec4 ambient = vec4(0., 0., 0., 0.); \
+vec4 specular = vec4(0., 0., 0., 1.); \
+vec3 viewv = -normalize(myPosition.xyz); \
+vec3 norm = normalize (myNormal); \
+vec4 emissive; \
+float myAlph = 0.0; /* JAS */ \
+\
+bool backFacing = (dot(norm,viewv) < 0.0); \
+\
+/* back Facing materials - flip the normal */ \
+if (backFacing) { \
+	norm = -norm; \
+	emissive = fw_BackMaterial.emission;    \
+	myAlph = fw_BackMaterial.diffuse.a; \
+} else { \
+	emissive = fw_FrontMaterial.emission;   \
+	myAlph = fw_FrontMaterial.diffuse.a; \
+} \
+\
+/* apply the lights to this material */ \
+for (i=0; i<MAX_LIGHTS; i++) { \
+	if (lightState[i] == 1) { \
+		vec4 myLightDiffuse = lightDiffuse[i]; \
+		vec4 myLightAmbient = lightAmbient[i]; \
+		vec4 myLightSpecular = lightSpecular[i]; \
+		vec4 myLightPosition = lightPosition[i]; \
+		/* normal, light, view, and light reflection vectors */ \
+		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
+		vec3 refl = reflect (-lightv, norm); \
+		\
+		if (backFacing) { \
+			/* diffuse light computation */ \
+            diffuse+=max(dot(vec4(norm,0.),myLightPosition),0.0) *fw_BackMaterial.diffuse*myLightDiffuse;\
+			\
+			/* ambient light computation */ \
+			ambient += fw_BackMaterial.ambient*myLightAmbient; \
+			\
+			/* Specular light computation */ \
+			if (dot(lightv, viewv) > 0.0) { \
+				specular += pow(max(0.0, dot(viewv, refl)), \
+				fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
+			} \
+		} else { \
+			\
+			/* diffuse light computation */ \
+			\
+            diffuse+=max(dot(vec4(norm,0.),myLightPosition),0.0) *fw_FrontMaterial.diffuse*myLightDiffuse;\
+			/* ambient light computation */ \
+			ambient += fw_FrontMaterial.ambient*myLightAmbient; \
+			\
+			/* Specular light computation */ \
+			if (dot(lightv, viewv) > 0.0) { \
+				specular += pow(max(0.0, dot(viewv, refl)), \
+				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
+			} \
+		} \
+	} \
+} \
+return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
+} ";
 
 static const GLchar *ADSLLightModel = " \
 /* use ADSLightModel here the ADS colour is returned from the function.  */  \n \
@@ -597,7 +665,7 @@ emissive = myMat.emission;   \n \
 myAlph = myMat.diffuse.a; \n \
 \n \
 /* apply the lights to this material */ \n \
-for (i=0; i<8; i++) { \n \
+for (i=0; i<MAX_LIGHTS; i++) { \n \
 	if (lightState[i] == 1) { \n \
 \
     vec4 myLightDiffuse = lightDiffuse[i]; \n \
@@ -674,7 +742,7 @@ attenuation = 0.5; \n \
                 pf = 0.0; \n \
 //ambient+= vec4(0.,1.,0.,1.); \n \
             }else{ \n \
-                pf = pow(nDotHV, gl_FrontMaterial.shininess); \n \
+                pf = pow(nDotHV, myMat.shininess); \n \
             } \n \
             ambient  += myLightAmbient * attenuation; \n \
             diffuse  += myLightDiffuse * nDotVP * attenuation; \n \
@@ -691,6 +759,9 @@ return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \n
 #ifdef GL_ES_VERSION_2_0
 static const GLchar *fragHighPrecision = "precision highp float;\n ";
 static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
+static const GLchar *maxLights = "const int MAX_LIGHTS = 2; \n ";
+#else 
+static const GLchar *maxLights = "const int MAX_LIGHTS = 8; \n ";
 #endif
 
 /* NOTE that we write to the vec4 "finalFrag", and at the end we assign
@@ -1002,6 +1073,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 
     #endif
+
+    fragmentSource[fragMaxLightsDeclare] = maxLights;
+    vertexSource[vertMaxLightsDeclare] = maxLights;
+
     fragmentSource[fragmentMainStart] = fragMainStart;
 	if(Viewer()->anaglyph)
 		fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
@@ -1810,7 +1885,7 @@ void BackEndClearBuffer(int which) {
 /* turn off all non-headlight lights; will turn them on if required. */
 void BackEndLightsOff() {
 	int i;
-	for (i=0; i<7; i++) {
+	for (i=0; i<HEADLIGHT_LIGHT; i++) {
 		lightState(i, FALSE);
 	}
 }

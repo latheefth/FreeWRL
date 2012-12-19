@@ -36,6 +36,15 @@ void enableGlobalShader(s_shader_capabilities_t *);
 
 void turnGlobalShaderOff(void);
 
+#ifdef GL_ES_VERSION_2_0
+	#define MAX_LIGHTS 2
+	#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
+#else
+	#define MAX_LIGHTS 8
+	#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
+#endif
+
+
 #ifdef GL_VERSION_2_0
 	#define TURN_GLOBAL_SHADER_OFF \
 		turnGlobalShaderOff()

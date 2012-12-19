@@ -32,6 +32,7 @@ Screen snapshot.
 
 typedef enum vertexShaderResources {
     vertexPrecisionDeclare,
+	vertMaxLightsDeclare,
     
     vertexLightDefines,
     
@@ -70,6 +71,7 @@ typedef enum vertexShaderResources {
 
 typedef enum fragmenShaderResources {
 	fragmentPrecisionDeclare,
+	fragMaxLightsDeclare,
     
     fragmentMultiTexDefines,
     fragmentLightDefines,

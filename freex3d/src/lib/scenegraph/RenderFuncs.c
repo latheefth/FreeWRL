@@ -65,22 +65,22 @@ typedef struct pRenderFuncs{
 	int shaderColourArray;// = FALSE;
 	int shaderTextureArray;// = FALSE;
 
-	float light_linAtten[8];
-	float light_constAtten[8];
-	float light_quadAtten[8];
-	float light_spotCut[8];
-	float light_spotExp[8];
-	shaderVec4 light_amb[8];
-	shaderVec4 light_dif[8];
-	shaderVec4 light_pos[8];
-	shaderVec4 light_spec[8];
-	shaderVec4 light_spotDir[8];
+	float light_linAtten[MAX_LIGHTS];
+	float light_constAtten[MAX_LIGHTS];
+	float light_quadAtten[MAX_LIGHTS];
+	float light_spotCut[MAX_LIGHTS];
+	float light_spotExp[MAX_LIGHTS];
+	shaderVec4 light_amb[MAX_LIGHTS];
+	shaderVec4 light_dif[MAX_LIGHTS];
+	shaderVec4 light_pos[MAX_LIGHTS];
+	shaderVec4 light_spec[MAX_LIGHTS];
+	shaderVec4 light_spotDir[MAX_LIGHTS];
 
 	/* Rearrange to take advantage of headlight when off */
 	int nextFreeLight;// = 0;
 
-	/* lights status. Light 7 is the headlight */
-	GLint lightOnOff[8];
+	/* lights status. Light HEADLIGHT_LIGHT is the headlight */
+	GLint lightOnOff[MAX_LIGHTS];
 
 	/* should we send light changes along? */
 	bool lightStatusDirty;// = FALSE;
@@ -154,11 +154,11 @@ OLDCODE	t->OSX_replace_world_from_console = NULL;
 
 
 
-/* we assume max 8 lights. The max light is the Headlight, so we go through 0-6 for Lights */
+/* we assume max MAX_LIGHTS lights. The max light is the Headlight, so we go through 0-HEADLIGHT_LIGHT for Lights */
 int nextlight() {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	int rv = p->nextFreeLight;
-	if(p->nextFreeLight == 7) { return -1; }
+	if(p->nextFreeLight == HEADLIGHT_LIGHT) { return -1; }
 	p->nextFreeLight ++;
 	return rv;
 }
@@ -200,13 +200,13 @@ void lightState(GLint light, int status) {
 void saveLightState(int *ls) {
 	int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	for (i=0; i<7; i++) ls[i] = p->lightOnOff[i];
+	for (i=0; i<HEADLIGHT_LIGHT; i++) ls[i] = p->lightOnOff[i];
 } 
 
 void restoreLightState(int *ls) {
 	int i;
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
-	for (i=0; i<7; i++) {
+	for (i=0; i<HEADLIGHT_LIGHT; i++) {
 		if (ls[i] != p->lightOnOff[i]) {
 			lightState(i,ls[i]);
 		}
@@ -299,14 +299,14 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     int j;
     
     GLDOUBLE modelMatrix[16];
-    shaderVec4 translated_light_pos[8];
+    shaderVec4 translated_light_pos[MAX_LIGHTS];
 
     FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
     
     /* pre-multiply the light position, as per the orange book, page 216,
      "OpenGL specifies that light positions are transformed by the modelview
      matrix when they are provided to OpenGL..." */
-    for(j=0;j<8;j++) {
+    for(j=0;j<MAX_LIGHTS;j++) {
         //ConsoleMessage ("sendLightInfo, light %d lightOnOff %d",j,p->lightOnOff[j]);
         if (p->lightOnOff[j] == 1) {
             /* DirectionalLight? */
@@ -343,7 +343,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 #ifdef RENDERVERBOSE    
 {	int i;
 	printf ("sendLightInfo - sending in lightState ");
-	for (i=0; i<8; i++) {
+	for (i=0; i<MAX_LIGHTS; i++) {
 		printf ("cut %d:%f ",i,p->light_spotCut[i]);
 		printf ("exp %d:%f ",i,p->light_spotExp[i]);
 		//printf ("%d:%d ",i,p->lightOnOff[i]);
@@ -353,28 +353,28 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 #endif
 
 		
-PRINT_GL_ERROR_IF_ANY("BEGIN sendLightInfo");
+	PRINT_GL_ERROR_IF_ANY("BEGIN sendLightInfo");
 	/* if one of these are equal to -1, we had an error in the shaders... */
-	GLUNIFORM1IV(me->lightState,8,p->lightOnOff);
-PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendLightInfo");
-	GLUNIFORM1FV (me->lightConstAtten, 8, p->light_constAtten);
-PRINT_GL_ERROR_IF_ANY("MIDDLE1.1 sendLightInfo");
-	GLUNIFORM1FV (me->lightLinAtten, 8, p->light_linAtten);
-PRINT_GL_ERROR_IF_ANY("MIDDLE1.2 sendLightInfo");
-	GLUNIFORM1FV(me->lightQuadAtten, 8, p->light_quadAtten);
-PRINT_GL_ERROR_IF_ANY("MIDDLE1.3 sendLightInfo");
-	GLUNIFORM1FV(me->lightSpotCut, 8, p->light_spotCut);
-PRINT_GL_ERROR_IF_ANY("MIDDLE1.4 sendLightInfo");
-	GLUNIFORM1FV(me->lightSpotExp, 8, p->light_spotExp);
-PRINT_GL_ERROR_IF_ANY("MIDDLE2 sendLightInfo");
-	GLUNIFORM4FV(me->lightAmbient,8,(float *)p->light_amb);
+	GLUNIFORM1IV(me->lightState,MAX_LIGHTS,p->lightOnOff);
+	PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendLightInfo");
+	GLUNIFORM1FV (me->lightConstAtten, MAX_LIGHTS, p->light_constAtten);
+	PRINT_GL_ERROR_IF_ANY("MIDDLE1.1 sendLightInfo");
+	GLUNIFORM1FV (me->lightLinAtten, MAX_LIGHTS, p->light_linAtten);
+	PRINT_GL_ERROR_IF_ANY("MIDDLE1.2 sendLightInfo");
+	GLUNIFORM1FV(me->lightQuadAtten, MAX_LIGHTS, p->light_quadAtten);
+	PRINT_GL_ERROR_IF_ANY("MIDDLE1.3 sendLightInfo");
+	GLUNIFORM1FV(me->lightSpotCut, MAX_LIGHTS, p->light_spotCut);
+	PRINT_GL_ERROR_IF_ANY("MIDDLE1.4 sendLightInfo");
+	GLUNIFORM1FV(me->lightSpotExp, MAX_LIGHTS, p->light_spotExp);
+	PRINT_GL_ERROR_IF_ANY("MIDDLE2 sendLightInfo");
+	GLUNIFORM4FV(me->lightAmbient,MAX_LIGHTS,(float *)p->light_amb);
     
-	GLUNIFORM4FV(me->lightDiffuse,8,(float *)p->light_dif);
-	GLUNIFORM4FV(me->lightPosition,8,(float *)translated_light_pos);
-    GLUNIFORM4FV(me->lightPosition,8,(float *)p->light_pos);
+	GLUNIFORM4FV(me->lightDiffuse,MAX_LIGHTS,(float *)p->light_dif);
+	GLUNIFORM4FV(me->lightPosition,MAX_LIGHTS,(float *)translated_light_pos);
+    GLUNIFORM4FV(me->lightPosition,MAX_LIGHTS,(float *)p->light_pos);
 
-	GLUNIFORM4FV(me->lightSpecular,8,(float *)p->light_spec);
-	GLUNIFORM4FV(me->lightSpotDir, 8, (float *)p->light_spotDir);
+	GLUNIFORM4FV(me->lightSpecular,MAX_LIGHTS,(float *)p->light_spec);
+	GLUNIFORM4FV(me->lightSpotDir, MAX_LIGHTS, (float *)p->light_spotDir);
 PRINT_GL_ERROR_IF_ANY("END sendLightInfo");
 }
 
@@ -654,7 +654,7 @@ void initializeLightTables() {
 
       PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
 
-	for(i=0; i<8; i++) {
+	for(i=0; i<MAX_LIGHTS; i++) {
                 p->lightOnOff[i] = 9999;
                 lightState(i,FALSE);
             
