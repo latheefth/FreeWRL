@@ -36,7 +36,12 @@
 #include <list.h>
 #include <threads.h>
 #include <resources.h>
-#include <sys/time.h>
+#if HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+#if HAVE_TIME_H
+# include <time.h>
+#endif
 
 #include "../vrml_parser/Structs.h"
 #include "../vrml_parser/CRoutes.h"
@@ -299,17 +304,17 @@ int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this ac
 */
 
 #define INITIALIZE_ANY_SCRIPTS \
-        if (tg->CRoutes.max_script_found != tg->CRoutes.max_script_found_and_initialized) { \
+        if (tg->xcene->CRoutes.max_script_found != tg->xcene->CRoutes.max_script_found_and_initialized) { \
 				struct CRscriptStruct *ScriptControl = getScriptControl(); \
                 int i; jsval retval; \
-                for (i=tg->CRoutes.max_script_found_and_initialized+1; i <= tg->CRoutes.max_script_found; i++) { \
+                for (i=tg->xcene->CRoutes.max_script_found_and_initialized+1; i <= tg->xcene->CRoutes.max_script_found; i++) { \
                         /* printf ("initializing script %d in thread %u\n",i,pthread_self());  */ \
                         JSCreateScriptContext(i); \
                         JSInitializeScriptAndFields(i); \
 			if (ScriptControl[i].scriptOK) ACTUALRUNSCRIPT(i, "initialize()" ,&retval); \
                         /* printf ("initialized script %d\n",i);*/  \
                 } \
-                tg->CRoutes.max_script_found_and_initialized = tg->CRoutes.max_script_found; \
+                tg->xcene->CRoutes.max_script_found_and_initialized = tg->xcene->CRoutes.max_script_found; \
         }
 
 /* we bind bindable nodes on parse in this thread */
