@@ -37,6 +37,7 @@
 #include "opengl/Textures.h"
 #include "opengl/RasterFont.h"
 #include "opengl/OpenGL_Utils.h"
+#include "scenegraph/Collision.h"
 
 #include "ui/common.h"
 

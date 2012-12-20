@@ -572,7 +572,7 @@ uniform vec4 lightPosition[MAX_LIGHTS];    \
 uniform vec4 lightSpotDir[MAX_LIGHTS]; \
 uniform vec4 lightSpecular[MAX_LIGHTS]; \n";
 
-
+#ifdef OLDCODE
 static const GLchar *oldADSLLightModel = "\
 /* use ADSLightModel here \
 the ADS colour is returned from the function. \
@@ -640,6 +640,7 @@ for (i=0; i<MAX_LIGHTS; i++) { \
 } \
 return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
 } ";
+#endif //OLDCODE
 
 static const GLchar *ADSLLightModel = " \
 /* use ADSLightModel here the ADS colour is returned from the function.  */  \n \
@@ -2922,7 +2923,6 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 // Dec 14, 2012 new proto IS-A version (see below for older version)
 void startOfLoopNodeUpdates(void) {
 	struct X3D_Node* node;
-	struct X3D_Node* dnode;
 	struct X3D_Node* pnode;
 	struct X3D_Anchor* anchorPtr;
 	struct Vector *parentVector;
@@ -3483,7 +3483,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	char * fieldPtr;
 
 	if (node==NULL) return;
-	if (node==rootNode()) {
+	if (node==X3D_NODE(rootNode())) {
 		ConsoleMessage ("not disposing rootNode");
 		return;
 	}

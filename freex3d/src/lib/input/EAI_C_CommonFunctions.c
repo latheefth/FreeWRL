@@ -466,7 +466,7 @@ MF_TYPE(MFNode, mfnode, Node)
 			PST_SF_SIMPLE_ELEMENT(Image,image,sizeof(struct Multi_Int32))
 
 			case FIELDTYPE_SFString: {
-					struct Uni_String *mptr;
+					//struct Uni_String *mptr;
 					memcpy(nst, &myVal.sfstring, sizeof(struct Uni_String*));
 					//mptr = * (struct Uni_String **)nst;
 					//if (!mptr) {

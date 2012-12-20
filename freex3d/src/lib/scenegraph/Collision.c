@@ -182,11 +182,11 @@ struct sCollisionGPU* GPUCollisionInfo()
         ppcollision p = (ppcollision)gglobal()->collision.prv;
         return &p->CollisionGPU;
 }
-int collision_initGPUCollide()
+void collision_initGPUCollide()
 {
 	ppcollision p = (ppcollision)gglobal()->collision.prv;
 	p->openCL_initialized = init_GPU_collide(&p->CollisionGPU);
-	return p->openCL_initialized ? 1 : 0;
+	//return p->openCL_initialized ? 1 : 0;
 }
 #endif // DO_COLLISION_GPU
 

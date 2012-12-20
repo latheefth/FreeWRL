@@ -55,6 +55,8 @@
 #include "../world_script/jsUtils.h"
 #include "Snapshot.h"
 #include "../scenegraph/Collision.h"
+#include "../scenegraph/Component_KeyDevice.h"
+#include "../opengl/Frustum.h"
 
 #if defined(INCLUDE_NON_WEB3D_FORMATS)
 #include "../non_web3d_formats/ColladaParser.h"

@@ -179,6 +179,8 @@ struct sCollisionGPU* GPUCollisionInfo();
 struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vbo, float *modelMat,int ntri,
                 int face_ccw, int face_flags, float avatar_radius);
 bool init_GPU_collide(struct sCollisionGPU*);
+void collision_initGPUCollide();
+
 #endif
 
 

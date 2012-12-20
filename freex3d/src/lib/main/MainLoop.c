@@ -36,6 +36,7 @@
 #include <list.h>
 #include <threads.h>
 #include <resources.h>
+#include <sys/time.h>
 
 #include "../vrml_parser/Structs.h"
 #include "../vrml_parser/CRoutes.h"
@@ -374,7 +375,7 @@ static void stopLoadThread()
 		{	
 			int status; 
 			char me[200]; 
-			sprintf(me,"faking pthread cancel on thread %x",tg->threads.loadThread); 
+			sprintf(me,"faking pthread cancel on thread %p",tg->threads.loadThread); 
 			//ConsoleMessage(me); 
 			if ((status = pthread_kill(tg->threads.loadThread, SIGUSR2)) != 0) {
 				ConsoleMessage("issue stopping thread");
@@ -403,7 +404,7 @@ static void stopPCThread()
 		{	
 			int status; 
 			char me[200]; 
-			sprintf(me,"faking pthread cancel on thread %x",tg->threads.PCthread); 
+			sprintf(me,"faking pthread cancel on thread %p",tg->threads.PCthread); 
 			//ConsoleMessage(me); 
 			if ((status = pthread_kill(tg->threads.PCthread, SIGUSR2)) != 0) {
 				ConsoleMessage("issue stopping thread");
@@ -1160,7 +1161,6 @@ void setup_projection(int pick, int x, int y)
 		xr = screenwidth2;
 		if(viewer->sidebyside)
 		{
-			int l,f;
 			xr -= screenwidth2/4;
 			xl -= screenwidth2/4;
 			scissorxr = screenwidth2/2;

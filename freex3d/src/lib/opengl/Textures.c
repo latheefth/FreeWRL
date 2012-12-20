@@ -1360,7 +1360,10 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct X3D_ImageCubeMapTexture *ict;
+#ifdef DO_VRML1
 	struct X3D_VRML1_Texture2 *v1t;
+#endif
+    
 /* JAS still to implement
 	struct X3D_GeneratedCubeMapTexture *gct;
 */

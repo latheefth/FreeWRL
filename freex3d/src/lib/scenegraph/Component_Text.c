@@ -242,7 +242,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y)
         p->coordmaxsize+=800;
         p->FW_rep_->actualCoord = (float *)REALLOC(p->FW_rep_->actualCoord, 
                                                 sizeof(*(p->FW_rep_->actualCoord))*p->coordmaxsize*3);
-		printf("realloc actualCoord=%ld\n",(unsigned int)p->FW_rep_->actualCoord);
+		printf("realloc actualCoord=%p\n",p->FW_rep_->actualCoord);
     }
 }
 #define GLU_UNKNOWN     100124
@@ -753,7 +753,7 @@ unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *len32)
 	unsigned int *to, *to0;
 	unsigned char *start, *end;
 	int lenchar, l32;
-	lenchar = strlen((const char *)utf8string);
+	lenchar = (int)strlen((const char *)utf8string);
 	to0 = to = (unsigned int*)malloc((lenchar + 1)*sizeof(unsigned int));
 	start = utf8string;
 	end = (unsigned char *)&utf8string[lenchar];
@@ -792,7 +792,7 @@ int len_utf8(unsigned char *utf8string)
 {
 	unsigned char *start, *end;
 	int lenchar, l32;
-	lenchar = strlen((const char *)utf8string);
+	lenchar = (int)strlen((const char *)utf8string);
 	start = utf8string;
 	end = (unsigned char *)&utf8string[lenchar];
 	l32 = 0;
@@ -983,7 +983,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
 			int lenchars = 0;
             if (directstring == 0) str = (unsigned char *)ptr[row]->strptr;
 			if(0){
-				lenchars = strlen((const char *)str);
+				lenchars = (int)strlen((const char *)str);
 			}else{
 				/* utf8_to_utf32 */
 				lenchars = len_utf8(str);
@@ -1020,7 +1020,7 @@ void FW_rendertext(unsigned int numrows,struct Uni_String **ptr, char *directstr
         p->pen_x = 0.0;
         rshrink = 0.0;
 		if(0)
-			lenchars = strlen((const char *)str);
+			lenchars = (int)strlen((const char *)str);
 		else
 			lenchars = len_utf8(str); 
         rowlen = FW_extent(counter,lenchars);

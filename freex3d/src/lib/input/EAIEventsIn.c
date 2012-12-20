@@ -234,7 +234,7 @@ char * fwl_EAI_handleRest() {
 char * fwl_EAI_handleBuffer(char *fromFront) {
 	/* memcp from fromFront to &EAI_BUFFER_CUR */
 	int eaiverbose;
-	int len = strlen(fromFront) ;
+	int len = (int)strlen(fromFront) ;
 	ttglobal tg = gglobal();
 	struct tEAIHelpers *th;
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;

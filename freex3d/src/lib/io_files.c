@@ -217,7 +217,7 @@ bool do_dir_exists(const char *dir)
  */
 void of_dump(openned_file_t *of)
 {
-	static unsigned char first_ten[11];
+	static char first_ten[11];
 	if (of->fileData) {
         int len = of->fileDataSize;
         if (len>10)len=10;
@@ -442,8 +442,10 @@ void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int 
  */
 openned_file_t* load_file(const char *filename)
 {
+#ifndef FRONTEND_GETS_FILES
     openned_file_t *of = NULL;
-
+#endif
+    
 	DEBUG_RES("loading file: %s\n", filename);
 
 #ifdef FRONTEND_GETS_FILES

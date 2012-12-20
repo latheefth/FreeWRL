@@ -1690,7 +1690,7 @@ static void parseAttributes(void) {
 							else if( ctype == FIELDTYPE_SFNode)
 							{
 								/* down-convert first node in MFNode to SFNode and forget the rest */
-								memcpy(nst,mv->p[0],sizeof(struct X3D_Node*));
+								memcpy(nst,mv->p[0],sizeof(&nst));
 								/* could free the rest of the unused MFnodes here if there are some and we were ambitious */
 							}
 							else

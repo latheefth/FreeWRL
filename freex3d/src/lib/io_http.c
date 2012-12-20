@@ -78,7 +78,10 @@ void io_http_init(struct tio_http* t)
  *   checkNetworkFile:
  */
 bool checkNetworkFile(const char *fn)
-{int i; char *pt = fn; i=0;
+{int i; 
+    //char *pt = fn; 
+    
+    i=0;
     
     if (fn == NULL) {
         ConsoleMessage ("checkNetworkFile, got a NULL here");

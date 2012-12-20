@@ -39,14 +39,6 @@ Only do material settings that "matter" and bounds check all values.
 
 /* #include "LinearAlgebra.h" */
 
-
-/* default material properties */
-static GLfloat default_diffuse[]  = {0.8f,0.8f,0.8f,1.0f};
-static GLfloat default_ambient[]  = {0.2f,0.2f,0.2f,1.0f};
-static GLfloat default_specular[] = {0.0f,0.0f,0.0f,1.0f};
-static GLfloat default_emission[] = {0.0f,0.0f,0.0f,1.0f};
-
-
 int verify_rotate(GLfloat *params) {
 	/* angle very close to zero? */
 	if (fabs(params[3]) < 0.001) return FALSE;

@@ -940,7 +940,6 @@ void handle_fly2(const int mev, const unsigned int button, float x, float y) {
 	ttglobal tg;
 	ppViewer p;
 	X3D_Viewer_InPlane *inplane;
-	struct point_XYZ xyz;
 	tg = gglobal();
 	p = (ppViewer)tg->Viewer.prv;
 	inplane = &p->Viewer.inplane;
@@ -1006,7 +1005,6 @@ void handle_tilt(const int mev, const unsigned int button, float x, float y) {
 	Quaternion nq, q_v;
 	double xx,yy;
 	ppViewer p;
-	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	inplane = &p->Viewer.inplane;
 
@@ -1076,7 +1074,6 @@ void handle_rplane(const int mev, const unsigned int button, float x, float y) {
 	Quaternion nq, q_v;
 	double xx,yy;
 	ppViewer p;
-	ttglobal tg = gglobal();
 	p = (ppViewer)gglobal()->Viewer.prv;
 	inplane = &p->Viewer.inplane;
 
@@ -1280,8 +1277,7 @@ handle_tick_walk_old()
 static void handle_tick_walk()
 {
 	X3D_Viewer_Walk *walk; 
-	Quaternion q, nq, nq2;
-	double ee[4],ff[4];
+	Quaternion q, nq;
 	struct point_XYZ pp;
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	walk = &p->Viewer.walk;
@@ -1345,7 +1341,6 @@ static void handle_tick_walk()
 		struct point_XYZ tilted, rotaxis;
 		Quaternion qlevel,qplanar;
 		struct point_XYZ down = {0.0, -1.0, 0.0};
-		double aa[4];
 
 		//split .Quat into horizontal pan and 2 vertical tilts
 		quaternion_rotation(&tilted,&q,&down);
