@@ -423,6 +423,7 @@ static int shiftState = 0;
 	break; 
 
     case WM_CLOSE: 
+	ghRC = wglGetCurrentContext();
 	if (ghRC) 
 	    wglDeleteContext(ghRC); 
 	ghDC = GetDC(hWnd); 
@@ -472,6 +473,7 @@ static int shiftState = 0;
 \**************************************************************/
 
     case WM_DESTROY: 
+	ghRC = wglGetCurrentContext();
 	if (ghRC) 
 	    wglDeleteContext(ghRC); 
 	ghDC = GetDC(hWnd); 
