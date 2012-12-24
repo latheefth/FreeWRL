@@ -467,12 +467,12 @@ static const GLchar *vertBackMatDec = "\
 /* VERTEX outputs */
 
 static const GLchar *vecNormPos = " \
-    vec3 Norm; \
-    vec4 Pos; \n";
+    vec3 vertexNorm; \
+    vec4 vertexPos; \n";
 
 static const GLchar *varyingNormPos = " \
-    varying vec3 Norm; \
-    varying vec4 Pos; \n";
+    varying vec3 vertexNorm; \
+    varying vec4 vertexPos; \n";
 
 static const GLchar *varyingTexCoord = "\
     varying vec3 v_texC;\n";
@@ -492,8 +492,8 @@ static const GLchar *vertEnd = "}";
 static const GLchar *vertPos = "gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n ";
 
 static const GLchar *vertNormPosCalc = "\
-	Norm = normalize(fw_NormalMatrix * fw_Normal);\n \
-	Pos = fw_ModelViewMatrix * fw_Vertex;\n ";
+	vertexNorm = normalize(fw_NormalMatrix * fw_Normal);\n \
+	vertexPos = fw_ModelViewMatrix * fw_Vertex;\n ";
 
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
@@ -504,8 +504,8 @@ static const GLchar *vertSingTexCubeCalc = "\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
     /* vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
     v_texC = reflect(u,n); myEyeNormal */ \n \
-    /* v_texC = reflect(normalize(vec3(Pos)),Norm);\n */ \
-    v_texC = reflect(u,Norm);\n";
+    /* v_texC = reflect(normalize(vec3(vertexPos)),vertexNorm);\n */ \
+    v_texC = reflect(u,vertexNorm);\n";
 
 
 /* TextureCoordinateGenerator mapping - eventually handle the following:
@@ -529,8 +529,8 @@ static const GLchar *sphEnvMapCalc = " \n\
 /* vec3 u=normalize(vec3(fw_ModelViewMatrix * fw_Vertex));  (myEyeVertex)  \
 vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
 vec3 r = reflect(u,n);  (myEyeNormal) */ \n\
-vec3 u=normalize(vec3(Pos)); /* u is normalized position, used below more than once */ \n \
-vec3 r= reflect(u,Norm); \n\
+vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n \
+vec3 r= reflect(u,vertexNorm); \n\
 if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
     v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n \
@@ -539,7 +539,7 @@ if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \
 	v_texC = vec3(u-r)*dotResult;\n\
 } else { /* default usage - like default CubeMaps */ \n\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
-    v_texC = reflect(u,Norm);\n \
+    v_texC = reflect(u,vertexNorm);\n \
 }\n\
 ";
 
@@ -676,79 +676,57 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
 \
         if (lightSpotCut[i]==180.0) { \n \
             /* SpotLight */ \n \
-ambient=vec4(1.,0.,0.,1.); \n \
+/* woops - code not written yet so just... */ ambient=vec4(1.,0.,0.,1.); \n \
+\
         } else if (myLightPosition.w == 0.0) { \n \
             /* DirectionalLight */ \n \
             vec3 eyeVector = normalize(myPosition.xyz); \n \
-            vec3 lightDir = normalize(myLightPosition.xyz + viewv); /* -myPosition.xyz)*/ \
-\
-            float dist = length(myLightPosition.xyz-myPosition.xyz); \n \
+            vec3 lightDir = normalize(myLightPosition.xyz); /* -myPosition.xyz)*/ \
             vec3 halfVector = normalize(lightDir - eyeVector); \n \
             float NdotL = max(dot(normal, lightDir), 0.0); \n  \
             float NdotHV = max(dot(normal,halfVector),0.0); \n \
 \
-            float att = 1.0; /* assume directional light */ \n \
             /* Specular light computation */ \n \
-            if (NdotL > 0.0) { \n \
-            /* do we have a pointlight? */ \
-            } \n \
-            \
-            /* Specular */ \n \
-            specular += att * myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \
+            specular += myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \n \
             \
             /* diffuse light computation */ \n \
-            diffuse += att * NdotL*myMat.diffuse*myLightDiffuse; \n \
+            diffuse += NdotL*myMat.diffuse*myLightDiffuse; \n \
             \
             /* ambient light computation */ \n \
-            ambient += att * myMat.ambient*myLightAmbient; \n \
+            ambient += myMat.ambient*myLightAmbient; \n \
         } else { \n \
+\
+\
+\
             /* PointLight */ \n \
+            vec3 ecPosition3; \n \
 \
-            float nDotVP;       /* normal . light direction */ \n \
-            float nDotHV;       /* normal . light half vector */ \n \
-            float pf;           /* power factor */  \n \
-            float attenuation;  /* computed attenuation factor */ \n \
-            float d;            /* distance from surface to light source */ \n \
-            vec3  VP;           /* direction from surface to light position */ \n \
-            vec3  halfVector;   /* direction of maximum highlights */ \n \
+            float nDotVP; \n \
+            vec3  VP;     \n \
 \
-            /* Compute vector from surface to light position */ \n \
-            /* myPosition is the surface... */ \n \
-            vec3 ecPosition3 = myPosition.xyz/myPosition.w; \n \
 \
-myLightPosition = vec4(0., 0., -10., 1.); \n \
-            VP = vec3 (myLightPosition) - ecPosition3; \n \
+            /* position of the vertex in question */ \n \
+            vec4 ecPosition = fw_ModelViewMatrix * fw_Vertex; \n \
+            ecPosition3 = (vec3 (ecPosition)) / ecPosition.w; \n \
 \
-            /* Compute distance between surface and light position */ \n \
-            d = length(VP); \n \
+            /* where is the light? */ \n \
+            vec3 lightPos = vec3(fw_ModelViewMatrix * vec4(-100.,0.,0.,1.));\n \
 \
-            /* Normalize the vector from surface to light position */ \n \
+            /* vector from light position to vertex position */ \n \
+            VP = lightPos - vec3(ecPosition); \n \
+\
+\
             VP = normalize(VP); \n \
 \
-            /* Compute attenuation */ \n \
-            attenuation = 1.0 / (light_constAtten[i] + \n \
-                     light_linAtten[i] * d + \n \
-                     light_quadAtten[i] * d * d); \n \
 \
-/* XXX - assume this for now */  \n \
-attenuation = 0.5; \n \
+            myLightDiffuse = vec4(0.,1.,1.,1.);\n \
 \
-            vec3 eye = -normalize(ecPosition3); \n \
-            halfVector = normalize(VP + eye); \n \
+            nDotVP = max(0.0, dot(normal, VP)); \n \
 \
-            nDotVP = max(0.0, dot(normal,vec3(myLightPosition))); \n \
-            nDotHV = max(0.0, dot(normal, halfVector)); \n \
 \
-            if (nDotVP == 0.0) { \n \
-                pf = 0.0; \n \
-//ambient+= vec4(0.,1.,0.,1.); \n \
-            }else{ \n \
-                pf = pow(nDotHV, myMat.shininess); \n \
-            } \n \
-            ambient  += myLightAmbient * attenuation; \n \
-            diffuse  += myLightDiffuse * nDotVP * attenuation; \n \
-            specular += myLightSpecular * pf * attenuation; \n \
-\
+            /* diffuse light computation */ \n \
+            diffuse += nDotVP* myMat.diffuse*myLightDiffuse; \n \
+            \
         } \n \
 \
 	} \n \
@@ -770,7 +748,7 @@ static const GLchar *maxLights = "const int MAX_LIGHTS = 8; \n ";
 
 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
 static const GLchar *anaglyphGrayFragEnd =	"float gray = dot(finalFrag.rgb, vec3(0.299, 0.587, 0.114)); \n \
-gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
+                                              gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
 static const GLchar *fragEnd = "gl_FragColor = finalFrag;}";
 static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
 static const GLchar *fragTex0CubeDec = "uniform samplerCube fw_Texture_unit0; \n";
@@ -778,8 +756,8 @@ static const GLchar *fragTex0CubeDec = "uniform samplerCube fw_Texture_unit0; \n
 static const GLchar *fragSimColAss = "finalFrag = v_front_colour;\n ";
 static const GLchar *fragNoAppAss = "finalFrag = vec4(1.0, 1.0, 1.0, 1.0);\n";
 static const GLchar *fragFrontColAss=    " finalFrag = v_front_colour;";
-const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(Norm,Pos);";
-const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(Norm,Pos);";
+const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(vertexNorm,vertexPos);";
+const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(vertexNorm,vertexPos);";
 
 const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC.st);\n";
 const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, v_texC);\n";

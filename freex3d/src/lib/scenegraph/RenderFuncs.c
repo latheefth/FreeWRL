@@ -371,7 +371,6 @@ void sendLightInfo (s_shader_capabilities_t *me) {
     
 	GLUNIFORM4FV(me->lightDiffuse,MAX_LIGHTS,(float *)p->light_dif);
 	GLUNIFORM4FV(me->lightPosition,MAX_LIGHTS,(float *)translated_light_pos);
-    GLUNIFORM4FV(me->lightPosition,MAX_LIGHTS,(float *)p->light_pos);
 
 	GLUNIFORM4FV(me->lightSpecular,MAX_LIGHTS,(float *)p->light_spec);
 	GLUNIFORM4FV(me->lightSpotDir, MAX_LIGHTS, (float *)p->light_spotDir);
