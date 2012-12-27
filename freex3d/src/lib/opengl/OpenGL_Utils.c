@@ -572,75 +572,6 @@ uniform vec4 lightPosition[MAX_LIGHTS];    \
 uniform vec4 lightSpotDir[MAX_LIGHTS]; \
 uniform vec4 lightSpecular[MAX_LIGHTS]; \n";
 
-#ifdef OLDCODE
-static const GLchar *oldADSLLightModel = "\
-/* use ADSLightModel here \
-the ADS colour is returned from the function. \
-*/  \
-vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \
-int i; \
-vec4 diffuse = vec4(0., 0., 0., 0.); \
-vec4 ambient = vec4(0., 0., 0., 0.); \
-vec4 specular = vec4(0., 0., 0., 1.); \
-vec3 viewv = -normalize(myPosition.xyz); \
-vec3 norm = normalize (myNormal); \
-vec4 emissive; \
-float myAlph = 0.0; /* JAS */ \
-\
-bool backFacing = (dot(norm,viewv) < 0.0); \
-\
-/* back Facing materials - flip the normal */ \
-if (backFacing) { \
-	norm = -norm; \
-	emissive = fw_BackMaterial.emission;    \
-	myAlph = fw_BackMaterial.diffuse.a; \
-} else { \
-	emissive = fw_FrontMaterial.emission;   \
-	myAlph = fw_FrontMaterial.diffuse.a; \
-} \
-\
-/* apply the lights to this material */ \
-for (i=0; i<MAX_LIGHTS; i++) { \
-	if (lightState[i] == 1) { \
-		vec4 myLightDiffuse = lightDiffuse[i]; \
-		vec4 myLightAmbient = lightAmbient[i]; \
-		vec4 myLightSpecular = lightSpecular[i]; \
-		vec4 myLightPosition = lightPosition[i]; \
-		/* normal, light, view, and light reflection vectors */ \
-		vec3 lightv = normalize(myLightPosition.xyz-myPosition.xyz); \
-		vec3 refl = reflect (-lightv, norm); \
-		\
-		if (backFacing) { \
-			/* diffuse light computation */ \
-            diffuse+=max(dot(vec4(norm,0.),myLightPosition),0.0) *fw_BackMaterial.diffuse*myLightDiffuse;\
-			\
-			/* ambient light computation */ \
-			ambient += fw_BackMaterial.ambient*myLightAmbient; \
-			\
-			/* Specular light computation */ \
-			if (dot(lightv, viewv) > 0.0) { \
-				specular += pow(max(0.0, dot(viewv, refl)), \
-				fw_FrontMaterial.shininess)*fw_BackMaterial.specular*myLightSpecular; \
-			} \
-		} else { \
-			\
-			/* diffuse light computation */ \
-			\
-            diffuse+=max(dot(vec4(norm,0.),myLightPosition),0.0) *fw_FrontMaterial.diffuse*myLightDiffuse;\
-			/* ambient light computation */ \
-			ambient += fw_FrontMaterial.ambient*myLightAmbient; \
-			\
-			/* Specular light computation */ \
-			if (dot(lightv, viewv) > 0.0) { \
-				specular += pow(max(0.0, dot(viewv, refl)), \
-				fw_FrontMaterial.shininess)*fw_FrontMaterial.specular*myLightSpecular; \
-			} \
-		} \
-	} \
-} \
-return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \
-} ";
-#endif //OLDCODE
 
 static const GLchar *ADSLLightModel = " \
 /* use ADSLightModel here the ADS colour is returned from the function.  */  \n \
@@ -674,59 +605,70 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
     vec4 myLightSpecular = lightSpecular[i]; \n \
     vec4 myLightPosition = lightPosition[i]; \n \
 \
+    vec3 eyeVector = normalize(myPosition.xyz); \n \
+    vec3 lightDir = normalize(myLightPosition.xyz); \
+    vec3 halfVector = normalize(lightDir - eyeVector); \n \
+    float nDotL = max(dot(normal, lightDir), 0.0); \n  \
+    /* normal dot light half vector */ \n \
+    float nDotHV = max(dot(normal,halfVector),0.0); \n \
+\
+\
         if (lightSpotCut[i]==180.0) { \n \
             /* SpotLight */ \n \
 /* woops - code not written yet so just... */ ambient=vec4(1.,0.,0.,1.); \n \
 \
         } else if (myLightPosition.w == 0.0) { \n \
             /* DirectionalLight */ \n \
-            vec3 eyeVector = normalize(myPosition.xyz); \n \
-            vec3 lightDir = normalize(myLightPosition.xyz); /* -myPosition.xyz)*/ \
-            vec3 halfVector = normalize(lightDir - eyeVector); \n \
-            float NdotL = max(dot(normal, lightDir), 0.0); \n  \
-            float NdotHV = max(dot(normal,halfVector),0.0); \n \
 \
             /* Specular light computation */ \n \
-            specular += myMat.specular *myLightSpecular*pow(NdotHV,myMat.shininess); \n \
+            specular += myMat.specular *myLightSpecular*pow(nDotHV,myMat.shininess); \n \
             \
             /* diffuse light computation */ \n \
-            diffuse += NdotL*myMat.diffuse*myLightDiffuse; \n \
+            diffuse += nDotL*myMat.diffuse*myLightDiffuse; \n \
             \
             /* ambient light computation */ \n \
             ambient += myMat.ambient*myLightAmbient; \n \
         } else { \n \
 \
-\
-\
             /* PointLight */ \n \
-            vec3 ecPosition3; \n \
 \
-            float nDotVP; \n \
-            vec3  VP;     \n \
-\
+            float nDotVP; /* normal dot light direction */ \n \
+            vec3  VP;     /* vector of light direction */\n \
+            float powerFactor; /* for light dropoff */ \n \
+            float attenuation; /* computed attenuation factor */ \n \
+            float d;            /* distance to verted */ \
+            vec3 eye = vec3 (0,0,-10.0); \n \
 \
             /* position of the vertex in question */ \n \
-            vec4 ecPosition = fw_ModelViewMatrix * fw_Vertex; \n \
-            ecPosition3 = (vec3 (ecPosition)) / ecPosition.w; \n \
+            vec3 ecPosition3 = (vec3 (myPosition)) / myPosition.w; \n \
 \
             /* where is the light? */ \n \
-            vec3 lightPos = vec3(fw_ModelViewMatrix * vec4(-100.,0.,0.,1.));\n \
+            vec3 lightPos = vec3(myLightPosition); \n \
 \
             /* vector from light position to vertex position */ \n \
-            VP = lightPos - vec3(ecPosition); \n \
-\
+            VP = lightPos - vec3(myPosition); \n \
+            d = length(VP); \n \
 \
             VP = normalize(VP); \n \
-\
-\
-            myLightDiffuse = vec4(0.,1.,1.,1.);\n \
-\
             nDotVP = max(0.0, dot(normal, VP)); \n \
 \
+            if (nDotVP == 0.0) { \n \
+                powerFactor = 0.0; \n \
+            } else { \n \
+                powerFactor = pow(nDotHV, myMat.shininess); \n \
+            } \n \
+\
+            attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d); \
 \
             /* diffuse light computation */ \n \
-            diffuse += nDotVP* myMat.diffuse*myLightDiffuse; \n \
+            diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
             \
+            /* ambient light computation */ \n \
+            ambient += myMat.ambient*myLightAmbient; \n \
+\
+            /* specular light computation */ \n \
+            specular += myLightSpecular * powerFactor * attenuation; \n \
+\
         } \n \
 \
 	} \n \
