@@ -157,6 +157,7 @@ GLEWContext * glewGetContext();
 #define DISABLE_CULL_FACE CULL_FACE(FALSE)
 #define ENABLE_CULL_FACE CULL_FACE(TRUE)
 
+#define GL_LIGHT_RADIUS                   0xBEEF /* smile - my definition */
 
 #ifdef GL_ES_VERSION_2_0
 #if !defined(PATH_MAX)
@@ -266,6 +267,7 @@ GLEWContext * glewGetContext();
 	#define GL_TEXTURE_HEIGHT                 0x1001
 	#define GL_POSITION                       0x1203
 	#define GL_SPOT_DIRECTION                 0x1204
+
 	#define GL_CONSTANT_ATTENUATION           0x1207
 	#define GL_LINEAR_ATTENUATION             0x1208
 	#define GL_QUADRATIC_ATTENUATION          0x1209
@@ -376,6 +378,7 @@ typedef struct s_shader_capabilities{
 	GLint lightQuadAtten;
 	GLint lightSpotCut;
 	GLint lightSpotExp;
+    GLint lightRadius;
 
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;

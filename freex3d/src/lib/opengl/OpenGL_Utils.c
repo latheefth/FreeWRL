@@ -201,7 +201,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
-        //ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
+        ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 	}
 }
 #ifdef GLEW_MX
@@ -569,8 +569,9 @@ uniform float lightSpotExp[MAX_LIGHTS];    \
 uniform vec4 lightAmbient[MAX_LIGHTS];    \
 uniform vec4 lightDiffuse[MAX_LIGHTS];    \
 uniform vec4 lightPosition[MAX_LIGHTS];    \
-uniform vec4 lightSpotDir[MAX_LIGHTS]; \
-uniform vec4 lightSpecular[MAX_LIGHTS]; \n";
+uniform vec4 lightSpotDirection[MAX_LIGHTS]; \
+uniform vec4 lightSpecular[MAX_LIGHTS]; \
+uniform float lightRadius[MAX_LIGHTS]; \n";
 
 
 static const GLchar *ADSLLightModel = " \
@@ -613,31 +614,17 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
     float nDotHV = max(dot(normal,halfVector),0.0); \n \
 \
 \
-        if (lightSpotCut[i]==180.0) { \n \
+        if (lightSpotCut[i]!=0.0) { \n \
             /* SpotLight */ \n \
-/* woops - code not written yet so just... */ ambient=vec4(1.,0.,0.,1.); \n \
 \
-        } else if (myLightPosition.w == 0.0) { \n \
-            /* DirectionalLight */ \n \
-\
-            /* Specular light computation */ \n \
-            specular += myMat.specular *myLightSpecular*pow(nDotHV,myMat.shininess); \n \
-            \
-            /* diffuse light computation */ \n \
-            diffuse += nDotL*myMat.diffuse*myLightDiffuse; \n \
-            \
-            /* ambient light computation */ \n \
-            ambient += myMat.ambient*myLightAmbient; \n \
-        } else { \n \
-\
-            /* PointLight */ \n \
+            float spotDot; \n \
+            float spotAttenuation; \n \
 \
             float nDotVP; /* normal dot light direction */ \n \
             vec3  VP;     /* vector of light direction */\n \
             float powerFactor; /* for light dropoff */ \n \
             float attenuation; /* computed attenuation factor */ \n \
             float d;            /* distance to verted */ \
-            vec3 eye = vec3 (0,0,-10.0); \n \
 \
             /* position of the vertex in question */ \n \
             vec3 ecPosition3 = (vec3 (myPosition)) / myPosition.w; \n \
@@ -660,14 +647,82 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
 \
             attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d); \
 \
+            spotDot = dot (-VP,vec3(lightSpotDirection[i])); \n \
+\
+            /* check against spotCosCutoff */ \n \
+            if (spotDot < lightSpotCut[i]) { \n \
+                spotAttenuation = 0.0; \n \
+            } else { \n \
+                spotAttenuation = pow(spotDot,lightSpotExp[i]); \n \
+            } \n \
+            attenuation *= spotAttenuation; \n \
+\
+\
             /* diffuse light computation */ \n \
             diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
-            \
+\
             /* ambient light computation */ \n \
             ambient += myMat.ambient*myLightAmbient; \n \
 \
             /* specular light computation */ \n \
             specular += myLightSpecular * powerFactor * attenuation; \n \
+\
+\
+\
+        } else if (myLightPosition.w == 0.0) { \n \
+            /* DirectionalLight */ \n \
+\
+            /* Specular light computation */ \n \
+            specular += myMat.specular *myLightSpecular*pow(nDotHV,myMat.shininess); \n \
+            \
+            /* diffuse light computation */ \n \
+            diffuse += nDotL*myMat.diffuse*myLightDiffuse; \n \
+            \
+            /* ambient light computation */ \n \
+            ambient += myMat.ambient*myLightAmbient; \n \
+        } else { \n \
+\
+            /* PointLight */ \n \
+\
+            float nDotVP; /* normal dot light direction */ \n \
+            vec3  VP;     /* vector of light direction */\n \
+            float powerFactor; /* for light dropoff */ \n \
+            float attenuation; /* computed attenuation factor */ \n \
+            float d;            /* distance to vertex */ \
+\
+            /* position of the vertex in question */ \n \
+            vec3 ecPosition3 = (vec3 (myPosition)) / myPosition.w; \n \
+\
+            /* where is the light? */ \n \
+            vec3 lightPos = vec3(myLightPosition); \n \
+\
+            /* vector from light position to vertex position */ \n \
+            VP = lightPos - vec3(myPosition); \n \
+            d = length(VP); \n \
+\
+            /* are we within range? */ \n \
+            if (d <= lightRadius[i]) { \n \
+                VP = normalize(VP); \n \
+                nDotVP = max(0.0, dot(normal, VP)); \n \
+\
+                if (nDotVP == 0.0) { \n \
+                    powerFactor = 0.0; \n \
+                } else { \n \
+                    powerFactor = pow(nDotHV, myMat.shininess); \n \
+                } \n \
+\
+                /* this is actually the SFVec3f attenuation field */ \n \
+                attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d); \
+\
+                /* diffuse light computation */ \n \
+                diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
+\
+                /* ambient light computation */ \n \
+                ambient += myMat.ambient*myLightAmbient; \n \
+\
+                /* specular light computation */ \n \
+                specular += myLightSpecular * powerFactor * attenuation; \n \
+            } \n \
 \
         } \n \
 \
@@ -1169,7 +1224,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	#endif //VERBOSE
 	return TRUE;
 }
-
+#undef VERBOSE
 
 
 static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading) {
@@ -1303,7 +1358,8 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->lightQuadAtten = GET_UNIFORM(myProg,"light_quadAtten");
 	me->lightSpotCut = GET_UNIFORM(myProg, "lightSpotCut");
 	me->lightSpotExp = GET_UNIFORM(myProg, "lightSpotExp");
-	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDir");
+	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDirection");
+    me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
 
 
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");

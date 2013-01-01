@@ -102,6 +102,8 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
             /* used to test if a PointLight, SpotLight or DirectionalLight in shader  */
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
+            
+            FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,100000.0); /* make it very large */
 		}
 	}
 }
@@ -133,6 +135,23 @@ void compile_PointLight (struct X3D_PointLight *node) {
     node->_amb.c[3] = 1;
     CHBOUNDS(node->_amb);
     MARK_NODE_COMPILED;
+    
+    /* ConsoleMessage ("compile_PointLight, attenuation %f %f %f",
+                 node->attenuation.c[0],
+                     node->attenuation.c[1],
+                    node->attenuation.c[2]);*/
+    
+ 
+    /* ConsoleMessage ("compile_PointLight, col %f %f %f %f amb %f %f %f %f",
+                    node->_col.c[0],
+                    node->_col.c[1],
+                    node->_col.c[2],
+                    node->_col.c[3],
+                    node->_amb.c[0],
+                    node->_amb.c[1],
+                    node->_amb.c[2],
+                    node->_amb.c[3]);
+    */
 }
 
 
@@ -166,6 +185,8 @@ void render_PointLight (struct X3D_PointLight *node) {
 
 			/* used to test if a PointLight, SpotLight or DirectionalLight in shader  */
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, 0);
+            
+            FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
 		}
 	}
 }
@@ -182,12 +203,12 @@ void compile_SpotLight (struct X3D_SpotLight *node) {
     struct point_XYZ vec;
     int i;
     
-    for (i=0; i<3; i++) node->_loc.c[0] = node->location.c[0];
+    for (i=0; i<3; i++) node->_loc.c[i] = node->location.c[i];
     node->_loc.c[3] = 0.0f;/* vec3 to vec4... */
 
-    vec.x = (double) -((node->direction).c[0]);
-    vec.y = (double) -((node->direction).c[1]);
-    vec.z = (double) -((node->direction).c[2]);
+    vec.x = (double) node->direction.c[0];
+    vec.y = (double) node->direction.c[1];
+    vec.z = (double) node->direction.c[2];
     normalize_vector(&vec);
     node->_dir.c[0] = (float) vec.x;
     node->_dir.c[1] = (float) vec.y;
@@ -241,11 +262,11 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 			if (ft>128.0) ft=128.0f;
 			if (ft<0.0) ft=0.0f;
 			FW_GL_LIGHTF(light, GL_SPOT_EXPONENT,ft);
-
-			ft = node->cutOffAngle /3.1415926536f*180.0f;
-			if (ft>90.0) ft=90.0f;
-			if (ft<0.0) ft=0.0f;
+            
+            /* create a ratio of light in relation to PI/4.0 */
+            ft = node->cutOffAngle/ (PI/4.0); 
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
+            FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
 		}
 	}
 }

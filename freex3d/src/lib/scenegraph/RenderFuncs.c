@@ -75,6 +75,7 @@ typedef struct pRenderFuncs{
 	shaderVec4 light_pos[MAX_LIGHTS];
 	shaderVec4 light_spec[MAX_LIGHTS];
 	shaderVec4 light_spotDir[MAX_LIGHTS];
+    float light_radius[MAX_LIGHTS];
 
 	/* Rearrange to take advantage of headlight when off */
 	int nextFreeLight;// = 0;
@@ -222,6 +223,7 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 		case GL_POSITION: printf ("GL_POSITION"); break;
 		case GL_SPECULAR: printf ("GL_SPECULAR"); break;
 		case GL_SPOT_DIRECTION: printf ("GL_SPOT_DIRECTION"); break;
+        case GL_LIGHT_RADIUS: printf ("GL_LIGHT_RADIUS"); break;
 	}
 	printf (" %f %f %f %f\n",params[0], params[1],params[2],params[3]);
      */
@@ -286,6 +288,10 @@ void fwglLightf (int light, int pname, GLfloat param) {
 		case GL_SPOT_EXPONENT:
 			p->light_spotExp[light] = param;
 			break;
+        case GL_LIGHT_RADIUS:
+            p->light_radius[light] = param;
+            break;
+
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
 	}
 	p->lightParamsDirty = TRUE;
@@ -298,10 +304,14 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
     int j;
     
+#define TRANSLATE_LIGHT_POSITION
+#ifdef TRANSLATE_LIGHT_POSITION
     GLDOUBLE modelMatrix[16];
+    GLDOUBLE projMatrix[16];
     shaderVec4 translated_light_pos[MAX_LIGHTS];
 
     FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+    FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
     
     /* pre-multiply the light position, as per the orange book, page 216,
      "OpenGL specifies that light positions are transformed by the modelview
@@ -310,7 +320,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
         //ConsoleMessage ("sendLightInfo, light %d lightOnOff %d",j,p->lightOnOff[j]);
         if (p->lightOnOff[j] == 1) {
             /* DirectionalLight? */
-            if (p->light_pos[j][3] > 0.5) {
+            if (p->light_pos[j][3] > 0.5) { 
                 transformf(translated_light_pos[j],p->light_pos[j],modelMatrix);
                 translated_light_pos[j][3] = p->light_pos[j][3];
                 
@@ -321,24 +331,49 @@ void sendLightInfo (s_shader_capabilities_t *me) {
                             translated_light_pos[j][0],
                             translated_light_pos[j][1],
                             translated_light_pos[j][2],
-                            translated_light_pos[j][3]);
-                 */
-            } else {
+                            translated_light_pos[j][3]);*/
+                 
+             } else {
+                 /* what to do about directional lights. Should they transform along with
+                  the models? Headlight (MAX_LIGHT-1) should not transform, as it works.
+                  The other directionallights are vectors - what to do with them? */
+                 
+#ifdef TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
+                 transformf(translated_light_pos[j],p->light_pos[j],projMatrix);
+                 /* reverse normals, as we look behind us */
+                 translated_light_pos[j][0] = -translated_light_pos[j][0];
+                                  translated_light_pos[j][1] = -translated_light_pos[j][1];
+                                  translated_light_pos[j][2] = -translated_light_pos[j][2];
+                 
+                 translated_light_pos[j][3] = p->light_pos[j][3];
+#else
+                 
                 memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
+#endif // TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
+                 
             }
+            
+                 
+            /* ConsoleMessage("light %d lp %f %f %f %f tlp %f %f %f %f",
+                           j,p->light_pos[j][0],p->light_pos[j][1],p->light_pos[j][2],p->light_pos[j][3],
+                           translated_light_pos[j][0],translated_light_pos[j][1],
+                           translated_light_pos[j][2],translated_light_pos[j][3]);*/
+             
         }
     }
 		/* for debugging: */
-  /*
-   if (xxc==10) {
+  
+/*if (xxc==10) {
         ConsoleMessage ("light 0, constAtten %4.3f linAtten %4.3f quadAtten %4.3f spotCut %4.3f spotExp %4.3f",
                         p->light_constAtten[0],p->light_linAtten[0], p->light_quadAtten[0],
                         p->light_spotCut[0],p->light_spotExp[0]);
-        ConsoleMessage ("pos %4.3f %4.3f %4.3f %4.3f",p->light_pos[0][0],p->light_pos[0][1],p->light_pos[0][2],p->light_pos[0][3]);
+        ConsoleMessage ("pos %4.3f %4.3f %4.3f %4.3f  dir %4.3f %4.3f %4.3f %4.3f",p->light_pos[0][0],p->light_pos[0][1],p->light_pos[0][2],p->light_pos[0][3],
+          -99.0,-99.0,-99.0,-99.0);
         xxc =0;
     }
     xxc++;
-   */ 
+    */
+#endif //TRANSLATE_LIGHT_POSITION
 
 #ifdef RENDERVERBOSE    
 {	int i;
@@ -370,10 +405,16 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	GLUNIFORM4FV(me->lightAmbient,MAX_LIGHTS,(float *)p->light_amb);
     
 	GLUNIFORM4FV(me->lightDiffuse,MAX_LIGHTS,(float *)p->light_dif);
+    
+#ifdef TRANSLATE_LIGHT_POSITION
 	GLUNIFORM4FV(me->lightPosition,MAX_LIGHTS,(float *)translated_light_pos);
+#else
+    GLUNIFORM4FV(me->lightPosition,MAX_LIGHTS,(float *)p->light_pos);
+#endif
 
 	GLUNIFORM4FV(me->lightSpecular,MAX_LIGHTS,(float *)p->light_spec);
 	GLUNIFORM4FV(me->lightSpotDir, MAX_LIGHTS, (float *)p->light_spotDir);
+    GLUNIFORM1FV(me->lightRadius,MAX_LIGHTS,p->light_radius);
 PRINT_GL_ERROR_IF_ANY("END sendLightInfo");
 }
 
@@ -666,6 +707,7 @@ void initializeLightTables() {
         	FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
         	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,0.0f);
         	FW_GL_LIGHTF(i, GL_SPOT_EXPONENT,0.0f);
+            FW_GL_LIGHTF(i, GL_LIGHT_RADIUS, 100000.0); /* just make it large for now*/ 
             
             PRINT_GL_ERROR_IF_ANY("initizlizeLight2");
         }
