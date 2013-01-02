@@ -612,41 +612,31 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
     float nDotL = max(dot(normal, lightDir), 0.0); \n  \
     /* normal dot light half vector */ \n \
     float nDotHV = max(dot(normal,halfVector),0.0); \n \
+    vec3  VP;     /* vector of light direction */\n \
+    float nDotVP; /* normal dot light direction */ \n \
+    float distLightVertex = 0.0;         /* distance to vertex  to see if light in range */ \
+    float specularPowerFactor=0.0; /* for light dropoff */ \n \
+    float attenuation = 0.0; /* computed attenuation factor */ \n \
+    float specularAttenuation = 0.0; /* specular light - more pointed=brighter */ \n \
+    float spotAttenuation = 1.0; \n \
+\
+    /* where is the light? */ \n \
+    vec3 lightPos = vec3(myLightPosition); \n \
+\
+    /* vector from light position to vertex position */ \n \
+    VP = lightPos - vec3(myPosition); \n \
+\
 \
 \
         if (lightSpotCut[i]!=0.0) { \n \
             /* SpotLight */ \n \
 \
             float spotDot; \n \
-            float spotAttenuation; \n \
 \
-            float nDotVP; /* normal dot light direction */ \n \
-            vec3  VP;     /* vector of light direction */\n \
-            float powerFactor; /* for light dropoff */ \n \
-            float attenuation; /* computed attenuation factor */ \n \
-            float d;            /* distance to verted */ \
+            /* how far are we from the light? *' \n \
+            distLightVertex = length(VP); \n \
 \
-            /* position of the vertex in question */ \n \
-            vec3 ecPosition3 = (vec3 (myPosition)) / myPosition.w; \n \
-\
-            /* where is the light? */ \n \
-            vec3 lightPos = vec3(myLightPosition); \n \
-\
-            /* vector from light position to vertex position */ \n \
-            VP = lightPos - vec3(myPosition); \n \
-            d = length(VP); \n \
-\
-            VP = normalize(VP); \n \
-            nDotVP = max(0.0, dot(normal, VP)); \n \
-\
-            if (nDotVP == 0.0) { \n \
-                powerFactor = 0.0; \n \
-            } else { \n \
-                powerFactor = pow(nDotHV, myMat.shininess); \n \
-            } \n \
-\
-            attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d); \
-\
+            /* how wide are we from the spotlight beam centre? */ \n \
             spotDot = dot (-VP,vec3(lightSpotDirection[i])); \n \
 \
             /* check against spotCosCutoff */ \n \
@@ -655,64 +645,33 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
             } else { \n \
                 spotAttenuation = pow(spotDot,lightSpotExp[i]); \n \
             } \n \
-            attenuation *= spotAttenuation; \n \
-\
-\
-            /* diffuse light computation */ \n \
-            diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
-\
-            /* ambient light computation */ \n \
-            ambient += myMat.ambient*myLightAmbient; \n \
-\
-            /* specular light computation */ \n \
-            specular += myLightSpecular * powerFactor * attenuation; \n \
-\
-\
 \
         } else if (myLightPosition.w == 0.0) { \n \
             /* DirectionalLight */ \n \
 \
-            /* Specular light computation */ \n \
-            specular += myMat.specular *myLightSpecular*pow(nDotHV,myMat.shininess); \n \
-            \
-            /* diffuse light computation */ \n \
-            diffuse += nDotL*myMat.diffuse*myLightDiffuse; \n \
-            \
-            /* ambient light computation */ \n \
-            ambient += myMat.ambient*myLightAmbient; \n \
-        } else { \n \
+            distLightVertex = 0.0; /* no radius for DirectionalLight */ \n \
 \
+        } else { \n \
             /* PointLight */ \n \
 \
-            float nDotVP; /* normal dot light direction */ \n \
-            vec3  VP;     /* vector of light direction */\n \
-            float powerFactor; /* for light dropoff */ \n \
-            float attenuation; /* computed attenuation factor */ \n \
-            float d;            /* distance to vertex */ \
+            /* how far are we from the light? */ \n \
+            distLightVertex = length(VP); \n \
 \
-            /* position of the vertex in question */ \n \
-            vec3 ecPosition3 = (vec3 (myPosition)) / myPosition.w; \n \
-\
-            /* where is the light? */ \n \
-            vec3 lightPos = vec3(myLightPosition); \n \
-\
-            /* vector from light position to vertex position */ \n \
-            VP = lightPos - vec3(myPosition); \n \
-            d = length(VP); \n \
+        } \n \
 \
             /* are we within range? */ \n \
-            if (d <= lightRadius[i]) { \n \
+            if (distLightVertex <= lightRadius[i]) { \n \
                 VP = normalize(VP); \n \
                 nDotVP = max(0.0, dot(normal, VP)); \n \
 \
-                if (nDotVP == 0.0) { \n \
-                    powerFactor = 0.0; \n \
-                } else { \n \
-                    powerFactor = pow(nDotHV, myMat.shininess); \n \
+                if (nDotVP > 0.0) { \n \
+                    specularPowerFactor = pow(nDotHV, myMat.shininess); \n \
                 } \n \
 \
+\
                 /* this is actually the SFVec3f attenuation field */ \n \
-                attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d); \
+                attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * distLightVertex * light_quadAtten[i] *distLightVertex *distLightVertex); \
+                attenuation *= spotAttenuation; \n \
 \
                 /* diffuse light computation */ \n \
                 diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
@@ -721,11 +680,10 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
                 ambient += myMat.ambient*myLightAmbient; \n \
 \
                 /* specular light computation */ \n \
-                specular += myLightSpecular * powerFactor * attenuation; \n \
+                /* the more pointed it is, the brighter the light. Otherwise, this can override lighting on wide shininess values */ \n \
+                specularAttenuation = (myMat.shininess/128.0); \n \
+                specular += myLightSpecular * specularPowerFactor * attenuation *specularAttenuation; \n \
             } \n \
-\
-        } \n \
-\
 	} \n \
 } \n \
 return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \n \
@@ -3996,7 +3954,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	SEND_VEC4(myMaterialSpecular,fw_FrontMaterial.specular);
 	SEND_VEC4(myMaterialEmission,fw_FrontMaterial.emission);
 	SEND_FLOAT(myMaterialShininess,fw_FrontMaterial.shininess);
-
+    
 	SEND_VEC4(myMaterialBackAmbient,fw_BackMaterial.ambient);
 	SEND_VEC4(myMaterialBackDiffuse,fw_BackMaterial.diffuse);
 	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial.specular);

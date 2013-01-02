@@ -338,14 +338,23 @@ void sendLightInfo (s_shader_capabilities_t *me) {
                   the models? Headlight (MAX_LIGHT-1) should not transform, as it works.
                   The other directionallights are vectors - what to do with them? */
                  
+//#define                  TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
+                 
+                 
 #ifdef TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
-                 transformf(translated_light_pos[j],p->light_pos[j],projMatrix);
+                 if (j!=HEADLIGHT_LIGHT) {
+                     transformf(translated_light_pos[j],p->light_pos[j],projMatrix);
+                 //transformf(translated_light_pos[j],translated_light_pos[j],modelMatrix);
                  /* reverse normals, as we look behind us */
-                 translated_light_pos[j][0] = -translated_light_pos[j][0];
-                                  translated_light_pos[j][1] = -translated_light_pos[j][1];
-                                  translated_light_pos[j][2] = -translated_light_pos[j][2];
+                 translated_light_pos[j][0] = translated_light_pos[j][0];
+                    translated_light_pos[j][1] = translated_light_pos[j][1];
+                    translated_light_pos[j][2] = -translated_light_pos[j][2];
                  
                  translated_light_pos[j][3] = p->light_pos[j][3];
+                 } else {
+                     /* headlight we just keep pointing down -z axis */
+                    memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
+                 }
 #else
                  
                 memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
@@ -354,7 +363,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
             }
             
                  
-            /* ConsoleMessage("light %d lp %f %f %f %f tlp %f %f %f %f",
+             /*ConsoleMessage("light %d lp %f %f %f %f tlp %f %f %f %f",
                            j,p->light_pos[j][0],p->light_pos[j][1],p->light_pos[j][2],p->light_pos[j][3],
                            translated_light_pos[j][0],translated_light_pos[j][1],
                            translated_light_pos[j][2],translated_light_pos[j][3]);*/
@@ -688,7 +697,7 @@ void initializeLightTables() {
 	int i;
         float pos[] = { 0.0f, 0.0f, 1.0f, 0.0f };
         float dif[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        float shin[] = { 0.6f, 0.6f, 0.6f, 1.0f };
+        float shin[] = { 0.0f, 0.0f, 0.0f, 1.0f }; /* light defaults - headlight is here, too */
         float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
@@ -730,48 +739,12 @@ void initializeLightTables() {
 }
 
 
-
-//int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
-//int render_geom;
-//int render_light;
-//int render_sensitive;
-//int render_blend;
-//int render_proximity;
-//int render_collision;
-//int render_other;
-//#ifdef DJTRACK_PICKSENSORS
-//int render_picksensors;
-//int render_pickables;
-//int	render_allAsPickables;
-//#endif
-//struct trenderstate _renderstate;
 ttrenderstate renderstate()
 {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	return &p->renderstate;
 }
 
-/* material node usage depends on texture depth; if rgb (depth1) we blend color field
-   and diffusecolor with texture, else, we dont bother with material colors */
-//int last_texture_type = NOTEXTURE;
-
-///* texture stuff - see code. Need array because of MultiTextures */
-//GLuint boundTextureStack[MAX_MULTITEXTURE];
-//int textureStackTop;
-
-//int	have_transparency=FALSE;/* did any Shape have transparent material? */
-//int	lightingOn;		/* do we need to restore lighting in Shape? */
-
-//int cur_hits=0;
-
-
-///* dimentions of viewer, and "up" vector (for collision detection) */
-//struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
-
-/* for alignment of collision cylinder, and gravity (later). */
-//struct point_XYZ ViewerUpvector = {0,0,0};
-
-//X3D_Viewer Viewer; /* has to be defined somewhere, so it found itself stuck here */
 
 //true statics:
 GLint viewport[4] = {-1,-1,2,2};  //doesn't change, used in glu unprojects
@@ -779,25 +752,6 @@ GLint viewport[4] = {-1,-1,2,2};  //doesn't change, used in glu unprojects
 struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
 
 
-//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
-//void *hypersensitive = 0; 
-//int hyperhit = 0;
-//struct point_XYZ hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
-
-
-/* These three points define 1. hitpoint 2., 3. two different tangents
- * of the surface at hitpoint (to get transformation correctly */
-
-/* All in window coordinates */
-//struct point_XYZ hp;
-//static struct point_XYZ ht1, ht2;
-//double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
-/* used to save rayhit and hyperhit for later use by C functions */
-//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
-
-/* Any action for the Browser to do? */
-//int BrowserAction = FALSE;
-//struct X3D_Anchor *_AnchorsAnchor = NULL;
 struct X3D_Anchor *AnchorsAnchor()
 {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
