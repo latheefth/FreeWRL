@@ -665,24 +665,23 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
                 nDotVP = max(0.0, dot(normal, VP)); \n \
 \
                 if (nDotVP > 0.0) { \n \
+\
+                    /* this is actually the SFVec3f attenuation field */ \n \
+                    attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * distLightVertex * light_quadAtten[i] *distLightVertex *distLightVertex); \
+                    attenuation *= spotAttenuation; \n \
+\
+                    /* diffuse light computation */ \n \
+                    diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
+\
+                    /* ambient light computation */ \n \
+                    ambient += nDotVP*myMat.ambient*myLightAmbient; \n \
+\
+                    /* specular light computation */ \n \
+                    /* the more pointed it is, the brighter the light. Otherwise, this can override lighting on wide shininess values */ \n \
                     specularPowerFactor = pow(nDotHV, myMat.shininess); \n \
+                    specularAttenuation = (myMat.shininess/128.0); \n \
+                    specular += myLightSpecular * specularPowerFactor * attenuation *specularAttenuation; \n \
                 } \n \
-\
-\
-                /* this is actually the SFVec3f attenuation field */ \n \
-                attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * distLightVertex * light_quadAtten[i] *distLightVertex *distLightVertex); \
-                attenuation *= spotAttenuation; \n \
-\
-                /* diffuse light computation */ \n \
-                diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
-\
-                /* ambient light computation */ \n \
-                ambient += myMat.ambient*myLightAmbient; \n \
-\
-                /* specular light computation */ \n \
-                /* the more pointed it is, the brighter the light. Otherwise, this can override lighting on wide shininess values */ \n \
-                specularAttenuation = (myMat.shininess/128.0); \n \
-                specular += myLightSpecular * specularPowerFactor * attenuation *specularAttenuation; \n \
             } \n \
 	} \n \
 } \n \
