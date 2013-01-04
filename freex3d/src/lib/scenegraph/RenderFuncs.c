@@ -68,8 +68,8 @@ typedef struct pRenderFuncs{
 	float light_linAtten[MAX_LIGHTS];
 	float light_constAtten[MAX_LIGHTS];
 	float light_quadAtten[MAX_LIGHTS];
-	float light_spotCut[MAX_LIGHTS];
-	float light_spotExp[MAX_LIGHTS];
+	float light_spotCutoffAngle[MAX_LIGHTS];
+	float light_spotBeamWidth[MAX_LIGHTS];
 	shaderVec4 light_amb[MAX_LIGHTS];
 	shaderVec4 light_dif[MAX_LIGHTS];
 	shaderVec4 light_pos[MAX_LIGHTS];
@@ -262,7 +262,7 @@ void fwglLightf (int light, int pname, GLfloat param) {
 		case GL_LINEAR_ATTENUATION: printf ("GL_LINEAR_ATTENUATION"); break;
 		case GL_QUADRATIC_ATTENUATION: printf ("GL_QUADRATIC_ATTENUATION"); break;
 		case GL_SPOT_CUTOFF: printf ("GL_SPOT_CUTOFF"); break;
-		case GL_SPOT_EXPONENT: printf ("GL_SPOT_EXPONENT"); break;
+		case GL_SPOT_BEAMWIDTH: printf ("GL_SPOT_BEAMWIDTH"); break;
 	}
 	printf (" %f\n",param);
 #endif
@@ -283,10 +283,13 @@ void fwglLightf (int light, int pname, GLfloat param) {
 			p->light_quadAtten[light] = param;
 			break;
 		case GL_SPOT_CUTOFF:
-			p->light_spotCut[light] = param;
+			p->light_spotCutoffAngle[light] = param;
+            //ConsoleMessage ("setting light_spotCutoffAngle for %d to %f\n",light,param);
 			break;
-		case GL_SPOT_EXPONENT:
-			p->light_spotExp[light] = param;
+		case GL_SPOT_BEAMWIDTH:
+			p->light_spotBeamWidth[light] = param;
+            //ConsoleMessage ("setting light_spotBeamWidth for %d to %f\n",light,param);
+
 			break;
         case GL_LIGHT_RADIUS:
             p->light_radius[light] = param;
@@ -407,9 +410,9 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	PRINT_GL_ERROR_IF_ANY("MIDDLE1.2 sendLightInfo");
 	GLUNIFORM1FV(me->lightQuadAtten, MAX_LIGHTS, p->light_quadAtten);
 	PRINT_GL_ERROR_IF_ANY("MIDDLE1.3 sendLightInfo");
-	GLUNIFORM1FV(me->lightSpotCut, MAX_LIGHTS, p->light_spotCut);
+	GLUNIFORM1FV(me->lightSpotCutoffAngle, MAX_LIGHTS, p->light_spotCutoffAngle);
 	PRINT_GL_ERROR_IF_ANY("MIDDLE1.4 sendLightInfo");
-	GLUNIFORM1FV(me->lightSpotExp, MAX_LIGHTS, p->light_spotExp);
+	GLUNIFORM1FV(me->lightSpotBeamWidth, MAX_LIGHTS, p->light_spotBeamWidth);
 	PRINT_GL_ERROR_IF_ANY("MIDDLE2 sendLightInfo");
 	GLUNIFORM4FV(me->lightAmbient,MAX_LIGHTS,(float *)p->light_amb);
     
@@ -715,7 +718,7 @@ void initializeLightTables() {
         	FW_GL_LIGHTF(i, GL_LINEAR_ATTENUATION,0.0f);
         	FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
         	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,0.0f);
-        	FW_GL_LIGHTF(i, GL_SPOT_EXPONENT,0.0f);
+        	FW_GL_LIGHTF(i, GL_SPOT_BEAMWIDTH,0.0f);
             FW_GL_LIGHTF(i, GL_LIGHT_RADIUS, 100000.0); /* just make it large for now*/ 
             
             PRINT_GL_ERROR_IF_ANY("initizlizeLight2");

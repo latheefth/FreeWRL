@@ -605,7 +605,7 @@ void render_VRML1_SpotLight (struct X3D_VRML1_SpotLight *node) {
 			ft = 0.5f/(1.570796f +0.1f); /* 1.570796 = default beamWidth in X3D */
 			if (ft>128.0) ft=128.0f;
 			if (ft<0.0) ft=0.0f;
-			FW_GL_LIGHTF(light, GL_SPOT_EXPONENT,ft);
+			FW_GL_LIGHTF(light, GL_SPOT_BEAMWIDTH,ft);
 
 			ft = node->cutOffAngle /3.1415926536f*180.0f;
 			if (ft>90.0) ft=90.0f;

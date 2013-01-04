@@ -564,8 +564,8 @@ uniform int lightState[MAX_LIGHTS];    \
 uniform float light_linAtten[MAX_LIGHTS];    \
 uniform float light_constAtten[MAX_LIGHTS];    \
 uniform float light_quadAtten[MAX_LIGHTS];    \
-uniform float lightSpotCut[MAX_LIGHTS];    \
-uniform float lightSpotExp[MAX_LIGHTS];    \
+uniform float lightSpotCutoffAngle[MAX_LIGHTS];    \
+uniform float lightSpotBeamWidth[MAX_LIGHTS];    \
 uniform vec4 lightAmbient[MAX_LIGHTS];    \
 uniform vec4 lightDiffuse[MAX_LIGHTS];    \
 uniform vec4 lightPosition[MAX_LIGHTS];    \
@@ -609,10 +609,10 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
     vec3 eyeVector = normalize(myPosition.xyz); \n \
     vec3 lightDir = normalize(myLightPosition.xyz); \
     vec3 halfVector = normalize(lightDir - eyeVector); \n \
-    float nDotL = max(dot(normal, lightDir), 0.0); \n  \
     /* normal dot light half vector */ \n \
     float nDotHV = max(dot(normal,halfVector),0.0); \n \
     vec3  VP;     /* vector of light direction */\n \
+    vec3 normalizedVP; /* normalized light direction vector */ \n \
     float nDotVP; /* normal dot light direction */ \n \
     float distLightVertex = 0.0;         /* distance to vertex  to see if light in range */ \
     float specularPowerFactor=0.0; /* for light dropoff */ \n \
@@ -625,10 +625,11 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
 \
     /* vector from light position to vertex position */ \n \
     VP = lightPos - vec3(myPosition); \n \
+    normalizedVP = normalize(VP); \n \
 \
 \
 \
-        if (lightSpotCut[i]!=0.0) { \n \
+        if (lightSpotCutoffAngle[i]!=0.0) { \n \
             /* SpotLight */ \n \
 \
             float spotDot; \n \
@@ -637,19 +638,27 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
             distLightVertex = length(VP); \n \
 \
             /* how wide are we from the spotlight beam centre? */ \n \
-            spotDot = dot (-VP,vec3(lightSpotDirection[i])); \n \
+            spotDot = dot (normalize(-VP) ,vec3(lightSpotDirection[i])); \n \
+/* XXXX */         /*    spotDot = dot (normalize(vec3(myPosition.xyz)) ,normalize(vec3(0.2,0.2,-1.))); */  \n \
 \
+            spotAttenuation = 0.0; \n \
             /* check against spotCosCutoff */ \n \
-            if (spotDot < lightSpotCut[i]) { \n \
-                spotAttenuation = 0.0; \n \
-            } else { \n \
-                spotAttenuation = pow(spotDot,lightSpotExp[i]); \n \
+            if (spotDot > lightSpotCutoffAngle[i]) { \n \
+                if (spotDot > 0.980 /* lightSpotBeamWidth[i] */ ) { \n \
+                    spotAttenuation = 1.0; \n \
+                } else { \n \
+                    spotAttenuation =  (spotDot - lightSpotCutoffAngle[i]) / (lightSpotBeamWidth[i] - lightSpotCutoffAngle[i]); \n \
+                } \n \
             } \n \
 \
         } else if (myLightPosition.w == 0.0) { \n \
             /* DirectionalLight */ \n \
 \
             distLightVertex = 0.0; /* no radius for DirectionalLight */ \n \
+\
+            /* and, we already have the light direction vector... (by definition, it's a vector, not position) */ \n \
+            /* so slide it in here */ \n \
+            VP = lightDir; \n \
 \
         } else { \n \
             /* PointLight */ \n \
@@ -662,7 +671,7 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
             /* are we within range? */ \n \
             if (distLightVertex <= lightRadius[i]) { \n \
                 VP = normalize(VP); \n \
-                nDotVP = max(0.0, dot(normal, VP)); \n \
+                nDotVP = max(0.0, dot(normal, normalizedVP)); \n \
 \
                 if (nDotVP > 0.0) { \n \
 \
@@ -1313,8 +1322,9 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->lightConstAtten = GET_UNIFORM(myProg,"light_constAtten");
 	me->lightLinAtten = GET_UNIFORM(myProg, "light_linAtten");
 	me->lightQuadAtten = GET_UNIFORM(myProg,"light_quadAtten");
-	me->lightSpotCut = GET_UNIFORM(myProg, "lightSpotCut");
-	me->lightSpotExp = GET_UNIFORM(myProg, "lightSpotExp");
+	me->lightSpotCutoffAngle = GET_UNIFORM(myProg, "lightSpotCutoffAngle");
+	me->lightSpotBeamWidth = GET_UNIFORM(myProg, "lightSpotBeamWidth");
+    
 	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDirection");
     me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
 
