@@ -117,7 +117,7 @@ void prep_DirectionalLight (struct X3D_DirectionalLight *node) {
 void compile_PointLight (struct X3D_PointLight *node) {
     int i;
     
-    for (i=0; i<3; i++) node->_loc.c[0] = node->location.c[0];
+    for (i=0; i<3; i++) node->_loc.c[i] = node->location.c[i];
     node->_loc.c[3] = 1.0f;/* 1 == this is a position, not a vector */
     
     //ConsoleMessage("compile_PointLight, loc %f %f %f %f",node->_loc.c[0],node->_loc.c[1],node->_loc.c[2],node->_loc.c[3]);
@@ -204,7 +204,8 @@ void compile_SpotLight (struct X3D_SpotLight *node) {
     int i;
     
     for (i=0; i<3; i++) node->_loc.c[i] = node->location.c[i];
-    node->_loc.c[3] = 0.0f;/* vec3 to vec4... */
+    node->_loc.c[3] = 1.0f;/* 1 == this is a position, not a vector */
+
 
     vec.x = (double) node->direction.c[0];
     vec.y = (double) node->direction.c[1];
