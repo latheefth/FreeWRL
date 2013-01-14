@@ -66,24 +66,20 @@ NSMutableData *receivedData;
     } else {
         // no file specified; go here.
         //cString = "/Applications/FreeWRL/blankScreen.wrl";
-        // cString="/Users/johns/Desktop/Ed-Jellyfish/jellyfish-cutter.stl";
-        //cString="/Users/john/Desktop/penguin press complete.stl";
-        //cString="/Users/john/Desktop/Android-tests-current/stl_files/Box2X.stl";
-//cString="/Users/john/Desktop/Android-tests-current/stl_files/sphere0.stl";
-        //cString="/Users/john/Desktop/Android-tests-current/stl_files/jellyfish-cutter.stl";
-        //cString="/Users/john/Desktop/Android-tests-current/stl_files/Penguin press complete.stl";
-        //cString="/Users/john/Desktop/4bd040609.x3dv";
-        //cString="/Users/johns/Desktop/Android-freewrl-fullbuild/freewrl-December08-2012/freewrl/tests/16.wrl";
-        //cString="/Users/john/Desktop/stlToX3D.wrl";
-        //cString="/Users/john/Desktop/x3dCone.wrl";
-        //cString="/Users/john/Desktop/4bd040609mesh.stl";
-        //cString="/Users/johns/Desktop/JAStests/4bd040609mesh.stl";
-        //cString="//Users/johns/Desktop/stl_files/love.stl";
+        cString="/Users/john/Desktop/stl_files/love.stl";
         //cString="//Users/johns/Desktop/stl_files/polysoup.stl";
-        cString="/Users/john/Desktop/specularColor.wrl";
-        cString="/Users/john/Desktop/SpecularMaterial.wrl";
-        cString="/Users/john/Desktop/PointLight.wrl";
-        //cString="/Users/john/Desktop/1.wrl";
+        //cString="/Users/john/Desktop/specularColor.wrl";
+        cString="/Users/johns/Desktop/SpecularMaterial.wrl";
+        //cString="/Users/johns/Desktop/SpotLight.x3d";
+        //cString="/Users/johns/Desktop/JAStests/HandWheel4-cube.wrl";
+        //cString="/Users/john/Desktop/Android-tests-current/www.web3d.org/x3d/content/examples/ConformanceNIST/Lights/DirectionalLight/default_complexdir.wrl";
+        //cString="/Users/john/Desktop/JAStests/composedCube.wrl";
+        //cString="/Users/johns/Downloads/Figure20.06aPointLightSpheres.wrl";
+        //cString="/Users/johns/Downloads/Figure20.12TwoDirectionalLightsAimingLeftRightThroughSpheres.wrl";
+        //cString="/Users/johns/Downloads/Figure20.12TwoDirectionalLightsAimingLeftRightThroughSpheres.wrl";
+        //cString="/Users/john/Desktop/SpotLight.x3d";
+        
+//cString = "/Users/john/Desktop/SpotLight2.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
