@@ -656,6 +656,7 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 #endif /* HAVE_JAVASCRIPT */
 }
 
+
 /****************************************************************/
 /* Add or Remove a series of children				*/
 /*								*/
@@ -666,6 +667,18 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 /*	and a flag for add (1), remove (2) or replace (0) 	*/
 /*								*/
 /****************************************************************/
+unsigned long upper_power_of_two(unsigned long v)
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+
+}
 
 void AddRemoveChildren (
 		struct X3D_Node *parent,
@@ -730,22 +743,51 @@ void AddRemoveChildren (
 
 	if (ar == 1) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets MALLOC and add */
+		int startcounter;
+		unsigned long p2new, p2old;
+		unsigned long old_len = (unsigned)(oldlen);
+		unsigned long new_len = (unsigned)(oldlen+len);
+		p2new = upper_power_of_two(new_len);
+		p2old = upper_power_of_two(old_len);
 
-		/* first, set children to 0, in case render thread comes through here */
-		tn->n = 0;
+		//if(upper_power_of_two(new_len) > upper_power_of_two(old_len))
+		//if(1)
+		if(p2new > p2old)
+		{
+			//realloc to next power-of-2 and copy over
+			// the power-of-2 strategy means we 'anticipate' storage based on how much we've already used.
+			// if we used 128 already, then we allocate another 128. If we've used 256 we allocate
+			// another 256 - always doubling. That means wasted memory, but fewer reallocs, and
+			// therefore less memory fragmentation than if we right-sized on each realloc.
+			// (there was a dataset at http://r1.3crowd.com/blyon/opte/maps/raw/1069524880.3D.wrl 
+			// that was very large and malloc failed not due to absolute out-of-memory, 
+			// but rather due to fragmentation in AddRemoveChildren -reallocing for each 1 additional node-
+			// causing malloc to return null after ~35000 of ~78000 children were added one at a time)
+			unsigned long po2 = upper_power_of_two(new_len);
+			/* first, set children to 0, in case render thread comes through here */
+			tn->n = 0;
+			printf("[%d]{%u}",oldlen,upper_power_of_two(old_len));
+			//newmal = MALLOC (void *, (oldlen+len)*sizeof(struct X3D_Node *));
+			newmal = MALLOC (void *, (po2)*sizeof(struct X3D_Node *));
 
-		newmal = MALLOC (void *, (oldlen+len)*sizeof(struct X3D_Node *));
+			/* copy the old stuff over */
+			if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 
-		/* copy the old stuff over */
-		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
-
-		/* set up the C structures for this new MFNode addition */
-		FREE_IF_NZ (tn->p);
-		tn->n = oldlen;
-		tn->p = newmal;
+			/* set up the C structures for this new MFNode addition */
+			FREE_IF_NZ (tn->p);
+			tn->n = oldlen;
+			tn->p = newmal;
+			//startcounter = 0;
+		}else{
+			/*already alloced - just add to end*/
+			newmal = tn->p;
+			//startcounter = oldlen-1;
+			tn->n = oldlen;
+		}
 
 		/* copy the new stuff over - note, tmpptr changes what it points to */
 		tmpptr  = offsetPointer_deref(struct X3D_Node * *,newmal, sizeof(struct X3D_Node *) * oldlen);
+		//tmpptr  = offsetPointer_deref(struct X3D_Node * *,tn->p, sizeof(struct X3D_Node *) * (oldlen-startcounter+1));
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
