@@ -249,6 +249,8 @@ BOOL bSetupPixelFormat(HDC hdc)
 	int more;
 
 	ppfd = &pfd; 
+
+	memset(ppfd,0,sizeof(PIXELFORMATDESCRIPTOR));
  
     ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR); 
     ppfd->nVersion = 1; 
@@ -263,6 +265,7 @@ BOOL bSetupPixelFormat(HDC hdc)
     //not using accum now, using color masks ppfd->cAccumBits = 64; /*need accum buffer for shader anaglyph - 8 bits per channel OK*/
     ppfd->cStencilBits = 8; 
 	ppfd->cAuxBuffers = 0;
+	ppfd->cAccumBits = 0;
  
     /* pixelformat = ChoosePixelFormat(hdc, ppfd); */
 	if ( (pixelformat = ChoosePixelFormat(hdc, ppfd)) == 0 ) 
@@ -278,7 +281,6 @@ BOOL bSetupPixelFormat(HDC hdc)
 	if(gglobal()->display.shutterGlasses > 0)
 		printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
 	/**/
-
     if (SetPixelFormat(hdc, pixelformat, ppfd) == FALSE) 
     { 
         MessageBox(NULL, "SetPixelFormat failed", "Error", MB_OK); 

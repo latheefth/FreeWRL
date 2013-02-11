@@ -182,6 +182,9 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 
 	if (coffset <= 0) {
 		printf ("setField_fromJavascript, trouble finding field %s in node %s\n",field,stringNodeType(node->_nodeType));
+		if(isProto(node))
+			printf("this is a Proto...have to go through PROTO defs to get to it\n");
+		/*
 		printf ("is this maybe a PROTO?? if so, it will be a Group node with FreeWRL__protoDef set to an index\n");
 		if (node->_nodeType == NODE_Group) {
 			group = (struct X3D_Group *)node;
@@ -190,6 +193,7 @@ void setField_fromJavascript (struct X3D_Node *node, char *field, char *value, i
 				printf ("and, this is a PROTO...have to go through PROTO defs to get to it\n");
 			}
 		}
+		*/
 	}
 
 	Parser_scanStringValueToMem(node, (size_t) coffset, ctype, value, isXML);
@@ -949,6 +953,213 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	
 	#endif
 }
+void setField_javascriptEventOut_B(union anyVrml* any,  
+			int fieldType, unsigned len, int extraData, JSContext *scriptContext) 
+{
+	//dug9 Feb 2013 for new propagate_events - like setField_javascriptEventout except:
+	// writes to *anyVrml instead of (toNode,toOffset) combo (which doesn't work for Proto fields)
+	// and doesn't update parents for SFNode,MFNode - that's done later.
+        int ival;
+        double tval;
+        float fl[4];
+	char *memptr;
+        JSString *strval; /* strings */
+	char *strp;
+#if JS_VERSION >= 185
+	char *strpp;  /* strp is modified, so we cannot use it to free JS_EncodeString results */
+#endif
+	ttglobal tg = gglobal();
+
+	/* NOTE - parent calls BeginRequest so we don't have to */
+
+	/* set up a pointer to where to put this stuff */
+	memptr = (char *)any; //offsetPointer_deref(char *, tn, tptr);
+
+	#ifdef SETFIELDVERBOSE
+	strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+#if JS_VERSION < 185
+       	strp = JS_GetStringBytes(strval);
+#else
+	strp = strpp = JS_EncodeString(scriptContext,strval);
+#endif
+	printf ("start of setField_javascriptEventOut, to %ld:%d = %p, fieldtype %d string %s\n",(long)tn, tptr, memptr, fieldType, strp);
+#if JS_VERSION >= 185
+	JS_free(scriptContext,strpp);
+#endif
+	#endif
+
+#define GETJSVAL_TYPE_A(thistype,field) \
+		case FIELDTYPE_##thistype: { \
+			/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((thistype##Native *)JSSFpointer)->field),len); */ \
+			memcpy ((void *)memptr, (void *) &(((thistype##Native *)tg->CRoutes.JSSFpointer)->field),len); \
+			break; \
+		} 
+
+#define GETJSVAL_TYPE_MF_A(MFtype,SFtype) \
+		case FIELDTYPE_##MFtype: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_##SFtype); break;}
+
+	switch (fieldType) {
+                        GETJSVAL_TYPE_A(SFRotation,v)
+                        /* GETJSVAL_TYPE_A(SFNode,handle) */
+                        /* not implemented yet? GETJSVAL_TYPE_A(SFVec2d,v) */
+                        GETJSVAL_TYPE_A(SFVec3d,v)
+                        GETJSVAL_TYPE_A(SFVec4d,v)
+                        GETJSVAL_TYPE_A(SFVec2f,v)
+                        GETJSVAL_TYPE_A(SFVec3f,v)
+                        GETJSVAL_TYPE_A(SFVec4f,v)
+                        GETJSVAL_TYPE_A(SFColor,v)
+                        GETJSVAL_TYPE_A(SFColorRGBA,v)
+
+                        GETJSVAL_TYPE_MF_A(MFRotation,SFRotation)
+                        GETJSVAL_TYPE_MF_A(MFVec2d,SFVec2d)
+                        GETJSVAL_TYPE_MF_A(MFVec3d,SFVec3d)
+                        GETJSVAL_TYPE_MF_A(MFVec4d,SFVec4d)
+                        GETJSVAL_TYPE_MF_A(MFVec2f,SFVec2f)
+                        GETJSVAL_TYPE_MF_A(MFVec3f,SFVec3f)
+                        GETJSVAL_TYPE_MF_A(MFVec4f,SFVec4f)
+                        GETJSVAL_TYPE_MF_A(MFColor,SFColor)
+                        GETJSVAL_TYPE_MF_A(MFColorRGBA,SFColorRGBA)
+
+
+		case FIELDTYPE_SFInt32: 
+		case FIELDTYPE_SFBool:	{	/* SFBool */
+			if (!JS_ValueToInt32(scriptContext, tg->CRoutes.JSglobal_return_val,&ival)) {
+				printf ("error\n");
+				ival=0;
+			}
+			memcpy ((void *)memptr, (void *)&ival,len);
+			break;
+		}
+
+		case FIELDTYPE_SFDouble:
+		case FIELDTYPE_SFTime: {
+			if (!JS_ValueToNumber(scriptContext, tg->CRoutes.JSglobal_return_val,&tval)) tval=0.0;
+			memcpy ((void *)memptr, (void *)&tval,len);
+			break;
+		}
+
+		case FIELDTYPE_SFFloat: {
+			if (!JS_ValueToNumber(scriptContext, tg->CRoutes.JSglobal_return_val,&tval)) tval=0.0;
+			/* convert double precision to single, for X3D */
+			fl[0] = (float) tval;
+			memcpy ((void *)memptr, (void *)fl,len);
+			break;
+		}
+
+		case FIELDTYPE_SFImage: {
+			/* the string should be saved as an SFImage */
+			strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+#if JS_VERSION < 185
+	        	strp = JS_GetStringBytes(strval);
+#else
+	        	strp = strpp = JS_EncodeString(scriptContext,strval);
+#endif
+
+			Parser_scanStringValueToMem_B(any, FIELDTYPE_SFImage, strp, FALSE);
+#if JS_VERSION >= 185
+			JS_free(scriptContext,strpp);
+#endif
+			break;
+		}
+
+		case FIELDTYPE_SFString: {
+			struct Uni_String *ms;
+			uintptr_t *newptr;
+
+			strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+#if JS_VERSION < 185
+			strp = JS_GetStringBytes(strval);
+#else
+			strp = strpp = JS_EncodeString(scriptContext,strval);
+#endif
+
+			/* copy the string over, delete the old one, if need be */
+			/* printf ("fieldSet SFString, tn %d tptr %d offset from struct %d\n",
+				tn, tptr, offsetof (struct X3D_TextureCoordinateGenerator, mode)); */
+			newptr = (uintptr_t *)memptr;
+			ms = (struct Uni_String*) *newptr;
+			verify_Uni_String (ms,strp);
+#if JS_VERSION >= 185
+			JS_free(scriptContext,strpp);
+#endif
+			break;
+		}
+
+
+			/* a series of Floats... */
+		case FIELDTYPE_MFFloat: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFFloat); break;}
+		case FIELDTYPE_MFInt32: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFInt32); break;}
+		case FIELDTYPE_MFTime: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFTime); break;}
+		case FIELDTYPE_MFDouble: {getJSMultiNumType (scriptContext, (struct Multi_Vec3f *)memptr,FIELDTYPE_SFDouble); break;}
+		case FIELDTYPE_MFNode: {
+				struct X3D_Node *mynode;
+
+				strval = JS_ValueToString(scriptContext, tg->CRoutes.JSglobal_return_val);
+#if JS_VERSION < 185
+				strp = JS_GetStringBytes(strval);
+#else
+				strp = strpp = JS_EncodeString(scriptContext,strval);
+#endif
+				
+				/* we will have at least one node here, in an ascii string */
+				while ((*strp > '\0') && (*strp <= ' ')) strp ++;
+				/* are we at a bracket? */
+				if (*strp == '[') strp ++;
+				while ((*strp > '\0') && (*strp <= ' ')) strp ++;
+
+				/* printf ("convertingthe following string to a pointer :%s:\n",strp); */
+
+				mynode = X3D_NODE(atol(strp));
+#if JS_VERSION >= 185
+				JS_free(scriptContext,strpp);
+#endif
+
+				/* printf ("mynode is %p %d, \n",mynode,mynode);
+				printf ("mynode is %p %d, type %d\n",mynode,mynode,mynode->_nodeType);
+				printf ("calling getMFNodeType now\n"); */
+
+
+				//getMFNodetype (mynode,(struct Multi_Node *)memptr,X3D_NODE(tn),extraData); 
+				//Q. can we do add/remove children outside?
+				break;
+		}
+		case FIELDTYPE_MFString: {
+			getMFStringtype (
+				scriptContext, 
+				(jsval *)&tg->CRoutes.JSglobal_return_val,
+				(struct Multi_String *)memptr);
+			break;
+		}
+
+		case FIELDTYPE_SFNode: {
+			//unsigned int valuecopied;
+			//unsigned int *ptr2value;
+				/* printf ("doing TYPEA memcpy to %u, from %u, len %d\n",(void *)memptr, (void *) &(((SFNodeNative *)JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode));*/
+			memcpy ((void *)memptr, (void *) &(((SFNodeNative *)tg->CRoutes.JSSFpointer)->handle),returnElementLength(FIELDTYPE_SFNode)); 
+				//ptr2value = (unsigned int*)memptr;
+				//valuecopied = *ptr2value;
+				//printf("value of memptr %u after memcpy in script route= %u\n",(void*)memptr,valuecopied);
+				break;
+		}
+
+
+		default: {	printf("WARNING: unhandled from type %s\n", stringFieldtypeType(fieldType));
+		}
+	}
+
+	#ifdef SETFIELDVERBOSE
+	printf ("done setField_javascriptEventOut\n");
+	if (fieldType == FIELDTYPE_MFInt32) {
+		printf ("setField_javascriptEventOut, checking the pointers...\n");
+		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
+	}
+	if (fieldType == FIELDTYPE_SFNode) {
+		printf ("setField_javascriptEventOut, checking the pointers...\n");
+		printf ("node type is %s\n",stringNodeType(X3D_NODE(tn)->_nodeType));
+	}
+	
+	#endif
+}
 
 #endif /* HAVE_JAVASCRIPT */
 
@@ -1045,7 +1256,7 @@ int findRoutedFieldInARR (struct X3D_Node * node, const char *field, int fromTo,
 	/* printf ("findRoutedField, field %s retval %d\n",field,retval); */
 	FIELDCHECK (field)
 
-	/* try ADDING the "set_" or "_changed" */
+	/* try REMOVING/STRIPPING the "set_" or "_changed" */
 	strncpy (mychar, field, 100);
 	if (fromTo != 0) {
 		if (strlen(field) > strlen("set_"))

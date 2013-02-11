@@ -257,7 +257,8 @@ int fwl_isinputThreadParsing() {
 	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 	return(p->inputThreadParsing);
 }
-
+void sceneInstance(struct X3D_Proto* proto, struct X3D_Group *scene);
+BOOL usingBrotos();
 /**
  *   parser_do_parse_string: actually calls the parser.
  */
@@ -271,13 +272,28 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	DEBUG_MSG("PARSE STRING, ft %d, fv %d.%d.%d\n",
 		  inputFileType, inputFileVersion[0], inputFileVersion[1], inputFileVersion[2]);
 
+
 	switch (inputFileType) {
 	case IS_TYPE_XML_X3D:
 		ret = X3DParse(nRn, (const char*)input);
 		break;
 	case IS_TYPE_VRML:
-		ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), (const char*)input);
-		p->haveParsedCParsed = TRUE;
+		if(usingBrotos()){
+			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
+			sceneProto->__prototype = X3D_NODE(sceneProto); 
+			sceneProto->__protoFlags = 1; // bit flags: 1=scene 
+			//sceneProto->__protoFlags |= 2; //2=oldway (0 new way) set to 2 for oldway, 0 for new way
+			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, children), (const char*)input);
+			p->haveParsedCParsed = TRUE;
+			if (ret) {
+				ConsoleMessage("starting scene Instancing...\n");
+				sceneInstance(sceneProto,nRn);
+				ConsoleMessage("...finished scene Instancing\n");
+			}
+		}else{
+			ret = cParse(nRn,(int) offsetof (struct X3D_Group, children), (const char*)input);
+			p->haveParsedCParsed = TRUE;
+		}
 		break;
 	case IS_TYPE_VRML1: {
 #if defined (DO_VRML1)        
@@ -294,9 +310,22 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
         }}\
         ");
 #endif //DO_VRML1
-        
+		if(usingBrotos()){
+			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
+			sceneProto->__prototype = X3D_NODE(sceneProto); 
+			ret = cParse (sceneProto,(int) offsetof (struct X3D_Proto, children), newData);
+			p->haveParsedCParsed = TRUE;
+			if (ret) {
+				ConsoleMessage("starting scene Instancing...\n");
+				sceneInstance(sceneProto,nRn);
+				ConsoleMessage("...finished scene Instancing\n");
+			}
+		}else{
+			ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+			FREE_IF_NZ(newData);
+		}
 
-		ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
+		//ret = cParse (nRn,(int) offsetof (struct X3D_Proto, children), newData);
 		FREE_IF_NZ(newData);
 		break;
     }
@@ -338,7 +367,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
-			cParse (nRn,(int) offsetof (struct X3D_Group, children), (const char*)input);
+			cParse (nRn,(int) offsetof (struct X3D_Proto, children), (const char*)input);
 			p->haveParsedCParsed = TRUE; }
 	}
 	}
@@ -347,6 +376,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 	if (!ret) {
 		ConsoleMessage ("Parser Unsuccessful");
 	}
+
 	return ret;
 }
 

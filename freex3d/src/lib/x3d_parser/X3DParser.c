@@ -594,57 +594,95 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 
 	/* printf ("getRouteField, offs %d type %d\n",*offs, *type); */
 
-	if ((*offs <0) && (node->_nodeType==NODE_Group)) {
+	if ((*offs <0) && isProto(node)) 
+	{
 		/* is this a PROTO expansion? */
-		struct X3D_Group *myg;
-		int myp;
+		if (node->_nodeType==NODE_Group) 
+		{
+			struct X3D_Group *myg;
+			int myp;
 
-		/* lets go finding; if this is a PROTO expansion, we will have FreeWRL__protoDef != INT_ID_UNDEFINED */
-		myg = X3D_GROUP(node);
+			/* lets go finding; if this is a PROTO expansion, we will have FreeWRL__protoDef != INT_ID_UNDEFINED */
+			myg = X3D_GROUP(node);
 
-		/* printf ("routing, looking to see if this is a proto expansion... myg %u\n",myg); */
-		myp = myg->FreeWRL__protoDef;
+			/* printf ("routing, looking to see if this is a proto expansion... myg %u\n",myg); */
+			myp = myg->FreeWRL__protoDef;
 
-		if (myp != INT_ID_UNDEFINED) {
-			char newname[1000];
-			struct X3D_Node *newn;
+			if (myp != INT_ID_UNDEFINED) 
+			{
+				char newname[1000];
+				struct X3D_Node *newn;
+				/* printf ("we are routing to an X3D PROTO Expansion\n");
+				printf ("looking for name %s\n",name); */
+				sprintf (newname,"%s_%s_%d",name,FREEWRL_SPECIFIC,myp);
+				/* printf ("and, defined name is %s\n",newname); */
+				/* look up this node; if it exists, look for field within it */
+				newn = DEFNameIndex ((const char *)newname, NULL, FALSE);
 
-
-			/* printf ("we are routing to an X3D PROTO Expansion\n");
-			printf ("looking for name %s\n",name); */
-
-			sprintf (newname,"%s_%s_%d",name,FREEWRL_SPECIFIC,myp);
-
-			/* printf ("and, defined name is %s\n",newname); */
-
-
-			/* look up this node; if it exists, look for field within it */
-			newn = DEFNameIndex ((const char *)newname, NULL, FALSE);
-
-			/* printf ("newn is %u\n",newn); */
-			if (newn!=NULL){
-				/* printf ("newn node type %s\n",stringNodeType(newn->_nodeType)); */
-				if (routeTo == 0) {
-					/* printf ("and we are routing FROM this proto expansion\n"); */
-					fieldInt = findRoutedFieldInFIELDNAMES(newn,"valueChanged",routeTo);
-				} else {
-					/* printf ("and, routing TO this proto expansion\n"); */
-					fieldInt = findRoutedFieldInFIELDNAMES(newn,"setValue",routeTo);
-				}
-				if (fieldInt >=0) {
-					findFieldInOFFSETS(newn->_nodeType, 
-					fieldInt, offs, type, &accessType);
-					*innode = newn; /* pass back this new node for routing */
+				/* printf ("newn is %u\n",newn); */
+				if (newn!=NULL)
+				{
+					/* printf ("newn node type %s\n",stringNodeType(newn->_nodeType)); */
+					if (routeTo == 0) 
+					{
+						/* printf ("and we are routing FROM this proto expansion\n"); */
+						fieldInt = findRoutedFieldInFIELDNAMES(newn,"valueChanged",routeTo);
+					} else {
+						/* printf ("and, routing TO this proto expansion\n"); */
+						fieldInt = findRoutedFieldInFIELDNAMES(newn,"setValue",routeTo);
+					}
+					if (fieldInt >=0) 
+					{
+						findFieldInOFFSETS(newn->_nodeType, 
+						fieldInt, offs, type, &accessType);
+						*innode = newn; /* pass back this new node for routing */
+					}
 				}
 			}
-
-
-		
-	
 		}
+		//if (node->_nodeType==NODE_Proto)
+		//{
+		//	struct X3D_Proto *myg;
+		//	int myp;
 
+		//	/* lets go finding; if this is a PROTO expansion, we will have FreeWRL__protoDef != INT_ID_UNDEFINED */
+		//	myg = X3D_PROTO(node);
+
+		//	/* printf ("routing, looking to see if this is a proto expansion... myg %u\n",myg); */
+		//	myp = myg->FreeWRL__protoDef;
+
+		//	if (myp != INT_ID_UNDEFINED) 
+		//	{
+		//		char newname[1000];
+		//		struct X3D_Node *newn;
+		//		/* printf ("we are routing to an X3D PROTO Expansion\n");
+		//		printf ("looking for name %s\n",name); */
+		//		sprintf (newname,"%s_%s_%d",name,FREEWRL_SPECIFIC,myp);
+		//		/* printf ("and, defined name is %s\n",newname); */
+		//		/* look up this node; if it exists, look for field within it */
+		//		newn = DEFNameIndex ((const char *)newname, NULL, FALSE);
+
+		//		/* printf ("newn is %u\n",newn); */
+		//		if (newn!=NULL)
+		//		{
+		//			/* printf ("newn node type %s\n",stringNodeType(newn->_nodeType)); */
+		//			if (routeTo == 0) 
+		//			{
+		//				/* printf ("and we are routing FROM this proto expansion\n"); */
+		//				fieldInt = findRoutedFieldInFIELDNAMES(newn,"valueChanged",routeTo);
+		//			} else {
+		//				/* printf ("and, routing TO this proto expansion\n"); */
+		//				fieldInt = findRoutedFieldInFIELDNAMES(newn,"setValue",routeTo);
+		//			}
+		//			if (fieldInt >=0) {
+		//				findFieldInOFFSETS(newn->_nodeType, 
+		//				fieldInt, offs, type, &accessType);
+		//				*innode = newn; /* pass back this new node for routing */
+		//			}
+		//		}
+		//	}
+		//}
 	}
-
 
 
 	if (*offs <0) {

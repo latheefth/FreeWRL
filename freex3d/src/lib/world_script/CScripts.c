@@ -253,7 +253,7 @@ void CScripts_init(struct tCScripts *t){
 	}
 }
 //	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
-static int nextScriptHandle (void) {
+int nextScriptHandle (void) {
 	int retval; 
 	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 
@@ -282,8 +282,10 @@ void zeroScriptHandles (void) {
 	p->handleCnt = 0;
 }
 
-/* this can be a script, or a shader, take your pick */
-struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
+/* this can be a script, or a shader, take your pick 
+   like new_Shader_Script below except no script registration here - used in 2-stage Broto parsing.
+*/
+struct Shader_Script* new_Shader_ScriptB(struct X3D_Node *node) {
  	struct Shader_Script* ret=MALLOC(struct Shader_Script *, sizeof(struct Shader_Script));
 
  	ASSERT(ret);
@@ -292,7 +294,19 @@ struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
 	ret->fields=newVector(struct ScriptFieldDecl*, 4);
 	ret->ShaderScriptNode = node; 	/* pointer back to the node that this is associated with */
 	ret->num = -1;
+	return ret;
+}
+struct Shader_Script* new_Shader_Script(struct X3D_Node *node) {
+ //	struct Shader_Script* ret=MALLOC(struct Shader_Script *, sizeof(struct Shader_Script));
 
+ //	ASSERT(ret);
+
+	//ret->loaded=FALSE;
+	//ret->fields=newVector(struct ScriptFieldDecl*, 4);
+	//ret->ShaderScriptNode = node; 	/* pointer back to the node that this is associated with */
+	//ret->num = -1;
+	struct Shader_Script* ret;
+	ret = new_Shader_ScriptB(node);
 	#ifdef HAVE_JAVASCRIPT
 	/* X3D XML protos do not have a node defined when parsed, Shaders and Scripts do */
 	if (node!=NULL) {

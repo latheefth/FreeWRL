@@ -581,8 +581,10 @@ BOOL lexer_defineID(struct VRMLLexer* me, int* ret, struct Vector* vec, BOOL mul
 
 
 /* A eventIn/eventOut terminal symbol */
-/* Looks for the current token in builtin and/or user defined name arrays depending on the requested return values and the eventtype (in or out)
-   If looking through EVENT_IN, EVENT_OUT, or EXPOSED_FIELD, checks to see if the current token is valid with either set_ or _changed stripped from it 
+/* Looks for the current token in builtin and/or user defined name arrays depending on the 
+   requested return values and the eventtype (in or out)
+   If looking through EVENT_IN, EVENT_OUT, or EXPOSED_FIELD, checks to see if the current token
+   is valid with either set_ or _changed stripped from it 
    If rBO is non-null, then search through EVENT_IN or EVENT_OUT and return the index of the event (if found) in rBO
    If rBE is non-null, then search through EXPOSED_FIELD and return the index of the event (if found) in rBE
    If rUO is non-null, then search through user_inputOnly or user_outputOnly and return the index of the event (if found) in rUO

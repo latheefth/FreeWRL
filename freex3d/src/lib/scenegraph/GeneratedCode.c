@@ -111,6 +111,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__sidepoints",
 	"inputTrue",
 	"__localFileName",
+	"__prototype",
 	"backAmbientIntensity",
 	"exitTime",
 	"joints",
@@ -147,6 +148,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"set_position",
 	"solid",
 	"mode",
+	"__DEFnames",
 	"__textureTableIndex",
 	"isRtpHeaderHeard",
 	"on",
@@ -184,6 +186,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"ambientIntensity",
 	"floatInp",
 	"headlight",
+	"__protoDeclares",
 	"_bboxSize",
 	"radioEntityTypeKind",
 	"cycleInterval",
@@ -370,6 +373,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__rooturlloadstatus",
 	"center",
 	"munitionEntityID",
+	"__ROUTES",
 	"altKey",
 	"spine",
 	"offset",
@@ -405,6 +409,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"attrib",
 	"radioEntityTypeCountry",
 	"child4Url",
+	"__IS",
 	"rightUrl",
 	"time",
 	"deadReckoning",
@@ -458,6 +463,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"tickTime",
 	"articulationParameterValue0_changed",
 	"__rightTexture",
+	"__protoFlags",
 	"geoCenter",
 	"emissiveColor",
 	"antennaPatternLength",
@@ -561,8 +567,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"level_changed",
 	"__texCoords",
 	"geovalue_changed",
-	"texCoordIndex",
 	"_shaderTableEntry",
+	"texCoordIndex",
 	"beginCap",
 	"linearAcceleration",
 	"transparency",
@@ -591,6 +597,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"forceID",
 	"articulationParameterDesignatorArray",
 	"_verifiedColor",
+	"__protoDef",
 	"__oldSize",
 	"_radius",
 	"collideTime",
@@ -604,6 +611,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"hatchStyle",
 	"__params",
 	"cutOffAngle",
+	"__parentProto",
 	"minPosition",
 	"__rotyup",
 	"linewidthScaleFactor",
@@ -668,8 +676,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"convex",
 	"orientation",
 	"set_texCoordIndex",
-	"autoOffset",
 	"appearance",
+	"autoOffset",
 	"zDimension",
 	"_floatOutFIFO",
 	"entitySubCategory",
@@ -1193,6 +1201,7 @@ const int FIELD_COUNT = ARR_SIZE(FIELD);
        const char *KEYWORDS[] = {
 	"eventOut",
 	"TRUE",
+	"BROTO",
 	"NULL",
 	"IS",
 	"EXTERNPROTO",
@@ -1202,6 +1211,7 @@ const int FIELD_COUNT = ARR_SIZE(FIELD);
 	"IMPORT",
 	"initializeOnly",
 	"outputOnly",
+	"EXTERNBROTO",
 	"FALSE",
 	"inputOutput",
 	"field",
@@ -1232,7 +1242,7 @@ const int PROFILES_COUNT = ARR_SIZE(PROFILES);
 
 
 /* Table of components */
-       const char *COMPONENTS[] = {
+const char *COMPONENTS[] = {
 	"Geometry2D",
 	"Rendering",
 	"PickingSensor",
@@ -1272,15 +1282,15 @@ const int COMPONENTS_COUNT = ARR_SIZE(COMPONENTS);
 
 
 /* Table of PROTO keywords */
-       const char *PROTOKEYWORDS[] = {
-	"eventOut",
-	"exposedField",
-	"inputOnly",
-	"eventIn",
-	"outputOnly",
+const char *PROTOKEYWORDS[] = {
 	"initializeOnly",
+	"inputOnly",
+	"outputOnly",
 	"inputOutput",
 	"field",
+	"eventIn",
+	"eventOut",
+	"exposedField",
 };
 const int PROTOKEYWORDS_COUNT = ARR_SIZE(PROTOKEYWORDS);
 
@@ -1668,6 +1678,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"PositionInterpolator",
 	"PositionInterpolator2D",
 	"ProgramShader",
+	"Proto",
 	"ProximitySensor",
 	"ReceiverPdu",
 	"Rectangle2D",
@@ -2182,6 +2193,11 @@ void render_ProgramShader(struct X3D_ProgramShader *);
 void compile_ProgramShader(struct X3D_ProgramShader *);
 struct X3D_Virt virt_ProgramShader = { NULL,(void *)render_ProgramShader,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ProgramShader};
 
+void prep_Proto(struct X3D_Proto *);
+void child_Proto(struct X3D_Proto *);
+void compile_Proto(struct X3D_Proto *);
+struct X3D_Virt virt_Proto = { (void *)prep_Proto,NULL,(void *)child_Proto,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Proto};
+
 void proximity_ProximitySensor(struct X3D_ProximitySensor *);
 struct X3D_Virt virt_ProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,(void *)proximity_ProximitySensor,NULL,NULL,NULL};
 
@@ -2454,6 +2470,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_PositionInterpolator,
 	 &virt_PositionInterpolator2D,
 	 &virt_ProgramShader,
+	 &virt_Proto,
 	 &virt_ProximitySensor,
 	 &virt_ReceiverPdu,
 	 &virt_Rectangle2D,
@@ -4210,6 +4227,25 @@ const int OFFSETS_ProgramShader[] = {
 	(int) FIELDNAMES___initialized, (int) offsetof (struct X3D_ProgramShader, __initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_Proto[] = {
+	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Proto, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Proto, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Proto, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Proto, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___protoDeclares, (int) offsetof (struct X3D_Proto, __protoDeclares),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Proto, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Proto, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Proto, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Proto, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_FreeWRL__protoDef, (int) offsetof (struct X3D_Proto, FreeWRL__protoDef),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Proto, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Proto, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___protoDef, (int) offsetof (struct X3D_Proto, __protoDef),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Proto, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___parentProto, (int) offsetof (struct X3D_Proto, __parentProto),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_ProximitySensor[] = {
 	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_ProximitySensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_enterTime, (int) offsetof (struct X3D_ProximitySensor, enterTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4932,6 +4968,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_PositionInterpolator,
 	OFFSETS_PositionInterpolator2D,
 	OFFSETS_ProgramShader,
+	OFFSETS_Proto,
 	OFFSETS_ProximitySensor,
 	OFFSETS_ReceiverPdu,
 	OFFSETS_Rectangle2D,
@@ -5215,7 +5252,7 @@ const char *stringNodeType (int st) {
 }
 
 /* create a new node of type. This can be generated by Perl code, much as the Structs.h is */
-void *createNewX3DNode (int nt) {
+void *createNewX3DNode0 (int nt) {
 	void * tmp;
 	struct X3D_Box *node;
 
@@ -5374,6 +5411,7 @@ void *createNewX3DNode (int nt) {
 		case NODE_PositionInterpolator : {tmp = MALLOC (struct X3D_PositionInterpolator *, sizeof (struct X3D_PositionInterpolator)); break;}
 		case NODE_PositionInterpolator2D : {tmp = MALLOC (struct X3D_PositionInterpolator2D *, sizeof (struct X3D_PositionInterpolator2D)); break;}
 		case NODE_ProgramShader : {tmp = MALLOC (struct X3D_ProgramShader *, sizeof (struct X3D_ProgramShader)); break;}
+		case NODE_Proto : {tmp = MALLOC (struct X3D_Proto *, sizeof (struct X3D_Proto)); break;}
 		case NODE_ProximitySensor : {tmp = MALLOC (struct X3D_ProximitySensor *, sizeof (struct X3D_ProximitySensor)); break;}
 		case NODE_ReceiverPdu : {tmp = MALLOC (struct X3D_ReceiverPdu *, sizeof (struct X3D_ReceiverPdu)); break;}
 		case NODE_Rectangle2D : {tmp = MALLOC (struct X3D_Rectangle2D *, sizeof (struct X3D_Rectangle2D)); break;}
@@ -7839,6 +7877,28 @@ void *createNewX3DNode (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_programs;
 		break;
 		}
+		case NODE_Proto : {
+			struct X3D_Proto * tmp2;
+			tmp2 = (struct X3D_Proto *) tmp;
+		/* ttmp2->v = &virt_Proto;*/ 
+			tmp2->__IS = 0;
+			tmp2->__prototype = NULL;
+			tmp2->__DEFnames = 0;
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->__protoDeclares.n=0; tmp2->__protoDeclares.p=0;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->__ROUTES = 0;
+			tmp2->metadata = NULL;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
+			tmp2->__protoFlags = INT_ID_UNDEFINED;
+			tmp2->__protoDef = 0;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
+			tmp2->__parentProto = NULL;
+		break;
+		}
 		case NODE_ProximitySensor : {
 			struct X3D_ProximitySensor * tmp2;
 			tmp2 = (struct X3D_ProximitySensor *) tmp;
@@ -8613,6 +8673,12 @@ void *createNewX3DNode (int nt) {
 		break;
 		}
 	};
+	return tmp;
+}
+/* create a new node of type. This can be generated by Perl code, much as the Structs.h is */
+void *createNewX3DNode (int nt) {
+	void * tmp;
+	tmp = createNewX3DNode0(nt);
 	
 	/* is this a texture holding node? */
 	registerTexture(tmp);
@@ -8633,7 +8699,7 @@ void *createNewX3DNode (int nt) {
 /* Dump the scene graph.  */
 #define Boolean int
 void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
-	#define spacer	for (lc=0; lc<level; lc++) fprintf (fp,"\t");
+	#define spacer	for (lc=0; lc<level; lc++) fprintf (fp," ");
 	int lc;
 	int i;
 	char *nodeName;
@@ -8658,128 +8724,128 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Anchor : {
 			struct X3D_Anchor *tmp;
 			tmp = (struct X3D_Anchor *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tparameter (MFString): \n");
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," parameter (MFString): \n");
 			for (i=0; i<tmp->parameter.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->parameter.p[i]->strptr); }
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Appearance : {
 			struct X3D_Appearance *tmp;
 			tmp = (struct X3D_Appearance *) node;
-			spacer fprintf (fp,"\tlineProperties (SFNode):\n"); dump_scene(fp,level+1,tmp->lineProperties); 
-			spacer fprintf (fp,"\tshaders (MFNode):\n");
+			spacer fprintf (fp," lineProperties (SFNode):\n"); dump_scene(fp,level+1,tmp->lineProperties); 
+			spacer fprintf (fp," shaders (MFNode):\n");
 			for (i=0; i<tmp->shaders.n; i++) { dump_scene(fp,level+1,tmp->shaders.p[i]); }
-			spacer fprintf (fp,"\ttextureTransform (SFNode):\n"); dump_scene(fp,level+1,tmp->textureTransform); 
-			spacer fprintf (fp,"\tfillProperties (SFNode):\n"); dump_scene(fp,level+1,tmp->fillProperties); 
+			spacer fprintf (fp," textureTransform (SFNode):\n"); dump_scene(fp,level+1,tmp->textureTransform); 
+			spacer fprintf (fp," fillProperties (SFNode):\n"); dump_scene(fp,level+1,tmp->fillProperties); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tmaterial (SFNode):\n"); dump_scene(fp,level+1,tmp->material); 
-			spacer fprintf (fp,"\ttexture (SFNode):\n"); dump_scene(fp,level+1,tmp->texture); 
+			spacer fprintf (fp," material (SFNode):\n"); dump_scene(fp,level+1,tmp->material); 
+			spacer fprintf (fp," texture (SFNode):\n"); dump_scene(fp,level+1,tmp->texture); 
 		    break;
 		}
 		case NODE_Arc2D : {
 			struct X3D_Arc2D *tmp;
 			tmp = (struct X3D_Arc2D *) node;
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_ArcClose2D : {
 			struct X3D_ArcClose2D *tmp;
 			tmp = (struct X3D_ArcClose2D *) node;
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_AudioClip : {
 			struct X3D_AudioClip *tmp;
 			tmp = (struct X3D_AudioClip *) node;
-			spacer fprintf (fp,"\tloop (SFBool) \t%d\n",tmp->loop);
-			spacer fprintf (fp,"\tresumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
-			spacer fprintf (fp,"\tpauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
-			spacer fprintf (fp,"\tpitch (SFFloat) \t%4.3f\n",tmp->pitch);
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," loop (SFBool) \t%d\n",tmp->loop);
+			spacer fprintf (fp," resumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
+			spacer fprintf (fp," pauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
+			spacer fprintf (fp," pitch (SFFloat) \t%4.3f\n",tmp->pitch);
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
-			spacer fprintf (fp,"\tstartTime (SFTime) \t%4.3f\n",tmp->startTime);
+			spacer fprintf (fp," startTime (SFTime) \t%4.3f\n",tmp->startTime);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tstopTime (SFTime) \t%4.3f\n",tmp->stopTime);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," stopTime (SFTime) \t%4.3f\n",tmp->stopTime);
 		    break;
 		}
 		case NODE_Background : {
 			struct X3D_Background *tmp;
 			tmp = (struct X3D_Background *) node;
-			spacer fprintf (fp,"\trightUrl (MFString): \n");
+			spacer fprintf (fp," rightUrl (MFString): \n");
 			for (i=0; i<tmp->rightUrl.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->rightUrl.p[i]->strptr); }
-			spacer fprintf (fp,"\ttopUrl (MFString): \n");
+			spacer fprintf (fp," topUrl (MFString): \n");
 			for (i=0; i<tmp->topUrl.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->topUrl.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__leftTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__leftTexture); 
+			spacer fprintf (fp," __leftTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__leftTexture); 
 		    }
-			spacer fprintf (fp,"\tbackUrl (MFString): \n");
+			spacer fprintf (fp," backUrl (MFString): \n");
 			for (i=0; i<tmp->backUrl.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->backUrl.p[i]->strptr); }
-			spacer fprintf (fp,"\tgroundColor (MFColor):\n");
+			spacer fprintf (fp," groundColor (MFColor):\n");
 			for (i=0; i<tmp->groundColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->groundColor.p[i]).c[0], (tmp->groundColor.p[i]).c[1],(tmp->groundColor.p[i]).c[2]); }
-			spacer fprintf (fp,"\tleftUrl (MFString): \n");
+			spacer fprintf (fp," leftUrl (MFString): \n");
 			for (i=0; i<tmp->leftUrl.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->leftUrl.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__bottomTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__bottomTexture); 
+			spacer fprintf (fp," __bottomTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__bottomTexture); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__textureright (SFInt32) \t%d\n",tmp->__textureright);
+			spacer fprintf (fp," __textureright (SFInt32) \t%d\n",tmp->__textureright);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__frontTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__frontTexture); 
+			spacer fprintf (fp," __frontTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__frontTexture); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__topTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__topTexture); 
+			spacer fprintf (fp," __topTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__topTexture); 
 		    }
-			spacer fprintf (fp,"\ttransparency (SFFloat) \t%4.3f\n",tmp->transparency);
-			spacer fprintf (fp,"\tbottomUrl (MFString): \n");
+			spacer fprintf (fp," transparency (SFFloat) \t%4.3f\n",tmp->transparency);
+			spacer fprintf (fp," bottomUrl (MFString): \n");
 			for (i=0; i<tmp->bottomUrl.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->bottomUrl.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__rightTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__rightTexture); 
+			spacer fprintf (fp," __rightTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__rightTexture); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__backTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__backTexture); 
+			spacer fprintf (fp," __backTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->__backTexture); 
 		    }
-			spacer fprintf (fp,"\tfrontUrl (MFString): \n");
+			spacer fprintf (fp," frontUrl (MFString): \n");
 			for (i=0; i<tmp->frontUrl.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->frontUrl.p[i]->strptr); }
-			spacer fprintf (fp,"\tskyAngle (MFFloat):\n");
+			spacer fprintf (fp," skyAngle (MFFloat):\n");
 			for (i=0; i<tmp->skyAngle.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->skyAngle.p[i]); }
-			spacer fprintf (fp,"\tskyColor (MFColor):\n");
+			spacer fprintf (fp," skyColor (MFColor):\n");
 			for (i=0; i<tmp->skyColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->skyColor.p[i]).c[0], (tmp->skyColor.p[i]).c[1],(tmp->skyColor.p[i]).c[2]); }
-			spacer fprintf (fp,"\tgroundAngle (MFFloat):\n");
+			spacer fprintf (fp," groundAngle (MFFloat):\n");
 			for (i=0; i<tmp->groundAngle.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->groundAngle.p[i]); }
 		    break;
 		}
 		case NODE_Billboard : {
 			struct X3D_Billboard *tmp;
 			tmp = (struct X3D_Billboard *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\taxisOfRotation (SFVec3f): \t");
+			spacer fprintf (fp," axisOfRotation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->axisOfRotation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -8787,19 +8853,19 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_BooleanFilter *tmp;
 			tmp = (struct X3D_BooleanFilter *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_BooleanSequencer : {
 			struct X3D_BooleanSequencer *tmp;
 			tmp = (struct X3D_BooleanSequencer *) node;
-			spacer fprintf (fp,"\tkeyValue (MFBool):\n");
+			spacer fprintf (fp," keyValue (MFBool):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->keyValue.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
@@ -8807,7 +8873,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_BooleanToggle *tmp;
 			tmp = (struct X3D_BooleanToggle *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -8815,7 +8881,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_BooleanTrigger *tmp;
 			tmp = (struct X3D_BooleanTrigger *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -8823,9 +8889,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Box *tmp;
 			tmp = (struct X3D_Box *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tsize (SFVec3f): \t");
+			spacer fprintf (fp," size (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->size.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -8833,111 +8899,111 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Circle2D : {
 			struct X3D_Circle2D *tmp;
 			tmp = (struct X3D_Circle2D *) node;
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_ClipPlane : {
 			struct X3D_ClipPlane *tmp;
 			tmp = (struct X3D_ClipPlane *) node;
-			spacer fprintf (fp,"\tplane (SFVec4f): \t");
+			spacer fprintf (fp," plane (SFVec4f): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->plane.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_Collision : {
 			struct X3D_Collision *tmp;
 			tmp = (struct X3D_Collision *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__hit (SFInt32) \t%d\n",tmp->__hit);
+			spacer fprintf (fp," __hit (SFInt32) \t%d\n",tmp->__hit);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tcollide (SFBool) \t%d\n",tmp->collide);
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," collide (SFBool) \t%d\n",tmp->collide);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_Color : {
 			struct X3D_Color *tmp;
 			tmp = (struct X3D_Color *) node;
-			spacer fprintf (fp,"\tcolor (MFColor):\n");
+			spacer fprintf (fp," color (MFColor):\n");
 			for (i=0; i<tmp->color.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->color.p[i]).c[0], (tmp->color.p[i]).c[1],(tmp->color.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_ColorInterpolator : {
 			struct X3D_ColorInterpolator *tmp;
 			tmp = (struct X3D_ColorInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFColor):\n");
+			spacer fprintf (fp," keyValue (MFColor):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_ColorRGBA : {
 			struct X3D_ColorRGBA *tmp;
 			tmp = (struct X3D_ColorRGBA *) node;
-			spacer fprintf (fp,"\tcolor (MFColorRGBA):\n");
+			spacer fprintf (fp," color (MFColorRGBA):\n");
 			for (i=0; i<tmp->color.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->color.p[i]).c[0], (tmp->color.p[i]).c[1],(tmp->color.p[i]).c[2],(tmp->color.p[i]).c[3]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_ComposedCubeMapTexture : {
 			struct X3D_ComposedCubeMapTexture *tmp;
 			tmp = (struct X3D_ComposedCubeMapTexture *) node;
-			spacer fprintf (fp,"\tleft (SFNode):\n"); dump_scene(fp,level+1,tmp->left); 
-			spacer fprintf (fp,"\tright (SFNode):\n"); dump_scene(fp,level+1,tmp->right); 
-			spacer fprintf (fp,"\ttop (SFNode):\n"); dump_scene(fp,level+1,tmp->top); 
-			spacer fprintf (fp,"\tfront (SFNode):\n"); dump_scene(fp,level+1,tmp->front); 
-			spacer fprintf (fp,"\tback (SFNode):\n"); dump_scene(fp,level+1,tmp->back); 
+			spacer fprintf (fp," left (SFNode):\n"); dump_scene(fp,level+1,tmp->left); 
+			spacer fprintf (fp," right (SFNode):\n"); dump_scene(fp,level+1,tmp->right); 
+			spacer fprintf (fp," top (SFNode):\n"); dump_scene(fp,level+1,tmp->top); 
+			spacer fprintf (fp," front (SFNode):\n"); dump_scene(fp,level+1,tmp->front); 
+			spacer fprintf (fp," back (SFNode):\n"); dump_scene(fp,level+1,tmp->back); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tbottom (SFNode):\n"); dump_scene(fp,level+1,tmp->bottom); 
+			spacer fprintf (fp," bottom (SFNode):\n"); dump_scene(fp,level+1,tmp->bottom); 
 		    break;
 		}
 		case NODE_ComposedShader : {
 			struct X3D_ComposedShader *tmp;
 			tmp = (struct X3D_ComposedShader *) node;
-			spacer fprintf (fp,"\tparts (MFNode):\n");
+			spacer fprintf (fp," parts (MFNode):\n");
 			for (i=0; i<tmp->parts.n; i++) { dump_scene(fp,level+1,tmp->parts.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Cone : {
 			struct X3D_Cone *tmp;
 			tmp = (struct X3D_Cone *) node;
-			spacer fprintf (fp,"\tbottom (SFBool) \t%d\n",tmp->bottom);
+			spacer fprintf (fp," bottom (SFBool) \t%d\n",tmp->bottom);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Contour2D : {
 			struct X3D_Contour2D *tmp;
 			tmp = (struct X3D_Contour2D *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -8945,263 +9011,263 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_ContourPolyLine2D *tmp;
 			tmp = (struct X3D_ContourPolyLine2D *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Coordinate : {
 			struct X3D_Coordinate *tmp;
 			tmp = (struct X3D_Coordinate *) node;
-			spacer fprintf (fp,"\tpoint (MFVec3f):\n");
+			spacer fprintf (fp," point (MFVec3f):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_CoordinateInterpolator : {
 			struct X3D_CoordinateInterpolator *tmp;
 			tmp = (struct X3D_CoordinateInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFVec3f):\n");
+			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_CoordinateInterpolator2D : {
 			struct X3D_CoordinateInterpolator2D *tmp;
 			tmp = (struct X3D_CoordinateInterpolator2D *) node;
-			spacer fprintf (fp,"\tkeyValue (MFVec2f):\n");
+			spacer fprintf (fp," keyValue (MFVec2f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_Cylinder : {
 			struct X3D_Cylinder *tmp;
 			tmp = (struct X3D_Cylinder *) node;
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
-			spacer fprintf (fp,"\tbottom (SFBool) \t%d\n",tmp->bottom);
-			spacer fprintf (fp,"\ttop (SFBool) \t%d\n",tmp->top);
+			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer fprintf (fp," bottom (SFBool) \t%d\n",tmp->bottom);
+			spacer fprintf (fp," top (SFBool) \t%d\n",tmp->top);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_CylinderSensor : {
 			struct X3D_CylinderSensor *tmp;
 			tmp = (struct X3D_CylinderSensor *) node;
-			spacer fprintf (fp,"\tautoOffset (SFBool) \t%d\n",tmp->autoOffset);
-			spacer fprintf (fp,"\tminAngle (SFFloat) \t%4.3f\n",tmp->minAngle);
+			spacer fprintf (fp," autoOffset (SFBool) \t%d\n",tmp->autoOffset);
+			spacer fprintf (fp," minAngle (SFFloat) \t%4.3f\n",tmp->minAngle);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tdiskAngle (SFFloat) \t%4.3f\n",tmp->diskAngle);
-			spacer fprintf (fp,"\toffset (SFFloat) \t%4.3f\n",tmp->offset);
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," diskAngle (SFFloat) \t%4.3f\n",tmp->diskAngle);
+			spacer fprintf (fp," offset (SFFloat) \t%4.3f\n",tmp->offset);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tmaxAngle (SFFloat) \t%4.3f\n",tmp->maxAngle);
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," maxAngle (SFFloat) \t%4.3f\n",tmp->maxAngle);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
 		    break;
 		}
 		case NODE_DISEntityManager : {
 			struct X3D_DISEntityManager *tmp;
 			tmp = (struct X3D_DISEntityManager *) node;
-			spacer fprintf (fp,"\tapplicationID (SFInt32) \t%d\n",tmp->applicationID);
-			spacer fprintf (fp,"\tmapping (MFNode):\n");
+			spacer fprintf (fp," applicationID (SFInt32) \t%d\n",tmp->applicationID);
+			spacer fprintf (fp," mapping (MFNode):\n");
 			for (i=0; i<tmp->mapping.n; i++) { dump_scene(fp,level+1,tmp->mapping.p[i]); }
-			spacer fprintf (fp,"\tport (SFInt32) \t%d\n",tmp->port);
-			spacer fprintf (fp,"\tsiteID (SFInt32) \t%d\n",tmp->siteID);
-			spacer fprintf (fp,"\taddress (SFString) \t%s\n",tmp->address->strptr);
+			spacer fprintf (fp," port (SFInt32) \t%d\n",tmp->port);
+			spacer fprintf (fp," siteID (SFInt32) \t%d\n",tmp->siteID);
+			spacer fprintf (fp," address (SFString) \t%s\n",tmp->address->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_DISEntityTypeMapping : {
 			struct X3D_DISEntityTypeMapping *tmp;
 			tmp = (struct X3D_DISEntityTypeMapping *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_DirectionalLight : {
 			struct X3D_DirectionalLight *tmp;
 			tmp = (struct X3D_DirectionalLight *) node;
-			spacer fprintf (fp,"\tglobal (SFBool) \t%d\n",tmp->global);
-			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
-			spacer fprintf (fp,"\tdirection (SFVec3f): \t");
+			spacer fprintf (fp," global (SFBool) \t%d\n",tmp->global);
+			spacer fprintf (fp," ambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
+			spacer fprintf (fp," direction (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ton (SFBool) \t%d\n",tmp->on);
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
+			spacer fprintf (fp," on (SFBool) \t%d\n",tmp->on);
+			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
+			spacer fprintf (fp," intensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		    break;
 		}
 		case NODE_Disk2D : {
 			struct X3D_Disk2D *tmp;
 			tmp = (struct X3D_Disk2D *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_EaseInEaseOut : {
 			struct X3D_EaseInEaseOut *tmp;
 			tmp = (struct X3D_EaseInEaseOut *) node;
-			spacer fprintf (fp,"\teaseInEaseOut (MFVec2f):\n");
+			spacer fprintf (fp," easeInEaseOut (MFVec2f):\n");
 			for (i=0; i<tmp->easeInEaseOut.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->easeInEaseOut.p[i]).c[0], (tmp->easeInEaseOut.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_ElevationGrid : {
 			struct X3D_ElevationGrid *tmp;
 			tmp = (struct X3D_ElevationGrid *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    break;
 		}
 		case NODE_EspduTransform : {
 			struct X3D_EspduTransform *tmp;
 			tmp = (struct X3D_EspduTransform *) node;
-			spacer fprintf (fp,"\tarticulationParameterChangeIndicatorArr (MFInt32):\n");
+			spacer fprintf (fp," articulationParameterChangeIndicatorArr (MFInt32):\n");
 			for (i=0; i<tmp->articulationParameterChangeIndicatorArr.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->articulationParameterChangeIndicatorArr.p[i]); }
-			spacer fprintf (fp,"\tfiringRate (SFInt32) \t%d\n",tmp->firingRate);
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," firingRate (SFInt32) \t%d\n",tmp->firingRate);
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tentitySpecific (SFInt32) \t%d\n",tmp->entitySpecific);
-			spacer fprintf (fp,"\teventNumber (SFInt32) \t%d\n",tmp->eventNumber);
-			spacer fprintf (fp,"\tdetonationLocation (SFVec3f): \t");
+			spacer fprintf (fp," entitySpecific (SFInt32) \t%d\n",tmp->entitySpecific);
+			spacer fprintf (fp," eventNumber (SFInt32) \t%d\n",tmp->eventNumber);
+			spacer fprintf (fp," detonationLocation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->detonationLocation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tfireMissionIndex (SFInt32) \t%d\n",tmp->fireMissionIndex);
-			spacer fprintf (fp,"\twarhead (SFInt32) \t%d\n",tmp->warhead);
-			spacer fprintf (fp,"\tentityCategory (SFInt32) \t%d\n",tmp->entityCategory);
-			spacer fprintf (fp,"\tentityExtra (SFInt32) \t%d\n",tmp->entityExtra);
-			spacer fprintf (fp,"\tmunitionSiteID (SFInt32) \t%d\n",tmp->munitionSiteID);
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
+			spacer fprintf (fp," fireMissionIndex (SFInt32) \t%d\n",tmp->fireMissionIndex);
+			spacer fprintf (fp," warhead (SFInt32) \t%d\n",tmp->warhead);
+			spacer fprintf (fp," entityCategory (SFInt32) \t%d\n",tmp->entityCategory);
+			spacer fprintf (fp," entityExtra (SFInt32) \t%d\n",tmp->entityExtra);
+			spacer fprintf (fp," munitionSiteID (SFInt32) \t%d\n",tmp->munitionSiteID);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," rotation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tfiringRange (SFFloat) \t%4.3f\n",tmp->firingRange);
-			spacer fprintf (fp,"\tdetonationRelativeLocation (SFVec3f): \t");
+			spacer fprintf (fp," firingRange (SFFloat) \t%4.3f\n",tmp->firingRange);
+			spacer fprintf (fp," detonationRelativeLocation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->detonationRelativeLocation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tarticulationParameterCount (SFInt32) \t%d\n",tmp->articulationParameterCount);
-			spacer fprintf (fp,"\tfuse (SFInt32) \t%d\n",tmp->fuse);
-			spacer fprintf (fp,"\tlinearVelocity (SFVec3f): \t");
+			spacer fprintf (fp," articulationParameterCount (SFInt32) \t%d\n",tmp->articulationParameterCount);
+			spacer fprintf (fp," fuse (SFInt32) \t%d\n",tmp->fuse);
+			spacer fprintf (fp," linearVelocity (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->linearVelocity.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tdeadReckoning (SFInt32) \t%d\n",tmp->deadReckoning);
-			spacer fprintf (fp,"\tentityDomain (SFInt32) \t%d\n",tmp->entityDomain);
-			spacer fprintf (fp,"\tsiteID (SFInt32) \t%d\n",tmp->siteID);
-			spacer fprintf (fp,"\tdetonationResult (SFInt32) \t%d\n",tmp->detonationResult);
-			spacer fprintf (fp,"\tnetworkMode (SFString) \t%s\n",tmp->networkMode->strptr);
-			spacer fprintf (fp,"\treadInterval (SFTime) \t%4.3f\n",tmp->readInterval);
-			spacer fprintf (fp,"\tlinearAcceleration (SFVec3f): \t");
+			spacer fprintf (fp," deadReckoning (SFInt32) \t%d\n",tmp->deadReckoning);
+			spacer fprintf (fp," entityDomain (SFInt32) \t%d\n",tmp->entityDomain);
+			spacer fprintf (fp," siteID (SFInt32) \t%d\n",tmp->siteID);
+			spacer fprintf (fp," detonationResult (SFInt32) \t%d\n",tmp->detonationResult);
+			spacer fprintf (fp," networkMode (SFString) \t%s\n",tmp->networkMode->strptr);
+			spacer fprintf (fp," readInterval (SFTime) \t%4.3f\n",tmp->readInterval);
+			spacer fprintf (fp," linearAcceleration (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->linearAcceleration.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tentityKind (SFInt32) \t%d\n",tmp->entityKind);
-			spacer fprintf (fp,"\tmarking (SFString) \t%s\n",tmp->marking->strptr);
-			spacer fprintf (fp,"\tmunitionStartPoint (SFVec3f): \t");
+			spacer fprintf (fp," entityKind (SFInt32) \t%d\n",tmp->entityKind);
+			spacer fprintf (fp," marking (SFString) \t%s\n",tmp->marking->strptr);
+			spacer fprintf (fp," munitionStartPoint (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->munitionStartPoint.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tentityCountry (SFInt32) \t%d\n",tmp->entityCountry);
-			spacer fprintf (fp,"\teventEntityID (SFInt32) \t%d\n",tmp->eventEntityID);
-			spacer fprintf (fp,"\tarticulationParameterArray (MFFloat):\n");
+			spacer fprintf (fp," entityCountry (SFInt32) \t%d\n",tmp->entityCountry);
+			spacer fprintf (fp," eventEntityID (SFInt32) \t%d\n",tmp->eventEntityID);
+			spacer fprintf (fp," articulationParameterArray (MFFloat):\n");
 			for (i=0; i<tmp->articulationParameterArray.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->articulationParameterArray.p[i]); }
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
+			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\taddress (SFString) \t%s\n",tmp->address->strptr);
-			spacer fprintf (fp,"\tarticulationParameterTypeArray (MFInt32):\n");
+			spacer fprintf (fp," address (SFString) \t%s\n",tmp->address->strptr);
+			spacer fprintf (fp," articulationParameterTypeArray (MFInt32):\n");
 			for (i=0; i<tmp->articulationParameterTypeArray.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->articulationParameterTypeArray.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tmulticastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
-			spacer fprintf (fp,"\tmunitionApplicationID (SFInt32) \t%d\n",tmp->munitionApplicationID);
-			spacer fprintf (fp,"\tarticulationParameterIdPartAttachedToAr (MFInt32):\n");
+			spacer fprintf (fp," multicastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
+			spacer fprintf (fp," munitionApplicationID (SFInt32) \t%d\n",tmp->munitionApplicationID);
+			spacer fprintf (fp," articulationParameterIdPartAttachedToAr (MFInt32):\n");
 			for (i=0; i<tmp->articulationParameterIdPartAttachedToAr.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->articulationParameterIdPartAttachedToAr.p[i]); }
-			spacer fprintf (fp,"\tfired1 (SFBool) \t%d\n",tmp->fired1);
-			spacer fprintf (fp,"\tmulticastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
-			spacer fprintf (fp,"\tport (SFInt32) \t%d\n",tmp->port);
-			spacer fprintf (fp,"\tforceID (SFInt32) \t%d\n",tmp->forceID);
-			spacer fprintf (fp,"\tarticulationParameterDesignatorArray (MFInt32):\n");
+			spacer fprintf (fp," fired1 (SFBool) \t%d\n",tmp->fired1);
+			spacer fprintf (fp," multicastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
+			spacer fprintf (fp," port (SFInt32) \t%d\n",tmp->port);
+			spacer fprintf (fp," forceID (SFInt32) \t%d\n",tmp->forceID);
+			spacer fprintf (fp," articulationParameterDesignatorArray (MFInt32):\n");
 			for (i=0; i<tmp->articulationParameterDesignatorArray.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->articulationParameterDesignatorArray.p[i]); }
-			spacer fprintf (fp,"\tscale (SFVec3f): \t");
+			spacer fprintf (fp," scale (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\twriteInterval (SFTime) \t%4.3f\n",tmp->writeInterval);
-			spacer fprintf (fp,"\teventSiteID (SFInt32) \t%d\n",tmp->eventSiteID);
-			spacer fprintf (fp,"\tentityID (SFInt32) \t%d\n",tmp->entityID);
-			spacer fprintf (fp,"\tfired2 (SFBool) \t%d\n",tmp->fired2);
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," writeInterval (SFTime) \t%4.3f\n",tmp->writeInterval);
+			spacer fprintf (fp," eventSiteID (SFInt32) \t%d\n",tmp->eventSiteID);
+			spacer fprintf (fp," entityID (SFInt32) \t%d\n",tmp->entityID);
+			spacer fprintf (fp," fired2 (SFBool) \t%d\n",tmp->fired2);
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tmunitionEntityID (SFInt32) \t%d\n",tmp->munitionEntityID);
-			spacer fprintf (fp,"\tscaleOrientation (SFRotation): \t");
+			spacer fprintf (fp," munitionEntityID (SFInt32) \t%d\n",tmp->munitionEntityID);
+			spacer fprintf (fp," scaleOrientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tmunitionEndPoint (SFVec3f): \t");
+			spacer fprintf (fp," munitionEndPoint (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->munitionEndPoint.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\teventApplicationID (SFInt32) \t%d\n",tmp->eventApplicationID);
-			spacer fprintf (fp,"\tapplicationID (SFInt32) \t%d\n",tmp->applicationID);
-			spacer fprintf (fp,"\tentitySubCategory (SFInt32) \t%d\n",tmp->entitySubCategory);
-			spacer fprintf (fp,"\tmunitionQuantity (SFInt32) \t%d\n",tmp->munitionQuantity);
-			spacer fprintf (fp,"\tcollisionType (SFInt32) \t%d\n",tmp->collisionType);
+			spacer fprintf (fp," eventApplicationID (SFInt32) \t%d\n",tmp->eventApplicationID);
+			spacer fprintf (fp," applicationID (SFInt32) \t%d\n",tmp->applicationID);
+			spacer fprintf (fp," entitySubCategory (SFInt32) \t%d\n",tmp->entitySubCategory);
+			spacer fprintf (fp," munitionQuantity (SFInt32) \t%d\n",tmp->munitionQuantity);
+			spacer fprintf (fp," collisionType (SFInt32) \t%d\n",tmp->collisionType);
 		    break;
 		}
 		case NODE_Extrusion : {
 			struct X3D_Extrusion *tmp;
 			tmp = (struct X3D_Extrusion *) node;
-			spacer fprintf (fp,"\torientation (MFRotation):\n");
+			spacer fprintf (fp," orientation (MFRotation):\n");
 			for (i=0; i<tmp->orientation.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->orientation.p[i]).c[0], (tmp->orientation.p[i]).c[1],(tmp->orientation.p[i]).c[2],(tmp->orientation.p[i]).c[3]); }
-			spacer fprintf (fp,"\tscale (MFVec2f):\n");
+			spacer fprintf (fp," scale (MFVec2f):\n");
 			for (i=0; i<tmp->scale.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->scale.p[i]).c[0], (tmp->scale.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_FillProperties : {
 			struct X3D_FillProperties *tmp;
 			tmp = (struct X3D_FillProperties *) node;
-			spacer fprintf (fp,"\thatched (SFBool) \t%d\n",tmp->hatched);
-			spacer fprintf (fp,"\thatchStyle (SFInt32) \t%d\n",tmp->hatchStyle);
+			spacer fprintf (fp," hatched (SFBool) \t%d\n",tmp->hatched);
+			spacer fprintf (fp," hatchStyle (SFInt32) \t%d\n",tmp->hatchStyle);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tfilled (SFBool) \t%d\n",tmp->filled);
-			spacer fprintf (fp,"\thatchColor (SFColor): \t");
+			spacer fprintf (fp," filled (SFBool) \t%d\n",tmp->filled);
+			spacer fprintf (fp," hatchColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->hatchColor.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -9209,24 +9275,24 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_FloatVertexAttribute : {
 			struct X3D_FloatVertexAttribute *tmp;
 			tmp = (struct X3D_FloatVertexAttribute *) node;
-			spacer fprintf (fp,"\tvalue (MFFloat):\n");
+			spacer fprintf (fp," value (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Fog : {
 			struct X3D_Fog *tmp;
 			tmp = (struct X3D_Fog *) node;
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
+			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tvisibilityRange (SFFloat) \t%4.3f\n",tmp->visibilityRange);
-			spacer fprintf (fp,"\tfogType (SFString) \t%s\n",tmp->fogType->strptr);
+			spacer fprintf (fp," visibilityRange (SFFloat) \t%4.3f\n",tmp->visibilityRange);
+			spacer fprintf (fp," fogType (SFString) \t%s\n",tmp->fogType->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -9234,18 +9300,18 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_FogCoordinate *tmp;
 			tmp = (struct X3D_FogCoordinate *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tdepth (MFFloat):\n");
+			spacer fprintf (fp," depth (MFFloat):\n");
 			for (i=0; i<tmp->depth.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->depth.p[i]); }
 		    break;
 		}
 		case NODE_FontStyle : {
 			struct X3D_FontStyle *tmp;
 			tmp = (struct X3D_FontStyle *) node;
-			spacer fprintf (fp,"\tsize (SFFloat) \t%4.3f\n",tmp->size);
+			spacer fprintf (fp," size (SFFloat) \t%4.3f\n",tmp->size);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -9253,79 +9319,79 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_GeneratedCubeMapTexture *tmp;
 			tmp = (struct X3D_GeneratedCubeMapTexture *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tupdate (SFString) \t%s\n",tmp->update->strptr);
-			spacer fprintf (fp,"\tsize (SFInt32) \t%d\n",tmp->size);
+			spacer fprintf (fp," update (SFString) \t%s\n",tmp->update->strptr);
+			spacer fprintf (fp," size (SFInt32) \t%d\n",tmp->size);
 		    break;
 		}
 		case NODE_GeoCoordinate : {
 			struct X3D_GeoCoordinate *tmp;
 			tmp = (struct X3D_GeoCoordinate *) node;
-			spacer fprintf (fp,"\tpoint (MFVec3d):\n");
+			spacer fprintf (fp," point (MFVec3d):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1],(tmp->point.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedCoords (MFVec3f):\n");
+			spacer fprintf (fp," __movedCoords (MFVec3f):\n");
 			for (i=0; i<tmp->__movedCoords.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->__movedCoords.p[i]).c[0], (tmp->__movedCoords.p[i]).c[1],(tmp->__movedCoords.p[i]).c[2]); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_GeoElevationGrid : {
 			struct X3D_GeoElevationGrid *tmp;
 			tmp = (struct X3D_GeoElevationGrid *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
 		    break;
 		}
 		case NODE_GeoLOD : {
 			struct X3D_GeoLOD *tmp;
 			tmp = (struct X3D_GeoLOD *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedCoords (SFVec3d): \t");
+			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
 			fprintf (fp,"\n");
 		    }
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tcenter (SFVec3d): \t");
+			spacer fprintf (fp," center (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__rooturlloadstatus (SFInt32) \t%d\n",tmp->__rooturlloadstatus);
+			spacer fprintf (fp," __rooturlloadstatus (SFInt32) \t%d\n",tmp->__rooturlloadstatus);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__level (SFInt32) \t%d\n",tmp->__level);
+			spacer fprintf (fp," __level (SFInt32) \t%d\n",tmp->__level);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__child3Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child3Node); 
+			spacer fprintf (fp," __child3Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child3Node); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__inRange (SFBool) \t%d\n",tmp->__inRange);
+			spacer fprintf (fp," __inRange (SFBool) \t%d\n",tmp->__inRange);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__rootUrl (SFNode):\n"); dump_scene(fp,level+1,tmp->__rootUrl); 
+			spacer fprintf (fp," __rootUrl (SFNode):\n"); dump_scene(fp,level+1,tmp->__rootUrl); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__child1Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child1Node); 
+			spacer fprintf (fp," __child1Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child1Node); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__childloadstatus (SFInt32) \t%d\n",tmp->__childloadstatus);
+			spacer fprintf (fp," __childloadstatus (SFInt32) \t%d\n",tmp->__childloadstatus);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__child2Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child2Node); 
+			spacer fprintf (fp," __child2Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child2Node); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__child4Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child4Node); 
+			spacer fprintf (fp," __child4Node (SFNode):\n"); dump_scene(fp,level+1,tmp->__child4Node); 
 		    }
 		    break;
 		}
@@ -9333,33 +9399,33 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_GeoLocation *tmp;
 			tmp = (struct X3D_GeoLocation *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedCoords (SFVec3d): \t");
+			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
 			fprintf (fp,"\n");
 		    }
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t_sortedChildren (MFNode):\n");
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldChildren (MFNode):\n");
+			spacer fprintf (fp," __oldChildren (MFNode):\n");
 			for (i=0; i<tmp->__oldChildren.n; i++) { dump_scene(fp,level+1,tmp->__oldChildren.p[i]); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldgeoCoords (SFVec3d): \t");
+			spacer fprintf (fp," __oldgeoCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__oldgeoCoords.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tgeoCoords (SFVec3d): \t");
+			spacer fprintf (fp," geoCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->geoCoords.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__localOrient (SFVec4d): \t");
+			spacer fprintf (fp," __localOrient (SFVec4d): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->__localOrient.c[i]); }
 			fprintf (fp,"\n");
 		    }
@@ -9368,14 +9434,14 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoMetadata : {
 			struct X3D_GeoMetadata *tmp;
 			tmp = (struct X3D_GeoMetadata *) node;
-			spacer fprintf (fp,"\tsummary (MFString): \n");
+			spacer fprintf (fp," summary (MFString): \n");
 			for (i=0; i<tmp->summary.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->summary.p[i]->strptr); }
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
-			spacer fprintf (fp,"\tdata (MFNode):\n");
+			spacer fprintf (fp," data (MFNode):\n");
 			for (i=0; i<tmp->data.n; i++) { dump_scene(fp,level+1,tmp->data.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -9383,28 +9449,28 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_GeoOrigin *tmp;
 			tmp = (struct X3D_GeoOrigin *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedCoords (SFVec3d): \t");
+			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__rotyup (SFVec4d): \t");
+			spacer fprintf (fp," __rotyup (SFVec4d): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->__rotyup.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldgeoCoords (SFVec3d): \t");
+			spacer fprintf (fp," __oldgeoCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__oldgeoCoords.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldMFString (MFString): \n");
+			spacer fprintf (fp," __oldMFString (MFString): \n");
 			for (i=0; i<tmp->__oldMFString.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->__oldMFString.p[i]->strptr); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tgeoCoords (SFVec3d): \t");
+			spacer fprintf (fp," geoCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->geoCoords.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -9413,15 +9479,15 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_GeoPositionInterpolator *tmp;
 			tmp = (struct X3D_GeoPositionInterpolator *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedValue (MFVec3d):\n");
+			spacer fprintf (fp," __movedValue (MFVec3d):\n");
 			for (i=0; i<tmp->__movedValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->__movedValue.p[i]).c[0], (tmp->__movedValue.p[i]).c[1],(tmp->__movedValue.p[i]).c[2]); }
 		    }
-			spacer fprintf (fp,"\tkeyValue (MFVec3d):\n");
+			spacer fprintf (fp," keyValue (MFVec3d):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -9429,48 +9495,48 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_GeoProximitySensor *tmp;
 			tmp = (struct X3D_GeoProximitySensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedCoords (SFVec3d): \t");
+			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
 			fprintf (fp,"\n");
 		    }
-			spacer fprintf (fp,"\tsize (SFVec3f): \t");
+			spacer fprintf (fp," size (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->size.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__hit (SFInt32) \t%d\n",tmp->__hit);
+			spacer fprintf (fp," __hit (SFInt32) \t%d\n",tmp->__hit);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__t1 (SFVec3f): \t");
+			spacer fprintf (fp," __t1 (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__t1.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldGeoCenter (SFVec3d): \t");
+			spacer fprintf (fp," __oldGeoCenter (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__oldGeoCenter.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__t2 (SFRotation): \t");
+			spacer fprintf (fp," __t2 (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->__t2.c[i]); }
 			fprintf (fp,"\n");
 		    }
-			spacer fprintf (fp,"\tgeoCenter (SFVec3d): \t");
+			spacer fprintf (fp," geoCenter (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->geoCenter.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldSize (SFVec3f): \t");
+			spacer fprintf (fp," __oldSize (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__oldSize.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__localOrient (SFVec4d): \t");
+			spacer fprintf (fp," __localOrient (SFVec4d): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->__localOrient.c[i]); }
 			fprintf (fp,"\n");
 		    }
@@ -9480,58 +9546,58 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_GeoTouchSensor *tmp;
 			tmp = (struct X3D_GeoTouchSensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
 		    break;
 		}
 		case NODE_GeoTransform : {
 			struct X3D_GeoTransform *tmp;
 			tmp = (struct X3D_GeoTransform *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedCoords (SFVec3d): \t");
+			spacer fprintf (fp," __movedCoords (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedCoords.c[i]); }
 			fprintf (fp,"\n");
 		    }
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tscaleOrientation (SFRotation): \t");
+			spacer fprintf (fp," scaleOrientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldGeoCenter (SFVec3d): \t");
+			spacer fprintf (fp," __oldGeoCenter (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__oldGeoCenter.c[i]); }
 			fprintf (fp,"\n");
 		    }
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
+			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
+			spacer fprintf (fp," rotation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t_sortedChildren (MFNode):\n");
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldChildren (MFNode):\n");
+			spacer fprintf (fp," __oldChildren (MFNode):\n");
 			for (i=0; i<tmp->__oldChildren.n; i++) { dump_scene(fp,level+1,tmp->__oldChildren.p[i]); }
 		    }
-			spacer fprintf (fp,"\tgeoCenter (SFVec3d): \t");
+			spacer fprintf (fp," geoCenter (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->geoCenter.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tscale (SFVec3f): \t");
+			spacer fprintf (fp," scale (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__localOrient (SFVec4d): \t");
+			spacer fprintf (fp," __localOrient (SFVec4d): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->__localOrient.c[i]); }
 			fprintf (fp,"\n");
 		    }
@@ -9540,107 +9606,107 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_GeoViewpoint : {
 			struct X3D_GeoViewpoint *tmp;
 			tmp = (struct X3D_GeoViewpoint *) node;
-			spacer fprintf (fp,"\theadlight (SFBool) \t%d\n",tmp->headlight);
-			spacer fprintf (fp,"\torientation (SFRotation): \t");
+			spacer fprintf (fp," headlight (SFBool) \t%d\n",tmp->headlight);
+			spacer fprintf (fp," orientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tposition (SFVec3d): \t");
+			spacer fprintf (fp," position (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->position.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldMFString (MFString): \n");
+			spacer fprintf (fp," __oldMFString (MFString): \n");
 			for (i=0; i<tmp->__oldMFString.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->__oldMFString.p[i]->strptr); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldJump (SFBool) \t%d\n",tmp->__oldJump);
+			spacer fprintf (fp," __oldJump (SFBool) \t%d\n",tmp->__oldJump);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__movedPosition (SFVec3d): \t");
+			spacer fprintf (fp," __movedPosition (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__movedPosition.c[i]); }
 			fprintf (fp,"\n");
 		    }
-			spacer fprintf (fp,"\tjump (SFBool) \t%d\n",tmp->jump);
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," jump (SFBool) \t%d\n",tmp->jump);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldSFString (SFString) \t%s\n",tmp->__oldSFString->strptr);
+			spacer fprintf (fp," __oldSFString (SFString) \t%s\n",tmp->__oldSFString->strptr);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldFieldOfView (SFFloat) \t%4.3f\n",tmp->__oldFieldOfView);
+			spacer fprintf (fp," __oldFieldOfView (SFFloat) \t%4.3f\n",tmp->__oldFieldOfView);
 		    }
-			spacer fprintf (fp,"\tfieldOfView (SFFloat) \t%4.3f\n",tmp->fieldOfView);
-			spacer fprintf (fp,"\tnavType (MFString): \n");
+			spacer fprintf (fp," fieldOfView (SFFloat) \t%4.3f\n",tmp->fieldOfView);
+			spacer fprintf (fp," navType (MFString): \n");
 			for (i=0; i<tmp->navType.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->navType.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldHeadlight (SFBool) \t%d\n",tmp->__oldHeadlight);
+			spacer fprintf (fp," __oldHeadlight (SFBool) \t%d\n",tmp->__oldHeadlight);
 		    }
 		    break;
 		}
 		case NODE_Group : {
 			struct X3D_Group *tmp;
 			tmp = (struct X3D_Group *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t_sortedChildren (MFNode):\n");
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
-			spacer fprintf (fp,"\tFreeWRL_PROTOInterfaceNodes (MFNode):\n");
+			spacer fprintf (fp," FreeWRL_PROTOInterfaceNodes (MFNode):\n");
 			for (i=0; i<tmp->FreeWRL_PROTOInterfaceNodes.n; i++) { dump_scene(fp,level+1,tmp->FreeWRL_PROTOInterfaceNodes.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_HAnimDisplacer : {
 			struct X3D_HAnimDisplacer *tmp;
 			tmp = (struct X3D_HAnimDisplacer *) node;
-			spacer fprintf (fp,"\tdisplacements (MFVec3f):\n");
+			spacer fprintf (fp," displacements (MFVec3f):\n");
 			for (i=0; i<tmp->displacements.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->displacements.p[i]).c[0], (tmp->displacements.p[i]).c[1],(tmp->displacements.p[i]).c[2]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
-			spacer fprintf (fp,"\tweight (SFFloat) \t%4.3f\n",tmp->weight);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," weight (SFFloat) \t%4.3f\n",tmp->weight);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_HAnimHumanoid : {
 			struct X3D_HAnimHumanoid *tmp;
 			tmp = (struct X3D_HAnimHumanoid *) node;
-			spacer fprintf (fp,"\tskinNormal (SFNode):\n"); dump_scene(fp,level+1,tmp->skinNormal); 
-			spacer fprintf (fp,"\tsegments (MFNode):\n");
+			spacer fprintf (fp," skinNormal (SFNode):\n"); dump_scene(fp,level+1,tmp->skinNormal); 
+			spacer fprintf (fp," segments (MFNode):\n");
 			for (i=0; i<tmp->segments.n; i++) { dump_scene(fp,level+1,tmp->segments.p[i]); }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tjoints (MFNode):\n");
+			spacer fprintf (fp," joints (MFNode):\n");
 			for (i=0; i<tmp->joints.n; i++) { dump_scene(fp,level+1,tmp->joints.p[i]); }
-			spacer fprintf (fp,"\tscaleOrientation (SFRotation): \t");
+			spacer fprintf (fp," scaleOrientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
+			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tskinCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->skinCoord); 
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
+			spacer fprintf (fp," skinCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->skinCoord); 
+			spacer fprintf (fp," rotation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tskin (MFNode):\n");
+			spacer fprintf (fp," skin (MFNode):\n");
 			for (i=0; i<tmp->skin.n; i++) { dump_scene(fp,level+1,tmp->skin.p[i]); }
-			spacer fprintf (fp,"\tsites (MFNode):\n");
+			spacer fprintf (fp," sites (MFNode):\n");
 			for (i=0; i<tmp->sites.n; i++) { dump_scene(fp,level+1,tmp->sites.p[i]); }
-			spacer fprintf (fp,"\tskeleton (MFNode):\n");
+			spacer fprintf (fp," skeleton (MFNode):\n");
 			for (i=0; i<tmp->skeleton.n; i++) { dump_scene(fp,level+1,tmp->skeleton.p[i]); }
-			spacer fprintf (fp,"\tversion (SFString) \t%s\n",tmp->version->strptr);
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
-			spacer fprintf (fp,"\tviewpoints (MFNode):\n");
+			spacer fprintf (fp," version (SFString) \t%s\n",tmp->version->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," viewpoints (MFNode):\n");
 			for (i=0; i<tmp->viewpoints.n; i++) { dump_scene(fp,level+1,tmp->viewpoints.p[i]); }
-			spacer fprintf (fp,"\tscale (SFVec3f): \t");
+			spacer fprintf (fp," scale (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -9648,60 +9714,60 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_HAnimJoint : {
 			struct X3D_HAnimJoint *tmp;
 			tmp = (struct X3D_HAnimJoint *) node;
-			spacer fprintf (fp,"\tllimit (MFFloat):\n");
+			spacer fprintf (fp," llimit (MFFloat):\n");
 			for (i=0; i<tmp->llimit.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->llimit.p[i]); }
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tulimit (MFFloat):\n");
+			spacer fprintf (fp," ulimit (MFFloat):\n");
 			for (i=0; i<tmp->ulimit.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->ulimit.p[i]); }
-			spacer fprintf (fp,"\tscaleOrientation (SFRotation): \t");
+			spacer fprintf (fp," scaleOrientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
+			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tskinCoordWeight (MFFloat):\n");
+			spacer fprintf (fp," skinCoordWeight (MFFloat):\n");
 			for (i=0; i<tmp->skinCoordWeight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->skinCoordWeight.p[i]); }
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
+			spacer fprintf (fp," rotation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tlimitOrientation (SFRotation): \t");
+			spacer fprintf (fp," limitOrientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->limitOrientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tdisplacers (MFNode):\n");
+			spacer fprintf (fp," displacers (MFNode):\n");
 			for (i=0; i<tmp->displacers.n; i++) { dump_scene(fp,level+1,tmp->displacers.p[i]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
-			spacer fprintf (fp,"\tstiffness (MFFloat):\n");
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," stiffness (MFFloat):\n");
 			for (i=0; i<tmp->stiffness.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->stiffness.p[i]); }
-			spacer fprintf (fp,"\tscale (SFVec3f): \t");
+			spacer fprintf (fp," scale (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tskinCoordIndex (MFInt32):\n");
+			spacer fprintf (fp," skinCoordIndex (MFInt32):\n");
 			for (i=0; i<tmp->skinCoordIndex.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->skinCoordIndex.p[i]); }
 		    break;
 		}
 		case NODE_HAnimSegment : {
 			struct X3D_HAnimSegment *tmp;
 			tmp = (struct X3D_HAnimSegment *) node;
-			spacer fprintf (fp,"\tdisplacers (MFNode):\n");
+			spacer fprintf (fp," displacers (MFNode):\n");
 			for (i=0; i<tmp->displacers.n; i++) { dump_scene(fp,level+1,tmp->displacers.p[i]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tmomentsOfInertia (MFFloat):\n");
+			spacer fprintf (fp," momentsOfInertia (MFFloat):\n");
 			for (i=0; i<tmp->momentsOfInertia.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->momentsOfInertia.p[i]); }
-			spacer fprintf (fp,"\tmass (SFFloat) \t%4.3f\n",tmp->mass);
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," mass (SFFloat) \t%4.3f\n",tmp->mass);
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tcenterOfMass (SFVec3f): \t");
+			spacer fprintf (fp," centerOfMass (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->centerOfMass.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -9709,25 +9775,25 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_HAnimSite : {
 			struct X3D_HAnimSite *tmp;
 			tmp = (struct X3D_HAnimSite *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tscaleOrientation (SFRotation): \t");
+			spacer fprintf (fp," scaleOrientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
+			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
+			spacer fprintf (fp," rotation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
-			spacer fprintf (fp,"\tscale (SFVec3f): \t");
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," scale (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -9735,125 +9801,125 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ImageCubeMapTexture : {
 			struct X3D_ImageCubeMapTexture *tmp;
 			tmp = (struct X3D_ImageCubeMapTexture *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_ImageTexture : {
 			struct X3D_ImageTexture *tmp;
 			tmp = (struct X3D_ImageTexture *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_IndexedFaceSet : {
 			struct X3D_IndexedFaceSet *tmp;
 			tmp = (struct X3D_IndexedFaceSet *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    break;
 		}
 		case NODE_IndexedLineSet : {
 			struct X3D_IndexedLineSet *tmp;
 			tmp = (struct X3D_IndexedLineSet *) node;
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    break;
 		}
 		case NODE_IndexedTriangleFanSet : {
 			struct X3D_IndexedTriangleFanSet *tmp;
 			tmp = (struct X3D_IndexedTriangleFanSet *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tindex (MFInt32):\n");
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," index (MFInt32):\n");
 			for (i=0; i<tmp->index.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->index.p[i]); }
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_IndexedTriangleSet : {
 			struct X3D_IndexedTriangleSet *tmp;
 			tmp = (struct X3D_IndexedTriangleSet *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tindex (MFInt32):\n");
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," index (MFInt32):\n");
 			for (i=0; i<tmp->index.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->index.p[i]); }
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_IndexedTriangleStripSet : {
 			struct X3D_IndexedTriangleStripSet *tmp;
 			tmp = (struct X3D_IndexedTriangleStripSet *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tindex (MFInt32):\n");
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," index (MFInt32):\n");
 			for (i=0; i<tmp->index.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->index.p[i]); }
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Inline : {
 			struct X3D_Inline *tmp;
 			tmp = (struct X3D_Inline *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__children (MFNode):\n");
+			spacer fprintf (fp," __children (MFNode):\n");
 			for (i=0; i<tmp->__children.n; i++) { dump_scene(fp,level+1,tmp->__children.p[i]); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_IntegerSequencer : {
 			struct X3D_IntegerSequencer *tmp;
 			tmp = (struct X3D_IntegerSequencer *) node;
-			spacer fprintf (fp,"\tkeyValue (MFInt32):\n");
+			spacer fprintf (fp," keyValue (MFInt32):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->keyValue.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
@@ -9861,61 +9927,61 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_IntegerTrigger *tmp;
 			tmp = (struct X3D_IntegerTrigger *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tintegerKey (SFInt32) \t%d\n",tmp->integerKey);
+			spacer fprintf (fp," integerKey (SFInt32) \t%d\n",tmp->integerKey);
 		    break;
 		}
 		case NODE_KeySensor : {
 			struct X3D_KeySensor *tmp;
 			tmp = (struct X3D_KeySensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_LOD : {
 			struct X3D_LOD *tmp;
 			tmp = (struct X3D_LOD *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tlevel (MFNode):\n");
+			spacer fprintf (fp," level (MFNode):\n");
 			for (i=0; i<tmp->level.n; i++) { dump_scene(fp,level+1,tmp->level.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_LineProperties : {
 			struct X3D_LineProperties *tmp;
 			tmp = (struct X3D_LineProperties *) node;
-			spacer fprintf (fp,"\tlinetype (SFInt32) \t%d\n",tmp->linetype);
-			spacer fprintf (fp,"\tlinewidthScaleFactor (SFFloat) \t%4.3f\n",tmp->linewidthScaleFactor);
-			spacer fprintf (fp,"\tapplied (SFBool) \t%d\n",tmp->applied);
+			spacer fprintf (fp," linetype (SFInt32) \t%d\n",tmp->linetype);
+			spacer fprintf (fp," linewidthScaleFactor (SFFloat) \t%4.3f\n",tmp->linewidthScaleFactor);
+			spacer fprintf (fp," applied (SFBool) \t%d\n",tmp->applied);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_LineSet : {
 			struct X3D_LineSet *tmp;
 			tmp = (struct X3D_LineSet *) node;
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tvertexCount (MFInt32):\n");
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," vertexCount (MFInt32):\n");
 			for (i=0; i<tmp->vertexCount.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->vertexCount.p[i]); }
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -9923,256 +9989,256 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_LoadSensor *tmp;
 			tmp = (struct X3D_LoadSensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\twatchList (MFNode):\n");
+			spacer fprintf (fp," watchList (MFNode):\n");
 			for (i=0; i<tmp->watchList.n; i++) { dump_scene(fp,level+1,tmp->watchList.p[i]); }
-			spacer fprintf (fp,"\ttimeOut (SFTime) \t%4.3f\n",tmp->timeOut);
+			spacer fprintf (fp," timeOut (SFTime) \t%4.3f\n",tmp->timeOut);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_LocalFog : {
 			struct X3D_LocalFog *tmp;
 			tmp = (struct X3D_LocalFog *) node;
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
+			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tvisibilityRange (SFFloat) \t%4.3f\n",tmp->visibilityRange);
-			spacer fprintf (fp,"\tfogType (SFString) \t%s\n",tmp->fogType->strptr);
+			spacer fprintf (fp," visibilityRange (SFFloat) \t%4.3f\n",tmp->visibilityRange);
+			spacer fprintf (fp," fogType (SFString) \t%s\n",tmp->fogType->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_Material : {
 			struct X3D_Material *tmp;
 			tmp = (struct X3D_Material *) node;
-			spacer fprintf (fp,"\ttransparency (SFFloat) \t%4.3f\n",tmp->transparency);
-			spacer fprintf (fp,"\tspecularColor (SFColor): \t");
+			spacer fprintf (fp," transparency (SFFloat) \t%4.3f\n",tmp->transparency);
+			spacer fprintf (fp," specularColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->specularColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\temissiveColor (SFColor): \t");
+			spacer fprintf (fp," emissiveColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->emissiveColor.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tshininess (SFFloat) \t%4.3f\n",tmp->shininess);
-			spacer fprintf (fp,"\tdiffuseColor (SFColor): \t");
+			spacer fprintf (fp," shininess (SFFloat) \t%4.3f\n",tmp->shininess);
+			spacer fprintf (fp," diffuseColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->diffuseColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
+			spacer fprintf (fp," ambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
 		    break;
 		}
 		case NODE_Matrix3VertexAttribute : {
 			struct X3D_Matrix3VertexAttribute *tmp;
 			tmp = (struct X3D_Matrix3VertexAttribute *) node;
-			spacer fprintf (fp,"\tvalue (MFMatrix3f):\n");
+			spacer fprintf (fp," value (MFMatrix3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Matrix4VertexAttribute : {
 			struct X3D_Matrix4VertexAttribute *tmp;
 			tmp = (struct X3D_Matrix4VertexAttribute *) node;
-			spacer fprintf (fp,"\tvalue (MFMatrix4f):\n");
+			spacer fprintf (fp," value (MFMatrix4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_MetadataDouble : {
 			struct X3D_MetadataDouble *tmp;
 			tmp = (struct X3D_MetadataDouble *) node;
-			spacer fprintf (fp,"\tvalue (MFDouble):\n");
+			spacer fprintf (fp," value (MFDouble):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_MetadataFloat : {
 			struct X3D_MetadataFloat *tmp;
 			tmp = (struct X3D_MetadataFloat *) node;
-			spacer fprintf (fp,"\tvalue (MFFloat):\n");
+			spacer fprintf (fp," value (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_MetadataInteger : {
 			struct X3D_MetadataInteger *tmp;
 			tmp = (struct X3D_MetadataInteger *) node;
-			spacer fprintf (fp,"\tvalue (MFInt32):\n");
+			spacer fprintf (fp," value (MFInt32):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->value.p[i]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_MetadataMFBool : {
 			struct X3D_MetadataMFBool *tmp;
 			tmp = (struct X3D_MetadataMFBool *) node;
-			spacer fprintf (fp,"\tvalue (MFBool):\n");
+			spacer fprintf (fp," value (MFBool):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->value.p[i]); }
 		    break;
 		}
 		case NODE_MetadataMFColor : {
 			struct X3D_MetadataMFColor *tmp;
 			tmp = (struct X3D_MetadataMFColor *) node;
-			spacer fprintf (fp,"\tvalue (MFColor):\n");
+			spacer fprintf (fp," value (MFColor):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		    break;
 		}
 		case NODE_MetadataMFColorRGBA : {
 			struct X3D_MetadataMFColorRGBA *tmp;
 			tmp = (struct X3D_MetadataMFColorRGBA *) node;
-			spacer fprintf (fp,"\tvalue (MFColorRGBA):\n");
+			spacer fprintf (fp," value (MFColorRGBA):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
 		}
 		case NODE_MetadataMFDouble : {
 			struct X3D_MetadataMFDouble *tmp;
 			tmp = (struct X3D_MetadataMFDouble *) node;
-			spacer fprintf (fp,"\tvalue (MFDouble):\n");
+			spacer fprintf (fp," value (MFDouble):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		    break;
 		}
 		case NODE_MetadataMFFloat : {
 			struct X3D_MetadataMFFloat *tmp;
 			tmp = (struct X3D_MetadataMFFloat *) node;
-			spacer fprintf (fp,"\tvalue (MFFloat):\n");
+			spacer fprintf (fp," value (MFFloat):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		    break;
 		}
 		case NODE_MetadataMFInt32 : {
 			struct X3D_MetadataMFInt32 *tmp;
 			tmp = (struct X3D_MetadataMFInt32 *) node;
-			spacer fprintf (fp,"\tvalue (MFInt32):\n");
+			spacer fprintf (fp," value (MFInt32):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->value.p[i]); }
 		    break;
 		}
 		case NODE_MetadataMFMatrix3d : {
 			struct X3D_MetadataMFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix3d *) node;
-			spacer fprintf (fp,"\tvalue (MFMatrix3d):\n");
+			spacer fprintf (fp," value (MFMatrix3d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 		    break;
 		}
 		case NODE_MetadataMFMatrix3f : {
 			struct X3D_MetadataMFMatrix3f *tmp;
 			tmp = (struct X3D_MetadataMFMatrix3f *) node;
-			spacer fprintf (fp,"\tvalue (MFMatrix3f):\n");
+			spacer fprintf (fp," value (MFMatrix3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8]); }
 		    break;
 		}
 		case NODE_MetadataMFMatrix4d : {
 			struct X3D_MetadataMFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataMFMatrix4d *) node;
-			spacer fprintf (fp,"\tvalue (MFMatrix4d):\n");
+			spacer fprintf (fp," value (MFMatrix4d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 		    break;
 		}
 		case NODE_MetadataMFMatrix4f : {
 			struct X3D_MetadataMFMatrix4f *tmp;
 			tmp = (struct X3D_MetadataMFMatrix4f *) node;
-			spacer fprintf (fp,"\tvalue (MFMatrix4f):\n");
+			spacer fprintf (fp," value (MFMatrix4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3],(tmp->value.p[i]).c[4],(tmp->value.p[i]).c[5],(tmp->value.p[i]).c[6],(tmp->value.p[i]).c[7],(tmp->value.p[i]).c[8],(tmp->value.p[i]).c[9],(tmp->value.p[i]).c[10],(tmp->value.p[i]).c[11],(tmp->value.p[i]).c[12],(tmp->value.p[i]).c[13],(tmp->value.p[i]).c[14],(tmp->value.p[i]).c[15]); }
 		    break;
 		}
 		case NODE_MetadataMFNode : {
 			struct X3D_MetadataMFNode *tmp;
 			tmp = (struct X3D_MetadataMFNode *) node;
-			spacer fprintf (fp,"\tvalue (MFNode):\n");
+			spacer fprintf (fp," value (MFNode):\n");
 			for (i=0; i<tmp->value.n; i++) { dump_scene(fp,level+1,tmp->value.p[i]); }
 		    break;
 		}
 		case NODE_MetadataMFRotation : {
 			struct X3D_MetadataMFRotation *tmp;
 			tmp = (struct X3D_MetadataMFRotation *) node;
-			spacer fprintf (fp,"\tvalue (MFRotation):\n");
+			spacer fprintf (fp," value (MFRotation):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
 		}
 		case NODE_MetadataMFString : {
 			struct X3D_MetadataMFString *tmp;
 			tmp = (struct X3D_MetadataMFString *) node;
-			spacer fprintf (fp,"\tvalue (MFString): \n");
+			spacer fprintf (fp," value (MFString): \n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->value.p[i]->strptr); }
 		    break;
 		}
 		case NODE_MetadataMFTime : {
 			struct X3D_MetadataMFTime *tmp;
 			tmp = (struct X3D_MetadataMFTime *) node;
-			spacer fprintf (fp,"\tvalue (MFTime):\n");
+			spacer fprintf (fp," value (MFTime):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->value.p[i]); }
 		    break;
 		}
 		case NODE_MetadataMFVec2d : {
 			struct X3D_MetadataMFVec2d *tmp;
 			tmp = (struct X3D_MetadataMFVec2d *) node;
-			spacer fprintf (fp,"\tvalue (MFVec2d):\n");
+			spacer fprintf (fp," value (MFVec2d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1]); }
 		    break;
 		}
 		case NODE_MetadataMFVec2f : {
 			struct X3D_MetadataMFVec2f *tmp;
 			tmp = (struct X3D_MetadataMFVec2f *) node;
-			spacer fprintf (fp,"\tvalue (MFVec2f):\n");
+			spacer fprintf (fp," value (MFVec2f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1]); }
 		    break;
 		}
 		case NODE_MetadataMFVec3d : {
 			struct X3D_MetadataMFVec3d *tmp;
 			tmp = (struct X3D_MetadataMFVec3d *) node;
-			spacer fprintf (fp,"\tvalue (MFVec3d):\n");
+			spacer fprintf (fp," value (MFVec3d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		    break;
 		}
 		case NODE_MetadataMFVec3f : {
 			struct X3D_MetadataMFVec3f *tmp;
 			tmp = (struct X3D_MetadataMFVec3f *) node;
-			spacer fprintf (fp,"\tvalue (MFVec3f):\n");
+			spacer fprintf (fp," value (MFVec3f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2]); }
 		    break;
 		}
 		case NODE_MetadataMFVec4d : {
 			struct X3D_MetadataMFVec4d *tmp;
 			tmp = (struct X3D_MetadataMFVec4d *) node;
-			spacer fprintf (fp,"\tvalue (MFVec4d):\n");
+			spacer fprintf (fp," value (MFVec4d):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
 		}
 		case NODE_MetadataMFVec4f : {
 			struct X3D_MetadataMFVec4f *tmp;
 			tmp = (struct X3D_MetadataMFVec4f *) node;
-			spacer fprintf (fp,"\tvalue (MFVec4f):\n");
+			spacer fprintf (fp," value (MFVec4f):\n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->value.p[i]).c[0], (tmp->value.p[i]).c[1],(tmp->value.p[i]).c[2],(tmp->value.p[i]).c[3]); }
 		    break;
 		}
 		case NODE_MetadataSFBool : {
 			struct X3D_MetadataSFBool *tmp;
 			tmp = (struct X3D_MetadataSFBool *) node;
-			spacer fprintf (fp,"\tvalue (SFBool) \t%d\n",tmp->value);
+			spacer fprintf (fp," value (SFBool) \t%d\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFColor : {
 			struct X3D_MetadataSFColor *tmp;
 			tmp = (struct X3D_MetadataSFColor *) node;
-			spacer fprintf (fp,"\tvalue (SFColor): \t");
+			spacer fprintf (fp," value (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10180,7 +10246,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFColorRGBA : {
 			struct X3D_MetadataSFColorRGBA *tmp;
 			tmp = (struct X3D_MetadataSFColorRGBA *) node;
-			spacer fprintf (fp,"\tvalue (SFColorRGBA): \t");
+			spacer fprintf (fp," value (SFColorRGBA): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10188,32 +10254,32 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFDouble : {
 			struct X3D_MetadataSFDouble *tmp;
 			tmp = (struct X3D_MetadataSFDouble *) node;
-			spacer fprintf (fp,"\tvalue (SFDouble) \t%4.3f\n",tmp->value);
+			spacer fprintf (fp," value (SFDouble) \t%4.3f\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFFloat : {
 			struct X3D_MetadataSFFloat *tmp;
 			tmp = (struct X3D_MetadataSFFloat *) node;
-			spacer fprintf (fp,"\tvalue (SFFloat) \t%4.3f\n",tmp->value);
+			spacer fprintf (fp," value (SFFloat) \t%4.3f\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFImage : {
 			struct X3D_MetadataSFImage *tmp;
 			tmp = (struct X3D_MetadataSFImage *) node;
-			spacer fprintf (fp,"\tvalue (SFImage): (not dumped)\t");
+			spacer fprintf (fp," value (SFImage): (not dumped)\t");
 			fprintf (fp,"\n");
 		    break;
 		}
 		case NODE_MetadataSFInt32 : {
 			struct X3D_MetadataSFInt32 *tmp;
 			tmp = (struct X3D_MetadataSFInt32 *) node;
-			spacer fprintf (fp,"\tvalue (SFInt32) \t%d\n",tmp->value);
+			spacer fprintf (fp," value (SFInt32) \t%d\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFMatrix3d : {
 			struct X3D_MetadataSFMatrix3d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3d *) node;
-			spacer fprintf (fp,"\tvalue (SFMatrix3d): \t");
+			spacer fprintf (fp," value (SFMatrix3d): \t");
 			for (i=0; i<9; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10221,7 +10287,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix3f : {
 			struct X3D_MetadataSFMatrix3f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix3f *) node;
-			spacer fprintf (fp,"\tvalue (SFMatrix3f): \t");
+			spacer fprintf (fp," value (SFMatrix3f): \t");
 			for (i=0; i<9; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10229,7 +10295,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix4d : {
 			struct X3D_MetadataSFMatrix4d *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4d *) node;
-			spacer fprintf (fp,"\tvalue (SFMatrix4d): \t");
+			spacer fprintf (fp," value (SFMatrix4d): \t");
 			for (i=0; i<16; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10237,7 +10303,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFMatrix4f : {
 			struct X3D_MetadataSFMatrix4f *tmp;
 			tmp = (struct X3D_MetadataSFMatrix4f *) node;
-			spacer fprintf (fp,"\tvalue (SFMatrix4f): \t");
+			spacer fprintf (fp," value (SFMatrix4f): \t");
 			for (i=0; i<16; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10245,13 +10311,13 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFNode : {
 			struct X3D_MetadataSFNode *tmp;
 			tmp = (struct X3D_MetadataSFNode *) node;
-			spacer fprintf (fp,"\tvalue (SFNode):\n"); dump_scene(fp,level+1,tmp->value); 
+			spacer fprintf (fp," value (SFNode):\n"); dump_scene(fp,level+1,tmp->value); 
 		    break;
 		}
 		case NODE_MetadataSFRotation : {
 			struct X3D_MetadataSFRotation *tmp;
 			tmp = (struct X3D_MetadataSFRotation *) node;
-			spacer fprintf (fp,"\tvalue (SFRotation): \t");
+			spacer fprintf (fp," value (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10259,19 +10325,19 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFString : {
 			struct X3D_MetadataSFString *tmp;
 			tmp = (struct X3D_MetadataSFString *) node;
-			spacer fprintf (fp,"\tvalue (SFString) \t%s\n",tmp->value->strptr);
+			spacer fprintf (fp," value (SFString) \t%s\n",tmp->value->strptr);
 		    break;
 		}
 		case NODE_MetadataSFTime : {
 			struct X3D_MetadataSFTime *tmp;
 			tmp = (struct X3D_MetadataSFTime *) node;
-			spacer fprintf (fp,"\tvalue (SFTime) \t%4.3f\n",tmp->value);
+			spacer fprintf (fp," value (SFTime) \t%4.3f\n",tmp->value);
 		    break;
 		}
 		case NODE_MetadataSFVec2d : {
 			struct X3D_MetadataSFVec2d *tmp;
 			tmp = (struct X3D_MetadataSFVec2d *) node;
-			spacer fprintf (fp,"\tvalue (SFVec2d): \t");
+			spacer fprintf (fp," value (SFVec2d): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10279,7 +10345,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec2f : {
 			struct X3D_MetadataSFVec2f *tmp;
 			tmp = (struct X3D_MetadataSFVec2f *) node;
-			spacer fprintf (fp,"\tvalue (SFVec2f): \t");
+			spacer fprintf (fp," value (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10287,7 +10353,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec3d : {
 			struct X3D_MetadataSFVec3d *tmp;
 			tmp = (struct X3D_MetadataSFVec3d *) node;
-			spacer fprintf (fp,"\tvalue (SFVec3d): \t");
+			spacer fprintf (fp," value (SFVec3d): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10295,7 +10361,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec3f : {
 			struct X3D_MetadataSFVec3f *tmp;
 			tmp = (struct X3D_MetadataSFVec3f *) node;
-			spacer fprintf (fp,"\tvalue (SFVec3f): \t");
+			spacer fprintf (fp," value (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10303,7 +10369,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec4d : {
 			struct X3D_MetadataSFVec4d *tmp;
 			tmp = (struct X3D_MetadataSFVec4d *) node;
-			spacer fprintf (fp,"\tvalue (SFVec4d): \t");
+			spacer fprintf (fp," value (SFVec4d): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10311,7 +10377,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSFVec4f : {
 			struct X3D_MetadataSFVec4f *tmp;
 			tmp = (struct X3D_MetadataSFVec4f *) node;
-			spacer fprintf (fp,"\tvalue (SFVec4f): \t");
+			spacer fprintf (fp," value (SFVec4f): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->value.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10319,59 +10385,59 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_MetadataSet : {
 			struct X3D_MetadataSet *tmp;
 			tmp = (struct X3D_MetadataSet *) node;
-			spacer fprintf (fp,"\tvalue (MFNode):\n");
+			spacer fprintf (fp," value (MFNode):\n");
 			for (i=0; i<tmp->value.n; i++) { dump_scene(fp,level+1,tmp->value.p[i]); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_MetadataString : {
 			struct X3D_MetadataString *tmp;
 			tmp = (struct X3D_MetadataString *) node;
-			spacer fprintf (fp,"\tvalue (MFString): \n");
+			spacer fprintf (fp," value (MFString): \n");
 			for (i=0; i<tmp->value.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->value.p[i]->strptr); }
-			spacer fprintf (fp,"\tname (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_MovieTexture : {
 			struct X3D_MovieTexture *tmp;
 			tmp = (struct X3D_MovieTexture *) node;
-			spacer fprintf (fp,"\tloop (SFBool) \t%d\n",tmp->loop);
-			spacer fprintf (fp,"\tresumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
-			spacer fprintf (fp,"\tpauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
-			spacer fprintf (fp,"\tspeed (SFFloat) \t%4.3f\n",tmp->speed);
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," loop (SFBool) \t%d\n",tmp->loop);
+			spacer fprintf (fp," resumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
+			spacer fprintf (fp," pauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
+			spacer fprintf (fp," speed (SFFloat) \t%4.3f\n",tmp->speed);
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
-			spacer fprintf (fp,"\tstartTime (SFTime) \t%4.3f\n",tmp->startTime);
+			spacer fprintf (fp," startTime (SFTime) \t%4.3f\n",tmp->startTime);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tstopTime (SFTime) \t%4.3f\n",tmp->stopTime);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," stopTime (SFTime) \t%4.3f\n",tmp->stopTime);
 		    break;
 		}
 		case NODE_MultiTexture : {
 			struct X3D_MultiTexture *tmp;
 			tmp = (struct X3D_MultiTexture *) node;
-			spacer fprintf (fp,"\tsource (MFString): \n");
+			spacer fprintf (fp," source (MFString): \n");
 			for (i=0; i<tmp->source.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->source.p[i]->strptr); }
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
+			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\talpha (SFFloat) \t%4.3f\n",tmp->alpha);
-			spacer fprintf (fp,"\tfunction (MFString): \n");
+			spacer fprintf (fp," alpha (SFFloat) \t%4.3f\n",tmp->alpha);
+			spacer fprintf (fp," function (MFString): \n");
 			for (i=0; i<tmp->function.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->function.p[i]->strptr); }
-			spacer fprintf (fp,"\tmode (MFString): \n");
+			spacer fprintf (fp," mode (MFString): \n");
 			for (i=0; i<tmp->mode.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->mode.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttexture (MFNode):\n");
+			spacer fprintf (fp," texture (MFNode):\n");
 			for (i=0; i<tmp->texture.n; i++) { dump_scene(fp,level+1,tmp->texture.p[i]); }
 		    break;
 		}
@@ -10379,37 +10445,37 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_MultiTextureCoordinate *tmp;
 			tmp = (struct X3D_MultiTextureCoordinate *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttexCoord (MFNode):\n");
+			spacer fprintf (fp," texCoord (MFNode):\n");
 			for (i=0; i<tmp->texCoord.n; i++) { dump_scene(fp,level+1,tmp->texCoord.p[i]); }
 		    break;
 		}
 		case NODE_MultiTextureTransform : {
 			struct X3D_MultiTextureTransform *tmp;
 			tmp = (struct X3D_MultiTextureTransform *) node;
-			spacer fprintf (fp,"\ttextureTransform (MFNode):\n");
+			spacer fprintf (fp," textureTransform (MFNode):\n");
 			for (i=0; i<tmp->textureTransform.n; i++) { dump_scene(fp,level+1,tmp->textureTransform.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_NavigationInfo : {
 			struct X3D_NavigationInfo *tmp;
 			tmp = (struct X3D_NavigationInfo *) node;
-			spacer fprintf (fp,"\ttransitionTime (SFTime) \t%4.3f\n",tmp->transitionTime);
-			spacer fprintf (fp,"\theadlight (SFBool) \t%d\n",tmp->headlight);
-			spacer fprintf (fp,"\tspeed (SFFloat) \t%4.3f\n",tmp->speed);
-			spacer fprintf (fp,"\ttransitionType (MFString): \n");
+			spacer fprintf (fp," transitionTime (SFTime) \t%4.3f\n",tmp->transitionTime);
+			spacer fprintf (fp," headlight (SFBool) \t%d\n",tmp->headlight);
+			spacer fprintf (fp," speed (SFFloat) \t%4.3f\n",tmp->speed);
+			spacer fprintf (fp," transitionType (MFString): \n");
 			for (i=0; i<tmp->transitionType.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->transitionType.p[i]->strptr); }
-			spacer fprintf (fp,"\ttype (MFString): \n");
+			spacer fprintf (fp," type (MFString): \n");
 			for (i=0; i<tmp->type.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->type.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tvisibilityLimit (SFFloat) \t%4.3f\n",tmp->visibilityLimit);
-			spacer fprintf (fp,"\tavatarSize (MFFloat):\n");
+			spacer fprintf (fp," visibilityLimit (SFFloat) \t%4.3f\n",tmp->visibilityLimit);
+			spacer fprintf (fp," avatarSize (MFFloat):\n");
 			for (i=0; i<tmp->avatarSize.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->avatarSize.p[i]); }
 		    break;
 		}
@@ -10417,90 +10483,90 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Normal *tmp;
 			tmp = (struct X3D_Normal *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tvector (MFVec3f):\n");
+			spacer fprintf (fp," vector (MFVec3f):\n");
 			for (i=0; i<tmp->vector.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->vector.p[i]).c[0], (tmp->vector.p[i]).c[1],(tmp->vector.p[i]).c[2]); }
 		    break;
 		}
 		case NODE_NormalInterpolator : {
 			struct X3D_NormalInterpolator *tmp;
 			tmp = (struct X3D_NormalInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFVec3f):\n");
+			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_NurbsCurve : {
 			struct X3D_NurbsCurve *tmp;
 			tmp = (struct X3D_NurbsCurve *) node;
-			spacer fprintf (fp,"\ttessellation (SFInt32) \t%d\n",tmp->tessellation);
-			spacer fprintf (fp,"\torder (SFInt32) \t%d\n",tmp->order);
-			spacer fprintf (fp,"\tweight (MFFloat):\n");
+			spacer fprintf (fp," tessellation (SFInt32) \t%d\n",tmp->tessellation);
+			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
+			spacer fprintf (fp," weight (MFFloat):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
-			spacer fprintf (fp,"\tcontrolPoint (MFVec3f):\n");
+			spacer fprintf (fp," controlPoint (MFVec3f):\n");
 			for (i=0; i<tmp->controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1],(tmp->controlPoint.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_NurbsCurve2D : {
 			struct X3D_NurbsCurve2D *tmp;
 			tmp = (struct X3D_NurbsCurve2D *) node;
-			spacer fprintf (fp,"\ttessellation (SFInt32) \t%d\n",tmp->tessellation);
-			spacer fprintf (fp,"\torder (SFInt32) \t%d\n",tmp->order);
-			spacer fprintf (fp,"\tweight (MFFloat):\n");
+			spacer fprintf (fp," tessellation (SFInt32) \t%d\n",tmp->tessellation);
+			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
+			spacer fprintf (fp," weight (MFFloat):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
-			spacer fprintf (fp,"\tcontrolPoint (MFVec2f):\n");
+			spacer fprintf (fp," controlPoint (MFVec2f):\n");
 			for (i=0; i<tmp->controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_NurbsGroup : {
 			struct X3D_NurbsGroup *tmp;
 			tmp = (struct X3D_NurbsGroup *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttessellationScale (SFFloat) \t%4.3f\n",tmp->tessellationScale);
+			spacer fprintf (fp," tessellationScale (SFFloat) \t%4.3f\n",tmp->tessellationScale);
 		    break;
 		}
 		case NODE_NurbsPositionInterpolator : {
 			struct X3D_NurbsPositionInterpolator *tmp;
 			tmp = (struct X3D_NurbsPositionInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFVec3f):\n");
+			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
-			spacer fprintf (fp,"\tkeyWeight (MFFloat):\n");
+			spacer fprintf (fp," keyWeight (MFFloat):\n");
 			for (i=0; i<tmp->keyWeight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->keyWeight.p[i]); }
-			spacer fprintf (fp,"\tdimension (SFInt32) \t%d\n",tmp->dimension);
-			spacer fprintf (fp,"\torder (SFInt32) \t%d\n",tmp->order);
+			spacer fprintf (fp," dimension (SFInt32) \t%d\n",tmp->dimension);
+			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_NurbsSurface : {
 			struct X3D_NurbsSurface *tmp;
 			tmp = (struct X3D_NurbsSurface *) node;
-			spacer fprintf (fp,"\tvTessellation (SFInt32) \t%d\n",tmp->vTessellation);
-			spacer fprintf (fp,"\tcontrolPoint (MFVec3f):\n");
+			spacer fprintf (fp," vTessellation (SFInt32) \t%d\n",tmp->vTessellation);
+			spacer fprintf (fp," controlPoint (MFVec3f):\n");
 			for (i=0; i<tmp->controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1],(tmp->controlPoint.p[i]).c[2]); }
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tuTessellation (SFInt32) \t%d\n",tmp->uTessellation);
-			spacer fprintf (fp,"\torder (SFInt32) \t%d\n",tmp->order);
-			spacer fprintf (fp,"\tweight (MFFloat):\n");
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," uTessellation (SFInt32) \t%d\n",tmp->uTessellation);
+			spacer fprintf (fp," order (SFInt32) \t%d\n",tmp->order);
+			spacer fprintf (fp," weight (MFFloat):\n");
 			for (i=0; i<tmp->weight.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->weight.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -10508,7 +10574,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_NurbsTextureSurface *tmp;
 			tmp = (struct X3D_NurbsTextureSurface *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -10516,98 +10582,98 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_NurbsTrimmedSurface *tmp;
 			tmp = (struct X3D_NurbsTrimmedSurface *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_OSC_Sensor : {
 			struct X3D_OSC_Sensor *tmp;
 			tmp = (struct X3D_OSC_Sensor *) node;
-			spacer fprintf (fp,"\tprotocol (SFString) \t%s\n",tmp->protocol->strptr);
-			spacer fprintf (fp,"\tlistenfor (SFString) \t%s\n",tmp->listenfor->strptr);
+			spacer fprintf (fp," protocol (SFString) \t%s\n",tmp->protocol->strptr);
+			spacer fprintf (fp," listenfor (SFString) \t%s\n",tmp->listenfor->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\t_talkToNodes (MFNode):\n");
+			spacer fprintf (fp," _talkToNodes (MFNode):\n");
 			for (i=0; i<tmp->_talkToNodes.n; i++) { dump_scene(fp,level+1,tmp->_talkToNodes.p[i]); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t_status (SFInt32) \t%d\n",tmp->_status);
+			spacer fprintf (fp," _status (SFInt32) \t%d\n",tmp->_status);
 		    }
-			spacer fprintf (fp,"\ttalksTo (MFString): \n");
+			spacer fprintf (fp," talksTo (MFString): \n");
 			for (i=0; i<tmp->talksTo.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->talksTo.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
-			spacer fprintf (fp,"\tfilter (SFString) \t%s\n",tmp->filter->strptr);
-			spacer fprintf (fp,"\tFIFOsize (SFInt32) \t%d\n",tmp->FIFOsize);
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tport (SFInt32) \t%d\n",tmp->port);
-			spacer fprintf (fp,"\tgotEvents (SFInt32) \t%d\n",tmp->gotEvents);
-			spacer fprintf (fp,"\thandler (SFString) \t%s\n",tmp->handler->strptr);
-			spacer fprintf (fp,"\tstringInp (SFString) \t%s\n",tmp->stringInp->strptr);
-			spacer fprintf (fp,"\tfloatInp (SFFloat) \t%4.3f\n",tmp->floatInp);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," filter (SFString) \t%s\n",tmp->filter->strptr);
+			spacer fprintf (fp," FIFOsize (SFInt32) \t%d\n",tmp->FIFOsize);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," port (SFInt32) \t%d\n",tmp->port);
+			spacer fprintf (fp," gotEvents (SFInt32) \t%d\n",tmp->gotEvents);
+			spacer fprintf (fp," handler (SFString) \t%s\n",tmp->handler->strptr);
+			spacer fprintf (fp," stringInp (SFString) \t%s\n",tmp->stringInp->strptr);
+			spacer fprintf (fp," floatInp (SFFloat) \t%4.3f\n",tmp->floatInp);
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->__oldmetadata); 
+			spacer fprintf (fp," __oldmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->__oldmetadata); 
 		    }
-			spacer fprintf (fp,"\tint32Inp (SFInt32) \t%d\n",tmp->int32Inp);
+			spacer fprintf (fp," int32Inp (SFInt32) \t%d\n",tmp->int32Inp);
 		    break;
 		}
 		case NODE_OrientationInterpolator : {
 			struct X3D_OrientationInterpolator *tmp;
 			tmp = (struct X3D_OrientationInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFRotation):\n");
+			spacer fprintf (fp," keyValue (MFRotation):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2],(tmp->keyValue.p[i]).c[3]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_OrthoViewpoint : {
 			struct X3D_OrthoViewpoint *tmp;
 			tmp = (struct X3D_OrthoViewpoint *) node;
-			spacer fprintf (fp,"\torientation (SFRotation): \t");
+			spacer fprintf (fp," orientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tposition (SFVec3f): \t");
+			spacer fprintf (fp," position (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->position.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tjump (SFBool) \t%d\n",tmp->jump);
-			spacer fprintf (fp,"\tretainUserOffsets (SFBool) \t%d\n",tmp->retainUserOffsets);
-			spacer fprintf (fp,"\tcenterOfRotation (SFVec3f): \t");
+			spacer fprintf (fp," jump (SFBool) \t%d\n",tmp->jump);
+			spacer fprintf (fp," retainUserOffsets (SFBool) \t%d\n",tmp->retainUserOffsets);
+			spacer fprintf (fp," centerOfRotation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->centerOfRotation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tfieldOfView (MFFloat):\n");
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," fieldOfView (MFFloat):\n");
 			for (i=0; i<tmp->fieldOfView.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->fieldOfView.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_PackagedShader : {
 			struct X3D_PackagedShader *tmp;
 			tmp = (struct X3D_PackagedShader *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_PickableGroup : {
 			struct X3D_PickableGroup *tmp;
 			tmp = (struct X3D_PickableGroup *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tpickable (SFBool) \t%d\n",tmp->pickable);
-			spacer fprintf (fp,"\tFreeWRL_PROTOInterfaceNodes (MFNode):\n");
+			spacer fprintf (fp," pickable (SFBool) \t%d\n",tmp->pickable);
+			spacer fprintf (fp," FreeWRL_PROTOInterfaceNodes (MFNode):\n");
 			for (i=0; i<tmp->FreeWRL_PROTOInterfaceNodes.n; i++) { dump_scene(fp,level+1,tmp->FreeWRL_PROTOInterfaceNodes.p[i]); }
-			spacer fprintf (fp,"\tobjectType (MFString): \n");
+			spacer fprintf (fp," objectType (MFString): \n");
 			for (i=0; i<tmp->objectType.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->objectType.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -10615,87 +10681,87 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_PixelTexture *tmp;
 			tmp = (struct X3D_PixelTexture *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\timage (SFImage): (not dumped)\t");
+			spacer fprintf (fp," image (SFImage): (not dumped)\t");
 			fprintf (fp,"\n");
 		    break;
 		}
 		case NODE_PlaneSensor : {
 			struct X3D_PlaneSensor *tmp;
 			tmp = (struct X3D_PlaneSensor *) node;
-			spacer fprintf (fp,"\tminPosition (SFVec2f): \t");
+			spacer fprintf (fp," minPosition (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->minPosition.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tautoOffset (SFBool) \t%d\n",tmp->autoOffset);
-			spacer fprintf (fp,"\tmaxPosition (SFVec2f): \t");
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," autoOffset (SFBool) \t%d\n",tmp->autoOffset);
+			spacer fprintf (fp," maxPosition (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->maxPosition.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\toffset (SFVec3f): \t");
+			spacer fprintf (fp," offset (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->offset.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_PointLight : {
 			struct X3D_PointLight *tmp;
 			tmp = (struct X3D_PointLight *) node;
-			spacer fprintf (fp,"\tglobal (SFBool) \t%d\n",tmp->global);
-			spacer fprintf (fp,"\tlocation (SFVec3f): \t");
+			spacer fprintf (fp," global (SFBool) \t%d\n",tmp->global);
+			spacer fprintf (fp," location (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->location.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
-			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
-			spacer fprintf (fp,"\ton (SFBool) \t%d\n",tmp->on);
-			spacer fprintf (fp,"\tattenuation (SFVec3f): \t");
+			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer fprintf (fp," ambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
+			spacer fprintf (fp," on (SFBool) \t%d\n",tmp->on);
+			spacer fprintf (fp," attenuation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->attenuation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
+			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
+			spacer fprintf (fp," intensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		    break;
 		}
 		case NODE_PointPickSensor : {
 			struct X3D_PointPickSensor *tmp;
 			tmp = (struct X3D_PointPickSensor *) node;
-			spacer fprintf (fp,"\t_nparents (int) %d\n",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */
+			spacer fprintf (fp," _nparents (int) %d\n",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */
 			for (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,"    %d: %p\n",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }
-			spacer fprintf (fp,"\tobjectType (MFString): \n");
+			spacer fprintf (fp," objectType (MFString): \n");
 			for (i=0; i<tmp->objectType.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->objectType.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
-			spacer fprintf (fp,"\tpickTarget (MFNode):\n");
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," pickTarget (MFNode):\n");
 			for (i=0; i<tmp->pickTarget.n; i++) { dump_scene(fp,level+1,tmp->pickTarget.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t_oldpickTarget (MFNode):\n");
+			spacer fprintf (fp," _oldpickTarget (MFNode):\n");
 			for (i=0; i<tmp->_oldpickTarget.n; i++) { dump_scene(fp,level+1,tmp->_oldpickTarget.p[i]); }
 		    }
-			spacer fprintf (fp,"\tpickingGeometry (SFNode):\n"); dump_scene(fp,level+1,tmp->pickingGeometry); 
+			spacer fprintf (fp," pickingGeometry (SFNode):\n"); dump_scene(fp,level+1,tmp->pickingGeometry); 
 		    break;
 		}
 		case NODE_PointSet : {
 			struct X3D_PointSet *tmp;
 			tmp = (struct X3D_PointSet *) node;
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -10703,51 +10769,69 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Polyline2D *tmp;
 			tmp = (struct X3D_Polyline2D *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_Polypoint2D : {
 			struct X3D_Polypoint2D *tmp;
 			tmp = (struct X3D_Polypoint2D *) node;
-			spacer fprintf (fp,"\tpoint (MFVec2f):\n");
+			spacer fprintf (fp," point (MFVec2f):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_PositionInterpolator : {
 			struct X3D_PositionInterpolator *tmp;
 			tmp = (struct X3D_PositionInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFVec3f):\n");
+			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_PositionInterpolator2D : {
 			struct X3D_PositionInterpolator2D *tmp;
 			tmp = (struct X3D_PositionInterpolator2D *) node;
-			spacer fprintf (fp,"\tkeyValue (MFVec2f):\n");
+			spacer fprintf (fp," keyValue (MFVec2f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_ProgramShader : {
 			struct X3D_ProgramShader *tmp;
 			tmp = (struct X3D_ProgramShader *) node;
-			spacer fprintf (fp,"\tprograms (MFNode):\n");
+			spacer fprintf (fp," programs (MFNode):\n");
 			for (i=0; i<tmp->programs.n; i++) { dump_scene(fp,level+1,tmp->programs.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+		    break;
+		}
+		case NODE_Proto : {
+			struct X3D_Proto *tmp;
+			tmp = (struct X3D_Proto *) node;
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," __protoDeclares (MFNode):\n");
+			for (i=0; i<tmp->__protoDeclares.n; i++) { dump_scene(fp,level+1,tmp->__protoDeclares.p[i]); }
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
 		    break;
 		}
@@ -10755,68 +10839,68 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_ProximitySensor *tmp;
 			tmp = (struct X3D_ProximitySensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tsize (SFVec3f): \t");
+			spacer fprintf (fp," size (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->size.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__t2 (SFRotation): \t");
+			spacer fprintf (fp," __t2 (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->__t2.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__hit (SFInt32) \t%d\n",tmp->__hit);
+			spacer fprintf (fp," __hit (SFInt32) \t%d\n",tmp->__hit);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__t1 (SFVec3f): \t");
+			spacer fprintf (fp," __t1 (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__t1.c[i]); }
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_ReceiverPdu : {
 			struct X3D_ReceiverPdu *tmp;
 			tmp = (struct X3D_ReceiverPdu *) node;
-			spacer fprintf (fp,"\treceiverState (SFInt32) \t%d\n",tmp->receiverState);
-			spacer fprintf (fp,"\ttransmitterApplicationID (SFInt32) \t%d\n",tmp->transmitterApplicationID);
-			spacer fprintf (fp,"\tsiteID (SFInt32) \t%d\n",tmp->siteID);
-			spacer fprintf (fp,"\treceivedPower (SFFloat) \t%4.3f\n",tmp->receivedPower);
-			spacer fprintf (fp,"\ttransmitterRadioID (SFInt32) \t%d\n",tmp->transmitterRadioID);
-			spacer fprintf (fp,"\ttransmitterSiteID (SFInt32) \t%d\n",tmp->transmitterSiteID);
-			spacer fprintf (fp,"\trtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
-			spacer fprintf (fp,"\tnetworkMode (SFString) \t%s\n",tmp->networkMode->strptr);
+			spacer fprintf (fp," receiverState (SFInt32) \t%d\n",tmp->receiverState);
+			spacer fprintf (fp," transmitterApplicationID (SFInt32) \t%d\n",tmp->transmitterApplicationID);
+			spacer fprintf (fp," siteID (SFInt32) \t%d\n",tmp->siteID);
+			spacer fprintf (fp," receivedPower (SFFloat) \t%4.3f\n",tmp->receivedPower);
+			spacer fprintf (fp," transmitterRadioID (SFInt32) \t%d\n",tmp->transmitterRadioID);
+			spacer fprintf (fp," transmitterSiteID (SFInt32) \t%d\n",tmp->transmitterSiteID);
+			spacer fprintf (fp," rtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
+			spacer fprintf (fp," networkMode (SFString) \t%s\n",tmp->networkMode->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\taddress (SFString) \t%s\n",tmp->address->strptr);
-			spacer fprintf (fp,"\tmulticastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
-			spacer fprintf (fp,"\treadInterval (SFFloat) \t%4.3f\n",tmp->readInterval);
-			spacer fprintf (fp,"\tapplicationID (SFInt32) \t%d\n",tmp->applicationID);
-			spacer fprintf (fp,"\tradioID (SFInt32) \t%d\n",tmp->radioID);
-			spacer fprintf (fp,"\ttransmitterEntityID (SFInt32) \t%d\n",tmp->transmitterEntityID);
-			spacer fprintf (fp,"\tmulticastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
-			spacer fprintf (fp,"\tport (SFInt32) \t%d\n",tmp->port);
-			spacer fprintf (fp,"\twhichGeometry (SFInt32) \t%d\n",tmp->whichGeometry);
-			spacer fprintf (fp,"\twriteInterval (SFFloat) \t%4.3f\n",tmp->writeInterval);
-			spacer fprintf (fp,"\tentityID (SFInt32) \t%d\n",tmp->entityID);
+			spacer fprintf (fp," address (SFString) \t%s\n",tmp->address->strptr);
+			spacer fprintf (fp," multicastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," readInterval (SFFloat) \t%4.3f\n",tmp->readInterval);
+			spacer fprintf (fp," applicationID (SFInt32) \t%d\n",tmp->applicationID);
+			spacer fprintf (fp," radioID (SFInt32) \t%d\n",tmp->radioID);
+			spacer fprintf (fp," transmitterEntityID (SFInt32) \t%d\n",tmp->transmitterEntityID);
+			spacer fprintf (fp," multicastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
+			spacer fprintf (fp," port (SFInt32) \t%d\n",tmp->port);
+			spacer fprintf (fp," whichGeometry (SFInt32) \t%d\n",tmp->whichGeometry);
+			spacer fprintf (fp," writeInterval (SFFloat) \t%4.3f\n",tmp->writeInterval);
+			spacer fprintf (fp," entityID (SFInt32) \t%d\n",tmp->entityID);
 		    break;
 		}
 		case NODE_Rectangle2D : {
 			struct X3D_Rectangle2D *tmp;
 			tmp = (struct X3D_Rectangle2D *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tsize (SFVec2f): \t");
+			spacer fprintf (fp," size (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->size.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -10824,113 +10908,113 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_ScalarInterpolator : {
 			struct X3D_ScalarInterpolator *tmp;
 			tmp = (struct X3D_ScalarInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFFloat):\n");
+			spacer fprintf (fp," keyValue (MFFloat):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->keyValue.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_Script : {
 			struct X3D_Script *tmp;
 			tmp = (struct X3D_Script *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_ShaderPart : {
 			struct X3D_ShaderPart *tmp;
 			tmp = (struct X3D_ShaderPart *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttype (SFString) \t%s\n",tmp->type->strptr);
+			spacer fprintf (fp," type (SFString) \t%s\n",tmp->type->strptr);
 		    break;
 		}
 		case NODE_ShaderProgram : {
 			struct X3D_ShaderProgram *tmp;
 			tmp = (struct X3D_ShaderProgram *) node;
-			spacer fprintf (fp,"\turl (MFString): \n");
+			spacer fprintf (fp," url (MFString): \n");
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttype (SFString) \t%s\n",tmp->type->strptr);
+			spacer fprintf (fp," type (SFString) \t%s\n",tmp->type->strptr);
 		    break;
 		}
 		case NODE_Shape : {
 			struct X3D_Shape *tmp;
 			tmp = (struct X3D_Shape *) node;
-			spacer fprintf (fp,"\tappearance (SFNode):\n"); dump_scene(fp,level+1,tmp->appearance); 
-			spacer fprintf (fp,"\tgeometry (SFNode):\n"); dump_scene(fp,level+1,tmp->geometry); 
+			spacer fprintf (fp," appearance (SFNode):\n"); dump_scene(fp,level+1,tmp->appearance); 
+			spacer fprintf (fp," geometry (SFNode):\n"); dump_scene(fp,level+1,tmp->geometry); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_SignalPdu : {
 			struct X3D_SignalPdu *tmp;
 			tmp = (struct X3D_SignalPdu *) node;
-			spacer fprintf (fp,"\tsiteID (SFInt32) \t%d\n",tmp->siteID);
-			spacer fprintf (fp,"\trtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
-			spacer fprintf (fp,"\tnetworkMode (SFString) \t%s\n",tmp->networkMode->strptr);
+			spacer fprintf (fp," siteID (SFInt32) \t%d\n",tmp->siteID);
+			spacer fprintf (fp," rtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
+			spacer fprintf (fp," networkMode (SFString) \t%s\n",tmp->networkMode->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\taddress (SFString) \t%s\n",tmp->address->strptr);
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
-			spacer fprintf (fp,"\tmulticastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
-			spacer fprintf (fp,"\treadInterval (SFFloat) \t%4.3f\n",tmp->readInterval);
-			spacer fprintf (fp,"\tapplicationID (SFInt32) \t%d\n",tmp->applicationID);
-			spacer fprintf (fp,"\tsampleRate (SFInt32) \t%d\n",tmp->sampleRate);
-			spacer fprintf (fp,"\tradioID (SFInt32) \t%d\n",tmp->radioID);
-			spacer fprintf (fp,"\tencodingScheme (SFInt32) \t%d\n",tmp->encodingScheme);
-			spacer fprintf (fp,"\ttdlType (SFInt32) \t%d\n",tmp->tdlType);
-			spacer fprintf (fp,"\tmulticastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
-			spacer fprintf (fp,"\tdataLength (SFInt32) \t%d\n",tmp->dataLength);
-			spacer fprintf (fp,"\tdata (MFInt32):\n");
+			spacer fprintf (fp," address (SFString) \t%s\n",tmp->address->strptr);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," multicastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
+			spacer fprintf (fp," readInterval (SFFloat) \t%4.3f\n",tmp->readInterval);
+			spacer fprintf (fp," applicationID (SFInt32) \t%d\n",tmp->applicationID);
+			spacer fprintf (fp," sampleRate (SFInt32) \t%d\n",tmp->sampleRate);
+			spacer fprintf (fp," radioID (SFInt32) \t%d\n",tmp->radioID);
+			spacer fprintf (fp," encodingScheme (SFInt32) \t%d\n",tmp->encodingScheme);
+			spacer fprintf (fp," tdlType (SFInt32) \t%d\n",tmp->tdlType);
+			spacer fprintf (fp," multicastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
+			spacer fprintf (fp," dataLength (SFInt32) \t%d\n",tmp->dataLength);
+			spacer fprintf (fp," data (MFInt32):\n");
 			for (i=0; i<tmp->data.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->data.p[i]); }
-			spacer fprintf (fp,"\tport (SFInt32) \t%d\n",tmp->port);
-			spacer fprintf (fp,"\tsamples (SFInt32) \t%d\n",tmp->samples);
-			spacer fprintf (fp,"\twhichGeometry (SFInt32) \t%d\n",tmp->whichGeometry);
-			spacer fprintf (fp,"\twriteInterval (SFFloat) \t%4.3f\n",tmp->writeInterval);
-			spacer fprintf (fp,"\tentityID (SFInt32) \t%d\n",tmp->entityID);
+			spacer fprintf (fp," port (SFInt32) \t%d\n",tmp->port);
+			spacer fprintf (fp," samples (SFInt32) \t%d\n",tmp->samples);
+			spacer fprintf (fp," whichGeometry (SFInt32) \t%d\n",tmp->whichGeometry);
+			spacer fprintf (fp," writeInterval (SFFloat) \t%4.3f\n",tmp->writeInterval);
+			spacer fprintf (fp," entityID (SFInt32) \t%d\n",tmp->entityID);
 		    break;
 		}
 		case NODE_Sound : {
 			struct X3D_Sound *tmp;
 			tmp = (struct X3D_Sound *) node;
-			spacer fprintf (fp,"\tpriority (SFFloat) \t%4.3f\n",tmp->priority);
-			spacer fprintf (fp,"\tsource (SFNode):\n"); dump_scene(fp,level+1,tmp->source); 
-			spacer fprintf (fp,"\tminFront (SFFloat) \t%4.3f\n",tmp->minFront);
-			spacer fprintf (fp,"\tlocation (SFVec3f): \t");
+			spacer fprintf (fp," priority (SFFloat) \t%4.3f\n",tmp->priority);
+			spacer fprintf (fp," source (SFNode):\n"); dump_scene(fp,level+1,tmp->source); 
+			spacer fprintf (fp," minFront (SFFloat) \t%4.3f\n",tmp->minFront);
+			spacer fprintf (fp," location (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->location.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tdirection (SFVec3f): \t");
+			spacer fprintf (fp," direction (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tmaxFront (SFFloat) \t%4.3f\n",tmp->maxFront);
-			spacer fprintf (fp,"\tminBack (SFFloat) \t%4.3f\n",tmp->minBack);
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
+			spacer fprintf (fp," maxFront (SFFloat) \t%4.3f\n",tmp->maxFront);
+			spacer fprintf (fp," minBack (SFFloat) \t%4.3f\n",tmp->minBack);
+			spacer fprintf (fp," intensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tmaxBack (SFFloat) \t%4.3f\n",tmp->maxBack);
+			spacer fprintf (fp," maxBack (SFFloat) \t%4.3f\n",tmp->maxBack);
 		    break;
 		}
 		case NODE_Sphere : {
 			struct X3D_Sphere *tmp;
 			tmp = (struct X3D_Sphere *) node;
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -10938,104 +11022,104 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_SphereSensor *tmp;
 			tmp = (struct X3D_SphereSensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tautoOffset (SFBool) \t%d\n",tmp->autoOffset);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," autoOffset (SFBool) \t%d\n",tmp->autoOffset);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\toffset (SFRotation): \t");
+			spacer fprintf (fp," offset (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->offset.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_SplinePositionInterpolator : {
 			struct X3D_SplinePositionInterpolator *tmp;
 			tmp = (struct X3D_SplinePositionInterpolator *) node;
-			spacer fprintf (fp,"\tclosed (SFBool) \t%d\n",tmp->closed);
-			spacer fprintf (fp,"\tkeyValue (MFVec3f):\n");
+			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
+			spacer fprintf (fp," keyValue (MFVec3f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2]); }
-			spacer fprintf (fp,"\tkeyVelocity (MFVec3f):\n");
+			spacer fprintf (fp," keyVelocity (MFVec3f):\n");
 			for (i=0; i<tmp->keyVelocity.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->keyVelocity.p[i]).c[0], (tmp->keyVelocity.p[i]).c[1],(tmp->keyVelocity.p[i]).c[2]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tnormalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," normalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_SplinePositionInterpolator2D : {
 			struct X3D_SplinePositionInterpolator2D *tmp;
 			tmp = (struct X3D_SplinePositionInterpolator2D *) node;
-			spacer fprintf (fp,"\tclosed (SFBool) \t%d\n",tmp->closed);
-			spacer fprintf (fp,"\tkeyValue (MFVec2f):\n");
+			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
+			spacer fprintf (fp," keyValue (MFVec2f):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1]); }
-			spacer fprintf (fp,"\tkeyVelocity (MFVec2f):\n");
+			spacer fprintf (fp," keyVelocity (MFVec2f):\n");
 			for (i=0; i<tmp->keyVelocity.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->keyVelocity.p[i]).c[0], (tmp->keyVelocity.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tnormalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," normalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_SplineScalarInterpolator : {
 			struct X3D_SplineScalarInterpolator *tmp;
 			tmp = (struct X3D_SplineScalarInterpolator *) node;
-			spacer fprintf (fp,"\tclosed (SFBool) \t%d\n",tmp->closed);
-			spacer fprintf (fp,"\tkeyValue (MFFloat):\n");
+			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
+			spacer fprintf (fp," keyValue (MFFloat):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->keyValue.p[i]); }
-			spacer fprintf (fp,"\tkeyVelocity (MFFloat):\n");
+			spacer fprintf (fp," keyVelocity (MFFloat):\n");
 			for (i=0; i<tmp->keyVelocity.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->keyVelocity.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tnormalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," normalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
 		case NODE_SpotLight : {
 			struct X3D_SpotLight *tmp;
 			tmp = (struct X3D_SpotLight *) node;
-			spacer fprintf (fp,"\ton (SFBool) \t%d\n",tmp->on);
-			spacer fprintf (fp,"\tdirection (SFVec3f): \t");
+			spacer fprintf (fp," on (SFBool) \t%d\n",tmp->on);
+			spacer fprintf (fp," direction (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->direction.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tattenuation (SFVec3f): \t");
+			spacer fprintf (fp," attenuation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->attenuation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcolor (SFColor): \t");
+			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tbeamWidth (SFFloat) \t%4.3f\n",tmp->beamWidth);
-			spacer fprintf (fp,"\tglobal (SFBool) \t%d\n",tmp->global);
-			spacer fprintf (fp,"\tlocation (SFVec3f): \t");
+			spacer fprintf (fp," beamWidth (SFFloat) \t%4.3f\n",tmp->beamWidth);
+			spacer fprintf (fp," global (SFBool) \t%d\n",tmp->global);
+			spacer fprintf (fp," location (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->location.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tradius (SFFloat) \t%4.3f\n",tmp->radius);
-			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
-			spacer fprintf (fp,"\tcutOffAngle (SFFloat) \t%4.3f\n",tmp->cutOffAngle);
-			spacer fprintf (fp,"\tintensity (SFFloat) \t%4.3f\n",tmp->intensity);
+			spacer fprintf (fp," radius (SFFloat) \t%4.3f\n",tmp->radius);
+			spacer fprintf (fp," ambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
+			spacer fprintf (fp," cutOffAngle (SFFloat) \t%4.3f\n",tmp->cutOffAngle);
+			spacer fprintf (fp," intensity (SFFloat) \t%4.3f\n",tmp->intensity);
 		    break;
 		}
 		case NODE_SquadOrientationInterpolator : {
 			struct X3D_SquadOrientationInterpolator *tmp;
 			tmp = (struct X3D_SquadOrientationInterpolator *) node;
-			spacer fprintf (fp,"\tkeyValue (MFRotation):\n");
+			spacer fprintf (fp," keyValue (MFRotation):\n");
 			for (i=0; i<tmp->keyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->keyValue.p[i]).c[0], (tmp->keyValue.p[i]).c[1],(tmp->keyValue.p[i]).c[2],(tmp->keyValue.p[i]).c[3]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tnormalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
-			spacer fprintf (fp,"\tkey (MFFloat):\n");
+			spacer fprintf (fp," normalizeVelocity (SFBool) \t%d\n",tmp->normalizeVelocity);
+			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 		    break;
 		}
@@ -11043,12 +11127,12 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_StaticGroup *tmp;
 			tmp = (struct X3D_StaticGroup *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\t_sortedChildren (MFNode):\n");
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
 		    break;
@@ -11057,124 +11141,124 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_StringSensor *tmp;
 			tmp = (struct X3D_StringSensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tdeletionAllowed (SFBool) \t%d\n",tmp->deletionAllowed);
+			spacer fprintf (fp," deletionAllowed (SFBool) \t%d\n",tmp->deletionAllowed);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_Switch : {
 			struct X3D_Switch *tmp;
 			tmp = (struct X3D_Switch *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\twhichChoice (SFInt32) \t%d\n",tmp->whichChoice);
-			spacer fprintf (fp,"\tchoice (MFNode):\n");
+			spacer fprintf (fp," whichChoice (SFInt32) \t%d\n",tmp->whichChoice);
+			spacer fprintf (fp," choice (MFNode):\n");
 			for (i=0; i<tmp->choice.n; i++) { dump_scene(fp,level+1,tmp->choice.p[i]); }
 		    break;
 		}
 		case NODE_Text : {
 			struct X3D_Text *tmp;
 			tmp = (struct X3D_Text *) node;
-			spacer fprintf (fp,"\tfontStyle (SFNode):\n"); dump_scene(fp,level+1,tmp->fontStyle); 
+			spacer fprintf (fp," fontStyle (SFNode):\n"); dump_scene(fp,level+1,tmp->fontStyle); 
 		    if(allFields) {
-			spacer fprintf (fp,"\t__rendersub (SFInt32) \t%d\n",tmp->__rendersub);
+			spacer fprintf (fp," __rendersub (SFInt32) \t%d\n",tmp->__rendersub);
 		    }
-			spacer fprintf (fp,"\tstring (MFString): \n");
+			spacer fprintf (fp," string (MFString): \n");
 			for (i=0; i<tmp->string.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->string.p[i]->strptr); }
-			spacer fprintf (fp,"\tlength (MFFloat):\n");
+			spacer fprintf (fp," length (MFFloat):\n");
 			for (i=0; i<tmp->length.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->length.p[i]); }
-			spacer fprintf (fp,"\tmaxExtent (SFFloat) \t%4.3f\n",tmp->maxExtent);
+			spacer fprintf (fp," maxExtent (SFFloat) \t%4.3f\n",tmp->maxExtent);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TextureBackground : {
 			struct X3D_TextureBackground *tmp;
 			tmp = (struct X3D_TextureBackground *) node;
-			spacer fprintf (fp,"\ttopTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->topTexture); 
-			spacer fprintf (fp,"\tgroundColor (MFColor):\n");
+			spacer fprintf (fp," topTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->topTexture); 
+			spacer fprintf (fp," groundColor (MFColor):\n");
 			for (i=0; i<tmp->groundColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->groundColor.p[i]).c[0], (tmp->groundColor.p[i]).c[1],(tmp->groundColor.p[i]).c[2]); }
-			spacer fprintf (fp,"\trightTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->rightTexture); 
-			spacer fprintf (fp,"\tfrontTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->frontTexture); 
+			spacer fprintf (fp," rightTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->rightTexture); 
+			spacer fprintf (fp," frontTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->frontTexture); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tbottomTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->bottomTexture); 
-			spacer fprintf (fp,"\ttransparency (MFFloat):\n");
+			spacer fprintf (fp," bottomTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->bottomTexture); 
+			spacer fprintf (fp," transparency (MFFloat):\n");
 			for (i=0; i<tmp->transparency.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->transparency.p[i]); }
-			spacer fprintf (fp,"\tleftTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->leftTexture); 
-			spacer fprintf (fp,"\tskyAngle (MFFloat):\n");
+			spacer fprintf (fp," leftTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->leftTexture); 
+			spacer fprintf (fp," skyAngle (MFFloat):\n");
 			for (i=0; i<tmp->skyAngle.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->skyAngle.p[i]); }
-			spacer fprintf (fp,"\tbackTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->backTexture); 
-			spacer fprintf (fp,"\tskyColor (MFColor):\n");
+			spacer fprintf (fp," backTexture (SFNode):\n"); dump_scene(fp,level+1,tmp->backTexture); 
+			spacer fprintf (fp," skyColor (MFColor):\n");
 			for (i=0; i<tmp->skyColor.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,(tmp->skyColor.p[i]).c[0], (tmp->skyColor.p[i]).c[1],(tmp->skyColor.p[i]).c[2]); }
-			spacer fprintf (fp,"\tgroundAngle (MFFloat):\n");
+			spacer fprintf (fp," groundAngle (MFFloat):\n");
 			for (i=0; i<tmp->groundAngle.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->groundAngle.p[i]); }
 		    break;
 		}
 		case NODE_TextureCoordinate : {
 			struct X3D_TextureCoordinate *tmp;
 			tmp = (struct X3D_TextureCoordinate *) node;
-			spacer fprintf (fp,"\tpoint (MFVec2f):\n");
+			spacer fprintf (fp," point (MFVec2f):\n");
 			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TextureCoordinateGenerator : {
 			struct X3D_TextureCoordinateGenerator *tmp;
 			tmp = (struct X3D_TextureCoordinateGenerator *) node;
-			spacer fprintf (fp,"\tparameter (MFFloat):\n");
+			spacer fprintf (fp," parameter (MFFloat):\n");
 			for (i=0; i<tmp->parameter.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->parameter.p[i]); }
-			spacer fprintf (fp,"\tmode (SFString) \t%s\n",tmp->mode->strptr);
+			spacer fprintf (fp," mode (SFString) \t%s\n",tmp->mode->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TextureProperties : {
 			struct X3D_TextureProperties *tmp;
 			tmp = (struct X3D_TextureProperties *) node;
-			spacer fprintf (fp,"\tborderColor (SFColorRGBA): \t");
+			spacer fprintf (fp," borderColor (SFColorRGBA): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->borderColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tboundaryModeS (SFString) \t%s\n",tmp->boundaryModeS->strptr);
-			spacer fprintf (fp,"\tmagnificationFilter (SFString) \t%s\n",tmp->magnificationFilter->strptr);
-			spacer fprintf (fp,"\ttexturePriority (SFFloat) \t%4.3f\n",tmp->texturePriority);
-			spacer fprintf (fp,"\tboundaryModeT (SFString) \t%s\n",tmp->boundaryModeT->strptr);
-			spacer fprintf (fp,"\tboundaryModeR (SFString) \t%s\n",tmp->boundaryModeR->strptr);
-			spacer fprintf (fp,"\tanisotropicDegree (SFFloat) \t%4.3f\n",tmp->anisotropicDegree);
-			spacer fprintf (fp,"\tborderWidth (SFInt32) \t%d\n",tmp->borderWidth);
-			spacer fprintf (fp,"\tminificationFilter (SFString) \t%s\n",tmp->minificationFilter->strptr);
-			spacer fprintf (fp,"\ttextureCompression (SFString) \t%s\n",tmp->textureCompression->strptr);
+			spacer fprintf (fp," boundaryModeS (SFString) \t%s\n",tmp->boundaryModeS->strptr);
+			spacer fprintf (fp," magnificationFilter (SFString) \t%s\n",tmp->magnificationFilter->strptr);
+			spacer fprintf (fp," texturePriority (SFFloat) \t%4.3f\n",tmp->texturePriority);
+			spacer fprintf (fp," boundaryModeT (SFString) \t%s\n",tmp->boundaryModeT->strptr);
+			spacer fprintf (fp," boundaryModeR (SFString) \t%s\n",tmp->boundaryModeR->strptr);
+			spacer fprintf (fp," anisotropicDegree (SFFloat) \t%4.3f\n",tmp->anisotropicDegree);
+			spacer fprintf (fp," borderWidth (SFInt32) \t%d\n",tmp->borderWidth);
+			spacer fprintf (fp," minificationFilter (SFString) \t%s\n",tmp->minificationFilter->strptr);
+			spacer fprintf (fp," textureCompression (SFString) \t%s\n",tmp->textureCompression->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TextureTransform : {
 			struct X3D_TextureTransform *tmp;
 			tmp = (struct X3D_TextureTransform *) node;
-			spacer fprintf (fp,"\trotation (SFFloat) \t%4.3f\n",tmp->rotation);
-			spacer fprintf (fp,"\tscale (SFVec2f): \t");
+			spacer fprintf (fp," rotation (SFFloat) \t%4.3f\n",tmp->rotation);
+			spacer fprintf (fp," scale (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\ttranslation (SFVec2f): \t");
+			spacer fprintf (fp," translation (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tcenter (SFVec2f): \t");
+			spacer fprintf (fp," center (SFVec2f): \t");
 			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -11182,29 +11266,29 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TimeSensor : {
 			struct X3D_TimeSensor *tmp;
 			tmp = (struct X3D_TimeSensor *) node;
-			spacer fprintf (fp,"\tloop (SFBool) \t%d\n",tmp->loop);
-			spacer fprintf (fp,"\tresumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
-			spacer fprintf (fp,"\tcycleInterval (SFTime) \t%4.3f\n",tmp->cycleInterval);
-			spacer fprintf (fp,"\tpauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
-			spacer fprintf (fp,"\tstartTime (SFTime) \t%4.3f\n",tmp->startTime);
+			spacer fprintf (fp," loop (SFBool) \t%d\n",tmp->loop);
+			spacer fprintf (fp," resumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
+			spacer fprintf (fp," cycleInterval (SFTime) \t%4.3f\n",tmp->cycleInterval);
+			spacer fprintf (fp," pauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
+			spacer fprintf (fp," startTime (SFTime) \t%4.3f\n",tmp->startTime);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
-			spacer fprintf (fp,"\t__ctflag (SFTime) \t%4.3f\n",tmp->__ctflag);
+			spacer fprintf (fp," __ctflag (SFTime) \t%4.3f\n",tmp->__ctflag);
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tstopTime (SFTime) \t%4.3f\n",tmp->stopTime);
+			spacer fprintf (fp," stopTime (SFTime) \t%4.3f\n",tmp->stopTime);
 		    break;
 		}
 		case NODE_TimeTrigger : {
 			struct X3D_TimeTrigger *tmp;
 			tmp = (struct X3D_TimeTrigger *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -11212,40 +11296,40 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_TouchSensor *tmp;
 			tmp = (struct X3D_TouchSensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_Transform : {
 			struct X3D_Transform *tmp;
 			tmp = (struct X3D_Transform *) node;
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tscaleOrientation (SFRotation): \t");
+			spacer fprintf (fp," scaleOrientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ttranslation (SFVec3f): \t");
+			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\trotation (SFRotation): \t");
+			spacer fprintf (fp," rotation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t_sortedChildren (MFNode):\n");
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
-			spacer fprintf (fp,"\tscale (SFVec3f): \t");
+			spacer fprintf (fp," scale (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
 			fprintf (fp,"\n");
 		    break;
@@ -11253,179 +11337,179 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_TransmitterPdu : {
 			struct X3D_TransmitterPdu *tmp;
 			tmp = (struct X3D_TransmitterPdu *) node;
-			spacer fprintf (fp,"\tantennaPatternType (SFInt32) \t%d\n",tmp->antennaPatternType);
-			spacer fprintf (fp,"\tfrequency (SFInt32) \t%d\n",tmp->frequency);
-			spacer fprintf (fp,"\trtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
-			spacer fprintf (fp,"\tradioEntityTypeKind (SFInt32) \t%d\n",tmp->radioEntityTypeKind);
-			spacer fprintf (fp,"\tpower (SFFloat) \t%4.3f\n",tmp->power);
-			spacer fprintf (fp,"\taddress (SFString) \t%s\n",tmp->address->strptr);
+			spacer fprintf (fp," antennaPatternType (SFInt32) \t%d\n",tmp->antennaPatternType);
+			spacer fprintf (fp," frequency (SFInt32) \t%d\n",tmp->frequency);
+			spacer fprintf (fp," rtpHeaderExpected (SFBool) \t%d\n",tmp->rtpHeaderExpected);
+			spacer fprintf (fp," radioEntityTypeKind (SFInt32) \t%d\n",tmp->radioEntityTypeKind);
+			spacer fprintf (fp," power (SFFloat) \t%4.3f\n",tmp->power);
+			spacer fprintf (fp," address (SFString) \t%s\n",tmp->address->strptr);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tmodulationTypeMajor (SFInt32) \t%d\n",tmp->modulationTypeMajor);
-			spacer fprintf (fp,"\tmodulationTypeDetail (SFInt32) \t%d\n",tmp->modulationTypeDetail);
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
-			spacer fprintf (fp,"\tmulticastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
-			spacer fprintf (fp,"\trelativeAntennaLocation (SFVec3f): \t");
+			spacer fprintf (fp," modulationTypeMajor (SFInt32) \t%d\n",tmp->modulationTypeMajor);
+			spacer fprintf (fp," modulationTypeDetail (SFInt32) \t%d\n",tmp->modulationTypeDetail);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," multicastRelayPort (SFInt32) \t%d\n",tmp->multicastRelayPort);
+			spacer fprintf (fp," relativeAntennaLocation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->relativeAntennaLocation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ttransmitFrequencyBandwidth (SFFloat) \t%4.3f\n",tmp->transmitFrequencyBandwidth);
-			spacer fprintf (fp,"\tmulticastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
-			spacer fprintf (fp,"\tport (SFInt32) \t%d\n",tmp->port);
-			spacer fprintf (fp,"\tradioEntityTypeCategory (SFInt32) \t%d\n",tmp->radioEntityTypeCategory);
-			spacer fprintf (fp,"\twhichGeometry (SFInt32) \t%d\n",tmp->whichGeometry);
-			spacer fprintf (fp,"\twriteInterval (SFFloat) \t%4.3f\n",tmp->writeInterval);
-			spacer fprintf (fp,"\tradioEntityTypeCountry (SFInt32) \t%d\n",tmp->radioEntityTypeCountry);
-			spacer fprintf (fp,"\tentityID (SFInt32) \t%d\n",tmp->entityID);
-			spacer fprintf (fp,"\tsiteID (SFInt32) \t%d\n",tmp->siteID);
-			spacer fprintf (fp,"\tantennaLocation (SFVec3f): \t");
+			spacer fprintf (fp," transmitFrequencyBandwidth (SFFloat) \t%4.3f\n",tmp->transmitFrequencyBandwidth);
+			spacer fprintf (fp," multicastRelayHost (SFString) \t%s\n",tmp->multicastRelayHost->strptr);
+			spacer fprintf (fp," port (SFInt32) \t%d\n",tmp->port);
+			spacer fprintf (fp," radioEntityTypeCategory (SFInt32) \t%d\n",tmp->radioEntityTypeCategory);
+			spacer fprintf (fp," whichGeometry (SFInt32) \t%d\n",tmp->whichGeometry);
+			spacer fprintf (fp," writeInterval (SFFloat) \t%4.3f\n",tmp->writeInterval);
+			spacer fprintf (fp," radioEntityTypeCountry (SFInt32) \t%d\n",tmp->radioEntityTypeCountry);
+			spacer fprintf (fp," entityID (SFInt32) \t%d\n",tmp->entityID);
+			spacer fprintf (fp," siteID (SFInt32) \t%d\n",tmp->siteID);
+			spacer fprintf (fp," antennaLocation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->antennaLocation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tnetworkMode (SFString) \t%s\n",tmp->networkMode->strptr);
-			spacer fprintf (fp,"\tradioEntityTypeNomenclature (SFInt32) \t%d\n",tmp->radioEntityTypeNomenclature);
-			spacer fprintf (fp,"\ttransmitState (SFInt32) \t%d\n",tmp->transmitState);
-			spacer fprintf (fp,"\treadInterval (SFFloat) \t%4.3f\n",tmp->readInterval);
-			spacer fprintf (fp,"\tapplicationID (SFInt32) \t%d\n",tmp->applicationID);
-			spacer fprintf (fp,"\tradioID (SFInt32) \t%d\n",tmp->radioID);
-			spacer fprintf (fp,"\tmodulationTypeSpreadSpectrum (SFInt32) \t%d\n",tmp->modulationTypeSpreadSpectrum);
-			spacer fprintf (fp,"\tlengthOfModulationParameters (SFInt32) \t%d\n",tmp->lengthOfModulationParameters);
-			spacer fprintf (fp,"\tradioEntityTypeDomain (SFInt32) \t%d\n",tmp->radioEntityTypeDomain);
-			spacer fprintf (fp,"\tcryptoSystem (SFInt32) \t%d\n",tmp->cryptoSystem);
-			spacer fprintf (fp,"\tcryptoKeyID (SFInt32) \t%d\n",tmp->cryptoKeyID);
-			spacer fprintf (fp,"\tmodulationTypeSystem (SFInt32) \t%d\n",tmp->modulationTypeSystem);
-			spacer fprintf (fp,"\tradioEntityTypeNomenclatureVersion (SFInt32) \t%d\n",tmp->radioEntityTypeNomenclatureVersion);
-			spacer fprintf (fp,"\tinputSource (SFInt32) \t%d\n",tmp->inputSource);
-			spacer fprintf (fp,"\tantennaPatternLength (SFInt32) \t%d\n",tmp->antennaPatternLength);
+			spacer fprintf (fp," networkMode (SFString) \t%s\n",tmp->networkMode->strptr);
+			spacer fprintf (fp," radioEntityTypeNomenclature (SFInt32) \t%d\n",tmp->radioEntityTypeNomenclature);
+			spacer fprintf (fp," transmitState (SFInt32) \t%d\n",tmp->transmitState);
+			spacer fprintf (fp," readInterval (SFFloat) \t%4.3f\n",tmp->readInterval);
+			spacer fprintf (fp," applicationID (SFInt32) \t%d\n",tmp->applicationID);
+			spacer fprintf (fp," radioID (SFInt32) \t%d\n",tmp->radioID);
+			spacer fprintf (fp," modulationTypeSpreadSpectrum (SFInt32) \t%d\n",tmp->modulationTypeSpreadSpectrum);
+			spacer fprintf (fp," lengthOfModulationParameters (SFInt32) \t%d\n",tmp->lengthOfModulationParameters);
+			spacer fprintf (fp," radioEntityTypeDomain (SFInt32) \t%d\n",tmp->radioEntityTypeDomain);
+			spacer fprintf (fp," cryptoSystem (SFInt32) \t%d\n",tmp->cryptoSystem);
+			spacer fprintf (fp," cryptoKeyID (SFInt32) \t%d\n",tmp->cryptoKeyID);
+			spacer fprintf (fp," modulationTypeSystem (SFInt32) \t%d\n",tmp->modulationTypeSystem);
+			spacer fprintf (fp," radioEntityTypeNomenclatureVersion (SFInt32) \t%d\n",tmp->radioEntityTypeNomenclatureVersion);
+			spacer fprintf (fp," inputSource (SFInt32) \t%d\n",tmp->inputSource);
+			spacer fprintf (fp," antennaPatternLength (SFInt32) \t%d\n",tmp->antennaPatternLength);
 		    break;
 		}
 		case NODE_TriangleFanSet : {
 			struct X3D_TriangleFanSet *tmp;
 			tmp = (struct X3D_TriangleFanSet *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TriangleSet : {
 			struct X3D_TriangleSet *tmp;
 			tmp = (struct X3D_TriangleSet *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TriangleSet2D : {
 			struct X3D_TriangleSet2D *tmp;
 			tmp = (struct X3D_TriangleSet2D *) node;
-			spacer fprintf (fp,"\tvertices (MFVec2f):\n");
+			spacer fprintf (fp," vertices (MFVec2f):\n");
 			for (i=0; i<tmp->vertices.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->vertices.p[i]).c[0], (tmp->vertices.p[i]).c[1]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TriangleStripSet : {
 			struct X3D_TriangleStripSet *tmp;
 			tmp = (struct X3D_TriangleStripSet *) node;
-			spacer fprintf (fp,"\tnormal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
-			spacer fprintf (fp,"\ttexCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
-			spacer fprintf (fp,"\tcolor (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
-			spacer fprintf (fp,"\tfogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
-			spacer fprintf (fp,"\tcoord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
-			spacer fprintf (fp,"\tattrib (MFNode):\n");
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_TwoSidedMaterial : {
 			struct X3D_TwoSidedMaterial *tmp;
 			tmp = (struct X3D_TwoSidedMaterial *) node;
-			spacer fprintf (fp,"\tspecularColor (SFColor): \t");
+			spacer fprintf (fp," specularColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->specularColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tbackAmbientIntensity (SFFloat) \t%4.3f\n",tmp->backAmbientIntensity);
+			spacer fprintf (fp," backAmbientIntensity (SFFloat) \t%4.3f\n",tmp->backAmbientIntensity);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tbackEmissiveColor (SFColor): \t");
+			spacer fprintf (fp," backEmissiveColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->backEmissiveColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tbackDiffuseColor (SFColor): \t");
+			spacer fprintf (fp," backDiffuseColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->backDiffuseColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\ttransparency (SFFloat) \t%4.3f\n",tmp->transparency);
-			spacer fprintf (fp,"\tseparateBackColor (SFBool) \t%d\n",tmp->separateBackColor);
-			spacer fprintf (fp,"\tshininess (SFFloat) \t%4.3f\n",tmp->shininess);
-			spacer fprintf (fp,"\tdiffuseColor (SFColor): \t");
+			spacer fprintf (fp," transparency (SFFloat) \t%4.3f\n",tmp->transparency);
+			spacer fprintf (fp," separateBackColor (SFBool) \t%d\n",tmp->separateBackColor);
+			spacer fprintf (fp," shininess (SFFloat) \t%4.3f\n",tmp->shininess);
+			spacer fprintf (fp," diffuseColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->diffuseColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
-			spacer fprintf (fp,"\tbackSpecularColor (SFColor): \t");
+			spacer fprintf (fp," ambientIntensity (SFFloat) \t%4.3f\n",tmp->ambientIntensity);
+			spacer fprintf (fp," backSpecularColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->backSpecularColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tbackTransparency (SFFloat) \t%4.3f\n",tmp->backTransparency);
-			spacer fprintf (fp,"\temissiveColor (SFColor): \t");
+			spacer fprintf (fp," backTransparency (SFFloat) \t%4.3f\n",tmp->backTransparency);
+			spacer fprintf (fp," emissiveColor (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->emissiveColor.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tbackShininess (SFFloat) \t%4.3f\n",tmp->backShininess);
+			spacer fprintf (fp," backShininess (SFFloat) \t%4.3f\n",tmp->backShininess);
 		    break;
 		}
 		case NODE_Viewpoint : {
 			struct X3D_Viewpoint *tmp;
 			tmp = (struct X3D_Viewpoint *) node;
-			spacer fprintf (fp,"\torientation (SFRotation): \t");
+			spacer fprintf (fp," orientation (SFRotation): \t");
 			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->orientation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tposition (SFVec3f): \t");
+			spacer fprintf (fp," position (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->position.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tjump (SFBool) \t%d\n",tmp->jump);
-			spacer fprintf (fp,"\tretainUserOffsets (SFBool) \t%d\n",tmp->retainUserOffsets);
-			spacer fprintf (fp,"\tcenterOfRotation (SFVec3f): \t");
+			spacer fprintf (fp," jump (SFBool) \t%d\n",tmp->jump);
+			spacer fprintf (fp," retainUserOffsets (SFBool) \t%d\n",tmp->retainUserOffsets);
+			spacer fprintf (fp," centerOfRotation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->centerOfRotation.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tfieldOfView (SFFloat) \t%4.3f\n",tmp->fieldOfView);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," fieldOfView (SFFloat) \t%4.3f\n",tmp->fieldOfView);
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
 		case NODE_ViewpointGroup : {
 			struct X3D_ViewpointGroup *tmp;
 			tmp = (struct X3D_ViewpointGroup *) node;
-			spacer fprintf (fp,"\tdisplayed (SFBool) \t%d\n",tmp->displayed);
-			spacer fprintf (fp,"\tchildren (MFNode):\n");
+			spacer fprintf (fp," displayed (SFBool) \t%d\n",tmp->displayed);
+			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
-			spacer fprintf (fp,"\tretainUserOffsets (SFBool) \t%d\n",tmp->retainUserOffsets);
-			spacer fprintf (fp,"\tdescription (SFString) \t%s\n",tmp->description->strptr);
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," retainUserOffsets (SFBool) \t%d\n",tmp->retainUserOffsets);
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tsize (SFVec3f): \t");
+			spacer fprintf (fp," size (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->size.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\t__proxNode (SFNode):\n"); dump_scene(fp,level+1,tmp->__proxNode); 
+			spacer fprintf (fp," __proxNode (SFNode):\n"); dump_scene(fp,level+1,tmp->__proxNode); 
 		    }
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -11433,25 +11517,25 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_VisibilitySensor *tmp;
 			tmp = (struct X3D_VisibilitySensor *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\t__oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
-			spacer fprintf (fp,"\tcenter (SFVec3f): \t");
+			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
-			spacer fprintf (fp,"\tsize (SFVec3f): \t");
+			spacer fprintf (fp," size (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->size.c[i]); }
 			fprintf (fp,"\n");
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp,"\tenabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
 		case NODE_WorldInfo : {
 			struct X3D_WorldInfo *tmp;
 			tmp = (struct X3D_WorldInfo *) node;
 		    if(allFields) {
-			spacer fprintf (fp,"\tmetadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}
@@ -11617,6 +11701,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_PositionInterpolator: return X3DInterpolatorNode; break;
 	case NODE_PositionInterpolator2D: return X3DInterpolatorNode; break;
 	case NODE_ProgramShader: return X3DProgrammableShaderObject; break;
+	case NODE_Proto: return X3DProtoInstance; break;
 	case NODE_ProximitySensor: return X3DEnvironmentalSensorNode; break;
 	case NODE_ReceiverPdu: return X3DChildNode; break;
 	case NODE_Rectangle2D: return X3DGeometryNode; break;

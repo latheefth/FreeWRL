@@ -225,13 +225,25 @@ void registerScriptInPROTO (struct X3D_Script *scr,struct ProtoDefinition* new);
 	field SFFloat secondvalue 0.5
   ] { 
 	DEF MAT2 Proto1 { myvalue IS secondvalue } 
-  {
+  }
 
-  In this case, we need the dests for myvalue must be replicated for secondvalue, but the references to nodes must be for the nodes in the proto expansion of Proto1, 
-  not references to nodes in Proto1 itself.  We accomplish this by copying the dests list for the proto field after the proto has been expanded.
+  In this case, we need the dests for myvalue to be replicated for secondvalue, but 
+  the references to nodes must be for the nodes in the 'proto expansion' (ProtoInstance) of Proto1, 
+  not references to nodes in 'Proto1 itself' (PROTO/ProtoDeclare).  We accomplish this by 
+  copying the dests list for the proto field after the proto has been 'expanded' (Instanced).
+ 
+ dug9:
+ 'Proto itself' means PROTO / ProtoDeclare (not in scenegraph)
+ 'Proto expansion' (noun) means ProtoInstance (in scenegraph), or more precisely it's text that's ready
+    for generic parsing/construction into a ProtoInstance
+ 'Proto expansion' (verb) means to convert a PROTO/ProtoDeclare into text ready
+    for parsing into a ProtoInstance
 
-  The NestedProtoFields structure is used when parsing a nested proto expansion in order to keep track of all instances of linked user defined fields so that the dests
-  lists may be adjusted appropriately when parsing is finalised for the node. */
+  The NestedProtoFields structure is used when parsing a nested proto expansion in order to 
+  keep track of all instances of linked user defined fields so that the dests
+  lists may be adjusted appropriately when parsing is finalized for the node. 
+ 
+  */
 struct NestedProtoField 
 {
    struct ProtoFieldDecl* origField;
@@ -244,6 +256,8 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 BOOL resolveProtoNodeField(struct VRMLParser *me, struct ProtoDefinition *Proto, char * thisField, struct X3D_Node **Node);
 
 struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me);
+
+BOOL isProto(struct X3D_Node *);
 
 
 #endif /* __FREEWRL_CPROTO_H__ */

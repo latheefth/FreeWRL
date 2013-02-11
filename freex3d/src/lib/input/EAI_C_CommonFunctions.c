@@ -502,3 +502,221 @@ MF_TYPE(MFNode, mfnode, Node)
 	/* and, reset the XML flag */
 	parser->parsingX3DfromXML = oldXMLflag;
 }
+
+
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML) 
+{
+	//dug9 Feb 2013: same as Parser_scanStringValueToMem except:
+	// - puts it into *anyVrml instead of (node,offset)
+	// - doesn't update parents for SFNode, MFNode fields (just zeros it) - that's done outside
+	void *nst;                      /* used for pointer maths */
+	union anyVrml myVal;
+	char *mfstringtmp = NULL;
+	int oldXMLflag;
+	struct X3D_Node *np;
+	struct VRMLParser *parser = ((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser;
+	#ifdef SETFIELDVERBOSE
+	printf ("\nPST, for %s we have %s strlen %lu\n",stringFieldtypeType(ctype), value, strlen(value));
+	#endif
+
+	/* if this is the first time through, create a new parser, and tell it:
+	      - that we are using X3D formatted field strings, NOT "VRML" ones;
+	      - that the destination node is not important (the NULL, offset 0) */
+
+	if (parser == NULL) {
+		parser=newParser(NULL, 0, TRUE);
+		//ConsoleMessage ("Parser_ScanStringValueToMem, new parser created");
+		// save it
+		((ppEAI_C_CommonFunctions)gglobal()->EAI_C_CommonFunctions.prv)->parser = parser;
+	}
+
+	lexer_forceStringCleanup(parser->lexer);
+
+	/* October 20, 2009; XML parsing should not go through here; XML encoded X3D should not have a "value=" field, but
+	   have the SFNode or MFNode as part of the syntax, eg <field ...> <Box/> </field> */
+
+	if (isXML) {
+		/* printf ("we have XML parsing for type %s, string :%s:\n",stringFieldtypeType(ctype),value); */
+		if ((ctype==FIELDTYPE_SFNode) || (ctype==FIELDTYPE_MFNode)) {
+			/* printf ("returning\n"); */
+			lexer_forceStringCleanup(parser->lexer);
+			return;
+		}
+
+	}
+
+	/* there is a difference sometimes, in the XML format and VRML classic format. The XML
+	   parser will use xml format, scripts and EAI will use the classic format */
+	oldXMLflag = parser->parsingX3DfromXML;
+	parser->parsingX3DfromXML = isXML;
+
+	/* we NEED MFStrings to have quotes on; so if this is a MFString, ensure quotes are ok */
+	if (ctype == FIELDTYPE_MFString) {
+		#ifdef SETFIELDVERBOSE
+		printf ("parsing type %s, string :%s:\n",stringFieldtypeType(ctype),value); 
+		#endif
+
+		/* go to the first non-space character, and see if this is required;
+		   sometimes people will encode mfstrings as:
+			url=' "images/earth.gif" "http://ww
+		   note the space in the value */
+		while ((*value == ' ') && (*value != '\0')) value ++;
+
+		/* now, does the value string need quoting? */
+		if ((*value != '"') && (*value != '\'') && (*value != '[')) {
+			size_t len;
+			 /* printf ("have to quote this string\n"); */
+			len = strlen(value);
+			mfstringtmp = MALLOC (char *, sizeof (char *) * len + 10);
+			memcpy (&mfstringtmp[1],value,len);
+			mfstringtmp[0] = '"';
+			mfstringtmp[len+1] = '"';
+			mfstringtmp[len+2] = '\0';
+			/* printf ("so, mfstring is :%s:\n",mfstringtmp); */ 
+			
+		} else {
+			mfstringtmp = STRDUP(value);
+		}
+		parser_fromString(parser,mfstringtmp);
+		/* FREE_IF_NZ(mfstringtmp); */
+	} else if (ctype == FIELDTYPE_SFNode) {
+		/* Need to change index to proper node ptr */
+		np = getEAINodeFromTable(atoi(value), -1);
+	} else if (ctype == FIELDTYPE_SFString) {
+		if(isXML){
+			/* double quotes " are unique to x3d values and must be \" to pass javascript compiling */
+			int ii, nq = 0;
+			char *mv, *pv, *v = value;
+			while (*v && *v != '\0')
+			{	
+				if(*v == '"') nq++;
+				v++;
+			}
+			mfstringtmp = (char *)malloc(strlen(value)+nq+1);
+			v = value;
+			pv = NULL;
+			mv = mfstringtmp;
+			ii = 0;
+			while(*v && *v != '\0')
+			{
+				if(*v == '"'){
+					if(!(pv && *pv == '\\')){
+						*mv = '\\';
+						mv++;
+					}
+				}
+				*mv = *v;
+				mv++;
+				pv = v;
+				v++;
+			}
+			*mv = '\0';
+		}else{
+			mfstringtmp = STRDUP(value);
+		}
+		parser_fromString(parser,mfstringtmp);
+	} else {
+		mfstringtmp = STRDUP(value);
+		parser_fromString(parser,mfstringtmp);
+		/* FREE_IF_NZ(mfstringtmp); */
+	}
+
+	ASSERT(parser->lexer);
+	FREE_IF_NZ(parser->lexer->curID);
+
+	if (ctype == FIELDTYPE_SFNode) {
+		//struct X3D_Node* oldvalue;
+		//nst = offsetPointer_deref(void *,node,coffset);
+		//memcpy (&oldvalue, any, sizeof(struct X3D_Node*));
+		//if (oldvalue) {
+		//	remove_parent(oldvalue, node);
+		//}
+		memcpy(any, (void*)&np, sizeof(struct X3D_Node*));
+		any->sfnode->_parentVector = NULL;
+		//add_parent(np, node, "sarah's add", 0);
+	} else if (parseType(parser, ctype, &myVal)) {
+		/* printf ("parsed successfully\n");  */
+		//nst = offsetPointer_deref(void *,node,coffset);
+		nst = any;
+
+/*
+MF_TYPE(MFNode, mfnode, Node)
+*/
+		switch (ctype) {
+
+			PST_MF_STRUCT_ELEMENT(Vec2f,vec2f)
+			PST_MF_STRUCT_ELEMENT(Vec3f,vec3f)
+			PST_MF_STRUCT_ELEMENT(Vec3d,vec3d)
+			PST_MF_STRUCT_ELEMENT(Vec4d,vec4d)
+			PST_MF_STRUCT_ELEMENT(Vec2d,vec2d)
+			PST_MF_STRUCT_ELEMENT(Color,color)
+			PST_MF_STRUCT_ELEMENT(ColorRGBA,colorrgba)
+			PST_MF_STRUCT_ELEMENT(Int32,int32)
+			PST_MF_STRUCT_ELEMENT(Float,float)
+			PST_MF_STRUCT_ELEMENT(Double,double)
+			PST_MF_STRUCT_ELEMENT(Bool,bool)
+			PST_MF_STRUCT_ELEMENT(Time,time)
+			PST_MF_STRUCT_ELEMENT(Rotation,rotation)
+			PST_MF_STRUCT_ELEMENT(Matrix3f,matrix3f)
+			PST_MF_STRUCT_ELEMENT(Matrix3d,matrix3d)
+			PST_MF_STRUCT_ELEMENT(Matrix4f,matrix4f)
+			PST_MF_STRUCT_ELEMENT(Matrix4d,matrix4d)
+			PST_MF_STRUCT_ELEMENT(String,string)
+
+			PST_SF_SIMPLE_ELEMENT(Float,float,sizeof(float))
+			PST_SF_SIMPLE_ELEMENT(Time,time,sizeof(double))
+			PST_SF_SIMPLE_ELEMENT(Double,double,sizeof(double))
+			PST_SF_SIMPLE_ELEMENT(Int32,int32,sizeof(int))
+			PST_SF_SIMPLE_ELEMENT(Bool,bool,sizeof(int))
+			PST_SF_SIMPLE_ELEMENT(Node,node,sizeof(void *))
+			PST_SF_SIMPLE_ELEMENT(Vec2f,vec2f,sizeof(struct SFVec2f))
+			PST_SF_SIMPLE_ELEMENT(Vec2d,vec2d,sizeof(struct SFVec2d))
+			PST_SF_SIMPLE_ELEMENT(Vec3f,vec3f,sizeof(struct SFColor))
+			PST_SF_SIMPLE_ELEMENT(Vec3d,vec3d,sizeof(struct SFVec3d))
+			PST_SF_SIMPLE_ELEMENT(Vec4d,vec4d,sizeof(struct SFVec4d))
+			PST_SF_SIMPLE_ELEMENT(Rotation,rotation,sizeof(struct SFRotation))
+			PST_SF_SIMPLE_ELEMENT(Color,color,sizeof(struct SFColor))
+			PST_SF_SIMPLE_ELEMENT(ColorRGBA,colorrgba,sizeof(struct SFColorRGBA))
+			PST_SF_SIMPLE_ELEMENT(Matrix3f,matrix3f,sizeof(struct SFMatrix3f))
+			PST_SF_SIMPLE_ELEMENT(Matrix4f,matrix4f,sizeof(struct SFMatrix4f))
+			PST_SF_SIMPLE_ELEMENT(Matrix3d,matrix3d,sizeof(struct SFMatrix3d))
+			PST_SF_SIMPLE_ELEMENT(Matrix4d,matrix4d,sizeof(struct SFMatrix4d))
+			PST_SF_SIMPLE_ELEMENT(Image,image,sizeof(struct Multi_Int32))
+
+			case FIELDTYPE_SFString: {
+					//struct Uni_String *mptr;
+					memcpy(nst, &myVal.sfstring, sizeof(struct Uni_String*));
+					//mptr = * (struct Uni_String **)nst;
+					//if (!mptr) {
+					//	ERROR_MSG("Parser_scanStringValueToMem: is nst (Uni_String) supposed to hold a NULL value ?");
+					//} else {
+					//	FREE_IF_NZ(mptr->strptr);
+					//	mptr->strptr = myVal.sfstring->strptr;
+					//	mptr->len = myVal.sfstring->len;
+					//	mptr->touched = myVal.sfstring->touched;
+					//}
+				break; }
+
+			default: {
+				printf ("unhandled type, in EAIParse  %s\n",stringFieldtypeType(ctype));
+				lexer_forceStringCleanup(parser->lexer);
+				return;
+			}
+		}
+
+	} else {
+		if (strlen (value) > 50) {
+			value[45] = '.';
+			value[46] = '.';
+			value[47] = '.';
+			value[48] = '\0';
+		}
+		ConsoleMessage ("parser problem on parsing fieldType %s, string :%s:", stringFieldtypeType(ctype),value);
+	}
+
+	/* tell the parser that we have done with the input - it will FREE the data */
+	lexer_forceStringCleanup(parser->lexer);
+
+	/* and, reset the XML flag */
+	parser->parsingX3DfromXML = oldXMLflag;
+}

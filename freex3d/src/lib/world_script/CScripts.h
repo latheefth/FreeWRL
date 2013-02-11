@@ -152,6 +152,8 @@ struct Shader_Script
 /* ************************** */
 
 struct Shader_Script* new_Shader_Script(struct X3D_Node *);
+struct Shader_Script* new_Shader_ScriptB(struct X3D_Node *);
+
 void deleteScript();
 
 /* Other members */

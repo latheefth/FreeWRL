@@ -2847,17 +2847,34 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 	struct X3D_Node* dnode;
 	dnode = node; //for builtin types, the type node is just the node
 #ifndef OLD_UPDATE_MACROS
-	if(node->_nodeType == NODE_Group)
+	if(isProto(node))
 	{
-		struct X3D_Group *gpn = (struct X3D_Group*)node;
-		if(gpn->FreeWRL__protoDef != INT_ID_UNDEFINED)
+		if(node->_nodeType == NODE_Group)
 		{
-			//the first node in a protobody determines its type
-			if(gpn->children.n > 0)
-				dnode = getTypeNode(gpn->children.p[0]);
-			else
-				dnode = NULL;
+			struct X3D_Group *gpn = (struct X3D_Group*)node;
+			if(gpn->FreeWRL__protoDef != INT_ID_UNDEFINED)
+			{
+				//the first node in a protobody determines its type
+				if(gpn->children.n > 0)
+					dnode = getTypeNode(gpn->children.p[0]);
+				else
+					dnode = NULL;
+			}
 		}
+		else if(node->_nodeType == NODE_Proto)
+		{
+			struct X3D_Proto *pn = (struct X3D_Proto*)node;
+			//if(pn->FreeWRL__protoDef != INT_ID_UNDEFINED)
+			if(1) //some flag to say it's not the scene, but a protoInstance where only the first node is rendered
+			{
+				//the first node in a protobody determines its type
+				if(pn->children.n > 0)
+					dnode = getTypeNode(pn->children.p[0]);
+				else
+					dnode = NULL;
+			}
+		}
+
 	}
 #endif
 	return dnode;
@@ -3508,7 +3525,8 @@ void markForDispose(struct X3D_Node *node, int recursive){
 				printf ("marking this SFnode for dispose, %p\n",SNode); 
 				#endif
 
-				markForDispose(SNode, TRUE);
+				if(SNode && SNode->referenceCount > 0) 
+					markForDispose(SNode, TRUE);
 				break;
 				
 

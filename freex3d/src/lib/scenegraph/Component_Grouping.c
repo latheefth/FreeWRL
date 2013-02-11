@@ -432,3 +432,89 @@ void child_Transform (struct X3D_Transform *node) {
 
 	LOCAL_LIGHT_OFF
 }
+
+
+/* prep_Proto - this is a ProtoInstance (not declare)  */
+void prep_Proto (struct X3D_Proto *node) {
+	COMPILE_IF_REQUIRED
+	//RECORD_DISTANCE
+}
+/* not sure why we would compile */
+void compile_Proto(struct X3D_Proto *node) {
+	//REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
+	MARK_NODE_COMPILED
+}
+/* render the first node only */
+void child_Proto (struct X3D_Proto *node) {
+	//CHILDREN_COUNT
+	int nc = node->children.n; //_sortedChildren.n;
+	LOCAL_LIGHT_SAVE
+/*
+printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
+if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
+if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
+if ((node->_renderFlags & VF_localLight) == VF_localLight) printf ("VF_localLight ");
+if ((node->_renderFlags & VF_Sensitive) == VF_Sensitive) printf ("VF_Sensitive ");
+if ((node->_renderFlags & VF_Blend) == VF_Blend) printf ("VF_Blend ");
+if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity ");
+if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
+if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
+if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
+if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
+#ifdef DJTRACK_PICKSENSORS
+if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
+#endif
+printf ("\n");
+*/
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+
+
+
+#ifdef VERBOSE
+	 {
+		int x;
+		struct X3D_Node *xx;
+
+printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, node->_sortedChildren.n);
+
+		printf ("child_Group, this %p rf %x isProto %d\n",node,node->_renderFlags, node->FreeWRL__protoDef);
+//        printf ("	..., render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+//         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
+		for (x=0; x<nc; x++) {
+			xx = X3D_NODE(node->_sortedChildren.p[x]);
+			if (xx)
+			printf ("	%d: ch %p type %s dist %f\n",x, node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			else printf ("     chiuld %d null\n",x);
+		}
+		for (x=0; x<nc; x++) {
+			xx = X3D_NODE(node->_sortedChildren.p[x]);
+			if (xx)
+			printf ("	%d: sch %p type %s dist %f\n",x, node->_sortedChildren.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+			else printf ("     chiuld %d null\n",x);
+		}
+	}
+#endif //VERBOSE
+
+
+
+
+		
+	/* do we have a DirectionalLight for a child? */
+	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+
+	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
+		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
+	/* now, just render the non-directionalLight children */
+	//if ((node->FreeWRL__protoDef!=INT_ID_UNDEFINED) && renderstate()->render_geom) {
+	//	(node->children).n = 1;
+	//	normalChildren(node->children);
+	//	(node->children).n = nc;
+	//} else {
+	//	normalChildren(node->_sortedChildren);
+	//}
+	if(nc)
+		normalChildren(node->children);
+
+	LOCAL_LIGHT_OFF
+
+}

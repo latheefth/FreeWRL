@@ -769,7 +769,7 @@ void endProtoInstanceFieldTypeNode(const char *name)
 			{
 				/*struct Multi_Node { int n; void * *p; };*/
 				((struct Multi_Node *)&v)->n=n;
-				((struct Multi_Node *)&v)->p=MALLOC(struct X3D_Node **, n*sizeof(struct X3D_Node*));
+				((struct Multi_Node *)&v)->p=MALLOC(struct X3D_Node **, upper_power_of_two(n)*sizeof(struct X3D_Node*));
 				for(j=0;j<n;j++)
 				{
 					((struct Multi_Node *)&v)->p[j] = kids->p[j];

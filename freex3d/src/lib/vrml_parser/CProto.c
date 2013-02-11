@@ -798,8 +798,9 @@ printf ("PROTO HEADER - possible proto expansion in header?? \n");
 	#endif
 }
 
-/* what we do is to ensure that we have a "destination" we create a node containing the VALUE of each field of the 
-   PROTO expansion, and we put it in a "special place" within the PROTO Group expansion */
+/* what we do is to ensure that we have a "destination" we create a node containing the VALUE 
+   of each field of the PROTO expansion, and we put it in a "special place" within the PROTO 
+   Group expansion */
 
 static int dumpProtoFieldDeclarationNodes(struct VRMLLexer *lex, struct ProtoDefinition *thisProto, FILE *pexfile) {
 	struct ProtoFieldDecl* pdecl = NULL;
@@ -1467,21 +1468,68 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 					i+=2; /* skip the IS and the field */
 					FREE_IF_NZ(newTl);
 				} else { 
+					char *newString;
 					#ifdef XXX
 					PROTO_CAT ( "# at H\n");
 					#endif
-
-					APPEND_EDITED_STRINGTOKEN
+					if(0)
+					{
+						APPEND_EDITED_STRINGTOKEN
+						//thisID[0] = '\0';
+					}else{
+						thisID[0] = '\0';
+						//PROTO_CAT ( ele->stringToken)
+						newString = ele->stringToken;
+						{ 
+							char *pt = (char *)newString; 
+							int len=0; 
+							int wlen = 0;
+							while ((*pt)) {len++; pt++;};
+							wlen = (int) fwrite (newString,len,1,pexfile);
+							curstringlen += len; 
+						}
+					}
 				}
 
 			} else { 
+				char *newString;
 				#ifdef XXX
 				PROTO_CAT ( "# at I\n");
 				#endif
+				if(0){
 				APPEND_EDITED_STRINGTOKEN
+				}else{
+				//PROTO_CAT ( ele->stringToken)
+				newString = ele->stringToken;
+				{ 
+					char *pt = (char *)newString; 
+					int len=0; 
+					int wlen = 0;
+					while ((*pt)) {len++; pt++;};
+					wlen = (int) fwrite (newString,len,1,pexfile);
+					curstringlen += len; 
+				}
+				}
+
+			}
+			if(0){
+			APPEND_SPACE
+			}else{
+			if(lastKeyword != NULL)
+			{
+				if(lastKeyword->isKEYWORD != KW_ROUTE && lastKeyword->isKEYWORD != KW_TO)
+				{
+					APPEND_SPACE
+				}
+				else
+				{
+					lastKeyword->isKEYWORD = 0;
+				}
+			}else{
+				APPEND_SPACE
+			}
 			}
 
-			APPEND_SPACE
 		} else {
 			/* this is a blank proto... */
 			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
@@ -1644,4 +1692,33 @@ struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
 	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
 	npd = vector_get(struct protoInsert*,p->protoDefVec,mpd);
 	return npd->vrmlProtoDef;
+}
+
+struct ProtoDefinition *getVRMLbrotoDefinition (struct X3D_Proto *me) {
+	struct protoInsert *npd;
+	int mpd;
+	ppCProto p = (ppCProto)gglobal()->CProto.prv;
+
+	mpd = me->FreeWRL__protoDef;
+
+	/* printf ("getVRMLprotoDefinition, looking for %d\n",mpd); */
+	if (mpd == INT_ID_UNDEFINED) return NULL;
+	if (mpd >= vectorSize(p->protoDefVec)) {
+		printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vectorSize(p->protoDefVec));
+		return NULL;
+	}
+	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
+	npd = vector_get(struct protoInsert*,p->protoDefVec,mpd);
+	return npd->vrmlProtoDef;
+}
+
+BOOL isProto(struct X3D_Node *node)
+{
+	BOOL retval = FALSE;
+	if(node)
+		if(node->_nodeType == NODE_Group)
+			if(X3D_GROUP(node)->FreeWRL__protoDef != INT_ID_UNDEFINED) retval = TRUE;
+		if(node->_nodeType == NODE_Proto)
+			retval = TRUE;
+	return retval;
 }

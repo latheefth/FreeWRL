@@ -72,7 +72,6 @@ void CParse_init(struct tCParse *t){
 //ppCParse p = (ppCParse)gglobal()->CParse.prv;
 
 #undef TIMING
-
 BOOL cParse(void* ptr, unsigned ofs, const char* data) {
 	struct VRMLParser* parser;
 	ttglobal tg = gglobal();
@@ -159,8 +158,10 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
 char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
 	struct ProtoDefinition* cpd;
-
-	cpd = getVRMLprotoDefinition(X3D_GROUP(node));
+	if(node->_nodeType == NODE_Group)
+		cpd = getVRMLprotoDefinition(X3D_GROUP(node));
+	if(node->_nodeType == NODE_Proto)
+		cpd = getVRMLbrotoDefinition(X3D_PROTO(node));
 	if (cpd != NULL) return cpd->protoName;
 	return NULL;
 }
@@ -168,25 +169,39 @@ char* parser_getPROTONameFromNode(struct X3D_Node *node)
 /* Return DEFed name from its node, or NULL if not found */
 char* parser_getNameFromNode(struct X3D_Node *node)
 {
-	int ind;
+	int ind, nsize;
 	struct Vector *curNameStackTop;
+	struct Vector *curNodeStackTop;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	
+	if(globalParser->lexer->userNodeNames == NULL) return NULL;
+	if(globalParser->lexer->userNodeNames->n == 0) return NULL; //or ->data == NULL
 	curNameStackTop = stack_top(struct Vector *, globalParser->lexer->userNodeNames);
 
 	/* go through the DEFedNodes, looking for the X3D_Node pointer. If it is found, use that
 	   index, and look in the userNodeNames list for it */
-
-	/* for (ind=0; ind < vectorSize(curNameStackTop); ind ++) {
+	/*
+	 for (ind=0; ind < vectorSize(curNameStackTop); ind ++) {
 		printf ("DEBUG: userNodeNames index %d is %s\n",ind, vector_get (const char*, curNameStackTop,ind));
 	} */
 	if(globalParser->DEFedNodes == NULL) return NULL;
-	for (ind=0; ind < vectorSize(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
+	if(globalParser->DEFedNodes->n == 0) return NULL; //or ->data == NULL
+	curNodeStackTop = stack_top(struct Vector*, globalParser->DEFedNodes);
+	nsize = vectorSize(curNodeStackTop);
+	for (ind=0; ind < nsize; ind++) {
 		/* did we find this index? */
-		if (vector_get(struct X3D_Node*, stack_top(struct Vector*, globalParser->DEFedNodes), ind) == node) {
+		//printf("ind=%d node=%p char=%s\n",ind,(void*)vector_get(struct X3D_Node*,curNodeStackTop, ind),
+		//	vector_get (char*, curNameStackTop, ind));
+		if (vector_get(struct X3D_Node*,curNodeStackTop, ind) == node) {
 			return vector_get (char*, curNameStackTop, ind);
 		}
 	}
+	//for (ind=0; ind < vectorSize(stack_top(struct Vector*, globalParser->DEFedNodes)); ind++) {
+	//	/* did we find this index? */
+	//	if (vector_get(struct X3D_Node*, stack_top(struct Vector*, globalParser->DEFedNodes), ind) == node) {
+	//		return vector_get (char*, curNameStackTop, ind);
+	//	}
+	//}
 		
 	return NULL;
 }

@@ -1683,6 +1683,156 @@ static void gatherScriptEventOuts(void) {
 	#endif
 }
 
+static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *shader, 
+			int JSparamNameIndex, int type, int extra, int len) {
+	//dug9 this version stores the value back in the script field instead of toNode.
+	//also, doesn't do 'new parents' in here if value is an SFNode or MFNode.
+	//int route;
+	//size_t fptr;
+	//size_t tptr;
+	//size_t len;
+ //	struct X3D_Node* tn;
+	//struct X3D_Node* fn;
+	//struct anyVrml* any;
+
+	int fromalready=FALSE;	 /* we have already got the from value string */
+	int touched_flag=FALSE;
+	int actualscript;
+	//unsigned int to_counter;
+	//CRnodeStruct *to_ptr = NULL;
+	ppCRoutes p;
+	ttglobal tg = gglobal();
+	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+	p = (ppCRoutes)tg->CRoutes.prv;
+
+	/* NOTE - parts of things in here might need to be wrapped by BeginRequest ??? */
+
+	/* go through all routes, looking for this script as an eventOut */
+
+	/* do we have any routes yet? - we can gather events before any routes are made */
+	//if (!p->CRoutes_Initiated) return;
+
+	/* go from beginning to end in the routing table */
+	//route=1;
+	//while (route < (p->CRoutes_Count-1)) {
+	//	#ifdef CRVERBOSE
+	//	printf ("gather, routing %d is %s\n",route,
+	//		stringNodeType(X3D_NODE(p->CRoutes[route].routeFromNode)->_nodeType));
+	//	#endif
+
+	//if (X3D_NODE(p->CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
+		//struct X3D_Script *mys = X3D_SCRIPT(p->CRoutes[route].routeFromNode);
+		//struct Shader_Script *sp = (struct Shader_Script *) mys->__scriptObj;
+		actualscript = shader->num;
+
+		/* printf ("gatherEvents, found a script at element %d, it is script number %d and node %u\n",
+			route, actualscript,mys);  */
+		/* this script initialized yet? We make sure that on initialization that the Parse Thread
+		   does the initialization, once it is finished parsing. */
+		if (!p->ScriptControl[actualscript]._initialized) {
+			/* printf ("waiting for initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
+			return FALSE;
+		}
+
+		if (actualscript > tg->CRoutes.max_script_found_and_initialized) {
+			/* printf ("gatherScriptEventOut, waiting for script %d to become initialized\n"); */
+			return FALSE;
+		}
+
+		if (!p->ScriptControl[actualscript].scriptOK) {
+			/* printf ("gatherScriptEventOuts - script initialized but not OK\n"); */
+			return FALSE;
+		}
+		
+		/* is this the same from node/field as before? */
+		//if ((p->CRoutes[route].routeFromNode == p->CRoutes[route-1].routeFromNode) &&
+		//	(p->CRoutes[route].fnptr == p->CRoutes[route-1].fnptr) &&
+		//	(route > 1)) {
+		//	fromalready=TRUE;
+		//} else {
+		//	/* printf ("different from, have to get value\n"); */
+		//	fromalready=FALSE;
+		//}
+
+		//fptr = p->CRoutes[route].fnptr;
+		//fn = p->CRoutes[route].routeFromNode;
+		//len = p->CRoutes[route].len;
+
+		#ifdef CRVERBOSE
+			printf ("\ngatherSentEvents, script %d from %s type %d len %d\n",actualscript, JSparamnames[fptr].name,
+				JSparamnames[fptr].type, len);
+		#endif
+
+		/* now, set the actual properties - switch as documented above */
+		//if (!fromalready) {
+			#ifdef CRVERBOSE 
+				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
+			#endif
+			touched_flag = get_valueChanged_flag((int)JSparamNameIndex,actualscript);
+		//}
+
+		if (touched_flag!= 0) {
+			/* get some easy to use pointers */
+			//for (to_counter = 0; to_counter < p->CRoutes[route].tonode_count; to_counter++) {
+			//	to_ptr = &(p->CRoutes[route].tonodes[to_counter]);
+			//	tn = to_ptr->routeToNode;
+			//	tptr = to_ptr->foffset;
+
+				#ifdef CRVERBOSE 
+					printf ("%s script %d VALUE CHANGED! copy value and update %p\n",JSparamnames[fptr].name,actualscript,tn);
+				#endif
+
+				/* eventOuts go to VRML data structures */
+#if defined(JS_THREADSAFE)
+				JS_BeginRequest(p->ScriptControl[actualscript].cx);
+#endif
+				
+				setField_javascriptEventOut_B(any,type, len, 
+					extra, p->ScriptControl[actualscript].cx);
+			//	void setField_javascriptEventOut_B(union anyVrml* any,  
+			//int fieldType, unsigned len, int extraData, JSContext *scriptContext
+#if defined(JS_THREADSAFE)
+				JS_EndRequest(p->ScriptControl[actualscript].cx);
+#endif
+
+				/* tell this node now needs to redraw */
+				//markScriptResults(tn, (int) tptr, route, to_ptr->routeToNode);
+				//MARK_EVENT (tn,tptr);
+
+				#ifdef CRVERBOSE 
+					printf ("%s script %d has successfully updated  %u\n",JSparamnames[fptr].name,actualscript,tn);
+				#endif
+
+			//}
+			/* unset the touched flag */
+			resetScriptTouchedFlag ((int) actualscript, (int) JSparamNameIndex);
+			return TRUE;
+
+		}
+
+		///* unset the touched flag */
+		//resetScriptTouchedFlag ((int) actualscript, (int) fromOffset);
+
+		/* 
+#if defined(JS_THREADSAFE)
+		JS_BeginRequest(p->ScriptControl[actualscript].cx);
+#endif
+		REMOVE_ROOT(p->ScriptControl[actualscript].cx,global_return_val); 
+#if defined(JS_THREADSAFE)
+		JS_EndRequest(p->ScriptControl[actualscript].cx);
+#endif
+		*/
+	//}
+	//route ++;
+	//}
+
+	#ifdef CRVERBOSE 
+		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime());
+	#endif
+	return FALSE;
+}
+
+
 #endif /* HAVE_JAVASCRIPT */
 
 
@@ -1760,11 +1910,10 @@ in this case.
 
 ********************************************************************/
 
-#ifdef CRVERBOSE
+//#ifdef CRVERBOSE
 char * BOOL_STRING(int inp) {if (inp)return "true "; else return "false ";}
-#endif
-
-void propagate_events() {
+//#endif
+void propagate_events_A() {
 	int havinterp;
 	int counter;
 	int to_counter;
@@ -1892,6 +2041,355 @@ void propagate_events() {
 	#endif
 }
 
+
+/*
+	new strategy, to reduce combinations and permuations of to/from types
+	from n x n to n + n (where n=3 (builtin, script, proto): 3x3=9 -> 3+3=6)
+	after the introduction of PROTO instances with interfaces different
+	than script and builtin. 
+	Steps:
+	A. get anyVrml* of the from end - using switch/case/if/else of 3 items
+	B. get anyVrml* of the to end - ditto of 3 items
+	C. memcpy/shallow_copy of anyVrml for everyone
+	D. touchup special target nodes like scripts and sensors
+*/
+
+void add_mfparents(struct X3D_Node* newParent, union anyVrml* mfnode, int mftype)
+{
+	int i;
+	if(mftype != FIELDTYPE_MFNode) return;
+	for(i=0;i<mfnode->mfnode.n;i++)
+	{
+		add_parent(mfnode->mfnode.p[i],newParent,__FILE__,__LINE__);
+	}
+					//case FIELDTYPE_SFNode:
+					//	{
+					//		if(source->sfnode){ 
+					//			memcpy(dest,source,isize);
+					//			add_parent(dest->sfnode,parent,__FILE__,__LINE__);
+					//		}else{
+					//			dest->sfnode = NULL;
+					//		}
+					//	}
+					//	break;
+}
+
+void propagate_events_B() {
+	int havinterp;
+	int counter;
+	int to_counter;
+
+	union anyVrml *fromAny, *toAny; //dug9
+	struct X3D_Node *fromNode, *toNode, *lastFromNode;
+	int fromOffset, toOffset, lastFromOffset, markme, last_markme;
+	int len, isize, type, sftype, isMF, extra;
+
+
+	CRnodeStruct *to_ptr = NULL;
+	ppCRoutes p;
+	ttglobal tg = gglobal();
+	p = (ppCRoutes)tg->CRoutes.prv;
+
+		#ifdef CRVERBOSE
+		printf ("\npropagate_events start\n");
+		#endif
+
+	/* increment the "timestamp" for this entry */
+	p->thisIntTimeStamp ++; 
+	lastFromOffset = -1; //used for from script
+	lastFromNode = NULL; // "
+	last_markme = FALSE; // "
+	do {
+		havinterp=FALSE; /* assume no interpolators triggered */
+
+		for (counter = 1; counter < p->CRoutes_Count-1; counter++) {
+			//dug9 >> fromAny
+			union anyVrml tempAny;
+			fromNode = p->CRoutes[counter].routeFromNode;
+			fromOffset = p->CRoutes[counter].fnptr;
+			extra = p->CRoutes[counter].extra;
+			len = p->CRoutes[counter].len; //this has -ve sentinal values - we'll ignor it
+
+			switch(fromNode->_nodeType)
+			{
+				case NODE_ShaderProgram:
+				case NODE_ComposedShader:
+				case NODE_PackagedShader:
+				case NODE_Script:
+					{
+						struct X3D_Script* scr = (struct X3D_Script*)fromNode;
+						struct Shader_Script* shader = NULL;
+						struct ScriptFieldDecl* sfield;
+						switch(fromNode->_nodeType) 
+						{ 
+							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(fromNode)->__scriptObj); break;
+							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->__shaderObj); break;
+							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->__shaderObj); break;
+							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->__shaderObj); break;
+						}
+						sfield= vector_get(struct ScriptFieldDecl*, shader->fields, fromOffset);
+						fromAny = &sfield->value;
+						type = sfield->fieldDecl->fieldType;
+						if(fromNode->_nodeType == NODE_Script){
+							//continue; //let the gatherScriptEventOuts(); copy directly toNode.
+							//there's an expensive operation in here, and the route fanout doesn't work
+							//so we'll check if this is the same fromNode/fromOffset as the last loop and skip 
+							markme = last_markme;
+							if(!(fromNode==lastFromNode && fromOffset==lastFromOffset)){
+								//gatherScriptEventOut_B copies from javascript to the script field ->value
+								int JSparamNameIndex = sfield->fieldDecl->JSparamNameIndex;
+								markme = gatherScriptEventOut_B(fromAny,shader,JSparamNameIndex,type,extra,len);
+							}
+							if(markme){
+								if (p->CRoutes[counter].intTimeStamp!=p->thisIntTimeStamp) {
+									p->CRoutes[counter].isActive=TRUE;
+									p->CRoutes[counter].intTimeStamp=p->thisIntTimeStamp;
+								}
+							}
+							last_markme = markme;
+						}
+					}
+					break;
+				case NODE_Proto:
+					{
+						struct ProtoFieldDecl* pfield;
+						struct X3D_Proto* pnode = (struct X3D_Proto*)fromNode;
+						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+						pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, fromOffset);
+						fromAny = &pfield->defaultVal;
+						type = pfield->type;
+					}
+					break;
+				default: //builtin
+					{
+						const int * offsets;
+						int jk;
+						fromAny = (union anyVrml*)offsetPointer_deref(void *,fromNode , fromOffset);
+						offsets = NODE_OFFSETS[fromNode->_nodeType];
+						while(*offsets > -1)
+						{
+							//printf("%d %d %d %d %d\n",offsets[0],offsets[1],offsets[2],offsets[3],offsets[4]);
+							if(offsets[1]==fromOffset) 
+							{
+								type = offsets[2];
+								break;
+							}
+							offsets += 5;
+						}
+					}
+					break;
+			}
+
+			isMF = type % 2;
+			sftype = type - isMF;
+			//from EAI_C_CommonFunctions.c
+			isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+			if(isMF) len = sizeof(int) + sizeof(void*);
+			else len = isize;
+
+			for (to_counter = 0; to_counter < p->CRoutes[counter].tonode_count; to_counter++) {
+				to_ptr = &(p->CRoutes[counter].tonodes[to_counter]);
+				if (to_ptr == NULL) {
+					printf("WARNING: tonode at %u is NULL in propagate_events.\n",
+							to_counter);
+					continue;
+				}
+
+				#ifdef CRVERBOSE
+					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u dir %d\n",
+						   counter, to_counter, BOOL_STRING(p->CRoutes[counter].isActive),
+						   p->CRoutes[counter].routeFromNode, p->CRoutes[counter].fnptr,
+						   to_ptr->routeToNode, to_ptr->foffset, p->CRoutes[counter].interpptr,
+							p->CRoutes[counter].direction_flag);
+				#endif
+
+				if (p->CRoutes[counter].isActive == TRUE) {
+					/* first thing, set this to FALSE */
+					p->CRoutes[counter].isActive = FALSE;
+					#ifdef CRVERBOSE
+						printf("event %p %u len %d sent something", p->CRoutes[counter].routeFromNode, p->CRoutes[counter].fnptr,p->CRoutes[counter].len);
+						//if (p->CRoutes[counter].fnptr < 20)
+						if (p->CRoutes[counter].routeFromNode->_nodeType == NODE_Script)
+						{
+							struct CRjsnameStruct *JSparamnames = getJSparamnames();
+							printf (" (script param: %s)",JSparamnames[p->CRoutes[counter].fnptr].name);
+						}else {
+							printf (" (nodeType %s)",stringNodeType(X3D_NODE(p->CRoutes[counter].routeFromNode)->_nodeType));
+						}
+						printf ("\n");
+					#endif
+					/* to get routing to/from exposedFields, lets
+					 * mark this to/offset as an event */
+					//MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
+
+
+					//dug9 >> toAny
+					toNode = to_ptr->routeToNode; //p->CRoutes[counter].routeFromNode;
+					toOffset = to_ptr->foffset; //p->CRoutes[counter].fnptr;
+					MARK_EVENT(toNode, toOffset);
+
+					switch(toNode->_nodeType)
+					{
+						case NODE_ShaderProgram:
+						case NODE_ComposedShader:
+						case NODE_PackagedShader:
+						case NODE_Script:
+							{
+								struct X3D_Script* scr = (struct X3D_Script*)toNode;
+								struct Shader_Script* shader = NULL;
+								struct ScriptFieldDecl* sfield;
+								switch(toNode->_nodeType) 
+								{ 
+  									case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(toNode)->__scriptObj); break;
+  									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->__shaderObj); break;
+  									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->__shaderObj); break;
+  									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->__shaderObj); break;
+								}
+								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, toOffset);
+								toAny = &sfield->value;
+							}
+							break;
+						case NODE_Proto:
+							{
+								struct ProtoFieldDecl* pfield;
+								struct X3D_Proto* pnode = (struct X3D_Proto*)toNode;
+								struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+								pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, toOffset);
+								toAny = &pfield->defaultVal;
+							}
+							break;
+						default: //builtin
+							toAny = (union anyVrml*)offsetPointer_deref(void *,toNode , toOffset);
+							break;
+					}
+
+					//we now have from and to as *anyVrml, so lets copy
+					//there should be a shallow_clean_field(type,toAny) that releases old mallocs in UniString,MF p*
+					shallow_copy_field(type,fromAny,toAny);
+					if(isMF && sftype == FIELDTYPE_SFNode)
+						add_mfparents(toNode,toAny,type);
+					//OK we copied. 
+
+					//Some target node types need special processing ie sensors and scripts
+					switch(toNode->_nodeType)
+					{
+						case NODE_Script:
+							{
+								struct X3D_Script* scr = (struct X3D_Script*)toNode;
+								struct Shader_Script* shader;
+								struct ScriptFieldDecl* sfield;
+								shader =(struct Shader_Script *)(X3D_SCRIPT(toNode)->__scriptObj);
+								//{
+								//	int kk;
+								//	struct CRjsnameStruct *JSparamnames; // = getJSparamnames();
+								//	JSObject *eventInFunction;
+								//	JSparamnames = getJSparamnames();
+
+								//	for(kk=0;kk<shader->fields->n;kk++)
+								//	{
+								//		sfield= vector_get(struct ScriptFieldDecl*, shader->fields, kk);
+								//		//printf("sfield[%d]=%d",kk,sfield->fieldDecl->JSparamNameIndex);
+								//		eventInFunction = JSparamnames[sfield->fieldDecl->JSparamNameIndex].eventInFunction;
+								//		//printf(" func= %d\n",eventInFunction);
+								//	}
+
+								//}
+								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, toOffset);
+
+								if (p->ScriptControl[shader->num]._initialized && p->ScriptControl[shader->num].scriptOK) 
+								{
+									int JSparamNameIndex = sfield->fieldDecl->JSparamNameIndex;
+									/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
+									mark_script(shader->num);
+									if(isMF){ 
+										getField_ToJavascript_B(shader->num, JSparamNameIndex, type, toAny->mfnode.p, toAny->mfnode.n); //mfp->p, mfp->n);
+									} else {
+										getField_ToJavascript_B(shader->num, JSparamNameIndex, type, toAny, len);
+									}
+								}else{
+									/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
+								}
+								havinterp = TRUE;
+							}
+							break;
+						case NODE_ShaderProgram:
+						case NODE_ComposedShader:
+						case NODE_PackagedShader:
+							{
+								struct Shader_Script* shader;
+								switch(toNode->_nodeType) 
+								{ 
+  									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->__shaderObj); break;
+  									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->__shaderObj); break;
+  									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->__shaderObj); break;
+								}
+								getField_ToShader(shader->num);
+								havinterp = TRUE;
+							}
+							break;
+						default:
+							havinterp = FALSE;
+							break;
+					}
+					if (p->CRoutes[counter].interpptr != 0) 
+					{
+						/* this is an interpolator, call it */
+						havinterp = TRUE;
+						#ifdef CRVERBOSE
+						printf("propagate_events: index %d is an interpolator\n",counter);
+						#endif
+						/* copy over this "extra" data, EAI "advise" calls need this */
+						tg->CRoutes.CRoutesExtra = p->CRoutes[counter].extra;
+						p->CRoutes[counter].interpptr((void *)(toNode));
+					} else {
+						/* just an eventIn node. signal to the reciever to update */
+						//marked above 
+						//MARK_EVENT(toNode, toOffset);
+
+						/* make sure that this is pointing to a real node,
+						 * not to a block of memory created by
+						 * EAI - extra memory - if it has an offset of
+						 * zero, it is most certainly made. 
+						 * dug9,feb2013: with new Broto code I changed Proto and Script offset 
+						 * to field index (0 to nfield-1) (instead of offset=JSparamNameIndex)
+						 */
+						//dug9 if(toOffset != 0)
+							update_node(toNode);
+					}
+				} //if isActive
+			} //for(to_counter)
+			lastFromNode = fromNode;
+			lastFromOffset = fromOffset;
+		} //for(counter)
+
+		#ifdef HAVE_JAVASCRIPT
+		/* run gatherScriptEventOuts for each active script */
+		//gatherScriptEventOuts();
+		#endif
+	} while (havinterp==TRUE);
+
+	#ifdef HAVE_JAVASCRIPT
+	/* now, go through and clean up all of the scripts */
+	for (counter =0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
+		if (tg->CRoutes.scr_act[counter]) {
+			tg->CRoutes.scr_act[counter] = FALSE;
+			CLEANUP_JAVASCRIPT(p->ScriptControl[counter].cx);
+		}
+	}	
+	#endif /* HAVE_JAVASCRIPT */
+
+	#ifdef CRVERBOSE
+	printf ("done propagate_events\n\n");
+	#endif
+}
+BOOL usingBrotos();
+void propagate_events()
+{
+	if( usingBrotos() )
+		propagate_events_B();
+	else
+		propagate_events_A();
+}
 
 /********************************************************************
 
@@ -2173,9 +2671,11 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 		//memcpy(toptr,&fromcount,structlen);
 		//printf("tn=%u *tn=%u\n",tn,*(unsigned int *)tn);
 	}else{
+		int nele = fromcount;
 		FREE_IF_NZ (mv3ftn->p);
 		/* MALLOC the toptr */
-		mv3ftn->p = MALLOC (struct SFVec3f *, structlen*fromcount);
+		if( multitype == ROUTING_MFNODE ) nele = upper_power_of_two(nele);
+		mv3ftn->p = MALLOC (struct SFVec3f *, structlen*nele); //fromcount);
 		toptr = (void *)mv3ftn->p;
 
 		/* tell the recipient how many elements are here */

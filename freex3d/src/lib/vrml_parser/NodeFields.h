@@ -1718,6 +1718,17 @@ EXPOSED_FIELD(ProgramShader,programs,mfnode,programs,FIELDTYPE_MFNode)
 EXPOSED_FIELD(ProgramShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(ProgramShader)
 
+/* Proto node */
+BEGIN_NODE(Proto)
+EXPOSED_FIELD(Proto,children,mfnode,children,FIELDTYPE_MFNode)
+EVENT_IN(Proto,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(Proto,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(Proto,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EVENT_IN(Proto,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+FIELD(Proto,FreeWRL__protoDef,sfint32,FreeWRL__protoDef,FIELDTYPE_SFInt32)
+FIELD(Proto,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+END_NODE(Proto)
+
 /* ProximitySensor node */
 BEGIN_NODE(ProximitySensor)
 EVENT_OUT(ProximitySensor,enterTime,sftime,enterTime,FIELDTYPE_SFTime)

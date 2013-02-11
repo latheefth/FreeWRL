@@ -336,7 +336,8 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 		newp->nodeParams = NULL;
 		/* save the node type; either this is a EAI_NODETYPE_SCRIPT, EAI_NODETYPE_PROTO, or EAI_NODETYPE_STANDARD */
 		if (myn->_nodeType == NODE_Script) newp->nodeType = EAI_NODETYPE_SCRIPT;
-		else if ((myn->_nodeType == NODE_Group) & (X3D_GROUP(myn)->FreeWRL__protoDef != INT_ID_UNDEFINED)) 
+		//else if ((myn->_nodeType == NODE_Group) & (X3D_GROUP(myn)->FreeWRL__protoDef != INT_ID_UNDEFINED)) 
+		else if(isProto(myn))
 			newp->nodeType = EAI_NODETYPE_PROTO;
 		else newp->nodeType = EAI_NODETYPE_STANDARD;
 
@@ -516,11 +517,12 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
         } else protoBaseNode = nodePtr; };
 
 	/* is this a proto expansion? */
-	if (X3D_NODE(nodePtr)->_nodeType == NODE_Group) {
-		if (X3D_GROUP(nodePtr)->FreeWRL__protoDef != INT_ID_UNDEFINED) {
+	//if (X3D_NODE(nodePtr)->_nodeType == NODE_Group) {
+	//	if (X3D_GROUP(nodePtr)->FreeWRL__protoDef != INT_ID_UNDEFINED) {
+	if(isProto(nodePtr))
 			isProtoExpansion = TRUE;
-		}
-	}
+	//	}
+	//}
 
 	if (isProtoExpansion) {
 		/* this possibly is an expanded PROTO?, change the nodePtr and fieldString around */

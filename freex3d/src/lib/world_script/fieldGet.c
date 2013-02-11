@@ -116,6 +116,62 @@ void getField_ToJavascript (int num, int fromoffset) {
 	}
 }
 
+//void getField_ToJavascript_B(int num, int fromoffset) {
+void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union anyVrml *any, int len) {
+	int ignored;
+	char *pptr;
+	int len2;
+
+	#ifdef SETFIELDVERBOSE 
+		printf ("getField_ToJavascript, from offset %d type %d num=%d\n",
+			fromoffset,JSparamnames[fromoffset].type,num);
+	#endif
+
+	/* set the parameter */
+	/* see comments in gatherScriptEventOuts to see exact formats */
+
+	switch (type) {
+	case FIELDTYPE_SFBool:
+	case FIELDTYPE_SFFloat:
+	case FIELDTYPE_SFTime:
+	case FIELDTYPE_SFDouble:
+	case FIELDTYPE_SFInt32:
+	case FIELDTYPE_SFString:
+		//setScriptECMAtype(num);
+		set_one_ECMAtype(shader_num, fieldOffset, type, any, len);
+		break;
+	case FIELDTYPE_SFColor:
+	case FIELDTYPE_SFNode:
+	case FIELDTYPE_SFVec2f:
+	case FIELDTYPE_SFVec3f:
+	case FIELDTYPE_SFVec3d:
+	case FIELDTYPE_SFRotation:
+		//setScriptMultiElementtype(num);
+		set_one_MultiElementType(shader_num, fieldOffset, any, len);
+		break;
+	case FIELDTYPE_MFColor:
+	case FIELDTYPE_MFVec3f:
+	case FIELDTYPE_MFVec3d:
+	case FIELDTYPE_MFVec2f:
+	case FIELDTYPE_MFFloat:
+	case FIELDTYPE_MFTime:
+	case FIELDTYPE_MFInt32:
+	case FIELDTYPE_MFString:
+	case FIELDTYPE_MFNode:
+	case FIELDTYPE_MFRotation:
+	case FIELDTYPE_SFImage:
+
+		//ignored = setMFElementtype(num);
+		ignored = set_one_MFElementType(shader_num, fieldOffset, type, (void *)pptr,len2);
+
+		break;
+	default : {
+		printf("WARNING: sendScriptEventIn type %s not handled yet\n",
+			FIELDTYPES[type]);
+		}
+	}
+}
+
 
 /******************************************************************************/
 
