@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.47  2013/02/11 21:43:45  dug9
+# dug9 - BROTOs Phase I, Rev1
+#
 # Revision 1.46  2012/10/25 15:02:30  crc_canada
 # Shader code DirectionalLight incorrect. Fixed. SpotLight and PointLight
 # are next on the list.
@@ -727,6 +730,7 @@
 	Transform
 	Billboard
 	Group
+	Proto
 	PickableGroup
 	PointLight
 	SpotLight
@@ -775,6 +779,7 @@
 	HAnimSegment
 	HAnimSite
 	Group
+	Proto
 	ViewpointGroup
 	StaticGroup
 	PickableGroup
@@ -805,6 +810,7 @@
 	ImageCubeMapTexture
 	Transform
 	Group
+	Proto
 	ViewpointGroup
 	Material
 	TwoSidedMaterial
@@ -1124,6 +1130,7 @@
 	DEF
 	EXPORT
 	EXTERNPROTO
+	EXTERNBROTO
 	FALSE
 	IMPORT
 	IS
@@ -1131,6 +1138,7 @@
 	NULL
 	PROFILE
 	PROTO
+	BROTO
 	ROUTE
 	TO
 	TRUE
@@ -1314,15 +1322,25 @@
 #
 # 
 
-%PROTOKeywordC = map {($_=>1)} qw/
-	exposedField
-	field
-	eventIn
-	eventOut
+#%PROTOKeywordC = map {($_=>1)} qw/
+#	exposedField
+#	field
+#	eventIn
+#	eventOut
+#	inputOnly
+#	outputOnly
+#	inputOutput
+#	initializeOnly
+
+@PROTOKeywordC = qw/
+	initializeOnly
 	inputOnly
 	outputOnly
 	inputOutput
-	initializeOnly
+	field
+	eventIn
+	eventOut
+	exposedField
 /;
 
 #######################################################################
