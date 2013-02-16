@@ -703,6 +703,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\vrml_parser\Structs.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\system.h"
 				>
 			</File>
