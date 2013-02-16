@@ -119,8 +119,6 @@ void getField_ToJavascript (int num, int fromoffset) {
 //void getField_ToJavascript_B(int num, int fromoffset) {
 void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union anyVrml *any, int len) {
 	int ignored;
-	char *pptr;
-	int len2;
 
 	#ifdef SETFIELDVERBOSE 
 		printf ("getField_ToJavascript, from offset %d type %d num=%d\n",
@@ -162,7 +160,7 @@ void getField_ToJavascript_B(int shader_num, int fieldOffset, int type, union an
 	case FIELDTYPE_SFImage:
 
 		//ignored = setMFElementtype(num);
-		ignored = set_one_MFElementType(shader_num, fieldOffset, type, (void *)pptr,len2);
+		ignored = set_one_MFElementType(shader_num, fieldOffset, type, (void *)any,len);
 
 		break;
 	default : {

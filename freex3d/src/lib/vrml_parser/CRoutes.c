@@ -797,9 +797,11 @@ void AddRemoveChildren (
 			printf ("AddRemove, count %d of %d, node %p parent %p\n",counter, len,nodelist[counter],parent);
 			#endif
 			if (nodelist[counter] != NULL) {
+				//add a new node to the children list
 				*tmpptr = nodelist[counter];
 				tmpptr ++;
 				tn->n++;
+				//add new parent to new node
 				ADD_PARENT((void *)nodelist[counter],(void *)parent);
 			} else {
 				/* gosh, we are asking to add a NULL node pointer, lets just skip it... */

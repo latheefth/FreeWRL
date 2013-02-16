@@ -1158,7 +1158,6 @@ void add_parent(struct X3D_Node *node, struct X3D_Node *parent, char *file, int 
 
 	/* add it to the parents list */
 	vector_pushBack (struct X3D_Node*,node->_parentVector, parent);
-
 	/* tie in sensitive nodes */
 	itype = getTypeNode(node);
 	if(itype)
@@ -1177,20 +1176,20 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 		child, stringNodeType(child->_nodeType));
 #endif
 
-	pi = -1;
-	for (i=0; i<vectorSize(child->_parentVector); i++) {
-		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
-		if (n==parent) pi = i;
-	}
+		pi = -1;
+		for (i=0; i<vectorSize(child->_parentVector); i++) {
+			struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
+			if (n==parent) pi = i;
+		}
 
-	if (pi >=0) {
-		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vectorSize(child->_parentVector)-1);
+		if (pi >=0) {
+			struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vectorSize(child->_parentVector)-1);
 
-		/* get the last entry, and overwrite the entry found */
-		vector_set(struct X3D_Node*, child->_parentVector, pi,n);
+			/* get the last entry, and overwrite the entry found */
+			vector_set(struct X3D_Node*, child->_parentVector, pi,n);
 
-		/* take that last entry off the vector */
-		vector_popBack(struct X3D_Node*, child->_parentVector);
+			/* take that last entry off the vector */
+			vector_popBack(struct X3D_Node*, child->_parentVector);
 	}
 }
 

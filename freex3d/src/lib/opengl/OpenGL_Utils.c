@@ -2927,7 +2927,7 @@ void startOfLoopNodeUpdates(void) {
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
-				killNode(i);
+				/* killNode(i); //Feb 16, 2013 temporary fix to comment out for 46.wrl but not sure what's supposed go go here */
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);

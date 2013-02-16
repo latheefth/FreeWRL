@@ -153,7 +153,7 @@ struct X3D_Node* parser_getNodeFromName(const char* name)
 		stack_top(struct Vector*, globalParser->DEFedNodes), ind);
 }
 
-
+struct ProtoDefinition *getVRMLbrotoDefinition (struct X3D_Proto *me);
 /* Return PROTO name from its node, or NULL if not found */
 char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
