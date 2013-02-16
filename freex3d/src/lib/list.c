@@ -33,7 +33,7 @@
 
 #include <list.h>
 
-
+/* singly linked */
 /**
  * ml_new: create a new list item with a contained element 'elem'
  */
@@ -271,5 +271,259 @@ void ml_dump_char(s_list_t *list)
 {
 	TRACE_MSG("ml_dump_char (%p) : ", list);
 	ml_foreach(list, TRACE_MSG("%s ", (char*)ml_elem(__l)));
+	TRACE_MSG("\n");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* circularly doubly linked - dug9 added feb 16, 2013 but did not test cdl_ functions,
+   need use for it */
+/**
+ * cdl_new: create a new list item with a contained element 'elem'
+ */
+cd_list_t* cdl_new(const void *elem)
+{
+    cd_list_t *item;
+    item = XALLOC(cd_list_t);
+    cdl_elem(item) = (void *) elem;
+	item->next = item;
+	item->prev = item;
+    return item;
+}
+
+/**
+ * cdl_count: count the number of items in 'list'
+ */
+int cdl_count(cd_list_t *head)
+{
+	cd_list_t *list;
+    int c = 0;
+	list = head;
+	if(head) do{
+        c++;
+        list = cdl_next(list);
+    }while(list != head);
+    return c;
+}
+
+/**
+ * cdl_find: returns 'item' if it can be found in 'list'
+ */
+cd_list_t* cdl_find(cd_list_t *head, cd_list_t *item)
+{
+	cd_list_t *list = head;
+	if(!head) return NULL;
+    do {
+        if (list == item)
+            return list;
+        list = cdl_next(list);
+    }while(list != head);
+    return NULL;
+}
+
+/**
+ * cdl_find_elem: returns first item found in 'list' where
+ * item's element is equal to 'elem'
+   returns NULL or the elem
+ */
+cd_list_t* cdl_find_elem(cd_list_t *head, void *elem)
+{
+	cd_list_t *list = head;
+	if(!list) return NULL;
+    do {
+        if (cdl_elem(list) == elem)
+            return list;
+        list = cdl_next(list);
+    }while(list != head);
+    return NULL;
+}
+
+/**
+ * cdl_insert: inserts item 'item' before 'point' in 'list' 
+   RETURNS HEAD which may change
+ */
+cd_list_t* cdl_insert(cd_list_t *head, cd_list_t *point, cd_list_t *item)
+{
+	cd_list_t *tmp;
+	if(!item) return head;
+    if (!head) {
+		tmp = point;
+		if (item){
+			if(!point) tmp = item;
+			item->next = tmp;
+			item->prev = tmp;
+		}
+        return tmp;
+    }
+    if(!point) point = head;
+	point->next = item;
+	item->prev = point->prev;
+	point->prev = item;
+	item->prev->next = item;
+	if(head == point) {
+		head = item;
+	}
+    return head;
+}
+
+/**
+ * cdl_append: appends 'item' after last item of 'list'
+   RETURNS HEAD which may change if passed in null.
+ */
+cd_list_t* cdl_append(cd_list_t *head, cd_list_t *item)
+{
+	cd_list_t *last;
+    if (head) {
+        last = cdl_prev(head);
+		last->next = item;
+		head->prev = item;
+		item->prev = last;
+		item->next = head;
+        return head;
+	}else{
+		item->prev = item;
+		item->next = item;
+		return item;
+	}
+}
+
+/**
+ * cdl_delete: destroy 'item' from 'list'
+ * when 'item' holds a single value not to be freed
+ * RETURNS HEAD which may change
+ */
+cd_list_t *cdl_delete(cd_list_t *head, cd_list_t *item)
+{
+    cd_list_t *prev, *next, *ret;
+	ret = head;
+	if(!item ){
+		ERROR_MSG("cdl_delete: no head or item\n");
+		return ret;
+	}
+	if(head){
+		if(item == head) ret = head->next;
+		if(head->next = head) ret = NULL;
+	}
+	prev = cdl_prev(item);
+	next = cdl_next(item);
+	prev->next = next;
+	next->prev = prev;
+	XFREE(item);
+	return ret;
+}
+
+
+/**
+ * cdl_delete2: destroy element 'item' from list 'list'
+ * when 'item' holds a pointer to be freed with f
+ * RETURNS HEAD which may change
+ */
+cd_list_t * cdl_delete2(cd_list_t *head, cd_list_t *item, f_free_t f)
+{
+    cd_list_t *prev, *next, *ret;
+	ret = head;
+	if(!item ){
+		ERROR_MSG("cdl_delete2: no head or item\n");
+		return ret;
+	}
+	if(head){
+		if(item == head) ret = head->next;
+		if(head->next = head) ret = NULL;
+	}
+	prev = cdl_prev(item);
+	next = cdl_next(item);
+	prev->next = next;
+	next->prev = prev;
+    if(cdl_elem(item)) {
+		f(cdl_elem(item));
+    } else {
+		ERROR_MSG("cdl_delete2: *error* deleting empty item %p from list %p\n", item, head);
+    }
+	XFREE(item);
+	return ret;
+}
+
+/**
+ * cdl_delete: destroy all items from list 'list' when
+ * items hold a single value not to be freed
+ */
+void cdl_delete_all(cd_list_t *head)
+{
+    cd_list_t *next, *list;
+	list = head;
+	if(list)
+    do{
+        next = cdl_next(list);
+        XFREE(list);
+        list = next;
+    }while(list != head);
+}
+
+/**
+ * cdl_delete2: destroy all items from 'list' when
+ * items hold a pointer to be freed with f
+ */
+void cdl_delete_all2(cd_list_t *head, f_free_t f)
+{
+    cd_list_t *list, *next;
+    list = head;
+    if (!f) f = free;
+	if(head)
+    do{
+        if (cdl_elem(list)) {
+            f(cdl_elem(list));
+        } else {
+			ERROR_MSG("cdl_delete_all2: *error* deleting empty item %p from list %p\n", list, head);
+		}
+        next = cdl_next(list);
+        XFREE(list);
+        list = next;
+    }while(list != head);
+}
+
+/**
+ * cdl_get: get item list[index] is if list 
+ * was an array
+ */
+cd_list_t* cdl_get(cd_list_t* head, int index)
+{
+	cd_list_t* list;
+    int i = 0;
+    
+	list = head;
+	if(head)
+    do {
+		if (i == index)
+			return list;
+		list = cdl_next(list);
+		i++;
+    }while(list != head);
+    return NULL;
+}
+
+void cdl_dump(cd_list_t *head)
+{
+	TRACE_MSG("cdl_dump (%p) : ", head);
+	cdl_foreach(list, TRACE_MSG("%p ", __l));
+	TRACE_MSG("\n");
+}
+
+void cdl_dump_char(cd_list_t *head)
+{
+	TRACE_MSG("cdl_dump_char (%p) : ", head);
+	cdl_foreach(list, TRACE_MSG("%s ", (char*)cdl_elem(__l)));
 	TRACE_MSG("\n");
 }

@@ -33,6 +33,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 // LIST
 ////////////////////////////////////////////////////////////////////////////////////////////
+/* singly linked */
 
 typedef struct _s_list_t {
 
@@ -72,6 +73,45 @@ extern s_list_t* ml_get(s_list_t *list, int index);
 				  }
 extern void ml_dump(s_list_t *list);
 extern void ml_dump_char(s_list_t *list);
+
+
+/* circlularly doubly linked */
+typedef struct _cd_list_t {
+    void *elem;
+    struct _cd_list_t *next;
+    struct _cd_list_t *prev;
+} cd_list_t;
+
+#define cdl_elem(_item) (_item->elem)
+#define cdl_next(_item) (_item->next)
+#define cdl_prev(_item) (_item->prev)
+#define cdl_last(_head) (_head->prev)
+
+extern cd_list_t* cdl_new(const void *elem);
+extern int       cdl_count(cd_list_t *head);
+extern cd_list_t* cdl_find(cd_list_t *head, cd_list_t *item);
+extern cd_list_t* cdl_find_elem(cd_list_t *head, void *elem);
+extern cd_list_t* cdl_insert(cd_list_t *head, cd_list_t *point, cd_list_t *item);
+extern cd_list_t* cdl_append(cd_list_t *head, cd_list_t *item);
+extern cd_list_t* cdl_delete(cd_list_t *head, cd_list_t *item);
+extern cd_list_t* cdl_delete2(cd_list_t *head, cd_list_t *item, f_free_t f);
+extern void      cdl_delete_all(cd_list_t *head);
+extern void      cdl_delete_all2(cd_list_t *head, f_free_t f);
+extern cd_list_t* cdl_get(cd_list_t *head, int index);
+
+#define cdl_foreach(_head,_action) {\
+					cd_list_t *__l;\
+					cd_list_t *next;\
+					__l=head;\
+					if(__l) do {\
+						next = cdl_next(__l); /* we need to get next from __l before action deletes element */ \
+						_action;\
+						__l = next; \
+					}while(__l != head);\
+				  }
+extern void cdl_dump(cd_list_t *list);
+extern void cdl_dump_char(cd_list_t *list);
+
 
 
 #endif /* __LIBFREEWRL_LIST_H__ */
