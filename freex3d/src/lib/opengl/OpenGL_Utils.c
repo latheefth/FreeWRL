@@ -2928,7 +2928,6 @@ void startOfLoopNodeUpdates(void) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				killNode(i); 
-				p->memoryTable[i] = NULL; //fix for 46.wrl
 			} else {
 				/* turn OFF these flags */
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Sensitive);
@@ -3626,14 +3625,15 @@ static void killNode (int index) {
 	DELETE_IF_IN_PRODCON(viewpointNodes);
 	delete_first(structptr);
 	
+#ifdef _ANDROID_MAYBE
 	/* give this time for things to "settle" in terms of rendering, etc */
 	structptr->referenceCount --;
 	if (structptr->referenceCount > -10) {
 		//ConsoleMessage ("ref count for %p is just %d, waiting\n",structptr,structptr->referenceCount);
 		return;
 	}
-
 	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
+#endif
 
 	#ifdef VERBOSE
 	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,p->nextEntry);
@@ -3644,9 +3644,62 @@ static void killNode (int index) {
 	} printf ("\n");
 	#endif
 
+	/* unlink node */
+#define UNLINK_NODE_BEFORE_DELETING_PARENTVECTOR 1
+	if(UNLINK_NODE_BEFORE_DELETING_PARENTVECTOR){
+		/* remove as parent to any children */
+		if(structptr->_nodeType == NODE_Transform || structptr->_nodeType == NODE_Group){
+			struct Multi_Node* mfn = NULL;
+			switch(structptr->_nodeType){
+				case NODE_Transform:
+					mfn = &X3D_TRANSFORM(structptr)->children;
+					break;
+				case NODE_Group:
+					mfn = &X3D_GROUP(structptr)->children;
+					break;
+				default:
+					break;
+			}
+			if(mfn && mfn->n){
+				int j;
+				for(j=0;j<mfn->n;j++)
+					remove_parent(mfn->p[j],structptr);
+			}
+		}
+		/* remove as child to any parent */
+		if(structptr->_parentVector && structptr->_parentVector->n){
+			int j;
+			for(j=0;j<vectorSize(structptr->_parentVector);j++){
+				struct X3D_Node *pp;
+				struct Multi_Node* mfn = NULL;
+				pp = vector_get(struct X3D_Node *,structptr->_parentVector, j);
+				switch(pp->_nodeType){
+					case NODE_Transform:
+						mfn = &X3D_TRANSFORM(structptr)->children;
+						break;
+					case NODE_Group:
+						mfn = &X3D_GROUP(structptr)->children;
+						break;
+					default:
+						break;
+				}
+				if(mfn && mfn->n){
+					int j,k;
+					k = 0;
+					for(j=0;j<mfn->n;j++){
+						if( mfn->p[j] != structptr){
+							mfn->p[k] = mfn->p[j];
+							k++;
+						}
+					}
+					mfn->n = k;
+				}
+			}
+		}
+	}
 	/* delete parent vector. */
  	deleteVector(char*, structptr->_parentVector);
-
+	/* clear child vector - done below */
 
 	fieldOffsetsPtr = (int *)NODE_OFFSETS[structptr->_nodeType];
 	/*go thru all field*/				
