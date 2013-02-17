@@ -3675,10 +3675,10 @@ static void killNode (int index) {
 				pp = vector_get(struct X3D_Node *,structptr->_parentVector, j);
 				switch(pp->_nodeType){
 					case NODE_Transform:
-						mfn = &X3D_TRANSFORM(structptr)->children;
+						mfn = &X3D_TRANSFORM(pp)->children;
 						break;
 					case NODE_Group:
-						mfn = &X3D_GROUP(structptr)->children;
+						mfn = &X3D_GROUP(pp)->children;
 						break;
 					default:
 						break;
