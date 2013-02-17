@@ -2111,7 +2111,7 @@ void propagate_events_B() {
 			fromOffset = p->CRoutes[counter].fnptr;
 			extra = p->CRoutes[counter].extra;
 			len = p->CRoutes[counter].len; //this has -ve sentinal values - we'll ignor it
-
+			len = returnElementLength(fromNode->_nodeType);
 			switch(fromNode->_nodeType)
 			{
 				case NODE_ShaderProgram:
