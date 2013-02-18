@@ -4698,16 +4698,21 @@ void shallow_copy_field(int typeIndex, union anyVrml* source, union anyVrml* des
 	if(isMF)
 	{
 		int nele;
+		char *ps, *pd;
 		mfs = (struct Multi_Node*)source;
 		mfd = (struct Multi_Node*)dest;
 		//we need to malloc and do more copying
 		nele = mfs->n;
-		if(sftype == FIELDTYPE_SFNode) nele = upper_power_of_two(nele);
+		if( sftype == FIELDTYPE_SFNode ) nele = upper_power_of_two(nele);
 		mfd->p = MALLOC (struct X3D_Node **, isize*nele);
 		mfd->n = mfs->n;
+		ps = (char *)mfs->p;
+		pd = (char *)mfd->p;
 		for(i=0;i<mfs->n;i++)
 		{
-			shallow_copy_field(sftype,(union anyVrml*)&mfs->p[i],(union anyVrml*)&mfd->p[i]);
+			shallow_copy_field(sftype,(union anyVrml*)ps,(union anyVrml*)pd);
+			ps += isize;
+			pd += isize;
 		}
 	}else{ 
 		//isSF
