@@ -1456,13 +1456,709 @@ static void setup_viewpoint() {
 
 }
 
-extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
-void dump_scenegraph()
+#define Boolean int
+
+/* Return DEFed name from its node, or NULL if not found */
+int isNodeDEFedYet(struct X3D_Node *node, Stack *DEFedNodes)
+{
+	int ind;
+	if(DEFedNodes == NULL) return 0;
+	for (ind=0; ind < DEFedNodes->n; ind++) {
+		/* did we find this index? */
+		if (vector_get(struct X3D_Node*, DEFedNodes, ind) == node) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+char * dontRecurseList [] = {
+	"_sortedChildren", 
+	NULL,
+};
+int doRecurse(const char *fieldname){
+	int dont, j;
+	dont = 0;
+	j=0;
+	while(dontRecurseList[j] != NULL)
+	{
+		dont = dont || !strcmp(dontRecurseList[j],fieldname);
+		j++;
+	}
+	return dont == 0 ? 1 : 0;
+}
+void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes);
+// print_field is used by dump_scene2() to pretty-print a single field.
+// recurses into dump_scene2 for SFNode and MFNodes to print them in detail.
+void print_field(FILE *fp,int level, int typeIndex, const char* fieldName, union anyVrml* value, Stack* DEFedNodes)
+{
+	int lc, i;
+	#define spacer	for (lc=0; lc<level; lc++) fprintf (fp," ");
+
+	switch(typeIndex)
+	{
+		case FIELDTYPE_FreeWRLPTR:
+		{
+			fprintf(fp," %p \n",(void *)value);
+			break;
+		}
+		case FIELDTYPE_SFNode:
+		{
+			int dore;
+			struct X3D_Node** sfnode = (struct X3D_Node**)value;
+			dore = doRecurse(fieldName);
+			fprintf (fp,":\n"); dump_scene2(fp,level+1,*sfnode,dore,DEFedNodes); 
+			break;
+		}
+		case FIELDTYPE_MFNode:
+		{
+			int j, dore;
+			struct Multi_Node* mfnode;
+			dore = doRecurse(fieldName);
+			mfnode = (struct Multi_Node*)value;
+			fprintf(fp,":\n");
+			for(j=0;j<mfnode->n;j++)
+				dump_scene2(fp,level+1,mfnode->p[j],dore,DEFedNodes);
+			break;
+		}
+		case FIELDTYPE_SFString:
+		{
+			struct Uni_String** sfstring = (struct Uni_String**)value;
+			fprintf (fp," \t%s\n",(*sfstring)->strptr);
+			break;
+		}
+		case FIELDTYPE_MFString:
+		{
+			struct Multi_String* mfstring = (struct Multi_String*)value;
+			fprintf (fp," : \n");
+			for (i=0; i<mfstring->n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,mfstring->p[i]->strptr); }
+			break;
+		}
+		case FIELDTYPE_SFFloat:
+		{
+			float *flt = (float*)value;
+			fprintf (fp," \t%4.3f\n",*flt);
+			break;
+		}
+		case FIELDTYPE_MFFloat:
+		{
+			struct Multi_Float *mffloat = (struct Multi_Float*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mffloat->n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,mffloat->p[i]); }
+			break;
+		}
+		case FIELDTYPE_SFTime:
+		case FIELDTYPE_SFDouble:
+		{
+			double *sftime = (double*)value;
+			fprintf (fp," \t%4.3f\n",*sftime);
+			break;
+		}
+		case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFDouble:
+		{
+			struct Multi_Double *mfdouble = (struct Multi_Double*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfdouble->n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,mfdouble->p[i]); }
+			break;
+		}
+		case FIELDTYPE_SFInt32:
+		case FIELDTYPE_SFBool:
+		{
+			int *sfint32 = (int*)(value);
+			fprintf (fp," \t%d\n",*sfint32);
+			break;
+		}
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_MFBool:
+		{
+			struct Multi_Int32 *mfint32 = (struct Multi_Int32*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfint32->n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,mfint32->p[i]); }
+			break;
+		}
+		case FIELDTYPE_SFVec2f:
+		{
+			struct SFVec2f * sfvec2f = (struct SFVec2f *)value;
+			fprintf (fp,": \t");
+			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",sfvec2f->c[i]); }
+			fprintf (fp,"\n");
+			break;
+		}
+		case FIELDTYPE_MFVec2f:
+		{
+			struct Multi_Vec2f *mfvec2f = (struct Multi_Vec2f*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfvec2f->n; i++) 
+				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,mfvec2f->p[i].c[0], mfvec2f->p[i].c[1]); }
+			break;
+		}
+		case FIELDTYPE_SFVec2d:
+		{
+			struct SFVec2d * sfvec2d = (struct SFVec2d *)value;
+			fprintf (fp,": \t");
+			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",sfvec2d->c[i]); }
+			fprintf (fp,"\n");
+			break;
+		}
+		case FIELDTYPE_MFVec2d:
+		{
+			struct Multi_Vec2d *mfvec2d = (struct Multi_Vec2d*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfvec2d->n; i++) 
+				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,mfvec2d->p[i].c[0], mfvec2d->p[i].c[1]); }
+			break;
+		}
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor:
+		{
+			struct SFVec3f * sfvec3f = (struct SFVec3f *)value;
+			fprintf (fp,": \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",sfvec3f->c[i]); }
+			fprintf (fp,"\n");
+			break;
+		}
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFColor:
+		{
+			struct Multi_Vec3f *mfvec3f = (struct Multi_Vec3f*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfvec3f->n; i++) 
+				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,mfvec3f->p[i].c[0], mfvec3f->p[i].c[1],mfvec3f->p[i].c[2]); }
+			break;
+		}
+		case FIELDTYPE_SFVec3d:
+		{
+			struct SFVec3d * sfvec3d = (struct SFVec3d *)value;
+			fprintf (fp,": \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",sfvec3d->c[i]); }
+			fprintf (fp,"\n");
+			break;
+		}
+		case FIELDTYPE_MFVec3d:
+		{
+			struct Multi_Vec3d *mfvec3d = (struct Multi_Vec3d*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfvec3d->n; i++) 
+				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f]\n",i,mfvec3d->p[i].c[0], mfvec3d->p[i].c[1],mfvec3d->p[i].c[2]); }
+			break;
+		}
+		case FIELDTYPE_SFVec4f:
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_SFRotation:
+		{
+			struct SFRotation * sfrot = (struct SFRotation *)value;
+			fprintf (fp,": \t");
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",sfrot->c[i]); }
+			fprintf (fp,"\n");
+			break;
+		}
+		case FIELDTYPE_MFVec4f:
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFRotation:
+		{
+			struct Multi_ColorRGBA *mfrgba = (struct Multi_ColorRGBA*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfrgba->n; i++) 
+				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,mfrgba->p[i].c[0], mfrgba->p[i].c[1],mfrgba->p[i].c[2],mfrgba->p[i].c[3]); }
+			break;
+		}
+		case FIELDTYPE_SFVec4d:
+		{
+			struct SFVec4d * sfvec4d = (struct SFVec4d *)value;
+			fprintf (fp,": \t");
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",sfvec4d->c[i]); }
+			fprintf (fp,"\n");
+			break;
+		}
+		case FIELDTYPE_MFVec4d:
+		{
+			struct Multi_Vec4d *mfvec4d = (struct Multi_Vec4d*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfvec4d->n; i++) 
+				{ spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,mfvec4d->p[i].c[0], mfvec4d->p[i].c[1],mfvec4d->p[i].c[2],mfvec4d->p[i].c[3]); }
+			break;
+		}
+		case FIELDTYPE_SFMatrix3f:
+		{
+			struct SFMatrix3f *sfmat3f = (struct SFMatrix3f*)value;
+			spacer fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",			
+			sfmat3f->c[0],sfmat3f->c[1],sfmat3f->c[2],
+			sfmat3f->c[3],sfmat3f->c[4],sfmat3f->c[5],
+			sfmat3f->c[6],sfmat3f->c[7],sfmat3f->c[8]);
+			break;
+		}
+		case FIELDTYPE_MFMatrix3f:
+		{
+			struct Multi_Matrix3f *mfmat3f = (struct Multi_Matrix3f*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfmat3f->n; i++) { 
+				spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,
+				mfmat3f->p[i].c[0],mfmat3f->p[i].c[1],mfmat3f->p[i].c[2],
+				mfmat3f->p[i].c[3],mfmat3f->p[i].c[4],mfmat3f->p[i].c[5],
+				mfmat3f->p[i].c[6],mfmat3f->p[i].c[7],mfmat3f->p[i].c[8]); }
+			break;
+		}
+		case FIELDTYPE_SFMatrix3d:	
+		{
+			struct SFMatrix3d *sfmat3d = (struct SFMatrix3d*)value;
+			spacer fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",			
+			sfmat3d->c[0],sfmat3d->c[1],sfmat3d->c[2],
+			sfmat3d->c[3],sfmat3d->c[4],sfmat3d->c[5],
+			sfmat3d->c[6],sfmat3d->c[7],sfmat3d->c[8]);
+			break;
+		}
+		case FIELDTYPE_MFMatrix3d:
+		{
+			struct Multi_Matrix3d *mfmat3d = (struct Multi_Matrix3d*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfmat3d->n; i++) { 
+				spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,
+				mfmat3d->p[i].c[0],mfmat3d->p[i].c[1],mfmat3d->p[i].c[2],
+				mfmat3d->p[i].c[3],mfmat3d->p[i].c[4],mfmat3d->p[i].c[5],
+				mfmat3d->p[i].c[6],mfmat3d->p[i].c[7],mfmat3d->p[i].c[8]); }
+			break;
+		}
+		case FIELDTYPE_SFMatrix4f:
+		{
+			struct SFMatrix4f *sfmat4f = (struct SFMatrix4f*)value;
+			fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",
+			sfmat4f->c[0],sfmat4f->c[1],sfmat4f->c[2],sfmat4f->c[3],
+			sfmat4f->c[4],sfmat4f->c[5],sfmat4f->c[6],sfmat4f->c[7],
+			sfmat4f->c[8],sfmat4f->c[9],sfmat4f->c[10],sfmat4f->c[11],
+			sfmat4f->c[12],sfmat4f->c[13],sfmat4f->c[14],sfmat4f->c[15]); 
+			break;
+		}
+		case FIELDTYPE_MFMatrix4f:
+		{
+			struct Multi_Matrix4f *mfmat4f = (struct Multi_Matrix4f*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfmat4f->n; i++) { 
+				spacer 
+				fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,
+				mfmat4f->p[i].c[0],mfmat4f->p[i].c[1],mfmat4f->p[i].c[2],mfmat4f->p[i].c[3],
+				mfmat4f->p[i].c[4],mfmat4f->p[i].c[5],mfmat4f->p[i].c[6],mfmat4f->p[i].c[7],
+				mfmat4f->p[i].c[8],mfmat4f->p[i].c[9],mfmat4f->p[i].c[10],mfmat4f->p[i].c[11],
+				mfmat4f->p[i].c[12],mfmat4f->p[i].c[13],mfmat4f->p[i].c[14],mfmat4f->p[i].c[15]); }
+			break;
+		}
+		case FIELDTYPE_SFMatrix4d:
+		{
+			struct SFMatrix4d *sfmat4d = (struct SFMatrix4d*)value;
+			fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",
+			sfmat4d->c[0],sfmat4d->c[1],sfmat4d->c[2],sfmat4d->c[3],
+			sfmat4d->c[4],sfmat4d->c[5],sfmat4d->c[6],sfmat4d->c[7],
+			sfmat4d->c[8],sfmat4d->c[9],sfmat4d->c[10],sfmat4d->c[11],
+			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]); 
+			break;
+		}
+		case FIELDTYPE_MFMatrix4d:	break;
+		{
+			struct Multi_Matrix4d *mfmat4d = (struct Multi_Matrix4d*)value;
+			fprintf (fp," :\n");
+			for (i=0; i<mfmat4d->n; i++) { 
+				spacer 
+				fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",i,
+				mfmat4d->p[i].c[0],mfmat4d->p[i].c[1],mfmat4d->p[i].c[2],mfmat4d->p[i].c[3],
+				mfmat4d->p[i].c[4],mfmat4d->p[i].c[5],mfmat4d->p[i].c[6],mfmat4d->p[i].c[7],
+				mfmat4d->p[i].c[8],mfmat4d->p[i].c[9],mfmat4d->p[i].c[10],mfmat4d->p[i].c[11],
+				mfmat4d->p[i].c[12],mfmat4d->p[i].c[13],mfmat4d->p[i].c[14],mfmat4d->p[i].c[15]); }
+			break;
+		}
+
+		case FIELDTYPE_SFImage: 
+		{
+			fprintf(fp," %p \n",(void *)value); //no SFImage struct defined
+			break;
+		}
+	}
+} //return print_field
+
+/*
+dump_scene2() is like dump_scene() - a way to printf all the nodes and their fields,
+when you hit a key on the keyboard ie '|'
+and recurse if a field is an SFNode or MFNode, tabbing in and out to show the recursion level
+- except dump_scene2 iterates over fields in a generic way to get all fields
+- could be used as an example for deep copying binary nodes
+- shows script/user fields and built-in fields
+*/
+void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes) {
+	#define spacer	for (lc=0; lc<level; lc++) fprintf (fp," ");
+	int lc;
+	int i;
+	int isDefed;
+	char *nodeName;
+	//(int) FIELDNAMES_children, (int) offsetof (struct X3D_Group, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	typedef struct field_info{
+		int nameIndex;
+		int offset;
+		int typeIndex;
+		int ioType;
+		int version;
+	} *finfo;
+	finfo offsets;
+	finfo field;
+	int ifield;
+
+	#ifdef FW_DEBUG
+		Boolean allFields;
+		if (fileno(fp) == fileno(stdout)) { allFields = TRUE; } else { allFields = FALSE; }
+	#else
+		Boolean allFields = FALSE;
+	#endif
+	/* See vi +/double_conditional codegen/VRMLC.pm */
+	if (node==NULL) return; 
+
+	fflush(fp);
+	if (level == 0) fprintf (fp,"starting dump_scene2\n");
+	nodeName = parser_getNameFromNode(node) ;
+	isDefed = isNodeDEFedYet(node,DEFedNodes);
+	spacer fprintf (fp,"L%d: node (%p) (",level,node);
+	if(nodeName != NULL)
+		if(isDefed)
+			fprintf(fp,"USE %s",nodeName);
+		else
+			fprintf(fp,"DEF %s",nodeName);
+	fprintf(fp,") type %s\n",stringNodeType(node->_nodeType));
+	//fprintf(fp,"recurse=%d ",recurse);
+	if(recurse && !isDefed)
+	{
+		vector_pushBack(struct X3D_Node*, DEFedNodes, node);
+		offsets = (finfo)NODE_OFFSETS[node->_nodeType];
+		ifield = 0;
+		field = &offsets[ifield];
+		while( field->nameIndex > -1) //<< generalized for scripts and builtins?
+		{
+			int privat;
+			privat = FIELDNAMES[field->nameIndex][0] == '_';
+			privat = privat && strcmp(FIELDNAMES[field->nameIndex],"__scriptObj");
+			privat = privat && strcmp(FIELDNAMES[field->nameIndex],"__protoDef");
+			if(allFields || !privat)
+			{
+				spacer
+				fprintf(fp," %s",FIELDNAMES[field->nameIndex]); //[0]]);
+				fprintf(fp," (%s)",FIELDTYPES[field->typeIndex]); //field[2]]);
+				if(node->_nodeType == NODE_Script && !strcmp(FIELDNAMES[field->nameIndex],"__scriptObj") )
+				{
+					int k;
+					struct Vector *sfields;
+					struct ScriptFieldDecl *sfield;
+					struct FieldDecl *fdecl;
+					struct Shader_Script *sp;
+					struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+					sp = *(struct Shader_Script **)&((char*)node)[field->offset];
+					fprintf(fp,"loaded = %d\n",sp->loaded);
+					sfields = sp->fields;
+					//fprintf(fp,"sp->fields->n = %d\n",sp->fields->n);
+					for(k=0;k<sfields->n;k++)
+					{
+						char *fieldName;
+						sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+						//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+						fdecl = sfield->fieldDecl;
+						fieldName = fieldDecl_getShaderScriptName(fdecl);
+						fprintf(fp,"  %s",fieldName);
+						//fprintf(fp," (%s)",FIELDTYPES[field->typeIndex]); //field[2]]);
+						fprintf(fp," (%s)", stringFieldtypeType(fdecl->fieldType)); //fdecl->fieldType)
+						fprintf(fp," %s ",stringPROTOKeywordType(fdecl->PKWmode));
+						
+						if(fdecl->PKWmode == PKW_initializeOnly)
+							print_field(fp,level,fdecl->fieldType,fieldName,&(sfield->value),DEFedNodes);
+						else
+							fprintf(fp,"\n");
+					}
+					level--;
+				}
+				else if(node->_nodeType == NODE_Proto && !strcmp(FIELDNAMES[field->nameIndex],"__protoDef") )
+				{
+					int k, mode;
+					struct Vector* usernames[4];
+					const char **userArr;
+					struct ProtoFieldDecl* pfield;
+					struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+					struct VRMLLexer* lexer;
+					struct VRMLParser *globalParser;
+					struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+					if(pstruct){
+						globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+						lexer = (struct VRMLLexer*)globalParser->lexer;
+						usernames[0] = lexer->user_initializeOnly;
+						usernames[1] = lexer->user_inputOnly;
+						usernames[2] = lexer->user_outputOnly;
+						usernames[3] = lexer->user_inputOutput;
+						fprintf(fp," user fields:\n");
+						level++;
+						if(pstruct->iface)
+						for(k=0; k!=vectorSize(pstruct->iface); ++k)
+						{
+							const char *fieldName;
+							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, k);
+							mode = pfield->mode;
+							#define X3DMODE(val)  ((val) % 4)
+							userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+							fieldName = userArr[pfield->name];
+							spacer
+							fprintf(fp," %p ",(void*)pfield);
+							fprintf(fp,"  %s",fieldName);
+							fprintf(fp," (%s)", stringFieldtypeType(pfield->type)); //fdecl->fieldType)
+							fprintf(fp," %s ",stringPROTOKeywordType(pfield->mode));
+							
+							if(pfield->mode == PKW_initializeOnly || pfield->mode == PKW_inputOutput)
+								print_field(fp,level,pfield->type,fieldName,&(pfield->defaultVal),DEFedNodes);
+							else
+								fprintf(fp,"\n");
+						}
+						level--;
+					}
+				}else{
+					union anyVrml* any_except_PTR = (union anyVrml*)&((char*)node)[field->offset];
+					print_field(fp,level,field->typeIndex,FIELDNAMES[field->nameIndex],any_except_PTR,DEFedNodes);
+				}
+			}
+			ifield++;
+			field = &offsets[ifield];
+		}
+	}
+	fflush(fp) ;
+	spacer fprintf (fp,"L%d end\n",level);
+	if (level == 0) fprintf (fp,"ending dump_scene2\n");
+}
+
+/* deep_copy2() - experimental keyboard reachable deepcopy function */
+void deep_copy2(int iopt, char* defname)
+{
+	struct X3D_Node* node;
+	char *name2;
+	node = NULL;
+	ConsoleMessage("in deep_copy2 - for copying a node and its fields\n");
+	ConsoleMessage("got iopt=%d defname=%s\n",iopt,defname);
+	if(iopt == 0) return;
+	if(iopt == 1)
+	{
+		node = parser_getNodeFromName(defname);
+	}
+	if(iopt == 2)
+	{
+		node = (struct X3D_Node*)rootNode();
+	}
+	if(iopt == 3)
+	{
+		sscanf(defname,"%p",&node);
+	}
+	if( checkNode(node, NULL, 0) )
+	{
+		name2 = parser_getNameFromNode(node);
+		if(name2 != NULL)
+			ConsoleMessage("You entered %s\n",name2);
+		else
+			ConsoleMessage("Node exists!\n");
+	}else{
+		ConsoleMessage("Node does not exist.\n");
+	}
+}
+
+void print_DEFed_node_names_and_pointers(FILE* fp)
+{
+	int ind,j,jj,nstack,nvector;
+	char * name;
+	struct X3D_Node * node;
+	struct Vector *curNameStackTop;
+	struct Vector *curNodeStackTop;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	
+	fprintf(fp,"DEFedNodes ");
+	if(globalParser->DEFedNodes == NULL)
+	{
+		fprintf(fp," NULL\n");
+		return;
+	}
+	nstack = globalParser->lexer->userNodeNames->n;
+	fprintf(fp," lexer namespace vectors = %d\n",nstack);
+	for(j=0;j<nstack;j++)
+	{
+		curNameStackTop = vector_get(struct Vector *, globalParser->lexer->userNodeNames,j);
+		curNodeStackTop = vector_get(struct Vector *, globalParser->DEFedNodes,j);
+		if(curNameStackTop && curNodeStackTop)
+		{
+			nvector = vectorSize(curNodeStackTop);
+			for(jj=0;jj<j;jj++) fprintf(fp,"  ");
+			fprintf(fp,"vector %d name count = %d\n",j,nvector);
+			for (ind=0; ind < nvector; ind++) 
+			{
+				for(jj=0;jj<j;jj++) fprintf(fp,"  ");
+				node = vector_get(struct X3D_Node*,curNodeStackTop, ind);
+				name = vector_get(char *,curNameStackTop, ind);
+				fprintf (fp,"L%d: node (%p) name (%s) \n",jj,node,name);
+			}
+		}
+	}
+}
+char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
+{
+	if( node->_nodeType != NODE_Script)
+		return findFIELDNAMESfromNodeOffset(node,offset);
+  #ifdef HAVE_JAVASCRIPT
+	{
+		struct Vector* fields;
+		struct ScriptFieldDecl* curField;
+
+		struct Shader_Script *myObj = X3D_SCRIPT(node)->__scriptObj;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+		fields = myObj->fields;
+		curField = vector_get(struct ScriptFieldDecl*, fields, offset);
+		return fieldDecl_getShaderScriptName(curField->fieldDecl);
+	}
+  #else
+	return "script";
+  #endif
+
+}
+void print_routes(FILE* fp)
+{
+	int numRoutes;
+	int count;
+	struct X3D_Node *fromNode;
+	struct X3D_Node *toNode;
+	int fromOffset;
+	int toOffset;
+	char *fromName;
+	char *toName;
+
+	numRoutes = getRoutesCount();
+	fprintf(fp,"Number of Routes %d\n",numRoutes-2);
+	if (numRoutes < 2) {
+		return;
+	}
+
+	/* remember, in the routing table, the first and last entres are invalid, so skip them */
+	for (count = 1; count < (numRoutes-1); count++) {
+		getSpecificRoute (count,&fromNode, &fromOffset, &toNode, &toOffset);
+		fromName = parser_getNameFromNode(fromNode);
+		toName   = parser_getNameFromNode(toNode);
+
+		fprintf (fp, " %p %s.%s TO %p %s.%s \n",fromNode,fromName,
+			findFIELDNAMESfromNodeOffset0(fromNode,fromOffset),
+			toNode,toName,
+			findFIELDNAMESfromNodeOffset0(toNode,toOffset)
+			);
+	}
+}
+static struct consoleMenuState
+{
+	int active;
+	void (*f)(void*,char*);
+	char buf[100];
+	int len;
+	char *dfault;
+	void *yourData;
+} ConsoleMenuState;
+int consoleMenuActive()
+{
+	return ConsoleMenuState.active;
+}
+#ifdef _MSC_VER
+#define KEYPRESS 1
+#define KEYDOWN 2
+#define KEYUP 3
+#else
+#define KEYDOWN 2
+#endif
+
+void addMenuChar(kp,type)
+{
+	char str[100];
+	void (*callback)(void*,char*);
+	void *yourData;
+#ifdef _MSC_VER
+	if(type == KEYPRESS)
+#else
+	if(type == KEYDOWN)
+#endif
+	if(kp == '\n' || kp == '\r')
+	{
+		ConsoleMessage("\n");
+		if(ConsoleMenuState.len == 0) 
+			strcpy(str,ConsoleMenuState.dfault);
+		else
+			strcpy(str,ConsoleMenuState.buf);
+		callback = ConsoleMenuState.f;
+		yourData = ConsoleMenuState.yourData;
+		ConsoleMenuState.active = 0;
+		ConsoleMenuState.len = 0;
+		ConsoleMenuState.buf[0]= '\0';
+		ConsoleMenuState.dfault = NULL;
+		ConsoleMenuState.f = (void*)NULL;
+		callback(yourData,str);
+	}else{
+		ConsoleMessage("%c",kp);
+		ConsoleMenuState.buf[ConsoleMenuState.len] = kp;
+		ConsoleMenuState.len++;
+		ConsoleMenuState.buf[ConsoleMenuState.len] = '\0';
+	}
+}
+void setConsoleMenu(void *yourData, char *prompt, void (*callback), char* dfault)
+{
+	ConsoleMenuState.f = callback;
+	ConsoleMenuState.len = 0;
+	ConsoleMenuState.buf[0] = '\0';
+	ConsoleMenuState.active = TRUE;
+	ConsoleMenuState.dfault = dfault;
+	ConsoleMenuState.yourData = yourData;
+	ConsoleMessage(prompt);
+	ConsoleMessage("[%s]:",dfault);
+}
+void deep_copy_defname(void *myData, char *defname)
+{
+	int iopt;
+	ConsoleMessage("you entered defname: %s\n",defname);
+	memcpy(&iopt,myData,4);
+	deep_copy2(iopt,defname);
+	free(myData);
+}
+void deep_copy_option(void* yourData, char *opt)
+{
+	int iopt;
+	ConsoleMessage("you chose option %s\n",opt);
+	sscanf(opt,"%d",&iopt);
+	if(iopt == 0) return;
+	if(iopt == 1 || iopt == 3)
+	{
+		void* myData = malloc(4); //could store in gglobal->mainloop or wherever, then don't free in deep_copy_defname
+		memcpy(myData,&iopt,4);
+		setConsoleMenu(myData,"Enter DEFname or node address:", deep_copy_defname, "");
+	}
+	if(iopt == 2)
+		deep_copy2(iopt, NULL);
+}
+void dump_scenegraph(int method)
 {
 //#ifdef FW_DEBUG
-	dump_scene(stdout, 0, (struct X3D_Node*) rootNode());
+	if(method == 1) // '\\'
+		dump_scene(stdout, 0, (struct X3D_Node*) rootNode());
+	else if(method == 2) // '|'
+	{
+		Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
+		dump_scene2(stdout, 0, (struct X3D_Node*) rootNode(),1,DEFedNodes);
+		deleteVector(struct X3D_Node*,DEFedNodes);
+	}
+	else if(method == 3) // '='
+	{
+		print_DEFed_node_names_and_pointers(stdout);
+	}
+	else if(method == 4) // '+'
+	{
+		print_routes(stdout);
+	}
+	else if(method == 5) // '-'
+	{
+		//ConsoleMenuState.active = 1; //deep_copy2();
+		setConsoleMenu(NULL,"0. Exit 1.DEFname 2.ROOTNODE 3.node address", deep_copy_option, "0");
+	}
 //#endif
 }
+
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
@@ -1498,7 +2194,13 @@ void fwl_do_keyPress(const char kp, int type) {
                                 case 'y': { fwl_set_viewer_type (VIEWER_YAWPITCHZOOM); break; }
                                 case 'h': { fwl_toggle_headlight(); break;}
                                 case '/': { print_viewer(); break; }
-                                case '\\': { dump_scenegraph(); break; }
+                                //case '\\': { dump_scenegraph(); break; }
+                                case '\\': { dump_scenegraph(1); break; }
+                                case '|': { dump_scenegraph(2); break; }
+                                case '=': { dump_scenegraph(3); break; }
+                                case '+': { dump_scenegraph(4); break; }
+                                case '-': { dump_scenegraph(5); break; }
+
                                 case '$': resource_tree_dump(0, tg->resources.root_res); break;
                                 case '*': resource_tree_list_files(0, tg->resources.root_res); break;
                                 case 'q': { if (!RUNNINGASPLUGIN) {

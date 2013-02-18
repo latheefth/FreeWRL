@@ -81,7 +81,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0;
+		p->useBrotos = 1;
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -4432,6 +4432,7 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 			memcpy(ndecl,pdecl,sizeof(struct ProtoFieldDecl));  //.. the whole struct
 			protoDefinition_addIfaceField(nobj, ndecl);
 		}
+		p->__protoDef = nobj;
 	}
 	return p;
 }

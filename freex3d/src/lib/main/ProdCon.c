@@ -259,6 +259,8 @@ int fwl_isinputThreadParsing() {
 }
 void sceneInstance(struct X3D_Proto* proto, struct X3D_Group *scene);
 BOOL usingBrotos();
+void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes) ;
+
 /**
  *   parser_do_parse_string: actually calls the parser.
  */
@@ -286,6 +288,11 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, children), (const char*)input);
 			p->haveParsedCParsed = TRUE;
 			if (ret) {
+				if(0) {
+					Stack * DEFedNodes = newVector(struct X3D_Node*, 2);
+					dump_scene2(stdout, 0, (struct X3D_Node*) sceneProto,1,DEFedNodes);
+					deleteVector(struct X3D_Node*,DEFedNodes);
+				}
 				ConsoleMessage("starting scene Instancing...\n");
 				sceneInstance(sceneProto,nRn);
 				ConsoleMessage("...finished scene Instancing\n");
