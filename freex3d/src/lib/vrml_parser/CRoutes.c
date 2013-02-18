@@ -1380,6 +1380,7 @@ static void actually_do_CRoutes_Register() {
 			p->CRoutes[insert_here].tonode_count = 0;
 			p->CRoutes[insert_here].tonodes = NULL;
 			p->CRoutes[insert_here].len = returnRoutingElementLength(newEntry->fieldType);
+			p->CRoutes[insert_here].fieldType = newEntry->fieldType;
 			p->CRoutes[insert_here].interpptr = (void (*)(void*))newEntry->intptr;
 			p->CRoutes[insert_here].direction_flag = newEntry->scrdir;
 			p->CRoutes[insert_here].extra = newEntry->extra;
@@ -2110,8 +2111,15 @@ void propagate_events_B() {
 			fromNode = p->CRoutes[counter].routeFromNode;
 			fromOffset = p->CRoutes[counter].fnptr;
 			extra = p->CRoutes[counter].extra;
-			len = p->CRoutes[counter].len; //this has -ve sentinal values - we'll ignor it
-			len = returnElementLength(fromNode->_nodeType);
+			//len = p->CRoutes[counter].len; //this has -ve sentinal values - we need +ve
+			type = p->CRoutes[counter].fieldType;
+			isMF = type % 2;
+			sftype = type - isMF;
+			//from EAI_C_CommonFunctions.c
+			isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+			if(isMF) len = sizeof(int) + sizeof(void*);
+			else len = isize;
+
 			switch(fromNode->_nodeType)
 			{
 				case NODE_ShaderProgram:
@@ -2132,6 +2140,7 @@ void propagate_events_B() {
 						sfield= vector_get(struct ScriptFieldDecl*, shader->fields, fromOffset);
 						fromAny = &sfield->value;
 						type = sfield->fieldDecl->fieldType;
+						//len = returnElementLength(type)*returnElementRowSize(type);
 						if(fromNode->_nodeType == NODE_Script){
 							//continue; //let the gatherScriptEventOuts(); copy directly toNode.
 							//there's an expensive operation in here, and the route fanout doesn't work
@@ -2182,12 +2191,14 @@ void propagate_events_B() {
 					break;
 			}
 
+			/*
 			isMF = type % 2;
 			sftype = type - isMF;
 			//from EAI_C_CommonFunctions.c
 			isize = returnElementLength(sftype) * returnElementRowSize(sftype);
 			if(isMF) len = sizeof(int) + sizeof(void*);
 			else len = isize;
+			*/
 
 			for (to_counter = 0; to_counter < p->CRoutes[counter].tonode_count; to_counter++) {
 				to_ptr = &(p->CRoutes[counter].tonodes[to_counter]);

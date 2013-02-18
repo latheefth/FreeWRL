@@ -44,6 +44,7 @@ struct CRStruct {
         CRnodeStruct *tonodes;
         int     isActive;
         int     len;
+		int     fieldType; //fieldType
         void    (*interpptr)(void *); /* pointer to an interpolator to run */
         int     direction_flag; /* if non-zero indicates script in/out,
                                                    proto in/out */
