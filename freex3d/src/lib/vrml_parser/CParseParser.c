@@ -498,7 +498,7 @@ void parse_proto_body(struct VRMLParser* me)
 #ifdef CPARSERVERBOSE
                 printf("parser_vrmlScene: node parsed\n");
 #endif
-				printf("pp.children.n=%d\n",pp->children.n);
+				//printf("pp.children.n=%d\n",pp->children.n);
                 continue;
             }
         }
@@ -2604,6 +2604,7 @@ static BOOL parser_field_B(struct VRMLParser* me, struct X3D_Node* node)
 	   (if found in FIELDNAMES) or fieldE (if found in EXPOSED_FIELD).  
        If the fieldname is found in neither array, lexer_field will return FALSE. */
 	SAVEUP
+
     if(!lexer_field(me->lexer, &fieldO, &fieldE, NULL, NULL))
 	{
         /* If lexer_field does return false, this is an inputOnly/outputOnly IS user_definedField statement.  
@@ -3550,6 +3551,14 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			nextIn = me->lexer->nextIn;
 			curID = me->lexer->curID;
 
+
+			if(SPLIT_SCRIPTUSERFIELD_CREATION_FROM_VALUEPARSING)
+			if(parser_field_user(me,node)) {
+				continue;
+			}
+			nextIn = me->lexer->nextIn;
+			curID = me->lexer->curID;
+
 			/*check for builtin field value on builtin node or usernode/protoInstance*/
             if(parser_field(me, node)) {
 #ifdef CPARSERVERBOSE
@@ -3560,12 +3569,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			nextIn = me->lexer->nextIn;
 			curID = me->lexer->curID;
 
-			if(SPLIT_SCRIPTUSERFIELD_CREATION_FROM_VALUEPARSING)
-			if(parser_field_user(me,node)) {
-				continue;
-			}
-			nextIn = me->lexer->nextIn;
-			curID = me->lexer->curID;
 
             /* Try to parse the next statement as a ROUTE (i.e. statement starts with ROUTE).  This checks that the ROUTE statement is valid (i.e. that the referenced node and field combinations  
                exist, and that they are compatible) and then adds the route to either the CRoutes table of routes, or adds a new ProtoRoute structure to the vector 
