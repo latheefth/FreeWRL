@@ -2506,6 +2506,7 @@ static void sortChildren (int line, struct Multi_Node *ch, struct Multi_Node *so
 	if (ch->n != sortedCh->n) {
 		FREE_IF_NZ(sortedCh->p);
 		sortedCh->p = MALLOC (void *, sizeof (struct X3DNode *) * ch->n);
+		memcpy(sortedCh->p,ch->p,(ch->n)*sizeof(struct X3DNode *));
 	}
 
 	#ifdef VERBOSE
