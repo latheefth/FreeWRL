@@ -1997,7 +1997,40 @@ void print_DEFed_node_names_and_pointers(FILE* fp)
 char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
 {
 	if( node->_nodeType != NODE_Script)
-		return findFIELDNAMESfromNodeOffset(node,offset);
+	{
+		if( node->_nodeType == NODE_Proto )
+		{
+			int k, mode;
+			struct Vector* usernames[4];
+			char **userArr;
+			struct ProtoFieldDecl* pfield;
+			struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+			struct VRMLLexer* lexer;
+			struct VRMLParser *globalParser;
+			struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+			if(pstruct){
+				globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+				lexer = (struct VRMLLexer*)globalParser->lexer;
+				usernames[0] = lexer->user_initializeOnly;
+				usernames[1] = lexer->user_inputOnly;
+				usernames[2] = lexer->user_outputOnly;
+				usernames[3] = lexer->user_inputOutput;
+				if(pstruct->iface)
+				if(offset < vectorSize(pstruct->iface))
+				{
+					const char *fieldName;
+					pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, offset);
+					mode = pfield->mode;
+					#define X3DMODE(val)  ((val) % 4)
+					userArr = (char **)&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+					return userArr[pfield->name];
+				} else return NULL;
+			}else return NULL;
+		}
+		else
+		  //return (char *)FIELDNAMES[NODE_OFFSETS[node->_nodeType][offset*5]]; 
+		  return (char *)findFIELDNAMESfromNodeOffset(node,offset);
+	}
   #ifdef HAVE_JAVASCRIPT
 	{
 		struct Vector* fields;
@@ -2015,6 +2048,7 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
   #endif
 
 }
+void print_routes_ready_to_register(FILE* fp);
 void print_routes(FILE* fp)
 {
 	int numRoutes;
@@ -2026,6 +2060,7 @@ void print_routes(FILE* fp)
 	char *fromName;
 	char *toName;
 
+	print_routes_ready_to_register(fp);
 	numRoutes = getRoutesCount();
 	fprintf(fp,"Number of Routes %d\n",numRoutes-2);
 	if (numRoutes < 2) {
@@ -2813,6 +2848,7 @@ void checkFileLoadRequest()
 	// update 
 	if(fname)
 	{
+		//dump_scenegraph(2);
 		kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
 		Anchor_ReplaceWorld(fname);
 		free(fname);

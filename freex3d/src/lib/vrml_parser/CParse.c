@@ -174,6 +174,7 @@ char* parser_getNameFromNode(struct X3D_Node *node)
 	struct Vector *curNodeStackTop;
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	
+	if(globalParser == NULL) return NULL;
 	if(globalParser->lexer->userNodeNames == NULL) return NULL;
 	if(globalParser->lexer->userNodeNames->n == 0) return NULL; //or ->data == NULL
 	curNameStackTop = stack_top(struct Vector *, globalParser->lexer->userNodeNames);

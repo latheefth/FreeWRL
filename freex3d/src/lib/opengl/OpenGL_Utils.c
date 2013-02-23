@@ -2241,7 +2241,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	kill_bindables();
 	killKeySensorNodeList();
 
-
 	/* stop routing */
 	kill_routing();
 
@@ -2257,7 +2256,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
 	#endif
-
 
 	/* free EAI */
 	if (kill_EAI) {
@@ -2277,6 +2275,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 		//globalParser = NULL;
 		gglobal()->CParse.globalParser = NULL;
 	}
+
 	kill_X3DDefs();
 
 	/* tell statusbar that we have none */
@@ -2606,121 +2605,7 @@ void zeroVisibilityFlag(void) {
 
 /* go through the linear list of nodes, and do "special things" for special nodes, like
    Sensitive nodes, Viewpoint nodes, ... */
-//#define OLD_UPDATE_MACROS 1
-#ifdef OLD_UPDATE_MACROS
-#define CMD(TTT,YYY) \
-	/* printf ("nt %s change %d ichange %d\n",stringNodeType(X3D_NODE(YYY)->_nodeType),X3D_NODE(YYY)->_change, X3D_NODE(YYY)->_ichange); */ \
-	if (NODE_NEEDS_COMPILING) compile_Metadata##TTT((struct X3D_Metadata##TTT *) YYY)
 
-#define BEGIN_NODE(thistype) case NODE_##thistype:
-#define END_NODE break;
-
-#define SIBLING_SENSITIVE(thistype) \
-			/* make Sensitive */ \
-			if (((struct X3D_##thistype *)node)->enabled) { \
-				nParents = vectorSize((struct X3D_##thistype *)node->_parentVector); \
-				parentVector = (((struct X3D_##thistype *)node)->_parentVector); \
-			}  
-
-#define ANCHOR_SENSITIVE(thistype) \
-			/* make THIS Sensitive - most nodes make the parents sensitive, Anchors have children...*/ \
-			anchorPtr = (struct X3D_Anchor *)node;
-
-#ifdef VIEWPOINT
-#undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
-#endif
-#define VIEWPOINT(thistype) \
-			setBindPtr = (int *)(((char*)(node))+offsetof (struct X3D_##thistype, set_bind)); \
-			if ((*setBindPtr) == 100) {setBindPtr = NULL; } else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */ 
-
-#define CHILDREN_NODE(thistype) \
-			addChildren = NULL; removeChildren = NULL; \
-			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, children); \
-			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
-				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
-				childrenPtr = &((struct X3D_##thistype *)node)->children; \
-			} \
-			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
-				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
-				childrenPtr = &((struct X3D_##thistype *)node)->children; \
-			} 
-
-#define CHILDREN_SWITCH_NODE(thistype) \
-			addChildren = NULL; removeChildren = NULL; \
-			offsetOfChildrenPtr = offsetof (struct X3D_##thistype, choice); \
-			if (((struct X3D_##thistype *)node)->addChildren.n > 0) { \
-				addChildren = &((struct X3D_##thistype *)node)->addChildren; \
-				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
-			} \
-			if (((struct X3D_##thistype *)node)->removeChildren.n > 0) { \
-				removeChildren = &((struct X3D_##thistype *)node)->removeChildren; \
-				childrenPtr = &((struct X3D_##thistype *)node)->choice; \
-			} 
-
-#define CHILDREN_LOD_NODE \
-			addChildren = NULL; removeChildren = NULL; \
-			offsetOfChildrenPtr = offsetof (struct X3D_LOD, children); \
-			if (X3D_LODNODE(node)->addChildren.n > 0) { \
-				addChildren = &X3D_LODNODE(node)->addChildren; \
-				if (X3D_LODNODE(node)->__isX3D == 0) childrenPtr = &X3D_LODNODE(node)->level; \
-				else childrenPtr = &X3D_LODNODE(node)->children; \
-			} \
-			if (X3D_LODNODE(node)->removeChildren.n > 0) { \
-				removeChildren = &X3D_LODNODE(node)->removeChildren; \
-				if (X3D_LODNODE(node)->__isX3D == 0) childrenPtr = &X3D_LODNODE(node)->level; \
-				else childrenPtr = &X3D_LODNODE(node)->children; \
-			}
-
-#define EVIN_AND_FIELD_SAME(thisfield, thistype) \
-			if ((((struct X3D_##thistype *)node)->set_##thisfield.n) > 0) { \
-				((struct X3D_##thistype *)node)->thisfield.n = 0; \
-				FREE_IF_NZ (((struct X3D_##thistype *)node)->thisfield.p); \
-				((struct X3D_##thistype *)node)->thisfield.p = ((struct X3D_##thistype *)node)->set_##thisfield.p; \
-				((struct X3D_##thistype *)node)->thisfield.n = ((struct X3D_##thistype *)node)->set_##thisfield.n; \
-				((struct X3D_##thistype *)node)->set_##thisfield.n = 0; \
-				((struct X3D_##thistype *)node)->set_##thisfield.p = NULL; \
-			} 
-
-/* just tell the parent (a grouping node) that there is a locally scoped light as a child */
-/* do NOT send this up the scenegraph! */
-#define LOCAL_LIGHT_PARENT_FLAG \
-{ int i; \
-	for (i = 0; i < vectorSize(node->_parentVector); i++) { \
-		struct X3D_Node *n = vector_get(struct X3D_Node*, node->_parentVector, i); \
-		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
-	} \
-}
-
-
-
-#define  CHECK_MATERIAL_TRANSPARENCY \
-	if (((struct X3D_Material *)node)->transparency > 0.0001) { \
-		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		gglobal()->RenderFuncs.have_transparency = TRUE; \
-	}
- 
-#define CHECK_IMAGETEXTURE_TRANSPARENCY \
-	if (isTextureAlpha(((struct X3D_ImageTexture *)node)->__textureTableIndex)) { \
-		/* printf ("node %d IMAGETEXTURE HAS TRANSPARENCY\n", node); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		gglobal()->RenderFuncs.have_transparency = TRUE; \
-	}
-
-#define CHECK_PIXELTEXTURE_TRANSPARENCY \
-	if (isTextureAlpha(((struct X3D_PixelTexture *)node)->__textureTableIndex)) { \
-		/* printf ("node %d PIXELTEXTURE HAS TRANSPARENCY\n", node); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		gglobal()->RenderFuncs.have_transparency = TRUE; \
-	}
-
-#define CHECK_MOVIETEXTURE_TRANSPARENCY \
-	if (isTextureAlpha(((struct X3D_MovieTexture *)node)->__textureTableIndex)) { \
-		/* printf ("node %d MOVIETEXTURE HAS TRANSPARENCY\n", node); */ \
-		update_renderFlag(X3D_NODE(node),VF_Blend | VF_shouldSortChildren);\
-		gglobal()->RenderFuncs.have_transparency = TRUE; \
-	}
-#else //new IS-A compatible macros, with pnode and node
 #define CMD(TTT,YYY) \
 	/* printf ("nt %s change %d ichange %d\n",stringNodeType(X3D_NODE(YYY)->_nodeType),X3D_NODE(YYY)->_change, X3D_NODE(YYY)->_ichange); */ \
 	if (NODE_NEEDS_COMPILING) compile_Metadata##TTT((struct X3D_Metadata##TTT *) YYY)
@@ -2834,7 +2719,6 @@ void zeroVisibilityFlag(void) {
 		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
 
-#endif
 //dug9 dec 13 >>
 //also used in renderfuncs.c setSensitive()
 //definition: type node: its the node that represents the type of the node
@@ -2847,7 +2731,6 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 {
 	struct X3D_Node* dnode;
 	dnode = node; //for builtin types, the type node is just the node
-#ifndef OLD_UPDATE_MACROS
 	if(node){
 		if(isProto(node))
 		{
@@ -2876,10 +2759,8 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 						dnode = NULL;
 				}
 			}
-
 		}
 	}
-#endif
 	return dnode;
 }
 //dug9 dec 13 <<
@@ -3312,36 +3193,6 @@ E_JS_EXPERIMENTAL_CODE
 			for (j=0; j<nParents; j++) {
 				struct X3D_Node *n = vector_get(struct X3D_Node *, parentVector, j);
 				n->_renderFlags = n->_renderFlags  | VF_Sensitive;
-#ifdef OLD_UPDATE_MACROS
-				// >> start dug9 Dec 12, 2012 added:
-				// if sensor's parent is a ProtoBodyGroup wrapper:
-				//   if sensor is the first node in the ProtoBodyGroup (Proto is-a Sensor)
-				//     get proto instance's parents
-				//     flag each of its parents as sensitive, and make (parent,sensorNode) tuple
-				//  then in mainloop, when activating on a sensitive group child,
-				//   find the corresponding sensor node in the tuple list and update
-				if(n->_nodeType == NODE_Group)
-				{
-					struct X3D_Group *gpn = (struct X3D_Group*)n;
-					if(gpn->FreeWRL__protoDef != INT_ID_UNDEFINED)
-					{
-						//it's wrapped in a proto group
-						//if it is the FIRST node in the ProtoBody (type-of-proto == sensor)
-						//then the sensor should be perculated up through the ProtoGroup wrapper
-						if(gpn->children.p[0] == node)
-						{
-							int nnp, kkk;
-							nnp = vectorSize(gpn->_parentVector); 
-							for(kkk=0;kkk<nnp;kkk++){
-								struct X3D_Node *nnn = vector_get(struct X3D_Node*, gpn->_parentVector, kkk);
-								//ADD_PARENT(nnn,node); //this causes stack overflow
-								nnn->_renderFlags = nnn->_renderFlags | VF_Sensitive;
-								setSensitive(nnn, node); //add to tuple list - this seens to work
-							}
-						}
-					}
-				}
-#endif
 			}
 			/* tell mainloop that we have to do a sensitive pass now */
 			tg->Mainloop.HaveSensitive = TRUE;
@@ -3511,7 +3362,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 					if (tp!=NULL)
 						markForDispose(tp,TRUE);
 				}
-				MNode->n=0;
+				// MNode->n=0;  unlink_node needs this in order to properly unlink children.
 				break;
 				}	
 			case FIELDTYPE_SFNode: {
@@ -3590,6 +3441,363 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		} \
 	}
 
+//#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
+#define X3DMODE(val)  ((val) % 4)
+BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackData)
+{
+	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
+	int type,mode,source,publicfield;
+	int *fieldOffsetsPtr;
+	int jfield;
+	union anyVrml *fieldPtr;
+	const char* fname;
+	int	foundField = 0;
+	
+	source = -1;
+	mode = 0;
+	type = 0;
+	fieldPtr = NULL;
+	jfield = -1;
+	// field/event exists on the node?
+	fieldOffsetsPtr = (int *)NODE_OFFSETS[node->_nodeType];
+	/*go thru all builtin fields (borrowed from OpenGL_Utils killNode() L.3705*/	
+	while (*fieldOffsetsPtr != -1) {
+		fname = FIELDNAMES[fieldOffsetsPtr[0]];
+		//skip private fields which scene authors shouldn't be routing or ISing to
+		publicfield = fname && (fname[0] != '_') ? TRUE : FALSE;  
+		mode = PKW_from_KW(fieldOffsetsPtr[3]);
+		type = fieldOffsetsPtr[2];
+		//retrieve nodeinstance values
+		fieldPtr = (union anyVrml*)offsetPointer_deref(char *, node,*(fieldOffsetsPtr+1));
+		source = 0;
+		jfield++;
+		foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+		if( foundField )break;
+		fieldOffsetsPtr+=5;	
+	}
+	if(!foundField)
+	{
+		//user-field capable node?
+		int user;
+		user = nodeTypeSupportsUserFields(node);
+		jfield = -1;
+		publicfield = 1; //assume all user fields are public
+		if(user) 
+		{
+			//lexer_stringUser_fieldName(me->lexer, name, mode);
+			struct Shader_Script* shader;
+			struct VRMLParser* parser;
+			struct VRMLLexer* lexer;
+			ttglobal tg = gglobal();
+			lexer = NULL;
+			parser = tg->CParse.globalParser;
+			if (parser)
+				lexer = parser->lexer;
+
+			//user fields on user-field-capable nodes
+			shader=NULL;
+			switch(node->_nodeType)
+			{
+				case NODE_Script:
+				case NODE_ComposedShader: 
+				case NODE_ShaderProgram : 
+				case NODE_PackagedShader: 
+					{
+						int j, nameIndex;
+						struct Vector* usernames[4];
+						const char **userArr;
+						struct ScriptFieldDecl* sfield;
+						struct X3D_Script* scr = (struct X3D_Script*)node;
+						struct Shader_Script* shader;
+
+						switch(node->_nodeType) 
+						{ 
+  							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
+  							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->__shaderObj); break;
+  							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->__shaderObj); break;
+  							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->__shaderObj); break;
+						}
+						if(lexer){
+							usernames[0] = lexer->user_initializeOnly;
+							usernames[1] = lexer->user_inputOnly;
+							usernames[2] = lexer->user_outputOnly;
+							usernames[3] = lexer->user_inputOutput;
+						}else{
+							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
+						}
+						for(j=0; j!=vectorSize(shader->fields); ++j)
+						{
+							sfield= vector_get(struct ScriptFieldDecl*, shader->fields, j);
+							mode = sfield->fieldDecl->PKWmode;
+							fname = NULL;
+							if(lexer){
+								struct Vector *unames = usernames[X3DMODE(mode)];
+								//userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+								//fname = userArr[sfield->fieldDecl->lexerNameIndex];
+								nameIndex = sfield->fieldDecl->lexerNameIndex;
+								if(nameIndex < vectorSize(unames))
+									fname = vector_get(char *,unames,nameIndex);
+							}
+							type = sfield->fieldDecl->fieldType;
+							fieldPtr = &sfield->value;
+							source = node->_nodeType == NODE_Script ? 1 : 2;
+							jfield = j; 
+							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+							if( foundField)
+								break;
+						}
+					}
+					break;
+				case NODE_Proto:
+					{
+						int j, nameIndex;
+						struct Vector* usernames[4];
+						const char **userArr;
+						struct ProtoFieldDecl* pfield;
+						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
+						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+						if(lexer){
+							usernames[0] = lexer->user_initializeOnly;
+							usernames[1] = lexer->user_inputOnly;
+							usernames[2] = lexer->user_outputOnly;
+							usernames[3] = lexer->user_inputOutput;
+						}else{
+							usernames[0] = usernames[1] = usernames[2] = usernames[3] = NULL;
+						}
+						for(j=0; j!=vectorSize(pstruct->iface); ++j)
+						{
+							pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, j);
+							mode = pfield->mode;
+							fname = NULL;
+							if(lexer){
+								struct Vector *unames = usernames[X3DMODE(mode)];
+								//userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
+								//fname = userArr[pfield->name];
+								nameIndex = pfield->name;
+								if(nameIndex < vectorSize(unames))
+									fname = vector_get(char *,unames,nameIndex);
+							}
+							type = pfield->type;
+							fieldPtr = &pfield->defaultVal;
+							source = 3;
+							jfield = j;
+							foundField = callbackFunc(callbackData,node,jfield,fieldPtr,fname,mode,type,source,publicfield);
+							if( foundField)
+								break;
+						}
+					}
+				case NODE_Group:
+					//not sure how to do it with the metanode interface and mangled names
+					break;
+				default:
+					break;
+			}
+		}
+	}
+	return foundField;
+}
+
+
+/* 
+	memory management policy, Feb 22, 2013, dug9 after adding unlink_node() call to killNode()
+	Background: we aren't using any smart pointers / garbage collection library in freewrl. Just old fashioned
+	malloc and free, with one exception: 
+	
+	We register malloced nodes in memoryTable, and when their reference
+	count goes to zero we call killNode (which calls unlink_node()) and deallocate their memory.
+
+	There's one place -startofloopnodeupdates- and one function -killNode- where they get deleted. But there's
+	two basic scenarios: 
+		a) a node is markForDispose() during the freewrl session. tests/46.wrl 
+		b) you anchor or File > Open another scene. The old scene -in kill_OldWorld() markForDispose() calls
+			referenceCount-- and then when the new scene comes into startofloopnodeupdates() all the old 
+			nodes trigger a call for killNode(). 
+	So to test, I used 46.wrl and File>Open from the statusbar, and that would trigger some killNode activity
+	(for FileOpen you can open an empty scene with just the vrml header, to simplify debugging)
+	
+	As I started to do this, freewrl bombed here and there with different data sets. One thing that will
+	help is to be consistent about what we manage. For that have a policy: what malloced things we are 
+	managing now, so as programmers we are clear on what gets linked, and deleted. We'll call the carefully 
+	linked and unlinked and deallocated nodes 'managed nodes' and the fields we manage 'managed fields'.
+
+	Examples, 
+	a) a node hold pointers to other nodes in its SFNode and MFNode fields such as 'children' and
+		'material'. We'll call all those children.
+	b) a node holds pointers to other nodes that have it as a child, in its parentVector. 
+		A DEF/USE pair of parent nodes mean the child's parentVector will have 2 entries, one for each 
+		of the DEF and USE.
+
+	Here's the rule (I used) for managing nodes:
+	- Definitions:
+		public field: a field with no _ prefix on the name, or else its a user field in a Script/shader or Proto
+		value holding field: initializeOnly/field or inputOutput/exposedField 
+		event field: inputOnly/eventIn or outputOnly/eventOut
+		node field: SFNode or MFNode type
+		managed field: value holding public node field, plus prescribed fields, minus exempted fields
+		prescribed fields: fields we decided to also manage: (none)
+		exempted fields: fields we decided not to manage: (none)
+
+	- if a node is in a managed field of another node -a parent- then it 
+		registers/adds that parent in its own parentVector.
+	- when the node is taken out/removed from a managed field, it removes the parent 
+		from its parentVector (if it's in just one managed field. If in 2, and removed from one, then parent stays)
+	- when a node deletes itself, it:
+		a) goes through all its managed fields and it tells those  nodes -called children- to delete it 
+			from their parentVector. Then it clears/zeros that field in itself to zero so its not 
+			pointing at those children. And 
+		b) it goes through its parentVector and tells each parent to remove it from any managed fields.
+	- if a node is in an event field or private field then it does not register that node in its parent field
+	- if a node gets routed to an event field of a target node, no parent is registered.
+	- if a node gets routed from an event field of a source node, the source node is not 
+		registerd in its parentVector (example: script node generates a node in an eventOut field, 
+		and whether or not it's routed anywhere, the script is not put into the nodes' parent list)
+	HTH
+*/
+int isManagedField(int mode, int type, int isPublic)
+{
+	int isManaged = (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode);
+	isManaged = isManaged && (mode == PKW_initializeOnly || mode == PKW_inputOutput);
+	isManaged = isManaged && isPublic;
+	return isManaged;
+}
+
+
+/* print the parent vector and and SFNode and MFNode subfield entry pointers
+   for debugging unlink_node (and any linking code)
+   -needs generalization for FILE* 
+   -maybe a dumpscreen option to get all rootnodes
+*/
+void indentf(int indent){
+	int m;
+	for(m=0;m<indent;m++) printf(" ");
+}
+void print_node_links0(struct X3D_Node* sfn, int *level);
+BOOL cbPrintLinks(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+{
+	int *level = (int*)callbackData;
+	(*level)++;
+	//if((*level) > 80)
+	//	return FALSE;
+	//if(publicfield && (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode))
+	if(isManagedField(type,mode,publicfield))
+	{
+		int n,k,m,haveSomething;
+		struct X3D_Node **plist, *sfn;
+		haveSomething = (type==FIELDTYPE_SFNode && fieldPtr->sfnode) || (type==FIELDTYPE_MFNode && fieldPtr->mfnode.n);
+		if(haveSomething){
+			indentf(*level);
+			printf("%s  ",fieldName);
+			if(type==FIELDTYPE_SFNode){
+				plist = &fieldPtr->sfnode;
+				n = 1;
+			}else{
+				plist = fieldPtr->mfnode.p;
+				n = fieldPtr->mfnode.n;
+				if(n > 1){
+					printf("[\n");
+					(*level)++;
+					//indentf((*level));
+				}
+			}
+			for(k=0;k<n;k++)
+			{
+				sfn = plist[k];
+				if(n>1) indentf((*level));
+				print_node_links0(sfn,level);
+			}
+			if(type==FIELDTYPE_MFNode && n > 1){
+				(*level)--;
+				indentf((*level));
+				printf("]\n");
+			}
+		}
+	}
+	(*level)--;
+	return FALSE; //false to keep walking fields, true to break out
+}
+void print_node_links0(struct X3D_Node* sfn, int *level)
+{
+	if(sfn)
+	{
+		/* unlink children in any SFNode or MFNode field of node */
+		printf("node %p ",sfn);
+		if(sfn->_parentVector && vectorSize(sfn->_parentVector)){
+			int j;
+			printf(" parents={");
+			for(j=0;j<vectorSize(sfn->_parentVector);j++){
+				struct X3D_Node *parent = vector_get(struct X3D_Node *,sfn->_parentVector, j);
+				printf("%p, ",parent);
+			}
+			printf("}");
+		}
+		printf("\n");
+		walk_fields(sfn,cbPrintLinks,level);
+	}
+}
+void print_node_links(struct X3D_Node* sfn)
+{
+	int level = 0;
+	print_node_links0(sfn,&level);
+	if(level != 0)
+		printf("ouch level =%d\n",level);
+}
+
+
+BOOL cbUnlinkChild(void *callbackData,struct X3D_Node* node,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+{
+	if(isManagedField(mode,type,publicfield)){
+		if(type == FIELDTYPE_SFNode){
+			struct X3D_Node **sfn = &fieldPtr->sfnode;
+			AddRemoveChild(node,sfn,*sfn,2,__FILE__,__LINE__);
+			if(fieldPtr->sfnode)
+				printf("didn't delete sfnode child\n");
+		}else if(type == FIELDTYPE_MFNode){
+			struct Multi_Node* mfn = &fieldPtr->mfnode;
+			AddRemoveChildren(node,mfn,mfn->p,mfn->n,2,__FILE__,__LINE__);
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+BOOL cbUnlinkParent(void *callbackData,struct X3D_Node* parent,int jfield,
+	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
+{
+	struct X3D_Node* node = X3D_NODE(callbackData);
+	if(isManagedField(mode,type,publicfield)){
+		if(type == FIELDTYPE_SFNode){
+			struct X3D_Node **sfn = &fieldPtr->sfnode;
+			AddRemoveChild(parent,sfn,node,2,__FILE__,__LINE__);
+		}else if(type == FIELDTYPE_MFNode){
+			struct Multi_Node* mfn = &fieldPtr->mfnode;
+			AddRemoveChildren(parent,mfn,&node,1,2,__FILE__,__LINE__); //Q. is 2 remove?
+		}
+	}
+	return FALSE; //false to keep walking fields, true to break out
+}
+void unlink_node(struct X3D_Node* node)
+{
+	if(node)
+	{
+		/* unlink children in any SFNode or MFNode field of node */
+		walk_fields(node,cbUnlinkChild,NULL);
+		/* unlink/remove node from any SFNode or MFNode field of parents */
+		if(node->_parentVector && vectorSize(node->_parentVector)){
+			int j;
+			struct Vector* pp = newVector(struct X3D_Node*,vectorSize(node->_parentVector));
+			for(j=0;j<vectorSize(node->_parentVector);j++){
+				struct X3D_Node *parent = vector_get(struct X3D_Node *,node->_parentVector, j);
+				vector_pushBack(struct X3D_Node*,pp,parent);
+			}
+			for(j=0;j<vectorSize(pp);j++){
+				struct X3D_Node *parent = vector_get(struct X3D_Node *,pp, j);
+				walk_fields(parent,cbUnlinkParent,node);
+			}
+			node->_parentVector->n = 0;
+			deleteVector(struct X3D_Node*, pp);
+		}
+	}
+}
 /*delete node created*/
 static void killNode (int index) {
 	int j=0;
@@ -3609,7 +3817,6 @@ static void killNode (int index) {
 	struct Multi_Vec2f* MVec2f;
 	uintptr_t * VPtr;
 	struct Uni_String *MyS;
-
  	int i;
 
 	ppOpenGL_Utils p;
@@ -3617,26 +3824,38 @@ static void killNode (int index) {
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
 	structptr = p->memoryTable[index];		
-
 	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
 
+	if( structptr->referenceCount > -1 ){
+		/* unlinking the node from special arrays, parents and children
+		   we just need to do this once, and early in the kill process 
+		   - I wish we had a sentinal value for 'unlinked' */
+		DELETE_IF_IN_STACK(viewpoint_stack);
+		DELETE_IF_IN_STACK(background_stack);
+		DELETE_IF_IN_STACK(fog_stack);
+		DELETE_IF_IN_STACK(navigation_stack);
+		DELETE_IF_IN_PRODCON(viewpointNodes);
+		delete_first(structptr);
+		//print_node_links(structptr);
+		unlink_node(structptr); //unlink before settledown deleting..
+		//printf("after: \n");
+		//print_node_links(structptr);
+	}
 
-	DELETE_IF_IN_STACK(viewpoint_stack);
-	DELETE_IF_IN_STACK(background_stack);
-	DELETE_IF_IN_STACK(fog_stack);
-	DELETE_IF_IN_STACK(navigation_stack);
-	DELETE_IF_IN_PRODCON(viewpointNodes);
-	delete_first(structptr);
-	
-#ifdef _ANDROID_MAYBE
-	/* give this time for things to "settle" in terms of rendering, etc */
+	/* give this time for things to "settle" in terms of rendering, etc 
+	JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering, 
+	what happens is that the GL calls get queued up for the GPU, then run when possible. So, there 
+	is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused 
+	node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't 
+	know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a 
+	random certainty when removing nodes, and data from these nodes."
+	*/
 	structptr->referenceCount --;
 	if (structptr->referenceCount > -10) {
 		//ConsoleMessage ("ref count for %p is just %d, waiting\n",structptr,structptr->referenceCount);
 		return;
 	}
 	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
-#endif
 
 	#ifdef VERBOSE
 	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,p->nextEntry);
@@ -3646,60 +3865,7 @@ static void killNode (int index) {
 	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));  
 	} printf ("\n");
 	#endif
-
-	/* unlink node */
-#define UNLINK_NODE_BEFORE_DELETING_PARENTVECTOR 1
-	if(UNLINK_NODE_BEFORE_DELETING_PARENTVECTOR){
-		/* remove as parent to any children */
-		if(structptr->_nodeType == NODE_Transform || structptr->_nodeType == NODE_Group){
-			struct Multi_Node* mfn = NULL;
-			switch(structptr->_nodeType){
-				case NODE_Transform:
-					mfn = &X3D_TRANSFORM(structptr)->children;
-					break;
-				case NODE_Group:
-					mfn = &X3D_GROUP(structptr)->children;
-					break;
-				default:
-					break;
-			}
-			if(mfn && mfn->n){
-				int j;
-				for(j=0;j<mfn->n;j++)
-					remove_parent(mfn->p[j],structptr);
-			}
-		}
-		/* remove as child to any parent */
-		if(structptr->_parentVector && structptr->_parentVector->n){
-			int j;
-			for(j=0;j<vectorSize(structptr->_parentVector);j++){
-				struct X3D_Node *pp;
-				struct Multi_Node* mfn = NULL;
-				pp = vector_get(struct X3D_Node *,structptr->_parentVector, j);
-				switch(pp->_nodeType){
-					case NODE_Transform:
-						mfn = &X3D_TRANSFORM(pp)->children;
-						break;
-					case NODE_Group:
-						mfn = &X3D_GROUP(pp)->children;
-						break;
-					default:
-						break;
-				}
-				if(mfn && mfn->n){
-					int j,k;
-					k = 0;
-					for(j=0;j<mfn->n;j++){
-						if( mfn->p[j] != structptr){
-							mfn->p[k] = mfn->p[j];
-							k++;
-						}
-					}
-					mfn->n = k;
-				}
-			}
-		}
-	}
+	/* node must be already unlinked with unlink_node() when we get here */
 	/* delete parent vector. */
  	deleteVector(char*, structptr->_parentVector);
 	/* clear child vector - done below */

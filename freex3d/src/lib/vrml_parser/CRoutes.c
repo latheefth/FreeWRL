@@ -657,6 +657,50 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 }
 
 
+void AddRemoveChild(
+		struct X3D_Node *parent,
+		struct X3D_Node **tn,  //target SFNode field
+		struct X3D_Node *node,  //node to set,add or remove from parent
+		int ar,  //0=set,1=add,2=remove
+		char *file,
+		int line) {
+
+	if ((parent==0) || (*tn == 0)) {
+		//printf ("Freewrl: AddRemoveChild, parent and/or field NULL\n");
+		return;
+	}
+
+	/* mark the parent changed, eg, rootNode() will not be sorted if this is not marked */
+	parent->_change ++;
+	if (ar == 0) {
+		#ifdef CRVERBOSE
+		printf ("we have to perform a \"set_child\" on this field\n");
+		# endif
+
+		/* go to the old child, and tell them that they are no longer wanted here */
+		remove_parent(*tn,parent);
+
+		/* make it so that we have 0 child */
+		*tn = NULL; 
+
+		/* now, make this into an addChild */
+		ar = 1;
+
+	}
+	if (ar == 1) {
+		/* addChild - now lets add */
+		*tn = node;
+		ADD_PARENT((void *)node,(void *)parent);
+	} else {
+		/* this is a removeChild */
+		if(node == *tn){
+			remove_parent(X3D_NODE(node),parent);
+			*tn = NULL;
+		}
+	}
+	update_node(parent);
+}
+
 /****************************************************************/
 /* Add or Remove a series of children				*/
 /*								*/
@@ -706,7 +750,7 @@ void AddRemoveChildren (
 	/* if no elements, just return */
 	if (len <=0) return;
 	if ((parent==0) || (tn == 0)) {
-		printf ("Freewrl: AddRemoveChildren, parent and/or field NULL\n");
+		//printf ("Freewrl: AddRemoveChildren, parent and/or field NULL\n");
 		return;
 	}
 
@@ -1225,6 +1269,43 @@ void CRoutes_Register(
 	MUTEX_FREE_LOCK_ROUTING_UPDATES
 
 }
+
+void print_routes_ready_to_register(FILE* fp)
+{
+	int numRoutes;
+	int count;
+	struct X3D_Node *fromNode;
+	struct X3D_Node *toNode;
+	int fromOffset;
+	int toOffset;
+	char *fromName;
+	char *toName;
+	struct CR_RegStruct *entry;
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+
+	if(p->routesToRegister == NULL) return;
+	numRoutes = vectorSize(p->routesToRegister);
+	fprintf(fp,"Number of Routes Ready to Register %d\n",numRoutes);
+	if (numRoutes < 1) {
+		return;
+	}
+
+	for (count = 0; count < (numRoutes); count++) {
+		entry = vector_get(struct CR_RegStruct *, p->routesToRegister, count);
+		fromNode = entry->from;
+		fromOffset = entry->fromoffset;
+		toNode = entry->to;
+		toOffset = entry->toOfs;
+		fromName = parser_getNameFromNode(fromNode);
+		toName   = parser_getNameFromNode(toNode);
+		fprintf (fp, " %p %s.%s TO %p %s.%s \n",fromNode,fromName,
+			findFIELDNAMESfromNodeOffset0(fromNode,fromOffset),
+			toNode,toName,
+			findFIELDNAMESfromNodeOffset0(toNode,toOffset)
+			);
+	}
+}
+
 
 static void actually_do_CRoutes_Register() {
 	int insert_here, shifter;
@@ -2055,6 +2136,117 @@ void propagate_events_A() {
 	C. memcpy/shallow_copy of anyVrml for everyone
 	D. touchup special target nodes like scripts and sensors
 */
+union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mode)
+{
+	union anyVrml* fromAny;
+	struct X3D_Node* fromNode;
+	int fromMode, fromType, fromOffset;
+	fromOffset = offset;
+	fromNode = node;
+	switch(node->_nodeType)
+	{
+		case NODE_ShaderProgram:
+		case NODE_ComposedShader:
+		case NODE_PackagedShader:
+		case NODE_Script:
+			{
+				struct X3D_Script* scr = (struct X3D_Script*)fromNode;
+				struct Shader_Script* shader = NULL;
+				struct ScriptFieldDecl* sfield;
+				switch(fromNode->_nodeType) 
+				{ 
+					case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(fromNode)->__scriptObj); break;
+					case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->__shaderObj); break;
+					case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->__shaderObj); break;
+					case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->__shaderObj); break;
+				}
+				sfield= vector_get(struct ScriptFieldDecl*, shader->fields, fromOffset);
+				fromAny = &sfield->value;
+				fromType = sfield->fieldDecl->fieldType;
+				fromMode = sfield->fieldDecl->PKWmode;
+
+			}
+			break;
+		case NODE_Proto:
+			{
+				struct ProtoFieldDecl* pfield;
+				struct X3D_Proto* pnode = (struct X3D_Proto*)fromNode;
+				struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
+				pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, fromOffset);
+				fromAny = &pfield->defaultVal;
+				fromType = pfield->type;
+				fromMode = pfield->mode;
+			}
+			break;
+		default: //builtin
+			{
+				const int * offsets;
+				int jk;
+				fromAny = (union anyVrml*)offsetPointer_deref(void *,fromNode , fromOffset);
+				//I wish we had stored fromType when registering the route
+				offsets = NODE_OFFSETS[fromNode->_nodeType];
+				while(*offsets > -1)
+				{
+					//printf("%d %d %d %d %d\n",offsets[0],offsets[1],offsets[2],offsets[3],offsets[4]);
+					if(offsets[1]==fromOffset) 
+					{
+						fromType = offsets[2];
+						fromMode = PKW_from_KW(offsets[3]);
+						break;
+					}
+					offsets += 5;
+				}
+			}
+			break;
+	}
+	*mode = fromMode;
+	*type = fromType;
+	return fromAny;
+}
+
+void cleanFieldIfManaged(int type,int mode,int isPublic, struct X3D_Node* parent, int offset)
+{
+	//there should be a shallow_clean_field(type,toAny) that releases old mallocs 
+	//  in UniString,MF p*, unlinks and/or killNodes
+	//cleanFieldIfManaged()
+	//  1. is toField a valueHolding field (inputOutput,initializeOnly)?
+	//  2. if yes, is toField a node field (SFNode, MFNode)?
+	//  3. if yes, is there something in toField now?
+	//  4. if yes, get it, remove toNode as parent, refcount-- (let killNode in startofloopnodeupdates garbage collect it)
+	//  5. if it was an MFNode, release the p* array
+	//int isManagedField; //managed in the unlink_node sense, see unlink_node() killNode() policy
+	//isManagedField = isPublic && (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode);
+	//isManagedField = isManagedField && (mode == PKW_initializeOnly || mode == PKW_inputOutput);
+	//if(isManagedField)
+	if(isManagedField(mode,type,isPublic))
+	{
+		int n,k,m,haveSomething,fromType,fromMode;
+		struct X3D_Node **plist, *sfn;
+		union anyVrml* any;
+		any = get_anyVrml(parent,offset,&fromType,&fromMode);
+		haveSomething = (type==FIELDTYPE_SFNode && any->sfnode) || (type==FIELDTYPE_MFNode && any->mfnode.n);
+		haveSomething = haveSomething && parent;
+		if(haveSomething){
+			if(type==FIELDTYPE_SFNode){
+				plist = &any->sfnode;
+				n = 1;
+			}else{
+				plist = any->mfnode.p;
+				n = any->mfnode.n;
+			}
+			for(k=0;k<n;k++)
+			{
+				sfn = plist[k];
+				remove_parent(sfn,parent);
+				//remove parent should return a bool if found, so we know if we can/should decrement referenceCount
+				sfn->referenceCount--;
+			}
+			if(type==FIELDTYPE_MFNode)
+				FREE_IF_NZ(plist);
+		}
+	}
+}
+
 
 void add_mfparents(struct X3D_Node* newParent, union anyVrml* mfnode, int mftype)
 {
@@ -2175,6 +2367,7 @@ void propagate_events_B() {
 						const int * offsets;
 						int jk;
 						fromAny = (union anyVrml*)offsetPointer_deref(void *,fromNode , fromOffset);
+						//I wish we had stored fromType when registering the route
 						offsets = NODE_OFFSETS[fromNode->_nodeType];
 						while(*offsets > -1)
 						{
@@ -2199,7 +2392,9 @@ void propagate_events_B() {
 			else len = isize;
 			
 
+
 			for (to_counter = 0; to_counter < p->CRoutes[counter].tonode_count; to_counter++) {
+				int toMode = PKW_inputOnly;
 				to_ptr = &(p->CRoutes[counter].tonodes[to_counter]);
 				if (to_ptr == NULL) {
 					printf("WARNING: tonode at %u is NULL in propagate_events.\n",
@@ -2259,6 +2454,7 @@ void propagate_events_B() {
 								}
 								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, toOffset);
 								toAny = &sfield->value;
+								toMode = sfield->fieldDecl->PKWmode;
 							}
 							break;
 						case NODE_Proto:
@@ -2268,18 +2464,43 @@ void propagate_events_B() {
 								struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 								pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, toOffset);
 								toAny = &pfield->defaultVal;
+								toMode = pfield->mode;
 							}
 							break;
 						default: //builtin
 							toAny = (union anyVrml*)offsetPointer_deref(void *,toNode , toOffset);
+							//I wish we stored toMode when registering the route
+							{
+								const int *offsets = NODE_OFFSETS[toNode->_nodeType];
+								while(*offsets > -1)
+								{
+									//printf("%d %d %d %d %d\n",offsets[0],offsets[1],offsets[2],offsets[3],offsets[4]);
+									if(offsets[1]==fromOffset) 
+									{
+										toMode = PKW_from_KW(offsets[3]);
+										break;
+									}
+									offsets += 5;
+								}
+							}
 							break;
 					}
 
 					//we now have from and to as *anyVrml, so lets copy
-					//there should be a shallow_clean_field(type,toAny) that releases old mallocs in UniString,MF p*
+					//there should be a shallow_clean_field(type,toAny) that releases old mallocs 
+					//  in UniString,MF p*, unlinks and/or killNodes
+					//clean_field()
+					//  1. is toField a valueHolding field (inputOutput,initializeOnly)?
+					//  2. if yes, is toField a node field (SFNode, MFNode)?
+					//  3. if yes, is there something in toField now?
+					//  4. if yes, get it, remove toNode as parent, refcount-- (let killNode in startofloopnodeupdates garbage collect it)
+					//  5. if it was an MFNode, release the p* array
+					cleanFieldIfManaged(type,toMode,1,toNode,toOffset); //see unlink_node/killNode policy
 					shallow_copy_field(type,fromAny,toAny);
-					if(isMF && sftype == FIELDTYPE_SFNode)
-						add_mfparents(toNode,toAny,type);
+					//if(isMF && sftype == FIELDTYPE_SFNode)
+					//	add_mfparents(toNode,toAny,type);
+					registerParentIfManagedField(type,toMode,1, toAny, toNode); //see unlink_node/killNode policy
+
 					//OK we copied. 
 
 					//Some target node types need special processing ie sensors and scripts

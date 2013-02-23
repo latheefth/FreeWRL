@@ -1261,7 +1261,6 @@ ROUTE  fReEwEL_fAbricatio_dEF_11_SCRI.value_changed TO PROTO_11446464_value_chan
 */
 
 
-
 char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefinition **thisProto, int *protoSize) {
 	char *newProtoText;
 	char tempname[1000];
@@ -1468,68 +1467,21 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 					i+=2; /* skip the IS and the field */
 					FREE_IF_NZ(newTl);
 				} else { 
-					char *newString;
 					#ifdef XXX
 					PROTO_CAT ( "# at H\n");
 					#endif
-					if(0)
-					{
-						APPEND_EDITED_STRINGTOKEN
-						//thisID[0] = '\0';
-					}else{
-						thisID[0] = '\0';
-						//PROTO_CAT ( ele->stringToken)
-						newString = ele->stringToken;
-						{ 
-							char *pt = (char *)newString; 
-							int len=0; 
-							int wlen = 0;
-							while ((*pt)) {len++; pt++;};
-							wlen = (int) fwrite (newString,len,1,pexfile);
-							curstringlen += len; 
-						}
-					}
+
+					APPEND_EDITED_STRINGTOKEN
 				}
 
 			} else { 
-				char *newString;
 				#ifdef XXX
 				PROTO_CAT ( "# at I\n");
 				#endif
-				if(0){
 				APPEND_EDITED_STRINGTOKEN
-				}else{
-				//PROTO_CAT ( ele->stringToken)
-				newString = ele->stringToken;
-				{ 
-					char *pt = (char *)newString; 
-					int len=0; 
-					int wlen = 0;
-					while ((*pt)) {len++; pt++;};
-					wlen = (int) fwrite (newString,len,1,pexfile);
-					curstringlen += len; 
-				}
-				}
-
 			}
-			if(0){
+
 			APPEND_SPACE
-			}else{
-			if(lastKeyword != NULL)
-			{
-				if(lastKeyword->isKEYWORD != KW_ROUTE && lastKeyword->isKEYWORD != KW_TO)
-				{
-					APPEND_SPACE
-				}
-				else
-				{
-					lastKeyword->isKEYWORD = 0;
-				}
-			}else{
-				APPEND_SPACE
-			}
-			}
-
 		} else {
 			/* this is a blank proto... */
 			/* ConsoleMessage ("PROTO EXPANSION, vector element %d, can not expand\n",i); */
@@ -1580,6 +1532,7 @@ char *protoExpand (struct VRMLParser *me, indexT nodeTypeU, struct ProtoDefiniti
 
 	return newProtoText;
 }
+
 
 /* for resolving ROUTEs to/from PROTOS... */
 /* this is a PROTO; go through and find the node, and fill in the correct curID so that parsing can

@@ -556,8 +556,15 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DEnvironmentTextureNode 52
 #define X3DSFNode				53 /* this is an "X3DNode" in the spec, but it conflicts with an internal def. */
 
+int isManagedField(int mode, int type, int isPublic);
 
-
+void AddRemoveChild(
+		struct X3D_Node *parent,
+		struct X3D_Node **tn,  //target SFNode field
+		struct X3D_Node *node,  //node to set,add or remove from parent
+		int ar,  //0=set,1=add,2=remove
+		char *file,
+		int line);
 void AddRemoveChildren (struct X3D_Node *parent, struct Multi_Node *tn, struct X3D_Node * *nodelist, int len, int ar, char * where, int lin);
 
 void update_node(struct X3D_Node *ptr);
