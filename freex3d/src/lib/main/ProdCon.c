@@ -285,7 +285,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 			sceneProto->__prototype = X3D_NODE(sceneProto); 
 			sceneProto->__protoFlags = 1; // bit flags: 1=scene 
 			//sceneProto->__protoFlags |= 2; //2=oldway (0 new way) set to 2 for oldway, 0 for new way
-			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, children), (const char*)input);
+			ret = cParse(sceneProto,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
 			p->haveParsedCParsed = TRUE;
 			if (ret) {
 				if(0) {
@@ -327,7 +327,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		if(usingBrotos()){
 			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
 			sceneProto->__prototype = X3D_NODE(sceneProto); 
-			ret = cParse (sceneProto,(int) offsetof (struct X3D_Proto, children), newData);
+			ret = cParse (sceneProto,(int) offsetof (struct X3D_Proto, _children), newData);
 			p->haveParsedCParsed = TRUE;
 			if (ret) {
 				ConsoleMessage("starting scene Instancing...\n");
@@ -381,7 +381,7 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		if (gglobal()->internalc.global_strictParsing) { ConsoleMessage ("unknown text as input"); } else {
 			inputFileType = IS_TYPE_VRML;
 			inputFileVersion[0] = 2; /* try VRML V2 */
-			cParse (nRn,(int) offsetof (struct X3D_Proto, children), (const char*)input);
+			cParse (nRn,(int) offsetof (struct X3D_Proto, _children), (const char*)input);
 			p->haveParsedCParsed = TRUE; }
 	}
 	}

@@ -2049,6 +2049,7 @@ void propagate_events_A() {
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
 					MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
+					//printf(",");
 					if (p->CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */
 						sendScriptEventIn(counter);
@@ -2118,7 +2119,7 @@ void propagate_events_A() {
 		}
 	}	
 	#endif /* HAVE_JAVASCRIPT */
-
+	//printf(" & ");
 	#ifdef CRVERBOSE
 	printf ("done propagate_events\n\n");
 	#endif
@@ -2500,7 +2501,7 @@ void propagate_events_B() {
 					//if(isMF && sftype == FIELDTYPE_SFNode)
 					//	add_mfparents(toNode,toAny,type);
 					registerParentIfManagedField(type,toMode,1, toAny, toNode); //see unlink_node/killNode policy
-
+					//printf("%s.%d TO %s.%d\n",parser_getNameFromNode(fromNode),fromOffset,parser_getNameFromNode(toNode),toOffset);
 					//OK we copied. 
 
 					//Some target node types need special processing ie sensors and scripts
@@ -2610,7 +2611,7 @@ void propagate_events_B() {
 		}
 	}	
 	#endif /* HAVE_JAVASCRIPT */
-
+	//printf(" * ");
 	#ifdef CRVERBOSE
 	printf ("done propagate_events\n\n");
 	#endif

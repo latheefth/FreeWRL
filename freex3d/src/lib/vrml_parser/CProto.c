@@ -1648,21 +1648,22 @@ struct ProtoDefinition *getVRMLprotoDefinition (struct X3D_Group *me) {
 }
 
 struct ProtoDefinition *getVRMLbrotoDefinition (struct X3D_Proto *me) {
-	struct protoInsert *npd;
-	int mpd;
-	ppCProto p = (ppCProto)gglobal()->CProto.prv;
+	//struct protoInsert *npd;
+	//int mpd;
+	//ppCProto p = (ppCProto)gglobal()->CProto.prv;
 
-	mpd = me->FreeWRL__protoDef;
+	//mpd = me->FreeWRL__protoDef;
 
-	/* printf ("getVRMLprotoDefinition, looking for %d\n",mpd); */
-	if (mpd == INT_ID_UNDEFINED) return NULL;
-	if (mpd >= vectorSize(p->protoDefVec)) {
-		printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vectorSize(p->protoDefVec));
-		return NULL;
-	}
-	/* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
-	npd = vector_get(struct protoInsert*,p->protoDefVec,mpd);
-	return npd->vrmlProtoDef;
+	///* printf ("getVRMLprotoDefinition, looking for %d\n",mpd); */
+	//if (mpd == INT_ID_UNDEFINED) return NULL;
+	//if (mpd >= vectorSize(p->protoDefVec)) {
+	//	printf ("internal error, can not get proto def %d, out of bounds; vector size %d\n",mpd,vectorSize(p->protoDefVec));
+	//	return NULL;
+	//}
+	///* printf ("getProtoDefinition, mpd %d, returning %u\n",mpd, vector_get(struct ProtoDefinition *,protoDefVec,mpd)); */
+	//npd = vector_get(struct protoInsert*,p->protoDefVec,mpd);
+	//return npd->vrmlProtoDef;
+	return (struct ProtoDefinition *)me->__protoDef;
 }
 
 BOOL isProto(struct X3D_Node *node)

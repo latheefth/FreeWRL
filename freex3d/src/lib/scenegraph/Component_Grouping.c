@@ -447,7 +447,7 @@ void compile_Proto(struct X3D_Proto *node) {
 /* render the first node only */
 void child_Proto (struct X3D_Proto *node) {
 	//CHILDREN_COUNT
-	int nc = node->children.n; //_sortedChildren.n;
+	int nc = node->_children.n; //_sortedChildren.n;
 	LOCAL_LIGHT_SAVE
 /*
 printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
@@ -500,7 +500,11 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 
 		
 	/* do we have a DirectionalLight for a child? */
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	if(nc){
+		LOCAL_LIGHT_CHILDREN(node->_children);
+	}else{
+		LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	}
 
 	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
@@ -513,7 +517,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	//	normalChildren(node->_sortedChildren);
 	//}
 	if(nc)
-		normalChildren(node->children);
+		normalChildren(node->_children);
 
 	LOCAL_LIGHT_OFF
 

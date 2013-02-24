@@ -360,6 +360,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"location",
 	"colorPerVertex",
 	"origin",
+	"_children",
 	"jump",
 	"directOutput",
 	"port",
@@ -668,8 +669,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"beamWidth",
 	"pickTarget",
 	"zSpacing",
-	"__oldSFString",
 	"whichGeometry",
+	"__oldSFString",
 	"eventSiteID",
 	"innerRadius",
 	"fontStyle",
@@ -4229,21 +4230,18 @@ const int OFFSETS_ProgramShader[] = {
 
 const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___IS, (int) offsetof (struct X3D_Proto, __IS),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__children, (int) offsetof (struct X3D_Proto, _children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Proto, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___DEFnames, (int) offsetof (struct X3D_Proto, __DEFnames),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Proto, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___protoDeclares, (int) offsetof (struct X3D_Proto, __protoDeclares),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Proto, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Proto, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Proto, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Proto, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_FreeWRL__protoDef, (int) offsetof (struct X3D_Proto, FreeWRL__protoDef),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Proto, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Proto, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES___protoDef, (int) offsetof (struct X3D_Proto, __protoDef),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___ROUTES, (int) offsetof (struct X3D_Proto, __ROUTES),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Proto, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___protoDef, (int) offsetof (struct X3D_Proto, __protoDef),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Proto, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___parentProto, (int) offsetof (struct X3D_Proto, __parentProto),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Proto, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProximitySensor[] = {
@@ -7882,21 +7880,18 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Proto *) tmp;
 		/* ttmp2->v = &virt_Proto;*/ 
 			tmp2->__IS = 0;
+			tmp2->_children.n=0; tmp2->_children.p=0;
 			tmp2->__prototype = NULL;
 			tmp2->__DEFnames = 0;
-			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->__protoDeclares.n=0; tmp2->__protoDeclares.p=0;
-			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
-			tmp2->__ROUTES = 0;
-			tmp2->metadata = NULL;
-			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
-			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
-			tmp2->FreeWRL__protoDef = INT_ID_UNDEFINED;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->__protoFlags = INT_ID_UNDEFINED;
-			tmp2->__protoDef = 0;
+			tmp2->__ROUTES = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
+			tmp2->__protoDef = 0;
+			tmp2->metadata = NULL;
 			tmp2->__parentProto = NULL;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
 		break;
 		}
 		case NODE_ProximitySensor : {
@@ -10820,18 +10815,20 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_Proto : {
 			struct X3D_Proto *tmp;
 			tmp = (struct X3D_Proto *) node;
-			spacer fprintf (fp," children (MFNode):\n");
-			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," _children (MFNode):\n");
+			for (i=0; i<tmp->_children.n; i++) { dump_scene(fp,level+1,tmp->_children.p[i]); }
+		    }
 		    if(allFields) {
 			spacer fprintf (fp," __protoDeclares (MFNode):\n");
 			for (i=0; i<tmp->__protoDeclares.n; i++) { dump_scene(fp,level+1,tmp->__protoDeclares.p[i]); }
 		    }
 		    if(allFields) {
-			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
-		    }
-		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 		    break;
 		}

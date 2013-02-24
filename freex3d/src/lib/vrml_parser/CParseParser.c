@@ -81,7 +81,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0;
+		p->useBrotos = 1;
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -4081,7 +4081,7 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 		ptr = me->ptr;
 		ofs = me->ofs; //Q. does this change? Or are we always ofs of children in Proto? H: parseFromString different
 		me->ptr = proto;
-		me->ofs = offsetof(struct X3D_Proto, children);
+		me->ofs = offsetof(struct X3D_Proto, _children);
 		parse_proto_body(me);
 		me->ptr = ptr;
 		me->ofs = ofs;
@@ -4416,7 +4416,7 @@ struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep)
 		p = createNewX3DNode0(NODE_Proto);
 
 	memcpy(p,proto,sizeof(struct X3D_Proto));
-	p->children.n = 0; //don't copy children in here.
+	p->_children.n = 0; //don't copy children in here.
 	//shallow copy - just the user-fields, and point back to the *prototype for later 
 	//   deep copy of body and IS-table
 	pobj = proto->__protoDef;
@@ -4664,8 +4664,8 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 	
 	//2. copy body from source's _prototype.children to dest.children, ISing initialvalues as we go
 	p=(*dest);
-	p->children.n = 0;
-	p->children.p = NULL;
+	p->_children.n = 0;
+	p->_children.p = NULL;
 	parent = (struct X3D_Node*) (*dest); //NULL;
 	prototype = (struct X3D_Proto*)(*proto)->__prototype;
 	//prototype = (struct X3D_Proto*)p->__prototype;
@@ -4673,7 +4673,7 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 	//p->__IS = copy IStable from prototype, and the targetNode* pointer will be wrong until p2p
 	copy_IStable(&((Stack*)prototype->__IS), &((Stack*)p->__IS));
 	//2.a) copy rootnodes
-	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->children),(union anyVrml*)&(p->children),
+	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->_children),(union anyVrml*)&(p->_children),
 		p2p,instancedScripts,p,parent);
 	//2.b) copy routes
 	copy_routes(prototype->__ROUTES, p, p2p);
@@ -5162,7 +5162,7 @@ void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Group *sceneInstance
 	//}else{
 	//I think the sceneProto being passed in is already the prototype -with body- and not an interface/instance
 	//copy rootnodes
-	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(sceneProto->children),(union anyVrml*)&(sceneInstance->children),
+	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(sceneProto->_children),(union anyVrml*)&(sceneInstance->children),
 		p2p,instancedScripts,scenePlaceholderProto,parent);
 	//}
 	//copy sceneProto routes (child protoInstance routes copied elsewhere)
@@ -5454,8 +5454,6 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	fieldPtr = NULL;
 	foundField = find_anyfield_by_name(me->lexer, node, &fieldPtr, &mode, &type, nodeFieldName, &source, &fdecl, &ifield);
 
-	if(!strcmp(nodeFieldName,"krajniPozice"))
-		printf("we got a field named krajniPozice\n");
 	if(!(foundField))
 	{
 		BACKUP
@@ -5567,8 +5565,8 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	{
 		int isMF, sftype, isize;
 		//Q. how do I do this? Just a memcpy on anyVrml or ???
-		printf("size of anyVrml=%d\n",sizeof(union anyVrml));
-		printf("f->mode=%d  f->type=%d fieldptr mode=%d type=%d\n",f->mode,f->type,mode,type);
+		//printf("size of anyVrml=%d\n",sizeof(union anyVrml));
+		//printf("f->mode=%d  f->type=%d fieldptr mode=%d type=%d\n",f->mode,f->type,mode,type);
 		//heapdump();
 		//isMF = type % 2;
 		//sftype = type - isMF;

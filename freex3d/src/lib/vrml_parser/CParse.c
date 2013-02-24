@@ -158,11 +158,14 @@ struct ProtoDefinition *getVRMLbrotoDefinition (struct X3D_Proto *me);
 char* parser_getPROTONameFromNode(struct X3D_Node *node)
 {
 	struct ProtoDefinition* cpd;
-	if(node->_nodeType == NODE_Group)
+	if(node->_nodeType == NODE_Group){
 		cpd = getVRMLprotoDefinition(X3D_GROUP(node));
-	if(node->_nodeType == NODE_Proto)
+		if (cpd != NULL) return cpd->protoName;
+	}
+	else if(node->_nodeType == NODE_Proto){
 		cpd = getVRMLbrotoDefinition(X3D_PROTO(node));
-	if (cpd != NULL) return cpd->protoName;
+		if (cpd != NULL) return cpd->protoName;
+	}
 	return NULL;
 }
 

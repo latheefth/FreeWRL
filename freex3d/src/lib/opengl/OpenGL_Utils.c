@@ -2753,8 +2753,8 @@ struct X3D_Node* getTypeNode(struct X3D_Node *node)
 				if(1) //some flag to say it's not the scene, but a protoInstance where only the first node is rendered
 				{
 					//the first node in a protobody determines its type
-					if(pn->children.n > 0)
-						dnode = getTypeNode(pn->children.p[0]);
+					if(pn->_children.n > 0)
+						dnode = getTypeNode(pn->_children.p[0]);
 					else
 						dnode = NULL;
 				}
