@@ -78,19 +78,14 @@ package VRML::NodeType;
 	},"X3DChildNode"),
 
 	Proto => new VRML::NodeType("Proto", {
-		addChildren => [MFNode, undef, inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		removeChildren => [MFNode, undef, inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		children => [MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_children => [MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-
-		FreeWRL__protoDef => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # tell renderer that this is a proto...
-		#FreeWRL_PROTOInterfaceNodes =>[MFNode, [], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_sortedChildren => [MFNode, [], inputOutput, 0],
+		_sortedChildren => [MFNode, [], inputOutput, 0], # do I need this?
 		__protoDeclares => [MFNode,[],inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
-		__protoDef => [FreeWRLPTR, 0, initializeOnly, 0],
-		__protoFlags => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #not sure-  see code
+		__protoDef => [FreeWRLPTR, 0, initializeOnly, 0], #user fields
+		__protoFlags => [SFInt32, INT_ID_UNDEFINED, initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], 
 		__prototype => [SFNode, NULL, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__parentProto => [SFNode, NULL, initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], #first node in protobody
 		__ROUTES => [FreeWRLPTR, 0, initializeOnly, 0],
