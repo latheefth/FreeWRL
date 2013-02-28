@@ -2269,6 +2269,34 @@ void add_mfparents(struct X3D_Node* newParent, union anyVrml* mfnode, int mftype
 					//	break;
 }
 
+//char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset);
+char *findFIELDNAMES0(struct X3D_Node *node, int offset);
+
+
+const char *stringMode(int pkwmode, int cute){
+	const char **strmode;
+	const char *cutemode[] = {"init","in","out","inOut" };
+	const char *fullmode[] = {"initializeOnly","inputOnly","outputOnly","inputOutput"};
+	strmode = fullmode;
+	if(cute) strmode = cutemode;
+
+	switch(pkwmode)
+	{
+		case PKW_initializeOnly:
+		  return strmode[0];
+		case PKW_inputOutput:
+		  return strmode[3];
+		case PKW_inputOnly:
+		  return strmode[1];
+		case PKW_outputOnly:
+			return strmode[2];
+		default:
+			break;
+	}
+	return "_udef_"; /* gets rid of compile time warnings */
+}
+
+
 void propagate_events_B() {
 	int havinterp;
 	int counter;
@@ -2414,18 +2442,6 @@ void propagate_events_B() {
 				if (p->CRoutes[counter].isActive == TRUE) {
 					/* first thing, set this to FALSE */
 					p->CRoutes[counter].isActive = FALSE;
-					#ifdef CRVERBOSE
-						printf("event %p %u len %d sent something", p->CRoutes[counter].routeFromNode, p->CRoutes[counter].fnptr,p->CRoutes[counter].len);
-						//if (p->CRoutes[counter].fnptr < 20)
-						if (p->CRoutes[counter].routeFromNode->_nodeType == NODE_Script)
-						{
-							struct CRjsnameStruct *JSparamnames = getJSparamnames();
-							printf (" (script param: %s)",JSparamnames[p->CRoutes[counter].fnptr].name);
-						}else {
-							printf (" (nodeType %s)",stringNodeType(X3D_NODE(p->CRoutes[counter].routeFromNode)->_nodeType));
-						}
-						printf ("\n");
-					#endif
 					/* to get routing to/from exposedFields, lets
 					 * mark this to/offset as an event */
 					//MARK_EVENT (to_ptr->routeToNode, to_ptr->foffset);
@@ -2501,8 +2517,31 @@ void propagate_events_B() {
 					//if(isMF && sftype == FIELDTYPE_SFNode)
 					//	add_mfparents(toNode,toAny,type);
 					registerParentIfManagedField(type,toMode,1, toAny, toNode); //see unlink_node/killNode policy
-					//printf("%s.%d TO %s.%d\n",parser_getNameFromNode(fromNode),fromOffset,parser_getNameFromNode(toNode),toOffset);
 					//OK we copied. 
+
+					#ifdef CRVERBOSE
+					{
+						char *fromName, *toName, *fromFieldName, *toFieldName, *toModeName, *typeName, *fromNodeType, *toNodeType;
+						char fromNameP[100], toNameP[100];
+						sprintf(fromNameP,"%p",fromNode);
+						sprintf(toNameP,"%p",toNode);
+						fromName = parser_getNameFromNode(fromNode);
+						if(!fromName) fromName = &fromNameP[0];
+						toName   = parser_getNameFromNode(toNode);
+						if(!toName) toName = &toNameP[0];
+						//fromFieldName = findFIELDNAMESfromNodeOffset0(fromNode,fromOffset);
+						//toFieldName = findFIELDNAMESfromNodeOffset0(toNode,toOffset);
+						fromFieldName = findFIELDNAMES0(fromNode,fromOffset);
+						toFieldName = findFIELDNAMES0(toNode,toOffset);
+						if(!toName) toName = &toNameP[0];
+						fromNodeType = (char *)stringNodeType(fromNode->_nodeType);
+						toNodeType = (char *)stringNodeType(fromNode->_nodeType);
+						typeName = (char*)stringFieldtypeType(type);
+						toModeName = (char *)stringMode(toMode, 1);
+						printf(" %s %s.%s TO %s %s.%s %s \n",fromNodeType,fromName,fromFieldName,
+							toNodeType,toName,toFieldName,toModeName);
+					}
+					#endif
 
 					//Some target node types need special processing ie sensors and scripts
 					switch(toNode->_nodeType)

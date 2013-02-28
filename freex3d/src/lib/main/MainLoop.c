@@ -2048,6 +2048,11 @@ char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset)
   #endif
 
 }
+char *findFIELDNAMES0(struct X3D_Node *node, int offset)
+{
+	return findFIELDNAMESfromNodeOffset0(node,offset);
+}
+
 void print_routes_ready_to_register(FILE* fp);
 void print_routes(FILE* fp)
 {

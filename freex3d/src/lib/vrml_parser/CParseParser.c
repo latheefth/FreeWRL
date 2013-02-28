@@ -4509,13 +4509,13 @@ void copy_IS(Stack *istable, struct X3D_Proto* target, struct Vector *p2p)
 		iprotofield = is->iprotofield;
 		//if(pnode->_nodeType != NODE_Script && pnode->_nodeType != NODE_Proto)
 		//	iprotofield = NODE_OFFSETS[node->_nodeType][offset*5 +1];
-		if(is->mode == PKW_outputOnly){
+		if(is->pmode == PKW_outputOnly){ //we should use pmode instead of mode, because pmode is more restrictive, so we don't route from pmode initializeOnly (which causes cycles in 10.wrl)
 			//idir = 0;
 			//if(node->_nodeType == NODE_Script) idir = FROM_SCRIPT;
 			 CRoutes_RegisterSimple(node, ifield, pnode, iprotofield, 0);
-		}else if(is->mode == PKW_inputOnly){
+		}else if(is->pmode == PKW_inputOnly){
 			CRoutes_RegisterSimple(pnode, iprotofield, node, ifield, 0);
-		}else if(is->mode == PKW_inputOutput){
+		}else if(is->pmode == PKW_inputOutput){
 			CRoutes_RegisterSimple(node, ifield, pnode, iprotofield, 0);
 			CRoutes_RegisterSimple(pnode, iprotofield, node, ifield, 0);
 		}else{

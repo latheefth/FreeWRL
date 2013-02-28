@@ -56,9 +56,6 @@ typedef float shaderVec4[4];
 
 
 typedef struct pRenderFuncs{
-#ifdef RENDERVERBOSE
-	int renderLevel;// = 0;
-#endif
 	/* which arrays are enabled, and defaults for each array */
 	int shaderNormalArray;// = TRUE;
 	int shaderVertexArray;// = TRUE;
@@ -124,9 +121,6 @@ OLDCODE	t->OSX_replace_world_from_console = NULL;
 	t->prv = RenderFuncs_constructor();
 	{
 		ppRenderFuncs p = (ppRenderFuncs)t->prv;
-#ifdef RENDERVERBOSE
-		p->renderLevel = 0;
-#endif
 		/* which arrays are enabled, and defaults for each array */
 		p->shaderNormalArray = TRUE;
 		p->shaderVertexArray = TRUE;
@@ -391,11 +385,11 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 #ifdef RENDERVERBOSE    
 {	int i;
 	printf ("sendLightInfo - sending in lightState ");
-	for (i=0; i<MAX_LIGHTS; i++) {
-		printf ("cut %d:%f ",i,p->light_spotCut[i]);
-		printf ("exp %d:%f ",i,p->light_spotExp[i]);
-		//printf ("%d:%d ",i,p->lightOnOff[i]);
-	}
+	//for (i=0; i<MAX_LIGHTS; i++) {
+	//	printf ("cut %d:%f ",i,p->light_spotCut[i]);
+	//	printf ("exp %d:%f ",i,p->light_spotExp[i]);
+	//	//printf ("%d:%d ",i,p->lightOnOff[i]);
+	//}
 	printf ("\n");
 }
 #endif
@@ -808,11 +802,11 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 
 	/* Real rat-testing */
 #ifdef RENDERVERBOSE
-	printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
-	       descr, rat,cx,cy,cz,nx,ny,nz,
-	       t_r1.x, t_r1.y, t_r1.z,
-	       t_r2.x, t_r2.y, t_r2.z
-		);
+	//printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
+	//       descr, rat,cx,cy,cz,nx,ny,nz,
+	//       t_r1.x, t_r1.y, t_r1.z,
+	//       t_r2.x, t_r2.y, t_r2.z
+	//	);
 #endif
 
 	if(rat<0 || (rat>tg->RenderFuncs.hitPointDist && tg->RenderFuncs.hitPointDist >= 0)) {
@@ -825,7 +819,7 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 	p->rayHit=p->rayph;
 	p->rayHitHyper=p->rayph;
 #ifdef RENDERVERBOSE 
-	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, tg->RenderFuncs.hitPointDist);
+//	printf ("Rayhit, hp.x y z: - %f %f %f rat %f hitPointDist %f\n",hp.x,hp.y,hp.z, rat, tg->RenderFuncs.hitPointDist);
 #endif
 }
 
