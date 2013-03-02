@@ -81,7 +81,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0;
+		p->useBrotos = 1;
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -329,6 +329,7 @@ struct VRMLParser* newParser(void* ptr, unsigned ofs, int parsingX3DfromXML) {
     ret->DEFedNodes = NULL;
     ret->PROTOs = NULL;
     ret->parsingX3DfromXML = parsingX3DfromXML;
+	ret->brotoDEFedNodes = NULL;
     return ret;
 }
 
@@ -4513,6 +4514,7 @@ void copy_IS(Stack *istable, struct X3D_Proto* target, struct Vector *p2p)
 			//idir = 0;
 			//if(node->_nodeType == NODE_Script) idir = FROM_SCRIPT;
 			 CRoutes_RegisterSimple(node, ifield, pnode, iprotofield, 0);
+
 		}else if(is->pmode == PKW_inputOnly){
 			CRoutes_RegisterSimple(pnode, iprotofield, node, ifield, 0);
 		}else if(is->pmode == PKW_inputOutput){
@@ -4557,9 +4559,54 @@ struct brotoIS * in_IStable(struct X3D_Node *target, int ifield, Stack *IS, int 
 	}
 	return NULL;
 }
-//copy broto defnames to old-style global scene defnames
+//copy broto defnames to single global scene defnames, for node* to defname lookup in parser_getNameFromNode
+//but can't go the other way (name to node) because there can be duplicate nodes with the same name in
+//different contexts
 void copy_defnames(Stack *defnames, struct X3D_Proto* target, struct Vector *p2p)
 {
+	Stack* defs;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+
+	defs = globalParser->brotoDEFedNodes;
+	if( defs == NULL)
+	{
+		defs = newStack(struct brotoDefpair *);
+		globalParser->brotoDEFedNodes = defs;
+	}
+	if(defnames)
+	{
+		int i,n;
+		struct brotoDefpair* def, *def2;
+		n = vectorSize(defnames);
+		for(i=0;i<n;i++){
+			def = vector_get(struct brotoDefpair*,defnames,i);
+			def2 = MALLOC(struct brotoDefpair*,sizeof(struct brotoDefpair));
+			def2->name = def->name; //I wonder who owns this name
+			def2->node = p2p_lookup(def->node, p2p);
+			stack_push(struct brotoDefpair*, defs, def2);
+		}
+	}
+}
+char *broto_getNameFromNode(struct X3D_Node* node)
+{
+	char *ret;
+	Stack* defs;
+	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	ret = NULL;
+	defs = globalParser->brotoDEFedNodes;
+	if(defs){
+		int i,n;
+		struct brotoDefpair* def;
+		n = vectorSize(defs);
+		for(i=0;i<n;i++){
+			def = vector_get(struct brotoDefpair*,defs,i);
+			if(def->node == node){
+				ret = def->name; 
+				break;
+			}
+		}
+	}
+	return ret;
 }
 void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vector *p2p, 
 					Stack *instancedScripts, struct X3D_Proto *ctx);
@@ -4902,6 +4949,8 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 					dp = newProtoDefinition();
 					//memcpy(dp,sp,sizeof(struct ProtoDefinition));
 					dp->iface = newVector(struct ProtoFieldDecl *, sp->iface->n);
+					dp->protoName = strdup(sp->protoName);
+					dp->isCopy = TRUE;
 					for(k=0;k<sp->iface->n;k++)
 					{
 						sdecl = protoDefinition_getFieldByNum(sp, k);

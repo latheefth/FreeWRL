@@ -1607,6 +1607,88 @@ void mark_event (struct X3D_Node *from, int totalptr) {
 	#endif
 }
 
+//experimental _B mark event for brotos, to stop cycling node.exposed to/from proto.exposed
+void mark_event_B (struct X3D_Node *lastFrom, int lastptr, struct X3D_Node *from, int totalptr) {
+	int findit;
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+
+	if(from == 0) return;
+	/*if(totalptr == 0) return; */
+
+	X3D_NODE_CHECK(from);
+
+	/* maybe this MARK_EVENT is coming in during initial node startup, before routing is registered? */
+	if (!p->CRoutes_Initiated) {
+		LOCK_PREROUTETABLE
+		/* printf ("routes not registered yet; lets save this one for a bit...\n"); */
+		if (p->initialEventBeforeRoutesCount >= p->preRouteTableSize) {
+			p->preRouteTableSize += POSSIBLEINITIALROUTES;
+			p->preEvents=REALLOC (p->preEvents,
+				sizeof (struct initialRouteStruct) * p->preRouteTableSize);
+		}
+		p->preEvents[p->initialEventBeforeRoutesCount].from = from;
+		p->preEvents[p->initialEventBeforeRoutesCount].totalptr = totalptr;
+		p->initialEventBeforeRoutesCount++;
+		UNLOCK_PREROUTETABLE
+
+		return;  /* no routes registered yet */
+	}
+
+	findit = 1;
+
+	#ifdef CRVERBOSE 
+		printf ("\nmark_event, from %s (%u) fromoffset %u\n", stringNodeType(from->_nodeType),from, totalptr);
+	#endif
+
+	/* events in the routing table are sorted by routeFromNode. Find
+	   out if we have at least one route from this node */
+	while (from > p->CRoutes[findit].routeFromNode) {
+		#ifdef CRVERBOSE
+		printf ("mark_event, skipping past %x %x, index %d\n",from, p->CRoutes[findit].routeFromNode, findit);
+		#endif
+		findit ++;
+	}
+
+	/* while we have an eventOut from this NODE/OFFSET, mark it as
+	   active. If no event from this NODE/OFFSET, ignore it */
+	while ((from == p->CRoutes[findit].routeFromNode) &&
+		(totalptr != p->CRoutes[findit].fnptr)) findit ++;
+
+	/* did we find the exact entry? */
+	#ifdef CRVERBOSE 
+ 		printf ("ep, (%#x %#x) (%#x %#x) at %d \n",
+			from,p->CRoutes[findit].routeFromNode, totalptr,
+			p->CRoutes[findit].fnptr,findit); 
+	#endif
+
+	/* if we did, signal it to the CEvents loop  - maybe more than one ROUTE,
+	   eg, a time sensor goes to multiple interpolators */
+	while ((from == p->CRoutes[findit].routeFromNode) &&
+		(totalptr == p->CRoutes[findit].fnptr)) {
+		BOOL isCycle = 0;
+		#ifdef CRVERBOSE
+			printf ("found event at %d\n",findit);
+		#endif
+		isCycle = (p->CRoutes[findit].tonodes[0].routeToNode == lastFrom && 
+					p->CRoutes[findit].tonodes[0].foffset == lastptr);
+		if(!isCycle)
+		if (p->CRoutes[findit].intTimeStamp!=p->thisIntTimeStamp) {
+			p->CRoutes[findit].isActive=TRUE;
+			p->CRoutes[findit].intTimeStamp=p->thisIntTimeStamp;
+		}
+
+#ifdef CRVERBOSE
+		else printf ("routing loop broken, findit %d\n",findit);
+#endif
+
+		findit ++;
+	}
+	#ifdef CRVERBOSE
+		printf ("done mark_event\n");
+	#endif
+}
+
+
 #ifdef HAVE_JAVASCRIPT
 /********************************************************************
 
@@ -2295,7 +2377,7 @@ const char *stringMode(int pkwmode, int cute){
 	}
 	return "_udef_"; /* gets rid of compile time warnings */
 }
-
+void print_field_value(FILE *fp, int typeIndex, union anyVrml* value);
 
 void propagate_events_B() {
 	int havinterp;
@@ -2305,8 +2387,7 @@ void propagate_events_B() {
 	union anyVrml *fromAny, *toAny; //dug9
 	struct X3D_Node *fromNode, *toNode, *lastFromNode;
 	int fromOffset, toOffset, lastFromOffset, markme, last_markme;
-	int len, isize, type, sftype, isMF, extra;
-
+	int len, isize, type, sftype, isMF, extra, itime, nRoutesDone, modeFrom, modeTo, debugRoutes;
 
 	CRnodeStruct *to_ptr = NULL;
 	ppCRoutes p;
@@ -2316,12 +2397,17 @@ void propagate_events_B() {
 		#ifdef CRVERBOSE
 		printf ("\npropagate_events start\n");
 		#endif
+	nRoutesDone = 0; //debug diagnosis
 
 	/* increment the "timestamp" for this entry */
 	p->thisIntTimeStamp ++; 
 	lastFromOffset = -1; //used for from script
 	lastFromNode = NULL; // "
 	last_markme = FALSE; // "
+	//#ifdef CRVERBOSE
+	debugRoutes = 0;
+	if(debugRoutes)printf("current time=%d\n",p->thisIntTimeStamp);
+	//#endif
 	do {
 		havinterp=FALSE; /* assume no interpolators triggered */
 
@@ -2332,7 +2418,7 @@ void propagate_events_B() {
 			fromOffset = p->CRoutes[counter].fnptr;
 			extra = p->CRoutes[counter].extra;
 			//len = p->CRoutes[counter].len; //this has -ve sentinal values - we need +ve
-
+			itime = p->CRoutes[counter].intTimeStamp;
 			switch(fromNode->_nodeType)
 			{
 				case NODE_ShaderProgram:
@@ -2360,6 +2446,7 @@ void propagate_events_B() {
 						isize = returnElementLength(sftype) * returnElementRowSize(sftype);
 						if(isMF) len = sizeof(int) + sizeof(void*);
 						else len = isize;
+						modeFrom = sfield->fieldDecl->PKWmode;
 
 						if(fromNode->_nodeType == NODE_Script){
 							//continue; //let the gatherScriptEventOuts(); copy directly toNode.
@@ -2389,6 +2476,7 @@ void propagate_events_B() {
 						pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, fromOffset);
 						fromAny = &pfield->defaultVal;
 						type = pfield->type;
+						modeFrom = pfield->mode;
 					}
 					break;
 				default: //builtin
@@ -2404,6 +2492,7 @@ void propagate_events_B() {
 							if(offsets[1]==fromOffset) 
 							{
 								type = offsets[2];
+								modeFrom = PKW_from_KW(offsets[3]);
 								break;
 							}
 							offsets += 5;
@@ -2423,7 +2512,7 @@ void propagate_events_B() {
 
 
 			for (to_counter = 0; to_counter < p->CRoutes[counter].tonode_count; to_counter++) {
-				int toMode = PKW_inputOnly;
+				modeTo = PKW_inputOnly;
 				to_ptr = &(p->CRoutes[counter].tonodes[to_counter]);
 				if (to_ptr == NULL) {
 					printf("WARNING: tonode at %u is NULL in propagate_events.\n",
@@ -2450,7 +2539,7 @@ void propagate_events_B() {
 					//dug9 >> toAny
 					toNode = to_ptr->routeToNode; //p->CRoutes[counter].routeFromNode;
 					toOffset = to_ptr->foffset; //p->CRoutes[counter].fnptr;
-					MARK_EVENT(toNode, toOffset);
+					//MARK_EVENT(toNode, toOffset);
 
 					switch(toNode->_nodeType)
 					{
@@ -2471,7 +2560,7 @@ void propagate_events_B() {
 								}
 								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, toOffset);
 								toAny = &sfield->value;
-								toMode = sfield->fieldDecl->PKWmode;
+								modeTo = sfield->fieldDecl->PKWmode;
 							}
 							break;
 						case NODE_Proto:
@@ -2481,7 +2570,7 @@ void propagate_events_B() {
 								struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 								pfield= vector_get(struct ProtoFieldDecl*, pstruct->iface, toOffset);
 								toAny = &pfield->defaultVal;
-								toMode = pfield->mode;
+								modeTo = pfield->mode;
 							}
 							break;
 						default: //builtin
@@ -2494,7 +2583,7 @@ void propagate_events_B() {
 									//printf("%d %d %d %d %d\n",offsets[0],offsets[1],offsets[2],offsets[3],offsets[4]);
 									if(offsets[1]==fromOffset) 
 									{
-										toMode = PKW_from_KW(offsets[3]);
+										modeTo = PKW_from_KW(offsets[3]);
 										break;
 									}
 									offsets += 5;
@@ -2512,16 +2601,19 @@ void propagate_events_B() {
 					//  3. if yes, is there something in toField now?
 					//  4. if yes, get it, remove toNode as parent, refcount-- (let killNode in startofloopnodeupdates garbage collect it)
 					//  5. if it was an MFNode, release the p* array
-					cleanFieldIfManaged(type,toMode,1,toNode,toOffset); //see unlink_node/killNode policy
+					cleanFieldIfManaged(type,modeTo,1,toNode,toOffset); //see unlink_node/killNode policy
 					shallow_copy_field(type,fromAny,toAny);
 					//if(isMF && sftype == FIELDTYPE_SFNode)
 					//	add_mfparents(toNode,toAny,type);
-					registerParentIfManagedField(type,toMode,1, toAny, toNode); //see unlink_node/killNode policy
+					registerParentIfManagedField(type,modeTo,1, toAny, toNode); //see unlink_node/killNode policy
 					//OK we copied. 
+					//if(extra == 1 || extra == -1)
+					mark_event_B(fromNode,fromOffset, toNode, toOffset);
+					//MARK_EVENT(toNode, toOffset);
 
-					#ifdef CRVERBOSE
-					{
-						char *fromName, *toName, *fromFieldName, *toFieldName, *toModeName, *typeName, *fromNodeType, *toNodeType;
+					//#ifdef CRVERBOSE
+					if(debugRoutes){
+						char *fromName, *toName, *fromFieldName, *toFieldName, *fromModeName, *toModeName, *typeName, *fromNodeType, *toNodeType;
 						char fromNameP[100], toNameP[100];
 						sprintf(fromNameP,"%p",fromNode);
 						sprintf(toNameP,"%p",toNode);
@@ -2529,20 +2621,26 @@ void propagate_events_B() {
 						if(!fromName) fromName = &fromNameP[0];
 						toName   = parser_getNameFromNode(toNode);
 						if(!toName) toName = &toNameP[0];
-						//fromFieldName = findFIELDNAMESfromNodeOffset0(fromNode,fromOffset);
-						//toFieldName = findFIELDNAMESfromNodeOffset0(toNode,toOffset);
 						fromFieldName = findFIELDNAMES0(fromNode,fromOffset);
 						toFieldName = findFIELDNAMES0(toNode,toOffset);
 						if(!toName) toName = &toNameP[0];
 						fromNodeType = (char *)stringNodeType(fromNode->_nodeType);
-						toNodeType = (char *)stringNodeType(fromNode->_nodeType);
+						if(fromNode->_nodeType == NODE_Proto)
+							fromNodeType = ((struct ProtoDefinition*)(X3D_PROTO(fromNode)->__protoDef))->protoName;
+						toNodeType = (char *)stringNodeType(toNode->_nodeType);
+						if(toNode->_nodeType == NODE_Proto)
+							toNodeType = ((struct ProtoDefinition*)(X3D_PROTO(toNode)->__protoDef))->protoName;
 						typeName = (char*)stringFieldtypeType(type);
-						toModeName = (char *)stringMode(toMode, 1);
-						printf(" %s %s.%s TO %s %s.%s %s \n",fromNodeType,fromName,fromFieldName,
-							toNodeType,toName,toFieldName,toModeName);
-					}
-					#endif
+						fromModeName = (char *)stringMode(modeFrom,1);
+						toModeName = (char *)stringMode(modeTo, 1);
+						printf(" %s %s.%s %s TO %s %s.%s %s %d ",fromNodeType,fromName,fromFieldName,fromModeName,
+							toNodeType,toName,toFieldName,toModeName,itime);
+						print_field_value(stdout,type,toAny);
+						printf("\n");
 
+					}
+					//#endif
+					nRoutesDone++;
 					//Some target node types need special processing ie sensors and scripts
 					switch(toNode->_nodeType)
 					{
@@ -2650,7 +2748,11 @@ void propagate_events_B() {
 		}
 	}	
 	#endif /* HAVE_JAVASCRIPT */
-	//printf(" * ");
+	if(debugRoutes){
+		printf(" *\n");
+		if(nRoutesDone)
+			getchar();
+	}
 	#ifdef CRVERBOSE
 	printf ("done propagate_events\n\n");
 	#endif

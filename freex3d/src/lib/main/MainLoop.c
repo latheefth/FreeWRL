@@ -1487,6 +1487,284 @@ int doRecurse(const char *fieldname){
 	}
 	return dont == 0 ? 1 : 0;
 }
+void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
+{
+	int i;
+	switch(typeIndex)
+	{
+		case FIELDTYPE_FreeWRLPTR:
+		{
+			fprintf(fp," %p \n",(void *)value);
+			break;
+		}
+		case FIELDTYPE_SFNode:
+		{
+			int dore;
+			fprintf(fp," %p \n",(void *)value);
+			break;
+		}
+		case FIELDTYPE_MFNode:
+		{
+			int j, dore;
+			struct Multi_Node* mfnode;
+			mfnode = (struct Multi_Node*)value;
+			fprintf(fp,"{ ");
+			for(j=0;j<mfnode->n;j++)
+				fprintf(fp," %p, ",mfnode->p[j]);
+			break;
+		}
+		case FIELDTYPE_SFString:
+		{
+			struct Uni_String** sfstring = (struct Uni_String**)value;
+			fprintf (fp," %s ",(*sfstring)->strptr);
+			break;
+		}
+		case FIELDTYPE_MFString:
+		{
+			struct Multi_String* mfstring = (struct Multi_String*)value;
+			fprintf (fp," { ");
+			for (i=0; i<mfstring->n; i++) { fprintf (fp,"%s, ",mfstring->p[i]->strptr); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFFloat:
+		{
+			float *flt = (float*)value;
+			fprintf(fp," %4.3f ",*flt);
+			break;
+		}
+		case FIELDTYPE_MFFloat:
+		{
+			struct Multi_Float *mffloat = (struct Multi_Float*)value;
+			fprintf (fp,"{ ");
+			for (i=0; i<mffloat->n; i++) { fprintf (fp," %4.3f,",mffloat->p[i]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFTime:
+		case FIELDTYPE_SFDouble:
+		{
+			double *sftime = (double*)value;
+			fprintf (fp,"%4.3f",*sftime);
+			break;
+		}
+		case FIELDTYPE_MFTime:
+		case FIELDTYPE_MFDouble:
+		{
+			struct Multi_Double *mfdouble = (struct Multi_Double*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfdouble->n; i++) { fprintf (fp," %4.3f,",mfdouble->p[i]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFInt32:
+		case FIELDTYPE_SFBool:
+		{
+			int *sfint32 = (int*)(value);
+			fprintf (fp," \t%d\n",*sfint32);
+			break;
+		}
+		case FIELDTYPE_MFInt32:
+		case FIELDTYPE_MFBool:
+		{
+			struct Multi_Int32 *mfint32 = (struct Multi_Int32*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfint32->n; i++) { fprintf (fp," %d,",mfint32->p[i]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFVec2f:
+		{
+			struct SFVec2f * sfvec2f = (struct SFVec2f *)value;
+			fprintf (fp,"");
+			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",sfvec2f->c[i]); }
+			break;
+		}
+		case FIELDTYPE_MFVec2f:
+		{
+			struct Multi_Vec2f *mfvec2f = (struct Multi_Vec2f*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfvec2f->n; i++) 
+				{ fprintf (fp,"[%4.3f, %4.3f],",mfvec2f->p[i].c[0], mfvec2f->p[i].c[1]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFVec2d:
+		{
+			struct SFVec2d * sfvec2d = (struct SFVec2d *)value;
+			for (i=0; i<2; i++) { fprintf (fp,"%4.3f,  ",sfvec2d->c[i]); }
+			break;
+		}
+		case FIELDTYPE_MFVec2d:
+		{
+			struct Multi_Vec2d *mfvec2d = (struct Multi_Vec2d*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfvec2d->n; i++) 
+				{ fprintf (fp,"[%4.3f, %4.3f], ",mfvec2d->p[i].c[0], mfvec2d->p[i].c[1]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFVec3f:
+		case FIELDTYPE_SFColor:
+		{
+			struct SFVec3f * sfvec3f = (struct SFVec3f *)value;
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",sfvec3f->c[i]); }
+			break;
+		}
+		case FIELDTYPE_MFVec3f:
+		case FIELDTYPE_MFColor:
+		{
+			struct Multi_Vec3f *mfvec3f = (struct Multi_Vec3f*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfvec3f->n; i++) 
+				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f],",mfvec3f->p[i].c[0], mfvec3f->p[i].c[1],mfvec3f->p[i].c[2]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFVec3d:
+		{
+			struct SFVec3d * sfvec3d = (struct SFVec3d *)value;
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",sfvec3d->c[i]); }
+			break;
+		}
+		case FIELDTYPE_MFVec3d:
+		{
+			struct Multi_Vec3d *mfvec3d = (struct Multi_Vec3d*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfvec3d->n; i++) 
+				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f],",mfvec3d->p[i].c[0], mfvec3d->p[i].c[1],mfvec3d->p[i].c[2]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFVec4f:
+		case FIELDTYPE_SFColorRGBA:
+		case FIELDTYPE_SFRotation:
+		{
+			struct SFRotation * sfrot = (struct SFRotation *)value;
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",sfrot->c[i]); }
+			break;
+		}
+		case FIELDTYPE_MFVec4f:
+		case FIELDTYPE_MFColorRGBA:
+		case FIELDTYPE_MFRotation:
+		{
+			struct Multi_ColorRGBA *mfrgba = (struct Multi_ColorRGBA*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfrgba->n; i++) 
+				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f]\n",mfrgba->p[i].c[0], mfrgba->p[i].c[1],mfrgba->p[i].c[2],mfrgba->p[i].c[3]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFVec4d:
+		{
+			struct SFVec4d * sfvec4d = (struct SFVec4d *)value;
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",sfvec4d->c[i]); }
+			break;
+		}
+		case FIELDTYPE_MFVec4d:
+		{
+			struct Multi_Vec4d *mfvec4d = (struct Multi_Vec4d*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfvec4d->n; i++) 
+				{ fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f],",mfvec4d->p[i].c[0], mfvec4d->p[i].c[1],mfvec4d->p[i].c[2],mfvec4d->p[i].c[3]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFMatrix3f:
+		{
+			struct SFMatrix3f *sfmat3f = (struct SFMatrix3f*)value;
+			fprintf (fp," [%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",			
+			sfmat3f->c[0],sfmat3f->c[1],sfmat3f->c[2],
+			sfmat3f->c[3],sfmat3f->c[4],sfmat3f->c[5],
+			sfmat3f->c[6],sfmat3f->c[7],sfmat3f->c[8]);
+			break;
+		}
+		case FIELDTYPE_MFMatrix3f:
+		{
+			struct Multi_Matrix3f *mfmat3f = (struct Multi_Matrix3f*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfmat3f->n; i++) { 
+				fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ],",
+				mfmat3f->p[i].c[0],mfmat3f->p[i].c[1],mfmat3f->p[i].c[2],
+				mfmat3f->p[i].c[3],mfmat3f->p[i].c[4],mfmat3f->p[i].c[5],
+				mfmat3f->p[i].c[6],mfmat3f->p[i].c[7],mfmat3f->p[i].c[8]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFMatrix3d:	
+		{
+			struct SFMatrix3d *sfmat3d = (struct SFMatrix3d*)value;
+			fprintf (fp," [%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]",			
+			sfmat3d->c[0],sfmat3d->c[1],sfmat3d->c[2],
+			sfmat3d->c[3],sfmat3d->c[4],sfmat3d->c[5],
+			sfmat3d->c[6],sfmat3d->c[7],sfmat3d->c[8]);
+			break;
+		}
+		case FIELDTYPE_MFMatrix3d:
+		{
+			struct Multi_Matrix3d *mfmat3d = (struct Multi_Matrix3d*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfmat3d->n; i++) { 
+				fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f ]\n",i,
+				mfmat3d->p[i].c[0],mfmat3d->p[i].c[1],mfmat3d->p[i].c[2],
+				mfmat3d->p[i].c[3],mfmat3d->p[i].c[4],mfmat3d->p[i].c[5],
+				mfmat3d->p[i].c[6],mfmat3d->p[i].c[7],mfmat3d->p[i].c[8]); }
+			break;
+		}
+		case FIELDTYPE_SFMatrix4f:
+		{
+			struct SFMatrix4f *sfmat4f = (struct SFMatrix4f*)value;
+			fprintf (fp," \t[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]\n",
+			sfmat4f->c[0],sfmat4f->c[1],sfmat4f->c[2],sfmat4f->c[3],
+			sfmat4f->c[4],sfmat4f->c[5],sfmat4f->c[6],sfmat4f->c[7],
+			sfmat4f->c[8],sfmat4f->c[9],sfmat4f->c[10],sfmat4f->c[11],
+			sfmat4f->c[12],sfmat4f->c[13],sfmat4f->c[14],sfmat4f->c[15]); 
+			break;
+		}
+		case FIELDTYPE_MFMatrix4f:
+		{
+			struct Multi_Matrix4f *mfmat4f = (struct Multi_Matrix4f*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfmat4f->n; i++) { 
+				fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ],",
+				mfmat4f->p[i].c[0],mfmat4f->p[i].c[1],mfmat4f->p[i].c[2],mfmat4f->p[i].c[3],
+				mfmat4f->p[i].c[4],mfmat4f->p[i].c[5],mfmat4f->p[i].c[6],mfmat4f->p[i].c[7],
+				mfmat4f->p[i].c[8],mfmat4f->p[i].c[9],mfmat4f->p[i].c[10],mfmat4f->p[i].c[11],
+				mfmat4f->p[i].c[12],mfmat4f->p[i].c[13],mfmat4f->p[i].c[14],mfmat4f->p[i].c[15]); }
+			fprintf(fp,"}");
+			break;
+		}
+		case FIELDTYPE_SFMatrix4d:
+		{
+			struct SFMatrix4d *sfmat4d = (struct SFMatrix4d*)value;
+			fprintf (fp," [%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ]",
+			sfmat4d->c[0],sfmat4d->c[1],sfmat4d->c[2],sfmat4d->c[3],
+			sfmat4d->c[4],sfmat4d->c[5],sfmat4d->c[6],sfmat4d->c[7],
+			sfmat4d->c[8],sfmat4d->c[9],sfmat4d->c[10],sfmat4d->c[11],
+			sfmat4d->c[12],sfmat4d->c[13],sfmat4d->c[14],sfmat4d->c[15]); 
+			break;
+		}
+		case FIELDTYPE_MFMatrix4d:	break;
+		{
+			struct Multi_Matrix4d *mfmat4d = (struct Multi_Matrix4d*)value;
+			fprintf (fp,"{");
+			for (i=0; i<mfmat4d->n; i++) { 
+				fprintf (fp,"[%4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f,  %4.3f,  %4.3f, %4.3f, %4.3f, %4.3f, %4.3f, %4.3f,  %4.3f,  %4.3f ],",
+				mfmat4d->p[i].c[0],mfmat4d->p[i].c[1],mfmat4d->p[i].c[2],mfmat4d->p[i].c[3],
+				mfmat4d->p[i].c[4],mfmat4d->p[i].c[5],mfmat4d->p[i].c[6],mfmat4d->p[i].c[7],
+				mfmat4d->p[i].c[8],mfmat4d->p[i].c[9],mfmat4d->p[i].c[10],mfmat4d->p[i].c[11],
+				mfmat4d->p[i].c[12],mfmat4d->p[i].c[13],mfmat4d->p[i].c[14],mfmat4d->p[i].c[15]); }
+			fprintf(fp,"}");
+			break;
+		}
+
+		case FIELDTYPE_SFImage: 
+		{
+			fprintf(fp," %p ",(void *)value); //no SFImage struct defined
+			break;
+		}
+	}
+} //return print_field
 void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes);
 // print_field is used by dump_scene2() to pretty-print a single field.
 // recurses into dump_scene2 for SFNode and MFNodes to print them in detail.

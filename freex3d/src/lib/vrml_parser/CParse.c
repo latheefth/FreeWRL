@@ -169,13 +169,20 @@ char* parser_getPROTONameFromNode(struct X3D_Node *node)
 	return NULL;
 }
 
+
 /* Return DEFed name from its node, or NULL if not found */
+char *broto_getNameFromNode(struct X3D_Node* node);
+
 char* parser_getNameFromNode(struct X3D_Node *node)
 {
 	int ind, nsize;
 	struct Vector *curNameStackTop;
 	struct Vector *curNodeStackTop;
-	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	struct VRMLParser *globalParser;
+	if(usingBrotos())
+		return broto_getNameFromNode(node);
+
+	globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 	
 	if(globalParser == NULL) return NULL;
 	if(globalParser->lexer->userNodeNames == NULL) return NULL;

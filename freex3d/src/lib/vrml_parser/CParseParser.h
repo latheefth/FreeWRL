@@ -87,6 +87,7 @@ struct VRMLParser
 
 	/* which format some field strings will be in - XML and "classic" VRML are different */
 	int parsingX3DfromXML;
+ Stack* brotoDEFedNodes;
 };
 
 /* Functions parsing a type by its index */
