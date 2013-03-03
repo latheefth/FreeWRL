@@ -81,7 +81,7 @@ void CParseParser_init(struct tCParseParser *t){
 	{
 		ppCParseParser p = (ppCParseParser)t->prv;
 		p->foundInputErrors = 0;
-		p->useBrotos = 0;
+		p->useBrotos = 1;
 	}
 }
 	//ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -4370,10 +4370,17 @@ BOOL isAvailableBroto(char *pname, struct X3D_Proto* currentContext, struct X3D_
 	/* besides current context list also search parent context list if there is one */
 	context = currentContext;
 	do {
+		int j;
+		//flux,vivaty search top-down, cortona,blaxxun,white_dune search bottom-up within context,
+		// this only makes a difference if you have more than one protodefinition with the same protoName
+		// in the same context
+		BOOL bottomUp = TRUE; 
 		plist = &context->__protoDeclares;
 		for(i=0;i<plist->n;i++)
 		{
-			p = (struct X3D_Proto*)plist->p[i];
+			j = i;
+			if(bottomUp) j = plist->n - 1 - i;
+			p = (struct X3D_Proto*)plist->p[j];
 			obj = p->__protoDef;
 			if(!strcmp(obj->protoName,pname))
 			{
