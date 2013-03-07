@@ -1304,7 +1304,13 @@ void compute_spy_spz(struct point_XYZ *spy, struct point_XYZ *spz, struct SFVec3
 		spz->z=cos(alpha);
 	} else {
 		/* get the angle for the y axis rotation	*/
-
+		if(1){
+			/* dug9: Mar7,2013 special case: if spine is (all collinear +) parallel to 
+			local Y axis, just return and use defaults which are set up correctly */
+			struct point_XYZ crossp;
+			VECCP(*spy,spp1,crossp);
+			if( veclengthd((double*)&crossp)  < .001 ) return;
+		}
 		alpha = getAlpha((float)spp1.y);
 		gamma = getGamma(alpha,minorX?spp1.x:spp1.z);
 
