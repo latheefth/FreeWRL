@@ -1777,8 +1777,33 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			VEC_FROM_CDIFF(spine[1],spine[0],SCP[0].y);
 			/* calc z	*/
 			VEC_FROM_CDIFF(spine[1],spine[0],spp1);
-			VEC_FROM_CDIFF(spine[1],spine[0],spm1);
-	 		VECCP(spp1,spm1,SCP[1].z);
+			if(0){
+				VEC_FROM_CDIFF(spine[1],spine[0],spm1);
+	 			VECCP(spp1,spm1,SCP[1].z);
+			}
+			if(1){
+				//dug9 Mar7,2013 from specs 
+				// http://www.web3d.org/files/specifications/19775-1/V3.2/Part01/components/geometry3D.html#Extrusion
+				//in 13.3.5.4 Special Cases "
+				//If the entire spine is collinear, the SCP is computed by finding
+				//the rotation of a vector along the positive Y-axis (v1) to the vector 
+				//formed by the spine points (v2). The Y=0 plane is then rotated by this value.
+				struct point_XYZ Yaxis; //scene local Y axis (up)
+				double dlen_cp;
+				Yaxis.x = 0.0;
+				Yaxis.y = 1.0;
+				Yaxis.z = 0.0;
+	 			VECCP(spp1,Yaxis,SCP[1].z);
+				//but what if the Yaxis is aligned pretty much to the spine axis? 
+				//then the cross product will be zero. We want a unit vector. So use Zaxis.
+				dlen_cp = veclengthd((double*)&(SCP[1].z));
+				if( dlen_cp < .001 )
+				{
+					SCP[1].z.x = 0.0; 
+					SCP[1].z.y = 0.0;
+					SCP[1].z.z = 1.0; //align z to local scene Z axis, like flux, cortona, white_dune, blaxxun, cosmo
+				}
+			}
 			#ifdef VERBOSE
 			printf ("just calculated z for spi 0\n");
 			printf("SCP[0].y=[%f,%f,%f], SCP[1].z=[%f,%f,%f]\n",
