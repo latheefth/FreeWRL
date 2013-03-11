@@ -125,9 +125,12 @@ typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
 
 
 typedef struct pOpenGL_Utils{
-	struct X3D_Node ** memoryTable;// = NULL;
-	int tableIndexSize;// = INT_ID_UNDEFINED;
-	int nextEntry;// = 0;
+	// list of all X3D nodes in this system. 
+	// scene graph is tree-structured. this is a linear list.
+	struct Vector *linearNodeTable;
+	// how many holes might we have in this table, due to killing nodes, etc?
+	int potentialHoleCount;
+
 	float cc_red, cc_green, cc_blue, cc_alpha;
 	pthread_mutex_t  memtablelock;// = PTHREAD_MUTEX_INITIALIZER;
 	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
@@ -171,9 +174,8 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 	t->prv = OpenGL_Utils_constructor();
 	{
 		ppOpenGL_Utils p = (ppOpenGL_Utils)t->prv;
-		p->memoryTable = NULL;
-		p->tableIndexSize = INT_ID_UNDEFINED;
-		p->nextEntry = 0;
+		p->linearNodeTable = NULL;
+		p->potentialHoleCount = 0;
 		p->cc_red = 0.0f;
 		p->cc_green = 0.0f;
 		p->cc_blue = 0.0f;
@@ -212,7 +214,6 @@ GLEWContext * glewGetContext()
 }
 #endif
 
-
 #ifdef JASTESTING
 
 /* this is for looking at and manipulating the node memory table. Expect it to disappear sometime */
@@ -221,9 +222,12 @@ void printNodeMemoryTable(void) {
         int tc;
         ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
+	int foundHoleCount = 0;
+
 LOCK_MEMORYTABLE
-        for (tc = 0; tc< p->nextEntry; tc++) {
-		struct X3D_Node *node = p->memoryTable[tc];
+	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
+		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);	
+
 		if (node != NULL) {
 		if (node->_nodeType == NODE_Shape)  {
 		//ConsoleMessage ("have shape/n");
@@ -243,7 +247,7 @@ LOCK_MEMORYTABLE
 				}
 */
 
-				mt->transparency += 0.005;
+				mt->transparency += 0.05;
 				if (mt->transparency > 1.0) mt->transparency=0.0;
 				mt->_change ++;
 			}
@@ -259,9 +263,12 @@ LOCK_MEMORYTABLE
 
 
 		}
+		} else {
+			foundHoleCount ++;
 		}
-
         }
+
+	//ConsoleMessage ("potentialHoleCount %d, foundHoleCount %d",p->potentialHoleCount, foundHoleCount);
 
 
 
@@ -2423,66 +2430,69 @@ void fwl_Android_reloadAssets(void) {
 
 	//ConsoleMessage("fwl_Android_reloadAssets - reload the current active shaders");
 
-        LOCK_MEMORYTABLE
-	for (tc = 0; tc< p->nextEntry; tc++) {
-		node=p->memoryTable[tc];
-		//ConsoleMessage ("rla, node %p\n",node);
-
-		if (node!=NULL) {
+	if (p->linearNodeTable != NULL) {
+	        LOCK_MEMORYTABLE
+		for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
+			node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);	
 	
-			/* tell each node to update itself */
-			node->_change ++;
-			switch (node->_nodeType) {
-				case NODE_Sphere: {
-					struct X3D_Sphere *me = (struct X3D_Sphere *)node;
-					//ConsoleMessage ("Sphere - zeroing VBO");
-					me->_sideVBO = 0;
-					me->__SphereIndxVBO = 0;
-					FREE_IF_NZ(me->__points.p);
-					me->__points.p = NULL;
-					me->__points.n = 0;
-					node->_change ++;
-					break;
+			//ConsoleMessage ("rla, node %p\n",node);
 	
-				}
-				case NODE_Cone: {
-					struct X3D_Cone *me = (struct X3D_Cone *)node;
-					me->__coneVBO = 0;
-					node->_change ++;
-					break;
-				}
-				case NODE_Cylinder: {
-					struct X3D_Cylinder *me = (struct X3D_Cylinder *)node;
-					me->__cylinderVBO = 0;
-					node->_change ++;
-					break;
-				}
-				case NODE_Background: {
-					struct X3D_Background *me = (struct X3D_Background *)node;
-					//ConsoleMessage ("Background - zeroing VBO");
-					me->__VBO = 0;
-					node->_change ++;
-					break;
-				}
-				default: {
-					struct X3D_PolyRep *pr = node->_intern;
-					int i;
-	
-					//ConsoleMessage ("node Type %s, intern %p",stringNodeType(node->_nodeType),pr);
-	
-					// get rid of the PolyRep VBOs.
-					if (pr!=NULL) {
-						for (i=0; i<VBO_COUNT; i++) pr->VBO_buffers[i] = 0;
-						pr->irep_change ++;
+			if (node!=NULL) {
+		
+				/* tell each node to update itself */
+				node->_change ++;
+				switch (node->_nodeType) {
+					case NODE_Sphere: {
+						struct X3D_Sphere *me = (struct X3D_Sphere *)node;
+						//ConsoleMessage ("Sphere - zeroing VBO");
+						me->_sideVBO = 0;
+						me->__SphereIndxVBO = 0;
+						FREE_IF_NZ(me->__points.p);
+						me->__points.p = NULL;
+						me->__points.n = 0;
 						node->_change ++;
+						break;
+		
 					}
+					case NODE_Cone: {
+						struct X3D_Cone *me = (struct X3D_Cone *)node;
+						me->__coneVBO = 0;
+						node->_change ++;
+						break;
+					}
+					case NODE_Cylinder: {
+						struct X3D_Cylinder *me = (struct X3D_Cylinder *)node;
+						me->__cylinderVBO = 0;
+						node->_change ++;
+						break;
+					}
+					case NODE_Background: {
+						struct X3D_Background *me = (struct X3D_Background *)node;
+						//ConsoleMessage ("Background - zeroing VBO");
+						me->__VBO = 0;
+						node->_change ++;
+						break;
+					}
+					default: {
+						struct X3D_PolyRep *pr = node->_intern;
+						int i;
+		
+						//ConsoleMessage ("node Type %s, intern %p",stringNodeType(node->_nodeType),pr);
+		
+						// get rid of the PolyRep VBOs.
+						if (pr!=NULL) {
+							for (i=0; i<VBO_COUNT; i++) pr->VBO_buffers[i] = 0;
+							pr->irep_change ++;
+							node->_change ++;
+						}
+					}
+				
 				}
-			
 			}
-		}
-
-        }
-        UNLOCK_MEMORYTABLE
+	
+	        }
+	        UNLOCK_MEMORYTABLE
+	}
 
 }
 #endif
@@ -2501,13 +2511,14 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 	LOCK_MEMORYTABLE;
 
-	for (tc = 0; tc< p->nextEntry; tc++)
-		if (p->memoryTable[tc] == node) {
+	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
+		if (vector_get(struct X3D_Node *,p->linearNodeTable,tc) == node) {
 			if (node->referenceCount > 0) {
 			UNLOCK_MEMORYTABLE;
 			return TRUE;
 			}
 		}
+	}
 	
 
 
@@ -2519,25 +2530,50 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 }
 
 
+/*creating node table*/
+static void createMemoryTable(){
+	int count;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	p->linearNodeTable = newVector(struct X3D_Node*, 128);
+
+	
+}
+
 /*keep track of node created*/
 void registerX3DNode(struct X3D_Node * tmp){
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	int tc;
+	bool filledHole = FALSE;
 
 	LOCK_MEMORYTABLE
-	/* printf("nextEntry=%d	",nextEntry); printf("tableIndexSize=%d \n",tableIndexSize); */
-	/*is table to small give us some leeway in threads */
-	if (p->nextEntry >= (p->tableIndexSize-10)){
-		/*is table exist*/	
-		if (p->tableIndexSize <= INT_ID_UNDEFINED){
-			createdMemoryTable();		
-		} else {
-			increaseMemoryTable();
+
+	if (p->linearNodeTable == NULL) {
+		createMemoryTable();
+	}
+
+	// fill in a hole, or just tack it on the end?
+	if (p->potentialHoleCount > 0) {
+		for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
+			if (!filledHole) {
+				if (vector_get(struct X3D_Node *,p->linearNodeTable,tc) == NULL) {
+					vector_set(struct X3D_Node *, p->linearNodeTable, tc, tmp);
+					p->potentialHoleCount--;
+					filledHole = TRUE;
+//ConsoleMessage ("registerX3DNode, found a hole at %d, now phc %d for type %s",tc,p->potentialHoleCount,stringNodeType(tmp->_nodeType));
+				}
+			}
 		}
 	}
-	/*adding node in table*/	
-	/* printf ("registerX3DNode, adding %x at %d\n",tmp,nextEntry); */
-	p->memoryTable[p->nextEntry] = tmp;
-	p->nextEntry+=1;
+
+
+/*
+if (filledHole) ConsoleMessage ("registerX3DNode, filled hole, now phc %d for type %s",p->potentialHoleCount,stringNodeType(tmp->_nodeType));
+if (!filledHole) ConsoleMessage ("registerX3DNode, no hole, phc %d for type %s",p->potentialHoleCount,stringNodeType(tmp->_nodeType));
+*/
+
+	if (!filledHole) vector_pushBack(struct X3D_Node *, p->linearNodeTable, tmp);
+		
 	UNLOCK_MEMORYTABLE
 }
 
@@ -2549,48 +2585,17 @@ void doNotRegisterThisNodeForDestroy(struct X3D_Node * nodePtr){
 
 	LOCK_MEMORYTABLE
 	/* find this node, and if found, just delete it from the memory table */
-	for (i=0; i<p->nextEntry; i++) {
-		if (p->memoryTable[i] == nodePtr) {
-			//ConsoleMessage("doNotRegisterThisNodeForSestroy, found %x at %d, rn %x",nodePtr,i,rootNode());
-			p->memoryTable[i] = NULL;
 
+	for (i=0; i<vectorSize(p->linearNodeTable); i++) {
+		if (vector_get(struct X3D_Node *,p->linearNodeTable,i) == nodePtr) {
+			vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
+			p->potentialHoleCount++;
 		}
 	}
+
 	UNLOCK_MEMORYTABLE
 }
 
-/*creating node table*/
-void createdMemoryTable(){
-	int count;
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-
-	p->tableIndexSize=50;
-	p->memoryTable = MALLOC(struct X3D_Node **, p->tableIndexSize * sizeof(struct X3D_Node*));
-
-	/* initialize this to a known state */
-	for (count=0; count < p->tableIndexSize; count++) {
-		p->memoryTable[count] = NULL;
-	}
-}
-
-/*making table bigger*/
-void increaseMemoryTable(){
-	int count;
-	int oldhigh;
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-
-	oldhigh = p->tableIndexSize;
-
-	
-	p->tableIndexSize*=2;
-	p->memoryTable = REALLOC (p->memoryTable, p->tableIndexSize * sizeof(struct X3D_Node*) );
-
-	/* initialize this to a known state */
-	for (count=oldhigh; count < p->tableIndexSize; count++) {
-		p->memoryTable[count] = NULL;
-	}
-	/* printf("increasing memory table=%d\n",tableIndexSize); */
-}
 
 
 /* sort children - use bubble sort with early exit flag */
@@ -2698,16 +2703,17 @@ void zeroVisibilityFlag(void) {
 		   get put into OpenGL-land. If we are not texture parsing... */
 		/* no, we do not have GL_ARB_occlusion_query, just tell every node that it has visible children 
 		   and hope that, sometime, the user gets a good computer graphics card */
-		for (i=0; i<p->nextEntry; i++){		
-			node = p->memoryTable[i];	
+		for (i=0; i<vectorSize(p->linearNodeTable); i++){		
+			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
 			if (node != NULL) {
 				node->_renderFlags = node->_renderFlags | VF_hasVisibleChildren;
 			}
 		}	
 	} else {
 		/* we do... lets zero the hasVisibleChildren flag */
-		for (i=0; i<p->nextEntry; i++){		
-			node = p->memoryTable[i];		
+		for (i=0; i<vectorSize(p->linearNodeTable); i++){		
+			node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
+
 			if (node != NULL) {
 		
 			#ifdef OCCLUSIONVERBOSE
@@ -2928,8 +2934,9 @@ void startOfLoopNodeUpdates(void) {
 	LOCK_MEMORYTABLE
 
 	/* go through the node table, and zero any bits of interest */
-	for (i=0; i<p->nextEntry; i++){		
-		node = p->memoryTable[i];	
+
+	for (i=0; i<vectorSize(p->linearNodeTable); i++){		
+		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
 		if (node != NULL) {
 			if (node->referenceCount <= 0) {
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
@@ -2955,7 +2962,7 @@ void startOfLoopNodeUpdates(void) {
 	}
 
 	/* sort the rootNode, if it is Not NULL */
-	/* remember, the rootNode is not in the memoryTable, so we have to do this outside
+	/* remember, the rootNode is not in the linearNodeTable, so we have to do this outside
 	   of that loop */
 	if (rootNode() != NULL) {
 		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
@@ -2967,8 +2974,9 @@ void startOfLoopNodeUpdates(void) {
 	setBindPtr = NULL;
 	anchorPtr = NULL;
 
-	for (i=0; i<p->nextEntry; i++){		
-		node = p->memoryTable[i];	
+
+	for (i=0; i<vectorSize(p->linearNodeTable); i++){		
+		node = vector_get(struct X3D_Node *,p->linearNodeTable,i);	
 		if (node != NULL) 
 		if (node->referenceCount > 0) {
 			pnode = node;
@@ -3725,7 +3733,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 	Background: we aren't using any smart pointers / garbage collection library in freewrl. Just old fashioned
 	malloc and free, with one exception: 
 	
-	We register malloced nodes in memoryTable, and when their reference
+	We register malloced nodes in linearNodeTable, and when their reference
 	count goes to zero we call killNode (which calls unlink_node()) and deallocate their memory.
 
 	There's one place -startofloopnodeupdates- and one function -killNode- where they get deleted. But there's
@@ -3793,6 +3801,7 @@ void indentf(int indent){
 	int m;
 	for(m=0;m<indent;m++) printf(" ");
 }
+
 void print_node_links0(struct X3D_Node* sfn, int *level);
 BOOL cbPrintLinks(void *callbackData,struct X3D_Node* node,int jfield,
 	union anyVrml *fieldPtr,char *fieldName, int mode,int type,int source,int publicfield)
@@ -3838,6 +3847,7 @@ BOOL cbPrintLinks(void *callbackData,struct X3D_Node* node,int jfield,
 	(*level)--;
 	return FALSE; //false to keep walking fields, true to break out
 }
+
 void print_node_links0(struct X3D_Node* sfn, int *level)
 {
 	if(sfn)
@@ -3945,7 +3955,7 @@ static void killNode (int index) {
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-	structptr = p->memoryTable[index];		
+	structptr = vector_get(struct X3D_Node *,p->linearNodeTable,index);	
 	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
 
 	if( structptr->referenceCount > -1 ){
@@ -3980,7 +3990,7 @@ static void killNode (int index) {
 	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
 
 	#ifdef VERBOSE
-	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,p->nextEntry);
+	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,vectorSize(p->linearNodeTable));
 	if (structptr) {
 	if (structptr->_parentVector)
 	printf (" number of parents %d ", vectorSize(structptr->_parentVector));
@@ -4155,8 +4165,11 @@ static void killNode (int index) {
 		}
 		fieldOffsetsPtr+=5;	
 	}
-	FREE_IF_NZ(p->memoryTable[index]);
-	p->memoryTable[index]=NULL;
+
+	FREE_IF_NZ(structptr);
+	vector_set(struct X3D_Node *, p->linearNodeTable,index,NULL);
+	p->potentialHoleCount++;
+	//ConsoleMessage ("kill, index %d, phc %d",index,p->potentialHoleCount);
 }
 
 
