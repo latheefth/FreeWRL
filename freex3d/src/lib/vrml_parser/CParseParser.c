@@ -471,6 +471,8 @@ void parser_scopeOut(struct VRMLParser* me)
 	me->lexer->nextIn = saveNextIn; }
 #define FREEUP {FREE_IF_NZ(saveCurID);}
 
+static BOOL parser_brotoStatement(struct VRMLParser* me);
+
 void parse_proto_body(struct VRMLParser* me)
 {
 	DECLAREUP
@@ -544,7 +546,11 @@ void parse_proto_body(struct VRMLParser* me)
         break;
     }
 }
+
 void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
+static BOOL parser_node_A(struct VRMLParser* me, vrmlNodeT* ret, int ind);
+static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind);
+
 static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* node, int ival)
 {
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -1816,6 +1822,9 @@ static BOOL parser_routeStatement_A(struct VRMLParser* me)
     return TRUE;
 }
 //#include "broto5.h"
+static BOOL parser_routeStatement_B(struct VRMLParser* me);
+static BOOL parser_routeStatement_A(struct VRMLParser* me);
+
 static BOOL parser_routeStatement(struct VRMLParser* me)
 {
 	ppCParseParser p = (ppCParseParser)gglobal()->CParseParser.prv;
@@ -3322,6 +3331,8 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
    Return a pointer to the X3D_Node structure that is the scenegraph for this PROTO.
 */
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
+static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node);
+
 static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
     int nodeTypeB, nodeTypeU, isBroto;
     struct X3D_Node* node=NULL;
@@ -4044,9 +4055,13 @@ static BOOL parser_brotoStatement(struct VRMLParser* me)
 	//create a ProtoDeclare
     proto = createNewX3DNode0(NODE_Proto);
 	//add it to the current context's list of declared protos
+
+	// JAS - &X3D_NODE(proto) gave compiler errors on Android, changed to (struct X3D_Node **) &proto
 	AddRemoveChildren(X3D_NODE(me->ptr), 
 		offsetPointer_deref(struct Multi_Node*,me->ptr,offsetof (struct X3D_Proto, __protoDeclares)), 
-		&X3D_NODE(proto), 1, 1,__FILE__,__LINE__);
+		(struct X3D_Node **) &proto, 1, 1,__FILE__,__LINE__);
+
+
 	parent = (struct X3D_Proto*)me->ptr;
 	proto->__parentProto = X3D_NODE(parent); //me->ptr; //link back to parent proto, for isAvailableProto search
 	proto->__protoFlags = parent->__protoFlags & 2; //clear the scene flag 1 if set, leave the oldway flag 2 if set
@@ -4725,7 +4740,10 @@ void deep_copy_broto_body(struct X3D_Proto** proto, struct X3D_Proto** dest, Sta
 	//prototype = (struct X3D_Proto*)p->__prototype;
 	//2.c) copy IS
 	//p->__IS = copy IStable from prototype, and the targetNode* pointer will be wrong until p2p
-	copy_IStable(&((Stack*)prototype->__IS), &((Stack*)p->__IS));
+	//copy_IStable(&((Stack*)prototype->__IS), &((Stack*)p->__IS));
+
+	copy_IStable((Stack **) &(prototype->__IS), (Stack **) &(p->__IS));
+
 	//2.a) copy rootnodes
 	copy_field(FIELDTYPE_MFNode,(union anyVrml*)&(prototype->_children),(union anyVrml*)&(p->_children),
 		p2p,instancedScripts,p,parent);
@@ -5139,9 +5157,10 @@ void initialize_scripts(Stack *instancedScripts)
 	JSObject *eventInFunction;
 	JSparamnames = getJSparamnames();
 
+	#ifdef HAVE_JAVASCRIPT
+
 	if(instancedScripts)
 	{
-		#ifdef HAVE_JAVASCRIPT
 
 		n = instancedScripts->n;
 		for(i=0;i<n;i++)
@@ -5172,9 +5191,9 @@ void initialize_scripts(Stack *instancedScripts)
  			}
 			// 3)init from URI
             script_initCodeFromMFUri(ss, &sn->url);
-			#endif /* HAVE_JAVASCRIPT */
 		}
 	}
+	#endif /* HAVE_JAVASCRIPT */
 
 }
 void sceneInstance(struct X3D_Proto* sceneProto, struct X3D_Group *sceneInstance)

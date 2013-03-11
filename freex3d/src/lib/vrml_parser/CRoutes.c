@@ -2448,6 +2448,7 @@ void propagate_events_B() {
 						else len = isize;
 						modeFrom = sfield->fieldDecl->PKWmode;
 
+#ifdef HAVE_JAVASCRIPT
 						if(fromNode->_nodeType == NODE_Script){
 							//continue; //let the gatherScriptEventOuts(); copy directly toNode.
 							//there's an expensive operation in here, and the route fanout doesn't work
@@ -2466,6 +2467,9 @@ void propagate_events_B() {
 							}
 							last_markme = markme;
 						}
+
+#endif //HAVE_JAVASCRIPT
+
 					}
 					break;
 				case NODE_Proto:
@@ -2646,6 +2650,7 @@ void propagate_events_B() {
 					{
 						case NODE_Script:
 							{
+#ifdef HAVE_JAVASCRIPT
 								struct X3D_Script* scr = (struct X3D_Script*)toNode;
 								struct Shader_Script* shader;
 								struct ScriptFieldDecl* sfield;
@@ -2681,6 +2686,7 @@ void propagate_events_B() {
 									/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
 								}
 								havinterp = TRUE;
+#endif //HAVE_JAVASCRIPT
 							}
 							break;
 						case NODE_ShaderProgram:

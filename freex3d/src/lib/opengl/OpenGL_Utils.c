@@ -213,6 +213,63 @@ GLEWContext * glewGetContext()
 #endif
 
 
+#ifdef JASTESTING
+
+/* this is for looking at and manipulating the node memory table. Expect it to disappear sometime */
+void printNodeMemoryTable(void) {
+
+        int tc;
+        ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+LOCK_MEMORYTABLE
+        for (tc = 0; tc< p->nextEntry; tc++) {
+		struct X3D_Node *node = p->memoryTable[tc];
+		if (node != NULL) {
+		if (node->_nodeType == NODE_Shape)  {
+		//ConsoleMessage ("have shape/n");
+		struct X3D_Shape *sh = X3D_SHAPE(node);
+		if (sh->appearance != NULL) {
+			struct X3D_Appearance *ap = X3D_APPEARANCE(sh->appearance);
+					//ConsoleMessage ("have appearance\n");
+			if (ap->material != NULL) {
+				int i;
+				struct X3D_Material *mt = X3D_MATERIAL(ap->material);
+				//ConsoleMessage("have material\n");
+
+/*
+				for (i=0; i<3; i++) {
+				mt->diffuseColor.c[i] += 0.2;
+				if (mt->diffuseColor.c[i] > 0.95) mt->diffuseColor.c[i] = 0.2;
+				}
+*/
+
+				mt->transparency += 0.005;
+				if (mt->transparency > 1.0) mt->transparency=0.0;
+				mt->_change ++;
+			}
+				
+		}
+
+/*
+		ConsoleMessage ("mem table %d is %s ref %d\n",tc,stringNodeType(node->_nodeType),node->referenceCount);
+		ConsoleMessage ("   shape appearance %p, geometry %p bbox %f %f %f bbcen %f %f %f\n",
+			sh->appearance, sh->geometry,sh->bboxSize.c[0],sh->bboxSize.c[1],sh->bboxSize.c[2],
+			sh->bboxCenter.c[0],sh->bboxCenter.c[1],sh->bboxCenter.c[2]);
+*/
+
+
+		}
+		}
+
+        }
+
+
+
+UNLOCK_MEMORYTABLE
+
+}
+#endif //JASTESTING
+
 #define TURN_OFF_SHOULDSORTCHILDREN node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);
 /******************************************************************/
 /* textureTransforms of all kinds */
@@ -574,6 +631,7 @@ uniform vec4 lightSpecular[MAX_LIGHTS]; \
 uniform float lightRadius[MAX_LIGHTS]; \n";
 
 
+
 static const GLchar *ADSLLightModel = " \
 /* use ADSLightModel here the ADS colour is returned from the function.  */  \n \
 vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) { \n \
@@ -609,93 +667,157 @@ for (i=0; i<MAX_LIGHTS; i++) { \n \
     vec3 eyeVector = normalize(myPosition.xyz); \n \
     vec3 lightDir = normalize(myLightPosition.xyz); \
     vec3 halfVector = normalize(lightDir - eyeVector); \n \
+    float nDotL = max(dot(normal, lightDir), 0.0); \n  \
     /* normal dot light half vector */ \n \
     float nDotHV = max(dot(normal,halfVector),0.0); \n \
-    vec3  VP;     /* vector of light direction */\n \
-    vec3 normalizedVP; /* normalized light direction vector */ \n \
-    float nDotVP; /* normal dot light direction */ \n \
-    float distLightVertex = 0.0;         /* distance to vertex  to see if light in range */ \
-    float specularPowerFactor=0.0; /* for light dropoff */ \n \
-    float attenuation = 0.0; /* computed attenuation factor */ \n \
-    float specularAttenuation = 0.0; /* specular light - more pointed=brighter */ \n \
-    float spotAttenuation = 1.0; \n \
-\
-    /* where is the light? */ \n \
-    vec3 lightPos = vec3(myLightPosition); \n \
-\
-    /* vector from light position to vertex position */ \n \
-    VP = lightPos - vec3(myPosition); \n \
-    normalizedVP = normalize(VP); \n \
-\
 \
 \
         if (lightSpotCutoffAngle[i]!=0.0) { \n \
             /* SpotLight */ \n \
 \
             float spotDot; \n \
+            float spotAttenuation; \n \
 \
-            /* how far are we from the light? *' \n \
-            distLightVertex = length(VP); \n \
+            float nDotVP; /* normal dot light direction */ \n \
+            vec3  VP;     /* vector of light direction */\n \
+            float powerFactor; /* for light dropoff */ \n \
+            float attenuation; /* computed attenuation factor */ \n \
+            float d;            /* distance to verted */ \
 \
-            /* how wide are we from the spotlight beam centre? */ \n \
-            spotDot = dot (normalize(-VP) ,vec3(lightSpotDirection[i])); \n \
-/* XXXX */         /*    spotDot = dot (normalize(vec3(myPosition.xyz)) ,normalize(vec3(0.2,0.2,-1.))); */  \n \
+            /* position of the vertex in question */ \n \
+            vec3 ecPosition3 = (vec3 (myPosition)) / myPosition.w; \n \
 \
-            spotAttenuation = 0.0; \n \
-            /* check against spotCosCutoff */ \n \
-            if (spotDot > lightSpotCutoffAngle[i]) { \n \
-                if (spotDot > 0.980 /* lightSpotBeamWidth[i] */ ) { \n \
-                    spotAttenuation = 1.0; \n \
-                } else { \n \
-                    spotAttenuation =  (spotDot - lightSpotCutoffAngle[i]) / (lightSpotBeamWidth[i] - lightSpotCutoffAngle[i]); \n \
+            /* where is the light? */ \n \
+            vec3 lightPos = vec3(myLightPosition); \n \
+\
+            /* vector from light position to vertex position */ \n \
+            VP = lightPos - vec3(myPosition); \n \
+            d = length(VP); \n \
+\
+            VP = normalize(VP); \n \
+            nDotVP = max(0.0, dot(normal, VP)); \n \
+\
+            if (nDotVP == 0.0) { \n \
+                powerFactor = 0.0; \n \
+            } else { \n \
+                powerFactor = pow(nDotHV, myMat.shininess); \n \
+                /* tone down the power factor if myMat.shininess borders 0 */ \n \
+                if (myMat.shininess < 1.0) { \n \
+                    powerFactor *= myMat.shininess; \n \
                 } \n \
             } \n \
+\
+            attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d); \
+\
+            spotDot = dot (-VP,vec3(lightSpotDirection[i])); \n \
+\
+            /* check against spotCosCutoff */ \n \
+            if (spotDot < lightSpotCutoffAngle[i]) { \n \
+                spotAttenuation = 0.0; \n \
+            } else { \n \
+                spotAttenuation = pow(spotDot,lightSpotBeamWidth[i]); \n \
+            } \n \
+            attenuation *= spotAttenuation; \n \
+\
+\
+            /* diffuse light computation */ \n \
+            diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
+\
+            /* ambient light computation */ \n \
+            ambient += myMat.ambient*myLightAmbient; \n \
+\
+            /* specular light computation */ \n \
+            specular += myLightSpecular * powerFactor * attenuation; \n \
+\
+\
 \
         } else if (myLightPosition.w == 0.0) { \n \
             /* DirectionalLight */ \n \
+\n \
+float nDotVP; /* normal dot light direction */ \n \
+vec3  VP;     /* vector of light direction */\n \
+float powerFactor; /* for light dropoff */ \n \
 \
-            distLightVertex = 0.0; /* no radius for DirectionalLight */ \n \
+/* where is the light? */ \n \
+vec3 lightPos = vec3(myLightPosition); \n \
 \
-            /* and, we already have the light direction vector... (by definition, it's a vector, not position) */ \n \
-            /* so slide it in here */ \n \
-            VP = lightDir; \n \
+/* vector from light position to vertex position */ \n \
+VP = lightPos - vec3(myPosition); \n \
 \
+VP = normalize(VP); \n \
+nDotVP = max(0.0, dot(normal, VP)); \n \
+\
+\
+if (nDotVP == 0.0) { \n \
+powerFactor = 0.0; \n \
+} else { \n \
+powerFactor = pow(nDotHV, myMat.shininess); \n \
+/* tone down the power factor if myMat.shininess borders 0 */ \n \
+if (myMat.shininess < 1.0) { \n \
+powerFactor *= myMat.shininess; \n \
+} \n \
+} \n \
+\
+/* Specular light computation */ \n \
+            specular += myMat.specular *myLightSpecular*powerFactor; \n \
+            \
+            /* diffuse light computation */ \n \
+            diffuse += nDotL*myMat.diffuse*myLightDiffuse; \n \
+            \
+            /* ambient light computation */ \n \
+            ambient += myMat.ambient*myLightAmbient; \n \
         } else { \n \
+\
             /* PointLight */ \n \
 \
-            /* how far are we from the light? */ \n \
-            distLightVertex = length(VP); \n \
+            float nDotVP; /* normal dot light direction */ \n \
+            vec3  VP;     /* vector of light direction */\n \
+            float powerFactor=0.0; /* for light dropoff */ \n \
+            float attenuation = 0.0; /* computed attenuation factor */ \n \
+            float d;            /* distance to vertex */ \
+\
+            /* position of the vertex in question */ \n \
+            vec3 ecPosition3 = (vec3 (myPosition)) / myPosition.w; \n \
+\
+            /* where is the light? */ \n \
+            vec3 lightPos = vec3(myLightPosition); \n \
+\
+            /* vector from light position to vertex position */ \n \
+            VP = lightPos - vec3(myPosition); \n \
+            d = length(VP); \n \
+\
+            /* are we within range? */ \n \
+            if (d <= lightRadius[i]) { \n \
+                VP = normalize(VP); \n \
+                nDotVP = max(0.0, dot(normal, VP)); \n \
+\
+                if (nDotVP > 0.0) { \n \
+                    powerFactor = pow(nDotHV, myMat.shininess); \n \
+                    attenuation = (myMat.shininess-128.0); \n \
+} \n \
+\
+\
+                /* this is actually the SFVec3f attenuation field */ \n \
+                attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d); \
+\
+                /* diffuse light computation */ \n \
+                diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
+\
+                /* ambient light computation */ \n \
+                ambient += myMat.ambient*myLightAmbient; \n \
+\
+                /* specular light computation */ \n \
+                attenuation *= (myMat.shininess/128.0); \n \
+                specular += myLightSpecular * powerFactor * attenuation; \n \
+            } \n \
 \
         } \n \
 \
-            /* are we within range? */ \n \
-            if (distLightVertex <= lightRadius[i]) { \n \
-                VP = normalize(VP); \n \
-                nDotVP = max(0.0, dot(normal, normalizedVP)); \n \
-\
-                if (nDotVP > 0.0) { \n \
-\
-                    /* this is actually the SFVec3f attenuation field */ \n \
-                    attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * distLightVertex * light_quadAtten[i] *distLightVertex *distLightVertex); \
-                    attenuation *= spotAttenuation; \n \
-\
-                    /* diffuse light computation */ \n \
-                    diffuse += nDotVP* myMat.diffuse*myLightDiffuse * attenuation; \n \
-\
-                    /* ambient light computation */ \n \
-                    ambient += nDotVP*myMat.ambient*myLightAmbient; \n \
-\
-                    /* specular light computation */ \n \
-                    /* the more pointed it is, the brighter the light. Otherwise, this can override lighting on wide shininess values */ \n \
-                    specularPowerFactor = pow(nDotHV, myMat.shininess); \n \
-                    specularAttenuation = (myMat.shininess/128.0); \n \
-                    specular += myLightSpecular * specularPowerFactor * attenuation *specularAttenuation; \n \
-                } \n \
-            } \n \
 	} \n \
 } \n \
 return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0); \n \
 } ";
+
 
 /* FRAGMENT bits */
 #ifdef GL_ES_VERSION_2_0
