@@ -3682,17 +3682,9 @@ void fwl_Android_replaceWorldNeeded() {
 /* called from the standalone OSX front end and the OSX plugin */
 void fwl_replaceWorldNeeded(char* str)
 {
-	ConsoleMessage ("replaceWorldNeeded called");
 
-#ifdef OLDCODE
-OLDCODE ttglobal tg = gglobal();
-OLDCODE setAnchorsAnchor( NULL );
-OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_replace_world_from_console);
-OLDCODE tg->RenderFuncs.OSX_replace_world_from_console = STRDUP(str);
-OLDCODE tg->RenderFuncs.BrowserAction = TRUE;
-OLDCODE FREE_IF_NZ(tg->RenderFuncs.OSX_last_world_url_for_reload);
-OLDCODE tg->RenderFuncs.OSX_last_world_url_for_reload = STRDUP(str);
-#endif //OLDCODE
+	resource_item_t* plugin_res = resource_create_single (str);
+	send_resource_to_parser_async(plugin_res,__FILE__,__LINE__);
 }
 
 
