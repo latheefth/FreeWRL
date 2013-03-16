@@ -1,0 +1,17 @@
+------------------------------------------------------------------------------------------------------------------------
+-----------------	NPAPI freeX3D/freeWRL plugin adapter for windows operating systems (np_freeX3D)
+-----------------	by Luca Cerutti (luca.ceruttimtsATgmail.com)
+------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+Version 1.0.0.1 - 15 march 2013
+------------------------------------------------------------------------------------------------------------------------
+First base version. Read the README for info on installation and use.
+
+TODO:
+- the code of the plugin is a little tangled due to my inexperience with NPAPI (and the awful lack of any good article/tutorial on it, except the old ones at ColonelPanic ( http://colonelpanic.net/2009/03/building-a-firefox-plugin-part-one/ ). I hope to find the time to simplify it a bit, now that I understand better the NPAPI.
+- aaaaand, obviously a little more comment on the code could be useful...
+- stream locally a wrl/x3d file and opening it from the browser cache
+
+KNOWN ISSUES:
+- there may be errors closing/resizing the browser page. This is probably due to a failed sync between the plugin wrapper process and the threads activated by freeWRL

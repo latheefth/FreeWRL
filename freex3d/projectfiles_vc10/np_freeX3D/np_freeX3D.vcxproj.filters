@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="BasePlugin.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="np_entry.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="npn_gate.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="npp_gate.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptablePluginObjectBase.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ScriptablePluginObjectBase.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BasePlugin.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="sources">
+      <UniqueIdentifier>{6c5195da-71bb-463b-b695-d04da8678c7e}</UniqueIdentifier>
+      <Extensions>*.cpp</Extensions>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{15d942a0-8957-47ac-91c2-10aecf43d476}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{a0adc21e-401c-403c-82de-2f52d11b3dd1}</UniqueIdentifier>
+      <Extensions>*.h</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="np_freeX3D.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
