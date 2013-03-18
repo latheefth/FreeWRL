@@ -85,7 +85,7 @@ NPError NPP_New(NPMIMEType pluginType,
   NPError rv = NPERR_NO_ERROR;
 
 #ifdef _DEBUG
-  ::MessageBoxA(NULL,"You may now attach a debugger.\n Press OK when you want to proceed.","np_freeX3D plugin process",MB_OK);
+  ::MessageBoxA(NULL,"You may now attach a debugger.\n Press OK when you want to proceed.","np_freeX3D plugin process(1)",MB_OK);
 #endif
 
   CPlugin * pPlugin = new CPlugin(instance);
@@ -98,7 +98,11 @@ NPError NPP_New(NPMIMEType pluginType,
   
   for(i = 0; i < argc ; i++)
   {
-	  if(0 == _stricmp(argn[i],"target"))
+	  char* argni;
+	  char* argvi;
+	  argni = argn[i];
+	  argvi = argv[i];
+	  if(!_stricmp(argn[i],"target") || !_stricmp(argn[i],"src"))
 	  {
 		  pPlugin->setSceneUrl(argv[i]);
 	  }
@@ -208,9 +212,15 @@ NPError NPP_NewStream(NPP instance,
                       NPBool seekable,
                       uint16_t* stype)
 {
+//#ifdef _DEBUG
+//  ::MessageBoxA(NULL,"You may now attach a debugger.\n Press OK when you want to proceed.","np_freeX3D plugin process(2)",MB_OK);
+//#endif
+
   if(instance == NULL)
     return NPERR_INVALID_INSTANCE_ERROR;
-
+  //Ian's suggestion based on linux (but on windows it comes in NPP_New() first, so handle it there)
+  //CPlugin * pPlugin = (CPlugin *)(instance->pdata);
+  //pPlugin->setSceneUrl(_strdup(stream->url));
   NPError rv = NPERR_NO_ERROR;
   return rv;
 }
