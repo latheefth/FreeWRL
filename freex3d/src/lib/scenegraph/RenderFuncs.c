@@ -221,10 +221,7 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 	}
 	printf (" %f %f %f %f\n",params[0], params[1],params[2],params[3]);
      */
-	#ifndef GL_ES_VERSION_2_0
-		glLightfv(GL_LIGHT0+light,pname,params);
-	#endif
-
+    
 	switch (pname) {
 		case GL_AMBIENT:
 			memcpy ((void *)p->light_amb[light],(void *)params,sizeof(shaderVec4));
@@ -250,7 +247,7 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
 #ifdef RENDERVERBOSE
-	printf ("glLightf light: %d ",light);
+	printf ("fwglLightf light: %d ",light);
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION: printf ("GL_CONSTANT_ATTENUATION"); break;
 		case GL_LINEAR_ATTENUATION: printf ("GL_LINEAR_ATTENUATION"); break;
@@ -261,11 +258,7 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	printf (" %f\n",param);
 #endif
 	
-
-	#ifndef GL_ES_VERSION_2_0
-		glLightf(GL_LIGHT0+light,pname,param);
-	#endif
-
+    
 	switch (pname) {
 		case GL_CONSTANT_ATTENUATION:
 			p->light_constAtten[light] = param;
@@ -293,8 +286,6 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	}
 	p->lightParamsDirty = TRUE;
 }
-
-//static int xxc = 0;
 
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {
@@ -706,18 +697,28 @@ void initializeLightTables() {
                 p->lightOnOff[i] = 9999;
                 lightState(i,FALSE);
             
+                    PRINT_GL_ERROR_IF_ANY("initizlizeLight2.0");
         	FW_GL_LIGHTFV(i, GL_POSITION, pos);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.1");
         	FW_GL_LIGHTFV(i, GL_AMBIENT, As);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.2");
         	FW_GL_LIGHTFV(i, GL_DIFFUSE, dif);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.3");
         	FW_GL_LIGHTFV(i, GL_SPECULAR, shin);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.4");
           	FW_GL_LIGHTF(i, GL_CONSTANT_ATTENUATION,1.0f);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.5");
         	FW_GL_LIGHTF(i, GL_LINEAR_ATTENUATION,0.0f);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.6");
         	FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.7");
         	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,0.0f);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.8");
         	FW_GL_LIGHTF(i, GL_SPOT_BEAMWIDTH,0.0f);
+                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.9");
             FW_GL_LIGHTF(i, GL_LIGHT_RADIUS, 100000.0); /* just make it large for now*/ 
             
-            PRINT_GL_ERROR_IF_ANY("initizlizeLight2");
+            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.10");
         }
         lightState(HEADLIGHT_LIGHT, TRUE);
 

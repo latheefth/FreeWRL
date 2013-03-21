@@ -203,7 +203,7 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
-        ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
+        //ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 	}
 }
 #ifdef GLEW_MX
@@ -214,7 +214,130 @@ GLEWContext * glewGetContext()
 }
 #endif
 
+/* pass in a X3D_Shape pointer, and from that, we go and return a bunch of fields of
+   the Shape. If a field is NULL, NULL is returned. If a field is a PROTO, the PROTO
+   expansion is returned */
+
+void fwl_decomposeShape(struct X3D_Shape * node,
+		struct X3D_FillProperties **fpptr,
+		struct X3D_LineProperties **lpptr,
+		struct X3D_Material **matptr,
+		struct X3D_ImageTexture **texptr,
+		struct X3D_TextureTransform **texttptr,
+		struct X3D_Node **geomptr) {
+
+	struct X3D_Appearance *app = X3D_APPEARANCE(node->appearance);
+	struct X3D_Node * geom = node->geometry;
+
+	// initialize every return value to NULL, possibly filed in later
+	*fpptr = NULL; *lpptr = NULL; *matptr = NULL; *texptr = NULL;
+	*texttptr = NULL; *geomptr = NULL;
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,X3D_NODE(app),app);
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node*,geom,geom);
+
+	if (app != NULL) {
+		struct X3D_FillProperties *fp = X3D_FILLPROPERTIES(app->fillProperties);
+		struct X3D_LineProperties *lp = X3D_LINEPROPERTIES(app->lineProperties);
+		struct X3D_Material *mat = X3D_MATERIAL(app->material);
+		struct X3D_ImageTexture *tex = X3D_IMAGETEXTURE(app->texture);
+		struct X3D_TextureTransform *tt = X3D_TEXTURE_TRANSFORM(app->textureTransform);
+
+		POSSIBLE_PROTO_EXPANSION(struct X3D_FillProperties *,X3D_NODE(fp),*fpptr);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_LineProperties *,X3D_NODE(lp),*lpptr);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Material *,X3D_NODE(mat),*matptr);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_ImageTexture *,X3D_NODE(tex),*texptr);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_TextureTransform *,X3D_NODE(tt),*texttptr);
+	}
+
+	if (geom != NULL) {
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,geom,*geomptr);
+	}
+}
+
+/* returns a Shape node list - Shape nodes must have valid, light (lightable?) geometry.
+   Expects a pointer to a Vector, will create Vector if required.
+   Returns an int with the number of valid nodes found;
+   Returns the filled in Vector pointer, with NODE_Shape pointers. */
+
+int fwl_android_get_valid_shapeNodes(struct Vector **shapeNodes) {
+
+	struct Vector *me;
+	int tc;
+        ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+
+	// create the new vector, if required
+	if (*shapeNodes == NULL) {
+		*shapeNodes = newVector (struct X3D_Shape *, 16);
+	}
+	
+	// are we running yet?
+	if (p==NULL) return 0;
+	if (p->linearNodeTable==NULL) return 0;
+
+	// ease of use of this vector - 
+	me = *shapeNodes;
+	vectorSize(me) = 0;
+
+	LOCK_MEMORYTABLE
+	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){		
+		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable, tc);	
+
+		// do we have a valid node?
+		if (node != NULL) {
+
+			POSSIBLE_PROTO_EXPANSION (struct X3D_Node *,node,node);
+
+			// do we have a shape, that is actually used?
+			if ((node->_nodeType == NODE_Shape) && (node->referenceCount>0)) {
+				struct X3D_Node *geom = X3D_SHAPE(node)->geometry;
+
+				// does it actually have a lit geometry underneath it?
+				if (geom != NULL) {
+					POSSIBLE_PROTO_EXPANSION (struct X3D_Node *, geom, geom);
+
+					if ((geom->_nodeType != NODE_IndexedLineSet) &&
+						(geom->_nodeType != NODE_LineSet) &&
+						(geom->_nodeType != NODE_PointSet)) {
+						
+						// yep! return this one!
+						vector_pushBack(struct X3D_Node *,me, node);
+					}
+				}
+			}
+		}
+	}
+	UNLOCK_MEMORYTABLE
+
+	for (tc=0; tc<vectorSize(me); tc++) {
+		struct X3D_FillProperties *fp;
+		struct X3D_LineProperties *lp;
+		struct X3D_Material *mat;
+		struct X3D_ImageTexture *tex;
+		struct X3D_TextureTransform *tt;
+		struct X3D_Node *geom;
+
+		struct X3D_Node *node = vector_get(struct X3D_Node *,me, tc);	
+		ConsoleMessage ("node %d is a %s",tc,stringNodeType(node->_nodeType));
+		fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+		ConsoleMessage ("EOL, geometry is %s\n",stringNodeType(geom->_nodeType));
+		if (fp == NULL) ConsoleMessage ("fillProperties NULL"); else ConsoleMessage ("fillProperties %s",stringNodeType(fp->_nodeType));
+		if (lp == NULL) ConsoleMessage ("lineProperties NULL"); else ConsoleMessage ("lineProperties %s",stringNodeType(lp->_nodeType));
+		if (mat == NULL) ConsoleMessage ("material NULL"); else ConsoleMessage ("material %s",stringNodeType(mat->_nodeType));
+		if (tex == NULL) ConsoleMessage ("texture NULL"); else ConsoleMessage ("texture %s",stringNodeType(tex->_nodeType));
+		if (tt == NULL) ConsoleMessage ("texureTransform NULL"); else ConsoleMessage ("texureTransform %s",stringNodeType(tt->_nodeType));
+
+	}
+
+	return vectorSize(me);
+}
+
+
+
+#define JASTESTING
 #ifdef JASTESTING
+
 
 /* this is for looking at and manipulating the node memory table. Expect it to disappear sometime */
 void printNodeMemoryTable(void) {
@@ -841,7 +964,15 @@ static const GLchar *maxLights = "const int MAX_LIGHTS = 8; \n ";
 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
 static const GLchar *anaglyphGrayFragEnd =	"float gray = dot(finalFrag.rgb, vec3(0.299, 0.587, 0.114)); \n \
                                               gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
+
+/* discard operations needed for really doing a good job in transparent situations (FillProperties, filled = false,
+   for instance - drawing operations preclude sorting individual triangles for best rendering, so when the user
+   requests best shaders, we add in this discard. */
+
+static const GLchar *discardInFragEnd = "if (finalFrag.a==0.0) {discard; } else {gl_FragColor = finalFrag;}}";
 static const GLchar *fragEnd = "gl_FragColor = finalFrag;}";
+
+
 static const GLchar *fragTex0Dec = "uniform sampler2D fw_Texture_unit0; \n";
 static const GLchar *fragTex0CubeDec = "uniform samplerCube fw_Texture_unit0; \n";
 
@@ -948,9 +1079,9 @@ position = fract(position); \
 \
 useBrick = step(position, HatchPct); \
 \
-if (hatched) colour = mix(HatchColour, prevColour, useBrick.x * useBrick.y); \
-else { \
     if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,0.,0); }\
+if (hatched) { \
+    colour = mix(HatchColour, colour, useBrick.x * useBrick.y); \
 } \
 return colour; } ";
 
@@ -1151,8 +1282,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     fragmentSource[fragmentMainStart] = fragMainStart;
 	if(Viewer()->anaglyph)
 		fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
-	else
-		fragmentSource[fragmentMainEnd] = fragEnd;
+	else {
+        if (usePhongShading) fragmentSource[fragmentMainEnd] = discardInFragEnd;
+        else fragmentSource[fragmentMainEnd] = fragEnd;
+    }
     
     //ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
     
@@ -1867,6 +2000,8 @@ bool fwl_initialize_GL()
 
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
 	FW_GL_ENABLE(GL_DEPTH_TEST);
+    
+    //ConsoleMessage ("disable GL_DEPTH_TEST"); FW_GL_DISABLE(GL_DEPTH_TEST);
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
@@ -2817,11 +2952,23 @@ void zeroVisibilityFlag(void) {
 	} \
 }
 
-
-
 #define  CHECK_MATERIAL_TRANSPARENCY \
-	if (((struct X3D_Material *)node)->transparency > 0.0001) { \
-		/* printf ("node %d MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \
+if (((struct X3D_Material *)node)->transparency > 0.0001) { \
+/* printf ("node %p MATERIAL HAS TRANSPARENCY of %f \n", node, ((struct X3D_Material *)node)->transparency); */ \
+update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+gglobal()->RenderFuncs.have_transparency = TRUE; \
+}
+
+#define CHECK_FILL_PROPERTY_FILLED \
+    if (((struct X3D_FillProperties *)node)->filled == FALSE) { \
+    /* printf ("node %p FillProperty filled FALSE\n",node); */ \
+    update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+    gglobal()->RenderFuncs.have_transparency = TRUE; \
+}
+
+#define  CHECK_TWOSIDED_MATERIAL_TRANSPARENCY \
+	if ((((struct X3D_TwoSidedMaterial *)node)->transparency > 0.0001)  || (((struct X3D_TwoSidedMaterial *)node)->backTransparency > 0.0001)){ \
+		/* printf ("node %p TwoSidedMATERIAL HAS TRANSPARENCY of %f %f \n", node, ((struct X3D_TwoSidedMaterial *)node)->transparency,((struct X3D_TwoSidedMaterial *)node)->backTransparency);*/ \
 		update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
 		gglobal()->RenderFuncs.have_transparency = TRUE; \
 	}
@@ -3193,7 +3340,9 @@ E_JS_EXPERIMENTAL_CODE
 
 				/* Material - transparency of materials */
 				BEGIN_NODE(Material) CHECK_MATERIAL_TRANSPARENCY END_NODE
-
+                BEGIN_NODE(TwoSidedMaterial) CHECK_TWOSIDED_MATERIAL_TRANSPARENCY END_NODE
+                BEGIN_NODE(FillProperties) CHECK_FILL_PROPERTY_FILLED END_NODE
+                    
 				/* Textures - check transparency  */
 				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
@@ -4287,9 +4436,11 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 }
 #define SEND_VEC2(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM2FV(me->myMat,1,myVal);}
-        
+
+        /* not allowed on some systems - use vec4
 #define SEND_VEC3(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM3FV(me->myMat,1,myVal);}
+*/
         
 
 #define SEND_VEC4(myMat,myVal) \
@@ -4347,16 +4498,14 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
 PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendMaterialsToShader");
 	if (me->lightState != -1) sendLightInfo(me);
-PRINT_GL_ERROR_IF_ANY("MIDDLE2.1 sendMaterialsToShader");
     /* FillProperties, LineProperty lineType */
 
 	SEND_FLOAT(pointSize,myap->pointSize);
-PRINT_GL_ERROR_IF_ANY("MIDDLE2.2 sendMaterialsToShader");
     //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
     SEND_INT(filledBool,myap->filledBool);
     SEND_INT(hatchedBool,myap->hatchedBool);
     SEND_INT(algorithm,myap->algorithm);
-    SEND_VEC3(hatchColour,myap->hatchColour);
+    SEND_VEC4(hatchColour,myap->hatchColour);
     SEND_VEC2(hatchPercent,myap->hatchPercent);
 
 PRINT_GL_ERROR_IF_ANY("MIDDLE3 sendMaterialsToShader");

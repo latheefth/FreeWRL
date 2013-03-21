@@ -8,6 +8,12 @@
 
 #
 # $Log$
+# Revision 1.72  2013/03/21 15:57:04  crc_canada
+# FillProperties - filled FALSE sends a transparency update up the scene graph;
+# phongShading - uses OpenGL Fragment Shader "discard" operation if required;
+# Android - more accessor functions defined;
+# FillProperties hatchColour now sent in as a vec4, not a vec3 (vec3 not supported everywhere)
+#
 # Revision 1.71  2013/02/11 21:43:45  dug9
 # dug9 - BROTOs Phase I, Rev1
 #
@@ -1506,6 +1512,9 @@ sub gen {
 	# create the virtual tables for each node.
 	push @str, "\n/* First, a generic struct, contains only the common elements */\n".
 	"struct X3D_Node {\n". $interalNodeCommonFields .  "};\n".
+	"#define X3D_LINEPROPERTIES(node) ((struct X3D_LineProperties*)node)\n".
+	"#define X3D_FILLPROPERTIES(node) ((struct X3D_FillProperties*)node)\n".
+	"#define X3D_TEXTURE_TRANSFORM(node) ((struct X3D_TextureTransform*)node)\n".
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_APPEARANCE(node) ((struct X3D_Appearance*)node)\n".
 	"#define X3D_MATERIAL(node) ((struct X3D_Material*)node)\n".

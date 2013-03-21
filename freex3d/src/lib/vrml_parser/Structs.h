@@ -1822,6 +1822,9 @@ struct X3D_Node {
        int _defaultContainer; /* holds the container */
  	/*** node specific data: *****/
 };
+#define X3D_LINEPROPERTIES(node) ((struct X3D_LineProperties*)node)
+#define X3D_FILLPROPERTIES(node) ((struct X3D_FillProperties*)node)
+#define X3D_TEXTURE_TRANSFORM(node) ((struct X3D_TextureTransform*)node)
 #define X3D_NODE(node) ((struct X3D_Node*)node)
 #define X3D_APPEARANCE(node) ((struct X3D_Appearance*)node)
 #define X3D_MATERIAL(node) ((struct X3D_Material*)node)
