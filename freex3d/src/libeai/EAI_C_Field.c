@@ -19,10 +19,11 @@
 ****************************************************************************/
 
 // JAS - OLDCODE #ifndef REWIRE
+#include "EAI_C.h"
 #include "config.h"
 #include "system.h"
 // JAS - OLDCODE #endif
-#include "EAI_C.h"
+
 
 void X3D_freeEventIn(X3DEventIn* ev) {
 	if (ev != NULL) 

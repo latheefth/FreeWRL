@@ -19,10 +19,11 @@
 ****************************************************************************/
 
 // JAS - OLDCODE #ifndef REWIRE
+#include "EAI_C.h"
 #include "config.h"
 #include "system.h"
 // JAS - OLDCODE #endif
-#include "EAI_C.h"
+
 
 #ifdef OLDCODE
 OLDCODE #define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))

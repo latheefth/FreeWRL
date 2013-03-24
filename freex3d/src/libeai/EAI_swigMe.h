@@ -20,6 +20,7 @@
 
 
 #ifndef __X3D_NODE_HEADERS__
+#define __X3D_NODE_HEADERS__
 /*EAIswigMe.h - for swigging */
 /* garbage collection - in your script call X3D_freeNode(X3DNode*) for anything that returns an X3DNode* to your script. */
 /* most of this is a copy from X3DNode.h - could be refactored to elliminate duplication 
@@ -181,7 +182,7 @@ int findFieldInFIELDTYPES(char *fieldtype);
 /* SWIG-SPECIFIC */
 void *freewrlSwigThread(void*);
 
-#endif
+
 
 /* SWIG does scalars well including char* but not C arrays which appear as opaque binary blobs. 
 The following 'swig-venience' functions elliminate the need for passing C arrays by providing getters and setters*/
@@ -200,3 +201,4 @@ X3DNode* X3D_swigGetItem(X3DNode* node, int item);
 /* the following is what you call right after a port style Advise notification, to get the field data */
 X3DNode* X3D_swigCallbackDataFetch(char *ListenerTableIndex);
 
+#endif //__X3D_NODE_HEADERS__

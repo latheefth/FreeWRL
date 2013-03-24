@@ -22,28 +22,47 @@
 
 #ifndef __EAI_C_HEADERS__
 #define __EAI_C_HEADERS__
-#include <sys/types.h>
-#include <stdint.h>
+
+#ifdef WIN32
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
+	#define strdup _strdup
+	#include <winsock2.h>	
+	#include <ws2tcpip.h> /* for TCPIP - are we using tcp? */
+	#include <windows.h>
+#else
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+#endif
+
 #include "EAIHeaders.h"
 #include "SCKHeaders.h"
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <strings.h>
+
+#ifdef HAVE_UNISTD_H
+	#include <unistd.h>
+#else
+	#include <stdio.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+	#include <strings.h>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-
-#include <stdint.h>
 #include <math.h>
 #include <stddef.h>
 
 #include "X3DNode.h"
 
 #include "GeneratedHeaders.h"
+
+#define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
+#define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
 
 /* copied from ../CFuncs/ */
 typedef size_t indexT;

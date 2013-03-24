@@ -18,16 +18,36 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
+#ifndef _X3DNODE_H
+#define _X3DNODE_H
 
+#ifdef WIN32
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
+
+	#define strdup _strdup
+	#include <winsock2.h>
+	#include <ws2tcpip.h> /* for TCPIP - are we using tcp? */
+	#include <windows.h>
+#else
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netdb.h>
+#endif
 
 #include <sys/types.h>
 #include <stdint.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <strings.h>
+#ifdef HAVE_UNISTD_H
+	#include <unistd.h>
+#else
+	#include <stdio.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+	#include <strings.h>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -174,22 +194,22 @@ X3DNode *X3D_newSFBool (int a);
 X3DNode *X3D_newSFFloat (float a);
 X3DNode *X3D_newSFTime (double a);
 X3DNode *X3D_newSFInt32 (int a);
-X3DNode *X3D_newSFString();
-X3DNode *X3D_newSFNode();
-X3DNode *X3D_newSFImage();
-X3DNode *X3D_newMFColor();
-X3DNode *X3D_newMFFloat();
-X3DNode *X3D_newMFTime();
-X3DNode *X3D_newMFInt32();
-X3DNode *X3D_newMFString();
-X3DNode *X3D_newMFNode();
-X3DNode *X3D_newMFRotation();
-X3DNode *X3D_newMFVec2f();
-X3DNode *X3D_newMFVec3f();
-X3DNode *X3D_newMFColorRGBA();
-X3DNode *X3D_newMFBool();
-X3DNode *X3D_newMFVec3d();
-X3DNode *X3D_newMFVec2d();
+//X3DNode *X3D_newSFString();
+//X3DNode *X3D_newSFNode();
+//X3DNode *X3D_newSFImage();
+//X3DNode *X3D_newMFColor();
+//X3DNode *X3D_newMFFloat();
+//X3DNode *X3D_newMFTime();
+//X3DNode *X3D_newMFInt32();
+//X3DNode *X3D_newMFString();
+//X3DNode *X3D_newMFNode();
+//X3DNode *X3D_newMFRotation();
+//X3DNode *X3D_newMFVec2f();
+//X3DNode *X3D_newMFVec3f();
+//X3DNode *X3D_newMFColorRGBA();
+//X3DNode *X3D_newMFBool();
+//X3DNode *X3D_newMFVec3d();
+//X3DNode *X3D_newMFVec2d();
 
 extern int _X3D_queryno;
 extern int _X3D_FreeWRL_FD;
@@ -258,3 +278,5 @@ void X3D_getMFString(X3DNode* node, char*** array, int* num);
 X3DNode* X3D_newSFNode();
 X3DNode* X3D_newSFImage();
 X3DNode* X3D_newMFNode();
+
+#endif //_X3DNODE_H

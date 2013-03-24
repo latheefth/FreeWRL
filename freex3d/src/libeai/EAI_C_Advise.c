@@ -1,37 +1,8 @@
-
-/****************************************************************************
-    This file is part of the FreeWRL/FreeX3D Distribution.
-
-    Copyright 2009 CRC Canada. (http://www.crc.gc.ca)
-
-    FreeWRL/FreeX3D is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    FreeWRL/FreeX3D is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
-****************************************************************************/
-
-#ifndef AQUA
 #ifndef WIN32
 #include "config.h"
 #include "system.h"
 #endif
-#endif
 #include "EAI_C.h"
-#ifdef WIN32
-#include "../lib/vrml_parser/CParseGeneral.h" /*for anyVrml */
-X3DNode *_swigNewMF(int itype, int num );
-X3DNode *X3D_newSF(int nodetype);
-//extern int haveSwigDirectCB;
-#endif
-
 #define LOCK_ADVISE_TABLE printf ("locking advise table\n");
 #define UNLOCK_ADVISE_TABLE printf ("unlocking advise table\n");
 
@@ -88,22 +59,6 @@ int X3DAdvise (X3DEventOut *node, void *fn) {
 	return AdviseIndex;
 }
 
-union anyVrml* getListenerData(int index)
-{
-        union anyVrml* anynode;
-        LOCK_ADVISE_TABLE
-        anynode = (union anyVrml*)EAI_ListenerTable[index].dataArea;
-        UNLOCK_ADVISE_TABLE
-        return anynode;
-}
-int getListenerType(int index)
-{
-        int type;
-        LOCK_ADVISE_TABLE
-        type = EAI_ListenerTable[index].type;
-        UNLOCK_ADVISE_TABLE
-        return type;
-}
 
 void _handleFreeWRLcallback (char *line) {
 	double evTime;
@@ -152,23 +107,13 @@ void _handleFreeWRLcallback (char *line) {
 			EAI_ListenerTable[count].functionHandler(EAI_ListenerTable[count].dataArea);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
-				/* Doug Sanden's code */
-                                char bigbuf[128];
-
-                                /*
-                                char buf[32];
-                                sprintf(bigbuf,"%d ",EAI_ListenerTable[count].FreeWRL_RegisterNumber);
-                                sprintf(buf,"%lf ",evTime);
-                                strcat(bigbuf,buf);
-                                sprintf(buf,"%d ",count);
-                                strcat(bigbuf,buf);
-                                */
-                                /*fetch data from script side with X3DNode* X3D_swigCallbackData(char *ListenerTableIndex) */
-                                sprintf(bigbuf,"%d %lf %d ",EAI_ListenerTable[count].FreeWRL_RegisterNumber,evTime,count);
-                                send(_X3D_FreeWRL_Swig_FD, (char *)&bigbuf[0],strlen(bigbuf),0);
-
-                                /* send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber),0); binary int*/
-                                /*send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea),0);*/
+#ifdef WIN32
+				send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber),0);
+                send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea),0);
+#else
+                write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber));
+                write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
+#endif
 			} else {
 				printf("no socket connected for callbacks!");
 			}

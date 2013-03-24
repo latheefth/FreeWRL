@@ -19,11 +19,12 @@
 ****************************************************************************/
 
 
-#include <config.h>
 #include "EAI_C.h"
+#include <config.h>
+
 //#include "EAI_swigMe.h"
 #include <stdio.h>
-#define SWIG
+//#define SWIG
 #ifdef SWIG
 int isMF(int nodetype)
 {
