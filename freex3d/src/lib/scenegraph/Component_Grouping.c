@@ -87,7 +87,7 @@ void prep_Group (struct X3D_Group *node) {
 	COMPILE_IF_REQUIRED
 	RECORD_DISTANCE
 
-/*
+/* 
 printf ("prepGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
 if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
 if ((node->_renderFlags & VF_Geom) == VF_Geom) printf ("VF_Geom ");
@@ -98,10 +98,10 @@ if ((node->_renderFlags & VF_Proximity) == VF_Proximity) printf ("VF_Proximity "
 if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision ");
 if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
 if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
-if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
-if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
-printf ("\n");
-*/
+if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");*/
+/*if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup "); */
+/* printf ("\n"); */
+
 
 
 }

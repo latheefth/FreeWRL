@@ -657,45 +657,60 @@ int get_valueChanged_flag (int fptr, int actualscript) {
 }
 
 
-void AddRemoveChild(
+void AddRemoveSFNodeFieldChild(
 		struct X3D_Node *parent,
 		struct X3D_Node **tn,  //target SFNode field
-		struct X3D_Node *node,  //node to set,add or remove from parent
+		struct X3D_Node *child,  //node to set,add or remove from parent
 		int ar,  //0=set,1=add,2=remove
 		char *file,
 		int line) {
 
-	if ((parent==0) || (*tn == 0)) {
-		//printf ("Freewrl: AddRemoveChild, parent and/or field NULL\n");
+/*
+ConsoleMessage ("AddRemoveSFNodeFieldChild called at %s:%d",file,line);
+ConsoleMessage ("AddRemoveSFNodeFieldChild, parent %p, child to add offset %p, child to add %p ar %d",parent,tn,child,ar);
+if (child!=NULL) ConsoleMessage ("AddRemoveSFNodeFieldChild, parent is a %s, child is a %s",stringNodeType(parent->_nodeType), stringNodeType(child->_nodeType));
+if (*tn == NULL) ConsoleMessage ("toNode field is NULL"); else {ConsoleMessage ("tn field is ptr %p",*tn); ConsoleMessage ("and it ias %s",stringNodeType(X3D_NODE(*tn)->_nodeType));}
+*/
+
+	if ((parent==NULL) || (child == NULL)) {
+		//printf ("Freewrl: AddRemoveSFNodeFieldChild, parent and/or child NULL\n");
 		return;
 	}
 
+
 	/* mark the parent changed, eg, rootNode() will not be sorted if this is not marked */
 	parent->_change ++;
-	if (ar == 0) {
+	
+	// Note that, with SFNodeFields, either a "set" or an "add" do the same thing, as 
+	// we only have 1 child. MFNodes are different, but we keep the same calling conventions
+	// as AddRemoveChildren for simplicity
+
+	if ((ar == 0) || (ar == 1)) {
 		#ifdef CRVERBOSE
 		printf ("we have to perform a \"set_child\" on this field\n");
 		# endif
 
 		/* go to the old child, and tell them that they are no longer wanted here */
-		remove_parent(*tn,parent);
+		if (*tn != NULL) remove_parent(*tn,parent);
 
-		/* make it so that we have 0 child */
-		*tn = NULL; 
-
-		/* now, make this into an addChild */
-		ar = 1;
-
-	}
-	if (ar == 1) {
 		/* addChild - now lets add */
-		*tn = node;
-		ADD_PARENT((void *)node,(void *)parent);
+		*tn = child;
+		ADD_PARENT(child,parent);
 	} else {
-		/* this is a removeChild */
-		if(node == *tn){
-			remove_parent(X3D_NODE(node),parent);
-			*tn = NULL;
+		/* this is a removeChild - check to see if child is correct. We might have
+		   a removeChild of NULL, for instance */
+
+		if (child != NULL) {
+			if(child == *tn){
+				remove_parent(*tn,parent);
+				*tn = NULL;
+			} else {
+				if ((*tn != NULL) && (child->referenceCount > 0)) {
+				ConsoleMessage (".... ARSF, requested child to remove is %p %s ref %d as a child",child,stringNodeType(child->_nodeType),
+					child->referenceCount);
+				}
+				
+			}
 		}
 	}
 	update_node(parent);

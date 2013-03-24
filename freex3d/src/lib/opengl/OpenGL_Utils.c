@@ -214,6 +214,17 @@ GLEWContext * glewGetContext()
 }
 #endif
 
+
+#if defined (_ANDROID)
+
+/***************************************************************************************/
+/*                                                                                     */
+/* UI FrontEnd Scenegraph manipulation nodes. Right now, the FreeX3D UI uses these,    */
+/* but they are NOT Android specific. Feel free to look and use. JAS.		       */
+/*                                                                                     */
+/***************************************************************************************/
+
+
 /* pass in a X3D_Shape pointer, and from that, we go and return a bunch of fields of
    the Shape. If a field is NULL, NULL is returned. If a field is a PROTO, the PROTO
    expansion is returned */
@@ -266,6 +277,8 @@ int fwl_android_get_valid_shapeNodes(struct Vector **shapeNodes) {
 	int tc;
         ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
+	//ConsoleMessage ("fwl_android_get_valid_shapeNodes, passed in vector %p",*shapeNodes);
+
 	// create the new vector, if required
 	if (*shapeNodes == NULL) {
 		*shapeNodes = newVector (struct X3D_Shape *, 16);
@@ -309,6 +322,9 @@ int fwl_android_get_valid_shapeNodes(struct Vector **shapeNodes) {
 	}
 	UNLOCK_MEMORYTABLE
 
+/*
+uncomment to print out the shape nodes found
+
 	for (tc=0; tc<vectorSize(me); tc++) {
 		struct X3D_FillProperties *fp;
 		struct X3D_LineProperties *lp;
@@ -329,13 +345,245 @@ int fwl_android_get_valid_shapeNodes(struct Vector **shapeNodes) {
 		if (tt == NULL) ConsoleMessage ("texureTransform NULL"); else ConsoleMessage ("texureTransform %s",stringNodeType(tt->_nodeType));
 
 	}
+*/
 
 	return vectorSize(me);
 }
 
+/* Zeroes the Shape Node table, for instance, when loading in a new world,
+   you want to zero this, otherwise all of the existing node pointers will
+   be invalid */
+
+void fwl_android_zero_shapeNodeTable(struct Vector **shapeNodes) {
+	if (*shapeNodes == NULL) {
+		*shapeNodes = newVector (struct X3D_Shape *, 16);
+	}
+	//ConsoleMessage ("fwl_android_zero_shapeNodeTable, was %d, should be 0 after this",vectorSize(*shapeNodes));
+	vectorSize(*shapeNodes) = 0;
+	//ConsoleMessage ("fwl_android_zero_shapeNodeTable, is  %d, should be 0 after this",vectorSize(*shapeNodes));
+}
 
 
-#define JASTESTING
+
+/* returns TRUE if the shape node actually has a fillProperties node,
+   returns FALSE if the node does not exist or does not have a FillProperty */
+int fwl_get_FillPropStatus(struct Vector **shapeNodes, int whichEntry) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+
+	//ConsoleMessage ("fwl_get_FillPropStatus, pointer is %p");
+	//ConsoleMessage ("fwl_get_FillPropStatus, vecto size %d",vectorSize(*shapeNodes));
+
+	// If we do not have any node entries, maybe this is a new scene, and we have to get
+	// the valid nodes?
+	if (vectorSize(*shapeNodes) == 0 ) {
+		if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return FALSE;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+	//ConsoleMessage ("and the fp field is %p",fp);
+
+	return (fp!=NULL);
+}
+
+void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yesNo) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+
+	// If we do not have any node entries, maybe this is a new scene, and we have to get
+	// the valid nodes?
+	if (vectorSize(*shapeNodes) == 0 ) {
+		if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+
+	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (yesNo) {
+		// does the shape have an Appearance node yet?
+		if (X3D_SHAPE(node)->appearance == NULL) {
+			struct X3D_Material *mat;
+			ap = createNewX3DNode(NODE_Appearance);
+			AddRemoveSFNodeFieldChild(node,
+				offsetPointer_deref(struct X3D_Node **,node,offsetof (struct X3D_Shape, appearance)),
+				ap,0,__FILE__,__LINE__);
+
+			mat = createNewX3DNode(NODE_Material);
+			AddRemoveSFNodeFieldChild(ap,
+				offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
+				mat,0,__FILE__,__LINE__);
+		
+		}
+
+		ap = X3D_SHAPE(node)->appearance;
+
+		// create the node, then "set" it in place. If a node previously existed in the
+		// fillProperties field, then it gets removed by AddRemoveChild
+
+
+		//ConsoleMessage ("fwl_set_FillPropStatus, creating a FillProperties");
+		struct X3D_node * fp = createNewX3DNode(NODE_FillProperties);
+		AddRemoveSFNodeFieldChild(ap,
+			offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, fillProperties)),
+			X3D_NODE(fp),0,__FILE__,__LINE__);
+	} else {
+		//ConsoleMessage ("fwl_set_FillPropStatus, removing a FillProperties");
+		AddRemoveSFNodeFieldChild(X3D_NODE(X3D_SHAPE(node)->appearance),
+			offsetPointer_deref(struct X3D_Node **,X3D_NODE(X3D_SHAPE(node)->appearance),offsetof (struct X3D_Appearance, fillProperties)),
+			X3D_NODE(fp),2,__FILE__,__LINE__);
+	}
+}
+
+/* return whether FillProperties hatched is true/false */
+int fwl_get_FillPropHatched(struct Vector **shapeNodes, int whichEntry) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return FALSE;
+	}
+	
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	return (fp->hatched);
+}
+
+/* set current FillProperties to hatched */
+void fwl_set_FillPropHatched (struct Vector **shapeNodes, int whichEntry, int yesNo) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (fp!=NULL) fp->hatched = yesNo;
+}
+
+/* return whether FillProperties filled is true/false */
+int fwl_get_FillPropFilled(struct Vector **shapeNodes, int whichEntry) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return FALSE;
+	}
+	
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	return (fp->filled);
+}
+
+/* set current FillProperties to filled */
+void fwl_set_FillPropFilled (struct Vector **shapeNodes, int whichEntry, int yesNo) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (fp!=NULL) fp->filled = yesNo;
+}
+
+
+/* return FillProperties style */
+int fwl_get_FillPropStyle(struct Vector **shapeNodes, int whichEntry) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return 0;
+	}
+	
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (fp==NULL) return 0;
+	return (fp->hatchStyle);
+}
+
+/* set current FillProperties hatchStyle */
+void fwl_set_FillPropStyle (struct Vector **shapeNodes, int whichEntry, int which) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (fp!=NULL) fp->hatchStyle = which;
+}
+
+
+#undef JASTESTING
 #ifdef JASTESTING
 
 
@@ -399,6 +647,7 @@ UNLOCK_MEMORYTABLE
 
 }
 #endif //JASTESTING
+#endif //ANDROID
 
 #define TURN_OFF_SHOULDSORTCHILDREN node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);
 /******************************************************************/
@@ -1285,6 +1534,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	else {
         if (usePhongShading) fragmentSource[fragmentMainEnd] = discardInFragEnd;
         else fragmentSource[fragmentMainEnd] = fragEnd;
+        //fragmentSource[fragmentMainEnd] = discardInFragEnd;
     }
     
     //ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
@@ -4031,7 +4281,7 @@ BOOL cbUnlinkChild(void *callbackData,struct X3D_Node* node,int jfield,
 	if(isManagedField(mode,type,publicfield)){
 		if(type == FIELDTYPE_SFNode){
 			struct X3D_Node **sfn = &fieldPtr->sfnode;
-			AddRemoveChild(node,sfn,*sfn,2,__FILE__,__LINE__);
+			AddRemoveSFNodeFieldChild(node,sfn,*sfn,2,__FILE__,__LINE__);
 			if(fieldPtr->sfnode)
 				printf("didn't delete sfnode child\n");
 		}else if(type == FIELDTYPE_MFNode){
@@ -4048,7 +4298,7 @@ BOOL cbUnlinkParent(void *callbackData,struct X3D_Node* parent,int jfield,
 	if(isManagedField(mode,type,publicfield)){
 		if(type == FIELDTYPE_SFNode){
 			struct X3D_Node **sfn = &fieldPtr->sfnode;
-			AddRemoveChild(parent,sfn,node,2,__FILE__,__LINE__);
+			AddRemoveSFNodeFieldChild(parent,sfn,node,2,__FILE__,__LINE__);
 		}else if(type == FIELDTYPE_MFNode){
 			struct Multi_Node* mfn = &fieldPtr->mfnode;
 			AddRemoveChildren(parent,mfn,&node,1,2,__FILE__,__LINE__); //Q. is 2 remove?
@@ -4496,7 +4746,6 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial.specular);
 	SEND_VEC4(myMaterialBackEmission,fw_BackMaterial.emission);
 	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
-PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendMaterialsToShader");
 	if (me->lightState != -1) sendLightInfo(me);
     /* FillProperties, LineProperty lineType */
 
@@ -4508,7 +4757,6 @@ PRINT_GL_ERROR_IF_ANY("MIDDLE1 sendMaterialsToShader");
     SEND_VEC4(hatchColour,myap->hatchColour);
     SEND_VEC2(hatchPercent,myap->hatchPercent);
 
-PRINT_GL_ERROR_IF_ANY("MIDDLE3 sendMaterialsToShader");
     //TextureCoordinateGenerator
     SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
 PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");

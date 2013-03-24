@@ -80,8 +80,12 @@ void resetScriptTouchedFlag(int actualscript, int fptr);
 void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype);
 
 void CRoutes_js_new (int num,int scriptType);
-//extern int max_script_found;
-//extern int max_script_found_and_initialized;
-//extern int *scr_act;
 
+void AddRemoveSFNodeFieldChild(
+                struct X3D_Node *parent,
+                struct X3D_Node **tn,  //target SFNode field
+                struct X3D_Node *node,  //node to set,add or remove from parent
+                int ar,  //0=set,1=add,2=remove
+                char *file,
+                int line);
 #endif /* __FREEWRL_CROUTES_H__ */
