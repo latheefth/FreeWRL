@@ -188,6 +188,11 @@ typedef struct pProdCon{
 		int inputThreadParsing; //=FALSE;
 		int haveParsedCParsed;// = FALSE; 	/* used to tell when we need to call destroyCParserData  as destroyCParserData can segfault otherwise */
 
+#if defined (INCLUDE_STL_FILES)
+		/* stl files have no implicit scale. This scale will make it fit into a reasonable boundingBox */
+		float lastSTLScaling;
+#endif
+
 }* ppProdCon;
 void *ProdCon_constructor(){
 	void *v = malloc(sizeof(struct pProdCon));
@@ -227,6 +232,11 @@ void ProdCon_init(struct tProdCon *t)
 		p->haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
 				   as destroyCParserData can segfault otherwise */
 
+#if defined (INCLUDE_STL_FILES)
+                /* stl files have no implicit scale. This scale will make it fit into a reasonable boundingBox */
+                p->lastSTLScaling = 0.1;
+#endif
+
 	}
 }
 ///* is the inputParse thread created? */
@@ -244,6 +254,18 @@ void ProdCon_init(struct tProdCon *t)
 
 //static int haveParsedCParsed = FALSE; 	/* used to tell when we need to call destroyCParserData 
 //				   as destroyCParserData can segfault otherwise */
+
+
+
+#if defined (INCLUDE_STL_FILES)
+/* stl files have no implicit scale. This scale will make it fit into a reasonable boundingBox */
+float fwl_getLastSTLScaling() {
+	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+	if (p!=NULL) return p->lastSTLScaling;
+	return 1.0;
+}
+#endif
+
 
 /* is a parser running? this is a function, because if we need to mutex lock, we
    can do all locking in this file */
@@ -268,6 +290,14 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 {
 	bool ret;
 	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+
+
+#if defined (INCLUDE_STL_FILES)
+                /* stl files have no implicit scale. This scale will make it fit into a reasonable boundingBox */
+                p->lastSTLScaling = 0.1;
+#endif
+
+
 	ret = FALSE;
 
 	inputFileType = determineFileType(input,len);
@@ -360,8 +390,13 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 #if defined (INCLUDE_STL_FILES)
         case IS_TYPE_ASCII_STL: {
             char *convertAsciiSTL(const unsigned char*);
+	    float getLastSTLScale(void);
+
+	
 
             char *newData = convertAsciiSTL(input);
+            p->lastSTLScaling = getLastSTLScale();
+
             //ConsoleMessage("IS_TYPE_ASCII_STL, now file is :%s:",newData);
 
             ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
@@ -370,7 +405,11 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
         }
         case IS_TYPE_BINARY_STL: {
             char *convertBinarySTL(const unsigned char*);
+	    float getLastSTLScale(void);
+
             char *newData = convertBinarySTL(input);
+            p->lastSTLScaling = getLastSTLScale();
+
             ret = cParse (nRn,(int) offsetof (struct X3D_Group, children), newData);
             FREE_IF_NZ(newData);
             break;
@@ -1091,15 +1130,6 @@ void kill_bindables (void) {
 	KILL_BINDABLE(p->backgroundNodes);
 	KILL_BINDABLE(p->navigationNodes);
 	KILL_BINDABLE(p->fogNodes);
-	
-
-
-	/* XXX MEMORY LEAK HERE
-	FREE_IF_NZ(p->fognodes);
-	FREE_IF_NZ(p->backgroundnodes);
-	FREE_IF_NZ(p->navnodes);
-	FREE_IF_NZ(t->viewpointnodes);
-	*/
 }
 
 

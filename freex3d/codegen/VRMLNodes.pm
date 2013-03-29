@@ -478,6 +478,8 @@ package VRML::NodeType;
 		hatched => [SFBool, TRUE, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		hatchStyle => [SFInt32, 1, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_enabled =>[SFBool, TRUE, inputOutput,0], # literally, is this thing used or not?
+		_hatchScale =>[SFVec2f, [0.1,0.1], inputOutput,0], # the rate of the lines, 0.1 = 10 lines/meter
 	},"X3DAppearanceChildNode"),
 
 	LineProperties => new VRML::NodeType ("LineProperties", {

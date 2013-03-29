@@ -484,6 +484,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"centerOfRotation_changed",
 	"diskAngle",
 	"__Samples",
+	"_enabled",
 	"transmitFrequencyBandwidth",
 	"__do_rotation",
 	"dataLength",
@@ -596,6 +597,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"munitionApplicationID",
 	"firedTime",
 	"forceID",
+	"_hatchScale",
 	"articulationParameterDesignatorArray",
 	"_verifiedColor",
 	"__protoDef",
@@ -2992,6 +2994,8 @@ const int OFFSETS_Extrusion[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_FillProperties[] = {
+	(int) FIELDNAMES__enabled, (int) offsetof (struct X3D_FillProperties, _enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES__hatchScale, (int) offsetof (struct X3D_FillProperties, _hatchScale),  (int) FIELDTYPE_SFVec2f, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_hatched, (int) offsetof (struct X3D_FillProperties, hatched),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_hatchStyle, (int) offsetof (struct X3D_FillProperties, hatchStyle),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_FillProperties, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6130,6 +6134,8 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_FillProperties * tmp2;
 			tmp2 = (struct X3D_FillProperties *) tmp;
 		/* ttmp2->v = &virt_FillProperties;*/ 
+			tmp2->_enabled = TRUE;
+			tmp2->_hatchScale.c[0] = 0.1f;tmp2->_hatchScale.c[1] = 0.1f;;
 			tmp2->hatched = TRUE;
 			tmp2->hatchStyle = 1;
 			tmp2->metadata = NULL;
@@ -9256,6 +9262,14 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_FillProperties : {
 			struct X3D_FillProperties *tmp;
 			tmp = (struct X3D_FillProperties *) node;
+		    if(allFields) {
+			spacer fprintf (fp," _enabled (SFBool) \t%d\n",tmp->_enabled);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," _hatchScale (SFVec2f): \t");
+			for (i=0; i<2; i++) { fprintf (fp,"%4.3f  ",tmp->_hatchScale.c[i]); }
+			fprintf (fp,"\n");
+		    }
 			spacer fprintf (fp," hatched (SFBool) \t%d\n",tmp->hatched);
 			spacer fprintf (fp," hatchStyle (SFInt32) \t%d\n",tmp->hatchStyle);
 		    if(allFields) {

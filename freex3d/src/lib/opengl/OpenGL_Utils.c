@@ -366,7 +366,9 @@ void fwl_android_zero_shapeNodeTable(struct Vector **shapeNodes) {
 
 
 /* returns TRUE if the shape node actually has a fillProperties node,
-   returns FALSE if the node does not exist or does not have a FillProperty */
+   and the FillProperties field "_enabled" is TRUE, 
+   returns FALSE if the node does not exist or does not have a FillProperty,
+   or the FillProperties field "_enabled" is FALSE */
 int fwl_get_FillPropStatus(struct Vector **shapeNodes, int whichEntry) {
 	struct X3D_FillProperties *fp;
 	struct X3D_LineProperties *lp;
@@ -391,10 +393,13 @@ int fwl_get_FillPropStatus(struct Vector **shapeNodes, int whichEntry) {
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 	//ConsoleMessage ("and the fp field is %p",fp);
 
-	return (fp!=NULL);
+	if (fp != NULL) {
+		return (fp->_enabled);
+	}
+	return (FALSE);
 }
 
-void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yesNo) {
+void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yesNo, float fillScale) {
 	struct X3D_FillProperties *fp;
 	struct X3D_LineProperties *lp;
 	struct X3D_Material *mat;
@@ -417,6 +422,8 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (yesNo) {
+		struct X3D_FillProperties *fp;
+
 		// does the shape have an Appearance node yet?
 		if (X3D_SHAPE(node)->appearance == NULL) {
 			struct X3D_Material *mat;
@@ -437,18 +444,40 @@ void fwl_set_FillPropStatus (struct Vector **shapeNodes, int whichEntry, int yes
 		// create the node, then "set" it in place. If a node previously existed in the
 		// fillProperties field, then it gets removed by AddRemoveChild
 
+		if (ap->fillProperties == NULL) {
+			//ConsoleMessage ("fwl_set_FillPropStatus, creating a FillProperties");
+			fp = X3D_FILLPROPERTIES(createNewX3DNode(NODE_FillProperties));
+			AddRemoveSFNodeFieldChild(ap,
+				offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, fillProperties)),
+				X3D_NODE(fp),0,__FILE__,__LINE__);
+		} else {
+			//ConsoleMessage ("fwl_set_FilPropStatus, just enabling FillProperties _enabled field");
+			fp = X3D_FILLPROPERTIES(ap->fillProperties);
+			// ok, we have a node here, if it is a FillProperties, set the enabled flag
+			if (fp->_nodeType == NODE_FillProperties) fp->_enabled = TRUE;
+		}
 
-		//ConsoleMessage ("fwl_set_FillPropStatus, creating a FillProperties");
-		struct X3D_node * fp = createNewX3DNode(NODE_FillProperties);
-		AddRemoveSFNodeFieldChild(ap,
-			offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, fillProperties)),
-			X3D_NODE(fp),0,__FILE__,__LINE__);
+		// ensure that the FillProperties scale is ok.
+		fp->_hatchScale.c[0] = fillScale;
+		fp->_hatchScale.c[1] = fillScale;
 	} else {
 		//ConsoleMessage ("fwl_set_FillPropStatus, removing a FillProperties");
+		/* do not bother removing it - keep it around in case we re-enable and want original settings 
 		AddRemoveSFNodeFieldChild(X3D_NODE(X3D_SHAPE(node)->appearance),
 			offsetPointer_deref(struct X3D_Node **,X3D_NODE(X3D_SHAPE(node)->appearance),offsetof (struct X3D_Appearance, fillProperties)),
 			X3D_NODE(fp),2,__FILE__,__LINE__);
+		*/
+		ap = X3D_SHAPE(node)->appearance;
+		if (ap != NULL) {
+			if (ap->fillProperties != NULL) {
+				struct X3D_FillProperties *fp = X3D_FILLPROPERTIES(ap->fillProperties);
+				// ok, we have a node here, if it is a FillProperties, set the enabled flag
+				if (fp->_nodeType == NODE_FillProperties) fp->_enabled = FALSE;
+			}
+		}
 	}
+	// tell the Shape node that we need to check the shaders it uses...
+	node->_change ++;
 }
 
 /* return whether FillProperties hatched is true/false */
@@ -580,6 +609,65 @@ void fwl_set_FillPropStyle (struct Vector **shapeNodes, int whichEntry, int whic
 	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (fp!=NULL) fp->hatchStyle = which;
+}
+
+
+/* return FillProperties colour */
+int fwl_get_FillPropColour(struct Vector **shapeNodes, int whichEntry) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	int integer_colour;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return 0;
+	}
+	
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	#define CLAMP(value, min, max) (((value) >(max)) ? (max) : (((value) <(min)) ? (min) : (value)))
+	if (fp==NULL) return 0;
+
+	integer_colour = 0xFF000000 + (
+		((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[0], 0.0, 1.0)) <<16) |
+               ((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[1], 0.0, 1.0)) <<8) |
+               ((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[2], 0.0, 1.0)))); 
+	
+	//ConsoleMessage ("fwl_get_fp, is %x",integer_colour);
+	return (integer_colour);
+}
+
+/* set current FillProperties hatchColour */
+void fwl_set_FillPropColour (struct Vector **shapeNodes, int whichEntry, int argbColour) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (fp!=NULL) {
+		fp->hatchColor.c[0] =CLAMP(((float)((argbColour &0xff0000) >>16)) /255.0, 0.0, 1.0);
+		fp->hatchColor.c[1] =CLAMP(((float)((argbColour &0x00ff00) >>8)) /255.0, 0.0, 1.0);
+		fp->hatchColor.c[2] =CLAMP(((float)((argbColour &0x0000ff))) /255.0, 0.0, 1.0);
+		//ConsoleMessage ("converted colour to %f %f %f ", fp->hatchColor.c[0], fp->hatchColor.c[1], fp->hatchColor.c[2]);
+	}
 }
 
 
@@ -983,10 +1071,9 @@ if (fw_textureCoordGenType==3) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \
 static const GLchar *vertHatchPosCalc = "hatchPosition = fw_Vertex.xy;\n";
 
 static const GLchar *fillPropDefines = "\
-const vec2 HatchSize = vec2(0.15, 0.15); \n\
 uniform vec4 HatchColour; \n\
 uniform bool hatched; uniform bool filled;\n\
-uniform vec2 HatchPct; uniform int algorithm; ";
+uniform vec2 HatchScale; uniform vec2 HatchPct; uniform int algorithm; ";
 
 static const GLchar *lightDefines = "\
 struct fw_MaterialParameters {    \
@@ -1295,7 +1382,7 @@ vec4 fillPropCalc(in vec4 prevColour, vec2 MCposition, int algorithm) {\
 vec4 colour; \
 vec2 position, useBrick; \
 \
-position = MCposition / HatchSize; \
+position = MCposition / HatchScale; \
 \
 if (algorithm == 0) {/* bricking  */ \
     if (fract(position.y * 0.5) > 0.5) \
@@ -1871,6 +1958,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->pointSize = GET_UNIFORM(myProg, "pointSize");
 	me->hatchColour = GET_UNIFORM(myProg,"HatchColour");
 	me->hatchPercent = GET_UNIFORM(myProg,"HatchPct");
+	me->hatchScale = GET_UNIFORM(myProg,"HatchScale");
 	me->filledBool = GET_UNIFORM(myProg,"filled");
 	me->hatchedBool = GET_UNIFORM(myProg,"hatched");
 	me->algorithm = GET_UNIFORM(myProg,"algorithm");
@@ -3210,7 +3298,7 @@ gglobal()->RenderFuncs.have_transparency = TRUE; \
 }
 
 #define CHECK_FILL_PROPERTY_FILLED \
-    if (((struct X3D_FillProperties *)node)->filled == FALSE) { \
+    if ((((struct X3D_FillProperties *)node)->_enabled == TRUE) && (((struct X3D_FillProperties *)node)->filled == FALSE)) { \
     /* printf ("node %p FillProperty filled FALSE\n",node); */ \
     update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
     gglobal()->RenderFuncs.have_transparency = TRUE; \
@@ -4755,6 +4843,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
     SEND_INT(hatchedBool,myap->hatchedBool);
     SEND_INT(algorithm,myap->algorithm);
     SEND_VEC4(hatchColour,myap->hatchColour);
+    SEND_VEC2(hatchScale,myap->hatchScale);
     SEND_VEC2(hatchPercent,myap->hatchPercent);
 
     //TextureCoordinateGenerator
