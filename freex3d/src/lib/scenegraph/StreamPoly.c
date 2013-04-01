@@ -690,10 +690,6 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, 
 
 	if ((p->_nodeType == NODE_IndexedFaceSet) ||(p->_nodeType == NODE_ElevationGrid) 
         
-#if defined (DO_VRML1)        
-        || (p->_nodeType == NODE_VRML1_IndexedFaceSet)
-#endif //DO_VRML1
-        
         ) {
 
 		/* find the S,T mapping. */

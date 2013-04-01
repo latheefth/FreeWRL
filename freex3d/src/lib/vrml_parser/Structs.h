@@ -1861,8 +1861,6 @@ struct X3D_Node {
 #define X3D_DIRECTIONALLIGHT(node) ((struct X3D_DirectionalLight*)node)
 #define X3D_INDEXEDFACESET(node) ((struct X3D_IndexedFaceSet*)node)
 #define X3D_INDEXEDLINESET(node) ((struct X3D_IndexedLineSet*)node)
-/* OLDCODE #define VRML1_INDEXEDFACESET(node) ((struct X3D_VRML1_IndexedFaceSet*)node)
-OLDCODE #define VRML1_SEPARATOR(node) ((struct X3D_VRML1_Separator*)node)*/ 
 #define X3D_ELEVATIONGRID(node) ((struct X3D_ElevationGrid*)node)
 #define X3D_INDEXEDTRIANGLEFANSET(node) ((struct X3D_IndexedTriangleFanSet*)node)
 #define X3D_INDEXEDTRIANGLESET(node) ((struct X3D_IndexedTriangleSet*)node)

@@ -790,24 +790,6 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, texCoord));
 			break;
             
-#if defined (DO_VRML1)            
-		case NODE_VRML1_IndexedFaceSet:
-			orig_coordIndex= &VRML1_INDEXEDFACESET(node)->coordIndex;
-			cpv = VRML1_INDEXEDFACESET(node)->_cpv;
-			npv = VRML1_INDEXEDFACESET(node)->_npv;
-			ccw = VRML1_INDEXEDFACESET(node)->_ccw;
-			cc = (struct X3D_Color *) VRML1_INDEXEDFACESET(node)->_color;
-			nc = (struct X3D_Normal *) VRML1_INDEXEDFACESET(node)->_normal;
-			tc = (struct X3D_TextureCoordinate *) VRML1_INDEXEDFACESET(node)->_texCoord;
-			co = (struct X3D_Coordinate *) VRML1_INDEXEDFACESET(node)->_coord;
-			creaseAngle = VRML1_INDEXEDFACESET(node)->_creaseAngle;
-			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, coordIndex));
-			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, materialIndex));
-			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, normalIndex));
-			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_VRML1_IndexedFaceSet, textureCoordIndex));
-			break;
-#endif //DO_VRML1
-            
 		default:
 			ConsoleMessage ("unknown type for make_genericfaceset, %d\n",node->_nodeType);
 			rep_->ntri=0;

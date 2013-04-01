@@ -109,13 +109,6 @@ typedef struct iiglobal //InstanceGlobal
 		void *prv;
 	} threads;
     
-#if defined DO_VRML1
-	struct tconvert1To2 {
-		void *prv;
-	} convert1To2;
-#endif //DO_VRML1
-    
-    
 	struct tSnapshot {
 		bool doSnapshot;
 		bool doPrintshot;

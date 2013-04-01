@@ -340,9 +340,6 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
 		}
 		break;
 	case IS_TYPE_VRML1: {
-#if defined (DO_VRML1)        
-		char *newData = convert1To2((const char*)input);
-#else
         char *newData = strdup("#VRML V2.0 utf8\n\
         Shape {appearance Appearance {material Material {diffuseColor 0.0 1.0 1.0}}\
         geometry Text {\
@@ -353,7 +350,6 @@ static bool parser_do_parse_string(const unsigned char *input, const int len, st
             }\
         }}\
         ");
-#endif //DO_VRML1
 		if(usingBrotos()){
 			struct X3D_Proto *sceneProto = createNewX3DNode0(NODE_Proto);
 			sceneProto->__prototype = X3D_NODE(sceneProto); 

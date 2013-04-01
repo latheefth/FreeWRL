@@ -2253,17 +2253,7 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 			}
 		} else {
 			printf ("not enough textures in MultiTextureTransform....\n");
-        }
-#if defined (DO_VRML1)
-	} else if (textureNode->_nodeType == NODE_VRML1_Texture2Transform) {
-		struct X3D_VRML1_Texture2Transform  *ttt = (struct X3D_VRML1_Texture2Transform *) textureNode;
-		/*  Render transformations according to spec.*/
-        	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-        	FW_GL_SCALE_F(((ttt->scaleFactor).c[0]),((ttt->scaleFactor).c[1]),1);			/*  4*/
-        	FW_GL_ROTATE_F(ttt->rotation,0,0,1);						/*  3*/
-        	FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-        	FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
-#endif //DO_VRML1
+        	}
 	} else {
 		printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
 	}
@@ -3790,18 +3780,6 @@ E_JS_EXPERIMENTAL_CODE
 				BEGIN_NODE(MetadataMFVec4f) CMD(MFVec4f,node); END_NODE
 				BEGIN_NODE(MetadataSFVec4d) CMD(SFVec4d,node); END_NODE
 				BEGIN_NODE(MetadataMFVec4d) CMD(MFVec4d,node); END_NODE
-
-#if defined (DO_VRML1)
-				/* VRML1 Separator node; we do a bare bones implementation; always assume there are 
-					lights, geometry, and viewpoints here. */
-				BEGIN_NODE(VRML1_Separator) 
-					sortChildren (__LINE__,&VRML1_SEPARATOR(node)->VRML1children,&VRML1_SEPARATOR(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
-					TURN_OFF_SHOULDSORTCHILDREN
-					propagateExtent(X3D_NODE(node));
-					update_renderFlag(X3D_NODE(pnode),VF_localLight|VF_Viewpoint|VF_Geom|VF_hasVisibleChildren);
-				END_NODE
-#endif //DO_VRML1
-                    
 			}
 		}
 
