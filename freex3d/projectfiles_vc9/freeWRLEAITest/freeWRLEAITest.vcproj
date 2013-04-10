@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="freeWRLEAITest"
 	ProjectGUID="{812D374C-9909-4651-9A89-B6324FB7A697}"
 	RootNamespace="freeWRLEAITest"
@@ -177,7 +177,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Ctest_libeai_CRC.c"
+				RelativePath=".\Ctest_libeai_Teardown.c"
 				>
 			</File>
 		</Filter>

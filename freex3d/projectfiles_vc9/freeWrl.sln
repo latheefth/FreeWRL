@@ -9,6 +9,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL", "lib\libFreeWR
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllFreeWRL", "dllFreeWRL\dllFreeWRL.vcproj", "{8B124FE7-4284-46D4-B962-F1EE06911C95}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRLEAITest", "freeWRLEAITest\freeWRLEAITest.vcproj", "{812D374C-9909-4651-9A89-B6324FB7A697}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfreeWRLEAI", "libfreeWRLEAI\libfreeWRLEAI.vcproj", "{025DC1AD-0C75-4A06-A641-32F2EABD28B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -27,6 +31,14 @@ Global
 		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Debug|Win32.Build.0 = Debug|Win32
 		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Release|Win32.ActiveCfg = Release|Win32
 		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Release|Win32.Build.0 = Release|Win32
+		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug|Win32.ActiveCfg = Debug|Win32
+		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug|Win32.Build.0 = Debug|Win32
+		{812D374C-9909-4651-9A89-B6324FB7A697}.Release|Win32.ActiveCfg = Release|Win32
+		{812D374C-9909-4651-9A89-B6324FB7A697}.Release|Win32.Build.0 = Release|Win32
+		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug|Win32.Build.0 = Debug|Win32
+		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release|Win32.ActiveCfg = Release|Win32
+		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

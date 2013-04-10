@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="libfreeWRLEAI"
 	ProjectGUID="{025DC1AD-0C75-4A06-A641-32F2EABD28B6}"
 	RootNamespace="libfreeWRLEAI"
@@ -156,6 +156,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\input\EAI_C_CommonFunctions.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\libeai\EAI_C_Control.c"
 				>
 			</File>
@@ -177,10 +181,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\libeai\EAI_C_swigExtras.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\lib\scenegraph\GeneratedCode.c"
 				>
 			</File>
 		</Filter>
