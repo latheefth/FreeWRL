@@ -99,12 +99,16 @@ void _handleFreeWRLcallback (char *line) {
 
 		/* ok, we have the Advise Index. */
 		if (EAI_ListenerTable[count].dataArea != NULL) {
-			Parser_scanStringValueToMem(EAI_ListenerTable[count].dataArea, 0,
+			Parser_scanStringValueToMem_C(EAI_ListenerTable[count].dataArea, //0,
 			EAI_ListenerTable[count].type, line, 0);
 
 		}
 		if (EAI_ListenerTable[count].functionHandler != 0) {
-			EAI_ListenerTable[count].functionHandler(EAI_ListenerTable[count].dataArea);
+			X3DNode node;
+			//int myBool = *(int*)EAI_ListenerTable[count].dataArea;
+			node.type = EAI_ListenerTable[count].type;
+			memcpy(((char*)(&node))+sizeof(int),EAI_ListenerTable[count].dataArea,sizeof(EAI_ListenerTable[count].dataArea));
+			EAI_ListenerTable[count].functionHandler(&node);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
 #ifdef WIN32
