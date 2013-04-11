@@ -56,35 +56,48 @@ void loadObjects(){
 		exit(1);
     	}
 
-	printf("Step 5: X3D_getEventIn(root, 'addChildren')\n");
-	addChildren = X3D_getEventIn(root, "addChildren");
-   	if (selectionEvent == 0) {
-        	printf("ERROR: addChildren event not found!\n");
-		exit(1);
-    	}
+	if(1){
+		printf("Step 5: X3D_getEventIn(root, 'addChildren')\n");
+		addChildren = X3D_getEventIn(root, "addChildren");
+   		if (selectionEvent == 0) {
+        		printf("ERROR: addChildren event not found!\n");
+			exit(1);
+    		}
 
-    /* Utility function call which creates an X3D node - in this case a blue sphere */
-	shape1 = makeSimpleShape(SPHERE, BLUE, "-2.3 2.1 0");
-
+		/* Utility function call which creates an X3D node - in this case a blue sphere */
+		if(0) shape1 = makeSimpleShape(SPHERE, BLUE, "-2.3 2.1 0");
+	}
    	//Call the function earthSelected when the event occurs.
     	X3DAdvise(selectionEvent, earthSelected);
 }
 
 int first = 1;
-void * earthSelected(X3DNode* val){
+void * earthSelected(X3DNode* val, double dtime){
 //	char * value = (char *) val;	
 	int type, value;
 	type = val->X3D_SFBool.type;
 	value = val->X3D_SFBool.value;
-	printf("Value of TOUCH_SENSOR was changed... to type %d value = %d \n", type, value);
+	printf("Value of TOUCH_SENSOR was changed... to type %d value = %d  time= %lf\n", type, value, dtime);
+	if( value == 0 ) return NULL;
 
     /* Set the value of the EventIn "addChildren" to a blue sphere. */
-	if(first){
-		X3D_setValue(addChildren, shape1); 
-		first = 0;
-	}
-	else {
-		printf("press Enter to shutdown:");
+	if(first==1){
+		printf("first click felt in earthSelected\n");
+		if(0) X3D_setValue(addChildren, shape1); 
+		first = 2;
+	}else if(first == 2){
+		printf("second click felt in earthSelected\n");
+		first = 3;
+	}else if(first == 3){
+		printf("third click felt - making shape\n");
+		shape1 = makeSimpleShape(SPHERE, BLUE, "-2.3 2.1 0");
+		first = 4;
+	}else if(first == 4){
+		printf("fourth click felt - adding shape\n");
+		X3D_setValue(addChildren, shape1);
+		first = 5;
+	}else{
+		printf("5th click felt - press Enter to shutdown:");
 		getchar();
    	    /* Free memory */
 	    X3D_freeNode(root);
@@ -97,6 +110,7 @@ void * earthSelected(X3DNode* val){
 	    X3D_shutdown();
 	    exit(0);
 	}
+	return NULL;
 }
 
 int main() {

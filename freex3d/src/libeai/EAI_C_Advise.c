@@ -11,7 +11,7 @@ struct EAI_ListenerStruct {
 	int type;
 	int datasize;
 	void *dataArea;
-	void    (*functionHandler)(void *);
+	void    (*functionHandler)(X3DNode*, double);
 };
 
 struct EAI_ListenerStruct *EAI_ListenerTable = 0;
@@ -110,7 +110,7 @@ void _handleFreeWRLcallback (char *line) {
 			X3DNode *pnode;
 			pnode = (X3DNode *)EAI_ListenerTable[count].dataArea;
 			pnode->type = EAI_ListenerTable[count].type;
-			EAI_ListenerTable[count].functionHandler(pnode);
+			EAI_ListenerTable[count].functionHandler(pnode,evTime);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
 #ifdef WIN32
