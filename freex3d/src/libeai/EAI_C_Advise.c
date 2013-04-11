@@ -9,6 +9,7 @@
 struct EAI_ListenerStruct {
 	int FreeWRL_RegisterNumber;
 	int type;
+	int datasize;
 	void *dataArea;
 	void    (*functionHandler)(void *);
 };
@@ -47,10 +48,11 @@ int X3DAdvise (X3DEventOut *node, void *fn) {
 	/* record this one... */
 	EAI_ListenerTable[AdviseIndex].type = node->datatype;
 	EAI_ListenerTable[AdviseIndex].FreeWRL_RegisterNumber = _X3D_queryno;
+	EAI_ListenerTable[AdviseIndex].datasize = node->datasize;
 	if (node->datasize>0)
-		EAI_ListenerTable[AdviseIndex].dataArea = malloc (node->datasize);
+		EAI_ListenerTable[AdviseIndex].dataArea = malloc (sizeof(int) + node->datasize);
 	else 
-		EAI_ListenerTable[AdviseIndex].dataArea = NULL;
+		EAI_ListenerTable[AdviseIndex].dataArea = malloc (sizeof(int)); //NULL;
 	EAI_ListenerTable[AdviseIndex].functionHandler = fn;
 
 	/* and, tell FreeWRL about this one */
@@ -98,17 +100,17 @@ void _handleFreeWRLcallback (char *line) {
 		}
 
 		/* ok, we have the Advise Index. */
-		if (EAI_ListenerTable[count].dataArea != NULL) {
-			Parser_scanStringValueToMem_C(EAI_ListenerTable[count].dataArea, //0,
+		if (EAI_ListenerTable[count].datasize != NULL) {
+			char *da = EAI_ListenerTable[count].dataArea;
+			Parser_scanStringValueToMem_C(&da[sizeof(int)], //0,
 			EAI_ListenerTable[count].type, line, 0);
 
 		}
 		if (EAI_ListenerTable[count].functionHandler != 0) {
-			X3DNode node;
-			//int myBool = *(int*)EAI_ListenerTable[count].dataArea;
-			node.type = EAI_ListenerTable[count].type;
-			memcpy(((char*)(&node))+sizeof(int),EAI_ListenerTable[count].dataArea,sizeof(EAI_ListenerTable[count].dataArea));
-			EAI_ListenerTable[count].functionHandler(&node);
+			X3DNode *pnode;
+			pnode = (X3DNode *)EAI_ListenerTable[count].dataArea;
+			pnode->type = EAI_ListenerTable[count].type;
+			EAI_ListenerTable[count].functionHandler(pnode);
 		} else {
 			if (_X3D_FreeWRL_Swig_FD) {
 #ifdef WIN32
