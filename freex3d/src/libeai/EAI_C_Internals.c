@@ -143,62 +143,54 @@ void freewrlSwigThread(void) {
 	/* return NULL; */
 	return ;
 }
+void _queue_callback(char *readbuffer);
+void unqueue_callback();
 
 /* read in the reply - if it is an RE; it is the reply to an event; if it is an
    EV it is an async event */
-
-#ifdef WIN32
-void* freewrlReadThread(void *nada)  {
-#else
 void freewrlReadThread(void)  {
-#endif
 	int retval;
 	while (1==1) {
 
 
-                tv.tv_sec = 0;
-                tv.tv_usec = 100;
-                FD_ZERO(&rfds);
-                FD_SET(_X3D_FreeWRL_FD, &rfds);
+        tv.tv_sec = 0;
+        tv.tv_usec = 100;
+        FD_ZERO(&rfds);
+        FD_SET(_X3D_FreeWRL_FD, &rfds);
 
-                /* wait for the socket. We HAVE to select on "sock+1" - RTFM */
-				/* WIN32 ignors the first select parameter, just there for berkley compatibility */
-                retval = select(_X3D_FreeWRL_FD+1, &rfds, NULL, NULL, &tv);
-
-                if (retval) {
+        /* wait for the socket. We HAVE to select on "sock+1" - RTFM */
+		/* WIN32 ignors the first select parameter, just there for berkley compatibility */
+        retval = select(_X3D_FreeWRL_FD+1, &rfds, NULL, NULL, &tv);
+		if(retval)printf("+");
+		else printf("-");
+        if (retval) {
 #ifdef WIN32
-				retval = recv(_X3D_FreeWRL_FD, readbuffer, 2048, 0);
-				if (retval  == SOCKET_ERROR) {
+			retval = recv(_X3D_FreeWRL_FD, readbuffer, 2048, 0);
+			if (retval  == SOCKET_ERROR) {
 #else
 			retval = read(_X3D_FreeWRL_FD,readbuffer,2048);
-				if (retval  <= 0) {
+			if (retval  <= 0) {
 #endif
-					printf("ERROR reading fromsocket\n");
-					exit(1);
-				}
+				printf("ERROR reading fromsocket\n");
+				exit(1);
+			}
 			readbuffer[retval] = '\0';
 
 			/* if this is normal data - signal that it is received */
 			if (strncmp ("RE",readbuffer,2) == 0) {
 				receivedData = TRUE;
 			} else if (strncmp ("EV",readbuffer,2) == 0) {
+				if(0)
 					_handleFreeWRLcallback(readbuffer);
-#ifdef OLDCODE
-OLDCODE			} else if (strncmp ("RW",readbuffer,2) == 0) {
-OLDCODE				_handleReWireCallback(readbuffer);
-#endif // OLDCODE
+				if(1)
+					_queue_callback(readbuffer);
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
 				exit(0);
 			} else {
 				printf ("readThread - unknown prefix - %s\n",readbuffer);
 			}
 
-		/*
-                } else {
-                                printf ("waitForData, timing out\n","");
-		*/
-
-                }
+        }
 
 	}
 }
@@ -217,6 +209,7 @@ static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 
 #ifdef WIN32
 	ptr = NULL;
+	receivedData = FALSE;
 	retval = send(_X3D_FreeWRL_FD, callerbuffer, size, 0);
 	if (retval == SOCKET_ERROR ) 
 #else	
@@ -228,7 +221,7 @@ static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 
 	if (waitForResponse) {
 
-		receivedData = FALSE;
+		//receivedData = FALSE;
 		while (!receivedData) {
 			sched_yield();
 		}
@@ -357,7 +350,9 @@ char *_X3D_make2StringCommand (char command, char *str1, char *str2) {
 	EAILOCK
 	verifySendBufferSize ( strlen(str1) + strlen(str2));
 	sprintf (sendBuffer, "%d %c %s%s\n",_X3D_queryno,command,str1,str2);
+	printf("before sendToFreeWRL\n");
 	myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
+	printf("after sendToFreeWRL myptr=%s\n",myptr);
 	EAIUNLOCK
 
 	#ifdef VERBOSE

@@ -112,7 +112,7 @@ void * earthSelected(X3DNode* val, double dtime){
 	}
 	return NULL;
 }
-
+void unqueue_callback();     
 int main() {
     /* Initialization function.  Connects to FreeWRL EAI server.  This function must be called before any other EAI calls */
 	printf("Step 1: X3D_initialize()\n");
@@ -124,7 +124,7 @@ int main() {
     /* Wait so we can observe the results */
 
     while(1){
-     
+		unqueue_callback();     
     }
 
     return 0;

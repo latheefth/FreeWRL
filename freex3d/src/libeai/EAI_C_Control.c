@@ -158,9 +158,9 @@ void X3D_initialize(char *hostname) {
 
 	/* start up thread to allow connections from SWIG (or similar) */
 	/* iret2 = pthread_create(&swigThread, NULL, freewrlSwigThread, NULL); */
-#ifdef WIN32
-	iret2 = pthread_create(&swigThread, NULL, freewrlSwigThread, NULL); 
-#endif
+//#ifdef WIN32
+//	iret2 = pthread_create(&swigThread, NULL, freewrlSwigThread, NULL); 
+//#endif
 }
 
 
