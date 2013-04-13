@@ -53,7 +53,7 @@ void X3D_error(char *msg) {
 
 double mytime;
 
-char readbuffer[2048];
+//char readbuffer[2048];
 char *sendBuffer = NULL;
 int sendBufferSize = 0;
 
@@ -143,13 +143,128 @@ void freewrlSwigThread(void) {
 	/* return NULL; */
 	return ;
 }
-void _queue_callback(char *readbuffer);
-void unqueue_callback();
+#include <list.h>
+static s_list_t *evlist = NULL;
+static s_list_t *relist = NULL;
+
+pthread_mutex_t mut_relist = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mut_evlist = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mut_re = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_cond_t condition_relist_nonempty = PTHREAD_COND_INITIALIZER;
+pthread_cond_t condition_evlist_nonempty = PTHREAD_COND_INITIALIZER;
+pthread_cond_t condition_re_done = PTHREAD_COND_INITIALIZER;
+
+
+s_list_t* _enqueue_readbuffer(s_list_t *list, char *readbuffer){
+	s_list_t* item;
+	char *cbline = strdup(readbuffer);
+	item = ml_new(cbline);
+	list = ml_append(list, item);
+	return list;
+}
+void _enqueue_readbuffer_re(char *readbuffer)
+{
+	pthread_mutex_lock (&mut_relist);
+	relist = _enqueue_readbuffer(relist,readbuffer);
+	pthread_cond_signal(&condition_relist_nonempty);
+	pthread_mutex_unlock (&mut_relist);
+}
+void _enqueue_readbuffer_ev(char *readbuffer)
+{
+	pthread_mutex_lock (&mut_evlist);
+	evlist = _enqueue_readbuffer(evlist,readbuffer);
+	pthread_cond_signal(&condition_evlist_nonempty);
+	pthread_mutex_unlock (&mut_evlist);
+}
+char* dequeue_readbuffer(s_list_t **plist)
+{
+	s_list_t *list = *plist;
+	if(list){
+		char *readbuffer = ml_elem(list);
+		*plist = ml_delete_self(list, list);
+		return readbuffer;
+	}else
+		return NULL;
+}
+int waiting_for_RE = 0;
+char *dequeue_readbuffer_wait_re()
+{
+	char *readbuffer;
+	pthread_mutex_lock (&mut_re); //hold up ev work
+	waiting_for_RE = 1; //set flag for holding up ev
+
+	pthread_mutex_lock (&mut_relist);
+	if(relist == NULL)
+		pthread_cond_wait(&condition_relist_nonempty, &mut_relist);
+	readbuffer = dequeue_readbuffer(&relist);
+	pthread_mutex_unlock (&mut_relist);
+	
+	waiting_for_RE = 0;
+	pthread_cond_signal(&condition_re_done); //signal ev OK
+	pthread_mutex_unlock (&mut_re); //release ev work
+	return readbuffer;
+}
+char* dequeue_readbuffer_ev(int wait)
+{
+	char *readbuffer;
+	pthread_mutex_lock (&mut_evlist);
+	if(evlist == NULL){
+		if(!wait){
+			pthread_mutex_unlock (&mut_evlist);
+			return NULL;
+		}
+		pthread_cond_wait(&condition_evlist_nonempty, &mut_evlist);
+	}
+	readbuffer = dequeue_readbuffer(&evlist);
+	pthread_mutex_unlock (&mut_evlist);
+	return readbuffer;
+}
+/* Dave says: 
+	"If you get an EV while still waiting for any REs you should not
+	handle the EV until the RE queue is empty and you are not expecting
+	any REs."
+	In sendToFreewrl we send, then immediately set waiting_for_RE if/while
+	we are waiting, and here we skip/return if that's the case.
+*/
+void dequeue_callback_ev(int wait)
+{
+	char* cbline;
+	if(!wait)
+	{
+		if(waiting_for_RE) return;
+		cbline = dequeue_readbuffer_ev(wait);
+		if(cbline){
+			_handleFreeWRLcallback (cbline) ;
+			free(cbline);
+		}
+	}else if(wait) {
+		cbline = dequeue_readbuffer_ev(wait);
+		if(cbline){
+			pthread_mutex_lock (&mut_re);
+			if(waiting_for_RE)
+				pthread_cond_wait(&condition_re_done, &mut_re);
+			pthread_mutex_unlock (&mut_re);
+			_handleFreeWRLcallback (cbline) ;
+			free(cbline);
+		}
+	}
+}
+/* you'd start this thread if you have no main.c to call dequeue_callback_ev() from,
+   such as SAI in javascript.
+*/
+void freewrlEVcallbackThread(void) {
+	while(1){
+		dequeue_callback_ev(1);
+	}
+}
 
 /* read in the reply - if it is an RE; it is the reply to an event; if it is an
    EV it is an async event */
 void freewrlReadThread(void)  {
 	int retval;
+	char readbuffer[2048];
+	//initialize_queue_mutexes();
 	while (1==1) {
 
 
@@ -160,7 +275,8 @@ void freewrlReadThread(void)  {
 
         /* wait for the socket. We HAVE to select on "sock+1" - RTFM */
 		/* WIN32 ignors the first select parameter, just there for berkley compatibility */
-        retval = select(_X3D_FreeWRL_FD+1, &rfds, NULL, NULL, &tv);
+        // retval = select(_X3D_FreeWRL_FD+1, &rfds, NULL, NULL, &tv); //times out
+		retval = select(_X3D_FreeWRL_FD+1, &rfds, NULL, NULL, NULL); //blocking
 		if(retval)printf("+");
 		else printf("-");
         if (retval) {
@@ -178,12 +294,15 @@ void freewrlReadThread(void)  {
 
 			/* if this is normal data - signal that it is received */
 			if (strncmp ("RE",readbuffer,2) == 0) {
-				receivedData = TRUE;
+				if(0)
+					receivedData = TRUE;
+				if(1)
+					_enqueue_readbuffer_re(readbuffer);
 			} else if (strncmp ("EV",readbuffer,2) == 0) {
 				if(0)
 					_handleFreeWRLcallback(readbuffer);
 				if(1)
-					_queue_callback(readbuffer);
+					_enqueue_readbuffer_ev(readbuffer);
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
 				exit(0);
 			} else {
@@ -197,6 +316,7 @@ void freewrlReadThread(void)  {
 
 /* threading - we thread only to read from a different thread. This
 allows events and so on to go quickly - no return value required. */
+char readbuffer[2048];
 
 static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 	int retval;
@@ -222,8 +342,16 @@ static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 	if (waitForResponse) {
 
 		//receivedData = FALSE;
+		if(0)
 		while (!receivedData) {
 			sched_yield();
+		}
+		if(1){
+			char *rb;
+			//sched_yield();
+			rb = dequeue_readbuffer_wait_re();
+			strcpy(readbuffer,rb);
+			free(rb);
 		}
 
 

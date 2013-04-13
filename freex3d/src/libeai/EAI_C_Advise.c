@@ -126,20 +126,3 @@ void _handleFreeWRLcallback (char *line) {
 		}
 	}
 }
-#include <list.h>
-static s_list_t *list = NULL;
-void _queue_callback(char *readbuffer){
-	s_list_t* item;
-	char *cbline = strdup(readbuffer);
-	item = ml_new(cbline);
-	list = ml_append(list, item);
-}
-void unqueue_callback()
-{
-	if(list){
-		char *cbline = ml_elem(list);
-		list = ml_delete_self(list, list);
-		_handleFreeWRLcallback (cbline) ;
-		free(cbline);
-	}
-}

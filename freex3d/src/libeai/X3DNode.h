@@ -163,6 +163,7 @@ X3DNode* X3D_getValue (X3DEventOut *src);
 void freewrlSwigThread(void);
 #endif
 void freewrlReadThread(void);
+void freewrlEVcallbackThread(void);
 
 /* float public methods */
 float X3D_getCurrentSpeed();

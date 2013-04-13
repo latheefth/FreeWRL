@@ -27,6 +27,7 @@
 #endif
 
 pthread_t readThread;
+pthread_t EVcallbackThread;
 pthread_t swigThread;
 int readThreadInitialized = FALSE;
 
@@ -155,7 +156,7 @@ void X3D_initialize(char *hostname) {
 
 	/* start up read thread */
 	iret1 = pthread_create( &readThread, NULL, freewrlReadThread, NULL);
-
+	iret2 = pthread_create( &EVcallbackThread, NULL, freewrlEVcallbackThread, NULL);
 	/* start up thread to allow connections from SWIG (or similar) */
 	/* iret2 = pthread_create(&swigThread, NULL, freewrlSwigThread, NULL); */
 //#ifdef WIN32
