@@ -8,10 +8,11 @@ X3DNode *X3DColumnpath;
 
 X3DEventOut *X3DClock_frac_changed;
 int verbose = 1;
-void myListener (void *mydata) {
+void myListener (X3DNode* mydata, double dtime) {
 	if(verbose){
 		printf ("LISTENER CALLED");
-		if(mydata) printf("%f",*((float*)mydata));
+		//if(mydata) printf("%f",*((float*)mydata));
+		printf(" type=%d time=%lf",mydata->type,dtime);
 		printf("\n");
 	}
 }

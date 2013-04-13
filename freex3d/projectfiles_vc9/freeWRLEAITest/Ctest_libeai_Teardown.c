@@ -98,17 +98,6 @@ void * earthSelected(X3DNode* val, double dtime){
 		first = 5;
 	}else{
 		printf("5th click felt - press Enter to shutdown:");
-		getchar();
-   	    /* Free memory */
-	    X3D_freeNode(root);
-	    X3D_freeNode(touchSensor);
-	    X3D_freeNode(shape1);
-	    X3D_freeEventIn(addChildren);
-	    X3D_freeEventOut(selectionEvent);
-
-	    /* Shutdown FreeWRL */
-	    X3D_shutdown();
-	    exit(0);
 	}
 	return NULL;
 }
@@ -133,6 +122,16 @@ int main() {
 		//getchar();
   //  }
 	getchar();
+    /* Free memory */
+    X3D_freeNode(root);
+    X3D_freeNode(touchSensor);
+    X3D_freeNode(shape1);
+    X3D_freeEventIn(addChildren);
+    X3D_freeEventOut(selectionEvent);
+
+    /* Shutdown FreeWRL */
+    X3D_shutdown();
+	//   exit(0);
 
     return 0;
 }
