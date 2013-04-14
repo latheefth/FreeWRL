@@ -1822,6 +1822,7 @@ struct X3D_Node {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 };
 #define X3D_LINEPROPERTIES(node) ((struct X3D_LineProperties*)node)
@@ -1909,6 +1910,7 @@ struct X3D_Anchor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * _parentResource;
 	struct Multi_Node addChildren;
@@ -1935,6 +1937,7 @@ struct X3D_Appearance {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *fillProperties;
 	struct X3D_Node *lineProperties;
@@ -1958,6 +1961,7 @@ struct X3D_Arc2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __numPoints;
 	struct Multi_Vec2f __points;
@@ -1980,6 +1984,7 @@ struct X3D_ArcClose2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __numPoints;
 	struct Multi_Vec2f __points;
@@ -2004,6 +2009,7 @@ struct X3D_AudioClip {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double __inittime;
 	void * __localFileName;
@@ -2037,6 +2043,7 @@ struct X3D_Background {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __VBO;
 	struct X3D_Node *__backTexture;
@@ -2080,6 +2087,7 @@ struct X3D_Billboard {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double _rotationAngle;
 	struct Multi_Node addChildren;
@@ -2104,6 +2112,7 @@ struct X3D_BooleanFilter {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int inputFalse;
 	int inputNegate;
@@ -2125,6 +2134,7 @@ struct X3D_BooleanSequencer {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Bool keyValue;
@@ -2148,6 +2158,7 @@ struct X3D_BooleanToggle {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	int set_boolean;
@@ -2167,6 +2178,7 @@ struct X3D_BooleanTrigger {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	double set_triggerTime;
@@ -2186,6 +2198,7 @@ struct X3D_Box {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3f __points;
 	struct X3D_Node *metadata;
@@ -2206,6 +2219,7 @@ struct X3D_Circle2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __numPoints;
 	struct Multi_Vec2f __points;
@@ -2226,6 +2240,7 @@ struct X3D_ClipPlane {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int enabled;
 	struct X3D_Node *metadata;
@@ -2245,6 +2260,7 @@ struct X3D_Collision {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __hit;
 	struct Multi_Node addChildren;
@@ -2272,6 +2288,7 @@ struct X3D_Color {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Color color;
 	struct X3D_Node *metadata;
@@ -2290,6 +2307,7 @@ struct X3D_ColorInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Color keyValue;
@@ -2311,6 +2329,7 @@ struct X3D_ColorRGBA {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_ColorRGBA color;
 	struct X3D_Node *metadata;
@@ -2329,6 +2348,7 @@ struct X3D_ComposedCubeMapTexture {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * _parentResource;
 	struct X3D_Node *back;
@@ -2353,6 +2373,7 @@ struct X3D_ComposedShader {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __initialized;
 	struct Multi_Int32 __shaderIDS;
@@ -2378,6 +2399,7 @@ struct X3D_Cone {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3f __botpoints;
 	int __coneTriangles;
@@ -2405,6 +2427,7 @@ struct X3D_Contour2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
 	struct Multi_Node children;
@@ -2425,6 +2448,7 @@ struct X3D_ContourPolyLine2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 };
@@ -2442,6 +2466,7 @@ struct X3D_Coordinate {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Multi_Vec3f point;
@@ -2460,6 +2485,7 @@ struct X3D_CoordinateInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Vec3f keyValue;
@@ -2481,6 +2507,7 @@ struct X3D_CoordinateInterpolator2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Vec2f keyValue;
@@ -2502,6 +2529,7 @@ struct X3D_Cylinder {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __cylinderTriangles;
 	int __cylinderVBO;
@@ -2529,6 +2557,7 @@ struct X3D_CylinderSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __oldEnabled;
 	int _dlchange;
@@ -2563,6 +2592,7 @@ struct X3D_DISEntityManager {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addedEntities;
 	struct Uni_String *address;
@@ -2587,6 +2617,7 @@ struct X3D_DISEntityTypeMapping {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int category;
 	int country;
@@ -2612,6 +2643,7 @@ struct X3D_DirectionalLight {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec4f _amb;
 	struct SFVec4f _col;
@@ -2638,6 +2670,7 @@ struct X3D_Disk2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __numPoints;
 	struct Multi_Vec2f __points;
@@ -2662,6 +2695,7 @@ struct X3D_EaseInEaseOut {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2f easeInEaseOut;
 	struct Multi_Float key;
@@ -2683,6 +2717,7 @@ struct X3D_ElevationGrid {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
@@ -2717,6 +2752,7 @@ struct X3D_EspduTransform {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
 	struct Uni_String *address;
@@ -2822,6 +2858,7 @@ struct X3D_Extrusion {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int beginCap;
 	int ccw;
@@ -2853,6 +2890,7 @@ struct X3D_FillProperties {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int _enabled;
 	struct SFVec2f _hatchScale;
@@ -2876,6 +2914,7 @@ struct X3D_FloatVertexAttribute {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -2896,6 +2935,7 @@ struct X3D_Fog {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double bindTime;
 	struct SFColor color;
@@ -2919,6 +2959,7 @@ struct X3D_FogCoordinate {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float depth;
 	struct X3D_Node *metadata;
@@ -2937,6 +2978,7 @@ struct X3D_FontStyle {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String family;
 	int horizontal;
@@ -2963,6 +3005,7 @@ struct X3D_GeneratedCubeMapTexture {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __textureTableIndex;
 	struct X3D_Node *metadata;
@@ -2984,6 +3027,7 @@ struct X3D_GeoCoordinate {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	struct Multi_Vec3f __movedCoords;
@@ -3006,6 +3050,7 @@ struct X3D_GeoElevationGrid {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	struct Multi_Int32 _coordIndex;
@@ -3043,6 +3088,7 @@ struct X3D_GeoLOD {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *__child1Node;
 	struct X3D_Node *__child2Node;
@@ -3085,6 +3131,7 @@ struct X3D_GeoLocation {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	struct SFVec4d __localOrient;
@@ -3116,6 +3163,7 @@ struct X3D_GeoMetadata {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node data;
 	struct X3D_Node *metadata;
@@ -3136,6 +3184,7 @@ struct X3D_GeoOrigin {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	struct SFVec3d __movedCoords;
@@ -3161,6 +3210,7 @@ struct X3D_GeoPositionInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	struct Multi_Vec3d __movedValue;
@@ -3189,6 +3239,7 @@ struct X3D_GeoProximitySensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	int __hit;
@@ -3227,6 +3278,7 @@ struct X3D_GeoTouchSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	int __oldEnabled;
@@ -3260,6 +3312,7 @@ struct X3D_GeoTransform {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __do_center;
 	int __do_rotation;
@@ -3300,6 +3353,7 @@ struct X3D_GeoViewpoint {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 __geoSystem;
 	struct SFRotation __movedOrientation;
@@ -3340,6 +3394,7 @@ struct X3D_Group {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
 	int FreeWRL__protoDef;
@@ -3365,6 +3420,7 @@ struct X3D_HAnimDisplacer {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 coordIndex;
 	struct Multi_Vec3f displacements;
@@ -3386,6 +3442,7 @@ struct X3D_HAnimHumanoid {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
@@ -3421,6 +3478,7 @@ struct X3D_HAnimJoint {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __do_center;
 	int __do_rotation;
@@ -3461,6 +3519,7 @@ struct X3D_HAnimSegment {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
 	struct SFVec3f bboxCenter;
@@ -3489,6 +3548,7 @@ struct X3D_HAnimSite {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __do_center;
 	int __do_rotation;
@@ -3522,6 +3582,7 @@ struct X3D_ImageCubeMapTexture {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __regenSubTextures;
 	struct Multi_Node __subTextures;
@@ -3545,6 +3606,7 @@ struct X3D_ImageTexture {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __textureTableIndex;
 	void * _parentResource;
@@ -3568,6 +3630,7 @@ struct X3D_IndexedFaceSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
 	int ccw;
@@ -3605,6 +3668,7 @@ struct X3D_IndexedLineSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * __colours;
 	int __segCount;
@@ -3637,6 +3701,7 @@ struct X3D_IndexedTriangleFanSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
@@ -3667,6 +3732,7 @@ struct X3D_IndexedTriangleSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
@@ -3697,6 +3763,7 @@ struct X3D_IndexedTriangleStripSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
@@ -3727,6 +3794,7 @@ struct X3D_Inline {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node __children;
 	void * __loadResource;
@@ -3752,6 +3820,7 @@ struct X3D_IntegerSequencer {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Int32 keyValue;
@@ -3775,6 +3844,7 @@ struct X3D_IntegerTrigger {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int integerKey;
 	struct X3D_Node *metadata;
@@ -3795,6 +3865,7 @@ struct X3D_KeySensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __oldEnabled;
 	int actionKeyPress;
@@ -3822,6 +3893,7 @@ struct X3D_LOD {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __isX3D;
 	void * _selected;
@@ -3851,6 +3923,7 @@ struct X3D_LineProperties {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int applied;
 	int linetype;
@@ -3871,6 +3944,7 @@ struct X3D_LineSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __segCount;
 	void * __vertArr;
@@ -3896,6 +3970,7 @@ struct X3D_LoadSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double __StartLoadTime;
 	int __finishedloading;
@@ -3924,6 +3999,7 @@ struct X3D_LocalFog {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFColor color;
 	int enabled;
@@ -3945,6 +4021,7 @@ struct X3D_Material {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float _verifiedColor;
 	float ambientIntensity;
@@ -3969,6 +4046,7 @@ struct X3D_Matrix3VertexAttribute {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -3988,6 +4066,7 @@ struct X3D_Matrix4VertexAttribute {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -4007,6 +4086,7 @@ struct X3D_MetadataDouble {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -4027,6 +4107,7 @@ struct X3D_MetadataFloat {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -4047,6 +4128,7 @@ struct X3D_MetadataInteger {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -4067,6 +4149,7 @@ struct X3D_MetadataMFBool {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Bool setValue;
 	double tickTime;
@@ -4087,6 +4170,7 @@ struct X3D_MetadataMFColor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Color setValue;
 	double tickTime;
@@ -4107,6 +4191,7 @@ struct X3D_MetadataMFColorRGBA {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_ColorRGBA setValue;
 	double tickTime;
@@ -4127,6 +4212,7 @@ struct X3D_MetadataMFDouble {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Double setValue;
 	double tickTime;
@@ -4147,6 +4233,7 @@ struct X3D_MetadataMFFloat {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float setValue;
 	double tickTime;
@@ -4167,6 +4254,7 @@ struct X3D_MetadataMFInt32 {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 setValue;
 	double tickTime;
@@ -4187,6 +4275,7 @@ struct X3D_MetadataMFMatrix3d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix3d setValue;
 	double tickTime;
@@ -4207,6 +4296,7 @@ struct X3D_MetadataMFMatrix3f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix3f setValue;
 	double tickTime;
@@ -4227,6 +4317,7 @@ struct X3D_MetadataMFMatrix4d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix4d setValue;
 	double tickTime;
@@ -4247,6 +4338,7 @@ struct X3D_MetadataMFMatrix4f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Matrix4f setValue;
 	double tickTime;
@@ -4267,6 +4359,7 @@ struct X3D_MetadataMFNode {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node setValue;
 	double tickTime;
@@ -4287,6 +4380,7 @@ struct X3D_MetadataMFRotation {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Rotation setValue;
 	double tickTime;
@@ -4307,6 +4401,7 @@ struct X3D_MetadataMFString {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String setValue;
 	double tickTime;
@@ -4327,6 +4422,7 @@ struct X3D_MetadataMFTime {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Time setValue;
 	double tickTime;
@@ -4347,6 +4443,7 @@ struct X3D_MetadataMFVec2d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2d setValue;
 	double tickTime;
@@ -4367,6 +4464,7 @@ struct X3D_MetadataMFVec2f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2f setValue;
 	double tickTime;
@@ -4387,6 +4485,7 @@ struct X3D_MetadataMFVec3d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3d setValue;
 	double tickTime;
@@ -4407,6 +4506,7 @@ struct X3D_MetadataMFVec3f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3f setValue;
 	double tickTime;
@@ -4427,6 +4527,7 @@ struct X3D_MetadataMFVec4d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec4d setValue;
 	double tickTime;
@@ -4447,6 +4548,7 @@ struct X3D_MetadataMFVec4f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec4f setValue;
 	double tickTime;
@@ -4467,6 +4569,7 @@ struct X3D_MetadataSFBool {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int setValue;
 	double tickTime;
@@ -4487,6 +4590,7 @@ struct X3D_MetadataSFColor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFColor setValue;
 	double tickTime;
@@ -4507,6 +4611,7 @@ struct X3D_MetadataSFColorRGBA {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFColorRGBA setValue;
 	double tickTime;
@@ -4527,6 +4632,7 @@ struct X3D_MetadataSFDouble {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double setValue;
 	double tickTime;
@@ -4547,6 +4653,7 @@ struct X3D_MetadataSFFloat {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float setValue;
 	double tickTime;
@@ -4567,6 +4674,7 @@ struct X3D_MetadataSFImage {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 setValue;
 	double tickTime;
@@ -4587,6 +4695,7 @@ struct X3D_MetadataSFInt32 {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int setValue;
 	double tickTime;
@@ -4607,6 +4716,7 @@ struct X3D_MetadataSFMatrix3d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix3d setValue;
 	double tickTime;
@@ -4627,6 +4737,7 @@ struct X3D_MetadataSFMatrix3f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix3f setValue;
 	double tickTime;
@@ -4647,6 +4758,7 @@ struct X3D_MetadataSFMatrix4d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix4d setValue;
 	double tickTime;
@@ -4667,6 +4779,7 @@ struct X3D_MetadataSFMatrix4f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFMatrix4f setValue;
 	double tickTime;
@@ -4687,6 +4800,7 @@ struct X3D_MetadataSFNode {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *setValue;
 	double tickTime;
@@ -4707,6 +4821,7 @@ struct X3D_MetadataSFRotation {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFRotation setValue;
 	double tickTime;
@@ -4727,6 +4842,7 @@ struct X3D_MetadataSFString {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *setValue;
 	double tickTime;
@@ -4747,6 +4863,7 @@ struct X3D_MetadataSFTime {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double setValue;
 	double tickTime;
@@ -4767,6 +4884,7 @@ struct X3D_MetadataSFVec2d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec2d setValue;
 	double tickTime;
@@ -4787,6 +4905,7 @@ struct X3D_MetadataSFVec2f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec2f setValue;
 	double tickTime;
@@ -4807,6 +4926,7 @@ struct X3D_MetadataSFVec3d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3d setValue;
 	double tickTime;
@@ -4827,6 +4947,7 @@ struct X3D_MetadataSFVec3f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f setValue;
 	double tickTime;
@@ -4847,6 +4968,7 @@ struct X3D_MetadataSFVec4d {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec4d setValue;
 	double tickTime;
@@ -4867,6 +4989,7 @@ struct X3D_MetadataSFVec4f {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec4f setValue;
 	double tickTime;
@@ -4887,6 +5010,7 @@ struct X3D_MetadataSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -4907,6 +5031,7 @@ struct X3D_MetadataString {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *name;
@@ -4927,6 +5052,7 @@ struct X3D_MovieTexture {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __textureTableIndex;
 	void * _parentResource;
@@ -4961,6 +5087,7 @@ struct X3D_MultiTexture {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * __params;
 	float alpha;
@@ -4985,6 +5112,7 @@ struct X3D_MultiTextureCoordinate {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Multi_Node texCoord;
@@ -5003,6 +5131,7 @@ struct X3D_MultiTextureTransform {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Multi_Node textureTransform;
@@ -5021,6 +5150,7 @@ struct X3D_NavigationInfo {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float avatarSize;
 	double bindTime;
@@ -5049,6 +5179,7 @@ struct X3D_Normal {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Multi_Vec3f vector;
@@ -5067,6 +5198,7 @@ struct X3D_NormalInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Vec3f keyValue;
@@ -5088,6 +5220,7 @@ struct X3D_NurbsCurve {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec3f controlPoint;
 	struct Multi_Float knot;
@@ -5110,6 +5243,7 @@ struct X3D_NurbsCurve2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2f controlPoint;
 	struct Multi_Float knot;
@@ -5132,6 +5266,7 @@ struct X3D_NurbsGroup {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node addChildren;
 	struct SFVec3f bboxCenter;
@@ -5155,6 +5290,7 @@ struct X3D_NurbsPositionInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int dimension;
 	struct Multi_Vec3f keyValue;
@@ -5179,6 +5315,7 @@ struct X3D_NurbsSurface {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int ccw;
 	struct Multi_Vec3f controlPoint;
@@ -5204,6 +5341,7 @@ struct X3D_NurbsTextureSurface {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 };
@@ -5221,6 +5359,7 @@ struct X3D_NurbsTrimmedSurface {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 };
@@ -5238,6 +5377,7 @@ struct X3D_OSC_Sensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int FIFOsize;
 	struct X3D_Node *__oldmetadata;
@@ -5277,6 +5417,7 @@ struct X3D_OrientationInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Rotation keyValue;
@@ -5298,6 +5439,7 @@ struct X3D_OrthoViewpoint {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double bindTime;
 	struct SFVec3f centerOfRotation;
@@ -5325,6 +5467,7 @@ struct X3D_PackagedShader {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *__shaderObj;
 	int activate;
@@ -5348,6 +5491,7 @@ struct X3D_PickableGroup {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node FreeWRL_PROTOInterfaceNodes;
 	int FreeWRL__protoDef;
@@ -5374,6 +5518,7 @@ struct X3D_PixelTexture {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __textureTableIndex;
 	void * _parentResource;
@@ -5397,6 +5542,7 @@ struct X3D_PlaneSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __oldEnabled;
 	struct SFVec3f _oldtrackPoint;
@@ -5428,6 +5574,7 @@ struct X3D_PointLight {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec4f _amb;
 	struct SFVec4f _col;
@@ -5456,6 +5603,7 @@ struct X3D_PointPickSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f _bboxCenter;
 	struct SFVec3f _bboxSize;
@@ -5490,6 +5638,7 @@ struct X3D_PointSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Node attrib;
 	struct X3D_Node *color;
@@ -5511,6 +5660,7 @@ struct X3D_Polyline2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Vec2f lineSegments;
 	struct X3D_Node *metadata;
@@ -5529,6 +5679,7 @@ struct X3D_Polypoint2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Multi_Vec2f point;
@@ -5547,6 +5698,7 @@ struct X3D_PositionInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Vec3f keyValue;
@@ -5568,6 +5720,7 @@ struct X3D_PositionInterpolator2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Vec2f keyValue;
@@ -5589,6 +5742,7 @@ struct X3D_ProgramShader {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __initialized;
 	struct Multi_Int32 __shaderIDS;
@@ -5613,6 +5767,7 @@ struct X3D_Proto {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * __DEFnames;
 	void * __IS;
@@ -5642,6 +5797,7 @@ struct X3D_ProximitySensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __hit;
 	int __oldEnabled;
@@ -5672,6 +5828,7 @@ struct X3D_ReceiverPdu {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *address;
 	int applicationID;
@@ -5717,6 +5874,7 @@ struct X3D_Rectangle2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __numPoints;
 	struct Multi_Vec3f __points;
@@ -5738,6 +5896,7 @@ struct X3D_ScalarInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Float keyValue;
@@ -5759,6 +5918,7 @@ struct X3D_Script {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * __scriptObj;
 	void * _parentResource;
@@ -5781,6 +5941,7 @@ struct X3D_ShaderPart {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * _parentResource;
 	struct X3D_Node *metadata;
@@ -5801,6 +5962,7 @@ struct X3D_ShaderProgram {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *__shaderObj;
 	void * _parentResource;
@@ -5822,6 +5984,7 @@ struct X3D_Shape {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __Samples;
 	int __occludeCheckCount;
@@ -5847,6 +6010,7 @@ struct X3D_SignalPdu {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *address;
 	int applicationID;
@@ -5892,6 +6056,7 @@ struct X3D_Sound {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec3f direction;
 	float intensity;
@@ -5919,6 +6084,7 @@ struct X3D_Sphere {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __SphereIndxVBO;
 	struct Multi_Vec3f __points;
@@ -5941,6 +6107,7 @@ struct X3D_SphereSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __oldEnabled;
 	struct SFRotation _oldrotation;
@@ -5972,6 +6139,7 @@ struct X3D_SplinePositionInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int closed;
 	struct Multi_Float key;
@@ -5996,6 +6164,7 @@ struct X3D_SplinePositionInterpolator2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int closed;
 	struct Multi_Float key;
@@ -6020,6 +6189,7 @@ struct X3D_SplineScalarInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int closed;
 	struct Multi_Float key;
@@ -6044,6 +6214,7 @@ struct X3D_SpotLight {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec4f _amb;
 	struct SFVec4f _col;
@@ -6076,6 +6247,7 @@ struct X3D_SquadOrientationInterpolator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float key;
 	struct Multi_Rotation keyValue;
@@ -6098,6 +6270,7 @@ struct X3D_StaticGroup {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __solid;
 	int __transparency;
@@ -6121,6 +6294,7 @@ struct X3D_StringSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __oldEnabled;
 	int _initialized;
@@ -6145,6 +6319,7 @@ struct X3D_Switch {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __isX3D;
 	struct Multi_Node addChildren;
@@ -6170,6 +6345,7 @@ struct X3D_Text {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __rendersub;
 	struct X3D_Node *fontStyle;
@@ -6196,6 +6372,7 @@ struct X3D_TextureBackground {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __VBO;
 	struct Multi_Vec3f __colours;
@@ -6232,6 +6409,7 @@ struct X3D_TextureCoordinate {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Multi_Vec2f point;
@@ -6250,6 +6428,7 @@ struct X3D_TextureCoordinateGenerator {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Uni_String *mode;
@@ -6269,6 +6448,7 @@ struct X3D_TextureProperties {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	float anisotropicDegree;
 	struct SFColorRGBA borderColor;
@@ -6297,6 +6477,7 @@ struct X3D_TextureTransform {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct SFVec2f center;
 	struct X3D_Node *metadata;
@@ -6318,6 +6499,7 @@ struct X3D_TimeSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double __ctflag;
 	double __inittime;
@@ -6351,6 +6533,7 @@ struct X3D_TimeTrigger {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	int set_boolean;
@@ -6370,6 +6553,7 @@ struct X3D_TouchSensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __oldEnabled;
 	struct SFVec3f _oldhitNormal;
@@ -6399,6 +6583,7 @@ struct X3D_Transform {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __do_anything;
 	int __do_center;
@@ -6433,6 +6618,7 @@ struct X3D_TransmitterPdu {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Uni_String *address;
 	struct SFVec3f antennaLocation;
@@ -6494,6 +6680,7 @@ struct X3D_TriangleFanSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
@@ -6523,6 +6710,7 @@ struct X3D_TriangleSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
@@ -6551,6 +6739,7 @@ struct X3D_TriangleSet2D {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	void * __texCoords;
 	struct X3D_Node *metadata;
@@ -6571,6 +6760,7 @@ struct X3D_TriangleStripSet {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Int32 _coordIndex;
 	struct Multi_Node attrib;
@@ -6600,6 +6790,7 @@ struct X3D_TwoSidedMaterial {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_Float _verifiedBackColor;
 	struct Multi_Float _verifiedFrontColor;
@@ -6632,6 +6823,7 @@ struct X3D_Viewpoint {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	double bindTime;
 	struct SFVec3f centerOfRotation;
@@ -6659,6 +6851,7 @@ struct X3D_ViewpointGroup {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *__proxNode;
 	struct SFVec3f center;
@@ -6683,6 +6876,7 @@ struct X3D_VisibilitySensor {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	int __Samples;
 	int __occludeCheckCount;
@@ -6711,6 +6905,7 @@ struct X3D_WorldInfo {
        int _nodeType; /* unique integer for each type */ 
        int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
        int _defaultContainer; /* holds the container */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct Multi_String info;
 	struct X3D_Node *metadata;

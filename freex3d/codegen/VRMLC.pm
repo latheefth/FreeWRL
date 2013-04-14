@@ -8,6 +8,14 @@
 
 #
 # $Log$
+# Revision 1.74  2013/04/14 20:39:26  dug9
+# dug9 - added executionContext pointer to node struct (but not used yet) seems to compile and run normally on tests.
+#
+# Revision 1.74 2013/04/14 dug9
+# added executionContext to node to test if everything still builds and runs
+# in anticipation of doing something to allow getNodeByName('name') separate
+# DEFname table for each executionContext={scene | protoInstanceBody}
+#
 # Revision 1.73  2013/04/01 13:36:55  crc_canada
 # remove VRML1 code; it was commented out, and I don't think we are going
 # to ever move the old vrml1 code to shader based rendering
@@ -551,6 +559,7 @@ my $interalNodeCommonFields =
                "       int _nodeType; /* unique integer for each type */ \n".
                "       int referenceCount; /* if this reaches zero, nobody wants it anymore */ \n".
 	       "       int _defaultContainer; /* holds the container */\n".
+	       "       struct X3D_Node* _executionContext; /* scene or protoInstance */\n".
                " 	/*** node specific data: *****/\n";
 
 sub gen_struct {
