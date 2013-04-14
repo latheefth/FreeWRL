@@ -100,7 +100,7 @@ void _handleFreeWRLcallback (char *line) {
 		}
 
 		/* ok, we have the Advise Index. */
-		if (EAI_ListenerTable[count].datasize != NULL) {
+		if (EAI_ListenerTable[count].datasize != 0) {
 			char *da = EAI_ListenerTable[count].dataArea;
 			Parser_scanStringValueToMem_C(&da[sizeof(int)], //0,
 			EAI_ListenerTable[count].type, line, 0);

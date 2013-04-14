@@ -87,11 +87,9 @@ int _X3D_countWords(char *ptr) {
 	}
 	return ct;
 }
-#ifdef WIN32
+#ifdef SWIG
 void *freewrlSwigThread(void* nada) {
-#else
-void freewrlSwigThread(void) {
-#endif
+
 	const int on=1;
 	/* unused int flags; */
 	int len;
@@ -143,6 +141,7 @@ void freewrlSwigThread(void) {
 	/* return NULL; */
 	return ;
 }
+#endif //SWIG
 #include <list.h>
 static s_list_t *evlist = NULL;
 static s_list_t *relist = NULL;
@@ -253,15 +252,16 @@ void dequeue_callback_ev(int wait)
 /* you'd start this thread if you have no main.c to call dequeue_callback_ev() from,
    such as SAI in javascript.
 */
-void freewrlEVcallbackThread(void) {
+void *freewrlEVcallbackThread(void* nada) {
 	while(1){
 		dequeue_callback_ev(1);
 	}
+	return nada;
 }
 
 /* read in the reply - if it is an RE; it is the reply to an event; if it is an
    EV it is an async event */
-void freewrlReadThread(void)  {
+void *freewrlReadThread(void* nada)  {
 	int retval;
 	char readbuffer[2048];
 	//initialize_queue_mutexes();
@@ -312,6 +312,7 @@ void freewrlReadThread(void)  {
         }
 
 	}
+	return nada;
 }
 
 /* threading - we thread only to read from a different thread. This

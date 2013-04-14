@@ -27,7 +27,7 @@
     Except swig specifics - see bottom for SWIG-specific swig-venience function prototypes 
 	(see EAI_swigExtras.c for implementation) */
 /* Node section */
-
+#ifdef SWIG
 typedef struct { int type; int value; } _intX3D_SFBool;
 typedef struct { int type; float value; } _intX3D_SFFloat;
 typedef struct { int type; double value; } _intX3D_SFTime;
@@ -200,5 +200,7 @@ X3DNode* X3D_swigGetItem(X3DNode* node, int item);
 
 /* the following is what you call right after a port style Advise notification, to get the field data */
 X3DNode* X3D_swigCallbackDataFetch(char *ListenerTableIndex);
+
+#endif //SWIG
 
 #endif //__X3D_NODE_HEADERS__

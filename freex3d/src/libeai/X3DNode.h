@@ -156,16 +156,17 @@ void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to);
 void X3D_initialize(char *);
 void X3D_shutdown();
 #ifdef WIN32
-//void* freewrlReadThread(void *);
+#ifdef SWIG
 void* freewrlSwigThread(void *);
+#endif //SWIG
 int findFieldInFIELDTYPES(char *fieldtype);
 void X3D_freeNode(X3DNode* node);
 X3DNode* X3D_getValue (X3DEventOut *src);
 #else
 void freewrlSwigThread(void);
 #endif
-void freewrlReadThread(void);
-void freewrlEVcallbackThread(void);
+void *freewrlReadThread(void*);
+void *freewrlEVcallbackThread(void*);
 
 /* float public methods */
 float X3D_getCurrentSpeed();
