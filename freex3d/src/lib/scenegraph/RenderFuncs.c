@@ -775,12 +775,10 @@ struct X3D_Group *rootNode()
 {
 	// ConsoleMessage ("rootNode called");
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;	
-if (p==NULL) {
-	ConsoleMessage ("rootNode, p null");
-	return NULL;
-}
-
-
+	if (p==NULL) {
+		ConsoleMessage ("rootNode, p null");
+		return NULL;
+	}
 	return p->rootNode;
 }
 void setRootNode(struct X3D_Group *rn)

@@ -3442,6 +3442,22 @@ void startOfLoopNodeUpdates(void) {
 	if (rootNode() != NULL) {
 		sortChildren (__LINE__,&rootNode()->children, &rootNode()->_sortedChildren,rootNode()->_renderFlags & VF_shouldSortChildren);
 		rootNode()->_renderFlags=rootNode()->_renderFlags & (0xFFFF^VF_shouldSortChildren);
+		node = (struct X3D_Node*)rootNode();
+		CHILDREN_NODE(Group)
+		/* this node possibly has to do add/remove children? */
+		if (childrenPtr != NULL) {
+			if (addChildren != NULL) {
+				AddRemoveChildren(node,childrenPtr,(struct X3D_Node * *) addChildren->p,addChildren->n,1,__FILE__,__LINE__);
+				addChildren->n=0;
+			}
+			if (removeChildren != NULL) {
+				AddRemoveChildren(node,childrenPtr,(struct X3D_Node * *) removeChildren->p,removeChildren->n,2,__FILE__,__LINE__);
+				removeChildren->n=0;
+			}
+			/* printf ("OpenGL, marking children changed\n"); */
+			MARK_EVENT(node,offsetOfChildrenPtr);
+			childrenPtr = NULL;
+		}
 	}
 
 	/* go through the list of nodes, and "work" on any that need work */

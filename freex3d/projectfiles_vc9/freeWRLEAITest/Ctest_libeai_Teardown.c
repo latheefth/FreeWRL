@@ -37,7 +37,7 @@ void loadObjects(){
 		printf("ERROR: ROOT node not found!\n"); 
 		exit(1);
 	}
-	else printf("Getting ROOT was OK!\n");
+	else printf("Getting ROOT was OK! addr=%p type%d\n",root->X3D_SFNode.adr,root->X3D_SFNode.type);
 
  /* Get a pointer to the node called "TOUCH_SENSOR" in the current scenegraph */
 	printf("Step 3: X3D_getNode(TOUCH_SENSOR)\n");
@@ -72,6 +72,7 @@ void loadObjects(){
 }
 
 int first = 1;
+X3DNode* scene;
 void * earthSelected(X3DNode* val, double dtime){
 //	char * value = (char *) val;	
 	int type, value;
@@ -93,11 +94,26 @@ void * earthSelected(X3DNode* val, double dtime){
 		shape1 = makeSimpleShape(SPHERE, BLUE, "-2.3 2.1 0");
 		first = 4;
 	}else if(first == 4){
-		printf("fourth click felt - adding shape\n");
+		printf("fourth click felt - adding shape to ROOT\n");
 		X3D_setValue(addChildren, shape1);
 		first = 5;
+	}else if(first ==5) {
+		printf("5th click felt - getting scene = SYSTEMROOT:");
+		scene = X3D_getExecutionContext();
+		printf("scene node = %p type = %d\n",scene->X3D_SFNode.adr,scene->X3D_SFNode.type);
+		first = 6;
+	}else if(first ==6) {
+		printf("6th click felt - adding shape to SYSTEMROOT\n");
+		shape1 = makeSimpleShape(SPHERE, "0.2 0.8 0.2", "2.3 2.1 0");
+		X3D_rootNodeHandling(scene,shape1,1);
+		first = 7;
+	}else if(first ==7) {
+		printf("7th click felt - removing shape from SYSTEMROOT\n");
+		scene = X3D_getExecutionContext();
+		X3D_rootNodeHandling(scene,shape1,2);
+		first = 8;
 	}else{
-		printf("5th click felt - press Enter to shutdown:");
+		printf("yth click felt - press 'q' in graphics window or\n press Enter in this console to shutdown:");
 	}
 	return NULL;
 }

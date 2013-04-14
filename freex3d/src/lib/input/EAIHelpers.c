@@ -357,7 +357,7 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 
 /* this is like EAI_GetNode, but is just for the rootNode of the scene graph */
 int EAI_GetRootNode(void) {
-	return registerEAINodeForAccess(X3D_NODE(rootNode));
+	return registerEAINodeForAccess(X3D_NODE(rootNode()));
 }
 
 
@@ -369,7 +369,7 @@ int EAI_GetNode(const char *str) {
 	if (eaiverbose) {
 		printf ("EAI_GetNode - getting %s\n",str);
 	}	
-	
+
 	/* Try to get X3D node name */
 	myNode = X3DParser_getNodeFromName(str);
 

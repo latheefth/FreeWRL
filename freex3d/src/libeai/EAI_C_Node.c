@@ -173,6 +173,24 @@ X3DEventIn *X3D_getEventIn(X3DNode *node, char *name) {
 	return retval;
 }
 
+//#define SYSTEMROOTNODE "_Sarah_this_is_the_FreeWRL_System_Root_Node"
+/* get the scene root node */
+X3DNode* X3D_getExecutionContext()
+{
+	return X3D_getNode (SYSTEMROOTNODE);
+}
+
+void X3D_rootNodeHandling(X3DNode *scene, X3DNode *node, int action)
+{
+	if(action == 1){
+		X3DEventIn *addChildren = X3D_getEventIn(scene,"addChildren");
+		X3D_setValue(addChildren, node);
+	}else if(action ==2){
+		X3DEventIn *removeChildren = X3D_getEventIn(scene,"removeChildren");
+		X3D_setValue(removeChildren, node);
+	}
+}
+
 X3DEventOut *X3D_getEventOut(X3DNode *node, char *name) {
 	X3DEventOut *retval;
 	retval = _X3D_getEvent(node, name,FALSE);

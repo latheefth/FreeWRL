@@ -143,6 +143,8 @@ struct _intX3DEventIn {
 
 
 X3DNode *X3D_getNode (char *name);
+X3DNode *X3D_getExecutionContext();
+void X3D_rootNodeHandling(X3DNode* scene, X3DNode* node, int action); //1=add,2=remove
 X3DEventIn *X3D_getEventIn(X3DNode *node, char *name);
 X3DEventOut *X3D_getEventOut(X3DNode *node, char *name);
 void X3D_setValue (X3DEventIn *dest, X3DNode *node);
