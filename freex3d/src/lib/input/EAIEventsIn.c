@@ -231,13 +231,52 @@ char * fwl_EAI_handleRest() {
 	}
 }
 
-char * fwl_EAI_handleBuffer(char *fromFront) {
+char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 	/* memcp from fromFront to &EAI_BUFFER_CUR */
 	int eaiverbose;
 	int len = (int)strlen(fromFront) ;
 	ttglobal tg = gglobal();
 	struct tEAIHelpers *th;
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+
+	//we do not use sockets for data transfer and so we can ignore the 8192 packet size limit
+	//sent command is larger than bufsize
+	if(!useSockets)
+	{
+		//for memory economy we check if we allocated a buffer bigger than READSIZE and  we do not need it
+		if(tg->EAICore.EAIbufsize > EAIREADSIZE && len < EAIREADSIZE)
+		{
+			if(eaiverbose) {
+				printf("EAI_handleBuffer() does not need that much space, so we clear at %p\n",tg->EAICore.EAIbuffer) ;
+			}
+
+			//cleaning the existing buffer the standard workflow will take care of recreating it
+			if(NULL != tg->EAICore.EAIbuffer)
+			{
+				free(tg->EAICore.EAIbuffer);
+				tg->EAICore.EAIbuffer = NULL;
+			}
+
+			//reset the buffer dimension to default
+			tg->EAICore.EAIbufsize = EAIREADSIZE;
+		}
+		else if(len >= tg->EAICore.EAIbufsize)	//if not, we check if we DO need a buffer bigger than READSIZE
+		{
+			if(eaiverbose) {
+				printf("EAI_handleBuffer() needs a larger buffer, so we clear one at %p\n",tg->EAICore.EAIbuffer) ;
+			}
+			//cleaning the existing buffer the standard workflow will take care of recreating it
+			if(NULL != tg->EAICore.EAIbuffer)
+			{
+				free(tg->EAICore.EAIbuffer);
+				tg->EAICore.EAIbuffer = NULL;
+			}
+
+			//reset the buffer dimension to len + space for the null terminator
+			tg->EAICore.EAIbufsize = len+1;
+		}
+	}
+
 
 	if(NULL == tg->EAICore.EAIbuffer) {
 		tg->EAICore.EAIbuffer = MALLOC(char *, tg->EAICore.EAIbufsize * sizeof (char));
@@ -267,6 +306,52 @@ char * fwl_EAI_handleBuffer(char *fromFront) {
 		fwlio_RxTx_control(CHANNEL_EAI,RxTx_STOP) ;
 		return "";
 	}
+}
+
+
+char * fwl_EAI_handleBufferNoSKT(char *fromFront)
+{
+	return EAI_handleBuffer(fromFront, false);
+}
+
+char * fwl_EAI_handleBuffer(char *fromFront) {
+	return EAI_handleBuffer(fromFront, true);
+
+	///* memcp from fromFront to &EAI_BUFFER_CUR */
+	//int eaiverbose;
+	//int len = (int)strlen(fromFront) ;
+	//ttglobal tg = gglobal();
+	//struct tEAIHelpers *th;
+	//eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+
+	//if(NULL == tg->EAICore.EAIbuffer) {
+	//	tg->EAICore.EAIbuffer = MALLOC(char *, tg->EAICore.EAIbufsize * sizeof (char));
+	//	if(eaiverbose) {
+	//		printf("fwl_EAI_handleBuffer() did not have a buffer, so create one at %p\n",tg->EAICore.EAIbuffer) ;
+	//	}
+	//}
+	//if(eaiverbose) {
+	//	printf("%s:%d fwl_EAI_handleBuffer: Buffer at %p is %d chars,",__FILE__,__LINE__,fromFront,len);
+	//	printf("Copy to buffer at %p\n", tg->EAICore.EAIbuffer);
+	//}
+
+	//if(len <= EAIREADSIZE) {
+	//	tg->EAICore.EAIbuffer[len] = '\0';
+	//	memcpy(tg->EAICore.EAIbuffer, fromFront, len);
+
+ //               //int EAIbufcount;                                /* pointer into buffer*/
+ //               //int EAIbufpos;
+	//	tg->EAICore.EAIbufpos = 0;
+ //               tg->EAICore.EAIbufcount = 0;
+
+	//	EAI_core_commands() ;
+
+	//	th = &tg->EAIHelpers;
+	//	return th->outBuffer ;
+	//} else {
+	//	fwlio_RxTx_control(CHANNEL_EAI,RxTx_STOP) ;
+	//	return "";
+	//}
 }
 char * fwl_MIDI_handleBuffer(char *fromFront) {
 	/* memcp from fromFront to &EAI_BUFFER_CUR */
