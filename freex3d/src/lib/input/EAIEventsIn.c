@@ -243,7 +243,7 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 	//sent command is larger than bufsize
 	if(!useSockets)
 	{
-		//for memory economy we check if we allocated a buffer bigger than READSIZE and  we do not need it
+		//for memory economy we check if at some time we allocated a buffer bigger than READSIZE and we do not need it anymore
 		if(tg->EAICore.EAIbufsize > EAIREADSIZE && len < EAIREADSIZE)
 		{
 			if(eaiverbose) {
@@ -257,7 +257,7 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 				tg->EAICore.EAIbuffer = NULL;
 			}
 
-			//reset the buffer dimension to default
+			//reset the buffer dimension request to default
 			tg->EAICore.EAIbufsize = EAIREADSIZE;
 		}
 		else if(len >= tg->EAICore.EAIbufsize)	//if not, we check if we DO need a buffer bigger than READSIZE
@@ -272,7 +272,7 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 				tg->EAICore.EAIbuffer = NULL;
 			}
 
-			//reset the buffer dimension to len + space for the null terminator
+			//set the buffer dimension request to len + space for the null terminator
 			tg->EAICore.EAIbufsize = len+1;
 		}
 	}
@@ -289,7 +289,8 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 		printf("Copy to buffer at %p\n", tg->EAICore.EAIbuffer);
 	}
 
-	if(len <= EAIREADSIZE) {
+	
+	if(!useSockets || len <= EAIREADSIZE) {	//go for standard command processing if we are not using sockets or buffer dimension is lesser than packet limit
 		tg->EAICore.EAIbuffer[len] = '\0';
 		memcpy(tg->EAICore.EAIbuffer, fromFront, len);
 
@@ -302,7 +303,7 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 
 		th = &tg->EAIHelpers;
 		return th->outBuffer ;
-	} else {
+	} else {								//or stop socket reading if buffer dimension is greater than the packet limit
 		fwlio_RxTx_control(CHANNEL_EAI,RxTx_STOP) ;
 		return "";
 	}
