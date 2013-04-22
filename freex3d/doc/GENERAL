@@ -1,0 +1,39 @@
+2013/04/22
+
+- FreeWRL follows www.web3d.org specs, and in general vrml browsers work like game engines:
+
+parse input files
+fetch image resources
+Loop:
+- get input from mouse, keyboard
+- get time delta since last frame
+- run scripts based on input and time
+- update geometry based on scripts, time and input
+- render geometry to frame
+end loop
+
+- Directory layout
+
+freewrl/freex3d/codegen - perl files to generate GeneratedCode.c and Structs.h node and field plumbing - only run perl after an infrequent change to the node or field structs, check in the GeneratedCode.c and Structs.h.
+freewrl/freex3d/projectfiles_vc9 and _vc10 - win32 MSVC .proj and .sln build files
+freewrl/freex3d/src - cross platform source code files for:
+/libeai - in web3d.org specs there's something called External Authoring Interface EAI that allows scripting via port communications
+/java - for SAI or Scene Authoring Interface written in java
+/bin - main.c console app - calls lib
+/libtess - used to tesselate (triangulate into mesh) truetype font polygon outlines, called by /lib
+/lib - libfreewrl library called by main.c and other gui apps depending on platform
+
+within /lib - the directories are fuzzy categories, not strict, and I have only fuzzy ideas about what the category was originally meant for - so check the code to see specifically.
+
+- The codegen folder, it's contents and purpose
+
+VRML has 2 main entity types: nodes and fields. There's a lot of repetitive plumbing for each of those types, and for each specific node and field type. When changing the system occasionally -very infrequently- if a generic field struct or node struct needs to be changed, instead of changing it repetitively in hundreds of node or field structs, it's changed on one line in a codegen/ perl file, and the perl is re-run to generate all the repetitive plumbing code.
+To re-run the perl, in windows I put it in a .bat file in /codegen, install perl somewhere, then run the .bat, which looks like this:
+E:/Perl/bin/perl.exe VRMLC.pm
+pause
+That's it. It does it's own running of the other perl .pm files.
+It outputs
+freex3d/lib/scenegraph/generatedCode.c and
+freex3d/lib/vrml/structs.h and
+freex3d/libeai/GeneratedCode.c and GeneratedHeaders.c
+So these output files should never be edited directly (although I have for a throw-away proof-of-concept test before editing the perl)
