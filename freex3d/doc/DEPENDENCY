@@ -10,6 +10,10 @@ FreeWRL dependencies
 - wget
 - Motif
 
+xulrunner-devel libXmu-devel libXaw-devel imlib2-devel js-devel libGLEW glew-devel zlib-devel
+
+libxml2-devel expat-devel
+
 Javascript engine dependency
 ----------------------------
 
@@ -52,4 +56,3 @@ To be documented...
 _EV
 internal_version.c
 vtempl
-
