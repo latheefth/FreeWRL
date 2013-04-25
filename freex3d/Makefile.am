@@ -11,7 +11,7 @@ include $(top_srcdir)/Makefile.globals
 # See configure.ac
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src
+SUBDIRS = src doc
 
 EXTRA_DIST = ChangeLog \
 README \

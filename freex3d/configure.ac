@@ -8,7 +8,7 @@
 # Distributed under the GNU GPL.
 #
 
-# Autoconf startup, we define the package's name, and version: 
+# Autoconf startup, we define the package's name, and version:
 # but this is not the program's version, nor the library's version.
 # We also define the maintainer address.
 AC_INIT([freewrl], [1.22.13], [freewrl-help@lists.sourceforge.net])
@@ -31,7 +31,7 @@ AM_INIT_AUTOMAKE([subdir-objects]) # this option tells automake to generate
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # We have a script (vtempl) that uses a system command (sed): we need
-# to be sure to call the good sed binary whatever the system is. So we 
+# to be sure to call the good sed binary whatever the system is. So we
 # ask autotools to check for us the good sed command (please look into
 # vtempl.in for details):
 AC_CONFIG_FILES([vtempl],[chmod +x vtempl])
@@ -150,6 +150,12 @@ AC_SUBST(ZLIB_LIBS)
 # workaround LIBS appended with -lz, how to prevent this ???
 LIBS=
 
+# ====================================================
+# FreeWRL specific configuration: documentation
+# ====================================================
+AC_MY_DEFINE_SWITCH([docs],[enable doc generation (default=off)],off,FW_DOCS)
+AM_CONDITIONAL([FW_DOCS],[test "$sw_docs" != no])
+
 # Threads
 ACX_PTHREAD
 
@@ -188,7 +194,7 @@ fi
 AC_MSG_NOTICE([Determining Javascript engine to build against])
 found_JAVASCRIPT_ENGINE=no
 case "$os_type" in
-     mac) 
+     mac)
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
         ;;
      *)
@@ -461,8 +467,8 @@ AC_CHECK_LIB([jpeg],[jpeg_start_decompress],[],[
      # workaround failed test under mingw
      AC_TRY_LINK([
 #include <stdio.h>
-#include "jpeglib.h"], 
-		 [jpeg_read_raw_data(NULL, NULL, 0)], 
+#include "jpeglib.h"],
+		 [jpeg_read_raw_data(NULL, NULL, 0)],
 		 [AC_MSG_RESULT(found)],
 		 [AC_MSG_RESULT(not found)
 		  AC_MSG_ERROR(Couldn't find jpeg stuff in ${withval})])
@@ -579,7 +585,7 @@ else
                     AC_DEFINE([HAVE_NSPR], [1], [Define if you have nspr installed.])
                     MOZILLA_PLUGIN_CFLAGS="$MOZILLA_PLUGIN_CFLAGS $NSPR_CFLAGS"
                   ],[])
-		  
+
                   MAYBE_PLUGIN=plugin
                   AC_MSG_NOTICE([Installing plugin to $plugindir])
 
@@ -629,7 +635,7 @@ AM_CONDITIONAL([STATUSBAR_HUD], [test "$statusbar" = hud])
 
 AC_MY_SWITCH(osc,[enable building of OSC plugin support],off)
 if test x$sw_osc = xyes; then
-    PKG_CHECK_MODULES(LIBLO, liblo, 
+    PKG_CHECK_MODULES(LIBLO, liblo,
         AC_DEFINE([WANT_OSC],[1],
                   [Define if liblo exists and OSC support wanted]),
                   AC_MSG_ERROR([Skipping OSC. No liblo installed.]))
@@ -775,6 +781,8 @@ AC_DEFINE_UNQUOTED(FREEWRL_PLUGIN, "$FREEWRL_PLUGIN", [The FreeWRL plugin shared
 
 # Final generation
 AC_CONFIG_FILES([Makefile
+doc/doxyfile
+doc/Makefile
 src/Makefile
 src/bin/Makefile
 src/lib/Makefile
