@@ -97,7 +97,7 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"setDescription", VrmlBrowserSetDescription, 0},
 	{"createVrmlFromString", VrmlBrowserCreateVrmlFromString, 0},
 	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL, 0},
-	{"createX3DFromString", VrmlBrowserCreateVrmlFromString, 0},
+	{"createX3DFromString", VrmlBrowserCreateX3DFromString, 0},
 	{"createX3DFromURL", VrmlBrowserCreateVrmlFromURL, 0},
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
@@ -635,6 +635,105 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, uintN argc, jsval *vp) {
 #endif
 	return JS_TRUE;
 }
+
+JSBool
+#if JS_VERSION < 185
+VrmlBrowserCreateX3DFromString(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	char *_c_format = "s";
+#else
+VrmlBrowserCreateX3DFromString(JSContext *context, uintN argc, jsval *vp) {
+        JSObject *obj = JS_THIS_OBJECT(context,vp);
+        jsval *argv = JS_ARGV(context,vp);
+	jsval _my_rval;
+	jsval *rval = &_my_rval;
+	char *_c_format = "S";
+	JSString *js_c;
+#endif
+	char *_c, *_c_args = "SFString x3dSyntax"; //x3d
+
+	/* for the return of the nodes */
+	struct X3D_Group *retGroup;
+	char *xstr; 
+	char *tmpstr;
+	char *separator;
+	int ra;
+	int count;
+	int wantedsize;
+	int MallocdSize;
+	//ttglobal tg = gglobal();
+	//struct VRMLParser *globalParser = (struct VRMLParser *)tg->CParse.globalParser;
+	
+
+	/* make this a default value */
+	*rval = INT_TO_JSVAL(0);
+
+	if (argc == 1 &&
+#if JS_VERSION < 185
+		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
+#else
+		JS_ConvertArguments(context, argc, argv, _c_format, &js_c)) {
+			_c = JS_EncodeString(context,js_c);
+#endif
+		#ifdef JSVERBOSE
+			printf("VrmlBrowserCreateVrmlFromString: obj = %u, str = \"%s\"\n",
+				   obj, _c);
+		#endif
+
+		/* do the call to make the VRML code  - create a new browser just for this string */
+		//gglobal()->ProdCon.savedParser = (void *)globalParser; globalParser = NULL;
+		retGroup = createNewX3DNode(NODE_Group);
+		ra = EAI_CreateX3d("String",_c,retGroup);
+		//globalParser = (struct VRMLParser*)gglobal()->ProdCon.savedParser; /* restore it */
+
+
+		/* and, make a string that we can use to create the javascript object */
+		MallocdSize = 200;
+		xstr = MALLOC (char *, MallocdSize);
+		strcpy (xstr,"new MFNode(");
+		separator = " ";
+		for (count=0; count<retGroup->children.n; count ++) {
+			tmpstr = MALLOC(char *, strlen(_c) + 100);
+			sprintf (tmpstr,"%s new SFNode('%s','%p')",separator, _c, (void*) retGroup->children.p[count]);
+			wantedsize = (int) (strlen(tmpstr) + strlen(xstr));
+			if (wantedsize > MallocdSize) {
+				MallocdSize = wantedsize +200;
+				xstr = REALLOC (xstr,MallocdSize);
+			}
+			
+			
+			strncat (xstr,tmpstr,strlen(tmpstr));
+			FREE_IF_NZ (tmpstr);
+			separator = ", ";
+		}
+		strcat (xstr,")");
+		markForDispose(X3D_NODE(retGroup),FALSE);
+
+#if JS_VERSION >= 185
+		JS_free(context,_c);
+#endif
+		
+		#ifdef JSVERBOSE
+		printf ("running runscript on :%s:\n",xstr);
+		#endif
+
+		/* create this value NOTE: rval is set here. */
+		jsrrunScript(context, obj, xstr, rval);
+		FREE_IF_NZ (xstr);
+
+	} else {
+		printf("\nIncorrect argument format for createVrmlFromString(%s).\n", _c_args);
+		return JS_FALSE;
+	}
+
+	/* save this value, in case we need it */
+#if JS_VERSION < 185
+	tg->jsVRMLBrowser.JSCreate_global_return_val = *rval;
+#else
+	JS_SET_RVAL(context,vp,*rval);
+#endif
+	return JS_TRUE;
+}
+
 
 JSBool
 #if JS_VERSION < 185

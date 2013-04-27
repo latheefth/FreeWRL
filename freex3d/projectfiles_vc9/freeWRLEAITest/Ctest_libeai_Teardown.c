@@ -1,5 +1,7 @@
 #include <EAI_C.h>
 #define SPHERE          "Sphere"
+#define CONE			"Cone"
+#define BOX				"Box"
 #define BLUE            "0.2 0.2 0.8"
 
 X3DNode *root;
@@ -28,7 +30,20 @@ X3DNode *makeSimpleShape (char * shape, char *colour, char *posn) {
 
         return X3D_createVrmlFromString(myline);
 }
+X3DNode *makeSimpleShapeX3D (char * shape, char *colour, char *posn) {
+        char myline[2000];
 
+        sprintf (myline, "<Transform translation=\" %s \">\n"\
+                         "<Shape>\n"\
+                         "  <Appearance>\n" \
+                         "    <Material diffuseColor=\" %s \"/>\n" \
+                         "  </Appearance>\n" \
+                         "  <%s/>\n" \
+                         "</Shape>\n"\
+                         "</Transform>\n", posn, colour, shape);
+
+        return X3D_createX3DFromString(myline);
+}
 void loadObjects(){
  /* Get a pointer to the node called "ROOT" in the current scenegraph */
 	printf("Step 2: X3D_getNode(ROOT)\n");
@@ -104,7 +119,7 @@ void * earthSelected(X3DNode* val, double dtime){
 		first = 6;
 	}else if(first ==6) {
 		printf("6th click felt - adding shape to SYSTEMROOT\n");
-		shape1 = makeSimpleShape(SPHERE, "0.2 0.8 0.2", "2.3 2.1 0");
+		shape1 = makeSimpleShapeX3D(CONE, "0.2 0.8 0.2", "2.3 2.1 0");
 		X3D_rootNodeHandling(scene,shape1,1);
 		first = 7;
 	}else if(first ==7) {

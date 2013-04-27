@@ -502,6 +502,48 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *wh
 	return (res->status == ress_parsed);
 }
 
+/* interface for creating X3D for EAI - like above except x3d */
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where)
+{
+	resource_item_t *res;
+	char *newString;
+
+	newString = NULL;
+
+	if (strncmp(tp, "URL", 3) == 0) {
+
+		res = resource_create_single(inputstring);
+		res->where = where;
+		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
+		/* printf ("EAI_CreateVrml, res->where is %u, root is %u parameter where %u\n",res->where, rootNode, where); */
+
+	} else { // all other cases are inline code to parse... let the parser do the job ;P...
+
+		const char *sendIn;
+		// the x3dparser doesn't like multiple root xml elements
+		// and it doesn't seem to hurt to give it an extra wrapping in <x3d>
+		// that way you can have multiple root elements and they all get 
+	    // put into the target children[] field
+		newString = MALLOC (char *, strlen(inputstring) + strlen ("<X3D>\n\n</X3D>\n") + 3);
+		strcpy(newString,"<X3D>\n");
+		strcat(newString,inputstring);
+		strcat(newString,"\n</X3D>\n");
+		sendIn = newString;
+		//printf("EAI_createX3d string[%s]\n",sendIn);
+		res = resource_create_from_string(sendIn);
+		res->media_type=resm_x3d; //**different than vrml
+		res->parsed_request = EAI_Flag;
+		res->where = where;
+		res->offsetFromWhere = (int) offsetof (struct X3D_Group, children);
+	}
+
+	send_resource_to_parser(res,__FILE__,__LINE__);
+	resource_wait(res);
+	FREE_IF_NZ(newString);
+	return (res->status == ress_parsed);
+}
+
+
 void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 {
 	int i;

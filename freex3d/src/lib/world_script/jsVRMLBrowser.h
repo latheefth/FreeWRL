@@ -148,6 +148,7 @@ JSBool VrmlBrowserLoadURL(JSContext *cx, uintN argc, jsval *vp);
 JSBool VrmlBrowserSetDescription(JSContext *cx, uintN argc, jsval *vp); 
 JSBool VrmlBrowserCreateVrmlFromString(JSContext *cx, uintN argc, jsval *vp); 
 JSBool VrmlBrowserCreateVrmlFromURL(JSContext *cx, uintN argc, jsval *vp); 
+JSBool VrmlBrowserCreateX3DFromString(JSContext *cx, uintN argc, jsval *vp); 
 JSBool VrmlBrowserAddRoute(JSContext *cx, uintN argc, jsval *vp); 
 JSBool VrmlBrowserPrint(JSContext *cx, uintN argc, jsval *vp); 
 JSBool VrmlBrowserPrintln(JSContext *cx, uintN argc, jsval *vp); 

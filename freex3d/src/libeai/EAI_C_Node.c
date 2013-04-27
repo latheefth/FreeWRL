@@ -1022,4 +1022,51 @@ X3DNode *X3D_createVrmlFromString(char *str) {
 	#endif
 	return retval;	
 }
+X3DNode *X3D_createX3DFromString(char *str) {
+	X3DNode *retval;
+	char *ptr;
+	int retvals;
+	int count;
+	int mytmp;
+	
+        retval = malloc (sizeof(X3DNode));
+	retval->X3D_MFNode.type = FIELDTYPE_MFNode;
+	retval->X3D_MFNode.n = 0;
+
+	#ifdef VERBOSE
+	printf ("X3D_createX3DFromString  - string %s\n",str);
+	#endif
+
+	ptr = _X3D_make2StringCommand(CREATEXS,str,"\nEOT\n");
+	
+	#ifdef VERBOSE
+	printf ("return pointer is %s\n",ptr);
+	#endif
+
+	/* now, how many numbers did it return? */
+	retvals = _X3D_countWords(ptr);
+	retval->X3D_MFNode.p = malloc (retvals * sizeof (X3DNode));
+	retval->X3D_MFNode.n = retvals;
+
+	for (count = 0; count < retvals; count++) {
+		/* skip to the memory pointer */
+		SKIP_CONTROLCHARS
+
+		/* read in the memory pointer */
+		sscanf (ptr,"%d",&mytmp); /* changed for 1.18.15 JAS */
+
+		retval->X3D_MFNode.p[count].adr = mytmp;
+
+		/* skip past this number now */
+		SKIP_IF_GT_SPACE
+	}
+	#ifdef VERBOSE
+	printf ("X3D_createVrmlFromString, found %d pointers, they are:\n",retval->X3D_MFNode.n);
+	for (count=0; count<retval->X3D_MFNode.n; count++) {
+		printf ("	%d\n",(int) retval->X3D_MFNode.p[count].adr);
+	}
+	printf ("(end oflist)\n");
+	#endif
+	return retval;	
+}
 

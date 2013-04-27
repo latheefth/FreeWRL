@@ -501,7 +501,7 @@ int determineFileType(const unsigned char *buffer, const int len)
     
 	for (count = 0; count < 3; count ++) inputFileVersion[count] = 0;
 
-	/* is this an XML file? */
+	/* is this an XML file? see also further down for < detection*/
 	if (strncmp((const char*)buffer,"<?xml version",12) == 0){
 		rv = buffer;	
 
@@ -570,7 +570,15 @@ int determineFileType(const unsigned char *buffer, const int len)
 			return IS_TYPE_VRML1;
 		}
 
+
 	}
+	/* try simple x3d ie when its a partial string from createX3DfromString */
+	rv = buffer;	
+	while(rv && *rv != '\0'){
+		if(*rv == '<') return IS_TYPE_XML_X3D;
+		rv++;
+	}
+
     #if defined (INCLUDE_STL_FILES)
     int stlDTFT(const unsigned char*, int); return stlDTFT(buffer,len);
     #endif //INCLUDE_STL_FILES

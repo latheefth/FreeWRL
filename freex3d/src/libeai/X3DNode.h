@@ -187,6 +187,7 @@ char *X3D_getWorldURL();
 
 /* MFNode public methods */
 X3DNode *X3D_createVrmlFromString(char *str);
+X3DNode *X3D_createX3DFromString(char *str);
 X3DNode *X3D_newSFVec3f (float a, float b, float c);
 X3DNode *X3D_newSFColor (float a, float b, float c);
 X3DNode *X3D_newSFVec2f (float a, float b);

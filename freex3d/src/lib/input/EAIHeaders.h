@@ -115,6 +115,9 @@ char *eaiPrintCommand (char command);
 #define GETNODETYPE	'k'
 #define MIDIINFO  	'l'
 #define MIDICONTROL  	'm'
+#define DUMPSCENE  	'n'
+#define CREATEXS	'o'
+
 //extern int EAIMIDIlistenfd;
 //extern int EAIMIDIsockfd;
 //extern int EAIMIDIwanted;
@@ -123,7 +126,6 @@ char *eaiPrintCommand (char command);
 #define MIDI_CONTROLLER_KEYPRESS 2
 #define MIDI_CONTROLLER_UNKNOWN 999
 
-#define DUMPSCENE  	'n'
 
 
 /* command string to get the rootNode - this is a special match... */
