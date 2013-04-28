@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.75  2013/04/28 12:27:57  crc_canada
+# changes for adding ability to directly manipulate Material parameters from a dedicated UI.
+#
 # Revision 1.74  2013/04/14 20:39:26  dug9
 # dug9 - added executionContext pointer to node struct (but not used yet) seems to compile and run normally on tests.
 #
@@ -1476,6 +1479,7 @@ sub gen {
 	"#define X3D_NODE(node) ((struct X3D_Node*)node)\n".
 	"#define X3D_APPEARANCE(node) ((struct X3D_Appearance*)node)\n".
 	"#define X3D_MATERIAL(node) ((struct X3D_Material*)node)\n".
+	"#define X3D_TWOSIDEDMATERIAL(node) ((struct X3D_TwoSidedMaterial*)node)\n".
 	"#define X3D_GROUP(node) ((struct X3D_Group*)node)\n".
 	"#define X3D_PROTO(node) ((struct X3D_Proto*)node)\n".
 	"#define X3D_PICKABLEGROUP(node) ((struct X3D_PickableGroup*)node)\n".

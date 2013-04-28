@@ -671,6 +671,369 @@ void fwl_set_FillPropColour (struct Vector **shapeNodes, int whichEntry, int arg
 }
 
 
+// MAterial - we need to ensure that this is node has a Material; we make it a TwoSidedMaterial 
+// even if it was a normal Material node.
+// returns whether two-sided is true or not.
+//JNIEXPORT jboolean JNICALL Java_org_freex3d_FreeX3DLib_setMaterialExisting(JNIEnv *env, jobject obj) {
+//        return fwl_set_MaterialExisting(&shapeNodes,0);
+//}
+
+int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+	struct X3D_TwoSidedMaterial *tsm;
+
+	int twoSided = FALSE;
+
+	// If we do not have any node entries, maybe this is a new scene, and we have to get
+	// the valid nodes?
+	if (vectorSize(*shapeNodes) == 0 ) {
+		if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return FALSE;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+
+	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+
+	// does the shape have an Appearance node yet?
+	if (X3D_SHAPE(node)->appearance == NULL) {
+		struct X3D_Material *mat;
+		ap = createNewX3DNode(NODE_Appearance);
+		AddRemoveSFNodeFieldChild(node,
+			offsetPointer_deref(struct X3D_Node **,node,offsetof (struct X3D_Shape, appearance)),
+			ap,0,__FILE__,__LINE__);
+
+		mat = createNewX3DNode(NODE_TwoSidedMaterial);
+		AddRemoveSFNodeFieldChild(ap,
+			offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
+			mat,0,__FILE__,__LINE__);
+	}
+
+	ap = X3D_SHAPE(node)->appearance;
+	//ConsoleMessage ("so, at this point in time, we have an appearance, type %s",stringNodeType(ap->_nodeType));
+
+	// create the node, then "set" it in place. If a node previously existed in the
+	// fillProperties field, then it gets removed by AddRemoveChild
+
+	if (ap->material == NULL) {
+		//ConsoleMessage ("fwl_set_MaterialPropStatus, creating a MaterialProperties");
+		fp = X3D_TWOSIDEDMATERIAL(createNewX3DNode(NODE_TwoSidedMaterial));
+		AddRemoveSFNodeFieldChild(ap,
+			offsetPointer_deref(struct X3D_Node **,X3D_NODE(ap),offsetof (struct X3D_Appearance, material)),
+			X3D_NODE(fp),0,__FILE__,__LINE__);
+	} 
+
+	tsm = X3D_TWOSIDEDMATERIAL(ap->material);
+	// ok, we have a node here, if it is a FillProperties, set the enabled flag
+
+	// do we have to change a Material to TwoSidedMaterial??
+	if (tsm->_nodeType != NODE_TwoSidedMaterial) {
+		struct X3D_Material *mat = tsm;
+		struct X3D_TwoSidedMaterial *ntsm = createNewX3DNode(NODE_TwoSidedMaterial);
+		if (mat->_nodeType == NODE_Material) {
+			//copy over the fields
+			ntsm->ambientIntensity = mat->ambientIntensity;
+			ntsm->backAmbientIntensity = mat->ambientIntensity;
+			ntsm->shininess = mat->shininess;
+			ntsm->backShininess = mat->shininess;
+			ntsm->transparency = mat->transparency;
+			ntsm->backTransparency = mat->transparency;
+			memcpy((void *)&ntsm->diffuseColor, (void *)&mat->diffuseColor,sizeof(struct SFColor));
+			memcpy((void *)&ntsm->backDiffuseColor, (void *)&mat->diffuseColor,sizeof(struct SFColor));
+			memcpy((void *)&ntsm->emissiveColor, (void *)&mat->emissiveColor,sizeof(struct SFColor));
+			memcpy((void *)&ntsm->backEmissiveColor, (void *)&mat->emissiveColor,sizeof(struct SFColor));
+			memcpy((void *)&ntsm->specularColor, (void *)&mat->specularColor,sizeof(struct SFColor));
+			memcpy((void *)&ntsm->backSpecularColor, (void *)&mat->specularColor,sizeof(struct SFColor));
+			ntsm->separateBackColor=FALSE;
+		} else {
+			ConsoleMessage ("somehow the Material is not a node of Material type for this node");
+		}
+
+		// now, make the child our TwoSidedMaterial node 
+		AddRemoveSFNodeFieldChild(ap,
+			offsetPointer_deref(struct X3D_Node **,ap,offsetof (struct X3D_Appearance, material)),
+			ntsm,0,__FILE__,__LINE__);
+	} else {
+		// We DO have a TwoSidedMaterial...
+		twoSided = X3D_TWOSIDEDMATERIAL(tsm)->separateBackColor;
+	}
+	
+	// tell the Shape node that we need to check the shaders it uses...
+	node->_change ++;
+
+	return twoSided; 
+}
+
+/* fwl_get_MaterialColourValue(xx) - example usage:
+                <item>Front Diffuse</item>
+                <item>Front Emissive</item>
+                <item>Front Specular</item>
+                <item>Back Diffuse</item>
+                <item>Back Emissive</item>
+                <item>Back Specular</item>
+
+        int frontDiffuse = FreeX3DLib.getMaterialColourValue(0);
+        int frontEmissive = FreeX3DLib.getMaterialColourValue(1);
+        int frontSpecular = FreeX3DLib.getMaterialColourValue(2);
+        int backDiffuse = FreeX3DLib.getMaterialColourValue(3);
+        int backEmissive = FreeX3DLib.getMaterialColourValue(4);
+        int backSpecular = FreeX3DLib.getMaterialColourValue(5);
+
+*/
+
+int fwl_get_MaterialColourValue(struct Vector **shapeNodes, int whichEntry, int whichValue) {
+        struct X3D_FillProperties *fp;
+        struct X3D_LineProperties *lp;
+        struct X3D_Material *mat;
+        struct X3D_ImageTexture *tex;
+        struct X3D_TextureTransform *tt;
+        struct X3D_Node *geom;
+        struct X3D_Appearance *ap;
+        struct X3D_TwoSidedMaterial *tsm;
+
+        // If we do not have any node entries, maybe this is a new scene, and we have to get
+        // the valid nodes?
+        if (vectorSize(*shapeNodes) == 0 ) {
+                if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return 0;
+        }
+
+        // if we are here, we really do have at least one Shape node.
+
+        struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
+
+        //ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+        fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (mat == NULL) return 0;
+
+	if (mat->_nodeType == NODE_TwoSidedMaterial) {
+		struct SFColor *col = NULL;
+		struct X3D_TwoSidedMaterial *tmat = X3D_TWOSIDEDMATERIAL(mat);
+		switch (whichValue) {
+			case 0: col = &tmat->diffuseColor; break;
+			case 1: col = &tmat->emissiveColor; break;
+			case 2: col = &tmat->specularColor; break;
+			case 3: col = &tmat->backDiffuseColor; break;
+			case 4: col = &tmat->backEmissiveColor; break;
+			case 5: col = &tmat->backSpecularColor; break;
+			default: {}
+		}
+		if (col != NULL) {
+			int integer_colour;
+			integer_colour = 0xFF000000 + (
+				((uint8_t)(255.0f *CLAMP(col->c[0], 0.0, 1.0)) <<16) |
+               			((uint8_t)(255.0f *CLAMP(col->c[1], 0.0, 1.0)) <<8) |
+               			((uint8_t)(255.0f *CLAMP(col->c[2], 0.0, 1.0)))); 
+			//ConsoleMessage ("getMaterialValue, returning colour %d\n",integer_colour);
+			return integer_colour;
+		} 
+	} else {
+		ConsoleMessage ("getMaterialValue, expected a TwoSidedMaterial, not a %s\n",stringNodeType(mat->_nodeType));
+	}
+	return 0;
+}
+
+
+void fwl_set_TwoSidedMaterialStatus( struct Vector **shapeNodes, int whichEntry, int oneTwo) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (mat == NULL) return;
+	if (mat->_nodeType == NODE_TwoSidedMaterial) {
+		// ok - we are in the correct place.
+		X3D_TWOSIDEDMATERIAL(mat)->separateBackColor = oneTwo;
+		mat->_change++; // signal that this node has changed
+	}
+}
+		
+/* set current colour */
+void fwl_set_MaterialColourValue (struct Vector **shapeNodes, int whichEntry, int whichValue, int argbColour) {
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+
+	// Assume that we have a Shape node
+	if (vectorSize(*shapeNodes) == 0 ) {
+		return;
+	}
+
+	// if we are here, we really do have at least one Shape node.
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);	
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (mat == NULL) return;
+	if (mat->_nodeType == NODE_TwoSidedMaterial) {
+		struct SFColor *col = NULL;
+		struct X3D_TwoSidedMaterial *tmat = X3D_TWOSIDEDMATERIAL(mat);
+		switch (whichValue) {
+			case 0: col = &tmat->diffuseColor; break;
+			case 1: col = &tmat->emissiveColor; break;
+			case 2: col = &tmat->specularColor; break;
+			case 3: col = &tmat->backDiffuseColor; break;
+			case 4: col = &tmat->backEmissiveColor; break;
+			case 5: col = &tmat->backSpecularColor; break;
+			default: {}
+		}
+		if (col != NULL) {
+			col->c[0] =CLAMP(((float)((argbColour &0xff0000) >>16)) /255.0, 0.0, 1.0);
+			col->c[1] =CLAMP(((float)((argbColour &0x00ff00) >>8)) /255.0, 0.0, 1.0);
+			col->c[2] =CLAMP(((float)((argbColour &0x0000ff))) /255.0, 0.0, 1.0);
+			tmat->_change ++; // signal that this has been updated
+		}
+	}
+}
+
+
+
+/* for a SeekBar, get a field, for a side, and return it as a % 0-100 
+	whichSide - 0->2 front side,
+		  - 3-n, back side,
+	whichField - 1 - shininess, 2 transparency, 3- Ambient Intensity
+*/
+int fwl_get_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int whichSide, int whichField) {
+        struct X3D_FillProperties *fp;
+        struct X3D_LineProperties *lp;
+        struct X3D_Material *mat;
+        struct X3D_ImageTexture *tex;
+        struct X3D_TextureTransform *tt;
+        struct X3D_Node *geom;
+        struct X3D_Appearance *ap;
+        struct X3D_TwoSidedMaterial *tsm;
+
+	//ConsoleMessage ("gwl_get_materialFloatValue, entry %d, side %d, value %d",whichEntry, whichSide, whichField);
+
+        // If we do not have any node entries, maybe this is a new scene, and we have to get
+        // the valid nodes?
+        if (vectorSize(*shapeNodes) == 0 ) {
+                if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return 0;
+        }
+
+        // if we are here, we really do have at least one Shape node.
+
+        struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
+
+        //ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+        fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (mat == NULL) return 0;
+
+	if (mat->_nodeType == NODE_TwoSidedMaterial) {
+		float fcol = 0.0;
+		struct X3D_TwoSidedMaterial *tmat = X3D_TWOSIDEDMATERIAL(mat);
+		if (whichSide <3) {
+			switch (whichField) {
+				case 1: fcol = tmat->shininess; break;
+				case 2: fcol = tmat->transparency; break;
+				case 3: fcol = tmat->ambientIntensity; break;
+				default: {
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+					return 0;
+				}
+			}
+		} else {
+			switch (whichField) {
+				case 1: fcol = tmat->backShininess; break;
+				case 2: fcol = tmat->backTransparency; break;
+				case 3: fcol = tmat->backAmbientIntensity; break;
+				default: {
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+					return 0;
+				}
+			}
+		}
+
+		return (int)(fcol*100.0); // fcol;
+	} else {
+		ConsoleMessage ("getMaterialValue, expected a TwoSidedMaterial, not a %s\n",stringNodeType(mat->_nodeType));
+	}
+
+	return 0;
+}
+
+void fwl_set_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int whichSide, int whichField, int nv) {
+        struct X3D_FillProperties *fp;
+        struct X3D_LineProperties *lp;
+        struct X3D_Material *mat;
+        struct X3D_ImageTexture *tex;
+        struct X3D_TextureTransform *tt;
+        struct X3D_Node *geom;
+        struct X3D_Appearance *ap;
+        struct X3D_TwoSidedMaterial *tsm;
+
+	//ConsoleMessage ("gwl_set_materialFloatValue, entry %d, side %d, value %d new value %d",whichEntry, whichSide, whichField, nv);
+
+        // If we do not have any node entries, maybe this is a new scene, and we have to get
+        // the valid nodes?
+        if (vectorSize(*shapeNodes) == 0 ) {
+                if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return;
+        }
+
+        // if we are here, we really do have at least one Shape node.
+
+        struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
+
+        //ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+        fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+
+	if (mat == NULL) return;
+
+	if (mat->_nodeType == NODE_TwoSidedMaterial) {
+		struct X3D_TwoSidedMaterial *tmat = X3D_TWOSIDEDMATERIAL(mat);
+		float nnv = CLAMP(((float)nv)/100.0,0.0,1.0);
+		// ConsoleMessage("nv as int %d, as float %f",nv,nnv);
+		if (whichSide <3) {
+			switch (whichField) {
+				case 1: tmat->shininess=nnv; break;
+				case 2: tmat->transparency=nnv; break;
+				case 3: tmat->ambientIntensity=nnv; break;
+				default: {
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+				}
+			}
+		} else {
+			switch (whichField) {
+				case 1: tmat->backShininess=nnv; break;
+				case 2: tmat->backTransparency=nnv; break;
+				case 3: tmat->backAmbientIntensity=nnv; break;
+				default: {
+					ConsoleMessage ("hmmm - expect 1-3, got %d",whichField); 
+				}
+			}
+		}
+	  	tmat->_change++; // signal that this node has changed	
+	} else {
+		ConsoleMessage ("getMaterialValue, expected a TwoSidedMaterial, not a %s\n",stringNodeType(mat->_nodeType));
+	}
+}
+
+
 #undef JASTESTING
 #ifdef JASTESTING
 
