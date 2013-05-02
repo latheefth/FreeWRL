@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="dllFreeWRL"
 	ProjectGUID="{8B124FE7-4284-46D4-B962-F1EE06911C95}"
 	RootNamespace="dllFreeWRL"
@@ -261,42 +261,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dllFreeWRL.cpp"
+				RelativePath="..\..\src\dllFreeWRL\dllFreeWRL.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\dllmain.cpp"
+				RelativePath="..\..\src\dllFreeWRL\dllmain.cpp"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-						CompileAsManaged="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-						CompileAsManaged="0"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_openCL|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-						CompileAsManaged="0"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\stdafx.cpp"
+				RelativePath="..\..\src\dllFreeWRL\stdafx.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -330,15 +303,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\dllFreeWRL.h"
+				RelativePath="..\..\src\dllFreeWRL\dllFreeWRL.h"
 				>
 			</File>
 			<File
-				RelativePath=".\stdafx.h"
+				RelativePath="..\..\src\dllFreeWRL\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\targetver.h"
+				RelativePath="..\..\src\dllFreeWRL\targetver.h"
 				>
 			</File>
 		</Filter>
@@ -349,7 +322,7 @@
 			>
 		</Filter>
 		<File
-			RelativePath=".\ReadMe.txt"
+			RelativePath="..\..\src\dllFreeWRL\ReadMe.txt"
 			>
 		</File>
 	</Files>

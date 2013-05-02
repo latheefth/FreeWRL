@@ -139,6 +139,7 @@ struct _intX3DEventIn {
 
 #define X3DEventIn struct _intX3DEventIn
 #define X3DEventOut struct _intX3DEventIn
+#define X3DFieldDef struct _intX3DEventIn
 /* single value structures */
 
 
@@ -150,6 +151,8 @@ X3DEventOut *X3D_getEventOut(X3DNode *node, char *name);
 void X3D_setValue (X3DEventIn *dest, X3DNode *node);
 void X3D_addRoute (X3DEventOut *from, X3DEventIn *to);
 void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to);
+void X3D_getFieldDefs(int nodeAdr);
+X3DFieldDef* X3D_getFieldDef(X3DNode *node, char *name);
 
 
 /* initialize, shutdown public methods */

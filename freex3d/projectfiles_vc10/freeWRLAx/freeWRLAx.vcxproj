@@ -73,6 +73,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..\..\src\dllFreeWRL</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>mfcs100d.lib;MSVCRTD.lib;dllFreeWRLd.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -111,6 +112,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>..\..\src\dllFreeWRL</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>mfcs100.lib;MSVCRT.lib;dllFreeWRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -147,6 +149,9 @@
     <Link>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\src\dllFreeWRL</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cathelp.cpp">

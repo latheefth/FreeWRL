@@ -10,6 +10,7 @@ X3DNode *touchSensor;
 
 X3DEventIn *addChildren;
 X3DEventOut *selectionEvent;
+X3DFieldDef *centerField;
 int opt = 0;
 
 
@@ -54,6 +55,11 @@ void loadObjects(){
 	}
 	else printf("Getting ROOT was OK! addr=%p type%d\n",root->X3D_SFNode.adr,root->X3D_SFNode.type);
 
+	/* try to call the getfielddefs function */
+	printf("X3D_getFieldDefs(root->X3D_SFNode.adr)\n");
+	X3D_getFieldDefs(root->X3D_SFNode.adr);
+	
+
  /* Get a pointer to the node called "TOUCH_SENSOR" in the current scenegraph */
 	printf("Step 3: X3D_getNode(TOUCH_SENSOR)\n");
 	touchSensor = X3D_getNode("TOUCH_SENSOR");
@@ -82,6 +88,15 @@ void loadObjects(){
 		/* Utility function call which creates an X3D node - in this case a blue sphere */
 		if(0) shape1 = makeSimpleShape(SPHERE, BLUE, "-2.3 2.1 0");
 	}
+
+	//try to get a field definition struct
+	printf("Step 5b: X3D_getFieldDef(root, 'center')\n");
+	centerField = X3D_getFieldDef(root, "center");
+	if (selectionEvent == 0) {
+    		printf("ERROR: centerField field not found!\n");
+		exit(1);
+		}
+
    	//Call the function earthSelected when the event occurs.
     	X3DAdvise(selectionEvent, earthSelected);
 }

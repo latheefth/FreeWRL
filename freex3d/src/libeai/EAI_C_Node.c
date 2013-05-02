@@ -91,8 +91,25 @@ X3DEventIn *_X3D_getEvent(X3DNode *node, char *name, int into) {
 	}
 
 	/* printf ("getting eventin for address %d, field %s\n",adr, name); */
-	if (into) ptr = _X3D_Browser_SendEventType(adr, name, "eventIn");
-	else ptr = _X3D_Browser_SendEventType(adr, name, "eventOut");
+	//if (into) ptr = _X3D_Browser_SendEventType(adr, name, "eventIn");
+	//else ptr = _X3D_Browser_SendEventType(adr, name, "eventOut");
+
+	switch(into)
+	{
+	case 0:	//specifing a "eventOut" access method
+		ptr = _X3D_Browser_SendEventType(adr, name, "eventOut");
+		break;
+	case 1:	//specifing a "eventIn" access method
+		ptr = _X3D_Browser_SendEventType(adr, name, "eventIn");
+		break;
+	case -1: //we do not want to specify an access method, we only ask for the field definition
+		ptr = _X3D_Browser_SendEventType(adr, name, "");
+		break;
+	default:
+		//TODO: FOR NOW WE FORCE TO AN "EVENTIN" CASE. IT WOULD BE BETTER TO THROW AN ERROR
+		ptr = _X3D_Browser_SendEventType(adr, name, "eventIn");
+		break;
+	}
 
 	/* ptr should point to , for example: 161412616 116 0 q 0 eventIn
 	   where we have 
@@ -196,6 +213,24 @@ X3DEventOut *X3D_getEventOut(X3DNode *node, char *name) {
 	retval = _X3D_getEvent(node, name,FALSE);
 	return retval;
 
+}
+
+X3DFieldDef* X3D_getFieldDef(X3DNode *node, char *name){
+	X3DEventOut *retval;
+	retval = _X3D_getEvent(node, name,-1);
+	return retval;
+}
+
+//gets the list of fields of the standard node
+void X3D_getFieldDefs(int nodeAdr)
+{
+	char myline[200];
+	char *ptr;
+	sprintf (myline,"%d",nodeAdr);
+	
+	// INCOMPLETE: we get a string containing the fields but we actually do nothing with it.
+	// we should parse it or copy to a buffer and leave the parsing outside of this function
+	ptr = _X3D_make1StringCommand(GETFIELDDEFS,myline);
 }
 
 void X3D_addRoute (X3DEventOut *from, X3DEventIn *to) {
