@@ -104,6 +104,7 @@ Handle incoming EAI (and java class) events with panache.
 static void makeFIELDDEFret(int, int);
 static void handleRoute (char command, char *bufptr, int repno);
 static void handleGETNODE (char *bufptr, int repno);
+static void handleGETNODEPARENTS (char *bufptr, int repno);
 static void handleGETROUTES (char *bufptr, int repno);
 static void handleGETEAINODETYPE (char *bufptr, int repno);
 extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
@@ -1007,6 +1008,11 @@ However, nowadays we do not read any sockets directly....
 
 				break;
 				}
+			case GETNODEPARENTS:
+				{					
+					handleGETNODEPARENTS(&EAI_BUFFER_CUR,count);
+					break;
+				}
 
 			default: {
 				printf ("unhandled command :%c: %d\n",command,command);
@@ -1109,6 +1115,60 @@ static void handleGETNODE (char *bufptr, int repno) {
 	if (eaiverbose) {	
 		printf ("GETNODE returns %s\n",th->outBuffer); 
 	}	
+}
+
+static void handleGETNODEPARENTS (char *bufptr, int repno)
+{	
+	int nodeHandle;
+	char parentAdr[10];
+	char buffer[EAIREADSIZE];
+	struct tEAIHelpers* th;
+	int eaiverbose;
+
+	int* parentArray;
+	int result;
+	int index;
+
+	ttglobal tg = gglobal();
+	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
+	th = &tg->EAIHelpers;
+
+	nodeHandle = 0;
+	parentArray = NULL;
+	/*format int seq# COMMAND    string nodename*/
+
+	sscanf(bufptr,"%d",&nodeHandle);
+	
+	if (eaiverbose) {	
+		printf ("GETNODEPARENTS %d\n",nodeHandle); 
+	}	
+
+	result = EAI_GetNodeParents(nodeHandle,&parentArray);
+
+	sprintf_s(buffer,EAIREADSIZE,"RE\n%f\n%d\n",TickTime(),repno);
+
+	if(result > 0)
+	{
+		for(index = 0; index < result; index++)
+		{			
+			sprintf_s(parentAdr,10,"%d ",parentArray[index]);
+			strcat_s(buffer,EAIREADSIZE,parentAdr);
+		}
+	}
+	else
+	{
+		sprintf_s(parentAdr,10,"%d ",result);
+		strcat_s(buffer,EAIREADSIZE,parentAdr);
+	}
+
+	outBufferCat(buffer);
+
+	if (eaiverbose) {	
+		printf ("GETNODE returns %s\n",th->outBuffer); 
+	}
+
+	if(parentArray)
+		free(parentArray);
 }
 
 #define IGNORE_IF_FABRICATED_INTERNAL_NAME \

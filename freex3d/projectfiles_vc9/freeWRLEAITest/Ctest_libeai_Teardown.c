@@ -7,10 +7,14 @@
 X3DNode *root;
 X3DNode *shape1;
 X3DNode *touchSensor;
+X3DNode *parents;
+int foundParents;
 
 X3DEventIn *addChildren;
 X3DEventOut *selectionEvent;
 X3DFieldDef *centerField;
+
+char* fieldDefs;
 int opt = 0;
 
 
@@ -46,6 +50,8 @@ X3DNode *makeSimpleShapeX3D (char * shape, char *colour, char *posn) {
         return X3D_createX3DFromString(myline);
 }
 void loadObjects(){
+	
+
  /* Get a pointer to the node called "ROOT" in the current scenegraph */
 	printf("Step 2: X3D_getNode(ROOT)\n");
 	root = X3D_getNode("ROOT");
@@ -55,19 +61,16 @@ void loadObjects(){
 	}
 	else printf("Getting ROOT was OK! addr=%p type%d\n",root->X3D_SFNode.adr,root->X3D_SFNode.type);
 
-	/* try to call the getfielddefs function */
-	printf("X3D_getFieldDefs(root->X3D_SFNode.adr)\n");
-	X3D_getFieldDefs(root->X3D_SFNode.adr);
 	
-
  /* Get a pointer to the node called "TOUCH_SENSOR" in the current scenegraph */
-	printf("Step 3: X3D_getNode(TOUCH_SENSOR)\n");
-	touchSensor = X3D_getNode("TOUCH_SENSOR");
+	printf("Step 3: getting TOUCH_SENSOR node and its parents\n");
+	foundParents = X3D_getParentNodesbyName("TOUCH_SENSOR",&touchSensor,&parents);
+	//touchSensor = X3D_getNode("TOUCH_SENSOR");
 	if (touchSensor == 0) {
 		printf("ERROR: node not found!\n");
 		exit(1);
 	}
-	else printf("Getting TOUCH_SENSOR was OK!\n");
+	else printf("Getting TOUCH_SENSOR was OK and we also found %d parents!\n",foundParents);
 
     /* Get a pointer to the eventIn called "addChildren" of the ROOT node in the current scenegraph */
 	printf("Step 4: X3D_getEventOut(touchSensor, 'isActive')\n");
@@ -90,12 +93,26 @@ void loadObjects(){
 	}
 
 	//try to get a field definition struct
-	printf("Step 5b: X3D_getFieldDef(root, 'center')\n");
-	centerField = X3D_getFieldDef(root, "center");
-	if (selectionEvent == 0) {
-    		printf("ERROR: centerField field not found!\n");
-		exit(1);
-		}
+	//try to get the complete list of field definitions of "ROOT" node
+	printf("Step 6: X3D_getFieldDefs(root->X3D_SFNode.adr)\n");
+	fieldDefs = X3D_getFieldDefs(root->X3D_SFNode.adr);
+
+	if(fieldDefs)
+	{
+		printf("Fields of node root are: %s\n",fieldDefs);
+		free(fieldDefs);
+
+		//now try to get a single field
+		printf("Step 6b: X3D_getFieldDef(root, 'center')\n");
+		centerField = X3D_getFieldDef(root, "center");
+
+		if(centerField)
+			printf("'center' field of node 'root' has been found and is of type %s\n", stringFieldType(centerField->datatype));
+		else
+			printf("'center' field of node 'root' has not been found\n");		
+	}
+	else
+		printf("No field for node root has been found!\n");
 
    	//Call the function earthSelected when the event occurs.
     	X3DAdvise(selectionEvent, earthSelected);
@@ -150,7 +167,7 @@ void * earthSelected(X3DNode* val, double dtime){
 //void unqueue_callback();  
 //void dequeue_callback_ev();
 void dequeue_callback_ev(int wait);
-int main() {
+int main() {	
     /* Initialization function.  Connects to FreeWRL EAI server.  This function must be called before any other EAI calls */
 	printf("Step 1: X3D_initialize()\n");
 	X3D_initialize("");
@@ -174,6 +191,10 @@ int main() {
     X3D_freeNode(shape1);
     X3D_freeEventIn(addChildren);
     X3D_freeEventOut(selectionEvent);
+	X3D_freeEventIn(centerField);
+
+	if(foundParents > 0)
+		free(parents);
 
     /* Shutdown FreeWRL */
     X3D_shutdown();

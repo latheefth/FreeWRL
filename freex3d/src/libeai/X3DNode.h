@@ -151,8 +151,14 @@ X3DEventOut *X3D_getEventOut(X3DNode *node, char *name);
 void X3D_setValue (X3DEventIn *dest, X3DNode *node);
 void X3D_addRoute (X3DEventOut *from, X3DEventIn *to);
 void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to);
-void X3D_getFieldDefs(int nodeAdr);
+char* X3D_getFieldDefs(int nodeAdr);
 X3DFieldDef* X3D_getFieldDef(X3DNode *node, char *name);
+
+//writes all the parents of a given node into an allocated array and passes the address of it to the outParentArray argument. Caller should free the array.
+//returns the number of parents, "0" if none found, "-1" if an error occurred
+int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray);
+//same as above, but also get the child node using the DEF name passed and copy the address of it into the outChildNode argument.
+int X3D_getParentNodesbyName(char *childName, X3DNode** outChildNode, X3DNode** outParentArray);
 
 
 /* initialize, shutdown public methods */

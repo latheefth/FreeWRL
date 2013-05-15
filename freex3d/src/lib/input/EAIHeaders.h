@@ -117,6 +117,7 @@ char *eaiPrintCommand (char command);
 #define MIDICONTROL  	'm'
 #define DUMPSCENE  	'n'
 #define CREATEXS	'o'
+#define GETNODEPARENTS 'p'
 
 //extern int EAIMIDIlistenfd;
 //extern int EAIMIDIsockfd;
