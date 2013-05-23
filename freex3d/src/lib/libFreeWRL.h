@@ -241,6 +241,9 @@ void fwl_do_keyPress(char kp, int type);
 void fwl_doQuit();
 void fwl_doQuitInstance();
 void fwl_set_viewer_type(const int type);
+void fwl_set_modeRecord();
+void fwl_set_modeFixture();
+void fwl_set_modePlayback();
 
 #define CHANNEL_EAI 0
 #define CHANNEL_MIDI 1

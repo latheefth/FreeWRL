@@ -136,7 +136,8 @@ void Snapshot_init(struct tSnapshot* t)
 void set_snapsequence(int on)
 {
 #ifdef DOSNAPSEQUENCE
-	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	//struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 	p->snapsequence = on;
 #endif
 }
@@ -149,7 +150,8 @@ void fwl_set_SeqFile(const char* file)
 {
 #if defined(DOSNAPSEQUENCE)
     /* need to re-implement this for OSX generating QTVR */
-	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	//struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
     p->snapseqB = strdup(file);
     printf("snapseqB is %s\n", p->snapseqB);
 #else
@@ -159,16 +161,20 @@ void fwl_set_SeqFile(const char* file)
 
 void fwl_set_SnapFile(const char* file)
 {
-	struct pSnapshot* p = (struct pSnapshot*)&gglobal()->Snapshot.prv;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
+
 	p->snapsnapB = strdup(file);
     TRACE_MSG("snapsnapB set to %s\n", p->snapsnapB);
+	printf("%s\n",p->snapsnapB);
 }
 
 void fwl_set_MaxImages(int max)
 {
 #if defined(DOSNAPSEQUENCE)
     /* need to re-implement this for OSX generating QTVR */
-	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	//struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
+
     if (max <=0)
 	max = 100;
     p->maxSnapImages = max;
@@ -186,9 +192,9 @@ void fwl_set_SnapTmp(const char* file)
 	{
 		ttglobal tg = gglobal();
 		tg->Snapshot.doSnapshot = FALSE;
-		{
-			((ppSnapshot)tg->Snapshot.prv)->seqtmp = strdup(file);
-		}
+		//{
+		//	((ppSnapshot)tg->Snapshot.prv)->seqtmp = strdup(file);
+		//}
 		{
 			ppSnapshot p = (ppSnapshot)tg->Snapshot.prv;
 			p->seqtmp = strdup(file);
@@ -203,17 +209,17 @@ void fwl_set_SnapTmp(const char* file)
 	//	p->seqtmp = strdup(file);
 	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
 	//}
-	{
-		struct tSnapshot* t = &gglobal()->Snapshot;
-		struct pSnapshot* p = (struct pSnapshot*)t->prv;
-		p->seqtmp = strdup(file);
-		TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
-	}
-	{
-		struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
-		p->seqtmp = strdup(file);
-		TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
-	}
+	//{
+	//	struct tSnapshot* t = &gglobal()->Snapshot;
+	//	struct pSnapshot* p = (struct pSnapshot*)t->prv;
+	//	p->seqtmp = strdup(file);
+	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
+	//}
+	//{
+	//	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	//	p->seqtmp = strdup(file);
+	//	TRACE_MSG("seqtmp set to %s\n", p->seqtmp);
+	//}
 }
 
 
@@ -256,8 +262,13 @@ void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
 	BITMAPINFOHEADER bi; 
 	BITMAPFILEHEADER bmph;
 	char filler[3] = {'\0','\0','\0'};
+	FILE *fout;
+	char* fname;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 
-	FILE *fout = fopen("freewrl_snapshot.bmp","w+b");
+	fname = "freewrl_snapshot.bmp";
+	if(p->snapsnapB) fname = p->snapsnapB;
+	fout = fopen(fname,"w+b");
 
 	if(bytesPerPixel == 3) bi.biCompression = BI_RGB;
 	bi.biHeight = height;
@@ -334,12 +345,14 @@ void Snapshot ()
 
 void fwl_init_SnapGif()
 {
-	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	//struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
     p->snapGif = TRUE;
 }
 
 void fwl_init_PrintShot() {
-	struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	//struct pSnapshot* p = (struct pSnapshot*)gglobal()->Snapshot.prv;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 	p->doPrintshot = TRUE;
 	p->savedSnapshot = p->doSnapshot;
 	p->doSnapshot = TRUE;
@@ -350,6 +363,7 @@ void fwl_init_PrintShot() {
 void fwl_toggleSnapshot() {
 	struct tSnapshot* t = &gglobal()->Snapshot;
 	struct pSnapshot* p = (struct pSnapshot*)t->prv;
+
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 	if (!t->doSnapshot) {

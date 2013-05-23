@@ -117,7 +117,25 @@ struct Touch
 	int x;
 	int y;
 }; 
-
+struct keypressTuple{
+	char kp;
+	int type;
+};
+struct mouseTuple{
+	int mev;
+	unsigned int button;
+	float x;
+	float y;
+};
+struct playbackRecord {
+	int frame;
+	double dtime;
+	//should we use more general Touch instead of mouse-specific?
+	int *mousetuples; //x,y,button chord
+	int mouseCount; //# mouse tuples
+	char *keystrokes;
+	int keyCount;
+};
 typedef struct pMainloop{
 	//browser
 	/* are we displayed, or iconic? */
@@ -175,7 +193,17 @@ typedef struct pMainloop{
 	int currentTouch;// = -1;
 	struct Touch touchlist[20];
 	int EMULATE_MULTITOUCH;// = 1; 
-
+	FILE* recordingFile;
+	int modeRecord;
+	int modeFixture;
+	int modePlayback;
+	int frameNum; //for Record, Playback - frame# =0 after scene loaded
+	struct playbackRecord* playback;
+	int playbackCount;
+	struct keypressTuple keypressQueue[50]; //for Record,Playback where keypresses are applied just once per frame for consistency
+	int keypressQueueCount;
+	struct mouseTuple mouseQueue[50];
+	int mouseQueueCount;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = malloc(sizeof(struct pMainloop));
@@ -263,13 +291,20 @@ void Mainloop_init(struct tMainloop *t){
 		p->currentTouch = -1;
 		//p->touchlist[20];
 		p->EMULATE_MULTITOUCH = 0; 
-
+		p->recordingFile = NULL;
+		p->modeRecord = FALSE;
+		p->modeFixture = FALSE;
+		p->modePlayback = FALSE;
+		p->frameNum = 0;
+		p->playbackCount = 0;
+		p->playback = NULL;
+		p->keypressQueueCount=0;
+		p->mouseQueueCount=0;
 	}
 }
 
 //true statics:
 int isBrowserPlugin = FALSE; //I can't think of a scenario where sharing this across instances would be a problem
-
 ///* are we displayed, or iconic? */
 //static int onScreen = TRUE;
 //
@@ -466,9 +501,272 @@ __inline double Time1970sec()
 #define TID(_tv) ((double)_tv.tv_sec + (double)_tv.tv_usec/1000000.0)
 #endif
 
+int dequeueKeyPress(ppMainloop p,char *kp, int *type){
+	if(p->keypressQueueCount > 0){
+		int i;
+		p->keypressQueueCount--;
+		*kp = p->keypressQueue[0].kp;
+		*type = p->keypressQueue[0].type;
+		for(i=0;i<p->keypressQueueCount;i++){
+			p->keypressQueue[i].kp = p->keypressQueue[i+1].kp;
+			p->keypressQueue[i].type = p->keypressQueue[i+1].type;
+		}
+		return 1;
+	}
+	return 0;
+}
+int readKeyPress(ppMainloop p, int i, char *kp, int *type){
+	if(p->keypressQueueCount > i){
+		*kp = p->keypressQueue[i].kp;
+		*type = p->keypressQueue[i].type;
+		return 1;
+	}
+	return 0;
+}
+int dequeueMouse(ppMainloop p, int *mev, unsigned int *button, float *x, float *y){
+	if(p->mouseQueueCount > 0){
+		int i;
+		p->mouseQueueCount--;
+		*mev = p->mouseQueue[0].mev;
+		*button = p->mouseQueue[0].button;
+		*x = p->mouseQueue[0].x;
+		*y = p->mouseQueue[0].y;
+		for(i=0;i<p->mouseQueueCount;i++){
+			p->mouseQueue[i].mev = p->mouseQueue[i+1].mev;
+			p->mouseQueue[i].button = p->mouseQueue[i+1].button;
+			p->mouseQueue[i].x = p->mouseQueue[i+1].x;
+			p->mouseQueue[i].y = p->mouseQueue[i+1].y;
+		}
+		return 1;
+	}
+	return 0;
+}
 
 /* Main eventloop for FreeWRL!!! */
+void fwl_RenderSceneUpdateScene0(double dtime);
+void fwl_do_keyPress0(const char kp, int type);
+void handle0(const int mev, const unsigned int button, const float x, const float y);
+int fw_mkdir(char* path){
+#ifdef _MSC_VER
+	return mkdir(path);
+#else
+	return mkdir(path,0755);
+#endif
+}
 void fwl_RenderSceneUpdateScene() {
+	double dtime;
+	ttglobal tg = gglobal();
+	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+
+	dtime = Time1970sec();
+	if((p->modeRecord || p->modeFixture || p->modePlayback)) //commandline --record/-R and --playback/-P, for automated testing
+	{
+		//functional testing support options May 2013
+		//records frame#, dtime, keyboard, mouse to an ASCII .fwplay file for playback
+		//to record, run a scene file with -R or --record option
+		//copy the .fwplay between platforms
+		//before starting refactoring, run scenes with -F or --fixture option,
+		//  and hit the 'x' key to save a snapshot one or more times per fixture run
+		//after each refactoring step, run scenes with -P or --playback option, 
+		//  and (with perl script) do a file compare(fixture_snapshot,playback_snapshot)
+		// 
+		//on the command line use:
+		//-R to just record the .fwplay file
+		//-F to play recording and save as fixture
+		//-P to play recording and save as playback
+		//-R -F to record and save as fixture in one step
+		//command line long option equivalents: -R --record, -F --fixture, -P --playback
+		char kp;
+		int type;
+		int mev;
+		unsigned int button;
+		float x,y;
+		char buff[1000], keystrokes[200], mouseStr[1000]; 
+		int namingMethod;
+		char *folder;
+		char recordingName[1000];
+		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+		if(!p->doEvents)
+			return; //for Record and Playback, don't start doing things until scene and textures are loaded
+		if(p->modeRecord)
+			if(dtime - tg->Mainloop.TickTime < .5) return; //slow down frame rate to 2fps to reduce empty meaningless records
+		p->frameNum++; //for record, frame relative to when scene is loaded
+		//naming method for related files (and folders)
+		//0=default: recording.fwplay, fixture.bmp playback.bmp - will overwrite for each scene
+		//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
+		//2=flattened: 1_wrl.fwplay, 1_wrl_fixture_17.bmp, 1_wrl_playback_17.bmp (17 is frame#)
+		namingMethod = 1; 
+		if(p->frameNum == 1){
+			int j,k;
+			recordingName[0] = '\0';
+			if(namingMethod>0){
+				strcpy(recordingName,tg->Mainloop.scene_name);
+				k = strlen(recordingName);
+				if(k){
+					//1.wrl -> 1_wrl
+					j = strlen(tg->Mainloop.scene_suff);
+					if(j){
+						strcat(recordingName,"_");
+						strcat(recordingName,tg->Mainloop.scene_suff);
+					}
+				}
+			}
+			if(namingMethod==1){
+				fw_mkdir(recordingName);
+				strcat(recordingName,"/recording"); //recording.fwplay a generic name, in case there's no scene name
+			}
+			if(namingMethod==0)
+				strcat(recordingName,"recording");
+			strcat(recordingName,".fwplay"); //1_wrl.fwplay
+		}
+		if(p->modeRecord){
+			int i;
+			char temp[1000];
+			if(p->frameNum == 1){
+				p->recordingFile = fopen(recordingName, "w");
+				if(p->recordingFile == NULL){
+					printf("ouch recording file %s not found\n", recordingName);
+					exit(1);
+				}
+			}
+			strcpy(keystrokes,"\"");
+			while(dequeueKeyPress(p,&kp,&type)){
+				sprintf(temp,"%c,%d,",kp,type);
+				strcat(keystrokes,temp);
+			}
+			strcat(keystrokes,"\"");
+			strcpy(mouseStr,"\"");
+			i = 0;
+			while(dequeueMouse(p,&mev, &button, &x, &y)){
+				sprintf(temp,"%d,%d,%.6f,%.6f;",mev,button,x,y);
+				strcat(mouseStr,temp);
+				i++;
+			}
+			strcat(mouseStr,"\"");
+			fprintf(p->recordingFile,"%d %.6lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
+			//folder = "fixture";
+			folder = NULL;
+		}
+		if(p->modeFixture  || p->modePlayback){
+			if(!p->modeRecord){
+				if(p->frameNum == 1){
+					p->recordingFile = fopen(recordingName, "r");
+					if(p->recordingFile == NULL){
+						printf("ouch recording file %s not found\n", recordingName);
+						exit(1);
+					}
+				}
+				// playback[i] = {iframe, dtime, keystrokes or NULL, mouse (xy,button sequence) or NULL, snapshot URL or NULL, scenegraph_dump URL or NULL, ?other?}
+				if( fgets( buff, 1000, p->recordingFile ) != NULL ) {
+					if(sscanf(buff,"%d %lf %s %s\n",&p->frameNum,&dtime,keystrokes,mouseStr) == 4){ //,snapshotURL,scenegraphURL) == 6){
+						printf("%d %lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
+					}
+				}
+			}
+			if(p->modeFixture)  folder = "fixture";
+			if(p->modePlayback) folder = "playback";
+		}
+		//for all 3 - read the keyboard string and the mouse string
+		if(p->modeRecord || p->modeFixture || p->modePlayback){
+			if(strlen(keystrokes)>5){ // "x,1," == 6
+				int i,ii;
+				int n = (strlen(keystrokes) -2)/4;
+				for(i=0;i<n;i++){
+					ii = i*4 +1;
+					sscanf(&keystrokes[ii],"%c,%d",&kp,&type);
+					if(p->modeFixture || p->modePlayback){  
+						//we will catch the snapshot keybaord command and prepare the
+						//snapshot filename and folder/directory for fixture and playback
+						if(kp == 'x'){
+							//prepare snapshot folder(scene/ + fixture ||playback) 
+							// and file name(frame#)
+							char snapfile[5];
+#ifdef _MSC_VER
+							char *suff = ".bmp";
+#else
+							char *suff = ".snap";
+#endif
+							sprintf(snapfile,"%d",p->frameNum);
+							if(namingMethod == 0){
+								//default: recording.bmp, playback.bmp
+								char snappath[100];
+								strcpy(snappath,folder);
+								strcat(snappath,suff);
+								fwl_set_SnapFile(snappath);
+							}
+							if(namingMethod==1){
+								//nested folder approach 
+								//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
+								int k,j;
+								char snappath[100];
+								strcpy(snappath,tg->Mainloop.scene_name);
+								k = strlen(snappath);
+								if(k){
+									//1.wrl -> 1_wrl
+									j = strlen(tg->Mainloop.scene_suff);
+									if(j){
+										strcat(snappath,"_");
+										strcat(snappath,tg->Mainloop.scene_suff);
+									}
+								}
+								strcat(snappath,"/");
+								strcat(snappath,folder);
+								fw_mkdir(snappath); //1_wrl/fixture
+								//fwl_set_SnapTmp(snappath); //sets the folder for snaps
+								strcat(snappath,"/");
+								strcat(snappath,snapfile);
+								strcat(snappath,suff); //".bmp");
+								//fwl_set_SnapFile(snapfile);
+								fwl_set_SnapFile(snappath); //1_wrl/fixture/17.bmp
+							}
+							if(namingMethod == 2){
+								//flattened filename approach with '_'
+								//if snapshot 'x' is on frame 17, and fixture,
+								//   then 1_wrl_fixture_17.snap or .bmp
+								char snappath[100];
+								int j, k;
+								strcpy(snappath,tg->Mainloop.scene_name);
+								k = strlen(snappath);
+								if(k){
+									j= strlen(tg->Mainloop.scene_suff);
+									if(j){
+										strcat(snappath,"_");
+										strcat(snappath,tg->Mainloop.scene_suff);
+									}
+									strcat(snappath,"_");
+								}
+								strcat(snappath,folder);
+								strcat(snappath,"_");
+								strcat(snappath,snapfile);
+								strcat(snappath,suff); //".bmp");
+								fwl_set_SnapFile(snappath);
+							}
+						}
+					}
+					fwl_do_keyPress0(kp, type);
+				}
+			}
+			if(strlen(mouseStr)>2){
+				int i,ii,jj,len;
+				int mev;
+				unsigned int button;
+				float x,y;
+				len = strlen(mouseStr);
+				ii=1;
+				do{
+					for(i=ii;i<len;i++)
+						if(mouseStr[i] == ';') break;
+					sscanf(&mouseStr[ii],"%d,%d,%f,%f;",&mev,&button,&x,&y);
+					handle0(mev,button,x,y);
+					//printf("%d,%d,%f,%f;",mev,button,x,y);
+					ii=i+1;
+				}while(ii<len-1);
+			}
+		}
+	}
+	fwl_RenderSceneUpdateScene0(dtime);
+}
+void fwl_RenderSceneUpdateScene0(double dtime) {
 		ttglobal tg = gglobal();
 		ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -486,10 +784,9 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 
         /* should we do events, or maybe a parser is parsing? */
         p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
-
         /* First time through */
         if (p->loop_count == 0) {
-                p->BrowserStartTime = Time1970sec();
+                p->BrowserStartTime = dtime; //Time1970sec();
 				tg->Mainloop.TickTime = p->BrowserStartTime;
                 tg->Mainloop.lastTime = tg->Mainloop.TickTime - 0.01; /* might as well not invoke the usleep below */
         } else {
@@ -510,8 +807,8 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
         }
 
         /* Set the timestamp */
-	tg->Mainloop.lastTime = tg->Mainloop.TickTime;
-	tg->Mainloop.TickTime = Time1970sec();
+		tg->Mainloop.lastTime = tg->Mainloop.TickTime;
+		tg->Mainloop.TickTime = dtime; //Time1970sec();
 
         /* any scripts to do?? */
 #ifdef _MSC_VER
@@ -928,6 +1225,31 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
   		#endif //EXCLUDE_EAI
           }
   }
+void queueMouse(ppMainloop p, const int mev, const unsigned int button, const float x, const float y){
+	if(p->mouseQueueCount < 50){
+		p->mouseQueue[p->mouseQueueCount].mev = mev;
+		p->mouseQueue[p->mouseQueueCount].button = button;
+		p->mouseQueue[p->mouseQueueCount].x = x;
+		p->mouseQueue[p->mouseQueueCount].y = y;
+		p->mouseQueueCount++;
+	}
+}
+
+void handle(const int mev, const unsigned int button, const float x, const float y)
+{
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	if(p->modeRecord || p->modeFixture || p->modePlayback){
+		if(p->modeRecord){
+			queueMouse(p,mev,button,x,y);
+		}
+		//else ignor so test isn't ruined by random mouse movement during playback
+		return;
+	}
+	handle0(mev, button, x, y);
+}
 
 #if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
 void handle_Xevents(XEvent event) {
@@ -2487,8 +2809,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 #else
 #define KEYDOWN 2
 #endif
-
-void fwl_do_keyPress(const char kp, int type) {
+void fwl_do_keyPress0(const char kp, int type) {
 		int lkp;
 		ttglobal tg = gglobal();
         /* does this X3D file have a KeyDevice node? if so, send it to it */
@@ -2552,6 +2873,23 @@ void fwl_do_keyPress(const char kp, int type) {
                         handle_keyrelease(kp); //keyup for fly
                 }
         }
+}
+void queueKeyPress(ppMainloop p, const char kp, int type){
+	if(p->keypressQueueCount < 50){
+		p->keypressQueue[p->keypressQueueCount].kp = kp;
+		p->keypressQueue[p->keypressQueueCount].type = type;
+		p->keypressQueueCount++;
+	}
+}
+void fwl_do_keyPress(const char kp, int type) {
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	if(p->modeRecord){
+		queueKeyPress(p,kp,type);
+	}else{
+		fwl_do_keyPress0(kp,type);
+	}
 }
 
 
@@ -3219,6 +3557,22 @@ void fwl_set_KeyString(const char* kstring)
 {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
     p->keypress_string = strdup(kstring);
+}
+
+void fwl_set_modeRecord()
+{
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+    p->modeRecord = TRUE;
+}
+void fwl_set_modeFixture()
+{
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+    p->modeFixture = TRUE;
+}
+void fwl_set_modePlayback()
+{
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+    p->modePlayback = TRUE;
 }
 
 /* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means

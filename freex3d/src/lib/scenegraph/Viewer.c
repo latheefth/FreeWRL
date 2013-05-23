@@ -1097,7 +1097,7 @@ void handle_rplane(const int mev, const unsigned int button, float x, float y) {
 /************************************************************************************/
 
 
-void handle(const int mev, const unsigned int button, const float x, const float y)
+void handle0(const int mev, const unsigned int button, const float x, const float y)
 {
 	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 

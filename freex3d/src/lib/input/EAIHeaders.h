@@ -196,8 +196,8 @@ char *eaiPrintCommand (char command);
 extern int E_SOCK_bufsize;
 //	extern char *E_SOCK_buffer;
 extern int E_SOCK_bufcount;
-int EAIbufsize;
-char *EAIbuffer;
+//int EAIbufsize;
+//char *EAIbuffer;
 //	int EAIbufcount;
 #define EAIREADSIZE 8192
 //	extern char EAIListenerData[EAIREADSIZE];

@@ -85,6 +85,9 @@ void fv_usage()
 	    "  -A|--anaglyph <string>  Set anaglyph color pair ie: RB for left red, right blue. any of RGBCAM.\n"
 	    "  -B|--sidebyside         Set side-by-side stereo.\n"
 	    "  -K|--keypress <string>  Set immediate key pressed when ready.\n"
+		"  -R|--record             Record to <scene.play>.\n"
+		"  -F|--fixture            Playback from <scene.play> to /fixture.\n"
+		"  -P|--playback           Playback from <scene.play> to /playback\n"
 	    "\nInternal options:\n"
 	    "  -i|--plugin <string>    Called from plugin.\n"
 	    "  -j|--fd <number>        Pipe to command the program.\n"
@@ -143,7 +146,9 @@ const char * fv_validate_string_arg(const char *optarg)
 	{"curl", no_argument, 0, 'C'},
 
 	{"display", required_argument, 0, 'd'}, /* Roberto Gerson */
-
+	{"record", no_argument, 0, 'R'},
+	{"fixture", no_argument, 0, 'F'},
+	{"playback", no_argument, 0, 'P'},
 	{0, 0, 0, 0}
     };
 
@@ -178,9 +183,9 @@ int fv_parseCommandLine (int argc, char **argv)
     FILE *fp;
 
 #if defined(DOSNAPSEQUENCE)
-    static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:d:";
+	static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:d:RFP";
 #else
-    static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utCL:d:";
+	static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utCL:d:RFP"; //':' means the preceding option requires an arguement
 #endif
 
 
@@ -404,6 +409,16 @@ int fv_parseCommandLine (int argc, char **argv)
 		return FALSE;
 	    }
 	    break;
+
+	case 'R': /* --record, no arg */
+		fwl_set_modeRecord();
+		break;
+	case 'F': /* --fixture, no arg */
+		fwl_set_modeFixture();
+		break;
+	case 'P': /* --playback, no arg */
+		fwl_set_modePlayback();
+		break;
 
 #ifdef HAVE_LIBCURL
 	case 'C': /* --curl, no argument */
