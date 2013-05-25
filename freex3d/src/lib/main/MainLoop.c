@@ -126,6 +126,9 @@ struct mouseTuple{
 	unsigned int button;
 	float x;
 	float y;
+	int ix;
+	int iy;
+	int ID;
 };
 struct playbackRecord {
 	int frame;
@@ -541,11 +544,32 @@ int dequeueMouse(ppMainloop p, int *mev, unsigned int *button, float *x, float *
 	}
 	return 0;
 }
+int dequeueMouseMulti(ppMainloop p, int *mev, unsigned int *button, int *ix, int *iy, int *ID){
+	if(p->mouseQueueCount > 0){
+		int i;
+		p->mouseQueueCount--;
+		*mev = p->mouseQueue[0].mev;
+		*button = p->mouseQueue[0].button;
+		*ix = p->mouseQueue[0].ix;
+		*iy = p->mouseQueue[0].iy;
+		*ID = p->mouseQueue[0].ID;
+		for(i=0;i<p->mouseQueueCount;i++){
+			p->mouseQueue[i].mev = p->mouseQueue[i+1].mev;
+			p->mouseQueue[i].button = p->mouseQueue[i+1].button;
+			p->mouseQueue[i].ix = p->mouseQueue[i+1].ix;
+			p->mouseQueue[i].iy = p->mouseQueue[i+1].iy;
+			p->mouseQueue[i].ID = p->mouseQueue[i+1].ID;
+		}
+		return 1;
+	}
+	return 0;
+}
 
 /* Main eventloop for FreeWRL!!! */
 void fwl_RenderSceneUpdateScene0(double dtime);
 void fwl_do_keyPress0(const char kp, int type);
 void handle0(const int mev, const unsigned int button, const float x, const float y);
+void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
 int fw_mkdir(char* path){
 #ifdef _MSC_VER
 	return mkdir(path);
@@ -578,7 +602,7 @@ void fwl_RenderSceneUpdateScene() {
 		//command line long option equivalents: -R --record, -F --fixture, -P --playback
 		char kp;
 		int type;
-		int mev;
+		int mev,ix,iy,ID;
 		unsigned int button;
 		float x,y;
 		char buff[1000], keystrokes[200], mouseStr[1000]; 
@@ -595,12 +619,18 @@ void fwl_RenderSceneUpdateScene() {
 		//0=default: recording.fwplay, fixture.bmp playback.bmp - will overwrite for each scene
 		//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
 		//2=flattened: 1_wrl.fwplay, 1_wrl_fixture_17.bmp, 1_wrl_playback_17.bmp (17 is frame#)
-		namingMethod = 1; 
+		//3=groupfolders: /tests, /recordings/*.fwplay, /fixtures/1_wrl_17.bmp /playbacks/1_wrl_17.bmp
+		namingMethod = 3; 
 		if(p->frameNum == 1){
 			int j,k;
 			recordingName[0] = '\0';
+			if(namingMethod==3){
+				strcpy(recordingName,"recording");
+				fw_mkdir(recordingName);
+				strcat(recordingName,"/");
+			}
 			if(namingMethod>0){
-				strcpy(recordingName,tg->Mainloop.scene_name);
+				strcat(recordingName,tg->Mainloop.scene_name);
 				k = strlen(recordingName);
 				if(k){
 					//1.wrl -> 1_wrl
@@ -637,10 +667,19 @@ void fwl_RenderSceneUpdateScene() {
 			strcat(keystrokes,"\"");
 			strcpy(mouseStr,"\"");
 			i = 0;
-			while(dequeueMouse(p,&mev, &button, &x, &y)){
-				sprintf(temp,"%d,%d,%.6f,%.6f;",mev,button,x,y);
-				strcat(mouseStr,temp);
-				i++;
+			if(0){
+				while(dequeueMouse(p,&mev, &button, &x, &y)){
+					sprintf(temp,"%d,%d,%.6f,%.6f;",mev,button,x,y);
+					strcat(mouseStr,temp);
+					i++;
+				}
+			}
+			if(1){
+				while(dequeueMouseMulti(p,&mev, &button, &ix, &iy, &ID)){
+					sprintf(temp,"%d,%d,%d,%d,%d;",mev,button,ix,iy,ID);
+					strcat(mouseStr,temp);
+					i++;
+				}
 			}
 			strcat(mouseStr,"\"");
 			fprintf(p->recordingFile,"%d %.6lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
@@ -741,6 +780,29 @@ void fwl_RenderSceneUpdateScene() {
 								strcat(snappath,suff); //".bmp");
 								fwl_set_SnapFile(snappath);
 							}
+							if(namingMethod == 3){
+								//group folder
+								//if snapshot 'x' is on frame 17, and fixture,
+								//   then fixture/1_wrl_17.snap or .bmp
+								char snappath[100];
+								int j, k;
+								strcpy(snappath,folder);
+								fw_mkdir(snappath); // /fixture
+								strcat(snappath,"/");
+								strcat(snappath,tg->Mainloop.scene_name); // /fixture/1
+								k = strlen(tg->Mainloop.scene_name);
+								if(k){
+									j= strlen(tg->Mainloop.scene_suff);
+									if(j){
+										strcat(snappath,"_");
+										strcat(snappath,tg->Mainloop.scene_suff);
+									}
+									strcat(snappath,"_");
+								}
+								strcat(snappath,snapfile);
+								strcat(snappath,suff); //".bmp");
+								fwl_set_SnapFile(snappath);  //  /fixture/1_wrl_17.bmp
+							}
 						}
 					}
 					fwl_do_keyPress0(kp, type);
@@ -756,8 +818,14 @@ void fwl_RenderSceneUpdateScene() {
 				do{
 					for(i=ii;i<len;i++)
 						if(mouseStr[i] == ';') break;
+					if(0){
 					sscanf(&mouseStr[ii],"%d,%d,%f,%f;",&mev,&button,&x,&y);
 					handle0(mev,button,x,y);
+					}
+					if(1){
+					sscanf(&mouseStr[ii],"%d,%d,%d,%d,%d;",&mev,&button,&ix,&iy,&ID);
+					fwl_handle_aqua_multi0(mev,button,ix,iy,ID);
+					}
 					//printf("%d,%d,%f,%f;",mev,button,x,y);
 					ii=i+1;
 				}while(ii<len-1);
@@ -1225,6 +1293,16 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
   		#endif //EXCLUDE_EAI
           }
   }
+void queueMouseMulti(ppMainloop p, const int mev, const unsigned int button, const int ix, const int iy, int ID){
+	if(p->mouseQueueCount < 50){
+		p->mouseQueue[p->mouseQueueCount].mev = mev;
+		p->mouseQueue[p->mouseQueueCount].button = button;
+		p->mouseQueue[p->mouseQueueCount].ix = ix;
+		p->mouseQueue[p->mouseQueueCount].iy = iy;
+		p->mouseQueue[p->mouseQueueCount].ID = ID;
+		p->mouseQueueCount++;
+	}
+}
 void queueMouse(ppMainloop p, const int mev, const unsigned int button, const float x, const float y){
 	if(p->mouseQueueCount < 50){
 		p->mouseQueue[p->mouseQueueCount].mev = mev;
@@ -1241,6 +1319,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
+	if(0)
 	if(p->modeRecord || p->modeFixture || p->modePlayback){
 		if(p->modeRecord){
 			queueMouse(p,mev,button,x,y);
@@ -1341,6 +1420,9 @@ void handle_Xevents(XEvent event) {
 
                 case ButtonPress:
                 case ButtonRelease:
+					if(0)
+					fwl_handle_aqua_multi(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,0);
+					if(1){
                         /* printf("got a button press or button release\n"); */
                         /*  if a button is pressed, we should not change state,*/
                         /*  so keep a record.*/
@@ -1357,7 +1439,8 @@ void handle_Xevents(XEvent event) {
                                         (float) ((float)event.xbutton.x/tg->display.screenWidth),
                                         (float) ((float)event.xbutton.y/tg->display.screenHeight));
                         }
-                        break;
+					}
+                    break;
 
                 case MotionNotify:
 #if KEEP_X11_INLIB
@@ -1369,6 +1452,9 @@ void handle_Xevents(XEvent event) {
                                 }
                         }
 #endif /* KEEP_X11_INLIB */
+					if(0)
+					fwl_handle_aqua_multi(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,0);
+					if(1){
 
                         /*  save the current x and y positions for picking.*/
                         tg->Mainloop.currentX[p->currentCursor] = event.xbutton.x;
@@ -1385,7 +1471,8 @@ void handle_Xevents(XEvent event) {
                                         (float)((float)event.xbutton.x/tg->display.screenWidth),
                                         (float)((float)event.xbutton.y/tg->display.screenHeight));
                         }
-                        break;
+					}
+                    break;
         }
 }
 #endif
@@ -3668,12 +3755,29 @@ void freewrlDie (const char *format) {
 }
 
 
-#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2)
+//#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2)
 
 //int ntouch =0;
 //int currentTouch = -1;
 /* MIMIC what happens in handle_Xevents, but without the X events */
-void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID) {
+void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
+void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID)
+{
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
+	if(p->modeRecord || p->modeFixture || p->modePlayback){
+		if(p->modeRecord){
+			queueMouseMulti(p,mev,button,x,y,ID);
+		}
+		//else ignor so test isn't ruined by random mouse movement during playback
+		return;
+	}
+	fwl_handle_aqua_multi0(mev, button, x, y, ID);
+}
+
+void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID) {
         int count;
 		ppMainloop p;
 		ttglobal tg = gglobal();
@@ -3840,7 +3944,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
 	}
 }
 
-#endif
+//#endif
 
 void fwl_setCurXY(int cx, int cy) {
 	ttglobal tg = gglobal();
