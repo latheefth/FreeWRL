@@ -19,7 +19,8 @@
 ****************************************************************************/
 
 /* function protos */
-
+//#include <config.h>
+//#include <system.h>
 #include "EAI_C.h"
 
 /* get a node pointer */
@@ -89,7 +90,7 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 		adr = child->X3D_MFNode.p[5].adr; 
 	}
 
-	sprintf_s(arg, 10, "%d", adr);
+	snprintf(arg, 10, "%d", adr);
 	
 	ptr = _X3D_make1StringCommand(GETNODEPARENTS,arg);
 
