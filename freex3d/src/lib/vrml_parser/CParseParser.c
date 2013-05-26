@@ -3332,6 +3332,7 @@ void cParseErrorFieldString(struct VRMLParser *me, char *str, const char *str2) 
 */
 struct X3D_Proto *brotoInstance(struct X3D_Proto* proto, BOOL ideep);
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node);
+static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefinition* proto, struct Shader_Script* script);
 
 static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
     int nodeTypeB, nodeTypeU, isBroto;
