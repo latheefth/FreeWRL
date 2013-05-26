@@ -935,9 +935,14 @@ MF_TYPE(MFNode, mfnode, Node)
 	/* and, reset the XML flag */
 	parser->parsingX3DfromXML = oldXMLflag;
 }
-void Parser_scanStringValueToMem_C(union anyVrml* any, indexT ctype, char *value, int isXML) 
+void Parser_scanStringValueToMem_C(void *any0, int ctype0, char *value, int isXML)
+//void Parser_scanStringValueToMem_C(union anyVrml* any, indexT ctype, char *value, int isXML) 
 {
 	struct VRMLParser *parser;
+	union anyVrml* any;
+	indexT ctype;
+	any = (union anyVrml*)any0;
+	ctype = (indexT)ctype0;
 	parser=newParser(NULL, 0, TRUE);
 	Parser_scanStringValueToMem_C0(parser, any, ctype, value, isXML);
 	if (parser != NULL) {
