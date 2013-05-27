@@ -106,8 +106,13 @@ typedef unsigned char _Bool;
 #define JS_FALSE 0
 #define JS_TRUE 1
 #endif
+
+#ifndef TRUE
 #define TRUE 1
+#endif
+#ifndef FALSE
 #define FALSE 0
+#endif
 
 #if HAVE_UNISTD_H
 # if HAVE_SYS_TYPES_H

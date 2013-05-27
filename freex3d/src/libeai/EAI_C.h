@@ -38,14 +38,17 @@
 	#include <netdb.h>
 #endif
 
+/* copied from ../CFuncs/ */
+typedef size_t indexT;
+#define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
+
 #include "EAIHeaders.h"
 #include "SCKHeaders.h"
 
 #ifdef HAVE_UNISTD_H
 	#include <unistd.h>
-#else
-	#include <stdio.h>
 #endif
+#include <stdio.h>
 
 #ifdef HAVE_STRINGS_H
 	#include <strings.h>
@@ -65,9 +68,6 @@
 #define bzero(b,len) (memset((b), '\0', (len)), (void) 0) 
 #define bcopy(b1,b2,len) (memmove((b2), (b1), (len)), (void) 0)
 
-/* copied from ../CFuncs/ */
-typedef size_t indexT;
-#define ARR_SIZE(arr) (int)(sizeof(arr)/sizeof((arr)[0]))
 /* Table of built-in fieldIds */
 extern const char *FIELDTYPES[];
 extern const indexT FIELDTYPES_COUNT;
