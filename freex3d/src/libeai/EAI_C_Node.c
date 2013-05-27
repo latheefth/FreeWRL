@@ -99,7 +99,7 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 	REMOVE_EOT;
 
 	//start tokenizer
-	parentToken = strtok(ptr," ",&next_token);
+	parentToken = STRTOK_S(ptr," ",&next_token);
 
 	sscanf(parentToken,"%d",&parentAdr);
 
@@ -147,7 +147,7 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 		parentCount++;		
 
 		//find next parent address
-		parentToken = strtok(NULL," ",&next_token);
+		parentToken = STRTOK_S(NULL," ",&next_token);
 	}
 
 	*outParentArray = tmpBuf;

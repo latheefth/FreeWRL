@@ -214,8 +214,8 @@ static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfs
 /* in case Bool was defined above, restore the value */
 #define Bool savedBool
 
-
-void setMFElementtype (int num);
+/* declared and defined in fieldGet.c(.h) , do not declare it here */
+/* void setMFElementtype (int num); */
 
 /*****************************************
 C Routing Methodology:

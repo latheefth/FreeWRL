@@ -33,11 +33,12 @@
 	#include <windows.h>
 	#define snprintf _snprintf
 	#define sscanf sscanf_s
-	#define strtok strtok_s
+	#define STRTOK_S strtok_s
 #else
 	#include <sys/socket.h>
 	#include <netinet/in.h>
 	#include <netdb.h>
+	#define STRTOK_S strtok_r
 #endif
 
 /* copied from ../CFuncs/ */
