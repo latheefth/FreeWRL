@@ -52,5 +52,7 @@ void EAI_GetType(int cNode, char *ctmp, char *dtmp, int *cNodePtr, int *fieldOff
 int mapToKEYWORDindex(indexT pkwIndex);
 void outBufferCat (char *str);
 
+int EAI_GetNodeParents(int cNode, int **parentNodesAdr);
+
 #endif /* __FREEWRL_EAI_HELPERS_H__ */
 

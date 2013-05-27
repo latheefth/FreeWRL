@@ -51,4 +51,10 @@ const char* freewrl_get_browser_program();
 
 void resetSensorEvents(void);
 
+void print_routes(FILE* fp);
+void print_DEFed_node_names_and_pointers(FILE* fp);
+
+/* should be somewhere else */
+char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset);
+
 #endif /* __FREEWRL_MAINLOOP_MAIN_H__ */

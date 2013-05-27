@@ -2778,7 +2778,7 @@ void propagate_events_B() {
 	printf ("done propagate_events\n\n");
 	#endif
 }
-BOOL usingBrotos();
+/* BOOL usingBrotos(); - moved to CParseParser.h */
 void propagate_events()
 {
 	if( usingBrotos() )

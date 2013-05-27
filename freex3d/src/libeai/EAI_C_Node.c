@@ -19,8 +19,10 @@
 ****************************************************************************/
 
 /* function protos */
-//#include <config.h>
-//#include <system.h>
+#ifndef WIN32
+#include "config.h"
+#include "system.h"
+#endif
 #include "EAI_C.h"
 
 /* get a node pointer */

@@ -280,7 +280,7 @@ int fwl_isinputThreadParsing() {
 	return(p->inputThreadParsing);
 }
 void sceneInstance(struct X3D_Proto* proto, struct X3D_Group *scene);
-BOOL usingBrotos();
+/* BOOL usingBrotos(); -- moved to CParseParser.h */
 void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes) ;
 
 /**

@@ -61,6 +61,7 @@ void EAI_RW(char *bufptr);
 /* more function prototypes to avoid implicit declarations */
 void Parser_deleteParserForScanStringValueToMem(void);			/* from EAI_C_CommonFunctions.c */
 void Parser_scanStringValueToMem(struct X3D_Node *node, size_t coffset, int ctype, char *value, int isXML);
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
 void Parser_scanStringValueToMem_C(void *node, int ctype, char *value, int isXML);
 
 									/* from EAI_C_CommonFunctions.c */

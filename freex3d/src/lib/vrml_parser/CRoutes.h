@@ -74,6 +74,8 @@ void getSpecificRoute (int routeNo, struct X3D_Node **fromNode, int *fromOffset,
 void do_first(void);
 void delete_first(struct X3D_Node *);
 
+unsigned long upper_power_of_two(unsigned long v);
+
 void mark_event (struct X3D_Node *from, int fromoffset);
 void mark_event_check (struct X3D_Node *from, int fromoffset,char *fn, int line);
 void resetScriptTouchedFlag(int actualscript, int fptr);

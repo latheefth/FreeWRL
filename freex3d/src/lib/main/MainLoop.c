@@ -569,6 +569,7 @@ int dequeueMouseMulti(ppMainloop p, int *mev, unsigned int *button, int *ix, int
 void fwl_RenderSceneUpdateScene0(double dtime);
 void fwl_do_keyPress0(const char kp, int type);
 void handle0(const int mev, const unsigned int button, const float x, const float y);
+void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID);
 void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
 int fw_mkdir(char* path){
 #ifdef _MSC_VER
@@ -2174,6 +2175,7 @@ void print_field_value(FILE *fp, int typeIndex, union anyVrml* value)
 		}
 	}
 } //return print_field
+void dump_scene(FILE *fp, int level, struct X3D_Node* node);
 void dump_scene2(FILE *fp, int level, struct X3D_Node* node, int recurse, Stack *DEFedNodes);
 // print_field is used by dump_scene2() to pretty-print a single field.
 // recurses into dump_scene2 for SFNode and MFNodes to print them in detail.

@@ -33,5 +33,7 @@ General functions declarations.
 
 void registerBindable(struct X3D_Node *);
 
+/* note , this should probably move to a different header and not be implemented in ProdCon */
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where);
 
 #endif /* __FREEWRL_PRODCON_MAIN_H__ */

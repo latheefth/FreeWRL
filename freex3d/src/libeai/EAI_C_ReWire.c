@@ -1,5 +1,7 @@
 #include "config.h"
-//#include "system.h"
+#ifndef WIN32
+#include "system.h"
+#endif
 #include "X3DNode.h"
 #include "GeneratedHeaders.h"
 
