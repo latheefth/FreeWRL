@@ -43,6 +43,7 @@ $Id$
 #include "../vrml_parser/CFieldDecls.h"
 #include "../world_script/JScript.h"
 #include "../world_script/CScripts.h"
+#include "../world_script/fieldGet.h"
 #include "../world_script/fieldSet.h"
 #include "CParseParser.h"
 #include "CParseLexer.h"

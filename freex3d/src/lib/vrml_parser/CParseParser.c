@@ -50,6 +50,7 @@
 #include "CParseLexer.h"
 #include "CProto.h"
 #include "CParse.h"
+#include "CRoutes.h"			/* for upper_power_of_two */
 
 #define PARSE_ERROR(msg) \
  { \

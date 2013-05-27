@@ -76,6 +76,7 @@
 #include "../opengl/Textures.h"
 #include "../opengl/LoadTextures.h"
 
+#include "MainLoop.h"
 #include "ProdCon.h"
 
 /* used by the paser to call back the lexer for EXTERNPROTO */

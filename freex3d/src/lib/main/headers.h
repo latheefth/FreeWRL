@@ -681,6 +681,7 @@ void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **pt
 void removeFilenameFromPath (char *path);
 
 int EAI_CreateVrml(const char *tp, const char *inputstring, struct X3D_Group *node);
+int EAI_CreateX3d(const char *tp, const char *inputstring, struct X3D_Group *where);
 void EAI_Route(char cmnd, const char *tf);
 
 void handle_aqua(const int mev, const unsigned int button, int x, int y);
@@ -887,6 +888,9 @@ int X3DParse(struct X3D_Group *parent, const char *inputstring);
 void *createNewX3DNode (int nt);
 void *createNewX3DNode0 (int nt);
 
+char *findFIELDNAMESfromNodeOffset0(struct X3D_Node *node, int offset);
+void print_routes(FILE* fp);
+void print_DEFed_node_names_and_pointers(FILE* fp);
 
 //updateStatusBar(void);
 

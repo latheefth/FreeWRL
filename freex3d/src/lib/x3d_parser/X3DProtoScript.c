@@ -50,6 +50,7 @@ $Id$
 #include "../vrml_parser/CParseLexer.h"
 #include "../vrml_parser/CProto.h"
 #include "../vrml_parser/CParse.h"
+#include "../vrml_parser/CRoutes.h"	/* for upper_power_of_two */
 #include "../input/InputFunctions.h"	/* resolving implicit declarations */
 #include "../input/EAIHeaders.h"	/* resolving implicit declarations */
 #include "../input/EAIHelpers.h"	/* resolving implicit declarations */

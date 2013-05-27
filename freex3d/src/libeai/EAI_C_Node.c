@@ -99,9 +99,9 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 	REMOVE_EOT;
 
 	//start tokenizer
-	parentToken = strtok_s(ptr," ",&next_token);
+	parentToken = strtok(ptr," ",&next_token);
 
-	sscanf_s(parentToken,"%d",&parentAdr);
+	sscanf(parentToken,"%d",&parentAdr);
 
 	//parent search did not found parents or encountered an error?
 	if(parentAdr <= 0)
@@ -133,7 +133,7 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 				
 		tmpBuf[parentCount].X3D_SFNode.type = FIELDTYPE_SFNode;
 
-		sscanf_s(parentToken,"%d",&parentAdr);
+		sscanf(parentToken,"%d",&parentAdr);
 
 		//parent search did not found parents or encountered an error?
 		if(parentAdr <= 0)
@@ -147,7 +147,7 @@ int X3D_getParentNodes(X3DNode* child, X3DNode** outParentArray)
 		parentCount++;		
 
 		//find next parent address
-		parentToken = strtok_s(NULL," ",&next_token);
+		parentToken = strtok(NULL," ",&next_token);
 	}
 
 	*outParentArray = tmpBuf;
@@ -342,7 +342,7 @@ char* X3D_getFieldDefs(int nodeAdr)
 	// INCOMPLETE: we get a string containing the fields but we actually do nothing with it.	
 	ptr = _X3D_make1StringCommand(GETFIELDDEFS,myline);
 
-	res = _strdup(ptr);
+	res = strdup(ptr);
 
 	return res;
 }
