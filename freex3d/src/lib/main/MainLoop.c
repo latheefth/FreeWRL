@@ -1420,9 +1420,9 @@ void handle_Xevents(XEvent event) {
 
                 case ButtonPress:
                 case ButtonRelease:
-					if(0)
+					if(1)
 					fwl_handle_aqua_multi(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,0);
-					if(1){
+					if(0){
                         /* printf("got a button press or button release\n"); */
                         /*  if a button is pressed, we should not change state,*/
                         /*  so keep a record.*/
@@ -1452,9 +1452,9 @@ void handle_Xevents(XEvent event) {
                                 }
                         }
 #endif /* KEEP_X11_INLIB */
-					if(0)
+					if(1)
 					fwl_handle_aqua_multi(event.type,event.xbutton.button,event.xbutton.x,event.xbutton.y,0);
-					if(1){
+					if(0){
 
                         /*  save the current x and y positions for picking.*/
                         tg->Mainloop.currentX[p->currentCursor] = event.xbutton.x;
