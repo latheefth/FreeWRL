@@ -152,6 +152,13 @@ void set_snapshotModeTesting(int value)
 	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 	p->modeTesting = value;
 }
+int isSnapshotModeTesting()
+{
+	struct tSnapshot* t = &gglobal()->Snapshot;
+	struct pSnapshot* p = (struct pSnapshot*)t->prv;
+	return p->modeTesting;
+}
+
 void fwl_set_SeqFile(const char* file)
 {
 #if defined(DOSNAPSEQUENCE)
@@ -665,18 +672,20 @@ void Snapshot () {
 /* need to re-implement this for OSX generating QTVR */
 
 		/* now, if we are doing only 1, convert the raw into the good.... */
-		if (!p->snapsequence && !p->modeTesting) {
+		if (!p->snapsequence) {
 #endif
-			t->snapGoodCount++;
-			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.png",mytmp,mysnapb,t->snapGoodCount);
-			snprintf(sysline,sizeof(sysline),"%s -size %dx%d -depth 8 -flip %s %s",
-			IMAGECONVERT,gglobal()->display.screenWidth, gglobal()->display.screenHeight,thisRawFile,thisGoodFile);
-	
-			if (system (sysline) != 0) {
-				printf ("Freewrl: error running convert line %s\n",sysline);
+			if(!p->modeTesting){
+				t->snapGoodCount++;
+				snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.png",mytmp,mysnapb,t->snapGoodCount);
+				snprintf(sysline,sizeof(sysline),"%s -size %dx%d -depth 8 -flip %s %s",
+				IMAGECONVERT,gglobal()->display.screenWidth, gglobal()->display.screenHeight,thisRawFile,thisGoodFile);
+		
+				if (system (sysline) != 0) {
+					printf ("Freewrl: error running convert line %s\n",sysline);
+				}
+				printf ("[2] snapshot is:  %s\n",thisGoodFile);
+				UNLINK (thisRawFile);
 			}
-			printf ("[2] snapshot is:  %s\n",thisGoodFile);
-			UNLINK (thisRawFile);
 #ifdef DOSNAPSEQUENCE
 /* need to re-implement this for OSX generating QTVR */
 
