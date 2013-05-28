@@ -634,6 +634,13 @@ if test x$sw_osc = xyes; then
 fi
 
 # ======================================
+# STEREO enable
+# ======================================
+
+AC_MY_DEFINE_SWITCH([stereo],[enable stereo (default=off)],off,FREEWRL_STEREO_RENDERING)
+AM_CONDITIONAL([FREEWRL_STEREO_RENDERING],[test "$sw_stereo" != no]) 
+
+# ======================================
 # Experimental 2D overlay
 # ======================================
 AC_MY_SWITCH(twodee,[enable building of 2D overlay support],off)
