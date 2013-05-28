@@ -571,6 +571,8 @@ void fwl_do_keyPress0(const char kp, int type);
 void handle0(const int mev, const unsigned int button, const float x, const float y);
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID);
 void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
+void set_snapshotModeTesting(int value);
+
 int fw_mkdir(char* path){
 #ifdef _MSC_VER
 	return mkdir(path);
@@ -621,11 +623,15 @@ void fwl_RenderSceneUpdateScene() {
 		//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
 		//2=flattened: 1_wrl.fwplay, 1_wrl_fixture_17.bmp, 1_wrl_playback_17.bmp (17 is frame#)
 		//3=groupfolders: /tests, /recordings/*.fwplay, /fixtures/1_wrl_17.bmp /playbacks/1_wrl_17.bmp
-		namingMethod = 3; 
+		//4=groupfolders: /tests, /recordings/*.fwplay, /fixtures/1_wrl_17.bmp /playbacks/1_wrl_17.bmp
+		//  - 4 same as 3, except done to harmonize with linux/aqua naming approach:
+		//  - fwl_set_SnapFile(path = {"fixture" | "playback" }); to set mytmp
+		//  - 
+		namingMethod = 4; 
 		if(p->frameNum == 1){
 			int j,k;
 			recordingName[0] = '\0';
-			if(namingMethod==3){
+			if(namingMethod==3 || namingMethod==4){
 				strcpy(recordingName,"recording");
 				fw_mkdir(recordingName);
 				strcat(recordingName,"/");
@@ -803,6 +809,30 @@ void fwl_RenderSceneUpdateScene() {
 								strcat(snappath,snapfile);
 								strcat(snappath,suff); //".bmp");
 								fwl_set_SnapFile(snappath);  //  /fixture/1_wrl_17.bmp
+							}
+							if(namingMethod == 4){
+								//group folder
+								//if snapshot 'x' is the first one .0001, and fixture,
+								//   then fixture/1_wrl.0001.rgb or .bmp
+								char snappath[100];
+								char *sep = "_"; // "." or "_" or "/"
+								int j, k;
+								strcpy(snappath,folder);
+								fw_mkdir(snappath); // /fixture
+								fwl_set_SnapTmp(snappath);
+								
+								strcpy(snappath,tg->Mainloop.scene_name); // /fixture/1
+								k = strlen(tg->Mainloop.scene_name);
+								if(k){
+									j= strlen(tg->Mainloop.scene_suff);
+									if(j){
+										strcat(snappath,sep); // "." or "_");
+										strcat(snappath,tg->Mainloop.scene_suff);
+									}
+								}
+								fwl_set_SnapFile(snappath);  //  /fixture/1_wrl.001.bmp
+								set_snapshotModeTesting(TRUE);
+
 							}
 						}
 					}

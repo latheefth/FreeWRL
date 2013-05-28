@@ -94,6 +94,7 @@ char *seqtmp;// = NULL;		/* --seqtmp - directory for temp files		*/
 int doSnapshot;// = FALSE;		/* are we doing a snapshot?			*/
 int doPrintshot;// = FALSE; 	/* are we taking a snapshot in order to print? */
 int savedSnapshot;// = FALSE;
+int modeTesting; //when generating test fixtures and playback with commandline -R,-F,-P - for linux just save .rgb don't convert image
 }* ppSnapshot;
 void* Snapshot_constructor()
 {
@@ -117,6 +118,7 @@ p->seqtmp = NULL;		/* --seqtmp - directory for temp files		*/
 p->doSnapshot = FALSE;		/* are we doing a snapshot?			*/
 p->doPrintshot = FALSE; 	/* are we taking a snapshot in order to print? */
 p->savedSnapshot = FALSE;
+p->modeTesting = FALSE;
 return (void*)p;
 }
 //void Snapshot_destructor(void *t)
@@ -145,7 +147,11 @@ void set_snapsequence(int on)
 /* need to re-implement this for OSX generating QTVR */
 void saveSnapSequence();
 #endif
-
+void set_snapshotModeTesting(int value)
+{
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
+	p->modeTesting = value;
+}
 void fwl_set_SeqFile(const char* file)
 {
 #if defined(DOSNAPSEQUENCE)
@@ -253,7 +259,7 @@ void Snapshot () {}
 
 #include <windows.h>
 //#include "Vfw.h" //.avi headers
-void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
+void saveSnapshot(char *pathname, char *buffer,int bytesPerPixel,int width, int height)
 {
 	//tested for bytesPerPixel == 3 and incoming alignment 1 only
 	//(outgoing/written is byte-aligned 4)
@@ -263,12 +269,11 @@ void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
 	BITMAPFILEHEADER bmph;
 	char filler[3] = {'\0','\0','\0'};
 	FILE *fout;
-	char* fname;
 	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
 
-	fname = "freewrl_snapshot.bmp";
-	if(p->snapsnapB) fname = p->snapsnapB;
-	fout = fopen(fname,"w+b");
+	//fname = "freewrl_snapshot.bmp";
+	//if(p->snapsnapB) fname = p->snapsnapB;
+	fout = fopen(pathname,"w+b");
 
 	if(bytesPerPixel == 3) bi.biCompression = BI_RGB;
 	bi.biHeight = height;
@@ -322,6 +327,7 @@ void saveSnapshot(char *buffer,int bytesPerPixel,int width, int height)
 	}
 	fclose(fout);
 }
+int fw_mkdir(char* path);
 void Snapshot () 
 {
 /* going to try just the single snapshot for windows, to .bmp format 
@@ -333,8 +339,24 @@ void Snapshot ()
  http://msdn.microsoft.com/en-us/library/ms706540(v=VS.85).aspx 
  http://msdn.microsoft.com/en-us/library/ms706415(v=VS.85).aspx  Vfw.h, Vfw32.lib 
 */
-	char *imgbuf = grabScreen(3,0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
-	saveSnapshot(imgbuf,3,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
+	char thisRawFile[2000];
+	char *mysnapb, *mytmp;
+	char *imgbuf;
+	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
+	
+	imgbuf = grabScreen(3,0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
+	if (p->snapsnapB == NULL)
+		mysnapb = "freewrl.snap";
+	else
+		mysnapb = p->snapsnapB;
+	
+	if (p->seqtmp == NULL)    mytmp   = "freewrl_tmp";
+	else mytmp = p->seqtmp;
+	
+	fw_mkdir(mytmp);
+	p->snapRawCount ++;
+	snprintf (thisRawFile, sizeof(thisRawFile),"%s/%s.%04d.bmp",mytmp,mysnapb,p->snapRawCount);
+	saveSnapshot(thisRawFile,imgbuf,3,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
 	FREE(imgbuf);
 }
 #endif 
@@ -643,7 +665,7 @@ void Snapshot () {
 /* need to re-implement this for OSX generating QTVR */
 
 		/* now, if we are doing only 1, convert the raw into the good.... */
-		if (!p->snapsequence) {
+		if (!p->snapsequence && !p->modeTesting) {
 #endif
 			t->snapGoodCount++;
 			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.png",mytmp,mysnapb,t->snapGoodCount);
