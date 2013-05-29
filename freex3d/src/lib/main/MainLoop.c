@@ -667,6 +667,9 @@ void fwl_RenderSceneUpdateScene() {
 					printf("ouch recording file %s not found\n", recordingName);
 					exit(1);
 				}
+				//put in a header record, passively showing window widthxheight
+				fprintf(p->recordingFile,"# window_wxh %d %d \n",tg->display.screenWidth,tg->display.screenHeight);
+
 			}
 			strcpy(keystrokes,"\"");
 			while(dequeueKeyPress(p,&kp,&type)){
@@ -702,6 +705,19 @@ void fwl_RenderSceneUpdateScene() {
 					if(p->recordingFile == NULL){
 						printf("ouch recording file %s not found\n", recordingName);
 						exit(1);
+					}
+					if( fgets(buff, 1000, p->recordingFile) != NULL){
+						char poundsign[100], window_widthxheight[100];
+						int width, height;
+						if( sscanf(buff,"%s %s %d %d\n",&poundsign,&window_widthxheight,&width,&height) == 4) {
+							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
+								printf("Ouch - the test playback window size is different than recording:\n");
+								printf("recording %d x %d playback %d x %d\n",width,height,
+									tg->display.screenWidth,tg->display.screenHeight);
+								printf("hit Enter:");
+								getchar();
+							}
+						}
 					}
 				}
 				// playback[i] = {iframe, dtime, keystrokes or NULL, mouse (xy,button sequence) or NULL, snapshot URL or NULL, scenegraph_dump URL or NULL, ?other?}
