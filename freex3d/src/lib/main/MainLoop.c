@@ -1716,17 +1716,17 @@ void setup_projection(int pick, int x, int y)
 /* Render the scene */
 static void render() 
 {
-#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+//#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
     int count;
 	static double shuttertime;
 	static int shutterside;
-#endif
+//#endif
 
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
-#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+//#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 	/*  profile*/
     /* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
     /* struct timeval mytime;*/
@@ -1774,11 +1774,11 @@ static void render()
 			BackEndClearBuffer(2);
 		BackEndLightsOff();
 
-#else
-
-	BackEndClearBuffer(2); // no stereo, no shutter glasses: simple clear
-
-#endif // SHUTTER GLASSES or STEREO	
+//#else
+//
+//	BackEndClearBuffer(2); // no stereo, no shutter glasses: simple clear
+//
+//#endif // SHUTTER GLASSES or STEREO	
 
 	/*  turn light #0 off only if it is not a headlight.*/
 	if (!fwl_get_headlight()) {
@@ -1803,7 +1803,7 @@ static void render()
 	}
         
 
-#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
+//#if defined(FREEWRL_SHUTTER_GLASSES) || defined(FREEWRL_STEREO_RENDERING)
 		if (Viewer()->isStereo) {
             
 
@@ -1818,7 +1818,7 @@ static void render()
 		Viewer()->iside = Viewer()->dominantEye; /*is used later in picking to set the cursor pick box on the (left=0 or right=1) viewport*/
 	}
 
-#endif
+//#endif
     
 	if(p->EMULATE_MULTITOUCH) {
         int i;

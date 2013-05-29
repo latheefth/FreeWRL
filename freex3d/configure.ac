@@ -635,11 +635,11 @@ if test x$sw_osc = xyes; then
 fi
 
 # ======================================
-# STEREO enable
+# STEREO enable - Ian says build it by default
 # ======================================
-
-AC_MY_DEFINE_SWITCH([stereo],[enable stereo (default=off)],off,FREEWRL_STEREO_RENDERING)
-AM_CONDITIONAL([FREEWRL_STEREO_RENDERING],[test "$sw_stereo" != no]) 
+#
+#AC_MY_DEFINE_SWITCH([stereo],[enable stereo (default=off)],off,FREEWRL_STEREO_RENDERING)
+#AM_CONDITIONAL([FREEWRL_STEREO_RENDERING],[test "$sw_stereo" != no]) 
 
 # ======================================
 # Experimental 2D overlay
