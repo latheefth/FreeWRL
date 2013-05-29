@@ -1388,11 +1388,12 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 #if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
+void fwl_do_keyPressX(int rawkeycode, const char ks, int type);
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
         char buf[10];
-        KeySym ks;
+        KeySym ks, rawks;
         int count;
 		ppMainloop p;
 		ttglobal tg = gglobal();
@@ -1473,7 +1474,7 @@ void handle_Xevents(XEvent event) {
 
 			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
                         //fwl_do_keyPress((char)ks,event.type);
-						fwl_do_keyPressX(event.xkey.keycode,(char)ks,event.type);
+						fwl_do_keyPressX((char)buf[0],(char)ks,event.type);
                         break;
 
                 case ButtonPress:
