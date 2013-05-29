@@ -695,6 +695,10 @@ void fwl_RenderSceneUpdateScene() {
 			}
 			strcat(mouseStr,"\"");
 			fprintf(p->recordingFile,"%d %.6lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
+			//in case we are -R -F together, 
+			//we need to round dtime for -F like it will be coming out of .fwplay for -P
+			sprintf(temp,"%.6lf",dtime); 
+			sscanf(temp,"%lf",&dtime);
 			//folder = "fixture";
 			folder = NULL;
 		}
