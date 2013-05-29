@@ -1472,7 +1472,8 @@ void handle_Xevents(XEvent event) {
                         buf[0]=(char)ks;buf[1]='\0';
 
 			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
-                        fwl_do_keyPress((char)ks,event.type);
+                        //fwl_do_keyPress((char)ks,event.type);
+						fwl_do_keyPressX(event.xkey.keycode,(char)ks,event.type);
                         break;
 
                 case ButtonPress:
@@ -2947,13 +2948,13 @@ void dump_scenegraph(int method)
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
-#ifdef _MSC_VER
+//#ifdef _MSC_VER
 #define KEYPRESS 1
 #define KEYDOWN 2
 #define KEYUP 3
-#else
-#define KEYDOWN 2
-#endif
+//#else
+//#define KEYDOWN 2
+//#endif
 void fwl_do_keyPress0(const char kp, int type) {
 		int lkp;
 		ttglobal tg = gglobal();
@@ -2962,7 +2963,7 @@ void fwl_do_keyPress0(const char kp, int type) {
         if (KeySensorNodePresent()) {
                 sendKeyToKeySensor(kp,type);
         } else {
-#ifdef _MSC_VER
+#ifndef AQUA //_MSC_VER
 			if(type == KEYPRESS) 
 #else
 			if(type == KEYDOWN) 
@@ -2998,11 +2999,11 @@ void fwl_do_keyPress0(const char kp, int type) {
 
 #if !defined(FRONTEND_DOES_SNAPSHOTS)
                                 case 's': {fwl_toggleSnapshot(); break;}
-				case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
+                                case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
 #endif //FRONTEND_DOES_SNAPSHOTS
 
                                 default: 
-#ifdef _MSC_VER
+#ifndef AQUA //_MSC_VER
 									break;
 #else
 									{handle_key(kp);}
@@ -3010,7 +3011,7 @@ void fwl_do_keyPress0(const char kp, int type) {
         
                         }
                 } else {
-#ifdef _MSC_VER
+#ifndef AQUA // _MSC_VER
 					if(type == KEYDOWN)
 							{handle_key(kp);}  //keydown for fly
 					if(type == KEYUP)
@@ -3035,6 +3036,13 @@ void fwl_do_keyPress(const char kp, int type) {
 	}else{
 		fwl_do_keyPress0(kp,type);
 	}
+}
+void fwl_do_keyPressX(int rawkeycode, const char ks, int type)
+{
+	//2 down, raw, 3 up raw, 1 whole keypress, with shift,lock,ctrl applied
+	if(type == 3)
+		fwl_do_keyPress(ks,1);
+	fwl_do_keyPress((char)rawkeycode,type);
 }
 
 
