@@ -330,6 +330,7 @@ bool fv_create_and_bind_GLcontext(HWND hWnd)
 	RECT rect;
 	HDC hDC;
 	HGLRC hRC;
+	int width, height;
 	/* create GL context */
 	fwl_thread_dump();
 	printf("starting createcontext32b\n");
@@ -342,11 +343,12 @@ bool fv_create_and_bind_GLcontext(HWND hWnd)
 	/* bind GL context */
 
 	fwl_thread_dump();
-
+	width = gglobal()->display.screenWidth;
+	height = gglobal()->display.screenHeight;
 	if (wglMakeCurrent(hDC, hRC)) {
-		GetClientRect(hWnd, &rect); 
-		gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-		gglobal()->display.screenHeight = rect.bottom;
+		//GetClientRect(hWnd, &rect); 
+		//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+		//gglobal()->display.screenHeight = rect.bottom;
 		return TRUE;
 	}
 
@@ -774,8 +776,8 @@ int create_main_window0(int argc, char *argv[])
     HINSTANCE hInstance; 
     WNDCLASS wc;
     MSG msg;
-    RECT rect; 
-
+    //RECT rect; 
+	int width, height;
     int nCmdShow = SW_SHOW;
 
     printf("starting createWindow32\n"); 
@@ -823,15 +825,16 @@ int create_main_window0(int argc, char *argv[])
     wc.cbWndExtra = 0;
 
     RegisterClass( &wc );
-
+	width  = gglobal()->display.win_width + 8;  //windows gui eats 4 on each side
+	height = gglobal()->display.win_height + 34;  // and 26 for the menu bar
 
     ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWrl win32 rev 0.0", 
 			    /* ghWnd = CreateWindow( "GenericAppClass", "Generic Application", */
 			    WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 
 			    CW_USEDEFAULT, 
 			    CW_USEDEFAULT, 
-			    gglobal()->display.win_width, 
-			    gglobal()->display.win_height, 
+			    width, 
+			    height, 
 			    NULL, 
 			    NULL, 
 			    hInstance, 
@@ -843,7 +846,7 @@ int create_main_window0(int argc, char *argv[])
 
     printf("made a window\n");
 
-    GetClientRect(ghWnd, &rect); 
+    //GetClientRect(ghWnd, &rect); 
    
     ShowWindow( ghWnd, SW_SHOW); /* SW_SHOWNORMAL); /*nCmdShow );*/
     printf("showed window\n");
