@@ -1475,8 +1475,8 @@ void handle_Xevents(XEvent event) {
                         //fwl_do_keyPress((char)ks,event.type);
                         //ksraw = (char)buf[0];
                         ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
-                        //XConvertCase(ks,&kslower,&ksupper);
-                        //ksraw = ksupper;
+                        XConvertCase(ksraw,&kslower,&ksupper);
+                        ksraw = ksupper;
                         if(event.type == KeyRelease && !IsModifierKey(ks) 
                         	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks))
                              fwl_do_keyPress(ks,1);
