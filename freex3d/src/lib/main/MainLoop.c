@@ -1388,12 +1388,12 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 #if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
-void fwl_do_keyPressX(int rawkeycode, const char ks, int type);
+//void fwl_do_keyPressX(int rawkeycode, const char ks, int type);
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
         char buf[10];
-        KeySym ks, rawks;
+        KeySym ks, ksraw, ksupper, kslower;
         int count;
 		ppMainloop p;
 		ttglobal tg = gglobal();
@@ -1474,7 +1474,15 @@ void handle_Xevents(XEvent event) {
 
 			DEBUG_XEV("Key type = %s\n", (event.type == KeyPress ? "KEY PRESS" : "KEY  RELEASE"));
                         //fwl_do_keyPress((char)ks,event.type);
-						fwl_do_keyPressX((char)buf[0],(char)ks,event.type);
+                        //ksraw = (char)buf[0];
+                        ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
+                        //XConvertCase(ks,&kslower,&ksupper);
+                        //ksraw = ksupper;
+                        //fwl_do_keyPressX((char)ksraw,(char)ks,event.type);
+                        if(event.type == KeyRelease && !IsModifierKey(ks))
+                             fwl_do_keyPress(ks,1);
+                        fwl_do_keyPress((char)rawkeycode,event.type);
+						
                         break;
 
                 case ButtonPress:
@@ -3038,13 +3046,13 @@ void fwl_do_keyPress(const char kp, int type) {
 		fwl_do_keyPress0(kp,type);
 	}
 }
-void fwl_do_keyPressX(int rawkeycode, const char ks, int type)
-{
-	//2 down, raw, 3 up raw, 1 whole keypress, with shift,lock,ctrl applied
-	if(type == 3)
-		fwl_do_keyPress(ks,1);
-	fwl_do_keyPress((char)rawkeycode,type);
-}
+//void fwl_do_keyPressX(int rawkeycode, const char ks, int type)
+//{
+//	//2 down, raw, 3 up raw, 1 whole keypress, with shift,lock,ctrl applied
+//	if(type == 3)
+//		fwl_do_keyPress(ks,1);
+//	fwl_do_keyPress((char)rawkeycode,type);
+//}
 
 
 

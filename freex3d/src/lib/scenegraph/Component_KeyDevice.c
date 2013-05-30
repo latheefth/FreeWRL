@@ -94,11 +94,9 @@ int ctrlPressed = 0;
 #define PSFT_KEY 0x10
 #define PDEL_KEY 0x08
 #define PRTN_KEY 13
-#define KEYDOWN 1
-/* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
-	#if 0
-	#define KEYUP	3
-	#endif
+#define KEYPRESS 1
+#define KEYDOWN 2
+#define KEYUP	3
 
 #elif defined (AQUA) 
 
@@ -138,11 +136,10 @@ function mappings - like a "shift" key */
 
 #define PDEL_KEY 0x28 /* JAS - key labelled "delete", just to the left of the "end" key */
 #define PRTN_KEY 13
+#define KEYPRESS 2
 #define KEYDOWN 2
-/* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
-	#if 0
-	#define KEYUP	3
-	#endif
+#define KEYUP	3
+
 #else
 #define PHOME_KEY 80
 #define PPGDN_KEY 86
@@ -169,11 +166,10 @@ function mappings - like a "shift" key */
 #define PSFT_KEY 0XFFE1
 #define PDEL_KEY 0x08
 #define PRTN_KEY 13
+#define KEYPRESS 1
 #define KEYDOWN 2
-/* This is implicit; we only ever check KEYDOWN , and assume KEYUP in the else branch */
-	#if 0
-	#define KEYUP	3
-	#endif
+#define KEYUP	3
+
 #endif
 /* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
 section 21.4.1 
@@ -354,13 +350,11 @@ void sendKeyToKeySensor(const char key, int upDown) {
         /* make sure this has not been deleted  - we should really re-create list, but
          so few keySensor X3D nodes are in use, who cares? */
         if (checkNode(p->keySink[count],__FILE__,__LINE__)) {
-#ifndef AQUA //_MSC_VER
-		if (p->keySink[count]->_nodeType == NODE_KeySensor && (upDown != KeyChar)) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
-#else
-		if (p->keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
-#endif
-		if (p->keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(p->keySink[count], (int)key&0xFFFF, upDown);
-	}
+			if(upDown == KEYDOWN || upDown == KEYUP) //2 down, or 3 up
+				if (p->keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
+			if(upDown == KEYPRESS) //LINUX,WIN32 PRESS=1, AQUA PRESS=2
+				if (p->keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(p->keySink[count], (int)key&0xFFFF, upDown);
+		}
     }
 }
 
@@ -475,25 +469,26 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 
 	actionKey = platform2web3dActionKey(key);
-	#if !defined(AQUA) && !defined(_MSC_VER)
-	/* on Unix, we have to handle control/shift keys ourselves. OSX handles this
-	   by itself */
-	if (actionKey == SFT_KEY) {
-		shiftPressed = (upDown == KEYDOWN);
-		return;
-	}
+	//translation moved to handle_XEvents
+	//#if !defined(AQUA) && !defined(_MSC_VER)
+	///* on Unix, we have to handle control/shift keys ourselves. OSX handles this
+	//   by itself */
+	//if (actionKey == SFT_KEY) {
+	//	shiftPressed = (upDown == KEYDOWN);
+	//	return;
+	//}
 
-	/* do the shift of the A-Z keys if shift pressed */
-	if ((key >= 'a') && (key<='z'))
-		if (shiftPressed)
-			key=key-'a'+'A';
-	#endif
+	///* do the shift of the A-Z keys if shift pressed */
+	//if ((key >= 'a') && (key<='z'))
+	//	if (shiftPressed)
+	//		key=key-'a'+'A';
+	//#endif
 
 	/* ignore the control key here. OSX will not event let one come this far... */
 	if (actionKey == CTL_KEY) return;
 
 	/* we only care about key presses here */
-	if (upDown != KEYDOWN) return;
+	if (upDown != KEYPRESS) return;
 
 
 	/* is this initialized? */
