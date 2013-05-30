@@ -1388,7 +1388,6 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 #if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
-//void fwl_do_keyPressX(int rawkeycode, const char ks, int type);
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
@@ -1478,10 +1477,10 @@ void handle_Xevents(XEvent event) {
                         ksraw = XKeycodeToKeysym(event.xkey.display, event.xkey.keycode, 0);
                         //XConvertCase(ks,&kslower,&ksupper);
                         //ksraw = ksupper;
-                        //fwl_do_keyPressX((char)ksraw,(char)ks,event.type);
-                        if(event.type == KeyRelease && !IsModifierKey(ks))
+                        if(event.type == KeyRelease && !IsModifierKey(ks) 
+                        	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks))
                              fwl_do_keyPress(ks,1);
-                        fwl_do_keyPress((char)rawkeycode,event.type);
+                        fwl_do_keyPress((char)ksraw,event.type);
 						
                         break;
 
@@ -3046,14 +3045,6 @@ void fwl_do_keyPress(const char kp, int type) {
 		fwl_do_keyPress0(kp,type);
 	}
 }
-//void fwl_do_keyPressX(int rawkeycode, const char ks, int type)
-//{
-//	//2 down, raw, 3 up raw, 1 whole keypress, with shift,lock,ctrl applied
-//	if(type == 3)
-//		fwl_do_keyPress(ks,1);
-//	fwl_do_keyPress((char)rawkeycode,type);
-//}
-
 
 
 /* go to a viewpoint, hopefully it is one that is in our current list */
