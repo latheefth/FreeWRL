@@ -1139,6 +1139,20 @@ void handle0(const int mev, const unsigned int button, const float x, const floa
 	}
 }
 
+#define FLYREMAP {{'a',NUM0},{'z',NUMDEC},{'j',LEFT_KEY},{'l',RIGHT_KEY},{'p',UP_KEY},{';',DOWN_KEY},{'8',NUM8},{'k',NUM2},{'u',NUM4},{'o',NUM6 },{'7',NUM7},{'9',NUM9}}
+
+char lookup_fly_key(int key){
+	int i;
+	char kp = 0;
+	Key ps[KEYS_HANDLED] = FLYREMAP;
+	for(i=0;i<KEYS_HANDLED;i++){
+		if(key==ps[i].hit){
+			kp = ps[i].key;
+			break;
+		}
+	}
+	return kp;
+}
 
 void
 handle_key(const char key)

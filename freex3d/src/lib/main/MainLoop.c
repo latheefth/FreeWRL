@@ -1420,49 +1420,61 @@ void handle(const int mev, const unsigned int button, const float x, const float
 #define PSFT_KEYR XK_Shift_R //0XFFE1 //left, and 0XFFE2 on right
 #define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
 #define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
+#define PNUM0 XK_KP_0
+#define PNUM1 XK_KP_1
+#define PNUM2 XK_KP_2
+#define PNUM3 XK_KP_3
+#define PNUM4 XK_KP_4
+#define PNUM5 XK_KP_5
+#define PNUM6 XK_KP_6
+#define PNUM7 XK_KP_7
+#define PNUM8 XK_KP_8
+#define PNUM9 XK_KP_9
+#define PNUMDEC XK_KP_Decimal
+
 #define KEYPRESS 1
 #define KEYDOWN 2
 #define KEYUP	3
 
-/* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
-section 21.4.1 
-Key Value
-Home 13
-End 14
-PGUP 15
-PGDN 16
-UP 17
-DOWN 18
-LEFT 19
-RIGHT 20
-F1-F12  1 to 12
-ALT,CTRL,SHIFT true/false
-*/
-#define F1_KEY  1
-#define F2_KEY  2
-#define F3_KEY  3
-#define F4_KEY  4
-#define F5_KEY  5
-#define F6_KEY  6
-#define F7_KEY  7
-#define F8_KEY  8
-#define F9_KEY  9
-#define F10_KEY 10
-#define F11_KEY 11
-#define F12_KEY 12
-#define HOME_KEY 13
-#define END_KEY  14
-#define PGUP_KEY 15
-#define PGDN_KEY 16
-#define UP_KEY   17
-#define DOWN_KEY 18
-#define LEFT_KEY 19
-#define RIGHT_KEY 20
-#define ALT_KEY	30 /* not available on OSX */
-#define CTL_KEY 31 /* not available on OSX */
-#define SFT_KEY 32 /* not available on OSX */
-#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0XFFFF too high to clash with a latin? */
-#define RTN_KEY 13  //what about 10 newline?
+///* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
+//section 21.4.1 
+//Key Value
+//Home 13
+//End 14
+//PGUP 15
+//PGDN 16
+//UP 17
+//DOWN 18
+//LEFT 19
+//RIGHT 20
+//F1-F12  1 to 12
+//ALT,CTRL,SHIFT true/false
+//*/
+//#define F1_KEY  1
+//#define F2_KEY  2
+//#define F3_KEY  3
+//#define F4_KEY  4
+//#define F5_KEY  5
+//#define F6_KEY  6
+//#define F7_KEY  7
+//#define F8_KEY  8
+//#define F9_KEY  9
+//#define F10_KEY 10
+//#define F11_KEY 11
+//#define F12_KEY 12
+//#define HOME_KEY 13
+//#define END_KEY  14
+//#define PGUP_KEY 15
+//#define PGDN_KEY 16
+//#define UP_KEY   17
+//#define DOWN_KEY 18
+//#define LEFT_KEY 19
+//#define RIGHT_KEY 20
+//#define ALT_KEY	30 /* not available on OSX */
+//#define CTL_KEY 31 /* not available on OSX */
+//#define SFT_KEY 32 /* not available on OSX */
+//#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0XFFFF too high to clash with a latin? */
+//#define RTN_KEY 13  //what about 10 newline?
 
 
 int platform2web3dActionKeyLINUX(int platformKey)
@@ -1502,6 +1514,28 @@ int platform2web3dActionKeyLINUX(int platformKey)
 		case PSFT_KEY:
 		case PSFT_KEYR:
 			key = SFT_KEY; break;
+		case PNUM0:
+			key = NUM0; break;
+		case PNUM1:
+			key = NUM1; break;
+		case PNUM2:
+			key = NUM2; break;
+		case PNUM3:
+			key = NUM3; break;
+		case PNUM4:
+			key = NUM4; break;
+		case PNUM5:
+			key = NUM5; break;
+		case PNUM6:
+			key = NUM6; break;
+		case PNUM7:
+			key = NUM7; break;
+		case PNUM8:
+			key = NUM8; break;
+		case PNUM9:
+			key = NUM9; break;
+		case PNUMDEC:
+			key = NUMDEC; break;
 		default:
 			key = 0;
 		}
@@ -3094,7 +3128,7 @@ void sendKeyToKeySensor(const char key, int upDown);
 #define KEYPRESS 1
 #define isAQUA 0
 #endif
-
+char lookup_fly_key(int key);
 //#endif
 void fwl_do_keyPress0(int key, int type) {
 		int lkp;
@@ -3146,10 +3180,17 @@ void fwl_do_keyPress0(int key, int type) {
                         }
                 } 
 				if(!handled) {
-					if(type%10 == KEYDOWN) 
-						handle_key((char)key);  //keydown for fly
-					if(type%10 == KEYUP)
-                        handle_keyrelease((char)key); //keyup for fly
+					char kp;
+					if(type/10 == 0) 
+						kp = (char)key; //normal keyboard key
+					else
+						kp = lookup_fly_key(key); //actionKey possibly numpad or arrows, convert to a/z
+					if(kp){
+						if(type%10 == KEYDOWN) 
+							handle_key(kp);  //keydown for fly
+						if(type%10 == KEYUP)
+							handle_keyrelease(kp); //keyup for fly
+					}
                 }
         }
 }

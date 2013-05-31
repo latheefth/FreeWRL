@@ -66,7 +66,7 @@ void fwl_set_viewer_type(const int type);
 /* 	7 => sub {$radd[2] -= $_[0]}, */
 /* 	9 => sub {$radd[2] += $_[0]}, */
 /* ); */
-#define KEYMAP {{ 'a', 0 }, { 'z', 0 }, { 'j', 0 }, { 'l', 0 }, { 'p', 0 }, { ';', 0 }, { '8', 0 }, { 'k', 0 }, { 'u', 0 }, { 'o', 0 }, { '7', 0 }, { '9', 0 }}
+#define KEYMAP {{'a',0},{'z',0},{'j',0},{'l',0},{'p',0},{';',0},{'8',0},{'k',0},{'u',0},{'o',0 },{'7',0},{'9',0}}
 
 #define COORD_SYS 3
 #define X_AXIS 0

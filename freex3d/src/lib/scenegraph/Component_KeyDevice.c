@@ -171,45 +171,57 @@ function mappings - like a "shift" key */
 #define KEYUP	3
 
 #endif
-/* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
-section 21.4.1 
-Key Value
-Home 13
-End 14
-PGUP 15
-PGDN 16
-UP 17
-DOWN 18
-LEFT 19
-RIGHT 20
-F1-F12  1 to 12
-ALT,CTRL,SHIFT true/false
-*/
-#define F1_KEY  1
-#define F2_KEY  2
-#define F3_KEY  3
-#define F4_KEY  4
-#define F5_KEY  5
-#define F6_KEY  6
-#define F7_KEY  7
-#define F8_KEY  8
-#define F9_KEY  9
-#define F10_KEY 10
-#define F11_KEY 11
-#define F12_KEY 12
-#define HOME_KEY 13
-#define END_KEY  14
-#define PGUP_KEY 15
-#define PGDN_KEY 16
-#define UP_KEY   17
-#define DOWN_KEY 18
-#define LEFT_KEY 19
-#define RIGHT_KEY 20
-#define ALT_KEY	30 /* not available on OSX */
-#define CTL_KEY 31 /* not available on OSX */
-#define SFT_KEY 32 /* not available on OSX */
-#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0XFFFF too high to clash with a latin? */
-#define RTN_KEY 13  //what about 10 newline?
+///* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
+//section 21.4.1 
+//Key Value
+//Home 13
+//End 14
+//PGUP 15
+//PGDN 16
+//UP 17
+//DOWN 18
+//LEFT 19
+//RIGHT 20
+//F1-F12  1 to 12
+//ALT,CTRL,SHIFT true/false
+//*/
+//#define F1_KEY  1
+//#define F2_KEY  2
+//#define F3_KEY  3
+//#define F4_KEY  4
+//#define F5_KEY  5
+//#define F6_KEY  6
+//#define F7_KEY  7
+//#define F8_KEY  8
+//#define F9_KEY  9
+//#define F10_KEY 10
+//#define F11_KEY 11
+//#define F12_KEY 12
+//#define HOME_KEY 13
+//#define END_KEY  14
+//#define PGUP_KEY 15
+//#define PGDN_KEY 16
+//#define UP_KEY   17
+//#define DOWN_KEY 18
+//#define LEFT_KEY 19
+//#define RIGHT_KEY 20
+//#define ALT_KEY	30 /* not available on OSX */
+//#define CTL_KEY 31 /* not available on OSX */
+//#define SFT_KEY 32 /* not available on OSX */
+//#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0XFFFF too high to clash with a latin? */
+//#define RTN_KEY 13  //what about 10 newline?
+//#define NUM0  40
+//#define NUM1  41
+//#define NUM2  42
+//#define NUM3  43
+//#define NUM4  44
+//#define NUM5  45
+//#define NUM6  46
+//#define NUM7  47
+//#define NUM8  48
+//#define NUM9  49
+//#define NUMDEC 50
+
 
 int platform2web3dActionKey(int platformKey)
 {
