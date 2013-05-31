@@ -1391,31 +1391,35 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 #if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
-#define PHOME_KEY 80
-#define PPGDN_KEY 86
-#define PLEFT_KEY 106
-#define PEND_KEY 87
-#define PUP_KEY 112
-#define PRIGHT_KEY 108
-#define PPGUP_KEY 85
-#define PDOWN_KEY 59
-#define PF1_KEY  0xFFBE
-#define PF2_KEY  0xFFBF
-#define PF3_KEY  0XFFC0
-#define PF4_KEY  0XFFC1
-#define PF5_KEY  0XFFC2
-#define PF6_KEY  0XFFC3
-#define PF7_KEY  0XFFC4
-#define PF8_KEY  0XFFC5
-#define PF9_KEY  0XFFC6
-#define PF10_KEY 0XFFC7
-#define PF11_KEY 0XFFC8
-#define PF12_KEY 0XFFC9
-#define PALT_KEY 0XFFE9 //left, and 0XFFEA   //0XFFE7
-#define PCTL_KEY 0XFFE3 //left, and 0XFFE4 on right
-#define PSFT_KEY 0XFFE1 //left, and 0XFFE2 on right
-#define PDEL_KEY 0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
-#define PRTN_KEY 13
+//XK_ constants from /usr/include/X11/keysymdef.h
+#define PHOME_KEY XK_Home //80
+#define PPGDN_KEY XK_Page_Down //86
+#define PLEFT_KEY XK_Left //106
+#define PEND_KEY XK_End //87
+#define PUP_KEY XK_Up //112
+#define PRIGHT_KEY XK_Right //108
+#define PPGUP_KEY XK_Page_Up //85
+#define PDOWN_KEY XK_Down //59
+#define PF1_KEY  XK_F1 //0xFFBE
+#define PF2_KEY  XK_F2 //0xFFBF
+#define PF3_KEY  XK_F3 //0XFFC0
+#define PF4_KEY  XK_F4 //0XFFC1
+#define PF5_KEY  XK_F5 //0XFFC2
+#define PF6_KEY  XK_F6 //0XFFC3
+#define PF7_KEY  XK_F7 //0XFFC4
+#define PF8_KEY  XK_F8 //0XFFC5
+#define PF9_KEY  XK_F9 //0XFFC6
+#define PF10_KEY XK_F10 //0XFFC7
+#define PF11_KEY XK_F11 //0XFFC8
+#define PF12_KEY XK_F12 //0XFFC9
+#define PALT_KEY XK_Alt_L //0XFFE9 //left, and 0XFFEA   //0XFFE7
+#define PALT_KEYR XK_Alt_R //0XFFE9 //left, and 0XFFEA   //0XFFE7
+#define PCTL_KEY XK_Control_L //0XFFE3 //left, and 0XFFE4 on right
+#define PCTL_KEYR XK_Control_R //0XFFE3 //left, and 0XFFE4 on right
+#define PSFT_KEY XK_Shift_L //0XFFE1 //left, and 0XFFE2 on right
+#define PSFT_KEYR XK_Shift_R //0XFFE1 //left, and 0XFFE2 on right
+#define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
+#define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
 #define KEYPRESS 1
 #define KEYDOWN 2
 #define KEYUP	3
@@ -1490,10 +1494,13 @@ int platform2web3dActionKeyLINUX(int platformKey)
 		case PDEL_KEY:  
 			key = DEL_KEY; break;
 		case PALT_KEY:
+		case PALT_KEYR:
 			key = ALT_KEY; break;
 		case PCTL_KEY:
+		case PCTL_KEYR:
 			key = CTL_KEY; break;
 		case PSFT_KEY:
+		case PSFT_KEYR:
 			key = SFT_KEY; break;
 		default:
 			key = 0;
@@ -1593,13 +1600,16 @@ void handle_Xevents(XEvent event) {
                         XConvertCase(ksraw,&kslower,&ksupper);
                         ksraw = ksupper;
                         if(event.type == KeyRelease && !IsModifierKey(ks) 
-                        	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks))
+                        	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks)){
                              fwl_do_rawKeyPress((int)ks,1);
-						actionKey = platform2web3dActionKeyLINUX(ksraw);
-						if(actionKey)
-							fwl_do_rawKeyPress(actionKey,event.type+10);
-						else
-							fwl_do_rawKeyPress(ksraw,event.type);
+                             //printf("ks=%c %d %o %x\n",ks,(int)ks,(int)ks,(int)ks);
+                        }
+                        //printf("ksraw=%c %d %o %x\n",ksraw,(int)ksraw,(int)ksraw,(int)ksraw);
+                        actionKey = platform2web3dActionKeyLINUX(ksraw);
+                        if(actionKey)
+                        	fwl_do_rawKeyPress(actionKey,event.type+10);
+                        else
+                        	fwl_do_rawKeyPress(ksraw,event.type);
 						
                         break;
 
