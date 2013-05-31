@@ -92,7 +92,7 @@ int ctrlPressed = 0;
 #define PALT_KEY 0x12
 #define PCTL_KEY 0x11
 #define PSFT_KEY 0x10
-#define PDEL_KEY 0x08
+#define PDEL_KEY 0x2E  //2E is DELETE 0x08 is backspace
 #define PRTN_KEY 13
 #define KEYPRESS 1
 #define KEYDOWN 2
@@ -208,10 +208,16 @@ ALT,CTRL,SHIFT true/false
 #define ALT_KEY	30 /* not available on OSX */
 #define CTL_KEY 31 /* not available on OSX */
 #define SFT_KEY 32 /* not available on OSX */
-#define DEL_KEY 33
-#define RTN_KEY 13
+#define DEL_KEY 127 /* problem: I'm insterting this back into the translated char stream so 127 could clash with a latin? */
+#define RTN_KEY 13  //what about 10 newline?
 
-static char platform2web3dActionKey(int platformKey)
+int isWeb3dDeleteKey(int web3dkey)
+{
+	//problem: OS usually don't generate a single keystroke for Del -it's usually just up/down
+	//and for StringSensor node, we need a KEYPRESS.
+	return web3dkey == DEL_KEY;
+}
+int platform2web3dActionKey(int platformKey)
 {
 	int key;
 
@@ -237,7 +243,7 @@ static char platform2web3dActionKey(int platformKey)
 			key = LEFT_KEY; break;
 		case PRIGHT_KEY:
 			key = RIGHT_KEY; break;
-		case PDEL_KEY:
+		case PDEL_KEY:  
 			key = DEL_KEY; break;
 		case PALT_KEY:
 			key = ALT_KEY; break;
@@ -350,7 +356,7 @@ void sendKeyToKeySensor(const char key, int upDown) {
         /* make sure this has not been deleted  - we should really re-create list, but
          so few keySensor X3D nodes are in use, who cares? */
         if (checkNode(p->keySink[count],__FILE__,__LINE__)) {
-			if(upDown == KEYDOWN || upDown == KEYUP) //2 down, or 3 up
+			if(upDown%10 == KEYDOWN || upDown%10 == KEYUP) //2 down, or 3 up
 				if (p->keySink[count]->_nodeType == NODE_KeySensor ) sendToKS(p->keySink[count], (int)key&0xFFFF, upDown);
 			if(upDown == KEYPRESS) //LINUX,WIN32 PRESS=1, AQUA PRESS=2
 				if (p->keySink[count]->_nodeType == NODE_StringSensor ) sendToSS(p->keySink[count], (int)key&0xFFFF, upDown);
@@ -363,6 +369,7 @@ void sendKeyToKeySensor(const char key, int upDown) {
 static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 	int actionKey;
 	int isDown;
+	int isActionKey;
 	#define MYN X3D_KEYSENSOR(wsk)
 	/* printf ("sending key %x %u upDown %d (down %d) to keySenors\n",key,key,upDown,KEYDOWN); */
 	
@@ -377,10 +384,11 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 		return;
 
 	/* is this an ACTION (tm) key  press or release? */
-	isDown = upDown == KeyPress;
-	actionKey = platform2web3dActionKey(key);
-	if(actionKey)
+	isDown = upDown%10 == KeyPress;
+	isActionKey = upDown / 10;
+	if(isActionKey)
 	{
+	  actionKey = key;
 	  switch (actionKey) {
 		case HOME_KEY:
 		case PGDN_KEY:
@@ -452,7 +460,7 @@ static void sendToKS(struct X3D_Node* wsk, int key, int upDown) {
 	
 }
 static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
-	int actionKey;
+	//int actionKey;
 	#define MYN X3D_STRINGSENSOR(wsk)
 	#define MAXSTRINGLEN 512
 
@@ -468,7 +476,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	if (!MYN->enabled) return;
 	/* printf ("sending key %x %u upDown %d to keySenors\n",key,key,upDown); */
 
-	actionKey = platform2web3dActionKey(key);
+	//actionKey = platform2web3dActionKey(key);
 	//translation moved to handle_XEvents
 	//#if !defined(AQUA) && !defined(_MSC_VER)
 	///* on Unix, we have to handle control/shift keys ourselves. OSX handles this
@@ -485,7 +493,7 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	//#endif
 
 	/* ignore the control key here. OSX will not event let one come this far... */
-	if (actionKey == CTL_KEY) return;
+	//if (actionKey == CTL_KEY) return;
 
 	/* we only care about key presses here */
 	if (upDown != KEYPRESS) return;
@@ -506,14 +514,14 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 	}
 	
 	/* enteredText */
-	if ((MYN->deletionAllowed) && (actionKey==DEL_KEY)) {
+	if ((MYN->deletionAllowed) && (key==DEL_KEY)) {
 		if (MYN->enteredText->len > 1) {
 			MYN->enteredText->len--;
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = '\0';
 			MARK_EVENT(X3D_NODE(MYN), offsetof (struct X3D_StringSensor, enteredText));
 		}
 	} else {
-		if ((key != RTN_KEY) && (actionKey != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
+		if ((key != RTN_KEY) && (key != DEL_KEY) && (MYN->enteredText->len < MAXSTRINGLEN-1)) {
 			MYN->enteredText->strptr[MYN->enteredText->len-1] = (char)key;
 			MYN->enteredText->strptr[MYN->enteredText->len] = '\0';
 			MYN->enteredText->len++;

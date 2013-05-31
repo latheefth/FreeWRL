@@ -118,7 +118,7 @@ struct Touch
 	int y;
 }; 
 struct keypressTuple{
-	char kp;
+	int key;
 	int type;
 };
 struct mouseTuple{
@@ -504,24 +504,16 @@ __inline double Time1970sec()
 #define TID(_tv) ((double)_tv.tv_sec + (double)_tv.tv_usec/1000000.0)
 #endif
 
-int dequeueKeyPress(ppMainloop p,char *kp, int *type){
+int dequeueKeyPress(ppMainloop p,int *key, int *type){
 	if(p->keypressQueueCount > 0){
 		int i;
 		p->keypressQueueCount--;
-		*kp = p->keypressQueue[0].kp;
+		*key = p->keypressQueue[0].key;
 		*type = p->keypressQueue[0].type;
 		for(i=0;i<p->keypressQueueCount;i++){
-			p->keypressQueue[i].kp = p->keypressQueue[i+1].kp;
+			p->keypressQueue[i].key = p->keypressQueue[i+1].key;
 			p->keypressQueue[i].type = p->keypressQueue[i+1].type;
 		}
-		return 1;
-	}
-	return 0;
-}
-int readKeyPress(ppMainloop p, int i, char *kp, int *type){
-	if(p->keypressQueueCount > i){
-		*kp = p->keypressQueue[i].kp;
-		*type = p->keypressQueue[i].type;
 		return 1;
 	}
 	return 0;
@@ -567,7 +559,7 @@ int dequeueMouseMulti(ppMainloop p, int *mev, unsigned int *button, int *ix, int
 
 /* Main eventloop for FreeWRL!!! */
 void fwl_RenderSceneUpdateScene0(double dtime);
-void fwl_do_keyPress0(const char kp, int type);
+void fwl_do_keyPress0(int key, int type);
 void handle0(const int mev, const unsigned int button, const float x, const float y);
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID);
 void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
@@ -605,7 +597,7 @@ void fwl_RenderSceneUpdateScene() {
 		//-P to play recording and save as playback
 		//-R -F to record and save as fixture in one step
 		//command line long option equivalents: -R --record, -F --fixture, -P --playback
-		char kp;
+		int key;
 		int type;
 		int mev,ix,iy,ID;
 		unsigned int button;
@@ -672,8 +664,8 @@ void fwl_RenderSceneUpdateScene() {
 
 			}
 			strcpy(keystrokes,"\"");
-			while(dequeueKeyPress(p,&kp,&type)){
-				sprintf(temp,"%c,%d,",kp,type);
+			while(dequeueKeyPress(p,&key,&type)){
+				sprintf(temp,"%d,%d,",key,type);
 				strcat(keystrokes,temp);
 			}
 			strcat(keystrokes,"\"");
@@ -736,16 +728,27 @@ void fwl_RenderSceneUpdateScene() {
 		}
 		//for all 3 - read the keyboard string and the mouse string
 		if(p->modeRecord || p->modeFixture || p->modePlayback){
-			if(strlen(keystrokes)>5){ // "x,1," == 6
-				int i,ii;
-				int n = (strlen(keystrokes) -2)/4;
-				for(i=0;i<n;i++){
-					ii = i*4 +1;
-					sscanf(&keystrokes[ii],"%c,%d",&kp,&type);
+			if(strlen(keystrokes)>2){ // "x,1," == 6
+				int i; //,n;
+				char *next,*curr;
+				//count the number of ',' 
+				//for(i=0,n=0;i<strlen(keystrokes);i++) if(keystrokes[i] == ',') n++; //(strlen(keystrokes) -2)/4;
+				//n /= 2; //each keystroke has 2 commas: (char),(type),
+				curr = &keystrokes[1]; //skip leading "
+				while(curr && strlen(curr)>1){
+					//for(i=0;i<n;i++){
+					//ii = i*4 +1;
+					//sscanf(&keystrokes[ii],"%d,%d",&key,&type);
+					sscanf(curr,"%d",&key);
+					next = strchr(curr,',');
+					curr = &next[1];
+					sscanf(curr,"%d",&type);
+					next = strchr(curr,',');
+					curr = &next[1];
 					if(p->modeFixture || p->modePlayback){  
 						//we will catch the snapshot keybaord command and prepare the
 						//snapshot filename and folder/directory for fixture and playback
-						if(kp == 'x'){
+						if(key == 'x'){
 							//prepare snapshot folder(scene/ + fixture ||playback) 
 							// and file name(frame#)
 							char snapfile[5];
@@ -862,7 +865,7 @@ void fwl_RenderSceneUpdateScene() {
 							}
 						}
 					}
-					fwl_do_keyPress0(kp, type);
+					fwl_do_keyPress0(key, type);
 				}
 			}
 			if(strlen(mouseStr)>2){
@@ -1480,7 +1483,7 @@ void handle_Xevents(XEvent event) {
                         if(event.type == KeyRelease && !IsModifierKey(ks) 
                         	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks))
                              fwl_do_keyPress(ks,1);
-                        fwl_do_keyPress((char)ksraw,event.type);
+                        fwl_do_rawKeyPress(ksraw,event.type);
 						
                         break;
 
@@ -2852,12 +2855,12 @@ int consoleMenuActive()
 {
 	return ConsoleMenuState.active;
 }
-#ifdef _MSC_VER
-#define KEYPRESS 1
 #define KEYDOWN 2
 #define KEYUP 3
+#ifdef AQUA
+#define KEYPRESS 2
 #else
-#define KEYDOWN 2
+#define KEYPRESS 1
 #endif
 
 void addMenuChar(kp,type)
@@ -2956,28 +2959,29 @@ void dump_scenegraph(int method)
 
 void sendKeyToKeySensor(const char key, int upDown);
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
-//#ifdef _MSC_VER
-#define KEYPRESS 1
 #define KEYDOWN 2
 #define KEYUP 3
-//#else
-//#define KEYDOWN 2
+#ifdef AQUA
+#define KEYPRESS 2
+#define isAQUA 1
+#else
+#define KEYPRESS 1
+#define isAQUA 0
+#endif
+
 //#endif
-void fwl_do_keyPress0(const char kp, int type) {
+void fwl_do_keyPress0(int key, int type) {
 		int lkp;
 		ttglobal tg = gglobal();
         /* does this X3D file have a KeyDevice node? if so, send it to it */
 	//printf("fwl_do_keyPress: %c%d\n",kp,type); 
         if (KeySensorNodePresent()) {
-                sendKeyToKeySensor(kp,type);
+                sendKeyToKeySensor(key,type);
         } else {
-#ifndef AQUA //_MSC_VER
+			int handled = isAQUA;
 			if(type == KEYPRESS) 
-#else
-			if(type == KEYDOWN) 
-#endif
 			{
-						lkp = kp;
+						lkp = key;
 						//if(kp>='A' && kp <='Z') lkp = tolower(kp);
                         switch (lkp) {
                                 case 'e': { fwl_set_viewer_type (VIEWER_EXAMINE); break; }
@@ -3011,41 +3015,67 @@ void fwl_do_keyPress0(const char kp, int type) {
 #endif //FRONTEND_DOES_SNAPSHOTS
 
                                 default: 
-#ifndef AQUA //_MSC_VER
+									handled = 0;
 									break;
-#else
-									{handle_key(kp);}
-#endif
-        
                         }
-                } else {
-#ifndef AQUA // _MSC_VER
-					if(type == KEYDOWN)
-							{handle_key(kp);}  //keydown for fly
-					if(type == KEYUP)
-#endif
-                        handle_keyrelease(kp); //keyup for fly
+                } 
+				if(!handled) {
+					if(type%10 == KEYDOWN) 
+						handle_key((char)key);  //keydown for fly
+					if(type%10 == KEYUP)
+                        handle_keyrelease((char)key); //keyup for fly
                 }
         }
 }
-void queueKeyPress(ppMainloop p, const char kp, int type){
+void queueKeyPress(ppMainloop p, int key, int type){
 	if(p->keypressQueueCount < 50){
-		p->keypressQueue[p->keypressQueueCount].kp = kp;
+		p->keypressQueue[p->keypressQueueCount].key = key;
 		p->keypressQueue[p->keypressQueueCount].type = type;
 		p->keypressQueueCount++;
 	}
 }
-void fwl_do_keyPress(const char kp, int type) {
+int platform2web3dActionKey(int platformKey);
+int isWeb3dDeleteKey(int web3dkey);
+void fwl_do_rawKeyPress(int key, int type) {
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
+
+	//for testing mode -R --record:
+	//we need to translate non-ascii keys before saving to ascii file
+	//so the .fwplay file can be replayed on any system (the action and control keys 
+	//will be already in web3d format)
+	if(type>1){ //just the raw keys (the fully translated keys are already in ascii form)
+		int actionKey = platform2web3dActionKey(key);
+		if(actionKey){
+			key = actionKey;
+			type += 10; //pre-tranlated raw keys will have type 12 or 13
+		}
+	}
+
 	if(p->modeRecord){
-		queueKeyPress(p,kp,type);
+		queueKeyPress(p,key,type);
 	}else{
-		fwl_do_keyPress0(kp,type);
+		fwl_do_keyPress0(key,type);
+	}
+	if(type==13 && isWeb3dDeleteKey(key))
+	{
+		//StringSensor likes DEL as a single char int the char stream, 
+		//but OSes usually only do the raw key so
+		//here we add a DEL to the stream.
+		type = 1;
+		if(p->modeRecord){
+			queueKeyPress(p,key,type);
+		}else{
+			fwl_do_keyPress0(key,type);
+		}
 	}
 }
 
+void fwl_do_keyPress(char kp, int type) {
+	int key = (int) kp;
+	fwl_do_rawKeyPress(key,type);
+}
 
 /* go to a viewpoint, hopefully it is one that is in our current list */
 void fwl_gotoViewpoint (char *findThisOne) {

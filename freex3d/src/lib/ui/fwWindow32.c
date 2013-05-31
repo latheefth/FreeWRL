@@ -382,6 +382,7 @@ LRESULT CALLBACK PopupWndProc(
     LONG lRet = 1; 
     RECT rect; 
     char kp;
+	int keyraw;
     int mev,err;
     int butnum;
 	int updown;
@@ -489,6 +490,8 @@ static int shiftState = 0;
 
 	case WM_KEYDOWN:
 	case WM_KEYUP: 
+		/* raw keystrokes with UP and DOWN separate, 
+			used for fly navigation and KeySensor node */
 	lkeydata = lParam;
 	updown = KeyPress;
 	if(msg==WM_KEYUP) updown = KeyRelease;
@@ -498,69 +501,76 @@ static int shiftState = 0;
 	//altDown = lkeydata & 1 << 29; //alt key is pressed while the current key is pressed
 	//if(altState && !altDown) fwl_do_keyPress(VK_MENU, 0);
 	//if(!altState && altDown) fwl_do_keyPress(VK_MENU,KeyPress);
-	kp = (char)wParam; 
+	//kp = (char)wParam; 
+	keyraw = (int) wParam;
 	//if(kp >= 'A' && kp <= 'Z' && shiftState ==0 ) kp = (char)tolower(wParam); //the F1 - F12 are small case ie y=121=F1
 	//printf("      wParam %d %x\n",wParam, wParam);
 	//x3d specs http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
 	//section 21.4.1 has a table of KeySensor ActionKey values which we must map to at some point
 	// http://msdn.microsoft.com/en-us/library/ms646268(VS.85).aspx windows keyboard messages
-	switch (wParam) 
-	{ 
-		//case VK_LEFT: 
-		//	kp = 'j';//19;
-		//	break; 
-		//case VK_RIGHT: 
-		//	kp = 'l';//20;
-		//	break; 
-		//case VK_UP: 
-		//	kp = 'p';//17;
-		//	break; 
-		//case VK_DOWN: 
-		//	kp =  ';';//18;
-		//	break; 
-		//case -70:
-		//	kp = ';';
-		//	break;
-		case VK_SHIFT: //0x10
-			if(updown==KeyPress) shiftState = 1;
-			if(updown==KeyRelease) shiftState = 0;
-		case VK_CONTROL: //0x11
-		case VK_MENU:  //ALT 0x12 - doesn't work like this: it alters the next key pressed
-			break;
-		case VK_OPEN_BRACKET:
-			printf("[");
-			/* width, height, bpp of monitor */
-			EnableFullscreen(1680,1050,32);
-			break;
-		case VK_CLOSE_BRACKET:
-			printf("]");
-			DisableFullscreen();
-			break;
-		case VK_OEM_1:
-			kp = ';'; //could be : or ; but tolower won't lowercase it, but returns same character if it can't
-			break;
-		default:
-			///* we aren't using WCHAR so we will translate things like shift-/ to ? */
-			//{ 
-			//	/* http://msdn.microsoft.com/en-us/library/ms646267(VS.85).aspx  shows where to get the scan code */
-			//	int k2; int i2; unsigned short k3;
-			//	UINT scancode;
-			//	//scancode = ((lParam << 8)>>8)>>16;
-			//	scancode = lParam >>16;
-			//	k2 = MapVirtualKeyEx(scancode,MAPVK_VSC_TO_VK,GetKeyboardLayout(0));
-			//	k2 = MapVirtualKeyEx(k2,MAPVK_VK_TO_CHAR,NULL);
-			//	if(k2) kp = k2;
-			//	k3 = 0;
-			//	i2 = ToAsciiEx(wParam,scancode,NULL,&k3,0,GetKeyboardLayout(0));
-			//	if(i2>0)
-			//		kp = k3;
-			//}
-			break;
-	}
-	fwl_do_keyPress(kp, updown); 
+	//switch (wParam) 
+	//{ 
+	//	//case VK_LEFT:     -- translation to web3d moved to platform2web3dActionKey(int platformKey)
+	//	//	kp = 'j';//19;
+	//	//	break; 
+	//	//case VK_RIGHT: 
+	//	//	kp = 'l';//20;
+	//	//	break; 
+	//	//case VK_UP: 
+	//	//	kp = 'p';//17;
+	//	//	break; 
+	//	//case VK_DOWN: 
+	//	//	kp =  ';';//18;
+	//	//	break; 
+	//	//case -70:
+	//	//	kp = ';';
+	//	//	break;
+	//	//case VK_SHIFT: //0x10
+	//	//	if(updown==KeyPress) shiftState = 1;
+	//	//	if(updown==KeyRelease) shiftState = 0;
+	//	//case VK_CONTROL: //0x11
+	//	//case VK_MENU:  //ALT 0x12 - doesn't work like this: it alters the next key pressed
+	//	//	break;
+	//	/*
+	//	case VK_OPEN_BRACKET:
+	//		printf("[");
+	//		// width, height, bpp of monitor
+	//		EnableFullscreen(1680,1050,32);
+	//		break;
+	//	case VK_CLOSE_BRACKET:
+	//		printf("]");
+	//		DisableFullscreen();
+	//		break;
+	//	*/
+	//	case VK_OEM_1:
+	//		kp = ';'; //could be : or ; but tolower won't lowercase it, but returns same character if it can't
+	//		break;
+	//	default:
+	//		///* we aren't using WCHAR so we will translate things like shift-/ to ? */
+	//		//{ 
+	//		//	/* http://msdn.microsoft.com/en-us/library/ms646267(VS.85).aspx  shows where to get the scan code */
+	//		//	int k2; int i2; unsigned short k3;
+	//		//	UINT scancode;
+	//		//	//scancode = ((lParam << 8)>>8)>>16;
+	//		//	scancode = lParam >>16;
+	//		//	k2 = MapVirtualKeyEx(scancode,MAPVK_VSC_TO_VK,GetKeyboardLayout(0));
+	//		//	k2 = MapVirtualKeyEx(k2,MAPVK_VK_TO_CHAR,NULL);
+	//		//	if(k2) kp = k2;
+	//		//	k3 = 0;
+	//		//	i2 = ToAsciiEx(wParam,scancode,NULL,&k3,0,GetKeyboardLayout(0));
+	//		//	if(i2>0)
+	//		//		kp = k3;
+	//		//}
+	//		break;
+	//}
+	fwl_do_rawKeyPress(keyraw, updown); 
 	break; 
 
 	case WM_CHAR:
+		/* fully translated char, with any SHIFT applied, and not a modifier key itself.
+		   used for keyboard commands to freewrl -except fly navigation- 
+		   and web3d StringSensor node.
+		*/
 		kp = (char)wParam;
 		fwl_do_keyPress(kp,KeyChar);
 		break;
