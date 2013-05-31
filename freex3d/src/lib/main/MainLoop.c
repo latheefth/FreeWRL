@@ -1420,17 +1420,17 @@ void handle(const int mev, const unsigned int button, const float x, const float
 #define PSFT_KEYR XK_Shift_R //0XFFE1 //left, and 0XFFE2 on right
 #define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
 #define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
-#define PNUM0 XK_KP_0
-#define PNUM1 XK_KP_1
-#define PNUM2 XK_KP_2
-#define PNUM3 XK_KP_3
-#define PNUM4 XK_KP_4
-#define PNUM5 XK_KP_5
-#define PNUM6 XK_KP_6
-#define PNUM7 XK_KP_7
-#define PNUM8 XK_KP_8
-#define PNUM9 XK_KP_9
-#define PNUMDEC XK_KP_Decimal
+#define PNUM0 XK_KP_Insert    //XK_KP_0
+#define PNUM1 XK_KP_End       //XK_KP_1
+#define PNUM2 XK_KP_Down      //XK_KP_2
+#define PNUM3 XK_KP_Page_Down //XK_KP_3
+#define PNUM4 XK_KP_Left      //XK_KP_4
+#define PNUM5 XK_KP_Begin     //XK_KP_5
+#define PNUM6 XK_KP_Right     //XK_KP_6
+#define PNUM7 XK_KP_Home      //XK_KP_7
+#define PNUM8 XK_KP_Up        //XK_KP_8
+#define PNUM9 XK_KP_Page_Up   //XK_KP_9
+#define PNUMDEC XK_KP_Delete //XK_KP_Decimal
 
 #define KEYPRESS 1
 #define KEYDOWN 2
@@ -1590,7 +1590,7 @@ void handle_Xevents(XEvent event) {
                 case KeyRelease:
                         XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
                         /*  Map keypad keys in - thanks to Aubrey Jaffer.*/
-                        switch(ks) {
+                        if(0) switch(ks) {
                            /*  the non-keyboard arrow keys*/
                            case XK_Left: ks = XK_j; break;
                            case XK_Right: ks = XK_l; break;
