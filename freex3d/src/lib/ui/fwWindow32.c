@@ -370,7 +370,131 @@ void updateCursorStyle0(int cstyle)
 	if(cstyle == ACURSE)
 		SetCursor(hArrow);
 }
+/* values from WinUser.h */
+#define PHOME_KEY  VK_HOME  //0x24
+#define PPGDN_KEY  VK_NEXT  //0x22
+#define PLEFT_KEY  VK_LEFT  //0x25
+#define PEND_KEY   VK_END   //0x23
+#define PUP_KEY    VK_UP    //0x26
+#define PRIGHT_KEY VK_RIGHT //0x27
+#define PPGUP_KEY  VK_PRIOR //0x21
+#define PDOWN_KEY  VK_DOWN  //0x28
+#define PF1_KEY  VK_F1 //0x70
+#define PF2_KEY  VK_F2 //0x71
+#define PF3_KEY  VK_F3 //0x72
+#define PF4_KEY  VK_F4 //0x73
+#define PF5_KEY  VK_F5 //0x74
+#define PF6_KEY  VK_F6 //0x75
+#define PF7_KEY  VK_F7 //0x76
+#define PF8_KEY  VK_F8 //0x77
+#define PF9_KEY  VK_F9 //0x78
+#define PF10_KEY VK_F10 //0x79
+#define PF11_KEY VK_F11 //0x7a
+#define PF12_KEY VK_F12 //0x7b
+#define PALT_KEY VK_MENU //0x12   
+#define PCTL_KEY VK_CONTROL //0x11
+#define PSFT_KEY VK_SHIFT   //0x10
+#define PDEL_KEY VK_DELETE  //0x2E  //2E is DELETE 
+#define PRTN_KEY VK_RETURN  //0x0D  //13
 
+/* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
+section 21.4.1 
+Key Value
+Home 13
+End 14
+PGUP 15
+PGDN 16
+UP 17
+DOWN 18
+LEFT 19
+RIGHT 20
+F1-F12  1 to 12
+ALT,CTRL,SHIFT true/false
+*/
+#define F1_KEY  1
+#define F2_KEY  2
+#define F3_KEY  3
+#define F4_KEY  4
+#define F5_KEY  5
+#define F6_KEY  6
+#define F7_KEY  7
+#define F8_KEY  8
+#define F9_KEY  9
+#define F10_KEY 10
+#define F11_KEY 11
+#define F12_KEY 12
+#define HOME_KEY 13
+#define END_KEY  14
+#define PGUP_KEY 15
+#define PGDN_KEY 16
+#define UP_KEY   17
+#define DOWN_KEY 18
+#define LEFT_KEY 19
+#define RIGHT_KEY 20
+#define ALT_KEY	30 /* not available on OSX */
+#define CTL_KEY 31 /* not available on OSX */
+#define SFT_KEY 32 /* not available on OSX */
+#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0xffff too high to clash with a latin? */
+#define RTN_KEY 13  //what about 10 newline?
+
+#define KEYPRESS 1
+#define KEYDOWN 2
+#define KEYUP	3
+
+int platform2web3dActionKeyWIN32(int platformKey)
+{
+	int key;
+
+	key = 0; //platformKey;
+	if(platformKey >= PF1_KEY && platformKey <= PF12_KEY)
+		key = platformKey - PF1_KEY + F1_KEY;
+	else 
+		switch(platformKey)
+		{
+		case PHOME_KEY:
+			key = HOME_KEY; break;
+		case PEND_KEY:
+			key = END_KEY; break;
+		case PPGDN_KEY:
+			key = PGDN_KEY; break;
+		case PPGUP_KEY:
+			key = PGUP_KEY; break;
+		case PUP_KEY:
+			key = UP_KEY; break;
+		case PDOWN_KEY:
+			key = DOWN_KEY; break;
+		case PLEFT_KEY:
+			key = LEFT_KEY; break;
+		case PRIGHT_KEY:
+			key = RIGHT_KEY; break;
+		case PDEL_KEY:  
+			key = DEL_KEY; break;
+		case PALT_KEY:
+			key = ALT_KEY; break;
+		case PCTL_KEY:
+			key = CTL_KEY; break;
+		case PSFT_KEY:
+			key = SFT_KEY; break;
+		default:
+			key = 0;
+		}
+	return key;
+}
+/* Print n as a binary number - scraped from www */
+void printbitssimple(int n) {
+	unsigned int i,j;
+	j=0;
+	i = 1<<(sizeof(n) * 8 - 1);
+	while (i > 0) {
+		if (n & i)
+			printf("1");
+		else
+			printf("0");
+		i >>= 1;
+		j++;
+		if(j%8 == 0) printf(" ");
+	}
+}
 //void setArrowCursor0();
 LRESULT CALLBACK PopupWndProc( 
     HWND hWnd, 
@@ -386,6 +510,7 @@ LRESULT CALLBACK PopupWndProc(
     int mev,err;
     int butnum;
 	int updown;
+	int actionKey;
 static int altState = 0;
 	int altDown;
 	int lkeydata;
@@ -493,16 +618,38 @@ static int shiftState = 0;
 		/* raw keystrokes with UP and DOWN separate, 
 			used for fly navigation and KeySensor node */
 	lkeydata = lParam;
-	updown = KeyPress;
-	if(msg==WM_KEYUP) updown = KeyRelease;
+	updown = KEYDOWN; //KeyPress;
+	if(msg==WM_KEYUP) updown = KEYUP; //KeyRelease;
 	if(updown==KeyPress)
 		if(lkeydata & 1 << 30) 
 			break; //ignor - its an auto-repeat
 	//altDown = lkeydata & 1 << 29; //alt key is pressed while the current key is pressed
-	//if(altState && !altDown) fwl_do_keyPress(VK_MENU, 0);
-	//if(!altState && altDown) fwl_do_keyPress(VK_MENU,KeyPress);
+	/*
+	printf("KF_ALTDOWN");
+	printbitssimple((int)KF_ALTDOWN);
+	printf("\n");
+	printf("lkeydata  ");
+	printbitssimple(lkeydata);
+	printf(" %d %o %x \n",lkeydata,lkeydata,lkeydata);
+	*/
+	/*
+	printbitssimple(wParam); printf("\n");
+	//altDown = lkeydata & KF_ALTDOWN;
+	//#define KF_ALTDOWN        0x2000
+	if(altState && !altDown) fwl_do_rawKeyPress(ALT_KEY,KEYUP + 10);
+	if(!altState && altDown) fwl_do_rawKeyPress(ALT_KEY,KEYDOWN + 10);
+	altState = altDown;
+	*/
 	//kp = (char)wParam; 
 	keyraw = (int) wParam;
+	if(updown==KEYUP && keyraw == VK_DELETE)
+		fwl_do_rawKeyPress(DEL_KEY,KEYPRESS);
+	actionKey = platform2web3dActionKeyWIN32(keyraw);
+	if(actionKey)
+		fwl_do_rawKeyPress(actionKey,updown+10);
+	else
+		fwl_do_rawKeyPress(keyraw,updown);
+
 	//if(kp >= 'A' && kp <= 'Z' && shiftState ==0 ) kp = (char)tolower(wParam); //the F1 - F12 are small case ie y=121=F1
 	//printf("      wParam %d %x\n",wParam, wParam);
 	//x3d specs http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
@@ -563,7 +710,7 @@ static int shiftState = 0;
 	//		//}
 	//		break;
 	//}
-	fwl_do_rawKeyPress(keyraw, updown); 
+	//fwl_do_rawKeyPressWIN32(keyraw, updown); 
 	break; 
 
 	case WM_CHAR:
@@ -571,8 +718,10 @@ static int shiftState = 0;
 		   used for keyboard commands to freewrl -except fly navigation- 
 		   and web3d StringSensor node.
 		*/
-		kp = (char)wParam;
-		fwl_do_keyPress(kp,KeyChar);
+		//kp = (char)wParam;
+		//fwl_do_keyPress(kp,KeyChar);
+		keyraw = (int) wParam;
+		fwl_do_rawKeyPress(keyraw,KEYPRESS);
 		break;
 	/* Mouse events, processed */
     case WM_LBUTTONDOWN:

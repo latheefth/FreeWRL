@@ -1391,12 +1391,124 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 #if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
+#define PHOME_KEY 80
+#define PPGDN_KEY 86
+#define PLEFT_KEY 106
+#define PEND_KEY 87
+#define PUP_KEY 112
+#define PRIGHT_KEY 108
+#define PPGUP_KEY 85
+#define PDOWN_KEY 59
+#define PF1_KEY  0xFFBE
+#define PF2_KEY  0xFFBF
+#define PF3_KEY  0XFFC0
+#define PF4_KEY  0XFFC1
+#define PF5_KEY  0XFFC2
+#define PF6_KEY  0XFFC3
+#define PF7_KEY  0XFFC4
+#define PF8_KEY  0XFFC5
+#define PF9_KEY  0XFFC6
+#define PF10_KEY 0XFFC7
+#define PF11_KEY 0XFFC8
+#define PF12_KEY 0XFFC9
+#define PALT_KEY 0XFFE9 //left, and 0XFFEA   //0XFFE7
+#define PCTL_KEY 0XFFE3 //left, and 0XFFE4 on right
+#define PSFT_KEY 0XFFE1 //left, and 0XFFE2 on right
+#define PDEL_KEY 0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
+#define PRTN_KEY 13
+#define KEYPRESS 1
+#define KEYDOWN 2
+#define KEYUP	3
+
+/* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
+section 21.4.1 
+Key Value
+Home 13
+End 14
+PGUP 15
+PGDN 16
+UP 17
+DOWN 18
+LEFT 19
+RIGHT 20
+F1-F12  1 to 12
+ALT,CTRL,SHIFT true/false
+*/
+#define F1_KEY  1
+#define F2_KEY  2
+#define F3_KEY  3
+#define F4_KEY  4
+#define F5_KEY  5
+#define F6_KEY  6
+#define F7_KEY  7
+#define F8_KEY  8
+#define F9_KEY  9
+#define F10_KEY 10
+#define F11_KEY 11
+#define F12_KEY 12
+#define HOME_KEY 13
+#define END_KEY  14
+#define PGUP_KEY 15
+#define PGDN_KEY 16
+#define UP_KEY   17
+#define DOWN_KEY 18
+#define LEFT_KEY 19
+#define RIGHT_KEY 20
+#define ALT_KEY	30 /* not available on OSX */
+#define CTL_KEY 31 /* not available on OSX */
+#define SFT_KEY 32 /* not available on OSX */
+#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0XFFFF too high to clash with a latin? */
+#define RTN_KEY 13  //what about 10 newline?
+
+
+int platform2web3dActionKeyLINUX(int platformKey)
+{
+	int key;
+
+	key = 0; //platformKey;
+	if(platformKey >= PF1_KEY && platformKey <= PF12_KEY)
+		key = platformKey - PF1_KEY + F1_KEY;
+	else 
+		switch(platformKey)
+		{
+		case PHOME_KEY:
+			key = HOME_KEY; break;
+		case PEND_KEY:
+			key = END_KEY; break;
+		case PPGDN_KEY:
+			key = PGDN_KEY; break;
+		case PPGUP_KEY:
+			key = PGUP_KEY; break;
+		case PUP_KEY:
+			key = UP_KEY; break;
+		case PDOWN_KEY:
+			key = DOWN_KEY; break;
+		case PLEFT_KEY:
+			key = LEFT_KEY; break;
+		case PRIGHT_KEY:
+			key = RIGHT_KEY; break;
+		case PDEL_KEY:  
+			key = DEL_KEY; break;
+		case PALT_KEY:
+			key = ALT_KEY; break;
+		case PCTL_KEY:
+			key = CTL_KEY; break;
+		case PSFT_KEY:
+			key = SFT_KEY; break;
+		default:
+			key = 0;
+		}
+	return key;
+}
+
+
 void handle_Xevents(XEvent event) {
 
         XEvent nextevent;
         char buf[10];
         KeySym ks, ksraw, ksupper, kslower;
         int count;
+		int actionKey;
 		ppMainloop p;
 		ttglobal tg = gglobal();
 		p = (ppMainloop)tg->Mainloop.prv;
@@ -1482,8 +1594,12 @@ void handle_Xevents(XEvent event) {
                         ksraw = ksupper;
                         if(event.type == KeyRelease && !IsModifierKey(ks) 
                         	&& !IsFunctionKey(ks) && !IsMiscFunctionKey(ks) && !IsCursorKey(ks))
-                             fwl_do_keyPress(ks,1);
-                        fwl_do_rawKeyPress(ksraw,event.type);
+                             fwl_do_rawKeyPress((int)ks,1);
+						actionKey = platform2web3dActionKeyLINUX(ksraw);
+						if(actionKey)
+							fwl_do_rawKeyPress(actionKey,event.type+10);
+						else
+							fwl_do_rawKeyPress(ksraw,event.type);
 						
                         break;
 
@@ -3035,47 +3151,68 @@ void queueKeyPress(ppMainloop p, int key, int type){
 	}
 }
 int platform2web3dActionKey(int platformKey);
-int isWeb3dDeleteKey(int web3dkey);
+//int isWeb3dDeleteKey(int web3dkey);
+//void fwl_do_rawKeyPress_OLD(int key, int type) {
+//	ppMainloop p;
+//	ttglobal tg = gglobal();
+//	p = (ppMainloop)tg->Mainloop.prv;
+//
+//	//for testing mode -R --record:
+//	//we need to translate non-ascii keys before saving to ascii file
+//	//so the .fwplay file can be replayed on any system (the action and control keys 
+//	//will be already in web3d format)
+//	if(type>1){ //just the raw keys (the fully translated keys are already in ascii form)
+//		int actionKey = platform2web3dActionKey(key);
+//		if(actionKey){
+//			key = actionKey;
+//			type += 10; //pre-tranlated raw keys will have type 12 or 13
+//		}
+//	}
+//
+//	if(p->modeRecord){
+//		queueKeyPress(p,key,type);
+//	}else{
+//		fwl_do_keyPress0(key,type);
+//	}
+//	if(type==13 && isWeb3dDeleteKey(key))
+//	{
+//		//StringSensor likes DEL as a single char int the char stream, 
+//		//but OSes usually only do the raw key so
+//		//here we add a DEL to the stream.
+//		type = 1;
+//		if(p->modeRecord){
+//			queueKeyPress(p,key,type);
+//		}else{
+//			fwl_do_keyPress0(key,type);
+//		}
+//	}
+//}
 void fwl_do_rawKeyPress(int key, int type) {
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
-
-	//for testing mode -R --record:
-	//we need to translate non-ascii keys before saving to ascii file
-	//so the .fwplay file can be replayed on any system (the action and control keys 
-	//will be already in web3d format)
-	if(type>1){ //just the raw keys (the fully translated keys are already in ascii form)
-		int actionKey = platform2web3dActionKey(key);
-		if(actionKey){
-			key = actionKey;
-			type += 10; //pre-tranlated raw keys will have type 12 or 13
-		}
-	}
 
 	if(p->modeRecord){
 		queueKeyPress(p,key,type);
 	}else{
 		fwl_do_keyPress0(key,type);
 	}
-	if(type==13 && isWeb3dDeleteKey(key))
-	{
-		//StringSensor likes DEL as a single char int the char stream, 
-		//but OSes usually only do the raw key so
-		//here we add a DEL to the stream.
-		type = 1;
-		if(p->modeRecord){
-			queueKeyPress(p,key,type);
-		}else{
-			fwl_do_keyPress0(key,type);
-		}
-	}
 }
 
 void fwl_do_keyPress(char kp, int type) {
+	//call this from AQUA, ANDROID, QNX, IPHONE as always
+	//it will do the old-style action-key lookup 
+	//(desktop win32 and linux can get finer tuning on the keyboard 
+	// with per-platform platform2web3dActionKeyLINUX and WIN32 functions
+	int actionKey;
 	int key = (int) kp;
-	fwl_do_rawKeyPress(key,type);
+	actionKey = platform2web3dActionKey(key);
+	if(actionKey)
+		fwl_do_rawKeyPress(actionKey,type+10);
+	else
+		fwl_do_rawKeyPress(key,type);
 }
+
 
 /* go to a viewpoint, hopefully it is one that is in our current list */
 void fwl_gotoViewpoint (char *findThisOne) {

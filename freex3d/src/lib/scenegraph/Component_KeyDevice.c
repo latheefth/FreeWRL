@@ -161,10 +161,10 @@ function mappings - like a "shift" key */
 #define PF10_KEY 0XFFC7
 #define PF11_KEY 0XFFC8
 #define PF12_KEY 0XFFC9
-#define PALT_KEY	0XFFE7
-#define PCTL_KEY 0XFFE3
-#define PSFT_KEY 0XFFE1
-#define PDEL_KEY 0x08
+#define PALT_KEY 0XFFE9 //left, and 0XFFEA   //0XFFE7
+#define PCTL_KEY 0XFFE3 //left, and 0XFFE4 on right
+#define PSFT_KEY 0XFFE1 //left, and 0XFFE2 on right
+#define PDEL_KEY 0XFF9F //on numpad, and 0XFFFF near Insert //0x08  
 #define PRTN_KEY 13
 #define KEYPRESS 1
 #define KEYDOWN 2
@@ -208,15 +208,9 @@ ALT,CTRL,SHIFT true/false
 #define ALT_KEY	30 /* not available on OSX */
 #define CTL_KEY 31 /* not available on OSX */
 #define SFT_KEY 32 /* not available on OSX */
-#define DEL_KEY 127 /* problem: I'm insterting this back into the translated char stream so 127 could clash with a latin? */
+#define DEL_KEY 0XFFFF /* problem: I'm insterting this back into the translated char stream so 0XFFFF too high to clash with a latin? */
 #define RTN_KEY 13  //what about 10 newline?
 
-int isWeb3dDeleteKey(int web3dkey)
-{
-	//problem: OS usually don't generate a single keystroke for Del -it's usually just up/down
-	//and for StringSensor node, we need a KEYPRESS.
-	return web3dkey == DEL_KEY;
-}
 int platform2web3dActionKey(int platformKey)
 {
 	int key;
