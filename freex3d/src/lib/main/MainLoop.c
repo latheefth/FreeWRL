@@ -660,7 +660,7 @@ void fwl_RenderSceneUpdateScene() {
 					exit(1);
 				}
 				//put in a header record, passively showing window widthxheight
-				fprintf(p->recordingFile,"# window_wxh %d %d \n",tg->display.screenWidth,tg->display.screenHeight);
+				fprintf(p->recordingFile,"window_wxh = %d, %d \n",tg->display.screenWidth,tg->display.screenHeight);
 
 			}
 			strcpy(keystrokes,"\"");
@@ -703,9 +703,9 @@ void fwl_RenderSceneUpdateScene() {
 						exit(1);
 					}
 					if( fgets(buff, 1000, p->recordingFile) != NULL){
-						char poundsign[100], window_widthxheight[100];
+						char window_widthxheight[100], equals[50];
 						int width, height;
-						if( sscanf(buff,"%s %s %d %d\n",&poundsign,&window_widthxheight,&width,&height) == 4) {
+						if( sscanf(buff,"%s %s %d, %d\n",&window_widthxheight,&equals, &width,&height) == 4) {
 							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
 								printf("Ouch - the test playback window size is different than recording:\n");
 								printf("recording %d x %d playback %d x %d\n",width,height,
