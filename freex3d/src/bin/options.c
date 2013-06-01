@@ -88,6 +88,7 @@ void fv_usage()
 		"  -R|--record             Record to /recording/<scene>.fwplay.\n"
 		"  -F|--fixture            Playback from /recording/<scene>.fwplay to /fixture.\n"
 		"  -P|--playback           Playback from /recording/<scene>.fwplay to /playback\n"
+		"  -N|--nametest <string>  Set name of .fwplay test file\n"
 	    "\nInternal options:\n"
 	    "  -i|--plugin <string>    Called from plugin.\n"
 	    "  -j|--fd <number>        Pipe to command the program.\n"
@@ -149,6 +150,7 @@ const char * fv_validate_string_arg(const char *optarg)
 	{"record", no_argument, 0, 'R'},
 	{"fixture", no_argument, 0, 'F'},
 	{"playback", no_argument, 0, 'P'},
+	{"nametest", required_argument, 0, 'N'},
 	{0, 0, 0, 0}
     };
 
@@ -183,9 +185,9 @@ int fv_parseCommandLine (int argc, char **argv)
     FILE *fp;
 
 #if defined(DOSNAPSEQUENCE)
-	static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:d:RFP";
+	static const char optstring[] = "efg:hi:j:k:vVlpq:m:n:o:bsQW:K:Xcr:y:utCL:d:RFPN:";
 #else
-	static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utCL:d:RFP"; //':' means the preceding option requires an arguement
+	static const char optstring[] = "efg:hi:j:k:vVpn:o:bsQW:K:Xcr:y:utCL:d:RFPN:"; //':' means the preceding option requires an arguement
 #endif
 
 
@@ -419,6 +421,10 @@ int fv_parseCommandLine (int argc, char **argv)
 	case 'P': /* --playback, no arg */
 		fwl_set_modePlayback();
 		break;
+	case 'N': /* --nametest, required arguement: "name_of_fwplay"*/
+		fwl_set_nameTest(optarg);
+		break;
+
 
 #ifdef HAVE_LIBCURL
 	case 'C': /* --curl, no argument */

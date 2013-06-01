@@ -200,6 +200,7 @@ typedef struct pMainloop{
 	int modeRecord;
 	int modeFixture;
 	int modePlayback;
+	char *nameTest;
 	int frameNum; //for Record, Playback - frame# =0 after scene loaded
 	struct playbackRecord* playback;
 	int playbackCount;
@@ -298,6 +299,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->modeRecord = FALSE;
 		p->modeFixture = FALSE;
 		p->modePlayback = FALSE;
+		p->nameTest = NULL;
 		p->frameNum = 0;
 		p->playbackCount = 0;
 		p->playback = NULL;
@@ -605,7 +607,7 @@ void fwl_RenderSceneUpdateScene() {
 		char buff[1000], keystrokes[200], mouseStr[1000]; 
 		int namingMethod;
 		char *folder;
-		char recordingName[1000];
+		char recordingName[1000], sceneName[1000];
 		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
 		if(!p->doEvents)
 			return; //for Record and Playback, don't start doing things until scene and textures are loaded
@@ -625,20 +627,32 @@ void fwl_RenderSceneUpdateScene() {
 		if(p->frameNum == 1){
 			int j,k;
 			recordingName[0] = '\0';
+			sceneName[0] = '\0';
+			if(tg->Mainloop.scene_name){
+				strcat(sceneName,tg->Mainloop.scene_name);
+				if(tg->Mainloop.scene_suff){
+					strcat(sceneName,".");
+					strcat(sceneName,tg->Mainloop.scene_suff);
+				}
+			}
 			if(namingMethod==3 || namingMethod==4){
 				strcpy(recordingName,"recording");
 				fw_mkdir(recordingName);
 				strcat(recordingName,"/");
 			}
 			if(namingMethod>0){
-				strcat(recordingName,tg->Mainloop.scene_name);
-				k = strlen(recordingName);
-				if(k){
-					//1.wrl -> 1_wrl
-					j = strlen(tg->Mainloop.scene_suff);
-					if(j){
-						strcat(recordingName,"_");
-						strcat(recordingName,tg->Mainloop.scene_suff);
+				if(p->nameTest){
+					strcat(recordingName,p->nameTest);
+				}else{
+					strcat(recordingName,tg->Mainloop.scene_name);
+					k = strlen(recordingName);
+					if(k){
+						//1.wrl -> 1_wrl
+						j = strlen(tg->Mainloop.scene_suff);
+						if(j){
+							strcat(recordingName,"_");
+							strcat(recordingName,tg->Mainloop.scene_suff);
+						}
 					}
 				}
 			}
@@ -661,7 +675,7 @@ void fwl_RenderSceneUpdateScene() {
 				}
 				//put in a header record, passively showing window widthxheight
 				fprintf(p->recordingFile,"window_wxh = %d, %d \n",tg->display.screenWidth,tg->display.screenHeight);
-
+				fprintf(p->recordingFile,"scenefile = %s \n",sceneName);
 			}
 			strcpy(keystrokes,"\"");
 			while(dequeueKeyPress(p,&key,&type)){
@@ -705,6 +719,7 @@ void fwl_RenderSceneUpdateScene() {
 					if( fgets(buff, 1000, p->recordingFile) != NULL){
 						char window_widthxheight[100], equals[50];
 						int width, height;
+						//window_wxh = 600,400
 						if( sscanf(buff,"%s %s %d, %d\n",&window_widthxheight,&equals, &width,&height) == 4) {
 							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
 								printf("Ouch - the test playback window size is different than recording:\n");
@@ -713,6 +728,12 @@ void fwl_RenderSceneUpdateScene() {
 								printf("hit Enter:");
 								getchar();
 							}
+						}
+					}
+					if( fgets(buff, 1000, p->recordingFile) != NULL){
+						char scenefile[100], equals[50];
+						//scenefile = 1.wrl
+						if( sscanf(buff,"%s %s %s \n",&scenefile,&equals, &sceneName) == 3) {
 						}
 					}
 				}
@@ -851,13 +872,17 @@ void fwl_RenderSceneUpdateScene() {
 								fw_mkdir(snappath); // /fixture
 								fwl_set_SnapTmp(snappath);
 								
-								strcpy(snappath,tg->Mainloop.scene_name); // /fixture/1
-								k = strlen(tg->Mainloop.scene_name);
-								if(k){
-									j= strlen(tg->Mainloop.scene_suff);
-									if(j){
-										strcat(snappath,sep); // "." or "_");
-										strcat(snappath,tg->Mainloop.scene_suff);
+								snappath[0] = '\0';
+								if(p->nameTest){
+									strcat(snappath,p->nameTest);
+								}else{
+									if(tg->Mainloop.scene_name){
+										strcat(snappath,tg->Mainloop.scene_name); // /fixture/1
+										if(tg->Mainloop.scene_suff)
+										{
+											strcat(snappath,sep); // "." or "_");
+											strcat(snappath,tg->Mainloop.scene_suff);
+										}
 									}
 								}
 								fwl_set_SnapFile(snappath);  //  /fixture/1_wrl.001.bmp
@@ -3944,6 +3969,11 @@ void fwl_set_modePlayback()
 {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
     p->modePlayback = TRUE;
+}
+void fwl_set_nameTest(char *nameTest)
+{
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+    p->nameTest = strdup(nameTest);
 }
 
 /* if we had an exit(EXIT_FAILURE) anywhere in this C code - it means
