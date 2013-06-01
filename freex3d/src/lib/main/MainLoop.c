@@ -3156,12 +3156,21 @@ void sendKeyToKeySensor(const char key, int upDown);
 char lookup_fly_key(int key);
 //#endif
 void fwl_do_keyPress0(int key, int type) {
-		int lkp;
-		ttglobal tg = gglobal();
+	int lkp;
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+
         /* does this X3D file have a KeyDevice node? if so, send it to it */
 	//printf("fwl_do_keyPress: %c%d\n",kp,type); 
         if (KeySensorNodePresent()) {
-                sendKeyToKeySensor(key,type);
+			if(key == 27 && type == 1 && (p->modeRecord || p->modeFixture || p->modePlayback) && !RUNNINGASPLUGIN){
+				//when automatically testing with a keysensor or stringsensor, 
+				//we need a .fwplay recordable way to get out of freewrl, and the 'q' is swallowed by the sensor
+				//so we revert to the ESC (27) key
+				fwl_doQuit();
+			}
+            sendKeyToKeySensor(key,type);
         } else {
 			int handled = isAQUA;
 			if(type == KEYPRESS) 
