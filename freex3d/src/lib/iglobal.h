@@ -158,6 +158,7 @@ typedef struct iiglobal //InstanceGlobal
 		int currentX[20], currentY[20];                 /*  current mouse position.*/
 		void *prv;
 		char *tmpFileLocation;
+		char *url;
 		char *scene_name; //null or take from url
 		char *scene_suff; //null or wrl or x3d
 	} Mainloop;

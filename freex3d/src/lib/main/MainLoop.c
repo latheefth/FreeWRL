@@ -675,7 +675,7 @@ void fwl_RenderSceneUpdateScene() {
 				}
 				//put in a header record, passively showing window widthxheight
 				fprintf(p->recordingFile,"window_wxh = %d, %d \n",tg->display.screenWidth,tg->display.screenHeight);
-				fprintf(p->recordingFile,"scenefile = %s \n",sceneName);
+				fprintf(p->recordingFile,"scenefile = %s \n",tg->Mainloop.url); //sceneName);
 			}
 			strcpy(keystrokes,"\"");
 			while(dequeueKeyPress(p,&key,&type)){

@@ -334,6 +334,7 @@ void fwl_startFreeWRL(const char *url)
 					break;
 				}
 			}
+			gglobal()->Mainloop.url = strdup(url);
 			gglobal()->Mainloop.scene_name = local_name;
 			gglobal()->Mainloop.scene_suff = suff;
 		}
