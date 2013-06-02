@@ -748,7 +748,7 @@ void fwl_RenderSceneUpdateScene() {
 				// playback[i] = {iframe, dtime, keystrokes or NULL, mouse (xy,button sequence) or NULL, snapshot URL or NULL, scenegraph_dump URL or NULL, ?other?}
 				if( fgets( buff, 1000, p->recordingFile ) != NULL ) {
 					if(sscanf(buff,"%d %lf %s %s\n",&p->frameNum,&dtime,keystrokes,mouseStr) == 4){ //,snapshotURL,scenegraphURL) == 6){
-						printf("%d %lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
+						if(0) printf("%d %lf %s %s\n",p->frameNum,dtime,keystrokes,mouseStr); 
 					}
 				}
 			}
@@ -3246,13 +3246,18 @@ void fwl_do_keyPress0(int key, int type) {
         /* does this X3D file have a KeyDevice node? if so, send it to it */
 	//printf("fwl_do_keyPress: %c%d\n",kp,type); 
         if (KeySensorNodePresent()) {
-			if(key == 27 && type == 1 && (p->modeRecord || p->modeFixture || p->modePlayback) && !RUNNINGASPLUGIN){
-				//when automatically testing with a keysensor or stringsensor, 
-				//we need a .fwplay recordable way to get out of freewrl, and the 'q' is swallowed by the sensor
-				//so we revert to the ESC (27) key
+			if((key == 27 || key=='`') && type == 1 && (p->modeRecord || p->modeFixture || p->modePlayback) && !RUNNINGASPLUGIN){
+				if(key==27){
+					//when automatically testing with a keysensor or stringsensor, 
+					//we need a .fwplay recordable way to get out of freewrl, and the 'q' is swallowed by the sensor
+					//so we revert to the ESC (27) key
 				fwl_doQuit();
+				}else if(key == '`'){
+					toggleLogfile();
+				}
+			}else{
+				sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
 			}
-            sendKeyToKeySensor(key,type);
         } else {
 			int handled = isAQUA;
 			if(type == KEYPRESS) 
