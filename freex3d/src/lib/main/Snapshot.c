@@ -260,20 +260,78 @@ void setSnapshot() {}
 void fwl_toggleSnapshot(){}
 void fwl_init_SnapGif(){}
 void saveSnapSequence() {}
-#ifndef _MSC_VER
-void Snapshot () {}
-#else
+#endif
 
-#include <windows.h>
+#ifdef IPHONE
+void Snapshot () {}
+#endif
+
+#ifndef IPHONE
+
+//#ifndef _MSC_VER
+//#include <windows.h>
+//#define FDWORD DWORD
+//#define FLONG LONG
+//#define FWORD WORD
+//#define FBYPTE BYTE
+//#define FBI_RGB BI_RGB
+//#define FWBITMAPINFOHEADER BITMAPINFOHEADER
+//#define FWBITMAPFILEHEADER BITMAPFILEHEADER
+//#define FWBITMAPINFO BITMAPINFO
+//#else
+////#include <windows.h>
+#define FDWORD unsigned long
+#define FLONG long
+#define FWORD unsigned short
+#define FBYTE unsigned char
+#define FBI_RGB        0L
+
+typedef struct {
+        FDWORD      biSize;
+        FLONG       biWidth;
+        FLONG       biHeight;
+        FWORD       biPlanes;
+        FWORD       biBitCount;
+        FDWORD      biCompression;
+        FDWORD      biSizeImage;
+        FLONG       biXPelsPerMeter;
+        FLONG       biYPelsPerMeter;
+        FDWORD      biClrUsed;
+        FDWORD      biClrImportant;
+} FWBITMAPINFOHEADER;
+//#include <pshpack2.h> //puspack and poppack are all to fix the WORD bfType struct 4-byte alignment problem
+//I just took bfType out, then I don't need special packing on a 32bit system. Not sure about 64.
+typedef struct  {
+        //FWORD    bfType;
+        FDWORD   bfSize;
+        FWORD    bfReserved1;
+        FWORD    bfReserved2;
+        FDWORD   bfOffBits;
+} FWBITMAPFILEHEADER;
+//#include <poppack.h>
+typedef struct {
+        FBYTE    rgbBlue;
+        FBYTE    rgbGreen;
+        FBYTE    rgbRed;
+        FBYTE    rgbReserved;
+} FWRGBQUAD;
+
+typedef struct {
+    FWBITMAPINFOHEADER    bmiHeader;
+    FWRGBQUAD             bmiColors[1];
+} FWBITMAPINFO;
+//#endif
+
 //#include "Vfw.h" //.avi headers
-void saveSnapshot(char *pathname, char *buffer,int bytesPerPixel,int width, int height)
+void saveSnapshotBMP(char *pathname, char *buffer,int bytesPerPixel,int width, int height)
 {
 	//tested for bytesPerPixel == 3 and incoming alignment 1 only
 	//(outgoing/written is byte-aligned 4)
 	int rowlength, extra, alignedwidth, i,j;
 
-	BITMAPINFOHEADER bi; 
-	BITMAPFILEHEADER bmph;
+	FWBITMAPINFOHEADER bi; 
+	FWORD    bfType;
+	FWBITMAPFILEHEADER bmph;
 	char filler[3] = {'\0','\0','\0'};
 	FILE *fout;
 	ppSnapshot p = (ppSnapshot)gglobal()->Snapshot.prv;
@@ -282,7 +340,7 @@ void saveSnapshot(char *pathname, char *buffer,int bytesPerPixel,int width, int 
 	//if(p->snapsnapB) fname = p->snapsnapB;
 	fout = fopen(pathname,"w+b");
 
-	if(bytesPerPixel == 3) bi.biCompression = BI_RGB;
+	if(bytesPerPixel == 3) bi.biCompression = FBI_RGB;
 	bi.biHeight = height;
 	bi.biWidth = width;
 	bi.biPlanes = 1;
@@ -304,13 +362,15 @@ void saveSnapshot(char *pathname, char *buffer,int bytesPerPixel,int width, int 
 	bi.biClrImportant = 0;
 	//printf("width=%d height=%d rowlengthmod4= %d extra=%d\n",width,height,rowlength%4,extra);
 
-	memcpy(&bmph.bfType,"BM",2);
+	//memcpy(&bmph.bfType,"BM",2);
+	memcpy(&bfType,"BM",2);
 	bmph.bfReserved1 = 0;
 	bmph.bfReserved2 = 0;
-	bmph.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER); 
-	bmph.bfSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + bi.biSizeImage;
-	fwrite(&bmph,sizeof(BITMAPFILEHEADER),1,fout);
-	fwrite(&bi,sizeof(BITMAPINFO),1,fout);
+	bmph.bfOffBits = sizeof(bfType) + sizeof(FWBITMAPFILEHEADER) + sizeof(FWBITMAPINFOHEADER); 
+	bmph.bfSize = sizeof(bfType) + sizeof(FWBITMAPFILEHEADER) + sizeof(FWBITMAPINFOHEADER) + bi.biSizeImage;
+	fwrite(&bfType,sizeof(bfType),1,fout);
+	fwrite(&bmph,sizeof(FWBITMAPFILEHEADER),1,fout);
+	fwrite(&bi,sizeof(FWBITMAPINFO),1,fout);
 
 	if(true) //reverse colors
 	{
@@ -334,6 +394,9 @@ void saveSnapshot(char *pathname, char *buffer,int bytesPerPixel,int width, int 
 	}
 	fclose(fout);
 }
+#endif 
+
+#ifdef _MSC_VER
 int fw_mkdir(char* path);
 void Snapshot () 
 {
@@ -363,14 +426,11 @@ void Snapshot ()
 	fw_mkdir(mytmp);
 	p->snapRawCount ++;
 	snprintf (thisRawFile, sizeof(thisRawFile),"%s/%s.%04d.bmp",mytmp,mysnapb,p->snapRawCount);
-	saveSnapshot(thisRawFile,imgbuf,3,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
+	saveSnapshotBMP(thisRawFile,imgbuf,3,gglobal()->display.screenWidth,gglobal()->display.screenHeight);
 	FREE(imgbuf);
 }
-#endif 
-
-
-
-#else /*ifdef win32*/
+#endif /*ifdef win32*/
+#if !(defined(_MSC_VER) || defined(IPHONE))
 
 void fwl_init_SnapGif()
 {
@@ -649,6 +709,11 @@ void Snapshot () {
 		CGImageRelease(image); 
 	#else	
 		/* save the file */
+	if(p->modeTesting){
+		snprintf (thisRawFile, sizeof(thisRawFile),"%s/%s.%04d.bmp",mytmp,mysnapb,p->snapRawCount);
+		saveSnapshotBMP(thisRawFile,buffer,3,gglobal()->display.screenWidth, gglobal()->display.screenHeight);
+		FREE_IF_NZ (buffer);
+	}else{
 		snprintf (thisRawFile, sizeof(thisRawFile),"%s/%s.%04d.rgb",mytmp,mysnapb,p->snapRawCount);
 		tmpfile = fopen(thisRawFile,"w");
 		if (tmpfile == NULL) {
@@ -656,7 +721,7 @@ void Snapshot () {
 			FREE_IF_NZ (buffer);
 			return;
 		}
-	
+
 		if (fwrite(buffer, 1, gglobal()->display.screenHeight*gglobal()->display.screenWidth*3, tmpfile) <= 0) {
 			printf ("error writing snapshot to %s, aborting snapshot\n",thisRawFile);
 			FREE_IF_NZ (buffer);
@@ -692,6 +757,7 @@ void Snapshot () {
 		}
 #endif
 	#endif
+	}
 }
 #endif /*ifdef win32*/
 
