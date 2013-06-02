@@ -181,7 +181,7 @@ int fv_parseCommandLine (int argc, char **argv)
     int option_index = 0;
     int real_option_index;
     const char *real_option_name;
-    char *logFileName = NULL;
+    //char *logFileName = NULL;
     FILE *fp;
 
 #if defined(DOSNAPSEQUENCE)
@@ -405,7 +405,8 @@ int fv_parseCommandLine (int argc, char **argv)
 
 	case 'L': /* --logfile, required argument: log filename */
 	    if (optarg) {
-		logFileName = strdup(optarg);
+		//logFileName = strdup(optarg);
+			 fwl_set_logfile(optarg);
 	    } else {
 		ERROR_MSG("Option -L|--logfile: log filename required\n");
 		return FALSE;
@@ -439,22 +440,22 @@ int fv_parseCommandLine (int argc, char **argv)
 	}
     }
 
-    /* Quick hack: redirect stdout and stderr to logFileName if supplied */
-    if (logFileName) {
-	if (strncasecmp(logFileName, "-", 1) == 0) {
-	    printf("FreeWRL: output to stdout/stderr\n");
-	} else {
-	    printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
-	    fp = freopen(logFileName, "a", stdout);
-	    if (NULL == fp) {
-		WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
-	    }
-	    fp = freopen(logFileName, "a", stderr);
-	    if (NULL == fp) {
-		WARN_MSG("WARNING: Unable to reopen stderr to %s\n", logFileName) ;
-	    }
-	}
-    }
+ //   moved to fwl_set_logfile(char*)/* Quick hack: redirect stdout and stderr to logFileName if supplied */
+ //   if (logFileName) {
+	//if (strncasecmp(logFileName, "-", 1) == 0) {
+	//    printf("FreeWRL: output to stdout/stderr\n");
+	//} else {
+	//    printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
+	//    fp = freopen(logFileName, "a", stdout);
+	//    if (NULL == fp) {
+	//	WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
+	//    }
+	//    fp = freopen(logFileName, "a", stderr);
+	//    if (NULL == fp) {
+	//	WARN_MSG("WARNING: Unable to reopen stderr to %s\n", logFileName) ;
+	//    }
+	//}
+ //   }
 
     if (optind < argc) {
 	if (optind != (argc-1)) {

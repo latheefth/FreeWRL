@@ -208,6 +208,10 @@ typedef struct pMainloop{
 	int keypressQueueCount;
 	struct mouseTuple mouseQueue[50];
 	int mouseQueueCount;
+	FILE* logfile;
+	FILE* logerr;
+	char* logfname;
+	int logging;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = malloc(sizeof(struct pMainloop));
@@ -305,6 +309,10 @@ void Mainloop_init(struct tMainloop *t){
 		p->playback = NULL;
 		p->keypressQueueCount=0;
 		p->mouseQueueCount=0;
+		p->logfile = NULL;
+		p->logerr = NULL;
+		p->logfname = NULL;
+		p->logging = 0;
 	}
 }
 
@@ -2118,6 +2126,80 @@ static void setup_viewpoint() {
 	
 
 }
+void toggleLogfile()
+{
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	if(p->logging){
+		fclose(p->logfile);
+		//fclose(p->logerr);
+		p->logging = 0;
+#ifdef _MSC_VER
+		freopen("CON","w",stdout);
+#else
+		freopen("/dev/tty", "w", stdout);
+#endif
+		//save p->logfname for reopening
+		printf("logging off\n");
+	}else{
+		char *mode = "a+";
+		if(p->logfname == NULL){
+			char logfilename[1000];
+			mode = "w";
+			logfilename[0] = '\0';
+			if(p->modePlayback || p->modeFixture){
+				if(p->modePlayback) 
+					strcat(logfilename,"playback/");
+				else
+					strcat(logfilename,"fixture/");
+				if(p->nameTest){
+					//  /fixture/test1.log
+					strcat(logfilename,p->nameTest);
+				}else if(tg->Mainloop.scene_name){
+					//  /fixture/1_wrl.log
+					strcat(logfilename,tg->Mainloop.scene_name);
+					if(tg->Mainloop.scene_suff){
+						strcat(logfilename,"_");
+						strcat(logfilename,tg->Mainloop.scene_suff);
+					}
+				}
+			}else{
+				strcat(logfilename,"logfile");
+			}
+			strcat(logfilename,".log");
+			p->logfname = strdup(logfilename);
+		}
+		printf("logging to %s\n",p->logfname);
+		p->logfile = freopen(p->logfname, mode, stdout );
+		//p->logerr = freopen(p->logfname, mode, stderr );
+		p->logging = 1;
+	}
+}
+#if defined(_MSC_VER)
+#define strncasecmp _strnicmp
+#endif
+void fwl_set_logfile(char *lname){
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	if (strncasecmp(lname, "-", 1) == 0) {
+	    printf("FreeWRL: output to stdout/stderr\n");
+	} else {
+		p->logfname = strdup(lname);
+		toggleLogfile();
+	 //   printf ("FreeWRL: redirect stdout and stderr to %s\n", logFileName);	
+	 //   fp = freopen(logFileName, "a", stdout);
+	 //   if (NULL == fp) {
+		//WARN_MSG("WARNING: Unable to reopen stdout to %s\n", logFileName) ;
+	 //   }
+	 //   fp = freopen(logFileName, "a", stderr);
+	 //   if (NULL == fp) {
+		//WARN_MSG("WARNING: Unable to reopen stderr to %s\n", logFileName) ;
+	 //   }
+	}
+
+}
 
 #define Boolean int
 
@@ -3191,6 +3273,7 @@ void fwl_do_keyPress0(int key, int type) {
                                 case '=': { dump_scenegraph(3); break; }
                                 case '+': { dump_scenegraph(4); break; }
                                 case '-': { dump_scenegraph(5); break; }
+								case '`': { toggleLogfile(); break; }
 
                                 case '$': resource_tree_dump(0, tg->resources.root_res); break;
                                 case '*': resource_tree_list_files(0, tg->resources.root_res); break;
