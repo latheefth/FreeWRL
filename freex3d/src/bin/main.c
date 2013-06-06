@@ -164,7 +164,8 @@ int main (int argc, char **argv)
 		if(argc > 1){
 			start_url = argv[optind];
 #ifdef _MSC_VER
-			start_url = strBackslash2fore(start_url);
+			if(start_url)
+				start_url = strBackslash2fore(start_url);
 #endif
 		}else{
 			start_url = NULL;

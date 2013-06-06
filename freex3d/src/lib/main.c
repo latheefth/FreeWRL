@@ -307,6 +307,36 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
  *                 we call this routine after threads
  *                 initialization.
  */
+void splitpath_local_suffix(const char *url, char **local_name, char **suff)
+{
+	//takes a http or file path, and gives back just the scene name and suffix
+	//ie file://E:/tests/1.wrl -> local_name = "1" suff = "wrl"
+	*local_name = NULL;
+	*suff = NULL;
+	if(url){
+		int i,len;
+		char *localname;
+		len = strlen(url);
+		localname = NULL;
+		for(i=len-1;i>=0;i--){
+			if(url[i] == '/') break;
+			localname = (char*)&url[i];
+		}
+		if(localname){
+			*local_name = STRDUP(localname);
+			localname = *local_name;
+			len = strlen(localname);
+			*suff = NULL;
+			for(i=len-1;i>=0;i--){
+				if(localname[i] == '.') {
+					localname[i] = '\0';
+					*suff = &localname[i+1];
+					break;
+				}
+			}
+		}
+	}
+}
 void fwl_startFreeWRL(const char *url)
 {
 
@@ -314,30 +344,38 @@ void fwl_startFreeWRL(const char *url)
 
 	/* Give the main argument to the resource handler */
 	if (url != NULL) {
-		int i,len;
-		const char *localname;
-		len = strlen(url);
-		localname = NULL;
-		for(i=len-1;i>=0;i--){
-			if(url[i] == '/') break;
-			localname = &url[i];
-		}
-		if(localname){
-			char* suff;
-			char* local_name = STRDUP(localname);
-			len = strlen(local_name);
-			suff = NULL;
-			for(i=len-1;i>=0;i--){
-				if(local_name[i] == '.') {
-					local_name[i] = '\0';
-					suff = &local_name[i+1];
-					break;
-				}
-			}
-			gglobal()->Mainloop.url = strdup(url);
-			gglobal()->Mainloop.scene_name = local_name;
-			gglobal()->Mainloop.scene_suff = suff;
-		}
+		//int i,len;
+		//const char *localname;
+		//len = strlen(url);
+		//localname = NULL;
+		//for(i=len-1;i>=0;i--){
+		//	if(url[i] == '/') break;
+		//	localname = &url[i];
+		//}
+		//if(localname){
+		//	char* suff;
+		//	char* local_name = STRDUP(localname);
+		//	len = strlen(local_name);
+		//	suff = NULL;
+		//	for(i=len-1;i>=0;i--){
+		//		if(local_name[i] == '.') {
+		//			local_name[i] = '\0';
+		//			suff = &local_name[i+1];
+		//			break;
+		//		}
+		//	}
+		//	gglobal()->Mainloop.url = strdup(url);
+		//	gglobal()->Mainloop.scene_name = local_name;
+		//	gglobal()->Mainloop.scene_suff = suff;
+		//}
+		char* suff = NULL;
+		char* local_name = NULL;
+		splitpath_local_suffix(url, &local_name, &suff);
+		if(url) gglobal()->Mainloop.url = strdup(url);
+		gglobal()->Mainloop.scene_name = local_name;
+		gglobal()->Mainloop.scene_suff = suff;
+
+
 		//file = stripLocalFileName ((char *)file);
 		//FREE_IF_NZ (BrowserFullPath);
 		//BrowserFullPath = STRDUP((char *) file);

@@ -197,9 +197,11 @@ typedef struct pMainloop{
 	struct Touch touchlist[20];
 	int EMULATE_MULTITOUCH;// = 1; 
 	FILE* recordingFile;
+	char* recordingFName;
 	int modeRecord;
 	int modeFixture;
 	int modePlayback;
+	int fwplayOpened;
 	char *nameTest;
 	int frameNum; //for Record, Playback - frame# =0 after scene loaded
 	struct playbackRecord* playback;
@@ -300,6 +302,7 @@ void Mainloop_init(struct tMainloop *t){
 		//p->touchlist[20];
 		p->EMULATE_MULTITOUCH = 0; 
 		p->recordingFile = NULL;
+		p->recordingFName = NULL;
 		p->modeRecord = FALSE;
 		p->modeFixture = FALSE;
 		p->modePlayback = FALSE;
@@ -307,6 +310,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->frameNum = 0;
 		p->playbackCount = 0;
 		p->playback = NULL;
+		p->fwplayOpened = 0;
 		p->keypressQueueCount=0;
 		p->mouseQueueCount=0;
 		p->logfile = NULL;
@@ -575,6 +579,7 @@ void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int 
 void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
 void set_snapshotModeTesting(int value);
 int isSnapshotModeTesting();
+void splitpath_local_suffix(const char *url, char **local_name, char **suff);
 
 
 int fw_mkdir(char* path){
@@ -583,6 +588,14 @@ int fw_mkdir(char* path){
 #else
 	return mkdir(path,0755);
 #endif
+}
+int fw_exit(int val)
+{
+	if(1){
+		printf("exiting with value=%d hit Enter:");
+		getchar();
+	}
+	exit(val);
 }
 void fwl_RenderSceneUpdateScene() {
 	double dtime;
@@ -615,13 +628,7 @@ void fwl_RenderSceneUpdateScene() {
 		char buff[1000], keystrokes[200], mouseStr[1000]; 
 		int namingMethod;
 		char *folder;
-		char recordingName[1000], sceneName[1000];
-		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
-		if(!p->doEvents)
-			return; //for Record and Playback, don't start doing things until scene and textures are loaded
-		if(p->modeRecord)
-			if(dtime - tg->Mainloop.TickTime < .5) return; //slow down frame rate to 2fps to reduce empty meaningless records
-		p->frameNum++; //for record, frame relative to when scene is loaded
+		char sceneName[1000];
 		//naming method for related files (and folders)
 		//0=default: recording.fwplay, fixture.bmp playback.bmp - will overwrite for each scene
 		//1=folders: 1_wrl/recording.fwplay, 1_wrl/fixture/17.bmp, 1_wrl/playback/17.bmp
@@ -632,8 +639,11 @@ void fwl_RenderSceneUpdateScene() {
 		//  - fwl_set_SnapFile(path = {"fixture" | "playback" }); to set mytmp
 		//  - 
 		namingMethod = 4; 
-		if(p->frameNum == 1){
+		//if(p->frameNum == 1){
+		if(!p->fwplayOpened){
+			char recordingName[1000];
 			int j,k;
+			p->fwplayOpened = 1;
 			recordingName[0] = '\0';
 			sceneName[0] = '\0';
 			if(tg->Mainloop.scene_name){
@@ -671,15 +681,72 @@ void fwl_RenderSceneUpdateScene() {
 			if(namingMethod==0)
 				strcat(recordingName,"recording");
 			strcat(recordingName,".fwplay"); //1_wrl.fwplay
+			p->recordingFName = strdup(recordingName);
+
+			if(p->modeFixture  || p->modePlayback){
+				if(!p->modeRecord){
+					p->recordingFile = fopen(p->recordingFName, "r");
+					if(p->recordingFile == NULL){
+						printf("ouch recording file %s not found\n", p->recordingFName);
+						fw_exit(1);
+					}
+					if( fgets(buff, 1000, p->recordingFile) != NULL){
+						char window_widthxheight[100], equals[50];
+						int width, height;
+						//window_wxh = 600,400
+						if( sscanf(buff,"%s %s %d, %d\n",&window_widthxheight,&equals, &width,&height) == 4) {
+							if(width != tg->display.screenWidth || height != tg->display.screenHeight){
+								if(1){ //right now all we can do is passively complain
+									printf("Ouch - the test playback window size is different than recording:\n");
+									printf("recording %d x %d playback %d x %d\n",width,height,
+										tg->display.screenWidth,tg->display.screenHeight);
+									printf("hit Enter:");
+									getchar();
+								}
+								//if(0){
+								//	fwl_setScreenDim(width,height); //this doesn't actively set the window size except before window is created
+								//}
+							}
+						}
+					}
+					if( fgets(buff, 1000, p->recordingFile) != NULL){
+						char scenefile[100], equals[50];
+						//scenefile = 1.wrl
+						if( sscanf(buff,"%s %s %s \n",&scenefile,&equals, &sceneName) == 3) {
+							if(!tg->Mainloop.scene_name){
+								char* suff = NULL;
+								char* local_name = NULL;
+								char* url = NULL;
+								if(strlen(sceneName)) url = strdup(sceneName);
+								if(url){
+									splitpath_local_suffix(url, &local_name, &suff);
+									gglobal()->Mainloop.url = url;
+									gglobal()->Mainloop.scene_name = local_name;
+									gglobal()->Mainloop.scene_suff = suff;
+									fwl_resource_push_single_request(url);
+								}
+							}
+						}
+					}
+				}
+			}
 		}
+		p->doEvents = (!fwl_isinputThreadParsing()) && (!fwl_isTextureParsing()) && fwl_isInputThreadInitialized();
+		//printf("frame %d doevents=%d\n",p->frameNum,p->doEvents);
+		if(!p->doEvents)
+			return; //for Record and Playback, don't start doing things until scene and textures are loaded
+		if(p->modeRecord)
+			if(dtime - tg->Mainloop.TickTime < .5) return; //slow down frame rate to 2fps to reduce empty meaningless records
+		p->frameNum++; //for record, frame relative to when scene is loaded
+
 		if(p->modeRecord){
 			int i;
 			char temp[1000];
 			if(p->frameNum == 1){
-				p->recordingFile = fopen(recordingName, "w");
+				p->recordingFile = fopen(p->recordingFName, "w");
 				if(p->recordingFile == NULL){
-					printf("ouch recording file %s not found\n", recordingName);
-					exit(1);
+					printf("ouch recording file %s not found\n", p->recordingFName);
+					fw_exit(1);
 				}
 				//put in a header record, passively showing window widthxheight
 				fprintf(p->recordingFile,"window_wxh = %d, %d \n",tg->display.screenWidth,tg->display.screenHeight);
@@ -718,10 +785,11 @@ void fwl_RenderSceneUpdateScene() {
 		}
 		if(p->modeFixture  || p->modePlayback){
 			if(!p->modeRecord){
+				/*
 				if(p->frameNum == 1){
-					p->recordingFile = fopen(recordingName, "r");
+					p->recordingFile = fopen(p->recordingFName, "r");
 					if(p->recordingFile == NULL){
-						printf("ouch recording file %s not found\n", recordingName);
+						printf("ouch recording file %s not found\n", p->recordingFName);
 						exit(1);
 					}
 					if( fgets(buff, 1000, p->recordingFile) != NULL){
@@ -745,6 +813,7 @@ void fwl_RenderSceneUpdateScene() {
 						}
 					}
 				}
+				*/
 				// playback[i] = {iframe, dtime, keystrokes or NULL, mouse (xy,button sequence) or NULL, snapshot URL or NULL, scenegraph_dump URL or NULL, ?other?}
 				if( fgets( buff, 1000, p->recordingFile ) != NULL ) {
 					if(sscanf(buff,"%d %lf %s %s\n",&p->frameNum,&dtime,keystrokes,mouseStr) == 4){ //,snapshotURL,scenegraphURL) == 6){
@@ -2149,10 +2218,12 @@ void toggleLogfile()
 			mode = "w";
 			logfilename[0] = '\0';
 			if(p->modePlayback || p->modeFixture){
-				if(p->modePlayback) 
-					strcat(logfilename,"playback/");
+				if(p->modePlayback)
+					strcat(logfilename,"playback");
 				else
-					strcat(logfilename,"fixture/");
+					strcat(logfilename,"fixture");
+				fw_mkdir(logfilename);
+				strcat(logfilename,"/");
 				if(p->nameTest){
 					//  /fixture/test1.log
 					strcat(logfilename,p->nameTest);
@@ -2165,6 +2236,9 @@ void toggleLogfile()
 					}
 				}
 			}else{
+				strcat(logfilename,"freewrl_tmp");
+				fw_mkdir(logfilename);
+				strcat(logfilename,"/");
 				strcat(logfilename,"logfile");
 			}
 			strcat(logfilename,".log");
