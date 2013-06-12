@@ -214,6 +214,7 @@ typedef struct pMainloop{
 	FILE* logerr;
 	char* logfname;
 	int logging;
+	int keySensorMode;
 }* ppMainloop;
 void *Mainloop_constructor(){
 	void *v = malloc(sizeof(struct pMainloop));
@@ -317,6 +318,7 @@ void Mainloop_init(struct tMainloop *t){
 		p->logerr = NULL;
 		p->logfname = NULL;
 		p->logging = 0;
+		p->keySensorMode = 1; //by default on, so it works 'out of the gate' if Key or StringSensor in scene, then ESC to toggle off
 	}
 }
 
@@ -3319,19 +3321,13 @@ void fwl_do_keyPress0(int key, int type) {
 
         /* does this X3D file have a KeyDevice node? if so, send it to it */
 	//printf("fwl_do_keyPress: %c%d\n",kp,type); 
-        if (KeySensorNodePresent()) {
-			if((key == 27 || key=='`') && type == 1 && (p->modeRecord || p->modeFixture || p->modePlayback) && !RUNNINGASPLUGIN){
-				if(key==27){
-					//when automatically testing with a keysensor or stringsensor, 
-					//we need a .fwplay recordable way to get out of freewrl, and the 'q' is swallowed by the sensor
-					//so we revert to the ESC (27) key
-				fwl_doQuit();
-				}else if(key == '`'){
-					toggleLogfile();
-				}
-			}else{
+		if(key == 27 && type == 1)
+		{
+			//ESC key to toggle back to freewrl command use of keyboard
+			p->keySensorMode = 1 - p->keySensorMode; //toggle
+		}
+		if (p->keySensorMode && KeySensorNodePresent()) {
 				sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
-			}
         } else {
 			int handled = isAQUA;
 			if(type == KEYPRESS) 
