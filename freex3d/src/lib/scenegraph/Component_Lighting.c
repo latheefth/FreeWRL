@@ -95,8 +95,11 @@ void render_DirectionalLight (struct X3D_DirectionalLight *node) {
 	if(node->on) {
 		int light = nextlight();
 		if(light >= 0) {
+			float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 			lightState(light,TRUE);
-			FW_GL_LIGHTFV(light, GL_POSITION, (GLfloat* )node->_dir.c);
+			lightType(light,2);
+			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, (GLfloat* )node->_dir.c);
+			FW_GL_LIGHTFV(light, GL_POSITION, (GLfloat* )pos);
 			FW_GL_LIGHTFV(light, GL_DIFFUSE, node->_col.c);
 			FW_GL_LIGHTFV(light, GL_SPECULAR, node->_col.c);
 			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
@@ -168,6 +171,7 @@ void render_PointLight (struct X3D_PointLight *node) {
 			float vec[4] = {0.0f, 0.0f, -1.0f, 1.0f};
             
 			lightState(light,TRUE);
+			lightType(light,0);
 			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, vec);
 			FW_GL_LIGHTFV(light, GL_POSITION, node->_loc.c);
 
@@ -245,6 +249,7 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 		int light = nextlight();
 		if(light >= 0) {
 			lightState(light,TRUE);
+			lightType(light,1);
 			FW_GL_LIGHTFV(light, GL_SPOT_DIRECTION, node->_dir.c);
 			FW_GL_LIGHTFV(light, GL_POSITION, node->_loc.c);
 	

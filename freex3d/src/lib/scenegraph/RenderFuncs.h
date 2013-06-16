@@ -89,6 +89,7 @@ struct X3D_Anchor *AnchorsAnchor();
 void setAnchorsAnchor(struct X3D_Anchor* anchor);
 
 void lightState(GLint light, int status);
+void lightType(GLint light, int type);
 void saveLightState(int *ls);
 void restoreLightState(int *ls);
 void fwglLightfv (int light, int pname, GLfloat *params);

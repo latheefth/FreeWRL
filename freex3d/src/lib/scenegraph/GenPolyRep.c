@@ -1078,7 +1078,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 						/* no normalIndex  - use the coordIndex */
 						if (npv) {
 							norindex[vert_ind] = (orig_coordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]]);
-							/* printf ("norm3, index %d\n",norindex[vert_ind]);*/
+							/* printf ("norm3, index %d\n",norindex[vert_ind]); */
 						} else {
 							norindex[vert_ind] = this_face;
 							/* printf ("norm4, index %d\n",norindex[vert_ind]);*/
