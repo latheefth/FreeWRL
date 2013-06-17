@@ -212,7 +212,31 @@ void restoreLightState(int *ls) {
 		}
 	}
 }
-void transformLightToEye(float *pos, float* dir);
+void transformLightToEye(float *pos, float* dir)
+{
+	int i,j;
+    GLDOUBLE modelMatrix[16], *b;
+	float *a;
+	shaderVec4 aux, auxt;
+    FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+
+    /* pre-multiply the light position, as per the orange book, page 216,
+     "OpenGL specifies that light positions are transformed by the modelview
+     matrix when they are provided to OpenGL..." */
+    /* DirectionalLight?  PointLight, SpotLight? */
+	transformf(auxt,pos,modelMatrix);
+	for(i=0;i<4;i++){
+		pos[i] = auxt[i];
+	}
+	b = modelMatrix;
+	a = dir;
+	aux[0] = (float) (b[0]*a[0] +b[4]*a[1] +b[8]*a[2] );
+	aux[1] = (float) (b[1]*a[0] +b[5]*a[1] +b[9]*a[2] );
+	aux[2] = (float) (b[2]*a[0] +b[6]*a[1] +b[10]*a[2]);
+	for(i=0;i<3;i++)
+		dir[i] = aux[i];
+
+}
 
 void fwglLightfv (int light, int pname, GLfloat *params) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -293,85 +317,6 @@ void fwglLightf (int light, int pname, GLfloat param) {
 		default: {printf ("help, unknown fwgllightfv param %d\n",pname);}
 	}
 	p->lightParamsDirty = TRUE;
-}
-void transformLightToEye(float *pos, float* dir)
-{
-	int i,j;
-    GLDOUBLE modelMatrix[16];
-    //GLDOUBLE projMatrix[16];
-	GLDOUBLE normMat[16];
-    shaderVec4 translated_light_pos;
-    shaderVec4 transformed_light_dir;
-
-    FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-    //FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-    //FW_GL_GETDOUBLEV(GL_NORMAL_MATRIX, normMatrix);
-	memset(translated_light_pos,(float)0.0f,sizeof(float)*4);
-	memset(transformed_light_dir,(float)0.0f,sizeof(float)*4);
-
-	if (1) {
-		GLDOUBLE inverseMV[16];
-		GLDOUBLE transInverseMV[16];
-		GLDOUBLE MV[16];
-		//float normMat[9];
-		GLDOUBLE *dp = modelMatrix;
-		memset(normMat,0,sizeof(GLDOUBLE)*16);
-		memcpy(MV,dp,sizeof(GLDOUBLE)*16);
-
-		matinverse (inverseMV,MV);
-		mattranspose(transInverseMV,inverseMV);
-		/* get the 3x3 normal matrix from this guy */
-		normMat[0] = transInverseMV[0];
-		normMat[1] = transInverseMV[1];
-		normMat[2] = transInverseMV[2];
-		
-		normMat[4] = transInverseMV[4];
-		normMat[5] = transInverseMV[5];
-		normMat[6] = transInverseMV[6];
-		
-		normMat[8] = transInverseMV[8];
-		normMat[9] = transInverseMV[9];
-		normMat[10] =transInverseMV[10];
-		normMat[15] =1.0;
-	}
-
-
-    /* pre-multiply the light position, as per the orange book, page 216,
-     "OpenGL specifies that light positions are transformed by the modelview
-     matrix when they are provided to OpenGL..." */
-    /* DirectionalLight?  PointLight, SpotLight? */
-    memcpy(translated_light_pos,pos,sizeof (shaderVec4));
-    memcpy(transformed_light_dir,dir,sizeof (shaderVec4));
-	if(1){
-		shaderVec4 aux, auxt;
-		transformf(translated_light_pos,pos,modelMatrix);
-		////translated_light_pos[j][3] = p->light_pos[j][3]; //q why do this? you have a 4x4 with homgenous coord
-		/*
-			Here is a 2-point method that doesn't require normal matrix:
-			you convert your light vector into 2 points, 
-			transform the 2 points using modelview matrix,
-			then compute a new light vector from the transformed points
-			p = light_position
-			aux = p + light_direction_vector
-			pt = modelview * p
-			auxt = modelview * aux
-			new_light_direction_vector = normalize(auxt - pt) 
-			lets see if it works.
-		*/
-		for(i=0;i<4;i++) 
-			aux[i] = pos[i] + dir[i];
-		transformf(auxt,aux,modelMatrix);
-		for(i=0;i<4;i++) 
-			transformed_light_dir[i] = auxt[i] - translated_light_pos[i];
-	}else {
-		transformf(translated_light_pos,pos,modelMatrix);
-		transformf(transformed_light_dir,dir,normMat);
-	}
-	for(i=0;i<4;i++){
-		pos[i] = translated_light_pos[i];
-		dir[i] = transformed_light_dir[i];
-	}
-
 }
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {

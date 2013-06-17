@@ -1457,8 +1457,7 @@ uniform vec4 lightDiffuse[MAX_LIGHTS];\n\
 uniform vec4 lightPosition[MAX_LIGHTS];\n\
 uniform vec4 lightSpotDirection[MAX_LIGHTS];\n\
 uniform vec4 lightSpecular[MAX_LIGHTS];\n\
-uniform float lightRadius[MAX_LIGHTS];\n\
-uniform int solid;\n";
+uniform float lightRadius[MAX_LIGHTS];\n";
 
 
 static const GLchar *ADSLLightModel = "\n\
@@ -1468,21 +1467,12 @@ vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {\n\
   vec4 diffuse = vec4(0., 0., 0., 0.);\n\
   vec4 ambient = vec4(0., 0., 0., 0.);\n\
   vec4 specular = vec4(0., 0., 0., 1.);\n\
-  vec3 viewv = -normalize(myPosition.xyz);\n\
   vec3 normal = normalize (myNormal);\n\
   vec4 emissive;\n\
   float myAlph = 0.0;\n\
 \n\
   fw_MaterialParameters myMat = fw_FrontMaterial;\n\
 \n\
-  /* back Facing materials - flip the normal and grab back materials */\n\
-  if(!solid){\n\
-    bool backFacing = (dot(normal,viewv) < 0.0);\n\
-    if (backFacing) {\n\
-      normal = -normal;\n\
-      myMat = fw_BackMaterial;\n\
-    }\n\
-  }\n\
   emissive = myMat.emission;\n\
   myAlph = myMat.diffuse.a;\n\
 \n\
@@ -2208,7 +2198,6 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->myMaterialBackShininess = GET_UNIFORM(myProg,"fw_BackMaterial.shininess");
 	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
 	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
-    me->mySolid = GET_UNIFORM(myProg,"solid");
 
         me->lightState = GET_UNIFORM(myProg,"lightState");
         me->lightType = GET_UNIFORM(myProg,"lightType");
@@ -5124,7 +5113,6 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	SEND_VEC4(myMaterialBackSpecular,fw_BackMaterial.specular);
 	SEND_VEC4(myMaterialBackEmission,fw_BackMaterial.emission);
 	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
-	SEND_INT(mySolid,myap->cullFace);    
 
 	if (me->lightState != -1) sendLightInfo(me);
     /* FillProperties, LineProperty lineType */

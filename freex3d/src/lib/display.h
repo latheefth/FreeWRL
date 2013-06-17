@@ -363,7 +363,6 @@ typedef struct s_shader_capabilities{
 	GLint myMaterialBackSpecular;
 	GLint myMaterialBackShininess;
 	GLint myMaterialBackEmission;
-	GLint mySolid;
 
 	GLint pointSize;
 	GLint lightState;
