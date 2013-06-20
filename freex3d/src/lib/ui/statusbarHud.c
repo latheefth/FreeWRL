@@ -45,6 +45,9 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 */ 
 #if defined(STATUSBAR_HUD) //&& defined(GLES2) //!(defined(IPHONE) || defined(_ANDROID)) // || defined(GLES2))
 #define GLES2
+//#define KIOSK 1
+//#define TOUCH 1
+
 
 #ifdef GLES2
 static   GLbyte vShaderStr[] =  
@@ -379,7 +382,9 @@ typedef struct pstatusbar{
 	char * optionsVal[15];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
-	int bmScale; //1 or 2 for the hud pixel fonts
+	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
+	int bmScaleForOptions; //special scale for the options check boxes (touch needs bigger)
+	int bmScaleRegular; //scale non-clickable/non-touchable text ! ?
 	int posType; //1 == glRasterPos (opengl < 1.4), 0= glWindowPos (opengl 1.4+)
 	pfont_t pfont;
    // Load the shaders and get a linked program object
@@ -407,7 +412,7 @@ void statusbar_init(struct tstatusbar *t){
 		p->loopcount = 0;
 		p->hadString = 0;
 
-		p->showButtons =0;
+		p->showButtons =1;
 		p->butsLoaded = 0;
 		p->isOver = -1;
 		p->iconSize = 32;
@@ -423,7 +428,13 @@ void statusbar_init(struct tstatusbar *t){
 		p->osystem = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 		p->bmWH.x = 8;
 		p->bmWH.y = 15; //{10,15}; /* simple bitmap font from redbook above, width and height in pixels */
-		p->bmScale = 1; //functions can change this on the fly
+#ifdef TOUCH
+		p->bmScaleForOptions = 2;
+#else
+		p->bmScaleForOptions = 1;
+#endif
+		p->bmScaleRegular = 1;
+		p->bmScale = p->bmScaleRegular; //functions can change this on the fly
 		p->posType = 0; //assume ogl 1.4+, and correct if not
 		p->pfont.cheight = 0;
 		p->pfont.cwidth = 0;
@@ -667,8 +678,9 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	glTexCoordPointer ( 2, GL_FLOAT, 0, tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
 	glDrawElements ( GL_TRIANGLES, i*3*2, GL_UNSIGNED_SHORT, ind );
 	//glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	//glEnableClientState(GL_NORMAL_ARRAY);
+	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	//glDisableClientState( GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
 	glDisable(GL_TEXTURE_2D);
 #endif
 	free(vert);
@@ -789,24 +801,29 @@ XY mouse2screen(int x, int y)
 XY screen2text(int x, int y)
 {
 	XY rc;
+	int topOffset;
 	ppstatusbar p; 
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
 
+	topOffset = 0;
+	if(p->pmenu.top) topOffset = p->buttonSize;
 	rc.x = x/(p->bmWH.x*p->bmScale) -1; //10; 
-	rc.y = (int)((tg->display.screenHeight -y)/(p->bmWH.y*p->bmScale)); //15.0 ); 
+	rc.y = (int)((tg->display.screenHeight -y - topOffset)/(p->bmWH.y*p->bmScale)); //15.0 ); 
 	rc.y -= 1;
 	return rc;
 }
 XY text2screen( int col, int row)
 {
 	XY xy;
+	int topOffset;
 	ppstatusbar p; 
 	ttglobal tg = gglobal();
 	p = (ppstatusbar)tg->statusbar.prv;
-
+	topOffset = 0;
+	if(p->pmenu.top) topOffset = p->buttonSize;
 	xy.x = (col+1)*p->bmWH.x*p->bmScale; //10; 
-	xy.y = tg->display.screenHeight - (row+2)*p->bmWH.y*p->bmScale; //15;
+	xy.y = tg->display.screenHeight - topOffset - (row+2)*p->bmWH.y*p->bmScale; //15;
 	return xy;
 }
 FXY screen2normalizedScreenScale( GLfloat x, GLfloat y)
@@ -839,7 +856,7 @@ void printOptions()
 	if(!p->optionsLoaded) initOptionsVal();
 	updateOptionsVal(); //ideally we would be stateless in the hud, let Viewer hold state, that way other gui/shortcuts can be used
 
-	p->bmScale = 2;
+	p->bmScale = p->bmScaleForOptions;
 	for(j=0;j<lenOptions;j++)
 	{
 		FXY xy;
@@ -848,11 +865,11 @@ void printOptions()
 		printString2(xy.x,xy.y,p->optionsVal[j]);  /* "  0.050  " */
 		printString2(xy.x,xy.y,optionsText[j]); /* "<       >" */
 	}
-	p->bmScale = 1;
+	p->bmScale = p->bmScaleRegular;
 
 }
 
-void handleOptionPress()
+int handleOptionPress()
 {
 	/* general idea: we don't update the hud/option state here - just the Viewer state - then 
 	  refresh the hud/options state from the Viewer on each statusbar draw iteration
@@ -867,7 +884,7 @@ void handleOptionPress()
 
 	viewer = Viewer();
 
-	p->bmScale = 2;
+	p->bmScale = p->bmScaleForOptions;
 	xys = mouse2screen(tg->Mainloop.currentX[0],tg->Mainloop.currentY[0]);
 	xyt = screen2text(xys.x,xys.y);
 	opt = ' ';
@@ -880,7 +897,8 @@ void handleOptionPress()
 			opt = optionsCase[xyt.y][xyt.x];
 		}
 	}
-	p->bmScale = 1;
+	if(opt == ' ') return 0;
+	p->bmScale = p->bmScaleRegular;
 
 	/* we're clicking a sensitive area.  */
 	switch(opt) 
@@ -967,6 +985,7 @@ void handleOptionPress()
 		break;}
 	default: {break;}
 	}
+	return 1;
 }
 /* <<< end cheapskate widgets */
 
@@ -997,6 +1016,28 @@ char * keyboardShortcutHelp[21] = {
 "Options",
 "Reload last scene",
 "Enter URL of .x3d or .wrl scene"
+#elif defined(KIOSK) //|| defined(_MSC_VER)
+int lenhelp = 19;
+char * keyboardShortcutHelp[19] = {
+"WALK Mode",
+"   movement: drag left/right for turns;",
+"             drag up/down for forward/backward", 
+"FLY Mode",
+"   use the buttons for these motions:",
+"   bird: drag left/right for left/right turns",
+"		  drag up/down for foreward/backward",
+"   tilt up/down",
+"   translation up/down and left/right",
+"   rotation about the viewpoint/camera axis",
+"EXAMINE Mode",
+"   rotation: drag left/right or up/down",
+"Level to bound viewpoint",
+"Flashlight/headlight",
+"Collision (and for WALK also gravity)",
+"Previous, Next viewpoint",
+"(this Help)",
+"Console messages from the program",
+"Options"
 #elif defined(_MSC_VER)
 int lenhelp = 13;
 char * keyboardShortcutHelp[13] = {
@@ -1312,6 +1353,19 @@ void initButtons()
 		p->pmenu.nitems = 17; //leave file for now
 		p->pmenu.top = true;
 
+#elif KIOSK
+		static GLubyte * buttonlist [] = { walk, fly, tilt, tplane, rplane,  examine, level, headlight, 
+			collision, prev, next, help, messages, options, blank };
+		static int actionlist [] = { ACTION_WALK, ACTION_FLY2, ACTION_TILT, ACTION_TPLANE, ACTION_RPLANE, ACTION_EXAMINE, 
+			ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV, 
+			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
+			ACTION_BLANK};
+		static int radiosets [][7] = {{6,ACTION_WALK,ACTION_FLY2, ACTION_TILT, ACTION_TPLANE,ACTION_RPLANE,ACTION_EXAMINE},
+			{3,ACTION_MESSAGES,ACTION_OPTIONS,ACTION_HELP}, {0}};
+		static int toggles [] = {ACTION_COLLISION,ACTION_HEADLIGHT,
+			ACTION_HELP,ACTION_MESSAGES,ACTION_OPTIONS,0}; 
+		p->pmenu.nitems = 15; //leave file for now
+		p->pmenu.top = true;
 #elif _MSC_VER
 		static GLubyte * buttonlist [] = { walk, fly, examine, level, headlight,
 			collision, prev, next, help, messages, options, reload, url, file, blank };
@@ -1572,7 +1626,7 @@ void setMenuButton_navModes(int type)
 			newval = 1;
 			break;
 		case VIEWER_FLY:
-#if defined(QNX) //|| defined(_MSC_VER)
+#if defined(QNX) || defined(KIOSK)//|| defined(_MSC_VER)
 			iaction = ACTION_FLY2;
 #else
 			iaction = ACTION_FLY;
@@ -1592,7 +1646,7 @@ void setMenuButton_navModes(int type)
 	}
 return;
 }
-void handleButtonOver()
+int handleButtonOver()
 {
 	/* called from mainloop > fwl_handle_aqua to 
 	a) detect a button over and 
@@ -1616,7 +1670,7 @@ void handleButtonOver()
 			p->isOver = i;
 			break;
 		}
-
+	return p->isOver == -1 ? 0 : 1;
 }
 char *frontend_pick_URL(void);
 char *frontend_pick_file(void);
@@ -1627,7 +1681,7 @@ void toggleMenu(int val)
 	p = (ppstatusbar)tg->statusbar.prv;
 	p->showButtons = val > 0 ? 1 : 0;
 }
-void handleButtonPress()
+int handleButtonPress()
 {
 	/* called from mainloop > to 
 	a) detect a button hit and 
@@ -1695,7 +1749,9 @@ void handleButtonPress()
 				case ACTION_RELOAD:  fwl_reload(); break;
 				case ACTION_URL:
 					//load URL
+#ifndef KIOSK
 					fwl_setPromptForURL(1);
+#endif
 					/*
 					#if defined(_MSC_VER0) || defined(QNX)
 					{
@@ -1711,7 +1767,9 @@ void handleButtonPress()
 					break;
 				case ACTION_FILE:
 					//load file
+#ifndef KIOSK
 					fwl_setPromptForFile(1);
+#endif
 					/*
 					#if defined(_MSC_VER0) || defined(QNX)
 					{
@@ -1730,8 +1788,12 @@ void handleButtonPress()
 			}
 		} //end if rect
 	} //end for
-
+#ifdef KIOSK
+	return ihit == -1 ? 0 : 1;
+#else
 	if(ihit == -1) toggleMenu(0);
+	return 1;
+#endif
 }
 void updateButtonVertices()
 {
@@ -1788,7 +1850,6 @@ void renderButtons()
 	// get rid of compiler warning
 	loaded = 0;
 
-
 	if(!p->butsLoaded)
 		initButtons();
 	updateButtonVertices();
@@ -1801,7 +1862,6 @@ void renderButtons()
 	glClear(GL_COLOR_BUFFER_BIT);
 	glDisable(GL_SCISSOR_TEST);
 	doglClearColor(); //set back for other cases
-
 	// Bind the base map
 #ifdef GLES2
 	glActiveTexture ( GL_TEXTURE0 );
@@ -1809,6 +1869,7 @@ void renderButtons()
 	glEnable(GL_TEXTURE_2D);
 #endif
 	glBindTexture ( GL_TEXTURE_2D, p->pmenu.textureID );
+
 	for(i=0;i<p->pmenu.nactive;i++)
 	{
 		if(p->buttonType==1) loaded = p->butsLoaded;
@@ -1817,7 +1878,7 @@ void renderButtons()
 			GLfloat rgba[4];
 			bool highlightIt = p->pmenu.items[i].butStatus;
 			rgba[0] = .922f; rgba[1] = .91f; rgba[2] = .844f, rgba[3] = 1.0f; //windowing gray
-#ifndef QNX
+#if !defined(QNX) && !defined(TOUCH)
 			// touch screens don't benefit from isOver highlighting because
 			// your finger is blocking your view of the button anyway
 			if(i==p->isOver){
@@ -1860,6 +1921,7 @@ void renderButtons()
 				//glDisableClientState( GL_VERTEX_ARRAY );
 				glDisableClientState( GL_TEXTURE_COORD_ARRAY );
 				//glEnableClientState(GL_NORMAL_ARRAY);
+				glEnableClientState(GL_NORMAL_ARRAY);
 				//glDisable(GL_TEXTURE_2D);
 #endif
 			}
@@ -1932,24 +1994,28 @@ int handleStatusbarHud(int mev, int* clipplane)
 	{
         /* record which button is down */
 		/* >>> statusbar hud */
+		int ihit = 0;
 		if( p->showButtons)
 		{
 			if(mev==ButtonPress)
-				handleButtonPress();
-			return 1;
+			ihit = handleButtonPress();
+			//return 1;
 		}
 		//if(p->showOptions)
-		if(showAction(p,ACTION_OPTIONS)) 
+		if(!ihit && showAction(p,ACTION_OPTIONS)) 
 		{
 			if(mev==ButtonPress)
-				handleOptionPress();
-			return 1;
+				ihit = handleOptionPress();
+			//return 1;
 		}
+		if(ihit) return 1;
 	}
     if (mev == MotionNotify) 
 	{
 		if(p->pmenu.top){
-#ifdef _MSC_VER
+#if defined(KIOSK)
+			toggleMenu(1);
+#elif defined(_MSC_VER) 
 			//if input device is a mouse, mouse over statusbar to bring down menu
 			//else call toggleMenu from main program on some window event
 			static int lastover;
@@ -1964,9 +2030,11 @@ int handleStatusbarHud(int mev, int* clipplane)
 			}
 #endif
 			if(p->showButtons == 1){
+				int ihit;
 				setArrowCursor();
-				handleButtonOver();
-				return 1; /* don't process for navigation */
+				ihit = handleButtonOver();
+				if(ihit) return 1;
+				//return 1; /* don't process for navigation */
 			}
 		}else{
 			/* buttons at bottom, menu triggered by mouse-over */
@@ -2075,15 +2143,19 @@ M       void toggle_collision()                             //"
 		glDisable(GL_DEPTH_TEST);
 		p->posType = 1; // use RasterPos2i instead of WindowPos2i
 	}
+
 #ifdef GLES2
    if(p->programObject == 0) initProgramObject();
    glUseProgram ( p->programObject );
 #else
+
 	glShadeModel(GL_FLAT);
+
 #endif
 	if(p->showButtons)
 	{
 		renderButtons();
+#ifndef KIOSK
 		glDepthMask(GL_TRUE);
 		if(p->posType==1) { 
 			//glEnable(GL_LIGHTING); 
@@ -2093,6 +2165,7 @@ M       void toggle_collision()                             //"
 		glShadeModel(GL_SMOOTH);
 #endif
 		return;
+#endif
 	}
 
 	//if (!p->sb_hasString && !p->showConText &&!p->butStatus[8] &&!p->butStatus[9] && !p->butStatus[10]) {
@@ -2150,12 +2223,14 @@ M       void toggle_collision()                             //"
 	glDisable(GL_DEPTH_TEST);
 	//FW_GL_COLOR3F(0.2f,0.2f,0.5f);
 	//glWindowPos seems to set the bitmap color correctly in windows
+
 #ifdef GLES2
 	glUniform4f(p->color4fLoc,.2f,.2f,.2f,1.0f);
 #else
 	//glColor4f(.2f,.2f,.2f,1.0f);
 	p->textColor[0] = p->textColor[1] = p->textColor[2] = .2f;
 #endif
+
 	if(1) //if(p->sb_hasString)
 	{
 		FXY xy;
@@ -2177,6 +2252,7 @@ M       void toggle_collision()                             //"
 		printString2(-1.0f + xy.x*25.0f,-1.0f ,strfps);
 		printString2(-1.0f + xy.x*35.0f,-1.0f,strstatus);
 	}
+
 #ifdef GLES2
 	glUniform4f(p->color4fLoc,1.0f,1.0f,1.0f,1.0f);
 #else
