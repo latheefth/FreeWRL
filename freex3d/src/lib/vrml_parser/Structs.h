@@ -1831,6 +1831,7 @@ struct X3D_Node {
 #define X3D_NODE(node) ((struct X3D_Node*)node)
 #define X3D_APPEARANCE(node) ((struct X3D_Appearance*)node)
 #define X3D_MATERIAL(node) ((struct X3D_Material*)node)
+#define X3D_TWOSIDEDMATERIAL(node) ((struct X3D_TwoSidedMaterial*)node)
 #define X3D_GROUP(node) ((struct X3D_Group*)node)
 #define X3D_PROTO(node) ((struct X3D_Proto*)node)
 #define X3D_PICKABLEGROUP(node) ((struct X3D_PickableGroup*)node)

@@ -101,9 +101,6 @@ void *RenderFuncs_constructor(){
 }
 void RenderFuncs_init(struct tRenderFuncs *t){
 	//public
-	#ifdef OLDCODE
-OLDCODE	t->OSX_replace_world_from_console = NULL;
-	#endif //OLDCODE
 
 	t->BrowserAction = FALSE;
 	//	t->hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
@@ -402,66 +399,66 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 
 			} /* if not headlight */
 #ifdef OLDCODE
-			if(p->lightType[j] == 0 || p->lightType[j] == 1) { //if (p->light_pos[j][3] > 0.5) { 
-                /* this is a PointLight or SpotLight */
-                transformf(translated_light_pos[j],p->light_pos[j],modelMatrix);
-                //translated_light_pos[j][3] = p->light_pos[j][3]; //q why do this? you have a 4x4.
-				//if(1){
-					//here is also a 2-point method that doesn't require normal matrix:
-					//p1a = light position
-					//p1b = light position + light direction vector
-					//p2a = modelview * p1a
-					//p2b = modelview * p1b
-					//new light direction vector = normaliz(p2b - p2a)
-					shaderVec4 aux, auxt;
-					for(i=0;i<4;i++) 
-						aux[i] = p->light_pos[j][i] + p->light_spotDir[j][i];
-					transformf(auxt,aux,modelMatrix);
-					for(i=0;i<4;i++) 
-						transformed_light_dir[j][i] = auxt[i] - translated_light_pos[j][i];
-
-				//}else{
-				//	transformf(transformed_light_dir[j],p->light_spotDir[j],normMat);
-				//}
-               /* ConsoleMessage ("light %d orig %f %f %f %f now %f %f %f %f",j,p->light_pos[j][0],
-                            p->light_pos[j][1],
-                            p->light_pos[j][2],
-                            p->light_pos[j][3],
-                            translated_light_pos[j][0],
-                            translated_light_pos[j][1],
-                            translated_light_pos[j][2],
-                            translated_light_pos[j][3]);
-                 */
-             } else {
-                 /* what to do about directional lights. Should they transform along with
-                  the models? Headlight (MAX_LIGHT-1) should not transform, as it works.
-                  The other directionallights are vectors - what to do with them? */
-                 
-#define   TRY_TRANSFORMING_DIRECTIONAL_LIGHTS 1
-                 
-#ifdef TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
-                 if (j!=HEADLIGHT_LIGHT) {
-                    if(0) transformf(translated_light_pos[j],p->light_pos[j],projMatrix);
-					if(1) transformf(transformed_light_dir[j],p->light_spotDir[j],normMat);
-                 //transformf(translated_light_pos[j],translated_light_pos[j],modelMatrix);
-                 /* reverse normals, as we look behind us */
-					if(0){
-						translated_light_pos[j][0] = translated_light_pos[j][0];
-						translated_light_pos[j][1] = translated_light_pos[j][1];
-						translated_light_pos[j][2] = -translated_light_pos[j][2];
-                        translated_light_pos[j][3] = p->light_pos[j][3];
-					}
-                 } else {
-                     /* headlight we just keep pointing down -z axis */
-                    memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
-                 }
-#else
-                 
-                memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
-#endif // TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
-                 
-            }
-#endif
+OLDCODE			if(p->lightType[j] == 0 || p->lightType[j] == 1) { //if (p->light_pos[j][3] > 0.5) { 
+OLDCODE                /* this is a PointLight or SpotLight */
+OLDCODE                transformf(translated_light_pos[j],p->light_pos[j],modelMatrix);
+OLDCODE                //translated_light_pos[j][3] = p->light_pos[j][3]; //q why do this? you have a 4x4.
+OLDCODE				//if(1){
+OLDCODE					//here is also a 2-point method that doesn't require normal matrix:
+OLDCODE					//p1a = light position
+OLDCODE					//p1b = light position + light direction vector
+OLDCODE					//p2a = modelview * p1a
+OLDCODE					//p2b = modelview * p1b
+OLDCODE					//new light direction vector = normaliz(p2b - p2a)
+OLDCODE					shaderVec4 aux, auxt;
+OLDCODE					for(i=0;i<4;i++) 
+OLDCODE						aux[i] = p->light_pos[j][i] + p->light_spotDir[j][i];
+OLDCODE					transformf(auxt,aux,modelMatrix);
+OLDCODE					for(i=0;i<4;i++) 
+OLDCODE						transformed_light_dir[j][i] = auxt[i] - translated_light_pos[j][i];
+OLDCODE
+OLDCODE				//}else{
+OLDCODE				//	transformf(transformed_light_dir[j],p->light_spotDir[j],normMat);
+OLDCODE				//}
+OLDCODE               /* ConsoleMessage ("light %d orig %f %f %f %f now %f %f %f %f",j,p->light_pos[j][0],
+OLDCODE                            p->light_pos[j][1],
+OLDCODE                            p->light_pos[j][2],
+OLDCODE                            p->light_pos[j][3],
+OLDCODE                            translated_light_pos[j][0],
+OLDCODE                            translated_light_pos[j][1],
+OLDCODE                            translated_light_pos[j][2],
+OLDCODE                            translated_light_pos[j][3]);
+OLDCODE                 */
+OLDCODE             } else {
+OLDCODE                 /* what to do about directional lights. Should they transform along with
+OLDCODE                  the models? Headlight (MAX_LIGHT-1) should not transform, as it works.
+OLDCODE                  The other directionallights are vectors - what to do with them? */
+OLDCODE                 
+OLDCODE#define   TRY_TRANSFORMING_DIRECTIONAL_LIGHTS 1
+OLDCODE                 
+OLDCODE#ifdef TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
+OLDCODE                 if (j!=HEADLIGHT_LIGHT) {
+OLDCODE                    if(0) transformf(translated_light_pos[j],p->light_pos[j],projMatrix);
+OLDCODE					if(1) transformf(transformed_light_dir[j],p->light_spotDir[j],normMat);
+OLDCODE                 //transformf(translated_light_pos[j],translated_light_pos[j],modelMatrix);
+OLDCODE                 /* reverse normals, as we look behind us */
+OLDCODE					if(0){
+OLDCODE						translated_light_pos[j][0] = translated_light_pos[j][0];
+OLDCODE						translated_light_pos[j][1] = translated_light_pos[j][1];
+OLDCODE						translated_light_pos[j][2] = -translated_light_pos[j][2];
+OLDCODE                        translated_light_pos[j][3] = p->light_pos[j][3];
+OLDCODE					}
+OLDCODE                 } else {
+OLDCODE                     /* headlight we just keep pointing down -z axis */
+OLDCODE                    memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
+OLDCODE                 }
+OLDCODE#else
+OLDCODE                 
+OLDCODE                memcpy(translated_light_pos[j],p->light_pos[j],sizeof (shaderVec4));
+OLDCODE#endif // TRY_TRANSFORMING_DIRECTIONAL_LIGHTS
+OLDCODE                 
+OLDCODE            }
+#endif //OLDCODE
                  
              /*ConsoleMessage("light %d lp %f %f %f %f tlp %f %f %f %f",
                            j,p->light_pos[j][0],p->light_pos[j][1],p->light_pos[j][2],p->light_pos[j][3],

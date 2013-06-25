@@ -33,11 +33,6 @@ Parser (input of non-terminal symbols) for CParse
 void resetParseSuccessfullyFlag(void);
 int parsedSuccessfully(void);
 
-// JAS - OLDCODE #ifdef REWIRE
-// JAS - OLDCODE #define BOOL int
-// JAS - OLDCODE #include "../../libeai/EAI_C.h"
-// JAS - OLDCODE #endif
-
 struct ProtoDefinition;
 struct ProtoFieldDecl;
 struct Shader_Script;

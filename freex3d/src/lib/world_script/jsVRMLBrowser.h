@@ -156,20 +156,4 @@ JSBool VrmlBrowserDeleteRoute(JSContext *cx, uintN argc, jsval *vp);
 
 #endif
 
-#ifdef OLDCODE
-OLDCODEJSBool VrmlBrowserGetMidiDeviceList(JSContext *cx,
-OLDCODE                                    JSObject *obj,
-OLDCODE                                    uintN argc,
-OLDCODE                                    jsval *argv,
-OLDCODE                                    jsval *rval);
-OLDCODE
-OLDCODEJSBool VrmlBrowserGetMidiDeviceInfo(JSContext *cx,
-OLDCODE                                    JSObject *obj,
-OLDCODE                                    uintN argc,
-OLDCODE                                    jsval *argv,
-OLDCODE                                    jsval *rval);
-#endif // OLDCODE
-
-
-
 #endif /* __FREEWRL_JS_VRML_BROWSER_H__ */

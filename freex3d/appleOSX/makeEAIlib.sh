@@ -7,7 +7,6 @@
 
 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -19,7 +18,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Control.c -o ../src/libeai/EAI_C_Control.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -31,7 +29,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Field.c -o ../src/libeai/EAI_C_Field.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -43,7 +40,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Advise.c -o ../src/libeai/EAI_C_Advise.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -55,7 +51,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Internals.c -o ../src/libeai/EAI_C_Internals.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -67,7 +62,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Node.c -o ../src/libeai/EAI_C_Node.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -79,7 +73,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_ReWire.c -o ../src/libeai/EAI_C_ReWire.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -118,7 +111,6 @@ rm 	../src/libeai/GeneratedCode.o
 
 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -130,7 +122,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Control.c -o ../src/libeai/EAI_C_Control.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -142,7 +133,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Field.c -o ../src/libeai/EAI_C_Field.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -154,7 +144,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Advise.c -o ../src/libeai/EAI_C_Advise.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -166,7 +155,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Internals.c -o ../src/libeai/EAI_C_Internals.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -178,7 +166,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Node.c -o ../src/libeai/EAI_C_Node.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -190,7 +177,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_ReWire.c -o ../src/libeai/EAI_C_ReWire.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -228,7 +214,6 @@ rm 	../src/libeai/GeneratedCode.o
 
 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -240,7 +225,6 @@ gcc -c \
         -I../src/libeai \
 	../src/libeai/EAI_C_Control.c -o ../src/libeai/EAI_C_Control.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -252,7 +236,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Field.c -o ../src/libeai/EAI_C_Field.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -264,7 +247,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Advise.c -o ../src/libeai/EAI_C_Advise.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -276,7 +258,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Internals.c -o ../src/libeai/EAI_C_Internals.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -288,7 +269,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_Node.c -o ../src/libeai/EAI_C_Node.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \
@@ -300,7 +280,6 @@ gcc -c \
 	-I../opt/local/include \
 	../src/libeai/EAI_C_ReWire.c -o ../src/libeai/EAI_C_ReWire.o 
 gcc -c \
-	-DREWIRE \
 	-DTARGET_AQUA \
 	-D_REENTRANT -DAQUA \
 	-fno-common \

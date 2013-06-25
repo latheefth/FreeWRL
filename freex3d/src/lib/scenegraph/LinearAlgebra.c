@@ -622,34 +622,36 @@ void loadIdentityMatrix (double *mat) {
         memcpy((void *)mat, (void *)identity, sizeof(double)*16);
 }
 
-void point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t)
-{
-	//not tested as of July16,2011
-	//goal start slow, speed up in the middle, and slow down when stopping 
-	// (like a sine or cosine wave)
-	//let omega = t*pi 
-	//then cos omega goes from 1 to -1 natively
-	//we want scale0 to go from 1 to 0
-	//scale0 = .5(1+cos(t*pi)) should be in the 1 to 0 range,
-	//and be 'fastest' in the middle ie at pi/2 
-	//then scale1 = 1 - scale0
-	double scale0, scale1, omega;
-
-	/* calculate coefficients */
-	if ( t > .05 || t < .95 ) {
-		/* standard case (SLERP) */
-		omega = t*PI;
-		scale0 = 0.5*(1.0 + cos(omega));
-		scale1 = 1.0 - scale0;
-	} else {
-		/* p1 & p2 are very close, so do linear interpolation */
-		scale0 = 1.0 - t;
-		scale1 = t;
-	}
-	ret->x = scale0 * p1->x + scale1 * p2->x;
-	ret->y = scale0 * p1->y + scale1 * p2->y;
-	ret->z = scale0 * p1->z + scale1 * p2->z;
-}
+#ifdef OLDCODE
+OLDCODEvoid point_XYZ_slerp(struct point_XYZ *ret, struct point_XYZ *p1, struct point_XYZ *p2, const double t)
+OLDCODE{
+OLDCODE	//not tested as of July16,2011
+OLDCODE	//goal start slow, speed up in the middle, and slow down when stopping 
+OLDCODE	// (like a sine or cosine wave)
+OLDCODE	//let omega = t*pi 
+OLDCODE	//then cos omega goes from 1 to -1 natively
+OLDCODE	//we want scale0 to go from 1 to 0
+OLDCODE	//scale0 = .5(1+cos(t*pi)) should be in the 1 to 0 range,
+OLDCODE	//and be 'fastest' in the middle ie at pi/2 
+OLDCODE	//then scale1 = 1 - scale0
+OLDCODE	double scale0, scale1, omega;
+OLDCODE
+OLDCODE	/* calculate coefficients */
+OLDCODE	if ( t > .05 || t < .95 ) {
+OLDCODE		/* standard case (SLERP) */
+OLDCODE		omega = t*PI;
+OLDCODE		scale0 = 0.5*(1.0 + cos(omega));
+OLDCODE		scale1 = 1.0 - scale0;
+OLDCODE	} else {
+OLDCODE		/* p1 & p2 are very close, so do linear interpolation */
+OLDCODE		scale0 = 1.0 - t;
+OLDCODE		scale1 = t;
+OLDCODE	}
+OLDCODE	ret->x = scale0 * p1->x + scale1 * p2->x;
+OLDCODE	ret->y = scale0 * p1->y + scale1 * p2->y;
+OLDCODE	ret->z = scale0 * p1->z + scale1 * p2->z;
+OLDCODE}
+#endif //OLDCODE
 
 void general_slerp(double *ret, double *p1, double *p2, int size, const double t)
 {

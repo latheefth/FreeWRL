@@ -18,18 +18,11 @@
     along with FreeWRL/FreeX3D.  If not, see <http://www.gnu.org/licenses/>.
 ****************************************************************************/
 
-// JAS - OLDCODE #ifndef REWIRE
 #include "EAI_C.h"
 #include "config.h"
 #include "system.h"
-// JAS - OLDCODE #endif
 
-
-#ifdef OLDCODE
-OLDCODE #define WAIT_FOR_RETVAL ((command!=SENDEVENT) && (command!=MIDICONTROL))
-#else
 #define WAIT_FOR_RETVAL (command!=SENDEVENT)
-#endif
 
 static pthread_mutex_t eailock = PTHREAD_MUTEX_INITIALIZER;
 #define EAILOCK pthread_mutex_lock(&eailock);
