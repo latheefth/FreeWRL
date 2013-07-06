@@ -574,14 +574,17 @@ int dequeueMouseMulti(ppMainloop p, int *mev, unsigned int *button, int *ix, int
 }
 
 /* Main eventloop for FreeWRL!!! */
-void fwl_RenderSceneUpdateScene0(double dtime);
 void fwl_do_keyPress0(int key, int type);
 void handle0(const int mev, const unsigned int button, const float x, const float y);
 void fwl_handle_aqua_multi(const int mev, const unsigned int button, int x, int y, int ID);
 void fwl_handle_aqua_multi0(const int mev, const unsigned int button, int x, int y, int ID);
+
+#if !defined(FRONTEND_DOES_SNAPSHOTS)
+void fwl_RenderSceneUpdateScene0(double dtime);
 void set_snapshotModeTesting(int value);
 int isSnapshotModeTesting();
 void splitpath_local_suffix(const char *url, char **local_name, char **suff);
+#endif //FRONTEND_DOES_SNAPSHOTS
 
 
 int fw_mkdir(char* path){
@@ -599,6 +602,9 @@ int fw_exit(int val)
 	}
 	exit(val);
 }
+
+#if !defined(FRONTEND_DOES_SNAPSHOTS)
+
 void fwl_RenderSceneUpdateScene() {
 	double dtime;
 	ttglobal tg = gglobal();
@@ -999,6 +1005,14 @@ void fwl_RenderSceneUpdateScene() {
 	fwl_RenderSceneUpdateScene0(dtime);
 }
 void fwl_RenderSceneUpdateScene0(double dtime) {
+
+#else //FRONTEND_DOES_SNAPSHOTS
+
+void fwl_RenderSceneUpdateScene() {
+		double dtime = Time1970sec();
+
+#endif //FRONTEND_DOES_SNAPSHOTS
+
 		ttglobal tg = gglobal();
 		ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 

@@ -46,6 +46,7 @@ Render the children of nodes.
 #ifdef DO_COLLISION_GPU
 
 static const char* collide_non_walk_kernel;
+static const char* collide_non_walk_kernel_headers;
 
 #define FLOAT_TOLERANCE 0.00000001
 
@@ -55,54 +56,75 @@ static const char* collide_non_walk_kernel;
 /*										*/
 /********************************************************************************/
 
-
-#ifdef OLDCODE
-OLDCODE//http://en.wikipedia.org/wiki/Power_of_two#Algorithm_to_round_up_to_power_of_two
-OLDCODEstatic size_t roundUpToNextPowerOfTwo(size_t n) {
-OLDCODE	if (n==0) return 1;
-OLDCODE
-OLDCODE	n = n - 1;
-OLDCODE	n = n | (n >> 1);
-OLDCODE	n = n | (n >> 2);
-OLDCODE	n = n | (n >> 4);
-OLDCODE	n = n | (n >> 8);
-OLDCODE	n = n | (n >> 16);
-OLDCODE	if (sizeof(size_t)>32)
-OLDCODE		n = n | (n >> 32);
-OLDCODE	n = n + 1;
-OLDCODE	return n;
-OLDCODE}
-#endif // OLDCODE
-
-
-
-static void printCLError(const char *where, int err) {
+static char *getErrorString(cl_int err) {
 	switch (err) {
-
-		case CL_INVALID_MEM_OBJECT: ConsoleMessage ("%s, error CL_INVALID_MEM_OBJECT",where); break;
-		case CL_MEM_OBJECT_ALLOCATION_FAILURE: ConsoleMessage ("%s, error CL_MEM_OBJECT_ALLOCATION_FAILURE",where); break;
-		case CL_INVALID_PROGRAM_EXECUTABLE: ConsoleMessage ("%s, error CL_INVALID_PROGRAM_EXECUTABLE",where); break;
-		case CL_INVALID_COMMAND_QUEUE: ConsoleMessage ("%s, error CL_INVALID_COMMAND_QUEUE",where); break;
-		case CL_INVALID_KERNEL_ARGS: ConsoleMessage ("%s, error CL_INVALID_KERNEL_ARGS",where); break;
-		case CL_INVALID_KERNEL: ConsoleMessage ("%s, error CL_INVALID_KERNEL",where); break;
-		case CL_INVALID_WORK_ITEM_SIZE: ConsoleMessage ("%s, error CL_INVALID_WORK_ITEM_SIZE",where); break;
-		case CL_INVALID_WORK_GROUP_SIZE: ConsoleMessage ("%s, error CL_INVALID_WORK_GROUP_SIZE",where); break;
-		case CL_INVALID_WORK_DIMENSION: ConsoleMessage ("%s, error CL_INVALID_WORK_DIMENSION",where); break;
-		case CL_INVALID_GLOBAL_OFFSET: ConsoleMessage ("%s, error CL_INVALID_GLOBAL_OFFSET",where); break;
-		case CL_INVALID_EVENT_WAIT_LIST: ConsoleMessage ("%s, error CL_INVALID_EVENT_WAIT_LIST",where); break;
-		case CL_INVALID_GL_OBJECT: ConsoleMessage ("%s, error CL_INVALID_GL_OBJECT",where); break;
-		case CL_INVALID_QUEUE_PROPERTIES: ConsoleMessage ("%s, error CL_INVALID_QUEUE_PROPERTIES",where); break;
-		case CL_INVALID_CONTEXT: ConsoleMessage ("%s, error CL_INVALID_CONTEXT",where); break;
-		case CL_INVALID_PLATFORM: ConsoleMessage ("%s, error CL_INVALID_PLATFORM",where); break;
-		case CL_INVALID_VALUE: ConsoleMessage ("%s, error CL_INVALID_VALUE",where); break;
-		case CL_INVALID_DEVICE: ConsoleMessage ("%s, error CL_INVALID_DEVICE",where); break;
-		case CL_DEVICE_NOT_AVAILABLE: ConsoleMessage ("%s, error CL_DEVICE_NOT_AVAILABLE",where); break;
-		case CL_OUT_OF_HOST_MEMORY: ConsoleMessage ("%s, error CL_OUT_OF_HOST_MEMORY",where); break;
-		case CL_OUT_OF_RESOURCES: ConsoleMessage("%s, error CL_OUT_OF_RESOURCES",where);break;
-		default: ConsoleMessage ("unknown OpenCL error (%d %x) in %s",err,err,where);
+		case CL_DEVICE_NOT_FOUND: return "CL_DEVICE_NOT_FOUND"; break;
+		case CL_DEVICE_NOT_AVAILABLE: return "CL_DEVICE_NOT_AVAILABLE"; break;
+		case CL_COMPILER_NOT_AVAILABLE: return "CL_COMPILER_NOT_AVAILABLE"; break;
+		case CL_MEM_OBJECT_ALLOCATION_FAILURE: return "CL_MEM_OBJECT_ALLOCATION_FAILURE"; break;
+		case CL_OUT_OF_RESOURCES: return "CL_OUT_OF_RESOURCES"; break;
+		case CL_OUT_OF_HOST_MEMORY: return "CL_OUT_OF_HOST_MEMORY"; break;
+		case CL_PROFILING_INFO_NOT_AVAILABLE: return "CL_PROFILING_INFO_NOT_AVAILABLE"; break;
+		case CL_MEM_COPY_OVERLAP: return "CL_MEM_COPY_OVERLAP"; break;
+		case CL_IMAGE_FORMAT_MISMATCH: return "CL_IMAGE_FORMAT_MISMATCH"; break;
+		case CL_IMAGE_FORMAT_NOT_SUPPORTED: return "CL_IMAGE_FORMAT_NOT_SUPPORTED"; break;
+		case CL_BUILD_PROGRAM_FAILURE: return "CL_BUILD_PROGRAM_FAILURE"; break;
+		case CL_MAP_FAILURE: return "CL_MAP_FAILURE"; break;
+		case CL_MISALIGNED_SUB_BUFFER_OFFSET: return "CL_MISALIGNED_SUB_BUFFER_OFFSET"; break;
+		case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST: return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST"; break;
+		case CL_COMPILE_PROGRAM_FAILURE: return "CL_COMPILE_PROGRAM_FAILURE"; break;
+		case CL_LINKER_NOT_AVAILABLE: return "CL_LINKER_NOT_AVAILABLE"; break;
+		case CL_LINK_PROGRAM_FAILURE: return "CL_LINK_PROGRAM_FAILURE"; break;
+		case CL_DEVICE_PARTITION_FAILED: return "CL_DEVICE_PARTITION_FAILED"; break;
+		case CL_KERNEL_ARG_INFO_NOT_AVAILABLE: return "CL_KERNEL_ARG_INFO_NOT_AVAILABLE"; break;
+		case CL_INVALID_VALUE: return "CL_INVALID_VALUE"; break;
+		case CL_INVALID_DEVICE_TYPE: return "CL_INVALID_DEVICE_TYPE"; break;
+		case CL_INVALID_PLATFORM: return "CL_INVALID_PLATFORM"; break;
+		case CL_INVALID_DEVICE: return "CL_INVALID_DEVICE"; break;
+		case CL_INVALID_CONTEXT: return "CL_INVALID_CONTEXT"; break;
+		case CL_INVALID_QUEUE_PROPERTIES: return "CL_INVALID_QUEUE_PROPERTIES"; break;
+		case CL_INVALID_COMMAND_QUEUE: return "CL_INVALID_COMMAND_QUEUE"; break;
+		case CL_INVALID_HOST_PTR: return "CL_INVALID_HOST_PTR"; break;
+		case CL_INVALID_MEM_OBJECT: return "CL_INVALID_MEM_OBJECT"; break;
+		case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR: return "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR"; break;
+		case CL_INVALID_IMAGE_SIZE: return "CL_INVALID_IMAGE_SIZE"; break;
+		case CL_INVALID_SAMPLER: return "CL_INVALID_SAMPLER"; break;
+		case CL_INVALID_BINARY: return "CL_INVALID_BINARY"; break;
+		case CL_INVALID_BUILD_OPTIONS: return "CL_INVALID_BUILD_OPTIONS"; break;
+		case CL_INVALID_PROGRAM: return "CL_INVALID_PROGRAM"; break;
+		case CL_INVALID_PROGRAM_EXECUTABLE: return "CL_INVALID_PROGRAM_EXECUTABLE"; break;
+		case CL_INVALID_KERNEL_NAME: return "CL_INVALID_KERNEL_NAME"; break;
+		case CL_INVALID_KERNEL_DEFINITION: return "CL_INVALID_KERNEL_DEFINITION"; break;
+		case CL_INVALID_KERNEL: return "CL_INVALID_KERNEL"; break;
+		case CL_INVALID_ARG_INDEX: return "CL_INVALID_ARG_INDEX"; break;
+		case CL_INVALID_ARG_VALUE: return "CL_INVALID_ARG_VALUE"; break;
+		case CL_INVALID_ARG_SIZE: return "CL_INVALID_ARG_SIZE"; break;
+		case CL_INVALID_KERNEL_ARGS: return "CL_INVALID_KERNEL_ARGS"; break;
+		case CL_INVALID_WORK_DIMENSION: return "CL_INVALID_WORK_DIMENSION"; break;
+		case CL_INVALID_WORK_GROUP_SIZE: return "CL_INVALID_WORK_GROUP_SIZE"; break;
+		case CL_INVALID_WORK_ITEM_SIZE: return "CL_INVALID_WORK_ITEM_SIZE"; break;
+		case CL_INVALID_GLOBAL_OFFSET: return "CL_INVALID_GLOBAL_OFFSET"; break;
+		case CL_INVALID_EVENT_WAIT_LIST: return "CL_INVALID_EVENT_WAIT_LIST"; break;
+		case CL_INVALID_EVENT: return "CL_INVALID_EVENT"; break;
+		case CL_INVALID_OPERATION: return "CL_INVALID_OPERATION"; break;
+		case CL_INVALID_GL_OBJECT: return "CL_INVALID_GL_OBJECT"; break;
+		case CL_INVALID_BUFFER_SIZE: return "CL_INVALID_BUFFER_SIZE"; break;
+		case CL_INVALID_MIP_LEVEL: return "CL_INVALID_MIP_LEVEL"; break;
+		case CL_INVALID_GLOBAL_WORK_SIZE: return "CL_INVALID_GLOBAL_WORK_SIZE"; break;
+		case CL_INVALID_PROPERTY: return "CL_INVALID_PROPERTY"; break;
+		case CL_INVALID_IMAGE_DESCRIPTOR: return "CL_INVALID_IMAGE_DESCRIPTOR"; break;
+		case CL_INVALID_COMPILER_OPTIONS: return "CL_INVALID_COMPILER_OPTIONS"; break;
+		case CL_INVALID_LINKER_OPTIONS: return "CL_INVALID_LINKER_OPTIONS"; break;
+		case CL_INVALID_DEVICE_PARTITION_COUNT: return "CL_INVALID_DEVICE_PARTITION_COUNT"; break;
+		default :{return "hmmm - error message makes no sense";}
 	}
-printf ("(JAS...)\n");
+
 }
+static void printCLError(const char *where, cl_int err) {
+	ConsoleMessage ("OpenCL fn %s, error %s",getErrorString(err));
+}
+
+#define TEST_ERR(aa,bb) if (bb!=CL_SUCCESS) printCLError(aa,bb)
 
 
 /********************************************************************************/
@@ -318,9 +340,242 @@ int extraInitFromNvidiaSamples(struct sCollisionGPU* initme)
 }
 #endif  //_MSC_VER
 
+
+/********************************************************************************/
+/*                                                                              */
+/* Android, (code might work on IPHONE) OpenGL ES 2.0, CL integration		*/
+/*                                                                              */
+/********************************************************************************/
+
+#ifdef GL_ES_VERSION_2_0
+
+#include <dlfcn.h> // possibly Android only
+
+#define clGetPlatformIDs(aa,bb,cc) rclGetPlatformIDs(aa,bb,cc)
+#define clGetPlatformInfo(aa,bb,cc,dd,ee) rclGetPlatformInfo(aa,bb,cc,dd,ee)
+#define clGetDeviceIDs(aa,bb,cc,dd,ee) rclGetDeviceIDs(aa,bb,cc,dd,ee)
+#define clGetDeviceInfo(aa,bb,cc,dd,ee) rclGetDeviceInfo(aa,bb,cc,dd,ee)
+#define clCreateKernel(aa,bb,cc) rclCreateKernel(aa,bb,cc)
+#define clBuildProgram(aa,bb,cc,dd,ee,ff) rclBuildProgram(aa,bb,cc,dd,ee,ff)
+#define clCreateBuffer(aa,bb,cc,dd,ee) rclCreateBuffer(aa,bb,cc,dd,ee)
+#define clCreateCommandQueue(aa,bb,cc,dd) rclCreateCommandQueue(aa,bb,cc,dd)
+#define clCreateContextFromType(aa,bb,cc,dd,ee) rclCreateContextFromType(aa,bb,cc,dd,ee)
+#define clCreateFromGLBuffer(aa,bb,cc,dd) rclCreateFromGLBuffer(aa,bb,cc,dd)
+#define clCreateProgramWithSource(aa,bb,cc,dd,ee) rclCreateProgramWithSource(aa,bb,cc,dd,ee)
+#define clEnqueueNDRangeKernel(aa,bb,cc,dd,ee,ff,gg,hh,ii) rclEnqueueNDRangeKernel(aa,bb,cc,dd,ee,ff,gg,hh,ii)
+#define clEnqueueReadBuffer(aa,bb,cc,dd,ee,ff,gg,hh,ii) rclEnqueueReadBuffer(aa,bb,cc,dd,ee,ff,gg,hh,ii)
+#define clEnqueueWriteBuffer(aa,bb,cc,dd,ee,ff,gg,hh,ii) rclEnqueueWriteBuffer(aa,bb,cc,dd,ee,ff,gg,hh,ii)
+#define clGetKernelWorkGroupInfo(aa,bb,cc,dd,ee,ff) rclGetKernelWorkGroupInfo(aa,bb,cc,dd,ee,ff)
+#define clGetProgramBuildInfo(aa,bb,cc,dd,ee,ff) rclGetProgramBuildInfo(aa,bb,cc,dd,ee,ff)
+#define clReleaseMemObject(aa) rclReleaseMemObject(aa)
+#define clSetKernelArg(aa,bb,cc,dd) rclSetKernelArg(aa,bb,cc,dd)
+
+static void *getCLHandle(){
+	void *res = NULL;
+	int which=0;
+
+	res = dlopen("/system/lib/libOpenCL.so",RTLD_LAZY);
+	if(res==NULL){
+		res = dlopen("/system/vendor/lib/egl/libGLES_mali.so",RTLD_LAZY);
+		which = 1;
+	}
+	if(res==NULL){
+		res = dlopen("/system/lib/libllvm-a3xx.so",RTLD_LAZY);
+		which = 2;
+	}
+	if(res==NULL) {
+		ConsoleMessage("Could not open library :(\n");
+		return NULL;
+	}
+
+	if (which==0) {
+		ConsoleMessage ("OpenCL lib - libOpenCL.so");
+	} else if (which == 1) {
+		ConsoleMessage ("OpenCL lib libGLES_mali.so");
+	} else if (which == 2) {
+		ConsoleMessage ("OpenCL Lib - liblvm-a3xx.so");
+	}
+	return res;
+}
+
+cl_int (*rclGetPlatformIDs)(cl_uint          /* num_entries */,
+                 cl_platform_id * /* platforms */,
+                 cl_uint *        /* num_platforms */);
+
+
+cl_int (*rclGetPlatformInfo)(cl_platform_id   /* platform */, 
+                  cl_platform_info /* param_name */,
+                  size_t           /* param_value_size */, 
+                  void *           /* param_value */,
+                  size_t *         /* param_value_size_ret */);
+
+cl_int (*rclGetDeviceIDs)(cl_platform_id   /* platform */,
+               cl_device_type   /* device_type */, 
+               cl_uint          /* num_entries */, 
+               cl_device_id *   /* devices */, 
+               cl_uint *        /* num_devices */);
+
+
+cl_int (*rclGetDeviceInfo)(cl_device_id    /* device */,
+                cl_device_info  /* param_name */, 
+                size_t          /* param_value_size */, 
+                void *          /* param_value */,
+                size_t *        /* param_value_size_ret */);
+
+cl_kernel (*rclCreateKernel)(cl_program /*program */,
+		const char * /* kernel name */,
+		cl_int *	/* errorcode_ret */);
+
+cl_int (*rclBuildProgram)(cl_program           /* program */,
+               cl_uint              /* num_devices */,
+               const cl_device_id * /* device_list */,
+               const char *         /* options */,
+               void (CL_CALLBACK *  /* pfn_notify */)(cl_program /* program */, void * /* user_data */),
+               void *               /* user_data */);
+
+cl_mem (*rclCreateBuffer)(cl_context   /* context */,
+               cl_mem_flags /* flags */,
+               size_t       /* size */,
+               void *       /* host_ptr */,
+               cl_int *     /* errcode_ret */);
+
+cl_command_queue (*rclCreateCommandQueue)(cl_context                     /* context */,
+                     cl_device_id                   /* device */,
+                     cl_command_queue_properties    /* properties */,
+                     cl_int *                       /* errcode_ret */);
+
+	
+cl_context (*rclCreateContextFromType)(const cl_context_properties * /* properties */,
+                        cl_device_type          /* device_type */,
+                        void (CL_CALLBACK *     /* pfn_notify*/ )(const char *, const void *, size_t, void *),
+                        void *                  /* user_data */,
+                        cl_int *                /* errcode_ret */);
+
+cl_program (*rclCreateProgramWithSource)(cl_context        /* context */,
+                          cl_uint           /* count */,
+                          const char **     /* strings */,
+                          const size_t *    /* lengths */,
+                          cl_int *          /* errcode_ret */);
+
+
+cl_int (*rclEnqueueNDRangeKernel)(cl_command_queue /* command_queue */,
+                       cl_kernel        /* kernel */,
+                       cl_uint          /* work_dim */,
+                       const size_t *   /* global_work_offset */,
+                       const size_t *   /* global_work_size */,
+                       const size_t *   /* local_work_size */,
+                       cl_uint          /* num_events_in_wait_list */,
+                       const cl_event * /* event_wait_list */,
+                       cl_event *       /* event */);
+
+cl_int (*rclEnqueueReadBuffer)(cl_command_queue    /* command_queue */,
+                    cl_mem              /* buffer */,
+                    cl_bool             /* blocking_read */,
+                    size_t              /* offset */,
+                    size_t              /* size */,
+                    void *              /* ptr */,
+                    cl_uint             /* num_events_in_wait_list */,
+                    const cl_event *    /* event_wait_list */,
+                    cl_event *          /* event */);
+
+
+cl_int (*rclEnqueueWriteBuffer)(cl_command_queue   /* command_queue */,
+                     cl_mem             /* buffer */,
+                     cl_bool            /* blocking_write */,
+                     size_t             /* offset */,
+                     size_t             /* size */,
+                     const void *       /* ptr */,
+                     cl_uint            /* num_events_in_wait_list */,
+                     const cl_event *   /* event_wait_list */,
+                     cl_event *         /* event */);
+
+
+cl_int (*rclGetKernelWorkGroupInfo)(cl_kernel                  /* kernel */,
+                         cl_device_id               /* device */,
+                         cl_kernel_work_group_info  /* param_name */,
+                         size_t                     /* param_value_size */,
+                         void *                     /* param_value */,
+                         size_t *                   /* param_value_size_ret */);
+
+
+cl_int (*rclReleaseMemObject)(cl_mem /* memobj */);
+
+cl_int (*rclSetKernelArg)(cl_kernel    /* kernel */,
+               cl_uint      /* arg_index */,
+               size_t       /* arg_size */,
+               const void * /* arg_value */);
+
+cl_mem (*rclCreateFromGLBuffer)(cl_context, cl_mem_flags, GLuint, cl_int *);
+
+cl_int (*rclGetProgramBuildInfo)(cl_program, cl_device_id, cl_program_build_info, size_t, void *, size_t *);
+
+static int getFunctionHandles(){
+	void *handle = getCLHandle();
+	if(handle==NULL) return CL_DEVICE_NOT_AVAILABLE;
+	rclGetPlatformIDs = (cl_int (*)(cl_uint,cl_platform_id *,cl_uint*))dlsym(handle,"clGetPlatformIDs");
+	rclGetPlatformInfo = (cl_int (*)(cl_platform_id, cl_platform_info, size_t, void *, size_t*))dlsym(handle,"clGetPlatformInfo");
+	rclGetDeviceIDs = (cl_int (*)(cl_platform_id, cl_device_type, cl_uint, cl_device_id *, cl_uint*))dlsym(handle,"clGetDeviceIDs");
+	rclGetDeviceInfo = (cl_int (*)(cl_device_id, cl_device_info, size_t, void *, size_t*))dlsym(handle,"clGetDeviceInfo");
+	rclBuildProgram = (cl_int (*)(cl_program,cl_uint,const cl_device_id *, const char *, void (CL_CALLBACK*)(cl_program,void*), void *))dlsym(handle,"clBuildProgram");
+	rclCreateBuffer = (cl_mem (*)(cl_context, cl_mem_flags, size_t, void *, cl_int *))dlsym(handle,"clCreateBuffer");
+	rclCreateKernel = (cl_kernel (*)(cl_program,const char*,cl_int*))dlsym(handle,"clCreateKernel");
+	rclCreateCommandQueue = (cl_command_queue (*) (cl_context,cl_device_id,cl_command_queue_properties,cl_int*))dlsym(handle,"clCreateCommandQueue");
+	rclCreateContextFromType = (cl_context (*)(const cl_context_properties*,cl_device_type,void(CL_CALLBACK*)(const char*,const void*,size_t,void*),void*,cl_int*))dlsym(handle,"clCreateContextFromType");
+	rclCreateProgramWithSource = (cl_program (*) (cl_context,cl_uint,const char**,const size_t*,cl_int*))dlsym(handle,"clCreateProgramWithSource");
+	rclEnqueueNDRangeKernel=(cl_int(*)(cl_command_queue,cl_kernel,cl_uint,const size_t*,const size_t*,const size_t*,cl_uint,const cl_event*,cl_event*))dlsym(handle,"clEnqueueNDRangeKernel");
+	rclEnqueueReadBuffer = (cl_int (*)(cl_command_queue,cl_mem,cl_bool,size_t,size_t,void*,cl_uint,const cl_event*,cl_event*))dlsym(handle,"clEnqueueReadBuffer");
+	rclEnqueueWriteBuffer = (cl_int (*)(cl_command_queue,cl_mem,cl_bool,size_t,size_t,const void*,cl_uint,const cl_event*,cl_event*))dlsym(handle,"clEnqueueWriteBuffer");
+	rclGetKernelWorkGroupInfo = (cl_int (*)(cl_kernel,cl_device_id,cl_kernel_work_group_info,size_t, void*, size_t *))dlsym(handle,"clGetKernelWorkGroupInfo");
+	rclReleaseMemObject = (cl_int (*)(cl_mem))dlsym(handle,"clReleaseMemObject");
+	rclSetKernelArg = (cl_int (*)(cl_kernel,cl_uint,size_t,const void *))dlsym(handle,"clSetKernelArg");
+	rclGetProgramBuildInfo = (cl_int (*)(cl_program, cl_device_id, cl_program_build_info, size_t, void *, size_t *))dlsym(handle,"clGetProgramBuildInfo");
+	rclCreateFromGLBuffer = (cl_mem (*)(cl_context, cl_mem_flags, GLuint, cl_int *))dlsym(handle,"clCreateFromGLBuffer");
+
+
+
+	if (!(rclGetPlatformIDs) || !(rclGetPlatformInfo) || !(rclGetDeviceIDs) || !(rclGetDeviceInfo) ||
+		!(rclBuildProgram) || !(rclCreateBuffer) || !(rclCreateKernel) || !(rclCreateCommandQueue) ||
+		!(rclCreateContextFromType) || !(rclCreateProgramWithSource) || !(rclEnqueueNDRangeKernel) || !(rclEnqueueReadBuffer) ||
+		!(rclEnqueueWriteBuffer) || !(rclGetKernelWorkGroupInfo) || !(rclReleaseMemObject) || !(rclSetKernelArg) ||
+		!(rclGetProgramBuildInfo) || !(rclCreateFromGLBuffer)) {
+			ConsoleMessage ("did not find one of the functions in this OpenCL Library");
+			if (!rclGetPlatformIDs) ConsoleMessage ("did not find rclGetPlatformIDs");
+			if (!rclGetPlatformInfo) ConsoleMessage ("did not find rclGetPlatformInfo");
+			if (!rclGetDeviceIDs) ConsoleMessage ("did not find rclGetDeviceIDs");
+			if (!rclGetDeviceInfo) ConsoleMessage ("did not find rclGetDeviceInfo");
+			if (!rclBuildProgram) ConsoleMessage ("did not find rclBuildProgram");
+			if (!rclCreateBuffer) ConsoleMessage ("did not find rclCreateBuffer");
+			if (!rclCreateKernel) ConsoleMessage ("did not find rclCreateKernel");
+			if (!rclCreateCommandQueue) ConsoleMessage ("did not find rclCreateCommandQueue");
+			if (!rclCreateContextFromType) ConsoleMessage ("did not find rclCreateContextFromType");
+			if (!rclCreateProgramWithSource) ConsoleMessage ("did not find rclCreateProgramWithSource");
+			if (!rclEnqueueNDRangeKernel) ConsoleMessage ("did not find rclEnqueueNDRangeKernel");
+			if (!rclEnqueueReadBuffer) ConsoleMessage ("did not find rclEnqueueReadBuffer");
+			if (!rclEnqueueWriteBuffer) ConsoleMessage ("did not find rclEnqueueWriteBuffer");
+			if (!rclGetKernelWorkGroupInfo) ConsoleMessage ("did not find rclGetKernelWorkGroupInfo");
+			if (!rclReleaseMemObject) ConsoleMessage ("did not find rclReleaseMemObject");
+			if (!rclSetKernelArg) ConsoleMessage ("did not find rclSetKernelArg");
+			if (!rclGetProgramBuildInfo) ConsoleMessage ("did not find rclGetProgramBuildInfo");
+			if (!rclCreateFromGLBuffer) ConsoleMessage ("did not find rclCreateFromGLBuffer");
+
+		// JAS return !CL_SUCCESS;
+	}
+	return CL_SUCCESS;
+}
+
+
+#endif
+
+
+
+/********************************************************************************/
+/*                                                                              */
+/*                                                                              */
+/********************************************************************************/
+
 bool init_GPU_collide(struct sCollisionGPU* initme) {
 
-	int err;
+	cl_int err;
 
 	// debugging information
 	cl_int rv;
@@ -387,11 +642,31 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 #endif // _MSC_VER
 
 /* is this Linux? */
-#if !(defined(TARGET_AQUA) || defined(_MSC_VER))
-	cl_platform_id platform;
-	clGetPlatformIDs(1,&platform,NULL);
+#if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID)) 
+	cl_platform_id platforms[10];
+	cl_uint numPlats;
 
-	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &initme->device_id, NULL);
+	err = clGetPlatformIDs(10,platforms,&numPlats);
+	TEST_ERR("clGetPlatformIDs",err);
+
+	ConsoleMessage ("looking for up to 10 platforms, got %d",numPlats);
+	
+/* not sure what platform to choose, if more than 1...
+	{
+		int i;
+
+		for (i=0; i<numPlats; i++) {
+			char platname[500];
+                        cl_int err = clGetPlatformInfo(platforms[i],CL_PLATFORM_NAME,sizeof(platname),platname,NULL);
+			TEST_ERR("clGetPlatformInfo",err);
+			ConsoleMessage ("GetPlatfromInfo for %d is :%s:",i,platname);
+		}
+
+	}
+	*/
+
+
+	err = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 1, &initme->device_id, NULL);
 
 	if (err != CL_SUCCESS) {
 		printCLError("clGetDeviceIDs",err);
@@ -402,100 +677,114 @@ bool init_GPU_collide(struct sCollisionGPU* initme) {
 
 
 	cl_context_properties properties[] = {
-
 		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
 		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
-		CL_CONTEXT_PLATFORM, (cl_context_properties)platform,
+		CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[0],
 		0 };
 
 	initme->context=clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
+	TEST_ERR("clCreateContextFromType",err);
 #endif
+
+/* how about Android (and maybe IPHONE) using OpenGL-ES 2.0? */
+#ifdef GL_ES_VERSION_2_0
+
+	cl_platform_id platforms[10];
+	cl_uint numPlats;
+
+	err = getFunctionHandles();
+
+
  
 	if (err != CL_SUCCESS) {
 		printCLError("clCreateContext",err);
 		return FALSE;
-	} else {
-		printf ("CL context created\n");
 	}
 
 
+	err = clGetPlatformIDs(10,platforms,&numPlats);
+	TEST_ERR("clGetPlatformIDs",err);
+	ConsoleMessage ("looking for up to 10 platforms, got %d",numPlats);
+	
+	cl_platform_id platform;
+	err = clGetPlatformIDs(1,&platform,NULL);
+	TEST_ERR("clGetPlatformIDs",err);
+
+	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &initme->device_id, NULL);
+
+	if (err != CL_SUCCESS) {
+		printCLError("clGetDeviceIDs",err);
+		return FALSE;
+	}
+
+/*
+	cl_context_properties properties[] = {
+		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
+		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
+		CL_CONTEXT_PLATFORM, (cl_context_properties)platform,
+		0 };
+	initme->context=clCreateContextFromType(properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
+	TEST_ERR("clCreateContextFromType",err);
+*/
+
+	initme->context=clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU, NULL, NULL, &err);
+	TEST_ERR("clCreateContextFromType",err);
+
+	ConsoleMessage ("remember - building currently without the CL_KHR_gl_sharing enabled - the clCreateFromGLBuffer will error out, so return code removed.");
+
+#endif //GL_ES_VERSION_2_0
+
+
 	// create a command queue
-printf ("initme->context %p\n",initme->context);
 
 	initme->queue = clCreateCommandQueue(initme->context, initme->device_id, 0, &err);
 	if (!initme->queue || (err != CL_SUCCESS)) {
 		printCLError("clCreateCommandQueue",err);
 		return FALSE;
 	}
-	printf ("queue created\n");
  
 	{
-	char *kp;
+	char *kp[2];
 
-#undef READ_FROM_FILE
-#ifdef READ_FROM_FILE
-	// create the compute program
-	size_t readSize;
-#define RS 32768
-	FILE *kf;
-#ifdef _MSC_VER
-	char * kernelpath = "C:/source2/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt";
-#else
-	char * kernelpath = "/FreeWRL/freewrl/freex3d/src/lib/scenegraph/collisionKernel.txt";
-#endif
-	kf = fopen (kernelpath,"r");
-	if (!kf) {
-		ConsoleMessage("can not find collisionKernel.txt, reverting to SW collision method");
-		return FALSE;
-	}
-
-
-	kp = malloc(RS);
-	readSize = fread(kp,1,RS,kf);
-	kp[readSize] = '\0'; /* ensure null termination */
-	printf ("read in %d bytes max %d\n",readSize,RS);
-#else
-	kp = (char *)collide_non_walk_kernel;
-#endif
-
+	kp[0] = (char *)collide_non_walk_kernel_headers;
+	kp[1] = (char *)collide_non_walk_kernel;
 
 	// Find the work group size
 	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &wg_size, &rvlen);
+	TEST_ERR("clGetDeviceInfo",rv);
 
 	#ifdef GPU_DEBUG
 	// debugging information
-	rv = clGetPlatformInfo(NULL,CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
-	printf ("CL_PLATFORM_PROFILE :%s:\n",rvstring);
-	rv = clGetPlatformInfo(NULL,CL_PLATFORM_VERSION,1000,rvstring,&rvlen);
-	printf ("CL_PLATFORM_VERSION :%s:\n",rvstring);
-	rv = clGetPlatformInfo(NULL,CL_PLATFORM_NAME,1000,rvstring,&rvlen);
-	printf ("CL_PLATFORM_NAME :%s:\n",rvstring);
-	rv = clGetPlatformInfo(NULL,CL_PLATFORM_VENDOR,1000,rvstring,&rvlen);
-	printf ("CL_PLATFORM_VENDOR :%s:\n",rvstring);
-	rv = clGetPlatformInfo(NULL,CL_PLATFORM_EXTENSIONS,1000,rvstring,&rvlen);
-	printf ("CL_PLATFORM_EXTENSIONS :%s:\n",rvstring);
-	printf ("CL_DEVICE_MAX_WORK_GROUP_SIZE %d\n",wg_size);
+	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
+	ConsoleMessage ("CL_PLATFORM_PROFILE :%s:\n",rvstring);
+	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_VERSION,1000,rvstring,&rvlen);
+	ConsoleMessage ("CL_PLATFORM_VERSION :%s:\n",rvstring);
+	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_NAME,1000,rvstring,&rvlen);
+	ConsoleMessage ("CL_PLATFORM_NAME :%s:\n",rvstring);
+	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_VENDOR,1000,rvstring,&rvlen);
+	ConsoleMessage ("CL_PLATFORM_VENDOR :%s:\n",rvstring);
+	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_EXTENSIONS,1000,rvstring,&rvlen);
+	ConsoleMessage ("CL_PLATFORM_EXTENSIONS :%s:\n",rvstring);
+	ConsoleMessage ("CL_DEVICE_MAX_WORK_GROUP_SIZE %d\n",wg_size);
 	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(size_t), &xyz, &rvlen);
-	printf ("CL_DEVICE_MAX_COMPUTE_UNITS %d\n",xyz);
+	ConsoleMessage ("CL_DEVICE_MAX_COMPUTE_UNITS %d\n",xyz);
 
 	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_ulong), &longish, &rvlen);
-	printf ("CL_DEVICE_GLOBAL_MEM_CACHE_SIZE %ld\n",longish);
+	ConsoleMessage ("CL_DEVICE_GLOBAL_MEM_CACHE_SIZE %ld\n",longish);
 	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_ulong), &longish, &rvlen);
-	printf ("CL_DEVICE_GLOBAL_MEM_SIZE %ld\n",longish);
+	ConsoleMessage ("CL_DEVICE_GLOBAL_MEM_SIZE %ld\n",longish);
 	rv = clGetDeviceInfo (initme->device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &longish, &rvlen);
-	printf ("CL_DEVICE_LOCAL_MEM_SIZE %ld\n",longish);
+	ConsoleMessage ("CL_DEVICE_LOCAL_MEM_SIZE %ld\n",longish);
 
 
 	#endif //GPU_DEBUG
 
 
-	initme->program = clCreateProgramWithSource(initme->context, 1, (const char **) &kp, NULL, &err);
+	initme->program = clCreateProgramWithSource(initme->context, 2, (const char **) kp, NULL, &err);
 	if (!initme->program || (err != CL_SUCCESS)) {
 		printCLError("clCreateProgramWithSource",err);
 		return FALSE;
 	}
-	printf ("program created\n");
-
 	}
 
 
@@ -504,37 +793,44 @@ printf ("initme->context %p\n",initme->context);
 	//char *opts = "-Werror -cl-single-precision-constant -cl-nv-verbose  -g -cl-opt-disable -cl-strict-aliasing";
 	//char *opts = "-Werror -cl-single-precision-constant -cl-opt-disable -cl-strict-aliasing";
 	//err = clBuildProgram(initme->program, 0, NULL, opts, NULL, NULL);
-	err = clBuildProgram(initme->program, 0, NULL, NULL, NULL, NULL);
+	//ConsoleMessage ("calling clBuildProgram with program %p\n",initme->program);
+
+	// build the program, hard code in devices to 1 device, with the device list, no options
+	char *opts = NULL;
+	err = clBuildProgram(initme->program, 1, &(initme->device_id), opts, NULL, NULL);
+	ConsoleMessage ("called clBuildProgram error %d\n",err);
 	if (err != CL_SUCCESS) {
         	size_t len;
         	char buffer[16384];
  
-        	printf("Error: Failed to build program executable\n");           
-        	clGetProgramBuildInfo(initme->program, initme->device_id, CL_PROGRAM_BUILD_LOG,
+        	ConsoleMessage("Error: Failed to build program executable\n");           
+		printCLError("clBuildProgram",err);
+        	err = clGetProgramBuildInfo(initme->program, initme->device_id, CL_PROGRAM_BUILD_LOG,
                                           sizeof(buffer), buffer, &len);
-		printf ("error string len %d\n",(int)len);
-        	printf("%s\n", buffer);
+		TEST_ERR("clGetProgramBuildInfo",err);
+		ConsoleMessage ("error string len %d\n",(int)len);
+        	ConsoleMessage("%s\n", buffer);
         	return FALSE;
     	}
-	printf ("program built\n");
  
 	// create the compute kernel
 	initme->kernel = clCreateKernel(initme->program, "compute_collide", &err);
 	if (!initme->kernel || (err != CL_SUCCESS)) {
-		printf ("cl create kernel problem\n"); exit(1);
+		printCLError("clCreateKernel",err);
 	}
 
 
 	// Kernel Workgroup size
-	rv = clGetKernelWorkGroupInfo (initme->kernel, initme->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &kernel_wg_size, &rvlen);
+	err = clGetKernelWorkGroupInfo (initme->kernel, initme->device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &kernel_wg_size, &rvlen);
+	TEST_ERR("clGetKernelWorkGroupInfo",err);
 
 	// try the smaller of the two
 	if (kernel_wg_size < wg_size) wg_size = kernel_wg_size;
 	initme->workgroup_size = wg_size;
 
 	#ifdef GPU_DEBUG
-	printf ("MAX_WORK_GROUP_SIZE %d\n",kernel_wg_size);
-	printf ("We are going to set our workgroup size to %d\n",wg_size);
+	ConsoleMessage ("MAX_WORK_GROUP_SIZE %d\n",kernel_wg_size);
+	ConsoleMessage ("We are going to set our workgroup size to %d\n",wg_size);
 
 
 /*
@@ -544,8 +840,6 @@ printf ("initme->context %p\n",initme->context);
 */
 
 	#endif // GPU_DEBUG
-
-	printf ("kernel built\n");
 
 	return TRUE;
 }
@@ -559,7 +853,7 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 		int face_ccw, int face_flags, float avatar_radius) {
  
 	int i;
-	int err;
+	cl_int err;
 	size_t local_work_size;
 	size_t global_work_size;
 	unsigned int count;
@@ -573,7 +867,8 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	if (me->collide_rvs.n < ntri) {
 
 		if (me->collide_rvs.n != 0) {
-			clReleaseMemObject(me->output_buffer);	
+			err = clReleaseMemObject(me->output_buffer);	
+			TEST_ERR("clReleaseMemObject",err);
 		}
 
 		me->output_buffer = clCreateBuffer(me->context, CL_MEM_WRITE_ONLY, sizeof(struct SFColorRGBA) * ntri,
@@ -583,14 +878,24 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 		me->matrix_buffer = clCreateBuffer(me->context, CL_MEM_READ_ONLY, sizeof (cl_float16), NULL, NULL);
 		}
 
+		if (!(me->output_buffer) || !(me->matrix_buffer)) {
+			printCLError("clCreateBuffer",10000);
+		}
+
 		me->output_size = ntri;
 		me->collide_rvs.p = REALLOC(me->collide_rvs.p, sizeof(struct SFColorRGBA) *ntri);
 		me->collide_rvs.n = ntri;
 	}
 
 	// update the current matrix transform
-        clEnqueueWriteBuffer(me->queue, me->matrix_buffer, CL_TRUE, 0, sizeof(cl_float16), modelMat, 0, NULL, NULL);
+        err = clEnqueueWriteBuffer(me->queue, me->matrix_buffer, CL_TRUE, 0, sizeof(cl_float16), modelMat, 0, NULL, NULL);
+	TEST_ERR("clEnqueueWriteBuffer",err);
 
+
+#ifdef GL_ES_VERSION_2_0
+	me->vertex_buffer = vertex_vbo;
+	me->index_buffer = index_vbo;
+#else
 	// lets get the openGL vertex buffer here
 	me->vertex_buffer=clCreateFromGLBuffer(me->context, CL_MEM_READ_ONLY, vertex_vbo, &err);
 	if (err != CL_SUCCESS) {
@@ -604,20 +909,30 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 		printCLError("clCreateFromGLBuffer",err);
 		return maxdispv;
 	}
+#endif
 
 	
 	// set the args values
 	count = (unsigned int) ntri;
 
-	clSetKernelArg(me->kernel, 0, sizeof(cl_mem), &me->output_buffer);
-	clSetKernelArg(me->kernel, 1, sizeof(unsigned int), &count);
-	clSetKernelArg(me->kernel, 2, sizeof (cl_mem), &me->matrix_buffer);
-	clSetKernelArg(me->kernel, 3, sizeof (cl_mem), &me->vertex_buffer);
-	clSetKernelArg(me->kernel, 4, sizeof (cl_mem), &me->index_buffer);
-	clSetKernelArg(me->kernel, 5, sizeof(int), &face_ccw);
-	clSetKernelArg(me->kernel, 6, sizeof(int), &face_flags);
-	clSetKernelArg(me->kernel, 7, sizeof(int), &avatar_radius);
-	clSetKernelArg(me->kernel, 8, sizeof(int), &ntri);
+	err = clSetKernelArg(me->kernel, 0, sizeof(cl_mem), &me->output_buffer);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 1, sizeof(unsigned int), &count);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 2, sizeof (cl_mem), &me->matrix_buffer);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 3, sizeof (cl_mem), &me->vertex_buffer);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 4, sizeof (cl_mem), &me->index_buffer);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 5, sizeof(int), &face_ccw);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 6, sizeof(int), &face_flags);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 7, sizeof(int), &avatar_radius);
+	TEST_ERR("clSetKernelArg",err);
+	err =clSetKernelArg(me->kernel, 8, sizeof(int), &ntri);
+	TEST_ERR("clSetKernelArg",err);
 	
 	// global work group size
 	#define MYWG (me->workgroup_size)
@@ -632,11 +947,11 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	// now, global_work_size will be an exact multiple of local_work_size
 	global_work_size *= MYWG;
 
-	// printf ("global_work_size is %d %x right now...\n",global_work_size, global_work_size);
+	// ConsoleMessage ("global_work_size is %d %x right now...\n",global_work_size, global_work_size);
 
 	local_work_size = MYWG;
-	//printf ("local_work_size %d\n",local_work_size);
-	// printf ("ntri %d, global_work_size %d, local_work_size %d\n",ntri,global_work_size,local_work_size);
+	//ConsoleMessage ("local_work_size %d\n",local_work_size);
+	// ConsoleMessage ("ntri %d, global_work_size %d, local_work_size %d\n",ntri,global_work_size,local_work_size);
 
   	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
@@ -679,13 +994,13 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 		// doing unneeded calculations here
 
 		if (me->collide_rvs.p[i].c[3] > 1.0) {
-			// printf ("possibly triangle %d has some stuff for us\n",i);
+			 //ConsoleMessage ("possibly triangle %d has some stuff for us\n",i);
 
 
 			dispv.x = me->collide_rvs.p[i].c[0];
 			dispv.y = me->collide_rvs.p[i].c[1];
 			dispv.z = me->collide_rvs.p[i].c[2];
-			 //printf ("GPU tri %d, disp %f %f %f\n",i,dispv.x,dispv.y,dispv.z);
+			//ConsoleMessage ("GPU tri %d, disp %f %f %f\n",i,dispv.x,dispv.y,dispv.z);
 
                         /*keep result only if:
                           displacement is positive
@@ -702,17 +1017,31 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	}
 
 	
-	// printf ("OpenCL - at end of opencl, maxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z); 
+	//ConsoleMessage ("OpenCL - at end of opencl, maxdispv %f %f %f\n",maxdispv.x, maxdispv.y, maxdispv.z); 
 
 	return maxdispv;
 }
 
-static const char* collide_non_walk_kernel = " \
+
+#ifdef GL_ES_VERSION_2_0
+static const char* collide_non_walk_kernel_headers = " \
+//#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
+#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
+//#pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
+//#pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\
+//#pragma OPENCL EXTENSION cl_khr_select_fprounding_mode : enable \n\
+";
+#else
+static const char* collide_non_walk_kernel_headers = " \
 //#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
 #pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
 #pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\
 #pragma OPENCL EXTENSION cl_khr_select_fprounding_mode : enable \n\
+";
+#endif
+
+static const char* collide_non_walk_kernel = " \
  \n\
 /********************************************************************************/ \n\
 /*										*/ \n\
@@ -767,9 +1096,9 @@ float4 closest_point_on_plane(float4 point_a, float4 point_b, float4 point_c) { 
  \n\
  \n\
 	// we have moved points, so our bounding sphere is at (0,0,0) so p = (0,0,0) \n\
-	float4 vector_ap = point_a * (float4)(-1.0, -1.0, -1.0, -1.0); // p - a \n\
-	float4 vector_bp = point_b * (float4)(-1.0, -1.0, -1.0, -1.0); // p - b \n\
-	float4 vector_cp = point_c * (float4)(-1.0, -1.0, -1.0, -1.0); // p - c \n\
+	float4 vector_ap = point_a * (float4)(-1.0f, -1.0f, -1.0f, -1.0f); // p - a \n\
+	float4 vector_bp = point_b * (float4)(-1.0f, -1.0f, -1.0f, -1.0f); // p - b \n\
+	float4 vector_cp = point_c * (float4)(-1.0f, -1.0f, -1.0f, -1.0f); // p - c \n\
 	#define vector_pa point_a    /* a - p */ \n\
 	#define vector_pb point_b    /* b - p */ \n\
 	#define vector_pc point_c    /* c - p */ \n\
