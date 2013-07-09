@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.49  2013/07/09 23:21:46  crc_canada
+# Initial definitions for QuadSet and IndexedQuadSet
+#
 # Revision 1.48  2013/04/01 13:36:55  crc_canada
 # remove VRML1 code; it was commented out, and I don't think we are going
 # to ever move the old vrml1 code to shader based rendering
@@ -413,6 +416,7 @@
 	ComposedCubeMapTexture	=>texture,
 	IndexedFaceSet 		=>geometry,
 	IndexedLineSet 		=>geometry,
+	IndexedQuadSet		=>geometry,
 	IndexedTriangleFanSet 	=>geometry,
 	IndexedTriangleSet 	=>geometry,
 	IndexedTriangleStripSet	=>geometry,
@@ -446,6 +450,7 @@
 	PositionInterpolator 	=>children,
 	PositionInterpolator2D 	=>children,
 	ProximitySensor 	=>children,
+	QuadSet			=>geometry,
 	ScalarInterpolator 	=>children,
 	Scene 			=>children,
 	Script 			=>children,
@@ -590,6 +595,7 @@
 	Polypoint2D 
 	Rectangle2D 
 	TriangleSet2D 
+	IndexedQuadSet
 	IndexedTriangleFanSet 
 	IndexedTriangleSet 
 	IndexedTriangleStripSet 
@@ -623,6 +629,7 @@
 	PointLight
 	HAnimHumanoid
 	HAnimJoint
+	QuadSet
 
 /;
 
@@ -641,9 +648,11 @@
 	ElevationGrid
 	Extrusion
 	IndexedFaceSet
+	IndexedQuadSet
 	IndexedTriangleFanSet
 	IndexedTriangleSet
 	IndexedTriangleStripSet
+	QuadSet
 	TriangleFanSet
 	TriangleStripSet
 	TriangleSet
@@ -907,9 +916,11 @@
 	Cylinder
 	ElevationGrid
 	IndexedFaceSet
+	IndexedQuadSet
 	IndexedTriangleFanSet
 	IndexedTriangleSet
 	IndexedTriangleStripSet
+	QuadSet
 	TriangleFanSet
 	TriangleStripSet
 	TriangleSet
@@ -999,6 +1010,8 @@
 	Text
 	Extrusion
 	IndexedFaceSet
+	IndexedQuadSet
+	QuadSet
 	IndexedTriangleSet
 	IndexedTriangleFanSet
 	IndexedTriangleStripSet
