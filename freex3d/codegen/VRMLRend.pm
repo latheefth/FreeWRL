@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.50  2013/07/09 23:25:45  crc_canada
+# CAD profile definitions.
+#
 # Revision 1.49  2013/07/09 23:21:46  crc_canada
 # Initial definitions for QuadSet and IndexedQuadSet
 #
@@ -351,6 +354,12 @@
 # See WANT_OSC
 # used for the X3D Parser only. Return type of node.
 %defaultContainerType = (
+	CADAssembly		=>children,
+	CADFace			=>children,
+	CADLayer		=>children,
+
+	Proto			=>children,
+
 	ContourPolyLine2D 	=>geometry,
 	NurbsTrimmedSurface	=>geometry,
 	PointPickSensor		=>children,
@@ -364,6 +373,8 @@
 	Polypoint2D		=>geometry,
 	Rectangle2D		=>geometry,
 	TriangleSet2D		=>geometry,
+	IndexedQuadSet		=>geometry,
+	QuadSet			=>geometry,
 	
 	Anchor 			=>children,
 	Appearance 		=>appearance,
