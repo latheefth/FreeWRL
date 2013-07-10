@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.51  2013/07/10 13:48:56  crc_canada
+# more Component_CAD work.
+#
 # Revision 1.50  2013/07/09 23:25:45  crc_canada
 # CAD profile definitions.
 #
@@ -427,7 +430,6 @@
 	ComposedCubeMapTexture	=>texture,
 	IndexedFaceSet 		=>geometry,
 	IndexedLineSet 		=>geometry,
-	IndexedQuadSet		=>geometry,
 	IndexedTriangleFanSet 	=>geometry,
 	IndexedTriangleSet 	=>geometry,
 	IndexedTriangleStripSet	=>geometry,
@@ -461,7 +463,6 @@
 	PositionInterpolator 	=>children,
 	PositionInterpolator2D 	=>children,
 	ProximitySensor 	=>children,
-	QuadSet			=>geometry,
 	ScalarInterpolator 	=>children,
 	Scene 			=>children,
 	Script 			=>children,

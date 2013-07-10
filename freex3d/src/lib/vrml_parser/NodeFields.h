@@ -170,6 +170,18 @@ EXPOSED_FIELD(Box,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(Box,size,sfvec3f,size,FIELDTYPE_SFVec3f)
 END_NODE(Box)
 
+/* CADAssembly node */
+BEGIN_NODE(CADAssembly)
+END_NODE(CADAssembly)
+
+/* CADFace node */
+BEGIN_NODE(CADFace)
+END_NODE(CADFace)
+
+/* CADLayer node */
+BEGIN_NODE(CADLayer)
+END_NODE(CADLayer)
+
 /* Circle2D node */
 BEGIN_NODE(Circle2D)
 EXPOSED_FIELD(Circle2D,radius,sffloat,radius,FIELDTYPE_SFFloat)
@@ -869,6 +881,23 @@ EVENT_IN(IndexedLineSet,set_coordIndex,mfint32,set_coordIndex,FIELDTYPE_MFInt32)
 FIELD(IndexedLineSet,coordIndex,mfint32,coordIndex,FIELDTYPE_MFInt32)
 EXPOSED_FIELD(IndexedLineSet,attrib,mfnode,attrib,FIELDTYPE_MFNode)
 END_NODE(IndexedLineSet)
+
+/* IndexedQuadSet node */
+BEGIN_NODE(IndexedQuadSet)
+FIELD(IndexedQuadSet,solid,sfbool,solid,FIELDTYPE_SFBool)
+EXPOSED_FIELD(IndexedQuadSet,normal,sfnode,normal,FIELDTYPE_SFNode)
+FIELD(IndexedQuadSet,colorPerVertex,sfbool,colorPerVertex,FIELDTYPE_SFBool)
+FIELD(IndexedQuadSet,Index,mfint32,Index,FIELDTYPE_MFInt32)
+EXPOSED_FIELD(IndexedQuadSet,texCoord,sfnode,texCoord,FIELDTYPE_SFNode)
+FIELD(IndexedQuadSet,ccw,sfbool,ccw,FIELDTYPE_SFBool)
+EVENT_IN(IndexedQuadSet,set_index,mfint32,set_index,FIELDTYPE_MFInt32)
+EXPOSED_FIELD(IndexedQuadSet,fogCoord,sfnode,fogCoord,FIELDTYPE_SFNode)
+EXPOSED_FIELD(IndexedQuadSet,color,sfnode,color,FIELDTYPE_SFNode)
+EXPOSED_FIELD(IndexedQuadSet,coord,sfnode,coord,FIELDTYPE_SFNode)
+EXPOSED_FIELD(IndexedQuadSet,attrib,mfnode,attrib,FIELDTYPE_MFNode)
+EXPOSED_FIELD(IndexedQuadSet,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(IndexedQuadSet,normalPerVertex,sfbool,normalPerVertex,FIELDTYPE_SFBool)
+END_NODE(IndexedQuadSet)
 
 /* IndexedTriangleFanSet node */
 BEGIN_NODE(IndexedTriangleFanSet)
@@ -1738,6 +1767,21 @@ EVENT_OUT(ProximitySensor,centerOfRotation_changed,sfvec3f,centerOfRotation_chan
 EXPOSED_FIELD(ProximitySensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(ProximitySensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)
 END_NODE(ProximitySensor)
+
+/* QuadSet node */
+BEGIN_NODE(QuadSet)
+FIELD(QuadSet,solid,sfbool,solid,FIELDTYPE_SFBool)
+EXPOSED_FIELD(QuadSet,normal,sfnode,normal,FIELDTYPE_SFNode)
+FIELD(QuadSet,colorPerVertex,sfbool,colorPerVertex,FIELDTYPE_SFBool)
+EXPOSED_FIELD(QuadSet,texCoord,sfnode,texCoord,FIELDTYPE_SFNode)
+FIELD(QuadSet,ccw,sfbool,ccw,FIELDTYPE_SFBool)
+EXPOSED_FIELD(QuadSet,color,sfnode,color,FIELDTYPE_SFNode)
+EXPOSED_FIELD(QuadSet,fogCoord,sfnode,fogCoord,FIELDTYPE_SFNode)
+EXPOSED_FIELD(QuadSet,attrib,mfnode,attrib,FIELDTYPE_MFNode)
+EXPOSED_FIELD(QuadSet,coord,sfnode,coord,FIELDTYPE_SFNode)
+EXPOSED_FIELD(QuadSet,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(QuadSet,normalPerVertex,sfbool,normalPerVertex,FIELDTYPE_SFBool)
+END_NODE(QuadSet)
 
 /* ReceiverPdu node */
 BEGIN_NODE(ReceiverPdu)

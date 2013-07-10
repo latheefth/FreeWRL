@@ -865,7 +865,6 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 
 	// enough space for rv?
 	if (me->collide_rvs.n < ntri) {
-
 		if (me->collide_rvs.n != 0) {
 			err = clReleaseMemObject(me->output_buffer);	
 			TEST_ERR("clReleaseMemObject",err);
@@ -891,11 +890,6 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
         err = clEnqueueWriteBuffer(me->queue, me->matrix_buffer, CL_TRUE, 0, sizeof(cl_float16), modelMat, 0, NULL, NULL);
 	TEST_ERR("clEnqueueWriteBuffer",err);
 
-
-#ifdef GL_ES_VERSION_2_0
-	me->vertex_buffer = vertex_vbo;
-	me->index_buffer = index_vbo;
-#else
 	// lets get the openGL vertex buffer here
 	me->vertex_buffer=clCreateFromGLBuffer(me->context, CL_MEM_READ_ONLY, vertex_vbo, &err);
 	if (err != CL_SUCCESS) {
@@ -909,28 +903,34 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 		printCLError("clCreateFromGLBuffer",err);
 		return maxdispv;
 	}
-#endif
-
 	
 	// set the args values
 	count = (unsigned int) ntri;
 
 	err = clSetKernelArg(me->kernel, 0, sizeof(cl_mem), &me->output_buffer);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 1, sizeof(unsigned int), &count);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 2, sizeof (cl_mem), &me->matrix_buffer);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 3, sizeof (cl_mem), &me->vertex_buffer);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 4, sizeof (cl_mem), &me->index_buffer);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 5, sizeof(int), &face_ccw);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 6, sizeof(int), &face_flags);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 7, sizeof(int), &avatar_radius);
 	TEST_ERR("clSetKernelArg",err);
+
 	err =clSetKernelArg(me->kernel, 8, sizeof(int), &ntri);
 	TEST_ERR("clSetKernelArg",err);
 	
@@ -947,11 +947,11 @@ struct point_XYZ run_non_walk_collide_program(GLuint vertex_vbo, GLuint index_vb
 	// now, global_work_size will be an exact multiple of local_work_size
 	global_work_size *= MYWG;
 
-	// ConsoleMessage ("global_work_size is %d %x right now...\n",global_work_size, global_work_size);
+	//ConsoleMessage ("global_work_size is %d %x right now...\n",global_work_size, global_work_size);
 
 	local_work_size = MYWG;
 	//ConsoleMessage ("local_work_size %d\n",local_work_size);
-	// ConsoleMessage ("ntri %d, global_work_size %d, local_work_size %d\n",ntri,global_work_size,local_work_size);
+	//ConsoleMessage ("ntri %d, global_work_size %d, local_work_size %d\n",ntri,global_work_size,local_work_size);
 
   	err = clEnqueueNDRangeKernel(me->queue, me->kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {

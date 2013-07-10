@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.76  2013/07/10 13:48:55  crc_canada
+# more Component_CAD work.
+#
 # Revision 1.75  2013/04/28 12:27:57  crc_canada
 # changes for adding ability to directly manipulate Material parameters from a dedicated UI.
 #
@@ -626,6 +629,8 @@ sub get_rendfunc {
 				("TriangleFanSet" ne ${n}) &&
 				("TriangleSet" ne ${n}) &&
 				("TriangleStripSet" ne ${n}) &&
+				("QuadSet" ne ${n}) &&
+				("IndexedQuadSet" ne ${n}) &&
 				("GeoElevationGrid" ne ${n})) {
 					$v .= $comma."void collide_".${n}."(struct X3D_".${n}." *);\n";
 				}
@@ -640,6 +645,8 @@ sub get_rendfunc {
 				("TriangleFanSet" ne ${n}) &&
 				("TriangleSet" ne ${n}) &&
 				("TriangleStripSet" ne ${n}) &&
+				("QuadSet" ne ${n}) &&
+				("IndexedQuadSet" ne ${n}) &&
 				("GeoElevationGrid" ne ${n})) {
 					$v .= $comma."void make_".${n}."(struct X3D_".${n}." *);\n";
 				}
@@ -656,6 +663,8 @@ sub get_rendfunc {
 				("TriangleFanSet" ne ${n}) &&
 				("TriangleSet" ne ${n}) &&
 				("TriangleStripSet" ne ${n}) &&
+				("QuadSet" ne ${n}) &&
+				("IndexedQuadSet" ne ${n}) &&
 				("GeoElevationGrid" ne ${n})) {
 					$v .= $comma."void rendray_".${n}."(struct X3D_".${n}." *);\n";
 				}

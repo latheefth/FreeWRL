@@ -24,6 +24,7 @@ common_SRC_FILES:=../../freex3d/src/lib/vrml_parser/CProto.c \
 	../../freex3d/src/lib/main/utils.c \
 	../../freex3d/src/lib/scenegraph/Children.c \
 	../../freex3d/src/lib/scenegraph/Collision.c \
+	../../freex3d/src/lib/scenegraph/Component_CAD.c \
 	../../freex3d/src/lib/scenegraph/Component_Core.c \
 	../../freex3d/src/lib/scenegraph/Component_CubeMapTexturing.c \
 	../../freex3d/src/lib/scenegraph/Component_DIS.c \

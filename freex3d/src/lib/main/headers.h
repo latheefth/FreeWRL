@@ -555,6 +555,8 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DUrlObject				51
 #define X3DEnvironmentTextureNode 52
 #define X3DSFNode				53 /* this is an "X3DNode" in the spec, but it conflicts with an internal def. */
+#define X3DProductStructureChildNode		54
+#define X3DComposedGeometryNode			55
 
 int isManagedField(int mode, int type, int isPublic);
 
@@ -766,6 +768,8 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
 #define rendray_IndexedTriangleSet render_ray_polyrep
 #define rendray_IndexedTriangleFanSet render_ray_polyrep
 #define rendray_IndexedTriangleStripSet render_ray_polyrep
+#define rendray_IndexedQuadSet render_ray_polyrep
+#define rendray_QuadSet render_ray_polyrep
 #define rendray_TriangleSet render_ray_polyrep
 #define rendray_TriangleFanSet render_ray_polyrep
 #define rendray_TriangleStripSet render_ray_polyrep
@@ -773,12 +777,16 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *this_);
 #define collide_IndexedTriangleFanSet  collide_genericfaceset
 #define collide_IndexedTriangleSet  collide_genericfaceset
 #define collide_IndexedTriangleStripSet  collide_genericfaceset
+#define collide_IndexedQuadSet  collide_genericfaceset
+#define collide_QuadSet  collide_genericfaceset
 #define collide_TriangleFanSet  collide_genericfaceset
 #define collide_TriangleSet  collide_genericfaceset
 #define collide_TriangleStripSet  collide_genericfaceset
 #define make_IndexedTriangleFanSet  make_genericfaceset
 #define make_IndexedTriangleSet  make_genericfaceset
 #define make_IndexedTriangleStripSet  make_genericfaceset
+#define make_IndexedQuadSet  make_genericfaceset
+#define make_QuadSet  make_genericfaceset
 #define make_TriangleFanSet  make_genericfaceset
 #define make_TriangleSet  make_genericfaceset
 #define make_TriangleStripSet  make_genericfaceset

@@ -543,6 +543,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__oldKeyValuePtr",
 	"keyValue",
 	"bottomRadius",
+	"Index",
 	"mustEvaluate",
 	"diffuseColor",
 	"tessellationScale",
@@ -1194,6 +1195,7 @@ const int EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"reference",
 	"spine",
 	"bottomRadius",
+	"Index",
 	"mustEvaluate",
 	"normalPerVertex",
 };
@@ -1540,6 +1542,9 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"BooleanToggle",
 	"BooleanTrigger",
 	"Box",
+	"CADAssembly",
+	"CADFace",
+	"CADLayer",
 	"Circle2D",
 	"ClipPlane",
 	"Collision",
@@ -1591,6 +1596,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"ImageTexture",
 	"IndexedFaceSet",
 	"IndexedLineSet",
+	"IndexedQuadSet",
 	"IndexedTriangleFanSet",
 	"IndexedTriangleSet",
 	"IndexedTriangleStripSet",
@@ -1683,6 +1689,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"ProgramShader",
 	"Proto",
 	"ProximitySensor",
+	"QuadSet",
 	"ReceiverPdu",
 	"Rectangle2D",
 	"ScalarInterpolator",
@@ -1766,6 +1773,12 @@ void rendray_Box(struct X3D_Box *);
 void collide_Box(struct X3D_Box *);
 void compile_Box(struct X3D_Box *);
 struct X3D_Virt virt_Box = { NULL,(void *)render_Box,NULL,NULL,(void *)rendray_Box,NULL,NULL,NULL,(void *)collide_Box,(void *)compile_Box};
+
+struct X3D_Virt virt_CADAssembly = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_CADFace = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_CADLayer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Circle2D(struct X3D_Circle2D *);
 void compile_Circle2D(struct X3D_Circle2D *);
@@ -1935,6 +1948,9 @@ struct X3D_Virt virt_IndexedFaceSet = { NULL,(void *)render_IndexedFaceSet,NULL,
 void render_IndexedLineSet(struct X3D_IndexedLineSet *);
 void compile_IndexedLineSet(struct X3D_IndexedLineSet *);
 struct X3D_Virt virt_IndexedLineSet = { NULL,(void *)render_IndexedLineSet,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_IndexedLineSet};
+
+void render_IndexedQuadSet(struct X3D_IndexedQuadSet *);
+struct X3D_Virt virt_IndexedQuadSet = { NULL,(void *)render_IndexedQuadSet,NULL,NULL,(void *)rendray_IndexedQuadSet,(void *)make_IndexedQuadSet,NULL,NULL,(void *)collide_IndexedQuadSet,NULL};
 
 void render_IndexedTriangleFanSet(struct X3D_IndexedTriangleFanSet *);
 struct X3D_Virt virt_IndexedTriangleFanSet = { NULL,(void *)render_IndexedTriangleFanSet,NULL,NULL,(void *)rendray_IndexedTriangleFanSet,(void *)make_IndexedTriangleFanSet,NULL,NULL,(void *)collide_IndexedTriangleFanSet,NULL};
@@ -2204,6 +2220,9 @@ struct X3D_Virt virt_Proto = { (void *)prep_Proto,NULL,(void *)child_Proto,NULL,
 void proximity_ProximitySensor(struct X3D_ProximitySensor *);
 struct X3D_Virt virt_ProximitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,(void *)proximity_ProximitySensor,NULL,NULL,NULL};
 
+void render_QuadSet(struct X3D_QuadSet *);
+struct X3D_Virt virt_QuadSet = { NULL,(void *)render_QuadSet,NULL,NULL,(void *)rendray_QuadSet,(void *)make_QuadSet,NULL,NULL,(void *)collide_QuadSet,NULL};
+
 struct X3D_Virt virt_ReceiverPdu = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Rectangle2D(struct X3D_Rectangle2D *);
@@ -2332,6 +2351,9 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_BooleanToggle,
 	 &virt_BooleanTrigger,
 	 &virt_Box,
+	 &virt_CADAssembly,
+	 &virt_CADFace,
+	 &virt_CADLayer,
 	 &virt_Circle2D,
 	 &virt_ClipPlane,
 	 &virt_Collision,
@@ -2383,6 +2405,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_ImageTexture,
 	 &virt_IndexedFaceSet,
 	 &virt_IndexedLineSet,
+	 &virt_IndexedQuadSet,
 	 &virt_IndexedTriangleFanSet,
 	 &virt_IndexedTriangleSet,
 	 &virt_IndexedTriangleStripSet,
@@ -2475,6 +2498,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_ProgramShader,
 	 &virt_Proto,
 	 &virt_ProximitySensor,
+	 &virt_QuadSet,
 	 &virt_ReceiverPdu,
 	 &virt_Rectangle2D,
 	 &virt_ScalarInterpolator,
@@ -2656,6 +2680,15 @@ const int OFFSETS_Box[] = {
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Box, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___points, (int) offsetof (struct X3D_Box, __points),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_size, (int) offsetof (struct X3D_Box, size),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_CADAssembly[] = {
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_CADFace[] = {
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_CADLayer[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Circle2D[] = {
@@ -3424,6 +3457,22 @@ const int OFFSETS_IndexedLineSet[] = {
 	(int) FIELDNAMES_coordIndex, (int) offsetof (struct X3D_IndexedLineSet, coordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_attrib, (int) offsetof (struct X3D_IndexedLineSet, attrib),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___vertIndx, (int) offsetof (struct X3D_IndexedLineSet, __vertIndx),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_IndexedQuadSet[] = {
+	(int) FIELDNAMES_solid, (int) offsetof (struct X3D_IndexedQuadSet, solid),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_normal, (int) offsetof (struct X3D_IndexedQuadSet, normal),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_colorPerVertex, (int) offsetof (struct X3D_IndexedQuadSet, colorPerVertex),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_Index, (int) offsetof (struct X3D_IndexedQuadSet, Index),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_texCoord, (int) offsetof (struct X3D_IndexedQuadSet, texCoord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_ccw, (int) offsetof (struct X3D_IndexedQuadSet, ccw),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_set_index, (int) offsetof (struct X3D_IndexedQuadSet, set_index),  (int) FIELDTYPE_MFInt32, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_fogCoord, (int) offsetof (struct X3D_IndexedQuadSet, fogCoord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_color, (int) offsetof (struct X3D_IndexedQuadSet, color),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_coord, (int) offsetof (struct X3D_IndexedQuadSet, coord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_attrib, (int) offsetof (struct X3D_IndexedQuadSet, attrib),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_IndexedQuadSet, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_normalPerVertex, (int) offsetof (struct X3D_IndexedQuadSet, normalPerVertex),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_IndexedTriangleFanSet[] = {
@@ -4265,6 +4314,20 @@ const int OFFSETS_ProximitySensor[] = {
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_ProximitySensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_QuadSet[] = {
+	(int) FIELDNAMES_solid, (int) offsetof (struct X3D_QuadSet, solid),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_normal, (int) offsetof (struct X3D_QuadSet, normal),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_colorPerVertex, (int) offsetof (struct X3D_QuadSet, colorPerVertex),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_texCoord, (int) offsetof (struct X3D_QuadSet, texCoord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_ccw, (int) offsetof (struct X3D_QuadSet, ccw),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_color, (int) offsetof (struct X3D_QuadSet, color),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_fogCoord, (int) offsetof (struct X3D_QuadSet, fogCoord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_attrib, (int) offsetof (struct X3D_QuadSet, attrib),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_coord, (int) offsetof (struct X3D_QuadSet, coord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_QuadSet, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_normalPerVertex, (int) offsetof (struct X3D_QuadSet, normalPerVertex),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_ReceiverPdu[] = {
 	(int) FIELDNAMES_isStandAlone, (int) offsetof (struct X3D_ReceiverPdu, isStandAlone),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_receiverState, (int) offsetof (struct X3D_ReceiverPdu, receiverState),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4829,6 +4892,9 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_BooleanToggle,
 	OFFSETS_BooleanTrigger,
 	OFFSETS_Box,
+	OFFSETS_CADAssembly,
+	OFFSETS_CADFace,
+	OFFSETS_CADLayer,
 	OFFSETS_Circle2D,
 	OFFSETS_ClipPlane,
 	OFFSETS_Collision,
@@ -4880,6 +4946,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_ImageTexture,
 	OFFSETS_IndexedFaceSet,
 	OFFSETS_IndexedLineSet,
+	OFFSETS_IndexedQuadSet,
 	OFFSETS_IndexedTriangleFanSet,
 	OFFSETS_IndexedTriangleSet,
 	OFFSETS_IndexedTriangleStripSet,
@@ -4972,6 +5039,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_ProgramShader,
 	OFFSETS_Proto,
 	OFFSETS_ProximitySensor,
+	OFFSETS_QuadSet,
 	OFFSETS_ReceiverPdu,
 	OFFSETS_Rectangle2D,
 	OFFSETS_ScalarInterpolator,
@@ -5272,6 +5340,9 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_BooleanToggle : {tmp = MALLOC (struct X3D_BooleanToggle *, sizeof (struct X3D_BooleanToggle)); break;}
 		case NODE_BooleanTrigger : {tmp = MALLOC (struct X3D_BooleanTrigger *, sizeof (struct X3D_BooleanTrigger)); break;}
 		case NODE_Box : {tmp = MALLOC (struct X3D_Box *, sizeof (struct X3D_Box)); break;}
+		case NODE_CADAssembly : {tmp = MALLOC (struct X3D_CADAssembly *, sizeof (struct X3D_CADAssembly)); break;}
+		case NODE_CADFace : {tmp = MALLOC (struct X3D_CADFace *, sizeof (struct X3D_CADFace)); break;}
+		case NODE_CADLayer : {tmp = MALLOC (struct X3D_CADLayer *, sizeof (struct X3D_CADLayer)); break;}
 		case NODE_Circle2D : {tmp = MALLOC (struct X3D_Circle2D *, sizeof (struct X3D_Circle2D)); break;}
 		case NODE_ClipPlane : {tmp = MALLOC (struct X3D_ClipPlane *, sizeof (struct X3D_ClipPlane)); break;}
 		case NODE_Collision : {tmp = MALLOC (struct X3D_Collision *, sizeof (struct X3D_Collision)); break;}
@@ -5323,6 +5394,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ImageTexture : {tmp = MALLOC (struct X3D_ImageTexture *, sizeof (struct X3D_ImageTexture)); break;}
 		case NODE_IndexedFaceSet : {tmp = MALLOC (struct X3D_IndexedFaceSet *, sizeof (struct X3D_IndexedFaceSet)); break;}
 		case NODE_IndexedLineSet : {tmp = MALLOC (struct X3D_IndexedLineSet *, sizeof (struct X3D_IndexedLineSet)); break;}
+		case NODE_IndexedQuadSet : {tmp = MALLOC (struct X3D_IndexedQuadSet *, sizeof (struct X3D_IndexedQuadSet)); break;}
 		case NODE_IndexedTriangleFanSet : {tmp = MALLOC (struct X3D_IndexedTriangleFanSet *, sizeof (struct X3D_IndexedTriangleFanSet)); break;}
 		case NODE_IndexedTriangleSet : {tmp = MALLOC (struct X3D_IndexedTriangleSet *, sizeof (struct X3D_IndexedTriangleSet)); break;}
 		case NODE_IndexedTriangleStripSet : {tmp = MALLOC (struct X3D_IndexedTriangleStripSet *, sizeof (struct X3D_IndexedTriangleStripSet)); break;}
@@ -5415,6 +5487,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ProgramShader : {tmp = MALLOC (struct X3D_ProgramShader *, sizeof (struct X3D_ProgramShader)); break;}
 		case NODE_Proto : {tmp = MALLOC (struct X3D_Proto *, sizeof (struct X3D_Proto)); break;}
 		case NODE_ProximitySensor : {tmp = MALLOC (struct X3D_ProximitySensor *, sizeof (struct X3D_ProximitySensor)); break;}
+		case NODE_QuadSet : {tmp = MALLOC (struct X3D_QuadSet *, sizeof (struct X3D_QuadSet)); break;}
 		case NODE_ReceiverPdu : {tmp = MALLOC (struct X3D_ReceiverPdu *, sizeof (struct X3D_ReceiverPdu)); break;}
 		case NODE_Rectangle2D : {tmp = MALLOC (struct X3D_Rectangle2D *, sizeof (struct X3D_Rectangle2D)); break;}
 		case NODE_ScalarInterpolator : {tmp = MALLOC (struct X3D_ScalarInterpolator *, sizeof (struct X3D_ScalarInterpolator)); break;}
@@ -5666,6 +5739,27 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__points.n=0; tmp2->__points.p=0;
 			tmp2->size.c[0] = 2.0f;tmp2->size.c[1] = 2.0f;tmp2->size.c[2] = 2.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
+		break;
+		}
+		case NODE_CADAssembly : {
+			struct X3D_CADAssembly * tmp2;
+			tmp2 = (struct X3D_CADAssembly *) tmp;
+		/* ttmp2->v = &virt_CADAssembly;*/ 
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_CADFace : {
+			struct X3D_CADFace * tmp2;
+			tmp2 = (struct X3D_CADFace *) tmp;
+		/* ttmp2->v = &virt_CADFace;*/ 
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_CADLayer : {
+			struct X3D_CADLayer * tmp2;
+			tmp2 = (struct X3D_CADLayer *) tmp;
+		/* ttmp2->v = &virt_CADLayer;*/ 
+			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
 		case NODE_Circle2D : {
@@ -6685,6 +6779,26 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->coordIndex.n=0; tmp2->coordIndex.p=0;
 			tmp2->attrib.n=0; tmp2->attrib.p=0;
 			tmp2->__vertIndx = 0;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
+		break;
+		}
+		case NODE_IndexedQuadSet : {
+			struct X3D_IndexedQuadSet * tmp2;
+			tmp2 = (struct X3D_IndexedQuadSet *) tmp;
+		/* ttmp2->v = &virt_IndexedQuadSet;*/ 
+			tmp2->solid = TRUE;
+			tmp2->normal = NULL;
+			tmp2->colorPerVertex = TRUE;
+			tmp2->Index.n=0; tmp2->Index.p=0;
+			tmp2->texCoord = NULL;
+			tmp2->ccw = TRUE;
+			tmp2->set_index.n=0; tmp2->set_index.p=0;
+			tmp2->fogCoord = NULL;
+			tmp2->color = NULL;
+			tmp2->coord = NULL;
+			tmp2->attrib.n=0; tmp2->attrib.p=0;
+			tmp2->metadata = NULL;
+			tmp2->normalPerVertex = TRUE;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
@@ -7898,6 +8012,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->__parentProto = NULL;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
 		case NODE_ProximitySensor : {
@@ -7919,6 +8034,24 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->enabled = TRUE;
 			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_QuadSet : {
+			struct X3D_QuadSet * tmp2;
+			tmp2 = (struct X3D_QuadSet *) tmp;
+		/* ttmp2->v = &virt_QuadSet;*/ 
+			tmp2->solid = TRUE;
+			tmp2->normal = NULL;
+			tmp2->colorPerVertex = TRUE;
+			tmp2->texCoord = NULL;
+			tmp2->ccw = TRUE;
+			tmp2->color = NULL;
+			tmp2->fogCoord = NULL;
+			tmp2->attrib.n=0; tmp2->attrib.p=0;
+			tmp2->coord = NULL;
+			tmp2->metadata = NULL;
+			tmp2->normalPerVertex = TRUE;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_ReceiverPdu : {
@@ -8897,6 +9030,21 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			fprintf (fp,"\n");
 		    break;
 		}
+		case NODE_CADAssembly : {
+			struct X3D_CADAssembly *tmp;
+			tmp = (struct X3D_CADAssembly *) node;
+		    break;
+		}
+		case NODE_CADFace : {
+			struct X3D_CADFace *tmp;
+			tmp = (struct X3D_CADFace *) node;
+		    break;
+		}
+		case NODE_CADLayer : {
+			struct X3D_CADLayer *tmp;
+			tmp = (struct X3D_CADLayer *) node;
+		    break;
+		}
 		case NODE_Circle2D : {
 			struct X3D_Circle2D *tmp;
 			tmp = (struct X3D_Circle2D *) node;
@@ -9853,6 +10001,21 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    }
 			spacer fprintf (fp," attrib (MFNode):\n");
 			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
+		    break;
+		}
+		case NODE_IndexedQuadSet : {
+			struct X3D_IndexedQuadSet *tmp;
+			tmp = (struct X3D_IndexedQuadSet *) node;
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
+			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
 		    break;
 		}
 		case NODE_IndexedTriangleFanSet : {
@@ -10877,6 +11040,21 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    break;
 		}
+		case NODE_QuadSet : {
+			struct X3D_QuadSet *tmp;
+			tmp = (struct X3D_QuadSet *) node;
+			spacer fprintf (fp," normal (SFNode):\n"); dump_scene(fp,level+1,tmp->normal); 
+			spacer fprintf (fp," texCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->texCoord); 
+			spacer fprintf (fp," color (SFNode):\n"); dump_scene(fp,level+1,tmp->color); 
+			spacer fprintf (fp," fogCoord (SFNode):\n"); dump_scene(fp,level+1,tmp->fogCoord); 
+			spacer fprintf (fp," attrib (MFNode):\n");
+			for (i=0; i<tmp->attrib.n; i++) { dump_scene(fp,level+1,tmp->attrib.p[i]); }
+			spacer fprintf (fp," coord (SFNode):\n"); dump_scene(fp,level+1,tmp->coord); 
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+		    break;
+		}
 		case NODE_ReceiverPdu : {
 			struct X3D_ReceiverPdu *tmp;
 			tmp = (struct X3D_ReceiverPdu *) node;
@@ -11571,6 +11749,9 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_BooleanToggle: return X3DChildNode; break;
 	case NODE_BooleanTrigger: return X3DTriggerNode; break;
 	case NODE_Box: return X3DGeometryNode; break;
+	case NODE_CADAssembly: return X3DGroupingNode; break;
+	case NODE_CADFace: return X3DProductStructureChildNode; break;
+	case NODE_CADLayer: return X3DGroupingNode; break;
 	case NODE_Circle2D: return X3DGeometryNode; break;
 	case NODE_ClipPlane: return X3DChildNode; break;
 	case NODE_Collision: return X3DEnvironmentalSensorNode; break;
@@ -11622,6 +11803,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_ImageTexture: return X3DTextureNode; break;
 	case NODE_IndexedFaceSet: return X3DGeometryNode; break;
 	case NODE_IndexedLineSet: return X3DGeometryNode; break;
+	case NODE_IndexedQuadSet: return X3DComposedGeometryNode; break;
 	case NODE_IndexedTriangleFanSet: return X3DGeometryNode; break;
 	case NODE_IndexedTriangleSet: return X3DGeometryNode; break;
 	case NODE_IndexedTriangleStripSet: return X3DGeometryNode; break;
@@ -11714,6 +11896,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_ProgramShader: return X3DProgrammableShaderObject; break;
 	case NODE_Proto: return X3DProtoInstance; break;
 	case NODE_ProximitySensor: return X3DEnvironmentalSensorNode; break;
+	case NODE_QuadSet: return X3DComposedGeometryNode; break;
 	case NODE_ReceiverPdu: return X3DChildNode; break;
 	case NODE_Rectangle2D: return X3DGeometryNode; break;
 	case NODE_ScalarInterpolator: return X3DInterpolatorNode; break;
