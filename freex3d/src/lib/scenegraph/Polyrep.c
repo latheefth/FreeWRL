@@ -73,7 +73,6 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 
 	/* VBOs need this re-bound */
 
-
 	if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
 	glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
@@ -787,7 +786,7 @@ void render_polyrep(void *node) {
 	renderedNodePtr = X3D_NODE(node);
 	virt = virtTable[renderedNodePtr->_nodeType];
 	pr = renderedNodePtr->_intern;
-
+    
 	#ifdef TEXVERBOSE
 	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(renderedNodePtr->_nodeType)); 
 	printf ("ntri %d\n",pr->ntri);

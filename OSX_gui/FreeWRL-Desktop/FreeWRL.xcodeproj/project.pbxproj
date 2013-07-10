@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		52580658178D9F0200D59A11 /* Component_CAD.c in Sources */ = {isa = PBXBuildFile; fileRef = 52580657178D9F0200D59A11 /* Component_CAD.c */; };
 		52DA6AB21577D31900130065 /* display.c in Sources */ = {isa = PBXBuildFile; fileRef = 52DA69DD1577D31900130065 /* display.c */; };
 		52DA6AB31577D31900130065 /* iglobal.c in Sources */ = {isa = PBXBuildFile; fileRef = 52DA69DF1577D31900130065 /* iglobal.c */; };
 		52DA6AB41577D31900130065 /* convert1To2.c in Sources */ = {isa = PBXBuildFile; fileRef = 52DA69E21577D31900130065 /* convert1To2.c */; };
@@ -160,6 +161,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		52580657178D9F0200D59A11 /* Component_CAD.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Component_CAD.c; sourceTree = "<group>"; };
 		52DA69DD1577D31900130065 /* display.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = display.c; sourceTree = "<group>"; };
 		52DA69DE1577D31900130065 /* display.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = display.h; sourceTree = "<group>"; };
 		52DA69DF1577D31900130065 /* iglobal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iglobal.c; sourceTree = "<group>"; };
@@ -581,6 +583,7 @@
 				52DA6A251577D31900130065 /* Collision.c */,
 				52DA6A261577D31900130065 /* Collision.h */,
 				52DA6A271577D31900130065 /* CollisionGPU.c */,
+				52580657178D9F0200D59A11 /* Component_CAD.c */,
 				52DA6A281577D31900130065 /* Component_Core.c */,
 				52DA6A291577D31900130065 /* Component_Core.h */,
 				52DA6A2A1577D31900130065 /* Component_CubeMapTexturing.c */,
@@ -1076,6 +1079,7 @@
 				52EC0F861579070500697399 /* sweep.c in Sources */,
 				52EC0F871579070500697399 /* tess.c in Sources */,
 				52EC0F881579070500697399 /* tessmono.c in Sources */,
+				52580658178D9F0200D59A11 /* Component_CAD.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

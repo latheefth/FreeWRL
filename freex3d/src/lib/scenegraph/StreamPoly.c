@@ -141,7 +141,6 @@ static void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA, 
 }
 
 
-
 void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode) {
 
 	struct X3D_Node *node;
@@ -606,7 +605,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 
 	/* send the data to VBOs if required */
 		/* printf("stream polyrep, uploading vertices to VBO %u and %u\n",r->VBO_buffers[VERTEX_VBO], r->VBO_buffers[INDEX_VBO]); */
-
+    
 		if (r->normal) {
 			if (r->VBO_buffers[NORMAL_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[NORMAL_VBO]);
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[NORMAL_VBO]);
@@ -615,10 +614,10 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 		}
 
 		if (r->color) {
-			if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);
+			if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);            
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
 			glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
-			/* DO NOT FREE_IF_NZ(r->color); - recalculateColorFields needs this...*/
+            // needed by recalculateColorField ... FREE_IF_NZ(r->color);
 		}
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[VERTEX_VBO]);

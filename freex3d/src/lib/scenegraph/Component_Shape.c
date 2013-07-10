@@ -308,7 +308,8 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 		CHECK_COLOUR_FIELD(TriangleSet);
 		CHECK_COLOUR_FIELD(ElevationGrid);
 		CHECK_COLOUR_FIELD(GeoElevationGrid);
-            
+		CHECK_COLOUR_FIELD(QuadSet);
+		CHECK_COLOUR_FIELD(IndexedQuadSet);
 	}
 
 	/* if we are down here, we KNOW we do not have a color field */

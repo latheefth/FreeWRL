@@ -46,7 +46,7 @@ X3D Rendering Component
 #include "../scenegraph/Polyrep.h"
 
 void render_IndexedQuadSet (struct X3D_IndexedQuadSet *node) {
-                COMPILE_POLY_IF_REQUIRED( node->coord, node->color, node->normal, NULL)
+                COMPILE_POLY_IF_REQUIRED( node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
 		render_polyrep(node);
 }

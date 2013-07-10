@@ -452,6 +452,61 @@ static void checkTriangleFanSetFields (struct X3D_TriangleFanSet *node) {
 	}
 }
 
+static void checkIndexedQuadSetFields (struct X3D_IndexedQuadSet *node) {
+    
+}
+
+static void checkQuadSetFields(struct X3D_QuadSet *node) {
+ 	struct SFVec3f *points;
+	int npoints = 0;
+	int IndexSize = 0;
+	int xx,yy,zz; /* temporary variables */
+    
+    if(node->coord) {
+		struct Multi_Vec3f *dtmp;
+		dtmp = getCoordinate (node->coord, "TriangleSet");
+		npoints = dtmp->n;
+		points = dtmp->p;
+    }
+    
+	/* verify whether we have an incorrect number of coords or not */
+	if (((npoints/4)*4) != npoints) {
+		ConsoleMessage ("Warning, in QuadSet, Coordinates not a multiple of 4\n");
+		npoints = ((npoints/4)*4);
+	}
+    
+	/* printf ("npoints %d\n",npoints); */
+    
+    
+	/* calculate index size; every "face" ends in -1 */
+	IndexSize = (npoints * 8) / 4;
+    //printf ("IndexSize is %d\n",IndexSize);
+	node->_coordIndex.p = MALLOC (int *, sizeof(int) * IndexSize);
+	node->_coordIndex.n = IndexSize;
+    
+	IndexSize = 0; /* for assigning the indexes */
+    
+	/* now calculate the indexes */
+	yy=0; zz=0;
+	for (xx=0; xx<npoints; xx+=4) {
+		/* printf ("index %d tris %d %d %d -1\n", xx/3, xx, xx+1, xx+2);  */
+		node->_coordIndex.p[IndexSize++] = xx;
+		node->_coordIndex.p[IndexSize++] = xx+1;
+		node->_coordIndex.p[IndexSize++] = xx+2;
+		node->_coordIndex.p[IndexSize++] = -1;
+        node->_coordIndex.p[IndexSize++] = xx+2;
+        node->_coordIndex.p[IndexSize++] = xx+3;
+        node->_coordIndex.p[IndexSize++] = xx;
+        node->_coordIndex.p[IndexSize++] = -1;
+	}
+/*    ConsoleMessage ("end of loop, index size is %d",IndexSize);
+    for (xx=0; xx<IndexSize; xx++) {
+        ConsoleMessage ("... index %d is %d\n",xx,node->_coordIndex.p[xx]);
+    }
+  */ 
+}
+
+
 static void checkTriangleStripSetFields (struct X3D_TriangleStripSet *node) {
 	int IndexSize = 0;
 	int xx,yy,zz; /* temporary variables */
@@ -790,6 +845,45 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, texCoord));
 			break;
             
+        case NODE_IndexedQuadSet:
+			checkIndexedQuadSetFields(X3D_INDEXEDQUADSET(node));
+			orig_coordIndex= &X3D_INDEXEDQUADSET(node)->_coordIndex;
+			cpv = X3D_INDEXEDQUADSET(node)->colorPerVertex;
+			npv = X3D_INDEXEDQUADSET(node)->normalPerVertex;
+			ccw = X3D_INDEXEDQUADSET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_INDEXEDQUADSET(node)->color;
+			nc = (struct X3D_Normal *) X3D_INDEXEDQUADSET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDQUADSET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_INDEXEDQUADSET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, texCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, index));
+			break;
+
+        case NODE_QuadSet:
+			checkQuadSetFields(X3D_QUADSET(node));
+			orig_coordIndex= &X3D_QUADSET(node)->_coordIndex;
+			cpv = X3D_QUADSET(node)->colorPerVertex;
+			npv = X3D_QUADSET(node)->normalPerVertex;
+			ccw = X3D_QUADSET(node)->ccw;
+			cc = (struct X3D_Color *) X3D_QUADSET(node)->color;
+			nc = (struct X3D_Normal *) X3D_QUADSET(node)->normal;
+			tc = (struct X3D_TextureCoordinate *) X3D_QUADSET(node)->texCoord;
+			co = (struct X3D_Coordinate *) X3D_QUADSET(node)->coord;
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, attrib));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, color));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, coord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, fogCoord));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, metadata));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, normal));
+			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, texCoord));
+			break;
+
 		default:
 			ConsoleMessage ("unknown type for make_genericfaceset, %d\n",node->_nodeType);
 			rep_->ntri=0;
@@ -1113,7 +1207,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 				/* Vertex Colours */
 				if(ncolors) {
-					if (colin) {
+                    if (colin) {
 						int tmpI;
 						/* we have a colorIndex */
 						if (cpv) tmpI = this_coord+tg->Tess.global_IFS_Coords[i];
@@ -1136,6 +1230,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 							colindex[vert_ind] = this_face;
 							  /* printf ("col4, index %d\n",colindex[vert_ind]); */
 						}
+                        //ConsoleMessage ("color index is %d",colindex[vert_ind]);
 					}
 				}
 

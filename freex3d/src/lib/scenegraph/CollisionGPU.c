@@ -58,6 +58,19 @@ static const char* collide_non_walk_kernel_headers;
 
 static char *getErrorString(cl_int err) {
 	switch (err) {
+#ifdef CL_VERSION_1_2
+ 		case CL_COMPILE_PROGRAM_FAILURE: return "CL_COMPILE_PROGRAM_FAILURE"; break;
+		case CL_LINKER_NOT_AVAILABLE: return "CL_LINKER_NOT_AVAILABLE"; break;
+		case CL_LINK_PROGRAM_FAILURE: return "CL_LINK_PROGRAM_FAILURE"; break;
+		case CL_DEVICE_PARTITION_FAILED: return "CL_DEVICE_PARTITION_FAILED"; break;
+		case CL_KERNEL_ARG_INFO_NOT_AVAILABLE: return "CL_KERNEL_ARG_INFO_NOT_AVAILABLE"; break;
+		case CL_INVALID_IMAGE_DESCRIPTOR: return "CL_INVALID_IMAGE_DESCRIPTOR"; break;
+		case CL_INVALID_COMPILER_OPTIONS: return "CL_INVALID_COMPILER_OPTIONS"; break;
+		case CL_INVALID_LINKER_OPTIONS: return "CL_INVALID_LINKER_OPTIONS"; break;
+		case CL_INVALID_DEVICE_PARTITION_COUNT: return "CL_INVALID_DEVICE_PARTITION_COUNT"; break;
+           
+#endif //CL_VERSION_1_2
+            
 		case CL_DEVICE_NOT_FOUND: return "CL_DEVICE_NOT_FOUND"; break;
 		case CL_DEVICE_NOT_AVAILABLE: return "CL_DEVICE_NOT_AVAILABLE"; break;
 		case CL_COMPILER_NOT_AVAILABLE: return "CL_COMPILER_NOT_AVAILABLE"; break;
@@ -72,11 +85,6 @@ static char *getErrorString(cl_int err) {
 		case CL_MAP_FAILURE: return "CL_MAP_FAILURE"; break;
 		case CL_MISALIGNED_SUB_BUFFER_OFFSET: return "CL_MISALIGNED_SUB_BUFFER_OFFSET"; break;
 		case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST: return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST"; break;
-		case CL_COMPILE_PROGRAM_FAILURE: return "CL_COMPILE_PROGRAM_FAILURE"; break;
-		case CL_LINKER_NOT_AVAILABLE: return "CL_LINKER_NOT_AVAILABLE"; break;
-		case CL_LINK_PROGRAM_FAILURE: return "CL_LINK_PROGRAM_FAILURE"; break;
-		case CL_DEVICE_PARTITION_FAILED: return "CL_DEVICE_PARTITION_FAILED"; break;
-		case CL_KERNEL_ARG_INFO_NOT_AVAILABLE: return "CL_KERNEL_ARG_INFO_NOT_AVAILABLE"; break;
 		case CL_INVALID_VALUE: return "CL_INVALID_VALUE"; break;
 		case CL_INVALID_DEVICE_TYPE: return "CL_INVALID_DEVICE_TYPE"; break;
 		case CL_INVALID_PLATFORM: return "CL_INVALID_PLATFORM"; break;
@@ -112,10 +120,6 @@ static char *getErrorString(cl_int err) {
 		case CL_INVALID_MIP_LEVEL: return "CL_INVALID_MIP_LEVEL"; break;
 		case CL_INVALID_GLOBAL_WORK_SIZE: return "CL_INVALID_GLOBAL_WORK_SIZE"; break;
 		case CL_INVALID_PROPERTY: return "CL_INVALID_PROPERTY"; break;
-		case CL_INVALID_IMAGE_DESCRIPTOR: return "CL_INVALID_IMAGE_DESCRIPTOR"; break;
-		case CL_INVALID_COMPILER_OPTIONS: return "CL_INVALID_COMPILER_OPTIONS"; break;
-		case CL_INVALID_LINKER_OPTIONS: return "CL_INVALID_LINKER_OPTIONS"; break;
-		case CL_INVALID_DEVICE_PARTITION_COUNT: return "CL_INVALID_DEVICE_PARTITION_COUNT"; break;
 		default :{return "hmmm - error message makes no sense";}
 	}
 
