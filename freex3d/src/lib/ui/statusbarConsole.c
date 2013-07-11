@@ -580,9 +580,9 @@ void drawStatusBar()
 		{
 			/* clear the status bar because there's nothing to show */
 			FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
-			FW_GL_ENABLE(GL_SCISSOR_TEST);
+			glEnable(GL_SCISSOR_TEST);
 			FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
-			FW_GL_DISABLE(GL_SCISSOR_TEST);
+			glDisable(GL_SCISSOR_TEST);
 			hadString = 0;
 		}
 		return;
@@ -602,14 +602,13 @@ void drawStatusBar()
 	if(!fontInitialized) initFont();
 	/* unconditionally clear the statusbar area */
 	FW_GL_SCISSOR(0,0,screenWidth,clipPlane);
-	FW_GL_ENABLE(GL_SCISSOR_TEST);
+	glEnable(GL_SCISSOR_TEST);
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
-	FW_GL_DISABLE(GL_SCISSOR_TEST);
+	glDisable(GL_SCISSOR_TEST);
 
 	// you must call drawStatusBar() from render() just before swapbuffers 
 	FW_GL_DEPTHMASK(FALSE);
-	FW_GL_DISABLE(GL_DEPTH_TEST);
-	//OLDCODEFW_GL_COLOR3F(1.0f,1.0f,1.0f);
+	glDisable(GL_DEPTH_TEST);
 	//glWindowPos seems to set the bitmap color correctly in windows
 	FW_GL_WINDOWPOS2I(5,0); 
 	if(sb_hasString)
@@ -625,7 +624,7 @@ void drawStatusBar()
 	printConsoleText();
 
 	FW_GL_DEPTHMASK(TRUE);
-	FW_GL_ENABLE(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 	FW_GL_FLUSH();
 
 }

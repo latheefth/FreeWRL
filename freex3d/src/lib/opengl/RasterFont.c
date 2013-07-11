@@ -152,10 +152,10 @@ void rf_layer2D()
 //printf ("skipping the push attrib\n");
 #else
     FW_GL_PUSH_ATTRIB(GL_ENABLE_BIT);
-    FW_GL_DISABLE(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
 #endif
-    FW_GL_DISABLE(GL_DEPTH_TEST);
-    FW_GL_DISABLE(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
 
 
     // On assume être en MODELVIEW

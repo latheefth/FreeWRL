@@ -1240,7 +1240,9 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
         
     //ConsoleMessage ("getMyShader, not found, have to create");
 
-    #ifdef GL_ES_VERSION_2_0
+    /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
+
+#ifdef GL_SHADER_COMPILER
     GLboolean b;
     static bool haveDoneThis = false;
 
@@ -1252,11 +1254,13 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 	    return;
         }
     }
-    #endif //GL_ES_VERSION_2_0
+#endif
+
 
 
 #ifdef VERBOSE
-#ifdef GL_ES_VERSION_2_0
+#if defined (GL_SHADER_COMPILER) && defined (GL_HIGH_FLOAT)
+    /* GL_ES_VERSION_2_0 variables for shaders */
 	{ /* debugging */
 	GLint range[2]; GLint precision;
 	GLboolean b;
@@ -1298,7 +1302,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 
 
 	}
-#endif // #ifdef GL_ES_VERSION_2_0
+#endif // #ifdef GL_ES_VERSION_2_0 specific debugging
 #endif //VERBOSE
 
     new = MALLOC(struct shaderTableEntry *, sizeof (struct shaderTableEntry));
@@ -1572,7 +1576,8 @@ vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {\n\
 
 
 /* FRAGMENT bits */
-#ifdef GL_ES_VERSION_2_0
+#if defined (GL_HIGH_FLOAT) &&  defined(GL_MEDIUM_FLOAT)
+/* GL_ES_VERSION_2_0 has these */
 static const GLchar *fragHighPrecision = "precision highp float;\n ";
 static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
 static const GLchar *maxLights = "const int MAX_LIGHTS = 2; \n ";
@@ -1802,9 +1807,11 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     
 	/* GL_ES - do we have medium precision, or just low precision?? */
     /* Phong shading - use the highest we have */
-	#ifdef GL_ES_VERSION_2_0
-	bool haveHighPrecisionFragmentShaders = false;
-        GLint range[2]; GLint precision;
+    /* GL_ES_VERSION_2_0 has these definitions */
+
+#if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
+    bool haveHighPrecisionFragmentShaders = false;
+    GLint range[2]; GLint precision;
 
 	// see if we can use high precision fragment shaders for Phong shading
 	if (usePhongShading) {
@@ -1819,7 +1826,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         	    }
         	}
 	}
-	
+#else
+    ConsoleMessage ("seem to not have GL_MEDIUM_FLOAT or GL_HIGH_FLOAT");
+#endif // GL_HIGH_FLOAT or GL_MEDIUM_FLOAT
 
 	#ifdef VERBOSE
         { /* debugging */
@@ -1858,7 +1867,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
         }
 	#endif //VERBOSE
-	#endif // GL_ES_VERSION_2_0
+//	#endif // GL_ES_VERSION_2_0
 
     #ifdef VERBOSE
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
@@ -1885,8 +1894,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     vertexSource[vertexPositionCalculation] = vertPos;
     vertexSource[vertexMainEnd] = vertEnd;
     
-    /* Cross shader Fragment bits */
-    #ifdef GL_ES_VERSION_2_0
+    /* Cross shader Fragment bits - GL_ES_VERSION_2_0 has this */
+    #if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
 	if (haveHighPrecisionFragmentShaders)  {
 		fragmentSource[fragmentPrecisionDeclare] = fragHighPrecision;
 		//ConsoleMessage("have high precision fragment shaders");
@@ -2613,9 +2622,7 @@ bool fwl_initialize_GL()
     
 
 	FW_GL_DEPTHFUNC(GL_LEQUAL);
-	FW_GL_ENABLE(GL_DEPTH_TEST);
-    
-    //ConsoleMessage ("disable GL_DEPTH_TEST"); FW_GL_DISABLE(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
@@ -2635,7 +2642,7 @@ bool fwl_initialize_GL()
      * JAS   nodes.
 	 */
 
-	FW_GL_ENABLE(GL_BLEND);
+	glEnable(GL_BLEND);
 	FW_GL_BLENDFUNC(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	FW_GL_CLEAR(GL_COLOR_BUFFER_BIT);
     

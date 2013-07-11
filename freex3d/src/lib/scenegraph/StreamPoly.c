@@ -617,7 +617,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 			if (r->VBO_buffers[COLOR_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[COLOR_VBO]);            
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
 			glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
-            // needed by recalculateColorField ... FREE_IF_NZ(r->color);
+            		// needed by recalculateColorField ... FREE_IF_NZ(r->color);
 		}
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[VERTEX_VBO]);

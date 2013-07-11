@@ -448,7 +448,7 @@ void render_Fog (struct X3D_Fog *node) {
 		bind_node (X3D_NODE(node), tg->Bindable.fog_stack);
 
 		/* if we do not have any more nodes on top of stack, disable fog */
-		FW_GL_DISABLE (GL_FOG);
+		glDisable(GL_FOG);
 	}
 
 	if(!node->isBound) return;
@@ -495,7 +495,7 @@ void render_Fog (struct X3D_Fog *node) {
 		FW_GL_FOGF(GL_FOG_END, (float) (node->visibilityRange));
 		FW_GL_FOGI(GL_FOG_MODE, GL_LINEAR);
 	}
-	FW_GL_ENABLE (GL_FOG);
+	glEnable(GL_FOG);
 
 	FW_GL_POP_MATRIX();
 	#endif /* GL_ES_VERSION_2_0 this should be handled in material shader */
@@ -844,7 +844,7 @@ void render_Background (struct X3D_Background *node) {
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
 
-	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) glDisable(GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -884,8 +884,7 @@ void render_Background (struct X3D_Background *node) {
 			((node->topUrl).n>0) ||
 			((node->bottomUrl).n>0)) {
 
-        	FW_GL_ENABLE(GL_TEXTURE_2D);
-        	// OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
+        	glEnable(GL_TEXTURE_2D);
         	FW_GL_ENABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
         	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,BackgroundVert);
         	FW_GL_NORMAL_POINTER (GL_FLOAT,0,Backnorms);
@@ -903,7 +902,7 @@ void render_Background (struct X3D_Background *node) {
 	FW_GL_POP_MATRIX();
 
 	/* is fog enabled? if so, disable it right now */
-	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) glEnable(GL_FOG);
 }
 
 
@@ -925,7 +924,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	if(!node->isBound) return;
 
 	/* is fog enabled? if so, disable it right now */
-	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_DISABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) glDisable(GL_FOG);
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 	moveBackgroundCentre();
@@ -981,5 +980,5 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 	/* pushes are done in moveBackgroundCentre */
 	FW_GL_POP_MATRIX();
 
-	if (vectorSize(tg->Bindable.fog_stack) >0) FW_GL_ENABLE (GL_FOG);
+	if (vectorSize(tg->Bindable.fog_stack) >0) glEnable (GL_FOG);
 }

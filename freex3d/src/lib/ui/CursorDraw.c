@@ -288,7 +288,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 	}
 	enableGlobalShader(getMyShader(ONE_TEX_APPEARANCE_SHADER));
 	shader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
-	//FW_GL_ENABLE(GL_TEXTURE_2D);
+	//glEnable(GL_TEXTURE_2D);
 	glActiveTexture ( GL_TEXTURE0 );
 	glBindTexture ( GL_TEXTURE_2D, p->textureID );
 	//SET_TEXTURE_UNIT(0);
@@ -313,7 +313,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 // JAS, trying this GL_POP_MATRIX();
 
 	#endif /* GL_ES_VERSION_2_0 */
-	FW_GL_DISABLE(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
 	
 	xy = mouse2screen2(x,y);
 	/* please note that OpenGL ES and OpenGL-3.x does not have the following; here is
@@ -336,7 +336,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 	glDrawArrays(GL_TRIANGLES,0,6);
 	#endif /* GL_ES_VERSION_2_0 */
 
-	FW_GL_ENABLE(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	#ifndef GL_ES_VERSION_2_0
 	FW_GL_SHADEMODEL(GL_SMOOTH);

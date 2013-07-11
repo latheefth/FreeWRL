@@ -149,10 +149,10 @@ GLEWContext * glewGetContext();
 #define CULL_FACE(v) /* printf ("nodeSolid %d getAppearanceProperties()->cullFace %d GL_FALSE %d FALSE %d\n",v,getAppearanceProperties()->cullFace,GL_FALSE,FALSE); */ \
                 if (v != getAppearanceProperties()->cullFace) {    \
                         getAppearanceProperties()->cullFace = v; \
-                        if (getAppearanceProperties()->cullFace == TRUE) {FW_GL_ENABLE(GL_CULL_FACE);}\
-                        else { FW_GL_DISABLE(GL_CULL_FACE);} \
+                        if (getAppearanceProperties()->cullFace == TRUE) {glEnable(GL_CULL_FACE);}\
+                        else { glDisable(GL_CULL_FACE);} \
                 }
-	#define CULL_FACE_INITIALIZE getAppearanceProperties()->cullFace=FALSE; FW_GL_DISABLE(GL_CULL_FACE);
+	#define CULL_FACE_INITIALIZE getAppearanceProperties()->cullFace=FALSE; glDisable(GL_CULL_FACE);
 
 #define DISABLE_CULL_FACE CULL_FACE(FALSE)
 #define ENABLE_CULL_FACE CULL_FACE(TRUE)
@@ -179,10 +179,7 @@ GLEWContext * glewGetContext();
 	#define GL_SPECULAR                       0x1202
 	#define GL_EMISSION                       0x1600
 	#define GL_ENABLE_BIT				0x00002000
-	#define GL_COLOR_MATERIAL		0xDEAD
-/*
-	#define GL_LIGHTING                       0x0B50
-*/
+
 	#define GL_LIGHT_MODEL_COLOR_CONTROL		0x81F8
 	#define GL_SEPARATE_SPECULAR_COLOR		0x81FA
 	#define GL_LIGHT_MODEL_TWO_SIDE			0x0B52
@@ -316,7 +313,6 @@ GLEWContext * glewGetContext();
 
 /* Main initialization function */
 /* int display_initialize(); */
-//extern bool display_initialized;
 #define IS_DISPLAY_INITIALIZED (gglobal()->display.display_initialized==TRUE)
 
 /**
@@ -760,8 +756,6 @@ void resetGeometry();
 	#define FW_GL_VIEWPORT(aaa,bbb,ccc,ddd) glViewport(aaa,bbb,ccc,ddd);
 	#define FW_GL_CLEAR_COLOR(aaa,bbb,ccc,ddd) glClearColor(aaa,bbb,ccc,ddd);
 	#define FW_GL_DEPTHMASK(aaa) glDepthMask(aaa);
-	#define FW_GL_ENABLE(aaa) glEnable(aaa)
-	#define FW_GL_DISABLE(aaa) glDisable(aaa) 
         #define FW_GL_SCISSOR(aaa,bbb,ccc,ddd) glScissor(aaa,bbb,ccc,ddd); 
 	#define FW_GL_WINDOWPOS2I(aaa,bbb) glWindowPos2i(aaa,bbb);
 	#define FW_GL_FLUSH glFlush

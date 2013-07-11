@@ -175,7 +175,7 @@ void lightState(GLint light, int status) {
 			/* printf ("light %d on\n",light); */
             
 #ifndef GL_ES_VERSION_2_0
-			FW_GL_ENABLE(GL_LIGHT0+light);
+			glEnable(GL_LIGHT0+light);
 #endif /* GL_ES_VERSION_2_0 */
             
 			p->lightStatusDirty = TRUE;
@@ -183,7 +183,7 @@ void lightState(GLint light, int status) {
 			/* printf ("light %d off\n",light);  */
             
 #ifndef GL_ES_VERSION_2_0
-			FW_GL_DISABLE(GL_LIGHT0+light);
+			glDisable(GL_LIGHT0+light);
 #endif /* GL_ES_VERSION_2_0 */
             
 			p->lightStatusDirty = TRUE;

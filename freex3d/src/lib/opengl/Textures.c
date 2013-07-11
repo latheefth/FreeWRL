@@ -1144,10 +1144,10 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 		/* last thing to do at the end of the setup for the 6th face */
 		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
-			FW_GL_ENABLE(GL_TEXTURE_CUBE_MAP);
-			FW_GL_ENABLE(GL_TEXTURE_GEN_S);
-			FW_GL_ENABLE(GL_TEXTURE_GEN_T);
-			FW_GL_ENABLE(GL_TEXTURE_GEN_R);
+			glEnable(GL_TEXTURE_CUBE_MAP);
+			glEnable(GL_TEXTURE_GEN_S);
+			glEnable(GL_TEXTURE_GEN_T);
+			glEnable(GL_TEXTURE_GEN_R);
 		}
 
 

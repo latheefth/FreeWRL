@@ -77,8 +77,6 @@ static void recalculateColorField(struct X3D_PolyRep *r) {
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[COLOR_VBO]);
 	glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColorRGBA)*3,r->color, GL_STATIC_DRAW);
 	FREE_IF_NZ(r->color);
-
-
 }
 
 /* How many faces are in this IndexedFaceSet?			*/
@@ -828,9 +826,7 @@ void render_polyrep(void *node) {
  			}
  		
  		LIGHTING_ON
- 	
- 		FW_GL_ENABLE(GL_COLOR_MATERIAL);
- 	}
+    }
 
 	/*  status bar, text do not have normals*/
 	if (pr->VBO_buffers[NORMAL_VBO]!=0) {
@@ -874,7 +870,6 @@ void render_polyrep(void *node) {
 
     if (hasc) {
 		FW_GL_DISABLECLIENTSTATE(GL_COLOR_ARRAY);
-		FW_GL_DISABLE(GL_COLOR_MATERIAL);
 	}
 
 	gglobal()->Mainloop.trisThisLoop += pr->ntri;

@@ -817,9 +817,9 @@ void do_TimeTrigger (void *node);
 	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE;
 
 #else 
-	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;FW_GL_ENABLE(GL_LIGHTING);}
-	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;FW_GL_DISABLE(GL_LIGHTING);}
-	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE; FW_GL_ENABLE(GL_LIGHTING);
+	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;glEnable(GL_LIGHTING);}
+	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;glDisable(GL_LIGHTING);}
+	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE; glEnable(GL_LIGHTING);
 #endif /* GL_ES_VERSION_2_0 */
 
 void zeroAllBindables(void);
