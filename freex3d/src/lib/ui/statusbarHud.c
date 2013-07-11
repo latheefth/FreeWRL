@@ -300,6 +300,8 @@ GLubyte fwLetters8x15[][22] = {
 //the buttons need to be larger for fingers on touch devices
 #if defined(QNX) //|| defined(_MSC_VER)
 #define BUTSIZE 48
+#elif defined(KIOSK)
+#define BUTSIZE 48
 #else
 #define BUTSIZE 32
 #endif
@@ -385,6 +387,7 @@ typedef struct pstatusbar{
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
 	int bmScaleForOptions; //special scale for the options check boxes (touch needs bigger)
 	int bmScaleRegular; //scale non-clickable/non-touchable text ! ?
+	int statusBarSize; //in pixels, should be bmScale x 16
 	int posType; //1 == glRasterPos (opengl < 1.4), 0= glWindowPos (opengl 1.4+)
 	pfont_t pfont;
    // Load the shaders and get a linked program object
@@ -434,7 +437,12 @@ void statusbar_init(struct tstatusbar *t){
 		p->bmScaleForOptions = 1;
 #endif
 		p->bmScaleRegular = 1;
+#ifdef KIOSK
+		p->bmScaleRegular = 2;
+		p->bmScaleForOptions = 2;
+#endif
 		p->bmScale = p->bmScaleRegular; //functions can change this on the fly
+		p->statusBarSize = p->bmScaleRegular * 16;
 		p->posType = 0; //assume ogl 1.4+, and correct if not
 		p->pfont.cheight = 0;
 		p->pfont.cwidth = 0;
@@ -1332,7 +1340,7 @@ void initButtons()
 	int i, buttonAtlasSizeCol, buttonAtlasSizeRow, buttonAtlasSquared;
 	ttglobal tg = gglobal();
 	ppstatusbar p = (ppstatusbar)tg->statusbar.prv;
-	tg->Mainloop.clipPlane = 16;
+	tg->Mainloop.clipPlane = p->statusBarSize; //16;
 	
 	//p->buttonType = 0; //uncomment this like to convert png buttons to hudIcons_octalpha_h header format
 	if(p->buttonType == 0)
@@ -2039,10 +2047,10 @@ int handleStatusbarHud(int mev, int* clipplane)
 		}else{
 			/* buttons at bottom, menu triggered by mouse-over */
 			int clipline;
-			(*clipplane) = 16;
+			(*clipplane) = p->statusBarSize; //16;
 			/* >>> statusbar hud */
 			clipline = *clipplane;
-			if(p->showButtons) clipline = 2*(*clipplane);
+			if(p->showButtons) clipline = p->buttonSize; //2*(*clipplane);
 			if( tg->display.screenHeight - tg->Mainloop.currentY[0] < clipline )
 			{
 				p->showButtons = 1;
@@ -2191,7 +2199,7 @@ M       void toggle_collision()                             //"
 //		}
 //		return;
 //	}
-	if(tg->Mainloop.clipPlane == 0) tg->Mainloop.clipPlane = 16;
+	if(tg->Mainloop.clipPlane == 0) tg->Mainloop.clipPlane = p->statusBarSize; //16;
 
 	/* to improve frame rates we don't need to update the status bar every loop,
 	because the mainloop scene rendering should be using a scissor test to avoid glClear()ing 

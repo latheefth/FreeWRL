@@ -1243,17 +1243,19 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
 
 #ifdef GL_SHADER_COMPILER
-    GLboolean b;
-    static bool haveDoneThis = false;
+	{  //msc_ver cant define variables mid {} scope, so we start a mini scope here
+      GLboolean b;
+      static bool haveDoneThis = false;
 
-    glGetBooleanv(GL_SHADER_COMPILER,&b);
-    if (!haveDoneThis) {
-        haveDoneThis = true;
-        if (!b) {
-	    ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
-	    return;
-        }
-    }
+      glGetBooleanv(GL_SHADER_COMPILER,&b);
+      if (!haveDoneThis) {
+          haveDoneThis = true;
+          if (!b) {
+	      ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
+	      return;
+          }
+      }
+	}
 #endif
 
 
