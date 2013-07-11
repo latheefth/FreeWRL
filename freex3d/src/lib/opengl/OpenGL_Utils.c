@@ -1578,12 +1578,15 @@ vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {\n\
 
 
 /* FRAGMENT bits */
-#if defined (GL_HIGH_FLOAT) &&  defined(GL_MEDIUM_FLOAT)
+//#if defined (GL_HIGH_FLOAT) &&  defined(GL_MEDIUM_FLOAT)
+#if defined(GL_ES_VERSION_2_0)
 /* GL_ES_VERSION_2_0 has these */
 static const GLchar *fragHighPrecision = "precision highp float;\n ";
 static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
 static const GLchar *maxLights = "const int MAX_LIGHTS = 2; \n ";
 #else 
+static const GLchar *fragHighPrecision = "";
+static const GLchar *fragMediumPrecision = "";
 static const GLchar *maxLights = "const int MAX_LIGHTS = 8; \n ";
 #endif
 
@@ -1812,6 +1815,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     /* GL_ES_VERSION_2_0 has these definitions */
 
 #if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
+//#if defined(GL_ES_VERSION_2_0)
     bool haveHighPrecisionFragmentShaders = false;
     GLint range[2]; GLint precision;
 
@@ -1898,6 +1902,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     
     /* Cross shader Fragment bits - GL_ES_VERSION_2_0 has this */
     #if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
+//#if defined(GL_ES_VERSION_2_0)
 	if (haveHighPrecisionFragmentShaders)  {
 		fragmentSource[fragmentPrecisionDeclare] = fragHighPrecision;
 		//ConsoleMessage("have high precision fragment shaders");
@@ -1905,7 +1910,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		fragmentSource[fragmentPrecisionDeclare] = fragMediumPrecision;
 		//ConsoleMessage("have medium precision fragment shaders");
 	}
-
 
     #endif
 
