@@ -810,17 +810,10 @@ void do_TimeTrigger (void *node);
 //#define NODE_REMOVE_PARENT(a) ADD_PARENT(a,X3D_NODE(ptr)) //dug9 looks wrong, but not used
 
 
-#ifdef GL_ES_VERSION_2_0
-	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;} 
-	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;}
+#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;} 
+#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;}
 
-	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE;
-
-#else 
-	#define LIGHTING_ON if (!gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=TRUE;glEnable(GL_LIGHTING);}
-	#define LIGHTING_OFF if(gglobal()->RenderFuncs.lightingOn) {gglobal()->RenderFuncs.lightingOn=FALSE;glDisable(GL_LIGHTING);}
-	#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE; glEnable(GL_LIGHTING);
-#endif /* GL_ES_VERSION_2_0 */
+#define LIGHTING_INITIALIZE gglobal()->RenderFuncs.lightingOn=TRUE;
 
 void zeroAllBindables(void);
 

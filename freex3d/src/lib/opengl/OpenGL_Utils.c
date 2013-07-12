@@ -1222,6 +1222,8 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 
 /****************************************************************************************/
 
+
+
 /* find a shader that matches the capabilities requested. If no match, recreate it */
 s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     int i;
@@ -1233,12 +1235,21 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     for (i=0; i<vectorSize(myShaderTable); i++) {
         struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
         if (me->whichOne == rq_cap) {
-            //printf ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
             return me->myCapabilities;
         }
     }
+
+// debugging
         
-    //ConsoleMessage ("getMyShader, not found, have to create");
+/*
+    ConsoleMessage ("getMyShader, not found, have to create");
+    for (i=0; i<vectorSize(myShaderTable); i++) {
+        struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
+        ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
+     }
+*/
+        
+
 
     /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
 
@@ -1579,16 +1590,13 @@ vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {\n\
 
 /* FRAGMENT bits */
 //#if defined (GL_HIGH_FLOAT) &&  defined(GL_MEDIUM_FLOAT)
-#if defined(GL_ES_VERSION_2_0)
-/* GL_ES_VERSION_2_0 has these */
-static const GLchar *fragHighPrecision = "precision highp float;\n ";
-static const GLchar *fragMediumPrecision = "precision mediump float;\n ";
-static const GLchar *maxLights = "const int MAX_LIGHTS = 2; \n ";
-#else 
-static const GLchar *fragHighPrecision = "";
-static const GLchar *fragMediumPrecision = "";
-static const GLchar *maxLights = "const int MAX_LIGHTS = 8; \n ";
-#endif
+
+
+/* GL_ES and Desktop GL are different... */
+static const GLchar *fragHighPrecision = "\n#ifdef GL_ES\nprecision highp float;\n#endif\n ";
+static const GLchar *fragMediumPrecision = "\n#ifdef GL_ES\nprecision mediump float;\n#endif\n ";
+static const GLchar *maxLights = "\n#ifdef GL_ES\nconst int MAX_LIGHTS = 2;\n#else\nconst int MAX_LIGHTS=8;\n#endif\n ";
+
 
 /* NOTE that we write to the vec4 "finalFrag", and at the end we assign
     the gl_FragColor, because we might have textures, fill properties, etc*/
@@ -1797,13 +1805,9 @@ if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Textur
 
 
 
-#ifdef GL_ES_VERSION_2_0
-const static GLchar *GLES2_pointSizeDeclare="uniform float pointSize;\n";
-const static GLchar *GLES2_pointSizeAss="gl_PointSize = pointSize; \n";
-#else
-const static GLchar *GLES2_pointSizeDeclare=""; /* do old way of point sizing */
-const static GLchar *GLES2_pointSizeAss=""; /* do old way of point sizing */
-#endif //GL_ES_VERSION_2_0
+
+const static GLchar *pointSizeDeclare="uniform float pointSize;\n";
+const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
 
@@ -1815,7 +1819,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     /* GL_ES_VERSION_2_0 has these definitions */
 
 #if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
-//#if defined(GL_ES_VERSION_2_0)
     bool haveHighPrecisionFragmentShaders = false;
     GLint range[2]; GLint precision;
 
@@ -1833,7 +1836,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         	}
 	}
 #else
-    ConsoleMessage ("seem to not have GL_MEDIUM_FLOAT or GL_HIGH_FLOAT");
+    // ConsoleMessage ("seem to not have GL_MEDIUM_FLOAT or GL_HIGH_FLOAT");
 #endif // GL_HIGH_FLOAT or GL_MEDIUM_FLOAT
 
 	#ifdef VERBOSE
@@ -1902,7 +1905,6 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     
     /* Cross shader Fragment bits - GL_ES_VERSION_2_0 has this */
     #if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
-//#if defined(GL_ES_VERSION_2_0)
 	if (haveHighPrecisionFragmentShaders)  {
 		fragmentSource[fragmentPrecisionDeclare] = fragHighPrecision;
 		//ConsoleMessage("have high precision fragment shaders");
@@ -1910,6 +1912,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		fragmentSource[fragmentPrecisionDeclare] = fragMediumPrecision;
 		//ConsoleMessage("have medium precision fragment shaders");
 	}
+
 
     #endif
 
@@ -1934,16 +1937,16 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
         vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
-	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
-	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
+	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
+	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
         fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
         fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
     }
     
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) {
         fragmentSource[fragmentSimpleColourAssign] = fragNoAppAss;
-	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
-	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
+	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
+	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
 
     }
     
@@ -1996,8 +1999,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             vertexSource[vertexLightDefines] = lightDefines;
             vertexSource[vertFrontColourDeclare] = varyingFrontColour;
             vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
-	    vertexSource[vertexPointSizeDeclare] = GLES2_pointSizeDeclare;
-	    vertexSource[vertexPointSizeAssign] = GLES2_pointSizeAss;
+	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
+	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
             vertexSource[vertexOneMaterialCalculation] = vertEmissionOnlyColourAss;
             fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
             fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
@@ -2109,7 +2112,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 #ifdef VERBOSE
         ConsoleMessage ("makeAndCompileShader called");
 #endif //VERBOSE
-    
+
    	/* initialize shader sources to blank strings, later we'll fill it in */
 	for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
 		vertexSource[x1] = ""; 
@@ -2633,10 +2636,16 @@ bool fwl_initialize_GL()
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start 9");
     
 	gl_linewidth = gglobal()->Mainloop.gl_linewidth;
-	FW_GL_LINEWIDTH(gl_linewidth);
-        #ifndef GL_ES_VERSION_2_0
-		FW_GL_POINTSIZE(gl_linewidth);
-        #endif
+   
+    // dp pointSize in shaders
+    #if defined (GL_PROGRAM_POINT_SIZE) 
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    #endif
+    #if defined (GL_PROGRAM_POINT_SIZE_EXT)
+    glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+    #endif
+
+	glLineWidth(gl_linewidth);
     
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start a");
     
@@ -5068,12 +5077,6 @@ void sendMatriciesToShader(s_shader_capabilities_t *me) {
 #define SEND_VEC2(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM2FV(me->myMat,1,myVal);}
 
-        /* not allowed on some systems - use vec4
-#define SEND_VEC3(myMat,myVal) \
-if (me->myMat != -1) { GLUNIFORM3FV(me->myMat,1,myVal);}
-*/
-        
-
 #define SEND_VEC4(myMat,myVal) \
 if (me->myMat != -1) { GLUNIFORM4FV(me->myMat,1,myVal);}
         
@@ -5131,6 +5134,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
     /* FillProperties, LineProperty lineType */
 
 	SEND_FLOAT(pointSize,myap->pointSize);
+    
     //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
     SEND_INT(filledBool,myap->filledBool);
     SEND_INT(hatchedBool,myap->hatchedBool);

@@ -152,7 +152,6 @@ void rf_layer2D()
 //printf ("skipping the push attrib\n");
 #else
     FW_GL_PUSH_ATTRIB(GL_ENABLE_BIT);
-    glDisable(GL_LIGHTING);
 #endif
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);

@@ -270,7 +270,6 @@ GLEWContext * glewGetContext();
 	#define GL_QUADRATIC_ATTENUATION          0x1209
 	#define GL_SPOT_CUTOFF                    0x1206
 	#define GL_COMPILE                        0x1300
-	#define GL_LIGHTING                       0x0B50
 	#define GL_FLAT                           0x1D00
 	#define GL_SMOOTH                         0x1D01
 	#define GL_LIST_BIT                   0x00020000
@@ -548,8 +547,6 @@ void getMotifWindowedGLwin(Window *win);
  * General : all systems
  */
 
-//extern GLenum _global_gl_err;
-
 #if defined (FW_DEBUG)
 
 	#if defined(_ANDROID)
@@ -767,9 +764,7 @@ void resetGeometry();
 	#define FW_GL_LIGHTF(aaa,bbb,ccc) fwglLightf(aaa,bbb,ccc);
 	#define FW_GL_CLEAR(zzz) glClear(zzz); 
 	#define FW_GL_DEPTHFUNC(zzz) glDepthFunc(zzz); 
-	#define FW_GL_SHADEMODEL(aaa) glShadeModel(aaa); 
-	#define FW_GL_LINEWIDTH(aaa) glLineWidth(aaa); 
-	#define FW_GL_POINTSIZE(aaa) glPointSize(aaa); 
+	#define FW_GL_SHADEMODEL(aaa) glShadeModel(aaa);  
 	#define FW_GL_PIXELSTOREI(aaa,bbb) glPixelStorei(aaa,bbb);
 
 #ifndef GL_FOG

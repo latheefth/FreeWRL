@@ -477,13 +477,6 @@ OLDCODE	GET_COLOUR_POINTER
 		} else {
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)colors);
 		}
-#ifdef OLDCODE
-OLDCODE - now with shaders, the line colour will come from the appearance field,
-OLDCODE not from a specific shader variable. Yes, an "appearance" field will be present,
-OLDCODE even if one does not exist in the VRML/X3D file. 
-OLDCODE 		} else {
-OLDCODE 			DO_COLOUR_POINTER
-#endif //OLDCODE
 	}
 
 
@@ -502,20 +495,11 @@ OLDCODE 			DO_COLOUR_POINTER
 
 void render_LineSet (struct X3D_LineSet *node) {
 
-#ifdef OLDCODE
-OLDCODE	DEFAULT_COLOUR_POINTER
-#endif //OLDCODE
-
 	struct X3D_Color *cc;
 	GLvoid **indices;
 	GLsizei *count;
 	int i;
 	struct Multi_Vec3f* points;
-
-#ifdef OLDCODE
-OLDCODE	/* is there an emissiveColor here??? */
-OLDCODE	GET_COLOUR_POINTER
-#endif //OLDCODE
 
 	LIGHTING_OFF
 	DISABLE_CULL_FACE

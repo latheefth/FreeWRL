@@ -563,29 +563,30 @@ void enableGlobalShader(s_shader_capabilities_t *myShader) {
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
 
     s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
-
 #ifdef RENDERVERBOSE
-printf ("sendAttribToGPU, getAppearanceProperties()->currentShaderProperties %p\n",getAppearanceProperties()->currentShaderProperties);
-printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataType,stride);
+
+ConsoleMessage ("sendAttribToGPU, getAppearanceProperties()->currentShaderProperties %p\n",getAppearanceProperties()->currentShaderProperties);
+ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataType,stride);
 	if (me != NULL) {
 		switch (myType) {
 			case FW_NORMAL_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Normals %d at %s:%d\n",me->Normals,file,line);
+				ConsoleMessage ("glVertexAttribPointer  Normals %d at %s:%d\n",me->Normals,file,line);
 				break;
 			case FW_VERTEX_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Vertexs %d at %s:%d\n",me->Vertices,file,line);
+				ConsoleMessage ("glVertexAttribPointer  Vertexs %d at %s:%d\n",me->Vertices,file,line);
 				break;
 			case FW_COLOR_POINTER_TYPE:
-				printf ("glVertexAttribPointer  Colours %d at %s:%d\n",me->Colours,file,line);
+				ConsoleMessage ("glVertexAttribPointer  Colours %d at %s:%d\n",me->Colours,file,line);
 				break;
 			case FW_TEXCOORD_POINTER_TYPE:
-				printf ("glVertexAttribPointer  TexCoords %d at %s:%d\n",me->TexCoords,file,line);
+				ConsoleMessage ("glVertexAttribPointer  TexCoords %d at %s:%d\n",me->TexCoords,file,line);
 				break;
 
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
+			default : {ConsoleMessage ("sendAttribToGPU, unknown type in shader\n");}
 		}
 	}
 #endif
+#undef RENDERVERBOSE
 
 	if (getAppearanceProperties()->currentShaderProperties != NULL) {
 		switch (myType) {
@@ -619,27 +620,7 @@ printf ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSize,dataT
 
 	/* not shaders; older style of rendering */
 	} else {
-		#ifndef GL_ES_VERSION_2_0
-		switch (myType) {
-			case FW_VERTEX_POINTER_TYPE:
-				glVertexPointer(dataSize, dataType, stride, pointer); 
-				break;
-			case FW_NORMAL_POINTER_TYPE:
-				glNormalPointer(dataType,stride,pointer);
-				break;
-			case FW_COLOR_POINTER_TYPE:
-				glColorPointer(dataSize, dataType, stride, pointer); 
-				break;
-			case FW_TEXCOORD_POINTER_TYPE:
-				glTexCoordPointer(dataSize, dataType, stride, pointer);
-				break;
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
-		}
-		#else
-		printf ("not shaders for pointers\n");
-		#endif
-
-
+		//printf ("not shaders for pointers\n");
 	}
 }
 
@@ -693,6 +674,7 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 
 	glBindBuffer(target,buffer);
 }
+
 
 
 static bool setupShader() {

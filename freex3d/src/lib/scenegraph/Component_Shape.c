@@ -86,9 +86,6 @@ struct X3D_Node *getThis_textureTransform(){
 void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;
 	
-	/* initialization */
-	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
-	
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	   render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
@@ -448,13 +445,9 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 		//ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
 		if (node->linewidthScaleFactor > 1.0) {
-			FW_GL_LINEWIDTH(node->linewidthScaleFactor);
-			#ifdef GL_ES_VERSION_2_0
+			glLineWidth(node->linewidthScaleFactor);
 			struct matpropstruct *me= getAppearanceProperties();
 			me->pointSize = node->linewidthScaleFactor;
-			#else
-			FW_GL_POINTSIZE(node->linewidthScaleFactor);
-			#endif
 		}
 
 
@@ -481,10 +474,15 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;    
 	ppComponent_Shape p;
-    ttglobal tg = gglobal();
+    	ttglobal tg = gglobal();
+	struct fw_MaterialParameters defaultMaterials = {
+				{0.0f, 0.0f, 0.0f, 1.0f}, /* Emission */
+				{0.0f, 0.0f, 0.0f, 1.0f}, /* Ambient */
+				{0.8f, 0.8f, 0.8f, 1.0f}, /* Diffuse */
+				{0.0f, 0.0f, 0.0f, 1.0f}, /* Specular */
+				10.0f};                   /* Shininess */
 
 	COMPILE_IF_REQUIRED
-
 
 	/* JAS - if not collision, and render_geom is not set, no need to go further */
 	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -501,21 +499,15 @@ void child_Shape (struct X3D_Shape *node) {
 		return;
 	}
 
-    p = (ppComponent_Shape)tg->Component_Shape.prv;
+    	p = (ppComponent_Shape)tg->Component_Shape.prv;
     
-	{
-		struct fw_MaterialParameters defaultMaterials = {
-					{0.0f, 0.0f, 0.0f, 1.0f}, /* emissiveColor */
-					{0.0f, 0.0f, 0.0f, 1.0f}, /* ambientIntensity */
-					{0.8f, 0.8f, 0.8f, 1.0f}, /* diffuseColor */
-					{0.0f, 0.0f, 0.0f, 1.0f}, /* specularColor */
-					10.0f};                   /* shininess */
-
-		/* copy the material stuff in preparation for copying all to the shader */
-		memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-		memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-
-	}
+	/* initialization. This will get overwritten if there is a texture in an Appearance
+	   node in this shape (see child_Appearance) */
+	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
+	
+	/* copy the material stuff in preparation for copying all to the shader */
+	memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+	memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
@@ -580,12 +572,8 @@ void child_Shape (struct X3D_Shape *node) {
     /* LineSet, PointSets, set the width back to the original. */
 	{
 		float gl_linewidth = tg->Mainloop.gl_linewidth;
-		FW_GL_LINEWIDTH(gl_linewidth);
-		#ifdef GL_ES_VERSION_2_0
+		glLineWidth(gl_linewidth);
 		p->appearanceProperties.pointSize = gl_linewidth;
-		#else
-		FW_GL_POINTSIZE(gl_linewidth);
-		#endif
 	}
     
 	/* did the lack of an Appearance or Material node turn lighting off? */

@@ -532,7 +532,6 @@ static void moveBackgroundCentre () {
 	GLDOUBLE x1,y1,z1;
 	GLDOUBLE sx, sy, sz;
 
-	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);  */
 	FW_GL_PUSH_MATRIX();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, mod);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
