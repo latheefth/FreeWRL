@@ -445,8 +445,9 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 		//ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 
 		if (node->linewidthScaleFactor > 1.0) {
+			struct matpropstruct *me;
 			glLineWidth(node->linewidthScaleFactor);
-			struct matpropstruct *me= getAppearanceProperties();
+			me= getAppearanceProperties();
 			me->pointSize = node->linewidthScaleFactor;
 		}
 
