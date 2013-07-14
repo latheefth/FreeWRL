@@ -1485,10 +1485,22 @@ vec4 ADSLightModel(in vec3 myNormal, in vec4 myPosition) {\n\
   vec4 ambient = vec4(0., 0., 0., 0.);\n\
   vec4 specular = vec4(0., 0., 0., 1.);\n\
   vec3 normal = normalize (myNormal);\n\
+\
+/* JAS */ vec3 viewv = -normalize(myPosition.xyz); \n \
+/* JAS */ bool backFacing = (dot(normal,viewv) < 0.0); \n \
+/* JAS */ \
   vec4 emissive;\n\
   float myAlph = 0.0;\n\
 \n\
   fw_MaterialParameters myMat = fw_FrontMaterial;\n\
+\
+/* JAS */ \n \
+/* back Facing materials - flip the normal and grab back materials */ \n \
+if (backFacing) { \n \
+	normal = -normal; \n \
+	myMat = fw_BackMaterial; \n \
+} \n \
+\
 \n\
   emissive = myMat.emission;\n\
   myAlph = myMat.diffuse.a;\n\
