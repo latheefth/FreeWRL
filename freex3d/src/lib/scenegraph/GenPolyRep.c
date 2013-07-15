@@ -453,7 +453,49 @@ static void checkTriangleFanSetFields (struct X3D_TriangleFanSet *node) {
 }
 
 static void checkIndexedQuadSetFields (struct X3D_IndexedQuadSet *node) {
+    int IndexSize = 0;
+	int xx,yy; /* temporary variables */
+	int *newIndex;
+    int *newIndexPtr;
     
+	IndexSize = ((node->index.n) /4) * 4;
+	if (IndexSize <= 0) {
+		/* nothing to do here */
+		node->index.n = 0;	
+	}
+    
+    //ConsoleMessage ("IndexedQuadCount = IndexSize %d from %d",IndexSize,node->index.n);
+    // do we have not enough indexes to make a quad - ie, any spare indexes?
+    if (IndexSize != node->index.n) ConsoleMessage ("IndexedQuadSet using %d of %d indexes according to spec",IndexSize,node->index.n);
+    
+    // each quad is made of 5 indexes, from 4 - quad 0,1,2,3 makes 0,1,2, 3, -1
+    // as we make this into an IndexedFaceSet, with each Quad being a "face"
+    
+	newIndex = MALLOC (int *, sizeof(int) * IndexSize * 5 / 4);
+	newIndexPtr = newIndex; 
+    yy=0;
+	/* printf ("index: "); */
+	for (xx = 0; xx < IndexSize; xx++) {
+		*newIndexPtr = node->index.p[xx];
+        
+        
+		/* printf (" %d ",newIndex[zz]);  */
+		newIndexPtr++;
+		yy++;
+		if (yy == 4) {
+			/* end of one triangle, put a -1 in there */
+			*newIndexPtr = -1;
+			/* printf (" -1 "); */
+			newIndexPtr++;
+			yy = 0;
+		}
+        /* printf ("\n"); */
+	}
+    
+	/* now, make the new index active */
+    FREE_IF_NZ (node->index.p); /* should free if MALLOC'd already */
+	node->_coordIndex.p = newIndex;
+	node->_coordIndex.n = IndexSize * 5 / 4;
 }
 
 static void checkQuadSetFields(struct X3D_QuadSet *node) {
@@ -464,7 +506,7 @@ static void checkQuadSetFields(struct X3D_QuadSet *node) {
     
     if(node->coord) {
 		struct Multi_Vec3f *dtmp;
-		dtmp = getCoordinate (node->coord, "TriangleSet");
+		dtmp = getCoordinate (node->coord, "QuadSet");
 		npoints = dtmp->n;
 		points = dtmp->p;
     }
