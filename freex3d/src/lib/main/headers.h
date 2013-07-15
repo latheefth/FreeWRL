@@ -557,6 +557,8 @@ void *returnInterpolatorPointer (const char *x);
 #define X3DSFNode				53 /* this is an "X3DNode" in the spec, but it conflicts with an internal def. */
 #define X3DProductStructureChildNode		54
 #define X3DComposedGeometryNode			55
+#define X3DNurbsControlCurveNode		56
+#define X3DNurbsSurfaceGeometryNode		57
 
 int isManagedField(int mode, int type, int isPublic);
 

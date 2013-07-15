@@ -3023,45 +3023,6 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 		}
 	} */
 
-	/* Check to see if we have to check for collisions for this transform. */
-#ifdef COLLISIONTRANSFORM
-	if (render_collision) {
-		iv.x = node->EXTENT_MAX_X/2.0;
-		jv.y = node->EXTENT_MAX_Y/2.0;
-		kv.z = node->EXTENT_MAX_Z/2.0;
-		ov.x = -(node->EXTENT_MAX_X); 
-		ov.y = -(node->EXTENT_MAX_Y); 
-		ov.z = -(node->EXTENT_MAX_Z);
-
-	       /* get the transformed position of the Box, and the scale-corrected radius. */
-	       FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
-
-	      // transform3x3(&tupv,&tupv,modelMatrix);
-	      // matrotate2v(upvecmat,ViewerUpvector,tupv);
-	     //  matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       /* matinverse(upvecmat,upvecmat); */
-			matmultiply(modelMatrix,modelMatrix,FallInfo()->avatar2collision); 
-			//dug9july2011 matmultiply(modelMatrix,FallInfo()->avatar2collision,modelMatrix); 
-
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-		/* printf ("TB this %d, extent %4.3f %4.3f %4.3f pos %4.3f %4.3f %4.3f\n", 
-			node,node->EXTENT_MAX_X,node->EXTENT_MAX_Y,EXTENT_MAX_Z,
-			t_orig.x,t_orig.y,t_orig.z); */
-	       scale = pow(det3x3(modelMatrix),1./3.);
-	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,
-			scale*node->EXTENT_MAX_X*2,
-			scale*node->EXTENT_MAX_Y*2,
-			scale*node->EXTENT_MAX_Z*2)) {
-			/* printf ("TB this %d returning fast\n",node); */
-			return;
-		/* } else {
-			printf ("TB really look at %d\n",node); */
-		}
-	}
-#endif
 
 	/* do we have a local light for a child? */
 	LOCAL_LIGHT_CHILDREN(node->children);

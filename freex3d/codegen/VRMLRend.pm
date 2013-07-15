@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.54  2013/07/15 21:07:47  crc_canada
+# Component_CAD, initial Component_NURBS rework.
+#
 # Revision 1.53  2013/07/15 10:43:56  crc_canada
 # CADPart outline in place.
 #
@@ -363,14 +366,23 @@
 # See WANT_OSC
 # used for the X3D Parser only. Return type of node.
 %defaultContainerType = (
-	CADAssembly		=>children,
-	CADFace			=>children,
-	CADLayer		=>children,
-
 	Proto			=>children,
 
-	ContourPolyLine2D 	=>geometry,
-	NurbsTrimmedSurface	=>geometry,
+	ContourPolyLine2D	=>children,
+	NurbsCurve		=>children,
+	NurbsCurve2D		=>children,
+	NurbsPositionInterpolator	=>children,
+	NurbsTrimmedSurface	=>children,
+	CoordinateDouble	=>children,
+	NurbsOrientationInterpolator	=>children,
+	NurbsPatchSurface	=>children,
+	NurbsSet		=>children,
+	NurbsSurfaceInterpolator	=>children,
+	NurbsSweptSurface	=>children,
+	NurbsSwungSurface	=>children,
+	NurbsTextureCoordinate	=>children,
+
+
 	PointPickSensor		=>children,
 	OSC_Sensor		=>children,
 
@@ -460,12 +472,6 @@
 	NavigationInfo 		=>children,
 	Normal 			=>normal,
 	NormalInterpolator 	=>children,
-	NurbsCurve2D 		=>geometry,
-	NurbsCurve 		=>geometry,
-	NurbsGroup 		=>children,
-	NurbsPositionInterpolator=>children,
-	NurbsSurface 		=>children,
-	NurbsTextureSurface 	=>children,
 	OrientationInterpolator	=>children,
 	PickableGroup 		=>children,
 	PixelTexture 		=>texture,
@@ -709,7 +715,6 @@
 	GeoViewpoint
 	GeoTransform
 	CADAssembly
-	CADLayer
 	CADPart
 /;
 
@@ -765,6 +770,7 @@
 	CADLayer
 	CADAssembly
 	CADPart
+	CADFace
 	GeoLOD
 	LOD
 	Collision
@@ -787,7 +793,6 @@
 	Group
 	Proto
 	CADAssembly
-	CADLayer
 	CADPart
 	ViewpointGroup
 	Material

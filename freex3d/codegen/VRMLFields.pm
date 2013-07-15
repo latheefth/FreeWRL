@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.12  2013/07/15 21:07:47  crc_canada
+# Component_CAD, initial Component_NURBS rework.
+#
 # Revision 1.11  2010/12/07 18:27:49  crc_canada
 # MALLOC changes;
 # some hidden fields now have real types, not FreeWRLPTR;
@@ -874,16 +877,20 @@ sub cstruct {return "struct SFVec2f { float c[2]; };"}
 sub ctype {return "struct SFVec2f $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-	if (!defined $val) {print "undefined in SFVec2f\n"} # inputOnlys, set it to any value
-	# get the actual value and ensure that it is a float
-	my $av0 = "@{$val}[0]";
-	my $av1 = "@{$val}[1]";
-	my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
-	my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
-	# print "SFVec2f, field value now is $av0 $av1\n";
+	if (!defined $val) {$count=0} # inputOnlys, set it to any value
+	if ($count > 0) {
+		# get the actual value and ensure that it is a float
+		my $av0 = "@{$val}[0]";
+		my $av1 = "@{$val}[1]";
+		my $pv = index $av0, "."; if ($pv < 0) { $av0 = $av0.".0f"; } else { $av0 = $av0."f"; }
+		my $pv = index $av1, "."; if ($pv < 0) { $av1 = $av1.".0f"; } else { $av1 = $av1."f"; }
+		# print "SFVec2f, field value now is $av0 $av1\n";
 
-	return 	"$field.c[0] = $av0;".
-		"$field.c[1] = $av1;";
+		return 	"$field.c[0] = $av0;".
+			"$field.c[1] = $av1;";
+	} else {
+		return "$field.c[0] = 0; $field.c[1] = 1;";
+	}
 }
 
 
@@ -972,7 +979,7 @@ sub cstruct {return "struct SFVec3f { float c[3]; };"}
 sub ctype {return "struct SFVec3f $_[1]"}
 sub cInitialize {
         my ($this,$field,$val) = @_;
-        if (!defined $val) {print "undefined in SFVec23\n"} # inputOnlys, set it to any value
+        if (!defined $val) {print "undefined in SFVec3f\n"} # inputOnlys, set it to any value
         # get the actual value and ensure that it is a float
         my $av0 = "@{$val}[0]";
         my $av1 = "@{$val}[1]";

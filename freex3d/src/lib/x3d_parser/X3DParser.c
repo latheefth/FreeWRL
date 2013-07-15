@@ -1523,7 +1523,7 @@ static char* fixAmp(char *fieldValue)
 	return fieldValue;
 }
 
-static void parseAttributes(void) {
+static void parseAttributes() {
 	size_t ind;
 	struct nameValuePairs *nvp;
 	struct X3D_Node *thisNode;
@@ -1540,7 +1540,7 @@ static void parseAttributes(void) {
 		/* see if we have a containerField here */
 		if (strcmp("containerField",nvp->fieldName)==0) {
 			indexT tmp;
-			/* printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",nvp->fieldValue, stringNodeType(thisNode->_nodeType ));  */
+			//printf ("SETTING CONTAINER FIELD TO %s for node of type %s\n",nvp->fieldValue, stringNodeType(thisNode->_nodeType ));
 			tmp = findFieldInFIELDNAMES(nvp->fieldValue);
 			if (tmp == INT_ID_UNDEFINED) {
 				ConsoleMessage ("Error line %d: setting containerField to :%s: for node of type :%s:\n", LINE,
@@ -1905,6 +1905,16 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	myNodeIndex = findFieldInNODES(name);
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		/* printf ("endElement - normalNode :%s:\n",name); */
+
+		if (myNodeIndex = NODE_Script) {
+			#ifdef HAVE_JAVASCRIPT
+			initScriptWithScript();
+			#endif
+		}
+		parseAttributes(myNodeIndex);
+		linkNodeIn(__FILE__,__LINE__);
+
+#ifdef OLDCODE
 		switch (myNodeIndex) {
 			#ifdef HAVE_JAVASCRIPT
 			case NODE_Script: initScriptWithScript(); break;
@@ -1912,6 +1922,10 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 			default: linkNodeIn(__FILE__,__LINE__);
 		}
 		parseAttributes();
+
+#endif
+
+
 		//setParserMode(PARSING_NODES);
 		//popParserMode();
 

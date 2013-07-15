@@ -1605,8 +1605,10 @@ if (backFacing) { \n \
 
 
 /* GL_ES and Desktop GL are different... */
+#if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
 static const GLchar *fragHighPrecision = "\n#ifdef GL_ES\nprecision highp float;\n#endif\n ";
 static const GLchar *fragMediumPrecision = "\n#ifdef GL_ES\nprecision mediump float;\n#endif\n ";
+#endif
 static const GLchar *maxLights = "\n#ifdef GL_ES\nconst int MAX_LIGHTS = 2;\n#else\nconst int MAX_LIGHTS=8;\n#endif\n ";
 
 
@@ -3315,7 +3317,6 @@ int checkNode(struct X3D_Node *node, char *fn, int line) {
 
 /*creating node table*/
 static void createMemoryTable(){
-	int count;
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	p->linearNodeTable = newVector(struct X3D_Node*, 128);
@@ -3892,6 +3893,32 @@ void startOfLoopNodeUpdates(void) {
 					CHILDREN_NODE(Anchor)
 				END_NODE
 				
+				BEGIN_NODE(CADFace)
+					// the attached Shape node will do the occlusion testing, if enabled.
+					update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
+				END_NODE
+
+				BEGIN_NODE(CADLayer)
+                                       propagateExtent(X3D_NODE(node));
+                                       CHILDREN_NODE(Switch)
+				END_NODE
+
+
+				BEGIN_NODE(CADPart)
+                                        sortChildren (__LINE__,&X3D_CADPART(node)->children,&X3D_CADPART(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
+                                        TURN_OFF_SHOULDSORTCHILDREN
+                                        propagateExtent(X3D_NODE(node));
+                                        CHILDREN_NODE(CADPart)
+				END_NODE
+
+
+				BEGIN_NODE(CADAssembly)
+                                        sortChildren (__LINE__,&X3D_CADASSEMBLY(node)->children,&X3D_CADASSEMBLY(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
+                                        TURN_OFF_SHOULDSORTCHILDREN
+                                        propagateExtent(X3D_NODE(node));
+                                        CHILDREN_NODE(CADAssembly)
+				END_NODE
+
 				/* maybe this is the current Viewpoint? */
 				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
 				BEGIN_NODE(OrthoViewpoint) VIEWPOINT(OrthoViewpoint) END_NODE
@@ -3911,13 +3938,6 @@ void startOfLoopNodeUpdates(void) {
 
 				/* does this one possibly have add/removeChildren? */
 				BEGIN_NODE(Group) 
-/*
-printf ("Group %p, set_children.n %d children.n %d addChildren.n %d removeChildren.n %d\n",
-node,
-X3D_GROUP(node)->children.n,
-X3D_GROUP(node)->addChildren.n,
-X3D_GROUP(node)->removeChildren.n);
-*/
 					sortChildren (__LINE__,&X3D_GROUP(node)->children,&X3D_GROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
 					TURN_OFF_SHOULDSORTCHILDREN
 
@@ -3960,10 +3980,10 @@ E_JS_EXPERIMENTAL_CODE
 					CHILDREN_NODE(Transform) 
 				END_NODE
 
-				BEGIN_NODE(NurbsGroup) 
+/*              BEGIN_NODE(NurbsGroup) 
 					CHILDREN_NODE(NurbsGroup) 
 				END_NODE
-
+*/
 				BEGIN_NODE(Contour2D) 
 					CHILDREN_NODE(Contour2D) 
 				END_NODE
@@ -4436,9 +4456,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 					{
 						int j, nameIndex;
 						struct Vector* usernames[4];
-						const char **userArr;
 						struct ScriptFieldDecl* sfield;
-						struct X3D_Script* scr = (struct X3D_Script*)node;
 						struct Shader_Script* shader;
 
 						switch(node->_nodeType) 
@@ -4463,9 +4481,7 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 							fname = NULL;
 							if(lexer){
 								struct Vector *unames = usernames[X3DMODE(mode)];
-								//userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
-								//fname = userArr[sfield->fieldDecl->lexerNameIndex];
-								nameIndex = sfield->fieldDecl->lexerNameIndex;
+                                nameIndex = sfield->fieldDecl->lexerNameIndex;
 								if(nameIndex < vectorSize(unames))
 									fname = vector_get(char *,unames,nameIndex);
 							}
@@ -4483,7 +4499,6 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 					{
 						int j, nameIndex;
 						struct Vector* usernames[4];
-						const char **userArr;
 						struct ProtoFieldDecl* pfield;
 						struct X3D_Proto* pnode = (struct X3D_Proto*)node;
 						struct ProtoDefinition* pstruct = (struct ProtoDefinition*) pnode->__protoDef;
@@ -4502,8 +4517,6 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 							fname = NULL;
 							if(lexer){
 								struct Vector *unames = usernames[X3DMODE(mode)];
-								//userArr =&vector_get(const char*, usernames[X3DMODE(mode)], 0);
-								//fname = userArr[pfield->name];
 								nameIndex = pfield->name;
 								if(nameIndex < vectorSize(unames))
 									fname = vector_get(char *,unames,nameIndex);
@@ -4614,7 +4627,7 @@ BOOL cbPrintLinks(void *callbackData,struct X3D_Node* node,int jfield,
 	//if(publicfield && (type == FIELDTYPE_SFNode || type == FIELDTYPE_MFNode))
 	if(isManagedField(type,mode,publicfield))
 	{
-		int n,k,m,haveSomething;
+		int n,k,haveSomething;
 		struct X3D_Node **plist, *sfn;
 		haveSomething = (type==FIELDTYPE_SFNode && fieldPtr->sfnode) || (type==FIELDTYPE_MFNode && fieldPtr->mfnode.n);
 		if(haveSomething){

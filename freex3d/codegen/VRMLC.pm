@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.80  2013/07/15 21:07:47  crc_canada
+# Component_CAD, initial Component_NURBS rework.
+#
 # Revision 1.79  2013/07/15 10:43:56  crc_canada
 # CADPart outline in place.
 #
@@ -1515,7 +1518,7 @@ sub gen {
 	"#define X3D_FOG(node) ((struct X3D_Fog*)node)\n".
 	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".
-	"#define X3D_CADASSEMBLY(node) ((struct X3D_CADAsssembly*)node)\n".
+	"#define X3D_CADASSEMBLY(node) ((struct X3D_CADAssembly*)node)\n".
 	"#define X3D_CADFACE(node) ((struct X3D_CADFace*)node)\n".
 	"#define X3D_CADLAYER(node) ((struct X3D_CADLayer*)node)\n".
 	"#define X3D_CADPART(node) ((struct X3D_CADPart*)node)\n".

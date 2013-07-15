@@ -153,6 +153,12 @@ void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li) {
 				}
 				break;
 
+			case NODE_CADLayer:
+                if (is_CADLayerchild_inrange(X3D_CADLAYER(me),p)) {
+                    update_renderFlag(me,flag);
+				}
+                break;
+
 			default:
 
 				update_renderFlag(me,flag);

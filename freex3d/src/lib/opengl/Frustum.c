@@ -468,6 +468,22 @@ int is_Switchchild_inrange(struct X3D_Switch *node, struct X3D_Node *me) {
 	return FALSE;
 }
 
+
+/* does this current node actually display, according to the CADLayer scheme? */
+int is_CADLayerchild_inrange(struct X3D_CADLayer *node, struct X3D_Node *me) {
+    int i;
+    for (i=0; i<node->children.n; i++) {
+        
+        /* if we have more children than we have indexes into visible field, just return TRUE */
+        if ((i >= node->visible.n) && (node->children.p[i] == me)) return TRUE;
+        
+        /* if not, if it is in the visible field, return true */
+        else if ((node->visible.p[i]) && (node->children.p[i] == me)) return TRUE;
+        }
+    /* not visible, so return false */
+    return FALSE;
+}
+
 /* does this current node actually fit in the GeoLOD rendering scheme? */
 int is_GeoLODchild_inrange (struct X3D_GeoLOD* gpnode, struct X3D_Node *me) {
 	/* is this node part of the active path for rendering? */
@@ -686,25 +702,29 @@ void propagateExtent(struct X3D_Node *me) {
 			                PROP_EXTENT_CHECK;
         			}
 				break;
-			case NODE_LOD: {
+			case NODE_LOD:
 				/* works for both X3D and VRML syntax; compare with the "_selected" field */
 				if (me == X3D_LODNODE(geomParent)->_selected) {
 			                PROP_EXTENT_CHECK;
         			}
 				break;
-				}
-			case NODE_Switch: {
-
+        
+			case NODE_Switch: 
 				if (is_Switchchild_inrange(X3D_SWITCH(geomParent), me)) {
 			                PROP_EXTENT_CHECK;
         			}
-				break;
+                break;
+            case NODE_CADLayer: 
+                if (is_CADLayerchild_inrange(X3D_CADLAYER(geomParent),me)) {
+                    PROP_EXTENT_CHECK;
 				}
+				break;
 			default: {
 				PROP_EXTENT_CHECK;
 			}
 		}
-
+            
+                
 		#ifdef FRUSTUMVERBOSE
 		printf ("after calcs me (%u %s) my parent %d is (%u %s) ext %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f\n",
 			me, stringNodeType(me->_nodeType),i,geomParent, stringNodeType(geomParent->_nodeType),
@@ -715,7 +735,7 @@ void propagateExtent(struct X3D_Node *me) {
 
 		/* now, send these up the line, assuming this child makes the extent larger */
 		if (touched) propagateExtent(geomParent); 
-	}
+        }
 }
 
 /* perform all the viewpoint rotations for a point */
