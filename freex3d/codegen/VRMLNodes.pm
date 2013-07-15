@@ -2233,52 +2233,38 @@ package VRML::NodeType;
 
 	CADAssembly =>
 	new VRML::NodeType("CADAssembly", {
-
-					}, "X3DGroupingNode"
-			),
-
-#CADAssembly : X3DGroupingNode, X3DProductStructureChildNode {
-#  MFNode   [in]     addChildren
-#  MFNode   [in]     removeChildren
-#  MFNode   [in,out] children       []       [X3DProductStructureChildNode, X3DGroupingNode]
-#  SFNode   [in,out] metadata       NULL     [X3DMetadataObject]
-#  SFString [in,out] name           ""
-#  SFVec3f  []       bboxCenter     0 0 0    (-∞,∞)
-#  SFVec3f  []       bboxSize       -1 -1 -1 [0,∞) or −1 −1 −1
-#}
-
+		addChildren => [MFNode, undef, inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		removeChildren => [MFNode, undef, inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		children => [MFNode, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		name => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxCenter => [SFVec3f, [0,0,0], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxSize => [SFVec3f, [-1,-1,-1], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		}, "X3DGroupingNode"
+	),
 
 	CADFace =>
 	new VRML::NodeType("CADAssembly", {
-
-					}, "X3DProductStructureChildNode"
-			),
-
-#CADFace : X3DProductStructureChildNode, X3DBoundedObject {
-#  SFNode   [in,out] metadata   NULL     [X3DMetadataObject]
-#  SFString [in,out] name       ""
-#  SFNode   [in,out] shape      NULL     [X3DShapeNode, LOD]
-#  SFVec3f  []       bboxCenter 0 0 0    (-∞, ∞)
-#  SFVec3f  []       bboxSize   -1 -1 -1 [0, ∞) or -1 -1 -1
-#}
-
+		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		name => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		shape => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxCenter => [SFVec3f, [0,0,0], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxSize => [SFVec3f, [-1,-1,-1], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		}, "X3DProductStructureChildNode"
+	),
 
 	CADLayer =>
 	new VRML::NodeType("CADLayer", {
-					}, "X3DGroupingNode"
-			),
-
-
-#CADLayer : X3DGroupingNode {
-#  MFNode   [in]     addChildren
-#  MFNode   [in]     removeChildren
-#  MFNode   [in,out] children       []       [X3DChildNode]
-#  SFNode   [in,out] metadata       NULL     [X3DMetadataObject]
-#  SFString [in,out] name           ""
-#  MFBool   [in,out] visible        []
-#  SFVec3f  []       bboxCenter     0 0 0    (-∞,∞)
-#  SFVec3f  []       bboxSize       -1 -1 -1 [0,∞) or −1 −1 −1
-#}
+		addChildren => [MFNode, undef, inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		removeChildren => [MFNode, undef, inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		children => [MFNode, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		name => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		visible => [MFBool, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxCenter => [SFVec3f, [0,0,0], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxSize => [SFVec3f, [-1,-1,-1], initializeOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		}, "X3DGroupingNode"
+	),
 
 
 	IndexedQuadSet => new VRML::NodeType("IndexedQuadSet", {

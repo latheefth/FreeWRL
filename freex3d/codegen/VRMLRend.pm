@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.52  2013/07/15 02:37:11  crc_canada
+# initial layering of Component_CAD grouping nodes.
+#
 # Revision 1.51  2013/07/10 13:48:56  crc_canada
 # more Component_CAD work.
 #
@@ -376,8 +379,13 @@
 	Polypoint2D		=>geometry,
 	Rectangle2D		=>geometry,
 	TriangleSet2D		=>geometry,
+
 	IndexedQuadSet		=>geometry,
 	QuadSet			=>geometry,
+	CADLayer		=>children,
+	CADFace			=>children,
+	CADAssembly		=>children,
+
 	
 	Anchor 			=>children,
 	Appearance 		=>appearance,
@@ -696,6 +704,8 @@
 	GeoLocation
 	GeoViewpoint
 	GeoTransform
+	CADAssembly
+	CADLayer
 /;
 
 #######################################################################
@@ -746,6 +756,8 @@
 	GeoTransform
 	Inline
 	Switch
+	CADLayer
+	CADAssembly
 	GeoLOD
 	LOD
 	Collision
@@ -767,6 +779,8 @@
 	Transform
 	Group
 	Proto
+	CADAssembly
+	CADLayer
 	ViewpointGroup
 	Material
 	TwoSidedMaterial

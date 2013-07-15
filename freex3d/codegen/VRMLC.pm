@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.78  2013/07/15 02:37:11  crc_canada
+# initial layering of Component_CAD grouping nodes.
+#
 # Revision 1.77  2013/07/10 18:38:22  crc_canada
 # QuadSet work
 #
@@ -1509,6 +1512,9 @@ sub gen {
 	"#define X3D_FOG(node) ((struct X3D_Fog*)node)\n".
 	"#define X3D_INLINE(node) ((struct X3D_Inline*)node)\n".
 	"#define X3D_SWITCH(node) ((struct X3D_Switch*)node)\n".
+	"#define X3D_CADASSEMBLY(node) ((struct X3D_CADAsssembly*)node)\n".
+	"#define X3D_CADFACE(node) ((struct X3D_CADFace*)node)\n".
+	"#define X3D_CADLAYER(node) ((struct X3D_CADLayer*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
 	"#define X3D_VIEWPOINT(node) ((struct X3D_Viewpoint*)node)\n".
 	"#define X3D_ORTHOVIEWPOINT(node) ((struct X3D_OrthoViewpoint*)node)\n".

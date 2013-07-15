@@ -255,6 +255,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"backEmissiveColor",
 	"repeatT",
 	"__visible",
+	"visible",
 	"__movedPosition",
 	"topToBottom",
 	"viewpoints",
@@ -367,6 +368,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__oldgeoCoords",
 	"timeOut",
 	"hitNormal_changed",
+	"shape",
 	"skyAngle",
 	"closureType",
 	"__finishedloading",
@@ -1002,6 +1004,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"backEmissiveColor",
 	"transparency",
 	"linearAcceleration",
+	"visible",
 	"textureTransform",
 	"lengthOfModulationParameters",
 	"viewpoints",
@@ -1096,6 +1099,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"whichGeometry",
 	"timeOut",
 	"skyAngle",
+	"shape",
 	"eventSiteID",
 	"fontStyle",
 	"orientation",
@@ -1773,11 +1777,17 @@ void collide_Box(struct X3D_Box *);
 void compile_Box(struct X3D_Box *);
 struct X3D_Virt virt_Box = { NULL,(void *)render_Box,NULL,NULL,(void *)rendray_Box,NULL,NULL,NULL,(void *)collide_Box,(void *)compile_Box};
 
-struct X3D_Virt virt_CADAssembly = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_CADAssembly(struct X3D_CADAssembly *);
+void child_CADAssembly(struct X3D_CADAssembly *);
+void compile_CADAssembly(struct X3D_CADAssembly *);
+struct X3D_Virt virt_CADAssembly = { (void *)prep_CADAssembly,NULL,(void *)child_CADAssembly,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CADAssembly};
 
 struct X3D_Virt virt_CADFace = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_CADLayer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_CADLayer(struct X3D_CADLayer *);
+void child_CADLayer(struct X3D_CADLayer *);
+void compile_CADLayer(struct X3D_CADLayer *);
+struct X3D_Virt virt_CADLayer = { (void *)prep_CADLayer,NULL,(void *)child_CADLayer,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CADLayer};
 
 void render_Circle2D(struct X3D_Circle2D *);
 void compile_Circle2D(struct X3D_Circle2D *);
@@ -2682,12 +2692,32 @@ const int OFFSETS_Box[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CADAssembly[] = {
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CADAssembly, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_name, (int) offsetof (struct X3D_CADAssembly, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_CADAssembly, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CADAssembly, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_CADAssembly, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_CADAssembly, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CADAssembly, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CADFace[] = {
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CADFace, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_name, (int) offsetof (struct X3D_CADFace, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CADFace, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_shape, (int) offsetof (struct X3D_CADFace, shape),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CADFace, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CADLayer[] = {
+	(int) FIELDNAMES_visible, (int) offsetof (struct X3D_CADLayer, visible),  (int) FIELDTYPE_MFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_name, (int) offsetof (struct X3D_CADLayer, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_CADLayer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_CADLayer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CADLayer, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CADLayer, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_CADLayer, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CADLayer, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Circle2D[] = {
@@ -5746,6 +5776,13 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_CADAssembly * tmp2;
 			tmp2 = (struct X3D_CADAssembly *) tmp;
 		/* ttmp2->v = &virt_CADAssembly;*/ 
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
+			tmp2->name = newASCIIString("");
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->metadata = NULL;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -5753,6 +5790,11 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_CADFace * tmp2;
 			tmp2 = (struct X3D_CADFace *) tmp;
 		/* ttmp2->v = &virt_CADFace;*/ 
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
+			tmp2->name = newASCIIString("");
+			tmp2->metadata = NULL;
+			tmp2->shape = NULL;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -5760,6 +5802,14 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_CADLayer * tmp2;
 			tmp2 = (struct X3D_CADLayer *) tmp;
 		/* ttmp2->v = &virt_CADLayer;*/ 
+			tmp2->visible.n=0; tmp2->visible.p=0;
+			tmp2->name = newASCIIString("");
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
+			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -9036,16 +9086,35 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		case NODE_CADAssembly : {
 			struct X3D_CADAssembly *tmp;
 			tmp = (struct X3D_CADAssembly *) node;
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
 		    break;
 		}
 		case NODE_CADFace : {
 			struct X3D_CADFace *tmp;
 			tmp = (struct X3D_CADFace *) node;
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," shape (SFNode):\n"); dump_scene(fp,level+1,tmp->shape); 
 		    break;
 		}
 		case NODE_CADLayer : {
 			struct X3D_CADLayer *tmp;
 			tmp = (struct X3D_CADLayer *) node;
+			spacer fprintf (fp," visible (MFBool):\n");
+			for (i=0; i<tmp->visible.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->visible.p[i]); }
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
 		    break;
 		}
 		case NODE_Circle2D : {

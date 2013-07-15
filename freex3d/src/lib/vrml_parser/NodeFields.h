@@ -172,14 +172,34 @@ END_NODE(Box)
 
 /* CADAssembly node */
 BEGIN_NODE(CADAssembly)
+FIELD(CADAssembly,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(CADAssembly,name,sfstring,name,FIELDTYPE_SFString)
+EXPOSED_FIELD(CADAssembly,children,mfnode,children,FIELDTYPE_MFNode)
+EXPOSED_FIELD(CADAssembly,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(CADAssembly,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+EVENT_IN(CADAssembly,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+FIELD(CADAssembly,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
 END_NODE(CADAssembly)
 
 /* CADFace node */
 BEGIN_NODE(CADFace)
+FIELD(CADFace,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(CADFace,name,sfstring,name,FIELDTYPE_SFString)
+EXPOSED_FIELD(CADFace,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(CADFace,shape,sfnode,shape,FIELDTYPE_SFNode)
+FIELD(CADFace,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
 END_NODE(CADFace)
 
 /* CADLayer node */
 BEGIN_NODE(CADLayer)
+EXPOSED_FIELD(CADLayer,visible,mfbool,visible,FIELDTYPE_MFBool)
+EXPOSED_FIELD(CADLayer,name,sfstring,name,FIELDTYPE_SFString)
+EXPOSED_FIELD(CADLayer,children,mfnode,children,FIELDTYPE_MFNode)
+EVENT_IN(CADLayer,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+FIELD(CADLayer,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(CADLayer,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(CADLayer,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+FIELD(CADLayer,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
 END_NODE(CADLayer)
 
 /* Circle2D node */

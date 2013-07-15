@@ -45,6 +45,26 @@ X3D Rendering Component
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Polyrep.h"
 
+void prep_CADAssembly (struct X3D_CADAssembly *node) {
+}
+
+void child_CADAssembly (struct X3D_CADAssembly *node) {
+}
+
+void compile_CADAssembly (struct X3D_CADAssembly *node) {
+}
+
+void prep_CADLayer (struct X3D_CADLayer *node) {
+}
+
+void child_CADLayer (struct X3D_CADLayer *node) {
+}
+
+void compile_CADLayer (struct X3D_CADLayer *node) {
+}
+
+
+
 void render_IndexedQuadSet (struct X3D_IndexedQuadSet *node) {
                 COMPILE_POLY_IF_REQUIRED( node->coord, node->color, node->normal, node->texCoord)
 		CULL_FACE(node->solid)
