@@ -202,6 +202,21 @@ EVENT_IN(CADLayer,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 FIELD(CADLayer,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
 END_NODE(CADLayer)
 
+/* CADPart node */
+BEGIN_NODE(CADPart)
+EXPOSED_FIELD(CADPart,children,mfnode,children,FIELDTYPE_MFNode)
+EVENT_IN(CADPart,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
+EXPOSED_FIELD(CADPart,scaleOrientation,sfrotation,scaleOrientation,FIELDTYPE_SFRotation)
+EXPOSED_FIELD(CADPart,translation,sfvec3f,translation,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(CADPart,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(CADPart,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
+FIELD(CADPart,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(CADPart,rotation,sfrotation,rotation,FIELDTYPE_SFRotation)
+EXPOSED_FIELD(CADPart,name,sfstring,name,FIELDTYPE_SFString)
+FIELD(CADPart,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(CADPart,scale,sfvec3f,scale,FIELDTYPE_SFVec3f)
+END_NODE(CADPart)
+
 /* Circle2D node */
 BEGIN_NODE(Circle2D)
 EXPOSED_FIELD(Circle2D,radius,sffloat,radius,FIELDTYPE_SFFloat)

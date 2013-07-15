@@ -63,6 +63,18 @@ void child_CADLayer (struct X3D_CADLayer *node) {
 void compile_CADLayer (struct X3D_CADLayer *node) {
 }
 
+void prep_CADPart (struct X3D_CADPart *node) {
+}
+
+void child_CADPart (struct X3D_CADPart *node) {
+}
+
+void compile_CADPart (struct X3D_CADPart *node) {
+}
+
+void fin_CADPart (struct X3D_CADPart *node) {
+}
+
 
 
 void render_IndexedQuadSet (struct X3D_IndexedQuadSet *node) {

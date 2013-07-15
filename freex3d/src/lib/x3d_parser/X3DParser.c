@@ -986,7 +986,7 @@ void linkNodeIn(char *where, int lineno) {
 		}
 	}
 
-	/* FreeWRL verses FreeX3D - lets see if this is a Metadatafield not following guidelines */
+	/* strict parsing on - lets see if this is a Metadatafield not following guidelines */
 
 	if ((coffset <= 0) && (!tg->internalc.global_strictParsing)) {
 		if ((tg->X3DParser.parentStack[tg->X3DParser.parentIndex]->_nodeType == NODE_MetadataFloat) ||

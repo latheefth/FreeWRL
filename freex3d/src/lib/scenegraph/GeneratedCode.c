@@ -118,8 +118,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_oldhitNormal",
 	"articulationParameterArray",
 	"deletionAllowed",
-	"translation",
 	"address",
+	"translation",
 	"__inRange",
 	"articulationParameterValue6_changed",
 	"child2Url",
@@ -334,8 +334,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"enteredText",
 	"_origNormalizedPoint",
 	"repeatS",
-	"__do_trans",
 	"_origPoint",
+	"__do_trans",
 	"backDiffuseColor",
 	"bboxSize",
 	"country",
@@ -353,8 +353,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"spatialize",
 	"articulationParameterValue5_changed",
 	"normalizeVelocity",
-	"__do_center",
 	"geoOrigin",
+	"__do_center",
 	"metadata",
 	"geoCoords",
 	"relativeAntennaLocation",
@@ -432,10 +432,10 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"image",
 	"__cylinderVBO",
 	"__botpoints",
+	"receivedPower",
 	"set_crossSection",
 	"__subTextures",
 	"levelChanged",
-	"receivedPower",
 	"colorIndex",
 	"duration_changed",
 	"order",
@@ -869,8 +869,8 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"order",
 	"deletionAllowed",
 	"geometry",
-	"translation",
 	"address",
+	"translation",
 	"multicastRelayPort",
 	"watchList",
 	"limitOrientation",
@@ -1548,6 +1548,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"CADAssembly",
 	"CADFace",
 	"CADLayer",
+	"CADPart",
 	"Circle2D",
 	"ClipPlane",
 	"Collision",
@@ -1788,6 +1789,12 @@ void prep_CADLayer(struct X3D_CADLayer *);
 void child_CADLayer(struct X3D_CADLayer *);
 void compile_CADLayer(struct X3D_CADLayer *);
 struct X3D_Virt virt_CADLayer = { (void *)prep_CADLayer,NULL,(void *)child_CADLayer,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_CADLayer};
+
+void prep_CADPart(struct X3D_CADPart *);
+void child_CADPart(struct X3D_CADPart *);
+void fin_CADPart(struct X3D_CADPart *);
+void compile_CADPart(struct X3D_CADPart *);
+struct X3D_Virt virt_CADPart = { (void *)prep_CADPart,NULL,(void *)child_CADPart,(void *)fin_CADPart,NULL,NULL,NULL,NULL,NULL,(void *)compile_CADPart};
 
 void render_Circle2D(struct X3D_Circle2D *);
 void compile_Circle2D(struct X3D_Circle2D *);
@@ -2363,6 +2370,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_CADAssembly,
 	 &virt_CADFace,
 	 &virt_CADLayer,
+	 &virt_CADPart,
 	 &virt_Circle2D,
 	 &virt_ClipPlane,
 	 &virt_Collision,
@@ -2718,6 +2726,27 @@ const int OFFSETS_CADLayer[] = {
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CADLayer, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_CADLayer, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CADLayer, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_CADPart[] = {
+	(int) FIELDNAMES_children, (int) offsetof (struct X3D_CADPart, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___do_scaleO, (int) offsetof (struct X3D_CADPart, __do_scaleO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_CADPart, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_scaleOrientation, (int) offsetof (struct X3D_CADPart, scaleOrientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___do_anything, (int) offsetof (struct X3D_CADPart, __do_anything),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_translation, (int) offsetof (struct X3D_CADPart, translation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CADPart, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___do_center, (int) offsetof (struct X3D_CADPart, __do_center),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CADPart, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_CADPart, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CADPart, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_rotation, (int) offsetof (struct X3D_CADPart, rotation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_name, (int) offsetof (struct X3D_CADPart, name),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CADPart, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_CADPart, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CADPart, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___do_scale, (int) offsetof (struct X3D_CADPart, __do_scale),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_scale, (int) offsetof (struct X3D_CADPart, scale),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Circle2D[] = {
@@ -4926,6 +4955,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_CADAssembly,
 	OFFSETS_CADFace,
 	OFFSETS_CADLayer,
+	OFFSETS_CADPart,
 	OFFSETS_Circle2D,
 	OFFSETS_ClipPlane,
 	OFFSETS_Collision,
@@ -5374,6 +5404,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADAssembly : {tmp = MALLOC (struct X3D_CADAssembly *, sizeof (struct X3D_CADAssembly)); break;}
 		case NODE_CADFace : {tmp = MALLOC (struct X3D_CADFace *, sizeof (struct X3D_CADFace)); break;}
 		case NODE_CADLayer : {tmp = MALLOC (struct X3D_CADLayer *, sizeof (struct X3D_CADLayer)); break;}
+		case NODE_CADPart : {tmp = MALLOC (struct X3D_CADPart *, sizeof (struct X3D_CADPart)); break;}
 		case NODE_Circle2D : {tmp = MALLOC (struct X3D_Circle2D *, sizeof (struct X3D_Circle2D)); break;}
 		case NODE_ClipPlane : {tmp = MALLOC (struct X3D_ClipPlane *, sizeof (struct X3D_ClipPlane)); break;}
 		case NODE_Collision : {tmp = MALLOC (struct X3D_Collision *, sizeof (struct X3D_Collision)); break;}
@@ -5810,6 +5841,31 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_CADPart : {
+			struct X3D_CADPart * tmp2;
+			tmp2 = (struct X3D_CADPart *) tmp;
+		/* ttmp2->v = &virt_CADPart;*/ 
+			tmp2->children.n=0; tmp2->children.p=0;
+			tmp2->__do_scaleO = FALSE;
+			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
+			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
+			tmp2->__do_anything = FALSE;
+			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;;
+			tmp2->__do_trans = FALSE;
+			tmp2->__do_center = FALSE;
+			tmp2->metadata = NULL;
+			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
+			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;;
+			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
+			tmp2->name = newASCIIString("");
+			tmp2->__do_rotation = FALSE;
+			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
+			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;;
+			tmp2->__do_scale = FALSE;
+			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -9117,6 +9173,33 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    }
 		    break;
 		}
+		case NODE_CADPart : {
+			struct X3D_CADPart *tmp;
+			tmp = (struct X3D_CADPart *) node;
+			spacer fprintf (fp," children (MFNode):\n");
+			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
+			spacer fprintf (fp," scaleOrientation (SFRotation): \t");
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->scaleOrientation.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp," translation (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
+			fprintf (fp,"\n");
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," rotation (SFRotation): \t");
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->rotation.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp," name (SFString) \t%s\n",tmp->name->strptr);
+		    if(allFields) {
+			spacer fprintf (fp," _sortedChildren (MFNode):\n");
+			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
+		    }
+			spacer fprintf (fp," scale (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->scale.c[i]); }
+			fprintf (fp,"\n");
+		    break;
+		}
 		case NODE_Circle2D : {
 			struct X3D_Circle2D *tmp;
 			tmp = (struct X3D_Circle2D *) node;
@@ -11824,6 +11907,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_CADAssembly: return X3DGroupingNode; break;
 	case NODE_CADFace: return X3DProductStructureChildNode; break;
 	case NODE_CADLayer: return X3DGroupingNode; break;
+	case NODE_CADPart: return X3DGroupingNode; break;
 	case NODE_Circle2D: return X3DGeometryNode; break;
 	case NODE_ClipPlane: return X3DChildNode; break;
 	case NODE_Collision: return X3DEnvironmentalSensorNode; break;

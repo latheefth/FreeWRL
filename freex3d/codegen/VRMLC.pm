@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.79  2013/07/15 10:43:56  crc_canada
+# CADPart outline in place.
+#
 # Revision 1.78  2013/07/15 02:37:11  crc_canada
 # initial layering of Component_CAD grouping nodes.
 #
@@ -1515,6 +1518,7 @@ sub gen {
 	"#define X3D_CADASSEMBLY(node) ((struct X3D_CADAsssembly*)node)\n".
 	"#define X3D_CADFACE(node) ((struct X3D_CADFace*)node)\n".
 	"#define X3D_CADLAYER(node) ((struct X3D_CADLayer*)node)\n".
+	"#define X3D_CADPART(node) ((struct X3D_CADPart*)node)\n".
 	"#define X3D_SCRIPT(node) ((struct X3D_Script*)node)\n".
 	"#define X3D_VIEWPOINT(node) ((struct X3D_Viewpoint*)node)\n".
 	"#define X3D_ORTHOVIEWPOINT(node) ((struct X3D_OrthoViewpoint*)node)\n".

@@ -2266,6 +2266,31 @@ package VRML::NodeType;
 		}, "X3DGroupingNode"
 	),
 
+	CADPart =>
+	new VRML::NodeType("CADPart", {
+		addChildren => [MFNode, undef, inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		removeChildren => [MFNode, undef, inputOnly, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		children => [MFNode, [], inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		name => [SFString, "", inputOutput, "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+		rotation => [SFRotation, [0, 0, 1, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		scale => [SFVec3f, [1, 1, 1], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		scaleOrientation => [SFRotation, [0, 0, 1, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		translation => [SFVec3f, [0, 0, 0], inputOutput, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxCenter => [SFVec3f, [0, 0, 0], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxSize => [SFVec3f, [-1, -1, -1], initializeOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+		# fields for reducing redundant calls
+		__do_center => [SFInt32, FALSE, initializeOnly, 0],
+		__do_trans => [SFInt32, FALSE, initializeOnly, 0],
+		__do_rotation => [SFInt32, FALSE, initializeOnly, 0],
+		__do_scaleO => [SFInt32, FALSE, initializeOnly, 0],
+		__do_scale => [SFInt32, FALSE, initializeOnly, 0],
+		__do_anything => [SFInt32, FALSE, initializeOnly, 0],
+		_sortedChildren => [MFNode, [], inputOutput, 0],
+		} ,"X3DGroupingNode"
+	),
 
 	IndexedQuadSet => new VRML::NodeType("IndexedQuadSet", {
 		set_index => [MFInt32, undef, inputOnly, "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],

@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.53  2013/07/15 10:43:56  crc_canada
+# CADPart outline in place.
+#
 # Revision 1.52  2013/07/15 02:37:11  crc_canada
 # initial layering of Component_CAD grouping nodes.
 #
@@ -385,6 +388,7 @@
 	CADLayer		=>children,
 	CADFace			=>children,
 	CADAssembly		=>children,
+	CADPart			=>children,
 
 	
 	Anchor 			=>children,
@@ -706,6 +710,7 @@
 	GeoTransform
 	CADAssembly
 	CADLayer
+	CADPart
 /;
 
 #######################################################################
@@ -725,6 +730,7 @@
 	HAnimSite
 	HAnimJoint
 	GeoTransform
+	CADPart
 /;
 
 
@@ -758,6 +764,7 @@
 	Switch
 	CADLayer
 	CADAssembly
+	CADPart
 	GeoLOD
 	LOD
 	Collision
@@ -781,6 +788,7 @@
 	Proto
 	CADAssembly
 	CADLayer
+	CADPart
 	ViewpointGroup
 	Material
 	TwoSidedMaterial
