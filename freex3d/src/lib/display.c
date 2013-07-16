@@ -269,6 +269,9 @@ GLvoid resize_GL(GLsizei width, GLsizei height)
 bool initialize_rdr_caps()
 {
 	s_renderer_capabilities_t rdr_caps;
+	/* Max texture size */
+	GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
+		
 
 #ifdef HAVE_LIBGLEW
 
@@ -293,8 +296,6 @@ bool initialize_rdr_caps()
     FW_GL_GETBOOLEANV(GL_STEREO,&(rdr_caps.quadBuffer));
     //if (rdr_caps.quadBuffer) ConsoleMessage("INIT HAVE QUADBUFFER"); else ConsoleMessage("INIT_ NO QUADBUFFER");
     
-
-                      
 
 	/* rdr_caps.version = "1.5.7"; //"1.4.1"; //for testing */
     rdr_caps.versionf = (float) atof(rdr_caps.version); 
@@ -353,22 +354,21 @@ bool initialize_rdr_caps()
 	/* attempting multi-texture */
 	rdr_caps.av_multitexture = 1;
 
-	/* Max texture size */
-	{
-		GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
-		
-		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
-		rdr_caps.runtime_max_texture_size = (int) tmp;
-		rdr_caps.system_max_texture_size = (int) tmp;
+	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_SIZE, &tmp);
+	rdr_caps.runtime_max_texture_size = (int) tmp;
+	rdr_caps.system_max_texture_size = (int) tmp;
 
-		#ifdef GL_ES_VERSION_2_0
-		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_IMAGE_UNITS, &tmp);
-		#else
-		FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
-		#endif
-		rdr_caps.texture_units = (int) tmp;
-	}
+	// GL_MAX_TEXTURE_UNITS is for fixed function, and should be deprecated.
+	// use GL_MAX_TEXTURE_IMAGE_UNITS now, according to the OpenGL.org wiki
 
+
+	#if defined (GL_MAX_TEXTURE_IMAGE_UNITS)
+	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_IMAGE_UNITS, &tmp);
+	#else
+	FW_GL_GETINTEGERV(GL_MAX_TEXTURE_UNITS, &tmp);
+	#endif
+
+	rdr_caps.texture_units = (int) tmp;
 
 	/* max supported texturing anisotropicDegree- can be changed in TextureProperties */
 #ifdef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
