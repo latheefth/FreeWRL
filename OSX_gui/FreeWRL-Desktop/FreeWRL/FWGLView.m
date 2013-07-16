@@ -69,18 +69,7 @@ NSMutableData *receivedData;
         cString="/Users/john/Desktop/stl_files/love.stl";
         //cString="//Users/johns/Desktop/stl_files/polysoup.stl";
         //cString="/Users/john/Desktop/specularColor.wrl";
-        cString="/Users/johns/Desktop/QuadSet.x3d";
-        //cString="/Users/johns/Desktop/tfs.x3d";
-        //cString="/Users/johns/Desktop/SpotLight.x3d";
-        //cString="/Users/johns/Desktop/JAStests/HandWheel4-cube.wrl";
-        //cString="/Users/john/Desktop/Android-tests-current/www.web3d.org/x3d/content/examples/ConformanceNIST/Lights/DirectionalLight/default_complexdir.wrl";
-        //cString="/Users/john/Desktop/JAStests/composedCube.wrl";
-        //cString="/Users/johns/Downloads/Figure20.06aPointLightSpheres.wrl";
-        //cString="/Users/johns/Downloads/Figure20.12TwoDirectionalLightsAimingLeftRightThroughSpheres.wrl";
-        //cString="/Users/johns/Downloads/Figure20.12TwoDirectionalLightsAimingLeftRightThroughSpheres.wrl";
-        //cString="/Users/john/Desktop/SpotLight.x3d";
-        
-//cString = "/Users/john/Desktop/SpotLight2.wrl";
+        cString="/Users/johns/Desktop/DelayWithScript1.x3d";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {

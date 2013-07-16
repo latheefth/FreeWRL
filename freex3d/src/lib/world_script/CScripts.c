@@ -343,29 +343,34 @@ void deleteScript(struct Shader_Script* me)
 
 /* look for the field, via the ASCII name. Slower than script_getField, though... */
 struct ScriptFieldDecl* script_getField_viaCharName (struct Shader_Script* me, const char *name)
-{
+{    
+
  size_t i;
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-
- for(i=0; i!=vectorSize(me->fields); ++i)
- {
-  struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
-  if(strcmp(name,fieldDecl_getShaderScriptName(curField->fieldDecl)) == 0)
-   return curField;
- }
+    
+    if (me!=NULL) {
+        
+    for(i=0; i!=vectorSize(me->fields); ++i) {
+        struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
+        if(strcmp(name,fieldDecl_getShaderScriptName(curField->fieldDecl)) == 0)
+            return curField;
+        }
+    }
 
  return NULL;
 }
 
 struct ScriptFieldDecl* script_getField(struct Shader_Script* me, indexT n, indexT mod)
 {
+
  size_t i;
- for(i=0; i!=vectorSize(me->fields); ++i)
- {
-  struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
-  if(scriptFieldDecl_isField(curField, n, mod))
-   return curField;
- }
+    if (me!=NULL) {
+        for(i=0; i!=vectorSize(me->fields); ++i) {
+            struct ScriptFieldDecl* curField= vector_get(struct ScriptFieldDecl*, me->fields, i);
+            if(scriptFieldDecl_isField(curField, n, mod))
+                return curField;
+        }
+    }
 
  return NULL;
 }
