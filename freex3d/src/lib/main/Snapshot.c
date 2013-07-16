@@ -322,6 +322,21 @@ typedef struct {
 } FWBITMAPINFO;
 //#endif
 
+static void fromLong(unsigned long  myword, char *buffer)
+{
+  buffer[0] = (myword & 0x000000ff) >> 0;
+  buffer[1] = (myword & 0x0000ff00) >> 8;
+  buffer[2] = (myword & 0x00ff0000) >> 16;
+  buffer[3] = (myword & 0xff000000) >> 24;
+}
+
+static void fromShort(unsigned short  myword, char *buffer)
+{
+  buffer[0] = (myword & 0x00ff) >> 0;
+  buffer[1] = (myword & 0xff00) >> 8;
+}
+
+
 //#include "Vfw.h" //.avi headers
 void saveSnapshotBMP(char *pathname, char *buffer,int bytesPerPixel,int width, int height)
 {
@@ -361,27 +376,70 @@ void saveSnapshotBMP(char *pathname, char *buffer,int bytesPerPixel,int width, i
 	bi.biClrUsed = 0;
 	bi.biClrImportant = 0;
 	//printf("width=%d height=%d rowlengthmod4= %d extra=%d\n",width,height,rowlength%4,extra);
-
-	//memcpy(&bmph.bfType,"BM",2);
-	memcpy(&bfType,"BM",2);
-	bmph.bfReserved1 = 0;
-	bmph.bfReserved2 = 0;
-	bmph.bfOffBits = sizeof(bfType) + sizeof(FWBITMAPFILEHEADER) + sizeof(FWBITMAPINFOHEADER); 
-	bmph.bfSize = sizeof(bfType) + sizeof(FWBITMAPFILEHEADER) + sizeof(FWBITMAPINFOHEADER) + bi.biSizeImage;
-	fwrite(&bfType,sizeof(bfType),1,fout);
-	fwrite(&bmph,sizeof(FWBITMAPFILEHEADER),1,fout);
-	fwrite(&bi,sizeof(FWBITMAPINFO),1,fout);
-
-	if(true) //reverse colors
-	{
-		//swap GRB TO RGB
-		int i;
-		char c;
-		for(i=0;i<rowlength*height;i+=3)
+	if(0){
+		//problem 1 - 64bit compiler may pad struct to 8 bytes
+		//problem 2 - we may be writing on a big-endian machine, .bmp numbers should be little endian
+		//memcpy(&bmph.bfType,"BM",2);
+		memcpy(&bfType,"BM",2);
+		bmph.bfReserved1 = 0;
+		bmph.bfReserved2 = 0;
+		bmph.bfOffBits = sizeof(bfType) + sizeof(FWBITMAPFILEHEADER) + sizeof(FWBITMAPINFOHEADER); 
+		bmph.bfSize = sizeof(bfType) + sizeof(FWBITMAPFILEHEADER) + sizeof(FWBITMAPINFOHEADER) + bi.biSizeImage;
+		fwrite(&bfType,sizeof(bfType),1,fout);
+		fwrite(&bmph,sizeof(FWBITMAPFILEHEADER),1,fout);
+		fwrite(&bi,sizeof(FWBITMAPINFO),1,fout); //this is wrong. I'm writing 4 bytes for a color map I don't need to
+		if(true) //reverse colors
 		{
-			c = buffer[i];
-			buffer[i] = buffer[i+1];
-			buffer[i+1] = c;
+			//swap GRB TO RGB //this is wrong because I wrote out 4 extra bytes above
+			int i;
+			char c;
+			for(i=0;i<rowlength*height;i+=3)
+			{
+				c = buffer[i];
+				buffer[i] = buffer[i+1];
+				buffer[i+1] = c;
+			}
+		}
+	}
+	if(1){
+		//solution 1: write each variable separately to buffer to elliminate struct padding
+		//solution 2: convert any-endian to little-endian with byte-reordering functions
+		char buf[128];
+		fwrite("BM",2,1,fout);
+		bi.biSize = 40; //9 longs x 4byte + 2 shorts x 2byte = 36 + 4 = 40
+		bmph.bfOffBits = 2 + 12 + bi.biSize; //2 + 12 + 40 = 54
+		bmph.bfSize = bmph.bfOffBits + bi.biSizeImage;
+		bmph.bfReserved1 = 0;
+		bmph.bfReserved2 = 0;
+
+		fromLong(bmph.bfSize, &buf[0]); //4
+		fromShort(bmph.bfReserved1, &buf[4]); //2
+		fromShort(bmph.bfReserved2, &buf[6]); //2
+		fromLong(bmph.bfOffBits, &buf[8]); //4
+		fromLong(bi.biSize, &buf[12]); //4
+
+		fromLong(bi.biWidth, &buf[16]);//4
+		fromLong(bi.biHeight, &buf[20]);//4
+		fromShort(bi.biPlanes, &buf[24]);//2
+		fromShort(bi.biBitCount, &buf[26]);//2
+		fromLong(bi.biCompression, &buf[28]);//4
+		fromLong(bi.biSizeImage, &buf[32]);//4
+		fromLong(bi.biXPelsPerMeter, &buf[36]);//4
+		fromLong(bi.biYPelsPerMeter, &buf[40]);//4
+		fromLong(bi.biClrUsed, &buf[44]);//4
+		fromLong(bi.biClrImportant, &buf[48]);//4
+		fwrite(buf,52,1,fout); 
+		if(true) //reverse order
+		{
+			//swap BGR TO RGB
+			int i;
+			char c;
+			for(i=0;i<rowlength*height;i+=3)
+			{
+				c = buffer[i];
+				buffer[i] = buffer[i+2];
+				buffer[i+2] = c;
+			}
 		}
 	}
 	//write by row - and do byte alignment 4 (assume incoming is byte aligned 1)
