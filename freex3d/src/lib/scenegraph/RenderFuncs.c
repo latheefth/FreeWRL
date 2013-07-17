@@ -217,11 +217,28 @@ void transformLightToEye(float *pos, float* dir)
 	shaderVec4 aux, auxt;
     FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
+/*
+ConsoleMessage ("nvm %4.2f %4.2f %4.2f %4.2f",modelMatrix[0],modelMatrix[1],modelMatrix[2],modelMatrix[3]);
+ConsoleMessage ("nvm %4.2f %4.2f %4.2f %4.2f",modelMatrix[4],modelMatrix[5],modelMatrix[6],modelMatrix[7]);
+ConsoleMessage ("nvm %4.2f %4.2f %4.2f %4.2f",modelMatrix[8],modelMatrix[9],modelMatrix[10],modelMatrix[11]);
+ConsoleMessage ("nvm %4.2f %4.2f %4.2f %4.2f",modelMatrix[12],modelMatrix[13],modelMatrix[14],modelMatrix[15]);
+*/
+
     /* pre-multiply the light position, as per the orange book, page 216,
      "OpenGL specifies that light positions are transformed by the modelview
      matrix when they are provided to OpenGL..." */
     /* DirectionalLight?  PointLight, SpotLight? */
+
+	// assumes pos[3] = 0.0; only use first 3 of these numbers
 	transformf(auxt,pos,modelMatrix);
+	auxt[3] = 0.0;
+
+/*
+ConsoleMessage("LightToEye, after transformf, auxt %4.2f %4.2f %4.2f %4.2f, pos %4.2f %4.2f %4.2f %4.2f",
+auxt[0],auxt[1],auxt[2],auxt[3],
+pos[0],pos[1],pos[2],pos[3]);
+*/
+
 	for(i=0;i<4;i++){
 		pos[i] = auxt[i];
 	}
@@ -232,6 +249,9 @@ void transformLightToEye(float *pos, float* dir)
 	aux[2] = (float) (b[2]*a[0] +b[6]*a[1] +b[10]*a[2]);
 	for(i=0;i<3;i++)
 		dir[i] = aux[i];
+
+	// just initialize this to 0.0
+	dir[3] = 0.0;
 
 }
 
@@ -249,6 +269,9 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 	printf (" %f %f %f %f\n",params[0], params[1],params[2],params[3]);
      */
     
+	//printLTDebug(__FILE__,__LINE__);
+
+
 	switch (pname) {
 		case GL_AMBIENT:
 			memcpy ((void *)p->light_amb[light],(void *)params,sizeof(shaderVec4));
@@ -259,7 +282,19 @@ void fwglLightfv (int light, int pname, GLfloat *params) {
 		case GL_POSITION:
 			memcpy ((void *)p->light_pos[light],(void *)params,sizeof(shaderVec4));
 			//the following function call assumes spotdir has already been set - set it first from render_light
-			transformLightToEye(p->light_pos[light], p->light_spotDir[light]);
+
+/*
+ConsoleMessage("fwglLightfv - NOT transforming pos %3.2f %3.2f %3.2f %3.2f spd %3.2f %3.2f %3.2f %3.2f",
+			p->light_pos[light][0],
+			p->light_pos[light][1],
+			p->light_pos[light][2],
+			p->light_pos[light][3],
+			p->light_spotDir[light][0],
+			p->light_spotDir[light][1],
+			p->light_spotDir[light][2],
+			p->light_spotDir[light][3]);
+*/
+			if (light != HEADLIGHT_LIGHT)  transformLightToEye(p->light_pos[light], p->light_spotDir[light]);
 			break;
 		case GL_SPECULAR:
 			memcpy ((void *)p->light_spec[light],(void *)params,sizeof(shaderVec4));
@@ -315,6 +350,8 @@ void fwglLightf (int light, int pname, GLfloat param) {
 	}
 	p->lightParamsDirty = TRUE;
 }
+
+
 /* send light info into Shader. if OSX gets glGetUniformBlockIndex calls, we can do this with 1 call */
 void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -782,6 +819,7 @@ void initializeLightTables() {
         float dif[] = { 1.0f, 1.0f, 1.0f, 1.0f };
         float shin[] = { 0.0f, 0.0f, 0.0f, 1.0f }; /* light defaults - headlight is here, too */
         float As[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        float zeroes[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
       PRINT_GL_ERROR_IF_ANY("start of initializeightTables");
@@ -790,28 +828,19 @@ void initializeLightTables() {
                 p->lightOnOff[i] = 9999;
                 lightState(i,FALSE);
             
-                    PRINT_GL_ERROR_IF_ANY("initizlizeLight2.0");
-        	FW_GL_LIGHTFV(i, GL_POSITION, pos);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.1");
-        	FW_GL_LIGHTFV(i, GL_AMBIENT, As);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.2");
-        	FW_GL_LIGHTFV(i, GL_DIFFUSE, dif);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.3");
-        	FW_GL_LIGHTFV(i, GL_SPECULAR, shin);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.4");
-          	FW_GL_LIGHTF(i, GL_CONSTANT_ATTENUATION,1.0f);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.5");
-        	FW_GL_LIGHTF(i, GL_LINEAR_ATTENUATION,0.0f);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.6");
-        	FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.7");
-        	FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,0.0f);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.8");
-        	FW_GL_LIGHTF(i, GL_SPOT_BEAMWIDTH,0.0f);
-                            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.9");
-            FW_GL_LIGHTF(i, GL_LIGHT_RADIUS, 100000.0); /* just make it large for now*/ 
+		FW_GL_LIGHTFV(i, GL_SPOT_DIRECTION, pos);
+       		FW_GL_LIGHTFV(i, GL_POSITION, pos);
+       		FW_GL_LIGHTFV(i, GL_AMBIENT, As);
+       		FW_GL_LIGHTFV(i, GL_DIFFUSE, dif);
+       		FW_GL_LIGHTFV(i, GL_SPECULAR, shin);
+         	FW_GL_LIGHTF(i, GL_CONSTANT_ATTENUATION,1.0f);
+       		FW_GL_LIGHTF(i, GL_LINEAR_ATTENUATION,0.0f);
+       		FW_GL_LIGHTF(i, GL_QUADRATIC_ATTENUATION,0.0f);
+       		FW_GL_LIGHTF(i, GL_SPOT_CUTOFF,0.0f);
+       		FW_GL_LIGHTF(i, GL_SPOT_BEAMWIDTH,0.0f);
+           	FW_GL_LIGHTF(i, GL_LIGHT_RADIUS, 100000.0); /* just make it large for now*/ 
             
-            PRINT_GL_ERROR_IF_ANY("initizlizeLight2.10");
+            	PRINT_GL_ERROR_IF_ANY("initizlizeLight2.10");
         }
         lightState(HEADLIGHT_LIGHT, TRUE);
 
@@ -1500,4 +1529,15 @@ struct Multi_Vec3f *getCoordinate (struct X3D_Node *innode, char *str) {
 	return NULL;
 }
 
+
+
+/*
+void printLTDebug(char * fn, int ln)
+{
+ ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+ConsoleMessage ("headlight pos %f %f %f %f at %s:%d",
+p->light_pos[HEADLIGHT_LIGHT][0],p->light_pos[HEADLIGHT_LIGHT][1],
+                p->light_pos[HEADLIGHT_LIGHT][2],p->light_pos[HEADLIGHT_LIGHT][3],fn,ln);
+}
+*/
 
