@@ -1081,7 +1081,9 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
                 tg->Mainloop.BrowserFPS = 25.0 / (TickTime()-p->BrowserStartTime);
                 setMenuFps((float)tg->Mainloop.BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
                 /* printf ("fps %f tris %d, rootnode children %d \n",p->BrowserFPS,p->trisThisLoop, X3D_GROUP(rootNode)->children.n);  */
-                /* ConsoleMessage("fps %f tris %d\n",p->BrowserFPS,p->trisThisLoop);   */
+
+                //ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop); 
+
 
 		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  */
 

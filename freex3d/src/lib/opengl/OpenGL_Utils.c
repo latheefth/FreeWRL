@@ -2688,7 +2688,7 @@ bool fwl_initialize_GL()
     
 	/* keep track of light states; initial turn all lights off except for headlight */
 	initializeLightTables();
-    
+   
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c1");
     
 
@@ -3018,6 +3018,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	}
 #endif
 
+	//ConsoleMessage ("KOW1 called from %s:%d",file,line);
+
 	/* get rid of sensor events */
 	resetSensorEvents();
 
@@ -3032,20 +3034,23 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	gglobal()->resources.root_res = NULL;
 
 	/* mark all rootNode children for Dispose */
-	for (i=0; i<rootNode()->children.n; i++) {
-		markForDispose(rootNode()->children.p[i], TRUE);
+	if (rootNode() != NULL) {
+		if ((rootNode()->children.p) != NULL) {
+			for (i=0; i<rootNode()->children.n; i++) {
+				markForDispose(rootNode()->children.p[i], TRUE);
+			}
+		}
+
+
+		/* stop rendering */
+		rootNode()->children.n = 0;
 	}
-
-
-	/* stop rendering */
-	rootNode()->children.n = 0;
 
 	/* close the Console Message system, if required. */
 	closeConsoleMessage();
 
 	/* occlusion testing - zero total count, but keep MALLOC'd memory around */
 	zeroOcclusion();
-
 
 	/* clock events - stop them from ticking */
 	kill_clockEvents();
@@ -3067,7 +3072,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();
 	#endif
-
 
 	#if !defined(EXCLUDE_EAI)
 	/* free EAI */

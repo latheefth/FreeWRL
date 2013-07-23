@@ -879,7 +879,7 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry)
 #if !defined(HAVE_PTHREAD_CANCEL)
 void Texture_thread_exit_handler(int sig)
 { 
-    ConsoleMessage("Texture_thread_exit_handler: textureThread exiting - maybe should cleanup?");
+    ConsoleMessage("Texture_thread_exit_handler: No pTheadCancel - textureThread exiting - maybe should cleanup? Should be done but need to check some rainy day");
     pthread_exit(0);
 }
 #endif //HAVE_PTHREAD_CANCEL
