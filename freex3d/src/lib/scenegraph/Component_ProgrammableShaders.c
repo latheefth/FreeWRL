@@ -103,6 +103,7 @@ FIELDTYPE_MFVec4d
 #include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
 
+#define NEED_TO_REIMPLEMENT_X3D_SHADERS_NODE
 #ifndef NEED_TO_REIMPLEMENT_X3D_SHADERS_NODE
 static bool printedMsg = false;
 void render_ComposedShader (struct X3D_ComposedShader *node) {
@@ -166,48 +167,14 @@ static void shaderErrorLog(GLuint myShader) {
 }
 
 
-/* common code to compile and link shaders */
-#define COMPILE_IF_VALID(subField)  \
-	if (node->isValid) { \
-		GLint success; \
-		GLuint myVertexShader = 0; \
-		GLuint myFragmentShader= 0; \
-		 \
- \
-		if (haveVertShaderText) { \
-			myVertexShader = CREATE_SHADER (VERTEX_SHADER);	 \
-			SHADER_SOURCE(myVertexShader, node->subField.n, (const GLchar **) vertShaderSource, NULL); \
-			COMPILE_SHADER(myVertexShader); \
-			GET_SHADER_INFO(myVertexShader, COMPILE_STATUS, &success); \
-			if (!success) { \
-				shaderErrorLog(myVertexShader); \
-				node->isValid = FALSE; \
-			} else { \
-				ATTACH_SHADER(myProgram, myVertexShader); \
-			} \
-		} \
-		 \
-		if (haveFragShaderText) {	 \
-			myFragmentShader = CREATE_SHADER (FRAGMENT_SHADER);	 \
-			SHADER_SOURCE(myFragmentShader, node->subField.n,(const GLchar **)  fragShaderSource, NULL); \
-			COMPILE_SHADER(myFragmentShader); \
- \
-			GET_SHADER_INFO(myFragmentShader, COMPILE_STATUS, &success); \
-			if (!success) { \
-				shaderErrorLog(myFragmentShader); \
-				node->isValid = FALSE; \
-			} else { \
-				ATTACH_SHADER(myProgram, myFragmentShader); \
-			} \
-		} \
-	}
 
-#define COMPILE_SHADER_PARTS(myNodeType, myField) \
+
+#define LOCATE_SHADER_PARTS(myNodeType, myField) \
 		for (i=0; i<node->myField.n; i++) { \
 			struct X3D_##myNodeType *prog; \
 			prog = (struct X3D_##myNodeType *) node->myField.p[i]; \
-			vertShaderSource[i] = ""; \
-			fragShaderSource[i] = ""; \
+			vertShaderSource[i] = NULL; \
+			fragShaderSource[i] = NULL; \
  \
 			if (prog!=NULL) { \
 				if (prog->_nodeType == NODE_##myNodeType) { \
@@ -244,46 +211,6 @@ static void shaderErrorLog(GLuint myShader) {
 			} \
 		} 
 
-#ifdef GL_VERSION_2_0
-	#define LINK_IF_VALID \
-		if (node->isValid) { \
-			GLint success; \
-			/* link the shader programs together */ \
-			LINK_SHADER(myProgram); \
-			glGetProgramiv(myProgram, GL_LINK_STATUS, &success); \
-			if (!success) { \
-				GLchar infoLog[MAX_INFO_LOG_SIZE]; \
-				glGetProgramInfoLog(myProgram, MAX_INFO_LOG_SIZE, NULL, infoLog); \
-				printf ("problem with Shader Program link: %s\n",infoLog); \
-				node->isValid = FALSE; \
-			} \
-			/* does the program get a thumbs up? */	 \
-			glValidateProgram (myProgram); \
-			glGetProgramiv(myProgram, GL_VALIDATE_STATUS, &success); \
-			if (!success) { \
-				GLchar infoLog[MAX_INFO_LOG_SIZE]; \
-				glGetProgramInfoLog(myProgram, MAX_INFO_LOG_SIZE, NULL, infoLog); \
-				printf ("problem with Shader Program Validate: %s\n",infoLog); \
-				node->isValid = FALSE; \
-			} \
-			if (node->__shaderIDS.n == 0) { \
-				node->__shaderIDS.n = 1; \
-				node->__shaderIDS.p = MALLOC(GLint *, sizeof (GLint)); \
-				node->__shaderIDS.p[0] = (int)myProgram; \
-			} \
-		}
-#else
-	#define LINK_IF_VALID \
-		if (node->isValid) { \
-			/* link the shader programs together */ \
-			LINK_SHADER(myProgram); \
-			if (node->__shaderIDS.n == 0) { \
-				node->__shaderIDS.n = 1; \
-				node->__shaderIDS.p = MALLOC(GLint *, sizeof (GLint)); \
-				node->__shaderIDS.p[0] = (int)myProgram; \
-			} \
-		}
-#endif
 
 /* do type checking of shader and field variables when initializing interface */
 static int shader_checkType(struct FieldDecl * myField,
@@ -870,13 +797,13 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 					printf ("ProgramShader, activate %d isSelected %d isValid %d TRUE %d FALSE %d\n",
 						X3D_PROGRAMSHADER(node)->activate,X3D_PROGRAMSHADER(node)->isSelected,
 						X3D_PROGRAMSHADER(node)->isValid, TRUE, FALSE);
-					printf ("runningShader %d, myShader %d\n",getAppearanceProperties()->currentShader, X3D_PROGRAMSHADER(node)->__shaderIDS.p[0]);
+					//printf ("runningShader %d, myShader %d\n",getAppearanceProperties()->currentShader, X3D_PROGRAMSHADER(node)->__shaderIDS.p[0]);
 					#endif
 
 					struct X3D_ShaderProgram *part = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
 
 					#ifdef SHADERVERBOSE
-					printf ("sendInitial, have part %d\n",part);
+					printf ("sendInitial, have part %p\n",part);
 					#endif
 
 					send_fieldToShader(myShader, X3D_NODE(part));
@@ -904,13 +831,12 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	DEBUG_SHADER("called compile_ComposedShader(%p)\n",(void *)node);
 	printf("called compile_ComposedShader(%p)\n",(void *)node);
-	#ifdef HAVE_SHADERS
 	{
 		/* an array of text pointers, should contain shader source */
 		GLchar **vertShaderSource;
 		GLchar **fragShaderSource;
 		int i;
-		GLuint myProgram;
+
 		/* do we have anything to compile? */
 		int haveVertShaderText; 
 		int haveFragShaderText; 
@@ -922,7 +848,14 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		/* initialization */
 		haveVertShaderText = FALSE;
 		haveFragShaderText = FALSE;
-		myProgram = CREATE_PROGRAM;
+        // might be set in appearance already
+        if (node->_shaderTableEntry == -1) node->_shaderTableEntry = getNextFreeUserDefinedShaderSlot();
+        
+        if (node->_shaderTableEntry < 0) {
+            ConsoleMessage ("out of user defined shader slots - can not run");
+            MARK_NODE_COMPILED
+            return;
+        }
 
 		vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n); 
 		fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n);
@@ -934,18 +867,23 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		SUPPORT_GLSL_ONLY
 		
 		/* ok so far, go through the parts */
-		COMPILE_SHADER_PARTS(ShaderPart,parts)
+		LOCATE_SHADER_PARTS(ShaderPart,parts)
 	
-		/* compile shader, if things are ok to here */
-		COMPILE_IF_VALID(parts)
-		LINK_IF_VALID
+        //ConsoleMessage("parts count %d",node->parts.n);
+        //ConsoleMessage ("vertex source 0 is %s",vertShaderSource[0]);
+        //ConsoleMessage ("fragment source 0 is %s",fragShaderSource[1]);
+        
+        if (node->isValid) {
+                sendShaderTextToEngine(node->_shaderTableEntry,node->parts.n,vertShaderSource,fragShaderSource);
+        } else {
+            FREE_IF_NZ(vertShaderSource);
+            FREE_IF_NZ(fragShaderSource);
+        }
 
 		MARK_NODE_COMPILED
 	}
-	#endif	
 }
 void compile_ProgramShader (struct X3D_ProgramShader *node) {
-	#ifdef HAVE_SHADERS
 		/* an array of text pointers, should contain shader source */
 		GLchar **vertShaderSource;
 		GLchar **fragShaderSource;
@@ -974,42 +912,37 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		SUPPORT_GLSL_ONLY
 			
 		/* ok so far, go through the programs */
-		COMPILE_SHADER_PARTS(ShaderProgram,programs)
+		LOCATE_SHADER_PARTS(ShaderProgram,programs)
 	
-		/* compile shader, if things are ok to here */
-		COMPILE_IF_VALID(programs)
-		LINK_IF_VALID
+        if (node->isValid) {
+            sendShaderTextToEngine(node->_shaderTableEntry,node->programs.n,vertShaderSource,fragShaderSource);
+        } else {
+            FREE_IF_NZ(vertShaderSource);
+            FREE_IF_NZ(fragShaderSource);
+        }
+
 
 		MARK_NODE_COMPILED
-	#endif	
 }
+
 void compile_PackagedShader (struct X3D_PackagedShader *node) {
-	#ifdef HAVE_SHADERS
 		ConsoleMessage ("found PackagedShader, do not support this structure, as we support only GLSL");
 		node->isValid = FALSE;
 		MARK_NODE_COMPILED
-	#endif
 }
 
 
 /*****************************************************************/
 void render_ComposedShader (struct X3D_ComposedShader *node) {
-	#ifdef HAVE_SHADERS
-		DEBUG_RENDER("render_ComposedShader: calling COMPILE_IF_REQUIRED\n");
 		COMPILE_IF_REQUIRED
-		DEBUG_RENDER("render_ComposedShader: calling RUN_IF_VALID\n");
-		RUN_IF_VALID
-	#endif
+		//JAS RUN_IF_VALID
 }
 void render_PackagedShader (struct X3D_PackagedShader *node) {
-	#ifdef HAVE_SHADERS
 		COMPILE_IF_REQUIRED
-	#endif
 }
+
 void render_ProgramShader (struct X3D_ProgramShader *node) {
-	#ifdef HAVE_SHADERS
 		COMPILE_IF_REQUIRED
-		RUN_IF_VALID
-	#endif
+		//JAS RUN_IF_VALID
 }
 #endif //NEED_TO_REIMPLEMENT

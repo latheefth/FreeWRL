@@ -34,6 +34,7 @@ void enableGlobalShader(s_shader_capabilities_t *);
 
 void turnGlobalShaderOff(void);
 
+/* done in display.h now 
 #ifdef GL_ES_VERSION_2_0
 	#define MAX_LIGHTS 2
 	#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
@@ -41,7 +42,7 @@ void turnGlobalShaderOff(void);
 	#define MAX_LIGHTS 8
 	#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
 #endif
-
+*/
 
 #ifdef GL_VERSION_2_0
 	#define TURN_GLOBAL_SHADER_OFF \
@@ -88,8 +89,8 @@ void render_node(struct X3D_Node *node);
 struct X3D_Anchor *AnchorsAnchor();
 void setAnchorsAnchor(struct X3D_Anchor* anchor);
 
-void lightState(GLint light, int status);
-void lightType(GLint light, int type);
+void setLightState(GLint light, int status);
+void setLightType(GLint light, int type);
 void saveLightState(int *ls);
 void restoreLightState(int *ls);
 void fwglLightfv (int light, int pname, GLfloat *params);

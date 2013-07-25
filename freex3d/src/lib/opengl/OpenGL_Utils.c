@@ -148,7 +148,9 @@ typedef struct pOpenGL_Utils{
 #endif
     
     struct Vector *myShaderTable; /* list of all active shaders requested by input */
-
+	int userDefinedShaderCount;	/* if the user actually has a Shader node */
+    char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
+    char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
     
     bool usePhongShaders; /* phong shaders == better rendering, but slower */
 }* ppOpenGL_Utils;
@@ -161,6 +163,7 @@ void *OpenGL_Utils_constructor(){
 	memset(v,0,sizeof(struct pOpenGL_Utils));
 	return v;
 }
+
 void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 {
 	//public
@@ -199,13 +202,17 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
         // create room for some shaders. The order in this table is
         // the order in which they are first referenced.
         p->myShaderTable = newVector(struct shaderTableEntry *, 8);
-        
+
+        // userDefinedShaders - assume 0, unless the user is a geek.
+        p->userDefinedShaderCount = 0;
+                
         // usePhongShaders set to false for now. Can be changed
         // during runtime, then re-build shaders.
         p->usePhongShaders = false;
         //ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 	}
 }
+
 #ifdef GLEW_MX
 GLEWContext * glewGetContext()
 {
@@ -214,6 +221,42 @@ GLEWContext * glewGetContext()
 }
 #endif
 
+// we allow a certain number of user-defined shaders to (somehow) fit in here.
+int getNextFreeUserDefinedShaderSlot() {
+    int rv;
+    ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+
+    if (p->userDefinedShaderCount == MAX_USER_DEFINED_SHADERS) return -1;
+    
+    rv = p->userDefinedShaderCount;
+    p->userDefinedShaderCount++;
+    
+    return rv;
+}
+
+// from a user defined shader, we capture the shader text here.
+void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** fragSource) {
+    char *fs = NULL;
+    char *vs = NULL;
+    int i;
+    
+    ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+    
+    
+    // find the non-null for each shader text.
+    for (i=0; i<parts; i++) {
+        //ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
+        if (vertSource[i] != NULL) vs=vertSource[i];
+        if (fragSource[i] != NULL) fs=fragSource[i];
+    }
+    
+    p->userDefinedFragmentShader[ste] = fs;
+    p->userDefinedVertexShader[ste] = vs;    
+}
 
 #if defined (_ANDROID)
 
@@ -1226,6 +1269,13 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 
 /* find a shader that matches the capabilities requested. If no match, recreate it */
 s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
+
+    /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
+    #ifdef GL_SHADER_COMPILER
+    GLboolean b;
+    static bool haveDoneThis = false;
+    #endif
+
     int i;
 
     ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
@@ -1239,25 +1289,23 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
         }
     }
 
-// debugging
-        
-/*
+    
+    // if here, we did not find the shader already compiled for us.
+    
+    /*
     ConsoleMessage ("getMyShader, not found, have to create");
     for (i=0; i<vectorSize(myShaderTable); i++) {
         struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
         ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
      }
-*/
+     */
+
         
+    ConsoleMessage ("getMyShader, not found, have to create");
 
 
     /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
-
 #ifdef GL_SHADER_COMPILER
-	{  //msc_ver cant define variables mid {} scope, so we start a mini scope here
-      GLboolean b;
-      static bool haveDoneThis = false;
-
       glGetBooleanv(GL_SHADER_COMPILER,&b);
       if (!haveDoneThis) {
           haveDoneThis = true;
@@ -1266,7 +1314,6 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 	      return;
           }
       }
-	}
 #endif
 
 
@@ -1462,8 +1509,26 @@ struct fw_MaterialParameters {\n\
   vec4 specular;\n\
   float shininess;\n\
 };\n\
+uniform float lightRadius[MAX_LIGHTS];\n\
 uniform int lightState[MAX_LIGHTS];\n\
 uniform int lightType[MAX_LIGHTS];\n\
+struct fw_LightSourceParameters { \n\
+  vec4 ambient;  \n\
+  vec4 diffuse;   \n\
+  vec4 specular; \n\
+  vec4 position;   \n\
+  vec4 halfVector;  \n\
+  vec3 spotDirection; \n\
+  float spotExponent; \n\
+  float spotCutoff; \n\
+  float spotCosCutoff; \n\
+  float constantAttenuation; \n\
+  float linearAttenuation;  \n\
+ float quadraticAttenuation; };\n\
+\n\
+\n\
+uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
+/* old way - remove  \n\
 uniform float light_linAtten[MAX_LIGHTS];    \n\
 uniform float light_constAtten[MAX_LIGHTS];    \n\
 uniform float light_quadAtten[MAX_LIGHTS];    \n\
@@ -1473,8 +1538,21 @@ uniform vec4 lightAmbient[MAX_LIGHTS];\n\
 uniform vec4 lightDiffuse[MAX_LIGHTS];\n\
 uniform vec4 lightPosition[MAX_LIGHTS];\n\
 uniform vec4 lightSpotDirection[MAX_LIGHTS];\n\
-uniform vec4 lightSpecular[MAX_LIGHTS];\n\
-uniform float lightRadius[MAX_LIGHTS];\n";
+uniform vec4 lightSpecular[MAX_LIGHTS]; */ \n\
+";
+
+/* replace:
+ linearAttenuation uniform float light_linAtten[MAX_LIGHTS];    \n\
+ constantAttenuation		uniform float light_constAtten[MAX_LIGHTS];    \n\
+ quadraticAttenuation	uniform float light_quadAtten[MAX_LIGHTS];    \n\
+ spotCutoff				uniform float lightSpotCutoffAngle[MAX_LIGHTS];    \n\
+ spotExponent			uniform float lightSpotBeamWidth[MAX_LIGHTS];    \n\
+ ambient					uniform vec4 lightAmbient[MAX_LIGHTS];\n\
+ diffuse					uniform vec4 lightDiffuse[MAX_LIGHTS];\n\
+ position				uniform vec4 lightPosition[MAX_LIGHTS];\n\
+ spotDirection			uniform vec4 lightSpotDirection[MAX_LIGHTS];\n\
+ specular				uniform vec4 lightSpecular[MAX_LIGHTS];\n\
+*/
 
 
 static const GLchar *ADSLLightModel = "\n\
@@ -1508,11 +1586,11 @@ if (backFacing) { \n \
   /* apply the lights to this material */\n\
   for (i=0; i<MAX_LIGHTS; i++) {\n\
     if (lightState[i] == 1) {\n\
-      vec4 myLightDiffuse = lightDiffuse[i];\n\
-      vec4 myLightAmbient = lightAmbient[i];\n\
-      vec4 myLightSpecular = lightSpecular[i];\n\
-      vec4 myLightPosition = lightPosition[i];\n\
-	  vec3 myLightDir = lightSpotDirection[i].xyz; \n\
+      vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
+      vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
+      vec4 myLightSpecular = fw_LightSource[i].specular;\n\
+      vec4 myLightPosition = fw_LightSource[i].position; \n\
+	  vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
 	  int myLightType = lightType[i]; \n\
       vec3 eyeVector = normalize(myPosition.xyz);\n\
       vec3  VP;     /* vector of light direction and distance */\n\
@@ -1524,7 +1602,7 @@ if (backFacing) { \n \
       vec3 halfVector = normalize(L - eyeVector);\n\
       /* normal dot light half vector */\n\
       float nDotHV = max(dot(normal,halfVector),0.0);\n\
-      /*if (lightSpotCutoffAngle[i]!=0.0) {*/\n\
+      /*if (fw_LightSource[i].spotCutoff!=0.0) {*/\n\
       if (myLightType==1) {\n\
         /* SpotLight */\n\
         float spotDot;\n\
@@ -1540,10 +1618,10 @@ if (backFacing) { \n \
             powerFactor *= myMat.shininess;\n\
           }\n\
         }\n\
-        attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d * light_quadAtten[i] *d *d);\n\
+        attenuation = 1.0/(light_constAtten[i] + fw_LightSource[i].linearAttenuation[i] * d * fw_LightSource[i].quadraticAttenuation *d *d);\n\
         spotDot = dot (-L,myLightDir);\n\
         /* check against spotCosCutoff */\n\
-		if (spotDot > lightSpotCutoffAngle[i]) {\n\
+		if (spotDot > fw_LightSource[i].spotCut) {\n\
           spotAttenuation = pow(spotDot,lightSpotBeamWidth[i]);\n\
         }\n\
         attenuation *= spotAttenuation;\n\
@@ -1582,7 +1660,7 @@ if (backFacing) { \n \
             attenuation = (myMat.shininess-128.0);\n\
           }\n\
           /* this is actually the SFVec3f attenuation field */\n\
-          attenuation = 1.0/(light_constAtten[i] + light_linAtten[i] * d* light_quadAtten[i] *d *d);\n\
+          attenuation = 1.0/(light_constAtten[i] + fw_LightSource[i].linearAttenuation * d* fw_LightSource[i].quadraticAttenuation *d *d);\n\
           /* diffuse light computation */\n\
           diffuse += nDotL* myMat.diffuse*myLightDiffuse * attenuation;\n\
           /* ambient light computation */\n\
@@ -1605,7 +1683,7 @@ if (backFacing) { \n \
 
 
 /* GL_ES and Desktop GL are different... */
-#if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
+#if defined (GL_ES_VERSION_2_0)
 static const GLchar *fragHighPrecision = "\n#ifdef GL_ES\nprecision highp float;\n#endif\n ";
 static const GLchar *fragMediumPrecision = "\n#ifdef GL_ES\nprecision mediump float;\n#endif\n ";
 #endif
@@ -1832,7 +1910,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     /* Phong shading - use the highest we have */
     /* GL_ES_VERSION_2_0 has these definitions */
 
-#if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
+#if defined (GL_ES_VERSION_2_0)
     bool haveHighPrecisionFragmentShaders = false;
     GLint range[2]; GLint precision;
 
@@ -1851,10 +1929,10 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	}
 #else
     // ConsoleMessage ("seem to not have GL_MEDIUM_FLOAT or GL_HIGH_FLOAT");
-#endif // GL_HIGH_FLOAT or GL_MEDIUM_FLOAT
+#endif // GL_ES_VERSION_2_0 for GL_HIGH_FLOAT or GL_MEDIUM_FLOAT
 
-	#ifdef VERBOSE
-        { /* debugging */
+	#if defined (VERBOSE) && defined (GL_ES_VERSION_2_0)
+        { /* debugging - only */
         GLboolean b;
 
         glGetBooleanv(GL_SHADER_COMPILER,&b);
@@ -1889,8 +1967,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_INT, range, &precision);
         ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
         }
-	#endif //VERBOSE
-//	#endif // GL_ES_VERSION_2_0
+	#endif //VERBOSE for GL_ES_VERSION_2_0
 
     #ifdef VERBOSE
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
@@ -1918,7 +1995,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     vertexSource[vertexMainEnd] = vertEnd;
     
     /* Cross shader Fragment bits - GL_ES_VERSION_2_0 has this */
-    #if defined(GL_HIGH_FLOAT) && defined (GL_MEDIUM_FLOAT)
+    #if defined(GL_ES_VERSION_2_0)
+	fragmentSource[fragmentGLSLVersion] = "#version 100\n";
+	vertexSource[vertexGLSLVersion] = "#version 100\n";
 	if (haveHighPrecisionFragmentShaders)  {
 		fragmentSource[fragmentPrecisionDeclare] = fragHighPrecision;
 		//ConsoleMessage("have high precision fragment shaders");
@@ -1926,8 +2005,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		fragmentSource[fragmentPrecisionDeclare] = fragMediumPrecision;
 		//ConsoleMessage("have medium precision fragment shaders");
 	}
-
-
+    #else
+	fragmentSource[fragmentGLSLVersion] = "#version 120\n";
+	vertexSource[vertexGLSLVersion] = "#version 120\n";
     #endif
 
     fragmentSource[fragMaxLightsDeclare] = maxLights;
@@ -2083,9 +2163,45 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentHatchPositionDeclare] = varyingHatchPosition;
             fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
-        }  
+        } 
+    
+    // user defined shaders
+    if (whichOne >= USER_DEFINED_SHADER_1) {
+        int me = 0;
+        ppOpenGL_Utils p;
+        ttglobal tg = gglobal();
+        p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+        
+        switch (whichOne) {
+            case USER_DEFINED_SHADER_1: me = 0; break;
+            case USER_DEFINED_SHADER_2: me = 1; break;
+            case USER_DEFINED_SHADER_3: me = 2; break;
+            case USER_DEFINED_SHADER_4: me = 3; break;
+        }
+        ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
+        
+        // remove the following:
+        vertexSource[vertexMainStart] = "#define fttransform (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex)\n \
+                    #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n \
+                    #define gl_Normal fw_Normal\n";    
+        vertexSource[vertexPositionCalculation] = "";
+        vertexSource[vertexMainEnd] = "";
+        //vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+        fragmentSource[fragmentMainStart] = "";
+        fragmentSource[fragmentMainEnd] = "";
+        vertexSource[vertexLightDefines] = lightDefines;
 
-	#ifdef VERBOSE
+        // add the user text
+        vertexSource[vertexNormalDeclare] = vertNormDec;
+        vertexSource[vertexLightDefines] = lightDefines;
+        fragmentSource[fragmentUserDefinedInput] = p->userDefinedFragmentShader[me];
+        vertexSource[vertexUserDefinedInput] = p->userDefinedVertexShader[me];    
+
+        
+    }
+    
+        
+    #ifdef VERBOSE
 	/* print out the vertex source here */
 		{
 			vertexShaderResources_t x1;
@@ -2093,13 +2209,13 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             int i;
 
 			ConsoleMessage ("Vertex source:\n");
-			for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) {
+			for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++) {
                     if (strlen(vertexSource[x1])>0)
 				ConsoleMessage(vertexSource[x1]); 
         }
 			ConsoleMessage("Fragment Source:\n");
             i=0;
-			for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) {
+			for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++) {
 				if (strlen(fragmentSource[x2])>0)
                 ConsoleMessage(fragmentSource[x2]); 
             }
@@ -2122,15 +2238,16 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	const GLchar  *fragmentSource[fragmentEndMarker];
    	vertexShaderResources_t x1;
 	fragmentShaderResources_t x2; 
-    
+  
+
 #ifdef VERBOSE
         ConsoleMessage ("makeAndCompileShader called");
 #endif //VERBOSE
 
    	/* initialize shader sources to blank strings, later we'll fill it in */
-	for (x1=vertexPrecisionDeclare; x1<vertexEndMarker; x1++) 
+	for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++) 
 		vertexSource[x1] = ""; 
-	for (x2=fragmentPrecisionDeclare; x2<fragmentEndMarker; x2++) 
+	for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++) 
 		fragmentSource[x2] = ""; 
 
 
@@ -2233,25 +2350,86 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
         me->lightState = GET_UNIFORM(myProg,"lightState");
         me->lightType = GET_UNIFORM(myProg,"lightType");
-        me->lightAmbient = GET_UNIFORM(myProg,"lightAmbient");
-        me->lightDiffuse = GET_UNIFORM(myProg,"lightDiffuse");
-        me->lightSpecular = GET_UNIFORM(myProg,"lightSpecular");
-        me->lightPosition = GET_UNIFORM(myProg,"lightPosition");
-	me->lightConstAtten = GET_UNIFORM(myProg,"light_constAtten");
-	me->lightLinAtten = GET_UNIFORM(myProg, "light_linAtten");
-	me->lightQuadAtten = GET_UNIFORM(myProg,"light_quadAtten");
-	me->lightSpotCutoffAngle = GET_UNIFORM(myProg, "lightSpotCutoffAngle");
-	me->lightSpotBeamWidth = GET_UNIFORM(myProg, "lightSpotBeamWidth");
+        me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
+  
     
-	me->lightSpotDir = GET_UNIFORM(myProg, "lightSpotDirection");
-    me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
+    /* get lights in a more normal OpenGL GLSL format */
+    
+    /*
+     struct gl_LightSourceParameters 
+     {   
+        vec4 ambient;              // Aclarri   
+        vec4 diffuse;              // Dcli   
+        vec4 specular;             // Scli   
+        vec4 position;             // Ppli   
+        vec4 halfVector;           // Derived: Hi   
+        vec3 spotDirection;        // Sdli   
+        float spotExponent;        // Srli   
+        float spotCutoff;          // Crli                                
+        float spotCosCutoff;       // Derived: cos(Crli)                   
+        float constantAttenuation; // K0   
+        float linearAttenuation;   // K1   
+        float quadraticAttenuation;// K2  
+     };    
+     
+     
+     uniform gl_LightSourceParameters gl_LightSource[gl_MaxLights];
+     */
 
+    {
+        char uniformName[100];
+        me->haveLightInShader = false; 
+        
+        strcpy(uniformName,"fw_LightSource[0].");
+        for (i=0; i<MAX_LIGHTS; i++) {
+            /* go through and modify the array for each variable */
+            uniformName[15] = '0' + i;
+        
+            strcpy(&uniformName[18],"ambient");
+            //ConsoleMessage ("have uniform name request :%s:",uniformName);
+            me->lightAmbient[i] = GET_UNIFORM(myProg,uniformName);
+        
+            strcpy(&uniformName[18],"diffuse");
+            me->lightDiffuse[i] = GET_UNIFORM(myProg,uniformName);
+        
+            strcpy(&uniformName[18],"specular");
+            me->lightSpecular[i] = GET_UNIFORM(myProg,uniformName);
+        
+            strcpy(&uniformName[18],"position");
+            me->lightPosition[i] = GET_UNIFORM(myProg,uniformName);
+            
+            // flag used to determine if we have to send light position info to this shader
+            if (me->lightPosition[i] != -1) me->haveLightInShader = true;
+        
+            strcpy(&uniformName[18],"spotDirection");
+            me->lightSpotDir[i] = GET_UNIFORM(myProg,uniformName);
+        
+            strcpy(&uniformName[18],"spotExponent");   
+            me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg,uniformName);
+        
+            strcpy(&uniformName[18],"spotCutoff");  
+            me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg,uniformName);
+                        
+            strcpy(&uniformName[18],"constantAttenuation"); 
+            me->lightConstAtten[i] = GET_UNIFORM(myProg,uniformName);
+        
+            strcpy(&uniformName[18],"linearAttenuation");
+            me->lightLinAtten[i] = GET_UNIFORM(myProg,uniformName);
+        
+            strcpy(&uniformName[18],"quadraticAttenuation"); 
+            me->lightQuadAtten[i] = GET_UNIFORM(myProg,uniformName);
+        
+        }
+    }
 
+    //if (me->haveLightInShader) ConsoleMessage ("this shader HAS lightfields");
+    
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
 	me->TextureMatrix = GET_UNIFORM(myProg,"fw_TextureMatrix");
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+    
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
 
@@ -2744,7 +2922,7 @@ void BackEndClearBuffer(int which) {
 void BackEndLightsOff() {
 	int i;
 	for (i=0; i<HEADLIGHT_LIGHT; i++) {
-		lightState(i, FALSE);
+		setLightState(i, FALSE);
 	}
 }
 
@@ -5159,7 +5337,8 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	SEND_VEC4(myMaterialBackEmission,fw_BackMaterial.emission);
 	SEND_FLOAT(myMaterialBackShininess,fw_BackMaterial.shininess);
 
-	if (me->lightState != -1) sendLightInfo(me);
+	if (me->haveLightInShader) sendLightInfo(me);
+    
     /* FillProperties, LineProperty lineType */
 
 	SEND_FLOAT(pointSize,myap->pointSize);

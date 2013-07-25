@@ -30,7 +30,15 @@ Screen snapshot.
 #ifndef __FREEWRL_OPENGL_UTILS_H__
 #define __FREEWRL_OPENGL_UTILS_H__
 
+// number of Shader nodes available per invocation
+#define MAX_USER_DEFINED_SHADERS 4
+
+int getNextFreeUserDefinedShaderSlot();
+void sendShaderTextToEngine(int ste, int partsN, char ** vertSource, char ** fragSource);
+
 typedef enum vertexShaderResources {
+	vertexGLSLVersion,
+
     vertexPrecisionDeclare,
 	vertMaxLightsDeclare,
     
@@ -65,11 +73,14 @@ typedef enum vertexShaderResources {
 	vertexSimpleColourCalculation,
     vertexHatchPositionCalculation,
     
+    vertexUserDefinedInput,
+    
 	vertexMainEnd,
 	vertexEndMarker
 } vertexShaderResources_t;
 
 typedef enum fragmenShaderResources {
+	fragmentGLSLVersion,
 	fragmentPrecisionDeclare,
 	fragMaxLightsDeclare,
     
@@ -93,6 +104,8 @@ typedef enum fragmenShaderResources {
     fragmentFillPropModel,
     
 	fragmentMainStart,
+    
+    fragmentUserDefinedInput,
     
 	fragmentSimpleColourAssign,
     fragmentOneColourAssign,

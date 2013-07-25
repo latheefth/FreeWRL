@@ -70,6 +70,15 @@ Functions:
 #endif
 #endif
 
+
+#ifdef GL_ES_VERSION_2_0
+#define MAX_LIGHTS 2
+#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
+#else
+#define MAX_LIGHTS 8
+#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
+#endif
+
 /**
  * Specific platform : Mac
  */
@@ -274,7 +283,6 @@ GLEWContext * glewGetContext();
 	#define GL_SMOOTH                         0x1D01
 	#define GL_LIST_BIT                   0x00020000
 
-	#define HAVE_SHADERS
 	#define VERTEX_SHADER GL_VERTEX_SHADER
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
 	#define SHADER_SOURCE glShaderSource
@@ -360,18 +368,22 @@ typedef struct s_shader_capabilities{
 	GLint myMaterialBackEmission;
 
 	GLint pointSize;
+    
+    // do we need to send down light information?
+    bool  haveLightInShader; 
+    
 	GLint lightState;
 	GLint lightType;
-    GLint lightAmbient;
-    GLint lightDiffuse;
-    GLint lightSpecular;
-    GLint lightPosition;
-	GLint lightSpotDir;
-	GLint lightConstAtten;
-	GLint lightLinAtten;
-	GLint lightQuadAtten;
-	GLint lightSpotCutoffAngle;
-	GLint lightSpotBeamWidth;
+    GLint lightAmbient[MAX_LIGHTS];
+    GLint lightDiffuse[MAX_LIGHTS];
+    GLint lightSpecular[MAX_LIGHTS];
+    GLint lightPosition[MAX_LIGHTS];
+	GLint lightSpotDir[MAX_LIGHTS];
+	GLint lightConstAtten[MAX_LIGHTS];
+	GLint lightLinAtten[MAX_LIGHTS];
+	GLint lightQuadAtten[MAX_LIGHTS];
+	GLint lightSpotCutoffAngle[MAX_LIGHTS];
+	GLint lightSpotBeamWidth[MAX_LIGHTS];
     GLint lightRadius;
 
 	GLint ModelViewMatrix;
@@ -596,7 +608,6 @@ void resetGeometry();
 /* GLSL variables */
 /* Versions 1.5 and above have shaders */
 #ifdef GL_VERSION_2_0
-	#define HAVE_SHADERS
 	#define VERTEX_SHADER GL_VERTEX_SHADER
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER
 	#define SHADER_SOURCE glShaderSource
@@ -629,7 +640,6 @@ void resetGeometry();
 
 #else
 #ifdef GL_VERSION_1_5
-	#define HAVE_SHADERS
 	#define VERTEX_SHADER GL_VERTEX_SHADER_ARB
 	#define FRAGMENT_SHADER GL_FRAGMENT_SHADER_ARB
 	#define SHADER_SOURCE glShaderSourceARB

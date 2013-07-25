@@ -2543,6 +2543,7 @@ struct X3D_ComposedShader {
 	int __initialized;
 	struct Multi_Int32 __shaderIDS;
 	struct X3D_Node *__shaderObj;
+	int _shaderTableEntry;
 	int activate;
 	int isSelected;
 	int isValid;
@@ -5812,6 +5813,7 @@ struct X3D_PackagedShader {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *__shaderObj;
+	int _shaderTableEntry;
 	int activate;
 	int isSelected;
 	int isValid;
@@ -6088,6 +6090,7 @@ struct X3D_ProgramShader {
  	/*** node specific data: *****/
 	int __initialized;
 	struct Multi_Int32 __shaderIDS;
+	int _shaderTableEntry;
 	int activate;
 	int isSelected;
 	int isValid;

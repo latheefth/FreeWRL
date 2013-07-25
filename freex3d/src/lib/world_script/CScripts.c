@@ -430,6 +430,8 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
  resource_item_t *res;
 	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 
+    //ConsoleMessage ("script_initCodeFromUri starting");
+    
   rv = FALSE; /* initialize it */
 
  /* strip off whitespace at the beginning JAS */
@@ -446,10 +448,14 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
    ++u;
    ++v;
   }
-
+     
+     //ConsoleMessage ("so far, u is :%s:",u);
+     
   /* Is this a "data:text/plain," uri? JAS*/
   if((!*v && *u==',') || (!*v && *u==':')) {
    	if (me != NULL) {
+        ConsoleMessage ("calling script_initCode");
+        
 		return script_initCode(me, u+1); /* a script */
 	} else {
 		p->buffer = STRDUP(u+1);
@@ -531,6 +537,7 @@ char **shader_initCodeFromMFUri(const struct Multi_String* s) {
 
 	for(i=0; i!=s->n; ++i) {
 		FREE_IF_NZ(p->buffer);
+        //ConsoleMessage ("shader_initCodeFromMFUri - calling script_initCodeFromUri for index %d",i);
 		if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
    			return &p->buffer;
 		}

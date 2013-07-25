@@ -34,6 +34,13 @@ Proximity sensor macro.
 
 /*******************************************************/
 
+
+// Bit-wise operations here - these can be OR'd together to
+// create the specific shader we want.
+//
+// DO NOT MESS UP THE BITS! (look at these in binary for 
+// proper or-ing of the values)
+
 #define NO_APPEARANCE_SHADER 0x0001
 #define MATERIAL_APPEARANCE_SHADER 0x0002
 #define TWO_MATERIAL_APPEARANCE_SHADER 0x0004
@@ -55,6 +62,14 @@ Proximity sensor macro.
 
 /* CubeMapTexturing */
 #define HAVE_CUBEMAP_TEXTURE 0x00400
+
+/* Component_Shader - user-specified shaders. Currently limited in number */
+/* note we start at 0x1000 */
+
+#define USER_DEFINED_SHADER_1	0x001000
+#define USER_DEFINED_SHADER_2	0x001001
+#define USER_DEFINED_SHADER_3	0x001002
+#define USER_DEFINED_SHADER_4	0x001004
 
 
 /*******************************************************/

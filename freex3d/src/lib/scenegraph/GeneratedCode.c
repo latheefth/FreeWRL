@@ -2870,6 +2870,7 @@ const int OFFSETS_ComposedShader[] = {
 	(int) FIELDNAMES_parts, (int) offsetof (struct X3D_ComposedShader, parts),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ComposedShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___initialized, (int) offsetof (struct X3D_ComposedShader, __initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__shaderTableEntry, (int) offsetof (struct X3D_ComposedShader, _shaderTableEntry),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Cone[] = {
@@ -4340,13 +4341,14 @@ const int OFFSETS_OrthoViewpoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PackagedShader[] = {
-	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_PackagedShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_language, (int) offsetof (struct X3D_PackagedShader, language),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_url, (int) offsetof (struct X3D_PackagedShader, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isValid, (int) offsetof (struct X3D_PackagedShader, isValid),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___shaderObj, (int) offsetof (struct X3D_PackagedShader, __shaderObj),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PackagedShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_activate, (int) offsetof (struct X3D_PackagedShader, activate),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_PackagedShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_url, (int) offsetof (struct X3D_PackagedShader, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PackagedShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__shaderTableEntry, (int) offsetof (struct X3D_PackagedShader, _shaderTableEntry),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PickableGroup[] = {
@@ -4469,6 +4471,7 @@ const int OFFSETS_ProgramShader[] = {
 	(int) FIELDNAMES_programs, (int) offsetof (struct X3D_ProgramShader, programs),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ProgramShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___initialized, (int) offsetof (struct X3D_ProgramShader, __initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__shaderTableEntry, (int) offsetof (struct X3D_ProgramShader, _shaderTableEntry),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Proto[] = {
@@ -6108,6 +6111,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->parts.n=0; tmp2->parts.p=0;
 			tmp2->metadata = NULL;
 			tmp2->__initialized = FALSE;
+			tmp2->_shaderTableEntry = -1;
 			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}
@@ -8165,13 +8169,14 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_PackagedShader * tmp2;
 			tmp2 = (struct X3D_PackagedShader *) tmp;
 		/* ttmp2->v = &virt_PackagedShader;*/ 
-			tmp2->isSelected = TRUE;
 			tmp2->language = newASCIIString("");
-			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->isValid = TRUE;
 			tmp2->__shaderObj = NULL;
-			tmp2->metadata = NULL;
 			tmp2->activate = 0;
+			tmp2->isSelected = TRUE;
+			tmp2->url.n=0; tmp2->url.p=0;
+			tmp2->metadata = NULL;
+			tmp2->_shaderTableEntry = -1;
 			tmp2->_defaultContainer = FIELDNAMES_material;
 		break;
 		}
@@ -8338,6 +8343,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->programs.n=0; tmp2->programs.p=0;
 			tmp2->metadata = NULL;
 			tmp2->__initialized = FALSE;
+			tmp2->_shaderTableEntry = -1;
 			tmp2->_defaultContainer = FIELDNAMES_programs;
 		break;
 		}

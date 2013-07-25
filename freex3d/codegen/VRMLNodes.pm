@@ -2456,7 +2456,7 @@ package VRML::NodeType;
 
 	###################################################################################
 
-	#		EventUtilities Component
+	#		ProgrammableShaders Component
 
 	###################################################################################
 
@@ -2470,25 +2470,27 @@ package VRML::NodeType;
 			__shaderIDS => [MFInt32, [], initializeOnly, 0], 
 			 __shaderObj => [SFNode, NULL, initializeOnly, 0],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_shaderTableEntry => [SFInt32,-1,initializeOnly,0],
 	},"X3DShaderNode"),
+
 
 	FloatVertexAttribute => new VRML::NodeType("FloatVertexAttribute", {
 			value => [MFFloat,[],inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			name => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+			name => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			numComponents => [SFInt32, 4, initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # 1...4 valid values
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	}, "X3DVertexAttributeNode"),
 
 	Matrix3VertexAttribute => new VRML::NodeType("Matrix3VertexAttribute", {
 			value => [MFMatrix3f,[],inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			name => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+			name => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	}, "X3DVertexAttributeNode"),
 
 	Matrix4VertexAttribute => new VRML::NodeType("Matrix4VertexAttribute", {
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			value => [MFMatrix4f,[],inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			name => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+			name => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	}, "X3DVertexAttributeNode"),
 
 	PackagedShader => new VRML::NodeType("PackagedShader", {
@@ -2498,7 +2500,8 @@ package VRML::NodeType;
 			isSelected => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			isValid => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			language => [SFString,"",initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			 __shaderObj => [SFNode, NULL, initializeOnly, 0],
+			_shaderTableEntry => [SFInt32,-1,initializeOnly,0],
+			__shaderObj => [SFNode, NULL, initializeOnly, 0],
 	}, "X3DProgrammableShaderObject"),
 
 	ProgramShader => new VRML::NodeType("ProgramShader", {
@@ -2509,6 +2512,7 @@ package VRML::NodeType;
 			isValid => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			language => [SFString,"",initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__initialized => [SFBool, FALSE ,initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_shaderTableEntry => [SFInt32,-1,initializeOnly,0],
 			__shaderIDS => [MFInt32, [], initializeOnly, 0], 
 	}, "X3DProgrammableShaderObject"),
 
@@ -2516,7 +2520,7 @@ package VRML::NodeType;
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			url => [MFString, [], inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			type => [SFString,"VERTEX",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
-		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
+			_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	}, "X3DUrlObject"),
 
 	ShaderProgram => new VRML::NodeType("ShaderProgram", {
@@ -2524,9 +2528,15 @@ package VRML::NodeType;
 			url => [MFString, [], inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			type => [SFString,"",inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 			 __shaderObj => [SFNode, NULL, initializeOnly, 0],
-		_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
+			_parentResource =>[FreeWRLPTR,0,initializeOnly, 0],
 	}, "X3DUrlObject"),
 
+
+	###################################################################################
+
+	#		EventUtilities Component
+
+	###################################################################################
 
 	###################################################################################
 

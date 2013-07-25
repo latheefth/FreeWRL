@@ -1843,8 +1843,7 @@ static void render_pre() {
         FIXME: position of light sould actually be offset a little (towards the center)
         when in stereo mode. */
 
-        /*printf("calling get headlight in render_pre\n"); */
-        if (fwl_get_headlight()) lightState(HEADLIGHT_LIGHT,TRUE);
+        if (fwl_get_headlight()) setLightState(HEADLIGHT_LIGHT,TRUE);
 
 
         /* 3. Viewpoint */
@@ -2078,7 +2077,7 @@ static void render()
 
 	/*  turn light #0 off only if it is not a headlight.*/
 	if (!fwl_get_headlight()) {
-		lightState(HEADLIGHT_LIGHT,FALSE);
+		setLightState(HEADLIGHT_LIGHT,FALSE);
 	}
 
 	/*  Other lights*/
