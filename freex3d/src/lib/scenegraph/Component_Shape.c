@@ -78,9 +78,12 @@ struct matpropstruct *getAppearanceProperties(){
 }
 
 // see if the Appearance node has a valid Shader node as a child.
-bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
+static bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
     int ste = 0;
     
+    if (node==NULL) return false;
+    
+    ConsoleMessage ("hasUserDeginedShader, node ptr %p",node);
     ConsoleMessage ("hasUserDefinedShader, nodeType %s",stringNodeType(node->_nodeType));
     if (node->_nodeType == NODE_Appearance) {
         struct X3D_Appearance *ap;
