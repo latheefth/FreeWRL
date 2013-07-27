@@ -79,15 +79,17 @@ struct matpropstruct *getAppearanceProperties(){
 
 // see if the Appearance node has a valid Shader node as a child.
 static bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
-    int ste = 0;
+    int ste = -1;
     
     if (node==NULL) return false;
     
-    ConsoleMessage ("hasUserDeginedShader, node ptr %p",node);
-    ConsoleMessage ("hasUserDefinedShader, nodeType %s",stringNodeType(node->_nodeType));
+    //ConsoleMessage ("hasUserDeginedShader, node ptr %p",node);
+    //ConsoleMessage ("hasUserDefinedShader, nodeType %s",stringNodeType(node->_nodeType));
     if (node->_nodeType == NODE_Appearance) {
         struct X3D_Appearance *ap;
         POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, node, ap);
+        //ConsoleMessage ("appearance node shaders is %d %p",ap->shaders.n, ap->shaders.p);
+        
         if (ap->shaders.n != 0) {
             struct X3D_ComposedShader *cps;
             
@@ -120,6 +122,8 @@ static bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
         } 
     } 
     
+    //ConsoleMessage ("and ste is %d",ste);
+    
     // ok - did we find an integer between 0 and some MAX_SUPPORTED_USER_SHADERS value?
     if (ste != -1) {
         switch (ste){
@@ -134,7 +138,7 @@ static bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
         }
     } 
     
-    ConsoleMessage ("hasUserDefinedShader, returning %p",*shaderTableEntry);
+    //ConsoleMessage ("hasUserDefinedShader, returning %p",*shaderTableEntry);
     return (*shaderTableEntry != -1);
 }
 

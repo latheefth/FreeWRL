@@ -246,10 +246,11 @@ void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** frag
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
     
-    
+    ConsoleMessage ("sendShaderTextToEngine, parts %d",parts);
+
     // find the non-null for each shader text.
     for (i=0; i<parts; i++) {
-        //ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
+        ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
         if (vertSource[i] != NULL) vs=vertSource[i];
         if (fragSource[i] != NULL) fs=fragSource[i];
     }
@@ -1301,7 +1302,6 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
      */
 
         
-    ConsoleMessage ("getMyShader, not found, have to create");
 
 
     /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
@@ -1528,17 +1528,6 @@ struct fw_LightSourceParameters { \n\
 \n\
 \n\
 uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
-/* old way - remove  \n\
-uniform float light_linAtten[MAX_LIGHTS];    \n\
-uniform float light_constAtten[MAX_LIGHTS];    \n\
-uniform float light_quadAtten[MAX_LIGHTS];    \n\
-uniform float lightSpotCutoffAngle[MAX_LIGHTS];    \n\
-uniform float lightSpotBeamWidth[MAX_LIGHTS];    \n\
-uniform vec4 lightAmbient[MAX_LIGHTS];\n\
-uniform vec4 lightDiffuse[MAX_LIGHTS];\n\
-uniform vec4 lightPosition[MAX_LIGHTS];\n\
-uniform vec4 lightSpotDirection[MAX_LIGHTS];\n\
-uniform vec4 lightSpecular[MAX_LIGHTS]; */ \n\
 ";
 
 /* replace:
@@ -2200,7 +2189,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         
     }
     
-        
+    
     #ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -2258,7 +2247,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	/* assume the worst... */
 	(*myShader).compiledOK = FALSE;
 
-	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
+    /* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
 	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne, phongShading)) {
 		return;
 	}

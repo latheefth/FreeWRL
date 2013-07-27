@@ -934,6 +934,7 @@ void compile_PackagedShader (struct X3D_PackagedShader *node) {
 
 /*****************************************************************/
 void render_ComposedShader (struct X3D_ComposedShader *node) {
+    ConsoleMessage("render_composedShader");
 		COMPILE_IF_REQUIRED
 		//JAS RUN_IF_VALID
 }
