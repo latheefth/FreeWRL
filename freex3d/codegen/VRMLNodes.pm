@@ -2470,7 +2470,7 @@ package VRML::NodeType;
 			__shaderIDS => [MFInt32, [], initializeOnly, 0], 
 			 __shaderObj => [SFNode, NULL, initializeOnly, 0],
 			metadata => [SFNode, NULL, inputOutput, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			_shaderTableEntry => [SFInt32,-1,initializeOnly,0],
+			_shaderUserNumber => [SFInt32,-1,initializeOnly,0],
 	},"X3DShaderNode"),
 
 
@@ -2500,7 +2500,7 @@ package VRML::NodeType;
 			isSelected => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			isValid => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			language => [SFString,"",initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			_shaderTableEntry => [SFInt32,-1,initializeOnly,0],
+			_shaderUserNumber => [SFInt32,-1,initializeOnly,0],
 			__shaderObj => [SFNode, NULL, initializeOnly, 0],
 	}, "X3DProgrammableShaderObject"),
 
@@ -2512,7 +2512,7 @@ package VRML::NodeType;
 			isValid => [SFBool, TRUE,outputOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			language => [SFString,"",initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			__initialized => [SFBool, FALSE ,initializeOnly, "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			_shaderTableEntry => [SFInt32,-1,initializeOnly,0],
+			_shaderUserNumber => [SFInt32,-1,initializeOnly,0],
 			__shaderIDS => [MFInt32, [], initializeOnly, 0], 
 	}, "X3DProgrammableShaderObject"),
 

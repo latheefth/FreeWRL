@@ -78,10 +78,11 @@ struct matpropstruct *getAppearanceProperties(){
 }
 
 // see if the Appearance node has a valid Shader node as a child.
-static bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
-    int ste = -1;
+static int hasUserDefinedShader(struct X3D_Node *node) {
+#define NO_SHADER 9999
+    unsigned int rv = NO_SHADER;
     
-    if (node==NULL) return false;
+    if (node==NULL) return 0;
     
     //ConsoleMessage ("hasUserDeginedShader, node ptr %p",node);
     //ConsoleMessage ("hasUserDefinedShader, nodeType %s",stringNodeType(node->_nodeType));
@@ -102,19 +103,21 @@ static bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
             ConsoleMessage ("node type of shaders is :%s:",stringNodeType(cps->_nodeType));
             if (cps->_nodeType == NODE_ComposedShader) {
                 // might be set in compile_Shader already
-                if (cps->_shaderTableEntry == -1) cps->_shaderTableEntry = getNextFreeUserDefinedShaderSlot();
-                ste = cps->_shaderTableEntry;
+                 //s/shaderTableEntry/shaderUserNumber/
+                
+                if (cps->_shaderUserNumber == -1) cps->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+                rv = cps->_shaderUserNumber;
             } else if (cps->_nodeType == NODE_PackagedShader) {
                 // might be set in compile_Shader already
-                if (X3D_PACKAGEDSHADER(cps)->_shaderTableEntry == -1) 
-                    X3D_PACKAGEDSHADER(cps)->_shaderTableEntry = getNextFreeUserDefinedShaderSlot();
-                ste = X3D_PACKAGEDSHADER(cps)->_shaderTableEntry;
+                if (X3D_PACKAGEDSHADER(cps)->_shaderUserNumber == -1) 
+                    X3D_PACKAGEDSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+                rv = X3D_PACKAGEDSHADER(cps)->_shaderUserNumber;
             } else if (cps->_nodeType == NODE_ProgramShader) {
                 // might be set in compile_Shader already
-                if (X3D_PROGRAMSHADER(cps)->_shaderTableEntry == -1) 
-                    X3D_PROGRAMSHADER(cps)->_shaderTableEntry = getNextFreeUserDefinedShaderSlot();
+                if (X3D_PROGRAMSHADER(cps)->_shaderUserNumber == -1) 
+                    X3D_PROGRAMSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
 
-                ste = X3D_PROGRAMSHADER(cps)->_shaderTableEntry;
+                rv = X3D_PROGRAMSHADER(cps)->_shaderUserNumber;
             } else {
                 ConsoleMessage ("shader field of Appearance is a %s, ignoring",stringNodeType(cps->_nodeType));
             }
@@ -125,21 +128,21 @@ static bool hasUserDefinedShader(struct X3D_Node *node, int* shaderTableEntry) {
     //ConsoleMessage ("and ste is %d",ste);
     
     // ok - did we find an integer between 0 and some MAX_SUPPORTED_USER_SHADERS value?
-    if (ste != -1) {
-        switch (ste){
-            case 0: *shaderTableEntry=USER_DEFINED_SHADER_1; break;
-            case 1: *shaderTableEntry=USER_DEFINED_SHADER_2; break;
-            case 2: *shaderTableEntry=USER_DEFINED_SHADER_3; break;
-            case 3: *shaderTableEntry=USER_DEFINED_SHADER_4; break;
-            default: {
-                ConsoleMessage ("shader index %d invalid here",ste);
-                *shaderTableEntry = -1;
-            }
+    switch (rv){
+        case 0: rv=USER_DEFINED_SHADER_1; break;
+        case 1: rv=USER_DEFINED_SHADER_2; break;
+        case 2: rv=USER_DEFINED_SHADER_3; break;
+        case 3: rv=USER_DEFINED_SHADER_4; break;
+        case NO_SHADER: rv=0; break;
+        default: {
+            ConsoleMessage ("shader index %d invalid here",rv);
+            rv=0;
         }
-    } 
+    }
+
     
     //ConsoleMessage ("hasUserDefinedShader, returning %p",*shaderTableEntry);
-    return (*shaderTableEntry != -1);
+    return rv;
 }
 
 
@@ -657,6 +660,7 @@ void compile_Shape (struct X3D_Shape *node) {
     int hasTextureCoordinateGenerator = 0;
     int whichUnlitGeometry = 0;
     struct X3D_Node *tmpN = NULL;
+    int userDefinedShader = 0;
     
     
     POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
@@ -667,33 +671,34 @@ void compile_Shape (struct X3D_Shape *node) {
     POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->appearance,tmpN);
     
     /* first - does the shader have a shader node here? */
-    if (!hasUserDefinedShader(tmpN,&(node->_shaderTableEntry))) {
+    userDefinedShader = hasUserDefinedShader(tmpN);
     
-        /* Lines, points - can get the emission colour from an appearance node */
-        if (isUnlitGeometry) {
-            int myAppShad =  getAppearanceShader(tmpN);
+    /* Lines, points - can get the emission colour from an appearance node */
+    if (isUnlitGeometry) {
+        int myAppShad =  getAppearanceShader(tmpN);
         
-            /* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
-            if it is zero, we either have an appearance node, or we have no-material. */
-            //ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
-            if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
-                //ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
+        /* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
+        if it is zero, we either have an appearance node, or we have no-material. */
+        //ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
+        if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
+            //ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
             
-                /* which one first? */
-                if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
-                else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
-            }
-        } else {
-            /* if we have a Colour field, put this first */
-            if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
-                    whichAppearanceShader = getAppearanceShader(tmpN);
-            }
+            /* which one first? */
+            if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
+            else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
         }
+    } else {
+        /* if we have a Colour field, put this first */
+        if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
+                whichAppearanceShader = getAppearanceShader(tmpN);
+        }
+    }
+
     
         /* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
-        node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | 
-                            hasTextureCoordinateGenerator | whichUnlitGeometry);
-    }
+    node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | 
+                hasTextureCoordinateGenerator | whichUnlitGeometry | userDefinedShader);
+
         
         
     

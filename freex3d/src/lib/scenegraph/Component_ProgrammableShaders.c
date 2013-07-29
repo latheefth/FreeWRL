@@ -849,9 +849,10 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		haveVertShaderText = FALSE;
 		haveFragShaderText = FALSE;
         // might be set in appearance already
-        if (node->_shaderTableEntry == -1) node->_shaderTableEntry = getNextFreeUserDefinedShaderSlot();
+       
+        if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
         
-        if (node->_shaderTableEntry < 0) {
+        if (node->_shaderUserNumber < 0) {
             ConsoleMessage ("out of user defined shader slots - can not run");
             MARK_NODE_COMPILED
             return;
@@ -874,7 +875,7 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
         //ConsoleMessage ("fragment source 0 is %s",fragShaderSource[1]);
         
         if (node->isValid) {
-                sendShaderTextToEngine(node->_shaderTableEntry,node->parts.n,vertShaderSource,fragShaderSource);
+                sendShaderTextToEngine(node->_shaderUserNumber,node->parts.n,vertShaderSource,fragShaderSource);
         } else {
             FREE_IF_NZ(vertShaderSource);
             FREE_IF_NZ(fragShaderSource);
@@ -915,7 +916,7 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		LOCATE_SHADER_PARTS(ShaderProgram,programs)
 	
         if (node->isValid) {
-            sendShaderTextToEngine(node->_shaderTableEntry,node->programs.n,vertShaderSource,fragShaderSource);
+            sendShaderTextToEngine(node->_shaderUserNumber,node->programs.n,vertShaderSource,fragShaderSource);
         } else {
             FREE_IF_NZ(vertShaderSource);
             FREE_IF_NZ(fragShaderSource);
