@@ -322,7 +322,6 @@ bool initialize_rdr_caps()
 	}
 
 
-	rdr_caps.av_glsl_shaders = GLEW_ARB_fragment_shader;
 	rdr_caps.av_multitexture = GLEW_ARB_multitexture;
 	rdr_caps.av_occlusion_q = GLEW_ARB_occlusion_query;
 	rdr_caps.av_npot_texture = GLEW_ARB_texture_non_power_of_two;
@@ -332,9 +331,6 @@ bool initialize_rdr_caps()
 #else
 	/* Initialize renderer capabilities without GLEW */
 
-	/* Shaders */
-        rdr_caps.av_glsl_shaders = (strstr (rdr_caps.extensions, "GL_ARB_fragment_shader")!=0);
-	
 	/* Multitexturing */
 	rdr_caps.av_multitexture = (strstr (rdr_caps.extensions, "GL_ARB_multitexture")!=0);
 
@@ -431,7 +427,6 @@ void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps)
 	}
 #endif //VERBOSE
 
-	DEBUG_MSG ("Shader support:       %s\n", BOOL_STR(rdr_caps->av_glsl_shaders));
 	DEBUG_MSG ("Multitexture support: %s\n", BOOL_STR(rdr_caps->av_multitexture));
 	DEBUG_MSG ("Occlusion support:    %s\n", BOOL_STR(rdr_caps->av_occlusion_q));
 	DEBUG_MSG ("Max texture size      %d\n", rdr_caps->runtime_max_texture_size);

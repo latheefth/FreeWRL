@@ -552,15 +552,15 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_ComposedShader: {
-		*myObj = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->__shaderObj;
+		*myObj = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_ShaderProgram: {
-		*myObj = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->__shaderObj;
+		*myObj = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	case NODE_PackagedShader: {
-		*myObj = (struct Shader_Script *) X3D_PACKAGEDSHADER(node)->__shaderObj;
+		*myObj = (struct Shader_Script *) X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
 	default:
@@ -1432,11 +1432,11 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
 			ConsoleMessage ("Javascript not supported\n");
 		#endif
 	} else if (myNodeType == NODE_ComposedShader) {
-		X3D_COMPOSEDSHADER(thisNode)->__shaderObj=X3D_NODE(new_Shader_Script(thisNode));
+		X3D_COMPOSEDSHADER(thisNode)->_shaderUserDefinedFields=X3D_NODE(new_Shader_Script(thisNode));
 	} else if (myNodeType == NODE_ShaderProgram) {
-		X3D_SHADERPROGRAM(thisNode)->__shaderObj=X3D_NODE(new_Shader_Script(thisNode));
+		X3D_SHADERPROGRAM(thisNode)->_shaderUserDefinedFields=X3D_NODE(new_Shader_Script(thisNode));
 	} else if (myNodeType == NODE_PackagedShader) {
-		X3D_PACKAGEDSHADER(thisNode)->__shaderObj=X3D_NODE(new_Shader_Script(thisNode));
+		X3D_PACKAGEDSHADER(thisNode)->_shaderUserDefinedFields=X3D_NODE(new_Shader_Script(thisNode));
 	}
 
 

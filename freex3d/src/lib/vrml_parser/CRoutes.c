@@ -1152,7 +1152,7 @@ void CRoutes_RegisterSimple(
 	struct X3D_Node* from, int fromOfs,
 	struct X3D_Node* to, int toOfs,
 	int type)  {
-	/* printf ("CRoutes_RegisterSimple, registering a route of %s\n",stringFieldtypeType(type)); */
+	 //printf ("CRoutes_RegisterSimple, registering a route of %s\n",stringFieldtypeType(type)); 
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	void* interpolatorPointer;
@@ -2022,15 +2022,14 @@ static void sendScriptEventIn(int num) {
 	int to_counter;
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
     
-#ifdef HAVE_JAVASCRIPT
 	CRnodeStruct *to_ptr = NULL;
-#endif
-    
-    
+
+
 	#ifdef CRVERBOSE
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d direction %d\n",num,
 		p->CRoutes[num].direction_flag);
 	#endif
+
 
 	/* script value: 1: this is a from script route
 			 2: this is a to script route
@@ -2039,10 +2038,13 @@ static void sendScriptEventIn(int num) {
 
 	if (p->CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < p->CRoutes[num].tonode_count; to_counter++) {
-			#ifdef HAVE_JAVASCRIPT
-			struct Shader_Script *myObj;
-			to_ptr = &(p->CRoutes[num].tonodes[to_counter]);
+			
+            to_ptr = &(p->CRoutes[num].tonodes[to_counter]);
+            
 			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
+                struct Shader_Script *myObj;
+
+                #ifdef HAVE_JAVASCRIPT
 				/* this script initialized yet? We make sure that on initialization that the Parse Thread
 				   does the initialization, once it is finished parsing. */
 
@@ -2063,12 +2065,12 @@ static void sendScriptEventIn(int num) {
 				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 				mark_script(myObj->num);
 				getField_ToJavascript((int)num,to_ptr->foffset);
+                #endif /* HAVE_JAVASCRIPT */
 			} else {
-				getField_ToShader((int)num);
+				getField_ToShader(to_ptr->routeToNode, num);
 			}
-			#else
-				getField_ToShader((int)num);
-			#endif /* HAVE_JAVASCRIPT */
+			
+
 		}
 	} else {
 		#ifdef CRVERBOSE 
@@ -2255,9 +2257,9 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 				switch(fromNode->_nodeType) 
 				{ 
 					case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(fromNode)->__scriptObj); break;
-					case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->__shaderObj); break;
-					case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->__shaderObj); break;
-					case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->__shaderObj); break;
+					case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->_shaderUserDefinedFields); break;
+					case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->_shaderUserDefinedFields); break;
+					case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->_shaderUserDefinedFields); break;
 				}
 				sfield= vector_get(struct ScriptFieldDecl*, shader->fields, fromOffset);
 				fromAny = &sfield->value;
@@ -2448,9 +2450,9 @@ void propagate_events_B() {
 						switch(fromNode->_nodeType) 
 						{ 
 							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(fromNode)->__scriptObj); break;
-							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->__shaderObj); break;
-							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->__shaderObj); break;
-							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->__shaderObj); break;
+							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->_shaderUserDefinedFields); break;
+							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->_shaderUserDefinedFields); break;
+							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->_shaderUserDefinedFields); break;
 						}
 						sfield= vector_get(struct ScriptFieldDecl*, shader->fields, fromOffset);
 						fromAny = &sfield->value;
@@ -2568,15 +2570,14 @@ void propagate_events_B() {
 						case NODE_PackagedShader:
 						case NODE_Script:
 							{
-								struct X3D_Script* scr = (struct X3D_Script*)toNode;
 								struct Shader_Script* shader = NULL;
 								struct ScriptFieldDecl* sfield;
 								switch(toNode->_nodeType) 
 								{ 
   									case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(toNode)->__scriptObj); break;
-  									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->__shaderObj); break;
-  									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->__shaderObj); break;
-  									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->__shaderObj); break;
+  									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->_shaderUserDefinedFields); break;
+  									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->_shaderUserDefinedFields); break;
+  									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->_shaderUserDefinedFields); break;
 								}
 								sfield= vector_get(struct ScriptFieldDecl*, shader->fields, toOffset);
 								toAny = &sfield->value;
@@ -2712,11 +2713,11 @@ void propagate_events_B() {
 								struct Shader_Script* shader;
 								switch(toNode->_nodeType) 
 								{ 
-  									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->__shaderObj); break;
-  									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->__shaderObj); break;
-  									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->__shaderObj); break;
+  									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->_shaderUserDefinedFields); break;
+  									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->_shaderUserDefinedFields); break;
+  									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->_shaderUserDefinedFields); break;
 								}
-								getField_ToShader(shader->num);
+								getField_ToShader(toNode, shader->num);
 								havinterp = TRUE;
 							}
 							break;

@@ -246,11 +246,9 @@ void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** frag
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
     
-    ConsoleMessage ("sendShaderTextToEngine, parts %d",parts);
-
     // find the non-null for each shader text.
     for (i=0; i<parts; i++) {
-        ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
+        //ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
         if (vertSource[i] != NULL) vs=vertSource[i];
         if (fragSource[i] != NULL) fs=fragSource[i];
     }
@@ -1279,6 +1277,8 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 
     int i;
 
+
+
     ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
     struct Vector *myShaderTable = p->myShaderTable;
     struct shaderTableEntry *new = NULL;
@@ -1293,13 +1293,14 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     
     // if here, we did not find the shader already compiled for us.
     
-    /*
-    ConsoleMessage ("getMyShader, not found, have to create");
+    //ConsoleMessage ("getMyShader, looking for %x",rq_cap);
+    
+    //ConsoleMessage ("getMyShader, not found, have to create");
     for (i=0; i<vectorSize(myShaderTable); i++) {
         struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
-        ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
+        //ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
      }
-     */
+     
 
         
 
@@ -1316,6 +1317,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
       }
 #endif
 
+    // ConsoleMessage ("getMyShader, here now");
 
 
 #ifdef VERBOSE
@@ -1972,19 +1974,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
     #endif //VERBOSE
 
-
-	/* initialize */
-    
-    /* Generic things first */
-
-    /* Cross shader Vertex bits */
-    vertexSource[vertexPositionDeclare] = vertPosDec;    
-    vertexSource[vertexMainStart] = vertMainStart;
-    vertexSource[vertexPositionCalculation] = vertPos;
-    vertexSource[vertexMainEnd] = vertEnd;
     
     /* Cross shader Fragment bits - GL_ES_VERSION_2_0 has this */
-    #if defined(GL_ES_VERSION_2_0)
+#if defined(GL_ES_VERSION_2_0)
 	fragmentSource[fragmentGLSLVersion] = "#version 100\n";
 	vertexSource[vertexGLSLVersion] = "#version 100\n";
 	if (haveHighPrecisionFragmentShaders)  {
@@ -1994,14 +1986,31 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		fragmentSource[fragmentPrecisionDeclare] = fragMediumPrecision;
 		//ConsoleMessage("have medium precision fragment shaders");
 	}
-    #else
+#else
 	fragmentSource[fragmentGLSLVersion] = "#version 120\n";
 	vertexSource[vertexGLSLVersion] = "#version 120\n";
-    #endif
-
+#endif
+    
     fragmentSource[fragMaxLightsDeclare] = maxLights;
     vertexSource[vertMaxLightsDeclare] = maxLights;
+    vertexSource[vertexPositionDeclare] = vertPosDec;
+    
+    
 
+    /* User defined shaders - only give the defines, let the user do the rest */
+    
+    if ((whichOne & USER_DEFINED_SHADER_MASK) == 0) {
+	/* initialize */
+    
+    /* Generic things first */
+
+    /* Cross shader Vertex bits */
+        
+    vertexSource[vertexMainStart] = vertMainStart;
+    vertexSource[vertexPositionCalculation] = vertPos;
+    vertexSource[vertexMainEnd] = vertEnd;
+    
+ 
     fragmentSource[fragmentMainStart] = fragMainStart;
 	if(Viewer()->anaglyph)
 		fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
@@ -2154,31 +2163,34 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
             fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
         } 
     
+    } else {
     // user defined shaders
-    if (whichOne >= USER_DEFINED_SHADER_1) {
+    if (whichOne >= USER_DEFINED_SHADER_START) {
         int me = 0;
         ppOpenGL_Utils p;
         ttglobal tg = gglobal();
         p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
         
-        switch (whichOne) {
-            case USER_DEFINED_SHADER_1: me = 0; break;
-            case USER_DEFINED_SHADER_2: me = 1; break;
-            case USER_DEFINED_SHADER_3: me = 2; break;
-            case USER_DEFINED_SHADER_4: me = 3; break;
-        }
-        ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
+        whichOne = (whichOne / USER_DEFINED_SHADER_START) -1; 
+        //ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
         
         // remove the following:
-        vertexSource[vertexMainStart] = "#define fttransform (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex)\n \
+        vertexSource[vertexMainStart] = 
+                    "#define fttransform (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex)\n \
+                    #define gl_ModelViewProjectionMatrix (fw_ProjectionMatrix*fw_ModelViewMatrix)\n \
                     #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n \
-                    #define gl_Normal fw_Normal\n";    
-        vertexSource[vertexPositionCalculation] = "";
-        vertexSource[vertexMainEnd] = "";
-        //vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
-        fragmentSource[fragmentMainStart] = "";
-        fragmentSource[fragmentMainEnd] = "";
+                    #define gl_NormalMatrix fw_NormalMatrix\n \
+                    #define gl_ProjectionMatrix fw_ProjectionMatrix \n\
+                    #define gl_ModelViewMatrix fw_ModelViewMatrix \n\
+                    #define gl_Vertex fw_Vertex \n \
+                    #define gl_Normal fw_Normal\n \
+                    #define gl_LightSource fw_LightSource\n ";    
+        
         vertexSource[vertexLightDefines] = lightDefines;
+        vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
+        vertexSource[vertFrontColourDeclare] = varyingFrontColour;
+
+        
 
         // add the user text
         vertexSource[vertexNormalDeclare] = vertNormDec;
@@ -2188,8 +2200,9 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
         
     }
+    }
     
-    
+//#define VERBOSE
     #ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -4633,9 +4646,9 @@ BOOL walk_fields(struct X3D_Node* node, int (*callbackFunc)(), void* callbackDat
 						switch(node->_nodeType) 
 						{ 
   							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
-  							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->__shaderObj); break;
-  							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->__shaderObj); break;
-  							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->__shaderObj); break;
+  							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+  							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
+  							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 						}
 						if(lexer){
 							usernames[0] = lexer->user_initializeOnly;
@@ -5030,21 +5043,6 @@ static void killNode (int index) {
 		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr) 
 			break; /* used for seeing if interpolator values change */
 
-		if (*fieldOffsetsPtr == FIELDNAMES___shaderIDS) {
-			struct X3D_ComposedShader *cps = (struct X3D_ComposedShader *) structptr;
-			if ((cps->_nodeType == NODE_ComposedShader) || (cps->_nodeType == NODE_ProgramShader)) {
-#ifdef GL_VERSION_2_0
-				if (cps->__shaderIDS.p != NULL) {
-					DELETE_PROGRAM((GLuint) cps->__shaderIDS.p[0]);
-					FREE_IF_NZ(cps->__shaderIDS.p);
-					cps->__shaderIDS.n=0;
-				}
-#endif
-
-			} else {
-				ConsoleMessage ("error destroying shaderIDS on kill");
-			}
-		}
 
 		/* GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes */
 		if (structptr->_nodeType == NODE_GeoLOD) {

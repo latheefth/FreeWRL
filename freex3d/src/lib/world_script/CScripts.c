@@ -468,12 +468,19 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
     is this a possible file that we have to get? */
 
  DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
- printf ("script_initCodeFromUri, uri is %s\n", uri); 
+ //printf ("script_initCodeFromUri, uri is %s\n", uri); 
 
  res = resource_create_single(uri);
+    //printf ("past resource_create_single\n");
+    
  resource_identify(gglobal()->resources.root_res, res);
+    //printf ("past resource_identify\n");
+    
  if (res->type != rest_invalid) {
+     //printf ("going to resource_fetch\n");
+     
 	 if (resource_fetch(res)) {
+         //printf ("past resource_fetch\n");
 		 if (resource_load(res)) {
 			 s_list_t *l;
 			 openned_file_t *of;
@@ -481,22 +488,25 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 			 l = res->openned_files;
 			 of = ml_elem(l);
 
+             printf ("start A\n");
+             
 			/* ok - Scripts get initialized; shaders get the buffer returned */
 			if (me==NULL) { /* a Shader */
 			 	p->buffer = STRDUP(of->fileData);
-			 	/* JAS printf("**** Shader:\n%s\n", buffer); 
-				printf ("*** Shader: doing the quick return here\n"); */
+			 	printf("**** Shader:\n%s\n", p->buffer); 
+				printf ("*** Shader: doing the quick return here\n");
 				return TRUE;
 			} else {
 				/* a Script */
-			 	/* printf("**** Script:\n%s\n", buffer); */
+			 	printf("**** Script:\n%s\n", p->buffer);
 			 	rv = script_initCode(me, of->fileData);
 			}
 		 }
 	 }
  }
  
- 
+    //printf ("passed rest_invalid test\n");
+    
  if (res->status == ress_loaded && rv) {
 	 /* ok - we are replacing EXTERNPROTO with PROTO */
 	 res->status = ress_parsed;

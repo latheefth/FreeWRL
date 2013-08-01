@@ -44,31 +44,6 @@ void turnGlobalShaderOff(void);
 #endif
 */
 
-#ifdef GL_VERSION_2_0
-	#define TURN_GLOBAL_SHADER_OFF \
-		turnGlobalShaderOff()
-	#define TURN_FILLPROPERTIES_SHADER_OFF \
-		{if (p->fillpropCurrentShader!=0) { glUseProgram(0);}}
-#else
-	#ifdef GL_VERSION_1_5
-		#define TURN_GLOBAL_SHADER_OFF \
-		turnGlobalShaderOff()
-		#define TURN_FILLPROPERTIES_SHADER_OFF \
-			{if (fillpropCurrentShader!=0) { fillpropCurrentShader = 0; glUseProgramObjectARB(0);}}
-	#else
-		#if defined(IPHONE) || defined(GLES2)
-			#define TURN_GLOBAL_SHADER_OFF \
-				turnGlobalShaderOff()
-			#define TURN_FILLPROPERTIES_SHADER_OFF \
-				{if (fillpropCurrentShader!=0) { glUseProgram(0);}}
-
-		#else
-			#define TURN_GLOBAL_SHADER_OFF printf ("can not do TURN_SHADERS_OFF at %s:%d\n",__FILE__,__LINE__);
-			#define TURN_FILLPROPERTIES_SHADER_OFF printf ("can not do TURN_SHADERS_OFF at %s:%d\n",__FILE__,__LINE__);
-		#endif
-	#endif
-#endif
-
 /* trat: test if a ratio is reasonable */
 #define TRAT(a) ((a) > 0 && ((a) < gglobal()->RenderFuncs.hitPointDist || gglobal()->RenderFuncs.hitPointDist < 0))
 

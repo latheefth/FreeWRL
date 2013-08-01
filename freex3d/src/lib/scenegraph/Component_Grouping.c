@@ -124,13 +124,8 @@ void prep_Transform (struct X3D_Transform *node) {
 		/* do we actually have any thing to rotate/translate/scale?? */
 		if (node->__do_anything) {
 
-/* do we want to do a glPushMatrix and glPopMatrix call? It is best to do so although the code
-to NOT do it is here for performance testing reasons, to see if many pushes/pops is fast/slow */
-
-#define DO_PUSH
-#ifdef DO_PUSH
 		FW_GL_PUSH_MATRIX();
-#endif
+
 		/* TRANSLATION */
 		if (node->__do_trans)
 			FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
@@ -173,47 +168,7 @@ void fin_Transform (struct X3D_Transform *node) {
 
         if(!renderstate()->render_vp) {
             if (node->__do_anything) {
-#ifdef DO_PUSH
 		FW_GL_POP_MATRIX();
-#else
-		/* 7 REVERSE CENTER */
-		if (node->__do_center) {
-			FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
-		} 
-
-		/* 6 REVERSE SCALE ORIENTATION */
-		if (node->__do_scaleO) {
-			FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3], node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
-		}
-
-		/* 5 SCALE */
-		if (node->__do_scale)
-			FW_GL_SCALE_F(1.0/node->scale.c[0],1.0/node->scale.c[1],1.0/node->scale.c[2]);
-
-		/* 4 SCALEORIENTATION */
-		if (node->__do_scaleO) {
-			FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3], node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
-		}
-
-		/* 3 ROTATION */
-		if (node->__do_rotation) {
-			FW_GL_ROTATE_RADIANS(-node->rotation.c[3],
-				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
-		}
-
-		/* 2 CENTER */
-		if (node->__do_center)
-			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
-
-		/* 1 TRANSLATION */
-		if (node->__do_trans)
-			FW_GL_TRANSLATE_F(-node->translation.c[0],-node->translation.c[1],-node->translation.c[2]);
-
-
-#endif
-
 	    }
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/

@@ -384,6 +384,7 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 
 /* finished rendering thisshape. */
 void turnGlobalShaderOff(void) {
+    //printf ("turnGlobalShaderOff\n");
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 
     /* get rid of the shader */
@@ -404,7 +405,7 @@ void turnGlobalShaderOff(void) {
 void enableGlobalShader(s_shader_capabilities_t *myShader) {
     //ConsoleMessage ("enableGlobalShader, have myShader %d",myShader->myShaderProgram);
     if (myShader == NULL) {
-        TURN_GLOBAL_SHADER_OFF; 
+        turnGlobalShaderOff(); 
         return;
     };
     

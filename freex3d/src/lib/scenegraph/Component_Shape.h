@@ -64,13 +64,10 @@ Proximity sensor macro.
 #define HAVE_CUBEMAP_TEXTURE 0x00400
 
 /* Component_Shader - user-specified shaders. Currently limited in number */
-/* note we start at 0x1000 */
+/* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */
 
-#define USER_DEFINED_SHADER_1	0x001000
-#define USER_DEFINED_SHADER_2	0x002000
-#define USER_DEFINED_SHADER_3	0x003000
-#define USER_DEFINED_SHADER_4	0x004000
-#define USER_DEFINED_SHADER_MASK 0x00F000
+#define USER_DEFINED_SHADER_START	0x001000
+#define USER_DEFINED_SHADER_MASK    0x0FF000
 
 
 /*******************************************************/
@@ -114,6 +111,7 @@ struct matpropstruct {
 };
 
 struct matpropstruct* getAppearanceProperties();
+void setUserShaderNode(struct X3D_Node *me);
 
 #define MIN_NODE_TRANSPARENCY 0.0f
 #define MAX_NODE_TRANSPARENCY 0.99f  /* if 1.0, then occlusion culling will cause flashing */

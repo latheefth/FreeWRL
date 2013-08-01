@@ -873,7 +873,7 @@ void render_Background (struct X3D_Background *node) {
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-		TURN_GLOBAL_SHADER_OFF;
+		turnGlobalShaderOff();
 
 	/* now, for the textures, if they exist */
 	if (((node->backUrl).n>0) ||
@@ -896,7 +896,7 @@ void render_Background (struct X3D_Background *node) {
 
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 
-		TURN_GLOBAL_SHADER_OFF;
+		turnGlobalShaderOff();
 	}
 	FW_GL_POP_MATRIX();
 
@@ -954,7 +954,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-		TURN_GLOBAL_SHADER_OFF;
+		turnGlobalShaderOff();
 
 	/* now, for the textures, if they exist */
 	if ((node->backTexture !=0) ||
@@ -973,7 +973,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
         	FW_GL_DISABLECLIENTSTATE (GL_TEXTURE_COORD_ARRAY);
 
 
-		TURN_GLOBAL_SHADER_OFF;
+		turnGlobalShaderOff();
 	}
 
 	/* pushes are done in moveBackgroundCentre */

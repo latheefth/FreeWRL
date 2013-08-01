@@ -1803,17 +1803,17 @@ void parseScriptProtoField(struct VRMLLexer* myLexer, char **atts) {
 			case NODE_ComposedShader: {
 				struct X3D_ComposedShader* myScr = NULL;
 				myScr = X3D_COMPOSEDSHADER(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
-				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				myObj = (struct Shader_Script *) myScr->_shaderUserDefinedFields;
 				break; }
 			case NODE_ShaderProgram: {
 				struct X3D_ShaderProgram* myScr = NULL;
 				myScr = X3D_SHADERPROGRAM(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
-				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				myObj = (struct Shader_Script *) myScr->_shaderUserDefinedFields;
 				break; }
 			case NODE_PackagedShader: {
 				struct X3D_PackagedShader* myScr = NULL;
 				myScr = X3D_PACKAGEDSHADER(tg->X3DParser.parentStack[tg->X3DParser.parentIndex]);
-				myObj = (struct Shader_Script *) myScr->__shaderObj;
+				myObj = (struct Shader_Script *) myScr->_shaderUserDefinedFields;
 				break; }
 			default: {
 				ConsoleMessage("got an error on parseScriptProtoField, do not know how to handle field for parent type %s",

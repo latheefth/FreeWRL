@@ -102,33 +102,10 @@ FIELDTYPE_MFVec4d
 #include "../scenegraph/Component_Shape.h"
 #include "../opengl/Textures.h"
 #include "Component_ProgrammableShaders.h"
+#include "../scenegraph/RenderFuncs.h"
 
-#define NEED_TO_REIMPLEMENT_X3D_SHADERS_NODE
-#ifndef NEED_TO_REIMPLEMENT_X3D_SHADERS_NODE
-static bool printedMsg = false;
-void render_ComposedShader (struct X3D_ComposedShader *node) {
-    ConsoleMessage ("have to re-implement FreeWRL Shader node");
-    printedMsg = true;
-}
-void render_PackagedShader (struct X3D_PackagedShader *node) {
-    ConsoleMessage ("have to re-implement FreeWRL Shader node");
-    printedMsg = true;
-}
-void render_ProgramShader (struct X3D_ProgramShader *node) {
-    ConsoleMessage ("have to re-implement FreeWRL Shader node");
-    printedMsg = true;
-}
-void compile_PackagedShader (struct X3D_PackagedShader *node) {
-}
-void compile_ComposedShader (struct X3D_ComposedShader *node) {
-}
-void compile_ProgramShader (struct X3D_ProgramShader *node) {
-}
-void getField_ToShader(int num) {
-}
 
-#else 
-static void sendInitialFieldsToShader(struct X3D_Node *);
+void sendInitialFieldsToShader(struct X3D_Node *);
 
 #define MAX_INFO_LOG_SIZE 512
 /* we do support older versions of shaders; but not all info logs are printed if we
@@ -138,22 +115,6 @@ static void sendInitialFieldsToShader(struct X3D_Node *);
 	if (strcmp(node->language->strptr,"GLSL")) { \
 		ConsoleMessage ("Shaders: support only GLSL shading language, got :%s:, skipping...",node->language->strptr); \
 		node->isValid = FALSE; \
-	}
-
-#define RUN_IF_VALID \
-		if (node->isValid) { \
-			if (node->__shaderIDS.n != 0) { \
-				getAppearanceProperties()->currentShader = (GLuint) node->__shaderIDS.p[0]; \
-				USE_SHADER(getAppearanceProperties()->currentShader); \
-				if (!node->__initialized) sendInitialFieldsToShader(X3D_NODE(node)); \
-			} \
-		}
-
-#define CHECK_SHADERS \
-	if (!gglobal()->display.rdr_caps.av_glsl_shaders) { \
-		if (node->isValid) ConsoleMessage ("have an X3D program with shaders, but no shader support on this computer"); \
-		node->isValid = FALSE; \
-		return; \
 	}
 
 static void shaderErrorLog(GLuint myShader) {
@@ -214,22 +175,37 @@ static void shaderErrorLog(GLuint myShader) {
 
 /* do type checking of shader and field variables when initializing interface */
 static int shader_checkType(struct FieldDecl * myField,
-		GLuint myShader, GLint myVar) {
+		GLuint myShader, GLint myUniform, char *namePtr) {
 	int retval = FALSE;
 
 	/* check the type, if we are OpenGL 2.0 or above */
 
-	#ifdef GL_VERSION_2_0
-	GLsizei len;
-	GLint size;
-	GLenum type;
+	GLsizei len = 0;
+	GLint size = 0;
+	GLenum type = 0;
 	GLchar ch[100];		
 
 	retval = FALSE;
 	ch[0] = '\0';
-	
-	glGetActiveUniform(myShader,myVar,90,&len,&size,&type,ch);
+	{
+        int i;
+        int gp;
+        glGetProgramiv(myShader,GL_ACTIVE_UNIFORMS,&gp);
+        //ConsoleMessage ("in shader %d, we have %d uniforms, looking for name :%s:",myShader,gp,namePtr);
+        for (i=0; i<gp; i++) {
+            glGetActiveUniform(myShader,i,(GLsizei)90,&len,&size,&type,ch);
+            //ConsoleMessage("    ....Uniform %d is name :%s: len %d size %d type %d",i,ch,len,size,type);
+            if (strcmp(ch,namePtr)==0) {
+                //ConsoleMessage ("names match, breaking");
+                break;
+            }
+        }
+    }
+	//glGetActiveUniform(myShader,myUniform,(GLsizei)90,&len,&size,&type,ch);
 
+    //printf ("glGetActiveUniform for myShader %d, myVar %d, len %d size %d type %x ch %s\n",
+          //  myShader,myUniform, len, size,type, ch);
+    
 	/* verify that the X3D fieldType matches the Shader type */
 	switch (fieldDecl_getType(myField)) {
 		case FIELDTYPE_SFFloat: 	retval = type == GL_FLOAT; break;
@@ -280,6 +256,7 @@ static int shader_checkType(struct FieldDecl * myField,
 
 	if (!retval) {
 		ConsoleMessage ("Shader type check: X3D type and shader type not compatible for variable :%s:",ch);
+#define VERBOSE
 #ifdef VERBOSE
 	printf ("shaderCheck mode %d (%s) type %d (%s) name %d\n",fieldDecl_getAccessType(myField),
 			stringPROTOKeywordType(fieldDecl_getAccessType(myField)), 
@@ -311,18 +288,17 @@ static int shader_checkType(struct FieldDecl * myField,
 	case GL_FLOAT_MAT3x4: printf ("GL_FLOAT_MAT3x4\n"); break;
 	case GL_FLOAT_MAT4x2: printf ("GL_FLOAT_MAT4x2\n"); break;
 	case GL_FLOAT_MAT4x3: printf ("GL_FLOAT_MAT4x3\n"); break;
-*/
 	case GL_SAMPLER_1D: printf ("GL_SAMPLER_1D\n"); break;
-	case GL_SAMPLER_2D: printf ("GL_SAMPLER_2D\n"); break;
 	case GL_SAMPLER_3D: printf ("GL_SAMPLER_3D\n"); break;
-	case GL_SAMPLER_CUBE: printf ("GL_SAMPLER_CUBE\n"); break;
 	case GL_SAMPLER_1D_SHADOW: printf ("GL_SAMPLER_1D_SHADOW\n"); break;
 	case GL_SAMPLER_2D_SHADOW: printf ("GL_SAMPLER_2D_SHADOW\n"); break;
+*/
+	case GL_SAMPLER_2D: printf ("GL_SAMPLER_2D\n"); break;
+	case GL_SAMPLER_CUBE: printf ("GL_SAMPLER_CUBE\n"); break;
 default :{printf ("not decoded yet, probably a matrix type\n");}
 	}
 #endif
 	}
-#endif 
 	return retval;
 }
 #undef VERBOSE
@@ -435,33 +411,60 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 }
 
 /* Routing - sending a value to a shader - we get passed the routing table entry number */
-void getField_ToShader(int num) {
+void getField_ToShader(struct X3D_Node *node, int num) {
 	struct Shader_Script *myObj;
 	unsigned int to_counter;
 	int fromFieldID;
 	size_t i;
 	GLfloat* sourceData;
-	GLuint currentShader;	
+	GLuint currentShader = 0;	
 	struct CRStruct *CRoutes = getCRoutes();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
+    // use the currently running shader
+    //ConsoleMessage ("getFieldToShader, node %s, num %d",stringNodeType(node->_nodeType),num);
+    //ConsoleMessage ("nodes have %d parents",vectorSize(node->_parentVector));
+    for (i=0; i<vectorSize(node->_parentVector); i++) {
+        struct X3D_Appearance *ap = vector_get(struct X3D_Appearance *,node->_parentVector, i);
+        //ConsoleMessage ("and, parent is type %s",stringNodeType(ap->_nodeType));
+        if (ap->_nodeType == NODE_Appearance) {
+            int j;
+            for (j=0; j<vectorSize(ap->_parentVector); j++) {
+            struct X3D_Shape *sh = vector_get(struct X3D_Shape *, ap->_parentVector, j);
+            //ConsoleMessage ("and parent of appearance is %s",stringNodeType(sh->_nodeType));
+                if (sh->_nodeType == NODE_Shape) {
+                    currentShader = X3D_SHAPE(sh)->_shaderTableEntry;
+                }
+            }
+        }
+    }
+      
+    if (currentShader == 0) {
+        ConsoleMessage ("error finding associated Shape node for Shade node");
+        return;
+    }
+        
+    // turning shader on...
+    enableGlobalShader(getMyShader(currentShader));
+    
+    
 	/* go through each destination for this node */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		CRnodeStruct *to_ptr = NULL;
 
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		fromFieldID = to_ptr->foffset;
-		/* printf ("getField_ToShader, num %d, foffset %d\n",num,fromFieldID);  */
+		//printf ("getField_ToShader, num %d, foffset %d\n",num,fromFieldID);  
 
 		switch (to_ptr->routeToNode->_nodeType) {
 		case NODE_ComposedShader:
-			myObj = (struct Shader_Script *)(X3D_COMPOSEDSHADER(to_ptr->routeToNode)->__shaderObj);
+			myObj = (struct Shader_Script *)(X3D_COMPOSEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
 			break;
 		case NODE_PackagedShader:
-			myObj = (struct Shader_Script *)(X3D_PACKAGEDSHADER(to_ptr->routeToNode)->__shaderObj);
+			myObj = (struct Shader_Script *)(X3D_PACKAGEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
 			break;
 		case NODE_ShaderProgram: 
-			myObj = (struct Shader_Script *)(X3D_SHADERPROGRAM(to_ptr->routeToNode)->__shaderObj);
+			myObj = (struct Shader_Script *)(X3D_SHADERPROGRAM(to_ptr->routeToNode)->_shaderUserDefinedFields);
 			break;
 		default: {
 			ConsoleMessage ("getField_ToShader, unhandled type??");
@@ -471,13 +474,14 @@ void getField_ToShader(int num) {
 		}
 		/* we have the struct Shader_Script; go through the fields and find the correct one */
 
-/*
-	printf ("Shader_Script has node of %u ",myObj->ShaderScriptNode);
+
+	/* 
+    printf ("Shader_Script has node of %u ",myObj->ShaderScriptNode);
 	printf ("of type %s ",stringNodeType(myObj->ShaderScriptNode->_nodeType));
 	printf ("and has %d as a vector size ",vectorSize(myObj->fields));
 	if (myObj->loaded) printf ("locked and loaded "); else printf ("needs loading, I guess ");
 	printf ("\n");
-*/
+    */
 
 	/* is there any fields? */
 	if (myObj == NULL) return;
@@ -487,34 +491,8 @@ void getField_ToShader(int num) {
 		/* ConsoleMessage ("ShaderProgram should be loaded, hmmm"); */
 		return;
 	}
-
-	/* initialize this one */
-	currentShader = 0;
-
-	switch (to_ptr->routeToNode->_nodeType) {
-	case NODE_ComposedShader:
-		currentShader = (GLuint) X3D_COMPOSEDSHADER(to_ptr->routeToNode)->__shaderIDS.p[0];
-		break;
-	case NODE_PackagedShader:
-		ConsoleMessage ("do not know how to route to a PackagedShader yet");
-		return;
-		break;
-	case NODE_ShaderProgram: 
-		/* printf ("ShaderProgram- the parent ProgramShader holds the ids\n"); */
-		if ((X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector != NULL) &&
-		    (vectorSize(X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector) > 0)) {
-			/* assume only one parent here? */
-			currentShader = (GLuint) X3D_PROGRAMSHADER(vector_get(struct X3D_Node *,
-				X3D_SHADERPROGRAM(to_ptr->routeToNode)->_parentVector,0))->__shaderIDS.p[0];
-		} else {
-			printf ("no parents for routed ShaderProgram\n");
-		}
-
-		break;
-	}
-
-
-	/* printf ("going through fields.... have %d fields\n",vectorSize(myObj->fields)); */
+        
+    //printf ("going through fields.... have %d fields\n",vectorSize(myObj->fields)); 
 	for(i=0; i!=vectorSize(myObj->fields); ++i) {
 		GLint shaderVariable;
 		struct ScriptFieldDecl* curField;
@@ -524,7 +502,7 @@ void getField_ToShader(int num) {
 		curField = vector_get(struct ScriptFieldDecl*, myObj->fields, i);
 		myf = curField->fieldDecl;
 		shaderVariable = fieldDecl_getshaderVariableID(myf);
-
+        //printf ("for field %d, shaderVariable %d\n",i,shaderVariable);
 		
 		
 		/*printf ("curField %d name %d type %d ",i,
@@ -540,23 +518,18 @@ void getField_ToShader(int num) {
 		*/
 		
 
-
-
 		if (fromFieldID == fieldDecl_getShaderScriptIndex(myf)) {
-			/*
-			printf ("	field match, %d==%d\n",fromFieldID, fieldDecl_getIndexName(myf));
-			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
-			printf ("	shaderVariableID is %d\n",fieldDecl_getShaderVariableID(myf));
-			*/
+			
+			//printf ("	field match, %d==%d\n",fromFieldID, fieldDecl_getIndexName(myf));
+			//printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
+			//printf ("	shaderVariableID is %d\n",fieldDecl_getShaderVariableID(myf));
+			
 		
 
 		/* ok, here we have the Shader_Script, the field offset, and the entry */
 
 		sourceData = offsetPointer_deref(GLfloat *,CRoutes[num].routeFromNode, CRoutes[num].fnptr);
 		
-		/* turn the selected shader program ON */
-		USE_SHADER(currentShader);
-
 #define ROUTE_SF_FLOAT_TO_SHADER(ty1) \
                 case FIELDTYPE_SF##ty1: \
                         GLUNIFORM1F(shaderVariable, *((float*)sourceData)); \
@@ -649,14 +622,11 @@ void getField_ToShader(int num) {
 			default: {
 				ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
 			}
-
-
 			}
-
-			/* turn the shader OFF */
-			USE_SHADER(0);
 		}
-	}
+    }
+        turnGlobalShaderOff();
+	
 	}
 }
 
@@ -667,8 +637,8 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	struct Shader_Script* me = NULL;
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
-	if (node->_nodeType==NODE_ShaderProgram) me = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->__shaderObj;
-	else if (node->_nodeType == NODE_ComposedShader) me = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->__shaderObj;
+	if (node->_nodeType==NODE_ShaderProgram) me = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
+	else if (node->_nodeType == NODE_ComposedShader) me = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
 	else {
 		printf ("send_fieldToShader, expected a ShaderProgram or ComposedShader, got %s\n",
 			stringNodeType(node->_nodeType));
@@ -676,7 +646,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	}
 
 	#ifdef SHADERVERBOSE
-	printf ("Shader_Script has node of %u ",me->ShaderScriptNode);
+	printf ("Shader_Script has node of %p ",me->ShaderScriptNode);
 	printf ("of type %s ",stringNodeType(me->ShaderScriptNode->_nodeType));
 	printf ("and has %d as a vector size ",vectorSize(me->fields));
 	if (me->loaded) printf ("locked and loaded "); else printf ("needs loading, I guess ");
@@ -708,45 +678,44 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		GLint myVar;
 		struct ScriptFieldDecl* curField;
 		struct FieldDecl * myf;
+        char *namePtr;
 
 		/* initialization */
 		myVar = -1;
 		curField = vector_get(struct ScriptFieldDecl*, me->fields, i);
 		myf = curField->fieldDecl;
+        namePtr = fieldDecl_getShaderScriptName(myf);
+        
 
+        
 		#ifdef SHADERVERBOSE
-		DEBUG_SHADER("curField %d contains :%s: ",i,curField->ASCIIvalue);
-		DEBUG_SHADER("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->PKWmode, 
+        printf ("looking for field name %s...\n",namePtr);
+		printf("fieldDecl mode %d (%s) type %d (%s) name %d\n",myf->PKWmode, 
 			stringPROTOKeywordType(myf->PKWmode), myf->fieldType, stringFieldtypeType(myf->fieldType),myf->lexerNameIndex);
 		#endif
 
 		/* ask the shader for its handle for this variable */
 
 		/* try Uniform  */
-		myVar = GET_UNIFORM(myShader,fieldDecl_getShaderScriptName(curField->fieldDecl));
+        //printf ("looking to get_Uniform for shader %d, variable :%s:\n",myShader, fieldDecl_getShaderScriptName(myf));
+        
+		myVar = GET_UNIFORM(myShader,fieldDecl_getShaderScriptName(myf));
+        //printf ("and, uniform is %d\n",myVar);
 		if (myVar == INT_ID_UNDEFINED) {
-			if (GET_ATTRIB(myShader,fieldDecl_getShaderScriptName(curField->fieldDecl)) != INT_ID_UNDEFINED)
-			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",fieldDecl_getShaderScriptName(curField->fieldDecl));
+			if (GET_ATTRIB(myShader,fieldDecl_getShaderScriptName(myf)) != INT_ID_UNDEFINED)
+			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",fieldDecl_getShaderScriptName(myf));
 			else
-			ConsoleMessage ("Shader variable :%s: is either not declared or not used in the shader program",fieldDecl_getShaderScriptName(curField->fieldDecl));
+			ConsoleMessage ("Shader variable :%s: is either not declared or not used in the shader program",fieldDecl_getShaderScriptName(myf));
 		}
 
-		#ifdef SHADERVERBOSE
-		DEBUG_SHADER("trying to get ID for :%s:\n",curField->ASCIIvalue);
-		#endif
-
 		/* do the types of the field variable, and the shader variable match? */
-		shader_checkType(myf,myShader,myVar);
+		shader_checkType(myf,myShader,myVar,namePtr);
 
 			
 		/* save the variable object for this variable */
 		fieldDecl_setshaderVariableID(myf,myVar);
 
 		if ((fieldDecl_getAccessType(myf)==PKW_initializeOnly) || (fieldDecl_getAccessType(myf)==PKW_inputOutput)) {
-			#ifdef SHADERVERBOSE
-			DEBUG_SHADER("initializing Shader %d containing :%s:\n",myShader,curField->ASCIIvalue);
-			#endif
-
 			sendValueToShader(curField);
 		}
 
@@ -755,6 +724,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	/* done the loading of this shader part */
 	me->loaded = TRUE;
 }
+#undef  SHADERVERBOSE
 
 
 /* on load of shader, send along any initial field values in the X3D file to the Shader */
@@ -783,15 +753,18 @@ Note the differing location of the fields...
 */
 
 
-static void sendInitialFieldsToShader(struct X3D_Node * node) {
+void sendInitialFieldsToShader(struct X3D_Node * node) {
 	int i;
 	GLuint myShader;
+    
+    
+    myShader = getAppearanceProperties()->currentShaderProperties->myShaderProgram;
 
+    //ConsoleMessage ("sendInitialFieldsToShader - have to get parents shader id");
 	switch (node->_nodeType) {
 		case NODE_ProgramShader: {
+
 			/* anything to do here? */ 
-			if ((X3D_PROGRAMSHADER(node)->__shaderIDS.n) >=1) {
-				myShader = X3D_PROGRAMSHADER(node)->__shaderIDS.p[0];
 				for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
 					#ifdef SHADERVERBOSE
 					printf ("ProgramShader, activate %d isSelected %d isValid %d TRUE %d FALSE %d\n",
@@ -808,19 +781,15 @@ static void sendInitialFieldsToShader(struct X3D_Node * node) {
 
 					send_fieldToShader(myShader, X3D_NODE(part));
 				}
-			}
-			X3D_PROGRAMSHADER(node)->__initialized = TRUE;
+			X3D_PROGRAMSHADER(node)->_initialized = TRUE;
 			break;
 		}
 
 
 		case NODE_ComposedShader: {
 			/* anything to do here? */ 
-			if ((X3D_COMPOSEDSHADER(node)->__shaderIDS.n) >=1) {
-				myShader = X3D_COMPOSEDSHADER(node)->__shaderIDS.p[0];
 				send_fieldToShader(myShader, X3D_NODE(node));
-			}
-			X3D_COMPOSEDSHADER(node)->__initialized = TRUE;
+			X3D_COMPOSEDSHADER(node)->_initialized = TRUE;
 			break;
 		}
 	}
@@ -840,10 +809,6 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 		/* do we have anything to compile? */
 		int haveVertShaderText; 
 		int haveFragShaderText; 
-
-		/* can we do shaders at runtime? */
-		/* NOTE - need to do this first because no shaders = no CREATE_PROGRAM */
-		CHECK_SHADERS
 
 		/* initialization */
 		haveVertShaderText = FALSE;
@@ -894,10 +859,6 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		int haveVertShaderText; 
 		int haveFragShaderText; 
 
-		/* can we do shaders at runtime? */
-		/* NOTE - need to do this first because no shaders = no CREATE_PROGRAM */
-		CHECK_SHADERS
-
 		/* initialization */
 		haveVertShaderText = FALSE;
 		haveFragShaderText = FALSE;
@@ -935,9 +896,8 @@ void compile_PackagedShader (struct X3D_PackagedShader *node) {
 
 /*****************************************************************/
 void render_ComposedShader (struct X3D_ComposedShader *node) {
-    ConsoleMessage("render_composedShader");
-		COMPILE_IF_REQUIRED
-		//JAS RUN_IF_VALID
+	COMPILE_IF_REQUIRED
+	if (node->isValid) setUserShaderNode(X3D_NODE(node));
 }
 void render_PackagedShader (struct X3D_PackagedShader *node) {
 		COMPILE_IF_REQUIRED
@@ -945,6 +905,5 @@ void render_PackagedShader (struct X3D_PackagedShader *node) {
 
 void render_ProgramShader (struct X3D_ProgramShader *node) {
 		COMPILE_IF_REQUIRED
-		//JAS RUN_IF_VALID
+	if (node->isValid) setUserShaderNode(X3D_NODE(node));
 }
-#endif //NEED_TO_REIMPLEMENT
