@@ -34,6 +34,7 @@ Screen snapshot.
 #define MAX_USER_DEFINED_SHADERS 4
 
 int getNextFreeUserDefinedShaderSlot();
+void kill_userDefinedShaders();
 void sendShaderTextToEngine(int ste, int partsN, char ** vertSource, char ** fragSource);
 
 typedef enum vertexShaderResources {

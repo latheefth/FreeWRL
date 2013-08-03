@@ -4595,6 +4595,9 @@ void fwl_Android_replaceWorldNeeded() {
 	/* tell the statusbar that it needs to reinitialize */
 	kill_status();
 
+	/* any user defined Shader nodes - ComposedShader, PackagedShader, ProgramShader?? */
+	kill_userDefinedShaders();
+
 	/* free scripts */
 	#ifdef HAVE_JAVASCRIPT
 	kill_javascript();

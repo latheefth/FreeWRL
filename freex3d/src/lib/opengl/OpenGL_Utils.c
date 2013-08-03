@@ -221,6 +221,40 @@ GLEWContext * glewGetContext()
 }
 #endif
 
+// we have a new world, get rid of any old user defined shaders here
+kill_userDefinedShaders() {
+	int i;
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+
+ConsoleMessage ("start kill_userDefinedShaders");
+	p->userDefinedShaderCount = 0;
+
+
+	// free the strings for the shader source, if they exist    
+	for (i=0; i<MAX_USER_DEFINED_SHADERS; i++) {
+		ConsoleMessage ("udf shader source is %p %p",p->userDefinedVertexShader[i], p->userDefinedFragmentShader[i]);
+/*
+		FREE_IF_NZ (p->userDefinedFragmentShader[i]);
+		FREE_IF_NZ (p->userDefinedVertexShader[i]);
+*/
+	}
+
+	for (i=0; i <vectorSize(p->myShaderTable); i++) {
+        	struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
+/*
+		FREE_IF_NZ(me->myCapabilities);
+*/
+		me->whichOne = 0;
+	}
+
+	// set the vector to 0 size. we will keep the Vector around, for the next set
+	// of shaders for the next world.
+	p->myShaderTable->n = 0;
+}
+
+
 // we allow a certain number of user-defined shaders to (somehow) fit in here.
 int getNextFreeUserDefinedShaderSlot() {
     int rv;
@@ -2171,12 +2205,12 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         ttglobal tg = gglobal();
         p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
         
-        whichOne = (whichOne / USER_DEFINED_SHADER_START) -1; 
+        me = (whichOne / USER_DEFINED_SHADER_START) -1; 
         //ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
         
-        // remove the following:
+        // add the following:
         vertexSource[vertexMainStart] = 
-                    "#define fttransform (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex)\n \
+                    "vec4 ftransform() {return vec4 (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex);}\n \
                     #define gl_ModelViewProjectionMatrix (fw_ProjectionMatrix*fw_ModelViewMatrix)\n \
                     #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n \
                     #define gl_NormalMatrix fw_NormalMatrix\n \
@@ -2185,16 +2219,18 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
                     #define gl_Vertex fw_Vertex \n \
                     #define gl_Normal fw_Normal\n \
                     #define gl_LightSource fw_LightSource\n ";    
-        
+
+	// copy over the same defines, but for the fragment shader        
+	fragmentSource[fragmentMainStart] = vertexSource[vertexMainStart];
+
         vertexSource[vertexLightDefines] = lightDefines;
         vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
         vertexSource[vertFrontColourDeclare] = varyingFrontColour;
 
         
 
-        // add the user text
         vertexSource[vertexNormalDeclare] = vertNormDec;
-        vertexSource[vertexLightDefines] = lightDefines;
+        fragmentSource[fragmentLightDefines] = lightDefines;
         fragmentSource[fragmentUserDefinedInput] = p->userDefinedFragmentShader[me];
         vertexSource[vertexUserDefinedInput] = p->userDefinedVertexShader[me];    
 
@@ -4439,7 +4475,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 
 	 
 	#ifdef VERBOSE
-	printf ("\nmarkingForDispose %p (%s) currently at %d\n",node,
+	ConsoleMessage ("\nmarkingForDispose %p (%s) currently at %d",node,
 		stringNodeType(node->_nodeType),node->referenceCount);
 	#endif
 
@@ -4454,7 +4490,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 	while (*fieldOffsetsPtr != -1) {
 		fieldPtr = offsetPointer_deref(char *, node,*(fieldOffsetsPtr+1));
 		#ifdef VERBOSE
-		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+		ConsoleMessage ("looking at field %s type %s",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
 		#endif
 
 		/* some fields we skip, as the pointers are duplicated, and we CAN NOT free both */
@@ -4480,6 +4516,9 @@ void markForDispose(struct X3D_Node *node, int recursive){
 		if (node->_nodeType == NODE_GeoLOD) {
 			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
 		}
+
+		if (*fieldOffsetsPtr == FIELDNAMES__shaderUserDefinedFields) 
+			break; /* have to get rid of the fields of a shader here....
 	
 		/* nope, not a special field, lets just get rid of it as best we can */
 		switch(*(fieldOffsetsPtr+2)){
@@ -4494,8 +4533,12 @@ void markForDispose(struct X3D_Node *node, int recursive){
 				for (i=0; i<MNode->n; i++) {
 					tp = MNode->p[i];
 					 
-					if (tp!=NULL)
+					if (tp!=NULL) {
+						#ifdef VERBOSE
+						ConsoleMessage ("calling markForDispose on node %p as it is an element of an MFNode",tp);
+						#endif
 						markForDispose(tp,TRUE);
+					}
 				}
 				// MNode->n=0;  unlink_node needs this in order to properly unlink children.
 				break;
@@ -4506,16 +4549,19 @@ void markForDispose(struct X3D_Node *node, int recursive){
 				memcpy(&SNode,fieldPtr,sizeof(struct X3D_Node *));
 
 				#ifdef VERBOSE
-				printf ("SFNode, field is %p...\n",SNode);
-				if (SNode != NULL)
-					printf ("SFNode, .... and it is of type %s\n",stringNodeType(SNode->_nodeType));
-
-				printf (" ... field SFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
-				printf ("marking this SFnode for dispose, %p\n",SNode); 
+				ConsoleMessage ("SFNode, field is %p...",SNode);
+				if (SNode != NULL) {
+					ConsoleMessage ("SFNode, .... and it is of type %s",stringNodeType(SNode->_nodeType));
+					ConsoleMessage (" ... field SFNode, %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]); 
+				}
 				#endif
 
-				if(SNode && SNode->referenceCount > 0) 
+				if(SNode && SNode->referenceCount > 0)  {
+					#ifdef VERBOSE
+					ConsoleMessage ("calling markForDispose on node %p as it is contents of SFNode field",SNode);
+					#endif
 					markForDispose(SNode, TRUE);
+				}
 				break;
 				
 
@@ -4528,7 +4574,7 @@ void markForDispose(struct X3D_Node *node, int recursive){
 
 	}
 }
-//#undef VERBOSE
+#undef VERBOSE
 
 #define DELETE_IF_IN_PRODCON(aaa) \
 	if (tg->ProdCon.aaa) { \
