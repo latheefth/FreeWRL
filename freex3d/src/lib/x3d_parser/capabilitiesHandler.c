@@ -222,20 +222,32 @@ static const int MPEG4Profile[] = {
 	COM_EnvironmentalEffects,	1,
 	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};
 
+
+//dug9 Aug,2013 ecmascript interface V3 says a ProfileInfo has a name, level??, Title, providerUrl, componentInfoArray
+//
+//Q. how do you assign a Level to a Profile?
+//H0: 1 if you have it, else 0
+//H1: minimum of component levels in profile
+//H2: maximum of component levels in profile
+//H3: maximum nesting level - see diagram ie if you have Geospatial,Hanim,Nurbs you are at Full or Level=4
+//http://www.web3d.org/realtime-3d/x3d/profiles   
+//I'll just make up and hardcode some values now
+
 struct proftablestruct {
 	int profileName;
 	const int *profileTable;
+	int level; //dug9
 };
 
 static struct proftablestruct profTable[] = {
-	{PRO_Interchange,		InterchangeProfile},
-	{PRO_CADInterchange, 		CADInterchangeProfile},
-	{PRO_MPEG4,			MPEG4Profile},
-	{PRO_Interactive, 		InteractiveProfile},
-	{PRO_Full,			FullProfile},
-	{PRO_Immersive,			ImmersiveProfile},
-	{PRO_Core,			CoreProfile},
-	{INT_ID_UNDEFINED, 			(const int*) INT_ID_UNDEFINED}
+	{PRO_Interchange,		InterchangeProfile,		2},
+	{PRO_CADInterchange, 	CADInterchangeProfile,	2},
+	{PRO_MPEG4,				MPEG4Profile,			2},
+	{PRO_Interactive, 		InteractiveProfile,		2},
+	{PRO_Full,				FullProfile,			2},
+	{PRO_Immersive,			ImmersiveProfile,		2},
+	{PRO_Core,				CoreProfile,			2},
+	{INT_ID_UNDEFINED, 		(const int*) INT_ID_UNDEFINED, INT_ID_UNDEFINED}
 };
 
 
@@ -279,7 +291,7 @@ void handleProfile (int myProfile) {
 	} else {
 		int comp; 
 		int lev;
-
+		gglobal()->Mainloop.scene_profile = i;
 		myTable = (int *)profTable[i].profileTable;
 		/* go through the selected table, and see if each component is within range */
 		comp = *myTable; myTable++; lev = *myTable; myTable++;
@@ -289,6 +301,51 @@ void handleProfile (int myProfile) {
 		}
 	}
 }
+//>> exported to jsVRMLBrowser.c
+int capabilitiesHandler_getComponentLevel(int *table, int comp)
+{
+	return table[(comp*2) +1];
+}
+int capabilitiesHandler_getProfileLevel(int prof)
+{
+	return profTable[prof].level;
+}
+const int *capabilitiesHandler_getProfileComponent(int prof)
+{
+	return profTable[prof].profileTable;
+}
+const int *capabilitiesHandler_getCapabilitiesTable()
+{
+	return capabilities;
+}
+int capabilitiesHandler_getTableLength(int* table){
+	int len = 0;
+	if(table == NULL) return 0;
+	while(table[2*len] != INT_ID_UNDEFINED)
+		len++;
+	return len;
+}
+
+void scene_addComponent(int myComponent, int mylevel){
+	//besides the static tables for freewrl, we need a table for scene (desired) components
+	//generated during parsing
+	//we need an init to clear this
+	//and we need a Scene or ProtoInstance (ie broto) struct to store this in
+	int *scene_comps = gglobal()->Mainloop.scene_components;
+	int len = capabilitiesHandler_getTableLength(scene_comps);
+	scene_comps = realloc(scene_comps,sizeof(int)*2*(len+2));
+	scene_comps[len*2] = myComponent;
+	scene_comps[len*2 +1] = mylevel;
+	len++;
+	scene_comps[len*2] = INT_ID_UNDEFINED;
+	scene_comps[len*2 +1] = INT_ID_UNDEFINED;
+	gglobal()->Mainloop.scene_components = scene_comps;
+}
+void scene_clearComponents(){
+	FREE_IF_NZ(gglobal()->Mainloop.scene_components);
+}
+
+//<< 
 
 void handleComponent (int myComponent, int myLevel) {
 	int i;
@@ -305,6 +362,8 @@ void handleComponent (int myComponent, int myLevel) {
 
 	/* did we find the component? */
 	if (capabilities[i] == myComponent) {
+		scene_addComponent(myComponent,myLevel);
+
 		#ifdef CAPABILITIESVERBOSE
 		printf ("handleComponent, comparing requested level %d with supported level %d\n",myLevel, capabilities[i+1]);
 		#endif

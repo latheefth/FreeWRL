@@ -722,7 +722,10 @@ void update_status(char* msg) {
 		strcpy (p->buffer,msg);
 	}
 }
-
+char *get_status(){
+	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+	return p->buffer;
+}
 
 /* start cheapskate widgets >>>> */
 int lenOptions = 12;

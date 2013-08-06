@@ -161,6 +161,8 @@ typedef struct iiglobal //InstanceGlobal
 		char *url;
 		char *scene_name; //null or take from url
 		char *scene_suff; //null or wrl or x3d
+		int  scene_profile; //from parser (or capabilities handler) used in js scene.profile
+		int *scene_components;
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;

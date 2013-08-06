@@ -430,6 +430,10 @@ struct CRStruct *getCRoutes()
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
 	return p->CRoutes;
 }
+int getCRouteCount(){
+	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
+	return p->CRoutes_Count;
+}
 struct CRscriptStruct *getScriptControl()
 {
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
