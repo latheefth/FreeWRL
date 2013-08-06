@@ -236,6 +236,17 @@ ComponentInfoSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, 
 	//can I, should I force it to read-only this way?
 	return JS_FALSE;
 }
+void
+ComponentInfoFinalize(JSContext *cx, JSObject *obj)
+{
+	IntTableIndex ptr;
+	if ((ptr = (IntTableIndex)JS_GetPrivate(cx, obj)) == NULL) {
+		return;
+	} else {
+		FREE_IF_NZ (ptr);
+	}
+}
+
 
 static JSClass ComponentInfoClass = {
     "ComponentInfo",
@@ -247,7 +258,7 @@ static JSClass ComponentInfoClass = {
     JS_EnumerateStub,
     JS_ResolveStub,
     JS_ConvertStub,
-    JS_FinalizeStub
+    ComponentInfoFinalize //JS_FinalizeStub
 };
 
 static JSPropertySpec (ComponentInfoProperties)[] = {
