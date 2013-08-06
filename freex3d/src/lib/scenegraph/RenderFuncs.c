@@ -357,6 +357,9 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
     int i;
     		
+	// in case we are trying to render a node that has just been killed...
+	if (me==NULL) return;
+
 	PRINT_GL_ERROR_IF_ANY("BEGIN sendLightInfo");
 	/* if one of these are equal to -1, we had an error in the shaders... */
 	GLUNIFORM1IV(me->lightState,MAX_LIGHTS,p->lightOnOff);
@@ -419,6 +422,10 @@ void enableGlobalShader(s_shader_capabilities_t *myShader) {
 void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
 
     s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
+
+	// checking to see that we really have the data
+	if (me==NULL) return;
+
 #ifdef RENDERVERBOSE
 
 ConsoleMessage ("sendAttribToGPU, getAppearanceProperties()->currentShaderProperties %p\n",getAppearanceProperties()->currentShaderProperties);
@@ -444,39 +451,33 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 #endif
 #undef RENDERVERBOSE
 
-	if (getAppearanceProperties()->currentShaderProperties != NULL) {
-		switch (myType) {
-			case FW_NORMAL_POINTER_TYPE:
-			if (me->Normals != -1) {
-				glEnableVertexAttribArray(me->Normals);
-				glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
-			}
-				break;
-			case FW_VERTEX_POINTER_TYPE:
-			if (me->Vertices != -1) {
-				glEnableVertexAttribArray(me->Vertices);
-				glVertexAttribPointer(me->Vertices, dataSize, dataType, normalized, stride, pointer);
-			}
-				break;
-			case FW_COLOR_POINTER_TYPE:
-			if (me->Colours != -1) {
-				glEnableVertexAttribArray(me->Colours);
-				glVertexAttribPointer(me->Colours, dataSize, dataType, normalized, stride, pointer);
-			}
-				break;
-			case FW_TEXCOORD_POINTER_TYPE:
-			if (me->TexCoords != -1) {
-				glEnableVertexAttribArray(me->TexCoords);
-				glVertexAttribPointer(me->TexCoords, dataSize, dataType, normalized, stride, pointer);
-			}
-				break;
-
-			default : {printf ("sendAttribToGPU, unknown type in shader\n");}
+	switch (myType) {
+		case FW_NORMAL_POINTER_TYPE:
+		if (me->Normals != -1) {
+			glEnableVertexAttribArray(me->Normals);
+			glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
 		}
+			break;
+		case FW_VERTEX_POINTER_TYPE:
+		if (me->Vertices != -1) {
+			glEnableVertexAttribArray(me->Vertices);
+			glVertexAttribPointer(me->Vertices, dataSize, dataType, normalized, stride, pointer);
+		}
+			break;
+		case FW_COLOR_POINTER_TYPE:
+		if (me->Colours != -1) {
+			glEnableVertexAttribArray(me->Colours);
+			glVertexAttribPointer(me->Colours, dataSize, dataType, normalized, stride, pointer);
+		}
+			break;
+		case FW_TEXCOORD_POINTER_TYPE:
+		if (me->TexCoords != -1) {
+			glEnableVertexAttribArray(me->TexCoords);
+			glVertexAttribPointer(me->TexCoords, dataSize, dataType, normalized, stride, pointer);
+		}
+			break;
 
-	/* not shaders; older style of rendering */
-	} else {
-		//printf ("not shaders for pointers\n");
+		default : {printf ("sendAttribToGPU, unknown type in shader\n");}
 	}
 }
 
@@ -536,8 +537,9 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 static bool setupShader() {
     ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
     s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
+
 PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
-	if (mysp != NULL) {
+	if (mysp == NULL) return FALSE;
         
 
 		/* if we had a shader compile problem, do not draw */
@@ -585,7 +587,6 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
 			else glDisableVertexAttribArray(mysp->TexCoords);
 		}
         
-	}
 	PRINT_GL_ERROR_IF_ANY("EXIT(true) setupShader");
     return true;
     

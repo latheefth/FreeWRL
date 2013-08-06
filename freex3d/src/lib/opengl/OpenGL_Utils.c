@@ -72,9 +72,6 @@
 
 void kill_rendering(void);
 
-/* Node Tracking */
-static void kill_X3DNodes(void);
-
 static void createdMemoryTable();
 static void increaseMemoryTable();
 
@@ -228,24 +225,20 @@ void kill_userDefinedShaders() {
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-ConsoleMessage ("start kill_userDefinedShaders");
+	//ConsoleMessage ("start kill_userDefinedShaders");
 	p->userDefinedShaderCount = 0;
 
 
 	// free the strings for the shader source, if they exist    
 	for (i=0; i<MAX_USER_DEFINED_SHADERS; i++) {
-		ConsoleMessage ("udf shader source is %p %p",p->userDefinedVertexShader[i], p->userDefinedFragmentShader[i]);
-/*
+		//ConsoleMessage ("udf shader source is %p %p",p->userDefinedVertexShader[i], p->userDefinedFragmentShader[i]);
 		FREE_IF_NZ (p->userDefinedFragmentShader[i]);
 		FREE_IF_NZ (p->userDefinedVertexShader[i]);
-*/
 	}
 
 	for (i=0; i <vectorSize(p->myShaderTable); i++) {
         	struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
-/*
 		FREE_IF_NZ(me->myCapabilities);
-*/
 		me->whichOne = 0;
 	}
 
