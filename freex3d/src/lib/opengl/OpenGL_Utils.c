@@ -222,7 +222,7 @@ GLEWContext * glewGetContext()
 #endif
 
 // we have a new world, get rid of any old user defined shaders here
-kill_userDefinedShaders() {
+void kill_userDefinedShaders() {
 	int i;
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
@@ -1554,7 +1554,7 @@ struct fw_LightSourceParameters { \n\
   vec4 specular; \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
-  vec3 spotDirection; \n\
+  vec4 spotDirection; \n\
   float spotExponent; \n\
   float spotCutoff; \n\
   float spotCosCutoff; \n\
