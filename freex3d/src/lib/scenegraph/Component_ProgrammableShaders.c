@@ -201,10 +201,10 @@ static int shader_checkType(struct FieldDecl * myField,
             }
         }
     }
-	//glGetActiveUniform(myShader,myUniform,(GLsizei)90,&len,&size,&type,ch);
+	glGetActiveUniform(myShader,myUniform,(GLsizei)90,&len,&size,&type,ch);
 
     //printf ("glGetActiveUniform for myShader %d, myVar %d, len %d size %d type %x ch %s\n",
-          //  myShader,myUniform, len, size,type, ch);
+            //myShader,myUniform, len, size,type, ch);
     
 	/* verify that the X3D fieldType matches the Shader type */
 	switch (fieldDecl_getType(myField)) {
@@ -307,7 +307,7 @@ default :{printf ("not decoded yet, probably a matrix type\n");}
 /* fieldDecl_getshaderVariableID(myf), fieldDecl_getValue(myf)); */
 static void sendValueToShader(struct ScriptFieldDecl* myField) {
 	GLint shaderVariable = fieldDecl_getshaderVariableID(myField->fieldDecl);
-
+    
 	#ifdef SHADERVERBOSE
 	printf ("sendValueToShader... ft %s\n",stringFieldtypeType(fieldDecl_getType(myField->fieldDecl)));
 	printf ("shaderVariableID is %d\n",shaderVariable);
@@ -316,6 +316,7 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 	/* either not defined in the shader, OR not used in the shader so it is stripped by glsl compiler */
 	if (shaderVariable == INT_ID_UNDEFINED) return;
 
+    
 	switch (fieldDecl_getType(myField->fieldDecl)) {
 
 #define SF_FLOATS_TO_SHADER(ttt,ty1,ty2) \
@@ -338,11 +339,12 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		case FIELDTYPE_SF##ty1: {float val = myField->value.sf##ty2; \
 			GLUNIFORM1F(shaderVariable, val); \
 		break; }
-
+            
 #define MF_FLOATS_TO_SHADER(ttt,ty1,ty2) \
-		case FIELDTYPE_MF##ty1: \
-			GLUNIFORM##ttt##FV(shaderVariable, myField->value.mf##ty2.n, (float *)myField->value.mf##ty2.p); \
-		break; 
+        case FIELDTYPE_MF##ty1: \
+            GLUNIFORM##ttt##FV(shaderVariable, myField->value.mf##ty2.n, (float *)myField->value.mf##ty2.p); \
+            break; 
+            
 
 #define SF_INTS_TO_SHADER(ty1,ty2) \
 		case FIELDTYPE_SF##ty1: \
@@ -370,6 +372,7 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 		SF_DOUBLES_TO_SHADER(4,Vec4d, vec4d)
 
 		MF_FLOATS_TO_SHADER(1,Float,float)
+            
 		MF_FLOATS_TO_SHADER(2,Vec2f,vec2f)
 		MF_FLOATS_TO_SHADER(3,Color,color)
 		MF_FLOATS_TO_SHADER(3,Vec3f,vec3f)
@@ -384,8 +387,8 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 
 		//MF_FLOATS_TO_SHADER(4,Vec4f,vec4f)
 
-		//SF_FLOAT_TO_SHADER(9,Matrix3f, matrix3f)
-		//SF_FLOAT_TO_SHADER(16,Matrix4f, matrix4f)
+		//SF_VECS_TO_SHADER(9,Matrix3f, matrix3f)
+		//SF_VECS_TO_SHADER(16,Matrix4f, matrix4f)
 
 		case FIELDTYPE_SFNode:
 		case FIELDTYPE_SFImage:
@@ -412,17 +415,21 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 
 /* Routing - sending a value to a shader - we get passed the routing table entry number */
 void getField_ToShader(struct X3D_Node *node, int num) {
-	struct Shader_Script *myObj;
+	struct Shader_Script *myObj[2];
+    int numObjs = 1;
 	unsigned int to_counter;
 	int fromFieldID;
-	size_t i;
+	size_t i,j;
 	GLfloat* sourceData;
 	GLuint currentShader = 0;	
 	struct CRStruct *CRoutes = getCRoutes();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
+    // ProgramShaders have fields for each ShaderProgram field, and we can have a couple of fields
+    // here. Thus myObj* has more than one pointer.
+    
     // use the currently running shader
-    //ConsoleMessage ("getFieldToShader, node %s, num %d",stringNodeType(node->_nodeType),num);
+    ConsoleMessage ("getFieldToShader, node %s, num %d",stringNodeType(node->_nodeType),num);
     //ConsoleMessage ("nodes have %d parents",vectorSize(node->_parentVector));
     for (i=0; i<vectorSize(node->_parentVector); i++) {
         struct X3D_Appearance *ap = vector_get(struct X3D_Appearance *,node->_parentVector, i);
@@ -447,6 +454,8 @@ void getField_ToShader(struct X3D_Node *node, int num) {
     // turning shader on...
     enableGlobalShader(getMyShader(currentShader));
     
+    myObj[0] = NULL;
+    myObj[1] = NULL;
     
 	/* go through each destination for this node */
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
@@ -454,18 +463,30 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		fromFieldID = to_ptr->foffset;
-		//printf ("getField_ToShader, num %d, foffset %d\n",num,fromFieldID);  
+		//printf ("getField_ToShader, num %d, foffset %d to a %s\n",num,fromFieldID,stringNodeType(to_ptr->routeToNode->_nodeType));  
 
 		switch (to_ptr->routeToNode->_nodeType) {
 		case NODE_ComposedShader:
-			myObj = (struct Shader_Script *)(X3D_COMPOSEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
+                myObj[0] = (struct Shader_Script *)(X3D_COMPOSEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
 			break;
-		case NODE_PackagedShader:
-			myObj = (struct Shader_Script *)(X3D_PACKAGEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
-			break;
-		case NODE_ShaderProgram: 
-			myObj = (struct Shader_Script *)(X3D_SHADERPROGRAM(to_ptr->routeToNode)->_shaderUserDefinedFields);
-			break;
+            case NODE_PackagedShader:
+                myObj[0] = (struct Shader_Script *)(X3D_PACKAGEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
+                break;
+            case NODE_ProgramShader:{
+                int i;
+                    
+                for (i=0; i<X3D_PROGRAMSHADER(to_ptr->routeToNode)->programs.n; i++) {
+                    struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(to_ptr->routeToNode)->programs.p[i]);
+           
+                    // trying this Hopefully we only have a Fragment and a Vertex
+                   
+                    if (i<2) {
+                        myObj[i] = (struct Shader_Script *)ps->_shaderUserDefinedFields;
+                        numObjs = i;
+                    }
+                }
+			
+                break;}
 		default: {
 			ConsoleMessage ("getField_ToShader, unhandled type??");
 			return;
@@ -484,51 +505,56 @@ void getField_ToShader(struct X3D_Node *node, int num) {
     */
 
 	/* is there any fields? */
-	if (myObj == NULL) return;
+	if (myObj[0] == NULL) return;
 
 	/* this script should be loaded... if not, wait until it is */
-	if (!myObj->loaded) {
-		/* ConsoleMessage ("ShaderProgram should be loaded, hmmm"); */
-		return;
+        for (i=0; i<numObjs; i++) {
+            
+            if (!myObj[i]->loaded) {
+                /* ConsoleMessage ("ShaderProgram should be loaded, hmmm"); */
+                return;
+            }
 	}
         
     //printf ("going through fields.... have %d fields\n",vectorSize(myObj->fields)); 
-	for(i=0; i!=vectorSize(myObj->fields); ++i) {
-		GLint shaderVariable;
-		struct ScriptFieldDecl* curField;
-		struct FieldDecl * myf;
+    for (j=0; j<numObjs; j++) {
+        for(i=0; i!=vectorSize(myObj[j]->fields); ++i) {
+            GLint shaderVariable;
+            struct ScriptFieldDecl* curField;
+            struct FieldDecl * myf;
 
-		/* initialization */
-		curField = vector_get(struct ScriptFieldDecl*, myObj->fields, i);
-		myf = curField->fieldDecl;
-		shaderVariable = fieldDecl_getshaderVariableID(myf);
-        //printf ("for field %d, shaderVariable %d\n",i,shaderVariable);
+            /* initialization */
+            curField = vector_get(struct ScriptFieldDecl*, myObj[j]->fields, i);
+            myf = curField->fieldDecl;
+            shaderVariable = fieldDecl_getshaderVariableID(myf);
+            /*
+            printf ("for field %d, shaderVariable %d\n",i,shaderVariable);
 		
 		
-		/*printf ("curField %d name %d type %d ",i,
-			fieldDecl_getIndexName(myf), fieldDecl_getType(myf));
-		printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",
-				fieldDecl_getAccessType(myf),
-			stringPROTOKeywordType(fieldDecl_getAccessType(myf)), 
-				fieldDecl_getType(myf), stringFieldtypeType(fieldDecl_getType(myf)),
-				fieldDecl_getIndexName(myf));
-		printf ("comparing fromFieldID %d and name %d\n",fromFieldID, fieldDecl_getIndexName(myf));
+            printf ("curField %d name %d type %d ",i,
+                    fieldDecl_getIndexName(myf), fieldDecl_getType(myf));
+            printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",
+                    fieldDecl_getAccessType(myf),
+                    stringPROTOKeywordType(fieldDecl_getAccessType(myf)), 
+                        fieldDecl_getType(myf), stringFieldtypeType(fieldDecl_getType(myf)),
+                        fieldDecl_getIndexName(myf));
+            printf ("comparing fromFieldID %d and name %d\n",fromFieldID, fieldDecl_getIndexName(myf));
 			printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
 			printf ("	shader ascii name is %s\n",fieldDecl_getShaderScriptName(curField->fieldDecl));
-		*/
+             */
 		
 
-		if (fromFieldID == fieldDecl_getShaderScriptIndex(myf)) {
+            if (fromFieldID == fieldDecl_getShaderScriptIndex(myf)) {
 			
-			//printf ("	field match, %d==%d\n",fromFieldID, fieldDecl_getIndexName(myf));
-			//printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
-			//printf ("	shaderVariableID is %d\n",fieldDecl_getShaderVariableID(myf));
+                //printf ("	field match, %d==%d\n",fromFieldID, fieldDecl_getIndexName(myf));
+                //printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
+                //printf ("	shaderVariableID is %d\n",fieldDecl_getShaderVariableID(myf));
 			
 		
 
-		/* ok, here we have the Shader_Script, the field offset, and the entry */
+                /* ok, here we have the Shader_Script, the field offset, and the entry */
 
-		sourceData = offsetPointer_deref(GLfloat *,CRoutes[num].routeFromNode, CRoutes[num].fnptr);
+                sourceData = offsetPointer_deref(GLfloat *,CRoutes[num].routeFromNode, CRoutes[num].fnptr);
 		
 #define ROUTE_SF_FLOAT_TO_SHADER(ty1) \
                 case FIELDTYPE_SF##ty1: \
@@ -555,9 +581,11 @@ void getField_ToShader(struct X3D_Node *node, int num) {
                         for (i=0; i<ttt; i++) { val[i] = (float) (*fp); fp++; } \
                                 GLUNIFORM##ttt##FV(shaderVariable, 1, val); \
                 break; }
+            
 
 #define ROUTE_MF_FLOATS_TO_SHADER(ttt,ty1) \
                 case FIELDTYPE_MF##ty1: { struct Multi_##ty1 *sd = (struct Multi_##ty1*) sourceData; \
+                        printf ("MF_FLOATS_TO_SHADER, sv %d, sd->n %d\n",shaderVariable,sd->n); \
                         GLUNIFORM##ttt##FV(shaderVariable, sd->n, (const GLfloat *)sd->p); \
                 break; }
 
@@ -568,60 +596,61 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 
 
 
-		/* send in the correct parameters */
-		switch (JSparamnames[fromFieldID].type) {
-                ROUTE_SF_FLOAT_TO_SHADER(Float)
-                ROUTE_SF_DOUBLE_TO_SHADER(Double)
-                ROUTE_SF_DOUBLE_TO_SHADER(Time)
-		ROUTE_SF_INTS_TO_SHADER(Bool)
-		ROUTE_SF_INTS_TO_SHADER(Int32)
+                /* send in the correct parameters */
+                switch (JSparamnames[fromFieldID].type) {
+                        ROUTE_SF_FLOAT_TO_SHADER(Float)
+                        ROUTE_SF_DOUBLE_TO_SHADER(Double)
+                        ROUTE_SF_DOUBLE_TO_SHADER(Time)
+                        ROUTE_SF_INTS_TO_SHADER(Bool)
+                        ROUTE_SF_INTS_TO_SHADER(Int32)
 
-                ROUTE_SF_FLOATS_TO_SHADER(2,Vec2f)
-                ROUTE_SF_FLOATS_TO_SHADER(3,Vec3f)
-                ROUTE_SF_FLOATS_TO_SHADER(3,Color)
-                ROUTE_SF_FLOATS_TO_SHADER(4,ColorRGBA)
-                ROUTE_SF_FLOATS_TO_SHADER(4,Rotation)
-                ROUTE_SF_FLOATS_TO_SHADER(4,Vec4f)
-                ROUTE_SF_DOUBLES_TO_SHADER(2,Vec2d)
-                ROUTE_SF_DOUBLES_TO_SHADER(3,Vec3d)
-                ROUTE_SF_DOUBLES_TO_SHADER(4,Vec4d)
+                        ROUTE_SF_FLOATS_TO_SHADER(2,Vec2f)
+                        ROUTE_SF_FLOATS_TO_SHADER(3,Vec3f)
+                        ROUTE_SF_FLOATS_TO_SHADER(3,Color)
+                        ROUTE_SF_FLOATS_TO_SHADER(4,ColorRGBA)
+                        ROUTE_SF_FLOATS_TO_SHADER(4,Rotation)
+                        ROUTE_SF_FLOATS_TO_SHADER(4,Vec4f)
+                        ROUTE_SF_DOUBLES_TO_SHADER(2,Vec2d)
+                        ROUTE_SF_DOUBLES_TO_SHADER(3,Vec3d)
+                        ROUTE_SF_DOUBLES_TO_SHADER(4,Vec4d)
 
-                ROUTE_MF_FLOATS_TO_SHADER(1,Float)
-                ROUTE_MF_FLOATS_TO_SHADER(2,Vec2f)
-                ROUTE_MF_FLOATS_TO_SHADER(3,Color)
-                ROUTE_MF_FLOATS_TO_SHADER(3,Vec3f)
-                ROUTE_MF_FLOATS_TO_SHADER(4,ColorRGBA)
-                ROUTE_MF_FLOATS_TO_SHADER(4,Rotation)
+                        ROUTE_MF_FLOATS_TO_SHADER(1,Float)
+                        ROUTE_MF_FLOATS_TO_SHADER(2,Vec2f)
+                        ROUTE_MF_FLOATS_TO_SHADER(3,Color)
+                        ROUTE_MF_FLOATS_TO_SHADER(3,Vec3f)
+                        ROUTE_MF_FLOATS_TO_SHADER(4,ColorRGBA)
+                        ROUTE_MF_FLOATS_TO_SHADER(4,Rotation)
 
-                ROUTE_MF_INTS_TO_SHADER(1,Bool)
-                ROUTE_MF_INTS_TO_SHADER(1,Int32)
+                        ROUTE_MF_INTS_TO_SHADER(1,Bool)
+                        ROUTE_MF_INTS_TO_SHADER(1,Int32)
 
 
 
-			case FIELDTYPE_SFNode:
-			case FIELDTYPE_MFNode:
-			case FIELDTYPE_MFTime:
-			case FIELDTYPE_SFString:
-			case FIELDTYPE_MFString:
-			case FIELDTYPE_SFImage:
-			case FIELDTYPE_FreeWRLPTR:
-			case FIELDTYPE_MFVec3d:
-			case FIELDTYPE_MFDouble:
-			case FIELDTYPE_SFMatrix3f:
-			case FIELDTYPE_MFMatrix3f:
-			case FIELDTYPE_SFMatrix3d:
-			case FIELDTYPE_MFMatrix3d:
-			case FIELDTYPE_SFMatrix4f:
-			case FIELDTYPE_MFMatrix4f:
-			case FIELDTYPE_SFMatrix4d:
-			case FIELDTYPE_MFMatrix4d:
-			case FIELDTYPE_MFVec2d:
-			case FIELDTYPE_MFVec4d:
-				ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
-				break;
-			default: {
-				ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
-			}
+                    case FIELDTYPE_SFNode:
+                    case FIELDTYPE_MFNode:
+                    case FIELDTYPE_MFTime:
+                    case FIELDTYPE_SFString:
+                    case FIELDTYPE_MFString:
+                    case FIELDTYPE_SFImage:
+                    case FIELDTYPE_FreeWRLPTR:
+                    case FIELDTYPE_MFVec3d:
+                    case FIELDTYPE_MFDouble:
+                    case FIELDTYPE_SFMatrix3f:
+                    case FIELDTYPE_MFMatrix3f:
+                    case FIELDTYPE_SFMatrix3d:
+                    case FIELDTYPE_MFMatrix3d:
+                    case FIELDTYPE_SFMatrix4f:
+                    case FIELDTYPE_MFMatrix4f:
+                    case FIELDTYPE_SFMatrix4d:
+                    case FIELDTYPE_MFMatrix4d:
+                    case FIELDTYPE_MFVec2d:
+                    case FIELDTYPE_MFVec4d:
+                        ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
+                        break;
+                    default: {
+                        ConsoleMessage ("shader field type %s not routable yet",stringFieldtypeType(JSparamnames[fromFieldID].type));
+                    }
+                }
 			}
 		}
     }
@@ -644,6 +673,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 			stringNodeType(node->_nodeType));
 		return;
 	}
+
 
 	#ifdef SHADERVERBOSE
 	printf ("Shader_Script has node of %p ",me->ShaderScriptNode);
@@ -798,57 +828,59 @@ void sendInitialFieldsToShader(struct X3D_Node * node) {
 /*********************************************************************/
 
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
-	DEBUG_SHADER("called compile_ComposedShader(%p)\n",(void *)node);
-	printf("called compile_ComposedShader(%p)\n",(void *)node);
-	{
-		/* an array of text pointers, should contain shader source */
-		GLchar **vertShaderSource;
-		GLchar **fragShaderSource;
-		int i;
+	
+    /* an array of text pointers, should contain shader source */
+    GLchar **vertShaderSource;
+    GLchar **fragShaderSource;
+    int i;
 
-		/* do we have anything to compile? */
-		int haveVertShaderText; 
-		int haveFragShaderText; 
+    /* do we have anything to compile? */
+    int haveVertShaderText; 
+    int haveFragShaderText; 
 
-		/* initialization */
-		haveVertShaderText = FALSE;
-		haveFragShaderText = FALSE;
-        // might be set in appearance already
+    /* initialization */
+    haveVertShaderText = FALSE;
+    haveFragShaderText = FALSE;
+    
+    DEBUG_SHADER("called compile_ComposedShader(%p)\n",(void *)node);
+
+    // might be set in appearance already
+    
        
-        if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+    if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
         
-        if (node->_shaderUserNumber < 0) {
-            ConsoleMessage ("out of user defined shader slots - can not run");
-            MARK_NODE_COMPILED
-            return;
-        }
+    if (node->_shaderUserNumber < 0) {
+        ConsoleMessage ("out of user defined shader slots - can not run");
+        MARK_NODE_COMPILED
+        return;
+    }
 
-		vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n); 
-		fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n);
+    vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n); 
+    fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n);
+    
+    /* set this up... set it to FALSE if there are problems */
+    node->isValid = TRUE;
 	
-		/* set this up... set it to FALSE if there are problems */
-		node->isValid = TRUE;
-	
-		/* we support only GLSL here */
-		SUPPORT_GLSL_ONLY
+    /* we support only GLSL here */
+    SUPPORT_GLSL_ONLY
 		
-		/* ok so far, go through the parts */
-		LOCATE_SHADER_PARTS(ShaderPart,parts)
+    /* ok so far, go through the parts */
+    LOCATE_SHADER_PARTS(ShaderPart,parts)
 	
-        //ConsoleMessage("parts count %d",node->parts.n);
-        //ConsoleMessage ("vertex source 0 is %s",vertShaderSource[0]);
-        //ConsoleMessage ("fragment source 0 is %s",fragShaderSource[1]);
+    //ConsoleMessage("parts count %d",node->parts.n);
+    //ConsoleMessage ("vertex source 0 is %s",vertShaderSource[0]);
+    //ConsoleMessage ("fragment source 0 is %s",fragShaderSource[1]);
         
-        if (node->isValid) {
-                sendShaderTextToEngine(node->_shaderUserNumber,node->parts.n,vertShaderSource,fragShaderSource);
-        } else {
-            FREE_IF_NZ(vertShaderSource);
-            FREE_IF_NZ(fragShaderSource);
-        }
+    if (node->isValid) {
+        sendShaderTextToEngine(node->_shaderUserNumber,node->parts.n,vertShaderSource,fragShaderSource);
+    } else {
+        FREE_IF_NZ(vertShaderSource);
+        FREE_IF_NZ(fragShaderSource);
+    }
 
-		MARK_NODE_COMPILED
-	}
+    MARK_NODE_COMPILED
 }
+    
 void compile_ProgramShader (struct X3D_ProgramShader *node) {
 		/* an array of text pointers, should contain shader source */
 		GLchar **vertShaderSource;

@@ -1162,13 +1162,15 @@ void CRoutes_RegisterSimple(
  	void* interpolatorPointer;
  	int extraData = 0;
 	int dir = 0;
-	
+
+
 	/* get direction flags here */
 	switch (from->_nodeType) {
 		case NODE_Script:
 		case NODE_ComposedShader:
 		case NODE_PackagedShader:
-		case NODE_ShaderProgram: 
+		//JAS case NODE_ShaderProgram: 
+        case NODE_ProgramShader:
 			dir  = dir | FROM_SCRIPT; break;
 		default: {}
 	}
@@ -1176,7 +1178,8 @@ void CRoutes_RegisterSimple(
 		case NODE_Script:
 		case NODE_ComposedShader:
 		case NODE_PackagedShader:
-		case NODE_ShaderProgram: 
+		//JAS case NODE_ShaderProgram:
+        case NODE_ProgramShader:
 			dir  = dir | TO_SCRIPT; break;
 		default: {}
 	}

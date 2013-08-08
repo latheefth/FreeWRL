@@ -2202,6 +2202,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         //ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
         
         // add the following:
+        // this has both Vertex manipulations, and lighting, etc.
         vertexSource[vertexMainStart] = 
                     "vec4 ftransform() {return vec4 (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex);}\n \
                     #define gl_ModelViewProjectionMatrix (fw_ProjectionMatrix*fw_ModelViewMatrix)\n \
@@ -2213,8 +2214,19 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
                     #define gl_Normal fw_Normal\n \
                     #define gl_LightSource fw_LightSource\n ";    
 
-	// copy over the same defines, but for the fragment shader        
-	fragmentSource[fragmentMainStart] = vertexSource[vertexMainStart];
+	// copy over the same defines, but for the fragment shader.
+    // Some GLSL compilers will complain about the "fttransform()"
+    // definition if defined in a Fragment shader, so we judiciously
+    // copy over things that are fragment-only.
+        
+	fragmentSource[fragmentMainStart] = " \
+                    #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n \
+                    #define gl_NormalMatrix fw_NormalMatrix\n \
+                    #define gl_Normal fw_Normal\n \
+                    #define gl_LightSource fw_LightSource\n ";    
+
+        
+        
 
         vertexSource[vertexLightDefines] = lightDefines;
         vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
@@ -2224,6 +2236,13 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
         vertexSource[vertexNormalDeclare] = vertNormDec;
         fragmentSource[fragmentLightDefines] = lightDefines;
+        //ConsoleMessage ("sources here are %p and %p", p->userDefinedVertexShader[me], p->userDefinedFragmentShader[me]);
+        
+        if ((p->userDefinedVertexShader[me] == NULL) || (p->userDefinedFragmentShader[me]==NULL)) {
+            ConsoleMessage ("no Shader Source found for user defined shaders...");
+            return false;
+            
+        }
         fragmentSource[fragmentUserDefinedInput] = p->userDefinedFragmentShader[me];
         vertexSource[vertexUserDefinedInput] = p->userDefinedVertexShader[me];    
 
@@ -2293,6 +2312,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne, phongShading)) {
 		return;
 	}
+    
     
 	myVertexShader = CREATE_SHADER (VERTEX_SHADER);
 	SHADER_SOURCE(myVertexShader, vertexEndMarker, ((const GLchar **)vertexSource), NULL);

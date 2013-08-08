@@ -8177,7 +8177,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
-			tmp2->_defaultContainer = FIELDNAMES_material;
+			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}
 		case NODE_PickableGroup : {
@@ -8343,7 +8343,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_shaderUserNumber = -1;
 			tmp2->metadata = NULL;
 			tmp2->activate = 0;
-			tmp2->_defaultContainer = FIELDNAMES_programs;
+			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}
 		case NODE_Proto : {
@@ -8499,7 +8499,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->type = newASCIIString("");
 			tmp2->_shaderUserDefinedFields = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_material;
+			tmp2->_defaultContainer = FIELDNAMES_programs;
 		break;
 		}
 		case NODE_Shape : {

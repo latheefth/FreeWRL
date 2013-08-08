@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.55  2013/08/08 16:33:06  crc_canada
+# more User Defined Shader changes
+#
 # Revision 1.54  2013/07/15 21:07:47  crc_canada
 # Component_CAD, initial Component_NURBS rework.
 #
@@ -519,13 +522,13 @@
 	TimeTrigger		=>children,
 
 	ComposedShader		=>shaders,
+	ProgramShader		=>shaders,
+	PackagedShader		=>shaders,
 	FloatVertexAttribute	=>children,
 	Matrix3VertexAttribute	=>children,
 	Matrix4VertexAttribute	=>children,
-	PackagedShader		=>material,
-	ProgramShader		=>programs,
 	ShaderPart		=>parts,
-	ShaderProgram		=>material,
+	ShaderProgram		=>programs,
 
 	MetadataSet		=>metadata,
 	MetadataInteger		=>metadata,
