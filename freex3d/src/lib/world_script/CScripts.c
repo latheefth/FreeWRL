@@ -548,9 +548,28 @@ char **shader_initCodeFromMFUri(const struct Multi_String* s) {
 	for(i=0; i!=s->n; ++i) {
 		FREE_IF_NZ(p->buffer);
         //ConsoleMessage ("shader_initCodeFromMFUri - calling script_initCodeFromUri for index %d",i);
-		if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
-   			return &p->buffer;
-		}
+        /* NOTE NOTE NOTE  - Shaders are local right now - no files for shader nodes.
+         
+         issue is threading and initialization - the front end will deadlock waiting to get a url;
+         well actually, this call will deadlock, because it will ask the front end to get this url.
+         
+         We can thread the call, but we *HAVE* to ensure that the initialization and routing happen,
+         and the code as written for shader initialization does not do this. 
+         
+         Something for later....
+         
+          */
+        
+        if (s->p[i]->strptr != NULL) {
+            //ConsoleMessage ("looking at :%s: ",s->p[i]->strptr);
+            if (strncmp("data:text/plain,",s->p[i]->strptr , strlen("data:text/plain,")) == 0) {
+            if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
+                return &p->buffer;
+            }
+            } else {
+                ConsoleMessage ("implementation restriction - right now shader source must be in the X3D file so the url must start with \"data:text/plain,\"");
+            }
+        }
 	}
 
 	/* failure... */

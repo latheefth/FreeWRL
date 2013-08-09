@@ -2414,7 +2414,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
         vec4 specular;             // Scli   
         vec4 position;             // Ppli   
         vec4 halfVector;           // Derived: Hi   
-        vec3 spotDirection;        // Sdli   
+        vec4 spotDirection;        // Sdli   
         float spotExponent;        // Srli   
         float spotCutoff;          // Crli                                
         float spotCosCutoff;       // Derived: cos(Crli)                   

@@ -540,8 +540,9 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 	int error;
 	int fieldInt;
 
+    
 #ifdef X3DPARSERVERBOSE
-	printf ("getRoutingInfo, node %u\n",node);
+	printf ("getRoutingInfo, node %p name %s\n",node,name);
 	printf ("getRoutingInfo, nt %s\n",stringNodeType(node->_nodeType));
 #endif
 	error = FALSE;
@@ -563,22 +564,53 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		*myObj = (struct Shader_Script *) X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
+        case NODE_ProgramShader: {
+            int i;
+            
+            // assume we have an error, unless we find this in the PackagedShader field
+            error = true;
+            
+            // a ProgramShader has potentially lots of ShaderPrograms in the "programs" field...
+            //ConsoleMessage ("have a PRogramShder here");
+            for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
+                struct X3D_PackagedShader *ps = X3D_PACKAGEDSHADER(X3D_PROGRAMSHADER(node)->programs.p[i]);
+                //ConsoleMessage ("ProgramShader program %d is %p",i,ps);
+                if (ps != NULL) {
+                    int tmpOfs, tmpType, terror;
+
+                    //ConsoleMessage ("ProgramShader, child %d is a %s",i,stringNodeType(ps->_nodeType));
+                    *myObj = (struct Shader_Script *) ps->_shaderUserDefinedFields;
+                    terror = !(getFieldFromScript (myLexer, name,*myObj,&tmpOfs,&tmpType,accessType));
+                    //ConsoleMessage ("have error %s",terror?" ok ":" not ok" );
+                
+                    if (!terror) {
+                        //ConsoleMessage ("found it");
+                        *offs = tmpOfs; *type = tmpType;
+                        error = false; // ie, no error
+                    }
+
+                }
+            }
+            break;}
 	default:
 		*myObj=NULL;
+    
+            /* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
+            fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
 
-		/* lets see if this node has a routed field  fromTo  = 0 = from node, anything else = to node */
-		fieldInt = findRoutedFieldInFIELDNAMES (node, name, routeTo);
-
-		if (fieldInt >=0) { findFieldInOFFSETS(node->_nodeType, 
-				fieldInt, offs, type, accessType);
-		} else {
-			/* do NOT set error here; this might be a PROTO expansion and more work is needed */
-			*offs=INT_ID_UNDEFINED;
-			*type=INT_ID_UNDEFINED;
-		}
+            if (fieldInt >=0) { findFieldInOFFSETS(node->_nodeType, 
+                                                   fieldInt, offs, type, accessType);
+            } else {
+                /* do NOT set error here; this might be a PROTO expansion and more work is needed */
+                *offs=INT_ID_UNDEFINED;
+                *type=INT_ID_UNDEFINED;
+            }
 	}
+    //if (error) ConsoleMessage ("getRoutingInfo an error"); else ConsoleMessage ("getRoutingInfo ok");
+
 	return error;
 }
+#undef X3DPARSERVERBOSE
 
 
 static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, int *offs, int* type, char *name, int routeTo) {
@@ -591,8 +623,9 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 	node = *innode; /* ease of use - contents of pointer in param line */
  
 	error = getRoutingInfo(myLexer,node,offs,type,&accessType, &holder, name,routeTo);
-
-	/* printf ("getRouteField, offs %d type %d\n",*offs, *type); */
+    
+    //if (error) ConsoleMessage ("getRouteField,  after getRoutingInfo an error"); else ConsoleMessage ("getRouteField, getRoutingInfo ok");
+    //printf ("getRouteField, offs %d type %d\n",*offs, *type); 
 
 	if ((*offs <0) && isProto(node)) 
 	{
@@ -684,6 +717,8 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 		//}
 	}
 
+    //if (error) ConsoleMessage ("getRouteField,  an error"); else ConsoleMessage ("getRouteField,  ok");
+
 
 	if (*offs <0) {
 		ConsoleMessage ("ROUTE: line %d Field %s not found in node type %s",LINE,
@@ -704,6 +739,7 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 			error = TRUE;
 		}
 	}
+    //if (error) ConsoleMessage ("getRouteField, returning an error"); else ConsoleMessage ("getRouteField, returning ok");
 	return error;
 }
 
@@ -779,6 +815,7 @@ static void parseRoutes (char **atts) {
 	printf ("now routing from a %s to a %s \n",stringFieldtypeType(fromType), stringFieldtypeType(toType));
 	printf ("	pointers %d %d to %d %d\n",fromNode, fromOffset, toNode, toOffset);
 	#endif
+    
 
 	/* are the types the same? */
 	if (fromType != toType) {
