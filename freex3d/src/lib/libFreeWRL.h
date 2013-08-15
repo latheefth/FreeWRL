@@ -178,7 +178,8 @@ void fwl_set_glClearColor (float red , float green , float blue , float alpha);
 void fwl_thread_dump(void);
 int fwg_get_unread_message_count(void);
 char *fwg_get_last_message(int whichOne);
-void fwl_set_logFile(char *);
+void fwl_set_logfile(char *);
+void fwl_set_nameTest(char *);
 
 #if defined(_ANDROID)
 void DROIDDEBUG( const char*pFmtStr, ...);

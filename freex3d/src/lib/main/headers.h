@@ -628,8 +628,6 @@ void setConsoleMessage(char *stat) ;
 void fwl_reload(void);
 
 void fwl_do_rawKeyPress(int key, int type);
-void fwl_set_logfile(char *lname);
-void fwl_set_nameTest(char *nameTest);
 
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
