@@ -98,6 +98,13 @@ void update_status(char* msg)
 		strncpy(buffer, msg, MAX_BUFFER_SIZE);
 	}
 }
+
+char *get_status(){
+        ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
+        return p->buffer;
+}
+
+
 void hudSetConsoleMessage(char *buffer){}
 void handleButtonOver(){}
 void handleOptionPress(){}
