@@ -238,11 +238,13 @@ static openned_file_t* create_openned_file(const char *filename, int fd, int dat
 	of = XALLOC(openned_file_t);
 	of->fileFileName = filename;
 	of->fileDescriptor = fd;
-	of->fileData = data;
+	of->fileData = data;            // XXXX FREE_IF_NZ this after use.
 	of->fileDataSize = dataSize;
 	of->imageHeight = imageHeight;
 	of->imageWidth = imageWidth;
 	of->imageAlpha = imageAlpha;
+    //printf ("create_openned_file, datasize %d file %s\n",dataSize,filename);
+    //if (dataSize <4000) printf ("create_openned_file, stringlen of data %ld\n",strlen(data));
 	return of;
 }
 
@@ -365,18 +367,21 @@ static openned_file_t* load_file_read(const char *filename)
 #ifdef FRONTEND_GETS_FILES
 /* these variables are used on return of data from front end, and are passed on to create_openned_file */
 static unsigned char *fileText = NULL;
-static char *fileName = NULL;
+static char *fileToGet = NULL;
 static int frontend_return_status = 0;
 static int fileSize = 0;
 static int imageWidth;
 static int imageHeight;
 static bool imageAlpha;
 
+static pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+#define LOCK_LOAD_FILE_FUNCTION pthread_mutex_lock( &mutex1 );
+#define UNLOCK_LOAD_FILE_FUNCTION pthread_mutex_unlock(&mutex1);
 
 static pthread_mutex_t  getAFileLock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t waitingForFile = PTHREAD_COND_INITIALIZER;
-#define MUTEX_LOCK_FILE_RETRIEVAL                pthread_mutex_lock(&getAFileLock);
-#define MUTEX_FREE_LOCK_FILE_RETRIEVAL         pthread_mutex_unlock(&getAFileLock);
+#define MUTEX_LOCK_FILE_RETRIEVAL               pthread_mutex_lock(&getAFileLock);
+#define MUTEX_FREE_LOCK_FILE_RETRIEVAL       pthread_mutex_unlock(&getAFileLock);
 #define WAIT_FOR_FILE_SIGNAL		pthread_cond_wait(&waitingForFile,&getAFileLock);
 #define SEND_FILE_SIGNAL		pthread_cond_signal(&waitingForFile);
 
@@ -384,8 +389,8 @@ static pthread_cond_t waitingForFile = PTHREAD_COND_INITIALIZER;
 /* return the filename of the file we want. */
 
 char *fwg_frontEndWantsFileName() {
-	//if (fileName != NULL) printf ("fwg_frontEndWantsFileName called - fileName currently %s\n",fileName);
-	return fileName;
+	//if (fileToGet != NULL) printf ("fwg_frontEndWantsFileName called - fileName currently %s\n",fileToGet);
+	return fileToGet;
 }
 
 void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int height,bool hasAlpha) {
@@ -417,13 +422,16 @@ void fwg_frontEndReturningData(unsigned char* fileData,int len,int width,int hei
 	       and binary length recorded. */
 
 	    fileText[len] = '\0';  /* the string terminator */
-    
-		fileName = NULL; /* not freed as only passed by pointer */
+         //printf ("fwg_frontEndReturningData: returning data, but fileToGet setting to NULL, was %s\n",fileToGet);
+        
+        
+		fileToGet = NULL; /* not freed as only passed by pointer */
 
 		frontend_return_status = 0;
 		/* got the file, send along a message */
 	}
 
+    
 	SEND_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
@@ -442,31 +450,42 @@ void fwg_frontEndReturningData(unsigned char* fileData,int length,int width,int 
  */
 openned_file_t* load_file(const char *filename)
 {
-#ifndef FRONTEND_GETS_FILES
-    openned_file_t *of = NULL;
-#endif
-    
-	DEBUG_RES("loading file: %s\n", filename);
 
+    openned_file_t *of = NULL;
+
+
+    
+    
+    
+	DEBUG_RES("loading file: %s pthread %p\n", filename,pthread_self());
+    //printf ("load_file, fileToGet %s, load_file %s thread %ld\n",fileToGet,filename,pthread_self());
+    
 #ifdef FRONTEND_GETS_FILES
 
-	/* the frontend or plugin is going to get this resource */
-	MUTEX_LOCK_FILE_RETRIEVAL
+ 
+    
+    LOCK_LOAD_FILE_FUNCTION
 
-	FREE_IF_NZ(fileText);
 
-	fileName = (char *)filename;
+    MUTEX_LOCK_FILE_RETRIEVAL
+    
+	//JAS - we keep this around until done with resource FREE_IF_NZ(fileText);
 
-	WAIT_FOR_FILE_SIGNAL
+	fileToGet = (char *)filename;
+    //printf ("load_file, fileToGet set to :%s:\n",filename);
+    
+    
+    WAIT_FOR_FILE_SIGNAL
 
 	MUTEX_FREE_LOCK_FILE_RETRIEVAL
 
-	// printf ("load_file, frontend_return_status %d\n",frontend_return_status);
-	fileName = NULL;
-
-	if(frontend_return_status == -1) return NULL;
-    //ConsoleMessage("going to return create_openned_file of size %d",fileSize);
-	return create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
+ 
+    
+	if(frontend_return_status == -1) of = NULL;
+    else of = create_openned_file(filename, -1, fileSize, fileText, imageHeight, imageWidth, imageAlpha);
+    
+    UNLOCK_LOAD_FILE_FUNCTION  
+    return of;
     
 #else //FRONTEND_GETS_FILES 
 

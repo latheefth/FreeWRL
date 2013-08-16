@@ -232,7 +232,7 @@ void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num) {
 typedef struct pCScripts{
 	/* Next handle to be assinged */
 	int handleCnt;//=0;
-	char *buffer;// = NULL;
+	//JAS - gives threading collision errors char *buffer;// = NULL;
 
 }* ppCScripts;
 void *CScripts_constructor(){
@@ -248,8 +248,6 @@ void CScripts_init(struct tCScripts *t){
 		ppCScripts p = (ppCScripts)t->prv;
 		/* Next handle to be assinged */
 		p->handleCnt=0;
-		p->buffer = NULL;
-
 	}
 }
 //	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
@@ -421,15 +419,11 @@ BOOL script_initCode(struct Shader_Script* me, const char* code)
    contains the script; if not, it goes and tries to see if the SFString 
    contains a file that (hopefully) contains the script */
 
-//static char *buffer = NULL;
-
-static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
+static bool script_initCodeFromUri(struct Shader_Script* me, const char* uri, char** crv)
 {
  size_t i;
  int rv;
  resource_item_t *res;
-	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
-
     //ConsoleMessage ("script_initCodeFromUri starting");
     
   rv = FALSE; /* initialize it */
@@ -458,20 +452,22 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
         
 		return script_initCode(me, u+1); /* a script */
 	} else {
-		p->buffer = STRDUP(u+1);
-		return TRUE; /* a shader, program text will be in the "buffer" */
+
+        *crv = STRDUP(u+1);
+        //printf("script_initCodeFromUri, returning crv as %s\n",*crv);
+        return TRUE;
 	}
    }
  }
 
- /* Not a valid script in this SFString. Lets see if this
+ /* Not a valid script text in this SFString. Lets see if this
     is this a possible file that we have to get? */
 
  DEBUG_CPARSER("script_initCodeFromUri, uri is %s\n", uri); 
- //printf ("script_initCodeFromUri, uri is %s\n", uri); 
+    //printf("script_initCodeFromUri, uri is %s\n", uri);
 
  res = resource_create_single(uri);
-    //printf ("past resource_create_single\n");
+   // printf ("past resource_create_single\n");
     
  resource_identify(gglobal()->resources.root_res, res);
     //printf ("past resource_identify\n");
@@ -486,20 +482,43 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 			 openned_file_t *of;
 
 			 l = res->openned_files;
-			 of = ml_elem(l);
+            of = ml_elem(l);
+/*
 
-             printf ("start A\n");
+             of = XALLOC(openned_file_t);
+             of->fileFileName = filename;
+             of->fileDescriptor = fd;
+             of->fileData = data;
+             of->fileDataSize = dataSize;
+             of->imageHeight = imageHeight;
+             of->imageWidth = imageWidth;
+             of->imageAlpha = imageAlpha;
+*/
+
              
 			/* ok - Scripts get initialized; shaders get the buffer returned */
 			if (me==NULL) { /* a Shader */
-			 	p->buffer = STRDUP(of->fileData);
-			 	printf("**** Shader:\n%s\n", p->buffer); 
-				printf ("*** Shader: doing the quick return here\n");
+                //printf ("script_initCodeFromUri, got me==NULL\n");
+                //printf ("script_initCodeFromUri, datalen :%ld:\n",strlen((const char *)of->fileData));
+
+			 	//*crv = STRDUP((const char*)of->fileData);
+                
+                // move the file data over for any upcoming FREE_IF_NZ() calls, 
+                // and make the original pointer NULL.
+                *crv = (char *)of->fileData;
+                of->fileData = NULL;
+                
+                //printf ("script_initCodeFromUri, datalen copied :%ld:\n",strlen((const char*)*crv));
+                //printf ("script_initCodeFromUri, of says datalen is %d\n",of->fileDataSize);
+                
+			 	//printf("**** Shader:\n%s\n", *crv); 
+                   //             printf ("script data %s\n",of->fileData);
+				//printf ("*** Shader: doing the quick return here\n");
 				return TRUE;
 			} else {
 				/* a Script */
-			 	printf("**** Script:\n%s\n", p->buffer);
-			 	rv = script_initCode(me, of->fileData);
+			 	//printf("**** Script:\n%s\n", *crv);
+			 	rv = script_initCode(me, (const char*) of->fileData);
 			}
 		 }
 	 }
@@ -524,55 +543,40 @@ static BOOL script_initCodeFromUri(struct Shader_Script* me, const char* uri)
 /* initialize a script from a url. Expects valid input */
 BOOL script_initCodeFromMFUri(struct Shader_Script* me, const struct Multi_String* s) {
 	size_t i;
-	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 
 	for(i=0; i!=s->n; ++i) {
-		FREE_IF_NZ(p->buffer);
-		if(script_initCodeFromUri(me, s->p[i]->strptr)) {
-			FREE_IF_NZ(p->buffer);
+		//FREE_IF_NZ(p->buffer);
+        char *mfcrv = NULL;
+		if(script_initCodeFromUri(me, s->p[i]->strptr,&mfcrv)) {
+			FREE_IF_NZ(mfcrv);
    			return TRUE;
 		}
 	}
 
 	/* failure... */
-	FREE_IF_NZ(p->buffer);
  	return FALSE;
 }
 
 /* initialize a shader from a url. returns pointer to pointer to text, if found, null otherwise */
 /* pointer is freed (if not NULL) in the Shaders code */
-char **shader_initCodeFromMFUri(const struct Multi_String* s) {
+char *shader_initCodeFromMFUri(const struct Multi_String* s) {
 	size_t i;
-	ppCScripts p = (ppCScripts)gglobal()->CScripts.prv;
 
 	for(i=0; i!=s->n; ++i) {
-		FREE_IF_NZ(p->buffer);
-        //ConsoleMessage ("shader_initCodeFromMFUri - calling script_initCodeFromUri for index %d",i);
-        /* NOTE NOTE NOTE  - Shaders are local right now - no files for shader nodes.
-         
-         issue is threading and initialization - the front end will deadlock waiting to get a url;
-         well actually, this call will deadlock, because it will ask the front end to get this url.
-         
-         We can thread the call, but we *HAVE* to ensure that the initialization and routing happen,
-         and the code as written for shader initialization does not do this. 
-         
-         Something for later....
-         
-          */
-        
+        char *mfcrv = NULL;
         if (s->p[i]->strptr != NULL) {
             //ConsoleMessage ("looking at :%s: ",s->p[i]->strptr);
-            if (strncmp("data:text/plain,",s->p[i]->strptr , strlen("data:text/plain,")) == 0) {
-            if(script_initCodeFromUri(NULL, s->p[i]->strptr)) {
-                return &p->buffer;
+            //if (strncmp("data:text/plain,",s->p[i]->strptr , strlen("data:text/plain,")) == 0) {
+            if(script_initCodeFromUri(NULL, s->p[i]->strptr,&mfcrv)) {
+                //printf ("shader_initCodeFromMFUri, returning datalen :%d:\n",strlen(mfcrv));
+                return mfcrv;
             }
-            } else {
-                ConsoleMessage ("implementation restriction - right now shader source must be in the X3D file so the url must start with \"data:text/plain,\"");
-            }
+            //} else {
+             //   ConsoleMessage ("implementation restriction - right now shader source must be in the X3D file so the url must start with \"data:text/plain,\"");
+            //}
         }
 	}
 
 	/* failure... */
-	FREE_IF_NZ(p->buffer);
  	return NULL;
 }

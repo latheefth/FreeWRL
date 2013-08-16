@@ -162,7 +162,7 @@ void deleteScript();
 /* Initializes the script with its code */
 BOOL script_initCode(struct Shader_Script*, const char*);
 BOOL script_initCodeFromMFUri(struct Shader_Script*, const struct Multi_String*);
-char **shader_initCodeFromMFUri(const struct Multi_String* s);
+char *shader_initCodeFromMFUri(const struct Multi_String* s);
 
 /* Add a new field */
 void script_addField(struct Shader_Script*, struct ScriptFieldDecl*);

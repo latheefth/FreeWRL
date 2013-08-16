@@ -268,6 +268,10 @@ printf ("EVENT_END_NODE no %s at %s:%d\n",fieldString,__FILE__,__LINE__); \
 /* parse an SF/MF; return the parsed value in the defaultVal field */
 BOOL parseType(struct VRMLParser* me, int type,   union anyVrml *defaultVal) {
     ASSERT(PARSE_TYPE[type]);
+    
+    //ConsoleMessage ("parseType, type %d, dfv %p",type,defaultVal);
+    if (type == ID_UNDEFINED) return false;
+    
     return PARSE_TYPE[type](me, (void*)defaultVal);
 }
 

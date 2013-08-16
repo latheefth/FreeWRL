@@ -104,10 +104,6 @@ FIELDTYPE_MFVec4d
 #include "Component_ProgrammableShaders.h"
 #include "../scenegraph/RenderFuncs.h"
 
-
-void sendInitialFieldsToShader(struct X3D_Node *);
-
-
 #define MAX_INFO_LOG_SIZE 512
 /* we do support older versions of shaders; but not all info logs are printed if we
    have OpenGL prior to 2.0 */
@@ -144,13 +140,13 @@ static void shaderErrorLog(GLuint myShader) {
  \
 					if (!((strcmp (prog->type->strptr,"VERTEX")) && (strcmp(prog->type->strptr,"FRAGMENT")))) { \
 						char *myText = NULL; /* pointer to text to send in */ \
-						char **cptr; /* returned caracter pointer pointer */ \
+						char *cptr; /* returned caracter pointer pointer */ \
 						 \
 						  cptr = shader_initCodeFromMFUri(&prog->url); \
 						  if (cptr == NULL) { \
 							ConsoleMessage ("error reading url for :%s:",stringNodeType(NODE_##myNodeType)); \
-							myText = ""; \
-						  } else { myText = *cptr; \
+                            myText = "";\
+						  } else { myText = cptr; \
 \
 						/* assign this text to VERTEX or FRAGMENT buffers */ \
 						if (!strcmp(prog->type->strptr,"VERTEX")) { \
@@ -161,7 +157,7 @@ static void shaderErrorLog(GLuint myShader) {
 							haveFragShaderText = TRUE; \
 						} \
 						/* printf ("Shader text for type %s is  %s\n",prog->type->strptr,myText); */ \
-						FREE_IF_NZ(*cptr); }\
+						FREE_IF_NZ(cptr); }\
 					} else { \
 						ConsoleMessage ("%s, invalid Type, got \"%s\"",stringNodeType(NODE_##myNodeType), prog->type->strptr); \
 						node->isValid = FALSE; \
@@ -453,6 +449,7 @@ void getField_ToShader(struct X3D_Node *node, int num) {
     }
         
     // turning shader on...
+    ConsoleMessage ("calling getMyShader here wrwe");
     enableGlobalShader(getMyShader(currentShader));
     
     myObj[0] = NULL;
@@ -731,7 +728,6 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
         //printf ("looking to get_Uniform for shader %d, variable :%s:\n",myShader, fieldDecl_getShaderScriptName(myf));
         
 		myVar = GET_UNIFORM(myShader,fieldDecl_getShaderScriptName(myf));
-        //printf ("and, uniform is %d\n",myVar);
 		if (myVar == INT_ID_UNDEFINED) {
 			if (GET_ATTRIB(myShader,fieldDecl_getShaderScriptName(myf)) != INT_ID_UNDEFINED)
 			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",fieldDecl_getShaderScriptName(myf));
@@ -826,10 +822,117 @@ void sendInitialFieldsToShader(struct X3D_Node * node) {
 	}
 }
 
+/* the Shader is now ready for action, tell the associated Shape(s) to 
+ recompile */
+static void tellShapeNodeToRecompile (struct X3D_Node *node) {
+    int i;
+    //ConsoleMessage ("tellShapeNodeToRecompile, node %s",stringNodeType(node->_nodeType));
+    
+    if (node->_nodeType == NODE_Shape) {
+        node->_change++;
+    } else {
+        for (i=0; i<vectorSize(node->_parentVector); i++) {
+            struct X3D_Node * parent = vector_get(struct X3D_Node*, node->_parentVector, i);
+            //ConsoleMessage ("sending update back up to the parent %d, %s",i,stringNodeType(parent->_nodeType));
+        if (parent == NULL) return;
+        tellShapeNodeToRecompile(parent);
+            
+            
+        }
+    }
+}
+
 /*********************************************************************/
+static void *thread_compile_ComposedShader(void * nod) {
+	struct X3D_ComposedShader *node = X3D_COMPOSEDSHADER(nod);
+
+	/* an array of text pointers, should contain shader source */
+	GLchar **vertShaderSource;
+	GLchar **fragShaderSource;
+	int i;
+
+	/* do we have anything to compile? */
+	int haveVertShaderText; 
+	int haveFragShaderText; 
+
+	/* initialization */
+	haveVertShaderText = FALSE;
+	haveFragShaderText = FALSE;
+    
+#ifdef SHADERVERBOSE
+	ConsoleMessage("called compile_ComposedShader(%p)\n",(void *)node);
+#endif
+
+	// might be set in appearance already
+	if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+	    
+	if (node->_shaderUserNumber < 0) {
+	    ConsoleMessage ("out of user defined shader slots - can not run");
+	    MARK_NODE_COMPILED
+	    return NULL;
+	}
+
+	vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n); 
+	fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n);
+	
+	/* set this up... set it to FALSE if there are problems */
+	node->isValid = TRUE;
+	
+	/* we support only GLSL here */
+	SUPPORT_GLSL_ONLY
+		
+	/* ok so far, go through the parts */
+	LOCATE_SHADER_PARTS(ShaderPart,parts)
+	
+    //if (haveFragShaderText) ConsoleMessage ("have frag shader text");
+   // if (haveVertShaderText) ConsoleMessage ("have vert shader text");
+    
+    /*
+	ConsoleMessage("parts count %d",node->parts.n);
+    {int i;
+        for (i=0; i<node->parts.n; i++) {
+            if (vertShaderSource[i] != NULL) printf ("shaderVertexText %d is %s\n",i,vertShaderSource[i]);
+            if (fragShaderSource[i] != NULL) printf ("shaderFragmentText %d is %s\n",i,fragShaderSource[i]);
+        }
+    }  
+     */
+    
+    //ConsoleMessage ("whew, past that part");
+    
+	if (node->isValid) {
+        //ConsoleMessage ("shader node is Valid and shaderUserNumber is %d",node->_shaderUserNumber);
+	    sendShaderTextToEngine(node->_shaderUserNumber,node->parts.n,vertShaderSource,fragShaderSource);
+	} else {
+        ConsoleMessage ("shader node is NOT valid");
+	    FREE_IF_NZ(vertShaderSource);
+	    FREE_IF_NZ(fragShaderSource);
+	}
+
+	MARK_NODE_COMPILED
+    	node->_shaderLoadThread = 0;
+    node->_retrievedURLData = (haveFragShaderText && haveVertShaderText);
+    // tell the parents that this node has updated its info
+    tellShapeNodeToRecompile(X3D_NODE(node));
+    return NULL;
+}
+
 
 void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	
+    if (node->_shaderLoadThread == 0) {
+	pthread_create (&(node->_shaderLoadThread), NULL,
+		&thread_compile_ComposedShader, (void *) node);
+	
+
+    }
+}
+
+
+    
+static void *thread_compile_ProgramShader (void *nod) {
+    
+    struct X3D_ProgramShader *node = X3D_PROGRAMSHADER(nod);
+    
     /* an array of text pointers, should contain shader source */
     GLchar **vertShaderSource;
     GLchar **fragShaderSource;
@@ -842,65 +945,19 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
     /* initialization */
     haveVertShaderText = FALSE;
     haveFragShaderText = FALSE;
-    
-#ifdef SHADERVERBOSE
-    ConsoleMessage("called compile_ComposedShader(%p)\n",(void *)node);
-#endif
 
-    // might be set in appearance already
-    
-       
+	// might be set in appearance already
     if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
-        
-    if (node->_shaderUserNumber < 0) {
-        ConsoleMessage ("out of user defined shader slots - can not run");
-        MARK_NODE_COMPILED
-        return;
-    }
-
-    vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n); 
-    fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->parts.n);
     
-    /* set this up... set it to FALSE if there are problems */
-    node->isValid = TRUE;
-	
-    /* we support only GLSL here */
-    SUPPORT_GLSL_ONLY
-		
-    /* ok so far, go through the parts */
-    LOCATE_SHADER_PARTS(ShaderPart,parts)
-	
-    //ConsoleMessage("parts count %d",node->parts.n);
-    //ConsoleMessage ("vertex source 0 is %s",vertShaderSource[0]);
-    //ConsoleMessage ("fragment source 0 is %s",fragShaderSource[1]);
-        
-    if (node->isValid) {
-        sendShaderTextToEngine(node->_shaderUserNumber,node->parts.n,vertShaderSource,fragShaderSource);
-    } else {
-        FREE_IF_NZ(vertShaderSource);
-        FREE_IF_NZ(fragShaderSource);
-    }
+	if (node->_shaderUserNumber < 0) {
+	    ConsoleMessage ("out of user defined shader slots - can not run");
+	    MARK_NODE_COMPILED
+	    return NULL;
+	}
 
-    MARK_NODE_COMPILED
-}
     
-void compile_ProgramShader (struct X3D_ProgramShader *node) {
-		/* an array of text pointers, should contain shader source */
-		GLchar **vertShaderSource;
-		GLchar **fragShaderSource;
-		int i;
-		GLuint myProgram;
-		/* do we have anything to compile? */
-		int haveVertShaderText; 
-		int haveFragShaderText; 
-
-		/* initialization */
-		haveVertShaderText = FALSE;
-		haveFragShaderText = FALSE;
-		myProgram = CREATE_PROGRAM;
-	
-		vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->programs.n); 
-		fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->programs.n);
+    vertShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->programs.n); 
+    fragShaderSource = MALLOC(GLchar **, sizeof(GLchar*) * node->programs.n);
 	
 		/* set this up... set it to FALSE if there are problems */
 		node->isValid = TRUE;
@@ -918,8 +975,22 @@ void compile_ProgramShader (struct X3D_ProgramShader *node) {
             FREE_IF_NZ(fragShaderSource);
         }
 
+    MARK_NODE_COMPILED
+    node->_shaderLoadThread = 0;
+    node->_retrievedURLData = (haveFragShaderText && haveVertShaderText);
+    // tell the parents that this node has updated its info
+    tellShapeNodeToRecompile(X3D_NODE(node));
+    return NULL;
+}
 
-		MARK_NODE_COMPILED
+void compile_ProgramShader (struct X3D_ProgramShader *node) {
+	
+    if (node->_shaderLoadThread == 0) {
+        pthread_create (&(node->_shaderLoadThread), NULL,
+                        &thread_compile_ProgramShader, (void *) node);
+        
+        
+    }
 }
 
 void compile_PackagedShader (struct X3D_PackagedShader *node) {

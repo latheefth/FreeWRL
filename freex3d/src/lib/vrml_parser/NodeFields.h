@@ -1740,12 +1740,12 @@ END_NODE(OrthoViewpoint)
 
 /* PackagedShader node */
 BEGIN_NODE(PackagedShader)
-EVENT_OUT(PackagedShader,isSelected,sfbool,isSelected,FIELDTYPE_SFBool)
 FIELD(PackagedShader,language,sfstring,language,FIELDTYPE_SFString)
-EXPOSED_FIELD(PackagedShader,url,mfstring,url,FIELDTYPE_MFString)
 EVENT_OUT(PackagedShader,isValid,sfbool,isValid,FIELDTYPE_SFBool)
-EXPOSED_FIELD(PackagedShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(PackagedShader,activate,sfbool,activate,FIELDTYPE_SFBool)
+EVENT_OUT(PackagedShader,isSelected,sfbool,isSelected,FIELDTYPE_SFBool)
+EXPOSED_FIELD(PackagedShader,url,mfstring,url,FIELDTYPE_MFString)
+EXPOSED_FIELD(PackagedShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(PackagedShader)
 
 /* PickableGroup node */
@@ -1856,12 +1856,12 @@ END_NODE(PositionInterpolator2D)
 
 /* ProgramShader node */
 BEGIN_NODE(ProgramShader)
-EVENT_OUT(ProgramShader,isSelected,sfbool,isSelected,FIELDTYPE_SFBool)
 FIELD(ProgramShader,language,sfstring,language,FIELDTYPE_SFString)
-EXPOSED_FIELD(ProgramShader,programs,mfnode,programs,FIELDTYPE_MFNode)
 EVENT_OUT(ProgramShader,isValid,sfbool,isValid,FIELDTYPE_SFBool)
-EXPOSED_FIELD(ProgramShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(ProgramShader,activate,sfbool,activate,FIELDTYPE_SFBool)
+EVENT_OUT(ProgramShader,isSelected,sfbool,isSelected,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ProgramShader,programs,mfnode,programs,FIELDTYPE_MFNode)
+EXPOSED_FIELD(ProgramShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(ProgramShader)
 
 /* Proto node */

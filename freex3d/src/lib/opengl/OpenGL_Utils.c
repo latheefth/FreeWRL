@@ -281,7 +281,8 @@ void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** frag
     }
     
     p->userDefinedFragmentShader[ste] = fs;
-    p->userDefinedVertexShader[ste] = vs;    
+    p->userDefinedVertexShader[ste] = vs; 
+    //printf ("so for shaderTableEntry %d, we have %d %d\n",ste,strlen(fs),strlen(vs));
 }
 
 #if defined (_ANDROID)
@@ -1323,10 +1324,10 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
     //ConsoleMessage ("getMyShader, looking for %x",rq_cap);
     
     //ConsoleMessage ("getMyShader, not found, have to create");
-    for (i=0; i<vectorSize(myShaderTable); i++) {
-        struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
+    //for (i=0; i<vectorSize(myShaderTable); i++) {
+        //struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
         //ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
-     }
+     //}
      
 
         
@@ -1345,7 +1346,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
 #endif
 
     // ConsoleMessage ("getMyShader, here now");
-
+    
 
 #ifdef VERBOSE
 #if defined (GL_SHADER_COMPILER) && defined (GL_HIGH_FLOAT)
@@ -2293,6 +2294,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 #ifdef VERBOSE
         ConsoleMessage ("makeAndCompileShader called");
 #endif //VERBOSE
+#undef VERBOSE 
 
    	/* initialize shader sources to blank strings, later we'll fill it in */
 	for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++) 
@@ -2346,15 +2348,16 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLuint myProg = me->myShaderProgram;
     int i;
     
-	#ifdef DEBUG
-	{
-	//GLsizei count;
-	//GLuint shaders[10];
-	GLint  xxx[10];
-	//int i;
-	//GLchar sl[3000];
 
-	/*
+	#ifdef SHADERVERBOSE
+	{
+	GLsizei count;
+	GLuint shaders[10];
+	GLint  xxx[10];
+	int i;
+	GLchar sl[3000];
+
+	
 	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
 
 	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
@@ -2373,7 +2376,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	glGetProgramiv(myProg,GL_VALIDATE_STATUS, xxx); printf ("GL_VALIDATE_STATUS %d\n",xxx[0]);
 	glGetProgramiv(myProg,GL_ACTIVE_ATTRIBUTES, xxx); printf ("GL_ACTIVE_ATTRIBUTES %d\n",xxx[0]);
 	glGetProgramiv(myProg,GL_ACTIVE_UNIFORMS, xxx); printf ("GL_ACTIVE_UNIFORMS %d\n",xxx[0]);
-*/
+
 	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx);
 	if (xxx[0] != 0) {
 		#define MAX_INFO_LOG_SIZE 512

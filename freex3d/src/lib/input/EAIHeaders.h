@@ -161,6 +161,7 @@ char *eaiPrintCommand (char command);
 #define EAI_SFColorRGBA		'w'
 #define EAI_MFBool		'x'
 #define EAI_FreeWRLPTR		'y'
+#define EAI_FreeWRLThread   'z'
 #define EAI_MFVec3d		'A'
 #define EAI_SFVec2d		'B'
 #define EAI_SFVec3d		'C'

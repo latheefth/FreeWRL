@@ -8,6 +8,10 @@
 
 #
 # $Log$
+# Revision 1.81  2013/08/16 15:43:48  crc_canada
+# more user definable shader component work. It should be complete, or close
+# to.
+#
 # Revision 1.80  2013/07/15 21:07:47  crc_canada
 # Component_CAD, initial Component_NURBS rework.
 #
@@ -1765,6 +1769,9 @@ sub gen {
 				}
 				if ($ft eq "FreeWRLPTR") {
 					push @genFuncs2, "\t\t\tspacer fprintf (fp,\" $field ($ft) (void pointer, not dumped)\\n\");\n";
+
+				} elsif ($ft eq "FreeWRLThread") {
+					push @genFuncs2, "\t\t\tspacer fprintf (fp,\" $field ($ft) (thread pointer, not dumped)\\n\");\n";
 
 				} elsif ($ft eq "SFInt32") {
 					push @genFuncs2, "\t\t\tspacer fprintf (fp,\" $field ($ft) \\t%d\\n\",tmp->$field);\n";

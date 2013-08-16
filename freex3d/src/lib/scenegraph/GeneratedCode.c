@@ -220,8 +220,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"rightTexture",
 	"set_spine",
 	"__t1",
-	"__textureright",
 	"rotation_changed",
+	"__textureright",
 	"skinCoordWeight",
 	"plane",
 	"radius",
@@ -348,6 +348,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"textBounds",
 	"munitionStartPoint",
 	"skinCoordIndex",
+	"_retrievedURLData",
 	"_coordIndex",
 	"priority",
 	"linetype",
@@ -587,11 +588,11 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_shaderTableEntry",
 	"texCoordIndex",
 	"vKnot",
+	"intersectionType",
 	"beginCap",
 	"linearAcceleration",
 	"transparency",
 	"__vertexCount",
-	"intersectionType",
 	"set_bind",
 	"textureTransform",
 	"__sourceNumber",
@@ -623,6 +624,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"collideTime",
 	"__loadstatus",
 	"magnificationFilter",
+	"_shaderLoadThread",
 	"numComponents",
 	"fogCoord",
 	"munitionEndPoint",
@@ -1543,6 +1545,7 @@ const int GEOSPATIAL_COUNT = ARR_SIZE(GEOSPATIAL);
 	"MFVec2f",
 	"SFImage",
 	"FreeWRLPTR",
+	"FreeWRLThread",
 	"SFVec3d",
 	"MFVec3d",
 	"SFDouble",
@@ -2866,10 +2869,12 @@ const int OFFSETS_ComposedShader[] = {
 	(int) FIELDNAMES__shaderUserNumber, (int) offsetof (struct X3D_ComposedShader, _shaderUserNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_ComposedShader, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_activate, (int) offsetof (struct X3D_ComposedShader, activate),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_ComposedShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__shaderLoadThread, (int) offsetof (struct X3D_ComposedShader, _shaderLoadThread),  (int) FIELDTYPE_FreeWRLThread, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_ComposedShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_ComposedShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_parts, (int) offsetof (struct X3D_ComposedShader, parts),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ComposedShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__retrievedURLData, (int) offsetof (struct X3D_ComposedShader, _retrievedURLData),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Cone[] = {
@@ -4340,15 +4345,17 @@ const int OFFSETS_OrthoViewpoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PackagedShader[] = {
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_PackagedShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_PackagedShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_language, (int) offsetof (struct X3D_PackagedShader, language),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_url, (int) offsetof (struct X3D_PackagedShader, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isValid, (int) offsetof (struct X3D_PackagedShader, isValid),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__shaderUserNumber, (int) offsetof (struct X3D_PackagedShader, _shaderUserNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PackagedShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_PackagedShader, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_activate, (int) offsetof (struct X3D_PackagedShader, activate),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__shaderLoadThread, (int) offsetof (struct X3D_PackagedShader, _shaderLoadThread),  (int) FIELDTYPE_FreeWRLThread, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_PackagedShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_PackagedShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_url, (int) offsetof (struct X3D_PackagedShader, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PackagedShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__retrievedURLData, (int) offsetof (struct X3D_PackagedShader, _retrievedURLData),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PickableGroup[] = {
@@ -4463,14 +4470,17 @@ const int OFFSETS_PositionInterpolator2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProgramShader[] = {
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_ProgramShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_ProgramShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_language, (int) offsetof (struct X3D_ProgramShader, language),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_programs, (int) offsetof (struct X3D_ProgramShader, programs),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isValid, (int) offsetof (struct X3D_ProgramShader, isValid),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__shaderUserNumber, (int) offsetof (struct X3D_ProgramShader, _shaderUserNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ProgramShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_ProgramShader, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_activate, (int) offsetof (struct X3D_ProgramShader, activate),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__shaderLoadThread, (int) offsetof (struct X3D_ProgramShader, _shaderLoadThread),  (int) FIELDTYPE_FreeWRLThread, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_ProgramShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_ProgramShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_programs, (int) offsetof (struct X3D_ProgramShader, programs),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ProgramShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__retrievedURLData, (int) offsetof (struct X3D_ProgramShader, _retrievedURLData),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Proto[] = {
@@ -5389,6 +5399,7 @@ char mapFieldTypeToEAItype (int st) {
 		case FIELDTYPE_MFVec2f:	return EAI_MFVec2f;
 		case FIELDTYPE_SFImage:	return EAI_SFImage;
 		case FIELDTYPE_FreeWRLPTR:	return EAI_FreeWRLPTR;
+		case FIELDTYPE_FreeWRLThread:	return EAI_FreeWRLThread;
 		case FIELDTYPE_SFVec3d:	return EAI_SFVec3d;
 		case FIELDTYPE_MFVec3d:	return EAI_MFVec3d;
 		case FIELDTYPE_SFDouble:	return EAI_SFDouble;
@@ -5438,6 +5449,7 @@ int mapEAItypeToFieldType (char st) {
 		case EAI_MFVec2f:	return FIELDTYPE_MFVec2f;
 		case EAI_SFImage:	return FIELDTYPE_SFImage;
 		case EAI_FreeWRLPTR:	return FIELDTYPE_FreeWRLPTR;
+		case EAI_FreeWRLThread:	return FIELDTYPE_FreeWRLThread;
 		case EAI_SFVec3d:	return FIELDTYPE_SFVec3d;
 		case EAI_MFVec3d:	return FIELDTYPE_MFVec3d;
 		case EAI_SFDouble:	return FIELDTYPE_SFDouble;
@@ -5487,6 +5499,7 @@ int convertToSFType (int st) {
 		case FIELDTYPE_MFVec2f:	return FIELDTYPE_SFVec2f;
 		case FIELDTYPE_SFImage:	return FIELDTYPE_SFImage;
 		case FIELDTYPE_FreeWRLPTR:	return FIELDTYPE_FreeWRLPTR;
+		case FIELDTYPE_FreeWRLThread:	return FIELDTYPE_FreeWRLThread;
 		case FIELDTYPE_SFVec3d:	return FIELDTYPE_SFVec3d;
 		case FIELDTYPE_MFVec3d:	return FIELDTYPE_SFVec3d;
 		case FIELDTYPE_SFDouble:	return FIELDTYPE_SFDouble;
@@ -6107,10 +6120,12 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_shaderUserNumber = -1;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
+			tmp2->_shaderLoadThread = 0;
 			tmp2->_initialized = FALSE;
 			tmp2->isSelected = TRUE;
 			tmp2->parts.n=0; tmp2->parts.p=0;
 			tmp2->metadata = NULL;
+			tmp2->_retrievedURLData = FALSE;
 			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}
@@ -8168,15 +8183,17 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_PackagedShader * tmp2;
 			tmp2 = (struct X3D_PackagedShader *) tmp;
 		/* ttmp2->v = &virt_PackagedShader;*/ 
-			tmp2->_initialized = FALSE;
-			tmp2->isSelected = TRUE;
 			tmp2->language = newASCIIString("");
-			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->isValid = TRUE;
 			tmp2->_shaderUserNumber = -1;
-			tmp2->metadata = NULL;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
+			tmp2->_shaderLoadThread = 0;
+			tmp2->_initialized = FALSE;
+			tmp2->isSelected = TRUE;
+			tmp2->url.n=0; tmp2->url.p=0;
+			tmp2->metadata = NULL;
+			tmp2->_retrievedURLData = FALSE;
 			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}
@@ -8335,14 +8352,17 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_ProgramShader * tmp2;
 			tmp2 = (struct X3D_ProgramShader *) tmp;
 		/* ttmp2->v = &virt_ProgramShader;*/ 
-			tmp2->_initialized = FALSE;
-			tmp2->isSelected = TRUE;
 			tmp2->language = newASCIIString("");
-			tmp2->programs.n=0; tmp2->programs.p=0;
 			tmp2->isValid = TRUE;
 			tmp2->_shaderUserNumber = -1;
-			tmp2->metadata = NULL;
+			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
+			tmp2->_shaderLoadThread = 0;
+			tmp2->_initialized = FALSE;
+			tmp2->isSelected = TRUE;
+			tmp2->programs.n=0; tmp2->programs.p=0;
+			tmp2->metadata = NULL;
+			tmp2->_retrievedURLData = FALSE;
 			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}
