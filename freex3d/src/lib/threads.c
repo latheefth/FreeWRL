@@ -67,6 +67,9 @@ static int threads_colors[FREEWRL_MAX_THREADS] = {
 
 #endif /* FREEWRL_THREAD_COLORIZED */
 
+DEF_THREAD(_THREAD_NULL_); //used to initialize thread members in generatedcode.c via system_threads.h
+
+
 /* Thread global variables */
 //pthread_t mainThread; /* main (default) thread */
 //
@@ -215,11 +218,12 @@ int fw_thread_id()
 	ttglobal tg = gglobal();
 	current_thread = pthread_self();
 
-#ifdef _MSC_VER 
-	if (!current_thread.p) {
-#else
-	if (!current_thread) {
-#endif
+//#ifdef _MSC_VER 
+//	if (!current_thread.p) {
+//#else
+//	if (!current_thread) {
+//#endif
+	if(TEST_NULL_THREAD(current_thread)){
 		ERROR_MSG("Critical: pthread_self returned 0\n");
 		return 0;
 	}
@@ -279,10 +283,10 @@ void trace_enter_thread(const char *str)
 		fflush(stdout);
 		fflush(stderr);
 		sync();
-#ifdef _MSC_VER
-		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) pthread_self().p);
-#else
-		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) pthread_self());
-#endif
+//#ifdef _MSC_VER
+//		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) pthread_self().p);
+//#else
+		TRACE_MSG("*** ENTERING THREAD: %s, ID=%d self=%p\n", str, fw_thread_id(), (void*) ID_THREAD(pthread_self()));
+//#endif
 	}
 }

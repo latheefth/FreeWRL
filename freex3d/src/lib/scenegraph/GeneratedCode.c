@@ -6120,7 +6120,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_shaderUserNumber = -1;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
-			tmp2->_shaderLoadThread = 0;
+			//ZERO_THREAD(tmp2->_shaderLoadThread);
+			tmp2->_shaderLoadThread = _THREAD_NULL_;
 			tmp2->_initialized = FALSE;
 			tmp2->isSelected = TRUE;
 			tmp2->parts.n=0; tmp2->parts.p=0;
@@ -8188,7 +8189,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_shaderUserNumber = -1;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
-			tmp2->_shaderLoadThread = 0;
+			//ZERO_THREAD(tmp2->_shaderLoadThread);
+			tmp2->_shaderLoadThread = _THREAD_NULL_;
 			tmp2->_initialized = FALSE;
 			tmp2->isSelected = TRUE;
 			tmp2->url.n=0; tmp2->url.p=0;
@@ -8357,7 +8359,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_shaderUserNumber = -1;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
-			tmp2->_shaderLoadThread = 0;
+			//ZERO_THREAD(tmp2->_shaderLoadThread);
+			tmp2->_shaderLoadThread = _THREAD_NULL_;
 			tmp2->_initialized = FALSE;
 			tmp2->isSelected = TRUE;
 			tmp2->programs.n=0; tmp2->programs.p=0;

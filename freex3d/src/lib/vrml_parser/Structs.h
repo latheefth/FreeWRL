@@ -35,6 +35,8 @@
 struct point_XYZ {GLDOUBLE x,y,z;};
 struct orient_XYZA {GLDOUBLE x,y,z,a;};
 
+#include <system_threads.h>
+
 struct X3D_Virt {
 	void (*prep)(void *);
 	void (*rend)(void *);
@@ -5819,7 +5821,8 @@ struct X3D_PackagedShader {
  	/*** node specific data: *****/
 	int _initialized;
 	int _retrievedURLData;
-	pthread_t _shaderLoadThread;
+	//pthread_t _shaderLoadThread;
+	ptw32_handle_t _shaderLoadThread;
 	struct X3D_Node *_shaderUserDefinedFields;
 	int _shaderUserNumber;
 	int activate;

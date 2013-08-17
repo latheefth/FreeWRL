@@ -58,6 +58,6 @@ Internal header: threading library, and processor control (sched).
 #define ZERO_THREAD(_t) { _t.p = NULL; }
 
 #endif
-
+extern pthread_t _THREAD_NULL_;
 
 #endif /* __LIBFREEWRL_SYSTEM_THREADS_H__ */
