@@ -4470,17 +4470,16 @@ const int OFFSETS_PositionInterpolator2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProgramShader[] = {
+	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_ProgramShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderLoadThread, (int) offsetof (struct X3D_ProgramShader, _shaderLoadThread),  (int) FIELDTYPE_FreeWRLThread, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_ProgramShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_language, (int) offsetof (struct X3D_ProgramShader, language),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_programs, (int) offsetof (struct X3D_ProgramShader, programs),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isValid, (int) offsetof (struct X3D_ProgramShader, isValid),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__shaderUserNumber, (int) offsetof (struct X3D_ProgramShader, _shaderUserNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_ProgramShader, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_activate, (int) offsetof (struct X3D_ProgramShader, activate),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES__shaderLoadThread, (int) offsetof (struct X3D_ProgramShader, _shaderLoadThread),  (int) FIELDTYPE_FreeWRLThread, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_ProgramShader, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_ProgramShader, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_programs, (int) offsetof (struct X3D_ProgramShader, programs),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ProgramShader, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__retrievedURLData, (int) offsetof (struct X3D_ProgramShader, _retrievedURLData),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_activate, (int) offsetof (struct X3D_ProgramShader, activate),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Proto[] = {
@@ -6120,7 +6119,6 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_shaderUserNumber = -1;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
-			//ZERO_THREAD(tmp2->_shaderLoadThread);
 			tmp2->_shaderLoadThread = _THREAD_NULL_;
 			tmp2->_initialized = FALSE;
 			tmp2->isSelected = TRUE;
@@ -8189,7 +8187,6 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_shaderUserNumber = -1;
 			tmp2->_shaderUserDefinedFields = NULL;
 			tmp2->activate = 0;
-			//ZERO_THREAD(tmp2->_shaderLoadThread);
 			tmp2->_shaderLoadThread = _THREAD_NULL_;
 			tmp2->_initialized = FALSE;
 			tmp2->isSelected = TRUE;
@@ -8354,18 +8351,16 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_ProgramShader * tmp2;
 			tmp2 = (struct X3D_ProgramShader *) tmp;
 		/* ttmp2->v = &virt_ProgramShader;*/ 
+			tmp2->_initialized = FALSE;
+			tmp2->_shaderLoadThread = _THREAD_NULL_;
+			tmp2->isSelected = TRUE;
 			tmp2->language = newASCIIString("");
+			tmp2->programs.n=0; tmp2->programs.p=0;
 			tmp2->isValid = TRUE;
 			tmp2->_shaderUserNumber = -1;
-			tmp2->_shaderUserDefinedFields = NULL;
-			tmp2->activate = 0;
-			//ZERO_THREAD(tmp2->_shaderLoadThread);
-			tmp2->_shaderLoadThread = _THREAD_NULL_;
-			tmp2->_initialized = FALSE;
-			tmp2->isSelected = TRUE;
-			tmp2->programs.n=0; tmp2->programs.p=0;
 			tmp2->metadata = NULL;
 			tmp2->_retrievedURLData = FALSE;
+			tmp2->activate = 0;
 			tmp2->_defaultContainer = FIELDNAMES_shaders;
 		break;
 		}

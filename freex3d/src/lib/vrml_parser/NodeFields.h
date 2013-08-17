@@ -1856,12 +1856,12 @@ END_NODE(PositionInterpolator2D)
 
 /* ProgramShader node */
 BEGIN_NODE(ProgramShader)
-FIELD(ProgramShader,language,sfstring,language,FIELDTYPE_SFString)
-EVENT_OUT(ProgramShader,isValid,sfbool,isValid,FIELDTYPE_SFBool)
-EVENT_IN(ProgramShader,activate,sfbool,activate,FIELDTYPE_SFBool)
 EVENT_OUT(ProgramShader,isSelected,sfbool,isSelected,FIELDTYPE_SFBool)
+FIELD(ProgramShader,language,sfstring,language,FIELDTYPE_SFString)
 EXPOSED_FIELD(ProgramShader,programs,mfnode,programs,FIELDTYPE_MFNode)
+EVENT_OUT(ProgramShader,isValid,sfbool,isValid,FIELDTYPE_SFBool)
 EXPOSED_FIELD(ProgramShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(ProgramShader,activate,sfbool,activate,FIELDTYPE_SFBool)
 END_NODE(ProgramShader)
 
 /* Proto node */
