@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.82  2013/08/17 19:57:43  dug9
+# dug9 - touch ups for win32 pthreads struct initialization
+#
 # Revision 1.81  2013/08/16 15:43:48  crc_canada
 # more user definable shader component work. It should be complete, or close
 # to.
@@ -2068,7 +2071,7 @@ END_NODE(NodeName)
 #ifndef __FREEWRL_STRUCTS_H__
 #define __FREEWRL_STRUCTS_H__
 
-
+#include <system_threads.h>
 struct point_XYZ {GLDOUBLE x,y,z;};
 struct orient_XYZA {GLDOUBLE x,y,z,a;};
 

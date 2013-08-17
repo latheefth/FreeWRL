@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.14  2013/08/17 19:57:43  dug9
+# dug9 - touch ups for win32 pthreads struct initialization
+#
 # Revision 1.13  2013/08/16 15:43:48  crc_canada
 # more user definable shader component work. It should be complete, or close
 # to.
@@ -1154,7 +1157,7 @@ VRML::Error->import;
 sub ctype {return "pthread_t $_[1]"}
 sub cInitialize {
 	my ($this,$field,$val) = @_;
-		return "$field = $val";
+		return "$field = _THREAD_NULL_";
 }
 
 ###########################################################
