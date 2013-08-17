@@ -834,50 +834,62 @@ JSFunctionSpec (X3DMatrix4Functions)[] = {
 
 #endif /* NEWCLASSES */
 
+//#define MFFloatProperties NULL
+//#define MFInt32Properties NULL
+//#define MFColorProperties NULL
+//#define MFVec2fProperties NULL
+//#define MFVec3fProperties NULL
+//#define MFRotationProperties NULL
+//#define MFNodeProperties NULL
+//#define MFStringProperties NULL
+//#define VrmlMatrixProperties NULL
+
+
 struct JSLoadPropElement {
 	JSClass *class;
 	void *constr;
 	void *Functions;
+	void *Properties;
 	char *id;
 };
 
 
 struct JSLoadPropElement (JSLoadProps) [] = {
 #ifdef NEWCLASSES
-        { &MFVec2dClass, MFVec2dConstr, &MFVec2dFunctions, "MFVec2dClass"},
-        { &MFVec3dClass, MFVec3dConstr, &MFVec3dFunctions, "MFVec3dClass"},
-        { &SFVec2dClass, SFVec2dConstr, &SFVec2dFunctions, "SFVec2dClass"},
-        { &MFBoolClass, MFBoolConstr, &MFBoolFunctions, "MFBoolClass"},
-        { &MFDoubleClass, MFDoubleConstr, &MFDoubleFunctions, "MFDoubleClass"},
-        { &MFImageClass, MFImageConstr, &MFImageFunctions, "MFImageClass"},
-        { &X3DMatrix3Class, X3DMatrix3Constr, &X3DMatrix3Functions, "X3DMatrix3Class"},
-        { &X4DMatrix4Class, X4DMatrix4Constr, &X4DMatrix4Functions, "X4DMatrix4Class"},
+        { &MFVec2dClass, MFVec2dConstr, &MFVec2dFunctions, &MFVec2dProperties, "MFVec2dClass"},
+        { &MFVec3dClass, MFVec3dConstr, &MFVec3dFunctions, &MFVec3dProperties, "MFVec3dClass"},
+        { &SFVec2dClass, SFVec2dConstr, &SFVec2dFunctions, &SFVec2dProperties, "SFVec2dClass"},
+        { &MFBoolClass, MFBoolConstr, &MFBoolFunctions, &MFBoolProperties, "MFBoolClass"},
+        { &MFDoubleClass, MFDoubleConstr, &MFDoubleFunctions, &MFDoubleProperties, "MFDoubleClass"},
+        { &MFImageClass, MFImageConstr, &MFImageFunctions, &MFImageProperties, "MFImageClass"},
+        { &X3DMatrix3Class, X3DMatrix3Constr, &X3DMatrix3Functions, &X3DMatrix3Properties, "X3DMatrix3Class"},
+        { &X4DMatrix4Class, X4DMatrix4Constr, &X4DMatrix4Functions, &X4DMatrix4Properties, "X4DMatrix4Class"},
 #endif /* NEWCLASSES */
 
-        { &SFColorClass, SFColorConstr, &SFColorFunctions, "SFColorClass"},
-        { &SFVec2fClass, SFVec2fConstr, &SFVec2fFunctions, "SFVec2fClass"},
-        { &SFColorRGBAClass, SFColorRGBAConstr, &SFColorRGBAFunctions, "SFColorRGBAClass"},
-        { &SFVec3fClass, SFVec3fConstr, &SFVec3fFunctions, "SFVec3fClass"},
-        { &SFVec3dClass, SFVec3dConstr, &SFVec3dFunctions, "SFVec3dClass"},
-        { &SFRotationClass, SFRotationConstr, &SFRotationFunctions, "SFRotationClass"},
-        { &SFNodeClass, SFNodeConstr, &SFNodeFunctions, "SFNodeClass"},
-        { &MFFloatClass, MFFloatConstr, &MFFloatFunctions, "MFFloatClass"},
-        { &MFTimeClass, MFTimeConstr, &MFTimeFunctions, "MFTimeClass"},
-        { &MFInt32Class, MFInt32Constr, &MFInt32Functions, "MFInt32Class"},
-        { &MFColorClass, MFColorConstr, &MFColorFunctions, "MFColorClass"},
-        { &MFVec2fClass, MFVec2fConstr, &MFVec2fFunctions, "MFVec2fClass"},
+        { &SFColorClass, SFColorConstr, &SFColorFunctions, &SFColorProperties, "SFColorClass"},
+        { &SFVec2fClass, SFVec2fConstr, &SFVec2fFunctions, &SFVec2fProperties, "SFVec2fClass"},
+        { &SFColorRGBAClass, SFColorRGBAConstr, &SFColorRGBAFunctions, &SFColorRGBAProperties, "SFColorRGBAClass"},
+        { &SFVec3fClass, SFVec3fConstr, &SFVec3fFunctions, &SFVec3fProperties, "SFVec3fClass"},
+        { &SFVec3dClass, SFVec3dConstr, &SFVec3dFunctions, &SFVec3dProperties, "SFVec3dClass"},
+        { &SFRotationClass, SFRotationConstr, &SFRotationFunctions, &SFRotationProperties, "SFRotationClass"},
+        { &SFNodeClass, SFNodeConstr, &SFNodeFunctions, &SFNodeProperties, "SFNodeClass"},
+        { &MFFloatClass, MFFloatConstr, &MFFloatFunctions, NULL, "MFFloatClass"},
+        { &MFTimeClass, MFTimeConstr, &MFTimeFunctions, &MFTimeProperties, "MFTimeClass"},
+        { &MFInt32Class, MFInt32Constr, &MFInt32Functions, NULL, "MFInt32Class"},
+        { &MFColorClass, MFColorConstr, &MFColorFunctions, NULL, "MFColorClass"},
+        { &MFVec2fClass, MFVec2fConstr, &MFVec2fFunctions, NULL, "MFVec2fClass"},
 
-        { &MFVec3fClass, MFVec3fConstr, &MFVec3fFunctions, "MFVec3fClass"},
+        { &MFVec3fClass, MFVec3fConstr, &MFVec3fFunctions, NULL, "MFVec3fClass"},
 
-        { &SFVec4fClass, SFVec4fConstr, &SFVec4fFunctions, "SFVec4fClass"},
-        { &SFVec4dClass, SFVec4dConstr, &SFVec4dFunctions, "SFVec4dClass"},
+        { &SFVec4fClass, SFVec4fConstr, &SFVec4fFunctions, &SFVec4fProperties, "SFVec4fClass"},
+        { &SFVec4dClass, SFVec4dConstr, &SFVec4dFunctions, &SFVec4dProperties, "SFVec4dClass"},
 
-        { &MFRotationClass, MFRotationConstr, &MFRotationFunctions, "MFRotationClass"},
-        { &MFNodeClass, MFNodeConstr, &MFNodeFunctions, "MFNodeClass"},
-        { &SFImageClass, SFImageConstr, &SFImageFunctions, "SFImageClass"},
-/*        { &MFColorRGBAClass, MFColorRGBAConstr, &MFColorRGBAFunctions, "MFColorRGBAClass"},*/
-        { &MFStringClass, MFStringConstr, &MFStringFunctions, "MFStringClass"},
-        { &VrmlMatrixClass, VrmlMatrixConstr, &VrmlMatrixFunctions, "VrmlMatrixClass"},
+        { &MFRotationClass, MFRotationConstr, &MFRotationFunctions, NULL, "MFRotationClass"},
+        { &MFNodeClass, MFNodeConstr, &MFNodeFunctions, NULL, "MFNodeClass"},
+        { &SFImageClass, SFImageConstr, &SFImageFunctions, &SFImageProperties, "SFImageClass"},
+/*        { &MFColorRGBAClass, MFColorRGBAConstr, &MFColorRGBAFunctions, &MFColorRGBAProperties, "MFColorRGBAClass"},*/
+        { &MFStringClass, MFStringConstr, &MFStringFunctions, NULL, "MFStringClass"},
+        { &VrmlMatrixClass, VrmlMatrixConstr, &VrmlMatrixFunctions, NULL, "VrmlMatrixClass"},
         {0}
 };
 
@@ -1754,7 +1766,7 @@ JSBool loadVrmlClasses(JSContext *context, JSObject *globalObj) {
 
 		/* v = 0; */
 		if (( myProto = JS_InitClass(context, globalObj, NULL, JSLoadProps[i].class,
-			  JSLoadProps[i].constr, INIT_ARGC, NULL,
+			  JSLoadProps[i].constr, INIT_ARGC, JSLoadProps[i].Properties,
 			  JSLoadProps[i].Functions, NULL, NULL)) == NULL) {
 			printf("JS_InitClass for %s failed in loadVrmlClasses.\n",JSLoadProps[i].id);
 			return JS_FALSE;

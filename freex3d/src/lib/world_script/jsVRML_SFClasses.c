@@ -324,10 +324,10 @@ SFColorConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFColorProperties)) {
-		printf( "JS_DefineProperties failed in SFColorConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFColorProperties)) {
+	//	printf( "JS_DefineProperties failed in SFColorConstr.\n");
+	//	return JS_FALSE;
+	//}
 
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFColorConstr.\n");
@@ -671,10 +671,10 @@ SFColorRGBAConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFColorRGBAProperties)) {
-		printf( "JS_DefineProperties failed in SFColorRGBAConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFColorRGBAProperties)) {
+	//	printf( "JS_DefineProperties failed in SFColorRGBAConstr.\n");
+	//	return JS_FALSE;
+	//}
 
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFColorRGBAConstr.\n");
@@ -933,10 +933,10 @@ SFImageConstr(JSContext *cx, uintN argc, jsval *vp) {
 	ptr->valueChanged = 1;
 
 	/* make this so that one can get the ".x", ".y", ".comp" and ".array" */
-	if (!JS_DefineProperties(cx, obj, SFImageProperties)) {
-		printf( "JS_DefineProperties failed in SFImageConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFImageProperties)) {
+	//	printf( "JS_DefineProperties failed in SFImageConstr.\n");
+	//	return JS_FALSE;
+	//}
 
 	/* null image. Make this [0, 0, 0] NOTE - there are only 3 elements now! */
 	if (!argc) { 
@@ -1221,7 +1221,33 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
         JSObject *obj = JS_NewObject(cx,&SFNodeClass,NULL,NULL);
         jsval *argv = JS_ARGV(cx,vp);
 #endif
+	/*
+	X3D ecmascript specs:
+	http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#SFNodeInstanceCreationFunction
+	"7.6.5.2 Instance creation function
+	This object cannot be directly instantiated"
+	That means there should never be myNode = new SFNode(); or SFNode('string') or SFNode('0x12345');
+	X3DScene Browser.createX3DFromString(String x3dSyntax)
 
+	VRML vrmlscript specs:
+	http://www.web3d.org/x3d/specifications/vrml/ISO-IEC-14772-VRML97/part1/javascript.html#SFNode 
+	sfNodeObjectName = new SFNode(String vrmlstring);
+	MFNode Browser.createVrmlFromString( String vrmlSyntax )
+
+	The support below is for VRML specs SFNode(vrmlstring), 
+	plus 2 freewrl-specific techniques: 
+	sfn = new SFNode(oldSFNode)
+	sfn = new SFNode('0x12345'); //ptr to another node
+
+	- a char* ptr->X3Dstring holding vrmlstring from a previous new SFNode(string)
+	is dragged around with an SFNode, and when new SFNode(old) it resends the 
+	string to the parser to create the new node.
+	- this should fail when oldnode wasn't created with new SFNode(vrmlstring).
+	(a future broto version would/could possibly deep copy the binary oldnode, 
+	elliminating the need for saving/holding the X3DString, and allowing it to 
+	work even when the oldNode wasn't created with a new SFNode(vrmlstring) constructor call)
+
+	*/
 	SFNodeNative *newPtr;
 	SFNodeNative *oldPtr;
 
@@ -1257,6 +1283,7 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 
 		/* this is either a memory pointer, or it is actual X3D text, or it is junk */
 		if (JSVAL_IS_OBJECT(argv[0])) {
+			/* myNode2 = new SFNode(myNode1); not in specs*/
 			#ifdef JSVRMLCLASSESVERBOSE
 			printf ("SFNodeConstr, cstring was an object\n");
 			#endif
@@ -1290,7 +1317,7 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 				}
 			} else {
 				/* cannot be an initializer, must parse the string */
-
+				/* myNode = new SFNode('Group{...}'); */
 				/* try compiling this X3D code... */
 				struct X3D_Group *myGroup = (struct X3D_Group *) createNewX3DNode(NODE_Group);
 				resource_item_t *res = resource_create_from_string(cString);
@@ -1379,10 +1406,10 @@ SFNodeConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFNodeProperties)) {
-		printf( "JS_DefineProperties failed in SFNodeConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFNodeProperties)) {
+	//	printf( "JS_DefineProperties failed in SFNodeConstr.\n");
+	//	return JS_FALSE;
+	//}
 
 	if (!JS_SetPrivate(cx, obj, newPtr)) {
 		printf( "JS_SetPrivate failed in SFNodeConstr.\n");
@@ -1478,6 +1505,12 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 		return JS_FALSE;
 	}
 #endif
+	if (JSVAL_IS_INT(id)) {
+		printf("SFNode has no [index] property.\n");
+		/* would be nice to say node type or node name */
+		/* note the setter does seem to take [0 or 1]  */
+		return JS_FALSE;
+	}
 
 	_idStr = JS_ValueToString(cx, id);
 #if JS_VERSION < 185
@@ -1593,6 +1626,11 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 		return JS_FALSE;
 	}
 #endif
+	//if (JSVAL_IS_INT(id)) {
+	//	printf("SFNode has no [index] property.\n");
+	//	/* would be nice to say node type or node name */
+	//	return JS_FALSE;
+	//}
 
 	_idStr = JS_ValueToString(cx, id);
 	_valStr = JS_ValueToString(cx, *vp);
@@ -1617,6 +1655,10 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsid iid, JSBool strict, jsval *
 	}
 
 	if (JSVAL_IS_INT(id)) {
+		/* dug9 Aug 2013: no Properties are defined on SFNode, so there shouldn't be 
+		   any public SFNode[id] = ?. What are we doing here? 
+		   Was it an experiment or test method? Or does some other internal 
+		   function call this setter[id]? May we drop support for it?*/
 		ptr->valueChanged++;
 		val_len = (int) strlen(_val_c) + 1;
 
@@ -2403,10 +2445,10 @@ SFRotationConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFRotationProperties)) {
-		printf( "JS_DefineProperties failed in SFRotationConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFRotationProperties)) {
+	//	printf( "JS_DefineProperties failed in SFRotationConstr.\n");
+	//	return JS_FALSE;
+	//}
 
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFRotationConstr.\n");
@@ -3030,10 +3072,10 @@ SFVec2fConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFVec2fProperties)) {
-		printf( "JS_DefineProperties failed in SFVec2fConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFVec2fProperties)) {
+	//	printf( "JS_DefineProperties failed in SFVec2fConstr.\n");
+	//	return JS_FALSE;
+	//}
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFVec2fConstr.\n");
 		return JS_FALSE;
@@ -3653,10 +3695,10 @@ SFVec3fConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFVec3fProperties)) {
-		printf( "JS_DefineProperties failed in SFVec3fConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFVec3fProperties)) {
+	//	printf( "JS_DefineProperties failed in SFVec3fConstr.\n");
+	//	return JS_FALSE;
+	//}
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFVec3fConstr.\n");
 		return JS_FALSE;
@@ -4306,10 +4348,10 @@ SFVec3dConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFVec3dProperties)) {
-		printf( "JS_DefineProperties failed in SFVec3dConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFVec3dProperties)) {
+	//	printf( "JS_DefineProperties failed in SFVec3dConstr.\n");
+	//	return JS_FALSE;
+	//}
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFVec3dConstr.\n");
 		return JS_FALSE;
@@ -4603,10 +4645,10 @@ SFVec4fConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFVec4fProperties)) {
-		printf( "JS_DefineProperties failed in SFVec4fConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFVec4fProperties)) {
+	//	printf( "JS_DefineProperties failed in SFVec4fConstr.\n");
+	//	return JS_FALSE;
+	//}
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFVec4fConstr.\n");
 		return JS_FALSE;
@@ -4922,10 +4964,10 @@ SFVec4dConstr(JSContext *cx, uintN argc, jsval *vp) {
 		return JS_FALSE;
 	}
 
-	if (!JS_DefineProperties(cx, obj, SFVec4dProperties)) {
-		printf( "JS_DefineProperties failed in SFVec4dConstr.\n");
-		return JS_FALSE;
-	}
+	//if (!JS_DefineProperties(cx, obj, SFVec4dProperties)) {
+	//	printf( "JS_DefineProperties failed in SFVec4dConstr.\n");
+	//	return JS_FALSE;
+	//}
 	if (!JS_SetPrivate(cx, obj, ptr)) {
 		printf( "JS_SetPrivate failed in SFVec4dConstr.\n");
 		return JS_FALSE;
