@@ -449,7 +449,7 @@ void getField_ToShader(struct X3D_Node *node, int num) {
     }
         
     // turning shader on...
-    ConsoleMessage ("calling getMyShader here wrwe");
+    //ConsoleMessage ("calling getMyShader here wrwe");
     enableGlobalShader(getMyShader(currentShader));
     
     myObj[0] = NULL;
