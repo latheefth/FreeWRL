@@ -2521,7 +2521,6 @@ package VRML::NodeType;
 
 			_initialized => [SFBool, FALSE ,initializeOnly, 0],
 			_shaderUserNumber => [SFInt32,-1,initializeOnly,0],
-			_shaderUserDefinedFields => [SFNode, NULL, initializeOnly, 0],
 			_shaderLoadThread => [FreeWRLThread, 0, initializeOnly,0],
 			_retrievedURLData => [SFBool, FALSE ,initializeOnly, 0],
 	}, "X3DProgrammableShaderObject"),

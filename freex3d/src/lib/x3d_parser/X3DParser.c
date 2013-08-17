@@ -494,7 +494,6 @@ static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struc
 	myField = NULL;
 	retUO = ID_UNDEFINED;
 
-
 	#ifdef X3DPARSERVERBOSE
 	printf ("getFieldFromScript, looking for %s\n",fieldName);
 	#endif
@@ -502,7 +501,7 @@ static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struc
 	/* go through the user arrays in this lexer, and see if we have a match */
 
 	myField = script_getField_viaCharName (me, fieldName);
-	/* printf ("try2: getFieldFromScript, field %s is %d\n",fieldName,myField); */
+	//printf ("try2: getFieldFromScript, field %s is %p\n",fieldName,myField); 
 
 	if (myField != NULL) {
 		int myFieldNumber;
@@ -535,12 +534,14 @@ static int getFieldFromScript (struct VRMLLexer *myLexer, char *fieldName, struc
 	return FALSE;
 
 }
+#undef X3DPARSERVERBOSE
+
 
 int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs, int* type, int *accessType, struct Shader_Script **myObj, char *name, int routeTo) {
 	int error;
 	int fieldInt;
 
-    
+
 #ifdef X3DPARSERVERBOSE
 	printf ("getRoutingInfo, node %p name %s\n",node,name);
 	printf ("getRoutingInfo, nt %s\n",stringNodeType(node->_nodeType));
@@ -554,32 +555,37 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		break; }
 	case NODE_ComposedShader: {
 		*myObj = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
-		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
+        error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
+            
+            
 	case NODE_ShaderProgram: {
 		*myObj = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
-		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));        
 		break; }
+             
+            
 	case NODE_PackagedShader: {
 		*myObj = (struct Shader_Script *) X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
-        case NODE_ProgramShader: {
+    case NODE_ProgramShader: {
             int i;
             
             // assume we have an error, unless we find this in the PackagedShader field
             error = true;
             
             // a ProgramShader has potentially lots of ShaderPrograms in the "programs" field...
-            //ConsoleMessage ("have a PRogramShder here");
+            //ConsoleMessage ("have a PRogramShder here, it has %d programs ",X3D_PROGRAMSHADER(node)->programs.n);
             for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
-                struct X3D_PackagedShader *ps = X3D_PACKAGEDSHADER(X3D_PROGRAMSHADER(node)->programs.p[i]);
+                struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
                 //ConsoleMessage ("ProgramShader program %d is %p",i,ps);
                 if (ps != NULL) {
                     int tmpOfs, tmpType, terror;
 
                     //ConsoleMessage ("ProgramShader, child %d is a %s",i,stringNodeType(ps->_nodeType));
                     *myObj = (struct Shader_Script *) ps->_shaderUserDefinedFields;
+                    //ConsoleMessage (".... and the userDefinedFields for this one is %p",*myObj);
                     terror = !(getFieldFromScript (myLexer, name,*myObj,&tmpOfs,&tmpType,accessType));
                     //ConsoleMessage ("have error %s",terror?" ok ":" not ok" );
                 
@@ -610,7 +616,6 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 
 	return error;
 }
-#undef X3DPARSERVERBOSE
 
 
 static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, int *offs, int* type, char *name, int routeTo) {
@@ -622,6 +627,8 @@ static int getRouteField (struct VRMLLexer *myLexer, struct X3D_Node **innode, i
 
 	node = *innode; /* ease of use - contents of pointer in param line */
  
+    //printf ("start of getRouteField...\n");
+    
 	error = getRoutingInfo(myLexer,node,offs,type,&accessType, &holder, name,routeTo);
     
     //if (error) ConsoleMessage ("getRouteField,  after getRoutingInfo an error"); else ConsoleMessage ("getRouteField, getRoutingInfo ok");
@@ -1450,6 +1457,8 @@ static void saveAttributes(int myNodeType, const xmlChar *name, char** atts) {
         thisNode = createNewX3DNode(myNodeType);
         tg->X3DParser.parentStack[tg->X3DParser.parentIndex] = thisNode;
 
+    //printf ("saveAttributes, node type %s\n",stringNodeType(myNodeType));
+    
 	if (myNodeType == NODE_Script) {
 		#ifdef HAVE_JAVASCRIPT
 		struct Shader_Script *myObj;
@@ -1592,7 +1601,7 @@ static void parseAttributes() {
 			switch (thisNode->_nodeType) {
 				case NODE_Script:
         			case NODE_ComposedShader: 
-        			case NODE_ShaderProgram: 
+        			case NODE_ShaderProgram:
         			case NODE_PackagedShader: {
 					int rv, offs, type, accessType;
 					struct Shader_Script *myObj;
