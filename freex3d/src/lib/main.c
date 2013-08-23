@@ -92,7 +92,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
     if ((tg->threads.loadThread == NULL) || (tg->threads.PCthread == NULL)) {
 	//ConsoleMessage("fwl_OSX_initializeParameters, qParamsInit is FALSE");
 
-	fwl_initParams(NULL);
+	//JAS fwl_initParams(NULL);
 
     	/* Default values */
     	fwl_setp_width(600);

@@ -130,7 +130,7 @@ GLXContext textureContext = NULL;
 
 /* function Prototypes */
 int findTextureFile(textureTableIndexStruct_s *entry);
-void _textureThread(void);
+//void _textureThread(void);
 
 static void move_texture_to_opengl(textureTableIndexStruct_s*);
 struct Uni_String *newASCIIString(char *str);

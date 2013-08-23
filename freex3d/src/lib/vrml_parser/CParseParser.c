@@ -220,7 +220,9 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
     &parser_sftimeValue, &parser_mftimeValue,
     &parser_sfstringValue_, &parser_mfstringValue,
     &parser_sfvec2fValue, &parser_mfvec2fValue,
-    &parser_sfimageValue, &parser_fieldTypeNotParsedYet, /* SFImage, FreeWRLPTR */
+    &parser_sfimageValue,  /* SFImage */ 
+    &parser_fieldTypeNotParsedYet, /* FreeWRLPTR */
+    &parser_fieldTypeNotParsedYet, /* FreeWRLThread */
     &parser_sfvec3dValue, &parser_mfvec3dValue,
     &parser_sftimeValue, &parser_mftimeValue,
     &parser_sfmatrix3fValue, &parser_fieldTypeNotParsedYet, /* Matrix3f */

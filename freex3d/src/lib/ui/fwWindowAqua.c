@@ -47,7 +47,7 @@ int fv_open_display()
 	return TRUE;
 }
 
-int fv_create_main_window(int argc, char *argv[])
+int fv_create_main_window(freewrl_params_t *d)
 {
 
 	//printf ("OSX - create_main_window called\n");
