@@ -311,9 +311,9 @@ void fwl_gotoViewpoint (char *findThisOne);
 
 void fwl_startFreeWRL(const char *url);
 /* distinguish instances from window event handler using the window handle */
-int fwl_setCurrentHandle(void *handle);
+int fwl_setCurrentHandle(void *handle, char*, int);
 void fwl_clearCurrentHandle();
-void *fwl_getCurrentHandle();
+void *fwl_getCurrentHandle(char *, int);
 
 void fwl_resource_push_single_request(const char *request);
 void fwl_OSX_initializeParameters(const char* initialURL);

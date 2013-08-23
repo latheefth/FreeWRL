@@ -86,6 +86,9 @@ pthread_key_t threadSpecificKey;  //set like a global variable in the global sco
 
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
 {
+    
+    //JAS printf ("calling iglobal_constructor\n");
+    
 	//using Johns threadID method would:
 	//1. create global struct
 	// - malloc
@@ -176,11 +179,12 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 
 	uiThread = pthread_self();
 	//set_thread2global(iglobal, uiThread ,"UI thread");
+        
 	if(!done_main_UI_thread_once){
 		pthread_key_create(&threadSpecificKey, NULL);
 		done_main_UI_thread_once = 1; //this assumes the iglobal is created in the shared UI main thread
 	}
-	fwl_setCurrentHandle(iglobal); //probably redundant but no harm
+	fwl_setCurrentHandle(iglobal,__FILE__,__LINE__); //probably redundant but no harm
 	return iglobal;
 }
 
@@ -264,18 +268,22 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 
 
 
-void *fwl_getCurrentHandle(){
+void *fwl_getCurrentHandle(char *fi, int li){
 	ttglobal currentHandle = (ttglobal)pthread_getspecific(threadSpecificKey); 
+    //printf ("fwl_getCurrentHandle returning %p at %s:%d\n",currentHandle,fi,li);
 	return (void*)currentHandle;
 }
-int fwl_setCurrentHandle(void *handle)
-{
+int fwl_setCurrentHandle(void *handle, char *fi, int li)
+{    
+    //printf ("fwl_setCurrentHandle at to %p thread %p at %s:%d\n",handle,pthread_self(),fi,li);
+    
 	pthread_setspecific(threadSpecificKey,handle);
 	return 1; /* let caller know its not in the table yet */
 }
-void fwl_clearCurrentHandle()
+void fwl_clearCurrentHandle(char *fi, int li)
 {
 	void *currentHandle = NULL;
+    //printf ("fwl_clearCurrentHandle at %s:%d\n",fi,li);
 	pthread_setspecific(threadSpecificKey,currentHandle);
 
 }
@@ -284,6 +292,8 @@ ttglobal gglobal(){
 	tg = (ttglobal)pthread_getspecific(threadSpecificKey); 
 	if(!tg){
 		printf("Ouch - no state for this thread -- hit a key to exit\n");
+        //printf ("more info - thread %p\n",pthread_self());
+                
 		getchar();
 		exit(-1);
 	}

@@ -858,7 +858,7 @@ static void *thread_compile_ComposedShader(void **args) {
 	node = (struct X3D_ComposedShader*)args[0];
 	tg = (ttglobal)args[1];
 	
-	fwl_setCurrentHandle(tg);
+	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 	node = X3D_COMPOSEDSHADER(node);
 	free(args);
 	/* initialization */
@@ -953,7 +953,7 @@ static void *thread_compile_ProgramShader (void **args){ //void *nod) {
     int haveFragShaderText; 
 
 	tg = args[1];
-	fwl_setCurrentHandle(tg);
+	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 	free(args);
     /* initialization */
     haveVertShaderText = FALSE;

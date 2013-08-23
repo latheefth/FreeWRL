@@ -1087,7 +1087,7 @@ void _inputParseThread(void *globalcontext)
         bool result;
 		tg->threads.PCthread = pthread_self();
 		//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
-		fwl_setCurrentHandle(tg);
+		fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 
 		p->inputParseInitialized = TRUE;
 		ENTER_THREAD("input parser");

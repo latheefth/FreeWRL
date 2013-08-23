@@ -888,7 +888,7 @@ void _textureThread(void *globalcontext)
 {
 	ttglobal tg = (ttglobal)globalcontext;
 	tg->threads.loadThread = pthread_self();
-	fwl_setCurrentHandle(tg);
+	fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 
 	//set_thread2global(tg, tg->threads.loadThread ,"texture loading thread");
 	//ENTER_THREAD("texture loading");
