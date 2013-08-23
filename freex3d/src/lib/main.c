@@ -50,25 +50,25 @@ freewrl_params_t fwl_params;
 /**
  * library initialization
  */
-#ifdef _MSC_VER
-void libFreeWRL_init(void)
-#else
-void __attribute__ ((constructor)) libFreeWRL_init(void)
-#endif
-{
-	memset(&fwl_params, 0, sizeof(fwl_params));
-}
+//#ifdef _MSC_VER
+//void libFreeWRL_init(void)
+//#else
+//void __attribute__ ((constructor)) libFreeWRL_init(void)
+//#endif
+//{
+//	memset(&fwl_params, 0, sizeof(fwl_params));
+//}
 
 /**
  * library exit routine
  */
-#ifdef _MSC_VER
-void libFreeWRL_fini(void)
-#else
-void __attribute__ ((destructor)) libFreeWRL_fini(void)
-#endif
-{
-}
+//#ifdef _MSC_VER
+//void libFreeWRL_fini(void)
+//#else
+//void __attribute__ ((destructor)) libFreeWRL_fini(void)
+//#endif
+//{
+//}
 
 /**
  * Explicit initialization
@@ -183,15 +183,16 @@ char *strForeslash2back(char *str)
 	return str;
 }
 
-void fwl_initParams(freewrl_params_t *params)
-{
-	if (params) {
-		DEBUG_MSG("copying application supplied params...\n");
-		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
-	} else {
-		memset(&fwl_params, 0, sizeof(freewrl_params_t));
-	}
-}
+//void fwl_initParams(freewrl_params_t *params)
+//{
+//	if (params) {
+//		DEBUG_MSG("copying application supplied params...\n");
+//		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
+//		memcpy(
+//	} else {
+//		memset(&fwl_params, 0, sizeof(freewrl_params_t));
+//	}
+//}
 
 void fwl_setp_width		(int foo)	{ fwl_params.width = foo; }
 void fwl_setp_height		(int foo)	{ fwl_params.height = foo; }
@@ -211,41 +212,38 @@ bool	fwl_getp_eai		(void)	{ return fwl_params.eai; }
 bool	fwl_getp_verbose	(void)	{ return fwl_params.verbose; }
 //int	fwl_getp_collision	(void)	{ return fwl_params.collision; }
 
-static ttglobal fwl_instance_parameters = NULL;
+//static ttglobal fwl_instance_parameters = NULL;
 
 
 void* fwl_init_instance()
 {
+	ttglobal tg; 
 	//ConsoleMessage ("called fwl_init_instance");
-	fwl_instance_parameters = iglobal_constructor();
-	return (void *)fwl_instance_parameters;
+	tg = iglobal_constructor();
+	fwl_setCurrentHandle(tg);
+	return (void *)tg;
 }
-bool fwl_initFreeWRL(freewrl_params_t *params)
-{
-	ttglobal tg = (ttglobal)fwl_instance_parameters;
-
+bool fwl_initFreeWRL(freewrl_params_t *params){
+	ttglobal tg;
+	tg = (ttglobal)fwl_getCurrentHandle();
 	//ConsoleMessage ("fwl_initFreeWRL, tg %p",tg);
 
 	if(tg == NULL) tg = fwl_init_instance();
-
 	TRACE_MSG("FreeWRL: initializing...\n");
 
 	//ConsoleMessage ("fwl_initFreeWRL, mainThread %p",tg->threads.mainThread);
 
 	tg->threads.mainThread = pthread_self();
 
-	/* dug9 July30,2011 UI thread == main Thread, and I need a 
-	   dipthong key [threadID,windowHandle] in iglobal for UI thread
-	   because multi-window processes -2 ActiveX on a web page, or
-	   my testDLL.cpp console program that creates 2 popup windows - 
-	   have the same UI/main thread for all windows in the process 
-	   (one event loop / window message pump for all windows) so we
-	   can't use threadID to lookup the freewrl instance (it would be 
-	   more appropriate to pass the window handle around, and use it
-	   to lookup the freewrl instance). Because UI Thread is dipthonged
-	   and already in iglobal, I can't/shouldn't register the following
-	   line which isn't dipthonged yet identical thread:
-	   set_thread2global(tg, tg->threads.mainThread ,"main thread"); 
+	/* dug9 Aug 23, 2013 
+		For the main UI thread that's shared between multiple
+		libfreewrl instances within a single process
+		-ie 2 ActiveX controls on a single web page or gui app, or
+		a console program that pops up 2 separate freewrl instances-
+		we use fwl_setCurrentHandle(ttglobal) from the calling application
+		process to switch gglobals for this UI/main thread.
+		For the worker threads, we lookup their ttglobal based on their
+		threadID.
 	*/
 #if !defined(_ANDROID)
 	/* Android does not have stdout nor stderr */
@@ -256,12 +254,17 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	/* Check parameters */
 	if (params) {
 		DEBUG_MSG("copying application supplied params...\n");
-		memcpy(&fwl_params, params, sizeof(freewrl_params_t));
+		//memcpy(&fwl_params, params, sizeof(freewrl_params_t));
+		memcpy(&tg->display, params, sizeof(freewrl_params_t));
+		//tg->display.win_height = params->height;// = 0; /* window */
+		//tg->display.win_width = params->width;// = 0;
+		//tg->display.winToEmbedInto = params->winToEmbedInto;// = -1;
+		//tg->display.fullscreen = params->fullscreen;// = FALSE;
 	}
 
 #if !defined(EXCLUDE_EAI)
 	/* do we require EAI? */
-	if (fwl_getp_eai()) {
+	if (params->eai){ //fwl_getp_eai()) {
 		fwlio_RxTx_control(CHANNEL_EAI, RxTx_START);
 		//	set_thread2global(tglobal* fwl, pthread_t any );
 
@@ -281,25 +284,26 @@ bool fwl_initFreeWRL(freewrl_params_t *params)
 	   to complete initialization */
 	fwl_initializeDisplayThread();
 
-	usleep(50);
-	set_thread2global(tg,tg->threads.DispThrd ,"display thread");
+	//usleep(50);
+	//set_thread2global(tg,tg->threads.DispThrd ,"display thread");
 
 #endif //FRONTEND_HANDLES_DISPLAY_THREAD
 
 	fwl_initializeInputParseThread();
-	set_thread2global(tg, tg->threads.PCthread ,"parse thread");
+	//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
 
-	while (!fwl_isInputThreadInitialized()) {
-		usleep(50);
-	}
+	//while (!fwl_isInputThreadInitialized()) {
+	//	usleep(50);
+	//}
 
 	fwl_initializeTextureThread();
-	set_thread2global(tg, tg->threads.loadThread ,"texture loading thread");
-	while (!fwl_isTextureinitialized()) {
-		usleep(50);
-	}
+	//set_thread2global(tg, tg->threads.loadThread ,"texture loading thread");
+	//while (!fwl_isTextureinitialized()) {
+	//	usleep(50);
+	//}
 	return TRUE;
 }
+
 
 /**
  *   startFreeWRL: we set up the main file / world

@@ -884,9 +884,14 @@ void Texture_thread_exit_handler(int sig)
 }
 #endif //HAVE_PTHREAD_CANCEL
 
-void _textureThread()
+void _textureThread(void *globalcontext)
 {
-	ENTER_THREAD("texture loading");
+	ttglobal tg = (ttglobal)globalcontext;
+	tg->threads.loadThread = pthread_self();
+	fwl_setCurrentHandle(tg);
+
+	//set_thread2global(tg, tg->threads.loadThread ,"texture loading thread");
+	//ENTER_THREAD("texture loading");
 
 	#if !defined (HAVE_PTHREAD_CANCEL)
 	struct sigaction actions;
@@ -902,7 +907,7 @@ void _textureThread()
 	{
 
 		ppLoadTextures p;
-		ttglobal tg = gglobal();
+		//ttglobal tg = gglobal();
 		p = (ppLoadTextures)tg->LoadTextures.prv;
 
 		tg->LoadTextures.TextureThreadInitialized = TRUE;

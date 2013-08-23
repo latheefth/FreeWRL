@@ -27,14 +27,19 @@
 
 
 
-HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
-HDC   ghDC; 
-HGLRC ghRC; 
-
-HWND fw_window32_hwnd()
-{
-	return ghWnd;
+//HWND  ghWnd;   /* on a hunch I made these static so they are once per program */
+//HDC   ghDC; 
+//HGLRC ghRC; 
+//
+//HWND fw_window32_hwnd()
+//{
+//	return ghWnd;
+//}
+HWND fw_window32_hwnd(){
+	ttglobal tg = (ttglobal)gglobal();
+	return (HWND)tg->display.winToEmbedInto;
 }
+
 void fwl_do_keyPress(const char kp, int type);
 
 /* from Blender GHOST_SystemWin32.cpp: Key code values not found in winuser.h */
@@ -86,6 +91,7 @@ static short gcWheelDelta = 0;
 
 void swapbuffers32()
 {
+	HDC   ghDC; 
 	ghDC = wglGetCurrentDC();
 	SwapBuffers(ghDC); 
 }
@@ -114,8 +120,10 @@ bool EnableFullscreen(int w, int h, int bpp)
     DEVMODE dmode;
     bool foundMode;
     int i;
-
-    HMONITOR hMonitor = MonitorFromWindow(ghWnd, MONITOR_DEFAULTTOPRIMARY);
+	HWND  ghWnd;   
+	HMONITOR hMonitor;
+	//wglGetCurrent
+    hMonitor = MonitorFromWindow(ghWnd, MONITOR_DEFAULTTOPRIMARY);
     memset(&monInfo, 0, sizeof(MONITORINFOEX));
     monInfo.cbSize = sizeof(MONITORINFOEX);
     GetMonitorInfo(hMonitor, (LPMONITORINFO)&monInfo);
@@ -209,7 +217,9 @@ void DisableFullscreen()
            is on (this is for multi-monitor setups) */
         MONITORINFOEX monInfo;
 	DWORD style,exstyle;
-        HMONITOR hMonitor = MonitorFromWindow(ghWnd, MONITOR_DEFAULTTOPRIMARY);
+        HMONITOR hMonitor;
+		HWND  ghWnd;   
+		hMonitor = MonitorFromWindow(ghWnd, MONITOR_DEFAULTTOPRIMARY);
         memset(&monInfo, 0, sizeof(MONITORINFOEX));
         monInfo.cbSize = sizeof(MONITORINFOEX);
         GetMonitorInfo(hMonitor, (LPMONITORINFO)&monInfo);
@@ -294,45 +304,47 @@ BOOL bSetupPixelFormat(HDC hdc)
  *   fv_create_GLcontext: create the main OpenGL context.
  *                     TODO: finish implementation for Mac and Windows.
  */
-bool fv_create_GLcontext()
-{	
-	fwl_thread_dump();
-	printf("starting createcontext32a\n");
-	ghDC = GetDC(ghWnd); 
-	printf("got hdc\n");
-	if (!bSetupPixelFormat(ghDC))
-		printf("ouch - bSetupPixelFormat failed\n");
-	ghRC = wglCreateContext(ghDC); 
-	printf("created context\n");
-	return TRUE;
-}
+//bool fv_create_GLcontext1(HWND  ghWnd)
+//{	
+//	//fwl_thread_dump();
+//	printf("starting createcontext32a\n");
+//	ghDC = GetDC(ghWnd); 
+//	printf("got hdc\n");
+//	if (!bSetupPixelFormat(ghDC))
+//		printf("ouch - bSetupPixelFormat failed\n");
+//	ghRC = wglCreateContext(ghDC); 
+//	printf("created context\n");
+//	return TRUE;
+//}
 
 /**
  *   fv_bind_GLcontext: attache the OpenGL context to the main window.
  *                   TODO: finish implementation for Mac and Windows.
  */
-bool fv_bind_GLcontext()
-{
-	RECT rect;
-	fwl_thread_dump();
-
-	if (wglMakeCurrent(ghDC, ghRC)) {
-		GetClientRect(ghWnd, &rect); 
-		gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
-		gglobal()->display.screenHeight = rect.bottom;
-		return TRUE;
-	}
-
-	return FALSE;
-}
+//bool fv_bind_GLcontext()
+//{
+//	RECT rect;
+//	fwl_thread_dump();
+//
+//	if (wglMakeCurrent(ghDC, ghRC)) {
+//		GetClientRect(ghWnd, &rect); 
+//		gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
+//		gglobal()->display.screenHeight = rect.bottom;
+//		return TRUE;
+//	}
+//
+//	return FALSE;
+//}
 bool fv_create_and_bind_GLcontext(HWND hWnd)
 {
+
 	RECT rect;
 	HDC hDC;
 	HGLRC hRC;
 	int width, height;
+
 	/* create GL context */
-	fwl_thread_dump();
+	//fwl_thread_dump();
 	printf("starting createcontext32b\n");
 	hDC = GetDC(hWnd); 
 	printf("got hdc\n");
@@ -342,16 +354,15 @@ bool fv_create_and_bind_GLcontext(HWND hWnd)
 	printf("created context\n");
 	/* bind GL context */
 
-	fwl_thread_dump();
-	width = gglobal()->display.screenWidth;
-	height = gglobal()->display.screenHeight;
+	//fwl_thread_dump();
+	//width = tg->display.screenWidth;
+	//height = tg->display.screenHeight;
 	if (wglMakeCurrent(hDC, hRC)) {
 		//GetClientRect(hWnd, &rect); 
 		//gglobal()->display.screenWidth = rect.right; /*used in mainloop render_pre setup_projection*/
 		//gglobal()->display.screenHeight = rect.bottom;
 		return TRUE;
 	}
-
 	return FALSE;
 
 }
@@ -548,15 +559,19 @@ static int altState = 0;
 	int altDown;
 	int lkeydata;
 static int shiftState = 0;
+	HDC   ghDC; 
+	HGLRC ghRC; 
     mev = 0;
     butnum = 0;
-    ghWnd = hWnd;
+
+    //ghWnd = hWnd;
     switch( msg ) {
 
     case WM_CREATE: 
 	printf("wm_create\n");
 	//fv_create_GLcontext();
 	//fv_bind_GLcontext();
+	//((*LPCREATESTRUCT)lParam)->lpCreateParams;
 	fv_create_and_bind_GLcontext(hWnd);
 	break; 
  
@@ -574,7 +589,7 @@ static int shiftState = 0;
 	*/
 	ghDC = GetDC(hWnd); 
 	if (!bSetupPixelFormat(ghDC)) 
-	    PostQuitMessage (0); 
+		PostQuitMessage (0); 
 	printf("WM_DISPLAYCHANGE happening now\n");
 
 	/* ???? do we have to recreate an OpenGL context 
@@ -586,17 +601,17 @@ static int shiftState = 0;
 	break; 
 
     case WM_CLOSE: 
-	ghRC = wglGetCurrentContext();
-	if (ghRC) 
-	    wglDeleteContext(ghRC); 
-	ghDC = GetDC(hWnd); 
-	if (ghDC) 
-	    ReleaseDC(hWnd, ghDC); 
-	ghRC = 0; 
-	ghDC = 0; 
-	 
-	DestroyWindow (hWnd);
-	fwl_doQuit();
+		ghRC = wglGetCurrentContext();
+		if (ghRC) 
+			wglDeleteContext(ghRC); 
+		ghDC = GetDC(hWnd); 
+		if (ghDC) 
+			ReleaseDC(hWnd, ghDC); 
+		ghRC = 0; 
+		ghDC = 0; 
+		 
+		DestroyWindow (hWnd);
+		fwl_doQuit();
 	break; 
 
   //  case WM_SETCURSOR:
@@ -904,8 +919,8 @@ void fv_setGeometry_from_cmdline(const char *gstring)
 		}
 	sscanf(tok[0],"%d",&w);
 	sscanf(tok[1],"%d",&h);
-	gglobal()->display.win_width = w; 
-    gglobal()->display.win_height = h; 
+	gglobal()->display.width = w; 
+    gglobal()->display.height = h; 
 	free(str);
 
 }
@@ -919,9 +934,11 @@ void setWindowTitle() //char *window_title)
 	//SetWindowText(
 	 // __in      HWND hWnd,
 	 // __in_opt  LPCTSTR lpString);
-	
+	HWND  ghWnd;   
 	//SetWindowText(ghWnd,fwl_getWindowTitle());
-	SetWindowText(ghWnd,getWindowTitle()); //window_title);
+	ghWnd = (void*)gglobal()->display.winToEmbedInto;
+	if(ghWnd)
+		SetWindowText(ghWnd,getWindowTitle()); //window_title);
 }
 
 /**
@@ -964,19 +981,22 @@ char *getWgetPath()
 /**
  *   create_main_window: setup up Win32 main window and TODO query fullscreen capabilities.
  */
-int create_main_window0(int argc, char *argv[])
+int create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 {
     HINSTANCE hInstance; 
     WNDCLASS wc;
     MSG msg;
+	HWND  ghWnd;   
     //RECT rect; 
 	int width, height;
     int nCmdShow = SW_SHOW;
-
-    printf("starting createWindow32\n"); 
+	
+	printf("starting createWindow32\n"); 
     /* I suspect hInstance should be get() and passed in from the console program not get() in the dll, but .lib maybe ok */
     hInstance = (HANDLE)GetModuleHandle(NULL); 
-    gglobal()->display.window_title = "FreeWRL";
+	printf("hInstance=%d\n",hInstance);
+    //gglobal()->display.window_title = "FreeWRL";
+	//d->window_title = "FreeWRL";
 
 /*  Blender Ghost
     WNDCLASS wc;
@@ -1018,10 +1038,12 @@ int create_main_window0(int argc, char *argv[])
     wc.cbWndExtra = 0;
 
     RegisterClass( &wc );
-	width  = gglobal()->display.win_width + 8;  //windows gui eats 4 on each side
-	height = gglobal()->display.win_height + 34;  // and 26 for the menu bar
+	//width  = gglobal()->display.width + 8;  //windows gui eats 4 on each side
+	//height = gglobal()->display.height + 34;  // and 26 for the menu bar
+	width  = d->width + 8;  //windows gui eats 4 on each side
+	height = d->height + 34;  // and 26 for the menu bar
 
-    ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWrl win32 rev 0.0", 
+	ghWnd = CreateWindowEx( WS_EX_APPWINDOW, "FreeWrlAppClass", "freeWrl win32 rev 0.0", 
 			    /* ghWnd = CreateWindow( "GenericAppClass", "Generic Application", */
 			    WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 
 			    CW_USEDEFAULT, 
@@ -1031,7 +1053,7 @@ int create_main_window0(int argc, char *argv[])
 			    NULL, 
 			    NULL, 
 			    hInstance, 
-			    NULL); 
+			    (void*)gglobal()); //NULL); 
     /* make sure window was created */ 
 
     if (!ghWnd) 
@@ -1043,6 +1065,7 @@ int create_main_window0(int argc, char *argv[])
    
     ShowWindow( ghWnd, SW_SHOW); /* SW_SHOWNORMAL); /*nCmdShow );*/
     printf("showed window\n");
+	d->winToEmbedInto = (long int)ghWnd;
 
 
     UpdateWindow(ghWnd); 
@@ -1053,21 +1076,21 @@ int create_main_window0(int argc, char *argv[])
     return TRUE;
 }
 
-int fv_create_main_window(int argc, char *argv[])
+int fv_create_main_window(freewrl_params_t * d) //int argc, char *argv[])
 {
 	loadCursors();
-	if( fwl_params.winToEmbedInto > 0 )
+	if( d->winToEmbedInto > 0 )
 	{
 		HWND hWnd;
 		//if defined(FRONTEND_HANDLES_DISPLAY_THREAD) || defined(command line option with window handle)
-		hWnd = (HWND)fwl_params.winToEmbedInto;
+		hWnd = (HWND)d->winToEmbedInto;
 		//fv_create_GLcontext();
 		//fv_bind_GLcontext();
 		fv_create_and_bind_GLcontext(hWnd);
 		return TRUE;
 	}
 	else
-		return create_main_window0(argc, argv);
+		return create_main_window0(d); //argc, argv);
 }
 
 #endif /* IPHONE */

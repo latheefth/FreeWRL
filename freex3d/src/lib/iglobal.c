@@ -81,6 +81,9 @@ void common_init(struct tcommon *t);
 void CursorDraw_init(struct tCursorDraw *t);
 
 //static ttglobal iglobal; //<< for initial development witn single instance
+static int done_main_UI_thread_once = 0;
+pthread_key_t threadSpecificKey;  //set like a global variable in the global scope in a .c file
+
 ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID...)
 {
 	//using Johns threadID method would:
@@ -172,7 +175,12 @@ OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 	CursorDraw_init(&iglobal->CursorDraw);
 
 	uiThread = pthread_self();
-	set_thread2global(iglobal, uiThread ,"UI thread");
+	//set_thread2global(iglobal, uiThread ,"UI thread");
+	if(!done_main_UI_thread_once){
+		pthread_key_create(&threadSpecificKey, NULL);
+		done_main_UI_thread_once = 1; //this assumes the iglobal is created in the shared UI main thread
+	}
+	fwl_setCurrentHandle(iglobal); //probably redundant but no harm
 	return iglobal;
 }
 
@@ -249,16 +257,55 @@ OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 
 	//destroy iglobal
 	free(tg);
-	remove_iglobal_from_table(tg);
+	//remove_iglobal_from_table(tg);
+	fwl_clearCurrentHandle();
+
 }
+
+
+
+void *fwl_getCurrentHandle(){
+	ttglobal currentHandle = (ttglobal)pthread_getspecific(threadSpecificKey); 
+	return (void*)currentHandle;
+}
+int fwl_setCurrentHandle(void *handle)
+{
+	pthread_setspecific(threadSpecificKey,handle);
+	return 1; /* let caller know its not in the table yet */
+}
+void fwl_clearCurrentHandle()
+{
+	void *currentHandle = NULL;
+	pthread_setspecific(threadSpecificKey,currentHandle);
+
+}
+ttglobal gglobal(){
+	ttglobal tg;
+	tg = (ttglobal)pthread_getspecific(threadSpecificKey); 
+	if(!tg){
+		printf("Ouch - no state for this thread -- hit a key to exit\n");
+		getchar();
+		exit(-1);
+	}
+	return tg;
+}
+ttglobal gglobal0(){
+	return (ttglobal)pthread_getspecific(threadSpecificKey); 
+}
+#ifdef I_WANT_COMPLEX_GOBBLEDYGOOK
+
 #define MAXINSTANCES 25 //max # freewrl windows on a web page / InternetExplorer session
+int iglobal_instance_count();
+
 struct t2g {
 	pthread_t thread;
-	void *handle;
+	//void *handle;
 	ttglobal iglobal;
+	int itype; //1=UI thread, 0=worker thread
 };
 static struct t2g thread2global[MAXINSTANCES*5];
 static int nglobalthreads = 0;
+
 static void *currentHandle = NULL; /* leave null if single-window application */
 /* for multi-window process -such as 2 freewrl widgets on a web page, or
    a console program that creates 2+ popup windows -each with their
@@ -269,6 +316,11 @@ static void *currentHandle = NULL; /* leave null if single-window application */
    ASSUMPTION: 1 window per 1 freewrl instance  (window 1:1 iglobal)
 	
    */
+
+void *fwl_getCurrentHandle(){
+	ttglobal currentHandle = (ttglobal*)pthread_getspecific(threadSpecificKey); 
+	return (void*)currentHandle;
+}
 int iglobal_instance_count();
 int fwl_setCurrentHandle(void *handle)
 {
@@ -280,22 +332,26 @@ int fwl_setCurrentHandle(void *handle)
 void fwl_clearCurrentHandle()
 {
 	currentHandle = NULL;
+
 }
+
+
 void set_thread2global(ttglobal fwl, pthread_t any ,char *type)
 {
 	//ConsoleMessage ("set_thread2global called");
 
 	thread2global[nglobalthreads].thread = any;
 	thread2global[nglobalthreads].iglobal = fwl;
-	thread2global[nglobalthreads].handle = NULL;
-	if(!strcmp(type,"UI thread"))
-	{
-		/*for the primary thread, we use a 'dipthong' key (threadID,windowHandle)
-		because multiple popupWindows or ActiveX controls in the same
-		process share the same message loop / event handling thread
-		so only the window handle can distinguish the frewrl instances */
-		thread2global[nglobalthreads].handle = currentHandle;
-	}
+	thread2global[nglobalthreads].itype = !strcmp(type,"UI thread") ? 1 : 0; //1 UI, 0 worker
+	//thread2global[nglobalthreads].handle = NULL;
+	//if(!strcmp(type,"UI thread"))
+	//{
+	//	/*for the primary thread, we use a 'dipthong' key (threadID,windowHandle)
+	//	because multiple popupWindows or ActiveX controls in the same
+	//	process share the same message loop / event handling thread
+	//	so only the window handle can distinguish the frewrl instances */
+	//	thread2global[nglobalthreads].handle = currentHandle;
+	//}
 	nglobalthreads++;
         //printf ("set_thread2global, thread %p desc: %s\n",any, type);
 
@@ -319,7 +375,7 @@ void remove_iglobal_from_table(ttglobal tg)
 
 
 
-#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
+#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA) )
 ttglobal gglobal0()
 {
 	//using Johns threadID method, would:
@@ -333,16 +389,13 @@ ttglobal gglobal0()
 	ifound = 0;
 
 	for(i=0;i<nglobalthreads;i++)
-#ifdef _MSC_VER
-		if(tt.p == thread2global[i].thread.p){
-#else
-		if(tt == thread2global[i].thread){
-#endif
-			/* for primary thread, test to see which window handle is set */
-			if(thread2global[i].handle != NULL)
-				if(thread2global[i].handle != currentHandle) continue;
-			/* for worker threads the threadID is sufficient */
-			iglobal = thread2global[i].iglobal;
+		if(ID_THREAD(tt) == ID_THREAD(thread2global[i].thread)){
+			if(thread2global[i].itype == 1)
+				/* UI (user interface) thread, use static global currentHandle */
+				iglobal = currentHandle;
+			else
+				/* worker threads use the Thread-Specific Data (TSD) value */
+				iglobal = thread2global[i].iglobal;
 			ifound = 1;
 			break;
 		}
@@ -358,7 +411,8 @@ ttglobal gglobalH0(void *handle)
 	for(i=0;i<nglobalthreads;i++)
 	{
 		/* for primary thread, test to see which window handle is set */
-		if(thread2global[i].handle != currentHandle) continue;
+		//if(thread2global[i].handle != currentHandle) continue;
+		if(thread2global[i].iglobal != currentHandle) continue;
 		iglobal = thread2global[i].iglobal;
 		ifound = 1;
 		break;
@@ -445,3 +499,5 @@ ttglobal gglobalH(void *handle)
 	}
 	return iglobal;
 }
+
+#endif // I_WANT_COMPLEX_GOBBLEDYGOOK

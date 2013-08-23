@@ -41,13 +41,35 @@ typedef struct pRenderTextures{
 typedef struct iiglobal //InstanceGlobal
 {
 	struct tdisplay{
+
+
+//typedef struct freewrl_params {
+	/* Put here global parameters, parsed in main program
+	   and needed to initialize libFreeWRL
+	   example: width, height, fullscreen, multithreading, eai...
+	*/
+	int width;
+	int height;
+	int xpos;
+	int ypos;
+	long int winToEmbedInto;
+	bool fullscreen;
+	bool multithreading;
+	bool eai;
+	bool verbose;
+	//int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
+
+//} freewrl_params_t;
+
 		GLenum _global_gl_err;
 		bool display_initialized;// = FALSE;
 
-		int win_height;// = 0; /* window */
-		int win_width;// = 0;
-		long int winToEmbedInto;// = -1;
-		int fullscreen;// = FALSE;
+
+
+		//int win_height;// = 0; /* window */
+		//int win_width;// = 0;
+		//long int winToEmbedInto;// = -1;
+		//int fullscreen;// = FALSE;
 		int view_height;// = 0; /* viewport */
 		int view_width;// = 0;
 
@@ -63,8 +85,8 @@ typedef struct iiglobal //InstanceGlobal
 
 		int show_mouse;
 
-		int xPos;// = 0;
-		int yPos;// = 0;
+		//int xPos;// = 0;
+		//int yPos;// = 0;
 
 		int shutterGlasses;// = 0; /* stereo shutter glasses */
 		int quadbuff_stereo_mode;// = 0;
@@ -379,9 +401,10 @@ iOLDCODE	}Component_Networking;
 #endif
 ttglobal  iglobal_constructor(); 
 void iglobal_destructor(ttglobal);
-void set_thread2global(ttglobal fwl, pthread_t any , char *desc);
+//void set_thread2global(ttglobal fwl, pthread_t any , char *desc);
+
 ttglobal gglobal(); //gets based on threadID, errors out if no threadID
 ppcommon gglobal_common(); // lets the front end get the myMenuStatus without hassle
 ttglobal gglobal0(); //will return null if thread not yet initialized
-ttglobal gglobalH(void *handle); //use window handle
-ttglobal gglobalH0(void *handle); //test if window handle is in the table yet
+//ttglobal gglobalH(void *handle); //use window handle
+//ttglobal gglobalH0(void *handle); //test if window handle is in the table yet

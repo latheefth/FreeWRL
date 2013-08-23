@@ -147,7 +147,7 @@ void fwl_initializeDisplayThread()
 	pthread_cond_init( &tg->threads.texture_list_condition, NULL );
 
 
-	ret = pthread_create(&tg->threads.DispThrd, NULL, (void *) _displayThread, NULL);
+	ret = pthread_create(&tg->threads.DispThrd, NULL, (void *) _displayThread, tg);
 	switch (ret) {
 	case 0: 
 		break;
@@ -182,7 +182,7 @@ void fwl_initializeInputParseThread()
 	fflush(stderr);
 
 	ASSERT(TEST_NULL_THREAD(tg->threads.PCthread));
-	ret = pthread_create(&tg->threads.PCthread, NULL, (void *(*)(void *))&_inputParseThread, NULL);
+	ret = pthread_create(&tg->threads.PCthread, NULL, (void *(*)(void *))&_inputParseThread, tg);
 	switch (ret) {
 	case 0: 
 		break;
@@ -202,7 +202,7 @@ void fwl_initializeTextureThread()
 	fflush(stderr);
 
 	ASSERT(TEST_NULL_THREAD(tg->threads.loadThread));
-	ret = pthread_create(&tg->threads.loadThread, NULL, (void *(*)(void *))&_textureThread, NULL);
+	ret = pthread_create(&tg->threads.loadThread, NULL, (void *(*)(void *))&_textureThread, tg);
 	switch (ret) {
 	case 0: 
 		break;

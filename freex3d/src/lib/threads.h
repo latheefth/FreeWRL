@@ -74,14 +74,14 @@ extern pthread_t loadThread; /* texture thread */
  */
 /* DISPLAY THREAD */
 #if !defined(FRONTEND_HANDLES_DISPLAY_THREAD)
-void _displayThread();
+void _displayThread(void *globalcontext);
 #endif /* FRONTEND_HANDLES_DISPLAY_THREAD */
 
 /* PARSER THREAD */
-void _inputParseThread ();
+void _inputParseThread (void *globalcontext);
 
 /* TEXTURE THREAD */
-void _textureThread();
+void _textureThread(void *globalcontext);
 
 int fw_thread_id();
 #ifdef FREEWRL_THREAD_COLORIZED

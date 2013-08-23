@@ -69,8 +69,8 @@ void display_init(struct tdisplay* d)
 {
 	//public
 d->display_initialized = FALSE;
-d->win_height = 0; /* window */
-d->win_width = 0;
+d->height = 0; /* window */
+d->width = 0;
 d->winToEmbedInto = -1;
 d->fullscreen = FALSE;
 d->view_height = 0; /* viewport */
@@ -82,8 +82,8 @@ d->window_title = NULL;
 d->mouse_x = 0;
 d->mouse_y = 0;
 d->show_mouse = 0;
-d->xPos = 0;
-d->yPos = 0;
+d->xpos = 0;
+d->ypos = 0;
 d->shutterGlasses = 0; /* stereo shutter glasses */
 d->quadbuff_stereo_mode = 0;
 memset(&d->rdr_caps,0,sizeof(d->rdr_caps));
@@ -139,10 +139,10 @@ int fv_display_initialize()
 	//memset(&d->rdr_caps, 0, sizeof(d->rdr_caps));
 
 	/* FreeWRL parameters */
-	d->fullscreen = fwl_getp_fullscreen();
-	d->win_width = fwl_getp_width();
-	d->win_height = fwl_getp_height();
-	d->winToEmbedInto = fwl_getp_winToEmbedInto();
+	//d->fullscreen = fwl_getp_fullscreen();
+	//d->width = fwl_getp_width();
+	//d->height = fwl_getp_height();
+	//d->winToEmbedInto = fwl_getp_winToEmbedInto();
 
 	/* make the window, get the OpenGL context */
 #if !defined(_MSC_VER) && !defined(GLES2)
@@ -156,13 +156,13 @@ int fv_display_initialize()
 
 #endif
 
-	if (0 != d->screenWidth)  d->win_width  = d->screenWidth;
-	if (0 != d->screenHeight) d->win_height = d->screenHeight;
-	fv_setScreenDim(d->win_width,d->win_height); /* recompute screenRatio */
+	if (0 != d->screenWidth)  d->width  = d->screenWidth;
+	if (0 != d->screenHeight) d->height = d->screenHeight;
+	fv_setScreenDim(d->width,d->height); /* recompute screenRatio */
 
 	//snprintf(window_title, sizeof(window_title), "FreeWRL");
 
-	if (!fv_create_main_window(0 /*argc*/, NULL /*argv*/)) {
+	if (!fv_create_main_window((freewrl_params_t *)d)){ //0 /*argc*/, NULL /*argv*/)) {
 		return FALSE;
 	}
 

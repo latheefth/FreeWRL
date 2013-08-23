@@ -3940,10 +3940,10 @@ void fwl_initializeRenderSceneUpdateScene() {
 #if KEEP_X11_INLIB
 	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling fwl_initializeRenderSceneUpdateScene */
 	/* Initialize display */
-	if (!fv_display_initialize()) {
-	       ERROR_MSG("initFreeWRL: error in display initialization.\n");
-	       exit(1);
-	}
+	//if (!fv_display_initialize()) {
+	//       ERROR_MSG("initFreeWRL: error in display initialization.\n");
+	//       exit(1);
+	//}
 #endif /* KEEP_X11_INLIB */
 
 	new_tessellation();
@@ -4054,8 +4054,15 @@ void checkFileLoadRequest()
 	}
 
 }
-void _displayThread()
+void _displayThread(void *globalcontext)
 {
+	ttglobal testg;
+	ttglobal tg = (ttglobal)globalcontext;
+	//tg->threads.DispThrd = pthread_self();
+	//set_thread2global(tg, tg->threads.DispThrd ,"display thread");
+	fwl_setCurrentHandle(tg);
+	testg = gglobal();
+
 	ENTER_THREAD("display");
 
 #if KEEP_FV_INLIB
@@ -4069,7 +4076,7 @@ void _displayThread()
 
 	fwl_initializeRenderSceneUpdateScene();
 	/* loop and loop, and loop... */
-	while (!((ppMainloop)(gglobal()->Mainloop.prv))->quitThread) {
+	while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
 		//PRINTF("event loop\n");
 		fwl_RenderSceneUpdateScene();
 		//Controller code
@@ -4223,28 +4230,28 @@ void fwl_tmpFileLocation(char *tmpFileLocation) {
 }
 
 void close_internetHandles();
-int iglobal_instance_count();
-void fwl_closeGlobals()
-{
-	//"last one out shut off the lights"
-	//when there are no freewrl iglobal instances left, then call this to shut
-	//down anything that's of per-process / per-application / static-global-shared
-	//dug9 - not used yet as of Aug 3, 2011
-	//if you call from the application main thread / message pump ie on_key > doQuit
-	//then in theory there should be a way to iterate through all 
-	//instances, quitting each one in a nice way, say on freewrlDie or 
-	//(non-existant yet) doQuitAll or doQuitInstanceOrAllIfNoneLeft
-	//for i = 1 to iglobal_instance_count
-	//  set instance through window handle or index (no function yet to
-	//       get window handle by index, or set instance by index )
-	//  fwl_doQuitInstance
-	//then call fwl_closeGlobals
-	if(iglobal_instance_count() == 0)
-	{
-		close_internetHandles();
-		//console window?
-	}
-}
+//int iglobal_instance_count();
+//void fwl_closeGlobals()
+//{
+//	//"last one out shut off the lights"
+//	//when there are no freewrl iglobal instances left, then call this to shut
+//	//down anything that's of per-process / per-application / static-global-shared
+//	//dug9 - not used yet as of Aug 3, 2011
+//	//if you call from the application main thread / message pump ie on_key > doQuit
+//	//then in theory there should be a way to iterate through all 
+//	//instances, quitting each one in a nice way, say on freewrlDie or 
+//	//(non-existant yet) doQuitAll or doQuitInstanceOrAllIfNoneLeft
+//	//for i = 1 to iglobal_instance_count
+//	//  set instance through window handle or index (no function yet to
+//	//       get window handle by index, or set instance by index )
+//	//  fwl_doQuitInstance
+//	//then call fwl_closeGlobals
+//	if(iglobal_instance_count() == 0)
+//	{
+//		close_internetHandles();
+//		//console window?
+//	}
+//}
 void freewrlDie (const char *format) {
         ConsoleMessage ("Catastrophic error: %s\n",format);
         fwl_doQuit();

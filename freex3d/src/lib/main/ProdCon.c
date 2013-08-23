@@ -1067,9 +1067,9 @@ void Parser_thread_exit_handler(int sig)
  *   _inputParseThread: parser (loader) thread.
  */
 
-void _inputParseThread(void)
+void _inputParseThread(void *globalcontext)
 {
-	ENTER_THREAD("input parser");
+	ttglobal tg = (ttglobal)globalcontext;
 
         #if !defined (HAVE_PTHREAD_CANCEL)
         struct sigaction actions;
@@ -1083,10 +1083,14 @@ void _inputParseThread(void)
         #endif //HAVE_PTHREAD_CANCEL
 
 	{
-		ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+		ppProdCon p = (ppProdCon)tg->ProdCon.prv;
         bool result;
+		tg->threads.PCthread = pthread_self();
+		//set_thread2global(tg, tg->threads.PCthread ,"parse thread");
+		fwl_setCurrentHandle(tg);
 
 		p->inputParseInitialized = TRUE;
+		ENTER_THREAD("input parser");
 
 		viewer_default();
 
