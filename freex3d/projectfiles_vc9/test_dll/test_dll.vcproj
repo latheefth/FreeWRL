@@ -2,10 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="libFreeWRL_dotNetwrapper"
-	ProjectGUID="{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}"
-	RootNamespace="libFreeWRL_dotNetwrapper"
-	Keyword="ManagedCProj"
+	Name="test_dll"
+	ProjectGUID="{049F7A37-B2B2-401F-B7A1-5870D0619947}"
+	RootNamespace="test_dll"
+	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -20,9 +20,8 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			CharacterSet="1"
-			ManagedExtensions="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,12 +41,14 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\..\src\dllFreeWRL;..\..\..\..\lib_windows\pthreads.2"
-				PreprocessorDefinitions="WIN32;_DEBUG"
+				AdditionalIncludeDirectories="E:\source2\freewrl\freex3d\src\dllFreeWRL"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="3"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -61,13 +62,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dllFreeWRLd.lib"
-				OutputFile="$(OutDir)\$(ProjectName)d.dll"
-				Version="1.0"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\JS\js1.5\src\Debug;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\expat\Bin\debug;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\png\lib;..\..\..\..\lib_windows\jpeg\lib;..\Debug"
-				AdditionalManifestDependencies=""
+				AdditionalLibraryDirectories="..\Debug"
 				GenerateDebugInformation="true"
-				AssemblyDebug="1"
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -75,7 +73,6 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
-				EmbedManifest="true"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -97,9 +94,8 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			CharacterSet="1"
-			ManagedExtensions="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -119,10 +115,12 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\;..\..\src\bin;..\..\src\lib;..\dllFreeWRL;..\..\..\..\lib_windows\pthreads.2"
-				PreprocessorDefinitions="WIN32;NDEBUG"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="2"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -137,10 +135,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dllFreeWRL.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;..\..\..\..\lib_windows\glew\lib;..\..\..\..\lib_windows\JS\js1.5\src\Debug;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\expat\Bin\debug;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\png\lib;..\..\..\..\lib_windows\jpeg\lib;..\Release"
 				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -167,21 +166,6 @@
 		</Configuration>
 	</Configurations>
 	<References>
-		<AssemblyReference
-			RelativePath="System.dll"
-			AssemblyName="System, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
-			MinFrameworkVersion="131072"
-		/>
-		<AssemblyReference
-			RelativePath="System.Data.dll"
-			AssemblyName="System.Data, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=x86"
-			MinFrameworkVersion="131072"
-		/>
-		<AssemblyReference
-			RelativePath="System.XML.dll"
-			AssemblyName="System.Xml, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
-			MinFrameworkVersion="131072"
-		/>
 	</References>
 	<Files>
 		<Filter
@@ -190,32 +174,8 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\AssemblyInfo.cpp"
+				RelativePath=".\test_dll.cpp"
 				>
-			</File>
-			<File
-				RelativePath=".\libFreeWRL_dotNetwrapper.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Stdafx.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -223,37 +183,13 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\libFreeWRL_dotNetwrapper.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Stdafx.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-			<File
-				RelativePath=".\app.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\app.rc"
-				>
-			</File>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -106,6 +106,7 @@ char * esPickURL(HWND hWnd)
 }
 HWND fw_window32_hwnd();
 
+
 char *frontend_pick_file()
 {
 	return esPickFile(fw_window32_hwnd());

@@ -30,7 +30,7 @@ namespace Test_dotNetWrapper {
 			//
 			//TODO: Add the constructor code here
 			//
-            freewrllib = gcnew FreewrlLib();
+            //freewrllib = gcnew FreewrlLib();
 
 		}
 
@@ -48,6 +48,7 @@ namespace Test_dotNetWrapper {
 	private: System::Windows::Forms::Label^  lblStatus;
 	private: System::Windows::Forms::Timer^  timer1;
 	private: System::Windows::Forms::Label^  lblStatus2;
+	private: System::Windows::Forms::Button^  button1;
 
 	private: System::ComponentModel::IContainer^  components;
 	protected: 
@@ -69,6 +70,7 @@ namespace Test_dotNetWrapper {
 			this->lblStatus = (gcnew System::Windows::Forms::Label());
 			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			this->lblStatus2 = (gcnew System::Windows::Forms::Label());
+			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->SuspendLayout();
 			// 
 			// lblStatus
@@ -95,11 +97,22 @@ namespace Test_dotNetWrapper {
 			this->lblStatus2->TabIndex = 1;
 			this->lblStatus2->Text = L"label1";
 			// 
+			// button1
+			// 
+			this->button1->Location = System::Drawing::Point(314, 22);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(75, 23);
+			this->button1->TabIndex = 2;
+			this->button1->Text = L"LoadScene";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Click += gcnew System::EventHandler(this, &freewrlUC::button1_Click);
+			// 
 			// freewrlUC
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(412, 330);
+			this->Controls->Add(this->button1);
 			this->Controls->Add(this->lblStatus2);
 			this->Controls->Add(this->lblStatus);
 			this->Name = L"freewrlUC";
@@ -137,10 +150,11 @@ namespace Test_dotNetWrapper {
         }
 
 	private: System::Void freewrlUC_Load(System::Object^  sender, System::EventArgs^  e) {
+            //freewrllib = gcnew FreewrlLib(this->Width, this->Height, this->Handle, false);
 
 			 }
 	private: System::Void freewrlUC_Resize(System::Object^  sender, System::EventArgs^  e) {
-            //freewrllib->onResize( this->Size.Width,this->Size.Height);
+            freewrllib->onResize( this->Width,this->Height);
 			 }
 	private: System::Void freewrlUC_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) {
             lblStatus->Text = e->KeyValue.ToString();
@@ -183,13 +197,18 @@ namespace Test_dotNetWrapper {
 private: System::Void freewrlUC_Shown(System::Object^  sender, System::EventArgs^  e) {
 				 IntPtr handle = this->Handle; //The value of the Handle property is a Windows HWND
             lblStatus->Text = handle.ToString() + " " + this->Size.Height.ToString() + " " + this->Size.Width.ToString();
-            freewrllib->onInit(handle, this->ClientSize.Width,this->ClientSize.Height); //this->Size.Width,this->Size.Height);
-			freewrllib->onLoad("C:/source2/tests/2.x3d");
+            //freewrllib->onInit(handle, this->ClientSize.Width,this->ClientSize.Height); //this->Size.Width,this->Size.Height);
+            freewrllib = gcnew FreewrlLib(this->Width, this->Height, this->Handle, false);
+			//freewrllib->onLoad("E:/source2/tests/2.x3d");
 
 		 }
 
 private: System::Void freewrlUC_ClientSizeChanged(System::Object^  sender, System::EventArgs^  e) {
             freewrllib->onResize( this->ClientSize.Width,this->ClientSize.Height);
+		 }
+private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
+			freewrllib->onLoad("E:/source2/tests/2.x3d");
+
 		 }
 };
 }

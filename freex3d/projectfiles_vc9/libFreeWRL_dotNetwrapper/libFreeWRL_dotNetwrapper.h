@@ -29,19 +29,16 @@ public:
 		enum class MouseAction {MOUSEMOVE=6,MOUSEDOWN=4,MOUSEUP=5};
 		enum class MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0};
 		System::String ^message;
-		FreewrlLib()
+		FreewrlLib(int width, int height, IntPtr windowhandle, bool bEai)
 		{
-			dllfreewrl = new CdllFreeWRL();
-		}
-		void onInit(IntPtr handle,int width, int height)
-		{
-			// Show a console window    
-			//dllfreewrl = new CdllFreeWRL();
-			dllfreewrl->onInit((int)handle,width,height);
-			message = handle.ToString();
+			//void *handle;
+			//handle = (void*)windowhandle.ToInt32;
+			dllfreewrl = new CdllFreeWRL(width, height, windowhandle.ToPointer(), bEai);
+			//message = handle.ToString();
 			// Hide the console window    FreeConsole();
 			//AllocConsole();    
 			Console::WriteLine("Write to the console!");   
+			Console::WriteLine("and again");
 		}
 		void onLoad(String^ Scene_url)
 		{
@@ -74,7 +71,7 @@ public:
 		}
         void onTick(int interval)
 		{
-			dllfreewrl->onTick(interval);
+			//dllfreewrl->onTick(interval);
 		}
 		// http://msdn.microsoft.com/en-us/library/ms177197.aspx
 		// somehow we need to deterministically release unmanaged resources
