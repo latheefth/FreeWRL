@@ -302,6 +302,11 @@ bool fwl_initFreeWRL(freewrl_params_t *params){
 	//while (!fwl_isTextureinitialized()) {
 	//	usleep(50);
 	//}
+	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread */
+	/* Initialize display */
+
+
+
 	return TRUE;
 }
 

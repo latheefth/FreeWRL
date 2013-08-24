@@ -175,6 +175,7 @@ int fv_display_initialize()
 	if (!fwl_initialize_GL()) {
 		return FALSE;
 	}
+
         /* lets make sure everything is sync'd up */
 #if defined(TARGET_X11) || defined(TARGET_MOTIF)
         XFlush(Xdpy);
@@ -188,6 +189,7 @@ int fv_display_initialize()
 
 	/* Display full initialized :P cool ! */
 	d->display_initialized = TRUE;
+	gglobal()->display.display_initialized = TRUE;
 
 	DEBUG_MSG("FreeWRL: running as a plugin: %s\n", BOOL_STR(isBrowserPlugin));
 

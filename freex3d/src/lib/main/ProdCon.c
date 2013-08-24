@@ -687,9 +687,13 @@ void send_resource_to_parser_async(resource_item_t *res,char *fi, int li)
 	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
 
 	/* Wait for display thread to be fully initialized */
-	while (IS_DISPLAY_INITIALIZED == FALSE) {
-		usleep(50);
-	}
+	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
+		display_initialized flag is set in a worker thread.
+		H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
+	*/
+	//while (IS_DISPLAY_INITIALIZED == FALSE) {
+	//	usleep(50);
+	//}
 
 	/* wait for the parser thread to come up to speed */
 	while (!p->inputParseInitialized) usleep(50);

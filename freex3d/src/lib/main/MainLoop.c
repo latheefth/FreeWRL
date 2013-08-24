@@ -3952,7 +3952,7 @@ void fwl_initializeRenderSceneUpdateScene() {
 	
 	viewer_postGLinit_init();
 
-	#ifndef AQUA
+#ifndef AQUA
 	if (tg->display.fullscreen && newResetGeometry != NULL) newResetGeometry();
 	#endif
 
@@ -4066,7 +4066,10 @@ void _displayThread(void *globalcontext)
 	ENTER_THREAD("display");
 
 #if KEEP_FV_INLIB
-	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread */
+	/* Hmm. display_initialize is really a frontend function. The frontend should call it before calling _displayThread 
+	   Except: the swapbuffers and display_init need to be in the same worker thread 
+	   - swapbuffers gets the 'current device context' likely with a thread lookup technique
+	*/
 	/* Initialize display */
 	if (!fv_display_initialize()) {
 		ERROR_MSG("initFreeWRL: error in display initialization.\n");
@@ -4075,6 +4078,8 @@ void _displayThread(void *globalcontext)
 #endif /* KEEP_FV_INLIB */
 
 	fwl_initializeRenderSceneUpdateScene();
+	//sleep(1500);
+
 	/* loop and loop, and loop... */
 	while (!((ppMainloop)(tg->Mainloop.prv))->quitThread) {
 		//PRINTF("event loop\n");

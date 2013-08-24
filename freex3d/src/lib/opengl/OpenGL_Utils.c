@@ -1340,7 +1340,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap) {
           haveDoneThis = true;
           if (!b) {
 	      ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
-	      return;
+	      return NULL;
           }
       }
 #endif

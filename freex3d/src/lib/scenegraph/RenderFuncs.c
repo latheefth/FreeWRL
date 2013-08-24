@@ -609,8 +609,8 @@ void sendArraysToGPU (int mode, int first, int count) {
 //glDisableClientState(GL_FOG_COORDINATE_ARRAY);
 //glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 //glDisableClientState(GL_EDGE_FLAG_ARRAY);
-    
-    if (setupShader())	
+
+	if (setupShader())	
 		glDrawArrays(mode,first,count);
     #ifdef RENDERVERBOSE
 	printf ("sendArraysToGPU end\n"); 
