@@ -6,7 +6,7 @@
 
 
  /* File created by MIDL compiler version 6.00.0361 */
-/* at Mon Aug 01 17:52:50 2011
+/* at Fri Aug 23 09:36:43 2013
  */
 /* Compiler settings for .\freeWRLAx.idl:
     Oicf, W1, Zp8, env=Win32 (32b run)

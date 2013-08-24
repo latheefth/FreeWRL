@@ -29,6 +29,7 @@ public:
 
 	virtual void DoPropExchange(CPropExchange* pPX);
 	virtual void OnResetState();
+
 	//virtual void OnTimer(UINT_PTR nIDEvent);
 // Implementation
 protected:
@@ -52,7 +53,7 @@ protected:
     CString     m_cstrFileName;  // current file name
     CString     m_cstrCacheFileName;    // file name of local cache file
 	CString     m_cstrContainerURL; //IE/container document URL
-	CdllFreeWRL m_dllfreewrl;
+	CdllFreeWRL *m_dllfreewrl;
 	void* m_Hwnd;
 	int m_initialized;
 	//bool m_frontEndGettingFile;

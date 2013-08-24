@@ -1,7 +1,7 @@
 // freeWRLCtrl.cpp : Implementation of the CfreeWRLCtrl ActiveX Control class.
 
 #include "stdafx.h"
-#include "../dllFreeWRL/dllFreeWRL.h"
+#include <dllFreeWRL.h>
 #include "freeWRLAx.h"
 #include "freeWRLCtrl.h"
 #include "freeWRLPpg.h"
@@ -133,14 +133,15 @@ CfreeWRLCtrl::CfreeWRLCtrl()
 	InitializeIIDs(&IID_DfreeWRLAx, &IID_DfreeWRLAxEvents);
 	// TODO: Initialize your control's instance data here.
     m_cstrFileName = "";
-	m_initialized = 0;
-	m_Hwnd = (void *)1; //initialize to unlikely void* value, 
+	m_initialized = 0; //0 means we haven't instanced dllfreewrl yet - its null
+	m_Hwnd = (void *)0; //initialize to unlikely void* value, 
 	// so if onMouse is called before onDraw > onInit, then setHandle will return 0
 	// and onMouse will be skipped (versus setHandle seeing a 0 handle, and finding
 	// a non-main thread
+	//m_Hwnd = (void *)this->GetHwnd();
+	//m_dllfreewrl = new CdllFreeWRL(100,100,m_Hwnd,false);
+	//m_initialized = 0;
 }
-
-
 
 // CfreeWRLCtrl::~CfreeWRLCtrl - Destructor
 
@@ -148,7 +149,7 @@ CfreeWRLCtrl::~CfreeWRLCtrl()
 {
 	// TODO: Cleanup your control's instance data here.
 	m_initialized = 0;
-	m_dllfreewrl.onClose(m_Hwnd); //this is null on exit: (void*)this->GetHwnd() so use last known handle
+	m_dllfreewrl->onClose(); //m_Hwnd); //this is null on exit: (void*)this->GetHwnd() so use last known handle
 	//AfxMessageBox("Destructor"); 
 }
 
@@ -160,16 +161,20 @@ void CfreeWRLCtrl::OnDraw(CDC* pdc, const CRect& rcBounds, const CRect& rcInvali
 {
 	if (!pdc)
 		return;
-	if(m_initialized ==0)return;
-	if(m_initialized ==10)
+	//if(m_initialized ==0)return;
+	if(m_initialized % 10 == 0 )
 	{
-		m_initialized = 1;
+		//m_initialized = 4; //just so no one does anything while we initialize
 		m_Hwnd = (void*)this->GetHwnd(); //we just need the real hWnd for onInit -gl / DC stuff
 		// after that it's just an instance ID
-		m_dllfreewrl.onInit(m_Hwnd,rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);
-		m_dllfreewrl.onLoad(m_Hwnd,m_cstrFileName.GetBuffer()); 
+		m_dllfreewrl = new CdllFreeWRL(m_rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top,m_Hwnd,false);
+		if(m_initialized / 10 == 1)
+			m_dllfreewrl->onLoad(m_cstrFileName.GetBuffer());
+		m_initialized += 1;
+		this->Invalidate();
 	}
-	m_dllfreewrl.onResize(m_Hwnd,rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);
+
+	//m_dllfreewrl->onResize(rcBounds.right-rcBounds.left,rcBounds.bottom-rcBounds.top);//,m_Hwnd
 }
 
 void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
@@ -180,7 +185,7 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 	// TODO: Call PX_ functions for each persistent custom property.
 	//HTML <OBJECT> tends to generate two DoPropExchanges, HREF and EMBED just one, 
 	// so we'll fetch SRC on the first
-	if(m_initialized == 0) 
+	if(m_initialized / 10 == 0) 
 	{
 
 		// MimeType sample program says SRC property is where Mime handler 
@@ -228,8 +233,9 @@ void CfreeWRLCtrl::DoPropExchange(CPropExchange* pPX)
 #ifdef MESSBOX //_DEBUGn
 		AfxMessageBox("AxVer=12d fullURL="+m_cstrFileName); //"DoPropExchange");
 #endif
-		m_Hwnd = (void *)1; //an unlikely real handle value, and not null either 
-		m_initialized = 10;
+		//m_Hwnd = (void *)0; //an unlikely real handle value, and not null either 
+		m_initialized += 10; //10 means we have a filename
+
 	}
 }
 
@@ -246,32 +252,38 @@ void CfreeWRLCtrl::OnResetState()
 }
 void CfreeWRLCtrl::OnLButtonDown(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse(m_Hwnd, 4, 1,point.x,point.y);
+	if(m_initialized % 10)
+	m_dllfreewrl->onMouse(4, 1,point.x,point.y); //m_Hwnd, 
 	COleControl::OnLButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnLButtonUp(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse(m_Hwnd, 5, 1,point.x,point.y);
+	if(m_initialized % 10)
+	m_dllfreewrl->onMouse(5, 1,point.x,point.y);//m_Hwnd, 
 	COleControl::OnLButtonUp(nFlags,point);
 }
 void CfreeWRLCtrl::OnMButtonDown(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse(m_Hwnd, 4, 2,point.x,point.y);
+	if(m_initialized % 10)
+	m_dllfreewrl->onMouse(4, 2,point.x,point.y); //m_Hwnd, 
 	COleControl::OnMButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnMButtonUp(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse(m_Hwnd, 5, 2,point.x,point.y);
+	if(m_initialized % 10)
+	m_dllfreewrl->onMouse(5, 2,point.x,point.y);//m_Hwnd, 
 	COleControl::OnMButtonUp(nFlags,point);
 }
 void CfreeWRLCtrl::OnRButtonDown(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse(m_Hwnd, 4, 3,point.x,point.y);
+	if(m_initialized % 10)
+	m_dllfreewrl->onMouse(4, 3,point.x,point.y);//m_Hwnd, 
 	COleControl::OnRButtonDown(nFlags,point);
 }
 void CfreeWRLCtrl::OnRButtonUp(UINT nFlags,CPoint point)
 {
-	m_dllfreewrl.onMouse(m_Hwnd, 5, 3,point.x,point.y);
+	if(m_initialized % 10)
+	m_dllfreewrl->onMouse(5, 3,point.x,point.y); //m_Hwnd, 
 	COleControl::OnRButtonUp(nFlags,point);
 }
 
@@ -288,24 +300,33 @@ void CfreeWRLCtrl::OnMouseMove(UINT nFlags,CPoint point)
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
 	//m_dllfreewrl.onMouse(int mouseAction,int mouseButton,int x, int y);
-	m_dllfreewrl.onMouse(m_Hwnd, 6, 0,point.x,point.y);
+	//if(m_initialized == 11 ){ //malloced freewrl and we have a filename
+	//	m_dllfreewrl->onLoad(m_cstrFileName.GetBuffer()); //m_Hwnd,
+	//	m_initialized += 10; //shut off double-load
+	//}
+	if(m_initialized % 10)
+		m_dllfreewrl->onMouse(6, 0,point.x,point.y);//m_Hwnd, 
 	COleControl::OnMouseMove(nFlags,point);
 }
 
 void CfreeWRLCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	m_dllfreewrl.onKey(m_Hwnd,m_dllfreewrl.KEYDOWN,nChar);
+	if(m_initialized % 10)
+		m_dllfreewrl->onKey(m_dllfreewrl->KEYDOWN,nChar); //m_Hwnd,
 	COleControl::OnKeyDown(nChar,nRepCnt,nFlags);
 }
 void CfreeWRLCtrl::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	m_dllfreewrl.onKey(m_Hwnd,m_dllfreewrl.KEYUP,nChar);
+	if(m_initialized % 10)
+		m_dllfreewrl->onKey(m_dllfreewrl->KEYUP,nChar); //m_Hwnd,
 	COleControl::OnKeyUp(nChar,nRepCnt,nFlags);
 }
 void CfreeWRLCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	m_dllfreewrl.onKey(m_Hwnd,m_dllfreewrl.KEYPRESS,nChar);
+	if(m_initialized % 10)
+		m_dllfreewrl->onKey(m_dllfreewrl->KEYPRESS,nChar); //m_Hwnd,
 	COleControl::OnChar(nChar,nRepCnt,nFlags);
 }
+//void CfreeWRLCtrl::
 
 // CfreeWRLCtrl message handlers
