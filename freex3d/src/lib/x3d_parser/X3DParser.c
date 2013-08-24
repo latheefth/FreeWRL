@@ -1952,7 +1952,7 @@ static void XMLCALL X3DendElement(void *unused, const xmlChar *iname) {
 	if (myNodeIndex != INT_ID_UNDEFINED) {
 		/* printf ("endElement - normalNode :%s:\n",name); */
 
-		if (myNodeIndex = NODE_Script) {
+		if (myNodeIndex == NODE_Script) {
 			#ifdef HAVE_JAVASCRIPT
 			initScriptWithScript();
 			#endif
