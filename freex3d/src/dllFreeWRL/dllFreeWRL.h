@@ -16,7 +16,11 @@ class DLLFREEWRL_API CdllFreeWRL {
 	typedef int (__stdcall *OnProcessingAICommands)(int timeout);
 
 public:
-	CdllFreeWRL(void);
+	void *windowhandle;
+	void *globalcontexthandle;
+	CdllFreeWRL();
+	CdllFreeWRL(int width, int height, void* windowhandle=0, bool bEai = false);
+	CdllFreeWRL(char *scene_url, int width, int height, void* windowhandle=0, bool bEai = false);
 	// TODO: add your methods here.
 	static enum KeyAction {KEYDOWN=2,KEYUP=3,KEYPRESS=1};
 	//#define KeyChar         1  //KeyPress
@@ -30,20 +34,20 @@ public:
 	static enum MouseButton {LEFT=1,MIDDLE=2,RIGHT=3,NONE=0}; 		
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 
-	static void onInit(void* handle,int width, int height, bool bEai = false);
-	static void onLoad(void *handle, char* scene_url);
-    static void onResize(void *handle, int height,int width);
-    static void onMouse(void *handle, int mouseAction,int mouseButton,int x, int y);
-    static void onKey(void *handle, int keyAction,int keyValue);
-	static void onClose(void *handle);
-	static void print(void *handle, char *str);
+	void onInit(int width, int height, void* windowhandle=0, bool bEai = false);
+	void onLoad(char* scene_url);
+    void onResize(int height,int width);
+    void onMouse(int mouseAction,int mouseButton,int x, int y);
+    void onKey(int keyAction,int keyValue);
+	void onClose();
+	void print(char *str);
 	
 	//void __stdcall setProcessingAICommandsCallback(OnProcessingAICommands func);
 	
 private:
 	
 
-	static char *url;
+	char *url;
 	
 };
 

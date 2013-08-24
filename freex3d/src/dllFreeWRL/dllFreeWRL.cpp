@@ -1,5 +1,13 @@
-// dllFreeWRL.cpp : Defines the exported functions for the DLL application.
-//
+/* dllFreeWRL.cpp : Defines the exported functions for the DLL application.
+  general notes:
+  Your main program -or html page- defines a single process and main thread.
+  If you want to have more than one instance of freewrl (separate window and content)
+  in the same process, then you need to connect the 'context' to the thread 
+  functionality. But your main program is all in one thread. So you can't just use
+  your main thread to select a context.
+  Here we'll use a pointer to iglobal as a context handle.
+
+*/ 
 
 #include "stdafx.h"
 #include "dllFreeWRL.h"
@@ -89,66 +97,83 @@ DLLFREEWRL_API int fndllFreeWRL(void)
 
 // This is the constructor of a class that has been exported.
 // see dllFreeWRL.h for the class definition
+//	handle - window handle or null
+//		- if you have a window already created, you should pass in the handle, 
+//		- else pass null and a window will be created for you
 CdllFreeWRL::CdllFreeWRL()
 {
+	this->globalcontexthandle = 0;
+}
+void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
+{
+	struct freewrl_params *params;
+	//if( !fwl_setCurrentHandle(handle) ){
+	this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
+	fwl_setCurrentHandle(this->globalcontexthandle);
+	/* Before we parse the command line, setup the FreeWRL default parameters */
+	params = (freewrl_params_t*) malloc( sizeof(freewrl_params_t));
+	/* Default values */
+	params->width = width; //600;
+	params->height = height; //400;
+	params->eai = bEai;
+	params->fullscreen = 0;
+	params->winToEmbedInto = (long int)windowhandle;
+	swDebugf("just before fwl_initFreeWRL\n");
+	fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , 0);
+#ifdef CONSOLE
+	fwl_setConsole_writePrimitive( 1 );
+	DWORD pid = GetCurrentProcessId() ;
+	initConsoleH(pid);
+	swDebugf("after fwl_initFreeWRL\n");
+#endif
+	if (!fwl_initFreeWRL(params)) {
+		//ERROR_MSG("main: aborting during initialization.\n");
+		//exit(1);
+	}
+	setFontPath();
+	//printf("press key to continue..:");
+	//getchar();
+	fwl_clearCurrentHandle();
 	return;
 }
+CdllFreeWRL::CdllFreeWRL(int width, int height, void* windowhandle, bool bEai)
+{
+	this->onInit(width, height, windowhandle, bEai);
+}
+CdllFreeWRL::CdllFreeWRL(char* scene_url, int width, int height, void* windowhandle, bool bEai)
+{
+	this->onInit(width, height, windowhandle, bEai);
+	this->onLoad(scene_url);
+}
+
 	//enum class KeyAction {KEYDOWN,KEYUP,KEYPRESS};
 	//enum class MouseAction {MOUSEMOVE,MOUSEDOWN,MOUSEUP};
 	//enum class MouseButton {LEFT,MIDDLE,RIGHT,NONE};
-extern "C"{
-int fv_display_initialize(void);
-}
-void CdllFreeWRL::onInit(void *handle,int width, int height, bool bEai){
-	struct freewrl_params *params;
-	if( !fwl_setCurrentHandle(handle) ){
-		/* Before we parse the command line, setup the FreeWRL default parameters */
-		params = (freewrl_params_t*) malloc( sizeof(freewrl_params_t));
-		/* Default values */
-		params->width = width; //600;
-		params->height = height; //400;
-		params->eai = bEai;
-		params->fullscreen = 0;
-		params->winToEmbedInto = (int)handle;
-		swDebugf("just before fwl_initFreeWRL\n");
-		void *fwl = fwl_init_instance(); //before setting any structs we need a struct allocated
-		fwl_ConsoleSetup(MC_DEF_AQUA , MC_TARGET_AQUA , MC_HAVE_MOTIF , MC_TARGET_MOTIF , MC_MSC_HAVE_VER , 0);
-#ifdef CONSOLE
-		fwl_setConsole_writePrimitive( 1 );
-		DWORD pid = GetCurrentProcessId() ;
-		initConsoleH(pid);
-		swDebugf("after fwl_initFreeWRL\n");
-#endif
-		if (!fwl_initFreeWRL(params)) {
-			//ERROR_MSG("main: aborting during initialization.\n");
-			//exit(1);
-		}
-		setFontPath();
-	}else{
-		swDebugf("this window is already in the table\n");
-	}
-	fwl_clearCurrentHandle();
+//extern "C"{
+//int fv_display_initialize(void);
+//}
 
-}
-void CdllFreeWRL::onLoad(void *handle, char* scene_url)
+void CdllFreeWRL::onLoad(char* scene_url)
 {
-	char * url;
-	if(fwl_setCurrentHandle(handle)){
-		url = _strdup(scene_url);
+	//char * url;
+	url = _strdup(scene_url);
+	//while(!this->globalcontexthandle) Sleep(50);
+	if(fwl_setCurrentHandle(this->globalcontexthandle)){
 		//url = strBackslash2fore(url);
-		swDebugf("onLoad have url=[%s]\n",url);
+		//swDebugf("onLoad have url=[%s]\n",url);
 		fwl_replaceWorldNeeded(url);
-		swDebugf("onLoad after push_single_request url=[%s]\n",url);
+		//swDebugf("onLoad after push_single_request url=[%s]\n",url);
 	}
 	fwl_clearCurrentHandle();
 
 }
 
-void CdllFreeWRL::onResize(void *handle, int width,int height){
-	if(fwl_setCurrentHandle(handle)){
-		swDebugf("onResize before\n");
+
+void CdllFreeWRL::onResize(int width,int height){
+	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+		//swDebugf("onResize before\n");
 		fwl_setScreenDim(width,height);
-		swDebugf("onResize after\n");
+		//swDebugf("onResize after\n");
 	}
 	fwl_clearCurrentHandle();
 }
@@ -162,24 +187,24 @@ void CdllFreeWRL::onResize(void *handle, int width,int height){
 //#define MapNotify       19
 //#endif
 
-void CdllFreeWRL::onMouse(void *handle, int mouseAction,int mouseButton,int x, int y){
+void CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y){
 
 	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 	//fwl_handle_aqua(mev,butnum,mouseX,mouseY); 
-	if(fwl_setCurrentHandle(handle)){
-		swDebugf("onMouse before\n");
+	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+		//swDebugf("onMouse before\n");
 		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
-		swDebugf("onMouse after\n");
+		//swDebugf("onMouse after\n");
 	}
 	fwl_clearCurrentHandle();
 }
-void CdllFreeWRL::onKey(void *handle, int keyAction,int keyValue){
+void CdllFreeWRL::onKey(int keyAction,int keyValue){
 
 	int kp = keyValue;
 	int ka = keyAction;
-	if(fwl_setCurrentHandle(handle)){
-		swDebugf("onKey before\n");
+	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+		//swDebugf("onKey before\n");
 		switch(keyAction)
 		{
 		case KEYDOWN:
@@ -201,25 +226,25 @@ void CdllFreeWRL::onKey(void *handle, int keyAction,int keyValue){
 			fwl_do_keyPress(kp,ka);
 			break;
 		}
-		swDebugf("onKey after\n");
+		//swDebugf("onKey after\n");
 	}
 	fwl_clearCurrentHandle();
 }
-void CdllFreeWRL::onClose(void *handle)
+void CdllFreeWRL::onClose()
 {
     
 	/* when finished: */
-	if(fwl_setCurrentHandle(handle)){
-		swDebugf("onClose before -fwl_doQuitInstance being called\n");
+	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+		//swDebugf("onClose before -fwl_doQuitInstance being called\n");
 		fwl_doQuitInstance();
-		swDebugf("onClose after\n");
+		//swDebugf("onClose after\n");
 	}
 	fwl_clearCurrentHandle();
 }
-void CdllFreeWRL::print(void *handle, char *str)
+void CdllFreeWRL::print(char *str)
 {
-	if(fwl_setCurrentHandle(handle)){
-		swDebugf(str);
+	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+		//swDebugf(str);
 	}
 	fwl_clearCurrentHandle();
 }
