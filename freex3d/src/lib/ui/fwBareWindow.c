@@ -59,7 +59,7 @@ void openBareMainWindow (int argc, char **argv)
     if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
 }
 
-int fv_create_main_window(int argc, char *argv[])
+int fv_create_main_window(freewrl_params_t * params) //int argc, char *argv[])
 {
     /* Window root_ret; */
     /* Window child_ret; */
@@ -73,7 +73,7 @@ int fv_create_main_window(int argc, char *argv[])
 
     attr.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask | PointerMotionMask | LeaveWindowMask | MapNotify | ButtonPressMask | ButtonReleaseMask | FocusChangeMask;
 
-    if (fwl_params.fullscreen) {
+    if (params->fullscreen) {
 	mask = CWBackPixel | CWColormap | CWOverrideRedirect | CWSaveUnder | CWBackingStore | CWEventMask;
 	attr.override_redirect = true;
 	attr.backing_store = NotUseful;
@@ -83,17 +83,17 @@ int fv_create_main_window(int argc, char *argv[])
     }
 		
     Xwin = XCreateWindow(Xdpy, Xroot_window, 0, 0, 
-			 fwl_params.width, fwl_params.height,
+			 params->width, params->height,
 			 0, Xvi->depth, InputOutput, Xvi->visual, mask, &attr);
 
     /* FIXME: Caller / front-end should reparent FreeWRL window itself */
     /* Roberto Gerson */
     /* If -d is setted, so reparent the window */
-    if (fwl_params.winToEmbedInto > 0) {
+    if (fwl_params->winToEmbedInto > 0) {
 	    DEBUG_MSG("create_main_window: reparent %ld to %ld\n",
 		      Xwin,
-		      fwl_params.winToEmbedInto);
-	    XReparentWindow(Xdpy, Xwin, (Window) fwl_params.winToEmbedInto, 0, 0);
+		      params->winToEmbedInto);
+	    XReparentWindow(Xdpy, Xwin, (Window) params->winToEmbedInto, 0, 0);
     }
 
 
@@ -102,7 +102,7 @@ int fv_create_main_window(int argc, char *argv[])
 	    XFlush(Xdpy);
     }
 		
-    if (fwl_params.fullscreen) {
+    if (params->fullscreen) {
 	XMoveWindow(Xdpy, Xwin, 0, 0);
 	XRaiseWindow(Xdpy, Xwin);
 	XFlush(Xdpy);
