@@ -2241,7 +2241,7 @@ VrmlBrowserPrintln(JSContext *context, uintN argc, jsval *vp) {
 	VrmlBrowserPrint(context,argc,vp); 
 #endif
 	#if defined(AQUA) || defined(_MSC_VER)
-		BrowserPrintConsoleMessage("\n"); /* statusbar hud */
+		//BrowserPrintConsoleMessage("\n"); /* statusbar hud */
 		gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 	#else
 		#ifdef HAVE_NOTOOLKIT
