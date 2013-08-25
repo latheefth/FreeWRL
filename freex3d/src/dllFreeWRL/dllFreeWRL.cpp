@@ -109,7 +109,7 @@ void CdllFreeWRL::onInit(int width, int height, void* windowhandle, bool bEai)
 	struct freewrl_params *params;
 	//if( !fwl_setCurrentHandle(handle) ){
 	this->globalcontexthandle = fwl_init_instance(); //before setting any structs we need a struct allocated
-	fwl_setCurrentHandle(this->globalcontexthandle);
+	fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__);
 	/* Before we parse the command line, setup the FreeWRL default parameters */
 	params = (freewrl_params_t*) malloc( sizeof(freewrl_params_t));
 	/* Default values */
@@ -158,7 +158,7 @@ void CdllFreeWRL::onLoad(char* scene_url)
 	//char * url;
 	url = _strdup(scene_url);
 	//while(!this->globalcontexthandle) Sleep(50);
-	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//url = strBackslash2fore(url);
 		//swDebugf("onLoad have url=[%s]\n",url);
 		fwl_replaceWorldNeeded(url);
@@ -170,7 +170,7 @@ void CdllFreeWRL::onLoad(char* scene_url)
 
 
 void CdllFreeWRL::onResize(int width,int height){
-	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onResize before\n");
 		fwl_setScreenDim(width,height);
 		//swDebugf("onResize after\n");
@@ -192,7 +192,7 @@ void CdllFreeWRL::onMouse(int mouseAction,int mouseButton,int x, int y){
 	/*void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);*/
 	/* butnum=1 left butnum=3 right (butnum=2 middle, not used by freewrl) */
 	//fwl_handle_aqua(mev,butnum,mouseX,mouseY); 
-	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onMouse before\n");
 		fwl_handle_aqua(mouseAction,mouseButton,x,y); 
 		//swDebugf("onMouse after\n");
@@ -203,7 +203,7 @@ void CdllFreeWRL::onKey(int keyAction,int keyValue){
 
 	int kp = keyValue;
 	int ka = keyAction;
-	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onKey before\n");
 		switch(keyAction)
 		{
@@ -234,7 +234,7 @@ void CdllFreeWRL::onClose()
 {
     
 	/* when finished: */
-	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf("onClose before -fwl_doQuitInstance being called\n");
 		fwl_doQuitInstance();
 		//swDebugf("onClose after\n");
@@ -243,7 +243,7 @@ void CdllFreeWRL::onClose()
 }
 void CdllFreeWRL::print(char *str)
 {
-	if(fwl_setCurrentHandle(this->globalcontexthandle)){
+	if(fwl_setCurrentHandle(this->globalcontexthandle, __FILE__, __LINE__)){
 		//swDebugf(str);
 	}
 	fwl_clearCurrentHandle();
