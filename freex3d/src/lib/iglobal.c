@@ -287,12 +287,12 @@ void fwl_clearCurrentHandle(char *fi, int li)
 	pthread_setspecific(threadSpecificKey,currentHandle);
 
 }
-ttglobal gglobal(){
+ttglobal gglobal(char *fi, int *li){
 	ttglobal tg;
 	tg = (ttglobal)pthread_getspecific(threadSpecificKey); 
 	if(!tg){
 		printf("Ouch - no state for this thread -- hit a key to exit\n");
-        //printf ("more info - thread %p\n",pthread_self());
+        printf ("more info - thread %p\n\n",pthread_self());
                 
 		getchar();
 		exit(-1);

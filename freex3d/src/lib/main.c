@@ -82,9 +82,13 @@ need to worry about specific structures and calls */
 
 void fwl_OSX_initializeParameters(const char* initialURL) {
     resource_item_t *res;
+    freewrl_params_t myParams;
 
     ttglobal tg = gglobal();
 
+    printf ("fwl_OSX_initializeParameters, sending in %s\n",initialURL);
+    
+    
     /* have we been through once already (eg, plugin loading new file)? */
 
 	//ConsoleMessage("fwl_OSX_initializeParameters - loadThread %p,  pcThread %p", tg->threads.loadThread, tg->threads.PCthread);
@@ -93,7 +97,36 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 	//ConsoleMessage("fwl_OSX_initializeParameters, qParamsInit is FALSE");
 
 	//JAS fwl_initParams(NULL);
-
+#ifdef WEREWRWERW
+        typedef struct freewrl_params {
+            /* Put here global parameters, parsed in main program
+             and needed to initialize libFreeWRL
+             example: width, height, fullscreen, multithreading, eai...
+             */
+            int width;
+            int height;
+            int xpos;
+            int ypos;
+            long int winToEmbedInto;
+            bool fullscreen;
+            bool multithreading;
+            bool eai;
+            bool verbose;
+            //int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
+            
+        } freewrl_params_t;
+#endif 
+        
+        myParams.width = 600;
+        myParams.height = 400;
+        myParams.xpos = 0;
+        myParams.ypos = 0;
+        myParams.winToEmbedInto = 0;
+        myParams.fullscreen = FALSE;
+        myParams.multithreading = TRUE;
+        myParams.eai = FALSE;
+        myParams.verbose = FALSE;
+        
     	/* Default values */
     	fwl_setp_width(600);
     	fwl_setp_height(400);
@@ -105,7 +138,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
 	//ConsoleMessage ("calling fwl_initFreeWRL from within fwl_OSX_initializeParameters");
 
-	   if (!fwl_initFreeWRL(NULL)) {
+	   if (!fwl_initFreeWRL(&myParams)) {
 		ERROR_MSG("main: aborting during initialization.\n");
 		exit(1);
 	   }
@@ -224,6 +257,7 @@ void* fwl_init_instance()
     fwl_setCurrentHandle(tg,__FILE__,__LINE__);
 	return (void *)tg;
 }
+
 bool fwl_initFreeWRL(freewrl_params_t *params){
 	ttglobal tg;
 	tg = (ttglobal)fwl_getCurrentHandle(__FILE__,__LINE__);

@@ -18,7 +18,9 @@ BOOL mouseDisplaySensitive = false;
 NSRect myrect;
 float curHeight;
 NSMutableData *receivedData;
-
+void *drawRectconcurrencyHandle = NULL;
+char* startingString = NULL;
+//void* initializerConcurrencyHandle = NULL;
 #define TOP_BAR_HEIGHT 0.0
 
 // wait for loading until loopCount != 0, so things "can get set up"
@@ -35,8 +37,6 @@ NSMutableData *receivedData;
 @implementation initializerURL
 +(void)firstMethod:(id)param {
     
-    char* cString;
-    
     
     //NSLog (@"starting loading thread");
     
@@ -44,6 +44,14 @@ NSMutableData *receivedData;
     //[[self openGLContext] makeCurrentContext];
     
     //NSLog (@"calling fwl_initializeRenderSceneUpdateScene");
+    printf ("calling firstMethod, I am %p\n",pthread_self());
+    
+    //NSLog(@"calling fwl_init_instance");
+  
+    //fwl_init_instance();
+    fwl_setCurrentHandle(drawRectconcurrencyHandle, __FILE__,__LINE__);
+   
+
     fwl_initializeRenderSceneUpdateScene();
     
     
@@ -62,14 +70,11 @@ NSMutableData *receivedData;
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     // the user hit return, and we are flying...
     if (fileToOpen != nil) {
-        cString = (char *)[fileToOpen UTF8String];
+        startingString = (char *)[fileToOpen UTF8String];
     } else {
-        // no file specified; go here.
-        //cString = "/Applications/FreeWRL/blankScreen.wrl";
-        cString="/Users/john/Desktop/stl_files/love.stl";
-        //cString="//Users/johns/Desktop/stl_files/polysoup.stl";
-        //cString="/Users/john/Desktop/specularColor.wrl";
-        cString="/Users/johns/Desktop/DelayWithScript1.x3d";
+
+        startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe.x3d";
+        //startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/13.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
@@ -77,24 +82,17 @@ NSMutableData *receivedData;
         usleep(20);
 
         
-    }
-    // wait for the main loop to go through at least once, 
-    // so that we know things are initialized properly.
-//    while (mainloopCount == 0) {
-  //      //NSLog (@"sleeping...");
-    //    usleep(20);
-   // }
+    }    
     
-    
-    //NSLog (@"initial url %s",cString);
-
-    //NSLog (@"calling fwl_OSX_initializeParameters");
-    
-    fwl_OSX_initializeParameters((const char*)cString);
+    fwl_OSX_initializeParameters((const char*)startingString);
     //NSLog (@"finished calling fwl_OSX_initializeParameters");
+    
+
+    
     [pool drain];
     
     //NSLog (@"ending loading thread");
+
     
 }
 @end
@@ -365,7 +363,17 @@ mouseDisplaySensitive = mouseOverSensitive; \
 // ---------------------------------
 
 - (void) drawRect:(NSRect)rect
-{		
+{
+    if (drawRectconcurrencyHandle==NULL) {
+        drawRectconcurrencyHandle = fwl_init_instance();
+        
+        //fwl_initializeRenderSceneUpdateScene();
+        //fwl_OSX_initializeParameters("/Users/john/Desktop/freewrl/freewrl/tests/1.wrl");
+        //fwl_initializeRenderSceneUpdateScene();     
+
+    }
+    
+    
     
     if (fwg_frontEndWantsFileName() != nil) {
         //NSLog (@"drawRect mainloopCount %d",mainloopCount);
@@ -390,6 +398,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     
     [[self openGLContext] makeCurrentContext];
     
+    //printf ("drawRect am thread %p\n",pthread_self());
 
 	// setup viewport and prespective
 	[self resizeGL]; // forces projection matrix update (does test for size changes)
@@ -411,12 +420,19 @@ mouseDisplaySensitive = mouseOverSensitive; \
     GLint swapInt = 1;
     
     //NSLog(@"calling fwl_init_instance");
-    fwl_init_instance();
+    //if (!initialized) {
+    //void *concurrencyHandle = fwl_init_instance();
+    //}
+    if (drawRectconcurrencyHandle == NULL) drawRectconcurrencyHandle = fwl_init_instance();
+    
+    fwl_setCurrentHandle(drawRectconcurrencyHandle, __FILE__, __LINE__);
 
     //NSLog (@"calling fv_display_initialize");
     
     fv_display_initialize();
 
+    printf ("prepareOpenGL, i am thread %p\n",pthread_self());
+    
     [[self openGLContext] setValues:&swapInt forParameter:NSOpenGLCPSwapInterval]; // set to vbl sync
 
     
