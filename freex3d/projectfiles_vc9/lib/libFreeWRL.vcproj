@@ -213,10 +213,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\src\lib\world_script\5FunctionMethod.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\src\lib\x3d_parser\Bindable.c"
 				>
 			</File>
@@ -454,10 +450,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\lib\opengl\Frustum.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\lib\world_script\FWTYPEs.c"
 				>
 			</File>
 			<File
