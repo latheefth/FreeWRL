@@ -1429,7 +1429,7 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 		printf ("GeoElevationGrid: xDimension and zDimension less than 2 %d %d\n", nx,nz);
 		return FALSE;
 	}
-    
+
     //printf ("checkX3DGeoElevationGrid - node->texCoord %p\n",node->texCoord);
     
 
@@ -1835,13 +1835,12 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
 
         /* lets see if we still have to load this one... */
         if (((node->__childloadstatus)==0) && (load)) {
-
 		#ifdef VERBOSE
 		ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
 
 		printf ("GeoLODchildren - have to LOAD_CHILD for node %u (level %d)\n",node,p->geoLodLevel); 
 		#endif
-            
+
 		LOAD_CHILD(__child1Node,child1Url)
 		LOAD_CHILD(__child2Node,child2Url)
 		LOAD_CHILD(__child3Node,child3Url)
@@ -1898,7 +1897,6 @@ static void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
 
 void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	MF_SF_TEMPS
-
 
 	#ifdef VERBOSE
 	printf ("compiling GeoLOD %u\n",node);

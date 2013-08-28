@@ -492,9 +492,8 @@ static void loadInline(struct X3D_Inline *me)
 	url = &(me->url);
 	parentPath = me->_parentResource;
 
-
-	/* 
-     printf ("loadInline, we have status of ");
+/*
+	printf ("loadInline, we have status of ");
 	switch (me->__loadstatus) {
 		case INLINE_INITIAL_STATE: printf ("INLINE_INITIAL_STATE\n"); break;
 		case INLINE_FETCHING_RESOURCE: printf ("INLINE_FETCHING_RESOURCE\n"); break;
@@ -503,8 +502,8 @@ static void loadInline(struct X3D_Inline *me)
 	};
     printf ("url.n %d\n",url->n);
     printf ("url.p[0] %s\n",url->p[0]->strptr);
-     */
-    
+*/
+
 	// get the resource pointer from the Inline node.
 	res = me->__loadResource;
 
@@ -538,13 +537,13 @@ static void loadInline(struct X3D_Inline *me)
               printf ("load_Inline, before resource_fetch, we have type  %s  status %s\n",
 				resourceTypeToString(res->type), resourceStatusToString(res->status)); 
 			*/
-            
+			
 			rv = resource_fetch(res);
 
 			/* printf ("load_Inline, after resource_fetch, we have type  %s  status %s\n",
 				resourceTypeToString(res->type), resourceStatusToString(res->status)); 
             */
-            
+
 			/* do we try the next url in the multi-url? */
 			if ((res->status == ress_failed) && (res->m_request != NULL)) {
 				/* printf ("load_Inline, not found, lets try this again\n");*/
@@ -558,8 +557,8 @@ static void loadInline(struct X3D_Inline *me)
 				res->offsetFromWhere = (float) offsetof (struct X3D_Inline, __children);
                 //printf ("going to send resource to parser async for res %p\n",res);
 				if (send_resource_to_parser_if_available(res,__FILE__,__LINE__)) {
-                    me->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
-                } else {
+				me->__loadstatus = INLINE_PARSING; /* a "do-nothing" approach */
+			} else {
                     //printf ("have to wait here for parser to finish\n");
                 }
                 //printf ("done the send resource to parser async for res %p\n",res);

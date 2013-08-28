@@ -72,11 +72,8 @@ Functions:
 #include <AGL/AGL.h> 
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
-
-
-
 #include <libFreeWRL.h>
-#ifdef HAVE_GLEW_H /* TARGET_WIN32 */
+#ifdef HAVE_GLEW_H
 #define GLEW_NO_GLU 1
 #include <GL/glew.h>
 #ifdef GLEW_MX
@@ -645,7 +642,7 @@ void resetGeometry();
 	/* First - any platform specifics to do? 			*/
 	/****************************************************************/
 
-	#if defined(_MSC_VER) && !defined(HAVE_GLEW_H)
+	#if defined(_MSC_VER) 
 		#define FW_GL_SWAPBUFFERS SwapBuffers(wglGetCurrentDC());
 	#endif
 
@@ -653,10 +650,13 @@ void resetGeometry();
 	#if defined (TARGET_X11) || defined (TARGET_MOTIF)
 		#define FW_GL_SWAPBUFFERS glXSwapBuffers(Xdpy,GLwin);
 	#endif
-#else
-	#define FW_GL_SWAPBUFFERS /* nothing */
 #endif
 	
+#ifndef FW_GL_SWAPBUFFERS
+#define FW_GL_SWAPBUFFERS  /* nothing */
+#endif
+
+
 	/****************************************************************/
 	/* Second - things that might be specific to one platform;	*/
 	/*	this is the "catch for other OS" here 			*/

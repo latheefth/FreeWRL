@@ -646,6 +646,7 @@ static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
 }
 
 
+
 void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int cin;
 	int cpv = TRUE;

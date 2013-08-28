@@ -2034,7 +2034,9 @@ static void render()
 
 		Viewer()->buffer = (unsigned)p->bufferarray[count]; 
 		Viewer()->iside = count;
-                
+#ifdef HAVE_GLEW_H //#ifndef GLES2
+		FW_GL_DRAWBUFFER((unsigned)p->bufferarray[count]);
+#endif
         /*  turn lights off, and clear buffer bits*/
 
 		if(Viewer()->isStereo)
@@ -2122,7 +2124,7 @@ static void render()
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
 }
-    
+
 static int currentViewerLandPort = 0;
 static int rotatingCCW = FALSE;
 static double currentViewerAngle = 0.0;
@@ -2133,7 +2135,7 @@ static void setup_viewpoint() {
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
-    
+
     // has a change happened? 
     if (Viewer()->screenOrientation != currentViewerLandPort) {
         // 4 possible values; 0, 90, 180, 270
@@ -4637,6 +4639,16 @@ void fwl_Android_replaceWorldNeeded() {
 #if !defined(_ANDROID)
 
 // JAS - Do not know if these are still required.
+
+/* called from the standalone OSX front end and the OSX plugin */
+void fwl_replaceWorldNeeded(char* str)
+{
+
+	resource_item_t* plugin_res = resource_create_single (str);
+	//send_resource_to_parser_async(plugin_res,__FILE__,__LINE__);
+	if(!send_resource_to_parser_if_available(plugin_res,__FILE__,__LINE__))
+		printf("Ouch parser busy, file not loaded %s\n",str);
+}
 
 
 void fwl_reload()

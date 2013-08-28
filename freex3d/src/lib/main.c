@@ -95,7 +95,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
     if ((tg->threads.loadThread == NULL) || (tg->threads.PCthread == NULL)) {
 	//ConsoleMessage("fwl_OSX_initializeParameters, qParamsInit is FALSE");
-   
+
         myParams.width = 600;
         myParams.height = 400;
         myParams.xpos = 0;
@@ -408,7 +408,7 @@ void fwl_startFreeWRL(const char *url)
 	} else {
 		DEBUG_MSG("no request for parser thread, main thread joining display thread...\n");
 	}
-#ifndef HAVE_GLEW_H
+#ifdef HAVE_GLEW_H
 	/* now wait around until something kills this thread. */
 	pthread_join(gglobal()->threads.DispThrd, NULL);
 #endif
