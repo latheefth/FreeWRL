@@ -344,26 +344,6 @@ int doBrowserAction()
 
 	} else {
 		/* printf ("\nwe have a single replacement here\n"); */
-#ifdef OLDCODE
-OLDCODE		if (tg->RenderFuncs.OSX_replace_world_from_console == NULL) {
-OLDCODE			/* this is just a simple "clean out the old world" */
-OLDCODE			#ifndef AQUA
-OLDCODE			//kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-OLDCODE			#endif
-OLDCODE			return FALSE;
-OLDCODE		} else {
-OLDCODE			
-OLDCODE			kill_oldWorld(TRUE,TRUE,__FILE__,__LINE__);
-OLDCODE
-OLDCODE			/* we want to clean out the old world AND load a new one in */
-OLDCODE			p->plugin_res = resource_create_single (tg->RenderFuncs.OSX_replace_world_from_console);
-OLDCODE
-OLDCODE			send_resource_to_parser_async(p->plugin_res,__FILE__,__LINE__);
-OLDCODE
-OLDCODE			p->waitingForURLtoLoad = TRUE;
-OLDCODE			return TRUE; /* keep the browser ticking along here */
-OLDCODE		}
-#endif //OLDCODE
 	}
 
 	return FALSE; /* we are done the action */

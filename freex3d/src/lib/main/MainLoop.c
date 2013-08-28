@@ -1085,7 +1085,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
                 //ConsoleMessage("fps %f tris %d\n",tg->Mainloop.BrowserFPS,tg->Mainloop.trisThisLoop); 
 
 
-		/* printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  */
+		 //printf ("MainLoop, nearPlane %lf farPlane %lf\n",Viewer.nearPlane, Viewer.farPlane);  
 
                 p->BrowserStartTime = TickTime();
                 p->loop_count = 1;
@@ -1188,7 +1188,7 @@ to have the Identity matrix loaded, which caused near/far plane calculations to 
 #endif /* TARGET_MOTIF */
 #endif /* KEEP_X11_INLIB */
 
-#if defined(_MSC_VER) && !defined(GLES2)
+#if defined(_MSC_VER) 
 	/**
 	 *   Win32 event loop
 	 *   gives windows message handler a time slice and 
@@ -1510,7 +1510,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	handle0(mev, button, x, y);
 }
 
-#if !defined( AQUA ) && !defined( _MSC_VER ) && !defined(GLES2)
+#if !defined( AQUA ) && !defined( _MSC_VER )
 //XK_ constants from /usr/include/X11/keysymdef.h
 #define PHOME_KEY XK_Home //80
 #define PPGDN_KEY XK_Page_Down //86
@@ -2001,6 +2001,7 @@ void setup_projection(int pick, int x, int y)
 		if ((fieldofview2 <= 0.0) || (fieldofview2 > 180.0)) 
 			fieldofview2=45.0;
 		/* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
+        //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
 		FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane); 
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
@@ -2033,9 +2034,7 @@ static void render()
 
 		Viewer()->buffer = (unsigned)p->bufferarray[count]; 
 		Viewer()->iside = count;
-#ifndef GLES2
-		FW_GL_DRAWBUFFER((unsigned)p->bufferarray[count]);
-#endif
+                
         /*  turn lights off, and clear buffer bits*/
 
 		if(Viewer()->isStereo)
@@ -2123,23 +2122,17 @@ static void render()
 				cursorDraw(p->touchlist[i].ID,p->touchlist[i].x,p->touchlist[i].y,p->touchlist[i].angle); 
     }
 }
-
-
-#if defined(GLES2)
+    
 static int currentViewerLandPort = 0;
 static int rotatingCCW = FALSE;
 static double currentViewerAngle = 0.0;
 static double requestedViewerAngle = 0.0;
-#endif // GLES2
-
 
 static void setup_viewpoint() {
 	
 
         FW_GL_MATRIX_MODE(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         FW_GL_LOAD_IDENTITY();
-
-	#if defined(GLES2)
     
     // has a change happened? 
     if (Viewer()->screenOrientation != currentViewerLandPort) {
@@ -2191,7 +2184,7 @@ static void setup_viewpoint() {
         FW_GL_ROTATE_D (currentViewerAngle,0.0,0.0,1.0);
         
             
-	#endif // screen rotate
+
     
         viewer_togl(Viewer()->fieldofview);
         render_hier(rootNode(), VF_Viewpoint);
@@ -4262,9 +4255,6 @@ void freewrlDie (const char *format) {
         fwl_doQuit();
 }
 
-
-//#if defined(AQUA) || defined(_MSC_VER) || defined(GLES2)
-
 //int ntouch =0;
 //int currentTouch = -1;
 /* MIMIC what happens in handle_Xevents, but without the X events */
@@ -4380,7 +4370,7 @@ void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y) {
             mev,tg->display.screenWidth, tg->display.screenHeight,x,y); */
 
 	// do we have to worry about screen orientations (think mobile devices)
-	#if defined (IPHONE) || defined (_ANDROID) // || defined(GLES2)
+	#if defined (IPHONE) || defined (_ANDROID) 
 	{ 
 
         // iPhone - with home button on bottom, in portrait mode, 
@@ -4648,26 +4638,10 @@ void fwl_Android_replaceWorldNeeded() {
 
 // JAS - Do not know if these are still required.
 
-/* called from the standalone OSX front end and the OSX plugin */
-void fwl_replaceWorldNeeded(char* str)
-{
-
-	resource_item_t* plugin_res = resource_create_single (str);
-	send_resource_to_parser_async(plugin_res,__FILE__,__LINE__);
-}
-
 
 void fwl_reload()
 {
 	ConsoleMessage("fwl_reload called");
-#ifdef OLDCODE
-OLDCODE char *oldworld;
-OLDCODE ttglobal tg = gglobal();
-OLDCODE 
-OLDCODE oldworld = STRDUP(tg->RenderFuncs.OSX_last_world_url_for_reload);
-OLDCODE fwl_replaceWorldNeeded(oldworld);
-OLDCODE FREE_IF_NZ(oldworld);
-#endif //OLDCODE
 }
 
 #endif //NOT _ANDROID
@@ -4749,7 +4723,7 @@ void resetSensorEvents(void) {
 /*	ARROW_CURSOR; */
 }
 
-#if defined (_ANDROID)
+#if defined (_ANDROID) || defined (AQUA)
 
 static struct X3D_IndexedLineSet *mys = NULL;
 

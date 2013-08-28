@@ -246,8 +246,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 		} else { normals = nc->vector.p; nnormals = nc->vector.n; }
 	}
 
-
-	if (r->tcoordtype) {
+    	if (r->tcoordtype) {
 		if ((r->tcoordtype != NODE_TextureCoordinate) && 
 			(r->tcoordtype != NODE_MultiTextureCoordinate) &&
             (r->tcoordtype != NODE_TextureCoordinateGenerator )) {
@@ -277,19 +276,22 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 
 
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("stream polyrep, have an intern type of %d GeneratedTexCoords %d tcindex %d\n",r->tcoordtype, r->GeneratedTexCoords,r->tcindex);
-	printf ("polyv, points %d coord %d ntri %d rnormal nnormal\n",points,r->actualCoord,r->ntri,r->normal, nnormals);
+	printf ("stream polyrep, have an intern type of %d GeneratedTexCoords %p tcindex %u\n",r->tcoordtype, r->GeneratedTexCoords,r->tcindex);
+	printf ("polyv, points %p coord %p ntri %d rnormal %p nnormal %d\n",points,r->actualCoord,r->ntri,r->normal, nnormals);
 	#endif
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (gglobal()->RenderFuncs.last_texture_type!=TEXTURE_NO_ALPHA));
 
+
+    // if (r->GeneratedTexCoords) for (i=0; i<10; i++) printf ("start stream, tc %d gt[i] %f\n",i,r->GeneratedTexCoords[i]);
         
     #ifdef STREAM_POLY_VERBOSE
     printf ("mustGenerateTextures, MALLOCing newtc\n");
     #endif
 
-    newTexCoords = MALLOC (float *, sizeof (float)*2*r->ntri*3);
+    // some nodes will generate our tex coords for us, eg GeoElevationGrid
+    if (!r->GeneratedTexCoords) newTexCoords = MALLOC (float *, sizeof (float)*2*r->ntri*3);
     
 	newcolors=0;	/*  only if we have colours*/
 
@@ -350,6 +352,7 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	}
     
     if (NO_TEXCOORD_NODE) {
+        
         defaultTextureMap(node, r);
     }
     
@@ -519,34 +522,39 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 		}
 
 		/* TextureCoordinates	*/
-		if (textureCoordPoint != NULL) {
-            int j = newtcindex[i];
-            struct SFVec2f me;
+        
+        //printf ("textureCoordPoint %p\n",textureCoordPoint);
+        
+        if (!r->GeneratedTexCoords) {
+            if (textureCoordPoint != NULL) {
+                int j = newtcindex[i];
+                struct SFVec2f me;
             
-            // bounds checking
-            if (j>=(textureCoordPoint->n)) {
-                ConsoleMessage ("stream_polyrep, have tcindex %d, tex coords %d, overflow",j,textureCoordPoint->n);
-                j=0;
-            }
+                // bounds checking
+                if (j>=(textureCoordPoint->n)) {
+                    ConsoleMessage ("stream_polyrep, have tcindex %d, tex coords %d, overflow",j,textureCoordPoint->n);
+                    j=0;
+                }
                         
-            // textureCoordPoint is a pointer to struct Multi_Vec2f;
-            // struct Multi_Vec2f is struct Multi_Vec2f { int n; struct SFVec2f  *p; };
-            // struct SFVec2f is struct SFVec2f { float c[2]; };
+                // textureCoordPoint is a pointer to struct Multi_Vec2f;
+                // struct Multi_Vec2f is struct Multi_Vec2f { int n; struct SFVec2f  *p; };
+                // struct SFVec2f is struct SFVec2f { float c[2]; };
  
-            // get the 2 tex coords from here, and copy them over to newTexCoords
-            me = textureCoordPoint->p[j];
-            newTexCoords[i*2] = me.c[0];
-            newTexCoords[i*2+1] = me.c[1];
-        } else {
-			/* default textures */
-			/* we want the S values to range from 0..1, and the
-			   T values to range from 0...S/T */
-			ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
+                // get the 2 tex coords from here, and copy them over to newTexCoords
+                me = textureCoordPoint->p[j];
+                newTexCoords[i*2] = me.c[0];
+                newTexCoords[i*2+1] = me.c[1];
+            } else {
+                /* default textures */
+                /* we want the S values to range from 0..1, and the
+                 T values to range from 0...S/T */
+                ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
 
 
-			newTexCoords[i*2]   = (newpoints[i].c[p->Sindex] - p->minVals[p->Sindex])/p->Ssize;
-			newTexCoords[i*2+1] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;
-		}
+                newTexCoords[i*2]   = (newpoints[i].c[p->Sindex] - p->minVals[p->Sindex])/p->Ssize;
+                newTexCoords[i*2+1] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;
+            }
+        }
 
 		/* calculate maxextents */
 		/*
@@ -571,6 +579,8 @@ void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct
 	FREE_IF_NZ(r->cindex);
 	r->cindex = newcindex;
 
+    //printf ("now, newTexCoords %p\n",newTexCoords);
+    //for (i=0; i<10; i++) printf ("rightpere, tc %d gt[i] %f\n",i,r->GeneratedTexCoords[i]);
 	/* did we have to generate tex coords? */
 	if (newTexCoords != NULL) {
 		FREE_IF_NZ(r->GeneratedTexCoords);

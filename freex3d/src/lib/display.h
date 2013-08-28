@@ -48,29 +48,6 @@ Functions:
 #define MAX_MULTITEXTURE 4
 #endif
 
-/* for generic GLES2 ie from desktop simulator */
-#ifdef GLES2
-	#include <GLES2/gl2.h>
-
-	#if !defined(_ANDROID)
-	#include <EGL/egl.h>
-	#endif //NOT Android
-
-	#ifndef GLchar
-		#define GLchar GLbyte
-	#endif
-#undef HAVE_LIBGLEW
-#undef GLEW
-#undef GLEW_MX
-#ifndef fmin
-#define fmin(a,b) ((a)<(b) ? (a) : (b))
-#endif
-#ifndef fmax
-#define fmax(a,b) ((a)>(b) ? (a) : (b))
-#endif
-#endif
-
-
 #ifdef GL_ES_VERSION_2_0
 #define MAX_LIGHTS 2
 #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)
@@ -95,8 +72,12 @@ Functions:
 #include <AGL/AGL.h> 
 #endif /* defined IPHONE */
 #endif /* defined TARGET_AQUA */
+
+
+
 #include <libFreeWRL.h>
-#if defined(_MSC_VER) && !defined(GLES2) /* TARGET_WIN32 */
+#ifdef HAVE_GLEW_H /* TARGET_WIN32 */
+#define GLEW_NO_GLU 1
 #include <GL/glew.h>
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
@@ -104,7 +85,7 @@ GLEWContext * glewGetContext();
 #define ERROR 0
 #endif /* TARGET_WIN32 */
 
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(GLES2) /* not aqua and not win32, ie linux */
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA)  /* not aqua and not win32, ie linux */
 	#ifdef HAVE_GLEW_H
 		#include <GL/glew.h>
 		#ifdef GLEW_MX
@@ -128,18 +109,6 @@ GLEWContext * glewGetContext();
 		#endif
 	#endif
 #endif
-
-#ifdef FAKE_GLES2
-/* basically, its regular desktop opengl headers and drivers -included above-
- * except in the code we'll use the GL ES 2 subset */
-#define GL_ES_VERSION_2_0
-/* desktop glew sets GL_VERSION_XX unconditionally and provides stubs
- * we want it to go through the same code as mobile devices iPhone, Android
- * see RenderFuncs.h L.37 */
-#undef GL_VERSION_2_0
-#undef GL_VERSION_1_5
-#endif
-
 
 
 /* generic - OpenGL ES 2.0 does not have doubles */
@@ -676,12 +645,8 @@ void resetGeometry();
 	/* First - any platform specifics to do? 			*/
 	/****************************************************************/
 
-	#if defined(_MSC_VER) && !defined(GLES2)
+	#if defined(_MSC_VER) && !defined(HAVE_GLEW_H)
 		#define FW_GL_SWAPBUFFERS SwapBuffers(wglGetCurrentDC());
-	#endif
-
-	#if defined (TARGET_AQUA)
-			#define FW_GL_SWAPBUFFERS /* do nothing */
 	#endif
 
 #if KEEP_X11_INLIB
@@ -692,11 +657,6 @@ void resetGeometry();
 	#define FW_GL_SWAPBUFFERS /* nothing */
 #endif
 	
-	#if defined(GLES2)
-		#define FW_GL_SWAPBUFFERS /* nothing */
-	#endif
-
-
 	/****************************************************************/
 	/* Second - things that might be specific to one platform;	*/
 	/*	this is the "catch for other OS" here 			*/

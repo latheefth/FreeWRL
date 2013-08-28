@@ -34,13 +34,18 @@
 
 #include <config.h>
 
-#ifdef GLES2
-    #include <GLES2/gl2.h>
-    #define GLdouble double //GLdouble not defined in GL ES or GL ES 2
-#else
-    #include <GL/gl.h>
-    #include <limits.h>		/* LONG_MAX */
-#endif //GLES2
+#ifdef OLDCODE
+OLDCODE #ifdef GLES2
+OLDCODE    #include <GLES2/gl2.h>
+OLDCODE    #define GLdouble double //GLdouble not defined in GL ES or GL ES 2
+OLDCODE#else
+OLDCODE    #include <GL/gl.h>
+OLDCODE    #include <limits.h>		/* LONG_MAX */
+OLDCODE#endif //GLES2
+#endif //OLDCODE
+
+#include <GL/gl.h>
+#include <limits.h>		/* LONG_MAX */
 
 #ifndef GLAPIENTRY
 #if defined(_MSC_VER) || defined(__MINGW32__)

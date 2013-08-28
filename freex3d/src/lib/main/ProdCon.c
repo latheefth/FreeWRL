@@ -124,7 +124,7 @@ uintptr_t _fw_instance = 0;
 	else ConsoleMessage ("SEND_TO_PARSER = flag wrong!\n");
 
 #define PARSER_FINISHING \
-	if (p->_P_LOCK_VAR==1) { \
+    	if (p->_P_LOCK_VAR==1) { \
 		p->_P_LOCK_VAR=0; \
 	} \
 	else ConsoleMessage ("PARSER_FINISHING - flag wrong!\n");
@@ -675,47 +675,101 @@ void send_resource_to_parser(resource_item_t *res,char *fi, int li)
 }
 
 
-
-void send_resource_to_parser_async(resource_item_t *res,char *fi, int li)
+bool send_resource_to_parser_if_available(resource_item_t *res,char *fi, int li)
 {
 	/* We are not in parser thread, most likely
-	   in main or display thread, and we successfully
-	   parsed a resource request.
-
-	   We send it to parser.
-	*/
+     in main or display thread, and we successfully
+     parsed a resource request.
+     
+     We send it to parser.
+     */
 	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
-
+    
 	/* Wait for display thread to be fully initialized */
 	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
-		display_initialized flag is set in a worker thread.
-		H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
-	*/
+     display_initialized flag is set in a worker thread.
+     H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
+     */
 	//while (IS_DISPLAY_INITIALIZED == FALSE) {
 	//	usleep(50);
 	//}
-
+    
 	/* wait for the parser thread to come up to speed */
 	while (!p->inputParseInitialized) usleep(50);
-
+    
+    if (p->_P_LOCK_VAR == 1) return FALSE;
+    
 	/* Lock access to the resource list */
 	WAIT_WHILE_PARSER_BUSY;
- 
+    
+    
 	/* Add our resource item */
 	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
-
+    
+    
 	/* signal that we have data on resource list */
-
+    
 	SEND_TO_PARSER;
-	/* Unlock the resource list */
+    /* Unlock the resource list */
 	UNLOCK;
-
+        
 	/* wait for the parser to finish */
 	//WAIT_WHILE_PARSER_BUSY;
 	
 	/* grab any data we want */
 	//UNLOCK;
+    return TRUE;
 }
+
+#ifdef OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE
+OLDCODE void send_resource_to_parser_async(resource_item_t *res,char *fi, int li)
+OLDCODE{
+OLDCODE	/* We are not in parser thread, most likely
+OLDCODE	   in main or display thread, and we successfully
+OLDCODE	   parsed a resource request.
+OLDCODE
+OLDCODE	   We send it to parser.
+OLDCODE	*/
+OLDCODE	ppProdCon p = (ppProdCon)gglobal()->ProdCon.prv;
+OLDCODE
+OLDCODE	/* Wait for display thread to be fully initialized */
+OLDCODE	/* dug9 Aug 24, 2013 - don't wait (it seems to hang apartment-threaded apps) and see what happens.
+OLDCODE		display_initialized flag is set in a worker thread.
+OLDCODE		H: perhaps the usleep and pthread_create compete in an apartment thread, causing deadlock
+OLDCODE	*/
+OLDCODE	//while (IS_DISPLAY_INITIALIZED == FALSE) {
+OLDCODE	//	usleep(50);
+OLDCODE	//}
+OLDCODE
+OLDCODE	/* wait for the parser thread to come up to speed */
+OLDCODE	while (!p->inputParseInitialized) usleep(50);
+OLDCODE    
+OLDCODE	/* Lock access to the resource list */
+OLDCODE	WAIT_WHILE_PARSER_BUSY;
+OLDCODE        
+OLDCODE	/* Add our resource item */
+OLDCODE	p->resource_list_to_parse = ml_append(p->resource_list_to_parse, ml_new(res));
+OLDCODE
+OLDCODE	/* signal that we have data on resource list */
+OLDCODE
+OLDCODE	SEND_TO_PARSER;
+OLDCODE    
+OLDCODE    /* Unlock the resource list */
+OLDCODE	UNLOCK;
+OLDCODE    
+OLDCODE    
+OLDCODE	/* wait for the parser to finish */
+OLDCODE	//WAIT_WHILE_PARSER_BUSY;
+OLDCODE	
+OLDCODE	/* grab any data we want */
+OLDCODE	//UNLOCK;
+OLDCODE}
+#endif //OLDCODE
+
 
 void dump_resource_waiting(resource_item_t* res)
 {

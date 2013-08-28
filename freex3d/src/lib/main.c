@@ -86,7 +86,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
     ttglobal tg = gglobal();
 
-    printf ("fwl_OSX_initializeParameters, sending in %s\n",initialURL);
+    //printf ("fwl_OSX_initializeParameters, sending in %s\n",initialURL);
     
     
     /* have we been through once already (eg, plugin loading new file)? */
@@ -95,28 +95,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 
     if ((tg->threads.loadThread == NULL) || (tg->threads.PCthread == NULL)) {
 	//ConsoleMessage("fwl_OSX_initializeParameters, qParamsInit is FALSE");
-
-	//JAS fwl_initParams(NULL);
-#ifdef WEREWRWERW
-        typedef struct freewrl_params {
-            /* Put here global parameters, parsed in main program
-             and needed to initialize libFreeWRL
-             example: width, height, fullscreen, multithreading, eai...
-             */
-            int width;
-            int height;
-            int xpos;
-            int ypos;
-            long int winToEmbedInto;
-            bool fullscreen;
-            bool multithreading;
-            bool eai;
-            bool verbose;
-            //int collision;	/* do collision detection? moved to x3d_viewer struct july 7, 2012*/
-            
-        } freewrl_params_t;
-#endif 
-        
+   
         myParams.width = 600;
         myParams.height = 400;
         myParams.xpos = 0;
@@ -429,7 +408,7 @@ void fwl_startFreeWRL(const char *url)
 	} else {
 		DEBUG_MSG("no request for parser thread, main thread joining display thread...\n");
 	}
-#ifndef GLES2
+#ifndef HAVE_GLEW_H
 	/* now wait around until something kills this thread. */
 	pthread_join(gglobal()->threads.DispThrd, NULL);
 #endif

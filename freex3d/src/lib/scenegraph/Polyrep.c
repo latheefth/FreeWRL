@@ -1079,6 +1079,8 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 	struct X3D_Node *node;
 	struct X3D_PolyRep *polyrep;
 
+    //printf ("compile_polyrep, innode %p coord %p color %p normal %p texCoord %p\n",innode,coord,color,normal,texCoord);
+    
 	node = X3D_NODE(innode);
 	virt = virtTable[node->_nodeType];
 

@@ -2,6 +2,7 @@
 #define FWVER "1.22.13"
 
 
+
 #define FREEWRL_STEREO_RENDERING 1
 
 #define FRONTEND_DOES_SNAPSHOTS 1

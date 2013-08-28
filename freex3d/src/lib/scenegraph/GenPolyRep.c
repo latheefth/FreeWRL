@@ -646,7 +646,6 @@ static void checkTriangleSetFields (struct X3D_TriangleSet *node) {
 }
 
 
-
 void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int cin;
 	int cpv = TRUE;
@@ -939,9 +938,12 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 	#ifdef VERBOSE
 	printf ("cin %d tcin %d colin %d norin %d\n",cin,tcin,colin,norin);
-	printf ("start of make_indexedfaceset for node %u, cin %d\n",node, orig_coordIndex->n);
+	printf ("start of make_indexedfaceset for node %p, cin %d tcin %d colin %d norin %d\n",node, cin, tcin, colin, norin);
 	#endif
 
+#undef VERBOSE
+    
+    
 	/* lets get the structure parameters, after munging by checkX3DComposedGeomFields... */
 	#ifdef VERBOSE
 	printf ("NOW, the IFS has a cin of %d ca %f\n",cin,creaseAngle);

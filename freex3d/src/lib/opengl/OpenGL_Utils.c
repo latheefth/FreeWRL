@@ -1988,6 +1988,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
         }
 	#endif //VERBOSE for GL_ES_VERSION_2_0
 
+    
     #ifdef VERBOSE
     if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
     if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
@@ -2001,7 +2002,8 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
     if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
     if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
     #endif //VERBOSE
-
+#undef VERBOSE
+    
     
     /* Cross shader Fragment bits - GL_ES_VERSION_2_0 has this */
 #if defined(GL_ES_VERSION_2_0)
@@ -2739,10 +2741,11 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode) {
 	   can give us this issue; so lets give us a bit of leeway here, too */
 	cfp *= 1.25;
 
-
 	#ifdef VERBOSE
 	printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
-	#endif
+    cnp = 0.1; cfp = 75345215.0 * 2.0;
+#endif
+#undef VERBOSE 
 
 	/* lets use these values; leave room for a Background or TextureBackground node here */
 	viewer->nearPlane = cnp; 
@@ -4198,6 +4201,7 @@ E_JS_EXPERIMENTAL_CODE
 #endif
 
 				BEGIN_NODE(Inline) 
+                    //printf ("node inline - status %d for node %p\n",X3D_INLINE(node)->__loadstatus, node);
 					if (X3D_INLINE(node)->__loadstatus != INLINE_STABLE) {
 						/* schedule this after we have unlocked the memory table */
 						if (loadInlines == NULL) {
@@ -4446,7 +4450,8 @@ E_JS_EXPERIMENTAL_CODE
 	/* do we have Inlines to load here, outside of the memorytable lock? */
 	if (loadInlines != NULL) {
 		indexT ind;
-
+        //printf ("OpenGL_Utils.c - loadInlines size %d\n",vectorSize(loadInlines));
+                
 		for (ind=0; ind<vectorSize(loadInlines); ind++) {
 			struct X3D_Inline *node;
 			node=vector_get(struct X3D_Inline*, loadInlines,ind);

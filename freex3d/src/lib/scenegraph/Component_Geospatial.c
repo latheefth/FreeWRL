@@ -1388,7 +1388,7 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 	float *newpoints;
 	int nquads;
 	int *cindexptr;
-	float *tcoord = NULL;
+	float *texcoord = NULL;
 	double myHeightAboveEllip = 0.0;
 	int mySRF = 0;
 	
@@ -1429,6 +1429,9 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 		printf ("GeoElevationGrid: xDimension and zDimension less than 2 %d %d\n", nx,nz);
 		return FALSE;
 	}
+    
+    //printf ("checkX3DGeoElevationGrid - node->texCoord %p\n",node->texCoord);
+    
 
 	/* any texture coordinates passed in? if so, DO NOT generate any texture coords here. */
         if (!(node->texCoord)) {
@@ -1436,7 +1439,7 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 		FREE_IF_NZ(rep->GeneratedTexCoords);
 
 		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
-		tcoord = rep->GeneratedTexCoords = MALLOC (float *, sizeof (float) * nquads * 12); 
+		texcoord = rep->GeneratedTexCoords = MALLOC (float *, sizeof (float) * nquads * 12); 
 
 		rep->tcindex=0; /* we will generate our own mapping */
 	}
@@ -1463,6 +1466,8 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 	#endif
 
 	/* ElevationGrids go 1 - 2 - 3 - 4 we go 1 - 4 - 3 - 2 */
+    //printf ("GeoElevationGrids, nz %d, nx %d\n",nz,nx);
+    
 	for (j = 0; j < (nz -1); j++) {
 		for (i=0; i < (nx-1) ; i++) {
 			#ifdef VERBOSE
@@ -1489,53 +1494,56 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 	/* tex coords These need to be streamed now; that means for each quad, each vertex needs its tex coords. */
 	/* if the texCoord node exists, let render_TextureCoordinate (or whatever the node is) do our work for us */
 	if (!(node->texCoord)) {
+        //printf ("geoelevationgrid, doing %d x %d texture coords; tcoord %p\n",nz-1,nx-1,texcoord);
+        
 		for (j = 0; j < (nz -1); j++) {
 			for (i=0; i < (nx-1) ; i++) {
 				/* first triangle, 3 vertexes */
 #ifdef WINDING_ELEVATIONGRID
 				/* first tri */
-/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+/* 1 */				*texcoord = ((float) (i+0)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+0)/(nz-1)); texcoord ++; 
 			
-/* 2 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+/* 2 */				*texcoord = ((float) (i+0)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+1)/(nz-1)); texcoord ++; 
 	
-/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+/* 3 */				*texcoord = ((float) (i+1)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+1)/(nz-1)); texcoord ++; 
 	
 				/* second tri */
-/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+/* 1 */				*texcoord = ((float) (i+0)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+0)/(nz-1)); texcoord ++; 
 	
-/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+/* 3 */				*texcoord = ((float) (i+1)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+1)/(nz-1)); texcoord ++; 
 	
-/* 4 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+/* 4 */				*texcoord = ((float) (i+1)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+0)/(nz-1)); texcoord ++; 
 #else
 				/* first tri */
-/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+/* 1 */				*texcoord = ((float) (i+0)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+0)/(nz-1)); texcoord ++; 
 			
-/* 4 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+/* 4 */				*texcoord = ((float) (i+1)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+0)/(nz-1)); texcoord ++; 
 
-/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+/* 3 */				*texcoord = ((float) (i+1)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+1)/(nz-1)); texcoord ++; 
 	
 				/* second tri */
-/* 1 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+/* 1 */				*texcoord = ((float) (i+0)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+0)/(nz-1)); texcoord ++; 
 
-/* 3 */				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+/* 3 */				*texcoord = ((float) (i+1)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+1)/(nz-1)); texcoord ++; 
 	
-/* 2 */				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
-				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+/* 2 */				*texcoord = ((float) (i+0)/(nx-1)); texcoord++;
+				*texcoord = ((float)(j+1)/(nz-1)); texcoord ++; 
 			
 #endif
 			}
 		}
+        //for (i=0; i<10; i++) printf ("geoele tc %d is %f\n",i,rep->GeneratedTexCoords[i]);
 	}
 			
 	/* Render_Polyrep will use this number of triangles */
@@ -1827,12 +1835,13 @@ static void GeoLODchildren (struct X3D_GeoLOD *node) {
 
         /* lets see if we still have to load this one... */
         if (((node->__childloadstatus)==0) && (load)) {
+
 		#ifdef VERBOSE
 		ppComponent_Geospatial p = (ppComponent_Geospatial)gglobal()->Component_Geospatial.prv;
 
 		printf ("GeoLODchildren - have to LOAD_CHILD for node %u (level %d)\n",node,p->geoLodLevel); 
 		#endif
-
+            
 		LOAD_CHILD(__child1Node,child1Url)
 		LOAD_CHILD(__child2Node,child2Url)
 		LOAD_CHILD(__child3Node,child3Url)
@@ -1890,6 +1899,7 @@ static void GeoUnLODrootUrl (struct X3D_GeoLOD *node) {
 void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	MF_SF_TEMPS
 
+
 	#ifdef VERBOSE
 	printf ("compiling GeoLOD %u\n",node);
 	#endif
@@ -1925,6 +1935,7 @@ void compile_GeoLOD (struct X3D_GeoLOD * node) {
 	printf ("compiled GeoLOD\n\n");
 	#endif
 }
+#undef VERBOSE
 
 
 void child_GeoLOD (struct X3D_GeoLOD *node) {

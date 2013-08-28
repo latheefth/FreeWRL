@@ -173,18 +173,22 @@ void setLightState(GLint light, int status) {
 	if (p->lightOnOff[light] != status) {
 		if (status) {
 			/* printf ("light %d on\n",light); */
-            
-#ifndef GL_ES_VERSION_2_0
-			glEnable(GL_LIGHT0+light);
-#endif /* GL_ES_VERSION_2_0 */
+
+#ifdef OLDCODE
+OLDCODE#ifndef GL_ES_VERSION_2_0
+OLDCODE			glEnable(GL_LIGHT0+light);
+OLDCODE#endif /* GL_ES_VERSION_2_0 */
+#endif //OLDCODE
             
 			p->lightStatusDirty = TRUE;
 		} else {
 			/* printf ("light %d off\n",light);  */
-            
-#ifndef GL_ES_VERSION_2_0
-			glDisable(GL_LIGHT0+light);
-#endif /* GL_ES_VERSION_2_0 */
+
+#ifdef OLDCODE
+OLDCODE #ifndef GL_ES_VERSION_2_0
+OLDCODE			glDisable(GL_LIGHT0+light);
+OLDCODE#endif /* GL_ES_VERSION_2_0 */
+#endif //OLDCODE
             
 			p->lightStatusDirty = TRUE;
 		}
@@ -508,13 +512,15 @@ if (p->shaderColourArray) printf ("enabling Colour\n"); else printf ("disabling 
 if (p->shaderTextureArray) printf ("enabling Texture\n"); else printf ("disabling Texture\n");
 #endif
 
-	} else {
-		#ifndef GL_ES_VERSION_2_0
-			if (enable) glEnableClientState(cap);
-			else glDisableClientState(cap);
-		#else
-			//printf ("sendClientStateToGPU - currentShaderProperties not set\n");
-		#endif
+#ifdef OLDCODE
+OLDCODE	} else {
+OLDCODE		#ifndef GL_ES_VERSION_2_0
+OLDCODE			if (enable) glEnableClientState(cap);
+OLDCODE			else glDisableClientState(cap);
+OLDCODE		#else
+OLDCODE			//printf ("sendClientStateToGPU - currentShaderProperties not set\n");
+OLDCODE		#endif
+#endif //OLDCODE
 	}
 }
 

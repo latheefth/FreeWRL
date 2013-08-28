@@ -56,7 +56,7 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "gdiPlusImageLoader.h"
 #else
-#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID) || defined(GLES2))
+#if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID))
 		#include <Imlib2.h>
 	#endif
 #endif
@@ -448,7 +448,7 @@ ConsoleMessage(me);}
 
 
 /* WINDOWS */
-#if defined (_MSC_VER) || defined(GLES2)
+#if defined (_MSC_VER) 
 	char *fname;
 	int ret;
 
@@ -457,7 +457,7 @@ ConsoleMessage(me);}
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
 	}else{
-#ifdef GLES2
+
 			//swap red and blue
 			//search for GL_RGBA in textures.c
 			int x,y,i,j,k,m;
@@ -476,7 +476,7 @@ ConsoleMessage(me);}
 					data[m+2] = R;
 				}
 			}
-#endif
+
 	}
 	free(fname);
 	return (ret != 0);
@@ -485,7 +485,7 @@ ConsoleMessage(me);}
 
 
 /* LINUX */
-#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID) && !defined(GLES2)
+#if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID)
     Imlib_Image image;
 
     image = imlib_load_image_immediately(filename);

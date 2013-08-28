@@ -43,13 +43,11 @@ and write out C struct versions:
 buttonType = 0; // 0 = rgba .png 1= .c bitmap (see above) 
 savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put 1 
 */ 
-#if defined(STATUSBAR_HUD) //&& defined(GLES2) //!(defined(IPHONE) || defined(_ANDROID)) // || defined(GLES2))
-#define GLES2
+#if defined(STATUSBAR_HUD)
 //#define KIOSK 1
 //#define TOUCH 1
 
 
-#ifdef GLES2
 static   GLbyte vShaderStr[] =  
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -177,7 +175,7 @@ GLuint esLoadProgram ( const char *vertShaderSrc, const char *fragShaderSrc )
 
    return programObject;
 }
-#endif
+
 
 //#include "hudIcons_hexbit.h" //2010 bit per pixel
 #include "hudIcons_octalpha.h"  //2012 byte per pixel (nicer)
@@ -456,7 +454,7 @@ void statusbar_init(struct tstatusbar *t){
 	}
 }
 //ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
-#ifdef GLES2
+
 void initProgramObject(){
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 
@@ -469,7 +467,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-#endif
+
 void fwMakeRasterFonts()
 {
 	int i,j,k,m,w,h,bytewidth,bit,bit1,ichar,isize, irow, icol, irowheight,icolwidth, iwidth, iheight;
@@ -654,7 +652,7 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 		}
 	}
 	//bindTexture and DrawElements calls are the same for GL and GLES2
-#ifdef GLES2
+
 	glActiveTexture ( GL_TEXTURE0 );
 	glBindTexture ( GL_TEXTURE_2D, p->pfont.textureID );
 	// Load the vertex position
@@ -669,28 +667,6 @@ void printString2(GLfloat sx, GLfloat sy, char *s)
 	// Set the base map sampler to texture unit to 0
 	glUniform1i ( p->textureLoc, 0 );
 	glDrawElements ( GL_TRIANGLES, i*3*2, GL_UNSIGNED_SHORT, ind );
-#else
-	//Desktop GL
-	glEnable(GL_TEXTURE_2D);
-	glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_BLEND);
-	glTexEnvfv(GL_TEXTURE_ENV,GL_TEXTURE_ENV_COLOR,p->textColor);//GL_REPLACE GL_MODULATE
-	glBindTexture ( GL_TEXTURE_2D, p->pfont.textureID );
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-
-	// Load the vertex position
-	glVertexPointer ( 3, GL_FLOAT, 0, vert );
-	// Load the texture coordinate
-	glTexCoordPointer ( 2, GL_FLOAT, 0, tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
-	glDrawElements ( GL_TRIANGLES, i*3*2, GL_UNSIGNED_SHORT, ind );
-	//glDisableClientState(GL_VERTEX_ARRAY);
-	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	//glDisableClientState( GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glDisable(GL_TEXTURE_2D);
-#endif
 	free(vert);
 	free(tex);
 	free(ind);
@@ -1873,11 +1849,8 @@ void renderButtons()
 	glDisable(GL_SCISSOR_TEST);
 	doglClearColor(); //set back for other cases
 	// Bind the base map
-#ifdef GLES2
 	glActiveTexture ( GL_TEXTURE0 );
-#else
-	glEnable(GL_TEXTURE_2D);
-#endif
+
 	glBindTexture ( GL_TEXTURE_2D, p->pmenu.textureID );
 
 	for(i=0;i<p->pmenu.nactive;i++)
@@ -1901,7 +1874,7 @@ void renderButtons()
 			if(highlightIt) //i==p->isOver || p->pmenu.items[i].butStatus)
 			{
 				/*draw a background highlight rectangle*/
-#ifdef GLES2
+
 				glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
 				glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
 								 //  GL_FALSE, 0, p->pmenu.items[i].vert );
@@ -1914,26 +1887,6 @@ void renderButtons()
 				glEnableVertexAttribArray ( p->positionLoc );
 				glEnableVertexAttribArray ( p->texCoordLoc );
 				glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p->pmenu.ind ); //first 6 should be 0 1 3 0 3 2
-#else
-				//Desktop GL
-				glDisableClientState(GL_COLOR_ARRAY);
-				glDisableClientState(GL_NORMAL_ARRAY);
-				glEnableClientState( GL_VERTEX_ARRAY );
-				glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-				//glVertexPointer( 3, GL_FLOAT,0, p->pmenu.items[i].vert );
-				//mv = i*3*4;
-				glVertexPointer( 3, GL_FLOAT,0, &(p->pmenu.vert[i*3*4]) );
-				// Load the texture coordinate
-				glTexCoordPointer( 2, GL_FLOAT,0, p->pmenu.items[p->pmenu.nitems-1].tex );   //nitems -1 should be the blank texture
-				glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_BLEND);
-				glTexEnvfv(GL_TEXTURE_ENV,GL_TEXTURE_ENV_COLOR,rgba);//GL_REPLACE GL_MODULATE
-				glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, p->pmenu.ind ); //first 6 should be 0 1 3 0 3 2
-				//glDisableClientState( GL_VERTEX_ARRAY );
-				glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-				//glEnableClientState(GL_NORMAL_ARRAY);
-				glEnableClientState(GL_NORMAL_ARRAY);
-				//glDisable(GL_TEXTURE_2D);
-#endif
 			}
 		}
 	}
@@ -1941,7 +1894,7 @@ void renderButtons()
 			GLfloat rgba[4];
 			rgba[0] = .7f; rgba[1] = .7f; rgba[2] = .9f, rgba[3] = 1.0f; //windowing gray
 			// render triangles
-#ifdef GLES2
+
 
 			// Load the vertex position
 			glVertexAttribPointer ( p->positionLoc, 3, GL_FLOAT, 
@@ -1960,25 +1913,6 @@ void renderButtons()
 			// Set the base map sampler to texture unit to 0
 			glUniform1i ( p->textureLoc, 0 );
 			glDrawElements ( GL_TRIANGLES, p->pmenu.nactive*3*2, GL_UNSIGNED_SHORT, p->pmenu.ind ); //just render the active ones
-#else
-			glDisableClientState(GL_COLOR_ARRAY);
-			glDisableClientState(GL_NORMAL_ARRAY);
-			glEnableClientState( GL_VERTEX_ARRAY );
-			glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-			// Load the vertex position
-			glVertexPointer(3, GL_FLOAT, 0, p->pmenu.vert );
-			// Load the texture coordinate
-			glTexCoordPointer(2, GL_FLOAT,0, p->pmenu.tex );  //fails - p->texCoordLoc is 429xxxxx - garbage
-			//glColor4f(.7f,.7f,.9f,1.0f);
-			glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_BLEND);
-			glTexEnvfv(GL_TEXTURE_ENV,GL_TEXTURE_ENV_COLOR,rgba);//GL_REPLACE GL_MODULATE
-			glDrawElements ( GL_TRIANGLES, p->pmenu.nactive*3*2, GL_UNSIGNED_SHORT, p->pmenu.ind ); //just render the active ones
-
-			//glDisableClientState( GL_VERTEX_ARRAY );
-			glDisableClientState( GL_TEXTURE_COORD_ARRAY );
-			//glEnableClientState(GL_NORMAL_ARRAY);
-			glDisable(GL_TEXTURE_2D);
-#endif
 	}
 	p->hadString = 1;
 }
@@ -2141,10 +2075,10 @@ M       void toggle_collision()                             //"
 		//gluOrtho2D(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight);
 		//FW_GL_ORTHO(0.0,tg->display.screenWidth,0.0,tg->display.screenHeight,Viewer()->nearPlane,Viewer()->farPlane);
 		//glFrustum(-1.0,1.0,-1.0,1.0,.1,1000.0);
-#ifdef GLES2
+
 		//might not need this for gles2 either
 		FW_GL_ORTHO(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
-#endif
+
 		//glOrtho(-1.0,1.0,-1.0,1.0,Viewer()->nearPlane,Viewer()->farPlane);
 		//glOrtho(-100.0,100.0,-100.0,100.0,Viewer()->nearPlane,Viewer()->farPlane);
 		glMatrixMode(GL_MODELVIEW);
@@ -2153,14 +2087,10 @@ M       void toggle_collision()                             //"
 		p->posType = 1; // use RasterPos2i instead of WindowPos2i
 	}
 
-#ifdef GLES2
+
    if(p->programObject == 0) initProgramObject();
    glUseProgram ( p->programObject );
-#else
 
-	glShadeModel(GL_FLAT);
-
-#endif
 	if(p->showButtons)
 	{
 		renderButtons();
@@ -2169,9 +2099,6 @@ M       void toggle_collision()                             //"
 		if(p->posType==1) { 
 			glEnable(GL_DEPTH_TEST); 
 		}
-#ifndef GLES2
-		glShadeModel(GL_SMOOTH);
-#endif
 		return;
 #endif
 	}
@@ -2230,12 +2157,9 @@ M       void toggle_collision()                             //"
 	//FW_GL_COLOR3F(0.2f,0.2f,0.5f);
 	//glWindowPos seems to set the bitmap color correctly in windows
 
-#ifdef GLES2
+
 	glUniform4f(p->color4fLoc,.2f,.2f,.2f,1.0f);
-#else
-	//glColor4f(.2f,.2f,.2f,1.0f);
-	p->textColor[0] = p->textColor[1] = p->textColor[2] = .2f;
-#endif
+
 
 	if(1) //if(p->sb_hasString)
 	{
@@ -2259,11 +2183,9 @@ M       void toggle_collision()                             //"
 		printString2(-1.0f + xy.x*35.0f,-1.0f,strstatus);
 	}
 
-#ifdef GLES2
+
 	glUniform4f(p->color4fLoc,1.0f,1.0f,1.0f,1.0f);
-#else
-	p->textColor[0] = p->textColor[1] = p->textColor[2] = 1.0f;
-#endif
+
 	if(showAction(p,ACTION_HELP))
 		printKeyboardHelp(p);
 	if(showAction(p,ACTION_MESSAGES)) 
@@ -2278,9 +2200,7 @@ M       void toggle_collision()                             //"
 	glDepthMask(TRUE);
 	glEnable(GL_DEPTH_TEST);
 	//FW_GL_FLUSH();
-#ifndef GLES2
-	glShadeModel(GL_SMOOTH);
-#endif
+
 	//if(p->posType==1) { 
 	//	glEnable(GL_DEPTH_TEST); 
 	//}

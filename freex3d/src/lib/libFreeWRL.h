@@ -30,7 +30,7 @@
 
 
 /* for front ends that do not have these X-11-based defines */
-#if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID) || defined(GLES2)
+#if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID)
 #ifndef _MIMIC_X11_SCREEN_BUTTONS
         #define _MIMIC_X11_SCREEN_BUTTONS
                 #define KeyPress        2
@@ -329,7 +329,6 @@ void fwl_setLastMouseEvent(int etype);
 void fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 /* JAS - moving OSX front end into 2011 code workings - these may change. */
-void fwl_replaceWorldNeeded(char* str);
 int fwl_pollPromptForURL(); /* poll from front end / UI in loop */
 int fwl_pollPromptForFile();
 void fwl_setPromptForURL(int state);

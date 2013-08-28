@@ -42,7 +42,7 @@ Global includes.
 
 /* no occlusion queries right now - need to work on the shader implementation 
     of occlusion culling */ 
-//JAS #if defined(IPHONE) || defined(_ANDROID) || defined(GLES2)
+//JAS #if defined(IPHONE) || defined(_ANDROID)
 	#undef OCCLUSION
 	#undef VISIBILITYOCCLUSION
 	#undef SHAPEOCCLUSION

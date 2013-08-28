@@ -20,6 +20,14 @@ float curHeight;
 NSMutableData *receivedData;
 void *drawRectconcurrencyHandle = NULL;
 char* startingString = NULL;
+
+static int displayBoundingBox = TRUE;
+static int myBBShowerCompiled = FALSE;
+static struct X3D_IndexedLineSet *bbILS = NULL;
+
+struct X3D_IndexedLineSet *fwl_makeRootBoundingBox();
+void fwl_update_boundingBox(struct X3D_IndexedLineSet* node);
+
 //void* initializerConcurrencyHandle = NULL;
 #define TOP_BAR_HEIGHT 0.0
 
@@ -44,7 +52,7 @@ char* startingString = NULL;
     //[[self openGLContext] makeCurrentContext];
     
     //NSLog (@"calling fwl_initializeRenderSceneUpdateScene");
-    printf ("calling firstMethod, I am %p\n",pthread_self());
+    //printf ("calling firstMethod, I am %p\n",pthread_self());
     
     //NSLog(@"calling fwl_init_instance");
   
@@ -75,6 +83,8 @@ char* startingString = NULL;
 
         startingString="/Users/john/Desktop/GeoSpatialTesting/7_levels_plus/globe.x3d";
         //startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/13.wrl";
+        //startingString="/Users/john/Desktop/Stuff/OpenCL/GPU_Collide/kebne2.wrl";
+        //startingString="/Users/john/Desktop/GeoSpatialTesting/freewrl/freewrl/tests/21.wrl";
     }
     
     while ([FreeWRLAppDelegate applicationHasLaunched]) {
@@ -405,6 +415,20 @@ mouseDisplaySensitive = mouseOverSensitive; \
     
     fwl_RenderSceneUpdateScene();
 
+    // display the Bounding Box, if requested
+    if (displayBoundingBox) {
+        if (!myBBShowerCompiled) {
+            if (bbILS == NULL) {
+                bbILS = fwl_makeRootBoundingBox();
+            }
+            
+            // did this work?
+            myBBShowerCompiled = (bbILS != NULL);
+        } else {
+            fwl_update_boundingBox(bbILS);
+        }
+    }
+
     //mainloopCount ++;
     
     
@@ -431,7 +455,7 @@ mouseDisplaySensitive = mouseOverSensitive; \
     
     fv_display_initialize();
 
-    printf ("prepareOpenGL, i am thread %p\n",pthread_self());
+    //printf ("prepareOpenGL, i am thread %p\n",pthread_self());
     
     [[self openGLContext] setValues:&swapInt forParameter:NSOpenGLCPSwapInterval]; // set to vbl sync
 

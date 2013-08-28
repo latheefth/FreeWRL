@@ -144,17 +144,19 @@ int fv_display_initialize()
 	//d->height = fwl_getp_height();
 	//d->winToEmbedInto = fwl_getp_winToEmbedInto();
 
-	/* make the window, get the OpenGL context */
-#if !defined(_MSC_VER) && !defined(GLES2)
-	if (!fv_open_display()) {
-		return FALSE;
-	}
-
-	if (!fv_create_GLcontext()) {
-		return FALSE;
-	}
-
-#endif
+#ifdef OLDCODE
+OLDCODE 	/* make the window, get the OpenGL context */
+OLDCODE #if !defined(_MSC_VER) && !defined(GLES2)
+OLDCODE	if (!fv_open_display()) {
+OLDCODE		return FALSE;
+OLDCODE	}
+OLDCODE
+OLDCODE	if (!fv_create_GLcontext()) {
+OLDCODE		return FALSE;
+OLDCODE	}
+OLDCODE
+OLDCODE #endif //!MSC_VER && !GLES2
+#endif //OLDCODE
 
 	if (0 != d->screenWidth)  d->width  = d->screenWidth;
 	if (0 != d->screenHeight) d->height = d->screenHeight;
@@ -195,7 +197,7 @@ int fv_display_initialize()
 
     PRINT_GL_ERROR_IF_ANY ("end of fv_display_initialize");
     
-#if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID) || defined(GLES2))
+#if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID))
         
 	if (RUNNINGASPLUGIN) {
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
@@ -275,7 +277,7 @@ bool initialize_rdr_caps()
 	GLint tmp;  /* ensures that we pass pointers of same size across all platforms */
 		
 
-#ifdef HAVE_LIBGLEW
+#ifdef HAVE_GLEW_H
 
 	/* Initialize GLEW */
 	{
@@ -311,7 +313,7 @@ bool initialize_rdr_caps()
     rdr_caps.have_GL_VERSION_2_1 = rdr_caps.versionf >= 2.1f;
     rdr_caps.have_GL_VERSION_3_0 = rdr_caps.versionf >= 3.0f;
 
-#ifdef HAVE_LIBGLEW
+#ifdef HAVE_GLEW_H
 
 	{
     printf("opengl version=%s\n",rdr_caps.version);
