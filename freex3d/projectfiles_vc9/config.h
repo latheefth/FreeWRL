@@ -268,7 +268,10 @@ char *getWgetPath();
 
 #undef HAVE_DIRECT_H
 #define HAVE_DIRECT_H 1
-#ifndef GLES2
-#define HAVE_LIBGLEW 1
+
+//#ifndef GLES2
+#define GLES2
+//#define HAVE_LIBGLEW 1
+#define HAVE_GLEW_H 1
 #define FREEWRL_STEREO_RENDERING 1
-#endif
+//#endif

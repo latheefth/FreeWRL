@@ -11,6 +11,7 @@ extern "C"
 //#ifdef GLEW_MX
 //GLEWContext * glewGetContext();
 //#endif
+#include <config.h>
 #include "display.h"
 #include "opengl/textures.h"
 /*

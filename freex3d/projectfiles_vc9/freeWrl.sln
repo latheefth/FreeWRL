@@ -6,6 +6,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRL", "bin\bin.vcproj",
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL", "lib\libFreeWRL.vcproj", "{D35384EF-4B8A-4256-9729-D6A94CCB88B8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DAC8249B-F01F-4B67-939A-4FA6B3D4B50C} = {DAC8249B-F01F-4B67-939A-4FA6B3D4B50C}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllFreeWRL", "dllFreeWRL\dllFreeWRL.vcproj", "{8B124FE7-4284-46D4-B962-F1EE06911C95}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -24,10 +27,21 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfreeWRLEAI", "libfreeWRL
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL_dotNetwrapper", "libFreeWRL_dotNetwrapper\libFreeWRL_dotNetwrapper.vcproj", "{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8B124FE7-4284-46D4-B962-F1EE06911C95} = {8B124FE7-4284-46D4-B962-F1EE06911C95}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_dll", "test_dll\test_dll.vcproj", "{049F7A37-B2B2-401F-B7A1-5870D0619947}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8B124FE7-4284-46D4-B962-F1EE06911C95} = {8B124FE7-4284-46D4-B962-F1EE06911C95}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_dotNetWrapper", "Test_dotNetWrapper\Test_dotNetWrapper.vcproj", "{19F0FAD6-44F5-4270-BC87-F886DBE17176}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5} = {7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtess", "..\src\libtess\win32\libtess.vcproj", "{DAC8249B-F01F-4B67-939A-4FA6B3D4B50C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +81,10 @@ Global
 		{19F0FAD6-44F5-4270-BC87-F886DBE17176}.Debug|Win32.Build.0 = Debug|Win32
 		{19F0FAD6-44F5-4270-BC87-F886DBE17176}.Release|Win32.ActiveCfg = Release|Win32
 		{19F0FAD6-44F5-4270-BC87-F886DBE17176}.Release|Win32.Build.0 = Release|Win32
+		{DAC8249B-F01F-4B67-939A-4FA6B3D4B50C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DAC8249B-F01F-4B67-939A-4FA6B3D4B50C}.Debug|Win32.Build.0 = Debug|Win32
+		{DAC8249B-F01F-4B67-939A-4FA6B3D4B50C}.Release|Win32.ActiveCfg = Release|Win32
+		{DAC8249B-F01F-4B67-939A-4FA6B3D4B50C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
